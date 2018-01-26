@@ -31,7 +31,7 @@ after_build:
   - 7z a C:\Projects\MaterialX\MaterialX_ADSK.zip C:\Projects\MaterialX\build\installed
 
 artifacts:
-- path: C:\Projects\MaterialX\MaterialX_ADSK.zip
+- path: MaterialX_ADSK.zip
   name: MaterialX_ADSK
 
 deploy:
