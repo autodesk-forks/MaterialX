@@ -1,4 +1,4 @@
-version: 1.36."{build}"
+version: 1.36.0.{build}
 os: Visual Studio 2017
 clone_folder: C:\Projects\MaterialX
 
@@ -28,10 +28,10 @@ build_script:
   - cmake -E chdir ../python/MaterialXTest python main.py
 
 after_build:
-  - 7z a MaterialX_ADSK.zip C:\Projects\MaterialX\build\installed
+  - 7z a C:\Projects\MaterialX\MaterialX_ADSK.zip C:\Projects\MaterialX\build\installed
 
 artifacts:
-- path: MaterialX_ADSK.zip
+- path: C:\Projects\MaterialX\MaterialX_ADSK.zip
   name: MaterialX_ADSK
 
 deploy:
