@@ -41,7 +41,7 @@ script:
     - cmake -E chdir ../python/MaterialXTest python main.py
 
 before_deploy:
-    - zip -r ${TRAVIS_BUILD_DIR}/MaterialX-${TRAVIS_OS_NAME}-${TRAVIS_BRANCH}-${TRAVIS_BUILD_NUMBER}.zip ${TRAVIS_BUILD_DIR}/installed
+    - zip -r ${TRAVIS_BUILD_DIR}/MaterialX-${TRAVIS_OS_NAME}-${TRAVIS_BRANCH}-${TRAVIS_BUILD_NUMBER}.zip -i ${TRAVIS_BUILD_DIR}/installed/\*
 
 deploy:
   provider: releases
