@@ -29,7 +29,7 @@ build_script:
 
 after_build:
   - cd C:\Projects\MaterialX\build\installed
-  - 7z a C:\Projects\MaterialX\MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%APPVEYOR_BUILD_NUMBER%.zip *.*
+  - 7z a -r C:\Projects\MaterialX\MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%APPVEYOR_BUILD_NUMBER%.zip .
 
 artifacts:
 - path: MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%APPVEYOR_BUILD_NUMBER%.zip
@@ -38,5 +38,7 @@ artifacts:
 deploy:
 - provider: GitHub
   prerelease: true
+  on:
+    platform: x64
   auth_token:
     secure: qg4BvNKremS4OMcbGZEjaXrumrQ+8/pJvr3WrNqM1ZQDyzvNpmUEA0ZMRkUJzeOh

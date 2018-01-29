@@ -42,7 +42,7 @@ script:
 
 before_deploy:
     - cd ${TRAVIS_BUILD_DIR}/build/installed
-    - zip -r ${TRAVIS_BUILD_DIR}/MaterialX-${TRAVIS_OS_NAME}-${TRAVIS_BRANCH}-${TRAVIS_BUILD_NUMBER}.zip *.*
+    - zip -r ${TRAVIS_BUILD_DIR}/MaterialX-${TRAVIS_OS_NAME}-${TRAVIS_BRANCH}-${TRAVIS_BUILD_NUMBER}.zip .
 
 deploy:
   provider: releases
