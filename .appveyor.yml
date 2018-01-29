@@ -18,8 +18,8 @@ environment:
       VS_COMPILER: vs2017
     - CMAKE_PLATFORM: "Visual Studio 15 2017 Win64"
       PYTHON: C:\Python36-x64
-      platform: x64
-      vscompiler: vs2017
+      VS_PLATFORM: x64
+      VS_COMPILER: vs2017
 
 configuration:
   - Release
@@ -48,5 +48,6 @@ deploy:
   prerelease: true
   on:
     VS_PLATFORM: x64
+    # branch: adsk_update_shadergen
   auth_token:
     secure: qg4BvNKremS4OMcbGZEjaXrumrQ+8/pJvr3WrNqM1ZQDyzvNpmUEA0ZMRkUJzeOh

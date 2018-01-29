@@ -53,5 +53,5 @@ deploy:
   skip_cleanup: true
   on:
     repo: autodesk-forks/MaterialX
-    branch: adsk_update_artifacts
+    # branch: adsk_update_shadergen
     condition: "$CC = gcc"
