@@ -6,12 +6,20 @@ environment:
   matrix:
     - CMAKE_PLATFORM: "Visual Studio 14 2015"
       PYTHON: C:\Python26
+      VS_PLATFORM: x86
+      VS_COMPILER: vs2015
     - CMAKE_PLATFORM: "Visual Studio 14 2015 Win64"
       PYTHON: C:\Python27-x64
+      VS_PLATFORM: x64
+      VS_COMPILER: vs2015
     - CMAKE_PLATFORM: "Visual Studio 15 2017"
       PYTHON: C:\Python35
+      VS_PLATFORM: x86
+      VS_COMPILER: vs2017
     - CMAKE_PLATFORM: "Visual Studio 15 2017 Win64"
       PYTHON: C:\Python36-x64
+      platform: x64
+      vscompiler: vs2017
 
 configuration:
   - Release
@@ -29,16 +37,16 @@ build_script:
 
 after_build:
   - cd C:\Projects\MaterialX\build\installed
-  - 7z a -r C:\Projects\MaterialX\MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%APPVEYOR_BUILD_NUMBER%.zip .
+  - 7z a -r C:\Projects\MaterialX\MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%VS_PLATFORM%-%VS_COMPILER%-%APPVEYOR_BUILD_NUMBER%.zip .
 
 artifacts:
-- path: MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%APPVEYOR_BUILD_NUMBER%.zip
+- path: MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%VS_PLATFORM%-%VS_COMPILER%-%APPVEYOR_BUILD_NUMBER%.zip
   name: MaterialX_ADSK
 
 deploy:
 - provider: GitHub
   prerelease: true
   on:
-    platform: x64
+    VS_PLATFORM: x64
   auth_token:
     secure: qg4BvNKremS4OMcbGZEjaXrumrQ+8/pJvr3WrNqM1ZQDyzvNpmUEA0ZMRkUJzeOh
