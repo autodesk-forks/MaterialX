@@ -36,18 +36,31 @@ build_script:
   - cmake -E chdir ../python/MaterialXTest python main.py
 
 after_build:
-  - cd C:\Projects\MaterialX\build\installed
-  - 7z a -r C:\Projects\MaterialX\MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%VS_PLATFORM%-%VS_COMPILER%-%APPVEYOR_BUILD_NUMBER%.zip .
+    # Go to install directory and zip it up.  Currently marked as pre-release
+    - cd C:\Projects\MaterialX\build\installed
+    - 7z a -r C:\Projects\MaterialX\MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%VS_PLATFORM%-%VS_COMPILER%-%APPVEYOR_BUILD_NUMBER%.zip .
 
 artifacts:
-- path: MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%VS_PLATFORM%-%VS_COMPILER%-%APPVEYOR_BUILD_NUMBER%.zip
-  name: MaterialX_ADSK
+    # Set artifact to be created zip.  Currently marked as pre-release
+    - path: MaterialX-Windows-%APPVEYOR_REPO_BRANCH%-%VS_PLATFORM%-%VS_COMPILER%-%APPVEYOR_BUILD_NUMBER%.zip
+      name: MaterialX_ADSK
 
 deploy:
-- provider: GitHub
-  prerelease: true
-  on:
-    VS_PLATFORM: x64
-    # branch: adsk_update_shadergen
-  auth_token:
-    secure: qg4BvNKremS4OMcbGZEjaXrumrQ+8/pJvr3WrNqM1ZQDyzvNpmUEA0ZMRkUJzeOh
+    # Deploy on main working branch
+    - provider: GitHub
+      prerelease: true
+      on:
+        VS_PLATFORM: x64
+        # Choose branch
+        branch: adsk_update_shadergen
+      auth_token:
+        secure: qg4BvNKremS4OMcbGZEjaXrumrQ+8/pJvr3WrNqM1ZQDyzvNpmUEA0ZMRkUJzeOh
+
+    # Deploy on tags
+    - provider: GitHub
+      prerelease: true
+      on:
+        VS_PLATFORM: x64
+        appveyor_repo_tag: true
+      auth_token:
+        secure: qg4BvNKremS4OMcbGZEjaXrumrQ+8/pJvr3WrNqM1ZQDyzvNpmUEA0ZMRkUJzeOh
