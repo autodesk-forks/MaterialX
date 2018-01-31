@@ -68,7 +68,7 @@ TEST_CASE("Swizzling", "[shadergen]")
     std::vector<std::string> filenames =
     {
         "documents/Libraries/stdlib/mx_stdlib_defs.mtlx",
-        "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_osl.mtlx"
+        "documents/Libraries/stdlib/impl/shadergen/osl/impl.mtlx"
     };
     for (const std::string& filename : filenames)
     {
@@ -164,8 +164,8 @@ TEST_CASE("Simple Nodegraph Shader Generation", "[shadergen]")
     // Setup the shader generators
     std::vector<GeneratorDescription> generatorDescriptions =
     {
-        { arnoldShaderGenerator, "osl",  {"documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_osl.mtlx"}, mx::Shader::PIXEL_STAGE },
-        { ogsfxShaderGenerator, "ogsfx", {"documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_glsl.mtlx"}, mx::OgsFxShader::FINAL_FX_STAGE }
+        { arnoldShaderGenerator, "osl",  {"documents/Libraries/stdlib/impl/shadergen/osl/impl.mtlx"}, mx::Shader::PIXEL_STAGE },
+        { ogsfxShaderGenerator, "ogsfx", {"documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx"}, mx::OgsFxShader::FINAL_FX_STAGE }
     };
 
     for (auto desc : generatorDescriptions)
@@ -262,8 +262,8 @@ TEST_CASE("Conditional Nodegraph Shader Generation", "[shadergen]")
     // Setup the shader generators
     std::vector<GeneratorDescription> generatorDescriptions =
     {
-        { arnoldShaderGenerator, "osl",{ "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_osl.mtlx" }, mx::Shader::PIXEL_STAGE },
-        { ogsfxShaderGenerator, "ogsfx",{ "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_glsl.mtlx" }, mx::OgsFxShader::FINAL_FX_STAGE }
+        { arnoldShaderGenerator, "osl",{ "documents/Libraries/stdlib/impl/shadergen/osl/impl.mtlx" }, mx::Shader::PIXEL_STAGE },
+        { ogsfxShaderGenerator, "ogsfx",{ "documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx" }, mx::OgsFxShader::FINAL_FX_STAGE }
     };
 
     for (auto desc : generatorDescriptions)
@@ -342,7 +342,7 @@ TEST_CASE("Geometric Nodes", "[shadergen]")
     GeneratorDescription desc = {
         ogsfxShaderGenerator, "ogsfx",
         { 
-            "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_glsl.mtlx"
+            "documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx"
         },
         mx::OgsFxShader::FINAL_FX_STAGE
     };
@@ -395,15 +395,15 @@ TEST_CASE("Subgraph Shader Generation", "[shadergen]")
     {
         { arnoldShaderGenerator, "osl",
             {
-                "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_osl.mtlx",
-                "documents/Libraries/sx/impl/shadergen/sx_impl_shadergen_osl.mtlx",
+                "documents/Libraries/stdlib/impl/shadergen/osl/impl.mtlx",
+                "documents/Libraries/sx/impl/shadergen/osl/impl.mtlx",
             }, 
             mx::Shader::PIXEL_STAGE
         },
         { ogsfxShaderGenerator, "ogsfx",
             {
-                "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_glsl.mtlx",
-                "documents/Libraries/sx/impl/shadergen/sx_impl_shadergen_glsl.mtlx",
+                "documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx",
+                "documents/Libraries/sx/impl/shadergen/glsl/impl.mtlx",
             },
             mx::OgsFxShader::FINAL_FX_STAGE
         }
@@ -515,15 +515,15 @@ TEST_CASE("Material Shader Generation", "[shadergen]")
     {
         { arnoldShaderGenerator, "osl",
             {
-                "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_osl.mtlx",
-                "documents/Libraries/adsk/impl/shadergen/adsk_impl_shadergen_osl.mtlx"
+                "documents/Libraries/stdlib/impl/shadergen/osl/impl.mtlx",
+                "documents/Libraries/adsk/impl/shadergen/osl/impl.mtlx"
             },
             mx::Shader::PIXEL_STAGE
         },
         { ogsfxShaderGenerator, "ogsfx",
             { 
-                "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_glsl.mtlx",
-                "documents/Libraries/adsk/impl/shadergen/adsk_impl_shadergen_glsl.mtlx"
+                "documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx",
+                "documents/Libraries/adsk/impl/shadergen/glsl/impl.mtlx"
             },
             mx::OgsFxShader::FINAL_FX_STAGE
         }
@@ -634,17 +634,17 @@ TEST_CASE("BSDF Layering", "[shadergen]")
     {
         { arnoldShaderGenerator, "osl",
             {
-                "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_osl.mtlx",
-                "documents/Libraries/adsk/impl/shadergen/adsk_impl_shadergen_osl.mtlx",
-                "documents/Libraries/sx/impl/shadergen/sx_impl_shadergen_osl.mtlx",
+                "documents/Libraries/stdlib/impl/shadergen/osl/impl.mtlx",
+                "documents/Libraries/adsk/impl/shadergen/osl/impl.mtlx",
+                "documents/Libraries/sx/impl/shadergen/osl/impl.mtlx",
             },
             mx::Shader::PIXEL_STAGE
         },
         { ogsfxShaderGenerator, "ogsfx",
             {
-                "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_glsl.mtlx",
-                "documents/Libraries/adsk/impl/shadergen/adsk_impl_shadergen_glsl.mtlx",
-                "documents/Libraries/sx/impl/shadergen/sx_impl_shadergen_glsl.mtlx",
+                "documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx",
+                "documents/Libraries/adsk/impl/shadergen/glsl/impl.mtlx",
+                "documents/Libraries/sx/impl/shadergen/glsl/impl.mtlx",
             },
             mx::OgsFxShader::FINAL_FX_STAGE
         }
@@ -735,17 +735,17 @@ TEST_CASE("Transparency", "[shadergen]")
     {
         { arnoldShaderGenerator, "osl",
             {
-                "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_osl.mtlx",
-                "documents/Libraries/adsk/impl/shadergen/adsk_impl_shadergen_osl.mtlx",
-                "documents/Libraries/sx/impl/shadergen/sx_impl_shadergen_osl.mtlx",
+                "documents/Libraries/stdlib/impl/shadergen/osl/impl.mtlx",
+                "documents/Libraries/adsk/impl/shadergen/osl/impl.mtlx",
+                "documents/Libraries/sx/impl/shadergen/osl/impl.mtlx",
             },
             mx::Shader::PIXEL_STAGE
         },
         { ogsfxShaderGenerator, "ogsfx",
             {
-                "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_glsl.mtlx",
-                "documents/Libraries/adsk/impl/shadergen/adsk_impl_shadergen_glsl.mtlx",
-                "documents/Libraries/sx/impl/shadergen/sx_impl_shadergen_glsl.mtlx",
+                "documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx",
+                "documents/Libraries/adsk/impl/shadergen/glsl/impl.mtlx",
+                "documents/Libraries/sx/impl/shadergen/glsl/impl.mtlx",
             },
             mx::OgsFxShader::FINAL_FX_STAGE
         }
@@ -840,9 +840,9 @@ TEST_CASE("LayeredSurface", "[shadergen]")
     {
         { ogsfxShaderGenerator, "ogsfx",
             {
-                "documents/Libraries/stdlib/impl/shadergen/mx_stdlib_impl_shadergen_glsl.mtlx",
-                "documents/Libraries/adsk/impl/shadergen/adsk_impl_shadergen_glsl.mtlx",
-                "documents/Libraries/sx/impl/shadergen/sx_impl_shadergen_glsl.mtlx",
+                "documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx",
+                "documents/Libraries/adsk/impl/shadergen/glsl/impl.mtlx",
+                "documents/Libraries/sx/impl/shadergen/glsl/impl.mtlx",
             },
             mx::OgsFxShader::FINAL_FX_STAGE
         }

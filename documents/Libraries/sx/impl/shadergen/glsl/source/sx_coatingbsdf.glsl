@@ -1,4 +1,4 @@
-#include "sx/impl/shadergen/source/glsl/shadingmodels.glsl"
+#include "sx/impl/shadergen/glsl/source/shadingmodels.glsl"
 
 void sx_coatingbsdf(vec3 L, vec3 V, vec3 reflectance, float ior, float roughness, float anisotropy, vec3 normal, vec3 tangent, int distribution, BSDF base, out BSDF result)
 {
@@ -6,7 +6,7 @@ void sx_coatingbsdf(vec3 L, vec3 V, vec3 reflectance, float ior, float roughness
 
     float NdotL = dot(normal,L);
     float NdotV = dot(normal,V);
-    if (NdotL < 0 || NdotV < 0) 
+    if (NdotL < 0 || NdotV < 0)
         return;
 
     vec3 H = normalize(L+V);
