@@ -22,16 +22,6 @@ namespace MaterialX
 class GLSLValidator
 {
   public:
-    /// Shader stage enums
-    enum class Stage
-    {
-        VERTEX,
-        GEOMETRY,
-        TESSELLATION,
-        PIXEL,
-        STAGE_COUNT = PIXEL
-    };
-
     GLSLValidator();
     virtual ~GLSLValidator();
 
@@ -42,9 +32,9 @@ class GLSLValidator
     /// Setup code to validate one stage at a time. 
     /// @param code Shader code string for a given stage
     /// @param stage Shader stage
-    void setup(const std::string& code, const Stage& stage)
+    void setup(const std::string& code, size_t stage)
     {
-        _stages[(unsigned int)stage] = code;
+        _stages[stage] = code;
     }
 
     /// Create the shader program from stages specified
@@ -66,7 +56,7 @@ class GLSLValidator
       void cleanup();
       bool haveValidStages() const;
   private:
-    std::string _stages[Stage::STAGE_COUNT];
+    std::string _stages[HwShader::NUM_STAGES];
     unsigned int _programId;
 };
 

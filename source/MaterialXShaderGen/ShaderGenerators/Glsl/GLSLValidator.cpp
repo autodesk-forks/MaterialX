@@ -1,6 +1,6 @@
 
 #include "GL/glew.h"
-#include <MaterialXShaderGen/ShaderGenerators/GLSL/GLSLValidator.h>
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLSLValidator.h>
 
 namespace MaterialX
 {
@@ -28,7 +28,7 @@ void GLSLValidator::cleanup()
         glDeleteObjectARB(_programId);
         _programId = 0;
     }
-    for (unsigned int i = 0; i < (unsigned int)Stage::STAGE_COUNT; i++)
+    for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
     {
         _stages[i].clear();
     }
@@ -37,8 +37,8 @@ void GLSLValidator::cleanup()
 bool GLSLValidator::haveValidStages() const
 {
     // Need at least a pixel shader stage and a vertex shader stage
-    const std::string& vertexShaderSource = _stages[static_cast<unsigned int>(Stage::VERTEX)];
-    const std::string& fragmentShaderSource = _stages[static_cast<unsigned int>(Stage::PIXEL)];
+    const std::string& vertexShaderSource = _stages[HwShader::VERTEX_STAGE];
+    const std::string& fragmentShaderSource = _stages[HwShader::PIXEL_STAGE];
     
     return (vertexShaderSource.length() > 0 && fragmentShaderSource.length() > 0);
 }
@@ -61,7 +61,7 @@ unsigned int GLSLValidator::createProgram(std::vector<std::string>& errors)
 
     unsigned int stagesBuilt = 0;
     unsigned int desiredStages = 0;
-    for (unsigned int i = 0; i < (unsigned int)Stage::STAGE_COUNT; i++)
+    for (unsigned int i = 0; i < HwShader::NUM_STAGES; i++)
     {
         if (_stages[i].length())
             desiredStages++;
@@ -69,7 +69,7 @@ unsigned int GLSLValidator::createProgram(std::vector<std::string>& errors)
 
     // Create vertex shader
     GLuint vertexShaderId = 0;
-    std::string &vertexShaderSource = _stages[static_cast<unsigned int>(Stage::VERTEX)];
+    std::string &vertexShaderSource = _stages[HwShader::VERTEX_STAGE];
     if (vertexShaderSource.length())
     {
         vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
@@ -101,7 +101,7 @@ unsigned int GLSLValidator::createProgram(std::vector<std::string>& errors)
 
     // Create fragment shader
     GLuint fragmentShaderId = 0;
-    std::string& fragmentShaderSource = _stages[static_cast<unsigned int>(Stage::PIXEL)];
+    std::string& fragmentShaderSource = _stages[HwShader::PIXEL_STAGE];
     if (fragmentShaderSource.length())
     {
         fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
