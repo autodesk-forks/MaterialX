@@ -22,30 +22,46 @@ namespace MaterialX
 class GLSLValidator
 {
   public:
+    using ErrorList = std::vector<std::string>;
+
+    /// Constructor
     GLSLValidator();
+
+    /// Destructor
     virtual ~GLSLValidator();
+
+    bool iniitialized() const
+    {
+        return _initialized;
+    }
 
     /// Set up code to validate using a shader
     /// @param shader Hardware shader to use
-    void setup(const HwShader& shader);
+    void setStages(const HwShader& shader);
 
     /// Setup code to validate one stage at a time. 
     /// @param code Shader code string for a given stage
     /// @param stage Shader stage
-    void setup(const std::string& code, size_t stage)
+    void setStage(const std::string& code, size_t stage)
     {
         _stages[stage] = code;
     }
 
+    /// Clear out any existing stages
+    void clearStages();
+
     /// Create the shader program from stages specified
     /// @param errors List of errors which may result if validation valids
     /// @return Program identifier. Will be non-zero on success 
-    unsigned int createProgram(std::vector<std::string>& errors);
+    unsigned int createProgram(ErrorList& errors);
+
+    /// Delete any currently created shader program
+    void deleteProgram();
 
     /// Render to buffer
     /// @errors List of errors if rendering fails
     /// @return true if successful
-    bool render(std::vector<std::string>& errors);
+    bool render(ErrorList& errors);
 
     /// Save buffer to disk
     /// @errors fileName Name of file to save rendered image to
@@ -53,11 +69,39 @@ class GLSLValidator
     bool save(std::string& fileName);
 
   protected:
-      void cleanup();
-      bool haveValidStages() const;
-  private:
+    /// Internal initialization of stages and OpenGL contstructs
+    /// required for program validation and rendering.
+    void initialize(ErrorList& errors);
+      
+    /// Internal cleanup of stages and OpenGL constructs
+    void cleanup();
+
+    /// Check if there is a valid set of stages to build program from
+    bool haveValidStages() const;
+
+    /// Create a offscreen target used for rendering.
+    bool createTarget(ErrorList& errors);
+    /// Delete any created offscreen target.
+    void deleteTarget();
+    /// Bind or unbind any created offscree target.
+    bool bindTarget(bool bind, ErrorList& errors);
+
+
+private:
+    // Stages used to create program
     std::string _stages[HwShader::NUM_STAGES];
+    
+    // Generated program
     unsigned int _programId;
+
+    // Buffer for rendering
+    unsigned int _colorTarget;
+    unsigned int _depthTarget;
+    unsigned int _frameBuffer;
+    unsigned int _frameBufferWidth;
+    unsigned int _frameBufferHeight;
+
+    bool _initialized;
 };
 
 } // namespace MaterialX

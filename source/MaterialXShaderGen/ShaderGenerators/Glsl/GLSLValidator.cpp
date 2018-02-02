@@ -6,28 +6,48 @@ namespace MaterialX
 {
 
 GLSLValidator::GLSLValidator() :
-    _programId(0)
+    _programId(0),
+    _colorTarget(0),
+    _depthTarget(0),
+    _frameBuffer(0),
+    _frameBufferWidth(256),
+    _frameBufferHeight(256),
+    _initialized(false)
 {
 }
 
 GLSLValidator::~GLSLValidator()
 {
-    cleanup();
+    deleteProgram();
+    deleteTarget();
 }
 
-void GLSLValidator::setup(const HwShader& /*shader*/)
+void GLSLValidator::setStages(const HwShader& shader)
 {
-    // generate the shader here.. where does binding occur?
-    // need to store a generator or have one passed in
-}
+    // Clear out any old data
+    clearStages();
 
-void GLSLValidator::cleanup()
-{
-    if (_programId > 0)
+    // Extract out the shader code per stage
+    if (shader.numStages() >= HwShader::PIXEL_STAGE)
     {
-        glDeleteObjectARB(_programId);
-        _programId = 0;
+        for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
+        {
+            _stages[i] = shader.getSourceCode(i);
+        }
     }
+}
+
+void GLSLValidator::initialize(ErrorList& errors)
+{
+    if (!_initialized)
+    {
+        errors;
+        _initialized = true;
+    }
+}
+
+void GLSLValidator::clearStages()
+{
     for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
     {
         _stages[i].clear();
@@ -43,12 +63,101 @@ bool GLSLValidator::haveValidStages() const
     return (vertexShaderSource.length() > 0 && fragmentShaderSource.length() > 0);
 }
 
+void GLSLValidator::deleteTarget()
+{
+    if (_frameBuffer)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, &_frameBuffer);
+    }
+}
 
-unsigned int GLSLValidator::createProgram(std::vector<std::string>& errors)
+bool GLSLValidator::createTarget(ErrorList& errors)
+{
+    // Only create once
+    if (_frameBuffer > 0)
+    {
+        return true;
+    }
+
+    // Set up frame buffer
+    glGenFramebuffers(1, &_frameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+
+    // Create an offscreen floating point color target and attach to the framebuffer
+    _colorTarget = 0;
+    glGenTextures(1, &_colorTarget);
+    glBindTexture(GL_TEXTURE_2D, _colorTarget);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _frameBufferWidth, _frameBufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _colorTarget, 0);
+
+    // Create floating point offscreen depth target
+    _depthTarget = 0;
+    glGenTextures(1, &_depthTarget);
+    glBindTexture(GL_TEXTURE_2D, _depthTarget);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, _frameBufferWidth, _frameBufferHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTarget, 0);
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glDrawBuffer(GL_NONE);
+
+    // Validate the framebuffer
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, &_frameBuffer);
+        _frameBuffer = 0;
+        errors.push_back("Frame buffer setup failed.");
+        return false;
+    }
+
+    // Unbind on cleanup
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    return true;
+}
+
+bool GLSLValidator::bindTarget(bool bind, ErrorList& errors)
+{
+    // Make sure we have a target to bind first
+    createTarget(errors);
+    if (!_frameBuffer)
+    {
+        return false;
+    }
+
+    // Bind the frame buffer and route to color texture target
+    if (bind)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+        GLenum colorList[1] = { GL_COLOR_ATTACHMENT0 };
+        glDrawBuffers(1, colorList);
+    }
+    // Unbind frame buffer and route nowhere.
+    else
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDrawBuffer(GL_NONE);
+    }
+    return true;
+}
+
+void GLSLValidator::deleteProgram()
+{
+    if (_programId > 0)
+    {
+        glDeleteObjectARB(_programId);
+        _programId = 0;
+    }
+}
+
+unsigned int GLSLValidator::createProgram(ErrorList& errors)
 {
     errors.clear();
 
-    cleanup();
+    deleteProgram();
 
     if (!haveValidStages())
     {
@@ -176,10 +285,35 @@ unsigned int GLSLValidator::createProgram(std::vector<std::string>& errors)
     return _programId;
 }
 
-bool GLSLValidator::render(std::vector<std::string>& errors)
+bool GLSLValidator::render(ErrorList& errors)
 {
     errors.clear();
-    return false;
+
+    if (_programId <= 0)
+    {
+        errors.push_back("No vallid program to render with exists");
+        return false;
+    }
+
+    // Set up target
+    bindTarget(true, errors);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Set up viewing matrices - in progress
+
+    // Bind program
+    glUseProgram(_programId);
+
+    // Bind geometric and texture data - in progress
+
+    // Unbind program
+    glUseProgram(0);
+
+    // Unset target
+    bindTarget(false, errors);
+
+    return true;
 }
 
 bool GLSLValidator::save(std::string& /*fileName*/)
