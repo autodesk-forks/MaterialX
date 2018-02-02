@@ -34,10 +34,23 @@ void GLSLValidator::setStages(const HwShader& shader)
     }
 }
 
-void GLSLValidator::initialize(ErrorList& /*errors*/)
+void GLSLValidator::initialize(ErrorList& errors)
 {
     if (!_initialized)
     {
+        // Initialize windowing code -- to add GLUT or similar
+
+        // Initialize glew
+#ifndef __APPLE__
+        glewInit();
+        if (!glewIsSupported("GL_VERSION_2_0"))
+        {
+            errors.push_back("OpenGL 2.0 not supported");
+        }
+#endif
+        glClearColor(0, 0, 0, 0);
+        glClearStencil(0);
+
         _initialized = true;
     }
 }
@@ -294,14 +307,50 @@ bool GLSLValidator::render(ErrorList& errors)
     // Set up target
     bindTarget(true, errors);
 
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Set up viewing matrices - in progress
+    // Set up viewing / projection matrices for an orthographic rendering
+    glViewport(0, 0, _frameBufferWidth, _frameBufferHeight);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0, _frameBufferWidth, 0.0, _frameBufferHeight, -100.0, 100.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     // Bind program
     glUseProgram(_programId);
 
-    // Bind geometric and texture data - in progress
+    // Draw simple geometry 
+    {
+        glPushMatrix();
+
+        glBegin(GL_QUADS);
+        
+        glTexCoord2f(0.0f, 1.0f);
+        glNormal3f(1.0f, 0.0f, 0.0f);
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glVertex2f(0.0f, (float)_frameBufferHeight);
+
+        glTexCoord2f(0.0f, 0.0f);
+        glNormal3f(1.0f, 0.0, 0.0);
+        glColor3f(0.0f, 1.0f, 0.0f);
+        glVertex2f(0.0f, 0.0f);
+
+        glTexCoord2f(1.0f, 0.0f);
+        glNormal3f(1.0f, 0.0, 0.0);
+        glColor3f(0.0f, 0.0f, 1.0f);
+        glVertex2f((float)_frameBufferWidth, 0.0f);
+
+        glTexCoord2f(1.0f, 1.0f);
+        glNormal3f(1.0f, 0.0, 0.0);
+        glColor3f(1.0f, 1.0f, 0.0f);
+        glVertex2f((float)_frameBufferWidth, (float)_frameBufferHeight);
+
+        glEnd();
+        glPopMatrix();
+    }
 
     // Unbind program
     glUseProgram(0);
