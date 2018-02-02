@@ -28,20 +28,16 @@ void GLSLValidator::setStages(const HwShader& shader)
     clearStages();
 
     // Extract out the shader code per stage
-    if (shader.numStages() >= HwShader::PIXEL_STAGE)
+    for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
     {
-        for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
-        {
-            _stages[i] = shader.getSourceCode(i);
-        }
+        _stages[i] = shader.getSourceCode(i);
     }
 }
 
-void GLSLValidator::initialize(ErrorList& errors)
+void GLSLValidator::initialize(ErrorList& /*errors*/)
 {
     if (!_initialized)
     {
-        errors;
         _initialized = true;
     }
 }
