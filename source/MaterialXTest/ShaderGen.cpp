@@ -40,6 +40,73 @@ bool isTopologicalOrder(const std::vector<const mx::SgNode*>& nodeOrder)
     return true;
 }
 
+//
+// Get source content, source path and resolved paths for
+// an implementation
+//
+bool getShaderSource(MaterialX::ShaderGeneratorPtr generator,
+                    const MaterialX::ImplementationPtr implementation,
+                    MaterialX::FilePath& sourcePath,
+                    MaterialX::FilePath& resolvedPath,
+                    std::string& sourceContents) 
+{
+    if (implementation)
+    {
+        sourcePath = implementation->getFile();
+        resolvedPath = generator->findSourceCode(sourcePath);
+        if (MaterialX::readFile(resolvedPath.asString(), sourceContents))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+//
+// Find the implementation for specific language or target for a given Element
+//
+// Should this be moved under the document class?
+MaterialX::ImplementationPtr findImplementation(mx::DocumentPtr document, const std::string& name,
+                                                const std::string& language, const std::string& target)
+{
+    std::vector<MaterialX::InterfaceElementPtr> impllist = document->getMatchingImplementations(name);
+    for (auto elem : impllist)
+    {
+        MaterialX::ImplementationPtr implementation = elem->asA<MaterialX::Implementation>();
+        if (implementation)
+        {
+            // Check for a language match
+            const std::string& lang = implementation->getLanguage();
+            if (lang.length() && lang == language)
+            {
+                // Check target. Note that it may be empty.
+                const std::string& targ = implementation->getTarget();
+                if (!targ.length() || targ == target)
+                {
+                    return implementation;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+// Check if a nodedef requires an implementation check
+// Untyped nodes do not.
+bool requiresImplementation(const MaterialX::NodeDefPtr nodeDef) 
+{
+    if (!nodeDef)
+        return false;
+
+    static std::string TYPE_NONE("none");
+    const std::string typeAttribute = nodeDef->getAttribute("type");
+    if (typeAttribute.length() == 0 || typeAttribute == TYPE_NONE)
+    {
+        return false;
+    }
+    return true;
+}
+
 TEST_CASE("OslSyntax", "[shadergen]")
 {
     mx::SyntaxPtr syntax = std::make_shared<mx::OslSyntax>();
@@ -867,4 +934,227 @@ TEST_CASE("LayeredSurface", "[shadergen]")
         file << shader->getSourceCode(desc.outputStage);
         file.close();
     }
+}
+
+TEST_CASE("Reference implementation validity", "[shadergen]")
+{
+    mx::DocumentPtr doc = mx::createDocument();
+
+    // Load standard libraries implemented by reference implementation
+    // Note that if there are other language implementations this list should be appended to
+    std::vector<std::string> filenames =
+    {
+        "documents/Libraries/stdlib/mx_stdlib_defs.mtlx",
+        "documents/Libraries/stdlib/impl/reference/osl/impl.mtlx",
+    };
+    for (const std::string& filename : filenames)
+    {
+        mx::readFromXmlFile(doc, filename);
+    }
+
+    // Set source code search path
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
+    mx::FileSearchPath sourceCodeSearchPath; 
+    sourceCodeSearchPath.append(searchPath);
+
+    std::filebuf implDumpBuffer;
+    std::string fileName = "reference_implementation_check.txt";
+    implDumpBuffer.open(fileName, std::ios::out);
+    std::ostream implDumpStream(&implDumpBuffer);
+
+    std::string nodeDefNode;
+    std::string nodeDefType;
+    unsigned int count = 0;
+    unsigned int missing = 0;
+    std::string missing_str;
+    std::string found_str;
+
+    // Scan through every nodedef defined
+    for (mx::NodeDefPtr nodeDef : doc->getNodeDefs())
+    {
+        count++;
+
+        const std::string language("osl");
+        const std::string target("");
+
+        std::string nodeDefName = nodeDef->getName();
+        std::string nodeName = nodeDef->getNodeString();
+        if (!requiresImplementation(nodeDef))
+        {
+            found_str += "No implementation required for nodedef: " + nodeDefName + ", Node: "
+                + nodeName + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+            continue;
+        }
+
+        mx::ImplementationPtr impl =
+            findImplementation(doc, nodeDefName, language, target);
+        if (!impl)
+        {
+            missing++;
+            missing_str += "Missing nodeDef implemenation: " + nodeDefName + ", Node: " + nodeName
+                + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+        }
+        else
+        {
+            // Scan for file and see if we can read in the contents
+            std::string sourceContents;
+            MaterialX::FilePath sourcePath = impl->getFile();
+            MaterialX::FilePath resolvedPath = sourceCodeSearchPath.find(sourcePath);
+            bool found = MaterialX::readFile(resolvedPath.asString(), sourceContents);
+            if (!found)
+            {
+                missing++;
+                missing_str += "Missing source code: " + sourcePath.asString() + " for nodeDef: "
+                    + nodeDefName + ". Impl: " + impl->getName() + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+            }
+            else
+            {
+                found_str += "Found impl and src for nodedef: " + nodeDefName + ", Node: "
+                    + nodeName + ". Impl: " + impl->getName() + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+            }
+        }
+    }
+
+    implDumpStream << "-----------------------------------------------------------------------" << std::endl;
+    implDumpStream << "Missing: " << missing << " implementations out of: " << count << " nodedefs\n";
+    implDumpStream << missing_str << std::endl;
+    implDumpStream << found_str << std::endl;
+    implDumpStream << "-----------------------------------------------------------------------" << std::endl;
+
+    implDumpBuffer.close();
+}
+
+TEST_CASE("Shadergen implementation validity", "[shadergen]")
+{
+    mx::DocumentPtr doc = mx::createDocument();
+
+    // Load standard libraries
+    std::vector<std::string> filenames =
+    {
+        "documents/Libraries/stdlib/mx_stdlib_defs.mtlx",
+        "documents/Libraries/sx/sx_defs.mtlx",
+        "documents/Libraries/adsk/adsk_defs.mtlx"
+    };
+    for (const std::string& filename : filenames)
+    {
+        mx::readFromXmlFile(doc, filename);
+    }
+
+    // Register search paths
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
+
+    mx::ShaderGeneratorPtr arnoldShaderGenerator = mx::ArnoldShaderGenerator::creator();
+    arnoldShaderGenerator->registerSourceCodeSearchPath(searchPath);
+
+    mx::ShaderGeneratorPtr ogsfxShaderGenerator = mx::OgsFxShaderGenerator::creator();
+    ogsfxShaderGenerator->registerSourceCodeSearchPath(searchPath);
+
+    std::vector<GeneratorDescription> generatorDescriptions =
+    {
+        { arnoldShaderGenerator, "osl",
+        {
+            "documents/Libraries/stdlib/impl/shadergen/osl/impl.mtlx",
+            "documents/Libraries/adsk/impl/shadergen/osl/impl.mtlx",
+            "documents/Libraries/sx/impl/shadergen/osl/impl.mtlx",
+        },
+        mx::Shader::PIXEL_STAGE
+        },
+        { ogsfxShaderGenerator, "ogsfx",
+        {
+            "documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx",
+            "documents/Libraries/adsk/impl/shadergen/glsl/impl.mtlx",
+            "documents/Libraries/sx/impl/shadergen/glsl/impl.mtlx",
+        },
+        mx::OgsFxShader::FINAL_FX_STAGE
+        }
+    };
+
+
+    std::filebuf implDumpBuffer;
+    std::string fileName = "shadgen_implementation_check.txt";
+    implDumpBuffer.open(fileName, std::ios::out);
+    std::ostream implDumpStream(&implDumpBuffer);
+
+    for (auto desc : generatorDescriptions)
+    {
+        mx::ShaderGeneratorPtr generator = desc.shadergen;
+        const std::string& language = generator->getLanguage();
+        const std::string& target = generator->getTarget();
+
+        implDumpStream << "-----------------------------------------------------------------------" << std::endl;
+        implDumpStream << "Scanning language: " << language << ". Target: " << target << std::endl;
+        implDumpStream << "-----------------------------------------------------------------------" << std::endl;
+
+        // Load in the implementation libraries
+        for (const std::string& libfile : desc.implementationLibrary)
+        {
+            implDumpStream << "* Read in implementation file: " << libfile << std::endl;
+            mx::readFromXmlFile(doc, libfile);
+        }
+
+        std::string nodeDefNode;
+        std::string nodeDefType;
+        unsigned int count = 0;
+        unsigned int missing = 0;
+        std::string missing_str;
+        std::string found_str;
+
+        // Scan through every nodedef defined
+        for (mx::NodeDefPtr nodeDef : doc->getNodeDefs())
+        {
+            count++;
+
+            std::string nodeDefName = nodeDef->getName();
+            std::string nodeName = nodeDef->getNodeString();
+            if (!requiresImplementation(nodeDef))
+            {
+                found_str += "No implementation requried for nodedef: " + nodeDefName + ", Node: "
+                    + nodeName + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                continue;
+            }
+
+            mx::ImplementationPtr impl = findImplementation(doc, nodeDefName, language, target);
+            if (!impl)
+            {
+                missing++;
+                missing_str += "Missing nodeDef implementation: " + nodeDefName + ", Node: " + nodeName
+                    + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+            }
+            else
+            {
+                // Test if the generator has an interal implementation first
+                if (generator->implementationRegistered(impl->getName()))
+                {
+                    found_str += "Found generator impl for nodedef: " + nodeDefName + ", Node: "
+                        + nodeDefName + ". Impl: " + impl->getName() + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                }
+
+                // Check for an implementation explicitly stored
+                else
+                {
+                    MaterialX::FilePath sourcePath, resolvedPath;
+                    std::string contents;
+                    if (!getShaderSource(generator, impl, sourcePath, resolvedPath, contents))
+                    {
+                        missing++;
+                        missing_str += "Missing source code: " + sourcePath.asString() + " for nodeDef: "
+                            + nodeDefName + ". Impl: " + impl->getName() + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                    }
+                    else
+                    {
+                        found_str += "Found impl and src for nodedef: " + nodeDefName + ", Node: "
+                            + nodeName + +". Impl: " + impl->getName() + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                    }
+                }
+            }
+        }
+
+        implDumpStream << "-----------------------------------------------------------------------" << std::endl;
+        implDumpStream << "Missing: " << missing << " implementations out of: " << count << " nodedefs\n";
+        implDumpStream << missing_str << std::endl;
+        implDumpStream << found_str << std::endl;
+        implDumpStream << "-----------------------------------------------------------------------" << std::endl;
+    }
+
+    implDumpBuffer.close();
 }
