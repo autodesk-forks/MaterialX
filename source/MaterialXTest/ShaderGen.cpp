@@ -1,6 +1,7 @@
 #include <MaterialXTest/Catch/catch.hpp>
 
 #include <MaterialXCore/Document.h>
+#include <MaterialXCore/Observer.h>
 
 #include <MaterialXFormat/XmlIo.h>
 
@@ -39,6 +40,31 @@ bool isTopologicalOrder(const std::vector<const mx::SgNode*>& nodeOrder)
     }
     return true;
 }
+
+// Observer to add library markers to all nodes. Use the "namespace" attribute to do this
+static std::string NAMESPACE_ATTRIBUTE("namespace");
+class LibraryObserver : public MaterialX::Observer
+{
+public:
+    LibraryObserver() {}
+
+    void onAddElement(MaterialX::ElementPtr /*parent*/, MaterialX::ElementPtr element) override
+    {
+        if (_libraryRefName.length())
+        {
+            element->setAttribute(NAMESPACE_ATTRIBUTE, _libraryRefName);
+        }
+    }
+
+    void setLibraryRefName(const std::string& name)
+    {
+        _libraryRefName = name;
+    }
+
+protected:
+    // Libraryref name to add
+    std::string _libraryRefName;
+};
 
 //
 // Get source content, source path and resolved paths for
@@ -938,7 +964,11 @@ TEST_CASE("LayeredSurface", "[shadergen]")
 
 TEST_CASE("Reference implementation validity", "[shadergen]")
 {
-    mx::DocumentPtr doc = mx::createDocument();
+    mx::ObservedDocumentPtr doc = mx::Document::createDocument<mx::ObservedDocument>();
+
+    std::shared_ptr<LibraryObserver> observer = std::make_shared<LibraryObserver>();
+    observer->setLibraryRefName("stdlib_reference");
+    doc->addObserver("libraryObserver", observer);
 
     // Load standard libraries implemented by reference implementation
     // Note that if there are other language implementations this list should be appended to
@@ -1026,7 +1056,7 @@ TEST_CASE("Reference implementation validity", "[shadergen]")
 
 TEST_CASE("Shadergen implementation validity", "[shadergen]")
 {
-    mx::DocumentPtr doc = mx::createDocument();
+    mx::ObservedDocumentPtr doc = mx::Document::createDocument<mx::ObservedDocument>();
 
     // Load standard libraries
     std::vector<std::string> filenames =
@@ -1035,9 +1065,18 @@ TEST_CASE("Shadergen implementation validity", "[shadergen]")
         "documents/Libraries/sx/sx_defs.mtlx",
         "documents/Libraries/adsk/adsk_defs.mtlx"
     };
-    for (const std::string& filename : filenames)
+    std::vector<std::string> libraryNames =
     {
-        mx::readFromXmlFile(doc, filename);
+        "stdlib",
+        "sx",
+        "adsk"
+    };
+    std::shared_ptr<LibraryObserver> observer = std::make_shared<LibraryObserver>();
+    doc->addObserver("libraryObserver", observer);
+    for (size_t i=0; i<filenames.size(); i++)
+    {
+        observer->setLibraryRefName(libraryNames[i]);
+        mx::readFromXmlFile(doc, filenames[i]);
     }
 
     // Register search paths
