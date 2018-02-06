@@ -26,12 +26,7 @@ public:
     static bool classRegistered(const string& typeName)
     {
         CreatorMap& map = creatorMap();
-        auto it = map.find(typeName);
-        if (it != map.end())
-        {
-            return true;
-        }
-        return false;
+        return map.find(typeName) != map.end();
     }
 
     /// Unregister a registered class

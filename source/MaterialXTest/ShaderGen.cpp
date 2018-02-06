@@ -41,18 +41,19 @@ bool isTopologicalOrder(const std::vector<const mx::SgNode*>& nodeOrder)
     return true;
 }
 
-// Observer to add library markers to all nodes. Use the "namespace" attribute to do this
-static std::string NAMESPACE_ATTRIBUTE("namespace");
-class LibraryObserver : public MaterialX::Observer
+// Observer to add library markers to all nodes. Use the "library" meta-data attribute to do this,
+// until namespace specification is resolved.
+static std::string LIBRARY_ATTRIBUTE("library");
+class LibraryObserver : public mx::Observer
 {
 public:
     LibraryObserver() {}
 
-    void onAddElement(MaterialX::ElementPtr /*parent*/, MaterialX::ElementPtr element) override
+    void onAddElement(mx::ElementPtr /*parent*/, mx::ElementPtr element) override
     {
         if (_libraryRefName.length())
         {
-            element->setAttribute(NAMESPACE_ATTRIBUTE, _libraryRefName);
+            element->setAttribute(LIBRARY_ATTRIBUTE, _libraryRefName);
         }
     }
 
@@ -70,17 +71,17 @@ protected:
 // Get source content, source path and resolved paths for
 // an implementation
 //
-bool getShaderSource(MaterialX::ShaderGeneratorPtr generator,
-                    const MaterialX::ImplementationPtr implementation,
-                    MaterialX::FilePath& sourcePath,
-                    MaterialX::FilePath& resolvedPath,
+bool getShaderSource(mx::ShaderGeneratorPtr generator,
+                    const mx::ImplementationPtr implementation,
+                    mx::FilePath& sourcePath,
+                    mx::FilePath& resolvedPath,
                     std::string& sourceContents) 
 {
     if (implementation)
     {
         sourcePath = implementation->getFile();
         resolvedPath = generator->findSourceCode(sourcePath);
-        if (MaterialX::readFile(resolvedPath.asString(), sourceContents))
+        if (mx::readFile(resolvedPath.asString(), sourceContents))
         {
             return true;
         }
@@ -89,16 +90,19 @@ bool getShaderSource(MaterialX::ShaderGeneratorPtr generator,
 }
 
 //
-// Find the implementation for specific language or target for a given Element
+// Find the implementation for specific language or target for a given Element.
+// If the Element is a NodeGraph then only the target is checked as NodeGraph have
+// no language specific implementations.
+// Returned is either a reference to a NodeGraph or a Implementation.
 //
-// Should this be moved under the document class?
-MaterialX::ImplementationPtr findImplementation(mx::DocumentPtr document, const std::string& name,
+mx::InterfaceElementPtr findImplementation(mx::DocumentPtr document, const std::string& name,
                                                 const std::string& language, const std::string& target)
 {
-    std::vector<MaterialX::InterfaceElementPtr> impllist = document->getMatchingImplementations(name);
-    for (auto elem : impllist)
+    std::vector<mx::InterfaceElementPtr> impllist = document->getMatchingImplementations(name);
+    for (auto element : impllist)
     {
-        MaterialX::ImplementationPtr implementation = elem->asA<MaterialX::Implementation>();
+        // Check direct implementation
+        mx::ImplementationPtr implementation = element->asA<mx::Implementation>();
         if (implementation)
         {
             // Check for a language match
@@ -106,11 +110,22 @@ MaterialX::ImplementationPtr findImplementation(mx::DocumentPtr document, const 
             if (lang.length() && lang == language)
             {
                 // Check target. Note that it may be empty.
-                const std::string& targ = implementation->getTarget();
-                if (!targ.length() || targ == target)
+                const std::string& matchingTarget = implementation->getTarget();
+                if (matchingTarget.empty() || matchingTarget == target)
                 {
                     return implementation;
                 }
+            }
+        }
+
+        // Check for a nodegraph implementation
+        else if (element->isA<mx::NodeGraph>())
+        {
+            mx::NodeGraphPtr implGraph = element->asA<mx::NodeGraph>();
+            const std::string& matchingTarget = implGraph->getTarget();
+            if (matchingTarget.empty() || matchingTarget == target)
+            {
+                return implGraph;
             }
         }
     }
@@ -118,19 +133,16 @@ MaterialX::ImplementationPtr findImplementation(mx::DocumentPtr document, const 
 }
 
 // Check if a nodedef requires an implementation check
-// Untyped nodes do not.
-bool requiresImplementation(const MaterialX::NodeDefPtr nodeDef) 
+// Untyped nodes do not
+bool requiresImplementation(const mx::NodeDefPtr nodeDef) 
 {
+
     if (!nodeDef)
         return false;
 
     static std::string TYPE_NONE("none");
-    const std::string typeAttribute = nodeDef->getAttribute("type");
-    if (typeAttribute.length() == 0 || typeAttribute == TYPE_NONE)
-    {
-        return false;
-    }
-    return true;
+    const std::string typeAttribute = nodeDef->getAttribute(mx::Element::TYPE_ATTRIBUTE);
+    return !typeAttribute.empty() && typeAttribute != TYPE_NONE;
 }
 
 TEST_CASE("OslSyntax", "[shadergen]")
@@ -964,10 +976,19 @@ TEST_CASE("LayeredSurface", "[shadergen]")
 
 TEST_CASE("Reference implementation validity", "[shadergen]")
 {
+    std::filebuf implDumpBuffer;
+    std::string fileName = "reference_implementation_check.txt";
+    implDumpBuffer.open(fileName, std::ios::out);
+    std::ostream implDumpStream(&implDumpBuffer);
+
+    implDumpStream << "-----------------------------------------------------------------------" << std::endl;
+    implDumpStream << "Scanning language: osl. Target: reference" << std::endl;
+    implDumpStream << "-----------------------------------------------------------------------" << std::endl;
+
     mx::ObservedDocumentPtr doc = mx::Document::createDocument<mx::ObservedDocument>();
 
     std::shared_ptr<LibraryObserver> observer = std::make_shared<LibraryObserver>();
-    observer->setLibraryRefName("stdlib_reference");
+    observer->setLibraryRefName("stdlib");
     doc->addObserver("libraryObserver", observer);
 
     // Load standard libraries implemented by reference implementation
@@ -979,6 +1000,7 @@ TEST_CASE("Reference implementation validity", "[shadergen]")
     };
     for (const std::string& filename : filenames)
     {
+        implDumpStream << "* Read in implementation file: " << filename << std::endl;
         mx::readFromXmlFile(doc, filename);
     }
 
@@ -986,11 +1008,6 @@ TEST_CASE("Reference implementation validity", "[shadergen]")
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
     mx::FileSearchPath sourceCodeSearchPath; 
     sourceCodeSearchPath.append(searchPath);
-
-    std::filebuf implDumpBuffer;
-    std::string fileName = "reference_implementation_check.txt";
-    implDumpBuffer.open(fileName, std::ios::out);
-    std::ostream implDumpStream(&implDumpBuffer);
 
     std::string nodeDefNode;
     std::string nodeDefType;
@@ -1012,35 +1029,45 @@ TEST_CASE("Reference implementation validity", "[shadergen]")
         if (!requiresImplementation(nodeDef))
         {
             found_str += "No implementation required for nodedef: " + nodeDefName + ", Node: "
-                + nodeName + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                + nodeName + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
             continue;
         }
 
-        mx::ImplementationPtr impl =
+        mx::InterfaceElementPtr inter =
             findImplementation(doc, nodeDefName, language, target);
-        if (!impl)
+        if (!inter)
         {
             missing++;
             missing_str += "Missing nodeDef implemenation: " + nodeDefName + ", Node: " + nodeName
-                + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
         }
         else
         {
-            // Scan for file and see if we can read in the contents
-            std::string sourceContents;
-            MaterialX::FilePath sourcePath = impl->getFile();
-            MaterialX::FilePath resolvedPath = sourceCodeSearchPath.find(sourcePath);
-            bool found = MaterialX::readFile(resolvedPath.asString(), sourceContents);
-            if (!found)
+            mx::ImplementationPtr impl = inter->asA<mx::Implementation>();
+            if (impl)
             {
-                missing++;
-                missing_str += "Missing source code: " + sourcePath.asString() + " for nodeDef: "
-                    + nodeDefName + ". Impl: " + impl->getName() + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                // Scan for file and see if we can read in the contents
+                std::string sourceContents;
+                mx::FilePath sourcePath = impl->getFile();
+                mx::FilePath resolvedPath = sourceCodeSearchPath.find(sourcePath);
+                bool found = mx::readFile(resolvedPath.asString(), sourceContents);
+                if (!found)
+                {
+                    missing++;
+                    missing_str += "Missing source code: " + sourcePath.asString() + " for nodeDef: "
+                        + nodeDefName + ". Impl: " + impl->getName() + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
+                }
+                else
+                {
+                    found_str += "Found impl and src for nodedef: " + nodeDefName + ", Node: "
+                        + nodeName + ". Impl: " + impl->getName() + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
+                }
             }
             else
             {
-                found_str += "Found impl and src for nodedef: " + nodeDefName + ", Node: "
-                    + nodeName + ". Impl: " + impl->getName() + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                mx::NodeGraphPtr graph = inter->asA<mx::NodeGraph>();
+                found_str += "Found NodeGraph impl for nodedef: " + nodeDefName + ", Node: "
+                    + nodeName + ". Impl: " + graph->getName() + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
             }
         }
     }
@@ -1052,6 +1079,9 @@ TEST_CASE("Reference implementation validity", "[shadergen]")
     implDumpStream << "-----------------------------------------------------------------------" << std::endl;
 
     implDumpBuffer.close();
+
+    // To enable once this is true
+    //REQUIRE(missing == 0);
 }
 
 TEST_CASE("Shadergen implementation validity", "[shadergen]")
@@ -1148,42 +1178,52 @@ TEST_CASE("Shadergen implementation validity", "[shadergen]")
             if (!requiresImplementation(nodeDef))
             {
                 found_str += "No implementation requried for nodedef: " + nodeDefName + ", Node: "
-                    + nodeName + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                    + nodeName + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
                 continue;
             }
 
-            mx::ImplementationPtr impl = findImplementation(doc, nodeDefName, language, target);
-            if (!impl)
+            mx::InterfaceElementPtr inter = findImplementation(doc, nodeDefName, language, target);
+            if (!inter)
             {
                 missing++;
                 missing_str += "Missing nodeDef implementation: " + nodeDefName + ", Node: " + nodeName
-                    + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                    + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
             }
             else
             {
-                // Test if the generator has an interal implementation first
-                if (generator->implementationRegistered(impl->getName()))
+                mx::ImplementationPtr impl = inter->asA<mx::Implementation>();
+                if (impl)
                 {
-                    found_str += "Found generator impl for nodedef: " + nodeDefName + ", Node: "
-                        + nodeDefName + ". Impl: " + impl->getName() + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
-                }
-
-                // Check for an implementation explicitly stored
-                else
-                {
-                    MaterialX::FilePath sourcePath, resolvedPath;
-                    std::string contents;
-                    if (!getShaderSource(generator, impl, sourcePath, resolvedPath, contents))
+                    // Test if the generator has an interal implementation first
+                    if (generator->implementationRegistered(impl->getName()))
                     {
-                        missing++;
-                        missing_str += "Missing source code: " + sourcePath.asString() + " for nodeDef: "
-                            + nodeDefName + ". Impl: " + impl->getName() + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                        found_str += "Found generator impl for nodedef: " + nodeDefName + ", Node: "
+                            + nodeDefName + ". Impl: " + impl->getName() + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
                     }
+
+                    // Check for an implementation explicitly stored
                     else
                     {
-                        found_str += "Found impl and src for nodedef: " + nodeDefName + ", Node: "
-                            + nodeName + +". Impl: " + impl->getName() + ". Namespace: " + nodeDef->getAttribute("namespace") + "\n";
+                        mx::FilePath sourcePath, resolvedPath;
+                        std::string contents;
+                        if (!getShaderSource(generator, impl, sourcePath, resolvedPath, contents))
+                        {
+                            missing++;
+                            missing_str += "Missing source code: " + sourcePath.asString() + " for nodeDef: "
+                                + nodeDefName + ". Impl: " + impl->getName() + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
+                        }
+                        else
+                        {
+                            found_str += "Found impl and src for nodedef: " + nodeDefName + ", Node: "
+                                + nodeName + +". Impl: " + impl->getName() + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
+                        }
                     }
+                }
+                else
+                {
+                    mx::NodeGraphPtr graph = inter->asA<mx::NodeGraph>();
+                    found_str += "Found NodeGraph impl for nodedef: " + nodeDefName + ", Node: "
+                        + nodeName + ". Impl: " + graph->getName() + ". Library: " + nodeDef->getAttribute(LIBRARY_ATTRIBUTE) + "\n";
                 }
             }
         }
@@ -1193,6 +1233,9 @@ TEST_CASE("Shadergen implementation validity", "[shadergen]")
         implDumpStream << missing_str << std::endl;
         implDumpStream << found_str << std::endl;
         implDumpStream << "-----------------------------------------------------------------------" << std::endl;
+
+        // To enable once this is true
+        //REQUIRE(missing == 0);
     }
 
     implDumpBuffer.close();
