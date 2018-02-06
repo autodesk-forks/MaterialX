@@ -1,11 +1,11 @@
 
 #include "GL/glew.h"
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLSLValidator.h>
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/GlslValidator.h>
 
 namespace MaterialX
 {
 
-GLSLValidator::GLSLValidator() :
+GlslValidator::GlslValidator() :
     _programId(0),
     _colorTarget(0),
     _depthTarget(0),
@@ -16,13 +16,13 @@ GLSLValidator::GLSLValidator() :
 {
 }
 
-GLSLValidator::~GLSLValidator()
+GlslValidator::~GlslValidator()
 {
     deleteProgram();
     deleteTarget();
 }
 
-void GLSLValidator::setStages(const HwShader& shader)
+void GlslValidator::setStages(const HwShader& shader)
 {
     // Clear out any old data
     clearStages();
@@ -34,7 +34,7 @@ void GLSLValidator::setStages(const HwShader& shader)
     }
 }
 
-void GLSLValidator::initialize(ErrorList& errors)
+void GlslValidator::initialize(ErrorList& errors)
 {
     if (!_initialized)
     {
@@ -55,7 +55,7 @@ void GLSLValidator::initialize(ErrorList& errors)
     }
 }
 
-void GLSLValidator::clearStages()
+void GlslValidator::clearStages()
 {
     for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
     {
@@ -63,16 +63,16 @@ void GLSLValidator::clearStages()
     }
 }
 
-bool GLSLValidator::haveValidStages() const
+bool GlslValidator::haveValidStages() const
 {
     // Need at least a pixel shader stage and a vertex shader stage
     const std::string& vertexShaderSource = _stages[HwShader::VERTEX_STAGE];
     const std::string& fragmentShaderSource = _stages[HwShader::PIXEL_STAGE];
-    
+
     return (vertexShaderSource.length() > 0 && fragmentShaderSource.length() > 0);
 }
 
-void GLSLValidator::deleteTarget()
+void GlslValidator::deleteTarget()
 {
     if (_frameBuffer)
     {
@@ -81,9 +81,9 @@ void GLSLValidator::deleteTarget()
     }
 }
 
-bool GLSLValidator::createTarget(ErrorList& errors)
+bool GlslValidator::createTarget(ErrorList& errors)
 {
-    // Only create once
+    // Only frame buffer only once
     if (_frameBuffer > 0)
     {
         return true;
@@ -106,7 +106,7 @@ bool GLSLValidator::createTarget(ErrorList& errors)
     glBindTexture(GL_TEXTURE_2D, _depthTarget);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, _frameBufferWidth, _frameBufferHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTarget, 0);
-    
+
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glDrawBuffer(GL_NONE);
@@ -124,11 +124,11 @@ bool GLSLValidator::createTarget(ErrorList& errors)
 
     // Unbind on cleanup
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
+
     return true;
 }
 
-bool GLSLValidator::bindTarget(bool bind, ErrorList& errors)
+bool GlslValidator::bindTarget(bool bind, ErrorList& errors)
 {
     // Make sure we have a target to bind first
     createTarget(errors);
@@ -153,7 +153,7 @@ bool GLSLValidator::bindTarget(bool bind, ErrorList& errors)
     return true;
 }
 
-void GLSLValidator::deleteProgram()
+void GlslValidator::deleteProgram()
 {
     if (_programId > 0)
     {
@@ -162,7 +162,7 @@ void GLSLValidator::deleteProgram()
     }
 }
 
-unsigned int GLSLValidator::createProgram(ErrorList& errors)
+unsigned int GlslValidator::createProgram(ErrorList& errors)
 {
     errors.clear();
 
@@ -294,13 +294,13 @@ unsigned int GLSLValidator::createProgram(ErrorList& errors)
     return _programId;
 }
 
-bool GLSLValidator::render(ErrorList& errors)
+bool GlslValidator::render(ErrorList& errors)
 {
     errors.clear();
 
     if (_programId <= 0)
     {
-        errors.push_back("No vallid program to render with exists");
+        errors.push_back("No valid program to render with exists.");
         return false;
     }
 
@@ -327,7 +327,7 @@ bool GLSLValidator::render(ErrorList& errors)
         glPushMatrix();
 
         glBegin(GL_QUADS);
-        
+
         glTexCoord2f(0.0f, 1.0f);
         glNormal3f(1.0f, 0.0f, 0.0f);
         glColor3f(1.0f, 0.0f, 0.0f);
@@ -361,7 +361,7 @@ bool GLSLValidator::render(ErrorList& errors)
     return true;
 }
 
-bool GLSLValidator::save(std::string& /*fileName*/)
+bool GlslValidator::save(std::string& /*fileName*/)
 {
     return false;
 }
