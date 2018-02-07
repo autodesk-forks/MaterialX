@@ -3,8 +3,8 @@
 #if defined(__linux__)
 	#include <X11/Intrinsic.h> // for XtWindow
 #elif defined(__APPLE__)
-	#include <Foundation/include/Hmac.h>
-	#include "macos/HWFoundationWrapperSets.h"
+	//#include <Foundation/include/Hmac.h>
+	//#include "macos/HWFoundationWrapperSets.h"
 #endif
 
 namespace MaterialX

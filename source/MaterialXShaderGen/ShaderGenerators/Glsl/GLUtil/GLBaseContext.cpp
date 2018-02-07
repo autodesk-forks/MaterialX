@@ -2,11 +2,11 @@
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GLew/glew.h>
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/GLBaseContext.h>
 
-#if defined(OSUnix_)
+#if defined(__linux__)
 #include <X11/Intrinsic.h> // for XtDisplay etc
 #endif
 
-#ifdef OSMac_
+#ifdef __APPLE__
 //#include <HWGL/src/macos/HWGLWrapperSets.h>
 #endif
 
@@ -66,7 +66,7 @@ GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
 //
 // Linux context implementation
 //
-#elif defined(OSUnix_)
+#elif defined(__linux__)
 GLBaseContext::GLBaseContext(const WindowWrapper& windowWrapper,
 								   HardwareContextHandle sharedWithContext)
 {
@@ -214,9 +214,9 @@ GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
 //
 // OSX implementation
 //
-#elif defined(OSMac_)
+#elif defined(__APPLE__)
 
-#if defined(OSMac_MachO_)
+#if defined(__APPLE__MachO_)
 #include <Carbon/Carbon.h>
 #endif
 
@@ -259,7 +259,7 @@ GLBaseContext::~GLBaseContext()
 		// Release the dummy context.
 		wglDeleteContext(_dummyContext);
 
-#elif defined(OSUnix_)
+#elif defined(__linux__)
 		glXMakeCurrent(_display, None, NULL);
 		
 		// This needs to be done after all the GL object
@@ -269,7 +269,7 @@ GLBaseContext::~GLBaseContext()
 		if(_dummyWindow != 0)
 			XDestroyWindow(_display, _dummyWindow);
 
-#elif defined(OSMac_)
+#elif defined(__APPLE__)
 		// This needs to be done after all the GL object
 		// created with this context are destroyed.
 		if(_dummyContext != 0)
@@ -290,9 +290,9 @@ int GLBaseContext::makeCurrent()
     int makeCurrentOk = 0;
 #if defined(_WIN32)
     makeCurrentOk = wglMakeCurrent(_dummyWindow.windowWrapper().internalHandle(), _dummyContext);
-#elif defined(OSUnix_)
+#elif defined(__linux__)
     makeCurrentOk = glXMakeCurrent(_display, _dummyWindow, _dummyContext);
-#elif defined(OSMac_)
+#elif defined(__APPLE__)
     aglToNSOpenGLMakeCurrent(_dummyContext);
     if (aglToNSOpenGLGetCurrentContextWrapper() == _dummyContext)
         makeCurrentOk = 1;
@@ -311,7 +311,7 @@ void GLBaseContext::shareLists(HGLRC context)
 }
 #endif
 
-#if defined(OSUnix_)
+#if defined(__linux__)
 GLBaseContext* GLBaseContext::create(const WindowWrapper& windowWrapper, HardwareContextHandle context)
 {
     if (!_globalGLBaseContext)

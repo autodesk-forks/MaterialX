@@ -14,7 +14,7 @@ namespace MaterialX
     // Platform dependent definition of a hardware context
 #if defined(_WIN32)
     using HardwareContextHandle = HGLRC;
-#elif defined(OSUnix_)
+#elif defined(__linux__)
     using HardwareContextHandle = GLXContext;
 #elif defined(OSMac_)
     using HardwareContextHandle = void*;
@@ -26,7 +26,7 @@ namespace MaterialX
 class GLBaseContext 
 {
   public:
-#if defined(OSUnix_)
+#if defined(__linux__)
     static GLBaseContext* create(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
 #else
     static GLBaseContext* create(HardwareContextHandle context = 0);
@@ -35,7 +35,7 @@ class GLBaseContext
 
 	HardwareContextHandle dummyContext() const { return _dummyContext; }
 
-#if defined(OSUnix_)
+#if defined(__linux__)
 	Display *display() const { return _display; }
 #endif
 
@@ -51,7 +51,7 @@ class GLBaseContext
 #endif
 
   protected:
-#if defined(OSUnix_)
+#if defined(__linux__)
     GLBaseContext(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
 #else
     GLBaseContext(HardwareContextHandle context = 0);
@@ -63,7 +63,7 @@ class GLBaseContext
 
 #ifdef _WIN32
 	SimpleWindow _dummyWindow;
-#elif defined(OSUnix_)
+#elif defined(__linux__)
 	Window _dummyWindow;
 	Display *_display;
 	WindowWrapper _windowWrapper;
