@@ -1,4 +1,0 @@
-void mx_geomcolor_color3(output color3 out)
-{
-    getattribute("color", out);
-}

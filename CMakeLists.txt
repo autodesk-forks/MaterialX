@@ -67,7 +67,6 @@ endif()
 # Add subdirectories
 add_subdirectory(source/MaterialXCore)
 add_subdirectory(source/MaterialXFormat)
-add_subdirectory(source/MaterialXShaderGen)
 add_subdirectory(source/MaterialXTest)
 
 if(MATERIALX_BUILD_PYTHON)

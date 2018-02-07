@@ -33,6 +33,3 @@ install(TARGETS MaterialXFormat
 
 install(FILES ${materialx_headers}
         DESTINATION ${CMAKE_INSTALL_PREFIX}/include/MaterialXFormat/)
-
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/MaterialXFormat.pdb"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/" OPTIONAL)

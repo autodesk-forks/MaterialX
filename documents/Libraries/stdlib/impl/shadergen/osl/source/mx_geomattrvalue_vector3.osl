@@ -1,4 +1,0 @@
-void mx_geomattrvalue_vector3(string attrname, output vector out)
-{
-    getattribute(attrname, out);
-}
