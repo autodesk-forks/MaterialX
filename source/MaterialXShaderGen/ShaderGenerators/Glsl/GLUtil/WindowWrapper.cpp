@@ -1,4 +1,3 @@
-//#include "Root/aw.h"
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/WindowWrapper.h>
 
 #if defined(__linux__)

@@ -1,5 +1,5 @@
 
-#include "GLew/glew.h"
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLew/glew.h>
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GlslValidator.h>
 
 namespace MaterialX

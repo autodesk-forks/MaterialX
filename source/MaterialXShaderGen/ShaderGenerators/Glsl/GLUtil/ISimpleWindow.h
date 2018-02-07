@@ -52,12 +52,8 @@ class ISimpleWindow
         clearInternalState(); 
     }
 
-	virtual ErrorCode create(char* title, unsigned int width, unsigned int height, 
-							 MessageHandler* handler
-//#if defined(__linux__)
-							 , void *applicationShell // Unix only
-//#endif
-							 ) = 0;
+	virtual ErrorCode create(char* title, unsigned int width, unsigned int height, MessageHandler* handler,
+							 void *applicationShell) = 0;
 
 	virtual void show() = 0;
 	virtual void hide() = 0;
