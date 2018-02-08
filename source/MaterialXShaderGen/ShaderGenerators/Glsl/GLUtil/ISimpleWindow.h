@@ -77,6 +77,16 @@ class ISimpleWindow
         return _windowWrapper;
     }
 
+    bool active() const
+    {
+        return _active;
+    }
+
+    void setActive(bool value)
+    {
+        _active = value;
+    }
+
 protected:
     virtual ~ISimpleWindow()
     {
@@ -87,7 +97,7 @@ protected:
         _width = _height = 0; 
     }
 
-private:
+protected:
     WindowWrapper _windowWrapper;
     MessageHandler* _handler;
     unsigned int _width, _height;

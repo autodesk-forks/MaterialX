@@ -1,14 +1,17 @@
 
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLew/glew.h>
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/GLBaseContext.h>
 
-#if defined(__linux__)
+#if defined(_WIN32)
+#include <Windows.h>
+
+#elif defined(__linux__)
 #include <X11/Intrinsic.h> // for XtDisplay etc
-#endif
 
-#ifdef __APPLE__
+#elif defined(__APPLE__)
 //#include <HWGL/src/macos/HWGLWrapperSets.h>
 #endif
+
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLew/glew.h>
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/GLBaseContext.h>
 
 namespace MaterialX
 {
@@ -16,9 +19,10 @@ namespace MaterialX
 // Global base context 
 GLBaseContext* GLBaseContext::_globalGLBaseContext = nullptr;
 
-#if _WIN32
-#include <windows.h>	
-
+//
+// Windows implementation
+//
+#if defined(_WIN32)
 GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
 {
 	_isValid = false;

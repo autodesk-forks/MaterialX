@@ -72,9 +72,9 @@ class WindowWrapper
         return _display; 
 }
 #endif
-  protected:
-	void release();
+    void release();
 
+  protected:
     ExternalWindowHandle _externalHandle;
     InternalWindowHandle _internalHandle;
 

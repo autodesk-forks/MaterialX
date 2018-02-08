@@ -1,10 +1,11 @@
 #ifndef MATERIALX_SIMPLEWINDOW_H
 #define MATERIALX_SIMPLEWINDOW_H
 
+#include <string>
 //#include <HWFoundation/foundation/awHWFoundation_stdafx.h>
 #include "ISimpleWindow.h"
 
-#if defined(OSUnix_) || defined(OSWin_)
+#if defined(__linux__) || defined(_WIN32)
 	#include <map>
 #endif
 
@@ -22,24 +23,24 @@ public:
 	void setFocus() override;
 	~SimpleWindow() override;
 
-#if defined(OSUnix_)
+#if defined(__linux__)
 	static SimpleWindow* getWindow(Window hWnd);
 	static MessageHandler* getHandler(Window hWnd);
 	static inline Window getNative(SimpleWindow* sw) { return sw->fWindowWrapper.hFBWnd(); }
-#elif defined(OSWin_)
+#elif defined(_WIN32)
 	static SimpleWindow* getWindow(HWND hWnd);
 	static MessageHandler* getHandler(HWND hWnd);
 #endif
 
 	ProcessingResult processMessage() override;
 
-#if defined(OSWin_)
+#if defined(_WIN32)
 	virtual bool			 waitMessage();
 #elif defined(OSMac_)
 	const WindowWrapper& windowWrapper() override;
 #endif
 
-#ifdef OSWin_
+#ifdef _WIN32
 	enum MouseStates
 	{
 		kNoInfo, kLMB, kMMB, kRMB,
@@ -54,24 +55,23 @@ public:
 	// The counter starts from one, so that an id of 0 can be considered invalid.
 	static unsigned int _windowCount;
 
-#if defined(OSUnix_)
+#if defined(__linux__)
 	static std::map<Window, SimpleWindow*> _windowsMap;
-#elif defined(OSWin_)
+#elif defined(_WIN32)
 	// Static map to quickly convert from HWND -> SimpleWindow,
 	// useful in the event handling code.
 	static std::map<HWND, SimpleWindow*> _windowsMap;
 #endif
 
 	// Unique window ID. Only valid if different than 0.
-	unsigned int fID;
+	unsigned int _id;
 
-#ifdef OSWin_
-	char _windowClassName[48];
+#ifdef _WIN32
+    // Class name for window (generated)
+	char _windowClassName[128];
+
 	// Should we process further messages?
-	// This will be set to false when the window is getting closed.
-	// [claforte] Currently only implemented on Win32. Is this required on
-	// unix?
-	bool _processFurtherMessages;
+    bool _processFurtherMessages;
 #endif
 
 };
