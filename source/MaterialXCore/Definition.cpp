@@ -20,60 +20,58 @@ const string Implementation::NODE_DEF_ATTRIBUTE = "nodedef";
 const string Implementation::FILE_ATTRIBUTE = "file";
 const string Implementation::FUNCTION_ATTRIBUTE = "function";
 const string Implementation::LANGUAGE_ATTRIBUTE = "language";
-const string Implementation::UNTYPED = "none";
 
 //
 // NodeDef methods
 //
 
-InterfaceElementPtr NodeDef::getImplementation(const string& target) const
+InterfaceElementPtr NodeDef::getImplementation(const string& target, const string& language) const
 {
-    for (InterfaceElementPtr implement : getDocument()->getMatchingImplementations(getName()))
-    {
-        if (targetStringsMatch(implement->getTarget(), target))
-        {
-            return implement;
-        }
-    }
-    return InterfaceElementPtr();
-}
-
-InterfaceElementPtr NodeDef::getImplementation(const string& language, const string& target) const
-{
+    InterfaceElementPtr foundElement = nullptr;
     for (InterfaceElementPtr element : getDocument()->getMatchingImplementations(getName()))
     {
-        // Check direct implementation
-        ImplementationPtr implementation = element->asA<Implementation>();
-        if (implementation)
+        // If language specified then if it's not a node-graph then check both
+        // language and target. Otherwise just check target if the the implementaitons
+        // is a nodegraph.
+        if (!language.empty())
         {
-            // Check for a language match
-            const std::string& lang = implementation->getLanguage();
-            if (lang.length() && lang == language)
+            // Check direct implementation
+            ImplementationPtr implementation = element->asA<Implementation>();
+            if (implementation)
             {
-                // Check target. Note that it may be empty.
+                // Check for a language match
+                const std::string& lang = implementation->getLanguage();
+                if (lang.length() && lang == language)
+                {
+                    // Check target. Note that it may be empty.
+                    if (targetStringsMatch(implementation->getTarget(), target))
+                    {
+                        return implementation;
+                    }
+                }
+            }
+
+            // Check for a nodegraph implementation which does not require a
+            // language check
+            else if (element->isA<NodeGraph>())
+            {
                 if (targetStringsMatch(implementation->getTarget(), target))
                 {
-                    return implementation;
+                    return element;
                 }
             }
         }
-        // Check for a nodegraph implementation which does not require a
-        // language check
-        else if (element->isA<NodeGraph>())
+
+        // No language specified, just check target
+        else
         {
-            if (targetStringsMatch(implementation->getTarget(), target))
+            if (targetStringsMatch(element->getTarget(), target))
             {
                 return element;
             }
         }
     }
     return InterfaceElementPtr();
-}
-
-bool NodeDef::requiresImplementation() const
-{
-    const std::string typeAttribute = getAttribute(Element::TYPE_ATTRIBUTE);
-    return !typeAttribute.empty() && typeAttribute != Implementation::UNTYPED;
 }
 
 vector<ShaderRefPtr> NodeDef::getInstantiatingShaderRefs() const

@@ -78,30 +78,17 @@ class NodeDef : public InterfaceElement
     /// @name Implementation References
     /// @{
 
-    /// Return the first implementation for this nodedef, optionally filtered
-    /// by the given target name.
+    /// Return the first implementation for this nodedef optionally filtered
+    /// by the given target name, and given language name.
     /// @param target An optional target name, which will be used to filter
     ///    the implementations that are considered.
-    /// @return An implementation for this nodedef, or an empty shared pointer
-    ///    if none was found.  Note that a node implementation may be either
-    ///    an Implementation element or a NodeGraph element.
-    InterfaceElementPtr getImplementation(const string& target = EMPTY_STRING) const;
-
-    /// Return the implementation for this nodedef for a given language, optionally filtered
-    /// by the given target name.
-    /// @param language A language name, which will be used to filter
-    ///    the implementations that are considered.
-    /// @param target A target name, which will be used to filter
+    /// @param language An optional language name, which will be used to filter
     ///    the implementations that are considered.
     /// @return An implementation for this nodedef, or an empty shared pointer
     ///    if none was found.  Note that a node implementation may be either
     ///    an Implementation element or a NodeGraph element.
-    InterfaceElementPtr getImplementation(const string& language, const string& target) const;
-
-    /// Determine if this nodedef requires an implementation. Untyped nodedefs do
-    /// not have implementations
-    /// @return true if an implementation is required
-    bool requiresImplementation() const;
+    InterfaceElementPtr getImplementation(const string& target = EMPTY_STRING, 
+                                          const string& language = EMPTY_STRING) const;
 
     /// @}
     /// @name Shader References
@@ -251,7 +238,6 @@ public:
     static const string FILE_ATTRIBUTE;
     static const string FUNCTION_ATTRIBUTE;
     static const string LANGUAGE_ATTRIBUTE;
-    static const string UNTYPED;
 };
 
 /// @class TypeDef
