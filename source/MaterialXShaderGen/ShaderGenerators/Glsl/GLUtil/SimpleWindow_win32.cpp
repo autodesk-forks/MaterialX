@@ -73,9 +73,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	//.
     static bool alreadyProcessingMessage = false;
     if (alreadyProcessingMessage ||
-		(pSimpleWindow && !pSimpleWindow->_processFurtherMessages))
-		return DefWindowProc(hWnd,uMsg,wParam,lParam);
-	alreadyProcessingMessage = true;
+        (pSimpleWindow && !pSimpleWindow->processFurtherMessages()))
+    {
+        return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    }
+    alreadyProcessingMessage = true;
 	
 	bool messageProcessed = false;
 	switch (uMsg)
@@ -153,9 +155,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			// Other messages should no longer be processed in that window.
 			//
 			MessageHandler* handlerPtr = SimpleWindow::getHandler(hWnd);
-			if (handlerPtr )
-				SimpleWindow::getWindow(hWnd)->_processFurtherMessages = false;
-			break;
+            if (handlerPtr)
+            {
+                SimpleWindow::getWindow(hWnd)->setProcessFurtherMessages(false);
+            }
+            break;
 		}
 
         // Handle key-down

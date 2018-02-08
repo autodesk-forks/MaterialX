@@ -41,6 +41,7 @@ void GlslValidator::initialize(ErrorList& errors)
     if (!_initialized)
     {
         // Creeate window
+        WindowWrapper wrapper;
         SimpleWindow window;
         SimpleWindow::ErrorCode status =
             window.create("Validator Window", 

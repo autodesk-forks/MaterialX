@@ -3,6 +3,7 @@
 #if defined(__linux__)
 	#include <X11/Intrinsic.h> // for XtWindow
 #elif defined(__APPLE__)
+    // TO ADD Apple wrappers
 	//#include <Foundation/include/Hmac.h>
 	//#include "macos/HWFoundationWrapperSets.h"
 #endif
@@ -83,21 +84,15 @@ void WindowWrapper::release()
 {
 	if (_externalHandle)
 	{
-		// On-screen window wrapper.
+		// Explicit release
 		ReleaseDC(_externalHandle, _internalHandle);
 	}
-	else
-	{
-		// Offscreen window wrapper.
-		// User is in charge of releasing the HDC.
-	}
-
 	_externalHandle = 0;
 	_internalHandle = 0;
 }
 
 //
-// Linux (X11-specific) code
+// Linux (X-specific) code
 //
 #elif defined(__linux__)
 
@@ -146,7 +141,7 @@ WindowWrapper::~WindowWrapper()
 
 void WindowWrapper::release()
 {
-	// No release is required.
+	// No explicit release calls are required.
 	_externalHandle = 0;
 	_internalHandle = 0;
 	_framebufferWindow = 0;
@@ -191,6 +186,7 @@ WindowWrapper::~WindowWrapper()
 
 void WindowWrapper::release()
 {
+    // No explicit release calls are required.
 	_externalHandle = 0;
 	_internalHandle = 0;
 }

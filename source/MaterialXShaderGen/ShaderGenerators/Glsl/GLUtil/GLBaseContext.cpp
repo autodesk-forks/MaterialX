@@ -1,12 +1,13 @@
 
 
 #if defined(_WIN32)
-#include <Windows.h>
+#include <Windows.h> // For Windows calls
 
 #elif defined(__linux__)
 #include <X11/Intrinsic.h> // for XtDisplay etc
 
 #elif defined(__APPLE__)
+// To hadle agl wrappers....
 //#include <HWGL/src/macos/HWGLWrapperSets.h>
 #endif
 
@@ -53,13 +54,14 @@ GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
 			_dummyContext = wglCreateContext(dummyWindowWrapper.internalHandle());
 			if (_dummyContext != 0)
 			{
-				if (sharedWithContext)
-					shareLists(sharedWithContext);
+                if (sharedWithContext)
+                {
+                    shareLists(sharedWithContext);
+                }
 
 				int makeCurrentOk = wglMakeCurrent(dummyWindowWrapper.internalHandle(), _dummyContext);
 				if (makeCurrentOk)
 				{
-                    // Initialize glew here?
                     _isValid = true;
 				}
 			}
@@ -67,10 +69,18 @@ GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
 	}
 }
 
+void GLBaseContext::shareLists(HardwareContextHandle context)
+{
+    if (_isValid)
+    {
+        wglShareLists(_dummyContext, context);
+    }
+}
+
+#elif defined(__linux__)
 //
 // Linux context implementation
 //
-#elif defined(__linux__)
 GLBaseContext::GLBaseContext(const WindowWrapper& windowWrapper,
 								   HardwareContextHandle sharedWithContext)
 {
@@ -84,8 +94,12 @@ GLBaseContext::GLBaseContext(const WindowWrapper& windowWrapper,
 	// Get connection to X Server
 	_display = windowWrapper.display();
 
+    // Load in OpenGL library
 	void *libHandle = dlopen("libGL.so", RTLD_LAZY);
 
+    //
+    // Get X required functions
+    //
 	char *error;
 	XVisualInfo * ( * ChooseVisualFuncPtr)(Display *, int, int *);
 	ChooseVisualFuncPtr = (XVisualInfo *(*)(Display *, int, int *))
@@ -155,11 +169,13 @@ GLBaseContext::GLBaseContext(const WindowWrapper& windowWrapper,
     {
         _dummyContext = CreateContextFuncPtr(_display, vinfo, sharedWithContext, GL_TRUE);
     }
-	else
-		_dummyContext = CreateContextFuncPtr(_display, vinfo, 0, GL_TRUE);
-	if(_dummyContext == 0)
+    else
+    {
+        _dummyContext = CreateContextFuncPtr(_display, vinfo, 0, GL_TRUE);
+    }
+    
+    if (_dummyContext == 0)
 	{
-		_dummyContext = 0;
 		return;
 	}
 
@@ -192,10 +208,8 @@ GLBaseContext::GLBaseContext(const WindowWrapper& windowWrapper,
 
 	MakeCurrentFuncPtr(_display, _dummyWindow, _dummyContext);
 
-	// Populate Function Table
 	if(_display)
 	{
-        // Initialize glew here?
         _isValid = true;
 
         //	Restore the previous context
@@ -289,7 +303,10 @@ GLBaseContext::~GLBaseContext()
 
 int GLBaseContext::makeCurrent()
 {
-    if (!_isValid) return 0;
+    if (!_isValid)
+    {
+        return 0;
+    }
 
     int makeCurrentOk = 0;
 #if defined(_WIN32)
@@ -307,14 +324,9 @@ int GLBaseContext::makeCurrent()
     return makeCurrentOk;
 }
 
-#if defined(_WIN32)
-void GLBaseContext::shareLists(HardwareContextHandle context)
-{
-    if (_isValid)
-        wglShareLists(_dummyContext, context);
-}
-#endif
-
+//
+// Singleton create/destory methods
+//
 #if defined(__linux__)
 GLBaseContext* GLBaseContext::create(const WindowWrapper& windowWrapper, HardwareContextHandle context)
 {

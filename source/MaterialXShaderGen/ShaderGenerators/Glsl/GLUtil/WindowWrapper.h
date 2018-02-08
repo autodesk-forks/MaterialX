@@ -4,17 +4,16 @@
 namespace MaterialX
 {
 
-// OS specific type definitions
+/// OS specific type windowing definitions
 #if defined(_WIN32)
-    #include <windows.h>
+    #include <Windows.h>
     using ExternalWindowHandle = HWND;
     using InternalWindowHandle = HDC;
     using DisplayHandle = void*;
 #elif defined(__linux__)
     #include <X11/X.h> // for Window 
     #include <X11/Xlib.h> // for Display
-	typedef struct _WidgetRec *Widget;
-    using Widget = struct _WidgetRec *;
+    using Widget = struct _WidgetRec*;
     using ExternalWindowHandle = Widget;
 	using InternalWindowHandle = Window;
     using DisplayHandle = Display*;
@@ -27,7 +26,8 @@ namespace MaterialX
 #endif 
 
 ///
-/// Generic wrapper for encapsulating a "window".
+/// @class WindowWrapper
+/// Generic wrapper for encapsulating a "window" construct
 /// Each supported platform will have specific storage and logic.
 ///
 class WindowWrapper
@@ -57,16 +57,19 @@ class WindowWrapper
 	bool valid() const { return _internalHandle != 0; }
 
 #if defined(__linux__)
+    /// Get frame buffer X window
     Window getFBWindow() const
     {
         return _framebufferWindow;
     }
 
+    /// Set frame buffer X window
     void setFBWindow(Window window)
     {
         _framebufferWindow = window;
     }
 
+    /// Get X display
 	Display* getDisplay() const 
     {
         return _display; 

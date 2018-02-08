@@ -12,47 +12,78 @@
 namespace MaterialX
 {
 
+///
+/// @class SimpleWindow
+/// Basic platform dependent window class
+///
 class SimpleWindow : public ISimpleWindow
 {
 public:
+    /// Default constructor
 	SimpleWindow();
+
+    /// Default destructor
+    ~SimpleWindow() override;
+
+    /// Window creator
 	ErrorCode create(char* title, unsigned int width, unsigned int height, MessageHandler* handler,
 					 void *applicationShell) override;
+
+    /// Handle window show
 	void show() override;
-	void hide() override;
+
+    /// Handle window hide
+    void hide() override;
+
+    /// Handle window focus setting
 	void setFocus() override;
-	~SimpleWindow() override;
 
-#if defined(__linux__)
-	static SimpleWindow* getWindow(Window hWnd);
-	static MessageHandler* getHandler(Window hWnd);
-	static inline Window getNative(SimpleWindow* sw) { return sw->fWindowWrapper.hFBWnd(); }
-#elif defined(_WIN32)
-	static SimpleWindow* getWindow(HWND hWnd);
-	static MessageHandler* getHandler(HWND hWnd);
-#endif
+    /// Process window message
+    ProcessingResult processMessage() override;
 
-	ProcessingResult processMessage() override;
+    /// Query if there are more messages to process
+    bool processFurtherMessages() const
+    {
+        return _processFurtherMessages;
+    }
+
+    /// Set that there are more messages to process
+    void setProcessFurtherMessages(bool val) 
+    {
+        _processFurtherMessages = val;
+    }
+
+    /// Clear internal state information
+    void clearInternalState();
 
 #if defined(_WIN32)
-	virtual bool			 waitMessage();
+    /// Get window associated with a given window handle
+    static SimpleWindow* getWindow(ExternalWindowHandle hWnd);
+
+    static MessageHandler* getHandler(ExternalWindowHandle hWnd);
+
+    bool waitMessage();
+
+    enum MouseStates
+    {
+        kNoInfo, kLMB, kMMB, kRMB,
+        kUp, kDown, kMove,
+        kInvalid
+    };
+#elif defined(__linux__)
+	static SimpleWindow* getWindow(Window hWnd);
+	static MessageHandler* getHandler(Window hWnd);
+	static inline Window getNative(SimpleWindow* sw) 
+    { 
+        return sw->_windowWrapper.hFBWnd(); 
+    }
 #elif defined(OSMac_)
 	const WindowWrapper& windowWrapper() override;
 #endif
 
-#ifdef _WIN32
-	enum MouseStates
-	{
-		kNoInfo, kLMB, kMMB, kRMB,
-		kUp, kDown, kMove,
-		kInvalid
-	};
-#endif
-
-	void clearInternalState();
-
-	// Static counter for window ID generation.
-	// The counter starts from one, so that an id of 0 can be considered invalid.
+  protected:
+	/// Static counter for window ID generation.
+	/// The counter starts from one, so that an id of 0 can be considered invalid.
 	static unsigned int _windowCount;
 
 #if defined(__linux__)
