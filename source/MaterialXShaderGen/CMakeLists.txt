@@ -38,6 +38,7 @@ set_target_properties(
 target_link_libraries(
     MaterialXShaderGen
     MaterialXCore
+    Opengl32
     ${CMAKE_DL_LIBS}
 )
 

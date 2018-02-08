@@ -1,5 +1,7 @@
 
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GLew/glew.h>
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/SimpleWindow.h>
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/GLBaseContext.h>
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GlslValidator.h>
 
 namespace MaterialX
@@ -38,20 +40,48 @@ void GlslValidator::initialize(ErrorList& errors)
 {
     if (!_initialized)
     {
-        // Initialize windowing code -- to add GLUT or similar
+        // Creeate window
+        SimpleWindow window;
+        SimpleWindow::ErrorCode status =
+            window.create("Validator Window", 
+                _frameBufferWidth, _frameBufferHeight, 
+                nullptr, nullptr);
 
-        // Initialize glew
-#ifndef __APPLE__
-        glewInit();
-        if (!glewIsSupported("GL_VERSION_2_0"))
+        if (status != SimpleWindow::SUCCESS)
         {
-            errors.push_back("OpenGL 2.0 not supported");
+            errors.push_back("Failed to create window for testing.");
         }
-#endif
-        glClearColor(0, 0, 0, 0);
-        glClearStencil(0);
+        else
+        {
+            // Create offscreen context
+            GLBaseContext* context = GLBaseContext::create(nullptr);
+            if (!context)
+            {
+                errors.push_back("Failed to create OpenGL context for testing.");
+            }
+            else
+            {
+                context->makeCurrent();
 
-        _initialized = true;
+                // Initialize glew
+                bool initializedFunctions = true;
+#ifndef __APPLE__
+                glewInit();
+                if (!glewIsSupported("GL_VERSION_4_0"))
+                {
+                    initializedFunctions = false;
+                    errors.push_back("OpenGL version 4.0 not supported");
+                }
+#endif
+                if (initializedFunctions)
+                {
+                    glClearColor(0, 0, 0, 0);
+                    glClearStencil(0);
+
+                    _initialized = true;
+                }
+            }
+        }
     }
 }
 

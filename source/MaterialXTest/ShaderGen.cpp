@@ -12,6 +12,10 @@
 #include <MaterialXShaderGen/Util.h>
 #include <MaterialXShaderGen/HwShader.h>
 
+#if defined(_WIN32)
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/GlslValidator.h>
+#endif
+
 #include <fstream>
 
 namespace mx = MaterialX;
@@ -1239,4 +1243,15 @@ TEST_CASE("Shadergen implementation validity", "[shadergen]")
     }
 
     implDumpBuffer.close();
+}
+
+
+TEST_CASE("Validation", "[shadergen]")
+{
+#if defined(_WIN32)
+    mx::GlslValidator validator;
+
+    mx::GlslValidator::ErrorList errors;
+    validator.initialize(errors);
+#endif
 }

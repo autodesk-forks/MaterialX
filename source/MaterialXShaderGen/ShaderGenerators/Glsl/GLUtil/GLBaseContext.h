@@ -29,7 +29,7 @@ class GLBaseContext
 #if defined(__linux__)
     static GLBaseContext* create(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
 #else
-    static GLBaseContext* create(HardwareContextHandle context = 0);
+    static GLBaseContext* create(HardwareContextHandle context);
 #endif
     static void destroy();
 

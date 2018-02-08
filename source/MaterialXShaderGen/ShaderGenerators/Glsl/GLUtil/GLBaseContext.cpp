@@ -308,7 +308,7 @@ int GLBaseContext::makeCurrent()
 }
 
 #if defined(_WIN32)
-void GLBaseContext::shareLists(HGLRC context)
+void GLBaseContext::shareLists(HardwareContextHandle context)
 {
     if (_isValid)
         wglShareLists(_dummyContext, context);

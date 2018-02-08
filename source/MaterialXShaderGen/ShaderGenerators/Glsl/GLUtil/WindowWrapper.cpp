@@ -22,7 +22,8 @@ WindowWrapper::WindowWrapper()
 	_internalHandle = 0;
 }
 
-WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle, DisplayHandle /*display*/)
+WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle, 
+                             DisplayHandle /*display*/)
 {
 	_externalHandle = externalHandle;
 

@@ -28,6 +28,10 @@ class GlslValidator
     /// Destructor
     virtual ~GlslValidator();
 
+    /// Internal initialization of stages and OpenGL contstructs
+    /// required for program validation and rendering.
+    void initialize(ErrorList& errors);
+
     /// Return whether the validator has been initialized properly.
     /// It is possible due to platform ahd machine restrictions that this
     /// may fail.
@@ -70,10 +74,6 @@ class GlslValidator
     bool save(std::string& fileName);
 
   protected:
-    /// Internal initialization of stages and OpenGL contstructs
-    /// required for program validation and rendering.
-    void initialize(ErrorList& errors);
-
     /// Internal cleanup of stages and OpenGL constructs
     void cleanup();
 
