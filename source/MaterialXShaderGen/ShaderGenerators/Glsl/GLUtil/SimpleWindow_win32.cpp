@@ -68,7 +68,7 @@ LRESULT CALLBACK NoOpProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 // Basic window procedure
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	SimpleWindow* pSimpleWindow = SimpleWindow::getWindow(hWnd);
+	SimpleWindow* simpleWindow = SimpleWindow::getWindow(hWnd);
 
 	// Only process messages if:
 	//	- we're not already processing another message.
@@ -76,7 +76,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	//.
     static bool alreadyProcessingMessage = false;
     if (alreadyProcessingMessage ||
-        (pSimpleWindow && !pSimpleWindow->processFurtherMessages()))
+        (simpleWindow && !simpleWindow->processFurtherMessages()))
     {
         return DefWindowProc(hWnd, uMsg, wParam, lParam);
     }

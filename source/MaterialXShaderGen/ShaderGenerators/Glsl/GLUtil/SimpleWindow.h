@@ -4,7 +4,6 @@
 #include "Platform.h"
 
 #include <string>
-//#include <HWFoundation/foundation/awHWFoundation_stdafx.h>
 #include "ISimpleWindow.h"
 
 #if defined(OSLinux_) || defined(OSWin_)

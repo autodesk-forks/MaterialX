@@ -1,4 +1,4 @@
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/WindowWrapper.h>
+#include "WindowWrapper.h"
 
 #if defined(OSLinux_)
 	#include <X11/Intrinsic.h> // for XtWindow
