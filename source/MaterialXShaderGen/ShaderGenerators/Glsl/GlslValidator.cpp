@@ -42,8 +42,9 @@ void GlslValidator::initialize(ErrorList& errors)
     {
         // Creeate window
         SimpleWindow window;
+        char* windowName = "Validator Window";
         SimpleWindow::ErrorCode status =
-            window.create("Validator Window", 
+            window.create(windowName, 
                 _frameBufferWidth, _frameBufferHeight, 
                 nullptr, nullptr);
 
@@ -54,7 +55,7 @@ void GlslValidator::initialize(ErrorList& errors)
         else
         {
             // Create offscreen context
-            GLBaseContext* context = GLBaseContext::create(nullptr);
+            GLBaseContext* context = GLBaseContext::create(window.windowWrapper(), nullptr);
             if (!context)
             {
                 errors.push_back("Failed to create OpenGL context for testing.");
@@ -362,6 +363,7 @@ bool GlslValidator::render(ErrorList& errors)
     if (!context)
     {
         errors.push_back("No valid OpenGL context to render to.");
+        return false;
     }
     context->makeCurrent();
 

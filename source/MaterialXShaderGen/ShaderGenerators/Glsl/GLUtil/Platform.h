@@ -6,7 +6,8 @@
 //#define OSLinux_
 #elif defined(__APPLE__)
 //#define OSMac_ 
-
+#else
+#define OSUnsupported_
 #endif
 
 #endif

@@ -10,17 +10,47 @@
 
 namespace MaterialX
 {
-    
+ 
+#if defined(OSUnsupported_)
+//
+// Unsupport OS
+//
+WindowWrapper::WindowWrapper() :
+    _externalHandle(0),
+    _internalHandle(0)
+{
+}
+
+WindowWrapper::WindowWrapper(ExternalWindowHandle /*externalHandle*/, InternalWindowHandle /*internalHandle*/,
+    DisplayHandle /*display*/) :
+    _externalHandle(0),
+    _internalHandle(0)
+{
+}
+
+WindowWrapper::WindowWrapper(const WindowWrapper& /*other*/)
+{
+}
+
+const WindowWrapper& WindowWrapper::operator=(const WindowWrapper& /*other*/)
+{
+    return *this;
+}
+
+WindowWrapper::~WindowWrapper()
+{
+}
+
+#elif defined(OSWin_)
 //
 // Windows code
 //
-#if defined(OSWin_)
 
 // Default constructor.
-WindowWrapper::WindowWrapper()
+WindowWrapper::WindowWrapper() :
+    _externalHandle(0),
+    _internalHandle(0)
 {
-    _externalHandle = 0;
-	_internalHandle = 0;
 }
 
 WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle, 

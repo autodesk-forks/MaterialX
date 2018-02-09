@@ -43,6 +43,27 @@ class SimpleWindow : public ISimpleWindow
 
 };
 
+#if defined(OSUnsupported_)
+SimpleWindow::SimpleWindow() :
+    _id(0)
+{
+}
+
+SimpleWindow::~SimpleWindow()
+{
+}
+
+ISimpleWindow::ErrorCode SimpleWindow::create(char* /*title*/, 
+                                unsigned int /*width*/, 
+                                unsigned int /*height*/, 
+                                MessageHandler* /*handler*/,
+                                void* /*applicationShell*/)
+{
+    return CANNOT_CREATE_WINDOW_INSTANCE;
+}
+
+#endif
+
 }
 
 #endif // _SimpleWindow_h_

@@ -20,7 +20,7 @@ using HardwareContextHandle = GLXContext;
 #elif defined(OSMac_)
 using HardwareContextHandle = void*;
 #else
-using HardwareContextHandle = int;  // To halt further compiler errors
+using HardwareContextHandle = void*;  
 #endif
 
 /// @class GLBaseContext
@@ -32,16 +32,15 @@ class GLBaseContext
 {
   public:
     /// Create base context singleton if not already created
-#if defined(OSLinux_)
     static GLBaseContext* create(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
-#else
-    static GLBaseContext* create(HardwareContextHandle context);
-#endif
-    static GLBaseContext*  get()
+
+    /// Get base context singleton
+    static GLBaseContext* get()
     {
         return _globalGLBaseContext;
     }
-    /// Destroy singleton
+
+    /// Destroy base context singleton
     static void destroy();
 
     /// Return OpenGL context resource handle
@@ -70,14 +69,8 @@ class GLBaseContext
 #endif
 
   protected:
-#if defined(OSLinux_)
-    /// Create the base context. Requires a window wrapper and optional
-    /// OpenGL context to share with
-    GLBaseContext(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
-#else
     /// Create the base context. A OpenGL context to share with can be passed in.
-    GLBaseContext(HardwareContextHandle context = 0);
-#endif
+    GLBaseContext(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
     ~GLBaseContext();
 
     /// Base context singleton

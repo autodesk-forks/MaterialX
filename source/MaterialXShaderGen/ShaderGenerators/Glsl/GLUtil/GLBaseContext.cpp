@@ -20,14 +20,23 @@ namespace MaterialX
 // Global base context 
 GLBaseContext* GLBaseContext::_globalGLBaseContext = nullptr;
 
+// Unsupported
+#if defined(OSUnsupported_)
+
+GLBaseContext::GLBaseContext(const WindowWrapper& /*windowWrapper*/, HardwareContextHandle /*sharedWithContext*/) :
+    _isValid(false),
+    _dummyContext(nullptr)
+{
+}
+
+#elif defined(OSWin_)
 //
 // Windows implementation
 //
-#if defined(_WIN32)
-GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
+GLBaseContext::GLBaseContext(const WindowWrapper& /*windowWrapper*/, HardwareContextHandle sharedWithContext) :
+    _isValid(false),
+    _dummyContext(nullptr)
 {
-	_isValid = false;
-
 	// For windows, we need a HDC to create an OpenGL context.
 	// Create a dummy 1x1 window and use it' HDC.
     _dummyWindow.create("__GL_BASE_CONTEXT_DUMMY_WINDOW__", 1, 1, 0, nullptr);
@@ -82,7 +91,7 @@ void GLBaseContext::shareLists(HardwareContextHandle context)
 // Linux context implementation
 //
 GLBaseContext::GLBaseContext(const WindowWrapper& windowWrapper,
-								   HardwareContextHandle sharedWithContext)
+							 HardwareContextHandle sharedWithContext)
 {
 	_isValid = false;
 
@@ -220,7 +229,7 @@ GLBaseContext::GLBaseContext(const WindowWrapper& windowWrapper,
 	}
 }
 
-GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
+GLBaseContext::GLBaseContext(const WindowWrapper& /*windowWrapper*/, HardwareContextHandle /*sharedWithContext*/)
 {
 	_dummyWindow = 0;
 	_dummyContext = 0;
@@ -234,7 +243,7 @@ GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
 //
 #elif defined(OSMac_)
 
-GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
+GLBaseContext::GLBaseContext(const WindowWrapper& /*windowWrapper*/, HardwareContextHandle sharedWithContext)
 {	
 	_isValid = false;
 
@@ -269,7 +278,7 @@ GLBaseContext::~GLBaseContext()
 	// Only do this portion if the context is valid
 	if (_isValid) 
 	{
-#if _WIN32
+#if defined(OSWIn_)
 		// Release the dummy context.
 		wglDeleteContext(_dummyContext);
 
@@ -323,7 +332,6 @@ int GLBaseContext::makeCurrent()
 //
 // Singleton create/destory methods
 //
-#if defined(OSLinux_)
 GLBaseContext* GLBaseContext::create(const WindowWrapper& windowWrapper, HardwareContextHandle context)
 {
     if (!_globalGLBaseContext)
@@ -332,16 +340,6 @@ GLBaseContext* GLBaseContext::create(const WindowWrapper& windowWrapper, Hardwar
     }
     return _globalGLBaseContext;
 }
-#else
-GLBaseContext* GLBaseContext::create(HardwareContextHandle context)
-{
-    if (!_globalGLBaseContext)
-    {
-        _globalGLBaseContext = new GLBaseContext(context);
-    }
-    return _globalGLBaseContext;
-}
-#endif
 
 void GLBaseContext::destroy()
 {

@@ -1246,17 +1246,21 @@ TEST_CASE("Shadergen implementation validity", "[shadergen]")
 }
 
 
-TEST_CASE("Validation", "[shadergen]")
+TEST_CASE("GPU Validation", "[shadergen]")
 {
 #if defined(_WIN32)
-    // Initialize a GLSL validator. Will initialize 
-    // window and context as well for usage
-    mx::GlslValidator validator;
-    mx::GlslValidator::ErrorList errors;
-    validator.initialize(errors);
-    errors.clear();
+    bool runGPUTest = false;
+    if (runGPUTest)
+    {
+        // Initialize a GLSL validator. Will initialize 
+        // window and context as well for usage
+        mx::GlslValidator validator;
+        mx::GlslValidator::ErrorList errors;
+        validator.initialize(errors);
+        errors.clear();
 
-    // To add: Hook in set up of program for validator. 
-    validator.render(errors);
+        // To add: Hook in set up of program for validator. 
+        validator.render(errors);
+    }
 #endif
 }
