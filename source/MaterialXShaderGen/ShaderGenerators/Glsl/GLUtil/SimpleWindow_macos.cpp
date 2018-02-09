@@ -14,22 +14,22 @@ SimpleWindow::SimpleWindow()
 	clearInternalState();
 
 	// Give a unique ID to this window.
-	_Id = _windowCount;
-	_windowCount++;
+    static unsigned int windowCount = 1;
+    _id = windowCount;
+    windowCount++;
 }
 
-ISimpleWindow::ErrorCode SimpleWindow::create(char* title,
-											unsigned int width, unsigned int height,
-											MessageHandler* handler,
-                                            void* /*applicationShell*/)
+bool SimpleWindow::create(char* title,
+						unsigned int width, unsigned int height,
+                        void* /*applicationShell*/)
 {
 	void* win = aglToNSOpenGLCreateWindow(width, height, title, true);
 	if (!win)
 	{
-		return CANNOT_CREATE_WINDOW_INSTANCE;
+		return false;
 	}
 	_windowWrapper = WindowWrapper(win);
-	return SUCCESS;
+	return true;
 }
 
 SimpleWindow::~SimpleWindow()

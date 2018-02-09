@@ -20,22 +20,9 @@ SimpleWindow::SimpleWindow()
     windowCount++;
 }
 
-SimpleWindow* SimpleWindow::getWindow(Window hWnd)
-{
-	return _windowsMap[hWnd];
-}
-
-MessageHandler* SimpleWindow::getHandler(Window hWnd)
-{
-	SimpleWindow* winPtr = getWindow(hWnd);
-	MessageHandler* handlerPtr = winPtr->handler();
-	return handlerPtr;
-}
-
-ISimpleWindow::ErrorCode SimpleWindow::create(char* title, 
-											  unsigned int width, unsigned int height, 
-											  MessageHandler* handler,
-											  void *applicationShell)
+bool SimpleWindow::create(char* title, 
+						    unsigned int width, unsigned int height, 
+						    void *applicationShell)
 {
 	int n = 0;
 
@@ -63,7 +50,8 @@ ISimpleWindow::ErrorCode SimpleWindow::create(char* title,
 
 	if(!shell) 
     {
-		return CANNOT_CREATE_WINDOW_INSTANCE;;
+        _id = 0;
+		return false;;
 	}
 	
 	Arg args[6];
@@ -75,17 +63,17 @@ ISimpleWindow::ErrorCode SimpleWindow::create(char* title,
 	Widget widget = XtCreatePopupShell(title, topLevelShellWidgetClass, shell, args, n);
 	if (!widget) 
     {
-		return CANNOT_CREATE_WINDOW_INSTANCE;
+        _id = 0;
+		return false;
 	}
 	
 	XtRealizeWidget(widget);
 
 	_windowWrapper = WindowWrapper(widget, XtWindow(widget), XtDisplay(widget));
-	_handler = handler;
 
     _active = true;
 
-	return SUCCESS;
+	return true;
 }
 
 SimpleWindow::~SimpleWindow()
@@ -95,8 +83,6 @@ SimpleWindow::~SimpleWindow()
 	{
 		// Unrealize the widget first to avoid X calls to it
 		XtUnrealizeWidget(widget);
-		// Used to be XFree. Make a proper call to destroy
-		// the widget.
 		XtDestroyWidget(widget);
         widget = nullptr;
 	}

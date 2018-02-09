@@ -42,13 +42,11 @@ void GlslValidator::initialize(ErrorList& errors)
     {
         // Creeate window
         SimpleWindow window;
-        char* windowName = "Validator Window";
-        SimpleWindow::ErrorCode status =
-            window.create(windowName, 
-                _frameBufferWidth, _frameBufferHeight, 
-                nullptr, nullptr);
-
-        if (status != SimpleWindow::SUCCESS)
+        const char* windowName = "Validator Window";
+        bool created = window.create(const_cast<char *>(windowName), 
+                                    _frameBufferWidth, _frameBufferHeight, 
+                                    nullptr);
+        if (!created)
         {
             errors.push_back("Failed to create window for testing.");
         }
@@ -62,24 +60,25 @@ void GlslValidator::initialize(ErrorList& errors)
             }
             else
             {
-                context->makeCurrent();
-
-                // Initialize glew
-                bool initializedFunctions = true;
+                if (context->makeCurrent())
+                {
+                    // Initialize glew
+                    bool initializedFunctions = true;
 #ifndef OSMac_
-                glewInit();
-                if (!glewIsSupported("GL_VERSION_4_0"))
-                {
-                    initializedFunctions = false;
-                    errors.push_back("OpenGL version 4.0 not supported");
-                }
+                    glewInit();
+                    if (!glewIsSupported("GL_VERSION_4_0"))
+                    {
+                        initializedFunctions = false;
+                        errors.push_back("OpenGL version 4.0 not supported");
+                    }
 #endif
-                if (initializedFunctions)
-                {
-                    glClearColor(0, 0, 0, 0);
-                    glClearStencil(0);
+                    if (initializedFunctions)
+                    {
+                        glClearColor(0, 0, 0, 0);
+                        glClearStencil(0);
 
-                    _initialized = true;
+                        _initialized = true;
+                    }
                 }
             }
         }
@@ -108,9 +107,8 @@ void GlslValidator::deleteTarget()
     if (_frameBuffer)
     {
         GLBaseContext* context = GLBaseContext::get();
-        if (context)
+        if (context && context->makeCurrent())
         {
-            context->makeCurrent();
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glDeleteFramebuffers(1, &_frameBuffer);
         }
@@ -124,7 +122,10 @@ bool GlslValidator::createTarget(ErrorList& errors)
     {
         errors.push_back("No valid OpenGL context to create target with.");
     }
-    context->makeCurrent();
+    if (!context->makeCurrent())
+    {
+        errors.push_back("Cannot make OpenGL context current to create target with.");
+    }
 
     // Only frame buffer only once
     if (_frameBuffer > 0)
@@ -201,9 +202,8 @@ void GlslValidator::deleteProgram()
     if (_programId > 0)
     {
         GLBaseContext* context = GLBaseContext::get();
-        if (context)
+        if (context && context->makeCurrent())
         {
-            context->makeCurrent();
             glDeleteObjectARB(_programId);
         }
         _programId = 0;
@@ -219,7 +219,10 @@ unsigned int GlslValidator::createProgram(ErrorList& errors)
     {
         errors.push_back("No valid OpenGL context to create program with.");
     }
-    context->makeCurrent();
+    if (!context->makeCurrent())
+    {
+        errors.push_back("Cannot make OpenGL context current to create program.");
+    }
 
     deleteProgram();
 
@@ -365,7 +368,11 @@ bool GlslValidator::render(ErrorList& errors)
         errors.push_back("No valid OpenGL context to render to.");
         return false;
     }
-    context->makeCurrent();
+    if (!context->makeCurrent())
+    {
+        errors.push_back("Cannot make OpenGL context current to render to.");
+        return false;
+    }
 
     // Set up target
     bindTarget(true, errors);

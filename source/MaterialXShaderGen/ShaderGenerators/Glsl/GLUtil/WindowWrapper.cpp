@@ -1,16 +1,15 @@
 #include "WindowWrapper.h"
 
 #if defined(OSLinux_)
-	#include <X11/Intrinsic.h> // for XtWindow
+#include <X11/Intrinsic.h> // for XtWindow
 #elif defined(OSMac_)
-    // TO ADD Apple wrappers
-	//#include <Foundation/include/Hmac.h>
-	//#include "macos/HWFoundationWrapperSets.h"
+// TO ADD Apple wrappers
+//#include <Foundation/include/Hmac.h>
+//#include "macos/HWFoundationWrapperSets.h"
 #endif
 
 namespace MaterialX
 {
- 
 #if defined(OSUnsupported_)
 //
 // Unsupport OS
@@ -53,78 +52,78 @@ WindowWrapper::WindowWrapper() :
 {
 }
 
-WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle, 
-                             DisplayHandle /*display*/)
+WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle,
+    DisplayHandle /*display*/)
 {
-	_externalHandle = externalHandle;
+    _externalHandle = externalHandle;
 
-	if (_externalHandle && !internalHandle)
-	{
-		// Cache our own HDC that corresponds to the hWnd.
-		_internalHandle = GetDC(_externalHandle);
-	}
-	else
-	{
-		// This window wrapper is wrapping an offline DC.
-		_internalHandle = internalHandle;
-	}
+    if (_externalHandle && !internalHandle)
+    {
+        // Cache our own HDC that corresponds to the hWnd.
+        _internalHandle = GetDC(_externalHandle);
+    }
+    else
+    {
+        // This window wrapper is wrapping an offline DC.
+        _internalHandle = internalHandle;
+    }
 }
 
 WindowWrapper::WindowWrapper(const WindowWrapper& other)
 {
-	_externalHandle = other._externalHandle;
+    _externalHandle = other._externalHandle;
 
-	if (_externalHandle && !_internalHandle)
-	{
-		// Cache our own HDC that corresponds to the hWnd.
-		_internalHandle = GetDC(_externalHandle);
-	}
-	else
-	{
-		// This window wrapper is wrapping an offline DC.
-		_internalHandle = other._internalHandle;
-	}
+    if (_externalHandle && !_internalHandle)
+    {
+        // Cache our own HDC that corresponds to the hWnd.
+        _internalHandle = GetDC(_externalHandle);
+    }
+    else
+    {
+        // This window wrapper is wrapping an offline DC.
+        _internalHandle = other._internalHandle;
+    }
 }
 
 const WindowWrapper& WindowWrapper::operator=(const WindowWrapper& other)
 {
-	release();
+    release();
 
-	_externalHandle = other._externalHandle;
-	if (_externalHandle && !_internalHandle)
-	{
-		// Cache our own HDC that corresponds to the hWnd.
-		_internalHandle = GetDC(_externalHandle);
-	}
-	else
-	{
-		// This window wrapper is wrapping an offline DC.
-		_internalHandle = other._internalHandle;
-	}
+    _externalHandle = other._externalHandle;
+    if (_externalHandle && !_internalHandle)
+    {
+        // Cache our own HDC that corresponds to the hWnd.
+        _internalHandle = GetDC(_externalHandle);
+    }
+    else
+    {
+        // This window wrapper is wrapping an offline DC.
+        _internalHandle = other._internalHandle;
+    }
 
-	return *this;
+    return *this;
 }
 
 WindowWrapper::~WindowWrapper()
 {
-	release();
+    release();
 }
 
 void WindowWrapper::release()
 {
-	if (_externalHandle)
-	{
-		// Explicit release
-		ReleaseDC(_externalHandle, _internalHandle);
-	}
-	_externalHandle = 0;
-	_internalHandle = 0;
+    if (_externalHandle)
+    {
+        // Explicit release
+        ReleaseDC(_externalHandle, _internalHandle);
+    }
+    _externalHandle = 0;
+    _internalHandle = 0;
 }
 
+#elif defined(OSLinux_)
 //
 // Linux (X-specific) code
 //
-#elif defined(OSLinux_)
 
 // Default constructor.
 WindowWrapper::WindowWrapper() :
@@ -137,88 +136,88 @@ WindowWrapper::WindowWrapper() :
 
 WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle, DisplayHandle display)
 {
-	_display = display;
-	_framebufferWindow = 0;
-	_externalHandle = externalHandle;
-	// Cache a pointer to the window.
-	if (internalHandle)
-	  _internalHandle = internalHandle;
-	else
-	  _internalHandle = XtWindow(externalHandle);
+    _display = display;
+    _framebufferWindow = 0;
+    _externalHandle = externalHandle;
+    // Cache a pointer to the window.
+    if (internalHandle)
+        _internalHandle = internalHandle;
+    else
+        _internalHandle = XtWindow(externalHandle);
 }
 
 WindowWrapper::WindowWrapper(const WindowWrapper& other)
 {
-	_framebufferWindow = other._framebufferWindow;
-	_externalHandle = other._externalHandle;
-	_internalHandle = other._internalHandle;
-	_display = other._display;
+    _framebufferWindow = other._framebufferWindow;
+    _externalHandle = other._externalHandle;
+    _internalHandle = other._internalHandle;
+    _display = other._display;
 }
 
 const WindowWrapper& WindowWrapper::operator=(const WindowWrapper& other)
 {
-	_framebufferWindow = other._framebufferWindow;
-	_externalHandle = other._externalHandle;
-	_internalHandle = other._internalHandle;
-	_display = other._display;
-	return *this;
+    _framebufferWindow = other._framebufferWindow;
+    _externalHandle = other._externalHandle;
+    _internalHandle = other._internalHandle;
+    _display = other._display;
+    return *this;
 }
 
 WindowWrapper::~WindowWrapper()
 {
-	release();
-}
-
-void WindowWrapper::release()
-{
-	// No explicit release calls are required.
-	_externalHandle = 0;
-	_internalHandle = 0;
-	_framebufferWindow = 0;
-	_display = 0;
-}
-
-//
-// OSX (Apple) specific code
-//
-#elif defined(OSMac_)
-
-WindowWrapper::WindowWrapper()
-{
-	_externalHandle = 0;
-	_internalHandle = 0;
-}
-
-WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle, DisplayHandle display)
-{
-	_externalHandle = externalHandle;
-	// Cache a pointer to the window.
-	_internalHandle = aglToNSOpenGLGetView(externalHandle);
-}
-
-WindowWrapper::WindowWrapper(const WindowWrapper& other)
-{
-	_externalHandle = other._externalHandle;
-	_internalHandle = aglToNSOpenGLGetView(_externalHandle);
-}
-
-const WindowWrapper& WindowWrapper::operator=(const WindowWrapper& other)
-{
-	_externalHandle = other._externalHandle;
-	_internalHandle = aglToNSOpenGLGetView(_externalHandle);
-	return *this;
-}
-
-WindowWrapper::~WindowWrapper()
-{
-	release();
+    release();
 }
 
 void WindowWrapper::release()
 {
     // No explicit release calls are required.
-	_externalHandle = 0;
-	_internalHandle = 0;
+    _externalHandle = 0;
+    _internalHandle = 0;
+    _framebufferWindow = 0;
+    _display = 0;
+}
+
+#elif defined(OSMac_)
+//
+// OSX (Apple) specific code
+//
+
+WindowWrapper::WindowWrapper()
+{
+    _externalHandle = 0;
+    _internalHandle = 0;
+}
+
+WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle, DisplayHandle display)
+{
+    _externalHandle = externalHandle;
+    // Cache a pointer to the window.
+    _internalHandle = aglToNSOpenGLGetView(externalHandle);
+}
+
+WindowWrapper::WindowWrapper(const WindowWrapper& other)
+{
+    _externalHandle = other._externalHandle;
+    _internalHandle = aglToNSOpenGLGetView(_externalHandle);
+}
+
+const WindowWrapper& WindowWrapper::operator=(const WindowWrapper& other)
+{
+    _externalHandle = other._externalHandle;
+    _internalHandle = aglToNSOpenGLGetView(_externalHandle);
+    return *this;
+}
+
+WindowWrapper::~WindowWrapper()
+{
+    release();
+}
+
+void WindowWrapper::release()
+{
+    // No explicit release calls are required.
+    _externalHandle = 0;
+    _internalHandle = 0;
 }
 #endif 
 

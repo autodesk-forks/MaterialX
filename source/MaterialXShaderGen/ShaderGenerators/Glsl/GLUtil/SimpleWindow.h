@@ -2,9 +2,7 @@
 #define MATERIALX_SIMPLEWINDOW_H
 
 #include "Platform.h"
-#include "ISimpleWindow.h"
-
-#include <string>
+#include "WindowWrapper.h"
 
 namespace MaterialX
 {
@@ -12,38 +10,72 @@ namespace MaterialX
 /// @class SimpleWindow
 /// Basic platform dependent window class
 ///
-class SimpleWindow : public ISimpleWindow
+class SimpleWindow
 {
   public:
     /// Default constructor
-	SimpleWindow();
+    SimpleWindow();
 
     /// Default destructor
-    ~SimpleWindow() override;
+    ~SimpleWindow();
 
     /// Window creator
-	ErrorCode create(char* title, unsigned int width, unsigned int height, MessageHandler* handler,
-					 void *applicationShell) override;
+    bool create(char* title, unsigned int width, unsigned int height,
+        void *applicationShell);
 
-    /// Clear internal state information
-    void clearInternalState() override
+    /// Return windowing information for the window
+    const WindowWrapper& windowWrapper()
     {
-        ISimpleWindow::clearInternalState();
-        _id = 0;
+        return _windowWrapper;
+    }
+
+    /// Return width of window
+    unsigned int width() const
+    {
+        return _width;
+    }
+
+    /// Return height of window
+    unsigned int height() const
+    {
+        return _width;
+    }
+
+    /// Check validity
+    bool isValid() const
+    {
+        return (_id != 0);
     }
 
   protected:
-	// Unique window ID. Only valid if different than 0.
-	unsigned int _id;
+    /// Clear internal state information
+    void clearInternalState()
+    {
+        _width = _height = 0;
+        _id = 0;
+    }
+
+    /// Windowing information
+    WindowWrapper _windowWrapper;
+    
+    /// Dimensions of window
+    unsigned int _width;
+    unsigned int _height;
+
+    /// Unique window identifier Only valid if different than 0.
+    unsigned int _id;
 
 #if defined(OSWin_)
-    // Class name for window (generated)
-	char _windowClassName[128];
+    /// Class name for window (generated)
+    char _windowClassName[128];
 #endif
 
 };
 
 #if defined(OSUnsupported_)
+//
+// Stubs for unsupported OS
+//
 SimpleWindow::SimpleWindow() :
     _id(0)
 {
@@ -53,13 +85,12 @@ SimpleWindow::~SimpleWindow()
 {
 }
 
-ISimpleWindow::ErrorCode SimpleWindow::create(char* /*title*/, 
-                                unsigned int /*width*/, 
-                                unsigned int /*height*/, 
-                                MessageHandler* /*handler*/,
-                                void* /*applicationShell*/)
+ISimpleWindow::bool SimpleWindow::create(char* /*title*/,
+                                            unsigned int /*width*/,
+                                            unsigned int /*height*/,
+                                            void* /*applicationShell*/)
 {
-    return CANNOT_CREATE_WINDOW_INSTANCE;
+    return false;
 }
 
 #endif

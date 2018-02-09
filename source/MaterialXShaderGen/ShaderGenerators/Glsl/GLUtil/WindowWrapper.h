@@ -12,26 +12,25 @@
 
 namespace MaterialX
 {
-
 /// OS specific type windowing definitions
 #if defined(OSWin_)
-    using ExternalWindowHandle = HWND;
-    using InternalWindowHandle = HDC;
-    using DisplayHandle = void*;
+using ExternalWindowHandle = HWND;
+using InternalWindowHandle = HDC;
+using DisplayHandle = void*;
 #elif defined(OSLinux_)
-    using Widget = struct _WidgetRec*;
-    using ExternalWindowHandle = Widget;
-	using InternalWindowHandle = Window;
-    using DisplayHandle = Display*;
+using ExternalWindowHandle = Widget;
+using InternalWindowHandle = Window;
+using DisplayHandle = Display*;
+using Widget = struct _WidgetRec*;
 #elif defined(OSMac_)
-	using ExternalWindowHandle = void*;
-	using InternalWindowHandle = void*;
-    using DisplayHandle = void*;
+using ExternalWindowHandle = void*;
+using InternalWindowHandle = void*;
+using DisplayHandle = void*;
 #else
-    using Widget = void*;
-    using ExternalWindowHandle = void*;
-    using InternalWindowHandle = void*;
-    using DisplayHandle = void*;
+using Widget = void*;
+using ExternalWindowHandle = void*;
+using InternalWindowHandle = void*;
+using DisplayHandle = void*;
 #endif 
 
 ///
@@ -40,33 +39,45 @@ namespace MaterialX
 /// Each supported platform will have specific storage and logic.
 ///
 class WindowWrapper
-{ 
+{
   public:
-	WindowWrapper();
+    /// Default constructor
+    WindowWrapper();
+
+    /// Default destructor
     virtual ~WindowWrapper();
 
-	WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle = nullptr,
-                  DisplayHandle display = nullptr);
+    /// Contruct a wrapper using window information
+    WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle = nullptr,
+        DisplayHandle display = nullptr);
 
-	WindowWrapper(const WindowWrapper& other);
-	const WindowWrapper& operator=(const WindowWrapper& other);
+    /// Copy constructor
+    WindowWrapper(const WindowWrapper& other);
 
-	ExternalWindowHandle externalHandle() const 
-    { 
-        return _externalHandle; 
+    /// Assignment operator
+    const WindowWrapper& operator=(const WindowWrapper& other);
+
+    /// Return "external" handle
+    ExternalWindowHandle externalHandle() const
+    {
+        return _externalHandle;
     }
-	InternalWindowHandle internalHandle() const 
-    { 
-        return _internalHandle; 
+
+    /// Return "internal" handle
+    InternalWindowHandle internalHandle() const
+    {
+        return _internalHandle;
     }
 
-	// On both Windows and Unix, the window wrapper is only valid
-	// if the internal handle (hDC for Win32, Window handle for X11) is
-	// non-null.
-	bool valid() const { return _internalHandle != 0; }
+    /// Check that there is a valid OS handle set.
+    /// It is sufficient to just check the internal handle
+    bool isValid() const 
+    { 
+        return _internalHandle != 0; 
+    }
 
 #if defined(OSLinux_)
-    /// Get frame buffer X window
+    /// Return frame buffer X window
     Window getFBWindow() const
     {
         return _framebufferWindow;
@@ -78,11 +89,11 @@ class WindowWrapper
         _framebufferWindow = window;
     }
 
-    /// Get X display
-	Display* getDisplay() const 
+    /// Rreturn X display
+    Display* getDisplay() const
     {
-        return _display; 
-}
+        return _display;
+    }
 #endif
     void release();
 
@@ -91,10 +102,12 @@ class WindowWrapper
     InternalWindowHandle _internalHandle;
 
 #if defined(OSLinux_)
-    Window _framebufferWindow;  // Window ID of framebuffer instance created in wrapper
-    Display *_display;          // Display
+    /// Window ID of framebuffer instance created in wrapper
+    Window _framebufferWindow;
+    /// X Display
+    Display* _display;
 #endif
-	
+
 };
 
 } // namespace MaterialX
