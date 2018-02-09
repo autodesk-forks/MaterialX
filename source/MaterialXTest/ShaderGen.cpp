@@ -1257,10 +1257,12 @@ TEST_CASE("GPU Validation", "[shadergen]")
         mx::GlslValidator validator;
         mx::GlslValidator::ErrorList errors;
         validator.initialize(errors);
+        REQUIRE(errors.size() == 0);
         errors.clear();
 
         // To add: Hook in set up of program for validator. 
         validator.render(errors);
+        REQUIRE(errors.size() == 0);
     }
 #endif
 }

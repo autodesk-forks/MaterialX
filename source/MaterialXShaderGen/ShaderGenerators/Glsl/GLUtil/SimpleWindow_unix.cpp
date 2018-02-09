@@ -7,85 +7,85 @@
 #include <X11/Intrinsic.h> // for XtCallbackProc definition
 
 namespace MaterialX
-{ 
+{
 
 SimpleWindow::SimpleWindow()
 {
-	clearInternalState();
+    clearInternalState();
 
-	// Give a unique ID to this window.
-	//
+    // Give a unique ID to this window.
+    //
     static unsigned int windowCount = 1;
     _id = windowCount;
     windowCount++;
 }
 
-bool SimpleWindow::create(char* title, 
-						    unsigned int width, unsigned int height, 
-						    void *applicationShell)
+bool SimpleWindow::create(char* title,
+    unsigned int width, unsigned int height,
+    void *applicationShell)
 {
-	int n = 0;
+    int n = 0;
 
-	XtAppContext appContext;	
-	Widget shell;
-	static Widget batchShell;
-	static bool initializedBatchOnce = false;
-	if (!applicationShell)
-	{
-		// Connect to the X Server
-		if (!initializedBatchOnce) 
+    XtAppContext appContext;
+    Widget shell;
+    static Widget batchShell;
+    static bool initializedBatchOnce = false;
+    if (!applicationShell)
+    {
+        // Connect to the X Server
+        if (!initializedBatchOnce)
         {
-			batchShell = XtOpenApplication(&appContext, "__dummy__app__", 
-                                           0, 0, &n, 0, 0, 
-				                           applicationShellWidgetClass ,0,0);
-			initializedBatchOnce = true;
-		}
-		shell = batchShell;
-	}
-	else
-	{
-		// Reuse existing application shell;
-		shell = (Widget)applicationShell;
-	}
+            batchShell = XtOpenApplication(&appContext, "__dummy__app__",
+                0, 0, &n, 0, 0,
+                applicationShellWidgetClass, 0, 0);
+            initializedBatchOnce = true;
+        }
+        shell = batchShell;
+    }
+    else
+    {
+        // Reuse existing application shell;
+        shell = (Widget)applicationShell;
+    }
 
-	if(!shell) 
+    if (!shell)
     {
         _id = 0;
-		return false;;
-	}
-	
-	Arg args[6];
-	n = 0;
-	XtSetArg(args[n], XtNx, 0); n++;
-	XtSetArg(args[n], XtNy, 0); n++;
-	XtSetArg(args[n], XtNwidth, width); n++;
-	XtSetArg(args[n], XtNheight, height); n++;
-	Widget widget = XtCreatePopupShell(title, topLevelShellWidgetClass, shell, args, n);
-	if (!widget) 
+        return false;;
+    }
+
+    Arg args[6];
+    n = 0;
+    XtSetArg(args[n], XtNx, 0); n++;
+    XtSetArg(args[n], XtNy, 0); n++;
+    XtSetArg(args[n], XtNwidth, width); n++;
+    XtSetArg(args[n], XtNheight, height); n++;
+    Widget widget = XtCreatePopupShell(title, topLevelShellWidgetClass, shell, args, n);
+    if (!widget)
     {
         _id = 0;
-		return false;
-	}
-	
-	XtRealizeWidget(widget);
+        return false;
+    }
 
-	_windowWrapper = WindowWrapper(widget, XtWindow(widget), XtDisplay(widget));
+    XtRealizeWidget(widget);
+
+    _windowWrapper = WindowWrapper(widget, XtWindow(widget), XtDisplay(widget));
 
     _active = true;
 
-	return true;
+    return true;
 }
 
 SimpleWindow::~SimpleWindow()
 {
-	Widget widget = _windowWrapper.externalHandle();
-	if (widget)
-	{
-		// Unrealize the widget first to avoid X calls to it
-		XtUnrealizeWidget(widget);
-		XtDestroyWidget(widget);
+    Widget widget = _windowWrapper.externalHandle();
+    if (widget)
+    {
+        // Unrealize the widget first to avoid X calls to it
+        XtUnrealizeWidget(widget);
+        XtDestroyWidget(widget);
         widget = nullptr;
-	}
+    }
 }
 
 }

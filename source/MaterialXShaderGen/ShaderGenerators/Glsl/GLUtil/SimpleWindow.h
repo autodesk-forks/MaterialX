@@ -38,7 +38,7 @@ class SimpleWindow
     /// Return height of window
     unsigned int height() const
     {
-        return _width;
+        return _height;
     }
 
     /// Check validity

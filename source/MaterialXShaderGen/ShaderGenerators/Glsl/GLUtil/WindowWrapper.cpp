@@ -4,7 +4,6 @@
 #include <X11/Intrinsic.h> // for XtWindow
 #elif defined(OSMac_)
 // TO ADD Apple wrappers
-//#include <Foundation/include/Hmac.h>
 //#include "macos/HWFoundationWrapperSets.h"
 #endif
 

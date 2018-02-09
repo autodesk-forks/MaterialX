@@ -7,7 +7,7 @@
 #include <X11/Intrinsic.h> // for XtDisplay etc
 
 #elif defined(OSMac_)
-// To hadle agl wrappers....
+// To add AGL wrappers
 //#include <HWGL/src/macos/HWGLWrapperSets.h>
 #endif
 

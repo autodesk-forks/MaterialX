@@ -82,13 +82,13 @@ bool SimpleWindow::create(char* title,
     // Attempt to create the window.
     HWND hWnd = CreateWindowEx(dwExStyle, _windowClassName, title,
         dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-        0, 0,								// Window position
+        0, 0, // Window position
         WindowRect.right - WindowRect.left,	// Window width (including borders)
         WindowRect.bottom - WindowRect.top,	// Window height (including borders/title bar)
-        NULL,								// No parent window
-        NULL,								// No menu
-        hInstance,					    // Instance
-        NULL);							// Don't pass anything To WM_CREATE
+        NULL, // No parent window
+        NULL, // No menu
+        hInstance, // Instance
+        NULL); // Don't pass anything To WM_CREATE
 
     if (!hWnd)
     {
