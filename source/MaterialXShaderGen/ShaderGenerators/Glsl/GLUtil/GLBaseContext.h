@@ -3,7 +3,7 @@
 
 #include "WindowWrapper.h"
 
-#ifdef _WIN32
+#if defined(OSWin_)
 	#include "SimpleWindow.h"
 #elif defined(OSMac_)
 	#include <OpenGL/gl.h>
@@ -13,11 +13,11 @@ namespace MaterialX
 { 
 
 /// Platform dependent definition of a hardware context
-#if defined(_WIN32)
+#if defined(OSWin_)
 using HardwareContextHandle = HGLRC;
-#elif defined(__linux__)
+#elif defined(OSLinux_)
 using HardwareContextHandle = GLXContext;
-#elif defined(__APPLE__)
+#elif defined(OSMac_)
 using HardwareContextHandle = void*;
 #else
 #error Not implemented on this OS
@@ -33,7 +33,7 @@ class GLBaseContext
 {
   public:
     /// Create base context singleton if not already created
-#if defined(__linux__)
+#if defined(OSLinux_)
     static GLBaseContext* create(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
 #else
     static GLBaseContext* create(HardwareContextHandle context);
@@ -47,7 +47,7 @@ class GLBaseContext
         return _dummyContext; 
     }
 
-#if defined(__linux__)
+#if defined(OSLinux_)
     /// Return X display associated with context
     Display *display() const { return _display; }
 #endif
@@ -61,13 +61,13 @@ class GLBaseContext
     /// Make the context "current" before execution of OpenGL operations
     int makeCurrent();
 
-#ifdef _WIN32
+#if defined(OSWin_)
     /// Share this context with an external one
 	void shareLists(HardwareContextHandle context);
 #endif
 
   protected:
-#if defined(__linux__)
+#if defined(OSLinux_)
     /// Create the base context. Requires a window wrapper and optional
     /// OpenGL context to share with
     GLBaseContext(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
@@ -80,10 +80,10 @@ class GLBaseContext
     /// Base context singleton
     static GLBaseContext* _globalGLBaseContext;
 
-#ifdef _WIN32
+#if defined(OSWin_)
     /// Offscreen window required for context operations
 	SimpleWindow _dummyWindow;
-#elif defined(__linux__)
+#elif defined(OSLinux_)
     /// Offscreen window required for context operations
     Window _dummyWindow;
     /// X Display used by context operations

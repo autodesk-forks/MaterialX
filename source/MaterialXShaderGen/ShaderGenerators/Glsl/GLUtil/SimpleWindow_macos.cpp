@@ -1,100 +1,59 @@
-#if defined(__APPLE__)
+#if defined(OSMac_)
 
-#include <Root/aw.h>
-#include "../SimpleWindow.h"
-#include <assert.h>
-#include <Foundation/include/Hmac.h>
-#if defined(OSMac_MachO_)
-#include <Carbon/Carbon.h>
-#endif
-#include "HWFoundationWrapperSets.h"
-#include <HWFoundation/foundation/HWEnvironment.h>
+#include "SimpleWindow.h"
+//#include <Foundation/include/Hmac.h>
+//#if defined(OSMac_MachO_)
+//#include <Carbon/Carbon.h>
+//#endif
+//#include "HWFoundationWrapperSets.h"
 
-//#define _DEBUG_SIMPLEWINDOW
-#ifdef _DEBUG_SIMPLEWINDOW
-#include <Foundation/include/TdebugOutput.h> // For debugging
-#define DBOUT	rprintf
-#endif
+namespace MaterialX
+{
 
-unsigned int SimpleWindow::fWindowCount = 1;
+unsigned int SimpleWindow::_windowCount = 1;
 
 SimpleWindow::SimpleWindow()
 {
 	clearInternalState();
 
 	// Give a unique ID to this window.
-	//
-	fID = fWindowCount;
-	fWindowCount++;
+	_Id = _windowCount;
+	_windowCount++;
 }
 
 void SimpleWindow::clearInternalState()
 {
 	ISimpleWindow::clearInternalState();
-	fID = 0;
+	_Id = 0;
 }
-
-#if 0
-SimpleWindow* SimpleWindow::getWindow(Window wnd)
-{
-	return fWindowsMap[wnd];
-}
-
-MessageHandler* SimpleWindow::getHandler(Window wnd)
-{
-	return NULL;
-}
-#endif
 
 ISimpleWindow::ErrorCode SimpleWindow::create(char* title,
-													unsigned int width, unsigned int height,
-													MessageHandler* handler)
+											unsigned int width, unsigned int height,
+											MessageHandler* handler,
+                                            void* /*applicationShell*/)
 {
-#ifdef _DEBUG_SIMPLEWINDOW
-	DBOUT("*** Create simple window size %d by %d\n", width, height);
-#endif
-
-	// Attempt to create the window.
-
-#ifdef _DEBUG_SIMPLEWINDOW
-	DBOUT("Create SimpleWindow\n");
-#endif
-	void* hWnd = aglToNSOpenGLCreateWindow(width, height, title, HWEnvironment::maya_batch_mode);
-
-	if (!hWnd)
+	void* win = aglToNSOpenGLCreateWindow(width, height, title, true);
+	if (!win)
 	{
-#ifdef _DEBUG_SIMPLEWINDOW
-		DBOUT("Can't create window abort !!!!\n");
-#endif
-		// Cancel everything we've done so far.
-		assert(0); //KillGLWindow();
-		return kCannotCreateWindowInstance;
+		return CANNOT_CREATE_WINDOW_INSTANCE;
 	}
-
-	fWindowWrapper = WindowWrapper(hWnd);
-
-	// TODO: Make this section thread-safe?
-	//assert(fWindowsMap[hWnd] == NULL);
-	//fWindowsMap[hWnd] = this;
-	//fHandler = handler;
-
+	_windowWrapper = WindowWrapper(win);
 	return kSuccess;
 }
 
-
 void SimpleWindow::show()
 {
-	aglToNSOpenGLShowWindow(fWindowWrapper.externalHandle());
+	aglToNSOpenGLShowWindow(_windowWrapper.externalHandle());
 }
 
 void SimpleWindow::hide()
 {
-	aglToNSOpenGLHideWindow(fWindowWrapper.externalHandle());
+	aglToNSOpenGLHideWindow(_windowWrapper.externalHandle());
 }
 
 void SimpleWindow::setFocus()
 {
-	aglToNSOpenGLSetFocus(fWindowWrapper.externalHandle());
+	aglToNSOpenGLSetFocus(_windowWrapper.externalHandle());
 }
 
 // HERE
@@ -107,15 +66,16 @@ ISimpleWindow::ProcessingResult SimpleWindow::processMessage()
 /* virtual */
 SimpleWindow::~SimpleWindow()
 {
-	void* hWnd = fWindowWrapper.externalHandle();
+	void* hWnd = _windowWrapper.externalHandle();
 	aglToNSOpenGLDisposeWindow(hWnd);
 }
 /* virtual */ const WindowWrapper& SimpleWindow::windowWrapper()
 {
 #ifdef _DEBUG_SIMPLEWINDOW
-	DBOUT("Get wrapper %x from simplewindow %x\n", &fWindowWrapper, this);
+	DBOUT("Get wrapper %x from simplewindow %x\n", &_windowWrapper, this);
 #endif
-	return fWindowWrapper;
+	return _windowWrapper;
 }
 
+}
 #endif

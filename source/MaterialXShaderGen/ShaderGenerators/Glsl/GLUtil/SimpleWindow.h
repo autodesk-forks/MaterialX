@@ -1,11 +1,13 @@
 #ifndef MATERIALX_SIMPLEWINDOW_H
 #define MATERIALX_SIMPLEWINDOW_H
 
+#include "Platform.h"
+
 #include <string>
 //#include <HWFoundation/foundation/awHWFoundation_stdafx.h>
 #include "ISimpleWindow.h"
 
-#if defined(__linux__) || defined(_WIN32)
+#if defined(OSLinux_) || defined(OSWin_)
 	#include <map>
 #endif
 
@@ -56,7 +58,7 @@ public:
     /// Clear internal state information
     void clearInternalState();
 
-#if defined(_WIN32)
+#if defined(OSWin_)
     /// Get window associated with a given window handle
     static SimpleWindow* getWindow(ExternalWindowHandle hWnd);
 
@@ -70,7 +72,7 @@ public:
         kUp, kDown, kMove,
         kInvalid
     };
-#elif defined(__linux__)
+#elif defined(OSLinux_)
 	static SimpleWindow* getWindow(Window hWnd);
 	static MessageHandler* getHandler(Window hWnd);
 	static inline Window getNative(SimpleWindow* sw) 
@@ -86,9 +88,9 @@ public:
 	/// The counter starts from one, so that an id of 0 can be considered invalid.
 	static unsigned int _windowCount;
 
-#if defined(__linux__)
+#if defined(OSLinux_)
 	static std::map<Window, SimpleWindow*> _windowsMap;
-#elif defined(_WIN32)
+#elif defined(OSWin_)
 	// Static map to quickly convert from HWND -> SimpleWindow,
 	// useful in the event handling code.
 	static std::map<HWND, SimpleWindow*> _windowsMap;
@@ -97,7 +99,7 @@ public:
 	// Unique window ID. Only valid if different than 0.
 	unsigned int _id;
 
-#ifdef _WIN32
+#if defined(OSWin_)
     // Class name for window (generated)
 	char _windowClassName[128];
 

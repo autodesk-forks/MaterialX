@@ -41,7 +41,6 @@ void GlslValidator::initialize(ErrorList& errors)
     if (!_initialized)
     {
         // Creeate window
-        WindowWrapper wrapper;
         SimpleWindow window;
         SimpleWindow::ErrorCode status =
             window.create("Validator Window", 
@@ -66,7 +65,7 @@ void GlslValidator::initialize(ErrorList& errors)
 
                 // Initialize glew
                 bool initializedFunctions = true;
-#ifndef __APPLE__
+#ifndef OSMac_
                 glewInit();
                 if (!glewIsSupported("GL_VERSION_4_0"))
                 {

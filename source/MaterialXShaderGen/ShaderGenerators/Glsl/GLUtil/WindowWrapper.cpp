@@ -1,8 +1,8 @@
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/WindowWrapper.h>
 
-#if defined(__linux__)
+#if defined(OSLinux_)
 	#include <X11/Intrinsic.h> // for XtWindow
-#elif defined(__APPLE__)
+#elif defined(OSMac_)
     // TO ADD Apple wrappers
 	//#include <Foundation/include/Hmac.h>
 	//#include "macos/HWFoundationWrapperSets.h"
@@ -14,7 +14,7 @@ namespace MaterialX
 //
 // Windows code
 //
-#if defined(_WIN32)
+#if defined(OSWin_)
 
 // Default constructor.
 WindowWrapper::WindowWrapper()
@@ -94,7 +94,7 @@ void WindowWrapper::release()
 //
 // Linux (X-specific) code
 //
-#elif defined(__linux__)
+#elif defined(OSLinux_)
 
 // Default constructor.
 WindowWrapper::WindowWrapper() :
@@ -151,7 +151,7 @@ void WindowWrapper::release()
 //
 // OSX (Apple) specific code
 //
-#elif defined(__APPLE__)
+#elif defined(OSMac_)
 
 WindowWrapper::WindowWrapper()
 {

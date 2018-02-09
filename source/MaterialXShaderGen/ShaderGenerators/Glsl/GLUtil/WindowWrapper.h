@@ -1,28 +1,32 @@
 #ifndef MATERIALX_WINDOWWRAPPER_H
 #define MATERIALX_WINDOWWRAPPER_H
 
+#include "Platform.h"
+
+#if defined(OSWin_)
+#include <windows.h>
+#elif defined(OSLinux_)
+#include <X11/X.h> // for Window 
+#include <X11/Xlib.h> // for Display
+#endif
+
 namespace MaterialX
 {
 
 /// OS specific type windowing definitions
-#if defined(_WIN32)
-    #include <Windows.h>
+#if defined(OSWin_)
     using ExternalWindowHandle = HWND;
     using InternalWindowHandle = HDC;
     using DisplayHandle = void*;
-#elif defined(__linux__)
-    #include <X11/X.h> // for Window 
-    #include <X11/Xlib.h> // for Display
+#elif defined(OSLinux_)
     using Widget = struct _WidgetRec*;
     using ExternalWindowHandle = Widget;
 	using InternalWindowHandle = Window;
     using DisplayHandle = Display*;
-#elif defined(__APPLE__)
+#elif defined(OSMac_)
 	using ExternalWindowHandle = void*;
 	using InternalWindowHandle = void*;
     using DisplayHandle = void*;
-#else
-	#error unsupported OS
 #endif 
 
 ///
@@ -56,7 +60,7 @@ class WindowWrapper
 	// non-null.
 	bool valid() const { return _internalHandle != 0; }
 
-#if defined(__linux__)
+#if defined(OSLinux_)
     /// Get frame buffer X window
     Window getFBWindow() const
     {
@@ -81,7 +85,7 @@ class WindowWrapper
     ExternalWindowHandle _externalHandle;
     InternalWindowHandle _internalHandle;
 
-#if defined(__linux__)
+#if defined(OSLinux_)
     Window _framebufferWindow;  // Window ID of framebuffer instance created in wrapper
     Display *_display;          // Display
 #endif

@@ -1,7 +1,10 @@
-#if defined(_WIN32)
+#include "Platform.h"
+
+#if defined(OSWin_)
 
 #include <Windows.h>
 #include "SimpleWindow.h"
+#include "WindowWrapper.h"
 
 namespace MaterialX
 { 
@@ -400,7 +403,7 @@ ISimpleWindow::ErrorCode SimpleWindow::create(char* title,
 
 	setActive(true);
 
-	_windowWrapper = WindowWrapper(hWnd);
+	_windowWrapper = WindowWrapper(hWnd, nullptr, nullptr);
 	_windowsMap[hWnd] = this;
 	_handler = handler;
 

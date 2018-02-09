@@ -1,12 +1,12 @@
 
 
 #if defined(_WIN32)
-#include <Windows.h> // For Windows calls
+#include <windows.h> // For Windows calls
 
-#elif defined(__linux__)
+#elif defined(OSLinux_)
 #include <X11/Intrinsic.h> // for XtDisplay etc
 
-#elif defined(__APPLE__)
+#elif defined(OSMac_)
 // To hadle agl wrappers....
 //#include <HWGL/src/macos/HWGLWrapperSets.h>
 #endif
@@ -77,7 +77,7 @@ void GLBaseContext::shareLists(HardwareContextHandle context)
     }
 }
 
-#elif defined(__linux__)
+#elif defined(OSLinux_)
 //
 // Linux context implementation
 //
@@ -232,11 +232,7 @@ GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
 //
 // OSX implementation
 //
-#elif defined(__APPLE__)
-
-#if defined(__APPLE__MachO_)
-#include <Carbon/Carbon.h>
-#endif
+#elif defined(OSMac_)
 
 GLBaseContext::GLBaseContext(HardwareContextHandle sharedWithContext)
 {	
@@ -277,7 +273,7 @@ GLBaseContext::~GLBaseContext()
 		// Release the dummy context.
 		wglDeleteContext(_dummyContext);
 
-#elif defined(__linux__)
+#elif defined(OSLinux_)
 		glXMakeCurrent(_display, None, NULL);
 		
 		// This needs to be done after all the GL object
@@ -287,7 +283,7 @@ GLBaseContext::~GLBaseContext()
 		if(_dummyWindow != 0)
 			XDestroyWindow(_display, _dummyWindow);
 
-#elif defined(__APPLE__)
+#elif defined(OSMac_)
 		// This needs to be done after all the GL object
 		// created with this context are destroyed.
 		if(_dummyContext != 0)
@@ -309,9 +305,9 @@ int GLBaseContext::makeCurrent()
     }
 
     int makeCurrentOk = 0;
-#if defined(_WIN32)
+#if defined(OSWin_)
     makeCurrentOk = wglMakeCurrent(_dummyWindow.windowWrapper().internalHandle(), _dummyContext);
-#elif defined(__linux__)
+#elif defined(OSLinux_)
     makeCurrentOk = glXMakeCurrent(_display, _dummyWindow, _dummyContext);
 #elif defined(__APPLE__)
     aglToNSOpenGLMakeCurrent(_dummyContext);
@@ -327,7 +323,7 @@ int GLBaseContext::makeCurrent()
 //
 // Singleton create/destory methods
 //
-#if defined(__linux__)
+#if defined(OSLinux_)
 GLBaseContext* GLBaseContext::create(const WindowWrapper& windowWrapper, HardwareContextHandle context)
 {
     if (!_globalGLBaseContext)

@@ -1,8 +1,6 @@
-#if defined(__linux__)
+#if defined(OSLinux_)
 
-#include <Root/aw.h>
-#include "../SimpleWindow.h"
-#include <assert.h>
+#include "SimpleWindow.h"
 #include <X11/StringDefs.h>
 #include <X11/Shell.h>
 #include <X11/Xlib.h> // for XEvent definition
@@ -10,7 +8,10 @@
 
 #include <map>
 
-std::map<Window, SimpleWindow*> SimpleWindow::fWindowsMap;
+namespace MaterialX
+{ 
+
+std::map<Window, SimpleWindow*> SimpleWindow::_windowsMap;
 
 int processEvent(XEvent *event);
 XtCallbackProc WndProc(Widget w, caddr_t client_data, caddr_t call_data);
@@ -20,7 +21,7 @@ inline Display *display(const WindowWrapper& windowWrapper)
 	return windowWrapper.display();
 }
 
-unsigned int SimpleWindow::fWindowCount = 1;
+unsigned int SimpleWindow::_windowCount = 1;
 
 SimpleWindow::SimpleWindow()
 {
@@ -28,30 +29,25 @@ SimpleWindow::SimpleWindow()
 
 	// Give a unique ID to this window.
 	//
-	fID = fWindowCount;
-	fWindowCount++;
+	_Id = _windowCount;
+	_windowCount++;
 }
 
 void SimpleWindow::clearInternalState()
 {
 	ISimpleWindow::clearInternalState();
-
-	fID = 0;
+	_Id = 0;
 }
 
 SimpleWindow* SimpleWindow::getWindow(Window hWnd)
 {
-	return fWindowsMap[hWnd];
+	return _windowsMap[hWnd];
 }
 
 MessageHandler* SimpleWindow::getHandler(Window hWnd)
 {
 	SimpleWindow* winPtr = getWindow(hWnd);
-	assert(winPtr);
-
 	MessageHandler* handlerPtr = winPtr->handler();
-	assert(handlerPtr);
-
 	return handlerPtr;
 }
 
@@ -65,7 +61,8 @@ int processEvent(XEvent *event)
 		return 0;
 
 	// Not the simple window
-	if(! SimpleWindow::getWindow(((XAnyEvent *)event)->window)) {
+	if(! SimpleWindow::getWindow(((XAnyEvent *)event)->window)) 
+    {
 		return 0;
 	}
 
@@ -132,13 +129,12 @@ int processEvent(XEvent *event)
 		}
 		case ButtonPress:
 		case ButtonRelease:
-			// HERE - TODO not handled
 			return 0;
 		case CirculateNotify:
 			return 0;
 	}
 
-	// dispatches to widget callback any unhandled events
+	// Dispatch to widget callback any unhandled events
 	XtDispatchEvent(event);
 	return 0;
 }
@@ -146,7 +142,7 @@ int processEvent(XEvent *event)
 XtCallbackProc WndProc(Widget w, caddr_t client_data, caddr_t call_data)
 
 {
-	// this is the SimpleWindow popup shell widget callback
+	// This is the SimpleWindow popup shell widget callback
 	// nothing implemented yet
 	return (XtCallbackProc)0;
 }
@@ -154,7 +150,7 @@ XtCallbackProc WndProc(Widget w, caddr_t client_data, caddr_t call_data)
 ISimpleWindow::ErrorCode SimpleWindow::create(char* title, 
 											  unsigned int width, unsigned int height, 
 											  MessageHandler* handler,
-											  void *applicationShell /* = NULL */)
+											  void *applicationShell)
 {
 	int n=0;
 
@@ -166,8 +162,7 @@ ISimpleWindow::ErrorCode SimpleWindow::create(char* title,
 	{
 		// Connect to the X Server
 		if (!initializedBatchOnce) {
-			//printf("Call XtOpenApplication !\n");
-			batchShell = XtOpenApplication(&appContext, "HWRender", 0, 0, &n, 0, 0, 
+			batchShell = XtOpenApplication(&appContext, "__dummy__app__", 0, 0, &n, 0, 0, 
 				applicationShellWidgetClass ,0,0);
 			initializedBatchOnce = true;
 		}
@@ -176,13 +171,11 @@ ISimpleWindow::ErrorCode SimpleWindow::create(char* title,
 	else
 	{
 		// Reuse existing application shell;
-		// printf("Reuse existing X application shell !\n");
 		shell = (Widget )applicationShell;
 	}
 
 	if(! shell) {
-		assert(0);
-		return kCannotCreateWindowInstance;;
+		return CANNOT_CREATE_WINDOW_INSTANCE;;
 	}
 	
 
@@ -193,52 +186,44 @@ ISimpleWindow::ErrorCode SimpleWindow::create(char* title,
 	XtSetArg(args[n], XtNwidth, width); n++;
 	XtSetArg(args[n], XtNheight, height); n++;
 	Widget widget = XtCreatePopupShell(title, topLevelShellWidgetClass, shell, args, n);
-	if(! widget) {
-		assert(0);
-		return kCannotCreateWindowInstance;
+	if (!widget) 
+    {
+		return CANNOT_CREATE_WINDOW_INSTANCE;
 	}
 	
 	XtRealizeWidget(widget);
-	assert(XtWindow(widget));
 
-	fActive = true;
+	_windowWrapper = WindowWrapper(widget, XtWindow(widget), XtDisplay(widget));
 
-	fWindowWrapper = WindowWrapper(widget, XtWindow(widget), XtDisplay(widget));
+	_windowsMap[XtWindow(widget)] = this;
+	_handler = handler;
 
-	// TODO: Make this section thread-safe?
+    _active = true;
 
-	fWindowsMap[XtWindow(widget)] = this;
-	fHandler = handler;
-
-	return kSuccess;
+	return SUCCESS;
 }
 
 
 void SimpleWindow::show()
 {
-	// TODO: some state tracking.
-	XtPopup(fWindowWrapper.externalHandle(), XtGrabNone);
+	XtPopup(_windowWrapper.externalHandle(), XtGrabNone);
 }
-
 
 void SimpleWindow::hide()
 {
-	XtPopdown(fWindowWrapper.externalHandle());
+	XtPopdown(_windowWrapper.externalHandle());
 }
 
 void SimpleWindow::setFocus()
 {
 	show();
-	XRaiseWindow(display(windowWrapper()), fWindowWrapper.internalHandle());
+	XRaiseWindow(display(windowWrapper()), _windowWrapper.internalHandle());
 }
 
-// HERE 
-/* virtual */
 ISimpleWindow::ProcessingResult SimpleWindow::processMessage()
 {
 	XEvent event;	
 	Display *_display = display(windowWrapper());
-	assert(_display);
 	XFlush(_display);
 	if(XPending(_display)) {
 		XNextEvent(_display, &event);
@@ -256,23 +241,22 @@ ISimpleWindow::ProcessingResult SimpleWindow::processMessage()
 		}
 	}
 
-	return ISimpleWindow::kNoMessage;
+	return ISimpleWindow::NO_MESSAGE;
 }
 
-/* virtual */
 SimpleWindow::~SimpleWindow()
 {
-
-	Widget hWnd = fWindowWrapper.externalHandle();
-	if (hWnd)
+	Widget widget = _windowWrapper.externalHandle();
+	if (widget)
 	{
 		// Unrealize the widget first to avoid X calls to it
-		XtUnrealizeWidget(hWnd);
+		XtUnrealizeWidget(widget);
 		// Used to be XFree. Make a proper call to destroy
 		// the widget.
-		XtDestroyWidget(hWnd);
-		hWnd = NULL;
+		XtDestroyWidget(widget);
+        widget = nullptr;
 	}
 }
 
+}
 #endif

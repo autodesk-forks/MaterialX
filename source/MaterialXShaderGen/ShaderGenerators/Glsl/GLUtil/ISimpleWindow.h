@@ -1,6 +1,7 @@
 #ifndef MATERIALX_ISIMPLEWINDOW_H
 #define MATERIALX_ISIMPLEWINDOW_H
 
+#include "Platform.h"
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/WindowWrapper.h>
 
 namespace MaterialX
