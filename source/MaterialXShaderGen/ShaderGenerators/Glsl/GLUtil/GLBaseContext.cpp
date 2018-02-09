@@ -309,13 +309,13 @@ int GLBaseContext::makeCurrent()
     makeCurrentOk = wglMakeCurrent(_dummyWindow.windowWrapper().internalHandle(), _dummyContext);
 #elif defined(OSLinux_)
     makeCurrentOk = glXMakeCurrent(_display, _dummyWindow, _dummyContext);
-#elif defined(__APPLE__)
+#elif defined(OSMac_)
     aglToNSOpenGLMakeCurrent(_dummyContext);
     if (aglToNSOpenGLGetCurrentContextWrapper() == _dummyContext)
         makeCurrentOk = 1;
     aglCheckError();
 #else
-#error OS not supported
+    ;
 #endif
     return makeCurrentOk;
 }

@@ -20,7 +20,6 @@ using HardwareContextHandle = GLXContext;
 #elif defined(OSMac_)
 using HardwareContextHandle = void*;
 #else
-#error Not implemented on this OS
 using HardwareContextHandle = int;  // To halt further compiler errors
 #endif
 
