@@ -27,6 +27,11 @@ namespace MaterialX
 	using ExternalWindowHandle = void*;
 	using InternalWindowHandle = void*;
     using DisplayHandle = void*;
+#else
+    using Widget = void*;
+    using ExternalWindowHandle = void*;
+    using InternalWindowHandle = void*;
+    using DisplayHandle = void*;
 #endif 
 
 ///

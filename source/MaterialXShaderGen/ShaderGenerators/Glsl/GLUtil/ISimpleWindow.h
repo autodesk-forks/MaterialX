@@ -62,7 +62,6 @@ class ISimpleWindow
 	enum ErrorCode
 	{
 		SUCCESS,
-		CANNOT_REGISTER_WINDOW_CLASS,		 
 		CANNOT_CREATE_WINDOW_INSTANCE		
 	};
 
@@ -76,6 +75,7 @@ class ISimpleWindow
 	virtual ErrorCode create(char* title, unsigned int width, unsigned int height, MessageHandler* handler,
 							 void *applicationShell) = 0;
 
+/*
 	/// Show the window. Derived classes must override this method
     virtual void show() = 0;
 
@@ -101,7 +101,7 @@ class ISimpleWindow
     { 
         return _handler; 
     }
-	
+*/	
     /// Return windowing information for the window
     const WindowWrapper& windowWrapper()
     {
@@ -127,7 +127,7 @@ protected:
     }
 
     /// Clear state information
-	void clearInternalState() 
+	virtual void clearInternalState() 
     { 
         _active = false; 
         _width = _height = 0; 
