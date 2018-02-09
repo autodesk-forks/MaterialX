@@ -38,6 +38,10 @@ class GLBaseContext
 #else
     static GLBaseContext* create(HardwareContextHandle context);
 #endif
+    static GLBaseContext*  get()
+    {
+        return _globalGLBaseContext;
+    }
     /// Destroy singleton
     static void destroy();
 

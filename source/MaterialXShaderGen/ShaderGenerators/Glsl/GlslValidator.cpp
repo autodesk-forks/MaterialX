@@ -106,13 +106,25 @@ void GlslValidator::deleteTarget()
 {
     if (_frameBuffer)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glDeleteFramebuffers(1, &_frameBuffer);
+        GLBaseContext* context = GLBaseContext::get();
+        if (context)
+        {
+            context->makeCurrent();
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glDeleteFramebuffers(1, &_frameBuffer);
+        }
     }
 }
 
 bool GlslValidator::createTarget(ErrorList& errors)
 {
+    GLBaseContext* context = GLBaseContext::get();
+    if (!context)
+    {
+        errors.push_back("No valid OpenGL context to create target with.");
+    }
+    context->makeCurrent();
+
     // Only frame buffer only once
     if (_frameBuffer > 0)
     {
@@ -187,7 +199,12 @@ void GlslValidator::deleteProgram()
 {
     if (_programId > 0)
     {
-        glDeleteObjectARB(_programId);
+        GLBaseContext* context = GLBaseContext::get();
+        if (context)
+        {
+            context->makeCurrent();
+            glDeleteObjectARB(_programId);
+        }
         _programId = 0;
     }
 }
@@ -195,6 +212,13 @@ void GlslValidator::deleteProgram()
 unsigned int GlslValidator::createProgram(ErrorList& errors)
 {
     errors.clear();
+
+    GLBaseContext* context = GLBaseContext::get();
+    if (!context)
+    {
+        errors.push_back("No valid OpenGL context to create program with.");
+    }
+    context->makeCurrent();
 
     deleteProgram();
 
@@ -328,11 +352,18 @@ bool GlslValidator::render(ErrorList& errors)
 {
     errors.clear();
 
-    if (_programId <= 0)
+    //if (_programId <= 0)
+    //{
+    //    errors.push_back("No valid program to render with exists.");
+    //    return false;
+    //}
+
+    GLBaseContext* context = GLBaseContext::get();
+    if (!context)
     {
-        errors.push_back("No valid program to render with exists.");
-        return false;
+        errors.push_back("No valid OpenGL context to render to.");
     }
+    context->makeCurrent();
 
     // Set up target
     bindTarget(true, errors);
@@ -350,7 +381,10 @@ bool GlslValidator::render(ErrorList& errors)
     glLoadIdentity();
 
     // Bind program
-    glUseProgram(_programId);
+    if (_programId > 0)
+    {
+        glUseProgram(_programId);
+    }
 
     // Draw simple geometry 
     {
@@ -383,7 +417,10 @@ bool GlslValidator::render(ErrorList& errors)
     }
 
     // Unbind program
-    glUseProgram(0);
+    if (_programId > 0)
+    {
+        glUseProgram(0);
+    }
 
     // Unset target
     bindTarget(false, errors);
