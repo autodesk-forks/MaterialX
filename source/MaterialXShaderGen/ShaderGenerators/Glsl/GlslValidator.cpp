@@ -4,11 +4,21 @@
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/GLBaseContext.h>
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GlslValidator.h>
 
+#include <iostream>
+
 namespace MaterialX
 {
 
 GlslValidator::GlslValidator() :
     _programId(0),
+    _positionLocation(-1),
+    _positionBuffer(0),
+    _normalLocation(-1),
+    _normalBuffer(0),
+    _uvBuffer(0),
+    _indexBuffer(0),
+    _indexBufferSize(0),
+    _vertexArray(0),
     _colorTarget(0),
     _depthTarget(0),
     _frameBuffer(0),
@@ -352,6 +362,171 @@ unsigned int GlslValidator::createProgram(ErrorList& errors)
     return _programId;
 }
 
+bool GlslValidator::bindMatrices(ErrorList& /*errors*/)
+{
+    if (_programId > 0)
+    {
+        // Set projection and modelview matrices
+        GLfloat m[16];
+        GLint location = glGetUniformLocation(_programId, "u_viewProjectionMatrix");
+        if (location > 0)
+        {
+            glGetFloatv(GL_PROJECTION_MATRIX, m);
+            glUniformMatrix4fv(location, 1, GL_FALSE, m);
+        }
+        location = glGetUniformLocation(_programId, "u_modelMatrix");
+        if (location > 0)
+        {
+            glGetFloatv(GL_MODELVIEW_MATRIX, m);
+            glUniformMatrix4fv(location, 1, GL_FALSE, m);
+        }
+
+        // Set noormal transform matrix (world-inverse-transpose)
+        // to add...
+
+        return true;
+    }
+
+    return false;
+}
+
+bool GlslValidator::bindGeometry(ErrorList& /*errors*/)
+{
+    if (_programId <= 0)
+    {
+        return false;
+    }
+
+    unsigned int indexData[] = { 0, 1, 2, 0, 2, 3 };
+    _indexBufferSize = 6;
+    glGenBuffers(1, &_indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
+
+    // Create positions
+    const GLfloat positionData[] = { 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+        1.0f, 0.0f, 0.0f };
+    _positionLocation = glGetAttribLocation(_programId, "i_position");
+    if (_positionLocation >= 0)
+    {
+        glGenBuffers(1, &_positionBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, _positionBuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(positionData), positionData, GL_STATIC_DRAW);
+    }
+
+    // Create normals
+    float normalData[] = { 0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 1.0f };
+    _normalLocation = glGetAttribLocation(_programId, "i_normal");
+    if (_normalLocation >= 0)
+    {
+        glGenBuffers(1, &_normalBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, _normalBuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(normalData), normalData, GL_STATIC_DRAW);
+    }
+
+    // Create texture coords
+    GLfloat uvData[] = { 0.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f };
+    _uvLocations.clear();
+    for (unsigned int i = 0; i < 10; i++)
+    {
+        std::string texcoordLabel = "i_texcoord" + std::to_string(i);
+        int uvLocation = glGetAttribLocation(_programId, texcoordLabel.c_str());
+        if (uvLocation > 0)
+        {
+            _uvLocations.push_back(uvLocation);
+            if (_uvBuffer == 0)
+            {
+                glGenBuffers(1, &_uvBuffer);
+                glBindBuffer(GL_ARRAY_BUFFER, _uvBuffer);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(uvData), uvData, GL_STATIC_DRAW);
+            }
+        }
+    }
+
+    // Set up vertex arrays and draw
+    glGenVertexArrays(1, &_vertexArray);
+    glBindVertexArray(_vertexArray);
+
+    if (_positionBuffer > 0)
+    {
+        glEnableVertexAttribArray(_positionLocation);
+        glVertexAttribPointer(_positionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    }
+    if (_normalBuffer > 0)
+    {
+        glEnableVertexAttribArray(_normalLocation);
+        glVertexAttribPointer(_normalLocation, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    }
+    if (_uvBuffer > 0)
+    {
+        for (auto uvLocation : _uvLocations)
+        {
+            glEnableVertexAttribArray(uvLocation);
+            glVertexAttribPointer(uvLocation, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        }
+    }
+
+    return true;
+}
+
+void GlslValidator::unbindGeometry()
+{
+    // Cleanup vertex bindings
+    if (_positionLocation >= 0)
+    {
+        glDisableVertexAttribArray(_positionLocation);
+        _positionLocation = -1;
+    }
+
+    if (_normalLocation >= 0)
+    {
+        glDisableVertexAttribArray(_normalLocation);
+        _normalLocation = -1;
+    }
+
+    for (auto uvLocation : _uvLocations)
+    {
+        if (uvLocation >= 0)
+        {
+            glDisableVertexAttribArray(uvLocation);
+        }
+    }
+    _uvLocations.clear();
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    if (_indexBuffer > 0)
+    {
+        glDeleteBuffers(1, &_indexBuffer);
+        _indexBuffer = 0;
+    }
+
+    glBindVertexArray(0);
+
+    if (_positionBuffer > 0)
+    {
+        glDeleteBuffers(1, &_positionBuffer);
+        _positionBuffer = 0;
+    }
+    if (_normalBuffer > 0)
+    {
+        glDeleteBuffers(1, &_normalBuffer);
+        _normalBuffer = 0;
+    }
+    if (_uvBuffer > 0)
+    {
+        glDeleteBuffers(1, &_uvBuffer);
+        _uvBuffer = 0;
+    }
+}
+
 bool GlslValidator::render(ErrorList& errors)
 {
     errors.clear();
@@ -389,13 +564,41 @@ bool GlslValidator::render(ErrorList& errors)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // Bind program
+    // Bind program and input parameters
     if (_programId > 0)
     {
-        glUseProgram(_programId);
+        // Check if we have any attributes to bind. If not then
+        // there is nothing to draw
+        GLint activeAttributeCount = 0;
+        glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTES, &activeAttributeCount);
+        
+        if (activeAttributeCount <= 0)
+        {
+            errors.push_back("Program has no input vertex data.");
+        }
+        else
+        {
+            // Bind the program to use
+            glUseProgram(_programId);
+            checkErrors(errors);
+
+            if (bindMatrices(errors) &&
+                bindGeometry(errors))
+            {
+                // Draw
+                glDrawElements(GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, nullptr);
+                checkErrors(errors);
+            }
+
+            // Unbind the program and cleanup geometry
+            glUseProgram(0);
+            unbindGeometry();
+            checkErrors(errors);
+        }
     }
 
     // Draw simple geometry 
+    else
     {
         glPushMatrix();
 
@@ -425,12 +628,6 @@ bool GlslValidator::render(ErrorList& errors)
         glPopMatrix();
     }
 
-    // Unbind program
-    if (_programId > 0)
-    {
-        glUseProgram(0);
-    }
-
     // Unset target
     bindTarget(false, errors);
 
@@ -441,5 +638,15 @@ bool GlslValidator::save(std::string& /*fileName*/)
 {
     return false;
 }
+
+void GlslValidator::checkErrors(ErrorList& errors)
+{
+    GLenum error;
+    while ((error = glGetError()) != GL_NO_ERROR)
+    {
+        errors.push_back("OpenGL error: " + error);
+    }
+}
+
 
 }

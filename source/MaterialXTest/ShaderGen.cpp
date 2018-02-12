@@ -1260,9 +1260,40 @@ TEST_CASE("GPU Validation", "[shadergen]")
         REQUIRE(errors.size() == 0);
         errors.clear();
 
+        // Read in some sample fragments
+        unsigned int stagesSet = 0;
+        std::string vertexShaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Examples/geometric_nodes.vert");
+        std::string pixelShaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Examples/geometric_nodes.frag");
+        std::stringstream vertexShaderStream;
+        std::stringstream pixelShaderStream;
+        std::ifstream shaderFile;
+        shaderFile.open(vertexShaderPath);
+        if (shaderFile.is_open())
+        {
+            vertexShaderStream << shaderFile.rdbuf();
+            validator.setStage(vertexShaderStream.str(), mx::HwShader::VERTEX_STAGE);
+            shaderFile.close();
+            stagesSet++;
+        }
+        shaderFile.open(pixelShaderPath);
+        if (shaderFile.is_open())
+        {
+            pixelShaderStream << shaderFile.rdbuf();
+            validator.setStage(pixelShaderStream.str(), mx::HwShader::PIXEL_STAGE);
+            shaderFile.close();
+            stagesSet++;
+        }
+        if (stagesSet == 2)
+        {
+            validator.createProgram(errors);
+            REQUIRE(errors.size() == 0);
+        }
+
         // To add: Hook in set up of program for validator. 
         validator.render(errors);
         REQUIRE(errors.size() == 0);
+
+        validator.deleteProgram();
     }
 #endif
 }

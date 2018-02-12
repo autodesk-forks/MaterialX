@@ -87,6 +87,14 @@ class GlslValidator
     /// Bind or unbind any created offscree target.
     bool bindTarget(bool bind, ErrorList& errors);
 
+    /// Check for OpenGL errors
+    void checkErrors(ErrorList& errors);
+
+    /// Binding utilities
+    bool bindMatrices(ErrorList& errors);
+    bool bindGeometry(ErrorList& errors);
+    void unbindGeometry();
+
   private:
     /// Stages used to create program
     std::string _stages[HwShader::NUM_STAGES];
@@ -104,6 +112,17 @@ class GlslValidator
     /// Size of frame buffer / targets to use. 
     unsigned int _frameBufferWidth;
     unsigned int _frameBufferHeight;
+
+    /// Vertex data information
+    int _positionLocation;
+    unsigned int _positionBuffer;
+    int _normalLocation;
+    unsigned int _normalBuffer;
+    std::vector<int> _uvLocations;
+    unsigned int _uvBuffer;
+    unsigned int _indexBuffer;
+    unsigned int _indexBufferSize;
+    unsigned int _vertexArray;
 
     bool _initialized;
 };
