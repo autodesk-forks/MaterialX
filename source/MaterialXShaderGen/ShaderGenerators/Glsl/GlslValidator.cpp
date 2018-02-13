@@ -11,6 +11,11 @@ namespace MaterialX
 
 GlslValidator::GlslValidator() :
     _programId(0),
+    _colorTarget(0),
+    _depthTarget(0),
+    _frameBuffer(0),
+    _frameBufferWidth(256),
+    _frameBufferHeight(256),
     _positionLocation(-1),
     _positionBuffer(0),
     _normalLocation(-1),
@@ -19,11 +24,6 @@ GlslValidator::GlslValidator() :
     _indexBuffer(0),
     _indexBufferSize(0),
     _vertexArray(0),
-    _colorTarget(0),
-    _depthTarget(0),
-    _frameBuffer(0),
-    _frameBufferWidth(256),
-    _frameBufferHeight(256),
     _initialized(false)
 {
 }
@@ -644,7 +644,7 @@ void GlslValidator::checkErrors(ErrorList& errors)
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR)
     {
-        errors.push_back("OpenGL error: " + error);
+        errors.push_back("OpenGL error: " + std::to_string(error));
     }
 }
 
