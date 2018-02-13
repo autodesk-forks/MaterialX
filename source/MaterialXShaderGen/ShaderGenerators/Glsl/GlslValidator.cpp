@@ -362,120 +362,289 @@ unsigned int GlslValidator::createProgram(ErrorList& errors)
     return _programId;
 }
 
-bool GlslValidator::bindMatrices(ErrorList& /*errors*/)
+const GlslValidator::ProgramInputList& GlslValidator::createUniformsList()
 {
-    if (_programId > 0)
+    _uniformList.clear();
+
+    if (_programId <= 0)
     {
-        // Set projection and modelview matrices
-        GLfloat m[16];
-        GLint location = glGetUniformLocation(_programId, "u_viewProjectionMatrix");
-        if (location > 0)
-        {
-            glGetFloatv(GL_PROJECTION_MATRIX, m);
-            glUniformMatrix4fv(location, 1, GL_FALSE, m);
-        }
-        location = glGetUniformLocation(_programId, "u_modelMatrix");
-        if (location > 0)
-        {
-            glGetFloatv(GL_MODELVIEW_MATRIX, m);
-            glUniformMatrix4fv(location, 1, GL_FALSE, m);
-        }
-
-        // Set noormal transform matrix (world-inverse-transpose)
-        // to add...
-
-        return true;
+        //errors.push_back("Cannot bind matrices without a valid program");
+        return _uniformList;
     }
 
-    return false;
+    // Scan for textures
+    int uniformCount = -1;
+    int uniformSize = -1;
+    GLenum uniformType = 0;
+    int maxNameLength = 0;
+    glGetProgramiv(_programId, GL_ACTIVE_UNIFORMS, &uniformCount);
+    glGetProgramiv(_programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxNameLength);
+    char* uniformName = new char[maxNameLength];
+    for (int i = 0; i < uniformCount; i++)
+    {
+        glGetActiveUniform(_programId, GLuint(i), maxNameLength, nullptr, &uniformSize, &uniformType, uniformName);
+        GLint uniformLocation = glGetUniformLocation(_programId, uniformName);
+        if (uniformLocation >= 0)
+        {
+            ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(uniformLocation, uniformType);
+            _uniformList[std::string(uniformName)] = inputPtr;
+            //std::cout << "Scanned uniform : " << uniformName << ". Location: " << uniformLocation << ". Type: " << uniformType << std::endl;
+        }
+    }
+    delete uniformName;
+
+    return _uniformList;
 }
 
-bool GlslValidator::bindGeometry(ErrorList& /*errors*/)
+const GlslValidator::ProgramInputList& GlslValidator::createAttributesList()
+{
+    _attributeList.clear();
+
+    if (_programId <= 0)
+    {
+        //errors.push_back("Cannot bind matrices without a valid program");
+        return _attributeList;
+    }
+
+    GLint numAttributes = 0;
+    GLint maxNameLength = 0;
+    glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTES, &numAttributes);
+    glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxNameLength);
+    char* attributeName = new char[maxNameLength];
+
+    for (int i = 0; i < numAttributes; i++)
+    {
+        GLint attribueSize = 0;
+        GLenum attributeType = 0;
+        glGetActiveAttrib(_programId, GLuint(i), maxNameLength, nullptr, &attribueSize, &attributeType, attributeName);
+        GLint attributeLocation = glGetAttribLocation(_programId, attributeName);
+        if (attributeLocation >= 0)
+        {
+            ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(attributeLocation, attributeType);
+            _attributeList[std::string(attributeName)] = inputPtr;
+            //std::cout << "Scanned attribute : " << attributeName << ". Location: " << attributeLocation << ". Type: " << attributeType << std::endl;
+        }
+    }
+    delete attributeName;
+
+    return _attributeList;
+}
+
+
+bool GlslValidator::bindMatrices(ErrorList& errors, const HwShader* hwShader)
 {
     if (_programId <= 0)
+    {
+        errors.push_back("Cannot bind matrices without a valid program");
+        return false;
+    }
+
+    // Pull information from HwShader
+    if (hwShader)
     {
         return false;
     }
 
-    unsigned int indexData[] = { 0, 1, 2, 0, 2, 3 };
-    _indexBufferSize = 6;
-    glGenBuffers(1, &_indexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
-
-    // Create positions
-    const GLfloat positionData[] = { 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f,
-        1.0f, 0.0f, 0.0f };
-    _positionLocation = glGetAttribLocation(_programId, "i_position");
-    if (_positionLocation >= 0)
+    // Set projection and modelview matrices
+    GLfloat m[16];
+    GLint location = -1;
+    auto programInput = _uniformList.find("u_viewProjectionMatrix");
+    if (programInput != _uniformList.end())
     {
-        glGenBuffers(1, &_positionBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, _positionBuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(positionData), positionData, GL_STATIC_DRAW);
-    }
-
-    // Create normals
-    float normalData[] = { 0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f };
-    _normalLocation = glGetAttribLocation(_programId, "i_normal");
-    if (_normalLocation >= 0)
-    {
-        glGenBuffers(1, &_normalBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, _normalBuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(normalData), normalData, GL_STATIC_DRAW);
-    }
-
-    // Create texture coords
-    GLfloat uvData[] = { 0.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f };
-    _uvLocations.clear();
-    for (unsigned int i = 0; i < 10; i++)
-    {
-        std::string texcoordLabel = "i_texcoord" + std::to_string(i);
-        int uvLocation = glGetAttribLocation(_programId, texcoordLabel.c_str());
-        if (uvLocation > 0)
+        location = programInput->second->_location;
+        if (location >= 0)
         {
-            _uvLocations.push_back(uvLocation);
-            if (_uvBuffer == 0)
-            {
-                glGenBuffers(1, &_uvBuffer);
-                glBindBuffer(GL_ARRAY_BUFFER, _uvBuffer);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(uvData), uvData, GL_STATIC_DRAW);
-            }
+            //std::cout << "Bound u_viewProjectionMatrix" << std::endl;
+            glGetFloatv(GL_PROJECTION_MATRIX, m);
+            glUniformMatrix4fv(location, 1, GL_FALSE, m);
         }
     }
-
-    // Set up vertex arrays and draw
-    glGenVertexArrays(1, &_vertexArray);
-    glBindVertexArray(_vertexArray);
-
-    if (_positionBuffer > 0)
+    programInput = _uniformList.find("u_modelMatrix");
+    if (programInput != _uniformList.end())
     {
-        glEnableVertexAttribArray(_positionLocation);
-        glVertexAttribPointer(_positionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    }
-    if (_normalBuffer > 0)
-    {
-        glEnableVertexAttribArray(_normalLocation);
-        glVertexAttribPointer(_normalLocation, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    }
-    if (_uvBuffer > 0)
-    {
-        for (auto uvLocation : _uvLocations)
+        location = programInput->second->_location;
+        if (location >= 0)
         {
-            glEnableVertexAttribArray(uvLocation);
-            glVertexAttribPointer(uvLocation, 2, GL_FLOAT, GL_FALSE, 0, 0);
+            //std::cout << "Bound u_modelMatrix" << std::endl;
+            glGetFloatv(GL_MODELVIEW_MATRIX, m);
+            glUniformMatrix4fv(location, 1, GL_FALSE, m);
+        }
+    }
+    programInput = _uniformList.find("u_worldMatrix");
+    if (programInput != _uniformList.end())
+    {
+        location = programInput->second->_location;
+        if (location >= 0)
+        {
+            //std::cout << "Bound u_worldMatrix" << std::endl;
+            glGetFloatv(GL_MODELVIEW_MATRIX, m);
+            glUniformMatrix4fv(location, 1, GL_FALSE, m);
+        }
+    } 
+
+    // Set normal transform matrix (world-inverse-transpose) and other matrices
+    // TO ADD...
+
+    return true;
+}
+
+bool GlslValidator::bindGeometry(ErrorList& errors, const HwShader* hwShader)
+{
+    if (_programId <= 0)
+    {
+        errors.push_back("Cannot bind geometry without a valid program");
+        return false;
+    }
+
+    // Pull information from HwShader
+    if (hwShader)
+    {
+        return false;
+    }
+
+    // Pull information from program directly
+    {
+        unsigned int indexData[] = { 0, 1, 2, 0, 2, 3 };
+        _indexBufferSize = 6;
+        glGenBuffers(1, &_indexBuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
+
+        // Create positions
+        const GLfloat positionData[] = { 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 0.0f,
+            1.0f, 0.0f, 0.0f };
+
+        _positionLocation = -1;
+        auto programInput = _attributeList.find("i_position");
+        if (programInput != _attributeList.end())
+        {
+            _positionLocation = programInput->second->_location;
+            if (_positionLocation >= 0)
+            {
+                glGenBuffers(1, &_positionBuffer);
+                glBindBuffer(GL_ARRAY_BUFFER, _positionBuffer);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(positionData), positionData, GL_STATIC_DRAW);
+            }
+        }
+
+        // Create normals
+        float normalData[] = { 0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 1.0f };
+        _normalLocation = -1;
+        programInput = _attributeList.find("i_normal");
+        if (programInput != _attributeList.end())
+        {
+            _normalLocation = programInput->second->_location;
+            if (_normalLocation >= 0)
+            {
+                glGenBuffers(1, &_normalBuffer);
+                glBindBuffer(GL_ARRAY_BUFFER, _normalBuffer);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(normalData), normalData, GL_STATIC_DRAW);
+            }
+        }
+
+        // Create texture coords
+        GLfloat uvData[] = { 0.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            1.0f, 0.0f };
+        _uvLocations.clear();
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            int uvLocation = -1;
+            std::string texcoordLabel = "i_texcoord" + std::to_string(i);
+            programInput = _attributeList.find(texcoordLabel);
+            if (programInput != _attributeList.end())
+            {
+                uvLocation = glGetAttribLocation(_programId, texcoordLabel.c_str());
+                if (uvLocation >= 0)
+                {
+                    _uvLocations.push_back(uvLocation);
+                    if (_uvBuffer == 0)
+                    {
+                        glGenBuffers(1, &_uvBuffer);
+                        glBindBuffer(GL_ARRAY_BUFFER, _uvBuffer);
+                        glBufferData(GL_ARRAY_BUFFER, sizeof(uvData), uvData, GL_STATIC_DRAW);
+                    }
+                }
+            }
+        }
+
+        // Set up vertex arrays and draw
+        glGenVertexArrays(1, &_vertexArray);
+        glBindVertexArray(_vertexArray);
+
+        if (_positionBuffer > 0)
+        {
+            glEnableVertexAttribArray(_positionLocation);
+            glVertexAttribPointer(_positionLocation, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        }
+        if (_normalBuffer > 0)
+        {
+            glEnableVertexAttribArray(_normalLocation);
+            glVertexAttribPointer(_normalLocation, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        }
+        if (_uvBuffer > 0)
+        {
+            for (auto uvLocation : _uvLocations)
+            {
+                glEnableVertexAttribArray(uvLocation);
+                glVertexAttribPointer(uvLocation, 2, GL_FLOAT, GL_FALSE, 0, 0);
+            }
         }
     }
 
     return true;
 }
+
+bool GlslValidator::bindTextures(ErrorList& errors, const HwShader* hwShader)
+{
+    if (_programId <= 0)
+    {
+        errors.push_back("Cannot bind textures without a valid program");
+        return false;
+    }
+
+    // Pull information from HwShader
+    if (hwShader)
+    {
+        return false;
+    }
+
+    // Pull information from program directly
+    else
+    {
+        int textureUnit = 0;
+        GLint maxImageUnits = -1;
+        glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
+        for (auto uniform : _uniformList)
+        {
+            GLenum uniformType = uniform.second->_type;
+            GLint uniformLocation = uniform.second->_location;
+            if (uniformLocation >= 0 &&
+                uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
+            {
+                if (textureUnit >= maxImageUnits)
+                {
+                    break;
+                }
+
+                // Map location to a texture unit incrementally
+                glUniform1i(uniformLocation, textureUnit);
+                glActiveTexture(GL_TEXTURE0 + textureUnit);
+                glBindTexture(uniformType, 0); // Currently there is no way to determine what to bind here yet.
+                textureUnit++;
+                //std::cout << "Bind sample:" << uniform.first << ". Location: " << uniformLocation << "Type: " << uniformType << std::endl;
+            }
+        }
+    }
+    return true;
+}
+
 
 void GlslValidator::unbindGeometry()
 {
@@ -582,8 +751,12 @@ bool GlslValidator::render(ErrorList& errors)
             glUseProgram(_programId);
             checkErrors(errors);
 
-            if (bindMatrices(errors) &&
-                bindGeometry(errors))
+            createUniformsList();
+            createAttributesList();
+
+            if (bindMatrices(errors, nullptr) &&
+                bindGeometry(errors, nullptr) &&
+                bindTextures(errors, nullptr))
             {
                 // Draw
                 glDrawElements(GL_TRIANGLES, _indexBufferSize, GL_UNSIGNED_INT, nullptr);

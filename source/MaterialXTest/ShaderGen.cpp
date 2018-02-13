@@ -1357,7 +1357,7 @@ TEST_CASE("Shadergen implementation validity", "[shadergen]")
 }
 
 
-TEST_CASE("GPU Validation", "[shadergen]")
+TEST_CASE("GLSL Validation", "[shadergen]")
 {
 #if defined(_WIN32)
     bool runGPUTest = false;
@@ -1373,8 +1373,8 @@ TEST_CASE("GPU Validation", "[shadergen]")
 
         // Read in some sample fragments
         unsigned int stagesSet = 0;
-        std::string vertexShaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Examples/geometric_nodes.vert");
-        std::string pixelShaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Examples/geometric_nodes.frag");
+        std::string vertexShaderPath = "subgraph_ex1.vert";
+        std::string pixelShaderPath = "subgraph_ex1.frag";
         std::stringstream vertexShaderStream;
         std::stringstream pixelShaderStream;
         std::ifstream shaderFile;
@@ -1394,6 +1394,7 @@ TEST_CASE("GPU Validation", "[shadergen]")
             shaderFile.close();
             stagesSet++;
         }
+        REQUIRE(stagesSet == 2);
         if (stagesSet == 2)
         {
             validator.createProgram(errors);

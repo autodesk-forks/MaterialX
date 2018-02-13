@@ -4,6 +4,7 @@
 #include <MaterialXShaderGen/HwShader.h>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 namespace MaterialX
 {
@@ -21,6 +22,25 @@ class GlslValidator
 {
   public:
     using ErrorList = std::vector<std::string>;
+
+    /// Structure to hold information about program inputs
+    struct ProgramInput
+    {
+        /// Program location. -1 means an invalid location
+        int _location;
+        /// OpenGL type of the input. -1 means an invalid type
+        int _type;
+        /// Semantic
+        std::string _semantic;
+
+        ProgramInput(int inputLocation = -1, int inputType =-1, std::string semantic = MaterialX::EMPTY_STRING)
+        : _location(inputLocation)
+        , _type(inputType)
+        , _semantic(semantic)
+        {}
+    };
+    using ProgramInputPtr = std::shared_ptr<ProgramInput>;
+    using ProgramInputList = std::unordered_map<std::string, ProgramInputPtr>;
 
     /// Constructor
     GlslValidator();
@@ -90,10 +110,19 @@ class GlslValidator
     /// Check for OpenGL errors
     void checkErrors(ErrorList& errors);
 
-    /// Binding utilities
-    bool bindMatrices(ErrorList& errors);
-    bool bindGeometry(ErrorList& errors);
+    /// Bind input matrices
+    bool bindMatrices(ErrorList& errors, const HwShader* shader = nullptr);
+
+    /// Bind input geometry streams
+    bool bindGeometry(ErrorList& errors, const HwShader* shader = nullptr);
+    
+    /// Bind any input textures
+    bool bindTextures(ErrorList& errors, const HwShader* shader = nullptr);
+
     void unbindGeometry();
+
+    const ProgramInputList& createUniformsList();
+    const ProgramInputList& createAttributesList();
 
   private:
     /// Stages used to create program
@@ -123,6 +152,9 @@ class GlslValidator
     unsigned int _indexBuffer;
     unsigned int _indexBufferSize;
     unsigned int _vertexArray;
+
+    ProgramInputList _uniformList;
+    ProgramInputList _attributeList;
 
     bool _initialized;
 };
