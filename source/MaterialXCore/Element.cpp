@@ -104,6 +104,24 @@ string Element::getNamePath(ConstElementPtr relativeTo) const
     return res;
 }
 
+ElementPtr Element::getElementByPath(const std::string& path)
+{
+    std::vector<std::string> elementNames = splitString(path, NAME_PATH_SEPARATOR);
+    ElementPtr currentElement = getSelf();
+    if (elementNames.size() == 0)
+    {
+        return currentElement;
+    }
+    for (std::string elementName : elementNames)
+    {
+        if (!(currentElement = currentElement->getChild(elementName)))
+        {
+            return currentElement;
+        }
+    }
+    return currentElement;
+}
+
 void Element::registerChildElement(ElementPtr child)
 {
     DocumentPtr doc = getDocument();

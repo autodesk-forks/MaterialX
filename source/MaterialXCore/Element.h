@@ -117,6 +117,13 @@ class Element : public std::enable_shared_from_this<Element>
     ///    the returned path will be relative to this ancestor.
     string getNamePath(ConstElementPtr relativeTo = nullptr) const;
 
+    /// Return the element referred to by the path relative to the current
+    /// element. A path of empty string returns a pointer to the current
+    /// element.
+    /// @param path The path to use to find an element relative to the
+    ///    current element.
+    ElementPtr getElementByPath(const std::string& path);
+
     /// @}
     /// @name File Prefix
     /// @{
