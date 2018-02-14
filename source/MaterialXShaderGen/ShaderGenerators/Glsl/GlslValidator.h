@@ -119,10 +119,24 @@ class GlslValidator
     /// Bind any input textures
     bool bindTextures(ErrorList& errors, const HwShader* shader = nullptr);
 
-    void unbindGeometry();
+    void unbindGeometry(ErrorList& errors);
 
     const ProgramInputList& createUniformsList();
     const ProgramInputList& createAttributesList();
+
+    /// Attribute data
+    enum AttributeIndex {
+        POSITION_ATTRIBUTE = 0,
+        NORMAL_ATTRIBUTE,
+        TANGENT_ATTRIBUTE,
+        BITANGENT_ATTRIBUTE,
+        COLOR_ATTRIBUTE,
+        ATTRIBUTE_COUNT
+    };
+    bool updateAttribute(const float *bufferData, size_t bufferSize,
+        const std::string& attributeId,
+        const GlslValidator::AttributeIndex attributeIndex,
+        unsigned int floatCount);
 
   private:
     /// Stages used to create program
@@ -142,13 +156,16 @@ class GlslValidator
     unsigned int _frameBufferWidth;
     unsigned int _frameBufferHeight;
 
-    /// Vertex data information
-    int _positionLocation;
-    unsigned int _positionBuffer;
-    int _normalLocation;
-    unsigned int _normalBuffer;
+    /// Attribute program locations
+    std::vector<int> _attributeLocations;
+    /// Attribute buffer resource handls
+    std::vector<unsigned int> _attributeBuffers;
+    // Can have multiple locations per buffer so track
+    // texcoords seperately.
     std::vector<int> _uvLocations;
     unsigned int _uvBuffer;
+    
+    /// Attribute indexing
     unsigned int _indexBuffer;
     unsigned int _indexBufferSize;
     unsigned int _vertexArray;
