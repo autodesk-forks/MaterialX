@@ -31,14 +31,11 @@ class GlslValidator
         int _location;
         /// OpenGL type of the input. -1 means an invalid type
         int _type;
-        /// Semantic
-        std::string _semantic;
 
         /// Program input constructor
-        ProgramInput(int inputLocation = -1, int inputType =-1, std::string semantic = MaterialX::EMPTY_STRING)
+        ProgramInput(int inputLocation = -1, int inputType = -1)
         : _location(inputLocation)
         , _type(inputType)
-        , _semantic(semantic)
         {}
     };
     /// Program input structure shared pointer type
@@ -72,9 +69,17 @@ class GlslValidator
     /// This method can be used to incrementally set the code stages before validation.
     /// @param code Shader code string for a given stage
     /// @param stage Shader stage. See stages allowed in the class HwShader.
-    void setStage(const std::string& code, size_t stage)
+    void setStage(const std::string& code, size_t stage);
+
+    /// Get code string for a given stage
+    /// @return Shader stage string. String is empty if not found.
+    const std::string getStage(size_t stage) const;
+
+    /// Get the number of stages
+    /// @return Stage count
+    size_t numberofStages() const
     {
-        _stages[stage] = code;
+        return HwShader::NUM_STAGES;
     }
 
     /// Clear out any existing stages
@@ -84,6 +89,18 @@ class GlslValidator
     /// @param errors List of errors which may result if validation valids
     /// @return Program identifier. Will be non-zero on success 
     unsigned int createProgram(ErrorList& errors);
+
+    /// Get list of program input uniforms. 
+    /// The program must have been created successfully first.
+    /// @param errors List of errors which may result if querying for inputs falis.
+    /// @return Program uniforms list.
+    const ProgramInputList& getUniformsList(ErrorList& errors);
+
+    /// Get list of program input attributes. 
+    /// The program must have been created successfully first.
+    /// @param errors List of errors which may result if querying for inputs falis.
+    /// @return Program attributes list.
+    const ProgramInputList& getAttributesList(ErrorList& errors);
 
     /// Delete any currently created shader program
     void deleteProgram();
@@ -132,6 +149,9 @@ class GlslValidator
 
     /// Create a list of program input attributes
     const ProgramInputList& createAttributesList(ErrorList& errors);
+
+    /// Clear out any cached input lists
+    void clearInputLists();
 
     /// Index used to access cached attribute locations and buffers
     enum AttributeIndex {

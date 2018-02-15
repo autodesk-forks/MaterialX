@@ -39,6 +39,18 @@ GlslValidator::~GlslValidator()
         GLUtilityContext::destroy();
 }
 
+void GlslValidator::setStage(const std::string& code, size_t stage)
+{
+    if (stage >= 0 && stage < HwShader::NUM_STAGES)
+    {
+        _stages[stage] = code;
+    }
+
+    // A stage change invalids any cached parsed inputs
+    clearInputLists();
+}
+
+
 void GlslValidator::setStages(const HwShader& shader)
 {
     // Clear out any old data
@@ -50,6 +62,36 @@ void GlslValidator::setStages(const HwShader& shader)
         _stages[i] = shader.getSourceCode(i);
     }
 }
+
+const std::string GlslValidator::getStage(size_t stage) const
+{
+    if (stage >= 0 && stage < HwShader::NUM_STAGES)
+    {
+        return _stages[stage];
+    }
+    return std::string();
+}
+
+void GlslValidator::clearStages()
+{
+    for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
+    {
+        _stages[i].clear();
+    }
+
+    // Clearing stages invalidates any cached inputs
+    clearInputLists();
+}
+
+bool GlslValidator::haveValidStages() const
+{
+    // Need at least a pixel shader stage and a vertex shader stage
+    const std::string& vertexShaderSource = _stages[HwShader::VERTEX_STAGE];
+    const std::string& fragmentShaderSource = _stages[HwShader::PIXEL_STAGE];
+
+    return (vertexShaderSource.length() > 0 && fragmentShaderSource.length() > 0);
+}
+
 
 void GlslValidator::initialize(ErrorList& errors)
 {
@@ -98,23 +140,6 @@ void GlslValidator::initialize(ErrorList& errors)
             }
         }
     }
-}
-
-void GlslValidator::clearStages()
-{
-    for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
-    {
-        _stages[i].clear();
-    }
-}
-
-bool GlslValidator::haveValidStages() const
-{
-    // Need at least a pixel shader stage and a vertex shader stage
-    const std::string& vertexShaderSource = _stages[HwShader::VERTEX_STAGE];
-    const std::string& fragmentShaderSource = _stages[HwShader::PIXEL_STAGE];
-
-    return (vertexShaderSource.length() > 0 && fragmentShaderSource.length() > 0);
 }
 
 void GlslValidator::deleteTarget()
@@ -223,6 +248,9 @@ void GlslValidator::deleteProgram()
         }
         _programId = 0;
     }
+
+    // Program deleted, so also clear cached input lists
+    clearInputLists();
 }
 
 unsigned int GlslValidator::createProgram(ErrorList& errors)
@@ -367,9 +395,28 @@ unsigned int GlslValidator::createProgram(ErrorList& errors)
     return _programId;
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::createUniformsList(ErrorList& errors)
+void GlslValidator::clearInputLists()
 {
     _uniformList.clear();
+    _attributeList.clear();
+}
+
+const GlslValidator::ProgramInputList& GlslValidator::getUniformsList(ErrorList& errors) 
+{
+    return createUniformsList(errors);
+}
+
+const GlslValidator::ProgramInputList& GlslValidator::getAttributesList(ErrorList& errors) 
+{
+    return createAttributesList(errors);
+}
+
+const GlslValidator::ProgramInputList& GlslValidator::createUniformsList(ErrorList& errors)
+{
+    if (_uniformList.size() > 0)
+    {
+        return _uniformList;
+    }
 
     if (_programId <= 0)
     {
@@ -403,7 +450,10 @@ const GlslValidator::ProgramInputList& GlslValidator::createUniformsList(ErrorLi
 
 const GlslValidator::ProgramInputList& GlslValidator::createAttributesList(ErrorList& errors)
 {
-    _attributeList.clear();
+    if (_attributeList.size() > 0)
+    {
+        return _attributeList;
+    }
 
     if (_programId <= 0)
     {
@@ -763,17 +813,16 @@ bool GlslValidator::render(ErrorList& errors)
             glUseProgram(_programId);
             checkErrors(errors);
 
+            // Parse for uniforms and attributes
             createUniformsList(errors);
             createAttributesList(errors);
 
+            // Bind based on inputs found, and render geometry
             if (bindMatrices(errors, nullptr) &&
                 bindGeometry(errors, nullptr) &&
                 bindTextures(errors, nullptr))
             {
-                // Draw
-                //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
                 glDrawElements(GL_TRIANGLES, (GLsizei)_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
-                //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
                 checkErrors(errors);
             }
 
@@ -787,7 +836,6 @@ bool GlslValidator::render(ErrorList& errors)
     else
     {
         glPushMatrix();
-
         glBegin(GL_QUADS);
 
         glTexCoord2f(0.0f, 1.0f);
