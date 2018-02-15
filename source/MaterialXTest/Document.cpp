@@ -33,11 +33,14 @@ TEST_CASE("Document", "[document]")
     REQUIRE(constant->getNamePath(nodeGraph) == "node1");
 
     // Test getting elements by path
-    REQUIRE(doc->getElementByPath("") == doc);
-    REQUIRE(doc->getElementByPath("nodegraph1") == nodeGraph);
-    REQUIRE(doc->getElementByPath("nodegraph1/node1") == constant);
-    REQUIRE(nodeGraph->getElementByPath("") == nodeGraph);
-    REQUIRE(nodeGraph->getElementByPath("node1") == constant);
+    REQUIRE(doc->getElementByNamePath("") == doc);
+    REQUIRE(doc->getElementByNamePath("nodegraph1") == nodeGraph);
+    REQUIRE(doc->getElementByNamePath("nodegraph1/node1") == constant);
+    REQUIRE(doc->getElementByNamePath("missingElement") == mx::ElementPtr());
+    REQUIRE(doc->getElementByNamePath("nodegraph1/missingNode") == mx::ElementPtr());
+    REQUIRE(nodeGraph->getElementByNamePath("") == nodeGraph);
+    REQUIRE(nodeGraph->getElementByNamePath("node1") == constant);
+    REQUIRE(nodeGraph->getElementByNamePath("missingNode") == mx::ElementPtr());
 
     // Create a simple shader interface.
     mx::NodeDefPtr shader = doc->addNodeDef("", "surfaceshader", "simpleSrf");

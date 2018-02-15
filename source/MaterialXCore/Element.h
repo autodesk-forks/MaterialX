@@ -122,7 +122,7 @@ class Element : public std::enable_shared_from_this<Element>
     /// element.
     /// @param path The path to use to find an element relative to the
     ///    current element.
-    ElementPtr getElementByPath(const std::string& path);
+    ElementPtr getElementByNamePath(const std::string& path);
 
     /// @}
     /// @name File Prefix
