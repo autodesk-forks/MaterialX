@@ -112,7 +112,7 @@ ElementPtr Element::getElementByNamePath(const std::string& path)
     {
         return currentElement;
     }
-    for (const std::string elementName : elementNames)
+    for (const std::string& elementName : elementNames)
     {
         if (!(currentElement = currentElement->getChild(elementName)))
         {
