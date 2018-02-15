@@ -1,17 +1,16 @@
 #include "WindowWrapper.h"
 
 #if defined(OSLinux_)
-#include <X11/Intrinsic.h> // for XtWindow
+#include <X11/Intrinsic.h>
 #elif defined(OSMac_)
-// TO ADD Apple wrappers
-//#include "macos/HWFoundationWrapperSets.h"
+#include "CocoaWrappers.h"
 #endif
 
 namespace MaterialX
 {
 #if defined(OSUnsupported_)
 //
-// Unsupport OS
+// Unsupport platform 
 //
 WindowWrapper::WindowWrapper() :
     _externalHandle(0),
@@ -19,14 +18,17 @@ WindowWrapper::WindowWrapper() :
 {
 }
 
-WindowWrapper::WindowWrapper(ExternalWindowHandle /*externalHandle*/, InternalWindowHandle /*internalHandle*/,
-    DisplayHandle /*display*/) :
+WindowWrapper::WindowWrapper(ExternalWindowHandle /*externalHandle*/, 
+                             InternalWindowHandle /*internalHandle*/, 
+                             DisplayHandle /*display*/) :
     _externalHandle(0),
     _internalHandle(0)
 {
 }
 
-WindowWrapper::WindowWrapper(const WindowWrapper& /*other*/)
+WindowWrapper::WindowWrapper(const WindowWrapper& /*other*/) :
+    _externalHandle(0),
+    _internalHandle(0)
 {
 }
 
@@ -41,10 +43,9 @@ WindowWrapper::~WindowWrapper()
 
 #elif defined(OSWin_)
 //
-// Windows code
+// Window platform code
 //
 
-// Default constructor.
 WindowWrapper::WindowWrapper() :
     _externalHandle(0),
     _internalHandle(0)
@@ -55,15 +56,13 @@ WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindow
     DisplayHandle /*display*/)
 {
     _externalHandle = externalHandle;
-
     if (_externalHandle && !internalHandle)
     {
-        // Cache our own HDC that corresponds to the hWnd.
+        // Cache a HDC that corresponds to the window handle.
         _internalHandle = GetDC(_externalHandle);
     }
     else
     {
-        // This window wrapper is wrapping an offline DC.
         _internalHandle = internalHandle;
     }
 }
@@ -71,15 +70,13 @@ WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindow
 WindowWrapper::WindowWrapper(const WindowWrapper& other)
 {
     _externalHandle = other._externalHandle;
-
     if (_externalHandle && !_internalHandle)
     {
-        // Cache our own HDC that corresponds to the hWnd.
+        // Cache a HDC that corresponds to the window handle
         _internalHandle = GetDC(_externalHandle);
     }
     else
     {
-        // This window wrapper is wrapping an offline DC.
         _internalHandle = other._internalHandle;
     }
 }
@@ -91,12 +88,11 @@ const WindowWrapper& WindowWrapper::operator=(const WindowWrapper& other)
     _externalHandle = other._externalHandle;
     if (_externalHandle && !_internalHandle)
     {
-        // Cache our own HDC that corresponds to the hWnd.
+        // Cache a HDC that corresponds to the window handle
         _internalHandle = GetDC(_externalHandle);
     }
     else
     {
-        // This window wrapper is wrapping an offline DC.
         _internalHandle = other._internalHandle;
     }
 
@@ -112,7 +108,7 @@ void WindowWrapper::release()
 {
     if (_externalHandle)
     {
-        // Explicit release
+        // Release acquired DC
         ReleaseDC(_externalHandle, _internalHandle);
     }
     _externalHandle = 0;
@@ -181,10 +177,10 @@ void WindowWrapper::release()
 // OSX (Apple) specific code
 //
 
-WindowWrapper::WindowWrapper()
+WindowWrapper::WindowWrapper() :
+    _externalHandle(0),
+    _internalHandle(0)
 {
-    _externalHandle = 0;
-    _internalHandle = 0;
 }
 
 WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindowHandle internalHandle, DisplayHandle display)

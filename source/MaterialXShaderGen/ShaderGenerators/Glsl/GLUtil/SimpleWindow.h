@@ -1,14 +1,15 @@
 #ifndef MATERIALX_SIMPLEWINDOW_H
 #define MATERIALX_SIMPLEWINDOW_H
 
-#include "Platform.h"
+#include "HardwarePlatform.h"
 #include "WindowWrapper.h"
 
 namespace MaterialX
 {
 ///
 /// @class SimpleWindow
-/// Basic platform dependent window class
+/// A platform independent window class. Plaftorm spefic resources
+/// are encapsulated using a WindowWrapper instance.
 ///
 class SimpleWindow
 {
@@ -17,7 +18,7 @@ class SimpleWindow
     SimpleWindow();
 
     /// Default destructor
-    ~SimpleWindow();
+    virtual ~SimpleWindow();
 
     /// Window creator
     bool create(char* title, unsigned int width, unsigned int height,
@@ -41,10 +42,10 @@ class SimpleWindow
         return _height;
     }
 
-    /// Check validity
+    /// Check for validity
     bool isValid() const
     {
-        return (_id != 0);
+        return _windowWrapper.isValid();
     }
 
   protected:
@@ -55,18 +56,19 @@ class SimpleWindow
         _id = 0;
     }
 
-    /// Windowing information
+    /// Wrapper for platform specific window resources
     WindowWrapper _windowWrapper;
     
-    /// Dimensions of window
+    /// Width of the window
     unsigned int _width;
+    /// Height of the window
     unsigned int _height;
 
-    /// Unique window identifier Only valid if different than 0.
+    /// Unique window identifier generated dynamically at creation time.
     unsigned int _id;
 
 #if defined(OSWin_)
-    /// Class name for window (generated)
+    /// Window class name for window generated at creation time.
     char _windowClassName[128];
 #endif
 
@@ -85,10 +87,10 @@ SimpleWindow::~SimpleWindow()
 {
 }
 
-ISimpleWindow::bool SimpleWindow::create(char* /*title*/,
-                                            unsigned int /*width*/,
-                                            unsigned int /*height*/,
-                                            void* /*applicationShell*/)
+bool SimpleWindow::create(char* /*title*/,
+                        unsigned int /*width*/,
+                        unsigned int /*height*/,
+                        void* /*applicationShell*/)
 {
     return false;
 }

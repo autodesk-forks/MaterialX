@@ -1,7 +1,7 @@
 
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GLew/glew.h>
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/SimpleWindow.h>
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/GLBaseContext.h>
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/GLUtilityContext.h>
 #include <MaterialXShaderGen/ShaderGenerators/Glsl/GlslValidator.h>
 
 #include <iostream>
@@ -34,9 +34,9 @@ GlslValidator::~GlslValidator()
     deleteProgram();
     deleteTarget();
 
-    GLBaseContext* context = GLBaseContext::get();
+    GLUtilityContext* context = GLUtilityContext::get();
     if (context)
-        GLBaseContext::destroy();
+        GLUtilityContext::destroy();
 }
 
 void GlslValidator::setStages(const HwShader& shader)
@@ -68,7 +68,7 @@ void GlslValidator::initialize(ErrorList& errors)
         else
         {
             // Create offscreen context
-            GLBaseContext* context = GLBaseContext::create(window.windowWrapper(), nullptr);
+            GLUtilityContext* context = GLUtilityContext::create(window.windowWrapper(), nullptr);
             if (!context)
             {
                 errors.push_back("Failed to create OpenGL context for testing.");
@@ -89,7 +89,7 @@ void GlslValidator::initialize(ErrorList& errors)
 #endif
                     if (initializedFunctions)
                     {
-                        glClearColor(0, 0, 0, 1);
+                        glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
                         glClearStencil(0);
 
                         _initialized = true;
@@ -121,7 +121,7 @@ void GlslValidator::deleteTarget()
 {
     if (_frameBuffer)
     {
-        GLBaseContext* context = GLBaseContext::get();
+        GLUtilityContext* context = GLUtilityContext::get();
         if (context && context->makeCurrent())
         {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -132,7 +132,7 @@ void GlslValidator::deleteTarget()
 
 bool GlslValidator::createTarget(ErrorList& errors)
 {
-    GLBaseContext* context = GLBaseContext::get();
+    GLUtilityContext* context = GLUtilityContext::get();
     if (!context)
     {
         errors.push_back("No valid OpenGL context to create target with.");
@@ -216,7 +216,7 @@ void GlslValidator::deleteProgram()
 {
     if (_programId > 0)
     {
-        GLBaseContext* context = GLBaseContext::get();
+        GLUtilityContext* context = GLUtilityContext::get();
         if (context && context->makeCurrent())
         {
             glDeleteObjectARB(_programId);
@@ -229,7 +229,7 @@ unsigned int GlslValidator::createProgram(ErrorList& errors)
 {
     errors.clear();
 
-    GLBaseContext* context = GLBaseContext::get();
+    GLUtilityContext* context = GLUtilityContext::get();
     if (!context)
     {
         errors.push_back("No valid OpenGL context to create program with.");
@@ -367,13 +367,13 @@ unsigned int GlslValidator::createProgram(ErrorList& errors)
     return _programId;
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::createUniformsList()
+const GlslValidator::ProgramInputList& GlslValidator::createUniformsList(ErrorList& errors)
 {
     _uniformList.clear();
 
     if (_programId <= 0)
     {
-        //errors.push_back("Cannot bind matrices without a valid program");
+        errors.push_back("Cannot bind matrices without a valid program");
         return _uniformList;
     }
 
@@ -401,13 +401,13 @@ const GlslValidator::ProgramInputList& GlslValidator::createUniformsList()
     return _uniformList;
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::createAttributesList()
+const GlslValidator::ProgramInputList& GlslValidator::createAttributesList(ErrorList& errors)
 {
     _attributeList.clear();
 
     if (_programId <= 0)
     {
-        //errors.push_back("Cannot bind matrices without a valid program");
+        errors.push_back("Cannot bind matrices without a valid program");
         return _attributeList;
     }
 
@@ -551,10 +551,11 @@ bool GlslValidator::bindGeometry(ErrorList& errors, const HwShader* hwShader)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
 
         // Create positions
-        const GLfloat positionData[] = { 0.0f, 0.0f, 0.0f,
-            0.0f, (float)_frameBufferWidth, 0.0f,
-            (float)_frameBufferWidth, (float)_frameBufferHeight, 0.0f,
-            (float)_frameBufferWidth, 0.0f, 0.0f };
+        const float border = 20.0f;
+        const GLfloat positionData[] = { border, border, 0.0f,
+            border, (float)(_frameBufferHeight)-border, 0.0f,
+            (float)(_frameBufferWidth)-border, (float)(_frameBufferHeight)-border, 0.0f,
+            (float)(_frameBufferWidth)-border, border, 0.0f };
         updateAttribute(positionData, sizeof(positionData), "i_position", POSITION_ATTRIBUTE, 3);
 
         // Create normals
@@ -717,7 +718,7 @@ bool GlslValidator::render(ErrorList& errors)
 {
     errors.clear();
 
-    GLBaseContext* context = GLBaseContext::get();
+    GLUtilityContext* context = GLUtilityContext::get();
     if (!context)
     {
         errors.push_back("No valid OpenGL context to render to.");
@@ -762,17 +763,17 @@ bool GlslValidator::render(ErrorList& errors)
             glUseProgram(_programId);
             checkErrors(errors);
 
-            createUniformsList();
-            createAttributesList();
+            createUniformsList(errors);
+            createAttributesList(errors);
 
             if (bindMatrices(errors, nullptr) &&
                 bindGeometry(errors, nullptr) &&
                 bindTextures(errors, nullptr))
             {
                 // Draw
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
+                //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
                 glDrawElements(GL_TRIANGLES, (GLsizei)_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+                //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
                 checkErrors(errors);
             }
 
@@ -782,7 +783,7 @@ bool GlslValidator::render(ErrorList& errors)
         }
     }
 
-    // Draw simple geometry 
+    // Fallack draw some simple geometry 
     else
     {
         glPushMatrix();

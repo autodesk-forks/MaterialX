@@ -1356,10 +1356,11 @@ TEST_CASE("Shadergen implementation validity", "[shadergen]")
     implDumpBuffer.close();
 }
 
+#include <iostream>
 
 TEST_CASE("GLSL Validation", "[shadergen]")
 {
-#if defined(_WIN32)
+#if defined(OSWin_) 
     bool runGPUTest = false;
     if (runGPUTest)
     {
@@ -1373,8 +1374,10 @@ TEST_CASE("GLSL Validation", "[shadergen]")
 
         // Read in some sample fragments
         unsigned int stagesSet = 0;
-        std::string vertexShaderPath = "subgraph_ex1.vert";
-        std::string pixelShaderPath = "subgraph_ex1.frag";
+        //std::string vertexShaderPath = "subgraph_ex1.vert";
+        //std::string pixelShaderPath = "subgraph_ex1.frag";
+        std::string vertexShaderPath = "geometric_nodes.vert";
+        std::string pixelShaderPath = "geometric_nodes.frag";
         std::stringstream vertexShaderStream;
         std::stringstream pixelShaderStream;
         std::ifstream shaderFile;
@@ -1398,11 +1401,19 @@ TEST_CASE("GLSL Validation", "[shadergen]")
         if (stagesSet == 2)
         {
             validator.createProgram(errors);
+            for (auto error : errors)
+            {
+                std::cout << "Program Error> " + error << std::endl;
+            }
             REQUIRE(errors.size() == 0);
         }
 
         // To add: Hook in set up of program for validator. 
         validator.render(errors);
+        for (auto error : errors)
+        {
+            std::cout << "Rendering Error> " + error << std::endl;
+        }
         REQUIRE(errors.size() == 0);
 
         validator.deleteProgram();

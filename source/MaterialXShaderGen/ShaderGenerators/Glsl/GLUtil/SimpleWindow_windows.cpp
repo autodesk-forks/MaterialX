@@ -1,4 +1,4 @@
-#include "Platform.h"
+#include "HardwarePlatform.h"
 
 #if defined(OSWin_)
 
@@ -68,7 +68,7 @@ bool SimpleWindow::create(char* title,
     DWORD dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 
     // Set the rectangle of the client area.
-    RECT		WindowRect;
+    RECT WindowRect;
     WindowRect.left = (long)0;
     WindowRect.top = (long)0;
     WindowRect.right = (long)width;

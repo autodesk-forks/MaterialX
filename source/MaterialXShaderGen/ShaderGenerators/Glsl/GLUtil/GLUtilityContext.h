@@ -1,5 +1,5 @@
-#ifndef MATERIALX_GLBASECONTEXT_H
-#define MATERIALX_GLBASECONTEXT_H
+#ifndef MATERIALX_GLUTILITYCONTEXT_H
+#define MATERIALX_GLUTILITYCONTEXT_H
 
 #include "WindowWrapper.h"
 
@@ -22,30 +22,30 @@ using HardwareContextHandle = void*;
 using HardwareContextHandle = void*;
 #endif
 
-/// @class GLBaseContext
+/// @class GLUtilityContext
 /// Base OpenGL context singleton. 
-/// Used as a arbitrary context to perform OpenGL operations from,
+/// Used as a utility context to perform OpenGL operations from,
 /// and context for resource sharing between contexts.
 ///
-class GLBaseContext
+class GLUtilityContext
 {
   public:
-    /// Create base context singleton if not already created
-    static GLBaseContext* create(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
-
-    /// Get base context singleton
-    static GLBaseContext* get()
-    {
-        return _globalGLBaseContext;
-    }
+    /// Create a base context singleton if not already created
+    static GLUtilityContext* create(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
 
     /// Destroy base context singleton
     static void destroy();
 
-    /// Return OpenGL context resource handle
-    HardwareContextHandle dummyContext() const
+    /// Get base context singleton
+    static GLUtilityContext* get()
     {
-        return _dummyContext;
+        return _globalGLUtilityContext;
+    }
+
+    /// Return OpenGL context handle
+    HardwareContextHandle contextHandle() const
+    {
+        return _contextHandle;
     }
 
 #if defined(OSLinux_)
@@ -69,11 +69,12 @@ class GLBaseContext
 
   protected:
     /// Create the base context. A OpenGL context to share with can be passed in.
-    GLBaseContext(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
-    ~GLBaseContext();
+    GLUtilityContext(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
+    /// Default destructor
+    virtual ~GLUtilityContext();
 
     /// Base context singleton
-    static GLBaseContext* _globalGLBaseContext;
+    static GLUtilityContext* _globalGLUtilityContext;
 
 #if defined(OSWin_)
     /// Offscreen window required for context operations
@@ -87,8 +88,8 @@ class GLBaseContext
     WindowWrapper _windowWrapper;
 #endif
 
-    /// OpenGL context
-    HardwareContextHandle _dummyContext;
+    /// Context handle
+    HardwareContextHandle _contextHandle;
 
     /// Flag to indicate validity
     bool _isValid;

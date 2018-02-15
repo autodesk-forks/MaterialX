@@ -21,6 +21,7 @@ namespace MaterialX
 class GlslValidator
 {
   public:
+    /// Error string list type
     using ErrorList = std::vector<std::string>;
 
     /// Structure to hold information about program inputs
@@ -33,13 +34,16 @@ class GlslValidator
         /// Semantic
         std::string _semantic;
 
+        /// Program input constructor
         ProgramInput(int inputLocation = -1, int inputType =-1, std::string semantic = MaterialX::EMPTY_STRING)
         : _location(inputLocation)
         , _type(inputType)
         , _semantic(semantic)
         {}
     };
+    /// Program input structure shared pointer type
     using ProgramInputPtr = std::shared_ptr<ProgramInput>;
+    /// Program input structure list type
     using ProgramInputList = std::unordered_map<std::string, ProgramInputPtr>;
 
     /// Constructor
@@ -50,6 +54,7 @@ class GlslValidator
 
     /// Internal initialization of stages and OpenGL contstructs
     /// required for program validation and rendering.
+    /// @param errors List of errors which may result if validation valids
     void initialize(ErrorList& errors);
 
     /// Return whether the validator has been initialized properly.
@@ -84,12 +89,12 @@ class GlslValidator
     void deleteProgram();
 
     /// Render to buffer
-    /// @errors List of errors if rendering fails
+    /// @param errors List of errors if rendering fails
     /// @return true if successful
     bool render(ErrorList& errors);
 
     /// Save buffer to disk
-    /// @errors fileName Name of file to save rendered image to
+    /// @param errors fileName Name of file to save rendered image to
     /// @return true if successful
     bool save(std::string& fileName);
 
@@ -119,20 +124,33 @@ class GlslValidator
     /// Bind any input textures
     bool bindTextures(ErrorList& errors, const HwShader* shader = nullptr);
 
+    /// Unbind any bound geometry
     void unbindGeometry(ErrorList& errors);
 
-    const ProgramInputList& createUniformsList();
-    const ProgramInputList& createAttributesList();
+    /// Create a list of program input uniforms
+    const ProgramInputList& createUniformsList(ErrorList& errors);
 
-    /// Attribute data
+    /// Create a list of program input attributes
+    const ProgramInputList& createAttributesList(ErrorList& errors);
+
+    /// Index used to access cached attribute locations and buffers
     enum AttributeIndex {
-        POSITION_ATTRIBUTE = 0,
-        NORMAL_ATTRIBUTE,
-        TANGENT_ATTRIBUTE,
-        BITANGENT_ATTRIBUTE,
-        COLOR_ATTRIBUTE,
-        ATTRIBUTE_COUNT
+        POSITION_ATTRIBUTE = 0, /// Position attribute index
+        NORMAL_ATTRIBUTE,       /// Normal attribute index
+        TANGENT_ATTRIBUTE,      /// Tangent attribute index
+        BITANGENT_ATTRIBUTE,    /// Bitangent attribute index
+        COLOR_ATTRIBUTE,        /// Color attribute index
+        ATTRIBUTE_COUNT         /// Number of attribute indices
     };
+    /// Update attribute locatoins and buffers by scanning for a given attribute identifier
+    /// If the identifier is found then cache the location and create a hardware buffer.
+    /// Currently all data create is of type float.
+    /// using a data buffer passed in.
+    /// @param bufferData Block of data to put into the buffer
+    /// @param bufferSize Size of data block
+    /// @param attributeId Identifier of program attribute to search for
+    /// @param attributeIndex Indicator for type of buffer to create
+    /// @param floatCount Number of float channels in the buffer
     bool updateAttribute(const float *bufferData, size_t bufferSize,
         const std::string& attributeId,
         const GlslValidator::AttributeIndex attributeIndex,
@@ -145,34 +163,47 @@ class GlslValidator
     /// Generated program. A non-zero number indicates a valid shader program.
     unsigned int _programId;
 
-    /// Buffer information for rendering
     /// Hardware color target (texture)
     unsigned int _colorTarget;
+
     /// Hardware depth target (texture)
     unsigned int _depthTarget;
+
     /// Hardware frame buffer object
     unsigned int _frameBuffer;
-    /// Size of frame buffer / targets to use. 
+
+    /// Width of the frame buffer / targets to use. 
     unsigned int _frameBufferWidth;
+    /// Height of the frame buffer / targets to use. 
     unsigned int _frameBufferHeight;
 
     /// Attribute program locations
     std::vector<int> _attributeLocations;
+
     /// Attribute buffer resource handls
     std::vector<unsigned int> _attributeBuffers;
-    // Can have multiple locations per buffer so track
-    // texcoords seperately.
+
+    /// Attribute program locations for texture coordinates
+    /// As there can be multiple locations which use the same buffer 
+    /// A separate locations list and buffer is used.
     std::vector<int> _uvLocations;
+    /// Texture coordinate buffer handle
     unsigned int _uvBuffer;
     
-    /// Attribute indexing
+    /// Attribute indexing buffer handle
     unsigned int _indexBuffer;
+    /// Size of index buffer
     unsigned int _indexBufferSize;
+    
+    /// Attribute vertex array handle
     unsigned int _vertexArray;
 
+    /// List of program input uniforms
     ProgramInputList _uniformList;
+    /// List of program input attributes
     ProgramInputList _attributeList;
 
+    /// Flag to indicate if validator has been initialized properly.
     bool _initialized;
 };
 

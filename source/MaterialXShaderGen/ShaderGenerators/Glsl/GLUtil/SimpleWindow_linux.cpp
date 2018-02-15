@@ -1,6 +1,7 @@
 #if defined(OSLinux_)
 
 #include "SimpleWindow.h"
+
 #include <X11/StringDefs.h>
 #include <X11/Shell.h>
 #include <X11/Xlib.h> // for XEvent definition
@@ -21,24 +22,24 @@ SimpleWindow::SimpleWindow()
 }
 
 bool SimpleWindow::create(char* title,
-    unsigned int width, unsigned int height,
-    void *applicationShell)
+                          unsigned int width, unsigned int height,
+                          void *applicationShell)
 {
     int n = 0;
 
     XtAppContext appContext;
     Widget shell;
     static Widget batchShell;
-    static bool initializedBatchOnce = false;
+    static bool initializedXServer = false;
     if (!applicationShell)
     {
         // Connect to the X Server
-        if (!initializedBatchOnce)
+        if (!initializedXServer)
         {
-            batchShell = XtOpenApplication(&appContext, "__dummy__app__",
+            batchShell = XtOpenApplication(&appContext, "__mx_dummy__app__",
                 0, 0, &n, 0, 0,
                 applicationShellWidgetClass, 0, 0);
-            initializedBatchOnce = true;
+            initializedXServer = true;
         }
         shell = batchShell;
     }
