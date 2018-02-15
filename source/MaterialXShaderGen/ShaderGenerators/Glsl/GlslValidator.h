@@ -138,11 +138,14 @@ class GlslValidator
     /// Bind input geometry streams
     bool bindGeometry(ErrorList& errors, const HwShader* shader = nullptr);
     
+    /// Unbind any bound geometry
+    void unbindGeometry(ErrorList& errors);
+
     /// Bind any input textures
     bool bindTextures(ErrorList& errors, const HwShader* shader = nullptr);
 
-    /// Unbind any bound geometry
-    void unbindGeometry(ErrorList& errors);
+    /// Unbind input textures
+    void unbindTextures(ErrorList& errors);
 
     /// Create a list of program input uniforms
     const ProgramInputList& createUniformsList(ErrorList& errors);
@@ -175,6 +178,9 @@ class GlslValidator
         const std::string& attributeId,
         const GlslValidator::AttributeIndex attributeIndex,
         unsigned int floatCount);
+
+    /// Dummy texture for testing with
+    void createDummyTexture(bool colored);
 
   private:
     /// Stages used to create program
@@ -222,6 +228,9 @@ class GlslValidator
     ProgramInputList _uniformList;
     /// List of program input attributes
     ProgramInputList _attributeList;
+
+    /// Dummy texture
+    unsigned int _dummyTexture;
 
     /// Flag to indicate if validator has been initialized properly.
     bool _initialized;

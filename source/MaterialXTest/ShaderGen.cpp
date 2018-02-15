@@ -1374,10 +1374,10 @@ TEST_CASE("GLSL Validation", "[shadergen]")
 
         // Read in some sample fragments
         unsigned int stagesSet = 0;
-        //std::string vertexShaderPath = "subgraph_ex1.vert";
-        //std::string pixelShaderPath = "subgraph_ex1.frag";
-        std::string vertexShaderPath = "geometric_nodes.vert";
-        std::string pixelShaderPath = "geometric_nodes.frag";
+        std::string vertexShaderPath = "subgraph_ex1.vert";
+        std::string pixelShaderPath = "subgraph_ex1.frag";
+        //std::string vertexShaderPath = "geometric_nodes.vert";
+        //std::string pixelShaderPath = "geometric_nodes.frag";
         std::stringstream vertexShaderStream;
         std::stringstream pixelShaderStream;
         std::ifstream shaderFile;
@@ -1408,7 +1408,28 @@ TEST_CASE("GLSL Validation", "[shadergen]")
             REQUIRE(errors.size() == 0);
         }
 
+        errors.clear();
+        const mx::GlslValidator::ProgramInputList& uniforms = validator.getUniformsList(errors);
+        REQUIRE(errors.size() == 0);
+        for (auto input : uniforms)
+        {
+            unsigned int type = input.second->_type;
+            int location = input.second->_location;
+            std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+        }
+
+        errors.clear();
+        const mx::GlslValidator::ProgramInputList& attributes = validator.getAttributesList(errors);
+        REQUIRE(errors.size() == 0);
+        for (auto input : attributes)
+        {
+            unsigned int type = input.second->_type;
+            int location = input.second->_location;
+            std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+        }
+
         // To add: Hook in set up of program for validator. 
+        errors.clear();
         validator.render(errors);
         for (auto error : errors)
         {

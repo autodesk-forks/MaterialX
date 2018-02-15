@@ -1,6 +1,7 @@
 
+#include "HardwarePlatform.h"
 
-#if defined(_WIN32)
+#if defined(OSWin_)
 #include <windows.h> // For Windows calls
 
 #elif defined(OSLinux_)
@@ -279,7 +280,7 @@ GLUtilityContext::~GLUtilityContext()
     // Only do this portion if the context is valid
     if (_isValid)
     {
-#if defined(OSWIn_)
+#if defined(OSWin_)
         // Release the dummy context.
         wglDeleteContext(_contextHandle);
 

@@ -21,6 +21,7 @@ GlslValidator::GlslValidator() :
     _indexBuffer(0),
     _indexBufferSize(0),
     _vertexArray(0),
+    _dummyTexture(0),
     _initialized(false)
 {
     _attributeLocations.resize(ATTRIBUTE_COUNT);
@@ -121,14 +122,14 @@ void GlslValidator::initialize(ErrorList& errors)
                 {
                     // Initialize glew
                     bool initializedFunctions = true;
-#ifndef OSMac_
+
                     glewInit();
                     if (!glewIsSupported("GL_VERSION_4_0"))
                     {
                         initializedFunctions = false;
                         errors.push_back("OpenGL version 4.0 not supported");
                     }
-#endif
+
                     if (initializedFunctions)
                     {
                         glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
@@ -150,6 +151,8 @@ void GlslValidator::deleteTarget()
         if (context && context->makeCurrent())
         {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glDeleteTextures(1, &_colorTarget);
+            glDeleteTextures(1, &_depthTarget);
             glDeleteFramebuffers(1, &_frameBuffer);
         }
     }
@@ -674,6 +677,85 @@ bool GlslValidator::bindGeometry(ErrorList& errors, const HwShader* hwShader)
     return true;
 }
 
+void GlslValidator::createDummyTexture(bool colored)
+{
+    if (_dummyTexture == 0)
+    {
+        const unsigned int imageSize = 256;
+        unsigned int middle = imageSize / 2;
+
+        // Create a ramp texture for the dummy texture
+        //
+        GLubyte	 pixels[imageSize][imageSize][4];
+        for (unsigned int i=0; i<imageSize; i++)
+        {
+            for (unsigned int j=0; j<imageSize; j++)
+            {
+                float fi = (float)i;
+                float fj = (float)j;
+                float dist = sqrtf( pow((middle - fj), 2) + pow((middle - fi), 2) );
+                dist /= imageSize;
+                float mdist = (1.0f - dist);
+
+                if (colored)
+                {
+                    pixels[i][j][0] = (GLubyte)(65 * dist);
+                    pixels[i][j][1] = (GLubyte)(205 * dist);
+                    pixels[i][j][2] = (GLubyte)(255 * dist);
+
+                    pixels[i][j][0] += (GLubyte)(255 * mdist);
+                    pixels[i][j][1] += (GLubyte)(147 * mdist);
+                    pixels[i][j][2] += (GLubyte)(75 * mdist);
+                }
+                else
+                {
+                    pixels[i][j][0] = (GLubyte)(255 * mdist);
+                    pixels[i][j][1] = (GLubyte)(255 * mdist);
+                    pixels[i][j][2] = (GLubyte)(255 * mdist);
+                }
+                pixels[i][j][3] = (GLubyte)255;
+            }
+        }
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glGenTextures(1, &_dummyTexture);
+
+        glBindTexture(GL_TEXTURE_2D, _dummyTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageSize, imageSize,
+            0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        // Note: Must do this for default sampling to lookup properly.
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+}
+
+void GlslValidator::unbindTextures(ErrorList& /*errors*/)
+{
+    int textureUnit = 0;
+    GLint maxImageUnits = -1;
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
+    for (auto uniform : _uniformList)
+    {
+        GLenum uniformType = uniform.second->_type;
+        GLint uniformLocation = uniform.second->_location;
+        if (uniformLocation >= 0 &&
+            uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
+        {
+            if (textureUnit >= maxImageUnits)
+            {
+                break;
+            }
+
+            // Unbbind a texture to that unit
+            glActiveTexture(GL_TEXTURE0 + textureUnit);
+            glBindTexture(uniformType, 0); 
+            textureUnit++;
+        }
+    }
+    glDeleteTextures(1, &_dummyTexture);
+    _dummyTexture = 0;
+}
+
 bool GlslValidator::bindTextures(ErrorList& errors, const HwShader* hwShader)
 {
     if (_programId <= 0)
@@ -706,10 +788,14 @@ bool GlslValidator::bindTextures(ErrorList& errors, const HwShader* hwShader)
                     break;
                 }
 
+                createDummyTexture(true);
+
                 // Map location to a texture unit incrementally
-                //glUniform1i(uniformLocation, textureUnit);
-                //glActiveTexture(GL_TEXTURE0 + textureUnit);
-                //glBindTexture(uniformType, 0); // Currently there is no way to determine what to bind here yet.
+                glUniform1i(uniformLocation, textureUnit);
+                // Bind a texture to that unit
+                glActiveTexture(GL_TEXTURE0 + textureUnit);
+                glBindTexture(GL_TEXTURE_2D, _dummyTexture); // Bind a dummy texture
+                
                 textureUnit++;
                 //std::cout << "Bind sample:" << uniform.first << ". Location: " << uniformLocation << "Type: " << uniformType << std::endl;
             }
@@ -826,8 +912,9 @@ bool GlslValidator::render(ErrorList& errors)
                 checkErrors(errors);
             }
 
-            // Unbind the program and cleanup geometry
+            // Unbind resources
             glUseProgram(0);
+            unbindTextures(errors);
             unbindGeometry(errors);
         }
     }
