@@ -969,5 +969,4 @@ void GlslValidator::checkErrors(ErrorList& errors)
     }
 }
 
-
 }

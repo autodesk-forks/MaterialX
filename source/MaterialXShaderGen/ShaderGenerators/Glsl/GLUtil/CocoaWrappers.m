@@ -68,9 +68,9 @@ void NSOpenGLDisposeWindow(void* pWindow)
 	[pool release];
 }
 
-//////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* aglToNSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colorSize, int depthFormat,
+void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colorSize, int depthFormat,
 								int stencilFormat, int auxBuffers, int accumSize, bool minimumPolicy, 
 								bool accelerated, bool mp_safe,  bool stereo, bool supportMultiSample)
 {
@@ -79,33 +79,33 @@ void* aglToNSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int
 	
 	NSOpenGLPixelFormatAttribute list[50];
 	int i = 0;
-	if(allRenders)
+	if (allRenders)
 		list[i++] = NSOpenGLPFAAllRenderers;
-	if(bufferType == 1) //kOnScreen
+	if (bufferType == 1) //kOnScreen
 		list[i++] = NSOpenGLPFADoubleBuffer;
-	if(colorSize != 0)	
+	if (colorSize != 0)	
 		list[i++] = NSOpenGLPFAColorSize; list[i++] = colorSize;
-	if(depthFormat != 0)
+	if (depthFormat != 0)
 		list[i++] = NSOpenGLPFADepthSize; list[i++] = depthFormat;
-	if(stencilFormat != 0)
+	if (stencilFormat != 0)
 		list[i++] = NSOpenGLPFAStencilSize; list[i++] = stencilFormat;
-	if(auxBuffers != 0)
+	if (auxBuffers != 0)
 		list[i++] = NSOpenGLPFAAuxBuffers; list[i++] = auxBuffers;
-	if(accumSize != 0)
+	if (accumSize != 0)
 		list[i++] = NSOpenGLPFAAccumSize; list[i++] = accumSize;
-	if(minimumPolicy)
+	if (minimumPolicy)
 	{
 		list[i++] = NSOpenGLPFAMinimumPolicy;
 	}
-	if(accelerated)
+	if (accelerated)
 	{
 		list[i++] = NSOpenGLPFAAccelerated;
 	}
-	if(mp_safe)
+	if (mp_safe)
 	{
 		list[i++] = NSOpenGLPFAMPSafe;
 	}
-	if(stereo)
+	if (stereo)
 	{
 		list[i++] = NSOpenGLPFAStereo;
 	}
@@ -113,7 +113,7 @@ void* aglToNSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int
 	// Add multisample support to the list of attributes if supported
 	//
 	int multiSampleAttrIndex = i;
-	if(supportMultiSample)
+	if (supportMultiSample)
 	{
 		// TODO: Will need a better way of determining sampling numbers. 
 		// Currently fixed at 4 samples.
@@ -143,19 +143,19 @@ void* aglToNSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int
 	return pixelFormat;
 }
 
-void aglToNSOpenGLReleasePixelFormat(void* pPixelFormat)
+void NSOpenGLReleasePixelFormat(void* pPixelFormat)
 {
 	NSOpenGLPixelFormat *pixelFormat = pPixelFormat;
 	[pixelFormat release];
 }
 
-void aglToNSOpenGLReleaseContext(void* pContext)
+void NSOpenGLReleaseContext(void* pContext)
 {
 	NSOpenGLContext *context = pContext;
 	[context release];
 }
 
-void* aglToNSOpenGLCreateContextWrapper(void* pPixelFormat, void *pDummyContext)
+void* NSOpenGLCreateContextWrapper(void* pPixelFormat, void *pDummyContext)
 {
 	NSOpenGLPixelFormat *pixelFormat = pPixelFormat;
 	NSOpenGLContext *dummyContext = (NSOpenGLContext*)pDummyContext;
@@ -165,7 +165,7 @@ void* aglToNSOpenGLCreateContextWrapper(void* pPixelFormat, void *pDummyContext)
 	return context;
 }
 
-void aglToNSOPenGLSetDrawable(void* pContext, void* pWindow)
+void NSOPenGLSetDrawable(void* pContext, void* pWindow)
 {
 	// Create local autorelease pool for any objects that need to be autoreleased.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -179,36 +179,36 @@ void aglToNSOPenGLSetDrawable(void* pContext, void* pWindow)
 	[pool release];
 }
 
-void aglToNSOpenGLMakeCurrent(void* pContext)
+void NSOpenGLMakeCurrent(void* pContext)
 {
 	NSOpenGLContext* context = pContext;
 	[context makeCurrentContext];
 }
 
-void* aglToNSOpenGLGetCurrentContextWrapper()
+void* NSOpenGLGetCurrentContextWrapper()
 {
 	return [NSOpenGLContext currentContext];
 }
 
-void aglToNSOpenGLSwapBuffers(void* pContext)
+void NSOpenGLSwapBuffers(void* pContext)
 {
 	NSOpenGLContext* context = pContext;
 	[context flushBuffer];
 }
 
-void aglToNSOpenGLClearCurrentContext()
+void NSOpenGLClearCurrentContext()
 {
 	[NSOpenGLContext clearCurrentContext];
 }
 
-void aglToNSOpenGLDestroyContext(void** pContext)
+void NSOpenGLDestroyContext(void** pContext)
 {
 	NSOpenGLContext* context = *pContext;
 	[context release];
 	*pContext = NULL;
 }
 
-void aglToNSOpenGLDestroyCurrentContext(void** pContext)
+void NSOpenGLDestroyCurrentContext(void** pContext)
 {
 	[NSOpenGLContext clearCurrentContext];
 	NSOpenGLContext* context = *pContext;
@@ -217,14 +217,14 @@ void aglToNSOpenGLDestroyCurrentContext(void** pContext)
 }
 
 //pContext1 is srource. pContext2 is destination
-void aglToNSOpenGLCopyContext(void* pContext1, void* pContext2, GLuint mask)
+void NSOpenGLCopyContext(void* pContext1, void* pContext2, GLuint mask)
 {
 	NSOpenGLContext* context1 = pContext1;
 	NSOpenGLContext* context2 = pContext2;
 	[context2 copyAttributesFromContext:context1 withMask:mask];
 }
 
-void aglToNSOpenGLClearDrawable(void* pContext)
+void NSOpenGLClearDrawable(void* pContext)
 {
 	// Create local autorelease pool for any objects that need to be autoreleased.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -236,44 +236,45 @@ void aglToNSOpenGLClearDrawable(void* pContext)
 	[pool release];
 }
 
-void aglToNSOpenGLDescribePixelFormat(void* pPixelFormat, int attrib, GLint* vals)
+void NSOpenGLDescribePixelFormat(void* pPixelFormat, int attrib, GLint* vals)
 {
 	NSOpenGLPixelFormat *pixelFormat = (NSOpenGLPixelFormat*)pPixelFormat;
 	[pixelFormat getValues:vals forAttribute:attrib forVirtualScreen:0];
 }
 
-void aglToNSOpenGLGetInteger(void* pContext, int param, GLint* vals)
+void NSOpenGLGetInteger(void* pContext, int param, GLint* vals)
 {
 	NSOpenGLContext* context = pContext;
 	[context getValues:vals forParameter:param];
 }
 
-void aglToNSOpenGLUpdate(void* pContext)
+void NSOpenGLUpdate(void* pContext)
 {
 	NSOpenGLContext* context = pContext;
 	[context update];
 }
 
-void* aglToNSOpenGLCGLContextObj(void* pContext)
+void* NSOpenGLCGLContextObj(void* pContext)
 {
 	NSOpenGLContext *context = pContext;
 	NSOpenGLContextAuxiliary* contextAuxiliary =  [context CGLContextObj];
 	return contextAuxiliary;
 }
 
-void* aglToNSOpenGLGetWindow(void* pView)
+void* NSOpenGLGetWindow(void* pView)
 {
 	NSView *view = pView;
 	return [view window];
 }
 
-void aglToNSOpenGLInitializeGLLibrary()
+void NSOpenGLInitializeGLLibrary()
 {
 	// Create local autorelease pool for any objects that need to be autoreleased (needed in batch mode).
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSOpenGLPixelFormatAttribute attrib[] = {NSOpenGLPFAAllRenderers, NSOpenGLPFADoubleBuffer, 0};
 	NSOpenGLPixelFormat *dummyPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrib];
-	if (nil != dummyPixelFormat) {
+	if (nil != dummyPixelFormat) 
+    {
 		[dummyPixelFormat release];
 	}
 	[pool release];

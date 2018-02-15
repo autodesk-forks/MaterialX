@@ -124,4 +124,3 @@ class WindowWrapper
 } // namespace MaterialX
 
 #endif 
-
