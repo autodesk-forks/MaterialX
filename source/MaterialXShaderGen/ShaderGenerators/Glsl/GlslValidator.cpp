@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <cmath>
 
 #if defined(_WIN64) || defined(_WIN32)
     #if defined(_WIN64)
@@ -746,7 +747,7 @@ void GlslValidator::createDummyTexture(bool colored)
             {
                 float fi = (float)i;
                 float fj = (float)j;
-                float dist = sqrtf( pow((middle - fj), 2) + pow((middle - fi), 2) );
+                float dist = std::sqrt( std::pow((middle - fj), 2) + std::pow((middle - fi), 2) );
                 dist /= imageSize;
                 float mdist = (1.0f - dist);
 
