@@ -24,8 +24,8 @@ GLUtilityContext* GLUtilityContext::_globalGLUtilityContext = nullptr;
 #if defined(OSUnsupported_)
 
 GLUtilityContext::GLUtilityContext(const WindowWrapper& /*windowWrapper*/, HardwareContextHandle /*sharedWithContext*/) :
-    _isValid(false),
     _contextHandle(nullptr)
+    _isValid(false),
 {
 }
 
@@ -34,8 +34,8 @@ GLUtilityContext::GLUtilityContext(const WindowWrapper& /*windowWrapper*/, Hardw
 // Windows implementation
 //
 GLUtilityContext::GLUtilityContext(const WindowWrapper& /*windowWrapper*/, HardwareContextHandle sharedWithContext) :
-    _isValid(false),
-    _contextHandle(nullptr)
+    _contextHandle(nullptr),
+    _isValid(false)
 {
     // For windows, we need a HDC to create an OpenGL context.
     // Create a dummy 1x1 window and use it' HDC.

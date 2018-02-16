@@ -1360,17 +1360,27 @@ TEST_CASE("Shadergen implementation validity", "[shadergen]")
 
 TEST_CASE("GLSL Validation", "[shadergen]")
 {
-#if defined(OSWin_) 
+#if defined(_WIN32) 
     bool runGPUTest = false;
     if (runGPUTest)
     {
         // Initialize a GLSL validator. Will initialize 
         // window and context as well for usage
         mx::GlslValidator validator;
-        mx::GlslValidator::ErrorList errors;
-        validator.initialize(errors);
-        REQUIRE(errors.size() == 0);
-        errors.clear();
+        bool initialized = false;
+        try
+        {
+            validator.initialize();
+            initialized = true;
+        }
+        catch (mx::ExceptionShaderValidationError e)
+        {
+            for (auto error : e._errorLog)
+            {
+                std::cout << e.what() << " " << error << std::endl;
+            }
+        }
+        REQUIRE(initialized);
 
         // Read in some sample fragments
         unsigned int stagesSet = 0;
@@ -1400,44 +1410,78 @@ TEST_CASE("GLSL Validation", "[shadergen]")
         REQUIRE(stagesSet == 2);
         if (stagesSet == 2)
         {
-            validator.createProgram(errors);
-            for (auto error : errors)
+            bool programCompiled = false;
+            try 
             {
-                std::cout << "Program Error> " + error << std::endl;
+                validator.createProgram();
+                programCompiled = true;
             }
-            REQUIRE(errors.size() == 0);
+            catch (mx::ExceptionShaderValidationError e)
+            {
+                for (auto error : e._errorLog)
+                {
+                    std::cout << e.what() << " " << error << std::endl;
+                }
+            }
+            REQUIRE(programCompiled);
         }
 
-        errors.clear();
-        const mx::GlslValidator::ProgramInputList& uniforms = validator.getUniformsList(errors);
-        REQUIRE(errors.size() == 0);
-        for (auto input : uniforms)
-        {
-            unsigned int type = input.second->_type;
-            int location = input.second->_location;
-            std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+        bool uniformsParsed = false;
+        try {
+            const mx::GlslValidator::ProgramInputList& uniforms = validator.getUniformsList();
+            for (auto input : uniforms)
+            {
+                unsigned int type = input.second->_type;
+                int location = input.second->_location;
+                std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+            }
+            uniformsParsed = true;
         }
+        catch (mx::ExceptionShaderValidationError e)
+        {
+            for (auto error : e._errorLog)
+            {
+                std::cout << e.what() << " " << error << std::endl;
+            }
+        }
+        REQUIRE(uniformsParsed);        
 
-        errors.clear();
-        const mx::GlslValidator::ProgramInputList& attributes = validator.getAttributesList(errors);
-        REQUIRE(errors.size() == 0);
-        for (auto input : attributes)
+        bool attributesParsed = false;
+        try
         {
-            unsigned int type = input.second->_type;
-            int location = input.second->_location;
-            std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+            const mx::GlslValidator::ProgramInputList& attributes = validator.getAttributesList();
+            for (auto input : attributes)
+            {
+                unsigned int type = input.second->_type;
+                int location = input.second->_location;
+                std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+            }
+            attributesParsed = true;
         }
+        catch (mx::ExceptionShaderValidationError e)
+        {
+            for (auto error : e._errorLog)
+            {
+                std::cout << e.what() << " " << error << std::endl;
+            }
+        }
+        REQUIRE(attributesParsed);
 
         // To add: Hook in set up of program for validator. 
-        errors.clear();
-        validator.render(errors);
-        for (auto error : errors)
+        bool renderSucceeded = false;
+        try
         {
-            std::cout << "Rendering Error> " + error << std::endl;
+            validator.render();
+            renderSucceeded = true;
         }
-        REQUIRE(errors.size() == 0);
-
-        validator.deleteProgram();
+        catch (mx::ExceptionShaderValidationError e)
+        {
+            for (auto error : e._errorLog)
+            {
+                std::cout << e.what() << " " << error << std::endl;
+            }
+        }
+        REQUIRE(renderSucceeded);
     }
 #endif
 }

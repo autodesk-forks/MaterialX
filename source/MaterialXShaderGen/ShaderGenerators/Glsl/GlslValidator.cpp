@@ -94,8 +94,11 @@ bool GlslValidator::haveValidStages() const
 }
 
 
-void GlslValidator::initialize(ErrorList& errors)
+void GlslValidator::initialize()
 {
+    ShaderValidationErrorList errors;
+    const std::string errorType("OpenGL utilities initialization.");
+
     if (!_initialized)
     {
         // Creeate window
@@ -107,6 +110,7 @@ void GlslValidator::initialize(ErrorList& errors)
         if (!created)
         {
             errors.push_back("Failed to create window for testing.");
+            throw ExceptionShaderValidationError(errorType, errors);
         }
         else
         {
@@ -115,6 +119,7 @@ void GlslValidator::initialize(ErrorList& errors)
             if (!context)
             {
                 errors.push_back("Failed to create OpenGL context for testing.");
+                throw ExceptionShaderValidationError(errorType, errors);
             }
             else
             {
@@ -158,16 +163,21 @@ void GlslValidator::deleteTarget()
     }
 }
 
-bool GlslValidator::createTarget(ErrorList& errors)
+bool GlslValidator::createTarget()
 {
+    ShaderValidationErrorList errors;
+    const std::string errorType("OpenGL target creation failure.");
+
     GLUtilityContext* context = GLUtilityContext::get();
     if (!context)
     {
         errors.push_back("No valid OpenGL context to create target with.");
+        throw ExceptionShaderValidationError(errorType, errors);
     }
     if (!context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to create target with.");
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     // Only frame buffer only once
@@ -205,8 +215,9 @@ bool GlslValidator::createTarget(ErrorList& errors)
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDeleteFramebuffers(1, &_frameBuffer);
         _frameBuffer = 0;
-        errors.push_back("Frame buffer setup failed.");
-        return false;
+
+        errors.push_back("Frame buffer object setup failed.");
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     // Unbind on cleanup
@@ -215,18 +226,21 @@ bool GlslValidator::createTarget(ErrorList& errors)
     return true;
 }
 
-bool GlslValidator::bindTarget(bool bind, ErrorList& errors)
+bool GlslValidator::bindTarget(bool bind)
 {
     // Make sure we have a target to bind first
-    createTarget(errors);
-    if (!_frameBuffer)
-    {
-        return false;
-    }
+    createTarget();
 
     // Bind the frame buffer and route to color texture target
     if (bind)
     {
+        if (!_frameBuffer)
+        {
+            ShaderValidationErrorList errors;
+            errors.push_back("No framebuffer exists to bind.");
+            throw ExceptionShaderValidationError("OpenGL target bind failure.", errors);
+        }
+
         glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
         GLenum colorList[1] = { GL_COLOR_ATTACHMENT0 };
         glDrawBuffers(1, colorList);
@@ -256,18 +270,22 @@ void GlslValidator::deleteProgram()
     clearInputLists();
 }
 
-unsigned int GlslValidator::createProgram(ErrorList& errors)
+unsigned int GlslValidator::createProgram()
 {
-    errors.clear();
+    ShaderValidationErrorList errors;
+    const std::string errorType("GLSL program creation error.");
 
     GLUtilityContext* context = GLUtilityContext::get();
     if (!context)
     {
         errors.push_back("No valid OpenGL context to create program with.");
+        throw ExceptionShaderValidationError(errorType, errors);
+
     }
     if (!context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to create program.");
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     deleteProgram();
@@ -275,7 +293,7 @@ unsigned int GlslValidator::createProgram(ErrorList& errors)
     if (!haveValidStages())
     {
         errors.push_back("An invalid set of stages has been provided.");
-        return 0;
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     GLint GLStatus = GL_FALSE;
@@ -354,7 +372,11 @@ unsigned int GlslValidator::createProgram(ErrorList& errors)
     }
 
     // Link stages to a programs
-    if (stagesBuilt == desiredStages)
+    if (stagesBuilt < desiredStages)
+    {
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
+    else
     {
         _programId = glCreateProgram();
         glAttachShader(_programId, vertexShaderId);
@@ -404,18 +426,21 @@ void GlslValidator::clearInputLists()
     _attributeList.clear();
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::getUniformsList(ErrorList& errors) 
+const GlslValidator::ProgramInputList& GlslValidator::getUniformsList() 
 {
-    return createUniformsList(errors);
+    return createUniformsList();
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::getAttributesList(ErrorList& errors) 
+const GlslValidator::ProgramInputList& GlslValidator::getAttributesList() 
 {
-    return createAttributesList(errors);
+    return createAttributesList();
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::createUniformsList(ErrorList& errors)
+const GlslValidator::ProgramInputList& GlslValidator::createUniformsList()
 {
+    ShaderValidationErrorList errors;
+    const std::string errorType("GLSL uniform parsing error.");
+
     if (_uniformList.size() > 0)
     {
         return _uniformList;
@@ -423,8 +448,8 @@ const GlslValidator::ProgramInputList& GlslValidator::createUniformsList(ErrorLi
 
     if (_programId <= 0)
     {
-        errors.push_back("Cannot bind matrices without a valid program");
-        return _uniformList;
+        errors.push_back("Cannot parse for uniforms without a valid program");
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     // Scan for textures
@@ -451,8 +476,11 @@ const GlslValidator::ProgramInputList& GlslValidator::createUniformsList(ErrorLi
     return _uniformList;
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::createAttributesList(ErrorList& errors)
+const GlslValidator::ProgramInputList& GlslValidator::createAttributesList()
 {
+    ShaderValidationErrorList errors;
+    const std::string errorType("GLSL attribute parsing error.");
+
     if (_attributeList.size() > 0)
     {
         return _attributeList;
@@ -460,8 +488,8 @@ const GlslValidator::ProgramInputList& GlslValidator::createAttributesList(Error
 
     if (_programId <= 0)
     {
-        errors.push_back("Cannot bind matrices without a valid program");
-        return _attributeList;
+        errors.push_back("Cannot parse for attributes without a valid program");
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     GLint numAttributes = 0;
@@ -489,7 +517,7 @@ const GlslValidator::ProgramInputList& GlslValidator::createAttributesList(Error
 }
 
 
-bool GlslValidator::bindMatrices(ErrorList& errors, const HwShader* hwShader)
+bool GlslValidator::bindMatrices(ShaderValidationErrorList& errors, const HwShader* hwShader)
 {
     if (_programId <= 0)
     {
@@ -577,7 +605,7 @@ bool GlslValidator::updateAttribute(const GLfloat* bufferData, size_t bufferSize
     return false;
 }
 
-bool GlslValidator::bindGeometry(ErrorList& errors, const HwShader* hwShader)
+bool GlslValidator::bindGeometry(ShaderValidationErrorList& errors, const HwShader* hwShader)
 {
     if (_programId <= 0)
     {
@@ -729,7 +757,7 @@ void GlslValidator::createDummyTexture(bool colored)
     }
 }
 
-void GlslValidator::unbindTextures(ErrorList& /*errors*/)
+void GlslValidator::unbindTextures(ShaderValidationErrorList& errors)
 {
     int textureUnit = 0;
     GLint maxImageUnits = -1;
@@ -748,15 +776,17 @@ void GlslValidator::unbindTextures(ErrorList& /*errors*/)
 
             // Unbbind a texture to that unit
             glActiveTexture(GL_TEXTURE0 + textureUnit);
-            glBindTexture(uniformType, 0); 
+            glBindTexture(GL_TEXTURE_2D, 0); 
+            checkErrors(errors);
             textureUnit++;
         }
     }
     glDeleteTextures(1, &_dummyTexture);
+    checkErrors(errors);
     _dummyTexture = 0;
 }
 
-bool GlslValidator::bindTextures(ErrorList& errors, const HwShader* hwShader)
+bool GlslValidator::bindTextures(ShaderValidationErrorList& errors, const HwShader* hwShader)
 {
     if (_programId <= 0)
     {
@@ -807,25 +837,30 @@ bool GlslValidator::bindTextures(ErrorList& errors, const HwShader* hwShader)
 }
 
 
-void GlslValidator::unbindGeometry(ErrorList& errors)
+void GlslValidator::unbindGeometry(ShaderValidationErrorList& errors)
 {
     // Cleanup attribute bindings
     //
     glBindVertexArray(0);
+    checkErrors(errors);
     int numberAttributes = 0;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numberAttributes);
     for (int i = 0; i < numberAttributes; i++)
     {
         glDisableVertexAttribArray(i);
+        checkErrors(errors);
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    checkErrors(errors);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    checkErrors(errors);
 
     // Clean up buffers
     //
     if (_indexBuffer > 0)
     {
         glDeleteBuffers(1, &_indexBuffer);
+        checkErrors(errors);
         _indexBuffer = 0;
     }
     for (unsigned int i=0; i<ATTRIBUTE_COUNT; i++)
@@ -834,12 +869,14 @@ void GlslValidator::unbindGeometry(ErrorList& errors)
         if (bufferId > 0)
         {
             glDeleteBuffers(1, &bufferId);
+            checkErrors(errors);
             _attributeBuffers[i] = 0;
         }
     }
     if (_uvBuffer > 0)
     {
         glDeleteBuffers(1, &_uvBuffer);
+        checkErrors(errors);
         _uvBuffer = 0;
     }
 
@@ -850,24 +887,25 @@ void GlslValidator::unbindGeometry(ErrorList& errors)
     checkErrors(errors);
 }
 
-bool GlslValidator::render(ErrorList& errors)
+void GlslValidator::render()
 {
-    errors.clear();
+    ShaderValidationErrorList errors;
+    const std::string errorType("GLSL rendering error.");
 
     GLUtilityContext* context = GLUtilityContext::get();
     if (!context)
     {
         errors.push_back("No valid OpenGL context to render to.");
-        return false;
+        throw ExceptionShaderValidationError(errorType, errors);
     }
     if (!context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to render to.");
-        return false;
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     // Set up target
-    bindTarget(true, errors);
+    bindTarget(true);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -892,6 +930,7 @@ bool GlslValidator::render(ErrorList& errors)
         if (activeAttributeCount <= 0)
         {
             errors.push_back("Program has no input vertex data.");
+            throw ExceptionShaderValidationError(errorType, errors);
         }
         else
         {
@@ -900,8 +939,8 @@ bool GlslValidator::render(ErrorList& errors)
             checkErrors(errors);
 
             // Parse for uniforms and attributes
-            createUniformsList(errors);
-            createAttributesList(errors);
+            createUniformsList();
+            createAttributesList();
 
             // Bind based on inputs found, and render geometry
             if (bindMatrices(errors, nullptr) &&
@@ -916,6 +955,11 @@ bool GlslValidator::render(ErrorList& errors)
             glUseProgram(0);
             unbindTextures(errors);
             unbindGeometry(errors);
+
+            if (errors.size())
+            {
+                throw ExceptionShaderValidationError(errorType, errors);
+            }
         }
     }
 
@@ -950,17 +994,18 @@ bool GlslValidator::render(ErrorList& errors)
     }
 
     // Unset target
-    bindTarget(false, errors);
-
-    return true;
+    bindTarget(false);
 }
 
-bool GlslValidator::save(std::string& /*fileName*/)
+void GlslValidator::save(std::string& /*fileName*/)
 {
-    return false;
+    ShaderValidationErrorList errors;
+    const std::string errorType("GLSL image save error.");
+    errors.push_back("Save functionality currently not implemented yet.");
+    throw ExceptionShaderValidationError(errorType, errors);
 }
 
-void GlslValidator::checkErrors(ErrorList& errors)
+void GlslValidator::checkErrors(ShaderValidationErrorList& errors)
 {
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR)
