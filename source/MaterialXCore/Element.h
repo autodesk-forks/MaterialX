@@ -123,7 +123,7 @@ class Element : public std::enable_shared_from_this<Element>
     /// path cannot be found then an empty shared pointer is returned.
     /// @param path The hierarchical path to use to find an element relative
     ///    to the current element.
-    ElementPtr getElementByNamePath(const std::string& path);
+    ElementPtr getDescendant(const string& path);
 
     /// @}
     /// @name File Prefix

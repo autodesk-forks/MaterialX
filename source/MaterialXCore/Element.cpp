@@ -104,15 +104,15 @@ string Element::getNamePath(ConstElementPtr relativeTo) const
     return res;
 }
 
-ElementPtr Element::getElementByNamePath(const std::string& path)
+ElementPtr Element::getDescendant(const string& path)
 {
-    const std::vector<std::string> elementNames = splitString(path, NAME_PATH_SEPARATOR);
+    const vector<string> elementNames = splitString(path, NAME_PATH_SEPARATOR);
     ElementPtr currentElement = getSelf();
-    if (elementNames.size() == 0)
+    if (elementNames.empty())
     {
         return currentElement;
     }
-    for (const std::string& elementName : elementNames)
+    for (const string& elementName : elementNames)
     {
         if (!(currentElement = currentElement->getChild(elementName)))
         {
