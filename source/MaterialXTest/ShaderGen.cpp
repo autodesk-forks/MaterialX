@@ -1361,7 +1361,7 @@ TEST_CASE("Shadergen implementation validity", "[shadergen]")
 TEST_CASE("GLSL Validation", "[shadergen]")
 {
 #if defined(_WIN32) 
-    bool runGPUTest = false;
+    bool runGPUTest = true;
     if (runGPUTest)
     {
         // Initialize a GLSL validator. Will initialize 
@@ -1384,10 +1384,14 @@ TEST_CASE("GLSL Validation", "[shadergen]")
 
         // Read in some sample fragments
         unsigned int stagesSet = 0;
-        std::string vertexShaderPath = "subgraph_ex1.vert";
-        std::string pixelShaderPath = "subgraph_ex1.frag";
-        //std::string vertexShaderPath = "geometric_nodes.vert";
-        //std::string pixelShaderPath = "geometric_nodes.frag";
+        //std::string shaderName("conditional_test1");
+        //std::string shaderName("simple_test1_graphoutput");
+        //std::string shaderName("simple_test1_node");
+        //std::string shaderName("geometric_nodes");
+        std::string shaderName("subgraph_ex1");
+        //std::string shaderName("subgraph_ex2");
+        std::string vertexShaderPath = shaderName + ".vert";
+        std::string pixelShaderPath = shaderName + ".frag";
         std::stringstream vertexShaderStream;
         std::stringstream pixelShaderStream;
         std::ifstream shaderFile;
@@ -1482,6 +1486,19 @@ TEST_CASE("GLSL Validation", "[shadergen]")
             }
         }
         REQUIRE(renderSucceeded);
+
+        try
+        {
+            std::string fileName = shaderName + ".exr";
+            validator.save(fileName);
+        }
+        catch (mx::ExceptionShaderValidationError e)
+        {
+            for (auto error : e._errorLog)
+            {
+                std::cout << e.what() << " " << error << std::endl;
+            }
+        }
     }
 #endif
 }

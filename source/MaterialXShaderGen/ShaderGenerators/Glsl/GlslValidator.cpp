@@ -997,12 +997,54 @@ void GlslValidator::render()
     bindTarget(false);
 }
 
-void GlslValidator::save(std::string& /*fileName*/)
+#define TINYEXR_IMPLEMENTATION
+#include <limits>
+// Max may be defined in a macro so temporariy undef it.
+#ifdef max
+#define max_cache max
+#undef max
+#endif
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/tinyexr/tinyexr.h>
+#ifdef max_cache 
+#define max max_cache
+#endif
+
+void GlslValidator::save(std::string& fileName)
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL image save error.");
-    errors.push_back("Save functionality currently not implemented yet.");
-    throw ExceptionShaderValidationError(errorType, errors);
+
+    size_t bufferSize = _frameBufferWidth * _frameBufferHeight * 4;
+    float* buffer = new float[bufferSize];
+    if (!buffer)
+    {
+        errors.push_back("Failed to read color buffer back.");
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
+
+    // Read back from the color texture.
+    bindTarget(true);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glReadPixels(0, 0, _frameBufferWidth, _frameBufferHeight, GL_RGBA, GL_FLOAT, buffer);
+    bindTarget(false);
+    checkErrors(errors);
+    if (errors.size())
+    {
+        bindTarget(false);
+        delete[] buffer;
+        errors.push_back("Failed to read color buffer back.");
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
+
+    int returnValue = SaveEXR(buffer, _frameBufferWidth, _frameBufferHeight, 4, 1 /* = save as fp16 format */, fileName.c_str());
+    delete[] buffer;
+
+    if (returnValue != 0)
+    {
+        errors.push_back("Faled to save to file:" + fileName);
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
 }
 
 void GlslValidator::checkErrors(ShaderValidationErrorList& errors)

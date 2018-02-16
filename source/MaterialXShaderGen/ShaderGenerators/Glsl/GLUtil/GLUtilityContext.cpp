@@ -24,8 +24,8 @@ GLUtilityContext* GLUtilityContext::_globalGLUtilityContext = nullptr;
 #if defined(OSUnsupported_)
 
 GLUtilityContext::GLUtilityContext(const WindowWrapper& /*windowWrapper*/, HardwareContextHandle /*sharedWithContext*/) :
-    _contextHandle(nullptr)
-    _isValid(false),
+    _contextHandle(nullptr),
+    _isValid(false)
 {
 }
 
