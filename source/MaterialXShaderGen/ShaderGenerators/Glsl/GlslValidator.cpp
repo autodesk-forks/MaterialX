@@ -7,6 +7,31 @@
 #include <iostream>
 #include <algorithm>
 
+#if defined(_WIN64) || defined(_WIN32)
+    #if defined(_WIN64)
+    #define TINYEXR_USABLE
+    #endif
+#else
+    #define TINYEXR_USABLE
+#endif
+#if defined(TINYEXR_USABLE)
+#define TINYEXR_IMPLEMENTATION
+#include <cstdlib>
+#include <cstdio>
+#include <limits>
+#include <stdio.h>
+#include <string.h>
+// Max may be defined in a macro so temporariy undef it.
+#ifdef max
+#define max_cache max
+#undef max
+#endif
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/tinyexr/tinyexr.h>
+#ifdef max_cache 
+#define max max_cache
+#endif
+#endif
+
 namespace MaterialX
 {
 
@@ -997,21 +1022,6 @@ void GlslValidator::render()
     bindTarget(false);
 }
 
-#define TINYEXR_IMPLEMENTATION
-#include <cstdlib>
-#include <cstdio>
-#include <limits>
-#include <string>
-// Max may be defined in a macro so temporariy undef it.
-#ifdef max
-#define max_cache max
-#undef max
-#endif
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/tinyexr/tinyexr.h>
-#ifdef max_cache 
-#define max max_cache
-#endif
-
 void GlslValidator::save(std::string& fileName)
 {
     ShaderValidationErrorList errors;
@@ -1039,7 +1049,10 @@ void GlslValidator::save(std::string& fileName)
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    int returnValue = SaveEXR(buffer, _frameBufferWidth, _frameBufferHeight, 4, 1 /* = save as fp16 format */, fileName.c_str());
+    int returnValue = 0;
+#if defined(TINYEXR_USABLE)
+    returnValue = SaveEXR(buffer, _frameBufferWidth, _frameBufferHeight, 4, 1 /* = save as fp16 format */, fileName.c_str());
+#endif
     delete[] buffer;
 
     if (returnValue != 0)

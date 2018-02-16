@@ -1360,8 +1360,8 @@ TEST_CASE("Shadergen implementation validity", "[shadergen]")
 
 TEST_CASE("GLSL Validation", "[shadergen]")
 {
-#if defined(_WIN32) 
-    bool runGPUTest = true;
+#if defined(_WIN64) 
+    bool runGPUTest = false;
     if (runGPUTest)
     {
         // Initialize a GLSL validator. Will initialize 

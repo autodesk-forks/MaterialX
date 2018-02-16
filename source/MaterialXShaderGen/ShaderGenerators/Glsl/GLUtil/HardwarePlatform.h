@@ -2,7 +2,7 @@
 
 // Platform macros. Only Windows platform is supported at this point
 // Linux and Mac flags well be enabled when fully supported.
-#if defined(_WIN32)
+#if defined(_WIN64)
 //#define OSUnsupported_
 #define OSWin_
 #elif defined(__linux__)
