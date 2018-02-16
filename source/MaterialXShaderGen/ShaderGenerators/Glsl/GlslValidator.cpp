@@ -42,7 +42,7 @@ GlslValidator::~GlslValidator()
 
 void GlslValidator::setStage(const std::string& code, size_t stage)
 {
-    if (stage >= 0 && stage < HwShader::NUM_STAGES)
+    if (stage < HwShader::NUM_STAGES)
     {
         _stages[stage] = code;
     }
@@ -66,7 +66,7 @@ void GlslValidator::setStages(const HwShader& shader)
 
 const std::string GlslValidator::getStage(size_t stage) const
 {
-    if (stage >= 0 && stage < HwShader::NUM_STAGES)
+    if (stage < HwShader::NUM_STAGES)
     {
         return _stages[stage];
     }
@@ -471,7 +471,7 @@ const GlslValidator::ProgramInputList& GlslValidator::createUniformsList()
             //std::cout << "Scanned uniform : " << uniformName << ". Location: " << uniformLocation << ". Type: " << uniformType << std::endl;
         }
     }
-    delete uniformName;
+    delete[] uniformName;
 
     return _uniformList;
 }
@@ -511,7 +511,7 @@ const GlslValidator::ProgramInputList& GlslValidator::createAttributesList()
             //std::cout << "Scanned attribute : " << attributeName << ". Location: " << attributeLocation << ". Type: " << attributeType << std::endl;
         }
     }
-    delete attributeName;
+    delete[] attributeName;
 
     return _attributeList;
 }
@@ -998,7 +998,10 @@ void GlslValidator::render()
 }
 
 #define TINYEXR_IMPLEMENTATION
+#include <cstdlib>
+#include <cstdio>
 #include <limits>
+#include <string>
 // Max may be defined in a macro so temporariy undef it.
 #ifdef max
 #define max_cache max
@@ -1031,7 +1034,6 @@ void GlslValidator::save(std::string& fileName)
     checkErrors(errors);
     if (errors.size())
     {
-        bindTarget(false);
         delete[] buffer;
         errors.push_back("Failed to read color buffer back.");
         throw ExceptionShaderValidationError(errorType, errors);
