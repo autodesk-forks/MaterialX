@@ -1,5 +1,5 @@
 
-#include "HardwarePlatform.h"
+#include <MaterialXView/Glsl/GLUtil/HardwarePlatform.h>
 
 #if defined(OSWin_)
 #include <windows.h> // For Windows calls
@@ -8,11 +8,11 @@
 #include <X11/Intrinsic.h> // for XtDisplay etc
 
 #elif defined(OSMac_)
-#include "CocoaWrappers.h"
+#include <MaterialXView/Glsl/GLUtil/CocoaWrappers.h>
 #endif
 
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLew/glew.h>
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/GLUtilityContext.h>
+#include <MaterialXView/Glsl/external/GLew/glew.h>
+#include <MaterialXView/Glsl/GLUtil/GLUtilityContext.h>
 
 namespace MaterialX
 {

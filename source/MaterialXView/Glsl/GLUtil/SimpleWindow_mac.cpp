@@ -1,7 +1,7 @@
 #if defined(OSMac_)
 
-#include "SimpleWindow.h"
-#include "CocoaWrappers.h"
+#include <MaterialXView/Glsl/GLUtil/SimpleWindow.h>
+#include <MaterialXView/Glsl/GLUtil/CocoaWrappers.h>
 
 namespace MaterialX
 {

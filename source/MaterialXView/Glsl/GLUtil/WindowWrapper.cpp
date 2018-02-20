@@ -1,9 +1,9 @@
-#include "WindowWrapper.h"
+#include <MaterialXView/Glsl/GLUtil/WindowWrapper.h>
 
 #if defined(OSLinux_)
 #include <X11/Intrinsic.h>
 #elif defined(OSMac_)
-#include "CocoaWrappers.h"
+#include <MaterialXView/Glsl/GLUtil/CocoaWrappers.h>
 #endif
 
 namespace MaterialX

@@ -1,6 +1,6 @@
 #if defined(OSLinux_)
 
-#include "SimpleWindow.h"
+#include <MaterialXView/Glsl/GLUtil/SimpleWindow.h>
 
 #include <X11/StringDefs.h>
 #include <X11/Shell.h>

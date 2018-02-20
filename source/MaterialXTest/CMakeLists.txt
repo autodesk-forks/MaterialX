@@ -4,6 +4,9 @@ include_directories(
 )
 
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+if(NOT MATERIALX_BUILD_VIEW)
+    list(REMOVE_ITEM materialx_source "MaterialXValid.cpp")
+endif(NOT MATERIALX_BUILD_VIEW)
 file(GLOB_RECURSE catch_headers "${CMAKE_CURRENT_SOURCE_DIR}/Catch/*.hpp")
 
 source_group("Header Files\\Catch" FILES ${catch_headers})
@@ -30,10 +33,16 @@ set_target_properties(
     VERSION "${MATERIALX_LIBRARY_VERSION}"
     SOVERSION "${MATERIALX_MAJOR_VERSION}")
 
-target_link_libraries(
-    MaterialXTest
-    MaterialXCore
-    MaterialXFormat
+set (LIBS 
+    MaterialXCore 
+    MaterialXFormat 
     MaterialXShaderGen
+)
+if (MATERIALX_BUILD_VIEW)
+    LIST(APPEND LIBS "MaterialXView")
+    add_definitions(-DMATERIALX_BUILD_VIEW)
+endif(MATERIALX_BUILD_VIEW)
+target_link_libraries(
+    MaterialXTest ${LIBS}    
     ${CMAKE_DL_LIBS}
 )

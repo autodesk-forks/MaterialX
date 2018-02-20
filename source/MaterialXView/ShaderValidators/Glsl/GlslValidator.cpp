@@ -1,8 +1,8 @@
 
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLew/glew.h>
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/SimpleWindow.h>
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GLUtil/GLUtilityContext.h>
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GlslValidator.h>
+#include <MaterialXView/Glsl/external/GLew/glew.h>
+#include <MaterialXView/Glsl/GLUtil/SimpleWindow.h>
+#include <MaterialXView/Glsl/GLUtil/GLUtilityContext.h>
+#include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
 
 #include <iostream>
 #include <algorithm>
@@ -27,7 +27,7 @@
 #define max_cache max
 #undef max
 #endif
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/tinyexr/tinyexr.h>
+#include <MaterialXView/Glsl/external/tinyexr/tinyexr.h>
 #ifdef max_cache 
 #define max max_cache
 #endif

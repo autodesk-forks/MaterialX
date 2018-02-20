@@ -1,10 +1,10 @@
-#include "HardwarePlatform.h"
+#include <MaterialXView/Glsl/GLUtil/HardwarePlatform.h>
 
 #if defined(OSWin_)
 
 #include <Windows.h>
-#include "SimpleWindow.h"
-#include "WindowWrapper.h"
+#include <MaterialXView/Glsl/GLUtil/SimpleWindow.h>
+#include <MaterialXView/Glsl/GLUtil/WindowWrapper.h>
 #include <string>
 
 namespace MaterialX
