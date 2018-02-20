@@ -108,10 +108,6 @@ ElementPtr Element::getDescendant(const string& path)
 {
     const vector<string> elementNames = splitString(path, NAME_PATH_SEPARATOR);
     ElementPtr currentElement = getSelf();
-    if (elementNames.empty())
-    {
-        return currentElement;
-    }
     for (const string& elementName : elementNames)
     {
         if (!(currentElement = currentElement->getChild(elementName)))

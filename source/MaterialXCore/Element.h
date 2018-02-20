@@ -117,7 +117,7 @@ class Element : public std::enable_shared_from_this<Element>
     ///    the returned path will be relative to this ancestor.
     string getNamePath(ConstElementPtr relativeTo = nullptr) const;
 
-    /// Return the element referred to by the hierarchical path relative
+    /// Return the descendant referred to by the hierarchical path relative
     /// to the current element. If an empty string is provided as the path
     /// then a shared pointer to the current element is returned. If the
     /// path cannot be found then an empty shared pointer is returned.
