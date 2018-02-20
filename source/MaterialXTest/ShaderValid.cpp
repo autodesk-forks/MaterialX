@@ -2,6 +2,10 @@
 
 #include <MaterialXCore/Document.h>
 #include <MaterialXFormat/XmlIo.h>
+
+#include <MaterialXShaderGen/ShaderGenerators/Glsl/GlslShaderGenerator.h>
+#include <MaterialXShaderGen/Util.h>
+#include <MaterialXShaderGen/ShaderGenerators/Common/Swizzle.h>
 #include <MaterialXShaderGen/HwShader.h>
 
 #include <fstream>
@@ -15,7 +19,7 @@ namespace mx = MaterialX;
 #include <iostream>
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
 
-TEST_CASE("GLSL Validation", "[shadervalid]")
+TEST_CASE("GLSL Validation from Source", "[view]")
 {
     // Initialize a GLSL validator. Will initialize 
     // window and context as well for usage
@@ -153,5 +157,102 @@ TEST_CASE("GLSL Validation", "[shadervalid]")
         }
     }
 }
+
+
+TEST_CASE("GLSL Validation from HwShader", "[view]")
+{
+    mx::DocumentPtr doc = mx::createDocument();
+
+    // Load standard libraries
+    std::vector<std::string> filenames =
+    {
+        "documents/Libraries/stdlib/mx_stdlib_defs.mtlx",
+        "documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx"
+    };
+
+    for (const std::string& filename : filenames)
+    {
+        mx::readFromXmlFile(doc, filename);
+    }
+
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
+    mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::creator();
+    shaderGenerator->registerSourceCodeSearchPath(searchPath);
+
+    // Create a nonsensical graph testing some geometric nodes
+    mx::NodeGraphPtr nodeGraph = doc->addNodeGraph("geometry_attributes");
+
+    std::vector<mx::NodePtr> attributeList;
+
+    mx::NodePtr normal1 = nodeGraph->addNode("normal", "normal1", "vector3");
+    normal1->setParameterValue("space", std::string("world"));
+    attributeList.push_back(normal1);
+
+    mx::NodePtr position1 = nodeGraph->addNode("position", "position1", "vector3");
+    position1->setParameterValue("space", std::string("world"));
+    mx::NodePtr constant = nodeGraph->addNode("constant");
+    mx::ParameterPtr v = constant->addParameter("value", "vector3");
+    v->setValueString("0.003921568627451, 0.003921568627451, 0.003921568627451");
+    mx::NodePtr multiply1 = nodeGraph->addNode("multiply", "multiply1", "vector3");
+    multiply1->setConnectedNode("in1", position1);
+    multiply1->setConnectedNode("in2", constant);
+    //attributeList.push_back(multiply1); -- error : Could not find a nodedef for node 'multiply1' ?
+    attributeList.push_back(position1);
+
+    mx::NodePtr texcoord1 = nodeGraph->addNode("texcoord", "texcoord1", "vector2");
+    texcoord1->setParameterValue("index", 0, "integer");
+
+    mx::NodePtr tangent = nodeGraph->addNode("tangent", "tangent1", "vector3");
+    //tangent->setParameterValue("index", 0, "integer");
+    attributeList.push_back(tangent);
+
+    mx::NodePtr bitangent = nodeGraph->addNode("bitangent", "bitangent1", "vector3");
+    //bitangent->setParameterValue("index", 0, "integer");
+    attributeList.push_back(bitangent);
+
+    mx::NodePtr swizzle1 = nodeGraph->addNode("swizzle", "swizzle_uv", "vector3");
+    swizzle1->setConnectedNode("in", texcoord1);
+    swizzle1->setParameterValue("channels", std::string("xy0"));
+    attributeList.push_back(swizzle1);
+
+    // Connected to output.
+    mx::OutputPtr output1 = nodeGraph->addOutput(mx::EMPTY_STRING, "vector3");
+
+    mx::GlslValidator validator;
+    validator.initialize();
+
+    for (auto nodePtr : attributeList)
+    {
+        std::cout << "*** Validate with output node: " << nodePtr->getName() << " *** " << std::endl;
+        output1->setConnectedNode(nodePtr);
+
+        mx::ShaderPtr shader = shaderGenerator->generate(nodeGraph->getName(), output1);
+        mx::HwShaderPtr hwShader = std::dynamic_pointer_cast<mx::HwShader>(shader);
+        REQUIRE(hwShader != nullptr);
+        REQUIRE(hwShader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
+        REQUIRE(hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
+
+        validator.setStages(hwShader);
+        validator.createProgram();
+        const mx::GlslValidator::ProgramInputList& uniforms = validator.getUniformsList();
+        for (auto input : uniforms)
+        {
+            unsigned int type = input.second->_type;
+            int location = input.second->_location;
+            std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+        }
+        const mx::GlslValidator::ProgramInputList& attributes = validator.getAttributesList();
+        for (auto input : attributes)
+        {
+            unsigned int type = input.second->_type;
+            int location = input.second->_location;
+            std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+        }
+        validator.render();
+        std::string fileName = shader->getName() + "_" + nodePtr->getName() + ".exr";
+        validator.save(fileName);
+    }
+}
+
 #endif
 #endif

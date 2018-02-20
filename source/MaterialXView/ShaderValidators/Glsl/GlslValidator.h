@@ -67,7 +67,7 @@ class GlslValidator
 
     /// Set up code stages to validate based on an input hardware shader.
     /// @param shader Hardware shader to use
-    void setStages(const HwShader& shader);
+    void setStages(const HwShaderPtr shader);
 
     /// This method can be used to incrementally set the code stages before validation.
     /// @param code Shader code string for a given stage

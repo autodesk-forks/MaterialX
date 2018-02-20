@@ -73,21 +73,30 @@ void GlslValidator::setStage(const std::string& code, size_t stage)
         _stages[stage] = code;
     }
 
-    // A stage change invalids any cached parsed inputs
+    // A stage change invalidates any cached parsed inputs
     clearInputLists();
 }
 
 
-void GlslValidator::setStages(const HwShader& shader)
+void GlslValidator::setStages(const HwShaderPtr shader)
 {
+    if (!shader)
+    {
+        ShaderValidationErrorList errors;
+        throw ExceptionShaderValidationError("Cannot set stages using null hardware shader.", errors);
+    }
+
     // Clear out any old data
     clearStages();
 
     // Extract out the shader code per stage
     for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
     {
-        _stages[i] = shader.getSourceCode(i);
+        _stages[i] = shader->getSourceCode(i);
     }
+
+    // A stage change invalidates any cached parsed inputs
+    clearInputLists();
 }
 
 const std::string GlslValidator::getStage(size_t stage) const
@@ -680,8 +689,8 @@ bool GlslValidator::bindGeometry(ShaderValidationErrorList& errors, const HwShad
         updateAttribute(tangentData, sizeof(tangentData), "i_tangent", NORMAL_ATTRIBUTE, 3);
 
         // Create bitangent
-        float bitangentData[] = { 1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
+        float bitangentData[] = { 0.0f, 1.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
             -1.0f, 0.0f, 0.0f,
             0.0f, -1.0f, 0.0f };
         updateAttribute(bitangentData, sizeof(bitangentData), "i_bitangent", BITANGENT_ATTRIBUTE, 3);
