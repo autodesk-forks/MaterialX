@@ -8,31 +8,6 @@
 #include <algorithm>
 #include <cmath>
 
-#if defined(_WIN64) || defined(_WIN32)
-    #if defined(_WIN64)
-    #define TINYEXR_USABLE
-    #endif
-#else
-    #define TINYEXR_USABLE
-#endif
-#if defined(TINYEXR_USABLE)
-#define TINYEXR_IMPLEMENTATION
-#include <cstdlib>
-#include <cstdio>
-#include <limits>
-#include <stdio.h>
-#include <string.h>
-// Max may be defined in a macro so temporariy undef it.
-#ifdef max
-#define max_cache max
-#undef max
-#endif
-#include <MaterialXView/Glsl/external/tinyexr/tinyexr.h>
-#ifdef max_cache 
-#define max max_cache
-#endif
-#endif
-
 namespace MaterialX
 {
 
@@ -48,6 +23,7 @@ GlslValidator::GlslValidator() :
     _indexBufferSize(0),
     _vertexArray(0),
     _dummyTexture(0),
+    _hwShader(nullptr),
     _initialized(false)
 {
     _attributeLocations.resize(ATTRIBUTE_COUNT);
@@ -67,7 +43,7 @@ GlslValidator::~GlslValidator()
 }
 
 void GlslValidator::setStage(const std::string& code, size_t stage)
-{
+{    
     if (stage < HwShader::NUM_STAGES)
     {
         _stages[stage] = code;
@@ -75,6 +51,9 @@ void GlslValidator::setStage(const std::string& code, size_t stage)
 
     // A stage change invalidates any cached parsed inputs
     clearInputLists();
+    // For now a individual stage setting means to not use a HwShader.
+    // If / when injection of stages is allowed then this should not longer be true
+    _hwShader = nullptr;
 }
 
 
@@ -90,9 +69,10 @@ void GlslValidator::setStages(const HwShaderPtr shader)
     clearStages();
 
     // Extract out the shader code per stage
+    _hwShader = shader;
     for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
     {
-        _stages[i] = shader->getSourceCode(i);
+        _stages[i] = _hwShader->getSourceCode(i);
     }
 
     // A stage change invalidates any cached parsed inputs
@@ -461,17 +441,17 @@ void GlslValidator::clearInputLists()
     _attributeList.clear();
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::getUniformsList() 
+const GlslValidator::ProgramInputList& GlslValidator::getUniformsList()
 {
-    return createUniformsList();
+    return updateUniformsList();
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::getAttributesList() 
+const GlslValidator::ProgramInputList& GlslValidator::getAttributesList()
 {
-    return createAttributesList();
+    return updateAttributesList();
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::createUniformsList()
+const GlslValidator::ProgramInputList& GlslValidator::updateUniformsList()
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL uniform parsing error.");
@@ -503,7 +483,6 @@ const GlslValidator::ProgramInputList& GlslValidator::createUniformsList()
         {
             ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(uniformLocation, uniformType);
             _uniformList[std::string(uniformName)] = inputPtr;
-            //std::cout << "Scanned uniform : " << uniformName << ". Location: " << uniformLocation << ". Type: " << uniformType << std::endl;
         }
     }
     delete[] uniformName;
@@ -511,7 +490,7 @@ const GlslValidator::ProgramInputList& GlslValidator::createUniformsList()
     return _uniformList;
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::createAttributesList()
+const GlslValidator::ProgramInputList& GlslValidator::updateAttributesList()
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL attribute parsing error.");
@@ -552,18 +531,20 @@ const GlslValidator::ProgramInputList& GlslValidator::createAttributesList()
 }
 
 
-bool GlslValidator::bindMatrices(ShaderValidationErrorList& errors, const HwShader* hwShader)
+void GlslValidator::bindMatrices()
 {
+    ShaderValidationErrorList errors;
+
     if (_programId <= 0)
     {
+        const std::string errorType("GLSL matrix bind error.");
         errors.push_back("Cannot bind matrices without a valid program");
-        return false;
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     // Pull information from HwShader
-    if (hwShader)
+    if (_hwShader)
     {
-        return false;
     }
 
     // Set projection and modelview matrices
@@ -601,20 +582,19 @@ bool GlslValidator::bindMatrices(ShaderValidationErrorList& errors, const HwShad
             glGetFloatv(GL_MODELVIEW_MATRIX, m);
             glUniformMatrix4fv(location, 1, GL_FALSE, m);
         }
-    } 
+    }
 
     // Set normal transform matrix (world-inverse-transpose) and other matrices
     // TO ADD...
 
-    checkErrors(errors);
-
-    return true;
+    checkErrors();
 }
 
-bool GlslValidator::updateAttribute(const GLfloat* bufferData, size_t bufferSize,
-    const std::string& attributeId,
-    const GlslValidator::AttributeIndex attributeIndex,
-    unsigned int floatCount)
+bool GlslValidator::updateAttribute(const GLfloat* bufferData, 
+                                    size_t bufferSize,
+                                    const std::string& attributeId,
+                                    const GlslValidator::AttributeIndex attributeIndex,
+                                    unsigned int floatCount)
 {
     int location = -1;
     auto programInput = _attributeList.find(attributeId);
@@ -640,18 +620,20 @@ bool GlslValidator::updateAttribute(const GLfloat* bufferData, size_t bufferSize
     return false;
 }
 
-bool GlslValidator::bindGeometry(ShaderValidationErrorList& errors, const HwShader* hwShader)
+void GlslValidator::bindGeometry()
 {
+    ShaderValidationErrorList errors;
     if (_programId <= 0)
     {
+        const std::string errorType("GLSL matrix bind error.");
         errors.push_back("Cannot bind geometry without a valid program");
-        return false;
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    // Pull information from HwShader
-    if (hwShader)
+    // Pull information from HwShader as needed
+    if (_hwShader)
     {
-        return false;
+        // To add: Pull any additional information required here
     }
 
     // Pull information from program directly
@@ -736,8 +718,7 @@ bool GlslValidator::bindGeometry(ShaderValidationErrorList& errors, const HwShad
         }
     }
 
-    checkErrors(errors);
-    return true;
+    checkErrors();
 }
 
 void GlslValidator::createDummyTexture(bool colored)
@@ -792,7 +773,7 @@ void GlslValidator::createDummyTexture(bool colored)
     }
 }
 
-void GlslValidator::unbindTextures(ShaderValidationErrorList& errors)
+void GlslValidator::unbindTextures()
 {
     int textureUnit = 0;
     GLint maxImageUnits = -1;
@@ -809,93 +790,96 @@ void GlslValidator::unbindTextures(ShaderValidationErrorList& errors)
                 break;
             }
 
-            // Unbbind a texture to that unit
+            // Unbind a texture to that unit
             glActiveTexture(GL_TEXTURE0 + textureUnit);
             glBindTexture(GL_TEXTURE_2D, 0); 
-            checkErrors(errors);
+            checkErrors();
             textureUnit++;
         }
     }
     glDeleteTextures(1, &_dummyTexture);
-    checkErrors(errors);
+    checkErrors();
     _dummyTexture = 0;
 }
 
-bool GlslValidator::bindTextures(ShaderValidationErrorList& errors, const HwShader* hwShader)
+void GlslValidator::bindTextures()
 {
     if (_programId <= 0)
     {
+        const std::string errorType("GLSL matrix bind error.");
+        ShaderValidationErrorList errors;
         errors.push_back("Cannot bind textures without a valid program");
-        return false;
-    }
-
-    // Pull information from HwShader
-    if (hwShader)
-    {
-        return false;
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     // Pull information from program directly
-    else
+    int textureUnit = 0;
+    GLint maxImageUnits = -1;
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
+    for (auto uniform : _uniformList)
     {
-        int textureUnit = 0;
-        GLint maxImageUnits = -1;
-        glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
-        for (auto uniform : _uniformList)
+        GLenum uniformType = uniform.second->_type;
+        GLint uniformLocation = uniform.second->_location;
+        if (uniformLocation >= 0 &&
+            uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
         {
-            GLenum uniformType = uniform.second->_type;
-            GLint uniformLocation = uniform.second->_location;
-            if (uniformLocation >= 0 &&
-                uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
+            if (textureUnit >= maxImageUnits)
             {
-                if (textureUnit >= maxImageUnits)
-                {
-                    break;
-                }
-
-                createDummyTexture(true);
-
-                // Map location to a texture unit incrementally
-                glUniform1i(uniformLocation, textureUnit);
-                // Bind a texture to that unit
-                glActiveTexture(GL_TEXTURE0 + textureUnit);
-                glBindTexture(GL_TEXTURE_2D, _dummyTexture); // Bind a dummy texture
-                
-                textureUnit++;
-                //std::cout << "Bind sample:" << uniform.first << ". Location: " << uniformLocation << "Type: " << uniformType << std::endl;
+                break;
             }
+
+            // Map location to a texture unit incrementally
+            glUniform1i(uniformLocation, textureUnit);
+            // Bind a texture to that unit
+            glActiveTexture(GL_TEXTURE0 + textureUnit);
+
+            // Pull information from HwShader as needed
+            bool textureBound = false;
+            if (_hwShader)
+            {
+                // to add reader code
+            }
+
+            if (!textureBound)
+            {
+                createDummyTexture(true);
+                glBindTexture(GL_TEXTURE_2D, _dummyTexture); // Bind a dummy texture
+            }
+
+            textureUnit++;
+            //std::cout << "Bind sample:" << uniform.first << ". Location: " << uniformLocation << "Type: " << uniformType << std::endl;
         }
     }
 
-    checkErrors(errors);
-    return true;
+    checkErrors();
 }
 
 
-void GlslValidator::unbindGeometry(ShaderValidationErrorList& errors)
+void GlslValidator::unbindGeometry()
 {
+    // Reset program locations
+    std::fill(_attributeLocations.begin(), _attributeLocations.end(), -1);
+    _uvLocations.clear();
+
+    ShaderValidationErrorList errors;
+
     // Cleanup attribute bindings
     //
     glBindVertexArray(0);
-    checkErrors(errors);
     int numberAttributes = 0;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numberAttributes);
     for (int i = 0; i < numberAttributes; i++)
     {
         glDisableVertexAttribArray(i);
-        checkErrors(errors);
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    checkErrors(errors);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    checkErrors(errors);
 
     // Clean up buffers
     //
     if (_indexBuffer > 0)
     {
         glDeleteBuffers(1, &_indexBuffer);
-        checkErrors(errors);
         _indexBuffer = 0;
     }
     for (unsigned int i=0; i<ATTRIBUTE_COUNT; i++)
@@ -904,22 +888,40 @@ void GlslValidator::unbindGeometry(ShaderValidationErrorList& errors)
         if (bufferId > 0)
         {
             glDeleteBuffers(1, &bufferId);
-            checkErrors(errors);
             _attributeBuffers[i] = 0;
         }
     }
     if (_uvBuffer > 0)
     {
         glDeleteBuffers(1, &_uvBuffer);
-        checkErrors(errors);
         _uvBuffer = 0;
     }
 
-    // Reset program locations
-    std::fill(_attributeLocations.begin(), _attributeLocations.end(), -1);
-    _uvLocations.clear();
+    checkErrors();
+}
 
-    checkErrors(errors);
+void GlslValidator::bindInputs()
+{
+    if (_programId <= 0)
+    {
+        const std::string errorType("GLSL bind inputs error.");
+        ShaderValidationErrorList errors;
+        errors.push_back("Cannot bind inputs without a valid program");
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
+
+    // Bind the program to use
+    glUseProgram(_programId);
+    checkErrors();
+
+    // Parse for uniforms and attributes
+    updateUniformsList();
+    updateAttributesList();
+
+    // Bind based on inputs found, and render geometry
+    bindMatrices();
+    bindGeometry();
+    bindTextures();
 }
 
 void GlslValidator::render()
@@ -971,30 +973,17 @@ void GlslValidator::render()
         {
             // Bind the program to use
             glUseProgram(_programId);
-            checkErrors(errors);
+            checkErrors();
 
-            // Parse for uniforms and attributes
-            createUniformsList();
-            createAttributesList();
+            bindInputs();
 
-            // Bind based on inputs found, and render geometry
-            if (bindMatrices(errors, nullptr) &&
-                bindGeometry(errors, nullptr) &&
-                bindTextures(errors, nullptr))
-            {
-                glDrawElements(GL_TRIANGLES, (GLsizei)_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
-                checkErrors(errors);
-            }
+            glDrawElements(GL_TRIANGLES, (GLsizei)_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
+            checkErrors();
 
             // Unbind resources
             glUseProgram(0);
-            unbindTextures(errors);
-            unbindGeometry(errors);
-
-            if (errors.size())
-            {
-                throw ExceptionShaderValidationError(errorType, errors);
-            }
+            unbindTextures();
+            unbindGeometry();
         }
     }
 
@@ -1032,10 +1021,16 @@ void GlslValidator::render()
     bindTarget(false);
 }
 
-void GlslValidator::save(std::string& fileName)
+void GlslValidator::save(std::string& fileName, const ImageHandlerPtr imageHandler)
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL image save error.");
+
+    if (!imageHandler)
+    {
+        errors.push_back("No image handler specified.");
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
 
     size_t bufferSize = _frameBufferWidth * _frameBufferHeight * 4;
     float* buffer = new float[bufferSize];
@@ -1051,7 +1046,7 @@ void GlslValidator::save(std::string& fileName)
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glReadPixels(0, 0, _frameBufferWidth, _frameBufferHeight, GL_RGBA, GL_FLOAT, buffer);
     bindTarget(false);
-    checkErrors(errors);
+    checkErrors();
     if (errors.size())
     {
         delete[] buffer;
@@ -1059,25 +1054,29 @@ void GlslValidator::save(std::string& fileName)
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    int returnValue = 0;
-#if defined(TINYEXR_USABLE)
-    returnValue = SaveEXR(buffer, _frameBufferWidth, _frameBufferHeight, 4, 1 /* = save as fp16 format */, fileName.c_str());
-#endif
+    // Save using the handler
+    bool saved = imageHandler->saveImage(fileName, "exr", _frameBufferWidth, _frameBufferHeight, 4, buffer);
     delete[] buffer;
 
-    if (returnValue != 0)
+    if (!saved)
     {
         errors.push_back("Faled to save to file:" + fileName);
         throw ExceptionShaderValidationError(errorType, errors);
     }
 }
 
-void GlslValidator::checkErrors(ShaderValidationErrorList& errors)
+void GlslValidator::checkErrors()
 {
+    ShaderValidationErrorList errors;
+
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR)
     {
         errors.push_back("OpenGL error: " + std::to_string(error));
+    }
+    if (errors.size())
+    {
+        throw ExceptionShaderValidationError("OpenGL context error.", errors);
     }
 }
 

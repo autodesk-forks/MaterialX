@@ -1,0 +1,49 @@
+
+#if defined(_WIN64) || defined(_WIN32)
+#if defined(_WIN64)
+#define TINYEXR_USABLE
+#endif
+#else
+#define TINYEXR_USABLE
+#endif
+#if defined(TINYEXR_USABLE)
+#define TINYEXR_IMPLEMENTATION
+#include <cstdlib>
+#include <cstdio>
+#include <limits>
+#include <stdio.h>
+#include <string.h>
+// Max may be defined in a macro so temporariy undef it.
+#ifdef max
+#define max_cache max
+#undef max
+#endif
+#include <MaterialXView/Glsl/external/tinyexr/tinyexr.h>
+#ifdef max_cache 
+#define max max_cache
+#endif
+#endif
+
+#include <MaterialXView/Glsl/external/tinyexr/TinyEXRImageHandler.h>
+
+namespace MaterialX
+{
+ 
+bool TinyEXRImageHandler::saveImage(const std::string& fileName, 
+                                    const std::string& extension, 
+                                    unsigned int width, 
+                                    unsigned int height, 
+                                    unsigned int channelCount, 
+                                    const float* buffer)
+{
+    int returnValue = -1;
+#if defined(TINYEXR_USABLE)
+    if (extension == "exr")
+    { 
+        returnValue = SaveEXR(buffer, width, height, channelCount, 1 /* = save as fp16 format */, fileName.c_str());
+    }
+#endif
+    return (returnValue == 0);
+}
+
+} 

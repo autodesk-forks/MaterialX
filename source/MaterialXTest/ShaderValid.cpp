@@ -18,6 +18,7 @@ namespace mx = MaterialX;
 #if defined(_WIN32)
 #include <iostream>
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
+#include <MaterialXView/Glsl/external/tinyexr/TinyEXRImageHandler.h>
 
 TEST_CASE("GLSL Validation from Source", "[view]")
 {
@@ -146,8 +147,9 @@ TEST_CASE("GLSL Validation from Source", "[view]")
 
     try
     {
+        mx::TinyEXRImageHandlerPtr handler = std::make_shared<mx::TinyEXRImageHandler>();
         std::string fileName = shaderName + ".exr";
-        validator.save(fileName);
+        validator.save(fileName, handler);
     }
     catch (mx::ExceptionShaderValidationError e)
     {
@@ -220,6 +222,9 @@ TEST_CASE("GLSL Validation from HwShader", "[view]")
 
     mx::GlslValidator validator;
     validator.initialize();
+    REQUIRE(validator.iniitialized());
+
+    mx::TinyEXRImageHandlerPtr handler = std::make_shared<mx::TinyEXRImageHandler>();
 
     for (auto nodePtr : attributeList)
     {
@@ -233,7 +238,8 @@ TEST_CASE("GLSL Validation from HwShader", "[view]")
         REQUIRE(hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
 
         validator.setStages(hwShader);
-        validator.createProgram();
+        unsigned int programId = validator.createProgram();
+        REQUIRE(programId > 0);
         const mx::GlslValidator::ProgramInputList& uniforms = validator.getUniformsList();
         for (auto input : uniforms)
         {
@@ -250,7 +256,7 @@ TEST_CASE("GLSL Validation from HwShader", "[view]")
         }
         validator.render();
         std::string fileName = shader->getName() + "_" + nodePtr->getName() + ".exr";
-        validator.save(fileName);
+        validator.save(fileName, handler);
     }
 }
 

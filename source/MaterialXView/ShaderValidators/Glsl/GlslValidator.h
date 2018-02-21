@@ -2,6 +2,7 @@
 #define MATERIALX_GLSLVALIDATOR_H
 
 #include <MaterialXShaderGen/HwShader.h>
+#include <MaterialXView/ImageHandler.h>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -25,7 +26,6 @@ using ShaderValidationErrorList = std::vector<std::string>;
 class GlslValidator
 {
   public:
-
     /// Structure to hold information about program inputs
     struct ProgramInput
     {
@@ -110,13 +110,13 @@ class GlslValidator
     void deleteProgram();
 
     /// Render to buffer
-    /// @param errors List of errors if rendering fails
     void render();
 
     /// Save buffer to disk
-    /// @param errors fileName Name of file to save rendered image to
+    /// @param fileName Name of file to save rendered image to.
+    /// @param imageHandler Handler used to save image
     /// @return true if successful
-    void save(std::string& fileName);
+    void save(std::string& fileName, const ImageHandlerPtr imageHandler);
 
   protected:
     /// Internal cleanup of stages and OpenGL constructs
@@ -132,29 +132,34 @@ class GlslValidator
     /// Bind or unbind any created offscree target.
     bool bindTarget(bool bind);
 
-    /// Check for OpenGL errors
-    void checkErrors(ShaderValidationErrorList& errors);
+    /// Utility to check for OpenGL context errors.
+    /// Will throw an ExceptionShaderValidationError exception which will list of the errors found
+    /// if any errors encountered.
+    void checkErrors();
+
+    /// Bind inputs
+    void bindInputs();
 
     /// Bind input matrices
-    bool bindMatrices(ShaderValidationErrorList& errors, const HwShader* shader = nullptr);
+    void bindMatrices();
 
     /// Bind input geometry streams
-    bool bindGeometry(ShaderValidationErrorList& errors, const HwShader* shader = nullptr);
+    void bindGeometry();
     
     /// Unbind any bound geometry
-    void unbindGeometry(ShaderValidationErrorList& errors);
+    void unbindGeometry();
 
     /// Bind any input textures
-    bool bindTextures(ShaderValidationErrorList& errors, const HwShader* shader = nullptr);
+    void bindTextures();
 
     /// Unbind input textures
-    void unbindTextures(ShaderValidationErrorList& errors);
+    void unbindTextures();
 
-    /// Create a list of program input uniforms
-    const ProgramInputList& createUniformsList();
+    /// Update a list of program input uniforms
+    const ProgramInputList& updateUniformsList();
 
-    /// Create a list of program input attributes
-    const ProgramInputList& createAttributesList();
+    /// Update a list of program input attributes
+    const ProgramInputList& updateAttributesList();
 
     /// Clear out any cached input lists
     void clearInputLists();
@@ -235,6 +240,9 @@ class GlslValidator
     /// Dummy texture
     unsigned int _dummyTexture;
 
+    /// Hardware shader (if any) used for program creation
+    HwShaderPtr _hwShader;
+
     /// Flag to indicate if validator has been initialized properly.
     bool _initialized;
 };
@@ -271,7 +279,6 @@ public:
 
     ShaderValidationErrorList _errorLog;
 };
-
 
 } // namespace MaterialX
 #endif
