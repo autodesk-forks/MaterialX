@@ -10,6 +10,7 @@
 
 namespace MaterialX
 {
+unsigned int GlslValidator::UNDEFINED_OPENGL_RESOURCE_ID = 0;
 
 GlslValidator::GlslValidator() :
     _programId(0),
@@ -18,7 +19,6 @@ GlslValidator::GlslValidator() :
     _frameBuffer(0),
     _frameBufferWidth(256),
     _frameBufferHeight(256),
-    _uvBuffer(0),
     _indexBuffer(0),
     _indexBufferSize(0),
     _vertexArray(0),
@@ -26,10 +26,9 @@ GlslValidator::GlslValidator() :
     _hwShader(nullptr),
     _initialized(false)
 {
-    _attributeLocations.resize(ATTRIBUTE_COUNT);
-    std::fill(_attributeLocations.begin(), _attributeLocations.end(), -1);
-    _attributeBuffers.resize(ATTRIBUTE_COUNT);
-    std::fill(_attributeBuffers.begin(), _attributeBuffers.end(), 0);
+    // Clear buffer ids to invalid identifier.
+    _attributeBufferIds.resize(ATTRIBUTE_COUNT);
+    std::fill(_attributeBufferIds.begin(), _attributeBufferIds.end(), UNDEFINED_OPENGL_RESOURCE_ID);
 }
 
 GlslValidator::~GlslValidator()
@@ -170,7 +169,7 @@ void GlslValidator::deleteTarget()
         GLUtilityContext* context = GLUtilityContext::get();
         if (context && context->makeCurrent())
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glBindFramebuffer(GL_FRAMEBUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
             glDeleteTextures(1, &_colorTarget);
             glDeleteTextures(1, &_depthTarget);
             glDeleteFramebuffers(1, &_frameBuffer);
@@ -206,20 +205,20 @@ bool GlslValidator::createTarget()
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
 
     // Create an offscreen floating point color target and attach to the framebuffer
-    _colorTarget = 0;
+    _colorTarget = UNDEFINED_OPENGL_RESOURCE_ID;
     glGenTextures(1, &_colorTarget);
     glBindTexture(GL_TEXTURE_2D, _colorTarget);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _frameBufferWidth, _frameBufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _colorTarget, 0);
 
     // Create floating point offscreen depth target
-    _depthTarget = 0;
+    _depthTarget = UNDEFINED_OPENGL_RESOURCE_ID;
     glGenTextures(1, &_depthTarget);
     glBindTexture(GL_TEXTURE_2D, _depthTarget);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, _frameBufferWidth, _frameBufferHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTarget, 0);
 
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_2D, UNDEFINED_OPENGL_RESOURCE_ID);
 
     glDrawBuffer(GL_NONE);
 
@@ -227,16 +226,16 @@ bool GlslValidator::createTarget()
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
         glDeleteFramebuffers(1, &_frameBuffer);
-        _frameBuffer = 0;
+        _frameBuffer = UNDEFINED_OPENGL_RESOURCE_ID;
 
         errors.push_back("Frame buffer object setup failed.");
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
     // Unbind on cleanup
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
 
     return true;
 }
@@ -263,7 +262,7 @@ bool GlslValidator::bindTarget(bool bind)
     // Unbind frame buffer and route nowhere.
     else
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
         glDrawBuffer(GL_NONE);
     }
     return true;
@@ -278,7 +277,7 @@ void GlslValidator::deleteProgram()
         {
             glDeleteObjectARB(_programId);
         }
-        _programId = 0;
+        _programId = UNDEFINED_OPENGL_RESOURCE_ID;
     }
 
     // Program deleted, so also clear cached input lists
@@ -323,7 +322,7 @@ unsigned int GlslValidator::createProgram()
     }
 
     // Create vertex shader
-    GLuint vertexShaderId = 0;
+    GLuint vertexShaderId = UNDEFINED_OPENGL_RESOURCE_ID;
     std::string &vertexShaderSource = _stages[HwShader::VERTEX_STAGE];
     if (vertexShaderSource.length())
     {
@@ -355,7 +354,7 @@ unsigned int GlslValidator::createProgram()
     }
 
     // Create fragment shader
-    GLuint fragmentShaderId = 0;
+    GLuint fragmentShaderId = UNDEFINED_OPENGL_RESOURCE_ID;
     std::string& fragmentShaderSource = _stages[HwShader::PIXEL_STAGE];
     if (fragmentShaderSource.length())
     {
@@ -530,6 +529,44 @@ const GlslValidator::ProgramInputList& GlslValidator::updateAttributesList()
     return _attributeList;
 }
 
+void GlslValidator::bindTimeAndFrame()
+{
+    ShaderValidationErrorList errors;
+
+    if (_programId <= 0)
+    {
+        const std::string errorType("GLSL input binding error.");
+        errors.push_back("Cannot bind time/frame without a valid program");
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
+
+    GLint location = -1;
+
+    // Bind time
+    auto programInput = _uniformList.find("u_time");
+    if (programInput != _uniformList.end())
+    {
+        location = programInput->second->_location;
+        if (location >= 0)
+        {
+            //std::cout << "Bind time. Location: " << location << std::endl;
+            glUniform1f(location, 1.0f);
+        }
+    }
+    
+    // Bind frame
+    programInput = _uniformList.find("u_frame");
+    if (programInput != _uniformList.end())
+    {
+        location = programInput->second->_location;
+        if (location >= 0)
+        {
+            //std::cout << "Bind frame. Location: " << location << std::endl;
+            glUniform1f(location, 1.0f);
+        }
+    }
+}
+
 
 void GlslValidator::bindMatrices()
 {
@@ -537,8 +574,8 @@ void GlslValidator::bindMatrices()
 
     if (_programId <= 0)
     {
-        const std::string errorType("GLSL matrix bind error.");
-        errors.push_back("Cannot bind matrices without a valid program");
+        const std::string errorType("GLSL input binding error.");
+        errors.push_back("Cannot bind without a valid program");
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
@@ -590,34 +627,69 @@ void GlslValidator::bindMatrices()
     checkErrors();
 }
 
-bool GlslValidator::updateAttribute(const GLfloat* bufferData, 
+#if 0 
+auto keyRange = _cache->nodeDefMap.equal_range(nodeName);
+for (auto it = keyRange.first; it != keyRange.second; ++it)
+{
+    nodeDefs.push_back(it->second);
+}
+
+#endif
+
+bool GlslValidator::bindAttribute(const GLfloat* bufferData, 
                                     size_t bufferSize,
                                     const std::string& attributeId,
                                     const GlslValidator::AttributeIndex attributeIndex,
                                     unsigned int floatCount)
 {
-    int location = -1;
+    // Scan all attributes which match the attribute identifier completely or as a prefix
+    //
+    std::vector<unsigned int> locations;
+
+    int ilocation = -1;
     auto programInput = _attributeList.find(attributeId);
     if (programInput != _attributeList.end())
     {
-        location = programInput->second->_location;
-        if (location >= 0)
+        ilocation = programInput->second->_location;
+        if (ilocation >= 0)
         {
-            // Create a buffer
-            unsigned int buffer = 0;
+            locations.push_back(static_cast<unsigned int>(ilocation));
+        }
+    }
+    else
+    {
+        for (programInput = _attributeList.begin(); programInput != _attributeList.end(); programInput++)
+        {
+            const std::string& name = programInput->first;
+            if (name.compare(0, attributeId.size(), attributeId) == 0)
+            {
+                ilocation = programInput->second->_location;
+                if (ilocation >= 0)
+                {
+                    locations.push_back(static_cast<unsigned int>(ilocation));
+                }
+            }
+        }
+    }
+
+    for (auto location : locations)
+    {
+        //std::cout << "Bind attribute = " << attributeId << ". Location: " << location << std::endl;
+        if (_attributeBufferIds[attributeIndex] < 1)
+        {
+            // Create a buffer based on attribute type.
+            unsigned int buffer = UNDEFINED_OPENGL_RESOURCE_ID;
             glGenBuffers(1, &buffer);
             glBindBuffer(GL_ARRAY_BUFFER, buffer);
             glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
-
-            glEnableVertexAttribArray(location);
-            glVertexAttribPointer(location, floatCount, GL_FLOAT, GL_FALSE, 0, 0);
-
-            _attributeLocations[attributeIndex] = location;
-            _attributeBuffers[attributeIndex] = buffer;
-            return true;
+            _attributeBufferIds[attributeIndex] = buffer;
         }
+
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, floatCount, GL_FLOAT, GL_FALSE, 0, 0);
     }
-    return false;
+
+    return (locations.size() > 0);
 }
 
 void GlslValidator::bindGeometry()
@@ -648,74 +720,50 @@ void GlslValidator::bindGeometry()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
 
-        // Create positions
+        // Bind positions
         const float border = 20.0f;
         const GLfloat positionData[] = { border, border, 0.0f,
             border, (float)(_frameBufferHeight)-border, 0.0f,
             (float)(_frameBufferWidth)-border, (float)(_frameBufferHeight)-border, 0.0f,
             (float)(_frameBufferWidth)-border, border, 0.0f };
-        updateAttribute(positionData, sizeof(positionData), "i_position", POSITION_ATTRIBUTE, 3);
+        bindAttribute(positionData, sizeof(positionData), "i_position", POSITION3_ATTRIBUTE, 3);
 
-        // Create normals
+        // Bind normals
         float normalData[] = { 0.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f };
-        updateAttribute(normalData, sizeof(normalData), "i_normal", NORMAL_ATTRIBUTE, 3);
+        bindAttribute(normalData, sizeof(normalData), "i_normal", NORMAL3_ATTRIBUTE, 3);
 
-        // Create tangent
+        // Bind tangents
         float tangentData[] = { 1.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f,
             -1.0f, 0.0f, 0.0f,
             0.0f, -1.0f, 0.0f };
-        updateAttribute(tangentData, sizeof(tangentData), "i_tangent", NORMAL_ATTRIBUTE, 3);
+        bindAttribute(tangentData, sizeof(tangentData), "i_tangent", TANGENT3_ATTRIBUTE, 3);
 
-        // Create bitangent
+        // Bind bitangents
         float bitangentData[] = { 0.0f, 1.0f, 0.0f,
             1.0f, 0.0f, 0.0f,
             -1.0f, 0.0f, 0.0f,
             0.0f, -1.0f, 0.0f };
-        updateAttribute(bitangentData, sizeof(bitangentData), "i_bitangent", BITANGENT_ATTRIBUTE, 3);
+        bindAttribute(bitangentData, sizeof(bitangentData), "i_bitangent", BITANGENT3_ATTRIBUTE, 3);
 
-        // Create colors
+        // Bind colors
         float colorData[] = { 1.0f, 0.0f, 0.0f, 1.0f,
             0.0f, 1.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f, 1.0f,
             1.0f, 1.0f, 0.0f, 1.0f };
-        updateAttribute(colorData, sizeof(colorData), "i_color0", COLOR_ATTRIBUTE, 4);
+        // Search for anything that starts with the prefix "i_color_"
+        bindAttribute(colorData, sizeof(colorData), "i_color_", COLOR4_ATTRIBUTE, 4);
 
         // Create texture coords
         GLfloat uvData[] = { 0.0f, 0.0f,
             0.0f, 1.0f,
             1.0f, 1.0f,
             1.0f, 0.0f };
-        _uvLocations.clear();
-        for (unsigned int i = 0; i < 10; i++)
-        {
-            int uvLocation = -1;
-            std::string texcoordLabel = "i_texcoord" + std::to_string(i);
-            auto programInput = _attributeList.find(texcoordLabel);
-            if (programInput != _attributeList.end())
-            {
-                uvLocation = glGetAttribLocation(_programId, texcoordLabel.c_str());
-                if (uvLocation >= 0)
-                {
-                    _uvLocations.push_back(uvLocation);
-                    if (_uvBuffer == 0)
-                    {
-                        glGenBuffers(1, &_uvBuffer);
-                        glBindBuffer(GL_ARRAY_BUFFER, _uvBuffer);
-                        glBufferData(GL_ARRAY_BUFFER, sizeof(uvData), uvData, GL_STATIC_DRAW);
-                    }
-                    else
-                    {
-                        glBindBuffer(GL_ARRAY_BUFFER, _uvBuffer);
-                    }
-                    glEnableVertexAttribArray(uvLocation);
-                    glVertexAttribPointer(uvLocation, 2, GL_FLOAT, GL_FALSE, 0, 0);
-                }
-            }
-        }
+        // Search for anything that starts with the prefix "i_texcoord_"
+        bindAttribute(uvData, sizeof(uvData), "i_texcoord_", TEXCOORD2_ATTRIBUTE, 2);
     }
 
     checkErrors();
@@ -723,7 +771,7 @@ void GlslValidator::bindGeometry()
 
 void GlslValidator::createDummyTexture(bool colored)
 {
-    if (_dummyTexture == 0)
+    if (_dummyTexture == UNDEFINED_OPENGL_RESOURCE_ID)
     {
         const unsigned int imageSize = 256;
         unsigned int middle = imageSize / 2;
@@ -769,7 +817,7 @@ void GlslValidator::createDummyTexture(bool colored)
             0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
         // Note: Must do this for default sampling to lookup properly.
         glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, UNDEFINED_OPENGL_RESOURCE_ID);
     }
 }
 
@@ -792,14 +840,14 @@ void GlslValidator::unbindTextures()
 
             // Unbind a texture to that unit
             glActiveTexture(GL_TEXTURE0 + textureUnit);
-            glBindTexture(GL_TEXTURE_2D, 0); 
+            glBindTexture(GL_TEXTURE_2D, UNDEFINED_OPENGL_RESOURCE_ID);
             checkErrors();
             textureUnit++;
         }
     }
     glDeleteTextures(1, &_dummyTexture);
     checkErrors();
-    _dummyTexture = 0;
+    _dummyTexture = UNDEFINED_OPENGL_RESOURCE_ID;
 }
 
 void GlslValidator::bindTextures()
@@ -857,10 +905,6 @@ void GlslValidator::bindTextures()
 
 void GlslValidator::unbindGeometry()
 {
-    // Reset program locations
-    std::fill(_attributeLocations.begin(), _attributeLocations.end(), -1);
-    _uvLocations.clear();
-
     ShaderValidationErrorList errors;
 
     // Cleanup attribute bindings
@@ -872,29 +916,24 @@ void GlslValidator::unbindGeometry()
     {
         glDisableVertexAttribArray(i);
     }
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
 
     // Clean up buffers
     //
     if (_indexBuffer > 0)
     {
         glDeleteBuffers(1, &_indexBuffer);
-        _indexBuffer = 0;
+        _indexBuffer = UNDEFINED_OPENGL_RESOURCE_ID;
     }
     for (unsigned int i=0; i<ATTRIBUTE_COUNT; i++)
     {
-        unsigned int bufferId = _attributeBuffers[i];
+        unsigned int bufferId = _attributeBufferIds[i];
         if (bufferId > 0)
         {
             glDeleteBuffers(1, &bufferId);
-            _attributeBuffers[i] = 0;
+            _attributeBufferIds[i] = UNDEFINED_OPENGL_RESOURCE_ID;
         }
-    }
-    if (_uvBuffer > 0)
-    {
-        glDeleteBuffers(1, &_uvBuffer);
-        _uvBuffer = 0;
     }
 
     checkErrors();
@@ -918,10 +957,11 @@ void GlslValidator::bindInputs()
     updateUniformsList();
     updateAttributesList();
 
-    // Bind based on inputs found, and render geometry
+    // Bind based on inputs found
     bindMatrices();
     bindGeometry();
     bindTextures();
+    bindTimeAndFrame();
 }
 
 void GlslValidator::render()

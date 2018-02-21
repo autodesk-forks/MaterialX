@@ -45,8 +45,8 @@ TEST_CASE("GLSL Validation from Source", "[view]")
     //std::string shaderName("conditional_test1");
     //std::string shaderName("simple_test1_graphoutput");
     //std::string shaderName("simple_test1_node");
-    //std::string shaderName("geometric_nodes");
-    std::string shaderName("subgraph_ex1");
+    std::string shaderName("geometric_nodes");
+    //std::string shaderName("subgraph_ex1");
     //std::string shaderName("subgraph_ex2");
     std::string vertexShaderPath = shaderName + ".vert";
     std::string pixelShaderPath = shaderName + ".frag";

@@ -19,9 +19,13 @@ using ShaderValidationErrorList = std::vector<std::string>;
 /// There are two main interfaces which can be used. One which takes in a HwShader and one which
 /// allows for explicit setting of shader stage code.
 ///
-/// The main services provided are validation and rendering.
-/// Validation involves compiling all shader stages and attaching it to a shader program.
-/// Rendering involves binding the shader and drawing geometry to an offscreen buffer. 
+/// The main services provided are:
+///     - Validation: All shader stages are compiled and atteched to a GLSL shader program.
+///     - Introspection: The compiled shader program is examined for uniforms and attributes.
+///     - Binding: Uniforms and attributes which match the predefined variables generated the GLSL code generator
+///       will have values assigned to this. This includes matrices, attribute streams, and textures.
+///     - Rendering: The program with bound inputs will be used to drawing geometry to an offscreen buffer.
+///     An interface is provided to save this offscreen buffer to disk using an externally defined image handler.
 ///
 class GlslValidator
 {
@@ -50,6 +54,9 @@ class GlslValidator
 
     /// Destructor
     virtual ~GlslValidator();
+
+    /// @name Setup
+    /// @{
 
     /// Internal initialization of stages and OpenGL contstructs
     /// required for program validation and rendering.
@@ -88,6 +95,10 @@ class GlslValidator
     /// Clear out any existing stages
     void clearStages();
 
+    /// @}
+    /// @name Program handling
+    /// @{
+
     /// Create the shader program from stages specified
     /// An exception is thrown if the program cannot be created.
     /// The exception will contain a list of program creation errors.
@@ -109,6 +120,10 @@ class GlslValidator
     /// Delete any currently created shader program
     void deleteProgram();
 
+    /// @}
+    /// @name Visualization
+    /// @{
+
     /// Render to buffer
     void render();
 
@@ -118,12 +133,17 @@ class GlslValidator
     /// @return true if successful
     void save(std::string& fileName, const ImageHandlerPtr imageHandler);
 
+    /// @}
+
   protected:
     /// Internal cleanup of stages and OpenGL constructs
     void cleanup();
 
     /// Check if there is a valid set of stages to build program from
     bool haveValidStages() const;
+
+    /// @name Target handling
+    /// @{
 
     /// Create a offscreen target used for rendering.
     bool createTarget();
@@ -132,28 +152,9 @@ class GlslValidator
     /// Bind or unbind any created offscree target.
     bool bindTarget(bool bind);
 
-    /// Utility to check for OpenGL context errors.
-    /// Will throw an ExceptionShaderValidationError exception which will list of the errors found
-    /// if any errors encountered.
-    void checkErrors();
-
-    /// Bind inputs
-    void bindInputs();
-
-    /// Bind input matrices
-    void bindMatrices();
-
-    /// Bind input geometry streams
-    void bindGeometry();
-    
-    /// Unbind any bound geometry
-    void unbindGeometry();
-
-    /// Bind any input textures
-    void bindTextures();
-
-    /// Unbind input textures
-    void unbindTextures();
+    /// @}
+    /// @name Program introspection
+    /// @{
 
     /// Update a list of program input uniforms
     const ProgramInputList& updateUniformsList();
@@ -164,33 +165,64 @@ class GlslValidator
     /// Clear out any cached input lists
     void clearInputLists();
 
-    /// Index used to access cached attribute locations and buffers
+    /// Index used to access cached attribute buffers
     enum AttributeIndex {
-        POSITION_ATTRIBUTE = 0, /// Position attribute index
-        NORMAL_ATTRIBUTE,       /// Normal attribute index
-        TANGENT_ATTRIBUTE,      /// Tangent attribute index
-        BITANGENT_ATTRIBUTE,    /// Bitangent attribute index
-        COLOR_ATTRIBUTE,        /// Color attribute index
-        ATTRIBUTE_COUNT         /// Number of attribute indices
+        POSITION3_ATTRIBUTE = 0,/// 3 float position attribute 
+        NORMAL3_ATTRIBUTE,      /// 3 float normal attribute 
+        TANGENT3_ATTRIBUTE,     /// 3 float tangent attribute
+        BITANGENT3_ATTRIBUTE,   /// 3 float bitangent attribute 
+        TEXCOORD2_ATTRIBUTE,    /// 2 float texture coordinate attribute
+        COLOR4_ATTRIBUTE,       /// 4 float color attribute 
+        ATTRIBUTE_COUNT         /// Number of attribute types
     };
-    /// Update attribute locatoins and buffers by scanning for a given attribute identifier
-    /// If the identifier is found then cache the location and create a hardware buffer.
-    /// Currently all data create is of type float.
-    /// using a data buffer passed in.
-    /// @param bufferData Block of data to put into the buffer
-    /// @param bufferSize Size of data block
+    /// Bind attribute buffers by scanning for a given attribute identifier.
+    /// If either an exact match for the identifier, or the identifier is a prefix of an attribute name then 
+    /// a hardware buffer of the given attribute type is created and bound to the program location
+    /// for the attribute.
+    /// @param bufferData Block of buffer data 
+    /// @param bufferSize Size of buffer data.
     /// @param attributeId Identifier of program attribute to search for
     /// @param attributeIndex Indicator for type of buffer to create
-    /// @param floatCount Number of float channels in the buffer
-    bool updateAttribute(const float *bufferData, size_t bufferSize,
-        const std::string& attributeId,
-        const GlslValidator::AttributeIndex attributeIndex,
-        unsigned int floatCount);
+    /// @param floatCount Number of floats per channel in the buffer
+    bool bindAttribute(const float *bufferData, size_t bufferSize,
+                        const std::string& attributeId,
+                        const GlslValidator::AttributeIndex attributeIndex,
+                        unsigned int floatCount);
 
+    /// @}
+    /// @name Program bindings
+    /// @{
+
+    /// Bind inputs
+    void bindInputs();
+
+    /// Bind input matrices
+    void bindMatrices();
+
+    /// Bind input geometry streams
+    void bindGeometry();
+
+    /// Unbind any bound geometry
+    void unbindGeometry();
+
+    /// Bind any input textures
+    void bindTextures();
+
+    /// Unbind input textures
+    void unbindTextures();
+
+    /// Bind time and frame uniforms
+    void bindTimeAndFrame();
+
+  private:
     /// Dummy texture for testing with
     void createDummyTexture(bool colored);
 
-  private:
+    /// Utility to check for OpenGL context errors.
+    /// Will throw an ExceptionShaderValidationError exception which will list of the errors found
+    /// if any errors encountered.
+    void checkErrors();
+      
     /// Stages used to create program
     std::string _stages[HwShader::NUM_STAGES];
 
@@ -211,18 +243,8 @@ class GlslValidator
     /// Height of the frame buffer / targets to use. 
     unsigned int _frameBufferHeight;
 
-    /// Attribute program locations
-    std::vector<int> _attributeLocations;
-
-    /// Attribute buffer resource handls
-    std::vector<unsigned int> _attributeBuffers;
-
-    /// Attribute program locations for texture coordinates
-    /// As there can be multiple locations which use the same buffer 
-    /// A separate locations list and buffer is used.
-    std::vector<int> _uvLocations;
-    /// Texture coordinate buffer handle
-    unsigned int _uvBuffer;
+    /// Attribute buffer resource handles
+    std::vector<unsigned int> _attributeBufferIds;
     
     /// Attribute indexing buffer handle
     unsigned int _indexBuffer;
@@ -245,6 +267,8 @@ class GlslValidator
 
     /// Flag to indicate if validator has been initialized properly.
     bool _initialized;
+
+    static unsigned int UNDEFINED_OPENGL_RESOURCE_ID;
 };
 
 /// @class @ExceptionShaderValidationError
