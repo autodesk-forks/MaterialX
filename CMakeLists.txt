@@ -15,7 +15,7 @@ option(MATERIALX_BUILD_PYTHON "Build the MaterialX Python package from C++ bindi
 option(MATERIALX_BUILD_DOCS "Create HTML documentation using Doxygen. Requires that Doxygen be installed." OFF)
 option(MATERIALX_INSTALL_PYTHON "Install the MaterialX Python package as a third-party library when the install target is built." ON)
 option(MATERIALX_WARNINGS_AS_ERRORS "Interpret all compiler warnings as errors." OFF)
-option(MATERIALX_BUILD_VIEW "Build the MaterialX View moule. " OFF)
+option(MATERIALX_BUILD_VIEW "Build the MaterialX View moule. " ON)
 
 set(MATERIALX_PYTHON_EXECUTABLE "" CACHE FILEPATH
     "Path to the Python executable (e.g. 'C:/Python27/python.exe').")
@@ -101,4 +101,3 @@ endif(MATERIALX_BUILD_PYTHON)
 if(MATERIALX_BUILD_DOCS)
     add_subdirectory(documents)
 endif(MATERIALX_BUILD_DOCS)
-
