@@ -97,12 +97,13 @@ TEST_CASE("GLSL Validation from Source", "[view]")
 
         bool uniformsParsed = false;
         try {
-            const mx::GlslValidator::ProgramInputList& uniforms = validator.getUniformsList();
+            const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
             for (auto input : uniforms)
             {
                 unsigned int type = input.second->_type;
                 int location = input.second->_location;
-                std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+                int size = input.second->_size;
+                std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << std::hex << type << ". Size=" << size << "." << std::endl;
             }
             uniformsParsed = true;
         }
@@ -118,12 +119,13 @@ TEST_CASE("GLSL Validation from Source", "[view]")
         bool attributesParsed = false;
         try
         {
-            const mx::GlslValidator::ProgramInputList& attributes = validator.getAttributesList();
+            const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
             for (auto input : attributes)
             {
                 unsigned int type = input.second->_type;
                 int location = input.second->_location;
-                std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+                int size = input.second->_size;
+                std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << std::hex << type << ". Size=" << size << "." << std::endl;
             }
             attributesParsed = true;
         }
@@ -136,7 +138,6 @@ TEST_CASE("GLSL Validation from Source", "[view]")
         }
         REQUIRE(attributesParsed);
 
-        // To add: Hook in set up of program for validator. 
         bool renderSucceeded = false;
         try
         {
@@ -264,19 +265,21 @@ TEST_CASE("GLSL Validation from HwShader", "[view]")
         validator.setStages(hwShader);
         unsigned int programId = validator.createProgram();
         REQUIRE(programId > 0);
-        const mx::GlslValidator::ProgramInputList& uniforms = validator.getUniformsList();
+        const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
         for (auto input : uniforms)
         {
             unsigned int type = input.second->_type;
             int location = input.second->_location;
-            std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+            int size = input.second->_size;
+            std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << std::hex << type << ". Size=" << size << "." << std::endl;
         }
-        const mx::GlslValidator::ProgramInputList& attributes = validator.getAttributesList();
+        const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
         for (auto input : attributes)
         {
             unsigned int type = input.second->_type;
             int location = input.second->_location;
-            std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+            int size = input.second->_size;
+            std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << std::hex << type << ". Size=" << size << "." << std::endl;
         }
         validator.render();
         std::string fileName = shader->getName() + "_" + nodePtr->getName() + ".exr";

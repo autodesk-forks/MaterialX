@@ -10,7 +10,14 @@
 
 namespace MaterialX
 {
+// OpenGL Constants
 unsigned int GlslValidator::UNDEFINED_OPENGL_RESOURCE_ID = 0;
+int GlslValidator::UNDEFINED_OPENGL_PROGRAM_LOCATION = -1;
+int GlslValidator::ProgramInput::INVALID_OPENGL_TYPE = -1;
+
+// View information
+const float NEAR_PLANE = -100.0f;
+const float FAR_PLANE = 100.0f;
 
 GlslValidator::GlslValidator() :
     _programId(0),
@@ -440,17 +447,17 @@ void GlslValidator::clearInputLists()
     _attributeList.clear();
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::getUniformsList()
+const GlslValidator::ProgramInputMap& GlslValidator::getUniformsList()
 {
     return updateUniformsList();
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::getAttributesList()
+const GlslValidator::ProgramInputMap& GlslValidator::getAttributesList()
 {
     return updateAttributesList();
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::updateUniformsList()
+const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL uniform parsing error.");
@@ -480,7 +487,7 @@ const GlslValidator::ProgramInputList& GlslValidator::updateUniformsList()
         GLint uniformLocation = glGetUniformLocation(_programId, uniformName);
         if (uniformLocation >= 0)
         {
-            ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(uniformLocation, uniformType);
+            ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(uniformLocation, uniformType, uniformSize);
             _uniformList[std::string(uniformName)] = inputPtr;
         }
     }
@@ -489,7 +496,7 @@ const GlslValidator::ProgramInputList& GlslValidator::updateUniformsList()
     return _uniformList;
 }
 
-const GlslValidator::ProgramInputList& GlslValidator::updateAttributesList()
+const GlslValidator::ProgramInputMap& GlslValidator::updateAttributesList()
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL attribute parsing error.");
@@ -513,13 +520,13 @@ const GlslValidator::ProgramInputList& GlslValidator::updateAttributesList()
 
     for (int i = 0; i < numAttributes; i++)
     {
-        GLint attribueSize = 0;
+        GLint attributeSize = 0;
         GLenum attributeType = 0;
-        glGetActiveAttrib(_programId, GLuint(i), maxNameLength, nullptr, &attribueSize, &attributeType, attributeName);
+        glGetActiveAttrib(_programId, GLuint(i), maxNameLength, nullptr, &attributeSize, &attributeType, attributeName);
         GLint attributeLocation = glGetAttribLocation(_programId, attributeName);
         if (attributeLocation >= 0)
         {
-            ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(attributeLocation, attributeType);
+            ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(attributeLocation, attributeType, attributeSize);
             _attributeList[std::string(attributeName)] = inputPtr;
             //std::cout << "Scanned attribute : " << attributeName << ". Location: " << attributeLocation << ". Type: " << attributeType << std::endl;
         }
@@ -540,7 +547,7 @@ void GlslValidator::bindTimeAndFrame()
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    GLint location = -1;
+    GLint location = UNDEFINED_OPENGL_PROGRAM_LOCATION;
 
     // Bind time
     auto programInput = _uniformList.find("u_time");
@@ -568,7 +575,7 @@ void GlslValidator::bindTimeAndFrame()
 }
 
 
-void GlslValidator::bindMatrices()
+void GlslValidator::bindViewInformation()
 {
     ShaderValidationErrorList errors;
 
@@ -584,87 +591,162 @@ void GlslValidator::bindMatrices()
     {
     }
 
-    // Set projection and modelview matrices
-    GLfloat m[16];
-    GLint location = -1;
-    auto programInput = _uniformList.find("u_viewProjectionMatrix");
+    GLint location = UNDEFINED_OPENGL_PROGRAM_LOCATION;
+
+    // Set view direction and position
+    auto programInput = _uniformList.find("u_viewPosition");
     if (programInput != _uniformList.end())
     {
         location = programInput->second->_location;
         if (location >= 0)
         {
-            //std::cout << "Bound u_viewProjectionMatrix" << std::endl;
-            glGetFloatv(GL_PROJECTION_MATRIX, m);
-            glUniformMatrix4fv(location, 1, GL_FALSE, m);
+            glUniform3f(location, NEAR_PLANE-1.0f, 0.0f, 0.0f);
         }
     }
-    programInput = _uniformList.find("u_modelMatrix");
+    programInput = _uniformList.find("u_viewDirection");
     if (programInput != _uniformList.end())
     {
         location = programInput->second->_location;
         if (location >= 0)
         {
-            //std::cout << "Bound u_modelMatrix" << std::endl;
-            glGetFloatv(GL_MODELVIEW_MATRIX, m);
-            glUniformMatrix4fv(location, 1, GL_FALSE, m);
-        }
-    }
-    programInput = _uniformList.find("u_worldMatrix");
-    if (programInput != _uniformList.end())
-    {
-        location = programInput->second->_location;
-        if (location >= 0)
-        {
-            //std::cout << "Bound u_worldMatrix" << std::endl;
-            glGetFloatv(GL_MODELVIEW_MATRIX, m);
-            glUniformMatrix4fv(location, 1, GL_FALSE, m);
+            glUniform3f(location, 1.0f, 0.0f, 0.0f);
         }
     }
 
-    // Set normal transform matrix (world-inverse-transpose) and other matrices
-    // TO ADD...
+    const GLfloat identity[16] =
+    { 1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
 
+    GLfloat mvm[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, mvm);
+
+    GLfloat pm[16];
+    glGetFloatv(GL_PROJECTION_MATRIX, pm);
+
+    // Set world related matrices
+    //
+    std::vector<std::string> worldMatrixVariables =
+    {
+        "u_worldMatrix",
+        //"u_worldInverseMatrix",
+        "u_worldTransposeMatrix",
+        //"u_worldInverseTransposeMatrix"
+    };
+    for (auto worldMatrixVariable : worldMatrixVariables)
+    {
+        programInput = _uniformList.find(worldMatrixVariable);
+        if (programInput != _uniformList.end())
+        {
+            location = programInput->second->_location;
+            if (location >= 0)
+            {
+                bool transpose = (worldMatrixVariable.find("Transpose") != std::string::npos);
+                glUniformMatrix4fv(location, 1, transpose, mvm);
+            }
+        }
+    }
+
+    // Bind projection matrices
+    //
+    std::vector<std::string> projectionMatrixVariables =
+    {
+        "u_projectionMatrix",
+        //"u_projectionInverseMatrix",
+        "u_projectionTransposeMatrix",
+        //"u_projectionInverseTransposeMatrix",
+    };
+    for (auto projectionMatrixVariable : projectionMatrixVariables)
+    {
+        programInput = _uniformList.find(projectionMatrixVariable);
+        if (programInput != _uniformList.end())
+        {
+            location = programInput->second->_location;
+            if (location >= 0)
+            {
+                bool transpose = (projectionMatrixVariable.find("Transpose") != std::string::npos);
+                glUniformMatrix4fv(location, 1, transpose, pm);
+            }
+        }
+    }
+
+    // Bind view related matrices
+    std::vector<std::string> viewMatrixVariables =
+    {
+        //"u_viewMatrix",
+        //"u_viewInverseMatrix",
+        //"u_viewTransposeMatrix",
+        //"u_viewInverseTransposeMatrix",
+        "u_viewProjectionMatrix"
+        //"u_worldViewProjectionMatrix"
+    };
+    for (auto viewMatrixVariable : viewMatrixVariables)
+    {
+        programInput = _uniformList.find(viewMatrixVariable);
+        if (programInput != _uniformList.end())
+        {
+            location = programInput->second->_location;
+            if (location >= 0)
+            {
+                glUniformMatrix4fv(location, 1, GL_FALSE, pm);
+            }
+        }
+    }
+    
     checkErrors();
+}
+
+void GlslValidator::findProgramInputs(const std::string& variable, 
+                                         const ProgramInputMap& variableList,
+                                         ProgramInputMap& foundList,
+                                         bool exactMatch)
+{
+    foundList.clear();
+
+    // Scan all attributes which match the attribute identifier completely or as a prefix
+    //
+    int ilocation = UNDEFINED_OPENGL_PROGRAM_LOCATION;
+    auto programInput = variableList.find(variable);
+    if (programInput != variableList.end())
+    {
+        ilocation = programInput->second->_location;
+        if (ilocation >= 0)
+        {
+            foundList[variable] = programInput->second;
+        }
+    }
+    else if (!exactMatch)
+    {
+        for (programInput = variableList.begin(); programInput != variableList.end(); programInput++)
+        {
+            const std::string& name = programInput->first;
+            if (name.compare(0, variable.size(), variable) == 0)
+            {
+                ilocation = programInput->second->_location;
+                if (ilocation >= 0)
+                {
+                    foundList[programInput->first] = programInput->second;
+                }
+            }
+        }
+    }
 }
 
 bool GlslValidator::bindAttribute(const GLfloat* bufferData,
                                     size_t bufferSize,
                                     const std::string& attributeId,
                                     const GlslValidator::AttributeIndex attributeIndex,
-                                    unsigned int floatCount)
+                                    unsigned int floatCount,
+                                    bool exactMatch)
 {
-    // Scan all attributes which match the attribute identifier completely or as a prefix
-    //
-    std::vector<unsigned int> locations;
+    ProgramInputMap foundList;
+    findProgramInputs(attributeId, _attributeList, foundList, exactMatch);
 
-    int ilocation = -1;
-    auto programInput = _attributeList.find(attributeId);
-    if (programInput != _attributeList.end())
+    for (auto found : foundList)
     {
-        ilocation = programInput->second->_location;
-        if (ilocation >= 0)
-        {
-            locations.push_back(static_cast<unsigned int>(ilocation));
-        }
-    }
-    else
-    {
-        for (programInput = _attributeList.begin(); programInput != _attributeList.end(); programInput++)
-        {
-            const std::string& name = programInput->first;
-            if (name.compare(0, attributeId.size(), attributeId) == 0)
-            {
-                ilocation = programInput->second->_location;
-                if (ilocation >= 0)
-                {
-                    locations.push_back(static_cast<unsigned int>(ilocation));
-                }
-            }
-        }
-    }
-
-    for (auto location : locations)
-    {
+        int location = found.second->_location;
         //std::cout << "Bind attribute = " << attributeId << ". Location: " << location << std::endl;
         if (_attributeBufferIds[attributeIndex] < 1)
         {
@@ -680,7 +762,7 @@ bool GlslValidator::bindAttribute(const GLfloat* bufferData,
         glVertexAttribPointer(location, floatCount, GL_FLOAT, GL_FALSE, 0, 0);
     }
 
-    return (locations.size() > 0);
+    return (foundList.size() > 0);
 }
 
 void GlslValidator::bindGeometry()
@@ -717,44 +799,67 @@ void GlslValidator::bindGeometry()
             border, (float)(_frameBufferHeight)-border, 0.0f,
             (float)(_frameBufferWidth)-border, (float)(_frameBufferHeight)-border, 0.0f,
             (float)(_frameBufferWidth)-border, border, 0.0f };
-        bindAttribute(positionData, sizeof(positionData), "i_position", POSITION3_ATTRIBUTE, 3);
+        bindAttribute(positionData, sizeof(positionData), "i_position", POSITION3_ATTRIBUTE, 3, true);
 
         // Bind normals
         float normalData[] = { 0.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f };
-        bindAttribute(normalData, sizeof(normalData), "i_normal", NORMAL3_ATTRIBUTE, 3);
+        bindAttribute(normalData, sizeof(normalData), "i_normal", NORMAL3_ATTRIBUTE, 3, true);
 
         // Bind tangents
         float tangentData[] = { 1.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f,
             -1.0f, 0.0f, 0.0f,
             0.0f, -1.0f, 0.0f };
-        bindAttribute(tangentData, sizeof(tangentData), "i_tangent", TANGENT3_ATTRIBUTE, 3);
+        bindAttribute(tangentData, sizeof(tangentData), "i_tangent", TANGENT3_ATTRIBUTE, 3, true);
 
         // Bind bitangents
         float bitangentData[] = { 0.0f, 1.0f, 0.0f,
             1.0f, 0.0f, 0.0f,
             -1.0f, 0.0f, 0.0f,
             0.0f, -1.0f, 0.0f };
-        bindAttribute(bitangentData, sizeof(bitangentData), "i_bitangent", BITANGENT3_ATTRIBUTE, 3);
+        bindAttribute(bitangentData, sizeof(bitangentData), "i_bitangent", BITANGENT3_ATTRIBUTE, 3, true);
 
-        // Bind colors
+        // Bind single set of colors for all locations found
         float colorData[] = { 1.0f, 0.0f, 0.0f, 1.0f,
             0.0f, 1.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 1.0f, 1.0f,
             1.0f, 1.0f, 0.0f, 1.0f };
         // Search for anything that starts with the prefix "i_color_"
-        bindAttribute(colorData, sizeof(colorData), "i_color_", COLOR4_ATTRIBUTE, 4);
+        bindAttribute(colorData, sizeof(colorData), "i_color_", COLOR4_ATTRIBUTE, 4, false);
 
-        // Create texture coords
+        // Bind single set of texture coords for all locations found
         GLfloat uvData[] = { 0.0f, 0.0f,
             0.0f, 1.0f,
             1.0f, 1.0f,
             1.0f, 0.0f };
         // Search for anything that starts with the prefix "i_texcoord_"
-        bindAttribute(uvData, sizeof(uvData), "i_texcoord_", TEXCOORD2_ATTRIBUTE, 2);
+        bindAttribute(uvData, sizeof(uvData), "i_texcoord_", TEXCOORD2_ATTRIBUTE, 2, false);
+
+        // Bind any named attribute information
+        //
+        std::string geomAttrPrefix("u_geomattr_");
+        ProgramInputMap foundList;
+        findProgramInputs(geomAttrPrefix, _uniformList, foundList, false);
+        for (auto programInput : foundList)
+        {
+            // Only handle float1-4 types for now
+            if (programInput.second->_type == GL_FLOAT)
+            {
+                GLfloat floatVal[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+                int size = programInput.second->_size;
+                if (size == 1)
+                    glUniform1fv(programInput.second->_location, 1, floatVal);
+                else if (size == 2)
+                    glUniform2fv(programInput.second->_location, 1, floatVal);
+                else if (size == 3)
+                    glUniform3fv(programInput.second->_location, 1, floatVal);
+                else if (size == 4)
+                    glUniform4fv(programInput.second->_location, 1, floatVal);
+            }
+        }
     }
 
     checkErrors();
@@ -948,7 +1053,7 @@ void GlslValidator::bindInputs()
     updateAttributesList();
 
     // Bind based on inputs found
-    bindMatrices();
+    bindViewInformation();
     bindGeometry();
     bindTextures();
     bindTimeAndFrame();
@@ -982,7 +1087,7 @@ void GlslValidator::render()
     glViewport(0, 0, _frameBufferWidth, _frameBufferHeight);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0.0, _frameBufferWidth, 0.0, _frameBufferHeight, -100.0, 100.0);
+    glOrtho(0.0f, _frameBufferWidth, 0.0f, _frameBufferHeight, NEAR_PLANE, FAR_PLANE);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 

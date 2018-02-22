@@ -33,21 +33,26 @@ class GlslValidator
     /// Structure to hold information about program inputs
     struct ProgramInput
     {
+        static int INVALID_OPENGL_TYPE;
+
         /// Program location. -1 means an invalid location
         int _location;
         /// OpenGL type of the input. -1 means an invalid type
         int _type;
+        /// Size.
+        int _size;
 
         /// Program input constructor
-        ProgramInput(int inputLocation = -1, int inputType = -1)
+        ProgramInput(int inputLocation, int inputType, int inputSize)
         : _location(inputLocation)
         , _type(inputType)
+        , _size(inputSize)
         {}
     };
     /// Program input structure shared pointer type
     using ProgramInputPtr = std::shared_ptr<ProgramInput>;
-    /// Program input structure list type
-    using ProgramInputList = std::unordered_map<std::string, ProgramInputPtr>;
+    /// Program input shaded pointer map type
+    using ProgramInputMap = std::unordered_map<std::string, ProgramInputPtr>;
 
     /// Constructor
     GlslValidator();
@@ -109,13 +114,13 @@ class GlslValidator
     /// The program must have been created successfully first.
     /// An exception is thrown if the parsing of the program for uniforms cannot be performed.
     /// @return Program uniforms list.
-    const ProgramInputList& getUniformsList();
+    const ProgramInputMap& getUniformsList();
 
     /// Get list of program input attributes. 
     /// The program must have been created successfully first.
     /// An exception is thrown if the parsing of the program for attribute cannot be performed.
     /// @return Program attributes list.
-    const ProgramInputList& getAttributesList();
+    const ProgramInputMap& getAttributesList();
 
     /// Delete any currently created shader program
     void deleteProgram();
@@ -157,10 +162,10 @@ class GlslValidator
     /// @{
 
     /// Update a list of program input uniforms
-    const ProgramInputList& updateUniformsList();
+    const ProgramInputMap& updateUniformsList();
 
     /// Update a list of program input attributes
-    const ProgramInputList& updateAttributesList();
+    const ProgramInputMap& updateAttributesList();
 
     /// Clear out any cached input lists
     void clearInputLists();
@@ -184,10 +189,12 @@ class GlslValidator
     /// @param attributeId Identifier of program attribute to search for
     /// @param attributeIndex Indicator for type of buffer to create
     /// @param floatCount Number of floats per channel in the buffer
+    /// @param exactMatch Check for exact identifier matches
     bool bindAttribute(const float *bufferData, size_t bufferSize,
-                        const std::string& attributeId,
-                        const GlslValidator::AttributeIndex attributeIndex,
-                        unsigned int floatCount);
+                       const std::string& attributeId,
+                       const GlslValidator::AttributeIndex attributeIndex,
+                       unsigned int floatCount,
+                       bool exactMatch);
 
     /// @}
     /// @name Program bindings
@@ -196,8 +203,8 @@ class GlslValidator
     /// Bind inputs
     void bindInputs();
 
-    /// Bind input matrices
-    void bindMatrices();
+    /// Bind viewing information
+    void bindViewInformation();
 
     /// Bind input geometry streams
     void bindGeometry();
@@ -215,6 +222,16 @@ class GlslValidator
     void bindTimeAndFrame();
 
   private:
+    /// Find the locations in the program which start with a given variable name
+    /// @param variable Variable to search for
+    /// @param variableList List of program inputs to search
+    /// @param foundList Returned list of found program inputs. Empty if none found
+    /// @param exactMatch Search for exact variable name match. The default argument value is true.
+    void findProgramInputs(const std::string& variable,
+                              const ProgramInputMap& variableList,
+                              ProgramInputMap& foundList,
+                              bool exactMatch);
+
     /// Dummy texture for testing with
     void createDummyTexture(bool colored);
 
@@ -255,9 +272,9 @@ class GlslValidator
     unsigned int _vertexArray;
 
     /// List of program input uniforms
-    ProgramInputList _uniformList;
+    ProgramInputMap _uniformList;
     /// List of program input attributes
-    ProgramInputList _attributeList;
+    ProgramInputMap _attributeList;
 
     /// Dummy texture
     unsigned int _dummyTexture;
@@ -269,6 +286,7 @@ class GlslValidator
     bool _initialized;
 
     static unsigned int UNDEFINED_OPENGL_RESOURCE_ID;
+    static int UNDEFINED_OPENGL_PROGRAM_LOCATION;
 };
 
 /// @class @ExceptionShaderValidationError
