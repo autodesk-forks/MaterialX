@@ -8,6 +8,9 @@ namespace MaterialX
 /// Shared pointer to an ImageHandler
 using TinyEXRImageHandlerPtr = std::shared_ptr<class TinyEXRImageHandler>;
 
+/// @class @TinyEXRImageHandler
+/// Disk image handler wrapper using TinyEXR
+///
 class TinyEXRImageHandler : public ImageHandler
 {
 public:
@@ -16,8 +19,8 @@ public:
 
     /// Default destructor
     virtual ~TinyEXRImageHandler() {}
-    
-    /// Save image to disk. 
+
+    /// Save image to disk.
     /// @param fileName Name of file to save image to
     /// @param extension String giving extension (image type).
     /// @param width Width of image in pixels

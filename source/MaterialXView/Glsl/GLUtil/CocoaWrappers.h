@@ -24,7 +24,7 @@ void*   NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int co
 void	NSOpenGLReleasePixelFormat(void* pPixelFormat);
 void	NSOpenGLReleaseContext(void* pContext);
 void*	NSOpenGLCreateContextWrapper(void* pPixelFormat, void *pDummyContext);
-void	NSOPenGLSetDrawable(void* pContext, void* pView);
+void	NSOpenGLSetDrawable(void* pContext, void* pView);
 void	NSOpenGLMakeCurrent(void* pContext);
 void*	NSOpenGLGetCurrentContextWrapper();
 void	NSOpenGLSwapBuffers(void* pContext);

@@ -23,18 +23,18 @@ void* NSOpenGLCreateWindow(unsigned int width, unsigned int height, char* title,
 
 	// Create local autorelease pool for any objects that need to be autoreleased.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
+
 	NSWindow *window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, width, height)
 		styleMask:NSTitledWindowMask | NSClosableWindowMask	| NSMiniaturizableWindowMask | NSResizableWindowMask
 		backing:NSBackingStoreBuffered defer:NO];
 	NSString *string = [NSString stringWithUTF8String:title];
-	
+
 	[window setTitle:string];
 	[window setAlphaValue:0.0];
-	
+
 	// Free up memory
 	[pool release];
-	
+
 	return (void*)window;
 }
 
@@ -71,19 +71,19 @@ void NSOpenGLDisposeWindow(void* pWindow)
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colorSize, int depthFormat,
-								int stencilFormat, int auxBuffers, int accumSize, bool minimumPolicy, 
+								int stencilFormat, int auxBuffers, int accumSize, bool minimumPolicy,
 								bool accelerated, bool mp_safe,  bool stereo, bool supportMultiSample)
 {
 	// Create local autorelease pool for any objects that need to be autoreleased.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
+
 	NSOpenGLPixelFormatAttribute list[50];
 	int i = 0;
 	if (allRenders)
 		list[i++] = NSOpenGLPFAAllRenderers;
 	if (bufferType == 1) //kOnScreen
 		list[i++] = NSOpenGLPFADoubleBuffer;
-	if (colorSize != 0)	
+	if (colorSize != 0)
 		list[i++] = NSOpenGLPFAColorSize; list[i++] = colorSize;
 	if (depthFormat != 0)
 		list[i++] = NSOpenGLPFADepthSize; list[i++] = depthFormat;
@@ -109,21 +109,21 @@ void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colo
 	{
 		list[i++] = NSOpenGLPFAStereo;
 	}
-	
+
 	// Add multisample support to the list of attributes if supported
 	//
 	int multiSampleAttrIndex = i;
 	if (supportMultiSample)
 	{
-		// TODO: Will need a better way of determining sampling numbers. 
+		// TODO: Will need a better way of determining sampling numbers.
 		// Currently fixed at 4 samples.
 		//
 		list[i++] = NSOpenGLPFASampleBuffers; list[i++] = TRUE;
 		list[i++] = NSOpenGLPFASamples; list[i++] = 4;
 	}
-	
+
 	list[ i++] = 0 ;
-	
+
 	NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:list];
 	if (!pixelFormat)
 	{
@@ -159,17 +159,17 @@ void* NSOpenGLCreateContextWrapper(void* pPixelFormat, void *pDummyContext)
 {
 	NSOpenGLPixelFormat *pixelFormat = pPixelFormat;
 	NSOpenGLContext *dummyContext = (NSOpenGLContext*)pDummyContext;
-	NSOpenGLContext *context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat 
-						shareContext:dummyContext]; 
-	
+	NSOpenGLContext *context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
+						shareContext:dummyContext];
+
 	return context;
 }
 
-void NSOPenGLSetDrawable(void* pContext, void* pWindow)
+void NSOpenGLSetDrawable(void* pContext, void* pWindow)
 {
 	// Create local autorelease pool for any objects that need to be autoreleased.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
+
 	NSOpenGLContext *context = (NSOpenGLContext*)pContext;
 	NSWindow *window = (NSWindow*)pWindow;
 	NSView *view = [window contentView];
@@ -273,7 +273,7 @@ void NSOpenGLInitializeGLLibrary()
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSOpenGLPixelFormatAttribute attrib[] = {NSOpenGLPFAAllRenderers, NSOpenGLPFADoubleBuffer, 0};
 	NSOpenGLPixelFormat *dummyPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrib];
-	if (nil != dummyPixelFormat) 
+	if (nil != dummyPixelFormat)
     {
 		[dummyPixelFormat release];
 	}

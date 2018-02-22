@@ -40,43 +40,71 @@ TEST_CASE("GLSL Validation from Source", "[view]")
     }
     REQUIRE(initialized);
 
-    // Read in some sample fragments
-    unsigned int stagesSet = 0;
-    //std::string shaderName("conditional_test1");
-    //std::string shaderName("simple_test1_graphoutput");
-    //std::string shaderName("simple_test1_node");
-    std::string shaderName("geometric_nodes");
-    //std::string shaderName("subgraph_ex1");
-    //std::string shaderName("subgraph_ex2");
-    std::string vertexShaderPath = shaderName + ".vert";
-    std::string pixelShaderPath = shaderName + ".frag";
-    std::stringstream vertexShaderStream;
-    std::stringstream pixelShaderStream;
-    std::ifstream shaderFile;
-    shaderFile.open(vertexShaderPath);
-    if (shaderFile.is_open())
+    std::vector<std::string> shaderNames =
     {
-        vertexShaderStream << shaderFile.rdbuf();
-        validator.setStage(vertexShaderStream.str(), mx::HwShader::VERTEX_STAGE);
-        shaderFile.close();
-        stagesSet++;
-    }
-    shaderFile.open(pixelShaderPath);
-    if (shaderFile.is_open())
+        "conditional_test1",
+        "simple_test1_graphoutput",
+        "simple_test1_node",
+        "geometric_nodes",
+        "subgraph_ex1",
+        //"subgraph_ex2" -- cannot validate as lighting information isn't complete yet.
+    };
+
+    for (auto shaderName : shaderNames)
     {
-        pixelShaderStream << shaderFile.rdbuf();
-        validator.setStage(pixelShaderStream.str(), mx::HwShader::PIXEL_STAGE);
-        shaderFile.close();
-        stagesSet++;
-    }
-    REQUIRE(stagesSet == 2);
-    if (stagesSet == 2)
-    {
-        bool programCompiled = false;
-        try 
+        std::cout << "------------ Validate shader from source: " << shaderName << std::endl;
+        std::string vertexShaderPath = shaderName + ".vert";
+        std::string pixelShaderPath = shaderName + ".frag";
+
+        unsigned int stagesSet = 0;
+        std::stringstream vertexShaderStream;
+        std::stringstream pixelShaderStream;
+        std::ifstream shaderFile;
+        shaderFile.open(vertexShaderPath);
+        if (shaderFile.is_open())
         {
-            validator.createProgram();
-            programCompiled = true;
+            vertexShaderStream << shaderFile.rdbuf();
+            validator.setStage(vertexShaderStream.str(), mx::HwShader::VERTEX_STAGE);
+            shaderFile.close();
+            stagesSet++;
+        }
+        shaderFile.open(pixelShaderPath);
+        if (shaderFile.is_open())
+        {
+            pixelShaderStream << shaderFile.rdbuf();
+            validator.setStage(pixelShaderStream.str(), mx::HwShader::PIXEL_STAGE);
+            shaderFile.close();
+            stagesSet++;
+        }
+        REQUIRE(stagesSet == 2);
+        if (stagesSet == 2)
+        {
+            bool programCompiled = false;
+            try
+            {
+                validator.createProgram();
+                programCompiled = true;
+            }
+            catch (mx::ExceptionShaderValidationError e)
+            {
+                for (auto error : e._errorLog)
+                {
+                    std::cout << e.what() << " " << error << std::endl;
+                }
+            }
+            REQUIRE(programCompiled);
+        }
+
+        bool uniformsParsed = false;
+        try {
+            const mx::GlslValidator::ProgramInputList& uniforms = validator.getUniformsList();
+            for (auto input : uniforms)
+            {
+                unsigned int type = input.second->_type;
+                int location = input.second->_location;
+                std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+            }
+            uniformsParsed = true;
         }
         catch (mx::ExceptionShaderValidationError e)
         {
@@ -85,77 +113,57 @@ TEST_CASE("GLSL Validation from Source", "[view]")
                 std::cout << e.what() << " " << error << std::endl;
             }
         }
-        REQUIRE(programCompiled);
-    }
+        REQUIRE(uniformsParsed);
 
-    bool uniformsParsed = false;
-    try {
-        const mx::GlslValidator::ProgramInputList& uniforms = validator.getUniformsList();
-        for (auto input : uniforms)
+        bool attributesParsed = false;
+        try
         {
-            unsigned int type = input.second->_type;
-            int location = input.second->_location;
-            std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+            const mx::GlslValidator::ProgramInputList& attributes = validator.getAttributesList();
+            for (auto input : attributes)
+            {
+                unsigned int type = input.second->_type;
+                int location = input.second->_location;
+                std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+            }
+            attributesParsed = true;
         }
-        uniformsParsed = true;
-    }
-    catch (mx::ExceptionShaderValidationError e)
-    {
-        for (auto error : e._errorLog)
+        catch (mx::ExceptionShaderValidationError e)
         {
-            std::cout << e.what() << " " << error << std::endl;
+            for (auto error : e._errorLog)
+            {
+                std::cout << e.what() << " " << error << std::endl;
+            }
         }
-    }
-    REQUIRE(uniformsParsed);        
+        REQUIRE(attributesParsed);
 
-    bool attributesParsed = false;
-    try
-    {
-        const mx::GlslValidator::ProgramInputList& attributes = validator.getAttributesList();
-        for (auto input : attributes)
+        // To add: Hook in set up of program for validator. 
+        bool renderSucceeded = false;
+        try
         {
-            unsigned int type = input.second->_type;
-            int location = input.second->_location;
-            std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << type << "." << std::endl;
+            validator.render();
+            renderSucceeded = true;
         }
-        attributesParsed = true;
-    }
-    catch (mx::ExceptionShaderValidationError e)
-    {
-        for (auto error : e._errorLog)
+        catch (mx::ExceptionShaderValidationError e)
         {
-            std::cout << e.what() << " " << error << std::endl;
+            for (auto error : e._errorLog)
+            {
+                std::cout << e.what() << " " << error << std::endl;
+            }
         }
-    }
-    REQUIRE(attributesParsed);
+        REQUIRE(renderSucceeded);
 
-    // To add: Hook in set up of program for validator. 
-    bool renderSucceeded = false;
-    try
-    {
-        validator.render();
-        renderSucceeded = true;
-    }
-    catch (mx::ExceptionShaderValidationError e)
-    {
-        for (auto error : e._errorLog)
+        try
         {
-            std::cout << e.what() << " " << error << std::endl;
+            mx::TinyEXRImageHandlerPtr handler = std::make_shared<mx::TinyEXRImageHandler>();
+            std::string fileName = shaderName + ".exr";
+            validator.save(fileName, handler);
         }
-    }
-    REQUIRE(renderSucceeded);
-
-    try
-    {
-        mx::TinyEXRImageHandlerPtr handler = std::make_shared<mx::TinyEXRImageHandler>();
-        std::string fileName = shaderName + ".exr";
-        validator.save(fileName, handler);
-    }
-    catch (mx::ExceptionShaderValidationError e)
-    {
-        for (auto error : e._errorLog)
+        catch (mx::ExceptionShaderValidationError e)
         {
-            std::cout << e.what() << " " << error << std::endl;
+            for (auto error : e._errorLog)
+            {
+                std::cout << e.what() << " " << error << std::endl;
+            }
         }
     }
 }
@@ -186,10 +194,12 @@ TEST_CASE("GLSL Validation from HwShader", "[view]")
 
     std::vector<mx::NodePtr> attributeList;
 
+    // normal output test
     mx::NodePtr normal1 = nodeGraph->addNode("normal", "normal1", "vector3");
     normal1->setParameterValue("space", std::string("world"));
     attributeList.push_back(normal1);
 
+    // position output test
     mx::NodePtr position1 = nodeGraph->addNode("position", "position1", "vector3");
     position1->setParameterValue("space", std::string("world"));
     mx::NodePtr constant = nodeGraph->addNode("constant");
@@ -201,21 +211,35 @@ TEST_CASE("GLSL Validation from HwShader", "[view]")
     //attributeList.push_back(multiply1); -- error : Could not find a nodedef for node 'multiply1' ?
     attributeList.push_back(position1);
 
-    mx::NodePtr texcoord1 = nodeGraph->addNode("texcoord", "texcoord1", "vector2");
-    texcoord1->setParameterValue("index", 0, "integer");
+    // color output test
+    mx::NodePtr geomcolor1 = nodeGraph->addNode("geomcolor", "geomcolor1", "color3");
+    geomcolor1->setParameterValue("index", 0, "integer");
+    attributeList.push_back(geomcolor1);
 
+    // tangent output test
     mx::NodePtr tangent = nodeGraph->addNode("tangent", "tangent1", "vector3");
-    //tangent->setParameterValue("index", 0, "integer");
+    //tangent->setParameterValue("index", 0, "integer"); -- not supported yet in core
     attributeList.push_back(tangent);
 
+    // bitangent output test
     mx::NodePtr bitangent = nodeGraph->addNode("bitangent", "bitangent1", "vector3");
-    //bitangent->setParameterValue("index", 0, "integer");
+    //bitangent->setParameterValue("index", 0, "integer"); -- not supported yet in core
     attributeList.push_back(bitangent);
 
+    // uv output test
+    mx::NodePtr texcoord1 = nodeGraph->addNode("texcoord", "texcoord1", "vector2");
+    texcoord1->setParameterValue("index", 0, "integer");
     mx::NodePtr swizzle1 = nodeGraph->addNode("swizzle", "swizzle_uv", "vector3");
     swizzle1->setConnectedNode("in", texcoord1);
     swizzle1->setParameterValue("channels", std::string("xy0"));
     attributeList.push_back(swizzle1);
+
+    // image
+    mx::FilePath imagePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Images/MaterialXLogo.exr");
+    std::string imageName = imagePath.asString();
+    mx::NodePtr image = nodeGraph->addNode("image", "image1", "color3");
+    image->setParameterValue("file", imageName, "filename");
+    attributeList.push_back(image);
 
     // Connected to output.
     mx::OutputPtr output1 = nodeGraph->addOutput(mx::EMPTY_STRING, "vector3");
@@ -228,7 +252,7 @@ TEST_CASE("GLSL Validation from HwShader", "[view]")
 
     for (auto nodePtr : attributeList)
     {
-        std::cout << "*** Validate with output node: " << nodePtr->getName() << " *** " << std::endl;
+        std::cout << "------------ Validate with output node: " << nodePtr->getName() << std::endl;
         output1->setConnectedNode(nodePtr);
 
         mx::ShaderPtr shader = shaderGenerator->generate(nodeGraph->getName(), output1);

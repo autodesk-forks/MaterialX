@@ -42,7 +42,7 @@ GlslValidator::~GlslValidator()
 }
 
 void GlslValidator::setStage(const std::string& code, size_t stage)
-{    
+{
     if (stage < HwShader::NUM_STAGES)
     {
         _stages[stage] = code;
@@ -118,8 +118,8 @@ void GlslValidator::initialize()
         // Creeate window
         SimpleWindow window;
         const char* windowName = "Validator Window";
-        bool created = window.create(const_cast<char *>(windowName), 
-                                    _frameBufferWidth, _frameBufferHeight, 
+        bool created = window.create(const_cast<char *>(windowName),
+                                    _frameBufferWidth, _frameBufferHeight,
                                     nullptr);
         if (!created)
         {
@@ -553,7 +553,7 @@ void GlslValidator::bindTimeAndFrame()
             glUniform1f(location, 1.0f);
         }
     }
-    
+
     // Bind frame
     programInput = _uniformList.find("u_frame");
     if (programInput != _uniformList.end())
@@ -627,16 +627,7 @@ void GlslValidator::bindMatrices()
     checkErrors();
 }
 
-#if 0 
-auto keyRange = _cache->nodeDefMap.equal_range(nodeName);
-for (auto it = keyRange.first; it != keyRange.second; ++it)
-{
-    nodeDefs.push_back(it->second);
-}
-
-#endif
-
-bool GlslValidator::bindAttribute(const GLfloat* bufferData, 
+bool GlslValidator::bindAttribute(const GLfloat* bufferData,
                                     size_t bufferSize,
                                     const std::string& attributeId,
                                     const GlslValidator::AttributeIndex attributeIndex,
@@ -710,7 +701,7 @@ void GlslValidator::bindGeometry()
 
     // Pull information from program directly
     {
-        // Set up vertex arrays 
+        // Set up vertex arrays
         glGenVertexArrays(1, &_vertexArray);
         glBindVertexArray(_vertexArray);
 
@@ -846,8 +837,9 @@ void GlslValidator::unbindTextures()
         }
     }
     glDeleteTextures(1, &_dummyTexture);
-    checkErrors();
     _dummyTexture = UNDEFINED_OPENGL_RESOURCE_ID;
+
+    checkErrors();
 }
 
 void GlslValidator::bindTextures()
@@ -905,8 +897,6 @@ void GlslValidator::bindTextures()
 
 void GlslValidator::unbindGeometry()
 {
-    ShaderValidationErrorList errors;
-
     // Cleanup attribute bindings
     //
     glBindVertexArray(0);
@@ -996,65 +986,75 @@ void GlslValidator::render()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // Bind program and input parameters
-    if (_programId > 0)
+    try
     {
-        // Check if we have any attributes to bind. If not then
-        // there is nothing to draw
-        GLint activeAttributeCount = 0;
-        glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTES, &activeAttributeCount);
-        
-        if (activeAttributeCount <= 0)
+        // Bind program and input parameters
+        if (_programId > 0)
         {
-            errors.push_back("Program has no input vertex data.");
-            throw ExceptionShaderValidationError(errorType, errors);
+            // Check if we have any attributes to bind. If not then
+            // there is nothing to draw
+            GLint activeAttributeCount = 0;
+            glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTES, &activeAttributeCount);
+
+            if (activeAttributeCount <= 0)
+            {
+                errors.push_back("Program has no input vertex data.");
+                throw ExceptionShaderValidationError(errorType, errors);
+            }
+            else
+            {
+                // Bind the program to use
+                glUseProgram(_programId);
+                checkErrors();
+
+                bindInputs();
+
+                glDrawElements(GL_TRIANGLES, (GLsizei)_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
+                checkErrors();
+
+                // Unbind resources
+                glUseProgram(0);
+                unbindTextures();
+                unbindGeometry();
+            }
         }
+
+        // Fallack draw some simple geometry
         else
         {
-            // Bind the program to use
-            glUseProgram(_programId);
+            glPushMatrix();
+            glBegin(GL_QUADS);
+
+            glTexCoord2f(0.0f, 1.0f);
+            glNormal3f(1.0f, 0.0f, 0.0f);
+            glColor3f(1.0f, 0.0f, 0.0f);
+            glVertex2f(0.0f, (float)_frameBufferHeight);
+
+            glTexCoord2f(0.0f, 0.0f);
+            glNormal3f(1.0f, 0.0, 0.0);
+            glColor3f(0.0f, 1.0f, 0.0f);
+            glVertex2f(0.0f, 0.0f);
+
+            glTexCoord2f(1.0f, 0.0f);
+            glNormal3f(1.0f, 0.0, 0.0);
+            glColor3f(0.0f, 0.0f, 1.0f);
+            glVertex2f((float)_frameBufferWidth, 0.0f);
+
+            glTexCoord2f(1.0f, 1.0f);
+            glNormal3f(1.0f, 0.0, 0.0);
+            glColor3f(1.0f, 1.0f, 0.0f);
+            glVertex2f((float)_frameBufferWidth, (float)_frameBufferHeight);
+
+            glEnd();
+            glPopMatrix();
+
             checkErrors();
-
-            bindInputs();
-
-            glDrawElements(GL_TRIANGLES, (GLsizei)_indexBufferSize, GL_UNSIGNED_INT, (void*)0);
-            checkErrors();
-
-            // Unbind resources
-            glUseProgram(0);
-            unbindTextures();
-            unbindGeometry();
         }
     }
-
-    // Fallack draw some simple geometry 
-    else
+    catch (ExceptionShaderValidationError e)
     {
-        glPushMatrix();
-        glBegin(GL_QUADS);
-
-        glTexCoord2f(0.0f, 1.0f);
-        glNormal3f(1.0f, 0.0f, 0.0f);
-        glColor3f(1.0f, 0.0f, 0.0f);
-        glVertex2f(0.0f, (float)_frameBufferHeight);
-
-        glTexCoord2f(0.0f, 0.0f);
-        glNormal3f(1.0f, 0.0, 0.0);
-        glColor3f(0.0f, 1.0f, 0.0f);
-        glVertex2f(0.0f, 0.0f);
-
-        glTexCoord2f(1.0f, 0.0f);
-        glNormal3f(1.0f, 0.0, 0.0);
-        glColor3f(0.0f, 0.0f, 1.0f);
-        glVertex2f((float)_frameBufferWidth, 0.0f);
-
-        glTexCoord2f(1.0f, 1.0f);
-        glNormal3f(1.0f, 0.0, 0.0);
-        glColor3f(1.0f, 1.0f, 0.0f);
-        glVertex2f((float)_frameBufferWidth, (float)_frameBufferHeight);
-
-        glEnd();
-        glPopMatrix();
+        bindTarget(false);
+        throw e;
     }
 
     // Unset target
@@ -1086,11 +1086,15 @@ void GlslValidator::save(std::string& fileName, const ImageHandlerPtr imageHandl
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glReadPixels(0, 0, _frameBufferWidth, _frameBufferHeight, GL_RGBA, GL_FLOAT, buffer);
     bindTarget(false);
-    checkErrors();
-    if (errors.size())
+    try
+    {
+        checkErrors();
+    }
+    catch (ExceptionShaderValidationError e)
     {
         delete[] buffer;
         errors.push_back("Failed to read color buffer back.");
+        errors.insert(std::end(errors), std::begin(e._errorLog), std::end(e._errorLog));
         throw ExceptionShaderValidationError(errorType, errors);
     }
 

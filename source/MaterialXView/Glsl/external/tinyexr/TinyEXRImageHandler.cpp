@@ -1,11 +1,12 @@
 
+// Restrict to only run on Windows 
 #if defined(_WIN64) || defined(_WIN32)
 #if defined(_WIN64)
 #define TINYEXR_USABLE
 #endif
 #else
-#define TINYEXR_USABLE
 #endif
+
 #if defined(TINYEXR_USABLE)
 #define TINYEXR_IMPLEMENTATION
 #include <cstdlib>
@@ -38,9 +39,10 @@ bool TinyEXRImageHandler::saveImage(const std::string& fileName,
 {
     int returnValue = -1;
 #if defined(TINYEXR_USABLE)
+    // Fail only any type other than exr.
     if (extension == "exr")
     { 
-        returnValue = SaveEXR(buffer, width, height, channelCount, 1 /* = save as fp16 format */, fileName.c_str());
+        returnValue = SaveEXR(buffer, width, height, channelCount, 1 /* save as 16 bit float format */, fileName.c_str());
     }
 #endif
     return (returnValue == 0);
