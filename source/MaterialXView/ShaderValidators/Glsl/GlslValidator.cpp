@@ -613,13 +613,6 @@ void GlslValidator::bindViewInformation()
         }
     }
 
-    const GLfloat identity[16] =
-    { 1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    };
-
     GLfloat mvm[16];
     glGetFloatv(GL_MODELVIEW_MATRIX, mvm);
 

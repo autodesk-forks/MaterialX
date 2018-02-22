@@ -44,7 +44,6 @@ set (LIBS
 )
 if (MATERIALX_BUILD_VIEW)
     LIST(APPEND LIBS "MaterialXView")
-    add_definitions(-DMATERIALX_BUILD_VIEW)
 endif(MATERIALX_BUILD_VIEW)
 target_link_libraries(
     MaterialXTest ${LIBS}    

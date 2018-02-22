@@ -29,8 +29,8 @@
 
 namespace MaterialX
 {
- 
-bool TinyEXRImageHandler::saveImage(const std::string& fileName, 
+#if defined(TINYEXR_USABLE)
+bool TinyEXRImageHandler::saveImage(const std::string& fileName,
                                     const std::string& extension, 
                                     unsigned int width, 
                                     unsigned int height, 
@@ -38,14 +38,23 @@ bool TinyEXRImageHandler::saveImage(const std::string& fileName,
                                     const float* buffer)
 {
     int returnValue = -1;
-#if defined(TINYEXR_USABLE)
     // Fail only any type other than exr.
     if (extension == "exr")
     { 
         returnValue = SaveEXR(buffer, width, height, channelCount, 1 /* save as 16 bit float format */, fileName.c_str());
     }
-#endif
     return (returnValue == 0);
 }
-
+#else
+    bool TinyEXRImageHandler::saveImage(const std::string& /*fileName*/,
+        const std::string& /*extension*/,
+        unsigned int /*width*/,
+        unsigned int /*height*/,
+        unsigned int /*channelCount*/,
+        const float* /*buffer*/)
+    {
+        return false;
+    }
+#endif
 } 
+

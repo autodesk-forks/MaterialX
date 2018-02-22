@@ -12,8 +12,8 @@
 
 namespace mx = MaterialX;
 
-// Compile if module was compiled
-#if defined(MATERIALX_BUILD_VIEW)
+// Compile if module flags were set
+#if defined(MATERIALX_TEST_VIEW) && defined(MATERIALX_BUILD_VIEW)
 // Run only on windows for now
 #if defined(_WIN32)
 #include <iostream>
