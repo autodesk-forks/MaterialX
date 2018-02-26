@@ -6,6 +6,8 @@
 #include <MaterialXTest/Catch/catch.hpp>
 
 #include <MaterialXFormat/XmlIo.h>
+#include <set>
+#include <iostream>
 
 namespace mx = MaterialX;
 
@@ -39,6 +41,34 @@ TEST_CASE("Load content", "[xmlio]")
         REQUIRE(lib->validate());
         libs.push_back(lib);
     }
+
+    // Check that there is one implementation per nodedef.
+    mx::DocumentPtr implCheckDocument = mx::createDocument();
+    for (mx::DocumentPtr lib : libs)
+    {
+        implCheckDocument->importLibrary(lib);
+    }
+    const std::string target;
+    const std::string language("osl");
+    std::vector<mx::NodeDefPtr> definitions = implCheckDocument->getNodeDefs();
+    std::set<std::string> definitionsFound;
+    for (mx::NodeDefPtr definition : definitions)
+    {
+        // Ignore untyped nodedefs as they require no definition
+        const std::string typeAttribute = definition->getAttribute(mx::Element::TYPE_ATTRIBUTE);
+        if (typeAttribute != mx::NONE_TYPE_STRING)
+        {
+            if (definition->getImplementation(target, language))
+            {
+                definitionsFound.insert(definition->getName());
+            }
+        }
+        else
+        {
+            definitionsFound.insert(definition->getName());
+        }
+    }
+    REQUIRE(definitionsFound.size() == definitions.size());
 
     // Read and validate each example document.
     for (std::string filename : exampleFilenames)
@@ -131,8 +161,14 @@ TEST_CASE("Load content", "[xmlio]")
             mx::NodePtr node = elem->asA<mx::Node>();
             if (node)
             {
-                REQUIRE(node->getNodeDef());
-                REQUIRE(node->getImplementation());
+                mx::NodeDefPtr nodeDef = node->getNodeDef();
+                REQUIRE(nodeDef);
+                // Check implementatons for any nodedefs added by example file
+                if (definitionsFound.find(nodeDef->getName()) == definitionsFound.end())
+                {
+                    REQUIRE(nodeDef->getImplementation(target, language));
+                    definitionsFound.insert(nodeDef->getName());
+                }
             }
         }
 

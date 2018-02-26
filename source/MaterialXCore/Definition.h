@@ -78,7 +78,7 @@ class NodeDef : public InterfaceElement
     /// @name Implementation References
     /// @{
 
-    /// Return the first implementation for this nodedef optionally filtered
+    /// Return the first implementation for this nodedef, optionally filtered
     /// by the given target and language names.
     /// @param target An optional target name, which will be used to filter
     ///    the implementations that are considered.
