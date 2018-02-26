@@ -27,49 +27,27 @@ const string Implementation::LANGUAGE_ATTRIBUTE = "language";
 
 InterfaceElementPtr NodeDef::getImplementation(const string& target, const string& language) const
 {
-    InterfaceElementPtr foundElement = nullptr;
     for (InterfaceElementPtr element : getDocument()->getMatchingImplementations(getName()))
     {
-        // If language specified then if it's not a node-graph then check both
-        // language and target. Otherwise just check target if the the implementaitons
-        // is a nodegraph.
+        // Skip if target does not match
+        if (!targetStringsMatch(element->getTarget(), target))
+        {
+            continue;
+        }
+
+        // Only check language against implementations. Other elements such
+        // as nodegraphs do not have language specific implementations.
+        //
         if (!language.empty())
         {
-            // Check direct implementation
             ImplementationPtr implementation = element->asA<Implementation>();
-            if (implementation)
+            if (implementation && implementation->getLanguage() != language)
             {
-                // Check for a language match
-                const std::string& lang = implementation->getLanguage();
-                if (lang.length() && lang == language)
-                {
-                    // Check target. Note that it may be empty.
-                    if (targetStringsMatch(implementation->getTarget(), target))
-                    {
-                        return implementation;
-                    }
-                }
-            }
-
-            // Check for a nodegraph implementation which does not require a
-            // language check
-            else if (element->isA<NodeGraph>())
-            {
-                if (targetStringsMatch(implementation->getTarget(), target))
-                {
-                    return element;
-                }
+                continue;
             }
         }
 
-        // No language specified, just check target
-        else
-        {
-            if (targetStringsMatch(element->getTarget(), target))
-            {
-                return element;
-            }
-        }
+        return element;
     }
     return InterfaceElementPtr();
 }
