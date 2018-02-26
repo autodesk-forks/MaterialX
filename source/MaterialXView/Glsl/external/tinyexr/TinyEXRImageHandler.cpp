@@ -38,7 +38,7 @@ bool TinyEXRImageHandler::saveImage(const std::string& fileName,
                                     const float* buffer)
 {
     int returnValue = -1;
-    // Fail only any type other than exr.
+    // Fail with any type other than exr.
     if (extension == "exr")
     { 
         returnValue = SaveEXR(buffer, width, height, channelCount, 1 /* save as 16 bit float format */, fileName.c_str());

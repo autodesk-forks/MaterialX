@@ -14,6 +14,9 @@ using TinyEXRImageHandlerPtr = std::shared_ptr<class TinyEXRImageHandler>;
 class TinyEXRImageHandler : public ImageHandler
 {
 public:
+    /// Static instance creator
+    static TinyEXRImageHandlerPtr creator() { return std::make_shared<TinyEXRImageHandler>(); }
+
     /// Default constructor
     TinyEXRImageHandler() {}
 

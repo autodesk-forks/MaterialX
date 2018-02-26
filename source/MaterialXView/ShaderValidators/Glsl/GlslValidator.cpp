@@ -122,7 +122,7 @@ void GlslValidator::initialize()
 
     if (!_initialized)
     {
-        // Creeate window
+        // Create window
         SimpleWindow window;
         const char* windowName = "Validator Window";
         bool created = window.create(const_cast<char *>(windowName),
@@ -154,6 +154,7 @@ void GlslValidator::initialize()
                     {
                         initializedFunctions = false;
                         errors.push_back("OpenGL version 4.0 not supported");
+                        throw ExceptionShaderValidationError(errorType, errors);
                     }
 
                     if (initializedFunctions)
@@ -393,11 +394,7 @@ unsigned int GlslValidator::createProgram()
     }
 
     // Link stages to a programs
-    if (stagesBuilt < desiredStages)
-    {
-        throw ExceptionShaderValidationError(errorType, errors);
-    }
-    else
+    if (stagesBuilt == desiredStages)
     {
         _programId = glCreateProgram();
         glAttachShader(_programId, vertexShaderId);
@@ -436,6 +433,16 @@ unsigned int GlslValidator::createProgram()
             glDetachShader(_programId, fragmentShaderId);
         }
         glDeleteShader(fragmentShaderId);
+    }
+
+    // If we encountered any errors while trying to create return list
+    // of all errors. That is we collect all errors per stage plus any
+    // errors during linking and throw one exception for them all so that
+    // if there is a failure a complete set of issues is returned. We do
+    // this after cleanup so keep GL state clean.
+    if (errors.size())
+    {
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     return _programId;

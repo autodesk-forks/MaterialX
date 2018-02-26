@@ -8,7 +8,7 @@ namespace MaterialX
 {
 ///
 /// @class SimpleWindow
-/// A platform independent window class. Plaftorm spefic resources
+/// A platform independent window class. Platrofmr specific resources
 /// are encapsulated using a WindowWrapper instance.
 ///
 class SimpleWindow

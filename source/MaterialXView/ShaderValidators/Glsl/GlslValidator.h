@@ -69,14 +69,6 @@ class GlslValidator
     /// The exception will contain a list of initialization errors.
     void initialize();
 
-    /// Return whether the validator has been initialized properly.
-    /// It is possible due to platform ahd machine restrictions that this
-    /// may fail.
-    bool iniitialized() const
-    {
-        return _initialized;
-    }
-
     /// Set up code stages to validate based on an input hardware shader.
     /// @param shader Hardware shader to use
     void setStages(const HwShaderPtr shader);
@@ -92,7 +84,7 @@ class GlslValidator
 
     /// Get the number of stages
     /// @return Stage count
-    size_t numberofStages() const
+    size_t numStages() const
     {
         return HwShader::NUM_STAGES;
     }
@@ -226,7 +218,7 @@ class GlslValidator
     /// @param variable Variable to search for
     /// @param variableList List of program inputs to search
     /// @param foundList Returned list of found program inputs. Empty if none found
-    /// @param exactMatch Search for exact variable name match. The default argument value is true.
+    /// @param exactMatch Search for exact variable name match.
     void findProgramInputs(const std::string& variable,
                               const ProgramInputMap& variableList,
                               ProgramInputMap& foundList,
