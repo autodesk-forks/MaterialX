@@ -1,8 +1,8 @@
 #ifndef MATERIALX_SIMPLEWINDOW_H
 #define MATERIALX_SIMPLEWINDOW_H
 
-#include "HardwarePlatform.h"
-#include "WindowWrapper.h"
+#include <MaterialXView/Window/HardwarePlatform.h>
+#include <MaterialXView/Window/WindowWrapper.h>
 
 namespace MaterialX
 {
@@ -75,6 +75,7 @@ class SimpleWindow
 };
 
 #if defined(OSUnsupported_)
+
 //
 // Stubs for unsupported OS
 //
@@ -88,15 +89,15 @@ SimpleWindow::~SimpleWindow()
 }
 
 bool SimpleWindow::create(char* /*title*/,
-                        unsigned int /*width*/,
-                        unsigned int /*height*/,
-                        void* /*applicationShell*/)
+    unsigned int /*width*/,
+    unsigned int /*height*/,
+    void* /*applicationShell*/)
 {
     return false;
 }
 
 #endif
 
-}
+} // namespace MaterialX
 
-#endif // _SimpleWindow_h_
+#endif

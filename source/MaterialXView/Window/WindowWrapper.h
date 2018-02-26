@@ -1,7 +1,7 @@
 #ifndef MATERIALX_WINDOWWRAPPER_H
 #define MATERIALX_WINDOWWRAPPER_H
 
-#include "HardwarePlatform.h"
+#include <MaterialXView/Window/HardwarePlatform.h>
 
 #if defined(OSWin_)
 #include <windows.h>

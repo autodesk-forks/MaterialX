@@ -1,7 +1,7 @@
 #ifndef MATERIALX_TINYEXRIMAGEHANDLER_H
 #define MATERIALX_TINYEXRIMAGEHANDLER_H
 
-#include <MaterialXView/ImageHandler.h>
+#include <MaterialXView/Image/ImageHandler.h>
 
 namespace MaterialX
 {

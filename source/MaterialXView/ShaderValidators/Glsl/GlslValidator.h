@@ -2,7 +2,7 @@
 #define MATERIALX_GLSLVALIDATOR_H
 
 #include <MaterialXShaderGen/HwShader.h>
-#include <MaterialXView/ImageHandler.h>
+#include <MaterialXView/Image/ImageHandler.h>
 #include <vector>
 #include <string>
 #include <unordered_map>

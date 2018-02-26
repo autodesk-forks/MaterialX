@@ -19,13 +19,13 @@
 #define max_cache max
 #undef max
 #endif
-#include <MaterialXView/Glsl/external/tinyexr/tinyexr.h>
+#include <MaterialXView/External/tinyexr/tinyexr.h>
 #ifdef max_cache 
 #define max max_cache
 #endif
 #endif
 
-#include <MaterialXView/Glsl/external/tinyexr/TinyEXRImageHandler.h>
+#include <MaterialXView/Image/TinyEXRImageHandler.h>
 
 namespace MaterialX
 {

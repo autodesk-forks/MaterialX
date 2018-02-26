@@ -18,7 +18,7 @@ namespace mx = MaterialX;
 #if defined(_WIN32)
 #include <iostream>
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
-#include <MaterialXView/Glsl/external/tinyexr/TinyEXRImageHandler.h>
+#include <MaterialXView/Image/TinyEXRImageHandler.h>
 
 TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 {

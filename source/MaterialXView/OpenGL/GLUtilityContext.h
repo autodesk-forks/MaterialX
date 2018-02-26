@@ -1,10 +1,11 @@
 #ifndef MATERIALX_GLUTILITYCONTEXT_H
 #define MATERIALX_GLUTILITYCONTEXT_H
 
-#include "WindowWrapper.h"
+#include <MaterialXView/Window/HardwarePlatform.h>
+#include <MaterialXView/Window/WindowWrapper.h>
 
 #if defined(OSWin_)
-#include "SimpleWindow.h"
+#include <MaterialXView/Window/SimpleWindow.h>
 #elif defined(OSMac_)
 #include <OpenGL/gl.h>
 #endif

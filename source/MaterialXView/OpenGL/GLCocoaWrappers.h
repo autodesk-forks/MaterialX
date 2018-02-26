@@ -1,7 +1,7 @@
-#ifndef MATERIALX_COCOAWRAPPERS_H
-#define MATERIALX_COCOAWRAPPERS_H
+#ifndef MATERIALX_GLCOCOAWRAPPERS_H
+#define MATERIALX_GLCOCOAWRAPPERS_H
 
-#include "HardwarePlatform.h"
+#include <MaterialXView/Window/HardwarePlatform.h>
 #if defined(OSMac_)
 
 /// Wrappers for calling into Objective-C Cocoa routines on Mac

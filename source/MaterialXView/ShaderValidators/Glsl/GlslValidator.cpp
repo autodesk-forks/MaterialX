@@ -1,7 +1,7 @@
 
-#include <MaterialXView/Glsl/external/GLew/glew.h>
-#include <MaterialXView/Glsl/GLUtil/SimpleWindow.h>
-#include <MaterialXView/Glsl/GLUtil/GLUtilityContext.h>
+#include <MaterialXView/External/GLew/glew.h>
+#include <MaterialXView/Window/SimpleWindow.h>
+#include <MaterialXView/OpenGL/GLUtilityContext.h>
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
 
 #include <iostream>
