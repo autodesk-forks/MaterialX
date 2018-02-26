@@ -1,3 +1,5 @@
+#include <MaterialXView/Window/HardwarePlatform.h>
+
 #if defined(OSLinux_)
 
 #include <MaterialXView/Window/SimpleWindow.h>
@@ -21,9 +23,9 @@ SimpleWindow::SimpleWindow()
     windowCount++;
 }
 
-bool SimpleWindow::create(char* title,
-                          unsigned int width, unsigned int height,
-                          void *applicationShell)
+bool SimpleWindow::initialize(char* title,
+                              unsigned int width, unsigned int height,
+                              void *applicationShell)
 {
     int n = 0;
 

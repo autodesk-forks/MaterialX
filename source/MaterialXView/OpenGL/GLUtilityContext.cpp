@@ -39,7 +39,7 @@ GLUtilityContext::GLUtilityContext(const WindowWrapper& /*windowWrapper*/, Hardw
 {
     // For windows, we need a HDC to create an OpenGL context.
     // Create a dummy 1x1 window and use it' HDC.
-    _dummyWindow.create("__GL_BASE_CONTEXT_DUMMY_WINDOW__", 1, 1, nullptr);
+    _dummyWindow.initialize("__GL_BASE_CONTEXT_DUMMY_WINDOW__", 1, 1, nullptr);
     WindowWrapper dummyWindowWrapper = _dummyWindow.windowWrapper();
 
     if (dummyWindowWrapper.isValid())
@@ -339,23 +339,23 @@ int GLUtilityContext::makeCurrent()
 //
 // Singleton create/destory methods
 //
-GLUtilityContext* GLUtilityContext::create(const WindowWrapper& windowWrapper, HardwareContextHandle context)
+GLUtilityContextPtr GLUtilityContext::creator(const WindowWrapper& windowWrapper, HardwareContextHandle context)
 {
     if (!_globalGLUtilityContext)
     {
         _globalGLUtilityContext = new GLUtilityContext(windowWrapper, context);
     }
-    return _globalGLUtilityContext;
+    return std::shared_ptr<GLUtilityContext>(_globalGLUtilityContext);
 }
 
-void GLUtilityContext::destroy()
-{
-    if (_globalGLUtilityContext)
-    {
-        delete _globalGLUtilityContext;
-        _globalGLUtilityContext = nullptr;
-    }
-}
+//void GLUtilityContext::destroy()
+//{
+//    if (_globalGLUtilityContext)
+//    {
+//        delete _globalGLUtilityContext;
+//        _globalGLUtilityContext = nullptr;
+//    }
+//}
 
 }
 

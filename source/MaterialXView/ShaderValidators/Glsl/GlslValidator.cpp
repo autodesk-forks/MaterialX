@@ -1,7 +1,5 @@
 
 #include <MaterialXView/External/GLew/glew.h>
-#include <MaterialXView/Window/SimpleWindow.h>
-#include <MaterialXView/OpenGL/GLUtilityContext.h>
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
 
 #include <iostream>
@@ -24,14 +22,16 @@ GlslValidator::GlslValidator() :
     _colorTarget(0),
     _depthTarget(0),
     _frameBuffer(0),
-    _frameBufferWidth(256),
-    _frameBufferHeight(256),
+    _frameBufferWidth(512),
+    _frameBufferHeight(512),
     _indexBuffer(0),
     _indexBufferSize(0),
     _vertexArray(0),
     _dummyTexture(0),
     _hwShader(nullptr),
-    _initialized(false)
+    _initialized(false),
+    _window(nullptr),
+    _context(nullptr)
 {
     // Clear buffer ids to invalid identifier.
     _attributeBufferIds.resize(ATTRIBUTE_COUNT);
@@ -40,12 +40,15 @@ GlslValidator::GlslValidator() :
 
 GlslValidator::~GlslValidator()
 {
+    // Clean up the program and offscreen target
     deleteProgram();
     deleteTarget();
 
-    GLUtilityContext* context = GLUtilityContext::get();
-    if (context)
-        GLUtilityContext::destroy();
+    // Clean up the context
+    _context = nullptr;
+
+    // Clean up the window
+    _window = nullptr;
 }
 
 void GlslValidator::setStage(const std::string& code, size_t stage)
@@ -123,11 +126,12 @@ void GlslValidator::initialize()
     if (!_initialized)
     {
         // Create window
-        SimpleWindow window;
+        _window = SimpleWindow::creator();
+
         const char* windowName = "Validator Window";
-        bool created = window.create(const_cast<char *>(windowName),
-                                    _frameBufferWidth, _frameBufferHeight,
-                                    nullptr);
+        bool created = _window->initialize(const_cast<char *>(windowName),
+                                          _frameBufferWidth, _frameBufferHeight,
+                                          nullptr);
         if (!created)
         {
             errors.push_back("Failed to create window for testing.");
@@ -136,15 +140,15 @@ void GlslValidator::initialize()
         else
         {
             // Create offscreen context
-            GLUtilityContext* context = GLUtilityContext::create(window.windowWrapper(), nullptr);
-            if (!context)
+            _context = GLUtilityContext::creator(_window->windowWrapper(), nullptr);
+            if (!_context)
             {
                 errors.push_back("Failed to create OpenGL context for testing.");
                 throw ExceptionShaderValidationError(errorType, errors);
             }
             else
             {
-                if (context->makeCurrent())
+                if (_context->makeCurrent())
                 {
                     // Initialize glew
                     bool initializedFunctions = true;
@@ -174,8 +178,7 @@ void GlslValidator::deleteTarget()
 {
     if (_frameBuffer)
     {
-        GLUtilityContext* context = GLUtilityContext::get();
-        if (context && context->makeCurrent())
+        if (_context && _context->makeCurrent())
         {
             glBindFramebuffer(GL_FRAMEBUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
             glDeleteTextures(1, &_colorTarget);
@@ -190,13 +193,12 @@ bool GlslValidator::createTarget()
     ShaderValidationErrorList errors;
     const std::string errorType("OpenGL target creation failure.");
 
-    GLUtilityContext* context = GLUtilityContext::get();
-    if (!context)
+    if (!_context)
     {
         errors.push_back("No valid OpenGL context to create target with.");
         throw ExceptionShaderValidationError(errorType, errors);
     }
-    if (!context->makeCurrent())
+    if (!_context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to create target with.");
         throw ExceptionShaderValidationError(errorType, errors);
@@ -280,8 +282,7 @@ void GlslValidator::deleteProgram()
 {
     if (_programId > 0)
     {
-        GLUtilityContext* context = GLUtilityContext::get();
-        if (context && context->makeCurrent())
+        if (_context && _context->makeCurrent())
         {
             glDeleteObjectARB(_programId);
         }
@@ -297,14 +298,13 @@ unsigned int GlslValidator::createProgram()
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL program creation error.");
 
-    GLUtilityContext* context = GLUtilityContext::get();
-    if (!context)
+    if (!_context)
     {
         errors.push_back("No valid OpenGL context to create program with.");
         throw ExceptionShaderValidationError(errorType, errors);
 
     }
-    if (!context->makeCurrent())
+    if (!_context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to create program.");
         throw ExceptionShaderValidationError(errorType, errors);
@@ -1064,13 +1064,12 @@ void GlslValidator::render()
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL rendering error.");
 
-    GLUtilityContext* context = GLUtilityContext::get();
-    if (!context)
+    if (!_context)
     {
         errors.push_back("No valid OpenGL context to render to.");
         throw ExceptionShaderValidationError(errorType, errors);
     }
-    if (!context->makeCurrent())
+    if (!_context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to render to.");
         throw ExceptionShaderValidationError(errorType, errors);

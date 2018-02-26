@@ -3,6 +3,8 @@
 
 #include <MaterialXShaderGen/HwShader.h>
 #include <MaterialXView/Image/ImageHandler.h>
+#include <MaterialXView/Window/SimpleWindow.h>
+#include <MaterialXView/OpenGL/GLUtilityContext.h>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -276,6 +278,11 @@ class GlslValidator
 
     /// Flag to indicate if validator has been initialized properly.
     bool _initialized;
+    
+    /// Dummy window for OpenGL usage.
+    SimpleWindowPtr _window;
+    /// Dummy OpenGL context for OpenGL usage
+    GLUtilityContextPtr _context;
 
     static unsigned int UNDEFINED_OPENGL_RESOURCE_ID;
     static int UNDEFINED_OPENGL_PROGRAM_LOCATION;

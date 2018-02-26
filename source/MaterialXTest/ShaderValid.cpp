@@ -1,3 +1,9 @@
+// Compile if module flags were set
+#if defined(MATERIALX_TEST_VIEW) && defined(MATERIALX_BUILD_VIEW)
+#include <MaterialXView/Window/HardwarePlatform.h>
+// Run only on windows for now
+#if defined(OSWin_)
+
 #include <MaterialXTest/Catch/catch.hpp>
 
 #include <MaterialXCore/Document.h>
@@ -12,10 +18,6 @@
 
 namespace mx = MaterialX;
 
-// Compile if module flags were set
-#if defined(MATERIALX_TEST_VIEW) && defined(MATERIALX_BUILD_VIEW)
-// Run only on windows for now
-#if defined(_WIN32)
 #include <iostream>
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
 #include <MaterialXView/Image/TinyEXRImageHandler.h>
