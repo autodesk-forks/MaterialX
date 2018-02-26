@@ -7,7 +7,6 @@
 
 #include <MaterialXFormat/XmlIo.h>
 #include <set>
-#include <iostream>
 
 namespace mx = MaterialX;
 
@@ -163,7 +162,7 @@ TEST_CASE("Load content", "[xmlio]")
             {
                 mx::NodeDefPtr nodeDef = node->getNodeDef();
                 REQUIRE(nodeDef);
-                // Check implementatons for any nodedefs added by example file
+                // Check that implementatons exist for any nodedefs added by example files
                 if (definitionsFound.find(nodeDef->getName()) == definitionsFound.end())
                 {
                     REQUIRE(nodeDef->getImplementation(target, language));
