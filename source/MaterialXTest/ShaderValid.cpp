@@ -44,12 +44,12 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 
     std::vector<std::string> shaderNames =
     {
-        "conditional_test1",
-        "simple_test1_graphoutput",
-        "simple_test1_node",
-        "geometric_nodes",
-        "subgraph_ex1",
-        //"subgraph_ex2" -- cannot validate as lighting information isn't complete yet.
+        //"conditional_test1",
+        //"simple_test1_graphoutput",
+        //"simple_test1_node",
+        //"geometric_nodes",
+        //"subgraph_ex1",
+        "subgraph_ex2"
     };
 
     for (auto shaderName : shaderNames)
@@ -110,10 +110,18 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
             const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
             for (auto input : uniforms)
             {
-                unsigned int type = input.second->_type;
+                unsigned int gltype = input.second->_gltype;
                 int location = input.second->_location;
                 int size = input.second->_size;
-                std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << std::hex << type << ". Size=" << size << "." << std::endl;
+                std::string type = input.second->_typeString;
+                std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+                std::cout << "Program Uniform: \"" << input.first
+                    << "\". Location=" << location 
+                    << ". Type=" << std::hex << gltype 
+                    << ". Size=" << size  
+                    << ". TypeString=" << type 
+                    << ". Value=" << value << "."
+                    << std::endl;
             }
             uniformsParsed = true;
         }
@@ -133,10 +141,18 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
             const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
             for (auto input : attributes)
             {
-                unsigned int type = input.second->_type;
+                unsigned int gltype = input.second->_gltype;
                 int location = input.second->_location;
                 int size = input.second->_size;
-                std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << std::hex << type << ". Size=" << size << "." << std::endl;
+                std::string type = input.second->_typeString;
+                std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+                std::cout << "Program Attribute: \"" << input.first
+                    << "\". Location=" << location
+                    << ". Type=" << std::hex << gltype
+                    << ". Size=" << size 
+                    << ". TypeString=" << type 
+                    << ". Value=" << value << "."
+                    << std::endl;
             }
             attributesParsed = true;
         }
@@ -282,28 +298,161 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         REQUIRE(hwShader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
         REQUIRE(hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
 
+        std::ofstream file;
+        file.open(nodePtr->getName() + "_graphoutput.vert");
+        file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+        file.close();
+        file.open(nodePtr->getName() + "_graphoutput.frag");
+        file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+        file.close();
+
+
         validator.setStages(hwShader);
         unsigned int programId = validator.createProgram();
         REQUIRE(programId > 0);
         const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
         for (auto input : uniforms)
         {
-            unsigned int type = input.second->_type;
+            unsigned int gltype = input.second->_gltype;
             int location = input.second->_location;
             int size = input.second->_size;
-            std::cout << "Program Uniform: \"" << input.first << "\". Location=" << location << ". Type=" << std::hex << type << ". Size=" << size << "." << std::endl;
+            std::string type = input.second->_typeString;
+            std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+            std::cout << "Program Uniform: \"" << input.first
+                << "\". Location=" << location
+                << ". Type=" << std::hex << gltype
+                << ". Size=" << size 
+                << ". TypeString=" << type
+                << ". Value=" << value << "."
+                << std::endl;
+
         }
         const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
         for (auto input : attributes)
         {
-            unsigned int type = input.second->_type;
+            unsigned int gltype = input.second->_gltype;
             int location = input.second->_location;
             int size = input.second->_size;
-            std::cout << "Program Attribute: \"" << input.first << "\". Location=" << location << ". Type=" << std::hex << type << ". Size=" << size << "." << std::endl;
+            std::string type = input.second->_typeString;
+            std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+            std::cout << "Program Attribute: \"" << input.first
+                << "\". Location=" << location
+                << ". Type=" << std::hex << gltype
+                << ". Size=" << size 
+                << ". TypeString=" << type 
+                << ". Value=" << value << "."
+                << std::endl;
         }
         validator.render();
         std::string fileName = shader->getName() + "_" + nodePtr->getName() + ".exr";
         validator.save(fileName, handler);
+    }
+
+    /////////////////////////////////
+    {
+        std::cout << "------------- Validating lighting shader" << std::endl;
+        nodeGraph = doc->addNodeGraph("BsdfLayering");
+
+        // Diffuse component
+        mx::NodePtr diffuse = nodeGraph->addNode("diffusebsdf", "diffuse", "BSDF");
+        mx::InputPtr diffuse_color = diffuse->addInput("reflectance", "color3");
+        diffuse_color->setPublicName("diffuse_color");
+        diffuse_color->setValueString("0.9, 0.1, 0.1");
+
+        // Translucent (thin walled SSS) component
+        mx::NodePtr sss = nodeGraph->addNode("translucentbsdf", "sss", "BSDF");
+        mx::InputPtr sss_color = sss->addInput("transmittance", "color3");
+        sss_color->setPublicName("sss_color");
+        sss_color->setValueString("0.1, 0.1, 0.8");
+
+        // Layer diffuse over sss
+        mx::NodePtr substrate = nodeGraph->addNode("layeredbsdf", "substrate", "BSDF");
+        mx::NodePtr substrate_weight_inv = nodeGraph->addNode("invert", "substrate_weight_inv", "float");
+        substrate->setConnectedNode("top", diffuse);
+        substrate->setConnectedNode("base", sss);
+        substrate->setConnectedNode("weight", substrate_weight_inv);
+        mx::InputPtr sss_weight = substrate_weight_inv->addInput("in", "float");
+        sss_weight->setPublicName("sss_weight");
+        sss_weight->setValueString("0.5");
+
+        // Add a coating specular component on top
+        mx::NodePtr coating = nodeGraph->addNode("coatingbsdf", "coating", "BSDF");
+        coating->setConnectedNode("base", substrate);
+        mx::InputPtr coating_color = coating->addInput("reflectance", "color3");
+        coating_color->setPublicName("coating_color");
+        coating_color->setValueString("1.0, 1.0, 1.0");
+        mx::InputPtr coating_roughness = coating->addInput("roughness", "float");
+        coating_roughness->setPublicName("coating_roughness");
+        coating_roughness->setValueString("0.2");
+        mx::InputPtr coating_ior = coating->addInput("ior", "float");
+        coating_ior->setPublicName("coating_ior");
+        coating_ior->setValueString("1.52");
+
+        // Create a surface shader
+        mx::NodePtr surface = nodeGraph->addNode("surface", "surface1", "surfaceshader");
+        surface->setConnectedNode("bsdf", coating);
+
+        // Connect to graph output
+        mx::OutputPtr output = nodeGraph->addOutput("out", "surfaceshader");
+        output->setConnectedNode(surface);
+
+        // Test shader generation from nodegraph output
+        mx::ShaderPtr shader = shaderGenerator->generate(nodeGraph->getName(), output1);
+        mx::HwShaderPtr hwShader = std::dynamic_pointer_cast<mx::HwShader>(shader);
+        REQUIRE(hwShader != nullptr);
+        REQUIRE(hwShader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
+        REQUIRE(hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
+
+        std::ofstream file;
+        file.open("lighting_graphoutput.vert");
+        file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+        file.close();
+        file.open("lighting_graphoutput.frag");
+        file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+        file.close();
+
+
+        /////////////////////////////////////////////////////
+        validator.setStages(hwShader);
+        unsigned int programId = validator.createProgram();
+        REQUIRE(programId > 0);
+        const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
+        for (auto input : uniforms)
+        {
+            unsigned int gltype = input.second->_gltype;
+            int location = input.second->_location;
+            int size = input.second->_size;
+            std::string type = input.second->_typeString;
+            std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+            std::cout << "Program Uniform: \"" << input.first
+                << "\". Location=" << location
+                << ". Type=" << std::hex << gltype
+                << ". Size=" << size
+                << ". TypeString=" << type
+                << ". Value=" << value << "."
+                << std::endl;
+
+        }
+        const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
+        for (auto input : attributes)
+        {
+            unsigned int gltype = input.second->_gltype;
+            int location = input.second->_location;
+            int size = input.second->_size;
+            std::string type = input.second->_typeString;
+            std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+            std::cout << "Program Attribute: \"" << input.first
+                << "\". Location=" << location
+                << ". Type=" << std::hex << gltype
+                << ". Size=" << size
+                << ". TypeString=" << type
+                << ". Value=" << value << "."
+                << std::endl;
+        }
+        validator.render();
+        std::string fileName = "lighting.exr";
+        validator.save(fileName, handler);
+
     }
 }
 

@@ -500,7 +500,123 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
     }
     delete[] uniformName;
 
+    if (_hwShader)
+    {
+        /// Return all blocks of uniform variables for a stage.
+        const MaterialX::Shader::VariableBlockMap& pixelShaderUniforms = _hwShader->getUniformBlocks(HwShader::PIXEL_STAGE);
+        for (auto uniforms : pixelShaderUniforms)
+        {
+            MaterialX::Shader::VariableBlockPtr block = uniforms.second;
+            
+            // Todo : Handle light data properly
+            bool isLightDataBlock = (uniforms.first == "LightData");
+
+            std::cout << "Scan PIXEL shader uniform block: " << uniforms.first << "size: " << block->variableOrder.size() << std::endl;
+            for (const MaterialX::Shader::Variable* input : block->variableOrder)
+            {
+                bool foundMatch = false;
+                auto programInput = _uniformList.find(input->name);
+                if (programInput != _uniformList.end())
+                {
+                    if (isLightDataBlock ||
+                        (programInput->second->_gltype == mapTypeToOpenGLType(input->type)))
+                    {
+                        std::cout << "PIXEL-PASSED: -- type:" << input->type << ". name: " << input->name << ". semantic: "
+                            << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
+                            ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
+                            << std::endl;
+                        foundMatch = true;
+                        programInput->second->_typeString = input->type;
+                        programInput->second->_value = input->value;
+                    }
+                    else
+                    {
+                        std::cout << "PIXEL-FAILED: -- type:" << input->type << ". name: " << input->name << ". semantic: "
+                            << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
+                            ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
+                            << std::endl;
+
+                    }
+                }
+                else
+                {
+                    std::cout << "PIXEL-FAILED 2: -- type:" << input->type << ". name: " << input->name << ". semantic: "
+                        << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
+                        ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
+                        << std::endl;
+                }
+            }
+        }
+   
+        const MaterialX::Shader::VariableBlockMap& vertexShaderUniforms = _hwShader->getUniformBlocks(HwShader::VERTEX_STAGE);
+        for (auto uniforms : vertexShaderUniforms)
+        {
+            MaterialX::Shader::VariableBlockPtr block = uniforms.second;
+            std::cout << "Scan VERTEX shader uniform block: " << uniforms.first << std::endl;
+            for (const MaterialX::Shader::Variable* input : block->variableOrder)
+            {
+                bool foundMatch = false;
+                auto programInput = _uniformList.find(input->name);
+                if (programInput != _uniformList.end())
+                {
+                    if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
+                    {
+                        std::cout << "VERTEX-PASSED -- type:" << input->type << ". name: " << input->name << ". semantic: "
+                            << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
+                            ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
+                            << std::endl;
+                        foundMatch = true;
+                        programInput->second->_typeString = input->type;
+                        programInput->second->_value = input->value;
+                    }
+                    else
+                    {
+                        std::cout << "VERTEX-FAILED1 -- type:" << input->type << ". name: " << input->name << ". semantic: "
+                            << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
+                            ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
+                            << std::endl;
+
+                    }
+                }
+                else
+                {
+                    std::cout << "VERTEX-FAILED2 -- type:" << input->type << ". name: " << input->name << ". semantic: "
+                        << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
+                        ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
+                        << std::endl;
+                }
+            }
+        }
+    }
+
     return _uniformList;
+}
+
+int GlslValidator::mapTypeToOpenGLType(const std::string type)
+{
+    if (type == MaterialX::getTypeString<int>())
+        return GL_INT;
+    else if (type == MaterialX::getTypeString<bool>())
+        return GL_BOOL;
+    else if (type == MaterialX::getTypeString<float>())
+        return GL_FLOAT;
+    else if (type == MaterialX::getTypeString<Vector2>() || type == MaterialX::getTypeString<Color2>())
+        return GL_FLOAT_VEC2;
+    else if (type == MaterialX::getTypeString<Vector3>() || type == MaterialX::getTypeString<Color3>())
+        return GL_FLOAT_VEC3;
+    else if (type == MaterialX::getTypeString<Vector4>() || type == MaterialX::getTypeString<Color4>())
+        return GL_FLOAT_VEC4;
+    else if (type == MaterialX::getTypeString<Matrix3x3>())
+        return GL_FLOAT_MAT3;
+    else if (type == MaterialX::getTypeString<Matrix4x4>())
+        return GL_FLOAT_MAT4;
+    else if (type == MaterialX::FILENAME_TYPE_STRING)
+    {
+        // A "filename" is not indicative of type, so just return a 2d sampler.
+        return GL_SAMPLER_2D;
+    }
+
+    return GlslValidator::ProgramInput::INVALID_OPENGL_TYPE;
 }
 
 const GlslValidator::ProgramInputMap& GlslValidator::updateAttributesList()
@@ -539,6 +655,29 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateAttributesList()
         }
     }
     delete[] attributeName;
+
+    if (_hwShader)
+    {        
+        const MaterialX::Shader::VariableBlock& appDataBlock = _hwShader->getAppDataBlock();
+        for (const MaterialX::Shader::Variable* input : appDataBlock.variableOrder)
+        {
+            bool foundMatch = false;
+            auto programInput = _attributeList.find(input->name);
+            if (programInput != _attributeList.end())
+            {
+                if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
+                {
+                    foundMatch = true;
+                    programInput->second->_typeString = input->type;
+                    programInput->second->_value = input->value;
+                }
+            }
+            std::cout << "SCAN VERTEX APPBLOCK: type:" << input->type << ". name: " << input->name << ". semantic: " 
+                << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
+                ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch 
+                << std::endl;
+        }
+    }
 
     return _attributeList;
 }
@@ -591,11 +730,6 @@ void GlslValidator::bindViewInformation()
         const std::string errorType("GLSL input binding error.");
         errors.push_back("Cannot bind without a valid program");
         throw ExceptionShaderValidationError(errorType, errors);
-    }
-
-    // Pull information from HwShader
-    if (_hwShader)
-    {
     }
 
     GLint location = UNDEFINED_OPENGL_PROGRAM_LOCATION;
@@ -775,90 +909,81 @@ void GlslValidator::bindGeometry()
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    // Pull information from HwShader as needed
-    if (_hwShader)
+    // Set up vertex arrays
+    glGenVertexArrays(1, &_vertexArray);
+    glBindVertexArray(_vertexArray);
+
+    unsigned int indexData[] = { 0, 1, 2, 0, 2, 3 };
+    _indexBufferSize = 6;
+    glGenBuffers(1, &_indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
+
+    // Bind positions
+    const float border = 20.0f;
+    const GLfloat positionData[] = { border, border, 0.0f,
+        border, (float)(_frameBufferHeight)-border, 0.0f,
+        (float)(_frameBufferWidth)-border, (float)(_frameBufferHeight)-border, 0.0f,
+        (float)(_frameBufferWidth)-border, border, 0.0f };
+    bindAttribute(positionData, sizeof(positionData), "i_position", POSITION3_ATTRIBUTE, 3, true);
+
+    // Bind normals
+    float normalData[] = { 0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f };
+    bindAttribute(normalData, sizeof(normalData), "i_normal", NORMAL3_ATTRIBUTE, 3, true);
+
+    // Bind tangents
+    float tangentData[] = { 1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        -1.0f, 0.0f, 0.0f,
+        0.0f, -1.0f, 0.0f };
+    bindAttribute(tangentData, sizeof(tangentData), "i_tangent", TANGENT3_ATTRIBUTE, 3, true);
+
+    // Bind bitangents
+    float bitangentData[] = { 0.0f, 1.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        -1.0f, 0.0f, 0.0f,
+        0.0f, -1.0f, 0.0f };
+    bindAttribute(bitangentData, sizeof(bitangentData), "i_bitangent", BITANGENT3_ATTRIBUTE, 3, true);
+
+    // Bind single set of colors for all locations found
+    float colorData[] = { 1.0f, 0.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 0.0f, 1.0f };
+    // Search for anything that starts with the prefix "i_color_"
+    bindAttribute(colorData, sizeof(colorData), "i_color_", COLOR4_ATTRIBUTE, 4, false);
+
+    // Bind single set of texture coords for all locations found
+    GLfloat uvData[] = { 0.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f };
+    // Search for anything that starts with the prefix "i_texcoord_"
+    bindAttribute(uvData, sizeof(uvData), "i_texcoord_", TEXCOORD2_ATTRIBUTE, 2, false);
+
+    // Bind any named attribute information
+    //
+    std::string geomAttrPrefix("u_geomattr_");
+    ProgramInputMap foundList;
+    findProgramInputs(geomAttrPrefix, _uniformList, foundList, false);
+    for (auto programInput : foundList)
     {
-        // To add: Pull any additional information required here
-    }
-
-    // Pull information from program directly
-    {
-        // Set up vertex arrays
-        glGenVertexArrays(1, &_vertexArray);
-        glBindVertexArray(_vertexArray);
-
-        unsigned int indexData[] = { 0, 1, 2, 0, 2, 3 };
-        _indexBufferSize = 6;
-        glGenBuffers(1, &_indexBuffer);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
-
-        // Bind positions
-        const float border = 20.0f;
-        const GLfloat positionData[] = { border, border, 0.0f,
-            border, (float)(_frameBufferHeight)-border, 0.0f,
-            (float)(_frameBufferWidth)-border, (float)(_frameBufferHeight)-border, 0.0f,
-            (float)(_frameBufferWidth)-border, border, 0.0f };
-        bindAttribute(positionData, sizeof(positionData), "i_position", POSITION3_ATTRIBUTE, 3, true);
-
-        // Bind normals
-        float normalData[] = { 0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f };
-        bindAttribute(normalData, sizeof(normalData), "i_normal", NORMAL3_ATTRIBUTE, 3, true);
-
-        // Bind tangents
-        float tangentData[] = { 1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            -1.0f, 0.0f, 0.0f,
-            0.0f, -1.0f, 0.0f };
-        bindAttribute(tangentData, sizeof(tangentData), "i_tangent", TANGENT3_ATTRIBUTE, 3, true);
-
-        // Bind bitangents
-        float bitangentData[] = { 0.0f, 1.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            -1.0f, 0.0f, 0.0f,
-            0.0f, -1.0f, 0.0f };
-        bindAttribute(bitangentData, sizeof(bitangentData), "i_bitangent", BITANGENT3_ATTRIBUTE, 3, true);
-
-        // Bind single set of colors for all locations found
-        float colorData[] = { 1.0f, 0.0f, 0.0f, 1.0f,
-            0.0f, 1.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f, 1.0f,
-            1.0f, 1.0f, 0.0f, 1.0f };
-        // Search for anything that starts with the prefix "i_color_"
-        bindAttribute(colorData, sizeof(colorData), "i_color_", COLOR4_ATTRIBUTE, 4, false);
-
-        // Bind single set of texture coords for all locations found
-        GLfloat uvData[] = { 0.0f, 0.0f,
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f };
-        // Search for anything that starts with the prefix "i_texcoord_"
-        bindAttribute(uvData, sizeof(uvData), "i_texcoord_", TEXCOORD2_ATTRIBUTE, 2, false);
-
-        // Bind any named attribute information
-        //
-        std::string geomAttrPrefix("u_geomattr_");
-        ProgramInputMap foundList;
-        findProgramInputs(geomAttrPrefix, _uniformList, foundList, false);
-        for (auto programInput : foundList)
+        // Only handle float1-4 types for now
+        if (programInput.second->_gltype == GL_FLOAT)
         {
-            // Only handle float1-4 types for now
-            if (programInput.second->_type == GL_FLOAT)
-            {
-                GLfloat floatVal[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-                int size = programInput.second->_size;
-                if (size == 1)
-                    glUniform1fv(programInput.second->_location, 1, floatVal);
-                else if (size == 2)
-                    glUniform2fv(programInput.second->_location, 1, floatVal);
-                else if (size == 3)
-                    glUniform3fv(programInput.second->_location, 1, floatVal);
-                else if (size == 4)
-                    glUniform4fv(programInput.second->_location, 1, floatVal);
-            }
+            GLfloat floatVal[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+            int size = programInput.second->_size;
+            if (size == 1)
+                glUniform1fv(programInput.second->_location, 1, floatVal);
+            else if (size == 2)
+                glUniform2fv(programInput.second->_location, 1, floatVal);
+            else if (size == 3)
+                glUniform3fv(programInput.second->_location, 1, floatVal);
+            else if (size == 4)
+                glUniform4fv(programInput.second->_location, 1, floatVal);
         }
     }
 
@@ -924,7 +1049,7 @@ void GlslValidator::unbindTextures()
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
     for (auto uniform : _uniformList)
     {
-        GLenum uniformType = uniform.second->_type;
+        GLenum uniformType = uniform.second->_gltype;
         GLint uniformLocation = uniform.second->_location;
         if (uniformLocation >= 0 &&
             uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
@@ -963,7 +1088,7 @@ void GlslValidator::bindTextures()
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
     for (auto uniform : _uniformList)
     {
-        GLenum uniformType = uniform.second->_type;
+        GLenum uniformType = uniform.second->_gltype;
         GLint uniformLocation = uniform.second->_location;
         if (uniformLocation >= 0 &&
             uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
@@ -978,11 +1103,12 @@ void GlslValidator::bindTextures()
             // Bind a texture to that unit
             glActiveTexture(GL_TEXTURE0 + textureUnit);
 
-            // Pull information from HwShader as needed
             bool textureBound = false;
-            if (_hwShader)
+            std::string fileName(uniform.second->_value ? uniform.second->_value->getValueString() : "");
+            if (!fileName.empty())
             {
-                // to add reader code
+                std::cout << "TODO. Read file from disk: " << fileName << std::endl;
+                // To add : image from disk
             }
 
             if (!textureBound)

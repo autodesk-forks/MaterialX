@@ -40,14 +40,19 @@ class GlslValidator
         /// Program location. -1 means an invalid location
         int _location;
         /// OpenGL type of the input. -1 means an invalid type
-        int _type;
+        int _gltype;
         /// Size.
         int _size;
+        /// Input type string. Will only be non-empty if initialized stages with a HwShader
+        std::string _typeString;
+        /// Input value. Will only be non-empty if initialized stages with a HwShader and a value was set during
+        /// shader generation.
+        MaterialX::ValuePtr _value;
 
         /// Program input constructor
         ProgramInput(int inputLocation, int inputType, int inputSize)
         : _location(inputLocation)
-        , _type(inputType)
+        , _gltype(inputType)
         , _size(inputSize)
         {}
     };
@@ -131,6 +136,11 @@ class GlslValidator
     /// @param imageHandler Handler used to save image
     /// @return true if successful
     void save(std::string& fileName, const ImageHandlerPtr imageHandler);
+
+    /// Utility to map a syntax type to an OpenGL type
+    /// @param type Syntax type
+    /// @return OpenGL type. INVALID_OPENGL_TYPE is returned if no mapping exists. For example strings have no OpenGL type.
+    static int mapTypeToOpenGLType(const std::string type);
 
     /// @}
 
