@@ -720,6 +720,105 @@ void GlslValidator::bindTimeAndFrame()
     }
 }
 
+void GlslValidator::bindLighting()
+{
+    ShaderValidationErrorList errors;
+
+    if (_programId <= 0)
+    {
+        const std::string errorType("GLSL light binding error.");
+        errors.push_back("Cannot bind without a valid program");
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
+
+    // Bind a couple of lights if can find the light information
+    GLint location = UNDEFINED_OPENGL_PROGRAM_LOCATION;
+
+    // Set the number of active light sources
+    int lightCount = 1;
+    auto programInput = _uniformList.find("u_numActiveLightSources");
+    if (programInput != _uniformList.end())
+    {
+        location = programInput->second->_location;
+        if (location >= 0)
+        {
+            glUniform1i(location, lightCount);
+        }
+    }
+    // No lighting information so nothing further to do
+    else
+    {
+        lightCount = 0;
+    }
+
+    if (lightCount == 0)
+        return;
+
+    // Manually set the lights
+    // 0 = directional, 1 = point
+    unsigned int blockUniformsSet = 0;
+    programInput = _uniformList.find("u_lightData[0].type");
+    if (programInput != _uniformList.end())
+    {
+        location = programInput->second->_location;
+        if (location >= 0)
+        {
+            glUniform1i(location, 0);
+            blockUniformsSet++;
+        }
+    }
+    programInput = _uniformList.find("u_lightData[0].direction");
+    if (programInput != _uniformList.end())
+    {
+        location = programInput->second->_location;
+        if (location >= 0)
+        {
+            glUniform3f(location, 0.0f, 0.0f, 1.0f);
+            blockUniformsSet++;
+        }
+    }
+    programInput = _uniformList.find("u_lightData[0].color");
+    if (programInput != _uniformList.end())
+    {
+        location = programInput->second->_location;
+        if (location >= 0)
+        {
+            glUniform3f(location, 1.0f, 1.0f, 1.0f);
+            blockUniformsSet++;
+        }
+    }
+    programInput = _uniformList.find("u_lightData[0].intensity");
+    if (programInput != _uniformList.end())
+    {
+        location = programInput->second->_location;
+        if (location >= 0)
+        {
+            glUniform1f(location, 1.0f);
+            blockUniformsSet++;
+        }
+    }
+    programInput = _uniformList.find("u_lightData[0].position");
+    if (programInput != _uniformList.end())
+    {
+        location = programInput->second->_location;
+        if (location >= 0)
+        {
+            glUniform3f(location, -1.0f, -1.0f, -1.0f);
+            blockUniformsSet++;
+        }
+    }
+    programInput = _uniformList.find("u_lightData[0].decayRate");
+    if (programInput != _uniformList.end())
+    {
+        location = programInput->second->_location;
+        if (location >= 0)
+        {
+            glUniform1f(location, 3.0f);
+            blockUniformsSet++;
+        }
+    }
+    std::cout << "Light uniforms set: " << blockUniformsSet << std::endl;
+}
 
 void GlslValidator::bindViewInformation()
 {
@@ -741,7 +840,7 @@ void GlslValidator::bindViewInformation()
         location = programInput->second->_location;
         if (location >= 0)
         {
-            glUniform3f(location, NEAR_PLANE-1.0f, 0.0f, 0.0f);
+            glUniform3f(location, 0.0f, 0.0f, NEAR_PLANE-1.0f);
         }
     }
     programInput = _uniformList.find("u_viewDirection");
@@ -750,7 +849,7 @@ void GlslValidator::bindViewInformation()
         location = programInput->second->_location;
         if (location >= 0)
         {
-            glUniform3f(location, 1.0f, 0.0f, 0.0f);
+            glUniform3f(location, 0.0f, 0.0f, 1.0f);
         }
     }
 
@@ -1183,6 +1282,7 @@ void GlslValidator::bindInputs()
     bindGeometry();
     bindTextures();
     bindTimeAndFrame();
+    bindLighting();
 }
 
 void GlslValidator::render()
