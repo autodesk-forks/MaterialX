@@ -508,41 +508,53 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
         {
             MaterialX::Shader::VariableBlockPtr block = uniforms.second;
             
-            // Todo : Handle light data properly
-            bool isLightDataBlock = (uniforms.first == "LightData");
-
-            std::cout << "Scan PIXEL shader uniform block: " << uniforms.first << "size: " << block->variableOrder.size() << std::endl;
+            if (block->variableOrder.size())
+            {
+                std::cout << "Scan PIXEL shader uniform block: " << uniforms.first << ". Size: " << block->variableOrder.size() << std::endl;
+            }
             for (const MaterialX::Shader::Variable* input : block->variableOrder)
             {
+                // There is no way to match with an unnamed varbiel
+                if (input->name.empty())
+                {
+                    std::cout << "> Uniform with no name found. Skipping" << std::endl;
+                    continue;
+                }
+
                 bool foundMatch = false;
                 auto programInput = _uniformList.find(input->name);
                 if (programInput != _uniformList.end())
                 {
-                    if (isLightDataBlock ||
-                        (programInput->second->_gltype == mapTypeToOpenGLType(input->type)))
+                    if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
                     {
-                        std::cout << "PIXEL-PASSED: -- type:" << input->type << ". name: " << input->name << ". semantic: "
-                            << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
-                            ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
-                            << std::endl;
                         foundMatch = true;
                         programInput->second->_typeString = input->type;
                         programInput->second->_value = input->value;
+
+                        std::cout << "> Uniform found in shader: \"" << input->name
+                            << "\". Type: \"" << input->type
+                            << "\". Semantic: \"" << input->semantic
+                            << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>")
+                            << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type)
+                            << std::endl;
                     }
                     else
                     {
-                        std::cout << "PIXEL-FAILED: -- type:" << input->type << ". name: " << input->name << ". semantic: "
-                            << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
-                            ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
+                        std::cout << "> Uniform type mismatch in shader: \"" << input->name
+                            << "\". Type: \"" << input->type
+                            << "\". Semantic: \"" << input->semantic
+                            << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>")
+                            << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type)
                             << std::endl;
-
                     }
                 }
                 else
                 {
-                    std::cout << "PIXEL-FAILED 2: -- type:" << input->type << ". name: " << input->name << ". semantic: "
-                        << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
-                        ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
+                    std::cout << "> Uniform not found in shader: \"" << input->name  
+                        << "\". Type: \"" << input->type 
+                        << "\". Semantic: \"" << input->semantic 
+                        << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>") 
+                        << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type) 
                         << std::endl;
                 }
             }
@@ -552,7 +564,10 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
         for (auto uniforms : vertexShaderUniforms)
         {
             MaterialX::Shader::VariableBlockPtr block = uniforms.second;
-            std::cout << "Scan VERTEX shader uniform block: " << uniforms.first << std::endl;
+            if (block->variableOrder.size())
+            {
+                std::cout << "Scan VERTEX shader uniform block: " << uniforms.first << ". Size: " << block->variableOrder.size() << std::endl;
+            }
             for (const MaterialX::Shader::Variable* input : block->variableOrder)
             {
                 bool foundMatch = false;
@@ -561,29 +576,36 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
                 {
                     if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
                     {
-                        std::cout << "VERTEX-PASSED -- type:" << input->type << ". name: " << input->name << ". semantic: "
-                            << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
-                            ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
-                            << std::endl;
                         foundMatch = true;
                         programInput->second->_typeString = input->type;
                         programInput->second->_value = input->value;
+
+                        std::cout << "> Uniform found in shader: \"" << input->name
+                            << "\". Type: \"" << input->type
+                            << "\". Semantic: \"" << input->semantic
+                            << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>")
+                            << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type)
+                            << std::endl;                       programInput->second->_typeString = input->type;
                     }
                     else
                     {
-                        std::cout << "VERTEX-FAILED1 -- type:" << input->type << ". name: " << input->name << ". semantic: "
-                            << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
-                            ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
+                        std::cout << "> Uniform type mismatch in shader: \"" << input->name
+                            << "\". Type: \"" << input->type
+                            << "\". Semantic: \"" << input->semantic
+                            << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>")
+                            << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type)
                             << std::endl;
-
                     }
                 }
                 else
                 {
-                    std::cout << "VERTEX-FAILED2 -- type:" << input->type << ". name: " << input->name << ". semantic: "
-                        << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
-                        ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch
-                        << std::endl;
+                    std::cout << "> Uniform not found in shader: \"" << input->name
+                        << "\". Type: \"" << input->type
+                        << "\". Semantic: \"" << input->semantic
+                        << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>")
+                        << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type)
+                        << std::endl;                       
+                    programInput->second->_typeString = input->type;
                 }
             }
         }
@@ -659,23 +681,32 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateAttributesList()
     if (_hwShader)
     {        
         const MaterialX::Shader::VariableBlock& appDataBlock = _hwShader->getAppDataBlock();
-        for (const MaterialX::Shader::Variable* input : appDataBlock.variableOrder)
-        {
-            bool foundMatch = false;
-            auto programInput = _attributeList.find(input->name);
-            if (programInput != _attributeList.end())
+        
+        if (appDataBlock.variableOrder.size())
+        { 
+            std::cout << "Scan APPLICATION uniform block. Size: " << appDataBlock.variableOrder.size() << std::endl;
+            for (const MaterialX::Shader::Variable* input : appDataBlock.variableOrder)
             {
-                if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
+                bool foundMatch = false;
+                auto programInput = _attributeList.find(input->name);
+                if (programInput != _attributeList.end())
                 {
-                    foundMatch = true;
-                    programInput->second->_typeString = input->type;
-                    programInput->second->_value = input->value;
+                    if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
+                    {
+                        foundMatch = true;
+                        programInput->second->_typeString = input->type;
+                        programInput->second->_value = input->value;
+                    }
                 }
+                std::cout << "> Uniform" 
+                    << (foundMatch ? " " : " not ")
+                    << "found in shader: \"" << input->name
+                    << "\". Type: \"" << input->type
+                    << "\". Semantic: \"" << input->semantic
+                    << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>")
+                    << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type)
+                    << std::endl;
             }
-            std::cout << "SCAN VERTEX APPBLOCK: type:" << input->type << ". name: " << input->name << ". semantic: " 
-                << input->semantic << ". value: " << (input->value ? input->value->getValueString() : "<none>") <<
-                ". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << ". Found match = " << foundMatch 
-                << std::endl;
         }
     }
 
@@ -763,7 +794,7 @@ void GlslValidator::bindLighting()
         location = programInput->second->_location;
         if (location >= 0)
         {
-            glUniform1i(location, 0);
+            glUniform1i(location, 1);
             blockUniformsSet++;
         }
     }
@@ -773,7 +804,7 @@ void GlslValidator::bindLighting()
         location = programInput->second->_location;
         if (location >= 0)
         {
-            glUniform3f(location, 0.0f, 0.0f, 1.0f);
+            glUniform3f(location, 0.0f, 0.0f, -1.0f);
             blockUniformsSet++;
         }
     }
@@ -813,7 +844,7 @@ void GlslValidator::bindLighting()
         location = programInput->second->_location;
         if (location >= 0)
         {
-            glUniform1f(location, 3.0f);
+            glUniform1f(location, 1.0f);
             blockUniformsSet++;
         }
     }

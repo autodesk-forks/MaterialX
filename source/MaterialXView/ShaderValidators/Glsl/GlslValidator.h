@@ -31,6 +31,9 @@ class GlslValidator
 {
   public:
     /// Structure to hold information about program inputs
+    /// The structure is populated by directly scanning the program so may not contain
+    /// some inputs listed on any associated HwShader as those inputs may have been
+    /// optimized out if they are unused.
     struct ProgramInput
     {
         static int INVALID_OPENGL_TYPE;

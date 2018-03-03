@@ -301,10 +301,10 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         REQUIRE(hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
 
         std::ofstream file;
-        file.open(nodePtr->getName() + "_graphoutput.vert");
+        file.open(nodePtr->getName() + ".vert");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
         file.close();
-        file.open(nodePtr->getName() + "_graphoutput.frag");
+        file.open(nodePtr->getName() + ".frag");
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
 
@@ -346,7 +346,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
                 << std::endl;
         }
         validator.render();
-        std::string fileName = shader->getName() + "_" + nodePtr->getName() + ".exr";
+        std::string fileName = nodePtr->getName() + ".exr";
         validator.save(fileName, handler);
     }
 
@@ -400,10 +400,10 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         REQUIRE(hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
 
         std::ofstream file;
-        file.open("lighting_graphoutput.vert");
+        file.open("lighting1.vert");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
         file.close();
-        file.open("lighting_graphoutput.frag");
+        file.open("lighting1.frag");
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
 
@@ -446,7 +446,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
                 << std::endl;
         }
         validator.render();
-        std::string fileName = "lighting.exr";
+        std::string fileName = "lighting1.exr";
         validator.save(fileName, handler);
 
     }
