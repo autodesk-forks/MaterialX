@@ -702,13 +702,13 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateAttributesList()
             //std::cout << "Scan APPLICATION uniform block. Size: " << appDataBlock.variableOrder.size() << std::endl;
             for (const MaterialX::Shader::Variable* input : appDataBlock.variableOrder)
             {
-                bool foundMatch = false;
+                //bool foundMatch = false;
                 auto programInput = _attributeList.find(input->name);
                 if (programInput != _attributeList.end())
                 {
                     if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
                     {
-                        foundMatch = true;
+                        //foundMatch = true;
                         programInput->second->_typeString = input->type;
                         programInput->second->_value = input->value;
                     }
