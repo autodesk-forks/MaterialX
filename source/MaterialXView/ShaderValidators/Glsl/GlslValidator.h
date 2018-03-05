@@ -125,6 +125,11 @@ class GlslValidator
     /// Delete any currently created shader program
     void deleteProgram();
 
+    /// Utility to map a syntax type to an OpenGL type
+    /// @param type Syntax type
+    /// @return OpenGL type. INVALID_OPENGL_TYPE is returned if no mapping exists. For example strings have no OpenGL type.
+    static int mapTypeToOpenGLType(const std::string type);
+
     /// @}
     /// @name Visualization
     /// @{
@@ -134,14 +139,15 @@ class GlslValidator
 
     /// Save buffer to disk
     /// @param fileName Name of file to save rendered image to.
-    /// @param imageHandler Handler used to save image
     /// @return true if successful
-    void save(std::string& fileName, const ImageHandlerPtr imageHandler);
+    void save(std::string& fileName);
 
-    /// Utility to map a syntax type to an OpenGL type
-    /// @param type Syntax type
-    /// @return OpenGL type. INVALID_OPENGL_TYPE is returned if no mapping exists. For example strings have no OpenGL type.
-    static int mapTypeToOpenGLType(const std::string type);
+    /// Set image handler to use for image load and save
+    /// @param imageHandler Handler used to save image
+    void setImageHandler(const ImageHandlerPtr imageHandler)
+    {
+        _imageHandler = imageHandler;
+    }
 
     /// @}
 
@@ -300,6 +306,10 @@ class GlslValidator
 
     static unsigned int UNDEFINED_OPENGL_RESOURCE_ID;
     static int UNDEFINED_OPENGL_PROGRAM_LOCATION;
+
+    /// Utility image handler
+    ImageHandlerPtr _imageHandler;
+    std::vector<unsigned int> _programTextures;
 };
 
 } // namespace MaterialX

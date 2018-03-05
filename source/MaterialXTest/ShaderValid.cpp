@@ -31,6 +31,8 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
     try
     {
         validator.initialize();
+        mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
+        validator.setImageHandler(handler);
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError e)
@@ -118,7 +120,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
                 std::cout << "Program Uniform: \"" << input.first
                     << "\". Location=" << location 
                     << ". Type=" << std::hex << gltype 
-                    << ". Size=" << size  
+                    << ". Size=" << std::dec << size
                     << ". TypeString=" << type 
                     << ". Value=" << value << "."
                     << std::endl;
@@ -149,7 +151,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
                 std::cout << "Program Attribute: \"" << input.first
                     << "\". Location=" << location
                     << ". Type=" << std::hex << gltype
-                    << ". Size=" << size 
+                    << ". Size=" << std::dec << size
                     << ". TypeString=" << type 
                     << ". Value=" << value << "."
                     << std::endl;
@@ -183,9 +185,8 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 
         try
         {
-            mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
             std::string fileName = shaderName + ".exr";
-            validator.save(fileName, handler);
+            validator.save(fileName);
         }
         catch (mx::ExceptionShaderValidationError e)
         {
@@ -274,7 +275,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     attributeList.push_back(swizzle1);
 
     // image
-    mx::FilePath imagePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Images/MaterialXLogo.exr");
+    mx::FilePath imagePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Images/output.exr");
     std::string imageName = imagePath.asString();
     mx::NodePtr image = nodeGraph->addNode("image", "image1", "color3");
     image->setParameterValue("file", imageName, "filename");
@@ -288,6 +289,8 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     try
     {
         validator.initialize();
+        mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
+        validator.setImageHandler(handler);
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError e)
@@ -331,7 +334,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
             std::cout << "Program Uniform: \"" << input.first
                 << "\". Location=" << location
                 << ". Type=" << std::hex << gltype
-                << ". Size=" << size 
+                << ". Size=" << std::dec << size
                 << ". TypeString=" << type
                 << ". Value=" << value << "."
                 << std::endl;
@@ -348,14 +351,14 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
             std::cout << "Program Attribute: \"" << input.first
                 << "\". Location=" << location
                 << ". Type=" << std::hex << gltype
-                << ". Size=" << size 
+                << ". Size=" << std::dec << size
                 << ". TypeString=" << type 
                 << ". Value=" << value << "."
                 << std::endl;
         }
         validator.render();
         std::string fileName = nodePtr->getName() + ".exr";
-        validator.save(fileName, handler);
+        validator.save(fileName);
     }
 
     /////////////////////////////////
@@ -430,7 +433,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
             std::cout << "Program Uniform: \"" << input.first
                 << "\". Location=" << location
                 << ". Type=" << std::hex << gltype
-                << ". Size=" << size
+                << ". Size=" << std::dec << size
                 << ". TypeString=" << type
                 << ". Value=" << value << "."
                 << std::endl;
@@ -447,14 +450,14 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
             std::cout << "Program Attribute: \"" << input.first
                 << "\". Location=" << location
                 << ". Type=" << std::hex << gltype
-                << ". Size=" << size
+                << ". Size=" << std::dec << size
                 << ". TypeString=" << type
                 << ". Value=" << value << "."
                 << std::endl;
         }
         validator.render();
         std::string fileName = "lighting1.exr";
-        validator.save(fileName, handler);
+        validator.save(fileName);
     }
 }
 
