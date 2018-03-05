@@ -91,7 +91,7 @@ bool TinyEXRImageHandler::loadImage(const std::string& /*fileName*/,
     unsigned int &/*width*/,
     unsigned int &/*height*/,
     unsigned int &/*channelCount*/,
-    float* /*buffer*/)
+    float** /*buffer*/)
 {
     return false;
 }
