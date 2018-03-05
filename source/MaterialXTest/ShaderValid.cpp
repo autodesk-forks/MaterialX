@@ -197,6 +197,10 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
     }
 }
 
+// Utility methods from ShaderGen tests
+extern mx::InterfaceElementPtr findImplementation(mx::DocumentPtr document, const std::string& name,
+    const std::string& language, const std::string& target);
+extern void bindLightShaders(mx::DocumentPtr document, mx::HwShaderGenerator& shadergen);
 
 TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
 {
@@ -219,6 +223,10 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
     mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::creator();
     shaderGenerator->registerSourceCodeSearchPath(searchPath);
+    // Make sure to specify lighting definitions.
+    mx::HwShaderGenerator* hwShaderGenerator = static_cast<mx::HwShaderGenerator*>(shaderGenerator.get());
+    hwShaderGenerator->setMaxActiveLightSources(2);
+    bindLightShaders(doc, *hwShaderGenerator);
 
     // Create a nonsensical graph testing some geometric nodes
     mx::NodeGraphPtr nodeGraph = doc->addNodeGraph("geometry_attributes");
@@ -362,7 +370,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
               <input name=\"opacity\" type=\"float\" value=\"1.0\" /> \
             </surface>  \
             <diffusebsdf name=\"diffusebsdf1\" type=\"BSDF\" xpos=\"2.3949\" ypos=\"9.00162\" adskDisplayMode=\"2\"> \
-              <input name=\"reflectance\" type=\"color3\" value=\"0.8, 0.8, 0.8\" />  \
+              <input name=\"reflectance\" type=\"color3\" value=\"0.2, 0.3, 1.0\" />  \
               <input name=\"roughness\" type=\"float\" value=\"1.0\" /> \
               <input name=\"normal\" type=\"vector3\" value=\"0.0, 0.0, 0.0\" /> \
             </diffusebsdf>  \
@@ -386,7 +394,6 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         </materialx>";
 
         std::cout << "------------- Validating lighting shader" << std::endl;
-        //nodeGraph = doc->addNodeGraph("BsdfLayering");
 
         MaterialX::readFromXmlBuffer(doc, lightDoc.c_str());
         nodeGraph = doc->getNodeGraph("lighting1");
@@ -448,7 +455,6 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         validator.render();
         std::string fileName = "lighting1.exr";
         validator.save(fileName, handler);
-
     }
 }
 

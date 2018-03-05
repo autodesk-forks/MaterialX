@@ -521,13 +521,11 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
                     continue;
                 }
 
-                bool foundMatch = false;
                 auto programInput = _uniformList.find(input->name);
                 if (programInput != _uniformList.end())
                 {
                     if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
                     {
-                        foundMatch = true;
                         programInput->second->_typeString = input->type;
                         programInput->second->_value = input->value;
 
@@ -570,13 +568,11 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
             }
             for (const MaterialX::Shader::Variable* input : block->variableOrder)
             {
-                bool foundMatch = false;
                 auto programInput = _uniformList.find(input->name);
                 if (programInput != _uniformList.end())
                 {
                     if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
                     {
-                        foundMatch = true;
                         programInput->second->_typeString = input->type;
                         programInput->second->_value = input->value;
 
@@ -794,7 +790,7 @@ void GlslValidator::bindLighting()
         location = programInput->second->_location;
         if (location >= 0)
         {
-            glUniform1i(location, 1);
+            glUniform1i(location, 0);
             blockUniformsSet++;
         }
     }
