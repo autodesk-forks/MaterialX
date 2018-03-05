@@ -275,7 +275,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     attributeList.push_back(swizzle1);
 
     // image
-    mx::FilePath imagePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Images/output.exr");
+    mx::FilePath imagePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Images/MaterialXLogo.exr");
     std::string imageName = imagePath.asString();
     mx::NodePtr image = nodeGraph->addNode("image", "image1", "color3");
     image->setParameterValue("file", imageName, "filename");
