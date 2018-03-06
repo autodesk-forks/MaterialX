@@ -5,6 +5,8 @@
 #include <windows.h> // For Windows calls
 
 #elif defined(OSLinux_)
+#include <dlfcn.h>
+#include <MaterialXView/External/GLew/glxew.h>
 #include <X11/Intrinsic.h> // for XtDisplay etc
 
 #elif defined(OSMac_)
@@ -104,7 +106,7 @@ GLUtilityContext::GLUtilityContext(const WindowWrapper& windowWrapper,
     _windowWrapper = windowWrapper;
 
     // Get connection to X Server
-    _display = windowWrapper.display();
+    _display = windowWrapper.getDisplay();
 
     // Load in OpenGL library
     void *libHandle = dlopen("libGL.so", RTLD_LAZY);
@@ -228,17 +230,9 @@ GLUtilityContext::GLUtilityContext(const WindowWrapper& windowWrapper,
         if (haveOldContext && haveOldDrawable)
         {
             MakeCurrentFuncPtr(_display, oldDrawable, oldContext);
+
         }
     }
-}
-
-GLUtilityContext::GLUtilityContext(const WindowWrapper& /*windowWrapper*/, HardwareContextHandle /*sharedWithContext*/)
-{
-    _dummyWindow = 0;
-    _contextHandle = 0;
-    _display = 0;
-
-    _isValid = false;
 }
 
 //

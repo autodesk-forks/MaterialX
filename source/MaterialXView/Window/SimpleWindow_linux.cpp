@@ -5,7 +5,7 @@
 #include <MaterialXView/Window/SimpleWindow.h>
 
 #include <X11/StringDefs.h>
-#include <X11/Shell.h>
+#include <X11/Shell.h> // for applicationShellWidgetClass
 #include <X11/Xlib.h> // for XEvent definition
 #include <X11/Intrinsic.h> // for XtCallbackProc definition
 
@@ -71,10 +71,7 @@ bool SimpleWindow::initialize(char* title,
     }
 
     XtRealizeWidget(widget);
-
     _windowWrapper = WindowWrapper(widget, XtWindow(widget), XtDisplay(widget));
-
-    _active = true;
 
     return true;
 }

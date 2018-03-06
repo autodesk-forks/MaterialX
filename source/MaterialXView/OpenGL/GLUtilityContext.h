@@ -9,6 +9,8 @@
 #include <MaterialXView/Window/SimpleWindow.h>
 #elif defined(OSMac_)
 #include <OpenGL/gl.h>
+#elif defined(OSLinux_)
+#include <MaterialXView/External/GLew/glxew.h>
 #endif
 
 namespace MaterialX
