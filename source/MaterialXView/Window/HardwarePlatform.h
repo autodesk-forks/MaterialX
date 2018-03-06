@@ -6,8 +6,8 @@
 //#define OSUnsupported_
 #define OSWin_
 #elif defined(__linux__)
-#define OSUnsupported_
-//#define OSLinux_
+//#define OSUnsupported_
+#define OSLinux_
 #elif defined(__APPLE__)
 #define OSUnsupported_
 //#define OSMac_ 

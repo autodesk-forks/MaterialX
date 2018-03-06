@@ -1,7 +1,28 @@
-include_directories(
+include_directories(    
     ${EXTERNAL_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/../
 )
+
+# Linux checks for X and OpenGL
+if (UNIX AND NOT APPLE)
+   find_package(PkgConfig REQUIRED)
+   find_package(X11 REQUIRED)
+   if (NOT X11_FOUND)
+      message("Error in building MaterialXView: X11 was not found")
+   endif(NOT X11_FOUND)
+   if (NOT X11_Xt_FOUND)
+      message("Error in building MaterialXView: Xt was not found")
+   endif(NOT X11_Xt_FOUND)
+
+   find_package(OpenGL REQUIRED)
+   if (NOT OPENGL_FOUND)
+      message("Error in building MaterialXView: OpenGL was not found")
+   endif(NOT OPENGL_FOUND)
+
+   include_directories(
+	${X11_INCLUDE_DIR}
+   )
+endif(UNIX AND NOT APPLE)
 
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE materialx_header "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
@@ -27,14 +48,6 @@ add_library(MaterialXView STATIC
     ${materialx_header}
 )
 
-set_target_properties(
-    MaterialXView PROPERTIES
-    OUTPUT_NAME MaterialXView
-    COMPILE_FLAGS "${EXTERNAL_COMPILE_FLAGS}"
-    LINK_FLAGS "${EXTERNAL_LINK_FLAGS}"
-    VERSION "${MATERIALX_LIBRARY_VERSION}"
-    SOVERSION "${MATERIALX_MAJOR_VERSION}")
-
 if(MSVC)
     target_link_libraries(
         MaterialXView
@@ -42,13 +55,25 @@ if(MSVC)
         MaterialXCore
         Opengl32
         ${CMAKE_DL_LIBS})
-else()
+elseif (UNIX AND NOT APPLE)
     target_link_libraries(
         MaterialXView
         MaterialXShaderGen
         MaterialXCore
-        ${CMAKE_DL_LIBS})
-endif()
+        ${CMAKE_DL_LIBS}
+        ${OPENGL_LIBRARIES}
+	${X11_LIBRARIES}
+        ${X11_Xt_LIB}
+    )
+endif(MSVC)
+
+set_target_properties(
+    MaterialXView PROPERTIES
+    OUTPUT_NAME MaterialXView
+    COMPILE_FLAGS "${EXTERNAL_COMPILE_FLAGS}"
+    LINK_FLAGS "${EXTERNAL_LINK_FLAGS}"
+    VERSION "${MATERIALX_LIBRARY_VERSION}"
+    SOVERSION "${MATERIALX_MAJOR_VERSION}")
 
 install(TARGETS MaterialXView
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/
