@@ -5,7 +5,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <AppKit/NSApplication.h>
-#import "CocoaWrappers.h"
+#import "GLCocoaWrappers.h"
 
 
 void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colorSize, int depthFormat,
@@ -39,14 +39,14 @@ void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colo
 	{
 		list[i++] = NSOpenGLPFAAccelerated;
 	}
-	if (mp_safe)
-	{
-		list[i++] = NSOpenGLPFAMPSafe;
-	}
-	if (stereo)
-	{
-		list[i++] = NSOpenGLPFAStereo;
-	}
+	//if (mp_safe)
+	  //{
+	//list[i++] = NSOpenGLPFAMPSafe;
+	//}
+	///f (stereo)
+	//{
+	//list[i++] = NSOpenGLPFAStereo;
+	//}
 
 	// Add multisample support to the list of attributes if supported
 	//
@@ -83,19 +83,19 @@ void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colo
 
 void NSOpenGLReleasePixelFormat(void* pPixelFormat)
 {
-	NSOpenGLPixelFormat *pixelFormat = pPixelFormat;
+  NSOpenGLPixelFormat *pixelFormat = (NSOpenGLPixelFormat*)pPixelFormat;
 	[pixelFormat release];
 }
 
 void NSOpenGLReleaseContext(void* pContext)
 {
-	NSOpenGLContext *context = pContext;
+  NSOpenGLContext *context = (NSOpenGLContext*)pContext;
 	[context release];
 }
 
 void* NSOpenGLCreateContextWrapper(void* pPixelFormat, void *pDummyContext)
 {
-	NSOpenGLPixelFormat *pixelFormat = pPixelFormat;
+  NSOpenGLPixelFormat *pixelFormat = (NSOpenGLPixelFormat*)pPixelFormat;
 	NSOpenGLContext *dummyContext = (NSOpenGLContext*)pDummyContext;
 	NSOpenGLContext *context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
 						shareContext:dummyContext];
@@ -119,7 +119,7 @@ void NSOpenGLSetDrawable(void* pContext, void* pWindow)
 
 void NSOpenGLMakeCurrent(void* pContext)
 {
-	NSOpenGLContext* context = pContext;
+  NSOpenGLContext* context = (NSOpenGLContext*)pContext;
 	[context makeCurrentContext];
 }
 
@@ -130,7 +130,7 @@ void* NSOpenGLGetCurrentContextWrapper()
 
 void NSOpenGLSwapBuffers(void* pContext)
 {
-	NSOpenGLContext* context = pContext;
+  NSOpenGLContext* context = (NSOpenGLContext*)pContext;
 	[context flushBuffer];
 }
 
@@ -141,7 +141,7 @@ void NSOpenGLClearCurrentContext()
 
 void NSOpenGLDestroyContext(void** pContext)
 {
-	NSOpenGLContext* context = *pContext;
+  NSOpenGLContext* context = (NSOpenGLContext*)*pContext;
 	[context release];
 	*pContext = NULL;
 }
@@ -149,25 +149,18 @@ void NSOpenGLDestroyContext(void** pContext)
 void NSOpenGLDestroyCurrentContext(void** pContext)
 {
 	[NSOpenGLContext clearCurrentContext];
-	NSOpenGLContext* context = *pContext;
+	NSOpenGLContext* context = (NSOpenGLContext*)*pContext;
 	[context release];
 	*pContext = NULL;
 }
 
-//pContext1 is srource. pContext2 is destination
-void NSOpenGLCopyContext(void* pContext1, void* pContext2, unsigned int mask)
-{
-	NSOpenGLContext* context1 = pContext1;
-	NSOpenGLContext* context2 = pContext2;
-	[context2 copyAttributesFromContext:context1 withMask:mask];
-}
 
 void NSOpenGLClearDrawable(void* pContext)
 {
 	// Create local autorelease pool for any objects that need to be autoreleased.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-	NSOpenGLContext* context = pContext;
+	NSOpenGLContext* context =(NSOpenGLContext*) pContext;
 	[context clearDrawable];
 
 	// Free up memory
@@ -182,26 +175,26 @@ void NSOpenGLDescribePixelFormat(void* pPixelFormat, int attrib, int* vals)
 
 void NSOpenGLGetInteger(void* pContext, int param, int* vals)
 {
-	NSOpenGLContext* context = pContext;
+  NSOpenGLContext* context = (NSOpenGLContext*)pContext;
 	[context getValues:vals forParameter:param];
 }
 
 void NSOpenGLUpdate(void* pContext)
 {
-	NSOpenGLContext* context = pContext;
+  NSOpenGLContext* context = (NSOpenGLContext*)pContext;
 	[context update];
 }
 
 void* NSOpenGLCGLContextObj(void* pContext)
 {
-	NSOpenGLContext *context = pContext;
+  NSOpenGLContext *context = (NSOpenGLContext*)pContext;
 	NSOpenGLContextAuxiliary* contextAuxiliary =  [context CGLContextObj];
 	return contextAuxiliary;
 }
 
 void* NSOpenGLGetWindow(void* pView)
 {
-	NSView *view = pView;
+  NSView *view = (NSView*)pView;
 	return [view window];
 }
 

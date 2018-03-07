@@ -24,7 +24,7 @@ void	NSOpenGLSwapBuffers(void* pContext);
 void	NSOpenGLClearCurrentContext();
 void	NSOpenGLDestroyContext(void** pContext);
 void	NSOpenGLDestroyCurrentContext(void** pContext);
-void	NSOpenGLCopyContext(void* pContext1, void* pContext2, unsigned int mask);
+  //void	NSOpenGLCopyContext(void* pContext1, void* pContext2, unsigned int mask);
 void	NSOpenGLClearDrawable(void* pContext);
 void	NSOpenGLDescribePixelFormat(void* pPixelFormat, int attrib, int* vals);
 void	NSOpenGLGetInteger(void* pContext, int param, int* vals);

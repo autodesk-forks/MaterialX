@@ -26,6 +26,15 @@ endif(UNIX AND NOT APPLE)
 
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE materialx_header "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+if (APPLE)
+  find_package(OpenGL REQUIRED)
+  file(GLOB_RECURSE materialx_source_oc "${CMAKE_CURRENT_SOURCE_DIR}/*.m")
+  message("Objective C files: " ${materialx_source_oc})
+  set_source_files_properties(${materialx_source_oc} PROPERTIES 
+                            COMPILE_FLAGS "-x objective-c++")
+  set(materialx_source ${materialx_source} ${materialx_source_oc})
+
+endif(APPLE)
 
 function(assign_source_group prefix)
     foreach(_source IN ITEMS ${ARGN})
@@ -55,6 +64,14 @@ if(MSVC)
         MaterialXCore
         Opengl32
         ${CMAKE_DL_LIBS})
+elseif (APPLE)
+    target_link_libraries(
+        MaterialXView
+        MaterialXShaderGen
+        MaterialXCore
+        ${CMAKE_DL_LIBS}
+        ${OPENGL_LIBRARIES}
+)
 elseif (UNIX AND NOT APPLE)
     target_link_libraries(
         MaterialXView

@@ -2,7 +2,7 @@
 #if defined(MATERIALX_TEST_VIEW) && defined(MATERIALX_BUILD_VIEW)
 #include <MaterialXView/Window/HardwarePlatform.h>
 // Run only on windows for now
-#if defined(OSWin_) || defined(OSLinux_)
+#if defined(OSWin_) || defined(OSLinux_) || defined(OSMac_)
 
 #include <MaterialXTest/Catch/catch.hpp>
 
