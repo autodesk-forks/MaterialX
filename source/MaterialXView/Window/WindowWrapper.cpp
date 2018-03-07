@@ -187,19 +187,19 @@ WindowWrapper::WindowWrapper(ExternalWindowHandle externalHandle, InternalWindow
 {
     _externalHandle = externalHandle;
     // Cache a pointer to the window.
-    _internalHandle = aglToNSOpenGLGetView(externalHandle);
+    _internalHandle = NSUtilGetView(externalHandle);
 }
 
 WindowWrapper::WindowWrapper(const WindowWrapper& other)
 {
     _externalHandle = other._externalHandle;
-    _internalHandle = aglToNSOpenGLGetView(_externalHandle);
+    _internalHandle = NSUtilGetView(_externalHandle);
 }
 
 const WindowWrapper& WindowWrapper::operator=(const WindowWrapper& other)
 {
     _externalHandle = other._externalHandle;
-    _internalHandle = aglToNSOpenGLGetView(_externalHandle);
+    _internalHandle = NSUtilGetView(_externalHandle);
     return *this;
 }
 
