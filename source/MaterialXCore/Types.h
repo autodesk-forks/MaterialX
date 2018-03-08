@@ -60,7 +60,7 @@ class Vector2 : public VectorN<2>
   public:
     using VectorN<2>::VectorN;
     Vector2() { }
-    Vector2(float x, float y) { data = {x, y}; }
+    Vector2(float x, float y) { data = { {x, y} }; }
 };
 
 /// A vector of three floating-point values
@@ -69,7 +69,7 @@ class Vector3 : public VectorN<3>
   public:
     using VectorN<3>::VectorN;
     Vector3() { }
-    Vector3(float x, float y, float z) { data = {x, y, z}; }
+    Vector3(float x, float y, float z) { data = { {x, y, z} }; }
 };
 
 /// A vector of four floating-point values
@@ -78,7 +78,7 @@ class Vector4 : public VectorN<4>
   public:
     using VectorN<4>::VectorN;
     Vector4() { }
-    Vector4(float x, float y, float z, float w) { data = {x, y, z, w}; }
+    Vector4(float x, float y, float z, float w) { data = { { x, y, z, w} }; }
 };
 
 /// A 3x3 matrix of floating-point values
