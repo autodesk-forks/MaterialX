@@ -6,7 +6,7 @@
 #import <AppKit/NSApplication.h>
 #import <MaterialXView/Window/WindowCocoaWrappers.h>
 
-void* NSUtilGLGetView(void* pWindow)
+void* NSUtilGetView(void* pWindow)
 {
   NSWindow* window = (NSWindow*)pWindow;
 	NSView* view =  [window contentView];

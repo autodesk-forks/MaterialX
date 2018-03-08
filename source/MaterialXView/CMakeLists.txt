@@ -27,6 +27,7 @@ endif(UNIX AND NOT APPLE)
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE materialx_header "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 if (APPLE)
+  find_library(COCOA_FRAMEWORK Cocoa)
   find_package(OpenGL REQUIRED)
   file(GLOB_RECURSE materialx_source_oc "${CMAKE_CURRENT_SOURCE_DIR}/*.m")
   message("Objective C files: " ${materialx_source_oc})
@@ -71,6 +72,8 @@ elseif (APPLE)
         MaterialXCore
         ${CMAKE_DL_LIBS}
         ${OPENGL_LIBRARIES}
+	"-framework Foundation"
+	"-framework Cocoa"
 )
 elseif (UNIX AND NOT APPLE)
     target_link_libraries(
