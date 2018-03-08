@@ -362,7 +362,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         std::string fileName = nodePtr->getName() + ".exr";
         validator.save(fileName);
     }
-
+#if 0
     /////////////////////////////////
     {
         const std::string lightDoc = " \
@@ -461,6 +461,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         std::string fileName = "lighting1.exr";
         validator.save(fileName);
     }
+#endif
 }
 
 #endif
