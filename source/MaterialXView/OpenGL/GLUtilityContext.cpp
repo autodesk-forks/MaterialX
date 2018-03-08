@@ -10,7 +10,9 @@
 #include <X11/Intrinsic.h> // for XtDisplay etc
 
 #elif defined(OSMac_)
+#include <MaterialXView/External/GLew/glew.h>
 #include <MaterialXView/Window/WindowCocoaWrappers.h>
+#include <MaterialXView/OpenGL/GLCocoaWrappers.h>
 #endif
 
 #include <MaterialXView/External/GLew/glew.h>
@@ -256,13 +258,13 @@ GLUtilityContext::GLUtilityContext(const WindowWrapper& /*windowWrapper*/, Hardw
     //
     _contextHandle = NSOpenGLCreateContextWrapper(pixelFormat, sharedWithContext);
 
-    aglCheckError();
+    //aglCheckError();
 
-    aglToNSOpenGLReleasePixelFormat(pixelFormat);
-    aglCheckError();
+    NSOpenGLReleasePixelFormat(pixelFormat);
+    //aglCheckError();
 
-    aglToNSOpenGLMakeCurrent(_contextHandle);
-    aglCheckError();
+    NSOpenGLMakeCurrent(_contextHandle);
+    //aglCheckError();
 
     _isValid = true;
 }
@@ -297,7 +299,7 @@ GLUtilityContext::~GLUtilityContext()
         // created with this context are destroyed.
         if (_contextHandle != 0)
         {
-            aglToNSOpenGLDestroyCurrentContext(&_contextHandle);
+            NSOpenGLDestroyCurrentContext(&_contextHandle);
         }
 #endif
     }
@@ -318,12 +320,12 @@ int GLUtilityContext::makeCurrent()
 #elif defined(OSLinux_)
     makeCurrentOk = glXMakeCurrent(_display, _dummyWindow, _contextHandle);
 #elif defined(OSMac_)
-    aglToNSOpenGLMakeCurrent(_contextHandle);
-    if (aglToNSOpenGLGetCurrentContextWrapper() == _contextHandle)
+    NSOpenGLMakeCurrent(_contextHandle);
+    if (NSOpenGLGetCurrentContextWrapper() == _contextHandle)
     {
         makeCurrentOk = 1;
     }
-    aglCheckError();
+    ////aglCheckError();
 #else
     ;
 #endif
