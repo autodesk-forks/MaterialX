@@ -1,10 +1,10 @@
+#include <MaterialXView/Window/HardwarePlatform.h>
 
-// Restrict to only run on Windows 
-#if defined(_WIN64) || defined(_WIN32)
-#if defined(_WIN64)
+#if defined(OSWin_) && defined(_WIN64)
 #define TINYEXR_USABLE
 #endif
-#else
+#if defined(OSMac_)
+#define TINYEXR_USABLE
 #endif
 
 #if defined(TINYEXR_USABLE)

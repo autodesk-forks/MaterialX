@@ -219,15 +219,16 @@ bool GlslValidator::createTarget()
     glGenTextures(1, &_colorTarget);
     glBindTexture(GL_TEXTURE_2D, _colorTarget);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _frameBufferWidth, _frameBufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _colorTarget, 0);
+    // Note: glFramebufferTexture crashes on Mac so use this version 
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _colorTarget, 0);
 
     // Create floating point offscreen depth target
     _depthTarget = UNDEFINED_OPENGL_RESOURCE_ID;
     glGenTextures(1, &_depthTarget);
     glBindTexture(GL_TEXTURE_2D, _depthTarget);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, _frameBufferWidth, _frameBufferHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTarget, 0);
-
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTarget, 0);
+    
     glBindTexture(GL_TEXTURE_2D, UNDEFINED_OPENGL_RESOURCE_ID);
 
     glDrawBuffer(GL_NONE);
