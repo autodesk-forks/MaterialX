@@ -35,6 +35,5 @@ SimpleWindow::~SimpleWindow()
     void* hWnd = _windowWrapper.externalHandle();
     NSUtilDisposeWindow(hWnd);
 }
-
 }
 #endif

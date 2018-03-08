@@ -5,9 +5,9 @@
 #include <windows.h> // For Windows calls
 
 #elif defined(OSLinux_)
-#include <dlfcn.h>
+#include <dlfcn.h> // For dlopen
 #include <MaterialXView/External/GLew/glxew.h>
-#include <X11/Intrinsic.h> // for XtDisplay etc
+#include <X11/Intrinsic.h> 
 
 #elif defined(OSMac_)
 #include <MaterialXView/External/GLew/glew.h>
@@ -257,14 +257,8 @@ GLUtilityContext::GLUtilityContext(const WindowWrapper& /*windowWrapper*/, Hardw
     // (Instead, all other contexts will share against this one.)
     //
     _contextHandle = NSOpenGLCreateContextWrapper(pixelFormat, sharedWithContext);
-
-    //aglCheckError();
-
     NSOpenGLReleasePixelFormat(pixelFormat);
-    //aglCheckError();
-
     NSOpenGLMakeCurrent(_contextHandle);
-    //aglCheckError();
 
     _isValid = true;
 }
@@ -325,7 +319,6 @@ int GLUtilityContext::makeCurrent()
     {
         makeCurrentOk = 1;
     }
-    ////aglCheckError();
 #else
     ;
 #endif
@@ -343,15 +336,6 @@ GLUtilityContextPtr GLUtilityContext::creator(const WindowWrapper& windowWrapper
     }
     return std::shared_ptr<GLUtilityContext>(_globalGLUtilityContext);
 }
-
-//void GLUtilityContext::destroy()
-//{
-//    if (_globalGLUtilityContext)
-//    {
-//        delete _globalGLUtilityContext;
-//        _globalGLUtilityContext = nullptr;
-//    }
-//}
 
 }
 

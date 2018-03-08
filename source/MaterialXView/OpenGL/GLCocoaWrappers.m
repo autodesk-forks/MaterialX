@@ -7,7 +7,6 @@
 #import <AppKit/NSApplication.h>
 #import "GLCocoaWrappers.h"
 
-
 void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colorSize, int depthFormat,
 								int stencilFormat, int auxBuffers, int accumSize, bool minimumPolicy,
 								bool accelerated, bool mp_safe,  bool stereo, bool supportMultiSample)
@@ -18,20 +17,34 @@ void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colo
 	NSOpenGLPixelFormatAttribute list[50];
 	int i = 0;
 	if (allRenders)
+    {
 		list[i++] = NSOpenGLPFAAllRenderers;
-	if (bufferType == 1) //kOnScreen
-		list[i++] = NSOpenGLPFADoubleBuffer;
-	if (colorSize != 0)
-		list[i++] = NSOpenGLPFAColorSize; list[i++] = colorSize;
-	if (depthFormat != 0)
-		list[i++] = NSOpenGLPFADepthSize; list[i++] = depthFormat;
-	if (stencilFormat != 0)
-		list[i++] = NSOpenGLPFAStencilSize; list[i++] = stencilFormat;
-	if (auxBuffers != 0)
-		list[i++] = NSOpenGLPFAAuxBuffers; list[i++] = auxBuffers;
-	if (accumSize != 0)
-		list[i++] = NSOpenGLPFAAccumSize; list[i++] = accumSize;
-	if (minimumPolicy)
+	}
+    if (bufferType == 1) // On screen
+	{
+    	list[i++] = NSOpenGLPFADoubleBuffer;
+	}
+    if (colorSize != 0)
+	{
+    	list[i++] = NSOpenGLPFAColorSize; list[i++] = colorSize;
+	}
+    if (depthFormat != 0)
+	{
+    	list[i++] = NSOpenGLPFADepthSize; list[i++] = depthFormat;
+	}
+    if (stencilFormat != 0)
+	{
+    	list[i++] = NSOpenGLPFAStencilSize; list[i++] = stencilFormat;
+	}
+    if (auxBuffers != 0)
+	{
+    	list[i++] = NSOpenGLPFAAuxBuffers; list[i++] = auxBuffers;
+	}
+    if (accumSize != 0)
+	{
+    	list[i++] = NSOpenGLPFAAccumSize; list[i++] = accumSize;
+	}
+    if (minimumPolicy)
 	{
 		list[i++] = NSOpenGLPFAMinimumPolicy;
 	}
@@ -39,23 +52,13 @@ void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colo
 	{
 		list[i++] = NSOpenGLPFAAccelerated;
 	}
-	//if (mp_safe)
-	  //{
-	//list[i++] = NSOpenGLPFAMPSafe;
-	//}
-	///f (stereo)
-	//{
-	//list[i++] = NSOpenGLPFAStereo;
-	//}
 
 	// Add multisample support to the list of attributes if supported
 	//
 	int multiSampleAttrIndex = i;
 	if (supportMultiSample)
 	{
-		// TODO: Will need a better way of determining sampling numbers.
-		// Currently fixed at 4 samples.
-		//
+        // Default to 4 samples
 		list[i++] = NSOpenGLPFASampleBuffers; list[i++] = TRUE;
 		list[i++] = NSOpenGLPFASamples; list[i++] = 4;
 	}
@@ -83,22 +86,22 @@ void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colo
 
 void NSOpenGLReleasePixelFormat(void* pPixelFormat)
 {
-  NSOpenGLPixelFormat *pixelFormat = (NSOpenGLPixelFormat*)pPixelFormat;
-	[pixelFormat release];
+    NSOpenGLPixelFormat *pixelFormat = (NSOpenGLPixelFormat*)pPixelFormat;
+    [pixelFormat release];
 }
 
 void NSOpenGLReleaseContext(void* pContext)
 {
-  NSOpenGLContext *context = (NSOpenGLContext*)pContext;
-	[context release];
+    NSOpenGLContext *context = (NSOpenGLContext*)pContext;
+    [context release];
 }
 
 void* NSOpenGLCreateContextWrapper(void* pPixelFormat, void *pDummyContext)
 {
-  NSOpenGLPixelFormat *pixelFormat = (NSOpenGLPixelFormat*)pPixelFormat;
-	NSOpenGLContext *dummyContext = (NSOpenGLContext*)pDummyContext;
-	NSOpenGLContext *context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
-						shareContext:dummyContext];
+    NSOpenGLPixelFormat *pixelFormat = (NSOpenGLPixelFormat*)pPixelFormat;
+    NSOpenGLContext *dummyContext = (NSOpenGLContext*)pDummyContext;
+    NSOpenGLContext *context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
+						            shareContext:dummyContext];
 
 	return context;
 }
@@ -119,31 +122,31 @@ void NSOpenGLSetDrawable(void* pContext, void* pWindow)
 
 void NSOpenGLMakeCurrent(void* pContext)
 {
-  NSOpenGLContext* context = (NSOpenGLContext*)pContext;
-	[context makeCurrentContext];
+    NSOpenGLContext* context = (NSOpenGLContext*)pContext;
+    [context makeCurrentContext];
 }
 
 void* NSOpenGLGetCurrentContextWrapper()
 {
-	return [NSOpenGLContext currentContext];
+    return [NSOpenGLContext currentContext];
 }
 
 void NSOpenGLSwapBuffers(void* pContext)
 {
-  NSOpenGLContext* context = (NSOpenGLContext*)pContext;
-	[context flushBuffer];
+    NSOpenGLContext* context = (NSOpenGLContext*)pContext;
+    [context flushBuffer];
 }
 
 void NSOpenGLClearCurrentContext()
 {
-	[NSOpenGLContext clearCurrentContext];
+    [NSOpenGLContext clearCurrentContext];
 }
 
 void NSOpenGLDestroyContext(void** pContext)
 {
-  NSOpenGLContext* context = (NSOpenGLContext*)*pContext;
-	[context release];
-	*pContext = NULL;
+    NSOpenGLContext* context = (NSOpenGLContext*)*pContext;
+    [context release];
+    *pContext = NULL;
 }
 
 void NSOpenGLDestroyCurrentContext(void** pContext)

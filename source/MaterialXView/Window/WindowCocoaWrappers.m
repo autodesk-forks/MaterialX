@@ -8,7 +8,7 @@
 
 void* NSUtilGetView(void* pWindow)
 {
-  NSWindow* window = (NSWindow*)pWindow;
+    NSWindow* window = (NSWindow*)pWindow;
 	NSView* view =  [window contentView];
 	return (void*)view;
 }
@@ -40,19 +40,19 @@ void* NSUtilCreateWindow(unsigned int width, unsigned int height, char* title, b
 
 void NSUtilShowWindow(void* pWindow)
 {
-  NSWindow* window = (NSWindow*) pWindow;
+    NSWindow* window = (NSWindow*) pWindow;
 	[window orderFront:window];
 }
 
 void NSUtilHideWindow(void* pWindow)
 {
-  NSWindow* window = (NSWindow*)pWindow;
+    NSWindow* window = (NSWindow*)pWindow;
 	[window orderOut:window];
 }
 
 void NSUtilSetFocus(void* pWindow)
 {
-  NSWindow* window = (NSWindow*)pWindow;
+    NSWindow* window = (NSWindow*)pWindow;
 	[window makeKeyAndOrderFront:window];
 }
 
@@ -62,7 +62,7 @@ void NSUtilDisposeWindow(void* pWindow)
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	NSWindow* window = (NSWindow*)pWindow;
-	[window close];
+    [window close];
 
 	// Free up memory
 	[pool release];

@@ -1,7 +1,8 @@
 // Compile if module flags were set
 #if defined(MATERIALX_TEST_VIEW) && defined(MATERIALX_BUILD_VIEW)
+
+// Run only on supported platforms
 #include <MaterialXView/Window/HardwarePlatform.h>
-// Run only on windows for now
 #if defined(OSWin_) || defined(OSLinux_) || defined(OSMac_)
 
 #include <MaterialXTest/Catch/catch.hpp>
@@ -46,11 +47,11 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 
     std::vector<std::string> shaderNames =
     {
-        //"conditional_test1",
-        //"simple_test1_graphoutput",
-        //"simple_test1_node",
-        //"geometric_nodes",
-        //"subgraph_ex1",
+        "conditional_test1",
+        "simple_test1_graphoutput",
+        "simple_test1_node",
+        "geometric_nodes",
+        "subgraph_ex1",
         "subgraph_ex2"
     };
 
