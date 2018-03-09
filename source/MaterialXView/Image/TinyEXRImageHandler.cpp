@@ -3,7 +3,7 @@
 #if defined(OSWin_) && defined(_WIN64)
 #define TINYEXR_USABLE
 #endif
-#if defined(OSMac_)
+#if defined(OSMac_) || defined(OSLinux)
 #define TINYEXR_USABLE
 #endif
 
