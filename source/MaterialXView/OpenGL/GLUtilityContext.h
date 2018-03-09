@@ -38,7 +38,7 @@ class GLUtilityContext
 {
   public:
     
-    /// Create a base context singleton if not already created
+    /// Create a utility context 
     static GLUtilityContextPtr creator(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
 
     /// Default destructor
@@ -72,9 +72,6 @@ class GLUtilityContext
   protected:
     /// Create the base context. A OpenGL context to share with can be passed in.
     GLUtilityContext(const WindowWrapper& windowWrapper, HardwareContextHandle context = 0);
-
-    /// Base context singleton
-    static GLUtilityContext* _globalGLUtilityContext;
 
 #if defined(OSWin_)
     /// Offscreen window required for context operations

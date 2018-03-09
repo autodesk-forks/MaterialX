@@ -20,10 +20,6 @@
 
 namespace MaterialX
 {
-
-// Global base context 
-GLUtilityContext* GLUtilityContext::_globalGLUtilityContext = nullptr;
-
 // Unsupported
 #if defined(OSUnsupported_)
 
@@ -297,8 +293,6 @@ GLUtilityContext::~GLUtilityContext()
         }
 #endif
     }
-
-    GLUtilityContext::_globalGLUtilityContext = 0;
 }
 
 int GLUtilityContext::makeCurrent()
@@ -326,15 +320,11 @@ int GLUtilityContext::makeCurrent()
 }
 
 //
-// Singleton create/destory methods
+// Creator
 //
 GLUtilityContextPtr GLUtilityContext::creator(const WindowWrapper& windowWrapper, HardwareContextHandle context)
 {
-    if (!_globalGLUtilityContext)
-    {
-        _globalGLUtilityContext = new GLUtilityContext(windowWrapper, context);
-    }
-    return std::shared_ptr<GLUtilityContext>(_globalGLUtilityContext);
+    return std::shared_ptr<GLUtilityContext>(new GLUtilityContext(windowWrapper, context));
 }
 
 }

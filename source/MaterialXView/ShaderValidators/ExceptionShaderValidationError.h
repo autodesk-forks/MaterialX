@@ -2,13 +2,12 @@
 #define MATERIALX__EXCEPTIONSHADERVALIDATIONERROR_H
 
 #include <MaterialXCore/Library.h>
-#include <string>
 
 namespace MaterialX
 {
 
 /// Error string list type
-using ShaderValidationErrorList = std::vector<std::string>;
+using ShaderValidationErrorList = vector<string>;
 
 /// @class @ExceptionShaderValidationError
 /// An exception that is thrown when shader validation fails.
@@ -16,8 +15,8 @@ using ShaderValidationErrorList = std::vector<std::string>;
 /// For example, if shader compilation fails, then a list of compilation errors is cached.
 class ExceptionShaderValidationError : public Exception
 {
-public:
-    ExceptionShaderValidationError(const std::string& msg, const ShaderValidationErrorList& errorList) :
+  public:
+    ExceptionShaderValidationError(const string& msg, const ShaderValidationErrorList& errorList) :
         Exception(msg),
         _errorLog(errorList)
     {
@@ -40,6 +39,12 @@ public:
     {
     }
 
+    const ShaderValidationErrorList& errorLog() const
+    {
+        return _errorLog;
+    }
+
+  private:
     ShaderValidationErrorList _errorLog;
 };
 

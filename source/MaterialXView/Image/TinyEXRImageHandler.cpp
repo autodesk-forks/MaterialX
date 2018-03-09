@@ -31,7 +31,6 @@ namespace MaterialX
 {
 #if defined(TINYEXR_USABLE)
 bool TinyEXRImageHandler::saveImage(const std::string& fileName,
-                                    const std::string& extension, 
                                     unsigned int width, 
                                     unsigned int height, 
                                     unsigned int channelCount, 
@@ -39,6 +38,7 @@ bool TinyEXRImageHandler::saveImage(const std::string& fileName,
 {
     int returnValue = -1;
     // Fail with any type other than exr.
+    std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
     if (extension == "exr")
     { 
         returnValue = SaveEXR(buffer, width, height, channelCount, 1 /* save as 16 bit float format */, fileName.c_str());
@@ -47,7 +47,6 @@ bool TinyEXRImageHandler::saveImage(const std::string& fileName,
 }
 
 bool TinyEXRImageHandler::loadImage(const std::string& fileName,
-                                    const std::string& extension,
                                     unsigned int &width,
                                     unsigned int &height,
                                     unsigned int &channelCount,
@@ -58,6 +57,7 @@ bool TinyEXRImageHandler::loadImage(const std::string& fileName,
     *buffer = nullptr;
 
     // Fail with any type other than exr.
+    std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
     if (extension == "exr")
     {
         const char* err = nullptr;
@@ -77,7 +77,6 @@ bool TinyEXRImageHandler::loadImage(const std::string& fileName,
 
 #else
 bool TinyEXRImageHandler::saveImage(const std::string& /*fileName*/,
-    const std::string& /*extension*/,
     unsigned int /*width*/,
     unsigned int /*height*/,
     unsigned int /*channelCount*/,
@@ -87,7 +86,6 @@ bool TinyEXRImageHandler::saveImage(const std::string& /*fileName*/,
 }
 
 bool TinyEXRImageHandler::loadImage(const std::string& /*fileName*/,
-    const std::string& /*extension*/,
     unsigned int &/*width*/,
     unsigned int &/*height*/,
     unsigned int &/*channelCount*/,

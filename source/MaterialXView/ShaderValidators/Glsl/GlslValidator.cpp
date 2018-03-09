@@ -513,33 +513,21 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
         {
             MaterialX::Shader::VariableBlockPtr block = uniforms.second;
 
-            //if (block->variableOrder.size())
-            //{
-            //    std::cout << "Scan PIXEL shader uniform block: " << uniforms.first << ". Size: " << block->variableOrder.size() << std::endl;
-            //}
             for (const MaterialX::Shader::Variable* input : block->variableOrder)
             {
-                // There is no way to match with an unnamed varbiel
+                // There is no way to match with an unnamed variable
                 if (input->name.empty())
                 {
-                    //std::cout << "> Uniform with no name found. Skipping" << std::endl;
                     continue;
                 }
 
                 auto programInput = _uniformList.find(input->name);
                 if (programInput != _uniformList.end())
                 {
-                    if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
+                    if (programInput->second->gltype == mapTypeToOpenGLType(input->type))
                     {
-                        programInput->second->_typeString = input->type;
-                        programInput->second->_value = input->value;
-
-                        //std::cout << "> Uniform found in shader: \"" << input->name
-                        //    << "\". Type: \"" << input->type
-                        //    << "\". Semantic: \"" << input->semantic
-                        //    << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>")
-                        //    << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type)
-                        //    << std::endl;
+                        programInput->second->typeString = input->type;
+                        programInput->second->value = input->value;
                     }
                     else
                     {
@@ -554,15 +542,6 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
                         uniformTypeMismatchFound = true;
                     }
                 }
-                else
-                {
-                    //std::cout << "> Uniform not found in shader: \"" << input->name  
-                    //    << "\". Type: \"" << input->type 
-                    //    << "\". Semantic: \"" << input->semantic 
-                    //    << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>") 
-                    //    << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << std::dec
-                    //    << std::endl;
-                }
             }
         }
 
@@ -570,27 +549,16 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
         for (auto uniforms : vertexShaderUniforms)
         {
             MaterialX::Shader::VariableBlockPtr block = uniforms.second;
-            //if (block->variableOrder.size())
-            //{
-            //    std::cout << "Scan VERTEX shader uniform block: " << uniforms.first << ". Size: " << block->variableOrder.size() << std::endl;
-            //}
             for (const MaterialX::Shader::Variable* input : block->variableOrder)
             {
                 auto programInput = _uniformList.find(input->name);
                 if (programInput != _uniformList.end())
                 {
-                    if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
+                    if (programInput->second->gltype == mapTypeToOpenGLType(input->type))
                     {
-                        programInput->second->_typeString = input->type;
-                        programInput->second->_value = input->value;
-                        programInput->second->_typeString = input->type;
-
-                        //std::cout << "> Uniform found in shader: \"" << input->name
-                        //    << "\". Type: \"" << input->type
-                        //    << "\". Semantic: \"" << input->semantic
-                        //    << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>")
-                        //    << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << std::dec
-                        //    << std::endl;                
+                        programInput->second->typeString = input->type;
+                        programInput->second->value = input->value;
+                        programInput->second->typeString = input->type;
                     }
                     else
                     {
@@ -607,13 +575,7 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
                 }
                 else
                 {
-                    programInput->second->_typeString = input->type;
-                    //std::cout << "> Uniform not found in shader: \"" << input->name
-                    //    << "\". Type: \"" << input->type
-                    //    << "\". Semantic: \"" << input->semantic
-                    //    << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>")
-                    //    << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type) << std::dec
-                    //    << std::endl;                       
+                    programInput->second->typeString = input->type;
                 }
             }
         }
@@ -628,7 +590,7 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
     return _uniformList;
 }
 
-int GlslValidator::mapTypeToOpenGLType(const std::string type)
+int GlslValidator::mapTypeToOpenGLType(const std::string& type)
 {
     if (type == MaterialX::getTypeString<int>())
         return GL_INT;
@@ -687,7 +649,6 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateAttributesList()
         {
             ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(attributeLocation, attributeType, attributeSize);
             _attributeList[std::string(attributeName)] = inputPtr;
-            //std::cout << "Scanned attribute : " << attributeName << ". Location: " << attributeLocation << ". Type: " << attributeType << std::endl;
         }
     }
     delete[] attributeName;
@@ -700,18 +661,17 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateAttributesList()
 
         if (appDataBlock.variableOrder.size())
         { 
-            //std::cout << "Scan APPLICATION uniform block. Size: " << appDataBlock.variableOrder.size() << std::endl;
             for (const MaterialX::Shader::Variable* input : appDataBlock.variableOrder)
             {
                 //bool foundMatch = false;
                 auto programInput = _attributeList.find(input->name);
                 if (programInput != _attributeList.end())
                 {
-                    if (programInput->second->_gltype == mapTypeToOpenGLType(input->type))
+                    if (programInput->second->gltype == mapTypeToOpenGLType(input->type))
                     {
                         //foundMatch = true;
-                        programInput->second->_typeString = input->type;
-                        programInput->second->_value = input->value;
+                        programInput->second->typeString = input->type;
+                        programInput->second->value = input->value;
                     }
                     else
                     {
@@ -725,14 +685,6 @@ const GlslValidator::ProgramInputMap& GlslValidator::updateAttributesList()
                         uniformTypeMismatchFound = true;
                     }
                 }
-                //std::cout << "> Uniform" 
-                //    << (foundMatch ? " " : " not ")
-                //    << "found in shader: \"" << input->name
-                //    << "\". Type: \"" << input->type
-                //    << "\". Semantic: \"" << input->semantic
-                //    << "\". Value: \"" << (input->value ? input->value->getValueString() : "<none>")
-                //    << "\". GLType: " << std::hex << mapTypeToOpenGLType(input->type)
-                //    << std::endl;
             }
         }
 
@@ -763,10 +715,9 @@ void GlslValidator::bindTimeAndFrame()
     auto programInput = _uniformList.find("u_time");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
-            //std::cout << "Bind time. Location: " << location << std::endl;
             glUniform1f(location, 1.0f);
         }
     }
@@ -775,10 +726,9 @@ void GlslValidator::bindTimeAndFrame()
     programInput = _uniformList.find("u_frame");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
-            //std::cout << "Bind frame. Location: " << location << std::endl;
             glUniform1f(location, 1.0f);
         }
     }
@@ -803,7 +753,7 @@ void GlslValidator::bindLighting()
     auto programInput = _uniformList.find("u_numActiveLightSources");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
             glUniform1i(location, lightCount);
@@ -824,7 +774,7 @@ void GlslValidator::bindLighting()
     programInput = _uniformList.find("u_lightData[0].type");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
             glUniform1i(location, 0);
@@ -834,7 +784,7 @@ void GlslValidator::bindLighting()
     programInput = _uniformList.find("u_lightData[0].direction");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
             glUniform3f(location, 0.0f, 0.0f, -1.0f);
@@ -844,7 +794,7 @@ void GlslValidator::bindLighting()
     programInput = _uniformList.find("u_lightData[0].color");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
             glUniform3f(location, 1.0f, 1.0f, 1.0f);
@@ -854,7 +804,7 @@ void GlslValidator::bindLighting()
     programInput = _uniformList.find("u_lightData[0].intensity");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
             glUniform1f(location, 1.0f);
@@ -864,7 +814,7 @@ void GlslValidator::bindLighting()
     programInput = _uniformList.find("u_lightData[0].position");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
             glUniform3f(location, -1.0f, -1.0f, -1.0f);
@@ -874,14 +824,13 @@ void GlslValidator::bindLighting()
     programInput = _uniformList.find("u_lightData[0].decayRate");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
             glUniform1f(location, 1.0f);
             blockUniformsSet++;
         }
     }
-    //std::cout << "Light uniforms set: " << blockUniformsSet << std::endl;
 }
 
 void GlslValidator::bindViewInformation()
@@ -901,7 +850,7 @@ void GlslValidator::bindViewInformation()
     auto programInput = _uniformList.find("u_viewPosition");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
             glUniform3f(location, 0.0f, 0.0f, NEAR_PLANE-1.0f);
@@ -910,7 +859,7 @@ void GlslValidator::bindViewInformation()
     programInput = _uniformList.find("u_viewDirection");
     if (programInput != _uniformList.end())
     {
-        location = programInput->second->_location;
+        location = programInput->second->location;
         if (location >= 0)
         {
             glUniform3f(location, 0.0f, 0.0f, 1.0f);
@@ -937,7 +886,7 @@ void GlslValidator::bindViewInformation()
         programInput = _uniformList.find(worldMatrixVariable);
         if (programInput != _uniformList.end())
         {
-            location = programInput->second->_location;
+            location = programInput->second->location;
             if (location >= 0)
             {
                 bool transpose = (worldMatrixVariable.find("Transpose") != std::string::npos);
@@ -960,7 +909,7 @@ void GlslValidator::bindViewInformation()
         programInput = _uniformList.find(projectionMatrixVariable);
         if (programInput != _uniformList.end())
         {
-            location = programInput->second->_location;
+            location = programInput->second->location;
             if (location >= 0)
             {
                 bool transpose = (projectionMatrixVariable.find("Transpose") != std::string::npos);
@@ -984,7 +933,7 @@ void GlslValidator::bindViewInformation()
         programInput = _uniformList.find(viewMatrixVariable);
         if (programInput != _uniformList.end())
         {
-            location = programInput->second->_location;
+            location = programInput->second->location;
             if (location >= 0)
             {
                 glUniformMatrix4fv(location, 1, GL_FALSE, pm);
@@ -1008,7 +957,7 @@ void GlslValidator::findProgramInputs(const std::string& variable,
     auto programInput = variableList.find(variable);
     if (programInput != variableList.end())
     {
-        ilocation = programInput->second->_location;
+        ilocation = programInput->second->location;
         if (ilocation >= 0)
         {
             foundList[variable] = programInput->second;
@@ -1021,7 +970,7 @@ void GlslValidator::findProgramInputs(const std::string& variable,
             const std::string& name = programInput->first;
             if (name.compare(0, variable.size(), variable) == 0)
             {
-                ilocation = programInput->second->_location;
+                ilocation = programInput->second->location;
                 if (ilocation >= 0)
                 {
                     foundList[programInput->first] = programInput->second;
@@ -1043,8 +992,7 @@ bool GlslValidator::bindAttribute(const GLfloat* bufferData,
 
     for (auto found : foundList)
     {
-        int location = found.second->_location;
-        //std::cout << "Bind attribute = " << attributeId << ". Location: " << location << std::endl;
+        int location = found.second->location;
         if (_attributeBufferIds[attributeIndex] < 1)
         {
             // Create a buffer based on attribute type.
@@ -1135,18 +1083,18 @@ void GlslValidator::bindGeometry()
     for (auto programInput : foundList)
     {
         // Only handle float1-4 types for now
-        if (programInput.second->_gltype == GL_FLOAT)
+        if (programInput.second->gltype == GL_FLOAT)
         {
             GLfloat floatVal[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-            int size = programInput.second->_size;
+            int size = programInput.second->size;
             if (size == 1)
-                glUniform1fv(programInput.second->_location, 1, floatVal);
+                glUniform1fv(programInput.second->location, 1, floatVal);
             else if (size == 2)
-                glUniform2fv(programInput.second->_location, 1, floatVal);
+                glUniform2fv(programInput.second->location, 1, floatVal);
             else if (size == 3)
-                glUniform3fv(programInput.second->_location, 1, floatVal);
+                glUniform3fv(programInput.second->location, 1, floatVal);
             else if (size == 4)
-                glUniform4fv(programInput.second->_location, 1, floatVal);
+                glUniform4fv(programInput.second->location, 1, floatVal);
         }
     }
 
@@ -1212,8 +1160,8 @@ void GlslValidator::unbindTextures()
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
     for (auto uniform : _uniformList)
     {
-        GLenum uniformType = uniform.second->_gltype;
-        GLint uniformLocation = uniform.second->_location;
+        GLenum uniformType = uniform.second->gltype;
+        GLint uniformLocation = uniform.second->location;
         if (uniformLocation >= 0 &&
             uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
         {
@@ -1266,8 +1214,8 @@ void GlslValidator::bindTextures()
     _programTextures.clear();
     for (auto uniform : _uniformList)
     {
-        GLenum uniformType = uniform.second->_gltype;
-        GLint uniformLocation = uniform.second->_location;
+        GLenum uniformType = uniform.second->gltype;
+        GLint uniformLocation = uniform.second->location;
         if (uniformLocation >= 0 &&
             uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
         {
@@ -1282,15 +1230,14 @@ void GlslValidator::bindTextures()
             glActiveTexture(GL_TEXTURE0 + textureUnit);
 
             bool textureBound = false;
-            std::string fileName(uniform.second->_value ? uniform.second->_value->getValueString() : "");
+            std::string fileName(uniform.second->value ? uniform.second->value->getValueString() : "");
             if (!fileName.empty() && _imageHandler)
             {
-                const std::string extension("exr");
                 unsigned int width = 0;
                 unsigned int height = 0;
                 unsigned int channelCount = 0;
                 float* buffer = nullptr;
-                if (_imageHandler->loadImage(fileName, extension, width, height, channelCount, &buffer) &&
+                if (_imageHandler->loadImage(fileName, width, height, channelCount, &buffer) &&
                     (channelCount == 3 || channelCount == 4))
                 {
                     unsigned int newTexture = UNDEFINED_OPENGL_RESOURCE_ID;
@@ -1305,9 +1252,6 @@ void GlslValidator::bindTextures()
                     glGenerateMipmap(GL_TEXTURE_2D);
 
                     textureBound = true;
-
-                    //std::cout << "Bound texture for: \"" << fileName << "\", w=" << width << ", h=" << height
-                    //    << ", channelCount=" << channelCount << std::endl;
                 }
             }
 
@@ -1318,7 +1262,6 @@ void GlslValidator::bindTextures()
             }
 
             textureUnit++;
-            //std::cout << "Bind sampler:" << uniform.first << ". Location: " << uniformLocation << "Type: " << uniformType << std::endl;
         }
     }
 
@@ -1525,12 +1468,12 @@ void GlslValidator::save(std::string& fileName)
     {
         delete[] buffer;
         errors.push_back("Failed to read color buffer back.");
-        errors.insert(std::end(errors), std::begin(e._errorLog), std::end(e._errorLog));
+        errors.insert(std::end(errors), std::begin(e.errorLog()), std::end(e.errorLog()));
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
     // Save using the handler
-    bool saved = _imageHandler->saveImage(fileName, "exr", _frameBufferWidth, _frameBufferHeight, 4, buffer);
+    bool saved = _imageHandler->saveImage(fileName, _frameBufferWidth, _frameBufferHeight, 4, buffer);
     delete[] buffer;
 
     if (!saved)

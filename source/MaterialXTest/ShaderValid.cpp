@@ -38,7 +38,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
     }
     catch (mx::ExceptionShaderValidationError e)
     {
-        for (auto error : e._errorLog)
+        for (auto error : e.errorLog())
         {
             std::cout << e.what() << " " << error << std::endl;
         }
@@ -101,7 +101,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         }
         catch (mx::ExceptionShaderValidationError e)
         {
-            for (auto error : e._errorLog)
+            for (auto error : e.errorLog())
             {
                 std::cout << e.what() << " " << error << std::endl;
             }
@@ -114,11 +114,11 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
             const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
             for (auto input : uniforms)
             {
-                unsigned int gltype = input.second->_gltype;
-                int location = input.second->_location;
-                int size = input.second->_size;
-                std::string type = input.second->_typeString;
-                std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+                unsigned int gltype = input.second->gltype;
+                int location = input.second->location;
+                int size = input.second->size;
+                std::string type = input.second->typeString;
+                std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
                 std::cout << "Program Uniform: \"" << input.first
                     << "\". Location=" << location 
                     << ". Type=" << std::hex << gltype 
@@ -131,7 +131,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         }
         catch (mx::ExceptionShaderValidationError e)
         {
-            for (auto error : e._errorLog)
+            for (auto error : e.errorLog())
             {
                 std::cout << e.what() << " " << error << std::endl;
             }
@@ -145,11 +145,11 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
             const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
             for (auto input : attributes)
             {
-                unsigned int gltype = input.second->_gltype;
-                int location = input.second->_location;
-                int size = input.second->_size;
-                std::string type = input.second->_typeString;
-                std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+                unsigned int gltype = input.second->gltype;
+                int location = input.second->location;
+                int size = input.second->size;
+                std::string type = input.second->typeString;
+                std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
                 std::cout << "Program Attribute: \"" << input.first
                     << "\". Location=" << location
                     << ". Type=" << std::hex << gltype
@@ -162,7 +162,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         }
         catch (mx::ExceptionShaderValidationError e)
         {
-            for (auto error : e._errorLog)
+            for (auto error : e.errorLog())
             {
                 std::cout << e.what() << " " << error << std::endl;
             }
@@ -178,7 +178,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         }
         catch (mx::ExceptionShaderValidationError e)
         {
-            for (auto error : e._errorLog)
+            for (auto error : e.errorLog())
             {
                 std::cout << e.what() << " " << error << std::endl;
             }
@@ -192,7 +192,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         }
         catch (mx::ExceptionShaderValidationError e)
         {
-            for (auto error : e._errorLog)
+            for (auto error : e.errorLog())
             {
                 std::cout << e.what() << " " << error << std::endl;
             }
@@ -328,11 +328,11 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
         for (auto input : uniforms)
         {
-            unsigned int gltype = input.second->_gltype;
-            int location = input.second->_location;
-            int size = input.second->_size;
-            std::string type = input.second->_typeString;
-            std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+            unsigned int gltype = input.second->gltype;
+            int location = input.second->location;
+            int size = input.second->size;
+            std::string type = input.second->typeString;
+            std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
             std::cout << "Program Uniform: \"" << input.first
                 << "\". Location=" << location
                 << ". Type=" << std::hex << gltype
@@ -345,11 +345,11 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
         for (auto input : attributes)
         {
-            unsigned int gltype = input.second->_gltype;
-            int location = input.second->_location;
-            int size = input.second->_size;
-            std::string type = input.second->_typeString;
-            std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+            unsigned int gltype = input.second->gltype;
+            int location = input.second->location;
+            int size = input.second->size;
+            std::string type = input.second->typeString;
+            std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
             std::cout << "Program Attribute: \"" << input.first
                 << "\". Location=" << location
                 << ". Type=" << std::hex << gltype
@@ -427,11 +427,11 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
         for (auto input : uniforms)
         {
-            unsigned int gltype = input.second->_gltype;
-            int location = input.second->_location;
-            int size = input.second->_size;
-            std::string type = input.second->_typeString;
-            std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+            unsigned int gltype = input.second->gltype;
+            int location = input.second->location;
+            int size = input.second->size;
+            std::string type = input.second->typeString;
+            std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
             std::cout << "Program Uniform: \"" << input.first
                 << "\". Location=" << location
                 << ". Type=" << std::hex << gltype
@@ -444,11 +444,11 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
         for (auto input : attributes)
         {
-            unsigned int gltype = input.second->_gltype;
-            int location = input.second->_location;
-            int size = input.second->_size;
-            std::string type = input.second->_typeString;
-            std::string value = input.second->_value ? input.second->_value->getValueString() : "<none>";
+            unsigned int gltype = input.second->gltype;
+            int location = input.second->location;
+            int size = input.second->size;
+            std::string type = input.second->typeString;
+            std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
             std::cout << "Program Attribute: \"" << input.first
                 << "\". Location=" << location
                 << ". Type=" << std::hex << gltype
