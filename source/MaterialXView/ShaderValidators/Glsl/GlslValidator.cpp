@@ -218,8 +218,11 @@ bool GlslValidator::createTarget()
     _colorTarget = UNDEFINED_OPENGL_RESOURCE_ID;
     glGenTextures(1, &_colorTarget);
     glBindTexture(GL_TEXTURE_2D, _colorTarget);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, _frameBufferWidth, _frameBufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
-    // Note: glFramebufferTexture crashes on Mac so use this version 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _colorTarget, 0);
 
     // Create floating point offscreen depth target
@@ -230,18 +233,67 @@ bool GlslValidator::createTarget()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTarget, 0);
     
     glBindTexture(GL_TEXTURE_2D, UNDEFINED_OPENGL_RESOURCE_ID);
-
     glDrawBuffer(GL_NONE);
 
-    // Validate the framebuffer
+    // Validate the framebuffer. Default to fixed point if we cannot get
+    // a floating point buffer.
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE)
+    {
+        glDeleteTextures(1, &_colorTarget);
+        glGenTextures(1, &_colorTarget);
+        glBindTexture(GL_TEXTURE_2D, _colorTarget);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _frameBufferWidth, _frameBufferHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+        glBindTexture(GL_TEXTURE_2D, UNDEFINED_OPENGL_RESOURCE_ID);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _colorTarget, 0);
+        // Re-check status again.
+        status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    }
     if (status != GL_FRAMEBUFFER_COMPLETE)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
         glDeleteFramebuffers(1, &_frameBuffer);
         _frameBuffer = UNDEFINED_OPENGL_RESOURCE_ID;
 
-        errors.push_back("Frame buffer object setup failed.");
+        std::string errorMessage("Frame buffer object setup failed: ");
+        switch (status) {
+        case GL_FRAMEBUFFER_COMPLETE:
+            errorMessage += "GL_FRAMEBUFFER_COMPLETE";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+            errorMessage += "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+            errorMessage += "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+            errorMessage += "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+            errorMessage += "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            errorMessage += "GL_FRAMEBUFFER_UNSUPPORTED";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+            errorMessage += "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
+            break;
+        case GL_FRAMEBUFFER_UNDEFINED:
+            errorMessage += "GL_FRAMEBUFFER_UNDEFINED";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+            errorMessage += "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
+            break;
+        default:
+            errorMessage += std::to_string(status);
+            break;
+        }
+
+        errors.push_back(errorMessage);
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
