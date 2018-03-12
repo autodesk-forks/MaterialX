@@ -8,17 +8,11 @@
 
 namespace MaterialX
 {
-// OpenGL Constants
-unsigned int GlslValidator::UNDEFINED_OPENGL_RESOURCE_ID = 0;
-int GlslValidator::UNDEFINED_OPENGL_PROGRAM_LOCATION = -1;
-int GlslValidator::ProgramInput::INVALID_OPENGL_TYPE = -1;
-
 // View information
 const float NEAR_PLANE = -100.0f;
 const float FAR_PLANE = 100.0f;
 
 GlslValidator::GlslValidator() :
-    _programId(0),
     _colorTarget(0),
     _depthTarget(0),
     _frameBuffer(0),
@@ -28,20 +22,23 @@ GlslValidator::GlslValidator() :
     _indexBufferSize(0),
     _vertexArray(0),
     _dummyTexture(0),
-    _hwShader(nullptr),
     _initialized(false),
     _window(nullptr),
     _context(nullptr)
 {
     // Clear buffer ids to invalid identifier.
     _attributeBufferIds.resize(ATTRIBUTE_COUNT);
-    std::fill(_attributeBufferIds.begin(), _attributeBufferIds.end(), UNDEFINED_OPENGL_RESOURCE_ID);
+    std::fill(_attributeBufferIds.begin(), _attributeBufferIds.end(), MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+
+    _program = std::make_shared<MaterialX::GlslProgram>();
 }
 
 GlslValidator::~GlslValidator()
 {
-    // Clean up the program and offscreen target
-    deleteProgram();
+    // Clean up the program 
+    _program = nullptr;
+    
+    // Clean up offscreen target
     deleteTarget();
 
     // Clean up the context
@@ -50,73 +47,6 @@ GlslValidator::~GlslValidator()
     // Clean up the window
     _window = nullptr;
 }
-
-void GlslValidator::setStage(const std::string& code, size_t stage)
-{
-    if (stage < HwShader::NUM_STAGES)
-    {
-        _stages[stage] = code;
-    }
-
-    // A stage change invalidates any cached parsed inputs
-    clearInputLists();
-    // For now a individual stage setting means to not use a HwShader.
-    // If / when injection of stages is allowed then this should not longer be true
-    _hwShader = nullptr;
-}
-
-
-void GlslValidator::setStages(const HwShaderPtr shader)
-{
-    if (!shader)
-    {
-        ShaderValidationErrorList errors;
-        throw ExceptionShaderValidationError("Cannot set stages using null hardware shader.", errors);
-    }
-
-    // Clear out any old data
-    clearStages();
-
-    // Extract out the shader code per stage
-    _hwShader = shader;
-    for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
-    {
-        _stages[i] = _hwShader->getSourceCode(i);
-    }
-
-    // A stage change invalidates any cached parsed inputs
-    clearInputLists();
-}
-
-const std::string GlslValidator::getStage(size_t stage) const
-{
-    if (stage < HwShader::NUM_STAGES)
-    {
-        return _stages[stage];
-    }
-    return std::string();
-}
-
-void GlslValidator::clearStages()
-{
-    for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
-    {
-        _stages[i].clear();
-    }
-
-    // Clearing stages invalidates any cached inputs
-    clearInputLists();
-}
-
-bool GlslValidator::haveValidStages() const
-{
-    // Need at least a pixel shader stage and a vertex shader stage
-    const std::string& vertexShaderSource = _stages[HwShader::VERTEX_STAGE];
-    const std::string& fragmentShaderSource = _stages[HwShader::PIXEL_STAGE];
-
-    return (vertexShaderSource.length() > 0 && fragmentShaderSource.length() > 0);
-}
-
 
 void GlslValidator::initialize()
 {
@@ -180,7 +110,7 @@ void GlslValidator::deleteTarget()
     {
         if (_context && _context->makeCurrent())
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
+            glBindFramebuffer(GL_FRAMEBUFFER, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
             glDeleteTextures(1, &_colorTarget);
             glDeleteTextures(1, &_depthTarget);
             glDeleteFramebuffers(1, &_frameBuffer);
@@ -215,7 +145,7 @@ bool GlslValidator::createTarget()
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
 
     // Create an offscreen floating point color target and attach to the framebuffer
-    _colorTarget = UNDEFINED_OPENGL_RESOURCE_ID;
+    _colorTarget = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
     glGenTextures(1, &_colorTarget);
     glBindTexture(GL_TEXTURE_2D, _colorTarget);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -226,13 +156,13 @@ bool GlslValidator::createTarget()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _colorTarget, 0);
 
     // Create floating point offscreen depth target
-    _depthTarget = UNDEFINED_OPENGL_RESOURCE_ID;
+    _depthTarget = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
     glGenTextures(1, &_depthTarget);
     glBindTexture(GL_TEXTURE_2D, _depthTarget);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, _frameBufferWidth, _frameBufferHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTarget, 0);
     
-    glBindTexture(GL_TEXTURE_2D, UNDEFINED_OPENGL_RESOURCE_ID);
+    glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
     glDrawBuffer(GL_NONE);
 
     // Validate the framebuffer. Default to fixed point if we cannot get
@@ -248,16 +178,16 @@ bool GlslValidator::createTarget()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _frameBufferWidth, _frameBufferHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0);
-        glBindTexture(GL_TEXTURE_2D, UNDEFINED_OPENGL_RESOURCE_ID);
+        glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _colorTarget, 0);
         // Re-check status again.
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     }
     if (status != GL_FRAMEBUFFER_COMPLETE)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
+        glBindFramebuffer(GL_FRAMEBUFFER, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
         glDeleteFramebuffers(1, &_frameBuffer);
-        _frameBuffer = UNDEFINED_OPENGL_RESOURCE_ID;
+        _frameBuffer = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
 
         std::string errorMessage("Frame buffer object setup failed: ");
         switch (status) {
@@ -298,7 +228,7 @@ bool GlslValidator::createTarget()
     }
 
     // Unbind on cleanup
-    glBindFramebuffer(GL_FRAMEBUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
+    glBindFramebuffer(GL_FRAMEBUFFER, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
 
     return true;
 }
@@ -325,29 +255,16 @@ bool GlslValidator::bindTarget(bool bind)
     // Unbind frame buffer and route nowhere.
     else
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
+        glBindFramebuffer(GL_FRAMEBUFFER, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
         glDrawBuffer(GL_NONE);
     }
     return true;
 }
 
-void GlslValidator::deleteProgram()
-{
-    if (_programId > 0)
-    {
-        if (_context && _context->makeCurrent())
-        {
-            glDeleteObjectARB(_programId);
-        }
-        _programId = UNDEFINED_OPENGL_RESOURCE_ID;
-    }
-
-    // Program deleted, so also clear cached input lists
-    clearInputLists();
-}
-
 unsigned int GlslValidator::createProgram()
 {
+    unsigned int programId = 0;
+
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL program creation error.");
 
@@ -363,409 +280,34 @@ unsigned int GlslValidator::createProgram()
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    deleteProgram();
-
-    if (!haveValidStages())
+    if (_program)
     {
-        errors.push_back("An invalid set of stages has been provided.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        programId =  _program->createProgram();
     }
 
-    GLint GLStatus = GL_FALSE;
-    int GLInfoLogLength = 0;
-
-    unsigned int stagesBuilt = 0;
-    unsigned int desiredStages = 0;
-    for (unsigned int i = 0; i < HwShader::NUM_STAGES; i++)
-    {
-        if (_stages[i].length())
-            desiredStages++;
-    }
-
-    // Create vertex shader
-    GLuint vertexShaderId = UNDEFINED_OPENGL_RESOURCE_ID;
-    std::string &vertexShaderSource = _stages[HwShader::VERTEX_STAGE];
-    if (vertexShaderSource.length())
-    {
-        vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
-
-        // Compile vertex shader
-        const char* vertexChar = vertexShaderSource.c_str();
-        glShaderSource(vertexShaderId, 1, &vertexChar, NULL);
-        glCompileShader(vertexShaderId);
-
-        // Check Vertex Shader
-        glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &GLStatus);
-        if (GLStatus == GL_FALSE)
-        {
-            errors.push_back("Error in compiling vertex shader:");
-            glGetShaderiv(vertexShaderId, GL_INFO_LOG_LENGTH, &GLInfoLogLength);
-            if (GLInfoLogLength > 0)
-            {
-                std::vector<char> vsErrorMessage(GLInfoLogLength + 1);
-                glGetShaderInfoLog(vertexShaderId, GLInfoLogLength, NULL,
-                    &vsErrorMessage[0]);
-                errors.push_back(&vsErrorMessage[0]);
-            }
-        }
-        else
-        {
-            stagesBuilt++;
-        }
-    }
-
-    // Create fragment shader
-    GLuint fragmentShaderId = UNDEFINED_OPENGL_RESOURCE_ID;
-    std::string& fragmentShaderSource = _stages[HwShader::PIXEL_STAGE];
-    if (fragmentShaderSource.length())
-    {
-        fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
-
-        // Compile fragment shader
-        const char *fragmentChar = fragmentShaderSource.c_str();
-        glShaderSource(fragmentShaderId, 1, &fragmentChar, NULL);
-        glCompileShader(fragmentShaderId);
-
-        // Check fragment shader
-        glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, &GLStatus);
-        if (GLStatus == GL_FALSE)
-        {
-            errors.push_back("Error in compiling fragment shader:");
-            glGetShaderiv(fragmentShaderId, GL_INFO_LOG_LENGTH, &GLInfoLogLength);
-            if (GLInfoLogLength > 0)
-            {
-                std::vector<char> fsErrorMessage(GLInfoLogLength + 1);
-                glGetShaderInfoLog(fragmentShaderId, GLInfoLogLength, NULL,
-                    &fsErrorMessage[0]);
-                errors.push_back(&fsErrorMessage[0]);
-            }
-        }
-        else
-        {
-            stagesBuilt++;
-        }
-    }
-
-    // Link stages to a programs
-    if (stagesBuilt == desiredStages)
-    {
-        _programId = glCreateProgram();
-        glAttachShader(_programId, vertexShaderId);
-        glAttachShader(_programId, fragmentShaderId);
-        glLinkProgram(_programId);
-
-        // Check the program
-        glGetProgramiv(_programId, GL_LINK_STATUS, &GLStatus);
-        if (GLStatus == GL_FALSE)
-        {
-            errors.push_back("Error in linking program:");
-            glGetProgramiv(_programId, GL_INFO_LOG_LENGTH, &GLInfoLogLength);
-            if (GLInfoLogLength > 0)
-            {
-                std::vector<char> ProgramErrorMessage(GLInfoLogLength + 1);
-                glGetProgramInfoLog(_programId, GLInfoLogLength, NULL,
-                    &ProgramErrorMessage[0]);
-                errors.push_back(&ProgramErrorMessage[0]);
-            }
-        }
-    }
-
-    // Cleanup
-    if (vertexShaderId > 0)
-    {
-        if (_programId > 0)
-        {
-            glDetachShader(_programId, vertexShaderId);
-        }
-        glDeleteShader(vertexShaderId);
-    }
-    if (fragmentShaderId > 0)
-    {
-        if (_programId > 0)
-        {
-            glDetachShader(_programId, fragmentShaderId);
-        }
-        glDeleteShader(fragmentShaderId);
-    }
-
-    // If we encountered any errors while trying to create return list
-    // of all errors. That is we collect all errors per stage plus any
-    // errors during linking and throw one exception for them all so that
-    // if there is a failure a complete set of issues is returned. We do
-    // this after cleanup so keep GL state clean.
-    if (errors.size())
-    {
-        throw ExceptionShaderValidationError(errorType, errors);
-    }
-
-    return _programId;
+    return programId;
 }
 
-void GlslValidator::clearInputLists()
-{
-    _uniformList.clear();
-    _attributeList.clear();
-}
-
-const GlslValidator::ProgramInputMap& GlslValidator::getUniformsList()
-{
-    return updateUniformsList();
-}
-
-const GlslValidator::ProgramInputMap& GlslValidator::getAttributesList()
-{
-    return updateAttributesList();
-}
-
-const GlslValidator::ProgramInputMap& GlslValidator::updateUniformsList()
-{
-    ShaderValidationErrorList errors;
-    const std::string errorType("GLSL uniform parsing error.");
-
-    if (_uniformList.size() > 0)
-    {
-        return _uniformList;
-    }
-
-    if (_programId <= 0)
-    {
-        errors.push_back("Cannot parse for uniforms without a valid program");
-        throw ExceptionShaderValidationError(errorType, errors);
-    }
-
-    // Scan for textures
-    int uniformCount = -1;
-    int uniformSize = -1;
-    GLenum uniformType = 0;
-    int maxNameLength = 0;
-    glGetProgramiv(_programId, GL_ACTIVE_UNIFORMS, &uniformCount);
-    glGetProgramiv(_programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxNameLength);
-    char* uniformName = new char[maxNameLength];
-    for (int i = 0; i < uniformCount; i++)
-    {
-        glGetActiveUniform(_programId, GLuint(i), maxNameLength, nullptr, &uniformSize, &uniformType, uniformName);
-        GLint uniformLocation = glGetUniformLocation(_programId, uniformName);
-        if (uniformLocation >= 0)
-        {
-            ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(uniformLocation, uniformType, uniformSize);
-            _uniformList[std::string(uniformName)] = inputPtr;
-        }
-    }
-    delete[] uniformName;
-
-    if (_hwShader)
-    {
-        // Check for any type mismatches between the program and the h/w shader.
-        // i.e the type indicated by the HwShader does not match what was generated.
-        bool uniformTypeMismatchFound = false;
-
-        /// Return all blocks of uniform variables for a stage.
-        const MaterialX::Shader::VariableBlockMap& pixelShaderUniforms = _hwShader->getUniformBlocks(HwShader::PIXEL_STAGE);
-        for (auto uniforms : pixelShaderUniforms)
-        {
-            MaterialX::Shader::VariableBlockPtr block = uniforms.second;
-
-            for (const MaterialX::Shader::Variable* input : block->variableOrder)
-            {
-                // There is no way to match with an unnamed variable
-                if (input->name.empty())
-                {
-                    continue;
-                }
-
-                auto programInput = _uniformList.find(input->name);
-                if (programInput != _uniformList.end())
-                {
-                    if (programInput->second->gltype == mapTypeToOpenGLType(input->type))
-                    {
-                        programInput->second->typeString = input->type;
-                        programInput->second->value = input->value;
-                    }
-                    else
-                    {
-                        errors.push_back(
-                            "Pixel shader uniform block type mismatch[" + uniforms.first + "]. "
-                            + "Name: \"" + input->name
-                            + "\". Type: \"" + input->type
-                            + "\". Semantic: \"" + input->semantic
-                            + "\". Value: \"" + (input->value ? input->value->getValueString() : "<none>")
-                            + "\". GLType: " + std::to_string(mapTypeToOpenGLType(input->type))
-                        );
-                        uniformTypeMismatchFound = true;
-                    }
-                }
-            }
-        }
-
-        const MaterialX::Shader::VariableBlockMap& vertexShaderUniforms = _hwShader->getUniformBlocks(HwShader::VERTEX_STAGE);
-        for (auto uniforms : vertexShaderUniforms)
-        {
-            MaterialX::Shader::VariableBlockPtr block = uniforms.second;
-            for (const MaterialX::Shader::Variable* input : block->variableOrder)
-            {
-                auto programInput = _uniformList.find(input->name);
-                if (programInput != _uniformList.end())
-                {
-                    if (programInput->second->gltype == mapTypeToOpenGLType(input->type))
-                    {
-                        programInput->second->typeString = input->type;
-                        programInput->second->value = input->value;
-                        programInput->second->typeString = input->type;
-                    }
-                    else
-                    {
-                        errors.push_back(
-                            "Vertex shader uniform block type mismatch[" + uniforms.first + "]. "
-                            + "Name: \"" + input->name
-                            + "\". Type: \"" + input->type
-                            + "\". Semantic: \"" + input->semantic
-                            + "\". Value: \"" + (input->value ? input->value->getValueString() : "<none>")
-                            + "\". GLType: " + std::to_string(mapTypeToOpenGLType(input->type))
-                        );
-                        uniformTypeMismatchFound = true;
-                    }
-                }
-                else
-                {
-                    programInput->second->typeString = input->type;
-                }
-            }
-        }
-
-        // Throw an error if any type mismatches were found
-        if (uniformTypeMismatchFound)
-        {
-            ExceptionShaderValidationError(errorType, errors);
-        }
-    }
-
-    return _uniformList;
-}
-
-int GlslValidator::mapTypeToOpenGLType(const std::string& type)
-{
-    if (type == MaterialX::getTypeString<int>())
-        return GL_INT;
-    else if (type == MaterialX::getTypeString<bool>())
-        return GL_BOOL;
-    else if (type == MaterialX::getTypeString<float>())
-        return GL_FLOAT;
-    else if (type == MaterialX::getTypeString<Vector2>() || type == MaterialX::getTypeString<Color2>())
-        return GL_FLOAT_VEC2;
-    else if (type == MaterialX::getTypeString<Vector3>() || type == MaterialX::getTypeString<Color3>())
-        return GL_FLOAT_VEC3;
-    else if (type == MaterialX::getTypeString<Vector4>() || type == MaterialX::getTypeString<Color4>())
-        return GL_FLOAT_VEC4;
-    else if (type == MaterialX::getTypeString<Matrix3x3>())
-        return GL_FLOAT_MAT3;
-    else if (type == MaterialX::getTypeString<Matrix4x4>())
-        return GL_FLOAT_MAT4;
-    else if (type == MaterialX::FILENAME_TYPE_STRING)
-    {
-        // A "filename" is not indicative of type, so just return a 2d sampler.
-        return GL_SAMPLER_2D;
-    }
-
-    return GlslValidator::ProgramInput::INVALID_OPENGL_TYPE;
-}
-
-const GlslValidator::ProgramInputMap& GlslValidator::updateAttributesList()
-{
-    ShaderValidationErrorList errors;
-    const std::string errorType("GLSL attribute parsing error.");
-
-    if (_attributeList.size() > 0)
-    {
-        return _attributeList;
-    }
-
-    if (_programId <= 0)
-    {
-        errors.push_back("Cannot parse for attributes without a valid program");
-        throw ExceptionShaderValidationError(errorType, errors);
-    }
-
-    GLint numAttributes = 0;
-    GLint maxNameLength = 0;
-    glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTES, &numAttributes);
-    glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxNameLength);
-    char* attributeName = new char[maxNameLength];
-
-    for (int i = 0; i < numAttributes; i++)
-    {
-        GLint attributeSize = 0;
-        GLenum attributeType = 0;
-        glGetActiveAttrib(_programId, GLuint(i), maxNameLength, nullptr, &attributeSize, &attributeType, attributeName);
-        GLint attributeLocation = glGetAttribLocation(_programId, attributeName);
-        if (attributeLocation >= 0)
-        {
-            ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(attributeLocation, attributeType, attributeSize);
-            _attributeList[std::string(attributeName)] = inputPtr;
-        }
-    }
-    delete[] attributeName;
-
-    if (_hwShader)
-    {        
-        const MaterialX::Shader::VariableBlock& appDataBlock = _hwShader->getAppDataBlock();
-        
-        bool uniformTypeMismatchFound = false;
-
-        if (appDataBlock.variableOrder.size())
-        { 
-            for (const MaterialX::Shader::Variable* input : appDataBlock.variableOrder)
-            {
-                //bool foundMatch = false;
-                auto programInput = _attributeList.find(input->name);
-                if (programInput != _attributeList.end())
-                {
-                    if (programInput->second->gltype == mapTypeToOpenGLType(input->type))
-                    {
-                        //foundMatch = true;
-                        programInput->second->typeString = input->type;
-                        programInput->second->value = input->value;
-                    }
-                    else
-                    {
-                        errors.push_back(
-                            "Application uniform type mismatch in block. Name: \"" + input->name
-                            + "\". Type: \"" + input->type
-                            + "\". Semantic: \"" + input->semantic
-                            + "\". Value: \"" + (input->value ? input->value->getValueString() : "<none>")
-                            + "\". GLType: " + std::to_string(mapTypeToOpenGLType(input->type))
-                        );
-                        uniformTypeMismatchFound = true;
-                    }
-                }
-            }
-        }
-
-        // Throw an error if any type mismatches were found
-        if (uniformTypeMismatchFound)
-        {
-            ExceptionShaderValidationError(errorType, errors);
-        }
-    }
-
-    return _attributeList;
-}
-
+////////////////////////////////////////////////////////////////////////////////////
+// Binders
+////////////////////////////////////////////////////////////////////////////////////
 void GlslValidator::bindTimeAndFrame()
 {
     ShaderValidationErrorList errors;
 
-    if (_programId <= 0)
+    if (!_program)
     {
         const std::string errorType("GLSL input binding error.");
         errors.push_back("Cannot bind time/frame without a valid program");
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    GLint location = UNDEFINED_OPENGL_PROGRAM_LOCATION;
+    GLint location = MaterialX::GlslProgram::UNDEFINED_OPENGL_PROGRAM_LOCATION;
 
     // Bind time
-    auto programInput = _uniformList.find("u_time");
-    if (programInput != _uniformList.end())
+    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
+    auto programInput = uniformList.find("u_time");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -775,8 +317,8 @@ void GlslValidator::bindTimeAndFrame()
     }
 
     // Bind frame
-    programInput = _uniformList.find("u_frame");
-    if (programInput != _uniformList.end())
+    programInput = uniformList.find("u_frame");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -790,7 +332,7 @@ void GlslValidator::bindLighting()
 {
     ShaderValidationErrorList errors;
 
-    if (_programId <= 0)
+    if (!_program)
     {
         const std::string errorType("GLSL light binding error.");
         errors.push_back("Cannot bind without a valid program");
@@ -798,12 +340,13 @@ void GlslValidator::bindLighting()
     }
 
     // Bind a couple of lights if can find the light information
-    GLint location = UNDEFINED_OPENGL_PROGRAM_LOCATION;
+    GLint location = MaterialX::GlslProgram::UNDEFINED_OPENGL_PROGRAM_LOCATION;
 
     // Set the number of active light sources
     int lightCount = 1;
-    auto programInput = _uniformList.find("u_numActiveLightSources");
-    if (programInput != _uniformList.end())
+    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
+    auto programInput = uniformList.find("u_numActiveLightSources");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -823,8 +366,8 @@ void GlslValidator::bindLighting()
     // Manually set the lights
     // 0 = directional, 1 = point
     unsigned int blockUniformsSet = 0;
-    programInput = _uniformList.find("u_lightData[0].type");
-    if (programInput != _uniformList.end())
+    programInput = uniformList.find("u_lightData[0].type");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -833,8 +376,8 @@ void GlslValidator::bindLighting()
             blockUniformsSet++;
         }
     }
-    programInput = _uniformList.find("u_lightData[0].direction");
-    if (programInput != _uniformList.end())
+    programInput = uniformList.find("u_lightData[0].direction");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -843,8 +386,8 @@ void GlslValidator::bindLighting()
             blockUniformsSet++;
         }
     }
-    programInput = _uniformList.find("u_lightData[0].color");
-    if (programInput != _uniformList.end())
+    programInput = uniformList.find("u_lightData[0].color");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -853,8 +396,8 @@ void GlslValidator::bindLighting()
             blockUniformsSet++;
         }
     }
-    programInput = _uniformList.find("u_lightData[0].intensity");
-    if (programInput != _uniformList.end())
+    programInput = uniformList.find("u_lightData[0].intensity");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -863,8 +406,8 @@ void GlslValidator::bindLighting()
             blockUniformsSet++;
         }
     }
-    programInput = _uniformList.find("u_lightData[0].position");
-    if (programInput != _uniformList.end())
+    programInput = uniformList.find("u_lightData[0].position");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -873,8 +416,8 @@ void GlslValidator::bindLighting()
             blockUniformsSet++;
         }
     }
-    programInput = _uniformList.find("u_lightData[0].decayRate");
-    if (programInput != _uniformList.end())
+    programInput = uniformList.find("u_lightData[0].decayRate");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -889,18 +432,19 @@ void GlslValidator::bindViewInformation()
 {
     ShaderValidationErrorList errors;
 
-    if (_programId <= 0)
+    if (!_program)
     {
         const std::string errorType("GLSL input binding error.");
         errors.push_back("Cannot bind without a valid program");
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    GLint location = UNDEFINED_OPENGL_PROGRAM_LOCATION;
+    GLint location = MaterialX::GlslProgram::UNDEFINED_OPENGL_PROGRAM_LOCATION;
 
     // Set view direction and position
-    auto programInput = _uniformList.find("u_viewPosition");
-    if (programInput != _uniformList.end())
+    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
+    auto programInput = uniformList.find("u_viewPosition");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -908,8 +452,8 @@ void GlslValidator::bindViewInformation()
             glUniform3f(location, 0.0f, 0.0f, NEAR_PLANE-1.0f);
         }
     }
-    programInput = _uniformList.find("u_viewDirection");
-    if (programInput != _uniformList.end())
+    programInput = uniformList.find("u_viewDirection");
+    if (programInput != uniformList.end())
     {
         location = programInput->second->location;
         if (location >= 0)
@@ -935,8 +479,8 @@ void GlslValidator::bindViewInformation()
     };
     for (auto worldMatrixVariable : worldMatrixVariables)
     {
-        programInput = _uniformList.find(worldMatrixVariable);
-        if (programInput != _uniformList.end())
+        programInput = uniformList.find(worldMatrixVariable);
+        if (programInput != uniformList.end())
         {
             location = programInput->second->location;
             if (location >= 0)
@@ -958,8 +502,8 @@ void GlslValidator::bindViewInformation()
     };
     for (auto projectionMatrixVariable : projectionMatrixVariables)
     {
-        programInput = _uniformList.find(projectionMatrixVariable);
-        if (programInput != _uniformList.end())
+        programInput = uniformList.find(projectionMatrixVariable);
+        if (programInput != uniformList.end())
         {
             location = programInput->second->location;
             if (location >= 0)
@@ -982,8 +526,8 @@ void GlslValidator::bindViewInformation()
     };
     for (auto viewMatrixVariable : viewMatrixVariables)
     {
-        programInput = _uniformList.find(viewMatrixVariable);
-        if (programInput != _uniformList.end())
+        programInput = uniformList.find(viewMatrixVariable);
+        if (programInput != uniformList.end())
         {
             location = programInput->second->location;
             if (location >= 0)
@@ -996,42 +540,6 @@ void GlslValidator::bindViewInformation()
     checkErrors();
 }
 
-void GlslValidator::findProgramInputs(const std::string& variable, 
-                                         const ProgramInputMap& variableList,
-                                         ProgramInputMap& foundList,
-                                         bool exactMatch)
-{
-    foundList.clear();
-
-    // Scan all attributes which match the attribute identifier completely or as a prefix
-    //
-    int ilocation = UNDEFINED_OPENGL_PROGRAM_LOCATION;
-    auto programInput = variableList.find(variable);
-    if (programInput != variableList.end())
-    {
-        ilocation = programInput->second->location;
-        if (ilocation >= 0)
-        {
-            foundList[variable] = programInput->second;
-        }
-    }
-    else if (!exactMatch)
-    {
-        for (programInput = variableList.begin(); programInput != variableList.end(); programInput++)
-        {
-            const std::string& name = programInput->first;
-            if (name.compare(0, variable.size(), variable) == 0)
-            {
-                ilocation = programInput->second->location;
-                if (ilocation >= 0)
-                {
-                    foundList[programInput->first] = programInput->second;
-                }
-            }
-        }
-    }
-}
-
 bool GlslValidator::bindAttribute(const GLfloat* bufferData,
                                     size_t bufferSize,
                                     const std::string& attributeId,
@@ -1039,8 +547,9 @@ bool GlslValidator::bindAttribute(const GLfloat* bufferData,
                                     unsigned int floatCount,
                                     bool exactMatch)
 {
-    ProgramInputMap foundList;
-    findProgramInputs(attributeId, _attributeList, foundList, exactMatch);
+    MaterialX::GlslProgram::ProgramInputMap foundList;
+    const MaterialX::GlslProgram::ProgramInputMap& attributeList = _program->getAttributesList();
+    _program->findProgramInputs(attributeId, attributeList, foundList, exactMatch);
 
     for (auto found : foundList)
     {
@@ -1048,7 +557,7 @@ bool GlslValidator::bindAttribute(const GLfloat* bufferData,
         if (_attributeBufferIds[attributeIndex] < 1)
         {
             // Create a buffer based on attribute type.
-            unsigned int buffer = UNDEFINED_OPENGL_RESOURCE_ID;
+            unsigned int buffer = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
             glGenBuffers(1, &buffer);
             glBindBuffer(GL_ARRAY_BUFFER, buffer);
             glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
@@ -1065,7 +574,7 @@ bool GlslValidator::bindAttribute(const GLfloat* bufferData,
 void GlslValidator::bindGeometry()
 {
     ShaderValidationErrorList errors;
-    if (_programId <= 0)
+    if (!_program)
     {
         const std::string errorType("GLSL matrix bind error.");
         errors.push_back("Cannot bind geometry without a valid program");
@@ -1130,8 +639,9 @@ void GlslValidator::bindGeometry()
     // Bind any named attribute information
     //
     std::string geomAttrPrefix("u_geomattr_");
-    ProgramInputMap foundList;
-    findProgramInputs(geomAttrPrefix, _uniformList, foundList, false);
+    MaterialX::GlslProgram::ProgramInputMap foundList;
+    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
+    _program->findProgramInputs(geomAttrPrefix, uniformList, foundList, false);
     for (auto programInput : foundList)
     {
         // Only handle float1-4 types for now
@@ -1155,7 +665,7 @@ void GlslValidator::bindGeometry()
 
 void GlslValidator::createDummyTexture(bool colored)
 {
-    if (_dummyTexture == UNDEFINED_OPENGL_RESOURCE_ID)
+    if (_dummyTexture == MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
     {
         const unsigned int imageSize = 256;
         unsigned int middle = imageSize / 2;
@@ -1201,7 +711,7 @@ void GlslValidator::createDummyTexture(bool colored)
             0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
         // Note: Must do this for default sampling to lookup properly.
         glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, UNDEFINED_OPENGL_RESOURCE_ID);
+        glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
     }
 }
 
@@ -1210,7 +720,8 @@ void GlslValidator::unbindTextures()
     int textureUnit = 0;
     GLint maxImageUnits = -1;
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
-    for (auto uniform : _uniformList)
+    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
+    for (auto uniform : uniformList)
     {
         GLenum uniformType = uniform.second->gltype;
         GLint uniformLocation = uniform.second->location;
@@ -1224,21 +735,21 @@ void GlslValidator::unbindTextures()
 
             // Unbind a texture to that unit
             glActiveTexture(GL_TEXTURE0 + textureUnit);
-            glBindTexture(GL_TEXTURE_2D, UNDEFINED_OPENGL_RESOURCE_ID);
+            glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
             checkErrors();
             textureUnit++;
         }
     }
   
     // Delete any allocated textures
-    if (_dummyTexture != UNDEFINED_OPENGL_RESOURCE_ID)
+    if (_dummyTexture != MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
     {
         glDeleteTextures(1, &_dummyTexture);
-        _dummyTexture = UNDEFINED_OPENGL_RESOURCE_ID;
+        _dummyTexture = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
     }
     for (auto id : _programTextures)
     {
-        if (id != UNDEFINED_OPENGL_RESOURCE_ID)
+        if (id != MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
         {
             glDeleteTextures(1, &id);
         }
@@ -1250,7 +761,7 @@ void GlslValidator::unbindTextures()
 
 void GlslValidator::bindTextures()
 {
-    if (_programId <= 0)
+    if (!_program)
     {
         const std::string errorType("GLSL matrix bind error.");
         ShaderValidationErrorList errors;
@@ -1264,7 +775,8 @@ void GlslValidator::bindTextures()
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
     // Keep track of all textures read in
     _programTextures.clear();
-    for (auto uniform : _uniformList)
+    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
+    for (auto uniform : uniformList)
     {
         GLenum uniformType = uniform.second->gltype;
         GLint uniformLocation = uniform.second->location;
@@ -1292,7 +804,7 @@ void GlslValidator::bindTextures()
                 if (_imageHandler->loadImage(fileName, width, height, channelCount, &buffer) &&
                     (channelCount == 3 || channelCount == 4))
                 {
-                    unsigned int newTexture = UNDEFINED_OPENGL_RESOURCE_ID;
+                    unsigned int newTexture = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
                     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
                     glGenTextures(1, &newTexture);
                     // Keep track of texture created
@@ -1332,15 +844,15 @@ void GlslValidator::unbindGeometry()
     {
         glDisableVertexAttribArray(i);
     }
-    glBindBuffer(GL_ARRAY_BUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, UNDEFINED_OPENGL_RESOURCE_ID);
+    glBindBuffer(GL_ARRAY_BUFFER, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
 
     // Clean up buffers
     //
     if (_indexBuffer > 0)
     {
         glDeleteBuffers(1, &_indexBuffer);
-        _indexBuffer = UNDEFINED_OPENGL_RESOURCE_ID;
+        _indexBuffer = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
     }
     for (unsigned int i=0; i<ATTRIBUTE_COUNT; i++)
     {
@@ -1348,7 +860,7 @@ void GlslValidator::unbindGeometry()
         if (bufferId > 0)
         {
             glDeleteBuffers(1, &bufferId);
-            _attributeBufferIds[i] = UNDEFINED_OPENGL_RESOURCE_ID;
+            _attributeBufferIds[i] = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
         }
     }
 
@@ -1357,7 +869,8 @@ void GlslValidator::unbindGeometry()
 
 void GlslValidator::bindInputs()
 {
-    if (_programId <= 0)
+    // Bind the program to use
+    if (!_program->bind())
     {
         const std::string errorType("GLSL bind inputs error.");
         ShaderValidationErrorList errors;
@@ -1365,13 +878,11 @@ void GlslValidator::bindInputs()
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    // Bind the program to use
-    glUseProgram(_programId);
     checkErrors();
 
     // Parse for uniforms and attributes
-    updateUniformsList();
-    updateAttributesList();
+    _program->getUniformsList();
+    _program->getAttributesList();
 
     // Bind based on inputs found
     bindViewInformation();
@@ -1415,14 +926,11 @@ void GlslValidator::render()
     try
     {
         // Bind program and input parameters
-        if (_programId > 0)
+        if (_program)
         {
             // Check if we have any attributes to bind. If not then
             // there is nothing to draw
-            GLint activeAttributeCount = 0;
-            glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTES, &activeAttributeCount);
-
-            if (activeAttributeCount <= 0)
+            if (!_program->haveActiveAttributes())
             {
                 errors.push_back("Program has no input vertex data.");
                 throw ExceptionShaderValidationError(errorType, errors);
@@ -1430,7 +938,7 @@ void GlslValidator::render()
             else
             {
                 // Bind the program to use
-                glUseProgram(_programId);
+                _program->bind();
                 checkErrors();
 
                 bindInputs();
@@ -1439,7 +947,7 @@ void GlslValidator::render()
                 checkErrors();
 
                 // Unbind resources
-                glUseProgram(0);
+                _program->unbind();
                 unbindTextures();
                 unbindGeometry();
             }

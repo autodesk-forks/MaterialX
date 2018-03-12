@@ -58,6 +58,8 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 
     for (auto shaderName : shaderNames)
     {
+        MaterialX::GlslProgramPtr program = validator.program();
+
         std::cout << "------------ Validate shader from source: " << shaderName << std::endl;
         std::string vertexShaderPath = shaderName + ".vert";
         std::string pixelShaderPath = shaderName + ".frag";
@@ -70,7 +72,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         if (shaderFile.is_open())
         {
             vertexShaderStream << shaderFile.rdbuf();
-            validator.setStage(vertexShaderStream.str(), mx::HwShader::VERTEX_STAGE);
+            program->setStage(vertexShaderStream.str(), mx::HwShader::VERTEX_STAGE);
             shaderFile.close();
             stagesSet++;
         }
@@ -78,7 +80,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         if (shaderFile.is_open())
         {
             pixelShaderStream << shaderFile.rdbuf();
-            validator.setStage(pixelShaderStream.str(), mx::HwShader::PIXEL_STAGE);
+            program->setStage(pixelShaderStream.str(), mx::HwShader::PIXEL_STAGE);
             shaderFile.close();
             stagesSet++;
         }
@@ -94,9 +96,9 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 
         // Check program compilation
         bool programCompiled = false;
-        try
-        {
-            validator.createProgram();
+        try {
+            unsigned int programId = validator.createProgram();
+            REQUIRE(programId > 0);
             programCompiled = true;
         }
         catch (mx::ExceptionShaderValidationError e)
@@ -111,7 +113,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         // Check getting uniforms list
         bool uniformsParsed = false;
         try {
-            const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
+            const mx::GlslProgram::ProgramInputMap& uniforms = program->getUniformsList();
             for (auto input : uniforms)
             {
                 unsigned int gltype = input.second->gltype;
@@ -142,7 +144,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         bool attributesParsed = false;
         try
         {
-            const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
+            const mx::GlslProgram::ProgramInputMap& attributes = program->getAttributesList();
             for (auto input : attributes)
             {
                 unsigned int gltype = input.second->gltype;
@@ -322,10 +324,11 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         file.close();
 
 
-        validator.setStages(hwShader);
+        MaterialX::GlslProgramPtr program = validator.program();
+        program->setStages(hwShader);
         unsigned int programId = validator.createProgram();
         REQUIRE(programId > 0);
-        const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
+        const mx::GlslProgram::ProgramInputMap& uniforms = program->getUniformsList();
         for (auto input : uniforms)
         {
             unsigned int gltype = input.second->gltype;
@@ -342,7 +345,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
                 << std::endl;
 
         }
-        const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
+        const mx::GlslProgram::ProgramInputMap& attributes = program->getAttributesList();
         for (auto input : attributes)
         {
             unsigned int gltype = input.second->gltype;
@@ -421,10 +424,11 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
 
 
         /////////////////////////////////////////////////////
-        validator.setStages(hwShader);
+        MaterialX::GlslProgramPtr program = validator.program();
+        program->setStages(hwShader);
         unsigned int programId = validator.createProgram();
         REQUIRE(programId > 0);
-        const mx::GlslValidator::ProgramInputMap& uniforms = validator.getUniformsList();
+        const mx::GlslProgram::ProgramInputMap& uniforms = program->getUniformsList();
         for (auto input : uniforms)
         {
             unsigned int gltype = input.second->gltype;
@@ -441,7 +445,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
                 << std::endl;
 
         }
-        const mx::GlslValidator::ProgramInputMap& attributes = validator.getAttributesList();
+        const mx::GlslProgram::ProgramInputMap& attributes = program->getAttributesList();
         for (auto input : attributes)
         {
             unsigned int gltype = input.second->gltype;

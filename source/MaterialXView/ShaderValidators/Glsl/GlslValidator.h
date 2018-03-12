@@ -6,6 +6,7 @@
 #include <MaterialXView/Image/ImageHandler.h>
 #include <MaterialXView/Window/SimpleWindow.h>
 #include <MaterialXView/OpenGL/GLUtilityContext.h>
+#include <MaterialXView/ShaderValidators/Glsl/GlslProgram.h>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -30,38 +31,6 @@ namespace MaterialX
 class GlslValidator
 {
   public:
-    /// Structure to hold information about program inputs
-    /// The structure is populated by directly scanning the program so may not contain
-    /// some inputs listed on any associated HwShader as those inputs may have been
-    /// optimized out if they are unused.
-    struct ProgramInput
-    {
-        static int INVALID_OPENGL_TYPE;
-
-        /// Program location. -1 means an invalid location
-        int location;
-        /// OpenGL type of the input. -1 means an invalid type
-        int gltype;
-        /// Size.
-        int size;
-        /// Input type string. Will only be non-empty if initialized stages with a HwShader
-        std::string typeString;
-        /// Input value. Will only be non-empty if initialized stages with a HwShader and a value was set during
-        /// shader generation.
-        MaterialX::ValuePtr value;
-
-        /// Program input constructor
-        ProgramInput(int inputLocation, int inputType, int inputSize)
-        : location(inputLocation)
-        , gltype(inputType)
-        , size(inputSize)
-        {}
-    };
-    /// Program input structure shared pointer type
-    using ProgramInputPtr = std::shared_ptr<ProgramInput>;
-    /// Program input shaded pointer map type
-    using ProgramInputMap = std::unordered_map<std::string, ProgramInputPtr>;
-
     /// Constructor
     GlslValidator();
 
@@ -77,58 +46,16 @@ class GlslValidator
     /// The exception will contain a list of initialization errors.
     void initialize();
 
-    /// Set up code stages to validate based on an input hardware shader.
-    /// @param shader Hardware shader to use
-    void setStages(const HwShaderPtr shader);
-
-    /// This method can be used to incrementally set the code stages before validation.
-    /// @param code Shader code string for a given stage
-    /// @param stage Shader stage. See stages allowed in the class HwShader.
-    void setStage(const std::string& code, size_t stage);
-
-    /// Get code string for a given stage
-    /// @return Shader stage string. String is empty if not found.
-    const std::string getStage(size_t stage) const;
-
-    /// Get the number of stages
-    /// @return Stage count
-    size_t numStages() const
+    MaterialX::GlslProgramPtr program()
     {
-        return HwShader::NUM_STAGES;
+        return _program;
     }
-
-    /// Clear out any existing stages
-    void clearStages();
-
-    /// @}
-    /// @name Program handling
-    /// @{
 
     /// Create the shader program from stages specified
     /// An exception is thrown if the program cannot be created.
     /// The exception will contain a list of program creation errors.
     /// @return Program identifier. 
     unsigned int createProgram();
-
-    /// Get list of program input uniforms. 
-    /// The program must have been created successfully first.
-    /// An exception is thrown if the parsing of the program for uniforms cannot be performed.
-    /// @return Program uniforms list.
-    const ProgramInputMap& getUniformsList();
-
-    /// Get list of program input attributes. 
-    /// The program must have been created successfully first.
-    /// An exception is thrown if the parsing of the program for attribute cannot be performed.
-    /// @return Program attributes list.
-    const ProgramInputMap& getAttributesList();
-
-    /// Delete any currently created shader program
-    void deleteProgram();
-
-    /// Utility to map a syntax type to an OpenGL type
-    /// @param type Syntax type
-    /// @return OpenGL type. INVALID_OPENGL_TYPE is returned if no mapping exists. For example strings have no OpenGL type.
-    static int mapTypeToOpenGLType(const std::string& type);
 
     /// @}
     /// @name Visualization
@@ -155,9 +82,6 @@ class GlslValidator
     /// Internal cleanup of stages and OpenGL constructs
     void cleanup();
 
-    /// Check if there is a valid set of stages to build program from
-    bool haveValidStages() const;
-
     /// @name Target handling
     /// @{
 
@@ -167,19 +91,6 @@ class GlslValidator
     void deleteTarget();
     /// Bind or unbind any created offscree target.
     bool bindTarget(bool bind);
-
-    /// @}
-    /// @name Program introspection
-    /// @{
-
-    /// Update a list of program input uniforms
-    const ProgramInputMap& updateUniformsList();
-
-    /// Update a list of program input attributes
-    const ProgramInputMap& updateAttributesList();
-
-    /// Clear out any cached input lists
-    void clearInputLists();
 
     /// Index used to access cached attribute buffers
     enum AttributeIndex {
@@ -191,6 +102,7 @@ class GlslValidator
         COLOR4_ATTRIBUTE,       /// 4 float color attribute 
         ATTRIBUTE_COUNT         /// Number of attribute types
     };
+
     /// Bind attribute buffers by scanning for a given attribute identifier.
     /// If either an exact match for the identifier, or the identifier is a prefix of an attribute name then 
     /// a hardware buffer of the given attribute type is created and bound to the program location
@@ -236,16 +148,6 @@ class GlslValidator
     void bindLighting();
 
   private:
-    /// Find the locations in the program which start with a given variable name
-    /// @param variable Variable to search for
-    /// @param variableList List of program inputs to search
-    /// @param foundList Returned list of found program inputs. Empty if none found
-    /// @param exactMatch Search for exact variable name match.
-    void findProgramInputs(const std::string& variable,
-                              const ProgramInputMap& variableList,
-                              ProgramInputMap& foundList,
-                              bool exactMatch);
-
     /// Dummy texture for testing with
     void createDummyTexture(bool colored);
 
@@ -254,11 +156,8 @@ class GlslValidator
     /// if any errors encountered.
     void checkErrors();
       
-    /// Stages used to create program
-    std::string _stages[HwShader::NUM_STAGES];
-
-    /// Generated program. A non-zero number indicates a valid shader program.
-    unsigned int _programId;
+    /// GLSL program. 
+    GlslProgramPtr _program;
 
     /// Hardware color target (texture)
     unsigned int _colorTarget;
@@ -285,16 +184,8 @@ class GlslValidator
     /// Attribute vertex array handle
     unsigned int _vertexArray;
 
-    /// List of program input uniforms
-    ProgramInputMap _uniformList;
-    /// List of program input attributes
-    ProgramInputMap _attributeList;
-
     /// Dummy texture
     unsigned int _dummyTexture;
-
-    /// Hardware shader (if any) used for program creation
-    HwShaderPtr _hwShader;
 
     /// Flag to indicate if validator has been initialized properly.
     bool _initialized;
@@ -304,8 +195,8 @@ class GlslValidator
     /// Dummy OpenGL context for OpenGL usage
     GLUtilityContextPtr _context;
 
-    static unsigned int UNDEFINED_OPENGL_RESOURCE_ID;
-    static int UNDEFINED_OPENGL_PROGRAM_LOCATION;
+    //static unsigned int UNDEFINED_OPENGL_RESOURCE_ID;
+    //static int UNDEFINED_OPENGL_PROGRAM_LOCATION;
 
     /// Utility image handler
     ImageHandlerPtr _imageHandler;
