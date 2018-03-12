@@ -12,6 +12,14 @@ namespace MaterialX
 const float NEAR_PLANE = -100.0f;
 const float FAR_PLANE = 100.0f;
 
+//
+// Creator
+//
+GlslValidatorPtr GlslValidator::creator()
+{
+    return std::shared_ptr<GlslValidator>(new GlslValidator());
+}
+
 GlslValidator::GlslValidator() :
     _colorTarget(0),
     _depthTarget(0),
@@ -30,7 +38,7 @@ GlslValidator::GlslValidator() :
     _attributeBufferIds.resize(ATTRIBUTE_COUNT);
     std::fill(_attributeBufferIds.begin(), _attributeBufferIds.end(), MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
 
-    _program = std::make_shared<MaterialX::GlslProgram>();
+    _program = GlslProgram::creator();
 }
 
 GlslValidator::~GlslValidator()
@@ -261,10 +269,8 @@ bool GlslValidator::bindTarget(bool bind)
     return true;
 }
 
-unsigned int GlslValidator::createProgram()
+void GlslValidator::validateCreation(const HwShaderPtr shader)
 {
-    unsigned int programId = 0;
-
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL program creation error.");
 
@@ -280,12 +286,29 @@ unsigned int GlslValidator::createProgram()
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    if (_program)
+    _program->setStages(shader);
+    _program->build();    
+}
+
+void GlslValidator::validateCreation(const std::vector<std::string>& stages)
+{
+    ShaderValidationErrorList errors;
+    const std::string errorType("GLSL program creation error.");
+
+    if (!_context)
     {
-        programId =  _program->createProgram();
+        errors.push_back("No valid OpenGL context to create program with.");
+        throw ExceptionShaderValidationError(errorType, errors);
+
+    }
+    if (!_context->makeCurrent())
+    {
+        errors.push_back("Cannot make OpenGL context current to create program.");
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    return programId;
+    _program->setStages(stages);
+    _program->build();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -305,11 +328,11 @@ void GlslValidator::bindTimeAndFrame()
     GLint location = MaterialX::GlslProgram::UNDEFINED_OPENGL_PROGRAM_LOCATION;
 
     // Bind time
-    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
-    auto programInput = uniformList.find("u_time");
-    if (programInput != uniformList.end())
+    const MaterialX::GlslProgram::InputMap& uniformList = _program->getUniformsList();
+    auto Input = uniformList.find("u_time");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform1f(location, 1.0f);
@@ -317,10 +340,10 @@ void GlslValidator::bindTimeAndFrame()
     }
 
     // Bind frame
-    programInput = uniformList.find("u_frame");
-    if (programInput != uniformList.end())
+    Input = uniformList.find("u_frame");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform1f(location, 1.0f);
@@ -344,11 +367,11 @@ void GlslValidator::bindLighting()
 
     // Set the number of active light sources
     int lightCount = 1;
-    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
-    auto programInput = uniformList.find("u_numActiveLightSources");
-    if (programInput != uniformList.end())
+    const MaterialX::GlslProgram::InputMap& uniformList = _program->getUniformsList();
+    auto Input = uniformList.find("u_numActiveLightSources");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform1i(location, lightCount);
@@ -366,60 +389,60 @@ void GlslValidator::bindLighting()
     // Manually set the lights
     // 0 = directional, 1 = point
     unsigned int blockUniformsSet = 0;
-    programInput = uniformList.find("u_lightData[0].type");
-    if (programInput != uniformList.end())
+    Input = uniformList.find("u_lightData[0].type");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform1i(location, 0);
             blockUniformsSet++;
         }
     }
-    programInput = uniformList.find("u_lightData[0].direction");
-    if (programInput != uniformList.end())
+    Input = uniformList.find("u_lightData[0].direction");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform3f(location, 0.0f, 0.0f, -1.0f);
             blockUniformsSet++;
         }
     }
-    programInput = uniformList.find("u_lightData[0].color");
-    if (programInput != uniformList.end())
+    Input = uniformList.find("u_lightData[0].color");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform3f(location, 1.0f, 1.0f, 1.0f);
             blockUniformsSet++;
         }
     }
-    programInput = uniformList.find("u_lightData[0].intensity");
-    if (programInput != uniformList.end())
+    Input = uniformList.find("u_lightData[0].intensity");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform1f(location, 1.0f);
             blockUniformsSet++;
         }
     }
-    programInput = uniformList.find("u_lightData[0].position");
-    if (programInput != uniformList.end())
+    Input = uniformList.find("u_lightData[0].position");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform3f(location, -1.0f, -1.0f, -1.0f);
             blockUniformsSet++;
         }
     }
-    programInput = uniformList.find("u_lightData[0].decayRate");
-    if (programInput != uniformList.end())
+    Input = uniformList.find("u_lightData[0].decayRate");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform1f(location, 1.0f);
@@ -442,20 +465,20 @@ void GlslValidator::bindViewInformation()
     GLint location = MaterialX::GlslProgram::UNDEFINED_OPENGL_PROGRAM_LOCATION;
 
     // Set view direction and position
-    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
-    auto programInput = uniformList.find("u_viewPosition");
-    if (programInput != uniformList.end())
+    const MaterialX::GlslProgram::InputMap& uniformList = _program->getUniformsList();
+    auto Input = uniformList.find("u_viewPosition");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform3f(location, 0.0f, 0.0f, NEAR_PLANE-1.0f);
         }
     }
-    programInput = uniformList.find("u_viewDirection");
-    if (programInput != uniformList.end())
+    Input = uniformList.find("u_viewDirection");
+    if (Input != uniformList.end())
     {
-        location = programInput->second->location;
+        location = Input->second->location;
         if (location >= 0)
         {
             glUniform3f(location, 0.0f, 0.0f, 1.0f);
@@ -479,10 +502,10 @@ void GlslValidator::bindViewInformation()
     };
     for (auto worldMatrixVariable : worldMatrixVariables)
     {
-        programInput = uniformList.find(worldMatrixVariable);
-        if (programInput != uniformList.end())
+        Input = uniformList.find(worldMatrixVariable);
+        if (Input != uniformList.end())
         {
-            location = programInput->second->location;
+            location = Input->second->location;
             if (location >= 0)
             {
                 bool transpose = (worldMatrixVariable.find("Transpose") != std::string::npos);
@@ -502,10 +525,10 @@ void GlslValidator::bindViewInformation()
     };
     for (auto projectionMatrixVariable : projectionMatrixVariables)
     {
-        programInput = uniformList.find(projectionMatrixVariable);
-        if (programInput != uniformList.end())
+        Input = uniformList.find(projectionMatrixVariable);
+        if (Input != uniformList.end())
         {
-            location = programInput->second->location;
+            location = Input->second->location;
             if (location >= 0)
             {
                 bool transpose = (projectionMatrixVariable.find("Transpose") != std::string::npos);
@@ -526,10 +549,10 @@ void GlslValidator::bindViewInformation()
     };
     for (auto viewMatrixVariable : viewMatrixVariables)
     {
-        programInput = uniformList.find(viewMatrixVariable);
-        if (programInput != uniformList.end())
+        Input = uniformList.find(viewMatrixVariable);
+        if (Input != uniformList.end())
         {
-            location = programInput->second->location;
+            location = Input->second->location;
             if (location >= 0)
             {
                 glUniformMatrix4fv(location, 1, GL_FALSE, pm);
@@ -547,9 +570,9 @@ bool GlslValidator::bindAttribute(const GLfloat* bufferData,
                                     unsigned int floatCount,
                                     bool exactMatch)
 {
-    MaterialX::GlslProgram::ProgramInputMap foundList;
-    const MaterialX::GlslProgram::ProgramInputMap& attributeList = _program->getAttributesList();
-    _program->findProgramInputs(attributeId, attributeList, foundList, exactMatch);
+    MaterialX::GlslProgram::InputMap foundList;
+    const MaterialX::GlslProgram::InputMap& attributeList = _program->getAttributesList();
+    _program->findInputs(attributeId, attributeList, foundList, exactMatch);
 
     for (auto found : foundList)
     {
@@ -639,24 +662,24 @@ void GlslValidator::bindGeometry()
     // Bind any named attribute information
     //
     std::string geomAttrPrefix("u_geomattr_");
-    MaterialX::GlslProgram::ProgramInputMap foundList;
-    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
-    _program->findProgramInputs(geomAttrPrefix, uniformList, foundList, false);
-    for (auto programInput : foundList)
+    MaterialX::GlslProgram::InputMap foundList;
+    const MaterialX::GlslProgram::InputMap& uniformList = _program->getUniformsList();
+    _program->findInputs(geomAttrPrefix, uniformList, foundList, false);
+    for (auto Input : foundList)
     {
         // Only handle float1-4 types for now
-        if (programInput.second->gltype == GL_FLOAT)
+        if (Input.second->gltype == GL_FLOAT)
         {
             GLfloat floatVal[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-            int size = programInput.second->size;
+            int size = Input.second->size;
             if (size == 1)
-                glUniform1fv(programInput.second->location, 1, floatVal);
+                glUniform1fv(Input.second->location, 1, floatVal);
             else if (size == 2)
-                glUniform2fv(programInput.second->location, 1, floatVal);
+                glUniform2fv(Input.second->location, 1, floatVal);
             else if (size == 3)
-                glUniform3fv(programInput.second->location, 1, floatVal);
+                glUniform3fv(Input.second->location, 1, floatVal);
             else if (size == 4)
-                glUniform4fv(programInput.second->location, 1, floatVal);
+                glUniform4fv(Input.second->location, 1, floatVal);
         }
     }
 
@@ -720,7 +743,7 @@ void GlslValidator::unbindTextures()
     int textureUnit = 0;
     GLint maxImageUnits = -1;
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
-    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
+    const MaterialX::GlslProgram::InputMap& uniformList = _program->getUniformsList();
     for (auto uniform : uniformList)
     {
         GLenum uniformType = uniform.second->gltype;
@@ -775,7 +798,7 @@ void GlslValidator::bindTextures()
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxImageUnits);
     // Keep track of all textures read in
     _programTextures.clear();
-    const MaterialX::GlslProgram::ProgramInputMap& uniformList = _program->getUniformsList();
+    const MaterialX::GlslProgram::InputMap& uniformList = _program->getUniformsList();
     for (auto uniform : uniformList)
     {
         GLenum uniformType = uniform.second->gltype;
@@ -892,7 +915,7 @@ void GlslValidator::bindInputs()
     bindLighting();
 }
 
-void GlslValidator::render()
+void GlslValidator::validateRender()
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL rendering error.");

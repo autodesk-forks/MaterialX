@@ -25,15 +25,15 @@ namespace mx = MaterialX;
 
 TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 {
-    // Initialize a GLSL validator. Will initialize 
+    // Initialize a GLSL validator-> Will initialize 
     // window and context as well for usage
-    mx::GlslValidator validator;
+    mx::GlslValidatorPtr validator = mx::GlslValidator::creator();
     bool initialized = false;
     try
     {
-        validator.initialize();
+        validator->initialize();
         mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
-        validator.setImageHandler(handler);
+        validator->setImageHandler(handler);
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError e)
@@ -58,8 +58,6 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 
     for (auto shaderName : shaderNames)
     {
-        MaterialX::GlslProgramPtr program = validator.program();
-
         std::cout << "------------ Validate shader from source: " << shaderName << std::endl;
         std::string vertexShaderPath = shaderName + ".vert";
         std::string pixelShaderPath = shaderName + ".frag";
@@ -72,7 +70,6 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         if (shaderFile.is_open())
         {
             vertexShaderStream << shaderFile.rdbuf();
-            program->setStage(vertexShaderStream.str(), mx::HwShader::VERTEX_STAGE);
             shaderFile.close();
             stagesSet++;
         }
@@ -80,7 +77,6 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         if (shaderFile.is_open())
         {
             pixelShaderStream << shaderFile.rdbuf();
-            program->setStage(pixelShaderStream.str(), mx::HwShader::PIXEL_STAGE);
             shaderFile.close();
             stagesSet++;
         }
@@ -96,9 +92,15 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 
         // Check program compilation
         bool programCompiled = false;
+        mx::GlslProgramPtr program = validator->program();
         try {
-            unsigned int programId = validator.createProgram();
-            REQUIRE(programId > 0);
+            // Set stages and validate. 
+            // Note that pixel stage is first, then vertex stage
+            std::vector<std::string> stages;
+            stages.push_back(pixelShaderStream.str());
+            stages.push_back(vertexShaderStream.str());
+            
+            validator->validateCreation(stages);
             programCompiled = true;
         }
         catch (mx::ExceptionShaderValidationError e)
@@ -107,28 +109,21 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
             {
                 std::cout << e.what() << " " << error << std::endl;
             }
+
+            std::string stage = program->getStage(mx::HwShader::VERTEX_STAGE);
+            std::cout << ">> Failed vertex stage code:\n";
+            std::cout << stage;
+            stage = program->getStage(mx::HwShader::PIXEL_STAGE);
+            std::cout << ">> Failed pixel stage code:\n";
+            std::cout << stage;
         }
         REQUIRE(programCompiled);
 
         // Check getting uniforms list
         bool uniformsParsed = false;
-        try {
-            const mx::GlslProgram::ProgramInputMap& uniforms = program->getUniformsList();
-            for (auto input : uniforms)
-            {
-                unsigned int gltype = input.second->gltype;
-                int location = input.second->location;
-                int size = input.second->size;
-                std::string type = input.second->typeString;
-                std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
-                std::cout << "Program Uniform: \"" << input.first
-                    << "\". Location=" << location 
-                    << ". Type=" << std::hex << gltype 
-                    << ". Size=" << std::dec << size
-                    << ". TypeString=" << type 
-                    << ". Value=" << value << "."
-                    << std::endl;
-            }
+        try 
+        {
+            program->printUniforms(std::cout);
             uniformsParsed = true;
         }
         catch (mx::ExceptionShaderValidationError e)
@@ -144,22 +139,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         bool attributesParsed = false;
         try
         {
-            const mx::GlslProgram::ProgramInputMap& attributes = program->getAttributesList();
-            for (auto input : attributes)
-            {
-                unsigned int gltype = input.second->gltype;
-                int location = input.second->location;
-                int size = input.second->size;
-                std::string type = input.second->typeString;
-                std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
-                std::cout << "Program Attribute: \"" << input.first
-                    << "\". Location=" << location
-                    << ". Type=" << std::hex << gltype
-                    << ". Size=" << std::dec << size
-                    << ". TypeString=" << type 
-                    << ". Value=" << value << "."
-                    << std::endl;
-            }
+            program->printAttributes(std::cout);
             attributesParsed = true;
         }
         catch (mx::ExceptionShaderValidationError e)
@@ -175,7 +155,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         bool renderSucceeded = false;
         try
         {
-            validator.render();
+            validator->validateRender();
             renderSucceeded = true;
         }
         catch (mx::ExceptionShaderValidationError e)
@@ -190,7 +170,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         try
         {
             std::string fileName = shaderName + ".exr";
-            validator.save(fileName);
+            validator->save(fileName);
         }
         catch (mx::ExceptionShaderValidationError e)
         {
@@ -289,12 +269,12 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     mx::OutputPtr output1 = nodeGraph->addOutput(mx::EMPTY_STRING, "vector3");
 
     bool initialized = false;
-    mx::GlslValidator validator;
+    mx::GlslValidatorPtr validator = mx::GlslValidator::creator();
     try
     {
-        validator.initialize();
+        validator->initialize();
         mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
-        validator.setImageHandler(handler);
+        validator->setImageHandler(handler);
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError e)
@@ -324,46 +304,16 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         file.close();
 
 
-        MaterialX::GlslProgramPtr program = validator.program();
-        program->setStages(hwShader);
-        unsigned int programId = validator.createProgram();
-        REQUIRE(programId > 0);
-        const mx::GlslProgram::ProgramInputMap& uniforms = program->getUniformsList();
-        for (auto input : uniforms)
-        {
-            unsigned int gltype = input.second->gltype;
-            int location = input.second->location;
-            int size = input.second->size;
-            std::string type = input.second->typeString;
-            std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
-            std::cout << "Program Uniform: \"" << input.first
-                << "\". Location=" << location
-                << ". Type=" << std::hex << gltype
-                << ". Size=" << std::dec << size
-                << ". TypeString=" << type
-                << ". Value=" << value << "."
-                << std::endl;
+        validator->validateCreation(hwShader);
+        //REQUIRE(programId > 0);
 
-        }
-        const mx::GlslProgram::ProgramInputMap& attributes = program->getAttributesList();
-        for (auto input : attributes)
-        {
-            unsigned int gltype = input.second->gltype;
-            int location = input.second->location;
-            int size = input.second->size;
-            std::string type = input.second->typeString;
-            std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
-            std::cout << "Program Attribute: \"" << input.first
-                << "\". Location=" << location
-                << ". Type=" << std::hex << gltype
-                << ". Size=" << std::dec << size
-                << ". TypeString=" << type 
-                << ". Value=" << value << "."
-                << std::endl;
-        }
-        validator.render();
+        MaterialX::GlslProgramPtr program = validator->program();
+        program->printUniforms(std::cout);
+        program->printAttributes(std::cout);
+
+        validator->validateRender();
         std::string fileName = nodePtr->getName() + ".exr";
-        validator.save(fileName);
+        validator->save(fileName);
     }
 #if 0
     /////////////////////////////////
@@ -424,46 +374,16 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
 
 
         /////////////////////////////////////////////////////
-        MaterialX::GlslProgramPtr program = validator.program();
-        program->setStages(hwShader);
-        unsigned int programId = validator.createProgram();
-        REQUIRE(programId > 0);
-        const mx::GlslProgram::ProgramInputMap& uniforms = program->getUniformsList();
-        for (auto input : uniforms)
-        {
-            unsigned int gltype = input.second->gltype;
-            int location = input.second->location;
-            int size = input.second->size;
-            std::string type = input.second->typeString;
-            std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
-            std::cout << "Program Uniform: \"" << input.first
-                << "\". Location=" << location
-                << ". Type=" << std::hex << gltype
-                << ". Size=" << std::dec << size
-                << ". TypeString=" << type
-                << ". Value=" << value << "."
-                << std::endl;
+        validator->validateCreateion(hwShader);
+        //REQUIRE(programId > 0);
+        MaterialX::GlslProgramPtr program = validator->program();
 
-        }
-        const mx::GlslProgram::ProgramInputMap& attributes = program->getAttributesList();
-        for (auto input : attributes)
-        {
-            unsigned int gltype = input.second->gltype;
-            int location = input.second->location;
-            int size = input.second->size;
-            std::string type = input.second->typeString;
-            std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
-            std::cout << "Program Attribute: \"" << input.first
-                << "\". Location=" << location
-                << ". Type=" << std::hex << gltype
-                << ". Size=" << std::dec << size
-                << ". TypeString=" << type
-                << ". Value=" << value << "."
-                << std::endl;
-        }
-        validator.render();
+        program->printUniforms(std::cout);
+        program->printAttribute(std::cout);
+
+        validator->validateRender();
         std::string fileName = "lighting1.exr";
-        validator.save(fileName);
+        validator->save(fileName);
     }
 #endif
 }

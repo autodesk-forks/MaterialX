@@ -11,10 +11,18 @@ namespace MaterialX
 // OpenGL Constants
 unsigned int GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID = 0;
 int GlslProgram::UNDEFINED_OPENGL_PROGRAM_LOCATION = -1;
-int GlslProgram::ProgramInput::INVALID_OPENGL_TYPE = -1;
+int GlslProgram::Input::INVALID_OPENGL_TYPE = -1;
+
+//
+// Creator
+//
+GlslProgramPtr GlslProgram::creator()
+{
+    return std::shared_ptr<GlslProgram>(new GlslProgram());
+}
 
 GlslProgram::GlslProgram() :
-    _programId(0),
+    _programId(UNDEFINED_OPENGL_RESOURCE_ID),
     _hwShader(nullptr)
 {
 }
@@ -25,17 +33,22 @@ GlslProgram::~GlslProgram()
     deleteProgram();
 }
 
-void GlslProgram::setStage(const std::string& code, size_t stage)
+void GlslProgram::setStages(const std::vector<std::string>& stages)
 {
-    if (stage < HwShader::NUM_STAGES)
+    if (stages.size() != HwShader::NUM_STAGES)
     {
-        _stages[stage] = code;
+        ShaderValidationErrorList errors;
+        throw ExceptionShaderValidationError("Incorrect number of stages passed in for stage setup.", errors);
+    }
+
+    unsigned int count = 0;
+    for (auto stage : stages)
+    { 
+        _stages[count++] = stage;
     }
 
     // A stage change invalidates any cached parsed inputs
     clearInputLists();
-    // For now a individual stage setting means to not use a HwShader.
-    // If / when injection of stages is allowed then this should not longer be true
     _hwShader = nullptr;
 }
 
@@ -93,8 +106,9 @@ bool GlslProgram::haveValidStages() const
 
 void GlslProgram::deleteProgram()
 {
-    if (_programId > 0)
+    if (_programId > UNDEFINED_OPENGL_RESOURCE_ID)
     {
+        glUseProgram(0);
         glDeleteObjectARB(_programId);
         _programId = UNDEFINED_OPENGL_RESOURCE_ID;
     }
@@ -103,7 +117,7 @@ void GlslProgram::deleteProgram()
     clearInputLists();
 }
 
-unsigned int GlslProgram::createProgram()
+unsigned int GlslProgram::build()
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL program creation error.");
@@ -216,17 +230,17 @@ unsigned int GlslProgram::createProgram()
     }
 
     // Cleanup
-    if (vertexShaderId > 0)
+    if (vertexShaderId > UNDEFINED_OPENGL_RESOURCE_ID)
     {
-        if (_programId > 0)
+        if (_programId > UNDEFINED_OPENGL_RESOURCE_ID)
         {
             glDetachShader(_programId, vertexShaderId);
         }
         glDeleteShader(vertexShaderId);
     }
-    if (fragmentShaderId > 0)
+    if (fragmentShaderId > UNDEFINED_OPENGL_RESOURCE_ID)
     {
-        if (_programId > 0)
+        if (_programId > UNDEFINED_OPENGL_RESOURCE_ID)
         {
             glDetachShader(_programId, fragmentShaderId);
         }
@@ -248,7 +262,7 @@ unsigned int GlslProgram::createProgram()
 
 bool GlslProgram::bind() const
 {
-    if (_programId >= 0)
+    if (_programId > UNDEFINED_OPENGL_RESOURCE_ID)
     {
         glUseProgram(_programId);
         return true;
@@ -259,7 +273,10 @@ bool GlslProgram::bind() const
 bool GlslProgram::haveActiveAttributes() const
 {
     GLint activeAttributeCount = 0;
-    glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTES, &activeAttributeCount);
+    if (_programId > UNDEFINED_OPENGL_RESOURCE_ID)
+    {
+        glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTES, &activeAttributeCount);
+    }
     return (activeAttributeCount > 0);
 }
 
@@ -275,17 +292,17 @@ void GlslProgram::clearInputLists()
     _attributeList.clear();
 }
 
-const GlslProgram::ProgramInputMap& GlslProgram::getUniformsList()
+const GlslProgram::InputMap& GlslProgram::getUniformsList()
 {
     return updateUniformsList();
 }
 
-const GlslProgram::ProgramInputMap& GlslProgram::getAttributesList()
+const GlslProgram::InputMap& GlslProgram::getAttributesList()
 {
     return updateAttributesList();
 }
 
-const GlslProgram::ProgramInputMap& GlslProgram::updateUniformsList()
+const GlslProgram::InputMap& GlslProgram::updateUniformsList()
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL uniform parsing error.");
@@ -295,7 +312,7 @@ const GlslProgram::ProgramInputMap& GlslProgram::updateUniformsList()
         return _uniformList;
     }
 
-    if (_programId <= 0)
+    if (_programId <= UNDEFINED_OPENGL_RESOURCE_ID)
     {
         errors.push_back("Cannot parse for uniforms without a valid program");
         throw ExceptionShaderValidationError(errorType, errors);
@@ -315,7 +332,7 @@ const GlslProgram::ProgramInputMap& GlslProgram::updateUniformsList()
         GLint uniformLocation = glGetUniformLocation(_programId, uniformName);
         if (uniformLocation >= 0)
         {
-            ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(uniformLocation, uniformType, uniformSize);
+            InputPtr inputPtr = std::make_shared<Input>(uniformLocation, uniformType, uniformSize);
             _uniformList[std::string(uniformName)] = inputPtr;
         }
     }
@@ -341,13 +358,13 @@ const GlslProgram::ProgramInputMap& GlslProgram::updateUniformsList()
                     continue;
                 }
 
-                auto programInput = _uniformList.find(input->name);
-                if (programInput != _uniformList.end())
+                auto Input = _uniformList.find(input->name);
+                if (Input != _uniformList.end())
                 {
-                    if (programInput->second->gltype == mapTypeToOpenGLType(input->type))
+                    if (Input->second->gltype == mapTypeToOpenGLType(input->type))
                     {
-                        programInput->second->typeString = input->type;
-                        programInput->second->value = input->value;
+                        Input->second->typeString = input->type;
+                        Input->second->value = input->value;
                     }
                     else
                     {
@@ -371,14 +388,14 @@ const GlslProgram::ProgramInputMap& GlslProgram::updateUniformsList()
             MaterialX::Shader::VariableBlockPtr block = uniforms.second;
             for (const MaterialX::Shader::Variable* input : block->variableOrder)
             {
-                auto programInput = _uniformList.find(input->name);
-                if (programInput != _uniformList.end())
+                auto Input = _uniformList.find(input->name);
+                if (Input != _uniformList.end())
                 {
-                    if (programInput->second->gltype == mapTypeToOpenGLType(input->type))
+                    if (Input->second->gltype == mapTypeToOpenGLType(input->type))
                     {
-                        programInput->second->typeString = input->type;
-                        programInput->second->value = input->value;
-                        programInput->second->typeString = input->type;
+                        Input->second->typeString = input->type;
+                        Input->second->value = input->value;
+                        Input->second->typeString = input->type;
                     }
                     else
                     {
@@ -395,7 +412,7 @@ const GlslProgram::ProgramInputMap& GlslProgram::updateUniformsList()
                 }
                 else
                 {
-                    programInput->second->typeString = input->type;
+                    Input->second->typeString = input->type;
                 }
             }
         }
@@ -434,10 +451,10 @@ int GlslProgram::mapTypeToOpenGLType(const std::string& type)
         return GL_SAMPLER_2D;
     }
 
-    return GlslProgram::ProgramInput::INVALID_OPENGL_TYPE;
+    return GlslProgram::Input::INVALID_OPENGL_TYPE;
 }
 
-const GlslProgram::ProgramInputMap& GlslProgram::updateAttributesList()
+const GlslProgram::InputMap& GlslProgram::updateAttributesList()
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL attribute parsing error.");
@@ -447,7 +464,7 @@ const GlslProgram::ProgramInputMap& GlslProgram::updateAttributesList()
         return _attributeList;
     }
 
-    if (_programId <= 0)
+    if (_programId <= UNDEFINED_OPENGL_RESOURCE_ID)
     {
         errors.push_back("Cannot parse for attributes without a valid program");
         throw ExceptionShaderValidationError(errorType, errors);
@@ -467,7 +484,7 @@ const GlslProgram::ProgramInputMap& GlslProgram::updateAttributesList()
         GLint attributeLocation = glGetAttribLocation(_programId, attributeName);
         if (attributeLocation >= 0)
         {
-            ProgramInputPtr inputPtr = std::make_shared<ProgramInput>(attributeLocation, attributeType, attributeSize);
+            InputPtr inputPtr = std::make_shared<Input>(attributeLocation, attributeType, attributeSize);
             _attributeList[std::string(attributeName)] = inputPtr;
         }
     }
@@ -484,14 +501,14 @@ const GlslProgram::ProgramInputMap& GlslProgram::updateAttributesList()
             for (const MaterialX::Shader::Variable* input : appDataBlock.variableOrder)
             {
                 //bool foundMatch = false;
-                auto programInput = _attributeList.find(input->name);
-                if (programInput != _attributeList.end())
+                auto Input = _attributeList.find(input->name);
+                if (Input != _attributeList.end())
                 {
-                    if (programInput->second->gltype == mapTypeToOpenGLType(input->type))
+                    if (Input->second->gltype == mapTypeToOpenGLType(input->type))
                     {
                         //foundMatch = true;
-                        programInput->second->typeString = input->type;
-                        programInput->second->value = input->value;
+                        Input->second->typeString = input->type;
+                        Input->second->value = input->value;
                     }
                     else
                     {
@@ -518,9 +535,9 @@ const GlslProgram::ProgramInputMap& GlslProgram::updateAttributesList()
     return _attributeList;
 }
 
-void GlslProgram::findProgramInputs(const std::string& variable, 
-                                         const ProgramInputMap& variableList,
-                                         ProgramInputMap& foundList,
+void GlslProgram::findInputs(const std::string& variable, 
+                                         const InputMap& variableList,
+                                         InputMap& foundList,
                                          bool exactMatch)
 {
     foundList.clear();
@@ -528,29 +545,70 @@ void GlslProgram::findProgramInputs(const std::string& variable,
     // Scan all attributes which match the attribute identifier completely or as a prefix
     //
     int ilocation = UNDEFINED_OPENGL_PROGRAM_LOCATION;
-    auto programInput = variableList.find(variable);
-    if (programInput != variableList.end())
+    auto Input = variableList.find(variable);
+    if (Input != variableList.end())
     {
-        ilocation = programInput->second->location;
+        ilocation = Input->second->location;
         if (ilocation >= 0)
         {
-            foundList[variable] = programInput->second;
+            foundList[variable] = Input->second;
         }
     }
     else if (!exactMatch)
     {
-        for (programInput = variableList.begin(); programInput != variableList.end(); programInput++)
+        for (Input = variableList.begin(); Input != variableList.end(); Input++)
         {
-            const std::string& name = programInput->first;
+            const std::string& name = Input->first;
             if (name.compare(0, variable.size(), variable) == 0)
             {
-                ilocation = programInput->second->location;
+                ilocation = Input->second->location;
                 if (ilocation >= 0)
                 {
-                    foundList[programInput->first] = programInput->second;
+                    foundList[Input->first] = Input->second;
                 }
             }
         }
+    }
+}
+
+void GlslProgram::printUniforms(std::ostream& outputStream) 
+{
+    updateUniformsList();
+    for (auto input : _uniformList)
+    {
+        unsigned int gltype = input.second->gltype;
+        int location = input.second->location;
+        int size = input.second->size;
+        std::string type = input.second->typeString;
+        std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
+        outputStream << "Program Uniform: \"" << input.first
+            << "\". Location=" << location
+            << ". Type=" << std::hex << gltype
+            << ". Size=" << std::dec << size
+            << ". TypeString=" << type
+            << ". Value=" << value << "."
+            << std::endl;
+    }
+}
+
+
+void GlslProgram::printAttributes(std::ostream& outputStream) 
+{
+    updateAttributesList();
+    for (auto input : _attributeList)
+    {
+        unsigned int gltype = input.second->gltype;
+        int location = input.second->location;
+        int size = input.second->size;
+        std::string type = input.second->typeString;
+        std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
+        outputStream << "Program Attribute: \"" << input.first
+            << "\". Location=" << location
+            << ". Type=" << std::hex << gltype
+            << ". Size=" << std::dec << size
+            << ". TypeString=" << type
+            << ". Value=" << value << "."
+            << std::endl;
     }
 }
 
