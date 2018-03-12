@@ -28,11 +28,11 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
     // Initialize a GLSL validator-> Will initialize 
     // window and context as well for usage
     mx::GlslValidatorPtr validator = mx::GlslValidator::creator();
+    mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
     bool initialized = false;
     try
     {
         validator->initialize();
-        mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
         validator->setImageHandler(handler);
         initialized = true;
     }
@@ -101,6 +101,8 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
             stages.push_back(vertexShaderStream.str());
             
             validator->validateCreation(stages);
+            validator->validateInputs();
+
             programCompiled = true;
         }
         catch (mx::ExceptionShaderValidationError e)
@@ -270,19 +272,21 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
 
     bool initialized = false;
     mx::GlslValidatorPtr validator = mx::GlslValidator::creator();
+    mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
     try
     {
         validator->initialize();
-        mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
         validator->setImageHandler(handler);
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError e)
     {
+        for (auto error : e.errorLog())
+        {
+            std::cout << e.what() << " " << error << std::endl;
+        }
     }
     REQUIRE(initialized);
-
-    mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
 
     for (auto nodePtr : attributeList)
     {
@@ -303,17 +307,37 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
 
-
-        validator->validateCreation(hwShader);
-        //REQUIRE(programId > 0);
-
         MaterialX::GlslProgramPtr program = validator->program();
-        program->printUniforms(std::cout);
-        program->printAttributes(std::cout);
+        bool validated = false;
+        try
+        {
+            validator->validateCreation(hwShader);
+            validator->validateInputs();
 
-        validator->validateRender();
-        std::string fileName = nodePtr->getName() + ".exr";
-        validator->save(fileName);
+            program->printUniforms(std::cout);
+            program->printAttributes(std::cout);
+
+            validator->validateRender();
+            std::string fileName = nodePtr->getName() + ".exr";
+            validator->save(fileName);
+
+            validated = true;
+        }
+        catch (mx::ExceptionShaderValidationError e)
+        {
+            for (auto error : e.errorLog())
+            {
+                std::cout << e.what() << " " << error << std::endl;
+            }
+            
+            std::string stage = program->getStage(mx::HwShader::VERTEX_STAGE);
+            std::cout << ">> Failed vertex stage code:\n";
+            std::cout << stage;
+            stage = program->getStage(mx::HwShader::PIXEL_STAGE);
+            std::cout << ">> Failed pixel stage code:\n";
+            std::cout << stage;
+        }
+        REQUIRE(validated);
     }
 #if 0
     /////////////////////////////////
@@ -372,18 +396,31 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
 
-
         /////////////////////////////////////////////////////
-        validator->validateCreateion(hwShader);
-        //REQUIRE(programId > 0);
-        MaterialX::GlslProgramPtr program = validator->program();
+        bool validated = false;
+        try
+        {
+            validator->validateCreation(hwShader);
+            validator->validateInputs();
 
-        program->printUniforms(std::cout);
-        program->printAttribute(std::cout);
+            MaterialX::GlslProgramPtr program = validator->program();
+            program->printUniforms(std::cout);
+            program->printAttributes(std::cout);
 
-        validator->validateRender();
-        std::string fileName = "lighting1.exr";
-        validator->save(fileName);
+            validator->validateRender();
+            const std::string fileName = "lighting1.exr";
+            validator->save(fileName);
+
+            validated = true;
+        }
+        catch (mx::ExceptionShaderValidationError e)
+        {
+            for (auto error : e.errorLog())
+            {
+                std::cout << e.what() << " " << error << std::endl;
+            }
+        }
+        REQUIRE(validated);
     }
 #endif
 }

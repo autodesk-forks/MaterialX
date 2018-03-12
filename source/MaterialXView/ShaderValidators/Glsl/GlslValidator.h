@@ -67,6 +67,9 @@ class GlslValidator
     /// @param shader Input stages List of stage string
     void validateCreation(const std::vector<std::string>& stages);
 
+    /// Validate inputs for the program 
+    void validateInputs();
+
     /// Perform validation that inputs can be bound to and 
     /// rendered with. Rendering is to an offscreen hardware buffer.
     void validateRender();
@@ -78,7 +81,7 @@ class GlslValidator
     /// Save the current contents the offscreen hardware buffer to disk.
     /// @param fileName Name of file to save rendered image to.
     /// @return true if successful
-    void save(std::string& fileName);
+    void save(const std::string& fileName);
     
     /// Return the GLSL program wrapper class
     MaterialX::GlslProgramPtr program()

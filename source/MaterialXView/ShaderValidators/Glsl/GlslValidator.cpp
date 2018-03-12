@@ -311,6 +311,28 @@ void GlslValidator::validateCreation(const std::vector<std::string>& stages)
     _program->build();
 }
 
+void GlslValidator::validateInputs()
+{
+    ShaderValidationErrorList errors;
+    const std::string errorType("GLSL program input error.");
+
+    if (!_context)
+    {
+        errors.push_back("No valid OpenGL context to validate inputs.");
+        throw ExceptionShaderValidationError(errorType, errors);
+
+    }
+    if (!_context->makeCurrent())
+    {
+        errors.push_back("Cannot make OpenGL context current to validate inputs.");
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
+
+    // Check that the generated uniforms and attributes are valid
+    _program->getUniformsList();
+    _program->getAttributesList();
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 // Binders
 ////////////////////////////////////////////////////////////////////////////////////
@@ -1018,7 +1040,7 @@ void GlslValidator::validateRender()
     bindTarget(false);
 }
 
-void GlslValidator::save(std::string& fileName)
+void GlslValidator::save(const std::string& fileName)
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL image save error.");
