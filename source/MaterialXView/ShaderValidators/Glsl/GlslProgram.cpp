@@ -410,10 +410,6 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                         uniformTypeMismatchFound = true;
                     }
                 }
-                else
-                {
-                    Input->second->typeString = input->type;
-                }
             }
         }
 

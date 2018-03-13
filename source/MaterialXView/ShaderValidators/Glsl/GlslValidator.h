@@ -211,9 +211,6 @@ class GlslValidator
     /// Dummy OpenGL context for OpenGL usage
     GLUtilityContextPtr _context;
 
-    //static unsigned int UNDEFINED_OPENGL_RESOURCE_ID;
-    //static int UNDEFINED_OPENGL_PROGRAM_LOCATION;
-
     /// Utility image handler
     ImageHandlerPtr _imageHandler;
     std::vector<unsigned int> _programTextures;
