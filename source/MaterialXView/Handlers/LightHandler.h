@@ -37,7 +37,7 @@ public:
 
     /// Set a light parameter value
     template<typename T>
-    void LightSource::setParameter(const string& name, const T& value)
+    void setParameter(const string& name, const T& value)
     {
         ParameterMap::iterator it = _parameters.find(name);
         if (it != _parameters.end())
