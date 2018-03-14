@@ -39,6 +39,7 @@ GlslValidator::GlslValidator() :
     std::fill(_attributeBufferIds.begin(), _attributeBufferIds.end(), MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
 
     _program = GlslProgram::creator();
+    _geometryHandler = GeometryHandler::creator();
 }
 
 GlslValidator::~GlslValidator()
@@ -408,8 +409,8 @@ void GlslValidator::bindLighting()
     if (lightCount == 0)
         return;
 
-    // Manually set the lights
-    // 0 = directional, 1 = point
+    // Manually set the lights. 
+    // 0 = directional, 1 = point, 2 = light compound
     unsigned int blockUniformsSet = 0;
     Input = uniformList.find("u_lightData[0].type");
     if (Input != uniformList.end())
@@ -462,6 +463,16 @@ void GlslValidator::bindLighting()
         }
     }
     Input = uniformList.find("u_lightData[0].decayRate");
+    if (Input != uniformList.end())
+    {
+        location = Input->second->location;
+        if (location >= 0)
+        {
+            glUniform1f(location, 1.0f);
+            blockUniformsSet++;
+        }
+    }
+    Input = uniformList.find("u_lightData[0].exposure");
     if (Input != uniformList.end())
     {
         location = Input->second->location;
@@ -630,56 +641,37 @@ void GlslValidator::bindGeometry()
     glGenVertexArrays(1, &_vertexArray);
     glBindVertexArray(_vertexArray);
 
-    unsigned int indexData[] = { 0, 1, 2, 0, 2, 3 };
+    size_t bufferSize = 0;
+    unsigned int* indexData = _geometryHandler->getIndexing(bufferSize);
     _indexBufferSize = 6;
     glGenBuffers(1, &_indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize, indexData, GL_STATIC_DRAW);
 
     // Bind positions
-    const float border = 20.0f;
-    const GLfloat positionData[] = { border, border, 0.0f,
-        border, (float)(_frameBufferHeight)-border, 0.0f,
-        (float)(_frameBufferWidth)-border, (float)(_frameBufferHeight)-border, 0.0f,
-        (float)(_frameBufferWidth)-border, border, 0.0f };
-    bindAttribute(positionData, sizeof(positionData), "i_position", POSITION3_ATTRIBUTE, 3, true);
+    float* positionData = _geometryHandler->getPositions(bufferSize);
+    bindAttribute(positionData, bufferSize, "i_position", POSITION3_ATTRIBUTE, 3, true);
 
     // Bind normals
-    float normalData[] = { 0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f };
-    bindAttribute(normalData, sizeof(normalData), "i_normal", NORMAL3_ATTRIBUTE, 3, true);
+    float* normalData = _geometryHandler->getNormals(bufferSize);
+    bindAttribute(normalData, bufferSize, "i_normal", NORMAL3_ATTRIBUTE, 3, true);
 
     // Bind tangents
-    float tangentData[] = { 1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        -1.0f, 0.0f, 0.0f,
-        0.0f, -1.0f, 0.0f };
-    bindAttribute(tangentData, sizeof(tangentData), "i_tangent", TANGENT3_ATTRIBUTE, 3, true);
+    float* tangentData = _geometryHandler->getTangents("0", bufferSize);
+    bindAttribute(tangentData, bufferSize, "i_tangent", TANGENT3_ATTRIBUTE, 3, true);
 
     // Bind bitangents
-    float bitangentData[] = { 0.0f, 1.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        -1.0f, 0.0f, 0.0f,
-        0.0f, -1.0f, 0.0f };
-    bindAttribute(bitangentData, sizeof(bitangentData), "i_bitangent", BITANGENT3_ATTRIBUTE, 3, true);
+    float* bitangentData = _geometryHandler->getBitangents("0", bufferSize);
+    bindAttribute(bitangentData, bufferSize, "i_bitangent", BITANGENT3_ATTRIBUTE, 3, true);
 
     // Bind single set of colors for all locations found
-    float colorData[] = { 1.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 0.0f, 1.0f };
-    // Search for anything that starts with the prefix "i_color_"
-    bindAttribute(colorData, sizeof(colorData), "i_color_", COLOR4_ATTRIBUTE, 4, false);
+    float* colorData = _geometryHandler->getColors("0", bufferSize);
+    bindAttribute(colorData, bufferSize, "i_color_", COLOR4_ATTRIBUTE, 4, false);
 
     // Bind single set of texture coords for all locations found
-    GLfloat uvData[] = { 0.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f };
+    float* uvData = _geometryHandler->getTextureCoords("0", bufferSize);
     // Search for anything that starts with the prefix "i_texcoord_"
-    bindAttribute(uvData, sizeof(uvData), "i_texcoord_", TEXCOORD2_ATTRIBUTE, 2, false);
+    bindAttribute(uvData, bufferSize, "i_texcoord_", TEXCOORD2_ATTRIBUTE, 2, false);
 
     // Bind any named attribute information
     //

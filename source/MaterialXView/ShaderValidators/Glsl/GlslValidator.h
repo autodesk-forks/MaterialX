@@ -3,10 +3,11 @@
 
 #include <MaterialXShaderGen/HwShader.h>
 #include <MaterialXView/ShaderValidators/ExceptionShaderValidationError.h>
-#include <MaterialXView/Image/ImageHandler.h>
+#include <MaterialXView/Handlers/ImageHandler.h>
 #include <MaterialXView/Window/SimpleWindow.h>
 #include <MaterialXView/OpenGL/GLUtilityContext.h>
 #include <MaterialXView/ShaderValidators/Glsl/GlslProgram.h>
+#include <MaterialXView/Handlers/GeometryHandler.h>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -214,6 +215,9 @@ class GlslValidator
     /// Utility image handler
     ImageHandlerPtr _imageHandler;
     std::vector<unsigned int> _programTextures;
+
+    // Utility geometry handler
+    GeometryHandlerPtr _geometryHandler;
 };
 
 } // namespace MaterialX

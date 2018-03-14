@@ -21,12 +21,13 @@ namespace mx = MaterialX;
 
 #include <iostream>
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
-#include <MaterialXView/Image/TinyEXRImageHandler.h>
+#include <MaterialXView/Handlers/TinyEXRImageHandler.h>
 
 TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 {
-    // Initialize a GLSL validator-> Will initialize 
-    // window and context as well for usage
+    // Initialize a GLSL validator and set image handler.
+    // Validator initiazation will create a offscreen
+    // window and offscreen OpenGL context for usage.
     mx::GlslValidatorPtr validator = mx::GlslValidator::creator();
     mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
     bool initialized = false;
@@ -45,6 +46,8 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
     }
     REQUIRE(initialized);
 
+    // Test through set of fragment and vertex shader stage pairs
+    // of files
     const std::vector<std::string> shaderNames =
     {
         "conditionals",
@@ -62,7 +65,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         std::string vertexShaderPath = shaderName + ".vert";
         std::string pixelShaderPath = shaderName + ".frag";
 
-        unsigned int stagesSet = 0;
+        unsigned int stagesFound = 0;
         std::stringstream vertexShaderStream;
         std::stringstream pixelShaderStream;
         std::ifstream shaderFile;
@@ -71,21 +74,21 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         {
             vertexShaderStream << shaderFile.rdbuf();
             shaderFile.close();
-            stagesSet++;
+            stagesFound++;
         }
         shaderFile.open(pixelShaderPath);
         if (shaderFile.is_open())
         {
             pixelShaderStream << shaderFile.rdbuf();
             shaderFile.close();
-            stagesSet++;
+            stagesFound++;
         }
 
         // To do: Make the dependence on ShaderGen test generated files more explicit
         // so as to avoid the possibility of failure here. For now skip tests if files not
         // found.
-        //REQUIRE(stagesSet == 2);
-        if (stagesSet != 2)
+        //REQUIRE(stagesFound == 2);
+        if (stagesFound != 2)
         {
             continue;
         }
@@ -184,9 +187,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
     }
 }
 
-// Utility methods from ShaderGen tests
-extern mx::InterfaceElementPtr findImplementation(mx::DocumentPtr document, const std::string& name,
-    const std::string& language, const std::string& target);
+// Utility light method from ShaderGen tests
 extern void bindLightShaders(mx::DocumentPtr document, mx::HwShaderGenerator& shadergen);
 
 TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
@@ -210,9 +211,9 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
     mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::creator();
     shaderGenerator->registerSourceCodeSearchPath(searchPath);
-    // Make sure to specify lighting definitions.
+    // Make sure to specify lighting definitions using bindLightShaders()
     mx::HwShaderGenerator* hwShaderGenerator = static_cast<mx::HwShaderGenerator*>(shaderGenerator.get());
-    hwShaderGenerator->setMaxActiveLightSources(2);
+    hwShaderGenerator->setMaxActiveLightSources(3);
     bindLightShaders(doc, *hwShaderGenerator);
 
     // Create a nonsensical graph testing some geometric nodes
@@ -260,7 +261,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     swizzle1->setParameterValue("channels", std::string("xy0"));
     attributeList.push_back(swizzle1);
 
-    // image
+    // image.
     mx::FilePath imagePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Images/MaterialXLogo.exr");
     std::string imageName = imagePath.asString();
     mx::NodePtr image = nodeGraph->addNode("image", "image1", "color3");
@@ -290,7 +291,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
 
     for (auto nodePtr : attributeList)
     {
-        std::cout << "------------ Validate with output node: " << nodePtr->getName() << std::endl;
+        std::cout << "------------ Validate with output node as input: " << nodePtr->getName() << std::endl;
         output1->setConnectedNode(nodePtr);
 
         mx::ShaderPtr shader = shaderGenerator->generate(nodeGraph->getName(), output1);
@@ -298,6 +299,8 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         REQUIRE(hwShader != nullptr);
         REQUIRE(hwShader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
         REQUIRE(hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
+
+        mx::writeToXmlFile(doc, nodePtr->getName() + ".mtlx");
 
         std::ofstream file;
         file.open(nodePtr->getName() + ".vert");
@@ -307,6 +310,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
 
+        // Validate
         MaterialX::GlslProgramPtr program = validator->program();
         bool validated = false;
         try
@@ -340,7 +344,9 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         REQUIRE(validated);
     }
 
-    /////////////////////////////////
+    //
+    // Lighting test
+    //
     {
         const std::string lightDoc = " \
         <?xml version=\"1.0\"?> \
@@ -378,6 +384,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         std::cout << "------------- Validating lighting shader" << std::endl;
 
         MaterialX::readFromXmlBuffer(doc, lightDoc.c_str());
+        mx::writeToXmlFile(doc, "lighting.mtlx");
         nodeGraph = doc->getNodeGraph("lighting1");
         mx::ElementPtr output = nodeGraph->getChild("out");
 
