@@ -1,6 +1,7 @@
 
 #include <MaterialXView/External/GLew/glew.h>
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
+#include <MaterialXView/Handlers/DefaultGeometryHandler.h>
 
 #include <iostream>
 #include <algorithm>
@@ -39,7 +40,7 @@ GlslValidator::GlslValidator() :
     std::fill(_attributeBufferIds.begin(), _attributeBufferIds.end(), MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
 
     _program = GlslProgram::creator();
-    _geometryHandler = GeometryHandler::creator();
+    _geometryHandler = DefaultGeometryHandler::creator();
 }
 
 GlslValidator::~GlslValidator()
@@ -649,7 +650,7 @@ void GlslValidator::bindGeometry()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize, indexData, GL_STATIC_DRAW);
 
     // Bind positions
-    float* positionData = _geometryHandler->getPositions(bufferSize);
+    float* positionData = _geometryHandler->getPositions(bufferSize, _frameBufferWidth, _frameBufferHeight);
     bindAttribute(positionData, bufferSize, "i_position", POSITION3_ATTRIBUTE, 3, true);
 
     // Bind normals
@@ -700,55 +701,30 @@ void GlslValidator::bindGeometry()
     checkErrors();
 }
 
-void GlslValidator::createDummyTexture(bool colored)
+void GlslValidator::createDummyTexture()
 {
     if (_dummyTexture == MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
     {
-        const unsigned int imageSize = 256;
-        unsigned int middle = imageSize / 2;
-
-        // Create a ramp texture for the dummy texture
-        //
-        GLubyte	 pixels[imageSize][imageSize][4];
-        for (unsigned int i=0; i<imageSize; i++)
+        unsigned int width = 0;
+        unsigned int height = 0;
+        unsigned char* pixels = nullptr;
+        if (_imageHandler)
         {
-            for (unsigned int j=0; j<imageSize; j++)
-            {
-                float fi = (float)i;
-                float fj = (float)j;
-                float dist = std::sqrt( std::pow((middle - fj), 2) + std::pow((middle - fi), 2) );
-                dist /= imageSize;
-                float mdist = (1.0f - dist);
-
-                if (colored)
-                {
-                    pixels[i][j][0] = (GLubyte)(65 * dist);
-                    pixels[i][j][1] = (GLubyte)(205 * dist);
-                    pixels[i][j][2] = (GLubyte)(255 * dist);
-
-                    pixels[i][j][0] += (GLubyte)(255 * mdist);
-                    pixels[i][j][1] += (GLubyte)(147 * mdist);
-                    pixels[i][j][2] += (GLubyte)(75 * mdist);
-                }
-                else
-                {
-                    pixels[i][j][0] = (GLubyte)(255 * mdist);
-                    pixels[i][j][1] = (GLubyte)(255 * mdist);
-                    pixels[i][j][2] = (GLubyte)(255 * mdist);
-                }
-                pixels[i][j][3] = (GLubyte)255;
-            }
+            _imageHandler->createDefaultImage(width, height, &pixels);
         }
 
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glGenTextures(1, &_dummyTexture);
+        if ((width * height > 0) && pixels)
+        {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glGenTextures(1, &_dummyTexture);
 
-        glBindTexture(GL_TEXTURE_2D, _dummyTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageSize, imageSize,
-            0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-        // Note: Must do this for default sampling to lookup properly.
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+            glBindTexture(GL_TEXTURE_2D, _dummyTexture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                         0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+            // Note: Must do this for default sampling to lookup properly.
+            glGenerateMipmap(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+        }
     }
 }
 
@@ -858,7 +834,7 @@ void GlslValidator::bindTextures()
 
             if (!textureBound)
             {
-                createDummyTexture(true);
+                createDummyTexture();
                 glBindTexture(GL_TEXTURE_2D, _dummyTexture); // Bind a dummy texture
             }
 

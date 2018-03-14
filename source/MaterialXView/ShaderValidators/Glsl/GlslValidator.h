@@ -56,6 +56,14 @@ class GlslValidator
         _imageHandler = imageHandler;
     }
 
+    /// Set geometry handler for geometry load.
+    /// By default a validator will use the DefaultGeometryHanlder
+    /// @param geometryHandler Handler to use
+    void setGeometryHandler(const GeometryHandlerPtr geometryHandler)
+    {
+        _geometryHandler = geometryHandler;
+    }
+
     /// @}
     /// @name Validation
     /// @{
@@ -166,7 +174,7 @@ class GlslValidator
 
   private:
     /// Dummy texture for testing with
-    void createDummyTexture(bool colored);
+    void createDummyTexture();
 
     /// Utility to check for OpenGL context errors.
     /// Will throw an ExceptionShaderValidationError exception which will list of the errors found
