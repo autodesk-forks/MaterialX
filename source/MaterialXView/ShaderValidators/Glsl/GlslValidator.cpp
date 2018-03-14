@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include <algorithm>
-#include <cmath>
 
 namespace MaterialX
 {

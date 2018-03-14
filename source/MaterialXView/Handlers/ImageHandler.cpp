@@ -1,5 +1,5 @@
-
 #include <MaterialXView/Handlers/ImageHandler.h>
+#include <cmath>
 
 namespace MaterialX
 {
