@@ -8,6 +8,7 @@
 #include <MaterialXView/OpenGL/GLUtilityContext.h>
 #include <MaterialXView/ShaderValidators/Glsl/GlslProgram.h>
 #include <MaterialXView/Handlers/GeometryHandler.h>
+#include <MaterialXView/Handlers/LightHandler.h>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -54,6 +55,13 @@ class GlslValidator
     void setImageHandler(const ImageHandlerPtr imageHandler)
     {
         _imageHandler = imageHandler;
+    }
+
+    /// Set light handler to use for light bindings
+    /// @param imageHandler Handler used for lights
+    void setLightHandler(const LightHandlerPtr lightHandler)
+    {
+        _lightHandler = lightHandler;
     }
 
     /// @}
@@ -172,7 +180,10 @@ class GlslValidator
     /// Will throw an ExceptionShaderValidationError exception which will list of the errors found
     /// if any errors encountered.
     void checkErrors();
-      
+    
+    /// Assign a parameter value to a uniform
+    void setUniform(int location, const Value& value);
+
     /// GLSL program. 
     GlslProgramPtr _program;
 
@@ -218,6 +229,9 @@ class GlslValidator
 
     // Utility geometry handler
     GeometryHandlerPtr _geometryHandler;
+
+    // Utility light handler
+    LightHandlerPtr _lightHandler;
 };
 
 } // namespace MaterialX

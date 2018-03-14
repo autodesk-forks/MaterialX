@@ -22,6 +22,9 @@ namespace mx = MaterialX;
 #include <iostream>
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
 #include <MaterialXView/Handlers/TinyEXRImageHandler.h>
+#include <MaterialXView/Handlers/LightHandler.h>
+
+extern void createLightRig(mx::DocumentPtr doc, mx::LightHandler& lightHandler, mx::HwShaderGenerator& shadergen);
 
 TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 {
@@ -187,9 +190,6 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
     }
 }
 
-// Utility light method from ShaderGen tests
-extern void bindLightShaders(mx::DocumentPtr document, mx::HwShaderGenerator& shadergen);
-
 TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
 {
     mx::DocumentPtr doc = mx::createDocument();
@@ -211,10 +211,6 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
     mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::creator();
     shaderGenerator->registerSourceCodeSearchPath(searchPath);
-    // Make sure to specify lighting definitions using bindLightShaders()
-    mx::HwShaderGenerator* hwShaderGenerator = static_cast<mx::HwShaderGenerator*>(shaderGenerator.get());
-    hwShaderGenerator->setMaxActiveLightSources(3);
-    bindLightShaders(doc, *hwShaderGenerator);
 
     // Create a nonsensical graph testing some geometric nodes
     mx::NodeGraphPtr nodeGraph = doc->addNodeGraph("geometry_attributes");
@@ -271,13 +267,18 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     // Connected to output.
     mx::OutputPtr output1 = nodeGraph->addOutput(mx::EMPTY_STRING, "vector3");
 
+    // Setup lighting
+    mx::LightHandlerPtr lightHandler = mx::LightHandler::creator();
+    createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator));
+
     bool initialized = false;
     mx::GlslValidatorPtr validator = mx::GlslValidator::creator();
-    mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
+    mx::TinyEXRImageHandlerPtr imageHandler = mx::TinyEXRImageHandler::creator();
     try
     {
         validator->initialize();
-        validator->setImageHandler(handler);
+        validator->setImageHandler(imageHandler);
+        validator->setLightHandler(lightHandler);
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError e)
@@ -351,33 +352,18 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         const std::string lightDoc = " \
         <?xml version=\"1.0\"?> \
         <materialx version=\"1.35\" require=\"\"> \
-          <nodegraph name=\"lighting1\" type=\"\" xpos=\"10.9034\" ypos=\"15.42\" adskDisplayMode=\"1\"> \
-            <surface name=\"surface1\" type=\"surfaceshader\" xpos=\"4.08694\" ypos=\"8.7068\" adskDisplayMode=\"2\"> \
-              <input name=\"bsdf\" type=\"BSDF\" value=\"\" nodename=\"mixbsdf1\" channels=\"\" /> \
+          <nodegraph name=\"lighting1\"> \
+            <surface name=\"surface1\" type=\"surfaceshader\"> \
+              <input name=\"bsdf\" type=\"BSDF\" value=\"\" nodename=\"diffusebsdf1\" /> \
               <input name=\"edf\" type=\"EDF\" value=\"\" /> \
               <input name=\"opacity\" type=\"float\" value=\"1.0\" /> \
             </surface>  \
-            <diffusebsdf name=\"diffusebsdf1\" type=\"BSDF\" xpos=\"2.3949\" ypos=\"9.00162\" adskDisplayMode=\"2\"> \
-              <input name=\"reflectance\" type=\"color3\" value=\"0.2, 0.3, 1.0\" />  \
+            <diffusebsdf name=\"diffusebsdf1\" type=\"BSDF\"> \
+              <input name=\"reflectance\" type=\"color3\" value=\"0.9, 0.9, 0.9\" />  \
               <input name=\"roughness\" type=\"float\" value=\"1.0\" /> \
-              <input name=\"normal\" type=\"vector3\" value=\"0.0, 0.0, 0.0\" /> \
+              <input name=\"normal\" type=\"vector3\" /> \
             </diffusebsdf>  \
-            <output name=\"out\" type=\"surfaceshader\" nodename=\"surface1\" channels=\"\" /> \
-            <coatingbsdf name=\"coatingbsdf1\" type=\"BSDF\" xpos=\"2.31043\" ypos=\"15.1291\" adskDisplayMode=\"2\"> \
-              <input name=\"reflectance\" type=\"color3\" value=\"1.0, 1.0, 1.0\" /> \
-              <input name=\"ior\" type=\"float\" value=\"1.52\" /> \
-              <input name=\"roughness\" type=\"float\" value=\"0.2\" /> \
-              <input name=\"anisotropy\" type=\"float\" value=\"0.0\" /> \
-              <input name=\"normal\" type=\"vector3\" value=\"0.0, 0.0, 0.0\" /> \
-              <input name=\"tangent\" type=\"vector3\" value=\"0.0, 0.0, 0.0\" /> \
-              <input name=\"distribution\" type=\"string\" value=\"ggx\" /> \
-              <input name=\"base\" type=\"BSDF\" value=\"\" /> \
-            </coatingbsdf> \
-            <mixbsdf name=\"mixbsdf1\" type=\"BSDF\" xpos=\"4.12788\" ypos=\"15.5871\" adskDisplayMode=\"2\"> \
-              <input name=\"in1\" type=\"BSDF\" value=\"\" nodename=\"coatingbsdf1\" channels=\"\" /> \
-              <input name=\"in2\" type=\"BSDF\" value=\"\" nodename=\"diffusebsdf1\" channels=\"\" /> \
-              <input name=\"weight\" type=\"float\" value=\"0.5000\" /> \
-            </mixbsdf> \
+            <output name=\"out\" type=\"surfaceshader\" nodename=\"surface1\" /> \
           </nodegraph> \
         </materialx>";
 
