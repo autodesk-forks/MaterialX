@@ -481,7 +481,24 @@ const GlslProgram::InputMap& GlslProgram::updateAttributesList()
         if (attributeLocation >= 0)
         {
             InputPtr inputPtr = std::make_shared<Input>(attributeLocation, attributeType, attributeSize);
-            _attributeList[std::string(attributeName)] = inputPtr;
+
+            // Attempt to pull out the set number for specific attributes 
+            //
+            std::string sattributeName(attributeName);
+            const std::string colorSet("i_color_");
+            const std::string uvSet("i_texcoord_");
+            if (std::string::npos != sattributeName.find(colorSet))
+            {
+                std::string setNumber = sattributeName.substr(colorSet.size(), sattributeName.size());
+                inputPtr->value = MaterialX::Value::createValueFromStrings(setNumber, MaterialX::getTypeString<int>());
+            }
+            else if (std::string::npos != sattributeName.find(uvSet))
+            {
+                std::string setNumber = sattributeName.substr(uvSet.size(), sattributeName.size());
+                inputPtr->value = MaterialX::Value::createValueFromStrings(setNumber, MaterialX::getTypeString<int>());
+            }
+
+            _attributeList[sattributeName] = inputPtr;
         }
     }
     delete[] attributeName;
@@ -496,15 +513,16 @@ const GlslProgram::InputMap& GlslProgram::updateAttributesList()
         { 
             for (const MaterialX::Shader::Variable* input : appDataBlock.variableOrder)
             {
-                //bool foundMatch = false;
                 auto Input = _attributeList.find(input->name);
                 if (Input != _attributeList.end())
                 {
                     if (Input->second->gltype == mapTypeToOpenGLType(input->type))
                     {
-                        //foundMatch = true;
                         Input->second->typeString = input->type;
-                        Input->second->value = input->value;
+                        if (input->value)
+                        {
+                            Input->second->value = input->value;
+                        }
                     }
                     else
                     {

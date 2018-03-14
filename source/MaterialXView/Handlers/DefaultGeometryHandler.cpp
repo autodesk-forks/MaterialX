@@ -39,9 +39,10 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
     }
 }
 
-unsigned int* DefaultGeometryHandler::getIndexing(size_t &bufferSize)
+unsigned int* DefaultGeometryHandler::getIndexing(size_t &bufferSize, unsigned int& indexCount)
 {
-    // Change this to 0,0, 1,1 and scale the obj->world matrix
+    bufferSize = 0;
+    indexCount = 0;
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
         if (!_indexing)
@@ -50,18 +51,19 @@ unsigned int* DefaultGeometryHandler::getIndexing(size_t &bufferSize)
                 0, 1, 2, 0, 2, 3
             };
         }
+        bufferSize = 6 * sizeof(unsigned int);
+        indexCount = 6;
     }
-    bufferSize = 6*sizeof(unsigned int);
     return _indexing;
 }
 
 float* DefaultGeometryHandler::getPositions(size_t &bufferSize, 
                                             unsigned screenWidth, unsigned int screenHeight)
 {
-    if (!_positionData)
+    bufferSize = 0;
+    if (_identifier == SCREEN_ALIGNED_QUAD)
     {
-        // Change this to 0,0, 1,1 and scale the obj->world matrix
-        if (_identifier == SCREEN_ALIGNED_QUAD)
+        if (!_positionData)
         {
             const float border = 20.0f;
             const float bufferWidth = (float)screenWidth;
@@ -75,16 +77,17 @@ float* DefaultGeometryHandler::getPositions(size_t &bufferSize,
                     (bufferWidth - border), border, 0.0f
             };
         }
+        bufferSize = 12 * sizeof(float);
     }
-    bufferSize = 12 * sizeof(float);
     return _positionData;
 }
 
 float* DefaultGeometryHandler::getNormals(size_t &bufferSize)
 {
-    if (!_normalData)
+    bufferSize = 0;
+    if (_identifier == SCREEN_ALIGNED_QUAD)
     {
-        if (_identifier == SCREEN_ALIGNED_QUAD)
+        if (!_normalData)
         {
             _normalData = new float[12]{
                 0.0f, 0.0f, 1.0f,
@@ -93,18 +96,19 @@ float* DefaultGeometryHandler::getNormals(size_t &bufferSize)
                 0.0f, 0.0f, 1.0f
             };
         }
+        bufferSize = 12 * sizeof(float);
     }
-    bufferSize = 12 * sizeof(float);
     return _normalData;
 }
 
 float* DefaultGeometryHandler::getTextureCoords(const std::string& setIdentifier, size_t &bufferSize)
 {
-    if (!_texcoordData)
+    bufferSize = 0;
+    if (_identifier == SCREEN_ALIGNED_QUAD)
     {
-        if (_identifier == SCREEN_ALIGNED_QUAD)
+        if (!_texcoordData)
         {
-            if (setIdentifier == "0")
+            if (setIdentifier.empty())
             {
                 _texcoordData = new float[8]{
                     0.0f, 0.0f,
@@ -113,19 +117,29 @@ float* DefaultGeometryHandler::getTextureCoords(const std::string& setIdentifier
                     1.0f, 0.0f
                 };
             }
+            else
+            {
+                _texcoordData = new float[8]{
+                    1.0f, 0.0f,
+                    0.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 1.0f
+                };
+            }
         }
+        bufferSize = 8 * sizeof(float);
     }
-    bufferSize = 8 * sizeof(float);
     return _texcoordData;
 }
 
 float* DefaultGeometryHandler::getTangents(const std::string& setIdentifier, size_t &bufferSize)
 {
-    if (!_tangentData)
+    bufferSize = 0;
+    if (_identifier == SCREEN_ALIGNED_QUAD)
     {
-        if (_identifier == SCREEN_ALIGNED_QUAD)
+        if (!_tangentData)
         {
-            if (setIdentifier == "0")
+            if (setIdentifier.empty())
             {
                 _tangentData = new float[12]{
                     .0f, 1.0f, 0.0f,
@@ -134,19 +148,29 @@ float* DefaultGeometryHandler::getTangents(const std::string& setIdentifier, siz
                     0.0f, -1.0f, 0.0f
                 };
             }
+            else
+            {
+                _tangentData = new float[12]{
+                    0.0f, -1.0f, 0.0f,
+                    .0f, 1.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f
+                };
+            }
         }
+        bufferSize = 12 * sizeof(float);
     }
-    bufferSize = 12 * sizeof(float);
     return _tangentData;
 }
 
 float* DefaultGeometryHandler::getBitangents(const std::string& setIdentifier, size_t &bufferSize)
 {
-    if (!_bitangentData)
+    bufferSize = 0;
+    if (_identifier == SCREEN_ALIGNED_QUAD)
     {
-        if (_identifier == SCREEN_ALIGNED_QUAD)
+        if (!_bitangentData)
         {
-            if (setIdentifier == "0")
+            if (setIdentifier.empty())
             {
                 _bitangentData = new float[12]{
                     1.0f, 0.0f, 0.0f,
@@ -155,19 +179,28 @@ float* DefaultGeometryHandler::getBitangents(const std::string& setIdentifier, s
                     0.0f, -1.0f, 0.0f
                 };
             }
+            else
+            {
+                _bitangentData = new float[12]{
+                    0.0f, -1.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    -1.0f, 0.0f, 0.0f
+                };
+            }
         }
+        bufferSize = 12 * sizeof(float);
     }
-    bufferSize = 12 * sizeof(float);
     return _bitangentData;
 }
 
 float* DefaultGeometryHandler::getColors(const std::string& setIdentifier, size_t &bufferSize)
 {
-    if (!_colorData)
+    if (_identifier == SCREEN_ALIGNED_QUAD)
     {
-        if (_identifier == SCREEN_ALIGNED_QUAD)
+        if (!_colorData)
         {
-            if (setIdentifier == "0")
+            if (setIdentifier.empty())
             {
                 _colorData = new float[16]{
                     1.0f, 0.0f, 0.0f, 1.0f,
@@ -176,9 +209,18 @@ float* DefaultGeometryHandler::getColors(const std::string& setIdentifier, size_
                     1.0f, 1.0f, 0.0f, 1.0f
                 };
             }
+            else
+            {
+                _colorData = new float[16]{
+                    1.0f, 0.0f, 1.0f, 1.0f,
+                    0.0f, 1.0f, 1.0f, 1.0f,
+                    1.0f, 0.0f, 1.0f, 1.0f,
+                    1.0f, 1.0f, 0.5f, 1.0f
+                };
+            }
         }
+        bufferSize = 16 * sizeof(float);
     }
-    bufferSize = 16 * sizeof(float);
     return _colorData;
 }
 

@@ -27,7 +27,7 @@ class DefaultGeometryHandler : public GeometryHandler
 
     void setIdentifier(const std::string identifier) override;
 
-    unsigned int* getIndexing(size_t &bufferSize) override;
+    unsigned int* getIndexing(size_t &bufferSize, unsigned int& indexCount) override;
     float* getPositions(size_t &bufferSize, unsigned screenWidth = 0, unsigned int screenHeight = 0) override;
     float* getNormals(size_t &bufferSize) override;
     float* getTextureCoords(const std::string& setIdentifier, size_t &bufferSize) override;

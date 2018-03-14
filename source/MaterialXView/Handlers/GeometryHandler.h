@@ -33,7 +33,9 @@ class GeometryHandler
 
     /// Create indexing data for geometry. The indexing is assumed to 
     /// be for a set of triangles. That is every 3 values index triangle data.
-    virtual unsigned int* getIndexing(size_t &bufferSize) = 0;
+    /// @param bufferSize The size of the returned buffer in bytes.
+    /// @param indexCount Number of indices in the indexing
+    virtual unsigned int* getIndexing(size_t &bufferSize, unsigned int& indexCount) = 0;
 
     /// Create position data. Each element is assumed to be 3 float in size.
     /// @param bufferSize The size of the returned buffer in bytes.
