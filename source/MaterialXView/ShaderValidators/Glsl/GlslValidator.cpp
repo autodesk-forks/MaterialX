@@ -376,6 +376,14 @@ void GlslValidator::bindTimeAndFrame()
 
 void GlslValidator::bindLighting()
 {
+    if (!_lightHandler)
+    {
+        // Nothing to bind if a light handler is not used.
+        // This is a valid condition for shaders that don't 
+        // need lighting so just ignore silently.
+        return;
+    }
+
     ShaderValidationErrorList errors;
 
     if (!_program)
@@ -389,97 +397,117 @@ void GlslValidator::bindLighting()
     GLint location = MaterialX::GlslProgram::UNDEFINED_OPENGL_PROGRAM_LOCATION;
 
     // Set the number of active light sources
-    int lightCount = 1;
+    size_t lightCount = _lightHandler->getLightSources().size();
     const MaterialX::GlslProgram::InputMap& uniformList = _program->getUniformsList();
-    auto Input = uniformList.find("u_numActiveLightSources");
-    if (Input != uniformList.end())
+    auto input = uniformList.find("u_numActiveLightSources");
+    if (input != uniformList.end())
     {
-        location = Input->second->location;
+        location = input->second->location;
         if (location >= 0)
         {
-            glUniform1i(location, lightCount);
+            glUniform1i(location, int(lightCount));
         }
     }
-    // No lighting information so nothing further to do
     else
     {
+        // No lighting information so nothing further to do
         lightCount = 0;
     }
 
     if (lightCount == 0)
+    {
         return;
+    }
 
-    // Manually set the lights. 
-    // 0 = directional, 1 = point, 2 = light compound
-    unsigned int blockUniformsSet = 0;
-    Input = uniformList.find("u_lightData[0].type");
-    if (Input != uniformList.end())
+    size_t index = 0;
+    for (LightSourcePtr light : _lightHandler->getLightSources())
     {
-        location = Input->second->location;
-        if (location >= 0)
+        const string prefix = "u_lightData[" + std::to_string(index) + "]";
+
+        // Set light type id
+        input = uniformList.find(prefix + ".type");
+        if (input != uniformList.end())
         {
-            glUniform1i(location, 0);
-            blockUniformsSet++;
+            location = input->second->location;
+            if (location >= 0)
+            {
+                glUniform1i(location, int(light->getType()));
+            }
         }
-    }
-    Input = uniformList.find("u_lightData[0].direction");
-    if (Input != uniformList.end())
-    {
-        location = Input->second->location;
-        if (location >= 0)
+
+        // Set all parameters
+        for (auto param : light->getParameters())
         {
-            glUniform3f(location, 0.0f, 0.0f, -1.0f);
-            blockUniformsSet++;
+            // Make sure we have a value to set
+            if (param.second)
+            {
+                input = uniformList.find(prefix + "." + param.first);
+                if (input != uniformList.end())
+                {
+                    setUniform(input->second->location, *param.second);
+                }
+            }
         }
+
+        ++index;
     }
-    Input = uniformList.find("u_lightData[0].color");
-    if (Input != uniformList.end())
+}
+
+void GlslValidator::setUniform(int location, const Value& value)
+{
+    if (location >= 0 && value.getValueString() != EMPTY_STRING)
     {
-        location = Input->second->location;
-        if (location >= 0)
+        if (value.getTypeString() == "float")
         {
-            glUniform3f(location, 1.0f, 1.0f, 1.0f);
-            blockUniformsSet++;
+            float v = value.asA<float>();
+            glUniform1f(location, v);
         }
-    }
-    Input = uniformList.find("u_lightData[0].intensity");
-    if (Input != uniformList.end())
-    {
-        location = Input->second->location;
-        if (location >= 0)
+        else if (value.getTypeString() == "integer")
         {
-            glUniform1f(location, 1.0f);
-            blockUniformsSet++;
+            int v = value.asA<int>();
+            glUniform1i(location, v);
         }
-    }
-    Input = uniformList.find("u_lightData[0].position");
-    if (Input != uniformList.end())
-    {
-        location = Input->second->location;
-        if (location >= 0)
+        else if (value.getTypeString() == "boolean")
         {
-            glUniform3f(location, -1.0f, -1.0f, -1.0f);
-            blockUniformsSet++;
+            bool v = value.asA<bool>();
+            glUniform1i(location, v ? 1 : 0);
         }
-    }
-    Input = uniformList.find("u_lightData[0].decayRate");
-    if (Input != uniformList.end())
-    {
-        location = Input->second->location;
-        if (location >= 0)
+        else if (value.getTypeString() == "color2")
         {
-            glUniform1f(location, 1.0f);
-            blockUniformsSet++;
+            Color2 v = value.asA<Color2>();
+            glUniform2f(location, v[0], v[1]);
         }
-    }
-    Input = uniformList.find("u_lightData[0].exposure");
-    if (Input != uniformList.end())
-    {
-        location = Input->second->location;
-        if (location >= 0)
+        else if (value.getTypeString() == "color3")
         {
-            glUniform1f(location, 1.0f);
-            blockUniformsSet++;
+            Color3 v = value.asA<Color3>();
+            glUniform3f(location, v[0], v[1], v[2]);
+        }
+        else if (value.getTypeString() == "color4")
+        {
+            Color4 v = value.asA<Color4>();
+            glUniform4f(location, v[0], v[1], v[2], v[3]);
+        }
+        else if (value.getTypeString() == "vector2")
+        {
+            Vector2 v = value.asA<Vector2>();
+            glUniform2f(location, v[0], v[1]);
+        }
+        else if (value.getTypeString() == "vector3")
+        {
+            Vector3 v = value.asA<Vector3>();
+            glUniform3f(location, v[0], v[1], v[2]);
+        }
+        else if (value.getTypeString() == "vector4")
+        {
+            Vector4 v = value.asA<Vector4>();
+            glUniform4f(location, v[0], v[1], v[2], v[3]);
+        }
+        else
+        {
+            throw ExceptionShaderValidationError(
+                "GLSL input binding error.", 
+                { "Unsupported data type when setting uniform value" }
+            );
         }
     }
 }
