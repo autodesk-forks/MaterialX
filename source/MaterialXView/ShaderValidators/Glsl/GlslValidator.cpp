@@ -21,6 +21,7 @@ GlslValidatorPtr GlslValidator::creator()
 }
 
 GlslValidator::GlslValidator() :
+    ShaderValidator(),
     _colorTarget(0),
     _depthTarget(0),
     _frameBuffer(0),
@@ -270,7 +271,7 @@ bool GlslValidator::bindTarget(bool bind)
     return true;
 }
 
-void GlslValidator::validateCreation(const HwShaderPtr shader)
+void GlslValidator::validateCreation(const ShaderPtr shader)
 {
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL program creation error.");
@@ -287,7 +288,7 @@ void GlslValidator::validateCreation(const HwShaderPtr shader)
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    _program->setStages(shader);
+    _program->setStages(std::dynamic_pointer_cast<HwShader>(shader));
     _program->build();    
 }
 

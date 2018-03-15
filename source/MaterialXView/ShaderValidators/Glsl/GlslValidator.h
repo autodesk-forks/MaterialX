@@ -1,6 +1,7 @@
 #ifndef MATERIALX_GLSLVALIDATOR_H
 #define MATERIALX_GLSLVALIDATOR_H
 
+#include <MaterialXView/ShaderValidators/ShaderValidator.h>
 #include <MaterialXShaderGen/HwShader.h>
 #include <MaterialXView/ShaderValidators/ExceptionShaderValidationError.h>
 #include <MaterialXView/Handlers/ImageHandler.h>
@@ -32,7 +33,7 @@ using GlslValidatorPtr = std::shared_ptr<class GlslValidator>;
 ///     - Rendering: The program with bound inputs will be used to drawing geometry to an offscreen buffer.
 ///     An interface is provided to save this offscreen buffer to disk using an externally defined image handler.
 ///
-class GlslValidator
+class GlslValidator : public ShaderValidator
 {
   public:
     /// Create a GLSL validator instance
@@ -48,29 +49,7 @@ class GlslValidator
     /// required for program validation and rendering.
     /// An exception is thrown on failure.
     /// The exception will contain a list of initialization errors.
-    void initialize();
-
-    /// Set image handler to use for image load and save
-    /// @param imageHandler Handler used to save image
-    void setImageHandler(const ImageHandlerPtr imageHandler)
-    {
-        _imageHandler = imageHandler;
-    }
-
-    /// Set light handler to use for light bindings
-    /// @param imageHandler Handler used for lights
-    void setLightHandler(const LightHandlerPtr lightHandler)
-    {
-        _lightHandler = lightHandler;
-    }
-
-    /// Set geometry handler for geometry load.
-    /// By default a validator will use the DefaultGeometryHanlder
-    /// @param geometryHandler Handler to use
-    void setGeometryHandler(const GeometryHandlerPtr geometryHandler)
-    {
-        _geometryHandler = geometryHandler;
-    }
+    void initialize() override;
 
     /// @}
     /// @name Validation
@@ -78,18 +57,18 @@ class GlslValidator
 
     /// Validate creation of program based on an input shader
     /// @param shader Input HwShader
-    void validateCreation(const HwShaderPtr shader);
+    void validateCreation(const ShaderPtr shader) override;
 
     /// Validate creation of program based input shader stage strings
     /// @param shader Input stages List of stage string
-    void validateCreation(const std::vector<std::string>& stages);
+    void validateCreation(const std::vector<std::string>& stages) override;
 
     /// Validate inputs for the program 
-    void validateInputs();
+    void validateInputs() override;
 
     /// Perform validation that inputs can be bound to and 
     /// rendered with. Rendering is to an offscreen hardware buffer.
-    void validateRender();
+    void validateRender() override;
 
     /// @}
     /// @name Utilities
@@ -98,7 +77,7 @@ class GlslValidator
     /// Save the current contents the offscreen hardware buffer to disk.
     /// @param fileName Name of file to save rendered image to.
     /// @return true if successful
-    void save(const std::string& fileName);
+    void save(const std::string& fileName) override;
     
     /// Return the GLSL program wrapper class
     MaterialX::GlslProgramPtr program()
@@ -231,15 +210,8 @@ class GlslValidator
     /// Dummy OpenGL context for OpenGL usage
     GLUtilityContextPtr _context;
 
-    /// Utility image handler
-    ImageHandlerPtr _imageHandler;
+    /// Program textures
     std::vector<unsigned int> _programTextures;
-
-    // Utility geometry handler
-    GeometryHandlerPtr _geometryHandler;
-
-    // Utility light handler
-    LightHandlerPtr _lightHandler;
 };
 
 } // namespace MaterialX
