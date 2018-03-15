@@ -28,6 +28,27 @@ extern void createLightRig(mx::DocumentPtr doc, mx::LightHandler& lightHandler, 
 
 TEST_CASE("GLSL Validation from Source", "[shadervalid]")
 {
+    // Setup lighting
+    mx::DocumentPtr doc = mx::createDocument();
+    // Load standard libraries
+    std::vector<std::string> filenames =
+    {
+        "documents/Libraries/stdlib/mx_stdlib_defs.mtlx",
+        "documents/Libraries/stdlib/impl/shadergen/glsl/impl.mtlx",
+        "documents/Libraries/sx/sx_defs.mtlx",
+        "documents/Libraries/sx/impl/shadergen/glsl/impl.mtlx",
+    };
+
+    for (const std::string& filename : filenames)
+    {
+        mx::readFromXmlFile(doc, filename);
+    }
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
+    mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::creator();
+    shaderGenerator->registerSourceCodeSearchPath(searchPath);
+    mx::LightHandlerPtr lightHandler = mx::LightHandler::creator();
+    createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator));
+
     // Initialize a GLSL validator and set image handler.
     // Validator initiazation will create a offscreen
     // window and offscreen OpenGL context for usage.
@@ -94,6 +115,15 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         if (stagesFound != 2)
         {
             continue;
+        }
+
+        if (shaderName == "subgraph_ex2")
+        {
+            validator->setLightHandler(lightHandler);
+        }
+        else
+        {
+            validator->setLightHandler(nullptr);
         }
 
         // Check program compilation
