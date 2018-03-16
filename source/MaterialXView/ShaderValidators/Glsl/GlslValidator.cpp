@@ -671,35 +671,37 @@ void GlslValidator::bindGeometry()
     glBindVertexArray(_vertexArray);
 
     size_t bufferSize = 0;
-    unsigned int* indexData = _geometryHandler->getIndexing(bufferSize, _indexBufferSize);
+    GeometryIndexBuffer& indexData = _geometryHandler->getIndexing(bufferSize);
+    _indexBufferSize = indexData.size();
     glGenBuffers(1, &_indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize, indexData, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizei)bufferSize, &indexData[0], GL_STATIC_DRAW);
 
     // Bind positions
-    float* positionData = _geometryHandler->getPositions(bufferSize, _frameBufferWidth, _frameBufferHeight);
-    bindAttribute(positionData, bufferSize, "i_position", POSITION3_ATTRIBUTE, 3, true);
+    GeometryHandler::InputProperties properties(_frameBufferWidth, _frameBufferHeight, 20);
+    FloatGeometryBuffer& positionData = _geometryHandler->getPositions(bufferSize, properties);
+    bindAttribute(&positionData[0], bufferSize, "i_position", POSITION3_ATTRIBUTE, 3, true);
 
     // Bind normals
-    float* normalData = _geometryHandler->getNormals(bufferSize);
-    bindAttribute(normalData, bufferSize, "i_normal", NORMAL3_ATTRIBUTE, 3, true);
+    FloatGeometryBuffer& normalData = _geometryHandler->getNormals(bufferSize);
+    bindAttribute(&normalData[0], bufferSize, "i_normal", NORMAL3_ATTRIBUTE, 3, true);
 
     // Bind tangents
-    float* tangentData = _geometryHandler->getTangents("", bufferSize);
-    bindAttribute(tangentData, bufferSize, "i_tangent", TANGENT3_ATTRIBUTE, 3, true);
+    FloatGeometryBuffer& tangentData = _geometryHandler->getTangents(bufferSize, 0);
+    bindAttribute(&tangentData[0], bufferSize, "i_tangent", TANGENT3_ATTRIBUTE, 3, true);
 
     // Bind bitangents
-    float* bitangentData = _geometryHandler->getBitangents("", bufferSize);
-    bindAttribute(bitangentData, bufferSize, "i_bitangent", BITANGENT3_ATTRIBUTE, 3, true);
+    FloatGeometryBuffer& bitangentData = _geometryHandler->getBitangents(bufferSize, 0);
+    bindAttribute(&bitangentData[0], bufferSize, "i_bitangent", BITANGENT3_ATTRIBUTE, 3, true);
 
     // Bind single set of colors for all locations found
-    float* colorData = _geometryHandler->getColors("", bufferSize);
-    bindAttribute(colorData, bufferSize, "i_color_", COLOR4_ATTRIBUTE, 4, false);
+    FloatGeometryBuffer& colorData = _geometryHandler->getColors(bufferSize, 0);
+    bindAttribute(&colorData[0], bufferSize, "i_color_", COLOR4_ATTRIBUTE, 4, false);
 
     // Bind single set of texture coords for all locations found
-    float* uvData = _geometryHandler->getTextureCoords("", bufferSize);
+    FloatGeometryBuffer& uvData = _geometryHandler->getTextureCoords(bufferSize, 0);
     // Search for anything that starts with the prefix "i_texcoord_"
-    bindAttribute(uvData, bufferSize, "i_texcoord_", TEXCOORD2_ATTRIBUTE, 2, false);
+    bindAttribute(&uvData[0], bufferSize, "i_texcoord_", TEXCOORD2_ATTRIBUTE, 2, false);
 
     // Bind any named attribute information
     //

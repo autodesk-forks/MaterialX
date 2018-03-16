@@ -194,7 +194,7 @@ class GlslValidator : public ShaderValidator
     /// Attribute indexing buffer handle
     unsigned int _indexBuffer;
     /// Size of index buffer
-    unsigned int _indexBufferSize;
+    size_t _indexBufferSize;
     
     /// Attribute vertex array handle
     unsigned int _vertexArray;

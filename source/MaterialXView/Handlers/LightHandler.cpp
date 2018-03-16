@@ -28,7 +28,7 @@ LightSourcePtr LightHandler::createLightSource(ConstNodeDefPtr nodeDef)
     LightShaderMap::const_iterator it = _lightShaders.find(nodeDef);
     if (it != _lightShaders.end())
     {
-        // Allready registed, get the light type id
+        // Already registed, get the light type id
         type = it->second;
     }
     else

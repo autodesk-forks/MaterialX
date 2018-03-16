@@ -48,7 +48,7 @@ public:
                             float** buffer) = 0;
 
     /// Utility to create a default image if a given image cannot be loaded
-    /// The image should be contain four channels (RGBA) with each channel
+    /// The image should contain four channels (RGBA) with each channel
     /// being unsigned char in size.
     /// @param width Width of image in pixels
     /// @param height Height of image in pixels
