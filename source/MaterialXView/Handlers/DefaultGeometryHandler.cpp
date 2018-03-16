@@ -26,12 +26,12 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
 {
     if (identifier != _identifier)
     {
-        _identifier = identifier;
+        GeometryHandler::setIdentifier(identifier);
         clearData();
     }
 }
 
-GeometryIndexBuffer& DefaultGeometryHandler::getIndexing(size_t &bufferSize)
+GeometryHandler::IndexBuffer& DefaultGeometryHandler::getIndexing(size_t &bufferSize)
 {
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
@@ -47,15 +47,15 @@ GeometryIndexBuffer& DefaultGeometryHandler::getIndexing(size_t &bufferSize)
     return _indexing;
 }
 
-FloatGeometryBuffer& DefaultGeometryHandler::getPositions(size_t &bufferSize, const InputProperties& properties)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getPositions(size_t &bufferSize)
 {
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
         if (_positionData.empty())
         {
-            const float border = (float)properties.screenOffset;
-            const float bufferWidth = (float)properties.screenWidth;
-            const float bufferHeight = (float)properties.screenHeight;
+            const float border = (float)_inputProperties.screenOffset;
+            const float bufferWidth = (float)_inputProperties.screenWidth;
+            const float bufferHeight = (float)_inputProperties.screenHeight;
 
             _positionData = 
             {
@@ -71,7 +71,7 @@ FloatGeometryBuffer& DefaultGeometryHandler::getPositions(size_t &bufferSize, co
     return _positionData;
 }
 
-FloatGeometryBuffer& DefaultGeometryHandler::getNormals(size_t &bufferSize)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getNormals(size_t &bufferSize)
 {
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
@@ -90,7 +90,7 @@ FloatGeometryBuffer& DefaultGeometryHandler::getNormals(size_t &bufferSize)
     return _normalData;
 }
 
-FloatGeometryBuffer& DefaultGeometryHandler::getTextureCoords(size_t &bufferSize, unsigned int index)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getTextureCoords(size_t &bufferSize, unsigned int index)
 {
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
@@ -121,7 +121,7 @@ FloatGeometryBuffer& DefaultGeometryHandler::getTextureCoords(size_t &bufferSize
     return _texcoordData;
 }
 
-FloatGeometryBuffer& DefaultGeometryHandler::getTangents(size_t &bufferSize, unsigned int index)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getTangents(size_t &bufferSize, unsigned int index)
 {
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
@@ -152,7 +152,7 @@ FloatGeometryBuffer& DefaultGeometryHandler::getTangents(size_t &bufferSize, uns
     return _tangentData;
 }
 
-FloatGeometryBuffer& DefaultGeometryHandler::getBitangents(size_t &bufferSize, unsigned int index)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getBitangents(size_t &bufferSize, unsigned int index)
 {
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
@@ -183,7 +183,7 @@ FloatGeometryBuffer& DefaultGeometryHandler::getBitangents(size_t &bufferSize, u
     return _bitangentData;
 }
 
-FloatGeometryBuffer& DefaultGeometryHandler::getColors(size_t &bufferSize, unsigned int index)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getColors(size_t &bufferSize, unsigned int index)
 {
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {

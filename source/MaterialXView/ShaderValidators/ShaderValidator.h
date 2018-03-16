@@ -11,7 +11,7 @@
 
 namespace MaterialX
 {
-// Shared pointer to a shader validator
+/// Shared pointer to a shader validator
 using ShaderValidatorPtr = std::shared_ptr<class ShaderValidator>;
 
 /// @class @ShaderValidator
@@ -56,7 +56,7 @@ class ShaderValidator
     /// @{
 
     /// Validate creation of program based on an input shader
-    /// @param shader Input HwShader
+    /// @param shader Input Shader
     virtual void validateCreation(const ShaderPtr shader) = 0;
 
     /// Validate creation of program based input shader stage strings

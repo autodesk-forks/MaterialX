@@ -625,20 +625,15 @@ void GlslValidator::bindViewInformation()
     checkErrors();
 }
 
-bool GlslValidator::bindAttribute(const GLfloat* bufferData,
-                                    size_t bufferSize,
-                                    const std::string& attributeId,
+void GlslValidator::bindAttribute(const float* bufferData,
+                                    size_t bufferSize,                                    
                                     const GlslValidator::AttributeIndex attributeIndex,
                                     unsigned int floatCount,
-                                    bool exactMatch)
+                                    const MaterialX::GlslProgram::InputMap& inputs)
 {
-    MaterialX::GlslProgram::InputMap foundList;
-    const MaterialX::GlslProgram::InputMap& attributeList = _program->getAttributesList();
-    _program->findInputs(attributeId, attributeList, foundList, exactMatch);
-
-    for (auto found : foundList)
+    for (auto input : inputs)
     {
-        int location = found.second->location;
+        int location = input.second->location;
         if (_attributeBufferIds[attributeIndex] < 1)
         {
             // Create a buffer based on attribute type.
@@ -652,8 +647,6 @@ bool GlslValidator::bindAttribute(const GLfloat* bufferData,
         glEnableVertexAttribArray(location);
         glVertexAttribPointer(location, floatCount, GL_FLOAT, GL_FALSE, 0, 0);
     }
-
-    return (foundList.size() > 0);
 }
 
 void GlslValidator::bindGeometry()
@@ -666,47 +659,75 @@ void GlslValidator::bindGeometry()
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
+    MaterialX::GlslProgram::InputMap foundList;
+    const MaterialX::GlslProgram::InputMap& attributeList = _program->getAttributesList();
+
     // Set up vertex arrays
     glGenVertexArrays(1, &_vertexArray);
     glBindVertexArray(_vertexArray);
 
     size_t bufferSize = 0;
-    GeometryIndexBuffer& indexData = _geometryHandler->getIndexing(bufferSize);
+    GeometryHandler::IndexBuffer& indexData = _geometryHandler->getIndexing(bufferSize);
     _indexBufferSize = indexData.size();
     glGenBuffers(1, &_indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizei)bufferSize, &indexData[0], GL_STATIC_DRAW);
 
-    // Bind positions
     GeometryHandler::InputProperties properties(_frameBufferWidth, _frameBufferHeight, 20);
-    FloatGeometryBuffer& positionData = _geometryHandler->getPositions(bufferSize, properties);
-    bindAttribute(&positionData[0], bufferSize, "i_position", POSITION3_ATTRIBUTE, 3, true);
+    _geometryHandler->setInputProperties(properties);
+
+    // Bind positions
+    _program->findInputs("i_position", attributeList, foundList, true);
+    if (foundList.size())
+    {
+        GeometryHandler::FloatBuffer& positionData = _geometryHandler->getPositions(bufferSize);
+        bindAttribute(&positionData[0], bufferSize, POSITION3_ATTRIBUTE, 3, foundList);
+    }
 
     // Bind normals
-    FloatGeometryBuffer& normalData = _geometryHandler->getNormals(bufferSize);
-    bindAttribute(&normalData[0], bufferSize, "i_normal", NORMAL3_ATTRIBUTE, 3, true);
+    _program->findInputs("i_normal", attributeList, foundList, true);
+    if (foundList.size())
+    {
+        GeometryHandler::FloatBuffer& normalData = _geometryHandler->getNormals(bufferSize);
+        bindAttribute(&normalData[0], bufferSize, NORMAL3_ATTRIBUTE, 3, foundList);
+    }
 
     // Bind tangents
-    FloatGeometryBuffer& tangentData = _geometryHandler->getTangents(bufferSize, 0);
-    bindAttribute(&tangentData[0], bufferSize, "i_tangent", TANGENT3_ATTRIBUTE, 3, true);
+    _program->findInputs("i_tangent", attributeList, foundList, true);
+    if (foundList.size())
+    {
+        GeometryHandler::FloatBuffer& tangentData = _geometryHandler->getTangents(bufferSize, 0);
+        bindAttribute(&tangentData[0], bufferSize, TANGENT3_ATTRIBUTE, 3, foundList);
+    }
 
     // Bind bitangents
-    FloatGeometryBuffer& bitangentData = _geometryHandler->getBitangents(bufferSize, 0);
-    bindAttribute(&bitangentData[0], bufferSize, "i_bitangent", BITANGENT3_ATTRIBUTE, 3, true);
+    _program->findInputs("i_bitangent", attributeList, foundList, true);
+    if (foundList.size())
+    {
+        GeometryHandler::FloatBuffer& bitangentData = _geometryHandler->getBitangents(bufferSize, 0);
+        bindAttribute(&bitangentData[0], bufferSize, BITANGENT3_ATTRIBUTE, 3, foundList);
+    }
 
     // Bind single set of colors for all locations found
-    FloatGeometryBuffer& colorData = _geometryHandler->getColors(bufferSize, 0);
-    bindAttribute(&colorData[0], bufferSize, "i_color_", COLOR4_ATTRIBUTE, 4, false);
+    _program->findInputs("i_color_", attributeList, foundList, false);
+    if (foundList.size())
+    {
+        GeometryHandler::FloatBuffer& colorData = _geometryHandler->getColors(bufferSize, 0);
+        bindAttribute(&colorData[0], bufferSize, COLOR4_ATTRIBUTE, 4, foundList);
+    }
 
     // Bind single set of texture coords for all locations found
-    FloatGeometryBuffer& uvData = _geometryHandler->getTextureCoords(bufferSize, 0);
     // Search for anything that starts with the prefix "i_texcoord_"
-    bindAttribute(&uvData[0], bufferSize, "i_texcoord_", TEXCOORD2_ATTRIBUTE, 2, false);
+    _program->findInputs("i_texcoord_", attributeList, foundList, false);
+    if (foundList.size())
+    {
+        GeometryHandler::FloatBuffer& uvData = _geometryHandler->getTextureCoords(bufferSize, 0);
+        bindAttribute(&uvData[0], bufferSize, TEXCOORD2_ATTRIBUTE, 2, foundList);
+    }
 
     // Bind any named attribute information
     //
     std::string geomAttrPrefix("u_geomattr_");
-    MaterialX::GlslProgram::InputMap foundList;
     const MaterialX::GlslProgram::InputMap& uniformList = _program->getUniformsList();
     _program->findInputs(geomAttrPrefix, uniformList, foundList, false);
     for (auto Input : foundList)

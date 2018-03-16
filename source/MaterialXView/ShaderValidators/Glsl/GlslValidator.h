@@ -115,21 +115,19 @@ class GlslValidator : public ShaderValidator
         ATTRIBUTE_COUNT         /// Number of attribute types
     };
 
-    /// Bind attribute buffers by scanning for a given attribute identifier.
-    /// If either an exact match for the identifier, or the identifier is a prefix of an attribute name then 
-    /// a hardware buffer of the given attribute type is created and bound to the program location
-    /// for the attribute.
+    /// Bind attribute buffers to attribute inputs.
+    /// A hardware buffer of the given attribute type is created and bound to the program location
+    /// for the input attribute.
     /// @param bufferData Block of buffer data 
     /// @param bufferSize Size of buffer data.
-    /// @param attributeId Identifier of program attribute to search for
     /// @param attributeIndex Indicator for type of buffer to create
     /// @param floatCount Number of floats per channel in the buffer
-    /// @param exactMatch Check for exact identifier matches
-    bool bindAttribute(const float *bufferData, size_t bufferSize,
-                       const std::string& attributeId,
+    /// @param inputs Attribute inputs to bind to
+    void bindAttribute(const float* bufferData,
+                       size_t bufferSize,
                        const GlslValidator::AttributeIndex attributeIndex,
                        unsigned int floatCount,
-                       bool exactMatch);
+                       const MaterialX::GlslProgram::InputMap& inputs);
 
     /// @}
     /// @name Program bindings
