@@ -28,13 +28,14 @@ class DefaultGeometryHandler : public GeometryHandler
 
     void setIdentifier(const std::string identifier) override;
 
-    IndexBuffer& getIndexing(size_t &bufferSize) override;
-    FloatBuffer& getPositions(size_t &bufferSize) override;
-    FloatBuffer& getNormals(size_t &bufferSize) override;
-    FloatBuffer& getTextureCoords(size_t &bufferSize, unsigned int index = 0) override;
-    FloatBuffer& getTangents(size_t &bufferSize, unsigned int index = 0) override;
-    FloatBuffer& getBitangents(size_t &bufferSize, unsigned int index = 0) override;
-    FloatBuffer& getColors(size_t &bufferSize, unsigned int index = 0) override;
+    IndexBuffer& getIndexing() override;
+    FloatBuffer& getPositions(unsigned int& stride, unsigned int index = 0) override;
+    FloatBuffer& getNormals(unsigned int& stride, unsigned int index = 0) override;
+    FloatBuffer& getTextureCoords(unsigned int& stride, unsigned int index = 0) override;
+    FloatBuffer& getTangents(unsigned int& stride, unsigned int index = 0) override;
+    FloatBuffer& getBitangents(unsigned int& stride, unsigned int index = 0) override;
+    FloatBuffer& getColors(unsigned int& stride, unsigned int index = 0) override;
+    FloatBuffer& getAttribute(const std::string& attributeType, unsigned int& stride, unsigned int index = 0) override;
 
   private:
     void clearData();
@@ -42,10 +43,10 @@ class DefaultGeometryHandler : public GeometryHandler
     IndexBuffer _indexing;
     FloatBuffer _positionData;
     FloatBuffer _normalData;
-    FloatBuffer _texcoordData;
-    FloatBuffer _tangentData;
-    FloatBuffer _bitangentData;
-    FloatBuffer _colorData;
+    FloatBuffer _texcoordData[2];
+    FloatBuffer _tangentData[2];
+    FloatBuffer _bitangentData[2];
+    FloatBuffer _colorData[2];
 };
 
 } // namespace MaterialX

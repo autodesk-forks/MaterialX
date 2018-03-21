@@ -625,33 +625,46 @@ void GlslValidator::bindViewInformation()
     checkErrors();
 }
 
-void GlslValidator::bindAttribute(const float* bufferData,
-                                    size_t bufferSize,
-                                    unsigned int floatCount,
-                                    const MaterialX::GlslProgram::InputMap& inputs)
+void GlslValidator::bindAttribute(const MaterialX::GlslProgram::InputMap& inputs)
 {
+    const std::string errorType("GLSL bind attribute error.");
+    ShaderValidationErrorList errors;
+
+    const size_t FLOAT_SIZE = sizeof(float);
+
     for (auto input : inputs)
     {
         int location = input.second->location;
+        unsigned int index = input.second->value ? input.second->value->asA<int>() : 0;
 
-        /*-> Nede to create the buffer once and reuse it but
-            we need slots for N uvs. Need to turn static list into a dynamic list
-            of buffers with some key e.g. map<"attribute id", gl buffer>. 
-        */
+        unsigned int stride = 0;
+        GeometryHandler::FloatBuffer& attributeData = _geometryHandler->getAttribute(input.first, stride, index);
+
+        if (attributeData.empty() || (stride == 0))
+        {
+            errors.push_back("Geometry buffer could not be retrieved for binding: " + input.first);
+            throw ExceptionShaderValidationError(errorType, errors);
+        }
+
         if (_attributeBufferIds.find(input.first) == _attributeBufferIds.end())
         {
+            const float* bufferData = &attributeData[0];
+            size_t bufferSize = attributeData.size()*FLOAT_SIZE;
+
             // Create a buffer based on attribute type.
             unsigned int bufferId = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
             glGenBuffers(1, &bufferId);
             glBindBuffer(GL_ARRAY_BUFFER, bufferId);
             glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
 
-            std::cout << "Cache new attrib buffer: " << input.first << ". id: " << bufferId << std::endl;
+            //std::cout << "Cache new attrib buffer: " << input.first << ". index: " << index
+            //    << ". buffer-id: " << bufferId 
+            //    << ". stride: " << stride << ". location: " << location << std::endl;
             _attributeBufferIds[input.first] = bufferId;
         }
 
         glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, floatCount, GL_FLOAT, GL_FALSE, 0, 0);
+        glVertexAttribPointer(location, stride, GL_FLOAT, GL_FALSE, 0, 0);
     }
 }
 
@@ -672,12 +685,12 @@ void GlslValidator::bindGeometry()
     glGenVertexArrays(1, &_vertexArray);
     glBindVertexArray(_vertexArray);
 
-    size_t bufferSize = 0;
-    GeometryHandler::IndexBuffer& indexData = _geometryHandler->getIndexing(bufferSize);
+    size_t UINT_SIZE = sizeof(unsigned int);
+    GeometryHandler::IndexBuffer& indexData = _geometryHandler->getIndexing();
     _indexBufferSize = indexData.size();
     glGenBuffers(1, &_indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizei)bufferSize, &indexData[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizei)(_indexBufferSize*UINT_SIZE), &indexData[0], GL_STATIC_DRAW);
 
     GeometryHandler::InputProperties properties(_frameBufferWidth, _frameBufferHeight, 20);
     _geometryHandler->setInputProperties(properties);
@@ -686,49 +699,44 @@ void GlslValidator::bindGeometry()
     _program->findInputs("i_position", attributeList, foundList, true);
     if (foundList.size())
     {
-        GeometryHandler::FloatBuffer& positionData = _geometryHandler->getPositions(bufferSize);
-        bindAttribute(&positionData[0], bufferSize, 3, foundList);
+        bindAttribute(foundList);
     }
 
     // Bind normals
     _program->findInputs("i_normal", attributeList, foundList, true);
     if (foundList.size())
     {
-        GeometryHandler::FloatBuffer& normalData = _geometryHandler->getNormals(bufferSize);
-        bindAttribute(&normalData[0], bufferSize, 3, foundList);
+        bindAttribute(foundList);
     }
 
     // Bind tangents
     _program->findInputs("i_tangent", attributeList, foundList, true);
     if (foundList.size())
     {
-        GeometryHandler::FloatBuffer& tangentData = _geometryHandler->getTangents(bufferSize, 0);
-        bindAttribute(&tangentData[0], bufferSize, 3, foundList);
+        bindAttribute(foundList);
     }
 
     // Bind bitangents
     _program->findInputs("i_bitangent", attributeList, foundList, true);
     if (foundList.size())
     {
-        GeometryHandler::FloatBuffer& bitangentData = _geometryHandler->getBitangents(bufferSize, 0);
-        bindAttribute(&bitangentData[0], bufferSize, 3, foundList);
+        bindAttribute(foundList);
     }
 
-    // Bind single set of colors for all locations found
+    // Bind colors
+    // Search for anything that starts with the prefix "i_color_"
     _program->findInputs("i_color_", attributeList, foundList, false);
     if (foundList.size())
     {
-        GeometryHandler::FloatBuffer& colorData = _geometryHandler->getColors(bufferSize, 0);
-        bindAttribute(&colorData[0], bufferSize, 4, foundList);
+        bindAttribute(foundList);
     }
 
-    // Bind single set of texture coords for all locations found
+    // Bind texture coordinates
     // Search for anything that starts with the prefix "i_texcoord_"
     _program->findInputs("i_texcoord_", attributeList, foundList, false);
     if (foundList.size())
     {
-        GeometryHandler::FloatBuffer& uvData = _geometryHandler->getTextureCoords(bufferSize, 0);
-        bindAttribute(&uvData[0], bufferSize, 2, foundList);
+        bindAttribute(foundList);
     }
 
     // Bind any named attribute information
@@ -928,8 +936,6 @@ void GlslValidator::unbindGeometry()
         unsigned int bufferId = attributeBufferId.second;
         if (bufferId > 0)
         {
-            std::cout << "Delete buffer: " << attributeBufferId.first << ". Id: "
-                << attributeBufferId.second << std::endl;
             glDeleteBuffers(1, &bufferId);
         }
     }

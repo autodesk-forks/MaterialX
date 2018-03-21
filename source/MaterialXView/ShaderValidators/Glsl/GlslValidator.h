@@ -105,16 +105,10 @@ class GlslValidator : public ShaderValidator
     bool bindTarget(bool bind);
 
     /// Bind attribute buffers to attribute inputs.
-    /// A hardware buffer of the given attribute type is created and bound to the program location
+    /// A hardware buffer of the given attribute type is created and bound to the program locations
     /// for the input attribute.
-    /// @param bufferData Block of buffer data 
-    /// @param bufferSize Size of buffer data.
-    /// @param floatCount Number of floats per channel in the buffer
     /// @param inputs Attribute inputs to bind to
-    void bindAttribute(const float* bufferData,
-                       size_t bufferSize,
-                       unsigned int floatCount,
-                       const MaterialX::GlslProgram::InputMap& inputs);
+    void bindAttribute(const MaterialX::GlslProgram::InputMap& inputs);
 
     /// @}
     /// @name Program bindings

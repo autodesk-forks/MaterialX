@@ -265,9 +265,14 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     attributeList.push_back(position1);
 
     // color output test
-    mx::NodePtr geomcolor1 = nodeGraph->addNode("geomcolor", "geomcolor1", "color3");
+    mx::NodePtr geomcolor1 = nodeGraph->addNode("geomcolor", "geomcolor_set0", "color3");
     geomcolor1->setParameterValue("index", 0, "integer");
     attributeList.push_back(geomcolor1);
+
+    // color output set 2 test
+    mx::NodePtr geomcolor2 = nodeGraph->addNode("geomcolor", "geomcolor_set1", "color3");
+    geomcolor2->setParameterValue("index", 1, "integer");
+    attributeList.push_back(geomcolor2);
 
     // tangent output test
     mx::NodePtr tangent = nodeGraph->addNode("tangent", "tangent1", "vector3");
@@ -282,7 +287,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     // uv output test
     mx::NodePtr texcoord1 = nodeGraph->addNode("texcoord", "texcoord1", "vector2");
     texcoord1->setParameterValue("index", 0, "integer");
-    mx::NodePtr swizzle1 = nodeGraph->addNode("swizzle", "swizzle_uv0", "vector3");
+    mx::NodePtr swizzle1 = nodeGraph->addNode("swizzle", "uv_set0", "vector3");
     swizzle1->setConnectedNode("in", texcoord1);
     swizzle1->setParameterValue("channels", std::string("xy0"));
     attributeList.push_back(swizzle1);
@@ -290,7 +295,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     // uv set 2 output test
     mx::NodePtr texcoord2 = nodeGraph->addNode("texcoord", "texcoord2", "vector2");
     texcoord2->setParameterValue("index", 1, "integer");
-    mx::NodePtr swizzle2 = nodeGraph->addNode("swizzle", "swizzle_uv1", "vector3");
+    mx::NodePtr swizzle2 = nodeGraph->addNode("swizzle", "uv_set1", "vector3");
     swizzle2->setConnectedNode("in", texcoord2);
     swizzle2->setParameterValue("channels", std::string("xy0"));
     attributeList.push_back(swizzle2);

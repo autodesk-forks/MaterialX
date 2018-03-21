@@ -16,10 +16,14 @@ void DefaultGeometryHandler::clearData()
     _indexing.clear();
     _positionData.clear();
     _normalData.clear();
-    _texcoordData.clear();
-    _tangentData.clear();
-    _bitangentData.clear();
-    _colorData.clear();
+    _texcoordData[0].clear();
+    _tangentData[0].clear();
+    _bitangentData[0].clear();
+    _colorData[0].clear();
+    _texcoordData[1].clear();
+    _tangentData[1].clear();
+    _bitangentData[1].clear();
+    _colorData[1].clear();
 }
 
 void DefaultGeometryHandler::setIdentifier(const std::string identifier)
@@ -31,7 +35,7 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
     }
 }
 
-GeometryHandler::IndexBuffer& DefaultGeometryHandler::getIndexing(size_t &bufferSize)
+GeometryHandler::IndexBuffer& DefaultGeometryHandler::getIndexing()
 {
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
@@ -42,13 +46,12 @@ GeometryHandler::IndexBuffer& DefaultGeometryHandler::getIndexing(size_t &buffer
             };
         }
     }
-
-    bufferSize = _indexing.size() * sizeof(unsigned int);
     return _indexing;
 }
 
-GeometryHandler::FloatBuffer& DefaultGeometryHandler::getPositions(size_t &bufferSize)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getPositions(unsigned int& stride, unsigned int /*index*/)
 {
+    stride = 3;
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
         if (_positionData.empty())
@@ -66,13 +69,12 @@ GeometryHandler::FloatBuffer& DefaultGeometryHandler::getPositions(size_t &buffe
             };
         }
     }
-
-    bufferSize = _positionData.size() * sizeof(float);
     return _positionData;
 }
 
-GeometryHandler::FloatBuffer& DefaultGeometryHandler::getNormals(size_t &bufferSize)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getNormals(unsigned int& stride, unsigned int /*index*/)
 {
+    stride = 3;
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
         if (_normalData.empty())
@@ -85,133 +87,187 @@ GeometryHandler::FloatBuffer& DefaultGeometryHandler::getNormals(size_t &bufferS
             };
         }
     }
-
-    bufferSize = _normalData.size() * sizeof(float);
     return _normalData;
 }
 
-GeometryHandler::FloatBuffer& DefaultGeometryHandler::getTextureCoords(size_t &bufferSize, unsigned int index)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getTextureCoords(unsigned int& stride, unsigned int index)
 {
+    stride = 2;
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
-        if (_texcoordData.empty())
+        if (index == 0)
         {
-            if (index == 0)
+            if (_texcoordData[0].empty())
             {
-                _texcoordData = {
+                _texcoordData[0] = {
                     0.0f, 0.0f,
                     0.0f, 1.0f,
                     1.0f, 1.0f,
                     1.0f, 0.0f
                 };
             }
-            else
+        }
+        else
+        {
+            if (_texcoordData[1].empty())
             {
-                _texcoordData = {
+                _texcoordData[1] = {
                     1.0f, 0.0f,
                     0.0f, 0.0f,
                     0.0f, 1.0f,
                     1.0f, 1.0f
                 };
             }
+            return _texcoordData[1];
         }
     }
-
-    bufferSize = _texcoordData.size() * sizeof(float);
-    return _texcoordData;
+    return _texcoordData[0];
 }
 
-GeometryHandler::FloatBuffer& DefaultGeometryHandler::getTangents(size_t &bufferSize, unsigned int index)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getTangents(unsigned int& stride, unsigned int index)
 {
+    stride = 3;
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
-        if (_tangentData.empty())
+        if (index == 0)
         {
-            if (index == 0)
+            if (_tangentData[0].empty())
             {
-                _tangentData = {
+                _tangentData[0] = {
                     .0f, 1.0f, 0.0f,
                     1.0f, 0.0f, 0.0f,
                     -1.0f, 0.0f, 0.0f,
                     0.0f, -1.0f, 0.0f
                 };
             }
-            else
+        }
+        else
+        {
+            if (_tangentData[1].empty())
             {
-                _tangentData = {
+                _tangentData[1] = {
                     0.0f, -1.0f, 0.0f,
                     .0f, 1.0f, 0.0f,
                     1.0f, 0.0f, 0.0f,
                     -1.0f, 0.0f, 0.0f
                 };
             }
+            return _tangentData[1];
         }
     }
-
-    bufferSize = _tangentData.size() * sizeof(float);
-    return _tangentData;
+    return _tangentData[0];
 }
 
-GeometryHandler::FloatBuffer& DefaultGeometryHandler::getBitangents(size_t &bufferSize, unsigned int index)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getBitangents(unsigned int& stride, unsigned int index)
 {
+    stride = 3;
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
-        if (_bitangentData.empty())
+        if (index == 0)
         {
-            if (index == 0)
+            if (_bitangentData[0].empty())
             {
-                _bitangentData = {
+                _bitangentData[0] = {
                     1.0f, 0.0f, 0.0f,
                     0.0f, 1.0f, 0.0f,
                     -1.0f, 0.0f, 0.0f,
                     0.0f, -1.0f, 0.0f
                 };
             }
-            else
+        }
+        else
+        {
+            if (_bitangentData[1].empty())
             {
-                _bitangentData = {
+                _bitangentData[1] = {
                     0.0f, -1.0f, 0.0f,
                     1.0f, 0.0f, 0.0f,
                     0.0f, 1.0f, 0.0f,
                     -1.0f, 0.0f, 0.0f
                 };
             }
-        }
+            return _bitangentData[1];
+        }        
     }
-
-    bufferSize = _bitangentData.size() * sizeof(float);
-    return _bitangentData;
+    return _bitangentData[0];
 }
 
-GeometryHandler::FloatBuffer& DefaultGeometryHandler::getColors(size_t &bufferSize, unsigned int index)
+GeometryHandler::FloatBuffer& DefaultGeometryHandler::getColors(unsigned int& stride, unsigned int index)
 {
+    stride = 4;
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
-        if (_colorData.empty())
+        if (index == 0)
         {
-            if (index == 0)
+            if (_colorData[0].empty())
             {
-                _colorData = {
+                _colorData[0] = {
                     1.0f, 0.0f, 0.0f, 1.0f,
                     0.0f, 1.0f, 0.0f, 1.0f,
                     0.0f, 0.0f, 1.0f, 1.0f,
                     1.0f, 1.0f, 0.0f, 1.0f
                 };
             }
-            else
+        }
+        else
+        {
+            if (_colorData[1].empty())
             {
-                _colorData = {
+                _colorData[1] = {
                     1.0f, 0.0f, 1.0f, 1.0f,
                     0.0f, 1.0f, 1.0f, 1.0f,
                     1.0f, 0.0f, 1.0f, 1.0f,
                     1.0f, 1.0f, 0.5f, 1.0f
                 };
             }
+            return _colorData[1];
         }
     }
-
-    bufferSize = _colorData.size() * sizeof(float);
-    return _colorData;
+    return _colorData[0];
 }
+
+DefaultGeometryHandler::FloatBuffer& DefaultGeometryHandler::getAttribute(const std::string& attributeType, 
+                                                                          unsigned int& stride, 
+                                                                          unsigned int index)
+{
+    if (attributeType.compare(0, 
+        DefaultGeometryHandler::POSITION_ATTRIBUTE.size(),
+        DefaultGeometryHandler::POSITION_ATTRIBUTE) == 0)
+    {
+        return getPositions(stride, index);
+    }
+    else if (attributeType.compare(0,
+        DefaultGeometryHandler::NORMAL_ATTRIBUTE.size(),
+        DefaultGeometryHandler::NORMAL_ATTRIBUTE) == 0)
+    {
+        return getNormals(stride, index);
+    }
+    else if (attributeType.compare(0,
+        DefaultGeometryHandler::TEXCOORD_ATTRIBUTE.size(),
+        DefaultGeometryHandler::TEXCOORD_ATTRIBUTE) == 0)
+    {
+        return getTextureCoords(stride, index);
+    }
+    else if (attributeType.compare(0,
+        DefaultGeometryHandler::COLOR_ATTRIBUTE.size(),
+        DefaultGeometryHandler::COLOR_ATTRIBUTE) == 0)
+    {
+        return getColors(stride, index);
+    }
+    else if (attributeType.compare(0,
+        DefaultGeometryHandler::TANGENT_ATTRIBUTE.size(),
+        DefaultGeometryHandler::TANGENT_ATTRIBUTE) == 0)
+    {
+        return getTangents(stride, index);
+    }
+    else if (attributeType.compare(0,
+        DefaultGeometryHandler::BITANGENT_ATTRIBUTE.size(),
+        DefaultGeometryHandler::BITANGENT_ATTRIBUTE) == 0)
+    {
+        return getBitangents(stride, index);
+    }
+    return getPositions(stride, index);
+}
+
 
 }
