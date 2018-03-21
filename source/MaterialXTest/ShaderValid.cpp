@@ -282,10 +282,18 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     // uv output test
     mx::NodePtr texcoord1 = nodeGraph->addNode("texcoord", "texcoord1", "vector2");
     texcoord1->setParameterValue("index", 0, "integer");
-    mx::NodePtr swizzle1 = nodeGraph->addNode("swizzle", "swizzle_uv", "vector3");
+    mx::NodePtr swizzle1 = nodeGraph->addNode("swizzle", "swizzle_uv0", "vector3");
     swizzle1->setConnectedNode("in", texcoord1);
     swizzle1->setParameterValue("channels", std::string("xy0"));
     attributeList.push_back(swizzle1);
+
+    // uv set 2 output test
+    mx::NodePtr texcoord2 = nodeGraph->addNode("texcoord", "texcoord2", "vector2");
+    texcoord2->setParameterValue("index", 1, "integer");
+    mx::NodePtr swizzle2 = nodeGraph->addNode("swizzle", "swizzle_uv1", "vector3");
+    swizzle2->setConnectedNode("in", texcoord2);
+    swizzle2->setParameterValue("channels", std::string("xy0"));
+    attributeList.push_back(swizzle2);
 
     // image.
     mx::FilePath imagePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Images/MaterialXLogo.exr");

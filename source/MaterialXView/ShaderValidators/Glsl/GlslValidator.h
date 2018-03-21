@@ -12,7 +12,7 @@
 #include <MaterialXView/Handlers/LightHandler.h>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <map>
 
 namespace MaterialX
 {
@@ -104,28 +104,15 @@ class GlslValidator : public ShaderValidator
     /// Bind or unbind any created offscree target.
     bool bindTarget(bool bind);
 
-    /// Index used to access cached attribute buffers
-    enum AttributeIndex {
-        POSITION3_ATTRIBUTE = 0,/// 3 float position attribute 
-        NORMAL3_ATTRIBUTE,      /// 3 float normal attribute 
-        TANGENT3_ATTRIBUTE,     /// 3 float tangent attribute
-        BITANGENT3_ATTRIBUTE,   /// 3 float bitangent attribute 
-        TEXCOORD2_ATTRIBUTE,    /// 2 float texture coordinate attribute
-        COLOR4_ATTRIBUTE,       /// 4 float color attribute 
-        ATTRIBUTE_COUNT         /// Number of attribute types
-    };
-
     /// Bind attribute buffers to attribute inputs.
     /// A hardware buffer of the given attribute type is created and bound to the program location
     /// for the input attribute.
     /// @param bufferData Block of buffer data 
     /// @param bufferSize Size of buffer data.
-    /// @param attributeIndex Indicator for type of buffer to create
     /// @param floatCount Number of floats per channel in the buffer
     /// @param inputs Attribute inputs to bind to
     void bindAttribute(const float* bufferData,
                        size_t bufferSize,
-                       const GlslValidator::AttributeIndex attributeIndex,
                        unsigned int floatCount,
                        const MaterialX::GlslProgram::InputMap& inputs);
 
@@ -187,7 +174,8 @@ class GlslValidator : public ShaderValidator
     unsigned int _frameBufferHeight;
 
     /// Attribute buffer resource handles
-    std::vector<unsigned int> _attributeBufferIds;
+    /// for each attribute identifier in the program
+    std::map<std::string, unsigned int> _attributeBufferIds;
     
     /// Attribute indexing buffer handle
     unsigned int _indexBuffer;

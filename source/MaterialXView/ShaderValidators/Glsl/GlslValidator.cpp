@@ -36,8 +36,8 @@ GlslValidator::GlslValidator() :
     _context(nullptr)
 {
     // Clear buffer ids to invalid identifier.
-    _attributeBufferIds.resize(ATTRIBUTE_COUNT);
-    std::fill(_attributeBufferIds.begin(), _attributeBufferIds.end(), MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+    //_attributeBufferIds.clear();
+    //std::fill(_attributeBufferIds.begin(), _attributeBufferIds.end(), MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
 
     _program = GlslProgram::creator();
     _geometryHandler = DefaultGeometryHandler::creator();
@@ -626,22 +626,28 @@ void GlslValidator::bindViewInformation()
 }
 
 void GlslValidator::bindAttribute(const float* bufferData,
-                                    size_t bufferSize,                                    
-                                    const GlslValidator::AttributeIndex attributeIndex,
+                                    size_t bufferSize,
                                     unsigned int floatCount,
                                     const MaterialX::GlslProgram::InputMap& inputs)
 {
     for (auto input : inputs)
     {
         int location = input.second->location;
-        if (_attributeBufferIds[attributeIndex] < 1)
+
+        /*-> Nede to create the buffer once and reuse it but
+            we need slots for N uvs. Need to turn static list into a dynamic list
+            of buffers with some key e.g. map<"attribute id", gl buffer>. 
+        */
+        if (_attributeBufferIds.find(input.first) == _attributeBufferIds.end())
         {
             // Create a buffer based on attribute type.
-            unsigned int buffer = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
-            glGenBuffers(1, &buffer);
-            glBindBuffer(GL_ARRAY_BUFFER, buffer);
+            unsigned int bufferId = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
+            glGenBuffers(1, &bufferId);
+            glBindBuffer(GL_ARRAY_BUFFER, bufferId);
             glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
-            _attributeBufferIds[attributeIndex] = buffer;
+
+            std::cout << "Cache new attrib buffer: " << input.first << ". id: " << bufferId << std::endl;
+            _attributeBufferIds[input.first] = bufferId;
         }
 
         glEnableVertexAttribArray(location);
@@ -681,7 +687,7 @@ void GlslValidator::bindGeometry()
     if (foundList.size())
     {
         GeometryHandler::FloatBuffer& positionData = _geometryHandler->getPositions(bufferSize);
-        bindAttribute(&positionData[0], bufferSize, POSITION3_ATTRIBUTE, 3, foundList);
+        bindAttribute(&positionData[0], bufferSize, 3, foundList);
     }
 
     // Bind normals
@@ -689,7 +695,7 @@ void GlslValidator::bindGeometry()
     if (foundList.size())
     {
         GeometryHandler::FloatBuffer& normalData = _geometryHandler->getNormals(bufferSize);
-        bindAttribute(&normalData[0], bufferSize, NORMAL3_ATTRIBUTE, 3, foundList);
+        bindAttribute(&normalData[0], bufferSize, 3, foundList);
     }
 
     // Bind tangents
@@ -697,7 +703,7 @@ void GlslValidator::bindGeometry()
     if (foundList.size())
     {
         GeometryHandler::FloatBuffer& tangentData = _geometryHandler->getTangents(bufferSize, 0);
-        bindAttribute(&tangentData[0], bufferSize, TANGENT3_ATTRIBUTE, 3, foundList);
+        bindAttribute(&tangentData[0], bufferSize, 3, foundList);
     }
 
     // Bind bitangents
@@ -705,7 +711,7 @@ void GlslValidator::bindGeometry()
     if (foundList.size())
     {
         GeometryHandler::FloatBuffer& bitangentData = _geometryHandler->getBitangents(bufferSize, 0);
-        bindAttribute(&bitangentData[0], bufferSize, BITANGENT3_ATTRIBUTE, 3, foundList);
+        bindAttribute(&bitangentData[0], bufferSize, 3, foundList);
     }
 
     // Bind single set of colors for all locations found
@@ -713,7 +719,7 @@ void GlslValidator::bindGeometry()
     if (foundList.size())
     {
         GeometryHandler::FloatBuffer& colorData = _geometryHandler->getColors(bufferSize, 0);
-        bindAttribute(&colorData[0], bufferSize, COLOR4_ATTRIBUTE, 4, foundList);
+        bindAttribute(&colorData[0], bufferSize, 4, foundList);
     }
 
     // Bind single set of texture coords for all locations found
@@ -722,7 +728,7 @@ void GlslValidator::bindGeometry()
     if (foundList.size())
     {
         GeometryHandler::FloatBuffer& uvData = _geometryHandler->getTextureCoords(bufferSize, 0);
-        bindAttribute(&uvData[0], bufferSize, TEXCOORD2_ATTRIBUTE, 2, foundList);
+        bindAttribute(&uvData[0], bufferSize, 2, foundList);
     }
 
     // Bind any named attribute information
@@ -917,15 +923,17 @@ void GlslValidator::unbindGeometry()
         glDeleteBuffers(1, &_indexBuffer);
         _indexBuffer = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
     }
-    for (unsigned int i=0; i<ATTRIBUTE_COUNT; i++)
+    for (auto attributeBufferId : _attributeBufferIds)
     {
-        unsigned int bufferId = _attributeBufferIds[i];
+        unsigned int bufferId = attributeBufferId.second;
         if (bufferId > 0)
         {
+            std::cout << "Delete buffer: " << attributeBufferId.first << ". Id: "
+                << attributeBufferId.second << std::endl;
             glDeleteBuffers(1, &bufferId);
-            _attributeBufferIds[i] = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
         }
     }
+    _attributeBufferIds.clear();
 
     checkErrors();
 }

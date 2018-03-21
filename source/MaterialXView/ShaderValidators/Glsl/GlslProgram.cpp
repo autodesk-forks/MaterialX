@@ -516,13 +516,14 @@ const GlslProgram::InputMap& GlslProgram::updateAttributesList()
                 auto Input = _attributeList.find(input->name);
                 if (Input != _attributeList.end())
                 {
+                    if (input->value)
+                    {
+                        Input->second->value = input->value;
+                    }
+
                     if (Input->second->gltype == mapTypeToOpenGLType(input->type))
                     {
                         Input->second->typeString = input->type;
-                        if (input->value)
-                        {
-                            Input->second->value = input->value;
-                        }
                     }
                     else
                     {
