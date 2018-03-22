@@ -36,6 +36,8 @@ class DefaultGeometryHandler : public GeometryHandler
     FloatBuffer& getBitangents(unsigned int& stride, unsigned int index = 0) override;
     FloatBuffer& getColors(unsigned int& stride, unsigned int index = 0) override;
     FloatBuffer& getAttribute(const std::string& attributeType, unsigned int& stride, unsigned int index = 0) override;
+    const MaterialX::Vector3& getMinimumBounds() override;
+    MaterialX::Vector3& getMaximumBounds() override;
 
   private:
     void clearData();

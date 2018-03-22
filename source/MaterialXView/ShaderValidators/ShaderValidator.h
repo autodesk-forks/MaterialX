@@ -36,11 +36,25 @@ class ShaderValidator
         _imageHandler = imageHandler;
     }
 
+    /// Get image handler
+    /// @return Shared pointer to an image handler
+    const ImageHandlerPtr getImageHandler() const
+    {
+        return _imageHandler;
+    }
+
     /// Set light handler to use for light bindings
     /// @param imageHandler Handler used for lights
     void setLightHandler(const LightHandlerPtr lightHandler)
     {
         _lightHandler = lightHandler;
+    }
+
+    /// Get light handler
+    /// @return Shared pointer to a light handler
+    const LightHandlerPtr getLightHandler() const
+    {
+        return _lightHandler;
     }
 
     /// Set geometry handler for geometry load.
@@ -49,6 +63,13 @@ class ShaderValidator
     void setGeometryHandler(const GeometryHandlerPtr geometryHandler)
     {
         _geometryHandler = geometryHandler;
+    }
+
+    /// Get geometry handler
+    /// @return Shared pointer to a geometry handler
+    const GeometryHandlerPtr getGeometryHandler() const
+    {
+        return _geometryHandler;
     }
 
     /// @}
@@ -68,7 +89,8 @@ class ShaderValidator
 
     /// Perform validation that inputs can be bound to and 
     /// rendered with. Rendering is to an offscreen hardware buffer.
-    virtual void validateRender() = 0;
+    /// @param orthographicView Render orthographically
+    virtual void validateRender(bool orthographicView = true) = 0;
 
     /// @}
     /// @name Utilities

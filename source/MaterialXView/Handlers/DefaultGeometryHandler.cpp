@@ -1,5 +1,12 @@
 #include <MaterialXView/Handlers/DefaultGeometryHandler.h>
 
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <numeric>
+#include <iomanip>  
+#include <limits>
+
 namespace MaterialX
 { 
 DefaultGeometryHandler::DefaultGeometryHandler() :
@@ -26,6 +33,8 @@ void DefaultGeometryHandler::clearData()
     _colorData[1].clear();
 }
 
+#pragma warning(push)
+#pragma warning( disable : 4996)
 void DefaultGeometryHandler::setIdentifier(const std::string identifier)
 {
     if (identifier != _identifier)
@@ -33,7 +42,222 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
         GeometryHandler::setIdentifier(identifier);
         clearData();
     }
+
+    // Read in an obj file
+    std::string extension = (_identifier.substr(_identifier.find_last_of(".") + 1));
+    if (extension == "obj")
+    {
+        FloatBuffer pos;
+        FloatBuffer uv;
+        FloatBuffer norm;
+        IndexBuffer pidx;
+        IndexBuffer uvidx;
+        IndexBuffer nidx;
+
+        const float MAX_FLOAT = std::numeric_limits<float>::max();
+        const float MIN_FLOAT = std::numeric_limits<float>::min();
+        float minPos[3] = { MAX_FLOAT , MAX_FLOAT , MAX_FLOAT };
+        float maxPos[3] = { MIN_FLOAT, MIN_FLOAT, MIN_FLOAT };
+
+        std::ifstream objfile;
+        objfile.open(_identifier);
+        if (!objfile.is_open())
+        {
+            // Set to default if can't read file
+            GeometryHandler::setIdentifier(SCREEN_ALIGNED_QUAD);
+            return;
+        }
+
+        std::string line;
+
+        std::ofstream dump;
+        dump.open("dump.obj");
+
+        float val1, val2, val3;
+        unsigned int ipos[4], iuv[4], inorm[4];
+        while (std::getline(objfile, line))
+        {
+            if (line.substr(0, 2) == "v ")
+            {
+                std::istringstream valstring(line.substr(2));
+                valstring >> val1; valstring >> val2; valstring >> val3;
+                
+                // Update bounds
+                if (val1 < minPos[0]) minPos[0] = val1;
+                if (val2 < minPos[1]) minPos[1] = val2;
+                if (val3 < minPos[2]) minPos[2] = val3;
+                if (val1 > maxPos[0]) maxPos[0] = val1;
+                if (val2 > maxPos[1]) maxPos[1] = val2;
+                if (val3 > maxPos[2]) maxPos[2] = val3;
+
+                pos.push_back(val1); pos.push_back(-val2); pos.push_back(val3);
+
+                dump << "v " << val1 << " " << val2 << " " << val3 << std::endl;
+            }
+            else if (line.substr(0, 3) == "vt ")
+            {
+                std::istringstream valstring(line.substr(3));
+                valstring >> val1; valstring >> val2;
+                uv.push_back(val1); uv.push_back(val2);
+
+                dump << "vt " << val1 << " " << val2 << std::endl;
+            }
+            else if (line.substr(0, 3) == "vn ")
+            {
+                std::istringstream valstring(line.substr(3));
+                valstring >> val1; valstring >> val2; valstring >> val3;
+                norm.push_back(val1); norm.push_back(val2); norm.push_back(val3);
+
+                dump << "vn " << val1 << " " << val2 << " " << val3 << std::endl;
+            }
+            else if (line.substr(0, 2) == "f ")
+            {
+                std::istringstream valstring(line.substr(2));
+                int matches = std::sscanf(valstring.str().c_str(), "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
+                    &ipos[0], &iuv[0], &inorm[0],
+                    &ipos[1], &iuv[1], &inorm[1],
+                    &ipos[2], &iuv[2], &inorm[2],
+                    &ipos[3], &iuv[3], &inorm[3]);
+
+                if (matches == 9 || matches == 12)
+                {
+                    pidx.push_back(ipos[0] - 1);
+                    pidx.push_back(ipos[1] - 1);
+                    pidx.push_back(ipos[2] - 1);
+
+                    uvidx.push_back(iuv[0] - 1);
+                    uvidx.push_back(iuv[1] - 1);
+                    uvidx.push_back(iuv[2] - 1);
+
+                    nidx.push_back(inorm[0] - 1);
+                    nidx.push_back(inorm[1] - 1);
+                    nidx.push_back(inorm[2] - 1);
+
+                    if (matches == 12)
+                    {
+                        pidx.push_back(ipos[0] - 1);
+                        pidx.push_back(ipos[2] - 1);
+                        pidx.push_back(ipos[3] - 1);
+
+                        uvidx.push_back(iuv[0] - 1);
+                        uvidx.push_back(iuv[2] - 1);
+                        uvidx.push_back(iuv[3] - 1);
+
+                        nidx.push_back(inorm[0] - 1);
+                        nidx.push_back(inorm[2] - 1);
+                        nidx.push_back(inorm[3] - 1);
+
+                        //dump.setf(std::ios::fixed, std::ios::floatfield);
+                        //dump << std::setw(6);
+                        //dump << std::fixed;
+                        //dump.precision(6);
+                        dump << "f " 
+                            << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
+                            << ipos[1] << "/" << iuv[1] << "/" << inorm[1] << " "
+                            << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << std::endl;
+                        dump << "f " 
+                            << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
+                            << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << " "
+                            << ipos[3] << "/" << iuv[3] << "/" << inorm[3] << std::endl;
+                    }
+                }
+            }
+        }
+
+        dump.close();
+        objfile.close();
+
+        // Set bounds
+        _minimumBounds.data[0] = minPos[0];
+        _minimumBounds.data[1] = minPos[1];
+        _minimumBounds.data[2] = minPos[2];
+        _maximumBounds.data[0] = maxPos[0];
+        _maximumBounds.data[1] = maxPos[1];
+        _maximumBounds.data[2] = maxPos[2];
+
+        // Organize data to get triangles for positions 
+        for (unsigned int i = 0; i < pidx.size() ; i++)
+        {
+            unsigned int vertexIndex = 3 * pidx[i];
+            _positionData.push_back(pos[vertexIndex]);
+            _positionData.push_back(pos[vertexIndex + 1]);
+            _positionData.push_back(pos[vertexIndex + 2]);
+        }
+
+        // Organize data to get triangles for texture coordinates 
+        for (unsigned int i = 0; i < uvidx.size(); i++)
+        {
+            unsigned int vertexIndex = 2 * uvidx[i];
+            _texcoordData[0].push_back(uv[vertexIndex]);
+            _texcoordData[0].push_back(uv[vertexIndex + 1]);
+            _texcoordData[1].push_back(uv[vertexIndex]);
+            _texcoordData[1].push_back(uv[vertexIndex + 1]);
+
+            // Fake some colors
+            _colorData[0].push_back(uv[vertexIndex]);
+            _colorData[0].push_back(uv[vertexIndex + 1]);
+            _colorData[0].push_back(0.5f);
+        }
+
+        // Organize data to get triangles for normals 
+        for (unsigned int i = 0; i < nidx.size(); i++)
+        {
+            unsigned int vertexIndex = 3 * nidx[i];
+            _normalData.push_back(norm[vertexIndex]);
+            _normalData.push_back(norm[vertexIndex + 1]);
+            _normalData.push_back(norm[vertexIndex + 2]);
+
+            // Fake some tangent, bitangent data
+            _tangentData[0].push_back(norm[vertexIndex]);
+            _tangentData[0].push_back(norm[vertexIndex + 1]);
+            _tangentData[0].push_back(norm[vertexIndex + 2]);
+
+            _bitangentData[0].push_back(norm[vertexIndex]);
+            _bitangentData[0].push_back(norm[vertexIndex + 1]);
+            _bitangentData[0].push_back(norm[vertexIndex + 2]);
+        }
+
+        // Set up flattened indexing
+        if (_positionData.size() / 3)
+        {
+            _indexing.resize(_positionData.size());
+            std::iota(_indexing.begin(), _indexing.end(), 0);
+        }
+
+        printf(">>> Posidx size: %zd, uvindex size: %zd normindex size %zd. Final indexing size: %zd\n",
+            pidx.size(), uvidx.size(), nidx.size(), _indexing.size());
+        printf(">>> Read in geometry min: %g,%g,%g. max: %g,%g,%g\n", _minimumBounds[0], _minimumBounds[1],
+            _minimumBounds[2], _maximumBounds[0], _maximumBounds[1], _maximumBounds[2]);
+    }
 }
+#pragma warning(pop)
+
+const MaterialX::Vector3& DefaultGeometryHandler::getMinimumBounds()
+{
+    if (_identifier == SCREEN_ALIGNED_QUAD)
+    {
+        const float border = (float)_inputProperties.screenOffset;
+        _minimumBounds.data[0] = border;
+        _minimumBounds.data[1] = border;
+        _minimumBounds.data[2] = 0.0f;
+    }
+    return _minimumBounds;
+}
+
+MaterialX::Vector3& DefaultGeometryHandler::getMaximumBounds()
+{
+    if (_identifier == SCREEN_ALIGNED_QUAD)
+    {
+        const float border = (float)_inputProperties.screenOffset;
+        const float bufferWidth = (float)_inputProperties.screenWidth;
+        const float bufferHeight = (float)_inputProperties.screenHeight;
+        _maximumBounds.data[0] = bufferWidth - border;
+        _maximumBounds.data[1] = bufferHeight - border;
+        _maximumBounds.data[2] = 0.0f;
+    }
+    return _maximumBounds;
+}
+
 
 GeometryHandler::IndexBuffer& DefaultGeometryHandler::getIndexing()
 {
@@ -54,12 +278,19 @@ GeometryHandler::FloatBuffer& DefaultGeometryHandler::getPositions(unsigned int&
     stride = 3;
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
+        const float border = (float)_inputProperties.screenOffset;
+        const float bufferWidth = (float)_inputProperties.screenWidth;
+        const float bufferHeight = (float)_inputProperties.screenHeight;
+
+        _minimumBounds.data[0] = border;
+        _minimumBounds.data[1] = border;
+        _minimumBounds.data[2] = 0.0f;
+        _maximumBounds.data[0] = bufferWidth - border;
+        _maximumBounds.data[1] = bufferHeight - border;
+        _maximumBounds.data[2] = 0.0f;
+
         if (_positionData.empty())
         {
-            const float border = (float)_inputProperties.screenOffset;
-            const float bufferWidth = (float)_inputProperties.screenWidth;
-            const float bufferHeight = (float)_inputProperties.screenHeight;
-
             _positionData = 
             {
                 border, border, 0.0f,

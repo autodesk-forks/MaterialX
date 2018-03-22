@@ -12,6 +12,9 @@ namespace MaterialX
 const float NEAR_PLANE = -100.0f;
 const float FAR_PLANE = 100.0f;
 
+const float NEAR_PLANE_PERSP = 0.1f;
+const float FAR_PLANE_PERSP = 100.0f;
+
 //
 // Creator
 //
@@ -33,12 +36,9 @@ GlslValidator::GlslValidator() :
     _dummyTexture(0),
     _initialized(false),
     _window(nullptr),
-    _context(nullptr)
+    _context(nullptr),
+    _orthographicView(true)
 {
-    // Clear buffer ids to invalid identifier.
-    //_attributeBufferIds.clear();
-    //std::fill(_attributeBufferIds.begin(), _attributeBufferIds.end(), MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
-
     _program = GlslProgram::creator();
     _geometryHandler = DefaultGeometryHandler::creator();
 }
@@ -103,7 +103,7 @@ void GlslValidator::initialize()
 
                     if (initializedFunctions)
                     {
-                        glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
+                        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
                         glClearStencil(0);
 
                         _initialized = true;
@@ -534,7 +534,14 @@ void GlslValidator::bindViewInformation()
         location = Input->second->location;
         if (location >= 0)
         {
-            glUniform3f(location, 0.0f, 0.0f, NEAR_PLANE-1.0f);
+            if (_orthographicView)
+            {
+                glUniform3f(location, 0.0f, 0.0f, NEAR_PLANE - 1.0f);
+            }
+            else
+            {
+                glUniform3f(location, 0.0f, 0.0f, -10.0f);
+            }
         }
     }
     Input = uniformList.find("u_viewDirection");
@@ -969,8 +976,10 @@ void GlslValidator::bindInputs()
     bindLighting();
 }
 
-void GlslValidator::validateRender()
+void GlslValidator::validateRender(bool orthographicView)
 {
+    _orthographicView = orthographicView;
+
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL rendering error.");
 
@@ -988,15 +997,27 @@ void GlslValidator::validateRender()
     // Set up target
     bindTarget(true);
 
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Set up viewing / projection matrices for an orthographic rendering
     glViewport(0, 0, _frameBufferWidth, _frameBufferHeight);
+    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0.0f, _frameBufferWidth, 0.0f, _frameBufferHeight, NEAR_PLANE, FAR_PLANE);
+    if (_orthographicView)
+    {
+        glOrtho(0.0f, _frameBufferWidth, 0.0f, _frameBufferHeight, NEAR_PLANE, FAR_PLANE);
+    }
+    else
+    {
+        glFrustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.01f, 500.0f);
+    }
+    checkErrors();
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 

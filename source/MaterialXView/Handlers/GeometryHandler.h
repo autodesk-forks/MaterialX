@@ -1,6 +1,7 @@
 #ifndef MATERIALX_GEOMETRYHANDLER_H
 #define MATERIALX_GEOMETRYHANDLER_H
 
+#include <MaterialXCore/Types.h>
 #include <string>
 #include <memory>
 #include <vector>
@@ -122,6 +123,18 @@ class GeometryHandler
     /// Passing in a 0 indicates to use the "default" or first set of data.
     virtual FloatBuffer& getAttribute(const std::string& attributeType, unsigned int& stride, unsigned int index = 0) = 0;
 
+    /// Return the minimum bounds for the geometry
+    virtual const MaterialX::Vector3& getMinimumBounds()
+    {
+        return _minimumBounds;
+    }
+
+    /// Return the minimum bounds for the geometry
+    virtual const MaterialX::Vector3& getMaximumBounds()
+    {
+        return _maximumBounds;
+    }
+
     /// Geometry identifier indicating to create data for a screen aligned quad
     static const std::string SCREEN_ALIGNED_QUAD;
 
@@ -136,6 +149,10 @@ class GeometryHandler
   protected:
      /// Geometry identifier
      std::string _identifier;
+
+     /// Geometry bounds based on the identifier
+     MaterialX::Vector3 _minimumBounds;
+     MaterialX::Vector3 _maximumBounds;
 
      /// Input properties
      InputProperties _inputProperties;

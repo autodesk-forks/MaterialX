@@ -68,7 +68,8 @@ class GlslValidator : public ShaderValidator
 
     /// Perform validation that inputs can be bound to and 
     /// rendered with. Rendering is to an offscreen hardware buffer.
-    void validateRender() override;
+    /// @param orthographicView Render orthographically
+    void validateRender(bool orthographicView=true) override;
 
     /// @}
     /// @name Utilities
@@ -192,6 +193,9 @@ class GlslValidator : public ShaderValidator
 
     /// Program textures
     std::vector<unsigned int> _programTextures;
+
+    /// Whether to draw a flat quad or use 3d perspective view
+    bool _orthographicView;
 };
 
 } // namespace MaterialX

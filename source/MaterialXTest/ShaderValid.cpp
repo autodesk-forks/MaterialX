@@ -59,6 +59,9 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
     {
         validator->initialize();
         validator->setImageHandler(handler);
+        // Set geometry to draw with
+        mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();
+        geometryHandler->setIdentifier("MV_SPHERE.obj");
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError e)
@@ -322,6 +325,8 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         validator->initialize();
         validator->setImageHandler(imageHandler);
         validator->setLightHandler(lightHandler);
+        mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();
+        geometryHandler->setIdentifier("MV_SPHERE.obj");
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError e)
@@ -365,7 +370,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
             program->printUniforms(std::cout);
             program->printAttributes(std::cout);
 
-            validator->validateRender();
+            validator->validateRender(false);
             std::string fileName = nodePtr->getName() + ".exr";
             validator->save(fileName);
 
@@ -443,7 +448,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
             program->printUniforms(std::cout);
             program->printAttributes(std::cout);
 
-            validator->validateRender();
+            validator->validateRender(false);
             const std::string fileName = "lighting1.exr";
             validator->save(fileName);
 

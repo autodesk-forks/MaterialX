@@ -597,11 +597,11 @@ void GlslProgram::printUniforms(std::ostream& outputStream)
         std::string type = input.second->typeString;
         std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
         outputStream << "Program Uniform: \"" << input.first
-            << "\". Location=" << location
-            << ". Type=" << std::hex << gltype
-            << ". Size=" << std::dec << size
-            << ". TypeString=" << type
-            << ". Value=" << value << "."
+            << "\". Location:" << location
+            << ". GLtype: " << std::hex << gltype
+            << ". Size: " << std::dec << size
+            << ". TypeString:" << type
+            << ". Value: " << value << "."
             << std::endl;
     }
 }
