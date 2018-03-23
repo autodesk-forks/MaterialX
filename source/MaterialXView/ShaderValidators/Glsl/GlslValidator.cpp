@@ -9,10 +9,9 @@
 namespace MaterialX
 {
 // View information
-const float NEAR_PLANE = -100.0f;
-const float FAR_PLANE = 100.0f;
-
-const float NEAR_PLANE_PERSP = 0.1f;
+const float NEAR_PLANE_ORTHO = -100.0f;
+const float FAR_PLANE_ORTHO = 100.0f;
+const float NEAR_PLANE_PERSP = 0.01f;
 const float FAR_PLANE_PERSP = 100.0f;
 
 //
@@ -536,7 +535,7 @@ void GlslValidator::bindViewInformation()
         {
             if (_orthographicView)
             {
-                glUniform3f(location, 0.0f, 0.0f, NEAR_PLANE - 1.0f);
+                glUniform3f(location, 0.0f, 0.0f, NEAR_PLANE_ORTHO - 1.0f);
             }
             else
             {
@@ -1011,11 +1010,11 @@ void GlslValidator::validateRender(bool orthographicView)
     glLoadIdentity();
     if (_orthographicView)
     {
-        glOrtho(0.0f, _frameBufferWidth, 0.0f, _frameBufferHeight, NEAR_PLANE, FAR_PLANE);
+        glOrtho(0.0f, _frameBufferWidth, 0.0f, _frameBufferHeight, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO);
     }
     else
     {
-        glFrustum(-1.5f, 1.5f, -1.5f, 1.5f, 0.01f, 100.0f);
+        glFrustum(-1.5f, 1.5f, -1.5f, 1.5f, NEAR_PLANE_PERSP, FAR_PLANE_PERSP);
     }
     checkErrors();
 
