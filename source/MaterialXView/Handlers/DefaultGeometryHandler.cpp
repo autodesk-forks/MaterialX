@@ -1,4 +1,5 @@
 #include <MaterialXView/Handlers/DefaultGeometryHandler.h>
+#include <MaterialXCore/Util.h>
 
 #include <iostream>
 #include <sstream>
@@ -33,8 +34,6 @@ void DefaultGeometryHandler::clearData()
     _colorData[1].clear();
 }
 
-#pragma warning(push)
-#pragma warning( disable : 4996)
 void DefaultGeometryHandler::setIdentifier(const std::string identifier)
 {
     if (identifier != _identifier)
@@ -112,14 +111,33 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
             }
             else if (line.substr(0, 2) == "f ")
             {
+                // Extact out the compont parts from face string
+                //
                 std::istringstream valstring(line.substr(2));
-                int matches = std::sscanf(valstring.str().c_str(), "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
-                    &ipos[0], &iuv[0], &inorm[0],
-                    &ipos[1], &iuv[1], &inorm[1],
-                    &ipos[2], &iuv[2], &inorm[2],
-                    &ipos[3], &iuv[3], &inorm[3]);
+                //std::istringstream valstring2(line.substr(2));
+                std::string vertices[4];
+                valstring >> vertices[0];
+                valstring >> vertices[1];
+                valstring >> vertices[2];
+                valstring >> vertices[3];
 
-                if (matches == 9 || matches == 12)
+                int vertexCount = 0;
+                for (unsigned int i = 0; i < 4; i++)
+                {
+                    if (vertices[i].size())
+                    {
+                        std::vector<string> vertexParts = MaterialX::splitString(vertices[i], "/");
+                        if (vertexParts.size() == 3)
+                        {
+                            ipos[i] = std::stoi(vertexParts[0]);
+                            iuv[i] = std::stoi(vertexParts[1]);
+                            inorm[i] = std::stoi(vertexParts[2]);
+                            vertexCount++;
+                        }
+                    }
+                }
+
+                if (vertexCount >= 3)
                 {
                     pidx.push_back(ipos[0] - 1);
                     pidx.push_back(ipos[1] - 1);
@@ -133,7 +151,12 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
                     nidx.push_back(inorm[1] - 1);
                     nidx.push_back(inorm[2] - 1);
 
-                    if (matches == 12)
+                    dump << "f "
+                        << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
+                        << ipos[1] << "/" << iuv[1] << "/" << inorm[1] << " "
+                        << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << std::endl;
+
+                    if (vertexCount >= 4)
                     {
                         pidx.push_back(ipos[0] - 1);
                         pidx.push_back(ipos[2] - 1);
@@ -153,10 +176,6 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
                         //dump.precision(6);
                         dump << "f " 
                             << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
-                            << ipos[1] << "/" << iuv[1] << "/" << inorm[1] << " "
-                            << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << std::endl;
-                        dump << "f " 
-                            << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
                             << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << " "
                             << ipos[3] << "/" << iuv[3] << "/" << inorm[3] << std::endl;
                     }
@@ -168,12 +187,12 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
         objfile.close();
 
         // Set bounds
-        _minimumBounds.data[0] = minPos[0];
-        _minimumBounds.data[1] = minPos[1];
-        _minimumBounds.data[2] = minPos[2];
-        _maximumBounds.data[0] = maxPos[0];
-        _maximumBounds.data[1] = maxPos[1];
-        _maximumBounds.data[2] = maxPos[2];
+        _minimumBounds[0] = minPos[0];
+        _minimumBounds[1] = minPos[1];
+        _minimumBounds[2] = minPos[2];
+        _maximumBounds[0] = maxPos[0];
+        _maximumBounds[1] = maxPos[1];
+        _maximumBounds[2] = maxPos[2];
 
         // Organize data to get triangles for positions 
         for (unsigned int i = 0; i < pidx.size() ; i++)
@@ -194,9 +213,9 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
             _texcoordData[1].push_back(uv[vertexIndex + 1]);
 
             // Fake some colors
-            _colorData[0].push_back(uv[vertexIndex]);
-            _colorData[0].push_back(uv[vertexIndex + 1]);
-            _colorData[0].push_back(0.5f);
+            _colorData[0].push_back(1.0f);
+            _colorData[0].push_back(1.0f);
+            _colorData[0].push_back(1.0f);
         }
 
         // Organize data to get triangles for normals 
@@ -218,28 +237,27 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
         }
 
         // Set up flattened indexing
-        if (_positionData.size() / 3)
+        if (_positionData.size() && pidx.size())
         {
-            _indexing.resize(_positionData.size());
+            _indexing.resize(pidx.size());
             std::iota(_indexing.begin(), _indexing.end(), 0);
         }
 
-        printf(">>> Posidx size: %zd, uvindex size: %zd normindex size %zd. Final indexing size: %zd\n",
-            pidx.size(), uvidx.size(), nidx.size(), _indexing.size());
-        printf(">>> Read in geometry min: %g,%g,%g. max: %g,%g,%g\n", _minimumBounds[0], _minimumBounds[1],
-            _minimumBounds[2], _maximumBounds[0], _maximumBounds[1], _maximumBounds[2]);
+        //printf(">>> Posidx size: %zd, uvindex size: %zd normindex size %zd. Final indexing size: %zd\n",
+        //    pidx.size(), uvidx.size(), nidx.size(), _indexing.size());
+        //printf(">>> Read in geometry min: %g,%g,%g. max: %g,%g,%g\n", _minimumBounds[0], _minimumBounds[1],
+        //    _minimumBounds[2], _maximumBounds[0], _maximumBounds[1], _maximumBounds[2]);
     }
 }
-#pragma warning(pop)
 
 const MaterialX::Vector3& DefaultGeometryHandler::getMinimumBounds()
 {
     if (_identifier == SCREEN_ALIGNED_QUAD)
     {
         const float border = (float)_inputProperties.screenOffset;
-        _minimumBounds.data[0] = border;
-        _minimumBounds.data[1] = border;
-        _minimumBounds.data[2] = 0.0f;
+        _minimumBounds[0] = border;
+        _minimumBounds[1] = border;
+        _minimumBounds[2] = 0.0f;
     }
     return _minimumBounds;
 }
@@ -251,9 +269,9 @@ MaterialX::Vector3& DefaultGeometryHandler::getMaximumBounds()
         const float border = (float)_inputProperties.screenOffset;
         const float bufferWidth = (float)_inputProperties.screenWidth;
         const float bufferHeight = (float)_inputProperties.screenHeight;
-        _maximumBounds.data[0] = bufferWidth - border;
-        _maximumBounds.data[1] = bufferHeight - border;
-        _maximumBounds.data[2] = 0.0f;
+        _maximumBounds[0] = bufferWidth - border;
+        _maximumBounds[1] = bufferHeight - border;
+        _maximumBounds[2] = 0.0f;
     }
     return _maximumBounds;
 }
@@ -282,12 +300,12 @@ GeometryHandler::FloatBuffer& DefaultGeometryHandler::getPositions(unsigned int&
         const float bufferWidth = (float)_inputProperties.screenWidth;
         const float bufferHeight = (float)_inputProperties.screenHeight;
 
-        _minimumBounds.data[0] = border;
-        _minimumBounds.data[1] = border;
-        _minimumBounds.data[2] = 0.0f;
-        _maximumBounds.data[0] = bufferWidth - border;
-        _maximumBounds.data[1] = bufferHeight - border;
-        _maximumBounds.data[2] = 0.0f;
+        _minimumBounds[0] = border;
+        _minimumBounds[1] = border;
+        _minimumBounds[2] = 0.0f;
+        _maximumBounds[0] = bufferWidth - border;
+        _maximumBounds[1] = bufferHeight - border;
+        _maximumBounds[2] = 0.0f;
 
         if (_positionData.empty())
         {

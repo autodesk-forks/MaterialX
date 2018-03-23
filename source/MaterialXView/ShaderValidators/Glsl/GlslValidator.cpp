@@ -697,7 +697,7 @@ void GlslValidator::bindGeometry()
     _indexBufferSize = indexData.size();
     glGenBuffers(1, &_indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizei)(_indexBufferSize*UINT_SIZE), &indexData[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (unsigned int)(_indexBufferSize*UINT_SIZE), &indexData[0], GL_STATIC_DRAW);
 
     GeometryHandler::InputProperties properties(_frameBufferWidth, _frameBufferHeight, 20);
     _geometryHandler->setInputProperties(properties);
@@ -998,6 +998,7 @@ void GlslValidator::validateRender(bool orthographicView)
     bindTarget(true);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glEnable(GL_CULL_FACE);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -1014,7 +1015,7 @@ void GlslValidator::validateRender(bool orthographicView)
     }
     else
     {
-        glFrustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.01f, 500.0f);
+        glFrustum(-1.5f, 1.5f, -1.5f, 1.5f, 0.01f, 100.0f);
     }
     checkErrors();
 

@@ -55,13 +55,19 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
     mx::GlslValidatorPtr validator = mx::GlslValidator::creator();
     mx::TinyEXRImageHandlerPtr handler = mx::TinyEXRImageHandler::creator();
     bool initialized = false;
+    bool orthographicsView = true;
     try
     {
         validator->initialize();
         validator->setImageHandler(handler);
         // Set geometry to draw with
-        mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();
-        geometryHandler->setIdentifier("MV_SPHERE.obj");
+        const std::string geometryFile("MV_CUBE1.obj");
+        mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();        
+        geometryHandler->setIdentifier(geometryFile);
+        if (geometryHandler->getIdentifier() == geometryFile)
+        {
+            orthographicsView = false;
+        }
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError e)
@@ -318,6 +324,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
     createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator));
 
     bool initialized = false;
+    bool orthographicsView = true;
     mx::GlslValidatorPtr validator = mx::GlslValidator::creator();
     mx::TinyEXRImageHandlerPtr imageHandler = mx::TinyEXRImageHandler::creator();
     try
@@ -325,8 +332,13 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         validator->initialize();
         validator->setImageHandler(imageHandler);
         validator->setLightHandler(lightHandler);
+        const std::string geometryFile("MV_CUBE1.obj");
         mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();
-        geometryHandler->setIdentifier("MV_SPHERE.obj");
+        geometryHandler->setIdentifier(geometryFile);
+        if (geometryHandler->getIdentifier() == geometryFile)
+        {
+            orthographicsView = false;
+        }
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError e)
@@ -370,7 +382,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
             program->printUniforms(std::cout);
             program->printAttributes(std::cout);
 
-            validator->validateRender(false);
+            validator->validateRender(orthographicsView);
             std::string fileName = nodePtr->getName() + ".exr";
             validator->save(fileName);
 
@@ -448,7 +460,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
             program->printUniforms(std::cout);
             program->printAttributes(std::cout);
 
-            validator->validateRender(false);
+            validator->validateRender(orthographicsView);
             const std::string fileName = "lighting1.exr";
             validator->save(fileName);
 
