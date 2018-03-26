@@ -6,7 +6,6 @@
 #include <MaterialXTest/Catch/catch.hpp>
 
 #include <MaterialXFormat/XmlIo.h>
-#include <set>
 
 namespace mx = MaterialX;
 
@@ -49,25 +48,25 @@ TEST_CASE("Load content", "[xmlio]")
     }
     const std::string target;
     const std::string language("osl");
-    std::vector<mx::NodeDefPtr> definitions = implCheckDocument->getNodeDefs();
-    std::set<std::string> definitionsFound;
-    for (mx::NodeDefPtr definition : definitions)
+    std::vector<mx::NodeDefPtr> nodeDefs = implCheckDocument->getNodeDefs();
+    std::set<std::string> nodeDefsFound;
+    for (mx::NodeDefPtr nodeDef : nodeDefs)
     {
-        // Ignore untyped nodedefs as they require no definition
-        const std::string typeAttribute = definition->getAttribute(mx::Element::TYPE_ATTRIBUTE);
+        const std::string typeAttribute = nodeDef->getAttribute(mx::Element::TYPE_ATTRIBUTE);
+        // Nodedefs which do not have a type do not reqiure an implementation
         if (typeAttribute != mx::NONE_TYPE_STRING)
         {
-            if (definition->getImplementation(target, language))
+            if (nodeDef->getImplementation(target, language))
             {
-                definitionsFound.insert(definition->getName());
+                nodeDefsFound.insert(nodeDef->getName());
             }
         }
         else
         {
-            definitionsFound.insert(definition->getName());
+            nodeDefsFound.insert(nodeDef->getName());
         }
     }
-    REQUIRE(definitionsFound.size() == definitions.size());
+    REQUIRE(nodeDefsFound.size() == nodeDefs.size());
 
     // Read and validate each example document.
     for (std::string filename : exampleFilenames)
@@ -163,10 +162,10 @@ TEST_CASE("Load content", "[xmlio]")
                 mx::NodeDefPtr nodeDef = node->getNodeDef();
                 REQUIRE(nodeDef);
                 // Check that implementations exist for any nodedefs added by example files
-                if (definitionsFound.find(nodeDef->getName()) == definitionsFound.end())
+                if (nodeDefsFound.find(nodeDef->getName()) == nodeDefsFound.end())
                 {
                     REQUIRE(nodeDef->getImplementation(target, language));
-                    definitionsFound.insert(nodeDef->getName());
+                    nodeDefsFound.insert(nodeDef->getName());
                 }
             }
         }
