@@ -11,6 +11,7 @@ namespace MaterialX
 // View information
 const float NEAR_PLANE_ORTHO = -100.0f;
 const float FAR_PLANE_ORTHO = 100.0f;
+const float FOV_PERSP = 60.0f; // degrees
 const float NEAR_PLANE_PERSP = 0.01f;
 const float FAR_PLANE_PERSP = 100.0f;
 
@@ -539,7 +540,8 @@ void GlslValidator::bindViewInformation()
             }
             else
             {
-                glUniform3f(location, 0.0f, 0.0f, -10.0f);
+                // Should be set based on geometry bounds. To do.
+                glUniform3f(location, 0.0f, 0.0f, -5.0f);
             }
         }
     }
@@ -1014,17 +1016,26 @@ void GlslValidator::validateRender(bool orthographicView)
     }
     else
     {
-        glFrustum(-1.5f, 1.5f, -1.5f, 1.5f, NEAR_PLANE_PERSP, FAR_PLANE_PERSP);
+        Matrix4x4 projection(0.0f);
+        float aspectRatio = (float)_frameBufferWidth / (float)_frameBufferHeight;
+        _viewHandler->createProjectionMatrix(projection, FOV_PERSP, aspectRatio, NEAR_PLANE_PERSP, FAR_PLANE_PERSP);
+        glLoadMatrixf(&projection[0]);
     }
     checkErrors();
 
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    // Assume identify for model matrix
+    Matrix4x4 viewMatrix(0.0f);
+    _viewHandler->makeIdentityMatrix(viewMatrix);
+    // This should be geometric bounds based - to add.
+    _viewHandler->translateMatrix(viewMatrix, Vector3(0.0f, 0.0f, -2.5f));
+    glLoadMatrixf(&viewMatrix[0]);
 
     try
     {
         // Bind program and input parameters
-        if (_program)
+        bool useFixed = false;
+        if (_program && !useFixed)
         {
             // Check if we have any attributes to bind. If not then
             // there is nothing to draw
@@ -1051,35 +1062,45 @@ void GlslValidator::validateRender(bool orthographicView)
             }
         }
 
-        // Fallack draw some simple geometry
+        // Fallack simple draw 
         else
         {
-            glPushMatrix();
-            glBegin(GL_QUADS);
+            if (_geometryHandler->getIdentifier() == GeometryHandler::SCREEN_ALIGNED_QUAD)
+            {
+                glPushMatrix();
+                glBegin(GL_QUADS);
 
-            glTexCoord2f(0.0f, 1.0f);
-            glNormal3f(1.0f, 0.0f, 0.0f);
-            glColor3f(1.0f, 0.0f, 0.0f);
-            glVertex2f(0.0f, (float)_frameBufferHeight);
+                glColor3f(1.0f, 0.0f, 0.0f);
+                glVertex2f(0.0f, (float)_frameBufferHeight);
 
-            glTexCoord2f(0.0f, 0.0f);
-            glNormal3f(1.0f, 0.0, 0.0);
-            glColor3f(0.0f, 1.0f, 0.0f);
-            glVertex2f(0.0f, 0.0f);
+                glColor3f(0.0f, 1.0f, 0.0f);
+                glVertex2f(0.0f, 0.0f);
 
-            glTexCoord2f(1.0f, 0.0f);
-            glNormal3f(1.0f, 0.0, 0.0);
-            glColor3f(0.0f, 0.0f, 1.0f);
-            glVertex2f((float)_frameBufferWidth, 0.0f);
+                glColor3f(0.0f, 0.0f, 1.0f);
+                glVertex2f((float)_frameBufferWidth, 0.0f);
 
-            glTexCoord2f(1.0f, 1.0f);
-            glNormal3f(1.0f, 0.0, 0.0);
-            glColor3f(1.0f, 1.0f, 0.0f);
-            glVertex2f((float)_frameBufferWidth, (float)_frameBufferHeight);
+                glColor3f(1.0f, 1.0f, 0.0f);
+                glVertex2f((float)_frameBufferWidth, (float)_frameBufferHeight);
 
-            glEnd();
-            glPopMatrix();
+                glEnd();
+                glPopMatrix();
+            }
+            else
+            {
+                unsigned int channelCount = 3;
+                GeometryHandler::FloatBuffer& positionData =
+                    _geometryHandler->getAttribute(GeometryHandler::POSITION_ATTRIBUTE, channelCount);
+                GeometryHandler::IndexBuffer& indexBuffer =
+                    _geometryHandler->getIndexing();
 
+                glBegin(GL_TRIANGLES);
+                glColor3f(1.0f, 1.0f, 1.0f);
+                for (unsigned int i = 0; i < indexBuffer.size(); i++)
+                {
+                    glVertex3f(positionData[3*i], positionData[3 * i + 1], positionData[3 * i + 2]);
+                }
+                glEnd();
+            }
             checkErrors();
         }
     }

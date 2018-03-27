@@ -69,8 +69,14 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
 
         std::string line;
 
+        // Enable debugging of read by dumping to disk what was read in.
+        // Disabled by default
         std::ofstream dump;
-        dump.open("dump.obj");
+        bool debugDump = false;
+        if (debugDump)
+        {
+            dump.open("dump.obj");
+        }
 
         float val1, val2, val3;
         unsigned int ipos[4], iuv[4], inorm[4];
@@ -80,7 +86,15 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
             {
                 std::istringstream valstring(line.substr(2));
                 valstring >> val1; valstring >> val2; valstring >> val3;
-                
+
+                if (debugDump)
+                {
+                    dump << "v " << val1 << " " << val2 << " " << val3 << std::endl;
+                }
+
+                // Y-flip
+                val2 = -val2;
+
                 // Update bounds
                 if (val1 < minPos[0]) minPos[0] = val1;
                 if (val2 < minPos[1]) minPos[1] = val2;
@@ -89,9 +103,7 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
                 if (val2 > maxPos[1]) maxPos[1] = val2;
                 if (val3 > maxPos[2]) maxPos[2] = val3;
 
-                pos.push_back(val1); pos.push_back(-val2); pos.push_back(val3);
-
-                dump << "v " << val1 << " " << val2 << " " << val3 << std::endl;
+                pos.push_back(val1); pos.push_back(val2); pos.push_back(val3);
             }
             else if (line.substr(0, 3) == "vt ")
             {
@@ -99,7 +111,10 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
                 valstring >> val1; valstring >> val2;
                 uv.push_back(val1); uv.push_back(val2);
 
-                dump << "vt " << val1 << " " << val2 << std::endl;
+                if (debugDump)
+                {
+                    dump << "vt " << val1 << " " << val2 << std::endl;
+                }
             }
             else if (line.substr(0, 3) == "vn ")
             {
@@ -107,14 +122,16 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
                 valstring >> val1; valstring >> val2; valstring >> val3;
                 norm.push_back(val1); norm.push_back(val2); norm.push_back(val3);
 
-                dump << "vn " << val1 << " " << val2 << " " << val3 << std::endl;
+                if (debugDump)
+                {
+                    dump << "vn " << val1 << " " << val2 << " " << val3 << std::endl;
+                }
             }
             else if (line.substr(0, 2) == "f ")
             {
                 // Extact out the compont parts from face string
                 //
                 std::istringstream valstring(line.substr(2));
-                //std::istringstream valstring2(line.substr(2));
                 std::string vertices[4];
                 valstring >> vertices[0];
                 valstring >> vertices[1];
@@ -151,10 +168,13 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
                     nidx.push_back(inorm[1] - 1);
                     nidx.push_back(inorm[2] - 1);
 
-                    dump << "f "
-                        << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
-                        << ipos[1] << "/" << iuv[1] << "/" << inorm[1] << " "
-                        << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << std::endl;
+                    if (debugDump)
+                    {
+                        dump << "f "
+                            << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
+                            << ipos[1] << "/" << iuv[1] << "/" << inorm[1] << " "
+                            << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << std::endl;
+                    }
 
                     if (vertexCount >= 4)
                     {
@@ -170,14 +190,13 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
                         nidx.push_back(inorm[2] - 1);
                         nidx.push_back(inorm[3] - 1);
 
-                        //dump.setf(std::ios::fixed, std::ios::floatfield);
-                        //dump << std::setw(6);
-                        //dump << std::fixed;
-                        //dump.precision(6);
-                        dump << "f " 
-                            << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
-                            << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << " "
-                            << ipos[3] << "/" << iuv[3] << "/" << inorm[3] << std::endl;
+                        if (debugDump)
+                        {
+                            dump << "f "
+                                << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
+                                << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << " "
+                                << ipos[3] << "/" << iuv[3] << "/" << inorm[3] << std::endl;
+                        }
                     }
                 }
             }
@@ -209,13 +228,20 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
             unsigned int vertexIndex = 2 * uvidx[i];
             _texcoordData[0].push_back(uv[vertexIndex]);
             _texcoordData[0].push_back(uv[vertexIndex + 1]);
-            _texcoordData[1].push_back(uv[vertexIndex]);
+            
             _texcoordData[1].push_back(uv[vertexIndex + 1]);
+            _texcoordData[1].push_back(uv[vertexIndex]);
 
             // Fake some colors
+            _colorData[0].push_back(uv[vertexIndex]);
+            _colorData[0].push_back(uv[vertexIndex] + 1);
             _colorData[0].push_back(1.0f);
             _colorData[0].push_back(1.0f);
-            _colorData[0].push_back(1.0f);
+            
+            _colorData[1].push_back(1.0f);
+            _colorData[1].push_back(uv[vertexIndex] + 1);
+            _colorData[1].push_back(uv[vertexIndex]);
+            _colorData[1].push_back(1.0f);
         }
 
         // Organize data to get triangles for normals 
@@ -242,11 +268,6 @@ void DefaultGeometryHandler::setIdentifier(const std::string identifier)
             _indexing.resize(pidx.size());
             std::iota(_indexing.begin(), _indexing.end(), 0);
         }
-
-        //printf(">>> Posidx size: %zd, uvindex size: %zd normindex size %zd. Final indexing size: %zd\n",
-        //    pidx.size(), uvidx.size(), nidx.size(), _indexing.size());
-        //printf(">>> Read in geometry min: %g,%g,%g. max: %g,%g,%g\n", _minimumBounds[0], _minimumBounds[1],
-        //    _minimumBounds[2], _maximumBounds[0], _maximumBounds[1], _maximumBounds[2]);
     }
 }
 
@@ -367,10 +388,9 @@ GeometryHandler::FloatBuffer& DefaultGeometryHandler::getTextureCoords(unsigned 
                     1.0f, 1.0f
                 };
             }
-            return _texcoordData[1];
         }
     }
-    return _texcoordData[0];
+    return (index > 1 ? _texcoordData[0] : _texcoordData[index]);
 }
 
 GeometryHandler::FloatBuffer& DefaultGeometryHandler::getTangents(unsigned int& stride, unsigned int index)
@@ -401,10 +421,9 @@ GeometryHandler::FloatBuffer& DefaultGeometryHandler::getTangents(unsigned int& 
                     -1.0f, 0.0f, 0.0f
                 };
             }
-            return _tangentData[1];
         }
     }
-    return _tangentData[0];
+    return (index > 1 ? _tangentData[0] : _tangentData[index]);
 }
 
 GeometryHandler::FloatBuffer& DefaultGeometryHandler::getBitangents(unsigned int& stride, unsigned int index)
@@ -435,10 +454,9 @@ GeometryHandler::FloatBuffer& DefaultGeometryHandler::getBitangents(unsigned int
                     -1.0f, 0.0f, 0.0f
                 };
             }
-            return _bitangentData[1];
         }        
     }
-    return _bitangentData[0];
+    return (index > 1 ? _bitangentData[0] : _bitangentData[index]);
 }
 
 GeometryHandler::FloatBuffer& DefaultGeometryHandler::getColors(unsigned int& stride, unsigned int index)
@@ -469,10 +487,9 @@ GeometryHandler::FloatBuffer& DefaultGeometryHandler::getColors(unsigned int& st
                     1.0f, 1.0f, 0.5f, 1.0f
                 };
             }
-            return _colorData[1];
         }
     }
-    return _colorData[0];
+    return (index > 1 ? _colorData[0] : _colorData[index]);
 }
 
 DefaultGeometryHandler::FloatBuffer& DefaultGeometryHandler::getAttribute(const std::string& attributeType, 

@@ -8,8 +8,6 @@
 #include <MaterialXView/Window/SimpleWindow.h>
 #include <MaterialXView/OpenGL/GLUtilityContext.h>
 #include <MaterialXView/ShaderValidators/Glsl/GlslProgram.h>
-#include <MaterialXView/Handlers/GeometryHandler.h>
-#include <MaterialXView/Handlers/LightHandler.h>
 #include <vector>
 #include <string>
 #include <map>

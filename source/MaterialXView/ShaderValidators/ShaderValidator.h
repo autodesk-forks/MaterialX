@@ -6,6 +6,7 @@
 #include <MaterialXView/Handlers/ImageHandler.h>
 #include <MaterialXView/Handlers/GeometryHandler.h>
 #include <MaterialXView/Handlers/LightHandler.h>
+#include <MaterialXView/Handlers/ViewHandler.h>
 #include <vector>
 #include <string>
 
@@ -72,6 +73,21 @@ class ShaderValidator
         return _geometryHandler;
     }
 
+    /// Set viewing utilities handler.
+    /// @param viewHandler Handler to use
+    void setViewHandler(const ViewHandlerPtr viewHandler)
+    {
+        _viewHandler = viewHandler;
+    }
+
+    /// Get viewing utilities handler
+    /// @return Shared pointer to a view utilities handler
+    const ViewHandlerPtr getViewHandler() const
+    {
+        return _viewHandler;
+    }
+
+
     /// @}
     /// @name Validation
     /// @{
@@ -88,7 +104,7 @@ class ShaderValidator
     virtual void validateInputs() = 0;
 
     /// Perform validation that inputs can be bound to and 
-    /// rendered with. Rendering is to an offscreen hardware buffer.
+    /// Uendered with. Rendering is to an offscreen hardware buffer.
     /// @param orthographicView Render orthographically
     virtual void validateRender(bool orthographicView = true) = 0;
 
@@ -115,6 +131,9 @@ class ShaderValidator
 
     /// Utility light handler
     LightHandlerPtr _lightHandler;
+
+    /// Viewing utilities handler
+    ViewHandlerPtr _viewHandler;
 };
 
 } // namespace MaterialX
