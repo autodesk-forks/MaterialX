@@ -39,6 +39,28 @@ void ViewHandler::createProjectionMatrix(Matrix4x4& matrix,
     matrix[14] = -((2.0f * nearClipPlane * farClipPlane) / clipDistance);
 }
 
+void ViewHandler::createOrthoGraphicMatrix(Matrix4x4& matrix,
+                                            float left,
+                                            float right,
+                                            float bottom,
+                                            float top,
+                                            float nearClipPlane,
+                                            float farClipPlane)
+{
+    matrix.data.fill(0.0f);
+
+    float clipDistance = farClipPlane - nearClipPlane;
+
+    matrix[0] = 2.0f / (right - left);
+    matrix[5] = 2.0f / (top - bottom);
+    matrix[10] = -2.0f / clipDistance;
+    matrix[12] = -(right + left) / (right - left);
+    matrix[13] = -(top + bottom) / (top - bottom);
+    matrix[14] = -(farClipPlane + nearClipPlane) / clipDistance;
+    matrix[15] = 1.0f;
+}
+
+
 void ViewHandler::translateMatrix(Matrix4x4& matrix, Vector3 vector)
 {
     matrix[12] += vector[0];

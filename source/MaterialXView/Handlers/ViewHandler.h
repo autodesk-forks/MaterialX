@@ -50,6 +50,18 @@ public:
                                 float nearClipPlane,
                                 float farClipPlane);
 
+    /// Set a matrix to an orthographic projection
+    /// @param matrix Matrix to modify.
+    /// @param nearClipPlane Near clip plane
+    /// @param farClipPlane Far clip plane
+    void createOrthoGraphicMatrix(Matrix4x4& matrix,
+                                  float left,
+                                  float right,
+                                  float bottom,
+                                  float top,
+                                  float nearClipPlane,
+                                  float farClipPlane);
+
     /// Modify matrix by a given translation amount
     /// @param matrix Matrix to modify.
     /// @param vector Translation amount

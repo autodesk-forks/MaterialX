@@ -1013,7 +1013,9 @@ void GlslValidator::validateRender(bool orthographicView)
     glLoadIdentity();
     if (_orthographicView)
     {
-        glOrtho(0.0f, _frameBufferWidth, 0.0f, _frameBufferHeight, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO);
+        Matrix4x4 ortho(0.0f);
+        _viewHandler->createOrthoGraphicMatrix(ortho, 0.0f, (float)_frameBufferWidth, 0.0f, (float)_frameBufferHeight, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO);
+        glLoadMatrixf(&ortho[0]);
     }
     else
     {
