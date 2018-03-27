@@ -2,6 +2,7 @@
 #define MATERIALX_VIEWHANDLER_H
 
 #include <MaterialXCore/Types.h>
+#include <memory>
 
 namespace MaterialX
 {
@@ -20,10 +21,10 @@ public:
     static ViewHandlerPtr creator() { return std::make_shared<ViewHandler>(); }
 
     /// Default constructor
-    ViewHandler();
+    ViewHandler() {};
     
     /// Default destructor
-    virtual ~ViewHandler();
+    virtual ~ViewHandler() {};
 
     /// PI
     static float ViewHandler::PI_VALUE;

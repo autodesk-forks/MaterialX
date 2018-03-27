@@ -41,6 +41,7 @@ GlslValidator::GlslValidator() :
 {
     _program = GlslProgram::creator();
     _geometryHandler = DefaultGeometryHandler::creator();
+    _viewHandler = ViewHandler::creator();
 }
 
 GlslValidator::~GlslValidator()
