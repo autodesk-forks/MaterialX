@@ -27,16 +27,16 @@ public:
     virtual ~ViewHandler() {};
 
     /// PI
-    static float ViewHandler::PI_VALUE;
+    static float PI_VALUE;
 
     /// Convert from degress to radians
     /// @param degrees Degree value
     /// @return value converted to radians
-    float ViewHandler::degreesToRadians(float degrees);
+    float degreesToRadians(float degrees);
 
     /// Set 4x4 matrix to be identity
     /// @param matrix Matrix to modify.
-    void ViewHandler::makeIdentityMatrix(Matrix4x4& matrix);
+    void makeIdentityMatrix(Matrix4x4& matrix);
 
     /// Set a matrix to a perspective projection
     /// @param matrix Matrix to modify.

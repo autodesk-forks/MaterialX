@@ -1,4 +1,5 @@
 #include <MaterialXView/Handlers/ViewHandler.h>
+#include <cmath>
 
 namespace MaterialX
 { 
