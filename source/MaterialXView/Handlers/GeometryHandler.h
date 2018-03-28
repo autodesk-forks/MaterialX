@@ -66,6 +66,13 @@ class GeometryHandler
 
     };
 
+    /// Get input properties
+    /// @return Input properties
+    const InputProperties& getInputProperties() const
+    {
+        return _inputProperties;
+    }
+
     /// Set input properties
     /// @param properties Input properties to set
     void setInputProperties(const InputProperties& properties)

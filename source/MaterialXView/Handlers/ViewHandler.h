@@ -26,7 +26,7 @@ class ViewHandler
     /// Default destructor
     virtual ~ViewHandler() {};
 
-    /// @name View and projection matrix
+    /// @name View matrices and vectors
     /// @{
 
     /// Set a matrix to a perspective projection

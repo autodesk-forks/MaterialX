@@ -103,18 +103,9 @@ class GlslValidator : public ShaderValidator
     /// Bind or unbind any created offscree target.
     bool bindTarget(bool bind);
 
-    /// Bind attribute buffers to attribute inputs.
-    /// A hardware buffer of the given attribute type is created and bound to the program locations
-    /// for the input attribute.
-    /// @param inputs Attribute inputs to bind to
-    void bindAttribute(const MaterialX::GlslProgram::InputMap& inputs);
-
     /// @}
     /// @name Program bindings
     /// @{
-
-    /// Bind inputs
-    void bindInputs();
 
     /// Update viewing information
     void updateViewInformation();
@@ -122,39 +113,12 @@ class GlslValidator : public ShaderValidator
     /// Bind viewing information for fixed function 
     void bindFixedFunctionViewInformation();
 
-    /// Bind viewing information for shaders
-    void bindViewInformation();
-
-    /// Bind input geometry streams
-    void bindGeometry();
-
-    /// Unbind any bound geometry
-    void unbindGeometry();
-
-    /// Bind any input textures
-    void bindTextures();
-
-    /// Unbind input textures
-    void unbindTextures();
-
-    /// Bind time and frame uniforms
-    void bindTimeAndFrame();
-
-    /// Bind lighting
-    void bindLighting();
-
   private:
-    /// Dummy texture for testing with
-    void createDummyTexture();
-
     /// Utility to check for OpenGL context errors.
     /// Will throw an ExceptionShaderValidationError exception which will list of the errors found
     /// if any errors encountered.
     void checkErrors();
     
-    /// Assign a parameter value to a uniform
-    void setUniform(int location, const Value& value);
-
     /// GLSL program. 
     GlslProgramPtr _program;
 
@@ -172,21 +136,6 @@ class GlslValidator : public ShaderValidator
     /// Height of the frame buffer / targets to use. 
     unsigned int _frameBufferHeight;
 
-    /// Attribute buffer resource handles
-    /// for each attribute identifier in the program
-    std::map<std::string, unsigned int> _attributeBufferIds;
-    
-    /// Attribute indexing buffer handle
-    unsigned int _indexBuffer;
-    /// Size of index buffer
-    size_t _indexBufferSize;
-    
-    /// Attribute vertex array handle
-    unsigned int _vertexArray;
-
-    /// Dummy texture
-    unsigned int _dummyTexture;
-
     /// Flag to indicate if validator has been initialized properly.
     bool _initialized;
     
@@ -194,9 +143,6 @@ class GlslValidator : public ShaderValidator
     SimpleWindowPtr _window;
     /// Dummy OpenGL context for OpenGL usage
     GLUtilityContextPtr _context;
-
-    /// Program textures
-    std::vector<unsigned int> _programTextures;
 
     /// Whether to draw a flat quad or use 3d perspective view
     bool _orthographicView;
