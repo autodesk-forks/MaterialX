@@ -104,7 +104,7 @@ void GlslValidator::initialize()
 
                     if (initializedFunctions)
                     {
-                        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                        glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
                         glClearStencil(0);
 
                         _initialized = true;
@@ -514,6 +514,77 @@ void GlslValidator::setUniform(int location, const Value& value)
     }
 }
 
+void GlslValidator::updateViewInformation()
+{
+    // Assume identify for model's world matrix
+    Matrix4x4& modelMatrix = _viewHandler->worldMatrix();
+    _viewHandler->makeIdentityMatrix(modelMatrix);
+
+    Matrix4x4& viewMatrix = _viewHandler->viewMatrix();
+    _viewHandler->makeIdentityMatrix(viewMatrix);
+
+    Vector3& viewDirection = _viewHandler->viewDirection();
+    viewDirection[0] = 0.0f;
+    viewDirection[1] = 0.0f;
+    viewDirection[2] = 1.0f;
+
+    Vector3& viewPosition = _viewHandler->viewPosition();
+
+    // Update projection matrix
+    if (_orthographicView)
+    {
+        _viewHandler->setOrthoGraphicProjectionMatrix(0.0f, (float)_frameBufferWidth, 0.0f, (float)_frameBufferHeight, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO);
+        
+        viewPosition[0] = 0.0f;
+        viewPosition[1] = 0.0f;
+        viewPosition[2] = NEAR_PLANE_ORTHO - 1.0f;
+    }
+    else
+    {
+        float aspectRatio = (float)_frameBufferWidth / (float)_frameBufferHeight;
+        _viewHandler->setPerspectiveProjectionMatrix(FOV_PERSP, aspectRatio, NEAR_PLANE_PERSP, FAR_PLANE_PERSP);
+
+        // Offset view position a little beyond geometry bounds
+        Vector3 minBounds = _geometryHandler->getMinimumBounds();
+        float distance = _viewHandler->length(minBounds) + 0.5f;
+
+        viewPosition[0] = 0.0f;
+        viewPosition[1] = 0.0f;
+        viewPosition[2] = -distance;
+
+        _viewHandler->translateMatrix(viewMatrix, viewPosition);
+    }
+}
+
+void GlslValidator::bindFixedFunctionViewInformation()
+{
+    // Bind projection
+    glMatrixMode(GL_PROJECTION);
+#if 0
+    glLoadIdentity();
+    glOrtho(0.0f, (float)_frameBufferWidth, 0.0f, (float)_frameBufferHeight, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO);
+    GLfloat mvm[16];
+    glGetFloatv(GL_PROJECTION, mvm);
+    std::cout << "GL_PROJECTION -- VIA GL_ORTHO\n";
+    for (unsigned int i = 0; i < 16; i++)
+    {
+        std::cout << mvm[i] << " ";
+        if (i % 4 == 3)
+            std::cout << std::endl;
+    }
+#endif
+    Matrix4x4& projection = _viewHandler->projectionMatrix();
+    glLoadMatrixf(&projection[0]);
+
+    // Bind model view matrix
+    glMatrixMode(GL_MODELVIEW);
+    Matrix4x4 viewMatrix = _viewHandler->viewMatrix();
+    // Note: (model * view) is just Identity * view.
+    glLoadMatrixf(&viewMatrix[0]);
+
+    //checkErrors();
+}
+
 void GlslValidator::bindViewInformation()
 {
     ShaderValidationErrorList errors;
@@ -535,15 +606,8 @@ void GlslValidator::bindViewInformation()
         location = Input->second->location;
         if (location >= 0)
         {
-            if (_orthographicView)
-            {
-                glUniform3f(location, 0.0f, 0.0f, NEAR_PLANE_ORTHO - 1.0f);
-            }
-            else
-            {
-                // Should be set based on geometry bounds. To do.
-                glUniform3f(location, 0.0f, 0.0f, -5.0f);
-            }
+            Vector3& viewPosition = _viewHandler->viewPosition();
+            glUniform3f(location, viewPosition[0], viewPosition[1], viewPosition[2]);
         }
     }
     Input = uniformList.find("u_viewDirection");
@@ -552,24 +616,78 @@ void GlslValidator::bindViewInformation()
         location = Input->second->location;
         if (location >= 0)
         {
-            glUniform3f(location, 0.0f, 0.0f, 1.0f);
+            Vector3& viewDirection = _viewHandler->viewDirection();
+            glUniform3f(location, viewDirection[0], viewDirection[1], viewDirection[2]);
         }
     }
 
+#if 0
     GLfloat mvm[16];
     glGetFloatv(GL_MODELVIEW_MATRIX, mvm);
+    std::cout << "GL_MODELVIEW_MATRIX\n";
+    for (unsigned int i = 0; i < 16; i++)
+    {
+        std::cout << mvm[i] << " ";
+        if (i % 4 == 3)
+            std::cout << std::endl;
+    }
 
     GLfloat pm[16];
     glGetFloatv(GL_PROJECTION_MATRIX, pm);
+    std::cout << "GL_PROJECTION_MATRIX\n";
+    for (unsigned int i = 0; i < 16; i++)
+    {
+        std::cout << pm[i] << " ";
+        if (i % 4 == 3)
+            std::cout << std::endl;
+    }
+#endif
 
-    // Set world related matrices
+    Matrix4x4& worldMatrix = _viewHandler->worldMatrix();
+    Matrix4x4& viewMatrix = _viewHandler->viewMatrix();
+    Matrix4x4& projectionMatrix = _viewHandler->projectionMatrix();
+    Matrix4x4 viewProjection;
+    _viewHandler->multiplyMatrix(projectionMatrix, viewMatrix, viewProjection);
+#if 0
+    std::cout << "worldMatrix\n";
+    for (unsigned int i = 0; i < 16; i++)
+    {
+        std::cout << worldMatrix[i] << " ";
+        if (i % 4 == 3)
+            std::cout << std::endl;
+    }
+    std::cout << "viewMatrix\n";
+    for (unsigned int i = 0; i < 16; i++)
+    {
+        std::cout << viewMatrix[i] << " ";
+        if (i % 4 == 3)
+            std::cout << std::endl;
+    }
+    std::cout << "projectionMatrix\n";
+    for (unsigned int i = 0; i < 16; i++)
+    {
+        std::cout << projectionMatrix[i] << " ";
+        if (i % 4 == 3)
+            std::cout << std::endl;
+    }
+    std::cout << "viewProjection\n";
+    for (unsigned int i = 0; i < 16; i++)
+    {
+        std::cout << viewProjection[i] << " ";
+        if (i % 4 == 3)
+            std::cout << std::endl;
+    }
+#endif
+
+    // Set world related matrices. World matrix is identity so
+    // bind the same matrix to all locations
     //
     std::vector<std::string> worldMatrixVariables =
     {
         "u_worldMatrix",
-        //"u_worldInverseMatrix",
+        "u_worldInverseMatrix",
         "u_worldTransposeMatrix",
-        //"u_worldInverseTransposeMatrix"
+        "u_worldInverseTransposeMatrix"
     };
     for (auto worldMatrixVariable : worldMatrixVariables)
     {
@@ -579,8 +697,7 @@ void GlslValidator::bindViewInformation()
             location = Input->second->location;
             if (location >= 0)
             {
-                bool transpose = (worldMatrixVariable.find("Transpose") != std::string::npos);
-                glUniformMatrix4fv(location, 1, transpose, mvm);
+                glUniformMatrix4fv(location, 1, false, &worldMatrix[0]);
             }
         }
     }
@@ -590,8 +707,8 @@ void GlslValidator::bindViewInformation()
     std::vector<std::string> projectionMatrixVariables =
     {
         "u_projectionMatrix",
-        //"u_projectionInverseMatrix",
         "u_projectionTransposeMatrix",
+        //"u_projectionInverseMatrix",
         //"u_projectionInverseTransposeMatrix",
     };
     for (auto projectionMatrixVariable : projectionMatrixVariables)
@@ -603,7 +720,7 @@ void GlslValidator::bindViewInformation()
             if (location >= 0)
             {
                 bool transpose = (projectionMatrixVariable.find("Transpose") != std::string::npos);
-                glUniformMatrix4fv(location, 1, transpose, pm);
+                glUniformMatrix4fv(location, 1, transpose, &projectionMatrix[0]);
             }
         }
     }
@@ -611,12 +728,10 @@ void GlslValidator::bindViewInformation()
     // Bind view related matrices
     std::vector<std::string> viewMatrixVariables =
     {
-        //"u_viewMatrix",
+        "u_viewMatrix",
+        "u_viewTransposeMatrix",
         //"u_viewInverseMatrix",
-        //"u_viewTransposeMatrix",
         //"u_viewInverseTransposeMatrix",
-        "u_viewProjectionMatrix"
-        //"u_worldViewProjectionMatrix"
     };
     for (auto viewMatrixVariable : viewMatrixVariables)
     {
@@ -626,7 +741,27 @@ void GlslValidator::bindViewInformation()
             location = Input->second->location;
             if (location >= 0)
             {
-                glUniformMatrix4fv(location, 1, GL_FALSE, pm);
+                bool transpose = (viewMatrixVariable.find("Transpose") != std::string::npos);
+                glUniformMatrix4fv(location, 1, transpose, &viewMatrix[0]);
+            }
+        }
+    }
+
+    // Bind combined matrices
+    std::vector<std::string> combinedMatrixVariables =
+    {
+        "u_viewProjectionMatrix",
+        "u_worldViewProjectionMatrix"
+    };
+    for (auto combinedMatrixVariable: combinedMatrixVariables)
+    {
+        Input = uniformList.find(combinedMatrixVariable);
+        if (Input != uniformList.end())
+        {
+            location = Input->second->location;
+            if (location >= 0)
+            {
+                glUniformMatrix4fv(location, 1, GL_FALSE, &viewProjection[0]);
             }
         }
     }
@@ -1008,31 +1143,12 @@ void GlslValidator::validateRender(bool orthographicView)
 
     // Set up viewing / projection matrices for an orthographic rendering
     glViewport(0, 0, _frameBufferWidth, _frameBufferHeight);
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    if (_orthographicView)
-    {
-        Matrix4x4 ortho(0.0f);
-        _viewHandler->createOrthoGraphicMatrix(ortho, 0.0f, (float)_frameBufferWidth, 0.0f, (float)_frameBufferHeight, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO);
-        glLoadMatrixf(&ortho[0]);
-    }
-    else
-    {
-        Matrix4x4 projection(0.0f);
-        float aspectRatio = (float)_frameBufferWidth / (float)_frameBufferHeight;
-        _viewHandler->createProjectionMatrix(projection, FOV_PERSP, aspectRatio, NEAR_PLANE_PERSP, FAR_PLANE_PERSP);
-        glLoadMatrixf(&projection[0]);
-    }
-    checkErrors();
 
-    glMatrixMode(GL_MODELVIEW);
-    // Assume identify for model matrix
-    Matrix4x4 viewMatrix(0.0f);
-    _viewHandler->makeIdentityMatrix(viewMatrix);
-    // This should be geometric bounds based - to add.
-    _viewHandler->translateMatrix(viewMatrix, Vector3(0.0f, 0.0f, -2.5f));
-    glLoadMatrixf(&viewMatrix[0]);
+    // Update viewing information
+    updateViewInformation();
+
+    // Set view information for fixed function
+    bindFixedFunctionViewInformation();
 
     try
     {

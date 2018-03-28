@@ -116,7 +116,13 @@ class GlslValidator : public ShaderValidator
     /// Bind inputs
     void bindInputs();
 
-    /// Bind viewing information
+    /// Update viewing information
+    void updateViewInformation();
+    
+    /// Bind viewing information for fixed function 
+    void bindFixedFunctionViewInformation();
+
+    /// Bind viewing information for shaders
     void bindViewInformation();
 
     /// Bind input geometry streams
