@@ -63,7 +63,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         // Set geometry to draw with
         const std::string geometryFile("MV_SPHERE.obj");
         mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();        
-        //geometryHandler->setIdentifier(geometryFile);
+        geometryHandler->setIdentifier(geometryFile);
         if (geometryHandler->getIdentifier() == geometryFile)
         {
             orthographicsView = false;
@@ -202,7 +202,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         bool renderSucceeded = false;
         try
         {
-            validator->validateRender();
+            validator->validateRender(false);
             renderSucceeded = true;
         }
         catch (mx::ExceptionShaderValidationError e)
@@ -332,7 +332,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         validator->initialize();
         validator->setImageHandler(imageHandler);
         validator->setLightHandler(lightHandler);
-        const std::string geometryFile("MV_SHADERBALL.obj");
+        const std::string geometryFile("MV_TEAPOT.obj");
         mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();
         geometryHandler->setIdentifier(geometryFile);
         if (geometryHandler->getIdentifier() == geometryFile)

@@ -1092,10 +1092,16 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
         bool uniformTypeMismatchFound = false;
 
         /// Return all blocks of uniform variables for a stage.
+        const std::string LIGHT_DATA_STRING("LightData");
         const MaterialX::Shader::VariableBlockMap& pixelShaderUniforms = _hwShader->getUniformBlocks(HwShader::PIXEL_STAGE);
         for (auto uniforms : pixelShaderUniforms)
         {
             MaterialX::Shader::VariableBlockPtr block = uniforms.second;
+            if (block->name == LIGHT_DATA_STRING)
+            {
+                // Need to go through LightHandler to match with uniforms
+                continue;
+            }
 
             for (const MaterialX::Shader::Variable* input : block->variableOrder)
             {
@@ -1125,6 +1131,11 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                         );
                         uniformTypeMismatchFound = true;
                     }
+                }
+                else
+                {
+                    printf("Failed to find block(%s) uniform (%s) in uniform list\n", 
+                        block->name.c_str(), input->name.c_str());
                 }
             }
         }

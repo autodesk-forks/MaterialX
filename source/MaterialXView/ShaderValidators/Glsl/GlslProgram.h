@@ -170,7 +170,7 @@ class GlslProgram
     void bindLighting(LightHandlerPtr lightHandler);
 
     /// Bind view information
-    void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler);
+    void bindViewInformation(ViewHandlerPtr viewHandler);
 
     /// Bind time and frame
     void bindTimeAndFrame();
