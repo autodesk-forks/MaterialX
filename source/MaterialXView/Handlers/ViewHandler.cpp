@@ -13,7 +13,7 @@ float ViewHandler::degreesToRadians(float degrees)
 
 float ViewHandler::length(const Vector3& vector)
 {
-    return std::sqrtf(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
+    return std::sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
 }
 
 
