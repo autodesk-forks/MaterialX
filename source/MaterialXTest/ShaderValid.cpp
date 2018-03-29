@@ -26,7 +26,7 @@ namespace mx = MaterialX;
 
 extern void createLightRig(mx::DocumentPtr doc, mx::LightHandler& lightHandler, mx::HwShaderGenerator& shadergen);
 
-TEST_CASE("GLSL Validation from Source", "[shadervalid]")
+TEST_CASE("GLSL Source", "[shadervalid]")
 {
     // Setup lighting
     mx::DocumentPtr doc = mx::createDocument();
@@ -61,7 +61,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
         validator->initialize();
         validator->setImageHandler(handler);
         // Set geometry to draw with
-        const std::string geometryFile("MV_SPHERE.obj");
+        const std::string geometryFile("sphere.obj");
         mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();        
         geometryHandler->setIdentifier(geometryFile);
         if (geometryHandler->getIdentifier() == geometryFile)
@@ -229,7 +229,7 @@ TEST_CASE("GLSL Validation from Source", "[shadervalid]")
     }
 }
 
-TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
+TEST_CASE("GLSL Shader", "[shadervalid]")
 {
     mx::DocumentPtr doc = mx::createDocument();
 
@@ -332,7 +332,7 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
         validator->initialize();
         validator->setImageHandler(imageHandler);
         validator->setLightHandler(lightHandler);
-        const std::string geometryFile("MV_TEAPOT.obj");
+        const std::string geometryFile("teapot.obj");
         mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();
         geometryHandler->setIdentifier(geometryFile);
         if (geometryHandler->getIdentifier() == geometryFile)
@@ -419,8 +419,8 @@ TEST_CASE("GLSL Validation from HwShader", "[shadervalid]")
               <input name=\"opacity\" type=\"float\" value=\"1.0\" /> \
             </surface>  \
             <diffusebsdf name=\"diffusebsdf1\" type=\"BSDF\"> \
-              <input name=\"reflectance\" type=\"color3\" value=\"0.9, 0.9, 0.9\" />  \
-              <input name=\"roughness\" type=\"float\" value=\"1.0\" /> \
+              <input name=\"reflectance\" type=\"color3\" value=\"1.0, 1.0, 1.0\" />  \
+              <input name=\"roughness\" type=\"float\" value=\"0.8\" /> \
               <input name=\"normal\" type=\"vector3\" /> \
             </diffusebsdf>  \
             <output name=\"out\" type=\"surfaceshader\" nodename=\"surface1\" /> \

@@ -1114,10 +1114,13 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                 auto Input = _uniformList.find(input->name);
                 if (Input != _uniformList.end())
                 {
+                    if (input->value)
+                    {
+                        Input->second->value = input->value;
+                    }
                     if (Input->second->gltype == mapTypeToOpenGLType(input->type))
                     {
                         Input->second->typeString = input->type;
-                        Input->second->value = input->value;
                     }
                     else
                     {
@@ -1131,11 +1134,6 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                         );
                         uniformTypeMismatchFound = true;
                     }
-                }
-                else
-                {
-                    printf("Failed to find block(%s) uniform (%s) in uniform list\n", 
-                        block->name.c_str(), input->name.c_str());
                 }
             }
         }
