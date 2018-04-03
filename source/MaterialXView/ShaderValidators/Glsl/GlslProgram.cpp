@@ -347,9 +347,6 @@ void GlslProgram::bindAttribute(const MaterialX::GlslProgram::InputMap& inputs, 
             glBindBuffer(GL_ARRAY_BUFFER, bufferId);
             glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
 
-            //std::cout << "Cache new attrib buffer: " << input.first << ". index: " << index
-            //    << ". buffer-id: " << bufferId 
-            //    << ". stride: " << stride << ". location: " << location << std::endl;
             _attributeBufferIds[input.first] = bufferId;
         }
 
@@ -831,63 +828,11 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         }
     }
 
-#if 0
-    GLfloat mvm[16];
-    glGetFloatv(GL_MODELVIEW_MATRIX, mvm);
-    std::cout << "GL_MODELVIEW_MATRIX\n";
-    for (unsigned int i = 0; i < 16; i++)
-    {
-        std::cout << mvm[i] << " ";
-        if (i % 4 == 3)
-            std::cout << std::endl;
-    }
-
-    GLfloat pm[16];
-    glGetFloatv(GL_PROJECTION_MATRIX, pm);
-    std::cout << "GL_PROJECTION_MATRIX\n";
-    for (unsigned int i = 0; i < 16; i++)
-    {
-        std::cout << pm[i] << " ";
-        if (i % 4 == 3)
-            std::cout << std::endl;
-    }
-#endif
-
     Matrix4x4& worldMatrix = viewHandler->worldMatrix();
     Matrix4x4& viewMatrix = viewHandler->viewMatrix();
     Matrix4x4& projectionMatrix = viewHandler->projectionMatrix();
     Matrix4x4 viewProjection;
     viewHandler->multiplyMatrix(projectionMatrix, viewMatrix, viewProjection);
-#if 0
-    std::cout << "worldMatrix\n";
-    for (unsigned int i = 0; i < 16; i++)
-    {
-        std::cout << worldMatrix[i] << " ";
-        if (i % 4 == 3)
-            std::cout << std::endl;
-    }
-    std::cout << "viewMatrix\n";
-    for (unsigned int i = 0; i < 16; i++)
-    {
-        std::cout << viewMatrix[i] << " ";
-        if (i % 4 == 3)
-            std::cout << std::endl;
-    }
-    std::cout << "projectionMatrix\n";
-    for (unsigned int i = 0; i < 16; i++)
-    {
-        std::cout << projectionMatrix[i] << " ";
-        if (i % 4 == 3)
-            std::cout << std::endl;
-    }
-    std::cout << "viewProjection\n";
-    for (unsigned int i = 0; i < 16; i++)
-    {
-        std::cout << viewProjection[i] << " ";
-        if (i % 4 == 3)
-            std::cout << std::endl;
-    }
-#endif
 
     // Set world related matrices. World matrix is identity so
     // bind the same matrix to all locations
@@ -918,9 +863,11 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
     {
         "u_projectionMatrix",
         "u_projectionTransposeMatrix",
-        //"u_projectionInverseMatrix",
-        //"u_projectionInverseTransposeMatrix",
+        "u_projectionInverseMatrix",
+        "u_projectionInverseTransposeMatrix",
     };
+    Matrix4x4 inverseProjection;
+    bool computedInverse = false;
     for (auto projectionMatrixVariable : projectionMatrixVariables)
     {
         Input = uniformList.find(projectionMatrixVariable);
@@ -930,7 +877,18 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
             if (location >= 0)
             {
                 bool transpose = (projectionMatrixVariable.find("Transpose") != std::string::npos);
-                glUniformMatrix4fv(location, 1, transpose, &projectionMatrix[0]);
+                if (projectionMatrixVariable.find("Inverse") != std::string::npos)
+                {
+                    if (!computedInverse)
+                    {
+                        viewHandler->invertMatrix(projectionMatrix, inverseProjection);
+                    }
+                    glUniformMatrix4fv(location, 1, transpose, &inverseProjection[0]);
+                }
+                else
+                {
+                    glUniformMatrix4fv(location, 1, transpose, &projectionMatrix[0]);
+                }
             }
         }
     }
@@ -940,9 +898,11 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
     {
         "u_viewMatrix",
         "u_viewTransposeMatrix",
-        //"u_viewInverseMatrix",
-        //"u_viewInverseTransposeMatrix",
+        "u_viewInverseMatrix",
+        "u_viewInverseTransposeMatrix",
     };
+    Matrix4x4 inverseView;
+    computedInverse = false;
     for (auto viewMatrixVariable : viewMatrixVariables)
     {
         Input = uniformList.find(viewMatrixVariable);
@@ -952,7 +912,18 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
             if (location >= 0)
             {
                 bool transpose = (viewMatrixVariable.find("Transpose") != std::string::npos);
-                glUniformMatrix4fv(location, 1, transpose, &viewMatrix[0]);
+                if (viewMatrixVariable.find("Inverse") != std::string::npos)
+                {
+                    if (!computedInverse)
+                    {
+                        viewHandler->invertMatrix(viewMatrix, inverseView);
+                    }
+                    glUniformMatrix4fv(location, 1, transpose, &inverseView[0]);
+                }
+                else
+                {
+                    glUniformMatrix4fv(location, 1, transpose, &viewMatrix[0]);
+                }
             }
         }
     }

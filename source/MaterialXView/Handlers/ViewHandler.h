@@ -50,9 +50,9 @@ class ViewHandler
                                          float farClipPlane);
 
     /// Set the world matrix
-    void setWorldMatrix(Matrix4x4& matrix)
+    void setWorldMatrix(Matrix4x4& m)
     {
-        _worldMatrix = matrix;
+        _worldMatrix = m;
     }
 
     /// Get the projection matrix
@@ -90,27 +90,46 @@ class ViewHandler
     /// @{
 
     /// Modify matrix by a given translation amount
-    /// @param matrix Matrix to modify.
+    /// @param m Matrix to modify.
     /// @param vector Translation amount
-    void translateMatrix(Matrix4x4& matrix, Vector3 vector);
+    void translateMatrix(Matrix4x4& m, Vector3 vector) const;
 
     /// Multiply two matricies and return the result
-    /// @param matrix1 First matrix 
-    /// @param matrix2 Second matrix 
+    /// @param m1 First matrix 
+    /// @param m2 Second matrix 
     /// @param result Resulting matrix
-    void multiplyMatrix(const Matrix4x4& matrix1, const Matrix4x4& matrix2, Matrix4x4& result);
+    void multiplyMatrix(const Matrix4x4& m1, const Matrix4x4& m2, Matrix4x4& result) const;
+
+    /// Transpose a matrix
+    /// @param m Input matrix 
+    /// @param tm Transpose of matrix
+    void transposeMatrix(const Matrix4x4& m, Matrix4x4& tm) const;
+
+    /// Invert a matrix
+    /// @param m Input matrix 
+    /// @param tm Inverse of matrix
+    bool invertMatrix(const Matrix4x4& m, Matrix4x4& im) const;
+
+    /// Invert a matrix which is not affine
+    /// @param m Input matrix 
+    /// @param tm Inverse of matrix
+    bool invertGeneralMatrix(const Matrix4x4& m, Matrix4x4& im) const;
 
     /// Convert from degress to radians
     /// @param degrees Degree value
     /// @return value converted to radians
-    float degreesToRadians(float degrees);
+    float degreesToRadians(float degrees) const;
 
     /// Get lenth of a vector
-    float length(const Vector3& vector);
+    float length(const Vector3& vector) const;
 
     /// Set 4x4 matrix to be identity
-    /// @param matrix Matrix to modify.
-    void makeIdentityMatrix(Matrix4x4& matrix);
+    /// @param m Matrix to modify.
+    void makeIdentityMatrix(Matrix4x4& m) const;
+
+    /// Check if matrix is identity
+    /// @param matrix Matrix to check
+    bool isIdentityMatrix(const Matrix4x4& m) const;
 
     /// PI
     static float PI_VALUE;
