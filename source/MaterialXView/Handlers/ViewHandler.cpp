@@ -189,7 +189,7 @@ bool ViewHandler::invertGeneralMatrix(const Matrix4x4& m, Matrix4x4& im) const
 
     // Backward substitution
     //
-    for (unsigned int i = 2; i >= 0; --i)
+    for (unsigned int i = 2; i+1 > 0; --i)
     {
         float f;
 
