@@ -1,7 +1,7 @@
 
 #include <MaterialXView/External/GLew/glew.h>
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
-#include <MaterialXView/Handlers/DefaultGeometryHandler.h>
+#include <MaterialXView/Handlers/ObjGeometryHandler.h>
 
 #include <iostream>
 #include <algorithm>
@@ -9,7 +9,7 @@
 namespace MaterialX
 {
 // View information
-const float NEAR_PLANE_ORTHO = -100.0f;
+const float NEAR_PLANE_ORTHO = 0.01f;
 const float FAR_PLANE_ORTHO = 100.0f;
 const float FOV_PERSP = 60.0f; // degrees
 const float NEAR_PLANE_PERSP = 0.01f;
@@ -37,9 +37,7 @@ GlslValidator::GlslValidator() :
 {
     _program = GlslProgram::creator();
 
-    _geometryHandler = DefaultGeometryHandler::creator();
-    GeometryHandler::InputProperties properties(_frameBufferWidth, _frameBufferHeight, 20);
-    _geometryHandler->setInputProperties(properties);
+    _geometryHandler = ObjGeometryHandler::creator();
 
     _viewHandler = ViewHandler::creator();
 }
@@ -356,29 +354,25 @@ void GlslValidator::updateViewInformation()
 
     Vector3& viewPosition = _viewHandler->viewPosition();
 
+    // Offset view position a little beyond geometry bounds
+    Vector3 minBounds = _geometryHandler->getMinimumBounds();
+    float distance = _viewHandler->length(minBounds) + 0.5f;
+
+    viewPosition[0] = 0.0f;
+    viewPosition[1] = 0.0f;
+    viewPosition[2] = -distance;
+
+    _viewHandler->translateMatrix(viewMatrix, viewPosition);
+
     // Update projection matrix
     if (_orthographicView)
     {
-        _viewHandler->setOrthoGraphicProjectionMatrix(0.0f, (float)_frameBufferWidth, 0.0f, (float)_frameBufferHeight, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO);
-        
-        viewPosition[0] = 0.0f;
-        viewPosition[1] = 0.0f;
-        viewPosition[2] = NEAR_PLANE_ORTHO - 1.0f;
+        _viewHandler->setOrthoGraphicProjectionMatrix(-1.0f, 1.0f, -1.0f, 1.0f, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO);
     }
     else
     {
         float aspectRatio = (float)_frameBufferWidth / (float)_frameBufferHeight;
         _viewHandler->setPerspectiveProjectionMatrix(FOV_PERSP, aspectRatio, NEAR_PLANE_PERSP, FAR_PLANE_PERSP);
-
-        // Offset view position a little beyond geometry bounds
-        Vector3 minBounds = _geometryHandler->getMinimumBounds();
-        float distance = _viewHandler->length(minBounds) + 0.5f;
-
-        viewPosition[0] = 0.0f;
-        viewPosition[1] = 0.0f;
-        viewPosition[2] = -distance;
-
-        _viewHandler->translateMatrix(viewMatrix, viewPosition);
     }
 }
 
@@ -467,7 +461,7 @@ void GlslValidator::validateRender(bool orthographicView)
         // Fallack simple draw 
         else
         {
-            if (_geometryHandler->getIdentifier() == GeometryHandler::SCREEN_ALIGNED_QUAD)
+            if (_geometryHandler->getIdentifier() == GeometryHandler::UNIT_QUAD)
             {
                 glPushMatrix();
                 glBegin(GL_QUADS);

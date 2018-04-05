@@ -8,7 +8,7 @@ namespace MaterialX
 
 HwShaderGenerator::HwShaderGenerator(SyntaxPtr syntax)
     : ShaderGenerator(syntax)
-    , _maxActiveLightSources(0)
+    , _maxActiveLightSources(3)
 {
 }
 

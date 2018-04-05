@@ -1,5 +1,5 @@
-#ifndef MATERIALX_DEFAULTGEOMETRYHANDLER_H
-#define MATERIALX_DEFAULTGEOMETRYHANDLER_H
+#ifndef MATERIALX_OBJGEOMETRYHANDLER_H
+#define MATERIALX_OBJGEOMETRYHANDLER_H
 
 #include <string>
 #include <memory>
@@ -8,25 +8,26 @@
 namespace MaterialX
 {
 /// Shared pointer to an GeometryHandler
-using DefaultGeometryHandlerPtr = std::shared_ptr<class DefaultGeometryHandler>;
+using ObjGeometryHandlerPtr = std::shared_ptr<class ObjGeometryHandler>;
 
 
-/// @class @GeometryHandler
-/// Utility geometry handler for providing data for shader binding.
+/// @class @ObjGeometryHandler
+/// Utility geometry handler to read in OBJ files to providing data for shader binding.
 ///
-class DefaultGeometryHandler : public GeometryHandler
+class ObjGeometryHandler : public GeometryHandler
 {
   public:
     /// Static instance creator
-    static DefaultGeometryHandlerPtr creator() { return std::make_shared<DefaultGeometryHandler>(); }
+    static ObjGeometryHandlerPtr creator() { return std::make_shared<ObjGeometryHandler>(); }
 
     /// Default constructor
-    DefaultGeometryHandler();
+    ObjGeometryHandler();
     
     /// Default destructor
-    virtual ~DefaultGeometryHandler();
+    virtual ~ObjGeometryHandler();
 
-    void setIdentifier(const std::string identifier) override;
+    /// Set the OBJ file name to read from
+    void setIdentifier(const std::string& identifier) override;
 
     IndexBuffer& getIndexing() override;
     FloatBuffer& getPositions(unsigned int& stride, unsigned int index = 0) override;
@@ -36,10 +37,17 @@ class DefaultGeometryHandler : public GeometryHandler
     FloatBuffer& getBitangents(unsigned int& stride, unsigned int index = 0) override;
     FloatBuffer& getColors(unsigned int& stride, unsigned int index = 0) override;
     FloatBuffer& getAttribute(const std::string& attributeType, unsigned int& stride, unsigned int index = 0) override;
-    const MaterialX::Vector3& getMinimumBounds() override;
-    MaterialX::Vector3& getMaximumBounds() override;
+    const Vector3& getMinimumBounds() override;
+    Vector3& getMaximumBounds() override;
 
   private:
+    /// Read data from file based on the identifier set
+    void readData();
+
+    /// Set up data for a default quadrilaterial
+    void setQuadData();
+
+    /// Clear any existing data
     void clearData();
 
     IndexBuffer _indexing;

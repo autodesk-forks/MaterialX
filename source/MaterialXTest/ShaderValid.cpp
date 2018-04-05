@@ -193,7 +193,7 @@ TEST_CASE("GLSL Source", "[shadervalid]")
         bool renderSucceeded = false;
         try
         {
-            validator->validateRender(false);
+            validator->validateRender(orthographicsView);
             renderSucceeded = true;
         }
         catch (mx::ExceptionShaderValidationError e)

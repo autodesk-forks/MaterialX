@@ -29,55 +29,13 @@ class GeometryHandler
     virtual ~GeometryHandler();
 
     /// Set the identifier which will indicate what geometry to return
-    /// e.g. SCREEN_ALIGNED_QUAD is one identifier
-    virtual void setIdentifier(const std::string identifier);
+    /// e.g. UNIT_QUAD is one identifier
+    virtual void setIdentifier(const std::string& identifier);
     
     /// Get geometry identifier
     const std::string& getIdentifier() const
     {
         return _identifier;
-    }
-
-    /// Input properties that can be used when computing buffer data
-    struct InputProperties
-    {
-        /// Output screen width
-        unsigned int screenWidth;
-        /// Output screen height
-        unsigned int screenHeight;
-        /// Output screen offset
-        unsigned int screenOffset;
-
-        /// Input properties constructor
-        InputProperties(unsigned int sw=512, unsigned sh=512, unsigned int so=20)
-            : screenWidth(sw)
-            , screenHeight(sh)
-            , screenOffset(so)
-        {}
-
-        /// Copy operator
-        InputProperties& operator=(const InputProperties& p)
-        {
-            screenWidth = p.screenWidth;
-            screenHeight = p.screenHeight;
-            screenOffset = p.screenOffset;
-            return *this;
-        }
-
-    };
-
-    /// Get input properties
-    /// @return Input properties
-    const InputProperties& getInputProperties() const
-    {
-        return _inputProperties;
-    }
-
-    /// Set input properties
-    /// @param properties Input properties to set
-    void setInputProperties(const InputProperties& properties)
-    {
-        _inputProperties = properties;
     }
 
     /// Create indexing data for geometry. The indexing is assumed to 
@@ -142,8 +100,9 @@ class GeometryHandler
         return _maximumBounds;
     }
 
-    /// Geometry identifier indicating to create data for a screen aligned quad
-    static const std::string SCREEN_ALIGNED_QUAD;
+    /// Geometry identifier indicating to create data for a unit quad.
+    /// The quad is assumed to be positioned along the X/Y plane.
+    static const std::string UNIT_QUAD;
 
     /// Geometry attribute types
     static const std::string POSITION_ATTRIBUTE;
@@ -160,9 +119,6 @@ class GeometryHandler
      /// Geometry bounds based on the identifier
      MaterialX::Vector3 _minimumBounds;
      MaterialX::Vector3 _maximumBounds;
-
-     /// Input properties
-     InputProperties _inputProperties;
 };
 
 } // namespace MaterialX
