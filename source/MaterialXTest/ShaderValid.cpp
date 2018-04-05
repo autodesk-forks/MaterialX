@@ -300,7 +300,11 @@ TEST_CASE("GLSL Shader", "[shadervalid]")
 
     // Setup lighting
     mx::LightHandlerPtr lightHandler = mx::LightHandler::creator();
-    createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator));
+    mx::HwShaderGenerator& hwGenerator = static_cast<mx::HwShaderGenerator&>(*shaderGenerator);
+    createLightRig(doc, *lightHandler, hwGenerator);
+    // Pre-clamp the number of light sources to the number bound
+    size_t lightSourceCount = lightHandler->getLightSources().size();
+    hwGenerator.setMaxActiveLightSources(lightSourceCount);
 
     bool initialized = false;
     bool orthographicsView = true;
