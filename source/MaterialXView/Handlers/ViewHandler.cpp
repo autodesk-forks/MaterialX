@@ -19,7 +19,8 @@ float ViewHandler::length(const Vector3& vector) const
 void ViewHandler::setPerspectiveProjectionMatrix(float fov,
                                                  float aspectRatio,
                                                  float nearClipPlane,
-                                                 float farClipPlane)
+                                                 float farClipPlane,
+                                                 bool columnMajor)
 {
     for (unsigned int i = 0; i < 4; i++)
     {
@@ -36,8 +37,17 @@ void ViewHandler::setPerspectiveProjectionMatrix(float fov,
     _projectionMatrix[0][0] = scalex;
     _projectionMatrix[1][1] = scaley;
     _projectionMatrix[2][2] = -(nearClipPlane + farClipPlane) / clipDistance;
-    _projectionMatrix[2][3] = -1;
-    _projectionMatrix[3][2] = -((2.0f * nearClipPlane * farClipPlane) / clipDistance);
+
+    if (columnMajor)
+    {
+        _projectionMatrix[2][3] = -1;
+        _projectionMatrix[3][2] = -((2.0f * nearClipPlane * farClipPlane) / clipDistance);
+    }
+    else
+    {
+        _projectionMatrix[3][2] = -1;
+        _projectionMatrix[2][3] = -((2.0f * nearClipPlane * farClipPlane) / clipDistance);
+    }
 }
 
 void ViewHandler::setOrthoGraphicProjectionMatrix(float left,
@@ -45,7 +55,8 @@ void ViewHandler::setOrthoGraphicProjectionMatrix(float left,
                                                   float bottom,
                                                   float top,
                                                   float nearClipPlane,
-                                                  float farClipPlane)
+                                                  float farClipPlane,
+                                                  bool columnMajor)
 {
     for (unsigned int i = 0; i < 4; i++)
     {
@@ -60,41 +71,40 @@ void ViewHandler::setOrthoGraphicProjectionMatrix(float left,
     _projectionMatrix[0][0] = 2.0f / (right - left);
     _projectionMatrix[1][1] = 2.0f / (top - bottom);
     _projectionMatrix[2][2] = -2.0f / clipDistance;
-    _projectionMatrix[3][0] = -(right + left) / (right - left);
-    _projectionMatrix[3][1] = -(top + bottom) / (top - bottom);
-    _projectionMatrix[3][2] = -(farClipPlane + nearClipPlane) / clipDistance;
     _projectionMatrix[3][3] = 1.0f;
+
+    if (columnMajor)
+    {
+        _projectionMatrix[3][0] = -(right + left) / (right - left);
+        _projectionMatrix[3][1] = -(top + bottom) / (top - bottom);
+        _projectionMatrix[3][2] = -(farClipPlane + nearClipPlane) / clipDistance;
+    }
+    else
+    {
+        _projectionMatrix[0][3] = -(right + left) / (right - left);
+        _projectionMatrix[1][3] = -(top + bottom) / (top - bottom);
+        _projectionMatrix[2][3] = -(farClipPlane + nearClipPlane) / clipDistance;
+    }
 }
 
 
-void ViewHandler::translateMatrix(Matrix44& m, Vector3 vector) const
+void ViewHandler::translateMatrix(Matrix44& m, Vector3 vector, bool columnMajor) const
 {
-    m[3][0] += vector[0];
-    m[3][1] += vector[1];
-    m[3][2] += vector[2];
+    if (columnMajor)
+    {
+        m[3][0] += vector[0];
+        m[3][1] += vector[1];
+        m[3][2] += vector[2];
+    }
+    else
+    {
+        m[0][3] += vector[0];
+        m[1][3] += vector[1];
+        m[2][3] += vector[2];
+    }
 }
 
-void ViewHandler::multiplyMatrix(const Matrix44& m1, const Matrix44& m2, Matrix44& result) const
-{
-    result[0][0] = m1[0][0] * m2[0][0] + m1[1][0] * m2[0][1] + m1[2][0] * m2[0][2] + m1[3][0] * m2[0][3];
-    result[0][1] = m1[0][1] * m2[0][0] + m1[1][1] * m2[0][1] + m1[2][1] * m2[0][2] + m1[3][1] * m2[0][3];
-    result[0][2] = m1[0][2] * m2[0][0] + m1[1][2] * m2[0][1] + m1[2][2] * m2[0][2] + m1[3][2] * m2[0][3];
-    result[0][3] = m1[0][3] * m2[0][0] + m1[1][3] * m2[0][1] + m1[2][3] * m2[0][2] + m1[3][3] * m2[0][3];
-    result[1][0] = m1[0][0] * m2[1][0] + m1[1][0] * m2[1][1] + m1[2][0] * m2[1][2] + m1[3][0] * m2[1][3];
-    result[1][1] = m1[0][1] * m2[1][0] + m1[1][1] * m2[1][1] + m1[2][1] * m2[1][2] + m1[3][1] * m2[1][3];
-    result[1][2] = m1[0][2] * m2[1][0] + m1[1][2] * m2[1][1] + m1[2][2] * m2[1][2] + m1[3][2] * m2[1][3];
-    result[1][3] = m1[0][3] * m2[1][0] + m1[1][3] * m2[1][1] + m1[2][3] * m2[1][2] + m1[3][3] * m2[1][3];
-    result[2][0] = m1[0][0] * m2[2][0] + m1[1][0] * m2[2][1] + m1[2][0] * m2[2][2] + m1[3][0] * m2[2][3];
-    result[2][1] = m1[0][1] * m2[2][0] + m1[1][1] * m2[2][1] + m1[2][1] * m2[2][2] + m1[3][1] * m2[2][3];
-    result[2][2] = m1[0][2] * m2[2][0] + m1[1][2] * m2[2][1] + m1[2][2] * m2[2][2] + m1[3][2] * m2[2][3];
-    result[2][3] = m1[0][3] * m2[2][0] + m1[1][3] * m2[2][1] + m1[2][3] * m2[2][2] + m1[3][3] * m2[2][3];
-    result[3][0] = m1[0][0] * m2[3][0] + m1[1][0] * m2[3][1] + m1[2][0] * m2[3][2] + m1[3][0] * m2[3][3];
-    result[3][1] = m1[0][1] * m2[3][0] + m1[1][1] * m2[3][1] + m1[2][1] * m2[3][2] + m1[3][1] * m2[3][3];
-    result[3][2] = m1[0][2] * m2[3][0] + m1[1][2] * m2[3][1] + m1[2][2] * m2[3][2] + m1[3][2] * m2[3][3];
-    result[3][3] = m1[0][3] * m2[3][0] + m1[1][3] * m2[3][1] + m1[2][3] * m2[3][2] + m1[3][3] * m2[3][3];
-}
-
-// Guass-Jordon inverse
+// Gauss-Jordon inverse
 bool ViewHandler::invertGeneralMatrix(const Matrix44& m, Matrix44& im) const
 {
     Matrix33 t;

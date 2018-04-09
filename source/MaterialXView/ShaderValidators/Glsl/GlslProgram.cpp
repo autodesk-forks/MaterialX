@@ -831,9 +831,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
     Matrix44& worldMatrix = viewHandler->worldMatrix();
     Matrix44& viewMatrix = viewHandler->viewMatrix();
     Matrix44& projectionMatrix = viewHandler->projectionMatrix();
-    //Matrix44 viewProjection = projectionMatrix * viewMatrix;
-    Matrix44 viewProjection;
-    viewHandler->multiplyMatrix(projectionMatrix, viewMatrix, viewProjection);
+    Matrix44 viewProjection = viewMatrix * projectionMatrix;
 
     // Set world related matrices. World matrix is identity so
     // bind the same matrix to all locations

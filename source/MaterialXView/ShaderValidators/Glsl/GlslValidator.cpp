@@ -362,17 +362,17 @@ void GlslValidator::updateViewInformation()
     viewPosition[1] = 0.0f;
     viewPosition[2] = -distance;
 
-    _viewHandler->translateMatrix(viewMatrix, viewPosition);
+    _viewHandler->translateMatrix(viewMatrix, viewPosition, true);
 
     // Update projection matrix
     if (_orthographicView)
     {
-        _viewHandler->setOrthoGraphicProjectionMatrix(-1.0f, 1.0f, -1.0f, 1.0f, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO);
+        _viewHandler->setOrthoGraphicProjectionMatrix(-1.0f, 1.0f, -1.0f, 1.0f, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO, true);
     }
     else
     {
         float aspectRatio = (float)_frameBufferWidth / (float)_frameBufferHeight;
-        _viewHandler->setPerspectiveProjectionMatrix(FOV_PERSP, aspectRatio, NEAR_PLANE_PERSP, FAR_PLANE_PERSP);
+        _viewHandler->setPerspectiveProjectionMatrix(FOV_PERSP, aspectRatio, NEAR_PLANE_PERSP, FAR_PLANE_PERSP, true);
     }
 }
 

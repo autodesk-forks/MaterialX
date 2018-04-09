@@ -355,6 +355,7 @@ template <class V, size_t N> class MatrixN : public MatrixBase
                 std::swap(data[i][j], data[j][i]);
             }
         }
+        return *this;
     }
 
     /// @}
