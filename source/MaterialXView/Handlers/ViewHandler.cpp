@@ -174,9 +174,6 @@ bool ViewHandler::invertGeneralMatrix(const Matrix44& m, Matrix44& im) const
 
 bool ViewHandler::invertMatrix(const Matrix44& m, Matrix44& im) const
 {
-    // Row offset
-    const unsigned int R_OFF = 4;
-
     // Not-affine, use general computation
     if (m[0][3] != 0.0f || m[1][3] != 0.0f || m[2][3] != 0.0f || m[3][3] != 1.0f)
     {
