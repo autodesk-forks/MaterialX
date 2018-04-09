@@ -320,6 +320,15 @@ template <class V, size_t N> class MatrixN : public MatrixBase
         return res;
     }
 
+    /// Matrix translation, returning a new matrix.
+    MatrixN translate(const V& v) const
+    {
+        static_assert(numRows() == numColumns(), "Requires a square matrix");
+        MatrixN res = data;
+        res.translate();
+        return res;
+    }
+
     /// Matrix multplication, modifying this matrix in place.
     MatrixN& operator*=(const MatrixN& rhs)
     {
@@ -353,6 +362,19 @@ template <class V, size_t N> class MatrixN : public MatrixBase
             for (size_t j = 0; j < N; j++)
             {
                 std::swap(data[i][j], data[j][i]);
+            }
+        }
+        return *this;
+    }
+
+    /// Translate matrix in place
+    MatrixN translate(const V& v)
+    {
+        for (size_t i = 0; i < N; i++)
+        {
+            for (size_t j = 0; j < N - 1; j++)
+            {
+                data[N - 1][i] += v[j] * data[j][i];
             }
         }
         return *this;

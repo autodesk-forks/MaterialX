@@ -34,24 +34,20 @@ class ViewHandler
     /// @param aspectRatio Aspect ration (viewport width /  viewport height)
     /// @param nearClipPlane Near clip plane
     /// @param farClipPlane Far clip plane
-    /// @param columnMajor Is the matrix to produce column major. Default value is true.
     void setPerspectiveProjectionMatrix(float fov,
                                         float aspectRatio,
                                         float nearClipPlane,
-                                        float farClipPlane, 
-                                        bool columnMajor = true);
+                                        float farClipPlane);
 
     /// Set a matrix to an orthographic projection
     /// @param nearClipPlane Near clip plane
     /// @param farClipPlane Far clip plane
-    /// @param columnMajor Is the matrix to produce column major. Default value is true.
     void setOrthoGraphicProjectionMatrix(float left,
                                          float right,
                                          float bottom,
                                          float top,
                                          float nearClipPlane,
-                                         float farClipPlane,
-                                         bool columnMajor = true);
+                                         float farClipPlane);
 
     /// Set the world matrix
     void setWorldMatrix(Matrix44& m)
@@ -92,12 +88,6 @@ class ViewHandler
     /// @}
     /// @name General utilities
     /// @{
-
-    /// Modify matrix by a given translation amount
-    /// @param m Matrix to modify.
-    /// @param vector Translation amount
-    /// @param columnMajor Is the matrix to produce column major. Default value is true.
-    void translateMatrix(Matrix44& m, Vector3 vector, bool columnMajor = true) const;
 
     /// Invert a matrix
     /// @param m Input matrix 
