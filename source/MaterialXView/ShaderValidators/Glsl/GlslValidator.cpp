@@ -341,11 +341,11 @@ void GlslValidator::validateInputs()
 void GlslValidator::updateViewInformation()
 {
     // Assume identify for model's world matrix
-    Matrix4x4& modelMatrix = _viewHandler->worldMatrix();
-    _viewHandler->makeIdentityMatrix(modelMatrix);
+    Matrix44& modelMatrix = _viewHandler->worldMatrix();
+    modelMatrix = Matrix44::IDENTITY;
 
-    Matrix4x4& viewMatrix = _viewHandler->viewMatrix();
-    _viewHandler->makeIdentityMatrix(viewMatrix);
+    Matrix44& viewMatrix = _viewHandler->viewMatrix();
+    viewMatrix = Matrix44::IDENTITY;
 
     Vector3& viewDirection = _viewHandler->viewDirection();
     viewDirection[0] = 0.0f;
@@ -380,14 +380,14 @@ void GlslValidator::bindFixedFunctionViewInformation()
 {
     // Bind projection
     glMatrixMode(GL_PROJECTION);
-    Matrix4x4& projection = _viewHandler->projectionMatrix();
-    glLoadMatrixf(&projection[0]);
+    Matrix44& projection = _viewHandler->projectionMatrix();
+    glLoadMatrixf(&(projection[0][0]));
 
     // Bind model view matrix
     glMatrixMode(GL_MODELVIEW);
-    Matrix4x4 viewMatrix = _viewHandler->viewMatrix();
+    Matrix44 viewMatrix = _viewHandler->viewMatrix();
     // Note: (model * view) is just Identity * view.
-    glLoadMatrixf(&viewMatrix[0]);
+    glLoadMatrixf(&(viewMatrix[0][0]));
 
     checkErrors();
 }

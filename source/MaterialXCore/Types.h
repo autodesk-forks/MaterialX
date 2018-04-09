@@ -305,6 +305,21 @@ template <class V, size_t N> class MatrixN : public MatrixBase
         return res;
     }
 
+    /// Matrix transpose, returning a new matrix.
+    MatrixN transpose(const MatrixN& rhs) const
+    {
+        static_assert(numRows() == numColumns(), "Requires a square matrix");
+        MatrixN res;
+        for (size_t i = 0; i < N; i++)
+        {
+            for (size_t j = 0; j < N; j++)
+            {
+                res[i][j] = data[j][i];
+            }
+        }
+        return res;
+    }
+
     /// Matrix multplication, modifying this matrix in place.
     MatrixN& operator*=(const MatrixN& rhs)
     {
@@ -328,6 +343,18 @@ template <class V, size_t N> class MatrixN : public MatrixBase
         for (size_t i = 0; i < N; i++)
             data[i] /= rhs[i];
         return *this;
+    }
+
+    /// Transpose matrix in place
+    MatrixN& transpose()
+    {
+        for (size_t i = 0; i < N; i++)
+        {
+            for (size_t j = 0; j < N; j++)
+            {
+                std::swap(data[i][j], data[j][i]);
+            }
+        }
     }
 
     /// @}
