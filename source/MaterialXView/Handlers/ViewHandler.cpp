@@ -126,9 +126,10 @@ bool ViewHandler::invertGeneralMatrix(const Matrix44& m, Matrix44& im) const
             }
         }
 
+        float tii_inv = 1.0f / t[i][i];
         for (unsigned int j = i + 1; j < 3; j++)
         {
-            float f = t[j][i] / t[i][i];
+            float f = t[j][i] * tii_inv;
 
             for (unsigned int k = 0; k < 3; k++)
             {
@@ -142,19 +143,20 @@ bool ViewHandler::invertGeneralMatrix(const Matrix44& m, Matrix44& im) const
     //
     for (unsigned int i = 2; i+1 > 0; --i)
     {
-        float f;
+        float f = t[i][i];
 
-        if ((f = t[i][i]) == 0.0f)
+        if (f == 0.0f)
         {
             // Singular
             im = Matrix44::IDENTITY;
             return false;
         }
 
+        float f_inv = 1.0f / f;
         for (unsigned int j = 0; j < 3; j++)
         {
-            t[i][j] /= f;
-            im[i][j] /= f;
+            t[i][j] *= f_inv;
+            im[i][j] *= f_inv;
         }
 
         for (unsigned int j = 0; j < i; j++)
@@ -205,24 +207,26 @@ bool ViewHandler::invertMatrix(const Matrix44& m, Matrix44& im) const
 
     if (std::abs(r) >= 1.0f)
     {
+        float r_inv = 1.0f / r;
         for (unsigned int i = 0; i < 3; i++)
         {
             for (unsigned int j = 0; j < 3; j++)
             {
-                im[i][j] /= r;
+                im[i][j] *= r_inv;
             }
         }
     }
     else
     {
         float mr = std::abs(r) / std::numeric_limits<float>::min();
+        float mr_inv = 1.0f / mr;
         for (unsigned int i = 0; i < 3; ++i)
         {
             for (unsigned int j = 0; j < 3; ++j)
             {
                 if (mr > std::abs(im[i][j]))
                 {
-                    im[i][j] /= mr;
+                    im[i][j] *= mr_inv;
                 }
                 else
                 {
