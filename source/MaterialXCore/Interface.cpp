@@ -14,6 +14,7 @@ namespace MaterialX
 
 const string PortElement::NODE_NAME_ATTRIBUTE = "nodename";
 const string PortElement::OUTPUT_ATTRIBUTE = "output";
+const string PortElement::CHANNELS_ATTRIBUTE = "channels"; 
 const string InterfaceElement::VERSION_ATTRIBUTE = "version";
 const string InterfaceElement::DEFAULT_VERSION_ATTRIBUTE = "isdefaultversion";
 

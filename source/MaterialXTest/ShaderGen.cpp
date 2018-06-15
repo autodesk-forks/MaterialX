@@ -1909,8 +1909,8 @@ TEST_CASE("Osl Output Types", "[shadergen]")
     nodeDef2->setType("vector4");
 
     // Add swizzling to make sure type remapping works with swizzling
-    //output1->setChannels("yx");
-    //output2->setChannels("wzyx");
+    output1->setChannels("yx");
+    output2->setChannels("wzyx");
 
     {
         mx::ShaderGeneratorPtr shadergen = mx::ArnoldShaderGenerator::create();

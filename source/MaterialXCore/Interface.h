@@ -137,6 +137,29 @@ class PortElement : public ValueElement
         return getAttribute(OUTPUT_ATTRIBUTE);
     }
 
+    // @}
+    /// @name Channels
+    /// @{
+
+    /// Set the channels string of this element, defining a channel swizzle
+    /// that will be applied to this port.
+    void setChannels(const string& channels)
+    {
+        setAttribute(CHANNELS_ATTRIBUTE, channels);
+    }
+
+    /// Return true if this element has a channels string.
+    bool hasChannels() const
+    {
+        return hasAttribute(CHANNELS_ATTRIBUTE);
+    }
+
+    /// Return the channels string of this element.
+    const string& getChannels() const
+    {
+        return getAttribute(CHANNELS_ATTRIBUTE);
+    }
+
     /// @}
     /// @name Connections
     /// @{
@@ -161,6 +184,7 @@ class PortElement : public ValueElement
   public:
     static const string NODE_NAME_ATTRIBUTE;
     static const string OUTPUT_ATTRIBUTE;
+    static const string CHANNELS_ATTRIBUTE;
 };
 
 /// @class Input
