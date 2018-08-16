@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <materialx version="1.36" cms="ocio" colorspace="lin_rec709">
-  <xi:include href="stdlib_defs.mtlx"/>
-
+   
   <!-- Define a node that implements a checker board pattern -->
   <!-- Using a graph for the implementation.                 -->
   <nodedef name="ND_checker_float" node="checker" type="float">
