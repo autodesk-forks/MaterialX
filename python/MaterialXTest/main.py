@@ -24,7 +24,7 @@ _testValues = (1,
                'value')
 
 _fileDir = os.path.dirname(os.path.abspath(__file__))
-_libraryDir = os.path.join(_fileDir, '../../documents/Libraries/stdlib')
+_libraryDir = os.path.join(_fileDir, '../../documents/Libraries/stdlib/')
 _exampleDir = os.path.join(_fileDir, '../../documents/Examples/')
 _searchPath = _libraryDir + ';' + _exampleDir
 
