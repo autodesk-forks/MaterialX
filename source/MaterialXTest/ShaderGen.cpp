@@ -18,6 +18,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 namespace mx = MaterialX;
 
@@ -740,7 +741,7 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
                     mx::ImplementationPtr impl = inter2->asA<mx::Implementation>();
                     if (impl)
                     {
-                        std::string msg("\t Impl: ");
+                        std::string msg("\t Cached Impl: ");
                         msg += impl->getName();
                         msg += ", nodedef: " + impl->getNodeDefString();
                         //msg += ", category: " + impl->getCategory();
@@ -749,6 +750,21 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
                         missing_str += msg + ".\n";
                     }
                 }
+
+                for (auto childImpl : impls)
+                {
+                    if (childImpl->getNodeDefString() == nodeDefName)
+                    {
+                        std::string msg("\t Doc Impl: ");
+                        msg += childImpl->getName();
+                        msg += ", nodedef: " + childImpl->getNodeDefString();
+                        //msg += ", category: " + childImpl->getCategory();
+                        msg += ", target: " + childImpl->getTarget();
+                        msg += ", language: " + childImpl->getLanguage();
+                        missing_str += msg + ".\n";
+                    }
+                }
+
             }
             else
             {
