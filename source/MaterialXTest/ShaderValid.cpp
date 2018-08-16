@@ -42,7 +42,10 @@ TEST_CASE("GLSL Source", "[shadervalid]")
     mx::DocumentPtr doc = mx::createDocument();
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
+    mx::StringVec libraryNames;
+    libraryNames.push_back("stdlib");
+    libraryNames.push_back("sxpbrlib");
+    loadLibraries(libraryNames, searchPath, doc);
 
     mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
     shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -260,7 +263,10 @@ TEST_CASE("GLSL Shader", "[shadervalid]")
     mx::DocumentPtr doc = mx::createDocument();
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
+    mx::StringVec libraryNames;
+    libraryNames.push_back("stdlib");
+    libraryNames.push_back("sxpbrlib");
+    loadLibraries(libraryNames, searchPath, doc);
 
     mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
     shaderGenerator->registerSourceCodeSearchPath(searchPath);
