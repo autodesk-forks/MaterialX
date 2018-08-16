@@ -200,7 +200,7 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
                 InputPtr inputElem = elem->asA<Input>();
                 if (inputElem)
                 {
-                    input->channels = inputElem->getChannels();
+                    input->channels.clear(); // inputElem->getChannels();
                 }
             }
         }
@@ -547,7 +547,7 @@ SgNodeGraphPtr SgNodeGraph::create(NodeGraphPtr nodeGraph, ShaderGenerator& shad
         SgOutputSocket* outputSocket = graph->getOutputSocket(graphOutput->getName());
         if (outputSocket)
         {
-            outputSocket->channels = graphOutput->getChannels();
+            outputSocket->channels.clear(); // = graphOutput->getChannels();
         }
     }
 
