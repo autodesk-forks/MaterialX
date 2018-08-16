@@ -39,14 +39,18 @@ void loadLibraries(const mx::StringVec& libraryNames, const mx::FilePath& search
     REQUIRE(doc->getNodeDefs().size() > 0);
 }
 
-void loadExamples(const mx::StringVec& exampleNames, const mx::FilePath& searchPath, mx::DocumentPtr doc)
+void loadExamples(const mx::StringVec& exampleNames, const mx::FilePath& examplesPath, const mx::FilePath searchPath, mx::DocumentPtr doc)
 {
-    mx::StringVec filenames;
-    mx::getDocumentsInDirectory(searchPath, filenames);
-    for (const std::string& filename : exampleNames)
+    try
     {
-        mx::FilePath file = searchPath / filename;
-        mx::readFromXmlFile(doc, file);
+        for (const std::string& filename : exampleNames)
+        {
+            mx::FilePath file = examplesPath / filename;
+            mx::readFromXmlFile(doc, file, searchPath);
+        }
+    }
+    catch (mx::Exception e)
+    {
     }
 }
 
@@ -1514,7 +1518,7 @@ TEST_CASE("Subgraphs", "[shadergen]")
     loadLibraries(libraryNames, searchPath, doc);
 
     mx::FilePath examplesSearchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Examples");
-    loadExamples({ "SubGraphs.mtlx"}, examplesSearchPath, doc);
+    loadExamples({ "SubGraphs.mtlx"}, examplesSearchPath, searchPath,  doc);
 
     std::vector<std::string> exampleGraphNames = { "subgraph_ex1" , "subgraph_ex2" };
 
