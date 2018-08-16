@@ -132,7 +132,7 @@ TEST_CASE("Flatten", "[nodegraph]")
 {
     // Read the example file.
     mx::DocumentPtr doc = mx::createDocument();
-    mx::readFromXmlFile(doc, "SubGraphs.mtlx", "documents/Examples;documents/Libraries");
+    mx::readFromXmlFile(doc, "SubGraphs.mtlx", "documents/Examples;documents/Libraries/stdlib");
 
     // Find the example graph.
     mx::NodeGraphPtr graph = doc->getNodeGraph("subgraph_ex1");
