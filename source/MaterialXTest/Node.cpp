@@ -210,7 +210,7 @@ TEST_CASE("Topological sort", "[nodegraph]")
     multiply->setConnectedNode("in2", add1);
     mix->setConnectedNode("fg", multiply);
     mix->setConnectedNode("bg", add3);
-    mix->setConnectedNode("mask", noise3d);
+    mix->setConnectedNode("mix", noise3d);
     output->setConnectedNode(mix);
 
     // Validate the document.
@@ -266,7 +266,7 @@ TEST_CASE("New nodegraph from output", "[nodegraph]")
     multiply2->setConnectedNode("in2", constant3);
     mix->setConnectedNode("fg", multiply1);
     mix->setConnectedNode("bg", add3);
-    mix->setConnectedNode("mask", noise3d);
+    mix->setConnectedNode("mix", noise3d);
     out1->setConnectedNode(mix);
     out2->setConnectedNode(multiply2);
 
@@ -364,7 +364,7 @@ TEST_CASE("Prune nodes", "[nodegraph]")
     multiply->setConnectedNode("in2", add1);
     mix->setConnectedNode("fg", multiply);
     mix->setConnectedNode("bg", add3);
-    mix->setConnectedNode("mask", noise3d);
+    mix->setConnectedNode("mix", noise3d);
     output->setConnectedNode(mix);
 
     // Set the node names we want to prune from the graph

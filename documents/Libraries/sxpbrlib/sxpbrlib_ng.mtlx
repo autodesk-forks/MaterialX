@@ -13,7 +13,7 @@
     <mix name="flip" type="vector3">
       <input name="fg" type="vector3" nodename="Nw_flipped"/>
       <input name="bg" type="vector3" nodename="Nw"/>
-      <input name="mask" type="float" nodename="backfacing"/>
+      <input name="mix" type="float" nodename="backfacing"/>
     </mix>
     <output name="out" type="vector3" nodename="flip"/>
   </nodegraph>
@@ -138,7 +138,7 @@
     <mix name="coat_attenuation" type="color3" >
       <input name="fg" type="color3" interfacename="coat_color" />
       <input name="bg" type="color3" value="1.0, 1.0, 1.0" />
-      <input name="mask" type="float" nodename="coat" />
+      <input name="mix" type="float" nodename="coat" />
     </mix>
     <scalebsdf name="scalebsdf1" type="BSDF">
       <input name="in" type="BSDF" nodename="mixbsdf2" />

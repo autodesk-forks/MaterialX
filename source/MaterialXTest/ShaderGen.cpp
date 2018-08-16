@@ -1321,7 +1321,7 @@ TEST_CASE("Noise", "[shadergen]")
     mx::NodePtr mixer = nodeGraph->addNode("mix", "mixer", "color3");
     mixer->setInputValue("fg", mx::Color3(1, 0, 0));
     mixer->setInputValue("bg", mx::Color3(1, 1, 0));
-    mixer->setConnectedNode("mask", multiply1);
+    mixer->setConnectedNode("mix", multiply1);
 
     output1->setConnectedNode(mixer);
 

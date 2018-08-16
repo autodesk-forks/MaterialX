@@ -48,7 +48,7 @@ TEST_CASE("Traversal", "[traversal]")
     contrast->setConnectedNode("in", image2);
     mix->setConnectedNode("fg", multiply);
     mix->setConnectedNode("bg", contrast);
-    mix->setConnectedNode("mask", noise3d);
+    mix->setConnectedNode("mix", noise3d);
     output->setConnectedNode(mix);
 
     // Validate the document.
@@ -201,7 +201,7 @@ TEST_CASE("Material Traversal", "[traversal]")
     contrast->setConnectedNode("in", image2);
     mix->setConnectedNode("fg", multiply);
     mix->setConnectedNode("bg", contrast);
-    mix->setConnectedNode("mask", noise3d);
+    mix->setConnectedNode("mix", noise3d);
     output->setConnectedNode(mix);
 
     // Create a material with a shader ref connecting to the graph
