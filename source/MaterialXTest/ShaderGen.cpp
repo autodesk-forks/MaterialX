@@ -698,9 +698,9 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
         implDumpStream << "Scanning language: " << language << ". Target: " << target << std::endl;
         implDumpStream << "-----------------------------------------------------------------------" << std::endl;
 
-        implDumpStream << "Existing implementations" << std::endl;
-        implDumpStream << "-----------------------------------------------------------------------" << std::endl;
         std::vector<mx::ImplementationPtr> impls = doc->getImplementations();
+        implDumpStream << "Existing implementations: " << std::to_string(impls.size()) << std::endl;
+        implDumpStream << "-----------------------------------------------------------------------" << std::endl;
         for (auto impl : impls)
         {
             if (language == impl->getLanguage())
@@ -711,7 +711,6 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
                 implDumpStream << msg << std::endl;
             }
         }
-        implDumpStream << "-----------------------------------------------------------------------" << std::endl;
 
         std::string nodeDefNode;
         std::string nodeDefType;
