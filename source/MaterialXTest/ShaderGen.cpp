@@ -574,7 +574,16 @@ TEST_CASE("OgsFxSyntax", "[shadergen]")
 }
 
 TEST_CASE("Reference Implementation Validity", "[shadergen]")
-{
+{   
+    mx::DocumentPtr doc = mx::createDocument();
+
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
+    loadLibraries({ "stdlib" }, searchPath, doc);
+
+    // Set source code search path
+    mx::FileSearchPath sourceCodeSearchPath;
+    sourceCodeSearchPath.append(searchPath);
+
     std::filebuf implDumpBuffer;
     std::string fileName = "reference_implementation_check.txt";
     implDumpBuffer.open(fileName, std::ios::out);
@@ -584,14 +593,28 @@ TEST_CASE("Reference Implementation Validity", "[shadergen]")
     implDumpStream << "Scanning language: osl. Target: reference" << std::endl;
     implDumpStream << "-----------------------------------------------------------------------" << std::endl;
 
-    mx::DocumentPtr doc = mx::createDocument();
+    const std::string language("osl");
+    const std::string target("");
 
-    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-    loadLibraries({ "stdlib" }, searchPath, doc);
+    std::vector<mx::ImplementationPtr> impls = doc->getImplementations();
+    implDumpStream << "Existing implementations: " << std::to_string(impls.size()) << std::endl;
+    implDumpStream << "-----------------------------------------------------------------------" << std::endl;
+    for (auto impl : impls)
+    {
+        if (language == impl->getLanguage() && impl->getTarget().empty())
+        {
+            std::string msg("Impl: ");
+            msg += impl->getName();
 
-    // Set source code search path
-    mx::FileSearchPath sourceCodeSearchPath;
-    sourceCodeSearchPath.append(searchPath);
+            mx::NodeDefPtr nodedef = impl->getNodeDef();
+            if (!nodedef)
+            {
+                std::string nodedefName = impl->getNodeDefString();
+                msg += ". Does NOT have a nodedef with name: " + nodedefName;
+            }
+            implDumpStream << msg << std::endl;
+        }
+    }
 
     std::string nodeDefNode;
     std::string nodeDefType;
@@ -604,9 +627,6 @@ TEST_CASE("Reference Implementation Validity", "[shadergen]")
     for (mx::NodeDefPtr nodeDef : doc->getNodeDefs())
     {
         count++;
-
-        const std::string language("osl");
-        const std::string target("");
 
         std::string nodeDefName = nodeDef->getName();
         std::string nodeName = nodeDef->getNodeString();
@@ -707,7 +727,17 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
             {
                 std::string msg("Impl: ");
                 msg += impl->getName();
-                msg += ", target: " + impl->getTarget();
+                std::string targetName = impl->getTarget();
+                if (targetName.size())
+                {
+                    msg += ", target: " + targetName;
+                }
+                mx::NodeDefPtr nodedef = impl->getNodeDef();
+                if (!nodedef)
+                {
+                    std::string nodedefName = impl->getNodeDefString();
+                    msg += ". Does NOT have a nodedef with name: " + nodedefName;
+                }
                 implDumpStream << msg << std::endl;
             }
         }
@@ -747,7 +777,6 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
                         std::string msg("\t Cached Impl: ");
                         msg += impl->getName();
                         msg += ", nodedef: " + impl->getNodeDefString();
-                        //msg += ", category: " + impl->getCategory();
                         msg += ", target: " + impl->getTarget();
                         msg += ", language: " + impl->getLanguage();
                         missing_str += msg + ".\n";
@@ -761,7 +790,6 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
                         std::string msg("\t Doc Impl: ");
                         msg += childImpl->getName();
                         msg += ", nodedef: " + childImpl->getNodeDefString();
-                        //msg += ", category: " + childImpl->getCategory();
                         msg += ", target: " + childImpl->getTarget();
                         msg += ", language: " + childImpl->getLanguage();
                         missing_str += msg + ".\n";

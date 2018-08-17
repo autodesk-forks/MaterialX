@@ -571,17 +571,17 @@
   <implementation name="IM_swizzle_vector4_vector3_sx_glsl" nodedef="ND_swizzle_vector4_vector3" language="sx-glsl"/>
   <implementation name="IM_swizzle_vector4_vector4_sx_glsl" nodedef="ND_swizzle_vector4_vector4" language="sx-glsl"/>
 
-  <!-- <pack> -->
-  <implementation name="IM_pack_color2_sx_glsl" nodedef="ND_pack_color2" file="stdlib/sx-glsl/mx_pack_color2.inline" language="sx-glsl"/>
-  <implementation name="IM_pack_vector2_sx_glsl" nodedef="ND_pack_vector2" file="stdlib/sx-glsl/mx_pack_vector2.inline" language="sx-glsl"/>
-  <implementation name="IM_pack_color3_sx_glsl" nodedef="ND_pack_color3" file="stdlib/sx-glsl/mx_pack_color3.inline" language="sx-glsl"/>
-  <implementation name="IM_pack_vector3_sx_glsl" nodedef="ND_pack_vector3" file="stdlib/sx-glsl/mx_pack_vector3.inline" language="sx-glsl"/>
-  <implementation name="IM_pack_color4_sx_glsl" nodedef="ND_pack_color4" file="stdlib/sx-glsl/mx_pack_color4.inline" language="sx-glsl"/>
-  <implementation name="IM_pack_vector4_sx_glsl" nodedef="ND_pack_vector4" file="stdlib/sx-glsl/mx_pack_vector4.inline" language="sx-glsl"/>
-  <implementation name="IM_pack_color4CF_sx_glsl" nodedef="ND_pack_color4CF" file="stdlib/sx-glsl/mx_pack_cf_color4.inline" language="sx-glsl"/>
-  <implementation name="IM_pack_vector4VF_sx_glsl" nodedef="ND_pack_vector4VF" file="stdlib/sx-glsl/mx_pack_vf_vector4.inline" language="sx-glsl"/>
-  <implementation name="IM_pack_color4CC_sx_glsl" nodedef="ND_pack_color4CC" file="stdlib/sx-glsl/mx_pack_cc_color4.inline" language="sx-glsl"/>
-  <implementation name="IM_pack_vector4VV_sx_glsl" nodedef="ND_pack_vector4VV" file="stdlib/sx-glsl/mx_pack_vv_vector4.inline" language="sx-glsl"/>
+  <!-- <combinek> -->
+  <implementation name="IM_combine_color2_sx_glsl" nodedef="ND_combine_color2" file="stdlib/sx-glsl/mx_combine_color2.inline" language="sx-glsl"/>
+  <implementation name="IM_combine_vector2_sx_glsl" nodedef="ND_combine_vector2" file="stdlib/sx-glsl/mx_combine_vector2.inline" language="sx-glsl"/>
+  <implementation name="IM_combine_color3_sx_glsl" nodedef="ND_combine_color3" file="stdlib/sx-glsl/mx_combine_color3.inline" language="sx-glsl"/>
+  <implementation name="IM_combine_vector3_sx_glsl" nodedef="ND_combine_vector3" file="stdlib/sx-glsl/mx_combine_vector3.inline" language="sx-glsl"/>
+  <implementation name="IM_combine_color4_sx_glsl" nodedef="ND_combine_color4" file="stdlib/sx-glsl/mx_combine_color4.inline" language="sx-glsl"/>
+  <implementation name="IM_combine_vector4_sx_glsl" nodedef="ND_combine_vector4" file="stdlib/sx-glsl/mx_combine_vector4.inline" language="sx-glsl"/>
+  <implementation name="IM_combine_color4CF_sx_glsl" nodedef="ND_combine_color4CF" file="stdlib/sx-glsl/mx_combine_cf_color4.inline" language="sx-glsl"/>
+  <implementation name="IM_combine_vector4VF_sx_glsl" nodedef="ND_combine_vector4VF" file="stdlib/sx-glsl/mx_combine_vf_vector4.inline" language="sx-glsl"/>
+  <implementation name="IM_combine_color4CC_sx_glsl" nodedef="ND_combine_color4CC" file="stdlib/sx-glsl/mx_combine_cc_color4.inline" language="sx-glsl"/>
+  <implementation name="IM_combine_vector4VV_sx_glsl" nodedef="ND_combine_vector4VV" file="stdlib/sx-glsl/mx_combine_vv_vector4.inline" language="sx-glsl"/>
 
 
   <!-- ======================================================================== -->
