@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<!--
   TM & (c) 2018 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
   All rights reserved.  See LICENSE.txt for license.
-  
+
   Declarations of standard data types and nodes included in the MaterialX specification.
 -->
 
@@ -869,7 +869,7 @@
 
   <!--
     Node: <position>
-    The geometric position associated with the currently processed data, 
+    The geometric position associated with the currently processed data,
     as defined in a specific coordinate space.
   -->
   <nodedef name="ND_position_vector3" node="position" type="vector3" nodegroup="geometric" default="0.0, 0.0, 0.0">
@@ -878,7 +878,7 @@
 
   <!--
     Node: <normal>
-    The geometric normal associated with the currently processed data, 
+    The geometric normal associated with the currently processed data,
     as defined in a specific coordinate space.
   -->
   <nodedef name="ND_normal_vector3" node="normal" type="vector3" nodegroup="geometric" default="0.0, 1.0, 0.0">
@@ -887,7 +887,7 @@
 
   <!--
     Node: <tangent>
-    The geometric tangent vector associated with the currently processed data, 
+    The geometric tangent vector associated with the currently processed data,
     as defined in a specific coordinate space.
   -->
   <nodedef name="ND_tangent_vector3" node="tangent" type="vector3" nodegroup="geometric" default="1.0, 0.0, 0.0">
@@ -897,7 +897,7 @@
 
   <!--
     Node: <bitangent>
-    The geometric bitangent vector associated with the currently processed data, 
+    The geometric bitangent vector associated with the currently processed data,
     as defined in a specific coordinate space.
   -->
   <nodedef name="ND_bitangent_vector3" node="bitangent" type="vector3" nodegroup="geometric" default="0.0, 0.0, 1.0">
@@ -1393,7 +1393,7 @@
 
   <!--
     Node: <invert>
-    Subtract the incoming float/color/vector from "amount" in all channels, 
+    Subtract the incoming float/color/vector from "amount" in all channels,
     outputting: amount - in.  Or, invert an incoming matrix.
   -->
   <nodedef name="ND_invert_float" node="invert" type="float" nodegroup="math" defaultinput="in">
@@ -2286,7 +2286,7 @@
 
   <!--
     Node: <luminance>
-    Output a grayscale image containing the luminance of the incoming RGB color in all color channels; 
+    Output a grayscale image containing the luminance of the incoming RGB color in all color channels;
     the alpha channel is left unchanged if present.
   -->
   <nodedef name="ND_luminance_color3" node="luminance" type="color3" nodegroup="adjustment" defaultinput="in">
@@ -2967,7 +2967,7 @@
 
   <!--
     Node: <compare>
-    Compare the value of an incoming float selector stream against a specified cutoff value, 
+    Compare the value of an incoming float selector stream against a specified cutoff value,
     then pass the value of one of two other incoming streams depending on whether the selector
     stream value is greater than the fixed cutoff value.
   -->
@@ -3690,4 +3690,52 @@
     <parameter name="height" type="float" value="1.0"/>
   </nodedef>
 
+  <!--
+    *** TEMPORARILIY RESTORED UNTIL SHADERX SUPPORTS NEW NODEs
+      Node: <scale>
+      Scales a vector2 or vector3 value about a center point in 2D or 3D pattern space.
+    -->
+    <nodedef name="ND_scale_vector2" node="scale" type="vector2" nodegroup="math" defaultinput="in">
+      <input name="in" type="vector2"/>
+      <parameter name="amount" type="vector2"/>
+      <parameter name="center" type="vector2" value="0.5, 0.5"/>
+    </nodedef>
+    <nodedef name="ND_scale_vector2FA" node="scale" type="vector2" nodegroup="math" defaultinput="in">
+      <input name="in" type="vector2"/>
+      <parameter name="amount" type="float"/>
+      <parameter name="center" type="vector2" value="0.5, 0.5"/>
+    </nodedef>
+    <nodedef name="ND_scale_vector3" node="scale" type="vector3" nodegroup="math" defaultinput="in">
+      <input name="in" type="vector3"/>
+      <parameter name="amount" type="vector3"/>
+      <parameter name="center" type="vector3" value="0.5, 0.5, 0.5"/>
+    </nodedef>
+    <nodedef name="ND_scale_vector3FA" node="scale" type="vector3" nodegroup="math" defaultinput="in">
+      <input name="in" type="vector3"/>
+      <parameter name="amount" type="float"/>
+      <parameter name="center" type="vector3" value="0.5, 0.5, 0.5"/>
+    </nodedef>
+    <!--
+        *** TEMPORARILIY RESTORED UNTIL SHADERX SUPPORTS NEW NODEs
+        Node: <rotate2d>
+        Rotates a vector2 value about a center point in 2D pattern space.
+      -->
+      <nodedef name="ND_rotate2d_vector2" node="rotate2d" type="vector2" nodecategory="math" defaultinput="in">
+        <input name="in" type="vector2"/>
+        <parameter name="amount" type="float"/>
+        <parameter name="center" type="vector2" value="0.5, 0.5"/>
+      </nodedef>
+      <!--
+        *** TEMPORARILIY RESTORED UNTIL SHADERX SUPPORTS NEW NODEs
+        Node: <hueshift>
+          Shift the hue of a color; the alpha channel will be unchanged if present.
+        -->
+        <nodedef name="ND_hueshift_color3" node="hueshift" type="color3" nodecategory="adjustment" defaultinput="in">
+          <input name="in" type="color3"/>
+          <parameter name="amount" type="float"/>
+        </nodedef>
+        <nodedef name="ND_hueshift_color4" node="hueshift" type="color4" nodecategory="adjustment" defaultinput="in">
+          <input name="in" type="color4"/>
+          <parameter name="amount" type="float"/>
+        </nodedef>
 </materialx>
