@@ -690,10 +690,7 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
     mx::DocumentPtr doc = mx::createDocument();
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-    mx::StringVec libraryNames;
-    libraryNames.push_back("stdlib");
-    libraryNames.push_back("sxpbrlib");
-    loadLibraries(libraryNames, searchPath, doc);
+    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
 
     std::vector<mx::ShaderGeneratorPtr> shaderGenerators =
     {
@@ -1539,10 +1536,7 @@ TEST_CASE("Subgraphs", "[shadergen]")
     mx::DocumentPtr doc = mx::createDocument();
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-    mx::StringVec libraryNames;
-    libraryNames.push_back("stdlib");
-    libraryNames.push_back("sxpbrlib");
-    loadLibraries(libraryNames, searchPath, doc);
+    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
 
     mx::FilePath examplesSearchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Examples");
     loadExamples({ "SubGraphs.mtlx"}, examplesSearchPath, searchPath,  doc);
@@ -1648,10 +1642,7 @@ TEST_CASE("Materials", "[shadergen]")
     mx::DocumentPtr doc = mx::createDocument();
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-    mx::StringVec libraryNames;
-    libraryNames.push_back("stdlib");
-    libraryNames.push_back("sxpbrlib");
-    loadLibraries(libraryNames, searchPath, doc);
+    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
 
     std::vector<mx::MaterialPtr> materials;
     createExampleMaterials(doc, materials);
@@ -1749,9 +1740,7 @@ TEST_CASE("Color Spaces", "[shadergen]")
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
     mx::StringVec libraryNames;
-    libraryNames.push_back("stdlib");
-    libraryNames.push_back("sxpbrlib");
-    loadLibraries(libraryNames, searchPath, doc);
+    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
 
     mx::MaterialPtr material = doc->addMaterial("color_spaces");
     mx::ShaderRefPtr shaderRef = material->addShaderRef("surface", "standard_surface");
@@ -1840,10 +1829,7 @@ TEST_CASE("BSDF Layering", "[shadergen]")
     mx::DocumentPtr doc = mx::createDocument();
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-    mx::StringVec libraryNames;
-    libraryNames.push_back("stdlib");
-    libraryNames.push_back("sxpbrlib");
-    loadLibraries(libraryNames, searchPath, doc);
+    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
 
     const std::string exampleName = "layered_bsdf";
 
@@ -1987,10 +1973,7 @@ TEST_CASE("Transparency", "[shadergen]")
     mx::DocumentPtr doc = mx::createDocument();
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-    mx::StringVec libraryNames;
-    libraryNames.push_back("stdlib");
-    libraryNames.push_back("sxpbrlib");
-    loadLibraries(libraryNames, searchPath, doc);
+    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
 
     const std::string exampleName = "transparent_surface";
 
@@ -2122,10 +2105,7 @@ TEST_CASE("Surface Layering", "[shadergen]")
     mx::DocumentPtr doc = mx::createDocument();
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-    mx::StringVec libraryNames;
-    libraryNames.push_back("stdlib");
-    libraryNames.push_back("sxpbrlib");
-    loadLibraries(libraryNames, searchPath, doc);
+    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
 
     const std::string exampleName = "layered_surface";
 
