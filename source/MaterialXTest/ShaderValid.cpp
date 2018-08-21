@@ -30,7 +30,6 @@ extern void loadLibraries(const mx::StringVec& libraryNames, const mx::FilePath&
 extern void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::HwShaderGenerator& shadergen);
 extern void createExampleMaterials(mx::DocumentPtr doc, std::vector<mx::MaterialPtr>& materials);
 
-#if 0
 TEST_CASE("GLSL Source", "[shadervalid]")
 {
 #ifdef LOG_TO_FILE
@@ -248,7 +247,6 @@ TEST_CASE("GLSL Source", "[shadervalid]")
         }
     }
 }
-#endif
 
 //
 // Create a validator with an image and geometry handler
@@ -550,45 +548,6 @@ TEST_CASE("GLSL shading", "[shadervalid]")
                 std::vector<mx::ElementPtr> shaderRefList;
                 shaderRefList.push_back(shaderRef);
                 runValidation(name, shaderRefList, validator, shaderGenerator, orthographicView, doc, log);
-#if 0
-                mx::ShaderPtr shader = shaderGenerator->generate(name, shaderRef, options);
-                REQUIRE(shader != nullptr);
-                REQUIRE(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
-                REQUIRE(shader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
-
-                // Validate
-                MaterialX::GlslProgramPtr program = validator->program();
-                bool validated = false;
-                try
-                {
-                    validator->validateCreation(shader);
-                    validator->validateInputs();
-
-                    program->printUniforms(log);
-                    program->printAttributes(log);
-
-                    validator->validateRender(orthographicView);
-                    std::string fileName = name + ".exr";
-                    validator->save(fileName);
-
-                    validated = true;
-                }
-                catch (mx::ExceptionShaderValidationError e)
-                {
-                    for (auto error : e.errorLog())
-                    {
-                        log << e.what() << " " << error << std::endl;
-                    }
-
-                    std::string stage = program->getStage(mx::HwShader::VERTEX_STAGE);
-                    log << ">> Failed vertex stage code:\n";
-                    log << stage;
-                    stage = program->getStage(mx::HwShader::PIXEL_STAGE);
-                    log << ">> Failed pixel stage code:\n";
-                    log << stage;
-                }
-                REQUIRE(validated);
-#endif
             }
         }
     }
