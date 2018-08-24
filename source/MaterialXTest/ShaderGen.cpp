@@ -16,6 +16,7 @@
 #include <MaterialXShaderGen/HwShader.h>
 #include <MaterialXShaderGen/HwLightHandler.h>
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -960,6 +961,36 @@ TEST_CASE("Swizzling", "[shadergen]")
     REQUIRE(test2.getSourceCode() == test2Result);
 }
 
+//
+// Utility to call the oslc utility to compile an OSL file and get the result.
+//
+static void compileOSL(const std::string oslFileName, std::string& errorResult)
+{
+    errorResult.clear();
+
+    std::string oslcCommand("oslc"); // Should be user defined. -q Since want in quite mode to catch errors
+    std::string oslIncludePath("""d:/Work/arnold/Arnold-SDK/osl/include"""); // Should be user defined
+                                                                         // Get source for stage and write to file temporarily
+    std::string errorFile(oslFileName + "_errors.txt");
+    std::string redirectString(" 2>&1");
+
+    // Run the command and get back the result. If non-empty string throw exception with error
+    std::string command = oslcCommand + " -I" + oslIncludePath + " " + oslFileName + " > " +
+        errorFile + redirectString;
+    int result = 
+        std::system(command.c_str());
+    if (result == 0)
+    {
+        std::ifstream errorStream(errorFile);
+        errorResult.assign(std::istreambuf_iterator<char>(errorStream),
+                           std::istreambuf_iterator<char>());
+    }
+    else
+    {
+        errorResult.assign("Command failed to execute: (" + command + ")");
+    }
+}
+
 TEST_CASE("Hello World", "[shadergen]")
 {
     mx::DocumentPtr doc = mx::createDocument();
@@ -1009,9 +1040,23 @@ TEST_CASE("Hello World", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXView library
         std::ofstream file;
-        file.open(shader->getName() + "_graph.osl");
+        std::string fileName(shader->getName() + "_graph.osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        std::string message;
+        std::string errorResult;
+        compileOSL(fileName, errorResult);
+        if (errorResult.size())
+        {
+            message = "OSL shader( " + fileName + " ) failed to compiled:\n" + errorResult;
+        }
+        else
+        {
+            message = "OSL shader( " + fileName + " ) compiled:";
+        }
+        INFO(message.c_str());
 
         // Test shader generation from shaderref
         shader = shadergen->generate(exampleName, shaderRef, options);
@@ -1019,9 +1064,23 @@ TEST_CASE("Hello World", "[shadergen]")
         REQUIRE(shader->getSourceCode().length() > 0);
         // Write out to file for inspection
         // TODO: Use validation in MaterialXView library
-        file.open(shader->getName() + "_shaderref.osl");
+        fileName.assign(shader->getName() + "_shaderref.osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        compileOSL(fileName, errorResult);
+        if (errorResult.size())
+        {
+            message = "OSL shader( " + fileName + " ) failed to compiled:\n" + errorResult;
+        }
+        else
+        {
+            message = "OSL shader( " + fileName + " ) compiled:";
+        }
+        INFO(message.c_str());
+
+
     }
 
     // OgsFx
