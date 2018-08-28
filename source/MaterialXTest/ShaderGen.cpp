@@ -962,32 +962,39 @@ TEST_CASE("Swizzling", "[shadergen]")
 }
 
 //
-// Utility to call the oslc utility to compile an OSL file and get the result.
+// Utility to call validate OSL. 
+// For now only call into oslc to compile an OSL file and get the results.
 //
-static void compileOSL(const std::string oslFileName, std::string& errorResult)
+static void validateOSL(const std::string oslFileName, std::string& errorResult)
 {
     errorResult.clear();
 
-    std::string oslcCommand("oslc"); // Should be user defined. -q Since want in quite mode to catch errors
-    std::string oslIncludePath("""d:/Work/arnold/Arnold-SDK/osl/include"""); // Should be user defined
-                                                                         // Get source for stage and write to file temporarily
+    // Use the user specified build options for oslc exe, and include path
+    const std::string oslcCommand(MATERIALX_OSLC_EXECUTABLE);
+    const std::string oslIncludePath(MATERIALX_OSL_INCLUDE_PATH);
+    if (oslcCommand.empty() || oslIncludePath.empty())
+    {
+        return;
+    }
+
+    // Use a known error file name to check
     std::string errorFile(oslFileName + "_errors.txt");
-    std::string redirectString(" 2>&1");
+    const std::string redirectString(" 2>&1");
 
     // Run the command and get back the result. If non-empty string throw exception with error
-    std::string command = oslcCommand + " -I" + oslIncludePath + " " + oslFileName + " > " +
+    std::string command = oslcCommand + " -q -I\"" + oslIncludePath + "\" " + oslFileName + " > " +
         errorFile + redirectString;
-    int result = 
-        std::system(command.c_str());
-    if (result == 0)
+
+    std::system(command.c_str());
+
+    std::ifstream errorStream(errorFile);
+    errorResult.assign(std::istreambuf_iterator<char>(errorStream),
+        std::istreambuf_iterator<char>());
+
+    if (errorResult.length())
     {
-        std::ifstream errorStream(errorFile);
-        errorResult.assign(std::istreambuf_iterator<char>(errorStream),
-                           std::istreambuf_iterator<char>());
-    }
-    else
-    {
-        errorResult.assign("Command failed to execute: (" + command + ")");
+        std::cout << "OSLC failed to compile: " << oslFileName << ":\n"
+            << errorResult << std::endl;
     }
 }
 
@@ -1038,49 +1045,32 @@ TEST_CASE("Hello World", "[shadergen]")
         REQUIRE(shader != nullptr);
         REQUIRE(shader->getSourceCode().length() > 0);
         // Write out to file for inspection
-        // TODO: Use validation in MaterialXView library
         std::ofstream file;
         std::string fileName(shader->getName() + "_graph.osl");
         file.open(fileName);
         file << shader->getSourceCode();
         file.close();
 
-        std::string message;
+        // TODO: Use validation in MaterialXView library
+        // For now only use externally specified oslc to check code.
         std::string errorResult;
-        compileOSL(fileName, errorResult);
-        if (errorResult.size())
-        {
-            message = "OSL shader( " + fileName + " ) failed to compiled:\n" + errorResult;
-        }
-        else
-        {
-            message = "OSL shader( " + fileName + " ) compiled:";
-        }
-        INFO(message.c_str());
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
 
         // Test shader generation from shaderref
         shader = shadergen->generate(exampleName, shaderRef, options);
         REQUIRE(shader != nullptr);
         REQUIRE(shader->getSourceCode().length() > 0);
         // Write out to file for inspection
-        // TODO: Use validation in MaterialXView library
         fileName.assign(shader->getName() + "_shaderref.osl");
         file.open(fileName);
         file << shader->getSourceCode();
         file.close();
 
-        compileOSL(fileName, errorResult);
-        if (errorResult.size())
-        {
-            message = "OSL shader( " + fileName + " ) failed to compiled:\n" + errorResult;
-        }
-        else
-        {
-            message = "OSL shader( " + fileName + " ) compiled:";
-        }
-        INFO(message.c_str());
-
-
+        // TODO: Use validation in MaterialXView library
+        // For now only use externally specified oslc to check code.
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
     }
 
     // OgsFx
@@ -1209,17 +1199,22 @@ TEST_CASE("Conditionals", "[shadergen]")
         REQUIRE(shader != nullptr);
         REQUIRE(shader->getSourceCode().length() > 0);
 
-        // Write out to file for inspection
-        // TODO: Use validation in MaterialXView library
-        file.open(shader->getName() + ".osl");
-        file << shader->getSourceCode();
-        file.close();
-
         // All of the nodes should have been removed by optimization
         // leaving a graph with a single constant value
         REQUIRE(shader->getNodeGraph()->getNodes().empty());
         REQUIRE(shader->getNodeGraph()->getOutputSocket()->value != nullptr);
         REQUIRE(shader->getNodeGraph()->getOutputSocket()->value->getValueString() == constant2->getParameterValue("value")->getValueString());
+
+        // Write out to file for inspection
+        const std::string fileName(shader->getName() + ".osl");
+        file.open(fileName);
+        file << shader->getSourceCode();
+        file.close();
+
+        // TODO: Use validation in MaterialXView library
+        std::string errorResult;
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
     }
 
     // OgsFx
@@ -1351,11 +1346,16 @@ TEST_CASE("Geometric Nodes", "[shadergen]")
         REQUIRE(shader->getSourceCode().length() > 0);
 
         // Write out to file for inspection
-        // TODO: Use validation in MaterialXView library
         std::ofstream file;
-        file.open(shader->getName() + ".osl");
+        const std::string fileName(shader->getName() + ".osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        // TODO: Use validation in MaterialXView library
+        std::string errorResult;
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
     }
 
     // OgsFx
@@ -1490,12 +1490,18 @@ TEST_CASE("Noise", "[shadergen]")
             mx::ShaderPtr shader = shadergen->generate(shaderName, output1, options);
             REQUIRE(shader != nullptr);
             REQUIRE(shader->getSourceCode().length() > 0);
+
             // Write out to file for inspection
-            // TODO: Use validation in MaterialXView library
             std::ofstream file;
-            file.open(shader->getName() + ".osl");
+            const std::string fileName(shader->getName() + ".osl");
+            file.open(fileName);
             file << shader->getSourceCode();
             file.close();
+
+            // TODO: Use validation in MaterialXView library
+            std::string errorResult;
+            validateOSL(fileName, errorResult);
+            REQUIRE(errorResult.size() == 0);
         }
 
         // OgsFx
@@ -1586,9 +1592,15 @@ TEST_CASE("Unique Names", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXView library
         std::ofstream file;
-        file.open(exampleName + ".osl");
+        const std::string fileName(exampleName + ".osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        // TODO: Use validation in MaterialXView library
+        std::string errorResult;
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
     }
 
     // OgsFx
@@ -1683,8 +1695,14 @@ TEST_CASE("Subgraphs", "[shadergen]")
             // Write out to file for inspection
             // TODO: Use validation in MaterialXView library
             std::ofstream file;
-            file.open(shader->getName() + ".osl");
+            const std::string fileName(shader->getName() + ".osl");
+            file.open(fileName);
             file << shader->getSourceCode();
+
+            // TODO: Use validation in MaterialXView library
+            std::string errorResult;
+            validateOSL(fileName, errorResult);
+            REQUIRE(errorResult.size() == 0);
         }
     }
 
@@ -1782,10 +1800,15 @@ TEST_CASE("Materials", "[shadergen]")
                 REQUIRE(shader->getSourceCode().length() > 0);
 
                 // Write out to file for inspection
-                // TODO: Use validation in MaterialXView library
                 std::ofstream file;
-                file.open(shader->getName() + ".osl");
+                const std::string fileName(shader->getName() + ".osl");
+                file.open(fileName);
                 file << shader->getSourceCode();
+
+                // TODO: Use validation in MaterialXView library
+                std::string errorResult;
+                validateOSL(fileName, errorResult);
+                REQUIRE(errorResult.size() == 0);
             }
         }
     }
@@ -1894,11 +1917,16 @@ TEST_CASE("Color Spaces", "[shadergen]")
         REQUIRE(shader->getSourceCode().length() > 0);
 
         // Write out to file for inspection
-        // TODO: Use validation in MaterialXView library
         std::ofstream file;
-        file.open(shader->getName() + ".osl");
+        const std::string fileName(shader->getName() + ".osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        // TODO: Use validation in MaterialXView library
+        std::string errorResult;
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
     }
 
     // OgsFx
@@ -2033,9 +2061,15 @@ TEST_CASE("BSDF Layering", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXView library
         std::ofstream file;
-        file.open(shader->getName() + ".osl");
+        const std::string fileName(shader->getName() + ".osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        // TODO: Use validation in MaterialXView library
+        std::string errorResult;
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
     }
 
     // OgsFx
@@ -2165,9 +2199,15 @@ TEST_CASE("Transparency", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXView library
         std::ofstream file;
-        file.open(shader->getName() + ".osl");
+        const std::string fileName(shader->getName() + ".osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        // TODO: Use validation in MaterialXView library
+        std::string errorResult;
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
     }
 
     // OgsFx
@@ -2372,21 +2412,30 @@ TEST_CASE("Osl Output Types", "[shadergen]")
         REQUIRE(shader != nullptr);
         REQUIRE(shader->getSourceCode().length() > 0);
         // Write out to file for inspection
-        // TODO: Use validation in MaterialXView library
         std::ofstream file;
-        file.open(exampleName + "_color2.osl");
+        std::string fileName(exampleName + "_color2.osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        // TODO: Use validation in MaterialXView library
+        std::string errorResult;
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
 
         // Test shader generation from color4 type graph
         shader = shadergen->generate(exampleName + "_color4", output2, options);
         REQUIRE(shader != nullptr);
         REQUIRE(shader->getSourceCode().length() > 0);
         // Write out to file for inspection
-        // TODO: Use validation in MaterialXView library
-        file.open(exampleName + "_color4.osl");
+        fileName.assign(exampleName + "_color4.osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        // TODO: Use validation in MaterialXView library
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
     }
 
     // Change to vector2/vector4 types
@@ -2415,9 +2464,15 @@ TEST_CASE("Osl Output Types", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXView library
         std::ofstream file;
-        file.open(exampleName + "_vector2.osl");
+        std::string fileName(exampleName + "_vector2.osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        // TODO: Use validation in MaterialXView library
+        std::string errorResult;
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
 
         // Test shader generation from color4 type graph
         shader = shadergen->generate(exampleName + "_vector4", output2, options);
@@ -2425,9 +2480,14 @@ TEST_CASE("Osl Output Types", "[shadergen]")
         REQUIRE(shader->getSourceCode().length() > 0);
         // Write out to file for inspection
         // TODO: Use validation in MaterialXView library
-        file.open(exampleName + "_vector4.osl");
+        fileName.assign(exampleName + "_vector4.osl");
+        file.open(fileName);
         file << shader->getSourceCode();
         file.close();
+
+        // TODO: Use validation in MaterialXView library
+        validateOSL(fileName, errorResult);
+        REQUIRE(errorResult.size() == 0);
     }
 }
 
