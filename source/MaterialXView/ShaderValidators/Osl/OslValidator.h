@@ -65,14 +65,42 @@ class OslValidator : public ShaderValidator
 
     /// Save the current contents the offscreen hardware buffer to disk.
     /// @param fileName Name of file to save rendered image to.
-    /// @return true if successful
     void save(const std::string& fileName) override;
     
     /// @}
+    /// @name Compilation settings
+    /// @{
+
+    /// Set OSL executable path string. Note that it is currently assumed that this
+    /// references the location of the oslc executable.
+    /// @param executable Full path to OSL compiler executable
+    void setOslCompilerExecutable(const std::string executable)
+    {
+        _oslCompilerExecutable = executable;
+    }
+
+    /// Set OSL include path string. 
+    /// @param includePathString Include path(s) for the OSL compiler. This should include the
+    /// path to stdosl.h    
+    void setOslIncludePath(const std::string includePathString)
+    {
+        _oslIncludePathString = includePathString;
+    }
+
+    /// @}
 
   protected:
+    ///
+    /// Compile OSL code stored in a file. Return errors in result string 
+    /// @param oslFileName Name of OSL file
+    void compileOSL(const std::string oslFileName);
+
     /// Constructor
     OslValidator();
+
+  private:
+    std::string _oslCompilerExecutable;
+    std::string _oslIncludePathString;
 };
 
 } // namespace MaterialX

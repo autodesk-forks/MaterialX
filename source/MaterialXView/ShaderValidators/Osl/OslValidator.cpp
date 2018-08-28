@@ -1,6 +1,7 @@
 #include <MaterialXView/ShaderValidators/Osl/OslValidator.h>
 #include <MaterialXView/Handlers/ObjGeometryHandler.h>
 
+#include <fstream>
 #include <iostream>
 #include <algorithm>
 
@@ -27,54 +28,74 @@ void OslValidator::initialize()
 {
 }
 
-void OslValidator::validateCreation(const ShaderPtr shader)
+void OslValidator::compileOSL(const std::string oslFileName)
 {
-    ShaderValidationErrorList errors;
-    const std::string errorType("OSL compilation error.");
-
-    bool haveCompiler = false;
-    if (!haveCompiler)
+    // If no command and include path specified then skip checking.
+    if (_oslCompilerExecutable.empty() || _oslIncludePathString.empty())
     {
-        errors.push_back("No valid OSL compiler found.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        return;
     }
 
-    bool shaderCompiled = false;
-    if (!shaderCompiled)
+    // Use a known error file name to check
+    std::string errorFile(oslFileName + "_errors.txt");
+    const std::string redirectString(" 2>&1");
+
+    // Run the command and get back the result. If non-empty string throw exception with error
+    std::string command = _oslCompilerExecutable + " -q -I\"" + _oslIncludePathString + "\" " + oslFileName + " > " +
+        errorFile + redirectString;
+
+    std::system(command.c_str());
+
+    std::ifstream errorStream(errorFile);
+    std::string result;
+    result.assign(std::istreambuf_iterator<char>(errorStream),
+                  std::istreambuf_iterator<char>());
+
+    if (!result.empty())
     {
-        errors.push_back("Shader failed to compile");
+        const std::string errorType("OSL compilation error.");
+        ShaderValidationErrorList errors;
+        errors.push_back("Shader failed to compile:");
+        errors.push_back(result);
         throw ExceptionShaderValidationError(errorType, errors);
     }
 }
 
-void OslValidator::validateCreation(const std::vector<std::string>& /*stages*/)
+void OslValidator::validateCreation(const ShaderPtr shader)
+{
+    std::vector<std::string> stages;
+    stages.push_back(shader->getSourceCode());
+
+    validateCreation(stages);
+}
+
+void OslValidator::validateCreation(const std::vector<std::string>& stages)
 {
     ShaderValidationErrorList errors;
     const std::string errorType("OSL compilation error.");
-
-    std::string oslcCommand("oslc -q"); // Should be user defined. Want in quite mode to catch errors
-    std::string oslIncludePath("d:/Work/arnold/Arnold-SDK/osl/include"); // Should be user defined
-    // Get source for stage and write to file temporarily
-    std::string oslFileName("conditionals.osl");
-    std::string errorFile("conditionals_error.txt");
-    std::string redirectString(" 2> & 1");
-
-    // Run the command and get back the result. If non-empty string throw exception with error
-    std::string command = oslcCommand + " -I" + oslIncludePath + " " + oslFileName + " > " +
-        errorFile + redirectString;
-    int result = std::system(command.c_str());
-    if (result != 0)
+    if (stages.empty() || stages[0].empty())
     {
-        errors.push_back("No valid OSL compiler found.");
+        errors.push_back("No shader code to validate");
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    bool shaderCompiled = false;
-    if (!shaderCompiled)
+    bool haveCompiler = !_oslCompilerExecutable.empty() && !_oslIncludePathString.empty();
+    if (!haveCompiler)
     {
-        errors.push_back("Shader failed to compile");
+        errors.push_back("No OSL compiler specified for validation.");
         throw ExceptionShaderValidationError(errorType, errors);
     }
+
+    // Dump string to disk. For OSL assume shader is in stage 0 slot.
+    const std::string fileName("_osl_temp.osl");
+    std::ofstream file;
+    file.open(fileName);
+    file << stages[0];
+    file.close();
+
+    // Try compiling the code
+    std::string oslFileName;
+    compileOSL(oslFileName);
 }
 
 void OslValidator::validateInputs()
@@ -101,6 +122,8 @@ void OslValidator::save(const std::string& /*fileName*/)
         errors.push_back("No image handler specified.");
         throw ExceptionShaderValidationError(errorType, errors);
     }
+
+    // No image generation, thus no image save at this time.
 }
 
 }
