@@ -993,7 +993,7 @@ static void validateOSL(const std::string oslFileName, std::string& errorResult)
 
     if (errorResult.length())
     {
-        errorResult = "Command return code: " + std::to_string(returnValue) + std::endl +
+        errorResult = "Command return code: " + std::to_string(returnValue) + "\n" +
             errorResult;
         std::cout << "OSLC failed to compile: " << oslFileName << ":\n"
             << errorResult << std::endl;
