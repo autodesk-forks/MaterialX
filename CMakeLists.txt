@@ -17,8 +17,10 @@ option(MATERIALX_INSTALL_PYTHON "Install the MaterialX Python package as a third
 option(MATERIALX_WARNINGS_AS_ERRORS "Interpret all compiler warnings as errors." OFF)
 option(MATERIALX_BUILD_VIEW "Build the MaterialX View module. " ON)
 option(MATERIALX_TEST_VIEW "Run tests for MaterialX View module. Requires a valid GPU setup." OFF)
-option(MATERIALX_OSLC_EXECUTABLE "Full path to the oslc binary." "")
-option(MATERIALX_OSL_INCLUDE_PATH "Full path to osl include paths. e.g. location of stdosl.h" "")
+set(MATERIALX_OSLC_EXECUTABLE "" CACHE FILEPATH 
+    "Full path to the oslc binary.")
+set(MATERIALX_OSL_INCLUDE_PATH "" CACHE PATH
+    "Full path to osl include paths. e.g. location of stdosl.h")
 
 set(MATERIALX_PYTHON_EXECUTABLE "" CACHE FILEPATH
     "Path to the Python executable (e.g. 'C:/Python27/python.exe').")

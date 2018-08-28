@@ -985,7 +985,7 @@ static void validateOSL(const std::string oslFileName, std::string& errorResult)
     std::string command = oslcCommand + " -q -I\"" + oslIncludePath + "\" " + oslFileName + " > " +
         errorFile + redirectString;
 
-    std::system(command.c_str());
+    int returnValue = std::system(command.c_str());
 
     std::ifstream errorStream(errorFile);
     errorResult.assign(std::istreambuf_iterator<char>(errorStream),
@@ -993,6 +993,8 @@ static void validateOSL(const std::string oslFileName, std::string& errorResult)
 
     if (errorResult.length())
     {
+        errorResult = "Command return code: " + std::to_string(returnValue) + std::endl +
+            errorResult;
         std::cout << "OSLC failed to compile: " << oslFileName << ":\n"
             << errorResult << std::endl;
     }
