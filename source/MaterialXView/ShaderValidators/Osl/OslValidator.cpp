@@ -28,7 +28,7 @@ void OslValidator::initialize()
 {
 }
 
-void OslValidator::compileOSL(const std::string oslFileName)
+void OslValidator::compileOSL(const std::string& oslFileName)
 {
     // If no command and include path specified then skip checking.
     if (_oslCompilerExecutable.empty() || _oslIncludePathString.empty())
@@ -101,7 +101,11 @@ void OslValidator::validateCreation(const std::vector<std::string>& stages)
 
 void OslValidator::validateInputs()
 {
-    // No input validation at this time.
+    ShaderValidationErrorList errors;
+    const std::string errorType("OSL validation error.");
+
+    errors.push_back("OSL input validation is not supported at this time.");
+    throw ExceptionShaderValidationError(errorType, errors);
 }
 
 void OslValidator::validateRender(bool /*orthographicView*/)
@@ -109,7 +113,7 @@ void OslValidator::validateRender(bool /*orthographicView*/)
     ShaderValidationErrorList errors;
     const std::string errorType("OSL rendering error.");
 
-    errors.push_back("OSL rendering not supported at this time.");
+    errors.push_back("OSL rendering is not supported at this time.");
     throw ExceptionShaderValidationError(errorType, errors);
 }
 
@@ -125,6 +129,8 @@ void OslValidator::save(const std::string& /*fileName*/)
     }
 
     // No image generation, thus no image save at this time.
+    errors.push_back("OSL rendering image save is not supported at this time.");
+    throw ExceptionShaderValidationError(errorType, errors);
 }
 
 }
