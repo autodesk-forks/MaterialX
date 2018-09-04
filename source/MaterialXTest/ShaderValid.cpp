@@ -24,8 +24,6 @@ namespace mx = MaterialX;
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
 #include <MaterialXView/Handlers/TinyEXRImageHandler.h>
 
-#define M_PI 3.14159265358979323846
-
 #define LOG_TO_FILE
 
 extern void loadLibraries(const mx::StringVec& libraryNames, const mx::FilePath& searchPath, mx::DocumentPtr doc);
