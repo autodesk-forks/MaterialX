@@ -305,7 +305,7 @@ static mx::GlslValidatorPtr createValidator(bool& orthographicView, const std::s
 //
 static void runValidation(const std::string& outputPath, const std::string& shaderName, mx::ElementPtr element,
                           mx::GlslValidatorPtr validator, mx::ShaderGeneratorPtr shaderGenerator,
-                          bool orthographicView, mx::DocumentPtr doc, std::ostream& log)
+                          bool orthographicView, mx::DocumentPtr doc, std::ostream& log, bool outputMtlxDoc=false)
 {
     mx::SgOptions options;
 
@@ -320,8 +320,10 @@ static void runValidation(const std::string& outputPath, const std::string& shad
         REQUIRE(hwShader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
         REQUIRE(hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
 
-        // TODO: Put this back in when we are writing to a results folder, as we'll want a copy of the document
-        // mx::writeToXmlFile(doc, shaderPath + ".mtlx");
+        if (outputMtlxDoc)
+        {
+            mx::writeToXmlFile(doc, shaderPath + ".mtlx");
+        }
 
         std::ofstream file;
         file.open(shaderPath + ".vert");
@@ -402,7 +404,7 @@ TEST_CASE("GLSL geometry", "[shadervalid]")
     output->setName("normal_output");
     output->setType("vector3");
     output->setConnectedNode(normal1);
-    runValidation(".", "normal_attributes", output, validator, shaderGenerator, orthographicView, doc, log);
+    runValidation(".", "normal_attributes", output, validator, shaderGenerator, orthographicView, doc, log, true);
     nodeGraph->removeNode(normal1->getName());
 
     // Position stream test
@@ -412,7 +414,7 @@ TEST_CASE("GLSL geometry", "[shadervalid]")
     output->setName("position_output");
     output->setType("vector3");
     output->setConnectedNode(position1);
-    runValidation(".", "position_attributes", output, validator, shaderGenerator, orthographicView, doc, log);
+    runValidation(".", "position_attributes", output, validator, shaderGenerator, orthographicView, doc, log, true);
     nodeGraph->removeNode(position1->getName());
 
     // Color stream test
@@ -422,7 +424,7 @@ TEST_CASE("GLSL geometry", "[shadervalid]")
     output->setName("geomcolor_output");
     output->setType("color3");
     output->setConnectedNode(geomcolor1);
-    runValidation(".", "geomcolor_attributes", output, validator, shaderGenerator, orthographicView, doc, log);
+    runValidation(".", "geomcolor_attributes", output, validator, shaderGenerator, orthographicView, doc, log, true);
     nodeGraph->removeNode(geomcolor1->getName());
 
     // Second color stream test
@@ -432,7 +434,7 @@ TEST_CASE("GLSL geometry", "[shadervalid]")
     output->setName("geomcolor2_output");
     output->setType("color3");
     output->setConnectedNode(geomcolor2);
-    runValidation(".", "geomcolor2_attributes", output, validator, shaderGenerator, orthographicView, doc, log);
+    runValidation(".", "geomcolor2_attributes", output, validator, shaderGenerator, orthographicView, doc, log, true);
     nodeGraph->removeNode(geomcolor2->getName());
 
     // Tangent stream test.
@@ -442,7 +444,7 @@ TEST_CASE("GLSL geometry", "[shadervalid]")
     output->setName("tangent_output");
     output->setType("vector3");
     output->setConnectedNode(tangent1);
-    runValidation(".", "tangent_attributes", output, validator, shaderGenerator, orthographicView, doc, log);
+    runValidation(".", "tangent_attributes", output, validator, shaderGenerator, orthographicView, doc, log, true);
     nodeGraph->removeNode(tangent1->getName());
 
     // Bitangent stream test
@@ -452,7 +454,7 @@ TEST_CASE("GLSL geometry", "[shadervalid]")
     output->setName("bitangent_output");
     output->setType("vector3");
     output->setConnectedNode(bitangent1);
-    runValidation(".", "bitangent_attributes", output, validator, shaderGenerator, orthographicView, doc, log);
+    runValidation(".", "bitangent_attributes", output, validator, shaderGenerator, orthographicView, doc, log, true);
     nodeGraph->removeNode(bitangent1->getName());
 
     // UV stream test
@@ -465,7 +467,7 @@ TEST_CASE("GLSL geometry", "[shadervalid]")
     output->setName("texcoord1_output");
     output->setType("vector3");
     output->setConnectedNode(swizzle1);
-    runValidation(".", "texcoord1_attributes", output, validator, shaderGenerator, orthographicView, doc, log);
+    runValidation(".", "texcoord1_attributes", output, validator, shaderGenerator, orthographicView, doc, log, true);
     nodeGraph->removeNode(texcoord1->getName());
     nodeGraph->removeNode(swizzle1->getName());
 
@@ -479,7 +481,7 @@ TEST_CASE("GLSL geometry", "[shadervalid]")
     output->setName("texcoord2_output");
     output->setType("vector3");
     output->setConnectedNode(swizzle2);
-    runValidation(".", "texcoord2_attributes", output, validator, shaderGenerator, orthographicView, doc, log);
+    runValidation(".", "texcoord2_attributes", output, validator, shaderGenerator, orthographicView, doc, log, true);
     nodeGraph->removeNode(texcoord2->getName());
     nodeGraph->removeNode(swizzle2->getName());
 
@@ -492,7 +494,7 @@ TEST_CASE("GLSL geometry", "[shadervalid]")
     output->setName("image1_output");
     output->setType("color3");
     output->setConnectedNode(image1);
-    runValidation(".", "image_attributes", output, validator, shaderGenerator, orthographicView, doc, log);
+    runValidation(".", "image_attributes", output, validator, shaderGenerator, orthographicView, doc, log, true);
     nodeGraph->removeNode(image1->getName());
 }
 
@@ -526,12 +528,12 @@ TEST_CASE("GLSL MaterialX documents", "[shadervalid]")
       mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
       shaderGenerator->registerSourceCodeSearchPath(searchPath);
 
-      const std::string path = "documents/Tests";
+      mx::FilePath path = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Tests");
       mx::StringVec files;
       mx::getDocumentsInDirectory(path, files);
       for (std::string file : files)
       {
-          std::string filename = path + "/" + file;
+          std::string filename = path / file;
           if (endsWithCaseInsensitive(filename, ".mtlx"))
           {
               log << "MTLX Filename: " << filename << std::endl;
@@ -553,8 +555,7 @@ TEST_CASE("GLSL MaterialX documents", "[shadervalid]")
               for (mx::OutputPtr output : outputList)
               {
                   log << "Output: " << output->getName() << std::endl;
-                  std::string parentPath = filename.substr(0, filename.find_last_of("/\\"));
-                  runValidation(parentPath, output->getName(), output, validator, shaderGenerator, orthographicView, doc, log);
+                  runValidation(path, output->getName(), output, validator, shaderGenerator, orthographicView, doc, log);
               }
           }
       }
@@ -610,7 +611,7 @@ TEST_CASE("GLSL shading", "[shadervalid]")
         mx::NodeGraphPtr nodeGraph = doc->getNodeGraph("lighting1");
         mx::OutputPtr output = nodeGraph->getOutput("lighting_output");
         // Run validation
-        runValidation(".", nodeGraph->getName(), output, validator, shaderGenerator, orthographicView, doc, log);
+        runValidation(".", nodeGraph->getName(), output, validator, shaderGenerator, orthographicView, doc, log, true);
     }
     //
     // Materials test
@@ -623,7 +624,7 @@ TEST_CASE("GLSL shading", "[shadervalid]")
             for (mx::ShaderRefPtr shaderRef : material->getShaderRefs())
             {
                 const std::string name = material->getName() + "_" + shaderRef->getName();
-                runValidation(".", name, shaderRef, validator, shaderGenerator, orthographicView, doc, log);
+                runValidation(".", name, shaderRef, validator, shaderGenerator, orthographicView, doc, log, true);
             }
         }
     }
