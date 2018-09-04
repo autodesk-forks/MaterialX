@@ -569,64 +569,64 @@ TEST_CASE("GLSL shading", "[shadervalid]")
     std::ostream& log(std::cout);
 #endif
     mx::DocumentPtr doc = mx::createDocument();
-     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
     loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
-     // Create a validator
+    // Create a validator
     bool orthographicView = true;
     mx::GlslValidatorPtr validator = createValidator(orthographicView, "shaderball.obj", log);
-     // Create shader generator
+    // Create shader generator
     mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
     shaderGenerator->registerSourceCodeSearchPath(searchPath);
-     // Set up lighting
-     mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-     mx::HwShaderGenerator& hwGenerator = static_cast<mx::HwShaderGenerator&>(*shaderGenerator);
-     createLightRig(doc, *lightHandler, hwGenerator);
-     // Pre-clamp the number of light sources to the number bound
-     size_t lightSourceCount = lightHandler->getLightSources().size();
-     hwGenerator.setMaxActiveLightSources(lightSourceCount);
-      mx::SgOptions options;
-      //
-     // Lighting test
-     //
-     {
-         const std::string lightDoc = " \
-         <?xml version=\"1.0\"?> \
-         <materialx version=\"1.36\" require=\"\"> \
-           <nodegraph name=\"lighting1\"> \
-             <surface name=\"surface1\" type=\"surfaceshader\"> \
-               <input name=\"bsdf\" type=\"BSDF\" value=\"\" nodename=\"diffusebsdf1\" /> \
-               <input name=\"edf\" type=\"EDF\" value=\"\" /> \
-               <input name=\"opacity\" type=\"float\" value=\"1.0\" /> \
-             </surface>  \
-             <diffusebsdf name=\"diffusebsdf1\" type=\"BSDF\"> \
-               <input name=\"reflectance\" type=\"color3\" value=\"1.0, 1.0, 1.0\" />  \
-               <input name=\"roughness\" type=\"float\" value=\"0.8\" /> \
-               <input name=\"normal\" type=\"vector3\" /> \
-             </diffusebsdf>  \
-             <output name=\"lighting_output\" type=\"surfaceshader\" nodename=\"surface1\" /> \
-           </nodegraph> \
-         </materialx>";
-          MaterialX::readFromXmlBuffer(doc, lightDoc.c_str());
-         mx::NodeGraphPtr nodeGraph = doc->getNodeGraph("lighting1");
-         mx::OutputPtr output = nodeGraph->getOutput("lighting_output");
-          // Run validation
-         runValidation(".", nodeGraph->getName(), output, validator, shaderGenerator, orthographicView, doc, log);
-     }
-      //
-     // Materials test
-     //
-     {
-         std::vector<mx::MaterialPtr> materials;
-         createExampleMaterials(doc, materials);
-          for (const mx::MaterialPtr& material : materials)
-         {
-             for (mx::ShaderRefPtr shaderRef : material->getShaderRefs())
-             {
-                 const std::string name = material->getName() + "_" + shaderRef->getName();
-                 runValidation(".", name, shaderRef, validator, shaderGenerator, orthographicView, doc, log);
-             }
-         }
-     }
+    // Set up lighting
+    mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
+    mx::HwShaderGenerator& hwGenerator = static_cast<mx::HwShaderGenerator&>(*shaderGenerator);
+    createLightRig(doc, *lightHandler, hwGenerator);
+    // Pre-clamp the number of light sources to the number bound
+    size_t lightSourceCount = lightHandler->getLightSources().size();
+    hwGenerator.setMaxActiveLightSources(lightSourceCount);
+    mx::SgOptions options;
+    //
+    // Lighting test
+    //
+    {
+        const std::string lightDoc = " \
+        <?xml version=\"1.0\"?> \
+        <materialx version=\"1.36\" require=\"\"> \
+          <nodegraph name=\"lighting1\"> \
+            <surface name=\"surface1\" type=\"surfaceshader\"> \
+              <input name=\"bsdf\" type=\"BSDF\" value=\"\" nodename=\"diffusebsdf1\" /> \
+              <input name=\"edf\" type=\"EDF\" value=\"\" /> \
+              <input name=\"opacity\" type=\"float\" value=\"1.0\" /> \
+            </surface>  \
+            <diffusebsdf name=\"diffusebsdf1\" type=\"BSDF\"> \
+              <input name=\"reflectance\" type=\"color3\" value=\"1.0, 1.0, 1.0\" />  \
+              <input name=\"roughness\" type=\"float\" value=\"0.8\" /> \
+              <input name=\"normal\" type=\"vector3\" /> \
+            </diffusebsdf>  \
+            <output name=\"lighting_output\" type=\"surfaceshader\" nodename=\"surface1\" /> \
+          </nodegraph> \
+        </materialx>";
+        MaterialX::readFromXmlBuffer(doc, lightDoc.c_str());
+        mx::NodeGraphPtr nodeGraph = doc->getNodeGraph("lighting1");
+        mx::OutputPtr output = nodeGraph->getOutput("lighting_output");
+        // Run validation
+        runValidation(".", nodeGraph->getName(), output, validator, shaderGenerator, orthographicView, doc, log);
+    }
+    //
+    // Materials test
+    //
+    {
+        std::vector<mx::MaterialPtr> materials;
+        createExampleMaterials(doc, materials);
+        for (const mx::MaterialPtr& material : materials)
+        {
+            for (mx::ShaderRefPtr shaderRef : material->getShaderRefs())
+            {
+                const std::string name = material->getName() + "_" + shaderRef->getName();
+                runValidation(".", name, shaderRef, validator, shaderGenerator, orthographicView, doc, log);
+            }
+        }
+    }
 }
 
 #endif
