@@ -27,20 +27,20 @@
    <geomcolor name="color1_set0" type="float">
       <parameter name="index" type="integer" value="0" />
    </geomcolor>
-   <swizzle name="swizzle_color1_set0" type="color3">
+   <swizzle name="swizzle_color1_set0" type="vector3">
       <input name="in" type="float" nodename="color1_set0" />
       <parameter name="channels" type="string" value="x00" />
    </swizzle>
-   <output name="color1_output0" type="float" nodename="swizzle_color1_set0" />
+   <output name="color1_output0" type="vector3" nodename="swizzle_color1_set0" />
 
    <geomcolor name="color2_set0" type="color2">
       <parameter name="index" type="integer" value="0" />
    </geomcolor>
-   <swizzle name="swizzle_color2_set0" type="color3">
-      <input name="in" type="float" nodename="color2_set0" />
+   <swizzle name="swizzle_color2_set0" type="vector3">
+      <input name="in" type="color2" nodename="color2_set0" />
       <parameter name="channels" type="string" value="xy0" />
    </swizzle>
-   <output name="color2_output0" type="color2" nodename="swizzle_color2_set0" />
+   <output name="color2_output0" type="vector3" nodename="swizzle_color2_set0" />
 
    <geomcolor name="color3_set0" type="color3">
       <parameter name="index" type="integer" value="0" />
@@ -50,12 +50,12 @@
    <geomcolor name="color4_set0" type="color4">
       <parameter name="index" type="integer" value="0" />
    </geomcolor>
-   <output name="color4_output0" type="color4" nodename="color4_set0" />
+   <output name="color4_output0" type="vector4" nodename="color4_set0" />
 
    <geomcolor name="color3_set1" type="color3">
       <parameter name="index" type="integer" value="1" />
    </geomcolor>
-   <output name="color3_output1" type="color3" nodename="color3_set1" />
+   <output name="color3_output1" type="vector3" nodename="color3_set1" />
       
    <tangent name="tangent0" type="vector3">
       <parameter name="index" type="integer" value="1" />
