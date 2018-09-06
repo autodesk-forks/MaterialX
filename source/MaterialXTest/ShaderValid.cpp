@@ -18,6 +18,11 @@
 
 #include <fstream>
 
+#ifndef _WIN32
+#include <dirent.h>
+#include <sys/types.h>
+#endif
+
 namespace mx = MaterialX;
 
 #include <iostream>
@@ -520,7 +525,7 @@ void getSubDirectories(std::string& baseDirectory, mx::StringVec& relativePaths)
     }
 #else
     struct dirent *entry = nullptr;
-    DIR* dir = opendir(directory.c_str());
+    DIR* dir = opendir(baseDirectory.c_str());
     if (dir)
     {
         while ((entry = readdir(dir)))
@@ -528,7 +533,7 @@ void getSubDirectories(std::string& baseDirectory, mx::StringVec& relativePaths)
             std::string filename = entry->d_name;
             if (entry->d_type == DT_DIR && (filename !=  "." && filename != ".."))
             {
-                std::string newBaseDirectory = baseDirectory + "\/" + filename;
+                std::string newBaseDirectory = baseDirectory + "/" + filename;
                 getSubDirectories(newBaseDirectory, relativePaths);
             }
         }
