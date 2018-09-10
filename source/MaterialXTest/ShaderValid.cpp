@@ -328,7 +328,7 @@ static void runValidation(const std::string& shaderName, mx::ElementPtr element,
 #if defined(_WIN32)
             _mkdir(outputFolderPath.c_str());
 #else
-            mkdir(outputFolderPath.c_str());
+            mkdir(outputFolderPath.c_str(), 0777);
 #endif
             shaderPath = mx::FilePath(outputFolderPath) / mx::FilePath(shaderName);
         }
