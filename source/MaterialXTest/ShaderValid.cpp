@@ -309,10 +309,9 @@ static mx::GlslValidatorPtr createValidator(bool& orthographicView, const std::s
 //
 // Outputs error log if validation fails
 //
-static void runValidation(const std::string& shaderName, mx::ElementPtr element, mx::GlslValidatorPtr validator,
-                          mx::ShaderGeneratorPtr shaderGenerator, bool orthographicView, mx::DocumentPtr doc,
-                          std::ostream& log, bool outputMtlxDoc=true, const std::string& outputFolder="",
-                          const std::string& outputPath=".")
+static void runValidation(const std::string& shaderName, mx::ElementPtr element, mx::GlslValidator& validator,
+                          mx::ShaderGenerator& shaderGenerator, bool orthographicView, mx::DocumentPtr doc,
+                          std::ostream& log, bool outputMtlxDoc=true, const std::string& outputPath=".")
 {
     mx::SgOptions options;
 
@@ -321,27 +320,19 @@ static void runValidation(const std::string& shaderName, mx::ElementPtr element,
         log << "------------ Run validation with element: " << element->getName() << std::endl;
 
         std::string shaderPath;
-        if (!outputFolder.empty())
-        {
-            std::string outputFolderPath = mx::FilePath(outputPath) / mx::FilePath(outputFolder);
-            // Note: mkdir will fail if the directory already exists which is ok.
+        // Note: mkdir will fail if the directory already exists which is ok.
 #if defined(_WIN32)
-            _mkdir(outputFolderPath.c_str());
+        _mkdir(outputPath.c_str());
 #else
-            mkdir(outputFolderPath.c_str());
+        mkdir(outputPath.c_str());
 #endif
-            shaderPath = mx::FilePath(outputFolderPath) / mx::FilePath(shaderName);
-        }
-        else
-        {
-            shaderPath = mx::FilePath(outputPath) / mx::FilePath(shaderName);
-        }
+        shaderPath = mx::FilePath(outputPath) / mx::FilePath(shaderName);
 
-        mx::ShaderPtr shader = shaderGenerator->generate(shaderName, element, options);
-        mx::HwShaderPtr hwShader = std::dynamic_pointer_cast<mx::HwShader>(shader);
+        mx::HwShaderPtr hwShader = std::static_pointer_cast<mx::HwShader>(shaderGenerator.generate(shaderName, element, options));
         CHECK(hwShader != nullptr);
         if (hwShader == nullptr)
         {
+            log << ">> Failed to generate HwShader\n";
             return;
         }
         CHECK(hwShader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
@@ -354,26 +345,26 @@ static void runValidation(const std::string& shaderName, mx::ElementPtr element,
 
         std::ofstream file;
         file.open(shaderPath + ".vert");
-        file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+        file << hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE);
         file.close();
         file.open(shaderPath + ".frag");
-        file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+        file << hwShader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
 
         // Validate
-        MaterialX::GlslProgramPtr program = validator->program();
+        MaterialX::GlslProgramPtr program = validator.program();
         bool validated = false;
         try
         {
-            validator->validateCreation(hwShader);
-            validator->validateInputs();
+            validator.validateCreation(hwShader);
+            validator.validateInputs();
 
             program->printUniforms(log);
             program->printAttributes(log);
 
-            validator->validateRender(orthographicView);
+            validator.validateRender(orthographicView);
             std::string fileName = shaderPath + ".exr";
-            validator->save(fileName);
+            validator.save(fileName);
 
             validated = true;
         }
@@ -433,14 +424,8 @@ TEST_CASE("GLSL image", "[shadervalid]")
     output->setName("image1_output");
     output->setType("color3");
     output->setConnectedNode(image1);
-    runValidation("image_attributes", output, validator, shaderGenerator, orthographicView, doc, log);
+    runValidation("image_attributes", output, *validator.get(), *shaderGenerator.get(), orthographicView, doc, log);
     nodeGraph->removeNode(image1->getName());
-}
-
-std::string removeExtension(const std::string& filename) {
-    size_t lastDot = filename.find_last_of(".");
-    if (lastDot == std::string::npos) return filename;
-    return filename.substr(0, lastDot);
 }
 
 TEST_CASE("GLSL MaterialX documents", "[shadervalid]")
@@ -503,7 +488,8 @@ TEST_CASE("GLSL MaterialX documents", "[shadervalid]")
                     // Skip anything from an include file including libraries
                     if (!output->hasSourceUri())
                     {
-                        runValidation(output->getName(), output, validator, shaderGenerator, orthographicView, doc, log, false, removeExtension(file), dir);
+                        std::string outputPath = mx::FilePath(dir) / mx::FilePath(mx::removeExtension(file));
+                        runValidation(output->getName(), output, *validator.get(), *shaderGenerator.get(), orthographicView, doc, log, false, outputPath);
                     }
                 }
             }
@@ -561,7 +547,7 @@ TEST_CASE("GLSL shading", "[shadervalid]")
         mx::NodeGraphPtr nodeGraph = doc->getNodeGraph("lighting1");
         mx::OutputPtr output = nodeGraph->getOutput("lighting_output");
         // Run validation
-        runValidation(nodeGraph->getName(), output, validator, shaderGenerator, orthographicView, doc, log);
+        runValidation(nodeGraph->getName(), output, *validator.get(), *shaderGenerator.get(), orthographicView, doc, log);
     }
     //
     // Materials test
@@ -574,7 +560,7 @@ TEST_CASE("GLSL shading", "[shadervalid]")
             for (mx::ShaderRefPtr shaderRef : material->getShaderRefs())
             {
                 const std::string name = material->getName() + "_" + shaderRef->getName();
-                runValidation(name, shaderRef, validator, shaderGenerator, orthographicView, doc, log);
+                runValidation(name, shaderRef, *validator.get(), *shaderGenerator.get(), orthographicView, doc, log);
             }
         }
     }

@@ -17,6 +17,14 @@
 
 namespace MaterialX
 {
+
+std::string removeExtension(const std::string& filename)
+{
+    size_t lastDot = filename.find_last_of(".");
+    if (lastDot == std::string::npos) return filename;
+    return filename.substr(0, lastDot);
+}
+
 void getSubDirectories(std::string& baseDirectory, StringVec& relativePaths)
 {
     relativePaths.push_back(baseDirectory);
@@ -99,7 +107,7 @@ bool readFile(const string& filename, string& contents)
 #endif
 
     bool result = false;
-    
+
     std::ifstream file(filename, std::ios::in );
     if (file)
     {

@@ -7,6 +7,10 @@
 
 namespace MaterialX
 {
+
+/// Removes the extension from the provided filename
+std::string removeExtension(const std::string& filename);
+
 /// Directory scanner utility. Finds all subdirectories in the given directory
 void getSubDirectories(std::string& baseDirectory, StringVec& relativePaths);
 
