@@ -4,18 +4,29 @@
 #include <MaterialXCore/Observer.h>
 
 #include <MaterialXFormat/XmlIo.h>
+#include <MaterialXFormat/File.h>
 
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GlslShaderGenerator.h>
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/GlslSyntax.h>
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/OgsFx/OgsFxShaderGenerator.h>
-#include <MaterialXShaderGen/ShaderGenerators/Glsl/OgsFx/OgsFxSyntax.h>
-#include <MaterialXShaderGen/ShaderGenerators/Osl/Arnold/ArnoldShaderGenerator.h>
-#include <MaterialXShaderGen/ShaderGenerators/Osl/OslSyntax.h>
-#include <MaterialXShaderGen/ShaderGenerators/Common/Swizzle.h>
-#include <MaterialXShaderGen/TypeDesc.h>
-#include <MaterialXShaderGen/Util.h>
-#include <MaterialXShaderGen/HwShader.h>
-#include <MaterialXShaderGen/HwLightHandler.h>
+#include <MaterialXGenShader/ShaderGenerator.h>
+#include <MaterialXGenShader/Nodes/Swizzle.h>
+#include <MaterialXGenShader/TypeDesc.h>
+#include <MaterialXGenShader/Util.h>
+#include <MaterialXGenShader/HwShader.h>
+#include <MaterialXGenShader/HwLightHandler.h>
+
+#ifdef MATERIALX_BUILD_GEN_GLSL
+#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include <MaterialXGenGlsl/GlslSyntax.h>
+#endif
+
+#ifdef MATERIALX_BUILD_GEN_OGSFX
+#include <MaterialXGenOgsFx/OgsFxShaderGenerator.h>
+#include <MaterialXGenOgsFx/OgsFxSyntax.h>
+#endif
+
+#ifdef MATERIALX_BUILD_GEN_OSL
+#include <MaterialXGenOsl/ArnoldShaderGenerator.h>
+#include <MaterialXGenOsl/OslSyntax.h>
+#endif
 
 #include <cstdlib>
 #include <fstream>
@@ -137,316 +148,6 @@ void createLightCompoundExample(mx::DocumentPtr document)
     }
 }
 
-void createExampleMaterials(mx::DocumentPtr doc, std::vector<mx::MaterialPtr>& materials)
-{
-    // Example1: Create a material from 'standard_surface' with support for normal mapping
-    {
-        mx::MaterialPtr material = doc->addMaterial("example1");
-        mx::ShaderRefPtr shaderRef = material->addShaderRef("example1_surface", "standard_surface");
-
-        // Create nodes to handle normal mapping and bind it to the shader's normal input
-        mx::NodePtr texcoord1 = doc->addNode("texcoord", "texcoord1", "vector2");
-        mx::NodePtr uvscale = doc->addNode("multiply", "uvscale", "vector2");
-        uvscale->setConnectedNode("in1", texcoord1);
-        uvscale->setInputValue("in2", mx::Vector2(2.0, 2.0));
-
-        mx::NodePtr normalTex = doc->addNode("image", "normalTex", "vector3");
-        normalTex->setParameterValue("file", std::string(""), "filename");
-        normalTex->setParameterValue("default", mx::Vector3(0.5f, 0.5f, 1.0f));
-        normalTex->setConnectedNode("texcoord", uvscale);
-        mx::NodePtr normalMap1 = doc->addNode("normalmap", "normalmap1", "vector3");
-        normalMap1->setConnectedNode("in", normalTex);
-
-        mx::OutputPtr outNormal = doc->addOutput("outNormal", "vector3");
-        outNormal->setConnectedNode(normalMap1);
-
-        mx::BindInputPtr normalInput = shaderRef->addBindInput("normal", "vector3");
-        normalInput->setConnectedOutput(outNormal);
-
-        // Bind a couple of other shader parameter values
-        mx::BindInputPtr specular_roughness_input = shaderRef->addBindInput("specular_roughness", "float");
-        specular_roughness_input->setValue(0.2f);
-        mx::BindInputPtr specular_IOR_input = shaderRef->addBindInput("specular_IOR", "float");
-        specular_IOR_input->setValue(2.0f);
-    }
-
-    // Example2: Create a surface shader by a graph of BSDF nodes with diffuse + specular
-    {
-        // Create a nodedef interface for the surface shader
-        mx::NodeDefPtr nodeDef = doc->addNodeDef("ND_testshader2", "surfaceshader", "testshader2");
-        nodeDef->addInput("diffuse_reflectance", "color3");
-        nodeDef->addInput("diffuse_roughness", "float");
-        nodeDef->addInput("specular_reflectance", "color3");
-        nodeDef->addInput("specular_roughness", "float");
-        nodeDef->addInput("specular_anisotropy", "float");
-        nodeDef->addInput("specular_IOR", "float");
-
-        // Create the shader graph implementing the surface shader
-        mx::NodeGraphPtr shaderGraph = doc->addNodeGraph("IMP_testshader2");
-
-        // Get a normal facing our view direction
-        mx::NodePtr shadingnormal = shaderGraph->addNode("shadingnormal", "shadingnormal1", "vector3");
-
-        // A diffuse lobe
-        mx::NodePtr diffuse = shaderGraph->addNode("diffusebsdf", "diffuse", "BSDF");
-        diffuse->setConnectedNode("normal", shadingnormal);
-        mx::InputPtr diffuse_reflectance = diffuse->addInput("reflectance", "color3");
-        diffuse_reflectance->setInterfaceName("diffuse_reflectance");
-        mx::InputPtr diffuse_roughness = diffuse->addInput("roughness", "float");
-        diffuse_roughness->setInterfaceName("diffuse_roughness");
-
-        // A specular lobe
-        mx::NodePtr specular = shaderGraph->addNode("coatingbsdf", "coating", "BSDF");
-        specular->setConnectedNode("normal", shadingnormal);
-        specular->setConnectedNode("base", diffuse);
-        mx::InputPtr specular_reflectance = specular->addInput("reflectance", "color3");
-        specular_reflectance->setInterfaceName("specular_reflectance");
-        mx::InputPtr specular_roughness = specular->addInput("roughness", "float");
-        specular_roughness->setInterfaceName("specular_roughness");
-        mx::InputPtr specular_anisotropy = specular->addInput("anisotropy", "float");
-        specular_anisotropy->setInterfaceName("specular_anisotropy");
-        mx::InputPtr specular_IOR = specular->addInput("ior", "float");
-        specular_IOR->setInterfaceName("specular_IOR");
-
-        // Create a surface shader construction node and connect the final BSDF
-        mx::NodePtr surface = shaderGraph->addNode("surface", "surface1", "surfaceshader");
-        surface->setConnectedNode("bsdf", specular);
-
-        // Connect it as the graph output
-        mx::OutputPtr output = shaderGraph->addOutput("out", "surfaceshader");
-        output->setConnectedNode(surface);
-
-        // Set this graph to be the implementation of the shader nodedef
-        shaderGraph->setAttribute("nodedef", nodeDef->getName());
-
-        // Create a material with the above shader node as the shader ref
-        mx::MaterialPtr material = doc->addMaterial("example2");
-        mx::ShaderRefPtr shaderRef = material->addShaderRef("example2_surface", "testshader2");
-
-        // Bind a couple of shader parameter values
-        mx::BindInputPtr diffuse_reflectance_input = shaderRef->addBindInput("diffuse_reflectance", "color3");
-        diffuse_reflectance_input->setValue(mx::Color3(0.8f, 0.2f, 0.8f));
-        mx::BindInputPtr specular_reflectance_input = shaderRef->addBindInput("specular_reflectance", "color3");
-        specular_reflectance_input->setValue(mx::Color3(1.0f, 1.0f, 1.0f));
-        mx::BindInputPtr specular_roughness_input = shaderRef->addBindInput("specular_roughness", "float");
-        specular_roughness_input->setValue(0.2f);
-        mx::BindInputPtr specular_IOR_input = shaderRef->addBindInput("specular_IOR", "float");
-        specular_IOR_input->setValue(2.0f);
-    }
-
-    // Example3: Create a metal surface shader by a graph, using both the complex and
-    // the artistic refraction index description, to test that they give equal results.
-    {
-        // Create a nodedef interface for the surface shader
-        mx::NodeDefPtr nodeDef = doc->addNodeDef("ND_testshader3", "surfaceshader", "testshader3");
-        nodeDef->addInput("reflectivity", "color3");
-        nodeDef->addInput("edgetint", "color3");
-        nodeDef->addInput("ior_n", "vector3");
-        nodeDef->addInput("ior_k", "vector3");
-        nodeDef->addInput("artistic_vs_complex", "float");
-        nodeDef->addInput("roughness", "float");
-        nodeDef->addInput("anisotropy", "float");
-
-        // Create the shader graph implementing the surface shader
-        mx::NodeGraphPtr shaderGraph = doc->addNodeGraph("IMP_testshader3");
-
-        // Get a normal facing our view direction
-        mx::NodePtr shadingnormal = shaderGraph->addNode("shadingnormal", "shadingnormal1", "vector3");
-
-        // A metal lobe with artistic fresnel
-        mx::NodePtr metal1 = shaderGraph->addNode("metalbsdf", "metal1", "BSDF");
-        metal1->setConnectedNode("normal", shadingnormal);
-        mx::InputPtr reflectivity = metal1->addInput("reflectivity", "color3");
-        reflectivity->setInterfaceName("reflectivity");
-        mx::InputPtr edgetint = metal1->addInput("edgetint", "color3");
-        edgetint->setInterfaceName("edgetint");
-        mx::InputPtr roughness1 = metal1->addInput("roughness", "float");
-        roughness1->setInterfaceName("roughness");
-        mx::InputPtr anisotropy1 = metal1->addInput("anisotropy", "float");
-        anisotropy1->setInterfaceName("anisotropy");
-
-        // A metal lobe with complex fresnel
-        mx::NodePtr metal2 = shaderGraph->addNode("metalbsdf", "metal2", "BSDF");
-        mx::NodePtr reflectivity1 = shaderGraph->addNode("reflectivity", "reflectivity1", "color3");
-        mx::InputPtr reflectivity1_ior_n = reflectivity1->addInput("ior_n", "vector3");
-        reflectivity1_ior_n->setInterfaceName("ior_n");
-        mx::InputPtr reflectivity1_ior_k = reflectivity1->addInput("ior_k", "vector3");
-        reflectivity1_ior_k->setInterfaceName("ior_k");
-        mx::NodePtr edgetint1 = shaderGraph->addNode("edgetint", "edgetint1", "color3");
-        mx::InputPtr edgetint1_ior_n = edgetint1->addInput("ior_n", "vector3");
-        edgetint1_ior_n->setInterfaceName("ior_n");
-        edgetint1->setConnectedNode("reflectivity", reflectivity1);
-        metal2->setConnectedNode("normal", shadingnormal);
-        metal2->setConnectedNode("reflectivity", reflectivity1);
-        metal2->setConnectedNode("edgetint", edgetint1);
-        mx::InputPtr roughness2 = metal2->addInput("roughness", "float");
-        roughness2->setInterfaceName("roughness");
-        mx::InputPtr anisotropy2 = metal2->addInput("anisotropy", "float");
-        anisotropy2->setInterfaceName("anisotropy");
-
-        mx::NodePtr mix = shaderGraph->addNode("mixbsdf", "mix", "BSDF");
-        mx::InputPtr weight = mix->addInput("weight", "float");
-        weight->setInterfaceName("artistic_vs_complex");
-        mix->setConnectedNode("in1", metal2);
-        mix->setConnectedNode("in2", metal1);
-        
-        // Create a surface shader construction node and connect the final BSDF
-        mx::NodePtr surface = shaderGraph->addNode("surface", "surface1", "surfaceshader");
-        surface->setConnectedNode("bsdf", mix);
-
-        // Connect it as the graph output
-        mx::OutputPtr output = shaderGraph->addOutput("out", "surfaceshader");
-        output->setConnectedNode(surface);
-
-        // Set this graph to be the implementation of the shader nodedef
-        shaderGraph->setAttribute("nodedef", nodeDef->getName());
-
-        // Create a material with the above shader node as the shader ref
-        mx::MaterialPtr material = doc->addMaterial("example3");
-        mx::ShaderRefPtr shaderRef = material->addShaderRef("example3_surface", "testshader3");
-
-        // Bind values setting both reflectivity/edgetint and ior_n/ior_k to represent gold,
-        // so both metals should give the same result.
-        mx::BindInputPtr reflectivity_input = shaderRef->addBindInput("reflectivity", "color3");
-        reflectivity_input->setValue(mx::Color3(0.944f, 0.776f, 0.373f));
-        mx::BindInputPtr edgetint_input = shaderRef->addBindInput("edgetint", "color3");
-        edgetint_input->setValue(mx::Color3(0.998f, 0.981f, 0.751f));
-        mx::BindInputPtr ior_n_input = shaderRef->addBindInput("ior_n", "vector3");
-        ior_n_input->setValue(mx::Vector3(0.183f, 0.422f, 1.373f));
-        mx::BindInputPtr ior_k_input = shaderRef->addBindInput("ior_k", "vector3");
-        ior_k_input->setValue(mx::Vector3(3.424f, 2.346f, 1.771f));
-        mx::BindInputPtr roughness_input = shaderRef->addBindInput("roughness", "float");
-        roughness_input->setValue(0.2f);
-    }
-
-    // Example4: Create a material from 'standard_surface' using <inputmap> nodes for mappable inputs
-    {
-        // Shader parameter listing (<name>, <type>, <mappable
-        using StringPair = std::pair<std::string, std::string>;
-        const std::vector< std::pair<StringPair, bool> > shaderParams =
-        {
-            { {"base", "float"}, false },
-            { { "base_color", "color3" }, true },
-            { { "diffuse_roughness", "float" }, false },
-            { { "specular", "float" }, true },
-            { { "specular_color", "color3" }, true },
-            { { "specular_roughness", "float" }, true },
-            { { "specular_IOR", "float" }, false },
-            { { "specular_anisotropy", "float" }, false },
-            { { "metalness","float" }, true },
-            { { "transmission", "float" }, true },
-            { { "transmission_color", "color3" }, true },
-            { { "transmission_extra_roughness", "float" }, true },
-            { { "subsurface", "float" }, false },
-            { { "subsurface_color", "color3" }, false },
-            { { "coat", "float" }, true },
-            { { "coat_color", "color3" }, true },
-            { { "coat_roughness", "float" }, true },
-            { { "coat_IOR", "float" }, false },
-        };
-
-        mx::NodeDefPtr nodeDef = doc->addNodeDef("ND_testshader4", "surfaceshader", "testshader4");
-        mx::NodeGraphPtr shaderGraph = doc->addNodeGraph("IMP_testshader4");
-        shaderGraph->setAttribute("nodedef", nodeDef->getName());
-
-        mx::NodePtr standardSurface = shaderGraph->addNode("standard_surface", "standardsurface1", "surfaceshader");
-        for (auto shaderParam : shaderParams)
-        {
-            const std::string& name = shaderParam.first.first;
-            const std::string& type = shaderParam.first.second;
-            const bool mappable = shaderParam.second;
-
-            if (mappable)
-            {
-                // Texturable, add an input for both a value and an image map
-                nodeDef->addInput(name, type);
-                nodeDef->addInput(name + "_map", "filename");
-
-                // Create the inputmap node and connect it to the shader interface
-                mx::NodePtr texInput = shaderGraph->addNode("inputmap", name, type);
-                mx::InputPtr file = texInput->addInput("file", "filename");
-                file->setInterfaceName(name + "_map");
-                mx::InputPtr value = texInput->addInput("value", type);
-                value->setInterfaceName(name);
-
-                // Connect it to the surface shader
-                mx::InputPtr input = standardSurface->addInput(name, type);
-                input->setConnectedNode(texInput);
-            }
-            else
-            {
-                // Non-Texturable, add a single value input
-                nodeDef->addInput(name, type);
-                mx::InputPtr input = standardSurface->addInput(name, type);
-                input->setInterfaceName(name);
-            }
-        }
-
-        nodeDef->addInput("normalmap", "filename");
-        nodeDef->addInput("coat_normalmap", "filename");
-
-        mx::NodePtr specularNormalTex = shaderGraph->addNode("image", "normalTex", "vector3");
-        mx::ParameterPtr specularNormalTexFile = specularNormalTex->addParameter("file", "filename");
-        specularNormalTexFile->setInterfaceName("normalmap");
-        specularNormalTex->setParameterValue("default", mx::Vector3(0.5f, 0.5f, 1.0f));
-        mx::NodePtr specularNormalMap = shaderGraph->addNode("normalmap", "normalmap1", "vector3");
-        specularNormalMap->setConnectedNode("in", specularNormalTex);
-
-        mx::NodePtr coatNormalTex = shaderGraph->addNode("image", "coatTex", "vector3");
-        mx::ParameterPtr coatNormalTexFile = coatNormalTex->addParameter("file", "filename");
-        coatNormalTexFile->setInterfaceName("coat_normalmap");
-        coatNormalTex->setParameterValue("default", mx::Vector3(0.5f, 0.5f, 1.0f));
-        mx::NodePtr coatNormalMap = shaderGraph->addNode("normalmap", "normalmap2", "vector3");
-        coatNormalMap->setConnectedNode("in", coatNormalTex);
-
-        standardSurface->setConnectedNode("normal", specularNormalMap);
-        standardSurface->setConnectedNode("coat_normal", coatNormalMap);
-
-        mx::OutputPtr output = shaderGraph->addOutput("out", "surfaceshader");
-        output->setConnectedNode(standardSurface);
-
-        // Create a material with the above shader node as the shader ref
-        mx::MaterialPtr material = doc->addMaterial("example4");
-        mx::ShaderRefPtr shaderRef = material->addShaderRef("example4_surface", "testshader4");
-
-        // Bind a couple of shader parameter values
-        mx::BindInputPtr base_input = shaderRef->addBindInput("base", "float");
-        base_input->setValue(0.8f);
-        mx::BindInputPtr base_color_input = shaderRef->addBindInput("base_color", "color3");
-        base_color_input->setValue(mx::Color3(1.0f, 1.0f, 1.0f));
-        mx::BindInputPtr specular_input = shaderRef->addBindInput("specular", "float");
-        specular_input->setValue(1.0f);
-        mx::BindInputPtr specular_color_input = shaderRef->addBindInput("specular_color", "color3");
-        specular_color_input->setValue(mx::Color3(1.0f, 1.0f, 1.0f));
-        mx::BindInputPtr specular_IOR_input = shaderRef->addBindInput("specular_IOR", "float");
-        specular_IOR_input->setValue(1.52f);
-        mx::BindInputPtr specular_roughness_input = shaderRef->addBindInput("specular_roughness", "float");
-        specular_roughness_input->setValue(0.1f);
-        mx::BindInputPtr coat_IOR_input = shaderRef->addBindInput("coat_IOR", "float");
-        coat_IOR_input->setValue(3.0);
-    }
-
-    // Example5: Create a material directly from 'standard_surface'
-    {
-        mx::MaterialPtr material = doc->addMaterial("example5");
-        mx::ShaderRefPtr shaderRef = material->addShaderRef("example5_surface", "standard_surface");
-
-        // Bind a couple of shader parameter values
-        mx::BindInputPtr specular_roughness_input = shaderRef->addBindInput("specular_roughness", "float");
-        specular_roughness_input->setValue(0.123f);
-        mx::BindInputPtr specular_IOR_input = shaderRef->addBindInput("specular_IOR", "float");
-        specular_IOR_input->setValue(2.0f);
-    }
-    
-    // Get all materials created
-    for (const mx::MaterialPtr& material : doc->getMaterials())
-    {
-        materials.push_back(material);
-    }
-
-    mx::writeToXmlFile(doc, "example_materials.mtlx");
-}
-
 float cosAngle(float degrees)
 {
     static const float PI = 3.14159265f;
@@ -526,6 +227,7 @@ void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::H
 
 TEST_CASE("Syntax", "[shadergen]")
 {
+#ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::SyntaxPtr syntax = mx::OslSyntax::create();
 
@@ -569,7 +271,9 @@ TEST_CASE("Syntax", "[shadergen]")
         value = syntax->getValue(mx::Type::COLOR4, *color4Value, true);
         REQUIRE(value == "{color(1.0, 2.0, 3.0), 4.0}");
     }
+#endif // MATERIALX_BUILD_GEN_OSL
 
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::SyntaxPtr syntax = mx::GlslSyntax::create();
 
@@ -613,7 +317,9 @@ TEST_CASE("Syntax", "[shadergen]")
         value = syntax->getValue(mx::Type::COLOR4, *color4Value, true);
         REQUIRE(value == "vec4(1.0, 2.0, 3.0, 4.0)");
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 
+#ifdef MATERIALX_BUILD_GEN_OGSFX
     {
         mx::SyntaxPtr syntax = mx::OgsFxSyntax::create();
 
@@ -657,6 +363,7 @@ TEST_CASE("Syntax", "[shadergen]")
         value = syntax->getValue(mx::Type::COLOR4, *color4Value, true);
         REQUIRE(value == "{1.0, 2.0, 3.0, 4.0}");
     }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 }
 
 TEST_CASE("TypeDesc", "[shadergen]")
@@ -819,9 +526,15 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
 
     std::vector<mx::ShaderGeneratorPtr> shaderGenerators =
     {
+#ifdef MATERIALX_BUILD_GEN_OSL
         mx::ArnoldShaderGenerator::create(),
-        mx::OgsFxShaderGenerator::create(),
-        mx::GlslShaderGenerator::create()
+#endif
+#ifdef MATERIALX_BUILD_GEN_GLSL
+        mx::GlslShaderGenerator::create(),
+#endif
+#ifdef MATERIALX_BUILD_GEN_OGSFX
+        mx::OgsFxShaderGenerator::create()
+#endif
     };
 
     std::filebuf implDumpBuffer;
@@ -845,6 +558,7 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
             "curveadjust",
         };
 
+#ifdef MATERIALX_BUILD_GEN_OSL
         // Skip light types in OSL for now
         if (language == mx::OslShaderGenerator::LANGUAGE)
         {
@@ -853,6 +567,7 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
             skipNodeTypes.insert("directionallight");
             skipNodeTypes.insert("spotlight");
         }
+#endif // MATERIALX_BUILD_GEN_OSL
 
         // Explicit set of node defs to skip temporarily
         std::set<std::string> skipNodeDefs =
@@ -866,6 +581,8 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
             "ND_mix_displacementshader",
             "ND_mix_volumeshader"
         };
+
+#ifdef MATERIALX_BUILD_GEN_GLSL
         // Skip some shader math in GLSL for now
         if (language == mx::GlslShaderGenerator::LANGUAGE)
         {
@@ -874,6 +591,7 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
             skipNodeDefs.insert("ND_multiply_surfaceshaderC");
             skipNodeDefs.insert("ND_mix_surfaceshader");
         }
+#endif // MATERIALX_BUILD_GEN_GLSL
 
         implDumpStream << "-----------------------------------------------------------------------" << std::endl;
         implDumpStream << "Scanning language: " << language << ". Target: " << target << std::endl;
@@ -1036,6 +754,7 @@ TEST_CASE("Swizzling", "[shadergen]")
     mx::SgOptions options;
     mx::SgNodeContext context(mx::ShaderGenerator::NODE_CONTEXT_DEFAULT);
 
+#ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::ArnoldShaderGenerator sg;
         sg.registerSourceCodeSearchPath(searchPath);
@@ -1084,7 +803,9 @@ TEST_CASE("Swizzling", "[shadergen]")
         const std::string test2Result = "color swizzle1_out = color(swizzle1_in[2], 0, swizzle1_in[2]);\n";
         REQUIRE(test2.getSourceCode() == test2Result);
     }
+#endif // MATERIALX_BUILD_GEN_OSL
 
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::GlslShaderGenerator sg;
         sg.registerSourceCodeSearchPath(searchPath);
@@ -1133,8 +854,10 @@ TEST_CASE("Swizzling", "[shadergen]")
         const std::string test2Result = "vec3 swizzle1_out = vec3(swizzle1_in.z, 0, swizzle1_in.z);\n";
         REQUIRE(test2.getSourceCode() == test2Result);
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 }
 
+#ifdef MATERIALX_BUILD_GEN_OSL
 //
 // Utility to call validate OSL. 
 // For now only call into oslc to compile an OSL file and get the results.
@@ -1173,6 +896,7 @@ static void validateOSL(const std::string oslFileName, std::string& errorResult)
             << errorResult << std::endl;
     }
 }
+#endif // MATERIALX_BUILD_GEN_OSL
 
 TEST_CASE("Hello World", "[shadergen]")
 {
@@ -1208,7 +932,7 @@ TEST_CASE("Hello World", "[shadergen]")
 
     mx::SgOptions options;
 
-    // Arnold OSL
+#ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::ShaderGeneratorPtr shadergen = mx::ArnoldShaderGenerator::create();
         // Add path to find all source code snippets
@@ -1248,8 +972,9 @@ TEST_CASE("Hello World", "[shadergen]")
         validateOSL(fileName, errorResult);
         REQUIRE(errorResult.size() == 0);
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 
-    // OgsFx
+#ifdef MATERIALX_BUILD_GEN_OGSFX
     {
         mx::ShaderGeneratorPtr shadergen = mx::OgsFxShaderGenerator::create();
         shadergen->registerSourceCodeSearchPath(searchPath);
@@ -1275,8 +1000,9 @@ TEST_CASE("Hello World", "[shadergen]")
         file << shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE);
         file.close();
     }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 
-    // Glsl
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::ShaderGeneratorPtr shadergen = mx::GlslShaderGenerator::create();
         shadergen->registerSourceCodeSearchPath(searchPath);
@@ -1284,8 +1010,8 @@ TEST_CASE("Hello World", "[shadergen]")
         // Test shader generation from nodegraph
         mx::ShaderPtr shader = shadergen->generate(exampleName, output1, options);
         REQUIRE(shader != nullptr);
-        REQUIRE(shader->getSourceCode(mx::OgsFxShader::VERTEX_STAGE).length() > 0);
-        REQUIRE(shader->getSourceCode(mx::OgsFxShader::PIXEL_STAGE).length() > 0);
+        REQUIRE(shader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
+        REQUIRE(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
         // Write out to file for inspection
         // TODO: Use validation in MaterialXView library
         std::ofstream file;
@@ -1299,8 +1025,8 @@ TEST_CASE("Hello World", "[shadergen]")
         // Test shader generation from shaderref
         shader = shadergen->generate(exampleName, shaderRef, options);
         REQUIRE(shader != nullptr);
-        REQUIRE(shader->getSourceCode(mx::OgsFxShader::VERTEX_STAGE).length() > 0);
-        REQUIRE(shader->getSourceCode(mx::OgsFxShader::PIXEL_STAGE).length() > 0);
+        REQUIRE(shader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
+        REQUIRE(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
         // Write out to file for inspection
         // TODO: Use validation in MaterialXView library
         file.open(shader->getName() + "_shaderref.vert");
@@ -1310,6 +1036,7 @@ TEST_CASE("Hello World", "[shadergen]")
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 }
 
 TEST_CASE("Conditionals", "[shadergen]")
@@ -1363,7 +1090,7 @@ TEST_CASE("Conditionals", "[shadergen]")
 
     mx::SgOptions options;
 
-    // Arnold
+#ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::ArnoldShaderGenerator::create();
         // Add path to find all source code snippets
@@ -1392,8 +1119,9 @@ TEST_CASE("Conditionals", "[shadergen]")
         validateOSL(fileName, errorResult);
         REQUIRE(errorResult.size() == 0);
     }
+#endif // MATERIALX_BUILD_GEN_OSL
 
-    // OgsFx
+#ifdef MATERIALX_BUILD_GEN_OGSFX
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::OgsFxShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -1414,8 +1142,9 @@ TEST_CASE("Conditionals", "[shadergen]")
         REQUIRE(shader->getNodeGraph()->getOutputSocket()->value != nullptr);
         REQUIRE(shader->getNodeGraph()->getOutputSocket()->value->getValueString() == constant2->getParameterValue("value")->getValueString());
     }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 
-    // Glsl
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -1440,6 +1169,7 @@ TEST_CASE("Conditionals", "[shadergen]")
         REQUIRE(shader->getNodeGraph()->getOutputSocket()->value != nullptr);
         REQUIRE(shader->getNodeGraph()->getOutputSocket()->value->getValueString() == constant2->getParameterValue("value")->getValueString());
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 }
 
 TEST_CASE("Geometric Nodes", "[shadergen]")
@@ -1509,7 +1239,7 @@ TEST_CASE("Geometric Nodes", "[shadergen]")
 
     mx::SgOptions options;
 
-    // Arnold
+#ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::ArnoldShaderGenerator::create();
         // Add path to find all source code snippets
@@ -1533,8 +1263,9 @@ TEST_CASE("Geometric Nodes", "[shadergen]")
         validateOSL(fileName, errorResult);
         REQUIRE(errorResult.size() == 0); 
     }
+#endif // MATERIALX_BUILD_GEN_OSL
 
-    // OgsFx
+#ifdef MATERIALX_BUILD_GEN_OGSFX
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::OgsFxShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -1549,8 +1280,9 @@ TEST_CASE("Geometric Nodes", "[shadergen]")
         file.open(shader->getName() + ".ogsfx");
         file << shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE);
     }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 
-    // Glsl
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -1569,6 +1301,7 @@ TEST_CASE("Geometric Nodes", "[shadergen]")
         file.open(shader->getName() + ".vert");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 }
 
 TEST_CASE("Noise", "[shadergen]")
@@ -1654,7 +1387,7 @@ TEST_CASE("Noise", "[shadergen]")
         // Select the noise type
         switch1->setParameterValue("which", float(noiseType));
 
-        // Arnold OSL
+#ifdef MATERIALX_BUILD_GEN_OSL
         {
             mx::ShaderGeneratorPtr shadergen = mx::ArnoldShaderGenerator::create();
             // Add path to find all source code snippets
@@ -1679,8 +1412,9 @@ TEST_CASE("Noise", "[shadergen]")
             validateOSL(fileName, errorResult);
             REQUIRE(errorResult.size() == 0); 
         }
+#endif // MATERIALX_BUILD_GEN_OSL
 
-        // OgsFx
+#ifdef MATERIALX_BUILD_GEN_OGSFX
         {
             mx::ShaderGeneratorPtr shadergen = mx::OgsFxShaderGenerator::create();
             shadergen->registerSourceCodeSearchPath(searchPath);
@@ -1696,8 +1430,9 @@ TEST_CASE("Noise", "[shadergen]")
             file << shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE);
             file.close();
         }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 
-        // Glsl
+#ifdef MATERIALX_BUILD_GEN_GLSL
         {
             mx::ShaderGeneratorPtr shadergen = mx::GlslShaderGenerator::create();
             shadergen->registerSourceCodeSearchPath(searchPath);
@@ -1705,8 +1440,8 @@ TEST_CASE("Noise", "[shadergen]")
             // Test shader generation from nodegraph
             mx::ShaderPtr shader = shadergen->generate(shaderName, output1, options);
             REQUIRE(shader != nullptr);
-            REQUIRE(shader->getSourceCode(mx::OgsFxShader::VERTEX_STAGE).length() > 0);
-            REQUIRE(shader->getSourceCode(mx::OgsFxShader::PIXEL_STAGE).length() > 0);
+            REQUIRE(shader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
+            REQUIRE(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
             // Write out to file for inspection
             // TODO: Use validation in MaterialXView library
             std::ofstream file;
@@ -1717,6 +1452,7 @@ TEST_CASE("Noise", "[shadergen]")
             file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
             file.close();
         }
+#endif // MATERIALX_BUILD_GEN_GLSL
     }
 }
 
@@ -1744,7 +1480,7 @@ TEST_CASE("Unique Names", "[shadergen]")
 
     mx::SgOptions options;
 
-    // Arnold
+#ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::ArnoldShaderGenerator::create();
         // Add path to find all source code snippets
@@ -1778,8 +1514,9 @@ TEST_CASE("Unique Names", "[shadergen]")
         validateOSL(fileName, errorResult);
         REQUIRE(errorResult.size() == 0);
     }
+#endif // MATERIALX_BUILD_GEN_OSL
 
-    // OgsFx
+#ifdef MATERIALX_BUILD_GEN_OGSFX
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::OgsFxShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -1803,8 +1540,9 @@ TEST_CASE("Unique Names", "[shadergen]")
         file.open(exampleName + ".ogsfx");
         file << shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE);
     }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 
-    // Glsl
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -1832,6 +1570,7 @@ TEST_CASE("Unique Names", "[shadergen]")
         file.open(exampleName + ".vert");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 }
 
 TEST_CASE("Subgraphs", "[shadergen]")
@@ -1848,7 +1587,7 @@ TEST_CASE("Subgraphs", "[shadergen]")
 
     mx::SgOptions options;
 
-    // Arnold
+#ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::ArnoldShaderGenerator::create();
         // Add path to find all source code snippets
@@ -1882,8 +1621,9 @@ TEST_CASE("Subgraphs", "[shadergen]")
             REQUIRE(errorResult.size() == 0); 
         }
     }
+#endif // MATERIALX_BUILD_GEN_OSL
 
-    // OgsFx
+#ifdef MATERIALX_BUILD_GEN_OGSFX
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::OgsFxShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -1911,8 +1651,9 @@ TEST_CASE("Subgraphs", "[shadergen]")
             file << shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE);
         }
     }
+#endif // MATERIALX_BUILD_OGSX
 
-    // Glsl
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -1945,6 +1686,7 @@ TEST_CASE("Subgraphs", "[shadergen]")
             file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
         }
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 }
 
 TEST_CASE("Materials", "[shadergen]")
@@ -1954,12 +1696,15 @@ TEST_CASE("Materials", "[shadergen]")
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
     loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, doc);
 
-    std::vector<mx::MaterialPtr> materials;
-    createExampleMaterials(doc, materials);
+    mx::FilePath materialsFile = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/sxpbrlib/materials/surfaceshader.mtlx");
+    mx::readFromXmlFile(doc, materialsFile.asString());
+
+    // Get all materials
+    std::vector<mx::MaterialPtr> materials = doc->getMaterials();
 
     mx::SgOptions options;
 
-    // Arnold
+#ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::ArnoldShaderGenerator::create();
         // Add path to find all source code snippets
@@ -1967,7 +1712,7 @@ TEST_CASE("Materials", "[shadergen]")
         // Add path to find OSL include files
         shaderGenerator->registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
 
-        for (const mx::MaterialPtr& material : materials)
+        for (const mx::MaterialPtr& material : doc->getMaterials())
         {
             for (mx::ShaderRefPtr shaderRef : material->getShaderRefs())
             {
@@ -1990,8 +1735,9 @@ TEST_CASE("Materials", "[shadergen]")
             }
         }
     }
+#endif // MATERIALX_BUILD_GEN_OSL
 
-    // OgsFx
+#ifdef MATERIALX_BUILD_GEN_OGSFX
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::OgsFxShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -2017,8 +1763,9 @@ TEST_CASE("Materials", "[shadergen]")
             }
         }
     }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 
-    // Glsl
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -2048,6 +1795,7 @@ TEST_CASE("Materials", "[shadergen]")
             }
         }
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 }
 
 TEST_CASE("Color Spaces", "[shadergen]")
@@ -2082,7 +1830,7 @@ TEST_CASE("Color Spaces", "[shadergen]")
 
     mx::SgOptions options;
 
-    // Arnold
+#ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::ArnoldShaderGenerator::create();
         // Add path to find all source code snippets
@@ -2106,8 +1854,9 @@ TEST_CASE("Color Spaces", "[shadergen]")
         validateOSL(fileName, errorResult);
         REQUIRE(errorResult.size() == 0);
     }
+#endif // MATERIALX_BUILD_GEN_OSL
 
-    // OgsFx
+#ifdef MATERIALX_BUILD_GEN_OGSFX
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::OgsFxShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -2122,8 +1871,9 @@ TEST_CASE("Color Spaces", "[shadergen]")
         file.open(shader->getName() + ".ogsfx");
         file << shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE);
     }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 
-    // Glsl
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -2142,8 +1892,8 @@ TEST_CASE("Color Spaces", "[shadergen]")
         file.open(shader->getName() + ".vert");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 }
-
 
 TEST_CASE("BSDF Layering", "[shadergen]")
 {
@@ -2160,20 +1910,20 @@ TEST_CASE("BSDF Layering", "[shadergen]")
     nodeDef->addInput("sss_color", "color3");
     nodeDef->addInput("sss_weight", "float");
     nodeDef->addInput("coating_color", "color3");
-    nodeDef->addInput("coating_roughness", "float");
+    nodeDef->addInput("coating_roughness", "vector2");
     nodeDef->addInput("coating_ior", "float");
 
     mx::NodeGraphPtr nodeGraph = doc->addNodeGraph("IMP_" + exampleName);
     nodeGraph->setAttribute("nodedef", nodeDef->getName());
 
     // Diffuse component
-    mx::NodePtr diffuse = nodeGraph->addNode("diffusebsdf", "diffuse", "BSDF");
-    mx::InputPtr diffuse_color = diffuse->addInput("reflectance", "color3");
+    mx::NodePtr diffuse = nodeGraph->addNode("diffusebrdf", "diffuse", "BSDF");
+    mx::InputPtr diffuse_color = diffuse->addInput("color", "color3");
     diffuse_color->setInterfaceName("diffuse_color");
 
     // Translucent (thin walled SSS) component
-    mx::NodePtr sss = nodeGraph->addNode("translucentbsdf", "sss", "BSDF");
-    mx::InputPtr sss_color = sss->addInput("transmittance", "color3");
+    mx::NodePtr sss = nodeGraph->addNode("diffusebtdf", "sss", "BSDF");
+    mx::InputPtr sss_color = sss->addInput("color", "color3");
     sss_color->setInterfaceName("sss_color");
 
     // Mix diffuse over sss
@@ -2186,12 +1936,12 @@ TEST_CASE("BSDF Layering", "[shadergen]")
     sss_weight->setInterfaceName("sss_weight");
 
     // Add a coating specular component on top
-    mx::NodePtr coating = nodeGraph->addNode("coatingbsdf", "coating", "BSDF");
+    mx::NodePtr coating = nodeGraph->addNode("dielectricbrdf", "coating", "BSDF");
     coating->setConnectedNode("base", substrate);
-    mx::InputPtr coating_color = coating->addInput("reflectance", "color3");
+    mx::InputPtr coating_color = coating->addInput("color", "color3");
     coating_color->setInterfaceName("coating_color");
 
-    mx::InputPtr coating_roughness = coating->addInput("roughness", "float");
+    mx::InputPtr coating_roughness = coating->addInput("roughness", "vector2");
     coating_roughness->setInterfaceName("coating_roughness");
     mx::InputPtr coating_ior = coating->addInput("ior", "float");
     coating_ior->setInterfaceName("coating_ior");
@@ -2201,12 +1951,12 @@ TEST_CASE("BSDF Layering", "[shadergen]")
     surface->setConnectedNode("bsdf", coating);
 
     // Connect to graph output
-    mx::OutputPtr output = nodeGraph->addOutput("out", "surfaceshader");
+    mx::OutputPtr output = nodeGraph->addOutput("output", "surfaceshader");
     output->setConnectedNode(surface);
 
     // Create a material with the above node as the shader
     mx::MaterialPtr mtrl = doc->addMaterial(exampleName + "_material");
-    mx::ShaderRefPtr shaderRef = mtrl->addShaderRef(exampleName + "_shader", exampleName);
+    mx::ShaderRefPtr shaderRef = mtrl->addShaderRef("shaderref", exampleName);
 
     // Bind shader parameter values
     mx::BindInputPtr diffuse_color_input = shaderRef->addBindInput("diffuse_color", "color3");
@@ -2218,80 +1968,90 @@ TEST_CASE("BSDF Layering", "[shadergen]")
     mx::BindInputPtr coating_color_input = shaderRef->addBindInput("coating_color", "color3");
     coating_color_input->setValue(mx::Color3(1.0f, 1.0f, 1.0f));
     mx::BindInputPtr coating_roughness_input = shaderRef->addBindInput("coating_roughness", "float");
-    coating_roughness_input->setValue(0.2f);
+    coating_roughness_input->setValue(mx::Vector2(0.2f, 0.2f));
     mx::BindInputPtr coating_ior_input = shaderRef->addBindInput("coating_ior", "float");
     coating_ior_input->setValue(1.52f);
 
     mx::SgOptions options;
 
-    // Arnold
+    // Test generation from both graph ouput and shaderref
+    std::vector<mx::ElementPtr> elements = { output, shaderRef };
+    for (mx::ElementPtr elem : elements)
     {
-        mx::ShaderGeneratorPtr shaderGenerator = mx::ArnoldShaderGenerator::create();
-        // Add path to find all source code snippets
-        shaderGenerator->registerSourceCodeSearchPath(searchPath);
-        // Add path to find OSL include files
-        shaderGenerator->registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
+        const std::string shaderName = exampleName + "_" + elem->getName();
 
-        mx::ShaderPtr shader = shaderGenerator->generate(exampleName, shaderRef, options);
-        REQUIRE(shader != nullptr);
-        REQUIRE(shader->getSourceCode().length() > 0);
+#ifdef MATERIALX_BUILD_GEN_OSL
+        {
+            mx::ShaderGeneratorPtr shaderGenerator = mx::ArnoldShaderGenerator::create();
+            // Add path to find all source code snippets
+            shaderGenerator->registerSourceCodeSearchPath(searchPath);
+            // Add path to find OSL include files
+            shaderGenerator->registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
 
-        // Write out to file for inspection
-        // TODO: Use validation in MaterialXView library
-        std::ofstream file;
-        const std::string fileName(shader->getName() + ".osl");
-        file.open(fileName);
-        file << shader->getSourceCode();
-        file.close();
+            mx::ShaderPtr shader = shaderGenerator->generate(shaderName, elem, options);
+            REQUIRE(shader != nullptr);
+            REQUIRE(shader->getSourceCode().length() > 0);
 
-        // TODO: Use validation in MaterialXView library
-        std::string errorResult;
-        validateOSL(fileName, errorResult);
-        REQUIRE(errorResult.size() == 0);
-    }
+            // Write out to file for inspection
+            // TODO: Use validation in MaterialXView library
+            std::ofstream file;
+            const std::string fileName(shader->getName() + ".osl");
+            file.open(fileName);
+            file << shader->getSourceCode();
+            file.close();
 
-    // OgsFx
-    {
-        mx::ShaderGeneratorPtr shaderGenerator = mx::OgsFxShaderGenerator::create();
-        shaderGenerator->registerSourceCodeSearchPath(searchPath);
+            // TODO: Use validation in MaterialXView library
+            std::string errorResult;
+            validateOSL(fileName, errorResult);
+            REQUIRE(errorResult.size() == 0);
+        }
+#endif // MATERIALX_BUILD_GEN_OSL
 
-        // Setup lighting
-        mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator));
+#ifdef MATERIALX_BUILD_GEN_OGSFX
+        {
+            mx::ShaderGeneratorPtr shaderGenerator = mx::OgsFxShaderGenerator::create();
+            shaderGenerator->registerSourceCodeSearchPath(searchPath);
 
-        mx::ShaderPtr shader = shaderGenerator->generate(exampleName, shaderRef, options);
-        REQUIRE(shader != nullptr);
-        REQUIRE(shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE).length() > 0);
+            // Setup lighting
+            mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
+            createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator));
 
-        // Write out to file for inspection
-        // TODO: Use validation in MaterialXView library
-        std::ofstream file;
-        file.open(shader->getName() + ".ogsfx");
-        file << shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE);
-    }
+            mx::ShaderPtr shader = shaderGenerator->generate(shaderName, elem, options);
+            REQUIRE(shader != nullptr);
+            REQUIRE(shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE).length() > 0);
 
-    // Glsl
-    {
-        mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
-        shaderGenerator->registerSourceCodeSearchPath(searchPath);
+            // Write out to file for inspection
+            // TODO: Use validation in MaterialXView library
+            std::ofstream file;
+            file.open(shader->getName() + ".ogsfx");
+            file << shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE);
+        }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 
-        // Setup lighting
-        mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator));
+#ifdef MATERIALX_BUILD_GEN_GLSL
+        {
+            mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
+            shaderGenerator->registerSourceCodeSearchPath(searchPath);
 
-        mx::ShaderPtr shader = shaderGenerator->generate(exampleName, shaderRef, options);
-        REQUIRE(shader != nullptr);
-        REQUIRE(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
-        REQUIRE(shader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
+            // Setup lighting
+            mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
+            createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator));
 
-        // Write out to file for inspection
-        // TODO: Use validation in MaterialXView library
-        std::ofstream file;
-        file.open(shader->getName() + ".frag");
-        file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
-        file.close();
-        file.open(shader->getName() + ".vert");
-        file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+            mx::ShaderPtr shader = shaderGenerator->generate(shaderName, elem, options);
+            REQUIRE(shader != nullptr);
+            REQUIRE(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
+            REQUIRE(shader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
+
+            // Write out to file for inspection
+            // TODO: Use validation in MaterialXView library
+            std::ofstream file;
+            file.open(shader->getName() + ".frag");
+            file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+            file.close();
+            file.open(shader->getName() + ".vert");
+            file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+        }
+#endif // MATERIALX_BUILD_GEN_GLSL
     }
 }
 
@@ -2306,35 +2066,31 @@ TEST_CASE("Transparency", "[shadergen]")
 
     // Create a nodedef interface for the surface shader
     mx::NodeDefPtr nodeDef = doc->addNodeDef("ND_" + exampleName, "surfaceshader", exampleName);
-    nodeDef->addInput("transmittance", "color3");
+    nodeDef->addInput("transmission", "float");
     nodeDef->addInput("coating_color", "color3");
-    nodeDef->addInput("roughness", "float");
+    nodeDef->addInput("roughness", "vector2");
     nodeDef->addInput("ior", "float");
     nodeDef->addInput("opacity", "float");
 
     mx::NodeGraphPtr nodeGraph = doc->addNodeGraph("IMP_" + exampleName);
     nodeGraph->setAttribute("nodedef", nodeDef->getName());
 
-    mx::NodePtr refraction = nodeGraph->addNode("refractionbsdf", "refraction", "BSDF");
-    mx::InputPtr transmittance = refraction->addInput("transmittance", "color3");
-    transmittance->setInterfaceName("transmittance");
+    mx::NodePtr transmission = nodeGraph->addNode("dielectricbtdf", "transmission", "BSDF");
+    mx::InputPtr transmission_weight = transmission->addInput("weight", "float");
+    transmission_weight->setInterfaceName("transmission");
+    mx::InputPtr transmission_roughness = transmission->addInput("roughness", "vector2");
+    transmission_roughness->setInterfaceName("roughness");
+    mx::InputPtr transmission_ior = transmission->addInput("ior", "float");
+    transmission_ior->setInterfaceName("ior");
 
-    mx::NodePtr coating = nodeGraph->addNode("coatingbsdf", "coating", "BSDF");
-    coating->setConnectedNode("base", refraction);
-    mx::InputPtr coating_color = coating->addInput("reflectance", "color3");
+    mx::NodePtr coating = nodeGraph->addNode("dielectricbrdf", "coating", "BSDF");
+    coating->setConnectedNode("base", transmission);
+    mx::InputPtr coating_color = coating->addInput("color", "color3");
     coating_color->setInterfaceName("coating_color");
-
-    mx::NodePtr ior_common = nodeGraph->addNode("constant", "ior_common", "float");
-    mx::ParameterPtr ior = ior_common->addParameter("value", "float");
-    ior->setInterfaceName("ior");
-    coating->setConnectedNode("ior", ior_common);
-    refraction->setConnectedNode("ior", ior_common);
-
-    mx::NodePtr roughness_common = nodeGraph->addNode("constant", "roughness_common", "float");
-    mx::ParameterPtr roughness = roughness_common->addParameter("value", "float");
-    roughness->setInterfaceName("roughness");
-    coating->setConnectedNode("roughness", roughness_common);
-    refraction->setConnectedNode("roughness", roughness_common);
+    mx::InputPtr coating_roughness = coating->addInput("roughness", "vector2");
+    coating_roughness->setInterfaceName("roughness");
+    mx::InputPtr coating_ior = coating->addInput("ior", "float");
+    coating_ior->setInterfaceName("ior");
 
     mx::NodePtr surface = nodeGraph->addNode("surface", "surface1", "surfaceshader");
     surface->setConnectedNode("bsdf", coating);
@@ -2349,12 +2105,12 @@ TEST_CASE("Transparency", "[shadergen]")
     mx::ShaderRefPtr shaderRef = mtrl->addShaderRef(exampleName + "_shader", exampleName);
 
     // Bind shader parameter values
-    mx::BindInputPtr transmittance_input = shaderRef->addBindInput("transmittance", "color3");
-    transmittance_input->setValue(mx::Color3(0.0f, 0.0f, 0.0f));
+    mx::BindInputPtr transmission_input = shaderRef->addBindInput("transmission", "float");
+    transmission_input->setValue(0.0f);
     mx::BindInputPtr coating_color_input = shaderRef->addBindInput("coating_color", "color3");
     coating_color_input->setValue(mx::Color3(1.0f, 1.0f, 1.0f));
-    mx::BindInputPtr roughness_input = shaderRef->addBindInput("roughness", "float");
-    roughness_input->setValue(0.2f);
+    mx::BindInputPtr roughness_input = shaderRef->addBindInput("roughness", "vector2");
+    roughness_input->setValue(mx::Vector2(0.1f, 0.1f));
     mx::BindInputPtr ior_input = shaderRef->addBindInput("ior", "float");
     ior_input->setValue(1.52f);
     mx::BindInputPtr opacity_input = shaderRef->addBindInput("opacity", "float");
@@ -2362,7 +2118,7 @@ TEST_CASE("Transparency", "[shadergen]")
 
     mx::SgOptions options;
 
-    // Arnold
+#ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::ArnoldShaderGenerator::create();
         // Add path to find all source code snippets
@@ -2387,8 +2143,9 @@ TEST_CASE("Transparency", "[shadergen]")
         validateOSL(fileName, errorResult);
         REQUIRE(errorResult.size() == 0);
     }
+#endif // MATERIALX_BUILD_GEN_OSL
 
-    // OgsFx
+#ifdef MATERIALX_BUILD_GEN_OGSFX
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::OgsFxShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -2407,8 +2164,9 @@ TEST_CASE("Transparency", "[shadergen]")
         file.open(shader->getName() + ".ogsfx");
         file << shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE);
     }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 
-    // Glsl
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -2431,6 +2189,7 @@ TEST_CASE("Transparency", "[shadergen]")
         file.open(shader->getName() + ".vert");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 }
 
 TEST_CASE("Surface Layering", "[shadergen]")
@@ -2454,12 +2213,12 @@ TEST_CASE("Surface Layering", "[shadergen]")
     nodeGraph->setAttribute("nodedef", nodeDef->getName());
 
     // Create first surface layer from a surface with two BSDF's
-    mx::NodePtr layer1_diffuse = nodeGraph->addNode("diffusebsdf", "layer1_diffuse", "BSDF");
-    mx::InputPtr layer1_diffuse_color = layer1_diffuse->addInput("reflectance", "color3");
+    mx::NodePtr layer1_diffuse = nodeGraph->addNode("diffusebrdf", "layer1_diffuse", "BSDF");
+    mx::InputPtr layer1_diffuse_color = layer1_diffuse->addInput("color", "color3");
     layer1_diffuse_color->setInterfaceName("layer1_diffuse");
-    mx::NodePtr layer1_specular = nodeGraph->addNode("coatingbsdf", "layer1_specular", "BSDF");
+    mx::NodePtr layer1_specular = nodeGraph->addNode("dielectricbrdf", "layer1_specular", "BSDF");
     layer1_specular->setConnectedNode("base", layer1_diffuse);
-    mx::InputPtr layer1_specular_color = layer1_specular->addInput("reflectance", "color3");
+    mx::InputPtr layer1_specular_color = layer1_specular->addInput("tint", "color3");
     layer1_specular_color->setInterfaceName("layer1_specular");
     mx::NodePtr layer1 = nodeGraph->addNode("surface", "layer1", "surfaceshader");
     layer1->setConnectedNode("bsdf", layer1_specular);
@@ -2472,9 +2231,9 @@ TEST_CASE("Surface Layering", "[shadergen]")
     layer2_specular_color->setInterfaceName("layer2_specular");
 
     // Create layer mixer
-    mx::NodePtr mixer = nodeGraph->addNode("layeredsurface", "mixer", "surfaceshader");
-    mixer->setConnectedNode("top", layer2);
-    mixer->setConnectedNode("base", layer1);
+    mx::NodePtr mixer = nodeGraph->addNode("mixsurface", "mixer", "surfaceshader");
+    mixer->setConnectedNode("in1", layer1);
+    mixer->setConnectedNode("in2", layer2);
     mx::InputPtr mix_weight = mixer->addInput("weight", "float");
     mix_weight->setInterfaceName("mix_weight");
 
@@ -2500,7 +2259,7 @@ TEST_CASE("Surface Layering", "[shadergen]")
 
     mx::SgOptions options;
 
-    // OgsFx
+#ifdef MATERIALX_BUILD_GEN_OGSFX
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::OgsFxShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -2519,8 +2278,9 @@ TEST_CASE("Surface Layering", "[shadergen]")
         file.open(shader->getName() + ".ogsfx");
         file << shader->getSourceCode(mx::OgsFxShader::FINAL_FX_STAGE);
     }
+#endif // MATERIALX_BUILD_GEN_OGSFX
 
-    // Glsl
+#ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
         shaderGenerator->registerSourceCodeSearchPath(searchPath);
@@ -2543,8 +2303,10 @@ TEST_CASE("Surface Layering", "[shadergen]")
         file.open(shader->getName() + ".vert");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
     }
+#endif // MATERIALX_BUILD_GEN_GLSL
 }
 
+#ifdef MATERIALX_BUILD_GEN_OSL
 TEST_CASE("Osl Output Types", "[shadergen]")
 {
     // OSL doesn't support having color2/color4 as shader output types.
@@ -2666,4 +2428,4 @@ TEST_CASE("Osl Output Types", "[shadergen]")
         REQUIRE(errorResult.size() == 0); 
     }
 }
-
+#endif // MATERIALX_BUILD_GEN_OSL
