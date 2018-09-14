@@ -9,14 +9,25 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <direct.h>
 #include <fcntl.h>
 #else
 #include <dirent.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #endif
 
 namespace MaterialX
 {
+
+void makeDirectory(const std::string& directoryPath)
+{
+#ifdef _WIN32
+    _mkdir(directoryPath.c_str());
+#else
+    mkdir(directoryPath.c_str(), 0777);
+#endif
+}
 
 std::string removeExtension(const std::string& filename)
 {
@@ -25,7 +36,7 @@ std::string removeExtension(const std::string& filename)
     return filename.substr(0, lastDot);
 }
 
-void getSubDirectories(std::string& baseDirectory, StringVec& relativePaths)
+void getSubDirectories(const std::string& baseDirectory, StringVec& relativePaths)
 {
     relativePaths.push_back(baseDirectory);
 

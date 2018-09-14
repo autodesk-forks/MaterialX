@@ -21,12 +21,6 @@
 #include <MaterialXView/ShaderValidators/Glsl/GlslValidator.h>
 #include <MaterialXView/Handlers/TinyEXRImageHandler.h>
 
-#ifdef _WIN32
-#include <direct.h>
-#else
-#include <sys/stat.h>
-#endif
-
 #include <fstream>
 #include <iostream>
 #include <unordered_set>
@@ -324,22 +318,18 @@ static void runValidation(const std::string& shaderName, mx::ElementPtr element,
 
         std::string shaderPath;
         // Note: mkdir will fail if the directory already exists which is ok.
-#if defined(_WIN32)
-        _mkdir(outputPath.c_str());
-#else
-        mkdir(outputFolderPath.c_str(), 0777);
-#endif
+        mx::makeDirectory(outputPath);
         shaderPath = mx::FilePath(outputPath) / mx::FilePath(shaderName);
 
-        mx::HwShaderPtr hwShader = std::static_pointer_cast<mx::HwShader>(shaderGenerator.generate(shaderName, element, options));
-        CHECK(hwShader != nullptr);
-        if (hwShader == nullptr)
+        mx::ShaderPtr shader = shaderGenerator.generate(shaderName, element, options);
+        CHECK(shader != nullptr);
+        if (shader == nullptr)
         {
-            log << ">> Failed to generate HwShader\n";
+            log << ">> Failed to generate shader\n";
             return;
         }
-        CHECK(hwShader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
-        CHECK(hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
+        CHECK(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
+        CHECK(shader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
 
         if (outputMtlxDoc)
         {
@@ -348,10 +338,10 @@ static void runValidation(const std::string& shaderName, mx::ElementPtr element,
 
         std::ofstream file;
         file.open(shaderPath + ".vert");
-        file << hwShader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+        file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
         file.close();
         file.open(shaderPath + ".frag");
-        file << hwShader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+        file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
 
         // Validate
@@ -359,7 +349,7 @@ static void runValidation(const std::string& shaderName, mx::ElementPtr element,
         bool validated = false;
         try
         {
-            validator.validateCreation(hwShader);
+            validator.validateCreation(shader);
             validator.validateInputs();
 
             program->printUniforms(log);
