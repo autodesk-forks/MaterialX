@@ -97,58 +97,58 @@ Basic ramp unit test :
 
    <!-- Four-corner tests -->
    <output name="fc_ramp4_output" type="color4" nodename="fc_ramp4" />
-   <ramp name="fc_ramp4" type="color4">
+   <ramp4 name="fc_ramp4" type="color4">
       <parameter name="valuetl" type="color4" value="1.0, 0.0, 0.0, 0.5"/>
       <parameter name="valuetr" type="color4" value="0.0, 1.0, 0.0, 0.5"/>
       <parameter name="valuebr" type="color4" value="0.0, 0.0, 1.0, 0.5"/>
       <parameter name="valuebl" type="color4" value="1.0, 1.0, 0.0, 0.5"/>
-   </ramp>
+   </ramp4>
 
    <output name="fc_ramp3_output" type="color3" nodename="fc_ramp3" />
-   <ramp name="fc_ramp3" type="color3">
+   <ramp4 name="fc_ramp3" type="color3">
       <parameter name="valuetl" type="color3" value="1.0, 0.0, 0.0"/>
       <parameter name="valuetr" type="color3" value="0.0, 1.0, 0.0"/>
       <parameter name="valuebr" type="color3" value="0.0, 0.0, 1.0"/>
       <parameter name="valuebl" type="color3" value="1.0, 1.0, 0.0"/>
-   </ramp>
+   </ramp4>
 
    <output name="fc_ramp2_output" type="color2" nodename="fc_ramp2" />
-   <ramp name="fc_ramp2" type="color2">
+   <ramp4 name="fc_ramp2" type="color2">
       <parameter name="valuetl" type="color2" value="1.0, 0.0"/>
       <parameter name="valuetr" type="color2" value="1.0, 1.0"/>
       <parameter name="valuebr" type="color2" value="0.0, 1.0"/>
       <parameter name="valuebl" type="color2" value="0.0, 0.0"/>
-   </ramp>
+   </ramp4>
 
    <output name="fc_ramp1_output" type="float" nodename="fc_ramp1" />
-   <ramp name="fc_ramp1" type="float">
+   <ramp4 name="fc_ramp1" type="float">
       <parameter name="valuetl" type="float" value="1.0"/>
       <parameter name="valuetr" type="float" value="0.5"/>
       <parameter name="valuebr" type="float" value="0.0"/>
       <parameter name="valuebl" type="float" value="0.25"/>
-   </ramp>
+   </ramp4>
 
    <output name="fc_ramp4v_output" type="vector4" nodename="fc_ramp4v" />
-   <ramp name="fc_ramp4v" type="vector4">
+   <ramp4 name="fc_ramp4v" type="vector4">
       <parameter name="valuetl" type="vector4" value="1.0, 0.0, 0.0, 0.5"/>
       <parameter name="valuetr" type="vector4" value="0.0, 1.0, 0.0, 0.5"/>
       <parameter name="valuebr" type="vector4" value="0.0, 0.0, 1.0, 0.5"/>
       <parameter name="valuebl" type="vector4" value="1.0, 1.0, 0.0, 0.5"/>
-   </ramp>
+   </ramp4>
 
    <output name="fc_ramp3v_output" type="vector3" nodename="fc_ramp3v" />
-   <ramp name="fc_ramp3v" type="vector3">
+   <ramp4 name="fc_ramp3v" type="vector3">
       <parameter name="valuetl" type="vector3" value="1.0, 0.0, 0.0"/>
       <parameter name="valuetr" type="vector3" value="0.0, 1.0, 0.0"/>
       <parameter name="valuebr" type="vector3" value="0.0, 0.0, 1.0"/>
       <parameter name="valuebl" type="vector3" value="1.0, 1.0, 0.0"/>
-   </ramp>
+   </ramp4>
 
    <output name="fc_ramp2v_output" type="vector2" nodename="fc_ramp2v" />
-   <ramp name="fc_ramp2v" type="vector2">
+   <ramp4 name="fc_ramp2v" type="vector2">
       <parameter name="valuetl" type="vector2" value="1.0, 0.0"/>
       <parameter name="valuetr" type="vector2" value="1.0, 1.0"/>
       <parameter name="valuebr" type="vector2" value="0.0, 1.0"/>
       <parameter name="valuebl" type="vector2" value="0.0, 0.0"/>
-   </ramp>
+   </ramp4>
 </materialx>
