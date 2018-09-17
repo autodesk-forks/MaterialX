@@ -1,5 +1,10 @@
 void mx_fractal3d_color4(vector4 amplitude, int octaves, float lacunarity, float diminish, vector position, output color4 result)
 {
     color4 f = fBm(position, octaves, lacunarity, diminish, "snoise");
-    result = f * color4_pack(amplitude.x, amplitude.y, amplitude.z, amplitude.w);
+    color4 amplitudeC;
+    amplitudeC.rgb[0] = amplitude.x;
+    amplitudeC.rgb[1] = amplitude.y;
+    amplitudeC.rgb[2] = amplitude.z;
+    amplitudeC.a = amplitude.w;
+    result = f * amplitudeC;
 }
