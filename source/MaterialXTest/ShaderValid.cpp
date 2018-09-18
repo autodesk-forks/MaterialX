@@ -440,6 +440,7 @@ static void runOSLValidation(const std::string& shaderName, mx::ElementPtr eleme
         bool validated = false;
         try
         {
+            validator.setOslOutputFilePath(shaderPath);
             validator.validateCreation(shader);
             // TODO: Call additional validation routines here when they are available
             validated = true;
