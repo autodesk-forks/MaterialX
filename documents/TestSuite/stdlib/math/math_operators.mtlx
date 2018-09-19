@@ -289,7 +289,7 @@ Basic math operator function tests each test is in a separate graph for each var
     </divide>
     <output name="out" type="float" nodename="divide1" />
   </nodegraph>
-  <nodegraph name="divide_color2" type="" xpos="6.05233" ypos="27.4025" adskDisplayMode="1">
+  <nodegraph name="divide_color2" type="" xpos="6.05233" ypos="27.3882" adskDisplayMode="1">
     <divide name="divide1" type="color2" xpos="5.74483" ypos="4.58" adskDisplayMode="2">
       <input name="in1" type="color2" value="1.0000, 1.0" />
       <input name="in2" type="color2" value="2.0000, 4.0000" />
@@ -304,14 +304,14 @@ Basic math operator function tests each test is in a separate graph for each var
     <output name="out" type="color2" nodename="divide1" />
   </nodegraph>
   <nodegraph name="divide_color3" type="" xpos="8.07294" ypos="27.352" adskDisplayMode="1">
-    <divide name="divide1" type="color3" xpos="5.74483" ypos="4.58" adskDisplayMode="2">
+    <divide name="divide1" type="color3" xpos="5" ypos="10.08" adskDisplayMode="2">
       <input name="in1" type="color3" value="1.0000, 1.0000, 0.0" />
       <input name="in2" type="color3" value="2.0000, 4.0000, 1.0000" />
     </divide>
     <output name="out" type="color3" nodename="divide1" />
   </nodegraph>
   <nodegraph name="divide_color3FA" type="" xpos="6.02446" ypos="28.5643" adskDisplayMode="1">
-    <divide name="divide1" type="color3" xpos="5.74483" ypos="4.58" adskDisplayMode="2">
+    <divide name="divide1" type="color3" xpos="5" ypos="10.08" adskDisplayMode="2">
       <input name="in1" type="color3" value="2.0000, 1.0000, 0.0" />
       <input name="in2" type="float" value="4.0000" />
     </divide>
@@ -319,15 +319,17 @@ Basic math operator function tests each test is in a separate graph for each var
   </nodegraph>
   <nodegraph name="divide_color4" type="" xpos="7.03825" ypos="28.5584" adskDisplayMode="1">
     <divide name="divide1" type="color4" xpos="5.74483" ypos="4.58" adskDisplayMode="2">
-      <input name="in1" type="color4" value="0.0, 0.0, 0.0, 1.0" />
-      <input name="in2" type="color4" value="0.0, 0.0, 0.0, 1.0" />
+      <input name="in1" type="color4" value="1.0000, 1.0000, 0.0, 1.0" />
+      <input name="in2" type="color4" value="2.0000, 4.0000, 1.0000, 1.0" />
     </divide>
+    <output name="out" type="color4" nodename="divide1" />
   </nodegraph>
   <nodegraph name="divide_color4FA" type="" xpos="8.07643" ypos="28.449" adskDisplayMode="1">
     <divide name="divide1" type="color4" xpos="5.74483" ypos="4.58" adskDisplayMode="2">
-      <input name="in1" type="color4" value="0.0, 0.0, 0.0, 1.0" />
-      <input name="in2" type="float" value="0.0" />
+      <input name="in1" type="color4" value="2.0000, 1.0000, 0.0, 4.0000" />
+      <input name="in2" type="float" value="4.0000" />
     </divide>
+    <output name="out" type="color4" nodename="divide1" />
   </nodegraph>
   <nodegraph name="divide_vector2" type="" xpos="6.04564" ypos="29.7265" adskDisplayMode="1">
     <divide name="divide1" type="vector2" xpos="5.74483" ypos="4.58" adskDisplayMode="2">
@@ -352,20 +354,23 @@ Basic math operator function tests each test is in a separate graph for each var
   </nodegraph>
   <nodegraph name="divide_vector3FA" type="" xpos="6.0279" ypos="30.9553" adskDisplayMode="1">
     <divide name="divide1" type="vector3" xpos="5.74483" ypos="4.58" adskDisplayMode="2">
-      <input name="in1" type="vector3" value="0.0, 0.0, 0.0" />
-      <input name="in2" type="float" value="0.0" />
+      <input name="in1" type="vector3" value="2.0000, 1.0000, 0.0" />
+      <input name="in2" type="float" value="4.0000" />
     </divide>
+    <output name="out" type="vector3" nodename="divide1" />
   </nodegraph>
   <nodegraph name="divide_vector4" type="" xpos="7.04777" ypos="30.9124" adskDisplayMode="1">
     <divide name="divide1" type="vector4" xpos="5.74483" ypos="4.58" adskDisplayMode="2">
-      <input name="in1" type="vector4" value="0.0, 0.0, 0.0, 1.0" />
-      <input name="in2" type="vector4" value="0.0, 0.0, 0.0, 1.0" />
+      <input name="in1" type="vector4" value="1.0000, 1.0000, 0.0, 1.0" />
+      <input name="in2" type="vector4" value="2.0000, 4.0000, 1.0000, 1.0" />
     </divide>
+    <output name="out" type="vector4" nodename="divide1" />
   </nodegraph>
   <nodegraph name="divide_vector4FA" type="" xpos="8.09505" ypos="30.8691" adskDisplayMode="1">
     <divide name="divide1" type="vector4" xpos="5.74483" ypos="4.58" adskDisplayMode="2">
-      <input name="in1" type="vector4" value="0.0, 0.0, 0.0, 1.0" />
-      <input name="in2" type="float" value="0.0" />
+      <input name="in1" type="vector4" value="2.0000, 1.0000, 0.0, 4.0000" />
+      <input name="in2" type="float" value="4.0000" />
     </divide>
+    <output name="out" type="vector4" nodename="divide1" />
   </nodegraph>
 </materialx>
