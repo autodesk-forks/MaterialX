@@ -37,8 +37,9 @@ void OslValidator::compileOSL(const std::string& oslFileName)
         return;
     }
 
-    // Add .oso extension for output. 
-    std::string outputFileName(oslFileName + ".oso");
+    // Remove .osl and add .oso extension for output. 
+    std::string outputFileName = removeExtension(oslFileName);
+    outputFileName += ".oso";
 
     // Use a known error file name to check
     std::string errorFile(oslFileName + "_errors.txt");
