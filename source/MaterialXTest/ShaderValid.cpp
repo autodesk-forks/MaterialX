@@ -465,23 +465,37 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
         try
         {
             validator.setOslOutputFilePath(shaderPath);
-            validator.validateCreation(shader); 
 
+            // Validate compilation
+            validator.validateCreation(shader);
+
+            bool isShader = element->isA<mx::ShaderRef>();
+
+            // TODO: When testrender validation is available
+            // we can choose to use that for shaders.
+            // Both paths are the same until then
+            if (isShader)
+            {
+                validator.useTestRender(false);
+            }
+            else
+            {
+                validator.useTestRender(false);
+            }
+
+            // Set shader output name to use
+            //
             mx::string outputName = element->getName();
-            if (element->isA<mx::ShaderRef>())
+            if (isShader)
             {
                 // TODO: Assume name is "out". This is the default value.
+                // We require shader generation to provide us an output name
+                // to the actual name.
                 outputName = "out";
             }
-#if 0
-            std::string testShadeString("D:/Work/materialx/osl_from_max/OSL_runnable/bin/Release/testshade -v");
-            testShadeString += " " + shaderPath;
-            testShadeString += " -o " + outputName + " " + shaderPath + ".png";
-            testShadeString += " -g 256 256";
-
-            std::cout << "Test shade string: " << testShadeString << std::endl;
-#endif
             validator.setOslShaderOutputName(outputName);
+
+            // Validate rendering
             validator.validateRender();
 
             // TODO: Call additional validation routines here when they are available
