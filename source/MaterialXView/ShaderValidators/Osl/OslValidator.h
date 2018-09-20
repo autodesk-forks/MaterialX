@@ -20,7 +20,7 @@ using OslValidatorPtr = std::shared_ptr<class OslValidator>;
 ///     - Source code validation: Use of oslc to compile and test output results
 ///     - Introspection check: None at this time.
 ///     - Binding: None at this time.
-///     - Render validation: Use of testshade to output rendered images. Assumes source compliation was success
+///     - Render validation: Use of "testshade" to output rendered images. Assumes source compliation was success
 ///       as it depends on the existence of corresponding .oso files.
 ///
 class OslValidator : public ShaderValidator
@@ -67,8 +67,8 @@ class OslValidator : public ShaderValidator
     void validateInputs() override;
 
     /// Validate that an appropriate rendered result is produced.
-    /// This is done by using either testshade or testrender.
-    /// Currently only testshade is supported.
+    /// This is done by using either "testshade" or "testrender".
+    /// Currently only "testshade" is supported.
     ///
     /// Usage of both executables requires compiled source (.oso) files as input.
     /// A shader output must be set before running this test via the setOslOutputName() method to
@@ -115,11 +115,27 @@ class OslValidator : public ShaderValidator
     }
 
     /// Set the OSL shader output name. 
-    /// This is used during render validation if testshade is executed.
+    /// This is used during render validation if "testshade" is executed.
     /// @param outputName Name of shader output
     void setOslShaderOutputName(const std::string outputName)
     {
         _oslShaderOutputName = outputName;
+    }
+
+    /// Set the OSL shading tester path string. Note that it is assumed that this
+    /// references the location of the "testshade" executable.
+    /// @param executable Full path to OSL "testshade" executable
+    void setOslTestShadeExecutable(const std::string executable)
+    {
+        _oslTestShadeExecutable = executable;
+    }
+
+    /// Set the OSL rendering tester path string. Note that it is assumed that this
+    /// references the location of the "testrender" executable.
+    /// @param executable Full path to OSL "testrender" executable
+    void setOslTestRenderExecutable(const std::string executable)
+    {
+        _oslTestRenderExecutable = executable;
     }
 
     /// Used to toggle to either use testrender or testshade during render validation
@@ -148,15 +164,20 @@ class OslValidator : public ShaderValidator
     OslValidator();
 
   private:
-    /// Compiler executable name
+    /// "oslc" executable name
     std::string _oslCompilerExecutable;
     /// OSL include path name
     std::string _oslIncludePathString;
     /// Output file path. File name does not include an extension
-    std::string _oslOutputFilePathString; 
-    /// Name of output on shader. Used for rendering with testshade
+    std::string _oslOutputFilePathString;
+
+    /// "testshade" executable name
+    std::string _oslTestShadeExecutable;
+    /// "testrender" executable name
+    std::string _oslTestRenderExecutable;
+    /// Name of output on shader. Used for rendering with "testshade"
     std::string _oslShaderOutputName;
-    /// Use testshade or testender for render validation
+    /// Use "testshade" or "testender" for render validation
     bool _useTestRender;
 };
 

@@ -28,12 +28,24 @@ OslValidator::~OslValidator()
 
 void OslValidator::initialize()
 {
+    ShaderValidationErrorList errors;
+    const std::string errorType("OSL initialization error.");
+    if (_oslIncludePathString.empty())
+    {
+        errors.push_back("OSL validation include path is empty.");
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
+    if (_oslTestShadeExecutable.empty() && _oslCompilerExecutable.empty())
+    {
+        errors.push_back("OSL validation executables not set.");
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
 }
 
 void OslValidator::shadeOSL(const std::string& shaderName, const std::string& outputName)
 {
     // If no command and include path specified then skip checking.
-    if (_oslCompilerExecutable.empty() || _oslIncludePathString.empty())
+    if (_oslTestShadeExecutable.empty() || _oslIncludePathString.empty())
     {
         return;
     }
@@ -45,7 +57,7 @@ void OslValidator::shadeOSL(const std::string& shaderName, const std::string& ou
     std::string errorFile(shaderName + "_render_errors.txt");
     const std::string redirectString(" 2>&1");
 
-    std::string command("D:/Work/materialx/osl_from_max/OSL_runnable/bin/Release/testshade");
+    std::string command(_oslTestShadeExecutable);
     command += " " + shaderName;
     command += " -o " + outputName + " " + outputFileName;
     command += " -g 256 256";
@@ -85,10 +97,6 @@ void OslValidator::shadeOSL(const std::string& shaderName, const std::string& ou
             errors.push_back(resultLine);
         }
         throw ExceptionShaderValidationError(errorType, errors);
-    }
-    else
-    {
-        std::cout << "> testshade success: " << command << std::endl;
     }
 }
 

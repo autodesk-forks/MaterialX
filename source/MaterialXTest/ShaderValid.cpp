@@ -308,9 +308,20 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
 {
     bool initialized = false;
     orthographicView = true;
+
     mx::OslValidatorPtr validator = mx::OslValidator::create();
+#ifdef MATERIALX_OSLC_EXECUTABLE
     validator->setOslCompilerExecutable(MATERIALX_OSLC_EXECUTABLE);
+#endif
+#ifdef MATERIALX_TESTSHADE_EXECUTABLE
+    validator->setOslTestShadeExecutable(MATERIALX_TESTSHADE_EXECUTABLE);
+#endif
+#ifdef MATERIALX_TESTRENDER_EXECUTABLE
+    validator->setOslTestRenderExecutable(MATERIALX_TESTRENDER_EXECUTABLE);
+#endif
+#ifdef MATERIALX_OSL_INCLUDE_PATH
     validator->setOslIncludePath(MATERIALX_OSL_INCLUDE_PATH);
+#endif
     mx::TinyEXRImageHandlerPtr imageHandler = mx::TinyEXRImageHandler::create();
     try
     {
