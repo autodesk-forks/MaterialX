@@ -457,7 +457,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             validator.validateCreation(shader); 
 
             mx::string outputName = element->getName();
-            if (element->getType() == "surfaceshader")
+            if (element->isA<mx::ShaderRef>())
             {
                 // TODO: Assume name is "out". This is the default value.
                 outputName = "out";
