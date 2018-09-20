@@ -65,7 +65,7 @@ void OslValidator::shadeOSL(const std::string& shaderName, const std::string& ou
 
     int returnValue = std::system(command.c_str());
 
-    // There is no "quite" mode for testshade so we must parse the lines
+    // There is no "silent" or "quiet" mode for testshade so we must parse the lines
     // to check if there were any error lines which are not the success line.
     // Note: This is currently hard-coded to a specific value. If testshade
     // modifies this then this hard-coded string must also be modified.
