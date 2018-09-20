@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <vector>
 
 namespace MaterialX
 {
@@ -72,7 +73,7 @@ void OslValidator::shadeOSL(const std::string& shaderName, const std::string& ou
     // The formatted string is "Output <outputName> to <outputFileName>".
     std::ifstream errorStream(errorFile);
     std::string result;
-    std::list<std::string> results;
+    std::vector<std::string> results;
     std::string line;
     std::string successfulOutputSubString("Output " + outputName + " to " + 
                                            outputFileName);
