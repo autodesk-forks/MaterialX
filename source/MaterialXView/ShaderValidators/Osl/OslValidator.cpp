@@ -77,7 +77,7 @@ void OslValidator::shadeOSL(const std::string& shaderName, const std::string& ou
     std::string line;
     std::string successfulOutputSubString("Output " + outputName + " to " + 
                                            outputFileName);
-    for (; std::getline(errorStream, line); )
+    while (std::getline(errorStream, line))
     {
         if (!line.empty() &&
             line.find(successfulOutputSubString) == std::string::npos)
