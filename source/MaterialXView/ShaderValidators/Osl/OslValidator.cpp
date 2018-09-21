@@ -62,7 +62,7 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     std::string outputFileName = shaderPath + ".testrender.png";
 
     // Use a known error file name to check
-    std::string errorFile(shaderName + "_render_errors.txt");
+    std::string errorFile(shaderPath + "_render_errors.txt");
     const std::string redirectString(" 2>&1");
 
     // Read in scene template and replace "%shader%" 
