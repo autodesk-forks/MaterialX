@@ -308,6 +308,7 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
 {
     bool initialized = false;
     orthographicView = true;
+    bool initializeTestRender = false;
 
     mx::OslValidatorPtr validator = mx::OslValidator::create();
 #ifdef MATERIALX_OSLC_EXECUTABLE
@@ -318,6 +319,7 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
 #endif
 #ifdef MATERIALX_TESTRENDER_EXECUTABLE
     validator->setOslTestRenderExecutable(MATERIALX_TESTRENDER_EXECUTABLE);
+    initializeTestRender = true;
 #endif
 #ifdef MATERIALX_OSL_INCLUDE_PATH
     validator->setOslIncludePath(MATERIALX_OSL_INCLUDE_PATH);
@@ -329,6 +331,21 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
         validator->setImageHandler(imageHandler);
         validator->setLightHandler(nullptr);
         initialized = true;
+
+        // Pre-compile some required shaders for testrender
+        if (initializeTestRender)
+        {
+            mx::FilePath shaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/util/");
+
+            mx::StringVec files;
+            const std::string OSL_EXTENSION("osl");
+            mx::getFilesInDirectory(shaderPath.asString(), files, OSL_EXTENSION);
+            for (std::string file : files)
+            {
+                validator->setOslOutputFilePath(shaderPath);
+                validator->compileOSL(file);
+            }
+        }
     }
     catch(mx::ExceptionShaderValidationError e)
     {
@@ -589,10 +606,11 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     std::string baseDirectory = path;
     mx::getSubDirectories(baseDirectory, dirs);
 
+    const std::string MTLX_EXTENSION("mtlx");
     for (auto dir : dirs)
     {
         mx::StringVec files;
-        mx::getDocumentsInDirectory(dir, files);
+        mx::getFilesInDirectory(dir, files, MTLX_EXTENSION);
         for (std::string file : files)
         {
             const mx::FilePath filePath = mx::FilePath(dir) / mx::FilePath(file);

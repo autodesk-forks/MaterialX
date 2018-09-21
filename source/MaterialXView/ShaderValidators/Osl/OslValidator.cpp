@@ -1,7 +1,6 @@
 #include <MaterialXView/ShaderValidators/Osl/OslValidator.h>
 #include <MaterialXView/Handlers/ObjGeometryHandler.h>
 #include <MaterialXGenShader/Util.h>
-//#include <MaterialXCore/Library.h>
 
 #include <fstream>
 #include <iostream>

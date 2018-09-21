@@ -166,14 +166,14 @@ class OslValidator : public ShaderValidator
         _useTestRender = useTestRender;
     }
 
-    /// @}
-
-  protected:
     ///
     /// Compile OSL code stored in a file. Will throw an exception if an error occurs.
     /// @param oslFileName Name of OSL file
     void compileOSL(const std::string& oslFileName);
 
+    /// @}
+
+  protected:
     ///
     /// Shade using OSO input file. Will throw an exception if an error occurs.
     /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist
