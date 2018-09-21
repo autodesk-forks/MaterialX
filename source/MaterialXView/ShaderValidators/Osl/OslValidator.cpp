@@ -255,7 +255,8 @@ void OslValidator::validateCreation(const std::vector<std::string>& stages)
     }
 
     // Dump string to disk. For OSL assume shader is in stage 0 slot.
-    FilePath filePath(_oslOutputFilePathString + _oslShaderName);
+    FilePath filePath(_oslOutputFilePathString);
+    filePath = filePath  / _oslShaderName;
     std::string fileName = filePath.asString();
     if (fileName.empty())
     {
