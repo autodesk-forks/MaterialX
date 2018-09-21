@@ -336,14 +336,15 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
         if (initializeTestRender)
         {
             mx::FilePath shaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/util/");
+            validator->setOslOutputFilePath(shaderPath);
 
             mx::StringVec files;
             const std::string OSL_EXTENSION("osl");
             mx::getFilesInDirectory(shaderPath.asString(), files, OSL_EXTENSION);
             for (std::string file : files)
             {
-                validator->setOslOutputFilePath(shaderPath);
-                validator->compileOSL(file);
+                mx::FilePath filePath = shaderPath / file;
+                validator->compileOSL(filePath.asString());
             }
         }
     }
