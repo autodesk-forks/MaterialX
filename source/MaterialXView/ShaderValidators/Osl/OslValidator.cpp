@@ -266,9 +266,16 @@ void OslValidator::validateCreation(const std::vector<std::string>& stages)
     {
         fileName += ".osl";
     }
+
+    // TODO: Seems testrender will crash currently when trying to convert to "object" space.
+    // Thus we replace all instances of "object" with "world" to avoid issues.
+    StringMap spaceMap;
+    spaceMap["= \"object\""] = "= \"world\"";    
+    std::string oslCode = replaceSubstrings(stages[0], spaceMap);
+
     std::ofstream file;
     file.open(fileName);
-    file << stages[0];
+    file << oslCode;
     file.close();
 
     // Try compiling the code
