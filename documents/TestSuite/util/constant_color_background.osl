@@ -1,0 +1,7 @@
+surface 
+constant_background(
+	color InColour = color(1.0, 1.0, 1.0),
+)
+{
+	Ci = InColour * background(); 
+}

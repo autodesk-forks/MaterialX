@@ -115,7 +115,9 @@ class OslValidator : public ShaderValidator
     }
 
     /// Set the OSL shader output name. 
-    /// This is used during render validation if "testshade" is executed.
+    /// This is used during render validation if "testshade" or "testrender" is executed.
+    /// For testrender this value is used to replace the %shader_output% token in the
+    /// input scene file.
     /// @param outputName Name of shader output
     void setOslShaderOutputName(const std::string outputName)
     {
@@ -138,6 +140,24 @@ class OslValidator : public ShaderValidator
         _oslTestRenderExecutable = executable;
     }
 
+    /// Set the XML scene file to use for testrender. This is a template file
+    /// with the following tokens for replacement:
+    ///     - %shader% : which will be replaced with the name of the shader to use
+    ///     - %shader_output% : which will be replace with the name of the shader output to use
+    /// @param templateFileName Scene file name
+    void setOslTestRenderSceneTemplateFile(const std::string templateFileName)
+    {
+        _oslTestRenderSceneTemplateFile = templateFileName;
+    }
+
+    /// Set the name of the shader to be used for the input XML scene file.
+    /// The value is used to replace the %shader% token in the file.
+    /// @param shaderName Name of shader
+    void setOslShaderName(const std::string shaderName)
+    {
+        _oslShaderName = shaderName;
+    }
+
     /// Used to toggle to either use testrender or testshade during render validation
     /// By default testshade is used.
     /// @param useTestRender Indicate whether to use testrender.
@@ -150,21 +170,27 @@ class OslValidator : public ShaderValidator
 
   protected:
     ///
-    /// Compile OSL code stored in a file. Return errors in result string 
+    /// Compile OSL code stored in a file. Will throw an exception if an error occurs.
     /// @param oslFileName Name of OSL file
     void compileOSL(const std::string& oslFileName);
 
     ///
-    /// Shade using OSO input file. Return errors in result string 
+    /// Shade using OSO input file. Will throw an exception if an error occurs.
     /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist
     /// @param outputName Name of OSL shader output to use.
     void shadeOSL(const std::string& shaderName, const std::string& outputName);
+
+    ///
+    /// Render using OSO input file. Will throw an exception if an error occurs.
+    /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist
+    /// @param outputName Name of OSL shader output to use.
+    void renderOSL(const std::string& shaderPath, const std::string& shaderName, const std::string& outputName);
 
     /// Constructor
     OslValidator();
 
   private:
-    /// "oslc" executable name
+    /// "oslc" executable name`
     std::string _oslCompilerExecutable;
     /// OSL include path name
     std::string _oslIncludePathString;
@@ -175,7 +201,11 @@ class OslValidator : public ShaderValidator
     std::string _oslTestShadeExecutable;
     /// "testrender" executable name
     std::string _oslTestRenderExecutable;
-    /// Name of output on shader. Used for rendering with "testshade"
+    /// Template scene XML file used for "testrender"
+    std::string _oslTestRenderSceneTemplateFile;
+    /// Name of shader. Used for rendering with "testrender"
+    std::string _oslShaderName;
+    /// Name of output on shader. Used for rendering with "testshade" and "testrender"
     std::string _oslShaderOutputName;
     /// Use "testshade" or "testender" for render validation
     bool _useTestRender;
