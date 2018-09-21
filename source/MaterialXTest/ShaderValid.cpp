@@ -493,7 +493,9 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             // Validate compilation
             validator.validateCreation(shader);
 
-            bool isShader = element->isA<mx::ShaderRef>();
+            const std::string SURFACE_SHADER("surfaceshader");
+            bool isShader = element->isA<mx::ShaderRef>() || 
+                            element->getType() == SURFACE_SHADER;
 
             // TODO: testrender is the default, except for shaders
             // which do not have an appropriate scene setup currently.
