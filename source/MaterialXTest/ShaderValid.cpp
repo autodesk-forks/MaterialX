@@ -495,18 +495,17 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 
             bool isShader = element->isA<mx::ShaderRef>();
 
-            // TODO: When testrender validation is available
-            // we can choose to use that for shaders.
-            // Both paths are the same until then
+            // TODO: testrender is the default, except for shaders
+            // which do not have an appropriate scene setup currently.
+            // All others use a constant output to redirect shader output to.
             if (isShader)
             {
                 validator.useTestRender(false);
             }
             else
             {
-                validator.useTestRender(false);
+                validator.useTestRender(true);
             }
-            validator.useTestRender(true);
 
             // Set shader output name to use
             //
