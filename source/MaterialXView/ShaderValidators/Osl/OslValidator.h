@@ -158,6 +158,14 @@ class OslValidator : public ShaderValidator
         _oslShaderName = shaderName;
     }
 
+    /// Set the search path for dependent shaders (.oso files) which are used
+    /// when rendering with testrender. 
+    /// @param osoPath Path to .oso files.
+    void setOslUtilityOSOPath(const std::string osoPath)
+    {
+        _oslUtilityOSOPath = osoPath;
+    }
+
     /// Used to toggle to either use testrender or testshade during render validation
     /// By default testshade is used.
     /// @param useTestRender Indicate whether to use testrender.
@@ -207,6 +215,8 @@ class OslValidator : public ShaderValidator
     std::string _oslShaderName;
     /// Name of output on shader. Used for rendering with "testshade" and "testrender"
     std::string _oslShaderOutputName;
+    /// Path for utility shaders (.oso) used when rendering with "testrender"
+    std::string _oslUtilityOSOPath;
     /// Use "testshade" or "testender" for render validation
     bool _useTestRender;
 };

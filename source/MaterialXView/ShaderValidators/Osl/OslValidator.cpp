@@ -45,9 +45,9 @@ void OslValidator::initialize()
 
 void OslValidator::renderOSL(const std::string& shaderPath, const std::string& shaderName, const std::string& outputName)
 {
-    // If no command and include path specified then skip checking.
-    if (_oslTestShadeExecutable.empty() || _oslIncludePathString.empty() || 
-        _oslTestRenderSceneTemplateFile.empty())
+    // If command options missing, skip testing.
+    if (_oslTestRenderExecutable.empty() || _oslIncludePathString.empty() || 
+        _oslTestRenderSceneTemplateFile.empty() || _oslUtilityOSOPath.empty())
     {
         return;
     }
@@ -96,6 +96,7 @@ void OslValidator::renderOSL(const std::string& shaderPath, const std::string& s
     std::string command(_oslTestRenderExecutable);
     command += " " + sceneFileName;
     command += " " + outputFileName;
+    command += "--path " + _oslUtilityOSOPath;
     command += " > " + errorFile + redirectString;
 
     int returnValue = std::system(command.c_str());

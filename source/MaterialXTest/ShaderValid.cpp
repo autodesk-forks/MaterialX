@@ -346,6 +346,9 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
                 mx::FilePath filePath = shaderPath / file;
                 validator->compileOSL(filePath.asString());
             }
+
+            // Set the search path for these compiled shaders.
+            validator->setOslUtilityOSOPath(shaderPath);
         }
     }
     catch(mx::ExceptionShaderValidationError e)
