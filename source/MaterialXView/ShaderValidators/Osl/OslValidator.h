@@ -81,7 +81,9 @@ class OslValidator : public ShaderValidator
     /// @name Utilities
     /// @{
 
-    /// Save the current contents a rendering to disk.
+    /// Save the current contents a rendering to disk. Note that this method
+    /// does not perform any action as validateRender() produces images as part if it's
+    /// execution.
     /// @param fileName Name of file to save rendered image to.
     void save(const std::string& fileName) override;
     
@@ -184,15 +186,17 @@ class OslValidator : public ShaderValidator
   protected:
     ///
     /// Shade using OSO input file. Will throw an exception if an error occurs.
-    /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist
+    /// @param outputPath Path to input .oso file.
+    /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist in the output path folder.
     /// @param outputName Name of OSL shader output to use.
-    void shadeOSL(const std::string& shaderName, const std::string& outputName);
+    void shadeOSL(const std::string& outputPath, const std::string& shaderName, const std::string& outputName);
 
     ///
     /// Render using OSO input file. Will throw an exception if an error occurs.
-    /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist
+    /// @param outputPath Path to input .oso file.
+    /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist in the output path folder.
     /// @param outputName Name of OSL shader output to use.
-    void renderOSL(const std::string& shaderPath, const std::string& shaderName, const std::string& outputName);
+    void renderOSL(const std::string& outputPath, const std::string& shaderName, const std::string& outputName);
 
     /// Constructor
     OslValidator();

@@ -328,7 +328,7 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
     try
     {
         validator->initialize();
-        validator->setImageHandler(imageHandler);
+        validator->setImageHandler(nullptr);
         validator->setLightHandler(nullptr);
         initialized = true;
 
@@ -456,11 +456,6 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
     {
         log << "------------ Run validation with element: " << element->getNamePath() << "-------------------" << std::endl;
 
-        std::string shaderPath;
-        // Note: mkdir will fail if the directory already exists which is ok.
-        mx::makeDirectory(outputPath);
-        shaderPath = mx::FilePath(outputPath) / mx::FilePath(shaderName);
-
         mx::ShaderPtr shader = shaderGenerator.generate(shaderName, element, options);
         CHECK(shader != nullptr);
         if (shader == nullptr)
@@ -470,11 +465,17 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
         }
         CHECK(shader->getSourceCode().length() > 0);
 
+        std::string shaderPath;
+        // Note: mkdir will fail if the directory already exists which is ok.
+        mx::makeDirectory(outputPath);
+        shaderPath = mx::FilePath(outputPath) / mx::FilePath(shaderName);
+
         if (outputMtlxDoc)
         {
             mx::writeToXmlFile(doc, shaderPath + ".mtlx");
         }
 
+        // Write out osl file
         std::ofstream file;
         file.open(shaderPath + ".osl");
         file << shader->getSourceCode();
@@ -485,7 +486,9 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
         bool validated = false;
         try
         {
-            validator.setOslOutputFilePath(shaderPath);
+            // Set output path and shader name
+            validator.setOslOutputFilePath(outputPath);
+            validator.setOslShaderName(shaderName);
 
             // Validate compilation
             validator.validateCreation(shader);
@@ -503,6 +506,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             {
                 validator.useTestRender(false);
             }
+            validator.useTestRender(true);
 
             // Set shader output name to use
             //
@@ -515,6 +519,12 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                 outputName = "out";
             }
             validator.setOslShaderOutputName(outputName);
+
+            // Set scene template file. For now we only have the constant color scene file
+            const std::string CONSTANT_COLOR_SCENE_XML_FILE("constant_color_scene.xml");
+            mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/util/");
+            sceneTemplatePath = sceneTemplatePath / CONSTANT_COLOR_SCENE_XML_FILE;
+            validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
 
             // Validate rendering
             validator.validateRender();

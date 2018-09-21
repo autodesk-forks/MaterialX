@@ -4,7 +4,7 @@
 
    <!-- Background clear -->
    <ShaderGroup>
-      color InColour 0.5 0.6 0.7;
+      color Cin 0.5 0.6 0.7;
       shader constant_color_background layer1;
    </ShaderGroup>
    <Background resolution="1024" />

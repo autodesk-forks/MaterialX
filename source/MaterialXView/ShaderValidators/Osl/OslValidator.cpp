@@ -1,6 +1,7 @@
 #include <MaterialXView/ShaderValidators/Osl/OslValidator.h>
 #include <MaterialXView/Handlers/ObjGeometryHandler.h>
 #include <MaterialXGenShader/Util.h>
+#include <MaterialXFormat/File.h>
 
 #include <fstream>
 #include <iostream>
@@ -43,7 +44,7 @@ void OslValidator::initialize()
     }
 }
 
-void OslValidator::renderOSL(const std::string& shaderPath, const std::string& shaderName, const std::string& outputName)
+void OslValidator::renderOSL(const std::string& outputPath, const std::string& shaderName, const std::string& outputName)
 {
     // If command options missing, skip testing.
     if (_oslTestRenderExecutable.empty() || _oslIncludePathString.empty() || 
@@ -51,6 +52,11 @@ void OslValidator::renderOSL(const std::string& shaderPath, const std::string& s
     {
         return;
     }
+
+    // Determine the shader path from output path and shader name
+    FilePath shaderFilePath(outputPath);
+    shaderFilePath = shaderFilePath / shaderName;
+    std::string shaderPath = shaderFilePath.asString();
 
     // Set output image name. 
     std::string outputFileName = shaderPath + ".testrender.png";
@@ -82,7 +88,7 @@ void OslValidator::renderOSL(const std::string& shaderPath, const std::string& s
     }
 
     // Write scene file
-    const std::string sceneFileName("scene.xml");
+    const std::string sceneFileName(shaderPath + "_scene.xml");
     std::ofstream shaderFileStream;
     shaderFileStream.open(sceneFileName);
     if (shaderFileStream.is_open())
@@ -91,12 +97,16 @@ void OslValidator::renderOSL(const std::string& shaderPath, const std::string& s
         shaderFileStream.close();
     }
 
+    // Set oso file paths
+    std::string osoPaths(_oslUtilityOSOPath);
+    osoPaths += ";" + outputPath;
+
     // Build and run render command
     //
     std::string command(_oslTestRenderExecutable);
     command += " " + sceneFileName;
     command += " " + outputFileName;
-    command += "--path " + _oslUtilityOSOPath;
+    command += " --path " + osoPaths;
     command += " > " + errorFile + redirectString;
 
     int returnValue = std::system(command.c_str());
@@ -118,13 +128,17 @@ void OslValidator::renderOSL(const std::string& shaderPath, const std::string& s
     }
 }
 
-void OslValidator::shadeOSL(const std::string& shaderPath, const std::string& outputName)
+void OslValidator::shadeOSL(const std::string& outputPath, const std::string& shaderName, const std::string& outputName)
 {
     // If no command and include path specified then skip checking.
     if (_oslTestShadeExecutable.empty() || _oslIncludePathString.empty())
     {
         return;
     }
+
+    FilePath shaderFilePath(outputPath);
+    shaderFilePath = shaderFilePath / shaderName;
+    std::string shaderPath = shaderFilePath.asString();
 
     // Set output image name. 
     std::string outputFileName = shaderPath + ".testshade.png";
@@ -241,7 +255,8 @@ void OslValidator::validateCreation(const std::vector<std::string>& stages)
     }
 
     // Dump string to disk. For OSL assume shader is in stage 0 slot.
-    std::string fileName = _oslOutputFilePathString;
+    FilePath filePath(_oslOutputFilePathString + _oslShaderName);
+    std::string fileName = filePath.asString();
     if (fileName.empty())
     {
         fileName = "_osl_temp.osl";
@@ -287,7 +302,7 @@ void OslValidator::validateRender(bool /*orthographicView*/)
     // Use testshade
     if (!_useTestRender)
     {
-        shadeOSL(_oslOutputFilePathString, _oslShaderOutputName);
+        shadeOSL(_oslOutputFilePathString, _oslShaderName, _oslShaderOutputName);
     }
 
     // Use testrender
@@ -304,18 +319,7 @@ void OslValidator::validateRender(bool /*orthographicView*/)
 
 void OslValidator::save(const std::string& /*fileName*/)
 {
-    ShaderValidationErrorList errors;
-    const std::string errorType("OSL image save error.");
-
-    if (!_imageHandler)
-    {
-        errors.push_back("No image handler specified.");
-        throw ExceptionShaderValidationError(errorType, errors);
-    }
-
-    // No image generation, thus no image save at this time.
-    errors.push_back("OSL rendering image save is not supported at this time.");
-    throw ExceptionShaderValidationError(errorType, errors);
+    // No-op: image save is done as part of rendering.
 }
 
 }
