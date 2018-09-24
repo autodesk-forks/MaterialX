@@ -494,8 +494,9 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             validator.validateCreation(shader);
 
             const std::string SURFACE_SHADER("surfaceshader");
+            const std::string elementType(element->getType());
             bool isShader = element->isA<mx::ShaderRef>() ||
-                element->getType() == SURFACE_SHADER;
+                elementType == SURFACE_SHADER;
 
             // TODO: testrender is the default, except for shaders
             // which do not have an appropriate scene setup currently.
@@ -519,7 +520,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                 // to the actual name.
                 outputName = "out";
             }
-            validator.setOslShaderOutputName(outputName);
+            validator.setOslShaderOutputNameAndType(outputName, elementType);
 
             // Set scene template file. For now we only have the constant color scene file
             const std::string CONSTANT_COLOR_SCENE_XML_FILE("constant_color_scene.xml");

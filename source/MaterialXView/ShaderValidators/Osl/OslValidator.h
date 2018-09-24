@@ -121,9 +121,11 @@ class OslValidator : public ShaderValidator
     /// For testrender this value is used to replace the %shader_output% token in the
     /// input scene file.
     /// @param outputName Name of shader output
-    void setOslShaderOutputName(const std::string outputName)
+    /// @param outputName The MaterialX type of the output
+    void setOslShaderOutputNameAndType(const std::string outputName, const std::string outputType)
     {
         _oslShaderOutputName = outputName;
+        _oslShaderOutputType = outputType;
     }
 
     /// Set the OSL shading tester path string. Note that it is assumed that this
@@ -217,8 +219,10 @@ class OslValidator : public ShaderValidator
     std::string _oslTestRenderSceneTemplateFile;
     /// Name of shader. Used for rendering with "testrender"
     std::string _oslShaderName;
-    /// Name of output on shader. Used for rendering with "testshade" and "testrender"
+    /// Name of output on the shader. Used for rendering with "testshade" and "testrender"
     std::string _oslShaderOutputName;
+    /// MaterialX type of the output on the shader. Used for rendering with "testshade" and "testrender"
+    std::string _oslShaderOutputType;
     /// Path for utility shaders (.oso) used when rendering with "testrender"
     std::string _oslUtilityOSOPath;
     /// Use "testshade" or "testender" for render validation

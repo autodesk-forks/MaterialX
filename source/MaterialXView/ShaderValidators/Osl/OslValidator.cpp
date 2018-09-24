@@ -46,11 +46,29 @@ void OslValidator::initialize()
 
 void OslValidator::renderOSL(const std::string& outputPath, const std::string& shaderName, const std::string& outputName)
 {
+    ShaderValidationErrorList errors;
+    const std::string errorType("OSL rendering error.");
+
     // If command options missing, skip testing.
     if (_oslTestRenderExecutable.empty() || _oslIncludePathString.empty() || 
         _oslTestRenderSceneTemplateFile.empty() || _oslUtilityOSOPath.empty())
     {
-        return;
+        errors.push_back("Command input arguments are missing");
+        throw ExceptionShaderValidationError(errorType, errors);
+    }
+
+    // If the output type is not which can be supported for rendering then skip testing.
+    bool requiresTypeMapping = (_oslShaderOutputType == getTypeString<Color2>() ||
+        _oslShaderOutputType == getTypeString<Color4>() ||
+        _oslShaderOutputType == getTypeString<Vector2>() ||
+        _oslShaderOutputType == getTypeString<Vector4>());
+    bool directlyConnectable = (_oslShaderOutputType == getTypeString<float>() ||
+        _oslShaderOutputType == getTypeString<Color3>() ||
+        _oslShaderOutputType == getTypeString<Vector3>());
+    if (!(requiresTypeMapping || directlyConnectable))
+    {
+        errors.push_back("Output type to render is not supported: " + _oslShaderOutputType);
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     // Determine the shader path from output path and shader name
@@ -75,17 +93,20 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
         std::istreambuf_iterator<char>());
 
     StringMap replacementMap;
-    replacementMap["%output_shader_name%"] = "constant_color"; // This needs to be type specific
+    std::string outputShader("constant_color");
+    if (requiresTypeMapping)
+    {
+        outputShader = "constant_" + _oslShaderOutputType;
+    }
+    replacementMap["%output_shader_type%"] = outputShader; 
     replacementMap["%output_shader_input%"] = "Cin";
-    replacementMap["%input_shader_name%"] = shaderName;
+    replacementMap["%input_shader_type%"] = shaderName;
     replacementMap["%input_shader_output%"] = outputName;
     const string backgroundColor("0.5 0.6 0.7"); // TODO: Make this a user input
     replacementMap["%background_color%"] = backgroundColor;
     std::string sceneString = replaceSubstrings(sceneTemplateString, replacementMap);
     if ((sceneString == sceneTemplateString) || sceneTemplateString.empty())
     {
-        const std::string errorType("OSL rendering error.");
-        ShaderValidationErrorList errors;
         errors.push_back("Scene template file: " + _oslTestRenderSceneTemplateFile + 
                          "does not include proper tokens for rendering");
         throw ExceptionShaderValidationError(errorType, errors);
@@ -122,8 +143,6 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
 
     if (!result.empty())
     {
-        const std::string errorType("OSL rendering error.");
-        ShaderValidationErrorList errors;
         errors.push_back("Command string: " + command);
         errors.push_back("Command return code: " + std::to_string(returnValue));
         errors.push_back("Shader failed to render:");
