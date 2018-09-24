@@ -77,6 +77,8 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     StringMap replacementMap;
     replacementMap["%shader%"] = shaderName;
     replacementMap["%shader_output%"] = outputName;
+    const string backgroundColor("0.5 0.6 0.7"); // TODO: Make this a user input
+    replacementMap["%background_color%"] = backgroundColor;
     std::string sceneString = replaceSubstrings(sceneTemplateString, replacementMap);
     if ((sceneString == sceneTemplateString) || sceneTemplateString.empty())
     {

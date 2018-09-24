@@ -452,13 +452,6 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 {
     mx::SgOptions options;
 
-    bool skipRendering = false;
-    const MaterialX::StringSet blackList({ "modulo_vector3FA_out", "modulo_color3FA_out" });
-    if (blackList.find(shaderName) != blackList.cend())
-    { 
-        skipRendering = true;
-    }
-
     if(element && doc)
     {
         log << "------------ Run validation with element: " << element->getNamePath() << "-------------------" << std::endl;
@@ -500,45 +493,42 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             // Validate compilation
             validator.validateCreation(shader);
 
-            if (!skipRendering)
+            const std::string SURFACE_SHADER("surfaceshader");
+            bool isShader = element->isA<mx::ShaderRef>() ||
+                element->getType() == SURFACE_SHADER;
+
+            // TODO: testrender is the default, except for shaders
+            // which do not have an appropriate scene setup currently.
+            // All others use a constant output to redirect shader output to.
+            if (isShader)
             {
-                const std::string SURFACE_SHADER("surfaceshader");
-                bool isShader = element->isA<mx::ShaderRef>() ||
-                    element->getType() == SURFACE_SHADER;
-
-                // TODO: testrender is the default, except for shaders
-                // which do not have an appropriate scene setup currently.
-                // All others use a constant output to redirect shader output to.
-                if (isShader)
-                {
-                    validator.useTestRender(false);
-                }
-                else
-                {
-                    validator.useTestRender(true);
-                }
-
-                // Set shader output name to use
-                //
-                mx::string outputName = element->getName();
-                if (isShader)
-                {
-                    // TODO: Assume name is "out". This is the default value.
-                    // We require shader generation to provide us an output name
-                    // to the actual name.
-                    outputName = "out";
-                }
-                validator.setOslShaderOutputName(outputName);
-
-                // Set scene template file. For now we only have the constant color scene file
-                const std::string CONSTANT_COLOR_SCENE_XML_FILE("constant_color_scene.xml");
-                mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/util/");
-                sceneTemplatePath = sceneTemplatePath / CONSTANT_COLOR_SCENE_XML_FILE;
-                validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
-
-                // Validate rendering
-                validator.validateRender();
+                validator.useTestRender(false);
             }
+            else
+            {
+                validator.useTestRender(true);
+            }
+
+            // Set shader output name to use
+            //
+            mx::string outputName = element->getName();
+            if (isShader)
+            {
+                // TODO: Assume name is "out". This is the default value.
+                // We require shader generation to provide us an output name
+                // to the actual name.
+                outputName = "out";
+            }
+            validator.setOslShaderOutputName(outputName);
+
+            // Set scene template file. For now we only have the constant color scene file
+            const std::string CONSTANT_COLOR_SCENE_XML_FILE("constant_color_scene.xml");
+            mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/util/");
+            sceneTemplatePath = sceneTemplatePath / CONSTANT_COLOR_SCENE_XML_FILE;
+            validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
+
+            // Validate rendering
+            validator.validateRender();
 
             // TODO: Call additional validation routines here when they are available
             validated = true;
