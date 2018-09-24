@@ -75,8 +75,10 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
         std::istreambuf_iterator<char>());
 
     StringMap replacementMap;
-    replacementMap["%shader%"] = shaderName;
-    replacementMap["%shader_output%"] = outputName;
+    replacementMap["%output_shader_name%"] = "constant_color"; // This needs to be type specific
+    replacementMap["%output_shader_input%"] = "Cin";
+    replacementMap["%input_shader_name%"] = shaderName;
+    replacementMap["%input_shader_output%"] = outputName;
     const string backgroundColor("0.5 0.6 0.7"); // TODO: Make this a user input
     replacementMap["%background_color%"] = backgroundColor;
     std::string sceneString = replaceSubstrings(sceneTemplateString, replacementMap);
