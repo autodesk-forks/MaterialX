@@ -122,18 +122,6 @@ OslShaderGenerator::OslShaderGenerator()
     registerImplementation("IM_swizzle_vector4_vector2_sx_osl", Swizzle::create);
     registerImplementation("IM_swizzle_vector4_vector3_sx_osl", Swizzle::create);
     registerImplementation("IM_swizzle_vector4_vector4_sx_osl", Swizzle::create);
-
-
-    // Color2/4 and Vector2/4 must be remapped to Color3 and Vector3 when used
-    // as shader outputs since in OSL a custom struct type is not supported as 
-    // shader output.
-    _shaderOutputTypeRemap =
-    {
-        { Type::COLOR2,  { Type::COLOR3, "rg0" } },
-        { Type::COLOR4,  { Type::COLOR3, "rgb" } },
-        { Type::VECTOR2, { Type::COLOR3, "xy0" } },
-        { Type::VECTOR4, { Type::COLOR3, "xyz" } }
-    };
 }
 
 ShaderPtr OslShaderGenerator::generate(const string& shaderName, ElementPtr element, const SgOptions& options)
@@ -193,11 +181,6 @@ ShaderPtr OslShaderGenerator::generate(const string& shaderName, ElementPtr elem
 
     // Emit shader output
     const TypeDesc* outputType = outputSocket->type;
-    auto it = _shaderOutputTypeRemap.find(outputType);
-    if (it != _shaderOutputTypeRemap.end())
-    {
-        outputType = it->second.first;
-    }
     const string type = _syntax->getOutputTypeName(outputType);
     const string value = _syntax->getDefaultValue(outputType, true);
     shader.addLine(type + " " + outputSocket->name + " = " + value, false);
@@ -272,13 +255,6 @@ void OslShaderGenerator::emitFinalOutput(Shader& shader) const
     }
 
     string finalResult = outputSocket->connection->name;
-
-    // Handle output type remapping
-    auto it = _shaderOutputTypeRemap.find(outputSocket->type);
-    if (it != _shaderOutputTypeRemap.end())
-    {
-        finalResult = _syntax->getSwizzledVariable(finalResult, outputSocket->type, it->second.second, it->second.first);
-    }
 
     shader.addLine(outputSocket->name + " = " + finalResult);
 }
