@@ -1,0 +1,31 @@
+<World>
+   <Camera eye="0, 100, 300" look_at="0,0,0" fov="70" />
+
+   <!-- Background clear 
+   %background_color% : is the background color
+   -->
+   <ShaderGroup>
+      color Cin %background_color%;
+      shader constant_color_background layer1;
+   </ShaderGroup>
+   <Background resolution="1024" />
+   
+   <!-- Emitter -->
+   <ShaderGroup>
+      float power 326000;
+      shader emitter layer1;
+   </ShaderGroup>
+   <Quad corner="-100,100,0" edge_x="0,0,200" edge_y="200,0,0" is_light="yes"/>
+
+   <!-- Shader graph for routing to output layer:
+   %input_shader_type% : type of an input shader to feed into the output shader.
+   %input_shader_output% : name of output argument on input shader.
+   -->
+   <ShaderGroup>
+      shader %input_shader_type% inputShader;
+      shader closure_passthrough outputShader;
+      connect inputShader.%input_shader_output% outputShader.Cin
+   </ShaderGroup>
+   <Sphere center="0,40,120" radius="60" />
+</World>
+
