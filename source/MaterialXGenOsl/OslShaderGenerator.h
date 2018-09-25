@@ -39,6 +39,7 @@ protected:
     /// Emit include headers needed by the generated shader code.
     void emitIncludes(Shader& shader);
 
+    bool _remapShaderOutput;
     std::unordered_map<const TypeDesc*, std::pair<const TypeDesc*, string>> _shaderOutputTypeRemap;
 };
 
