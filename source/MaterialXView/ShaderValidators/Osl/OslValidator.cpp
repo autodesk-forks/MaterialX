@@ -71,6 +71,13 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
+    // The original output type has been renamed to color3 so don't need to
+    // remap during validation.
+    if (requiresTypeMapping && _remappedShaderOutput)
+    {
+        requiresTypeMapping = false;
+    }
+
     // Determine the shader path from output path and shader name
     FilePath shaderFilePath(outputPath);
     shaderFilePath = shaderFilePath / shaderName;

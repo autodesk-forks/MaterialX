@@ -32,6 +32,12 @@ public:
     /// Unique identifyer for the osl language
     static const string LANGUAGE;
 
+    /// Has color and vector shader output been remapped to 3-channel color
+    bool remappedShaderOutput() const
+    {
+        return _remapShaderOutput;
+    }
+
 protected:
     /// Protected constructor.
     OslShaderGenerator();

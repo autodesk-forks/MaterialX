@@ -122,10 +122,13 @@ class OslValidator : public ShaderValidator
     /// input scene file.
     /// @param outputName Name of shader output
     /// @param outputName The MaterialX type of the output
-    void setOslShaderOutputNameAndType(const std::string outputName, const std::string outputType)
+    /// @param remappedShaderOutput Has color and vector shader output been remapped to to color3
+    void setOslShaderOutputNameAndType(const std::string outputName, const std::string outputType,
+                                       bool remappedShaderOutput)
     {
         _oslShaderOutputName = outputName;
         _oslShaderOutputType = outputType;
+        _remappedShaderOutput = remappedShaderOutput;
     }
 
     /// Set the OSL shading tester path string. Note that it is assumed that this
@@ -223,6 +226,8 @@ class OslValidator : public ShaderValidator
     std::string _oslShaderOutputName;
     /// MaterialX type of the output on the shader. Used for rendering with "testshade" and "testrender"
     std::string _oslShaderOutputType;
+    /// Has color and vector output been remapped to 3-channel color
+    bool _remappedShaderOutput;
     /// Path for utility shaders (.oso) used when rendering with "testrender"
     std::string _oslUtilityOSOPath;
     /// Use "testshade" or "testender" for render validation
