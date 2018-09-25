@@ -1,5 +1,5 @@
 
-#include <MaterialXView/Window/HardwarePlatform.h>
+#include <MaterialXRender/Window/HardwarePlatform.h>
 
 #if defined (OSMac_)
 
