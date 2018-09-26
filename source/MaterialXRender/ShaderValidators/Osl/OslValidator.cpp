@@ -170,6 +170,10 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     command += " " + sceneFileName;
     command += " " + outputFileName;
     command += " --path " + osoPaths;
+    if (isColorClosure)
+    {
+        command += " -aa 4 "; // Images are very noisy without anti-aliasing
+    }
     command += " > " + errorFile + redirectString;
 
     int returnValue = std::system(command.c_str());
@@ -331,7 +335,7 @@ void OslValidator::validateCreation(const std::vector<std::string>& stages)
     // TODO: Seems testrender will crash currently when trying to convert to "object" space.
     // Thus we replace all instances of "object" with "world" to avoid issues.
     StringMap spaceMap;
-    spaceMap["= \"object\""] = "= \"world\"";    
+    spaceMap["\"object\""] = "\"world\"";    
     std::string oslCode = replaceSubstrings(stages[0], spaceMap);
 
     std::ofstream file;
