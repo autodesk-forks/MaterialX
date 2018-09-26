@@ -146,7 +146,7 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     if ((sceneString == sceneTemplateString) || sceneTemplateString.empty())
     {
         errors.push_back("Scene template file: " + _oslTestRenderSceneTemplateFile + 
-                         "does not include proper tokens for rendering");
+                         " does not include proper tokens for rendering.");
         throw ExceptionShaderValidationError(errorType, errors);
     }
 

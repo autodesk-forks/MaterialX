@@ -72,7 +72,7 @@ TEST_CASE("GLSL Source", "[shadervalid]")
         validator->initialize();
         validator->setImageHandler(handler);
         // Set geometry to draw with
-        const std::string geometryFile(mx::FilePath::getCurrentPath().asString() + "/documents/Geometry/sphere.obj");
+        const std::string geometryFile(mx::FilePath::getCurrentPath().asString() + "/documents/TestSuite/Geometry/sphere.obj");
         mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();
         geometryHandler->setIdentifier(geometryFile);
         if (geometryHandler->getIdentifier() == geometryFile)
@@ -281,7 +281,7 @@ static mx::GlslValidatorPtr createGLSLValidator(bool& orthographicView, const st
         std::string geometryFile;
         if (fileName.length())
         {
-            geometryFile =  mx::FilePath::getCurrentPath().asString() + "/documents/Geometry/" + fileName;
+            geometryFile =  mx::FilePath::getCurrentPath().asString() + "/documents/TestSuite/Geometry/" + fileName;
             geometryHandler->setIdentifier(geometryFile);
         }
         if (geometryHandler->getIdentifier() == geometryFile)
@@ -335,7 +335,7 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
         // Pre-compile some required shaders for testrender
         if (initializeTestRender)
         {
-            mx::FilePath shaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/util/");
+            mx::FilePath shaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/");
             validator->setOslOutputFilePath(shaderPath);
 
             mx::StringVec files;
@@ -526,7 +526,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             validator.setOslShaderOutputNameAndType(outputName, elementType, shaderGenerator.remappedShaderOutput());
 
             // Set scene template file. For now we only have the constant color scene file
-            mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/util/");
+            mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/");
             sceneTemplatePath = sceneTemplatePath / sceneTemplateFile;
             validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
 

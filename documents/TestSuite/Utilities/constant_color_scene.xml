@@ -1,5 +1,6 @@
+<!-- Template for taking an input color shader and rendering without lighting -->
 <World>
-   <Camera eye="0, 100, 300" look_at="0,0,0" fov="70" />
+   <Camera eye="0, 2.3, 2.3" look_at="0,0,0" fov="70" />
 
    <!-- Background clear 
    %background_color% : is the background color
@@ -9,13 +10,6 @@
       shader constant_color_background layer1;
    </ShaderGroup>
    <Background resolution="1024" />
-   
-   <!-- Emitter -->
-   <ShaderGroup>
-      float power 326000;
-      shader emitter layer1;
-   </ShaderGroup>
-   <Quad corner="-100,100,0" edge_x="0,0,200" edge_y="200,0,0" is_light="yes"/>
 
    <!-- Shader graph for routing to output layer:
    %input_shader_type% : type of an input shader to feed into the output shader.
@@ -28,6 +22,6 @@
       shader %output_shader_type% outputShader;
       connect inputShader.%input_shader_output% outputShader.%output_shader_input%;
    </ShaderGroup>
-   <Sphere center="0,40,120" radius="60" />
+   <Sphere center="0,0,0" radius="1" />
 </World>
 
