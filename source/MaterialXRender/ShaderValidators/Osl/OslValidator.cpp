@@ -24,7 +24,7 @@ OslValidatorPtr OslValidator::create()
 
 OslValidator::OslValidator() :
     ShaderValidator(),
-    _useTestRender(false) // By default use testshade
+    _useTestRender(true) // By default use testrender
 {
 }
 

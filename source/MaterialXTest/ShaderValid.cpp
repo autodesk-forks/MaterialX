@@ -513,12 +513,10 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                 elementType = mx::OslValidator::OSL_CLOSURE_COLOR_STRING;
 
                 sceneTemplateFile.assign("closure_color_scene.xml");
-                validator.useTestRender(true);
             }
             else
             {
                 sceneTemplateFile.assign("constant_color_scene.xml");
-                validator.useTestRender(true);
             }
 
             // Set shader output name and type to use
