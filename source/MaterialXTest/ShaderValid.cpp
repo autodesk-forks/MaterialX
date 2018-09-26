@@ -493,41 +493,43 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             // Validate compilation
             validator.validateCreation(shader);
 
+            std::string elementType(element->getType());
+            mx::string outputName = element->getName();
+
             const std::string SURFACE_SHADER("surfaceshader");
-            const std::string elementType(element->getType());
             bool isShader = element->isA<mx::ShaderRef>() ||
                 elementType == SURFACE_SHADER;
+            std::string sceneTemplateFile; 
 
-            // TODO: testrender is the default, except for shaders
-            // which do not have an appropriate scene setup currently.
-            // All others use a constant output to redirect shader output to.
-            if (isShader)
-            {
-                validator.useTestRender(false);
-            }
-            else
-            {
-                validator.useTestRender(true);
-            }
-
-            // Set shader output name and type to use
-            //
-            mx::string outputName = element->getName();
             if (isShader)
             {
                 // TODO: Assume name is "out". This is the default value.
                 // We require shader generation to provide us an output name
                 // to the actual name.
                 outputName = "out";
+
+                // TODO: Asume type is closure color until we can
+                // get the actual output type from code generation
+                elementType = mx::OslValidator::OSL_CLOSURE_COLOR_STRING;
+
+                sceneTemplateFile.assign("closure_color_scene.xml");
+                validator.useTestRender(true);
             }
+            else
+            {
+                sceneTemplateFile.assign("constant_color_scene.xml");
+                validator.useTestRender(true);
+            }
+
+            // Set shader output name and type to use
+            //
             // If the generator has already remapped the output type then indicate to
             // not do so again during validation.
             validator.setOslShaderOutputNameAndType(outputName, elementType, shaderGenerator.remappedShaderOutput());
 
             // Set scene template file. For now we only have the constant color scene file
-            const std::string CONSTANT_COLOR_SCENE_XML_FILE("constant_color_scene.xml");
             mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/util/");
-            sceneTemplatePath = sceneTemplatePath / CONSTANT_COLOR_SCENE_XML_FILE;
+            sceneTemplatePath = sceneTemplatePath / sceneTemplateFile;
             validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
 
             // Validate rendering
