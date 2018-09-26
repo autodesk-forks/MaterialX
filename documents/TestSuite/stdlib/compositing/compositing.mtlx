@@ -14,6 +14,8 @@ Basic compositing function tests each test is in a separate graph for each varia
 - over
 - inside
 - mix
+- premult
+- unpremult
 
 -->
 
@@ -390,5 +392,43 @@ Basic compositing function tests each test is in a separate graph for each varia
       <input name="mix" type="float" value="0.5000" />
     </mix>
     <output name="out" type="vector4" nodename="mix1" />
+  </nodegraph>
+  <nodegraph name="premult_color2" type="" xpos="6.19276" ypos="37.6716">
+    <premult name="premult1" type="color2" xpos="5.74483" ypos="4.74">
+      <input name="in" type="color2" value="1.0000, 0.5000" />
+    </premult>
+    <output name="out" type="color2" nodename="premult1" />
+  </nodegraph>
+  <nodegraph name="premult_color3" type="" xpos="7.19167" ypos="37.6542">
+    <premult name="premult1" type="color3" xpos="5.74483" ypos="4.58">
+      <input name="in" type="color3" value="1.0000, 0.0, 0.5000" />
+      <input name="alpha" type="float" value="0.5000" />
+    </premult>
+    <output name="out" type="color3" nodename="premult1" />
+  </nodegraph>
+  <nodegraph name="premult_color4" type="" xpos="8.23843" ypos="37.637">
+    <premult name="premult1" type="color4" xpos="5.74483" ypos="4.74">
+      <input name="in" type="color4" value="1.0000, 0.0, 0.5000, 0.5000" />
+    </premult>
+    <output name="out" type="color4" nodename="premult1" />
+  </nodegraph>
+  <nodegraph name="unpremult_color2" type="" xpos="6.17482" ypos="39.2502">
+    <unpremult name="unpremult1" type="color2" xpos="5.74483" ypos="4.74">
+      <input name="in" type="color2" value="1.0000, 0.5000" />
+    </unpremult>
+    <output name="out" type="color2" nodename="unpremult1" />
+  </nodegraph>
+  <nodegraph name="unpremult_color3" type="" xpos="7.21559" ypos="39.198">
+    <unpremult name="unpremult1" type="color3" xpos="5.74483" ypos="4.58">
+      <input name="in" type="color3" value="1.0000, 0.0, 0.5000" />
+      <input name="alpha" type="float" value="0.5000" />
+    </unpremult>
+    <output name="out" type="color3" nodename="unpremult1" />
+  </nodegraph>
+  <nodegraph name="unpremult_color4" type="" xpos="8.25637" ypos="39.1634">
+    <unpremult name="unpremult1" type="color4" xpos="5.74483" ypos="4.58">
+      <input name="in" type="color4" value="1.0000, 0.0, 0.5000, 0.5000" />
+    </unpremult>
+    <output name="out" type="color4" nodename="unpremult1" />
   </nodegraph>
 </materialx>
