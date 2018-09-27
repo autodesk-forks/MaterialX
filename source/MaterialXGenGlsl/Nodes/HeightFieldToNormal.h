@@ -15,7 +15,7 @@ class HeightFieldToNormalGlsl : public SgImplementation
 
     void createVariables(const SgNode& node, ShaderGenerator& shadergen, Shader& shader) override;
 
-    virtual void emitFunctionDefinition(const SgNode& node, ShaderGenerator& shadergen, Shader& shader);
+    void emitFunctionDefinition(const SgNode& node, ShaderGenerator& shadergen, Shader& shader) override;
 
     void emitFunctionCall(const SgNode& node, const SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader) override;
 
