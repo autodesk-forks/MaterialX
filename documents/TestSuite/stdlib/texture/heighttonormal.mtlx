@@ -1,0 +1,17 @@
+<!--
+
+Basic test of heighttonormal node
+
+-->
+<?xml version="1.0"?>
+<materialx version="1.36">
+   
+  <!-- Unconnected input test -->
+  <nodegraph name="hton_unconnected_graph" type="" xpos="6.82414" ypos="8.68">
+    <heighttonormal name="heighttonormal1" type="vector3" xpos="3.38621" ypos="7.06">
+      <input name="in" type="float" value="1.0000" />
+      <parameter name="scale" type="float" value="0.6" />
+    </heighttonormal>
+    <output name="out" type="vector3" nodename="heighttonormal1" />
+  </nodegraph>
+</materialx>
