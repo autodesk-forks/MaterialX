@@ -15,6 +15,7 @@
 #include <MaterialXGenGlsl/Nodes/LightGlsl.h>
 #include <MaterialXGenGlsl/Nodes/LightCompoundGlsl.h>
 #include <MaterialXGenGlsl/Nodes/LightShaderGlsl.h>
+#include <MaterialXGenGlsl/Nodes/HeightFieldToNormal.h>
 
 #include <MaterialXGenShader/Nodes/SourceCode.h>
 #include <MaterialXGenShader/Nodes/Swizzle.h>
@@ -214,6 +215,9 @@ GlslShaderGenerator::GlslShaderGenerator()
     registerImplementation("IM_directionallight_sx_glsl", LightShaderGlsl::create);
     // <!-- <spotlight> -->
     registerImplementation("IM_spotlight_sx_glsl", LightShaderGlsl::create);
+
+    // <!-- <heighttonormal> -->
+    registerImplementation("IM_heighttonormal_vector3_sx_glsl", HeightFieldToNormalGlsl::create);
 }
 
 ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr element, const SgOptions& options)
