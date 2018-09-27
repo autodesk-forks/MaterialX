@@ -12,11 +12,10 @@ namespace MaterialX
 
     void HeightFieldToNormalGlsl::createVariables(const SgNode& /*node*/, ShaderGenerator& /*shadergen*/, Shader& shader_)
     {
-        // TODO: Figure out how to set and use screen spaced sizes
-        // which would be used for 2D filtering
+        // Screen size in pixels to be set by client.
         HwShader& shader = static_cast<HwShader&>(shader_);
-        shader.createAppData(Type::FLOAT, "i_screenWidth");
-        shader.createAppData(Type::FLOAT, "i_screenHeight");
+        const string OGSFX_SIZE_SEMANTIC("ViewportPixelSize");
+        shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PUBLIC_UNIFORMS, Type::VECTOR2, "u_screenSize", OGSFX_SIZE_SEMANTIC);
     }
 
     void HeightFieldToNormalGlsl::emitFunctionDefinition(const SgNode& /*node*/, ShaderGenerator& shadergen_, Shader& shader_)
