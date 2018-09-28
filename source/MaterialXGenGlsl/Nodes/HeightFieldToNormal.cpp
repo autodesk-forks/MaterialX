@@ -31,8 +31,8 @@ namespace MaterialX
 
         // Sobel filter computation. Can change this
         std::vector<std::string> computeFilter;
-        computeFilter.push_back("float nx = K[2] + (2.0*K[5]) + K[8] - (K[0] + (2.0*K[3]) + K[6]);");
-        computeFilter.push_back("float ny = K[0] + (2.0*K[1]) + K[2] - (K[6] + (2.0*K[7]) + K[8]);");
+        computeFilter.push_back("float nx = K[0] - K[2] + (2.0*K[3]) - (2.0*K[5]) + K[6] - K[8];");
+        computeFilter.push_back("float ny = K[0] + (2.0*K[1]) + K[2] - K[6] - (2.0*K[7]) - K[8];");
         computeFilter.push_back("float nz = _scale * sqrt(1.0 - nx*nx - ny*ny);");
         computeFilter.push_back("return vec3(nx, ny, nz);");
         for (auto f : computeFilter)
@@ -60,13 +60,26 @@ namespace MaterialX
             throw ExceptionShaderGenError("Node '" + node.getName() + "' is not a valid heighttonormal node");
         }
 
-        //const Syntax* syntax = shadergen.getSyntax();
         string scaleValueString = scaleInput->value ? scaleInput->value->getValueString() : "1.0";
 
         string inputName = inInput->name;
 
         const unsigned int kernalSize(9);
         std::vector<std::string> kernalStrings;
+
+        // TODO: Need to compute the filter values proper.
+        // For 2d sample can get take <kernal size> / textureSize(sampler) 
+        float filterDelta(0.0009765625f);
+        string filterWidth(std::to_string(filterDelta));
+        string filterHeight(std::to_string(filterDelta));
+        vector<string> inputVec2Suffix;
+        for (int row = -1; row <= 1; row++)
+        {
+            for (int col = -1; col <= 1; col++)
+            {
+                inputVec2Suffix.push_back(" + vec2(" + std::to_string(filterDelta*float(col)) + "," + std::to_string(filterDelta*float(row)) + ")");
+            }
+        }
 
         // Require an upstream node to sample
         string upstreamNodeName;
@@ -88,14 +101,58 @@ namespace MaterialX
                         string outputName = upstreamOutput->name;
 
                         // Emit outputs for kernal input 
+                        const unsigned int CENTER_SAMPLE(4);
                         for (unsigned int i = 0; i < kernalSize; i++)
                         {
-                            string suffix("_" + node.getOutput()->name + std::to_string(i));
-                            context.addOutputSuffix(upstreamOutput, suffix);
-                            impl->emitFunctionCall(*upstreamNode, context, shadergen, shader);
-                            context.removeOutputSuffix(upstreamOutput);
+                            // Computation of the center sample has already been
+                            // output so just use that output variable
+                            if (i == CENTER_SAMPLE)
+                            {
+                                kernalStrings.push_back(outputName);
+                            }
+                            else
+                            {
+                                // Add an input name suffix. Only for 2d texcoord inputs
+                                // for now.
+                                std::vector<SgInput*> sampleInputs;
+                                for (SgInput* input : upstreamNode->getInputs())
+                                {
+                                    if (input->name == "texcoord")
+                                    {
+                                        sampleInputs.push_back(input);
+                                    }
+                                }
 
-                            kernalStrings.push_back(outputName + suffix);
+                                if (!sampleInputs.empty())
+                                {
+                                    // Add input suffixes for the emit call
+                                    for (auto sampleInput : sampleInputs)
+                                    {
+                                        context.addInputSuffix(sampleInput, inputVec2Suffix[i]);
+                                    }
+
+                                    // Add a output name suffix for the emit call
+                                    string outputSuffix("_" + node.getOutput()->name + std::to_string(i));
+                                    context.addOutputSuffix(upstreamOutput, outputSuffix);
+                                    
+                                    impl->emitFunctionCall(*upstreamNode, context, shadergen, shader);
+                                    
+                                    // Remove suffixes
+                                    for (auto sampleInput : sampleInputs)
+                                    {
+                                        context.removeInputSuffix(sampleInput);
+                                    }
+                                    context.removeOutputSuffix(upstreamOutput);
+
+                                    // Keep track of the output name with the suffix
+                                    kernalStrings.push_back(outputName + outputSuffix);
+                                }
+                                else
+                                {
+                                    // On failure just call the unmodified function
+                                    kernalStrings.push_back(outputName);
+                                }
+                            }
                         }
                     }
                 }
@@ -121,9 +178,6 @@ namespace MaterialX
 
         // Dump out kernal setting code
         //
-        // TODO: Determine how to specify these values
-        string filterWidth("0.1");
-        string filterHeight("0.1");
 
         string kernalName(node.getOutput()->name + "_kernal"); 
         shader.addLine("float " + kernalName + "[9]"); 
