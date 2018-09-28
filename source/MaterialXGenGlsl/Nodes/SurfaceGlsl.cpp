@@ -43,7 +43,7 @@ void SurfaceGlsl::createVariables(const SgNode& /*node*/, ShaderGenerator& /*sha
         EMPTY_STRING, Value::createValue<int>(0));
 }
 
-void SurfaceGlsl::emitFunctionCall(const SgNode& node, const SgNodeContext& /*context*/, ShaderGenerator& shadergen, Shader& shader_)
+void SurfaceGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)
 {
     HwShader& shader = static_cast<HwShader&>(shader_);
 
@@ -69,7 +69,7 @@ void SurfaceGlsl::emitFunctionCall(const SgNode& node, const SgNodeContext& /*co
 
     // Declare the output variable
     shader.beginLine();
-    glslgen.emitOutput(node.getOutput(), true, shader);
+    glslgen.emitOutput(context, node.getOutput(), true, shader);
     shader.endLine();
 
     const string normalWorld = blockPrefix + "normalWorld";
@@ -89,7 +89,7 @@ void SurfaceGlsl::emitFunctionCall(const SgNode& node, const SgNodeContext& /*co
 
     string surfaceOpacity = node.getName() + "_opacity";
     shader.addStr("float " + surfaceOpacity + " = ");
-    glslgen.emitInput(node.getInput("opacity"), shader);
+    glslgen.emitInput(context, node.getInput("opacity"), shader);
 
     shader.endLine();
 

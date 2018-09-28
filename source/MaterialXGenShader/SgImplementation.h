@@ -47,7 +47,7 @@ public:
     virtual void emitFunctionDefinition(const SgNode& node, ShaderGenerator& shadergen, Shader& shader);
 
     /// Emit the function call or inline source code for given node instance in the given context.
-    virtual void emitFunctionCall(const SgNode& node, const SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader);
+    virtual void emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader);
 
     /// Return true if this implementation for the given node instance is transparent.
     /// False is returned by default. Only override this if your node represents

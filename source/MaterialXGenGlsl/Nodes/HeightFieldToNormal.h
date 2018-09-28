@@ -17,7 +17,7 @@ class HeightFieldToNormalGlsl : public SgImplementation
 
     void emitFunctionDefinition(const SgNode& node, ShaderGenerator& shadergen, Shader& shader) override;
 
-    void emitFunctionCall(const SgNode& node, const SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader) override;
+    void emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader) override;
 
   private:
     // TODO: Add kernal option

@@ -46,7 +46,7 @@ namespace MaterialX
         END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
     }
 
-    void HeightFieldToNormalGlsl::emitFunctionCall(const SgNode& node, const SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)
+    void HeightFieldToNormalGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)
     {
         HwShader& shader = static_cast<HwShader&>(shader_);
 
@@ -85,17 +85,16 @@ namespace MaterialX
                     SgOutput* upstreamOutput = upstreamNode->getOutput();
                     if (upstreamOutput)
                     {
-                        string oldName = upstreamOutput->name;
-                        string upStreamOutputNameBase = upstreamOutput->name + "_" + node.getOutput()->name;
+                        string outputName = upstreamOutput->name;
 
                         // Emit outputs for kernal input 
                         for (unsigned int i = 0; i < kernalSize; i++)
                         {
-                            string upStreamOutputName = upStreamOutputNameBase + std::to_string(i);
-                            upstreamOutput->name = upStreamOutputName;
+                            string suffix("_" + node.getOutput()->name + std::to_string(i));
+                            context.addOutputSuffix(upstreamOutput, suffix);
                             impl->emitFunctionCall(*upstreamNode, context, shadergen, shader);
                             
-                            kernalStrings.push_back(upStreamOutputName);
+                            kernalStrings.push_back(outputName + suffix);
                         }
                     }
                 }
@@ -132,7 +131,7 @@ namespace MaterialX
             shader.addLine(kernalName + "[" + std::to_string(i) + "] = " + kernalStrings[i]);
         }
         shader.beginLine();
-        shadergen.emitOutput(node.getOutput(), true, shader);
+        shadergen.emitOutput(context, node.getOutput(), true, shader);
         shader.addStr(" = IM_heighttonormal_vector3_sx_glsl");
         shader.addStr("(" + kernalName + ", " + scaleValueString + ", " + filterWidth + ", " + filterHeight + ")");
         shader.endLine();
