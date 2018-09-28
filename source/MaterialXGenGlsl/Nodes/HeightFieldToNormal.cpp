@@ -93,7 +93,8 @@ namespace MaterialX
                             string suffix("_" + node.getOutput()->name + std::to_string(i));
                             context.addOutputSuffix(upstreamOutput, suffix);
                             impl->emitFunctionCall(*upstreamNode, context, shadergen, shader);
-                            
+                            context.removeOutputSuffix(upstreamOutput);
+
                             kernalStrings.push_back(outputName + suffix);
                         }
                     }
