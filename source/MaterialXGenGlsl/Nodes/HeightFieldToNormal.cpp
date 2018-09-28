@@ -46,7 +46,7 @@ namespace MaterialX
         END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
     }
 
-    void HeightFieldToNormalGlsl::emitFunctionCall(const SgNode& node, const SgNodeContext& /*context*/, ShaderGenerator& shadergen, Shader& shader_)
+    void HeightFieldToNormalGlsl::emitFunctionCall(const SgNode& node, const SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)
     {
         HwShader& shader = static_cast<HwShader&>(shader_);
 
@@ -69,10 +69,37 @@ namespace MaterialX
         std::vector<std::string> kernalStrings;
 
         // Require an upstream node to sample
-        string upstreamNode;
-        if (inInput->connection)
+        string upstreamNodeName;
+        SgNode* upstreamNode = nullptr;
+        SgOutput* inConnection = inInput->connection;
+        if (inConnection && inConnection->type->isScalar())
         {
-            upstreamNode = inInput->connection->name;
+            upstreamNode = inConnection->node;
+            upstreamNodeName = inConnection->name;
+
+            if (upstreamNode)
+            {
+                SgImplementation *impl = upstreamNode->getImplementation();
+                if (impl)
+                {
+                    SgOutput* upstreamOutput = upstreamNode->getOutput();
+                    if (upstreamOutput)
+                    {
+                        string oldName = upstreamOutput->name;
+                        string upStreamOutputNameBase = upstreamOutput->name + "_" + node.getOutput()->name;
+
+                        // Emit outputs for kernal input 
+                        for (unsigned int i = 0; i < kernalSize; i++)
+                        {
+                            string upStreamOutputName = upStreamOutputNameBase + std::to_string(i);
+                            upstreamOutput->name = upStreamOutputName;
+                            impl->emitFunctionCall(*upstreamNode, context, shadergen, shader);
+                            
+                            kernalStrings.push_back(upStreamOutputName);
+                        }
+                    }
+                }
+            }
         }
         else
         {
@@ -82,16 +109,18 @@ namespace MaterialX
             }
         }
 
-        // Build kernal inputs strings
-        // TODO: Handle connections on input
-        string inValueString = inInput->value->getValueString();
-        for (unsigned int i = 0; i < kernalSize; i++)
+        // Build kernal using constant value
+        if (kernalStrings.empty())
         {
-            kernalStrings.push_back(inValueString);
+            string inValueString = inInput->value->getValueString();
+            for (unsigned int i = 0; i < kernalSize; i++)
+            {
+                kernalStrings.push_back(inValueString);
+            }
         }
 
         // Dump out kernal setting code
-
+        //
         // TODO: Determine how to specify these values
         string filterWidth("0.1");
         string filterHeight("0.1");
