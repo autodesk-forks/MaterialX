@@ -1,5 +1,5 @@
-#ifndef MATERIALX_HEIGHTFIELDTONORMALGLSL_H
-#define MATERIALX_HEIGHTFIELDTONORMALGLSL_H
+#ifndef MATERIALX_HEIGHTTONORMALGLSL_H
+#define MATERIALX_HEIGHTTONORMALGLSL_H
 
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenShader/Nodes/Compound.h>
@@ -8,7 +8,7 @@ namespace MaterialX
 {
 
 /// Implementation of height-field to normal for GLSL
-class HeightFieldToNormalGlsl : public SgImplementation
+class HeightToNormalGlsl : public SgImplementation
 {
   public:
     static SgImplementationPtr create();

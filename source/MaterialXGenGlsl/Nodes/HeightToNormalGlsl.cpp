@@ -1,16 +1,16 @@
-#include <MaterialXGenGlsl/Nodes/HeightFieldToNormal.h>
+#include <MaterialXGenGlsl/Nodes/HeightToNormalGlsl.h>
 #include <MaterialXGenShader/HwShader.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 
 namespace MaterialX
 {
 
-    SgImplementationPtr HeightFieldToNormalGlsl::create()
+    SgImplementationPtr HeightToNormalGlsl::create()
     {
-        return std::make_shared<HeightFieldToNormalGlsl>();
+        return std::make_shared<HeightToNormalGlsl>();
     }
 
-    void HeightFieldToNormalGlsl::createVariables(const SgNode& /*node*/, ShaderGenerator& /*shadergen*/, Shader& shader_)
+    void HeightToNormalGlsl::createVariables(const SgNode& /*node*/, ShaderGenerator& /*shadergen*/, Shader& shader_)
     {
         // Screen size in pixels to be set by client.
         HwShader& shader = static_cast<HwShader&>(shader_);
@@ -18,35 +18,31 @@ namespace MaterialX
         shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PUBLIC_UNIFORMS, Type::VECTOR2, "u_screenSize" /*, OGSFX_SIZE_SEMANTIC*/);
     }
 
-    void HeightFieldToNormalGlsl::emitFunctionDefinition(const SgNode& /*node*/, ShaderGenerator& shadergen_, Shader& shader_)
+    void HeightToNormalGlsl::emitFunctionDefinition(const SgNode& /*node*/, ShaderGenerator& shadergen_, Shader& shader_)
     {
         HwShader& shader = static_cast<HwShader&>(shader_);
         GlslShaderGenerator shadergen = static_cast<GlslShaderGenerator&>(shadergen_);
 
         BEGIN_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
 
-        // Emit function signature. Need to add filter width and filter height
-        shader.addLine("vec3 IM_heighttonormal_vector3_sx_glsl(float K[9], float _scale, float _width, float _height)", false);
-        shader.beginScope();
+        // Emit function signature.
+        // Sobel filter computation. TODO: This make the filter operation settable.
+        //
+        const char* SOBEL_FILTER_SOURCE =
+            "vec3 IM_heighttonormal_vector3_sx_glsl(float S[9], float _scale)\n"
+            "{\n"
+            "   float nx = S[0] - S[2] + (2.0*S[3]) - (2.0*S[5]) + S[6] - S[8];\n"
+            "   float ny = S[0] + (2.0*S[1]) + S[2] - S[6] - (2.0*S[7]) - S[8];\n"
+            "   float nz = _scale * sqrt(1.0 - nx*nx - ny*ny);\n"
+            "   return vec3(nx, ny, nz);\n"
+            "}\n\n";
 
-        // Sobel filter computation. Can change this
-        std::vector<std::string> computeFilter;
-        computeFilter.push_back("float nx = K[0] - K[2] + (2.0*K[3]) - (2.0*K[5]) + K[6] - K[8];");
-        computeFilter.push_back("float ny = K[0] + (2.0*K[1]) + K[2] - K[6] - (2.0*K[7]) - K[8];");
-        computeFilter.push_back("float nz = _scale * sqrt(1.0 - nx*nx - ny*ny);");
-        computeFilter.push_back("return vec3(nx, ny, nz);");
-        for (auto f : computeFilter)
-        {
-            shader.addLine(f);
-        }
-
-        shader.endScope();
-        shader.newLine();
+        shader.addBlock(SOBEL_FILTER_SOURCE, shadergen);
 
         END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
     }
 
-    void HeightFieldToNormalGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)
+    void HeightToNormalGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)
     {
         HwShader& shader = static_cast<HwShader&>(shader_);
 
@@ -64,20 +60,32 @@ namespace MaterialX
 
         string inputName = inInput->name;
 
-        const unsigned int kernalSize(9);
-        std::vector<std::string> kernalStrings;
+        // We assume a set of 3 x 3 samples organized as follows:
+        // 
+        // ----+-----+----
+        //  0  |  1  | 2
+        // ----+-----+----
+        //  3  |  4  | 5
+        // ----+-----+----
+        //  6  |  7  | 8
+        // ----+-----+----
+        //
+        const unsigned int sampleSize = 9;
+        std::vector<std::string> sampleStrings;
 
-        // TODO: Need to compute the filter values proper.
-        // For 2d sample can get take <kernal size> / textureSize(sampler) 
-        float filterDelta(0.0009765625f);
-        string filterWidth(std::to_string(filterDelta));
-        string filterHeight(std::to_string(filterDelta));
+        // Compute the sample offsets relative to the centre sample:
+        // TODO: For now we assume some small increment in u,v space, assuming that it is a 2D
+        // uv space set of samples. More work is required here.
+        float sampleOffsetX(0.0009765625f);
+        float sampleOffsetY(0.0009765625f);
+        string sampleOffsetXString(std::to_string(sampleOffsetX));
+        string sampleOffsetYString(std::to_string(sampleOffsetY));
         vector<string> inputVec2Suffix;
         for (int row = -1; row <= 1; row++)
         {
             for (int col = -1; col <= 1; col++)
             {
-                inputVec2Suffix.push_back(" + vec2(" + std::to_string(filterDelta*float(col)) + "," + std::to_string(filterDelta*float(row)) + ")");
+                inputVec2Suffix.push_back(" + vec2(" + std::to_string(sampleOffsetX*float(col)) + "," + std::to_string(sampleOffsetY*float(row)) + ")");
             }
         }
 
@@ -100,15 +108,15 @@ namespace MaterialX
                     {
                         string outputName = upstreamOutput->name;
 
-                        // Emit outputs for kernal input 
+                        // Emit outputs for sample input 
                         const unsigned int CENTER_SAMPLE(4);
-                        for (unsigned int i = 0; i < kernalSize; i++)
+                        for (unsigned int i = 0; i < sampleSize; i++)
                         {
                             // Computation of the center sample has already been
                             // output so just use that output variable
                             if (i == CENTER_SAMPLE)
                             {
-                                kernalStrings.push_back(outputName);
+                                sampleStrings.push_back(outputName);
                             }
                             else
                             {
@@ -145,12 +153,12 @@ namespace MaterialX
                                     context.removeOutputSuffix(upstreamOutput);
 
                                     // Keep track of the output name with the suffix
-                                    kernalStrings.push_back(outputName + outputSuffix);
+                                    sampleStrings.push_back(outputName + outputSuffix);
                                 }
                                 else
                                 {
                                     // On failure just call the unmodified function
-                                    kernalStrings.push_back(outputName);
+                                    sampleStrings.push_back(outputName);
                                 }
                             }
                         }
@@ -166,29 +174,28 @@ namespace MaterialX
             }
         }
 
-        // Build kernal using constant value
-        if (kernalStrings.empty())
+        // Build a set of samples with constant values
+        if (sampleStrings.empty())
         {
             string inValueString = inInput->value->getValueString();
-            for (unsigned int i = 0; i < kernalSize; i++)
+            for (unsigned int i = 0; i < sampleSize; i++)
             {
-                kernalStrings.push_back(inValueString);
+                sampleStrings.push_back(inValueString);
             }
         }
 
-        // Dump out kernal setting code
+        // Dump out sample evaluation code
         //
-
-        string kernalName(node.getOutput()->name + "_kernal"); 
-        shader.addLine("float " + kernalName + "[9]"); 
-        for (unsigned int i=0; i<9; i++)
+        string sampleName(node.getOutput()->name + "_samples"); 
+        shader.addLine("float " + sampleName + "[" + std::to_string(sampleSize) + "]");
+        for (unsigned int i=0; i<sampleSize; i++)
         {
-            shader.addLine(kernalName + "[" + std::to_string(i) + "] = " + kernalStrings[i]);
+            shader.addLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i]);
         }
         shader.beginLine();
         shadergen.emitOutput(context, node.getOutput(), true, false, shader);
         shader.addStr(" = IM_heighttonormal_vector3_sx_glsl");
-        shader.addStr("(" + kernalName + ", " + scaleValueString + ", " + filterWidth + ", " + filterHeight + ")");
+        shader.addStr("(" + sampleName + ", " + scaleValueString + ")");
         shader.endLine();
 
         END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
