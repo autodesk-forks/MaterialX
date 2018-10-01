@@ -14,8 +14,8 @@ namespace MaterialX
     {
         // Screen size in pixels to be set by client.
         HwShader& shader = static_cast<HwShader&>(shader_);
-        const string OGSFX_SIZE_SEMANTIC("ViewportPixelSize");
-        shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PUBLIC_UNIFORMS, Type::VECTOR2, "u_screenSize", OGSFX_SIZE_SEMANTIC);
+        //const string OGSFX_SIZE_SEMANTIC("ViewportPixelSize"); -- This causes bad code to be emitted.
+        shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PUBLIC_UNIFORMS, Type::VECTOR2, "u_screenSize" /*, OGSFX_SIZE_SEMANTIC*/);
     }
 
     void HeightFieldToNormalGlsl::emitFunctionDefinition(const SgNode& /*node*/, ShaderGenerator& shadergen_, Shader& shader_)
