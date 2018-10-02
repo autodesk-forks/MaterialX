@@ -315,10 +315,11 @@ namespace
                 }
                 else
                 {
+                    // If node is nodedef which references a node graph.
+                    // If so, then try to examine that node graph.
                     NodeDefPtr nodeDef = node->getNodeDef();
-                    const string& typeName2 = nodeDef->getType();
-                    const TypeDesc* type2 = TypeDesc::get(typeName2);
-                    if (type2 == Type::BSDF)
+                    const TypeDesc* nodeDefType = TypeDesc::get(nodeDef->getType());
+                    if (nodeDefType == Type::BSDF)
                     {
                         InterfaceElementPtr impl = nodeDef->getImplementation(shadergen.getTarget(), shadergen.getLanguage());
                         if (impl && impl->isA<NodeGraph>())
@@ -328,10 +329,12 @@ namespace
                             vector<OutputPtr> outputs = graph->getActiveOutputs();
                             if (outputs.size() > 0)
                             {
-                                const OutputPtr& output2 = outputs[0];
-                                bool isTransparent = isTransparentShaderGraph(output2, shadergen);
+                                const OutputPtr& graphOutput = outputs[0];
+                                bool isTransparent = isTransparentShaderGraph(graphOutput, shadergen);
                                 if (isTransparent)
+                                {
                                     return true;
+                                }
                             }
                         }
                     }
