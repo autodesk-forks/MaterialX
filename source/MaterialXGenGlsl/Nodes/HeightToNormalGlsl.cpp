@@ -125,10 +125,25 @@ namespace MaterialX
 
                             // Emit code to compute sample size
                             //
+                            string sampleInputValue;
+                            const Syntax* syntax = shadergen.getSyntax();
+                            if (sampleInput->connection)
+                            {
+                                sampleInputValue = sampleInput->connection->name;
+                            }
+                            else if (sampleInput->value)
+                            {
+                                sampleInputValue = syntax->getValue(sampleInput->type, *sampleInput->value);
+                            }
+                            else
+                            {
+                                sampleInputValue = syntax->getDefaultValue(sampleInput->type);
+                            }
+
                             const string sampleOutputName(node.getOutput()->name + "_sample_size");
-                            string sampleCall(sampleOutputName + " = " +
+                            string sampleCall("vec2 " + sampleOutputName + " = " +
                                 "IM_heighttonormal_vector3_sx_glsl_sample_size(" +
-                                sampleInput->name + "," +
+                                sampleInputValue + "," +
                                 std::to_string(filterSize) + "," +
                                 std::to_string(filterOffset) + ");"
                             );
@@ -141,7 +156,7 @@ namespace MaterialX
                             {
                                 for (int col = -1; col <= 1; col++)
                                 {
-                                    inputVec2Suffix.push_back(" + " + sampleInput->name + " * vec2(" + std::to_string(float(col)) + "," + std::to_string(float(row)) + ")");
+                                    inputVec2Suffix.push_back(" + " + sampleOutputName + " * vec2(" + std::to_string(float(col)) + "," + std::to_string(float(row)) + ")");
                                 }
                             }
 
