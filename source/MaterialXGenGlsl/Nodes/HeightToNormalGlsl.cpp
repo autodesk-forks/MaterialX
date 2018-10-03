@@ -64,46 +64,19 @@ namespace MaterialX
         END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
     }
 
-    void HeightToNormalGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)
+
+    void HeightToNormalGlsl::emitInputSamples(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, HwShader& shader,
+                                              const unsigned int sampleCount, StringVec& sampleStrings) const
     {
-        HwShader& shader = static_cast<HwShader&>(shader_);
-
-        BEGIN_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
-
         const SgInput* inInput = node.getInput("in");
-        const SgInput* scaleInput = node.getInput("scale");
-
-        if (!inInput || !scaleInput)
-        {
-            throw ExceptionShaderGenError("Node '" + node.getName() + "' is not a valid heighttonormal node");
-        }
-
-        string scaleValueString = scaleInput->value ? scaleInput->value->getValueString() : "1.0";
-
         string inputName = inInput->name;
 
-        // We assume a set of 3 x 3 samples organized as follows:
-        // 
-        // ----+-----+----
-        //  0  |  1  | 2
-        // ----+-----+----
-        //  3  |  4  | 5
-        // ----+-----+----
-        //  6  |  7  | 8
-        // ----+-----+----
-        //
-        const unsigned int sampleCount = 9;
-        std::vector<std::string> sampleStrings;
-
         // Require an upstream node to sample
-        string upstreamNodeName;
         SgNode* upstreamNode = nullptr;
         SgOutput* inConnection = inInput->connection;
         if (inConnection && inConnection->type->isScalar())
         {
             upstreamNode = inConnection->node;
-            upstreamNodeName = inConnection->name;
-
             if (upstreamNode)
             {
                 SgImplementation *impl = upstreamNode->getImplementation();
@@ -210,21 +183,58 @@ namespace MaterialX
                 sampleStrings.push_back(inValueString);
             }
         }
+    }
 
-        // Dump out sample evaluation code
-        //
-        string sampleName(node.getOutput()->name + "_samples"); 
-        shader.addLine("float " + sampleName + "[" + std::to_string(sampleCount) + "]");
-        for (unsigned int i=0; i<sampleCount; i++)
+    void HeightToNormalGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)
+    {
+        const SgInput* inInput = node.getInput("in");
+        const SgInput* scaleInput = node.getInput("scale");
+
+        if (!inInput || !scaleInput)
         {
-            shader.addLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i]);
+            throw ExceptionShaderGenError("Node '" + node.getName() + "' is not a valid heighttonormal node");
         }
-        shader.beginLine();
-        shadergen.emitOutput(context, node.getOutput(), true, false, shader);
-        shader.addStr(" = IM_heighttonormal_vector3_sx_glsl");
-        shader.addStr("(" + sampleName + ", " + scaleValueString + ")");
-        shader.endLine();
 
+        HwShader& shader = static_cast<HwShader&>(shader_);
+
+        BEGIN_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
+        {
+            // Create the input "samples". This means to emit the calls to 
+            // compute the sames and return a set of strings containaing
+            // the variables to assign to the sample grid.
+            //
+            // We assume the grid is 3 x 3 in size and is organized as follows
+            // in array index order.
+            // 
+            // ----+-----+----
+            //  0  |  1  | 2
+            // ----+-----+----
+            //  3  |  4  | 5
+            // ----+-----+----
+            //  6  |  7  | 8
+            // ----+-----+----
+            //
+            const unsigned int sampleCount = 9;
+            StringVec sampleStrings;
+
+            emitInputSamples(node, context, shadergen, shader, sampleCount, sampleStrings);
+
+            // Emit code to evaluate samples.
+            //
+            string scaleValueString = scaleInput->value ? scaleInput->value->getValueString() : "1.0";
+
+            string sampleName(node.getOutput()->name + "_samples");
+            shader.addLine("float " + sampleName + "[" + std::to_string(sampleCount) + "]");
+            for (unsigned int i = 0; i < sampleCount; i++)
+            {
+                shader.addLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i]);
+            }
+            shader.beginLine();
+            shadergen.emitOutput(context, node.getOutput(), true, false, shader);
+            shader.addStr(" = IM_heighttonormal_vector3_sx_glsl");
+            shader.addStr("(" + sampleName + ", " + scaleValueString + ")");
+            shader.endLine();
+        }
         END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
     }
 
