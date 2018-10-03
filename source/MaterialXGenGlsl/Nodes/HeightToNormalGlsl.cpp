@@ -117,7 +117,7 @@ namespace MaterialX
                         // The only sample input to consider now are texcoord inputs .
                         SgInput* sampleInput = upstreamNode->getInput("texcoord");
 
-                        if (sampleInput)
+                        if (sampleInput && sampleInput->type == Type::VECTOR2)
                         {
                             // This is not exposed. Assume a filter size of 1 with no offset
                             const float filterSize = 1.0;
@@ -126,19 +126,7 @@ namespace MaterialX
                             // Emit code to compute sample size
                             //
                             string sampleInputValue;
-                            const Syntax* syntax = shadergen.getSyntax();
-                            if (sampleInput->connection)
-                            {
-                                sampleInputValue = sampleInput->connection->name;
-                            }
-                            else if (sampleInput->value)
-                            {
-                                sampleInputValue = syntax->getValue(sampleInput->type, *sampleInput->value);
-                            }
-                            else
-                            {
-                                sampleInputValue = syntax->getDefaultValue(sampleInput->type);
-                            }
+                            shadergen.getInput(context, sampleInput, sampleInputValue);
 
                             const string sampleOutputName(node.getOutput()->name + "_sample_size");
                             string sampleCall("vec2 " + sampleOutputName + " = " +
