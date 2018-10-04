@@ -149,8 +149,8 @@ void SgNode::ScopeInfo::merge(const ScopeInfo &fromScope)
 SgNode::SgNode(const string& name)
     : _name(name)
     , _classification(0)
-    , _impl(nullptr)
     , _samplingInput(nullptr)
+    , _impl(nullptr)
 {
 }
 
@@ -170,6 +170,12 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
             "' matching language '" + shadergen.getLanguage() + "' and target '" + shadergen.getTarget() + "'");
     }
 
+    // Set group name
+    newNode->_groupName = nodeDef.getNodeGroup();
+    bool canBeSampled2d = newNode->nodeCanBeSampled2D();
+    bool canBeSampled3d = newNode->nodeCanBeSampled3D();
+    newNode->_samplingInput = nullptr;
+
     // Create interface from nodedef
     const vector<ValueElementPtr> nodeDefInputs = nodeDef.getChildrenOfType<ValueElement>();
     for (const ValueElementPtr& elem : nodeDefInputs)
@@ -185,6 +191,16 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
             {
                 input->value = elem->getValue();
             }
+
+            // Determine if this input can be sampled
+            if (canBeSampled2d && newNode->elementCanBeSampled2D(*elem))
+            {
+                newNode->_samplingInput = input;
+            }
+            else if (canBeSampled3d && newNode->elementCanBeSampled3D(*elem))
+            {
+                newNode->_samplingInput = input;
+            }
         }
     }
 
@@ -194,14 +210,7 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
         newNode->addOutput("out", TypeDesc::get(nodeDef.getType()));
     }
 
-    // Set group name and check if it can be sampled
-    newNode->_groupName = nodeDef.getNodeGroup();
-    bool canBeSampled2d = newNode->nodeCanBeSampled2D();
-    bool canBeSampled3d = newNode->nodeCanBeSampled3D();
-    newNode->_samplingInput = nullptr;
-
     // Assign input values from the node instance
-    // and keep a reference to the input which can be sampled
     if (nodeInstance)
     {
         const vector<ValueElementPtr> nodeInstanceInputs = nodeInstance->getChildrenOfType<ValueElement>();
@@ -209,18 +218,9 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
         {
             if (!elem->getValueString().empty())
             {
-                string elementName = elem->getName();
-                SgInput* input = newNode->getInput(elementName);
+                SgInput* input = newNode->getInput(elem->getName());
                 if (input)
-                {
-                    if (canBeSampled2d && newNode->elementCanBeSampled2D(*elem))
-                    {
-                        newNode->_samplingInput = input;
-                    }
-                    else if (canBeSampled3d && newNode->elementCanBeSampled3D(*elem))
-                    {
-                        newNode->_samplingInput = input;
-                    }
+                {       
                     input->value = elem->getValue();
                 }
             }
