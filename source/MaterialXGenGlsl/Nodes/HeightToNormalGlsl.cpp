@@ -55,8 +55,11 @@ namespace MaterialX
                 "{\n"
                 "   float nx = S[0] - S[2] + (2.0*S[3]) - (2.0*S[5]) + S[6] - S[8];\n"
                 "   float ny = S[0] + (2.0*S[1]) + S[2] - S[6] - (2.0*S[7]) - S[8];\n"
-                "   float nz = _scale * sqrt(1.0 - nx*nx - ny*ny);\n"
-                "   return normalize(vec3(nx, ny, nz));\n"
+                "   float nz = _scale * sqrt(1.0 - nx*nx - ny*ny); \n"
+                "   vec3 norm = normalize(vec3(nx, ny, nz)); \n"
+                "   norm = norm + vec3(1.0, 1.0, 1.0); \n"
+                "   norm = norm * 0.5; \n"
+                "   return norm; \n"
                 "}\n\n";
 
             shader.addBlock(SOBEL_FILTER_SOURCE, shadergen);
@@ -87,10 +90,15 @@ namespace MaterialX
                     {
                         string outputName = upstreamOutput->name;
 
-                        // The only sample input to consider now are texcoord inputs .
-                        SgInput* sampleInput = upstreamNode->getInput("texcoord");
+                        // Find out which input needs to be sampled multiple times
+                        SgInput* samplingInput = upstreamNode->getSamplingInput();
+                        // TODO: For now we only support uv space sampling
+                        if (samplingInput && samplingInput->type != Type::VECTOR2)
+                        {
+                            samplingInput = nullptr;
+                        }
 
-                        if (sampleInput && sampleInput->type == Type::VECTOR2)
+                        if (samplingInput)
                         {
                             // This is not exposed. Assume a filter size of 1 with no offset
                             const float filterSize = 1.0;
@@ -99,7 +107,7 @@ namespace MaterialX
                             // Emit code to compute sample size
                             //
                             string sampleInputValue;
-                            shadergen.getInput(context, sampleInput, sampleInputValue);
+                            shadergen.getInput(context, samplingInput, sampleInputValue);
 
                             const string sampleOutputName(node.getOutput()->name + "_sample_size");
                             string sampleCall("vec2 " + sampleOutputName + " = " +
@@ -134,7 +142,7 @@ namespace MaterialX
                                 else
                                 {
                                     // Add an input name suffix. 
-                                    context.addInputSuffix(sampleInput, inputVec2Suffix[i]);
+                                    context.addInputSuffix(samplingInput, inputVec2Suffix[i]);
 
                                     // Add a output name suffix for the emit call
                                     string outputSuffix("_" + node.getOutput()->name + std::to_string(i));
@@ -143,7 +151,7 @@ namespace MaterialX
                                     impl->emitFunctionCall(*upstreamNode, context, shadergen, shader);
 
                                     // Remove suffixes
-                                    context.removeInputSuffix(sampleInput);
+                                    context.removeInputSuffix(samplingInput);
                                     context.removeOutputSuffix(upstreamOutput);
 
                                     // Keep track of the output name with the suffix

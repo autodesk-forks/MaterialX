@@ -144,6 +144,7 @@ SgNode::SgNode(const string& name)
     : _name(name)
     , _classification(0)
     , _impl(nullptr)
+    , _samplingInput(nullptr)
 {
 }
 
@@ -187,7 +188,16 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
         newNode->addOutput("out", TypeDesc::get(nodeDef.getType()));
     }
 
+    // Set group name and check if it can be sampled
+    newNode->_groupName = nodeDef.getNodeGroup();
+    std::set<string> samplingNodes2d = { "texture2d", "procedural2d" };
+    std::set<string> samplingNodes3d = { "texture3d", "procedural3d" };
+    bool canBeSampled2d = (samplingNodes2d.count(newNode->_groupName) > 0);
+    bool canBeSampled3d = (samplingNodes3d.count(newNode->_groupName) > 0);
+    newNode->_samplingInput = nullptr;
+
     // Assign input values from the node instance
+    // and keep a reference to the input which can be sampled
     if (nodeInstance)
     {
         const vector<ValueElementPtr> nodeInstanceInputs = nodeInstance->getChildrenOfType<ValueElement>();
@@ -195,9 +205,18 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
         {
             if (!elem->getValueString().empty())
             {
-                SgInput* input = newNode->getInput(elem->getName());
+                string elementName = elem->getName();
+                SgInput* input = newNode->getInput(elementName);
                 if (input)
                 {
+                    if (canBeSampled2d && elementName == "texcoord")
+                    {
+                        newNode->_samplingInput = input;
+                    }
+                    else if (canBeSampled3d && elementName == "position")
+                    {
+                        newNode->_samplingInput = input;
+                    }
                     input->value = elem->getValue();
                 }
             }

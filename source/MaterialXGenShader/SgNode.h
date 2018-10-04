@@ -145,6 +145,12 @@ public:
         return _name;
     }
 
+    // Return the node group name
+    const string& getGroupName() const
+    {
+        return _groupName;
+    }
+
     /// Return the implementation used for this node.
     SgImplementation* getImplementation()
     {
@@ -200,6 +206,12 @@ public:
     void renameInput(const string& name, const string& newName);
     void renameOutput(const string& name, const string& newName);
 
+    /// Get input used for sampling. May not be any
+    SgInput* getSamplingInput() const
+    {
+        return _samplingInput;
+    }
+
     /// Add the given contex id to the set of contexts used for this node.
     void addContextID(int id) { _contextIDs.insert(id); }
 
@@ -209,12 +221,15 @@ public:
 protected:
     string _name;
     unsigned int _classification;
+    string _groupName;
 
     std::unordered_map<string, SgInputPtr> _inputMap;
     vector<SgInput*> _inputOrder;
 
     std::unordered_map<string, SgOutputPtr> _outputMap;
     vector<SgOutput*> _outputOrder;
+
+    SgInput* _samplingInput;
 
     SgImplementationPtr _impl;
     ScopeInfo _scopeInfo;
