@@ -77,6 +77,12 @@ const string SgNode::SWITCH = "switch";
 const string SgNode::BSDF_R = "R";
 const string SgNode::BSDF_T = "T";
 
+const string SgNode::TEXTURE2D_NODEGROUP = "texture2d";
+const string SgNode::TEXTURE3D_NODEGROUP = "texture3d";
+const string SgNode::PROECEDURAL2D_NODEGROUP = "procedural2d";
+const string SgNode::PROECEDURAL3D_NODEGROUP = "procedural3d";
+const string SgNode::CONVOLUTION2D_NODEGROUP = "convolution2d";
+
 bool SgNode::referencedConditionally() const
 {
     if (_scopeInfo.type == SgNode::ScopeInfo::Type::SINGLE)
@@ -190,10 +196,8 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
 
     // Set group name and check if it can be sampled
     newNode->_groupName = nodeDef.getNodeGroup();
-    std::set<string> samplingNodes2d = { "texture2d", "procedural2d" };
-    std::set<string> samplingNodes3d = { "texture3d", "procedural3d" };
-    bool canBeSampled2d = (samplingNodes2d.count(newNode->_groupName) > 0);
-    bool canBeSampled3d = (samplingNodes3d.count(newNode->_groupName) > 0);
+    bool canBeSampled2d = newNode->nodeCanBeSampled2D();
+    bool canBeSampled3d = newNode->nodeCanBeSampled3D();
     newNode->_samplingInput = nullptr;
 
     // Assign input values from the node instance
@@ -209,11 +213,11 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
                 SgInput* input = newNode->getInput(elementName);
                 if (input)
                 {
-                    if (canBeSampled2d && elementName == "texcoord")
+                    if (canBeSampled2d && newNode->elementCanBeSampled2D(*elem))
                     {
                         newNode->_samplingInput = input;
                     }
-                    else if (canBeSampled3d && elementName == "position")
+                    else if (canBeSampled3d && newNode->elementCanBeSampled3D(*elem))
                     {
                         newNode->_samplingInput = input;
                     }
@@ -372,6 +376,18 @@ void SgNode::renameOutput(const string& name, const string& newName)
             _outputMap.erase(it);
         }
     }
+}
+
+bool SgNode::elementCanBeSampled2D(const Element& element) const
+{
+    const string TEXCOORD_NAME("texcoord");
+    return (element.getName() == TEXCOORD_NAME);
+}
+
+bool SgNode::elementCanBeSampled3D(const Element& element) const
+{
+    const string POSITION_NAME("position");
+    return (element.getName() == POSITION_NAME);
 }
 
 

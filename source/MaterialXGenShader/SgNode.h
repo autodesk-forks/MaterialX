@@ -123,6 +123,12 @@ public:
     static const string BSDF_R;
     static const string BSDF_T;
 
+    static const string TEXTURE2D_NODEGROUP;
+    static const string TEXTURE3D_NODEGROUP;
+    static const string PROECEDURAL2D_NODEGROUP;
+    static const string PROECEDURAL3D_NODEGROUP;
+    static const string CONVOLUTION2D_NODEGROUP;
+
 public:
     /// Constructor.
     SgNode(const string& name);
@@ -212,6 +218,26 @@ public:
         return _samplingInput;
     }
 
+    /// Check if a given node can be sampled in 2D (uv space)
+    bool nodeCanBeSampled2D() const
+    {
+        return (_groupName == TEXTURE2D_NODEGROUP ||
+                _groupName == PROECEDURAL2D_NODEGROUP);
+    }
+
+    /// Check if a given node can be sampled in 3D 
+    bool nodeCanBeSampled3D() const
+    {
+        return (_groupName == TEXTURE3D_NODEGROUP ||
+                _groupName == PROECEDURAL3D_NODEGROUP);
+    }
+
+    /// Check if a given node is a sampler
+    bool nodeIsASampler() const
+    {
+        return (_groupName == CONVOLUTION2D_NODEGROUP);
+    }
+
     /// Add the given contex id to the set of contexts used for this node.
     void addContextID(int id) { _contextIDs.insert(id); }
 
@@ -219,6 +245,13 @@ public:
     const std::set<int>& getContextIDs() const { return _contextIDs; }
 
 protected:
+
+    /// Determine if input element on a node can be sampled in 2D
+    bool elementCanBeSampled2D(const Element& element) const;
+
+    /// Determine if input element on a node can be sampled in 3D
+    bool elementCanBeSampled3D(const Element& element) const;
+
     string _name;
     unsigned int _classification;
     string _groupName;

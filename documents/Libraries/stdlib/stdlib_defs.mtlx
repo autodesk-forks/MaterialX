@@ -3562,37 +3562,37 @@
     Node: <blur>
     A gaussian-falloff blur.
   -->
-  <nodedef name="ND_blur_float" node="blur" type="float" nodegroup="convolution" defaultinput="in">
+  <nodedef name="ND_blur_float" node="blur" type="float" nodegroup="convolution2d" defaultinput="in">
     <input name="in" type="float"/>
     <parameter name="size" type="float" value="0.0"/>
     <parameter name="filtertype" type="string" value="box" enum="box,gaussian"/>
   </nodedef>
-  <nodedef name="ND_blur_color2" node="blur" type="color2" nodegroup="convolution" defaultinput="in">
+  <nodedef name="ND_blur_color2" node="blur" type="color2" nodegroup="convolution2d" defaultinput="in">
     <input name="in" type="color2"/>
     <parameter name="size" type="float" value="0.0"/>
     <parameter name="filtertype" type="string" value="box" enum="box,gaussian"/>
   </nodedef>
-  <nodedef name="ND_blur_color3" node="blur" type="color3" nodegroup="convolution" defaultinput="in">
+  <nodedef name="ND_blur_color3" node="blur" type="color3" nodegroup="convolution2d" defaultinput="in">
     <input name="in" type="color3"/>
     <parameter name="size" type="float" value="0.0"/>
     <parameter name="filtertype" type="string" value="box" enum="box,gaussian"/>
   </nodedef>
-  <nodedef name="ND_blur_color4" node="blur" type="color4" nodegroup="convolution" defaultinput="in">
+  <nodedef name="ND_blur_color4" node="blur" type="color4" nodegroup="convolution2d" defaultinput="in">
     <input name="in" type="color4"/>
     <parameter name="size" type="float" value="0.0"/>
     <parameter name="filtertype" type="string" value="box" enum="box,gaussian"/>
   </nodedef>
-  <nodedef name="ND_blur_vector2" node="blur" type="vector2" nodegroup="convolution" defaultinput="in">
+  <nodedef name="ND_blur_vector2" node="blur" type="vector2" nodegroup="convolution2d" defaultinput="in">
     <input name="in" type="vector2"/>
     <parameter name="size" type="float" value="0.0"/>
     <parameter name="filtertype" type="string" value="box" enum="box,gaussian"/>
   </nodedef>
-  <nodedef name="ND_blur_vector3" node="blur" type="vector3" nodegroup="convolution" defaultinput="in">
+  <nodedef name="ND_blur_vector3" node="blur" type="vector3" nodegroup="convolution2d" defaultinput="in">
     <input name="in" type="vector3"/>
     <parameter name="size" type="float" value="0.0"/>
     <parameter name="filtertype" type="string" value="box" enum="box,gaussian"/>
   </nodedef>
-  <nodedef name="ND_blur_vector4" node="blur" type="vector4" nodegroup="convolution" defaultinput="in">
+  <nodedef name="ND_blur_vector4" node="blur" type="vector4" nodegroup="convolution2d" defaultinput="in">
     <input name="in" type="vector4"/>
     <parameter name="size" type="float" value="0.0"/>
     <parameter name="filtertype" type="string" value="box" enum="box,gaussian"/>
@@ -3602,7 +3602,7 @@
     Node: <heighttonormal>
     Convert a scalar height map to a normal map of type vector3.
   -->
-  <nodedef name="ND_heighttonormal_vector3" node="heighttonormal" type="vector3" nodegroup="convolution" default="0.0, 1.0, 0.0">
+  <nodedef name="ND_heighttonormal_vector3" node="heighttonormal" type="vector3" nodegroup="convolution2d" default="0.0, 1.0, 0.0">
     <input name="in" type="float"/>
     <parameter name="scale" type="float" value="1.0"/>
   </nodedef>
