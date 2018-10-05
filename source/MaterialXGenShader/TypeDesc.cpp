@@ -45,14 +45,7 @@ const TypeDesc* TypeDesc::registerType(const string& name, unsigned char basetyp
 int TypeDesc::getChannelIndex(char channel) const
 {
     auto it =_channelMapping.find(channel);
-    if (it != _channelMapping.end())
-    {
-        return it->second;
-    }
-    else
-    {
-        return -1;
-    }
+    return it != _channelMapping.end() ? it->second : -1;
 }
 
 const TypeDesc* TypeDesc::get(const string& name)

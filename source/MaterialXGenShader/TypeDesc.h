@@ -6,6 +6,8 @@
 namespace MaterialX
 {
 
+using ChannelMap = std::unordered_map<char, int>;
+
 /// @class TypeDesc
 /// A type descriptor for MaterialX data types.
 /// All types need to have a type descriptor registered in order for shader generators
@@ -45,7 +47,7 @@ public:
     /// Throws an exception if a type with the same name is already registered.
     static const TypeDesc* registerType(const string& name, unsigned char basetype,
         unsigned char semantic = SEMATIC_NONE, int size = 1, bool editable = true,
-        const std::unordered_map<char, int>& channelMapping = {});
+        const ChannelMap& channelMapping = ChannelMap());
 
     /// Get a type descriptor for given name.
     /// Throws an exception if no type with that name is found.
@@ -96,14 +98,14 @@ public:
 private:
     TypeDesc(const string& name, unsigned char basetype,
       unsigned char semantic, int size, bool editable,
-      const std::unordered_map<char, int>& channelMapping);
+      const ChannelMap& channelMapping);
 
     const string _name;
     const unsigned char _basetype;
     const unsigned char _semantic;
     const int _size;
     const bool _editable;
-    const std::unordered_map<char, int> _channelMapping;
+    const ChannelMap _channelMapping;
 };
 
 namespace Type
