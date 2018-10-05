@@ -127,4 +127,18 @@ void HwShader::getTopLevelShaderGraphs(ShaderGenerator& shadergen, std::deque<Sg
     }
 }
 
+bool HwShader::hasSamplerNodes() const
+{
+    bool sampling = false;
+    for (SgNode* node : getNodeGraph()->getNodes())
+    {
+        if (node->nodeIsASampler())
+        {
+            sampling = true;
+            break;
+        }
+    }
+    return sampling;
+}
+
 }

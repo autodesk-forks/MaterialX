@@ -18,54 +18,6 @@ namespace MaterialX
         shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PUBLIC_UNIFORMS, Type::VECTOR2, "u_screenSize" /*, OGSFX_SIZE_SEMANTIC*/);
     }
 
-    void HeightToNormalGlsl::emitFunctionDefinition(const SgNode& /*node*/, ShaderGenerator& shadergen_, Shader& shader_)
-    {
-        HwShader& shader = static_cast<HwShader&>(shader_);
-        GlslShaderGenerator shadergen = static_cast<GlslShaderGenerator&>(shadergen_);
-
-        BEGIN_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
-        {
-            // Emit code to compute sample size
-            // Uses the derivitive in u and v to compute offsets. 
-            // which are modulated by size of filter desired plus an offset value.
-            // The defaults should be set to 1.0 and 0.0 respectively.
-            const char* SAMPLE_SIZE_2D_SOURCE =
-                "vec2 IM_heighttonormal_vector3_sx_glsl_sample_size(vec2 uv, float filterSize, float filterOffset)\n"
-                "{\n"
-                "   vec2 derivUVx = dFdx(uv) * 0.5f;\n"
-                "   vec2 derivUVy = dFdy(uv) * 0.5f;\n"
-                "   float derivX = abs(derivUVx.x) + abs(derivUVy.x);\n"
-                "   float derivY = abs(derivUVx.y) + abs(derivUVy.y);\n"
-                "   float sampleSizeU = 2.0f * filterSize * derivX + filterOffset;\n"
-                "   if (sampleSizeU < 1.0E-05f)\n"
-                "       sampleSizeU = 1.0E-05f;\n"
-                "   float sampleSizeV = 2.0f * filterSize * derivY + filterOffset;\n"
-                "   if (sampleSizeV < 1.0E-05f)\n"
-                "       sampleSizeV = 1.0E-05f;\n"
-                "   return vec2(sampleSizeU, sampleSizeV);\n"
-                "}\n\n";
-
-            shader.addBlock(SAMPLE_SIZE_2D_SOURCE, shadergen);
-
-            // Emit function signature.
-            // Sobel filter computation. TODO: This make the filter operation settable.
-            //
-            const char* SOBEL_FILTER_SOURCE =
-                "vec3 IM_heighttonormal_vector3_sx_glsl(float S[9], float _scale)\n"
-                "{\n"
-                "   float nx = S[0] - S[2] + (2.0*S[3]) - (2.0*S[5]) + S[6] - S[8];\n"
-                "   float ny = S[0] + (2.0*S[1]) + S[2] - S[6] - (2.0*S[7]) - S[8];\n"
-                "   float nz = _scale * sqrt(1.0 - nx*nx - ny*ny); \n"
-                "   vec3 norm = normalize(vec3(nx, ny, nz)); \n"
-                "   return (norm + 1.0) * 0.5; \n"
-                "}\n\n";
-
-            shader.addBlock(SOBEL_FILTER_SOURCE, shadergen);
-        }
-        END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
-    }
-
-
     void HeightToNormalGlsl::emitInputSamples(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, HwShader& shader,
                                               const unsigned int sampleCount, StringVec& sampleStrings) const
     {
@@ -109,7 +61,7 @@ namespace MaterialX
 
                             const string sampleOutputName(node.getOutput()->name + "_sample_size");
                             string sampleCall("vec2 " + sampleOutputName + " = " +
-                                "IM_heighttonormal_vector3_sx_glsl_sample_size(" +
+                                "sx_compute_sample_size(" +
                                 sampleInputValue + "," +
                                 std::to_string(filterSize) + "," +
                                 std::to_string(filterOffset) + ");"
@@ -237,7 +189,7 @@ namespace MaterialX
             }
             shader.beginLine();
             shadergen.emitOutput(context, node.getOutput(), true, false, shader);
-            shader.addStr(" = IM_heighttonormal_vector3_sx_glsl");
+            shader.addStr(" = sx_normal_from_samples_sobel");
             shader.addStr("(" + sampleName + ", " + scaleValueString + ")");
             shader.endLine();
         }
