@@ -112,8 +112,8 @@ string Syntax::getSwizzledVariable(const string& srcName, const TypeDesc* srcTyp
         }
         else
         {
-            int channelIndex;
-            if (channelIndex >= static_cast<int>(srcMembers.size()) || (channelIndex = srcType->getChannelIndex(ch)) < 0)
+            int channelIndex = srcType->getChannelIndex(ch);
+            if (channelIndex < 0 || channelIndex >= static_cast<int>(srcMembers.size()))
             {
                 throw ExceptionShaderGenError("Given channel index: '" + string(1,ch) + "' in channels pattern is incorrect for type '" + srcType->getName() + "'.");
             }
