@@ -38,6 +38,7 @@ public:
         return _remapShaderOutput;
     }
 
+    // Setter for remapping shader output.
     void setRemappedShaderOutput(bool remapShaderOutput)
     {
         _remapShaderOutput = remapShaderOutput;
