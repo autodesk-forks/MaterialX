@@ -149,12 +149,6 @@ public:
         return _name;
     }
 
-    // Return the node group name
-    const string& getGroupName() const
-    {
-        return _groupName;
-    }
-
     /// Return the implementation used for this node.
     SgImplementation* getImplementation()
     {
@@ -210,7 +204,8 @@ public:
     void renameInput(const string& name, const string& newName);
     void renameOutput(const string& name, const string& newName);
 
-    /// Get input used for sampling. May not be any
+    /// Get input which is used for sampling. If there is none
+    /// then a null pointer is returned.
     SgInput* getSamplingInput() const
     {
         return _samplingInput;
@@ -223,16 +218,8 @@ public:
     const std::set<int>& getContextIDs() const { return _contextIDs; }
 
 protected:
-
-    /// Determine if input element on a node can be sampled in 2D
-    bool elementCanBeSampled2D(const Element& element) const;
-
-    /// Determine if input element on a node can be sampled in 3D
-    bool elementCanBeSampled3D(const Element& element) const;
-
     string _name;
     unsigned int _classification;
-    string _groupName;
 
     std::unordered_map<string, SgInputPtr> _inputMap;
     vector<SgInput*> _inputOrder;

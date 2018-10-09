@@ -148,6 +148,18 @@ SgNode::SgNode(const string& name)
 {
 }
 
+static bool elementCanBeSampled2D(const Element& element)
+{
+    const string TEXCOORD_NAME("texcoord");
+    return (element.getName() == TEXCOORD_NAME);
+}
+
+static bool elementCanBeSampled3D(const Element& element)
+{
+    const string POSITION_NAME("position");
+    return (element.getName() == POSITION_NAME);
+}
+
 SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const Node* nodeInstance)
 {
     SgNodePtr newNode = std::make_shared<SgNode>(name);
@@ -165,23 +177,28 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
     }
 
     // Check for classification based on group name
-    bool canBeSampled2d = false;
     unsigned int groupClassification = 0;
+    const string TEXTURE2D_GROUPNAME("texture2d");
+    const string TEXTURE3D_GROUPNAME("texture3d");
+    const string PROCEDURAL2D_GROUPNAME("procedural2d");
+    const string PROCEDURAL3D_GROUPNAME("procedural3d");
+    const string CONVOLUTION2D_GROUPNAME("convolution2d");
     string groupName = nodeDef.getNodeGroup();
-    if (groupName == "texture2D" || groupName == "texture3d")
+    if (!groupName.empty())
     {
-        groupClassification = Classification::SAMPLE2D;
-        canBeSampled2d = true;
+        if (groupName == TEXTURE2D_GROUPNAME || groupName == TEXTURE3D_GROUPNAME)
+        {
+            groupClassification = Classification::SAMPLE2D;
+        }
+        else if (groupName == PROCEDURAL2D_GROUPNAME || groupName == PROCEDURAL3D_GROUPNAME)
+        {
+            groupClassification = Classification::SAMPLE3D;
+        }
+        else if (groupName == CONVOLUTION2D_GROUPNAME)
+        {
+            groupClassification = Classification::CONVOLUTION2D;
+        }
     }
-    else if (groupName == "texture3d" || groupName == "procedural2d")
-    {
-        groupClassification = Classification::SAMPLE2D;
-    }
-    else if (groupName == "convolution2d")
-    {
-        groupClassification = Classification::CONVOLUTION2D;
-    }
-
     newNode->_samplingInput = nullptr;
 
     // Create interface from nodedef
@@ -201,11 +218,8 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
             }
 
             // Determine if this input can be sampled
-            if (groupClassification == Classification::SAMPLE2D && newNode->elementCanBeSampled2D(*elem))
-            {
-                newNode->_samplingInput = input;
-            }
-            else if (groupClassification == Classification::SAMPLE3D && newNode->elementCanBeSampled3D(*elem))
+            if ((groupClassification == Classification::SAMPLE2D && elementCanBeSampled2D(*elem)) ||
+                (groupClassification == Classification::SAMPLE3D && elementCanBeSampled3D(*elem)))
             {
                 newNode->_samplingInput = input;
             }
@@ -388,19 +402,6 @@ void SgNode::renameOutput(const string& name, const string& newName)
         }
     }
 }
-
-bool SgNode::elementCanBeSampled2D(const Element& element) const
-{
-    const string TEXCOORD_NAME("texcoord");
-    return (element.getName() == TEXCOORD_NAME);
-}
-
-bool SgNode::elementCanBeSampled3D(const Element& element) const
-{
-    const string POSITION_NAME("position");
-    return (element.getName() == POSITION_NAME);
-}
-
 
 SgNodeGraph::SgNodeGraph(const string& name, DocumentPtr document)
     : SgNode(name)

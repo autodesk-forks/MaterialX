@@ -1,27 +1,27 @@
 #ifndef MATERIALX_HEIGHTTONORMALGLSL_H
 #define MATERIALX_HEIGHTTONORMALGLSL_H
 
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
-#include <MaterialXGenShader/Nodes/Compound.h>
+#include <MaterialXGenGlsl/Nodes/ConvolutionGlsl.h>
 
 namespace MaterialX
 {
 
 /// Implementation of height-field to normal for GLSL
-class HeightToNormalGlsl : public SgImplementation
+class HeightToNormalGlsl : public ConvolutionGlsl
 {
   public:
-    static SgImplementationPtr create();
+    using ParentClass = ConvolutionGlsl;
 
-    void createVariables(const SgNode& node, ShaderGenerator& shadergen, Shader& shader) override;
+    static SgImplementationPtr create();
 
     void emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader) override;
 
-  private:
-    void emitInputSamples(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, HwShader& shader,
-                          const unsigned int sampleCount, StringVec& sampleStrings) const;
+  protected:
+    /// Constructor
+    HeightToNormalGlsl();
 
-    // TODO: Add kernal option
+    /// Name of filter function to call to compute normals from input samples
+    std::string _filterFunctionName;
 };
 
 } // namespace MaterialX
