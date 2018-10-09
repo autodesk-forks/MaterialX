@@ -1056,7 +1056,8 @@
   -->
   <nodedef name="ND_cellnoise2d_float" node="cellnoise2d" type="float" nodegroup="procedural2d" default="0.0">
      <input name="texcoord" type="vector2">
-     <geomprop name="texcoord" type="vector2"/>
+       <geomprop name="texcoord" type="vector2"/>
+     </input>
   </nodedef>
 
   <!--
@@ -1064,8 +1065,9 @@
     3D cellular noise in 1 channel.
   -->
   <nodedef name="ND_cellnoise3d_float" node="cellnoise3d" type="float" nodegroup="procedural3d" default="0.0">
-    <input name="position" type="vector3">
-    <geomprop name="position" type="vector3"/>
+     <input name="position" type="vector3">
+       <geomprop name="position" type="vector3"/>
+     </input>
   </nodedef>
 
 
