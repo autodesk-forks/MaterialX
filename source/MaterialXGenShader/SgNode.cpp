@@ -186,11 +186,11 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
     string groupName = nodeDef.getNodeGroup();
     if (!groupName.empty())
     {
-        if (groupName == TEXTURE2D_GROUPNAME || groupName == TEXTURE3D_GROUPNAME)
+        if (groupName == TEXTURE2D_GROUPNAME || groupName == PROCEDURAL2D_GROUPNAME)
         {
             groupClassification = Classification::SAMPLE2D;
         }
-        else if (groupName == PROCEDURAL2D_GROUPNAME || groupName == PROCEDURAL3D_GROUPNAME)
+        else if (groupName == TEXTURE3D_GROUPNAME || groupName == PROCEDURAL3D_GROUPNAME)
         {
             groupClassification = Classification::SAMPLE3D;
         }
