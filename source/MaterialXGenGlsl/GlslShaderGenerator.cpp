@@ -398,10 +398,18 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     shader.addInclude("sxpbrlib/sx-glsl/lib/sx_math.glsl", *this);
     shader.newLine();
 
+    // Emit lighting functions
     if (lighting)
     {
-        // Emit lighting functions
         shader.addInclude("sxpbrlib/sx-glsl/lib/sx_lighting.glsl", *this);
+        shader.newLine();
+    }
+
+    // Emit sampling code if needed
+    if (shader.hasSamplerNodes())
+    {
+        // Emit sampling functions
+        shader.addInclude("stdlib/sx-glsl/lib/sx_sampling.glsl", *this);
         shader.newLine();
     }
 

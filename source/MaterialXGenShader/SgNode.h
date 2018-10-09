@@ -85,6 +85,10 @@ public:
         // Specific conditional types
         static const unsigned int IFELSE      = 1 << 14; // An if-else statement
         static const unsigned int SWITCH      = 1 << 15; // A switch statement
+        // Types based on nodegroup
+        static const unsigned int SAMPLE2D    = 1 << 16; // Can be sampled in 2D (uv space)
+        static const unsigned int SAMPLE3D    = 1 << 17; // Can be sampled in 3D (position)
+        static const unsigned int CONVOLUTION2D = 1 << 18; // Performs a convolution in 2D (uv space)
     };
 
     /// Information on source code scope for the node.
@@ -145,6 +149,12 @@ public:
         return _name;
     }
 
+    // Return the node group name
+    const string& getGroupName() const
+    {
+        return _groupName;
+    }
+
     /// Return the implementation used for this node.
     SgImplementation* getImplementation()
     {
@@ -200,6 +210,12 @@ public:
     void renameInput(const string& name, const string& newName);
     void renameOutput(const string& name, const string& newName);
 
+    /// Get input used for sampling. May not be any
+    SgInput* getSamplingInput() const
+    {
+        return _samplingInput;
+    }
+
     /// Add the given contex id to the set of contexts used for this node.
     void addContextID(int id) { _contextIDs.insert(id); }
 
@@ -207,14 +223,24 @@ public:
     const std::set<int>& getContextIDs() const { return _contextIDs; }
 
 protected:
+
+    /// Determine if input element on a node can be sampled in 2D
+    bool elementCanBeSampled2D(const Element& element) const;
+
+    /// Determine if input element on a node can be sampled in 3D
+    bool elementCanBeSampled3D(const Element& element) const;
+
     string _name;
     unsigned int _classification;
+    string _groupName;
 
     std::unordered_map<string, SgInputPtr> _inputMap;
     vector<SgInput*> _inputOrder;
 
     std::unordered_map<string, SgOutputPtr> _outputMap;
     vector<SgOutput*> _outputOrder;
+
+    SgInput* _samplingInput;
 
     SgImplementationPtr _impl;
     ScopeInfo _scopeInfo;

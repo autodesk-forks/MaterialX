@@ -143,6 +143,7 @@ void SgNode::ScopeInfo::merge(const ScopeInfo &fromScope)
 SgNode::SgNode(const string& name)
     : _name(name)
     , _classification(0)
+    , _samplingInput(nullptr)
     , _impl(nullptr)
 {
 }
@@ -163,6 +164,26 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
             "' matching language '" + shadergen.getLanguage() + "' and target '" + shadergen.getTarget() + "'");
     }
 
+    // Check for classification based on group name
+    bool canBeSampled2d = false;
+    unsigned int groupClassification = 0;
+    string groupName = nodeDef.getNodeGroup();
+    if (groupName == "texture2D" || groupName == "texture3d")
+    {
+        groupClassification = Classification::SAMPLE2D;
+        canBeSampled2d = true;
+    }
+    else if (groupName == "texture3d" || groupName == "procedural2d")
+    {
+        groupClassification = Classification::SAMPLE2D;
+    }
+    else if (groupName == "convolution2d")
+    {
+        groupClassification = Classification::CONVOLUTION2D;
+    }
+
+    newNode->_samplingInput = nullptr;
+
     // Create interface from nodedef
     const vector<ValueElementPtr> nodeDefInputs = nodeDef.getChildrenOfType<ValueElement>();
     for (const ValueElementPtr& elem : nodeDefInputs)
@@ -177,6 +198,16 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
             if (!elem->getValueString().empty())
             {
                 input->value = elem->getValue();
+            }
+
+            // Determine if this input can be sampled
+            if (groupClassification == Classification::SAMPLE2D && newNode->elementCanBeSampled2D(*elem))
+            {
+                newNode->_samplingInput = input;
+            }
+            else if (groupClassification == Classification::SAMPLE3D && newNode->elementCanBeSampled3D(*elem))
+            {
+                newNode->_samplingInput = input;
             }
         }
     }
@@ -197,7 +228,7 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
             {
                 SgInput* input = newNode->getInput(elem->getName());
                 if (input)
-                {
+                {       
                     input->value = elem->getValue();
                 }
             }
@@ -260,6 +291,9 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
     {
         newNode->_classification = Classification::TEXTURE | Classification::CONDITIONAL | Classification::SWITCH;
     }
+
+    // Add in group classification
+    newNode->_classification |= groupClassification;
 
     // Let the shader generator assign in which contexts to use this node
     shadergen.addNodeContextIDs(newNode.get());
@@ -353,6 +387,18 @@ void SgNode::renameOutput(const string& name, const string& newName)
             _outputMap.erase(it);
         }
     }
+}
+
+bool SgNode::elementCanBeSampled2D(const Element& element) const
+{
+    const string TEXCOORD_NAME("texcoord");
+    return (element.getName() == TEXCOORD_NAME);
+}
+
+bool SgNode::elementCanBeSampled3D(const Element& element) const
+{
+    const string POSITION_NAME("position");
+    return (element.getName() == POSITION_NAME);
 }
 
 
