@@ -85,6 +85,10 @@ public:
         // Specific conditional types
         static const unsigned int IFELSE      = 1 << 14; // An if-else statement
         static const unsigned int SWITCH      = 1 << 15; // A switch statement
+        // Types based on nodegroup
+        static const unsigned int SAMPLE2D    = 1 << 16; // Can be sampled in 2D (uv space)
+        static const unsigned int SAMPLE3D    = 1 << 17; // Can be sampled in 3D (position)
+        static const unsigned int CONVOLUTION2D = 1 << 18; // Performs a convolution in 2D (uv space)
     };
 
     /// Information on source code scope for the node.
@@ -122,12 +126,6 @@ public:
     static const string SWITCH;
     static const string BSDF_R;
     static const string BSDF_T;
-
-    static const string TEXTURE2D_NODEGROUP;
-    static const string TEXTURE3D_NODEGROUP;
-    static const string PROECEDURAL2D_NODEGROUP;
-    static const string PROECEDURAL3D_NODEGROUP;
-    static const string CONVOLUTION2D_NODEGROUP;
 
 public:
     /// Constructor.
@@ -216,26 +214,6 @@ public:
     SgInput* getSamplingInput() const
     {
         return _samplingInput;
-    }
-
-    /// Check if a given node can be sampled in 2D (uv space)
-    bool nodeCanBeSampled2D() const
-    {
-        return (_groupName == TEXTURE2D_NODEGROUP ||
-                _groupName == PROECEDURAL2D_NODEGROUP);
-    }
-
-    /// Check if a given node can be sampled in 3D 
-    bool nodeCanBeSampled3D() const
-    {
-        return (_groupName == TEXTURE3D_NODEGROUP ||
-                _groupName == PROECEDURAL3D_NODEGROUP);
-    }
-
-    /// Check if a given node is a sampler
-    bool nodeIsASampler() const
-    {
-        return (_groupName == CONVOLUTION2D_NODEGROUP);
     }
 
     /// Add the given contex id to the set of contexts used for this node.

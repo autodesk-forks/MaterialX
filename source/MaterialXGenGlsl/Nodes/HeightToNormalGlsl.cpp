@@ -30,7 +30,7 @@ namespace MaterialX
         if (inConnection && inConnection->type->isScalar())
         {
             upstreamNode = inConnection->node;
-            if (upstreamNode)
+            if (upstreamNode && upstreamNode->hasClassification(SgNode::Classification::SAMPLE2D))
             {
                 SgImplementation *impl = upstreamNode->getImplementation();
                 if (impl)

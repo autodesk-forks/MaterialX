@@ -77,12 +77,6 @@ const string SgNode::SWITCH = "switch";
 const string SgNode::BSDF_R = "R";
 const string SgNode::BSDF_T = "T";
 
-const string SgNode::TEXTURE2D_NODEGROUP = "texture2d";
-const string SgNode::TEXTURE3D_NODEGROUP = "texture3d";
-const string SgNode::PROECEDURAL2D_NODEGROUP = "procedural2d";
-const string SgNode::PROECEDURAL3D_NODEGROUP = "procedural3d";
-const string SgNode::CONVOLUTION2D_NODEGROUP = "convolution2d";
-
 bool SgNode::referencedConditionally() const
 {
     if (_scopeInfo.type == SgNode::ScopeInfo::Type::SINGLE)
@@ -170,10 +164,24 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
             "' matching language '" + shadergen.getLanguage() + "' and target '" + shadergen.getTarget() + "'");
     }
 
-    // Set group name
-    newNode->_groupName = nodeDef.getNodeGroup();
-    bool canBeSampled2d = newNode->nodeCanBeSampled2D();
-    bool canBeSampled3d = newNode->nodeCanBeSampled3D();
+    // Check for classification based on group name
+    bool canBeSampled2d = false;
+    unsigned int groupClassification = 0;
+    string groupName = nodeDef.getNodeGroup();
+    if (groupName == "texture2D" || groupName == "texture3d")
+    {
+        groupClassification = Classification::SAMPLE2D;
+        canBeSampled2d = true;
+    }
+    else if (groupName == "texture3d" || groupName == "procedural2d")
+    {
+        groupClassification = Classification::SAMPLE2D;
+    }
+    else if (groupName == "convolution2d")
+    {
+        groupClassification = Classification::CONVOLUTION2D;
+    }
+
     newNode->_samplingInput = nullptr;
 
     // Create interface from nodedef
@@ -193,11 +201,11 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
             }
 
             // Determine if this input can be sampled
-            if (canBeSampled2d && newNode->elementCanBeSampled2D(*elem))
+            if (groupClassification == Classification::SAMPLE2D && newNode->elementCanBeSampled2D(*elem))
             {
                 newNode->_samplingInput = input;
             }
-            else if (canBeSampled3d && newNode->elementCanBeSampled3D(*elem))
+            else if (groupClassification == Classification::SAMPLE3D && newNode->elementCanBeSampled3D(*elem))
             {
                 newNode->_samplingInput = input;
             }
@@ -283,6 +291,9 @@ SgNodePtr SgNode::create(const string& name, const NodeDef& nodeDef, ShaderGener
     {
         newNode->_classification = Classification::TEXTURE | Classification::CONDITIONAL | Classification::SWITCH;
     }
+
+    // Add in group classification
+    newNode->_classification |= groupClassification;
 
     // Let the shader generator assign in which contexts to use this node
     shadergen.addNodeContextIDs(newNode.get());
