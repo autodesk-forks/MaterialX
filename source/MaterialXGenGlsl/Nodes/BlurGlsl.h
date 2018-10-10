@@ -21,6 +21,8 @@ class BlurGlsl : public ConvolutionGlsl
     /// Constructor
     BlurGlsl();
 
+    bool acceptsInput(SgOutput& input) override;
+
     /// Name of filter function to call to compute normals from input samples
     std::string _filterFunctionName;
 

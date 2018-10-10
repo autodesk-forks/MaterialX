@@ -23,6 +23,10 @@ class ConvolutionGlsl : public SgImplementation
     /// will hold the sample values after execution.
     void emitInputSamples(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, HwShader& shader);
     
+    /// Returns if the upstream output is supported as input for sampling.
+    /// Must be implementated by derived class
+    virtual bool acceptsInput(SgOutput& input) = 0;
+
     /// Number of samples.
     unsigned int _sampleCount;
 

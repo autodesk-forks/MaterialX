@@ -31,6 +31,12 @@ void HeightToNormalGlsl::computeSampleOffsetStrings(const string& sampleSizeName
     }
 }
 
+bool HeightToNormalGlsl::acceptsInput(SgOutput& input)
+{
+    // Only support inputs which are scalar
+    return (input.type->isScalar());
+}
+
 void HeightToNormalGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)
 {
     const SgInput* inInput = node.getInput("in");

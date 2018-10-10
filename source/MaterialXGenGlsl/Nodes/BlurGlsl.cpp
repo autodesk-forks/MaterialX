@@ -10,6 +10,7 @@ namespace MaterialX
         , _filterType("box")
         , _inputTypeString("float")
     {
+        _filterSize = 2;
         _sampleCount = 9; // For box
         _sampleSizeFunctionUV.assign("sx_compute_sample_size_uv");
     }
@@ -44,6 +45,14 @@ namespace MaterialX
                 }
             }
         }
+    }
+
+    bool BlurGlsl::acceptsInput(SgOutput& input)
+    {
+        // Float 1-4 is acceptable as input
+        return (input.type == Type::FLOAT ||
+                input.type->isScalar() || input.type->isFloat2() ||
+                input.type->isFloat3() || input.type->isFloat4());
     }
 
     void BlurGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)

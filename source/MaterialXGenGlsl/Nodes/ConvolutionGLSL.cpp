@@ -19,7 +19,8 @@ namespace MaterialX
         // Require an upstream node to sample
         SgNode* upstreamNode = nullptr;
         SgOutput* inConnection = inInput->connection;
-        if (inConnection && inConnection->type->isScalar())
+
+        if (inConnection && acceptsInput(*inConnection))
         {
             upstreamNode = inConnection->node;
             if (upstreamNode && upstreamNode->hasClassification(SgNode::Classification::SAMPLE2D))
@@ -122,10 +123,23 @@ namespace MaterialX
         // Build a set of samples with constant values
         if (_sampleStrings.empty())
         {
-            string inValueString = inInput->value->getValueString();
-            for (unsigned int i = 0; i < _sampleCount; i++)
+
+            if (inInput->type->isScalar())
             {
-                _sampleStrings.push_back(inValueString);
+                string scalarValueString = inInput->value->getValueString();
+                for (unsigned int i = 0; i < _sampleCount; i++)
+                {
+                    _sampleStrings.push_back(scalarValueString);
+                }
+            }
+            else
+            {
+                string typeString = shadergen.getSyntax()->getTypeName(inInput->type);
+                string inValueString = typeString + "(" + inInput->value->getValueString() + ")";
+                for (unsigned int i = 0; i < _sampleCount; i++)
+                {
+                    _sampleStrings.push_back(inValueString);
+                }
             }
         }
     }
