@@ -14,6 +14,7 @@ class HeightToNormalGlsl : public ConvolutionGlsl
 
     static SgImplementationPtr create();
 
+    virtual void computeSampleOffsetStrings(const string& sampleSizeName, StringVec& offsetStrings) override;
     void emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader) override;
 
   protected:
@@ -21,7 +22,7 @@ class HeightToNormalGlsl : public ConvolutionGlsl
     HeightToNormalGlsl();
 
     /// Name of filter function to call to compute normals from input samples
-    std::string _filterFunctionName;
+    string _filterFunctionName;
 };
 
 } // namespace MaterialX

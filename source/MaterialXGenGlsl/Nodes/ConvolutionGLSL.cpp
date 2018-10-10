@@ -5,10 +5,9 @@
 namespace MaterialX
 {
     ConvolutionGlsl::ConvolutionGlsl()
-        : _sampleCount(9)
+        : _sampleCount(1)
         , _filterSize(1.0f)
         , _filterOffset(0.0f)
-        , _sampleSizeFunctionUV("sx_compute_sample_size_uv")
     {
     }
 
@@ -50,8 +49,8 @@ namespace MaterialX
                             string sampleInputValue;
                             shadergen.getInput(context, samplingInput, sampleInputValue);
 
-                            const string sampleOutputName(node.getOutput()->name + "_sample_size");
-                            string sampleCall("vec2 " + sampleOutputName + " = " +
+                            const string sampleSizeName(node.getOutput()->name + "_sample_size");
+                            string sampleCall("vec2 " + sampleSizeName + " = " +
                                 _sampleSizeFunctionUV + "(" +
                                 sampleInputValue + "," +
                                 std::to_string(_filterSize) + "," +
@@ -59,16 +58,13 @@ namespace MaterialX
                             );
                             shader.addLine(sampleCall);
 
-                            // Build the sample offset strings
+                            // Build the sample offset strings. This is dependent on
+                            // the derived class to determine where samples are located
+                            // and to generate the strings required to offset from the center
+                            // sample. The sample size is passed over.
                             //
-                            vector<string> inputVec2Suffix;
-                            for (int row = -1; row <= 1; row++)
-                            {
-                                for (int col = -1; col <= 1; col++)
-                                {
-                                    inputVec2Suffix.push_back(" + " + sampleOutputName + " * vec2(" + std::to_string(float(col)) + "," + std::to_string(float(row)) + ")");
-                                }
-                            }
+                            StringVec inputVec2Suffix;
+                            computeSampleOffsetStrings(sampleSizeName, inputVec2Suffix);
 
                             // Emit outputs for sample input 
                             const unsigned int CENTER_SAMPLE(4);
