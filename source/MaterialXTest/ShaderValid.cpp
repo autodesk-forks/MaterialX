@@ -609,6 +609,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // which files in the test suite are being tested.
     // Add only the test suite filename not the full path.
     std::set<std::string> testfileOverride;
+    testfileOverride.insert("blur.mtlx");
 
     // Library search path
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
