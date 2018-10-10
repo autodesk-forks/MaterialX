@@ -20,7 +20,7 @@ namespace MaterialX
         SgNode* upstreamNode = nullptr;
         SgOutput* inConnection = inInput->connection;
 
-        if (inConnection && acceptsInput(*inConnection))
+        if (inConnection && inConnection->type && acceptsInputType(inConnection->type))
         {
             upstreamNode = inConnection->node;
             if (upstreamNode && upstreamNode->hasClassification(SgNode::Classification::SAMPLE2D))

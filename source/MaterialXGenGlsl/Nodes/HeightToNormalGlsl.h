@@ -18,7 +18,7 @@ class HeightToNormalGlsl : public ConvolutionGlsl
     void emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader) override;
 
   protected:
-    bool acceptsInput(SgOutput& input) override;
+    bool acceptsInputType(const TypeDesc* type) override;
 
     /// Constructor
     HeightToNormalGlsl();

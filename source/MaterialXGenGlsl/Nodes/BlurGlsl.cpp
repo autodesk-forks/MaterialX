@@ -47,34 +47,22 @@ namespace MaterialX
         }
     }
 
-    bool BlurGlsl::acceptsInput(SgOutput& input)
+    bool BlurGlsl::acceptsInputType(const TypeDesc* type)
     {
         // Float 1-4 is acceptable as input
-        return (input.type == Type::FLOAT ||
-                input.type->isScalar() || input.type->isFloat2() ||
-                input.type->isFloat3() || input.type->isFloat4());
+        return ((type == Type::FLOAT && type->isScalar()) ||
+                type->isFloat2() || type->isFloat3() || type->isFloat4());
     }
 
     void BlurGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader_)
     {
         const SgInput* inInput = node.getInput("in");
-        _inputTypeString.clear();
 
-        if (inInput->type == Type::FLOAT)
+        // Get intput type name string
+        _inputTypeString.clear();
+        if (acceptsInputType(inInput->type))
         {
-            _inputTypeString = "float";
-        }
-        else if (inInput->type->isFloat2())
-        {
-            _inputTypeString = "vec2";
-        }
-        else if (inInput->type->isFloat3())
-        {
-            _inputTypeString = "vec3";
-        }
-        else if (inInput->type->isFloat4())
-        {
-            _inputTypeString = "vec4";
+            _inputTypeString = shadergen.getSyntax()->getTypeName(inInput->type);
         }
 
         const SgInput* filterTypeInput = node.getInput("filtertype");
@@ -85,16 +73,19 @@ namespace MaterialX
 
         // Check for type of filter to apply
         //
+        const string BOX_FILTER("box");
+        const string GAUSSIAN_FILTER("gaussian");
         if (filterTypeInput->value)
         {
-            if (filterTypeInput->value->getValueString() == "gaussian")
+            if (filterTypeInput->value->getValueString() == GAUSSIAN_FILTER)
             {
-                _filterType = "gaussian";
+                // TODO: Add in Gaussian support
+                _filterType = GAUSSIAN_FILTER;
                 _sampleCount = 9;
             }
             else 
             {
-                _filterType = "box";
+                _filterType = BOX_FILTER;
                 _sampleCount = 9;
             }
         }
