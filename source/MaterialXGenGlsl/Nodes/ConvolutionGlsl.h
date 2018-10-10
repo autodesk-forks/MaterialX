@@ -15,18 +15,17 @@ class ConvolutionGlsl : public SgImplementation
     /// Constructor
     ConvolutionGlsl();
 
+    /// Derived classes are responsible for returning if a given type is an acceptable input.
+    virtual bool acceptsInputType(const TypeDesc* type) = 0;
+
     // Derived classes are responsible for computing offset strings relative to the center sample
     // The sample size is passed over.
     virtual void computeSampleOffsetStrings(const string& sampleSizeName, StringVec& offsetStrings) = 0;
 
-    /// Generate upstream / input sample code and cache the output variable names which 
+    /// Generate upstream / input sampling code in uv space and cache the output variable names which 
     /// will hold the sample values after execution.
-    void emitInputSamples(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, HwShader& shader);
+    void emitInputSamplesUV(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, HwShader& shader);
     
-    /// Returns if a type is an acceptable input.
-    /// Must be implementated by derived class
-    virtual bool acceptsInputType(const TypeDesc* type) = 0;
-
     /// Number of samples.
     unsigned int _sampleCount;
 

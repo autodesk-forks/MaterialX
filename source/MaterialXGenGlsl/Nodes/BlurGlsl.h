@@ -14,19 +14,25 @@ class BlurGlsl : public ConvolutionGlsl
 
     static SgImplementationPtr create();
 
-    void computeSampleOffsetStrings(const string& sampleSizeName, StringVec& offsetStrings) override;
     void emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader) override;
 
   protected:
     /// Constructor
     BlurGlsl();
 
+    /// Return if given type is an acceptible input
     bool acceptsInputType(const TypeDesc* type) override;
+    
+    /// Compute offset strings for sampling
+    void computeSampleOffsetStrings(const string& sampleSizeName, StringVec& offsetStrings) override;
 
     /// Name of filter function to call to compute normals from input samples
     std::string _filterFunctionName;
 
+    /// Type of filter 
     string _filterType;
+
+    /// Language dependent input type string
     string _inputTypeString;
 };
 

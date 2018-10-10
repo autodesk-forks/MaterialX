@@ -56,7 +56,7 @@ void HeightToNormalGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& con
         // the variables to assign to the sample grid.
         //  
         _sampleStrings.clear();
-        emitInputSamples(node, context, shadergen, shader);
+        emitInputSamplesUV(node, context, shadergen, shader);
 
         // Emit code to evaluate samples.
         //

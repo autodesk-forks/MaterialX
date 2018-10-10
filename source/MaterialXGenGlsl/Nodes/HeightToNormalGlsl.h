@@ -14,14 +14,17 @@ class HeightToNormalGlsl : public ConvolutionGlsl
 
     static SgImplementationPtr create();
 
-    virtual void computeSampleOffsetStrings(const string& sampleSizeName, StringVec& offsetStrings) override;
     void emitFunctionCall(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, Shader& shader) override;
 
   protected:
-    bool acceptsInputType(const TypeDesc* type) override;
-
     /// Constructor
     HeightToNormalGlsl();
+
+    /// Return if given type is an acceptible input
+    bool acceptsInputType(const TypeDesc* type) override;
+
+    /// Compute offset strings for sampling
+    void computeSampleOffsetStrings(const string& sampleSizeName, StringVec& offsetStrings) override;
 
     /// Name of filter function to call to compute normals from input samples
     string _filterFunctionName;
