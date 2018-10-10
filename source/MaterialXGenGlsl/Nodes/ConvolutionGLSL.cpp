@@ -68,33 +68,23 @@ namespace MaterialX
                             computeSampleOffsetStrings(sampleSizeName, inputVec2Suffix);
 
                             // Emit outputs for sample input 
-                            const unsigned int CENTER_SAMPLE(4);
                             for (unsigned int i = 0; i < _sampleCount; i++)
                             {
-                                // Computation of the center sample has already been
-                                // output so just use that output variable
-                                if (i == CENTER_SAMPLE)
-                                {
-                                    _sampleStrings.push_back(outputName);
-                                }
-                                else
-                                {
-                                    // Add an input name suffix. 
-                                    context.addInputSuffix(samplingInput, inputVec2Suffix[i]);
+                                // Add an input name suffix. 
+                                context.addInputSuffix(samplingInput, inputVec2Suffix[i]);
 
-                                    // Add a output name suffix for the emit call
-                                    string outputSuffix("_" + node.getOutput()->name + std::to_string(i));
-                                    context.addOutputSuffix(upstreamOutput, outputSuffix);
+                                // Add a output name suffix for the emit call
+                                string outputSuffix("_" + node.getOutput()->name + std::to_string(i));
+                                context.addOutputSuffix(upstreamOutput, outputSuffix);
 
-                                    impl->emitFunctionCall(*upstreamNode, context, shadergen, shader);
+                                impl->emitFunctionCall(*upstreamNode, context, shadergen, shader);
 
-                                    // Remove suffixes
-                                    context.removeInputSuffix(samplingInput);
-                                    context.removeOutputSuffix(upstreamOutput);
+                                // Remove suffixes
+                                context.removeInputSuffix(samplingInput);
+                                context.removeOutputSuffix(upstreamOutput);
 
-                                    // Keep track of the output name with the suffix
-                                    _sampleStrings.push_back(outputName + outputSuffix);
-                                }
+                                // Keep track of the output name with the suffix
+                                _sampleStrings.push_back(outputName + outputSuffix);
                             }
                         }
                         else
