@@ -19,15 +19,6 @@ vec2 sx_compute_sample_size_uv(vec2 uv, float filterSize, float filterOffset)
 //
 // Compute a normal mapped to 0..1 space based on a set of input
 // samples using a Sobel filter.
-// The sampling grid is 3x3 in size and is referenced base
-// on the array index order shown.
-// ----+-----+----
-//  0  |  1  | 2
-// ----+-----+----
-//  3  |  4  | 5
-// ----+-----+----
-//  6  |  7  | 8
-// ----+-----+----
 //
 vec3 sx_normal_from_samples_sobel(float S[9], float _scale)
 {
@@ -37,3 +28,67 @@ vec3 sx_normal_from_samples_sobel(float S[9], float _scale)
    vec3 norm = normalize(vec3(nx, ny, nz));
    return (norm + 1.0) * 0.5;
 };
+
+//
+// Blur using box filter for float samples
+//
+float sx_blur_box_float(float S[9])
+{
+    return (S[0] + S[1] + S[2] + S[3] + S[4] + S[5] + S[6] + S[7] + S[8]) / 9.0;
+}
+
+//
+// Blur using box filter for vec2 samples
+//
+vec2 sx_blur_box_vec2(vec2 S[9])
+{
+    return (S[0] + S[1] + S[2] + S[3] + S[4] + S[5] + S[6] + S[7] + S[8]) / 9.0;
+}
+
+//
+// Blur using box filter for vec3 samples
+//
+vec3 sx_blur_box_vec3(vec3 S[9])
+{
+    return (S[0] + S[1] + S[2] + S[3] + S[4] + S[5] + S[6] + S[7] + S[8]) / 9.0;
+}
+
+//
+// Blur using box filter for vec4 samples
+//
+vec4 sx_blur_box_vec4(vec4 S[9])
+{
+    return (S[0] + S[1] + S[2] + S[3] + S[4] + S[5] + S[6] + S[7] + S[8]) / 9.0;
+}
+
+//
+// Blur using box filter for float samples
+//
+float sx_blur_gaussian_float(float S[9])
+{
+    return (S[0] + S[1] + S[2] + S[3] + S[4] + S[5] + S[6] + S[7] + S[8]) / 9.0;
+}
+
+//
+// Blur using gaussian filter for vec2 samples
+//
+vec2 sx_blur_gaussian_vec2(vec2 S[9])
+{
+    return (S[0] + S[1] + S[2] + S[3] + S[4] + S[5] + S[6] + S[7] + S[8]) / 9.0;
+}
+
+//
+// Blur using gaussian filter for vec3 samples
+//
+vec3 sx_blur_gaussian_vec3(vec3 S[9])
+{
+    return (S[0] + S[1] + S[2] + S[3] + S[4] + S[5] + S[6] + S[7] + S[8]) / 9.0;
+}
+
+//
+// Blur using gaussian filter for vec4 samples
+//
+vec4 sx_blur_gaussian_vec4(vec4 S[9])
+{
+    return (S[0] + S[1] + S[2] + S[3] + S[4] + S[5] + S[6] + S[7] + S[8]) / 9.0;
+}
