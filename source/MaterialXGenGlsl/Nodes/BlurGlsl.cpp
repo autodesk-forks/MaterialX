@@ -98,14 +98,14 @@ void BlurGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, Shad
     BEGIN_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
     {
         // Emit samples
-        _sampleStrings.clear();
-        emitInputSamplesUV(node, context, shadergen, shader);
+        StringVec sampleStrings;
+        emitInputSamplesUV(node, context, shadergen, shader, sampleStrings);
 
         string sampleName(node.getOutput()->name + "_samples");
         shader.addLine(_inputTypeString + " " + sampleName + "[" + std::to_string(_sampleCount) + "]");
         for (unsigned int i = 0; i < _sampleCount; i++)
         {
-            shader.addLine(sampleName + "[" + std::to_string(i) + "] = " + _sampleStrings[i]);
+            shader.addLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i]);
         }
 
         // Emit code to evaluate samples. Function to call depends on input type.

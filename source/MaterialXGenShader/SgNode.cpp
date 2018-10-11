@@ -629,6 +629,9 @@ SgNodeGraphPtr SgNodeGraph::create(NodeGraphPtr nodeGraph, ShaderGenerator& shad
 
     SgNodeGraphPtr graph = std::make_shared<SgNodeGraph>(nodeGraph->getName(), nodeGraph->getDocument());
 
+    // Clear classification
+    graph->_classification = 0;
+
     // Create input sockets from the nodedef
     graph->addInputSockets(*nodeDef);
 
@@ -641,11 +644,11 @@ SgNodeGraphPtr SgNodeGraph::create(NodeGraphPtr nodeGraph, ShaderGenerator& shad
         graph->addUpstreamDependencies(*graphOutput, nullptr, shadergen);
     }
 
-    // Set classification according to last node
+    // Add classification according to last node
     // TODO: What if the graph has multiple outputs?
     {
         SgOutputSocket* outputSocket = graph->getOutputSocket();
-        graph->_classification = outputSocket->connection ? outputSocket->connection->node->_classification : 0;
+        graph->_classification |= outputSocket->connection ? outputSocket->connection->node->_classification : 0;
     }
 
     graph->finalize(shadergen);
@@ -685,6 +688,9 @@ SgNodeGraphPtr SgNodeGraph::create(const string& name, ElementPtr element, Shade
         }
 
         graph = std::make_shared<SgNodeGraph>(name, element->getDocument());
+
+        // Clear classification
+        graph->_classification = 0;
 
         // Create input sockets
         graph->addInputSockets(*interface);
@@ -798,9 +804,9 @@ SgNodeGraphPtr SgNodeGraph::create(const string& name, ElementPtr element, Shade
     // Traverse and create all dependencies upstream
     graph->addUpstreamDependencies(*root, material, shadergen);
 
-    // Set classification according to root node
+    // Add classification according to root node
     SgOutputSocket* outputSocket = graph->getOutputSocket();
-    graph->_classification = outputSocket->connection ? outputSocket->connection->node->_classification : 0;
+    graph->_classification |= outputSocket->connection ? outputSocket->connection->node->_classification : 0;
 
     graph->finalize(shadergen);
 
@@ -820,6 +826,12 @@ SgNode* SgNodeGraph::addNode(const Node& node, ShaderGenerator& shadergen)
     SgNodePtr newNode = SgNode::create(name, *nodeDef, shadergen, &node);
     _nodeMap[name] = newNode;
     _nodeOrder.push_back(newNode.get());
+
+    // Check if the node is a convotion. If so mark that the graph has a convolution
+    if (newNode->hasClassification(Classification::CONVOLUTION2D))
+    {
+        _classification |= Classification::CONVOLUTION2D;
+    }
 
     // Check if any of the node inputs should be connected to the graph interface
     for (ValueElementPtr elem : node.getChildrenOfType<ValueElement>())

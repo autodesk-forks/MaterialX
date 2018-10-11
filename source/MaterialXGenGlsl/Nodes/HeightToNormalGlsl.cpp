@@ -55,8 +55,8 @@ void HeightToNormalGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& con
         // compute the sames and return a set of strings containaing
         // the variables to assign to the sample grid.
         //  
-        _sampleStrings.clear();
-        emitInputSamplesUV(node, context, shadergen, shader);
+        StringVec sampleStrings;
+        emitInputSamplesUV(node, context, shadergen, shader, sampleStrings);
 
         // Emit code to evaluate samples.
         //
@@ -66,7 +66,7 @@ void HeightToNormalGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& con
         shader.addLine("float " + sampleName + "[" + std::to_string(_sampleCount) + "]");
         for (unsigned int i = 0; i < _sampleCount; i++)
         {
-            shader.addLine(sampleName + "[" + std::to_string(i) + "] = " + _sampleStrings[i]);
+            shader.addLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i]);
         }
         shader.beginLine();
         shadergen.emitOutput(context, node.getOutput(), true, false, shader);

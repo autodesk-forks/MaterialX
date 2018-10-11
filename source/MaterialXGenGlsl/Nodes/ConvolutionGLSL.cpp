@@ -11,18 +11,17 @@ ConvolutionGlsl::ConvolutionGlsl()
 {
 }
 
-void ConvolutionGlsl::emitInputSamplesUV(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, HwShader& shader)
+void ConvolutionGlsl::emitInputSamplesUV(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, HwShader& shader, StringVec& sampleStrings)
 {
-    const SgInput* inInput = node.getInput("in");
-    string inputName = inInput->name;
+    sampleStrings.clear();
 
-    // Require an upstream node to sample
-    SgNode* upstreamNode = nullptr;
-    SgOutput* inConnection = inInput->connection;
+    // Check for an upstream node to sample
+    const SgInput* inInput = node.getInput("in");
+    SgOutput* inConnection = inInput ? inInput->connection : nullptr;
 
     if (inConnection && inConnection->type && acceptsInputType(inConnection->type))
     {
-        upstreamNode = inConnection->node;
+        SgNode* upstreamNode = inConnection->node;
         if (upstreamNode && upstreamNode->hasClassification(SgNode::Classification::SAMPLE2D))
         {
             SgImplementation *impl = upstreamNode->getImplementation();
@@ -84,7 +83,7 @@ void ConvolutionGlsl::emitInputSamplesUV(const SgNode& node, SgNodeContext& cont
                             context.removeOutputSuffix(upstreamOutput);
 
                             // Keep track of the output name with the suffix
-                            _sampleStrings.push_back(outputName + outputSuffix);
+                            sampleStrings.push_back(outputName + outputSuffix);
                         }
                     }
                     else
@@ -95,7 +94,7 @@ void ConvolutionGlsl::emitInputSamplesUV(const SgNode& node, SgNodeContext& cont
                         for (unsigned int i = 0; i < _sampleCount; i++)
                         {
                             // On failure just call the unmodified function
-                            _sampleStrings.push_back(outputName);
+                            sampleStrings.push_back(outputName);
                         }
                     }
                 }
@@ -111,7 +110,7 @@ void ConvolutionGlsl::emitInputSamplesUV(const SgNode& node, SgNodeContext& cont
     }
 
     // Build a set of samples with constant values
-    if (_sampleStrings.empty())
+    if (sampleStrings.empty())
     {
 
         if (inInput->type->isScalar())
@@ -119,7 +118,7 @@ void ConvolutionGlsl::emitInputSamplesUV(const SgNode& node, SgNodeContext& cont
             string scalarValueString = inInput->value->getValueString();
             for (unsigned int i = 0; i < _sampleCount; i++)
             {
-                _sampleStrings.push_back(scalarValueString);
+                sampleStrings.push_back(scalarValueString);
             }
         }
         else
@@ -128,7 +127,7 @@ void ConvolutionGlsl::emitInputSamplesUV(const SgNode& node, SgNodeContext& cont
             string inValueString = typeString + "(" + inInput->value->getValueString() + ")";
             for (unsigned int i = 0; i < _sampleCount; i++)
             {
-                _sampleStrings.push_back(inValueString);
+                sampleStrings.push_back(inValueString);
             }
         }
     }

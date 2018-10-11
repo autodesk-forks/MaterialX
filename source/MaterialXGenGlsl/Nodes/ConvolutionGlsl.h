@@ -24,7 +24,8 @@ class ConvolutionGlsl : public SgImplementation
 
     /// Generate upstream / input sampling code in uv space and cache the output variable names which 
     /// will hold the sample values after execution.
-    void emitInputSamplesUV(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, HwShader& shader);
+    void emitInputSamplesUV(const SgNode& node, SgNodeContext& context, ShaderGenerator& shadergen, HwShader& shader,
+                            StringVec& sampleStrings);
     
     /// Number of samples.
     unsigned int _sampleCount;
@@ -34,9 +35,6 @@ class ConvolutionGlsl : public SgImplementation
 
     /// Filter offset. Default value is 0
     float _filterOffset;
-
-    /// List of variables names which contain input sample values
-    StringVec _sampleStrings;
 
     /// Name of function to compute sample size in uv space. Takes uv, filter size, and filter offset
     /// as input, and return a 2 channel vector as output
