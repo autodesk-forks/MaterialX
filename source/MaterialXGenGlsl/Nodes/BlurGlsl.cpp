@@ -2,6 +2,8 @@
 #include <MaterialXGenShader/HwShader.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 
+#include <cmath>
+
 namespace MaterialX
 {
 BlurGlsl::BlurGlsl()
@@ -25,7 +27,7 @@ void BlurGlsl::computeSampleOffsetStrings(const string& sampleSizeName, StringVe
     offsetStrings.clear();
  
     // Build a NxN grid of samples that are offset by the provided sample size
-    int offset = ((int)(sqrt(_sampleCount)) - 1) / 2;
+    int offset = ((int)(std::sqrt(float(_sampleCount))) - 1) / 2;
 
     for (int row = -offset; row <= offset; row++)
     {
@@ -122,7 +124,7 @@ void BlurGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, Shad
 
         // Set up weight array
         string weightName(node.getOutput()->name + "_weights");
-        shader.addLine(_inputTypeString + " " + weightName + "[SX_MAX_SAMPLE_COUNT]");
+        shader.addLine("float " + weightName + "[SX_MAX_SAMPLE_COUNT]");
         shader.addLine(weightFunction + "(" + weightName + ", " + std::to_string(filterSize) + ")");
 
         // Emit code to evaluate using input sample and weight arrays. 
@@ -130,9 +132,12 @@ void BlurGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, Shad
         //
         shader.beginLine();
         shadergen.emitOutput(context, node.getOutput(), true, false, shader);
-        _filterFunctionName = "sx_convolution_" + _filterType  + "_" + _inputTypeString;
+        _filterFunctionName = "sx_convolution_" + _inputTypeString;
         shader.addStr(" = " + _filterFunctionName);
-        shader.addStr("(" + sampleName + ")");
+        shader.addStr("(" + sampleName + ", " + 
+                            weightName + ", " + 
+                            std::to_string(_sampleCount) + 
+                      ")");
         shader.endLine();
     }
     END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)

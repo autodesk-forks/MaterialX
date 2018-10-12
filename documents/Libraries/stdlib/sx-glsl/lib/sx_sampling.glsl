@@ -36,11 +36,12 @@ vec3 sx_normal_from_samples_sobel(float S[9], float _scale)
 void sx_get_box_weights(inout float W[SX_MAX_SAMPLE_COUNT], int filterSize)
 {
     int filterSize2 = filterSize*filterSize;
+    float value = 1.0 / float(filterSize2);
     for (int i=0; i<filterSize2; i++)
     {
-        W[i] = 1.0 / float(filterSize2);
+        W[i] = value;
     }
-    for (int j=filterSize2; j<SX_MAX_SAMPLE_COUNT]; j++)
+    for (int j=filterSize2; j<SX_MAX_SAMPLE_COUNT; j++)
     {
         W[j] = 0.0;
     }
@@ -49,45 +50,40 @@ void sx_get_box_weights(inout float W[SX_MAX_SAMPLE_COUNT], int filterSize)
 // Kernel weights for Gaussian filter. Sigma is assumed to be 1.
 void sx_get_gaussian_weights(inout float W[SX_MAX_SAMPLE_COUNT], int filterSize)
 {
-    if (filterSize == 1)
+    if (filterSize <= 1)
     {
         W[0] = 1.0;
     }
-    else if (filterSize == 3)
+    else if (filterSize <= 3)
     {
-        W = float[](
-            0.0625, 0.125, 0.0625,
-            0.125,  0.25,  0.125,
-            0.0625, 0.125, 0.0625);
+        W[0] = 0.0625; W[1] = 0.125; W[2] = 0.0625;
+        W[3] = 0.125; W[4] = 0.25; W[5] = 0.125;
+        W[6] = 0.0625; W[7] = 0.125; W[8] = 0.0625;
     }
-    else if (filterSize == 5)
+    else if (filterSize <= 5)
     {
-        W = float[](
-            0.003765,	0.015019,	0.023792,	0.015019,	0.003765,
-            0.015019,	0.059912,	0.094907,	0.059912,	0.015019,
-            0.023792,	0.094907,	0.150342,	0.094907,	0.023792,
-            0.015019,	0.059912,	0.094907,	0.059912,	0.015019,
-            0.003765,	0.015019,	0.023792,	0.015019,	0.003765
-            );
+        W[0] = 0.003765; W[1] = 0.015019; W[2] = 0.023792; W[3] = 0.015019; W[4] = 0.003765;
+        W[5] = 0.015019; W[6] = 0.059912; W[7] = 0.094907; W[8] = 0.059912; W[9] = 0.015019;
+        W[10] = 0.023792; W[11] = 0.094907; W[12] = 0.150342; W[13] = 0.094907; W[14] = 0.023792;
+        W[15] = 0.015019; W[16] = 0.059912; W[17] = 0.094907; W[18] = 0.059912; W[19] = 0.015019;
+        W[20] = 0.003765; W[21] = 0.015019; W[22] = 0.023792; W[23] = 0.015019; W[24] = 0.003765;
     }
-    else if (filterSize == 7)
+    else if (filterSize <= 7)
     {
-        W = float[](
-            0.000036,	0.000363,	0.001446,	0.002291,	0.001446,	0.000363,	0.000036,
-            0.000363,	0.003676,	0.014662,	0.023226,	0.014662,	0.003676,	0.000363,
-            0.001446,	0.014662,	0.058488,	0.092651,	0.058488,	0.014662,	0.001446,
-            0.002291,	0.023226,	0.092651,	0.146768,	0.092651,	0.023226,	0.002291,
-            0.001446,	0.014662,	0.058488,	0.092651,	0.058488,	0.014662,	0.001446,
-            0.000363,	0.003676,	0.014662,	0.023226,	0.014662,	0.003676,	0.000363,
-            0.000036,	0.000363,	0.001446,	0.002291,	0.001446,	0.000363,	0.000036
-        );
+        W[0] = 0.000036; W[1] = 0.000363; W[2] = 0.001446; W[3] = 0.002291; W[4] = 0.001446; W[5] = 0.000363; W[6] = 0.000036; 
+        W[7] = 0.000363; W[8] = 0.003676; W[9] = 0.014662; W[10] = 0.023226; W[11] = 0.014662; W[12] = 0.003676; W[13] = 0.000363; 
+        W[14] = 0.001446; W[15] = 0.014662; W[16] = 0.058488; W[17] = 0.092651; W[18] = 0.058488; W[19] = 0.014662; W[20] = 0.001446; 
+        W[21] = 0.002291; W[22] = 0.023226; W[23] = 0.092651; W[24] = 0.146768; W[25] = 0.092651; W[26] = 0.023226; W[27] = 0.002291; 
+        W[28] = 0.001446; W[29] = 0.014662; W[30] = 0.058488; W[31] = 0.092651; W[32] = 0.058488; W[33] = 0.014662; W[34] = 0.001446; 
+        W[35] = 0.000363; W[36] = 0.003676; W[37] = 0.014662; W[38] = 0.023226; W[39] = 0.014662; W[40] = 0.003676; W[41] = 0.000363; 
+        W[42] = 0.000036; W[43] = 0.000363; W[44] = 0.001446; W[45] = 0.002291; W[46] = 0.001446; W[47] = 0.000363; W[48] = 0.000036;
     }
     else
     {
         filterSize = 0;
     }
 
-    for (int j=filterSize; j<SX_MAX_SAMPLE_COUNT]; j++)
+    for (int j=filterSize; j<SX_MAX_SAMPLE_COUNT; j++)
     {
         W[j] = 0.0;
     }
@@ -100,7 +96,7 @@ void sx_get_gaussian_weights(inout float W[SX_MAX_SAMPLE_COUNT], int filterSize)
 float sx_convolution_float(float S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUNT], int sampleCount)
 {
     float result = 0.0;
-    for (int = 0;  i < sampleCount; ++i)
+    for (int i = 0;  i < sampleCount; i++)
     {
         result += S[i]*W[i];
     }
@@ -114,7 +110,7 @@ float sx_convolution_float(float S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_C
 vec2 sx_convolution_vec2(vec2 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUNT], int sampleCount)
 {
     vec2 result = vec2(0.0);
-    for (int = 0;  i < sampleCount; ++i)
+    for (int i=0;  i<sampleCount; i++)
     {
         result += S[i]*W[i];
     }
@@ -128,7 +124,7 @@ vec2 sx_convolution_vec2(vec2 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUN
 vec3 sx_convolution_vec3(vec3 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUNT], int sampleCount)
 {
     vec3 result = vec3(0.0);
-    for (int = 0;  i < sampleCount; ++i)
+    for (int i=0;  i<sampleCount; i++)
     {
         result += S[i]*W[i];
     }
@@ -142,7 +138,7 @@ vec3 sx_convolution_vec3(vec3 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUN
 vec4 sx_convolution_vec4(vec4 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUNT], int sampleCount)
 {
     vec4 result = vec4(0.0);
-    for (int = 0;  i < sampleCount; ++i)
+    for (int i=0;  i<sampleCount; i++)
     {
         result += S[i]*W[i];
     }
