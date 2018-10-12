@@ -111,7 +111,7 @@ float sx_convolution_float(float S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_C
 // Apply filter for vec2 samples S, using weights W.
 // sampleCount should be a square of a odd number in the range { 1, 3, 5, 7 }
 //
-vec2 sx_convolution_vec2(vec2 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUNT], float sampleCount)
+vec2 sx_convolution_vec2(vec2 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUNT], int sampleCount)
 {
     vec2 result = vec2(0.0);
     for (int = 0;  i < sampleCount; ++i)
@@ -125,9 +125,9 @@ vec2 sx_convolution_vec2(vec2 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUN
 // Apply filter for vec3 samples S, using weights W.
 // sampleCount should be a square of a odd number in the range { 1, 3, 5, 7 }
 //
-vec3 sx_convolution_vec3(vec3 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUNT], float sampleCount)
+vec3 sx_convolution_vec3(vec3 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUNT], int sampleCount)
 {
-    vec3 result = vec2(0.0);
+    vec3 result = vec3(0.0);
     for (int = 0;  i < sampleCount; ++i)
     {
         result += S[i]*W[i];
@@ -139,9 +139,9 @@ vec3 sx_convolution_vec3(vec3 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUN
 // Apply filter for vec4 samples S, using weights W.
 // sampleCount should be a square of a odd number { 1, 3, 5, 7 }
 //
-vec4 sx_convolution_vec4(vec4 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUNT], float sampleCount)
+vec4 sx_convolution_vec4(vec4 S[SX_MAX_SAMPLE_COUNT], float W[SX_MAX_SAMPLE_COUNT], int sampleCount)
 {
-    vec4 result = vec2(0.0);
+    vec4 result = vec4(0.0);
     for (int = 0;  i < sampleCount; ++i)
     {
         result += S[i]*W[i];

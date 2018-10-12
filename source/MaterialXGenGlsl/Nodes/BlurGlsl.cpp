@@ -27,25 +27,11 @@ void BlurGlsl::computeSampleOffsetStrings(const string& sampleSizeName, StringVe
     // Build a NxN grid of samples that are offset by the provided sample size
     int offset = ((int)(sqrt(_sampleCount)) - 1) / 2;
 
-    if (_filterType == "box")
+    for (int row = -offset; row <= offset; row++)
     {
-        for (int row = -offset; row <= offset; row++)
+        for (int col = -offset; col <= offset; col++)
         {
-            for (int col = -offset; col <= offset; col++)
-            {
-                offsetStrings.push_back(" + " + sampleSizeName + " * vec2(" + std::to_string(float(col)) + "," + std::to_string(float(row)) + ")");
-            }
-        }
-    }
-    // TODO: Add Gaussian support
-    else
-    {
-        for (int row = -1; row <= 1; row++)
-        {
-            for (int col = -1; col <= 1; col++)
-            {
-                offsetStrings.push_back(" + " + sampleSizeName + " * vec2(" + std::to_string(float(col)) + "," + std::to_string(float(row)) + ")");
-            }
+            offsetStrings.push_back(" + " + sampleSizeName + " * vec2(" + std::to_string(float(col)) + "," + std::to_string(float(row)) + ")");
         }
     }
 }
@@ -84,7 +70,7 @@ void BlurGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, Shad
         {
             filterSize = 3;
         }
-        if (sizeInputValue <= 0.55f)
+        else if (sizeInputValue <= 0.55f)
         {
             filterSize = 5;
         }
@@ -137,7 +123,7 @@ void BlurGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, Shad
         // Set up weight array
         string weightName(node.getOutput()->name + "_weights");
         shader.addLine(_inputTypeString + " " + weightName + "[SX_MAX_SAMPLE_COUNT]");
-        shader.addLine(weightFunction + "(" + weightName + ", " + std::to_string(_sampleCount) + ")");
+        shader.addLine(weightFunction + "(" + weightName + ", " + std::to_string(filterSize) + ")");
 
         // Emit code to evaluate using input sample and weight arrays. 
         // The function to call depends on input type.
