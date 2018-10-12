@@ -1,5 +1,5 @@
 // Restrict to 7x7 kernel size for performance reasons
-#define SX_MAX_SAMPLE_COUNT = 49
+#define SX_MAX_SAMPLE_COUNT 49
 
 //
 // Function to compute the sample size relative to a texture coordinate
