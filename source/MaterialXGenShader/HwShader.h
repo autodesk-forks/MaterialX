@@ -59,9 +59,6 @@ public:
         return _transparency;
     }
 
-    /// Returns if shader has nodes which perform sampling with a filter 
-    bool hasSamplerNodes() const;
-
 protected:
     /// Return a container with all top level graphs use by this shader.
     void getTopLevelShaderGraphs(ShaderGenerator& shadergen, std::deque<SgNodeGraph*>& graphs) const override;

@@ -416,7 +416,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     }
 
     // Emit sampling code if needed
-    if (shader.hasSamplerNodes())
+    if (shader.hasClassification(SgNode::Classification::CONVOLUTION2D))
     {
         // Emit sampling functions
         shader.addInclude("stdlib/sx-glsl/lib/sx_sampling.glsl", *this);

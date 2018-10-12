@@ -127,10 +127,4 @@ void HwShader::getTopLevelShaderGraphs(ShaderGenerator& shadergen, std::deque<Sg
     }
 }
 
-bool HwShader::hasSamplerNodes() const
-{
-    SgNodeGraph* graph = getNodeGraph();
-    return (graph && graph->hasClassification(SgNode::Classification::CONVOLUTION2D));
-}
-
 }
