@@ -35,9 +35,9 @@ vec3 sx_normal_from_samples_sobel(float S[9], float _scale)
 // Kernal weights for box filter
 void sx_get_box_weights(inout float W[SX_MAX_SAMPLE_COUNT], int filterSize)
 {
-    int filterSize2 = filterSize*filterSize;
-    float value = 1.0 / float(filterSize2);
-    for (int i=0; i<filterSize2; i++)
+    int sampleCount = filterSize*filterSize;
+    float value = 1.0 / float(sampleCount);
+    for (int i=0; i<sampleCount; i++)
     {
         W[i] = value;
     }
