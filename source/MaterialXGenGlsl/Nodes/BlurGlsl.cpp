@@ -26,15 +26,22 @@ void BlurGlsl::computeSampleOffsetStrings(const string& sampleSizeName, StringVe
 {
     offsetStrings.clear();
  
-    // Build a NxN grid of samples that are offset by the provided sample size
-    int offset = ((int)(std::sqrt(float(_sampleCount))) - 1) / 2;
+    if (_sampleCount > 1)
+    { 
+        // Build a NxN grid of samples that are offset by the provided sample size
+        int offset = ((int)(std::sqrt(float(_sampleCount))) - 1) / 2;
 
-    for (int row = -offset; row <= offset; row++)
-    {
-        for (int col = -offset; col <= offset; col++)
+        for (int row = -offset; row <= offset; row++)
         {
-            offsetStrings.push_back(" + " + sampleSizeName + " * vec2(" + std::to_string(float(col)) + "," + std::to_string(float(row)) + ")");
+            for (int col = -offset; col <= offset; col++)
+            {
+                offsetStrings.push_back(" + " + sampleSizeName + " * vec2(" + std::to_string(float(col)) + "," + std::to_string(float(row)) + ")");
+            }
         }
+    }
+    else
+    {
+        offsetStrings.push_back("");
     }
 }
 
@@ -62,45 +69,55 @@ void BlurGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, Shad
         throw ExceptionShaderGenError("Node '" + node.getName() + "' is not a valid Blur node");
     }
 
-    // Check size of filter.
+    // Check size of filter. Default is size 1 which just means one 1x1 upstream samples
     const SgInput* sizeInput = node.getInput("size");     
-    unsigned int filterSize = 3;
+    unsigned int filterSize = 1;
     if (sizeInput)
     {
         float sizeInputValue = sizeInput->value->asA<float>();
-        if (sizeInputValue <= 0.25f)
+        if (sizeInputValue > 0.0f)
         {
-            filterSize = 3;
-        }
-        else if (sizeInputValue <= 0.55f)
-        {
-            filterSize = 5;
-        }
-        else
-        {
-            filterSize = 7;
+            if (sizeInputValue <= 0.333f)
+            {
+                filterSize = 3;
+            }
+            else if (sizeInputValue <= 0.666f)
+            {
+                filterSize = 5;
+            }
+            else
+            {
+                filterSize = 7;
+            }
         }
     }
+
+    // Sample count is square of filter size
+    _sampleCount = filterSize*filterSize;
 
     // Check for type of filter to apply
     // Default to box filter
     //
     const string BOX_FILTER("box");
     const string GAUSSIAN_FILTER("gaussian");
-    _filterType = BOX_FILTER;
-    string weightFunction = "sx_get_box_weights";
-    if (filterTypeInput->value)
+    _filterType.clear();
+    string weightFunction;
+    if (_sampleCount > 1)
     {
-        // Use Gaussian filter.
-        if (filterTypeInput->value->getValueString() == GAUSSIAN_FILTER)
+        if (filterTypeInput->value)
         {
-            _filterType = GAUSSIAN_FILTER;
-            weightFunction = "sx_get_gaussian_weights";
+            // Use Gaussian filter.
+            if (filterTypeInput->value->getValueString() == GAUSSIAN_FILTER)
+            {
+                _filterType = GAUSSIAN_FILTER;
+                weightFunction = "sx_get_gaussian_weights";
+            }
+            else
+            {
+                weightFunction = "sx_get_box_weights";
+            }
         }
     }
-
-    // Sample count is quare of filter size
-    _sampleCount = filterSize*filterSize;
 
     HwShader& shader = static_cast<HwShader&>(shader_);
 
@@ -114,31 +131,50 @@ void BlurGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, Shad
         StringVec sampleStrings;
         emitInputSamplesUV(node, context, shadergen, shader, sampleStrings);
 
-        // Set up sample array
-        string sampleName(node.getOutput()->name + "_samples");
-        shader.addLine(_inputTypeString + " " + sampleName + "[SX_MAX_SAMPLE_COUNT]");
-        for (unsigned int i = 0; i < _sampleCount; i++)
+        // There should always be at least 1 sample
+        if (sampleStrings.empty())
         {
-            shader.addLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i]);
+            throw ExceptionShaderGenError("Node '" + node.getName() + "' cannot compute upstream samples");
         }
 
-        // Set up weight array
-        string weightName(node.getOutput()->name + "_weights");
-        shader.addLine("float " + weightName + "[SX_MAX_SAMPLE_COUNT]");
-        shader.addLine(weightFunction + "(" + weightName + ", " + std::to_string(filterSize) + ")");
+        if (_sampleCount > 1)
+        {
+            // Set up sample array
+            string sampleName(node.getOutput()->name + "_samples");
+            shader.addLine(_inputTypeString + " " + sampleName + "[SX_MAX_SAMPLE_COUNT]");
+            for (unsigned int i = 0; i < _sampleCount; i++)
+            {
+                shader.addLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i]);
+            }
 
-        // Emit code to evaluate using input sample and weight arrays. 
-        // The function to call depends on input type.
-        //
-        shader.beginLine();
-        shadergen.emitOutput(context, node.getOutput(), true, false, shader);
-        _filterFunctionName = "sx_convolution_" + _inputTypeString;
-        shader.addStr(" = " + _filterFunctionName);
-        shader.addStr("(" + sampleName + ", " + 
-                            weightName + ", " + 
-                            std::to_string(_sampleCount) + 
-                      ")");
-        shader.endLine();
+            // Set up weight array
+            string weightName(node.getOutput()->name + "_weights");
+            shader.addLine("float " + weightName + "[SX_MAX_SAMPLE_COUNT]");
+            shader.addLine(weightFunction + "(" + weightName + ", " + std::to_string(filterSize) + ")");
+
+            // Emit code to evaluate using input sample and weight arrays. 
+            // The function to call depends on input type.
+            //
+            shader.beginLine();
+            shadergen.emitOutput(context, node.getOutput(), true, false, shader);
+            _filterFunctionName = "sx_convolution_" + _inputTypeString;
+            shader.addStr(" = " + _filterFunctionName);
+            shader.addStr("(" + sampleName + ", " +
+                weightName + ", " +
+                std::to_string(_sampleCount) +
+                ")");
+            shader.endLine();
+        }
+        else
+        {
+            // This is just a pass-through of the upstream sample if any,
+            // or the constant value on the node.
+            //
+            shader.beginLine();
+            shadergen.emitOutput(context, node.getOutput(), true, false, shader);
+            shader.addStr(" = " + sampleStrings[0]);
+            shader.endLine();
+        }
     }
     END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
 }
