@@ -53,7 +53,7 @@ void Convolution::emitInputSamplesUV(const SgNode& node, SgNodeContext& context,
 
                         const string sampleSizeName(node.getOutput()->name + "_sample_size");
                         const string vec2TypeString = shadergen.getSyntax()->getTypeName(Type::VECTOR2);
-                        string sampleCall(vec2TypeString + sampleSizeName + " = " +
+                        string sampleCall(vec2TypeString + " " + sampleSizeName + " = " +
                             _sampleSizeFunctionUV + "(" +
                             sampleInputValue + "," +
                             std::to_string(_filterSize) + "," +

@@ -161,6 +161,15 @@ ShaderPtr OslShaderGenerator::generate(const string& shaderName, ElementPtr elem
     shader.addLine("#define M_FLOAT_EPS 0.000001", false);
 
     emitTypeDefs(shader);
+
+    // Emit sampling code if needed
+    if (shader.hasClassification(SgNode::Classification::CONVOLUTION2D))
+    {
+        // Emit sampling functions
+        shader.addInclude("stdlib/sx-osl/lib/sx_sampling.osl", *this);
+        shader.newLine();
+    }
+
     emitFunctionDefinitions(shader);
 
     // Emit shader type
