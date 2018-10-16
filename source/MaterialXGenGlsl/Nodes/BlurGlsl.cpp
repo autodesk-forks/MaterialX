@@ -132,7 +132,7 @@ void BlurGlsl::emitFunctionCall(const SgNode& node, SgNodeContext& context, Shad
     {
         // Emit samples
         // Note: The maximum sample count SX_MAX_SAMPLE_COUNT is defined in the shader code and 
-        // is assumed to be 49 (7x7 kernel). If this changes that the filter size logic here 
+        // is assumed to be 49 (7x7 kernel). If this changes the filter size logic here 
         // needs to be adjusted.
         //
         StringVec sampleStrings;
