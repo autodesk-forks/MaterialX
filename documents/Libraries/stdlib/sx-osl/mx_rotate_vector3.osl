@@ -1,19 +1,19 @@
-matrix rotationMatrix(vector3 axis, float angle)
+matrix rotationMatrix(vector axis, float angle)
 {
     axis = normalize(axis);
     float s = sin(angle);
     float c = cos(angle);
     float oc = 1.0 - c;
 
-    return matrix(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
-                  oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
-                  oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
-                  0.0,                                0.0,                                0.0,                                1.0);
+    return matrix(oc * axis[0] * axis[0] + c,            oc * axis[0] * axis[1] - axis[2] * s,  oc * axis[2] * axis[0] + axis[1] * s,  0.0,
+                  oc * axis[0] * axis[1] + axis[2] * s,  oc * axis[1] * axis[1] + c,            oc * axis[1] * axis[2] - axis[0] * s,  0.0,
+                  oc * axis[2] * axis[0] - axis[1] * s,  oc * axis[1] * axis[2] + axis[0] * s,  oc * axis[2] * axis[2] + c,            0.0,
+                  0.0,                                   0.0,                                   0.0,                                   1.0);
 }
 
-void mx_rotate_vector3(vector3 _in, float amount, vector3 axis, output vector3 result)
+void mx_rotate_vector3(vector _in, float amount, vector axis, output vector result)
 {
     float rotationRadians = radians(amount);
     matrix m = rotationMatrix(axis, rotationRadians);
-    result = (m * vector4(_in, 1.0)).xyz;
+    result = (transform(m, vector4(_in, 1.0))).xyz;
 }

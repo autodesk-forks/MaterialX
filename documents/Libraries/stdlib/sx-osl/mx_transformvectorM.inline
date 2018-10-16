@@ -1,1 +1,1 @@
-{{in}} * {{mat}}
+transform({{in}}, {{mat}})

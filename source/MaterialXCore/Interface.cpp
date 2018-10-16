@@ -445,7 +445,7 @@ bool InterfaceElement::isTypeCompatible(ConstInterfaceElementPtr rhs) const
     for (ParameterPtr param : getActiveParameters())
     {
         ParameterPtr matchingParam = rhs->getActiveParameter(param->getName());
-        if (matchingParam && matchingParam->getType() != param->getType())
+        if (!matchingParam || matchingParam->getType() != param->getType())
         {
             return false;
         }
@@ -453,7 +453,7 @@ bool InterfaceElement::isTypeCompatible(ConstInterfaceElementPtr rhs) const
     for (InputPtr input : getActiveInputs())
     {
         InputPtr matchingInput = rhs->getActiveInput(input->getName());
-        if (matchingInput && matchingInput->getType() != input->getType())
+        if (!matchingInput || matchingInput->getType() != input->getType())
         {
             return false;
         }
