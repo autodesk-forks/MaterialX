@@ -19,7 +19,7 @@ vector2 sx_compute_sample_size_uv(vector2 uv, float filterSize, float filterOffs
    return vector2(sampleSizeU, sampleSizeV);
 }
 
-// Kernal weights for box filter
+// Kernel weights for box filter
 void sx_get_box_weights(output float W[SX_MAX_SAMPLE_COUNT], int filterSize)
 {
     int sampleCount = filterSize*filterSize;
