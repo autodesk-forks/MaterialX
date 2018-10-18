@@ -87,7 +87,7 @@ float sx_convolution_float(float S[SX_MAX_SAMPLE_COUNT], float W[SX_WEIGHT_ARRAY
     float result = 0.0;
     for (int i = 0;  i < sampleCount; i++)
     {
-        result += S[i]*W[i];
+        result += S[i]*W[i+offset];
     }
     return result;
 }

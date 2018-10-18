@@ -12,10 +12,10 @@ vector2 sx_compute_sample_size_uv(vector2 uv, float filterSize, float filterOffs
    vector derivUVy = Dy(vector(uv.x, uv.y, 0.0)) * 0.5;
    float derivX = abs(derivUVx[0]) + abs(derivUVy[0]);
    float derivY = abs(derivUVx[1]) + abs(derivUVy[1]);
-   float sampleSizeU = 2.0 * filterSize * derivX + filterOffset;
+   float sampleSizeU = filterSize * derivX + filterOffset;
    if (sampleSizeU < 1.0E-05)
        sampleSizeU = 1.0E-05;
-   float sampleSizeV = 2.0 * filterSize * derivY + filterOffset;
+   float sampleSizeV = filterSize * derivY + filterOffset;
    if (sampleSizeV < 1.0E-05)
        sampleSizeV = 1.0E-05;
    return vector2(sampleSizeU, sampleSizeV);
