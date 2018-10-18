@@ -327,7 +327,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     emitTypeDefs(shader);
 
     // Add all private constants
-    const Shader::VariableBlock& psPrivateConstants = shader.getUniformBlock(HwShader::PIXEL_STAGE, HwShader::PRIVATE_CONSTANTS);
+    const Shader::VariableBlock& psPrivateConstants = shader.getConstantBlock(HwShader::PIXEL_STAGE, HwShader::PRIVATE_CONSTANTS);
     emitUniformBlock(psPrivateConstants, "Constant block", true, shader);
 
     // Add all private uniforms
@@ -705,13 +705,14 @@ void GlslShaderGenerator::emitVariable(const Shader::Variable& variable, const s
     // A file texture input needs special handling on GLSL
     if (variable.type == Type::FILENAME)
     {
-        shader.addLine(declaration + "sampler2D " + variable.name);
+        // Samplers must always be uniforms
+        shader.addLine("uniform sampler2D " + variable.name);
     }
     else
     {
         const string& type = _syntax->getTypeName(variable.type);
 
-        string line = declaration + type + " " + variable.name;
+        string line = declaration + " " + type + " " + variable.name;
         if (variable.semantic.length())
             line += " : " + variable.semantic;
         if (variable.value)

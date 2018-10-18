@@ -113,13 +113,13 @@ void ShaderGenerator::emitFinalOutput(Shader& shader) const
 void ShaderGenerator::emitConstant(const Shader::Variable& constant, Shader& shader)
 {
     const string qualifier = _syntax->getConstantQualifier();
-    emitVariable(constant, EMPTY_STRING, shader);
+    emitVariable(constant, qualifier, shader);
 }
 
 void ShaderGenerator::emitUniform(const Shader::Variable& uniform, Shader& shader)
 {
     const string qualifier = _syntax->getUniformQualifier();
-    emitVariable(uniform, EMPTY_STRING, shader);
+    emitVariable(uniform, qualifier, shader);
 }
 
 void ShaderGenerator::emitVariable(const Shader::Variable& variable, const string& /*declaration*/, Shader& shader)

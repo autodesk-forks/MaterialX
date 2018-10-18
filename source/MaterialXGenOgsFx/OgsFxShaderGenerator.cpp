@@ -401,8 +401,8 @@ void OgsFxShaderGenerator::emitVariable(const Shader::Variable& uniform, const s
     if (uniform.type == Type::FILENAME)
     {
         std::stringstream str;
-        str << declaration + " texture2D " << uniform.name << "_texture : SourceTexture;\n";
-        str << declaration + " sampler2D " << uniform.name << " = sampler_state\n";
+        str << "uniform texture2D " << uniform.name << "_texture : SourceTexture;\n";
+        str << "uniform sampler2D " << uniform.name << " = sampler_state\n";
         str << "{\n    Texture = <" << uniform.name << "_texture>;\n};\n";
         shader.addBlock(str.str(), *this);
     }

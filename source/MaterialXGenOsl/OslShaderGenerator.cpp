@@ -234,6 +234,17 @@ ShaderPtr OslShaderGenerator::generate(const string& shaderName, ElementPtr elem
     // Emit shader body
     shader.beginScope(Shader::Brackets::BRACES);
 
+    // Emit private constants. Must be within the shader body.
+    const Shader::VariableBlock& psPrivateConstants = shader.getConstantBlock(Shader::PIXEL_STAGE, Shader::PRIVATE_CONSTANTS);
+    shader.addComment("Private Constants: ");
+    for (const Shader::Variable* constant : psPrivateConstants.variableOrder)
+    {
+        shader.beginLine();
+        emitConstant(*constant, shader);
+        shader.endLine();
+    }
+    shader.newLine();
+
     emitFunctionCalls(*_defaultContext, shader);
     emitFinalOutput(shader);
 
