@@ -326,7 +326,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     shader.newLine();
     emitTypeDefs(shader);
 
-    // Add all private constants
+    // Add private constants
     const Shader::VariableBlock& psPrivateConstants = shader.getConstantBlock(HwShader::PIXEL_STAGE, HwShader::PRIVATE_CONSTANTS);
     emitUniformBlock(psPrivateConstants, "Constant block", true, shader);
 

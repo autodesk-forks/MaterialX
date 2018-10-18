@@ -164,6 +164,10 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
 
     emitFunctionDefinitions(shader);
 
+    // Add private constants
+    const Shader::VariableBlock& vsPrivateConstants = shader.getConstantBlock(HwShader::VERTEX_STAGE, HwShader::PRIVATE_CONSTANTS);
+    emitUniformBlock(vsPrivateConstants, "Constant block", true, shader);
+
     // Add main function
     shader.addLine("void main()", false);
     shader.beginScope(Shader::Brackets::BRACES);
@@ -204,6 +208,10 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     }
 
     emitFunctionDefinitions(shader);
+
+    // Add private constants
+    const Shader::VariableBlock& psPrivateConstants = shader.getConstantBlock(HwShader::PIXEL_STAGE, HwShader::PRIVATE_CONSTANTS);
+    emitUniformBlock(psPrivateConstants, "Constant block", true, shader);
 
     // Add main function
     shader.addLine("void main()", false);
