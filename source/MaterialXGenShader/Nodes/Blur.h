@@ -22,13 +22,13 @@ class Blur : public Convolution
 
     /// Box filter option on blur
     static string BOX_FILTER;
-    /// Box filter weight computation function
-    static string BOX_WEIGHT_FUNCTION;
+    /// Box filter weights variable name
+    static string BOX_WEIGHTS_VARIABLE;
 
     /// Gaussian filter option on blur
     static string GAUSSIAN_FILTER;
-    /// Gaussian filter filter computation function
-    static string GAUSSIAN_WEIGHT_FUNCTION;
+    /// Gaussian filter weights variable name
+    static string GAUSSIAN_WEIGHTS_VARIABLE;
 
     /// Return if given type is an acceptible input
     bool acceptsInputType(const TypeDesc* type) override;
@@ -36,8 +36,8 @@ class Blur : public Convolution
     /// Compute offset strings for sampling
     void computeSampleOffsetStrings(const string& sampleSizeName, const string& offsetTypeString, StringVec& offsetStrings) override;
 
-    /// Name of filter function to call to compute normals from input samples
-    std::string _filterFunctionName;
+    /// Name of weight array variable
+    std::string _weightArrayVariable;
 
     /// Type of filter 
     string _filterType;

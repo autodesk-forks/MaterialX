@@ -18,6 +18,7 @@ void Convolution::createVariables(const ShaderNode& /*node*/, ShaderGenerator& /
     const float boxWeight5x5 = 1.0f / 25.0f;
     const float boxWeight7x7 = 1.0f / 49.0f;
     vector<float> boxWeightArray;
+    boxWeightArray.push_back(1.0f);
     for (unsigned int i = 0; i < 9; i++)
     {
         boxWeightArray.push_back(boxWeight3x3);
@@ -35,7 +36,8 @@ void Convolution::createVariables(const ShaderNode& /*node*/, ShaderGenerator& /
 
     // Create constant for Gaussian weights
     vector<float> gaussWeightArray = {
-
+        // 1x1
+        1.0,
         // 3x3
         0.077847f,	0.123317f,	0.077847f,
         0.123317f,	0.195346f,	0.123317f,

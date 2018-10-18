@@ -9,12 +9,12 @@ namespace MaterialX
 
 string Blur::BOX_FILTER = "box";
 string Blur::GAUSSIAN_FILTER = "gaussian";
-string Blur::BOX_WEIGHT_FUNCTION = "sx_get_box_weights";
-string Blur::GAUSSIAN_WEIGHT_FUNCTION = "sx_get_gaussian_weights";
+string Blur::BOX_WEIGHTS_VARIABLE = "c_box_filter_weights";
+string Blur::GAUSSIAN_WEIGHTS_VARIABLE = "c_gaussian_filter_weights";
 
 Blur::Blur()
     : ParentClass()
-    , _filterFunctionName(BOX_WEIGHT_FUNCTION)
+    , _weightArrayVariable(BOX_WEIGHTS_VARIABLE)
     , _filterType(BOX_FILTER)
     , _inputTypeString("float")
 {
@@ -80,6 +80,7 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
     const string FILTER_SIZE_STRING("size");
     const ShaderInput* sizeInput = node.getInput(FILTER_SIZE_STRING);
     _filterWidth = 1;
+    unsigned int arrayOffset = 0;
     if (sizeInput)
     {
         float sizeInputValue = sizeInput->value->asA<float>();
@@ -88,14 +89,17 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
             if (sizeInputValue <= 0.333f)
             {
                 _filterWidth = 3;
+                arrayOffset = 1;
             }
             else if (sizeInputValue <= 0.666f)
             {
                 _filterWidth = 5;
+                arrayOffset = 10;
             }
             else
             {
                 _filterWidth = 7;
+                arrayOffset = 35;
             }
         }
     }
@@ -107,7 +111,7 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
     // Default to box filter
     //
     _filterType.clear();
-    string weightFunction;
+    string weightArrayVariable;
     if (_sampleCount > 1)
     {
         if (filterTypeInput->value)
@@ -116,12 +120,12 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
             if (filterTypeInput->value->getValueString() == GAUSSIAN_FILTER)
             {
                 _filterType = GAUSSIAN_FILTER;
-                weightFunction = GAUSSIAN_WEIGHT_FUNCTION;
+                weightArrayVariable = GAUSSIAN_WEIGHTS_VARIABLE;
             }
             else
             {
                 _filterType = BOX_FILTER;
-                weightFunction = BOX_WEIGHT_FUNCTION;
+                weightArrayVariable = BOX_WEIGHTS_VARIABLE;
             }
         }
     }
@@ -145,6 +149,7 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
         if (_sampleCount > 1)
         {
             const string SX_MAX_SAMPLE_COUNT_STRING("SX_MAX_SAMPLE_COUNT");
+            const string SX_WEIGHT_ARRAY_SIZE_STRING("SX_WEIGHT_ARRAY_SIZE");
             const string SX_CONVOLUTION_PREFIX_STRING("sx_convolution_");
             const string SAMPLES_POSTFIX_STRING("_samples");
             const string WEIGHT_POSTFIX_STRING("_weights");
@@ -158,19 +163,20 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
             }
 
             // Set up weight array
-            string weightName(node.getOutput()->name + WEIGHT_POSTFIX_STRING);
-            shader.addLine("float " + weightName + "[" + SX_MAX_SAMPLE_COUNT_STRING + "]");
-            shader.addLine(weightFunction + "(" + weightName + ", " + std::to_string(_filterWidth) + ")");
+            //string weightName(node.getOutput()->name + WEIGHT_POSTFIX_STRING);
+            //shader.addLine("float " + weightName + "[" + SX_MAX_SAMPLE_COUNT_STRING + "]");
+            //shader.addLine(weightFunction + "(" + weightName + ", " + std::to_string(_filterWidth) + ")");
 
             // Emit code to evaluate using input sample and weight arrays. 
             // The function to call depends on input type.
             //
             shader.beginLine();
             shadergen.emitOutput(context, node.getOutput(), true, false, shader);
-            _filterFunctionName = SX_CONVOLUTION_PREFIX_STRING + _inputTypeString;
-            shader.addStr(" = " + _filterFunctionName);
+            string filterFunctionName = SX_CONVOLUTION_PREFIX_STRING + _inputTypeString;
+            shader.addStr(" = " + filterFunctionName);
             shader.addStr("(" + sampleName + ", " +
-                                weightName + ", " +
+                                weightArrayVariable + ", " +
+                                std::to_string(arrayOffset) + ", " +
                                 std::to_string(_sampleCount) +
                                 ")");
             shader.endLine();
