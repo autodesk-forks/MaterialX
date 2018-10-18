@@ -69,9 +69,12 @@ OgsFxShader::OgsFxShader(const string& name)
 {
     _stages.push_back(Stage("FinalFx"));
 
+    // Create default constant block for final fx stage
+    createConstantBlock(PIXEL_STAGE, PRIVATE_CONSTANTS, "prvConstant");
+
     // Create default uniform blocks for final fx stage
-    createUniformBlock(FINAL_FX_STAGE, PRIVATE_UNIFORMS, "prv");
-    createUniformBlock(FINAL_FX_STAGE, PUBLIC_UNIFORMS, "pub");
+    createUniformBlock(FINAL_FX_STAGE, PRIVATE_UNIFORMS, "prvUniform");
+    createUniformBlock(FINAL_FX_STAGE, PUBLIC_UNIFORMS, "pubUniform");
 }
 
 void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value)
@@ -392,28 +395,28 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     return shaderPtr;
 }
 
-void OgsFxShaderGenerator::emitUniform(const Shader::Variable& uniform, Shader& shader)
+void OgsFxShaderGenerator::emitVariable(const Shader::Variable& uniform, const string& declaration, Shader& shader)
 {
     // A file texture input needs special handling on GLSL
     if (uniform.type == Type::FILENAME)
     {
         std::stringstream str;
-        str << "uniform texture2D " << uniform.name << "_texture : SourceTexture;\n";
-        str << "uniform sampler2D " << uniform.name << " = sampler_state\n";
+        str << declaration + " texture2D " << uniform.name << "_texture : SourceTexture;\n";
+        str << declaration + " sampler2D " << uniform.name << " = sampler_state\n";
         str << "{\n    Texture = <" << uniform.name << "_texture>;\n};\n";
         shader.addBlock(str.str(), *this);
     }
     else if (!uniform.semantic.empty())
     {
         const string& type = _syntax->getTypeName(uniform.type);
-        shader.addLine("uniform " + type + " " + uniform.name + " : " + uniform.semantic);
+        shader.addLine(declaration + " " + type + " " + uniform.name + " : " + uniform.semantic);
     }
     else
     {
         const string& type = _syntax->getTypeName(uniform.type);
         const string initStr = (uniform.value ? _syntax->getValue(uniform.type, *uniform.value, true) : _syntax->getDefaultValue(uniform.type, true));
 
-        string line = "uniform " + type + " " + uniform.name;
+        string line = declaration + " " + type + " " + uniform.name;
 
         // If an arrays we need an array qualifier (suffix) for the variable name
         string arraySuffix;

@@ -66,8 +66,18 @@ public:
 
     /// Returns a type qualifier to be used when declaring types for output variables.
     /// Default implementation returns empty string and derived syntax classes should
-    /// override  this method.
+    /// override this method.
     virtual const string& getOutputQualifier() const { return EMPTY_STRING; };
+
+    /// Get the qualifier used when declaring constant variables.
+    /// Default implementation returns empty string and derived syntax classes should
+    /// override this method.
+    virtual const string& getConstantQualifier() const { return EMPTY_STRING; };
+
+    /// Get the qualifier used when declaring uniform variables.
+    /// Default implementation returns empty string and derived syntax classes should
+    /// override this method.
+    virtual const string& getUniformQualifier() const { return EMPTY_STRING; };
 
     /// Modify the given name string to make it unique according to the given uniqueName record 
     /// and according to restricted names registered for this syntax class.

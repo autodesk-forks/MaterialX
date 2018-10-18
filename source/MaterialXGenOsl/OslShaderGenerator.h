@@ -29,9 +29,6 @@ public:
     /// Emit the final output expression
     void emitFinalOutput(Shader& shader) const override;
 
-    /// Emit a shader uniform input variable
-    void emitUniform(const Shader::Variable& uniform, Shader& shader) override;
-
     /// Unique identifyer for the osl language
     static const string LANGUAGE;
 
@@ -53,6 +50,9 @@ protected:
 
     /// Emit include headers needed by the generated shader code.
     void emitIncludes(Shader& shader);
+
+    /// Emit a shader input variable
+    void emitVariable(const Shader::Variable& variable, const string& declaration, Shader& shader) override;
 
     bool _remapShaderOutput;
     std::unordered_map<const TypeDesc*, std::pair<const TypeDesc*, string>> _shaderOutputTypeRemap;

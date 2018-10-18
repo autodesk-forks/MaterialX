@@ -12,6 +12,7 @@
 namespace MaterialX
 {
 
+const string Shader::PRIVATE_CONSTANTS = "PrivateConstants";
 const string Shader::PRIVATE_UNIFORMS = "PrivateUniforms";
 const string Shader::PUBLIC_UNIFORMS = "PublicUniforms";
 
@@ -23,9 +24,12 @@ Shader::Shader(const string& name)
 {
     _stages.push_back(Stage("Pixel"));
 
+    // Create default constant block for pixel stage
+    createConstantBlock(PIXEL_STAGE, PRIVATE_CONSTANTS, "prvConstant");
+
     // Create default uniform blocks for pixel stage
-    createUniformBlock(PIXEL_STAGE, PRIVATE_UNIFORMS, "prv");
-    createUniformBlock(PIXEL_STAGE, PUBLIC_UNIFORMS, "pub");
+    createUniformBlock(PIXEL_STAGE, PRIVATE_UNIFORMS, "prvUniform");
+    createUniformBlock(PIXEL_STAGE, PUBLIC_UNIFORMS, "pubUniform");
 }
 
 void Shader::initialize(ElementPtr element, ShaderGenerator& shadergen, const GenOptions& options)
@@ -256,6 +260,44 @@ void Shader::indent()
     {
         s.code += INDENTATION;
     }
+}
+
+void Shader::createConstantBlock(size_t stage, const string& block, const string& instance)
+{
+    Stage& s = _stages[stage];
+    auto it = s.constants.find(block);
+    if (it == s.constants.end())
+    {
+        s.constants[block] = std::make_shared<VariableBlock>(block, instance);
+    }
+}
+
+void Shader::createConstant(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value)
+{
+    const Stage& s = _stages[stage];
+    auto it = s.constants.find(block);
+    if (it == s.constants.end())
+    {
+        throw ExceptionShaderGenError("No constant block named '" + block + "' exists for shader '" + getName() + "'");
+    }
+    VariableBlockPtr  blockPtr = it->second;
+    if (blockPtr->variableMap.find(name) == blockPtr->variableMap.end())
+    {
+        VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value);
+        blockPtr->variableMap[name] = variablePtr;
+        blockPtr->variableOrder.push_back(variablePtr.get());
+    }
+}
+
+const Shader::VariableBlock& Shader::getConstantBlock(size_t stage, const string& block) const
+{
+    const Stage& s = _stages[stage];
+    auto it = s.constants.find(block);
+    if (it == s.constants.end())
+    {
+        throw ExceptionShaderGenError("No constant block named '" + block + "' exists for shader '" + getName() + "'");
+    }
+    return *it->second;
 }
 
 void Shader::createUniformBlock(size_t stage, const string& block, const string& instance)

@@ -314,7 +314,7 @@ void OslShaderGenerator::emitFinalOutput(Shader& shader) const
     shader.addLine(outputSocket->name + " = " + finalResult);
 }
 
-void OslShaderGenerator::emitUniform(const Shader::Variable& uniform, Shader& shader)
+void OslShaderGenerator::emitVariable(const Shader::Variable& uniform, const string& /*declaration*/, Shader& shader)
 {
     const string initStr = (uniform.value ? _syntax->getValue(uniform.type, *uniform.value, true) : _syntax->getDefaultValue(uniform.type, true));
     string line = _syntax->getTypeName(uniform.type) + " " + uniform.name;

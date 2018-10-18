@@ -110,10 +110,43 @@ void ShaderGenerator::emitFinalOutput(Shader& shader) const
     shader.addLine(outputSocket->name + " = " + outputSocket->connection->name);
 }
 
+void ShaderGenerator::emitConstant(const Shader::Variable& constant, Shader& shader)
+{
+    const string qualifier = _syntax->getConstantQualifier();
+    emitVariable(constant, EMPTY_STRING, shader);
+}
+
 void ShaderGenerator::emitUniform(const Shader::Variable& uniform, Shader& shader)
 {
-    const string initStr = (uniform.value ? _syntax->getValue(uniform.type, *uniform.value, true) : _syntax->getDefaultValue(uniform.type, true));
-    shader.addStr(_syntax->getTypeName(uniform.type) + " " + uniform.name + (initStr.empty() ? "" : " = " + initStr));
+    const string qualifier = _syntax->getUniformQualifier();
+    emitVariable(uniform, EMPTY_STRING, shader);
+}
+
+void ShaderGenerator::emitVariable(const Shader::Variable& variable, const string& /*declaration*/, Shader& shader)
+{
+    const string initStr = (variable.value ? _syntax->getValue(variable.type, *variable.value, true) : _syntax->getDefaultValue(variable.type, true));
+    shader.addStr(_syntax->getTypeName(variable.type) + " " + variable.name + (initStr.empty() ? "" : " = " + initStr));
+}
+
+
+void ShaderGenerator::emitUniformBlock(const Shader::VariableBlock& block, const string& comment, bool asConstant, Shader& shader)
+{
+    if (block.variableOrder.size())
+    {
+        shader.addComment(comment + ": " + block.name);
+        for (const Shader::Variable* variable : block.variableOrder)
+        {
+            if (asConstant)
+            {
+                emitConstant(*variable, shader);
+            }
+            else
+            {
+                emitUniform(*variable, shader);
+            }
+        }
+        shader.newLine();
+    }
 }
 
 void ShaderGenerator::getInput(const GenContext& context, const ShaderInput* input, string& result) const

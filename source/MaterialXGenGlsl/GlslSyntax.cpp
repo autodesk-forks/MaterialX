@@ -95,6 +95,8 @@ namespace
 }
 
 const string GlslSyntax::OUTPUT_QUALIFIER = "out";
+const string GlslSyntax::UNIFORM_QUALIFIER = "uniform";
+const string GlslSyntax::CONSTANT_QUALIFIER = "const";
 const vector<string> GlslSyntax::VEC2_MEMBERS = { ".x", ".y" };
 const vector<string> GlslSyntax::VEC3_MEMBERS = { ".x", ".y", ".z" };
 const vector<string> GlslSyntax::VEC4_MEMBERS = { ".x", ".y", ".z", ".w" };

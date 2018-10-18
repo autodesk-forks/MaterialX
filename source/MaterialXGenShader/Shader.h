@@ -101,6 +101,9 @@ public:
     /// Identifiers for uniform variable blocks. 
     /// Derived classes can define additional blocks.
     ///
+    /// Default constant block for private variables
+    /// which are not visible to the user and not settable by the application
+    static const string PRIVATE_CONSTANTS;
     /// Default uniform block for private variables.
     /// For uniforms not visible to user and only set by application.
     static const string PRIVATE_UNIFORMS;
@@ -131,6 +134,14 @@ public:
     /// Return the active stage
     virtual size_t getActiveStage() const { return _activeStage; }
 
+    /// Create a new variable block for constants in a stage.
+    virtual void createConstantBlock(size_t stage, const string& block, const string& instance = EMPTY_STRING);
+
+    /// Create a new variable for constant data in the given block for a stage.
+    /// The block must be previously created with createConstantBlock.
+    virtual void createConstant(size_t stage, const string& block, const TypeDesc* type, const string& name,
+        const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
+
     /// Create a new variable block for uniform inputs in a stage.
     virtual void createUniformBlock(size_t stage, const string& block, const string& instance = EMPTY_STRING);
 
@@ -141,6 +152,12 @@ public:
 
     /// Create a new variable for application/geometric data (primvars).
     virtual void createAppData(const TypeDesc* type, const string& name, const string& semantic = EMPTY_STRING);
+
+    /// Return all blocks of constant variables for a stage.
+    const VariableBlockMap& getConstantBlocks(size_t stage) const { return _stages[stage].constants; }
+
+    /// Return a specific block of constant variables for a stage.
+    const VariableBlock& getConstantBlock(size_t stage, const string& block) const;
 
     /// Return all blocks of uniform variables for a stage.
     const VariableBlockMap& getUniformBlocks(size_t stage) const { return _stages[stage].uniforms; }
@@ -232,7 +249,10 @@ protected:
         std::queue<Brackets> scopes;
         std::set<string> includes;
         std::set<ShaderImplementation*> definedFunctions;
-        
+
+        // Blocks holding constant variables for this stage
+        VariableBlockMap constants;
+
         // Blocks holding uniform variables for this stage
         VariableBlockMap uniforms;
 

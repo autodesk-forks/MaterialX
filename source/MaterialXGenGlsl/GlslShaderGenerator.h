@@ -88,9 +88,6 @@ public:
     /// Emit all functon calls constructing the shader body
     void emitFunctionCalls(const GenContext& context, Shader &shader) override;
 
-    /// Emit a shader uniform input variable
-    void emitUniform(const Shader::Variable& uniform, Shader& shader) override;
-
     /// Emit the final output expression
     void emitFinalOutput(Shader& shader) const override;
 
@@ -144,6 +141,9 @@ public:
     };
 
 protected:
+    /// Emit a shader input variable
+    void emitVariable(const Shader::Variable& variable, const string& declaration, Shader& shader) override;
+
     /// Override the compound implementation creator in order to handle light compounds.
     ShaderImplementationPtr createCompoundImplementation(NodeGraphPtr impl) override;
 

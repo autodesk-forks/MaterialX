@@ -49,7 +49,10 @@ public:
     /// Emit the final output expression
     virtual void emitFinalOutput(Shader& shader) const;
 
-    /// Emit a shader uniform input variable
+    /// Emit a shader constant input variable 
+    virtual void emitConstant(const Shader::Variable& uniform, Shader& shader);
+
+    /// Emit a shader uniform input variable 
     virtual void emitUniform(const Shader::Variable& uniform, Shader& shader);
 
     /// Emit the connected variable name for an input,
@@ -129,6 +132,12 @@ protected:
     /// Create a new node context with the given id. The context is added to the 
     /// shader generators node context storage and returned.
     GenContextPtr createContext(int id);
+
+    /// Utility to emit a block of uniform variables
+    virtual void emitUniformBlock(const Shader::VariableBlock& block, const string& comment, bool asConstant, Shader& shader);
+
+    /// Emit a shader input variable
+    virtual void emitVariable(const Shader::Variable& variable, const string& declaration, Shader& shader);
 
     SyntaxPtr _syntax;
     Factory<ShaderImplementation> _implFactory;

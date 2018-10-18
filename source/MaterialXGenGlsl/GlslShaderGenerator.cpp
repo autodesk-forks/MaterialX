@@ -258,29 +258,17 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     shader.addLine("#version " + getVersion(), false);
     shader.newLine();
 
+    // Add all private constants
+    const Shader::VariableBlock& vsPrivateConstants = shader.getConstantBlock(HwShader::VERTEX_STAGE, HwShader::PRIVATE_CONSTANTS);
+    emitUniformBlock(vsPrivateConstants, "Constant block", true, shader);
+
     // Add all private uniforms
     const Shader::VariableBlock& vsPrivateUniforms = shader.getUniformBlock(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS);
-    if (vsPrivateUniforms.variableOrder.size())
-    {
-        shader.addComment("Uniform block: " + vsPrivateUniforms.name);
-        for (const Shader::Variable* uniform : vsPrivateUniforms.variableOrder)
-        {
-            emitUniform(*uniform, shader);
-        }
-        shader.newLine();
-    }
+    emitUniformBlock(vsPrivateUniforms, "Uniform block", false, shader);
 
     // Add any public uniforms
     const Shader::VariableBlock& vsPublicUniforms = shader.getUniformBlock(HwShader::VERTEX_STAGE, HwShader::PUBLIC_UNIFORMS);
-    if (vsPublicUniforms.variableOrder.size())
-    {
-        shader.addComment("Uniform block: " + vsPublicUniforms.name);
-        for (const Shader::Variable* uniform : vsPublicUniforms.variableOrder)
-        {
-            emitUniform(*uniform, shader);
-        }
-        shader.newLine();
-    }
+    emitUniformBlock(vsPublicUniforms, "Uniform block", false, shader);
 
     // Add all app data inputs
     const Shader::VariableBlock& appDataBlock = shader.getAppDataBlock();
@@ -338,29 +326,18 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     shader.newLine();
     emitTypeDefs(shader);
 
+    // Add all private constants
+    const Shader::VariableBlock& psPrivateConstants = shader.getUniformBlock(HwShader::PIXEL_STAGE, HwShader::PRIVATE_CONSTANTS);
+    emitUniformBlock(psPrivateConstants, "Constant block", true, shader);
+
     // Add all private uniforms
     const Shader::VariableBlock& psPrivateUniforms = shader.getUniformBlock(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS);
-    if (psPrivateUniforms.variableOrder.size())
-    {
-        shader.addComment("Uniform block: " + psPrivateUniforms.name);
-        for (const Shader::Variable* uniform : psPrivateUniforms.variableOrder)
-        {
-            emitUniform(*uniform, shader);
-        }
-        shader.newLine();
-    }
+    emitUniformBlock(psPrivateUniforms, "Uniform block", false, shader);
 
     // Add all public uniforms
     const Shader::VariableBlock& psPublicUniforms = shader.getUniformBlock(HwShader::PIXEL_STAGE, HwShader::PUBLIC_UNIFORMS);
-    if (psPublicUniforms.variableOrder.size())
-    {
-        shader.addComment("Uniform block: " + psPublicUniforms.name);
-        for (const Shader::Variable* uniform : psPublicUniforms.variableOrder)
-        {
-            emitUniform(*uniform, shader);
-        }
-        shader.newLine();
-    }
+    emitUniformBlock(psPublicUniforms, "Uniform block", false, shader);
+
 
     bool lighting = shader.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE) ||
                     shader.hasClassification(ShaderNode::Classification::BSDF);
@@ -723,32 +700,32 @@ void GlslShaderGenerator::toVec4(const TypeDesc* type, string& variable)
     }
 }
 
-void GlslShaderGenerator::emitUniform(const Shader::Variable& uniform, Shader& shader)
+void GlslShaderGenerator::emitVariable(const Shader::Variable& variable, const string& declaration, Shader& shader)
 {
     // A file texture input needs special handling on GLSL
-    if (uniform.type == Type::FILENAME)
+    if (variable.type == Type::FILENAME)
     {
-        shader.addLine("uniform sampler2D " + uniform.name);
+        shader.addLine(declaration + "sampler2D " + variable.name);
     }
     else
     {
-        const string& type = _syntax->getTypeName(uniform.type);
+        const string& type = _syntax->getTypeName(variable.type);
 
-        string line = "uniform " + type + " " + uniform.name;
-        if (uniform.semantic.length())
-            line += " : " + uniform.semantic;
-        if (uniform.value)
+        string line = declaration + type + " " + variable.name;
+        if (variable.semantic.length())
+            line += " : " + variable.semantic;
+        if (variable.value)
         {
             // If an arrays we need an array qualifier (suffix) for the variable name
             string arraySuffix;
-            uniform.getArraySuffix(arraySuffix);
+            variable.getArraySuffix(arraySuffix);
             line += arraySuffix;
 
-            line += " = " + _syntax->getValue(uniform.type, *uniform.value, true);
+            line += " = " + _syntax->getValue(variable.type, *variable.value, true);
         }
         else
         {
-            line += " = " + _syntax->getDefaultValue(uniform.type, true);
+            line += " = " + _syntax->getDefaultValue(variable.type, true);
         }
         shader.addLine(line);
     }
