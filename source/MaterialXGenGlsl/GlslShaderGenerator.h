@@ -64,7 +64,7 @@ class GlslShaderGenerator : public HwShaderGenerator
 {
     using ParentClass = HwShaderGenerator;
 
-public:
+  public:
     GlslShaderGenerator();
 
     static ShaderGeneratorPtr create() { return std::make_shared<GlslShaderGenerator>(); }
@@ -108,7 +108,7 @@ public:
     /// The output 'edf' will hold the variable keeping the result.
     virtual void emitEdfNodes(const ShaderNode& shaderNode, const string& normalDir, const string& evalDir, Shader& shader, string& edf);
 
-public:
+  public:
     /// Unique identifyer for the glsl language
     static const string LANGUAGE;
 
@@ -140,9 +140,8 @@ public:
         REFL_DIR
     };
 
-protected:
-    /// Emit a shader input variable
-    void emitVariable(const Shader::Variable& variable, const string& declaration, Shader& shader) override;
+  protected:   
+    void emitVariable(const Shader::Variable& variable, const string& qualifier, Shader& shader) override;
 
     /// Override the compound implementation creator in order to handle light compounds.
     ShaderImplementationPtr createCompoundImplementation(NodeGraphPtr impl) override;
@@ -160,11 +159,11 @@ protected:
 /// Base class for common GLSL node implementations
 class GlslImplementation : public ShaderImplementation
 {
-public:
+  public:
     const string& getLanguage() const override;
     const string& getTarget() const override;
 
-protected:
+  protected:
     GlslImplementation() {}
 
     /// Internal string constants

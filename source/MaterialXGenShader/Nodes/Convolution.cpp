@@ -31,7 +31,7 @@ void Convolution::createVariables(const ShaderNode& /*node*/, ShaderGenerator& /
     {
         boxWeightArray.push_back(boxWeight7x7);
     }
-    shader.createConstant(Shader::PIXEL_STAGE, Shader::PRIVATE_CONSTANTS, 
+    shader.createConstant(Shader::PIXEL_STAGE, 
         Type::FLOATARRAY, "c_box_filter_weights", EMPTY_STRING, Value::createValue<vector<float>>(boxWeightArray));
 
     // Create constant for Gaussian weights
@@ -57,7 +57,7 @@ void Convolution::createVariables(const ShaderNode& /*node*/, ShaderGenerator& /
         0.000363f,	0.003676f,	0.014662f,	0.023226f,	0.014662f,	0.003676f,	0.000363f,
         0.000036f,	0.000363f,	0.001446f,	0.002291f,	0.001446f,	0.000363f,	0.000036f
     };
-    shader.createConstant(Shader::PIXEL_STAGE, Shader::PRIVATE_CONSTANTS,
+    shader.createConstant(Shader::PIXEL_STAGE,
         Type::FLOATARRAY, "c_gaussian_filter_weights", EMPTY_STRING, Value::createValue<vector<float>>(gaussWeightArray));
 }
 

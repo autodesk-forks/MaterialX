@@ -57,7 +57,7 @@ public:
 
 protected:
     /// Emit a shader input variable
-    void emitVariable(const Shader::Variable& variable, const string& declaration, Shader& shader) override;
+    void emitVariable(const Shader::Variable& variable, const string& qualifier, Shader& shader) override;
 
     /// Create a new shader instance
     virtual OgsFxShaderPtr createShader(const string& name);

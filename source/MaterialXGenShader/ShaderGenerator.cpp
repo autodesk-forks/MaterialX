@@ -122,28 +122,21 @@ void ShaderGenerator::emitUniform(const Shader::Variable& uniform, Shader& shade
     emitVariable(uniform, qualifier, shader);
 }
 
-void ShaderGenerator::emitVariable(const Shader::Variable& variable, const string& /*declaration*/, Shader& shader)
+void ShaderGenerator::emitVariable(const Shader::Variable& variable, const string& /*qualifier*/, Shader& shader)
 {
     const string initStr = (variable.value ? _syntax->getValue(variable.type, *variable.value, true) : _syntax->getDefaultValue(variable.type, true));
     shader.addStr(_syntax->getTypeName(variable.type) + " " + variable.name + (initStr.empty() ? "" : " = " + initStr));
 }
 
 
-void ShaderGenerator::emitUniformBlock(const Shader::VariableBlock& block, const string& comment, bool asConstant, Shader& shader)
+void ShaderGenerator::emitVariableBlock(const Shader::VariableBlock& block, bool asConstant, Shader& shader)
 {
-    if (block.variableOrder.size())
+    if (!block.empty())
     {
-        shader.addComment(comment + ": " + block.name);
+        const string qualifier = asConstant ? _syntax->getConstantQualifier() : _syntax->getUniformQualifier();
         for (const Shader::Variable* variable : block.variableOrder)
         {
-            if (asConstant)
-            {
-                emitConstant(*variable, shader);
-            }
-            else
-            {
-                emitUniform(*variable, shader);
-            }
+            emitVariable(*variable, qualifier, shader);
         }
         shader.newLine();
     }

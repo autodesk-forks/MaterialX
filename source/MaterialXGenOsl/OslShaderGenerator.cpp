@@ -235,7 +235,7 @@ ShaderPtr OslShaderGenerator::generate(const string& shaderName, ElementPtr elem
     shader.beginScope(Shader::Brackets::BRACES);
 
     // Emit private constants. Must be within the shader body.
-    const Shader::VariableBlock& psPrivateConstants = shader.getConstantBlock(Shader::PIXEL_STAGE, Shader::PRIVATE_CONSTANTS);
+    const Shader::VariableBlock& psPrivateConstants = shader.getConstantBlock(Shader::PIXEL_STAGE);
     shader.addComment("Private Constants: ");
     for (const Shader::Variable* constant : psPrivateConstants.variableOrder)
     {
@@ -325,7 +325,7 @@ void OslShaderGenerator::emitFinalOutput(Shader& shader) const
     shader.addLine(outputSocket->name + " = " + finalResult);
 }
 
-void OslShaderGenerator::emitVariable(const Shader::Variable& uniform, const string& /*declaration*/, Shader& shader)
+void OslShaderGenerator::emitVariable(const Shader::Variable& uniform, const string& /*qualifier*/, Shader& shader)
 {
     const string initStr = (uniform.value ? _syntax->getValue(uniform.type, *uniform.value, true) : _syntax->getDefaultValue(uniform.type, true));
     string line = _syntax->getTypeName(uniform.type) + " " + uniform.name;

@@ -52,7 +52,7 @@ protected:
     void emitIncludes(Shader& shader);
 
     /// Emit a shader input variable
-    void emitVariable(const Shader::Variable& variable, const string& declaration, Shader& shader) override;
+    void emitVariable(const Shader::Variable& variable, const string& qualifier, Shader& shader) override;
 
     bool _remapShaderOutput;
     std::unordered_map<const TypeDesc*, std::pair<const TypeDesc*, string>> _shaderOutputTypeRemap;

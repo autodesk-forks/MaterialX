@@ -259,20 +259,32 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     shader.newLine();
 
     // Add all private constants
-    const Shader::VariableBlock& vsPrivateConstants = shader.getConstantBlock(HwShader::VERTEX_STAGE, HwShader::PRIVATE_CONSTANTS);
-    emitUniformBlock(vsPrivateConstants, "Constant block", true, shader);
+    const Shader::VariableBlock& vsPrivateConstants = shader.getConstantBlock(HwShader::VERTEX_STAGE);
+    if (!vsPrivateConstants.empty())
+    {
+        shader.addComment("Constant block: " + vsPrivateConstants.name);
+        emitVariableBlock(vsPrivateConstants, true, shader);
+    }
 
     // Add all private uniforms
     const Shader::VariableBlock& vsPrivateUniforms = shader.getUniformBlock(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS);
-    emitUniformBlock(vsPrivateUniforms, "Uniform block", false, shader);
+    if (!vsPrivateUniforms.empty())
+    {
+        shader.addComment("Uniform block: " + vsPrivateUniforms.name);
+        emitVariableBlock(vsPrivateUniforms, false, shader);
+    }
 
     // Add any public uniforms
     const Shader::VariableBlock& vsPublicUniforms = shader.getUniformBlock(HwShader::VERTEX_STAGE, HwShader::PUBLIC_UNIFORMS);
-    emitUniformBlock(vsPublicUniforms, "Uniform block", false, shader);
+    if (!vsPublicUniforms.empty())
+    {
+        shader.addComment("Uniform block: " + vsPublicUniforms.name);
+        emitVariableBlock(vsPublicUniforms, false, shader);
+    }
 
     // Add all app data inputs
     const Shader::VariableBlock& appDataBlock = shader.getAppDataBlock();
-    if (appDataBlock.variableOrder.size())
+    if (!appDataBlock.empty())
     {
         shader.addComment("Application data block: " + appDataBlock.name);
         for (const Shader::Variable* input : appDataBlock.variableOrder)
@@ -285,7 +297,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
 
     // Add vertex data block
     const Shader::VariableBlock& vertexDataBlock = shader.getVertexDataBlock();
-    if (vertexDataBlock.variableOrder.size())
+    if (vertexDataBlock.empty())
     {
         shader.addLine("out VertexData", false);
         shader.beginScope(Shader::Brackets::BRACES);
@@ -327,17 +339,28 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     emitTypeDefs(shader);
 
     // Add private constants
-    const Shader::VariableBlock& psPrivateConstants = shader.getConstantBlock(HwShader::PIXEL_STAGE, HwShader::PRIVATE_CONSTANTS);
-    emitUniformBlock(psPrivateConstants, "Constant block", true, shader);
+    const Shader::VariableBlock& psPrivateConstants = shader.getConstantBlock(HwShader::PIXEL_STAGE);
+    if (!psPrivateConstants.empty())
+    {
+        shader.addComment("Constant block: " + psPrivateConstants.name);
+        emitVariableBlock(psPrivateConstants, true, shader);
+    }
 
     // Add all private uniforms
     const Shader::VariableBlock& psPrivateUniforms = shader.getUniformBlock(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS);
-    emitUniformBlock(psPrivateUniforms, "Uniform block", false, shader);
+    if (!psPrivateUniforms.empty())
+    {
+        shader.addComment("Uniform block: " + psPrivateUniforms.name);
+        emitVariableBlock(psPrivateUniforms, false, shader);
+    }
 
     // Add all public uniforms
     const Shader::VariableBlock& psPublicUniforms = shader.getUniformBlock(HwShader::PIXEL_STAGE, HwShader::PUBLIC_UNIFORMS);
-    emitUniformBlock(psPublicUniforms, "Uniform block", false, shader);
-
+    if (!psPublicUniforms.empty())
+    {
+        shader.addComment("Uniform block: " + psPublicUniforms.name);
+        emitVariableBlock(psPublicUniforms, false, shader);
+    }
 
     bool lighting = shader.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE) ||
                     shader.hasClassification(ShaderNode::Classification::BSDF);
@@ -360,7 +383,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     }
 
     // Add vertex data block
-    if (vertexDataBlock.variableOrder.size())
+    if (!vertexDataBlock.empty())
     {
         shader.addLine("in VertexData", false);
         shader.beginScope(Shader::Brackets::BRACES);
@@ -700,7 +723,7 @@ void GlslShaderGenerator::toVec4(const TypeDesc* type, string& variable)
     }
 }
 
-void GlslShaderGenerator::emitVariable(const Shader::Variable& variable, const string& declaration, Shader& shader)
+void GlslShaderGenerator::emitVariable(const Shader::Variable& variable, const string& qualifier, Shader& shader)
 {
     // A file texture input needs special handling on GLSL
     if (variable.type == Type::FILENAME)
@@ -712,7 +735,7 @@ void GlslShaderGenerator::emitVariable(const Shader::Variable& variable, const s
     {
         const string& type = _syntax->getTypeName(variable.type);
 
-        string line = declaration + " " + type + " " + variable.name;
+        string line = qualifier + " " + type + " " + variable.name;
         if (variable.semantic.length())
             line += " : " + variable.semantic;
         if (variable.value)

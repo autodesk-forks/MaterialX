@@ -133,11 +133,19 @@ protected:
     /// shader generators node context storage and returned.
     GenContextPtr createContext(int id);
 
-    /// Utility to emit a block of uniform variables
-    virtual void emitUniformBlock(const Shader::VariableBlock& block, const string& comment, bool asConstant, Shader& shader);
+    /// Utility to emit a block of either uniform or constant variables
+    /// @param block Block to emit.
+    /// @param asConstant If set to "true", will emit a block constants as opposed to a block of uniforms. 
+    /// The differense is that a constant qualifier is used versus a unifork qualifier. Qualifiers are specified by the 
+    /// syntax for the generator.
+    /// @param shader Shader to emit to.
+    virtual void emitVariableBlock(const Shader::VariableBlock& block, bool asConstant, Shader& shader);
 
     /// Emit a shader input variable
-    virtual void emitVariable(const Shader::Variable& variable, const string& declaration, Shader& shader);
+    /// @param variable Variable to emit
+    /// @param qualifier Optional qualifier to add before the variable declaration
+    /// @shader Shader source to emit output to
+    virtual void emitVariable(const Shader::Variable& variable, const string& qualifier, Shader& shader);
 
     SyntaxPtr _syntax;
     Factory<ShaderImplementation> _implFactory;
