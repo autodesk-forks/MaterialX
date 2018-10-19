@@ -19,6 +19,7 @@ public:
     const string& getOutputQualifier() const override;
     const string& getConstantQualifier() const override { return CONSTANT_QUALIFIER; };
     const string& getUniformQualifier() const override { return UNIFORM_QUALIFIER; };
+    bool typeSypported(const TypeDesc* type) const override;
 
     static const string OUTPUT_QUALIFIER;
     static const string UNIFORM_QUALIFIER;

@@ -430,11 +430,6 @@ static void runGLSLValidation(const std::string& shaderName, mx::ElementPtr elem
             std::string fileName = shaderPath + ".exr";
             validator.save(fileName);
 
-            std::ofstream file;
-            file.open(shaderPath + ".frag");
-            file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
-            file.close();
-
             validated = true;
         }
         catch (mx::ExceptionShaderValidationError e)
@@ -617,7 +612,6 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // which files in the test suite are being tested.
     // Add only the test suite filename not the full path.
     std::set<std::string> testfileOverride;
-    testfileOverride.insert("blur.mtlx");
 
     // Library search path
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");

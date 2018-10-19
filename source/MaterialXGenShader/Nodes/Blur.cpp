@@ -32,24 +32,27 @@ void Blur::createVariables(const ShaderNode& node, ShaderGenerator& shadergen, S
 {
     ParentClass::createVariables(node, shadergen, shader);
 
-    // Map the filter type string to a filter type int
-    const string FILTER_TYPE_STRING("filtertype");
-    const ShaderInput* filterTypeInput = node.getInput(FILTER_TYPE_STRING);
-    if (!filterTypeInput)
+    if (!shadergen.getSyntax()->typeSypported(Type::STRING))
     {
-        throw ExceptionShaderGenError("Node '" + node.getName() + "' is not a valid Blur node");
-    }
-    int filterTypeInt = 0;
-    if (filterTypeInput->value)
-    {
-        // Use Gaussian filter.
-        if (filterTypeInput->value->getValueString() == GAUSSIAN_FILTER)
+        // Map the filter type string to a filter type int
+        const string FILTER_TYPE_STRING("filtertype");
+        const ShaderInput* filterTypeInput = node.getInput(FILTER_TYPE_STRING);
+        if (!filterTypeInput)
         {
-            filterTypeInt = 1;
+            throw ExceptionShaderGenError("Node '" + node.getName() + "' is not a valid Blur node");
         }
+        int filterTypeInt = 0;
+        if (filterTypeInput->value)
+        {
+            // Use Gaussian filter.
+            if (filterTypeInput->value->getValueString() == GAUSSIAN_FILTER)
+            {
+                filterTypeInt = 1;
+            }
+        }
+        const string uniformName = node.getName() + "_" + "filtertypeInt";
+        shader.createUniform(Shader::PIXEL_STAGE, Shader::PUBLIC_UNIFORMS, Type::INTEGER, uniformName, EMPTY_STRING, Value::createValue<int>(filterTypeInt));
     }
-    const string uniformName = node.getName() + "_" + "filtertypeInt";
-    shader.createUniform(Shader::PIXEL_STAGE, Shader::PUBLIC_UNIFORMS, Type::INTEGER, uniformName, EMPTY_STRING, Value::createValue<int>(filterTypeInt));
 }
 
 
@@ -198,9 +201,9 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
 
             shader.beginLine();
             shader.addStr("if (");
-            // Strings are support in OSL but not GLSL
-            bool stringCompare = false;
-            if (stringCompare)
+            // If strings are support compare against string input,
+            // other use int compare
+            if (shadergen.getSyntax()->typeSypported(Type::STRING))
             {
                 shadergen.emitInput(context, filterTypeInput, shader);
                 shader.addStr(" == \"" + GAUSSIAN_FILTER + "\")");

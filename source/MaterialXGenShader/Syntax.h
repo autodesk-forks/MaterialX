@@ -79,6 +79,10 @@ public:
     /// override this method.
     virtual const string& getUniformQualifier() const { return EMPTY_STRING; };
 
+    /// Query if given type is suppored in the syntax
+    /// By default all types are assumed to be supported
+    virtual bool typeSypported(const TypeDesc* /*type*/) const { return true; }
+
     /// Modify the given name string to make it unique according to the given uniqueName record 
     /// and according to restricted names registered for this syntax class.
     /// The method is used for naming variables (inputs and outputs) in generated code.
