@@ -28,6 +28,31 @@ ShaderImplementationPtr Blur::create()
     return std::shared_ptr<Blur>(new Blur());
 }
 
+void Blur::createVariables(const ShaderNode& node, ShaderGenerator& shadergen, Shader& shader)
+{
+    ParentClass::createVariables(node, shadergen, shader);
+
+    // Map the filter type string to a filter type int
+    const string FILTER_TYPE_STRING("filtertype");
+    const ShaderInput* filterTypeInput = node.getInput(FILTER_TYPE_STRING);
+    if (!filterTypeInput)
+    {
+        throw ExceptionShaderGenError("Node '" + node.getName() + "' is not a valid Blur node");
+    }
+    int filterTypeInt = 0;
+    if (filterTypeInput->value)
+    {
+        // Use Gaussian filter.
+        if (filterTypeInput->value->getValueString() == GAUSSIAN_FILTER)
+        {
+            filterTypeInt = 1;
+        }
+    }
+    const string uniformName = node.getName() + "_" + "filtertypeInt";
+    shader.createUniform(Shader::PIXEL_STAGE, Shader::PUBLIC_UNIFORMS, Type::INTEGER, uniformName, EMPTY_STRING, Value::createValue<int>(filterTypeInt));
+}
+
+
 void Blur::computeSampleOffsetStrings(const string& sampleSizeName, const string& offsetTypeString, StringVec& offsetStrings)
 {
     offsetStrings.clear();
@@ -112,6 +137,7 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
     //
     _filterType.clear();
     string weightArrayVariable;
+    int filterTypeInt = 0;
     if (_sampleCount > 1)
     {
         if (filterTypeInput->value)
@@ -121,6 +147,7 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
             {
                 _filterType = GAUSSIAN_FILTER;
                 weightArrayVariable = GAUSSIAN_WEIGHTS_VARIABLE;
+                filterTypeInt = 1;
             }
             else
             {
@@ -162,24 +189,58 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
                 shader.addLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i]);
             }
 
-            // Set up weight array
-            //string weightName(node.getOutput()->name + WEIGHT_POSTFIX_STRING);
-            //shader.addLine("float " + weightName + "[" + SX_MAX_SAMPLE_COUNT_STRING + "]");
-            //shader.addLine(weightFunction + "(" + weightName + ", " + std::to_string(_filterWidth) + ")");
-
             // Emit code to evaluate using input sample and weight arrays. 
             // The function to call depends on input type.
             //
             shader.beginLine();
             shadergen.emitOutput(context, node.getOutput(), true, false, shader);
-            string filterFunctionName = SX_CONVOLUTION_PREFIX_STRING + _inputTypeString;
-            shader.addStr(" = " + filterFunctionName);
-            shader.addStr("(" + sampleName + ", " +
-                                weightArrayVariable + ", " +
-                                std::to_string(arrayOffset) + ", " +
-                                std::to_string(_sampleCount) +
-                                ")");
             shader.endLine();
+
+            shader.beginLine();
+            shader.addStr("if (");
+            // Strings are support in OSL but not GLSL
+            bool stringCompare = false;
+            if (stringCompare)
+            {
+                shadergen.emitInput(context, filterTypeInput, shader);
+                shader.addStr(" == \"" + GAUSSIAN_FILTER + "\")");
+            }
+            else
+            { 
+                shader.addStr(node.getName() + "_" + "filtertypeInt");
+                shader.addStr(" == " + std::to_string(filterTypeInt) + ")");
+            }
+            shader.endLine(false);
+
+            shader.beginScope();
+            {
+                string filterFunctionName = SX_CONVOLUTION_PREFIX_STRING + _inputTypeString;
+                shader.beginLine();
+                shader.addStr(node.getOutput()->name);
+                shader.addStr(" = " + filterFunctionName);
+                shader.addStr("(" + sampleName + ", " +
+                    GAUSSIAN_WEIGHTS_VARIABLE + ", " +
+                    std::to_string(arrayOffset) + ", " +
+                    std::to_string(_sampleCount) +
+                    ")");
+                shader.endLine();
+            }
+            shader.endScope();
+            shader.addLine("else");
+            shader.beginScope();
+            {
+                string filterFunctionName = SX_CONVOLUTION_PREFIX_STRING + _inputTypeString;
+                shader.beginLine();
+                shader.addStr(node.getOutput()->name);
+                shader.addStr(" = " + filterFunctionName);
+                shader.addStr("(" + sampleName + ", " +
+                    BOX_WEIGHTS_VARIABLE + ", " +
+                    std::to_string(arrayOffset) + ", " +
+                    std::to_string(_sampleCount) +
+                    ")");
+                shader.endLine();
+            }
+            shader.endScope();
         }
         else
         {
