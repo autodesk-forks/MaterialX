@@ -297,7 +297,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
 
     // Add vertex data block
     const Shader::VariableBlock& vertexDataBlock = shader.getVertexDataBlock();
-    if (vertexDataBlock.empty())
+    if (!vertexDataBlock.empty())
     {
         shader.addLine("out VertexData", false);
         shader.beginScope(Shader::Brackets::BRACES);
