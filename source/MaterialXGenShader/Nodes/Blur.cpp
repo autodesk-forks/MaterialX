@@ -210,8 +210,7 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
             }
             else
             { 
-                shader.addStr(node.getName() + "_" + "filtertypeInt");
-                shader.addStr(" == " + std::to_string(filterTypeInt) + ")");
+                shader.addStr(node.getName() + "_" + "filtertypeInt == 1)");
             }
             shader.endLine(false);
 
