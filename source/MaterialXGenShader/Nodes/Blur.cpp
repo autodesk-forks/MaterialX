@@ -140,7 +140,6 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
     //
     _filterType.clear();
     string weightArrayVariable;
-    int filterTypeInt = 0;
     if (_sampleCount > 1)
     {
         if (filterTypeInput->value)
@@ -150,7 +149,6 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
             {
                 _filterType = GAUSSIAN_FILTER;
                 weightArrayVariable = GAUSSIAN_WEIGHTS_VARIABLE;
-                filterTypeInt = 1;
             }
             else
             {
