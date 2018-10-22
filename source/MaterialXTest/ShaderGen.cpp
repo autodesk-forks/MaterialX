@@ -794,7 +794,7 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
 
         // Should have 0 missing including skipped
         REQUIRE(missing == 0);
-        REQUIRE(skipped == 45);
+        REQUIRE(skipped == 38);
     }
 
     implDumpBuffer.close();
