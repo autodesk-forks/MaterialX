@@ -611,7 +611,6 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
         {
             "ambientocclusion",
             "arrayappend",
-            "blur",
             "curveadjust",
         };
 

@@ -240,7 +240,7 @@ protected:
         int indentations;
         std::queue<Brackets> scopes;
         std::set<string> includes;
-        std::set<ShaderImpl*> definedFunctions;
+        std::set<ShaderNodeImpl*> definedFunctions;
 
         // Block holding constant variables for this stage
         VariableBlock constants;

@@ -23,7 +23,7 @@ namespace MaterialX
         _sampleSizeFunctionUV.assign("sx_compute_sample_size_uv");
     }
 
-    ShaderImplementationPtr BlurNode::create()
+    ShaderNodeImplPtr BlurNode::create()
     {
         return std::shared_ptr<BlurNode>(new BlurNode());
     }
