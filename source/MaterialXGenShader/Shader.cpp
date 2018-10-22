@@ -23,9 +23,6 @@ Shader::Shader(const string& name)
 {
     _stages.push_back(Stage("Pixel"));
 
-    // Create default constant block for pixel stage. 
-    createConstantBlock(PIXEL_STAGE);
-
     // Create default uniform blocks for pixel stage
     createUniformBlock(PIXEL_STAGE, PRIVATE_UNIFORMS, "prvUniform");
     createUniformBlock(PIXEL_STAGE, PUBLIC_UNIFORMS, "pubUniform");
@@ -261,41 +258,21 @@ void Shader::indent()
     }
 }
 
-void Shader::createConstantBlock(size_t stage)
-{
-    Stage& s = _stages[stage];
-    const string PRIVATE_CONSTANTS = "PrivateConstants";
-    const string INSTANCE_NAME("prvConstant");
-    if (!s.constants)
-    {
-        s.constants = std::make_shared<VariableBlock>(PRIVATE_CONSTANTS, INSTANCE_NAME);
-    }
-}
-
 void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value)
 {
-    const Stage& s = _stages[stage];
-    VariableBlockPtr  blockPtr = s.constants;
-    if (!blockPtr)
-    {
-        throw ExceptionShaderGenError("No constant block exists for shader '" + getName() + "'");
-    }
-    if (blockPtr->variableMap.find(name) == blockPtr->variableMap.end())
+    Stage& s = _stages[stage];
+    if (s.constants.variableMap.find(name) == s.constants.variableMap.end())
     {
         VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value);
-        blockPtr->variableMap[name] = variablePtr;
-        blockPtr->variableOrder.push_back(variablePtr.get());
+        s.constants.variableMap[name] = variablePtr;
+        s.constants.variableOrder.push_back(variablePtr.get());
     }
 }
 
 const Shader::VariableBlock& Shader::getConstantBlock(size_t stage) const
 {
     const Stage& s = _stages[stage];
-    if (!s.constants)
-    {
-        throw ExceptionShaderGenError("No constant exists for shader '" + getName() + "'");
-    }
-    return *(s.constants);
+    return s.constants;
 }
 
 void Shader::createUniformBlock(size_t stage, const string& block, const string& instance)

@@ -258,12 +258,12 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     shader.addLine("#version " + getVersion(), false);
     shader.newLine();
 
-    // Add all private constants
-    const Shader::VariableBlock& vsPrivateConstants = shader.getConstantBlock(HwShader::VERTEX_STAGE);
-    if (!vsPrivateConstants.empty())
+    // Add all constants
+    const Shader::VariableBlock& vsConstants = shader.getConstantBlock(HwShader::VERTEX_STAGE);
+    if (!vsConstants.empty())
     {
-        shader.addComment("Constant block: " + vsPrivateConstants.name);
-        emitVariableBlock(vsPrivateConstants, true, shader);
+        shader.addComment("Constant block: " + vsConstants.name);
+        emitVariableBlock(vsConstants, _syntax->getConstantQualifier(), shader);
     }
 
     // Add all private uniforms
@@ -271,7 +271,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     if (!vsPrivateUniforms.empty())
     {
         shader.addComment("Uniform block: " + vsPrivateUniforms.name);
-        emitVariableBlock(vsPrivateUniforms, false, shader);
+        emitVariableBlock(vsPrivateUniforms, _syntax->getUniformQualifier(), shader);
     }
 
     // Add any public uniforms
@@ -279,7 +279,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     if (!vsPublicUniforms.empty())
     {
         shader.addComment("Uniform block: " + vsPublicUniforms.name);
-        emitVariableBlock(vsPublicUniforms, false, shader);
+        emitVariableBlock(vsPublicUniforms, _syntax->getUniformQualifier(), shader);
     }
 
     // Add all app data inputs
@@ -338,12 +338,12 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     shader.newLine();
     emitTypeDefs(shader);
 
-    // Add private constants
-    const Shader::VariableBlock& psPrivateConstants = shader.getConstantBlock(HwShader::PIXEL_STAGE);
-    if (!psPrivateConstants.empty())
+    // Add constants
+    const Shader::VariableBlock& psConstants = shader.getConstantBlock(HwShader::PIXEL_STAGE);
+    if (!psConstants.empty())
     {
-        shader.addComment("Constant block: " + psPrivateConstants.name);
-        emitVariableBlock(psPrivateConstants, true, shader);
+        shader.addComment("Constant block: " + psConstants.name);
+        emitVariableBlock(psConstants, _syntax->getConstantQualifier(), shader);
     }
 
     // Add all private uniforms
@@ -351,7 +351,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     if (!psPrivateUniforms.empty())
     {
         shader.addComment("Uniform block: " + psPrivateUniforms.name);
-        emitVariableBlock(psPrivateUniforms, false, shader);
+        emitVariableBlock(psPrivateUniforms, _syntax->getUniformQualifier(), shader);
     }
 
     // Add all public uniforms
@@ -359,7 +359,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     if (!psPublicUniforms.empty())
     {
         shader.addComment("Uniform block: " + psPublicUniforms.name);
-        emitVariableBlock(psPublicUniforms, false, shader);
+        emitVariableBlock(psPublicUniforms, _syntax->getUniformQualifier(), shader);
     }
 
     bool lighting = shader.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE) ||

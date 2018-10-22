@@ -32,7 +32,7 @@ void Blur::createVariables(const ShaderNode& node, ShaderGenerator& shadergen, S
 {
     ParentClass::createVariables(node, shadergen, shader);
 
-    if (!shadergen.getSyntax()->typeSypported(Type::STRING))
+    if (!shadergen.getSyntax()->typeSupported(Type::STRING))
     {
         // Map the filter type string to a filter type int
         const string FILTER_TYPE_STRING("filtertype");
@@ -201,7 +201,7 @@ void Blur::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderG
             shader.addStr("if (");
             // If strings are support compare against string input,
             // other use int compare
-            if (shadergen.getSyntax()->typeSypported(Type::STRING))
+            if (shadergen.getSyntax()->typeSupported(Type::STRING))
             {
                 shadergen.emitInput(context, filterTypeInput, shader);
                 shader.addStr(" == \"" + GAUSSIAN_FILTER + "\")");

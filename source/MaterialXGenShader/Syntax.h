@@ -70,9 +70,8 @@ public:
     virtual const string& getOutputQualifier() const { return EMPTY_STRING; };
 
     /// Get the qualifier used when declaring constant variables.
-    /// Default implementation returns empty string and derived syntax classes should
-    /// override this method.
-    virtual const string& getConstantQualifier() const { return EMPTY_STRING; };
+    /// Derived classes must define this method. 
+    virtual const string& getConstantQualifier() const = 0;
 
     /// Get the qualifier used when declaring uniform variables.
     /// Default implementation returns empty string and derived syntax classes should
@@ -81,7 +80,7 @@ public:
 
     /// Query if given type is suppored in the syntax
     /// By default all types are assumed to be supported
-    virtual bool typeSypported(const TypeDesc* /*type*/) const { return true; }
+    virtual bool typeSupported(const TypeDesc* /*type*/) const { return true; }
 
     /// Modify the given name string to make it unique according to the given uniqueName record 
     /// and according to restricted names registered for this syntax class.

@@ -378,7 +378,7 @@ const string& GlslSyntax::getOutputQualifier() const
     return OUTPUT_QUALIFIER;
 }
 
-bool GlslSyntax::typeSypported(const TypeDesc* type) const
+bool GlslSyntax::typeSupported(const TypeDesc* type) const
 { 
     return type != Type::STRING; 
 }

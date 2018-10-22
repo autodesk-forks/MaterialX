@@ -243,7 +243,7 @@ protected:
         std::set<ShaderImplementation*> definedFunctions;
 
         // Block holding constant variables for this stage
-        VariableBlockPtr constants;
+        VariableBlock constants;
 
         // Blocks holding uniform variables for this stage
         VariableBlockMap uniforms;
@@ -251,14 +251,11 @@ protected:
         // Resulting source code for this stage
         string code;
 
-        Stage(const string& n) : name(n), indentations(0) {}
+        Stage(const string& n) : name(n), indentations(0), constants("Constants", "cn") {}
     };
 
     /// Return the currently active stage
     Stage& stage() { return _stages[_activeStage]; }
-
-    /// Utility to create a constant block for a given stage
-    void createConstantBlock(size_t stage);
 
     /// Add indentation on current line
     virtual void indent();

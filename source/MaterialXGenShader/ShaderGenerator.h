@@ -135,15 +135,15 @@ protected:
 
     /// Utility to emit a block of either uniform or constant variables
     /// @param block Block to emit.
-    /// @param asConstant If set to "true", will emit a block constants as opposed to a block of uniforms. 
-    /// The differense is that a constant qualifier is used versus a unifork qualifier. Qualifiers are specified by the 
-    /// syntax for the generator.
+    /// @param qualifier Optional qualifier to add before the variable declaration.
+    /// Qualifiers are specified by the syntax for the generator.
     /// @param shader Shader to emit to.
-    virtual void emitVariableBlock(const Shader::VariableBlock& block, bool asConstant, Shader& shader);
+    virtual void emitVariableBlock(const Shader::VariableBlock& block, const string& qualifier, Shader& shader);
 
     /// Emit a shader input variable
     /// @param variable Variable to emit
-    /// @param qualifier Optional qualifier to add before the variable declaration
+    /// @param qualifier Optional qualifier to add before the variable declaration.
+    /// Qualifiers are specified by the syntax for the generator.
     /// @shader Shader source to emit output to
     virtual void emitVariable(const Shader::Variable& variable, const string& qualifier, Shader& shader);
 

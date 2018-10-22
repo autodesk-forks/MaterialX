@@ -112,14 +112,12 @@ void ShaderGenerator::emitFinalOutput(Shader& shader) const
 
 void ShaderGenerator::emitConstant(const Shader::Variable& constant, Shader& shader)
 {
-    const string qualifier = _syntax->getConstantQualifier();
-    emitVariable(constant, qualifier, shader);
+    emitVariable(constant, _syntax->getConstantQualifier(), shader);
 }
 
 void ShaderGenerator::emitUniform(const Shader::Variable& uniform, Shader& shader)
 {
-    const string qualifier = _syntax->getUniformQualifier();
-    emitVariable(uniform, qualifier, shader);
+    emitVariable(uniform, _syntax->getUniformQualifier(), shader);
 }
 
 void ShaderGenerator::emitVariable(const Shader::Variable& variable, const string& /*qualifier*/, Shader& shader)
@@ -128,12 +126,10 @@ void ShaderGenerator::emitVariable(const Shader::Variable& variable, const strin
     shader.addStr(_syntax->getTypeName(variable.type) + " " + variable.name + (initStr.empty() ? "" : " = " + initStr));
 }
 
-
-void ShaderGenerator::emitVariableBlock(const Shader::VariableBlock& block, bool asConstant, Shader& shader)
+void ShaderGenerator::emitVariableBlock(const Shader::VariableBlock& block, const string& qualifier, Shader& shader)
 {
     if (!block.empty())
     {
-        const string qualifier = asConstant ? _syntax->getConstantQualifier() : _syntax->getUniformQualifier();
         for (const Shader::Variable* variable : block.variableOrder)
         {
             emitVariable(*variable, qualifier, shader);

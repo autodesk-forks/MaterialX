@@ -69,9 +69,6 @@ OgsFxShader::OgsFxShader(const string& name)
 {
     _stages.push_back(Stage("FinalFx"));
 
-    // Create default constant block for final fx stage
-    createConstantBlock(PIXEL_STAGE);
-
     // Create default uniform blocks for final fx stage
     createUniformBlock(FINAL_FX_STAGE, PRIVATE_UNIFORMS, "prvUniform");
     createUniformBlock(FINAL_FX_STAGE, PUBLIC_UNIFORMS, "pubUniform");
@@ -164,12 +161,12 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
 
     emitFunctionDefinitions(shader);
 
-    // Add private constants
-    const Shader::VariableBlock& vsPrivateConstants = shader.getConstantBlock(HwShader::VERTEX_STAGE);
-    if (!vsPrivateConstants.empty())
+    // Add constants
+    const Shader::VariableBlock& vsConstants = shader.getConstantBlock(HwShader::VERTEX_STAGE);
+    if (!vsConstants.empty())
     {
-        shader.addComment("Constant block: " + vsPrivateConstants.name);
-        emitVariableBlock(vsPrivateConstants, true, shader);
+        shader.addComment("Constant block: " + vsConstants.name);
+        emitVariableBlock(vsConstants, _syntax->getConstantQualifier(), shader);
     }
 
     // Add main function
@@ -213,12 +210,12 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
 
     emitFunctionDefinitions(shader);
 
-    // Add private constants
-    const Shader::VariableBlock& psPrivateConstants = shader.getConstantBlock(HwShader::PIXEL_STAGE);
-    if (!psPrivateConstants.empty())
+    // Add constants
+    const Shader::VariableBlock& psConstants = shader.getConstantBlock(HwShader::PIXEL_STAGE);
+    if (!psConstants.empty())
     {
-        shader.addComment("Constant block: " + psPrivateConstants.name);
-        emitVariableBlock(psPrivateConstants, true, shader);
+        shader.addComment("Constant block: " + psConstants.name);
+        emitVariableBlock(psConstants, _syntax->getUniformQualifier(), shader);
     }
 
     // Add main function

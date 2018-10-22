@@ -13,9 +13,6 @@ HwShader::HwShader(const string& name)
 {
     _stages.push_back(Stage("Vertex"));
 
-    // Create default constant block for vertex stage
-    createConstantBlock(VERTEX_STAGE);
-
     // Create default uniform blocks for vertex stage
     createUniformBlock(VERTEX_STAGE, PRIVATE_UNIFORMS, "prvUniform");
     createUniformBlock(VERTEX_STAGE, PUBLIC_UNIFORMS, "pubUniform");
