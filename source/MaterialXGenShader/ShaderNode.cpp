@@ -155,6 +155,71 @@ static bool elementCanBeSampled3D(const Element& element)
     return (element.getName() == POSITION_NAME);
 }
 
+//
+// Given a nodedef and corresponding implementation, return the
+// implementation value if any for a value.
+//
+// An implementation value will be returned if:
+// - There is a implementation Parametner with the same name as the input Value 
+// - There is a nodedef Value with the same name as the input Value 
+// - There is a enumeration and type specified on the implementation Parameter 
+// - There is a enumeration and type specified on the nodedef Value
+//
+ValuePtr getImplementationValue(const ValueElementPtr& elem, const InterfaceElementPtr impl, const NodeDef& nodeDef)
+{
+    const string& valueElementName = elem->getName();
+    const string& valueString = elem->getValueString();
+    if (valueString.empty())
+    {
+        return nullptr;
+    }
+
+    ParameterPtr implParam = impl->getParameter(valueElementName);
+    if (!implParam)
+    {
+        return elem->getValue();
+    }
+ 
+    ValueElementPtr nodedefElem = nodeDef.getChildOfType<ValueElement>(valueElementName);
+    if (!nodedefElem)
+    {
+        return elem->getValue();
+    }
+
+    const string& implType = implParam->getAttribute(ValueElement::IMPLEMENTATION_TYPE_ATTRIBUTE);
+    const string& implEnums = implParam->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
+    if (implType.empty() || implEnums.empty())
+    {
+        return elem->getValue();
+    }
+
+    const string nodedefElemEnums = nodedefElem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+    if (nodedefElemEnums.empty())
+    {
+        return elem->getValue();
+    }
+
+    // Find the list index of the Value string in list fo nodedef enums.
+    // Use this index to lookup the implementation list value.
+    int implIndex = -1;
+    StringVec implEnumsVec = splitString(implEnums, ",");
+    StringVec nodedefElemEnumsVec = splitString(nodedefElemEnums, ",");
+    if (nodedefElemEnumsVec.size() == implEnumsVec.size())
+    {
+        auto pos = std::find(nodedefElemEnumsVec.begin(), nodedefElemEnumsVec.end(), valueString);
+        if (pos != nodedefElemEnumsVec.end())
+        {
+            implIndex = static_cast<int>(std::distance(nodedefElemEnumsVec.begin(), pos));
+        }
+    }
+    // There is no mapping so just choose the first implementation list string.
+    if (implIndex < 0)
+    {
+        implIndex = 0;
+    }
+    return Value::createValueFromStrings(implEnumsVec[implIndex], implType);
+}
+
 ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const Node* nodeInstance)
 {
     ShaderNodePtr newNode = std::make_shared<ShaderNode>(name);
@@ -280,48 +345,9 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
             if (!elemValueString.empty())
             {
                 ShaderInput* input = newNode->getInput(elem->getName());
-                if (input)
+                if (input && !elemValueString.empty())
                 {
-                    ParameterPtr implParam = impl->getParameter(elem->getName());
-                    const string& implType = implParam ? implParam->getAttribute(ValueElement::IMPLEMENTATION_TYPE_ATTRIBUTE) : EMPTY_STRING;
-                    const string implEnums = implParam ? implParam->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE) : EMPTY_STRING;
-
-                    ValueElementPtr ndElem = nodeDef.getChildOfType<ValueElement>(elem->getName());
-                    const string& ndElemType = ndElem ? ndElem->getType() : EMPTY_STRING;
-                    const string ndElemEnums = ndElem ? ndElem->getAttribute(ValueElement::ENUM_ATTRIBUTE) : EMPTY_STRING;
-                    
-                    bool remap = false;
-                    if (!implType.empty() && implType != ndElemType && !implEnums.empty() && !ndElemEnums.empty())
-                    {
-                        remap = true;
-                    }
-
-                    if (remap)
-                    {
-                        int implIndex = -1;
-                        StringVec implEnumsVec = splitString(implEnums, ",");
-                        StringVec ndElemEnumsVec = splitString(ndElemEnums, ",");
-                        if (ndElemEnumsVec.size() == implEnumsVec.size())
-                        {
-                            auto pos = std::find(ndElemEnumsVec.begin(), ndElemEnumsVec.end(), elemValueString);
-                            if (pos != ndElemEnumsVec.end())
-                            {
-                                implIndex = static_cast<int>(std::distance(ndElemEnumsVec.begin(), pos));
-                            }
-                        }
-                        if (implIndex < 0)
-                        {
-                            implIndex = 0;
-                        }
-                        input->value = Value::createValueFromStrings(implEnumsVec[implIndex], implType);
-                    }
-                    else 
-                    {
-                        if (!elemValueString.empty())
-                        {
-                            input->value = elem->getValue();
-                        }
-                    }
+                    input->value = getImplementationValue(elem, impl, nodeDef);
                 }
             }
         }
