@@ -161,6 +161,7 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
 
     // Find the implementation for this nodedef
     InterfaceElementPtr impl = nodeDef.getImplementation(shadergen.getTarget(), shadergen.getLanguage());
+    ShaderNodeImplPtr a = nullptr;
     if (impl)
     {
         newNode->_impl = shadergen.getImplementation(impl);
@@ -206,10 +207,52 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
         }
         else
         {
-            ShaderInput* input = newNode->addInput(elem->getName(), TypeDesc::get(elem->getType()));
-            if (!elem->getValueString().empty())
+            ParameterPtr implParam = impl->getParameter(elem->getName());
+            const string& implType = implParam ? implParam->getAttribute(ValueElement::IMPLEMENTATION_TYPE_ATTRIBUTE) : EMPTY_STRING;
+
+            const string& elemType = elem->getType();
+            const TypeDesc* typeDesc = TypeDesc::get(elemType);
+            const TypeDesc* remapTypeDesc = nullptr;
+            const string implEnums = implParam ? implParam->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE) : EMPTY_STRING;
+            const string elemEnums = elem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+            if (!implType.empty() && implType != elemType && !implEnums.empty() && !elemEnums.empty())
             {
-                input->value = elem->getValue();
+                remapTypeDesc = TypeDesc::get(implType);
+            }
+
+            ShaderInput* input = nullptr;
+            const string& elemValueString = elem->getValueString();
+            StringVec implEnumsVec = splitString(implEnums, ",");
+            int implIndex = -1;
+            if (remapTypeDesc)
+            {
+                input = newNode->addInput(elem->getName(), remapTypeDesc);
+                if (!elemValueString.empty())
+                {
+                    StringVec elemEnumsVec = splitString(elemEnums, ",");
+                    if (elemEnumsVec.size() == implEnumsVec.size())
+                    {
+                        auto pos = std::find(elemEnumsVec.begin(), elemEnumsVec.end(), elemValueString);
+                        if (pos != elemEnumsVec.end())
+                        {
+                            implIndex = static_cast<int>(std::distance(elemEnumsVec.begin(), pos));
+                        }
+                    }
+                    if (implIndex < 0)
+                    {
+                        implIndex = 0;
+                    }
+                }
+
+                input->value = Value::createValueFromStrings(implEnumsVec[implIndex], implType);
+            }
+            if (!input)
+            {
+                input = newNode->addInput(elem->getName(), typeDesc);
+                if (!elemValueString.empty())
+                {
+                    input->value = elem->getValue();
+                }
             }
 
             // Determine if this input can be sampled
@@ -233,12 +276,52 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
         const vector<ValueElementPtr> nodeInstanceInputs = nodeInstance->getChildrenOfType<ValueElement>();
         for (const ValueElementPtr& elem : nodeInstanceInputs)
         {
-            if (!elem->getValueString().empty())
+            const string& elemValueString = elem->getValueString();
+            if (!elemValueString.empty())
             {
                 ShaderInput* input = newNode->getInput(elem->getName());
                 if (input)
-                {       
-                    input->value = elem->getValue();
+                {
+                    ParameterPtr implParam = impl->getParameter(elem->getName());
+                    const string& implType = implParam ? implParam->getAttribute(ValueElement::IMPLEMENTATION_TYPE_ATTRIBUTE) : EMPTY_STRING;
+                    const string implEnums = implParam ? implParam->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE) : EMPTY_STRING;
+
+                    ValueElementPtr ndElem = nodeDef.getChildOfType<ValueElement>(elem->getName());
+                    const string& ndElemType = ndElem ? ndElem->getType() : EMPTY_STRING;
+                    const string ndElemEnums = ndElem ? ndElem->getAttribute(ValueElement::ENUM_ATTRIBUTE) : EMPTY_STRING;
+                    
+                    bool remap = false;
+                    if (!implType.empty() && implType != ndElemType && !implEnums.empty() && !ndElemEnums.empty())
+                    {
+                        remap = true;
+                    }
+
+                    if (remap)
+                    {
+                        int implIndex = -1;
+                        StringVec implEnumsVec = splitString(implEnums, ",");
+                        StringVec ndElemEnumsVec = splitString(ndElemEnums, ",");
+                        if (ndElemEnumsVec.size() == implEnumsVec.size())
+                        {
+                            auto pos = std::find(ndElemEnumsVec.begin(), ndElemEnumsVec.end(), elemValueString);
+                            if (pos != ndElemEnumsVec.end())
+                            {
+                                implIndex = static_cast<int>(std::distance(ndElemEnumsVec.begin(), pos));
+                            }
+                        }
+                        if (implIndex < 0)
+                        {
+                            implIndex = 0;
+                        }
+                        input->value = Value::createValueFromStrings(implEnumsVec[implIndex], implType);
+                    }
+                    else 
+                    {
+                        if (!elemValueString.empty())
+                        {
+                            input->value = elem->getValue();
+                        }
+                    }
                 }
             }
         }
