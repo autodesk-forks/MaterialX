@@ -155,25 +155,27 @@ static bool elementCanBeSampled3D(const Element& element)
     return (element.getName() == POSITION_NAME);
 }
 
-//
-// Given a nodedef and corresponding implementation, return the
-// implementation value if any for a value.
-//
-// An implementation value will be returned if:
-// - There is a implementation Parametner with the same name as the input Value 
-// - There is a nodedef Value with the same name as the input Value 
-// - There is a enumeration and type specified on the implementation Parameter 
-// - There is a enumeration and type specified on the nodedef Value
-//
+///
+/// Given a nodedef and corresponding implementation, return the
+/// implementation value if any for a value.
+///
+/// An implementation value will be returned if:
+/// - There is a implementation Parametner with the same name as the input Value 
+/// - There is a nodedef Value with the same name as the input Value 
+/// - There is a enumeration and type specified on the implementation Parameter 
+/// - There is a enumeration and type specified on the nodedef Value
+///
+/// @param elem Value element input
+/// @param impl Implementation to use
+/// @param nodeDef Node definition to use
+/// @param implType Implementation type (if any) specified.
+/// @return Implementation value. Null if could not be evaluated
+///
 ValuePtr getImplementationValue(const ValueElementPtr& elem, const InterfaceElementPtr impl, const NodeDef& nodeDef, 
                                 string& implType)
 {
     const string& valueElementName = elem->getName();
     const string& valueString = elem->getValueString();
-    //if (valueString.empty())
-    //{
-    //    return nullptr;
-    //}
 
     ParameterPtr implParam = impl->getParameter(valueElementName);
     if (!implParam)
@@ -188,6 +190,10 @@ ValuePtr getImplementationValue(const ValueElementPtr& elem, const InterfaceElem
     }
 
     implType = implParam->getAttribute(ValueElement::IMPLEMENTATION_TYPE_ATTRIBUTE);
+    if (implType.empty())
+    {
+        implType = elem->getType();
+    }
     const string& implEnums = implParam->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
     if (implType.empty() || implEnums.empty())
     {
