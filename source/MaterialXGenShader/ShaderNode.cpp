@@ -155,85 +155,12 @@ static bool elementCanBeSampled3D(const Element& element)
     return (element.getName() == POSITION_NAME);
 }
 
-///
-/// Given a nodedef and corresponding implementation, return the
-/// implementation value if any for a value.
-///
-/// An implementation value will be returned if:
-/// - There is a implementation Parametner with the same name as the input Value 
-/// - There is a nodedef Value with the same name as the input Value 
-/// - There is a enumeration and type specified on the implementation Parameter 
-/// - There is a enumeration and type specified on the nodedef Value
-///
-/// @param elem Value element input
-/// @param impl Implementation to use
-/// @param nodeDef Node definition to use
-/// @param implType Implementation type (if any) specified.
-/// @return Implementation value. Null if could not be evaluated
-///
-ValuePtr getImplementationValue(const ValueElementPtr& elem, const InterfaceElementPtr impl, const NodeDef& nodeDef, 
-                                string& implType)
-{
-    const string& valueElementName = elem->getName();
-    const string& valueString = elem->getValueString();
-
-    ParameterPtr implParam = impl->getParameter(valueElementName);
-    if (!implParam)
-    {
-        return nullptr;
-    }
- 
-    ValueElementPtr nodedefElem = nodeDef.getChildOfType<ValueElement>(valueElementName);
-    if (!nodedefElem)
-    {
-        return nullptr;
-    }
-
-    implType = implParam->getAttribute(ValueElement::IMPLEMENTATION_TYPE_ATTRIBUTE);
-    if (implType.empty())
-    {
-        implType = elem->getType();
-    }
-    const string& implEnums = implParam->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
-    if (implType.empty() || implEnums.empty())
-    {
-        return nullptr;
-    }
-
-    const string nodedefElemEnums = nodedefElem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-    if (nodedefElemEnums.empty())
-    {
-        return nullptr;
-    }
-
-    // Find the list index of the Value string in list fo nodedef enums.
-    // Use this index to lookup the implementation list value.
-    int implIndex = -1;
-    StringVec implEnumsVec = splitString(implEnums, ",");
-    StringVec nodedefElemEnumsVec = splitString(nodedefElemEnums, ",");
-    if (nodedefElemEnumsVec.size() == implEnumsVec.size())
-    {
-        auto pos = std::find(nodedefElemEnumsVec.begin(), nodedefElemEnumsVec.end(), valueString);
-        if (pos != nodedefElemEnumsVec.end())
-        {
-            implIndex = static_cast<int>(std::distance(nodedefElemEnumsVec.begin(), pos));
-        }
-    }
-    // There is no mapping or no value string so just choose the first implementation list string.
-    if (implIndex < 0)
-    {
-        implIndex = 0;
-    }
-    return Value::createValueFromStrings(implEnumsVec[implIndex], implType);
-}
-
 ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const Node* nodeInstance)
 {
     ShaderNodePtr newNode = std::make_shared<ShaderNode>(name);
 
     // Find the implementation for this nodedef
     InterfaceElementPtr impl = nodeDef.getImplementation(shadergen.getTarget(), shadergen.getLanguage());
-    ShaderNodeImplPtr a = nullptr;
     if (impl)
     {
         newNode->_impl = shadergen.getImplementation(impl);
