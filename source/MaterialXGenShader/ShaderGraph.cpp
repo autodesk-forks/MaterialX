@@ -33,6 +33,19 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem)
             {
                 inputSocket->value = port->getValue();
             }
+
+            const string& enums = port->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+            if (enums.size())
+            {
+                std::cout << "Add input socket: " << elem.getName() << "."
+                    << port->getName();
+                if (inputSocket->value)
+                {
+                    std::cout << ". Value: " << inputSocket->value->getValueString();
+                }
+                std::cout << std::endl;
+            }
+
         }
     }
 }
@@ -458,9 +471,33 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
                 throw ExceptionShaderGenError("Interface name '" + interfaceName + "' doesn't match an existing input on nodegraph '" + getName() + "'");
             }
             ShaderInput* input = newNode->getInput(elem->getName());
+
             if (input)
             {
+                string ivalue = inputSocket->value ? inputSocket->value->getValueString() : EMPTY_STRING;
+                string itype = inputSocket->value ? inputSocket->value->getTypeString() : EMPTY_STRING;
                 input->makeConnection(inputSocket);
+                string ivalueAfter = input->value ? input->value->getValueString() : EMPTY_STRING;
+                string itypeAfter = input->value ? input->value->getTypeString() : EMPTY_STRING;
+
+                ParameterPtr paramPtr = nodeDef->getParameter(input->name);
+                if (paramPtr)
+                {
+                    const string& enums = paramPtr->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+                    if (enums.size())
+                    {
+                        std::cout << ("Connect node: " + node.getName() + "." + input->name + " to interface : " +
+                            getName() + "." + interfaceName);
+                        std::cout << ". Enums=(" << enums << ")";
+                        std::cout << std::endl;
+
+                        if (ivalue.size() || ivalueAfter.size())
+                        {
+                            std::cout << "Value graphelem: " << ivalue << ", type: " << itype 
+                                    << ". Value nodeelem: " << ivalueAfter << ", type: " << itypeAfter << std::endl;
+                        }
+                    }
+                }
             }
         }
     }
