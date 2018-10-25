@@ -479,7 +479,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
                 input->makeConnection(inputSocket);
                 string ivalueAfter = input->value ? input->value->getValueString() : EMPTY_STRING;
                 string itypeAfter = input->value ? input->value->getTypeString() : EMPTY_STRING;
-
+                
                 ParameterPtr paramPtr = nodeDef->getParameter(input->name);
                 if (paramPtr)
                 {
@@ -493,8 +493,16 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
 
                         if (ivalue.size() || ivalueAfter.size())
                         {
-                            std::cout << "Value graphelem: " << ivalue << ", type: " << itype 
+                            std::cout << "-- Value graphelem: " << ivalue << ", type: " << itype 
                                     << ". Value nodeelem: " << ivalueAfter << ", type: " << itypeAfter << std::endl;
+                        }
+
+                        string implType;
+                        InterfaceElementPtr impl = newNode->getElementImpl();
+                        ValuePtr implValue = impl ? getImplementationValue(elem, impl, *nodeDef, implType) : nullptr;
+                        if (implValue)
+                        {
+                            std::cout << "-- Impl value: " << implValue->getValueString() << ". Type: " << implType << std::endl;
                         }
                     }
                 }
