@@ -52,18 +52,6 @@
     Node: <image>
     Samples data from a single image, or from a layer within a multi-layer image.
   -->
-  <max name="in1" type="color3">
-    <parameter name="file" type="filename" colorspace="screwed" isoutput/>
-    <parameter name="incolor1" type="color3" value=""
-            colorspace="srgb"/>
-    <parameter name="incolor2" type="color3" value="0.5,0.5,0.5"
-            colorspace="lin_rec709"/>
-  </image>
-
-<nodedef type="color3">
-    <input name="in" colorspace="sRGB">
-    <input name="in2" colorspace="sRGB">
-
   <nodedef name="ND_image_float" node="image" type="float" nodegroup="texture2d" default="0.0">
     <parameter name="file" type="filename"/>
     <parameter name="layer" type="string" value=""/>
