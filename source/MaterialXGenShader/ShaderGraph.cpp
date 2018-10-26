@@ -64,13 +64,14 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, ShaderGenerator&
                     }
                 }
                 inputSocket->value = Value::createValue<int>(integerValue);
-
+#if 0
                 std::cout << "- Add input socket: " << elem.getName() << "." << port->getName();
                 if (inputSocket->value)
                 {
                     std::cout << ". Value: " << inputSocket->value->getValueString();
                 }
                 std::cout << std::endl;
+#endif
             }
         }
     }
@@ -279,7 +280,7 @@ ShaderGraphPtr ShaderGraph::create(NodeGraphPtr nodeGraph, ShaderGenerator& shad
         throw ExceptionShaderGenError("Can't find nodedef '" + nodeGraph->getNodeDefString() + "' referenced by nodegraph '" + nodeGraph->getName() + "'");
     }
 
-    std::cout << "******* BEGIN create nodegraph: " << nodeGraph->getNamePath() << std::endl;
+    //std::cout << "******* BEGIN create nodegraph: " << nodeGraph->getNamePath() << std::endl;
 
     ShaderGraphPtr graph = std::make_shared<ShaderGraph>(nodeGraph->getName(), nodeGraph->getDocument());
 
@@ -307,7 +308,7 @@ ShaderGraphPtr ShaderGraph::create(NodeGraphPtr nodeGraph, ShaderGenerator& shad
 
     graph->finalize(shadergen);
 
-    std::cout << "******* END create nodegraph: " << nodeGraph->getNamePath() << "\n\n";
+    //std::cout << "******* END create nodegraph: " << nodeGraph->getNamePath() << "\n\n";
     return graph;
 }
 
@@ -503,29 +504,31 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
 
             if (input)
             {
-                std::cout << ("- Connect node: " + node.getName() + "." + input->name + " to interface : " +
-                    getName() + "." + interfaceName) << std::endl;
+                //std::cout << ("- Connect node: " + node.getName() + "." + input->name + " to interface : " +
+                //    getName() + "." + interfaceName) << std::endl;
 
-                string socketValue = inputSocket->value ? inputSocket->value->getValueString() : EMPTY_STRING;
-                string socketType = inputSocket->value ? inputSocket->value->getTypeString() : EMPTY_STRING;
                 input->makeConnection(inputSocket);
+
                 string nodeInputValue = input->value ? input->value->getValueString() : EMPTY_STRING;
                 string nodeInputType = input->value ? input->value->getTypeString() : EMPTY_STRING;
-                
-                if (socketValue.size() || nodeInputValue.size())
-                {
-                    std::cout << "--- Graph socket value: " << socketValue << ", type: " << socketType
-                        << ". Node input value: " << nodeInputValue << ", type: " << nodeInputType << std::endl;
+                string socketValue = inputSocket->value ? inputSocket->value->getValueString() : EMPTY_STRING;
+                string socketType = inputSocket->value ? inputSocket->value->getTypeString() : EMPTY_STRING;
 
+                //std::cout << "--- Graph socket value: " << socketValue << ", type: " << socketType
+                //    << ". Node input value: " << nodeInputValue << ", type: " << nodeInputType << std::endl;
+
+                if (nodeInputValue.size())
+                {
                     // Change the type and value if needed.
                     if (socketType != nodeInputType)
                     {
-                        std::cout << "---> Change graph input type and value to match node input\n";
-                        inputSocket->type = input->type;
-                        inputSocket->value = input->value; // This should be a remap not an assign
+                        //std::cout << "---> Change graph input type and value to match node input\n";
+                        //inputSocket->type = input->type;
+                        //inputSocket->value = input->value; // This should be a remap not an assign
                     }
                 }
 
+#if 0
                 ParameterPtr paramPtr = nodeDef->getParameter(input->name);
                 if (paramPtr)
                 {
@@ -548,6 +551,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
                         }
                     }
                 }
+#endif
             }
         }
     }

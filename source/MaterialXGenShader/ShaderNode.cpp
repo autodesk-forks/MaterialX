@@ -161,9 +161,9 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
 
     // Find the implementation for this nodedef
     InterfaceElementPtr impl = nodeDef.getImplementation(shadergen.getTarget(), shadergen.getLanguage());
-    newNode->setElementImpl(impl);
-    string implName = impl ? impl->getName() : EMPTY_STRING;
-    std::cout << "- Cache impl for node: " << name << ". impl-name: " << implName << std::endl;
+    newNode->setElementImpl(nullptr);
+    //string implName = impl ? impl->getName() : EMPTY_STRING;
+    //std::cout << "- Cache impl for node: " << name << ". impl-name: " << implName << std::endl;
     if (impl)
     {
         newNode->_impl = shadergen.getImplementation(impl);

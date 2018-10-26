@@ -450,6 +450,11 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
 ValuePtr getEnumerationValue(ShaderGenerator& shadergen, const ValueElementPtr& elem, const NodeDef& nodeDef, string& elemType)
 {
     const string& valueElementName = elem->getName();
+    const string& valueString = elem->getValueString();
+    if (valueString.empty())
+    {
+        return nullptr;
+    }
 
     ValueElementPtr nodedefElem = nodeDef.getChildOfType<ValueElement>(valueElementName);
     if (!nodedefElem)
@@ -470,20 +475,20 @@ ValuePtr getEnumerationValue(ShaderGenerator& shadergen, const ValueElementPtr& 
         return nullptr;
     }
 
-    int integerValue = 999;
-    elemType = TypedValue<int>::TYPE;
     const string nodedefElemEnums = nodedefElem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-    if (!nodedefElemEnums.empty())
+    if (nodedefElemEnums.empty())
     {
-        StringVec nodedefElemEnumsVec = splitString(nodedefElemEnums, ",");
-        const string& valueString = elem->getValueString();
-        auto pos = std::find(nodedefElemEnumsVec.begin(), nodedefElemEnumsVec.end(), valueString);
-        if (pos != nodedefElemEnumsVec.end())
-        {
-            integerValue = static_cast<int>(std::distance(nodedefElemEnumsVec.begin(), pos));
-        }
+        return nullptr;
     }
 
+    int integerValue = 999;
+    elemType = TypedValue<int>::TYPE;
+    StringVec nodedefElemEnumsVec = splitString(nodedefElemEnums, ",");
+    auto pos = std::find(nodedefElemEnumsVec.begin(), nodedefElemEnumsVec.end(), valueString);
+    if (pos != nodedefElemEnumsVec.end())
+    {
+        integerValue = static_cast<int>(std::distance(nodedefElemEnumsVec.begin(), pos));
+    }
     return Value::createValue<int>(integerValue);
 }
 
