@@ -12,7 +12,8 @@ used to lookup each image
       <parameter name="file" type="filename" value="documents/TestSuite/Images/MaterialXLogo.exr" />
       <parameter name="uvtiling" type="vector2" value="2.0, 2.0"/>
       <parameter name="uvoffset" type="vector2" value="0.5, 0.5"/>
-      <parameter name="frameendaction" type="string" value="periodic"/>
+      <parameter name="filtertype" type="string" value="cubic"/>
+      <parameter name="frameendaction" type="string" value="black"/>
 </tiledimage>
 
    <output name="tiled_image3_output" type="color3" nodename="tiled_image3" />
@@ -20,7 +21,8 @@ used to lookup each image
       <parameter name="file" type="filename" value="documents/TestSuite/Images/MaterialXLogo.exr" />
       <parameter name="uvtiling" type="vector2" value="2.0, 2.0"/>
       <parameter name="uvoffset" type="vector2" value="0.5, 0.5"/>
-      <parameter name="frameendaction" type="string" value="periodic"/>
+      <parameter name="filtertype" type="string" value="closest"/>
+      <parameter name="frameendaction" type="string" value="clamp"/>
    </tiledimage>
 
    <output name="tiled_image2_output" type="color2" nodename="tiled_image2" />
@@ -28,6 +30,7 @@ used to lookup each image
       <parameter name="file" type="filename" value="documents/TestSuite/Images/MaterialXLogo.exr" />
       <parameter name="uvtiling" type="vector2" value="2.0, 2.0"/>
       <parameter name="uvoffset" type="vector2" value="0.5, 0.5"/>
+      <parameter name="filtertype" type="string" value="linear"/>
       <parameter name="frameendaction" type="string" value="periodic"/>
    </tiledimage>
 
@@ -36,7 +39,8 @@ used to lookup each image
       <parameter name="file" type="filename" value="documents/TestSuite/Images/MaterialXLogo.exr" />
       <parameter name="uvtiling" type="vector2" value="2.0, 2.0"/>
       <parameter name="uvoffset" type="vector2" value="0.5, 0.5"/>
-      <parameter name="frameendaction" type="string" value="periodic"/>
+      <parameter name="filtertype" type="string" value="cubic"/>
+      <parameter name="frameendaction" type="string" value="black"/>
    </tiledimage>
 
    <output name="tiled_image4v_output" type="vector4" nodename="tiled_image4v" />
@@ -44,7 +48,8 @@ used to lookup each image
       <parameter name="file" type="filename" value="documents/TestSuite/Images/MaterialXLogo.exr" />
       <parameter name="uvtiling" type="vector2" value="2.0, 2.0"/>
       <parameter name="uvoffset" type="vector2" value="0.5, 0.5"/>
-      <parameter name="frameendaction" type="string" value="periodic"/>
+      <parameter name="filtertype" type="string" value="closest"/>
+      <parameter name="frameendaction" type="string" value="clamp"/>
    </tiledimage>
 
    <output name="tiled_image3v_output" type="vector3" nodename="tiled_image3v" />
@@ -52,6 +57,7 @@ used to lookup each image
       <parameter name="file" type="filename" value="documents/TestSuite/Images/MaterialXLogo.exr" />
       <parameter name="uvtiling" type="vector2" value="2.0, 2.0"/>
       <parameter name="uvoffset" type="vector2" value="0.5, 0.5"/>
+      <parameter name="filtertype" type="string" value="linear"/>
       <parameter name="frameendaction" type="string" value="periodic"/>
    </tiledimage>
 
@@ -60,6 +66,7 @@ used to lookup each image
       <parameter name="file" type="filename" value="documents/TestSuite/Images/MaterialXLogo.exr" />
       <parameter name="uvtiling" type="vector2" value="2.0, 2.0"/>
       <parameter name="uvoffset" type="vector2" value="0.5, 0.5"/>
+      <parameter name="filtertype" type="string" value="closest"/>
       <parameter name="frameendaction" type="string" value="periodic"/>
    </tiledimage>
 </materialx>

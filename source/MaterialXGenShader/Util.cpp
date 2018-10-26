@@ -450,7 +450,6 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
 ValuePtr getEnumerationValue(ShaderGenerator& shadergen, const ValueElementPtr& elem, const NodeDef& nodeDef, string& elemType)
 {
     const string& valueElementName = elem->getName();
-    const string& valueString = elem->getValueString();
 
     ValueElementPtr nodedefElem = nodeDef.getChildOfType<ValueElement>(valueElementName);
     if (!nodedefElem)
@@ -460,28 +459,29 @@ ValuePtr getEnumerationValue(ShaderGenerator& shadergen, const ValueElementPtr& 
 
     elemType = elem->getType();
     const TypeDesc* elemTypeDesc = TypeDesc::get(elemType);
-    if (elemTypeDesc->isArray())
+    // Don't convert file names and arrays to integers
+    if (elemTypeDesc->isArray() || elemTypeDesc == Type::FILENAME)
     {
         return nullptr;
     }
+    // Don't convert supported types
     if (shadergen.getSyntax()->typeSupported(elemTypeDesc))
     {
         return nullptr;
     }
 
+    int integerValue = 999;
+    elemType = TypedValue<int>::TYPE;
     const string nodedefElemEnums = nodedefElem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-    if (nodedefElemEnums.empty())
+    if (!nodedefElemEnums.empty())
     {
-        return nullptr;
-    }
-
-    elemType = TypedValue<int>::TYPE; //"integer";
-    int integerValue = 0;
-    StringVec nodedefElemEnumsVec = splitString(nodedefElemEnums, ",");
-    auto pos = std::find(nodedefElemEnumsVec.begin(), nodedefElemEnumsVec.end(), valueString);
-    if (pos != nodedefElemEnumsVec.end())
-    {
-        integerValue = static_cast<int>(std::distance(nodedefElemEnumsVec.begin(), pos));
+        StringVec nodedefElemEnumsVec = splitString(nodedefElemEnums, ",");
+        const string& valueString = elem->getValueString();
+        auto pos = std::find(nodedefElemEnumsVec.begin(), nodedefElemEnumsVec.end(), valueString);
+        if (pos != nodedefElemEnumsVec.end())
+        {
+            integerValue = static_cast<int>(std::distance(nodedefElemEnumsVec.begin(), pos));
+        }
     }
 
     return Value::createValue<int>(integerValue);
