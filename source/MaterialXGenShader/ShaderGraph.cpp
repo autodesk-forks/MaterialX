@@ -12,6 +12,7 @@
 #include <iostream>
 #include <sstream>
 #include <stack>
+#include <algorithm>
 
 namespace MaterialX
 {
@@ -22,30 +23,55 @@ ShaderGraph::ShaderGraph(const string& name, DocumentPtr document)
 {
 }
 
-void ShaderGraph::addInputSockets(const InterfaceElement& elem)
+void ShaderGraph::addInputSockets(const InterfaceElement& elem, ShaderGenerator& shadergen)
 {
     for (ValueElementPtr port : elem.getChildrenOfType<ValueElement>())
     {
         if (!port->isA<Output>())
         {
-            ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), TypeDesc::get(port->getType()));
-            if (!port->getValueString().empty())
+            const TypeDesc* typeDesc = TypeDesc::get(port->getType());
+            if (shadergen.getSyntax()->typeSupported(typeDesc))
             {
-                inputSocket->value = port->getValue();
+                ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), typeDesc);
+                if (!port->getValueString().empty())
+                {
+                    inputSocket->value = port->getValue();
+                }
             }
-
-            const string& enums = port->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-            if (enums.size())
+            else
             {
-                std::cout << "Add input socket: " << elem.getName() << "."
-                    << port->getName();
+                // Anything unsupported becomes an integar 
+                typeDesc = Type::INTEGER;
+                ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), typeDesc);
+
+                // Remap the value to an index into the enums if possible. Othewise use a 0 value.
+                // as there is no implicit string to integar mapping.
+                int integerValue = 0;
+                string portValueString = port->getValueString();
+                if (!portValueString.empty())
+                {
+                    const string& enums = port->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+                    if (enums.size())
+                    {
+                        ValuePtr portValue = port->getValue();
+
+                        StringVec enumVec = splitString(enums, ",");
+                        auto pos = std::find(enumVec.begin(), enumVec.end(), portValueString);
+                        if (pos != enumVec.end())
+                        {
+                            integerValue = static_cast<int>(std::distance(enumVec.begin(), pos));
+                        }
+                    }
+                }
+                inputSocket->value = Value::createValue<int>(integerValue);
+
+                std::cout << "- Add input socket: " << elem.getName() << "." << port->getName();
                 if (inputSocket->value)
                 {
                     std::cout << ". Value: " << inputSocket->value->getValueString();
                 }
                 std::cout << std::endl;
             }
-
         }
     }
 }
@@ -253,13 +279,15 @@ ShaderGraphPtr ShaderGraph::create(NodeGraphPtr nodeGraph, ShaderGenerator& shad
         throw ExceptionShaderGenError("Can't find nodedef '" + nodeGraph->getNodeDefString() + "' referenced by nodegraph '" + nodeGraph->getName() + "'");
     }
 
+    std::cout << "******* BEGIN create nodegraph: " << nodeGraph->getNamePath() << std::endl;
+
     ShaderGraphPtr graph = std::make_shared<ShaderGraph>(nodeGraph->getName(), nodeGraph->getDocument());
 
     // Clear classification
     graph->_classification = 0;
 
     // Create input sockets from the nodedef
-    graph->addInputSockets(*nodeDef);
+    graph->addInputSockets(*nodeDef, shadergen);
 
     // Create output sockets from the nodegraph
     graph->addOutputSockets(*nodeGraph);
@@ -279,6 +307,7 @@ ShaderGraphPtr ShaderGraph::create(NodeGraphPtr nodeGraph, ShaderGenerator& shad
 
     graph->finalize(shadergen);
 
+    std::cout << "******* END create nodegraph: " << nodeGraph->getNamePath() << "\n\n";
     return graph;
 }
 
@@ -319,7 +348,7 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
         graph->_classification = 0;
 
         // Create input sockets
-        graph->addInputSockets(*interface);
+        graph->addInputSockets(*interface, shadergen);
 
         // Create the given output socket
         graph->addOutputSocket(output->getName(), TypeDesc::get(output->getType()));
@@ -340,7 +369,7 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
         graph = std::make_shared<ShaderGraph>(name, element->getDocument());
 
         // Create input sockets
-        graph->addInputSockets(*nodeDef);
+        graph->addInputSockets(*nodeDef, shadergen);
 
         // Create output sockets
         graph->addOutputSockets(*nodeDef);
@@ -474,35 +503,48 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
 
             if (input)
             {
-                string ivalue = inputSocket->value ? inputSocket->value->getValueString() : EMPTY_STRING;
-                string itype = inputSocket->value ? inputSocket->value->getTypeString() : EMPTY_STRING;
+                std::cout << ("- Connect node: " + node.getName() + "." + input->name + " to interface : " +
+                    getName() + "." + interfaceName) << std::endl;
+
+                string socketValue = inputSocket->value ? inputSocket->value->getValueString() : EMPTY_STRING;
+                string socketType = inputSocket->value ? inputSocket->value->getTypeString() : EMPTY_STRING;
                 input->makeConnection(inputSocket);
-                string ivalueAfter = input->value ? input->value->getValueString() : EMPTY_STRING;
-                string itypeAfter = input->value ? input->value->getTypeString() : EMPTY_STRING;
+                string nodeInputValue = input->value ? input->value->getValueString() : EMPTY_STRING;
+                string nodeInputType = input->value ? input->value->getTypeString() : EMPTY_STRING;
                 
+                if (socketValue.size() || nodeInputValue.size())
+                {
+                    std::cout << "--- Graph socket value: " << socketValue << ", type: " << socketType
+                        << ". Node input value: " << nodeInputValue << ", type: " << nodeInputType << std::endl;
+
+                    // Change the type and value if needed.
+                    if (socketType != nodeInputType)
+                    {
+                        std::cout << "---> Change graph input type and value to match node input\n";
+                        inputSocket->type = input->type;
+                        inputSocket->value = input->value; // This should be a remap not an assign
+                    }
+                }
+
                 ParameterPtr paramPtr = nodeDef->getParameter(input->name);
                 if (paramPtr)
                 {
                     const string& enums = paramPtr->getAttribute(ValueElement::ENUM_ATTRIBUTE);
                     if (enums.size())
                     {
-                        std::cout << ("Connect node: " + node.getName() + "." + input->name + " to interface : " +
-                            getName() + "." + interfaceName);
-                        std::cout << ". Enums=(" << enums << ")";
+                        std::cout << "--- Input Enums=(" << enums << ")";
                         std::cout << std::endl;
-
-                        if (ivalue.size() || ivalueAfter.size())
-                        {
-                            std::cout << "-- Value graphelem: " << ivalue << ", type: " << itype 
-                                    << ". Value nodeelem: " << ivalueAfter << ", type: " << itypeAfter << std::endl;
-                        }
 
                         string implType;
                         InterfaceElementPtr impl = newNode->getElementImpl();
                         ValuePtr implValue = impl ? getImplementationValue(elem, impl, *nodeDef, implType) : nullptr;
                         if (implValue)
                         {
-                            std::cout << "-- Impl value: " << implValue->getValueString() << ". Type: " << implType << std::endl;
+                            std::cout << "--- Impl value: " << implValue->getValueString() << ". Type: " << implType << std::endl;
+                        }
+                        else
+                        {
+                            std::cout << "--- ??????????? No impl cached !!!!!!!!!!!!!!!!!!!\n";
                         }
                     }
                 }

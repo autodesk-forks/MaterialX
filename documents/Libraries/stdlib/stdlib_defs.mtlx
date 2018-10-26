@@ -162,8 +162,6 @@
     <input name="texcoord" type="vector2">
       <geomprop name="texcoord" type="vector2"/>
     </input>
-    <parameter name="uaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
-    <parameter name="vaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
     <parameter name="uvtiling" type="vector2" value="1.0, 1.0"/>
     <parameter name="uvoffset" type="vector2" value="0.0, 0.0"/>
     <parameter name="filtertype" type="string" value="linear" enum="closest,linear,cubic"/>
@@ -177,8 +175,6 @@
     <input name="texcoord" type="vector2">
       <geomprop name="texcoord" type="vector2"/>
     </input>
-    <parameter name="uaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
-    <parameter name="vaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
     <parameter name="uvtiling" type="vector2" value="1.0, 1.0"/>
     <parameter name="uvoffset" type="vector2" value="0.0, 0.0"/>
     <parameter name="filtertype" type="string" value="linear" enum="closest,linear,cubic"/>
@@ -192,8 +188,6 @@
     <input name="texcoord" type="vector2">
       <geomprop name="texcoord" type="vector2"/>
     </input>
-    <parameter name="uaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
-    <parameter name="vaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
     <parameter name="uvtiling" type="vector2" value="1.0, 1.0"/>
     <parameter name="uvoffset" type="vector2" value="0.0, 0.0"/>
     <parameter name="filtertype" type="string" value="linear" enum="closest,linear,cubic"/>
@@ -207,8 +201,6 @@
     <input name="texcoord" type="vector2">
       <geomprop name="texcoord" type="vector2"/>
     </input>
-    <parameter name="uaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
-    <parameter name="vaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
     <parameter name="uvtiling" type="vector2" value="1.0, 1.0"/>
     <parameter name="uvoffset" type="vector2" value="0.0, 0.0"/>
     <parameter name="filtertype" type="string" value="linear" enum="closest,linear,cubic"/>
@@ -222,8 +214,6 @@
     <input name="texcoord" type="vector2">
       <geomprop name="texcoord" type="vector2"/>
     </input>
-    <parameter name="uaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
-    <parameter name="vaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
     <parameter name="uvtiling" type="vector2" value="1.0, 1.0"/>
     <parameter name="uvoffset" type="vector2" value="0.0, 0.0"/>
     <parameter name="filtertype" type="string" value="linear" enum="closest,linear,cubic"/>
@@ -237,8 +227,6 @@
     <input name="texcoord" type="vector2">
       <geomprop name="texcoord" type="vector2"/>
     </input>
-    <parameter name="uaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
-    <parameter name="vaddressmode" type="string" value="periodic" enum="black,clamp,periodic"/>
     <parameter name="uvtiling" type="vector2" value="1.0, 1.0"/>
     <parameter name="uvoffset" type="vector2" value="0.0, 0.0"/>
     <parameter name="filtertype" type="string" value="linear" enum="closest,linear,cubic"/>

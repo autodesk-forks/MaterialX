@@ -162,7 +162,8 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     // Find the implementation for this nodedef
     InterfaceElementPtr impl = nodeDef.getImplementation(shadergen.getTarget(), shadergen.getLanguage());
     newNode->setElementImpl(impl);
-    std::cout << "Cache impl for node: " << name << std::endl;
+    string implName = impl ? impl->getName() : EMPTY_STRING;
+    std::cout << "- Cache impl for node: " << name << ". impl-name: " << implName << std::endl;
     if (impl)
     {
         newNode->_impl = shadergen.getImplementation(impl);
@@ -211,7 +212,8 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
             ShaderInput* input = nullptr;
             const string& elemType = elem->getType();
             string implType = elemType;
-            ValuePtr implValue = getImplementationValue(elem, impl, nodeDef, implType);
+            ValuePtr implValue = getEnumerationValue(shadergen, elem, nodeDef, implType);
+            //getImplementationValue(elem, impl, nodeDef, implType);
             if (implValue)
             {
                 const TypeDesc* implTypeDesc = TypeDesc::get(implType);
@@ -256,7 +258,8 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
                 if (input)
                 {
                     string implType;
-                    ValuePtr value = getImplementationValue(elem, impl, nodeDef, implType);
+                    ValuePtr value = getEnumerationValue(shadergen, elem, nodeDef, implType);
+                    //ValuePtr value = getImplementationValue(elem, impl, nodeDef, implType);
                     if (value)
                     {
                         input->value = value;

@@ -447,6 +447,46 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
     return false;
 }
 
+ValuePtr getEnumerationValue(ShaderGenerator& shadergen, const ValueElementPtr& elem, const NodeDef& nodeDef, string& elemType)
+{
+    const string& valueElementName = elem->getName();
+    const string& valueString = elem->getValueString();
+
+    ValueElementPtr nodedefElem = nodeDef.getChildOfType<ValueElement>(valueElementName);
+    if (!nodedefElem)
+    {
+        return nullptr;
+    }
+
+    elemType = elem->getType();
+    const TypeDesc* elemTypeDesc = TypeDesc::get(elemType);
+    if (elemTypeDesc->isArray())
+    {
+        return nullptr;
+    }
+    if (shadergen.getSyntax()->typeSupported(elemTypeDesc))
+    {
+        return nullptr;
+    }
+
+    const string nodedefElemEnums = nodedefElem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+    if (nodedefElemEnums.empty())
+    {
+        return nullptr;
+    }
+
+    elemType = TypedValue<int>::TYPE; //"integer";
+    int integerValue = 0;
+    StringVec nodedefElemEnumsVec = splitString(nodedefElemEnums, ",");
+    auto pos = std::find(nodedefElemEnumsVec.begin(), nodedefElemEnumsVec.end(), valueString);
+    if (pos != nodedefElemEnumsVec.end())
+    {
+        integerValue = static_cast<int>(std::distance(nodedefElemEnumsVec.begin(), pos));
+    }
+
+    return Value::createValue<int>(integerValue);
+}
+
 ValuePtr getImplementationValue(const ValueElementPtr& elem, const InterfaceElementPtr impl, const NodeDef& nodeDef,
                                 string& implType) 
 {

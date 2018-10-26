@@ -64,6 +64,7 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen);
 ValuePtr getImplementationValue(const ValueElementPtr& elem, const InterfaceElementPtr impl, const NodeDef& nodeDef,
                                 string& implType);
 
+ValuePtr getEnumerationValue(ShaderGenerator& shadergen, const ValueElementPtr& elem, const NodeDef& nodeDef, string& implType);
 
 } // namespace MaterialX
 
