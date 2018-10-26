@@ -620,7 +620,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     //testfileOverride.insert("triplanarprojection.mtlx");
     //testfileOverride.insert("blur.mtlx");
     //testfileOverride.insert("image.mtlx");
-    testfileOverride.insert("tiledimage.mtlx");
+    //testfileOverride.insert("tiledimage.mtlx");
 
     // Library search path
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
