@@ -219,15 +219,6 @@ class ShaderNode
     /// Return the set of contexts id's for the contexts used for this node.
     const std::set<int>& getContextIDs() const { return _contextIDs; }
 
-    void setElementImpl(InterfaceElementPtr impl)
-    {
-        _elementImpl = impl;
-    }
-    InterfaceElementPtr getElementImpl() const
-    {
-        return _elementImpl;
-    }
-
   protected:      
     string _name;
     unsigned int _classification;
@@ -241,7 +232,6 @@ class ShaderNode
     ShaderInput* _samplingInput;
 
     ShaderNodeImplPtr _impl;
-    InterfaceElementPtr _elementImpl;
     ScopeInfo _scopeInfo;
     std::set<const ShaderNode*> _usedClosures;
     std::set<int> _contextIDs;
