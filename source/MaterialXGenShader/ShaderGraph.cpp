@@ -12,7 +12,6 @@
 #include <iostream>
 #include <sstream>
 #include <stack>
-#include <algorithm>
 
 namespace MaterialX
 {
