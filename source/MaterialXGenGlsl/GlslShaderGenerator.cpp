@@ -770,6 +770,51 @@ ShaderNodeImplPtr GlslShaderGenerator::createCompoundImplementation(NodeGraphPtr
 }
 
 
+ValuePtr GlslShaderGenerator::remapEnumerationValue(const ValueElementPtr& elem, const InterfaceElement& element, string& elemType)
+{
+    const string& valueElementName = elem->getName();
+    const string& valueString = elem->getValueString();
+    if (valueString.empty())
+    {
+        return nullptr;
+    }
+
+    ValueElementPtr valueElem = element.getChildOfType<ValueElement>(valueElementName);
+    if (!valueElem)
+    {
+        return nullptr;
+    }
+
+    elemType = elem->getType();
+    const TypeDesc* elemTypeDesc = TypeDesc::get(elemType);
+    // Don't convert file names and arrays to integers
+    if (elemTypeDesc->isArray() || elemTypeDesc == Type::FILENAME)
+    {
+        return nullptr;
+    }
+    // Don't convert supported types
+    if (getSyntax()->typeSupported(elemTypeDesc))
+    {
+        return nullptr;
+    }
+
+    const string valueElemEnums = valueElem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+    if (valueElemEnums.empty())
+    {
+        return nullptr;
+    }
+
+    int integerValue = 0;
+    elemType = TypedValue<int>::TYPE;
+    StringVec valueElemEnumsVec = splitString(valueElemEnums, ",");
+    auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), valueString);
+    if (pos != valueElemEnumsVec.end())
+    {
+        integerValue = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
+    }
+    return Value::createValue<int>(integerValue);
+}
+
 const string GlslImplementation::SPACE = "space";
 const string GlslImplementation::WORLD = "world";
 const string GlslImplementation::OBJECT = "object";

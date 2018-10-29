@@ -447,49 +447,4 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
     return false;
 }
 
-ValuePtr getEnumerationValue(ShaderGenerator& /*shadergen*/, const ValueElementPtr& elem, const NodeDef& nodeDef, string& elemType)
-{
-    const string& valueElementName = elem->getName();
-    const string& valueString = elem->getValueString();
-    if (valueString.empty())
-    {
-        return nullptr;
-    }
-
-    ValueElementPtr nodedefElem = nodeDef.getChildOfType<ValueElement>(valueElementName);
-    if (!nodedefElem)
-    {
-        return nullptr;
-    }
-
-    elemType = elem->getType();
-    const TypeDesc* elemTypeDesc = TypeDesc::get(elemType);
-    // Don't convert file names and arrays to integers
-    if (elemTypeDesc->isArray() || elemTypeDesc == Type::FILENAME)
-    {
-        return nullptr;
-    }
-    // Don't convert supported types
-    //if (shadergen.getSyntax()->typeSupported(elemTypeDesc))
-    //{
-    //    return nullptr;
-    //}
-
-    const string nodedefElemEnums = nodedefElem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-    if (nodedefElemEnums.empty())
-    {
-        return nullptr;
-    }
-
-    int integerValue = 0;
-    elemType = TypedValue<int>::TYPE;
-    StringVec nodedefElemEnumsVec = splitString(nodedefElemEnums, ",");
-    auto pos = std::find(nodedefElemEnumsVec.begin(), nodedefElemEnumsVec.end(), valueString);
-    if (pos != nodedefElemEnumsVec.end())
-    {
-        integerValue = static_cast<int>(std::distance(nodedefElemEnumsVec.begin(), pos));
-    }
-    return Value::createValue<int>(integerValue);
-}
-
 } // namespace MaterialX

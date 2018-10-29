@@ -108,6 +108,17 @@ public:
         return _sourceCodeSearchPath;
     }
 
+    /// Given a element attempt to remap a value to an enumeration which is accepted by
+    /// the shader generator.
+    /// @param value Value element input
+    /// @param element Element to test
+    /// @param enumType Enumeration type (returned).
+    /// @return Enumeration value. Null if no remapping is performed
+    virtual ValuePtr remapEnumerationValue(const ValueElementPtr& /*value*/, const InterfaceElement& /*element*/, string& /*enumType*/)
+    {
+        return nullptr;
+    }
+
 public:
     /// Identifiers for contexts
     enum Context

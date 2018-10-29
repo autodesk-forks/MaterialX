@@ -45,17 +45,6 @@ string getFileExtension(const string& filename);
 ///
 bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen);
 
-///
-/// Given a nodedef attempt to remap an input value to an enumeration 
-/// if it exists.
-///
-/// @param elem Value element input
-/// @param nodeDef Node definition to use
-/// @param implType Implementation type (if any) specified.
-/// @return Implementation value. Null if could not be evaluated
-///
-ValuePtr getEnumerationValue(ShaderGenerator& shadergen, const ValueElementPtr& elem, const NodeDef& nodeDef, string& implType);
-
 } // namespace MaterialX
 
 #endif

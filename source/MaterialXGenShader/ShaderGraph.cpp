@@ -29,41 +29,24 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, ShaderGenerator&
     {
         if (!port->isA<Output>())
         {
-            const TypeDesc* typeDesc = TypeDesc::get(port->getType());
-            if (shadergen.getSyntax()->typeSupported(typeDesc))
+            ShaderGraphInputSocket* inputSocket = nullptr;
+
+            const string& elemType = port->getType();
+            string enumType = elemType;
+            ValuePtr enumValue = shadergen.remapEnumerationValue(port, elem, enumType);
+            if (enumValue)
             {
-                ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), typeDesc);
+                const TypeDesc* enumTypeDesc = TypeDesc::get(enumType);
+                inputSocket = addInputSocket(port->getName(), enumTypeDesc);
+                inputSocket->value = enumValue;
+            }
+            else
+            {
+                inputSocket = addInputSocket(port->getName(), TypeDesc::get(port->getType()));
                 if (!port->getValueString().empty())
                 {
                     inputSocket->value = port->getValue();
                 }
-            }
-            else
-            {
-                // Anything unsupported becomes an integar 
-                typeDesc = Type::INTEGER;
-                ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), typeDesc);
-
-                // Remap the value to an index into the enums if possible. Othewise use a 0 value.
-                // as there is no implicit string to integar mapping.
-                int integerValue = 0;
-                string portValueString = port->getValueString();
-                if (!portValueString.empty())
-                {
-                    const string& enums = port->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-                    if (enums.size())
-                    {
-                        ValuePtr portValue = port->getValue();
-
-                        StringVec enumVec = splitString(enums, ",");
-                        auto pos = std::find(enumVec.begin(), enumVec.end(), portValueString);
-                        if (pos != enumVec.end())
-                        {
-                            integerValue = static_cast<int>(std::distance(enumVec.begin(), pos));
-                        }
-                    }
-                }
-                inputSocket->value = Value::createValue<int>(integerValue);
             }
         }
     }

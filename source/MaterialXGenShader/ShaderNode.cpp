@@ -208,18 +208,18 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
         {
             ShaderInput* input = nullptr;
             const string& elemType = elem->getType();
-            string implType = elemType;
-            ValuePtr implValue = getEnumerationValue(shadergen, elem, nodeDef, implType);
-            if (implValue)
+            string enumType = elemType;
+            ValuePtr enumValue = shadergen.remapEnumerationValue(elem, nodeDef, enumType);
+            if (enumValue)
             {
-                const TypeDesc* implTypeDesc = TypeDesc::get(implType);
-                input = newNode->addInput(elem->getName(), implTypeDesc);
-                input->value = implValue;
+                const TypeDesc* enumTypeDesc = TypeDesc::get(enumType);
+                input = newNode->addInput(elem->getName(), enumTypeDesc);
+                input->value = enumValue;
             }
             else
             {
-                const TypeDesc* elemeTypeDesc = TypeDesc::get(elemType);
-                input = newNode->addInput(elem->getName(), elemeTypeDesc);
+                const TypeDesc* elemTypeDesc = TypeDesc::get(elemType);
+                input = newNode->addInput(elem->getName(), elemTypeDesc);
                 if (!elem->getValueString().empty())
                 {
                     input->value = elem->getValue();
@@ -253,8 +253,8 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
                 ShaderInput* input = newNode->getInput(elem->getName());
                 if (input)
                 {
-                    string implType;
-                    ValuePtr value = getEnumerationValue(shadergen, elem, nodeDef, implType);
+                    string enumType;
+                    ValuePtr value = shadergen.remapEnumerationValue(elem, nodeDef, enumType);
                     if (value)
                     {
                         input->value = value;
