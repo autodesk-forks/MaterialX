@@ -41,7 +41,7 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, ShaderGenerator&
             }
             else
             {
-                inputSocket = addInputSocket(port->getName(), TypeDesc::get(port->getType()));
+                inputSocket = addInputSocket(port->getName(), TypeDesc::get(elemType));
                 if (!port->getValueString().empty())
                 {
                     inputSocket->value = port->getValue();
