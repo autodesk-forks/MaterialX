@@ -185,7 +185,18 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
             ShaderInput* spaceInput = geomNodePtr->getInput("space");
             if (spaceInput)
             {
-                spaceInput->value = Value::createValue<string>(space);
+                const TypeDesc* enumerationType = nullptr;
+                const string& inputName("space");
+                const string& inputType("string");
+                ValuePtr value = shadergen.remapEnumeration(inputName, space, inputType, *geomNodeDef, enumerationType);
+                if (value)
+                {
+                    spaceInput->value = value;
+                }
+                else
+                {
+                    spaceInput->value = Value::createValue<string>(space);
+                }
             }
         }
         const string& index = geomprop.getIndex();

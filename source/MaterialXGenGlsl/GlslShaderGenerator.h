@@ -99,6 +99,11 @@ class GlslShaderGenerator : public HwShaderGenerator
     /// the shader generator.
     ValuePtr remapEnumeration(const ValueElementPtr& input, const InterfaceElement& mappingElement, const TypeDesc*& enumerationType) override;
 
+    /// Given a input specification (name, value, type) attempt to remap a value to an enumeration 
+    /// which is accepted by the shader generator.
+    ValuePtr remapEnumeration(const string& inputName, const string& inputValue, const string& inputType, 
+                              const InterfaceElement& mappingElement, const TypeDesc*& enumerationType) override;
+
     /// Emit code for all texturing nodes.
     virtual void emitTextureNodes(Shader& shader);
 
