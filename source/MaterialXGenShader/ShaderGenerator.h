@@ -108,13 +108,13 @@ public:
         return _sourceCodeSearchPath;
     }
 
-    /// Given a element attempt to remap a value to an enumeration which is accepted by
-    /// the shader generator.
-    /// @param value Value element input
-    /// @param element Element to test
-    /// @param enumType Enumeration type (returned).
-    /// @return Enumeration value. Null if no remapping is performed
-    virtual ValuePtr remapEnumerationValue(const ValueElementPtr& /*value*/, const InterfaceElement& /*element*/, string& /*enumType*/)
+    /// Given a input element attempt to remap this to an enumeration which is accepted by
+    /// the shader generator. The enumeration may be of a different type than the input value type.
+    /// @param input Input value element to test.
+    /// @param mappingElement Element which provides enumeration information for mapping.
+    /// @param enumerationType Enumeration type description (returned). 
+    /// @return Enumeration value. Null if no remapping is performed.
+    virtual ValuePtr remapEnumeration(const ValueElementPtr& /*input*/, const InterfaceElement& /*mappingElement*/, const TypeDesc*& /*enumerationType*/)
     {
         return nullptr;
     }

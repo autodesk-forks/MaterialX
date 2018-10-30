@@ -29,18 +29,19 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, ShaderGenerator&
         if (!port->isA<Output>())
         {
             ShaderGraphInputSocket* inputSocket = nullptr;
-
-            const string& elemType = port->getType();
-            string enumType = elemType;
-            ValuePtr enumValue = shadergen.remapEnumerationValue(port, elem, enumType);
-            if (enumValue)
+            const TypeDesc* enumerationType = nullptr;
+            ValuePtr enumValue = shadergen.remapEnumeration(port, elem, enumerationType);
+            if (enumerationType)
             {
-                const TypeDesc* enumTypeDesc = TypeDesc::get(enumType);
-                inputSocket = addInputSocket(port->getName(), enumTypeDesc);
-                inputSocket->value = enumValue;
+                inputSocket = addInputSocket(port->getName(), enumerationType);
+                if (enumValue)
+                {
+                    inputSocket->value = enumValue;
+                }
             }
             else
             {
+                const string& elemType = port->getType();
                 inputSocket = addInputSocket(port->getName(), TypeDesc::get(elemType));
                 if (!port->getValueString().empty())
                 {

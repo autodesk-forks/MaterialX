@@ -207,18 +207,19 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
         else
         {
             ShaderInput* input = nullptr;
-            const string& elemType = elem->getType();
-            string enumType = elemType;
-            ValuePtr enumValue = shadergen.remapEnumerationValue(elem, nodeDef, enumType);
-            if (enumValue)
+            const TypeDesc* enumerationType = nullptr;
+            ValuePtr enumValue = shadergen.remapEnumeration(elem, nodeDef, enumerationType);
+            if (enumerationType)
             {
-                const TypeDesc* enumTypeDesc = TypeDesc::get(enumType);
-                input = newNode->addInput(elem->getName(), enumTypeDesc);
-                input->value = enumValue;
+                input = newNode->addInput(elem->getName(), enumerationType);
+                if (enumValue)
+                {
+                    input->value = enumValue;
+                }
             }
             else
             {
-                const TypeDesc* elemTypeDesc = TypeDesc::get(elemType);
+                const TypeDesc* elemTypeDesc = TypeDesc::get(elem->getType());
                 input = newNode->addInput(elem->getName(), elemTypeDesc);
                 if (!elem->getValueString().empty())
                 {
@@ -248,21 +249,18 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
         for (const ValueElementPtr& elem : nodeInstanceInputs)
         {
             const string& elemValueString = elem->getValueString();
-            if (!elemValueString.empty())
+            ShaderInput* input = newNode->getInput(elem->getName());
+            if (input)
             {
-                ShaderInput* input = newNode->getInput(elem->getName());
-                if (input)
+                const TypeDesc* enumerationType = nullptr;
+                ValuePtr value = shadergen.remapEnumeration(elem, nodeDef, enumerationType);
+                if (value)
                 {
-                    string enumType;
-                    ValuePtr value = shadergen.remapEnumerationValue(elem, nodeDef, enumType);
-                    if (value)
-                    {
-                        input->value = value;
-                    }
-                    else if (!elemValueString.empty())
-                    {
-                        input->value = elem->getValue();
-                    }
+                    input->value = value;
+                }
+                else if (!elemValueString.empty())
+                {
+                    input->value = elem->getValue();
                 }
             }
         }

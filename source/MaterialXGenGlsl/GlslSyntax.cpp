@@ -4,6 +4,7 @@
 #include <MaterialXGenShader/TypeDesc.h>
 
 #include <memory>
+#include <iostream>
 
 namespace MaterialX
 {
@@ -17,8 +18,9 @@ namespace
     public:
         GlslStringTypeSyntax() : StringTypeSyntax("int", "0", "0") {}
 
-        string getValue(const Value& /*value*/, bool /*uniform*/) const override
+        string getValue(const Value& value, bool /*uniform*/) const override
         {
+            std::cout << "Remap string value: " << value.getValueString() << "to 0\n";
             return "0";
         }
     };
