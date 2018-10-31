@@ -307,12 +307,25 @@ void GlslProgram::bindInputs(ViewHandlerPtr viewHandler,
     bindTextures(imageHandler);
     bindTimeAndFrame();
     bindLighting(lightHandler, imageHandler);
+
+    // Set up raster state for transparency as needed
+    if (_hwShader->hasTransparency())
+    {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    else
+    {
+        glDisable(GL_BLEND);
+    }
 }
 
 void GlslProgram::unbindInputs()
 {
     unbindTextures();
     unbindGeometry();
+
+    glDisable(GL_BLEND);
 }
 
 void GlslProgram::bindAttribute(const MaterialX::GlslProgram::InputMap& inputs, GeometryHandlerPtr geometryHandler)

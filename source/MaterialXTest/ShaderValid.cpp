@@ -376,8 +376,8 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
 //
 // Outputs error log if validation fails
 //
-static void runGLSLValidation(const std::string& shaderName, mx::ElementPtr element, mx::GlslValidator& validator,
-                              mx::GlslShaderGenerator& shaderGenerator, bool orthographicView, mx::DocumentPtr doc,
+static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr element, mx::GlslValidator& validator,
+                              mx::GlslShaderGenerator& shaderGenerator, const mx::HwLightHandlerPtr lightHandler, mx::DocumentPtr doc,
                               std::ostream& log, bool outputMtlxDoc=true, const std::string& outputPath=".")
 {
     mx::GenOptions options;
@@ -394,6 +394,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::ElementPtr elem
         mx::ShaderPtr shader;
         try
         {
+            options.hwTransparency = mx::isTransparentSurface(element, shaderGenerator);
             shader = shaderGenerator.generate(shaderName, element, options);
         }
         catch(mx::ExceptionShaderGenError e)
@@ -420,15 +421,46 @@ static void runGLSLValidation(const std::string& shaderName, mx::ElementPtr elem
         bool validated = false;
         try
         {
+            std::string elementType(element->getType());
+            std::set<std::string> colorClosures =
+            {
+                "surfaceshader", "volumeshader", "lightshader",
+                "BSDF", "EDF", "VDF"
+            };
+            bool isShader = element->isA<mx::ShaderRef>() ||
+                colorClosures.count(elementType) > 0;
+
+            mx::GeometryHandlerPtr geomHandler = validator.getGeometryHandler();
+            if (isShader)
+            {
+                const std::string shaderBallFile(mx::FilePath::getCurrentPath().asString() + "/documents/TestSuite/Geometry/shaderball.obj");
+                geomHandler->setIdentifier(shaderBallFile);
+                validator.setLightHandler(lightHandler);
+            }
+            else
+            {
+                const std::string sphereFile(mx::FilePath::getCurrentPath().asString() + "/documents/TestSuite/Geometry/sphere.obj");
+                geomHandler->setIdentifier(sphereFile);
+                validator.setLightHandler(nullptr);
+            }
+        
             validator.validateCreation(shader);
             validator.validateInputs();
 
             program->printUniforms(log);
             program->printAttributes(log);
 
-            validator.validateRender(orthographicView);
+            validator.validateRender(!isShader);
             std::string fileName = shaderPath + ".exr";
             validator.save(fileName);
+
+            std::ofstream file;
+            file.open(shaderPath + ".vert");
+            file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+            file.close();
+            file.open(shaderPath + ".frag");
+            file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+            file.close();
 
             validated = true;
         }
@@ -612,6 +644,15 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // which files in the test suite are being tested.
     // Add only the test suite filename not the full path.
     std::set<std::string> testfileOverride;
+    //testfileOverride.insert("triplanarprojection.mtlx");
+    //testfileOverride.insert("blur.mtlx");
+    testfileOverride.insert("image.mtlx");
+    //testfileOverride.insert("tiledimage.mtlx");
+    testfileOverride.insert("surfaceshader.mtlx");
+    //testfileOverride.insert("streams.mtlx");
+    testfileOverride.insert("channel.mtlx");
+    //testfileOverride.insert("adjustment.mtlx");
+    testfileOverride.insert("nodegraph_standardsurface.mtlx");    
 
     // Library search path
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
@@ -712,7 +753,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                             std::string outputPath = mx::FilePath(dir) / mx::FilePath(mx::removeExtension(file));
                             mx::string elementName = mx::replaceSubstrings(shaderRef->getNamePath(), pathMap);
 #ifdef MATERIALX_BUILD_GEN_GLSL
-                            runGLSLValidation(elementName, shaderRef, *glslValidator, *glslShaderGenerator, orthographicView, doc, glslLog, false, outputPath);
+                            runGLSLValidation(elementName, shaderRef, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, false, outputPath);
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
                             runOSLValidation(elementName, shaderRef, *oslValidator, *oslShaderGenerator, doc, oslLog, false, outputPath);
@@ -760,7 +801,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                         mx::string elementName = mx::replaceSubstrings(output->getNamePath(), pathMap);
 
 #ifdef MATERIALX_BUILD_GEN_GLSL
-                        runGLSLValidation(elementName, output, *glslValidator, *glslShaderGenerator, orthographicView, doc, glslLog, false, outputPath);
+                        runGLSLValidation(elementName, output, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, false, outputPath);
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
                         runOSLValidation(elementName, output, *oslValidator, *oslShaderGenerator, doc, oslLog, false, outputPath);
