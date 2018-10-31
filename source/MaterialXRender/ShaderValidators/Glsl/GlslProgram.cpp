@@ -33,7 +33,7 @@ GlslProgram::GlslProgram() :
     _vertexArray(0),
     _dummyTexture(0),
     _maxImageUnits(-1),
-    _activeTextureUnit(0)
+    _textureUnitsInUse(0)
 {
 }
 
@@ -325,7 +325,11 @@ void GlslProgram::unbindInputs()
     unbindTextures();
     unbindGeometry();
 
-    glDisable(GL_BLEND);
+    // Clean up raster state if transparency was set in bindInputs()
+    if (_hwShader->hasTransparency())
+    {
+        glDisable(GL_BLEND);
+    }
 }
 
 void GlslProgram::bindAttribute(const MaterialX::GlslProgram::InputMap& inputs, GeometryHandlerPtr geometryHandler)
@@ -510,14 +514,14 @@ void GlslProgram::unbindGeometry()
 
 void GlslProgram::unbindTextures()
 {
-    for (GLint i=0; i<_activeTextureUnit; i++)
+    for (GLint i=0; i<_textureUnitsInUse; i++)
     { 
         // Unbind a texture to that unit
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
         checkErrors();
     }
-    _activeTextureUnit = 0;
+    _textureUnitsInUse = 0;
 
     // Delete any allocated textures
     if (_dummyTexture != MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
@@ -577,15 +581,15 @@ bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, con
         {
             glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &_maxImageUnits);
         }
-        if (_activeTextureUnit >= _maxImageUnits)
+        if (_textureUnitsInUse >= _maxImageUnits)
         {
-            return textureBound;
+            return false;
         }
         
         // Map location to a texture unit
-        glUniform1i(uniformLocation, _activeTextureUnit);
+        glUniform1i(uniformLocation, _textureUnitsInUse);
         // Bind a texture to that unit
-        glActiveTexture(GL_TEXTURE0 + _activeTextureUnit);
+        glActiveTexture(GL_TEXTURE0 + _textureUnitsInUse);
 
         if (!fileName.empty() && imageHandler)
         {
@@ -616,6 +620,9 @@ bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, con
                         glGenerateMipmap(GL_TEXTURE_2D);
                     }
 
+                    free(buffer);
+                    buffer = nullptr;
+
                     // Keep track of texture created using file name as the unique key
                     _programTextures[fileName] = newTexture;
 
@@ -634,7 +641,7 @@ bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, con
 
     if (textureBound)
     {
-        _activeTextureUnit++;
+        _textureUnitsInUse++;
     }
 
     return textureBound;

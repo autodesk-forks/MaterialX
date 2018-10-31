@@ -276,7 +276,7 @@ class GlslProgram
     /// Maximum image units
     int _maxImageUnits;
     /// Active texture units used
-    int _activeTextureUnit;
+    int _textureUnitsInUse;
 };
 
 } // namespace MaterialX
