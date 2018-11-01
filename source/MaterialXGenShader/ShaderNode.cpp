@@ -332,6 +332,30 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     return newNode;
 }
 
+ShaderNodePtr ShaderNode::create(const string& name, ShaderNodeImplPtr shaderImpl, const TypeDesc& type, ShaderGenerator& shadergen)
+{
+    ShaderNodePtr newNode = std::make_shared<ShaderNode>(name);
+    newNode->_impl = shaderImpl;
+    newNode->_classification = Classification::COLOR_SPACE_TRANSFORM;
+    ShaderInput* input = newNode->addInput("in", &type);
+
+    if (type.getName() == TypedValue<Color2>::TYPE)
+    {
+        input->value = Value::createValueFromStrings("0, 1", TypedValue<Color2>::TYPE);
+    }
+    else if(type.getName() == TypedValue<Color3>::TYPE)
+    {
+      input->value = Value::createValueFromStrings("0, 0, 0", TypedValue<Color3>::TYPE);
+    }
+    else if(type.getName() == TypedValue<Color4>::TYPE)
+    {
+      input->value = Value::createValueFromStrings("0, 0, 0, 1", TypedValue<Color4>::TYPE);
+    }
+    newNode->addOutput("out", &type);
+    shadergen.addNodeContextIDs(newNode.get());
+    return newNode;
+}
+
 ShaderInput* ShaderNode::getInput(const string& name)
 {
     auto it = _inputMap.find(name);
