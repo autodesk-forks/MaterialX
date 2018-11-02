@@ -143,7 +143,7 @@ class GlslProgram
                     HwLightHandlerPtr lightHandler);
 
     /// Unbind inputs
-    void unbindInputs();
+    void unbindInputs(ImageHandlerPtr imageHandler);
 
     /// Return if there are any active inputs on the program
     bool haveActiveAttributes() const;
@@ -155,7 +155,7 @@ class GlslProgram
     /// A hardware buffer of the given attribute type is created and bound to the program locations
     /// for the input attribute.
     /// @param inputs Attribute inputs to bind to
-    void bindAttribute(const MaterialX::GlslProgram::InputMap& inputs, GeometryHandlerPtr geometryHandler);
+    void bindAttribute(const GlslProgram::InputMap& inputs, GeometryHandlerPtr geometryHandler);
 
     /// Bind input geometry streams
     void bindGeometry(GeometryHandlerPtr geometryHandler);
@@ -167,7 +167,7 @@ class GlslProgram
     void bindTextures(ImageHandlerPtr imageHandler);
 
     /// Unbind input textures
-    void unbindTextures();
+    void unbindTextures(ImageHandlerPtr imageHandler);
 
     /// Bind lighting
     void bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr imageHandler);
@@ -221,8 +221,8 @@ class GlslProgram
     bool bindTexture(unsigned int uniformType, int uniformLocation, const string& fileName,
                      ImageHandlerPtr imageHandler, bool generateMipMaps);
 
-    /// Dummy texture for testing with
-    void createDummyTexture(ImageHandlerPtr imageHandler);
+    /// Create a single color texture
+    void createColorTexture(const Color4& color, ImageDesc& imageDesc, ImageHandlerPtr imageHandler);
 
     /// Internal cleanup of stages and OpenGL constructs
     void cleanup();
@@ -266,9 +266,6 @@ class GlslProgram
 
     /// Attribute vertex array handle
     unsigned int _vertexArray;
-
-    /// Dummy texture
-    unsigned int _dummyTexture;
 
     /// Program texture map
     std::unordered_map<std::string, unsigned int> _programTextures;

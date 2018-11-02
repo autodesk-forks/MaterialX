@@ -31,30 +31,24 @@ namespace MaterialX
 {
 #if defined(TINYEXR_USABLE)
 bool TinyEXRImageHandler::saveImage(const std::string& fileName,
-                                    unsigned int width, 
-                                    unsigned int height, 
-                                    unsigned int channelCount, 
-                                    const float* buffer)
+                                    const ImageDesc& imageDesc)
 {
     int returnValue = -1;
     // Fail with any type other than exr.
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
     if (extension == "exr")
     { 
-        returnValue = SaveEXR(buffer, width, height, channelCount, 1 /* save as 16 bit float format */, fileName.c_str());
+        returnValue = SaveEXR(imageDesc.resourceBuffer, static_cast<int>(imageDesc.width), static_cast<int>(imageDesc.height), imageDesc.channelCount, 1 /* save as 16 bit float format */, fileName.c_str());
     }
     return (returnValue == 0);
 }
 
 bool TinyEXRImageHandler::loadImage(const std::string& fileName,
-                                    unsigned int &width,
-                                    unsigned int &height,
-                                    unsigned int &channelCount,
-                                    float** buffer)
+                                    ImageDesc& imageDesc)
 {
     int returnValue = -1;
-    width = height = channelCount = 0;
-    *buffer = nullptr;
+    imageDesc.width = imageDesc.height = imageDesc.channelCount = 0;
+    imageDesc.resourceBuffer = nullptr;
 
     // Fail with any type other than exr.
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
@@ -63,33 +57,29 @@ bool TinyEXRImageHandler::loadImage(const std::string& fileName,
         const char* err = nullptr;
         int iwidth = 0;
         int iheight = 0;
-        channelCount = 4;
-        returnValue = LoadEXR(buffer, &iwidth, &iheight, fileName.c_str(), &err);
+        imageDesc.channelCount = 4;
+        returnValue = LoadEXR(&(imageDesc.resourceBuffer), &iwidth, &iheight, fileName.c_str(), &err);
         if (returnValue == 0)
         {
-            width = iwidth;
-            height = iheight;
+            imageDesc.width = iwidth;
+            imageDesc.height = iheight;
         }
     }
+    imageDesc.computeMipCount();
+
     return (returnValue == 0);
 }
 
 
 #else
 bool TinyEXRImageHandler::saveImage(const std::string& /*fileName*/,
-    unsigned int /*width*/,
-    unsigned int /*height*/,
-    unsigned int /*channelCount*/,
-    const float* /*buffer*/)
+                                    const ImageDesc& /*imageDesc*/)
 {
     return false;
 }
 
 bool TinyEXRImageHandler::loadImage(const std::string& /*fileName*/,
-    unsigned int &/*width*/,
-    unsigned int &/*height*/,
-    unsigned int &/*channelCount*/,
-    float** /*buffer*/)
+                                    ImageDesc& /*imageDesc*/)
 {
     return false;
 }
