@@ -5,8 +5,8 @@
 namespace MaterialX
 {
 
-static string IN_STRING("in");
-static string CHANNELS_STRING("channels");
+static const string IN_STRING("in");
+static const string CHANNELS_STRING("channels");
 
 ShaderNodeImplPtr SwizzleNode::create()
 {
