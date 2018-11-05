@@ -638,15 +638,6 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // which files in the test suite are being tested.
     // Add only the test suite filename not the full path.
     std::set<std::string> testfileOverride;
-    //testfileOverride.insert("triplanarprojection.mtlx");
-    //testfileOverride.insert("blur.mtlx");
-    testfileOverride.insert("image.mtlx");
-    //testfileOverride.insert("tiledimage.mtlx");
-    testfileOverride.insert("surfaceshader.mtlx");
-    //testfileOverride.insert("streams.mtlx");
-    //testfileOverride.insert("channel.mtlx");
-    //testfileOverride.insert("adjustment.mtlx");
-    //testfileOverride.insert("nodegraph_standardsurface.mtlx");    
 
     // Library search path
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
