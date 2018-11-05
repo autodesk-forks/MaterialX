@@ -38,20 +38,20 @@ class ImageDesc
 /// Image description cache
 using ImageDescCache = std::unordered_map<std::string, ImageDesc>;
 
-/// Shared pointer to an ImageHandler
-using ImageHandlerPtr = std::shared_ptr<class ImageHandler>;
+/// Shared pointer to an ImageLoader
+using ImageLoaderPtr = std::shared_ptr<class ImageLoader>;
 
-/// @class @ImageHandler
-/// Abstract class representing an disk image handler
+/// @class @ImageLoader
+/// Abstract class representing an disk image loader
 ///
-class ImageHandler
+class ImageLoader
 {
   public:
     /// Default constructor
-    ImageHandler() {}
-    
+    ImageLoader() {}
+
     /// Default destructor
-    virtual ~ImageHandler() {}
+    virtual ~ImageLoader() {}
 
     /// Save image to disk. This method must be implemented by derived classes.
     /// @param fileName Name of file to save image to
@@ -66,14 +66,58 @@ class ImageHandler
     /// @return if load succeeded
     virtual bool loadImage(const std::string& fileName,
                            ImageDesc &imageDesc) = 0;
+};
+
+/// Shared pointer to an ImageHandler
+using ImageHandlerPtr = std::shared_ptr<class ImageHandler>;
+
+/// @class @ImageHandler
+/// A image handler class. Can keep track of images which are loaded
+/// from disk via an ImageLoader or created from memory
+///
+class ImageHandler
+{
+  public:
+    /// Default constructor
+    ImageHandler(ImageLoaderPtr imageLoader) :
+        _imageLoader(imageLoader)
+    {
+    }
+    
+    /// Default destructor
+    virtual ~ImageHandler() {}
+
+    /// Save image to disk. This method must be implemented by derived classes.
+    /// @param fileName Name of file to save image to
+    /// @param imageDesc Description of image
+    /// @return if save succeeded
+    virtual bool saveImage(const std::string& fileName,
+                           const ImageDesc &imageDesc);
+
+    /// Get an image from disk. This method must be implemented by derived classes.
+    /// @param fileName Name of file to load image from.
+    /// @param imageDesc Description of image updated during load.
+    /// @param generateMipMaps Generate mip maps if supported.
+    /// @return if load succeeded
+    virtual bool getImage(std::string& fileName, ImageDesc& desc, bool generateMipMaps);
 
     /// Utility to create a solid color color image 
     /// @param color Color to set
     /// @param imageDesc Description of image updated during load.
     /// @return if creation succeeded
-    bool createColorImage(const MaterialX::Color4& color,
-                          ImageDesc& imageDesc);
+    virtual bool createColorImage(const MaterialX::Color4& color,
+                                  ImageDesc& imageDesc);
+ 
+    /// Bind an image
+    virtual bool bindImage(const std::string& /*identifier*/) = 0;
 
+    /// Clear the image cache
+    virtual void clearImageCache()
+    {
+        _imageCache.clear();
+    }
+
+  protected:
     /// Cache an image for reuse.
     /// @param identifier Description identifier to use.
     /// @param imageDesc Image description
@@ -94,14 +138,13 @@ class ImageHandler
         return _imageCache;
     }
 
-    /// Clear the image cache
-    void clearImageCache()
-    {
-        _imageCache.clear();
-    }
+    /// Delete image
+    virtual void deleteImage(ImageDesc& /*imageDesc*/) = 0;
 
-  protected:
-      ImageDescCache _imageCache;
+    /// Image loader utility
+    ImageLoaderPtr _imageLoader;
+    /// Image description cache
+    ImageDescCache _imageCache;
 };
 
 } // namespace MaterialX

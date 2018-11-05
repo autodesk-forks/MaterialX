@@ -1,27 +1,27 @@
-#ifndef MATERIALX_TINYEXRIMAGEHANDLER_H
-#define MATERIALX_TINYEXRIMAGEHANDLER_H
+#ifndef MATERIALX_TinyEXRImageLoader_H
+#define MATERIALX_TinyEXRImageLoader_H
 
 #include <MaterialXRender/Handlers/ImageHandler.h>
 
 namespace MaterialX
 {
-/// Shared pointer to an ImageHandler
-using TinyEXRImageHandlerPtr = std::shared_ptr<class TinyEXRImageHandler>;
+/// Shared pointer to an TinyEXRImageLoader
+using TinyEXRImageLoaderPtr = std::shared_ptr<class TinyEXRImageLoader>;
 
-/// @class @TinyEXRImageHandler
-/// Disk image handler wrapper using TinyEXR
+/// @class @TinyEXRImageLoader
+/// Disk image loader wrapper using TinyEXR
 ///
-class TinyEXRImageHandler : public ImageHandler
+class TinyEXRImageLoader : public ImageLoader
 {
 public:
     /// Static instance create function
-    static TinyEXRImageHandlerPtr create() { return std::make_shared<TinyEXRImageHandler>(); }
+    static TinyEXRImageLoaderPtr create() { return std::make_shared<TinyEXRImageLoader>(); }
 
     /// Default constructor
-    TinyEXRImageHandler() {}
+    TinyEXRImageLoader() {}
 
     /// Default destructor
-    virtual ~TinyEXRImageHandler() {}
+    virtual ~TinyEXRImageLoader() {}
 
     /// Save image to disk. This method must be implemented by derived classes.
     /// @param fileName Name of file to save image to

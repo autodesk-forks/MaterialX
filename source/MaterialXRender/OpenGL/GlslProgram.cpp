@@ -1,6 +1,6 @@
 
 #include <MaterialXRender/External/GLew/glew.h>
-#include <MaterialXRender/ShaderValidators/Glsl/GlslProgram.h>
+#include <MaterialXRender/OpenGL/GlslProgram.h>
 
 #include <iostream>
 #include <algorithm>
@@ -513,135 +513,29 @@ void GlslProgram::unbindGeometry()
 
 void GlslProgram::unbindTextures(ImageHandlerPtr imageHandler)
 {
-    for (GLint i=0; i<_textureUnitsInUse; i++)
-    { 
-        // Unbind a texture to that unit
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
-        checkErrors();
-    }
-    _textureUnitsInUse = 0;
-
-    ImageDescCache& cache = imageHandler->getImageCache();
-    for (auto iter : cache)
-    {
-        if (iter.second.resourceId != MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
-        {
-            glDeleteTextures(1, &iter.second.resourceId);
-        }
-    }
     imageHandler->clearImageCache();
-
     checkErrors();
-}
-
-void GlslProgram::createColorTexture(const MaterialX::Color4& color, ImageDesc& imageDesc, ImageHandlerPtr imageHandler)
-{
-    if (imageHandler)
-    {
-        imageHandler->createColorImage(color, imageDesc);
-    }
-
-    if ((imageDesc.width * imageDesc.height > 0) && imageDesc.resourceBuffer)
-    {            
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glGenTextures(1, &imageDesc.resourceId);
-        glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, imageDesc.width, imageDesc.height, 0, GL_RGBA, GL_FLOAT, imageDesc.resourceBuffer);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
-    }
 }
 
 bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, const string& fileName,  
                               ImageHandlerPtr imageHandler, bool generateMipMaps)
 {
     bool textureBound = false;
-
     if (uniformLocation >= 0 &&
         uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
-    {
-        // Use next available slot
-        if (_maxImageUnits < 0)
+    {        
+        ImageDesc imageDesc;
+        string identifier(fileName);
+        bool haveImage = imageHandler->getImage(identifier, imageDesc, generateMipMaps);
+
+        if (haveImage)
         {
-            glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &_maxImageUnits);
+            // Map location to a texture unit
+            glUniform1i(uniformLocation, imageDesc.resourceId);
+            textureBound = imageHandler->bindImage(identifier);
         }
-        if (_textureUnitsInUse >= _maxImageUnits)
-        {
-            return false;
-        }
-        
-        // Map location to a texture unit
-        glUniform1i(uniformLocation, _textureUnitsInUse);
-        // Bind a texture to that unit
-        glActiveTexture(GL_TEXTURE0 + _textureUnitsInUse);
-
-        if (!fileName.empty() && imageHandler)
-        {
-            // Check to see if we have already loaded in the texture.
-            // If so, reuse the existing texture id
-            const ImageDesc* cachedDesc = imageHandler->getCachedImage(fileName);
-            if (cachedDesc)
-            {
-                glBindTexture(GL_TEXTURE_2D, cachedDesc->resourceId);
-                textureBound = true;
-            }
-            else
-            { 
-                ImageDesc desc;                
-                if (imageHandler->loadImage(fileName, desc) &&
-                    (desc.channelCount == 3 || desc.channelCount == 4))
-                {
-                    desc.resourceId = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
-                    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-                    glGenTextures(1, &desc.resourceId);
-                    glBindTexture(GL_TEXTURE_2D, desc.resourceId);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, desc.width, desc.height,
-                        0, (desc.channelCount == 4 ? GL_RGBA : GL_RGB), GL_FLOAT, desc.resourceBuffer);
-                    if (generateMipMaps)
-                    {
-                        glGenerateMipmap(GL_TEXTURE_2D);
-                    }
-
-                    free(desc.resourceBuffer);
-                    desc.resourceBuffer = nullptr;
-
-                    imageHandler->cacheImage(fileName, desc);
-
-                    textureBound = true;
-                }
-            }
-        }
-
-        if (!textureBound)
-        {
-            const string BLACK_TEXTURE("@internal_black_texture@");
-            const ImageDesc* cachedDesc = imageHandler->getCachedImage(fileName);
-            if (cachedDesc)
-            {
-                glBindTexture(GL_TEXTURE_2D, cachedDesc->resourceId);
-            }
-            else
-            {
-                Color4 color(0.0f, 0.0f, 0.0f, 1.0f);
-                ImageDesc desc;
-                desc.channelCount = 4;
-                desc.width = 1;
-                desc.height = 1;
-                createColorTexture(color, desc, imageHandler);
-                glBindTexture(GL_TEXTURE_2D, desc.resourceId);
-
-                imageHandler->cacheImage(BLACK_TEXTURE, desc);
-            }
-            textureBound = true;
-        }
+        checkErrors();
     }
-
-    if (textureBound)
-    {
-        _textureUnitsInUse++;
-    }
-
     return textureBound;
 }
 
@@ -682,7 +576,6 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
             }
         }
     }
-
     checkErrors();
 }
 

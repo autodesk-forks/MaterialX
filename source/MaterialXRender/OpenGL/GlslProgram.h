@@ -221,9 +221,6 @@ class GlslProgram
     bool bindTexture(unsigned int uniformType, int uniformLocation, const string& fileName,
                      ImageHandlerPtr imageHandler, bool generateMipMaps);
 
-    /// Create a single color texture
-    void createColorTexture(const Color4& color, ImageDesc& imageDesc, ImageHandlerPtr imageHandler);
-
     /// Internal cleanup of stages and OpenGL constructs
     void cleanup();
 

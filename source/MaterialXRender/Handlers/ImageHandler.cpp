@@ -4,6 +4,18 @@
 
 namespace MaterialX
 {
+bool ImageHandler::saveImage(const std::string& fileName,
+                            const ImageDesc &imageDesc)
+{
+    return _imageLoader->saveImage(fileName, imageDesc);
+}
+
+bool ImageHandler::getImage(std::string& fileName,
+                             ImageDesc &imageDesc, 
+                             bool /*generatateMipMaps*/)
+{
+    return _imageLoader->loadImage(fileName, imageDesc);
+}
 
 bool ImageHandler::createColorImage(const MaterialX::Color4& color,
                                     ImageDesc& desc)

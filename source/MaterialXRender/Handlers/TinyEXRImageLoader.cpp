@@ -25,12 +25,12 @@
 #endif
 #endif
 
-#include <MaterialXRender/Handlers/TinyEXRImageHandler.h>
+#include <MaterialXRender/Handlers/TinyEXRImageLoader.h>
 
 namespace MaterialX
 {
 #if defined(TINYEXR_USABLE)
-bool TinyEXRImageHandler::saveImage(const std::string& fileName,
+bool TinyEXRImageLoader::saveImage(const std::string& fileName,
                                     const ImageDesc& imageDesc)
 {
     int returnValue = -1;
@@ -43,7 +43,7 @@ bool TinyEXRImageHandler::saveImage(const std::string& fileName,
     return (returnValue == 0);
 }
 
-bool TinyEXRImageHandler::loadImage(const std::string& fileName,
+bool TinyEXRImageLoader::loadImage(const std::string& fileName,
                                     ImageDesc& imageDesc)
 {
     int returnValue = -1;
@@ -72,13 +72,13 @@ bool TinyEXRImageHandler::loadImage(const std::string& fileName,
 
 
 #else
-bool TinyEXRImageHandler::saveImage(const std::string& /*fileName*/,
+bool TinyEXRImageLoader::saveImage(const std::string& /*fileName*/,
                                     const ImageDesc& /*imageDesc*/)
 {
     return false;
 }
 
-bool TinyEXRImageHandler::loadImage(const std::string& /*fileName*/,
+bool TinyEXRImageLoader::loadImage(const std::string& /*fileName*/,
                                     ImageDesc& /*imageDesc*/)
 {
     return false;
