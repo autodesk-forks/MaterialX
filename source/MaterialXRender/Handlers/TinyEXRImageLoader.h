@@ -23,6 +23,9 @@ public:
     /// Default destructor
     virtual ~TinyEXRImageLoader() {}
 
+    /// Returns if a given file extension is supported
+    bool supportsExtension(const std::string extension) override;
+
     /// Save image to disk. This method must be implemented by derived classes.
     /// @param fileName Name of file to save image to
     /// @param imageDesc Description of image

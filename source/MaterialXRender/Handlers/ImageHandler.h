@@ -53,6 +53,9 @@ class ImageLoader
     /// Default destructor
     virtual ~ImageLoader() {}
 
+    /// Returns if a given file extension is supported
+    virtual bool supportsExtension(const std::string extension) = 0;
+
     /// Save image to disk. This method must be implemented by derived classes.
     /// @param fileName Name of file to save image to
     /// @param imageDesc Description of image
@@ -79,15 +82,23 @@ class ImageHandler
 {
   public:
     /// Default constructor
-    ImageHandler(ImageLoaderPtr imageLoader) :
-        _imageLoader(imageLoader)
+    ImageHandler(ImageLoaderPtr imageLoader)
     {
+        _imageLoaders.push_back(imageLoader);
+    }
+
+    /// Add additional image loaders. Useful to handle different file
+    /// extension
+    void addLoader(ImageLoaderPtr loader)
+    {
+        _imageLoaders.push_back(loader);
     }
     
     /// Default destructor
     virtual ~ImageHandler() {}
 
     /// Save image to disk. This method must be implemented by derived classes.
+    /// The first image loader which supports the file name extension will be used.
     /// @param fileName Name of file to save image to
     /// @param imageDesc Description of image
     /// @return if save succeeded
@@ -95,6 +106,7 @@ class ImageHandler
                            const ImageDesc &imageDesc);
 
     /// Get an image from disk. This method must be implemented by derived classes.
+    /// The first image loader which supports the file name extension will be used.
     /// @param fileName Name of file to load image from.
     /// @param imageDesc Description of image updated during load.
     /// @param generateMipMaps Generate mip maps if supported.
@@ -141,8 +153,8 @@ class ImageHandler
     /// Delete image
     virtual void deleteImage(ImageDesc& /*imageDesc*/) = 0;
 
-    /// Image loader utility
-    ImageLoaderPtr _imageLoader;
+    /// Image loader utilities
+    std::vector<ImageLoaderPtr> _imageLoaders;
     /// Image description cache
     ImageDescCache _imageCache;
 };

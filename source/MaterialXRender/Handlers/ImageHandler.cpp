@@ -1,4 +1,5 @@
 #include <MaterialXCore/Types.h>
+#include <MaterialXGenShader/Util.h>
 #include <MaterialXRender/Handlers/ImageHandler.h>
 #include <cmath>
 
@@ -7,14 +8,28 @@ namespace MaterialX
 bool ImageHandler::saveImage(const std::string& fileName,
                             const ImageDesc &imageDesc)
 {
-    return _imageLoader->saveImage(fileName, imageDesc);
+    for (auto loader : _imageLoaders)
+    {
+        if (loader->supportsExtension(getFileExtension(fileName)))
+        {
+            return loader->saveImage(fileName, imageDesc);
+        }
+    }
+    return false;
 }
 
 bool ImageHandler::getImage(std::string& fileName,
                              ImageDesc &imageDesc, 
                              bool /*generatateMipMaps*/)
 {
-    return _imageLoader->loadImage(fileName, imageDesc);
+    for (auto loader : _imageLoaders)
+    {
+        if (loader->supportsExtension(getFileExtension(fileName)))
+        {
+            return loader->loadImage(fileName, imageDesc);
+        }
+    }
+    return false;
 }
 
 bool ImageHandler::createColorImage(const MaterialX::Color4& color,

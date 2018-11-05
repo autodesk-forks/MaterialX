@@ -29,14 +29,20 @@
 
 namespace MaterialX
 {
+bool TinyEXRImageLoader::supportsExtension(const std::string extension)
+{
+    return (extension == "exr");
+}
+
 #if defined(TINYEXR_USABLE)
+
 bool TinyEXRImageLoader::saveImage(const std::string& fileName,
                                     const ImageDesc& imageDesc)
 {
     int returnValue = -1;
     // Fail with any type other than exr.
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
-    if (extension == "exr")
+    if (supportsExtension(extension))
     { 
         returnValue = SaveEXR(imageDesc.resourceBuffer, static_cast<int>(imageDesc.width), static_cast<int>(imageDesc.height), imageDesc.channelCount, 1 /* save as 16 bit float format */, fileName.c_str());
     }
@@ -52,7 +58,7 @@ bool TinyEXRImageLoader::loadImage(const std::string& fileName,
 
     // Fail with any type other than exr.
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
-    if (extension == "exr")
+    if (supportsExtension(extension))
     {
         const char* err = nullptr;
         int iwidth = 0;
