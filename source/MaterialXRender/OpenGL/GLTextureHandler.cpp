@@ -30,7 +30,7 @@ bool GLTextureHandler::getImage(std::string& fileName,
 {
     if (fileName.empty())
     {
-        return nullptr;
+        return false;
     }
 
     // Check to see if we have already loaded in the texture.
