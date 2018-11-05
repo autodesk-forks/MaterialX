@@ -30,9 +30,7 @@ GlslProgram::GlslProgram() :
     _hwShader(nullptr),
     _indexBuffer(0),
     _indexBufferSize(0),
-    _vertexArray(0),
-    _maxImageUnits(-1),
-    _textureUnitsInUse(0)
+    _vertexArray(0)
 {
 }
 

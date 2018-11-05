@@ -25,36 +25,52 @@ class GLTextureHandler : public ImageHandler
     /// Default constructor
     GLTextureHandler(ImageLoaderPtr imageLoader) :
         ParentClass(imageLoader),
-        _maxImageUnits(-1),
-        _textureUnitsInUse(0)
+        _maxImageUnits(-1)
     {
     }
     
     /// Default destructor
     virtual ~GLTextureHandler() {}
 
+
+    /// Utility to create a solid color color image 
+    /// This method will create an OpenGL texture resource and return it's resource identifier
+    /// as part of the image description returned.
+    /// @param color Color to set
+    /// @param imageDesc Description of image updated during load.
+    /// @return if creation succeeded
     bool createColorImage(const MaterialX::Color4& color,
                           ImageDesc& imageDesc) override;
 
-    /// Get an image. 
-    /// If the image failed to load then a single color image is created instead
+    /// Get an image from disk. 
+    /// The first image loader which supports the file name extension will be used.
+    /// This method will create an OpenGL texture resource and return it's resource identifier
+    /// as part of the image description returned.
+    /// @param fileName Name of file to load image from.
+    /// @param imageDesc Description of image updated during load.
+    /// @param generateMipMaps Generate mip maps if supported.
+    /// @return if load succeeded
     bool getImage(std::string& fileName,
                   ImageDesc &imageDesc, bool generatateMipMaps) override;
 
-    /// Bind an image
+    /// Bind an image. This method will bind the texture to an active texture
+    /// unit as defined by the corresponding image description. The method
+    /// will fail if there are not enough available image units to bind to.
+    /// @param identifier Identifier for image description to bind.
+    /// @return true if succeded to bind
     bool bindImage(const string &identifier) override;
 
     /// Clear image cache
     void clearImageCache() override;
 
   protected:
-    /// Delete image
+    /// Delete an image
+    /// @param imageDesc Image description indicate which image to delete.
+    /// Any OpenGL texture resource and as well as any CPU side reosurce memory will be deleted. 
     void deleteImage(MaterialX::ImageDesc& imageDesc) override;
 
-    /// Maximum image units
+    /// Maximum number of available image units
     int _maxImageUnits;
-    /// Active texture units used
-    int _textureUnitsInUse;
 };
 
 } // namespace MaterialX

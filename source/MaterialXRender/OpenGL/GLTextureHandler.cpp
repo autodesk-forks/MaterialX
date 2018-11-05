@@ -121,14 +121,6 @@ bool GLTextureHandler::bindImage(const string &identifier)
 
 void GLTextureHandler::clearImageCache()
 {
-    for (GLint i = 0; i<_textureUnitsInUse; i++)
-    {
-        // Unbind a texture to that unit
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
-    }
-    _textureUnitsInUse = 0;
-
     ImageDescCache& cache = getImageCache();
     for (auto iter : cache)
     {
@@ -141,8 +133,12 @@ void GLTextureHandler::deleteImage(MaterialX::ImageDesc& imageDesc)
 {
     if (imageDesc.resourceId != MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
     {
+        // Unbind a texture from image unit and delete the texture
+        glActiveTexture(GL_TEXTURE0 + imageDesc.resourceId);
+        glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
         glDeleteTextures(1, &imageDesc.resourceId);
     }
+    // Delete any CPU side memory
     if (imageDesc.resourceBuffer)
     {
         free(imageDesc.resourceBuffer);

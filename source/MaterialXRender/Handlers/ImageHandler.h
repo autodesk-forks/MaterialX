@@ -54,7 +54,8 @@ class ImageLoader
     /// Default destructor
     virtual ~ImageLoader() {}
 
-    /// Returns if a given file extension is supported
+    /// Returns if a given file extension is supported. 
+    /// @param extension File extenstion to check.
     virtual bool supportsExtension(const std::string extension) = 0;
 
     /// Save image to disk. This method must be implemented by derived classes.
@@ -76,13 +77,15 @@ class ImageLoader
 using ImageHandlerPtr = std::shared_ptr<class ImageHandler>;
 
 /// @class @ImageHandler
-/// A image handler class. Can keep track of images which are loaded
-/// from disk via an ImageLoader or created from memory
+/// A image handler class. Keeps track of images which are loaded
+/// from disk via supplied ImageLoader. Derive classes are responsible
+/// for determinine how to perform the ligic for "binding" of these resources
+/// for a given target (such as a given shading language).
 ///
 class ImageHandler
 {
   public:
-    /// Default constructor
+    /// Constructor. Assume at least one loader must be supplied.
     ImageHandler(ImageLoaderPtr imageLoader)
     {
         _imageLoaders.push_back(imageLoader);
@@ -90,6 +93,7 @@ class ImageHandler
 
     /// Add additional image loaders. Useful to handle different file
     /// extension
+    /// @param loader Loader to add to list of available loaders.
     void addLoader(ImageLoaderPtr loader)
     {
         _imageLoaders.push_back(loader);
@@ -121,10 +125,15 @@ class ImageHandler
     virtual bool createColorImage(const MaterialX::Color4& color,
                                   ImageDesc& imageDesc);
  
-    /// Bind an image
+    /// Bind an image. Derived classes must implement this method
+    /// to handle logical binding of an image resource.
+    /// @param identifier Identifier for image description to bind.
+    /// @return true if succeded to bind
     virtual bool bindImage(const std::string& /*identifier*/) = 0;
 
-    /// Clear the image cache
+    /// Clear the contents of the image cache.
+    /// deleteImage() will be called for each cache description to 
+    /// allow derived classes to clean up any associated resources.
     virtual void clearImageCache()
     {
         _imageCache.clear();
@@ -133,25 +142,28 @@ class ImageHandler
   protected:
     /// Cache an image for reuse.
     /// @param identifier Description identifier to use.
-    /// @param imageDesc Image description
+    /// @param imageDesc Image description to cache
     void cacheImage(const std::string& identifier, const ImageDesc& imageDesc);
 
-    /// Uncache an image.
-    /// @param identifier Description identifier to use.
+    /// Remove image description from the cache.
+    /// @param identifier Identifier of description to remove.
     void uncacheImage(const std::string& identifier);
 
     /// Get an image description in the image cache if it exists
-    /// @param identifier Description identifier to search for.
+    /// @param identifier Description to search for.
     /// @return A null ptr is returned if not found.
     const ImageDesc* getCachedImage(const std::string& identifier);
 
-    /// Return the image cache
+    /// Return a reference to the image cache
     ImageDescCache& getImageCache()
     {
         return _imageCache;
     }
 
-    /// Delete image
+    /// Delete an image
+    /// @param imageDesc Image description indicate which image to delete.
+    /// Derived classes must implement this method to clean up resources
+    /// when the image cache is cleared.
     virtual void deleteImage(ImageDesc& /*imageDesc*/) = 0;
 
     /// Image loader utilities

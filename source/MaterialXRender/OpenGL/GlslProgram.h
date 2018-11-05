@@ -266,11 +266,6 @@ class GlslProgram
 
     /// Program texture map
     std::unordered_map<std::string, unsigned int> _programTextures;
-
-    /// Maximum image units
-    int _maxImageUnits;
-    /// Active texture units used
-    int _textureUnitsInUse;
 };
 
 } // namespace MaterialX
