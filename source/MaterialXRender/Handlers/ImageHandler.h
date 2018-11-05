@@ -5,6 +5,7 @@
 #include <memory>
 #include <cmath>
 #include <unordered_map>
+#include <vector>
 
 namespace MaterialX
 {
