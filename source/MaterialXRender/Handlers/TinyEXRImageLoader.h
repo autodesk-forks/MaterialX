@@ -1,5 +1,5 @@
-#ifndef MATERIALX_TinyEXRImageLoader_H
-#define MATERIALX_TinyEXRImageLoader_H
+#ifndef MATERIALX_TINYEXRIMAGELOADER_H
+#define MATERIALX_TINYEXRIMAGELOADER_H
 
 #include <MaterialXRender/Handlers/ImageHandler.h>
 
@@ -36,9 +36,9 @@ public:
     /// Load an image from disk. This method must be implemented by derived classes.
     /// @param fileName Name of file to load image from
     /// @param imageDesc Description of image updated during load.
+    /// @param generateMipMaps Generate mip maps if supported.
     /// @return if load succeeded
-    bool loadImage(const std::string& fileName,
-                   ImageDesc &imageDesc) override;
+    bool acquireImage(const std::string& fileName, ImageDesc &imageDesc, bool generateMipMaps) override;
 };
 
 } // namespace MaterialX;

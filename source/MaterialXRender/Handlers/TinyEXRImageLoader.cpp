@@ -49,8 +49,9 @@ bool TinyEXRImageLoader::saveImage(const std::string& fileName,
     return (returnValue == 0);
 }
 
-bool TinyEXRImageLoader::loadImage(const std::string& fileName,
-                                    ImageDesc& imageDesc)
+bool TinyEXRImageLoader::acquireImage(const std::string& fileName,
+                                      ImageDesc& imageDesc,
+                                      bool /*generateMipMaps*/)
 {
     int returnValue = -1;
     imageDesc.width = imageDesc.height = imageDesc.channelCount = 0;
@@ -84,8 +85,9 @@ bool TinyEXRImageLoader::saveImage(const std::string& /*fileName*/,
     return false;
 }
 
-bool TinyEXRImageLoader::loadImage(const std::string& /*fileName*/,
-                                    ImageDesc& /*imageDesc*/)
+bool TinyEXRImageLoader::acquireImage(const std::string& /*fileName*/,
+                                      ImageDesc& /*imageDesc*/, 
+                                      bool /*generateMipMaps*/)
 {
     return false;
 }

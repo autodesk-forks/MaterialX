@@ -24,9 +24,9 @@ bool GLTextureHandler::createColorImage(const MaterialX::Color4& color,
     return false;
 }
 
-bool GLTextureHandler::getImage(std::string& fileName,
-                                ImageDesc &imageDesc,
-                                bool generateMipMaps)
+bool GLTextureHandler::acquireImage(std::string& fileName,
+                                    ImageDesc &imageDesc,
+                                    bool generateMipMaps)
 {
     if (fileName.empty())
     {
@@ -43,7 +43,7 @@ bool GLTextureHandler::getImage(std::string& fileName,
     }
 
     bool textureLoaded = false;
-    if (ParentClass::getImage(fileName, imageDesc, generateMipMaps) &&
+    if (ParentClass::acquireImage(fileName, imageDesc, generateMipMaps) &&
         (imageDesc.channelCount == 3 || imageDesc.channelCount == 4))
     {
 
@@ -83,7 +83,6 @@ bool GLTextureHandler::getImage(std::string& fileName,
             desc.width = 1;
             desc.height = 1;
             createColorImage(color, desc);
-            glBindTexture(GL_TEXTURE_2D, desc.resourceId);
 
             cacheImage(BLACK_TEXTURE, desc);
         }
@@ -137,6 +136,7 @@ void GLTextureHandler::deleteImage(MaterialX::ImageDesc& imageDesc)
         glActiveTexture(GL_TEXTURE0 + imageDesc.resourceId);
         glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
         glDeleteTextures(1, &imageDesc.resourceId);
+        imageDesc.resourceId = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
     }
     // Delete any CPU side memory
     if (imageDesc.resourceBuffer)

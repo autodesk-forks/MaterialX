@@ -42,7 +42,7 @@ class GLTextureHandler : public ImageHandler
     bool createColorImage(const MaterialX::Color4& color,
                           ImageDesc& imageDesc) override;
 
-    /// Get an image from disk. 
+    /// Acquire an image from disk. 
     /// The first image loader which supports the file name extension will be used.
     /// This method will create an OpenGL texture resource and return it's resource identifier
     /// as part of the image description returned.
@@ -50,8 +50,7 @@ class GLTextureHandler : public ImageHandler
     /// @param imageDesc Description of image updated during load.
     /// @param generateMipMaps Generate mip maps if supported.
     /// @return if load succeeded
-    bool getImage(std::string& fileName,
-                  ImageDesc &imageDesc, bool generatateMipMaps) override;
+    bool acquireImage(std::string& fileName, ImageDesc &imageDesc, bool generatateMipMaps) override;
 
     /// Bind an image. This method will bind the texture to an active texture
     /// unit as defined by the corresponding image description. The method

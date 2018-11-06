@@ -18,15 +18,13 @@ bool ImageHandler::saveImage(const std::string& fileName,
     return false;
 }
 
-bool ImageHandler::getImage(std::string& fileName,
-                             ImageDesc &imageDesc, 
-                             bool /*generatateMipMaps*/)
+bool ImageHandler::acquireImage(std::string& fileName, ImageDesc &imageDesc, bool generateMipMaps)
 {
     for (auto loader : _imageLoaders)
     {
         if (loader->supportsExtension(getFileExtension(fileName)))
         {
-            return loader->loadImage(fileName, imageDesc);
+            return loader->acquireImage(fileName, imageDesc, generateMipMaps);
         }
     }
     return false;

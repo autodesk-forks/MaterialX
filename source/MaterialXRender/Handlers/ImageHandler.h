@@ -12,7 +12,7 @@ namespace MaterialX
 class Color4;
 
 /// @class @ImageDesc
-/// Interface to description an image. Images are assumed to be float type.
+/// Interface to describe an image. Images are assumed to be float type.
 class ImageDesc
 {
   public:
@@ -65,12 +65,12 @@ class ImageLoader
     virtual bool saveImage(const std::string& fileName,
                            const ImageDesc &imageDesc) = 0;
 
-    /// Load an image from disk. This method must be implemented by derived classes.
+    /// Acquire an image from disk. This method must be implemented by derived classes.
     /// @param fileName Name of file to load image from
     /// @param imageDesc Description of image updated during load.
+    /// @param generateMipMaps Generate mip maps if supported.
     /// @return if load succeeded
-    virtual bool loadImage(const std::string& fileName,
-                           ImageDesc &imageDesc) = 0;
+    virtual bool acquireImage(const std::string& fileName, ImageDesc &imageDesc, bool generateMipMaps) = 0;
 };
 
 /// Shared pointer to an ImageHandler
@@ -79,7 +79,7 @@ using ImageHandlerPtr = std::shared_ptr<class ImageHandler>;
 /// @class @ImageHandler
 /// A image handler class. Keeps track of images which are loaded
 /// from disk via supplied ImageLoader. Derive classes are responsible
-/// for determinine how to perform the ligic for "binding" of these resources
+/// for determinine how to perform the logic for "binding" of these resources
 /// for a given target (such as a given shading language).
 ///
 class ImageHandler
@@ -110,13 +110,13 @@ class ImageHandler
     virtual bool saveImage(const std::string& fileName,
                            const ImageDesc &imageDesc);
 
-    /// Get an image from disk. This method must be implemented by derived classes.
+    /// Acquire an image from disk. This method must be implemented by derived classes.
     /// The first image loader which supports the file name extension will be used.
     /// @param fileName Name of file to load image from.
     /// @param imageDesc Description of image updated during load.
     /// @param generateMipMaps Generate mip maps if supported.
     /// @return if load succeeded
-    virtual bool getImage(std::string& fileName, ImageDesc& desc, bool generateMipMaps);
+    virtual bool acquireImage(std::string& fileName, ImageDesc& desc, bool generateMipMaps);
 
     /// Utility to create a solid color color image 
     /// @param color Color to set
