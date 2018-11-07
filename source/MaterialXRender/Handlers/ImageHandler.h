@@ -43,12 +43,23 @@ class ImageDesc
 class ImageSamplingProperties
 {
   public:
+    /// Default constructor
+    ImageSamplingProperties()
+    {
+        unmappedColor[0] = 0.0;
+        unmappedColor[1] = 0.0;
+        unmappedColor[2] = 0.0;
+        unmappedColor[3] = 1.0;
+    }
+
     /// Address mode in U
     MaterialX::ValuePtr uaddressMode;
     /// Address mode in V
     MaterialX::ValuePtr vaddressMode;
     /// Filter type
     MaterialX::ValuePtr filterType;
+    /// Unmapped color
+    MaterialX::Color4 unmappedColor;
 };
 
 /// Image description cache

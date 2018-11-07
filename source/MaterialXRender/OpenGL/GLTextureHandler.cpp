@@ -117,10 +117,14 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
         // Set up texture properties
         //
         GLint minFilterType = mapFilterTypeToGL(samplingProperties.filterType);
-        GLint magFilterType = (minFilterType == GL_LINEAR_MIPMAP_LINEAR) ? GL_LINEAR : minFilterType;
+        // Note: Magnification filters are more restrictive than minification
+        GLint magFilterType = (minFilterType == GL_LINEAR || minFilterType == GL_REPEAT) ? minFilterType : GL_LINEAR;
         GLint uaddressMode = mapAddressModeToGL(samplingProperties.uaddressMode);
         GLint vaddressMode = mapAddressModeToGL(samplingProperties.vaddressMode);
         
+        float unmappedColor[4] = { samplingProperties.unmappedColor[0], samplingProperties.unmappedColor[1],
+                                   samplingProperties.unmappedColor[2], samplingProperties.unmappedColor[3] };
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, unmappedColor);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, vaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterType);
