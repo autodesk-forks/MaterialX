@@ -517,7 +517,7 @@ void GlslProgram::unbindTextures(ImageHandlerPtr imageHandler)
 
 bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, const string& fileName,  
                               ImageHandlerPtr imageHandler, bool generateMipMaps,
-                              const ImagePropertiesDesc& imageProperties)
+                              const ImageSamplingProperties& samplingProperties)
 {
     bool textureBound = false;
     if (uniformLocation >= 0 &&
@@ -531,7 +531,7 @@ bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, con
         {
             // Map location to a texture unit
             glUniform1i(uniformLocation, imageDesc.resourceId);
-            textureBound = imageHandler->bindImage(identifier, imageProperties);
+            textureBound = imageHandler->bindImage(identifier, samplingProperties);
         }
         checkErrors();
     }
@@ -593,12 +593,12 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
                 std::string vaddressmodeStr = root[0] + "_vaddressmode";
                 std::string filtertypeStr = root[0] + "_filtertype";
 
-                ImagePropertiesDesc imageProperties;
-                imageProperties.uaddressMode = findUniformValue(uaddressModeStr, uniformList);
-                imageProperties.vaddressMode = findUniformValue(vaddressmodeStr, uniformList);
-                imageProperties.filterType = findUniformValue(filtertypeStr, uniformList);
+                ImageSamplingProperties samplingProperties;
+                samplingProperties.uaddressMode = findUniformValue(uaddressModeStr, uniformList);
+                samplingProperties.vaddressMode = findUniformValue(vaddressmodeStr, uniformList);
+                samplingProperties.filterType = findUniformValue(filtertypeStr, uniformList);
 
-                bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, imageProperties);
+                bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, samplingProperties);
             }
         }
     }
@@ -673,7 +673,7 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
             {
                 fileName = ibl.second;
             }
-            ImagePropertiesDesc desc;
+            ImageSamplingProperties desc;
             bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, desc);
         }
     }

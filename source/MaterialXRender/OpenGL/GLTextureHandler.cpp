@@ -94,7 +94,7 @@ bool GLTextureHandler::acquireImage(std::string& fileName,
 }
 
 
-bool GLTextureHandler::bindImage(const string &identifier, const ImagePropertiesDesc& imageProperties)
+bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingProperties& samplingProperties)
 {        
     const ImageDesc* cachedDesc = getCachedImage(identifier);
     if (cachedDesc)
@@ -116,10 +116,10 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageProperties
 
         // Set up texture properties
         //
-        GLint minFilterType = mapFilterTypeToGL(imageProperties.filterType);
+        GLint minFilterType = mapFilterTypeToGL(samplingProperties.filterType);
         GLint magFilterType = (minFilterType == GL_LINEAR_MIPMAP_LINEAR) ? GL_LINEAR : minFilterType;
-        GLint uaddressMode = mapAddressModeToGL(imageProperties.uaddressMode);
-        GLint vaddressMode = mapAddressModeToGL(imageProperties.vaddressMode);
+        GLint uaddressMode = mapAddressModeToGL(samplingProperties.uaddressMode);
+        GLint vaddressMode = mapAddressModeToGL(samplingProperties.vaddressMode);
         
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, vaddressMode);

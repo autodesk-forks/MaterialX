@@ -223,7 +223,7 @@ class GlslProgram
 
     /// Bind an individual texture to a program uniform location
     bool bindTexture(unsigned int uniformType, int uniformLocation, const string& fileName,
-                     ImageHandlerPtr imageHandler, bool generateMipMaps, const ImagePropertiesDesc& imageProperties);
+                     ImageHandlerPtr imageHandler, bool generateMipMaps, const ImageSamplingProperties& imageProperties);
 
     /// Internal cleanup of stages and OpenGL constructs
     void cleanup();

@@ -38,13 +38,16 @@ class ImageDesc
     }
 };
 
-/// class @ImagePropertiesDesc
-/// Interface to describe image properties.
-class ImagePropertiesDesc
+/// class @ImageSamplingProperties
+/// Interface to describe sampling properties for images.
+class ImageSamplingProperties
 {
   public:
+    /// Address mode in U
     MaterialX::ValuePtr uaddressMode;
+    /// Address mode in V
     MaterialX::ValuePtr vaddressMode;
+    /// Filter type
     MaterialX::ValuePtr filterType;
 };
 
@@ -140,9 +143,9 @@ class ImageHandler
     /// Bind an image. Derived classes must implement this method
     /// to handle logical binding of an image resource.
     /// @param identifier Identifier for image description to bind.
-    /// @param imageProprties Binding properties for the image
+    /// @param samplingProperties Sampling properties for the image
     /// @return true if succeded to bind
-    virtual bool bindImage(const std::string& /*identifier*/, const ImagePropertiesDesc& /*imageProperties*/) = 0;
+    virtual bool bindImage(const std::string& /*identifier*/, const ImageSamplingProperties& /*samplingProperties*/) = 0;
 
     /// Clear the contents of the image cache.
     /// deleteImage() will be called for each cache description to 
