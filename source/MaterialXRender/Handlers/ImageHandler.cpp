@@ -23,9 +23,11 @@ bool ImageHandler::saveImage(const std::string& fileName,
                             const ImageDesc &imageDesc)
 {
     std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
-    range = _imageLoaders.equal_range(fileName);
-    // Most recently added loader is first one checked
-    for (auto it = range.second; it != range.first; it--)
+    string extension = MaterialX::getFileExtension(fileName);
+    range = _imageLoaders.equal_range(extension);
+    ImageLoaderMap::iterator first = --range.second;
+    ImageLoaderMap::iterator last = --range.first;
+    for (auto it = first; it != last; --it)
     {
         bool saved = it->second->saveImage(fileName, imageDesc);
         if (saved)
@@ -39,9 +41,11 @@ bool ImageHandler::saveImage(const std::string& fileName,
 bool ImageHandler::acquireImage(std::string& fileName, ImageDesc &imageDesc, bool generateMipMaps)
 {
     std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
-    range = _imageLoaders.equal_range(fileName);
-    // Most recently added loader is first one checked
-    for (auto it = range.second; it != range.first; it--)
+    string extension = MaterialX::getFileExtension(fileName);
+    range = _imageLoaders.equal_range(extension);
+    ImageLoaderMap::iterator first = --range.second;
+    ImageLoaderMap::iterator last= --range.first;
+    for (auto it = first; it != last; --it)
     {
         bool acquired = it->second->acquireImage(fileName, imageDesc, generateMipMaps);
         if (acquired)
