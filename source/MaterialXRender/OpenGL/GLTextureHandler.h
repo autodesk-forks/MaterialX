@@ -56,8 +56,15 @@ class GLTextureHandler : public ImageHandler
     /// unit as defined by the corresponding image description. The method
     /// will fail if there are not enough available image units to bind to.
     /// @param identifier Identifier for image description to bind.
+    /// @param imageProprties Binding properties for the image
     /// @return true if succeded to bind
-    bool bindImage(const string &identifier) override;
+    bool bindImage(const string &identifier, const ImagePropertiesDesc& imageProperties) override;
+
+    /// Utility to make a shader value to an OpenGL address mode
+    static int mapAddressModeToGL(const MaterialX::ValuePtr value);
+
+    /// Utility to make a shader value to an OpenGL filter type
+    static int mapFilterTypeToGL(const MaterialX::ValuePtr value);
 
     /// Clear image cache
     void clearImageCache() override;

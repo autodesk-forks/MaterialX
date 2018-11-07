@@ -516,7 +516,8 @@ void GlslProgram::unbindTextures(ImageHandlerPtr imageHandler)
 }
 
 bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, const string& fileName,  
-                              ImageHandlerPtr imageHandler, bool generateMipMaps)
+                              ImageHandlerPtr imageHandler, bool generateMipMaps,
+                              const ImagePropertiesDesc& imageProperties)
 {
     bool textureBound = false;
     if (uniformLocation >= 0 &&
@@ -530,11 +531,25 @@ bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, con
         {
             // Map location to a texture unit
             glUniform1i(uniformLocation, imageDesc.resourceId);
-            textureBound = imageHandler->bindImage(identifier);
+            textureBound = imageHandler->bindImage(identifier, imageProperties);
         }
         checkErrors();
     }
     return textureBound;
+}
+
+MaterialX::ValuePtr GlslProgram::findUniformValue(const std::string& uniformName, const MaterialX::GlslProgram::InputMap& uniformList)
+{
+    auto uniform = uniformList.find(uniformName);
+    if (uniform != uniformList.end())
+    {
+        int location = uniform->second->location;
+        if (location >= 0)
+        {
+            return uniform->second->value;         
+        }
+    }
+    return nullptr;
 }
 
 void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
@@ -555,6 +570,7 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
 
     // Bind textures based on uniforms found in the program
     const MaterialX::GlslProgram::InputMap& uniformList = getUniformsList();
+    const std::string IMAGE_SEPERATOR("_");
     for (auto uniform : uniformList)
     {
         GLenum uniformType = uniform.second->gltype;
@@ -570,7 +586,19 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
                 fileName != RADIANCE_ENV_UNIFORM_NAME &&
                 fileName != IRRADIANCE_ENV_UNIFORM_NAME)
             {
-                bindTexture(uniformType, uniformLocation, fileName, imageHandler, true);
+                // Get the additional texture parameters based on image uniform name
+                MaterialX::StringVec root = MaterialX::splitString(uniform.first, IMAGE_SEPERATOR);
+
+                std::string uaddressModeStr = root[0] + "_uaddressmode";
+                std::string vaddressmodeStr = root[0] + "_vaddressmode";
+                std::string filtertypeStr = root[0] + "_filtertype";
+
+                ImagePropertiesDesc imageProperties;
+                imageProperties.uaddressMode = findUniformValue(uaddressModeStr, uniformList);
+                imageProperties.vaddressMode = findUniformValue(vaddressmodeStr, uniformList);
+                imageProperties.filterType = findUniformValue(filtertypeStr, uniformList);
+
+                bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, imageProperties);
             }
         }
     }
@@ -645,7 +673,8 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
             {
                 fileName = ibl.second;
             }
-            bindTexture(uniformType, uniformLocation, fileName, imageHandler, true);
+            ImagePropertiesDesc desc;
+            bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, desc);
         }
     }
 

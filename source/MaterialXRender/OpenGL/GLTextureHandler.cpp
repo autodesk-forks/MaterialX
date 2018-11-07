@@ -94,7 +94,7 @@ bool GLTextureHandler::acquireImage(std::string& fileName,
 }
 
 
-bool GLTextureHandler::bindImage(const string &identifier)
+bool GLTextureHandler::bindImage(const string &identifier, const ImagePropertiesDesc& imageProperties)
 {        
     const ImageDesc* cachedDesc = getCachedImage(identifier);
     if (cachedDesc)
@@ -113,9 +113,64 @@ bool GLTextureHandler::bindImage(const string &identifier)
         }
         glActiveTexture(GL_TEXTURE0 + resourceId);
         glBindTexture(GL_TEXTURE_2D, resourceId);
+
+        // Set up texture properties
+        //
+        GLint minFilterType = mapFilterTypeToGL(imageProperties.filterType);
+        GLint magFilterType = (minFilterType == GL_LINEAR_MIPMAP_LINEAR) ? GL_LINEAR : minFilterType;
+        GLint uaddressMode = mapAddressModeToGL(imageProperties.uaddressMode);
+        GLint vaddressMode = mapAddressModeToGL(imageProperties.vaddressMode);
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uaddressMode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, vaddressMode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterType);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilterType);
+
         return true;
     }
     return false;
+}
+
+int GLTextureHandler::mapAddressModeToGL(const MaterialX::ValuePtr value)
+{
+    int addressMode = GL_REPEAT;
+    if (value && value->isA<int>())
+    {
+        int addressModeEnum = value->asA<int>();
+
+        // Black = clamp to border color
+        // Sets GL_TEXTURE_BORDER_COLOR.
+        if (addressModeEnum == 0)
+        {
+            addressMode = GL_CLAMP_TO_BORDER;
+        }
+        // Clamp
+        else if (addressModeEnum == 0)
+        {
+            addressMode = GL_CLAMP;
+        }
+    }
+    return addressMode;
+}
+
+int GLTextureHandler::mapFilterTypeToGL(const MaterialX::ValuePtr value)
+{
+    int filterType = GL_LINEAR_MIPMAP_LINEAR;
+    if (value && value->isA<int>())
+    {
+        int filterTypeEnum = value->asA<int>();
+        // 0 = closest
+        if (filterTypeEnum == 0)
+        {
+            filterType = GL_NEAREST;
+        }
+        // 1 == linear
+        else if (filterTypeEnum == 1)
+        {
+            filterType = GL_LINEAR;
+        }
+    }
+    return filterType;
 }
 
 void GLTextureHandler::clearImageCache()

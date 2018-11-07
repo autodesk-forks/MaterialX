@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <MaterialXCore/Value.h>
+
 namespace MaterialX
 {
 class Color4;
@@ -34,6 +36,16 @@ class ImageDesc
     {
         mipCount = (unsigned int)std::log2(std::max(width, height)) + 1;
     }
+};
+
+/// class @ImagePropertiesDesc
+/// Interface to describe image properties.
+class ImagePropertiesDesc
+{
+  public:
+    MaterialX::ValuePtr uaddressMode;
+    MaterialX::ValuePtr vaddressMode;
+    MaterialX::ValuePtr filterType;
 };
 
 /// Image description cache
@@ -128,8 +140,9 @@ class ImageHandler
     /// Bind an image. Derived classes must implement this method
     /// to handle logical binding of an image resource.
     /// @param identifier Identifier for image description to bind.
+    /// @param imageProprties Binding properties for the image
     /// @return true if succeded to bind
-    virtual bool bindImage(const std::string& /*identifier*/) = 0;
+    virtual bool bindImage(const std::string& /*identifier*/, const ImagePropertiesDesc& /*imageProperties*/) = 0;
 
     /// Clear the contents of the image cache.
     /// deleteImage() will be called for each cache description to 

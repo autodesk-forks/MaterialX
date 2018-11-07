@@ -213,13 +213,17 @@ class GlslProgram
     /// @return OpenGL type. INVALID_OPENGL_TYPE is returned if no mapping exists. For example strings have no OpenGL type.
     static int mapTypeToOpenGLType(const TypeDesc* type);
 
+    /// Utility to find a uniform value in an uniform list.
+    /// If uniform cannot be found a null pointer will be return.
+    MaterialX::ValuePtr findUniformValue(const std::string& uniformName, const InputMap& uniformList);
+
     /// @}
     /// @name Utilities
     /// @{
 
     /// Bind an individual texture to a program uniform location
     bool bindTexture(unsigned int uniformType, int uniformLocation, const string& fileName,
-                     ImageHandlerPtr imageHandler, bool generateMipMaps);
+                     ImageHandlerPtr imageHandler, bool generateMipMaps, const ImagePropertiesDesc& imageProperties);
 
     /// Internal cleanup of stages and OpenGL constructs
     void cleanup();
