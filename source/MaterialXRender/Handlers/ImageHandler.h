@@ -6,6 +6,7 @@
 #include <cmath>
 #include <unordered_map>
 #include <vector>
+#include <map>
 
 #include <MaterialXCore/Value.h>
 
@@ -80,9 +81,9 @@ class ImageLoader
     /// Default destructor
     virtual ~ImageLoader() {}
 
-    /// Returns if a given file extension is supported. 
-    /// @param extension File extenstion to check.
-    virtual bool supportsExtension(const std::string extension) = 0;
+    /// Returns a list of supported extensions
+    /// @return List of support extensions
+    virtual StringVec& supportedExtensions() = 0;
 
     /// Save image to disk. This method must be implemented by derived classes.
     /// @param fileName Name of file to save image to
@@ -102,6 +103,9 @@ class ImageLoader
 /// Shared pointer to an ImageHandler
 using ImageHandlerPtr = std::shared_ptr<class ImageHandler>;
 
+/// Map of extensions to image loaders
+using ImageLoaderMap = std::multimap<std::string, ImageLoaderPtr>;
+
 /// @class @ImageHandler
 /// A image handler class. Keeps track of images which are loaded
 /// from disk via supplied ImageLoader. Derive classes are responsible
@@ -112,18 +116,12 @@ class ImageHandler
 {
   public:
     /// Constructor. Assume at least one loader must be supplied.
-    ImageHandler(ImageLoaderPtr imageLoader)
-    {
-        _imageLoaders.push_back(imageLoader);
-    }
+    ImageHandler(ImageLoaderPtr imageLoader);
 
     /// Add additional image loaders. Useful to handle different file
-    /// extension
+    /// extensions
     /// @param loader Loader to add to list of available loaders.
-    void addLoader(ImageLoaderPtr loader)
-    {
-        _imageLoaders.push_back(loader);
-    }
+    void addLoader(ImageLoaderPtr loader);
     
     /// Default destructor
     virtual ~ImageHandler() {}
@@ -194,7 +192,7 @@ class ImageHandler
     virtual void deleteImage(ImageDesc& /*imageDesc*/) = 0;
 
     /// Image loader utilities
-    std::vector<ImageLoaderPtr> _imageLoaders;
+    ImageLoaderMap _imageLoaders;
     /// Image description cache
     ImageDescCache _imageCache;
 };

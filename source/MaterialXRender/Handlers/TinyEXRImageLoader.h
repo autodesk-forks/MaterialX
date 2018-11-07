@@ -18,13 +18,21 @@ public:
     static TinyEXRImageLoaderPtr create() { return std::make_shared<TinyEXRImageLoader>(); }
 
     /// Default constructor
-    TinyEXRImageLoader() {}
+    TinyEXRImageLoader() 
+    {
+        // Add EXR to list of supported extension
+        _extensions.push_back("exr");
+    }
 
     /// Default destructor
     virtual ~TinyEXRImageLoader() {}
 
-    /// Returns if a given file extension is supported
-    bool supportsExtension(const std::string extension) override;
+    /// Returns a list of supported extensions
+    /// @return List of support extensions
+    StringVec& supportedExtensions() override
+    {
+        return _extensions;
+    }
 
     /// Save image to disk. This method must be implemented by derived classes.
     /// @param fileName Name of file to save image to
@@ -39,6 +47,9 @@ public:
     /// @param generateMipMaps Generate mip maps if supported.
     /// @return if load succeeded
     bool acquireImage(const std::string& fileName, ImageDesc &imageDesc, bool generateMipMaps) override;
+
+  protected:
+    StringVec _extensions;
 };
 
 } // namespace MaterialX;

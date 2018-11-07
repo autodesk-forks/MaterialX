@@ -5,14 +5,32 @@
 
 namespace MaterialX
 {
+ImageHandler::ImageHandler(ImageLoaderPtr imageLoader)
+{
+    addLoader(imageLoader);
+}
+
+void ImageHandler::addLoader(ImageLoaderPtr loader)
+{
+    StringVec& extensions = loader->supportedExtensions();
+    for (auto extension : extensions)
+    {
+        _imageLoaders.insert(std::pair<std::string, ImageLoaderPtr>(extension, loader));
+    }
+}
+
 bool ImageHandler::saveImage(const std::string& fileName,
                             const ImageDesc &imageDesc)
 {
-    for (auto loader : _imageLoaders)
+    std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
+    range = _imageLoaders.equal_range(fileName);
+    // Most recently added loader is first one checked
+    for (auto it = range.second; it != range.first; it--)
     {
-        if (loader->supportsExtension(getFileExtension(fileName)))
+        bool saved = it->second->saveImage(fileName, imageDesc);
+        if (saved)
         {
-            return loader->saveImage(fileName, imageDesc);
+            return true;
         }
     }
     return false;
@@ -20,11 +38,15 @@ bool ImageHandler::saveImage(const std::string& fileName,
 
 bool ImageHandler::acquireImage(std::string& fileName, ImageDesc &imageDesc, bool generateMipMaps)
 {
-    for (auto loader : _imageLoaders)
+    std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
+    range = _imageLoaders.equal_range(fileName);
+    // Most recently added loader is first one checked
+    for (auto it = range.second; it != range.first; it--)
     {
-        if (loader->supportsExtension(getFileExtension(fileName)))
+        bool acquired = it->second->acquireImage(fileName, imageDesc, generateMipMaps);
+        if (acquired)
         {
-            return loader->acquireImage(fileName, imageDesc, generateMipMaps);
+            return true;
         }
     }
     return false;
