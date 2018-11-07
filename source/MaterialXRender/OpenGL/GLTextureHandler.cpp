@@ -121,10 +121,10 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
         GLint magFilterType = (minFilterType == GL_LINEAR || minFilterType == GL_REPEAT) ? minFilterType : GL_LINEAR;
         GLint uaddressMode = mapAddressModeToGL(samplingProperties.uaddressMode);
         GLint vaddressMode = mapAddressModeToGL(samplingProperties.vaddressMode);
-        
-        float unmappedColor[4] = { samplingProperties.unmappedColor[0], samplingProperties.unmappedColor[1],
-                                   samplingProperties.unmappedColor[2], samplingProperties.unmappedColor[3] };
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, unmappedColor);
+        Color4 unmappedColor;
+        mapValueToColor(samplingProperties.unmappedColor, unmappedColor);
+        float unmappedColorFloat[4] = { unmappedColor[0], unmappedColor[1], unmappedColor[2], unmappedColor[3] };
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, unmappedColorFloat);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, vaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterType);
@@ -133,6 +133,57 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
         return true;
     }
     return false;
+}
+
+void GLTextureHandler::mapValueToColor(const MaterialX::ValuePtr value, Color4& color)
+{
+    color = { 0.0, 0.0, 0.0, 1.0 };
+    if (!value)
+    {
+        return;
+    }
+    if (value->isA<float>())
+    {
+        color[0] = value->asA<float>();
+    }
+    else if (value->isA<Color2>())
+    {
+        Color2 v = value->asA<Color2>();
+        color[0] = v[0];
+        color[3] = v[1]; // Component 2 is alpha
+    }
+    else if (value->isA<Color3>())
+    {
+        Color3 v = value->asA<Color3>();
+        color[0] = v[0];
+        color[1] = v[1];
+        color[2] = v[2];
+    }
+    else if (value->isA<Color4>())
+    {
+        color = value->asA<Color4>();
+    }
+    else if (value->isA<Vector2>())
+    {
+        Vector2 v = value->asA<Vector2>();
+        color[0] = v[0];
+        color[1] = v[1]; 
+    }
+    else if (value->isA<Vector3>())
+    {
+        Vector3 v = value->asA<Vector3>();
+        color[0] = v[0];
+        color[1] = v[1];
+        color[2] = v[2];
+    }
+    else if (value->isA<Vector4>())
+    {
+        Vector4 v = value->asA<Vector4>();
+        color[0] = v[0];
+        color[1] = v[1];
+        color[2] = v[2];
+        color[3] = v[3];
+    }
 }
 
 int GLTextureHandler::mapAddressModeToGL(const MaterialX::ValuePtr value)

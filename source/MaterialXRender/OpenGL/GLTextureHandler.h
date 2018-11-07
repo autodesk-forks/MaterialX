@@ -60,11 +60,15 @@ class GLTextureHandler : public ImageHandler
     /// @return true if succeded to bind
     bool bindImage(const string &identifier, const ImageSamplingProperties& samplingProperties) override;
 
-    /// Utility to make a shader value to an OpenGL address mode
+    /// Utility to map a shader value to an OpenGL address mode
     static int mapAddressModeToGL(const MaterialX::ValuePtr value);
 
-    /// Utility to make a shader value to an OpenGL filter type
+    /// Utility to map a shader value to an OpenGL filter type
     static int mapFilterTypeToGL(const MaterialX::ValuePtr value);
+
+    /// Utiliy to map a shader value to a color value. If value is not
+    /// the color is set to opaque black.
+    void mapValueToColor(const MaterialX::ValuePtr value, Color4& color);
 
     /// Clear image cache
     void clearImageCache() override;

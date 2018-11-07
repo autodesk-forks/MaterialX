@@ -592,11 +592,13 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
                 std::string uaddressModeStr = root[0] + "_uaddressmode";
                 std::string vaddressmodeStr = root[0] + "_vaddressmode";
                 std::string filtertypeStr = root[0] + "_filtertype";
+                std::string defaultColorStr = root[0] + "_default";
 
                 ImageSamplingProperties samplingProperties;
                 samplingProperties.uaddressMode = findUniformValue(uaddressModeStr, uniformList);
                 samplingProperties.vaddressMode = findUniformValue(vaddressmodeStr, uniformList);
                 samplingProperties.filterType = findUniformValue(filtertypeStr, uniformList);
+                samplingProperties.unmappedColor = findUniformValue(defaultColorStr, uniformList);
 
                 bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, samplingProperties);
             }
