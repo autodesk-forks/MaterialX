@@ -5,7 +5,7 @@
 
 namespace MaterialX
 {
-bool GLTextureHandler::createColorImage(const MaterialX::Color4& color,
+bool GLTextureHandler::createColorImage(float color[4],
                                         ImageDesc& imageDesc)
 {
     ParentClass::createColorImage(color, imageDesc);
@@ -77,12 +77,12 @@ bool GLTextureHandler::acquireImage(std::string& fileName,
         }
         else
         {
-            Color4 color(0.0f, 0.0f, 0.0f, 1.0f);
+            float BLACK_COLOR[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
             ImageDesc desc;
             desc.channelCount = 4;
             desc.width = 1;
             desc.height = 1;
-            createColorImage(color, desc);
+            createColorImage(BLACK_COLOR, desc);
 
             cacheImage(BLACK_TEXTURE, desc);
         }
@@ -121,10 +121,7 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
         GLint magFilterType = (minFilterType == GL_LINEAR || minFilterType == GL_REPEAT) ? minFilterType : GL_LINEAR;
         GLint uaddressMode = mapAddressModeToGL(samplingProperties.uaddressMode);
         GLint vaddressMode = mapAddressModeToGL(samplingProperties.vaddressMode);
-        Color4 unmappedColor;
-        mapValueToColor(samplingProperties.unmappedColor, unmappedColor);
-        float unmappedColorFloat[4] = { unmappedColor[0], unmappedColor[1], unmappedColor[2], unmappedColor[3] };
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, unmappedColorFloat);
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, samplingProperties.unmappedColor);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, vaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterType);
@@ -135,95 +132,36 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
     return false;
 }
 
-void GLTextureHandler::mapValueToColor(const MaterialX::ValuePtr value, Color4& color)
-{
-    color = { 0.0, 0.0, 0.0, 1.0 };
-    if (!value)
-    {
-        return;
-    }
-    if (value->isA<float>())
-    {
-        color[0] = value->asA<float>();
-    }
-    else if (value->isA<Color2>())
-    {
-        Color2 v = value->asA<Color2>();
-        color[0] = v[0];
-        color[3] = v[1]; // Component 2 is alpha
-    }
-    else if (value->isA<Color3>())
-    {
-        Color3 v = value->asA<Color3>();
-        color[0] = v[0];
-        color[1] = v[1];
-        color[2] = v[2];
-    }
-    else if (value->isA<Color4>())
-    {
-        color = value->asA<Color4>();
-    }
-    else if (value->isA<Vector2>())
-    {
-        Vector2 v = value->asA<Vector2>();
-        color[0] = v[0];
-        color[1] = v[1]; 
-    }
-    else if (value->isA<Vector3>())
-    {
-        Vector3 v = value->asA<Vector3>();
-        color[0] = v[0];
-        color[1] = v[1];
-        color[2] = v[2];
-    }
-    else if (value->isA<Vector4>())
-    {
-        Vector4 v = value->asA<Vector4>();
-        color[0] = v[0];
-        color[1] = v[1];
-        color[2] = v[2];
-        color[3] = v[3];
-    }
-}
-
-int GLTextureHandler::mapAddressModeToGL(const MaterialX::ValuePtr value)
+int GLTextureHandler::mapAddressModeToGL(int addressModeEnum)
 {
     int addressMode = GL_REPEAT;
-    if (value && value->isA<int>())
-    {
-        int addressModeEnum = value->asA<int>();
 
-        // Black = clamp to border color
-        // Sets GL_TEXTURE_BORDER_COLOR.
-        if (addressModeEnum == 0)
-        {
-            addressMode = GL_CLAMP_TO_BORDER;
-        }
-        // Clamp
-        else if (addressModeEnum == 0)
-        {
-            addressMode = GL_CLAMP;
-        }
+    // Mapping is from "black". Use clamp to border
+    // with border color black to achieve this
+    if (addressModeEnum == 0)
+    {
+        addressMode = GL_CLAMP_TO_BORDER;
+    }
+    // Clamp
+    else if (addressModeEnum == 1)
+    {
+        addressMode = GL_CLAMP;
     }
     return addressMode;
 }
 
-int GLTextureHandler::mapFilterTypeToGL(const MaterialX::ValuePtr value)
+int GLTextureHandler::mapFilterTypeToGL(int filterTypeEnum)
 {
     int filterType = GL_LINEAR_MIPMAP_LINEAR;
-    if (value && value->isA<int>())
+    // 0 = closest
+    if (filterTypeEnum == 0)
     {
-        int filterTypeEnum = value->asA<int>();
-        // 0 = closest
-        if (filterTypeEnum == 0)
-        {
-            filterType = GL_NEAREST;
-        }
-        // 1 == linear
-        else if (filterTypeEnum == 1)
-        {
-            filterType = GL_LINEAR;
-        }
+        filterType = GL_NEAREST;
+    }
+    // 1 == linear
+    else if (filterTypeEnum == 1)
+    {
+        filterType = GL_LINEAR;
     }
     return filterType;
 }

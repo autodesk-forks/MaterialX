@@ -1,6 +1,7 @@
 
 #include <MaterialXRender/External/GLew/glew.h>
 #include <MaterialXRender/OpenGL/GlslProgram.h>
+#include <MaterialXGenShader/Util.h>
 
 #include <iostream>
 #include <algorithm>
@@ -16,6 +17,13 @@ int GlslProgram::Input::INVALID_OPENGL_TYPE = -1;
 // Shader constants
 static string RADIANCE_ENV_UNIFORM_NAME("u_envSpecular");
 static string IRRADIANCE_ENV_UNIFORM_NAME("u_envIrradiance");
+
+/// Sampling constants
+static string UADDRESS_MODE_POST_FIX("_uaddressmode");
+static string VADDRESS_MODE_POST_FIX("_vaddressmode");
+static string FILTER_TYPE_POST_FIX("_filterType");
+static string DEFAULT_COLOR_POST_FIX("_default");
+
 
 //
 // Creator
@@ -589,17 +597,29 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
                 // Get the additional texture parameters based on image uniform name
                 MaterialX::StringVec root = MaterialX::splitString(uniform.first, IMAGE_SEPERATOR);
 
-                std::string uaddressModeStr = root[0] + "_uaddressmode";
-                std::string vaddressmodeStr = root[0] + "_vaddressmode";
-                std::string filtertypeStr = root[0] + "_filtertype";
-                std::string defaultColorStr = root[0] + "_default";
-
                 ImageSamplingProperties samplingProperties;
-                samplingProperties.uaddressMode = findUniformValue(uaddressModeStr, uniformList);
-                samplingProperties.vaddressMode = findUniformValue(vaddressmodeStr, uniformList);
-                samplingProperties.filterType = findUniformValue(filtertypeStr, uniformList);
-                samplingProperties.unmappedColor = findUniformValue(defaultColorStr, uniformList);
 
+                const int INVALID_MAPPED_INT_VALUE = -1; // Any value < 0 is not considered to be valid
+                const std::string uaddressModeStr = root[0] + UADDRESS_MODE_POST_FIX;
+                ValuePtr intValue = findUniformValue(uaddressModeStr, uniformList);
+                samplingProperties.uaddressMode = intValue && intValue->isA<int>() ? intValue->asA<int>() : INVALID_MAPPED_INT_VALUE;
+                
+                const std::string vaddressmodeStr = root[0] + VADDRESS_MODE_POST_FIX;
+                intValue = findUniformValue(vaddressmodeStr, uniformList);
+                samplingProperties.vaddressMode = intValue && intValue->isA<int>() ? intValue->asA<int>() : INVALID_MAPPED_INT_VALUE;
+                
+                const std::string filtertypeStr = root[0] + FILTER_TYPE_POST_FIX;
+                intValue = findUniformValue(filtertypeStr, uniformList);
+                samplingProperties.filterType = intValue && intValue->isA<int>() ? intValue->asA<int>() : INVALID_MAPPED_INT_VALUE;
+
+                const std::string defaultColorStr = root[0] + DEFAULT_COLOR_POST_FIX;
+                ValuePtr colorValue = findUniformValue(defaultColorStr, uniformList);
+                Color4 unmappedColor;
+                mapValueToColor(colorValue, unmappedColor);
+                samplingProperties.unmappedColor[0] = unmappedColor[0];
+                samplingProperties.unmappedColor[1] = unmappedColor[1];
+                samplingProperties.unmappedColor[2] = unmappedColor[2];
+                samplingProperties.unmappedColor[3] = unmappedColor[3];
                 bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, samplingProperties);
             }
         }

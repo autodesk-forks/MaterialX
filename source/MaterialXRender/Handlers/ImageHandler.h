@@ -8,12 +8,8 @@
 #include <vector>
 #include <map>
 
-#include <MaterialXCore/Value.h>
-
 namespace MaterialX
 {
-class Color4;
-
 /// @class @ImageDesc
 /// Interface to describe an image. Images are assumed to be float type.
 class ImageDesc
@@ -45,13 +41,13 @@ class ImageSamplingProperties
 {
   public:
     /// Address mode in U
-    MaterialX::ValuePtr uaddressMode;
+    int uaddressMode;
     /// Address mode in V
-    MaterialX::ValuePtr vaddressMode;
+    int vaddressMode;
     /// Filter type
-    MaterialX::ValuePtr filterType;
+    int filterType;
     /// Unmapped color
-    MaterialX::ValuePtr unmappedColor;
+    float unmappedColor[4];
 };
 
 /// Image description cache
@@ -74,7 +70,10 @@ class ImageLoader
 
     /// Returns a list of supported extensions
     /// @return List of support extensions
-    virtual StringVec& supportedExtensions() = 0;
+    const std::vector<std::string>& supportedExtensions()
+    {
+        return _extensions;
+    }
 
     /// Save image to disk. This method must be implemented by derived classes.
     /// @param fileName Name of file to save image to
@@ -89,6 +88,10 @@ class ImageLoader
     /// @param generateMipMaps Generate mip maps if supported.
     /// @return if load succeeded
     virtual bool acquireImage(const std::string& fileName, ImageDesc &imageDesc, bool generateMipMaps) = 0;
+
+  protected:
+    /// List of supported string extensions
+    std::vector<std::string> _extensions;
 };
 
 /// Shared pointer to an ImageHandler
@@ -137,7 +140,7 @@ class ImageHandler
     /// @param color Color to set
     /// @param imageDesc Description of image updated during load.
     /// @return if creation succeeded
-    virtual bool createColorImage(const MaterialX::Color4& color,
+    virtual bool createColorImage(float color[4],
                                   ImageDesc& imageDesc);
  
     /// Bind an image. Derived classes must implement this method

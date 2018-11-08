@@ -39,7 +39,7 @@ class GLTextureHandler : public ImageHandler
     /// @param color Color to set
     /// @param imageDesc Description of image updated during load.
     /// @return if creation succeeded
-    bool createColorImage(const MaterialX::Color4& color,
+    bool createColorImage(float color[4],
                           ImageDesc& imageDesc) override;
 
     /// Acquire an image from disk. 
@@ -60,15 +60,11 @@ class GLTextureHandler : public ImageHandler
     /// @return true if succeded to bind
     bool bindImage(const string &identifier, const ImageSamplingProperties& samplingProperties) override;
 
-    /// Utility to map a shader value to an OpenGL address mode
-    static int mapAddressModeToGL(const MaterialX::ValuePtr value);
+    /// Utility to map an address mode enumeration to an OpenGL address mode
+    static int mapAddressModeToGL(int addressModeEnum);
 
-    /// Utility to map a shader value to an OpenGL filter type
-    static int mapFilterTypeToGL(const MaterialX::ValuePtr value);
-
-    /// Utiliy to map a shader value to a color value. If value is not
-    /// the color is set to opaque black.
-    void mapValueToColor(const MaterialX::ValuePtr value, Color4& color);
+    /// Utility to map a filter type enumeration to an OpenGL filter type
+    static int mapFilterTypeToGL(int filterTypeEnum);
 
     /// Clear image cache
     void clearImageCache() override;

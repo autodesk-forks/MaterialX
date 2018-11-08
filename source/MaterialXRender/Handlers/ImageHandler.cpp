@@ -12,7 +12,7 @@ ImageHandler::ImageHandler(ImageLoaderPtr imageLoader)
 
 void ImageHandler::addLoader(ImageLoaderPtr loader)
 {
-    StringVec& extensions = loader->supportedExtensions();
+    const StringVec& extensions = loader->supportedExtensions();
     for (auto extension : extensions)
     {
         _imageLoaders.insert(std::pair<std::string, ImageLoaderPtr>(extension, loader));
@@ -56,7 +56,7 @@ bool ImageHandler::acquireImage(std::string& fileName, ImageDesc &imageDesc, boo
     return false;
 }
 
-bool ImageHandler::createColorImage(const MaterialX::Color4& color,
+bool ImageHandler::createColorImage(float color[4],
                                     ImageDesc& desc)
 {
     // Create a solid color image
