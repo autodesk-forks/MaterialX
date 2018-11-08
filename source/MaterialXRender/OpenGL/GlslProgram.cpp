@@ -599,7 +599,7 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
 
                 ImageSamplingProperties samplingProperties;
 
-                const int INVALID_MAPPED_INT_VALUE = -1; // Any value < 0 is not considered to be valid
+                const int INVALID_MAPPED_INT_VALUE = -1; // Any value < 0 is not considered to be invalid
                 const std::string uaddressModeStr = root[0] + UADDRESS_MODE_POST_FIX;
                 ValuePtr intValue = findUniformValue(uaddressModeStr, uniformList);
                 samplingProperties.uaddressMode = intValue && intValue->isA<int>() ? intValue->asA<int>() : INVALID_MAPPED_INT_VALUE;
@@ -614,12 +614,12 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
 
                 const std::string defaultColorStr = root[0] + DEFAULT_COLOR_POST_FIX;
                 ValuePtr colorValue = findUniformValue(defaultColorStr, uniformList);
-                Color4 unmappedColor;
-                mapValueToColor(colorValue, unmappedColor);
-                samplingProperties.unmappedColor[0] = unmappedColor[0];
-                samplingProperties.unmappedColor[1] = unmappedColor[1];
-                samplingProperties.unmappedColor[2] = unmappedColor[2];
-                samplingProperties.unmappedColor[3] = unmappedColor[3];
+                Color4 defaultColor;
+                mapValueToColor(colorValue, defaultColor);
+                samplingProperties.defaultColor[0] = defaultColor[0];
+                samplingProperties.defaultColor[1] = defaultColor[1];
+                samplingProperties.defaultColor[2] = defaultColor[2];
+                samplingProperties.defaultColor[3] = defaultColor[3];
                 bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, samplingProperties);
             }
         }

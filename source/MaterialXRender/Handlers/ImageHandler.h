@@ -46,8 +46,8 @@ class ImageSamplingProperties
     int vaddressMode;
     /// Filter type
     int filterType;
-    /// Unmapped color
-    float unmappedColor[4];
+    /// Default color
+    float defaultColor[4];
 };
 
 /// Image description cache
