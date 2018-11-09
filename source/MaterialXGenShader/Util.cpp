@@ -186,6 +186,11 @@ namespace
         for (GraphIterator it = output->traverseGraph().begin(); it != GraphIterator::end(); ++it)
         {
             ElementPtr upstreamElem = it.getUpstreamElement();
+            if (!upstreamElem)
+            {            
+                it.setPruneSubgraph(true);
+                continue;
+            }
 
             const string& typeName = upstreamElem->asA<TypedElement>()->getType();
             const TypeDesc* type = TypeDesc::get(typeName);
