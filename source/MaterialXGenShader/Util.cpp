@@ -259,7 +259,7 @@ namespace
                         {
                             // Unconnected, check the value
                             ValuePtr value = tint->getValue();
-                            if (value && isBlack(value->asA<Color3>()))
+                            if (!value || (value->isA<Color3>() && isWhite(value->asA<Color3>())))
                             {
                                 opaque = true;
                             }
