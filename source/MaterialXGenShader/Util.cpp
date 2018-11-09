@@ -221,7 +221,7 @@ namespace
                     else if (opacity->getNodeName() == EMPTY_STRING && opacity->getInterfaceName() == EMPTY_STRING)
                     {
                         ValuePtr value = opacity->getValue();
-                        if (!value || isOne(value->asA<float>()))
+                        if (!value || (value->isA<float>() && isOne(value->asA<float>())))
                         {
                             opaque = true;
                         }
@@ -245,7 +245,7 @@ namespace
                     {
                         // Unconnected, check the value
                         ValuePtr value = weight->getValue();
-                        if (value && isZero(value->asA<float>()))
+                        if (value && value->isA<float>() && isZero(value->asA<float>()))
                         {
                             opaque = true;
                         }
@@ -288,7 +288,7 @@ namespace
                     {
                         // Unconnected, check the value
                         ValuePtr value = transmission->getValue();
-                        if (!value || isZero(value->asA<float>()))
+                        if (!value || (value->asA<float>() && isZero(value->asA<float>())))
                         {
                             opaque = true;
                         }
@@ -306,7 +306,7 @@ namespace
                         {
                             // Unconnected, check the value
                             ValuePtr value = opacity->getValue();
-                            if (!value || isWhite(value->asA<Color3>()))
+                            if (!value || (value->isA<Color3>() && isWhite(value->asA<Color3>())))
                             {
                                 opaque = true;
                             }
