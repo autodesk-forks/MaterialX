@@ -1,9 +1,9 @@
 #include <MaterialXRender/Window/HardwarePlatform.h>
 
-#if defined(OSWin_)
-
+#if defined(OSWin_) |
 #pragma warning( push )
 #pragma warning( disable: 4100)
+#endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
@@ -87,7 +87,10 @@ bool stbImageLoader::acquireImage(const std::string& fileName,
     }
     return (imageDesc.resourceBuffer != nullptr);
 }
+
+#if defined(OSWin_)
 #pragma warning( pop ) 
+#endif
 
 #else
 bool stbImageLoader::saveImage(const std::string& /*fileName*/,
