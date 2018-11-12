@@ -4,6 +4,7 @@
 #include <MaterialXCore/Node.h>
 #include <MaterialXCore/Document.h>
 
+#include <MaterialXGenShader/ColorManagementSystem.h>
 #include <MaterialXGenShader/ShaderNode.h>
 #include <MaterialXGenShader/TypeDesc.h>
 #include <MaterialXGenShader/ShaderNodeImpl.h>
@@ -98,7 +99,7 @@ class ShaderGraph : public ShaderNode
     void addDefaultGeomNode(ShaderInput* input, const GeomProp& geomprop, ShaderGenerator& shadergen);
 
     /// Add a color transform node and connect to the given output.
-    void addColorTransformNode(ShaderOutput* output, const string& colorTransform, ShaderGenerator& shadergen);
+    void addColorTransformNode(ShaderInput* input, const ColorSpaceTransform& transform, ShaderGenerator& shadergen);
 
     /// Perform all post-build operations on the graph.
     void finalize(ShaderGenerator& shadergen);
@@ -130,8 +131,8 @@ class ShaderGraph : public ShaderNode
     std::unordered_map<string, ShaderNodePtr> _nodeMap;
     std::vector<ShaderNode*> _nodeOrder;
 
-    // Temporary storage for nodes that require color transformations
-    std::unordered_map<ShaderNode*, string> _colorTransformMap;
+    // Temporary storage for inputs that require color transformations
+    std::unordered_map<ShaderInput*, ColorSpaceTransform> _colorTransformMap;
 };
 
 /// An edge returned during shader graph traversal.

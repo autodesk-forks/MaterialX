@@ -67,7 +67,7 @@ void ShaderGraph::addOutputSockets(const InterfaceElement& elem)
 void ShaderGraph::addUpstreamDependencies(const Element& root, ConstMaterialPtr material, ShaderGenerator& shadergen)
 {
     // Keep track of our root node in the graph.
-    // This is needed when the graph is a shader graph and we need 
+    // This is needed when the graph is a shader graph and we need
     // to make connections for BindInputs during traversal below.
     ShaderNode* rootNode = getNode(root.getName());
 
@@ -77,7 +77,7 @@ void ShaderGraph::addUpstreamDependencies(const Element& root, ConstMaterialPtr 
         ElementPtr upstreamElement = edge.getUpstreamElement();
         ElementPtr downstreamElement = edge.getDownstreamElement();
 
-        // Early out if downstream element is an output that 
+        // Early out if downstream element is an output that
         // we have already processed. This might happen since
         // we perform jumps over output elements below.
         if (processedOutputs.count(downstreamElement))
@@ -164,7 +164,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
 
     if (!node)
     {
-        // Find the nodedef for the geometric node referenced by the geomprop. Use the type of the 
+        // Find the nodedef for the geometric node referenced by the geomprop. Use the type of the
         // input here and ignore the type of the geomprop. They are required to have the same type.
         string geomNodeDefName = "ND_" + geomprop.getName() + "_" + input->type->getName();
         NodeDefPtr geomNodeDef = _document->getNodeDef(geomNodeDefName);
@@ -224,34 +224,20 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
     input->makeConnection(node->getOutput());
 }
 
-void ShaderGraph::addColorTransformNode(ShaderOutput* output, const string& colorTransform, ShaderGenerator& shadergen)
+void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTransform& transform, ShaderGenerator& shadergen)
 {
-    const string nodeDefName = "ND_" + colorTransform + "_" + output->type->getName();
-    NodeDefPtr nodeDef = _document->getNodeDef(nodeDefName);
-    if (!nodeDef)
-    {
-        // Color transformations are by design not defined for all data types, only for color types.
-        // So if a nodedef for the given output type is not found we just ignore this transform.
-        return;
-    }
+    ColorManagementSystemPtr colorManagementSystem = shadergen.getColorManagementSystem();
+    ShaderNodePtr nodePtr = colorManagementSystem->createNode(transform);
 
-    const string nodeName = output->node->getName() + "_" + colorTransform;
-    ShaderNodePtr nodePtr = ShaderNode::create(nodeName, *nodeDef, shadergen);
-    _nodeMap[nodeName] = nodePtr;
+    _nodeMap[nodePtr->getName()] = nodePtr;
     _nodeOrder.push_back(nodePtr.get());
 
     ShaderNode* node = nodePtr.get();
     ShaderOutput* nodeOutput = node->getOutput(0);
 
-    // Connect the node to the downstream inputs
-    // Iterate a copy of the connection set since the original
-    // set will change when breaking the old connections
-    ShaderInputSet downstreamConnections = output->connections;
-    for (ShaderInput* downstreamInput : downstreamConnections)
-    {
-        downstreamInput->breakConnection();
-        downstreamInput->makeConnection(nodeOutput);
-    }
+    ShaderOutput* output = input->connection;
+    input->breakConnection();
+    input->makeConnection(nodeOutput);
 
     // Connect the node to the upstream output
     ShaderInput* nodeInput = node->getInput(0);
@@ -459,7 +445,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
     {
         throw ExceptionShaderGenError("Could not find a nodedef for node '" + node.getName() + "'");
     }
-    
+
     // Create this node in the graph.
     const string& name = node.getName();
     ShaderNodePtr newNode = ShaderNode::create(name, *nodeDef, shadergen, &node);
@@ -510,18 +496,48 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
         }
     }
 
+    // Check to see if this node has color3 or color4 inputs with a colorspace.
+    const string& targetColorSpace = _document ? _document->getAttribute(Element::COLOR_SPACE_ATTRIBUTE) : EMPTY_STRING;
+    for (InputPtr input : node.getInputs())
+    {
+        ShaderInput* shaderInput = newNode->getInput(input->getName());
+        const string sourceColorSpace = input->getAttribute(Element::COLOR_SPACE_ATTRIBUTE);
+        if (!sourceColorSpace.empty())
+        {
+            if(shaderInput->type == Type::COLOR3 || shaderInput->type == Type::COLOR4)
+            {
+                ColorSpaceTransform transform { sourceColorSpace, targetColorSpace, shaderInput->type };
+                _colorTransformMap[shaderInput] = transform;
+            }
+            else
+            {
+                throw ExceptionShaderGenError("Invalid colorspace attribute found for: '" + node.getName() + "." + input->getName() + "'");
+            }
+        }
+    }
+
     // Check if this is a file texture node that requires color transformation.
     if (newNode->hasClassification(ShaderNode::Classification::FILETEXTURE))
     {
         ParameterPtr file = node.getParameter("file");
-        const string& colorSpace = file ? file->getAttribute("colorspace") : EMPTY_STRING;
+        const string fileType = file->getType();
 
-        // TODO: Handle more color transforms
-        if (colorSpace == "sRGB")
+        // Only color3 and color4 textures require color transformation.
+        if (fileType == TypedValue<Color3>::TYPE || fileType == TypedValue<Color4>::TYPE)
         {
+            const string& sourceColorSpace = file ? file->getAttribute(Element::COLOR_SPACE_ATTRIBUTE) : EMPTY_STRING;
+
             // Store the node and it's color transform so we can create this
             // color transformation later when finalizing the graph.
-            _colorTransformMap[newNode.get()] = "srgb_linear";
+            ColorSpaceTransform transform { sourceColorSpace, targetColorSpace, fileType == TypedValue<Color3>::TYPE ? Type::COLOR3 : Type::COLOR4 };
+            ShaderOutput* shaderOutput = newNode->getOutput();
+            if (shaderOutput)
+            {
+                for (ShaderInput* input : shaderOutput->connections)
+                {
+                    _colorTransformMap[input] = transform;
+                }
+            }
         }
     }
 
@@ -567,7 +583,7 @@ void ShaderGraph::finalize(ShaderGenerator& shadergen)
     // Insert color transformation nodes where needed
     for (auto it : _colorTransformMap)
     {
-        addColorTransformNode(it.first->getOutput(), it.second, shadergen);
+        addColorTransformNode(it.first, it.second, shadergen);
     }
     _colorTransformMap.clear();
 
@@ -621,7 +637,7 @@ void ShaderGraph::optimize()
         if (node->hasClassification(ShaderNode::Classification::CONSTANT))
         {
             // Constant nodes can be removed by assigning their value downstream
-            // But don't remove it if it's connected upstream, i.e. it's value 
+            // But don't remove it if it's connected upstream, i.e. it's value
             // input is published.
             ShaderInput* valueInput = node->getInput(0);
             if (!valueInput->connection)
@@ -692,13 +708,13 @@ void ShaderGraph::optimize()
                 // Break all connections
                 disconnect(node);
 
-                // Erase from temporary records
-                _colorTransformMap.erase(node);
-
                 // Erase from storage
                 _nodeMap.erase(node->getName());
             }
         }
+        // Erase from temporary records
+        _colorTransformMap.clear();
+
         _nodeOrder.resize(usedNodes.size());
         _nodeOrder.assign(usedNodes.begin(), usedNodes.end());
     }
@@ -778,7 +794,7 @@ void ShaderGraph::topologicalSort()
         nodeQueue.pop_front();
         _nodeOrder[count++] = node;
 
-        // Find connected nodes and decrease their in-degree, 
+        // Find connected nodes and decrease their in-degree,
         // adding node to the queue if in-degrees becomes 0.
         for (auto output : node->getOutputs())
         {
@@ -822,7 +838,7 @@ void ShaderGraph::calculateScopes()
     std::set<ShaderNode*> nodeUsed;
     nodeUsed.insert(lastNode);
 
-    // Iterate nodes in reversed toplogical order such that every node is visited AFTER 
+    // Iterate nodes in reversed toplogical order such that every node is visited AFTER
     // each of the nodes that depend on it have been processed first.
     for (int nodeIndex = int(lastNodeIndex); nodeIndex >= 0; --nodeIndex)
     {
@@ -873,8 +889,8 @@ void ShaderGraph::calculateScopes()
 
 void ShaderGraph::validateNames(ShaderGenerator& shadergen)
 {
-    // Make sure inputs and outputs have names valid for the 
-    // target shading language, and are unique to avoid name 
+    // Make sure inputs and outputs have names valid for the
+    // target shading language, and are unique to avoid name
     // conflicts when emitting variable names for them.
 
     // Names in use for the graph is recorded in 'uniqueNames'.
