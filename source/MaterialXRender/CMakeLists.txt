@@ -58,6 +58,10 @@ add_library(MaterialXRender STATIC
     ${materialx_header}
 )
 
+target_include_directories(MaterialXRender PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../external 
+)
+
 if(MSVC)
     target_link_libraries(
         MaterialXRender

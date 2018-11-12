@@ -1,6 +1,7 @@
 #ifndef MATERIALX_IMAGEHANDLER_H
 #define MATERIALX_IMAGEHANDLER_H
 
+#include <algorithm>
 #include <string>
 #include <memory>
 #include <cmath>
@@ -24,7 +25,9 @@ class ImageDesc
     /// Number of mip map levels
     unsigned int mipCount = 0;
     /// CPU buffer. May be empty
-    float* resourceBuffer = nullptr;
+    void* resourceBuffer = nullptr;
+    /// Is buffer floating point
+    bool floatingPoint = true;
     /// Hardware target dependent resource identifier. May be empty
     unsigned int resourceId = 0;
 
