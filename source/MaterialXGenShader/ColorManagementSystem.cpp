@@ -58,7 +58,7 @@ ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& trans
     {
         shaderImpl->initialize(impl, _shadergen);
     }
-    ShaderNodePtr shaderNode = ShaderNode::create(getShaderNodeName(transform), shaderImpl, transform.type, _shadergen);
+    ShaderNodePtr shaderNode = ShaderNode::createColorTransformNode(getShaderNodeName(transform), shaderImpl, transform.type, _shadergen);
     _cachedImpls[transform] = shaderNode;
 
     return shaderNode;

@@ -332,7 +332,7 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     return newNode;
 }
 
-ShaderNodePtr ShaderNode::create(const string& name, ShaderNodeImplPtr shaderImpl, const TypeDesc* type, ShaderGenerator& shadergen)
+ShaderNodePtr ShaderNode::createColorTransformNode(const string& name, ShaderNodeImplPtr shaderImpl, const TypeDesc* type, ShaderGenerator& shadergen)
 {
     ShaderNodePtr newNode = std::make_shared<ShaderNode>(name);
     newNode->_impl = shaderImpl;
@@ -341,11 +341,15 @@ ShaderNodePtr ShaderNode::create(const string& name, ShaderNodeImplPtr shaderImp
 
     if(type == Type::COLOR3)
     {
-      input->value = Value::createValueFromStrings("0, 0, 0", TypedValue<Color3>::TYPE);
+        input->value = Value::createValueFromStrings("0, 0, 0", TypedValue<Color3>::TYPE);
     }
     else if(type == Type::COLOR4)
     {
-      input->value = Value::createValueFromStrings("0, 0, 0, 1", TypedValue<Color4>::TYPE);
+        input->value = Value::createValueFromStrings("0, 0, 0, 1", TypedValue<Color4>::TYPE);
+    }
+    else
+    {
+        throw ExceptionShaderGenError("Invalid type specified to createColorTransform: '" + type->getName() + "'");
     }
     newNode->addOutput("out", type);
     shadergen.addNodeContextIDs(newNode.get());

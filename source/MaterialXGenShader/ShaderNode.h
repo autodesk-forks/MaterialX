@@ -138,8 +138,8 @@ class ShaderNode
     /// Create a new node from a nodedef and an option node instance.
     static ShaderNodePtr create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const Node* nodeInstance = nullptr);
 
-    /// Create a new node from a ShaderNodeImpl and type.
-    static ShaderNodePtr create(const string& name, ShaderNodeImplPtr shaderImpl, const TypeDesc* type, ShaderGenerator& shadergen);
+    /// Create a new color transform node from a ShaderNodeImpl and type.
+    static ShaderNodePtr createColorTransformNode(const string& name, ShaderNodeImplPtr shaderImpl, const TypeDesc* type, ShaderGenerator& shadergen);
 
     /// Return true if this node is a graph.
     virtual bool isAGraph() const { return false; }
