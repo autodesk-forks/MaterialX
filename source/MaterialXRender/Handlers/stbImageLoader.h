@@ -17,15 +17,18 @@ public:
     /// Static instance create function
     static stbImageLoaderPtr create() { return std::make_shared<stbImageLoader>(); }
 
-    /// Default constructor
+    /// Default constructor. Set all extensions supported by stb
     stbImageLoader() 
     {
-        _extensions.push_back("png");
-        _extensions.push_back("bmp");
-        _extensions.push_back("tga");
-        _extensions.push_back("jpg");
-        _extensions.push_back("jpeg");
-        _extensions.push_back("hdr");
+        _extensions.push_back(BMP_EXTENSION);
+        _extensions.push_back(GIF_EXTENSION);
+        _extensions.push_back(HDR_EXTENSION);
+        _extensions.push_back(JPG_EXTENSION);
+        _extensions.push_back(JPEG_EXTENSION);
+        _extensions.push_back(PIC_EXTENSION);
+        _extensions.push_back(PNG_EXTENSION);
+        _extensions.push_back(PSD_EXTENSION);
+        _extensions.push_back(TGA_EXTENSION);
     }
 
     /// Default destructor
