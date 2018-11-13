@@ -39,7 +39,7 @@ bool TinyEXRImageLoader::saveImage(const std::string& fileName,
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
     if (extension == EXR_EXTENSION)
     { 
-        returnValue = SaveEXR((float*)imageDesc.resourceBuffer, static_cast<int>(imageDesc.width), static_cast<int>(imageDesc.height), imageDesc.channelCount, 1 /* save as 16 bit float format */, fileName.c_str());
+        returnValue = SaveEXR(static_cast<float*>(imageDesc.resourceBuffer), static_cast<int>(imageDesc.width), static_cast<int>(imageDesc.height), imageDesc.channelCount, 1 /* save as 16 bit float format */, fileName.c_str());
     }
     return (returnValue == 0);
 }

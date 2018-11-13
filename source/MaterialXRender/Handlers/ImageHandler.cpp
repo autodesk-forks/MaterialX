@@ -73,7 +73,7 @@ bool ImageHandler::createColorImage(float color[4],
     // Create a solid color image
     //
     desc.resourceBuffer = new float[desc.width * desc.height * desc.channelCount];
-    float* pixel = (float *)desc.resourceBuffer;
+    float* pixel = static_cast<float*>(desc.resourceBuffer);
     for (size_t i = 0; i<desc.width; i++)
     {
         for (size_t j = 0; j<desc.height; j++)
