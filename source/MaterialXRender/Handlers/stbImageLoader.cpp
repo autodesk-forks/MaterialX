@@ -60,18 +60,21 @@ bool stbImageLoader::acquireImage(const std::string& fileName,
     int iheight = 0;
     int ichannelCount = 0;
     void *buffer = nullptr;
-    std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
+
+    // Set to 0 to mean to not override the read-in number of channels
+    const int REQUIRED_CHANNEL_COUNT = 0;
 
     // If HDR, switch to float reader
+    std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
     if (extension == "hdr")
     {
-        buffer = stbi_loadf(fileName.c_str(), &iwidth, &iheight, &ichannelCount, 4);
+        buffer = stbi_loadf(fileName.c_str(), &iwidth, &iheight, &ichannelCount, REQUIRED_CHANNEL_COUNT);
         imageDesc.floatingPoint = true;
     }
     // Otherwise use fixed point reader
     else
     {
-        buffer = stbi_load(fileName.c_str(), &iwidth, &iheight, &ichannelCount, 4);
+        buffer = stbi_load(fileName.c_str(), &iwidth, &iheight, &ichannelCount, REQUIRED_CHANNEL_COUNT);
         imageDesc.floatingPoint = false;
     }
     if (buffer)
