@@ -8,6 +8,11 @@ namespace MaterialX
 bool GLTextureHandler::createColorImage(float color[4],
                                         ImageDesc& imageDesc)
 {
+    if (!glActiveTexture)
+    {
+        glewInit();
+    }
+
     ParentClass::createColorImage(color, imageDesc);
     if ((imageDesc.width * imageDesc.height > 0) && imageDesc.resourceBuffer)
     {
@@ -31,6 +36,11 @@ bool GLTextureHandler::acquireImage(std::string& fileName,
     if (fileName.empty())
     {
         return false;
+    }
+
+    if (!glActiveTexture)
+    {
+        glewInit();
     }
 
     // Check to see if we have already loaded in the texture.
@@ -73,7 +83,7 @@ bool GLTextureHandler::acquireImage(std::string& fileName,
         }
 
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageDesc.width, imageDesc.height,
-            0, format, imageDesc.floatingPoint ? GL_FLOAT : GL_BYTE, imageDesc.resourceBuffer);
+            0, format, imageDesc.floatingPoint ? GL_FLOAT : GL_UNSIGNED_BYTE, imageDesc.resourceBuffer);
 
         if (generateMipMaps)
         {
@@ -120,6 +130,11 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
     const ImageDesc* cachedDesc = getCachedImage(identifier);
     if (cachedDesc)
     {
+        if (!glActiveTexture)
+        {
+            glewInit();
+        }
+
         unsigned int resourceId = cachedDesc->resourceId;
 
         // Bind a texture to the next available slot
@@ -199,6 +214,11 @@ void GLTextureHandler::clearImageCache()
 
 void GLTextureHandler::deleteImage(MaterialX::ImageDesc& imageDesc)
 {
+    if (!glActiveTexture)
+    {
+        glewInit();
+    }
+
     if (imageDesc.resourceId != MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
     {
         // Unbind a texture from image unit and delete the texture
