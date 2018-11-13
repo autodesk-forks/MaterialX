@@ -5,6 +5,15 @@
 
 namespace MaterialX
 {
+std::string ImageLoader::PNG_EXTENSION = "png";
+std::string ImageLoader::BMP_EXTENSION = "bmp";
+std::string ImageLoader::TGA_EXTENSION = "tga";
+std::string ImageLoader::JPG_EXTENSION = "jpg";
+std::string ImageLoader::JPEG_EXTENSION = "jpeg";
+std::string ImageLoader::HDR_EXTENSION = "hdr";
+std::string ImageLoader::EXR_EXTENSION = "exr";
+std::string ImageLoader::GIF_EXTENSION = "gif";
+
 ImageHandler::ImageHandler(ImageLoaderPtr imageLoader)
 {
     addLoader(imageLoader);

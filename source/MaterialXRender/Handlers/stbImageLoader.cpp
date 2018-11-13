@@ -26,23 +26,23 @@ bool stbImageLoader::saveImage(const std::string& fileName,
     void* data = imageDesc.resourceBuffer;
 
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
-    if (extension == "png")
+    if (extension == PNG_EXTENSION)
     {
         returnValue = stbi_write_png(fileName.c_str(), w, h, channels, data, w * 4);
     }
-    else if (extension == "bmp")
+    else if (extension == BMP_EXTENSION)
     {
         returnValue = stbi_write_bmp(fileName.c_str(), w, h, channels, data);
     }
-    else if (extension == "tga")
+    else if (extension == TGA_EXTENSION)
     { 
         returnValue = stbi_write_tga(fileName.c_str(), w, h, channels, data);
     }
-    else if (extension == "jpg" || extension == "jpeg")
+    else if (extension == JPG_EXTENSION || extension == JPEG_EXTENSION)
     {
         returnValue = stbi_write_jpg(fileName.c_str(), w, h, channels, data, 100);
     }
-    else if (extension == "hdr")
+    else if (extension == HDR_EXTENSION)
     {
         returnValue = stbi_write_hdr(fileName.c_str(), w, h, channels, static_cast<float*>(data));
     }
@@ -66,7 +66,7 @@ bool stbImageLoader::acquireImage(const std::string& fileName,
 
     // If HDR, switch to float reader
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
-    if (extension == "hdr")
+    if (extension == HDR_EXTENSION)
     {
         buffer = stbi_loadf(fileName.c_str(), &iwidth, &iheight, &ichannelCount, REQUIRED_CHANNEL_COUNT);
         imageDesc.floatingPoint = true;

@@ -29,8 +29,6 @@
 
 namespace MaterialX
 {
-std::string TinyEXRImageLoader::EXR_EXTENSION("exr");
-
 #if defined(TINYEXR_USABLE)
 
 bool TinyEXRImageLoader::saveImage(const std::string& fileName,

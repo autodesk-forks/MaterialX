@@ -71,6 +71,16 @@ class ImageLoader
     /// Default destructor
     virtual ~ImageLoader() {}
 
+    /// Stock extension names
+    static std::string PNG_EXTENSION;
+    static std::string BMP_EXTENSION;
+    static std::string TGA_EXTENSION;
+    static std::string JPG_EXTENSION;
+    static std::string JPEG_EXTENSION;
+    static std::string HDR_EXTENSION;
+    static std::string EXR_EXTENSION;
+    static std::string GIF_EXTENSION;
+
     /// Returns a list of supported extensions
     /// @return List of support extensions
     const std::vector<std::string>& supportedExtensions()
