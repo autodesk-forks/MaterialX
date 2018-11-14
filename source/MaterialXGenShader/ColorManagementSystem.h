@@ -30,8 +30,7 @@ struct ColorSpaceTransform
     {
         return sourceSpace == other.sourceSpace &&
                targetSpace == other.targetSpace &&
-               ((type == nullptr && other.type == nullptr) ||
-                (type != nullptr && other.type != nullptr && type == other.type));
+               type == other.type;
     }
 };
 
@@ -69,20 +68,20 @@ class ColorManagementSystem
     void setConfigFile(const string& configFile);
 
     /// Load the library of implementations from the provided document
-    virtual void loadLibrary(DocumentPtr document) = 0;
-
-    /// Retrieves an implementation with the provided name
-    virtual ImplementationPtr getImplementation(const string& implName) = 0;
+    virtual void loadLibrary(DocumentPtr document)
+    {
+        _document = document;
+    }
 
     /// Create a node to use to perform the given color space transformation.
-    ShaderNodePtr createNode(const ColorSpaceTransform& transform);
+    ShaderNodePtr createNode(const ColorSpaceTransform& transform, const string& prefix);
 
   protected:
     template<class T>
     using CreatorFunction = shared_ptr<T>(*)();
 
     /// Returns a shader node name for a given transform
-    virtual string getShaderNodeName(const ColorSpaceTransform& transform);
+    virtual string getShaderNodeName(const ColorSpaceTransform& transform, const string& prefix);
 
     /// Returns an implementation name for a given transform
     virtual string getImplementationName(const ColorSpaceTransform& transform) = 0;
@@ -91,13 +90,13 @@ class ColorManagementSystem
     bool registerImplementation(const ColorSpaceTransform& transform, CreatorFunction<ShaderNodeImpl> creator);
 
     /// Protected constructor
-    ColorManagementSystem(ShaderGenerator& shadergen, const string& configFile, const string& language);
+    ColorManagementSystem(ShaderGenerator& shadergen, const string& configFile);
 
     Factory<ShaderNodeImpl> _implFactory;
-    std::unordered_map<ColorSpaceTransform, ShaderNodePtr, ColorSpaceTransformHash> _cachedImpls;
+    std::unordered_map<ColorSpaceTransform, ShaderNodeImplPtr, ColorSpaceTransformHash> _cachedImpls;
     string _configFile;
-    string _language;
     ShaderGenerator& _shadergen;
+    DocumentPtr _document;
 };
 
 } // namespace MaterialX

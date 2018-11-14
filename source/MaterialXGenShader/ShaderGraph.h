@@ -98,8 +98,11 @@ class ShaderGraph : public ShaderNode
     /// Add a default geometric node and connect to the given input.
     void addDefaultGeomNode(ShaderInput* input, const GeomProp& geomprop, ShaderGenerator& shadergen);
 
-    /// Add a color transform node and connect to the given output.
+    /// Add a color transform node and connect to the given input.
     void addColorTransformNode(ShaderInput* input, const ColorSpaceTransform& transform, ShaderGenerator& shadergen);
+
+    /// Add a color transform node and connect to the given output.
+    void addColorTransformNode(ShaderOutput* input, const ColorSpaceTransform& transform, ShaderGenerator& shadergen);
 
     /// Perform all post-build operations on the graph.
     void finalize(ShaderGenerator& shadergen);
@@ -124,6 +127,10 @@ class ShaderGraph : public ShaderNode
     /// during shader generation
     void validateNames(ShaderGenerator& shadergen);
 
+    /// Populates the input color transform map if the provided input/parameter
+    /// has a color space attribute and has a type of color3 or color4.
+    void populateInputColorTransformMapIfNeeded(const Node& node, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace);
+
     /// Break all connections on a node
     static void disconnect(ShaderNode* node);
 
@@ -132,7 +139,10 @@ class ShaderGraph : public ShaderNode
     std::vector<ShaderNode*> _nodeOrder;
 
     // Temporary storage for inputs that require color transformations
-    std::unordered_map<ShaderInput*, ColorSpaceTransform> _colorTransformMap;
+    std::unordered_map<ShaderInput*, ColorSpaceTransform> _inputColorTransformMap;
+
+    // Temporary storage for outputs that require color transformations
+    std::unordered_map<ShaderOutput*, ColorSpaceTransform> _outputColorTransformMap;
 };
 
 /// An edge returned during shader graph traversal.

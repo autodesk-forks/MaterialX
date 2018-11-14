@@ -16,7 +16,7 @@ string DefaultColorManagementSystem::getImplementationName(const ColorSpaceTrans
 {
     if (transform.type)
     {
-        return "IM_" + transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName() + "_" + _language;
+        return "IM_" + transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName() + "_" + _shadergen->getLanguage();
     }
     else
     {

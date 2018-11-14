@@ -26,18 +26,6 @@ class DefaultColorManagementSystem : public ColorManagementSystem
         return DefaultColorManagementSystem::CMS_NAME;
     }
 
-    /// Load the library of implementations from the provided document
-    void loadLibrary(DocumentPtr document) override
-    {
-        _document = document;
-    }
-
-    /// Retrieves an implementation with the provided name
-    ImplementationPtr getImplementation(const string& implName) override
-    {
-        return _document->getImplementation(implName);
-    }
-
     /// Returns an implementation name for a given transform
     string getImplementationName(const ColorSpaceTransform& transform) override;
 

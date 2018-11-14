@@ -6,10 +6,9 @@
 namespace MaterialX
 {
 
-ColorManagementSystem::ColorManagementSystem(ShaderGenerator& shadergen, const string& configFile, const string& language)
+ColorManagementSystem::ColorManagementSystem(ShaderGenerator& shadergen, const string& configFile)
     : _shadergen(shadergen)
     , _configFile(configFile)
-    , _language(language)
 {
 }
 
@@ -31,44 +30,48 @@ void  ColorManagementSystem::setConfigFile(const string& configFile)
     _cachedImpls.clear();
 }
 
-ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& transform)
+ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& transform, const string& prefix)
 {
-    // Check if it's created already
-    auto it = _cachedImpls.find(transform);
-    if (it != _cachedImpls.end())
-    {
-        return it->second;
-    }
-
     if (transform.type == nullptr)
     {
         return nullptr;
     }
 
     string implName = getImplementationName(transform);
-    ImplementationPtr impl = getImplementation(implName);
-    // Try creating a new shader implementation in the factory
-    ShaderNodeImplPtr shaderImpl = _implFactory.create(implName);
+    ImplementationPtr impl = _document->getImplementation(implName);
+
+    // Check if the shader implementation has been created already
+    ShaderNodeImplPtr shaderImpl;
+    auto it = _cachedImpls.find(transform);
+    if (it != _cachedImpls.end())
+    {
+        shaderImpl = it->second;
+    }
+    // If not, try creating a new shader implementation in the factory
+    else
+    {
+        shaderImpl = _implFactory.create(implName);
+    }
+    // Fall back to the default implementation
     if (!shaderImpl)
     {
-        // Fall back to the default implementation
         shaderImpl = SourceCodeNode::create();
     }
     if (impl)
     {
         shaderImpl->initialize(impl, _shadergen);
     }
-    ShaderNodePtr shaderNode = ShaderNode::createColorTransformNode(getShaderNodeName(transform), shaderImpl, transform.type, _shadergen);
-    _cachedImpls[transform] = shaderNode;
+    _cachedImpls[transform] = shaderImpl;
+    ShaderNodePtr shaderNode = ShaderNode::createColorTransformNode(getShaderNodeName(transform, prefix), shaderImpl, transform.type, _shadergen);
 
     return shaderNode;
 }
 
-string ColorManagementSystem::getShaderNodeName(const ColorSpaceTransform& transform)
+string ColorManagementSystem::getShaderNodeName(const ColorSpaceTransform& transform, const string& prefix)
 {
     if (transform.type)
     {
-        return transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName();
+        return prefix + "_" + transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName();
     }
     else
     {
