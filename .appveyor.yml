@@ -26,7 +26,6 @@ install:
 build_script:
   - mkdir build
   - cd build
-  - git submodule update --init --recursive
   - cmake -DMATERIALX_BUILD_PYTHON=ON -DMATERIALX_WARNINGS_AS_ERRORS=ON -G "%CMAKE_PLATFORM%" -DCMAKE_BUILD_TYPE="%CONFIGURATION%" ..
   - cmake --build . --target install --config %CONFIGURATION%
   - ctest --output-on-failure --build-config %CONFIGURATION%
