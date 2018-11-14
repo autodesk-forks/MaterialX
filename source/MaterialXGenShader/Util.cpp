@@ -509,7 +509,18 @@ void mapValueToColor(const ValuePtr value, Color4& color)
     }
 }
 
-bool elementRequiresShading(TypedElementPtr element)
+bool requiresImplementation(const NodeDefPtr nodeDef)
+{
+    if (!nodeDef)
+    {
+        return false;
+    }
+    static std::string TYPE_NONE("none");
+    const std::string typeAttribute = nodeDef->getAttribute(TypedElement::TYPE_ATTRIBUTE);
+    return !typeAttribute.empty() && typeAttribute != TYPE_NONE;
+}
+
+bool elementRequiresShading(const TypedElementPtr element)
 {
     std::string elementType(element->getType());
     const std::set<std::string> colorClosures =
@@ -521,7 +532,7 @@ bool elementRequiresShading(TypedElementPtr element)
             colorClosures.count(elementType) > 0);
 }
 
-void findRenderableElements(DocumentPtr& doc, std::vector<TypedElementPtr>& elements)
+void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>& elements)
 {
     std::vector<NodeGraphPtr> nodeGraphs = doc->getNodeGraphs();
     std::vector<OutputPtr> outputList = doc->getOutputs();
@@ -538,7 +549,16 @@ void findRenderableElements(DocumentPtr& doc, std::vector<TypedElementPtr>& elem
                 if (!shaderRef->hasSourceUri())
                 {
                     // Add in all shader references which are not part of a node definition library
-                    elements.push_back(shaderRef);
+                    NodeDefPtr nodeDef = shaderRef->getNodeDef();
+                    if (nodeDef && 
+                        requiresImplementation(nodeDef))
+                    {
+                        elements.push_back(shaderRef);
+                    }
+                    else
+                    {
+                        std::cout << "Skip shaderref: " << shaderRef->getNamePath() << std::endl;
+                    }
 
                     // Find all bindinputs which reference outputs and outputgraphs
                     for (auto bindInput : shaderRef->getBindInputs())
@@ -562,10 +582,21 @@ void findRenderableElements(DocumentPtr& doc, std::vector<TypedElementPtr>& elem
                 std::vector<OutputPtr> nodeGraphOutputs = nodeGraph->getOutputs();
                 for (OutputPtr output : nodeGraphOutputs)
                 {
+                    NodePtr outputNode = output->getConnectedNode();
+
                     // For now we skip any outputs which are referenced elsewhere.
-                    if (shaderrefOutputs.count(output) == 0)
+                    if (outputNode && shaderrefOutputs.count(output) == 0)
+                    {                        
+                        NodeDefPtr nodeDef = outputNode->getNodeDef();
+                        if (nodeDef &&
+                            requiresImplementation(nodeDef))
+                        {
+                            outputSet.insert(output);
+                        }
+                    }
+                    else
                     {
-                        outputSet.insert(output);
+                        std::cout << "Skip node: " << output->getNamePath() << std::endl;
                     }
                 }
             }

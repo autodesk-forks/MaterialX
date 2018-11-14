@@ -53,13 +53,16 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen);
 /// set to opaque black.
 void mapValueToColor(const ValuePtr value, Color4& color);
 
+/// Return whether a nodedef requires an implementation
+bool requiresImplementation(const NodeDefPtr nodeDef);
+
 /// Determine if a given element is a which requires shading / lighting when rendered
-bool elementRequiresShading(TypedElementPtr element);
+bool elementRequiresShading(const TypedElementPtr element);
 
 /// Find any elements which may be renderable from within a document. Any elements
 /// This includes all outputs on node graphs and shader references which are not
 /// part of any included library.
-void findRenderableElements(DocumentPtr& doc, std::vector<TypedElementPtr>& elements);
+void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>& elements);
 
 } // namespace MaterialX
 

@@ -716,13 +716,33 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             std::string outputPath = mx::FilePath(dir) / mx::FilePath(mx::removeExtension(file));
             for (auto element : elements)
             { 
-                mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
+                mx::OutputPtr output = element->asA<mx::Output>();
+                mx::ShaderRefPtr shaderRef = element->asA<mx::ShaderRef>();
+                mx::NodeDefPtr nodeDef = nullptr;
+                if (output)
+                {
+                    nodeDef = output->getConnectedNode()->getNodeDef();
+                }
+                else if (shaderRef)
+                {
+                    nodeDef = shaderRef->getNodeDef();
+                }
+                if (nodeDef)
+                {
+                    mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
 #ifdef MATERIALX_BUILD_GEN_GLSL
-                runGLSLValidation(elementName, element, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, false, outputPath);
+                    if (nodeDef->getImplementation(glslShaderGenerator->getTarget(), glslShaderGenerator->getLanguage()))
+                    {
+                        runGLSLValidation(elementName, element, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, false, outputPath);
+                    }
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
-                runOSLValidation(elementName, element, *oslValidator, *oslShaderGenerator, doc, oslLog, false, outputPath);
+                    if (nodeDef->getImplementation(oslShaderGenerator->getTarget(), oslShaderGenerator->getLanguage()))
+                    {
+                        runOSLValidation(elementName, element, *oslValidator, *oslShaderGenerator, doc, oslLog, false, outputPath);
+                    }
 #endif
+                }
             }
         }
     }

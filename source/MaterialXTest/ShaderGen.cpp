@@ -98,19 +98,6 @@ bool getShaderSource(mx::ShaderGeneratorPtr generator,
     return false;
 }
 
-// Check if a nodedef requires an implementation check
-// Untyped nodes do not
-bool requiresImplementation(const mx::NodeDefPtr nodeDef)
-{
-    if (!nodeDef)
-    {
-        return false;
-    }
-    static std::string TYPE_NONE("none");
-    const std::string typeAttribute = nodeDef->getAttribute(mx::TypedElement::TYPE_ATTRIBUTE);
-    return !typeAttribute.empty() && typeAttribute != TYPE_NONE;
-}
-
 void createLightCompoundExample(mx::DocumentPtr document)
 {
     const std::string nodeName = "lightcompound";
@@ -120,30 +107,30 @@ void createLightCompoundExample(mx::DocumentPtr document)
     if (!document->getNodeDef(nodeDefName))
     {
         // Tag elements as being part of a library
-        const std::string INTERNAL_URI("INTERNAL_URI");
+        //const std::string INTERNAL_URI("INTERNAL_URI");
 
         // Create an interface for the light with position, color and intensity
         mx::NodeDefPtr nodeDef = document->addNodeDef(nodeDefName, "lightshader", nodeName);
-        nodeDef->setSourceUri(INTERNAL_URI);
+        //nodeDef->setSourceUri(INTERNAL_URI);
         nodeDef->addInput("position", "vector3");
         nodeDef->addInput("color", "color3");
         nodeDef->addInput("intensity", "float");
 
         // Create a graph implementing the light using EDF's
         mx::NodeGraphPtr nodeGraph = document->addNodeGraph("IMP_" + nodeName);
-        nodeGraph->setSourceUri(INTERNAL_URI);
+        //nodeGraph->setSourceUri(INTERNAL_URI);
         mx::OutputPtr output = nodeGraph->addOutput("out", "lightshader");
-        output->setSourceUri(INTERNAL_URI);
+        //output->setSourceUri(INTERNAL_URI);
 
         // Add EDF node and connect the EDF's intensity to the 'color' input
         mx::NodePtr edf = nodeGraph->addNode("uniformedf", "edf1", "EDF");
-        nodeGraph->setSourceUri(INTERNAL_URI);
+        //nodeGraph->setSourceUri(INTERNAL_URI);
         mx::InputPtr edf_intensity = edf->addInput("intensity", "color3");
         edf_intensity->setInterfaceName("color");
 
         // Add the light constructor node connect it's intensity to the 'intensity' input
         mx::NodePtr light = nodeGraph->addNode("light", "light1", "lightshader");
-        light->setSourceUri(INTERNAL_URI);
+        //light->setSourceUri(INTERNAL_URI);
         mx::InputPtr light_intensity = light->addInput("intensity", "float");
         light_intensity->setInterfaceName("intensity");
 
@@ -531,7 +518,7 @@ TEST_CASE("Reference Implementation Validity", "[shadergen]")
 
         std::string nodeDefName = nodeDef->getName();
         std::string nodeName = nodeDef->getNodeString();
-        if (!requiresImplementation(nodeDef))
+        if (!mx::requiresImplementation(nodeDef))
         {
             found_str += "No implementation required for nodedef: " + nodeDefName + ", Node: " + nodeName + ".\n";
             continue;
