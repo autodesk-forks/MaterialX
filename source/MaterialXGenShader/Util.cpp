@@ -574,6 +574,7 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
         }
 
         // Find node graph outputs
+        const std::string LIGHT_SHADER("lightshader");
         for (NodeGraphPtr nodeGraph : nodeGraphs)
         {
             // Skip anything from an include file including libraries.
@@ -585,7 +586,9 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
                     NodePtr outputNode = output->getConnectedNode();
 
                     // For now we skip any outputs which are referenced elsewhere.
-                    if (outputNode && shaderrefOutputs.count(output) == 0)
+                    if (outputNode && 
+                        outputNode->getType() != LIGHT_SHADER &&
+                        shaderrefOutputs.count(output) == 0)
                     {                        
                         NodeDefPtr nodeDef = outputNode->getNodeDef();
                         if (nodeDef &&
