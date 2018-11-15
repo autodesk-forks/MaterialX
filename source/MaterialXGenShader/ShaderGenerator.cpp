@@ -16,7 +16,6 @@ namespace MaterialX
 
 ShaderGenerator::ShaderGenerator(SyntaxPtr syntax)
     : _syntax(syntax)
-    , _colorManagementSystem(nullptr)
 {
     // Create a default context to be used by all nodes
     // that have no specific context assigned

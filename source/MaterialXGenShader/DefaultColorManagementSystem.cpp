@@ -5,12 +5,6 @@ namespace MaterialX
 
 const string DefaultColorManagementSystem::CMS_NAME = "default_cms";
 
-void DefaultColorManagementSystem::initialize()
-{
-    // TODO: Look into caching the ShaderNodeImpls for the DefaultColorManagementSystem
-    _implFactory.unregisterClasses();
-    _cachedImpls.clear();
-}
 
 string DefaultColorManagementSystem::getImplementationName(const ColorSpaceTransform& transform)
 {

@@ -6,6 +6,18 @@
 namespace MaterialX
 {
 
+ColorSpaceTransform::ColorSpaceTransform(const string& ss, const string& ts, const TypeDesc& t)
+    : sourceSpace(ss)
+    , targetSpace(ts)
+    , type(&t)
+{
+    if (type != Type::COLOR3 && type != Type::COLOR4)
+    {
+        throw ExceptionShaderGenError("Color space transform can only be a color3 or color4, '" + type->getName() + "' requested.");
+    }
+}
+
+
 ColorManagementSystem::ColorManagementSystem(ShaderGenerator& shadergen, const string& configFile)
     : _shadergen(shadergen)
     , _configFile(configFile)
@@ -26,6 +38,13 @@ bool ColorManagementSystem::registerImplementation(const ColorSpaceTransform& tr
 void  ColorManagementSystem::setConfigFile(const string& configFile)
 {
     _configFile = configFile;
+    _implFactory.unregisterClasses();
+    _cachedImpls.clear();
+}
+
+void ColorManagementSystem::loadLibrary(DocumentPtr document)
+{
+    _document = document;
     _implFactory.unregisterClasses();
     _cachedImpls.clear();
 }
@@ -69,14 +88,7 @@ ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& trans
 
 string ColorManagementSystem::getShaderNodeName(const ColorSpaceTransform& transform, const string& prefix)
 {
-    if (transform.type)
-    {
-        return prefix + "_" + transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName();
-    }
-    else
-    {
-        return "";
-    }
+    return prefix + "_" + transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName();
 }
 
 } // namespace MaterialX

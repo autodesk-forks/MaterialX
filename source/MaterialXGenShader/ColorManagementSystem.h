@@ -17,10 +17,12 @@ class ShaderGenerator;
 /// A shared pointer to a ColorManagementSystem
 using ColorManagementSystemPtr = shared_ptr<class ColorManagementSystem>;
 
-/// @stuct @ColorSpaceTransform
+/// @struct @ColorSpaceTransform
 /// Structure that represents color space transform information
 struct ColorSpaceTransform
 {
+    ColorSpaceTransform(const string& ss, const string& ts, const TypeDesc& t);
+
     string sourceSpace;
     string targetSpace;
     const TypeDesc* type;
@@ -34,6 +36,7 @@ struct ColorSpaceTransform
     }
 };
 
+/// @struct @ColorSpaceTransformHash
 /// ColorSpaceTransform hash function
 struct ColorSpaceTransformHash {
     size_t operator()(const ColorSpaceTransform &transform ) const
@@ -68,10 +71,7 @@ class ColorManagementSystem
     void setConfigFile(const string& configFile);
 
     /// Load the library of implementations from the provided document
-    virtual void loadLibrary(DocumentPtr document)
-    {
-        _document = document;
-    }
+    virtual void loadLibrary(DocumentPtr document);
 
     /// Create a node to use to perform the given color space transformation.
     ShaderNodePtr createNode(const ColorSpaceTransform& transform, const string& prefix);

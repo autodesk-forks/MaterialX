@@ -226,11 +226,11 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
 
 void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTransform& transform, ShaderGenerator& shadergen)
 {
-    if (input)
-    {
-        ColorManagementSystemPtr colorManagementSystem = shadergen.getColorManagementSystem();
-        ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(transform, input->node->getName());
+    ColorManagementSystemPtr colorManagementSystem = shadergen.getColorManagementSystem();
+    ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(transform, input->node->getName());
 
+    if (colorTransformNodePtr)
+    {
         _nodeMap[colorTransformNodePtr->getName()] = colorTransformNodePtr;
         _nodeOrder.push_back(colorTransformNodePtr.get());
 
@@ -241,23 +241,17 @@ void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTran
         // this way. Instead we want to set the color transform uniform to be equal to the input uniform.
         colorTransformNode->getInput(0)->value = input->value;
 
-        ShaderOutput* output = input->connection;
-        input->breakConnection();
         input->makeConnection(colorTransformNodeOutput);
-
-        // Connect the node to the upstream output
-        ShaderInput* colorTransformNodeInput = colorTransformNode->getInput(0);
-        colorTransformNodeInput->makeConnection(output);
     }
 }
 
 void ShaderGraph::addColorTransformNode(ShaderOutput* output, const ColorSpaceTransform& transform, ShaderGenerator& shadergen)
 {
-    if (output)
-    {
-        ColorManagementSystemPtr colorManagementSystem = shadergen.getColorManagementSystem();
-        ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(transform, output->node->getName());
+    ColorManagementSystemPtr colorManagementSystem = shadergen.getColorManagementSystem();
+    ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(transform, output->node->getName());
 
+    if (colorTransformNodePtr)
+    {
         _nodeMap[colorTransformNodePtr->getName()] = colorTransformNodePtr;
         _nodeOrder.push_back(colorTransformNodePtr.get());
 
@@ -531,11 +525,11 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
     const string& targetColorSpace = _document ? _document->getAttribute(Element::COLOR_SPACE_ATTRIBUTE) : EMPTY_STRING;
     for (InputPtr input : node.getInputs())
     {
-        populateInputColorTransformMapIfNeeded(node, newNode, input, targetColorSpace);
+        populateInputColorTransformMap(node, newNode, input, targetColorSpace);
     }
     for (ParameterPtr parameter : node.getParameters())
     {
-        populateInputColorTransformMapIfNeeded(node, newNode, parameter, targetColorSpace);
+        populateInputColorTransformMap(node, newNode, parameter, targetColorSpace);
     }
 
     // Check if this is a file texture node that requires color transformation.
@@ -549,13 +543,17 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
         {
             const string& sourceColorSpace = file ? file->getAttribute(Element::COLOR_SPACE_ATTRIBUTE) : EMPTY_STRING;
 
-            ShaderOutput* shaderOutput = newNode->getOutput();
-            if (shaderOutput)
+            // If we're converting between two identical color spaces than we have no work to do.
+            if (!sourceColorSpace.empty() && sourceColorSpace != targetColorSpace)
             {
-                // Store the output and it's color transform so we can create this
-                // color transformation later when finalizing the graph.
-                ColorSpaceTransform transform { sourceColorSpace, targetColorSpace, fileType };
-                _outputColorTransformMap[shaderOutput] = transform;
+                ShaderOutput* shaderOutput = newNode->getOutput();
+                if (shaderOutput)
+                {
+                    // Store the output and it's color transform so we can create this
+                    // color transformation later when finalizing the graph.
+                    ColorSpaceTransform transform( sourceColorSpace, targetColorSpace, *fileType );
+                    _outputColorTransformMap.emplace(shaderOutput, transform);
+                }
             }
         }
     }
@@ -941,23 +939,32 @@ void ShaderGraph::validateNames(ShaderGenerator& shadergen)
     }
 }
 
-void ShaderGraph::populateInputColorTransformMapIfNeeded(const Node& node, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace)
+void ShaderGraph::populateInputColorTransformMap(const Node& node, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace)
 {
-    if (shaderNode && input->isA<Input>() || input->isA<Parameter>())
+    ShaderInput* shaderInput = shaderNode->getInput(input->getName());
+    const string& sourceColorSpace = input->getAttribute(Element::COLOR_SPACE_ATTRIBUTE);
+    if (!sourceColorSpace.empty())
     {
-        ShaderInput* shaderInput = shaderNode->getInput(input->getName());
-        const string& sourceColorSpace = input->getAttribute(Element::COLOR_SPACE_ATTRIBUTE);
-        if (!sourceColorSpace.empty())
+        // Can skip inputs with connections as they are not legally allowed to have colorspaces specified.
+        if (!shaderInput->connection)
         {
             if(shaderInput->type == Type::COLOR3 || shaderInput->type == Type::COLOR4)
             {
-                ColorSpaceTransform transform { sourceColorSpace, targetColorSpace, shaderInput->type };
-                _inputColorTransformMap[shaderInput] = transform;
+                // If we're converting between two identical color spaces than we have no work to do.
+                if (sourceColorSpace != targetColorSpace)
+                {
+                    ColorSpaceTransform transform( sourceColorSpace, targetColorSpace, *shaderInput->type );
+                    _inputColorTransformMap.emplace(shaderInput, transform);
+                }
             }
             else
             {
                 throw ExceptionShaderGenError("Color space attribute for: '" + node.getName() + "." + input->getName() + "' of unsupported type (must be color3 or color4).");
             }
+        }
+        else
+        {
+            throw ExceptionShaderGenError("Color space attribute for: '" + node.getName() + "." + input->getName() + "' invalid as connection exists.");
         }
     }
 }
