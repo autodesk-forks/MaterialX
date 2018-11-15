@@ -555,10 +555,6 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
                     {
                         elements.push_back(shaderRef);
                     }
-                    else
-                    {
-                        std::cout << "Skip shaderref: " << shaderRef->getNamePath() << std::endl;
-                    }
 
                     // Find all bindinputs which reference outputs and outputgraphs
                     for (auto bindInput : shaderRef->getBindInputs())
@@ -596,10 +592,6 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
                         {
                             outputSet.insert(output);
                         }
-                    }
-                    else
-                    {
-                        std::cout << "Skip node: " << output->getNamePath() << std::endl;
                     }
                 }
             }
