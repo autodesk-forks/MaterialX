@@ -7,7 +7,7 @@
 #elif defined(__clang__)
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-function"
-#elif defined(__GNUC__) 
+#else
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
@@ -26,7 +26,7 @@
     #pragma warning( pop ) 
 #elif defined(__clang__)
     #pragma clang diagnostic pop
-#elif defined(__GNUC__) 
+#else
     #pragma GCC diagnostic pop
 #endif
 
