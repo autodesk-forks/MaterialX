@@ -77,7 +77,7 @@ elseif (APPLE)
 )
 elseif (UNIX AND NOT APPLE)
     # stb library contains many unused static functions so add additional flag to ignore
-    set_source_files_properties(stbImageLoader.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-function)
+    add_compile_options(-Wno-unused-function)
     target_link_libraries(
         MaterialXRender
         MaterialXGenShader
