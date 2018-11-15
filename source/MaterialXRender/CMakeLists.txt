@@ -76,8 +76,6 @@ elseif (APPLE)
 	"-framework Cocoa"
 )
 elseif (UNIX AND NOT APPLE)
-    # stb library contains many unused static functions so add additional flag to ignore
-    add_compile_options(-Wno-unused-function)
     target_link_libraries(
         MaterialXRender
         MaterialXGenShader
