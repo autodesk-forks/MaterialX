@@ -1,9 +1,15 @@
 #include <MaterialXRender/Window/HardwarePlatform.h>
 
 #if defined(OSWin_)
-#pragma warning( push )
-#pragma warning( disable: 4100)
-#pragma warning( disable: 4505)
+    #pragma warning( push )
+    #pragma warning( disable: 4100)
+    #pragma warning( disable: 4505)
+#elif defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wunused-function"
+#elif defined(__GNUC__) 
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 // Make the functions static to avoid multiple definitions if other libraries
@@ -17,8 +23,13 @@
 #include <MaterialXRender/External/stb/stb_image.h>
 
 #if defined(OSWin_)
-#pragma warning( pop ) 
+    #pragma warning( pop ) 
+#elif defined(__clang__)
+    #pragma clang diagnostic pop
+#elif defined(__GNUC__) 
+    #pragma GCC diagnostic pop
 #endif
+
 
 #include <MaterialXRender/Handlers/stbImageLoader.h>
 
