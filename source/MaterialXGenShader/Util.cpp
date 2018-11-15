@@ -516,14 +516,14 @@ bool requiresImplementation(const NodeDefPtr nodeDef)
         return false;
     }
     static std::string TYPE_NONE("none");
-    const std::string typeAttribute = nodeDef->getAttribute(TypedElement::TYPE_ATTRIBUTE);
+    const std::string& typeAttribute = nodeDef->getType();
     return !typeAttribute.empty() && typeAttribute != TYPE_NONE;
 }
 
 bool elementRequiresShading(const TypedElementPtr element)
 {
     std::string elementType(element->getType());
-    const std::set<std::string> colorClosures =
+    static std::set<std::string> colorClosures =
     {
         "surfaceshader", "volumeshader", "lightshader",
         "BSDF", "EDF", "VDF"
@@ -569,7 +569,7 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
             }
         }
 
-        // Find node graph outputs
+        // Find node graph outputs. Skip any light shaders
         const std::string LIGHT_SHADER("lightshader");
         for (NodeGraphPtr nodeGraph : nodeGraphs)
         {
@@ -597,13 +597,11 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
             }
         }
 
-        // Run validation on the outputs
+        // Add in all outputs which are not part of a library
         for (OutputPtr output : outputSet)
         {
-            // Skip anything from include files
             if (!output->hasSourceUri())
             {
-                // Add in all shader references which are not part of a node definition library
                 elements.push_back(output);
             }
         }

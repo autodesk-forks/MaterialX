@@ -56,12 +56,12 @@ void mapValueToColor(const ValuePtr value, Color4& color);
 /// Return whether a nodedef requires an implementation
 bool requiresImplementation(const NodeDefPtr nodeDef);
 
-/// Determine if a given element is a which requires shading / lighting when rendered
+/// Determine if a given element requires shading / lighting for rendering
 bool elementRequiresShading(const TypedElementPtr element);
 
-/// Find any elements which may be renderable from within a document. Any elements
+/// Find any elements which may be renderable from within a document.
 /// This includes all outputs on node graphs and shader references which are not
-/// part of any included library.
+/// part of any included library. Light shaders are not considered to be renderable.
 void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>& elements);
 
 } // namespace MaterialX
