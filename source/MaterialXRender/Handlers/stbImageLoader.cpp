@@ -3,13 +3,22 @@
 #if defined(OSWin_)
 #pragma warning( push )
 #pragma warning( disable: 4100)
+#pragma warning( disable: 4505)
 #endif
+
+// Make the functions static to avoid multiple definitions if other libraries
+// are also using stb
+#define STB_IMAGE_STATIC 1
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <MaterialXRender/External/stb/stb_image_write.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <MaterialXRender/External/stb/stb_image.h>
+
+#if defined(OSWin_)
+#pragma warning( pop ) 
+#endif
 
 #include <MaterialXRender/Handlers/stbImageLoader.h>
 
@@ -87,10 +96,6 @@ bool stbImageLoader::acquireImage(const std::string& fileName,
     }
     return (imageDesc.resourceBuffer != nullptr);
 }
-
-#if defined(OSWin_)
-#pragma warning( pop ) 
-#endif
 
 }
 
