@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <unordered_set>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -186,6 +187,11 @@ namespace
         for (GraphIterator it = output->traverseGraph().begin(); it != GraphIterator::end(); ++it)
         {
             ElementPtr upstreamElem = it.getUpstreamElement();
+            if (!upstreamElem)
+            {            
+                it.setPruneSubgraph(true);
+                continue;
+            }
 
             const string& typeName = upstreamElem->asA<TypedElement>()->getType();
             const TypeDesc* type = TypeDesc::get(typeName);
@@ -216,7 +222,7 @@ namespace
                     else if (opacity->getNodeName() == EMPTY_STRING && opacity->getInterfaceName() == EMPTY_STRING)
                     {
                         ValuePtr value = opacity->getValue();
-                        if (!value || isOne(value->asA<float>()))
+                        if (!value || (value->isA<float>() && isOne(value->asA<float>())))
                         {
                             opaque = true;
                         }
@@ -240,7 +246,7 @@ namespace
                     {
                         // Unconnected, check the value
                         ValuePtr value = weight->getValue();
-                        if (value && isZero(value->asA<float>()))
+                        if (value && value->isA<float>() && isZero(value->asA<float>()))
                         {
                             opaque = true;
                         }
@@ -254,7 +260,7 @@ namespace
                         {
                             // Unconnected, check the value
                             ValuePtr value = tint->getValue();
-                            if (value && isBlack(value->asA<Color3>()))
+                            if (!value || (value->isA<Color3>() && isBlack(value->asA<Color3>())))
                             {
                                 opaque = true;
                             }
@@ -283,7 +289,7 @@ namespace
                     {
                         // Unconnected, check the value
                         ValuePtr value = transmission->getValue();
-                        if (!value || isZero(value->asA<float>()))
+                        if (!value || (value->asA<float>() && isZero(value->asA<float>())))
                         {
                             opaque = true;
                         }
@@ -301,7 +307,7 @@ namespace
                         {
                             // Unconnected, check the value
                             ValuePtr value = opacity->getValue();
-                            if (!value || isWhite(value->asA<Color3>()))
+                            if (!value || (value->isA<Color3>() && isWhite(value->asA<Color3>())))
                             {
                                 opaque = true;
                             }
@@ -450,6 +456,156 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
     }
 
     return false;
+}
+
+void mapValueToColor(const ValuePtr value, Color4& color)
+{
+    color = { 0.0, 0.0, 0.0, 1.0 };
+    if (!value)
+    {
+        return;
+    }
+    if (value->isA<float>())
+    {
+        color[0] = value->asA<float>();
+    }
+    else if (value->isA<Color2>())
+    {
+        Color2 v = value->asA<Color2>();
+        color[0] = v[0];
+        color[3] = v[1]; // Component 2 maps to alpha
+    }
+    else if (value->isA<Color3>())
+    {
+        Color3 v = value->asA<Color3>();
+        color[0] = v[0];
+        color[1] = v[1];
+        color[2] = v[2];
+    }
+    else if (value->isA<Color4>())
+    {
+        color = value->asA<Color4>();
+    }
+    else if (value->isA<Vector2>())
+    {
+        Vector2 v = value->asA<Vector2>();
+        color[0] = v[0];
+        color[1] = v[1];
+    }
+    else if (value->isA<Vector3>())
+    {
+        Vector3 v = value->asA<Vector3>();
+        color[0] = v[0];
+        color[1] = v[1];
+        color[2] = v[2];
+    }
+    else if (value->isA<Vector4>())
+    {
+        Vector4 v = value->asA<Vector4>();
+        color[0] = v[0];
+        color[1] = v[1];
+        color[2] = v[2];
+        color[3] = v[3];
+    }
+}
+
+bool requiresImplementation(const NodeDefPtr nodeDef)
+{
+    if (!nodeDef)
+    {
+        return false;
+    }
+    static std::string TYPE_NONE("none");
+    const std::string& typeAttribute = nodeDef->getType();
+    return !typeAttribute.empty() && typeAttribute != TYPE_NONE;
+}
+
+bool elementRequiresShading(const TypedElementPtr element)
+{
+    std::string elementType(element->getType());
+    static std::set<std::string> colorClosures =
+    {
+        "surfaceshader", "volumeshader", "lightshader",
+        "BSDF", "EDF", "VDF"
+    };
+    return (element->isA<ShaderRef>() ||
+            colorClosures.count(elementType) > 0);
+}
+
+void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>& elements)
+{
+    std::vector<NodeGraphPtr> nodeGraphs = doc->getNodeGraphs();
+    std::vector<OutputPtr> outputList = doc->getOutputs();
+    std::unordered_set<OutputPtr> outputSet(outputList.begin(), outputList.end());
+    std::vector<MaterialPtr> materials = doc->getMaterials();
+
+    if (!materials.empty() || !nodeGraphs.empty() || !outputList.empty())
+    {
+        std::unordered_set<OutputPtr> shaderrefOutputs;
+        for (auto material : materials)
+        {
+            for (auto shaderRef : material->getShaderRefs())
+            {
+                if (!shaderRef->hasSourceUri())
+                {
+                    // Add in all shader references which are not part of a node definition library
+                    NodeDefPtr nodeDef = shaderRef->getNodeDef();
+                    if (nodeDef && 
+                        requiresImplementation(nodeDef))
+                    {
+                        elements.push_back(shaderRef);
+                    }
+
+                    // Find all bindinputs which reference outputs and outputgraphs
+                    for (auto bindInput : shaderRef->getBindInputs())
+                    {
+                        OutputPtr outputPtr = bindInput->getConnectedOutput();
+                        if (outputPtr)
+                        {
+                            shaderrefOutputs.insert(outputPtr);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Find node graph outputs. Skip any light shaders
+        const std::string LIGHT_SHADER("lightshader");
+        for (NodeGraphPtr nodeGraph : nodeGraphs)
+        {
+            // Skip anything from an include file including libraries.
+            if (!nodeGraph->hasSourceUri())
+            {
+                std::vector<OutputPtr> nodeGraphOutputs = nodeGraph->getOutputs();
+                for (OutputPtr output : nodeGraphOutputs)
+                {
+                    NodePtr outputNode = output->getConnectedNode();
+
+                    // For now we skip any outputs which are referenced elsewhere.
+                    if (outputNode && 
+                        outputNode->getType() != LIGHT_SHADER &&
+                        shaderrefOutputs.count(output) == 0)
+                    {                        
+                        NodeDefPtr nodeDef = outputNode->getNodeDef();
+                        if (nodeDef &&
+                            requiresImplementation(nodeDef))
+                        {
+                            outputSet.insert(output);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add in all outputs which are not part of a library
+        for (OutputPtr output : outputSet)
+        {
+            if (!output->hasSourceUri())
+            {
+                elements.push_back(output);
+            }
+        }
+    }
 }
 
 } // namespace MaterialX

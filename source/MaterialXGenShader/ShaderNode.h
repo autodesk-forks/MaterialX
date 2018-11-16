@@ -123,7 +123,6 @@ class ShaderNode
 
     static const ShaderNodePtr NONE;
 
-    static const string SXCLASS_ATTRIBUTE;
     static const string CONSTANT;
     static const string IMAGE;
     static const string COMPARE;
@@ -135,7 +134,7 @@ class ShaderNode
     /// Constructor.
     ShaderNode(const string& name);
 
-    /// Create a new node from a nodedef and an option node instance.
+    /// Create a new node from a nodedef and an optional node instance.
     static ShaderNodePtr create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const Node* nodeInstance = nullptr);
 
     /// Create a new color transform node from a ShaderNodeImpl and type.
@@ -216,6 +215,22 @@ class ShaderNode
     ShaderInput* getSamplingInput() const
     {
         return _samplingInput;
+    }
+
+    /// Returns true if an input is editable by users.
+    /// Editable inputs are allowed to be published as shader uniforms
+    /// and hence must be presentable in a user interface.
+    bool isEditable(const ShaderInput& input) const
+    {
+        return (!_impl || _impl->isEditable(input));
+    }
+
+    /// Returns true if a graph input is accessible by users.
+    /// Editable inputs are allowed to be published as shader uniforms
+    /// and hence must be presentable in a user interface.
+    bool isEditable(const ShaderGraphInputSocket& input) const
+    {
+        return (!_impl || _impl->isEditable(input));
     }
 
     /// Add the given contex id to the set of contexts used for this node.

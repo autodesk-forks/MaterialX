@@ -98,19 +98,6 @@ bool getShaderSource(mx::ShaderGeneratorPtr generator,
     return false;
 }
 
-// Check if a nodedef requires an implementation check
-// Untyped nodes do not
-bool requiresImplementation(const mx::NodeDefPtr nodeDef)
-{
-    if (!nodeDef)
-    {
-        return false;
-    }
-    static std::string TYPE_NONE("none");
-    const std::string typeAttribute = nodeDef->getAttribute(mx::TypedElement::TYPE_ATTRIBUTE);
-    return !typeAttribute.empty() && typeAttribute != TYPE_NONE;
-}
-
 void createLightCompoundExample(mx::DocumentPtr document)
 {
     const std::string nodeName = "lightcompound";
@@ -523,7 +510,7 @@ TEST_CASE("Reference Implementation Validity", "[shadergen]")
 
         std::string nodeDefName = nodeDef->getName();
         std::string nodeName = nodeDef->getNodeString();
-        if (!requiresImplementation(nodeDef))
+        if (!mx::requiresImplementation(nodeDef))
         {
             found_str += "No implementation required for nodedef: " + nodeDefName + ", Node: " + nodeName + ".\n";
             continue;
@@ -1079,10 +1066,10 @@ TEST_CASE("Hello World", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXRender library
         std::ofstream file;
-        file.open(RESULT_DIRECTORY + shader->getName() + "_graph.vert");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_graph_vs.glsl");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
         file.close();
-        file.open(RESULT_DIRECTORY + shader->getName() + "_graph.frag");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_graph_ps.glsl");
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
 
@@ -1093,10 +1080,10 @@ TEST_CASE("Hello World", "[shadergen]")
         REQUIRE(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
         // Write out to file for inspection
         // TODO: Use validation in MaterialXRender library
-        file.open(RESULT_DIRECTORY + shader->getName() + "_shaderref.vert");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_shaderref_vs.glsl");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
         file.close();
-        file.open(RESULT_DIRECTORY + shader->getName() + "_shaderref.frag");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_shaderref_ps.glsl");
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
     }
@@ -1220,10 +1207,10 @@ TEST_CASE("Conditionals", "[shadergen]")
 
         // Write out to file for inspection
         // TODO: Use validation in MaterialXRender library
-        file.open(RESULT_DIRECTORY + shader->getName() + ".vert");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_vs.glsl");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
         file.close();
-        file.open(RESULT_DIRECTORY + shader->getName() + ".frag");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_ps.glsl");
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
 
@@ -1359,10 +1346,10 @@ TEST_CASE("Geometric Nodes", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXRender library
         std::ofstream file;
-        file.open(RESULT_DIRECTORY + shader->getName() + ".frag");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_ps.glsl");
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
-        file.open(RESULT_DIRECTORY + shader->getName() + ".vert");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_vs.glsl");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
     }
 #endif // MATERIALX_BUILD_GEN_GLSL
@@ -1509,10 +1496,10 @@ TEST_CASE("Noise", "[shadergen]")
             // Write out to file for inspection
             // TODO: Use validation in MaterialXRender library
             std::ofstream file;
-            file.open(RESULT_DIRECTORY + shader->getName() + ".vert");
+            file.open(RESULT_DIRECTORY + shader->getName() + "_vs.glsl");
             file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
             file.close();
-            file.open(RESULT_DIRECTORY + shader->getName() + ".frag");
+            file.open(RESULT_DIRECTORY + shader->getName() + "_ps.glsl");
             file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
             file.close();
         }
@@ -1628,10 +1615,10 @@ TEST_CASE("Unique Names", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXRender library
         std::ofstream file;
-        file.open(RESULT_DIRECTORY + exampleName + ".frag");
+        file.open(RESULT_DIRECTORY + exampleName + "_ps.glsl");
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
-        file.open(RESULT_DIRECTORY + exampleName + ".vert");
+        file.open(RESULT_DIRECTORY + exampleName + "_vs.glsl");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
     }
 #endif // MATERIALX_BUILD_GEN_GLSL
@@ -1743,10 +1730,10 @@ TEST_CASE("Subgraphs", "[shadergen]")
             // Write out to file for inspection
             // TODO: Use validation in MaterialXRender library
             std::ofstream file;
-            file.open(RESULT_DIRECTORY + shader->getName() + ".frag");
+            file.open(RESULT_DIRECTORY + shader->getName() + "_ps.glsl");
             file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
             file.close();
-            file.open(RESULT_DIRECTORY + shader->getName() + ".vert");
+            file.open(RESULT_DIRECTORY + shader->getName() + "_vs.glsl");
             file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
         }
     }
@@ -1851,10 +1838,10 @@ TEST_CASE("Materials", "[shadergen]")
                 // Write out to file for inspection
                 // TODO: Use validation in MaterialXRender library
                 std::ofstream file;
-                file.open(RESULT_DIRECTORY + shader->getName() + ".frag");
+                file.open(RESULT_DIRECTORY + shader->getName() + "_ps.glsl");
                 file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
                 file.close();
-                file.open(RESULT_DIRECTORY + shader->getName() + ".vert");
+                file.open(RESULT_DIRECTORY + shader->getName() + "_vs.glsl");
                 file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
             }
         }
@@ -1950,10 +1937,10 @@ TEST_CASE("Color Spaces", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXRender library
         std::ofstream file;
-        file.open(RESULT_DIRECTORY + shader->getName() + ".frag");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_ps.glsl");
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
-        file.open(RESULT_DIRECTORY + shader->getName() + ".vert");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_vs.glsl");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
     }
 #endif // MATERIALX_BUILD_GEN_GLSL
@@ -2110,10 +2097,10 @@ TEST_CASE("BSDF Layering", "[shadergen]")
             // Write out to file for inspection
             // TODO: Use validation in MaterialXRender library
             std::ofstream file;
-            file.open(RESULT_DIRECTORY + shader->getName() + ".frag");
+            file.open(RESULT_DIRECTORY + shader->getName() + "_ps.glsl");
             file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
             file.close();
-            file.open(RESULT_DIRECTORY + shader->getName() + ".vert");
+            file.open(RESULT_DIRECTORY + shader->getName() + "_vs.glsl");
             file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
         }
 #endif // MATERIALX_BUILD_GEN_GLSL
@@ -2289,10 +2276,10 @@ TEST_CASE("Transparency", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXRender library
         std::ofstream file;
-        file.open(RESULT_DIRECTORY + shader->getName() + ".frag");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_ps.glsl");
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
-        file.open(RESULT_DIRECTORY + shader->getName() + ".vert");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_vs.glsl");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
     }
 #endif // MATERIALX_BUILD_GEN_GLSL
@@ -2409,10 +2396,10 @@ TEST_CASE("Surface Layering", "[shadergen]")
         // Write out to file for inspection
         // TODO: Use validation in MaterialXRender library
         std::ofstream file;
-        file.open(RESULT_DIRECTORY + shader->getName() + ".frag");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_ps.glsl");
         file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
         file.close();
-        file.open(RESULT_DIRECTORY + shader->getName() + ".vert");
+        file.open(RESULT_DIRECTORY + shader->getName() + "_vs.glsl");
         file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
     }
 #endif // MATERIALX_BUILD_GEN_GLSL
