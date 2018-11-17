@@ -62,31 +62,28 @@ bool GLTextureHandler::acquireImage(std::string& fileName,
         glActiveTexture(GL_TEXTURE0 + imageDesc.resourceId);
         glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
 
-        GLint internalFormat = GL_RGBA;
+        GLint internalFormat = imageDesc.floatingPoint ? GL_RGBA32F : GL_RGBA;
         GLint format = GL_RGBA;
         switch (imageDesc.channelCount)
         {
         case 3:
         {
-            internalFormat = GL_RGBA;
-            // Map {RGB} to {RGB, 1} at shader access time
-            GLint swizzleMaskRGB[] = { GL_RED, GL_GREEN, GL_BLUE, GL_ONE };
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMaskRGB);
             format = GL_RGB;
+            // Map {RGB} to {RGB, 1} at shader access time
+            GLint swizzleMasRGB[] = { GL_RED, GL_GREEN, GL_BLUE, GL_ONE };
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMasRGB);
             break;
         }
         case 2:
         {
-            internalFormat = GL_RGBA;
             format = GL_RG;
             // Map {red, green} to {red, alpha} at shader access time
-            GLint swizzleMaskRG[] = { GL_RED, GL_RED, GL_RED, GL_GREEN };
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMaskRG);
+            GLint swizzleMasRG[] = { GL_RED, GL_RED, GL_RED, GL_GREEN };
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMasRG);
             break;
         }
         case 1:
         {
-            internalFormat = GL_RGBA;
             format = GL_RED;
             // Map { red } to {red, green, blue, 1} at shader access time
             GLint swizzleMaskR[] = { GL_RED, GL_RED, GL_RED, GL_ONE };
