@@ -51,7 +51,7 @@ class ImageSamplingProperties
     /// Filter type
     int filterType = -1;
     /// Default color
-    std::array<float,4> defaultColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+    std::array<float, 4> defaultColor = { { 0.0f, 0.0f, 0.0f, 1.0f } };
 };
 
 /// Image description cache
