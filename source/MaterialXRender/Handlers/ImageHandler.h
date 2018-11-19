@@ -149,10 +149,10 @@ class ImageHandler
     /// @param fileName Name of file to load image from.
     /// @param imageDesc Description of image updated during load.
     /// @param generateMipMaps Generate mip maps if supported.
-    /// @param color Color of fallback image to use if failed to load.  If null is specified then
+    /// @param fallbackColor Color of fallback image to use if failed to load.  If null is specified then
     /// no fallback image will be acquired.
     /// @return if load succeeded in loading image or created fallback image.
-    virtual bool acquireImage(const std::string& fileName, ImageDesc& desc, bool generateMipMaps, const std::array<float, 4>* color);
+    virtual bool acquireImage(const std::string& fileName, ImageDesc& desc, bool generateMipMaps, const std::array<float, 4>* fallbackColor);
 
     /// Utility to create a solid color color image 
     /// @param color Color to set

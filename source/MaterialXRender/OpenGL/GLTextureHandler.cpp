@@ -117,7 +117,9 @@ bool GLTextureHandler::acquireImage(const std::string& fileName,
         desc.channelCount = 4;
         desc.width = 1;
         desc.height = 1;
+        desc.floatingPoint = true;
         createColorImage(*fallbackColor, desc);
+        cacheImage(fileName, desc);
         textureLoaded = true;
     }
 

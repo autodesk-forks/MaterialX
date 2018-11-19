@@ -49,10 +49,10 @@ class GLTextureHandler : public ImageHandler
     /// @param fileName Name of file to load image from.
     /// @param imageDesc Description of image updated during load.
     /// @param generateMipMaps Generate mip maps if supported.
-    /// @param color Color of fallback image to use if failed to load.  If null is specified then
+    /// @param fallbackColor Color of fallback image to use if failed to load.  If null is specified then
     /// no fallback image will be acquired.
     /// @return if load succeeded in loading image or created fallback image.
-    bool acquireImage(const std::string& fileName, ImageDesc &imageDesc, bool generatateMipMaps, const std::array<float,4>* color) override;
+    bool acquireImage(const std::string& fileName, ImageDesc &imageDesc, bool generatateMipMaps, const std::array<float,4>* fallbackColor) override;
 
     /// Bind an image. This method will bind the texture to an active texture
     /// unit as defined by the corresponding image description. The method
