@@ -5,7 +5,7 @@
 
 namespace MaterialX
 {
-bool GLTextureHandler::createColorImage(float color[4],
+bool GLTextureHandler::createColorImage(const std::array<float,4>& color,
                                         ImageDesc& imageDesc)
 {
     if (!glActiveTexture)
@@ -29,9 +29,10 @@ bool GLTextureHandler::createColorImage(float color[4],
     return false;
 }
 
-bool GLTextureHandler::acquireImage(std::string& fileName,
+bool GLTextureHandler::acquireImage(const std::string& fileName,
                                     ImageDesc &imageDesc,
-                                    bool generateMipMaps)
+                                    bool generateMipMaps,
+                                    const std::array<float,4>* fallbackColor)
 {
     if (fileName.empty())
     {
@@ -53,9 +54,8 @@ bool GLTextureHandler::acquireImage(std::string& fileName,
     }
 
     bool textureLoaded = false;
-    if (ParentClass::acquireImage(fileName, imageDesc, generateMipMaps))
+    if (ParentClass::acquireImage(fileName, imageDesc, generateMipMaps, fallbackColor))
     {
-
         imageDesc.resourceId = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glGenTextures(1, &imageDesc.resourceId);
@@ -110,26 +110,14 @@ bool GLTextureHandler::acquireImage(std::string& fileName,
         textureLoaded = true;
     }
 
-    if (!textureLoaded)
+    // Create a fallback texture if failed to load
+    if (!textureLoaded && fallbackColor)
     {
-        const string BLACK_TEXTURE("@internal_black_texture@");
-        const ImageDesc* cachedColorDesc = getCachedImage(BLACK_TEXTURE);
-        if (cachedColorDesc)
-        {
-            imageDesc = *cachedColorDesc;
-        }
-        else
-        {
-            float BLACK_COLOR[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-            ImageDesc desc;
-            desc.channelCount = 4;
-            desc.width = 1;
-            desc.height = 1;
-            createColorImage(BLACK_COLOR, desc);
-
-            cacheImage(BLACK_TEXTURE, desc);
-        }
-        fileName = BLACK_TEXTURE;
+        ImageDesc desc;
+        desc.channelCount = 4;
+        desc.width = 1;
+        desc.height = 1;
+        createColorImage(*fallbackColor, desc);
         textureLoaded = true;
     }
 
@@ -169,7 +157,7 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
         GLint magFilterType = (minFilterType == GL_LINEAR || minFilterType == GL_REPEAT) ? minFilterType : GL_LINEAR;
         GLint uaddressMode = mapAddressModeToGL(samplingProperties.uaddressMode);
         GLint vaddressMode = mapAddressModeToGL(samplingProperties.vaddressMode);
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, samplingProperties.defaultColor);
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, samplingProperties.defaultColor.data());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, vaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterType);
