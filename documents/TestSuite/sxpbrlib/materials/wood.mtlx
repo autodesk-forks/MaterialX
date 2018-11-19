@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <materialx version="1.36">
   <nodegraph name="nodegraph1" type="" xpos="7.4" ypos="19.0118">
-    <output name="out" type="surfaceshader" output="out" nodename="standard_surface2" />
+    <output name="out" type="surfaceshader" nodename="standard_surface2" />
     <image name="image1" type="color3" xpos="4.7931" ypos="-2.06">
       <parameter name="file" type="filename" value="documents/TestSuite/Images/wood_baseColor.png" />
       <parameter name="layer" type="string" value="" />
@@ -16,11 +16,11 @@
     </image>
     <standard_surface name="standard_surface2" type="surfaceshader" xpos="6.29441" ypos="2.18094">
       <input name="base" type="float" value="0.8" />
-      <input name="base_color" type="color3" value="1, 1, 1" output="out" nodename="image1" />
-      <input name="diffuse_roughness" type="float" value="0" output="out" nodename="image3" />
+      <input name="base_color" type="color3" value="1, 1, 1" nodename="image1" />
+      <input name="diffuse_roughness" type="float" value="0" nodename="image3" />
       <input name="specular" type="float" value="1" />
       <input name="specular_color" type="color3" value="1, 1, 1" />
-      <input name="specular_roughness" type="float" value="0.1" output="out"/>
+      <input name="specular_roughness" type="float" value="0.1"/>
       <input name="specular_IOR" type="float" value="1.52" />
       <input name="specular_anisotropy" type="float" value="0" />
       <input name="specular_rotation" type="float" value="0" />
@@ -37,7 +37,7 @@
       <input name="subsurface_radius" type="color3" value="1, 1, 1" />
       <input name="subsurface_scale" type="float" value="1" />
       <input name="thin_walled" type="boolean" value="false" />
-      <input name="normal" type="vector3" value="0.0, 0.0, 0.0" output="out" nodename="normalmap1" />
+      <input name="normal" type="vector3" value="0.0, 0.0, 0.0" nodename="normalmap1" />
       <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
       <input name="coat" type="float" value="0" />
       <input name="coat_color" type="color3" value="1, 1, 1" />
@@ -58,10 +58,10 @@
       <input name="indirect_diffuse" type="float" value="1" />
       <input name="indirect_specular" type="float" value="1" />
     </standard_surface>
-    <image name="image2" type="color3" xpos="3.31034" ypos="11.8">
+    <image name="image2" type="vector3" xpos="3.31034" ypos="11.8">
       <parameter name="file" type="filename" value="documents/TestSuite/Images/wood_normal.png" />
       <parameter name="layer" type="string" value="" />
-      <parameter name="default" type="color3" value="0.0, 0.0, 0.0" />
+      <parameter name="default" type="vector3" value="0.0, 0.0, 0.0" />
       <input name="texcoord" type="vector2" value="0.0, 0.0" />
       <parameter name="uaddressmode" type="string" value="periodic" />
       <parameter name="vaddressmode" type="string" value="periodic" />
@@ -71,7 +71,7 @@
       <parameter name="frameendaction" type="string" value="black" />
     </image>
     <normalmap name="normalmap1" type="vector3" xpos="4.7931" ypos="11.16">
-      <input name="in" type="vector3" value="0.5, 0.5, 1.0" output="out" nodename="image2" />
+      <input name="in" type="vector3" value="0.5, 0.5, 1.0" nodename="image2" />
       <parameter name="tangentSpace" type="integer" value="1" />
       <input name="normal" type="vector3" value="0.0, 0.0, 0.0" />
       <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />

@@ -102,7 +102,7 @@ class ImageLoader
     /// @param fileName Name of file to load image from
     /// @param imageDesc Description of image updated during load.
     /// @param generateMipMaps Generate mip maps if supported.
-    /// @return if load succeeded in loadin image or created fallback texture.
+    /// @return if load succeeded
     virtual bool acquireImage(const std::string& fileName, ImageDesc &imageDesc, bool generateMipMaps) = 0;
 
   protected:
