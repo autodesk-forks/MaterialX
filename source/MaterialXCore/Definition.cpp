@@ -37,8 +37,8 @@ InterfaceElementPtr NodeDef::getImplementation(const string& target, const strin
     vector<InterfaceElementPtr> secondary = getDocument()->getMatchingImplementations(getName());
     interfaces.insert(interfaces.end(), secondary.begin(), secondary.end());
 
-    // Scan for implementations, looking for those with a language match 
-    // over those which do not.
+    // Search for the first implementation which matches a given language string.
+    // If no language is specified then return the first implementation found.
     bool matchLanguage = !language.empty();
     for (InterfaceElementPtr interface : interfaces)
     {
@@ -56,7 +56,8 @@ InterfaceElementPtr NodeDef::getImplementation(const string& target, const strin
         }
     }
 
-    // Search for a nodegraph match if no implementation match was found
+    // Search for a node graph match if no implementation match was found.
+    // There is no language check as node graphs are considered to be language independent.
     for (InterfaceElementPtr interface : interfaces)
     {
         if (interface->isA<Implementation>() || 
