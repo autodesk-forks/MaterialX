@@ -70,16 +70,16 @@ bool GLTextureHandler::acquireImage(const std::string& fileName,
         {
             format = GL_RGB;
             // Map {RGB} to {RGB, 1} at shader access time
-            GLint swizzleMasRGB[] = { GL_RED, GL_GREEN, GL_BLUE, GL_ONE };
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMasRGB);
+            GLint swizzleMaskRGB[] = { GL_RED, GL_GREEN, GL_BLUE, GL_ONE };
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMaskRGB);
             break;
         }
         case 2:
         {
             format = GL_RG;
             // Map {red, green} to {red, alpha} at shader access time
-            GLint swizzleMasRG[] = { GL_RED, GL_RED, GL_RED, GL_GREEN };
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMasRG);
+            GLint swizzleMaskRG[] = { GL_RED, GL_RED, GL_RED, GL_GREEN };
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMaskRG);
             break;
         }
         case 1:
