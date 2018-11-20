@@ -30,6 +30,7 @@ bool ColorManagementSystem::registerImplementation(const ColorSpaceTransform& tr
     {
         string implName = getImplementationName(transform);
         _implFactory.registerClass(implName, creator);
+        _registeredImplNames.push_back(implName);
         return true;
     }
     return false;
@@ -38,24 +39,21 @@ bool ColorManagementSystem::registerImplementation(const ColorSpaceTransform& tr
 void  ColorManagementSystem::setConfigFile(const string& configFile)
 {
     _configFile = configFile;
-    _implFactory.unregisterClasses();
+    _implFactory.unregisterClasses(_registeredImplNames);
+    _registeredImplNames.clear();
     _cachedImpls.clear();
 }
 
 void ColorManagementSystem::loadLibrary(DocumentPtr document)
 {
     _document = document;
-    _implFactory.unregisterClasses();
+    _implFactory.unregisterClasses(_registeredImplNames);
+    _registeredImplNames.clear();
     _cachedImpls.clear();
 }
 
 ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& transform, const string& prefix)
 {
-    if (transform.type == nullptr)
-    {
-        return nullptr;
-    }
-
     string implName = getImplementationName(transform);
     ImplementationPtr impl = _document->getImplementation(implName);
 

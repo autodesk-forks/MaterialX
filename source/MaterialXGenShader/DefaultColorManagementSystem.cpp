@@ -1,4 +1,5 @@
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
+#include <MaterialXGenShader/ShaderGenerator.h>
 
 namespace MaterialX
 {
@@ -8,32 +9,19 @@ const string DefaultColorManagementSystem::CMS_NAME = "default_cms";
 
 string DefaultColorManagementSystem::getImplementationName(const ColorSpaceTransform& transform)
 {
-    if (transform.type)
-    {
-        return "IM_" + transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName() + "_" + _shadergen->getLanguage();
-    }
-    else
-    {
-        return "";
-    }
+    string language = _shadergen.getLanguage();
+    std::replace(language.begin(), language.end(), '-', '_');
+    return "IM_" + transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName() + "_" + language;
 }
 
-DefaultColorManagementSystemPtr DefaultColorManagementSystem::create(DocumentPtr document, ShaderGenerator& shadergen, const string& configFile)
+DefaultColorManagementSystemPtr DefaultColorManagementSystem::create(ShaderGenerator& shadergen)
 {
-    if (configFile.empty())
-    {
-      DefaultColorManagementSystemPtr result(new DefaultColorManagementSystem(document, shadergen));
-      result->initialize();
-      return result;
-    }
-    else
-    {
-        throw ExceptionShaderGenError("The " + DefaultColorManagementSystem::CMS_NAME + " color management system does not require a config file to be specified.");
-    }
+    DefaultColorManagementSystemPtr result(new DefaultColorManagementSystem(shadergen));
+    return result;
 }
 
-DefaultColorManagementSystem::DefaultColorManagementSystem(DocumentPtr document, ShaderGenerator& shadergen)
-    : ColorManagementSystem(document, shadergen, MaterialX::EMPTY_STRING)
+DefaultColorManagementSystem::DefaultColorManagementSystem(ShaderGenerator& shadergen)
+    : ColorManagementSystem(shadergen, MaterialX::EMPTY_STRING)
 {
 }
 

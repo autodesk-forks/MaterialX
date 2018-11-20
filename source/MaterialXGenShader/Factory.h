@@ -40,10 +40,12 @@ public:
         }
     }
 
-    static void unregisterClasses()
+    static void unregisterClasses(vector<string>& registeredImplNames)
     {
-        CreatorMap& map = creatorMap();
-        map.clear();
+        for (string registeredImplName : registeredImplNames)
+        {
+            unregisterClass(registeredImplName);
+        }
     }
 
     /// Create a new instance of the class with given type name.

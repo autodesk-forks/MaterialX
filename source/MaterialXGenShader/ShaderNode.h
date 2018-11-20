@@ -93,6 +93,8 @@ class ShaderNode
         static const unsigned int CONVOLUTION2D = 1 << 18; // Performs a convolution in 2D (uv space)
 
         static const unsigned int COLOR_SPACE_TRANSFORM = 1 << 19; // Performs color space transformation
+
+        static const unsigned int DO_NOT_OPTIMIZE = 1 << 20; // Flag that this should not be optimized
     };
 
     /// Information on source code scope for the node.

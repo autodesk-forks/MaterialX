@@ -18,7 +18,7 @@ class DefaultColorManagementSystem : public ColorManagementSystem
 {
   public:
     /// Create a new DefaultColorManagementSystem
-    static DefaultColorManagementSystemPtr create(DocumentPtr document, ShaderGenerator& shadergen, const string& configFile);
+    static DefaultColorManagementSystemPtr create(ShaderGenerator& shadergen);
 
     /// Return the DefaultColorManagementSystem name
     const string& getName() const
@@ -33,9 +33,7 @@ class DefaultColorManagementSystem : public ColorManagementSystem
 
   private:
     /// Protected constructor
-    DefaultColorManagementSystem(DocumentPtr document, ShaderGenerator& shadergen);
-
-    DocumentPtr _document;
+    DefaultColorManagementSystem(ShaderGenerator& shadergen);
 };
 
 } // namespace MaterialX

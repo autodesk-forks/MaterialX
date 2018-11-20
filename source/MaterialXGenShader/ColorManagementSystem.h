@@ -94,6 +94,7 @@ class ColorManagementSystem
 
     Factory<ShaderNodeImpl> _implFactory;
     std::unordered_map<ColorSpaceTransform, ShaderNodeImplPtr, ColorSpaceTransformHash> _cachedImpls;
+    vector<string> _registeredImplNames;
     string _configFile;
     ShaderGenerator& _shadergen;
     DocumentPtr _document;

@@ -235,6 +235,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
 
 void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTransform& transform, ShaderGenerator& shadergen)
 {
+    input->node->_classification |= ShaderNode::Classification::DO_NOT_OPTIMIZE;
     ColorManagementSystemPtr colorManagementSystem = shadergen.getColorManagementSystem();
     ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(transform, input->node->getName());
 
@@ -267,7 +268,8 @@ void ShaderGraph::addColorTransformNode(ShaderOutput* output, const ColorSpaceTr
         ShaderNode* colorTransformNode = colorTransformNodePtr.get();
         ShaderOutput* colorTransformNodeOutput = colorTransformNode->getOutput(0);
 
-        for (ShaderInput* input : output->connections)
+        std::vector<ShaderInput*> inputs(output->connections.begin(), output->connections.end());
+        for (ShaderInput* input : inputs)
         {
             input->breakConnection();
             input->makeConnection(colorTransformNodeOutput);
@@ -545,7 +547,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
     if (newNode->hasClassification(ShaderNode::Classification::FILETEXTURE))
     {
         ParameterPtr file = node.getParameter("file");
-        const TypeDesc* fileType = file ? TypeDesc::get(file->getType()) : nullptr;
+        const TypeDesc* fileType = TypeDesc::get(node.getType());
 
         // Only color3 and color4 textures require color transformation.
         if (fileType == Type::COLOR3 || fileType == Type::COLOR4)
@@ -603,9 +605,6 @@ ShaderNode* ShaderGraph::getNode(const string& name)
 
 void ShaderGraph::finalize(ShaderGenerator& shadergen)
 {
-    // Optimize the graph, removing redundant paths.
-    optimize();
-
     // Insert color transformation nodes where needed
     for (auto it : _inputColorTransformMap)
     {
@@ -617,6 +616,9 @@ void ShaderGraph::finalize(ShaderGenerator& shadergen)
     }
     _inputColorTransformMap.clear();
     _outputColorTransformMap.clear();
+
+    // Optimize the graph, removing redundant paths.
+    optimize();
 
     // Sort the nodes in topological order.
     topologicalSort();
@@ -665,7 +667,7 @@ void ShaderGraph::optimize()
     size_t numEdits = 0;
     for (ShaderNode* node : getNodes())
     {
-        if (node->hasClassification(ShaderNode::Classification::CONSTANT))
+        if (!node->hasClassification(ShaderNode::Classification::DO_NOT_OPTIMIZE) && node->hasClassification(ShaderNode::Classification::CONSTANT))
         {
             // Constant nodes can be removed by assigning their value downstream
             // But don't remove it if it's connected upstream, i.e. it's value
@@ -966,7 +968,7 @@ void ShaderGraph::populateInputColorTransformMap(const Node& node, ShaderNodePtr
                     _inputColorTransformMap.emplace(shaderInput, transform);
                 }
             }
-            else
+            else if(shaderInput->type != Type::FILENAME)
             {
                 throw ExceptionShaderGenError("Color space attribute for: '" + node.getName() + "." + input->getName() + "' of unsupported type (must be color3 or color4).");
             }
