@@ -36,37 +36,44 @@ InterfaceElementPtr NodeDef::getImplementation(const string& target, const strin
     vector<InterfaceElementPtr> interfaces = getDocument()->getMatchingImplementations(getQualifiedName(getName()));
     vector<InterfaceElementPtr> secondary = getDocument()->getMatchingImplementations(getName());
     interfaces.insert(interfaces.end(), secondary.begin(), secondary.end());
-    InterfaceElementPtr lastMatchingInterface = InterfaceElementPtr();
+
+    // Scan for implementations, looking for those with a language match 
+    // over those which do not.
     for (InterfaceElementPtr interface : interfaces)
     {
+        ImplementationPtr implement = interface->asA<Implementation>();
+        if (!implement)
+        {
+            continue;
+        }
         if (!targetStringsMatch(interface->getTarget(), target) ||
             !isVersionCompatible(interface))
         {
             continue;
         }
-        if (!language.empty())
+
+        if (implement->getLanguage() == language)
         {
-            // If the given interface is an implementation element, as opposed to
-            // a node graph, then check for a language string match.
-            ImplementationPtr implement = interface->asA<Implementation>();
-            if (implement && implement->getLanguage() == language)
-            {
-                return interface;
-            }
-            else if (!implement)
-            {
-                // Keep track of last nodegraph which matches and continue
-                // to search in case there is a language specific implementation.
-                lastMatchingInterface = interface;
-            }
-        }
-        else
-        {
-            lastMatchingInterface = interface;
+            return interface;
         }
     }
 
-    return lastMatchingInterface;
+    // Search for a nodegraph match if no implementation match was found
+    for (InterfaceElementPtr interface : interfaces)
+    {
+        if (interface->isA<Implementation>())
+        {
+            continue;
+        }
+        if (!targetStringsMatch(interface->getTarget(), target) ||
+            !isVersionCompatible(interface))
+        {
+            continue;
+        }
+        return interface;
+    }
+
+    return InterfaceElementPtr();
 }
 
 vector<ShaderRefPtr> NodeDef::getInstantiatingShaderRefs() const
