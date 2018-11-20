@@ -19,8 +19,8 @@ ColorSpaceTransform::ColorSpaceTransform(const string& ss, const string& ts, con
 
 
 ColorManagementSystem::ColorManagementSystem(ShaderGenerator& shadergen, const string& configFile)
-    : _shadergen(shadergen)
-    , _configFile(configFile)
+    : _configFile(configFile)
+    , _shadergen(shadergen)
 {
 }
 
