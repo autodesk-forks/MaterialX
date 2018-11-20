@@ -36,6 +36,7 @@ InterfaceElementPtr NodeDef::getImplementation(const string& target, const strin
     vector<InterfaceElementPtr> interfaces = getDocument()->getMatchingImplementations(getQualifiedName(getName()));
     vector<InterfaceElementPtr> secondary = getDocument()->getMatchingImplementations(getName());
     interfaces.insert(interfaces.end(), secondary.begin(), secondary.end());
+    InterfaceElementPtr lastMatchingInterface = InterfaceElementPtr();
     for (InterfaceElementPtr interface : interfaces)
     {
         if (!targetStringsMatch(interface->getTarget(), target) ||
@@ -48,15 +49,24 @@ InterfaceElementPtr NodeDef::getImplementation(const string& target, const strin
             // If the given interface is an implementation element, as opposed to
             // a node graph, then check for a language string match.
             ImplementationPtr implement = interface->asA<Implementation>();
-            if (implement && implement->getLanguage() != language)
+            if (implement && implement->getLanguage() == language)
             {
-                continue;
+                return interface;
+            }
+            else if (!implement)
+            {
+                // Keep track of last nodegraph which matches and continue
+                // to search in case there is a language specific implementation.
+                lastMatchingInterface = interface;
             }
         }
-        return interface;
+        else
+        {
+            lastMatchingInterface = interface;
+        }
     }
 
-    return InterfaceElementPtr();
+    return lastMatchingInterface;
 }
 
 vector<ShaderRefPtr> NodeDef::getInstantiatingShaderRefs() const
