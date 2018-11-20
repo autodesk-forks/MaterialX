@@ -15,6 +15,7 @@
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>
 #include <MaterialXGenShader/HwShader.h>
 #include <MaterialXGenShader/HwLightHandler.h>
+#include <MaterialXGenShader/DefaultColorManagementSystem.h>
 
 #ifdef MATERIALX_BUILD_GEN_GLSL
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
@@ -443,7 +444,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                 geomHandler->setIdentifier(sphereFile);
                 validator.setLightHandler(nullptr);
             }
-        
+
             validator.validateCreation(shader);
             validator.validateInputs();
 
@@ -455,6 +456,16 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
             validator.save(fileName);
 
             validated = true;
+
+            // REMOVE ME!
+            // Dump shader stages on error
+            std::ofstream file;
+            file.open(shaderPath + "_vs.glsl");
+            file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+            file.close();
+            file.open(shaderPath + "_ps.glsl");
+            file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+            file.close();
         }
         catch (mx::ExceptionShaderValidationError e)
         {
@@ -629,6 +640,8 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // which files in the test suite are being tested.
     // Add only the test suite filename not the full path.
     std::set<std::string> testfileOverride;
+    testfileOverride.insert("color_management.mtlx");
+//    testfileOverride.insert("color_management.mtlx");
 
     // Library search path
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
@@ -639,6 +652,8 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     mx::GlslValidatorPtr glslValidator = createGLSLValidator(orthographicView, "sphere.obj", glslLog);
     mx::GlslShaderGeneratorPtr glslShaderGenerator = std::static_pointer_cast<mx::GlslShaderGenerator>(mx::GlslShaderGenerator::create());
     glslShaderGenerator->registerSourceCodeSearchPath(searchPath);
+    mx::DefaultColorManagementSystemPtr glslColorManagementSystem = mx::DefaultColorManagementSystem::create(*glslShaderGenerator);
+    glslShaderGenerator->setColorManagementSystem(glslColorManagementSystem);
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
     mx::OslValidatorPtr oslValidator = createOSLValidator(orthographicView, oslLog);
@@ -652,6 +667,9 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // This will be imported in each test document below
     mx::DocumentPtr dependLib = mx::createDocument();
     loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, dependLib);
+#ifdef MATERIALX_BUILD_GEN_GLSL
+    glslColorManagementSystem->loadLibrary(dependLib);
+#endif
 
     mx::CopyOptions importOptions;
     importOptions.skipDuplicateElements = true;
@@ -706,6 +724,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             bool validDoc = doc->validate(&validationErrors);
             if (!validDoc)
             {
+                docValidLog << filename << std::endl;
                 docValidLog << validationErrors << std::endl;
             }
             CHECK(validDoc);
@@ -715,7 +734,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
 
             std::string outputPath = mx::FilePath(dir) / mx::FilePath(mx::removeExtension(file));
             for (auto element : elements)
-            { 
+            {
                 mx::OutputPtr output = element->asA<mx::Output>();
                 mx::ShaderRefPtr shaderRef = element->asA<mx::ShaderRef>();
                 mx::NodeDefPtr nodeDef = nullptr;
@@ -737,6 +756,10 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                     }
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
+                    if (file == "color_management.mtlx")
+                    {
+                        continue;
+                    }
                     if (nodeDef->getImplementation(oslShaderGenerator->getTarget(), oslShaderGenerator->getLanguage()))
                     {
                         runOSLValidation(elementName, element, *oslValidator, *oslShaderGenerator, doc, oslLog, false, outputPath);
