@@ -371,6 +371,16 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
 }
 #endif
 
+class ShaderValid_TestOptions
+{
+public:
+    // List of files to only use
+    MaterialX::StringVec overrideFiles;
+    // Always dump glsl generated files to disk
+    bool dumpGlslFiles = false;
+    // Add more options as desired...
+};
+
 #ifdef MATERIALX_BUILD_GEN_GLSL
 // Test by connecting it to a supplied element
 // 1. Create the shader and checks for source generation
@@ -385,7 +395,7 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
 //
 static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr element, mx::GlslValidator& validator,
                               mx::GlslShaderGenerator& shaderGenerator, const mx::HwLightHandlerPtr lightHandler, mx::DocumentPtr doc,
-                              std::ostream& log, bool outputMtlxDoc=true, const std::string& outputPath=".")
+                              std::ostream& log, ShaderValid_TestOptions testOptions, bool outputMtlxDoc=true, const std::string& outputPath=".")
 {
     mx::GenOptions options;
 
@@ -454,18 +464,31 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
             std::string fileName = shaderPath + ".exr";
             validator.save(fileName);
 
+            if (testOptions.dumpGlslFiles)
+            {
+                std::ofstream file;
+                file.open(shaderPath + "_vs.glsl");
+                file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+                file.close();
+                file.open(shaderPath + "_ps.glsl");
+                file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+                file.close();
+            }
             validated = true;
         }
         catch (mx::ExceptionShaderValidationError e)
         {
-            // Dump shader stages on error
-            std::ofstream file;
-            file.open(shaderPath + "_vs.glsl");
-            file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
-            file.close();
-            file.open(shaderPath + "_ps.glsl");
-            file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
-            file.close();
+            if (!testOptions.dumpGlslFiles)
+            {
+                // Dump shader stages on error
+                std::ofstream file;
+                file.open(shaderPath + "_vs.glsl");
+                file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+                file.close();
+                file.open(shaderPath + "_ps.glsl");
+                file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+                file.close();
+            }
 
             for (auto error : e.errorLog())
             {
@@ -589,6 +612,36 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 }
 #endif
 
+void getTestOptions(const std::string& optionFile, ShaderValid_TestOptions& options)
+{
+    options.overrideFiles.clear();
+    options.dumpGlslFiles = false;
+
+    MaterialX::DocumentPtr doc = MaterialX::createDocument();            
+    MaterialX::readFromXmlFile(doc, optionFile);
+
+    MaterialX::NodeDefPtr optionDefs = doc->getNodeDef("ShaderValidOptions");
+    if (optionDefs)
+    {
+        for (MaterialX::ParameterPtr p : optionDefs->getParameters())
+        {
+            const std::string& name = p->getName();
+            MaterialX::ValuePtr val = p->getValue();
+            if (val)
+            {
+                if (name == "overrideFiles")
+                {
+                    options.overrideFiles = MaterialX::splitString(p->getValueString(), ",");
+                }
+                else if (name == "dumpGlslFiles")
+                {
+                    options.dumpGlslFiles = val->asA<bool>();
+                }
+            }
+        }
+    }
+}
+
 TEST_CASE("MaterialX documents", "[shadervalid]")
 {
     bool runValidation = false;
@@ -678,8 +731,28 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     {
         mx::StringVec files;
         mx::getFilesInDirectory(dir, files, MTLX_EXTENSION);
+
+        // Check for an option file
+        ShaderValid_TestOptions options;
+        auto it = std::find(files.begin(), files.end(), "_options.mtlx");
+        if (it != files.end())
+        { 
+            const mx::FilePath filePath = mx::FilePath(dir) / mx::FilePath("_options.mtlx");
+            const std::string filename = filePath;
+            getTestOptions(filename, options);
+            for (auto filterFile : options.overrideFiles)
+            {
+                testfileOverride.insert(filterFile);
+            }
+        }
+
         for (const std::string& file : files)
         {
+            if (file == "_options.mtlx")
+            {
+                continue;
+            }
+
             // Check if a file override set is used and ignore all files
             // not part of the override set
             if (testfileOverride.size() && testfileOverride.count(file) == 0)
@@ -733,7 +806,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
 #ifdef MATERIALX_BUILD_GEN_GLSL
                     if (nodeDef->getImplementation(glslShaderGenerator->getTarget(), glslShaderGenerator->getLanguage()))
                     {
-                        runGLSLValidation(elementName, element, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, false, outputPath);
+                        runGLSLValidation(elementName, element, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, options, false, outputPath);
                     }
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
