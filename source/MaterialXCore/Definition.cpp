@@ -39,20 +39,18 @@ InterfaceElementPtr NodeDef::getImplementation(const string& target, const strin
 
     // Scan for implementations, looking for those with a language match 
     // over those which do not.
+    bool matchLanguage = !language.empty();
     for (InterfaceElementPtr interface : interfaces)
     {
         ImplementationPtr implement = interface->asA<Implementation>();
-        if (!implement)
-        {
-            continue;
-        }
-        if (!targetStringsMatch(interface->getTarget(), target) ||
+        if (!implement||
+            !targetStringsMatch(interface->getTarget(), target) ||
             !isVersionCompatible(interface))
         {
             continue;
         }
-
-        if (implement->getLanguage() == language)
+        if (!matchLanguage || 
+            implement->getLanguage() == language)
         {
             return interface;
         }
@@ -61,11 +59,8 @@ InterfaceElementPtr NodeDef::getImplementation(const string& target, const strin
     // Search for a nodegraph match if no implementation match was found
     for (InterfaceElementPtr interface : interfaces)
     {
-        if (interface->isA<Implementation>())
-        {
-            continue;
-        }
-        if (!targetStringsMatch(interface->getTarget(), target) ||
+        if (interface->isA<Implementation>() || 
+            !targetStringsMatch(interface->getTarget(), target) ||
             !isVersionCompatible(interface))
         {
             continue;
