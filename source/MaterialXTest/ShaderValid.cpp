@@ -371,15 +371,50 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
 }
 #endif
 
+//
+// Shader validation options structure
+//
 class ShaderValid_TestOptions
 {
 public:
-    // List of files to only use
+    // Filter list of files to only run validation on.
     MaterialX::StringVec overrideFiles;
-    // Always dump glsl generated files to disk
+    // Set to true to always dump glsl generated files to disk
     bool dumpGlslFiles = false;
+    // Execute GLSL tests
+    bool runGLSLTests = true;
+    // Execute OSL tests
+    bool runOSLTests = true;
+    // Run using a set of interfaces:
+    // - 3 = run complete + reduced.
+    // - 2 = run complete only (default)
+    // - 1 = run reduced only.
+    int shaderInterfaces = 2;
+    // Non-shader GLSL geometry file
+    MaterialX::FilePath glslNonShaderGeom = "/sphere.obj";
+    // Shader GLSL geometry file
+    MaterialX::FilePath glslShaderGeom = "/shaderball.obj";
     // Add more options as desired...
 };
+
+// Create a list of generation options based on unit test options
+void getGenerationOptions(std::vector<mx::GenOptions>& optionsList, const ShaderValid_TestOptions& testOptions)
+{
+    optionsList.clear();
+    if (testOptions.shaderInterfaces & 1)
+    {
+        mx::GenOptions reducedOption;
+        reducedOption.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
+        optionsList.push_back(reducedOption);
+    }
+    // Alway fallback to complete if no options specified.
+    if ((testOptions.shaderInterfaces & 2) || optionsList.empty())
+    {
+        mx::GenOptions completeOption;
+        completeOption.shaderInterfaceType = mx::SHADER_INTERFACE_COMPLETE;
+        optionsList.push_back(completeOption);
+    }
+}
 
 #ifdef MATERIALX_BUILD_GEN_GLSL
 // Test by connecting it to a supplied element
@@ -397,106 +432,147 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                               mx::GlslShaderGenerator& shaderGenerator, const mx::HwLightHandlerPtr lightHandler, mx::DocumentPtr doc,
                               std::ostream& log, ShaderValid_TestOptions testOptions, bool outputMtlxDoc=true, const std::string& outputPath=".")
 {
-    mx::GenOptions options;
+    std::vector<mx::GenOptions> optionsList;
+    getGenerationOptions(optionsList, testOptions);
 
     if(element && doc)
     {
         log << "------------ Run validation with element: " << element->getNamePath() << "-------------------" << std::endl;
 
-        std::string shaderPath;
-        // Note: mkdir will fail if the directory already exists which is ok.
-        mx::makeDirectory(outputPath);
-        shaderPath = mx::FilePath(outputPath) / mx::FilePath(shaderName);
-
-        mx::ShaderPtr shader;
-        try
+        for (auto options : optionsList)
         {
-			options.hwTransparency = mx::isTransparentSurface(element, shaderGenerator);
-            shader = shaderGenerator.generate(shaderName, element, options);
-        }
-        catch(mx::ExceptionShaderGenError e)
-        {
-            log << ">> " << e.what() << "\n";
-            shader = nullptr;
-        }
-        CHECK(shader != nullptr);
-        if (shader == nullptr)
-        {
-            log << ">> Failed to generate shader\n";
-            return;
-        }
-        CHECK(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
-        CHECK(shader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
-
-        if (outputMtlxDoc)
-        {
-            mx::writeToXmlFile(doc, shaderPath + ".mtlx");
-        }
-
-        // Validate
-        MaterialX::GlslProgramPtr program = validator.program();
-        bool validated = false;
-        try
-        {
-            mx::GeometryHandlerPtr geomHandler = validator.getGeometryHandler();
-
-            bool isShader = mx::elementRequiresShading(element);
-            if (isShader)
+            std::string shaderPath;
+            mx::FilePath outputFilePath = outputPath;
+            // Use separate directory for reduced output
+            if (options.shaderInterfaceType == mx::SHADER_INTERFACE_REDUCED)
             {
-                const std::string shaderBallFile(mx::FilePath::getCurrentPath().asString() + "/documents/TestSuite/Geometry/shaderball.obj");
-                geomHandler->setIdentifier(shaderBallFile);
-                validator.setLightHandler(lightHandler);
-            }
-            else
-            {
-                const std::string sphereFile(mx::FilePath::getCurrentPath().asString() + "/documents/TestSuite/Geometry/sphere.obj");
-                geomHandler->setIdentifier(sphereFile);
-                validator.setLightHandler(nullptr);
-            }
-        
-            validator.validateCreation(shader);
-            validator.validateInputs();
-
-            program->printUniforms(log);
-            program->printAttributes(log);
-
-            validator.validateRender(!isShader);
-            std::string fileName = shaderPath + ".exr";
-            validator.save(fileName);
-
-            if (testOptions.dumpGlslFiles)
-            {
-                std::ofstream file;
-                file.open(shaderPath + "_vs.glsl");
-                file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
-                file.close();
-                file.open(shaderPath + "_ps.glsl");
-                file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
-                file.close();
-            }
-            validated = true;
-        }
-        catch (mx::ExceptionShaderValidationError e)
-        {
-            if (!testOptions.dumpGlslFiles)
-            {
-                // Dump shader stages on error
-                std::ofstream file;
-                file.open(shaderPath + "_vs.glsl");
-                file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
-                file.close();
-                file.open(shaderPath + "_ps.glsl");
-                file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
-                file.close();
+                outputFilePath = outputFilePath / mx::FilePath("/reduced");
             }
 
-            for (auto error : e.errorLog())
+            // Note: mkdir will fail if the directory already exists which is ok.
+            mx::makeDirectory(outputFilePath);
+            shaderPath = mx::FilePath(outputFilePath) / mx::FilePath(shaderName);
+
+            mx::ShaderPtr shader;
+            try
             {
-                log << e.what() << " " << error << std::endl;
+                options.hwTransparency = mx::isTransparentSurface(element, shaderGenerator);
+                shader = shaderGenerator.generate(shaderName, element, options);
             }
-            log << ">> Refer to shader code in dump files: " << shaderPath << "(_vs.glsl, _ps.glsl) files" << std::endl;
+            catch (mx::ExceptionShaderGenError e)
+            {
+                log << ">> " << e.what() << "\n";
+                shader = nullptr;
+            }
+            CHECK(shader != nullptr);
+            if (shader == nullptr)
+            {
+                log << ">> Failed to generate shader\n";
+                return;
+            }
+            CHECK(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
+            CHECK(shader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
+
+            if (outputMtlxDoc)
+            {
+                mx::writeToXmlFile(doc, shaderPath + ".mtlx");
+            }
+
+            // Validate
+            MaterialX::GlslProgramPtr program = validator.program();
+            bool validated = false;
+            try
+            {
+                mx::GeometryHandlerPtr geomHandler = validator.getGeometryHandler();
+
+                bool isShader = mx::elementRequiresShading(element);
+                if (isShader)
+                {
+                    mx::FilePath geomPath;
+                    if (!testOptions.glslShaderGeom.isEmpty())
+                    {
+                        if (!testOptions.glslShaderGeom.isAbsolute())
+                        {
+                            geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("/documents/TestSuite/Geometry") / testOptions.glslShaderGeom;
+                        }
+                        else
+                        {
+                            geomPath = testOptions.glslShaderGeom;
+                        }
+                    }
+                    else
+                    {
+                        geomPath = mx::FilePath::getCurrentPath().asString() + "/documents/TestSuite/Geometry/shaderball.obj";
+                    }
+                    geomHandler->setIdentifier(geomPath);
+                    validator.setLightHandler(lightHandler);
+                }
+                else
+                {
+                    mx::FilePath geomPath;
+                    if (!testOptions.glslNonShaderGeom.isEmpty())
+                    {
+                        if (!testOptions.glslNonShaderGeom.isAbsolute())
+                        {
+                            geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("/documents/TestSuite/Geometry") / testOptions.glslNonShaderGeom;
+                        }
+                        else
+                        {
+                            geomPath = testOptions.glslNonShaderGeom;
+                        }
+                    }
+                    else
+                    {
+                        geomPath = mx::FilePath::getCurrentPath().asString() + "/documents/TestSuite/Geometry/sphere.obj";
+                    }
+                    geomHandler->setIdentifier(geomPath);
+                    validator.setLightHandler(nullptr);
+                }
+
+                validator.validateCreation(shader);
+                validator.validateInputs();
+
+                program->printUniforms(log);
+                program->printAttributes(log);
+
+                validator.validateRender(!isShader);
+                std::string fileName = shaderPath + ".exr";
+                validator.save(fileName);
+
+                if (testOptions.dumpGlslFiles)
+                {
+                    std::ofstream file;
+                    file.open(shaderPath + "_vs.glsl");
+                    file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+                    file.close();
+                    file.open(shaderPath + "_ps.glsl");
+                    file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+                    file.close();
+                }
+                validated = true;
+            }
+            catch (mx::ExceptionShaderValidationError e)
+            {
+                if (!testOptions.dumpGlslFiles)
+                {
+                    // Dump shader stages on error
+                    std::ofstream file;
+                    file.open(shaderPath + "_vs.glsl");
+                    file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
+                    file.close();
+                    file.open(shaderPath + "_ps.glsl");
+                    file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
+                    file.close();
+                }
+
+                for (auto error : e.errorLog())
+                {
+                    log << e.what() << " " << error << std::endl;
+                }
+                log << ">> Refer to shader code in dump files: " << shaderPath << "(_vs.glsl, _ps.glsl) files" << std::endl;
+            }
+            CHECK(validated);
         }
-        CHECK(validated);
     }
 }
 #endif
@@ -504,110 +580,121 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
 #ifdef MATERIALX_BUILD_GEN_OSL
 static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr element, mx::OslValidator& validator,
                              mx::ArnoldShaderGenerator& shaderGenerator, mx::DocumentPtr doc, std::ostream& log,
-                             bool outputMtlxDoc=true, const std::string& outputPath=".")
+                            ShaderValid_TestOptions testOptions, bool outputMtlxDoc=true, const std::string& outputPath=".")
 {
-    mx::GenOptions options;
+    std::vector<mx::GenOptions> optionsList;
+    getGenerationOptions(optionsList, testOptions);
 
     if(element && doc)
     {
         log << "------------ Run validation with element: " << element->getNamePath() << "-------------------" << std::endl;
 
-        mx::ShaderPtr shader;
-        try
+        for (auto options : optionsList)
         {
-            shader = shaderGenerator.generate(shaderName, element, options);
-        }
-        catch(mx::ExceptionShaderGenError e)
-        {
-            log << ">> " << e.what() << "\n";
-            shader = nullptr;
-        }
-        CHECK(shader != nullptr);
-        if (shader == nullptr)
-        {
-            log << ">> Failed to generate shader\n";
-            return;
-        }
-        CHECK(shader->getSourceCode().length() > 0);
-
-        std::string shaderPath;
-        // Note: mkdir will fail if the directory already exists which is ok.
-        mx::makeDirectory(outputPath);
-        shaderPath = mx::FilePath(outputPath) / mx::FilePath(shaderName);
-
-        if (outputMtlxDoc)
-        {
-            mx::writeToXmlFile(doc, shaderPath + ".mtlx");
-        }
-
-        // Write out osl file
-        std::ofstream file;
-        file.open(shaderPath + ".osl");
-        file << shader->getSourceCode();
-        file.close();
-
-        // Validate
-        validator.initialize();
-        bool validated = false;
-        try
-        {
-            // Set output path and shader name
-            validator.setOslOutputFilePath(outputPath);
-            validator.setOslShaderName(shaderName);
-
-            // Validate compilation
-            validator.validateCreation(shader);
-
-            std::string elementType;
-            std::string sceneTemplateFile;
-            mx::string outputName = element->getName();
-
-            bool isShader = mx::elementRequiresShading(element);
-            if (isShader)
+            mx::ShaderPtr shader;
+            try
             {
-                // TODO: Assume name is "out". This is the default value.
-                // We require shader generation to provide us an output name
-                // to the actual name.
-                outputName = "out";
-
-                // TODO: Asume type is closure color until we can
-                // get the actual output type from code generation
-                elementType = mx::OslValidator::OSL_CLOSURE_COLOR_STRING;
-
-                sceneTemplateFile.assign("closure_color_scene.xml");
+                shader = shaderGenerator.generate(shaderName, element, options);
             }
-            else
+            catch (mx::ExceptionShaderGenError e)
             {
-                elementType.assign(element->getType());
-                sceneTemplateFile.assign("constant_color_scene.xml");
+                log << ">> " << e.what() << "\n";
+                shader = nullptr;
+            }
+            CHECK(shader != nullptr);
+            if (shader == nullptr)
+            {
+                log << ">> Failed to generate shader\n";
+                return;
+            }
+            CHECK(shader->getSourceCode().length() > 0);
+
+            std::string shaderPath;
+            mx::FilePath outputFilePath = outputPath;
+            // Use separate directory for reduced output
+            if (options.shaderInterfaceType == mx::SHADER_INTERFACE_REDUCED)
+            {
+                outputFilePath = outputFilePath / mx::FilePath("/reduced");
             }
 
-            // Set shader output name and type to use
-            //
-            // If the generator has already remapped the output type then indicate to
-            // not do so again during validation.
-            validator.setOslShaderOutputNameAndType(outputName, elementType, shaderGenerator.remappedShaderOutput());
+            // Note: mkdir will fail if the directory already exists which is ok.
+            mx::makeDirectory(outputFilePath);
+            shaderPath = mx::FilePath(outputFilePath) / mx::FilePath(shaderName);
 
-            // Set scene template file. For now we only have the constant color scene file
-            mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/");
-            sceneTemplatePath = sceneTemplatePath / sceneTemplateFile;
-            validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
-
-            // Validate rendering
-            validator.validateRender();
-
-            // TODO: Call additional validation routines here when they are available
-            validated = true;
-        }
-        catch(mx::ExceptionShaderValidationError e)
-        {
-            for (auto error : e.errorLog())
+            if (outputMtlxDoc)
             {
-                log << e.what() << " " << error << std::endl;
+                mx::writeToXmlFile(doc, shaderPath + ".mtlx");
             }
-            log << ">> Refer to shader code in dump file: " << shaderPath << ".osl file" << std::endl;
+
+            // Write out osl file
+            std::ofstream file;
+            file.open(shaderPath + ".osl");
+            file << shader->getSourceCode();
+            file.close();
+
+            // Validate
+            validator.initialize();
+            bool validated = false;
+            try
+            {
+                // Set output path and shader name
+                validator.setOslOutputFilePath(outputFilePath);
+                validator.setOslShaderName(shaderName);
+
+                // Validate compilation
+                validator.validateCreation(shader);
+
+                std::string elementType;
+                std::string sceneTemplateFile;
+                mx::string outputName = element->getName();
+
+                bool isShader = mx::elementRequiresShading(element);
+                if (isShader)
+                {
+                    // TODO: Assume name is "out". This is the default value.
+                    // We require shader generation to provide us an output name
+                    // to the actual name.
+                    outputName = "out";
+
+                    // TODO: Asume type is closure color until we can
+                    // get the actual output type from code generation
+                    elementType = mx::OslValidator::OSL_CLOSURE_COLOR_STRING;
+
+                    sceneTemplateFile.assign("closure_color_scene.xml");
+                }
+                else
+                {
+                    elementType.assign(element->getType());
+                    sceneTemplateFile.assign("constant_color_scene.xml");
+                }
+
+                // Set shader output name and type to use
+                //
+                // If the generator has already remapped the output type then indicate to
+                // not do so again during validation.
+                validator.setOslShaderOutputNameAndType(outputName, elementType, shaderGenerator.remappedShaderOutput());
+
+                // Set scene template file. For now we only have the constant color scene file
+                mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/");
+                sceneTemplatePath = sceneTemplatePath / sceneTemplateFile;
+                validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
+
+                // Validate rendering
+                validator.validateRender();
+
+                // TODO: Call additional validation routines here when they are available
+                validated = true;
+            }
+            catch (mx::ExceptionShaderValidationError e)
+            {
+                for (auto error : e.errorLog())
+                {
+                    log << e.what() << " " << error << std::endl;
+                }
+                log << ">> Refer to shader code in dump file: " << shaderPath << ".osl file" << std::endl;
+            }
+            CHECK(validated);
         }
-        CHECK(validated);
     }
 }
 #endif
@@ -633,9 +720,29 @@ void getTestOptions(const std::string& optionFile, ShaderValid_TestOptions& opti
                 {
                     options.overrideFiles = MaterialX::splitString(p->getValueString(), ",");
                 }
+                else if (name == "shaderInterfaces")
+                {
+                    options.shaderInterfaces = val->asA<int>();
+                }
+                else if (name == "runOSLTests")
+                {
+                    options.runOSLTests = val->asA<bool>();
+                }
+                else if (name == "runGLSLTests")
+                {
+                    options.runGLSLTests = val->asA<bool>();
+                }
                 else if (name == "dumpGlslFiles")
                 {
                     options.dumpGlslFiles = val->asA<bool>();
+                }
+                else if (name == "glslNonShaderGeom")
+                {
+                    options.glslNonShaderGeom = p->getValueString();
+                }                
+                else if (name == "glslShaderGeom")
+                {
+                    options.glslShaderGeom = p->getValueString();
                 }
             }
         }
@@ -727,13 +834,13 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     mx::getSubDirectories(baseDirectory, dirs);
 
     const std::string MTLX_EXTENSION("mtlx");
+    ShaderValid_TestOptions options;
     for (auto dir : dirs)
     {
         mx::StringVec files;
         mx::getFilesInDirectory(dir, files, MTLX_EXTENSION);
 
         // Check for an option file
-        ShaderValid_TestOptions options;
         auto it = std::find(files.begin(), files.end(), "_options.mtlx");
         if (it != files.end())
         { 
@@ -804,15 +911,15 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                 {
                     mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
 #ifdef MATERIALX_BUILD_GEN_GLSL
-                    if (nodeDef->getImplementation(glslShaderGenerator->getTarget(), glslShaderGenerator->getLanguage()))
+                    if (options.runGLSLTests && nodeDef->getImplementation(glslShaderGenerator->getTarget(), glslShaderGenerator->getLanguage()))
                     {
                         runGLSLValidation(elementName, element, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, options, false, outputPath);
                     }
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
-                    if (nodeDef->getImplementation(oslShaderGenerator->getTarget(), oslShaderGenerator->getLanguage()))
+                    if (options.runOSLTests && nodeDef->getImplementation(oslShaderGenerator->getTarget(), oslShaderGenerator->getLanguage()))
                     {
-                        runOSLValidation(elementName, element, *oslValidator, *oslShaderGenerator, doc, oslLog, false, outputPath);
+                        runOSLValidation(elementName, element, *oslValidator, *oslShaderGenerator, doc, oslLog, options, false, outputPath);
                     }
 #endif
                 }
