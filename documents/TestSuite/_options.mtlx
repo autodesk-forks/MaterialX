@@ -7,7 +7,7 @@
 <materialx version="1.36">
     <nodedef name="ShaderValidOptions">
         <!-- List of comma separated file names acts as a filter to only test documents with these names -->
-        <parameter name="overrideFiles" type="string" value="wood.mtlx" />
+        <parameter name="overrideFiles" type="string" value="" />
         <!-- Set to false to disable execution of OSL tests. Default is true. -->
         <parameter name="runOSLTests" type="boolean" value="true" />
         <!-- Set to false to disable execution of GLSL tests. Default is true. -->
