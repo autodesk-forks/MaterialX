@@ -21,7 +21,7 @@ class DefaultColorManagementSystem : public ColorManagementSystem
     static DefaultColorManagementSystemPtr create(ShaderGenerator& shadergen);
 
     /// Return the DefaultColorManagementSystem name
-    const string& getName() const
+    const string& getName() const override
     {
         return DefaultColorManagementSystem::CMS_NAME;
     }
