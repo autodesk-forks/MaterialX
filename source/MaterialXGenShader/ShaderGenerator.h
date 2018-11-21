@@ -91,11 +91,13 @@ public:
     /// Determine if a shader node implementation has been registered for a given implementation element name
     bool implementationRegistered(const string& name) const;
 
+    /// Sets the color management system
     void setColorManagementSystem(ColorManagementSystemPtr colorManagementSystem)
     {
         _colorManagementSystem = colorManagementSystem;
     }
 
+    /// Returns the color management system
     ColorManagementSystemPtr getColorManagementSystem()
     {
         return _colorManagementSystem;

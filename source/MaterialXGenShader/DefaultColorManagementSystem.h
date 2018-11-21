@@ -34,6 +34,8 @@ class DefaultColorManagementSystem : public ColorManagementSystem
   private:
     /// Protected constructor
     DefaultColorManagementSystem(ShaderGenerator& shadergen);
+
+    string _language;
 };
 
 } // namespace MaterialX

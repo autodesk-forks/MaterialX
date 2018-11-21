@@ -21,7 +21,7 @@ using ColorManagementSystemPtr = shared_ptr<class ColorManagementSystem>;
 /// Structure that represents color space transform information
 struct ColorSpaceTransform
 {
-    ColorSpaceTransform(const string& ss, const string& ts, const TypeDesc& t);
+    ColorSpaceTransform(const string& ss, const string& ts, const TypeDesc* t);
 
     string sourceSpace;
     string targetSpace;
@@ -41,14 +41,7 @@ struct ColorSpaceTransform
 struct ColorSpaceTransformHash {
     size_t operator()(const ColorSpaceTransform &transform ) const
     {
-        if (transform.type == nullptr)
-        {
-            return std::hash<string>()(transform.sourceSpace + transform.targetSpace);
-        }
-        else
-        {
-            return std::hash<string>()(transform.sourceSpace + transform.targetSpace + transform.type->getName());
-        }
+        return std::hash<string>()(transform.sourceSpace + transform.targetSpace + transform.type->getName());
     }
 };
 
@@ -74,14 +67,14 @@ class ColorManagementSystem
     virtual void loadLibrary(DocumentPtr document);
 
     /// Create a node to use to perform the given color space transformation.
-    ShaderNodePtr createNode(const ColorSpaceTransform& transform, const string& prefix);
+    ShaderNodePtr createNode(const ColorSpaceTransform& transform, const string& name);
 
   protected:
     template<class T>
     using CreatorFunction = shared_ptr<T>(*)();
 
     /// Returns a shader node name for a given transform
-    virtual string getShaderNodeName(const ColorSpaceTransform& transform, const string& prefix);
+    virtual string getShaderNodeName(const ColorSpaceTransform& transform, const string& name);
 
     /// Returns an implementation name for a given transform
     virtual string getImplementationName(const ColorSpaceTransform& transform) = 0;

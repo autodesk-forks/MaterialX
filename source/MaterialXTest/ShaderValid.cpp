@@ -456,16 +456,6 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
             validator.save(fileName);
 
             validated = true;
-
-            // REMOVE ME!
-            // Dump shader stages on error
-            std::ofstream file;
-            file.open(shaderPath + "_vs.glsl");
-            file << shader->getSourceCode(mx::HwShader::VERTEX_STAGE);
-            file.close();
-            file.open(shaderPath + "_ps.glsl");
-            file << shader->getSourceCode(mx::HwShader::PIXEL_STAGE);
-            file.close();
         }
         catch (mx::ExceptionShaderValidationError e)
         {
@@ -640,8 +630,6 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // which files in the test suite are being tested.
     // Add only the test suite filename not the full path.
     std::set<std::string> testfileOverride;
-    testfileOverride.insert("color_management.mtlx");
-//    testfileOverride.insert("color_management.mtlx");
 
     // Library search path
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");

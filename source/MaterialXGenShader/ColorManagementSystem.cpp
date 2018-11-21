@@ -6,14 +6,14 @@
 namespace MaterialX
 {
 
-ColorSpaceTransform::ColorSpaceTransform(const string& ss, const string& ts, const TypeDesc& t)
+ColorSpaceTransform::ColorSpaceTransform(const string& ss, const string& ts, const TypeDesc* t)
     : sourceSpace(ss)
     , targetSpace(ts)
-    , type(&t)
+    , type(t)
 {
     if (type != Type::COLOR3 && type != Type::COLOR4)
     {
-        throw ExceptionShaderGenError("Color space transform can only be a color3 or color4, '" + type->getName() + "' requested.");
+        throw ExceptionShaderGenError("Color space transform can only be a color3 or color4.");
     }
 }
 
@@ -52,7 +52,7 @@ void ColorManagementSystem::loadLibrary(DocumentPtr document)
     _cachedImpls.clear();
 }
 
-ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& transform, const string& prefix)
+ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& transform, const string& name)
 {
     string implName = getImplementationName(transform);
     ImplementationPtr impl = _document->getImplementation(implName);
@@ -79,14 +79,14 @@ ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& trans
         shaderImpl->initialize(impl, _shadergen);
     }
     _cachedImpls[transform] = shaderImpl;
-    ShaderNodePtr shaderNode = ShaderNode::createColorTransformNode(getShaderNodeName(transform, prefix), shaderImpl, transform.type, _shadergen);
+    ShaderNodePtr shaderNode = ShaderNode::createColorTransformNode(getShaderNodeName(transform, name), shaderImpl, transform.type, _shadergen);
 
     return shaderNode;
 }
 
-string ColorManagementSystem::getShaderNodeName(const ColorSpaceTransform& transform, const string& prefix)
+string ColorManagementSystem::getShaderNodeName(const ColorSpaceTransform& transform, const string& name)
 {
-    return prefix + "_" + transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName();
+    return name + "_" + transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName();
 }
 
 } // namespace MaterialX
