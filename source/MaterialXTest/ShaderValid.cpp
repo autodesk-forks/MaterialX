@@ -699,54 +699,61 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 }
 #endif
 
-void getTestOptions(const std::string& optionFile, ShaderValid_TestOptions& options)
+bool getTestOptions(const std::string& optionFile, ShaderValid_TestOptions& options)
 {
     options.overrideFiles.clear();
     options.dumpGlslFiles = false;
 
     MaterialX::DocumentPtr doc = MaterialX::createDocument();            
-    MaterialX::readFromXmlFile(doc, optionFile);
+    try {
+        MaterialX::readFromXmlFile(doc, optionFile);
 
-    MaterialX::NodeDefPtr optionDefs = doc->getNodeDef("ShaderValidOptions");
-    if (optionDefs)
-    {
-        for (MaterialX::ParameterPtr p : optionDefs->getParameters())
+        MaterialX::NodeDefPtr optionDefs = doc->getNodeDef("ShaderValidOptions");
+        if (optionDefs)
         {
-            const std::string& name = p->getName();
-            MaterialX::ValuePtr val = p->getValue();
-            if (val)
+            for (MaterialX::ParameterPtr p : optionDefs->getParameters())
             {
-                if (name == "overrideFiles")
+                const std::string& name = p->getName();
+                MaterialX::ValuePtr val = p->getValue();
+                if (val)
                 {
-                    options.overrideFiles = MaterialX::splitString(p->getValueString(), ",");
-                }
-                else if (name == "shaderInterfaces")
-                {
-                    options.shaderInterfaces = val->asA<int>();
-                }
-                else if (name == "runOSLTests")
-                {
-                    options.runOSLTests = val->asA<bool>();
-                }
-                else if (name == "runGLSLTests")
-                {
-                    options.runGLSLTests = val->asA<bool>();
-                }
-                else if (name == "dumpGlslFiles")
-                {
-                    options.dumpGlslFiles = val->asA<bool>();
-                }
-                else if (name == "glslNonShaderGeom")
-                {
-                    options.glslNonShaderGeom = p->getValueString();
-                }                
-                else if (name == "glslShaderGeom")
-                {
-                    options.glslShaderGeom = p->getValueString();
+                    if (name == "overrideFiles")
+                    {
+                        options.overrideFiles = MaterialX::splitString(p->getValueString(), ",");
+                    }
+                    else if (name == "shaderInterfaces")
+                    {
+                        options.shaderInterfaces = val->asA<int>();
+                    }
+                    else if (name == "runOSLTests")
+                    {
+                        options.runOSLTests = val->asA<bool>();
+                    }
+                    else if (name == "runGLSLTests")
+                    {
+                        options.runGLSLTests = val->asA<bool>();
+                    }
+                    else if (name == "dumpGlslFiles")
+                    {
+                        options.dumpGlslFiles = val->asA<bool>();
+                    }
+                    else if (name == "glslNonShaderGeom")
+                    {
+                        options.glslNonShaderGeom = p->getValueString();
+                    }
+                    else if (name == "glslShaderGeom")
+                    {
+                        options.glslShaderGeom = p->getValueString();
+                    }
                 }
             }
         }
+        return true;
     }
+    catch (mx::Exception e)
+    {
+    }
+    return false;
 }
 
 TEST_CASE("MaterialX documents", "[shadervalid]")
@@ -834,25 +841,23 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     mx::getSubDirectories(baseDirectory, dirs);
 
     const std::string MTLX_EXTENSION("mtlx");
+
+    // Check for an option file
     ShaderValid_TestOptions options;
+    const mx::FilePath optionsPath = path / mx::FilePath("_options.mtlx");
+    // Append to file filter list
+    if (getTestOptions(optionsPath, options))
+    {
+        for (auto filterFile : options.overrideFiles)
+        {
+            testfileOverride.insert(filterFile);
+        }
+    }
+
     for (auto dir : dirs)
     {
         mx::StringVec files;
         mx::getFilesInDirectory(dir, files, MTLX_EXTENSION);
-
-        // Check for an option file
-        auto it = std::find(files.begin(), files.end(), "_options.mtlx");
-        if (it != files.end())
-        { 
-            const mx::FilePath filePath = mx::FilePath(dir) / mx::FilePath("_options.mtlx");
-            const std::string filename = filePath;
-            getTestOptions(filename, options);
-            for (auto filterFile : options.overrideFiles)
-            {
-                testfileOverride.insert(filterFile);
-            }
-        }
-
         for (const std::string& file : files)
         {
             if (file == "_options.mtlx")

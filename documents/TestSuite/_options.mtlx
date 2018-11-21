@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Test suite options file. A file with this format can be placed in any folder within the TestSuite area and will
-    set the options for all testing of files at that level as well as sub-folders, unless there is a file in the sub-folder
-    which super-cedes the parent
+    Test suite options file. 
 -->
 <materialx version="1.36">
     <nodedef name="ShaderValidOptions">
