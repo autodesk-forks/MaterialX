@@ -56,6 +56,10 @@ ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& trans
 {
     string implName = getImplementationName(transform);
     ImplementationPtr impl = _document->getImplementation(implName);
+    if (!impl)
+    {
+        throw ExceptionShaderGenError("No implementation found for transform: ('" + transform.sourceSpace + "', '" + transform.targetSpace + "').");
+    }
 
     // Check if the shader implementation has been created already
     ShaderNodeImplPtr shaderImpl;
@@ -74,10 +78,8 @@ ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& trans
     {
         shaderImpl = SourceCodeNode::create();
     }
-    if (impl)
-    {
-        shaderImpl->initialize(impl, _shadergen);
-    }
+    shaderImpl->initialize(impl, _shadergen);
+
     _cachedImpls[transform] = shaderImpl;
     ShaderNodePtr shaderNode = ShaderNode::createColorTransformNode(getShaderNodeName(transform, name), shaderImpl, transform.type, _shadergen);
 
