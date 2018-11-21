@@ -136,7 +136,7 @@ void ShaderNode::ScopeInfo::merge(const ScopeInfo &fromScope)
 
 ShaderNode::ShaderNode(const string& name)
     : _name(name)
-    , _classification(Classification::TEXTURE)
+    , _classification(0)
     , _samplingInput(nullptr)
     , _impl(nullptr)
 {
@@ -265,6 +265,8 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
         }
     }
 
+    newNode->_classification = Classification::TEXTURE;
+
     // First, check for specific output types
     const ShaderOutput* primaryOutput = newNode->getOutput();
     if (primaryOutput->type == Type::SURFACESHADER)
@@ -331,7 +333,7 @@ ShaderNodePtr ShaderNode::createColorTransformNode(const string& name, ShaderNod
 {
     ShaderNodePtr newNode = std::make_shared<ShaderNode>(name);
     newNode->_impl = shaderImpl;
-    newNode->_classification |= Classification::COLOR_SPACE_TRANSFORM;
+    newNode->_classification = Classification::TEXTURE | Classification::COLOR_SPACE_TRANSFORM;
     ShaderInput* input = newNode->addInput("in", type);
 
     if(type == Type::COLOR3)
