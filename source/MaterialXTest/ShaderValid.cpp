@@ -77,7 +77,7 @@ TEST_CASE("GLSL Source", "[shadervalid]")
         validator->initialize();
         validator->setImageHandler(handler);
         // Set geometry to draw with
-        const std::string geometryFile(mx::FilePath::getCurrentPath().asString() + "documents/TestSuite/Geometry/sphere.obj");
+        const std::string geometryFile(mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/sphere.obj"));
         mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();
         geometryHandler->setIdentifier(geometryFile);
         if (geometryHandler->getIdentifier() == geometryFile)
@@ -289,7 +289,7 @@ static mx::GlslValidatorPtr createGLSLValidator(bool& orthographicView, const st
         std::string geometryFile;
         if (fileName.length())
         {
-            geometryFile =  mx::FilePath::getCurrentPath().asString() + "documents/TestSuite/Geometry/" + fileName;
+            geometryFile =  mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/") / mx::FilePath(fileName);
             geometryHandler->setIdentifier(geometryFile);
         }
         if (geometryHandler->getIdentifier() == geometryFile)
