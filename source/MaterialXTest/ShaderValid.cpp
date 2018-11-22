@@ -415,6 +415,7 @@ public:
         output << "\tCompile: " << compileTime << " seconds" << std::endl;
         output << "\tRender: " << renderTime << " seconds" << std::endl;
         output << "\tI/O: " << ioTime << " seconds" << std::endl;
+        output << "\tImage save: " << imageSaveTime << " seconds" << std::endl;
     }
     double totalTime() const
     {
@@ -424,6 +425,7 @@ public:
     double compileTime = 0.0;
     double renderTime = 0.0;
     double ioTime = 0.0;
+    double imageSaveTime = 0.0;
 };
 
 //
@@ -440,6 +442,7 @@ public:
     LanguageProfileTimes glslTimes;
     LanguageProfileTimes oslTimes;
     double setupTime = 0;
+    unsigned int elementsTested = 0;
 };
 
 // Scoped timer which adds a duration to a given externally reference timing duration
@@ -517,6 +520,8 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
 
         for (auto options : optionsList)
         {
+            profileTimes.elementsTested++;
+
             std::string shaderPath;
             mx::FilePath outputFilePath = outputPath;
             // Use separate directory for reduced output
@@ -629,9 +634,8 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                 }
 
                 std::string fileName = shaderPath + "_glsl.png";
-
                 {
-                    AdditiveScopedTimer ioTimer(profileTimes.glslTimes.ioTime);
+                    AdditiveScopedTimer ioTimer(profileTimes.glslTimes.imageSaveTime);
                     validator.save(fileName, false);
                 }
 
@@ -688,6 +692,8 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 
         for (auto options : optionsList)
         {
+            profileTimes.elementsTested++;
+
             mx::ShaderPtr shader;
             try
             {
@@ -885,7 +891,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     #endif
     std::ofstream docValidLogfile("shadervalid_validate_doc_log.txt");
     std::ostream& docValidLog(docValidLogfile);
-    std::ofstream profilingLogfile("shadervalidation_profiling_log.txt");
+    std::ofstream profilingLogfile("shadervalid_profiling_log.txt");
     std::ostream& profilingLog(profilingLogfile);
 #else
     #ifdef MATERIALX_BUILD_GEN_GLSL
@@ -1047,6 +1053,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     profilingLog << "Setup time: " << profileTimes.setupTime << " seconds" << std::endl;
     profileTimes.glslTimes.print("GLSL Profile Times:", profilingLog);
     profileTimes.oslTimes.print("OSL Profile Times:", profilingLog);
+    profilingLog << "Elements tested: " << profileTimes.elementsTested << std::endl;
 }
 
 #endif
