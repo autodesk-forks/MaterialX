@@ -250,7 +250,7 @@ TEST_CASE("GLSL Source", "[shadervalid]")
 
         try
         {
-            std::string fileName = shaderName + ".png";
+            std::string fileName = shaderName + "_glsl.png";
             validator->save(fileName, false);
         }
         catch (mx::ExceptionShaderValidationError e)
@@ -544,7 +544,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                 program->printAttributes(log);
 
                 validator.validateRender(!isShader);
-                std::string fileName = shaderPath + ".png";
+                std::string fileName = shaderPath + "_glsl.png";
                 validator.save(fileName, false);
 
                 if (testOptions.dumpGlslFiles)

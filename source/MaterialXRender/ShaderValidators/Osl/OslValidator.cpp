@@ -90,7 +90,7 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     std::string shaderPath = shaderFilePath.asString();
 
     // Set output image name. 
-    std::string outputFileName = shaderPath + ".testrender.png";
+    std::string outputFileName = shaderPath + "_osl.png";
 
     // Use a known error file name to check
     std::string errorFile(shaderPath + "_render_errors.txt");
@@ -135,7 +135,7 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     const std::string INPUT_SHADER_TYPE_STRING("%input_shader_type%");
     const std::string INPUT_SHADER_OUTPUT_STRING("%input_shader_output%");
     const std::string BACKGROUND_COLOR_STRING("%background_color%");    
-    const string backgroundColor("0.0 0.0 0.0"); // TODO: Make this a user input
+    const string backgroundColor("0.2 0.2 0.2"); // TODO: Make this a user input
 
     replacementMap[OUTPUT_SHADER_TYPE_STRING] = outputShader;
     replacementMap[OUTPUT_SHADER_INPUT_STRING] = OUTPUT_SHADER_INPUT_VALUE_STRING;
@@ -169,7 +169,7 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     std::string command(_oslTestRenderExecutable);
     command += " " + sceneFileName;
     command += " " + outputFileName;
-    command += " --path " + osoPaths;
+    command += " -r 512 512 --path " + osoPaths;
     if (isColorClosure)
     {
         command += " -aa 4 "; // Images are very noisy without anti-aliasing
