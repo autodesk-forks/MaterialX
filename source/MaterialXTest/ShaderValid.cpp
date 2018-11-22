@@ -419,7 +419,7 @@ public:
     }
     double totalTime() const
     {
-        return generationTime + compileTime + renderTime + ioTime;
+        return generationTime + compileTime + renderTime + ioTime + imageSaveTime;
     }
     double generationTime = 0.0;
     double compileTime = 0.0;
@@ -624,7 +624,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                 }
 
                 {
-                    AdditiveScopedTimer prinTimer(profileTimes.glslTimes.ioTime);
+                    AdditiveScopedTimer printTimer(profileTimes.glslTimes.ioTime);
                     program->printUniforms(log);
                     program->printAttributes(log);
                 }
@@ -1051,8 +1051,13 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     setupTime.endTimer();
     profilingLog << "Overall time: " << profileTimes.totalTime() << " seconds" << std::endl;
     profilingLog << "Setup time: " << profileTimes.setupTime << " seconds" << std::endl;
+
+    profilingLog << "Total GLSL time: " << profileTimes.glslTimes.totalTime() << std::endl;
     profileTimes.glslTimes.print("GLSL Profile Times:", profilingLog);
+
+    profilingLog << "Total OSL time: " << profileTimes.oslTimes.totalTime() << std::endl;
     profileTimes.oslTimes.print("OSL Profile Times:", profilingLog);
+
     profilingLog << "Elements tested: " << profileTimes.elementsTested << std::endl;
 }
 
