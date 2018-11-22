@@ -250,8 +250,8 @@ TEST_CASE("GLSL Source", "[shadervalid]")
 
         try
         {
-            std::string fileName = shaderName + ".exr";
-            validator->save(fileName);
+            std::string fileName = shaderName + ".png";
+            validator->save(fileName, false);
         }
         catch (mx::ExceptionShaderValidationError e)
         {
@@ -532,12 +532,20 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                 validator.validateCreation(shader);
                 validator.validateInputs();
 
+                if (options.shaderInterfaceType == mx::SHADER_INTERFACE_REDUCED)
+                {
+                    log << "-- SHADER_INTERFACE_REDUCED output:" << std::endl;
+                }
+                else
+                {
+                    log << "-- SHADER_INTERFACE_COMPLETE output:" << std::endl;
+                }
                 program->printUniforms(log);
                 program->printAttributes(log);
 
                 validator.validateRender(!isShader);
-                std::string fileName = shaderPath + ".exr";
-                validator.save(fileName);
+                std::string fileName = shaderPath + ".png";
+                validator.save(fileName, false);
 
                 if (testOptions.dumpGlslFiles)
                 {

@@ -127,7 +127,7 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
             outputShader = CONSTANT_COLOR_SHADER_PREFIX_STRING + _oslShaderOutputType;
         }
     }
-
+    
     // Perform token replacement
     const std::string OUTPUT_SHADER_TYPE_STRING("%output_shader_type%");
     const std::string OUTPUT_SHADER_INPUT_STRING("%output_shader_input%");
@@ -135,7 +135,7 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     const std::string INPUT_SHADER_TYPE_STRING("%input_shader_type%");
     const std::string INPUT_SHADER_OUTPUT_STRING("%input_shader_output%");
     const std::string BACKGROUND_COLOR_STRING("%background_color%");    
-    const string backgroundColor("0.5 0.6 0.7"); // TODO: Make this a user input
+    const string backgroundColor("0.0 0.0 0.0"); // TODO: Make this a user input
 
     replacementMap[OUTPUT_SHADER_TYPE_STRING] = outputShader;
     replacementMap[OUTPUT_SHADER_INPUT_STRING] = OUTPUT_SHADER_INPUT_VALUE_STRING;
@@ -390,7 +390,7 @@ void OslValidator::validateRender(bool /*orthographicView*/)
     }
 }
 
-void OslValidator::save(const std::string& /*fileName*/)
+void OslValidator::save(const std::string& /*fileName*/, bool /*floatingPoint*/)
 {
     // No-op: image save is done as part of rendering.
 }
