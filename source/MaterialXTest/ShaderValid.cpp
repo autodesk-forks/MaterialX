@@ -703,7 +703,7 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
     try {
         MaterialX::readFromXmlFile(doc, optionFile);
 
-        MaterialX::NodeDefPtr optionDefs = doc->getNodeDef("ShaderValidOptions");
+        MaterialX::NodeDefPtr optionDefs = doc->getNodeDef("ShaderValidTestOptions");
         if (optionDefs)
         {
             for (MaterialX::ParameterPtr p : optionDefs->getParameters())
