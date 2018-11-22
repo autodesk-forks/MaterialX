@@ -502,7 +502,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     }
                     else
                     {
-                        geomPath = mx::FilePath::getCurrentPath().asString() + "/documents/TestSuite/Geometry/shaderball.obj";
+                        geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("/documents/TestSuite/Geometry/shaderball.obj");
                     }
                     geomHandler->setIdentifier(geomPath);
                     validator.setLightHandler(lightHandler);
@@ -523,7 +523,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     }
                     else
                     {
-                        geomPath = mx::FilePath::getCurrentPath().asString() + "/documents/TestSuite/Geometry/sphere.obj";
+                        geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("/documents/TestSuite/Geometry/sphere.obj");
                     }
                     geomHandler->setIdentifier(geomPath);
                     validator.setLightHandler(nullptr);
