@@ -1,6 +1,8 @@
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 
+#include <MaterialXCore/Util.h>
+
 namespace MaterialX
 {
 
@@ -21,8 +23,7 @@ DefaultColorManagementSystemPtr DefaultColorManagementSystem::create(ShaderGener
 DefaultColorManagementSystem::DefaultColorManagementSystem(ShaderGenerator& shadergen)
     : ColorManagementSystem(shadergen, MaterialX::EMPTY_STRING)
 {
-    _language = _shadergen.getLanguage();
-    std::replace(_language.begin(), _language.end(), '-', '_');
+    _language = createValidName(_shadergen.getLanguage());
 }
 
 } // namespace MaterialX

@@ -338,11 +338,11 @@ ShaderNodePtr ShaderNode::createColorTransformNode(const string& name, ShaderNod
 
     if(type == Type::COLOR3)
     {
-        input->value = Value::createValueFromStrings("0, 0, 0", TypedValue<Color3>::TYPE);
+        input->value = Value::createValue(Color3(0.0f, 0.0f, 0.0f));
     }
     else if(type == Type::COLOR4)
     {
-        input->value = Value::createValueFromStrings("0, 0, 0, 1", TypedValue<Color4>::TYPE);
+        input->value = Value::createValue(Color4(0.0f, 0.0f, 0.0f, 1.0));
     }
     else
     {

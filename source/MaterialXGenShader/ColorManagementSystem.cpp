@@ -24,16 +24,11 @@ ColorManagementSystem::ColorManagementSystem(ShaderGenerator& shadergen, const s
 {
 }
 
-bool ColorManagementSystem::registerImplementation(const ColorSpaceTransform& transform, CreatorFunction<ShaderNodeImpl> creator)
+void ColorManagementSystem::registerImplementation(const ColorSpaceTransform& transform, CreatorFunction<ShaderNodeImpl> creator)
 {
-    if (transform.type)
-    {
-        string implName = getImplementationName(transform);
-        _implFactory.registerClass(implName, creator);
-        _registeredImplNames.push_back(implName);
-        return true;
-    }
-    return false;
+    string implName = getImplementationName(transform);
+    _implFactory.registerClass(implName, creator);
+    _registeredImplNames.push_back(implName);
 }
 
 void  ColorManagementSystem::setConfigFile(const string& configFile)
@@ -50,6 +45,18 @@ void ColorManagementSystem::loadLibrary(DocumentPtr document)
     _implFactory.unregisterClasses(_registeredImplNames);
     _registeredImplNames.clear();
     _cachedImpls.clear();
+}
+
+bool ColorManagementSystem::supportsLanguage(const string& language)
+{
+    return language == _shadergen.getLanguage();
+}
+
+bool ColorManagementSystem::supportsTransform(const ColorSpaceTransform& transform)
+{
+    string implName = getImplementationName(transform);
+    ImplementationPtr impl = _document->getImplementation(implName);
+    return impl != nullptr;
 }
 
 ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& transform, const string& name)
@@ -81,14 +88,9 @@ ShaderNodePtr ColorManagementSystem::createNode(const ColorSpaceTransform& trans
     shaderImpl->initialize(impl, _shadergen);
 
     _cachedImpls[transform] = shaderImpl;
-    ShaderNodePtr shaderNode = ShaderNode::createColorTransformNode(getShaderNodeName(transform, name), shaderImpl, transform.type, _shadergen);
+    ShaderNodePtr shaderNode = ShaderNode::createColorTransformNode(name, shaderImpl, transform.type, _shadergen);
 
     return shaderNode;
-}
-
-string ColorManagementSystem::getShaderNodeName(const ColorSpaceTransform& transform, const string& name)
-{
-    return name + "_" + transform.sourceSpace + "_to_" + transform.targetSpace + "_" + transform.type->getName();
 }
 
 } // namespace MaterialX

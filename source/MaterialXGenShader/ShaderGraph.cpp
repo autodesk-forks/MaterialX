@@ -240,15 +240,18 @@ void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTran
     {
         return;
     }
-    // We can potentially improve this workflow in the future by replacing the constant node with the transform node
-    if (input->node->hasClassification(ShaderNode::Classification::CONSTANT))
-    {
-        input->node->_classification |= ShaderNode::Classification::DO_NOT_OPTIMIZE;
-    }
-    ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(transform, input->node->getName());
+
+    string colorTransformNodeName = input->node->getName() + "_" + input->name + "_cm";
+    ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(transform, colorTransformNodeName);
 
     if (colorTransformNodePtr)
     {
+        // We can potentially improve this workflow in the future by replacing the constant node with the transform node
+        if (input->node->hasClassification(ShaderNode::Classification::CONSTANT))
+        {
+            input->node->_classification |= ShaderNode::Classification::DO_NOT_OPTIMIZE;
+        }
+
         _nodeMap[colorTransformNodePtr->getName()] = colorTransformNodePtr;
         _nodeOrder.push_back(colorTransformNodePtr.get());
 
@@ -270,7 +273,8 @@ void ShaderGraph::addColorTransformNode(ShaderOutput* output, const ColorSpaceTr
     {
         return;
     }
-    ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(transform, output->node->getName());
+    string colorTransformNodeName = output->node->getName() + "_" + output->name + "_cm";
+    ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(transform, colorTransformNodeName);
 
     if (colorTransformNodePtr)
     {
@@ -545,39 +549,46 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
         }
     }
 
+    ColorManagementSystemPtr colorManagementSystem = shadergen.getColorManagementSystem();
     const string& targetColorSpace = _document ? _document->getAttribute(Element::COLOR_SPACE_ATTRIBUTE) : EMPTY_STRING;
-    for (InputPtr input : node.getInputs())
+    if (colorManagementSystem && !targetColorSpace.empty())
     {
-        populateInputColorTransformMap(node, newNode, input, targetColorSpace);
-    }
-    for (ParameterPtr parameter : node.getParameters())
-    {
-        populateInputColorTransformMap(node, newNode, parameter, targetColorSpace);
-    }
-
-    // Check if this is a file texture node that requires color transformation.
-    if (newNode->hasClassification(ShaderNode::Classification::FILETEXTURE))
-    {
-        ParameterPtr file = node.getParameter("file");
-        if (file)
+        for (InputPtr input : node.getInputs())
         {
-            const TypeDesc* fileType = TypeDesc::get(node.getType());
+            populateInputColorTransformMap(colorManagementSystem, node, newNode, input, targetColorSpace);
+        }
+        for (ParameterPtr parameter : node.getParameters())
+        {
+            populateInputColorTransformMap(colorManagementSystem, node, newNode, parameter, targetColorSpace);
+        }
 
-            // Only color3 and color4 textures require color transformation.
-            if (fileType == Type::COLOR3 || fileType == Type::COLOR4)
+        // Check if this is a file texture node that requires color transformation.
+        if (newNode->hasClassification(ShaderNode::Classification::FILETEXTURE))
+        {
+            ParameterPtr file = node.getParameter("file");
+            if (file)
             {
-                const string& sourceColorSpace = file->getAttribute(Element::COLOR_SPACE_ATTRIBUTE);
+                const TypeDesc* fileType = TypeDesc::get(node.getType());
 
-                // If we're converting between two identical color spaces than we have no work to do.
-                if (!sourceColorSpace.empty() && sourceColorSpace != targetColorSpace)
+                // Only color3 and color4 textures require color transformation.
+                if (fileType == Type::COLOR3 || fileType == Type::COLOR4)
                 {
-                    ShaderOutput* shaderOutput = newNode->getOutput();
-                    if (shaderOutput)
+                    const string& sourceColorSpace = file->getAttribute(Element::COLOR_SPACE_ATTRIBUTE);
+
+                    // If we're converting between two identical color spaces than we have no work to do.
+                    if (!sourceColorSpace.empty() && sourceColorSpace != targetColorSpace)
                     {
-                        // Store the output and it's color transform so we can create this
-                        // color transformation later when finalizing the graph.
-                        ColorSpaceTransform transform(sourceColorSpace, targetColorSpace, fileType);
-                        _outputColorTransformMap.emplace(shaderOutput, transform);
+                        ShaderOutput* shaderOutput = newNode->getOutput();
+                        if (shaderOutput)
+                        {
+                            // Store the output and it's color transform so we can create this
+                            // color transformation later when finalizing the graph.
+                            ColorSpaceTransform transform(sourceColorSpace, targetColorSpace, fileType);
+                            if (colorManagementSystem->supportsTransform(transform))
+                            {
+                                _outputColorTransformMap.emplace(shaderOutput, transform);
+                            }
+                        }
                     }
                 }
             }
@@ -965,7 +976,7 @@ void ShaderGraph::validateNames(ShaderGenerator& shadergen)
     }
 }
 
-void ShaderGraph::populateInputColorTransformMap(const Node& node, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace)
+void ShaderGraph::populateInputColorTransformMap(ColorManagementSystemPtr colorManagementSystem, const Node& node, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace)
 {
     ShaderInput* shaderInput = shaderNode->getInput(input->getName());
     const string& sourceColorSpace = input->getAttribute(Element::COLOR_SPACE_ATTRIBUTE);
@@ -980,7 +991,10 @@ void ShaderGraph::populateInputColorTransformMap(const Node& node, ShaderNodePtr
                 if (sourceColorSpace != targetColorSpace)
                 {
                     ColorSpaceTransform transform(sourceColorSpace, targetColorSpace, shaderInput->type);
-                    _inputColorTransformMap.emplace(shaderInput, transform);
+                    if (colorManagementSystem->supportsTransform(transform))
+                    {
+                        _inputColorTransformMap.emplace(shaderInput, transform);
+                    }
                 }
             }
             else if(shaderInput->type != Type::FILENAME)

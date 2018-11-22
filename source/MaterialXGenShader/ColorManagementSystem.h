@@ -60,11 +60,17 @@ class ColorManagementSystem
         return _configFile;
     }
 
-    /// Sets the config file
+    /// Sets the config file. Will also replace any previously loaded content.
     void setConfigFile(const string& configFile);
 
     /// Load the library of implementations from the provided document
     virtual void loadLibrary(DocumentPtr document);
+
+    /// Returns whether this color management system supports a provided language
+    bool supportsLanguage(const string& language);
+
+    /// Returns whether this color management system supports a provided transform
+    bool supportsTransform(const ColorSpaceTransform& transform);
 
     /// Create a node to use to perform the given color space transformation.
     ShaderNodePtr createNode(const ColorSpaceTransform& transform, const string& name);
@@ -73,14 +79,11 @@ class ColorManagementSystem
     template<class T>
     using CreatorFunction = shared_ptr<T>(*)();
 
-    /// Returns a shader node name for a given transform
-    virtual string getShaderNodeName(const ColorSpaceTransform& transform, const string& name);
-
     /// Returns an implementation name for a given transform
     virtual string getImplementationName(const ColorSpaceTransform& transform) = 0;
 
     /// Register a node implementation for a given color space transformation.
-    bool registerImplementation(const ColorSpaceTransform& transform, CreatorFunction<ShaderNodeImpl> creator);
+    void registerImplementation(const ColorSpaceTransform& transform, CreatorFunction<ShaderNodeImpl> creator);
 
     /// Protected constructor
     ColorManagementSystem(ShaderGenerator& shadergen, const string& configFile);

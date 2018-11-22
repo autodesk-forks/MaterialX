@@ -128,7 +128,7 @@ class ShaderGraph : public ShaderNode
 
     /// Populates the input color transform map if the provided input/parameter
     /// has a color space attribute and has a type of color3 or color4.
-    void populateInputColorTransformMap(const Node& node, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace);
+    void populateInputColorTransformMap(ColorManagementSystemPtr colorManagementSystem, const Node& node, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace);
 
     /// Break all connections on a node
     static void disconnect(ShaderNode* node);
