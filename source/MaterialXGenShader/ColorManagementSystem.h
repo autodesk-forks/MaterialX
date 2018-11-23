@@ -60,10 +60,10 @@ class ColorManagementSystem
         return _configFile;
     }
 
-    /// Sets the config file. Will also replace any previously loaded content.
+    /// Sets the config file.
     void setConfigFile(const string& configFile);
 
-    /// Load the library of implementations from the provided document
+    /// Load the library of implementations from the provided document. Will also replace any previously loaded content.
     virtual void loadLibrary(DocumentPtr document);
 
     /// Returns whether this color management system supports a provided language
