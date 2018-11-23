@@ -47,11 +47,6 @@ void ColorManagementSystem::loadLibrary(DocumentPtr document)
     _cachedImpls.clear();
 }
 
-bool ColorManagementSystem::supportsLanguage(const string& language)
-{
-    return language == _shadergen.getLanguage();
-}
-
 bool ColorManagementSystem::supportsTransform(const ColorSpaceTransform& transform)
 {
     string implName = getImplementationName(transform);

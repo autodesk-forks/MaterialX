@@ -66,9 +66,6 @@ class ColorManagementSystem
     /// Load the library of implementations from the provided document. Will also replace any previously loaded content.
     virtual void loadLibrary(DocumentPtr document);
 
-    /// Returns whether this color management system supports a provided language
-    bool supportsLanguage(const string& language);
-
     /// Returns whether this color management system supports a provided transform
     bool supportsTransform(const ColorSpaceTransform& transform);
 

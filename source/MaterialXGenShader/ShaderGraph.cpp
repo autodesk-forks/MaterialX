@@ -551,7 +551,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen)
 
     ColorManagementSystemPtr colorManagementSystem = shadergen.getColorManagementSystem();
     const string& targetColorSpace = _document ? _document->getAttribute(Element::COLOR_SPACE_ATTRIBUTE) : EMPTY_STRING;
-    if (colorManagementSystem && colorManagementSystem->supportsLanguage(shadergen.getLanguage()) && !targetColorSpace.empty())
+    if (colorManagementSystem && !targetColorSpace.empty())
     {
         for (InputPtr input : node.getInputs())
         {
