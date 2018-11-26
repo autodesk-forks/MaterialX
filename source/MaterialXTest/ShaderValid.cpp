@@ -734,69 +734,12 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // Add only the test suite filename not the full path.
     std::set<std::string> testfileOverride;
 
-    // Library search path
-    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-
-    // Create validators and generators
-    bool orthographicView = true;
-#ifdef MATERIALX_BUILD_GEN_GLSL
-    AdditiveScopedTimer glslSetupTime(profileTimes.glslTimes.setupTime, "GLSL setup time");
-    mx::GlslValidatorPtr glslValidator = createGLSLValidator(orthographicView, "sphere.obj", glslLog);
-    mx::GlslShaderGeneratorPtr glslShaderGenerator = std::static_pointer_cast<mx::GlslShaderGenerator>(mx::GlslShaderGenerator::create());
-    glslShaderGenerator->registerSourceCodeSearchPath(searchPath);
-    mx::DefaultColorManagementSystemPtr glslColorManagementSystem = mx::DefaultColorManagementSystem::create(*glslShaderGenerator);
-    glslShaderGenerator->setColorManagementSystem(glslColorManagementSystem);
-    glslSetupTime.endTimer();
-#endif
-#ifdef MATERIALX_BUILD_GEN_OSL
-    AdditiveScopedTimer oslSetupTime(profileTimes.oslTimes.setupTime, "OSL setup time");
-    mx::OslValidatorPtr oslValidator = createOSLValidator(orthographicView, oslLog);
-    mx::ArnoldShaderGeneratorPtr oslShaderGenerator = std::static_pointer_cast<mx::ArnoldShaderGenerator>(mx::ArnoldShaderGenerator::create());
-    oslShaderGenerator->setRemappedShaderOutput(false);
-    oslShaderGenerator->registerSourceCodeSearchPath(searchPath);
-    oslShaderGenerator->registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
-    oslSetupTime.endTimer();
-#endif
-
     AdditiveScopedTimer ioTimer(profileTimes.ioTime, "Global I/O time");
-
-    // Load in the library dependencies once
-    // This will be imported in each test document below
-    mx::DocumentPtr dependLib = mx::createDocument();
-    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, dependLib);
-#ifdef MATERIALX_BUILD_GEN_GLSL
-    glslColorManagementSystem->loadLibrary(dependLib);
-#endif
-
-    ioTimer.endTimer();
-
-    mx::CopyOptions importOptions;
-    importOptions.skipDuplicateElements = true;
-
-#ifdef MATERIALX_BUILD_GEN_GLSL
-    glslSetupTime.startTimer();
-    // Add lights as a dependency
-    mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-    createLightRig(dependLib, *lightHandler, *glslShaderGenerator);
-
-    // Clamp the number of light sources to the number bound
-    size_t lightSourceCount = lightHandler->getLightSources().size();
-    glslShaderGenerator->setMaxActiveLightSources(lightSourceCount);
-    glslSetupTime.endTimer();
-#endif
-
-    // Map to replace "/" in Element path names with "_".
-    mx::StringMap pathMap;
-    pathMap["/"] = "_";
-
-    ioTimer.startTimer();
     mx::FilePath path = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite");
     mx::StringVec dirs;
     std::string baseDirectory = path;
     mx::getSubDirectories(baseDirectory, dirs);
-
-    const std::string MTLX_EXTENSION("mtlx");
-
+    
     // Check for an option file
     ShaderValidTestOptions options;
     const mx::FilePath optionsPath = path / mx::FilePath("_options.mtlx");
@@ -810,9 +753,87 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     }
     ioTimer.endTimer();
 
+    // All tests have been turned off so just stop the test.
+    if (!options.runGLSLTests && !options.runOSLTests)
+    {
+        return;
+    }
+
+    // Library search path
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
+
+    // Create validators and generators
+    bool orthographicView = true;
+#ifdef MATERIALX_BUILD_GEN_GLSL
+    mx::GlslValidatorPtr glslValidator = nullptr;
+    mx::GlslShaderGeneratorPtr glslShaderGenerator = nullptr;
+    mx::DefaultColorManagementSystemPtr glslColorManagementSystem = nullptr;
+    if (options.runGLSLTests)
+    {
+        AdditiveScopedTimer glslSetupTime(profileTimes.glslTimes.setupTime, "GLSL setup time");
+        glslValidator = createGLSLValidator(orthographicView, "sphere.obj", glslLog);
+        glslShaderGenerator = std::static_pointer_cast<mx::GlslShaderGenerator>(mx::GlslShaderGenerator::create());
+        glslShaderGenerator->registerSourceCodeSearchPath(searchPath);
+        glslColorManagementSystem = mx::DefaultColorManagementSystem::create(*glslShaderGenerator);
+        glslShaderGenerator->setColorManagementSystem(glslColorManagementSystem);
+        glslSetupTime.endTimer();
+    }
+#endif
+#ifdef MATERIALX_BUILD_GEN_OSL
+    mx::OslValidatorPtr oslValidator = nullptr;
+    mx::ArnoldShaderGeneratorPtr oslShaderGenerator = nullptr;
+    if (options.runOSLTests)
+    {
+        AdditiveScopedTimer oslSetupTime(profileTimes.oslTimes.setupTime, "OSL setup time");
+        oslValidator = createOSLValidator(orthographicView, oslLog);
+        oslShaderGenerator = std::static_pointer_cast<mx::ArnoldShaderGenerator>(mx::ArnoldShaderGenerator::create());
+        oslShaderGenerator->setRemappedShaderOutput(false);
+        oslShaderGenerator->registerSourceCodeSearchPath(searchPath);
+        oslShaderGenerator->registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
+        oslSetupTime.endTimer();
+    }
+#endif
+
+    // Load in the library dependencies once
+    // This will be imported in each test document below
+    ioTimer.startTimer();
+    mx::DocumentPtr dependLib = mx::createDocument();
+    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, dependLib);
+#ifdef MATERIALX_BUILD_GEN_GLSL
+    if (options.runGLSLTests)
+    {
+        glslColorManagementSystem->loadLibrary(dependLib);
+    }
+#endif
+    ioTimer.endTimer();
+
+    mx::CopyOptions importOptions;
+    importOptions.skipDuplicateElements = true;
+
+#ifdef MATERIALX_BUILD_GEN_GLSL
+    mx::HwLightHandlerPtr lightHandler = nullptr;
+    if (options.runGLSLTests)
+    {
+        AdditiveScopedTimer glslSetupLightingTimer(profileTimes.glslTimes.setupTime, "GLSL setup lighting time");
+
+        // Add lights as a dependency
+        lightHandler = mx::HwLightHandler::create();
+        createLightRig(dependLib, *lightHandler, *glslShaderGenerator);
+
+        // Clamp the number of light sources to the number bound
+        size_t lightSourceCount = lightHandler->getLightSources().size();
+        glslShaderGenerator->setMaxActiveLightSources(lightSourceCount);
+    }
+#endif
+
+    // Map to replace "/" in Element path names with "_".
+    mx::StringMap pathMap;
+    pathMap["/"] = "_";
+
     AdditiveScopedTimer validateTimer(profileTimes.validateTime, "Global validation time");
     AdditiveScopedTimer renderableSearchTimer(profileTimes.renderableSearchTime, "Global renderable search time");
 
+    const std::string MTLX_EXTENSION("mtlx");
     for (auto dir : dirs)
     {
         ioTimer.startTimer();
@@ -888,25 +909,31 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                     mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
                     //std::cout << "Validate element: " << elementName << std::endl;
 #ifdef MATERIALX_BUILD_GEN_GLSL
-                    renderableSearchTimer.startTimer();
-                    mx::InterfaceElementPtr impl = nodeDef->getImplementation(glslShaderGenerator->getTarget(), glslShaderGenerator->getLanguage());
-                    renderableSearchTimer.endTimer();
-                    if (options.runGLSLTests && impl)
+                    if (options.runGLSLTests)
                     {
-                        runGLSLValidation(elementName, element, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, options, profileTimes, outputPath);
+                        renderableSearchTimer.startTimer();
+                        mx::InterfaceElementPtr impl = nodeDef->getImplementation(glslShaderGenerator->getTarget(), glslShaderGenerator->getLanguage());
+                        renderableSearchTimer.endTimer();
+                        if (impl)
+                        {
+                            runGLSLValidation(elementName, element, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, options, profileTimes, outputPath);
+                        }
                     }
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
-                    if (file == "color_management.mtlx")
+                    if (options.runOSLTests)
                     {
-                        continue;
-                    }
-                    renderableSearchTimer.startTimer();
-                    mx::InterfaceElementPtr impl2 = nodeDef->getImplementation(oslShaderGenerator->getTarget(), oslShaderGenerator->getLanguage());
-                    renderableSearchTimer.endTimer();
-                    if (options.runOSLTests && impl2)
-                    {
-                        runOSLValidation(elementName, element, *oslValidator, *oslShaderGenerator, doc, oslLog, options, profileTimes, outputPath);
+                        if (file == "color_management.mtlx")
+                        {
+                            continue;
+                        }
+                        renderableSearchTimer.startTimer();
+                        mx::InterfaceElementPtr impl2 = nodeDef->getImplementation(oslShaderGenerator->getTarget(), oslShaderGenerator->getLanguage());
+                        renderableSearchTimer.endTimer();
+                        if (impl2)
+                        {
+                            runOSLValidation(elementName, element, *oslValidator, *oslShaderGenerator, doc, oslLog, options, profileTimes, outputPath);
+                        }
                     }
 #endif
                 }
