@@ -559,7 +559,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             mx::ShaderPtr shader;
             try
             {
-                AdditiveScopedTimer(profileTimes.oslTimes.generationTime, "OSL generation time");
+                AdditiveScopedTimer genTimer(profileTimes.oslTimes.generationTime, "OSL generation time");
                 shader = shaderGenerator.generate(shaderName, element, options);
             }
             catch (mx::ExceptionShaderGenError e)
@@ -598,7 +598,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 
             // Write out osl file
             {
-                AdditiveScopedTimer(profileTimes.oslTimes.ioTime, "OSL io time");
+                AdditiveScopedTimer ioTimer(profileTimes.oslTimes.ioTime, "OSL io time");
                 std::ofstream file;
                 file.open(shaderPath + ".osl");
                 file << shader->getSourceCode();
@@ -615,7 +615,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 
                 // Validate compilation
                 {
-                    AdditiveScopedTimer(profileTimes.oslTimes.compileTime, "OSL compile time");
+                    AdditiveScopedTimer compileTimer(profileTimes.oslTimes.compileTime, "OSL compile time");
                     validator.validateCreation(shader);
                 }
 
@@ -658,7 +658,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 
                     // Validate rendering
                     {
-                        AdditiveScopedTimer(profileTimes.oslTimes.renderTime, "OSL render time");
+                        AdditiveScopedTimer renderTimer(profileTimes.oslTimes.renderTime, "OSL render time");
                         validator.validateRender();
                     }
                 }
