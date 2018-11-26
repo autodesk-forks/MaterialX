@@ -189,6 +189,7 @@ public:
     void print(const std::string& label, std::ostream& output) const
     {
         output << label << std::endl; 
+        output << "\tTotal: " << totalTime << " seconds" << std::endl;;
         output << "\tSetup: " << setupTime << " seconds" << std::endl;;
         output << "\tTransparency: " << transparencyTime << " seconds" << std::endl;;
         output << "\tGeneration: " << generationTime << " seconds" << std::endl;;
@@ -197,10 +198,7 @@ public:
         output << "\tI/O: " << ioTime << " seconds" << std::endl;
         output << "\tImage save: " << imageSaveTime << " seconds" << std::endl;
     }
-    double totalTime() const
-    {
-        return setupTime + transparencyTime + generationTime + compileTime + renderTime + ioTime + imageSaveTime;
-    }
+    double totalTime = 0.0;
     double setupTime = 0.0;
     double transparencyTime = 0.0;
     double generationTime = 0.0;
@@ -219,17 +217,12 @@ public:
     void print(std::ostream& output) const
     {
         output << "Overall time: " << totalTime << " seconds" << std::endl;
-        double totalGlslTime = glslTimes.totalTime();
-        double totalOslTime = oslTimes.totalTime();
-        output << "\tOverhead time: " << (totalTime - totalGlslTime - totalOslTime) << " seconds" << std::endl;
+        output << "\tOverhead time: " << (totalTime - glslTimes.totalTime - oslTimes.totalTime) << " seconds" << std::endl;
         output << "\tI/O time: " << ioTime << " seconds" << std::endl;
         output << "\tValidation time: " << validateTime << " seconds" << std::endl;
         output << "\tRenderable search time: " << renderableSearchTime << " seconds" << std::endl;
 
-        output << "Total GLSL time: " << totalGlslTime << std::endl;
         glslTimes.print("GLSL Profile Times:", output);
-
-        output << "Total OSL time: " << totalOslTime << std::endl;
         oslTimes.print("OSL Profile Times:", output);
 
         output << "Elements tested: " << elementsTested << std::endl;
@@ -237,10 +230,10 @@ public:
 
     LanguageProfileTimes glslTimes;
     LanguageProfileTimes oslTimes;
+    double totalTime = 0;
     double ioTime = 0.0;
     double validateTime = 0.0;
     double renderableSearchTime = 0.0;
-    double totalTime = 0;
     unsigned int elementsTested = 0;
 };
 
@@ -263,17 +256,30 @@ public:
     void startTimer()
     {
         _startTime = std::chrono::system_clock::now();
+
+        if (_debugUpdate)
+        {
+            std::cout << "Start time for timer (" << _label << ") is: " << _duration << std::endl;
+        }
     }
 
     void endTimer()
     {
-        std::chrono::duration<double> timeDuration = std::chrono::system_clock::now() - _startTime;
-        _duration += timeDuration.count();
-        //std::cout << "Current duration for timer (" << _label << ") is: "<<  _duration << std::endl;
+        std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
+        std::chrono::duration<double> timeDuration = endTime - _startTime;
+        double currentDuration = timeDuration.count();
+        _duration += currentDuration;
+        _startTime = endTime;
+
+        if (_debugUpdate)
+        {
+            std::cout << "Current duration for timer (" << _label << ") is: " << currentDuration << ". Total duration: " << _duration << std::endl;
+        }
     }
 
 protected:
     double& _duration;
+    bool _debugUpdate = false;
     std::string _label;
     std::chrono::time_point<std::chrono::system_clock> _startTime;
 };
@@ -313,6 +319,8 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                               mx::GlslShaderGenerator& shaderGenerator, const mx::HwLightHandlerPtr lightHandler, mx::DocumentPtr doc,
                               std::ostream& log, const ShaderValidTestOptions& testOptions, ShaderValidProfileTimes& profileTimes, const std::string& outputPath=".")
 {
+    AdditiveScopedTimer totalGLSLTime(profileTimes.glslTimes.totalTime, "GLSL total time");
+
     std::vector<mx::GenOptions> optionsList;
     getGenerationOptions(testOptions, optionsList);
 
@@ -333,11 +341,13 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
             }
 
             // Note: mkdir will fail if the directory already exists which is ok.
-            mx::makeDirectory(outputFilePath);
+            {
+                AdditiveScopedTimer ioDir(profileTimes.glslTimes.ioTime, "GLSL dir time");
+                mx::makeDirectory(outputFilePath);
+            }
+
             shaderPath = mx::FilePath(outputFilePath) / mx::FilePath(shaderName);
-
             mx::ShaderPtr shader;
-
             try
             {
                 AdditiveScopedTimer transpTimer(profileTimes.glslTimes.transparencyTime, "GLSL transparency time");
@@ -488,9 +498,11 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                              mx::ArnoldShaderGenerator& shaderGenerator, mx::DocumentPtr doc, std::ostream& log,
                              const ShaderValidTestOptions& testOptions, ShaderValidProfileTimes& profileTimes, const std::string& outputPath=".")
 {
+    AdditiveScopedTimer totalOSLTime(profileTimes.oslTimes.totalTime, "OSL total time");
+
     std::vector<mx::GenOptions> optionsList;
     getGenerationOptions(testOptions, optionsList);
-
+    
     if(element && doc)
     {
         log << "------------ Run validation with element: " << element->getNamePath() << "-------------------" << std::endl;
@@ -527,7 +539,11 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             }
 
             // Note: mkdir will fail if the directory already exists which is ok.
-            mx::makeDirectory(outputFilePath);
+            {
+                AdditiveScopedTimer ioDir(profileTimes.oslTimes.ioTime, "OSL dir time");
+                mx::makeDirectory(outputFilePath);
+            }
+
             shaderPath = mx::FilePath(outputFilePath) / mx::FilePath(shaderName);
 
             // Write out osl file
@@ -730,7 +746,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     glslSetupTime.endTimer();
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
-    AdditiveScopedTimer oslSetupTime(profileTimes.oslTimes.setupTime, "GLSL setup time");
+    AdditiveScopedTimer oslSetupTime(profileTimes.oslTimes.setupTime, "OSL setup time");
     mx::OslValidatorPtr oslValidator = createOSLValidator(orthographicView, oslLog);
     mx::ArnoldShaderGeneratorPtr oslShaderGenerator = std::static_pointer_cast<mx::ArnoldShaderGenerator>(mx::ArnoldShaderGenerator::create());
     oslShaderGenerator->setRemappedShaderOutput(false);
@@ -751,14 +767,16 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     mx::CopyOptions importOptions;
     importOptions.skipDuplicateElements = true;
 
+#ifdef MATERIALX_BUILD_GEN_GLSL
+    glslSetupTime.startTimer();
     // Add lights as a dependency
     mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
     createLightRig(dependLib, *lightHandler, *glslShaderGenerator);
 
     // Clamp the number of light sources to the number bound
     size_t lightSourceCount = lightHandler->getLightSources().size();
-#ifdef MATERIALX_BUILD_GEN_GLSL
     glslShaderGenerator->setMaxActiveLightSources(lightSourceCount);
+    glslSetupTime.endTimer();
 #endif
 
     // Map to replace "/" in Element path names with "_".
@@ -770,7 +788,6 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     mx::StringVec dirs;
     std::string baseDirectory = path;
     mx::getSubDirectories(baseDirectory, dirs);
-    ioTimer.endTimer();
 
     const std::string MTLX_EXTENSION("mtlx");
 
@@ -785,7 +802,11 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             testfileOverride.insert(filterFile);
         }
     }
-    
+    ioTimer.endTimer();
+
+    AdditiveScopedTimer validateTimer(profileTimes.validateTime, "Global validation time");
+    AdditiveScopedTimer renderableSearchTimer(profileTimes.renderableSearchTime, "Global renderable search time");
+
     for (auto dir : dirs)
     {
         ioTimer.startTimer();
@@ -818,8 +839,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
 
             ioTimer.endTimer();
 
-            AdditiveScopedTimer validateTimer(profileTimes.validateTime, "Global validation time");
-
+            validateTimer.startTimer();
             std::cout << "Validating MTLX file: " << filename << std::endl;
 #ifdef MATERIALX_BUILD_GEN_GLSL
             glslLog << "MTLX Filename: " << filename << std::endl;
@@ -834,11 +854,10 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             {
                 docValidLog << validationErrors << std::endl;
             }
+            validateTimer.endTimer();
             CHECK(validDoc);
 
-            validateTimer.endTimer();
-
-            AdditiveScopedTimer renderableSearchTimer(profileTimes.renderableSearchTime, "Global renderable search time");
+            renderableSearchTimer.startTimer();
             std::vector<mx::TypedElementPtr> elements;
             mx::findRenderableElements(doc, elements);
             renderableSearchTimer.endTimer();
@@ -860,15 +879,21 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                 if (nodeDef)
                 {
                     mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
-                    std::cout << "Validate element: " << elementName << std::endl;
+                    //std::cout << "Validate element: " << elementName << std::endl;
 #ifdef MATERIALX_BUILD_GEN_GLSL
-                    if (options.runGLSLTests && nodeDef->getImplementation(glslShaderGenerator->getTarget(), glslShaderGenerator->getLanguage()))
+                    renderableSearchTimer.startTimer();
+                    mx::InterfaceElementPtr impl = nodeDef->getImplementation(glslShaderGenerator->getTarget(), glslShaderGenerator->getLanguage());
+                    renderableSearchTimer.endTimer();
+                    if (options.runGLSLTests && impl)
                     {
                         runGLSLValidation(elementName, element, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, options, profileTimes, outputPath);
                     }
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
-                    if (options.runOSLTests && nodeDef->getImplementation(oslShaderGenerator->getTarget(), oslShaderGenerator->getLanguage()))
+                    renderableSearchTimer.startTimer();
+                    mx::InterfaceElementPtr impl2 = nodeDef->getImplementation(oslShaderGenerator->getTarget(), oslShaderGenerator->getLanguage());
+                    renderableSearchTimer.endTimer();
+                    if (options.runOSLTests && impl2)
                     {
                         runOSLValidation(elementName, element, *oslValidator, *oslShaderGenerator, doc, oslLog, options, profileTimes, outputPath);
                     }
