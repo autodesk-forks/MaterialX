@@ -158,6 +158,27 @@ static mx::OslValidatorPtr createOSLValidator(bool& orthographicView, std::ostre
 class ShaderValidTestOptions
 {
 public:
+    void print(std::ostream& output) const
+    {
+        output << "Shader Validation Test Options:" << std::endl;
+        output << "\toverrideFiles: ";
+        for (auto f : overrideFiles)
+        {
+            output << f << " ";
+        }
+        output << std::endl;
+        output << "\tRun GLSL Tests: " << runGLSLTests << std::endl;
+        output << "\tRun OSL Tests: " << runOSLTests << std::endl;
+        output << "\tDump GLSL Files: " << dumpGlslFiles << std::endl;
+        output << "\tShader Interfaces: " << shaderInterfaces << std::endl;
+        output << "\tCompile code: " << compileCode << std::endl;
+        output << "\tRender Images: " << renderImages << std::endl;
+        output << "\tSave Images: " << saveImages << std::endl;
+        output << "\tDump GLSL Uniforms and Attributes  " << dumpGlslUniformsAndAttributes << std::endl;
+        output << "\tGLSL Non-Shader Geometry: " << glslNonShaderGeometry.asString() << std::endl;
+        output << "\tGLSL Shader Geometry: " << glslShaderGeometry.asString() << std::endl;
+    }
+
     // Filter list of files to only run validation on.
     MaterialX::StringVec overrideFiles;
 
@@ -175,6 +196,18 @@ public:
     // - 2 = run complete only (default)
     // - 1 = run reduced only.
     int shaderInterfaces = 2;
+
+    // Perform source code compilation validation test
+    bool compileCode = true;
+
+    // Perform rendering validation test
+    bool renderImages = true;
+
+    // Perform saving of image. Can only be disabled for GLSL tests.
+    bool saveImages = true;
+
+    // Set this to be true if it is desired to dump out GLSL uniform and attribut information to the logging file.
+    bool dumpGlslUniformsAndAttributes = true;
 
     // Non-shader GLSL geometry file
     MaterialX::FilePath glslNonShaderGeometry = "sphere.obj";
@@ -373,6 +406,11 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
             CHECK(shader->getSourceCode(mx::HwShader::PIXEL_STAGE).length() > 0);
             CHECK(shader->getSourceCode(mx::HwShader::VERTEX_STAGE).length() > 0);
 
+            if (!testOptions.compileCode)
+            {
+                return;
+            }
+
             // Validate
             MaterialX::GlslProgramPtr program = validator.program();
             bool validated = false;
@@ -439,20 +477,26 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     log << "-- SHADER_INTERFACE_COMPLETE output:" << std::endl;
                 }
 
+                if (testOptions.dumpGlslUniformsAndAttributes)
                 {
                     AdditiveScopedTimer printTimer(profileTimes.glslTimes.ioTime, "GLSL io time");
                     program->printUniforms(log);
                     program->printAttributes(log);
                 }
-                {
-                    AdditiveScopedTimer renderTimer(profileTimes.glslTimes.renderTime, "GLSL render time");
-                    validator.validateRender(!isShader);
-                }
 
-                std::string fileName = shaderPath + "_glsl.png";
+                if (testOptions.renderImages)
                 {
-                    AdditiveScopedTimer ioTimer(profileTimes.glslTimes.imageSaveTime, "GLSL image save time");
-                    validator.save(fileName, false);
+                    {
+                        AdditiveScopedTimer renderTimer(profileTimes.glslTimes.renderTime, "GLSL render time");
+                        validator.validateRender(!isShader);
+                    }
+
+                    if (testOptions.saveImages)
+                    {
+                        AdditiveScopedTimer ioTimer(profileTimes.glslTimes.imageSaveTime, "GLSL image save time");
+                        std::string fileName = shaderPath + "_glsl.png";
+                        validator.save(fileName, false);
+                    }
                 }
 
                 if (testOptions.dumpGlslFiles)
@@ -531,6 +575,11 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             }
             CHECK(shader->getSourceCode().length() > 0);
 
+            if (!testOptions.compileCode)
+            {
+                return;
+            }
+
             std::string shaderPath;
             mx::FilePath outputFilePath = outputPath;
             // Use separate directory for reduced output
@@ -570,48 +619,50 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                     validator.validateCreation(shader);
                 }
 
-                std::string elementType;
-                std::string sceneTemplateFile;
-                mx::string outputName = element->getName();
-
-                bool isShader = mx::elementRequiresShading(element);
-                if (isShader)
+                if (testOptions.renderImages)
                 {
-                    // TODO: Assume name is "out". This is the default value.
-                    // We require shader generation to provide us an output name
-                    // to the actual name.
-                    outputName = "out";
+                    std::string elementType;
+                    std::string sceneTemplateFile;
+                    mx::string outputName = element->getName();
 
-                    // TODO: Asume type is closure color until we can
-                    // get the actual output type from code generation
-                    elementType = mx::OslValidator::OSL_CLOSURE_COLOR_STRING;
+                    bool isShader = mx::elementRequiresShading(element);
+                    if (isShader)
+                    {
+                        // TODO: Assume name is "out". This is the default value.
+                        // We require shader generation to provide us an output name
+                        // to the actual name.
+                        outputName = "out";
 
-                    sceneTemplateFile.assign("closure_color_scene.xml");
+                        // TODO: Asume type is closure color until we can
+                        // get the actual output type from code generation
+                        elementType = mx::OslValidator::OSL_CLOSURE_COLOR_STRING;
+
+                        sceneTemplateFile.assign("closure_color_scene.xml");
+                    }
+                    else
+                    {
+                        elementType.assign(element->getType());
+                        sceneTemplateFile.assign("constant_color_scene.xml");
+                    }
+
+                    // Set shader output name and type to use
+                    //
+                    // If the generator has already remapped the output type then indicate to
+                    // not do so again during validation.
+                    validator.setOslShaderOutputNameAndType(outputName, elementType, shaderGenerator.remappedShaderOutput());
+
+                    // Set scene template file. For now we only have the constant color scene file
+                    mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/");
+                    sceneTemplatePath = sceneTemplatePath / sceneTemplateFile;
+                    validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
+
+                    // Validate rendering
+                    {
+                        AdditiveScopedTimer(profileTimes.oslTimes.renderTime, "OSL render time");
+                        validator.validateRender();
+                    }
                 }
-                else
-                {
-                    elementType.assign(element->getType());
-                    sceneTemplateFile.assign("constant_color_scene.xml");
-                }
 
-                // Set shader output name and type to use
-                //
-                // If the generator has already remapped the output type then indicate to
-                // not do so again during validation.
-                validator.setOslShaderOutputNameAndType(outputName, elementType, shaderGenerator.remappedShaderOutput());
-
-                // Set scene template file. For now we only have the constant color scene file
-                mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/");
-                sceneTemplatePath = sceneTemplatePath / sceneTemplateFile;
-                validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
-
-                // Validate rendering
-                {
-                    AdditiveScopedTimer(profileTimes.oslTimes.renderTime, "OSL render time");
-                    validator.validateRender();
-                }
-
-                // TODO: Call additional validation routines here when they are available
                 validated = true;
             }
             catch (mx::ExceptionShaderValidationError e)
@@ -654,6 +705,22 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
                     {
                         options.shaderInterfaces = val->asA<int>();
                     }
+                    else if (name == "compileCode")
+                    {
+                        options.compileCode = val->asA<bool>();
+                    }
+                    else if (name == "renderImages")
+                    {
+                        options.renderImages = val->asA<bool>();
+                    }
+                    else if (name == "saveImages")
+                    {
+                        options.saveImages = val->asA<bool>();
+                    }
+                    else if (name == "dumpGlslUniformsAndAttributes")
+                    {
+                        options.dumpGlslUniformsAndAttributes = val->asA<bool>();
+                    }                    
                     else if (name == "runOSLTests")
                     {
                         options.runOSLTests = val->asA<bool>();
@@ -676,6 +743,16 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
                     }
                 }
             }
+        }
+
+        if (!options.compileCode)
+        {
+            options.renderImages = false;
+            options.saveImages = false;
+        }
+        if (!options.renderImages)
+        {
+            options.saveImages = false;
         }
         return true;
     }
@@ -944,6 +1021,8 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // Dump out profiling information
     totalTime.endTimer();
     profileTimes.print(profilingLog);
+    profilingLog << "------------------" << std::endl;
+    options.print(profilingLog);
 }
 
 #endif
