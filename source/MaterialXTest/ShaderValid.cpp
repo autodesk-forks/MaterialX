@@ -15,6 +15,7 @@
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>
 #include <MaterialXGenShader/HwShader.h>
 #include <MaterialXGenShader/HwLightHandler.h>
+#include <MaterialXGenShader/DefaultColorManagementSystem.h>
 
 #ifdef MATERIALX_BUILD_GEN_GLSL
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
@@ -743,6 +744,8 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     mx::GlslValidatorPtr glslValidator = createGLSLValidator(orthographicView, "sphere.obj", glslLog);
     mx::GlslShaderGeneratorPtr glslShaderGenerator = std::static_pointer_cast<mx::GlslShaderGenerator>(mx::GlslShaderGenerator::create());
     glslShaderGenerator->registerSourceCodeSearchPath(searchPath);
+    mx::DefaultColorManagementSystemPtr glslColorManagementSystem = mx::DefaultColorManagementSystem::create(*glslShaderGenerator);
+    glslShaderGenerator->setColorManagementSystem(glslColorManagementSystem);
     glslSetupTime.endTimer();
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
@@ -761,6 +764,9 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // This will be imported in each test document below
     mx::DocumentPtr dependLib = mx::createDocument();
     loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, dependLib);
+#ifdef MATERIALX_BUILD_GEN_GLSL
+    glslColorManagementSystem->loadLibrary(dependLib);
+#endif
 
     ioTimer.endTimer();
 
@@ -852,6 +858,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             bool validDoc = doc->validate(&validationErrors);
             if (!validDoc)
             {
+                docValidLog << filename << std::endl;
                 docValidLog << validationErrors << std::endl;
             }
             validateTimer.endTimer();
@@ -890,6 +897,10 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                     }
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
+                    if (file == "color_management.mtlx")
+                    {
+                        continue;
+                    }
                     renderableSearchTimer.startTimer();
                     mx::InterfaceElementPtr impl2 = nodeDef->getImplementation(oslShaderGenerator->getTarget(), oslShaderGenerator->getLanguage());
                     renderableSearchTimer.endTimer();
