@@ -153,7 +153,6 @@ public:
         return _cachedImpls;
     }
 
-
 public:
     /// Identifiers for contexts
     enum Context

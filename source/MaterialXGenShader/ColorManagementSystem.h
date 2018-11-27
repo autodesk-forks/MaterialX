@@ -36,15 +36,6 @@ struct ColorSpaceTransform
     }
 };
 
-/// @struct @ColorSpaceTransformHash
-/// ColorSpaceTransform hash function
-struct ColorSpaceTransformHash {
-    size_t operator()(const ColorSpaceTransform &transform ) const
-    {
-        return std::hash<string>()(transform.sourceSpace + transform.targetSpace + transform.type->getName());
-    }
-};
-
 /// @class @ColorManagementSystem
 /// Abstract base class for a ColorManagementSystem.
 ///
@@ -73,6 +64,12 @@ class ColorManagementSystem
     /// Create a node to use to perform the given color space transformation.
     ShaderNodePtr createNode(const ColorSpaceTransform& transform, const string& name, ShaderGenerator& shadergen, const GenOptions& options);
 
+    /// Get a list of implementations used for shader generation
+    const std::unordered_map<string, ShaderNodeImplPtr>& getImplementationsUsed() const
+    {
+        return _cachedImpls;
+    }
+
   protected:
     template<class T>
     using CreatorFunction = shared_ptr<T>(*)();
@@ -87,7 +84,7 @@ class ColorManagementSystem
     ColorManagementSystem(const string& configFile);
 
     Factory<ShaderNodeImpl> _implFactory;
-    std::unordered_map<ColorSpaceTransform, ShaderNodeImplPtr, ColorSpaceTransformHash> _cachedImpls;
+    std::unordered_map<string, ShaderNodeImplPtr> _cachedImpls;
     vector<string> _registeredImplNames;
     string _configFile;
     DocumentPtr _document;

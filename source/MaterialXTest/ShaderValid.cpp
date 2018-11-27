@@ -1080,12 +1080,24 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
         }
 
         const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* oslImpls = nullptr;
+        const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* oslCmsImpls = nullptr;
 #ifdef MATERIALX_BUILD_GEN_GLSL
         oslImpls = &(oslShaderGenerator->getImplementationsUsed());
+        mx::ColorManagementSystemPtr oslCms = oslShaderGenerator->getColorManagementSystem();
+        if (oslCms)
+        {
+            oslCmsImpls = &(oslCms->getImplementationsUsed());
+        }
 #endif
         const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* glslImpls = nullptr;
+        const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* glslCmsImpls = nullptr;
 #ifdef MATERIALX_BUILD_GEN_OSL
         glslImpls = &(glslShaderGenerator->getImplementationsUsed());
+        mx::ColorManagementSystemPtr glslCms = glslShaderGenerator->getColorManagementSystem();
+        if (glslCms)
+        {
+            glslCmsImpls = &(glslCms->getImplementationsUsed());
+        }
 #endif
         size_t skipCount = 0;
         profilingLog << "-- Possibly missed implementations ----" << std::endl;
@@ -1126,6 +1138,14 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                 continue;
             }
             if (glslImpls && glslImpls->count(implName))
+            {
+                continue;
+            }
+            if (oslCmsImpls && oslCmsImpls->count(implName))
+            {
+                continue;
+            }
+            if (glslCmsImpls && glslCmsImpls->count(implName))
             {
                 continue;
             }
