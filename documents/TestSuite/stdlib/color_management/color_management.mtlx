@@ -1,0 +1,623 @@
+<!--
+
+Basic image unit test with one image node for each variation in input type.
+
+-->
+<?xml version="1.0"?>
+<materialx version="1.36" cms="default_cms" colorspace="lin_rec709">
+   <nodegraph name="ng1">
+        <output name="image_output" type="surfaceshader" nodename="image_standard_surface" />
+        <standard_surface name="image_standard_surface" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="image" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <image name="image" type="color3">
+          <parameter name="file" type="filename" value="documents/TestSuite/Images/marble.exr" colorspace="lin_rec709" />
+          <parameter name="uaddressmode" type="string" value="black"/>
+          <parameter name="vaddressmode" type="string" value="clamp"/>
+          <parameter name="filtertype" type="string" value="linear"/>
+          <parameter name="frameendaction" type="string" value="periodic"/>
+        </image>
+
+        <output name="image2_output" type="surfaceshader" nodename="image_standard_surface2" />
+        <standard_surface name="image_standard_surface2" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="image2" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <image name="image2" type="color3">
+          <parameter name="file" type="filename" value="documents/TestSuite/Images/marble.exr" colorspace="gamma18" />
+          <parameter name="uaddressmode" type="string" value="black"/>
+          <parameter name="vaddressmode" type="string" value="clamp"/>
+          <parameter name="filtertype" type="string" value="linear"/>
+          <parameter name="frameendaction" type="string" value="periodic"/>
+        </image>
+
+        <output name="image3_output" type="surfaceshader" nodename="image_standard_surface3" />
+        <standard_surface name="image_standard_surface3" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="image3" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <image name="image3" type="color3">
+          <parameter name="file" type="filename" value="documents/TestSuite/Images/marble.exr" colorspace="gamma22" />
+          <parameter name="uaddressmode" type="string" value="black"/>
+          <parameter name="vaddressmode" type="string" value="clamp"/>
+          <parameter name="filtertype" type="string" value="linear"/>
+          <parameter name="frameendaction" type="string" value="periodic"/>
+        </image>
+        
+        <output name="image4_output" type="surfaceshader" nodename="image_standard_surface4" />
+        <standard_surface name="image_standard_surface4" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="image4" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <image name="image4" type="color3">
+          <parameter name="file" type="filename" value="documents/TestSuite/Images/marble.exr" colorspace="gamma24" />
+          <parameter name="uaddressmode" type="string" value="black"/>
+          <parameter name="vaddressmode" type="string" value="clamp"/>
+          <parameter name="filtertype" type="string" value="linear"/>
+          <parameter name="frameendaction" type="string" value="periodic"/>
+        </image>
+        
+        <output name="image5_output" type="surfaceshader" nodename="image_standard_surface5" />
+        <standard_surface name="image_standard_surface5" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="image5" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <image name="image5" type="color3">
+          <parameter name="file" type="filename" value="documents/TestSuite/Images/marble.exr" colorspace="ACEScg" />
+          <parameter name="uaddressmode" type="string" value="black"/>
+          <parameter name="vaddressmode" type="string" value="clamp"/>
+          <parameter name="filtertype" type="string" value="linear"/>
+          <parameter name="frameendaction" type="string" value="periodic"/>
+        </image>
+
+        <output name="image6_output" type="surfaceshader" nodename="image_standard_surface6" />
+        <standard_surface name="image_standard_surface6" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="image6" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <image name="image6" type="color3">
+          <parameter name="file" type="filename" value="documents/TestSuite/Images/marble.exr" colorspace="sRGB" />
+          <parameter name="uaddressmode" type="string" value="black"/>
+          <parameter name="vaddressmode" type="string" value="clamp"/>
+          <parameter name="filtertype" type="string" value="linear"/>
+          <parameter name="frameendaction" type="string" value="periodic"/>
+        </image>
+
+        <output name="color_output1" type="surfaceshader" nodename="color_standard_surface" />
+        <standard_surface name="color_standard_surface" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="constant1" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <constant name="constant1" type="color3">
+          <parameter name="value" type="color3" value="0.5, 0.0, 0.0" colorspace="lin_rec709"/>
+        </constant>
+
+        <output name="color2_output" type="surfaceshader" nodename="color_standard_surface2" />
+        <standard_surface name="color_standard_surface2" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="constant2" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <constant name="constant2" type="color3">
+          <parameter name="value" type="color3" value="0.5, 0.0, 0.0" colorspace="gamma18" />
+        </constant>
+
+        <output name="color3_output" type="surfaceshader" nodename="color_standard_surface3" />
+        <standard_surface name="color_standard_surface3" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="constant3" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <constant name="constant3" type="color3">
+          <parameter name="value" type="color3" value="0.5, 0.0, 0.0" colorspace="gamma22" />
+        </constant>
+
+        <output name="color4_output" type="surfaceshader" nodename="color_standard_surface4" />
+        <standard_surface name="color_standard_surface4" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="constant4" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <constant name="constant4" type="color3">
+          <parameter name="value" type="color3" value="0.5, 0.0, 0.0" colorspace="gamma24" />
+        </constant>
+
+        <output name="color5_output" type="surfaceshader" nodename="color_standard_surface5" />
+        <standard_surface name="color_standard_surface5" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="constant5" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <constant name="constant5" type="color3">
+          <parameter name="value" type="color3" value="0.5, 0.0, 0.0" colorspace="ACEScg" />
+        </constant>
+
+        <output name="color6_output" type="surfaceshader" nodename="color_standard_surface6" />
+        <standard_surface name="color_standard_surface6" type="surfaceshader" xpos="6.29441" ypos="2.18094">
+          <input name="base" type="float" value="0.8" />
+          <input name="base_color" type="color3" value="1, 1, 1" nodename="constant6" />
+          <input name="diffuse_roughness" type="float" value="0"/>
+          <input name="specular" type="float" value="1" />
+          <input name="specular_color" type="color3" value="1, 1, 1" />
+          <input name="specular_roughness" type="float" value="0.1"/>
+          <input name="specular_IOR" type="float" value="1.52" />
+          <input name="specular_anisotropy" type="float" value="0" />
+          <input name="specular_rotation" type="float" value="0" />
+          <input name="metalness" type="float" value="0" />
+          <input name="transmission" type="float" value="0" />
+          <input name="transmission_color" type="color3" value="1, 1, 1" />
+          <input name="transmission_depth" type="float" value="0" />
+          <input name="transmission_scatter" type="color3" value="0, 0, 0" />
+          <input name="transmission_scatter_anisotropy" type="float" value="0" />
+          <input name="transmission_dispersion" type="float" value="0" />
+          <input name="transmission_extra_roughness" type="float" value="0" />
+          <input name="subsurface" type="float" value="0" />
+          <input name="subsurface_color" type="color3" value="1, 1, 1" />
+          <input name="subsurface_radius" type="color3" value="1, 1, 1" />
+          <input name="subsurface_scale" type="float" value="1" />
+          <input name="thin_walled" type="boolean" value="false" />
+          <input name="normal" type="vector3" value="0.0, 0.0, 0.0"/>
+          <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="coat" type="float" value="0" />
+          <input name="coat_color" type="color3" value="1, 1, 1" />
+          <input name="coat_roughness" type="float" value="0.1" />
+          <input name="coat_IOR" type="float" value="1.5" />
+          <input name="coat_normal" type="vector3" value="0.0, 0.0, 0.0" />
+          <input name="sheen" type="float" value="0" />
+          <input name="sheen_color" type="color3" value="1, 1, 1" />
+          <input name="sheen_roughness" type="float" value="0.3" />
+          <input name="thin_film_thickness" type="float" value="0" />
+          <input name="thin_film_IOR" type="float" value="1.5" />
+          <input name="emission" type="float" value="0" />
+          <input name="emission_color" type="color3" value="1, 1, 1" />
+          <input name="opacity" type="color3" value="1, 1, 1" />
+          <input name="caustics" type="boolean" value="false" />
+          <input name="internal_reflections" type="boolean" value="true" />
+          <input name="exit_to_background" type="boolean" value="false" />
+          <input name="indirect_diffuse" type="float" value="1" />
+          <input name="indirect_specular" type="float" value="1" />
+        </standard_surface>
+        <constant name="constant6" type="color3">
+          <parameter name="value" type="color3" value="0.5, 0.0, 0.0" colorspace="sRGB" />
+        </constant>
+
+   </nodegraph>
+   
+</materialx>
