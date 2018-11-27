@@ -1061,23 +1061,24 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     totalTime.endTimer();
     profileTimes.print(profilingLog);
 
-    profilingLog << "---------------------------------------" << std::endl;
-    // Get implementation count from libraries
-    std::set<mx::ImplementationPtr> libraryImpls;
-    const std::vector<mx::ElementPtr>& children = dependLib->getChildren();
-    for (auto child : children)
-    {
-        mx::ImplementationPtr impl = child->asA<mx::Implementation>();
-        if (!impl)
-        {
-            continue;
-        }
-        libraryImpls.insert(impl);
-    }
 
     if (options.checkImplCount)
     {
         profilingLog << "---------------------------------------" << std::endl;
+
+        // Get implementation count from libraries
+        std::set<mx::ImplementationPtr> libraryImpls;
+        const std::vector<mx::ElementPtr>& children = dependLib->getChildren();
+        for (auto child : children)
+        {
+            mx::ImplementationPtr impl = child->asA<mx::Implementation>();
+            if (!impl)
+            {
+                continue;
+            }
+            libraryImpls.insert(impl);
+        }
+
         const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* oslImpls = nullptr;
 #ifdef MATERIALX_BUILD_GEN_GLSL
         oslImpls = &(oslShaderGenerator->getImplementationsUsed());
@@ -1093,15 +1094,18 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             "arrayappend", "backfacing", "screen", "curveadjust", "dot_surfaceshader", "mix_surfaceshader"
             "displacementShader", "displacementshader", "volumeshader", "IM_dot_filename", "ambientocclusion", "dot_lightshader"
         };
+        const std::string OSL_STRING("osl");
+        const std::string SX_OSL_STRING("sx_osl");
         for (auto libraryImpl : libraryImpls)
         {
             const std::string& implName = libraryImpl->getName();
+
+            // Skip white-list items
             bool whileListFound = false;
             for (auto w : whiteList)
             {
                 if (implName.find(w) != std::string::npos)
                 {
-                    std::cout << "WL Skip: " << implName << std::endl;
                     skipCount++;
                     whileListFound = true;
                     break;
@@ -1128,18 +1132,20 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
 
             // See if we have a sx-osl implementation used
             // instead of the reference one
-            size_t endSize = implName.size() - 3;
-            if (endSize > 0)
+            if (libraryImpl->getLanguage() == OSL_STRING)
             {
-                std::string ending = implName.substr(endSize);
-                if (ending == "osl")
+                size_t endSize = implName.size() - 3;
+                if (endSize > 0)
                 {
-                    std::string sxImplName = implName.substr(0, endSize) + "sx_osl";
-                    if (oslImpls->count(sxImplName))
+                    std::string ending = implName.substr(endSize);
+                    if (ending == OSL_STRING)
                     {
-                        std::cout << "SX Skip: " << implName << std::endl;
-                        skipCount++;
-                        continue;
+                        std::string sxImplName = implName.substr(0, endSize) + SX_OSL_STRING;
+                        if (oslImpls->count(sxImplName))
+                        {
+                            skipCount++;
+                            continue;
+                        }
                     }
                 }
             }

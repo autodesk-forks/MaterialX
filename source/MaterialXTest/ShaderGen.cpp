@@ -780,7 +780,7 @@ TEST_CASE("ShaderX Implementation Validity", "[shadergen]")
                     mx::InterfaceElementPtr graphNodeDefImpl = graph->getImplementation();
                     if (graphNodeDefImpl)
                     {
-                        found_str += " Graph Nodedef Impl: " + graphNodeDefImpl->getName();
+                        found_str += ". Graph Nodedef Impl: " + graphNodeDefImpl->getName();
                     }
                     found_str += ".\n";
                 }
