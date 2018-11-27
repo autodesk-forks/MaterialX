@@ -14,6 +14,9 @@
         <!-- Set to false to disable execution of GLSL tests. Default is true. -->
         <parameter name="runGLSLTests" type="boolean" value="true" />
 
+        <!-- Check the count of number of implementations used. Default is true. -->
+        <parameter name="checkImplCount" type="boolean" value="true" />
+
         <!-- Run using a given set of shader interface generation options. Default value is 2 where:
             - 3 = run complete + reduced.
             - 2 = run complete only.
