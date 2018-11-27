@@ -147,6 +147,13 @@ public:
         return nullptr;
     }
 
+    /// Get a list of implementations used for shader generation
+    const std::unordered_map<string, ShaderNodeImplPtr>& getImplementationsUsed() const
+    {
+        return _cachedImpls;
+    }
+
+
 public:
     /// Identifiers for contexts
     enum Context

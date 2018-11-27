@@ -161,7 +161,7 @@ public:
     void print(std::ostream& output) const
     {
         output << "Shader Validation Test Options:" << std::endl;
-        output << "\toverrideFiles: ";
+        output << "\tOverride Files: ";
         for (auto f : overrideFiles)
         {
             output << f << " ";
@@ -169,6 +169,7 @@ public:
         output << std::endl;
         output << "\tRun GLSL Tests: " << runGLSLTests << std::endl;
         output << "\tRun OSL Tests: " << runOSLTests << std::endl;
+        output << "\tCheck Implementation Usage Count: " << checkImplCount << std::endl;
         output << "\tDump GLSL Files: " << dumpGlslFiles << std::endl;
         output << "\tShader Interfaces: " << shaderInterfaces << std::endl;
         output << "\tCompile code: " << compileCode << std::endl;
@@ -190,6 +191,9 @@ public:
 
     // Execute OSL tests
     bool runOSLTests = true;
+
+    // Check the count of number of implementations used
+    bool checkImplCount = true;
 
     // Run using a set of interfaces:
     // - 3 = run complete + reduced.
@@ -729,6 +733,10 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
                     {
                         options.runGLSLTests = val->asA<bool>();
                     }
+                    else if (name == "checkImplCount")
+                    {
+                        options.checkImplCount = val->asA<bool>();
+                    }                    
                     else if (name == "dumpGlslFiles")
                     {
                         options.dumpGlslFiles = val->asA<bool>();
@@ -783,25 +791,25 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     AdditiveScopedTimer totalTime(profileTimes.totalTime, "Global total time");
 
 #ifdef LOG_TO_FILE
-    #ifdef MATERIALX_BUILD_GEN_GLSL
+#ifdef MATERIALX_BUILD_GEN_GLSL
     std::ofstream glslLogfile("shadervalid_GLSL_log.txt");
     std::ostream& glslLog(glslLogfile);
-    #endif
-    #ifdef MATERIALX_BUILD_GEN_OSL
+#endif
+#ifdef MATERIALX_BUILD_GEN_OSL
     std::ofstream oslLogfile("shadervalid_OSL_log.txt");
     std::ostream& oslLog(oslLogfile);
-    #endif
+#endif
     std::ofstream docValidLogfile("shadervalid_validate_doc_log.txt");
     std::ostream& docValidLog(docValidLogfile);
     std::ofstream profilingLogfile("shadervalid_profiling_log.txt");
     std::ostream& profilingLog(profilingLogfile);
 #else
-    #ifdef MATERIALX_BUILD_GEN_GLSL
+#ifdef MATERIALX_BUILD_GEN_GLSL
     std::ostream& glslLog(std::cout);
-    #endif
-    #ifdef MATERIALX_BUILD_GEN_OSL
+#endif
+#ifdef MATERIALX_BUILD_GEN_OSL
     std::ostream& oslLog(std::cout);
-    #endif
+#endif
     std::ostream& docValidLog(std::cout);
     std::ostream& profilingLog(std::cout);
 #endif
@@ -816,7 +824,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     mx::StringVec dirs;
     std::string baseDirectory = path;
     mx::getSubDirectories(baseDirectory, dirs);
-    
+
     // Check for an option file
     ShaderValidTestOptions options;
     const mx::FilePath optionsPath = path / mx::FilePath("_options.mtlx");
@@ -911,6 +919,8 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     AdditiveScopedTimer validateTimer(profileTimes.validateTime, "Global validation time");
     AdditiveScopedTimer renderableSearchTimer(profileTimes.renderableSearchTime, "Global renderable search time");
 
+    std::set<std::string> usedImpls;
+
     const std::string MTLX_EXTENSION("mtlx");
     for (auto dir : dirs)
     {
@@ -994,6 +1004,20 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                         renderableSearchTimer.endTimer();
                         if (impl)
                         {
+                            if (options.checkImplCount)
+                            {
+                                // Get the nodegraph implementation name if any
+                                mx::NodeGraphPtr nodeGraph = impl->asA<mx::NodeGraph>();
+                                mx::InterfaceElementPtr nodeGraphImpl = nodeGraph ? nodeGraph->getImplementation() : nullptr;
+                                if (nodeGraphImpl)
+                                {
+                                    usedImpls.insert(nodeGraphImpl->getName());
+                                }
+                                else
+                                {
+                                    usedImpls.insert(impl->getName());
+                                }
+                            }
                             runGLSLValidation(elementName, element, *glslValidator, *glslShaderGenerator, lightHandler, doc, glslLog, options, profileTimes, outputPath);
                         }
                     }
@@ -1010,6 +1034,20 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                         renderableSearchTimer.endTimer();
                         if (impl2)
                         {
+                            if (options.checkImplCount)
+                            {
+                                // Get the nodegraph implementation name if any
+                                mx::NodeGraphPtr nodeGraph = impl2->asA<mx::NodeGraph>();
+                                mx::InterfaceElementPtr nodeGraphImpl = nodeGraph ? nodeGraph->getImplementation() : nullptr;
+                                if (nodeGraphImpl)
+                                {
+                                    usedImpls.insert(nodeGraphImpl->getName());
+                                }
+                                else
+                                {
+                                    usedImpls.insert(impl2->getName());
+                                }
+                            }
                             runOSLValidation(elementName, element, *oslValidator, *oslShaderGenerator, doc, oslLog, options, profileTimes, outputPath);
                         }
                     }
@@ -1022,8 +1060,98 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // Dump out profiling information
     totalTime.endTimer();
     profileTimes.print(profilingLog);
-    profilingLog << "------------------" << std::endl;
-    options.print(profilingLog);
+
+    profilingLog << "---------------------------------------" << std::endl;
+    // Get implementation count from libraries
+    std::set<mx::ImplementationPtr> libraryImpls;
+    const std::vector<mx::ElementPtr>& children = dependLib->getChildren();
+    for (auto child : children)
+    {
+        mx::ImplementationPtr impl = child->asA<mx::Implementation>();
+        if (!impl)
+        {
+            continue;
+        }
+        libraryImpls.insert(impl);
+    }
+
+    if (options.checkImplCount)
+    {
+        profilingLog << "---------------------------------------" << std::endl;
+        const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* oslImpls = nullptr;
+#ifdef MATERIALX_BUILD_GEN_GLSL
+        oslImpls = &(oslShaderGenerator->getImplementationsUsed());
+#endif
+        const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* glslImpls = nullptr;
+#ifdef MATERIALX_BUILD_GEN_OSL
+        glslImpls = &(glslShaderGenerator->getImplementationsUsed());
+#endif
+        size_t skipCount = 0;
+        profilingLog << "-- Possibly missed implementations ----" << std::endl;
+        std::vector<std::string> whiteList =
+        {
+            "arrayappend", "backfacing", "screen", "curveadjust", "dot_surfaceshader", "mix_surfaceshader"
+            "displacementShader", "displacementshader", "volumeshader", "IM_dot_filename", "ambientocclusion", "dot_lightshader"
+        };
+        for (auto libraryImpl : libraryImpls)
+        {
+            const std::string& implName = libraryImpl->getName();
+            bool whileListFound = false;
+            for (auto w : whiteList)
+            {
+                if (implName.find(w) != std::string::npos)
+                {
+                    std::cout << "WL Skip: " << implName << std::endl;
+                    skipCount++;
+                    whileListFound = true;
+                    break;
+                }
+            }
+            if (whileListFound)
+            {
+                continue;
+            }
+
+            if (usedImpls.count(implName))
+            {
+                continue;
+            }
+
+            if (oslImpls && oslImpls->count(implName))
+            {
+                continue;
+            }
+            if (glslImpls && glslImpls->count(implName))
+            {
+                continue;
+            }
+
+            // See if we have a sx-osl implementation used
+            // instead of the reference one
+            size_t endSize = implName.size() - 3;
+            if (endSize > 0)
+            {
+                std::string ending = implName.substr(endSize);
+                if (ending == "osl")
+                {
+                    std::string sxImplName = implName.substr(0, endSize) + "sx_osl";
+                    if (oslImpls->count(sxImplName))
+                    {
+                        std::cout << "SX Skip: " << implName << std::endl;
+                        skipCount++;
+                        continue;
+                    }
+                }
+            }
+
+            profilingLog << "\t" << implName << std::endl;
+        }
+        size_t testedCount = (oslImpls ? oslImpls->size() : 0) + (glslImpls ? glslImpls->size() : 0) + skipCount;
+        size_t libraryCount = libraryImpls.size();
+        profilingLog << "Tested: " << testedCount << " out of: " << libraryCount << " library implementations." << std::endl;
+        // TODO: Add a CHECK when all implementations have been tested using unit tests.
+        // CHECK(testedCount == libraryCount);
+    }
 }
 
 #endif

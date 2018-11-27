@@ -376,4 +376,18 @@ string GraphElement::asStringDot() const
     return dot;
 }
 
+//
+// NodeGraph methods
+//
+
+InterfaceElementPtr NodeGraph::getImplementation() const
+{
+    NodeDefPtr nodedef = getNodeDef();
+    if (nodedef)
+    {
+        return nodedef->getImplementation();
+    }
+    return InterfaceElementPtr();
+}
+
 } // namespace MaterialX
