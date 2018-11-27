@@ -64,10 +64,15 @@ class ColorManagementSystem
     /// Create a node to use to perform the given color space transformation.
     ShaderNodePtr createNode(const ColorSpaceTransform& transform, const string& name, ShaderGenerator& shadergen, const GenOptions& options);
 
-    /// Get a list of implementations used for shader generation
-    const std::unordered_map<string, ShaderNodeImplPtr>& getImplementationsUsed() const
+    /// Return a cached implementation if used during shader generation
+    const ShaderNodeImplPtr getCachedImplementation(const string& name) const
     {
-        return _cachedImpls;
+        auto it = _cachedImpls.find(name);
+        if (it != _cachedImpls.end())
+        {
+            return it->second;
+        }
+        return nullptr;
     }
 
   protected:

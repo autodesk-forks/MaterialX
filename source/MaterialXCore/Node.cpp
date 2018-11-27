@@ -383,11 +383,7 @@ string GraphElement::asStringDot() const
 InterfaceElementPtr NodeGraph::getImplementation() const
 {
     NodeDefPtr nodedef = getNodeDef();
-    if (nodedef)
-    {
-        return nodedef->getImplementation();
-    }
-    return InterfaceElementPtr();
+    return nodedef ? nodedef->getImplementation() : InterfaceElementPtr();
 }
 
 } // namespace MaterialX

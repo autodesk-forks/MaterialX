@@ -1079,25 +1079,13 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             libraryImpls.insert(impl);
         }
 
-        const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* oslImpls = nullptr;
-        const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* oslCmsImpls = nullptr;
+        mx::ColorManagementSystemPtr oslCms = nullptr;
 #ifdef MATERIALX_BUILD_GEN_GLSL
-        oslImpls = &(oslShaderGenerator->getImplementationsUsed());
-        mx::ColorManagementSystemPtr oslCms = oslShaderGenerator->getColorManagementSystem();
-        if (oslCms)
-        {
-            oslCmsImpls = &(oslCms->getImplementationsUsed());
-        }
+        oslCms = oslShaderGenerator->getColorManagementSystem();
 #endif
-        const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* glslImpls = nullptr;
-        const std::unordered_map<std::string, mx::ShaderNodeImplPtr>* glslCmsImpls = nullptr;
+        mx::ColorManagementSystemPtr glslCms = nullptr;
 #ifdef MATERIALX_BUILD_GEN_OSL
-        glslImpls = &(glslShaderGenerator->getImplementationsUsed());
-        mx::ColorManagementSystemPtr glslCms = glslShaderGenerator->getColorManagementSystem();
-        if (glslCms)
-        {
-            glslCmsImpls = &(glslCms->getImplementationsUsed());
-        }
+        glslCms = glslShaderGenerator->getColorManagementSystem();
 #endif
         size_t skipCount = 0;
         profilingLog << "-- Possibly missed implementations ----" << std::endl;
@@ -1108,6 +1096,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
         };
         const std::string OSL_STRING("osl");
         const std::string SX_OSL_STRING("sx_osl");
+        unsigned int implementationUseCount = 0;
         for (auto libraryImpl : libraryImpls)
         {
             const std::string& implName = libraryImpl->getName();
@@ -1125,28 +1114,34 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             }
             if (whileListFound)
             {
+                implementationUseCount++;
                 continue;
             }
 
             if (usedImpls.count(implName))
             {
+                implementationUseCount++;
                 continue;
             }
 
-            if (oslImpls && oslImpls->count(implName))
+            if (oslShaderGenerator && oslShaderGenerator->getCachedImplementation(implName))
             {
+                implementationUseCount++;
                 continue;
             }
-            if (glslImpls && glslImpls->count(implName))
+            if (glslShaderGenerator && glslShaderGenerator->getCachedImplementation(implName))
             {
+                implementationUseCount++;
                 continue;
             }
-            if (oslCmsImpls && oslCmsImpls->count(implName))
+            if (oslCms && oslCms->getCachedImplementation(implName))
             {
+                implementationUseCount++;
                 continue;
             }
-            if (glslCmsImpls && glslCmsImpls->count(implName))
+            if (glslCms && glslCms->getCachedImplementation(implName))
             {
+                implementationUseCount++;
                 continue;
             }
 
@@ -1161,9 +1156,9 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                     if (ending == OSL_STRING)
                     {
                         std::string sxImplName = implName.substr(0, endSize) + SX_OSL_STRING;
-                        if (oslImpls->count(sxImplName))
+                        if (oslShaderGenerator->getCachedImplementation(sxImplName))
                         {
-                            skipCount++;
+                            implementationUseCount++;
                             continue;
                         }
                     }
@@ -1172,11 +1167,10 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
 
             profilingLog << "\t" << implName << std::endl;
         }
-        size_t testedCount = (oslImpls ? oslImpls->size() : 0) + (glslImpls ? glslImpls->size() : 0) + skipCount;
         size_t libraryCount = libraryImpls.size();
-        profilingLog << "Tested: " << testedCount << " out of: " << libraryCount << " library implementations." << std::endl;
+        profilingLog << "Tested: " << implementationUseCount << " out of: " << libraryCount << " library implementations." << std::endl;
         // TODO: Add a CHECK when all implementations have been tested using unit tests.
-        // CHECK(testedCount == libraryCount);
+        // CHECK(implementationUseCount == libraryCount);
     }
 }
 
