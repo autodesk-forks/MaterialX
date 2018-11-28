@@ -17,8 +17,8 @@
         <!-- Set to false to disable execution of GLSL tests. Default is true. -->
         <parameter name="runGLSLTests" type="boolean" value="true" />
 
-        <!-- Set to false to disable execution of OGSFX tests. Default is false.
-            Note that currently only shader generation testing is performed.
+        <!-- Set to true to enable execution of OGSFX tests. Default is false.
+             Currently only shader generation testing is performed.
         -->
         <parameter name="runOGSFXTests" type="boolean" value="false" />
 
