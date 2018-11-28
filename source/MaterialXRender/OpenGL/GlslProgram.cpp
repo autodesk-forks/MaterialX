@@ -1120,6 +1120,7 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                 auto Input = _uniformList.find(input->name);
                 if (Input != _uniformList.end())
                 {
+                    Input->second->elementPath = input->elementPath;
                     if (input->value)
                     {
                         Input->second->value = input->value;
@@ -1157,6 +1158,7 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                     {
                         Input->second->typeString = input->type->getName();
                         Input->second->value = input->value;
+                        Input->second->elementPath = input->elementPath;
                     }
                     else
                     {
