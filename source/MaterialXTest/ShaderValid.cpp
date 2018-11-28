@@ -1336,7 +1336,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                     if (options.runOSLTests)
                     {
                         // Skip files using CMS for OSL assuming there is no support available
-                        if (options.cmsFiles.size() && options.cmsFiles.count(filename))
+                        if (options.cmsFiles.size() && options.cmsFiles.count(file))
                         {
                             continue;
                         }
