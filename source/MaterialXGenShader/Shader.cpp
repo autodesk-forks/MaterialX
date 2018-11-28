@@ -9,6 +9,8 @@
 #include <MaterialXCore/Node.h>
 #include <MaterialXCore/Value.h>
 
+#include <iostream>
+
 namespace MaterialX
 {
 
@@ -52,7 +54,7 @@ void Shader::initialize(ElementPtr element, ShaderGenerator& shadergen, const Ge
             if (_rootGraph->isEditable(*inputSocket))
             {
                 // Create the uniform
-                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, EMPTY_STRING, inputSocket->value, nullptr);
+                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, EMPTY_STRING, inputSocket->value, &(inputSocket->elementPath));
             }
         }
     }
@@ -264,6 +266,10 @@ void Shader::createUniform(size_t stage, const string& block, const TypeDesc* ty
         VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value, elementPath);
         blockPtr->variableMap[name] = variablePtr;
         blockPtr->variableOrder.push_back(variablePtr.get());
+    }
+    if (elementPath)
+    {
+        std::cout << "Create uniform: " << name << ". ElementPath: " << *elementPath << ". Block: " << block << std::endl;
     }
 }
 

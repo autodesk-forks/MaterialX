@@ -21,7 +21,7 @@ void MayaGlslPluginShader::createUniform(size_t stage, const string& block, cons
     // we need to override its default semantic
     if (semantic.empty() && name == VIEW_POSITON_UNIFORM_NAME)
     {
-        HwShader::createUniform(stage, block, type, name, VIEW_POSITON_SEMATIC, value);
+        HwShader::createUniform(stage, block, type, name, VIEW_POSITON_SEMATIC, value, elementPath);
         return;
     }
     ParentClass::createUniform(stage, block, type, name, semantic, value, elementPath);

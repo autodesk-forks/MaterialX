@@ -66,6 +66,9 @@ class ShaderOutput
     /// Variable name as used in generated code.
     string variable;
 
+    /// Element path. Is non-empty there is a correspondance with a MaterialX element
+    string elementPath;
+
     /// Parent node.
     ShaderNode* node;
 

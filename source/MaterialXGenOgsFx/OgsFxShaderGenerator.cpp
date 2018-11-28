@@ -83,7 +83,7 @@ void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDes
         auto it = OGSFX_DEFAULT_SEMANTICS_MAP.find(name);
         if (it != OGSFX_DEFAULT_SEMANTICS_MAP.end())
         {
-            HwShader::createUniform(stage, block, type, name, it->second, value);
+            HwShader::createUniform(stage, block, type, name, it->second, value, elementPath);
             return;
         }
     }

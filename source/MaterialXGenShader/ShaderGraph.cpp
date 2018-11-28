@@ -30,6 +30,7 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, ShaderGenerator&
         {
             ShaderGraphInputSocket* inputSocket = nullptr;
             const TypeDesc* enumerationType = nullptr;
+            string elementPath = port->getNamePath();
             ValuePtr enumValue = shadergen.remapEnumeration(port, elem, enumerationType);
             if (enumerationType)
             {
@@ -48,6 +49,7 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, ShaderGenerator&
                     inputSocket->value = port->getValue();
                 }
             }
+            inputSocket->elementPath = elementPath;
         }
     }
 }
@@ -206,6 +208,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
                 {
                     spaceInput->value = Value::createValue<string>(space);
                 }
+                //spaceInput->elementPath = geomprop.getNamePath();
             }
         }
         const string& index = geomprop.getIndex();
@@ -412,6 +415,7 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
         {
             ShaderGraphInputSocket* inputSocket = graph->getInputSocket(elem->getName());
             ShaderInput* input = newNode->getInput(elem->getName());
+            const string& elementPath = elem->getNamePath();
             if (!inputSocket || !input)
             {
                 throw ExceptionShaderGenError("Shader parameter '" + elem->getName() + "' doesn't match an existing input on graph '" + graph->getName() + "'");
@@ -429,6 +433,9 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
 
             // Connect to the graph input
             inputSocket->makeConnection(input);
+
+            // Cache element path
+            inputSocket->elementPath = elementPath;
         }
 
         // Handle node inputs
@@ -440,6 +447,10 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
             {
                 throw ExceptionShaderGenError("Shader input '" + nodeDefInput->getName() + "' doesn't match an existing input on graph '" + graph->getName() + "'");
             }
+
+            // Cache element path
+            const string& elementPath = nodeDefInput->getNamePath();
+            inputSocket->elementPath = elementPath;
 
             BindInputPtr bindInput = shaderRef->getBindInput(nodeDefInput->getName());
 
@@ -668,6 +679,7 @@ void ShaderGraph::finalize(ShaderGenerator& shadergen, const GenOptions& options
                         {
                             inputSocket = addInputSocket(interfaceName, input->type);
                             inputSocket->value = input->value;
+                            inputSocket->elementPath = input->elementPath;
                         }
                         inputSocket->makeConnection(input);
                     }
@@ -834,6 +846,7 @@ void ShaderGraph::bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex
         {
             output->breakConnection(downstream);
             downstream->value = input->value;
+            downstream->elementPath = input->elementPath;
         }
     }
 }

@@ -92,13 +92,16 @@ class GlslProgram
         MaterialX::ValuePtr value;
         /// Is this a constant
         bool isConstant;
+        /// Element path (if any)
+        string elementPath;
 
         /// Program input constructor
-        Input(int inputLocation, int inputType, int inputSize)
+        Input(int inputLocation, int inputType, int inputSize, string inputElementPath)
             : location(inputLocation)
             , gltype(inputType)
             , size(inputSize)
             , isConstant(false)
+            , elementPath(inputElementPath)
         { }
     };
     /// Program input structure shared pointer type
