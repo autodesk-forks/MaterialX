@@ -1108,6 +1108,8 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     totalTime.endTimer();
     profileTimes.print(profilingLog);
 
+    profilingLog << "---------------------------------------" << std::endl;
+    options.print(profilingLog);
 
     if (options.checkImplCount)
     {
