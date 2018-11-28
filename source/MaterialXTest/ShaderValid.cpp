@@ -41,7 +41,8 @@ namespace mx = MaterialX;
 
 #define LOG_TO_FILE
 
-extern void loadLibraries(const mx::StringVec& libraryNames, const mx::FilePath& searchPath, mx::DocumentPtr doc);
+extern void loadLibraries(const mx::StringVec& libraryNames, const mx::FilePath& searchPath, mx::DocumentPtr doc, 
+                          const std::set<std::string>* excludeFiles = nullptr);
 extern void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::HwShaderGenerator& shadergen, const mx::GenOptions& options);
 
 #ifdef MATERIALX_BUILD_GEN_GLSL
@@ -162,9 +163,15 @@ public:
     {
         output << "Shader Validation Test Options:" << std::endl;
         output << "\tOverride Files: ";
-        for (auto f : overrideFiles)
+        for (auto overrideFile : overrideFiles)
         {
-            output << f << " ";
+            output << overrideFile << " ";
+        }
+        output << std::endl;
+        output << "\tColor Management Files: ";
+        for (auto cmsFile : cmsFiles)
+        {
+            output << cmsFile << " ";
         }
         output << std::endl;
         output << "\tRun GLSL Tests: " << runGLSLTests << std::endl;
@@ -182,6 +189,9 @@ public:
 
     // Filter list of files to only run validation on.
     MaterialX::StringVec overrideFiles;
+
+    // List of comma separated file names which require color management.
+    std::set<std::string> cmsFiles;
 
     // Set to true to always dump glsl generated files to disk
     bool dumpGlslFiles = false;
@@ -686,7 +696,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& options)
 {
     options.overrideFiles.clear();
-    options.dumpGlslFiles = false;
+    options.cmsFiles.clear();
 
     MaterialX::DocumentPtr doc = MaterialX::createDocument();            
     try {
@@ -704,6 +714,14 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
                     if (name == "overrideFiles")
                     {
                         options.overrideFiles = MaterialX::splitString(p->getValueString(), ",");
+                    }
+                    if (name == "cmsFiles")
+                    {
+                        MaterialX::StringVec cmsStrings = MaterialX::splitString(p->getValueString(), ",");
+                        for (auto cmsString : cmsStrings)
+                        {
+                            options.cmsFiles.insert(cmsString);
+                        }
                     }
                     else if (name == "shaderInterfaces")
                     {
@@ -753,14 +771,24 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
             }
         }
 
+        // Disable render and save of images if not compiled code will be generated
         if (!options.compileCode)
         {
             options.renderImages = false;
             options.saveImages = false;
         }
+        // Disable saveing imsages, if no images are to be produced
         if (!options.renderImages)
         {
             options.saveImages = false;
+        }
+
+        // If implementation count check is required, then at a minimum OSL and GLSL
+        // code generation must execute to be able to check implementation usage.
+        if (options.checkImplCount)
+        {
+            options.runGLSLTests = true;
+            options.runOSLTests = true;
         }
         return true;
     }
@@ -859,8 +887,6 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
         glslValidator = createGLSLValidator(orthographicView, "sphere.obj", glslLog);
         glslShaderGenerator = std::static_pointer_cast<mx::GlslShaderGenerator>(mx::GlslShaderGenerator::create());
         glslShaderGenerator->registerSourceCodeSearchPath(searchPath);
-        glslColorManagementSystem = mx::DefaultColorManagementSystem::create(glslShaderGenerator->getLanguage());
-        glslShaderGenerator->setColorManagementSystem(glslColorManagementSystem);
         glslSetupTime.endTimer();
     }
 #endif
@@ -883,13 +909,22 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     // This will be imported in each test document below
     ioTimer.startTimer();
     mx::DocumentPtr dependLib = mx::createDocument();
-    loadLibraries({ "stdlib", "sxpbrlib" }, searchPath, dependLib);
-#ifdef MATERIALX_BUILD_GEN_GLSL
-    if (options.runGLSLTests)
+    std::set<std::string> excludeFiles;
+    if (!options.runGLSLTests)
     {
-        glslColorManagementSystem->loadLibrary(dependLib);
+        excludeFiles.insert("stdlib_sx-glsl_impl.mtlx");
     }
-#endif
+    if (!options.runOSLTests)
+    {
+        excludeFiles.insert("stdlib_osl_impl.mtlx");
+        excludeFiles.insert("stdlib_sx-osl_impl.mtlx");
+    }
+    if (options.cmsFiles.size() == 0)
+    {
+        excludeFiles.insert("cm_impl.mtlx");
+    }
+    const mx::StringVec libraries = { "stdlib", "sxpbrlib" };
+    loadLibraries(libraries, searchPath, dependLib, &excludeFiles);
     ioTimer.endTimer();
 
     mx::CopyOptions importOptions;
@@ -950,8 +985,20 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
 
             mx::DocumentPtr doc = mx::createDocument();
             readFromXmlFile(doc, filename);
-            doc->importLibrary(dependLib, &importOptions);
 
+            if (options.cmsFiles.size() && options.cmsFiles.count(filename))
+            {
+#ifdef MATERIALX_BUILD_GEN_GLSL
+                // Load CMS system on demand if there is a file requiring color transforms
+                if (options.runGLSLTests && !glslColorManagementSystem)
+                {
+                    glslColorManagementSystem = mx::DefaultColorManagementSystem::create(glslShaderGenerator->getLanguage());
+                    glslShaderGenerator->setColorManagementSystem(glslColorManagementSystem);
+                    glslColorManagementSystem->loadLibrary(dependLib);
+                }
+#endif
+            }
+            doc->importLibrary(dependLib, &importOptions);
             ioTimer.endTimer();
 
             validateTimer.startTimer();
@@ -995,7 +1042,6 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                 if (nodeDef)
                 {
                     mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
-                    //std::cout << "Validate element: " << elementName << std::endl;
 #ifdef MATERIALX_BUILD_GEN_GLSL
                     if (options.runGLSLTests)
                     {
@@ -1025,7 +1071,8 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
 #ifdef MATERIALX_BUILD_GEN_OSL
                     if (options.runOSLTests)
                     {
-                        if (file == "color_management.mtlx")
+                        // Skip files using CMS for OSL assuming there is no support available
+                        if (options.cmsFiles.size() && options.cmsFiles.count(filename))
                         {
                             continue;
                         }
@@ -1092,7 +1139,8 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
         std::vector<std::string> whiteList =
         {
             "arrayappend", "backfacing", "screen", "curveadjust", "dot_surfaceshader", "mix_surfaceshader"
-            "displacementShader", "displacementshader", "volumeshader", "IM_dot_filename", "ambientocclusion", "dot_lightshader"
+            "displacementShader", "displacementshader", "volumeshader", "IM_dot_filename", "ambientocclusion", "dot_lightshader",
+            "geomattrvalue_integer", "geomattrvalue_boolean", "geomattrvalue_string"
         };
         const std::string OSL_STRING("osl");
         const std::string SX_OSL_STRING("sx_osl");
