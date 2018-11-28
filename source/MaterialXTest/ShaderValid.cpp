@@ -915,7 +915,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
         mx::ColorManagementSystemPtr oslCms = nullptr;
 #ifdef MATERIALX_BUILD_GEN_GLSL
         if (oslShaderGenerator)
-        oslCms = oslShaderGenerator->getColorManagementSystem();
+            oslCms = oslShaderGenerator->getColorManagementSystem();
 #endif
         mx::ColorManagementSystemPtr glslCms = nullptr;
 #ifdef MATERIALX_BUILD_GEN_OSL
