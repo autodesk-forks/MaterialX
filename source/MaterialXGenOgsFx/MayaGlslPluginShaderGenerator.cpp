@@ -15,7 +15,7 @@ MayaGlslPluginShader::MayaGlslPluginShader(const string& name)
 {
 }
 
-void MayaGlslPluginShader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value)
+void MayaGlslPluginShader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value, const string* elementPath)
 {
     // If no semantic is given and this is the view position uniform
     // we need to override its default semantic
@@ -24,7 +24,7 @@ void MayaGlslPluginShader::createUniform(size_t stage, const string& block, cons
         HwShader::createUniform(stage, block, type, name, VIEW_POSITON_SEMATIC, value);
         return;
     }
-    ParentClass::createUniform(stage, block, type, name, semantic, value);
+    ParentClass::createUniform(stage, block, type, name, semantic, value, elementPath);
 }
 
 void MayaGlslPluginShader::createAppData(const TypeDesc* type, const string& name, const string& semantic)

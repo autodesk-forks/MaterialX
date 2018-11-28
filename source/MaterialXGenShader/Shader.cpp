@@ -52,7 +52,7 @@ void Shader::initialize(ElementPtr element, ShaderGenerator& shadergen, const Ge
             if (_rootGraph->isEditable(*inputSocket))
             {
                 // Create the uniform
-                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, EMPTY_STRING, inputSocket->value);
+                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, EMPTY_STRING, inputSocket->value, nullptr);
             }
         }
     }
@@ -221,12 +221,13 @@ void Shader::indent()
     }
 }
 
-void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value)
+void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value, 
+                            const string* elementPath)
 {
     Stage& s = _stages[stage];
     if (s.constants.variableMap.find(name) == s.constants.variableMap.end())
     {
-        VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value);
+        VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value, elementPath);
         s.constants.variableMap[name] = variablePtr;
         s.constants.variableOrder.push_back(variablePtr.get());
     }
@@ -248,7 +249,8 @@ void Shader::createUniformBlock(size_t stage, const string& block, const string&
     }
 }
 
-void Shader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value)
+void Shader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value,
+                           const string* elementPath)
 {
     const Stage& s = _stages[stage];
     auto it = s.uniforms.find(block);
@@ -259,7 +261,7 @@ void Shader::createUniform(size_t stage, const string& block, const TypeDesc* ty
     VariableBlockPtr  blockPtr = it->second;
     if (blockPtr->variableMap.find(name) == blockPtr->variableMap.end())
     {
-        VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value);
+        VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value, elementPath);
         blockPtr->variableMap[name] = variablePtr;
         blockPtr->variableOrder.push_back(variablePtr.get());
     }

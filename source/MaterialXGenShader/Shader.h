@@ -54,13 +54,16 @@ public:
         string name;
         string semantic;
         ValuePtr value;
+        string elementPath;
 
-        Variable(const TypeDesc* t = nullptr, const string& n = EMPTY_STRING, const string& s = EMPTY_STRING, ValuePtr v = nullptr)
+        Variable(const TypeDesc* t = nullptr, const string& n = EMPTY_STRING, const string& s = EMPTY_STRING, ValuePtr v = nullptr, const string* e = nullptr)
             : type(t)
             , name(n)
             , semantic(s)
             , value(v)
-        {}
+        {
+            elementPath = e ? *e : EMPTY_STRING;
+        }
 
         void getArraySuffix(string& result) const
         {
@@ -135,7 +138,7 @@ public:
 
     /// Create a new constant variable for a stage.
     virtual void createConstant(size_t stage, const TypeDesc* type, const string& name,
-        const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
+        const string& semantic = EMPTY_STRING, ValuePtr value = nullptr, const string* elementPath = nullptr);
 
     /// Create a new variable block for uniform inputs in a stage.
     virtual void createUniformBlock(size_t stage, const string& block, const string& instance = EMPTY_STRING);
@@ -143,7 +146,7 @@ public:
     /// Create a new variable for uniform data in the given block for a stage.
     /// The block must be previously created with createUniformBlock.
     virtual void createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name,
-        const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
+        const string& semantic = EMPTY_STRING, ValuePtr value = nullptr, const string* elementPath = nullptr);
 
     /// Create a new variable for application/geometric data (primvars).
     virtual void createAppData(const TypeDesc* type, const string& name, const string& semantic = EMPTY_STRING);

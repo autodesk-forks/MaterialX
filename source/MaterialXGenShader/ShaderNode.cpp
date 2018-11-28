@@ -210,7 +210,7 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
             ValuePtr enumValue = shadergen.remapEnumeration(elem, nodeDef, enumerationType);
             if (enumerationType)
             {
-                input = newNode->addInput(elem->getName(), enumerationType);
+                input = newNode->addInput(elem->getName(), enumerationType, nullptr);
                 if (enumValue)
                 {
                     input->value = enumValue;
@@ -219,7 +219,7 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
             else
             {
                 const TypeDesc* elemTypeDesc = TypeDesc::get(elem->getType());
-                input = newNode->addInput(elem->getName(), elemTypeDesc);
+                input = newNode->addInput(elem->getName(), elemTypeDesc, nullptr);
                 if (!elem->getValueString().empty())
                 {
                     input->value = elem->getValue();
@@ -328,6 +328,9 @@ void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, ShaderGener
             {
                 input->value = nodeInput->getValue();
             }
+
+            // Cache the path to the element
+            input->elementPath = nodeInput->getNamePath();
         }
     }
 }
@@ -337,7 +340,7 @@ ShaderNodePtr ShaderNode::createColorTransformNode(const string& name, ShaderNod
     ShaderNodePtr newNode = std::make_shared<ShaderNode>(name);
     newNode->_impl = shaderImpl;
     newNode->_classification = Classification::TEXTURE | Classification::COLOR_SPACE_TRANSFORM;
-    ShaderInput* input = newNode->addInput("in", type);
+    ShaderInput* input = newNode->addInput("in", type, nullptr);
 
     if(type == Type::COLOR3)
     {
@@ -380,7 +383,7 @@ const ShaderOutput* ShaderNode::getOutput(const string& name) const
     return it != _outputMap.end() ? it->second.get() : nullptr;
 }
 
-ShaderInput* ShaderNode::addInput(const string& name, const TypeDesc* type)
+ShaderInput* ShaderNode::addInput(const string& name, const TypeDesc* type, const string* elementPath)
 {
     if (getInput(name))
     {
@@ -389,6 +392,7 @@ ShaderInput* ShaderNode::addInput(const string& name, const TypeDesc* type)
 
     ShaderInputPtr input = std::make_shared<ShaderInput>();
     input->name = name;
+    input->elementPath = elementPath ? *elementPath : EMPTY_STRING;
     input->variable = name;
     input->type = type;
     input->node = this;

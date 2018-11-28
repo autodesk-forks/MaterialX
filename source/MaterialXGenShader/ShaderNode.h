@@ -31,6 +31,9 @@ class ShaderInput
     /// Input name.
     string name;
 
+    /// Element path. Is non-empty there is a correspondance with a MaterialX element
+    string elementPath;
+
     /// Variable name as used in generated code.
     string variable;
 
@@ -212,7 +215,7 @@ class ShaderNode
     void setValues(const Node& node, const NodeDef& nodeDef, ShaderGenerator& shadergen);
 
     /// Add inputs/outputs
-    ShaderInput* addInput(const string& name, const TypeDesc* type);
+    ShaderInput* addInput(const string& name, const TypeDesc* type, const string* elementPath);
     ShaderOutput* addOutput(const string& name, const TypeDesc* type);
 
     /// Get number of inputs/outputs
