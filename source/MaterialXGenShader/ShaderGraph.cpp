@@ -30,7 +30,6 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, ShaderGenerator&
         {
             ShaderGraphInputSocket* inputSocket = nullptr;
             const TypeDesc* enumerationType = nullptr;
-            string elementPath = port->getNamePath();
             ValuePtr enumValue = shadergen.remapEnumeration(port, elem, enumerationType);
             if (enumerationType)
             {
@@ -49,7 +48,6 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, ShaderGenerator&
                     inputSocket->value = port->getValue();
                 }
             }
-            inputSocket->elementPath = elementPath;
         }
     }
 }
@@ -264,8 +262,11 @@ void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTran
         ShaderOutput* colorTransformNodeOutput = colorTransformNode->getOutput(0);
 
         // TODO: For now copy the value of the input to the transform node. In the future we don't want to do things
-        // this way. Instead we want to set the color transform uniform to be equal to the input uniform.
-        colorTransformNode->getInput(0)->value = input->value;
+        // this way. Instead we want to set the color transform uniform to be equal to the input uniform. 
+        ShaderInput* shaderInput = colorTransformNode->getInput(0);
+        shaderInput->value = input->value;
+        // Copy over the downstream path as that is the actual controlling input.
+        shaderInput->elementPath = input->elementPath;
 
         input->makeConnection(colorTransformNodeOutput);
     }
@@ -419,7 +420,6 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
         {
             ShaderGraphInputSocket* inputSocket = graph->getInputSocket(elem->getName());
             ShaderInput* input = newNode->getInput(elem->getName());
-            const string& elementPath = elem->getNamePath();
             if (!inputSocket || !input)
             {
                 throw ExceptionShaderGenError("Shader parameter '" + elem->getName() + "' doesn't match an existing input on graph '" + graph->getName() + "'");
@@ -437,9 +437,6 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
 
             // Connect to the graph input
             inputSocket->makeConnection(input);
-
-            // Cache element path
-            inputSocket->elementPath = elementPath;
         }
 
         // Handle node inputs
@@ -451,10 +448,6 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
             {
                 throw ExceptionShaderGenError("Shader input '" + nodeDefInput->getName() + "' doesn't match an existing input on graph '" + graph->getName() + "'");
             }
-
-            // Cache element path
-            const string& elementPath = nodeDefInput->getNamePath();
-            inputSocket->elementPath = elementPath;
 
             BindInputPtr bindInput = shaderRef->getBindInput(nodeDefInput->getName());
 
@@ -684,6 +677,7 @@ void ShaderGraph::finalize(ShaderGenerator& shadergen, const GenOptions& options
                         {
                             inputSocket = addInputSocket(interfaceName, input->type);
                             inputSocket->value = input->value;
+                            // Must map element path to a socket so it get's exposed properly.
                             inputSocket->elementPath = input->elementPath;
                         }
                         inputSocket->makeConnection(input);
@@ -843,7 +837,7 @@ void ShaderGraph::bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex
     else
     {
         // No node connected upstream to re-route,
-        // so push the input's value downstream instead.
+        // so push the input's value and element path downstream instead.
         // Iterate a copy of the connection set since the
         // original set will change when breaking connections.
         ShaderInputSet downstreamConnections = output->connections;
