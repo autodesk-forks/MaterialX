@@ -48,20 +48,37 @@ public:
         DOWN
     };
 
+    struct Variable;
+    using VariablePtr = std::shared_ptr<Variable>;
+
     struct Variable
     {
         const TypeDesc* type;
         string name;
+        string elementPath;
         string semantic;
         ValuePtr value;
-        string elementPath;
 
-        Variable(const TypeDesc* t = nullptr, const string& n = EMPTY_STRING, const string& e = EMPTY_STRING, const string& s = EMPTY_STRING, ValuePtr v = nullptr)
+        static VariablePtr create(const TypeDesc* t, const string& n, const string& e, const string& s, ValuePtr v)
+        {
+            return std::make_shared<Variable>(t, n, e, s, v);
+        }
+
+        Variable()
+            : type(nullptr)
+            , name(EMPTY_STRING)
+            , elementPath(EMPTY_STRING)
+            , semantic(EMPTY_STRING)
+            , value(nullptr)
+        {
+        }
+
+        Variable(const TypeDesc* t, const string& n, const string& e, const string& s, ValuePtr v)
             : type(t)
             , name(n)
+            , elementPath(e)
             , semantic(s)
             , value(v)
-            , elementPath(e)
         {
         }
 
@@ -80,8 +97,6 @@ public:
             }
         }
     };
-
-    using VariablePtr = std::shared_ptr<Variable>;
 
     /// A block of variables for a shader stage
     struct VariableBlock

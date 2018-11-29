@@ -226,7 +226,7 @@ void Shader::createConstant(size_t stage, const TypeDesc* type, const string& na
     Stage& s = _stages[stage];
     if (s.constants.variableMap.find(name) == s.constants.variableMap.end())
     {
-        VariablePtr variablePtr = std::make_shared<Variable>(type, name, elementPath, semantic, value);
+        VariablePtr variablePtr = Variable::create(type, name, elementPath, semantic, value);
         s.constants.variableMap[name] = variablePtr;
         s.constants.variableOrder.push_back(variablePtr.get());
     }
@@ -259,7 +259,7 @@ void Shader::createUniform(size_t stage, const string& block, const TypeDesc* ty
     VariableBlockPtr  blockPtr = it->second;
     if (blockPtr->variableMap.find(name) == blockPtr->variableMap.end())
     {
-        VariablePtr variablePtr = std::make_shared<Variable>(type, name, elementPath, semantic, value);
+        VariablePtr variablePtr = Variable::create(type, name, elementPath, semantic, value);
         blockPtr->variableMap[name] = variablePtr;
         blockPtr->variableOrder.push_back(variablePtr.get());
     }
@@ -280,7 +280,7 @@ void Shader::createAppData(const TypeDesc* type, const string& name, const strin
 {
     if (_appData.variableMap.find(name) == _appData.variableMap.end())
     {
-        VariablePtr variable = std::make_shared<Variable>(type, name, semantic);
+        VariablePtr variable = Variable::create(type, name, EMPTY_STRING, semantic, nullptr);
         _appData.variableMap[name] = variable;
         _appData.variableOrder.push_back(variable.get());
     }

@@ -101,7 +101,7 @@ void HwShader::createVertexData(const TypeDesc* type, const string& name, const 
 {
     if (_vertexData.variableMap.find(name) == _vertexData.variableMap.end())
     {
-        VariablePtr variable = std::make_shared<Variable>(type, name, semantic);
+        VariablePtr variable = Variable::create(type, name, EMPTY_STRING, semantic, nullptr);
         _vertexData.variableMap[name] = variable;
         _vertexData.variableOrder.push_back(variable.get());
     }
