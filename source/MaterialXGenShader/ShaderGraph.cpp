@@ -630,7 +630,7 @@ ShaderGraphInputSocket* ShaderGraph::addInputSocket(const string& name, const Ty
 
 ShaderGraphOutputSocket* ShaderGraph::addOutputSocket(const string& name, const TypeDesc* type)
 {
-    return ShaderNode::addInput(name, type, nullptr);
+    return ShaderNode::addInput(name, type);
 }
 
 ShaderGraphEdgeIterator ShaderGraph::traverseUpstream(ShaderOutput* output)

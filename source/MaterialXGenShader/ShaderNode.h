@@ -221,7 +221,7 @@ class ShaderNode
     void setElementPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs=true);
 
     /// Add inputs/outputs
-    ShaderInput* addInput(const string& name, const TypeDesc* type, const string* elementPath);
+    ShaderInput* addInput(const string& name, const TypeDesc* type);
     ShaderOutput* addOutput(const string& name, const TypeDesc* type);
 
     /// Get number of inputs/outputs
