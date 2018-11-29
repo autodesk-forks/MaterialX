@@ -9,8 +9,6 @@
 #include <MaterialXCore/Node.h>
 #include <MaterialXCore/Value.h>
 
-#include <iostream>
-
 namespace MaterialX
 {
 
@@ -264,10 +262,6 @@ void Shader::createUniform(size_t stage, const string& block, const TypeDesc* ty
         VariablePtr variablePtr = std::make_shared<Variable>(type, name, elementPath, semantic, value);
         blockPtr->variableMap[name] = variablePtr;
         blockPtr->variableOrder.push_back(variablePtr.get());
-    }
-    if (elementPath.size())
-    {
-        std::cout << "Create uniform: " << name << ". ElementPath: " << elementPath << ". Block: " << block << std::endl;
     }
 }
 
