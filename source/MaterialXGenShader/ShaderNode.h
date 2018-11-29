@@ -217,6 +217,9 @@ class ShaderNode
     /// Set input values from the given node and nodedef.
     void setValues(const Node& node, const NodeDef& nodeDef, ShaderGenerator& shadergen);
 
+    /// Set input element paths for the given node and nodedef.
+    void setElementPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs=true);
+
     /// Add inputs/outputs
     ShaderInput* addInput(const string& name, const TypeDesc* type, const string* elementPath);
     ShaderOutput* addOutput(const string& name, const TypeDesc* type);

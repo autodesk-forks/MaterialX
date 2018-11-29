@@ -190,6 +190,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
         _nodeOrder.push_back(geomNodePtr.get());
 
         // Set node inputs if given.
+        const string& namePath = geomprop.getNamePath();
         const string& space = geomprop.getSpace();
         if (!space.empty())
         {
@@ -208,7 +209,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
                 {
                     spaceInput->value = Value::createValue<string>(space);
                 }
-                //spaceInput->elementPath = geomprop.getNamePath();
+                spaceInput->elementPath = namePath;
             }
         }
         const string& index = geomprop.getIndex();
@@ -218,6 +219,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
             if (indexInput)
             {
                 indexInput->value = Value::createValue<string>(index);
+                indexInput->elementPath = namePath;
             }
         }
         const string& attrname = geomprop.getAttrName();
@@ -227,6 +229,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
             if (attrnameInput)
             {
                 attrnameInput->value = Value::createValue<string>(attrname);
+                attrnameInput->elementPath = namePath;
             }
         }
 
@@ -377,7 +380,8 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
         graph->addInputSockets(*interface, shadergen);
 
         // Create the given output socket
-        graph->addOutputSocket(output->getName(), TypeDesc::get(output->getType()));
+        ShaderGraphOutputSocket* outputSocket = graph->addOutputSocket(output->getName(), TypeDesc::get(output->getType()));
+        outputSocket->elementPath = output->getNamePath();
 
         // Start traversal from this output
         root = output;
@@ -514,6 +518,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen, c
     const string& name = node.getName();
     ShaderNodePtr newNode = ShaderNode::create(name, *nodeDef, shadergen, options);
     newNode->setValues(node, *nodeDef, shadergen);
+    newNode->setElementPaths(node, *nodeDef);
     _nodeMap[name] = newNode;
     _nodeOrder.push_back(newNode.get());
 
