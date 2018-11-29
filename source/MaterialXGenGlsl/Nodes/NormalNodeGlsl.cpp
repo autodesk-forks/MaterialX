@@ -19,7 +19,7 @@ void NormalNodeGlsl::createVariables(const ShaderNode& node, ShaderGenerator& /*
     string elementPath = spaceInput ? spaceInput->elementPath : EMPTY_STRING;
     if (space == WORLD)
     {
-        shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldInverseTransposeMatrix", EMPTY_STRING, nullptr, &elementPath);
+        shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldInverseTransposeMatrix", elementPath);
         shader.createVertexData(Type::VECTOR3, "normalWorld");
     }
     else if (space == MODEL)

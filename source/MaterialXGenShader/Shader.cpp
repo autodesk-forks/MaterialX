@@ -54,7 +54,7 @@ void Shader::initialize(ElementPtr element, ShaderGenerator& shadergen, const Ge
             if (_rootGraph->isEditable(*inputSocket))
             {
                 // Create the uniform
-                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, EMPTY_STRING, inputSocket->value, &(inputSocket->elementPath));
+                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, inputSocket->elementPath, EMPTY_STRING, inputSocket->value);
             }
         }
     }
@@ -223,13 +223,12 @@ void Shader::indent()
     }
 }
 
-void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value, 
-                            const string* elementPath)
+void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& elementPath, const string& semantic, ValuePtr value)
 {
     Stage& s = _stages[stage];
     if (s.constants.variableMap.find(name) == s.constants.variableMap.end())
     {
-        VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value, elementPath);
+        VariablePtr variablePtr = std::make_shared<Variable>(type, name, elementPath, semantic, value);
         s.constants.variableMap[name] = variablePtr;
         s.constants.variableOrder.push_back(variablePtr.get());
     }
@@ -251,8 +250,7 @@ void Shader::createUniformBlock(size_t stage, const string& block, const string&
     }
 }
 
-void Shader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value,
-                           const string* elementPath)
+void Shader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& elementPath, const string& semantic, ValuePtr value)
 {
     const Stage& s = _stages[stage];
     auto it = s.uniforms.find(block);
@@ -263,13 +261,13 @@ void Shader::createUniform(size_t stage, const string& block, const TypeDesc* ty
     VariableBlockPtr  blockPtr = it->second;
     if (blockPtr->variableMap.find(name) == blockPtr->variableMap.end())
     {
-        VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value, elementPath);
+        VariablePtr variablePtr = std::make_shared<Variable>(type, name, elementPath, semantic, value);
         blockPtr->variableMap[name] = variablePtr;
         blockPtr->variableOrder.push_back(variablePtr.get());
     }
-    if (elementPath)
+    if (elementPath.size())
     {
-        std::cout << "Create uniform: " << name << ". ElementPath: " << *elementPath << ". Block: " << block << std::endl;
+        std::cout << "Create uniform: " << name << ". ElementPath: " << elementPath << ". Block: " << block << std::endl;
     }
 }
 

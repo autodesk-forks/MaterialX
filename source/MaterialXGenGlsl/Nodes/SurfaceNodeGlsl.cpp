@@ -37,9 +37,9 @@ void SurfaceNodeGlsl::createVariables(const ShaderNode& /*node*/, ShaderGenerato
     shader.createAppData(Type::VECTOR3, "i_normal");
     shader.createVertexData(Type::VECTOR3, "positionWorld");
     shader.createVertexData(Type::VECTOR3, "normalWorld");
-    shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldInverseTransposeMatrix");
-    shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS, Type::VECTOR3, "u_viewPosition");
-    shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS, Type::INTEGER, "u_numActiveLightSources",
+    shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldInverseTransposeMatrix", EMPTY_STRING);
+    shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS, Type::VECTOR3, "u_viewPosition", EMPTY_STRING);
+    shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS, Type::INTEGER, "u_numActiveLightSources", EMPTY_STRING,
         EMPTY_STRING, Value::createValue<int>(0));
 }
 

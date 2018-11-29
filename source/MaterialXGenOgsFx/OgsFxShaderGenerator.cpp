@@ -74,7 +74,7 @@ OgsFxShader::OgsFxShader(const string& name)
     createUniformBlock(FINAL_FX_STAGE, PUBLIC_UNIFORMS, "pubUniform");
 }
 
-void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value, const string* elementPath)
+void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& elementPath, const string& semantic, ValuePtr value)
 {
     // If no semantic is given check if we have 
     // an OgsFx semantic that should be used
@@ -83,11 +83,11 @@ void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDes
         auto it = OGSFX_DEFAULT_SEMANTICS_MAP.find(name);
         if (it != OGSFX_DEFAULT_SEMANTICS_MAP.end())
         {
-            HwShader::createUniform(stage, block, type, name, it->second, value, elementPath);
+            HwShader::createUniform(stage, block, type, name, elementPath, it->second, value);
             return;
         }
     }
-    ParentClass::createUniform(stage, block, type, name, semantic, value, elementPath);
+    ParentClass::createUniform(stage, block, type, name, elementPath, semantic, value);
 }
 
 void OgsFxShader::createAppData(const TypeDesc* type, const string& name, const string& semantic)
@@ -152,8 +152,8 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
 
     // Create required variables
     shader.createAppData(Type::VECTOR3, "i_position");
-    shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldMatrix");
-    shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_viewProjectionMatrix");
+    shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldMatrix", EMPTY_STRING);
+    shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_viewProjectionMatrix", EMPTY_STRING);
 
     shader.addComment("---------------------------------- Vertex shader ----------------------------------------\n");
     shader.addLine("GLSLShader VS", false);
