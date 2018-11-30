@@ -511,7 +511,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen, c
     const string& name = node.getName();
     ShaderNodePtr newNode = ShaderNode::create(name, *nodeDef, shadergen, options);
     newNode->setValues(node, *nodeDef, shadergen);
-    newNode->setpaths(node, *nodeDef);
+    newNode->setPaths(node, *nodeDef);
     _nodeMap[name] = newNode;
     _nodeOrder.push_back(newNode.get());
 

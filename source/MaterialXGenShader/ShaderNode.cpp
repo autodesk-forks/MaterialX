@@ -308,7 +308,7 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     return newNode;
 }
 
-void ShaderNode::setpaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs)
+void ShaderNode::setPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs)
 {
     // Set element paths for children on the node
     const vector<ValueElementPtr> nodeValues = node.getChildrenOfType<ValueElement>();
