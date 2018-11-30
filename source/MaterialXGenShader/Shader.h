@@ -55,7 +55,7 @@ public:
     {
         const TypeDesc* type;
         string name;
-        string elementPath;
+        string path;
         string semantic;
         ValuePtr value;
 
@@ -67,7 +67,7 @@ public:
         Variable()
             : type(nullptr)
             , name(EMPTY_STRING)
-            , elementPath(EMPTY_STRING)
+            , path(EMPTY_STRING)
             , semantic(EMPTY_STRING)
             , value(nullptr)
         {
@@ -76,7 +76,7 @@ public:
         Variable(const TypeDesc* t, const string& n, const string& e, const string& s, ValuePtr v)
             : type(t)
             , name(n)
-            , elementPath(e)
+            , path(e)
             , semantic(s)
             , value(v)
         {
@@ -153,7 +153,7 @@ public:
 
     /// Create a new constant variable for a stage.
     virtual void createConstant(size_t stage, const TypeDesc* type, const string& name,
-                                const string& elementPath, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
+                                const string& path = EMPTY_STRING, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
 
     /// Create a new variable block for uniform inputs in a stage.
     virtual void createUniformBlock(size_t stage, const string& block, const string& instance = EMPTY_STRING);
@@ -161,7 +161,7 @@ public:
     /// Create a new variable for uniform data in the given block for a stage.
     /// The block must be previously created with createUniformBlock.
     virtual void createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name,
-                               const string& elementPath, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
+                               const string& path = EMPTY_STRING, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
 
     /// Create a new variable for application/geometric data (primvars).
     virtual void createAppData(const TypeDesc* type, const string& name, const string& semantic = EMPTY_STRING);

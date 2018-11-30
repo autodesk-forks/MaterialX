@@ -93,15 +93,15 @@ class GlslProgram
         /// Is this a constant
         bool isConstant;
         /// Element path (if any)
-        string elementPath;
+        string path;
 
         /// Program input constructor
-        Input(int inputLocation, int inputType, int inputSize, string inputElementPath)
+        Input(int inputLocation, int inputType, int inputSize, string inputPath)
             : location(inputLocation)
             , gltype(inputType)
             , size(inputSize)
             , isConstant(false)
-            , elementPath(inputElementPath)
+            , path(inputPath)
         { }
     };
     /// Program input structure shared pointer type

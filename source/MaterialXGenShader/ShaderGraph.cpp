@@ -207,7 +207,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
                 {
                     spaceInput->value = Value::createValue<string>(space);
                 }
-                spaceInput->elementPath = namePath;
+                spaceInput->path = namePath;
             }
         }
         const string& index = geomprop.getIndex();
@@ -217,7 +217,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
             if (indexInput)
             {
                 indexInput->value = Value::createValue<string>(index);
-                indexInput->elementPath = namePath;
+                indexInput->path = namePath;
             }
         }
         const string& attrname = geomprop.getAttrName();
@@ -227,7 +227,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomProp& geompro
             if (attrnameInput)
             {
                 attrnameInput->value = Value::createValue<string>(attrname);
-                attrnameInput->elementPath = namePath;
+                attrnameInput->path = namePath;
             }
         }
 
@@ -266,7 +266,7 @@ void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTran
         ShaderInput* shaderInput = colorTransformNode->getInput(0);
         shaderInput->value = input->value;
         // Copy over the downstream path as that is the actual controlling input.
-        shaderInput->elementPath = input->elementPath;
+        shaderInput->path = input->path;
 
         input->makeConnection(colorTransformNodeOutput);
     }
@@ -382,7 +382,7 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
 
         // Create the given output socket
         ShaderGraphOutputSocket* outputSocket = graph->addOutputSocket(output->getName(), TypeDesc::get(output->getType()));
-        outputSocket->elementPath = output->getNamePath();
+        outputSocket->path = output->getNamePath();
 
         // Start traversal from this output
         root = output;
@@ -511,7 +511,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, ShaderGenerator& shadergen, c
     const string& name = node.getName();
     ShaderNodePtr newNode = ShaderNode::create(name, *nodeDef, shadergen, options);
     newNode->setValues(node, *nodeDef, shadergen);
-    newNode->setElementPaths(node, *nodeDef);
+    newNode->setpaths(node, *nodeDef);
     _nodeMap[name] = newNode;
     _nodeOrder.push_back(newNode.get());
 
@@ -678,7 +678,7 @@ void ShaderGraph::finalize(ShaderGenerator& shadergen, const GenOptions& options
                             inputSocket = addInputSocket(interfaceName, input->type);
                             inputSocket->value = input->value;
                             // Must map element path to a socket so it get's exposed properly.
-                            inputSocket->elementPath = input->elementPath;
+                            inputSocket->path = input->path;
                         }
                         inputSocket->makeConnection(input);
                     }
@@ -845,7 +845,7 @@ void ShaderGraph::bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex
         {
             output->breakConnection(downstream);
             downstream->value = input->value;
-            downstream->elementPath = input->elementPath;
+            downstream->path = input->path;
         }
     }
 }

@@ -16,10 +16,10 @@ void TangentNodeGlsl::createVariables(const ShaderNode& node, ShaderGenerator& /
 
     const ShaderInput* spaceInput = node.getInput(SPACE);
     string space = spaceInput ? spaceInput->value->getValueString() : EMPTY_STRING;
-    string elementPath = spaceInput ? spaceInput->elementPath : EMPTY_STRING;
+    string path = spaceInput ? spaceInput->path : EMPTY_STRING;
     if (space == WORLD)
     {
-        shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldInverseTransposeMatrix", elementPath);
+        shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldInverseTransposeMatrix", path);
         shader.createVertexData(Type::VECTOR3, "tangentWorld");
     }
     else if (space == MODEL)

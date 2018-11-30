@@ -308,7 +308,7 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     return newNode;
 }
 
-void ShaderNode::setElementPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs)
+void ShaderNode::setpaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs)
 {
     // Set element paths for children on the node
     const vector<ValueElementPtr> nodeValues = node.getChildrenOfType<ValueElement>();
@@ -317,7 +317,7 @@ void ShaderNode::setElementPaths(const Node& node, const NodeDef& nodeDef, bool 
         ShaderInput* input = getInput(nodeValue->getName());
         if (input)
         {
-            input->elementPath = nodeValue->getNamePath();
+            input->path = nodeValue->getNamePath();
         }
     }
 
@@ -335,18 +335,18 @@ void ShaderNode::setElementPaths(const Node& node, const NodeDef& nodeDef, bool 
     for (const ValueElementPtr& nodeInput : nodeInputs)
     {
         ShaderInput* input = getInput(nodeInput->getName());
-        if (input && input->elementPath.empty())
+        if (input && input->path.empty())
         {
-            input->elementPath = nodePath + NAME_PATH_SEPARATOR + nodeInput->getName();
+            input->path = nodePath + NAME_PATH_SEPARATOR + nodeInput->getName();
         }
     }
     const vector<ParameterPtr> nodeParameters = nodeDef.getChildrenOfType<Parameter>();
     for (const ParameterPtr& nodeParameter : nodeParameters)
     {
         ShaderInput* input = getInput(nodeParameter->getName());
-        if (input && input->elementPath.empty())
+        if (input && input->path.empty())
         {
-            input->elementPath = nodePath + NAME_PATH_SEPARATOR + nodeParameter->getName();
+            input->path = nodePath + NAME_PATH_SEPARATOR + nodeParameter->getName();
         }
     }
 }
@@ -432,7 +432,7 @@ ShaderInput* ShaderNode::addInput(const string& name, const TypeDesc* type)
 
     ShaderInputPtr input = std::make_shared<ShaderInput>();
     input->name = name;
-    input->elementPath = EMPTY_STRING;
+    input->path = EMPTY_STRING;
     input->variable = name;
     input->type = type;
     input->node = this;

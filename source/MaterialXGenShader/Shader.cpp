@@ -52,7 +52,7 @@ void Shader::initialize(ElementPtr element, ShaderGenerator& shadergen, const Ge
             if (_rootGraph->isEditable(*inputSocket))
             {
                 // Create the uniform
-                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, inputSocket->elementPath, EMPTY_STRING, inputSocket->value);
+                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, inputSocket->path, EMPTY_STRING, inputSocket->value);
             }
         }
     }
@@ -221,12 +221,12 @@ void Shader::indent()
     }
 }
 
-void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& elementPath, const string& semantic, ValuePtr value)
+void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value)
 {
     Stage& s = _stages[stage];
     if (s.constants.variableMap.find(name) == s.constants.variableMap.end())
     {
-        VariablePtr variablePtr = Variable::create(type, name, elementPath, semantic, value);
+        VariablePtr variablePtr = Variable::create(type, name, path, semantic, value);
         s.constants.variableMap[name] = variablePtr;
         s.constants.variableOrder.push_back(variablePtr.get());
     }
@@ -248,7 +248,7 @@ void Shader::createUniformBlock(size_t stage, const string& block, const string&
     }
 }
 
-void Shader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& elementPath, const string& semantic, ValuePtr value)
+void Shader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value)
 {
     const Stage& s = _stages[stage];
     auto it = s.uniforms.find(block);
@@ -259,7 +259,7 @@ void Shader::createUniform(size_t stage, const string& block, const TypeDesc* ty
     VariableBlockPtr  blockPtr = it->second;
     if (blockPtr->variableMap.find(name) == blockPtr->variableMap.end())
     {
-        VariablePtr variablePtr = Variable::create(type, name, elementPath, semantic, value);
+        VariablePtr variablePtr = Variable::create(type, name, path, semantic, value);
         blockPtr->variableMap[name] = variablePtr;
         blockPtr->variableOrder.push_back(variablePtr.get());
     }

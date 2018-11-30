@@ -14,7 +14,7 @@ void ViewDirectionNodeGlsl::createVariables(const ShaderNode& /*node*/, ShaderGe
 
     shader.createAppData(Type::VECTOR3, "i_position");
     shader.createVertexData(Type::VECTOR3, "positionWorld");
-    shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS, Type::VECTOR3, "u_viewPosition", EMPTY_STRING);
+    shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS, Type::VECTOR3, "u_viewPosition");
 }
 
 void ViewDirectionNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderGenerator& shadergen, Shader& shader_)

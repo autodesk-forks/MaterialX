@@ -1094,7 +1094,7 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                 inputPtr->value = input->value;
             }
             inputPtr->typeString = input->type->getName();
-            inputPtr->elementPath = input->elementPath;
+            inputPtr->path = input->path;
         }
 
         /// Return all blocks of uniform variables for a stage.
@@ -1120,7 +1120,7 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                 auto Input = _uniformList.find(input->name);
                 if (Input != _uniformList.end())
                 {
-                    Input->second->elementPath = input->elementPath;
+                    Input->second->path = input->path;
                     if (input->value)
                     {
                         Input->second->value = input->value;
@@ -1158,7 +1158,7 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                     {
                         Input->second->typeString = input->type->getName();
                         Input->second->value = input->value;
-                        Input->second->elementPath = input->elementPath;
+                        Input->second->path = input->path;
                     }
                     else
                     {
@@ -1367,7 +1367,7 @@ void GlslProgram::printUniforms(std::ostream& outputStream)
             << ". TypeString:" << type
             << ". Value: " << value 
             << ". Is constant: " << isConstant 
-            << ". Element Path: " << input.second->elementPath
+            << ". Element Path: " << input.second->path
             << "."
             << std::endl;
     }

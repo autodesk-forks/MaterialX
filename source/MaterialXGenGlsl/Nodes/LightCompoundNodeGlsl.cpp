@@ -67,7 +67,7 @@ void LightCompoundNodeGlsl::createVariables(const ShaderNode& /*node*/, ShaderGe
     // Create all light data uniforms
     for (const Shader::Variable& uniform : _lightUniforms)
     {
-        shader.createUniform(HwShader::PIXEL_STAGE, HwShader::LIGHT_DATA_BLOCK, uniform.type, uniform.name, EMPTY_STRING);
+        shader.createUniform(HwShader::PIXEL_STAGE, HwShader::LIGHT_DATA_BLOCK, uniform.type, uniform.name);
     }
 
     // Create uniform for number of active light sources

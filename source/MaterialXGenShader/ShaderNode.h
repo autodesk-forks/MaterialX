@@ -31,8 +31,10 @@ class ShaderInput
     /// Input name.
     string name;
 
-    /// Element path. Is non-empty there is a correspondance with a MaterialX element
-    string elementPath;
+    // Path to the origin (input/parameter element) for this shader input. 
+    // Can be used to map client side node inputs to uniforms on the generated shader, 
+    // if input values change during rendering.
+    string path;
 
     /// Variable name as used in generated code.
     string variable;
@@ -67,7 +69,7 @@ class ShaderOutput
     string variable;
 
     /// Element path. Is non-empty there is a correspondance with a MaterialX element
-    string elementPath;
+    string path;
 
     /// Parent node.
     ShaderNode* node;
@@ -218,7 +220,7 @@ class ShaderNode
     void setValues(const Node& node, const NodeDef& nodeDef, ShaderGenerator& shadergen);
 
     /// Set input element paths for the given node and nodedef.
-    void setElementPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs=true);
+    void setpaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs=true);
 
     /// Add inputs/outputs
     ShaderInput* addInput(const string& name, const TypeDesc* type);
