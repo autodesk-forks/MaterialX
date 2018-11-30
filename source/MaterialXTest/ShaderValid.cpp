@@ -1234,7 +1234,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             mx::DocumentPtr doc = mx::createDocument();
             readFromXmlFile(doc, filename);
 
-            if (options.cmsFiles.size() && options.cmsFiles.count(filename))
+            if (options.cmsFiles.size() && options.cmsFiles.count(file))
             {
 #if defined(MATERIALX_BUILD_GEN_GLSL) || defined(MATERIALX_BUILD_GEN_OGSFX)
                 // Load CMS system on demand if there is a file requiring color transforms

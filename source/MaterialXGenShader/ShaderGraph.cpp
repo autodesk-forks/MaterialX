@@ -1018,7 +1018,7 @@ void ShaderGraph::setVariableNames(ShaderGenerator& shadergen)
     }
 }
 
-void ShaderGraph::populateInputColorTransformMap(ColorManagementSystemPtr colorManagementSystem, const Node& node, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace)
+void ShaderGraph::populateInputColorTransformMap(ColorManagementSystemPtr colorManagementSystem, const Node& /*node*/, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace)
 {
     ShaderInput* shaderInput = shaderNode->getInput(input->getName());
     const string& sourceColorSpace = input->getActiveColorSpace();
@@ -1038,10 +1038,6 @@ void ShaderGraph::populateInputColorTransformMap(ColorManagementSystemPtr colorM
                         _inputColorTransformMap.emplace(shaderInput, transform);
                     }
                 }
-            }
-            else if(shaderInput->type != Type::FILENAME)
-            {
-                throw ExceptionShaderGenError("Color space attribute for: '" + node.getName() + "." + input->getName() + "' of unsupported type (must be color3 or color4).");
             }
         }
     }
