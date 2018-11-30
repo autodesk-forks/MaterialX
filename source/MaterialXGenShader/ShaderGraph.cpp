@@ -433,6 +433,8 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
                 {
                     inputSocket->value = bindParam->getValue();
                 }
+                inputSocket->path = bindParam->getNamePath();
+                input->path = inputSocket->path;
             }
 
             // Connect to the graph input
@@ -458,6 +460,8 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
                 {
                     inputSocket->value = bindInput->getValue();
                 }
+                inputSocket->path = bindInput->getNamePath();
+                input->path = inputSocket->path;
             }
 
             // If no explicit connection, connect to geometric node if geomprop is used
@@ -474,6 +478,41 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
                 {
                     inputSocket->makeConnection(input);
                 }
+            }
+        }
+
+        // Add shareRef nodedef paths
+        const vector<InputPtr> nodeInputs = nodeDef->getChildrenOfType<Input>();
+        const string& nodePath = shaderRef->getNamePath();
+        for (const ValueElementPtr& nodeInput : nodeInputs)
+        {
+            const string& inputName = nodeInput->getName();
+            const string path = nodePath + NAME_PATH_SEPARATOR + inputName;
+            ShaderInput* input = newNode->getInput(inputName);
+            if (input && input->path.empty())
+            {
+                input->path = path;
+            }
+            ShaderGraphInputSocket* inputSocket = graph->getInputSocket(inputName);
+            if (inputSocket && inputSocket->path.empty())
+            {
+                inputSocket->path = input->path;
+            }
+        }
+        const vector<ParameterPtr> nodeParameters = nodeDef->getChildrenOfType<Parameter>();
+        for (const ParameterPtr& nodeParameter : nodeParameters)
+        {
+            const string& paramName = nodeParameter->getName();
+            const string path = nodePath + NAME_PATH_SEPARATOR + paramName;
+            ShaderInput* input = newNode->getInput(paramName);
+            if (input && input->path.empty())
+            {
+                input->path = path;
+            }
+            ShaderGraphInputSocket* inputSocket = graph->getInputSocket(paramName);
+            if (inputSocket && inputSocket->path.empty())
+            {
+                inputSocket->path = input->path;
             }
         }
 
