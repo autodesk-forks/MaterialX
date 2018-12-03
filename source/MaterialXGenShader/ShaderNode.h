@@ -43,6 +43,8 @@ class ShaderInput
     /// A connection to an upstream node output, or nullptr if not connected.
     ShaderOutput* connection;
 
+    bool noRename;
+
     /// Make a connection from the given source output to this input.
     void makeConnection(ShaderOutput* src);
 
@@ -71,6 +73,8 @@ class ShaderOutput
 
     /// A set of connections to downstream node inputs, empty if not connected.
     ShaderInputSet connections;
+
+    bool noRename;
 
     /// Make a connection from this output to the given input
     void makeConnection(ShaderInput* dst);

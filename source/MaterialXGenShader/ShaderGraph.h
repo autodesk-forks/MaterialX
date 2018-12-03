@@ -119,13 +119,13 @@ class ShaderGraph : public ShaderNode
     void calculateScopes();
 
     /// For inputs and outputs in the graph set the variable names to be used
-    /// in generated code. Making sure variable names are valid and unique 
+    /// in generated code. Making sure variable names are valid and unique
     /// to avoid name conflicts during shader generation.
     void setVariableNames(ShaderGenerator& shadergen);
 
     /// Populates the input color transform map if the provided input/parameter
     /// has a color space attribute and has a type of color3 or color4.
-    void populateInputColorTransformMap(ColorManagementSystemPtr colorManagementSystem, const Node& node, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace);
+    void populateInputColorTransformMap(ColorManagementSystemPtr colorManagementSystem, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace);
 
     /// Break all connections on a node
     static void disconnect(ShaderNode* node);
@@ -133,6 +133,9 @@ class ShaderGraph : public ShaderNode
     DocumentPtr _document;
     std::unordered_map<string, ShaderNodePtr> _nodeMap;
     std::vector<ShaderNode*> _nodeOrder;
+
+    // Temporary storage for transform variable renaming
+    std::unordered_map<string, string> _renameTransformMap;
 
     // Temporary storage for inputs that require color transformations
     std::unordered_map<ShaderInput*, ColorSpaceTransform> _inputColorTransformMap;
