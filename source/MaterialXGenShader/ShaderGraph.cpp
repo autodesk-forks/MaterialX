@@ -264,7 +264,7 @@ void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTran
         ShaderInput* shaderInput = colorTransformNode->getInput(0);
         shaderInput->variable = input->node->getName() + "_" + input->name;
         shaderInput->value = input->value;
-        shaderInput->flags |= NOT_RENAMABLE_FLAG;
+        shaderInput->flags |= VARIABLE_NOT_RENAMABLE_FLAG;
         shaderInput->path = input->path;
 
         input->makeConnection(colorTransformNodeOutput);
@@ -717,10 +717,10 @@ void ShaderGraph::finalize(ShaderGenerator& shadergen, const GenOptions& options
                             // Copy value and path from the internal input to the published socket
                             inputSocket->value = input->value;
                             inputSocket->path = input->path;
-                            if (NOT_RENAMABLE_FLAG & input->flags)
+                            if (VARIABLE_NOT_RENAMABLE_FLAG & input->flags)
                             {
                                 inputSocket->variable = input->variable;
-                                inputSocket->flags |= NOT_RENAMABLE_FLAG;
+                                inputSocket->flags |= VARIABLE_NOT_RENAMABLE_FLAG;
                             }
                         }
                         inputSocket->makeConnection(input);
@@ -1036,7 +1036,7 @@ void ShaderGraph::setVariableNames(ShaderGenerator& shadergen)
     Syntax::UniqueNameMap uniqueNames;
     for (ShaderGraphInputSocket* inputSocket : getInputSockets())
     {
-        if (NOT_RENAMABLE_FLAG & inputSocket->flags)
+        if (VARIABLE_NOT_RENAMABLE_FLAG & inputSocket->flags)
         {
             inputSocket->variable = inputSocket->name;
         }
@@ -1052,7 +1052,7 @@ void ShaderGraph::setVariableNames(ShaderGenerator& shadergen)
         for (ShaderInput* input : node->getInputs())
         {
             // Node outputs use long names for better code readability
-            if (NOT_RENAMABLE_FLAG & input->flags)
+            if (VARIABLE_NOT_RENAMABLE_FLAG & input->flags)
             {
                 input->variable = input->node->getName() + "_" + input->name;
             }

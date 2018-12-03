@@ -22,7 +22,7 @@ using ShaderNodePtr = shared_ptr<class ShaderNode>;
 using ShaderInputSet = std::set<ShaderInput*>;
 
 // List of possible Flags
-static unsigned int NOT_RENAMABLE_FLAG = 1 << 0;
+static unsigned int VARIABLE_NOT_RENAMABLE_FLAG = 1 << 0;
 
 /// An input on a ShaderNode
 class ShaderInput
@@ -34,8 +34,8 @@ class ShaderInput
     /// Input name.
     string name;
 
-    // Path to the origin (input/parameter element) for this shader input. 
-    // Can be used to map client side node inputs to uniforms on the generated shader, 
+    // Path to the origin (input/parameter element) for this shader input.
+    // Can be used to map client side node inputs to uniforms on the generated shader,
     // if input values change during rendering.
     string path;
 
