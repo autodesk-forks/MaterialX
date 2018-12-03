@@ -21,6 +21,9 @@ using ShaderOutputPtr = shared_ptr<class ShaderOutput>;
 using ShaderNodePtr = shared_ptr<class ShaderNode>;
 using ShaderInputSet = std::set<ShaderInput*>;
 
+// List of possible Flags
+static unsigned int NOT_RENAMABLE_FLAG = 1 << 0;
+
 /// An input on a ShaderNode
 class ShaderInput
 {
@@ -43,7 +46,7 @@ class ShaderInput
     /// A connection to an upstream node output, or nullptr if not connected.
     ShaderOutput* connection;
 
-    bool noRename;
+    unsigned int flags;
 
     /// Make a connection from the given source output to this input.
     void makeConnection(ShaderOutput* src);
@@ -74,7 +77,7 @@ class ShaderOutput
     /// A set of connections to downstream node inputs, empty if not connected.
     ShaderInputSet connections;
 
-    bool noRename;
+    unsigned int flags;
 
     /// Make a connection from this output to the given input
     void makeConnection(ShaderInput* dst);

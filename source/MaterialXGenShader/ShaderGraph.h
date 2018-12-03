@@ -134,9 +134,6 @@ class ShaderGraph : public ShaderNode
     std::unordered_map<string, ShaderNodePtr> _nodeMap;
     std::vector<ShaderNode*> _nodeOrder;
 
-    // Temporary storage for transform variable renaming
-    std::unordered_map<string, string> _renameTransformMap;
-
     // Temporary storage for inputs that require color transformations
     std::unordered_map<ShaderInput*, ColorSpaceTransform> _inputColorTransformMap;
 

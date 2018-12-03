@@ -260,8 +260,7 @@ void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTran
         ShaderInput* shaderInput = colorTransformNode->getInput(0);
         shaderInput->variable = input->node->getName() + "_" + input->name;
         shaderInput->value = input->value;
-        shaderInput->noRename = true;
-        _renameTransformMap[shaderInput->variable + "_cm_" + shaderInput->name] = shaderInput->variable;
+        shaderInput->flags |= NOT_RENAMABLE_FLAG;
 
         input->makeConnection(colorTransformNodeOutput);
     }
@@ -670,10 +669,10 @@ void ShaderGraph::finalize(ShaderGenerator& shadergen, const GenOptions& options
                         {
                             inputSocket = addInputSocket(interfaceName, input->type);
                             inputSocket->value = input->value;
-                            if (_renameTransformMap.find(inputSocket->name) != _renameTransformMap.end())
+                            if (NOT_RENAMABLE_FLAG & input->flags)
                             {
-                                inputSocket->variable = _renameTransformMap[inputSocket->name];
-                                inputSocket->noRename = true;
+                                inputSocket->variable = input->variable;
+                                inputSocket->flags |= NOT_RENAMABLE_FLAG;
                             }
                         }
                         inputSocket->makeConnection(input);
@@ -988,7 +987,7 @@ void ShaderGraph::setVariableNames(ShaderGenerator& shadergen)
     Syntax::UniqueNameMap uniqueNames;
     for (ShaderGraphInputSocket* inputSocket : getInputSockets())
     {
-        if (!inputSocket->noRename)
+        if (NOT_RENAMABLE_FLAG & inputSocket->flags)
         {
             inputSocket->variable = inputSocket->name;
         }
@@ -1004,7 +1003,7 @@ void ShaderGraph::setVariableNames(ShaderGenerator& shadergen)
         for (ShaderInput* input : node->getInputs())
         {
             // Node outputs use long names for better code readability
-            if (!input->noRename)
+            if (NOT_RENAMABLE_FLAG & input->flags)
             {
                 input->variable = input->node->getName() + "_" + input->name;
             }
