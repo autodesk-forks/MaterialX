@@ -715,8 +715,8 @@ void ShaderGraph::finalize(ShaderGenerator& shadergen, const GenOptions& options
                         if (!inputSocket)
                         {
                             inputSocket = addInputSocket(interfaceName, input->type);
+                            // Copy value and path from the internal input to the published socket
                             inputSocket->value = input->value;
-                            // Must map element path to a socket so it get's exposed properly.
                             inputSocket->path = input->path;
                         }
                         inputSocket->makeConnection(input);
