@@ -22,7 +22,7 @@ using ShaderNodePtr = shared_ptr<class ShaderNode>;
 using ShaderInputSet = std::set<ShaderInput*>;
 
 // List of possible Flags
-static unsigned int VARIABLE_NOT_RENAMABLE_FLAG = 1 << 0;
+static const unsigned int VARIABLE_NOT_RENAMABLE_FLAG = 1 << 0;
 
 /// An input on a ShaderNode
 class ShaderInput
