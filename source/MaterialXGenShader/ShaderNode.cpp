@@ -226,6 +226,10 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
                 }
             }
 
+            // Cache any enumeration information
+            input->enumeration = elem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+            input->enumerationValues = elem->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
+
             // Determine if this input can be sampled
             if ((groupClassification == Classification::SAMPLE2D && elementCanBeSampled2D(*elem)) ||
                 (groupClassification == Classification::SAMPLE3D && elementCanBeSampled3D(*elem)))

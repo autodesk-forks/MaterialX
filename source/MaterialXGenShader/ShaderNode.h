@@ -21,8 +21,31 @@ using ShaderOutputPtr = shared_ptr<class ShaderOutput>;
 using ShaderNodePtr = shared_ptr<class ShaderNode>;
 using ShaderInputSet = std::set<ShaderInput*>;
 
+/// UI related to to a shader port
+class UIProperties
+{
+  public:
+    /// UI name
+    string uiName;
+
+    /// UI folder
+    string uiFolder;
+
+    /// Enumeration string
+    string enumeration;
+
+    /// Enumeration values
+    string enumerationValues;
+
+    /// UI minimum value
+    ValuePtr uiMin;
+
+    /// UI maximum value
+    ValuePtr uiMax;
+};
+
 /// An input or output port on a ShaderNode
-class ShaderPort
+class ShaderPort : public UIProperties
 {
   public:
     static const unsigned int VARIABLE_NOT_RENAMABLE = 1 << 0; // Variable should not be automatically named

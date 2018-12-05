@@ -48,11 +48,12 @@ public:
         DOWN
     };
 
-    struct Variable;
+    class Variable;
     using VariablePtr = std::shared_ptr<Variable>;
-
-    struct Variable
+   
+    class Variable : public UIProperties
     {
+      public:
         const TypeDesc* type;
         string name;
         string path;
@@ -153,7 +154,8 @@ public:
 
     /// Create a new constant variable for a stage.
     virtual void createConstant(size_t stage, const TypeDesc* type, const string& name,
-                                const string& path = EMPTY_STRING, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
+                                const string& path = EMPTY_STRING, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr, 
+                                UIProperties* ui = nullptr);
 
     /// Create a new variable block for uniform inputs in a stage.
     virtual void createUniformBlock(size_t stage, const string& block, const string& instance = EMPTY_STRING);
@@ -161,7 +163,8 @@ public:
     /// Create a new variable for uniform data in the given block for a stage.
     /// The block must be previously created with createUniformBlock.
     virtual void createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name,
-                               const string& path = EMPTY_STRING, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
+                               const string& path = EMPTY_STRING, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr, 
+                               UIProperties *ui = nullptr);
 
     /// Create a new variable for application/geometric data (primvars).
     virtual void createAppData(const TypeDesc* type, const string& name, const string& semantic = EMPTY_STRING);

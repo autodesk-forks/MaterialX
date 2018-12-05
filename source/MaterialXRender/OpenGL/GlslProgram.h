@@ -75,8 +75,9 @@ class GlslProgram
     /// The structure is populated by directly scanning the program so may not contain
     /// some inputs listed on any associated HwShader as those inputs may have been
     /// optimized out if they are unused.
-    struct Input
+    class Input : public MaterialX::UIProperties
     {
+      public:
         static int INVALID_OPENGL_TYPE;
 
         /// Program location. -1 means an invalid location

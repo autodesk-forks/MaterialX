@@ -1095,6 +1095,14 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
             }
             inputPtr->typeString = input->type->getName();
             inputPtr->path = input->path;
+
+            // Set UI properties
+            inputPtr->uiName = ui->uiName;
+            inputPtr->uiFolder = ui->uiFolder;
+            inputPtr->enumeration = ui->enumeration;
+            inputPtr->enumerationValues = ui->enumerationValues;
+            inputPtr->uiMin = ui->uiMin;
+            inputPtr->uiMax = ui->uiMax;
         }
 
         /// Return all blocks of uniform variables for a stage.

@@ -221,12 +221,21 @@ void Shader::indent()
     }
 }
 
-void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value)
+void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value, UIProperties* ui)
 {
     Stage& s = _stages[stage];
     if (s.constants.variableMap.find(name) == s.constants.variableMap.end())
     {
         VariablePtr variablePtr = Variable::create(type, name, path, semantic, value);
+        if (ui)
+        {
+            variablePtr->uiName = ui->uiName;
+            variablePtr->uiFolder = ui->uiFolder;
+            variablePtr->enumeration = ui->enumeration;
+            variablePtr->enumerationValues = ui->enumerationValues;
+            variablePtr->uiMin = ui->uiMin;
+            variablePtr->uiMax = ui->uiMax;
+        }
         s.constants.variableMap[name] = variablePtr;
         s.constants.variableOrder.push_back(variablePtr.get());
     }
@@ -248,7 +257,7 @@ void Shader::createUniformBlock(size_t stage, const string& block, const string&
     }
 }
 
-void Shader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value)
+void Shader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value, UIProperties* ui)
 {
     const Stage& s = _stages[stage];
     auto it = s.uniforms.find(block);
@@ -260,6 +269,15 @@ void Shader::createUniform(size_t stage, const string& block, const TypeDesc* ty
     if (blockPtr->variableMap.find(name) == blockPtr->variableMap.end())
     {
         VariablePtr variablePtr = Variable::create(type, name, path, semantic, value);
+        if (ui)
+        {
+            variablePtr->uiName = ui->uiName;
+            variablePtr->uiFolder = ui->uiFolder;
+            variablePtr->enumeration = ui->enumeration;
+            variablePtr->enumerationValues = ui->enumerationValues;
+            variablePtr->uiMin = ui->uiMin;
+            variablePtr->uiMax = ui->uiMax;
+        }
         blockPtr->variableMap[name] = variablePtr;
         blockPtr->variableOrder.push_back(variablePtr.get());
     }

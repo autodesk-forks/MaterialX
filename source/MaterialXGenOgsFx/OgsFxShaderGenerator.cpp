@@ -74,7 +74,8 @@ OgsFxShader::OgsFxShader(const string& name)
     createUniformBlock(FINAL_FX_STAGE, PUBLIC_UNIFORMS, "pubUniform");
 }
 
-void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value)
+void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& path, 
+                                const string& semantic, ValuePtr value, UIProperties *ui)
 {
     // If no semantic is given check if we have 
     // an OgsFx semantic that should be used
@@ -83,11 +84,11 @@ void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDes
         auto it = OGSFX_DEFAULT_SEMANTICS_MAP.find(name);
         if (it != OGSFX_DEFAULT_SEMANTICS_MAP.end())
         {
-            HwShader::createUniform(stage, block, type, name, path, it->second, value);
+            HwShader::createUniform(stage, block, type, name, path, it->second, value, ui);
             return;
         }
     }
-    ParentClass::createUniform(stage, block, type, name, path, semantic, value);
+    ParentClass::createUniform(stage, block, type, name, path, semantic, value, ui);
 }
 
 void OgsFxShader::createAppData(const TypeDesc* type, const string& name, const string& semantic)
