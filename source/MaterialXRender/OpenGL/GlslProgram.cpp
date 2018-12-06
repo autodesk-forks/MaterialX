@@ -1144,6 +1144,9 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                         );
                         uniformTypeMismatchFound = true;
                     }
+
+                    // Set UI properties
+                    Input->second->uiProperties = input->uiProperties;
                 }
             }
         }
