@@ -48,12 +48,11 @@ public:
         DOWN
     };
 
-    class Variable;
+    struct Variable;
     using VariablePtr = std::shared_ptr<Variable>;
    
-    class Variable
+    struct Variable
     {
-      public:
         const TypeDesc* type;
         string name;
         string path;

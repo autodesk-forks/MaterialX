@@ -75,6 +75,11 @@ void ShaderGraph::addUpstreamDependencies(const Element& root, ConstMaterialPtr 
     for (Edge edge : root.traverseGraph(material))
     {
         ElementPtr upstreamElement = edge.getUpstreamElement();
+        if (!upstreamElement)
+        {
+            continue;
+        }
+
         ElementPtr downstreamElement = edge.getDownstreamElement();
 
         // Early out if downstream element is an output that
@@ -881,7 +886,7 @@ void ShaderGraph::bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex
         for (ShaderInput* downstream : downstreamConnections)
         {
             output->breakConnection(downstream);
-            downstream->copyData(*output);
+            downstream->copyData(*input);
         }
     }
 }
