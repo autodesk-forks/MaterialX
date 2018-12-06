@@ -1364,19 +1364,32 @@ void GlslProgram::printUniforms(std::ostream& outputStream)
         int location = input.second->location;
         int size = input.second->size;
         std::string type = input.second->typeString;
-        std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
+        std::string value = input.second->value ? input.second->value->getValueString() : EMPTY_STRING;
         bool isConstant = input.second->isConstant;
         outputStream << "Program Uniform: \"" << input.first
             << "\". Location:" << location
             << ". GLtype: " << std::hex << gltype
-            << ". Size: " << std::dec << size
-            << ". TypeString:" << type
-            << ". Value: " << value 
-            << ". Is constant: " << isConstant 
-            << ". Element Path: " << input.second->path
-            << ". Enumeration: " << input.second->uiProperties.enumeration
-            << "."
-            << std::endl;
+            << ". Size: " << std::dec << size;
+        if (!type.empty())
+            outputStream << ". TypeString: \"" << type << "\"";
+        if (!value.empty())
+            outputStream << ". Value: " << value;
+        outputStream << ". Is constant: " << isConstant;
+        if (!input.second->path.empty())
+            outputStream << ". Element Path: \"" << input.second->path << "\"";
+        if (!input.second->uiProperties.enumeration.empty())
+            outputStream << ". Enumeration: \"" << input.second->uiProperties.enumeration << "\"";
+        if (!input.second->uiProperties.enumerationValues.empty())
+            outputStream << ". Enum Values: \"" << input.second->uiProperties.enumerationValues << "\"";
+        if (!input.second->uiProperties.uiName.empty())
+            outputStream << ". UI Name: \"" << input.second->uiProperties.uiName << "\"";
+        if (!input.second->uiProperties.uiFolder.empty())
+            outputStream << ". UI Folder: \"" << input.second->uiProperties.uiFolder << "\"";
+        if (input.second->uiProperties.uiMin)
+            outputStream << ". UI Min: " << input.second->uiProperties.uiMin->getValueString();
+        if (input.second->uiProperties.uiMax)
+            outputStream << ". UI Max: " << input.second->uiProperties.uiMax->getValueString();
+        outputStream << "." << std::endl;
     }
 }
 
@@ -1390,14 +1403,16 @@ void GlslProgram::printAttributes(std::ostream& outputStream)
         int location = input.second->location;
         int size = input.second->size;
         std::string type = input.second->typeString;
-        std::string value = input.second->value ? input.second->value->getValueString() : "<none>";
+        std::string value = input.second->value ? input.second->value->getValueString() : EMPTY_STRING;
         outputStream << "Program Attribute: \"" << input.first
-            << "\". Location=" << location
-            << ". Type=" << std::hex << gltype
-            << ". Size=" << std::dec << size
-            << ". TypeString=" << type
-            << ". Value=" << value << "."
-            << std::endl;
+            << "\". Location:" << location
+            << ". GLtype: " << std::hex << gltype
+            << ". Size: " << std::dec << size;
+        if (!type.empty())
+            outputStream << ". TypeString: \"" << type << "\"";
+        if (!value.empty())
+            outputStream << ". Value: " << value;
+        outputStream << "." << std::endl;
     }
 }
 
