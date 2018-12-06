@@ -1218,7 +1218,7 @@
     The current scene view direction, as defined by the shading environment.
   -->
   <nodedef name="ND_viewdirection_vector3" node="viewdirection" type="vector3" nodegroup="application" default="0.0, 0.0, 1.0">
-    <parameter name="space" type="string" value="world" name="space"/>
+    <parameter name="space" type="string" value="world" enum="model,object,world"/>
   </nodedef>
 
 
