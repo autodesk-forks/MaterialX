@@ -50,7 +50,7 @@ public:
 
     struct Variable;
     using VariablePtr = std::shared_ptr<Variable>;
-   
+
     struct Variable
     {
         const TypeDesc* type;
