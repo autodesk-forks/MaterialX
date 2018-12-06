@@ -51,7 +51,7 @@ public:
     class Variable;
     using VariablePtr = std::shared_ptr<Variable>;
    
-    class Variable : public UIProperties
+    class Variable
     {
       public:
         const TypeDesc* type;
@@ -59,6 +59,7 @@ public:
         string path;
         string semantic;
         ValuePtr value;
+        UIProperties uiProperties;
 
         static VariablePtr create(const TypeDesc* t, const string& n, const string& e, const string& s, ValuePtr v)
         {

@@ -1097,12 +1097,7 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
             inputPtr->path = input->path;
 
             // Set UI properties
-            inputPtr->uiName = ui->uiName;
-            inputPtr->uiFolder = ui->uiFolder;
-            inputPtr->enumeration = ui->enumeration;
-            inputPtr->enumerationValues = ui->enumerationValues;
-            inputPtr->uiMin = ui->uiMin;
-            inputPtr->uiMax = ui->uiMax;
+            inputPtr->uiProperties = input->uiProperties;
         }
 
         /// Return all blocks of uniform variables for a stage.
@@ -1376,6 +1371,7 @@ void GlslProgram::printUniforms(std::ostream& outputStream)
             << ". Value: " << value 
             << ". Is constant: " << isConstant 
             << ". Element Path: " << input.second->path
+            << ". Enumeration: " << input.second->uiProperties.enumeration
             << "."
             << std::endl;
     }

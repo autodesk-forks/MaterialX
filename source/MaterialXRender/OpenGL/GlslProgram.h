@@ -75,7 +75,7 @@ class GlslProgram
     /// The structure is populated by directly scanning the program so may not contain
     /// some inputs listed on any associated HwShader as those inputs may have been
     /// optimized out if they are unused.
-    class Input : public MaterialX::UIProperties
+    class Input
     {
       public:
         static int INVALID_OPENGL_TYPE;
@@ -95,6 +95,8 @@ class GlslProgram
         bool isConstant;
         /// Element path (if any)
         string path;
+        /// UI properties
+        MaterialX::UIProperties uiProperties;
 
         /// Program input constructor
         Input(int inputLocation, int inputType, int inputSize, string inputPath)

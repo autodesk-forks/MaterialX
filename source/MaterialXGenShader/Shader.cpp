@@ -52,7 +52,7 @@ void Shader::initialize(ElementPtr element, ShaderGenerator& shadergen, const Ge
             if (_rootGraph->isEditable(*inputSocket))
             {
                 // Create the uniform
-                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, inputSocket->path, EMPTY_STRING, inputSocket->value);
+                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, inputSocket->path, EMPTY_STRING, inputSocket->value, &inputSocket->uiProperties);
             }
         }
     }
@@ -229,12 +229,7 @@ void Shader::createConstant(size_t stage, const TypeDesc* type, const string& na
         VariablePtr variablePtr = Variable::create(type, name, path, semantic, value);
         if (ui)
         {
-            variablePtr->uiName = ui->uiName;
-            variablePtr->uiFolder = ui->uiFolder;
-            variablePtr->enumeration = ui->enumeration;
-            variablePtr->enumerationValues = ui->enumerationValues;
-            variablePtr->uiMin = ui->uiMin;
-            variablePtr->uiMax = ui->uiMax;
+            variablePtr->uiProperties = *ui;
         }
         s.constants.variableMap[name] = variablePtr;
         s.constants.variableOrder.push_back(variablePtr.get());
@@ -271,12 +266,7 @@ void Shader::createUniform(size_t stage, const string& block, const TypeDesc* ty
         VariablePtr variablePtr = Variable::create(type, name, path, semantic, value);
         if (ui)
         {
-            variablePtr->uiName = ui->uiName;
-            variablePtr->uiFolder = ui->uiFolder;
-            variablePtr->enumeration = ui->enumeration;
-            variablePtr->enumerationValues = ui->enumerationValues;
-            variablePtr->uiMin = ui->uiMin;
-            variablePtr->uiMax = ui->uiMax;
+            variablePtr->uiProperties = *ui;
         }
         blockPtr->variableMap[name] = variablePtr;
         blockPtr->variableOrder.push_back(variablePtr.get());

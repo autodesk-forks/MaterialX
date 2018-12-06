@@ -25,6 +25,32 @@ using ShaderInputSet = std::set<ShaderInput*>;
 class UIProperties
 {
   public:
+    UIProperties()
+        : uiName(EMPTY_STRING)
+        , uiFolder(EMPTY_STRING)
+        , enumeration(EMPTY_STRING)
+        , enumerationValues(EMPTY_STRING)
+        , uiMin(nullptr)
+        , uiMax(nullptr)
+    {
+    }
+
+    UIProperties(const UIProperties&other)
+    {
+        *this = other;
+    }
+
+    UIProperties& operator=(const UIProperties& rhs)
+    {
+        uiName = rhs.uiName;
+        uiFolder = rhs.uiFolder;
+        enumeration = rhs.enumeration;
+        enumerationValues = rhs.enumerationValues;
+        uiMin = rhs.uiMin;
+        uiMax = rhs.uiMax;
+        return *this;
+    }
+
     /// UI name
     string uiName;
 
@@ -45,10 +71,24 @@ class UIProperties
 };
 
 /// An input or output port on a ShaderNode
-class ShaderPort : public UIProperties
+class ShaderPort
 {
   public:
     static const unsigned int VARIABLE_NOT_RENAMABLE = 1 << 0; // Variable should not be automatically named
+
+    /// Copy data from another port to this port
+    void copyData(const ShaderPort& other)
+    {
+        uiProperties = other.uiProperties;
+        value = other.value;
+        path = other.path;
+
+        if (ShaderPort::VARIABLE_NOT_RENAMABLE & other.flags)
+        {
+            variable = other.variable;
+            flags |= ShaderPort::VARIABLE_NOT_RENAMABLE;
+        }
+    }
 
     /// Port type.
     const TypeDesc* type;
@@ -72,6 +112,9 @@ class ShaderPort : public UIProperties
 
     /// Property flags
     unsigned int flags;
+
+    /// UI properties
+    UIProperties uiProperties;
 };
 
 /// An input on a ShaderNode

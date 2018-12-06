@@ -227,8 +227,10 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
             }
 
             // Cache any enumeration information
-            input->enumeration = elem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-            input->enumerationValues = elem->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
+            input->uiProperties.enumeration = elem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+            input->uiProperties.enumerationValues = elem->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
+            input->uiProperties.uiName = elem->getAttribute("uiName");
+            input->uiProperties.uiFolder = elem->getAttribute("uiFolder");
 
             // Determine if this input can be sampled
             if ((groupClassification == Classification::SAMPLE2D && elementCanBeSampled2D(*elem)) ||
