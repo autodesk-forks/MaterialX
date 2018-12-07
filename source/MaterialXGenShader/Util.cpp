@@ -608,4 +608,41 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
     }
 }
 
+bool getUIProperties(const DocumentPtr doc, const string& path, UIProperties& uiProperties)
+{
+    ElementPtr child = doc->getDescendant(path);
+    ValueElementPtr elem = child ? child->asA<ValueElement>() : nullptr;
+    if (!elem)
+    {
+        return false;
+    }
+
+    uiProperties.uiName = elem->getAttribute(ValueElement::UI_NAME_ATTRIBUTE);
+    uiProperties.uiFolder = elem->getAttribute(ValueElement::UI_FOLDER_ATTRIBUTE);
+    const string& uiMinString = elem->getAttribute(ValueElement::UI_MIN_ATTRIBUTE);
+    if (elem->isA<Parameter>())
+    {
+        uiProperties.enumeration = elem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+        uiProperties.enumerationValues = elem->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
+    }
+    if (!uiMinString.empty())
+    {
+        ValuePtr value = Value::createValueFromStrings(uiMinString, elem->getType());
+        if (value)
+        {
+            uiProperties.uiMin = value;
+        }
+    }
+    const string& uiMaxString = elem->getAttribute(ValueElement::UI_MAX_ATTRIBUTE);
+    if (!uiMaxString.empty())
+    {
+        ValuePtr value = Value::createValueFromStrings(uiMaxString, elem->getType());
+        if (value)
+        {
+            uiProperties.uiMax = value;
+        }
+    }
+    return true;
+}
+
 } // namespace MaterialX

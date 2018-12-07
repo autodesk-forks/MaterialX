@@ -94,8 +94,6 @@ class GlslProgram
         bool isConstant;
         /// Element path (if any)
         string path;
-        /// UI properties
-        MaterialX::UIProperties uiProperties;
 
         /// Program input constructor
         Input(int inputLocation, int inputType, int inputSize, string inputPath)

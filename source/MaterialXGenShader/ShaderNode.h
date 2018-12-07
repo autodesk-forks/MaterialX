@@ -21,55 +21,6 @@ using ShaderOutputPtr = shared_ptr<class ShaderOutput>;
 using ShaderNodePtr = shared_ptr<class ShaderNode>;
 using ShaderInputSet = std::set<ShaderInput*>;
 
-/// UI related to to a shader port
-class UIProperties
-{
-  public:
-    UIProperties()
-        : uiName(EMPTY_STRING)
-        , uiFolder(EMPTY_STRING)
-        , enumeration(EMPTY_STRING)
-        , enumerationValues(EMPTY_STRING)
-        , uiMin(nullptr)
-        , uiMax(nullptr)
-    {
-    }
-
-    UIProperties(const UIProperties&other)
-    {
-        *this = other;
-    }
-
-    UIProperties& operator=(const UIProperties& rhs)
-    {
-        uiName = rhs.uiName;
-        uiFolder = rhs.uiFolder;
-        enumeration = rhs.enumeration;
-        enumerationValues = rhs.enumerationValues;
-        uiMin = rhs.uiMin;
-        uiMax = rhs.uiMax;
-        return *this;
-    }
-
-    /// UI name
-    string uiName;
-
-    /// UI folder
-    string uiFolder;
-
-    /// Enumeration string
-    string enumeration;
-
-    /// Enumeration values
-    string enumerationValues;
-
-    /// UI minimum value
-    ValuePtr uiMin;
-
-    /// UI maximum value
-    ValuePtr uiMax;
-};
-
 /// An input or output port on a ShaderNode
 class ShaderPort
 {
@@ -79,7 +30,6 @@ class ShaderPort
     /// Copy data from another port to this port
     void copyData(const ShaderPort& other)
     {
-        uiProperties = other.uiProperties;
         value = other.value;
         path = other.path;
 
@@ -112,9 +62,6 @@ class ShaderPort
 
     /// Property flags
     unsigned int flags;
-
-    /// UI properties
-    UIProperties uiProperties;
 };
 
 /// An input on a ShaderNode

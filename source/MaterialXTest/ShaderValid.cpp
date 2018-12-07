@@ -602,6 +602,33 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     AdditiveScopedTimer printTimer(profileTimes.glslTimes.ioTime, "GLSL io time");
                     program->printUniforms(log);
                     program->printAttributes(log);
+                    
+                    log << "Uniform UI Properties:";
+                    const MaterialX::GlslProgram::InputMap& uniforms = program->getUniformsList();
+                    for (auto uniform : uniforms)
+                    {
+                        const std::string& path = uniform.second->path;
+                        if (!path.empty())
+                        {
+                            log << "Path: " << path;
+
+                            mx::UIProperties uiProperties;
+                            mx::getUIProperties(doc, path, uiProperties);
+                           
+                            if (!uiProperties.enumeration.empty())
+                                log << ". Enumeration: \"" << uiProperties.enumeration << "\"";
+                            if (!uiProperties.enumerationValues.empty())
+                                log << ". Enum Values: \"" << uiProperties.enumerationValues << "\"";
+                            if (!uiProperties.uiName.empty())
+                                log << ". UI Name: \"" << uiProperties.uiName << "\"";
+                            if (!uiProperties.uiFolder.empty())
+                                log << ". UI Folder: \"" << uiProperties.uiFolder << "\"";
+                            if (uiProperties.uiMin)
+                                log << ". UI Min: " << uiProperties.uiMin->getValueString();
+                            if (uiProperties.uiMax)
+                                log << ". UI Max: " << uiProperties.uiMax->getValueString();
+                        }
+                    }
                 }
 
                 if (testOptions.renderImages)

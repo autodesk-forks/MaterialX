@@ -1095,9 +1095,6 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
             }
             inputPtr->typeString = input->type->getName();
             inputPtr->path = input->path;
-
-            // Set UI properties
-            inputPtr->uiProperties = input->uiProperties;
         }
 
         /// Return all blocks of uniform variables for a stage.
@@ -1144,9 +1141,6 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                         );
                         uniformTypeMismatchFound = true;
                     }
-
-                    // Set UI properties
-                    Input->second->uiProperties = input->uiProperties;
                 }
             }
         }
@@ -1377,18 +1371,6 @@ void GlslProgram::printUniforms(std::ostream& outputStream)
         outputStream << ". Is constant: " << isConstant;
         if (!input.second->path.empty())
             outputStream << ". Element Path: \"" << input.second->path << "\"";
-        if (!input.second->uiProperties.enumeration.empty())
-            outputStream << ". Enumeration: \"" << input.second->uiProperties.enumeration << "\"";
-        if (!input.second->uiProperties.enumerationValues.empty())
-            outputStream << ". Enum Values: \"" << input.second->uiProperties.enumerationValues << "\"";
-        if (!input.second->uiProperties.uiName.empty())
-            outputStream << ". UI Name: \"" << input.second->uiProperties.uiName << "\"";
-        if (!input.second->uiProperties.uiFolder.empty())
-            outputStream << ". UI Folder: \"" << input.second->uiProperties.uiFolder << "\"";
-        if (input.second->uiProperties.uiMin)
-            outputStream << ". UI Min: " << input.second->uiProperties.uiMin->getValueString();
-        if (input.second->uiProperties.uiMax)
-            outputStream << ". UI Max: " << input.second->uiProperties.uiMax->getValueString();
         outputStream << "." << std::endl;
     }
 }

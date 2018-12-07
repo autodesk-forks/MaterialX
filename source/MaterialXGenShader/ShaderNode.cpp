@@ -226,33 +226,6 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
                 }
             }
 
-            // Cache any UI information
-            input->uiProperties.uiName = elem->getAttribute(ValueElement::UI_NAME_ATTRIBUTE);
-            input->uiProperties.uiFolder = elem->getAttribute(ValueElement::UI_FOLDER_ATTRIBUTE);
-            const string& uiMinString = elem->getAttribute(ValueElement::UI_MIN_ATTRIBUTE);
-            if (elem->isA<Parameter>())
-            {
-                input->uiProperties.enumeration = elem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-                input->uiProperties.enumerationValues = elem->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
-            }
-            if (!uiMinString.empty())
-            {
-                ValuePtr value = Value::createValueFromStrings(uiMinString, elem->getType());
-                if (value)
-                {
-                    input->uiProperties.uiMin = value;
-                }
-            }
-            const string& uiMaxString = elem->getAttribute(ValueElement::UI_MAX_ATTRIBUTE);
-            if (!uiMaxString.empty())
-            {
-                ValuePtr value = Value::createValueFromStrings(uiMaxString, elem->getType());
-                if (value)
-                {
-                    input->uiProperties.uiMax = value;
-                }
-            }
-
             // Determine if this input can be sampled
             if ((groupClassification == Classification::SAMPLE2D && elementCanBeSampled2D(*elem)) ||
                 (groupClassification == Classification::SAMPLE3D && elementCanBeSampled3D(*elem)))

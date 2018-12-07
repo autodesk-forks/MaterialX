@@ -64,6 +64,30 @@ bool elementRequiresShading(const TypedElementPtr element);
 /// part of any included library. Light shaders are not considered to be renderable.
 void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>& elements);
 
+/// UI related to to a shader port
+struct UIProperties
+{
+    /// UI name
+    string uiName;
+
+    /// UI folder
+    string uiFolder;
+
+    /// Enumeration
+    string enumeration;
+
+    /// Enumeration Values
+    string enumerationValues;
+
+    /// UI minimum value
+    ValuePtr uiMin;
+
+    /// UI maximum value
+    ValuePtr uiMax;
+};
+
+bool getUIProperties(const DocumentPtr doc, const string& path, UIProperties& uiProperties);
+
 } // namespace MaterialX
 
 #endif
