@@ -600,33 +600,39 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                 if (testOptions.dumpGlslUniformsAndAttributes)
                 {
                     AdditiveScopedTimer printTimer(profileTimes.glslTimes.ioTime, "GLSL io time");
+                    log << "* Uniform:" << std::endl;
                     program->printUniforms(log);
+                    log << "* Attributes:" << std::endl;
                     program->printAttributes(log);
                     
-                    log << "Uniform UI Properties:";
+                    log << "* Uniform UI Properties:" << std::endl;
+                    const std::string& target = shaderGenerator.getTarget();
                     const MaterialX::GlslProgram::InputMap& uniforms = program->getUniformsList();
                     for (auto uniform : uniforms)
                     {
                         const std::string& path = uniform.second->path;
-                        if (!path.empty())
+                        if (path.empty())
                         {
-                            log << "Path: " << path;
+                            continue;
+                        }
 
-                            mx::UIProperties uiProperties;
-                            mx::getUIProperties(doc, path, uiProperties);
-                           
-                            if (!uiProperties.enumeration.empty())
-                                log << ". Enumeration: \"" << uiProperties.enumeration << "\"";
-                            if (!uiProperties.enumerationValues.empty())
-                                log << ". Enum Values: \"" << uiProperties.enumerationValues << "\"";
+                        mx::UIProperties uiProperties;
+                        if (getUIProperties(path, doc, target, uiProperties))
+                        {
+                            log << "Program Uniform: " << uniform.first << ". Path: " << path;
                             if (!uiProperties.uiName.empty())
                                 log << ". UI Name: \"" << uiProperties.uiName << "\"";
                             if (!uiProperties.uiFolder.empty())
                                 log << ". UI Folder: \"" << uiProperties.uiFolder << "\"";
+                            if (!uiProperties.enumeration.empty())
+                                log << ". Enumeration: \"" << uiProperties.enumeration << "\"";
+                            if (!uiProperties.enumerationValues.empty())
+                                log << ". Enum Values: \"" << uiProperties.enumerationValues << "\"";
                             if (uiProperties.uiMin)
                                 log << ". UI Min: " << uiProperties.uiMin->getValueString();
                             if (uiProperties.uiMax)
                                 log << ". UI Max: " << uiProperties.uiMax->getValueString();
+                            log << std::endl;
                         }
                     }
                 }

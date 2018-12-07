@@ -86,7 +86,11 @@ struct UIProperties
     ValuePtr uiMax;
 };
 
-bool getUIProperties(const DocumentPtr doc, const string& path, UIProperties& uiProperties);
+/// Get the UI properties for a given nodedef element
+bool getUIProperties(const ValueElementPtr nodeDefElement, UIProperties& uiProperties);
+/// Get the UI properties for a given element path. If the path is to a node, a target
+/// should be provided.
+bool getUIProperties(const string& path, DocumentPtr doc, const string& target, UIProperties& uiProperties);
 
 } // namespace MaterialX
 

@@ -608,41 +608,85 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
     }
 }
 
-bool getUIProperties(const DocumentPtr doc, const string& path, UIProperties& uiProperties)
+bool getUIProperties(const ValueElementPtr nodeDefElement, UIProperties& uiProperties)
 {
-    ElementPtr child = doc->getDescendant(path);
-    ValueElementPtr elem = child ? child->asA<ValueElement>() : nullptr;
-    if (!elem)
+    if (!nodeDefElement)
     {
         return false;
     }
 
-    uiProperties.uiName = elem->getAttribute(ValueElement::UI_NAME_ATTRIBUTE);
-    uiProperties.uiFolder = elem->getAttribute(ValueElement::UI_FOLDER_ATTRIBUTE);
-    const string& uiMinString = elem->getAttribute(ValueElement::UI_MIN_ATTRIBUTE);
-    if (elem->isA<Parameter>())
+    uiProperties.uiName = nodeDefElement->getAttribute(ValueElement::UI_NAME_ATTRIBUTE);
+    uiProperties.uiFolder = nodeDefElement->getAttribute(ValueElement::UI_FOLDER_ATTRIBUTE);
+    const string& uiMinString = nodeDefElement->getAttribute(ValueElement::UI_MIN_ATTRIBUTE);
+    if (nodeDefElement->isA<Parameter>())
     {
-        uiProperties.enumeration = elem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-        uiProperties.enumerationValues = elem->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
+        uiProperties.enumeration = nodeDefElement->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+        uiProperties.enumerationValues = nodeDefElement->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
     }
     if (!uiMinString.empty())
     {
-        ValuePtr value = Value::createValueFromStrings(uiMinString, elem->getType());
+        ValuePtr value = Value::createValueFromStrings(uiMinString, nodeDefElement->getType());
         if (value)
         {
             uiProperties.uiMin = value;
         }
     }
-    const string& uiMaxString = elem->getAttribute(ValueElement::UI_MAX_ATTRIBUTE);
+    const string& uiMaxString = nodeDefElement->getAttribute(ValueElement::UI_MAX_ATTRIBUTE);
     if (!uiMaxString.empty())
     {
-        ValuePtr value = Value::createValueFromStrings(uiMaxString, elem->getType());
+        ValuePtr value = Value::createValueFromStrings(uiMaxString, nodeDefElement->getType());
         if (value)
         {
             uiProperties.uiMax = value;
         }
     }
     return true;
+}
+
+bool getUIProperties(const string& path, DocumentPtr doc, const string& target, UIProperties& uiProperties)
+{
+    if (path.empty())
+    {
+        return false;
+    }
+    ElementPtr pathElement = doc->getDescendant(path);
+    if (!pathElement)
+    {
+        return false;
+    }
+    ElementPtr parent = pathElement->getParent();
+    if (!parent)
+    {
+        return false;
+    }
+
+    NodeDefPtr nodeDef = nullptr;
+    ShaderRefPtr shaderRef = parent->asA<ShaderRef>();
+    if (shaderRef)
+    {
+        nodeDef = shaderRef->getNodeDef();
+    }
+    else
+    {
+        NodePtr node = parent->asA<Node>();
+        if (node)
+        {
+            nodeDef = node->getNodeDef(target);
+        }
+    }
+    if (!nodeDef)
+    {
+        return false;
+    }
+
+    const std::string& valueElementName = pathElement->getName();
+    ValueElementPtr valueElement = nodeDef->getChildOfType<ValueElement>(valueElementName);
+    if (!valueElement)
+    {
+        return false;
+    }
+
+    return getUIProperties(valueElement, uiProperties);
 }
 
 } // namespace MaterialX
