@@ -608,58 +608,25 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
     }
 }
 
-bool getUIProperties(const ValueElementPtr nodeDefElement, UIProperties& uiProperties)
+ValueElementPtr findNodeDefChild(const string& path, DocumentPtr doc, const string& target)
 {
-    if (!nodeDefElement)
+    if (path.empty() || !doc)
     {
-        return false;
-    }
-
-    uiProperties.uiName = nodeDefElement->getAttribute(ValueElement::UI_NAME_ATTRIBUTE);
-    uiProperties.uiFolder = nodeDefElement->getAttribute(ValueElement::UI_FOLDER_ATTRIBUTE);
-    const string& uiMinString = nodeDefElement->getAttribute(ValueElement::UI_MIN_ATTRIBUTE);
-    if (nodeDefElement->isA<Parameter>())
-    {
-        uiProperties.enumeration = nodeDefElement->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-        uiProperties.enumerationValues = nodeDefElement->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
-    }
-    if (!uiMinString.empty())
-    {
-        ValuePtr value = Value::createValueFromStrings(uiMinString, nodeDefElement->getType());
-        if (value)
-        {
-            uiProperties.uiMin = value;
-        }
-    }
-    const string& uiMaxString = nodeDefElement->getAttribute(ValueElement::UI_MAX_ATTRIBUTE);
-    if (!uiMaxString.empty())
-    {
-        ValuePtr value = Value::createValueFromStrings(uiMaxString, nodeDefElement->getType());
-        if (value)
-        {
-            uiProperties.uiMax = value;
-        }
-    }
-    return true;
-}
-
-bool getUIProperties(const string& path, DocumentPtr doc, const string& target, UIProperties& uiProperties)
-{
-    if (path.empty())
-    {
-        return false;
+        return nullptr;
     }
     ElementPtr pathElement = doc->getDescendant(path);
-    if (!pathElement)
+    if (!pathElement || pathElement == doc)
     {
-        return false;
+        return nullptr;
     }
     ElementPtr parent = pathElement->getParent();
-    if (!parent)
+    if (!parent || parent == doc)
     {
-        return false;
+        return nullptr;
     }
 
+    // Note that we must cast to a specific type derived instance as getNodeDef() is not
+    // a virtual method which is overridden in derived classes.
     NodeDefPtr nodeDef = nullptr;
     ShaderRefPtr shaderRef = parent->asA<ShaderRef>();
     if (shaderRef)
@@ -676,17 +643,112 @@ bool getUIProperties(const string& path, DocumentPtr doc, const string& target, 
     }
     if (!nodeDef)
     {
-        return false;
+        return nullptr;
     }
 
+    // Use the path element name to look up in the equivalent element
+    // in the nodedef as only the nodedef elements contain the information.
     const std::string& valueElementName = pathElement->getName();
     ValueElementPtr valueElement = nodeDef->getChildOfType<ValueElement>(valueElementName);
-    if (!valueElement)
+
+    return valueElement;
+}
+
+unsigned int getUIProperties(const ValueElementPtr nodeDefElement, UIProperties& uiProperties)
+{
+    if (!nodeDefElement)
     {
-        return false;
+        return 0;
     }
 
-    return getUIProperties(valueElement, uiProperties);
+    unsigned int propertyCount = 0;
+    uiProperties.uiName = nodeDefElement->getAttribute(ValueElement::UI_NAME_ATTRIBUTE);
+    if (!uiProperties.uiName.empty())
+        propertyCount++;
+
+    uiProperties.uiFolder = nodeDefElement->getAttribute(ValueElement::UI_FOLDER_ATTRIBUTE);
+    if (!uiProperties.uiFolder.empty())
+        propertyCount++;
+
+    if (nodeDefElement->isA<Parameter>())
+    {
+        string enumString = nodeDefElement->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+        if (!enumString.empty())
+        {
+            uiProperties.enumeration = splitString(enumString, ",");
+            if (uiProperties.enumeration.size())
+                propertyCount++;
+        }
+
+        const string& enumerationValues = nodeDefElement->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
+        if (!enumerationValues.empty())
+        {
+            const string& elemType = nodeDefElement->getType();
+            const TypeDesc* typeDesc = TypeDesc::get(elemType);
+            if (typeDesc->isScalar() || typeDesc->isFloat2() || typeDesc->isFloat3() || 
+                typeDesc->isFloat4())
+            {
+                StringVec stringValues = splitString(enumerationValues, ",");
+                string valueString;
+                size_t elementCount = typeDesc->getSize();
+                elementCount--;
+                size_t count = 0;
+                for (size_t i = 0; i < stringValues.size(); i++)
+                {
+                    if (count == elementCount)
+                    { 
+                        valueString += stringValues[i];
+                        uiProperties.enumerationValues.push_back(Value::createValueFromStrings(valueString, elemType));
+                        valueString.clear();
+                        count = 0;
+                    }
+                    else
+                    {
+                        valueString += stringValues[i] + ",";
+                        count++;
+                    }
+                }
+            }
+            else
+            {
+                uiProperties.enumerationValues.push_back(Value::createValue(enumerationValues));
+            }
+            propertyCount++;
+        }
+    }
+
+    const string& uiMinString = nodeDefElement->getAttribute(ValueElement::UI_MIN_ATTRIBUTE);
+    if (!uiMinString.empty())
+    {
+        ValuePtr value = Value::createValueFromStrings(uiMinString, nodeDefElement->getType());
+        if (value)
+        {
+            uiProperties.uiMin = value;
+            propertyCount++;
+        }
+    }
+
+    const string& uiMaxString = nodeDefElement->getAttribute(ValueElement::UI_MAX_ATTRIBUTE);
+    if (!uiMaxString.empty())
+    {
+        ValuePtr value = Value::createValueFromStrings(uiMaxString, nodeDefElement->getType());
+        if (value)
+        {
+            uiProperties.uiMax = value;
+            propertyCount++;
+        }
+    }
+    return propertyCount;
+}
+
+unsigned int getUIProperties(const string& path, DocumentPtr doc, const string& target, UIProperties& uiProperties)
+{
+    ValueElementPtr valueElement = findNodeDefChild(path, doc, target);
+    if (valueElement)
+    {
+        return getUIProperties(valueElement, uiProperties);
+    }
+    return 0;
 }
 
 } // namespace MaterialX

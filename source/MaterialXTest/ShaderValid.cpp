@@ -617,7 +617,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                         }
 
                         mx::UIProperties uiProperties;
-                        if (getUIProperties(path, doc, target, uiProperties))
+                        if (getUIProperties(path, doc, target, uiProperties) > 0)
                         {
                             log << "Program Uniform: " << uniform.first << ". Path: " << path;
                             if (!uiProperties.uiName.empty())
@@ -625,9 +625,19 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                             if (!uiProperties.uiFolder.empty())
                                 log << ". UI Folder: \"" << uiProperties.uiFolder << "\"";
                             if (!uiProperties.enumeration.empty())
-                                log << ". Enumeration: \"" << uiProperties.enumeration << "\"";
+                            {
+                                log << ". Enumeration: {";
+                                for (size_t i=0; i<uiProperties.enumeration.size(); i++)
+                                    log << uiProperties.enumeration[i] << " ";
+                                log << "}";
+                            }
                             if (!uiProperties.enumerationValues.empty())
-                                log << ". Enum Values: \"" << uiProperties.enumerationValues << "\"";
+                            {
+                                log << ". Enum Values: {";
+                                for (size_t i = 0; i < uiProperties.enumerationValues.size(); i++)
+                                    log << uiProperties.enumerationValues[i]->getValueString() << "; ";
+                                log << "}";
+                            }
                             if (uiProperties.uiMin)
                                 log << ". UI Min: " << uiProperties.uiMin->getValueString();
                             if (uiProperties.uiMax)
