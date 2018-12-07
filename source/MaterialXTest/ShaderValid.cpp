@@ -1256,10 +1256,10 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
 #ifdef MATERIALX_BUILD_GEN_OSL
                 if ((options.runOSLTests) && !oslColorManagementSystem)
                 {
-                  oslColorManagementSystem = mx::DefaultColorManagementSystem::create(oslShaderGenerator->getLanguage());
-                  if (oslShaderGenerator)
-                      oslShaderGenerator->setColorManagementSystem(oslColorManagementSystem);
-                  oslColorManagementSystem->loadLibrary(dependLib);
+                    oslColorManagementSystem = mx::DefaultColorManagementSystem::create(oslShaderGenerator->getLanguage());
+                    if (oslShaderGenerator)
+                        oslShaderGenerator->setColorManagementSystem(oslColorManagementSystem);
+                    oslColorManagementSystem->loadLibrary(dependLib);
                 }
 #endif
             }
