@@ -605,7 +605,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     program->printUniforms(log);
                     log << "* Attributes:" << std::endl;
                     program->printAttributes(log);
-                    
+
                     log << "* Uniform UI Properties:" << std::endl;
                     const std::string& target = shaderGenerator.getTarget();
                     const MaterialX::GlslProgram::InputMap& uniforms = program->getUniformsList();
@@ -1216,8 +1216,8 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     const mx::StringVec libraries = { "stdlib", "sxpbrlib" };
     loadLibraries(libraries, searchPath, dependLib, &excludeFiles);
     mx::FilePath lightDir = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/Lights");
-    loadLibrary(lightDir / mx::FilePath("lightcompound.mtlx"), dependLib);
-    loadLibrary(lightDir / mx::FilePath("lightcompound_ng.mtlx"), dependLib);
+    loadLibrary(lightDir / mx::FilePath("lightcompoundtest.mtlx"), dependLib);
+    loadLibrary(lightDir / mx::FilePath("lightcompoundtest_ng.mtlx"), dependLib);
     loadLibrary(lightDir / mx::FilePath("light_rig.mtlx"), dependLib);
     ioTimer.endTimer();
 

@@ -3,8 +3,8 @@
   <!--
     Node: <lightcompound>
   -->
-  <nodedef name="ND_lightcompound" node="lightcompound" type="lightshader" nodegroup="test"
-           doc="A light shader node of 'lightcompound' type.">
+  <nodedef name="ND_lightcompoundtest" node="lightcompoundtest" type="lightshader" nodegroup="test"
+           doc="A light shader node of 'lightcompoundtest' type.">
     <input name="position" type="vector3" doc="Light source position."/>
     <input name="direction" type="vector3" doc="Light source direction."/>
     <input name="color" type="color3" doc="Light color."/>
