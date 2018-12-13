@@ -135,18 +135,22 @@ void createLights(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler)
             mx::LightSourcePtr light;
             if (node->getCategory() == DIRECTIONAL_LIGHT)
             {
+                lightHandler.addLightShader(LightType::DIRECTIONAL, node->getNodeDef());
                 light = lightHandler.createLightSource(DIRECTIONAL);
             }
             else if (node->getCategory() == POINT_LIGHT)
             {
+                lightHandler.addLightShader(LightType::POINT, node->getNodeDef());
                 light = lightHandler.createLightSource(POINT);
             }
             else if (node->getCategory() == SPOT_LIGHT)
             {
+                lightHandler.addLightShader(LightType::SPOT, node->getNodeDef());
                 light = lightHandler.createLightSource(SPOT);
             }
             else if (node->getCategory() == LIGHT_COMPOUND)
             {
+                lightHandler.addLightShader(LIGHT_COMPOUND_ID, node->getNodeDef());
                 light = lightHandler.createLightSource(LIGHT_COMPOUND_ID);
             }
             if (light)
@@ -162,24 +166,6 @@ void createLights(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler)
 
 void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::HwShaderGenerator& shadergen, const mx::GenOptions& options)
 {
-    // Create a custom light shader by a graph compound
-    mx::NodeDefPtr dirLightNodeDef = doc->getNodeDef("ND_directionallight");
-    mx::NodeDefPtr pointLightNodeDef = doc->getNodeDef("ND_pointlight");
-    mx::NodeDefPtr spotLightNodeDef = doc->getNodeDef("ND_spotlight");
-    mx::NodeDefPtr lightCompoundNodeDef = doc->getNodeDef("ND_lightcompoundtest");
-    REQUIRE(dirLightNodeDef != nullptr);
-    REQUIRE(pointLightNodeDef != nullptr);
-    REQUIRE(spotLightNodeDef != nullptr);
-    REQUIRE(lightCompoundNodeDef != nullptr);
-
-    // Add the common light shaders
-    lightHandler.addLightShader(LightType::DIRECTIONAL, dirLightNodeDef);
-    lightHandler.addLightShader(LightType::POINT, pointLightNodeDef);
-    lightHandler.addLightShader(LightType::SPOT, spotLightNodeDef);
-
-    // Add our custom light compound shader
-    lightHandler.addLightShader(LIGHT_COMPOUND_ID, lightCompoundNodeDef);
-
     // Create the light rig
     createLights(doc, lightHandler);
 
