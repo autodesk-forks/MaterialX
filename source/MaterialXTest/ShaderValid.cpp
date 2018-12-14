@@ -185,6 +185,7 @@ public:
         output << "\tCheck Implementation Usage Count: " << checkImplCount << std::endl;
         output << "\tDump Generated Code: " << dumpGeneratedCode << std::endl;
         output << "\tShader Interfaces: " << shaderInterfaces << std::endl;
+        output << "\tValidate Element To Render: " << validateElementToRender << std::endl;
         output << "\tCompile code: " << compileCode << std::endl;
         output << "\tRender Images: " << renderImages << std::endl;
         output << "\tSave Images: " << saveImages << std::endl;
@@ -219,6 +220,9 @@ public:
     // - 2 = run complete only (default)
     // - 1 = run reduced only.
     int shaderInterfaces = 2;
+
+    // Validate element before attempting to generate code. Default is false.
+    bool validateElementToRender = false;
 
     // Perform source code compilation validation test
     bool compileCode = true;
@@ -351,6 +355,7 @@ void getGenerationOptions(const ShaderValidTestOptions& testOptions, std::vector
     {
         mx::GenOptions reducedOption;
         reducedOption.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
+        reducedOption.validate = testOptions.validateElementToRender;
         optionsList.push_back(reducedOption);
     }
     // Alway fallback to complete if no options specified.
@@ -358,6 +363,7 @@ void getGenerationOptions(const ShaderValidTestOptions& testOptions, std::vector
     {
         mx::GenOptions completeOption;
         completeOption.shaderInterfaceType = mx::SHADER_INTERFACE_COMPLETE;
+        completeOption.validate = testOptions.validateElementToRender;
         optionsList.push_back(completeOption);
     }
 }
@@ -861,6 +867,10 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
                     else if (name == "shaderInterfaces")
                     {
                         options.shaderInterfaces = val->asA<int>();
+                    }
+                    else if (name == "validateElementToRender")
+                    {
+                        options.validateElementToRender = val->asA<bool>();
                     }
                     else if (name == "compileCode")
                     {
