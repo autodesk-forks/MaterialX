@@ -25,6 +25,9 @@
   <!-- <mixbsdf> -->
   <implementation name="IM_mixbsdf_sx_glsl" nodedef="ND_mixbsdf" file="sxpbrlib/sx-glsl/sx_mixbsdf.glsl" function="sx_mixbsdf" language="sx-glsl"/>
 
+  <!-- <addbsdf> -->
+  <implementation name="IM_addbsdf_sx_glsl" nodedef="ND_addbsdf" file="sxpbrlib/sx-glsl/sx_addbsdf.glsl" function="sx_addbsdf" language="sx-glsl"/>
+
   <!-- <scalebsdf> -->
   <implementation name="IM_scalebsdf_sx_glsl" nodedef="ND_scalebsdf" file="sxpbrlib/sx-glsl/sx_scalebsdf.glsl" function="sx_scalebsdf" language="sx-glsl"/>
 
@@ -60,14 +63,14 @@
   <implementation name="IM_backfacing_integer_sx_glsl" nodedef="ND_backfacing_integer" file="sxpbrlib/sx-glsl/sx_backfacing_integer.inline" language="sx-glsl"/>
   <implementation name="IM_backfacing_float_sx_glsl" nodedef="ND_backfacing_float" file="sxpbrlib/sx-glsl/sx_backfacing_float.inline" language="sx-glsl"/>
 
-  <!-- <roughness> -->
-  <implementation name="IM_roughness_sx_glsl" nodedef="ND_roughness" file="sxpbrlib/sx-glsl/sx_roughness.glsl" function="sx_roughness" language="sx-glsl"/>
+  <!-- <roughness_anisotropy> -->
+  <implementation name="IM_roughness_anisotropy_sx_glsl" nodedef="ND_roughness_anisotropy" file="sxpbrlib/sx-glsl/sx_roughness_anisotropy.glsl" function="sx_roughness_anisotropy" language="sx-glsl"/>
 
-  <!-- <reflectivity> -->
-  <implementation name="IM_reflectivity_sx_glsl" nodedef="ND_reflectivity" file="sxpbrlib/sx-glsl/sx_reflectivity.glsl" function="sx_reflectivity" language="sx-glsl"/>
+   <!-- <roughness_dual> -->
+  <implementation name="IM_roughness_dual_sx_glsl" nodedef="ND_roughness_dual" file="sxpbrlib/sx-glsl/sx_roughness_dual.glsl" function="sx_roughness_dual" language="sx-glsl"/>
 
-  <!-- <edgetint> -->
-  <implementation name="IM_edgetint_sx_glsl" nodedef="ND_edgetint" file="sxpbrlib/sx-glsl/sx_edgetint.glsl" function="sx_edgetint" language="sx-glsl"/>
+  <!-- <complex_ior> -->
+  <implementation name="IM_complex_ior_sx_glsl" nodedef="ND_complex_ior" file="sxpbrlib/sx-glsl/sx_complex_ior.glsl" function="sx_complex_ior" language="sx-glsl"/>
 
   <!-- <normalmap> -->
   <implementation name="IM_normalmap_sx_glsl" nodedef="ND_normalmap" file="sxpbrlib/sx-glsl/sx_normalmap.glsl" function="sx_normalmap" language="sx-glsl"/>

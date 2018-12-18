@@ -18,9 +18,9 @@ ShaderNodeImplPtr SourceCodeNode::create()
     return std::make_shared<SourceCodeNode>();
 }
 
-void SourceCodeNode::initialize(ElementPtr implementation, ShaderGenerator& shadergen)
+void SourceCodeNode::initialize(ElementPtr implementation, ShaderGenerator& shadergen, const GenOptions& options)
 {
-    ShaderNodeImpl::initialize(implementation, shadergen);
+    ShaderNodeImpl::initialize(implementation, shadergen, options);
 
     ImplementationPtr impl = implementation->asA<Implementation>();
     if (!impl)
@@ -116,12 +116,14 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
     else
     {
         // An ordinary source code function call
-        // TODO: Support multiple outputs
 
-        // Declare the output variable
-        shader.beginLine();
-        shadergen.emitOutput(context, node.getOutput(), true, true, shader);
-        shader.endLine();
+        // Declare the output variables
+        for (size_t i = 0; i < node.numOutputs(); ++i)
+        {
+            shader.beginLine();
+            shadergen.emitOutput(context, node.getOutput(i), true, true, shader);
+            shader.endLine();
+        }
 
         shader.beginLine();
 
@@ -146,9 +148,13 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
             delim = ", ";
         }
 
-        // Emit function output
-        shader.addStr(delim);
-        shadergen.emitOutput(context, node.getOutput(), false, false, shader);
+        // Emit function outputs
+        for (size_t i = 0; i < node.numOutputs(); ++i)
+        {
+            shader.addStr(delim);
+            shadergen.emitOutput(context, node.getOutput(i), false, false, shader);
+            delim = ", ";
+        }
 
         // End function call
         shader.addStr(")");

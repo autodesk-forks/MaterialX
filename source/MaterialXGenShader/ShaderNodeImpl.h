@@ -12,6 +12,10 @@ class ShaderGenerator;
 class ShaderNode;
 class ShaderGraph;
 class GenContext;
+class GenOptions;
+class ShaderInput;
+class ShaderOutput;
+using ShaderGraphInputSocket = ShaderOutput;
 
 using ShaderNodeImplPtr = shared_ptr<class ShaderNodeImpl>;
 
@@ -36,7 +40,7 @@ class ShaderNodeImpl
     virtual const string& getTarget() const { return EMPTY_STRING; }
 
     /// Initialize with the given implementation element.
-    virtual void initialize(ElementPtr implementation, ShaderGenerator& shadergen);
+    virtual void initialize(ElementPtr implementation, ShaderGenerator& shadergen, const GenOptions& options);
 
     /// Create shader variables needed for the implementation of this node (e.g. uniforms, inputs and outputs).
     /// Used if the node requires input data from the application.
@@ -51,6 +55,24 @@ class ShaderNodeImpl
     /// Return a pointer to the graph if this implementation is using a graph,
     /// or returns nullptr otherwise.
     virtual ShaderGraph* getGraph() const;
+
+    /// Returns true if an input is editable by users.
+    /// Editable inputs are allowed to be published as shader uniforms
+    /// and hence must be presentable in a user interface.
+    /// By default all inputs are considered to be editable.
+    virtual bool isEditable(const ShaderInput& /*input*/) const
+    {
+        return true;
+    }
+
+    /// Returns true if a graph input is accessible by users.
+    /// Accessible inputs are allowed to be published as shader uniforms
+    /// and hence must be presentable in a user interface.
+    /// By default all graph inputs are considered to be acessible.
+    virtual bool isEditable(const ShaderGraphInputSocket& /*input*/) const
+    {
+        return true;
+    }
 
   protected:
     /// Protected constructor

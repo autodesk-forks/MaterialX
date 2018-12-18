@@ -39,7 +39,7 @@ void SurfaceNodeGlsl::createVariables(const ShaderNode& /*node*/, ShaderGenerato
     shader.createVertexData(Type::VECTOR3, "normalWorld");
     shader.createUniform(HwShader::VERTEX_STAGE, HwShader::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldInverseTransposeMatrix");
     shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS, Type::VECTOR3, "u_viewPosition");
-    shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS, Type::INTEGER, "u_numActiveLightSources",
+    shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS, Type::INTEGER, "u_numActiveLightSources", EMPTY_STRING,
         EMPTY_STRING, Value::createValue<int>(0));
 }
 
@@ -89,8 +89,8 @@ void SurfaceNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& conte
     }
 
     const ShaderOutput* output = node.getOutput();
-    const string outColor = output->name + ".color";
-    const string outTransparency = output->name + ".transparency";
+    const string outColor = output->variable + ".color";
+    const string outTransparency = output->variable + ".transparency";
 
     //
     // Handle direct lighting

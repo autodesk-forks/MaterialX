@@ -74,7 +74,7 @@ OgsFxShader::OgsFxShader(const string& name)
     createUniformBlock(FINAL_FX_STAGE, PUBLIC_UNIFORMS, "pubUniform");
 }
 
-void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value)
+void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value)
 {
     // If no semantic is given check if we have 
     // an OgsFx semantic that should be used
@@ -83,11 +83,11 @@ void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDes
         auto it = OGSFX_DEFAULT_SEMANTICS_MAP.find(name);
         if (it != OGSFX_DEFAULT_SEMANTICS_MAP.end())
         {
-            HwShader::createUniform(stage, block, type, name, it->second, value);
+            HwShader::createUniform(stage, block, type, name, path, it->second, value);
             return;
         }
     }
-    ParentClass::createUniform(stage, block, type, name, semantic, value);
+    ParentClass::createUniform(stage, block, type, name, path, semantic, value);
 }
 
 void OgsFxShader::createAppData(const TypeDesc* type, const string& name, const string& semantic)
@@ -264,7 +264,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     shader.addInclude("sxpbrlib/sx-glsl/lib/sx_defines.glsl", *this);
     shader.addLine("#define MAX_LIGHT_SOURCES " + std::to_string(getMaxActiveLightSources()), false);
     shader.newLine();
-    emitTypeDefs(shader);
+    emitTypeDefinitions(shader);
 
     shader.addComment("Data from application to vertex shader");
     shader.addLine("attribute AppData", false);
@@ -296,7 +296,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     const ShaderGraphOutputSocket* outputSocket = shader.getGraph()->getOutputSocket();
     shader.addLine("attribute PixelOutput", false);
     shader.beginScope(Shader::Brackets::BRACES);
-    shader.addLine("vec4 " + outputSocket->name);
+    shader.addLine("vec4 " + outputSocket->variable);
     shader.endScope(true);
     shader.newLine();
 

@@ -26,11 +26,12 @@ public:
 
     size_t numStages() const override { return NUM_STAGES; }
 
-    void createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr) override;
+    void createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& path = EMPTY_STRING, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr) override;
     void createAppData(const TypeDesc* type, const string& name, const string& semantic = EMPTY_STRING) override;
     void createVertexData(const TypeDesc* type, const string& name, const string& semantic = EMPTY_STRING) override;
 };
 
+using OgsFxShaderGeneratorPtr = shared_ptr<class OgsFxShaderGenerator>;
 
 /// A GLSL shader generator targeting the OgsFX file format
 class OgsFxShaderGenerator : public GlslShaderGenerator

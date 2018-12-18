@@ -64,7 +64,6 @@ namespace
 
 const ShaderNodePtr ShaderNode::NONE = createEmptyNode();
 
-const string ShaderNode::SXCLASS_ATTRIBUTE = "sxclass";
 const string ShaderNode::CONSTANT = "constant";
 const string ShaderNode::IMAGE = "image";
 const string ShaderNode::COMPARE = "compare";
@@ -155,7 +154,7 @@ static bool elementCanBeSampled3D(const Element& element)
     return (element.getName() == POSITION_NAME);
 }
 
-ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const Node* nodeInstance)
+ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const GenOptions& options)
 {
     ShaderNodePtr newNode = std::make_shared<ShaderNode>(name);
 
@@ -163,7 +162,7 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     InterfaceElementPtr impl = nodeDef.getImplementation(shadergen.getTarget(), shadergen.getLanguage());
     if (impl)
     {
-        newNode->_impl = shadergen.getImplementation(impl);
+        newNode->_impl = shadergen.getImplementation(impl, options);
     }
     if (!newNode->_impl)
     {
@@ -207,19 +206,20 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
         else
         {
             ShaderInput* input = nullptr;
-            const string& elemType = elem->getType();
-            string implType = elemType;
-            ValuePtr implValue = getImplementationValue(elem, impl, nodeDef, implType);
-            if (implValue)
+            const TypeDesc* enumerationType = nullptr;
+            ValuePtr enumValue = shadergen.remapEnumeration(elem, nodeDef, enumerationType);
+            if (enumerationType)
             {
-                const TypeDesc* implTypeDesc = TypeDesc::get(implType);
-                input = newNode->addInput(elem->getName(), implTypeDesc);
-                input->value = implValue;
+                input = newNode->addInput(elem->getName(), enumerationType);
+                if (enumValue)
+                {
+                    input->value = enumValue;
+                }
             }
             else
             {
-                const TypeDesc* elemeTypeDesc = TypeDesc::get(elemType);
-                input = newNode->addInput(elem->getName(), elemeTypeDesc);
+                const TypeDesc* elemTypeDesc = TypeDesc::get(elem->getType());
+                input = newNode->addInput(elem->getName(), elemTypeDesc);
                 if (!elem->getValueString().empty())
                 {
                     input->value = elem->getValue();
@@ -239,33 +239,6 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     if (newNode->numOutputs() == 0)
     {
         newNode->addOutput("out", TypeDesc::get(nodeDef.getType()));
-    }
-
-    // Assign input values from the node instance
-    if (nodeInstance)
-    {
-        const vector<ValueElementPtr> nodeInstanceInputs = nodeInstance->getChildrenOfType<ValueElement>();
-        for (const ValueElementPtr& elem : nodeInstanceInputs)
-        {
-            const string& elemValueString = elem->getValueString();
-            if (!elemValueString.empty())
-            {
-                ShaderInput* input = newNode->getInput(elem->getName());
-                if (input)
-                {
-                    string implType;
-                    ValuePtr value = getImplementationValue(elem, impl, nodeDef, implType);
-                    if (value)
-                    {
-                        input->value = value;
-                    }
-                    else if (!elemValueString.empty())
-                    {
-                        input->value = elem->getValue();
-                    }
-                }
-            }
-        }
     }
 
     //
@@ -312,10 +285,6 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     {
         newNode->_classification = Classification::TEXTURE | Classification::CONSTANT;
     }
-    else if (nodeDef.getNodeString() == IMAGE || nodeDef.getAttribute(SXCLASS_ATTRIBUTE) == IMAGE)
-    {
-        newNode->_classification = Classification::TEXTURE | Classification::FILETEXTURE;
-    }
     else if (nodeDef.getNodeString() == COMPARE)
     {
         newNode->_classification = Classification::TEXTURE | Classification::CONDITIONAL | Classification::IFELSE;
@@ -324,6 +293,11 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     {
         newNode->_classification = Classification::TEXTURE | Classification::CONDITIONAL | Classification::SWITCH;
     }
+    // Third, check for file texture classification by group name
+    else if (groupName == TEXTURE2D_GROUPNAME || groupName == TEXTURE3D_GROUPNAME)
+    {
+        newNode->_classification = Classification::TEXTURE | Classification::FILETEXTURE;
+    }
 
     // Add in group classification
     newNode->_classification |= groupClassification;
@@ -331,6 +305,97 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     // Let the shader generator assign in which contexts to use this node
     shadergen.addNodeContextIDs(newNode.get());
 
+    return newNode;
+}
+
+void ShaderNode::setPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs)
+{
+    // Set element paths for children on the node
+    const vector<ValueElementPtr> nodeValues = node.getChildrenOfType<ValueElement>();
+    for (const ValueElementPtr& nodeValue : nodeValues)
+    {
+        ShaderInput* input = getInput(nodeValue->getName());
+        if (input)
+        {
+            input->path = nodeValue->getNamePath();
+        }
+    }
+
+    if (!includeNodeDefInputs)
+    {
+        return;
+    }
+
+    // Set element paths based on the node definition. Note that these
+    // paths don't actually exist at time of shader generation since there
+    // are no inputs/parameters specified on the node itself
+    //
+    const vector<InputPtr> nodeInputs = nodeDef.getChildrenOfType<Input>();
+    const string& nodePath = node.getNamePath();
+    for (const ValueElementPtr& nodeInput : nodeInputs)
+    {
+        ShaderInput* input = getInput(nodeInput->getName());
+        if (input && input->path.empty())
+        {
+            input->path = nodePath + NAME_PATH_SEPARATOR + nodeInput->getName();
+        }
+    }
+    const vector<ParameterPtr> nodeParameters = nodeDef.getChildrenOfType<Parameter>();
+    for (const ParameterPtr& nodeParameter : nodeParameters)
+    {
+        ShaderInput* input = getInput(nodeParameter->getName());
+        if (input && input->path.empty())
+        {
+            input->path = nodePath + NAME_PATH_SEPARATOR + nodeParameter->getName();
+        }
+    }
+}
+
+void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, ShaderGenerator& shadergen)
+{
+    // Copy input values from the given node
+    const vector<ValueElementPtr> nodeValues = node.getChildrenOfType<ValueElement>();
+    for (const ValueElementPtr& nodeValue : nodeValues)
+    {
+        const string& valueString = nodeValue->getValueString();
+        ShaderInput* input = getInput(nodeValue->getName());
+        if (input)
+        {
+            const TypeDesc* enumerationType = nullptr;
+            ValuePtr value = shadergen.remapEnumeration(nodeValue, nodeDef, enumerationType);
+            if (value)
+            {
+                input->value = value;
+            }
+            else if (!valueString.empty())
+            {
+                input->value = nodeValue->getValue();
+            }
+        }
+    } 
+}
+
+ShaderNodePtr ShaderNode::createColorTransformNode(const string& name, ShaderNodeImplPtr shaderImpl, const TypeDesc* type, ShaderGenerator& shadergen)
+{
+    ShaderNodePtr newNode = std::make_shared<ShaderNode>(name);
+    newNode->_impl = shaderImpl;
+    newNode->_classification = Classification::TEXTURE | Classification::COLOR_SPACE_TRANSFORM;
+    ShaderInput* input = newNode->addInput("in", type);
+
+    if(type == Type::COLOR3)
+    {
+        input->value = Value::createValue(Color3(0.0f, 0.0f, 0.0f));
+    }
+    else if(type == Type::COLOR4)
+    {
+        input->value = Value::createValue(Color4(0.0f, 0.0f, 0.0f, 1.0));
+    }
+    else
+    {
+        throw ExceptionShaderGenError("Invalid type specified to createColorTransform: '" + type->getName() + "'");
+    }
+    newNode->addOutput("out", type);
+    shadergen.addNodeContextIDs(newNode.get());
     return newNode;
 }
 
@@ -367,6 +432,8 @@ ShaderInput* ShaderNode::addInput(const string& name, const TypeDesc* type)
 
     ShaderInputPtr input = std::make_shared<ShaderInput>();
     input->name = name;
+    input->path = EMPTY_STRING;
+    input->variable = name;
     input->type = type;
     input->node = this;
     input->value = nullptr;
@@ -386,40 +453,13 @@ ShaderOutput* ShaderNode::addOutput(const string& name, const TypeDesc* type)
 
     ShaderOutputPtr output = std::make_shared<ShaderOutput>();
     output->name = name;
+    output->variable = name;
     output->type = type;
     output->node = this;
     _outputMap[name] = output;
     _outputOrder.push_back(output.get());
 
     return output.get();
-}
-
-void ShaderNode::renameInput(const string& name, const string& newName)
-{
-    if (name != newName)
-    {
-        auto it = _inputMap.find(name);
-        if (it != _inputMap.end())
-        {
-            it->second->name = newName;
-            _inputMap[newName] = it->second;
-            _inputMap.erase(it);
-        }
-    }
-}
-
-void ShaderNode::renameOutput(const string& name, const string& newName)
-{
-    if (name != newName)
-    {
-        auto it = _outputMap.find(name);
-        if (it != _outputMap.end())
-        {
-            it->second->name = newName;
-            _outputMap[newName] = it->second;
-            _outputMap.erase(it);
-        }
-    }
 }
 
 } // namespace MaterialX

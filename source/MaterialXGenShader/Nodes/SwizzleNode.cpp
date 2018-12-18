@@ -5,6 +5,9 @@
 namespace MaterialX
 {
 
+static const string IN_STRING("in");
+static const string CHANNELS_STRING("channels");
+
 ShaderNodeImplPtr SwizzleNode::create()
 {
     return std::make_shared<SwizzleNode>();
@@ -14,44 +17,31 @@ void SwizzleNode::emitFunctionCall(const ShaderNode& node, GenContext& context, 
 {
     BEGIN_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
 
-    const ShaderInput* in = node.getInput("in");
-    const ShaderInput* channels = node.getInput("channels");
+    const ShaderInput* in = node.getInput(IN_STRING);
+    const ShaderInput* channels = node.getInput(CHANNELS_STRING);
     if (!in || !channels)
     {
         throw ExceptionShaderGenError("Node '" + node.getName() +"' is not a valid swizzle node");
     }
-
-    const Syntax* syntax = shadergen.getSyntax();
-    const string& swizzle = channels->value ? channels->value->getValueString() : EMPTY_STRING;
-
-    string variableName;
-
-    if (in->connection)
+    if (!in->connection && !in->value)
     {
-        variableName = in->connection->name;
-        if (!swizzle.empty())
-        {
-            variableName = syntax->getSwizzledVariable(variableName, in->connection->type, swizzle, node.getOutput()->type);
-        }
+        throw ExceptionShaderGenError("No connection or value found to swizzle on node '" + node.getName() + "'");
     }
-    else
+
+    const string& swizzle = channels->value ? channels->value->getValueString() : EMPTY_STRING;
+    string variableName = in->connection ? in->connection->variable : in->variable;
+
+    if (!swizzle.empty())
     {
-        if (!in->value)
+        // If the input is unconnected we must declare a variable
+        // for it first, in order to swizzle it below.
+        if (!in->connection)
         {
-            throw ExceptionShaderGenError("No connection or value found to swizzle on node '" + node.getName() + "'");
+            string variableValue = in->value ? shadergen.getSyntax()->getValue(in->type, *in->value) : shadergen.getSyntax()->getDefaultValue(in->type);
+            shader.addLine(shadergen.getSyntax()->getTypeName(in->type) + " " + variableName + " = " + variableValue);
         }
-
-        variableName = in->name;
-
-        shader.beginLine();
-        shader.addStr(syntax->getTypeName(in->type) + " " + variableName);
-        shader.addStr(" = " + syntax->getValue(in->type, *in->value));
-        shader.endLine();
-
-        if (!swizzle.empty())
-        {
-            variableName = syntax->getSwizzledVariable(variableName, in->type, swizzle, node.getOutput()->type);
-        }
+        const TypeDesc* type = in->connection ? in->connection->type : in->type;
+        variableName = shadergen.getSyntax()->getSwizzledVariable(variableName, type, swizzle, node.getOutput()->type);
     }
 
     shader.beginLine();
@@ -60,6 +50,11 @@ void SwizzleNode::emitFunctionCall(const ShaderNode& node, GenContext& context, 
     shader.endLine();
 
     END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
+}
+
+bool SwizzleNode::isEditable(const ShaderInput& input) const
+{
+    return (input.name != CHANNELS_STRING);
 }
 
 } // namespace MaterialX

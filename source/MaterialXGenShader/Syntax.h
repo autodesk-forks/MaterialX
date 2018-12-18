@@ -35,6 +35,11 @@ public:
     /// added to this set. Multiple calls will add to the internal set of names.
     void registerRestrictedNames(const StringSet& names);
 
+    /// Register a set string replacements for disallowed tokens 
+    /// for a code generator when naming variables and functions. 
+    /// Multiple calls will add to the internal set of tokens.
+    void registerInvalidTokens(const StringMap& tokens);
+
     /// Returns the type syntax object for a named type.
     /// Throws an exception if a type syntax is not defined for the given type.
     const TypeSyntax& getTypeSyntax(const TypeDesc* type) const;
@@ -48,9 +53,13 @@ public:
     /// Returns the type name in an output context
     string getOutputTypeName(const TypeDesc* type) const;
 
-    /// Returns the custom typedef syntax for the given data type
-    /// If not used returns an empty string
-    const string& getTypeDefStatement(const TypeDesc* type) const;
+    /// Returns a type alias for the given data type.
+    /// If not used returns an empty string.
+    const string& getTypeAlias(const TypeDesc* type) const;
+
+    /// Returns a custom type definition if needed for the given data type.
+    /// If not used returns an empty string.
+    const string& getTypeDefinition(const TypeDesc* type) const;
 
     /// Returns the default value string for the given type
     const string& getDefaultValue(const TypeDesc* type, bool uniform = false) const;
@@ -63,6 +72,9 @@ public:
 
     /// Returns a set of names that are restricted to use for this language syntax.
     const StringSet& getRestrictedNames() const { return _restrictedNames; }
+
+    /// Returns a mapping from disallowed tokens to replacement strings for this language syntax.
+    const StringMap& getInvalidTokens() const { return _invalidTokens; }
 
     /// Returns a type qualifier to be used when declaring types for output variables.
     /// Default implementation returns empty string and derived syntax classes should
@@ -99,6 +111,7 @@ private:
     std::unordered_map<const TypeDesc*, size_t> _typeSyntaxByType;
 
     StringSet _restrictedNames;
+    StringMap _invalidTokens;
 };
 
 /// Base class for syntax handling of types.
@@ -110,8 +123,11 @@ public:
     /// Returns the type name.
     const string& getName() const { return _name; }
 
-    /// Returns a typedef string if needed to define the type in the target language.
-    const string& getTypeDefStatement() const { return _typeDefStatement; }
+    /// Returns a type alias if needed to define the type in the target language.
+    const string& getTypeAlias() const { return _typeAlias; }
+
+    /// Returns a type definition if needed to define the type in the target language.
+    const string& getTypeDefinition() const { return _typeDefinition; }
 
     /// Returns the default value for this type.
     const string& getDefaultValue(bool uniform) const { return uniform ? _uniformDefaultValue : _defaultValue; }
@@ -132,12 +148,13 @@ public:
 protected:
     /// Protected constructor
     TypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue, 
-        const string& typeDefStatement, const vector<string>& members);
+        const string& typeAlias, const string& typeDefinition, const vector<string>& members);
 
     string _name;                // type name
     string _defaultValue;        // default value syntax
     string _uniformDefaultValue; // default value syntax when assigned to uniforms
-    string _typeDefStatement;    // custom typedef statement if needed in source code
+    string _typeAlias;           // type alias if needed in source code
+    string _typeDefinition;      // custom type definition if needed in source code
     vector<string> _members;     // syntax for member access
 
     static const vector<string> EMPTY_MEMBERS;
@@ -148,7 +165,7 @@ class ScalarTypeSyntax : public TypeSyntax
 {
 public:
     ScalarTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue, 
-        const string& typeDefStatement = EMPTY_STRING);
+        const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING);
 
     string getValue(const Value& value, bool uniform) const override;
     string getValue(const vector<string>& values, bool uniform) const override;
@@ -159,7 +176,7 @@ class StringTypeSyntax : public ScalarTypeSyntax
 {
 public:
     StringTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
-        const string& typeDefStatement = EMPTY_STRING);
+        const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING);
 
     string getValue(const Value& value, bool uniform) const override;
 };
@@ -169,7 +186,8 @@ class AggregateTypeSyntax : public TypeSyntax
 {
 public:
     AggregateTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
-        const string& typeDefStatement = EMPTY_STRING, const vector<string>& members = EMPTY_MEMBERS);
+        const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING, 
+        const vector<string>& members = EMPTY_MEMBERS);
 
     string getValue(const Value& value, bool uniform) const override;
     string getValue(const vector<string>& values, bool uniform) const override;

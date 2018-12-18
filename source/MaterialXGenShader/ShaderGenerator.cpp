@@ -14,8 +14,8 @@
 namespace MaterialX
 {
 
-ShaderGenerator::ShaderGenerator(SyntaxPtr syntax) 
-    : _syntax(syntax) 
+ShaderGenerator::ShaderGenerator(SyntaxPtr syntax)
+    : _syntax(syntax)
 {
     // Create a default context to be used by all nodes
     // that have no specific context assigned
@@ -28,14 +28,18 @@ Shader::VDirection ShaderGenerator::getTargetVDirection() const
     return Shader::VDirection::UP;
 }
 
-void ShaderGenerator::emitTypeDefs(Shader& shader)
+void ShaderGenerator::emitTypeDefinitions(Shader& shader)
 {
-    // Emit typedef statements for all data types that needs it
+    // Emit typedef statements for all data types that have an alias
     for (auto syntax : _syntax->getTypeSyntaxs())
     {
-        if (syntax->getTypeDefStatement().length())
+        if (!syntax->getTypeAlias().empty())
         {
-            shader.addLine(syntax->getTypeDefStatement(), false);
+            shader.addLine("#define " + syntax->getName() + " " + syntax->getTypeAlias(), false);
+        }
+        if (!syntax->getTypeDefinition().empty())
+        {
+            shader.addLine(syntax->getTypeDefinition(), false);
         }
     }
     shader.newLine();
@@ -83,7 +87,7 @@ void ShaderGenerator::emitFunctionCalls(const GenContext& context, Shader &shade
         }
         else
         {
-            // Node is not defined in either this context or default context 
+            // Node is not defined in either this context or default context
             // Just emit the output variable set to default value, in case it
             // is referenced by another node in this context.
             shader.beginLine();
@@ -101,13 +105,13 @@ void ShaderGenerator::emitFinalOutput(Shader& shader) const
     if (!outputSocket->connection)
     {
         // Early out for the rare case where the whole graph is just a single value
-        shader.addLine(outputSocket->name + " = " + (outputSocket->value ?
+        shader.addLine(outputSocket->variable + " = " + (outputSocket->value ?
             _syntax->getValue(outputSocket->type, *outputSocket->value) :
             _syntax->getDefaultValue(outputSocket->type)));
         return;
     }
 
-    shader.addLine(outputSocket->name + " = " + outputSocket->connection->name);
+    shader.addLine(outputSocket->variable + " = " + outputSocket->connection->variable);
 }
 
 void ShaderGenerator::emitConstant(const Shader::Variable& constant, Shader& shader)
@@ -142,26 +146,21 @@ void ShaderGenerator::getInput(const GenContext& context, const ShaderInput* inp
 {
     if (input->connection)
     {
-        result = input->connection->name;
-    }
-    else if (input->value)
-    {
-        result = _syntax->getValue(input->type, *input->value);
+        result = input->connection->variable;
+
+        // Look for any additional suffix to append
+        string suffix;
+        context.getInputSuffix(input, suffix);
+        if (!suffix.empty())
+        {
+            result += suffix;
+        }
     }
     else
     {
-        result = _syntax->getDefaultValue(input->type);
-    }
-
-    // Look for any additional suffix to append
-    string suffix;
-    context.getInputSuffix(const_cast<ShaderInput*>(input), suffix);
-    if (!suffix.empty())
-    {
-        result += suffix;
+        result = input->value ? _syntax->getValue(input->type, *input->value) : _syntax->getDefaultValue(input->type);
     }
 }
-
 
 void ShaderGenerator::emitInput(const GenContext& context, const ShaderInput* input, Shader &shader) const
 {
@@ -172,11 +171,11 @@ void ShaderGenerator::emitInput(const GenContext& context, const ShaderInput* in
 
 void ShaderGenerator::emitOutput(const GenContext& context, const ShaderOutput* output, bool includeType, bool assignDefault, Shader& shader) const
 {
-    shader.addStr(includeType ? _syntax->getTypeName(output->type) + " " + output->name : output->name);
+    shader.addStr(includeType ? _syntax->getTypeName(output->type) + " " + output->variable : output->variable);
 
     // Look for any additional suffix to append
     string suffix;
-    context.getOutputSuffix(const_cast<ShaderOutput*>(output), suffix);
+    context.getOutputSuffix(output, suffix);
     if (!suffix.empty())
     {
         shader.addStr(suffix);
@@ -213,7 +212,7 @@ bool ShaderGenerator::implementationRegistered(const string& name) const
     return _implFactory.classRegistered(name);
 }
 
-ShaderNodeImplPtr ShaderGenerator::getImplementation(InterfaceElementPtr element)
+ShaderNodeImplPtr ShaderGenerator::getImplementation(InterfaceElementPtr element, const GenOptions& options)
 {
     const string& name = element->getName();
 
@@ -245,7 +244,7 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(InterfaceElementPtr element
         throw ExceptionShaderGenError("Element '" + name + "' is neither an Implementation nor an NodeGraph");
     }
 
-    impl->initialize(element, *this);
+    impl->initialize(element, *this, options);
     _cachedImpls[name] = impl;
 
     return impl;

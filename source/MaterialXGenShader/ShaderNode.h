@@ -21,31 +21,68 @@ using ShaderOutputPtr = shared_ptr<class ShaderOutput>;
 using ShaderNodePtr = shared_ptr<class ShaderNode>;
 using ShaderInputSet = std::set<ShaderInput*>;
 
-/// An input on a ShaderNode
-class ShaderInput
+/// An input or output port on a ShaderNode
+class ShaderPort
 {
   public:
+    static const unsigned int VARIABLE_NOT_RENAMABLE = 1 << 0; // Variable should not be automatically named
+
+    /// Copy data from another port to this port
+    void copyData(const ShaderPort& other)
+    {
+        value = other.value;
+        path = other.path;
+
+        if (ShaderPort::VARIABLE_NOT_RENAMABLE & other.flags)
+        {
+            variable = other.variable;
+            flags |= ShaderPort::VARIABLE_NOT_RENAMABLE;
+        }
+    }
+
+    /// Port type.
     const TypeDesc* type;
+
+    /// Port name.
     string name;
+
+    // Path to the origin (input/parameter element) for this shader port.
+    // Can be used to map client side node inputs to uniforms on the generated shader,
+    // if input values change during rendering.
+    string path;
+
+    /// Variable name as used in generated code.
+    string variable;
+
+    /// Parent node.
     ShaderNode* node;
+
+    /// A value, or nullptr if not assigned.
     ValuePtr value;
+
+    /// Property flags
+    unsigned int flags;
+};
+
+/// An input on a ShaderNode
+class ShaderInput : public ShaderPort
+{
+  public:  
+    /// A connection to an upstream node output, or nullptr if not connected.
     ShaderOutput* connection;
 
-    /// Make a connection from the given source output to this input
+    /// Make a connection from the given source output to this input.
     void makeConnection(ShaderOutput* src);
 
-    /// Break any connection to this input
+    /// Break the connection to this input.
     void breakConnection();
 };
 
 /// An output on a ShaderNode
-class ShaderOutput
+class ShaderOutput : public ShaderPort
 {
   public:
-    const TypeDesc* type;
-    string name;
-    ShaderNode* node;
-    ValuePtr value;
+    /// A set of connections to downstream node inputs, empty if not connected.
     ShaderInputSet connections;
 
     /// Make a connection from this output to the given input
@@ -75,11 +112,11 @@ class ShaderNode
         static const unsigned int CONDITIONAL = 1 << 4;  // A conditional node
         static const unsigned int CONSTANT    = 1 << 5;  // A constant node
         // Specific closure types
-        static const unsigned int BSDF        = 1 << 6;  // A BDFS node 
+        static const unsigned int BSDF        = 1 << 6;  // A BDFS node
         static const unsigned int BSDF_R      = 1 << 7;  // A BDFS node only for reflection
         static const unsigned int BSDF_T      = 1 << 8;  // A BDFS node only for transmission
         static const unsigned int EDF         = 1 << 9;  // A EDF node
-        static const unsigned int VDF         = 1 << 10; // A VDF node 
+        static const unsigned int VDF         = 1 << 10; // A VDF node
         // Specific shader types
         static const unsigned int SURFACE     = 1 << 11;  // A surface shader node
         static const unsigned int VOLUME      = 1 << 12; // A volume shader node
@@ -91,6 +128,10 @@ class ShaderNode
         static const unsigned int SAMPLE2D    = 1 << 16; // Can be sampled in 2D (uv space)
         static const unsigned int SAMPLE3D    = 1 << 17; // Can be sampled in 3D (position)
         static const unsigned int CONVOLUTION2D = 1 << 18; // Performs a convolution in 2D (uv space)
+
+        static const unsigned int COLOR_SPACE_TRANSFORM = 1 << 19; // Performs color space transformation
+
+        static const unsigned int DO_NOT_OPTIMIZE = 1 << 20; // Flag that this should not be optimized
     };
 
     /// Information on source code scope for the node.
@@ -121,7 +162,6 @@ class ShaderNode
 
     static const ShaderNodePtr NONE;
 
-    static const string SXCLASS_ATTRIBUTE;
     static const string CONSTANT;
     static const string IMAGE;
     static const string COMPARE;
@@ -133,8 +173,11 @@ class ShaderNode
     /// Constructor.
     ShaderNode(const string& name);
 
-    /// Create a new node from a nodedef and an option node instance.
-    static ShaderNodePtr create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const Node* nodeInstance = nullptr);
+    /// Create a new node from a nodedef
+    static ShaderNodePtr create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const GenOptions& options);
+
+    /// Create a new color transform node from a ShaderNodeImpl and type.
+    static ShaderNodePtr createColorTransformNode(const string& name, ShaderNodeImplPtr shaderImpl, const TypeDesc* type, ShaderGenerator& shadergen);
 
     /// Return true if this node is a graph.
     virtual bool isAGraph() const { return false; }
@@ -178,6 +221,12 @@ class ShaderNode
         return _usedClosures.count(node) > 0;
     }
 
+    /// Set input values from the given node and nodedef.
+    void setValues(const Node& node, const NodeDef& nodeDef, ShaderGenerator& shadergen);
+
+    /// Set input element paths for the given node and nodedef.
+    void setPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs=true);
+
     /// Add inputs/outputs
     ShaderInput* addInput(const string& name, const TypeDesc* type);
     ShaderOutput* addOutput(const string& name, const TypeDesc* type);
@@ -202,15 +251,27 @@ class ShaderNode
     const vector<ShaderInput*>& getInputs() const { return _inputOrder; }
     const vector<ShaderOutput*>& getOutputs() const { return _outputOrder; }
 
-    /// Rename inputs/outputs
-    void renameInput(const string& name, const string& newName);
-    void renameOutput(const string& name, const string& newName);
-
     /// Get input which is used for sampling. If there is none
     /// then a null pointer is returned.
     ShaderInput* getSamplingInput() const
     {
         return _samplingInput;
+    }
+
+    /// Returns true if an input is editable by users.
+    /// Editable inputs are allowed to be published as shader uniforms
+    /// and hence must be presentable in a user interface.
+    bool isEditable(const ShaderInput& input) const
+    {
+        return (!_impl || _impl->isEditable(input));
+    }
+
+    /// Returns true if a graph input is accessible by users.
+    /// Editable inputs are allowed to be published as shader uniforms
+    /// and hence must be presentable in a user interface.
+    bool isEditable(const ShaderGraphInputSocket& input) const
+    {
+        return (!_impl || _impl->isEditable(input));
     }
 
     /// Add the given contex id to the set of contexts used for this node.
@@ -219,7 +280,7 @@ class ShaderNode
     /// Return the set of contexts id's for the contexts used for this node.
     const std::set<int>& getContextIDs() const { return _contextIDs; }
 
-  protected:      
+  protected:
     string _name;
     unsigned int _classification;
 

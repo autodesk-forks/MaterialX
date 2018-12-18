@@ -148,6 +148,14 @@ GlslSyntax::GlslSyntax()
         "sizeof", "cast", "namespace", "using", "row_major"
     });
 
+    // Register regstricted tokens in GLSL
+    StringMap tokens;
+    tokens["__"] = "_";
+    tokens["gl_"] = "gll";
+    tokens["webgl_"] = "webgll";
+    tokens["_webgl"] = "wwebgl";
+    registerInvalidTokens(tokens);
+    
     //
     // Register syntax handlers for each data type.
     //
@@ -200,7 +208,8 @@ GlslSyntax::GlslSyntax()
             "vec2", 
             "vec2(0.0)", 
             "vec2(0.0)", 
-            EMPTY_STRING, 
+            EMPTY_STRING,
+            EMPTY_STRING,
             VEC2_MEMBERS)
     );
 
@@ -211,7 +220,8 @@ GlslSyntax::GlslSyntax()
             "vec3", 
             "vec3(0.0)", 
             "vec3(0.0)", 
-            EMPTY_STRING, 
+            EMPTY_STRING,
+            EMPTY_STRING,
             VEC3_MEMBERS)
     );
 
@@ -222,7 +232,8 @@ GlslSyntax::GlslSyntax()
             "vec4", 
             "vec4(0.0)", 
             "vec4(0.0)", 
-            EMPTY_STRING, 
+            EMPTY_STRING,
+            EMPTY_STRING,
             VEC4_MEMBERS)
     );
 
@@ -234,6 +245,7 @@ GlslSyntax::GlslSyntax()
             "vec2(0.0)", 
             "vec2(0.0)", 
             EMPTY_STRING, 
+            EMPTY_STRING, 
             VEC2_MEMBERS)
     );
 
@@ -244,7 +256,8 @@ GlslSyntax::GlslSyntax()
             "vec3", 
             "vec3(0.0)", 
             "vec3(0.0)", 
-            EMPTY_STRING, 
+            EMPTY_STRING,
+            EMPTY_STRING,
             VEC3_MEMBERS)
     );
 
@@ -255,7 +268,8 @@ GlslSyntax::GlslSyntax()
             "vec4", 
             "vec4(0.0)", 
             "vec4(0.0)", 
-            EMPTY_STRING, 
+            EMPTY_STRING,
+            EMPTY_STRING,
             VEC4_MEMBERS)
     );
 
@@ -299,7 +313,7 @@ GlslSyntax::GlslSyntax()
             "BSDF", 
             "BSDF(0.0)", 
             "BSDF(0.0)", 
-            "#define BSDF vec3")
+            "vec3")
     );
 
     registerTypeSyntax
@@ -309,7 +323,7 @@ GlslSyntax::GlslSyntax()
             "EDF", 
             "EDF(0.0)", 
             "EDF(0.0)", 
-            "#define EDF vec3")
+            "vec3")
     );
 
     registerTypeSyntax
@@ -319,6 +333,7 @@ GlslSyntax::GlslSyntax()
             "VDF", 
             "VDF(vec3(0.0),vec3(0.0))", 
             EMPTY_STRING, 
+            EMPTY_STRING,
             "struct VDF { vec3 absorption; vec3 scattering; };")
     );
 
@@ -328,6 +343,7 @@ GlslSyntax::GlslSyntax()
         std::make_shared<AggregateTypeSyntax>(
             "roughnessinfo",
             "roughnessinfo(0.0, 0.0, 0.0, 0.0)",
+            EMPTY_STRING,
             EMPTY_STRING,
             "struct roughnessinfo { float roughness; float alpha; float alphaX; float alphaY; };")
     );
@@ -339,6 +355,7 @@ GlslSyntax::GlslSyntax()
             "surfaceshader", 
             "surfaceshader(vec3(0.0),vec3(0.0))", 
             EMPTY_STRING,
+            EMPTY_STRING,
             "struct surfaceshader { vec3 color; vec3 transparency; };")
     );
 
@@ -348,6 +365,7 @@ GlslSyntax::GlslSyntax()
         std::make_shared<AggregateTypeSyntax>(
             "volumeshader",
             "volumeshader(VDF(vec3(0.0),vec3(0.0)),EDF(0.0))",
+            EMPTY_STRING,
             EMPTY_STRING,
             "struct volumeshader { VDF vdf; EDF edf; };")
     );
@@ -359,6 +377,7 @@ GlslSyntax::GlslSyntax()
             "displacementshader",
             "displacementshader(vec3(0.0),1.0)",
             EMPTY_STRING,
+            EMPTY_STRING,
             "struct displacementshader { vec3 offset; float scale; };")
     );
 
@@ -368,7 +387,8 @@ GlslSyntax::GlslSyntax()
         std::make_shared<AggregateTypeSyntax>(
             "lightshader", 
             "lightshader(vec3(0.0),vec3(0.0))", 
-            EMPTY_STRING, 
+            EMPTY_STRING,
+            EMPTY_STRING,
             "struct lightshader { vec3 intensity; vec3 direction; };")
     );
 }

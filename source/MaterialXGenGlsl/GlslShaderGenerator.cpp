@@ -19,6 +19,8 @@
 
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>
+#include <MaterialXGenShader/Nodes/ConvertNode.h>
+#include <MaterialXGenShader/Nodes/CombineNode.h>
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/CompareNode.h>
 #include <MaterialXGenShader/Nodes/BlurNode.h>
@@ -175,6 +177,36 @@ GlslShaderGenerator::GlslShaderGenerator()
     registerImplementation("IM_swizzle_vector4_vector2_sx_glsl", SwizzleNode::create);
     registerImplementation("IM_swizzle_vector4_vector3_sx_glsl", SwizzleNode::create);
     registerImplementation("IM_swizzle_vector4_vector4_sx_glsl", SwizzleNode::create);
+
+    // <!-- <convert> -->
+    registerImplementation("IM_convert_float_color2_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_float_color3_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_float_color4_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_float_vector2_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_float_vector3_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_float_vector4_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_vector2_color2_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_vector3_color3_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_vector4_color4_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_color2_vector2_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_color3_vector3_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_color4_vector4_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_color3_color4_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_color4_color3_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_boolean_float_sx_glsl", ConvertNode::create);
+    registerImplementation("IM_convert_integer_float_sx_glsl", ConvertNode::create);
+
+    // <!-- <combine> -->
+    registerImplementation("IM_combine_color2_sx_glsl", CombineNode::create);
+    registerImplementation("IM_combine_vector2_sx_glsl", CombineNode::create);
+    registerImplementation("IM_combine_color3_sx_glsl", CombineNode::create);
+    registerImplementation("IM_combine_vector3_sx_glsl", CombineNode::create);
+    registerImplementation("IM_combine_color4_sx_glsl", CombineNode::create);
+    registerImplementation("IM_combine_vector4_sx_glsl", CombineNode::create);
+    registerImplementation("IM_combine_color4CF_sx_glsl", CombineNode::create);
+    registerImplementation("IM_combine_vector4VF_sx_glsl", CombineNode::create);
+    registerImplementation("IM_combine_color4CC_sx_glsl", CombineNode::create);
+    registerImplementation("IM_combine_vector4VV_sx_glsl", CombineNode::create);
 
     // <!-- <position> -->
     registerImplementation("IM_position_vector3_sx_glsl", PositionNodeGlsl::create);
@@ -336,7 +368,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     shader.addInclude("sxpbrlib/sx-glsl/lib/sx_defines.glsl", *this);
     shader.addLine("#define MAX_LIGHT_SOURCES " + std::to_string(getMaxActiveLightSources()), false);
     shader.newLine();
-    emitTypeDefs(shader);
+    emitTypeDefinitions(shader);
 
     // Add constants
     const Shader::VariableBlock& psConstants = shader.getConstantBlock(HwShader::PIXEL_STAGE);
@@ -401,7 +433,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& shaderName, ElementPtr ele
     // and upstream connection will be converted to vec4 if needed in emitFinalOutput()
     shader.addComment("Data output by the pixel shader");
     const ShaderGraphOutputSocket* outputSocket = shader.getGraph()->getOutputSocket();
-    shader.addLine("out vec4 " + outputSocket->name);
+    shader.addLine("out vec4 " + outputSocket->variable);
     shader.newLine();
 
     // Emit common math functions
@@ -442,8 +474,8 @@ void GlslShaderGenerator::emitFunctionDefinitions(Shader& shader)
     BEGIN_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
 
         // Emit function for handling texture coords v-flip 
-        // as needed by the v-direction set by the user
-        shader.addBlock(shader.getRequestedVDirection() != getTargetVDirection() ? VDIRECTION_FLIP : VDIRECTION_NOOP, *this);
+        // as needed relative to the default v-direction 
+        shader.addBlock(Shader::getDefaultVDirection() != getTargetVDirection() ? VDIRECTION_FLIP : VDIRECTION_NOOP, *this);
 
         // For surface shaders we need light shaders
         if (shader.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE))
@@ -530,19 +562,19 @@ void GlslShaderGenerator::emitFinalOutput(Shader& shader) const
         string outputValue = outputSocket->value ? _syntax->getValue(outputSocket->type, *outputSocket->value) : _syntax->getDefaultValue(outputSocket->type);
         if (!outputSocket->type->isFloat4())
         {
-            string finalOutput = outputSocket->name + "_tmp";
+            string finalOutput = outputSocket->variable + "_tmp";
             shader.addLine(_syntax->getTypeName(outputSocket->type) + " " + finalOutput + " = " + outputValue);
             toVec4(outputSocket->type, finalOutput);
-            shader.addLine(outputSocket->name + " = " + finalOutput);
+            shader.addLine(outputSocket->variable + " = " + finalOutput);
         }
         else
         {
-            shader.addLine(outputSocket->name + " = " + outputValue);
+            shader.addLine(outputSocket->variable + " = " + outputValue);
         }
         return;
     }
 
-    string finalOutput = outputSocket->connection->name;
+    string finalOutput = outputSocket->connection->variable;
 
     if (shader.hasClassification(ShaderNode::Classification::SURFACE))
     {
@@ -550,11 +582,11 @@ void GlslShaderGenerator::emitFinalOutput(Shader& shader) const
         if (hwShader.hasTransparency())
         {
             shader.addLine("float outAlpha = clamp(1.0 - dot(" + finalOutput + ".transparency, vec3(0.3333)), 0.0, 1.0)");
-            shader.addLine(outputSocket->name + " = vec4(" + finalOutput + ".color, outAlpha)");
+            shader.addLine(outputSocket->variable + " = vec4(" + finalOutput + ".color, outAlpha)");
         }
         else
         {
-            shader.addLine(outputSocket->name + " = vec4(" + finalOutput + ".color, 1.0)");
+            shader.addLine(outputSocket->variable + " = vec4(" + finalOutput + ".color, 1.0)");
         }
     }
     else
@@ -563,7 +595,7 @@ void GlslShaderGenerator::emitFinalOutput(Shader& shader) const
         {
             toVec4(outputSocket->type, finalOutput);
         }
-        shader.addLine(outputSocket->name + " = " + finalOutput);
+        shader.addLine(outputSocket->variable + " = " + finalOutput);
     }
 }
 
@@ -669,7 +701,7 @@ void GlslShaderGenerator::emitBsdfNodes(const ShaderNode& shaderNode, int bsdfCo
 
     if (last)
     {
-        bsdf = last->getOutput()->name;
+        bsdf = last->getOutput()->variable;
     }
 }
 
@@ -698,7 +730,7 @@ void GlslShaderGenerator::emitEdfNodes(const ShaderNode& shaderNode, const strin
 
     if (last)
     {
-        edf = last->getOutput()->name;
+        edf = last->getOutput()->variable;
     }
 }
 
@@ -740,7 +772,7 @@ void GlslShaderGenerator::emitVariable(const Shader::Variable& variable, const s
             line += " : " + variable.semantic;
         if (variable.value)
         {
-            // If an arrays we need an array qualifier (suffix) for the variable name
+            // If an array we need an array qualifier (suffix) for the variable name
             string arraySuffix;
             variable.getArraySuffix(arraySuffix);
             line += arraySuffix;
@@ -769,6 +801,66 @@ ShaderNodeImplPtr GlslShaderGenerator::createCompoundImplementation(NodeGraphPtr
     return ParentClass::createCompoundImplementation(impl);
 }
 
+
+ValuePtr GlslShaderGenerator::remapEnumeration(const ValueElementPtr& input, const InterfaceElement& mappingElement, const TypeDesc*& enumerationType)
+{
+    const string& inputName = input->getName();
+    const string& inputValue = input->getValueString();
+    const string& inputType = input->getType();
+
+    return remapEnumeration(inputName, inputValue, inputType, mappingElement, enumerationType);
+}
+
+ValuePtr GlslShaderGenerator::remapEnumeration(const string& inputName, const string& inputValue, const string& inputType, const InterfaceElement& mappingElement, const TypeDesc*& enumerationType)
+{
+
+    enumerationType = nullptr;
+
+    ValueElementPtr valueElem = mappingElement.getChildOfType<ValueElement>(inputName);
+    if (!valueElem)
+    {
+        return nullptr;
+    }
+
+    // Don't convert file names and arrays to integers
+    const TypeDesc* inputTypeDesc = TypeDesc::get(inputType);
+    if (inputTypeDesc->isArray() || inputTypeDesc == Type::FILENAME)
+    {
+        return nullptr;
+    }
+    // Don't convert supported types
+    if (getSyntax()->typeSupported(inputTypeDesc))
+    {
+        return nullptr;
+    }
+
+    // Skip any elements which have no enumerations
+    const string& valueElemEnums = valueElem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+    if (valueElemEnums.empty())
+    {
+        return nullptr;
+    }
+
+    // Always update the type. For GLSL we always convert to integers,
+    // with the integer value being an index into the enumeration.
+    enumerationType = TypeDesc::get(TypedValue<int>::TYPE);
+
+    // Update the return value if any was specified. If the value
+    // cannot be found always return a default value of 0 to provide some mapping.
+    ValuePtr returnValue = nullptr;
+    if (inputValue.size())
+    {
+        int integerValue = 0;
+        StringVec valueElemEnumsVec = splitString(valueElemEnums, ",");
+        auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), inputValue);
+        if (pos != valueElemEnumsVec.end())
+        {
+            integerValue = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
+        }
+        returnValue = Value::createValue<int>(integerValue);
+    }
+    return returnValue;
+}
 
 const string GlslImplementation::SPACE = "space";
 const string GlslImplementation::WORLD = "world";

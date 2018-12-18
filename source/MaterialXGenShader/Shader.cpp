@@ -20,6 +20,7 @@ Shader::Shader(const string& name)
     , _rootGraph(nullptr)
     , _activeStage(PIXEL_STAGE)
     , _appData("AppData", "ad")
+    , _outputs("Outputs", "op")
 {
     _stages.push_back(Stage("Pixel"));
 
@@ -30,16 +31,22 @@ Shader::Shader(const string& name)
 
 void Shader::initialize(ElementPtr element, ShaderGenerator& shadergen, const GenOptions& options)
 {
+    // Check if validation step should be performed
+    if (options.validate)
+    {
+        string message;
+        bool valid = element->validate(&message);
+        if (!valid)
+        {
+            throw ExceptionShaderGenError("Element is invalid: " + message);
+        }
+    }
+
     // Create our shader generation root graph
-    _rootGraph = ShaderGraph::create(_name, element, shadergen);
+    _rootGraph = ShaderGraph::create(_name, element, shadergen, options);
 
     // Make it active
     pushActiveGraph(_rootGraph.get());
-
-    // Set the vdirection to use for texture nodes
-    // Default is to use direction UP
-    const string& vdir = element->getRoot()->getAttribute("vdirection");
-    _vdirection = vdir == "down" ? VDirection::DOWN : VDirection::UP;
 
     // Create shader variables for all nodes that need this (geometric nodes / input streams)
     for (ShaderNode* node : _rootGraph->getNodes())
@@ -48,49 +55,29 @@ void Shader::initialize(ElementPtr element, ShaderGenerator& shadergen, const Ge
         impl->createVariables(*node, shadergen, *this);
     }
 
-    // Create uniforms for the public graph interface
+    // Create uniforms for the published graph interface
     for (ShaderGraphInputSocket* inputSocket : _rootGraph->getInputSockets())
     {
         // Only for inputs that are connected/used internally
         if (inputSocket->connections.size())
         {
-            // Create the uniform
-            createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->name, EMPTY_STRING, inputSocket->value);
+            if (_rootGraph->isEditable(*inputSocket))
+            {
+                // Create the uniform
+                createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->variable, inputSocket->path, EMPTY_STRING, inputSocket->value);
+            }
         }
     }
-    
-    // Check if a complete interface is requested
-    if (options.shaderInterfaceType == SHADER_INTERFACE_COMPLETE)
+
+    // Create outputs from the graph interface
+    for (ShaderGraphOutputSocket* outputSocket : _rootGraph->getOutputSockets())
     {
-        // Create uniforms for all node inputs that has not been connected already
-        for (ShaderNode* node : _rootGraph->getNodes())
+        // Create the output
+        if (_outputs.variableMap.find(outputSocket->name) == _outputs.variableMap.end())
         {
-            for (ShaderInput* input : node->getInputs())
-            {
-                if (!input->connection)
-                {
-                    // Check if the type is editable otherwise we can't 
-                    // publish the input as an editable uniform.
-                    if (input->type->isEditable())
-                    {
-                        // Use a consistent naming convention: <nodename>_<inputname>
-                        // so application side can figure out what uniforms to set
-                        // when node inputs change on application side.
-                        const string interfaceName = node->getName() + "_" + input->name;
-
-                        ShaderGraphInputSocket* inputSocket = _rootGraph->getInputSocket(interfaceName);
-                        if (!inputSocket)
-                        {
-                            inputSocket = _rootGraph->addInputSocket(interfaceName, input->type);
-                            inputSocket->value = input->value;
-                        }
-                        inputSocket->makeConnection(input);
-
-                        // Create the uniform
-                        createUniform(PIXEL_STAGE, PUBLIC_UNIFORMS, inputSocket->type, inputSocket->name, EMPTY_STRING, inputSocket->value);
-                    }
-                }
-            }
+            VariablePtr variable = Variable::create(outputSocket->type, outputSocket->name, EMPTY_STRING, EMPTY_STRING, nullptr);
+            _outputs.variableMap[outputSocket->name] = variable;
+            _outputs.variableOrder.push_back(variable.get());
         }
     }
 }
@@ -227,7 +214,7 @@ void Shader::addFunctionDefinition(ShaderNode* node, ShaderGenerator& shadergen)
 void Shader::addFunctionCall(ShaderNode* node, const GenContext& context, ShaderGenerator& shadergen)
 {
     ShaderNodeImpl* impl = node->getImplementation();
-    impl->emitFunctionCall(*node, *(const_cast<GenContext*>(&context)), shadergen, *this);
+    impl->emitFunctionCall(*node, const_cast<GenContext&>(context), shadergen, *this);
 }
 
 void Shader::addInclude(const string& file, ShaderGenerator& shadergen)
@@ -258,12 +245,12 @@ void Shader::indent()
     }
 }
 
-void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value)
+void Shader::createConstant(size_t stage, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value)
 {
     Stage& s = _stages[stage];
     if (s.constants.variableMap.find(name) == s.constants.variableMap.end())
     {
-        VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value);
+        VariablePtr variablePtr = Variable::create(type, name, path, semantic, value);
         s.constants.variableMap[name] = variablePtr;
         s.constants.variableOrder.push_back(variablePtr.get());
     }
@@ -285,7 +272,7 @@ void Shader::createUniformBlock(size_t stage, const string& block, const string&
     }
 }
 
-void Shader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& semantic, ValuePtr value)
+void Shader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value)
 {
     const Stage& s = _stages[stage];
     auto it = s.uniforms.find(block);
@@ -296,7 +283,7 @@ void Shader::createUniform(size_t stage, const string& block, const TypeDesc* ty
     VariableBlockPtr  blockPtr = it->second;
     if (blockPtr->variableMap.find(name) == blockPtr->variableMap.end())
     {
-        VariablePtr variablePtr = std::make_shared<Variable>(type, name, semantic, value);
+        VariablePtr variablePtr = Variable::create(type, name, path, semantic, value);
         blockPtr->variableMap[name] = variablePtr;
         blockPtr->variableOrder.push_back(variablePtr.get());
     }
@@ -317,7 +304,7 @@ void Shader::createAppData(const TypeDesc* type, const string& name, const strin
 {
     if (_appData.variableMap.find(name) == _appData.variableMap.end())
     {
-        VariablePtr variable = std::make_shared<Variable>(type, name, semantic);
+        VariablePtr variable = Variable::create(type, name, EMPTY_STRING, semantic, nullptr);
         _appData.variableMap[name] = variable;
         _appData.variableOrder.push_back(variable.get());
     }

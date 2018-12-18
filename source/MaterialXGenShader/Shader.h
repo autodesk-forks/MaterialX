@@ -48,19 +48,39 @@ public:
         DOWN
     };
 
+    struct Variable;
+    using VariablePtr = std::shared_ptr<Variable>;
+
     struct Variable
     {
         const TypeDesc* type;
         string name;
+        string path;
         string semantic;
         ValuePtr value;
 
-        Variable(const TypeDesc* t = nullptr, const string& n = EMPTY_STRING, const string& s = EMPTY_STRING, ValuePtr v = nullptr)
+        static VariablePtr create(const TypeDesc* t, const string& n, const string& p, const string& s, ValuePtr v)
+        {
+            return std::make_shared<Variable>(t, n, p, s, v);
+        }
+
+        Variable()
+            : type(nullptr)
+            , name(EMPTY_STRING)
+            , path(EMPTY_STRING)
+            , semantic(EMPTY_STRING)
+            , value(nullptr)
+        {
+        }
+
+        Variable(const TypeDesc* t, const string& n, const string& p, const string& s, ValuePtr v)
             : type(t)
             , name(n)
+            , path(p)
             , semantic(s)
             , value(v)
-        {}
+        {
+        }
 
         void getArraySuffix(string& result) const
         {
@@ -78,8 +98,6 @@ public:
         }
     };
 
-    using VariablePtr = std::shared_ptr<Variable>;
-
     /// A block of variables for a shader stage
     struct VariableBlock
     {
@@ -90,6 +108,9 @@ public:
 
         VariableBlock(const string& n, const string& i) : name(n), instance(i) {}    
         bool empty() const { return variableOrder.empty(); }
+        size_t size() const { return variableOrder.size(); }
+        Variable* operator[](size_t i) { return variableOrder[i]; }
+        const Variable* operator[](size_t i) const { return variableOrder[i]; }
     };
 
     using VariableBlockPtr = std::shared_ptr<VariableBlock>;
@@ -135,7 +156,7 @@ public:
 
     /// Create a new constant variable for a stage.
     virtual void createConstant(size_t stage, const TypeDesc* type, const string& name,
-        const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
+                                const string& path = EMPTY_STRING, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
 
     /// Create a new variable block for uniform inputs in a stage.
     virtual void createUniformBlock(size_t stage, const string& block, const string& instance = EMPTY_STRING);
@@ -143,7 +164,7 @@ public:
     /// Create a new variable for uniform data in the given block for a stage.
     /// The block must be previously created with createUniformBlock.
     virtual void createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name,
-        const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
+                               const string& path = EMPTY_STRING, const string& semantic = EMPTY_STRING, ValuePtr value = nullptr);
 
     /// Create a new variable for application/geometric data (primvars).
     virtual void createAppData(const TypeDesc* type, const string& name, const string& semantic = EMPTY_STRING);
@@ -159,6 +180,9 @@ public:
 
     /// Return the block of application data variables.
     const VariableBlock& getAppDataBlock() const { return _appData; }
+
+    /// Return the block of output variables.
+    const VariableBlock& getOutputBlock() const { return _outputs; }
 
     /// Start a new scope in the shader, using the given bracket type
     virtual void beginScope(Brackets brackets = Brackets::BRACES);
@@ -224,8 +248,8 @@ public:
     /// Return true if this shader matches the given classification.
     bool hasClassification(unsigned int c) const { return getGraph()->hasClassification(c); }
 
-    /// Return the vdirection requested in the current document.
-    VDirection getRequestedVDirection() const { return _vdirection; }
+    /// Return the default vdirection which is up.
+    static VDirection getDefaultVDirection() { return VDirection::UP; }
 
     /// Return the final shader source code for a given shader stage
     const string& getSourceCode(size_t stage = PIXEL_STAGE) const { return _stages[stage].code; }
@@ -273,6 +297,9 @@ protected:
 
     // Block holding application/geometric input variables
     VariableBlock _appData;
+
+    // Block holding output variables
+    VariableBlock _outputs;
 };
 
 /// @class @ExceptionShaderGenError

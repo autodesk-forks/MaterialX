@@ -1,6 +1,7 @@
 #ifndef MATERIALX_SHADERGENERATOR_H
 #define MATERIALX_SHADERGENERATOR_H
 
+#include <MaterialXGenShader/ColorManagementSystem.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/Syntax.h>
 #include <MaterialXGenShader/Factory.h>
@@ -33,12 +34,12 @@ public:
     /// Return a unique identifyer for the target this generator is for
     virtual const string& getTarget() const = 0;
 
-    /// Generate a shader starting from the given element, translating 
+    /// Generate a shader starting from the given element, translating
     /// the element and all dependencies upstream into shader code.
     virtual ShaderPtr generate(const string& shaderName, ElementPtr element, const GenOptions& options) = 0;
 
-    /// Emit typedefs for all data types that needs it
-    virtual void emitTypeDefs(Shader& shader);
+    /// Emit type definitions for all data types that needs it.
+    virtual void emitTypeDefinitions(Shader& shader);
 
     /// Emit function definitions for all nodes
     virtual void emitFunctionDefinitions(Shader& shader);
@@ -49,10 +50,10 @@ public:
     /// Emit the final output expression
     virtual void emitFinalOutput(Shader& shader) const;
 
-    /// Emit a shader constant input variable 
+    /// Emit a shader constant input variable
     virtual void emitConstant(const Shader::Variable& uniform, Shader& shader);
 
-    /// Emit a shader uniform input variable 
+    /// Emit a shader uniform input variable
     virtual void emitUniform(const Shader::Variable& uniform, Shader& shader);
 
     /// Emit the connected variable name for an input,
@@ -67,13 +68,13 @@ public:
     /// and default value assignment.
     virtual void emitOutput(const GenContext& context, const ShaderOutput* output, bool includeType, bool assignDefault, Shader& shader) const;
 
-    /// Return the v-direction used by the target system
-    virtual Shader::VDirection getTargetVDirection() const;
-
     /// Return the syntax object for the language used by the code generator
     const Syntax* getSyntax() const { return _syntax.get(); }
 
-    /// Add node contexts id's to the given node to control 
+    /// Return the v-direction used by the target system
+    virtual Shader::VDirection getTargetVDirection() const;
+
+    /// Add node contexts id's to the given node to control
     /// in which contexts this node should be used.
     virtual void addNodeContextIDs(ShaderNode* node) const;
 
@@ -90,11 +91,23 @@ public:
     /// Determine if a shader node implementation has been registered for a given implementation element name
     bool implementationRegistered(const string& name) const;
 
+    /// Sets the color management system
+    void setColorManagementSystem(ColorManagementSystemPtr colorManagementSystem)
+    {
+        _colorManagementSystem = colorManagementSystem;
+    }
+
+    /// Returns the color management system
+    ColorManagementSystemPtr getColorManagementSystem()
+    {
+        return _colorManagementSystem;
+    }
+
     /// Return a registered shader node implementation given an implementation element.
     /// The element must be an Implementation or a NodeGraph acting as implementation.
-    /// If no registered implementation is found a 'default' implementation instance 
+    /// If no registered implementation is found a 'default' implementation instance
     /// will be returned, as defined by the createDefaultImplementation method.
-    ShaderNodeImplPtr getImplementation(InterfaceElementPtr element);
+    ShaderNodeImplPtr getImplementation(InterfaceElementPtr element, const GenOptions& options);
 
     /// Add to the search path used for finding source code.
     void registerSourceCodeSearchPath(const FilePath& path);
@@ -108,6 +121,43 @@ public:
         return _sourceCodeSearchPath;
     }
 
+    /// Given a input element attempt to remap this to an enumeration which is accepted by
+    /// the shader generator. The enumeration may be of a different type than the input value type.
+    /// @param input Input value element to test.
+    /// @param mappingElement Element which provides enumeration information for mapping.
+    /// @param enumerationType Enumeration type description (returned).
+    /// @return Enumeration value. Null if no remapping is performed.
+    virtual ValuePtr remapEnumeration(const ValueElementPtr& /*input*/, const InterfaceElement& /*mappingElement*/, const TypeDesc*& /*enumerationType*/)
+    {
+        return nullptr;
+    }
+
+    /// Given a input specification (name, value, type) attempt to remap this to an enumeration which is accepted by
+    /// the shader generator. The enumeration may be of a different type than the input value type.
+    /// which is accepted by the shader generator.
+    /// @param inputName Name of input parameter.
+    /// @param inputValue Input value to test.
+    /// @param inputType Input type.
+    /// @param mappingElement Element which provides enumeration information for mapping.
+    /// @param enumerationType Enumeration type description (returned).
+    /// @return Enumeration value. Null if no remapping is performed.
+    virtual ValuePtr remapEnumeration(const string& /*inputName*/, const string& /*inputValue*/, const string& /*inputType*/,
+                                      const InterfaceElement& /*mappingElement*/, const TypeDesc*& /*enumerationType*/)
+    {
+        return nullptr;
+    }
+
+    /// Return a cached implementation if used during shader generation
+    const ShaderNodeImplPtr getCachedImplementation(const string& name) const
+    {
+        auto it = _cachedImpls.find(name);
+        if (it != _cachedImpls.end())
+        {
+            return it->second;
+        }
+        return nullptr;
+    }
+
 public:
     /// Identifiers for contexts
     enum Context
@@ -119,7 +169,7 @@ protected:
     /// Protected constructor
     ShaderGenerator(SyntaxPtr syntax);
 
-    /// Create a default implementation which is the implementation class to use 
+    /// Create a default implementation which is the implementation class to use
     /// for nodes that has no specific implementation registered for it.
     /// Derived classes can override this to use custom default implementations.
     virtual ShaderNodeImplPtr createDefaultImplementation(ImplementationPtr impl);
@@ -129,7 +179,7 @@ protected:
     /// Derived classes can override this to use custom compound implementations.
     virtual ShaderNodeImplPtr createCompoundImplementation(NodeGraphPtr impl);
 
-    /// Create a new node context with the given id. The context is added to the 
+    /// Create a new node context with the given id. The context is added to the
     /// shader generators node context storage and returned.
     GenContextPtr createContext(int id);
 
@@ -144,7 +194,7 @@ protected:
     /// @param variable Variable to emit
     /// @param qualifier Optional qualifier to add before the variable declaration.
     /// Qualifiers are specified by the syntax for the generator.
-    /// @shader Shader source to emit output to
+    /// @param shader Shader source to emit output to
     virtual void emitVariable(const Shader::Variable& variable, const string& qualifier, Shader& shader);
 
     SyntaxPtr _syntax;
@@ -155,6 +205,8 @@ protected:
 
     std::unordered_map<int, GenContextPtr> _contexts;
     GenContextPtr _defaultContext;
+
+    ColorManagementSystemPtr _colorManagementSystem;
 };
 
 } // namespace MaterialX

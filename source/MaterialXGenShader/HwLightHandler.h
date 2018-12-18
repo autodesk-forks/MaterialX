@@ -10,6 +10,7 @@ namespace MaterialX
 {
 
 class HwShaderGenerator;
+class GenOptions;
 
 /// Shared pointer to a LightSource
 using LightSourcePtr = std::shared_ptr<class LightSource>;
@@ -35,26 +36,9 @@ public:
     }
 
     /// Set a light parameter value
-    template<typename T>
-    void setParameter(const string& name, const T& value)
+    void setParameter(const string& name, const ValuePtr value)
     {
-        ParameterMap::iterator it = _parameters.find(name);
-        if (it != _parameters.end())
-        {
-            if (!it->second)
-            {
-                it->second = Value::createValue<T>(value);
-            }
-            else
-            {
-                TypedValue<T>* typedVal = dynamic_cast<TypedValue<T>*>(it->second.get());
-                if (!typedVal)
-                {
-                    throw Exception("Incorrect type when setting light paramater");
-                }
-                typedVal->setData(value);
-            }
-        }
+        _parameters[name] = value;
     }
 
 protected:
@@ -71,7 +55,7 @@ protected:
 using HwLightHandlerPtr = std::shared_ptr<class HwLightHandler>;
 
 /// @class @HwLightHandler
-/// Utility light handler for creating and providing 
+/// Utility light handler for creating and providing
 /// light data for shader binding.
 ///
 class HwLightHandler
@@ -85,7 +69,7 @@ public:
 
     /// Default constructor
     HwLightHandler();
-    
+
     /// Default destructor
     virtual ~HwLightHandler();
 
@@ -105,11 +89,37 @@ public:
     /// Bind all added light shaders to the given shader generator.
     /// Only the light shaders bound to the generator will have their
     /// code emitted during shader generation.
-    void bindLightShaders(HwShaderGenerator& shadergen) const;
+    void bindLightShaders(HwShaderGenerator& shadergen, const GenOptions& options) const;
+
+    /// Set path to irradiance IBL image
+    void setLightEnvIrradiancePath(const string& path)
+    {
+        _lightEnvIrradiancePath = path;
+    }
+
+    /// Get path to irradiance IBL image
+    const string& getLightEnvIrradiancePath() const
+    {
+        return _lightEnvIrradiancePath;
+    }
+
+    /// Set path to radiance IBL image
+    void setLightEnvRadiancePath(const string& path)
+    {
+        _lightEnvRadiancePath = path;
+    }
+
+    /// Get path to radiance IBL image
+    const string& getLightEnvRadiancePath() const
+    {
+        return _lightEnvRadiancePath;
+    }
 
 private:
     LightShaderMap _lightShaders;
     vector<LightSourcePtr> _lightSources;
+    string _lightEnvIrradiancePath;
+    string _lightEnvRadiancePath;
 };
 
 } // namespace MaterialX

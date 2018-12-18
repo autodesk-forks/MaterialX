@@ -54,43 +54,33 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     const std::string errorType("OSL rendering error.");
 
     // If command options missing, skip testing.
-    if (_oslTestRenderExecutable.empty() || _oslIncludePathString.empty() || 
+    if (_oslTestRenderExecutable.empty() || _oslIncludePathString.empty() ||
         _oslTestRenderSceneTemplateFile.empty() || _oslUtilityOSOPath.empty())
     {
         errors.push_back("Command input arguments are missing");
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
+    static const StringSet RENDERABLE_TYPES = { "float", "color", "vector", "closure color", "color2", "color4", "vector2", "vector4" };
+    static const StringSet REMAPPABLE_TYPES = { "color2", "color4", "vector2", "vector4" };
+
     // If the output type is not which can be supported for rendering then skip testing.
-    bool remappableTuple = (_oslShaderOutputType == getTypeString<Color2>() ||
-        _oslShaderOutputType == getTypeString<Color4>() ||
-        _oslShaderOutputType == getTypeString<Vector2>() ||
-        _oslShaderOutputType == getTypeString<Vector4>());
-    bool directTuple = (_oslShaderOutputType == getTypeString<float>() ||
-        _oslShaderOutputType == getTypeString<Color3>() ||
-        _oslShaderOutputType == getTypeString<Vector3>());
-    bool isColorClosure = (_oslShaderOutputType == OSL_CLOSURE_COLOR_STRING);
-    if (!(remappableTuple || directTuple || isColorClosure))
+    if (RENDERABLE_TYPES.count(_oslShaderOutputType) == 0)
     {
         errors.push_back("Output type to render is not supported: " + _oslShaderOutputType);
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    // The original output type has been renamed to color3 so don't need to
-    // remap during validation.
-    bool requiresTypeMapping = remappableTuple;
-    if (requiresTypeMapping && _remappedShaderOutput)
-    {
-        requiresTypeMapping = false;
-    }
+    const bool isColorClosure = _oslShaderOutputType == "closure color";
+    const bool isRemappable = REMAPPABLE_TYPES.count(_oslShaderOutputType) != 0;
 
     // Determine the shader path from output path and shader name
     FilePath shaderFilePath(outputPath);
     shaderFilePath = shaderFilePath / shaderName;
     std::string shaderPath = shaderFilePath.asString();
 
-    // Set output image name. 
-    std::string outputFileName = shaderPath + ".testrender.png";
+    // Set output image name.
+    std::string outputFileName = shaderPath + "_osl.png";
 
     // Use a known error file name to check
     std::string errorFile(shaderPath + "_render_errors.txt");
@@ -104,29 +94,12 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     sceneTemplateString.assign(std::istreambuf_iterator<char>(sceneTemplateStream),
         std::istreambuf_iterator<char>());
 
-    StringMap replacementMap;
-    std::string outputShader;
+    // Get final output to use in the shader
     const std::string CLOSURE_PASSTHROUGH_SHADER_STRING("closure_passthrough");
     const std::string CONSTANT_COLOR_SHADER_STRING("constant_color");
     const std::string CONSTANT_COLOR_SHADER_PREFIX_STRING("constant_");
-    if (isColorClosure)
-    {
-        // Want a closure color passthrough shader
-        outputShader = CLOSURE_PASSTHROUGH_SHADER_STRING;
-    }
-    else
-    {
-        if (!requiresTypeMapping)
-        {
-            // Want a constant color3/vector3 shader
-            outputShader = CONSTANT_COLOR_SHADER_STRING;
-        }
-        else
-        {
-            // Want a specific 2 or 4 shader
-            outputShader = CONSTANT_COLOR_SHADER_PREFIX_STRING + _oslShaderOutputType;
-        }
-    }
+    std::string outputShader = isColorClosure ? CLOSURE_PASSTHROUGH_SHADER_STRING :
+        (isRemappable ? CONSTANT_COLOR_SHADER_PREFIX_STRING + _oslShaderOutputType : CONSTANT_COLOR_SHADER_STRING);
 
     // Perform token replacement
     const std::string OUTPUT_SHADER_TYPE_STRING("%output_shader_type%");
@@ -134,9 +107,10 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     const std::string OUTPUT_SHADER_INPUT_VALUE_STRING("Cin");
     const std::string INPUT_SHADER_TYPE_STRING("%input_shader_type%");
     const std::string INPUT_SHADER_OUTPUT_STRING("%input_shader_output%");
-    const std::string BACKGROUND_COLOR_STRING("%background_color%");    
-    const string backgroundColor("0.5 0.6 0.7"); // TODO: Make this a user input
+    const std::string BACKGROUND_COLOR_STRING("%background_color%");
+    const string backgroundColor("0.0 0.0 0.0"); // TODO: Make this a user input
 
+    StringMap replacementMap;
     replacementMap[OUTPUT_SHADER_TYPE_STRING] = outputShader;
     replacementMap[OUTPUT_SHADER_INPUT_STRING] = OUTPUT_SHADER_INPUT_VALUE_STRING;
     replacementMap[INPUT_SHADER_TYPE_STRING] = shaderName;
@@ -145,7 +119,7 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     std::string sceneString = replaceSubstrings(sceneTemplateString, replacementMap);
     if ((sceneString == sceneTemplateString) || sceneTemplateString.empty())
     {
-        errors.push_back("Scene template file: " + _oslTestRenderSceneTemplateFile + 
+        errors.push_back("Scene template file: " + _oslTestRenderSceneTemplateFile +
                          " does not include proper tokens for rendering.");
         throw ExceptionShaderValidationError(errorType, errors);
     }
@@ -169,7 +143,7 @@ void OslValidator::renderOSL(const std::string& outputPath, const std::string& s
     std::string command(_oslTestRenderExecutable);
     command += " " + sceneFileName;
     command += " " + outputFileName;
-    command += " --path " + osoPaths;
+    command += " -r 512 512 --path " + osoPaths;
     if (isColorClosure)
     {
         command += " -aa 4 "; // Images are very noisy without anti-aliasing
@@ -205,7 +179,7 @@ void OslValidator::shadeOSL(const std::string& outputPath, const std::string& sh
     shaderFilePath = shaderFilePath / shaderName;
     std::string shaderPath = shaderFilePath.asString();
 
-    // Set output image name. 
+    // Set output image name.
     std::string outputFileName = shaderPath + ".testshade.png";
 
     // Use a known error file name to check
@@ -229,7 +203,7 @@ void OslValidator::shadeOSL(const std::string& outputPath, const std::string& sh
     std::string result;
     std::vector<std::string> results;
     std::string line;
-    std::string successfulOutputSubString("Output " + outputName + " to " + 
+    std::string successfulOutputSubString("Output " + outputName + " to " +
                                            outputFileName);
     while (std::getline(errorStream, line))
     {
@@ -263,7 +237,7 @@ void OslValidator::compileOSL(const std::string& oslFileName)
         return;
     }
 
-    // Remove .osl and add .oso extension for output. 
+    // Remove .osl and add .oso extension for output.
     std::string outputFileName = removeExtension(oslFileName);
     outputFileName += ".oso";
 
@@ -335,7 +309,7 @@ void OslValidator::validateCreation(const std::vector<std::string>& stages)
     // TODO: Seems testrender will crash currently when trying to convert to "object" space.
     // Thus we replace all instances of "object" with "world" to avoid issues.
     StringMap spaceMap;
-    spaceMap["\"object\""] = "\"world\"";    
+    spaceMap["\"object\""] = "\"world\"";
     std::string oslCode = replaceSubstrings(stages[0], spaceMap);
 
     std::ofstream file;
@@ -390,7 +364,7 @@ void OslValidator::validateRender(bool /*orthographicView*/)
     }
 }
 
-void OslValidator::save(const std::string& /*fileName*/)
+void OslValidator::save(const std::string& /*fileName*/, bool /*floatingPoint*/)
 {
     // No-op: image save is done as part of rendering.
 }

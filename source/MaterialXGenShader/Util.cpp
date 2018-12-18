@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <unordered_set>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -186,10 +187,16 @@ namespace
         for (GraphIterator it = output->traverseGraph().begin(); it != GraphIterator::end(); ++it)
         {
             ElementPtr upstreamElem = it.getUpstreamElement();
+            if (!upstreamElem)
+            {            
+                it.setPruneSubgraph(true);
+                continue;
+            }
 
             const string& typeName = upstreamElem->asA<TypedElement>()->getType();
             const TypeDesc* type = TypeDesc::get(typeName);
-            if (type != Type::SURFACESHADER && type != Type::BSDF)
+            bool isFourChannelOutput = type == Type::COLOR4 || type == Type::VECTOR4;
+            if (type != Type::SURFACESHADER && type != Type::BSDF && !isFourChannelOutput)
             {
                 it.setPruneSubgraph(true);
                 continue;
@@ -215,7 +222,7 @@ namespace
                     else if (opacity->getNodeName() == EMPTY_STRING && opacity->getInterfaceName() == EMPTY_STRING)
                     {
                         ValuePtr value = opacity->getValue();
-                        if (!value || isOne(value->asA<float>()))
+                        if (!value || (value->isA<float>() && isOne(value->asA<float>())))
                         {
                             opaque = true;
                         }
@@ -239,7 +246,7 @@ namespace
                     {
                         // Unconnected, check the value
                         ValuePtr value = weight->getValue();
-                        if (value && isZero(value->asA<float>()))
+                        if (value && value->isA<float>() && isZero(value->asA<float>()))
                         {
                             opaque = true;
                         }
@@ -253,7 +260,7 @@ namespace
                         {
                             // Unconnected, check the value
                             ValuePtr value = tint->getValue();
-                            if (value && isBlack(value->asA<Color3>()))
+                            if (!value || (value->isA<Color3>() && isBlack(value->asA<Color3>())))
                             {
                                 opaque = true;
                             }
@@ -282,7 +289,7 @@ namespace
                     {
                         // Unconnected, check the value
                         ValuePtr value = transmission->getValue();
-                        if (!value || isZero(value->asA<float>()))
+                        if (!value || (value->asA<float>() && isZero(value->asA<float>())))
                         {
                             opaque = true;
                         }
@@ -300,7 +307,7 @@ namespace
                         {
                             // Unconnected, check the value
                             ValuePtr value = opacity->getValue();
-                            if (!value || isWhite(value->asA<Color3>()))
+                            if (!value || (value->isA<Color3>() && isWhite(value->asA<Color3>())))
                             {
                                 opaque = true;
                             }
@@ -339,6 +346,10 @@ namespace
                                     }
                                 }
                             }
+                        }
+                        else if (isFourChannelOutput)
+                        {
+                            ++numCandidates;
                         }
                     }
                 }
@@ -447,80 +458,297 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
     return false;
 }
 
-ValuePtr getImplementationValue(const ValueElementPtr& elem, const InterfaceElementPtr impl, const NodeDef& nodeDef,
-                                string& implType) 
+void mapValueToColor(const ValuePtr value, Color4& color)
 {
-    const string& valueElementName = elem->getName();
-    const string& valueString = elem->getValueString();
-
-    ParameterPtr implParam = impl->getParameter(valueElementName);
-    if (!implParam)
+    color = { 0.0, 0.0, 0.0, 1.0 };
+    if (!value)
     {
-        return nullptr;
+        return;
     }
-
-    ValueElementPtr nodedefElem = nodeDef.getChildOfType<ValueElement>(valueElementName);
-    if (!nodedefElem)
+    if (value->isA<float>())
     {
-        return nullptr;
+        color[0] = value->asA<float>();
     }
-
-    const string& elemType = elem->getType();
-    implType = implParam->getAttribute(ValueElement::IMPLEMENTATION_TYPE_ATTRIBUTE);
-    if (implType.empty())
+    else if (value->isA<Color2>())
     {
-        implType = elemType;
+        Color2 v = value->asA<Color2>();
+        color[0] = v[0];
+        color[3] = v[1]; // Component 2 maps to alpha
     }
-    const TypeDesc* implTypeDesc = TypeDesc::get(implType);
-    if (implTypeDesc->isArray())
+    else if (value->isA<Color3>())
     {
-        return nullptr;
+        Color3 v = value->asA<Color3>();
+        color[0] = v[0];
+        color[1] = v[1];
+        color[2] = v[2];
     }
-    const string& implEnums = implParam->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
-    if (implType.empty() || implEnums.empty())
+    else if (value->isA<Color4>())
     {
-        return nullptr;
+        color = value->asA<Color4>();
     }
-
-    const string nodedefElemEnums = nodedefElem->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-    if (nodedefElemEnums.empty())
+    else if (value->isA<Vector2>())
     {
-        return nullptr;
+        Vector2 v = value->asA<Vector2>();
+        color[0] = v[0];
+        color[1] = v[1];
     }
-
-    // Find the list index of the Value string in list fo nodedef enums.
-    // Use this index to lookup the implementation list value.
-    int implIndex = -1;
-    StringVec implEnumsVec = splitString(implEnums, ",");
-    size_t implTypeDescSize = implTypeDesc->getSize();
-    size_t implEnumsVecCount = implEnumsVec.size() / implTypeDescSize;
-
-    StringVec nodedefElemEnumsVec = splitString(nodedefElemEnums, ",");
-    const TypeDesc* elemTypeDesc = TypeDesc::get(elemType);
-    size_t nodedefElemEnumVecCount = nodedefElemEnumsVec.size() / elemTypeDesc->getSize();
-
-    if (implEnumsVecCount == nodedefElemEnumVecCount)
+    else if (value->isA<Vector3>())
     {
-        auto pos = std::find(nodedefElemEnumsVec.begin(), nodedefElemEnumsVec.end(), valueString);
-        if (pos != nodedefElemEnumsVec.end())
+        Vector3 v = value->asA<Vector3>();
+        color[0] = v[0];
+        color[1] = v[1];
+        color[2] = v[2];
+    }
+    else if (value->isA<Vector4>())
+    {
+        Vector4 v = value->asA<Vector4>();
+        color[0] = v[0];
+        color[1] = v[1];
+        color[2] = v[2];
+        color[3] = v[3];
+    }
+}
+
+bool requiresImplementation(const NodeDefPtr nodeDef)
+{
+    if (!nodeDef)
+    {
+        return false;
+    }
+    static std::string TYPE_NONE("none");
+    const std::string& typeAttribute = nodeDef->getType();
+    return !typeAttribute.empty() && typeAttribute != TYPE_NONE;
+}
+
+bool elementRequiresShading(const TypedElementPtr element)
+{
+    std::string elementType(element->getType());
+    static std::set<std::string> colorClosures =
+    {
+        "surfaceshader", "volumeshader", "lightshader",
+        "BSDF", "EDF", "VDF"
+    };
+    return (element->isA<ShaderRef>() ||
+            colorClosures.count(elementType) > 0);
+}
+
+void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>& elements)
+{
+    std::vector<NodeGraphPtr> nodeGraphs = doc->getNodeGraphs();
+    std::vector<OutputPtr> outputList = doc->getOutputs();
+    std::unordered_set<OutputPtr> outputSet(outputList.begin(), outputList.end());
+    std::vector<MaterialPtr> materials = doc->getMaterials();
+
+    if (!materials.empty() || !nodeGraphs.empty() || !outputList.empty())
+    {
+        std::unordered_set<OutputPtr> shaderrefOutputs;
+        for (auto material : materials)
         {
-            implIndex = static_cast<int>(std::distance(nodedefElemEnumsVec.begin(), pos));
+            for (auto shaderRef : material->getShaderRefs())
+            {
+                if (!shaderRef->hasSourceUri())
+                {
+                    // Add in all shader references which are not part of a node definition library
+                    NodeDefPtr nodeDef = shaderRef->getNodeDef();
+                    if (nodeDef && 
+                        requiresImplementation(nodeDef))
+                    {
+                        elements.push_back(shaderRef);
+                    }
+
+                    // Find all bindinputs which reference outputs and outputgraphs
+                    for (auto bindInput : shaderRef->getBindInputs())
+                    {
+                        OutputPtr outputPtr = bindInput->getConnectedOutput();
+                        if (outputPtr)
+                        {
+                            shaderrefOutputs.insert(outputPtr);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Find node graph outputs. Skip any light shaders
+        const std::string LIGHT_SHADER("lightshader");
+        for (NodeGraphPtr nodeGraph : nodeGraphs)
+        {
+            // Skip anything from an include file including libraries.
+            if (!nodeGraph->hasSourceUri())
+            {
+                std::vector<OutputPtr> nodeGraphOutputs = nodeGraph->getOutputs();
+                for (OutputPtr output : nodeGraphOutputs)
+                {
+                    NodePtr outputNode = output->getConnectedNode();
+
+                    // For now we skip any outputs which are referenced elsewhere.
+                    if (outputNode && 
+                        outputNode->getType() != LIGHT_SHADER &&
+                        shaderrefOutputs.count(output) == 0)
+                    {                        
+                        NodeDefPtr nodeDef = outputNode->getNodeDef();
+                        if (nodeDef &&
+                            requiresImplementation(nodeDef))
+                        {
+                            outputSet.insert(output);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add in all outputs which are not part of a library
+        for (OutputPtr output : outputSet)
+        {
+            if (!output->hasSourceUri())
+            {
+                elements.push_back(output);
+            }
         }
     }
-    // There is no mapping or no value string so just choose the first implementation list string.
-    if (implIndex < 0)
+}
+
+ValueElementPtr findNodeDefChild(const string& path, DocumentPtr doc, const string& target)
+{
+    if (path.empty() || !doc)
     {
-        implIndex = 0;
+        return nullptr;
+    }
+    ElementPtr pathElement = doc->getDescendant(path);
+    if (!pathElement || pathElement == doc)
+    {
+        return nullptr;
+    }
+    ElementPtr parent = pathElement->getParent();
+    if (!parent || parent == doc)
+    {
+        return nullptr;
     }
 
-    // Build a string out to create a value from
-    size_t startIndex = implIndex * implTypeDescSize;
-    string newValueString(implEnumsVec[startIndex]);
-    for (size_t i = 1; i < implTypeDescSize; i++)
+    // Note that we must cast to a specific type derived instance as getNodeDef() is not
+    // a virtual method which is overridden in derived classes.
+    NodeDefPtr nodeDef = nullptr;
+    ShaderRefPtr shaderRef = parent->asA<ShaderRef>();
+    if (shaderRef)
     {
-        newValueString.append("," + implEnumsVec[startIndex + i]);
+        nodeDef = shaderRef->getNodeDef();
     }
-    return Value::createValueFromStrings(newValueString, implType);
+    else
+    {
+        NodePtr node = parent->asA<Node>();
+        if (node)
+        {
+            nodeDef = node->getNodeDef(target);
+        }
+    }
+    if (!nodeDef)
+    {
+        return nullptr;
+    }
+
+    // Use the path element name to look up in the equivalent element
+    // in the nodedef as only the nodedef elements contain the information.
+    const std::string& valueElementName = pathElement->getName();
+    ValueElementPtr valueElement = nodeDef->getChildOfType<ValueElement>(valueElementName);
+
+    return valueElement;
+}
+
+unsigned int getUIProperties(const ValueElementPtr nodeDefElement, UIProperties& uiProperties)
+{
+    if (!nodeDefElement)
+    {
+        return 0;
+    }
+
+    unsigned int propertyCount = 0;
+    uiProperties.uiName = nodeDefElement->getAttribute(ValueElement::UI_NAME_ATTRIBUTE);
+    if (!uiProperties.uiName.empty())
+        propertyCount++;
+
+    uiProperties.uiFolder = nodeDefElement->getAttribute(ValueElement::UI_FOLDER_ATTRIBUTE);
+    if (!uiProperties.uiFolder.empty())
+        propertyCount++;
+
+    if (nodeDefElement->isA<Parameter>())
+    {
+        string enumString = nodeDefElement->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+        if (!enumString.empty())
+        {
+            uiProperties.enumeration = splitString(enumString, ",");
+            if (uiProperties.enumeration.size())
+                propertyCount++;
+        }
+
+        const string& enumerationValues = nodeDefElement->getAttribute(ValueElement::ENUM_VALUES_ATTRIBUTE);
+        if (!enumerationValues.empty())
+        {
+            const string& elemType = nodeDefElement->getType();
+            const TypeDesc* typeDesc = TypeDesc::get(elemType);
+            if (typeDesc->isScalar() || typeDesc->isFloat2() || typeDesc->isFloat3() || 
+                typeDesc->isFloat4())
+            {
+                StringVec stringValues = splitString(enumerationValues, ",");
+                string valueString;
+                size_t elementCount = typeDesc->getSize();
+                elementCount--;
+                size_t count = 0;
+                for (size_t i = 0; i < stringValues.size(); i++)
+                {
+                    if (count == elementCount)
+                    { 
+                        valueString += stringValues[i];
+                        uiProperties.enumerationValues.push_back(Value::createValueFromStrings(valueString, elemType));
+                        valueString.clear();
+                        count = 0;
+                    }
+                    else
+                    {
+                        valueString += stringValues[i] + ",";
+                        count++;
+                    }
+                }
+            }
+            else
+            {
+                uiProperties.enumerationValues.push_back(Value::createValue(enumerationValues));
+            }
+            propertyCount++;
+        }
+    }
+
+    const string& uiMinString = nodeDefElement->getAttribute(ValueElement::UI_MIN_ATTRIBUTE);
+    if (!uiMinString.empty())
+    {
+        ValuePtr value = Value::createValueFromStrings(uiMinString, nodeDefElement->getType());
+        if (value)
+        {
+            uiProperties.uiMin = value;
+            propertyCount++;
+        }
+    }
+
+    const string& uiMaxString = nodeDefElement->getAttribute(ValueElement::UI_MAX_ATTRIBUTE);
+    if (!uiMaxString.empty())
+    {
+        ValuePtr value = Value::createValueFromStrings(uiMaxString, nodeDefElement->getType());
+        if (value)
+        {
+            uiProperties.uiMax = value;
+            propertyCount++;
+        }
+    }
+    return propertyCount;
+}
+
+unsigned int getUIProperties(const string& path, DocumentPtr doc, const string& target, UIProperties& uiProperties)
+{
+    ValueElementPtr valueElement = findNodeDefChild(path, doc, target);
+    if (valueElement)
+    {
+        return getUIProperties(valueElement, uiProperties);
+    }
+    return 0;
 }
 
 } // namespace MaterialX
