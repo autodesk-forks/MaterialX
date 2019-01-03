@@ -13,7 +13,8 @@ unsigned int HwLightHandler::getLightType(NodePtr node)
     if (on64BitPlatform)
     {
         // Convert hash to 32-bits
-        return static_cast<unsigned int>(hash & 0xFFFFFFFF) ^ static_cast<unsigned int>((hash >> 32) & 0xFFFFFFFF);
+        return static_cast<unsigned int>(hash & 0xFFFFFFFF) ^
+               static_cast<unsigned int>((static_cast<unsigned long long>(hash) >> 32) & 0xFFFFFFFF);
     }
     else
     {
