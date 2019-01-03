@@ -13,17 +13,7 @@ environment:
       PYTHON: C:\Python27-x64
       VS_PLATFORM: Windows
       VS_COMPILER: vs2015
-      configuration: Debug
-    - CMAKE_PLATFORM: "Visual Studio 14 2015 Win64"
-      PYTHON: C:\Python27-x64
-      VS_PLATFORM: Windows
-      VS_COMPILER: vs2015
       configuration: Release
-    - CMAKE_PLATFORM: "Visual Studio 14 2015 Win64"
-      PYTHON: C:\Python27-x64
-      VS_PLATFORM: Windows
-      VS_COMPILER: vs2015
-      configuration: RelWithDebInfo
     - CMAKE_PLATFORM: "Visual Studio 15 2017"
       PYTHON: C:\Python36
       VS_PLATFORM: Windows_x86
