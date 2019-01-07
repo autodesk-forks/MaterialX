@@ -22,7 +22,7 @@ option(MATERIALX_TEST_RENDER "Run tests for MaterialX Render module. Requires a 
 option(MATERIALX_BUILD_GEN_OSL "Build the OSL shader generator back-end." ON)
 option(MATERIALX_BUILD_GEN_GLSL "Build the GLSL shader generator back-end." ON)
 cmake_dependent_option(MATERIALX_BUILD_GEN_OGSFX "Build the OGSFX shader generator back-end." ON "MATERIALX_BUILD_GEN_GLSL" OFF)
-option(MATERIALX_BUILD_CONTRIB "Build contribution fold." ON)
+option(MATERIALX_BUILD_CONTRIB "Build contribution folder." ON)
 
 set(MATERIALX_OSLC_EXECUTABLE "" CACHE FILEPATH 
     "Full path to the oslc binary.")
