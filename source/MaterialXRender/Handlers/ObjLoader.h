@@ -20,7 +20,10 @@ class ObjLoader : public GeometryLoader
     static ObjLoaderPtr create() { return std::make_shared<ObjLoader>(); }
 
     /// Default constructor
-    ObjLoader() {}
+    ObjLoader() 
+    {
+        _extensions = { "obj", "OBJ" };
+    }
     
     /// Default destructor
     virtual ~ObjLoader() {}

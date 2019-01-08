@@ -165,10 +165,11 @@ class Mesh
 
     Mesh(const std::string& identifier) :
         _identifier(identifier),
-        _vertCount(0),
         _minimumBounds(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT),
         _maximumBounds(-MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT),
-        _sphereRadius(0.0f)
+        _sphereCenter(0.0f, 0.0f, 0.0f),
+        _sphereRadius(0.0f),
+        _vertCount(0)
     {
     }
     ~Mesh() { }
@@ -249,7 +250,7 @@ class Mesh
     }
 
     /// Add a partition
-    bool addPartition(MeshPartitionPtr partition)
+    void addPartition(MeshPartitionPtr partition)
     {
         _partitions.push_back(partition);
     }
@@ -262,7 +263,6 @@ class Mesh
 
   private:
     std::string _identifier;
-    std::string _index;
 
     Vector3 _minimumBounds;
     Vector3 _maximumBounds;
