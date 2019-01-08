@@ -76,17 +76,14 @@ static mx::GlslValidatorPtr createGLSLValidator(bool& orthographicView, const st
         validator->initialize();
         validator->setImageHandler(imageHandler);
         validator->setLightHandler(nullptr);
-        mx::GeometryHandlerPtr geometryHandler = validator->getGeometryHandler();
+        mx::GeometryHandler& geometryHandler = validator->getGeometryHandler();
         std::string geometryFile;
         if (fileName.length())
         {
             geometryFile =  mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/") / mx::FilePath(fileName);
-            geometryHandler->setIdentifier(geometryFile);
+            geometryHandler.loadGeometry(geometryFile);
         }
-        if (geometryHandler->getIdentifier() == geometryFile)
-        {
-            orthographicView = false;
-        }
+        orthographicView = false;
         initialized = true;
     }
     catch (mx::ExceptionShaderValidationError& e)
@@ -556,7 +553,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
             bool validated = false;
             try
             {
-                mx::GeometryHandlerPtr geomHandler = validator.getGeometryHandler();
+                mx::GeometryHandler& geomHandler = validator.getGeometryHandler();
 
                 bool isShader = mx::elementRequiresShading(element);
                 if (isShader)
@@ -577,7 +574,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     {
                         geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/shaderball.obj");
                     }
-                    geomHandler->setIdentifier(geomPath);
+                    geomHandler.loadGeometry(geomPath);
                     validator.setLightHandler(lightHandler);
                 }
                 else
@@ -598,7 +595,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     {
                         geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/sphere.obj");
                     }
-                    geomHandler->setIdentifier(geomPath);
+                    geomHandler.loadGeometry(geomPath);
                     validator.setLightHandler(nullptr);
                 }
 

@@ -1,30 +1,43 @@
+#include <MaterialXGenShader/Util.h>
 #include <MaterialXRender/Handlers/GeometryHandler.h>
 
 namespace MaterialX
 { 
-const std::string GeometryHandler::UNIT_QUAD("unit_quad");
-const std::string GeometryHandler::POSITION_ATTRIBUTE("i_position");
-const std::string GeometryHandler::NORMAL_ATTRIBUTE("i_normal");
-const std::string GeometryHandler::TEXCOORD_ATTRIBUTE("i_texcoord");
-const std::string GeometryHandler::TANGENT_ATTRIBUTE("i_tangent");
-const std::string GeometryHandler::BITANGENT_ATTRIBUTE("i_bitangent");
-const std::string GeometryHandler::COLOR_ATTRIBUTE("i_color");
 
-GeometryHandler::GeometryHandler() :
-    _identifier(UNIT_QUAD)
+void GeometryHandler::addLoader(GeometryLoaderPtr loader)
 {
-}
-
-GeometryHandler::~GeometryHandler() 
-{
-}
-
-void GeometryHandler::setIdentifier(const std::string& identifier)
-{
-    if (identifier != _identifier)
+    const StringVec& extensions = loader->supportedExtensions();
+    for (auto extension : extensions)
     {
-        _identifier = identifier;
+        _geometryLoaders.insert(std::pair<std::string, GeometryLoaderPtr>(extension, loader));
     }
+}
+
+bool GeometryHandler::loadGeometry(const std::string& fileName)
+{
+    // Early return if file already loaded
+    if (_fileName == fileName)
+        return true;
+
+    // Remove any existing meshes, and reset cached file name
+    _meshes.clear();
+    _fileName.clear();
+
+    std::pair <GeometryLoaderMap::iterator, GeometryLoaderMap::iterator> range;
+    string extension = MaterialX::getFileExtension(fileName);
+    range = _geometryLoaders.equal_range(extension);
+    GeometryLoaderMap::iterator first = --range.second;
+    GeometryLoaderMap::iterator last = --range.first;
+    for (auto it = first; it != last; --it)
+    {
+        bool loaded = it->second->load(fileName, _meshes);
+        if (loaded)
+        {
+            _fileName = fileName;
+            return true;
+        }
+    }
+    return false;
 }
 
 }

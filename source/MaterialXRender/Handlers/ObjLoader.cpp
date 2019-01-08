@@ -1,4 +1,4 @@
-#include <MaterialXRender/Handlers/ObjGeometryHandler.h>
+#include <MaterialXRender/Handlers/ObjLoader.h>
 #include <MaterialXCore/Util.h>
 
 #include <iostream>
@@ -10,142 +10,52 @@
 
 namespace MaterialX
 { 
-ObjGeometryHandler::ObjGeometryHandler() :
-    GeometryHandler()
+
+bool ObjLoader::load(const std::string& fileName, MeshList& meshList)
 {
-}
-
-ObjGeometryHandler::~ObjGeometryHandler()
-{
-}
-
-void ObjGeometryHandler::clearData()
-{
-    _indexing.clear();
-    _positionData.clear();
-    _normalData.clear();
-    _texcoordData[0].clear();
-    _tangentData[0].clear();
-    _bitangentData[0].clear();
-    _colorData[0].clear();
-    _texcoordData[1].clear();
-    _tangentData[1].clear();
-    _bitangentData[1].clear();
-    _colorData[1].clear();
-}
-
-
-void ObjGeometryHandler::setQuadData()
-{
-    GeometryHandler::setIdentifier(UNIT_QUAD);
-
-    // 2x2 quad centered around the origin in the X/Y plane which is
-    // assumed to be the screen plane.
-    _minimumBounds[0] = -0.5f;
-    _minimumBounds[1] = -0.5f;
-    _minimumBounds[2] = 0.0f;
-    _maximumBounds[0] = 0.5f;
-    _maximumBounds[1] = 0.5f;
-    _maximumBounds[2] = 0.0f;
-
-    _indexing = {
-        0, 1, 2, 0, 2, 3
-    };
-
-    _positionData =
-    {
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        0.5f, 0.5f, 0.0f,
-        -0.5f, 0.5f, 0.0f,
-    };
-    _normalData = {
-        0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f
-    };
-    _texcoordData[0] = {
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f
-    };
-    _texcoordData[1] = {
-        1.0f, 0.0f,
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f
-    };
-    _tangentData[0] = {
-        .0f, 1.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        -1.0f, 0.0f, 0.0f,
-        0.0f, -1.0f, 0.0f
-    };
-    _tangentData[1] = {
-        0.0f, -1.0f, 0.0f,
-        .0f, 1.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        -1.0f, 0.0f, 0.0f
-    };
-    _bitangentData[0] = {
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        -1.0f, 0.0f, 0.0f,
-        0.0f, -1.0f, 0.0f
-    };
-    _bitangentData[1] = {
-        0.0f, -1.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        -1.0f, 0.0f, 0.0f
-    };
-    _colorData[0] = {
-        1.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 0.0f, 1.0f
-    };
-    _colorData[1] = {
-        1.0f, 0.0f, 1.0f, 1.0f,
-        0.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 0.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 0.5f, 1.0f
-    };
-}
-
-void ObjGeometryHandler::readData()
-{
-    // If data already exists dont' re-read
-    // Data is cleared when a new identfier is set
-    if (!_positionData.empty())
-    {
-        return;
-    }
-
-    FloatBuffer pos;
-    FloatBuffer uv;
-    FloatBuffer norm;
-    IndexBuffer pidx;
-    IndexBuffer uvidx;
-    IndexBuffer nidx;
-
-    const float MAX_FLOAT = std::numeric_limits<float>::max();
-    const float MIN_FLOAT = std::numeric_limits<float>::min();
-    float minPos[3] = { MAX_FLOAT , MAX_FLOAT , MAX_FLOAT };
-    float maxPos[3] = { MIN_FLOAT, MIN_FLOAT, MIN_FLOAT };
-
     std::ifstream objfile;
-    objfile.open(_identifier);
+    objfile.open(fileName);
     if (!objfile.is_open())
     {
-        // Set to default if can't read file
-        setQuadData();
-        return;
+        return nullptr;
     }
 
-    std::string line;
+    MeshPtr mesh = Mesh::create(fileName);
+    MeshStreamPtr stream = MeshStream::create(MeshStream::POSITION_ATTRIBUTE, 0);
+    MeshFloatBuffer& positionData = stream->getData();
+    mesh->addStream(stream);
+
+    stream = MeshStream::create(MeshStream::NORMAL_ATTRIBUTE, 0);
+    MeshFloatBuffer& normalData = stream->getData();
+    mesh->addStream(stream);
+
+    stream = MeshStream::create(MeshStream::TEXCOORD_ATTRIBUTE, 0);
+    stream->setStride(2);
+    MeshFloatBuffer& texCoordData = stream->getData();
+    mesh->addStream(stream);
+
+    stream = MeshStream::create(MeshStream::TANGENT_ATTRIBUTE, 0);
+    //MeshFloatBuffer& tangent = stream->getData();
+    mesh->addStream(stream);
+
+    stream = MeshStream::create(MeshStream::BITANGENT_ATTRIBUTE, 0);
+    //MeshFloatBuffer& bitangents = stream->getData();
+    mesh->addStream(stream);
+
+    stream = MeshStream::create(MeshStream::COLOR_ATTRIBUTE, 0);
+    //MeshFloatBuffer& col = stream->getData();
+    stream->setStride(4);
+    mesh->addStream(stream);
+
+    MeshFloatBuffer pos;
+    MeshFloatBuffer uv;
+    MeshFloatBuffer norm;
+    MeshIndexBuffer pidx;
+    MeshIndexBuffer uvidx;
+    MeshIndexBuffer nidx;
+
+    Vector3 minPos = { MAX_FLOAT , MAX_FLOAT , MAX_FLOAT };
+    Vector3 maxPos = { -MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT };
 
     // Enable debugging of read by dumping to disk what was read in.
     // Disabled by default
@@ -158,6 +68,8 @@ void ObjGeometryHandler::readData()
 
     float val1, val2, val3;
     unsigned int ipos[4], iuv[4], inorm[4];
+    std::string line;
+    size_t faceCount = 0;
     while (std::getline(objfile, line))
     {
         if (line.substr(0, 2) == "v ")
@@ -207,7 +119,7 @@ void ObjGeometryHandler::readData()
         }
         else if (line.substr(0, 2) == "f ")
         {
-            // Extact out the compont parts from face string
+            // Extact out the component parts from face string
             //
             std::istringstream valstring(line.substr(2));
             std::string vertices[4];
@@ -234,6 +146,8 @@ void ObjGeometryHandler::readData()
 
             if (vertexCount >= 3)
             {
+                faceCount++;
+
                 pidx.push_back(ipos[0] - 1);
                 pidx.push_back(ipos[1] - 1);
                 pidx.push_back(ipos[2] - 1);
@@ -256,6 +170,8 @@ void ObjGeometryHandler::readData()
 
                 if (vertexCount >= 4)
                 {
+                    faceCount++;
+
                     pidx.push_back(ipos[0] - 1);
                     pidx.push_back(ipos[2] - 1);
                     pidx.push_back(ipos[3] - 1);
@@ -284,100 +200,51 @@ void ObjGeometryHandler::readData()
     objfile.close();
 
     // Set bounds
-    _minimumBounds[0] = minPos[0];
-    _minimumBounds[1] = minPos[1];
-    _minimumBounds[2] = minPos[2];
-    _maximumBounds[0] = maxPos[0];
-    _maximumBounds[1] = maxPos[1];
-    _maximumBounds[2] = maxPos[2];
+    mesh->setMinimumBounds(minPos);
+    mesh->setMaximumBounds(maxPos);
 
     // Organize data to get triangles for positions 
     for (unsigned int i = 0; i < pidx.size(); i++)
     {
         unsigned int vertexIndex = 3 * pidx[i];
-        _positionData.push_back(pos[vertexIndex]);
-        _positionData.push_back(pos[vertexIndex + 1]);
-        _positionData.push_back(pos[vertexIndex + 2]);
+        positionData.push_back(pos[vertexIndex]);
+        positionData.push_back(pos[vertexIndex + 1]);
+        positionData.push_back(pos[vertexIndex + 2]);
     }
 
     // Organize data to get triangles for texture coordinates 
     for (unsigned int i = 0; i < uvidx.size(); i++)
     {
         unsigned int vertexIndex = 2 * uvidx[i];
-        _texcoordData[0].push_back(uv[vertexIndex]);
-        _texcoordData[0].push_back(uv[vertexIndex + 1]);
-
-        _texcoordData[1].push_back(uv[vertexIndex + 1]);
-        _texcoordData[1].push_back(uv[vertexIndex]);
-
-        // Fake some colors
-        _colorData[0].push_back(uv[vertexIndex]);
-        _colorData[0].push_back(uv[vertexIndex] + 1);
-        _colorData[0].push_back(1.0f);
-        _colorData[0].push_back(1.0f);
-
-        _colorData[1].push_back(1.0f);
-        _colorData[1].push_back(uv[vertexIndex] + 1);
-        _colorData[1].push_back(uv[vertexIndex]);
-        _colorData[1].push_back(1.0f);
+        texCoordData.push_back(uv[vertexIndex]);
+        texCoordData.push_back(uv[vertexIndex + 1]);
     }
 
     // Organize data to get triangles for normals 
     for (unsigned int i = 0; i < nidx.size(); i++)
     {
         unsigned int vertexIndex = 3 * nidx[i];
-        _normalData.push_back(norm[vertexIndex]);
-        _normalData.push_back(norm[vertexIndex + 1]);
-        _normalData.push_back(norm[vertexIndex + 2]);
-
-        // Fake some tangent, bitangent data
-        _tangentData[0].push_back(norm[vertexIndex + 2]);
-        _tangentData[0].push_back(norm[vertexIndex + 1]);
-        _tangentData[0].push_back(norm[vertexIndex]);
-
-        _tangentData[1].push_back(norm[vertexIndex + 1]);
-        _tangentData[1].push_back(norm[vertexIndex + 2]);
-        _tangentData[1].push_back(norm[vertexIndex]);
-
-        _bitangentData[0].push_back(norm[vertexIndex + 2]);
-        _bitangentData[0].push_back(norm[vertexIndex + 1]);
-        _bitangentData[0].push_back(norm[vertexIndex]);
-
-        _bitangentData[0].push_back(norm[vertexIndex + 1]);
-        _bitangentData[0].push_back(norm[vertexIndex + 2]);
-        _bitangentData[0].push_back(norm[vertexIndex]);
+        normalData.push_back(norm[vertexIndex]);
+        normalData.push_back(norm[vertexIndex + 1]);
+        normalData.push_back(norm[vertexIndex + 2]);
     }
 
     // Set up flattened indexing
-    if (_positionData.size() && pidx.size())
+    if (faceCount && positionData.size() && pidx.size())
     {
-        _indexing.resize(pidx.size());
-        std::iota(_indexing.begin(), _indexing.end(), 0);
+        MeshPartitionPtr partition = MeshPartition::create();
+        partition->setFaceCount(faceCount);
+        MeshIndexBuffer& indexing = partition->getIndices();
+        indexing.resize(pidx.size());
+        std::iota(indexing.begin(), indexing.end(), 0);
     }
+
+    // Add in new mesh
+    meshList.push_back(mesh);
+    return true;
 }
 
-void ObjGeometryHandler::setIdentifier(const std::string& identifier)
-{
-    if (identifier != _identifier)
-    {
-        GeometryHandler::setIdentifier(identifier);
-        clearData();
-    }
-}
-
-const Vector3& ObjGeometryHandler::getMinimumBounds()
-{
-    readData();
-    return _minimumBounds;
-}
-
-Vector3& ObjGeometryHandler::getMaximumBounds()
-{
-    readData();
-    return _maximumBounds;
-}
-
-
+#if 0
 GeometryHandler::IndexBuffer& ObjGeometryHandler::getIndexing()
 {
     readData();
@@ -469,6 +336,6 @@ ObjGeometryHandler::FloatBuffer& ObjGeometryHandler::getAttribute(const std::str
     }
     return getPositions(stride, index);
 }
-
+#endif
 
 }
