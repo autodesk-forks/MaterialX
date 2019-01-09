@@ -84,14 +84,15 @@ bool MeshPartition::generateTangents(MeshStreamPtr positionStream, MeshStreamPtr
     {
         bitangents = &(bitangentStream->getData());
         bitangents->resize(positions.size());
-        std::fill(tangents.begin(), tangents.end(), 0.0f);
+        std::fill(bitangents->begin(), bitangents->end(), 0.0f);
+        bitangentStride = bitangentStream->getStride();
     }
 
     for (size_t v = 0; v < vertexCount; v++)
     {
         Vector3& n = *reinterpret_cast<Vector3*>(&(normals[v * normalStride]));
         Vector3& t = *reinterpret_cast<Vector3*>(&(tangents[v * tangentStride]));
-        Vector3* b = bitangents ? reinterpret_cast<Vector3*>(&(bitangents[v * bitangentStride])) : nullptr;
+        Vector3* b = bitangents ? reinterpret_cast<Vector3*>(&((*bitangents)[v * bitangentStride])) : nullptr;
 
         // Gram-Schmidt orthogonalize
         if (t != Vector3(0.0f))

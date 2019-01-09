@@ -199,7 +199,7 @@ class Mesh
         _maximumBounds(-MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT),
         _sphereCenter(0.0f, 0.0f, 0.0f),
         _sphereRadius(0.0f),
-        _vertCount(0)
+        _vertexCount(0)
     {
     }
     ~Mesh() { }
@@ -223,6 +223,18 @@ class Mesh
     void addStream(MeshStreamPtr stream)
     {
         _streams.push_back(stream);
+    }
+
+    /// Set vertex count
+    void setVertexCount(size_t val)
+    {
+        _vertexCount = val;
+    }
+
+    /// Get vertex count
+    size_t getVertexCount() const
+    {
+        return _vertexCount;
     }
 
     /// Set the minimum bounds for the geometry
@@ -301,7 +313,7 @@ class Mesh
     float _sphereRadius;
 
     MeshStreamList _streams;
-    size_t _vertCount; 
+    size_t _vertexCount;
     std::vector<MeshPartitionPtr> _partitions;
 };
 

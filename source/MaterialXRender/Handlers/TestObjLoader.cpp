@@ -261,6 +261,8 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
         mesh->addPartition(partition);
     }
 
+    mesh->setVertexCount(positionData.size() / 3);
+
     // Add tangent basis
     //
     MeshStreamPtr tangentStream = MeshStream::create(MeshStream::TANGENT_ATTRIBUTE, 0);
