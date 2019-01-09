@@ -21,31 +21,31 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
     }
 
     MeshPtr mesh = Mesh::create(fileName);
-    MeshStreamPtr positionStream = MeshStream::create(MeshStream::POSITION_ATTRIBUTE, 0);
+    MeshStreamPtr positionStream = MeshStream::create("i_" + MeshStream::POSITION_ATTRIBUTE, MeshStream::POSITION_ATTRIBUTE, 0);
     MeshFloatBuffer& positionData = positionStream->getData();
     mesh->addStream(positionStream);
 
-    MeshStreamPtr normalStream = MeshStream::create(MeshStream::NORMAL_ATTRIBUTE, 0);
+    MeshStreamPtr normalStream = MeshStream::create("i_" + MeshStream::NORMAL_ATTRIBUTE, MeshStream::NORMAL_ATTRIBUTE, 0);
     MeshFloatBuffer& normalData = normalStream->getData();
     mesh->addStream(normalStream);
 
-    MeshStreamPtr texCoordStream = MeshStream::create(MeshStream::TEXCOORD_ATTRIBUTE + "_0", 0);
+    MeshStreamPtr texCoordStream = MeshStream::create("i_" + MeshStream::TEXCOORD_ATTRIBUTE + "_0", MeshStream::TEXCOORD_ATTRIBUTE, 0);
     texCoordStream->setStride(2);
     MeshFloatBuffer& texCoordData = texCoordStream->getData();
     mesh->addStream(texCoordStream);
 
-    MeshStreamPtr texCoordStream2 = MeshStream::create(MeshStream::TEXCOORD_ATTRIBUTE + "_1", 1);
+    MeshStreamPtr texCoordStream2 = MeshStream::create("i_" + MeshStream::TEXCOORD_ATTRIBUTE + "_1", MeshStream::TEXCOORD_ATTRIBUTE, 1);
     texCoordStream2->setStride(2);
     MeshFloatBuffer& texCoordData2 = texCoordStream2->getData();
     mesh->addStream(texCoordStream2);
 
     // Extra color data
-    MeshStreamPtr colorStream1 = MeshStream::create(MeshStream::COLOR_ATTRIBUTE + "_0", 0);
+    MeshStreamPtr colorStream1 = MeshStream::create("i_" + MeshStream::COLOR_ATTRIBUTE + "_0", MeshStream::COLOR_ATTRIBUTE, 0);
     MeshFloatBuffer& colorData1 = colorStream1->getData();
     colorStream1->setStride(4);
     mesh->addStream(colorStream1);
 
-    MeshStreamPtr colorStream2 = MeshStream::create(MeshStream::COLOR_ATTRIBUTE + "_1", 1);
+    MeshStreamPtr colorStream2 = MeshStream::create("i_" + MeshStream::COLOR_ATTRIBUTE + "_1", MeshStream::COLOR_ATTRIBUTE, 1);
     MeshFloatBuffer& colorData2 = colorStream2->getData();
     colorStream2->setStride(4);
     mesh->addStream(colorStream2);
@@ -265,8 +265,8 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
 
     // Add tangent basis
     //
-    MeshStreamPtr tangentStream = MeshStream::create(MeshStream::TANGENT_ATTRIBUTE, 0);
-    MeshStreamPtr bitangentStream = MeshStream::create(MeshStream::BITANGENT_ATTRIBUTE, 0);
+    MeshStreamPtr tangentStream = MeshStream::create("i_" + MeshStream::TANGENT_ATTRIBUTE, MeshStream::TANGENT_ATTRIBUTE, 0);
+    MeshStreamPtr bitangentStream = MeshStream::create("i_" + MeshStream::BITANGENT_ATTRIBUTE, MeshStream::BITANGENT_ATTRIBUTE, 0);
     partition->generateTangents(positionStream, texCoordStream, normalStream, tangentStream, bitangentStream);
     mesh->addStream(tangentStream);
     mesh->addStream(bitangentStream);

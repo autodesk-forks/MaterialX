@@ -2,12 +2,12 @@
 
 namespace MaterialX
 {
-const std::string MeshStream::POSITION_ATTRIBUTE("i_position");
-const std::string MeshStream::NORMAL_ATTRIBUTE("i_normal");
-const std::string MeshStream::TEXCOORD_ATTRIBUTE("i_texcoord");
-const std::string MeshStream::TANGENT_ATTRIBUTE("i_tangent");
-const std::string MeshStream::BITANGENT_ATTRIBUTE("i_bitangent");
-const std::string MeshStream::COLOR_ATTRIBUTE("i_color");
+const std::string MeshStream::POSITION_ATTRIBUTE("position");
+const std::string MeshStream::NORMAL_ATTRIBUTE("normal");
+const std::string MeshStream::TEXCOORD_ATTRIBUTE("texcoord");
+const std::string MeshStream::TANGENT_ATTRIBUTE("tangent");
+const std::string MeshStream::BITANGENT_ATTRIBUTE("bitangent");
+const std::string MeshStream::COLOR_ATTRIBUTE("color");
 
 bool MeshPartition::generateTangents(MeshStreamPtr positionStream, MeshStreamPtr texcoordStream, MeshStreamPtr normalStream,
                                      MeshStreamPtr tangentStream, MeshStreamPtr bitangentStream)

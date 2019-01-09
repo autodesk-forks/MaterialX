@@ -359,7 +359,7 @@ void GlslProgram::bindAttribute(const MaterialX::GlslProgram::InputMap& inputs, 
         unsigned int index = input.second->value ? input.second->value->asA<int>() : 0;
 
         unsigned int stride = 0;
-        MeshStreamPtr stream = mesh->getStream(input.first, index);
+        MeshStreamPtr stream = mesh->getStream(input.first);
         if (!stream)
         {
             errors.push_back("Geometry buffer could not be retrieved for binding: " + input.first + ". Index: " + std::to_string(index));

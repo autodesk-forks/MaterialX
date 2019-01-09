@@ -35,14 +35,15 @@ class MeshStream
     static const std::string BITANGENT_ATTRIBUTE;
     static const std::string COLOR_ATTRIBUTE;
 
-    static MeshStreamPtr create(const std::string type, unsigned int index=0)
+    static MeshStreamPtr create(const std::string& name, const std::string& type, unsigned int index=0)
     {
-        return std::make_shared<MeshStream>(type, index);
+        return std::make_shared<MeshStream>(name, type, index);
     }
 
     // Constructor. Default index is 0 and default stride is 3
-    MeshStream(const std::string type, unsigned int index) :
-        _type(type),        
+    MeshStream(const std::string& name, const std::string& type, unsigned int index) :
+        _name(name),
+        _type(type),
         _index(index),
         _stride(3) {}
     
@@ -52,6 +53,11 @@ class MeshStream
     void resize(unsigned int elementCount)
     {
         _data.resize(elementCount * _stride);
+    }
+
+    const std::string& getName() const
+    {
+        return _name;
     }
 
     const std::string& getType() const
@@ -85,6 +91,8 @@ class MeshStream
     }
 
   protected:
+    /// Attribute name
+    std::string _name;
     /// Attribute type
     std::string _type;
     /// Attribute Index
@@ -203,10 +211,24 @@ class Mesh
     {
     }
     ~Mesh() { }
-    
-    /// Get a mesh stream
+
+    /// Get a mesh stream by name
     /// @param name Name of stream
-    MeshStreamPtr getStream(const std::string& type, unsigned int index=0) const
+    MeshStreamPtr getStream(const std::string& name) const
+    {
+        for (auto stream : _streams)
+        {
+            if (stream->getName() == name)
+            {
+                return stream;
+            }
+        }
+        return MeshStreamPtr();
+    }
+
+    /// Get a mesh stream by type and index
+    /// @param name Name of stream
+    MeshStreamPtr getStream(const std::string& type, unsigned int index) const
     {
         for (auto stream : _streams)
         {
