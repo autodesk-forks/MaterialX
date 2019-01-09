@@ -17,7 +17,7 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
     objfile.open(fileName);
     if (!objfile.is_open())
     {
-        return nullptr;
+        return false;
     }
 
     MeshPtr mesh = Mesh::create(fileName);
