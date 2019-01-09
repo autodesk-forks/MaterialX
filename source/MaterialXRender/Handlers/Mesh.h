@@ -48,6 +48,12 @@ class MeshStream
     
     ~MeshStream() {}
 
+    /// Resize data to an given number of elements
+    void resize(unsigned int elementCount)
+    {
+        _data.resize(elementCount * _stride);
+    }
+
     const std::string& getType() const
     {
         return _type;
@@ -112,6 +118,12 @@ class MeshPartition
     /// Default destructor
     ~MeshPartition() { }
 
+    /// Resize data to an given number of indices
+    void resize(unsigned int elementCount)
+    {
+        _indices.resize(elementCount);
+    }
+
     /// Get geometry identifier
     const std::string& getIdentifier() const
     {
@@ -148,11 +160,11 @@ class MeshPartition
         _faceCount = val;
     }
 
-    /// Generate tangents for a given partition given
+    /// Generate tangents and optionally bitangents for a given partition given
     /// a set of postions, texture coordinates and normals.
-    /// Returns a tangent stream.
+    /// Returns true if successful.
     bool generateTangents(MeshStreamPtr positions, MeshStreamPtr texcoords, MeshStreamPtr normals,
-                          MeshStreamPtr tangents);
+                          MeshStreamPtr tangents, MeshStreamPtr bitangents);
 
   private:
     std::string _identifier;

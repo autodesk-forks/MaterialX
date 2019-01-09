@@ -360,12 +360,17 @@ void GlslProgram::bindAttribute(const MaterialX::GlslProgram::InputMap& inputs, 
 
         unsigned int stride = 0;
         MeshStreamPtr stream = mesh->getStream(input.first, index);
+        if (!stream)
+        {
+            errors.push_back("Geometry buffer could not be retrieved for binding: " + input.first + ". Index: " + std::to_string(index));
+            throw ExceptionShaderValidationError(errorType, errors);
+        }
         MeshFloatBuffer& attributeData = stream->getData();
         stride = stream->getStride();
 
         if (attributeData.empty() || (stride == 0))
         {
-            errors.push_back("Geometry buffer could not be retrieved for binding: " + input.first);
+            errors.push_back("Geometry buffer could not be retrieved for binding: " + input.first + ". Index: " + std::to_string(index));
             throw ExceptionShaderValidationError(errorType, errors);
         }
 

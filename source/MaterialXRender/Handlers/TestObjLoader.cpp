@@ -29,10 +29,26 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
     MeshFloatBuffer& normalData = normalStream->getData();
     mesh->addStream(normalStream);
 
-    MeshStreamPtr texCoordStream = MeshStream::create(MeshStream::TEXCOORD_ATTRIBUTE, 0);
+    MeshStreamPtr texCoordStream = MeshStream::create(MeshStream::TEXCOORD_ATTRIBUTE + "_0", 0);
     texCoordStream->setStride(2);
     MeshFloatBuffer& texCoordData = texCoordStream->getData();
     mesh->addStream(texCoordStream);
+
+    MeshStreamPtr texCoordStream2 = MeshStream::create(MeshStream::TEXCOORD_ATTRIBUTE + "_1", 1);
+    texCoordStream2->setStride(2);
+    MeshFloatBuffer& texCoordData2 = texCoordStream2->getData();
+    mesh->addStream(texCoordStream2);
+
+    // Extra color data
+    MeshStreamPtr colorStream1 = MeshStream::create(MeshStream::COLOR_ATTRIBUTE + "_0", 0);
+    MeshFloatBuffer& colorData1 = colorStream1->getData();
+    colorStream1->setStride(4);
+    mesh->addStream(colorStream1);
+
+    MeshStreamPtr colorStream2 = MeshStream::create(MeshStream::COLOR_ATTRIBUTE + "_1", 1);
+    MeshFloatBuffer& colorData2 = colorStream2->getData();
+    colorStream2->setStride(4);
+    mesh->addStream(colorStream2);
 
     MeshFloatBuffer pos;
     MeshFloatBuffer uv;
@@ -42,7 +58,8 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
     MeshIndexBuffer nidx;
 
     Vector3 minPos = { MAX_FLOAT , MAX_FLOAT , MAX_FLOAT };
-    Vector3 maxPos = { -MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT };
+    const float MIN_FLOAT = std::numeric_limits<float>::min();
+    Vector3 maxPos = { MIN_FLOAT, MIN_FLOAT, MIN_FLOAT };
 
     // Enable debugging of read by dumping to disk what was read in.
     // Disabled by default
@@ -205,6 +222,21 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
         unsigned int vertexIndex = 2 * uvidx[i];
         texCoordData.push_back(uv[vertexIndex]);
         texCoordData.push_back(uv[vertexIndex + 1]);
+
+        // Fake second set of texture coordinates
+        texCoordData2.push_back(uv[vertexIndex + 1]);
+        texCoordData2.push_back(uv[vertexIndex]);
+
+        // Fake some colors
+        colorData1.push_back(uv[vertexIndex]);
+        colorData1.push_back(uv[vertexIndex] + 1);
+        colorData1.push_back(1.0f);
+        colorData1.push_back(1.0f);
+
+        colorData2.push_back(1.0f);
+        colorData2.push_back(uv[vertexIndex] + 1);
+        colorData2.push_back(uv[vertexIndex]);
+        colorData2.push_back(1.0f);
     }
 
     // Organize data to get triangles for normals 
@@ -229,25 +261,14 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
         mesh->addPartition(partition);
     }
 
-    // Add additional streams required for testing
+    // Add tangent basis
     //
     MeshStreamPtr tangentStream = MeshStream::create(MeshStream::TANGENT_ATTRIBUTE, 0);
-    partition->generateTangents(positionStream, texCoordStream, normalStream, tangentStream);
+    MeshStreamPtr bitangentStream = MeshStream::create(MeshStream::BITANGENT_ATTRIBUTE, 0);
+    partition->generateTangents(positionStream, texCoordStream, normalStream, tangentStream, bitangentStream);
     mesh->addStream(tangentStream);
-
-    MeshStreamPtr stream = MeshStream::create(MeshStream::BITANGENT_ATTRIBUTE, 0);
-    MeshFloatBuffer& bitangents = stream->getData();
-    bitangents.resize(positionData.size());
-    std::fill(bitangents.begin(), bitangents.end(), 0.0f);
-    mesh->addStream(stream);
-
-    stream = MeshStream::create(MeshStream::COLOR_ATTRIBUTE, 0);
-    MeshFloatBuffer& col = stream->getData();
-    stream->setStride(4);
-    col.resize(texCoordData.size() * 2);
-    std::fill(col.begin(), col.end(), 1.0f);
-    mesh->addStream(stream);
-
+    mesh->addStream(bitangentStream);
+    
     // Add in new mesh
     meshList.push_back(mesh);
     return true;

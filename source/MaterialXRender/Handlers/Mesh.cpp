@@ -10,19 +10,23 @@ const std::string MeshStream::BITANGENT_ATTRIBUTE("i_bitangent");
 const std::string MeshStream::COLOR_ATTRIBUTE("i_color");
 
 bool MeshPartition::generateTangents(MeshStreamPtr positionStream, MeshStreamPtr texcoordStream, MeshStreamPtr normalStream,
-                                     MeshStreamPtr tangentStream)
+                                     MeshStreamPtr tangentStream, MeshStreamPtr bitangentStream)
 {
     // Based on Eric Lengyel at http://www.terathon.com/code/tangent.html
 
     const MeshIndexBuffer& indicies = getIndices();
-    const MeshFloatBuffer& positions = positionStream->getData();
+    MeshFloatBuffer& positions = positionStream->getData();
     unsigned int positionStride = positionStream->getStride();
-    const MeshFloatBuffer& texcoords = texcoordStream->getData();
+    MeshFloatBuffer& texcoords = texcoordStream->getData();
     unsigned int texcoordStride = texcoordStream->getStride();
-    const MeshFloatBuffer& normals = normalStream->getData();
+    MeshFloatBuffer& normals = normalStream->getData();
     unsigned int normalStride = normalStream->getStride();
-    if (positions.size() != texcoords.size() ||
-        positions.size() != normals.size())
+
+    size_t vertexCount = positions.size() / positionStride;
+    size_t uvCount = texcoords.size() / texcoordStride;
+    size_t normalCount = normals.size() / normalStride;
+    if (vertexCount != uvCount ||
+        vertexCount != normalCount)
     {
         return false;
     }
@@ -40,13 +44,13 @@ bool MeshPartition::generateTangents(MeshStreamPtr positionStream, MeshStreamPtr
         int i2 = indicies[faceIndex * 3 + 1];
         int i3 = indicies[faceIndex * 3 + 2];
 
-        const float* v1 = &(positions[i1 * positionStride]);
-        const float* v2 = &(positions[i2 * positionStride]);
-        const float* v3 = &(positions[i3 * positionStride]);
+        Vector3& v1 = *reinterpret_cast<Vector3*>(&(positions[i1 * positionStride]));
+        Vector3& v2 = *reinterpret_cast<Vector3*>(&(positions[i2 * positionStride]));
+        Vector3& v3 = *reinterpret_cast<Vector3*>(&(positions[i3 * positionStride]));
 
-        const float* w1 = &(texcoords[i1 * texcoordStride]);
-        const float* w2 = &(texcoords[i2 * texcoordStride]);
-        const float* w3 = &(texcoords[i3 * texcoordStride]);
+        Vector2& w1 = *reinterpret_cast<Vector2*>(&(texcoords[i1 * texcoordStride]));
+        Vector2& w2 = *reinterpret_cast<Vector2*>(&(texcoords[i2 * texcoordStride]));
+        Vector2& w3 = *reinterpret_cast<Vector2*>(&(texcoords[i3 * texcoordStride]));
 
         float x1 = v2[0] - v1[0];
         float x2 = v3[0] - v1[0];
@@ -66,36 +70,37 @@ bool MeshPartition::generateTangents(MeshStreamPtr positionStream, MeshStreamPtr
                     (t2 * y1 - t1 * y2) * r,
                     (t2 * z1 - t1 * z2) * r);
 
-        float* tan1 = &(tangents[i1 * tangentStride]);
-        tan1[0] += dir[0];
-        tan1[1] += dir[1];
-        tan1[2] += dir[2];
-
-        float* tan2 = &(tangents[i1 * tangentStride]);
-        tan2[0] += dir[0];
-        tan2[1] += dir[1];
-        tan2[2] += dir[2];
-
-        float* tan3 = &(tangents[i1 * tangentStride]);
-        tan3[0] += dir[0];
-        tan3[1] += dir[1];
-        tan3[2] += dir[2];
+        Vector3& tan1 = *reinterpret_cast<Vector3*>(&(tangents[i1 * tangentStride]));
+        Vector3& tan2 = *reinterpret_cast<Vector3*>(&(tangents[i2 * tangentStride]));
+        Vector3& tan3 = *reinterpret_cast<Vector3*>(&(tangents[i3 * tangentStride]));
+        tan1 += dir;
+        tan2 += dir;
+        tan3 += dir;
     }
     
-    size_t vertexCount = positions.size() / positionStride;
+    MeshFloatBuffer* bitangents = nullptr;
+    unsigned int bitangentStride = 0;
+    if (bitangentStream)
+    {
+        bitangents = &(bitangentStream->getData());
+        bitangents->resize(positions.size());
+        std::fill(tangents.begin(), tangents.end(), 0.0f);
+    }
+
     for (size_t v = 0; v < vertexCount; v++)
     {
-        Vector3 n( normals[v * normalStride] );
-        float *tptr = &(tangents[v * tangentStride]);
-        Vector3 t(*tptr);
+        Vector3& n = *reinterpret_cast<Vector3*>(&(normals[v * normalStride]));
+        Vector3& t = *reinterpret_cast<Vector3*>(&(tangents[v * tangentStride]));
+        Vector3* b = bitangents ? reinterpret_cast<Vector3*>(&(bitangents[v * bitangentStride])) : nullptr;
 
         // Gram-Schmidt orthogonalize
         if (t != Vector3(0.0f))
         {
             t = (t - n * n.dot(t)).getNormalized();
-            tptr[0] = t[0];
-            tptr[1] = t[0];
-            tptr[2] = t[0];
+            if (b)
+            {
+                *b = n.cross(t);
+            }
         }
     }
     return true;
