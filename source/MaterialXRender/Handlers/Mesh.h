@@ -63,6 +63,11 @@ class MeshStream
         return _data;
     }
 
+    const MeshFloatBuffer& getData() const
+    {
+        return _data;
+    }
+
     unsigned int getStride() const
     {
         return _stride;
@@ -88,7 +93,8 @@ class MeshStream
 using MeshPartitionPtr = std::shared_ptr<class MeshPartition>;
 
 /// @class @MeshPartition
-/// Class that describes a sub-region of a mesh using vertex indexing
+/// Class that describes a sub-region of a mesh using vertex indexing.
+/// Note that a face is considered to be a triangle.
 class MeshPartition
 {
   public:
@@ -124,6 +130,12 @@ class MeshPartition
         return _indices;
     }
 
+    /// Return indexing
+    const MeshIndexBuffer& getIndices() const
+    {
+        return _indices;
+    }
+
     /// Return number of faces
     size_t getFaceCount() const
     {
@@ -135,6 +147,12 @@ class MeshPartition
     {
         _faceCount = val;
     }
+
+    /// Generate tangents for a given partition given
+    /// a set of postions, texture coordinates and normals.
+    /// Returns a tangent stream.
+    bool generateTangents(MeshStreamPtr positions, MeshStreamPtr texcoords, MeshStreamPtr normals,
+                          MeshStreamPtr tangents);
 
   private:
     std::string _identifier;

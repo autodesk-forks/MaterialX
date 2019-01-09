@@ -1,4 +1,4 @@
-#include <MaterialXRender/Handlers/ObjLoader.h>
+#include <MaterialXRender/Handlers/TestObjLoader.h>
 #include <MaterialXCore/Util.h>
 
 #include <iostream>
@@ -11,7 +11,7 @@
 namespace MaterialX
 { 
 
-bool ObjLoader::load(const std::string& fileName, MeshList& meshList)
+bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
 {
     std::ifstream objfile;
     objfile.open(fileName);
@@ -21,31 +21,18 @@ bool ObjLoader::load(const std::string& fileName, MeshList& meshList)
     }
 
     MeshPtr mesh = Mesh::create(fileName);
-    MeshStreamPtr stream = MeshStream::create(MeshStream::POSITION_ATTRIBUTE, 0);
-    MeshFloatBuffer& positionData = stream->getData();
-    mesh->addStream(stream);
+    MeshStreamPtr positionStream = MeshStream::create(MeshStream::POSITION_ATTRIBUTE, 0);
+    MeshFloatBuffer& positionData = positionStream->getData();
+    mesh->addStream(positionStream);
 
-    stream = MeshStream::create(MeshStream::NORMAL_ATTRIBUTE, 0);
-    MeshFloatBuffer& normalData = stream->getData();
-    mesh->addStream(stream);
+    MeshStreamPtr normalStream = MeshStream::create(MeshStream::NORMAL_ATTRIBUTE, 0);
+    MeshFloatBuffer& normalData = normalStream->getData();
+    mesh->addStream(normalStream);
 
-    stream = MeshStream::create(MeshStream::TEXCOORD_ATTRIBUTE, 0);
-    stream->setStride(2);
-    MeshFloatBuffer& texCoordData = stream->getData();
-    mesh->addStream(stream);
-
-    stream = MeshStream::create(MeshStream::TANGENT_ATTRIBUTE, 0);
-    //MeshFloatBuffer& tangent = stream->getData();
-    mesh->addStream(stream);
-
-    stream = MeshStream::create(MeshStream::BITANGENT_ATTRIBUTE, 0);
-    //MeshFloatBuffer& bitangents = stream->getData();
-    mesh->addStream(stream);
-
-    stream = MeshStream::create(MeshStream::COLOR_ATTRIBUTE, 0);
-    //MeshFloatBuffer& col = stream->getData();
-    stream->setStride(4);
-    mesh->addStream(stream);
+    MeshStreamPtr texCoordStream = MeshStream::create(MeshStream::TEXCOORD_ATTRIBUTE, 0);
+    texCoordStream->setStride(2);
+    MeshFloatBuffer& texCoordData = texCoordStream->getData();
+    mesh->addStream(texCoordStream);
 
     MeshFloatBuffer pos;
     MeshFloatBuffer uv;
@@ -230,9 +217,10 @@ bool ObjLoader::load(const std::string& fileName, MeshList& meshList)
     }
 
     // Set up flattened indexing
+    MeshPartitionPtr partition = nullptr;
     if (faceCount && positionData.size() && pidx.size())
     {
-        MeshPartitionPtr partition = MeshPartition::create();
+        partition = MeshPartition::create();
         partition->setFaceCount(faceCount);
         MeshIndexBuffer& indexing = partition->getIndices();
         indexing.resize(pidx.size());
@@ -240,6 +228,25 @@ bool ObjLoader::load(const std::string& fileName, MeshList& meshList)
 
         mesh->addPartition(partition);
     }
+
+    // Add additional streams required for testing
+    //
+    MeshStreamPtr tangentStream = MeshStream::create(MeshStream::TANGENT_ATTRIBUTE, 0);
+    partition->generateTangents(positionStream, texCoordStream, normalStream, tangentStream);
+    mesh->addStream(tangentStream);
+
+    MeshStreamPtr stream = MeshStream::create(MeshStream::BITANGENT_ATTRIBUTE, 0);
+    MeshFloatBuffer& bitangents = stream->getData();
+    bitangents.resize(positionData.size());
+    std::fill(bitangents.begin(), bitangents.end(), 0.0f);
+    mesh->addStream(stream);
+
+    stream = MeshStream::create(MeshStream::COLOR_ATTRIBUTE, 0);
+    MeshFloatBuffer& col = stream->getData();
+    stream->setStride(4);
+    col.resize(texCoordData.size() * 2);
+    std::fill(col.begin(), col.end(), 1.0f);
+    mesh->addStream(stream);
 
     // Add in new mesh
     meshList.push_back(mesh);

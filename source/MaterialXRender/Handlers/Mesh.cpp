@@ -9,64 +9,96 @@ const std::string MeshStream::TANGENT_ATTRIBUTE("i_tangent");
 const std::string MeshStream::BITANGENT_ATTRIBUTE("i_bitangent");
 const std::string MeshStream::COLOR_ATTRIBUTE("i_color");
 
-#if 0
-void Mesh::generateTangents()
+bool MeshPartition::generateTangents(MeshStreamPtr positionStream, MeshStreamPtr texcoordStream, MeshStreamPtr normalStream,
+                                     MeshStreamPtr tangentStream)
 {
     // Based on Eric Lengyel at http://www.terathon.com/code/tangent.html
 
-    for (size_t partIndex = 0; partIndex < getPartitionCount(); partIndex++)
+    const MeshIndexBuffer& indicies = getIndices();
+    const MeshFloatBuffer& positions = positionStream->getData();
+    unsigned int positionStride = positionStream->getStride();
+    const MeshFloatBuffer& texcoords = texcoordStream->getData();
+    unsigned int texcoordStride = texcoordStream->getStride();
+    const MeshFloatBuffer& normals = normalStream->getData();
+    unsigned int normalStride = normalStream->getStride();
+    if (positions.size() != texcoords.size() ||
+        positions.size() != normals.size())
     {
-        const Partition& part = getPartition(partIndex);
-        for (size_t faceIndex = 0; faceIndex < part.getFaceCount(); faceIndex++)
-        {
-            int i1 = part.getIndices()[faceIndex * 3 + 0];
-            int i2 = part.getIndices()[faceIndex * 3 + 1];
-            int i3 = part.getIndices()[faceIndex * 3 + 2];
+        return false;
+    }
 
-            const mx::Vector3& v1 = _positions[i1];
-            const mx::Vector3& v2 = _positions[i2];
-            const mx::Vector3& v3 = _positions[i3];
+    // Prepare tangent stream data
+    MeshFloatBuffer& tangents = tangentStream->getData();
+    tangents.resize(positions.size());
+    std::fill(tangents.begin(), tangents.end(), 0.0f);
+    const unsigned int tangentStride = 3;
+    tangentStream->setStride(tangentStride);
 
-            const mx::Vector2& w1 = _texcoords[i1];
-            const mx::Vector2& w2 = _texcoords[i2];
-            const mx::Vector2& w3 = _texcoords[i3];
+    for (size_t faceIndex = 0; faceIndex < getFaceCount(); faceIndex++)
+    {
+        int i1 = indicies[faceIndex * 3 + 0];
+        int i2 = indicies[faceIndex * 3 + 1];
+        int i3 = indicies[faceIndex * 3 + 2];
 
-            float x1 = v2[0] - v1[0];
-            float x2 = v3[0] - v1[0];
-            float y1 = v2[1] - v1[1];
-            float y2 = v3[1] - v1[1];
-            float z1 = v2[2] - v1[2];
-            float z2 = v3[2] - v1[2];
-        
-            float s1 = w2[0] - w1[0];
-            float s2 = w3[0] - w1[0];
-            float t1 = w2[1] - w1[1];
-            float t2 = w3[1] - w1[1];
-        
-            float denom = s1 * t2 - s2 * t1;
-            float r = denom ? 1.0f / denom : 0.0f;
-            mx::Vector3 dir((t2 * x1 - t1 * x2) * r,
-                            (t2 * y1 - t1 * y2) * r,
-                            (t2 * z1 - t1 * z2) * r);
-        
-            _tangents[i1] += dir;
-            _tangents[i2] += dir;
-            _tangents[i3] += dir;
-        }
+        const float* v1 = &(positions[i1 * positionStride]);
+        const float* v2 = &(positions[i2 * positionStride]);
+        const float* v3 = &(positions[i3 * positionStride]);
+
+        const float* w1 = &(texcoords[i1 * texcoordStride]);
+        const float* w2 = &(texcoords[i2 * texcoordStride]);
+        const float* w3 = &(texcoords[i3 * texcoordStride]);
+
+        float x1 = v2[0] - v1[0];
+        float x2 = v3[0] - v1[0];
+        float y1 = v2[1] - v1[1];
+        float y2 = v3[1] - v1[1];
+        float z1 = v2[2] - v1[2];
+        float z2 = v3[2] - v1[2];
+
+        float s1 = w2[0] - w1[0];
+        float s2 = w3[0] - w1[0];
+        float t1 = w2[1] - w1[1];
+        float t2 = w3[1] - w1[1];
+
+        float denom = s1 * t2 - s2 * t1;
+        float r = denom ? 1.0f / denom : 0.0f;
+        Vector3 dir((t2 * x1 - t1 * x2) * r,
+                    (t2 * y1 - t1 * y2) * r,
+                    (t2 * z1 - t1 * z2) * r);
+
+        float* tan1 = &(tangents[i1 * tangentStride]);
+        tan1[0] += dir[0];
+        tan1[1] += dir[1];
+        tan1[2] += dir[2];
+
+        float* tan2 = &(tangents[i1 * tangentStride]);
+        tan2[0] += dir[0];
+        tan2[1] += dir[1];
+        tan2[2] += dir[2];
+
+        float* tan3 = &(tangents[i1 * tangentStride]);
+        tan3[0] += dir[0];
+        tan3[1] += dir[1];
+        tan3[2] += dir[2];
     }
     
-    for (size_t v = 0; v < _vertCount; v++)
+    size_t vertexCount = positions.size() / positionStride;
+    for (size_t v = 0; v < vertexCount; v++)
     {
-        const mx::Vector3& n = _normals[v];
-        mx::Vector3& t = _tangents[v];
+        Vector3 n( normals[v * normalStride] );
+        float *tptr = &(tangents[v * tangentStride]);
+        Vector3 t(*tptr);
 
         // Gram-Schmidt orthogonalize
-        if (t != mx::Vector3(0.0f))
+        if (t != Vector3(0.0f))
         {
             t = (t - n * n.dot(t)).getNormalized();
+            tptr[0] = t[0];
+            tptr[1] = t[0];
+            tptr[2] = t[0];
         }
     }
+    return true;
 }
 
-#endif
 }

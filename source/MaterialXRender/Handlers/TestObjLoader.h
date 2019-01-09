@@ -7,26 +7,26 @@
 
 namespace MaterialX
 {
-/// Shared pointer to an ObjLoader
-using ObjLoaderPtr = std::shared_ptr<class ObjLoader>;
+/// Shared pointer to an TestObjLoader
+using TestObjLoaderPtr = std::shared_ptr<class TestObjLoader>;
 
-/// @class @ObjHandler
-/// Utility geometry handler to read in OBJ files to providing data for shader binding.
+/// @class @TestObjHandler
+/// Utility geometry handler to read in OBJ files for unit testing.
 ///
-class ObjLoader : public GeometryLoader
+class TestObjLoader : public GeometryLoader
 {
   public:
     /// Static instance create function
-    static ObjLoaderPtr create() { return std::make_shared<ObjLoader>(); }
+    static TestObjLoaderPtr create() { return std::make_shared<TestObjLoader>(); }
 
     /// Default constructor
-    ObjLoader() 
+    TestObjLoader() 
     {
         _extensions = { "obj", "OBJ" };
     }
     
     /// Default destructor
-    virtual ~ObjLoader() {}
+    virtual ~TestObjLoader() {}
 
     /// Load geometry from disk
     bool load(const std::string& fileName, MeshList& meshList) override;
