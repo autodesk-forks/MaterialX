@@ -237,105 +237,13 @@ bool ObjLoader::load(const std::string& fileName, MeshList& meshList)
         MeshIndexBuffer& indexing = partition->getIndices();
         indexing.resize(pidx.size());
         std::iota(indexing.begin(), indexing.end(), 0);
+
+        mesh->addPartition(partition);
     }
 
     // Add in new mesh
     meshList.push_back(mesh);
     return true;
 }
-
-#if 0
-GeometryHandler::IndexBuffer& ObjGeometryHandler::getIndexing()
-{
-    readData();
-    return _indexing;
-}
-
-GeometryHandler::FloatBuffer& ObjGeometryHandler::getPositions(unsigned int& stride, unsigned int /*index*/)
-{
-    readData();
-    stride = 3;
-    return _positionData;
-}
-
-GeometryHandler::FloatBuffer& ObjGeometryHandler::getNormals(unsigned int& stride, unsigned int /*index*/)
-{
-    readData();
-    stride = 3;
-    return _normalData;
-}
-
-GeometryHandler::FloatBuffer& ObjGeometryHandler::getTextureCoords(unsigned int& stride, unsigned int index)
-{
-    readData();
-    stride = 2;
-    return (index > 1 ? _texcoordData[0] : _texcoordData[index]);
-}
-
-GeometryHandler::FloatBuffer& ObjGeometryHandler::getTangents(unsigned int& stride, unsigned int index)
-{
-    readData();
-    stride = 3;
-    return (index > 1 ? _tangentData[0] : _tangentData[index]);
-}
-
-GeometryHandler::FloatBuffer& ObjGeometryHandler::getBitangents(unsigned int& stride, unsigned int index)
-{
-    readData();
-    stride = 3;
-    return (index > 1 ? _bitangentData[0] : _bitangentData[index]);
-}
-
-GeometryHandler::FloatBuffer& ObjGeometryHandler::getColors(unsigned int& stride, unsigned int index)
-{
-    readData();
-    stride = 4;
-    return (index > 1 ? _colorData[0] : _colorData[index]);
-}
-
-ObjGeometryHandler::FloatBuffer& ObjGeometryHandler::getAttribute(const std::string& attributeType, 
-                                                                          unsigned int& stride, 
-                                                                          unsigned int index)
-{
-    readData();
-    if (attributeType.compare(0,
-        ObjGeometryHandler::POSITION_ATTRIBUTE.size(),
-        ObjGeometryHandler::POSITION_ATTRIBUTE) == 0)
-    {
-        return getPositions(stride, index);
-    }
-    else if (attributeType.compare(0,
-        ObjGeometryHandler::NORMAL_ATTRIBUTE.size(),
-        ObjGeometryHandler::NORMAL_ATTRIBUTE) == 0)
-    {
-        return getNormals(stride, index);
-    }
-    else if (attributeType.compare(0,
-        ObjGeometryHandler::TEXCOORD_ATTRIBUTE.size(),
-        ObjGeometryHandler::TEXCOORD_ATTRIBUTE) == 0)
-    {
-        return getTextureCoords(stride, index);
-    }
-    else if (attributeType.compare(0,
-        ObjGeometryHandler::COLOR_ATTRIBUTE.size(),
-        ObjGeometryHandler::COLOR_ATTRIBUTE) == 0)
-    {
-        return getColors(stride, index);
-    }
-    else if (attributeType.compare(0,
-        ObjGeometryHandler::TANGENT_ATTRIBUTE.size(),
-        ObjGeometryHandler::TANGENT_ATTRIBUTE) == 0)
-    {
-        return getTangents(stride, index);
-    }
-    else if (attributeType.compare(0,
-        ObjGeometryHandler::BITANGENT_ATTRIBUTE.size(),
-        ObjGeometryHandler::BITANGENT_ATTRIBUTE) == 0)
-    {
-        return getBitangents(stride, index);
-    }
-    return getPositions(stride, index);
-}
-#endif
 
 }
