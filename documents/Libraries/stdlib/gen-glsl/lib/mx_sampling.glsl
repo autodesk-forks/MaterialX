@@ -82,7 +82,7 @@ void mx_get_gaussian_weights(inout float W[MX_MAX_SAMPLE_COUNT], int filterSize)
 // Apply filter for float samples S, using weights W.
 // sampleCount should be a square of a odd number in the range { 1, 3, 5, 7 }
 //
-float mx_convolution_float(float S[MX_MAX_SAMPLE_COUNT], float W[mx_WEIGHT_ARRAY_SIZE], int offset, int sampleCount)
+float mx_convolution_float(float S[MX_MAX_SAMPLE_COUNT], float W[MX_WEIGHT_ARRAY_SIZE], int offset, int sampleCount)
 {
     float result = 0.0;
     for (int i = 0;  i < sampleCount; i++)
@@ -96,7 +96,7 @@ float mx_convolution_float(float S[MX_MAX_SAMPLE_COUNT], float W[mx_WEIGHT_ARRAY
 // Apply filter for vec2 samples S, using weights W.
 // sampleCount should be a square of a odd number in the range { 1, 3, 5, 7 }
 //
-vec2 mx_convolution_vec2(vec2 S[MX_MAX_SAMPLE_COUNT], float W[mx_WEIGHT_ARRAY_SIZE], int offset, int sampleCount)
+vec2 mx_convolution_vec2(vec2 S[MX_MAX_SAMPLE_COUNT], float W[MX_WEIGHT_ARRAY_SIZE], int offset, int sampleCount)
 {
     vec2 result = vec2(0.0);
     for (int i=0;  i<sampleCount; i++)
@@ -110,7 +110,7 @@ vec2 mx_convolution_vec2(vec2 S[MX_MAX_SAMPLE_COUNT], float W[mx_WEIGHT_ARRAY_SI
 // Apply filter for vec3 samples S, using weights W.
 // sampleCount should be a square of a odd number in the range { 1, 3, 5, 7 }
 //
-vec3 mx_convolution_vec3(vec3 S[MX_MAX_SAMPLE_COUNT], float W[mx_WEIGHT_ARRAY_SIZE], int offset, int sampleCount)
+vec3 mx_convolution_vec3(vec3 S[MX_MAX_SAMPLE_COUNT], float W[MX_WEIGHT_ARRAY_SIZE], int offset, int sampleCount)
 {
     vec3 result = vec3(0.0);
     for (int i=0;  i<sampleCount; i++)
@@ -124,7 +124,7 @@ vec3 mx_convolution_vec3(vec3 S[MX_MAX_SAMPLE_COUNT], float W[mx_WEIGHT_ARRAY_SI
 // Apply filter for vec4 samples S, using weights W.
 // sampleCount should be a square of a odd number { 1, 3, 5, 7 }
 //
-vec4 mx_convolution_vec4(vec4 S[MX_MAX_SAMPLE_COUNT], float W[mx_WEIGHT_ARRAY_SIZE], int offset, int sampleCount)
+vec4 mx_convolution_vec4(vec4 S[MX_MAX_SAMPLE_COUNT], float W[MX_WEIGHT_ARRAY_SIZE], int offset, int sampleCount)
 {
     vec4 result = vec4(0.0);
     for (int i=0;  i<sampleCount; i++)
