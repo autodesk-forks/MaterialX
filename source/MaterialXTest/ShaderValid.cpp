@@ -1035,7 +1035,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
             "geomattrvalue_integer", "geomattrvalue_boolean", "geomattrvalue_string"
         };
         const std::string OSL_STRING("osl");
-        const std::string GEN_OSL_STRING("gen-osl");
+        const std::string GEN_OSL_STRING("gen_osl");
         unsigned int implementationUseCount = 0;
         for (auto libraryImpl : libraryImpls)
         {
@@ -1086,7 +1086,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
                 continue;
             }
 
-            // See if we have a sx-osl implementation used
+            // See if we have a gen-osl implementation used
             // instead of the reference one
             if (libraryImpl->getLanguage() == OSL_STRING)
             {
