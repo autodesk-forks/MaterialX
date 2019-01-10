@@ -1,5 +1,5 @@
-#include "pbrlib/genosl/lib/mx_refractionindex.osl"
-#include "pbrlib/genosl/lib/mx_fresnel.osl"
+#include "pbrlib/gen-osl/lib/mx_refractionindex.osl"
+#include "pbrlib/gen-osl/lib/mx_fresnel.osl"
 
 void mx_conductorbrdf(float weight, color reflectivity, color edgecolor, roughnessinfo roughness, normal N, vector U, string distribution, output BSDF result)
 {

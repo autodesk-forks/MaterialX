@@ -1,5 +1,5 @@
-#include "pbrlib/genglsl/lib/mx_bsdfs.glsl"
-#include "pbrlib/genglsl/lib/mx_refractionindex.glsl"
+#include "pbrlib/gen-glsl/lib/mx_bsdfs.glsl"
+#include "pbrlib/gen-glsl/lib/mx_refractionindex.glsl"
 
 void mx_conductorbrdf_reflection(vec3 L, vec3 V, float weight, vec3 reflectivity, vec3 edgecolor, roughnessinfo roughness, vec3 normal, vec3 tangent, int distribution, out BSDF result)
 {

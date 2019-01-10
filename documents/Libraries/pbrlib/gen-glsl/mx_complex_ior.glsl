@@ -1,4 +1,4 @@
-#include "pbrlib/genglsl/lib/mx_refractionindex.glsl"
+#include "pbrlib/gen-glsl/lib/mx_refractionindex.glsl"
 
 void mx_complex_ior(vec3 ior, vec3 extinction, out vec3 reflectivity, out vec3 edgecolor)
 {

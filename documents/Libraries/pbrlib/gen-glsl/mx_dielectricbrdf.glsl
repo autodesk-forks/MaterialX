@@ -1,4 +1,4 @@
-#include "pbrlib/genglsl/lib/mx_bsdfs.glsl"
+#include "pbrlib/gen-glsl/lib/mx_bsdfs.glsl"
 
 void mx_dielectricbrdf_reflection(vec3 L, vec3 V, float weight, vec3 tint, float ior, roughnessinfo roughness, vec3 normal, vec3 tangent, int distribution, BSDF base, out BSDF result)
 {

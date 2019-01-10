@@ -1,4 +1,4 @@
-#include "pbrlib/genglsl/lib/mx_bsdfs.glsl"
+#include "pbrlib/gen-glsl/lib/mx_bsdfs.glsl"
 
 // Fake with simple diffuse reflection for now
 void mx_sheenbrdf_reflection(vec3 L, vec3 V, float weight, vec3 color, float roughness, vec3 normal, out BSDF result)

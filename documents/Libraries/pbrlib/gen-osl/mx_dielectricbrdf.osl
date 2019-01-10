@@ -1,4 +1,4 @@
-#include "pbrlib/genosl/lib/mx_fresnel.osl"
+#include "pbrlib/gen-osl/lib/mx_fresnel.osl"
 
 void mx_dielectricbrdf(float weight, color reflectance, float ior, roughnessinfo roughness, normal N, vector U, string distribution, BSDF base, output BSDF result)
 {

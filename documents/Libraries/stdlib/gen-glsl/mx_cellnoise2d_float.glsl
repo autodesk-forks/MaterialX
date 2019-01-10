@@ -1,4 +1,4 @@
-#include "stdlib/sx-glsl/lib/sxnoise.glsl"
+#include "stdlib/gsn-glsl/lib/mx_noise.glsl"
 
 void mx_cellnoise2d_float(vec2 texcoord, out float result)
 {
