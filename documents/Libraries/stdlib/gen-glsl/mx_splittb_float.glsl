@@ -1,4 +1,4 @@
-#include "stdlib/genglsl/mx_aastep.glsl"
+#include "stdlib/gen-glsl/mx_aastep.glsl"
 
 void mx_splittb_float(float valuet, float valueb, float center, vec2 texcoord, out float result)
 {
