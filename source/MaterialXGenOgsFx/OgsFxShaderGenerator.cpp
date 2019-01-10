@@ -197,14 +197,14 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     }
 
     // Emit common math functions
-    shader.addInclude("pbrlib/genglsl/lib/mx_math.glsl", *this);
+    shader.addInclude("pbrlib/gen-glsl/lib/mx_math.glsl", *this);
     shader.newLine();
 
     // Emit sampling code if needed
     if (shader.hasClassification(ShaderNode::Classification::CONVOLUTION2D))
     {
         // Emit sampling functions
-        shader.addInclude("stdlib/genglsl/lib/mx_sampling.glsl", *this);
+        shader.addInclude("stdlib/gen-glsl/lib/mx_sampling.glsl", *this);
         shader.newLine();
     }
 
@@ -261,7 +261,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     shader.newLine();
 
     // Add global constants and type definitions
-    shader.addInclude("pbrlib/genglsl/lib/mx_defines.glsl", *this);
+    shader.addInclude("pbrlib/gen-glsl/lib/mx_defines.glsl", *this);
     shader.addLine("#define MAX_LIGHT_SOURCES " + std::to_string(getMaxActiveLightSources()), false);
     shader.newLine();
     emitTypeDefinitions(shader);
@@ -366,15 +366,15 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     if (lighting)
     {
         // Emit OGS lighting uniforms
-        shader.addInclude("pbrlib/genglsl/ogsfx/lighting_uniforms.glsl", *this);
+        shader.addInclude("pbrlib/gen-glsl/ogsfx/lighting_uniforms.glsl", *this);
         shader.newLine();
 
         // Emit lighting functions
         shader.addLine("GLSLShader LightingFunctions", false);
         shader.beginScope(Shader::Brackets::BRACES);
-        shader.addInclude("pbrlib/genglsl/ogsfx/lighting_functions.glsl", *this);
+        shader.addInclude("pbrlib/gen-glsl/ogsfx/lighting_functions.glsl", *this);
         shader.newLine();
-        shader.addInclude("pbrlib/genglsl/lib/mx_lighting.glsl", *this);
+        shader.addInclude("pbrlib/gen-glsl/lib/mx_lighting.glsl", *this);
         shader.endScope();
         shader.newLine();
     }

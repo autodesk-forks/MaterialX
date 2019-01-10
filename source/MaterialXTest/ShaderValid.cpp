@@ -1035,7 +1035,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
             "geomattrvalue_integer", "geomattrvalue_boolean", "geomattrvalue_string"
         };
         const std::string OSL_STRING("osl");
-        const std::string genosl_STRING("genosl");
+        const std::string GEN_OSL_STRING("gen-osl");
         unsigned int implementationUseCount = 0;
         for (auto libraryImpl : libraryImpls)
         {
@@ -1096,7 +1096,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
                     std::string ending = implName.substr(endSize);
                     if (ending == OSL_STRING)
                     {
-                        std::string sxImplName = implName.substr(0, endSize) + genosl_STRING;
+                        std::string sxImplName = implName.substr(0, endSize) + GEN_OSL_STRING;
                         if (oslShaderGenerator->getCachedImplementation(sxImplName))
                         {
                             implementationUseCount++;
@@ -1250,12 +1250,12 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     std::set<std::string> excludeFiles;
     if (!options.runGLSLTests && !options.runOGSFXTests)
     {
-        excludeFiles.insert("stdlib_genglsl_impl.mtlx");
+        excludeFiles.insert("stdlib_gen-glsl_impl.mtlx");
     }
     if (!options.runOSLTests)
     {
         excludeFiles.insert("stdlib_osl_impl.mtlx");
-        excludeFiles.insert("stdlib_genosl_impl.mtlx");
+        excludeFiles.insert("stdlib_gen-osl_impl.mtlx");
     }
     if (options.cmsFiles.size() == 0)
     {
