@@ -54,23 +54,30 @@ void loadLibrary(const mx::FilePath& file, mx::DocumentPtr doc)
     doc->importLibrary(libDoc, &copyOptions);
 }
 
+// Loads all the MTLX files below a given library path
 void loadLibraries(const mx::StringVec& libraryNames, const mx::FilePath& searchPath, mx::DocumentPtr doc,
                    const std::set<std::string>* excludeFiles = nullptr)
 {
     const std::string MTLX_EXTENSION("mtlx");
     for (const std::string& library : libraryNames)
     {
-        mx::FilePath path = searchPath / library;
-        mx::StringVec filenames;
-        mx::getFilesInDirectory(path.asString(), filenames, MTLX_EXTENSION);
+        mx::StringVec librarySubPaths;
+        mx::FilePath libraryPath = searchPath / library;
+        mx::getSubDirectories(libraryPath, librarySubPaths);
 
-        for (const std::string& filename : filenames)
+        for (auto path : librarySubPaths)
         {
-            if (excludeFiles && excludeFiles->count(filename))
+            mx::StringVec filenames;
+            mx::getFilesInDirectory(path, filenames, MTLX_EXTENSION);
+
+            for (const std::string& filename : filenames)
             {
-                continue;
+                if (excludeFiles && excludeFiles->count(filename))
+                {
+                    continue;
+                }
+                loadLibrary(mx::FilePath(path)/ filename, doc);
             }
-            loadLibrary(path / filename, doc);
         }
     }
     REQUIRE(doc->getNodeDefs().size() > 0);
