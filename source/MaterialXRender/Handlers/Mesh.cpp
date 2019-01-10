@@ -9,6 +9,8 @@ const std::string MeshStream::TANGENT_ATTRIBUTE("tangent");
 const std::string MeshStream::BITANGENT_ATTRIBUTE("bitangent");
 const std::string MeshStream::COLOR_ATTRIBUTE("color");
 
+const float MAX_FLOAT = std::numeric_limits<float>::max();
+
 bool MeshPartition::generateTangents(MeshStreamPtr positionStream, MeshStreamPtr texcoordStream, MeshStreamPtr normalStream,
                                      MeshStreamPtr tangentStream, MeshStreamPtr bitangentStream)
 {
@@ -105,6 +107,16 @@ bool MeshPartition::generateTangents(MeshStreamPtr positionStream, MeshStreamPtr
         }
     }
     return true;
+}
+
+Mesh::Mesh(const std::string& identifier) :
+    _identifier(identifier),
+    _minimumBounds(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT),
+    _maximumBounds(-MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT),
+    _sphereCenter(0.0f, 0.0f, 0.0f),
+    _sphereRadius(0.0f),
+    _vertexCount(0)
+{
 }
 
 }

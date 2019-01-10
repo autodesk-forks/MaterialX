@@ -3,7 +3,6 @@
 
 namespace MaterialX
 { 
-
 void GeometryHandler::addLoader(GeometryLoaderPtr loader)
 {
     const StringVec& extensions = loader->supportedExtensions();
@@ -18,6 +17,8 @@ bool GeometryHandler::loadGeometry(const std::string& fileName)
     // Early return if file already loaded
     if (_fileName == fileName)
         return true;
+
+    const float MAX_FLOAT = std::numeric_limits<float>::max();
 
     // Remove any existing meshes, and reset cached file name
     _meshes.clear();

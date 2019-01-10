@@ -9,8 +9,6 @@
 
 namespace MaterialX
 {
-const float MAX_FLOAT = std::numeric_limits<float>::max();
-
 /// Geometry index buffer
 using MeshIndexBuffer = std::vector<unsigned int>;
 /// Float geometry buffer
@@ -23,24 +21,30 @@ using MeshStreamPtr = std::shared_ptr<class MeshStream>;
 using MeshStreamList = std::vector<MeshStreamPtr>;
 
 /// @class MeshStream
-/// Class that contains the contents for a stream
+/// Class to represent a mesh data stream
 class MeshStream
 {
   public:
-    /// Preset geometric attribute types
+    /// Position attribute 
     static const std::string POSITION_ATTRIBUTE;
+    /// Normal attribute 
     static const std::string NORMAL_ATTRIBUTE;
+    /// Texture coordinate attribute 
     static const std::string TEXCOORD_ATTRIBUTE;
+    /// Tangent attribute 
     static const std::string TANGENT_ATTRIBUTE;
+    /// Bitangent attribute 
     static const std::string BITANGENT_ATTRIBUTE;
+    /// Color attribute 
     static const std::string COLOR_ATTRIBUTE;
 
+    /// Create instance of a mesh stream
     static MeshStreamPtr create(const std::string& name, const std::string& type, unsigned int index=0)
     {
         return std::make_shared<MeshStream>(name, type, index);
     }
 
-    // Constructor. Default index is 0 and default stride is 3
+    // Constructor.
     MeshStream(const std::string& name, const std::string& type, unsigned int index) :
         _name(name),
         _type(type),
@@ -55,51 +59,53 @@ class MeshStream
         _data.resize(elementCount * _stride);
     }
 
+    /// Get stream name
     const std::string& getName() const
     {
         return _name;
     }
 
+    /// Get stream attribute name
     const std::string& getType() const
     {
         return _type;
     }
 
+    /// Get stream index
     unsigned int getIndex() const
     {
         return _index;
     }
 
+    /// Get stream data
     MeshFloatBuffer& getData()
     {
         return _data;
     }
 
+    /// Get stream data
     const MeshFloatBuffer& getData() const
     {
         return _data;
     }
 
+    /// Get stride between elements
     unsigned int getStride() const
     {
         return _stride;
     }
 
+    /// Set stride between elements
     void setStride(unsigned int stride)
     {
         _stride = stride;
     }
 
   protected:
-    /// Attribute name
     std::string _name;
-    /// Attribute type
     std::string _type;
-    /// Attribute Index
     unsigned int _index;
-    /// Data buffer
     MeshFloatBuffer _data;
-    /// Stride between elements in buffer
     unsigned int _stride;
 };
 
@@ -168,8 +174,13 @@ class MeshPartition
         _faceCount = val;
     }
 
-    /// Generate tangents and optionally bitangents for a given partition given
+    /// Generate tangents and optionally bitangents for a given 
     /// a set of postions, texture coordinates and normals.
+    /// @param positions Positions to use
+    /// @param texcoords Texture coordinates to use
+    /// @param normals Normals to use
+    /// @param tangents Tangents to produce
+    /// @param bitangents Bitangents to produce.
     /// Returns true if successful.
     bool generateTangents(MeshStreamPtr positions, MeshStreamPtr texcoords, MeshStreamPtr normals,
                           MeshStreamPtr tangents, MeshStreamPtr bitangents);
@@ -201,19 +212,12 @@ class Mesh
         return std::make_shared<Mesh>(identifier);
     }
 
-    Mesh(const std::string& identifier) :
-        _identifier(identifier),
-        _minimumBounds(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT),
-        _maximumBounds(-MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT),
-        _sphereCenter(0.0f, 0.0f, 0.0f),
-        _sphereRadius(0.0f),
-        _vertexCount(0)
-    {
-    }
+    Mesh(const std::string& identifier);
     ~Mesh() { }
 
     /// Get a mesh stream by name
     /// @param name Name of stream
+    /// @return Reference to a mesh stream if found
     MeshStreamPtr getStream(const std::string& name) const
     {
         for (auto stream : _streams)
@@ -227,7 +231,9 @@ class Mesh
     }
 
     /// Get a mesh stream by type and index
-    /// @param name Name of stream
+    /// @param type Type of stream
+    /// @param index Index of stream
+    /// @return Reference to a mesh stream if found
     MeshStreamPtr getStream(const std::string& type, unsigned int index) const
     {
         for (auto stream : _streams)
@@ -241,7 +247,7 @@ class Mesh
         return MeshStreamPtr();
     }
 
-    /// Add a mesh stream. 
+    /// Add a mesh stream 
     void addStream(MeshStreamPtr stream)
     {
         _streams.push_back(stream);

@@ -10,7 +10,6 @@
 
 namespace MaterialX
 { 
-
 bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
 {
     std::ifstream objfile;
@@ -57,9 +56,9 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
     MeshIndexBuffer uvidx;
     MeshIndexBuffer nidx;
 
+    const float MAX_FLOAT = std::numeric_limits<float>::max();
     Vector3 minPos = { MAX_FLOAT , MAX_FLOAT , MAX_FLOAT };
-    const float MIN_FLOAT = std::numeric_limits<float>::min();
-    Vector3 maxPos = { MIN_FLOAT, MIN_FLOAT, MIN_FLOAT };
+    Vector3 maxPos = { -MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT };
 
     // Enable debugging of read by dumping to disk what was read in.
     // Disabled by default

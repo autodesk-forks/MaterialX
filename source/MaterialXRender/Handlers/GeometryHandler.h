@@ -12,7 +12,8 @@ namespace MaterialX
 using GeometryLoaderPtr = std::shared_ptr<class GeometryLoader>;
 
 /// @class @GeometryLoader
-/// Base class representing a geometry loader
+/// Base class representing a geometry loader. A loader can be 
+/// associated with one or more file extensions.
 class GeometryLoader
 {
   public:
@@ -29,7 +30,10 @@ class GeometryLoader
         return _extensions;
     }
 
-    /// Load geometry from disk
+    /// Load geometry from disk. Must be implemented by derived classes
+    /// @param fileName Name of file to load
+    /// @param meshList List of meshes to update
+    /// @return True if load was successful 
     virtual bool load(const std::string& fileName, MeshList& meshList) = 0;
 
   protected:
@@ -44,8 +48,8 @@ using GeometryHandlerPtr = std::shared_ptr<class GeometryHandler>;
 using GeometryLoaderMap = std::multimap<std::string, GeometryLoaderPtr>;
 
 /// @class @GeometryHandler
-/// Abstract class representing a geometry handler for providing data for shader binding.
-///
+/// Class which holds a set of geometry loaders. Each loader is associated with
+/// a given set of file extensions. 
 class GeometryHandler
 {
   public: 
@@ -55,7 +59,7 @@ class GeometryHandler
     /// Default destructor
     virtual ~GeometryHandler() {};
 
-    /// Add geometry loader
+    /// Add a geometry loader
     /// @param loader Loader to add to list of available loaders.
     void addLoader(GeometryLoaderPtr loader);
 
@@ -68,13 +72,13 @@ class GeometryHandler
         return _meshes;
     }
 
-    /// Return the minimum bounds for the geometry
+    /// Return the minimum bounds for all meshes
     const Vector3& getMinimumBounds() const
     {
         return _minimumBounds;
     }
 
-    /// Return the minimum bounds for the geometry
+    /// Return the minimum bounds for all meshes
     const Vector3& getMaximumBounds() const
     {
         return _maximumBounds;
