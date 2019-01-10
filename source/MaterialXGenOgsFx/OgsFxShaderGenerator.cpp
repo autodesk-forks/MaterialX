@@ -366,13 +366,13 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     if (lighting)
     {
         // Emit OGS lighting uniforms
-        shader.addInclude("pbrlib/gen-glsl/ogsfx/lighting_uniforms.glsl", *this);
+        shader.addInclude("pbrlib/gen-glsl/ogsfx/mx_lighting_uniforms.glsl", *this);
         shader.newLine();
 
         // Emit lighting functions
         shader.addLine("GLSLShader LightingFunctions", false);
         shader.beginScope(Shader::Brackets::BRACES);
-        shader.addInclude("pbrlib/gen-glsl/ogsfx/lighting_functions.glsl", *this);
+        shader.addInclude("pbrlib/gen-glsl/ogsfx/mx_lighting_functions.glsl", *this);
         shader.newLine();
         shader.addInclude("pbrlib/gen-glsl/lib/mx_lighting.glsl", *this);
         shader.endScope();
