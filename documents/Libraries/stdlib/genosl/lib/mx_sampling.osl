@@ -1,7 +1,7 @@
 // Restrict to 7x7 kernel size for performance reasons
-#define mx_MAX_SAMPLE_COUNT 49
+#define MX_MAX_SAMPLE_COUNT 49
 // Size of all weights for all levels (including level 1)
-#define mx_WEIGHT_ARRAY_SIZE 84
+#define MX_WEIGHT_ARRAY_SIZE 84
 
 //
 // Function to compute the sample size relative to a texture coordinate
