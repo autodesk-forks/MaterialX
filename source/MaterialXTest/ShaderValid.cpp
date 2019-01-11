@@ -1086,7 +1086,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
                 continue;
             }
 
-            // See if we have a gen-osl implementation used
+            // See if we have a genosl implementation used
             // instead of the reference one
             if (libraryImpl->getLanguage() == OSL_STRING)
             {
@@ -1250,13 +1250,13 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
     std::set<std::string> excludeFiles;
     if (!options.runGLSLTests && !options.runOGSFXTests)
     {
-        excludeFiles.insert("stdlib_gen-glsl_impl.mtlx");
-        excludeFiles.insert("stdlib_gen-glsl_ogsfx_impl.mtlx");
+        excludeFiles.insert("stdlib_" + mx::GlslShaderGenerator::LANGUAGE + "_impl.mtlx");
+        excludeFiles.insert("stdlib_" + mx::GlslShaderGenerator::LANGUAGE + "_ogsfx_impl.mtlx");
     }
     if (!options.runOSLTests)
     {
         excludeFiles.insert("stdlib_osl_impl.mtlx");
-        excludeFiles.insert("stdlib_gen-osl_impl.mtlx");
+        excludeFiles.insert("stdlib_" + mx::OslShaderGenerator::LANGUAGE + "_impl.mtlx");
     }
     if (options.cmsFiles.size() == 0)
     {
