@@ -79,7 +79,11 @@ static mx::GlslValidatorPtr createGLSLValidator(const std::string& fileName, std
         if (fileName.length())
         {
             geometryFile =  mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/") / mx::FilePath(fileName);
-            geometryHandler.loadGeometry(geometryFile);
+            if (!geometryHandler.hasGeometry(geometryFile))
+            {
+                geometryHandler.clearGeometry();
+                geometryHandler.loadGeometry(geometryFile);
+            }
         }
         initialized = true;
     }
@@ -570,7 +574,11 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     {
                         geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/shaderball.obj");
                     }
-                    geomHandler.loadGeometry(geomPath);
+                    if (!geomHandler.hasGeometry(geomPath))
+                    {
+                        geomHandler.clearGeometry();
+                        geomHandler.loadGeometry(geomPath);
+                    }
                     validator.setLightHandler(lightHandler);
                 }
                 else
@@ -591,7 +599,11 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     {
                         geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/sphere.obj");
                     }
-                    geomHandler.loadGeometry(geomPath);
+                    if (!geomHandler.hasGeometry(geomPath))
+                    {
+                        geomHandler.clearGeometry();
+                        geomHandler.loadGeometry(geomPath);
+                    }
                     validator.setLightHandler(nullptr);
                 }
 

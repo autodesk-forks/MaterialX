@@ -20,6 +20,7 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
     }
 
     MeshPtr mesh = Mesh::create(fileName);
+    mesh->setSourceUri(fileName);
     MeshStreamPtr positionStream = MeshStream::create("i_" + MeshStream::POSITION_ATTRIBUTE, MeshStream::POSITION_ATTRIBUTE, 0);
     MeshFloatBuffer& positionData = positionStream->getData();
     mesh->addStream(positionStream);

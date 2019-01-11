@@ -10,15 +10,15 @@
 namespace MaterialX
 {
 /// Geometry index buffer
-using MeshIndexBuffer = std::vector<unsigned int>;
+using MeshIndexBuffer = vector<unsigned int>;
 /// Float geometry buffer
-using MeshFloatBuffer = std::vector<float>;
+using MeshFloatBuffer = vector<float>;
 
 /// Shader pointer to a mesh stream
-using MeshStreamPtr = std::shared_ptr<class MeshStream>;
+using MeshStreamPtr = shared_ptr<class MeshStream>;
 
 /// List of mesh streams 
-using MeshStreamList = std::vector<MeshStreamPtr>;
+using MeshStreamList = vector<MeshStreamPtr>;
 
 /// @class MeshStream
 /// Class to represent a mesh data stream
@@ -26,30 +26,35 @@ class MeshStream
 {
   public:
     /// Position attribute 
-    static const std::string POSITION_ATTRIBUTE;
+    static const string POSITION_ATTRIBUTE;
     /// Normal attribute 
-    static const std::string NORMAL_ATTRIBUTE;
+    static const string NORMAL_ATTRIBUTE;
     /// Texture coordinate attribute 
-    static const std::string TEXCOORD_ATTRIBUTE;
+    static const string TEXCOORD_ATTRIBUTE;
     /// Tangent attribute 
-    static const std::string TANGENT_ATTRIBUTE;
+    static const string TANGENT_ATTRIBUTE;
     /// Bitangent attribute 
-    static const std::string BITANGENT_ATTRIBUTE;
+    static const string BITANGENT_ATTRIBUTE;
     /// Color attribute 
-    static const std::string COLOR_ATTRIBUTE;
+    static const string COLOR_ATTRIBUTE;
+    /// Generic geometry property attribute
+    static const string GEOMETRY_PROPERTY_ATTRIBUTE;
 
     /// Create instance of a mesh stream
-    static MeshStreamPtr create(const std::string& name, const std::string& type, unsigned int index=0)
+    static MeshStreamPtr create(const string& name, const string& type, unsigned int index=0)
     {
         return std::make_shared<MeshStream>(name, type, index);
     }
+    
+    /// Default element string is 3.
+    static const unsigned int DEFAULT_STRIDE = 3;
 
-    // Constructor.
-    MeshStream(const std::string& name, const std::string& type, unsigned int index) :
+    /// Constructor
+    MeshStream(const string& name, const string& type, unsigned int index) :
         _name(name),
         _type(type),
         _index(index),
-        _stride(3) {}
+        _stride(DEFAULT_STRIDE) {}
     
     ~MeshStream() {}
 
@@ -60,13 +65,13 @@ class MeshStream
     }
 
     /// Get stream name
-    const std::string& getName() const
+    const string& getName() const
     {
         return _name;
     }
 
     /// Get stream attribute name
-    const std::string& getType() const
+    const string& getType() const
     {
         return _type;
     }
@@ -102,15 +107,15 @@ class MeshStream
     }
 
   protected:
-    std::string _name;
-    std::string _type;
+    string _name;
+    string _type;
     unsigned int _index;
     MeshFloatBuffer _data;
     unsigned int _stride;
 };
 
 /// Shader pointer to a mesh stream
-using MeshPartitionPtr = std::shared_ptr<class MeshPartition>;
+using MeshPartitionPtr = shared_ptr<class MeshPartition>;
 
 /// @class @MeshPartition
 /// Class that describes a sub-region of a mesh using vertex indexing.
@@ -139,13 +144,13 @@ class MeshPartition
     }
 
     /// Get geometry identifier
-    const std::string& getIdentifier() const
+    const string& getIdentifier() const
     {
         return _identifier;
     }
 
     /// Set geometry identifier
-    void setIdentifier(const std::string& val)
+    void setIdentifier(const string& val)
     {
         _identifier = val;
     }
@@ -175,7 +180,7 @@ class MeshPartition
     }
 
     /// Generate tangents and optionally bitangents for a given 
-    /// a set of postions, texture coordinates and normals.
+    /// set of postions, texture coordinates and normals.
     /// @param positions Positions to use
     /// @param texcoords Texture coordinates to use
     /// @param normals Normals to use
@@ -186,20 +191,20 @@ class MeshPartition
                           MeshStreamPtr tangents, MeshStreamPtr bitangents);
 
   private:
-    std::string _identifier;
+    string _identifier;
     MeshIndexBuffer _indices;
     size_t _faceCount;
 };
 
 
 /// Shader pointer to a GeometryMesh
-using MeshPtr = std::shared_ptr<class Mesh>;
+using MeshPtr = shared_ptr<class Mesh>;
 
 /// List of meshes
-using MeshList = std::vector<MeshPtr>;
+using MeshList = vector<MeshPtr>;
 
 /// Map of names to mesh
-using MeshMap = std::unordered_map<std::string, MeshPtr>;
+using MeshMap = std::unordered_map<string, MeshPtr>;
 
 /// @class @Mesh
 /// Container for mesh data
@@ -207,18 +212,36 @@ using MeshMap = std::unordered_map<std::string, MeshPtr>;
 class Mesh
 {
   public:
-    static MeshPtr create(const std::string& identifier)
+    static MeshPtr create(const string& identifier)
     {
         return std::make_shared<Mesh>(identifier);
     }
 
-    Mesh(const std::string& identifier);
+    Mesh(const string& identifier);
     ~Mesh() { }
+
+    /// Set the mesh 's source URI.
+    void setSourceUri(const string& sourceUri)
+    {
+        _sourceUri = sourceUri;
+    }
+
+    /// Return true if this mesh has a source URI.
+    bool hasSourceUri() const
+    {
+        return !_sourceUri.empty();
+    }
+
+    /// Return the mesh 's source URI.
+    const string& getSourceUri() const
+    {
+        return _sourceUri;
+    }
 
     /// Get a mesh stream by name
     /// @param name Name of stream
     /// @return Reference to a mesh stream if found
-    MeshStreamPtr getStream(const std::string& name) const
+    MeshStreamPtr getStream(const string& name) const
     {
         for (auto stream : _streams)
         {
@@ -234,7 +257,7 @@ class Mesh
     /// @param type Type of stream
     /// @param index Index of stream
     /// @return Reference to a mesh stream if found
-    MeshStreamPtr getStream(const std::string& type, unsigned int index) const
+    MeshStreamPtr getStream(const string& type, unsigned int index) const
     {
         for (auto stream : _streams)
         {
@@ -332,7 +355,8 @@ class Mesh
     }
 
   private:
-    std::string _identifier;
+    string _identifier;
+    string _sourceUri;
 
     Vector3 _minimumBounds;
     Vector3 _maximumBounds;
@@ -342,7 +366,7 @@ class Mesh
 
     MeshStreamList _streams;
     size_t _vertexCount;
-    std::vector<MeshPartitionPtr> _partitions;
+    vector<MeshPartitionPtr> _partitions;
 };
 
 }

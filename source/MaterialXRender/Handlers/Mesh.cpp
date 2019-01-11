@@ -2,12 +2,13 @@
 
 namespace MaterialX
 {
-const std::string MeshStream::POSITION_ATTRIBUTE("position");
-const std::string MeshStream::NORMAL_ATTRIBUTE("normal");
-const std::string MeshStream::TEXCOORD_ATTRIBUTE("texcoord");
-const std::string MeshStream::TANGENT_ATTRIBUTE("tangent");
-const std::string MeshStream::BITANGENT_ATTRIBUTE("bitangent");
-const std::string MeshStream::COLOR_ATTRIBUTE("color");
+const string MeshStream::POSITION_ATTRIBUTE("position");
+const string MeshStream::NORMAL_ATTRIBUTE("normal");
+const string MeshStream::TEXCOORD_ATTRIBUTE("texcoord");
+const string MeshStream::TANGENT_ATTRIBUTE("tangent");
+const string MeshStream::BITANGENT_ATTRIBUTE("bitangent");
+const string MeshStream::COLOR_ATTRIBUTE("color");
+const string MeshStream::GEOMETRY_PROPERTY_ATTRIBUTE("geomprop");
 
 const float MAX_FLOAT = std::numeric_limits<float>::max();
 
@@ -109,7 +110,7 @@ bool MeshPartition::generateTangents(MeshStreamPtr positionStream, MeshStreamPtr
     return true;
 }
 
-Mesh::Mesh(const std::string& identifier) :
+Mesh::Mesh(const string& identifier) :
     _identifier(identifier),
     _minimumBounds(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT),
     _maximumBounds(-MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT),

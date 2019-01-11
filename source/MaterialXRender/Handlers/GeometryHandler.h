@@ -25,7 +25,7 @@ class GeometryLoader
 
     /// Returns a list of supported extensions
     /// @return List of support extensions
-    const std::vector<std::string>& supportedExtensions()
+    const vector<string>& supportedExtensions()
     {
         return _extensions;
     }
@@ -34,18 +34,18 @@ class GeometryLoader
     /// @param fileName Name of file to load
     /// @param meshList List of meshes to update
     /// @return True if load was successful 
-    virtual bool load(const std::string& fileName, MeshList& meshList) = 0;
+    virtual bool load(const string& fileName, MeshList& meshList) = 0;
 
   protected:
     /// List of supported string extensions
-    std::vector<std::string> _extensions;
+    StringVec _extensions;
 };
 
 /// Shared pointer to an GeometryHandler
 using GeometryHandlerPtr = std::shared_ptr<class GeometryHandler>;
 
 /// Map of extensions to image loaders
-using GeometryLoaderMap = std::multimap<std::string, GeometryLoaderPtr>;
+using GeometryLoaderMap = std::multimap<string, GeometryLoaderPtr>;
 
 /// @class @GeometryHandler
 /// Class which holds a set of geometry loaders. Each loader is associated with
@@ -63,8 +63,20 @@ class GeometryHandler
     /// @param loader Loader to add to list of available loaders.
     void addLoader(GeometryLoaderPtr loader);
 
-    /// Load geometry from disk
-    bool loadGeometry(const std::string& fileName);
+    /// Clear all loaded geometry
+    void clearGeometry();
+
+    // Determine if any meshes have been loaded from a given location
+    bool hasGeometry(const string& location);
+
+    // Find all meshes loaded from a given location
+    void getGeometry(MeshList& meshes, const string& location);
+
+    /// Clear geometry with a given location
+    void clearGeometry(const string& location);
+
+    /// Load geometry from a given location
+    bool loadGeometry(const string& location);
 
     /// Get list of meshes
     const MeshList& getMeshes() const
@@ -85,9 +97,11 @@ class GeometryHandler
     }
 
   protected:
+    /// Recompute bounds for all stored geometry
+    void computeBounds();
+
     GeometryLoaderMap _geometryLoaders;
     MeshList _meshes;
-    std::string _fileName;
     Vector3 _minimumBounds;
     Vector3 _maximumBounds;
 };
