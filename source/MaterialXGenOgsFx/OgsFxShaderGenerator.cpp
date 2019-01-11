@@ -53,14 +53,14 @@ namespace
 
     static const std::unordered_map<string, string> OGSFX_GET_LIGHT_DATA_MAP =
     {
-        { "type", "getLightType" },
-        { "position", "getLightPos" },
-        { "direction", "getLightDir" },
-        { "color", "getLightColor" },
-        { "intensity", "getLightIntensity" },
-        { "decayRate", "getLightDecayRate" },
-        { "innerConeAngle", "getLightConeAngle" },
-        { "outerConeAngle", "getLightPenumbraAngle" }
+        { "type", "mx_getLightType" },
+        { "position", "mx_getLightPos" },
+        { "direction", "mx_getLightDir" },
+        { "color", "mx_getLightColor" },
+        { "intensity", "mx_getLightIntensity" },
+        { "decayRate", "mx_getLightDecayRate" },
+        { "innerConeAngle", "mx_getLightConeAngle" },
+        { "outerConeAngle", "mx_getLightPenumbraAngle" }
     };
 }
 

@@ -20,7 +20,7 @@ int mx_getLightType(int index)
         return u_light7Type;
 }
 
-vec3 mx_getLightColor(int index) 
+vec3 mx_getLightColor(int index)
 {
     if (index == 0)
         return u_light0Color;
@@ -40,7 +40,7 @@ vec3 mx_getLightColor(int index)
         return u_light7Color;
 }
 
-float getLightIntensity(int index)
+float mx_getLightIntensity(int index)
 {
     if (index == 0)
         return u_light0Intensity;
@@ -60,7 +60,7 @@ float getLightIntensity(int index)
         return u_light7Intensity;
 }
 
-vec3 getLightPos(int index)
+vec3 mx_getLightPos(int index)
 {
     if (index == 0)
         return u_light0Pos;
@@ -80,7 +80,7 @@ vec3 getLightPos(int index)
         return u_light7Pos;
 }
 
-vec3 getLightDir(int index)
+vec3 mx_getLightDir(int index)
 {
     if (index == 0)
         return u_light0Dir;
@@ -100,7 +100,7 @@ vec3 getLightDir(int index)
         return u_light7Dir;
 }
 
-float getLightDecayRate(int index)
+float mx_getLightDecayRate(int index)
 {
     if (index == 0)
         return u_light0DecayRate;
@@ -120,7 +120,7 @@ float getLightDecayRate(int index)
         return u_light7DecayRate;
 }
 
-float getLightConeAngle(int index)
+float mx_getLightConeAngle(int index)
 {
     if (index == 0)
         return cos(u_light0ConeAngle);
@@ -140,7 +140,7 @@ float getLightConeAngle(int index)
         return cos(u_light7ConeAngle);
 }
 
-float getLightPenumbraAngle(int index)
+float mx_getLightPenumbraAngle(int index)
 {
     if (index == 0)
         return cos(u_light0PenumbraAngle);
