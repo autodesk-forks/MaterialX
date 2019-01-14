@@ -231,6 +231,9 @@ bool TestObjLoader::load(const std::string& fileName, MeshList& meshList)
     // Set bounds
     mesh->setMinimumBounds(minPos);
     mesh->setMaximumBounds(maxPos);
+    Vector3 sphereCenter = (maxPos + minPos) / 2.0;
+    mesh->setSphereCenter(sphereCenter);
+    mesh->setSphereRadius((sphereCenter - minPos).getMagnitude());
 
     // Organize data to get triangles for positions 
     for (unsigned int i = 0; i < pidx.size(); i++)
