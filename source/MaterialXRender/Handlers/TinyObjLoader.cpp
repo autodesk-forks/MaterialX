@@ -117,8 +117,6 @@ bool TinyObjLoader::load(const std::string& fileName, MeshList& meshList)
                 boxMax[k] = std::max(v[1][k], boxMax[k]);
                 boxMax[k] = std::max(v[2][k], boxMax[k]);
             }
-            mesh->setMaximumBounds(boxMin);
-            mesh->setMaximumBounds(boxMax);
 
             // Copy or compute normals
             Vector3 n[3];
@@ -178,6 +176,8 @@ bool TinyObjLoader::load(const std::string& fileName, MeshList& meshList)
         }
     }
 
+    mesh->setMaximumBounds(boxMin);
+    mesh->setMaximumBounds(boxMax);
     Vector3 sphereCenter = (boxMax + boxMin) / 2.0;
     mesh->setSphereCenter(sphereCenter);
     mesh->setSphereRadius((sphereCenter - boxMin).getMagnitude());
