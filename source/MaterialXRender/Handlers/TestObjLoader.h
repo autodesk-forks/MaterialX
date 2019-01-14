@@ -20,7 +20,8 @@ class TestObjLoader : public GeometryLoader
     static TestObjLoaderPtr create() { return std::make_shared<TestObjLoader>(); }
 
     /// Default constructor
-    TestObjLoader() 
+    TestObjLoader() :
+        _readGroups(true)
     {
         _extensions = { "obj", "OBJ" };
     }
@@ -30,6 +31,21 @@ class TestObjLoader : public GeometryLoader
 
     /// Load geometry from disk
     bool load(const std::string& fileName, MeshList& meshList) override;
+
+    /// Set to read groups as partitions. 
+    void setReadGroups(bool val)
+    {
+        _readGroups = val;
+    }
+
+    /// Read groups as partitions. Default is false.
+    bool readGroups() const
+    {
+        return _readGroups;
+    }
+
+  protected:
+    bool _readGroups;
 };
 
 } // namespace MaterialX
