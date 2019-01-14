@@ -1,8 +1,15 @@
 #include <MaterialXRender/Handlers/TinyObjLoader.h>
 #include <MaterialXCore/Util.h>
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <MaterialXRender/External/TinyObjLoader/tiny_obj_loader.h>
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 #include <iostream>
 
