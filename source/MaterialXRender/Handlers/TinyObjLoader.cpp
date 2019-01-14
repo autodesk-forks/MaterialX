@@ -177,13 +177,13 @@ bool TinyObjLoader::load(const std::string& fileName, MeshList& meshList)
             Vector2* texcoord = reinterpret_cast<Vector2*>(&(texcoords[writeIndex0 * 2]));
             *texcoord = t[0];
             texcoord = reinterpret_cast<Vector2*>(&(texcoords[writeIndex1 * 2]));
-            *texcoord = t[0];
+            *texcoord = t[1];
             texcoord = reinterpret_cast<Vector2*>(&(texcoords[writeIndex2 * 2]));
-            *texcoord = t[0];
+            *texcoord = t[2];
         }
     }
 
-    mesh->setMaximumBounds(boxMin);
+    mesh->setMinimumBounds(boxMin);
     mesh->setMaximumBounds(boxMax);
     Vector3 sphereCenter = (boxMax + boxMin) / 2.0;
     mesh->setSphereCenter(sphereCenter);
