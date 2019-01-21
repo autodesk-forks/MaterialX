@@ -81,13 +81,43 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
         static const string prefix("{{");
         static const string postfix("}}");
 
-        // Inline expressions can only have a single output
+        size_t pos = 0;
+        size_t i = _functionSource.find_first_of(prefix);
+        int variableIndex = 1;
+        while (i != string::npos)
+        {
+            size_t j = _functionSource.find_first_of(postfix, i + 2);
+            if (j == string::npos)
+            {
+                throw ExceptionShaderGenError("Malformed inline expression in implementation for node " + node.getName());
+            }
+
+            const string variable = _functionSource.substr(i + 2, j - i - 2);
+            const ShaderInput* input = node.getInput(variable);
+            if (!input)
+            {
+                throw ExceptionShaderGenError("Could not find an input named '" + variable +
+                    "' on node '" + node.getName() + "'");
+            }
+
+            if (!input->connection)
+            {
+                string variableName = node.getName() + input->name + std::to_string(variableIndex++);
+                string variableValue = input->value ? shadergen.getSyntax()->getValue(input->type, *input->value) : shadergen.getSyntax()->getDefaultValue(input->type);
+                shader.addLine(shadergen.getSyntax()->getTypeName(input->type) + " " + variableName + " = " + variableValue);
+            }
+
+            pos = j + 2;
+            i = _functionSource.find_first_of(prefix, pos);
+        }
+
         shader.beginLine();
         shadergen.emitOutput(context, node.getOutput(), true, false, shader);
         shader.addStr(" = ");
 
-        size_t pos = 0;
-        size_t i = _functionSource.find_first_of(prefix);
+        pos = 0;
+        i = _functionSource.find_first_of(prefix);
+        variableIndex = 1;
         while (i != string::npos)
         {
             shader.addStr(_functionSource.substr(pos, i - pos));
@@ -105,7 +135,15 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
                 throw ExceptionShaderGenError("Could not find an input named '" + variable +
                     "' on node '" + node.getName() + "'");
             }
-            shadergen.emitInput(context, input, shader);
+            if (input->connection)
+            {
+                shadergen.emitInput(context, input, shader);
+            }
+            else
+            {
+                string variableName = node.getName() + input->name + std::to_string(variableIndex++);
+                shader.addStr(variableName);
+            }
 
             pos = j + 2;
             i = _functionSource.find_first_of(prefix, pos);
