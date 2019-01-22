@@ -124,13 +124,16 @@ void ShaderGenerator::emitVariable(const Shader::Variable& variable, const strin
     shader.addStr(_syntax->getTypeName(variable.type) + " " + variable.name + (initStr.empty() ? "" : " = " + initStr));
 }
 
-void ShaderGenerator::emitVariableBlock(const Shader::VariableBlock& block, const string& qualifier, Shader& shader)
+void ShaderGenerator::emitVariableBlock(const Shader::VariableBlock& block, const string& qualifier, Shader& shader, const string& separator)
 {
     if (!block.empty())
     {
         for (const Shader::Variable* variable : block.variableOrder)
         {
+            shader.beginLine();
             emitVariable(*variable, qualifier, shader);
+            shader.addStr(separator);
+            shader.endLine(false);
         }
         shader.newLine();
     }

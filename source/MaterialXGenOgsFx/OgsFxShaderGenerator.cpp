@@ -64,7 +64,7 @@ namespace
     };
 }
 
-OgsFxShader::OgsFxShader(const string& name) 
+OgsFxShader::OgsFxShader(const string& name)
     : ParentClass(name)
 {
     _stages.push_back(Stage("FinalFx"));
@@ -76,7 +76,7 @@ OgsFxShader::OgsFxShader(const string& name)
 
 void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDesc* type, const string& name, const string& path, const string& semantic, ValuePtr value)
 {
-    // If no semantic is given check if we have 
+    // If no semantic is given check if we have
     // an OgsFx semantic that should be used
     if (semantic.empty())
     {
@@ -92,7 +92,7 @@ void OgsFxShader::createUniform(size_t stage, const string& block, const TypeDes
 
 void OgsFxShader::createAppData(const TypeDesc* type, const string& name, const string& semantic)
 {
-    // If no semantic is given check if we have 
+    // If no semantic is given check if we have
     // an OgsFx semantic that should be used
     if (semantic.empty())
     {
@@ -108,7 +108,7 @@ void OgsFxShader::createAppData(const TypeDesc* type, const string& name, const 
 
 void OgsFxShader::createVertexData(const TypeDesc* type, const string& name, const string& semantic)
 {
-    // If no semantic is given check if we have 
+    // If no semantic is given check if we have
     // an OgsFx semantic that should be used
     if (semantic.empty())
     {
@@ -166,7 +166,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     if (!vsConstants.empty())
     {
         shader.addComment("Constant block: " + vsConstants.name);
-        emitVariableBlock(vsConstants, _syntax->getConstantQualifier(), shader);
+        emitVariableBlock(vsConstants, _syntax->getConstantQualifier(), shader, ";\n");
     }
 
     // Add main function
@@ -184,7 +184,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     //
 
     shader.setActiveStage(OgsFxShader::PIXEL_STAGE);
-    
+
     shader.addComment("---------------------------------- Pixel shader ----------------------------------------\n");
     shader.addStr("GLSLShader PS\n");
     shader.beginScope(Shader::Brackets::BRACES);
@@ -215,7 +215,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     if (!psConstants.empty())
     {
         shader.addComment("Constant block: " + psConstants.name);
-        emitVariableBlock(psConstants, _syntax->getConstantQualifier(), shader);
+        emitVariableBlock(psConstants, _syntax->getConstantQualifier(), shader, ";\n");
     }
 
     // Add main function
@@ -305,11 +305,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     if (!vsPrivateUniforms.empty())
     {
         shader.addComment("Vertex stage uniform block: " + vsPrivateUniforms.name);
-        for (const Shader::Variable* uniform : vsPrivateUniforms.variableOrder)
-        {
-            emitUniform(*uniform, shader);
-        }
-        shader.newLine();
+        emitVariableBlock(vsPrivateUniforms, _syntax->getUniformQualifier(), shader, ";\n");
     }
 
     // Add all public vertex shader uniforms
@@ -317,11 +313,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     if (!vsPublicUniforms.empty())
     {
         shader.addComment("Vertex stage uniform block: " + vsPublicUniforms.name);
-        for (const Shader::Variable* uniform : vsPublicUniforms.variableOrder)
-        {
-            emitUniform(*uniform, shader);
-        }
-        shader.newLine();
+        emitVariableBlock(vsPublicUniforms, _syntax->getUniformQualifier(), shader, ";\n");
     }
 
     // Add all private pixel shader uniforms
@@ -329,11 +321,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     if (!psPrivateUniforms.empty())
     {
         shader.addComment("Pixel stage uniform block: " + psPrivateUniforms.name);
-        for (const Shader::Variable* uniform : psPrivateUniforms.variableOrder)
-        {
-            emitUniform(*uniform, shader);
-        }
-        shader.newLine();
+        emitVariableBlock(psPrivateUniforms, _syntax->getUniformQualifier(), shader, ";\n");
     }
 
     // Add all public pixel shader uniforms
@@ -341,11 +329,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     if (!psPublicUniforms.empty())
     {
         shader.addComment("Pixel stage uniform block: " + psPublicUniforms.name);
-        for (const Shader::Variable* uniform : psPublicUniforms.variableOrder)
-        {
-            emitUniform(*uniform, shader);
-        }
-        shader.newLine();
+        emitVariableBlock(psPublicUniforms, _syntax->getUniformQualifier(), shader, ";\n");
     }
 
     if (lighting)
@@ -398,7 +382,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& shaderName, ElementPtr el
     shader.addLine("pass p0", false);
     shader.beginScope(Shader::Brackets::BRACES);
     shader.addLine("VertexShader(in AppData, out VertexData vd) = { VS }");
-    shader.addLine(lighting ? 
+    shader.addLine(lighting ?
         "PixelShader(in VertexData vd, out PixelOutput) = { LightingFunctions, PS }" :
         "PixelShader(in VertexData vd, out PixelOutput) = { PS }");
     shader.endScope();

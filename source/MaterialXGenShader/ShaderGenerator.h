@@ -185,7 +185,8 @@ protected:
     /// @param qualifier Optional qualifier to add before the variable declaration.
     /// Qualifiers are specified by the syntax for the generator.
     /// @param shader Shader to emit to.
-    virtual void emitVariableBlock(const Shader::VariableBlock& block, const string& qualifier, Shader& shader);
+    /// @param separator Separator to use between variables.
+    virtual void emitVariableBlock(const Shader::VariableBlock& block, const string& qualifier, Shader& shader, const string& separator);
 
     /// Emit a shader input variable
     /// @param variable Variable to emit

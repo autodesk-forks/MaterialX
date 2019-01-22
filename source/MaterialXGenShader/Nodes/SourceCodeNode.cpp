@@ -103,8 +103,9 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
             if (!input->connection)
             {
                 string variableName = node.getName() + input->name + std::to_string(variableIndex++);
-                string variableValue = input->value ? shadergen.getSyntax()->getValue(input->type, *input->value) : shadergen.getSyntax()->getDefaultValue(input->type);
-                shader.addLine(shadergen.getSyntax()->getTypeName(input->type) + " " + variableName + " = " + variableValue);
+                Shader::VariablePtr newVariable = Shader::Variable::create(input->type, variableName, EMPTY_STRING, EMPTY_STRING, input->value);
+                shadergen.emitConstant(*newVariable, shader);
+                shader.endLine();
             }
 
             pos = j + 2;
