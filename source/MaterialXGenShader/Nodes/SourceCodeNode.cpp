@@ -102,7 +102,7 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
 
             if (!input->connection)
             {
-                string variableName = node.getName() + input->name + std::to_string(variableIndex++);
+                string variableName = node.getName() + "_" + input->name + std::to_string(variableIndex++);
                 Shader::VariablePtr newVariable = Shader::Variable::create(input->type, variableName, EMPTY_STRING, EMPTY_STRING, input->value);
                 shadergen.emitConstant(*newVariable, shader);
                 shader.endLine();
@@ -142,7 +142,7 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
             }
             else
             {
-                string variableName = node.getName() + input->name + std::to_string(variableIndex++);
+                string variableName = node.getName() + "_" + input->name + std::to_string(variableIndex++);
                 shader.addStr(variableName);
             }
 

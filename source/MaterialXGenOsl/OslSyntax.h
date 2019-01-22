@@ -17,6 +17,7 @@ public:
     const string& getOutputQualifier() const override;
     const string& getConstantQualifier() const override { return EMPTY_STRING; };
 
+    static const string BLOCK_VARIABLE_SEPARATOR;
     static const string OUTPUT_QUALIFIER;
     static const vector<string> VECTOR_MEMBERS;
     static const vector<string> VECTOR2_MEMBERS;
