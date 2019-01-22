@@ -1,17 +1,5 @@
 <?xml version="1.0"?>
 <materialx version="1.36">
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/stdlib/stdlib_defs.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/stdlib/stdlib_ng.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/stdlib\genglsl/cm_genglsl_impl.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/stdlib\genglsl/stdlib_genglsl_impl.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/stdlib\genglsl\ogsfx/stdlib_genglsl_ogsfx_impl.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/stdlib\genosl/cm_genosl_impl.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/stdlib\genosl/stdlib_genosl_impl.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/stdlib\osl/stdlib_osl_impl.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/pbrlib/pbrlib_defs.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/pbrlib/pbrlib_ng.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/pbrlib\genglsl/pbrlib_genglsl_impl.mtlx" />
-  <xi:include href="D:/Work/materialx/BlackSky/build/bin/Libraries/pbrlib\genosl/pbrlib_genosl_impl.mtlx" />
   <nodegraph name="nodegraph1" type="" xpos="7.69655" ypos="20.7914">
     <add name="add_surface_shader" type="surfaceshader" xpos="6.91469" ypos="-0.75844">
       <input name="in1" type="surfaceshader" value="" nodename="multiply_surface_shaderFloat" />
