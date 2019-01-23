@@ -1119,8 +1119,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
         }
         size_t libraryCount = libraryImpls.size();
         profilingLog << "Tested: " << implementationUseCount << " out of: " << libraryCount << " library implementations." << std::endl;
-        // TODO: Add a CHECK when all implementations have been tested using unit tests.
-        // CHECK(implementationUseCount == libraryCount);
+        CHECK(implementationUseCount == libraryCount);
     }
 }
 
