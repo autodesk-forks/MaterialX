@@ -104,7 +104,7 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
             {
                 string variableName = node.getName() + "_" + input->name + std::to_string(variableIndex++);
                 Shader::VariablePtr newVariable = Shader::Variable::create(input->type, variableName, EMPTY_STRING, EMPTY_STRING, input->value);
-                shadergen.emitConstant(*newVariable, shader);
+                shadergen.emitVariable(*newVariable, shadergen.getSyntax()->getConstantQualifier(), shader);
                 shader.endLine();
             }
 

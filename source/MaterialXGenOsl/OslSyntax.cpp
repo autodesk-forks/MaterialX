@@ -181,7 +181,6 @@ namespace
     };
 }
 
-const string OslSyntax::BLOCK_VARIABLE_SEPARATOR = ",\n";
 const string OslSyntax::OUTPUT_QUALIFIER = "output";
 const vector<string> OslSyntax::VECTOR_MEMBERS  = { "[0]", "[1]", "[2]" };
 const vector<string> OslSyntax::VECTOR2_MEMBERS = { ".x", ".y" };

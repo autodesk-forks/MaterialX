@@ -94,7 +94,6 @@ namespace
     };
 }
 
-const string GlslSyntax::BLOCK_VARIABLE_SEPARATOR = ";\n";
 const string GlslSyntax::OUTPUT_QUALIFIER = "out";
 const string GlslSyntax::UNIFORM_QUALIFIER = "uniform";
 const string GlslSyntax::CONSTANT_QUALIFIER = "const";

@@ -21,8 +21,6 @@ public:
     const string& getUniformQualifier() const override { return UNIFORM_QUALIFIER; };
     bool typeSupported(const TypeDesc* type) const override;
 
-    static const string BLOCK_VARIABLE_SEPARATOR;
-
     static const string OUTPUT_QUALIFIER;
     static const string UNIFORM_QUALIFIER;
     static const string CONSTANT_QUALIFIER;
