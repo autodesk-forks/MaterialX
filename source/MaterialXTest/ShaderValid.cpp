@@ -365,7 +365,6 @@ void getGenerationOptions(const ShaderValidTestOptions& testOptions, std::vector
     {
         mx::GenOptions reducedOption;
         reducedOption.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
-        reducedOption.validate = testOptions.validateElementToRender;
         optionsList.push_back(reducedOption);
     }
     // Alway fallback to complete if no options specified.
@@ -373,7 +372,6 @@ void getGenerationOptions(const ShaderValidTestOptions& testOptions, std::vector
     {
         mx::GenOptions completeOption;
         completeOption.shaderInterfaceType = mx::SHADER_INTERFACE_COMPLETE;
-        completeOption.validate = testOptions.validateElementToRender;
         optionsList.push_back(completeOption);
     }
 }
@@ -384,6 +382,17 @@ static void runOGSFXValidation(const std::string& shaderName, mx::TypedElementPt
     std::ostream& log, const ShaderValidTestOptions& testOptions, ShaderValidProfileTimes& profileTimes, const std::string& outputPath = ".")
 {
     AdditiveScopedTimer totalOgsFXTime(profileTimes.ogsfxTimes.totalTime, "OGSFX total time");
+
+    // Perform validation if requested
+    if (testOptions.validateElementToRender)
+    {
+        std::string message;
+        if (!element->validate(&message))
+        {
+            log << "Element is invalid: " << message << std::endl;
+            return;
+        }
+    }
 
     std::vector<mx::GenOptions> optionsList;
     getGenerationOptions(testOptions, optionsList);
@@ -477,6 +486,17 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                               std::ostream& log, const ShaderValidTestOptions& testOptions, ShaderValidProfileTimes& profileTimes, const std::string& outputPath=".")
 {
     AdditiveScopedTimer totalGLSLTime(profileTimes.glslTimes.totalTime, "GLSL total time");
+
+    // Perform validation if requested
+    if (testOptions.validateElementToRender)
+    {
+        std::string message;
+        if (!element->validate(&message))
+        {
+            log << "Element is invalid: " << message << std::endl;
+            return;
+        }
+    }
 
     std::vector<mx::GenOptions> optionsList;
     getGenerationOptions(testOptions, optionsList);
@@ -718,6 +738,17 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                              const ShaderValidTestOptions& testOptions, ShaderValidProfileTimes& profileTimes, const std::string& outputPath=".")
 {
     AdditiveScopedTimer totalOSLTime(profileTimes.oslTimes.totalTime, "OSL total time");
+
+    // Perform validation if requested
+    if (testOptions.validateElementToRender)
+    {
+        std::string message;
+        if (!element->validate(&message))
+        {
+            log << "Element is invalid: " << message << std::endl;
+            return;
+        }
+    }
 
     std::vector<mx::GenOptions> optionsList;
     getGenerationOptions(testOptions, optionsList);
@@ -1041,7 +1072,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
             "geomattrvalue_integer", "geomattrvalue_boolean", "geomattrvalue_string", "constant_matrix33", "add_matrix33FA",
             "add_matrix33", "subtract_matrix33FA", "subtract_matrix33", "multiply_matrix33", "divide_matrix33", "invert_matrix33",
             "transpose_matrix33", "transformvector_vector3M", "transformnormal_vector3M", "transformpoint_vector3M",
-            "determinant_matrix33"
+            "determinant_matrix33", "IM_dot_", "IM_constant_string_", "IM_constant_filename_"
         };
         const std::string OSL_STRING("osl");
         const std::string GEN_OSL_STRING(mx::OslShaderGenerator::LANGUAGE);
@@ -1119,8 +1150,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
         }
         size_t libraryCount = libraryImpls.size();
         profilingLog << "Tested: " << implementationUseCount << " out of: " << libraryCount << " library implementations." << std::endl;
-        // TODO: Add a CHECK when all implementations have been tested using unit tests.
-        // CHECK(implementationUseCount == libraryCount);
+        CHECK(implementationUseCount == libraryCount);
     }
 }
 
