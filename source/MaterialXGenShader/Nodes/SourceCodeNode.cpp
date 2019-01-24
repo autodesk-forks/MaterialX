@@ -83,9 +83,11 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
 
         size_t pos = 0;
         size_t i = _functionSource.find_first_of(prefix);
-        int variableIndex = 1;
+        std::set<std::string> variableNames;
+        std::vector<std::string> code;
         while (i != string::npos)
         {
+            code.push_back(_functionSource.substr(pos, i - pos));
             size_t j = _functionSource.find_first_of(postfix, i + 2);
             if (j == string::npos)
             {
@@ -100,57 +102,40 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
                     "' on node '" + node.getName() + "'");
             }
 
-            if (!input->connection)
+            if (input->connection)
             {
-                string variableName = node.getName() + "_" + input->name + std::to_string(variableIndex++);
+                string inputStr;
+                shadergen.getInput(context, input, inputStr);
+                code.push_back(inputStr);
+            }
+            else
+            {
+                string variableName = node.getName() + "_" + input->name + "_tmp";
                 Shader::VariablePtr newVariable = Shader::Variable::create(input->type, variableName, EMPTY_STRING, EMPTY_STRING, input->value);
-                shadergen.emitVariable(*newVariable, shadergen.getSyntax()->getConstantQualifier(), shader);
-                shader.endLine();
+                std::set<std::string>::iterator it = variableNames.find(variableName);
+                if(it == variableNames.end())
+                {
+                    shader.beginLine();
+                    shadergen.emitVariable(*newVariable, shadergen.getSyntax()->getConstantQualifier(), shader);
+                    shader.endLine();
+                    variableNames.insert(variableName);
+                }
+                code.push_back(variableName);
             }
 
             pos = j + 2;
             i = _functionSource.find_first_of(prefix, pos);
         }
+        code.push_back(_functionSource.substr(pos));
+        code.push_back(ShaderGenerator::SEMICOLON_NEWLINE);
 
         shader.beginLine();
         shadergen.emitOutput(context, node.getOutput(), true, false, shader);
         shader.addStr(" = ");
-
-        pos = 0;
-        i = _functionSource.find_first_of(prefix);
-        variableIndex = 1;
-        while (i != string::npos)
+        for (const std::string& c : code)
         {
-            shader.addStr(_functionSource.substr(pos, i - pos));
-
-            size_t j = _functionSource.find_first_of(postfix, i + 2);
-            if (j == string::npos)
-            {
-                throw ExceptionShaderGenError("Malformed inline expression in implementation for node " + node.getName());
-            }
-
-            const string variable = _functionSource.substr(i + 2, j - i - 2);
-            const ShaderInput* input = node.getInput(variable);
-            if (!input)
-            {
-                throw ExceptionShaderGenError("Could not find an input named '" + variable +
-                    "' on node '" + node.getName() + "'");
-            }
-            if (input->connection)
-            {
-                shadergen.emitInput(context, input, shader);
-            }
-            else
-            {
-                string variableName = node.getName() + "_" + input->name + std::to_string(variableIndex++);
-                shader.addStr(variableName);
-            }
-
-            pos = j + 2;
-            i = _functionSource.find_first_of(prefix, pos);
+            shader.addStr(c);
         }
-        shader.addStr(_functionSource.substr(pos));
-        shader.endLine();
     }
     else
     {

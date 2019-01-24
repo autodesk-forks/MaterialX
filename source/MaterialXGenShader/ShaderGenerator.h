@@ -172,7 +172,7 @@ public:
     };
 
     static string SEMICOLON_NEWLINE;
-    static string COMMA_NEWLINE;
+    static string COMMA;
 
 protected:
     /// Protected constructor

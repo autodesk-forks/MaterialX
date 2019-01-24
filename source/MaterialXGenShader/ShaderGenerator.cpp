@@ -15,7 +15,7 @@ namespace MaterialX
 {
 
 string ShaderGenerator::SEMICOLON_NEWLINE = ";\n";
-string ShaderGenerator::COMMA_NEWLINE = ",\n";
+string ShaderGenerator::COMMA = ",";
 
 ShaderGenerator::ShaderGenerator(SyntaxPtr syntax)
     : _syntax(syntax)

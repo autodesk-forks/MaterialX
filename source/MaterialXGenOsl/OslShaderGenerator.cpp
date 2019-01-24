@@ -204,7 +204,7 @@ ShaderPtr OslShaderGenerator::generate(const string& shaderName, ElementPtr elem
 
     // Emit all public inputs
     const Shader::VariableBlock& publicUniforms = shader.getUniformBlock(Shader::PIXEL_STAGE, Shader::PUBLIC_UNIFORMS);
-    emitVariableBlock(publicUniforms, _syntax->getUniformQualifier(), ShaderGenerator::COMMA_NEWLINE, shader);
+    emitVariableBlock(publicUniforms, _syntax->getUniformQualifier(), ShaderGenerator::COMMA, shader);
 
     // Emit shader output
     const TypeDesc* outputType = outputSocket->type;
