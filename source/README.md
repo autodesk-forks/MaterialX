@@ -38,27 +38,6 @@
 
 ## Library Tree Structure
 - Refer to documentation in documents/Libraries folder.
-- < move this to readme there... >
--   pbrlib : PBR library
-    -   genglsl : GLSL support
-        -   lib : Utilities
-        -   < implementation files >
-        -   ogsfx : OGSFX support
-            - < implementation files >
-    -   genosl : OSL support
-        -   lib : Utilities
-        -   < implementation files >
--   stdlib : Standard library
-    -   genglsl: GLSL support
-        -   lib : Utilities
-        -   < implementation files >
-        -   ogsfx: OGSFX support
-            -   < implementation files >
-    -   genosl: OSL support
-        -   lib: Utilities
-        -   < implementation files >
-    -   Osl: Reference support
-        -   < implementation files >
 
 ## Unsupported
 
