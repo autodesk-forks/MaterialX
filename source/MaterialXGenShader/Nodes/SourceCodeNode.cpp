@@ -111,12 +111,12 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
             else
             {
                 string variableName = node.getName() + "_" + input->name + "_tmp";
-                Shader::VariablePtr newVariable = Shader::Variable::create(input->type, variableName, EMPTY_STRING, EMPTY_STRING, input->value);
                 std::set<std::string>::iterator it = variableNames.find(variableName);
                 if(it == variableNames.end())
                 {
+                    Shader::Variable newVariable(input->type, variableName, EMPTY_STRING, EMPTY_STRING, input->value);
                     shader.beginLine();
-                    shadergen.emitVariable(*newVariable, shadergen.getSyntax()->getConstantQualifier(), shader);
+                    shadergen.emitVariable(newVariable, shadergen.getSyntax()->getConstantQualifier(), shader);
                     shader.endLine();
                     variableNames.insert(variableName);
                 }
