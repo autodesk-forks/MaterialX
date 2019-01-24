@@ -58,7 +58,7 @@ Nodes and implementations which are not currently supported:
 - Render test suite: Windows only.
 - GLSL and OSL program validators
 
-### Viewing Utilities
+## Viewing Utilities
 
 - **MaterialXView** module
 - Sample material viewer.
