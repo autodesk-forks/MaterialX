@@ -9,23 +9,23 @@ Note that ShaderX has no runtime and the output produced is source code, not bin
 code. The source code produced needs to be compiled by a shading language compiler before being
 executed by the renderer. See Figure 1 for a high level overview of the system.
 
-[**Figure 1**: ShaderX with multiple shader generators](../Images/shaderx.png)
+![ShaderX with multiple shader generators](../Images/shaderx.png)
+
+**Figure 1**: ShaderX with multiple shader generators
 
 ## 1.2 Languages and Shader Generators
 The ShaderX description is free from device specific details and all implementation details needs to be taken care of by the shader generators. There is one shader generator for each supported shading language. However for each language there can also be variations needed for different renderers.
 
-For example; OpenGL renderers supporting GLSL can use forward rendering or deferred rendering,
+For example: `OpenGL` renderers supporting `GLSL` can use forward rendering or deferred rendering,
 each with very different requirements for how the shaders are constructed. Another example is
 different renderers supporting OSL but with different sets of closures or closure parameters. Hence
 a separate shader generator can be defined for each language/target combination.
 
 To add a new shader generator for a target you add a new C++ class derived from the base class
-ShaderGenerator, or one of the existing derived shader generator classes (HwShaderGenerator,
-GlslShaderGenerator, OslShaderGenerator, etc.), and override the methods you need to cus-
+`ShaderGenerator`, or one of the existing derived shader generator classes (`HwShaderGenerator`,
+`GlslShaderGenerator`, `OslShaderGenerator`, etc.), and override the methods you need to cus-
 tomize. You might also need to derive a new Syntax class, which is used to handle syntactical
-differences between different shading languages. Then you need to make sure there are imple-
-mentations defined for all the nodes you want to support, standard library nodes and nodes from
-other libraries, by either reusing existing implementations where applicable or adding in new ones.
+differences between different shading languages. Then you need to make sure there are implementations defined for all the nodes you want to support, standard library nodes and nodes from other libraries, by either reusing existing implementations where applicable or adding in new ones.
 
 See 1.3 on how that is done.
 
@@ -47,11 +47,11 @@ typed inputs and outputs. In the following sub-sections each of these methods ar
 ShaderX’s code generators support a very simple expression language for inlining code. This is
 useful for simple nodes where the operation can be expressed as a single line of code. Inlining will reduce the number of function calls and produce more compact code. The syntax to use is the
 same as the target shading language, with the addition of using the node’s input ports as variables
-wrapped in double curly brackets: {{input}}. The code generator will replace these variables with
+wrapped in double curly brackets: ``{{input}}``. The code generator will replace these variables with
 values assigned or connected to the respective inputs. Figure 2 gives an example.
 
-Connecting the expression to the nodedef is done using an <implementation> element as seen in
-Figure 2. The file extension is used to differentiate inline expressions from source code functions, using ”filename.inline”.
+Connecting the expression to the nodedef is done using an `<implementation>`` element as seen in
+Figure 2. The file extension is used to differentiate inline expressions from source code functions, using `filename.inline`.
 
 ```
 // Nodedef elements for node <add>
@@ -89,7 +89,7 @@ Figure 2. The file extension is used to differentiate inline expressions from so
 <implementation name="IM_mix_color3" nodedef="ND_mix_color3" file="mx_mix.inline"/>
 <... more types ...>
 ```
-**Figure 2**: Inline expressions for implementing nodes ```<add>``` and ```<mix>```.
+**Figure 2**: Inline expressions for implementing nodes `<add>` and `<mix>`.
 
 ### 1.3.2 Shading Language Function
 For nodes that can’t be implemented by inline expressions a function definition can be used instead. The function signature should match the nodedefs interface with inputs and outputs. See Figure 3 for an example. Connecting the source code to the nodedef is done using an <implementation> element, see [1] for more information.
@@ -185,16 +185,16 @@ streams or uniform inputs might need to be created in order to supply the data n
 node implementation.
 
 In this case a C++ class can be added to ShaderX to handle the implementation of the node. The
-class should be derived from the base class SgImplementation. It should specify what language
-and target it is for by overriding ```getLanguage()``` and ```getTarget()```. It can also be specified to
+class should be derived from the base class `SgImplementation`. It should specify what language
+and target it is for by overriding `getLanguage()` and `getTarget()`. It can also be specified to
 support all languages or all targets by setting the identifier to an empty string, as done for the
-target identifier in the example below. It then needs to be registered for a ```ShaderGenerator``` by
-calling ```ShaderGenerator::registerImplementation()```. See Figure 5 for an example.
-When an ```SgImplementation``` class is used for a nodedef the corresponding ```<implementation>```
-element don’t need a file attribute, since no static source code is used. The ```<implementation>```
+target identifier in the example below. It then needs to be registered for a `ShaderGenerator` by
+calling `ShaderGenerator::registerImplementation()`. See Figure 5 for an example.
+When an `SgImplementation` class is used for a nodedef the corresponding `<implementation>`
+element don’t need a file attribute, since no static source code is used. The `<implementation>`
 element will then act only as a declaration that there exists an implementation for the nodedef for a particular language and target.
 
-Note that the use of ```SgImplementation``` classes for dynamic code generation goes against our
+Note that the use of `SgImplementation` classes for dynamic code generation goes against our
 design goal of being data driven. An application needs to be recompiled after adding a new node
 implementation class. However this usage is only needed in special cases. And in these cases
 the code produced can be made much more efficient by allowing this dynamic generation. As
@@ -237,10 +237,10 @@ OslShaderGenerator::OslShaderGenerator()
   ...
 }
 ```
-**Figure**: C++ class for dynamic code generation.
+**Figure 5**: C++ class for dynamic code generation.
 
 ## 1.4 Shader Generation Steps
-This section outlines the steps taken in general to produce a shader from the MaterialX description.The ShaderGenerator base class and its support classes will handle this for you, but it’s good to
+This section outlines the steps taken in general to produce a shader from the MaterialX description.The `ShaderGenerator` base class and its support classes will handle this for you, but it’s good to
 know the steps involved in case more custom changes are needed to support a new target.
 
 ShaderX supports generating a shader starting from either a graph output port, an arbitrary node
@@ -257,7 +257,7 @@ ShaderPtr ShaderGenerator::generate(const string& shaderName,
 ```     
 
 The shader generation process can be divided into initialization and code generation. The initial-
-ization is handled by the Shader class, and consists of a number of steps:
+ization is handled by the `Shader` class, and consists of a number of steps:
 
 1. Create an optimized version of the graph as a tree with the given element as root, and with only the used dependencies connected upstream. This involves removing unused paths in
 the graph, converting constant nodes to constant values, and adding in any default nodes
@@ -297,19 +297,19 @@ scope or by multiple conditional scopes.
 
 
 The output from the initialization step is a new graph representation constructed using the classes
-SgNode, SgInput, SgOutput, SgNodeGraph, etc. This is a graph representation optimized for
+`SgNode`, `SgInput`, `SgOutput`, `SgNodeGraph`, etc. This is a graph representation optimized for
 shader generation with quick access and traversal of nodes and ports, as well as caching of extra
 information needed by shader generation.
 
-After initialization the code generation steps are handled by the ShaderGenerator class and derived classes. This part is specific for the particular generator being used, but in general it consists of the following steps:
+After initialization the code generation steps are handled by the `ShaderGenerator` class and derived classes. This part is specific for the particular generator being used, but in general it consists of the following steps:
 
 1. Typedefs are emitted as specified by the Syntax class.
 2. Function definitions are emitted for all the atomic nodes that has shading language functions
-for their implementations. For nodes using dynamic code generation their SgImplementation
+for their implementations. For nodes using dynamic code generation their `SgImplementation`
 instances are called to generate the functions. For nodes that are implemented by graphs a
 function definition representing the graph computation is emitted.
 3. The shader signature is emitted with all uniforms set to default values. The shader uniforms
-can later be accessed on the returned Shader instance in order for applications to be able to
+can later be accessed on the returned `Shader` instance in order for applications to be able to
 bind values to them.
 4. The function calls for all nodes are emitted, in the right dependency order, propagating
 output results from upstream nodes as inputs to downstream nodes. Inline expressions are
@@ -321,6 +321,7 @@ generator can be called on elements at any point in your graph, and generate cod
 It is then up to the application to decide where to split the graph, and to assemble the shader code for sub-parts after all have been generated.
 
 ## 1.5 Bindings and Shading Context
+
 There are a number of ways to bind values to input ports on nodes and graphs. A port can be
 assigned a constant default value or be connected to other nodes. If a port is connected it will
 read the value from the upstream node. Ports can also be set to have a default node connected
@@ -339,18 +340,19 @@ the shader generator and node implementation of these geometric nodes to make su
 supplied, and where applicable transformed to the requested coordinate space.
 
 ## 1.6 Shader Stages
+
 The Shader base class supports multiple shader stages. This is needed in order to generate separate
 code for multiple stages on HW render targets. By default the base class has only a single stage,
-called the pixel stage. But there is another sub-class HwShader that adds an additional stage, the
+called the pixel stage. But there is another sub-class `HwShader` that adds an additional stage, the
 vertex stage. If more stages are needed you can sub-class and extend on this.
 When creating shader input variables you can specify which stage the variable should be used in,
 see 1.7 for more information on shader variable creation.
 
 Node implementations using static source code (function or inline expressions) are always emitted
 to the pixel stage. Controlling the vertex stage, or other stages, is not supported using static source
-code. In order to do that you must use dynamic code generation with a custom SgImplementation
+code. In order to do that you must use dynamic code generation with a custom `SgImplementation`
 sub-class for your node. You are then able to control how it affects all stages separately. Inside
-emitFunctionDefinition and emitFunctionCall you can add separate sections for each stage
+`emitFunctionDefinition` and `emitFunctionCall` you can add separate sections for each stage
 using begin/end shader stage macros. Figure 6 shows how the texcoord node for GLSL is emitting
 different code into the vertex and pixel stages.
 
@@ -362,7 +364,7 @@ to the user have their values set by the application.
 
 Adding new uniforms to a shader is done by first creating a uniform block and then adding
 uniforms into the block. There are two predefined uniform blocks that can be used directly, one
-named PublicUniforms and another named PrivateUniforms. Public is used for uniforms to
+named `PublicUniforms` and another named `PrivateUniforms`. Public is used for uniforms to
 be published to the user, as described above, and private is used for uniforms needed by node
 implementations but set by the application and not published. All uniform blocks can be queried
 and accessed by the application from the Shader instance after generation.
@@ -416,14 +418,14 @@ public:
   }
 };
 ```
-**Figure 6**: mplementation of node ```texcoord``` in GLSL. Using an ```SgImplementation``` sub-class in order to control shader variable creation and code generation into separate shader stages.
+**Figure 6**: Implementation of node `texcoord` in GLSL. Using an `SgImplementation` sub-class in order to control shader variable creation and code generation into separate shader stages.
 
 For inputs representing geometric data streams a separate variable block is used. In ShaderX
 these variables are named application data inputs (in a HW shading language they are often
-named varying inputs or attributes). The Shader class has a method for creating such variables,
-in a block named AppData. This is also accessible from the Shader instance after generation.
+named varying inputs or attributes). The `Shader` class has a method for creating such variables,
+in a block named `AppData`. This is also accessible from the `Shader` instance after generation.
 In order to pass data between shader stages in a hardware shader additional variable blocks are
-needed. For this purpose the HwShader class (derived from Shader) contains a variable block named VertexData. It is used for transporting data from the vertex stage to the pixel stage. The
+needed. For this purpose the `HwShader` class (derived from `Shader`) contains a variable block named `VertexData`. It is used for transporting data from the vertex stage to the pixel stage. The
 HwShader class has methods for creating such vertex data variables.
 
 Creating shader variables and binding values to them needs to be done in agreement with the
@@ -495,3 +497,8 @@ Uniform variables:
 
 ```
 **Figure 7** : Listing of predefined variables with their binding rules.
+
+## References
+
+[1] Lucasfilm, MaterialX specification.
+http://www.materialx.org, 2017.
