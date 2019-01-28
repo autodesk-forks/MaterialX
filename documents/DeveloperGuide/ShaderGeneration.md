@@ -9,8 +9,7 @@ Note that ShaderX has no runtime and the output produced is source code, not bin
 code. The source code produced needs to be compiled by a shading language compiler before being
 executed by the renderer. See Figure 1 for a high level overview of the system.
 
-![](images/shaderx.png)
-**Figure 1**: ShaderX with multiple shader generators
+[**Figure 1**: ShaderX with multiple shader generators](../Images/shaderx.png)
 
 ## 1.2 Languages and Shader Generators
 The ShaderX description is free from device specific details and all implementation details needs to be taken care of by the shader generators. There is one shader generator for each supported shading language. However for each language there can also be variations needed for different renderers.
