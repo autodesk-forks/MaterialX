@@ -50,7 +50,7 @@ same as the target shading language, with the addition of using the node’s inp
 wrapped in double curly brackets: ``{{input}}``. The code generator will replace these variables with
 values assigned or connected to the respective inputs. Figure 2 gives an example.
 
-Connecting the expression to the nodedef is done using an `<implementation>`` element as seen in
+Connecting the expression to the nodedef is done using an `<implementation>` element as seen in
 Figure 2. The file extension is used to differentiate inline expressions from source code functions, using `filename.inline`.
 
 ```
@@ -129,7 +129,7 @@ void mx_image_color3(string file, string layer, color defaultvalue,
                 "wrap", uaddressmode);
 }
 ```
-**Figure 3**: Shading language functions implementation for node ```<image>``` in OSL.
+**Figure 3**: Shading language functions implementation for node `<image>` in OSL.
 
 ### 1.3.3 Implementation by Node Graph
 As an alternative to define source code, there is also an option to reference a nodegraph as the
