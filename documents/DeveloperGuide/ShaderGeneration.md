@@ -2,7 +2,7 @@
 
 ## 1.1 Scope
 The shader generation features of ShaderX are implemented as an extension to MaterialX. Most
-features are contained in a the [MaterialXGenShader](source/MaterialXGenShader) shared library, but some features are part of the [MaterialXCore](source/MaterialXCore) library as well.
+features are contained in a the [MaterialXGenShader](/source/MaterialXGenShader) shared library, but some features are part of the [MaterialXCore](/source/MaterialXCore) library as well.
 
 Note that ShaderX has no runtime and the output produced is source code, not binary executable
 code. The source code produced needs to be compiled by a shading language compiler before being

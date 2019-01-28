@@ -18,4 +18,4 @@ are found in [stdlib/math](stdlib/math)), with:
 - The [Geometry](Geometry) and [Images](Images) folders provide stock input geometry and images for usage by the test suite.
 - The [Utilities folder](Utilities) provides utilities used for rendering with `testrender` as well as the light configuration used for hardware rendering.
 
-For details on how to build the unit test module to use this test suite see the [source documentation](source/MaterialXTest/README.md).
+For details on how to build the unit test module to use this test suite see the [source documentation](../../source/MaterialXTest/README.md).
