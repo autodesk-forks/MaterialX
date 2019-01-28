@@ -1,11 +1,10 @@
-# Core
+# Core Specification Support
 
 - [MaterialXCore](MaterialXCore): Core library  
 - [MaterialXFormat](MaterialXFormat): XML support
-- [MaterialXTest](MaterialXTest) : Unit tests
 - [PyMaterialX](PyMaterialX) : Python API support
 
-# Shader Generation and Usage
+# Shader Generation Support
 
 ## Supported APIs
 
@@ -20,7 +19,7 @@
     -   GLSL
         -   Version 4 or higher
         -   Core support in [MaterialXGenGLSL](MaterialXGenGLSL) module
-        -   Autodesk OGSFX Effect support in [MaterialXGenOgsFx** module
+        -   Autodesk OGSFX Effect support in [MaterialXGenOgsFx](MaterialXGenOgsFx) module
     -   OSL:
         -   [MaterialXGenOsl](MaterialXGenOsl) module.
         -   Uses an implementation which differs from the reference OSL
@@ -39,7 +38,7 @@
 ## Library Tree Structure
 - Refer to documentation in the [Libraries](../documents/Libraries) folder.
 
-## Unsupported
+## Unsupported definitions for Shader Generation
 
 Nodes and implementations which are not currently supported:
 -   ambientocclusion
@@ -50,7 +49,7 @@ Nodes and implementations which are not currently supported:
 -   mix surfaceshader for GLSL
 -   Matrix33 type operations for OSL.
 
-## Rendering Utilities
+# Rendering Utilities
 
 - [MaterialXRender](MaterialXRender) module.
 - Geometry handler with OBJ format support.
@@ -58,7 +57,20 @@ Nodes and implementations which are not currently supported:
 - Render test suite: Windows only.
 - GLSL and OSL program validators
 
-## Viewing Utilities
+# Test Framework
 
-- [MaterialXView](MaterialXView) module
-- Sample material viewer.
+The unit tests are located in the [MaterialXTest](MaterialXTest/README.md) module.
+This includes tests for core and shader generation.
+
+# Viewing Utilities
+
+- [MaterialXView](https://github.com/jstone-dev/MaterialX/blob/adsk_contrib/dev/README.md) module
+- Sample material viewer which uses the core, shader generation and rendering utilities libraries.
+
+# Build Options
+By default MaterialXCore, MaterialXFormat and MaterialXGenShader are built.
+- Python support is enabled via the MATERIALX_BUILD_PYTHON build variable.
+- OSL shader generation is enabled via the MATERIALX_BUILD_GEN_OSL build variable.
+- GLSL shader generation is enabled via the MATERIALX_BUILD_GEN_GLSL build variable.
+- OGSFX shader generation is enabled via the MATERIALX_BUILD_GEN_OGSFX build variable. The GLSL shader generation build variable must also be enabled.
+- Building of rendering utilities is enabled via the MATERIALX_BUILD_RENDER build variable. Execution of rendering tests is enabled via the MATERIALX_TEST_RENDER. These tests are currently only supported for the Windows platform.
