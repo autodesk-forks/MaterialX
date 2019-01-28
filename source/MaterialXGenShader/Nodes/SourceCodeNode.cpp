@@ -83,8 +83,8 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
 
         size_t pos = 0;
         size_t i = _functionSource.find_first_of(prefix);
-        std::set<std::string> variableNames;
-        std::vector<std::string> code;
+        std::set<string> variableNames;
+        vector<string> code;
         while (i != string::npos)
         {
             code.push_back(_functionSource.substr(pos, i - pos));
@@ -111,8 +111,7 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
             else
             {
                 string variableName = node.getName() + "_" + input->name + "_tmp";
-                std::set<std::string>::iterator it = variableNames.find(variableName);
-                if(it == variableNames.end())
+                if (!variableNames.count(variableName))
                 {
                     Shader::Variable newVariable(input->type, variableName, EMPTY_STRING, EMPTY_STRING, input->value);
                     shader.beginLine();
@@ -132,7 +131,7 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
         shader.beginLine();
         shadergen.emitOutput(context, node.getOutput(), true, false, shader);
         shader.addStr(" = ");
-        for (const std::string& c : code)
+        for (const string& c : code)
         {
             shader.addStr(c);
         }
