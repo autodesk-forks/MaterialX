@@ -2,7 +2,7 @@
 
 - [MaterialXCore](MaterialXCore): Core library  
 - [MaterialXFormat](MaterialXFormat): XML support
-- [PyMaterialX](PyMaterialX) : Python API support
+- [PyMaterialX](PyMaterialX) : Core library Python API support
 
 # Shader Generation Support
 
@@ -60,7 +60,8 @@ Nodes and implementations which are not currently supported:
 # Test Framework
 
 The unit tests are located in the [MaterialXTest](MaterialXTest/README.md) module.
-This includes tests for core and shader generation.
+
+This includes tests for core and shader generation. The tests executed are based on what build options have been enabled. The test suite for this resides [here] (../documents/TestSuite).
 
 # Viewing Utilities
 

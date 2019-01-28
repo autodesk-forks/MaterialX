@@ -42,12 +42,4 @@ Tests for all GLSL and OSL implementations. If rendering tests are enabled via t
         - MATERIALX_TESTRENDER_EXECUTABLE: Full path to the "testrender" binary.
         - MATERIALX_OSL_INCLUDE_PATH: Full path to osl include paths (i.e. location of "stdosl.h").
 
-The [test suite folder (documents/TestSuite)](../../documents/TestSuite) contains a set of input MaterialX documents. Each file is parsed for renderable elements. Each such element is compiled, and/or rendered as part of the validation test. It is possible add additional tests by simply adding new MaterialX documents under the TestSuite folder.
-
-Note that the sub-folders group documents based on Element group or category as they are related to the stdlib and pbrlib libraries.
-
-The [options file (documents/TestSuite/_options.mtlx)](../../documents/TestSuite/_options.mtlx) is a MaterialX document with a set of test execution options. The values may be edited locally as desired.
-
-The [Geometry](../../documents/TestSuite/Geometry) and [Images]((../../documents/TestSuite/Geometry) folders provide stock input geometry and images for usage by the test suite.
-
-The [Utilities folder](../../documents/TestSuite/Geometry) provides utilities used for rendering with testrender as well as the light configuration used for hardware rendering.
+Refer to the [test suite documentation](../../documents/TestSuite) for more information about te input data suite for this test.
