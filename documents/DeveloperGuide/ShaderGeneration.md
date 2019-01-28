@@ -2,8 +2,7 @@
 
 ## 1.1 Scope
 The shader generation features of ShaderX are implemented as an extension to MaterialX. Most
-features are contained in a new shared library named MaterialXShaderGen, but some features are
-merged into the MaterialXCore library as well.
+features are contained in a the [MaterialXGenShader](source/MaterialXGenShader) shared library, but some features are part of the [MaterialXCore](source/MaterialXCore) library as well.
 
 Note that ShaderX has no runtime and the output produced is source code, not binary executable
 code. The source code produced needs to be compiled by a shading language compiler before being
@@ -18,19 +17,17 @@ The ShaderX description is free from device specific details and all implementat
 
 For example: `OpenGL` renderers supporting `GLSL` can use forward rendering or deferred rendering,
 each with very different requirements for how the shaders are constructed. Another example is
-different renderers supporting OSL but with different sets of closures or closure parameters. Hence
-a separate shader generator can be defined for each language/target combination.
+different renderers supporting OSL but with different sets of closures or closure parameters. Hence a separate shader generator can be defined for each language/target combination.
 
 To add a new shader generator for a target you add a new C++ class derived from the base class
 `ShaderGenerator`, or one of the existing derived shader generator classes (`HwShaderGenerator`,
-`GlslShaderGenerator`, `OslShaderGenerator`, etc.), and override the methods you need to cus-
-tomize. You might also need to derive a new Syntax class, which is used to handle syntactical
+`GlslShaderGenerator`, `OslShaderGenerator`, etc.), and override the methods you need to customize. You might also need to derive a new `Syntax` class, which is used to handle syntactical
 differences between different shading languages. Then you need to make sure there are implementations defined for all the nodes you want to support, standard library nodes and nodes from other libraries, by either reusing existing implementations where applicable or adding in new ones.
 
-See 1.3 on how that is done.
+See [1.3](1.3 Node Implementations) on how that is done.
 
 Note that a shader generator doesn’t need to be defined at the time when node definitions are
-added. New shader generators can be added later, and node implementation for new targets can
+added. New shader generators can be added later, and node implementations for new targets can
 be added for existing nodes.
 
 ## 1.3 Node Implementations
@@ -40,15 +37,12 @@ There are four different methods to define the implementation of a node in Shade
 - Using a nodegraph that defines the operation performed by the node.
 - Using a C++ class that emits code dynamically during shader generation.
 
-For all methods the implementation is tied to a specific nodedef with a well defined interface of
-typed inputs and outputs. In the following sub-sections each of these methods are explained.
+For all methods the implementation is tied to a specific `nodedef` with a well defined interface of typed inputs and outputs. In the following sub-sections each of these methods are explained.
 
 ### 1.3.1 Inline Expression
 ShaderX’s code generators support a very simple expression language for inlining code. This is
 useful for simple nodes where the operation can be expressed as a single line of code. Inlining will reduce the number of function calls and produce more compact code. The syntax to use is the
-same as the target shading language, with the addition of using the node’s input ports as variables
-wrapped in double curly brackets: ``{{input}}``. The code generator will replace these variables with
-values assigned or connected to the respective inputs. Figure 2 gives an example.
+same as the target shading language, with the addition of using the node’s input ports as variables wrapped in double curly brackets: `{{input}}`. The code generator will replace these variables with values assigned or connected to the respective inputs. Figure 2 gives an example.
 
 Connecting the expression to the nodedef is done using an `<implementation>` element as seen in
 Figure 2. The file extension is used to differentiate inline expressions from source code functions, using `filename.inline`.
@@ -240,7 +234,7 @@ OslShaderGenerator::OslShaderGenerator()
 **Figure 5**: C++ class for dynamic code generation.
 
 ## 1.4 Shader Generation Steps
-This section outlines the steps taken in general to produce a shader from the MaterialX description.The `ShaderGenerator` base class and its support classes will handle this for you, but it’s good to
+This section outlines the steps taken in general to produce a shader from the MaterialX description. The `ShaderGenerator` base class and its support classes will handle this for you, but it’s good to
 know the steps involved in case more custom changes are needed to support a new target.
 
 ShaderX supports generating a shader starting from either a graph output port, an arbitrary node
@@ -335,7 +329,7 @@ There are a number of predefined geometric nodes in the MaterialX standard libra
 shading context data like position, normal, tangents, texture coordinates, vertex colors, etc. The
 vectors can be returned in different coordinate spaces: model, object or world space. If the data
 available from the standard geometric nodes are not enough the general purpose primvar node
-geomattr can be used to access any named data on geometry using a string identifier. It is up to
+`geomattr` can be used to access any named data on geometry using a string identifier. It is up to
 the shader generator and node implementation of these geometric nodes to make sure the data is
 supplied, and where applicable transformed to the requested coordinate space.
 
@@ -358,8 +352,7 @@ different code into the vertex and pixel stages.
 
 ## 1.7 Shader Variables
 When generating a shader from a node graph or shaderref the inputs and parameters on those
-elements will be published as shader uniforms on the resulting shader. A listing of the created uni-
-forms can be red from the produced Shader instance. The shader uniforms can then be presented
+elements will be published as shader uniforms on the resulting shader. A listing of the created uniforms can be red from the produced Shader instance. The shader uniforms can then be presented
 to the user have their values set by the application.
 
 Adding new uniforms to a shader is done by first creating a uniform block and then adding
@@ -367,7 +360,7 @@ uniforms into the block. There are two predefined uniform blocks that can be use
 named `PublicUniforms` and another named `PrivateUniforms`. Public is used for uniforms to
 be published to the user, as described above, and private is used for uniforms needed by node
 implementations but set by the application and not published. All uniform blocks can be queried
-and accessed by the application from the Shader instance after generation.
+and accessed by the application from the `Shader` instance after generation.
 
 ```
 // Implementation of 'texcoord' node for GLSL
@@ -441,11 +434,9 @@ implementation that needs this.
 
 ### 1.7.1 Variable Naming Convention
 
-ShaderX’s built-in shader generators and accompanying node implementations are using a nam-
-ing convention for its shader variables. A custom shader generator that derives from and takes
+ShaderX’s built-in shader generators and accompanying node implementations are using a naming convention for its shader variables. A custom shader generator that derives from and takes
 advantage of built-in features should preferably use the same convention.
-Uniform variables are prefixed with u and application data inputs with i . For languages not using
-semantics Figure 7 shows the naming used for variables (inputs and uniforms) with predefined binding rules:
+Uniform variables are prefixed with `u_` and application data inputs with `i_` . For languages not using semantics. Figure 7 shows the naming used for variables (inputs and uniforms) with predefined binding rules:
 
 ```
 ------------------------------------------------------------------------------------
