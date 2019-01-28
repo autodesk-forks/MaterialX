@@ -1,9 +1,9 @@
 # Core
 
-- **MaterialXCore**: Core library  
-- **MaterialXFormat**: XML support
-- **MaterialXTest** : Unit tests
-- **PyMaterialX** : Python API support
+- [MaterialXCore](MaterialXCore): Core library  
+- [MaterialXFormat](MaterialXFormat): XML support
+- [MaterialXTest](MaterialXTest) : Unit tests
+- [PyMaterialX](PyMaterialX) : Python API support
 
 # Shader Generation and Usage
 
@@ -14,22 +14,22 @@
 
 ## Supported Backends
 
--   Core shader generation API: **MaterialXGenShader** module
+-   Core shader generation API: [MaterialXGenShader](MaterialXGenShader) module
     -  Refer to document in module folder.
 -   Shader Generation languages supported:
     -   GLSL
         -   Version 4 or higher
-        -   Core support in **MaterialXGenGLSL** module
-        -   Autodesk OGSFX Effect support in **MaterialXGenOgsFx** module
+        -   Core support in [MaterialXGenGLSL](MaterialXGenGLSL) module
+        -   Autodesk OGSFX Effect support in [MaterialXGenOgsFx** module
     -   OSL:
-        -   **MaterialXGenOSL** module.
+        -   [MaterialXGenOsl](MaterialXGenOsl) module.
         -   Uses an implementation which differs from the reference OSL
             implementation
 
 ## Definition Libraries
 
--  Standard library (**stdlib**) implementations for supported languages.
--  PBR library (**pbrlib**): node definitions and implementations for supported languages.
+-  Standard library ([stdlib](../documents/Libraries/stdlib)) implementations for supported languages.
+-  PBR library ([pbrlib](../documents/Libraries/pbrlib)): node definitions and implementations for supported languages.
 -   Basic "default" non-LUT color management transforms for OSL and
     GLSL:
     -   lin_rec709, gamma18, gamma22, gamm24, acescg, srgb_texture
@@ -37,7 +37,7 @@
     -   point, directional, spotlight, IBL
 
 ## Library Tree Structure
-- Refer to documentation in documents/Libraries folder.
+- Refer to documentation in the [Libraries](../documents/Libraries) folder.
 
 ## Unsupported
 
@@ -52,7 +52,7 @@ Nodes and implementations which are not currently supported:
 
 ## Rendering Utilities
 
-- **MaterialXRender** module.
+- [MaterialXRender](MaterialXRender) module.
 - Geometry handler with OBJ format support.
 - Image handler with formats supported by the "stb" open source loader.
 - Render test suite: Windows only.
@@ -60,5 +60,5 @@ Nodes and implementations which are not currently supported:
 
 ## Viewing Utilities
 
-- **MaterialXView** module
+- [MaterialXView](MaterialXView) module
 - Sample material viewer.
