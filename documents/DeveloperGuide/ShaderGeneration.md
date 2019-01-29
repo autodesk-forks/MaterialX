@@ -77,7 +77,7 @@ Figure 2. The file extension is used to differentiate inline expressions from so
 </nodedef>
 <... more types ...>
 ```
-```
+```xml
 // Implementation elements for node <mix>
 <implementation name="IM_mix_float" nodedef="ND_mix_float" file="mx_mix.inline"/>
 <implementation name="IM_mix_color3" nodedef="ND_mix_color3" file="mx_mix.inline"/>
