@@ -13,8 +13,8 @@ void bindPyFile(py::module& mod)
 {
     py::enum_<mx::FilePath::Type>(mod, "Type")
         .value("TypeRelative", mx::FilePath::Type::TypeRelative)
-        .value("TypeRelative", mx::FilePath::Type::TypeAbsolute)
-        .value("TypeRelative", mx::FilePath::Type::TypeNetwork);
+        .value("TypeAbsolute", mx::FilePath::Type::TypeAbsolute)
+        .value("TypeNetwork", mx::FilePath::Type::TypeNetwork);
 
     py::enum_<mx::FilePath::Format>(mod, "Format")
         .value("FormatWindows", mx::FilePath::Format::FormatWindows)
