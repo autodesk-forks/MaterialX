@@ -860,7 +860,7 @@ TEST_CASE("Swizzling", "[shadergen]")
 // Utility to call validate OSL.
 // For now only call into oslc to compile an OSL file and get the results.
 //
-static void validateOSL(const std::string oslFileName, std::string& errorResult)
+static void validateOSL(const std::string& oslFileName, std::string& errorResult)
 {
     errorResult.clear();
 
