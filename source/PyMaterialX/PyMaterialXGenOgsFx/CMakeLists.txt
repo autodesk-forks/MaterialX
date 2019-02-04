@@ -18,7 +18,8 @@ set_target_properties(
 
 target_link_libraries(
     PyMaterialXGenOgsFx
-    PUBLIC MaterialXGenOgsFx
+    PUBLIC MaterialXFormat
+           MaterialXGenOgsFx
     PRIVATE ${CMAKE_DL_LIBS})
 
 install(TARGETS PyMaterialXGenOgsFx
