@@ -2,9 +2,9 @@ import math
 import os
 import unittest
 
-import MaterialX as mxb
-import MaterialX.PyMaterialXCore as mx
-import MaterialX.PyMaterialXFormat as mxf
+from MaterialX import *
+from MaterialX.PyMaterialXCore import *
+from MaterialX.PyMaterialXFormat import *
 
 """
 Unit tests for MaterialX Python.
@@ -15,14 +15,14 @@ Unit tests for MaterialX Python.
 _testValues = (1,
                True,
                1.0,
-               mx.Color2(0.1, 0.2),
-               mx.Color3(0.1, 0.2, 0.3),
-               mx.Color4(0.1, 0.2, 0.3, 0.4),
-               mx.Vector2(1.0, 2.0),
-               mx.Vector3(1.0, 2.0, 3.0),
-               mx.Vector4(1.0, 2.0, 3.0, 4.0),
-               mx.Matrix33(0.0),
-               mx.Matrix44(1.0),
+               Color2(0.1, 0.2),
+               Color3(0.1, 0.2, 0.3),
+               Color4(0.1, 0.2, 0.3, 0.4),
+               Vector2(1.0, 2.0),
+               Vector3(1.0, 2.0, 3.0),
+               Vector4(1.0, 2.0, 3.0, 4.0),
+               Matrix33(0.0),
+               Matrix44(1.0),
                'value')
 
 _fileDir = os.path.dirname(os.path.abspath(__file__))
@@ -47,25 +47,25 @@ _exampleFilenames = ('CustomNode.mtlx',
 
 _epsilon = 1e-4
 
-readFromXmlFile = mxf.readFromXmlFileBase
+readFromXmlFile = readFromXmlFileBase
 
 #--------------------------------------------------------------------------------
 class TestMaterialX(unittest.TestCase):
     def test_DataTypes(self):
         for value in _testValues:
             # Convert between values and strings.
-            string = mxb.valueToString(value)
-            newValue = mxb.stringToValue(string, type(value))
+            string = valueToString(value)
+            newValue = stringToValue(string, type(value))
             self.assertTrue(newValue == value)
 
             # Convert between types and strings.
-            string = mxb.typeToName(type(value))
-            newType = mxb.nameToType(string)
+            string = typeToName(type(value))
+            newType = nameToType(string)
             self.assertTrue(newType == type(value))
 
     def test_Vectors(self):
-        v1 = mx.Vector3(1, 2, 3)
-        v2 = mx.Vector3(2, 4, 6)
+        v1 = Vector3(1, 2, 3)
+        v2 = Vector3(2, 4, 6)
 
         # Indexing operators
         self.assertTrue(v1[2] == 3)
@@ -74,19 +74,19 @@ class TestMaterialX(unittest.TestCase):
         v1[2] = 3
 
         # Component-wise operators
-        self.assertTrue(v2 + v1 == mx.Vector3(3, 6, 9))
-        self.assertTrue(v2 - v1 == mx.Vector3(1, 2, 3))
-        self.assertTrue(v2 * v1 == mx.Vector3(2, 8, 18))
-        self.assertTrue(v2 / v1 == mx.Vector3(2, 2, 2))
+        self.assertTrue(v2 + v1 == Vector3(3, 6, 9))
+        self.assertTrue(v2 - v1 == Vector3(1, 2, 3))
+        self.assertTrue(v2 * v1 == Vector3(2, 8, 18))
+        self.assertTrue(v2 / v1 == Vector3(2, 2, 2))
         self.assertTrue(v1 * 2 == v2)
         self.assertTrue(v2 / 2 == v1)
 
         # Geometric methods
-        v3 = mx.Vector4(4)
+        v3 = Vector4(4)
         self.assertTrue(v3.getMagnitude() == 8)
         self.assertTrue(v3.getNormalized().getMagnitude() == 1)
         self.assertTrue(v1.dot(v2) == 28)
-        self.assertTrue(v1.cross(v2) == mx.Vector3())
+        self.assertTrue(v1.cross(v2) == Vector3())
 
         # Vector copy
         v4 = v2.copy()
@@ -96,13 +96,13 @@ class TestMaterialX(unittest.TestCase):
 
     def test_Matrices(self):
         # Translation and scale
-        trans = mx.Matrix44.createTranslation(mx.Vector3(1, 2, 3))
-        scale = mx.Matrix44.createScale(mx.Vector3(2))
-        self.assertTrue(trans == mx.Matrix44(1, 0, 0, 0,
+        trans = Matrix44.createTranslation(Vector3(1, 2, 3))
+        scale = Matrix44.createScale(Vector3(2))
+        self.assertTrue(trans == Matrix44(1, 0, 0, 0,
                                              0, 1, 0, 0,
                                              0, 0, 1, 0,
                                              1, 2, 3, 1))
-        self.assertTrue(scale == mx.Matrix44(2, 0, 0, 0,
+        self.assertTrue(scale == Matrix44(2, 0, 0, 0,
                                              0, 2, 0, 0,
                                              0, 0, 2, 0,
                                              0, 0, 0, 1))
@@ -114,7 +114,7 @@ class TestMaterialX(unittest.TestCase):
         trans[3, 2] = 3
 
         # Matrix methods
-        self.assertTrue(trans.getTranspose() == mx.Matrix44(1, 0, 0, 1,
+        self.assertTrue(trans.getTranspose() == Matrix44(1, 0, 0, 1,
                                                             0, 1, 0, 2,
                                                             0, 0, 1, 3,
                                                             0, 0, 0, 1))
@@ -122,7 +122,7 @@ class TestMaterialX(unittest.TestCase):
         self.assertTrue(trans.getDeterminant() == 1)
         self.assertTrue(scale.getDeterminant() == 8)
         self.assertTrue(trans.getInverse() ==
-                        mx.Matrix44.createTranslation(mx.Vector3(-1, -2, -3)))
+                        Matrix44.createTranslation(Vector3(-1, -2, -3)))
 
         # Matrix product
         prod1 = trans * scale
@@ -130,15 +130,15 @@ class TestMaterialX(unittest.TestCase):
         prod3 = trans * 2
         prod4 = trans
         prod4 *= scale
-        self.assertTrue(prod1 == mx.Matrix44(2, 0, 0, 0,
+        self.assertTrue(prod1 == Matrix44(2, 0, 0, 0,
                                              0, 2, 0, 0,
                                              0, 0, 2, 0,
                                              2, 4, 6, 1))
-        self.assertTrue(prod2 == mx.Matrix44(2, 0, 0, 0,
+        self.assertTrue(prod2 == Matrix44(2, 0, 0, 0,
                                              0, 2, 0, 0,
                                              0, 0, 2, 0,
                                              1, 2, 3, 1))
-        self.assertTrue(prod3 == mx.Matrix44(2, 0, 0, 0,
+        self.assertTrue(prod3 == Matrix44(2, 0, 0, 0,
                                              0, 2, 0, 0,
                                              0, 0, 2, 0,
                                              2, 4, 6, 2))
@@ -153,26 +153,26 @@ class TestMaterialX(unittest.TestCase):
         self.assertTrue(quot1 == trans)
         self.assertTrue(quot2 == scale)
         self.assertTrue(quot3 == trans)
-        self.assertTrue(quot4 == mx.Matrix44.IDENTITY)
+        self.assertTrue(quot4 == Matrix44.IDENTITY)
 
         # 2D rotation
-        rot1 = mx.Matrix33.createRotation(math.pi / 2)
-        rot2 = mx.Matrix33.createRotation(math.pi)
+        rot1 = Matrix33.createRotation(math.pi / 2)
+        rot2 = Matrix33.createRotation(math.pi)
         self.assertTrue((rot1 * rot1).isEquivalent(rot2, _epsilon))
         self.assertTrue(rot2.isEquivalent(
-            mx.Matrix33.createScale(mx.Vector2(-1)), _epsilon))
-        self.assertTrue((rot2 * rot2).isEquivalent(mx.Matrix33.IDENTITY, _epsilon))
+            Matrix33.createScale(Vector2(-1)), _epsilon))
+        self.assertTrue((rot2 * rot2).isEquivalent(Matrix33.IDENTITY, _epsilon))
 
         # 3D rotation
-        rotX = mx.Matrix44.createRotationX(math.pi)
-        rotY = mx.Matrix44.createRotationY(math.pi)
-        rotZ = mx.Matrix44.createRotationZ(math.pi)
+        rotX = Matrix44.createRotationX(math.pi)
+        rotY = Matrix44.createRotationY(math.pi)
+        rotZ = Matrix44.createRotationZ(math.pi)
         self.assertTrue((rotX * rotY).isEquivalent(
-            mx.Matrix44.createScale(mx.Vector3(-1, -1, 1)), _epsilon))
+            Matrix44.createScale(Vector3(-1, -1, 1)), _epsilon))
         self.assertTrue((rotX * rotZ).isEquivalent(
-            mx.Matrix44.createScale(mx.Vector3(-1, 1, -1)), _epsilon))
+            Matrix44.createScale(Vector3(-1, 1, -1)), _epsilon))
         self.assertTrue((rotY * rotZ).isEquivalent(
-            mx.Matrix44.createScale(mx.Vector3(1, -1, -1)), _epsilon))
+            Matrix44.createScale(Vector3(1, -1, -1)), _epsilon))
 
         # Matrix copy
         trans2 = trans.copy()
@@ -182,7 +182,7 @@ class TestMaterialX(unittest.TestCase):
 
     def test_BuildDocument(self):
         # Create a document.
-        doc = mx.createDocument()
+        doc = createDocument()
 
         # Create a node graph with constant and image sources.
         nodeGraph = doc.addNodeGraph()
@@ -202,7 +202,7 @@ class TestMaterialX(unittest.TestCase):
         self.assertTrue(output2.getUpstreamElement() == image)
 
         # Set constant node color.
-        color = mx.Color3(0.1, 0.2, 0.3)
+        color = Color3(0.1, 0.2, 0.3)
         constant.setParameterValue('value', color)
         self.assertTrue(constant.getParameterValue('value') == color)
 
@@ -234,8 +234,8 @@ class TestMaterialX(unittest.TestCase):
 
         # Create a simple shader interface.
         shaderDef = doc.addNodeDef('shader1', 'surfaceshader', 'simpleSrf')
-        diffColor = shaderDef.setInputValue('diffColor', mx.Color3(1.0))
-        specColor = shaderDef.setInputValue('specColor', mx.Color3(0.0))
+        diffColor = shaderDef.setInputValue('diffColor', Color3(1.0))
+        specColor = shaderDef.setInputValue('specColor', Color3(0.0))
         roughness = shaderDef.setParameterValue('roughness', 0.25)
         texId = shaderDef.setTokenValue('texId', '01')
         self.assertTrue(roughness.getValue() == 0.25)
@@ -257,16 +257,16 @@ class TestMaterialX(unittest.TestCase):
 
         # Bind a shader input to a value.
         bindInput = shaderRef.addBindInput('specColor')
-        bindInput.setValue(mx.Color3(0.5))
-        self.assertTrue(specColor.getBoundValue(material) == mx.Color3(0.5))
-        self.assertTrue(specColor.getDefaultValue() == mx.Color3(0.0))
+        bindInput.setValue(Color3(0.5))
+        self.assertTrue(specColor.getBoundValue(material) == Color3(0.5))
+        self.assertTrue(specColor.getDefaultValue() == Color3(0.0))
 
         # Bind a shader input to a graph output.
         bindInput = shaderRef.addBindInput('diffColor')
         bindInput.setConnectedOutput(output2)
         self.assertTrue(diffColor.getUpstreamElement(material) == output2)
         self.assertTrue(diffColor.getBoundValue(material) is None)
-        self.assertTrue(diffColor.getDefaultValue() == mx.Color3(1.0))
+        self.assertTrue(diffColor.getDefaultValue() == Color3(1.0))
 
         # Bind a shader token to a value.
         bindToken = shaderRef.addBindToken('texId')
@@ -330,7 +330,7 @@ class TestMaterialX(unittest.TestCase):
 
     def test_TraverseGraph(self):
         # Create a document.
-        doc = mx.createDocument()
+        doc = createDocument()
 
         # Create a node graph with the following structure:
         #
@@ -365,7 +365,7 @@ class TestMaterialX(unittest.TestCase):
         # Traverse the document tree (implicit iterator).
         nodeCount = 0
         for elem in doc.traverseTree():
-            if elem.isA(mx.Node):
+            if elem.isA(Node):
                 nodeCount += 1
         self.assertTrue(nodeCount == 7)
 
@@ -374,7 +374,7 @@ class TestMaterialX(unittest.TestCase):
         maxElementDepth = 0
         treeIter = doc.traverseTree()
         for elem in treeIter:
-            if elem.isA(mx.Node):
+            if elem.isA(Node):
                 nodeCount += 1
             maxElementDepth = max(maxElementDepth, treeIter.getElementDepth())
         self.assertTrue(nodeCount == 7)
@@ -384,9 +384,9 @@ class TestMaterialX(unittest.TestCase):
         nodeCount = 0
         treeIter = doc.traverseTree()
         for elem in treeIter:
-            if elem.isA(mx.Node):
+            if elem.isA(Node):
                 nodeCount += 1
-            if elem.isA(mx.NodeGraph):
+            if elem.isA(NodeGraph):
                 treeIter.setPruneSubtree(True)
         self.assertTrue(nodeCount == 0)
 
@@ -396,10 +396,10 @@ class TestMaterialX(unittest.TestCase):
             upstreamElem = edge.getUpstreamElement()
             connectingElem = edge.getConnectingElement()
             downstreamElem = edge.getDownstreamElement()
-            if upstreamElem.isA(mx.Node):
+            if upstreamElem.isA(Node):
                 nodeCount += 1
-                if downstreamElem.isA(mx.Node):
-                    self.assertTrue(connectingElem.isA(mx.Input))
+                if downstreamElem.isA(Node):
+                    self.assertTrue(connectingElem.isA(Input))
         self.assertTrue(nodeCount == 7)
 
         # Traverse upstream from the graph output (explicit iterator).
@@ -411,7 +411,7 @@ class TestMaterialX(unittest.TestCase):
             upstreamElem = edge.getUpstreamElement()
             connectingElem = edge.getConnectingElement()
             downstreamElem = edge.getDownstreamElement()
-            if upstreamElem.isA(mx.Node):
+            if upstreamElem.isA(Node):
                 nodeCount += 1
             maxElementDepth = max(maxElementDepth, graphIter.getElementDepth())
             maxNodeDepth = max(maxNodeDepth, graphIter.getNodeDepth())
@@ -426,7 +426,7 @@ class TestMaterialX(unittest.TestCase):
             upstreamElem = edge.getUpstreamElement()
             connectingElem = edge.getConnectingElement()
             downstreamElem = edge.getDownstreamElement()
-            if upstreamElem.isA(mx.Node):
+            if upstreamElem.isA(Node):
                 nodeCount += 1
                 if upstreamElem.getCategory() == 'multiply':
                     graphIter.setPruneSubgraph(True)
@@ -452,7 +452,7 @@ class TestMaterialX(unittest.TestCase):
         # Read the standard library.
         libs = []
         for filename in _libraryFilenames:
-            lib = mx.createDocument()
+            lib = createDocument()
             readFromXmlFile(lib, filename, _searchPath)
             v = lib.validate()
             print v
@@ -461,7 +461,7 @@ class TestMaterialX(unittest.TestCase):
 
         # Read and validate each example document.
         for filename in _exampleFilenames:
-            doc = mx.createDocument()
+            doc = createDocument()
             readFromXmlFile(doc, filename, _searchPath)
             self.assertTrue(doc.validate()[0])
 
@@ -474,7 +474,7 @@ class TestMaterialX(unittest.TestCase):
             # Traverse the document tree.
             valueElementCount = 0
             for elem in doc.traverseTree():
-                if elem.isA(mx.ValueElement):
+                if elem.isA(ValueElement):
                     valueElementCount += 1
             self.assertTrue(valueElementCount > 0)
 
@@ -496,13 +496,13 @@ class TestMaterialX(unittest.TestCase):
                 self.assertTrue(edgeCount > 0)
 
             # Serialize to XML.
-            writeOptions = mxf.XmlWriteOptions()
+            writeOptions = XmlWriteOptions()
             writeOptions.writeXIncludeEnable = False
-            xmlString = mxf.writeToXmlString(doc, writeOptions)
+            xmlString = writeToXmlString(doc, writeOptions)
 
             # Verify that the serialized document is identical.
-            writtenDoc = mx.createDocument()
-            mxf.readFromXmlString(writtenDoc, xmlString)
+            writtenDoc = createDocument()
+            readFromXmlString(writtenDoc, xmlString)
             self.assertTrue(writtenDoc == doc)
 
             # Combine document with the standard library.
@@ -512,8 +512,8 @@ class TestMaterialX(unittest.TestCase):
             self.assertTrue(doc2.validate()[0])
 
         # Read the same document twice with duplicate elements skipped.
-        doc = mx.createDocument()
-        readOptions = mxf.XmlReadOptions()
+        doc = createDocument()
+        readOptions = XmlReadOptions()
         readOptions.skipDuplicateElements = True
         filename = 'PostShaderComposite.mtlx'
         readFromXmlFile(doc, filename, _searchPath, readOptions)
