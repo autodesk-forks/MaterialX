@@ -2,9 +2,9 @@ import math
 import os
 import unittest
 
-from MaterialX import *
 from MaterialX.PyMaterialXCore import *
 from MaterialX.PyMaterialXFormat import *
+from MaterialX import *
 
 """
 Unit tests for MaterialX Python.
@@ -46,8 +46,6 @@ _exampleFilenames = ('CustomNode.mtlx',
                      'BxDF/Disney_BSDF_2015.mtlx')
 
 _epsilon = 1e-4
-
-readFromXmlFile = readFromXmlFileBase
 
 #--------------------------------------------------------------------------------
 class TestMaterialX(unittest.TestCase):
