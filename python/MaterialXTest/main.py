@@ -454,7 +454,9 @@ class TestMaterialX(unittest.TestCase):
         for filename in _libraryFilenames:
             lib = mx.createDocument()
             readFromXmlFile(lib, filename, _searchPath)
-            self.assertTrue(lib.validate()[0])
+            v = lib.validate()
+            print v
+            self.assertTrue(v[0])
             libs.append(lib)
 
         # Read and validate each example document.
