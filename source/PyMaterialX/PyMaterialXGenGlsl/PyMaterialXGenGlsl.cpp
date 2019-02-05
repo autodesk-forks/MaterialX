@@ -9,7 +9,7 @@ namespace py = pybind11;
 
 void bindPyGlslShaderGenerator(py::module& mod);
 
-PYBIND11_MODULE(PyMaterialXFormat, mod)
+PYBIND11_MODULE(PyMaterialXGenGlsl, mod)
 {
     mod.doc() = "Module containing Python bindings for the MaterialXGenGlsl library (C++)";
 

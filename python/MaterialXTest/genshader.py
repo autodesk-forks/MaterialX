@@ -1,9 +1,11 @@
 import os
 import unittest
 
-import MaterialX as mx
+from MaterialX.PyMaterialXCore import *
+from MaterialX.PyMaterialXFormat import *
+from MaterialX.PyMaterialXGenShader import *
 try:
-    from MaterialX import ArnoldShaderGenerator
+    from MaterialX.PyMaterialXGenOsl import ArnoldShaderGenerator
     ARNOLD_SHADER_GENERATOR_EXISTS = True
 except:
     ARNOLD_SHADER_GENERATOR_EXISTS = False
@@ -19,11 +21,13 @@ def _getMTLXFilesInDirectory(path):
         if file.endswith(".mtlx"):
             yield file
 
+_readFromXmlFile = readFromXmlFileBase
+
 def _loadLibrary(file, doc):
-    libDoc = mx.createDocument()
-    mx.readFromXmlFile(libDoc, file)
+    libDoc = createDocument()
+    _readFromXmlFile(libDoc, file)
     libDoc.setSourceUri(file)
-    copyOptions = mx.CopyOptions()
+    copyOptions = CopyOptions()
     copyOptions.skipDuplicateElements = True;
     doc.importLibrary(libDoc, copyOptions)
 
@@ -36,11 +40,11 @@ def _loadLibraries(doc, searchPath, libraryPath):
             filePath = os.path.join(libraryPath, os.path.join(path, filename))
             _loadLibrary(filePath, doc)
 
-# Unit tests for ShaderX Python.
-class TestShaderX(unittest.TestCase):
+# Unit tests for GenShader (Python).
+class TestGenShader(unittest.TestCase):
 
     def test_ShaderInterface(self):
-        doc = mx.createDocument()
+        doc = createDocument()
 
         searchPath = os.path.join(_fileDir, "../../documents/Libraries")
         libraryPath = os.path.join(searchPath, "stdlib")
@@ -53,8 +57,8 @@ class TestShaderX(unittest.TestCase):
         fooInputA = nodeDef.addInput("a", "color3")
         fooInputB = nodeDef.addInput("b", "color3")
         fooOutput = nodeDef.addOutput("o", "color3")
-        fooInputA.setValue(mx.Color3(1.0, 1.0, 0.0))
-        fooInputB.setValue(mx.Color3(0.8, 0.1, 0.1))
+        fooInputA.setValue(Color3(1.0, 1.0, 0.0))
+        fooInputB.setValue(Color3(0.8, 0.1, 0.1))
 
         # Create an implementation graph for the nodedef performing
         # a multiplication of the three colors.
@@ -74,22 +78,22 @@ class TestShaderX(unittest.TestCase):
         output.setNodeName("foo1");
         output.setAttribute("output", "o");
 
-        options = mx.GenOptions()
+        options = GenOptions()
 
         if ARNOLD_SHADER_GENERATOR_EXISTS:
-            shadergen = mx.ArnoldShaderGenerator.create()
+            shadergen = ArnoldShaderGenerator.create()
             # Add path to find all source code snippets
-            shadergen.registerSourceCodeSearchPath(mx.FilePath(searchPath))
+            shadergen.registerSourceCodeSearchPath(FilePath(searchPath))
             # Add path to find OSL include files
-            shadergen.registerSourceCodeSearchPath(mx.FilePath(os.path.join(searchPath, "stdlib/osl")))
+            shadergen.registerSourceCodeSearchPath(FilePath(os.path.join(searchPath, "stdlib/osl")))
 
             # Test complete mode
-            options.shaderInterfaceType = mx.ShaderInterfaceType.SHADER_INTERFACE_COMPLETE;
+            options.shaderInterfaceType = ShaderInterfaceType.SHADER_INTERFACE_COMPLETE;
             shader = shadergen.generate(exampleName, output, options);
             self.assertTrue(shader)
-            self.assertTrue(len(shader.getSourceCode(mx.Shader.PIXEL_STAGE)) > 0)
+            self.assertTrue(len(shader.getSourceCode(Shader.PIXEL_STAGE)) > 0)
 
-            uniforms = shader.getUniformBlock(mx.Shader.PIXEL_STAGE, mx.Shader.PUBLIC_UNIFORMS)
+            uniforms = shader.getUniformBlock(Shader.PIXEL_STAGE, Shader.PUBLIC_UNIFORMS)
             self.assertTrue(uniforms.size() == 2)
 
             outputs = shader.getOutputBlock()
@@ -97,16 +101,16 @@ class TestShaderX(unittest.TestCase):
             self.assertTrue(outputs[0].name == output.getName())
 
             file = open(shader.getName() + "_complete.osl", "w+")
-            file.write(shader.getSourceCode(mx.Shader.PIXEL_STAGE))
+            file.write(shader.getSourceCode(Shader.PIXEL_STAGE))
             file.close()
 
             # Test reduced mode
-            options.shaderInterfaceType = mx.ShaderInterfaceType.SHADER_INTERFACE_REDUCED;
+            options.shaderInterfaceType = ShaderInterfaceType.SHADER_INTERFACE_REDUCED;
             shader = shadergen.generate(exampleName, output, options);
             self.assertTrue(shader)
-            self.assertTrue(len(shader.getSourceCode(mx.Shader.PIXEL_STAGE)) > 0)
+            self.assertTrue(len(shader.getSourceCode(Shader.PIXEL_STAGE)) > 0)
 
-            uniforms = shader.getUniformBlock(mx.Shader.PIXEL_STAGE, mx.Shader.PUBLIC_UNIFORMS)
+            uniforms = shader.getUniformBlock(Shader.PIXEL_STAGE, Shader.PUBLIC_UNIFORMS)
             self.assertTrue(uniforms.size() == 0)
 
             outputs = shader.getOutputBlock()
@@ -114,7 +118,7 @@ class TestShaderX(unittest.TestCase):
             self.assertTrue(outputs[0].name == output.getName())
 
             file = open(shader.getName() + "_reduced.osl", "w+")
-            file.write(shader.getSourceCode(mx.Shader.PIXEL_STAGE))
+            file.write(shader.getSourceCode(Shader.PIXEL_STAGE))
             file.close()
 
 if __name__ == '__main__':

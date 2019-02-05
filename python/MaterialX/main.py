@@ -1,7 +1,8 @@
 import warnings
 
-from .PyMaterialX import *
-from .datatype import *
+from MaterialX.PyMaterialXCore import *
+from MaterialX.PyMaterialXFormat import *
+from datatype import *
 
 """
 Native Python wrappers for PyMaterialX, providing a more Pythonic interface
@@ -66,7 +67,7 @@ def _setValue(self, value, typeString = ''):
     "Set the typed value of an element."
     method = getattr(self.__class__, "_setValue" + typeToName(value.__class__))
     method(self, value, typeString)
-    
+
 def _getValue(self):
     "Return the typed value of an element."
     value = self._getValue()

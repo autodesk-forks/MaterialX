@@ -2,7 +2,9 @@ import math
 import os
 import unittest
 
-import MaterialX as mx
+import MaterialX as mxb
+import MaterialX.PyMaterialXCore as mx
+import MaterialX.PyMaterialXFormat as mxf
 
 """
 Unit tests for MaterialX Python.
@@ -45,19 +47,20 @@ _exampleFilenames = ('CustomNode.mtlx',
 
 _epsilon = 1e-4
 
+readFromXmlFile = mxf.readFromXmlFileBase
 
 #--------------------------------------------------------------------------------
 class TestMaterialX(unittest.TestCase):
     def test_DataTypes(self):
         for value in _testValues:
             # Convert between values and strings.
-            string = mx.valueToString(value)
-            newValue = mx.stringToValue(string, type(value))
+            string = mxb.valueToString(value)
+            newValue = mxb.stringToValue(string, type(value))
             self.assertTrue(newValue == value)
 
             # Convert between types and strings.
-            string = mx.typeToName(type(value))
-            newType = mx.nameToType(string)
+            string = mxb.typeToName(type(value))
+            newType = mxb.nameToType(string)
             self.assertTrue(newType == type(value))
 
     def test_Vectors(self):
@@ -332,7 +335,7 @@ class TestMaterialX(unittest.TestCase):
         # Create a node graph with the following structure:
         #
         # [image1] [constant]     [image2]
-        #        \ /                 |   
+        #        \ /                 |
         #    [multiply]          [contrast]         [noise3d]
         #             \____________  |  ____________/
         #                          [mix]
@@ -450,14 +453,14 @@ class TestMaterialX(unittest.TestCase):
         libs = []
         for filename in _libraryFilenames:
             lib = mx.createDocument()
-            mx.readFromXmlFile(lib, filename, _searchPath)
+            readFromXmlFile(lib, filename, _searchPath)
             self.assertTrue(lib.validate()[0])
             libs.append(lib)
 
         # Read and validate each example document.
         for filename in _exampleFilenames:
             doc = mx.createDocument()
-            mx.readFromXmlFile(doc, filename, _searchPath)
+            readFromXmlFile(doc, filename, _searchPath)
             self.assertTrue(doc.validate()[0])
 
             # Copy the document.
@@ -491,13 +494,13 @@ class TestMaterialX(unittest.TestCase):
                 self.assertTrue(edgeCount > 0)
 
             # Serialize to XML.
-            writeOptions = mx.XmlWriteOptions()
+            writeOptions = mxf.XmlWriteOptions()
             writeOptions.writeXIncludeEnable = False
-            xmlString = mx.writeToXmlString(doc, writeOptions)
+            xmlString = mxf.writeToXmlString(doc, writeOptions)
 
             # Verify that the serialized document is identical.
             writtenDoc = mx.createDocument()
-            mx.readFromXmlString(writtenDoc, xmlString)
+            mxf.readFromXmlString(writtenDoc, xmlString)
             self.assertTrue(writtenDoc == doc)
 
             # Combine document with the standard library.
@@ -508,11 +511,11 @@ class TestMaterialX(unittest.TestCase):
 
         # Read the same document twice with duplicate elements skipped.
         doc = mx.createDocument()
-        readOptions = mx.XmlReadOptions()
+        readOptions = mxf.XmlReadOptions()
         readOptions.skipDuplicateElements = True
         filename = 'PostShaderComposite.mtlx'
-        mx.readFromXmlFile(doc, filename, _searchPath, readOptions)
-        mx.readFromXmlFile(doc, filename, _searchPath, readOptions)
+        readFromXmlFile(doc, filename, _searchPath, readOptions)
+        readFromXmlFile(doc, filename, _searchPath, readOptions)
         self.assertTrue(doc.validate()[0])
 
 

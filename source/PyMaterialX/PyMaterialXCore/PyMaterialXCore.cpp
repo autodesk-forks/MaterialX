@@ -29,15 +29,15 @@ PYBIND11_MODULE(PyMaterialXCore, mod)
 {
     mod.doc() = "Module containing Python bindings for the MaterialXCore library (C++)";
 
-    bindPyDefinition(mod);
-    bindPyDocument(mod);
     bindPyElement(mod);
+    bindPyInterface(mod);
+    bindPyDefinition(mod);
+    bindPyNode(mod);
+    bindPyDocument(mod);
     bindPyException(mod);
     bindPyGeom(mod);
-    bindPyInterface(mod);
     bindPyLook(mod);
     bindPyMaterial(mod);
-    bindPyNode(mod);
     bindPyObserver(mod);
     bindPyObservedDocument(mod);
     bindPyProperty(mod);

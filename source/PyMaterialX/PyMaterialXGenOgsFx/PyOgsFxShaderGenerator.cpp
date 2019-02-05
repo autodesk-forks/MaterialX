@@ -9,7 +9,7 @@ namespace py = pybind11;
 
 void bindPyOgsFxShaderGenerator(py::module& mod);
 
-PYBIND11_MODULE(PyMaterialXFormat, mod)
+PYBIND11_MODULE(PyMaterialXGenOgsFx, mod)
 {
     mod.doc() = "Module containing Python bindings for the MaterialXGenOgsFx library (C++)";
 
