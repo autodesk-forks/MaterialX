@@ -7,7 +7,7 @@ from MaterialX.PyMaterialXGenShader import *
 try:
     from MaterialX.PyMaterialXGenOsl import ArnoldShaderGenerator
     ARNOLD_SHADER_GENERATOR_EXISTS = True
-except:
+except ImportError:
     ARNOLD_SHADER_GENERATOR_EXISTS = False
 
 _fileDir = os.path.dirname(os.path.abspath(__file__))
