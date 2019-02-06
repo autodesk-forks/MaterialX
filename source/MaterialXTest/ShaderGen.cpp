@@ -145,7 +145,8 @@ void createLights(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler)
     }
 }
 
-void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::HwShaderGenerator& shadergen, const mx::GenOptions& options)
+void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::HwShaderGenerator& shadergen, const mx::GenOptions& options,
+                    const mx::FilePath&  envIrradiancePath, const mx::FilePath& envRadiancePath)
 {
     // Create the light rig
     createLights(doc, lightHandler);
@@ -154,8 +155,8 @@ void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::H
     lightHandler.bindLightShaders(shadergen, options);
 
     // Set up IBL inputs
-    lightHandler.setLightEnvIrradiancePath("documents/TestSuite/Images/san_giuseppe_bridge.hdr");
-    lightHandler.setLightEnvRadiancePath("documents/TestSuite/Images/san_giuseppe_bridge_diffuse.hdr");
+    lightHandler.setLightEnvIrradiancePath(envIrradiancePath);
+    lightHandler.setLightEnvRadiancePath(envRadiancePath);
 }
 
 static std::string RESULT_DIRECTORY("results/");
@@ -1728,8 +1729,9 @@ TEST_CASE("Subgraphs", "[shadergen]")
 
         // Setup lighting
         mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options);
-
+        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options, 
+                    mx::FilePath(), mx::FilePath());
+        
         for (const std::string& graphName : exampleGraphNames)
         {
             mx::NodeGraphPtr nodeGraph = doc->getNodeGraph(graphName);
@@ -1758,7 +1760,8 @@ TEST_CASE("Subgraphs", "[shadergen]")
 
         // Setup lighting
         mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options);
+        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options,
+            mx::FilePath(), mx::FilePath());
 
         for (const std::string& graphName : exampleGraphNames)
         {
@@ -1843,7 +1846,8 @@ TEST_CASE("Materials", "[shadergen]")
 
         // Setup lighting
         mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options);
+        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options,
+            mx::FilePath(), mx::FilePath());
 
         for (const mx::MaterialPtr& material : doc->getMaterials())
         {
@@ -1871,7 +1875,8 @@ TEST_CASE("Materials", "[shadergen]")
 
         // Setup lighting
         mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options);
+        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options,
+            mx::FilePath(), mx::FilePath());
 
         for (const mx::MaterialPtr& material : doc->getMaterials())
         {
@@ -2082,7 +2087,9 @@ TEST_CASE("BSDF Layering", "[shadergen]")
     std::vector<mx::ElementPtr> elements = { output, shaderRef };
     for (mx::ElementPtr elem : elements)
     {
+#if defined(MATERIALX_BUILD_GEN_OSL) || defined(MATERIALX_BUILD_GEN_OGSFX) || defined(MATERIALX_BUILD_GEN_GLSL)
         const std::string shaderName = exampleName + "_" + elem->getName();
+#endif
 
 #ifdef MATERIALX_BUILD_GEN_OSL
         {
@@ -2118,7 +2125,8 @@ TEST_CASE("BSDF Layering", "[shadergen]")
 
             // Setup lighting
             mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-            createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options);
+            createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options, 
+                mx::FilePath(), mx::FilePath());
 
             mx::ShaderPtr shader = shaderGenerator->generate(shaderName, elem, options);
             REQUIRE(shader != nullptr);
@@ -2139,7 +2147,8 @@ TEST_CASE("BSDF Layering", "[shadergen]")
 
             // Setup lighting
             mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-            createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options);
+            createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options,
+                mx::FilePath(), mx::FilePath());
 
             mx::ShaderPtr shader = shaderGenerator->generate(shaderName, elem, options);
             REQUIRE(shader != nullptr);
@@ -2276,7 +2285,8 @@ TEST_CASE("Transparency", "[shadergen]")
 
             // Setup lighting
             mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-            createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options);
+            createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options,
+                mx::FilePath(), mx::FilePath());
 
             // Track if this shader needs to handle transparency
             options.hwTransparency = isTransparentSurface(shaderRef, *shaderGenerator);
@@ -2305,7 +2315,8 @@ TEST_CASE("Transparency", "[shadergen]")
 
         // Setup lighting
         mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options);
+        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options,
+            mx::FilePath(), mx::FilePath());
 
         // Track if this shader needs to handle transparency
         options.hwTransparency = isTransparentSurface(shaderRef, *shaderGenerator);
@@ -2409,7 +2420,8 @@ TEST_CASE("Surface Layering", "[shadergen]")
 
         // Setup lighting
         mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options);
+        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options,
+            mx::FilePath(), mx::FilePath());
 
         // Specify if this shader needs to handle transparency
         options.hwTransparency = isTransparentSurface(shaderRef, *shaderGenerator);
@@ -2433,7 +2445,8 @@ TEST_CASE("Surface Layering", "[shadergen]")
 
         // Setup lighting
         mx::HwLightHandlerPtr lightHandler = mx::HwLightHandler::create();
-        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options);
+        createLightRig(doc, *lightHandler, static_cast<mx::HwShaderGenerator&>(*shaderGenerator), options,
+            mx::FilePath(), mx::FilePath());
 
         // Specify if this shader needs to handle transparency
         options.hwTransparency = isTransparentSurface(shaderRef, *shaderGenerator);
