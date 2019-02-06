@@ -26,7 +26,7 @@ public:
     /// Static instance create function
     static HwLightHandlerPtr create() { return std::make_shared<HwLightHandler>(); }
 
-    static unsigned int getLightType(NodePtr node);
+    int getLightType(NodePtr node) const;
 
     /// Default constructor
     HwLightHandler();
@@ -46,7 +46,12 @@ public:
     /// Set the list of light sources.
     void setLightSources(const vector<NodePtr>& lights)
     {
-        _lightSources = lights; 
+        _lightSources = lights;
+        _lightCategories.clear();
+        for (auto light : _lightSources)
+        {
+            _lightCategories.insert(light->getCategory());
+        }
     }
 
     /// Bind all added light shaders to the given shader generator.
@@ -80,6 +85,7 @@ public:
 
 private:
     vector<NodePtr> _lightSources;
+    std::set<string> _lightCategories;
     string _lightEnvIrradiancePath;
     string _lightEnvRadiancePath;
 };

@@ -666,8 +666,8 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
         lightCount = 0;
     }
 
-    if (lightCount == 0 && 
-        lightHandler->getLightEnvRadiancePath().empty() && 
+    if (lightCount == 0 &&
+        lightHandler->getLightEnvRadiancePath().empty() &&
         lightHandler->getLightEnvIrradiancePath().empty())
     {
         return;
@@ -705,14 +705,24 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
         const string prefix = "u_lightData[" + std::to_string(index) + "]";
 
         // Set light type id
+        bool boundType = false;
         input = uniformList.find(prefix + ".type");
         if (input != uniformList.end())
         {
             location = input->second->location;
             if (location >= 0)
             {
-                glUniform1i(location, int(HwLightHandler::getLightType(light)));
+                int lightType = lightHandler->getLightType(light);
+                if (lightType >= 0)
+                {
+                    glUniform1i(location, lightType);
+                    boundType = true;
+                }
             }
+        }
+        if (!boundType)
+        {
+            continue;
         }
 
         // Set all inputs

@@ -1,25 +1,20 @@
 #include <MaterialXGenShader/HwLightHandler.h>
 #include <MaterialXGenShader/HwShaderGenerator.h>
 
+#include <iterator>
+
 namespace MaterialX
 {
 
-unsigned int HwLightHandler::getLightType(NodePtr node)
+int HwLightHandler::getLightType(NodePtr node) const
 {
-    size_t hash = std::hash<std::string>{}(node->getCategory());
-
-    // If we're on a 64-bit platform, convert to 32-bits
-    bool on64BitPlatform = sizeof(hash) == 8;
-    if (on64BitPlatform)
+    int typeId = -1;
+    auto pos = std::find(_lightCategories.begin(), _lightCategories.end(), node->getCategory());
+    if (pos != _lightCategories.end())
     {
-        // Convert hash to 32-bits
-        return static_cast<unsigned int>(hash & 0xFFFFFFFF) ^
-               static_cast<unsigned int>((static_cast<unsigned long long>(hash) >> 32) & 0xFFFFFFFF);
+        typeId = static_cast<int>(std::distance(_lightCategories.begin(), pos));
     }
-    else
-    {
-        return static_cast<unsigned int>(hash);
-    }
+    return typeId;
 }
 
 HwLightHandler::HwLightHandler()
@@ -33,6 +28,7 @@ HwLightHandler::~HwLightHandler()
 void HwLightHandler::addLightSource(NodePtr node)
 {
     _lightSources.push_back(node);
+    _lightCategories.insert(node->getCategory());
 }
 
 void HwLightHandler::bindLightShaders(HwShaderGenerator& shadergen, const GenOptions& options) const
