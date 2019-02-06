@@ -37,10 +37,16 @@ public:
     // Adds a light source node
     void addLightSource(NodePtr node);
 
-    /// Return a vector of all created light sources.
+    /// Get the list of light sources.
     const vector<NodePtr>& getLightSources() const
     {
         return _lightSources;
+    }
+
+    /// Set the list of light sources.
+    void setLightSources(const vector<NodePtr>& lights)
+    {
+        _lightSources = lights; 
     }
 
     /// Bind all added light shaders to the given shader generator.

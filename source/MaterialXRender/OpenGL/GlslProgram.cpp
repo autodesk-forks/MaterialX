@@ -666,7 +666,9 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
         lightCount = 0;
     }
 
-    if (lightCount == 0)
+    if (lightCount == 0 && 
+        lightHandler->getLightEnvRadiancePath().empty() && 
+        lightHandler->getLightEnvIrradiancePath().empty())
     {
         return;
     }
@@ -713,7 +715,21 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
             }
         }
 
-        // Set all parameters
+        // Set all inputs
+        for (auto lightInput : light->getInputs())
+        {
+            // Make sure we have a value to set
+            if (lightInput->hasValue())
+            {
+                input = uniformList.find(prefix + "." + lightInput->getName());
+                if (input != uniformList.end())
+                {
+                    bindUniform(input->second->location, *lightInput->getValue());
+                }
+            }
+        }
+
+        // Set all parameters. Note that upstream connections are not currently handled.
         for (auto param : light->getParameters())
         {
             // Make sure we have a value to set
