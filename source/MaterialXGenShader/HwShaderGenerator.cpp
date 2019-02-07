@@ -33,6 +33,12 @@ void HwShaderGenerator::bindLightShader(const NodeDef& nodeDef, size_t lightType
             "' matching language '" + getLanguage() + "' and target '" + getTarget() + "'");
     }
 
+    if (getBoundLightShader(lightTypeId))
+    {
+        throw ExceptionShaderGenError("Error binding light shader. Light type id '" + std::to_string(lightTypeId) + 
+            "' has already been bound");
+    }
+
     // Prepend the light struct instance name on all input socket variables, 
     // since in generated code these inputs will be members of the light struct.
     ShaderGraph* graph = sgimpl->getGraph();

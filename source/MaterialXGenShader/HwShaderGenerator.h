@@ -16,14 +16,21 @@ public:
 
 public:
     /// Set the maximum number of light sources that can be active at once.
-    void setMaxActiveLightSources(size_t count) { _maxActiveLightSources = count; }
+    void setMaxActiveLightSources(size_t count) 
+    { 
+        _maxActiveLightSources = count; 
+        if (_maxActiveLightSources <= 0)
+        {
+            _maxActiveLightSources = 1;
+        }
+    }
 
     /// Get the maximum number of light sources that can be active at once.
     size_t getMaxActiveLightSources() const { return _maxActiveLightSources; }
 
     /// Bind a light shader to a light type id, for usage in surface shaders created 
     /// by the generator. The lightTypeId should be a unique identifier for the light 
-    /// type and the same id should be used when setting light parameters on a 
+    /// type (node definition) and the same id should be used when setting light parameters on a 
     /// generated surface shader.
     void bindLightShader(const NodeDef& nodeDef, size_t lightTypeId, const GenOptions& options);
 

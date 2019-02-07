@@ -747,16 +747,17 @@ unsigned int getUIProperties(const string& path, DocumentPtr doc, const string& 
     return 0;
 }
 
-void mapNodeCategoriesToIdentiers(const std::vector<NodePtr> nodes,
+void mapNodeDefToIdentiers(const std::vector<NodePtr> nodes,
                                   std::unordered_map<string, unsigned int>& ids)
 {
     unsigned int id = 1;
     for (auto node : nodes)
     {
-        const std::string& category = node->getCategory();
-        if (!ids.count(category))
+        auto nodedef = node->getNodeDef();
+        const std::string& name = nodedef->getName();
+        if (!ids.count(name))
         {
-            ids[category] = id++;
+            ids[name] = id++;
         }
     }
 }

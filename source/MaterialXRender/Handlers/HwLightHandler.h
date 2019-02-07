@@ -10,9 +10,6 @@
 namespace MaterialX
 {
 
-class HwShaderGenerator;
-class GenOptions;
-
 /// Shared pointer to a LightHandler
 using HwLightHandlerPtr = std::shared_ptr<class HwLightHandler>;
 

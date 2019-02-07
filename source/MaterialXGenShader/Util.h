@@ -69,9 +69,9 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
 /// if the path is to a Node as definitions for Nodes can be target specific.
 ValueElementPtr findNodeDefChild(const string& path, DocumentPtr doc, const string& target);
 
-// From a set of nodes, create a mapping of categories to numbers
-void mapNodeCategoriesToIdentiers(const std::vector<NodePtr> nodes,
-                                  std::unordered_map<string, unsigned int>& ids);
+// From a set of nodes, create a mapping of nodedef identifiers to numbers
+void mapNodeDefToIdentiers(const std::vector<NodePtr> nodes,
+                           std::unordered_map<string, unsigned int>& ids);
 
 /// Set of possible UI properties for an element 
 struct UIProperties

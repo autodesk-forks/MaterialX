@@ -1,7 +1,4 @@
-#include <MaterialXGenShader/HwLightHandler.h>
-#include <MaterialXGenShader/HwShaderGenerator.h>
-
-#include <iterator>
+#include <MaterialXRender/Handlers/HwLightHandler.h>
 
 namespace MaterialX
 {
