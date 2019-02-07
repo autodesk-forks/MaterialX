@@ -152,7 +152,17 @@ void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::H
     createLights(doc, lightHandler);
 
     // Let the shader generator know of these light shaders
-    lightHandler.bindLightShaders(shadergen, options);
+    std::unordered_map<std::string, unsigned int> ids;
+    mx::mapNodeCategoriesToIdentiers(lightHandler.getLightSources(), ids);
+    
+    for (auto lightSource : lightHandler.getLightSources())
+    {
+        mx::NodeDefPtr nodeDef = lightSource->getNodeDef();
+        if (nodeDef)
+        {
+            shadergen.bindLightShader(*nodeDef, ids[lightSource->getCategory()], options);
+        }
+    }
 
     // Set up IBL inputs
     lightHandler.setLightEnvIrradiancePath(envIrradiancePath);

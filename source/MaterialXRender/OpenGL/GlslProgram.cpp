@@ -699,8 +699,12 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
         }
     }
 
+    const std::vector<NodePtr> lightList = lightHandler->getLightSources();
+    std::unordered_map<string, unsigned int> ids;
+    mapNodeCategoriesToIdentiers(lightList, ids);
+
     size_t index = 0;
-    for (NodePtr light : lightHandler->getLightSources())
+    for (auto light : lightList)
     {
         const string prefix = "u_lightData[" + std::to_string(index) + "]";
 
@@ -712,12 +716,9 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
             location = input->second->location;
             if (location >= 0)
             {
-                int lightType = lightHandler->getLightType(light);
-                if (lightType >= 0)
-                {
-                    glUniform1i(location, lightType);
-                    boundType = true;
-                }
+                unsigned int lightType = ids[light->getCategory()];
+                glUniform1i(location, lightType);
+                boundType = true;
             }
         }
         if (!boundType)

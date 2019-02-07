@@ -26,8 +26,6 @@ public:
     /// Static instance create function
     static HwLightHandlerPtr create() { return std::make_shared<HwLightHandler>(); }
 
-    int getLightType(NodePtr node) const;
-
     /// Default constructor
     HwLightHandler();
 
@@ -47,17 +45,7 @@ public:
     void setLightSources(const vector<NodePtr>& lights)
     {
         _lightSources = lights;
-        _lightCategories.clear();
-        for (auto light : _lightSources)
-        {
-            _lightCategories.insert(light->getCategory());
-        }
     }
-
-    /// Bind all added light shaders to the given shader generator.
-    /// Only the light shaders bound to the generator will have their
-    /// code emitted during shader generation.
-    void bindLightShaders(HwShaderGenerator& shadergen, const GenOptions& options) const;
 
     /// Set path to irradiance IBL image
     void setLightEnvIrradiancePath(const string& path)
@@ -85,7 +73,6 @@ public:
 
 private:
     vector<NodePtr> _lightSources;
-    std::set<string> _lightCategories;
     string _lightEnvIrradiancePath;
     string _lightEnvRadiancePath;
 };
