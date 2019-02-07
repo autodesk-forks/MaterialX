@@ -19,6 +19,12 @@ void HwShaderGenerator::bindLightShader(const NodeDef& nodeDef, size_t lightType
         throw ExceptionShaderGenError("Error binding light shader. Given nodedef '" + nodeDef.getName() + "' is not of lightshader type");
     }
 
+    if (getBoundLightShader(lightTypeId))
+    {
+        throw ExceptionShaderGenError("Error binding light shader. Light type id '" + std::to_string(lightTypeId) +
+            "' has already been bound");
+    }
+
     ShaderNodeImplPtr sgimpl;
 
     // Find the implementation for this nodedef
@@ -31,12 +37,6 @@ void HwShaderGenerator::bindLightShader(const NodeDef& nodeDef, size_t lightType
     {
         throw ExceptionShaderGenError("Could not find a matching implementation for node '" + nodeDef.getNodeString() +
             "' matching language '" + getLanguage() + "' and target '" + getTarget() + "'");
-    }
-
-    if (getBoundLightShader(lightTypeId))
-    {
-        throw ExceptionShaderGenError("Error binding light shader. Light type id '" + std::to_string(lightTypeId) + 
-            "' has already been bound");
     }
 
     // Prepend the light struct instance name on all input socket variables, 
