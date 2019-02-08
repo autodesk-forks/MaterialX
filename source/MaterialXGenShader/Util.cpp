@@ -114,36 +114,20 @@ void getFilesInDirectory(const std::string& directory, StringVec& files, const s
 
 bool readFile(const string& filename, string& contents)
 {
-#if defined(_WIN32)
-    // Protection in case someone sets fmode to binary
-    int oldMode;
-    _get_fmode(&oldMode);
-    _set_fmode(_O_TEXT);
-#endif
-
-    bool result = false;
-
-    std::ifstream file(filename, std::ios::in );
+    std::ifstream file(filename, std::ios::in);
     if (file)
     {
-        string buffer;
-        file.seekg(0, std::ios::end);
-        buffer.resize(size_t(file.tellg()));
-        file.seekg(0, std::ios::beg);
-        file.read(&buffer[0], buffer.size());
+        std::stringstream stream;
+        stream << file.rdbuf();
         file.close();
-        if (buffer.length() > 0)
+        if (stream)
         {
-            size_t pos = buffer.find_last_not_of('\0');
-            contents = buffer.substr(0, pos + 1);
+            contents = stream.str();
+            return (contents.size() > 0);
         }
-        result = true;
+        return false;
     }
-#if defined(_WIN32)
-    _set_fmode(oldMode ? oldMode : _O_TEXT);
-#endif
-
-    return result;
+    return false;
 }
 
 string getFileExtension(const string& filename)
@@ -298,6 +282,8 @@ namespace
                     // Second check the opacity
                     if (opaque)
                     {
+                        opaque = false;
+
                         InputPtr opacity = node->getInput("opacity");
                         if (!opacity)
                         {
@@ -406,6 +392,8 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
             // Second check the opacity
             if (opaque)
             {
+                opaque = false;
+
                 BindInputPtr opacity = shaderRef->getBindInput("opacity");
                 if (!opacity)
                 {
@@ -415,7 +403,7 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
                 {
                     // Unconnected, check the value
                     ValuePtr value = opacity->getValue();
-                    if (!value || isWhite(value->asA<Color3>()))
+                    if (!value || (value->isA<Color3>() && isWhite(value->asA<Color3>())))
                     {
                         opaque = true;
                     }
@@ -757,6 +745,24 @@ unsigned int getUIProperties(const string& path, DocumentPtr doc, const string& 
         return getUIProperties(valueElement, uiProperties);
     }
     return 0;
+}
+
+void mapNodeDefToIdentiers(const std::vector<NodePtr>& nodes,
+                           std::unordered_map<string, unsigned int>& ids)
+{
+    unsigned int id = 1;
+    for (auto node : nodes)
+    {
+        auto nodedef = node->getNodeDef();
+        if (nodedef)
+        {
+            const std::string& name = nodedef->getName();
+            if (!ids.count(name))
+            {
+                ids[name] = id++;
+            }
+        }
+    }
 }
 
 } // namespace MaterialX

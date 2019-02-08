@@ -4,6 +4,7 @@
 namespace MaterialX
 {
 
+const string HwShader::VERTEX_STAGE = "vertex";
 const string HwShader::LIGHT_DATA_BLOCK = "LightData";
 
 HwShader::HwShader(const string& name) 
@@ -11,7 +12,8 @@ HwShader::HwShader(const string& name)
     , _vertexData("VertexData", "vd")
     , _transparency(false)
 {
-    _stages.push_back(Stage("Vertex"));
+    // Create the vertex stage
+    createStage(VERTEX_STAGE);
 
     // Create default uniform blocks for vertex stage
     createUniformBlock(VERTEX_STAGE, PRIVATE_UNIFORMS, "prvUniform");
@@ -30,9 +32,13 @@ HwShader::HwShader(const string& name)
                                 0, 1, 0, 0,
                                 0, 0, -1, 0,
                                 0, 0, 0, 1);
-    createUniform(PIXEL_STAGE, PRIVATE_UNIFORMS, Type::MATRIX44, "u_envMatrix", EMPTY_STRING, 
+    createUniform(PIXEL_STAGE, PRIVATE_UNIFORMS, Type::MATRIX44, "u_envMatrix", EMPTY_STRING,
         EMPTY_STRING, Value::createValue<Matrix44>(yRotationPI));
-    createUniform(PIXEL_STAGE, PRIVATE_UNIFORMS, Type::FILENAME, "u_envSpecular");
+    createUniform(PIXEL_STAGE, PRIVATE_UNIFORMS, Type::INTEGER, "u_envSamples", EMPTY_STRING,
+        EMPTY_STRING, Value::createValue(16));
+    createUniform(PIXEL_STAGE, PRIVATE_UNIFORMS, Type::FILENAME, "u_envRadiance");
+    createUniform(PIXEL_STAGE, PRIVATE_UNIFORMS, Type::INTEGER, "u_envRadianceMips", EMPTY_STRING,
+        EMPTY_STRING, Value::createValue(1));
     createUniform(PIXEL_STAGE, PRIVATE_UNIFORMS, Type::FILENAME, "u_envIrradiance");
 }
 

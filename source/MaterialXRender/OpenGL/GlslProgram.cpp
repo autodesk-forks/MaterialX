@@ -15,7 +15,7 @@ int GlslProgram::UNDEFINED_OPENGL_PROGRAM_LOCATION = -1;
 int GlslProgram::Input::INVALID_OPENGL_TYPE = -1;
 
 // Shader constants
-static string RADIANCE_ENV_UNIFORM_NAME("u_envSpecular");
+static string RADIANCE_ENV_UNIFORM_NAME("u_envRadiance");
 static string IRRADIANCE_ENV_UNIFORM_NAME("u_envIrradiance");
 
 /// Sampling constants
@@ -48,26 +48,6 @@ GlslProgram::~GlslProgram()
     deleteProgram();
 }
 
-void GlslProgram::setStages(const std::vector<std::string>& stages)
-{
-    if (stages.size() != HwShader::NUM_STAGES)
-    {
-        ShaderValidationErrorList errors;
-        throw ExceptionShaderValidationError("Incorrect number of stages passed in for stage setup.", errors);
-    }
-
-    unsigned int count = 0;
-    for (auto stage : stages)
-    {
-        _stages[count++] = stage;
-    }
-
-    // A stage change invalidates any cached parsed inputs
-    clearInputLists();
-    _hwShader = nullptr;
-}
-
-
 void GlslProgram::setStages(const HwShaderPtr shader)
 {
     if (!shader)
@@ -81,42 +61,38 @@ void GlslProgram::setStages(const HwShaderPtr shader)
 
     // Extract out the shader code per stage
     _hwShader = shader;
-    for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
+    StringVec stages;
+    shader->getStageNames(stages);
+    for (const string& s : stages)
     {
-        _stages[i] = _hwShader->getSourceCode(i);
+        addStage(s, shader->getSourceCode(s));
     }
 
     // A stage change invalidates any cached parsed inputs
     clearInputLists();
 }
 
-const std::string GlslProgram::getStage(size_t stage) const
+void GlslProgram::addStage(const string& stage, const string& sourcCode)
 {
-    if (stage < HwShader::NUM_STAGES)
+    _stages[stage] = sourcCode;
+}
+
+const string& GlslProgram::getStageSourceCode(const string& stage) const
+{
+    auto it = _stages.find(stage);
+    if (it != _stages.end())
     {
-        return _stages[stage];
+        return it->second;
     }
-    return std::string();
+    return EMPTY_STRING;
 }
 
 void GlslProgram::clearStages()
 {
-    for (size_t i = 0; i < HwShader::NUM_STAGES; i++)
-    {
-        _stages[i].clear();
-    }
+    _stages.clear();
 
     // Clearing stages invalidates any cached inputs
     clearInputLists();
-}
-
-bool GlslProgram::haveValidStages() const
-{
-    // Need at least a pixel shader stage and a vertex shader stage
-    const std::string& vertexShaderSource = _stages[HwShader::VERTEX_STAGE];
-    const std::string& fragmentShaderSource = _stages[HwShader::PIXEL_STAGE];
-
-    return (vertexShaderSource.length() > 0 && fragmentShaderSource.length() > 0);
 }
 
 void GlslProgram::deleteProgram()
@@ -139,20 +115,14 @@ unsigned int GlslProgram::build()
 
     deleteProgram();
 
-    if (!haveValidStages())
-    {
-        errors.push_back("An invalid set of stages has been provided.");
-        throw ExceptionShaderValidationError(errorType, errors);
-    }
-
     GLint GLStatus = GL_FALSE;
     int GLInfoLogLength = 0;
 
     unsigned int stagesBuilt = 0;
     unsigned int desiredStages = 0;
-    for (unsigned int i = 0; i < HwShader::NUM_STAGES; i++)
+    for (auto it : _stages)
     {
-        if (_stages[i].length())
+        if (it.second.length())
             desiredStages++;
     }
 
@@ -242,6 +212,11 @@ unsigned int GlslProgram::build()
                 errors.push_back(&ProgramErrorMessage[0]);
             }
         }
+    }
+    else
+    {
+        errors.push_back("Failed to build all stages.");
+        throw ExceptionShaderValidationError(errorType, errors);
     }
 
     // Cleanup
@@ -691,7 +666,9 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
         lightCount = 0;
     }
 
-    if (lightCount == 0)
+    if (lightCount == 0 &&
+        lightHandler->getLightEnvRadiancePath().empty() &&
+        lightHandler->getLightEnvIrradiancePath().empty())
     {
         return;
     }
@@ -722,23 +699,49 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
         }
     }
 
+    const std::vector<NodePtr> lightList = lightHandler->getLightSources();
+    std::unordered_map<string, unsigned int> ids;
+    mapNodeDefToIdentiers(lightList, ids);
+
     size_t index = 0;
-    for (NodePtr light : lightHandler->getLightSources())
+    for (auto light : lightList)
     {
+        auto nodeDef = light->getNodeDef();
         const string prefix = "u_lightData[" + std::to_string(index) + "]";
 
         // Set light type id
+        bool boundType = false;
         input = uniformList.find(prefix + ".type");
         if (input != uniformList.end())
         {
             location = input->second->location;
             if (location >= 0)
             {
-                glUniform1i(location, int(HwLightHandler::getLightType(light)));
+                unsigned int lightType = ids[nodeDef->getName()];
+                glUniform1i(location, lightType);
+                boundType = true;
+            }
+        }
+        if (!boundType)
+        {
+            continue;
+        }
+
+        // Set all inputs
+        for (auto lightInput : light->getInputs())
+        {
+            // Make sure we have a value to set
+            if (lightInput->hasValue())
+            {
+                input = uniformList.find(prefix + "." + lightInput->getName());
+                if (input != uniformList.end())
+                {
+                    bindUniform(input->second->location, *lightInput->getValue());
+                }
             }
         }
 
-        // Set all parameters
+        // Set all parameters. Note that upstream connections are not currently handled.
         for (auto param : light->getParameters())
         {
             // Make sure we have a value to set

@@ -191,7 +191,11 @@ string ScalarTypeSyntax::getValue(const vector<string>& values, bool /*uniform*/
     {
         throw ExceptionShaderGenError("No values given to construct a value");
     }
-    return values[0];
+    // Write the value using a stream to maintain any float formatting set
+    // using Value::setFloatFormat() and Value::setFloatPrecision()
+    std::stringstream ss;
+    ss << values[0];
+    return ss.str();
 }
 
 
@@ -224,14 +228,17 @@ string AggregateTypeSyntax::getValue(const vector<string>& values, bool /*unifor
         throw ExceptionShaderGenError("No values given to construct a value");
     }
 
-    string result = getName() + "(" + values[0];
+    // Write the value using a stream to maintain any float formatting set
+    // using Value::setFloatFormat() and Value::setFloatPrecision()
+    std::stringstream ss;
+    ss << getName() << "(" << values[0];
     for (size_t i=1; i<values.size(); ++i)
     {
-        result += ", " + values[i];
+        ss << ", " << values[i];
     }
-    result += ")";
+    ss << ")";
 
-    return result;
+    return ss.str();
 }
 
 }
