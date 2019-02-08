@@ -84,7 +84,7 @@ void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::H
     }
 
     // Clamp the number of light sources to the number found
-    size_t lightSourceCount = lightHandler.getLightSources().size();
+    unsigned int lightSourceCount = static_cast<unsigned int>(lightHandler.getLightSources().size());
     shadergen.setMaxActiveLightSources(lightSourceCount);
 
     // Set up IBL inputs

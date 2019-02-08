@@ -754,10 +754,13 @@ void mapNodeDefToIdentiers(const std::vector<NodePtr>& nodes,
     for (auto node : nodes)
     {
         auto nodedef = node->getNodeDef();
-        const std::string& name = nodedef->getName();
-        if (!ids.count(name))
+        if (nodedef)
         {
-            ids[name] = id++;
+            const std::string& name = nodedef->getName();
+            if (!ids.count(name))
+            {
+                ids[name] = id++;
+            }
         }
     }
 }

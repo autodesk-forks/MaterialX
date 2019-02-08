@@ -12,7 +12,7 @@ HwShaderGenerator::HwShaderGenerator(SyntaxPtr syntax)
 {
 }
 
-void HwShaderGenerator::bindLightShader(const NodeDef& nodeDef, size_t lightTypeId, const GenOptions& options)
+void HwShaderGenerator::bindLightShader(const NodeDef& nodeDef, unsigned int lightTypeId, const GenOptions& options)
 {
     if (TypeDesc::get(nodeDef.getType()) != Type::LIGHTSHADER)
     {
@@ -53,7 +53,7 @@ void HwShaderGenerator::bindLightShader(const NodeDef& nodeDef, size_t lightType
     _boundLightShaders[lightTypeId] = sgimpl;
 }
 
-ShaderNodeImpl* HwShaderGenerator::getBoundLightShader(size_t lightTypeId)
+ShaderNodeImpl* HwShaderGenerator::getBoundLightShader(unsigned int lightTypeId)
 {
     auto it = _boundLightShaders.find(lightTypeId);
     return it != _boundLightShaders.end() ? it->second.get() : nullptr;
