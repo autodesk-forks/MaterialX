@@ -464,6 +464,8 @@
   <!-- <transformvector> -->
   <implementation name="IM_transformvector_vector3_genosl" nodedef="ND_transformvector_vector3"  file="stdlib/genosl/mx_transformvector.inline" language="genosl"/>
   <implementation name="IM_transformvector_vector3M_genosl" nodedef="ND_transformvector_vector3M"  file="stdlib/genosl/mx_transformvectorM.inline" language="genosl"/>
+  <implementation name="IM_transformvector_vector2M3_genosl" nodedef="ND_transformvector_vector2M3"  file="stdlib/genosl/mx_transformvector2_matrix33.osl" language="genosl"/>
+  <implementation name="IM_transformvector_vector3M4_genosl" nodedef="ND_transformvector_vector3M4"  file="stdlib/genosl/mx_transformvector3_matrix44.osl" language="genosl"/>
   <implementation name="IM_transformvector_vector4_genosl" nodedef="ND_transformvector_vector4"  file="stdlib/genosl/mx_transformvector.inline" language="genosl"/>
   <implementation name="IM_transformvector_vector4M_genosl" nodedef="ND_transformvector_vector4M"  file="stdlib/genosl/mx_transformvectorM.inline" language="genosl"/>
 
