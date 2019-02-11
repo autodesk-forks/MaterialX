@@ -1148,9 +1148,10 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
 
 TEST_CASE("MaterialX documents", "[shadervalid]")
 {
-    bool runValidation = false;
 #if defined(MATERIALX_BUILD_GEN_GLSL) || defined(MATERIALX_BUILD_GEN_OSL) || defined(MATERIALX_BUILD_GEN_OGSFX)
-    runValidation = true;
+    bool runValidation = true;
+#else
+    bool runValidation = false;
 #endif
     if (!runValidation)
     {
