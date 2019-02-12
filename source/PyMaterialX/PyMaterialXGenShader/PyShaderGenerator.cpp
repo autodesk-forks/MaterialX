@@ -15,7 +15,7 @@ namespace mx = MaterialX;
 class PyShaderGenerator : public mx::ShaderGenerator
 {
   public:
-    PyShaderGenerator(mx::SyntaxPtr syntax) :
+    explicit PyShaderGenerator(mx::SyntaxPtr syntax) :
         mx::ShaderGenerator(syntax)
     {
     }
