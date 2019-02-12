@@ -1,7 +1,7 @@
 import re
 import sys
 
-from MaterialX.PyMaterialXCore import *
+from .PyMaterialX import *
 
 """
 Native Python helper functions for MaterialX data types.

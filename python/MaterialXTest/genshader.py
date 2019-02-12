@@ -1,14 +1,15 @@
 import os
 import unittest
+import inspect
 
-from MaterialX.PyMaterialXCore import *
-from MaterialX.PyMaterialXFormat import *
+import MaterialX as mx
 from MaterialX.PyMaterialXGenShader import *
+
 try:
     from MaterialX.PyMaterialXGenOsl import ArnoldShaderGenerator
     ARNOLD_SHADER_GENERATOR_EXISTS = True
 except ImportError:
-    ARNOLD_SHADER_GENERATOR_EXISTS = False
+   ARNOLD_SHADER_GENERATOR_EXISTS = False
 
 _fileDir = os.path.dirname(os.path.abspath(__file__))
 
@@ -21,13 +22,13 @@ def _getMTLXFilesInDirectory(path):
         if file.endswith(".mtlx"):
             yield file
 
-_readFromXmlFile = readFromXmlFileBase
+_readFromXmlFile = mx.readFromXmlFileBase
 
 def _loadLibrary(file, doc):
-    libDoc = createDocument()
+    libDoc = mx.createDocument()
     _readFromXmlFile(libDoc, file)
     libDoc.setSourceUri(file)
-    copyOptions = CopyOptions()
+    copyOptions = mx.CopyOptions()
     copyOptions.skipDuplicateElements = True;
     doc.importLibrary(libDoc, copyOptions)
 
@@ -44,7 +45,7 @@ def _loadLibraries(doc, searchPath, libraryPath):
 class TestGenShader(unittest.TestCase):
 
     def test_ShaderInterface(self):
-        doc = createDocument()
+        doc = mx.createDocument()
 
         searchPath = os.path.join(_fileDir, "../../documents/Libraries")
         libraryPath = os.path.join(searchPath, "stdlib")
@@ -57,8 +58,8 @@ class TestGenShader(unittest.TestCase):
         fooInputA = nodeDef.addInput("a", "color3")
         fooInputB = nodeDef.addInput("b", "color3")
         fooOutput = nodeDef.addOutput("o", "color3")
-        fooInputA.setValue(Color3(1.0, 1.0, 0.0))
-        fooInputB.setValue(Color3(0.8, 0.1, 0.1))
+        fooInputA.setValue(mx.Color3(1.0, 1.0, 0.0))
+        fooInputB.setValue(mx.Color3(0.8, 0.1, 0.1))
 
         # Create an implementation graph for the nodedef performing
         # a multiplication of the three colors.
@@ -83,9 +84,9 @@ class TestGenShader(unittest.TestCase):
         if ARNOLD_SHADER_GENERATOR_EXISTS:
             shadergen = ArnoldShaderGenerator.create()
             # Add path to find all source code snippets
-            shadergen.registerSourceCodeSearchPath(FilePath(searchPath))
+            shadergen.registerSourceCodeSearchPath(mx.FilePath(searchPath))
             # Add path to find OSL include files
-            shadergen.registerSourceCodeSearchPath(FilePath(os.path.join(searchPath, "stdlib/osl")))
+            shadergen.registerSourceCodeSearchPath(mx.FilePath(os.path.join(searchPath, "stdlib/osl")))
 
             # Test complete mode
             options.shaderInterfaceType = ShaderInterfaceType.SHADER_INTERFACE_COMPLETE;
