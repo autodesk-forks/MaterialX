@@ -686,7 +686,11 @@
   <implementation name="IM_convert_float_vector3_genglsl" nodedef="ND_convert_float_vector3" language="genglsl"/>
   <implementation name="IM_convert_float_vector4_genglsl" nodedef="ND_convert_float_vector4" language="genglsl"/>
   <implementation name="IM_convert_vector2_color2_genglsl" nodedef="ND_convert_vector2_color2" language="genglsl"/>
+  <implementation name="IM_convert_vector2_vector3_genglsl" nodedef="ND_convert_vector2_vector3" language="genglsl"/>
+  <implementation name="IM_convert_vector3_vector2_genglsl" nodedef="ND_convert_vector3_vector2" language="genglsl"/>
   <implementation name="IM_convert_vector3_color3_genglsl" nodedef="ND_convert_vector3_color3" language="genglsl"/>
+  <implementation name="IM_convert_vector3_vector4_genglsl" nodedef="ND_convert_vector3_vector4" language="genglsl"/>
+  <implementation name="IM_convert_vector4_vector3_genglsl" nodedef="ND_convert_vector4_vector3" language="genglsl"/>
   <implementation name="IM_convert_vector4_color4_genglsl" nodedef="ND_convert_vector4_color4" language="genglsl"/>
   <implementation name="IM_convert_color2_vector2_genglsl" nodedef="ND_convert_color2_vector2" language="genglsl"/>
   <implementation name="IM_convert_color3_vector3_genglsl" nodedef="ND_convert_color3_vector3" language="genglsl"/>

@@ -3216,8 +3216,20 @@
   <nodedef name="ND_convert_vector2_color2" node="convert" type="color2" nodegroup="channel" defaultinput="in">
     <input name="in" type="vector2"/>
   </nodedef>
+  <nodedef name="ND_convert_vector2_vector3" node="convert" type="vector3" nodegroup="channel" defaultinput="in">
+    <input name="in" type="vector2"/>
+  </nodedef>
+  <nodedef name="ND_convert_vector3_vector2" node="convert" type="vector2" nodegroup="channel" defaultinput="in">
+    <input name="in" type="vector3"/>
+  </nodedef>
   <nodedef name="ND_convert_vector3_color3" node="convert" type="color3" nodegroup="channel" defaultinput="in">
     <input name="in" type="vector3"/>
+  </nodedef>
+  <nodedef name="ND_convert_vector3_vector4" node="convert" type="vector4" nodegroup="channel" defaultinput="in">
+    <input name="in" type="vector3"/>
+  </nodedef>
+  <nodedef name="ND_convert_vector4_vector3" node="convert" type="vector3" nodegroup="channel" defaultinput="in">
+    <input name="in" type="vector4"/>
   </nodedef>
   <nodedef name="ND_convert_vector4_color4" node="convert" type="color4" nodegroup="channel" defaultinput="in">
     <input name="in" type="vector4"/>

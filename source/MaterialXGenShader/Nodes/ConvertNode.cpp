@@ -34,7 +34,7 @@ namespace
             Type::VECTOR2,
             {
                 { Type::COLOR2, std::string("xy") },
-                { Type::VECTOR3, std::string("xyz") }
+                { Type::VECTOR3, std::string("xy0") }
             }
         },
         {

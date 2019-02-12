@@ -707,7 +707,11 @@
   <implementation name="IM_convert_float_vector3_genosl" nodedef="ND_convert_float_vector3" language="genosl"/>
   <implementation name="IM_convert_float_vector4_genosl" nodedef="ND_convert_float_vector4" language="genosl"/>
   <implementation name="IM_convert_vector2_color2_genosl" nodedef="ND_convert_vector2_color2" language="genosl"/>
+  <implementation name="IM_convert_vector2_vector3_genosl" nodedef="ND_convert_vector2_vector3" language="genosl"/>
+  <implementation name="IM_convert_vector3_vector2_genosl" nodedef="ND_convert_vector3_vector2" language="genosl"/>
   <implementation name="IM_convert_vector3_color3_genosl" nodedef="ND_convert_vector3_color3" language="genosl"/>
+  <implementation name="IM_convert_vector3_vector4_genosl" nodedef="ND_convert_vector3_vector4" language="genosl"/>
+  <implementation name="IM_convert_vector4_vector3_genosl" nodedef="ND_convert_vector4_vector3" language="genosl"/>
   <implementation name="IM_convert_vector4_color4_genosl" nodedef="ND_convert_vector4_color4" language="genosl"/>
   <implementation name="IM_convert_color2_vector2_genosl" nodedef="ND_convert_color2_vector2" language="genosl"/>
   <implementation name="IM_convert_color3_vector3_genosl" nodedef="ND_convert_color3_vector3" language="genosl"/>
