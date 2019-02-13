@@ -25,7 +25,7 @@ void bindPyVariant(py::module& mod);
 void bindPyXmlIo(py::module& mod);
 void bindPyFile(py::module& mod);
 
-PYBIND11_MODULE(PyMaterialX, mod)
+PYBIND11_MODULE(PyMaterialXCore, mod)
 {
     mod.doc() = "Module containing Python bindings for MaterialX C++";
 
