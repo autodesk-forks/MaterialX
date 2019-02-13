@@ -9,7 +9,6 @@ namespace py = pybind11;
 
 void bindPyColorManagement(py::module& mod);
 void bindPyGenOptions(py::module& mod);
-void bindPyHwLightHandler(py::module& mod);
 void bindPyShader(py::module& mod);
 void bindPyHwShader(py::module& mod);
 void bindPyShaderGenerator(py::module& mod);
@@ -21,7 +20,6 @@ PYBIND11_MODULE(PyMaterialXGenShader, mod)
 
     bindPyColorManagement(mod);
     bindPyGenOptions(mod);
-    bindPyHwLightHandler(mod);
     bindPyShader(mod);
     bindPyHwShader(mod);
     bindPyShaderGenerator(mod);
