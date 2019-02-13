@@ -1,7 +1,7 @@
-void mx_transformvector2_matrix44(vector2 val, matrix33 m, out vector2 result)
+void mx_transformvector2_matrix33(vector2 val, matrix m, output vector2 result)
 {
-    vector _vec3 = vector(val.x, val.y, 1.0);
+    vector _vec3 = vector(val.x, val.y, 0.0);
     vector res = transform(m, _vec3);
-    result.x = res.x;
-    result.y = res.y;
+    result.x = res[0];
+    result.y = res[1];
 }

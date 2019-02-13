@@ -1915,7 +1915,7 @@
   </nodedef>
   <nodedef name="ND_transformpoint_vector3M" node="transformpoint" type="vector3" nodegroup="math" defaultinput="in">
     <input name="in" type="vector3"/>
-    <input name="mat" type="matrix33" value="0.0,0.0,0.0, 0.0,0.0,0.0, 0.0,0.0,0.0"/>
+    <input name="mat" type="matrix33" value="1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0"/>
   </nodedef>
   <nodedef name="ND_transformpoint_vector4" node="transformpoint" type="vector4" nodegroup="math" defaultinput="in">
     <input name="in" type="vector4"/>
@@ -1924,7 +1924,7 @@
   </nodedef>
   <nodedef name="ND_transformpoint_vector4M" node="transformpoint" type="vector4" nodegroup="math" defaultinput="in">
     <input name="in" type="vector4"/>
-    <input name="mat" type="matrix44" value="0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0"/>
+    <input name="mat" type="matrix44" value="1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0"/>
   </nodedef>
 
   <!--
@@ -1969,7 +1969,7 @@
   </nodedef>
   <nodedef name="ND_transformnormal_vector3M" node="transformnormal" type="vector3" nodegroup="math" defaultinput="in">
     <input name="in" type="vector3"/>
-    <input name="mat" type="matrix33" value="0.0,0.0,0.0, 0.0,0.0,0.0, 0.0,0.0,0.0"/>
+    <input name="mat" type="matrix33" value="1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0"/>
   </nodedef>
   <nodedef name="ND_transformnormal_vector4" node="transformnormal" type="vector4" nodegroup="math" defaultinput="in">
     <input name="in" type="vector4"/>
@@ -1978,7 +1978,7 @@
   </nodedef>
   <nodedef name="ND_transformnormal_vector4M" node="transformnormal" type="vector4" nodegroup="math" defaultinput="in">
     <input name="in" type="vector4"/>
-    <input name="mat" type="matrix44" value="0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0"/>
+    <input name="mat" type="matrix44" value="1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0"/>
   </nodedef>
 
   <!--
