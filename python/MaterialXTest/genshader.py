@@ -1,6 +1,5 @@
 import os
 import unittest
-import inspect
 
 import MaterialX as mx
 from MaterialX.PyMaterialXGenShader import *
