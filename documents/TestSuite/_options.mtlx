@@ -6,7 +6,7 @@
     <nodedef name="ShaderValidTestOptions">
 
         <!-- List of comma separated file names acts as a filter to only test documents with these names -->
-        <parameter name="overrideFiles" type="string" value="transform.mtlx" />
+        <parameter name="overrideFiles" type="string" value="" />
 
         <!-- List of comma separated file names which require color management  -->
         <parameter name="cmsFiles" type="string" value="color_management.mtlx" />
