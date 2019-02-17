@@ -25,9 +25,6 @@ public:
     /// Return a unique identifyer for the target this generator is for
     const string& getTarget() const override { return TARGET; }
 
-    /// Unique identifyer for this generator target
-    static const string TARGET;
-
     /// Generate a shader starting from the given element, translating
     /// the element and all dependencies upstream into shader code.
     ShaderPtr generate(const string& shaderName, ElementPtr element, const GenOptions& options) override;
@@ -40,6 +37,9 @@ public:
 
     /// Unique identifyer for the osl language
     static const string LANGUAGE;
+
+    /// Unique identifyer for this generator target
+    static const string TARGET;
 
 protected:
 
