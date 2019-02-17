@@ -18,7 +18,7 @@
 #endif
 
 #ifdef MATERIALX_BUILD_GEN_OSL
-#include <MaterialXGenOsl/OSLShaderGenerator.h>
+#include <MaterialXGenOsl/OslShaderGenerator.h>
 #include <MaterialXGenOsl/OslSyntax.h>
 #endif
 
