@@ -18,3 +18,11 @@
 # Ignore directories
 build
 deploy
+rel_publicbuild.bat
+publicbuild_arnold_osl.bat
+cpTest.bat
+cpRelTest.bat
+publicbuild.bat
+ilm_build.bat
+build_public_rel/
+build_public/
