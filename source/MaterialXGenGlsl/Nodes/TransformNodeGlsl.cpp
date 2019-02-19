@@ -46,17 +46,21 @@ void TransformNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& con
 {
     HwShader& shader = static_cast<HwShader&>(shader_);
 
+    const ShaderInput* inInput = node.getInput("in");
+    if (inInput->type != Type::VECTOR3 && inInput->type != Type::VECTOR4)
+    {
+        throw ExceptionShaderGenError("Transform node must have 'in' type of vector3 or vector4.");
+    }
+
+    const ShaderInput* toSpaceInput = node.getInput(TO_SPACE);
+    string toSpace = toSpaceInput ? toSpaceInput->value->getValueString() : EMPTY_STRING;
+
+    const ShaderInput* fromSpaceInput = node.getInput(FROM_SPACE);
+    string fromSpace = fromSpaceInput ? fromSpaceInput->value->getValueString() : EMPTY_STRING;
+
     BEGIN_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
         shader.beginLine();
         shadergen.emitOutput(context, node.getOutput(), true, false, shader);
-
-        const ShaderInput* toSpaceInput = node.getInput(TO_SPACE);
-        string toSpace = toSpaceInput ? toSpaceInput->value->getValueString() : EMPTY_STRING;
-
-        const ShaderInput* fromSpaceInput = node.getInput(FROM_SPACE);
-        string fromSpace = fromSpaceInput ? fromSpaceInput->value->getValueString() : EMPTY_STRING;
-
-        const ShaderInput* inInput = node.getInput("in");
 
         shader.addStr( " = ");
         if (inInput->type == Type::VECTOR3)
