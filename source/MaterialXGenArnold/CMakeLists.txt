@@ -28,7 +28,7 @@ add_library(MaterialXGenArnold STATIC
 )
 
 set_target_properties(
-    MaterialXGenOsl PROPERTIES
+    MaterialXGenArnold PROPERTIES
     OUTPUT_NAME MaterialXGenArnold
     COMPILE_FLAGS "${EXTERNAL_COMPILE_FLAGS}"
     LINK_FLAGS "${EXTERNAL_LINK_FLAGS}"
@@ -41,7 +41,7 @@ target_link_libraries(
     MaterialXCore
     ${CMAKE_DL_LIBS})
 
-install(TARGETS MaterialXGenOsl
+install(TARGETS MaterialXGenArnold
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/
 )
 
