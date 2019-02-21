@@ -112,15 +112,9 @@ const ImageDesc* ImageHandler::getCachedImage(const std::string& identifier)
     return nullptr;
 }
 
-
-void ImageHandler::addSearchPath(const FilePath& path)
+void ImageHandler::setSearchPath(const FileSearchPath& path)
 {
-    _searchPath.append(path);
-}
-
-void ImageHandler::removeSearchPath(const FilePath& path)
-{
-    _searchPath.remove(path);
+    _searchPath = path;
 }
 
 FilePath ImageHandler::findFile(const FilePath& filename)

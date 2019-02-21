@@ -178,11 +178,8 @@ class ImageHandler
         _imageCache.clear();
     }
 
-    /// Add to the search path used for finding image files.
-    void addSearchPath(const FilePath& path);
-
-    /// Remove from the search path used for finding image files.
-    void removeSearchPath(const FilePath& path);
+    /// Set to the search path used for finding image files.
+    void setSearchPath(const FileSearchPath& path);
 
     /// Resolve a filename using the registered search paths.
     FilePath findFile(const FilePath& filename);

@@ -148,6 +148,16 @@ class FileSearchPath
         }
     }
 
+    /// Assign a search path from a standard string .
+    void assign(const string& searchPath, const string& sep = ";")
+    {
+        _paths.clear();
+        for (const string& path : splitString(searchPath, sep))
+        {
+            append(path);
+        }
+    }
+
     /// Append the given path to the sequence.
     void append(const FilePath& path)
     {
@@ -202,6 +212,22 @@ class FileSearchPath
             }
         }
         return filename;
+    }
+
+    /// Convert a path to a standard string.
+    operator string() const
+    {
+        return asString();
+    }
+
+    /// Return this path as a standard string with the given format.
+    string asString(const string& sep = ";") const
+    {
+        string returnString;
+        for (const FilePath& path : _paths)
+        {
+            returnString += path.asString() + sep;
+        }
     }
 
   private:
