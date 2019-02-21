@@ -160,6 +160,12 @@ class FileSearchPath
         _paths.insert(_paths.begin(), path);
     }
     
+    /// Remove a given path from the sequence.
+    void remove(const FilePath& path)
+    {
+        std::remove(_paths.begin(), _paths.end(), path);
+    }
+
     /// Return the number of paths in the sequence.
     size_t size() const
     {

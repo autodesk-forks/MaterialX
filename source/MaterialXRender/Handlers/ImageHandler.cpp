@@ -33,6 +33,8 @@ void ImageHandler::addLoader(ImageLoaderPtr loader)
 bool ImageHandler::saveImage(const std::string& fileName,
                             const ImageDesc &imageDesc)
 {
+    FilePath filePath = findFile(fileName);
+
     std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
     string extension = MaterialX::getFileExtension(fileName);
     range = _imageLoaders.equal_range(extension);
@@ -40,7 +42,7 @@ bool ImageHandler::saveImage(const std::string& fileName,
     ImageLoaderMap::iterator last = --range.first;
     for (auto it = first; it != last; --it)
     {
-        bool saved = it->second->saveImage(fileName, imageDesc);
+        bool saved = it->second->saveImage(filePath, imageDesc);
         if (saved)
         {
             return true;
@@ -49,7 +51,7 @@ bool ImageHandler::saveImage(const std::string& fileName,
     return false;
 }
 
-bool ImageHandler::acquireImage(const std::string& fileName, ImageDesc &imageDesc, bool generateMipMaps, const std::array<float, 4>* /*fallbackColor*/)
+bool ImageHandler::acquireImage(const FilePath& fileName, ImageDesc &imageDesc, bool generateMipMaps, const std::array<float, 4>* /*fallbackColor*/)
 {
     std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
     string extension = MaterialX::getFileExtension(fileName);
@@ -109,5 +111,22 @@ const ImageDesc* ImageHandler::getCachedImage(const std::string& identifier)
     }
     return nullptr;
 }
+
+
+void ImageHandler::addSearchPath(const FilePath& path)
+{
+    _searchPath.append(path);
+}
+
+void ImageHandler::removeSearchPath(const FilePath& path)
+{
+    _searchPath.remove(path);
+}
+
+FilePath ImageHandler::findFile(const FilePath& filename)
+{
+    return _searchPath.find(filename);
+}
+
 
 }

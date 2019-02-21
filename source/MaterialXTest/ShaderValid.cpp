@@ -1437,7 +1437,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             const std::string filename = filePath;
 
             mx::DocumentPtr doc = mx::createDocument();
-            readFromXmlFile(doc, filename);
+            mx::readFromXmlFile(doc, filename, dir);
 
             if (options.cmsFiles.size() && options.cmsFiles.count(file))
             {
