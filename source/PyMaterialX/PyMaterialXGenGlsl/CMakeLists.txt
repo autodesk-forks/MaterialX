@@ -18,7 +18,8 @@ set_target_properties(
 
 target_link_libraries(
     PyMaterialXGenGlsl
-    PUBLIC MaterialXFormat
+    PUBLIC PyMaterialXCore
+           PyMaterialXFormat
            MaterialXGenGlsl
     PRIVATE ${CMAKE_DL_LIBS})
 
