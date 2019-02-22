@@ -890,7 +890,11 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                             filename = imageSearchPath.find(uniform->value->getValueString());
                         }
                         
-                        std::string overrideString("string " + uniformName + " \"" + filename.asString(mx::FilePath::FormatPosix) + "\";\n");
+                        std::string overrideString("string " + uniformName + " \"" + filename.asString() + "\";\n");
+                        mx::StringMap mapper;
+                        mapper["\\\\"] = "/";
+                        mapper["\\"] = "/";
+                        overrideString = mx::replaceSubstrings(overrideString, mapper);
                         overrides.push_back(overrideString);
                         std::cout << overrideString;
                     }
