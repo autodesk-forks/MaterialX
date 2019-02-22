@@ -872,31 +872,37 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 
                 if (testOptions.renderImages)
                 {
-                    // Look for textures and build parameter a override string for image
-                    // files.
+                    // Look for textures and build parameter override string for each image
+                    // files if a relative path maps to an absolute path
                     const mx::Shader::VariableBlock publicUniforms = 
                         shader->getUniformBlock(mx::Shader::PIXEL_STAGE, mx::Shader::PUBLIC_UNIFORMS);
+
                     mx::StringVec overrides;
+                    mx::StringMap separatorMapper;
+                    separatorMapper["\\\\"] = "/";
+                    separatorMapper["\\"] = "/";
                     for (auto uniform : publicUniforms.variableOrder)
                     {
                         if (uniform->type != MaterialX::Type::FILENAME)
                         {
                             continue;
                         }
-                        const std::string& uniformName = uniform->name;
-                        mx::FilePath filename;
                         if (uniform->value)
                         {
-                            filename = imageSearchPath.find(uniform->value->getValueString());
+                            const std::string& uniformName = uniform->name;
+                            mx::FilePath filename;
+                            mx::FilePath origFilename(uniform->value->getValueString());
+                            if (!origFilename.isAbsolute())
+                            {
+                                filename = imageSearchPath.find(origFilename);
+                                if (filename != origFilename)
+                                {
+                                    std::string overrideString("string " + uniformName + " \"" + filename.asString() + "\";\n");
+                                    overrideString = mx::replaceSubstrings(overrideString, separatorMapper);
+                                    overrides.push_back(overrideString);
+                                }
+                            }
                         }
-                        
-                        std::string overrideString("string " + uniformName + " \"" + filename.asString() + "\";\n");
-                        mx::StringMap mapper;
-                        mapper["\\\\"] = "/";
-                        mapper["\\"] = "/";
-                        overrideString = mx::replaceSubstrings(overrideString, mapper);
-                        overrides.push_back(overrideString);
-                        std::cout << overrideString;
                     }
                     validator.setShaderParameterOverrides(overrides);
 

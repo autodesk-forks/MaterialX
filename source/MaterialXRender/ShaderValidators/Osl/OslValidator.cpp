@@ -156,8 +156,6 @@ void OslValidator::renderOSL(const string& outputPath, const string& shaderName,
     }
     command += " > " + errorFile + redirectString;
 
-    std::cout << command << std::endl;
-
     int returnValue = std::system(command.c_str());
 
     std::ifstream errorStream(errorFile);
@@ -258,8 +256,6 @@ void OslValidator::compileOSL(const string& oslFileName)
         errorFile + redirectString;
 
     int returnValue = std::system(command.c_str());
-
-    std::cout << command << std::endl;
 
     std::ifstream errorStream(errorFile);
     string result;
