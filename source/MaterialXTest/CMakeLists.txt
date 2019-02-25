@@ -33,7 +33,7 @@ if (MATERIALX_BUILD_RENDER)
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                    ${CMAKE_SOURCE_DIR}/documents/TestSuite ${CMAKE_CURRENT_BINARY_DIR}/documents/TestSuite)
 endif(MATERIALX_BUILD_RENDER)
-                   
+
 set_target_properties(
     MaterialXTest PROPERTIES
     OUTPUT_NAME MaterialXTest
@@ -42,10 +42,14 @@ set_target_properties(
     VERSION "${MATERIALX_LIBRARY_VERSION}"
     SOVERSION "${MATERIALX_MAJOR_VERSION}")
 
-set (LIBS 
-    MaterialXCore 
-    MaterialXFormat 
+set (LIBS
+    MaterialXCore
+    MaterialXFormat
     MaterialXGenShader
+    MaterialXRender
+    MaterialXRenderHw
+    MaterialXRenderGlsl
+    MaterialXRenderOsl
 )
 if (MATERIALX_BUILD_GEN_OSL)
     LIST(APPEND LIBS "MaterialXGenOsl")
@@ -63,6 +67,6 @@ if (MATERIALX_BUILD_CONTRIB)
     LIST(APPEND LIBS "MaterialXContrib")
 endif(MATERIALX_BUILD_CONTRIB)
 target_link_libraries(
-    MaterialXTest ${LIBS}    
+    MaterialXTest ${LIBS}
     ${CMAKE_DL_LIBS}
 )

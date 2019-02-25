@@ -2,7 +2,7 @@
 #if defined(MATERIALX_TEST_RENDER) && defined(MATERIALX_BUILD_RENDER) && defined(MATERIALX_BUILD_GEN_GLSL)
 
 // Run only on supported platforms
-#include <MaterialXRender/Window/HardwarePlatform.h>
+#include <MaterialXRender/HardwarePlatform.h>
 #if defined(OSWin_) || defined(OSLinux_) || defined(OSMac_)
 
 #include <MaterialXTest/Catch/catch.hpp>
@@ -19,8 +19,8 @@
 
 #ifdef MATERIALX_BUILD_GEN_GLSL
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
-#include <MaterialXRender/ShaderValidators/Glsl/GlslValidator.h>
-#include <MaterialXRender/OpenGL/GLTextureHandler.h>
+#include <MaterialXRenderGlsl/GlslValidator.h>
+#include <MaterialXRenderGlsl/GLTextureHandler.h>
 #endif
 
 #ifdef MATERIALX_BUILD_GEN_OGSFX
@@ -28,8 +28,8 @@
 #endif
 
 #ifdef MATERIALX_BUILD_GEN_OSL
-#include <MaterialXGenOsl/OslShaderGenerator.h>
-#include <MaterialXRender/ShaderValidators/Osl/OslValidator.h>
+#include <MaterialXGenArnold/ArnoldShaderGenerator.h>
+#include <MaterialXRenderOsl/OslValidator.h>
 #endif
 
 #ifdef MATERIALX_BUILD_CONTRIB
@@ -64,7 +64,7 @@ void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::H
             lights.push_back(node);
         }
     }
-    if (!lights.empty()) 
+    if (!lights.empty())
     {
         // Set the list of lights on the with the generator
         lightHandler.setLightSources(lights);
@@ -775,7 +775,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
 
 #ifdef MATERIALX_BUILD_GEN_OSL
 static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr element, mx::OslValidator& validator,
-                             mx::OslShaderGenerator& shaderGenerator, mx::DocumentPtr doc, std::ostream& log,
+                             mx::ArnoldShaderGenerator& shaderGenerator, mx::DocumentPtr doc, std::ostream& log,
                              const ShaderValidTestOptions& testOptions, ShaderValidProfileTimes& profileTimes, const std::string& outputPath=".")
 {
     AdditiveScopedTimer totalOSLTime(profileTimes.oslTimes.totalTime, "OSL total time");
@@ -1074,7 +1074,7 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
 
 void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidTestOptions& options,
     std::set<std::string>& usedImpls, std::ostream& profilingLog, mx::DocumentPtr dependLib,
-    mx::OslShaderGeneratorPtr oslShaderGenerator, mx::GlslShaderGeneratorPtr glslShaderGenerator,
+    mx::ArnoldShaderGeneratorPtr oslShaderGenerator, mx::GlslShaderGeneratorPtr glslShaderGenerator,
     mx::OgsFxShaderGeneratorPtr ogsfxShaderGenerator)
 {
     profileTimes.print(profilingLog);
@@ -1310,13 +1310,13 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
 
 #ifdef MATERIALX_BUILD_GEN_OSL
     mx::OslValidatorPtr oslValidator = nullptr;
-    mx::OslShaderGeneratorPtr oslShaderGenerator = nullptr;
+    mx::ArnoldShaderGeneratorPtr oslShaderGenerator = nullptr;
     mx::DefaultColorManagementSystemPtr oslColorManagementSystem = nullptr;
     if (options.runOSLTests)
     {
         AdditiveScopedTimer oslSetupTime(profileTimes.oslTimes.setupTime, "OSL setup time");
         oslValidator = createOSLValidator(oslLog);
-        oslShaderGenerator = std::static_pointer_cast<mx::OslShaderGenerator>(mx::OslShaderGenerator::create());
+        oslShaderGenerator = std::static_pointer_cast<mx::ArnoldShaderGenerator>(mx::ArnoldShaderGenerator::create());
         oslShaderGenerator->registerSourceCodeSearchPath(searchPath);
         oslShaderGenerator->registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
         oslSetupTime.endTimer();
@@ -1375,7 +1375,7 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
             // Add lights as a dependency
             mx::GenOptions genOptions;
             glslLightHandler = mx::HwLightHandler::create();
-            createLightRig(dependLib, *glslLightHandler, *glslShaderGenerator, genOptions, 
+            createLightRig(dependLib, *glslLightHandler, *glslShaderGenerator, genOptions,
                            options.radianceIBLPath, options.irradianceIBLPath);
         }
     }
@@ -1521,7 +1521,6 @@ TEST_CASE("MaterialX documents", "[shadervalid]")
                 if (nodeDef)
                 {
                     mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
-                    elementName = mx::createValidName(elementName);
 #ifdef MATERIALX_BUILD_GEN_GLSL
                     if (options.runGLSLTests)
                     {
