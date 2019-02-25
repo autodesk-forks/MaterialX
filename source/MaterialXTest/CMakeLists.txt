@@ -46,10 +46,6 @@ set (LIBS
     MaterialXCore
     MaterialXFormat
     MaterialXGenShader
-    MaterialXRender
-    MaterialXRenderHw
-    MaterialXRenderGlsl
-    MaterialXRenderOsl
 )
 if (MATERIALX_BUILD_GEN_OSL)
     LIST(APPEND LIBS "MaterialXGenOsl")
@@ -61,7 +57,10 @@ if (MATERIALX_BUILD_GEN_OGSFX)
     LIST(APPEND LIBS "MaterialXGenOgsFx")
 endif(MATERIALX_BUILD_GEN_OGSFX)
 if (MATERIALX_BUILD_RENDER)
-    LIST(APPEND LIBS "MaterialXRender")
+    LIST(APPEND LIBS "MaterialXRender"
+                     "MaterialXRenderHw"
+                     "MaterialXRenderGlsl"
+                     "MaterialXRenderOsl")
 endif(MATERIALX_BUILD_RENDER)
 if (MATERIALX_BUILD_CONTRIB)
     LIST(APPEND LIBS "MaterialXContrib")

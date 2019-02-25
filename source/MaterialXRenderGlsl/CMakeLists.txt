@@ -1,4 +1,4 @@
-include_directories(    
+include_directories(
     ${EXTERNAL_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/../
 )
@@ -31,7 +31,7 @@ if (APPLE)
   find_package(OpenGL REQUIRED)
   file(GLOB_RECURSE materialx_source_oc "${CMAKE_CURRENT_SOURCE_DIR}/*.m")
   message("Objective C files: " ${materialx_source_oc})
-  set_source_files_properties(${materialx_source_oc} PROPERTIES 
+  set_source_files_properties(${materialx_source_oc} PROPERTIES
                             COMPILE_FLAGS "-x objective-c++")
   set(materialx_source ${materialx_source} ${materialx_source_oc})
 
@@ -53,8 +53,8 @@ endfunction(assign_source_group)
 assign_source_group("Header Files" ${materialx_header})
 assign_source_group("Source Files" ${materialx_source})
 
-add_library(MaterialXRenderGlsl STATIC 
-    ${materialx_source} 
+add_library(MaterialXRenderGlsl STATIC
+    ${materialx_source}
     ${materialx_header}
 )
 
@@ -70,8 +70,8 @@ elseif (APPLE)
         MaterialXRenderHw
         ${CMAKE_DL_LIBS}
         ${OPENGL_LIBRARIES}
-	"-framework Foundation"
-	"-framework Cocoa"
+	      "-framework Foundation"
+      	"-framework Cocoa"
 )
 elseif (UNIX AND NOT APPLE)
     target_link_libraries(
@@ -102,7 +102,3 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/MaterialXRenderGlsl.pdb"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/" OPTIONAL)
-
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../documents/Examples" DESTINATION ${CMAKE_INSTALL_PREFIX}/documents)
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../documents/Libraries" DESTINATION ${CMAKE_INSTALL_PREFIX}/documents)
-
