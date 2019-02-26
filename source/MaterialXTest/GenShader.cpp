@@ -132,7 +132,7 @@ void registerLightType(mx::DocumentPtr doc, mx::HwShaderGenerator& shadergen, co
     }
 }
 
-TEST_CASE("Valid Libraries", "[shadergen]")
+TEST_CASE("GenShader Valid Libraries", "[genshader]")
 {
     mx::DocumentPtr doc = mx::createDocument();
 
@@ -148,7 +148,7 @@ TEST_CASE("Valid Libraries", "[shadergen]")
     REQUIRE(valid);
 }
 
-TEST_CASE("TypeDesc", "[shadergen]")
+TEST_CASE("GenShader TypeDesc Check", "[genshader]")
 {
     // Make sure the standard types are registered
     const mx::TypeDesc* floatType = mx::TypeDesc::get("float");
@@ -299,6 +299,7 @@ TEST_CASE("OSL Reference Implementation Check", "[genshader]")
     //REQUIRE(missing == 0);
 }
 
+// Check that implementations exist for all nodedefs supported per generator
 void checkImplementations(mx::ShaderGeneratorPtr generator, std::set<std::string> generatorSkipNodeTypes, 
                           std::set<std::string> generatorSkipNodeDefs)
 {
