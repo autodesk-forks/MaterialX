@@ -5,8 +5,17 @@ include_directories(
 
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 if(NOT MATERIALX_BUILD_RENDER)
-    list(REMOVE_ITEM materialx_source "MaterialXValid.cpp")
+    list(REMOVE_ITEM materialx_source "Render.cpp")
 endif(NOT MATERIALX_BUILD_RENDER)
+if(NOT MATERIALX_BUILD_GEN_OSL)
+    list(REMOVE_ITEM materialx_source "GenOsl.cpp")
+endif(NOT MATERIALX_BUILD_GEN_OSL)
+if(NOT MATERIALX_BUILD_GEN_GLSL)
+    list(REMOVE_ITEM materialx_source "GenGlsl.cpp")
+endif(NOT MATERIALX_BUILD_GEN_GLSL)
+if(NOT MATERIALX_BUILD_GEN_OGSFX)
+    list(REMOVE_ITEM materialx_source "GenOgsfx.cpp")
+endif(NOT MATERIALX_BUILD_GEN_OGSFX)
 file(GLOB_RECURSE catch_headers "${CMAKE_CURRENT_SOURCE_DIR}/Catch/*.hpp")
 
 source_group("Header Files\\Catch" FILES ${catch_headers})
