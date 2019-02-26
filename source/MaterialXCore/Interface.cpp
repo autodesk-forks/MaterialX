@@ -15,6 +15,7 @@ namespace MaterialX
 
 const string PortElement::NODE_NAME_ATTRIBUTE = "nodename";
 const string PortElement::OUTPUT_ATTRIBUTE = "output";
+const string PortElement::CHANNELS_ATTRIBUTE = "channels";
 const string InterfaceElement::NODE_DEF_ATTRIBUTE = "nodedef";
 const string Input::DEFAULT_GEOM_PROP_ATTRIBUTE = "defaultgeomprop";
 
@@ -64,13 +65,13 @@ bool PortElement::validate(string* message) const
             {
                 OutputPtr output = connectedNodeDef->getOutput(getOutputString());
                 validateRequire(output != nullptr, res, message, "Invalid output in port connection");
-                if (output)
+                if (output && !hasChannels())
                 {
                     validateRequire(getType() == output->getType(), res, message, "Mismatched output type in port connection");
                 }
             }
         }
-        else
+        else if(!hasChannels())
         {
             validateRequire(getType() == getConnectedNode()->getType(), res, message, "Mismatched types in port connection");
         }
