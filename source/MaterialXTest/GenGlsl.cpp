@@ -7,11 +7,9 @@
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenGlsl/GlslSyntax.h>
 
-namespace mx = MaterialX;
+#include <MaterialXTest/GenShaderUtil.h>
 
-extern void checkImplementations(mx::ShaderGeneratorPtr generator, std::set<std::string> generatorSkipNodeTypes,
-    std::set<std::string> generatorSkipNodeDefs);
-extern void testUniqueNames(mx::ShaderGeneratorPtr shaderGenerator, const std::string& stage);
+namespace mx = MaterialX;
 
 TEST_CASE("GLSL Syntax Check", "[genglsl]")
 {
@@ -83,7 +81,7 @@ TEST_CASE("GLSL Implementation Check", "[genglsl]")
     generatorSkipNodeDefs.insert("ND_multiply_surfaceshaderC");
     generatorSkipNodeDefs.insert("ND_mix_surfaceshader");
 
-    checkImplementations(generator, generatorSkipNodeTypes, generatorSkipNodeDefs);
+    GenShaderUtil::checkImplementations(generator, generatorSkipNodeTypes, generatorSkipNodeDefs);
 }
 
 TEST_CASE("GLSL Unique Names", "[genglsl]")
@@ -92,5 +90,5 @@ TEST_CASE("GLSL Unique Names", "[genglsl]")
     mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
     shaderGenerator->registerSourceCodeSearchPath(searchPath);
 
-    testUniqueNames(shaderGenerator, mx::Shader::PIXEL_STAGE);
+    GenShaderUtil::testUniqueNames(shaderGenerator, mx::Shader::PIXEL_STAGE);
 }

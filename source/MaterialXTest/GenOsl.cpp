@@ -2,16 +2,14 @@
 
 #include <MaterialXCore/Document.h>
 #include <MaterialXFormat/File.h>
-
 #include <MaterialXGenOsl/OslShaderGenerator.h>
 #include <MaterialXGenOsl/OslSyntax.h>
 
-namespace mx = MaterialX;
+#include <MaterialXGenShader/DefaultColorManagementSystem.h>
+#include <MaterialXGenShader/Util.h>
+#include <MaterialXTest/GenShaderUtil.h>
 
-extern void validateSyntax(mx::SyntaxPtr syntax);
-extern void checkImplementations(mx::ShaderGeneratorPtr generator, std::set<std::string> generatorSkipNodeTypes,
-    std::set<std::string> generatorSkipNodeDefs);
-extern void testUniqueNames(mx::ShaderGeneratorPtr shaderGenerator, const std::string& stage);
+namespace mx = MaterialX;
 
 TEST_CASE("OSL Syntax", "[genosl]")
 {
@@ -87,7 +85,7 @@ TEST_CASE("OSL Implementation Check", "[genosl]")
     generatorSkipNodeTypes.insert("spotlight");
     std::set<std::string> generatorSkipNodeDefs;
 
-    checkImplementations(generator, generatorSkipNodeTypes, generatorSkipNodeDefs);
+    GenShaderUtil::checkImplementations(generator, generatorSkipNodeTypes, generatorSkipNodeDefs);
 }
 
 TEST_CASE("OSL Unique Names", "[genosl]")
@@ -98,6 +96,99 @@ TEST_CASE("OSL Unique Names", "[genosl]")
     // Add path to find OSL include files
     shaderGenerator->registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
 
-    testUniqueNames(shaderGenerator, mx::Shader::PIXEL_STAGE);
+    GenShaderUtil::testUniqueNames(shaderGenerator, mx::Shader::PIXEL_STAGE);
 }
 
+TEST_CASE("OSL Shader Generation", "[genosl]")
+{
+    // 
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
+    mx::ShaderGeneratorPtr shaderGenerator = mx::OslShaderGenerator::create();
+    shaderGenerator->registerSourceCodeSearchPath(searchPath);
+    // Add path to find OSL include files
+    shaderGenerator->registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
+
+    mx::DocumentPtr dependLib = mx::createDocument();
+    std::set<std::string> excludeFiles;
+    const mx::StringVec libraries = { "stdlib", "pbrlib" };
+    GenShaderUtil::loadLibraries(libraries, searchPath, dependLib, &excludeFiles);
+
+    mx::DefaultColorManagementSystemPtr oslColorManagementSystem = 
+        mx::DefaultColorManagementSystem::create(shaderGenerator->getLanguage());
+    if (shaderGenerator)
+        shaderGenerator->setColorManagementSystem(oslColorManagementSystem);
+    oslColorManagementSystem->loadLibrary(dependLib);
+
+    std::vector<std::string> testStages;
+    testStages.push_back(mx::Shader::PIXEL_STAGE);
+
+    // Find all documents in the test suite
+    //
+    mx::FilePath rootPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite");
+
+    std::set<std::string> skipFiles;
+    skipFiles.insert("_options.mtlx");
+
+    std::ofstream oslLogfile("shadervalid_OSL_log.txt");
+    std::ostream& oslLog(oslLogfile);
+
+    std::vector<mx::DocumentPtr> documents;
+    mx::loadDocuments(rootPath, skipFiles, documents, &oslLog);
+
+    // Scan each document for renderable elements and check code generation
+    //
+    // Map to replace "/" in Element path names with "_".
+    mx::StringMap pathMap;
+    pathMap["/"] = "_";
+
+    mx::XmlReadOptions importOptions;
+    importOptions.skipDuplicateElements = true;
+    for (auto doc : documents)
+    {
+        doc->importLibrary(dependLib, &importOptions);
+
+        std::vector<mx::TypedElementPtr> elements;
+        try
+        {
+            mx::findRenderableElements(doc, elements);
+        }
+        catch (mx::ExceptionShaderGenError& e)
+        {
+            oslLog << e.what() << std::endl;
+            //WARN("Find renderable elements failed, see: " + docValidLogFilename + " for details.");
+        }
+
+        for (auto element : elements)
+        {
+            mx::OutputPtr output = element->asA<mx::Output>();
+            mx::ShaderRefPtr shaderRef = element->asA<mx::ShaderRef>();
+            mx::NodeDefPtr nodeDef = nullptr;
+            if (output)
+            {
+                nodeDef = output->getConnectedNode()->getNodeDef();
+            }
+            else if (shaderRef)
+            {
+                nodeDef = shaderRef->getNodeDef();
+            }
+            if (nodeDef)
+            {
+                mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
+                elementName = mx::createValidName(elementName);
+
+                mx::InterfaceElementPtr impl = nodeDef->getImplementation(shaderGenerator->getTarget(), shaderGenerator->getLanguage());
+                if (impl)
+                {
+                    mx::GenOptions options;
+                    oslLog << "Generate shader code for: " << element->getNamePath() << std::endl;
+                    //bool success = 
+                    GenShaderUtil::generateCode(*shaderGenerator, elementName, element, options, oslLog, testStages);
+                }
+                else
+                {
+                    oslLog << "Can't find impl for: " << element->getNamePath() << std::endl;
+                }
+            }
+        }
+    }
+}
