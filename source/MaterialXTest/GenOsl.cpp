@@ -6,9 +6,6 @@
 #include <MaterialXGenOsl/OslShaderGenerator.h>
 #include <MaterialXGenOsl/OslSyntax.h>
 
-#include <vector>
-#include <set>
-
 namespace mx = MaterialX;
 
 extern void validateSyntax(mx::SyntaxPtr syntax);

@@ -9,9 +9,6 @@
 #include <MaterialXGenOgsFx/OgsFxSyntax.h>
 #include <MaterialXGenOgsFx/MayaGlslPluginShaderGenerator.h>
 
-#include <vector>
-#include <set>
-
 namespace mx = MaterialX;
 
 extern void checkImplementations(mx::ShaderGeneratorPtr generator, std::set<std::string> generatorSkipNodeTypes,

@@ -7,9 +7,6 @@
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenGlsl/GlslSyntax.h>
 
-#include <vector>
-#include <set>
-
 namespace mx = MaterialX;
 
 extern void checkImplementations(mx::ShaderGeneratorPtr generator, std::set<std::string> generatorSkipNodeTypes,
