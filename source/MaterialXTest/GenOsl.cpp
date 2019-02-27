@@ -137,7 +137,7 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
 
     std::vector<mx::DocumentPtr> documents;
     std::vector<std::string> documentPaths;
-    mx::loadDocuments(rootPath, skipFiles, documents, documentPaths, &oslLog);
+    mx::loadDocuments(rootPath, skipFiles, documents, documentPaths, nullptr);
 
     // Scan each document for renderable elements and check code generation
     //
@@ -166,6 +166,13 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
         {            
             oslLog << "MTLX Filename :" << documentPaths[documentIndex] << ". Elements tested: " 
                 << std::to_string(elements.size()) << std::endl;
+        }
+
+        std::string docErrors;
+        bool valid = doc->validate(&docErrors);
+        if (!valid)
+        {
+            oslLog << ">> Validation errors: " << docErrors << std::endl;
         }
 
         for (auto element : elements)
