@@ -149,7 +149,6 @@ static mx::OslValidatorPtr createOSLValidator(std::ostream& log)
     mx::OslValidatorPtr validator = mx::OslValidator::create();
     const std::string oslcExecutable(MATERIALX_OSLC_EXECUTABLE);
     validator->setOslCompilerExecutable(oslcExecutable);
-    validator->setOslTestShadeExecutable(MATERIALX_TESTSHADE_EXECUTABLE);
     const std::string testRenderExecutable(MATERIALX_TESTRENDER_EXECUTABLE);
     validator->setOslTestRenderExecutable(testRenderExecutable);
     validator->setOslIncludePath(MATERIALX_OSL_INCLUDE_PATH);
@@ -1246,7 +1245,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
     }
 }
 
-TEST_CASE("MaterialX documents", "[shadervalid]")
+TEST_CASE("Render validation of test suite", "[render]")
 {
 #if !defined(MATERIALX_BUILD_RENDERGLSL) && !defined(MATERIALX_BUILD_RENDEROSL)
     return;
