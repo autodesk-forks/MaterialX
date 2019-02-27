@@ -371,7 +371,7 @@ bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shade
             stageFailed = true;
         }
     }
-    return stageFailed;
+    return !stageFailed;
 }
 
 } 

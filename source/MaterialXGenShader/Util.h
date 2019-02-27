@@ -36,7 +36,7 @@ string getFileExtension(const string& filename);
 /// Scans for all documents under a root path and returns documents which can be loaded
 /// Optionally can test and log errors if the document is not considered to be valid.
 void loadDocuments(const FilePath& rootPath, const std::set<string>& skipFiles,
-    vector<DocumentPtr> documents, std::ostream* validityLog);
+    vector<DocumentPtr>& documents, vector<string>& documentsPaths, std::ostream* validityLog);
 
 /// Returns true if the given element is a surface shader with the potential
 /// of beeing transparent. This can be used by HW shader generators to determine

@@ -128,12 +128,16 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
 
     std::set<std::string> skipFiles;
     skipFiles.insert("_options.mtlx");
+    skipFiles.insert("light_rig.mtlx");
+    skipFiles.insert("lightcompoundtest_ng.mtlx");
+    skipFiles.insert("lightcompoundtest.mtlx");
 
-    std::ofstream oslLogfile("shadervalid_OSL_log.txt");
+    std::ofstream oslLogfile("genosl_log.txt");
     std::ostream& oslLog(oslLogfile);
 
     std::vector<mx::DocumentPtr> documents;
-    mx::loadDocuments(rootPath, skipFiles, documents, &oslLog);
+    std::vector<std::string> documentPaths;
+    mx::loadDocuments(rootPath, skipFiles, documents, documentPaths, &oslLog);
 
     // Scan each document for renderable elements and check code generation
     //
@@ -143,6 +147,7 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
 
     mx::XmlReadOptions importOptions;
     importOptions.skipDuplicateElements = true;
+    size_t documentIndex = 0;
     for (auto doc : documents)
     {
         doc->importLibrary(dependLib, &importOptions);
@@ -155,7 +160,12 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
         catch (mx::ExceptionShaderGenError& e)
         {
             oslLog << e.what() << std::endl;
-            //WARN("Find renderable elements failed, see: " + docValidLogFilename + " for details.");
+        }
+
+        if (!elements.empty())
+        {            
+            oslLog << "MTLX Filename :" << documentPaths[documentIndex] << ". Elements tested: " 
+                << std::to_string(elements.size()) << std::endl;
         }
 
         for (auto element : elements)
@@ -171,23 +181,30 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
             {
                 nodeDef = shaderRef->getNodeDef();
             }
+            CHECK(nodeDef);
             if (nodeDef)
             {
                 mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
                 elementName = mx::createValidName(elementName);
 
                 mx::InterfaceElementPtr impl = nodeDef->getImplementation(shaderGenerator->getTarget(), shaderGenerator->getLanguage());
+                CHECK(impl);
                 if (impl)
                 {
                     mx::GenOptions options;
-                    oslLog << "Generate shader code for: " << element->getNamePath() << std::endl;
-                    //bool success = 
-                    GenShaderUtil::generateCode(*shaderGenerator, elementName, element, options, oslLog, testStages);
+                    oslLog << "------------ Run OSL validation with element: " << element->getNamePath()
+                        << "------------" << std::endl;
+                    bool success = GenShaderUtil::generateCode(*shaderGenerator, elementName, element, options, oslLog, testStages);
+                    CHECK(success);
                 }
                 else
                 {
-                    oslLog << "Can't find impl for: " << element->getNamePath() << std::endl;
+                    oslLog << ">> Failed to find impl for: " << element->getNamePath() << std::endl;
                 }
+            }
+            else
+            {
+                oslLog << ">> Failed to find nodedef for: " << element->getNamePath() << std::endl;
             }
         }
     }

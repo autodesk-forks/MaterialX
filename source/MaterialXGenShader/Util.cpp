@@ -138,7 +138,7 @@ string getFileExtension(const string& filename)
 }
 
 void loadDocuments(const FilePath& rootPath, const std::set<string>& skipFiles, 
-                   vector<DocumentPtr> documents, std::ostream* validityLog)
+                   vector<DocumentPtr>& documents, vector<string>& documentsPaths, std::ostream* validityLog)
 {
     const std::string MTLX_EXTENSION("mtlx");
 
@@ -180,8 +180,8 @@ void loadDocuments(const FilePath& rootPath, const std::set<string>& skipFiles,
                     }
                 }
 
-                std::cout << "Add file: " << filePath.asString() << std::endl;
                 documents.push_back(doc);
+                documentsPaths.push_back(filePath.asString());
             }
             catch (Exception& /*e*/)
             {
