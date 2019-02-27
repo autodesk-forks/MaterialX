@@ -169,8 +169,9 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
         }
 
         std::string docErrors;
-        bool valid = doc->validate(&docErrors);
-        if (!valid)
+        bool documentIsValid = doc->validate(&docErrors);
+        CHECK(documentIsValid);
+        if (!documentIsValid)
         {
             oslLog << ">> Validation errors: " << docErrors << std::endl;
         }
@@ -201,8 +202,8 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
                     mx::GenOptions options;
                     oslLog << "------------ Run OSL validation with element: " << element->getNamePath()
                         << "------------" << std::endl;
-                    bool success = GenShaderUtil::generateCode(*shaderGenerator, elementName, element, options, oslLog, testStages);
-                    CHECK(success);
+                    bool generatedCode = GenShaderUtil::generateCode(*shaderGenerator, elementName, element, options, oslLog, testStages);
+                    CHECK(generatedCode);
                 }
                 else
                 {
