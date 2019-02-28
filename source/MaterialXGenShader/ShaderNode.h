@@ -71,6 +71,9 @@ class ShaderInput : public ShaderPort
     /// A connection to an upstream node output, or nullptr if not connected.
     ShaderOutput* connection;
 
+    /// An optional channels attribute
+    string channels;
+
     /// Make a connection from the given source output to this input.
     void makeConnection(ShaderOutput* src);
 

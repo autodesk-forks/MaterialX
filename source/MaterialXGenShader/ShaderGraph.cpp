@@ -56,7 +56,8 @@ void ShaderGraph::addOutputSockets(const InterfaceElement& elem)
 {
     for (const OutputPtr& output : elem.getOutputs())
     {
-        addOutputSocket(output->getName(), TypeDesc::get(output->getType()));
+        ShaderGraphOutputSocket* outputSocket = addOutputSocket(output->getName(), TypeDesc::get(output->getType()));
+        outputSocket->channels = output->getChannels();
     }
     if (numOutputSockets() == 0)
     {
@@ -389,6 +390,7 @@ ShaderGraphPtr ShaderGraph::create(const string& name, ElementPtr element, Shade
         // Create the given output socket
         ShaderGraphOutputSocket* outputSocket = graph->addOutputSocket(output->getName(), TypeDesc::get(output->getType()));
         outputSocket->path = output->getNamePath();
+        outputSocket->channels = output->getChannels();
 
         // Start traversal from this output
         root = output;
@@ -770,6 +772,31 @@ void ShaderGraph::optimize()
     size_t numEdits = 0;
     for (ShaderNode* node : getNodes())
     {
+        // Check to see if one of our inputs has channels,
+        // if so, then the connected node should not be optimized
+        for (auto input : node->getInputs())
+        {
+            if (input && !input->channels.empty())
+            {
+                if (input->connection && input->connection->node)
+                {
+                    input->connection->node->_classification |= ShaderNode::Classification::DO_NOT_OPTIMIZE;
+                }
+            }
+        }
+
+        // Check to see if one of our outputs connections has channels,
+        // if so, then the initial node should not be optimized
+        for (auto output : node->getOutputs())
+        {
+            for (auto input : output->connections)
+            {
+                if (input && !input->channels.empty())
+                {
+                    node->_classification |= ShaderNode::Classification::DO_NOT_OPTIMIZE;
+                }
+            }
+        }
         if (!node->hasClassification(ShaderNode::Classification::DO_NOT_OPTIMIZE) && node->hasClassification(ShaderNode::Classification::CONSTANT))
         {
             // Constant nodes can be removed by assigning their value downstream

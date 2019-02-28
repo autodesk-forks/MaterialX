@@ -106,6 +106,10 @@ void SourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
             {
                 string inputStr;
                 shadergen.getInput(context, input, inputStr);
+                if (!input->channels.empty())
+                {
+                    inputStr = shadergen.getSyntax()->getSwizzledVariable(inputStr, input->connection->type, input->channels, input->type);
+                }
                 code.push_back(inputStr);
             }
             else

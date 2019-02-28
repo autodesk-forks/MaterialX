@@ -595,6 +595,10 @@ void GlslShaderGenerator::emitFinalOutput(Shader& shader) const
     }
 
     string finalOutput = outputSocket->connection->variable;
+    if (!outputSocket->channels.empty())
+    {
+        finalOutput = _syntax->getSwizzledVariable(finalOutput, outputSocket->connection->type, outputSocket->channels, outputSocket->type);
+    }
 
     if (shader.hasClassification(ShaderNode::Classification::SURFACE))
     {

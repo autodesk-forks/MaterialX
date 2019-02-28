@@ -303,6 +303,10 @@ void OslShaderGenerator::emitFinalOutput(Shader& shader) const
     }
 
     string finalResult = outputSocket->connection->variable;
+    if (!outputSocket->channels.empty())
+    {
+        finalResult = _syntax->getSwizzledVariable(finalResult, outputSocket->connection->type, outputSocket->channels, outputSocket->type);
+    }
     shader.addLine(outputSocket->variable + " = " + finalResult);
 }
 

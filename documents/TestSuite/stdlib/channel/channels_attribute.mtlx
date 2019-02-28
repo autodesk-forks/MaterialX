@@ -1,0 +1,58 @@
+<!--
+
+Tests the channel attribute.
+
+-->
+<?xml version="1.0"?>
+<materialx version="1.36">
+  <nodegraph name="float_to_color4_out" type="">
+    <constant name="constant1" type="float">
+      <parameter name="value" type="float" value="1.0" />
+    </constant>
+    <output name="out" type="color4" nodename="constant1" channels="rrrr" />
+  </nodegraph>
+  <nodegraph name="color2_to_color4_out" type="">
+    <constant name="constant1" type="color2">
+      <parameter name="value" type="color2" value="1.0, 0.0" />
+    </constant>
+    <output name="out" type="color4" nodename="constant1" channels="arar" />
+  </nodegraph>
+  <nodegraph name="color4_to_float_out" type="">
+    <constant name="constant1" type="color4">
+      <parameter name="value" type="color4" value="0.0, 0.5, 0.75, 1.0" />
+    </constant>
+    <output name="out" type="float" nodename="constant1" channels="g" />
+  </nodegraph>
+
+  <nodegraph name="float_to_color4_in" type="">
+    <constant name="constant1" type="float">
+      <parameter name="value" type="float" value="1.0" />
+    </constant>
+    <add name="add1" type="color4">
+      <input name="in1" type="color4" nodename="constant1" channels="rrrr" />
+      <input name="in2" type="color4" value="0.0, 0.0, 0.0, 0.0" />
+    </add>
+    <output name="out" type="color4" nodename="add1" />
+  </nodegraph>
+  <nodegraph name="color2_to_color4_in" type="">
+    <constant name="constant1" type="color2">
+      <parameter name="value" type="color2" value="1.0, 0.0" />
+    </constant>
+    <add name="add1" type="color4">
+      <input name="in1" type="color4" nodename="constant1" channels="arar" />
+      <input name="in2" type="color4" value="0.0, 0.0, 0.0, 0.0" />
+    </add>
+    <output name="out" type="color4" nodename="add1" />
+  </nodegraph>
+  <nodegraph name="color4_to_float_in" type="">
+    <constant name="constant1" type="color4">
+      <parameter name="value" type="color4" value="0.0, 0.5, 0.75, 1.0" />
+    </constant>
+    <add name="add1" type="float">
+      <input name="in1" type="float" nodename="constant1" channels="g" />
+      <input name="in2" type="float" value="0.0" />
+    </add>
+    <output name="out" type="float" nodename="add1" />
+  </nodegraph>
+
+</materialx>

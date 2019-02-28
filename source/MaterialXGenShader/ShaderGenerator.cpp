@@ -108,7 +108,12 @@ void ShaderGenerator::emitFinalOutput(Shader& shader) const
         return;
     }
 
-    shader.addLine(outputSocket->variable + " = " + outputSocket->connection->variable);
+    string finalResult = outputSocket->connection->variable;
+    if (!outputSocket->channels.empty())
+    {
+        finalResult = _syntax->getSwizzledVariable(finalResult, outputSocket->connection->type, outputSocket->channels, outputSocket->type);
+    }
+    shader.addLine(outputSocket->variable + " = " + finalResult);
 }
 
 void ShaderGenerator::emitVariable(const Shader::Variable& variable, const string& /*qualifier*/, Shader& shader)
@@ -156,6 +161,10 @@ void ShaderGenerator::emitInput(const GenContext& context, const ShaderInput* in
 {
     string result;
     getInput(context, input, result);
+    if (!input->channels.empty())
+    {
+        result = _syntax->getSwizzledVariable(result, input->connection->type, input->channels, input->type);
+    }
     shader.addStr(result);
 }
 
