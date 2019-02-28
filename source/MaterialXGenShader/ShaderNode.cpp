@@ -385,7 +385,7 @@ void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, ShaderGener
             }
             else if (!valueString.empty())
             {
-                input->value = nodeValue->getValue();
+                input->value = nodeValue->getResolvedValue();
             }
         }
     }

@@ -214,7 +214,7 @@ void Shader::addBlock(const string& str, ShaderGenerator& shadergen)
         {
             size_t startQuote = line.find_first_of(QUOTATION_MARK);
             size_t endQuote = line.find_last_of(QUOTATION_MARK);
-            if (startQuote != string::npos && endQuote != string::npos)
+            if (startQuote != string::npos && endQuote != string::npos && endQuote > startQuote)
             {
                 size_t length = (endQuote - startQuote) - 1;
                 if (length)
