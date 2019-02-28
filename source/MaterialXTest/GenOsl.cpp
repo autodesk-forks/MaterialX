@@ -99,130 +99,46 @@ TEST_CASE("OSL Unique Names", "[genosl]")
     GenShaderUtil::testUniqueNames(shaderGenerator, mx::Shader::PIXEL_STAGE);
 }
 
-TEST_CASE("OSL Shader Generation", "[genosl]")
+class OSLGenCodeGenerationTester : public GenShaderUtil::ShaderGeneratorTester
 {
-    // 
-    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
-    mx::ShaderGeneratorPtr shaderGenerator = mx::OslShaderGenerator::create();
-    shaderGenerator->registerSourceCodeSearchPath(searchPath);
-    // Add path to find OSL include files
-    shaderGenerator->registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
+public:
+    using ParentClass = GenShaderUtil::ShaderGeneratorTester;
 
-    mx::DocumentPtr dependLib = mx::createDocument();
-    std::set<std::string> excludeFiles;
-    const mx::StringVec libraries = { "stdlib", "pbrlib" };
-    GenShaderUtil::loadLibraries(libraries, searchPath, dependLib, &excludeFiles);
+    OSLGenCodeGenerationTester(const mx::FilePath& searchPath, const mx::FilePath& testRootPath,
+        const mx::FilePath& logFilePath) : GenShaderUtil::ShaderGeneratorTester(searchPath, testRootPath, logFilePath)
+    {}
 
-    mx::DefaultColorManagementSystemPtr oslColorManagementSystem = 
-        mx::DefaultColorManagementSystem::create(shaderGenerator->getLanguage());
-    if (shaderGenerator)
-        shaderGenerator->setColorManagementSystem(oslColorManagementSystem);
-    oslColorManagementSystem->loadLibrary(dependLib);
-
-    std::vector<std::string> testStages;
-    testStages.push_back(mx::Shader::PIXEL_STAGE);
-
-    // Find all documents in the test suite
-    //
-    mx::FilePath rootPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite");
-
-    std::set<std::string> skipFiles;
-    skipFiles.insert("_options.mtlx");
-    skipFiles.insert("light_rig.mtlx");
-    skipFiles.insert("lightcompoundtest_ng.mtlx");
-    skipFiles.insert("lightcompoundtest.mtlx");
-
-    std::ofstream oslLogfile("genosl_log.txt");
-    std::ostream& oslLog(oslLogfile);
-
-    std::vector<mx::DocumentPtr> documents;
-    std::vector<std::string> documentPaths;
-    mx::loadDocuments(rootPath, skipFiles, documents, documentPaths, nullptr);
-
-    // Scan each document for renderable elements and check code generation
-    //
-    // Map to replace "/" in Element path names with "_".
-    mx::StringMap pathMap;
-    pathMap["/"] = "_";
-
-    mx::XmlReadOptions importOptions;
-    importOptions.skipDuplicateElements = true;
-    size_t documentIndex = 0;
-    for (auto doc : documents)
+    void createGenerator() override
     {
-        doc->importLibrary(dependLib, &importOptions);
+        _shaderGenerator = mx::OslShaderGenerator::create();
+        _shaderGenerator->registerSourceCodeSearchPath(_searchPath);
+        // Add path to find OSL include files
+        _shaderGenerator->registerSourceCodeSearchPath(_searchPath / mx::FilePath("stdlib/osl"));
 
-        std::vector<mx::TypedElementPtr> elements;
-        try
+        if (!_shaderGenerator)
         {
-            mx::findRenderableElements(doc, elements);
-        }
-        catch (mx::ExceptionShaderGenError& e)
-        {
-            oslLog << "Find Renderables errors: " << e.what() << std::endl;
-            std::cout << "Find Renderables errors: " << e.what() << std::endl;
-        }
-
-        if (!elements.empty())
-        {            
-            std::cout << "MTLX Filename :" << documentPaths[documentIndex] << ". Elements tested: "
-                << std::to_string(elements.size()) << std::endl;
-            oslLog << "MTLX Filename :" << documentPaths[documentIndex] << ". Elements tested: "
-                << std::to_string(elements.size()) << std::endl;
-            documentIndex++;
-        }
-
-        std::string docErrors;
-        bool documentIsValid = doc->validate(&docErrors);
-        CHECK(documentIsValid);
-        if (!documentIsValid)
-        {
-            std::cout << ">> Validation errors: " << docErrors << std::endl;
-            oslLog << ">> Validation errors: " << docErrors << std::endl;
-        }
-
-        for (auto element : elements)
-        {
-            mx::OutputPtr output = element->asA<mx::Output>();
-            mx::ShaderRefPtr shaderRef = element->asA<mx::ShaderRef>();
-            mx::NodeDefPtr nodeDef = nullptr;
-            if (output)
-            {
-                nodeDef = output->getConnectedNode()->getNodeDef();
-            }
-            else if (shaderRef)
-            {
-                nodeDef = shaderRef->getNodeDef();
-            }
-            CHECK(nodeDef);
-            if (nodeDef)
-            {
-                mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
-                elementName = mx::createValidName(elementName);
-
-                mx::InterfaceElementPtr impl = nodeDef->getImplementation(shaderGenerator->getTarget(), shaderGenerator->getLanguage());
-                CHECK(impl);
-                if (impl)
-                {
-                    mx::GenOptions options;
-                    std::cout << "------------ Run OSL validation with element: " << element->getNamePath()
-                        << "------------" << std::endl;
-                    oslLog << "------------ Run OSL validation with element: " << element->getNamePath()
-                        << "------------" << std::endl;
-                    bool generatedCode = GenShaderUtil::generateCode(*shaderGenerator, elementName, element, options, oslLog, testStages);
-                    CHECK(generatedCode);
-                }
-                else
-                {
-                    std::cout << ">> Failed to find impl for: " << element->getNamePath() << std::endl;
-                    oslLog << ">> Failed to find impl for: " << element->getNamePath() << std::endl;
-                }
-            }
-            else
-            {
-                std::cout << ">> Failed to find nodedef for: " << element->getNamePath() << std::endl;
-                oslLog << ">> Failed to find nodedef for: " << element->getNamePath() << std::endl;
-            }
+            _logFile << ">> Failed to create OSL generator" << std::endl;
         }
     }
+
+    void setTestStages() override
+    {
+        _testStages.push_back(mx::Shader::PIXEL_STAGE);
+    }
+};
+
+static void generateOSLCode()
+{
+    const mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
+    const mx::FilePath testRootPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite");
+    const mx::FilePath logPath("gen_osl_vanilla.txt");
+    OSLGenCodeGenerationTester tester(searchPath, testRootPath, logPath);
+ 
+    const mx::GenOptions genOptions;
+    tester.testGeneration(genOptions);
+}
+
+TEST_CASE("OSL Shader Generation", "[genosl]")
+{
+    generateOSLCode();
 }

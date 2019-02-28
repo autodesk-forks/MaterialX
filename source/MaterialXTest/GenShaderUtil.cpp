@@ -6,11 +6,6 @@ namespace mx = MaterialX;
 
 namespace GenShaderUtil
 {
-//static const std::string LIGHT_SHADER_TYPE = "lightshader";
-
-//
-// Load in a library. Sets the URI before import
-//
 void loadLibrary(const mx::FilePath& file, mx::DocumentPtr doc)
 {
     mx::DocumentPtr libDoc = mx::createDocument();
@@ -21,9 +16,6 @@ void loadLibrary(const mx::FilePath& file, mx::DocumentPtr doc)
     doc->importLibrary(libDoc, &copyOptions);
 }
 
-//
-// Loads all the MTLX files below a given library path
-//
 void loadLibraries(const mx::StringVec& libraryNames, const mx::FilePath& searchPath, mx::DocumentPtr doc,
                    const std::set<std::string>* excludeFiles)
 {
@@ -52,10 +44,6 @@ void loadLibraries(const mx::StringVec& libraryNames, const mx::FilePath& search
     REQUIRE(doc->getNodeDefs().size() > 0);
 }
 
-//
-// Get source content, source path and resolved paths for
-// an implementation
-//
 bool getShaderSource(mx::ShaderGeneratorPtr generator,
                     const mx::ImplementationPtr implementation,
                     mx::FilePath& sourcePath,
@@ -348,25 +336,18 @@ bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shade
     mx::ShaderPtr shader = nullptr;
     try
     {
-        //AdditiveScopedTimer genTimer(profileTimes.oslTimes.generationTime, "OSL generation time");
         shader = shaderGenerator.generate(shaderName, element, options);
     }
     catch (mx::ExceptionShaderGenError& e)
     {
-        std::cout << ">> Generate Failure: " << e.what() << "\n";
-        log << ">> " << e.what() << "\n";
+        log << ">> Code generation failure: " << e.what() << "\n";
         shader = nullptr;
     }
     CHECK(shader);
     if (!shader)
     {
-        std::cout << "Failed to generate shader for element: " << element->getNamePath() << std::endl;
         log << ">> Failed to generate shader for element: " << element->getNamePath() << std::endl;
         return false;
-    }
-    else
-    {
-        std::cout << "Succeeded to generate shader for element: " << element->getNamePath() << std::endl;
     }
     
     bool stageFailed = false;
@@ -376,16 +357,161 @@ bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shade
         CHECK(!noSource);
         if (noSource)
         {
-            std::cout << ">> Failed to generate source code for stage: " << stage << std::endl;
             log << ">> Failed to generate source code for stage: " << stage << std::endl;
             stageFailed = true;
-        }
-        else
-        {
-            std::cout << ">> Succeeded to generate source code for stage: " << stage << std::endl;
         }
     }
     return !stageFailed;
 }
 
-} 
+void ShaderGeneratorTester::addColorManagement()
+{
+    if (!_colorManagementSystem && _shaderGenerator)
+    {
+        const std::string language = _shaderGenerator->getLanguage();
+        _colorManagementSystem = mx::DefaultColorManagementSystem::create(language);
+        if (!_colorManagementSystem)
+        {
+            _logFile << ">> Failed to create color management system for language: " << language << std::endl;
+        }
+        else
+        {
+            _shaderGenerator->setColorManagementSystem(_colorManagementSystem);
+            _colorManagementSystem->loadLibrary(_dependLib);
+        }
+    }
+}
+
+void ShaderGeneratorTester::setupDependentLibraries()
+{
+    _dependLib = mx::createDocument();
+    const mx::StringVec libraries = { "stdlib", "pbrlib" };
+    GenShaderUtil::loadLibraries(libraries, _searchPath, _dependLib, &_excludeLibraryFiles);
+}
+
+void ShaderGeneratorTester::setExcludeLibraryFiles()
+{
+    // Base class adds no additional library files to exclude
+}
+
+void ShaderGeneratorTester::addSkipFiles()
+{
+    _skipFiles.insert("_options.mtlx");
+    _skipFiles.insert("light_rig.mtlx");
+    _skipFiles.insert("lightcompoundtest_ng.mtlx");
+    _skipFiles.insert("lightcompoundtest.mtlx");
+}
+
+void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions)
+{
+    // Start logging
+    _logFile.open(_logFilePath);
+
+    // Generator setup
+    createGenerator();
+
+    // Dependent library setup
+    setExcludeLibraryFiles();
+    setupDependentLibraries();
+    addColorManagement();
+
+    // Test suite setup
+    addSkipFiles();
+
+    // Generation setup
+    setTestStages();
+
+    // Load in all documents to test
+    mx::loadDocuments(_testRootPath, _skipFiles, _documents, _documentPaths, nullptr);
+
+    // Scan each document for renderable elements and check code generation
+    //
+    // Map to replace "/" in Element path names with "_".
+    mx::StringMap pathMap;
+    pathMap["/"] = "_";
+
+    mx::XmlReadOptions importOptions;
+    importOptions.skipDuplicateElements = true;
+    size_t documentIndex = 0;
+    for (auto doc : _documents)
+    {
+        // Add in dependent libraries
+        doc->importLibrary(_dependLib, &importOptions);
+
+        // Find elements to render in the document
+        std::vector<mx::TypedElementPtr> elements;
+        try
+        {
+            mx::findRenderableElements(doc, elements);
+        }
+        catch (mx::ExceptionShaderGenError& e)
+        {
+            _logFile << "Renderables search errors: " << e.what() << std::endl;
+        }
+
+        if (!elements.empty())
+        {
+            _logFile << "MTLX Filename :" << _documentPaths[documentIndex] << ". Elements tested: "
+                << std::to_string(elements.size()) << std::endl;
+            documentIndex++;
+        }
+
+        // Perform document validation
+        std::string docErrors;
+        bool documentIsValid = doc->validate(&docErrors);
+        CHECK(documentIsValid);
+        if (!documentIsValid)
+        {
+            _logFile << ">> Validation errors: " << docErrors << std::endl;
+        }
+
+        // Traverse the renderable documents and run validation the validation step
+        for (auto element : elements)
+        {
+            mx::OutputPtr output = element->asA<mx::Output>();
+            mx::ShaderRefPtr shaderRef = element->asA<mx::ShaderRef>();
+            mx::NodeDefPtr nodeDef = nullptr;
+            if (output)
+            {
+                nodeDef = output->getConnectedNode()->getNodeDef();
+            }
+            else if (shaderRef)
+            {
+                nodeDef = shaderRef->getNodeDef();
+            }
+            CHECK(nodeDef);
+            if (nodeDef)
+            {
+                mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
+                elementName = mx::createValidName(elementName);
+
+                mx::InterfaceElementPtr impl = nodeDef->getImplementation(_shaderGenerator->getTarget(), _shaderGenerator->getLanguage());
+                CHECK(impl);
+                if (impl)
+                {
+                    _logFile << "------------ Run OSL validation with element: " << element->getNamePath()
+                        << "------------" << std::endl;
+                    bool generatedCode = GenShaderUtil::generateCode(*_shaderGenerator, elementName, element, generateOptions, _logFile, _testStages);
+                    CHECK(generatedCode);
+                }
+                else
+                {
+                    _logFile << ">> Failed to find impl for: " << element->getNamePath() << std::endl;
+                }
+            }
+            else
+            {
+                _logFile << ">> Failed to find nodedef for: " << element->getNamePath() << std::endl;
+            }
+        }
+    }
+
+    // End logging
+    if (_logFile.is_open())
+    {
+        _logFile.close();
+    }
+}
+
+} //namespace GenShaderUtil
+

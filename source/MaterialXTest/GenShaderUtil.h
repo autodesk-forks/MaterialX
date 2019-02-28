@@ -9,6 +9,7 @@
 #include <MaterialXFormat/File.h>
 
 #include <MaterialXGenShader/HwShaderGenerator.h>
+#include <MaterialXGenShader/DefaultColorManagementSystem.h>
 #include <MaterialXGenShader/TypeDesc.h>
 #include <MaterialXGenShader/Util.h>
 #include <MaterialXGenShader/HwShader.h>
@@ -57,6 +58,55 @@ namespace GenShaderUtil
     // Test code generation for a given element
     bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shaderName, mx::TypedElementPtr element,
         const mx::GenOptions& options, std::ostream& log, std::vector<std::string>testStages);
+
+    class ShaderGeneratorTester
+    {
+    public:
+        ShaderGeneratorTester(const mx::FilePath& searchPath, const mx::FilePath& testRootPath,
+            const mx::FilePath& logFilePath)
+        {
+            _logFilePath = logFilePath;
+            _searchPath = searchPath;
+            _testRootPath = testRootPath;
+        }
+
+        ~ShaderGeneratorTester()
+        {
+        }
+
+        // Generator is required from derived class
+        virtual void createGenerator() = 0;
+
+        // Stages to test is required from derived class
+        virtual void setTestStages() = 0;
+
+        // Set library files to not load when loading libraries.
+        virtual void setExcludeLibraryFiles();
+
+        // Add files in to not examine
+        virtual void addSkipFiles();
+
+        void addColorManagement();
+        void setupDependentLibraries();
+        void testGeneration(const mx::GenOptions& generateOptions);
+
+    protected:
+        mx::ShaderGeneratorPtr _shaderGenerator;
+        mx::DefaultColorManagementSystemPtr _colorManagementSystem;
+        mx::DocumentPtr _dependLib;
+        mx::FilePath _searchPath;
+        std::set<std::string> _excludeLibraryFiles;
+
+        mx::FilePath _testRootPath;
+        std::set<std::string> _skipFiles;
+        std::vector<mx::DocumentPtr> _documents;
+        std::vector<std::string> _documentPaths;
+
+        mx::FilePath _logFilePath;
+        std::ofstream _logFile;
+
+        std::vector<std::string> _testStages;
+    };
 }
 
 #endif
