@@ -169,6 +169,7 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
                 << std::to_string(elements.size()) << std::endl;
             oslLog << "MTLX Filename :" << documentPaths[documentIndex] << ". Elements tested: "
                 << std::to_string(elements.size()) << std::endl;
+            documentIndex++;
         }
 
         std::string docErrors;
