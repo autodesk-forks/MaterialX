@@ -1,6 +1,6 @@
 #include <MaterialXRender/Handlers/OiioImageLoader.h>
 
-#if MATERIALX_BUILD_OIIO
+#ifdef MATERIALX_BUILD_OIIO
 
 #include <OpenImageIO/imageio.h>
 
