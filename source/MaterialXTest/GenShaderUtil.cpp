@@ -356,9 +356,10 @@ bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shade
         log << ">> " << e.what() << "\n";
         shader = nullptr;
     }
-    CHECK(shader != nullptr);
-    if (shader == nullptr)
+    CHECK(shader);
+    if (!shader)
     {
+        INFO(">> Failed to generate shader for element: " + element->getNamePath());
         log << ">> Failed to generate shader for element: " << element->getNamePath() << std::endl;
         return false;
     }
