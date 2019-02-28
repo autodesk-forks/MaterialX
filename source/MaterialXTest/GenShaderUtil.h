@@ -59,6 +59,8 @@ namespace GenShaderUtil
     bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shaderName, mx::TypedElementPtr element,
         const mx::GenOptions& options, std::ostream& log, std::vector<std::string>testStages);
 
+    // Utility class to handle testing of shader generators.
+    // Currently only tests source code generation.
     class ShaderGeneratorTester
     {
     public:
@@ -86,6 +88,9 @@ namespace GenShaderUtil
         // Add files in to not examine
         virtual void addSkipFiles();
 
+        // Add nodedefs to not examine
+        virtual void addSkipNodeDefs();
+
         void addColorManagement();
         void setupDependentLibraries();
         void testGeneration(const mx::GenOptions& generateOptions);
@@ -105,6 +110,7 @@ namespace GenShaderUtil
         mx::FilePath _logFilePath;
         std::ofstream _logFile;
 
+        std::set<std::string> _skipNodeDefs;
         std::vector<std::string> _testStages;
     };
 }

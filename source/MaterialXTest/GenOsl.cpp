@@ -131,7 +131,7 @@ static void generateOSLCode()
 {
     const mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
     const mx::FilePath testRootPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite");
-    const mx::FilePath logPath("gen_osl_vanilla.txt");
+    const mx::FilePath logPath("genosl_vanilla_generate_test.txt");
     OSLGenCodeGenerationTester tester(searchPath, testRootPath, logPath);
  
     const mx::GenOptions genOptions;

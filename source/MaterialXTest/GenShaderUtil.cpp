@@ -402,6 +402,10 @@ void ShaderGeneratorTester::addSkipFiles()
     _skipFiles.insert("lightcompoundtest.mtlx");
 }
 
+void ShaderGeneratorTester::addSkipNodeDefs()
+{
+}
+
 void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions)
 {
     // Start logging
@@ -429,6 +433,9 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
     // Map to replace "/" in Element path names with "_".
     mx::StringMap pathMap;
     pathMap["/"] = "_";
+
+    // Add nodedefs to skip when testing
+    addSkipNodeDefs();
 
     mx::XmlReadOptions importOptions;
     importOptions.skipDuplicateElements = true;
@@ -479,29 +486,38 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
             {
                 nodeDef = shaderRef->getNodeDef();
             }
+
+            // Allow to skip nodedefs to test if specified
+            const std::string nodeDefName = nodeDef->getName();
+            if (_skipNodeDefs.count(nodeDefName))
+            {
+                _logFile << ">> Skipped testing nodedef: " << nodeDefName << std::endl;
+                continue;
+            }
+
+            const std::string namePath(element->getNamePath());
             CHECK(nodeDef);
             if (nodeDef)
             {
-                mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
+                mx::string elementName = mx::replaceSubstrings(namePath, pathMap);
                 elementName = mx::createValidName(elementName);
 
                 mx::InterfaceElementPtr impl = nodeDef->getImplementation(_shaderGenerator->getTarget(), _shaderGenerator->getLanguage());
                 CHECK(impl);
                 if (impl)
                 {
-                    _logFile << "------------ Run OSL validation with element: " << element->getNamePath()
-                        << "------------" << std::endl;
+                    _logFile << "------------ Run validation with element: " << namePath << "------------" << std::endl;
                     bool generatedCode = GenShaderUtil::generateCode(*_shaderGenerator, elementName, element, generateOptions, _logFile, _testStages);
                     CHECK(generatedCode);
                 }
                 else
                 {
-                    _logFile << ">> Failed to find impl for: " << element->getNamePath() << std::endl;
+                    _logFile << ">> Failed to find implementation for nodedef: " << nodeDefName << std::endl;
                 }
             }
             else
             {
-                _logFile << ">> Failed to find nodedef for: " << element->getNamePath() << std::endl;
+                _logFile << ">> Failed to find nodedef for: " << namePath << std::endl;
             }
         }
     }
