@@ -345,7 +345,7 @@ void testUniqueNames(mx::ShaderGeneratorPtr shaderGenerator, const std::string& 
 bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shaderName, mx::TypedElementPtr element,
                   const mx::GenOptions& options, std::ostream& log, std::vector<std::string>testStages)
 {
-    mx::ShaderPtr shader;
+    mx::ShaderPtr shader = nullptr;
     try
     {
         //AdditiveScopedTimer genTimer(profileTimes.oslTimes.generationTime, "OSL generation time");
@@ -356,6 +356,7 @@ bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shade
         log << ">> " << e.what() << "\n";
         shader = nullptr;
     }
+    CHECK(shader != nullptr);
     if (shader == nullptr)
     {
         log << ">> Failed to generate shader for element: " << element->getNamePath() << std::endl;
@@ -365,7 +366,9 @@ bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shade
     bool stageFailed = false;
     for (auto stage : testStages)
     {
-        if (shader->getSourceCode(stage).empty())
+        bool noSource = shader->getSourceCode(stage).empty();
+        CHECK(!noSource);
+        if (noSource)
         {
             log << ">> Failed to generate source code for stage: " << stage << std::endl;
             stageFailed = true;
