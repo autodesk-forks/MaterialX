@@ -159,12 +159,15 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
         }
         catch (mx::ExceptionShaderGenError& e)
         {
-            oslLog << e.what() << std::endl;
+            oslLog << "Find Renderables errors: " << e.what() << std::endl;
+            std::cout << "Find Renderables errors: " << e.what() << std::endl;
         }
 
         if (!elements.empty())
         {            
-            oslLog << "MTLX Filename :" << documentPaths[documentIndex] << ". Elements tested: " 
+            std::cout << "MTLX Filename :" << documentPaths[documentIndex] << ". Elements tested: "
+                << std::to_string(elements.size()) << std::endl;
+            oslLog << "MTLX Filename :" << documentPaths[documentIndex] << ". Elements tested: "
                 << std::to_string(elements.size()) << std::endl;
         }
 
@@ -173,6 +176,7 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
         CHECK(documentIsValid);
         if (!documentIsValid)
         {
+            std::cout << ">> Validation errors: " << docErrors << std::endl;
             oslLog << ">> Validation errors: " << docErrors << std::endl;
         }
 
@@ -200,6 +204,8 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
                 if (impl)
                 {
                     mx::GenOptions options;
+                    std::cout << "------------ Run OSL validation with element: " << element->getNamePath()
+                        << "------------" << std::endl;
                     oslLog << "------------ Run OSL validation with element: " << element->getNamePath()
                         << "------------" << std::endl;
                     bool generatedCode = GenShaderUtil::generateCode(*shaderGenerator, elementName, element, options, oslLog, testStages);
@@ -207,11 +213,13 @@ TEST_CASE("OSL Shader Generation", "[genosl]")
                 }
                 else
                 {
+                    std::cout << ">> Failed to find impl for: " << element->getNamePath() << std::endl;
                     oslLog << ">> Failed to find impl for: " << element->getNamePath() << std::endl;
                 }
             }
             else
             {
+                std::cout << ">> Failed to find nodedef for: " << element->getNamePath() << std::endl;
                 oslLog << ">> Failed to find nodedef for: " << element->getNamePath() << std::endl;
             }
         }

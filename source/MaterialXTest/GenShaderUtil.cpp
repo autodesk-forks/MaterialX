@@ -353,6 +353,7 @@ bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shade
     }
     catch (mx::ExceptionShaderGenError& e)
     {
+        std::cout << ">> Generate Failure: " << e.what() << "\n";
         log << ">> " << e.what() << "\n";
         shader = nullptr;
     }
