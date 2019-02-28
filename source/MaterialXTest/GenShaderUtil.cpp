@@ -359,9 +359,13 @@ bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shade
     CHECK(shader);
     if (!shader)
     {
-        INFO(">> Failed to generate shader for element: " + element->getNamePath());
+        std::cout << "Failed to generate shader for element: " << element->getNamePath() << std::endl;
         log << ">> Failed to generate shader for element: " << element->getNamePath() << std::endl;
         return false;
+    }
+    else
+    {
+        std::cout << "Succeeded to generate shader for element: " << element->getNamePath() << std::endl;
     }
     
     bool stageFailed = false;
@@ -371,8 +375,13 @@ bool generateCode(mx::ShaderGenerator& shaderGenerator, const std::string& shade
         CHECK(!noSource);
         if (noSource)
         {
+            std::cout << ">> Failed to generate source code for stage: " << stage << std::endl;
             log << ">> Failed to generate source code for stage: " << stage << std::endl;
             stageFailed = true;
+        }
+        else
+        {
+            std::cout << ">> Succeeded to generate source code for stage: " << stage << std::endl;
         }
     }
     return !stageFailed;
