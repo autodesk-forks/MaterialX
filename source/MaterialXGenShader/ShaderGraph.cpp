@@ -693,7 +693,7 @@ void ShaderGraph::finalize(ShaderGenerator& shadergen, const GenOptions& options
     _outputColorTransformMap.clear();
 
     // Optimize the graph, removing redundant paths.
-    optimize();
+    optimize(shadergen);
 
     if (options.shaderInterfaceType == SHADER_INTERFACE_COMPLETE)
     {
@@ -767,36 +767,11 @@ void ShaderGraph::disconnect(ShaderNode* node)
     }
 }
 
-void ShaderGraph::optimize()
+void ShaderGraph::optimize(ShaderGenerator& shadergen)
 {
     size_t numEdits = 0;
     for (ShaderNode* node : getNodes())
     {
-        // Check to see if one of our inputs has channels,
-        // if so, then the connected node should not be optimized
-        for (auto input : node->getInputs())
-        {
-            if (input && !input->channels.empty())
-            {
-                if (input->connection && input->connection->node)
-                {
-                    input->connection->node->_classification |= ShaderNode::Classification::DO_NOT_OPTIMIZE;
-                }
-            }
-        }
-
-        // Check to see if one of our outputs connections has channels,
-        // if so, then the initial node should not be optimized
-        for (auto output : node->getOutputs())
-        {
-            for (auto input : output->connections)
-            {
-                if (input && !input->channels.empty())
-                {
-                    node->_classification |= ShaderNode::Classification::DO_NOT_OPTIMIZE;
-                }
-            }
-        }
         if (!node->hasClassification(ShaderNode::Classification::DO_NOT_OPTIMIZE) && node->hasClassification(ShaderNode::Classification::CONSTANT))
         {
             // Constant nodes can be removed by assigning their value downstream
@@ -805,7 +780,7 @@ void ShaderGraph::optimize()
             ShaderInput* valueInput = node->getInput(0);
             if (!valueInput->connection)
             {
-                bypass(node, 0);
+                bypass(shadergen, node, 0);
                 ++numEdits;
             }
         }
@@ -822,7 +797,7 @@ void ShaderGraph::optimize()
                 const int branch = (intestValue <= cutoff->value->asA<float>() ? 2 : 3);
 
                 // Bypass the conditional using the taken branch
-                bypass(node, branch);
+                bypass(shadergen, node, branch);
 
                 ++numEdits;
             }
@@ -840,7 +815,7 @@ void ShaderGraph::optimize()
                     (which->type == Type::FLOAT ? value->asA<float>() : value->asA<int>())));
 
                 // Bypass the conditional using the taken branch
-                bypass(node, branch);
+                bypass(shadergen, node, branch);
 
                 ++numEdits;
             }
@@ -881,7 +856,7 @@ void ShaderGraph::optimize()
     }
 }
 
-void ShaderGraph::bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex)
+void ShaderGraph::bypass(ShaderGenerator& shadergen, ShaderNode* node, size_t inputIndex, size_t outputIndex)
 {
     ShaderInput* input = node->getInput(inputIndex);
     ShaderOutput* output = node->getOutput(outputIndex);
@@ -909,6 +884,13 @@ void ShaderGraph::bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex
         for (ShaderInput* downstream : downstreamConnections)
         {
             output->breakConnection(downstream);
+
+            if (!downstream->channels.empty())
+            {
+                // call getSwizzledValue on the input
+                input->value = shadergen.getSyntax()->getSwizzledValue(input->value, input->type, downstream->channels, downstream->type);
+                input->type = downstream->type;
+            }
             downstream->copyData(*input);
         }
     }

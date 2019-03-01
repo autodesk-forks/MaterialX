@@ -135,6 +135,111 @@ string Syntax::getSwizzledVariable(const string& srcName, const TypeDesc* srcTyp
     return dstSyntax.getValue(membersSwizzled, false);
 }
 
+ValuePtr Syntax::getSwizzledValue(ValuePtr value, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const
+{
+    static const std::unordered_map<char, size_t> s_channelsMapping =
+    {
+        { 'r', 0 },{ 'x', 0 },
+        { 'g', 1 },{ 'y', 1 },
+        { 'b', 2 },{ 'z', 2 },
+        { 'a', 3 },{ 'w', 3 }
+    };
+
+    const TypeSyntax& srcSyntax = getTypeSyntax(srcType);
+
+    const vector<string>& srcMembers = srcSyntax.getMembers();
+
+    vector<string> membersSwizzled;
+
+    string type = value->getTypeString();
+
+    for (size_t i = 0; i < channels.size(); ++i)
+    {
+        const char ch = channels[i];
+        if (ch == '0' || ch == '1')
+        {
+            membersSwizzled.push_back(string(1, ch));
+            continue;
+        }
+
+        auto it = s_channelsMapping.find(ch);
+        if (it == s_channelsMapping.end())
+        {
+            throw ExceptionShaderGenError("Invalid channel pattern '" + channels + "'.");
+        }
+
+        if (srcMembers.empty())
+        {
+            membersSwizzled.push_back(value->getValueString());
+        }
+        else
+        {
+            int channelIndex = srcType->getChannelIndex(ch);
+            if (channelIndex < 0 || channelIndex >= static_cast<int>(srcMembers.size()))
+            {
+                throw ExceptionShaderGenError("Given channel index: '" + string(1, ch) + "' in channels pattern is incorrect for type '" + srcType->getName() + "'.");
+            }
+            if (value->getTypeString() == TypedValue<float>::TYPE)
+            {
+                float v = value->asA<float>();
+                membersSwizzled.push_back(std::to_string(v));
+            }
+            else if (value->getTypeString() == TypedValue<int>::TYPE)
+            {
+                int v = value->asA<int>();
+                membersSwizzled.push_back(std::to_string(v));
+            }
+            else if (value->getTypeString() == TypedValue<bool>::TYPE)
+            {
+                bool v = value->asA<bool>();
+                membersSwizzled.push_back(std::to_string(v));
+            }
+            else if (value->getTypeString() == TypedValue<Color2>::TYPE)
+            {
+                Color2 v = value->asA<Color2>();
+                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+            }
+            else if (value->getTypeString() == TypedValue<Color3>::TYPE)
+            {
+                Color3 v = value->asA<Color3>();
+                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+            }
+            else if (value->getTypeString() == TypedValue<Color4>::TYPE)
+            {
+                Color4 v = value->asA<Color4>();
+                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+            }
+            else if (value->getTypeString() == TypedValue<Vector2>::TYPE)
+            {
+                Vector2 v = value->asA<Vector2>();
+                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+            }
+            else if (value->getTypeString() == TypedValue<Vector3>::TYPE)
+            {
+                Vector3 v = value->asA<Vector3>();
+                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+            }
+            else if (value->getTypeString() == TypedValue<Vector4>::TYPE)
+            {
+                Vector4 v = value->asA<Vector4>();
+                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+            }
+        }
+    }
+
+    std::stringstream ss;
+    for (int i = 0; i < membersSwizzled.size(); i++)
+    {
+        ss << membersSwizzled[i];
+        if (i != membersSwizzled.size() - 1)
+        {
+            ss << ", ";
+        }
+    }
+
+    return Value::createValueFromStrings(ss.str(), getTypeName(dstType));
+}
+
 void Syntax::makeUnique(string& name, UniqueNameMap& uniqueNames) const
 {
     makeValidName(name);

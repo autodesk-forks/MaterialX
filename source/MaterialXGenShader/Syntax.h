@@ -70,6 +70,8 @@ public:
     /// Get syntax for a swizzled variable
     string getSwizzledVariable(const string& srcName, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const;
 
+    ValuePtr getSwizzledValue(ValuePtr value, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const;
+
     /// Returns a set of names that are restricted to use for this language syntax.
     const StringSet& getRestrictedNames() const { return _restrictedNames; }
 
