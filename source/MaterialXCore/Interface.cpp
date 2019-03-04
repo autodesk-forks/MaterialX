@@ -13,6 +13,101 @@
 namespace MaterialX
 {
 
+namespace
+{
+    bool validSourceSwizzlePattern(const string &type, const string &channels)
+    {
+        // Check to see if the channels match those supported by the provided type
+        std::set<char> supportedChannels;
+        if (type == TypedValue<float>::TYPE)
+        {
+            supportedChannels = { '0', '1', 'r', 'x' };
+        }
+        else if (type == TypedValue<Color2>::TYPE)
+        {
+            supportedChannels = { '0', '1', 'r', 'a' };
+        }
+        else if (type == TypedValue<Color3>::TYPE)
+        {
+            supportedChannels = { '0', '1', 'r', 'g', 'b' };
+        }
+        else if (type == TypedValue<Color4>::TYPE)
+        {
+            supportedChannels = { '0', '1', 'r', 'g', 'b', 'a' };
+        }
+        else if (type == TypedValue<Vector2>::TYPE)
+        {
+            supportedChannels = { '0', '1', 'x', 'y' };
+        }
+        else if (type == TypedValue<Vector3>::TYPE)
+        {
+            supportedChannels = { '0', '1', 'x', 'y', 'z' };
+        }
+        else if (type == TypedValue<Vector4>::TYPE)
+        {
+            supportedChannels = { '0', '1', 'x', 'y', 'z', 'w' };
+        }
+        else
+        {
+            return false;
+        }
+
+        for (const char& channel : channels)
+        {
+            if (supportedChannels.count(channel) == 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool validDestinationSwizzlePattern(const string &type, const string &channels)
+    {
+        // Check to see if the number of channels match the provided type's required number of channels
+        int supportedChannelSize = -1;
+        if (type == TypedValue<float>::TYPE)
+        {
+            supportedChannelSize = 1;
+        }
+        else if (type == TypedValue<Color2>::TYPE)
+        {
+            supportedChannelSize = 2;
+        }
+        else if (type == TypedValue<Color3>::TYPE)
+        {
+            supportedChannelSize = 3;
+        }
+        else if (type == TypedValue<Color4>::TYPE)
+        {
+            supportedChannelSize = 4;
+        }
+        else if (type == TypedValue<Vector2>::TYPE)
+        {
+            supportedChannelSize = 2;
+        }
+        else if (type == TypedValue<Vector3>::TYPE)
+        {
+            supportedChannelSize = 3;
+        }
+        else if (type == TypedValue<Vector4>::TYPE)
+        {
+            supportedChannelSize = 4;
+        }
+        else
+        {
+            return false;
+        }
+
+        return channels.size() == supportedChannelSize;
+    }
+
+    bool supportsSwizzling(const string &srcType, const string& dstType, const string &channels)
+    {
+        return validSourceSwizzlePattern(srcType, channels) && validDestinationSwizzlePattern(dstType, channels);
+    }
+}
+
 const string PortElement::NODE_NAME_ATTRIBUTE = "nodename";
 const string PortElement::OUTPUT_ATTRIBUTE = "output";
 const string PortElement::CHANNELS_ATTRIBUTE = "channels";
@@ -65,11 +160,22 @@ bool PortElement::validate(string* message) const
             {
                 OutputPtr output = connectedNodeDef->getOutput(getOutputString());
                 validateRequire(output != nullptr, res, message, "Invalid output in port connection");
-                if (output && !hasChannels())
+                if (output)
                 {
-                    validateRequire(getType() == output->getType(), res, message, "Mismatched output type in port connection");
+                    if (hasChannels())
+                    {
+                        validateRequire(supportsSwizzling(output->getType(), getType(), getChannels()), res, message, "Invalid channels attribute");
+                    }
+                    else
+                    {
+                        validateRequire(getType() == output->getType(), res, message, "Mismatched output type in port connection");
+                    }
                 }
             }
+        }
+        else if (hasChannels())
+        {
+            validateRequire(supportsSwizzling(getConnectedNode()->getType(), getType(), getChannels()), res, message, "Invalid channels attribute");
         }
         else if(!hasChannels())
         {
