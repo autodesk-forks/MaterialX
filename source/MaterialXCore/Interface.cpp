@@ -65,7 +65,7 @@ namespace
     bool validDestinationSwizzlePattern(const string &type, const string &channels)
     {
         // Check to see if the number of channels match the provided type's required number of channels
-        int supportedChannelSize = -1;
+        size_t supportedChannelSize = -1;
         if (type == TypedValue<float>::TYPE)
         {
             supportedChannelSize = 1;
