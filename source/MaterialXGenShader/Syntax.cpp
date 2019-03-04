@@ -228,7 +228,7 @@ ValuePtr Syntax::getSwizzledValue(ValuePtr value, const TypeDesc* srcType, const
     }
 
     std::stringstream ss;
-    for (int i = 0; i < membersSwizzled.size(); i++)
+    for (size_t i = 0; i < membersSwizzled.size(); i++)
     {
         ss << membersSwizzled[i];
         if (i != membersSwizzled.size() - 1)
