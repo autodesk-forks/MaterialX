@@ -146,19 +146,22 @@ ValuePtr Syntax::getSwizzledValue(ValuePtr value, const TypeDesc* srcType, const
     };
 
     const TypeSyntax& srcSyntax = getTypeSyntax(srcType);
-
     const vector<string>& srcMembers = srcSyntax.getMembers();
 
-    vector<string> membersSwizzled;
-
-    string type = value->getTypeString();
+    std::stringstream ss;
+    string delimiter = ", ";
 
     for (size_t i = 0; i < channels.size(); ++i)
     {
+        if (i == channels.size() - 1)
+        {
+            delimiter = "";
+        }
+
         const char ch = channels[i];
         if (ch == '0' || ch == '1')
         {
-            membersSwizzled.push_back(string(1, ch));
+            ss << string(1, ch);
             continue;
         }
 
@@ -170,7 +173,7 @@ ValuePtr Syntax::getSwizzledValue(ValuePtr value, const TypeDesc* srcType, const
 
         if (srcMembers.empty())
         {
-            membersSwizzled.push_back(value->getValueString());
+            ss << value->getValueString();
         }
         else
         {
@@ -179,62 +182,53 @@ ValuePtr Syntax::getSwizzledValue(ValuePtr value, const TypeDesc* srcType, const
             {
                 throw ExceptionShaderGenError("Given channel index: '" + string(1, ch) + "' in channels pattern is incorrect for type '" + srcType->getName() + "'.");
             }
-            if (value->getTypeString() == TypedValue<float>::TYPE)
+            if (srcType == Type::FLOAT)
             {
                 float v = value->asA<float>();
-                membersSwizzled.push_back(std::to_string(v));
+                ss << std::to_string(v);
             }
-            else if (value->getTypeString() == TypedValue<int>::TYPE)
+            else if (srcType == Type::INTEGER)
             {
                 int v = value->asA<int>();
-                membersSwizzled.push_back(std::to_string(v));
+                ss << std::to_string(v);
             }
-            else if (value->getTypeString() == TypedValue<bool>::TYPE)
+            else if (srcType == Type::BOOLEAN)
             {
                 bool v = value->asA<bool>();
-                membersSwizzled.push_back(std::to_string(v));
+                ss << std::to_string(v);
             }
-            else if (value->getTypeString() == TypedValue<Color2>::TYPE)
+            else if (srcType == Type::COLOR2)
             {
                 Color2 v = value->asA<Color2>();
-                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+                ss << std::to_string(v[channelIndex]);
             }
-            else if (value->getTypeString() == TypedValue<Color3>::TYPE)
+            else if (srcType == Type::COLOR3)
             {
                 Color3 v = value->asA<Color3>();
-                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+                ss << std::to_string(v[channelIndex]);
             }
-            else if (value->getTypeString() == TypedValue<Color4>::TYPE)
+            else if (srcType == Type::COLOR4)
             {
                 Color4 v = value->asA<Color4>();
-                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+                ss << std::to_string(v[channelIndex]);
             }
-            else if (value->getTypeString() == TypedValue<Vector2>::TYPE)
+            else if (srcType == Type::VECTOR2)
             {
                 Vector2 v = value->asA<Vector2>();
-                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+                ss << std::to_string(v[channelIndex]);
             }
-            else if (value->getTypeString() == TypedValue<Vector3>::TYPE)
+            else if (srcType == Type::VECTOR3)
             {
                 Vector3 v = value->asA<Vector3>();
-                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+                ss << std::to_string(v[channelIndex]);
             }
-            else if (value->getTypeString() == TypedValue<Vector4>::TYPE)
+            else if (srcType == Type::VECTOR4)
             {
                 Vector4 v = value->asA<Vector4>();
-                membersSwizzled.push_back(std::to_string(v[channelIndex]));
+                ss << std::to_string(v[channelIndex]);
             }
         }
-    }
-
-    std::stringstream ss;
-    for (size_t i = 0; i < membersSwizzled.size(); i++)
-    {
-        ss << membersSwizzled[i];
-        if (i != membersSwizzled.size() - 1)
-        {
-            ss << ", ";
-        }
+        ss << delimiter;
     }
 
     return Value::createValueFromStrings(ss.str(), getTypeName(dstType));
