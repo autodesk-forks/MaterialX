@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenGlsl/GlslSyntax.h>
 #include <MaterialXGenGlsl/Nodes/PositionNodeGlsl.h>
@@ -207,12 +212,12 @@ GlslShaderGenerator::GlslShaderGenerator()
     // <!-- <light> -->
     registerImplementation("IM_light_" + GlslShaderGenerator::LANGUAGE, LightNodeGlsl::create);
 
-    // <!-- <pointlight> -->
-    registerImplementation("IM_pointlight_" + GlslShaderGenerator::LANGUAGE, LightShaderNodeGlsl::create);
-    // <!-- <directionallight> -->
-    registerImplementation("IM_directionallight_" + GlslShaderGenerator::LANGUAGE, LightShaderNodeGlsl::create);
-    // <!-- <spotlight> -->
-    registerImplementation("IM_spotlight_" + GlslShaderGenerator::LANGUAGE, LightShaderNodeGlsl::create);
+    // <!-- <point_light> -->
+    registerImplementation("IM_point_light_" + GlslShaderGenerator::LANGUAGE, LightShaderNodeGlsl::create);
+    // <!-- <directional_light> -->
+    registerImplementation("IM_directional_light_" + GlslShaderGenerator::LANGUAGE, LightShaderNodeGlsl::create);
+    // <!-- <spot_light> -->
+    registerImplementation("IM_spot_light_" + GlslShaderGenerator::LANGUAGE, LightShaderNodeGlsl::create);
 
     // <!-- <heighttonormal> -->
     registerImplementation("IM_heighttonormal_vector3_" + GlslShaderGenerator::LANGUAGE, HeightToNormalNodeGlsl::create);

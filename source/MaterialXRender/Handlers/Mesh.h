@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_MESH_H
 #define MATERIALX_MESH_H
 
@@ -359,6 +364,12 @@ class Mesh
     /// Returns true if successful.
     bool generateTangents(MeshStreamPtr positionStream, MeshStreamPtr texcoordStream, MeshStreamPtr normalStream,
                           MeshStreamPtr tangentStream, MeshStreamPtr bitangentStream);   
+
+    /// Merge all mesh partitions into one.
+    void mergePartitions();
+
+    /// Split the mesh into a single partition per UDIM.
+    void splitByUdims();
 
   private:
     string _identifier;

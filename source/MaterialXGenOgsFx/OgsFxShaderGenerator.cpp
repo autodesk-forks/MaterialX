@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXGenOgsFx/OgsFxShaderGenerator.h>
 #include <MaterialXGenOgsFx/OgsFxSyntax.h>
 
@@ -58,9 +63,9 @@ namespace
         { "direction", "mx_getLightDir" },
         { "color", "mx_getLightColor" },
         { "intensity", "mx_getLightIntensity" },
-        { "decayRate", "mx_getLightDecayRate" },
-        { "innerConeAngle", "mx_getLightConeAngle" },
-        { "outerConeAngle", "mx_getLightPenumbraAngle" }
+        { "decay_rate", "mx_getLightDecayRate" },
+        { "inner_angle", "mx_getLightConeAngle" },
+        { "outer_angle", "mx_getLightPenumbraAngle" }
     };
 }
 

@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXGenShader/ShaderStage.h>
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Syntax.h>
@@ -275,7 +280,7 @@ void ShaderStage::addBlock(const string& str, GenContext& context)
         {
             size_t startQuote = line.find_first_of(QUOTE);
             size_t endQuote = line.find_last_of(QUOTE);
-            if (startQuote != string::npos && endQuote != string::npos)
+            if (startQuote != string::npos && endQuote != string::npos && endQuote > startQuote)
             {
                 size_t length = (endQuote - startQuote) - 1;
                 if (length)

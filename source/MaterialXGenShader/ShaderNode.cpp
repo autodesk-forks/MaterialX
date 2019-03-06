@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXGenShader/ShaderNode.h>
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/ShaderNodeImpl.h>
@@ -391,7 +396,7 @@ void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, GenContext&
             }
             else if (!valueString.empty())
             {
-                input->setValue(nodeValue->getValue());
+                input->setValue(nodeValue->getResolvedValue());
             }
         }
     }

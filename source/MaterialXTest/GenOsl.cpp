@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXTest/Catch/catch.hpp>
 #include <MaterialXTest/GenShaderUtil.h>
 
@@ -83,9 +88,9 @@ TEST_CASE("OSL Implementation Check", "[genosl]")
 
     std::set<std::string> generatorSkipNodeTypes;
     generatorSkipNodeTypes.insert("light");
-    generatorSkipNodeTypes.insert("pointlight");
-    generatorSkipNodeTypes.insert("directionallight");
-    generatorSkipNodeTypes.insert("spotlight");
+    generatorSkipNodeTypes.insert("point_light");
+    generatorSkipNodeTypes.insert("directional_light");
+    generatorSkipNodeTypes.insert("spot_light");
     std::set<std::string> generatorSkipNodeDefs;
 
     GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs);

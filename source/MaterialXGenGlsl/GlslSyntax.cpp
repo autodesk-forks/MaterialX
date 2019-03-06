@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXGenGlsl/GlslSyntax.h>
 
 #include <MaterialXGenShader/Library.h>
@@ -149,7 +154,7 @@ GlslSyntax::GlslSyntax()
         "sizeof", "cast", "namespace", "using", "row_major"
     });
 
-    // Register regstricted tokens in GLSL
+    // Register restricted tokens in GLSL
     StringMap tokens;
     tokens["__"] = "_";
     tokens["gl_"] = "gll";

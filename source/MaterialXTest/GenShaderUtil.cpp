@@ -1,3 +1,7 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
 
 #include <MaterialXTest/Catch/catch.hpp>
 #include <MaterialXTest/GenShaderUtil.h>
@@ -389,8 +393,13 @@ void ShaderGeneratorTester::addColorManagement()
 void ShaderGeneratorTester::setupDependentLibraries()
 {
     _dependLib = mx::createDocument();
+
+    // Load the standard libraries.
     const mx::StringVec libraries = { "stdlib", "pbrlib" };
     GenShaderUtil::loadLibraries(libraries, _libSearchPath, _dependLib, &_excludeLibraryFiles);
+
+    // Load the standard_surface definition since it's used in the test suite.
+    GenShaderUtil::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("documents/Examples/BxDF/standard_surface.mtlx"), _dependLib);
 }
 
 void ShaderGeneratorTester::setExcludeLibraryFiles()

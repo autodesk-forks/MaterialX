@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 // Compile if module flags were set
 #if defined(MATERIALX_TEST_RENDER) && defined(MATERIALX_BUILD_RENDEROSL) && defined(MATERIALX_BUILD_RENDERGLSL)
 
@@ -35,7 +40,7 @@
 #ifdef MATERIALX_BUILD_CONTRIB
 #include <MaterialXContrib/Handlers/TinyEXRImageLoader.h>
 #endif
-#include <MaterialXRender/Handlers/stbImageLoader.h>
+#include <MaterialXRender/Handlers/StbImageLoader.h>
 
 #include <fstream>
 #include <iostream>
@@ -100,7 +105,7 @@ static mx::GlslValidatorPtr createGLSLValidator(const std::string& fileName, std
 {
     bool initialized = false;
     mx::GlslValidatorPtr validator = mx::GlslValidator::create();
-    mx::stbImageLoaderPtr stbLoader = mx::stbImageLoader::create();
+    mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
     mx::GLTextureHandlerPtr imageHandler = mx::GLTextureHandler::create(stbLoader);
 #ifdef MATERIALX_BUILD_CONTRIB
     mx::TinyEXRImageLoaderPtr exrLoader = mx::TinyEXRImageLoader::create();
@@ -1232,8 +1237,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
     }
 }
 
-
-TEST_CASE("Render validation of test suite", "[render]")
+TEST_CASE("Render TestSuite", "[render]")
 {
 #if !defined(MATERIALX_BUILD_RENDERGLSL) && !defined(MATERIALX_BUILD_RENDEROSL)
     return;
@@ -1331,6 +1335,8 @@ TEST_CASE("Render validation of test suite", "[render]")
 
     const mx::StringVec libraries = { "stdlib", "pbrlib" };
     GenShaderUtil::loadLibraries(libraries, searchPath, dependLib, &excludeFiles);
+    GenShaderUtil::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("documents/Examples/BxDF/standard_surface.mtlx"), dependLib);
+
     mx::FilePath lightDir = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/Lights");
     if (options.lightFiles.size() == 0)
     {

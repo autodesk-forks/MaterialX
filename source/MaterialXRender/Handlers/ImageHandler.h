@@ -1,12 +1,14 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_IMAGEHANDLER_H
 #define MATERIALX_IMAGEHANDLER_H
 
-#include <algorithm>
-#include <string>
-#include <memory>
+#include <MaterialXCore/Types.h>
+
 #include <cmath>
-#include <unordered_map>
-#include <vector>
 #include <map>
 #include <array>
 
@@ -85,6 +87,9 @@ class ImageLoader
     static std::string PNG_EXTENSION;
     static std::string PSD_EXTENSION;
     static std::string TGA_EXTENSION;
+    static std::string TIF_EXTENSION;
+    static std::string TIFF_EXTENSION;
+    static std::string TXT_EXTENSION;
 
     /// Returns a list of supported extensions
     /// @return List of support extensions
