@@ -1,8 +1,12 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_GLSLVALIDATOR_H
 #define MATERIALX_GLSLVALIDATOR_H
 
 #include <MaterialXRender/ShaderValidators/ShaderValidator.h>
-#include <MaterialXGenShader/HwShader.h>
 #include <MaterialXRender/ShaderValidators/ExceptionShaderValidationError.h>
 #include <MaterialXRender/Handlers/ImageHandler.h>
 #include <MaterialXRenderHw/Window/SimpleWindow.h>

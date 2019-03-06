@@ -1,3 +1,7 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
 
 #include <MaterialXRenderGlsl/External/GLew/glew.h>
 #include <MaterialXRenderGlsl/GlslValidator.h>
@@ -289,7 +293,7 @@ void GlslValidator::validateCreation(const ShaderPtr shader)
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    _program->setStages(std::dynamic_pointer_cast<HwShader>(shader));
+    _program->setStages(shader);
     _program->build();
 }
 

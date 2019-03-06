@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXTest/Catch/catch.hpp>
 
 #include <MaterialXCore/Document.h>
@@ -10,7 +15,6 @@
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>
 #include <MaterialXGenShader/TypeDesc.h>
 #include <MaterialXGenShader/Util.h>
-#include <MaterialXGenShader/HwShader.h>
 
 #include <MaterialXTest/GenShaderUtil.h>
 
@@ -25,6 +29,7 @@ namespace mx = MaterialX;
 //
 // Base tests
 //
+
 TEST_CASE("GenShader Valid Libraries", "[genshader]")
 {
     mx::DocumentPtr doc = mx::createDocument();
@@ -191,4 +196,3 @@ TEST_CASE("OSL Reference Implementation Check", "[genshader]")
     // To enable once this is true
     //REQUIRE(missing == 0);
 }
-
