@@ -78,22 +78,21 @@ class TestGenShader(unittest.TestCase):
         output.setNodeName("foo1");
         output.setAttribute("output", "o");
 
-        options = GenOptions()
-
         if OSL_SHADER_GENERATOR_EXISTS:
             shadergen = OslShaderGenerator.create()
+            context = GenContext(shadergen)
             # Add path to find all source code snippets
-            shadergen.registerSourceCodeSearchPath(mx.FilePath(searchPath))
+            context.registerSourceCodeSearchPath(mx.FilePath(searchPath))
             # Add path to find OSL include files
-            shadergen.registerSourceCodeSearchPath(mx.FilePath(os.path.join(searchPath, "stdlib/osl")))
+            context.registerSourceCodeSearchPath(mx.FilePath(os.path.join(searchPath, "stdlib/osl")))
 
             # Test complete mode
-            options.shaderInterfaceType = ShaderInterfaceType.SHADER_INTERFACE_COMPLETE;
-            shader = shadergen.generate(exampleName, output, options);
+            context.getOptions().shaderInterfaceType = ShaderInterfaceType.SHADER_INTERFACE_COMPLETE;
+            shader = shadergen.generate(exampleName, output, context);
             self.assertTrue(shader)
-            self.assertTrue(len(shader.getSourceCode(Shader.PIXEL_STAGE)) > 0)
+            self.assertTrue(len(shader.getSourceCode(PIXEL_STAGE)) > 0)
 
-            uniforms = shader.getUniformBlock(Shader.PIXEL_STAGE, Shader.PUBLIC_UNIFORMS)
+            uniforms = shader.getUniformBlock(PIXEL_STAGE, PUBLIC_UNIFORMS)
             self.assertTrue(uniforms.size() == 2)
 
             outputs = shader.getOutputBlock()
@@ -101,17 +100,17 @@ class TestGenShader(unittest.TestCase):
             self.assertTrue(outputs[0].name == output.getName())
 
             file = open(shader.getName() + "_complete.osl", "w+")
-            file.write(shader.getSourceCode(Shader.PIXEL_STAGE))
+            file.write(shader.getSourceCode(PIXEL_STAGE))
             file.close()
             os.remove(shader.getName() + "_complete.osl");
 
             # Test reduced mode
-            options.shaderInterfaceType = ShaderInterfaceType.SHADER_INTERFACE_REDUCED;
-            shader = shadergen.generate(exampleName, output, options);
+            context.getOptions().shaderInterfaceType = ShaderInterfaceType.SHADER_INTERFACE_REDUCED;
+            shader = shadergen.generate(exampleName, output, context);
             self.assertTrue(shader)
-            self.assertTrue(len(shader.getSourceCode(Shader.PIXEL_STAGE)) > 0)
+            self.assertTrue(len(shader.getSourceCode(PIXEL_STAGE)) > 0)
 
-            uniforms = shader.getUniformBlock(Shader.PIXEL_STAGE, Shader.PUBLIC_UNIFORMS)
+            uniforms = shader.getUniformBlock(PIXEL_STAGE, PUBLIC_UNIFORMS)
             self.assertTrue(uniforms.size() == 0)
 
             outputs = shader.getOutputBlock()
@@ -119,7 +118,7 @@ class TestGenShader(unittest.TestCase):
             self.assertTrue(outputs[0].name == output.getName())
 
             file = open(shader.getName() + "_reduced.osl", "w+")
-            file.write(shader.getSourceCode(Shader.PIXEL_STAGE))
+            file.write(shader.getSourceCode(PIXEL_STAGE))
             file.close()
             os.remove(shader.getName() + "_reduced.osl");
 
