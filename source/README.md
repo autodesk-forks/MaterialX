@@ -50,11 +50,13 @@ The following nodes and implementations are not currently supported:
 
 ## Rendering Utilities
 
-- [MaterialXRender](MaterialXRender) module.
-- Geometry handler with OBJ format support.
-- Image handler with formats supported by the "stb" open source loader.
-- Render test suite: Windows only.
-- GLSL and OSL program validators
+The [MaterialXRender](MaterialXRender) module contains the following base rendering
+and validiation utilites:
+  - Geometry handler framework with sample OBJ format support via "TinyObjLoader" (https://github.com/syoyo/tinyobjloader).
+  - Image handler framework with sample support via the "stb" loader (https://github.com/nothings/stb). A wrapper to use OpenImageIO (https://github.com/OpenImageIO/oiio) is also include if the build flag is enabled.
+-  [MaterialXRenderHw](MaterialXRenderHw) : Provides base hardware rendering support.
+-  [MaterialXRenderGlsl](MaterialXRenderGlsl) : Provides GLSL support.
+-  [MaterialXRenderOsl](MaterialXRenderOsl) : Provides OSL support.
 
 ## Test Framework
 
