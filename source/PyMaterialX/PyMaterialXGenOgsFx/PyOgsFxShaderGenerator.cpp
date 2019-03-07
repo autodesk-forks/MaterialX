@@ -15,6 +15,8 @@ namespace mx = MaterialX;
 
 void bindPyOgsFxShaderGenerator(py::module& mod)
 {
+    mod.attr("FX_STAGE") = mx::HW::FX_STAGE;
+
     py::class_<mx::OgsFxShaderGenerator, mx::ShaderGenerator, mx::OgsFxShaderGeneratorPtr>(mod, "OgsFxShaderGenerator")
         .def_static("create", &mx::OgsFxShaderGenerator::create)
         .def(py::init<>())

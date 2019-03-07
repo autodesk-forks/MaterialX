@@ -8,6 +8,7 @@
 namespace py = pybind11;
 
 void bindPyColorManagement(py::module& mod);
+void bindPyShaderPort(py::module& mod);
 void bindPyShaderGenerator(py::module& mod);
 void bindPyGenContext(py::module& mod);
 void bindPyHwShaderGenerator(py::module& mod);
@@ -21,6 +22,7 @@ PYBIND11_MODULE(PyMaterialXGenShader, mod)
     mod.doc() = "Module containing Python bindings for the MaterialXGenShader library (C++)";
 
     bindPyColorManagement(mod);
+    bindPyShaderPort(mod);
     bindPyShaderGenerator(mod);
     bindPyGenContext(mod);
     bindPyHwShaderGenerator(mod);
