@@ -51,7 +51,7 @@ The following nodes and implementations are not currently supported:
 ## Rendering Utilities
 
 The [MaterialXRender](MaterialXRender) module contains the following base rendering
-and validiation utilites:
+and validation utilities:
   - Geometry handler framework with sample OBJ format support via "TinyObjLoader" (https://github.com/syoyo/tinyobjloader).
   - Image handler framework with sample support via the "stb" loader (https://github.com/nothings/stb). A wrapper to use OpenImageIO (https://github.com/OpenImageIO/oiio) is also include if the build flag is enabled.
 -  [MaterialXRenderHw](MaterialXRenderHw) : Provides base hardware rendering support.
