@@ -7,6 +7,7 @@
 
 #include <MaterialXGenOsl/OslShaderGenerator.h>
 #include <MaterialXGenShader/GenContext.h>
+#include <MaterialXGenShader/Shader.h>
 
 #include <string>
 
@@ -15,7 +16,6 @@ namespace mx = MaterialX;
 
 void bindPyOslShaderGenerator(py::module& mod)
 {
-    mod.attr("OSL_STAGE") = mx::OSL::STAGE;
     mod.attr("OSL_UNIFORMS") = mx::OSL::UNIFORMS;
     mod.attr("OSL_INPUTS") = mx::OSL::INPUTS;
     mod.attr("OSL_OUTPUTS") = mx::OSL::OUTPUTS;

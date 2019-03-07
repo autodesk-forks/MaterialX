@@ -5,6 +5,8 @@
 
 #include <PyMaterialX/PyMaterialX.h>
 
+#include <MaterialXGenShader/Shader.h>
+#include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/GenContext.h>
 
 #include <string>
@@ -350,7 +352,6 @@ class PyShaderGenerator : public mx::ShaderGenerator
 void bindPyShaderGenerator(py::module& mod)
 {
     py::class_<mx::ShaderGenerator, PyShaderGenerator, mx::ShaderGeneratorPtr>(mod, "ShaderGenerator")
-        .def(py::init<mx::SyntaxPtr>())
         .def("getLanguage", &mx::ShaderGenerator::getLanguage)
         .def("getTarget", &mx::ShaderGenerator::getTarget)
         .def("generate", &mx::ShaderGenerator::generate)

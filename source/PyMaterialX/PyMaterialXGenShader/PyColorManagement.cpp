@@ -7,6 +7,7 @@
 #include <MaterialXGenShader/ColorManagementSystem.h>
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
 #include <MaterialXGenShader/GenContext.h>
+#include <MaterialXGenShader/ShaderGraph.h>
 
 namespace py = pybind11;
 namespace mx = MaterialX;

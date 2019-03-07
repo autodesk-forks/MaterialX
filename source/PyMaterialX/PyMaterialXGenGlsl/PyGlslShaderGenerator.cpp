@@ -5,8 +5,9 @@
 
 #include <PyMaterialX/PyMaterialX.h>
 
-#include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include <MaterialXGenShader/Shader.h>
+#include <MaterialXGenShader/ShaderGenerator.h>
 
 #include <string>
 

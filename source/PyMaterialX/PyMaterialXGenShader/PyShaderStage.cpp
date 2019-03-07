@@ -12,6 +12,8 @@ namespace mx = MaterialX;
 
 void bindPyShaderStage(py::module& mod)
 {
+    mod.attr("PIXEL_STAGE") = &mx::Stage::PIXEL;
+
     py::class_<mx::VariableBlock, mx::VariableBlockPtr>(mod, "VariableBlock")
         .def(py::init<const std::string&, const std::string&>())
         .def("getName", &mx::VariableBlock::getName)
