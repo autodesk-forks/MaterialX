@@ -338,7 +338,7 @@ class PyShaderGenerator : public mx::ShaderGenerator
         );
     }
 
-    mx::ShaderNodeImplPtr createCompoundImplementation(mx::NodeGraphPtr impl) const
+    mx::ShaderNodeImplPtr createCompoundImplementation(mx::NodeGraphPtr impl) const override
     {
         PYBIND11_OVERLOAD(
             mx::ShaderNodeImplPtr,

@@ -55,8 +55,7 @@ void bindPyColorManagement(py::module& mod)
         .def("getConfigFile", &mx::ColorManagementSystem::getConfigFile)
         .def("setConfigFile", &mx::ColorManagementSystem::setConfigFile)
         .def("loadLibrary", &mx::ColorManagementSystem::loadLibrary)
-        .def("supportsTransform", &mx::ColorManagementSystem::supportsTransform)
-        .def("createNode", &mx::ColorManagementSystem::createNode);
+        .def("supportsTransform", &mx::ColorManagementSystem::supportsTransform);
 
     py::class_<mx::DefaultColorManagementSystem, mx::DefaultColorManagementSystemPtr>(mod, "DefaultColorManagementSystem")
         .def_static("create", &mx::DefaultColorManagementSystem::create)
