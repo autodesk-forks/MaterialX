@@ -3,7 +3,7 @@
 - [MaterialXCore](MaterialXCore): Support for the core MaterialX elements
 and graph traversal.
 - [MaterialXFormat](MaterialXFormat): XML serialization support.
-- [PyMaterialX](PyMaterialX) : Core library Python API support
+- [PyMaterialX](PyMaterialX/README.md) : Core library Python API support
 
 # Shader Generation Support
 
@@ -40,14 +40,13 @@ and graph traversal.
 
 ## Unsupported definitions for Shader Generation
 
-Nodes and implementations which are not currently supported:
+The following nodes and implementations are not currently supported:
 -   ambientocclusion
 -   arrayappend
 -   curveadjust
 -   displacementshader and volumeshader and associated operations (add,
     multiply, mix)
 -   mix surfaceshader for GLSL
--   Matrix33 type operations for OSL.
 
 ## Rendering Utilities
 
