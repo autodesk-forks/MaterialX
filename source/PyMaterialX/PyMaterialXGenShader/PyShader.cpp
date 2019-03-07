@@ -13,6 +13,9 @@ namespace mx = MaterialX;
 
 void bindPyShader(py::module& mod)
 {
+    // Note: py::return_value_policy::reference was needed because getStage returns a
+    // ShaderStage& and without this parameter it would return a copy and not a
+    // reference
     py::class_<mx::Shader, mx::ShaderPtr>(mod, "Shader")
         .def(py::init<const std::string&, mx::ShaderGraphPtr>())
         .def("getName", &mx::Shader::getName)
