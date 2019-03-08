@@ -25,7 +25,7 @@ class GenUserData;
 /// Shared pointer to a GenUserData
 using GenUserDataPtr = std::shared_ptr<GenUserData>;
 
-/// Shared pointer to a constnant GenUserData
+/// Shared pointer to a constant GenUserData
 using ConstGenUserDataPtr = std::shared_ptr<const GenUserData>;
 
 /// @class GenUserData 

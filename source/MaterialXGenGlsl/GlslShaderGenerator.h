@@ -7,7 +7,7 @@
 #define MATERIALX_GLSLSHADERGENERATOR_H
 
 /// @file
-/// GLSL shader generator classes
+/// GLSL shader generator
 
 #include <MaterialXGenShader/HwShaderGenerator.h>
 
