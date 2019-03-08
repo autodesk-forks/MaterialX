@@ -1176,15 +1176,6 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
             "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
             "volumeshader", "IM_constant_string_", "IM_constant_filename_", "IM_dot_string"
         };
-        /*
-        {
-        "arrayappend", "backfacing", "screen", "curveadjust", "dot_surfaceshader", "mix_surfaceshader"
-        "displacementShader", "displacementshader", "volumeshader", "IM_dot_filename", "ambientocclusion", "dot_lightshader",
-        "geomattrvalue_integer", "geomattrvalue_boolean", "geomattrvalue_string", "constant_matrix33", "add_matrix33FA",
-        "add_matrix33", "subtract_matrix33FA", "subtract_matrix33", "multiply_matrix33", "divide_matrix33", "invert_matrix33",
-        "transpose_matrix33", "transformvector_vector3M", "transformnormal_vector3M", "transformpoint_vector3M",
-        "determinant_matrix33", "IM_dot_", "IM_constant_string_", "IM_constant_filename_"
-        }; */
         unsigned int implementationUseCount = 0;
         for (auto libraryImpl : libraryImpls)
         {
