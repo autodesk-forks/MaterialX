@@ -670,19 +670,20 @@ ValuePtr GlslShaderGenerator::remapEnumeration(const ValueElement& input, const 
     // with the integer value being an index into the enumeration.
     enumType = Type::INTEGER;
 
-    // Update the return value if any was specified. If the value
-    // cannot be found always return a default value of 0 to provide some mapping.
-    int integerValue = 0;
+    // Find the return value.
     if (value.size())
     {
         StringVec valueElemEnumsVec = splitString(enumNames, ",");
         auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
         if (pos != valueElemEnumsVec.end())
         {
-            integerValue = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
+            const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
+            return Value::createValue<int>(index);
         }
     }
-    return Value::createValue<int>(integerValue);
+    // If the given value can't be remapped to a valid
+    // enum value it's a user error.
+    throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input '" + input.getNamePath() + "'");
 }
 
 const string GlslImplementation::SPACE = "space";
