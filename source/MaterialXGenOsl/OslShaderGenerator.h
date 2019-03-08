@@ -16,6 +16,7 @@ namespace MaterialX
 
 using OslShaderGeneratorPtr = shared_ptr<class OslShaderGenerator>;
 
+/// @class OslShaderGenerator
 /// Base class for OSL (Open Shading Language) shader generators.
 /// A generator for a specific OSL target should be derived from this class.
 class OslShaderGenerator : public ShaderGenerator

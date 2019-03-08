@@ -14,6 +14,7 @@
 namespace MaterialX
 {
 
+/// @class OslSyntax
 /// Syntax class for OSL (Open Shading Language)
 class OslSyntax : public Syntax
 {
