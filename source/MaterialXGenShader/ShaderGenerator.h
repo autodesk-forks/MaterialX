@@ -146,15 +146,14 @@ public:
     /// will be returned, as defined by the createDefaultImplementation method.
     ShaderNodeImplPtr getImplementation(GenContext& context, InterfaceElementPtr element) const;
 
-    /// Given an input specification (type and value) attempt to remap this to an enumeration which is accepted by
-    /// the shader generator. The enumeration may be of a different type than the input value type.
-    /// @param inputType Input type.
-    /// @param inputValue Input value.
-    /// @param enumNames Comma seperated list with enum names.
-    /// @param enumType Enumeration type description (returned).
-    /// @return Enumeration value. Null if no remapping is performed.
-    virtual ValuePtr remapEnumeration(const TypeDesc* inputType, const string& inputValue,
-                                      const string& enumNames, const TypeDesc*& enumType) const;
+    /// Given an input specification attempt to remap this to an enumeration which is accepted by
+    /// the shader generator. The enumeration may be converted to a different type than the input.
+    /// @param input Nodedef input potentially holding an enum definition.
+    /// @param value The value string to remap.
+    /// @param enumType Enumeration type (returned).
+    /// @return Remapped enumeration value. Null if no remapping is performed.
+    virtual ValuePtr remapEnumeration(const ValueElement& input, const string& value,
+                                      const TypeDesc*& enumType) const;
 
 protected:
     /// Protected constructor

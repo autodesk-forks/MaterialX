@@ -265,7 +265,7 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(GenContext& context, Interf
     return impl;
 }
 
-ValuePtr ShaderGenerator::remapEnumeration(const TypeDesc*, const string&, const string&, const TypeDesc*&) const
+ValuePtr ShaderGenerator::remapEnumeration(const ValueElement&, const string&, const TypeDesc*&) const
 {
     return nullptr;
 }

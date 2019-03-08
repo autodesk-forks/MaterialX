@@ -23,17 +23,13 @@ ShaderGraph::ShaderGraph(const ShaderGraph* parent, const string& name, Document
 
 void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& context)
 {
-    const ShaderGenerator& shadergen = context.getShaderGenerator();
-
     for (ValueElementPtr port : elem.getChildrenOfType<ValueElement>())
     {
         if (!port->isA<Output>())
         {
-            const TypeDesc* inputType = TypeDesc::get(port->getType());
-            const string& inputValue = port->getValueString();
-            const string& enumNames = port->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+            const string& portValue = port->getValueString();
             const TypeDesc* enumType = nullptr;
-            ValuePtr enumValue = shadergen.remapEnumeration(inputType, inputValue, enumNames, enumType);
+            ValuePtr enumValue = context.getShaderGenerator().remapEnumeration(*port, portValue, enumType);
             if (enumValue && enumType)
             {
                 ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), enumType);
@@ -41,9 +37,8 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& cont
             }
             else
             {
-                const string& elemType = port->getType();
-                ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), TypeDesc::get(elemType));
-                if (!port->getValueString().empty())
+                ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), TypeDesc::get(port->getType()));
+                if (!portValue.empty())
                 {
                     inputSocket->setValue(port->getValue());
                 }
@@ -188,23 +183,21 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
                 "' for geomprop on input '" + input->getNode()->getName() + "." + input->getName() + "'");
         }
 
-        ShaderNodePtr geomNodePtr = ShaderNode::create(this, geomNodeName, *geomNodeDef, context);
-        _nodeMap[geomNodeName] = geomNodePtr;
-        _nodeOrder.push_back(geomNodePtr.get());
+        ShaderNodePtr geomNode = ShaderNode::create(this, geomNodeName, *geomNodeDef, context);
+        _nodeMap[geomNodeName] = geomNode;
+        _nodeOrder.push_back(geomNode.get());
 
         // Set node inputs if given.
         const string& namePath = geomprop.getNamePath();
         const string& space = geomprop.getSpace();
         if (!space.empty())
         {
-            ShaderInput* spaceInput = geomNodePtr->getInput(GeomPropDef::SPACE_ATTRIBUTE);
+            ShaderInput* spaceInput = geomNode->getInput(GeomPropDef::SPACE_ATTRIBUTE);
             ValueElementPtr nodeDefSpaceInput = geomNodeDef->getChildOfType<ValueElement>(GeomPropDef::SPACE_ATTRIBUTE);
             if (spaceInput && nodeDefSpaceInput)
             {
-                const string& enumNames = nodeDefSpaceInput->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-                const ShaderGenerator& shadergen = context.getShaderGenerator();
                 const TypeDesc* enumType = nullptr;
-                ValuePtr value = shadergen.remapEnumeration(Type::STRING, space, enumNames, enumType);
+                ValuePtr value = context.getShaderGenerator().remapEnumeration(*nodeDefSpaceInput, space, enumType);
                 if (value)
                 {
                     spaceInput->setValue(value);
@@ -219,7 +212,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
         const string& index = geomprop.getIndex();
         if (!index.empty())
         {
-            ShaderInput* indexInput = geomNodePtr->getInput("index");
+            ShaderInput* indexInput = geomNode->getInput("index");
             if (indexInput)
             {
                 indexInput->setValue(Value::createValue<string>(index));
@@ -229,7 +222,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
         const string& attrname = geomprop.getAttrName();
         if (!attrname.empty())
         {
-            ShaderInput* attrnameInput = geomNodePtr->getInput("attrname");
+            ShaderInput* attrnameInput = geomNode->getInput("attrname");
             if (attrnameInput)
             {
                 attrnameInput->setValue(Value::createValue<string>(attrname));
@@ -237,7 +230,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
             }
         }
 
-        node = geomNodePtr.get();
+        node = geomNode.get();
     }
 
     input->makeConnection(node->getOutput());

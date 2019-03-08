@@ -646,31 +646,37 @@ ShaderNodeImplPtr GlslShaderGenerator::createCompoundImplementation(NodeGraphPtr
     return HwShaderGenerator::createCompoundImplementation(impl);
 }
 
-ValuePtr GlslShaderGenerator::remapEnumeration(const TypeDesc* inputType, const string& inputValue,
-                                               const string& enumValues, const TypeDesc*& enumType) const
+ValuePtr GlslShaderGenerator::remapEnumeration(const ValueElement& input, const string& value, const TypeDesc*& enumType) const
 {
     enumType = nullptr;
 
-    // Skip elements which have no enumerations,
-    // and don't convert already supported types
-    // or filenames and arrays.
-    if (enumValues.empty() || _syntax->typeSupported(inputType) || 
-        inputType == Type::FILENAME || inputType->isArray())
+    // Early out if not an enum input.
+    const string& enumNames = input.getAttribute(ValueElement::ENUM_ATTRIBUTE);
+    if (enumNames.empty())
     {
         return nullptr;
     }
 
-    // Always update the type. For GLSL we always convert to integer,
+    // Don't convert already supported types
+    // or filenames and arrays.
+    const TypeDesc* type = TypeDesc::get(input.getType());
+    if (_syntax->typeSupported(type) ||
+        type == Type::FILENAME || type->isArray())
+    {
+        return nullptr;
+    }
+
+    // For GLSL we always convert to integer,
     // with the integer value being an index into the enumeration.
     enumType = Type::INTEGER;
 
     // Update the return value if any was specified. If the value
     // cannot be found always return a default value of 0 to provide some mapping.
     int integerValue = 0;
-    if (inputValue.size())
+    if (value.size())
     {
-        StringVec valueElemEnumsVec = splitString(enumValues, ",");
-        auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), inputValue);
+        StringVec valueElemEnumsVec = splitString(enumNames, ",");
+        auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
         if (pos != valueElemEnumsVec.end())
         {
             integerValue = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
