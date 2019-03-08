@@ -6,6 +6,9 @@
 #ifndef MATERIALX_OSLSHADERGENERATOR_H
 #define MATERIALX_OSLSHADERGENERATOR_H
 
+/// @file
+/// OSL shading language generator
+
 #include <MaterialXGenShader/ShaderGenerator.h>
 
 namespace MaterialX
@@ -54,8 +57,7 @@ protected:
 
 namespace OSL
 {
-    /// Identifiers for OSL stage and variable blocks
-    extern const string STAGE;
+    /// Identifiers for OSL variable blocks
     extern const string UNIFORMS;
     extern const string INPUTS;
     extern const string OUTPUTS;
