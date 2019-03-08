@@ -6,6 +6,9 @@
 #ifndef MATERIALX_SHADERGRAPH_H
 #define MATERIALX_SHADERGRAPH_H
 
+/// @file
+/// Shader graph class
+
 #include <MaterialXCore/Node.h>
 #include <MaterialXCore/Document.h>
 
@@ -29,13 +32,18 @@ using ShaderGraphInputSocket = ShaderOutput;
 /// used for connecting internal nodes to the outside
 using ShaderGraphOutputSocket = ShaderInput;
 
+/// A shared pointer to a shader graph
 using ShaderGraphPtr = shared_ptr<class ShaderGraph>;
 
+/// @class ShaderGraph
 /// Class representing a graph (DAG) for shader generation
 class ShaderGraph : public ShaderNode
 {
   public:
-    ShaderGraph(const ShaderGraph* parent, const string& name, DocumentPtr document);
+    /// Constructor.
+    ShaderGraph(const ShaderGraph* parent, const string& name, ConstDocumentPtr document);
+
+    /// Desctructor.
     virtual ~ShaderGraph() {}
 
     /// Create a new shader graph from an element.
@@ -44,7 +52,7 @@ class ShaderGraph : public ShaderNode
                                  GenContext& context);
 
     /// Create a new shader graph from a nodegraph.
-    static ShaderGraphPtr create(const ShaderGraph* parent, NodeGraphPtr nodeGraph,
+    static ShaderGraphPtr create(const ShaderGraph* parent, const NodeGraph& nodeGraph,
                                  GenContext& context);
 
     /// Return true if this node is a graph.
@@ -142,7 +150,7 @@ class ShaderGraph : public ShaderNode
     /// Break all connections on a node
     void disconnect(ShaderNode* node) const;
 
-    DocumentPtr _document;
+    ConstDocumentPtr _document;
     std::unordered_map<string, ShaderNodePtr> _nodeMap;
     std::vector<ShaderNode*> _nodeOrder;
 
@@ -153,6 +161,7 @@ class ShaderGraph : public ShaderNode
     std::unordered_map<ShaderOutput*, ColorSpaceTransform> _outputColorTransformMap;
 };
 
+/// @class ShaderGraphEdge
 /// An edge returned during shader graph traversal.
 class ShaderGraphEdge
 {
@@ -165,6 +174,7 @@ class ShaderGraphEdge
     ShaderInput* downstream;
 };
 
+/// @class ShaderGraphEdgeIterator
 /// Iterator class for traversing edges between nodes in a shader graph.
 class ShaderGraphEdgeIterator
 {

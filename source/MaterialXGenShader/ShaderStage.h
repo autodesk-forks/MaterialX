@@ -6,6 +6,9 @@
 #ifndef MATERIALX_SHADERSTAGE_H
 #define MATERIALX_SHADERSTAGE_H
 
+/// @file
+/// Class related to holding information for shader stages
+
 #include <MaterialXCore/Library.h>
 #include <MaterialXCore/Node.h>
 #include <MaterialXGenShader/Syntax.h>
@@ -25,6 +28,7 @@
 namespace MaterialX
 {
 
+/// @class Stage
 /// Shader stage identifiers.
 namespace Stage
 {
@@ -38,9 +42,13 @@ namespace Stage
 }
 
 class VariableBlock;
+/// Shared pointer to a VariableBlock
 using VariableBlockPtr = std::shared_ptr<VariableBlock>;
+/// Shared pointer to a map between string identifiers and VariableBlocks
 using VariableBlockMap = std::unordered_map<string, VariableBlockPtr>;
 
+
+/// @class VariableBlock
 /// A block of variables in a shader stage
 class VariableBlock
 {
@@ -98,20 +106,12 @@ class VariableBlock
 };
 
 
+/// @class ShaderStage
 /// A shader stage, containing the state and 
 /// resulting source code for the stage.
 class ShaderStage
 {
   public:
-    /// Bracket types
-    enum class Brackets
-    {
-        NONE,
-        BRACES,
-        PARENTHESES,
-        SQUARES
-    };
-
     /// Contructor.
     ShaderStage(const string& name, ConstSyntaxPtr syntax);
 
@@ -174,7 +174,7 @@ class ShaderStage
  
 protected:
     /// Start a new scope using the given bracket type.
-    void beginScope(Brackets brackets = Brackets::BRACES);
+    void beginScope(Syntax::Punctuation punc = Syntax::CURLY_BRACKETS);
 
     /// End the current scope.
     void endScope(bool semicolon = false, bool newline = true);
@@ -227,7 +227,7 @@ private:
     int _indentations;
 
     /// Current scope.
-    std::queue<Brackets> _scopes;
+    std::queue<Syntax::Punctuation> _scopes;
 
     /// Set of include files that has been included.
     std::set<string> _includes;
@@ -253,6 +253,7 @@ private:
     friend class ShaderGenerator;
 };
 
+/// Shared pointer to a ShaderStage
 using ShaderStagePtr = std::shared_ptr<ShaderStage>;
 
 /// Utility function for adding a new shader port to a uniform block.

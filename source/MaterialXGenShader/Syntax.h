@@ -6,6 +6,9 @@
 #ifndef MATERIALX_SYNTAX_H
 #define MATERIALX_SYNTAX_H
 
+/// @file
+/// Base class for syntax handling for shader generators
+
 #include <MaterialXCore/Library.h>
 #include <MaterialXCore/Value.h>
 #include <MaterialXCore/Definition.h>
@@ -20,16 +23,28 @@ class Syntax;
 class TypeSyntax;
 class TypeDesc;
 
+/// Shared pointer to a Syntax
 using SyntaxPtr = shared_ptr<Syntax>;
+/// Shared pointer to a constant Syntax
 using ConstSyntaxPtr = shared_ptr<const Syntax>;
+/// Shared pointer to a TypeSyntax
 using TypeSyntaxPtr = shared_ptr<TypeSyntax>;
 
+/// @class Syntax
 /// Base class for syntax objects used by shader generators
 /// to emit code with correcy syntax for each language.
 class Syntax
 {
 public:
     using UniqueNameMap = std::unordered_map<string, size_t>;
+
+    /// Punctuation types
+    enum Punctuation
+    {
+        PARENTHESES,
+        CURLY_BRACKETS,
+        SQUARE_BRACKETS
+    };
 
 public:
     virtual ~Syntax() {}
@@ -162,6 +177,7 @@ private:
     static const string END_MULTI_LINE_COMMENT;
 };
 
+/// @class TypeSyntax
 /// Base class for syntax handling of types.
 class TypeSyntax
 {

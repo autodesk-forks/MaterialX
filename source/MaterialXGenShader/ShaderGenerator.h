@@ -6,6 +6,9 @@
 #ifndef MATERIALX_SHADERGENERATOR_H
 #define MATERIALX_SHADERGENERATOR_H
 
+/// @file
+/// Base shader generator class
+
 #include <MaterialXGenShader/Library.h>
 #include <MaterialXGenShader/ShaderStage.h>
 #include <MaterialXGenShader/Syntax.h>
@@ -17,6 +20,7 @@
 namespace MaterialX
 {
 
+/// @class ShaderGenerator
 /// Base class for shader generators
 /// All 3rd party shader generators should derive from this class.
 /// Derived classes should use DECLARE_SHADER_GENERATOR / DEFINE_SHADER_GENERATOR
@@ -38,7 +42,7 @@ public:
     virtual ShaderPtr generate(const string& name, ElementPtr element, GenContext& context) const = 0;
 
     /// Start a new scope using the given bracket type.
-    virtual void emitScopeBegin(ShaderStage& stage, ShaderStage::Brackets brackets = ShaderStage::Brackets::BRACES) const;
+    virtual void emitScopeBegin(ShaderStage& stage, Syntax::Punctuation punc = Syntax::CURLY_BRACKETS) const;
 
     /// End the current scope.
     virtual void emitScopeEnd(ShaderStage& stage, bool semicolon = false, bool newline = true) const;
@@ -100,18 +104,20 @@ public:
     virtual void emitOutput(const ShaderOutput* output, bool includeType, bool assignValue, GenContext& context, ShaderStage& stage) const;
 
     /// Emit definitions for all shader variables in a block.
-    /// @param stage The stage to emit code into.
     /// @param block Block to emit.
     /// @param qualifier Optional qualifier to add before the variable declaration.
     /// @param separator Separator to use between the declarations.
+    /// @param context Context for generation.
+    /// @param stage The stage to emit code into.
     /// @param assignValue If true the variables are initialized with their value.
     virtual void emitVariableDeclarations(const VariableBlock& block, const string& qualifier, const string& separator, GenContext& context, ShaderStage& stage,
                                           bool assignValue = true) const;
 
     /// Emit definition of a single shader variable.
-    /// @param stage The stage to emit code into.
     /// @param variable Shader port representing the variable.
     /// @param qualifier Optional qualifier to add before the variable declaration.
+    /// @param context Context for generation.
+    /// @param stage The stage to emit code into.
     /// @param assignValue If true the variable is initialized with its value.
     virtual void emitVariableDeclaration(const ShaderPort* variable, const string& qualifier, GenContext& context, ShaderStage& stage,
                                          bool assignValue = true) const;
@@ -144,7 +150,7 @@ public:
     /// The element must be an Implementation or a NodeGraph acting as implementation.
     /// If no registered implementation is found a 'default' implementation instance
     /// will be returned, as defined by the createDefaultImplementation method.
-    ShaderNodeImplPtr getImplementation(GenContext& context, InterfaceElementPtr element) const;
+    ShaderNodeImplPtr getImplementation(const InterfaceElement& element, GenContext& context) const;
 
     /// Given an input specification attempt to remap this to an enumeration which is accepted by
     /// the shader generator. The enumeration may be converted to a different type than the input.
@@ -165,15 +171,15 @@ protected:
     /// Create a source code implementation which is the implementation class to use
     /// for nodes that has no specific C++ implementation registered for it.
     /// Derived classes can override this to use custom source code implementations.
-    virtual ShaderNodeImplPtr createSourceCodeImplementation(ImplementationPtr impl) const;
+    virtual ShaderNodeImplPtr createSourceCodeImplementation(const Implementation& impl) const;
 
     /// Create a compound implementation which is the implementation class to use
     /// for nodes using a nodegraph as their implementation.
     /// Derived classes can override this to use custom compound implementations.
-    virtual ShaderNodeImplPtr createCompoundImplementation(NodeGraphPtr impl) const;
+    virtual ShaderNodeImplPtr createCompoundImplementation(const NodeGraph& impl) const;
 
-    static string SEMICOLON;
-    static string COMMA;
+    static const string SEMICOLON;
+    static const string COMMA;
 
     SyntaxPtr _syntax;
     Factory<ShaderNodeImpl> _implFactory;

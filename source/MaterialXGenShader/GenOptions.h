@@ -6,6 +6,9 @@
 #ifndef MATERIALX_GENOPTIONS_H
 #define MATERIALX_GENOPTIONS_H
 
+/// @file
+/// Shader generation options class
+
 #include <MaterialXCore/Library.h>
 
 namespace MaterialX
@@ -40,6 +43,7 @@ enum HwSpecularEnvironmentMethod
     SPECULAR_ENVIRONMENT_FIS
 };
 
+/// @class GenOptions 
 /// Class holding options to configure shader generation.
 class GenOptions
 {
@@ -75,7 +79,7 @@ class GenOptions
 
     /// Sets the method to use for specular environment 
     /// lighting for HW shader targets.
-    unsigned int hwSpecularEnvironmentMethod;
+    int hwSpecularEnvironmentMethod;
 
     /// Sets the maximum number of light sources that can
     /// be active at once.
