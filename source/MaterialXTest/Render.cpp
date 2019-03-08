@@ -1077,7 +1077,7 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
             options.renderImages = false;
             options.saveImages = false;
         }
-        // Disable saving imsages, if no images are to be produced
+        // Disable saving images, if no images are to be produced
         if (!options.renderImages)
         {
             options.saveImages = false;
@@ -1125,10 +1125,6 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
     {
         profilingLog << "---------------------------------------" << std::endl;
 
-        const std::string OSL_STRING("osl");
-        const std::string GEN_OSL_STRING(mx::OslShaderGenerator::LANGUAGE);
-        const std::string GEN_GLSL_STRING(mx::GlslShaderGenerator::LANGUAGE);
-
         // Get implementation count from libraries. 
         std::set<mx::ImplementationPtr> libraryImpls;
         const std::vector<mx::ElementPtr>& children = dependLib->getChildren();
@@ -1140,11 +1136,11 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
                 continue;
             }
 
-            // Only chekc implementations for languages we're interested in and
+            // Only check implementations for languages we're interested in and
             // are testing.
             // 
-            if ((options.runGLSLTests && impl->getLanguage() == GEN_GLSL_STRING) ||
-                (options.runOSLTests && impl->getLanguage() == GEN_OSL_STRING))
+            if ((options.runGLSLTests && impl->getLanguage() == mx::GlslShaderGenerator::LANGUAGE) ||
+                (options.runOSLTests && impl->getLanguage() == mx::OslShaderGenerator::LANGUAGE))
             {
                 libraryImpls.insert(impl);
             }
