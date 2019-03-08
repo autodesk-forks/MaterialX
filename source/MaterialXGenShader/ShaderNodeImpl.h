@@ -6,13 +6,13 @@
 #ifndef MATERIALX_SHADERNODEIMPL_H
 #define MATERIALX_SHADERNODEIMPL_H
 
-#include <MaterialXCore/Element.h>
-
 #include <MaterialXGenShader/Library.h>
+#include <MaterialXCore/Util.h>
 
 namespace MaterialX
 {
 
+class InterfaceElement;
 using ShaderGraphInputSocket = ShaderOutput;
 
 using ShaderNodeImplPtr = shared_ptr<class ShaderNodeImpl>;
@@ -38,7 +38,7 @@ class ShaderNodeImpl
     virtual const string& getTarget() const { return EMPTY_STRING; }
 
     /// Initialize with the given implementation element.
-    virtual void initialize(ElementPtr implementation, GenContext& context);
+    virtual void initialize(const InterfaceElement& element, GenContext& context);
 
     /// Create shader variables needed for the implementation of this node (e.g. uniforms, inputs and outputs).
     /// Used if the node requires input data from the application.
