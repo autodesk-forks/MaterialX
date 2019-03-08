@@ -127,7 +127,6 @@ Basic vector math function tests each test is in a separate graph for each varia
     </transformvector>
     <output name="out" type="vector3" nodename="transformvector1" />
   </nodegraph>
-  -->
   <nodegraph name="transpose_matrix44" type="" xpos="7.2764" ypos="26.383">
     <position name="position1" type="vector3" xpos="3.41379" ypos="6.94">
       <parameter name="space" type="string" value="object" />
