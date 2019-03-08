@@ -205,15 +205,15 @@ void ShaderStage::endScope(bool semicolon, bool newline)
     switch (punc) {
     case Syntax::CURLY_BRACKETS:
         beginLine();
-        _code += "{" + _syntax->getNewline();
+        _code += "}";
         break;
     case Syntax::PARENTHESES:
         beginLine();
-        _code += "(" + _syntax->getNewline();
+        _code += ")";
         break;
     case Syntax::SQUARE_BRACKETS:
         beginLine();
-        _code += "[" + _syntax->getNewline();
+        _code += "]";
         break;
     }
     if (semicolon)
