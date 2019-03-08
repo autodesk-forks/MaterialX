@@ -150,10 +150,10 @@ public:
     /// the shader generator. The enumeration may be converted to a different type than the input.
     /// @param input Nodedef input potentially holding an enum definition.
     /// @param value The value string to remap.
-    /// @param enumType Enumeration type (returned).
-    /// @return Remapped enumeration value. Null if no remapping is performed.
-    virtual ValuePtr remapEnumeration(const ValueElement& input, const string& value,
-                                      const TypeDesc*& enumType) const;
+    /// @param result Enumeration type and value (returned).
+    /// @return Return true if the remapping was successful.
+    virtual bool remapEnumeration(const ValueElement& input, const string& value,
+                                  std::pair<const TypeDesc*, ValuePtr>& result) const;
 
 protected:
     /// Protected constructor

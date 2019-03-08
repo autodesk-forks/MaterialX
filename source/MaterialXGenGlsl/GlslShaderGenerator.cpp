@@ -646,15 +646,13 @@ ShaderNodeImplPtr GlslShaderGenerator::createCompoundImplementation(NodeGraphPtr
     return HwShaderGenerator::createCompoundImplementation(impl);
 }
 
-ValuePtr GlslShaderGenerator::remapEnumeration(const ValueElement& input, const string& value, const TypeDesc*& enumType) const
+bool GlslShaderGenerator::remapEnumeration(const ValueElement& input, const string& value, std::pair<const TypeDesc*, ValuePtr>& result) const
 {
-    enumType = nullptr;
-
     // Early out if not an enum input.
     const string& enumNames = input.getAttribute(ValueElement::ENUM_ATTRIBUTE);
     if (enumNames.empty())
     {
-        return nullptr;
+        return false;
     }
 
     // Don't convert already supported types
@@ -663,27 +661,28 @@ ValuePtr GlslShaderGenerator::remapEnumeration(const ValueElement& input, const 
     if (_syntax->typeSupported(type) ||
         type == Type::FILENAME || type->isArray())
     {
-        return nullptr;
+        return false;
     }
 
     // For GLSL we always convert to integer,
     // with the integer value being an index into the enumeration.
-    enumType = Type::INTEGER;
+    result.first = Type::INTEGER;
+    result.second = nullptr;
 
-    // Find the return value.
+    // Try remapping to an enum value.
     if (value.size())
     {
         StringVec valueElemEnumsVec = splitString(enumNames, ",");
         auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
-        if (pos != valueElemEnumsVec.end())
+        if (pos == valueElemEnumsVec.end())
         {
-            const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
-            return Value::createValue<int>(index);
+            throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input '" + input.getNamePath() + "'");
         }
+        const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
+        result.second = Value::createValue<int>(index);
     }
-    // If the given value can't be remapped to a valid
-    // enum value it's a user error.
-    throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input '" + input.getNamePath() + "'");
+
+    return true;
 }
 
 const string GlslImplementation::SPACE = "space";

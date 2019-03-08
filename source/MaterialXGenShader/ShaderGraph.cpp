@@ -28,12 +28,11 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& cont
         if (!port->isA<Output>())
         {
             const string& portValue = port->getValueString();
-            const TypeDesc* enumType = nullptr;
-            ValuePtr enumValue = context.getShaderGenerator().remapEnumeration(*port, portValue, enumType);
-            if (enumValue && enumType)
+            std::pair<const TypeDesc*, ValuePtr> enumResult;
+            if (context.getShaderGenerator().remapEnumeration(*port, portValue, enumResult))
             {
-                ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), enumType);
-                inputSocket->setValue(enumValue);
+                ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), enumResult.first);
+                inputSocket->setValue(enumResult.second);
             }
             else
             {
@@ -196,11 +195,10 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
             ValueElementPtr nodeDefSpaceInput = geomNodeDef->getChildOfType<ValueElement>(GeomPropDef::SPACE_ATTRIBUTE);
             if (spaceInput && nodeDefSpaceInput)
             {
-                const TypeDesc* enumType = nullptr;
-                ValuePtr value = context.getShaderGenerator().remapEnumeration(*nodeDefSpaceInput, space, enumType);
-                if (value)
+                std::pair<const TypeDesc*, ValuePtr> enumResult;
+                if (context.getShaderGenerator().remapEnumeration(*nodeDefSpaceInput, space, enumResult))
                 {
-                    spaceInput->setValue(value);
+                    spaceInput->setValue(enumResult.second);
                 }
                 else
                 {

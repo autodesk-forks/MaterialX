@@ -101,7 +101,7 @@ class GlslShaderGenerator : public HwShaderGenerator
 
     /// Given an input specification attempt to remap this to an enumeration which is accepted by
     /// the shader generator. The enumeration may be converted to a different type than the input.
-    ValuePtr remapEnumeration(const ValueElement& input, const string& value, const TypeDesc*& enumType) const override;
+    bool remapEnumeration(const ValueElement& input, const string& value, std::pair<const TypeDesc*, ValuePtr>& result) const override;
 
   public:
     /// Unique identifyer for the glsl language
