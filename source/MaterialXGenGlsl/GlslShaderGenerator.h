@@ -99,15 +99,10 @@ class GlslShaderGenerator : public HwShaderGenerator
     void emitVariableDeclaration(const ShaderPort* variable, const string& qualifier, GenContext& context, ShaderStage& stage,
                                  bool assignValue = true) const override;
 
-    /// Given a element attempt to remap a value to an enumeration which is accepted by
-    /// the shader generator.
-    ValuePtr remapEnumeration(const ValueElementPtr& input, const InterfaceElement& mappingElement, 
-                              const TypeDesc*& enumerationType) const override;
-
-    /// Given a input specification (name, value, type) attempt to remap a value to an enumeration
-    /// which is accepted by the shader generator.
-    ValuePtr remapEnumeration(const string& inputName, const string& inputValue, const string& inputType, 
-                              const InterfaceElement& mappingElement, const TypeDesc*& enumerationType) const override;
+    /// Given an input specification (type and value) attempt to remap this to an enumeration which is accepted by
+    /// the shader generator. The enumeration may be of a different type than the input value type.
+    ValuePtr remapEnumeration(const TypeDesc* inputType, const string& inputValue,
+                              const string& enumValues, const TypeDesc*& enumType) const override;
 
   public:
     /// Unique identifyer for the glsl language
@@ -148,9 +143,9 @@ class GlslImplementation : public ShaderNodeImpl
     // the space enum string in stdlib.
     enum Space
     {
-        MODEL_SPACE,
-        OBJECT_SPACE,
-        WORLD_SPACE
+        MODEL_SPACE  = 0,
+        OBJECT_SPACE = 1,
+        WORLD_SPACE  = 2
     };
 
     /// Internal string constants

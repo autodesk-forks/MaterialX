@@ -29,21 +29,20 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& cont
     {
         if (!port->isA<Output>())
         {
-            ShaderGraphInputSocket* inputSocket = nullptr;
-            const TypeDesc* enumerationType = nullptr;
-            ValuePtr enumValue = shadergen.remapEnumeration(port, elem, enumerationType);
-            if (enumerationType)
+            const TypeDesc* inputType = TypeDesc::get(port->getType());
+            const string& inputValue = port->getValueString();
+            const string& enumNames = port->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+            const TypeDesc* enumType = nullptr;
+            ValuePtr enumValue = shadergen.remapEnumeration(inputType, inputValue, enumNames, enumType);
+            if (enumValue && enumType)
             {
-                inputSocket = addInputSocket(port->getName(), enumerationType);
-                if (enumValue)
-                {
-                    inputSocket->setValue(enumValue);
-                }
+                ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), enumType);
+                inputSocket->setValue(enumValue);
             }
             else
             {
                 const string& elemType = port->getType();
-                inputSocket = addInputSocket(port->getName(), TypeDesc::get(elemType));
+                ShaderGraphInputSocket* inputSocket = addInputSocket(port->getName(), TypeDesc::get(elemType));
                 if (!port->getValueString().empty())
                 {
                     inputSocket->setValue(port->getValue());
@@ -198,15 +197,14 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
         const string& space = geomprop.getSpace();
         if (!space.empty())
         {
-            ShaderInput* spaceInput = geomNodePtr->getInput("space");
-            if (spaceInput)
+            ShaderInput* spaceInput = geomNodePtr->getInput(GeomPropDef::SPACE_ATTRIBUTE);
+            ValueElementPtr nodeDefSpaceInput = geomNodeDef->getChildOfType<ValueElement>(GeomPropDef::SPACE_ATTRIBUTE);
+            if (spaceInput && nodeDefSpaceInput)
             {
-                const TypeDesc* enumerationType = nullptr;
-                const string& inputName("space");
-                const string& inputType("string");
-
+                const string& enumNames = nodeDefSpaceInput->getAttribute(ValueElement::ENUM_ATTRIBUTE);
                 const ShaderGenerator& shadergen = context.getShaderGenerator();
-                ValuePtr value = shadergen.remapEnumeration(inputName, space, inputType, *geomNodeDef, enumerationType);
+                const TypeDesc* enumType = nullptr;
+                ValuePtr value = shadergen.remapEnumeration(Type::STRING, space, enumNames, enumType);
                 if (value)
                 {
                     spaceInput->setValue(value);

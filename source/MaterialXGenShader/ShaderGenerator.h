@@ -146,26 +146,15 @@ public:
     /// will be returned, as defined by the createDefaultImplementation method.
     ShaderNodeImplPtr getImplementation(GenContext& context, InterfaceElementPtr element) const;
 
-    /// Given a input element attempt to remap this to an enumeration which is accepted by
+    /// Given an input specification (type and value) attempt to remap this to an enumeration which is accepted by
     /// the shader generator. The enumeration may be of a different type than the input value type.
-    /// @param input Input value element to test.
-    /// @param mappingElement Element which provides enumeration information for mapping.
-    /// @param enumerationType Enumeration type description (returned).
-    /// @return Enumeration value. Null if no remapping is performed.
-    virtual ValuePtr remapEnumeration(const ValueElementPtr& input, const InterfaceElement& mappingElement,
-                                      const TypeDesc*& enumerationType) const;
-
-    /// Given a input specification (name, value, type) attempt to remap this to an enumeration which is accepted by
-    /// the shader generator. The enumeration may be of a different type than the input value type.
-    /// which is accepted by the shader generator.
-    /// @param inputName Name of input parameter.
-    /// @param inputValue Input value to test.
     /// @param inputType Input type.
-    /// @param mappingElement Element which provides enumeration information for mapping.
-    /// @param enumerationType Enumeration type description (returned).
+    /// @param inputValue Input value.
+    /// @param enumNames Comma seperated list with enum names.
+    /// @param enumType Enumeration type description (returned).
     /// @return Enumeration value. Null if no remapping is performed.
-    virtual ValuePtr remapEnumeration(const string& inputName, const string& inputValue, const string& inputType,
-                                      const InterfaceElement& mappingElement, const TypeDesc*& enumerationType) const;
+    virtual ValuePtr remapEnumeration(const TypeDesc* inputType, const string& inputValue,
+                                      const string& enumNames, const TypeDesc*& enumType) const;
 
 protected:
     /// Protected constructor

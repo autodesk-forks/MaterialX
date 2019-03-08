@@ -204,33 +204,31 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
     }
 
     // Create interface from nodedef
-    const vector<ValueElementPtr> nodeDefInputs = nodeDef.getChildrenOfType<ValueElement>();
-    for (const ValueElementPtr& elem : nodeDefInputs)
+    const vector<ValueElementPtr> nodeDefPorts = nodeDef.getChildrenOfType<ValueElement>();
+    for (const ValueElementPtr& port : nodeDefPorts)
     {
-        if (elem->isA<Output>())
+        const TypeDesc* portType = TypeDesc::get(port->getType());
+        if (port->isA<Output>())
         {
-            newNode->addOutput(elem->getName(), TypeDesc::get(elem->getType()));
+            newNode->addOutput(port->getName(), portType);
         }
         else
         {
-            ShaderInput* input = nullptr;
-            const TypeDesc* enumerationType = nullptr;
-            ValuePtr enumValue = shadergen.remapEnumeration(elem, nodeDef, enumerationType);
-            if (enumerationType)
+            const string& portValue = port->getValueString();
+            const string& enumNames = port->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+            const TypeDesc* enumType = nullptr;
+            ValuePtr enumValue = shadergen.remapEnumeration(portType, portValue, enumNames, enumType);
+            if (enumType && enumValue)
             {
-                input = newNode->addInput(elem->getName(), enumerationType);
-                if (enumValue)
-                {
-                    input->setValue(enumValue);
-                }
+                ShaderInput* input = newNode->addInput(port->getName(), enumType);
+                input->setValue(enumValue);
             }
             else
             {
-                const TypeDesc* elemTypeDesc = TypeDesc::get(elem->getType());
-                input = newNode->addInput(elem->getName(), elemTypeDesc);
-                if (!elem->getValueString().empty())
+                ShaderInput* input = newNode->addInput(port->getName(), portType);
+                if (!portValue.empty())
                 {
-                    input->setValue(elem->getValue());
+                    input->setValue(port->getValue());
                 }
             }
         }
@@ -376,12 +374,14 @@ void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, GenContext&
     const vector<ValueElementPtr> nodeValues = node.getChildrenOfType<ValueElement>();
     for (const ValueElementPtr& nodeValue : nodeValues)
     {
-        const string& valueString = nodeValue->getValueString();
         ShaderInput* input = getInput(nodeValue->getName());
-        if (input)
+        ValueElementPtr nodeDefInput = nodeDef.getChildOfType<ValueElement>(nodeValue->getName());
+        if (input && nodeDefInput)
         {
-            const TypeDesc* enumerationType = nullptr;
-            ValuePtr value = context.getShaderGenerator().remapEnumeration(nodeValue, nodeDef, enumerationType);
+            const string& valueString = nodeValue->getValueString();
+            const string& enumNames = nodeDefInput->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+            const TypeDesc* enumType = nullptr;
+            ValuePtr value = context.getShaderGenerator().remapEnumeration(input->getType(), valueString, enumNames, enumType);
             if (value)
             {
                 input->setValue(value);
