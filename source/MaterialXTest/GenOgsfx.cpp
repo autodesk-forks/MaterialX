@@ -89,8 +89,6 @@ TEST_CASE("OGSFX Unique Names", "[genogsfx]")
 class OGSFXGenCodeGenerationTester : public GLSLGenCodeGenerationTester
 {
 public:
-    using ParentClass = GLSLGenCodeGenerationTester;
-
     OGSFXGenCodeGenerationTester(const mx::FilePath& testRootPath, const mx::FilePath& libSearchPath,
                                  const mx::FileSearchPath& srcSearchPath, const mx::FilePath& logFilePath)
         : GLSLGenCodeGenerationTester(testRootPath, libSearchPath, srcSearchPath, logFilePath)
