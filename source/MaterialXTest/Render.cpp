@@ -94,7 +94,7 @@ static mx::GlslValidatorPtr createGLSLValidator(const std::string& fileName, std
         std::string geometryFile;
         if (fileName.length())
         {
-            geometryFile =  mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/") / mx::FilePath(fileName);
+            geometryFile =  mx::FilePath::getCurrentPath() / mx::FilePath("documents/Resources/Geometry/") / mx::FilePath(fileName);
             if (!geometryHandler.hasGeometry(geometryFile))
             {
                 geometryHandler.clearGeometry();
@@ -595,7 +595,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     {
                         if (!testOptions.glslShaderGeometry.isAbsolute())
                         {
-                            geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry") / testOptions.glslShaderGeometry;
+                            geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Resources/Geometry") / testOptions.glslShaderGeometry;
                         }
                         else
                         {
@@ -604,7 +604,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     }
                     else
                     {
-                        geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/shaderball.obj");
+                        geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Resources/Geometry/shaderball.obj");
                     }
                     if (!geomHandler.hasGeometry(geomPath))
                     {
@@ -620,7 +620,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     {
                         if (!testOptions.glslNonShaderGeometry.isAbsolute())
                         {
-                            geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry") / testOptions.glslNonShaderGeometry;
+                            geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Resources/Geometry") / testOptions.glslNonShaderGeometry;
                         }
                         else
                         {
@@ -629,7 +629,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     }
                     else
                     {
-                        geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Geometry/sphere.obj");
+                        geomPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Resources/Geometry/sphere.obj");
                     }
                     if (!geomHandler.hasGeometry(geomPath))
                     {
