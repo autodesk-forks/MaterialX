@@ -28,32 +28,22 @@ public:
     /// and a creator function for the class.
     static void registerClass(const string& typeName, CreatorFunction f)
     {
-        creatorMap()[typeName] = f;
+        _creatorMap[typeName] = f;
     }
 
     /// Determine if a class has been registered for a type name
     static bool classRegistered(const string& typeName)
     {
-        CreatorMap& map = creatorMap();
-        return map.find(typeName) != map.end();
+        return _creatorMap.find(typeName) != _creatorMap.end();
     }
 
     /// Unregister a registered class
     static void unregisterClass(const string& typeName)
     {
-        CreatorMap& map = creatorMap();
-        auto it = map.find(typeName);
-        if (it != map.end())
+        auto it = _creatorMap.find(typeName);
+        if (it != _creatorMap.end())
         {
-            map.erase(it);
-        }
-    }
-
-    static void unregisterClasses(vector<string>& registeredImplNames)
-    {
-        for (string registeredImplName : registeredImplNames)
-        {
-            unregisterClass(registeredImplName);
+            _creatorMap.erase(it);
         }
     }
 
@@ -61,18 +51,17 @@ public:
     /// Returns nullptr if no class with given name is registered.
     static Ptr create(const string& typeName)
     {
-        CreatorMap& map = creatorMap();
-        auto it = map.find(typeName);
-        return (it != map.end() ? it->second() : nullptr);
+        auto it = _creatorMap.find(typeName);
+        return (it != _creatorMap.end() ? it->second() : nullptr);
     }
 
 private:
-    static CreatorMap& creatorMap()
-    {
-        static CreatorMap s_creatorMap;
-        return s_creatorMap;
-    }
+    static CreatorMap _creatorMap;
 };
+
+/// Macro for instantiation of a factory for given class T.
+#define INSTANTIATE_FACTORY(T) \
+template<> Factory<T>::CreatorMap Factory<T>::_creatorMap;
 
 } // namespace MaterialX
 

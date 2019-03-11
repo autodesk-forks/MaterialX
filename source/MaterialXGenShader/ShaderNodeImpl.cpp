@@ -11,6 +11,8 @@
 namespace MaterialX
 {
 
+INSTANTIATE_FACTORY(ShaderNodeImpl)
+
 void ShaderNodeImpl::initialize(const InterfaceElement&, GenContext&)
 {
 }

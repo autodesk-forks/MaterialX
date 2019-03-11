@@ -39,14 +39,20 @@ void ColorManagementSystem::registerImplementation(const ColorSpaceTransform& tr
 void  ColorManagementSystem::setConfigFile(const string& configFile)
 {
     _configFile = configFile;
-    _implFactory.unregisterClasses(_registeredImplNames);
+    for (const string& name : _registeredImplNames)
+    {
+        _implFactory.unregisterClass(name);
+    }
     _registeredImplNames.clear();
 }
 
 void ColorManagementSystem::loadLibrary(DocumentPtr document)
 {
     _document = document;
-    _implFactory.unregisterClasses(_registeredImplNames);
+    for (const string& name : _registeredImplNames)
+    {
+        _implFactory.unregisterClass(name);
+    }
     _registeredImplNames.clear();
 }
 
