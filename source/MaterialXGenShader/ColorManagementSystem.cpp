@@ -31,34 +31,23 @@ ColorManagementSystem::ColorManagementSystem(const string& configFile)
 
 void ColorManagementSystem::registerImplementation(const ColorSpaceTransform& transform, CreatorFunction<ShaderNodeImpl> creator)
 {
-    string implName = getImplementationName(transform);
+    const string implName = getImplementationName(transform);
     _implFactory.registerClass(implName, creator);
-    _registeredImplNames.push_back(implName);
 }
 
 void  ColorManagementSystem::setConfigFile(const string& configFile)
 {
     _configFile = configFile;
-    for (const string& name : _registeredImplNames)
-    {
-        _implFactory.unregisterClass(name);
-    }
-    _registeredImplNames.clear();
 }
 
 void ColorManagementSystem::loadLibrary(DocumentPtr document)
 {
     _document = document;
-    for (const string& name : _registeredImplNames)
-    {
-        _implFactory.unregisterClass(name);
-    }
-    _registeredImplNames.clear();
 }
 
 bool ColorManagementSystem::supportsTransform(const ColorSpaceTransform& transform) const
 {
-    string implName = getImplementationName(transform);
+    const string implName = getImplementationName(transform);
     ImplementationPtr impl = _document->getImplementation(implName);
     return impl != nullptr;
 }
@@ -66,7 +55,7 @@ bool ColorManagementSystem::supportsTransform(const ColorSpaceTransform& transfo
 ShaderNodePtr ColorManagementSystem::createNode(const ShaderGraph* parent, const ColorSpaceTransform& transform, const string& name, 
                                                 GenContext& context) const
 {
-    string implName = getImplementationName(transform);
+    const string implName = getImplementationName(transform);
     ImplementationPtr impl = _document->getImplementation(implName);
     if (!impl)
     {

@@ -76,6 +76,9 @@ class ColorManagementSystem
     ShaderNodePtr createNode(const ShaderGraph* parent, const ColorSpaceTransform& transform, const string& name,
                              GenContext& context) const;
 
+    /// Register a node implementation for a given color space transformation.
+    void registerImplementation(const ColorSpaceTransform& transform, CreatorFunction<ShaderNodeImpl> creator);
+
   protected:
     /// Protected constructor
     ColorManagementSystem(const string& configFile);
@@ -83,11 +86,7 @@ class ColorManagementSystem
     /// Returns an implementation name for a given transform
     virtual string getImplementationName(const ColorSpaceTransform& transform) const = 0;
 
-    /// Register a node implementation for a given color space transformation.
-    void registerImplementation(const ColorSpaceTransform& transform, CreatorFunction<ShaderNodeImpl> creator);
-
     Factory<ShaderNodeImpl> _implFactory;
-    vector<string> _registeredImplNames;
     string _configFile;
     DocumentPtr _document;
 };

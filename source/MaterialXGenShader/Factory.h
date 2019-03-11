@@ -26,19 +26,19 @@ public:
 
     /// Register a new class given a unique type name
     /// and a creator function for the class.
-    static void registerClass(const string& typeName, CreatorFunction f)
+    void registerClass(const string& typeName, CreatorFunction f)
     {
         _creatorMap[typeName] = f;
     }
 
     /// Determine if a class has been registered for a type name
-    static bool classRegistered(const string& typeName)
+    bool classRegistered(const string& typeName) const
     {
         return _creatorMap.find(typeName) != _creatorMap.end();
     }
 
     /// Unregister a registered class
-    static void unregisterClass(const string& typeName)
+    void unregisterClass(const string& typeName)
     {
         auto it = _creatorMap.find(typeName);
         if (it != _creatorMap.end())
@@ -49,19 +49,15 @@ public:
 
     /// Create a new instance of the class with given type name.
     /// Returns nullptr if no class with given name is registered.
-    static Ptr create(const string& typeName)
+    Ptr create(const string& typeName) const
     {
         auto it = _creatorMap.find(typeName);
         return (it != _creatorMap.end() ? it->second() : nullptr);
     }
 
 private:
-    static CreatorMap _creatorMap;
+    CreatorMap _creatorMap;
 };
-
-/// Macro for instantiation of a factory for given class T.
-#define INSTANTIATE_FACTORY(T) \
-template<> Factory<T>::CreatorMap Factory<T>::_creatorMap;
 
 } // namespace MaterialX
 
