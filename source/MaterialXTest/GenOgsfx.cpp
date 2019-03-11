@@ -113,6 +113,16 @@ public:
         _testStages.push_back(mx::Stage::VERTEX);
         _testStages.push_back(mx::Stage::PIXEL);
     }
+
+    void setupDependentLibraries() override
+    {
+        ParentClass::setupDependentLibraries();
+
+        mx::FilePath lightDir = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/Lights");
+        GenShaderUtil::loadLibrary(lightDir / mx::FilePath("lightcompoundtest.mtlx"), _dependLib);
+        GenShaderUtil::loadLibrary(lightDir / mx::FilePath("lightcompoundtest_ng.mtlx"), _dependLib);
+        GenShaderUtil::loadLibrary(lightDir / mx::FilePath("light_rig.mtlx"), _dependLib);
+    }
 };
 
 static void generateOGSFXCode()

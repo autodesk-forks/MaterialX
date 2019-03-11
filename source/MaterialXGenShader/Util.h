@@ -19,6 +19,7 @@ namespace MaterialX
 {
 
 class ShaderGenerator;
+class GenContext;
 
 /// Make the directory with the given path if it doesn't already exist
 void makeDirectory(const std::string& directoryPath);
@@ -86,6 +87,17 @@ ValueElementPtr findNodeDefChild(const string& path, DocumentPtr doc, const stri
 // From a set of nodes, create a mapping of nodedef identifiers to numbers
 void mapNodeDefToIdentiers(const std::vector<NodePtr>& nodes,
                            std::unordered_map<string, unsigned int>& ids);
+
+/// Find lights to use based on an input document
+/// @param doc Document to scan for lights
+/// @param lights List of lights found in document
+void findLights(DocumentPtr doc, std::vector<NodePtr>& lights);
+
+/// Register light node definitions and light count with a given generation context
+/// @param doc Document containing light nodes and definitions
+/// @lights lights to register
+/// @context context Context to update
+void registerLights(DocumentPtr doc, const std::vector<NodePtr>& lights, GenContext& context);
 
 /// Set of possible UI properties for an element 
 struct UIProperties

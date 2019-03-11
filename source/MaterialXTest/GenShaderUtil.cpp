@@ -7,6 +7,7 @@
 #include <MaterialXTest/GenShaderUtil.h>
 
 #include <MaterialXGenShader/Shader.h>
+#include <MaterialXGenShader/Util.h>
 
 namespace mx = MaterialX;
 
@@ -64,34 +65,6 @@ bool getShaderSource(mx::GenContext& context,
         return mx::readFile(resolvedPath.asString(), sourceContents);
     }
     return false;
-}
-
-void registerLightType(mx::DocumentPtr doc, mx::GenContext& context)
-{
-    // Scan for lights
-    std::vector<mx::NodePtr> lights;
-    for (mx::NodePtr node : doc->getNodes())
-    {
-        const mx::TypeDesc* type = mx::TypeDesc::get(node->getType());
-        if (type == mx::Type::LIGHTSHADER)
-        {
-            lights.push_back(node);
-        }
-    }
-    if (!lights.empty())
-    {
-        // Create a list of unique nodedefs and ids for them
-        std::unordered_map<std::string, unsigned int> identifiers;
-        mx::mapNodeDefToIdentiers(lights, identifiers);
-        for (auto id : identifiers)
-        {
-            mx::NodeDefPtr nodeDef = doc->getNodeDef(id.first);
-            if (nodeDef)
-            {
-                mx::HwShaderGenerator::bindLightShader(*nodeDef, id.second, context);
-            }
-        }
-    }
 }
 
 // Check that implementations exist for all nodedefs supported per generator
@@ -341,7 +314,7 @@ void testUniqueNames(mx::GenContext& context, const std::string& stage)
 }
 
 bool generateCode(mx::GenContext& context, const std::string& shaderName, mx::TypedElementPtr element,
-                  std::ostream& log, std::vector<std::string>testStages)
+                  std::ostream& log, std::vector<std::string>testStages, std::vector<std::string>& sourceCode)
 {
     mx::ShaderPtr shader = nullptr;
     try
@@ -363,7 +336,8 @@ bool generateCode(mx::GenContext& context, const std::string& shaderName, mx::Ty
     bool stageFailed = false;
     for (auto stage : testStages)
     {
-        bool noSource = shader->getSourceCode(stage).empty();
+        sourceCode.push_back(shader->getSourceCode(stage));
+        bool noSource = sourceCode[sourceCode.size()-1].empty();
         CHECK(!noSource);
         if (noSource)
         {
@@ -465,6 +439,10 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
         // Add in dependent libraries
         doc->importLibrary(_dependLib, &importOptions);
 
+        // Find and register lights
+        mx::findLights(doc, _lights);
+        mx::registerLights(doc, _lights, context);
+
         // Find elements to render in the document
         std::vector<mx::TypedElementPtr> elements;
         try
@@ -527,7 +505,8 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
                 if (impl)
                 {
                     _logFile << "------------ Run validation with element: " << namePath << "------------" << std::endl;
-                    bool generatedCode = GenShaderUtil::generateCode(context, elementName, element, _logFile, _testStages);
+                    std::vector<std::string> sourceCode;
+                    bool generatedCode = GenShaderUtil::generateCode(context, elementName, element, _logFile, _testStages, sourceCode);
                     CHECK(generatedCode);
                 }
                 else

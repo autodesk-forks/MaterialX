@@ -57,37 +57,11 @@ void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::G
 {
     // Scan for lights
     std::vector<mx::NodePtr> lights;
-    for (mx::NodePtr node : doc->getNodes())
-    {
-        const mx::TypeDesc* type = mx::TypeDesc::get(node->getType());
-        if (type == mx::Type::LIGHTSHADER)
-        {
-            lights.push_back(node);
-        }
-    }
-    if (!lights.empty())
-    {
-        // Set the list of lights on the with the generator
-        lightHandler.setLightSources(lights);
+    mx::findLights(doc, lights);
+    mx::registerLights(doc, lights, context);
 
-        // Find light types (node definitions) and generate ids.
-        // Register types and ids with the generator
-        std::unordered_map<std::string, unsigned int> identifiers;
-        mx::mapNodeDefToIdentiers(lights, identifiers);
-        for (auto id : identifiers)
-        {
-            mx::NodeDefPtr nodeDef = doc->getNodeDef(id.first);
-            if (nodeDef)
-            {
-                mx::HwShaderGenerator::bindLightShader(*nodeDef, id.second, context);
-            }
-        }
-    }
-
-    // Clamp the number of light sources to the number found
-    unsigned int lightSourceCount = static_cast<unsigned int>(lightHandler.getLightSources().size());
-    context.getOptions().hwMaxActiveLightSources = lightSourceCount;
-
+    // Set the list of lights on the with the generator
+    lightHandler.setLightSources(lights);
     // Set up IBL inputs
     lightHandler.setLightEnvIrradiancePath(envIrradiancePath);
     lightHandler.setLightEnvRadiancePath(envRadiancePath);

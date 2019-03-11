@@ -46,20 +46,17 @@ namespace GenShaderUtil
                          mx::FilePath& resolvedPath,
                          std::string& sourceContents);
 
-    // Find all light shaders in a document and register them with a hardware shader generator
-    void registerLightType(mx::DocumentPtr doc, mx::GenContext& context);
-
-    // Check that implementations exist for all nodedefs supported per generator
-    void checkImplementations(mx::GenContext& context, 
-                              const std::set<std::string>& generatorSkipNodeTypes,
-                              const std::set<std::string>& generatorSkipNodeDefs);
-
-    // Utility test to  check unique name generation on a shader generator
-    void testUniqueNames(mx::GenContext& context, const std::string& stage);
-
     // Test code generation for a given element
     bool generateCode(mx::GenContext& context, const std::string& shaderName, mx::TypedElementPtr element,
                       std::ostream& log, std::vector<std::string>testStages);
+
+    // Check that implementations exist for all nodedefs supported per generator
+    void checkImplementations(mx::GenContext& context,
+        const std::set<std::string>& generatorSkipNodeTypes,
+        const std::set<std::string>& generatorSkipNodeDefs);
+
+    // Utility test to  check unique name generation on a shader generator
+    void testUniqueNames(mx::GenContext& context, const std::string& stage);
 
     // Utility class to handle testing of shader generators.
     // Currently only tests source code generation.
@@ -94,8 +91,13 @@ namespace GenShaderUtil
         // Add nodedefs to not examine
         virtual void addSkipNodeDefs();
 
-        void addColorManagement();
-        void setupDependentLibraries();
+        // Add color management
+        virtual void addColorManagement();
+
+        // Load in dependent libraries
+        virtual void setupDependentLibraries();
+
+        // Run test for source code generation
         void testGeneration(const mx::GenOptions& generateOptions);
 
     protected:
@@ -116,6 +118,8 @@ namespace GenShaderUtil
 
         std::set<std::string> _skipNodeDefs;
         std::vector<std::string> _testStages;
+
+        std::vector<mx::NodePtr> _lights;
     };
 }
 

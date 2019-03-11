@@ -4,10 +4,12 @@
 //
 
 #include <MaterialXFormat/XmlIo.h>
+#include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Util.h>
 #include <MaterialXGenShader/ShaderNode.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
+#include <MaterialXGenShader/HwShaderGenerator.h>
 
 #include <MaterialXCore/Util.h>
 
@@ -837,6 +839,46 @@ void mapNodeDefToIdentiers(const std::vector<NodePtr>& nodes,
             }
         }
     }
+}
+
+void findLights(DocumentPtr doc, std::vector<NodePtr>& lights)
+{
+    lights.clear();
+    for (NodePtr node : doc->getNodes())
+    {
+        const TypeDesc* type = TypeDesc::get(node->getType());
+        if (type == Type::LIGHTSHADER)
+        {
+            lights.push_back(node);
+        }
+    }
+}
+
+void registerLights(DocumentPtr doc, const std::vector<NodePtr>& lights, GenContext& context)
+{
+    // Clear context light user data which is set when bindLightShader() 
+    // is called. This is necessary in case the light types have already been
+    // registered.
+    context.popUserData(HW::USER_DATA_LIGHT_SHADERS);
+
+    if (!lights.empty())
+    {
+        // Create a list of unique nodedefs and ids for them
+        std::unordered_map<std::string, unsigned int> identifiers;
+        mapNodeDefToIdentiers(lights, identifiers);
+        for (auto id : identifiers)
+        {
+            NodeDefPtr nodeDef = doc->getNodeDef(id.first);
+            if (nodeDef)
+            {
+                HwShaderGenerator::bindLightShader(*nodeDef, id.second, context);
+            }
+        }
+    }
+
+    // Clamp the number of light sources to the number registered
+    unsigned int lightSourceCount = static_cast<unsigned int>(lights.size());
+    context.getOptions().hwMaxActiveLightSources = lightSourceCount;
 }
 
 } // namespace MaterialX
