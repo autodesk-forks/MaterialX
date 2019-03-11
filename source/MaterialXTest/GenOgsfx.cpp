@@ -13,6 +13,7 @@
 #include <MaterialXGenOgsFx/MayaGlslPluginShaderGenerator.h>
 
 #include <MaterialXTest/GenShaderUtil.h>
+#include <MaterialXTest/GenGlsl.h>
 
 namespace mx = MaterialX;
 
@@ -85,43 +86,20 @@ TEST_CASE("OGSFX Unique Names", "[genogsfx]")
     GenShaderUtil::testUniqueNames(context, mx::HW::FX_STAGE);
 }
 
-class OGSFXGenCodeGenerationTester : public GenShaderUtil::ShaderGeneratorTester
+class OGSFXGenCodeGenerationTester : public GLSLGenCodeGenerationTester
 {
 public:
-    using ParentClass = GenShaderUtil::ShaderGeneratorTester;
+    using ParentClass = GLSLGenCodeGenerationTester;
 
     OGSFXGenCodeGenerationTester(const mx::FilePath& testRootPath, const mx::FilePath& libSearchPath,
                                  const mx::FileSearchPath& srcSearchPath, const mx::FilePath& logFilePath)
-        : GenShaderUtil::ShaderGeneratorTester(testRootPath, libSearchPath, srcSearchPath, logFilePath)
+        : GLSLGenCodeGenerationTester(testRootPath, libSearchPath, srcSearchPath, logFilePath)
     {}
 
+    // Only the generator differs for now between OGSFX and GLSL testers
     void createGenerator() override
     {
         _shaderGenerator = mx::OgsFxShaderGenerator::create();
-    }
-
-    void addSkipNodeDefs() override
-    {
-        _skipNodeDefs.insert("ND_add_surfaceshader");
-        _skipNodeDefs.insert("ND_multiply_surfaceshaderF");
-        _skipNodeDefs.insert("ND_multiply_surfaceshaderC");
-        _skipNodeDefs.insert("ND_mix_surfaceshader");
-    }
-
-    void setTestStages() override
-    {
-        _testStages.push_back(mx::Stage::VERTEX);
-        _testStages.push_back(mx::Stage::PIXEL);
-    }
-
-    void setupDependentLibraries() override
-    {
-        ParentClass::setupDependentLibraries();
-
-        mx::FilePath lightDir = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/Lights");
-        GenShaderUtil::loadLibrary(lightDir / mx::FilePath("lightcompoundtest.mtlx"), _dependLib);
-        GenShaderUtil::loadLibrary(lightDir / mx::FilePath("lightcompoundtest_ng.mtlx"), _dependLib);
-        GenShaderUtil::loadLibrary(lightDir / mx::FilePath("light_rig.mtlx"), _dependLib);
     }
 };
 

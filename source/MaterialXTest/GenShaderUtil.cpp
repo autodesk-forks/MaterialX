@@ -337,7 +337,7 @@ bool generateCode(mx::GenContext& context, const std::string& shaderName, mx::Ty
     for (auto stage : testStages)
     {
         sourceCode.push_back(shader->getSourceCode(stage));
-        bool noSource = sourceCode[sourceCode.size()-1].empty();
+        bool noSource = sourceCode.size() > 0 ? sourceCode[sourceCode.size()-1].empty() : true;
         CHECK(!noSource);
         if (noSource)
         {
