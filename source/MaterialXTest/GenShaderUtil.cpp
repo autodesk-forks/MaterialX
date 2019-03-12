@@ -313,8 +313,8 @@ void testUniqueNames(mx::GenContext& context, const std::string& stage)
     REQUIRE(sgNode1->getOutput()->getVariable() == "unique_names_out");
 }
 
-bool generateCode(mx::GenContext& context, const std::string& shaderName, mx::TypedElementPtr element,
-                  std::ostream& log, mx::StringVec testStages, mx::StringVec& sourceCode)
+bool ShaderGeneratorTester::generateCode(mx::GenContext& context, const std::string& shaderName, mx::TypedElementPtr element,
+                                         std::ostream& log, mx::StringVec testStages, mx::StringVec& sourceCode)
 {
     mx::ShaderPtr shader = nullptr;
     try
@@ -336,8 +336,9 @@ bool generateCode(mx::GenContext& context, const std::string& shaderName, mx::Ty
     bool stageFailed = false;
     for (auto stage : testStages)
     {
-        sourceCode.push_back(shader->getSourceCode(stage));
-        bool noSource = sourceCode.size() > 0 ? sourceCode[sourceCode.size()-1].empty() : true;
+        const std::string& code = shader->getSourceCode(stage);
+        sourceCode.push_back(code);
+        bool noSource = code.empty();
         CHECK(!noSource);
         if (noSource)
         {

@@ -48,7 +48,7 @@ namespace GenShaderUtil
 
     // Test code generation for a given element
     bool generateCode(mx::GenContext& context, const std::string& shaderName, mx::TypedElementPtr element,
-                      std::ostream& log, mx::StringVec testStages);
+                      std::ostream& log, mx::StringVec testStages, mx::StringVec& sourceCode);
 
     // Check that implementations exist for all nodedefs supported per generator
     void checkImplementations(mx::GenContext& context,
@@ -106,6 +106,10 @@ namespace GenShaderUtil
 
         // Register light node definitions and light count with a given generation context
         virtual void registerLights(mx::DocumentPtr doc, const std::vector<mx::NodePtr>& lights, mx::GenContext& context);
+
+        // Generate source code for a given element and check that code was produced.
+        bool generateCode(mx::GenContext& context, const std::string& shaderName, mx::TypedElementPtr element,
+                          std::ostream& log, mx::StringVec testStages, mx::StringVec& sourceCode);
 
         // Run test for source code generation
         void testGeneration(const mx::GenOptions& generateOptions);

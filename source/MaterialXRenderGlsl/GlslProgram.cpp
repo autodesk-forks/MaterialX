@@ -714,7 +714,7 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
         {
             continue;
         }
-        string nodeDefName = nodeDef->getName();
+        const string& nodeDefName = nodeDef->getName();
         const string prefix = "u_lightData[" + std::to_string(index) + "]";
 
         // Set light type id

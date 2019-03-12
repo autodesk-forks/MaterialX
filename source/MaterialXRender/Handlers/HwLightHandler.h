@@ -44,7 +44,7 @@ public:
         return _lightSources;
     }
 
-    /// Get a list of identifiers assocaited with a given light nodedef
+    /// Get a list of identifiers associated with a given light nodedef
     const std::unordered_map<string, unsigned int>& getLightIdentifierMap() const
     {
         return _lightIdentifierMap;
