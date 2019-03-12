@@ -25,7 +25,7 @@ void loadLibrary(const mx::FilePath& file, mx::DocumentPtr doc)
 }
 
 void loadLibraries(const mx::StringVec& libraryNames, const mx::FilePath& searchPath, mx::DocumentPtr doc,
-                   const std::set<std::string>* excludeFiles)
+                   const mx::StringSet* excludeFiles)
 {
     const std::string MTLX_EXTENSION("mtlx");
     for (const std::string& library : libraryNames)
@@ -69,8 +69,8 @@ bool getShaderSource(mx::GenContext& context,
 
 // Check that implementations exist for all nodedefs supported per generator
 void checkImplementations(mx::GenContext& context,
-                          const std::set<std::string>& generatorSkipNodeTypes,
-                          const std::set<std::string>& generatorSkipNodeDefs)
+                          const mx::StringSet& generatorSkipNodeTypes,
+                          const mx::StringSet& generatorSkipNodeDefs)
 {
     mx::DocumentPtr doc = mx::createDocument();
 
@@ -92,7 +92,7 @@ void checkImplementations(mx::GenContext& context,
     const std::string& target = shadergen.getTarget();
 
     // Node types to explicitly skip temporarily.
-    std::set<std::string> skipNodeTypes =
+    mx::StringSet skipNodeTypes =
     {
         "ambientocclusion",
         "arrayappend",
@@ -101,7 +101,7 @@ void checkImplementations(mx::GenContext& context,
     skipNodeTypes.insert(generatorSkipNodeTypes.begin(), generatorSkipNodeTypes.end());
 
     // Explicit set of node defs to skip temporarily
-    std::set<std::string> skipNodeDefs =
+    mx::StringSet skipNodeDefs =
     {
         "ND_add_displacementshader",
         "ND_add_volumeshader",
@@ -314,7 +314,7 @@ void testUniqueNames(mx::GenContext& context, const std::string& stage)
 }
 
 bool generateCode(mx::GenContext& context, const std::string& shaderName, mx::TypedElementPtr element,
-                  std::ostream& log, std::vector<std::string>testStages, std::vector<std::string>& sourceCode)
+                  std::ostream& log, mx::StringVec testStages, mx::StringVec& sourceCode)
 {
     mx::ShaderPtr shader = nullptr;
     try
@@ -395,6 +395,65 @@ void ShaderGeneratorTester::addSkipNodeDefs()
 {
 }
 
+
+void mapNodeDefToIdentiers(const std::vector<mx::NodePtr>& nodes,
+                           std::unordered_map<std::string, unsigned int>& ids)
+{
+    unsigned int id = 1;
+    for (auto node : nodes)
+    {
+        auto nodedef = node->getNodeDef();
+        if (nodedef)
+        {
+            const std::string& name = nodedef->getName();
+            if (!ids.count(name))
+            {
+                ids[name] = id++;
+            }
+        }
+    }
+}
+
+void findLights(mx::DocumentPtr doc, std::vector<mx::NodePtr>& lights)
+{
+    lights.clear();
+    for (mx::NodePtr node : doc->getNodes())
+    {
+        const mx::TypeDesc* type = mx::TypeDesc::get(node->getType());
+        if (type == mx::Type::LIGHTSHADER)
+        {
+            lights.push_back(node);
+        }
+    }
+}
+
+void registerLights(mx::DocumentPtr doc, const std::vector<mx::NodePtr>& lights, std::unordered_map<std::string, unsigned int>& identifiers, 
+                    mx::GenContext& context)
+{
+    // Clear context light user data which is set when bindLightShader() 
+    // is called. This is necessary in case the light types have already been
+    // registered.
+    context.popUserData(mx::HW::USER_DATA_LIGHT_SHADERS);
+
+    if (!lights.empty())
+    {
+        // Create a list of unique nodedefs and ids for them
+        mapNodeDefToIdentiers(lights, identifiers);
+        for (auto id : identifiers)
+        {
+            mx::NodeDefPtr nodeDef = doc->getNodeDef(id.first);
+            if (nodeDef)
+            {
+                mx::HwShaderGenerator::bindLightShader(*nodeDef, id.second, context);
+            }
+        }
+    }
+
+    // Clamp the number of light sources to the number registered
+    unsigned int lightSourceCount = static_cast<unsigned int>(lights.size());
+    context.getOptions().hwMaxActiveLightSources = lightSourceCount;
+}
+
 void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions)
 {
     // Start logging
@@ -440,8 +499,8 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
         doc->importLibrary(_dependLib, &importOptions);
 
         // Find and register lights
-        mx::findLights(doc, _lights);
-        mx::registerLights(doc, _lights, context);
+        findLights(doc, _lights);
+        registerLights(doc, _lights, _lightIdentifierMap, context);
 
         // Find elements to render in the document
         std::vector<mx::TypedElementPtr> elements;
@@ -505,7 +564,7 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
                 if (impl)
                 {
                     _logFile << "------------ Run validation with element: " << namePath << "------------" << std::endl;
-                    std::vector<std::string> sourceCode;
+                    mx::StringVec sourceCode;
                     bool generatedCode = GenShaderUtil::generateCode(context, elementName, element, _logFile, _testStages, sourceCode);
                     CHECK(generatedCode);
                 }
