@@ -433,7 +433,7 @@ void ShaderGeneratorTester::registerLights(mx::DocumentPtr doc, const std::vecto
     // Clear context light user data which is set when bindLightShader() 
     // is called. This is necessary in case the light types have already been
     // registered.
-    context.popUserData(mx::HW::USER_DATA_LIGHT_SHADERS);
+    mx::HwShaderGenerator::unbindLightShaders(context);
 
     if (!lights.empty())
     {
@@ -565,7 +565,7 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
                 {
                     _logFile << "------------ Run validation with element: " << namePath << "------------" << std::endl;
                     mx::StringVec sourceCode;
-                    bool generatedCode = GenShaderUtil::generateCode(context, elementName, element, _logFile, _testStages, sourceCode);
+                    bool generatedCode = generateCode(context, elementName, element, _logFile, _testStages, sourceCode);
                     CHECK(generatedCode);
                 }
                 else

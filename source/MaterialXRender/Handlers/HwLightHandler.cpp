@@ -59,7 +59,7 @@ void HwLightHandler::registerLights(DocumentPtr doc, const std::vector<NodePtr>&
     // Clear context light user data which is set when bindLightShader() 
     // is called. This is necessary in case the light types have already been
     // registered.
-    context.popUserData(HW::USER_DATA_LIGHT_SHADERS);
+    HwShaderGenerator::unbindLightShaders(context);
 
     if (!lights.empty())
     {
