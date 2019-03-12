@@ -57,8 +57,8 @@ void createLightRig(mx::DocumentPtr doc, mx::HwLightHandler& lightHandler, mx::G
 {
     // Scan for lights
     std::vector<mx::NodePtr> lights;
-    mx::findLights(doc, lights);
-    mx::registerLights(doc, lights, context);
+    lightHandler.findLights(doc, lights);
+    lightHandler.registerLights(doc, lights, context);
 
     // Set the list of lights on the with the generator
     lightHandler.setLightSources(lights);
