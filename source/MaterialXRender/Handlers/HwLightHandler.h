@@ -8,9 +8,6 @@
 
 #include <MaterialXCore/Definition.h>
 #include <MaterialXCore/Node.h>
-//#include <MaterialXCore/Element.h>
-//#include <MaterialXCore/Interface.h>
-//#include <MaterialXCore/Document.h>
 
 #include <string>
 #include <memory>
