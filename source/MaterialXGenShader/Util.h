@@ -95,8 +95,8 @@ void findLights(DocumentPtr doc, std::vector<NodePtr>& lights);
 
 /// Register light node definitions and light count with a given generation context
 /// @param doc Document containing light nodes and definitions
-/// @lights lights to register
-/// @context context Context to update
+/// @param lights Lights to register
+/// @param context Context to update
 void registerLights(DocumentPtr doc, const std::vector<NodePtr>& lights, GenContext& context);
 
 /// Set of possible UI properties for an element 
