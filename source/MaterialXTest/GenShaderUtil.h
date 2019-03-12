@@ -97,6 +97,16 @@ namespace GenShaderUtil
         // Load in dependent libraries
         virtual void setupDependentLibraries();
 
+        // From a set of nodes, create a mapping of nodedef identifiers to numbers
+        virtual void mapNodeDefToIdentiers(const std::vector<mx::NodePtr>& nodes,
+                                           std::unordered_map<std::string, unsigned int>& ids);
+
+        // Find lights to use based on an input document
+        virtual void findLights(mx::DocumentPtr doc, std::vector<mx::NodePtr>& lights);
+
+        // Register light node definitions and light count with a given generation context
+        virtual void registerLights(mx::DocumentPtr doc, const std::vector<mx::NodePtr>& lights, mx::GenContext& context);
+
         // Run test for source code generation
         void testGeneration(const mx::GenOptions& generateOptions);
 

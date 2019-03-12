@@ -395,9 +395,8 @@ void ShaderGeneratorTester::addSkipNodeDefs()
 {
 }
 
-
-void mapNodeDefToIdentiers(const std::vector<mx::NodePtr>& nodes,
-                           std::unordered_map<std::string, unsigned int>& ids)
+void ShaderGeneratorTester::mapNodeDefToIdentiers(const std::vector<mx::NodePtr>& nodes,
+                                                  std::unordered_map<std::string, unsigned int>& ids)
 {
     unsigned int id = 1;
     for (auto node : nodes)
@@ -414,7 +413,7 @@ void mapNodeDefToIdentiers(const std::vector<mx::NodePtr>& nodes,
     }
 }
 
-void findLights(mx::DocumentPtr doc, std::vector<mx::NodePtr>& lights)
+void ShaderGeneratorTester::findLights(mx::DocumentPtr doc, std::vector<mx::NodePtr>& lights)
 {
     lights.clear();
     for (mx::NodePtr node : doc->getNodes())
@@ -427,8 +426,8 @@ void findLights(mx::DocumentPtr doc, std::vector<mx::NodePtr>& lights)
     }
 }
 
-void registerLights(mx::DocumentPtr doc, const std::vector<mx::NodePtr>& lights, std::unordered_map<std::string, unsigned int>& identifiers, 
-                    mx::GenContext& context)
+void ShaderGeneratorTester::registerLights(mx::DocumentPtr doc, const std::vector<mx::NodePtr>& lights,
+                                           mx::GenContext& context)
 {
     // Clear context light user data which is set when bindLightShader() 
     // is called. This is necessary in case the light types have already been
@@ -438,8 +437,8 @@ void registerLights(mx::DocumentPtr doc, const std::vector<mx::NodePtr>& lights,
     if (!lights.empty())
     {
         // Create a list of unique nodedefs and ids for them
-        mapNodeDefToIdentiers(lights, identifiers);
-        for (auto id : identifiers)
+        mapNodeDefToIdentiers(lights, _lightIdentifierMap);
+        for (auto id : _lightIdentifierMap)
         {
             mx::NodeDefPtr nodeDef = doc->getNodeDef(id.first);
             if (nodeDef)
@@ -500,7 +499,7 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
 
         // Find and register lights
         findLights(doc, _lights);
-        registerLights(doc, _lights, _lightIdentifierMap, context);
+        registerLights(doc, _lights, context);
 
         // Find elements to render in the document
         std::vector<mx::TypedElementPtr> elements;

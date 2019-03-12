@@ -110,12 +110,12 @@ TEST_CASE("OSL Unique Names", "[genosl]")
 
 class OslShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
 {
-public:
+  public:
     using ParentClass = GenShaderUtil::ShaderGeneratorTester;
 
     OslShaderGeneratorTester(const mx::FilePath& testRootPath, const mx::FilePath& libSearchPath,
-                               const mx::FileSearchPath& srcSearchPath, const mx::FilePath& logFilePath)
-        : GenShaderUtil::ShaderGeneratorTester(testRootPath, libSearchPath, srcSearchPath, logFilePath)
+                               const mx::FileSearchPath& srcSearchPath, const mx::FilePath& logFilePath) : 
+        GenShaderUtil::ShaderGeneratorTester(testRootPath, libSearchPath, srcSearchPath, logFilePath)
     {}
 
     void createGenerator() override

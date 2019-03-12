@@ -90,8 +90,8 @@ class OgsFxShaderGeneratorTester : public GlslShaderGeneratorTester
 {
 public:
     OgsFxShaderGeneratorTester(const mx::FilePath& testRootPath, const mx::FilePath& libSearchPath,
-                                 const mx::FileSearchPath& srcSearchPath, const mx::FilePath& logFilePath)
-        : GlslShaderGeneratorTester(testRootPath, libSearchPath, srcSearchPath, logFilePath)
+                                 const mx::FileSearchPath& srcSearchPath, const mx::FilePath& logFilePath) :
+            GlslShaderGeneratorTester(testRootPath, libSearchPath, srcSearchPath, logFilePath)
     {}
 
     // Only the generator differs for now between OGSFX and GLSL testers
