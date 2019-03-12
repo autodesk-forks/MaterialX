@@ -13,12 +13,12 @@
 namespace mx = MaterialX;
 
 // Base GLSL code generation tester
-class GLSLGenCodeGenerationTester : public GenShaderUtil::ShaderGeneratorTester
+class GlslShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
 {
 public:
     using ParentClass = GenShaderUtil::ShaderGeneratorTester;
 
-    GLSLGenCodeGenerationTester(const mx::FilePath& testRootPath, const mx::FilePath& libSearchPath,
+    GlslShaderGeneratorTester(const mx::FilePath& testRootPath, const mx::FilePath& libSearchPath,
                                 const mx::FileSearchPath& srcSearchPath, const mx::FilePath& logFilePath) 
         : GenShaderUtil::ShaderGeneratorTester(testRootPath, libSearchPath, srcSearchPath, logFilePath)
     {}

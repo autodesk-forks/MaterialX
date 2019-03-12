@@ -34,7 +34,7 @@ namespace GenShaderUtil
     // Loads all the MTLX files below a given library path
     //
     void loadLibraries(const mx::StringVec& libraryNames, const mx::FilePath& searchPath, mx::DocumentPtr doc,
-        const std::set<std::string>* excludeFiles = nullptr);
+        const mx::StringSet* excludeFiles = nullptr);
     
     //
     // Get source content, source path and resolved paths for
@@ -48,12 +48,12 @@ namespace GenShaderUtil
 
     // Test code generation for a given element
     bool generateCode(mx::GenContext& context, const std::string& shaderName, mx::TypedElementPtr element,
-                      std::ostream& log, std::vector<std::string>testStages);
+                      std::ostream& log, mx::StringVec testStages);
 
     // Check that implementations exist for all nodedefs supported per generator
     void checkImplementations(mx::GenContext& context,
-        const std::set<std::string>& generatorSkipNodeTypes,
-        const std::set<std::string>& generatorSkipNodeDefs);
+                              const mx::StringSet& generatorSkipNodeTypes,
+                              const mx::StringSet& generatorSkipNodeDefs);
 
     // Utility test to  check unique name generation on a shader generator
     void testUniqueNames(mx::GenContext& context, const std::string& stage);
@@ -106,20 +106,21 @@ namespace GenShaderUtil
         mx::DocumentPtr _dependLib;
         mx::FilePath _libSearchPath;
         mx::FileSearchPath _srcSearchPath;
-        std::set<std::string> _excludeLibraryFiles;
+        mx::StringSet _excludeLibraryFiles;
 
         mx::FilePath _testRootPath;
-        std::set<std::string> _skipFiles;
+        mx::StringSet _skipFiles;
         std::vector<mx::DocumentPtr> _documents;
-        std::vector<std::string> _documentPaths;
+        mx::StringVec _documentPaths;
 
         mx::FilePath _logFilePath;
         std::ofstream _logFile;
 
-        std::set<std::string> _skipNodeDefs;
-        std::vector<std::string> _testStages;
+        mx::StringSet _skipNodeDefs;
+        mx::StringVec _testStages;
 
         std::vector<mx::NodePtr> _lights;
+        std::unordered_map<std::string, unsigned int> _lightIdentifierMap;
     };
 }
 

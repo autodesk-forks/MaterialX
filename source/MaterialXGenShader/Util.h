@@ -43,7 +43,7 @@ string getFileExtension(const string& filename);
 /// Scans for all documents under a root path and returns documents which can be loaded
 /// Optionally can test and log errors if the document is not considered to be valid.
 void loadDocuments(const FilePath& rootPath, const std::set<string>& skipFiles,
-    vector<DocumentPtr>& documents, vector<string>& documentsPaths, std::ostream* validityLog);
+                   vector<DocumentPtr>& documents, vector<string>& documentsPaths, std::ostream* validityLog);
 
 /// Returns true if the given element is a surface shader with the potential
 /// of beeing transparent. This can be used by HW shader generators to determine
@@ -83,21 +83,6 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
 /// on an associated nodedef if it exists. A target string should be provided
 /// if the path is to a Node as definitions for Nodes can be target specific.
 ValueElementPtr findNodeDefChild(const string& path, DocumentPtr doc, const string& target);
-
-// From a set of nodes, create a mapping of nodedef identifiers to numbers
-void mapNodeDefToIdentiers(const std::vector<NodePtr>& nodes,
-                           std::unordered_map<string, unsigned int>& ids);
-
-/// Find lights to use based on an input document
-/// @param doc Document to scan for lights
-/// @param lights List of lights found in document
-void findLights(DocumentPtr doc, std::vector<NodePtr>& lights);
-
-/// Register light node definitions and light count with a given generation context
-/// @param doc Document containing light nodes and definitions
-/// @param lights Lights to register
-/// @param context Context to update
-void registerLights(DocumentPtr doc, const std::vector<NodePtr>& lights, GenContext& context);
 
 /// Set of possible UI properties for an element 
 struct UIProperties
