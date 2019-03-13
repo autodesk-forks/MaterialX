@@ -12,13 +12,13 @@
 namespace MaterialX
 {
 
-bool OiioImageLoader::saveImage(const std::string& fileName,
+bool OiioImageLoader::saveImage(const FilePath& fileName,
                                 const ImageDesc &imageDesc)
 {
     throw Exception("Unimplemented method OiioImageLoader::saveImage.");
 }
 
-bool OiioImageLoader::acquireImage(const std::string& fileName,
+bool OiioImageLoader::acquireImage(const FilePath& fileName,
                                   ImageDesc& imageDesc,
                                   bool /*generateMipMaps*/)
 {

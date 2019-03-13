@@ -38,7 +38,7 @@ void ImageHandler::addLoader(ImageLoaderPtr loader)
     }
 }
 
-bool ImageHandler::saveImage(const std::string& fileName,
+bool ImageHandler::saveImage(const FilePath& fileName,
                             const ImageDesc &imageDesc)
 {
     FilePath filePath = findFile(fileName);

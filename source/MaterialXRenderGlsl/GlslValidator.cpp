@@ -422,9 +422,6 @@ void GlslValidator::validateRender(bool orthographicView)
     // Set up target
     bindTarget(true);
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    //glEnable(GL_CULL_FACE);
-
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -487,7 +484,7 @@ void GlslValidator::validateRender(bool orthographicView)
     bindTarget(false);
 }
 
-void GlslValidator::save(const string& fileName, bool floatingPoint)
+void GlslValidator::save(const FilePath& fileName, bool floatingPoint)
 {
     ShaderValidationErrorList errors;
     const string errorType("GLSL image save error.");
@@ -535,7 +532,7 @@ void GlslValidator::save(const string& fileName, bool floatingPoint)
 
     if (!saved)
     {
-        errors.push_back("Failed to save to file:" + fileName);
+        errors.push_back("Failed to save to file:" + fileName.asString());
         throw ExceptionShaderValidationError(errorType, errors);
     }
 }

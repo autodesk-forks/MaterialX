@@ -30,7 +30,6 @@ static string VADDRESS_MODE_POST_FIX("_vaddressmode");
 static string FILTER_TYPE_POST_FIX("_filterType");
 static string DEFAULT_COLOR_POST_FIX("_default");
 
-
 //
 // Creator
 //
@@ -671,8 +670,8 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
     }
 
     if (lightCount == 0 &&
-        lightHandler->getLightEnvRadiancePath().empty() &&
-        lightHandler->getLightEnvIrradiancePath().empty())
+        lightHandler->getLightEnvRadiancePath().isEmpty() &&
+        lightHandler->getLightEnvIrradiancePath().isEmpty())
     {
         return;
     }

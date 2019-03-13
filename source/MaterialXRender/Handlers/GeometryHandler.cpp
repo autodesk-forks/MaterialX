@@ -76,7 +76,7 @@ void GeometryHandler::computeBounds()
     }
 }
 
-bool GeometryHandler::loadGeometry(const std::string& location)
+bool GeometryHandler::loadGeometry(const FilePath& location)
 {
     // Early return if already loaded
     if (hasGeometry(location))

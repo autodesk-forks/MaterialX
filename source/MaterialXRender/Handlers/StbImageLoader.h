@@ -6,6 +6,9 @@
 #ifndef MATERIALX_STBIMAGELOADER_H
 #define MATERIALX_STBIMAGELOADER_H
 
+/// @file
+/// Image loader using the stb image library
+
 #include <MaterialXRender/Handlers/ImageHandler.h>
 
 namespace MaterialX
@@ -18,7 +21,7 @@ using StbImageLoaderPtr = std::shared_ptr<class StbImageLoader>;
 ///
 class StbImageLoader : public ImageLoader
 {
-public:
+  public:
     /// Static instance create function
     static StbImageLoaderPtr create() { return std::make_shared<StbImageLoader>(); }
 
@@ -43,7 +46,7 @@ public:
     /// @param fileName Name of file to save image to
     /// @param imageDesc Description of image
     /// @return if save succeeded
-    bool saveImage(const std::string& fileName,
+    bool saveImage(const FilePath& fileName,
                    const ImageDesc &imageDesc) override;
 
     /// Load an image from disk. This method must be implemented by derived classes.
@@ -51,7 +54,7 @@ public:
     /// @param imageDesc Description of image updated during load.
     /// @param generateMipMaps Generate mip maps if supported.
     /// @return if load succeeded
-    bool acquireImage(const std::string& fileName, ImageDesc &imageDesc, bool generateMipMaps) override;
+    bool acquireImage(const FilePath& fileName, ImageDesc &imageDesc, bool generateMipMaps) override;
 };
 
 } // namespace MaterialX;

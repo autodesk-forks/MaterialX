@@ -6,6 +6,9 @@
 #ifndef MATERIALX_GLSLPROGRAM_H
 #define MATERIALX_GLSLPROGRAM_H
 
+/// @file
+/// GLSL Program interfaces
+
 #include <MaterialXGenShader/Shader.h>
 
 #include <MaterialXRender/ShaderValidators/ExceptionShaderValidationError.h>

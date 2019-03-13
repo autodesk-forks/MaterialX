@@ -20,14 +20,14 @@
 
 namespace MaterialX
 {
-bool TinyObjLoader::load(const std::string& fileName, MeshList& meshList)
+bool TinyObjLoader::load(const FilePath& fileName, MeshList& meshList)
 {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string err;
     bool load = tinyobj::LoadObj(&attrib, &shapes, &materials, nullptr, &err,
-                                 fileName.c_str(), nullptr, true, false);
+                                 fileName.asString().c_str(), nullptr, true, false);
     if (!load)
     {
         std::cerr << err << std::endl;

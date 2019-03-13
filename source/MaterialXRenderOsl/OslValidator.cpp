@@ -39,7 +39,7 @@ void OslValidator::initialize()
 {
     ShaderValidationErrorList errors;
     const string errorType("OSL initialization error.");
-    if (_oslIncludePathString.empty())
+    if (_oslIncludePathString.isEmpty())
     {
         errors.push_back("OSL validation include path is empty.");
         throw ExceptionShaderValidationError(errorType, errors);
@@ -51,14 +51,14 @@ void OslValidator::initialize()
     }
 }
 
-void OslValidator::renderOSL(const string& outputPath, const string& shaderName, const string& outputName)
+void OslValidator::renderOSL(const FilePath& outputPath, const string& shaderName, const string& outputName)
 {
     ShaderValidationErrorList errors;
     const string errorType("OSL rendering error.");
 
     // If command options missing, skip testing.
-    if (_oslTestRenderExecutable.empty() || _oslIncludePathString.empty() ||
-        _oslTestRenderSceneTemplateFile.empty() || _oslUtilityOSOPath.empty())
+    if (_oslTestRenderExecutable.empty() || _oslIncludePathString.isEmpty() ||
+        _oslTestRenderSceneTemplateFile.empty() || _oslUtilityOSOPath.isEmpty())
     {
         errors.push_back("Command input arguments are missing");
         throw ExceptionShaderValidationError(errorType, errors);
@@ -146,7 +146,7 @@ void OslValidator::renderOSL(const string& outputPath, const string& shaderName,
 
     // Set oso file paths
     string osoPaths(_oslUtilityOSOPath);
-    osoPaths += ";" + outputPath;
+    osoPaths += ";" + outputPath.asString();
 
     // Build and run render command
     //
@@ -177,10 +177,10 @@ void OslValidator::renderOSL(const string& outputPath, const string& shaderName,
     }
 }
 
-void OslValidator::shadeOSL(const string& outputPath, const string& shaderName, const string& outputName)
+void OslValidator::shadeOSL(const FilePath& outputPath, const string& shaderName, const string& outputName)
 {
     // If no command and include path specified then skip checking.
-    if (_oslTestShadeExecutable.empty() || _oslIncludePathString.empty())
+    if (_oslTestShadeExecutable.empty() || _oslIncludePathString.isEmpty())
     {
         return;
     }
@@ -242,7 +242,7 @@ void OslValidator::shadeOSL(const string& outputPath, const string& shaderName, 
 void OslValidator::compileOSL(const string& oslFileName)
 {
     // If no command and include path specified then skip checking.
-    if (_oslCompilerExecutable.empty() || _oslIncludePathString.empty())
+    if (_oslCompilerExecutable.empty() || _oslIncludePathString.isEmpty())
     {
         return;
     }
@@ -256,7 +256,7 @@ void OslValidator::compileOSL(const string& oslFileName)
     const string redirectString(" 2>&1");
 
     // Run the command and get back the result. If non-empty string throw exception with error
-    string command = _oslCompilerExecutable + " -q -I\"" + _oslIncludePathString + "\" " + oslFileName + " -o " + outputFileName + " > " +
+    string command = _oslCompilerExecutable + " -q -I\"" + _oslIncludePathString.asString() + "\" " + oslFileName + " -o " + outputFileName + " > " +
         errorFile + redirectString;
 
     int returnValue = std::system(command.c_str());
@@ -296,7 +296,7 @@ void OslValidator::validateCreation(const StageMap& stages)
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    bool haveCompiler = !_oslCompilerExecutable.empty() && !_oslIncludePathString.empty();
+    bool haveCompiler = !_oslCompilerExecutable.empty() && !_oslIncludePathString.isEmpty();
     if (!haveCompiler)
     {
         errors.push_back("No OSL compiler specified for validation.");
@@ -345,7 +345,7 @@ void OslValidator::validateRender(bool /*orthographicView*/)
     ShaderValidationErrorList errors;
     const string errorType("OSL rendering error.");
 
-    if (_oslOutputFilePathString.empty())
+    if (_oslOutputFilePathString.isEmpty())
     {
         errors.push_back("OSL output file path string has not been specified.");
         throw ExceptionShaderValidationError(errorType, errors);
@@ -374,7 +374,7 @@ void OslValidator::validateRender(bool /*orthographicView*/)
     }
 }
 
-void OslValidator::save(const string& /*fileName*/, bool /*floatingPoint*/)
+void OslValidator::save(const FilePath& /*fileName*/, bool /*floatingPoint*/)
 {
     // No-op: image save is done as part of rendering.
 }

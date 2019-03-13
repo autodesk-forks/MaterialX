@@ -6,6 +6,9 @@
 #ifndef MATERIALX_GLTEXTUREHANDLER_H
 #define MATERIALX_GLTEXTUREHANDLER_H
 
+/// @file
+/// OpenGL texture handler
+
 #include <MaterialXRender/Handlers/ImageHandler.h>
 
 namespace MaterialX
@@ -13,9 +16,8 @@ namespace MaterialX
 /// Shared pointer to an OpenGL texture handler
 using GLTextureHandlerPtr = std::shared_ptr<class GLTextureHandler>;
 
-/// @class @GLTextureHandler
+/// @class GLTextureHandler
 /// An OpenGL texture handler class
-///
 class GLTextureHandler : public ImageHandler
 {
   public:

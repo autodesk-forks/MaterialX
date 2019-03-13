@@ -40,7 +40,7 @@
 
 namespace MaterialX
 {
-bool StbImageLoader::saveImage(const std::string& fileName,
+bool StbImageLoader::saveImage(const FilePath& filePath,
                                const ImageDesc& imageDesc)
 {
     int returnValue = -1;
@@ -49,6 +49,8 @@ bool StbImageLoader::saveImage(const std::string& fileName,
     int h = static_cast<int>(imageDesc.height);
     int channels = static_cast<int>(imageDesc.channelCount);
     void* data = imageDesc.resourceBuffer;
+
+    const string fileName = filePath.asString();
 
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
     if (extension == PNG_EXTENSION)
@@ -74,9 +76,9 @@ bool StbImageLoader::saveImage(const std::string& fileName,
     return (returnValue == 1);
 }
 
-bool StbImageLoader::acquireImage(const std::string& fileName,
-                                      ImageDesc& imageDesc,
-                                      bool /*generateMipMaps*/)
+bool StbImageLoader::acquireImage(const FilePath& filePath,
+                                  ImageDesc& imageDesc,
+                                  bool /*generateMipMaps*/)
 {
     imageDesc.width = imageDesc.height = imageDesc.channelCount = 0;
     imageDesc.resourceBuffer = nullptr;
@@ -88,6 +90,8 @@ bool StbImageLoader::acquireImage(const std::string& fileName,
 
     // Set to 0 to mean to not override the read-in number of channels
     const int REQUIRED_CHANNEL_COUNT = 0;
+
+    const string fileName = filePath.asString();
 
     // If HDR, switch to float reader
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));

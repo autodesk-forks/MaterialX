@@ -15,7 +15,7 @@
 
 namespace MaterialX
 { 
-bool SampleObjLoader::load(const std::string& fileName, MeshList& meshList)
+bool SampleObjLoader::load(const FilePath& fileName, MeshList& meshList)
 {
     std::ifstream objfile;
     objfile.open(fileName);
