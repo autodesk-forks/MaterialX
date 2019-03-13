@@ -4,7 +4,7 @@
 Shader generation features are implemented as a core part of MaterialX. Core
 feature support is contained in the [MaterialXGenShader](/source/MaterialXGenShader) shared library.
 
-Per shading language support resides in folders which begin with "MaterialXGen". Thus, Glsl and Osl language support reside in these folder respectively:
+Per shading language support resides in folders which begin with "MaterialXGen". Thus, Glsl and Osl language support reside in these folders respectively:
 - [MaterialXGenGlsl](MaterialXGenGlsl) : This is support for GLSL.
 - [MaterialXGenOsl](MaterialXGenOsl) : This is support for OSL.
 
