@@ -2,7 +2,7 @@
 
 ## 1.1 Scope
 Shader generation features are implemented as a core part of MaterialX. Core
-feature support is contained in the [MaterialXGenShader](/source/MaterialXGenShader) shared library, with some features part of the [MaterialXCore](/source/MaterialXCore) library.
+feature support is contained in the [MaterialXGenShader](/source/MaterialXGenShader) shared library.
 
 Per shading language support resides in folders which begin with "MaterialXGen". Thus, Glsl and Osl language support reside in these folder respectively:
 - [MaterialXGenGlsl](MaterialXGenGlsl) : This is support for GLSL.
