@@ -208,7 +208,7 @@ public:
     MaterialX::StringVec overrideFiles;
 
     // Comma separated list of light setup files
-    StringVec lightFiles;
+    mx::StringVec lightFiles;
 
     // Set to true to always dump generated code to disk
     bool dumpGeneratedCode = false;
@@ -1122,7 +1122,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
 
         size_t skipCount = 0;
         profilingLog << "-- Possibly missed implementations ----" << std::endl;
-        StringVec whiteList =
+        mx::StringVec whiteList =
         {
             "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
             "volumeshader", "IM_constant_string_", "IM_constant_filename_", "IM_dot_string"

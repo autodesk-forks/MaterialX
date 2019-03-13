@@ -4,7 +4,7 @@
 //
 
 #ifndef MATERIALX_SAMPLEOBJLOADER_H
-#define MATERIALX_SAMPLETOBJLOADER_H
+#define MATERIALX_SAMPLEOBJLOADER_H
 
 #include <string>
 #include <memory>
@@ -15,7 +15,7 @@ namespace MaterialX
 /// Shared pointer to an SampleObjLoader
 using SampleObjLoaderPtr = std::shared_ptr<class SampleObjLoader>;
 
-/// @class TestObjHandler
+/// @class SampleObjLoader
 /// Utility geometry loader to read in OBJ files for unit testing.
 ///
 class SampleObjLoader : public GeometryLoader
