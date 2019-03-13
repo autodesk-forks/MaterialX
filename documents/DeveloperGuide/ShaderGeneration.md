@@ -5,7 +5,7 @@ Shader generation features are implemented as a core part of MaterialX. Core
 feature support is contained in the [MaterialXGenShader](/source/MaterialXGenShader) shared library, with some features part of the [MaterialXCore](/source/MaterialXCore) library.
 
 Per shading language support resides in folders which begin with "MaterialXGen". Thus, Glsl and Osl language support reside in these folder respectively:
-- [MaterialXGenGlsl](MaterialXGenGlsl) : This is support for GLSL version 4 or higher.
+- [MaterialXGenGlsl](MaterialXGenGlsl) : This is support for GLSL.
 - [MaterialXGenOsl](MaterialXGenOsl) : This is support for OSL.
 
 Note that there is no runtime and the output produced is source code, not binary executable
@@ -27,8 +27,6 @@ To add a new shader generator for a target you add a new C++ class derived from 
 `ShaderGenerator`, or one of the existing derived shader generator classes (
 `GlslShaderGenerator`, `OslShaderGenerator`, etc.), and override the methods you need to customize. You might also need to derive a new `Syntax` class, which is used to handle syntactical
 differences between different shading languages. Then you need to make sure there are implementations defined for all the nodes you want to support, standard library nodes and nodes from other libraries, by either reusing existing implementations where applicable or adding in new ones.
-
-The Glsl generator language and target for instance is:
 
 See [1.3](#1.3 Node Implementations) on how that is done.
 

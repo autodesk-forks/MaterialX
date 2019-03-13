@@ -37,7 +37,7 @@ The following is the layout of the definitions and implementations provided as p
         -   OSL implementation files.
 
 ## Support Notes:
-
+- GLSL language support is for version 4.0 or higher.
 - "default" color management support includes OSL and GLSL implementations for the following non-LUT transforms:
     - lin_rec709, gamma18, gamma22, gamm24, acescg, srgb_texture
 - Basic GLSL `lightshader` node definitions and implementations are provided for the following light types:
