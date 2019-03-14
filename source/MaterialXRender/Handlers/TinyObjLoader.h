@@ -37,7 +37,7 @@ class TinyObjLoader : public GeometryLoader
     virtual ~TinyObjLoader() {}
 
     /// Load geometry from disk
-    bool load(const FilePath& fileName, MeshList& meshList) override;
+    bool load(const FilePath& filePath, MeshList& meshList) override;
 };
 
 } // namespace MaterialX

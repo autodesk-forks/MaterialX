@@ -21,7 +21,7 @@ namespace MaterialX
 using GeometryLoaderPtr = std::shared_ptr<class GeometryLoader>;
 
 /// @class GeometryLoader
-/// Base class representing a geometry loader. A loader can be 
+/// Base class representing a geometry loader. A loader can be
 /// associated with one or more file extensions.
 class GeometryLoader
 {
@@ -40,10 +40,10 @@ class GeometryLoader
     }
 
     /// Load geometry from disk. Must be implemented by derived classes.
-    /// @param fileName Path to file to load
+    /// @param filePath Path to file to load
     /// @param meshList List of meshes to update
-    /// @return True if load was successful 
-    virtual bool load(const FilePath& fileName, MeshList& meshList) = 0;
+    /// @return True if load was successful
+    virtual bool load(const FilePath& filePath, MeshList& meshList) = 0;
 
   protected:
     /// List of supported string extensions
@@ -58,13 +58,13 @@ using GeometryLoaderMap = std::multimap<string, GeometryLoaderPtr>;
 
 /// @class GeometryHandler
 /// Class which holds a set of geometry loaders. Each loader is associated with
-/// a given set of file extensions. 
+/// a given set of file extensions.
 class GeometryHandler
 {
-  public: 
+  public:
     /// Default constructor
     GeometryHandler() {};
-    
+
     /// Default destructor
     virtual ~GeometryHandler() {};
 
@@ -85,7 +85,7 @@ class GeometryHandler
     void clearGeometry(const string& location);
 
     /// Load geometry from a given location
-    bool loadGeometry(const FilePath& location);
+    bool loadGeometry(const FilePath& filePath);
 
     /// Get list of meshes
     const MeshList& getMeshes() const

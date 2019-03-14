@@ -60,9 +60,9 @@ class HwLightHandler
     }
 
     /// Set path to irradiance IBL image
-    void setLightEnvIrradiancePath(const FilePath& path)
+    void setLightEnvIrradiancePath(const FilePath& filePath)
     {
-        _lightEnvIrradiancePath = path;
+        _lightEnvIrradiancePath = filePath;
     }
 
     /// Get path to an irradiance IBL image
@@ -72,9 +72,9 @@ class HwLightHandler
     }
 
     /// Set path to an radiance IBL image
-    void setLightEnvRadiancePath(const FilePath& path)
+    void setLightEnvRadiancePath(const FilePath& filePath)
     {
-        _lightEnvRadiancePath = path;
+        _lightEnvRadiancePath = filePath;
     }
 
     /// Get path to radiance IBL image
