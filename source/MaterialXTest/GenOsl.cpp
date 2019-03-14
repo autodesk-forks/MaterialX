@@ -144,7 +144,7 @@ class OslShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
     }
 
     // No direct lighting to register for OSL
-    void registerLights(mx::DocumentPtr /*doc*/, const std::vector<mx::NodePtr>& /*lights*/, mx::GenContext& /*context*/)
+    void registerLights(mx::DocumentPtr /*doc*/, const std::vector<mx::NodePtr>& /*lights*/, mx::GenContext& /*context*/) override
     {
         ; // no-op
     }
