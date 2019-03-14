@@ -65,13 +65,13 @@ class HwLightHandler
         _lightEnvIrradiancePath = filePath;
     }
 
-    /// Get path to an irradiance IBL image
+    /// Get path to irradiance IBL image
     const FilePath& getLightEnvIrradiancePath() const
     {
         return _lightEnvIrradiancePath;
     }
 
-    /// Set path to an radiance IBL image
+    /// Set path to radiance IBL image
     void setLightEnvRadiancePath(const FilePath& filePath)
     {
         _lightEnvRadiancePath = filePath;
