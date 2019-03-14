@@ -102,29 +102,27 @@ class OslValidator : public ShaderValidator
     /// @name Compilation settings
     /// @{
 
-    /// Set the OSL executable path string. Note that it is assumed that this
+    /// Set the path to the OSL executable. Note that it is assumed that this
     /// references the location of the oslc executable.
-    /// @param executable Full path to OSL compiler executable
-    void setOslCompilerExecutable(const string& executable)
+    /// @param executableFilePath Path to OSL compiler executable
+    void setOslCompilerExecutable(const FilePath& executableFilePath)
     {
-        _oslCompilerExecutable = executable;
+        _oslCompilerExecutable = executableFilePath;
     }
 
-    /// Set the OSL include path string. 
+    /// Set the search locations for OSL include files.
     /// @param dirPath Include path(s) for the OSL compiler. This should include the
-    /// path to stdosl.h    
+    /// path to stdosl.h.    
     void setOslIncludePath(const FilePath& dirPath)
     {
-        _oslIncludePathString = dirPath;
+        _oslIncludePath = dirPath;
     }
 
-    /// Set OSL output name, excluding any extension.
-    /// During compiler checking an OSL file of the given output name will be used if it
-    /// is not empty. If temp then OSL will be written to a temporary file.
-    /// @param filePath Full path name
-    void setOslOutputFilePath(const FilePath& filePath)
+    /// Set the location where compiled OSL files will reside.
+    /// @param dirPath Path to output location
+    void setOslOutputFilePath(const FilePath& dirPath)
     {
-        _oslOutputFilePathString = filePath;
+        _oslOutputFilePath = dirPath;
     }
 
     /// Set shader parameter strings to be added to the scene XML file. These
@@ -146,30 +144,30 @@ class OslValidator : public ShaderValidator
         _oslShaderOutputType = outputType;
     }
 
-    /// Set the OSL shading tester path string. Note that it is assumed that this
+    /// Set the path to the OSL shading tester. Note that it is assumed that this
     /// references the location of the "testshade" executable.
-    /// @param executable Full path to OSL "testshade" executable
-    void setOslTestShadeExecutable(const string& executable)
+    /// @param executableFilePath Path to OSL "testshade" executable
+    void setOslTestShadeExecutable(const FilePath& executableFilePath)
     {
-        _oslTestShadeExecutable = executable;
+        _oslTestShadeExecutable = executableFilePath;
     }
 
-    /// Set the OSL rendering tester path string. Note that it is assumed that this
+    /// Set the path to the OSL rendering tester. Note that it is assumed that this
     /// references the location of the "testrender" executable.
-    /// @param executable Full path to OSL "testrender" executable
-    void setOslTestRenderExecutable(const string& executable)
+    /// @param executableFilePath Path to OSL "testrender" executable
+    void setOslTestRenderExecutable(const FilePath& executableFilePath)
     {
-        _oslTestRenderExecutable = executable;
+        _oslTestRenderExecutable = executableFilePath;
     }
 
     /// Set the XML scene file to use for testrender. This is a template file
     /// with the following tokens for replacement:
     ///     - %shader% : which will be replaced with the name of the shader to use
     ///     - %shader_output% : which will be replace with the name of the shader output to use
-    /// @param templateFileName Scene file name
-    void setOslTestRenderSceneTemplateFile(const string& templateFileName)
+    /// @param templateFilePath Scene file name
+    void setOslTestRenderSceneTemplateFile(const FilePath& templateFilePath)
     {
-        _oslTestRenderSceneTemplateFile = templateFileName;
+        _oslTestRenderSceneTemplateFile = templateFilePath;
     }
 
     /// Set the name of the shader to be used for the input XML scene file.
@@ -182,10 +180,10 @@ class OslValidator : public ShaderValidator
 
     /// Set the search path for dependent shaders (.oso files) which are used
     /// when rendering with testrender. 
-    /// @param osoPath Path to .oso files.
-    void setOslUtilityOSOPath(const FilePath& osoPath)
+    /// @param dirPath Path to location containing .oso files.
+    void setOslUtilityOSOPath(const FilePath& dirPath)
     {
-        _oslUtilityOSOPath = osoPath;
+        _oslUtilityOSOPath = dirPath;
     }
 
     /// Used to toggle to either use testrender or testshade during render validation
@@ -198,43 +196,43 @@ class OslValidator : public ShaderValidator
 
     ///
     /// Compile OSL code stored in a file. Will throw an exception if an error occurs.
-    /// @param oslFileName Name of OSL file
-    void compileOSL(const string& oslFileName);
+    /// @param oslFilePath OSL file path.
+    void compileOSL(const FilePath& oslFilePath);
 
     /// @}
 
   protected:
     ///
     /// Shade using OSO input file. Will throw an exception if an error occurs.
-    /// @param filePath Path to input .oso file.
+    /// @param dirPath Path to location containing input .oso file.
     /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist in the output path folder.
     /// @param outputName Name of OSL shader output to use.
-    void shadeOSL(const FilePath& filePath, const string& shaderName, const string& outputName);
+    void shadeOSL(const FilePath& dirPath, const string& shaderName, const string& outputName);
 
     ///
     /// Render using OSO input file. Will throw an exception if an error occurs.
-    /// @param filePath Path to input .oso file.
+    /// @param dirPath Path to location containing input .oso file.
     /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist in the output path folder.
     /// @param outputName Name of OSL shader output to use.
-    void renderOSL(const FilePath& filePath, const string& shaderName, const string& outputName);
+    void renderOSL(const FilePath& dirPath, const string& shaderName, const string& outputName);
 
     /// Constructor
     OslValidator();
 
   private:
-    /// "oslc" executable name`
-    string _oslCompilerExecutable;
-    /// OSL include path name
-    FilePath _oslIncludePathString;
+    /// Path to "oslc" executable`
+    FilePath _oslCompilerExecutable;
+    /// OSL include path
+    FilePath _oslIncludePath;
     /// Output file path. File name does not include an extension
-    FilePath _oslOutputFilePathString;
+    FilePath _oslOutputFilePath;
 
-    /// "testshade" executable name
-    string _oslTestShadeExecutable;
-    /// "testrender" executable name
-    string _oslTestRenderExecutable;
-    /// Template scene XML file used for "testrender"
-    string _oslTestRenderSceneTemplateFile;
+    /// Path to "testshade" executable
+    FilePath _oslTestShadeExecutable;
+    /// Path to "testrender" executable 
+    FilePath _oslTestRenderExecutable;
+    /// Path to template scene XML file used for "testrender"
+    FilePath _oslTestRenderSceneTemplateFile;
     /// Name of shader. Used for rendering with "testrender"
     string _oslShaderName;
     /// Set of strings containing parameter override settings for "testrender"
