@@ -484,7 +484,7 @@ void GlslValidator::validateRender(bool orthographicView)
     bindTarget(false);
 }
 
-void GlslValidator::save(const FilePath& fileName, bool floatingPoint)
+void GlslValidator::save(const FilePath& filePath, bool floatingPoint)
 {
     ShaderValidationErrorList errors;
     const string errorType("GLSL image save error.");
@@ -527,12 +527,12 @@ void GlslValidator::save(const FilePath& fileName, bool floatingPoint)
     desc.height = _frameBufferHeight;
     desc.channelCount = 4;
     desc.resourceBuffer = buffer;
-    bool saved = _imageHandler->saveImage(fileName, desc);
+    bool saved = _imageHandler->saveImage(filePath, desc);
     delete[] buffer;
 
     if (!saved)
     {
-        errors.push_back("Failed to save to file:" + fileName.asString());
+        errors.push_back("Failed to save to file:" + filePath.asString());
         throw ExceptionShaderValidationError(errorType, errors);
     }
 }

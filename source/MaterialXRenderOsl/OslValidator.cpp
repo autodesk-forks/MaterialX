@@ -51,7 +51,7 @@ void OslValidator::initialize()
     }
 }
 
-void OslValidator::renderOSL(const FilePath& outputPath, const string& shaderName, const string& outputName)
+void OslValidator::renderOSL(const FilePath& filePath, const string& shaderName, const string& outputName)
 {
     ShaderValidationErrorList errors;
     const string errorType("OSL rendering error.");
@@ -78,7 +78,7 @@ void OslValidator::renderOSL(const FilePath& outputPath, const string& shaderNam
     const bool isRemappable = REMAPPABLE_TYPES.count(_oslShaderOutputType) != 0;
 
     // Determine the shader path from output path and shader name
-    FilePath shaderFilePath(outputPath);
+    FilePath shaderFilePath(filePath);
     shaderFilePath = shaderFilePath / shaderName;
     string shaderPath = shaderFilePath.asString();
 
@@ -146,7 +146,7 @@ void OslValidator::renderOSL(const FilePath& outputPath, const string& shaderNam
 
     // Set oso file paths
     string osoPaths(_oslUtilityOSOPath);
-    osoPaths += ";" + outputPath.asString();
+    osoPaths += ";" + filePath.asString();
 
     // Build and run render command
     //
@@ -177,7 +177,7 @@ void OslValidator::renderOSL(const FilePath& outputPath, const string& shaderNam
     }
 }
 
-void OslValidator::shadeOSL(const FilePath& outputPath, const string& shaderName, const string& outputName)
+void OslValidator::shadeOSL(const FilePath& filePath, const string& shaderName, const string& outputName)
 {
     // If no command and include path specified then skip checking.
     if (_oslTestShadeExecutable.empty() || _oslIncludePathString.isEmpty())
@@ -185,7 +185,7 @@ void OslValidator::shadeOSL(const FilePath& outputPath, const string& shaderName
         return;
     }
 
-    FilePath shaderFilePath(outputPath);
+    FilePath shaderFilePath(filePath);
     shaderFilePath = shaderFilePath / shaderName;
     string shaderPath = shaderFilePath.asString();
 
@@ -374,7 +374,7 @@ void OslValidator::validateRender(bool /*orthographicView*/)
     }
 }
 
-void OslValidator::save(const FilePath& /*fileName*/, bool /*floatingPoint*/)
+void OslValidator::save(const FilePath& /*filePath*/, bool /*floatingPoint*/)
 {
     // No-op: image save is done as part of rendering.
 }

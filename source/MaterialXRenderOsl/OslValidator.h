@@ -94,9 +94,9 @@ class OslValidator : public ShaderValidator
     /// Save the current contents a rendering to disk. Note that this method
     /// does not perform any action as validateRender() produces images as part if it's
     /// execution.
-    /// @param fileName Name of file to save rendered image to.
+    /// @param filePath Name of file to save rendered image to.
     /// @param floatingPoint Format of output image is floating point.
-    void save(const FilePath& fileName, bool floatingPoint) override;
+    void save(const FilePath& filePath, bool floatingPoint) override;
     
     /// @}
     /// @name Compilation settings
@@ -111,20 +111,20 @@ class OslValidator : public ShaderValidator
     }
 
     /// Set the OSL include path string. 
-    /// @param includePathString Include path(s) for the OSL compiler. This should include the
+    /// @param dirPath Include path(s) for the OSL compiler. This should include the
     /// path to stdosl.h    
-    void setOslIncludePath(const FilePath& includePathString)
+    void setOslIncludePath(const FilePath& dirPath)
     {
-        _oslIncludePathString = includePathString;
+        _oslIncludePathString = dirPath;
     }
 
     /// Set OSL output name, excluding any extension.
     /// During compiler checking an OSL file of the given output name will be used if it
     /// is not empty. If temp then OSL will be written to a temporary file.
-    /// @param filePathString Full path name
-    void setOslOutputFilePath(const FilePath& filePathString)
+    /// @param filePath Full path name
+    void setOslOutputFilePath(const FilePath& filePath)
     {
-        _oslOutputFilePathString = filePathString;
+        _oslOutputFilePathString = filePath;
     }
 
     /// Set shader parameter strings to be added to the scene XML file. These
@@ -206,17 +206,17 @@ class OslValidator : public ShaderValidator
   protected:
     ///
     /// Shade using OSO input file. Will throw an exception if an error occurs.
-    /// @param outputPath Path to input .oso file.
+    /// @param filePath Path to input .oso file.
     /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist in the output path folder.
     /// @param outputName Name of OSL shader output to use.
-    void shadeOSL(const FilePath& outputPath, const string& shaderName, const string& outputName);
+    void shadeOSL(const FilePath& filePath, const string& shaderName, const string& outputName);
 
     ///
     /// Render using OSO input file. Will throw an exception if an error occurs.
-    /// @param outputPath Path to input .oso file.
+    /// @param filePath Path to input .oso file.
     /// @param shaderName Name of OSL shader. A corresponding .oso file is assumed to exist in the output path folder.
     /// @param outputName Name of OSL shader output to use.
-    void renderOSL(const FilePath& outputPath, const string& shaderName, const string& outputName);
+    void renderOSL(const FilePath& filePath, const string& shaderName, const string& outputName);
 
     /// Constructor
     OslValidator();

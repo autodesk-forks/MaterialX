@@ -81,9 +81,9 @@ class GlslValidator : public ShaderValidator
     /// @{
 
     /// Save the current contents the offscreen hardware buffer to disk.
-    /// @param fileName Name of file to save rendered image to.
+    /// @param filePath Name of file to save rendered image to.
     /// @param floatingPoint Format of output image is floating point.
-    void save(const FilePath& fileName, bool floatingPoint) override;
+    void save(const FilePath& filePath, bool floatingPoint) override;
 
     /// Return the GLSL program wrapper class
     MaterialX::GlslProgramPtr program()
