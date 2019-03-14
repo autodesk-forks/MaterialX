@@ -33,13 +33,8 @@
 namespace MaterialX
 {
 
-<<<<<<< Updated upstream
-bool OiioImageLoader::saveImage(const std::string& fileName,
-                                const ImageDesc &imageDesc)
-=======
-bool OiioImageLoader::saveImage(const FilePath& /*fileName*/,
+bool OiioImageLoader::saveImage(const std::string& /*fileName*/,
                                 const ImageDesc &/*imageDesc*/)
->>>>>>> Stashed changes
 {
     throw Exception("Unimplemented method OiioImageLoader::saveImage.");
 }
