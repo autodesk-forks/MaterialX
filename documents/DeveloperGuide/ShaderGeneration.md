@@ -234,9 +234,8 @@ cyclic dependencies in the graph.
 
 4. The shader stages interface of uniforms and varyings are established. This consists of
 the graph interface ports that are in use, as well as internal ports that have been published
-to the interface (an example of the latter is for a hardware shader generator where image texture
-filenames get converted to texture samplers which needs to be published in order to be
-bound by the target application). Each node in the graph is also called for a chance to create any uniforms or varyings needed by its implementation. The stage information is stored in the `ShaderStage` class, and can be retrieved from it together with the emitted source code when generation is completed.
+to the interface (an example of the latter is for a hardware shader generator where image texture filenames get converted to texture samplers which needs to be published in order to be
+bound by the target application). Each node in the graph is also called for a chance to create any uniforms or varyings needed by its implementation.
 
 5. Information about scope is tracked for each node. This information is needed to handle
 branching by conditional nodes. For example, if a node is used only by a particular branch
@@ -262,26 +261,23 @@ emitted instead of functions calls for nodes that use this.
 
 Note that if a single monolithic shader for the whole graph is not appropriate for your system the generator can be called on `output` elements at any point in your graph, and generate code for sub-parts. It is then up to the application to decide where to split the graph, and to assemble the shader code for sub-parts after all have been generated.
 
-## 1.5 Bindings and Shading Context
+## 1.5 Shader Stages
 
-There are a number of ways to bind values to input ports on nodes and graphs. A port can be
-assigned a constant default value or be connected to other nodes. If a port is connected it will read the value from the upstream node. Ports can also be set to have a default node connected if the user has not made a specific connection to it. This is for example used for input ports that expect to receive geometric data from the current shading context, like normal or texture coordinates. If no such connection is made explicitly a default geometric node is connected to supply the data.
+Creation of multiple shader stages is supported. This is needed in order to generate separate code for multiple stages on hardware render targets. A `pixel` stage must always be created by all targets, even for shading languages like OSL that natively doensn't have a concept of stages. The stage is where the generated shader code is stored as well as all uniforms, inputs and outputs for the shader. This is handled by the `ShaderStage` class, and the data can be retrieved from it when generation is completed.
 
-Geometric data from the current shading context is supplied using MaterialX’s geometric nodes. There are a number of predefined geometric nodes in the MaterialX standard library to supply shading context data like position, normal, tangents, texture coordinates, vertex colors, etc. The vectors can be returned in different coordinate spaces: model, object or world space. If the data available from the standard geometric nodes are not enough, the general purpose primvar node `geomattrvalue` can be used to access any named data on geometry using a string identifier. It is up to the shader generator and node implementation of these geometric nodes to make sure the data is
-supplied, and where applicable transformed to the requested coordinate space.
+One or more `ShaderStage` instances are created and stored on the `Shader` class. In addition to the `pixel` stage, hardware generators always specify a `vertex` stage. If additional stages are needed they can be added as well. When creating shader input variables you specify which stage the variable should be used in, see 1.7 for more information on shader variable creation.
 
-## 1.6 Shader Stages
+Node implementations using static source code (function or inline expressions) are always emitted to the `pixel` stage. Controlling the `vertex` stage, or other stages, is not supported using static source code. In order to do that you must use dynamic code generation with a custom `ShaderNodeImpl` sub-class for your node. You are then able to control how it affects all stages separately. Inside `emitFunctionDefinition` and `emitFunctionCall` you can add separate sections for each stage using begin/end shader stage macros. Figure 6 shows how the texcoord node for GLSL is emitting different code into the `vertex` and `pixel` stages.
 
-A `ShaderStage` namespace can include multiple shader stages. This is needed in order to generate separate code for multiple stages on hardware render targets. By default there is a single stage defined, called the `pixel stage`. Hardware generators specify an additional stage, the `vertex stage`. If additional stages are needed they can be added to the namespace. When creating shader input variables you can specify which stage the variable should be used in, see 1.7 for more information on shader variable creation.
+## 1.6 Shader Variables
+When generating a shader from a node graph or shaderref the inputs and parameters on those elements will be published as shader uniforms on the resulting shader. A listing of the created uniforms can be read from the produced `Shader` and `ShaderStage` instances. The shader uniforms can then be presented to the user and have their values set by the application.
 
-Node implementations using static source code (function or inline expressions) are always emitted to the pixel stage. Controlling the vertex stage, or other stages, is not supported using static source code. In order to do that you must use dynamic code generation with a custom `ShaderNodeImpl` sub-class for your node. You are then able to control how it affects all stages separately. Inside `emitFunctionDefinition` and `emitFunctionCall` you can add separate sections for each stage using begin/end shader stage macros. Figure 6 shows how the texcoord node for GLSL is emitting different code into the vertex and pixel stages.
+### 1.6.1 Variable Creation
+Adding new uniforms, input and outputs to a shader stage is done by first creating a `VariableBlock` to store them. There are some predefined identifiers for commonly used variable blocks. For uniforms there are e.g. one named `HW::PUBLIC_UNIFORMS` and another named `HW::PRIVATE_UNIFORMS`. Public is used for uniforms to be published to the user, as described above, and private is used for uniforms needed by node implementations but set by the application and not published. For hardware targets there are also specific variable blocks called `connector blocks` which are used to send data from one stage to another, connecting the stages. A connector block named `HW::VERTEX_DATA` is used for sending data from the  `vertex` stage to the `pixel` stage. Variable block creation and handling can be customized as needed by each shader generator target.
 
-## 1.7 Shader Variables
-When generating a shader from a node graph or shaderref the inputs and parameters on those
-elements will be published as shader uniforms on the resulting shader. A listing of the created uniforms can be read from the produced `Shader` instance. The shader uniforms can then be presented to the user have their values set by the application.
+All variable blocks can be queried and accessed by the application from the `ShaderStage` instances after generation.
 
-Adding new uniforms to a shader is done by first creating a uniform block and then adding
-uniforms into the block. There are two predefined uniform blocks that can be used directly, one named `PublicUniforms` and another named `PrivateUniforms`. Public is used for uniforms to be published to the user, as described above, and private is used for uniforms needed by node implementations but set by the application and not published. All uniform blocks can be queried and accessed by the application from the `Shader` instance after generation.
+Figure 6 shows how creation of shader inputs and connector variables are done for a node implementation that requires this.
 
 ```c++
 // Implementation of 'texcoord' node for GLSL
@@ -342,19 +338,11 @@ public:
 ```
 **Figure 6**: Implementation of node `texcoord` in GLSL. Using a `ShaderNodeImpl` sub-class in order to control shader variable creation and code generation into separate shader stages.
 
-For inputs representing geometric data streams a separate variable block is used. These variables are named vertex inputs (in a hardware shading language they are often
-named varying inputs or attributes). The `ShaderStage` class has a method for creating such variables, in a block named `VertexInputs`. This is also accessible from the `ShaderStage` instance after generation. In order to pass data between shader stages in a hardware shader additional variable blocks are needed. For this purpose an additional variable block named `VertexData` is used. It is used for transporting data from the vertex stage to the pixel stage.
+### 1.6.2 Variable Naming Convention
 
-Creating shader variables and binding values to them needs to be done in agreement with the
-shader generator side and application side. The application must know what a variable is for in order to bind meaningful data to it. One way of handling this is by using semantics. All shader variables created can be assigned a semantic if that is used by the target application. Shader generation does not impose a specific set of semantics to use, so for languages and applications that use this any semantics can be used. For languages that do not use semantics a variable naming convention needs to be used instead.
+Creating shader variables and binding values to them needs to be done in agreement with the shader generator side and application side. The application must know what a variable is for in order to bind meaningful data to it. One way of handling this is by using semantics. All shader variables created can be assigned a semantic if that is used by the target application. Shader generation does not impose a specific set of semantics to use, so for languages and applications that use this any semantics can be used. For languages that do not use semantics a variable naming convention needs to be used instead.
 
-Figure 6 shows how creation of shader inputs and vertex data variables are used for a node implementation that requires this.
-
-### 1.7.1 Variable Naming Convention
-
-Built-in shader generators and accompanying node implementations have a naming convention for shader variables. A custom shader generator that derives from and takes
-advantage of built-in features should preferably use the same convention.
-Uniform variables are prefixed with `u_` and vertex inputs with `i_` . For languages not using semantics, Figure 7 shows the naming used for variables (inputs and uniforms) with predefined binding rules:
+Built-in shader generators and accompanying node implementations have a naming convention for shader variables. A custom shader generator that derives from and takes advantage of built-in features should preferably use the same convention. Uniform variables are prefixed with `u_` and vertex inputs with `i_` . For languages not using semantics, Figure 7 shows the naming used for variables (inputs and uniforms) with predefined binding rules:
 
 App data input variables
 
@@ -394,7 +382,6 @@ Uniform variables
 |    u_geomattr_<name>                   | <type\>  | A named attribute of given <type\> where <name\> is the name of the variable on the geometry. |
 |    u_numActiveLightSources             | int     | The number of currently active light sources. Note that in shader this is clamped against the maximum allowed number of light sources. |
 |    u_lightData[]                       | struct  | Array of struct LightData holding parameters for active light sources. The `LightData` struct is built dynamically depending on requirements for bound light shaders. |
-
 
 **Figure 7** : Listing of predefined variables with their binding rules.
 
