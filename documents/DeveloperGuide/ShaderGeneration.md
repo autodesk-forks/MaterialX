@@ -1,38 +1,20 @@
 # Shader Generation
 
 ## 1.1 Scope
-Shader generation features are implemented as a core part of MaterialX. Core
-feature support is contained in the [MaterialXGenShader](/source/MaterialXGenShader) shared library.
+A shader generation framework is implemented as part of MaterialX. This can help applications to transform the agnostic MaterialX data description into executable shader code for a specific renderer. A library module named MaterialXGenShader contains the core shader generation features, and support for specific languages resides in separate libraries, e.g. [MaterialXGenGlsl](/source/MaterialXGenGlsl), [MaterialXGenOsl](/source/MaterialXGenOsl)
 
-Per shading language support resides in folders which begin with "MaterialXGen". Thus, Glsl and Osl language support reside in these folders respectively:
-- [MaterialXGenGlsl](/source/MaterialXGenGlsl) : This is support for GLSL.
-- [MaterialXGenOsl](/source/MaterialXGenOsl) : This is support for OSL.
-
-Note that there is no runtime and the output produced is source code, not binary executable
-code. The source code produced needs to be compiled by a shading language compiler before being
-executed by a renderer. See Figure 1 for a high level overview of the system.
+Note that this system has no runtime and the output produced is source code, not binary executable code. The source code produced needs to be compiled by a shading language compiler before being executed by the renderer. See Figure 1 for a high level overview of the system.
 
 ![Shader generation with multiple shader generators](../../resources/Images/shaderx.png)
 
 **Figure 1**: Shader generation with multiple shader generators
 
 ## 1.2 Languages and Shader Generators
-The generation framework is free from device specific details with all implementation details taken care of by shader generators. There is one shader generator for each supported shading language. However for each language there can also be variations needed for different renderers. These variations are specified using a `target` specifier.
+The MaterialX description is free from device specific details and all implementation details needs to be taken care of by shader generators. There is one shader generator for each supported shading language. However for each language there can also be variations needed for different renderers. For example; OpenGL renderers supporting GLSL can use forward rendering or deferred rendering, each with very different requirements for how the shaders are constructed. Another example is different renderers supporting OSL but with different sets of closures or closure parameters. Hence a separate shader generator can be defined for each language/target combination.
 
-For example: `OpenGL` renderers supporting `GLSL` can use forward rendering or deferred rendering,
-each with very different requirements for how the shaders are constructed. Another example is
-different renderers supporting OSL but with different sets of closures or closure parameters. Hence a separate shader generator can be defined for each language/target combination.
+Class inheritance and specialization is used to create support for new languages or to customize existing language support for a new target. So to add a new shader generator for a target you add a new C++ class derived from the base class `ShaderGenerator`, or one of the existing derived shader generator classes (`GlslShaderGenerator`, `OslShaderGenerator`, etc.), and override the methods you need to customize. You might also need to derive a new `Syntax` class, which is used to handle syntactical differences between different shading languages. Then you need to make sure there are implementations defined for all the nodes you want to support, standard library nodes and nodes from other libraries, by either reusing existing implementations where applicable or adding in new ones. See [1.3](#1.3 Node Implementations) on how that is done.
 
-To add a new shader generator for a target you add a new C++ class derived from the base class
-`ShaderGenerator`, or one of the existing derived shader generator classes (
-`GlslShaderGenerator`, `OslShaderGenerator`, etc.), and override the methods you need to customize. You might also need to derive a new `Syntax` class, which is used to handle syntactical
-differences between different shading languages. Then you need to make sure there are implementations defined for all the nodes you want to support, standard library nodes and nodes from other libraries, by either reusing existing implementations where applicable or adding in new ones.
-
-See [1.3](#1.3 Node Implementations) on how that is done.
-
-Note that a shader generator doesn’t need to be defined at the time when node definitions are
-added. New shader generators can be added later, and node implementations for new targets can
-be added for existing nodes.
+Note that a shader generator doesn’t need to be defined at the time when node definitions are added. New shader generators can be added later, and node implementations for new targets can be added for existing nodes.
 
 ## 1.3 Node Implementations
 There are four different methods to define the implementation of a node:
@@ -41,11 +23,10 @@ There are four different methods to define the implementation of a node:
 3. Using a nodegraph that defines the operation performed by the node.
 4. Using a C++ class that emits code dynamically during shader generation.
 
-For all methods the implementation is tied to a specific `nodedef` with a well defined interface of typed inputs and outputs. In the following sub-sections each of these methods are explained.
+In the following sub-sections each of these methods are explained. For all methods the implementation is tied to a specific `nodedef` with a well defined interface of typed inputs and outputs.
 
 ### 1.3.1 Inline Expression
-Provided code generators support a very simple expression language for inlining code. This is useful for simple nodes where the operation can be expressed as a single line of code. Inlining will reduce the number of function calls and produce more compact code. The syntax to use is the
-same as the target shading language, with the addition of using the node’s input ports as variables wrapped in double curly brackets: `{{input}}`. The code generator will replace these variables with values assigned or connected to the respective inputs. Figure 2 gives an example.
+Provided code generators support a very simple expression language for inlining code. This is useful for simple nodes where the operation can be expressed as a single line of code. Inlining will reduce the number of function calls and produce more compact code. The syntax to use is the same as the target shading language, with the addition of using the node’s input ports as variables wrapped in double curly brackets: `{{input}}`. The code generator will replace these variables with values assigned or connected to the respective inputs. Figure 2 gives an example.
 
 Connecting the expression to the nodedef is done using an `<implementation>` element as seen in
 Figure 2. The file extension is used to differentiate inline expressions from source code functions, using `filename.inline`.
@@ -79,13 +60,20 @@ Figure 2. The file extension is used to differentiate inline expressions from so
   <input name="mix" type="float"/>
 </nodedef>
 <... more types ...>
-```
-```xml
+
 // Implementation elements for node <mix>
 <implementation name="IM_mix_float" nodedef="ND_mix_float" file="mx_mix.inline"/>
 <implementation name="IM_mix_color3" nodedef="ND_mix_color3" file="mx_mix.inline"/>
 <... more types ...>
 ```
+```
+// File 'mx_add.inline' contains:
+{{in1}} + {{in2}}
+
+// File 'mx_mix.inline' contains:
+mix({{bg}}, {{fg}}, {{mix}})
+```
+
 **Figure 2**: Inline expressions for implementing nodes `<add>` and `<mix>`.
 
 ### 1.3.2 Shading Language Function
