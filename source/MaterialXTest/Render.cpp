@@ -137,7 +137,7 @@ static mx::OslValidatorPtr createOSLValidator(std::ostream& log)
         // Pre-compile some required shaders for testrender
         if (!oslcExecutable.empty() && !testRenderExecutable.empty())
         {
-            mx::FilePath shaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/");
+            mx::FilePath shaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite/Utilities/");
             validator->setOslOutputFilePath(shaderPath);
 
             mx::StringVec files;
@@ -896,7 +896,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                         validator.setOslShaderOutput(outputName, outputType);
 
                         // Set scene template file. For now we only have the constant color scene file
-                        mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/");
+                        mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite/Utilities/");
                         sceneTemplatePath = sceneTemplatePath / sceneTemplateFile;
                         validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
 
@@ -1227,7 +1227,7 @@ TEST_CASE("Render TestSuite", "[render]")
     mx::StringSet testfileOverride;
 
     AdditiveScopedTimer ioTimer(profileTimes.ioTime, "Global I/O time");
-    mx::FilePath path = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite");
+    mx::FilePath path = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");
     mx::StringVec dirs;
     std::string baseDirectory = path;
     mx::getSubDirectories(baseDirectory, dirs);
@@ -1252,7 +1252,7 @@ TEST_CASE("Render TestSuite", "[render]")
     }
 
     // Library search path
-    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("documents/Libraries");
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
 
     // Load in the library dependencies once
     // This will be imported in each test document below
@@ -1272,9 +1272,9 @@ TEST_CASE("Render TestSuite", "[render]")
 
     const mx::StringVec libraries = { "stdlib", "pbrlib" };
     GenShaderUtil::loadLibraries(libraries, searchPath, dependLib, &excludeFiles);
-    GenShaderUtil::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("documents/Examples/BxDF/standard_surface.mtlx"), dependLib);
+    GenShaderUtil::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/bxdf/standard_surface.mtlx"), dependLib);
 
-    mx::FilePath lightDir = mx::FilePath::getCurrentPath() / mx::FilePath("documents/TestSuite/Utilities/Lights");
+    mx::FilePath lightDir = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite/Utilities/Lights");
     if (options.lightFiles.size() == 0)
     {
         GenShaderUtil::loadLibrary(lightDir / mx::FilePath("lightcompoundtest.mtlx"), dependLib);
