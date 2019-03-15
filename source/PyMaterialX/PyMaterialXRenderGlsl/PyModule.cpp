@@ -11,7 +11,7 @@ void bindPyGlslProgram(py::module& mod);
 void bindPyGlslValidator(py::module& mod);
 void bindPyGLTextureHandler(py::module& mod);
 
-PYBIND11_MODULE(PyMaterialXGenShader, mod)
+PYBIND11_MODULE(PyMaterialXRenderGlsl, mod)
 {
     mod.doc() = "Module containing Python bindings for the MaterialXRenderGlsl library";
 

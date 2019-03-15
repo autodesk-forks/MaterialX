@@ -21,7 +21,7 @@ void bindPyViewHandler(py::module& mod);
 void bindPyExceptionShaderValidationError(py::module& mod);
 void bindPyShaderValidator(py::module& mod);
 
-PYBIND11_MODULE(PyMaterialXGenShader, mod)
+PYBIND11_MODULE(PyMaterialXRender, mod)
 {
     mod.doc() = "Module containing Python bindings for the MaterialXRender library";
 
