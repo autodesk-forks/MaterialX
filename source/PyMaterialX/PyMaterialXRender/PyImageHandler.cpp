@@ -46,7 +46,7 @@ class PyImageLoader : public mx::ImageLoader
 class PyImageHandler : public mx::ImageHandler
 {
   public:
-    PyImageHandler(mx::ImageLoaderPtr imageLoader) :
+    explicit PyImageHandler(mx::ImageLoaderPtr imageLoader) :
         mx::ImageHandler(imageLoader)
     {
     }
