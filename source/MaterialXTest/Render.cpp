@@ -364,19 +364,22 @@ protected:
 };
 
 // Create a list of generation options based on unit test options
-void getGenerationOptions(const ShaderValidTestOptions& testOptions, std::vector<mx::GenOptions>& optionsList)
+// These options will override the original generation context options.
+void getGenerationOptions(const ShaderValidTestOptions& testOptions, 
+                          const mx::GenOptions& originalOptions, 
+                          std::vector<mx::GenOptions>& optionsList)
 {
     optionsList.clear();
     if (testOptions.shaderInterfaces & 1)
     {
-        mx::GenOptions reducedOption;
+        mx::GenOptions reducedOption = originalOptions;
         reducedOption.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
         optionsList.push_back(reducedOption);
     }
     // Alway fallback to complete if no options specified.
     if ((testOptions.shaderInterfaces & 2) || optionsList.empty())
     {
-        mx::GenOptions completeOption;
+        mx::GenOptions completeOption = originalOptions;
         completeOption.shaderInterfaceType = mx::SHADER_INTERFACE_COMPLETE;
         optionsList.push_back(completeOption);
     }
@@ -404,7 +407,7 @@ static void runOGSFXValidation(const std::string& shaderName, mx::TypedElementPt
     }
 
     std::vector<mx::GenOptions> optionsList;
-    getGenerationOptions(testOptions, optionsList);
+    getGenerationOptions(testOptions, context.getOptions(), optionsList);
 
     if (element && doc)
     {
@@ -435,7 +438,10 @@ static void runOGSFXValidation(const std::string& shaderName, mx::TypedElementPt
                 AdditiveScopedTimer transpTimer(profileTimes.ogsfxTimes.transparencyTime, "OGSFX transparency time");
                 options.hwTransparency = mx::isTransparentSurface(element, shadergen);
                 transpTimer.endTimer();
+
                 AdditiveScopedTimer generationTimer(profileTimes.ogsfxTimes.generationTime, "OGSFX generation time");
+                mx::GenOptions& contextOptions = context.getOptions();
+                contextOptions = options;
                 shader = shadergen.generate(shaderName, element, context);
                 generationTimer.endTimer();
 
@@ -511,7 +517,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
     }
 
     std::vector<mx::GenOptions> optionsList;
-    getGenerationOptions(testOptions, optionsList);
+    getGenerationOptions(testOptions, context.getOptions(), optionsList);
 
     if(element && doc)
     {
@@ -543,6 +549,8 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                 transpTimer.endTimer();
 
                 AdditiveScopedTimer generationTimer(profileTimes.glslTimes.generationTime, "GLSL generation time");
+                mx::GenOptions& contextOptions = context.getOptions();
+                contextOptions = options;
                 shader = shadergen.generate(shaderName, element, context);
                 generationTimer.endTimer();
             }
@@ -767,7 +775,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
     }
 
     std::vector<mx::GenOptions> optionsList;
-    getGenerationOptions(testOptions, optionsList);
+    getGenerationOptions(testOptions, context.getOptions(), optionsList);
 
     if(element && doc)
     {
@@ -781,6 +789,8 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             try
             {
                 AdditiveScopedTimer genTimer(profileTimes.oslTimes.generationTime, "OSL generation time");
+                mx::GenOptions& contextOptions = context.getOptions();
+                contextOptions = options;
                 shader = shadergen.generate(shaderName, element, context);
             }
             catch (mx::ExceptionShaderGenError& e)
