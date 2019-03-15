@@ -2603,12 +2603,12 @@
   <nodedef name="ND_premult_color2" node="premult" type="color2" nodegroup="compositing" defaultinput="in">
     <input name="in" type="color2"/>
   </nodedef>
-  <nodedef name="ND_premult_color4" node="premult" type="color4" nodegroup="compositing" defaultinput="in">
-    <input name="in" type="color4"/>
-  </nodedef>
   <nodedef name="ND_premult_color3" node="premult" type="color3" nodegroup="compositing" defaultinput="in">
     <input name="in" type="color3"/>
     <input name="alpha" type="float"/>
+  </nodedef>
+  <nodedef name="ND_premult_color4" node="premult" type="color4" nodegroup="compositing" defaultinput="in">
+    <input name="in" type="color4"/>
   </nodedef>
 
   <!--
@@ -2619,12 +2619,12 @@
   <nodedef name="ND_unpremult_color2" node="unpremult" type="color2" nodegroup="compositing" defaultinput="in">
     <input name="in" type="color2"/>
   </nodedef>
-  <nodedef name="ND_unpremult_color4" node="unpremult" type="color4" nodegroup="compositing" defaultinput="in">
-    <input name="in" type="color4"/>
-  </nodedef>
   <nodedef name="ND_unpremult_color3" node="unpremult" type="color3" nodegroup="compositing" defaultinput="in">
     <input name="in" type="color3"/>
     <input name="alpha" type="float"/>
+  </nodedef>
+  <nodedef name="ND_unpremult_color4" node="unpremult" type="color4" nodegroup="compositing" defaultinput="in">
+    <input name="in" type="color4"/>
   </nodedef>
 
   <!--
