@@ -66,7 +66,7 @@ Figure 2. The file extension is used to differentiate inline expressions from so
 <implementation name="IM_mix_color3" nodedef="ND_mix_color3" file="mx_mix.inline"/>
 <... more types ...>
 ```
-```
+```c++
 // File 'mx_add.inline' contains:
 {{in1}} + {{in2}}
 
@@ -222,26 +222,15 @@ ShaderPtr ShaderGenerator::generate(const string& name,
 
 The shader generation process can be divided into initialization and code generation. The initialization consists of a number of steps:
 
-1. Create an optimized version of the graph as a tree with the given input element as root, and with only the used dependencies connected upstream. This involves removing unused paths in the graph, converting constant nodes to constant values, and adding in any default nodes for ports that are unconnected but have default connections specified. Removal of unused paths typically involves constant folding and pruning of conditional branches that will never be taken. Since the resulting shader in the end will be compiled by a shading language compiler, and receive a lot of additional optimizations, we don’t need to do too much work
-in this optimization step. However, a few graph level optimizations can make the resulting shader a lot smaller and save time and memory during shader compilation. It will also produce more readable source code which is good for debugging purposes. This optimization step is also a good place to do other custom optimizations needed by a particular target. For example simplification of the graph, which could involve substituting expensive nodes with approximate nodes, identification of common subgraphs that can be merged, etc.
+ 1. Create an optimized version of the graph as a tree with the given input element as root, and with only the used dependencies connected upstream. This involves removing unused paths in the graph, converting constant nodes to constant values, and adding in any default nodes for ports that are unconnected but have default connections specified. Removal of unused paths typically involves constant folding and pruning of conditional branches that will never be taken. Since the resulting shader in the end will be compiled by a shading language compiler, and receive a lot of additional optimizations, we don’t need to do too much work in this optimization step. However, a few graph level optimizations can make the resulting shader a lot smaller and save time and memory during shader compilation. It will also produce more readable source code which is good for debugging purposes. This optimization step is also a good place to do other custom optimizations needed by a particular target. For example simplification of the graph, which could involve substituting expensive nodes with approximate nodes, identification of common subgraphs that can be merged, etc.
 
-2. The nodes are sorted in topological order. Since a node can be referenced by many other
-nodes in the graph we need an ordering of the nodes so that nodes that have a dependency
-on other nodes come after all dependent nodes. This step also makes sure there are no
-cyclic dependencies in the graph.
+ 2. The nodes are sorted in topological order. Since a node can be referenced by many other nodes in the graph we need an ordering of the nodes so that nodes that have a dependency on other nodes come after all dependent nodes. This step also makes sure there are no cyclic dependencies in the graph.
 
-3. The stages for the shader are created. For a HW shader this is normally a vertex stage and a pixel stage, but other stages can be added as needed. At the minumum a single pixel stage is required, so even shaders that has no concept of multiple stages, like OSL, needs to have a single pixel stage created.
+ 3. The stages for the shader are created. For a HW shader this is normally a vertex stage and a pixel stage, but other stages can be added as needed. At the minumum a single pixel stage is required, so even shaders that has no concept of multiple stages, like OSL, needs to have a single pixel stage created.
 
-4. The shader stages interface of uniforms and varyings are established. This consists of
-the graph interface ports that are in use, as well as internal ports that have been published
-to the interface (an example of the latter is for a hardware shader generator where image texture filenames get converted to texture samplers which needs to be published in order to be
-bound by the target application). Each node in the graph is also called for a chance to create any uniforms or varyings needed by its implementation.
+ 4. The shader stages interface of uniforms and varyings are established. This consists of the graph interface ports that are in use, as well as internal ports that have been published to the interface (an example of the latter is for a hardware shader generator where image texture filenames get converted to texture samplers which needs to be published in order to be bound by the target application). Each node in the graph is also called for a chance to create any uniforms or varyings needed by its implementation.
 
-5. Information about scope is tracked for each node. This information is needed to handle
-branching by conditional nodes. For example, if a node is used only by a particular branch
-on a varying conditional we want to calculate this node only inside that scope, when that
-corresponding branch is taken. A node can be used in global scope, in a single conditional
-scope or by multiple conditional scopes.
+ 5. Information about scope is tracked for each node. This information is needed to handle branching by conditional nodes. For example, if a node is used only by a particular branch on a varying conditional we want to calculate this node only inside that scope, when that corresponding branch is taken. A node can be used in global scope, in a single conditional scope or by multiple conditional scopes.
 
 The output from the initialization step is a new graph representation constructed using the classes `ShaderNode`, `ShaderInput`, `ShaderOutput`, `ShaderGraph`, etc. This is a graph representation optimized for shader generation with quick access and traversal of nodes and ports, as well as caching of extra information needed by shader generation.
 
@@ -379,7 +368,7 @@ Uniform variables
 |    u_viewDirection                     | vec3    | World-space direction of the viewer. |
 |    u_frame                             | float   | The current frame number as defined by the host application. |
 |    u_time                              | float   | The current time in seconds. |
-|    u_geomattr_<name>                   | <type\>  | A named attribute of given <type\> where <name\> is the name of the variable on the geometry. |
+|    u_geomattr_<name>                   | <type\> | A named attribute of given <type\> where <name\> is the name of the variable on the geometry. |
 |    u_numActiveLightSources             | int     | The number of currently active light sources. Note that in shader this is clamped against the maximum allowed number of light sources. |
 |    u_lightData[]                       | struct  | Array of struct LightData holding parameters for active light sources. The `LightData` struct is built dynamically depending on requirements for bound light shaders. |
 
