@@ -94,6 +94,11 @@ public:
     {
         _shaderGenerator = mx::OgsFxShaderGenerator::create();
     }
+
+    void setTestStages() override
+    {
+        _testStages.push_back(mx::Stage::FX_STAGE);
+    }
 };
 
 static void generateOGSFXCode()
