@@ -31,10 +31,13 @@ ImageHandler::ImageHandler(ImageLoaderPtr imageLoader)
 
 void ImageHandler::addLoader(ImageLoaderPtr loader)
 {
-    const StringVec& extensions = loader->supportedExtensions();
-    for (auto extension : extensions)
+    if (loader)
     {
-        _imageLoaders.insert(std::pair<string, ImageLoaderPtr>(extension, loader));
+        const StringVec& extensions = loader->supportedExtensions();
+        for (auto extension : extensions)
+        {
+            _imageLoaders.insert(std::pair<string, ImageLoaderPtr>(extension, loader));
+        }
     }
 }
 

@@ -138,6 +138,12 @@ class ImageHandler
     /// Constructor. Assume at least one loader must be supplied.
     ImageHandler(ImageLoaderPtr imageLoader);
 
+    /// Static instance create function
+    static ImageHandlerPtr create(ImageLoaderPtr imageLoader)
+    {
+        return std::make_shared<ImageHandler>(imageLoader);
+    }
+
     /// Add additional image loaders. Useful to handle different file
     /// extensions
     /// @param loader Loader to add to list of available loaders.

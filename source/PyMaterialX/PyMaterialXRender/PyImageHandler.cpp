@@ -157,6 +157,7 @@ void bindPyImageHandler(py::module& mod)
 
     py::class_<mx::ImageHandler, PyImageHandler, mx::ImageHandlerPtr>(mod, "ImageHandler")
         .def(py::init<mx::ImageLoaderPtr>())
+        .def_static("create", &mx::ImageHandler::create)
         .def("addLoader", &mx::ImageHandler::addLoader)
         .def("saveImage", &mx::ImageHandler::saveImage)
         .def("acquireImage", &mx::ImageHandler::acquireImage)

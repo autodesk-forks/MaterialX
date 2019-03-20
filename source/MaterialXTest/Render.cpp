@@ -1197,7 +1197,7 @@ TEST_CASE("Image Handler", "[render]")
     return;
 #endif
     mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
-    mx::GLTextureHandlerPtr imageHandler = mx::GLTextureHandler::create(nullptr);
+    mx::ImageHandlerPtr imageHandler = mx::ImageHandler::create(nullptr);
     imageHandler->addLoader(stbLoader);
 #ifdef MATERIALX_BUILD_CONTRIB
     mx::TinyEXRImageLoaderPtr exrLoader = mx::TinyEXRImageLoader::create();
