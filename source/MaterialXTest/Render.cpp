@@ -40,6 +40,9 @@
 #ifdef MATERIALX_BUILD_CONTRIB
 #include <MaterialXContrib/Handlers/TinyEXRImageLoader.h>
 #endif
+#ifdef MATERIALX_BUILD_OIIO
+#include <MaterialXRender/Handlers/OiioImageLoader.h>
+#endif
 #include <MaterialXRender/Handlers/StbImageLoader.h>
 
 #include <fstream>
@@ -1186,6 +1189,21 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
         // Enable when implementations and testing are complete
         // CHECK(implementationUseCount == libraryCount);
     }
+}
+
+TEST_CASE("Image Handler", "[render]")
+{
+#if !defined(MATERIALX_BUILD_RENDER) 
+    return;
+#endif
+    mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
+    mx::GLTextureHandlerPtr imageHandler = mx::GLTextureHandler::create(nullptr);
+    imageHandler->addLoader(stbLoader);
+#ifdef MATERIALX_BUILD_CONTRIB
+    mx::TinyEXRImageLoaderPtr exrLoader = mx::TinyEXRImageLoader::create();
+    imageHandler->addLoader(exrLoader);
+#endif
+
 }
 
 TEST_CASE("Render TestSuite", "[render]")
