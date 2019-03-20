@@ -52,7 +52,8 @@ protected:
 
 namespace Stage
 {
-    extern const string FX_STAGE;
+    /// Identifier for full Effect
+    extern const string EFFECT;
 }
 
 }

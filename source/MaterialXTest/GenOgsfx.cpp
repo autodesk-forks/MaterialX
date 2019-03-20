@@ -78,7 +78,7 @@ TEST_CASE("OGSFX Unique Names", "[genogsfx]")
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
     context.registerSourceCodeSearchPath(searchPath);
 
-    GenShaderUtil::testUniqueNames(context, mx::Stage::FX_STAGE);
+    GenShaderUtil::testUniqueNames(context, mx::Stage::EFFECT);
 }
 
 class OgsFxShaderGeneratorTester : public GlslShaderGeneratorTester
@@ -97,7 +97,7 @@ public:
 
     void setTestStages() override
     {
-        _testStages.push_back(mx::Stage::FX_STAGE);
+        _testStages.push_back(mx::Stage::EFFECT);
     }
 };
 
