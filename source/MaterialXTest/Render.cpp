@@ -1191,19 +1191,95 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
     }
 }
 
-TEST_CASE("Image Handler", "[render]")
+struct ImageHandlerTestOptions
+{
+    mx::ImageHandlerPtr imageHandler;
+    std::ofstream* logFile;
+
+    mx::StringVec testExtensions;
+};
+
+void testImageHandler(ImageHandlerTestOptions& options)
+{
+    mx::FilePath imagePath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Images/");
+    mx::StringVec files;
+
+    unsigned int loadFailed = 0;
+    for (auto extension : options.testExtensions)
+    {
+        mx::getFilesInDirectory(imagePath, files, extension);
+        for (const std::string& file : files)
+        {
+            const mx::FilePath filePath = imagePath / mx::FilePath(file);
+            const std::string fileName = filePath;
+            mx::ImageDesc desc;
+            bool loaded = options.imageHandler->acquireImage(filePath, desc, false, nullptr);
+            if (options.logFile)
+            {
+                *(options.logFile) << "Loaded image: " << fileName << ". Loaded: " << loaded << std::endl;
+            }
+            if (!loaded)
+            {
+                loadFailed++;
+            }
+        }
+        files.clear();
+    }
+    CHECK(loadFailed == 0);
+}
+
+TEST_CASE("Image Handler Load", "[rendercore]")
 {
 #if !defined(MATERIALX_BUILD_RENDER) 
     return;
 #endif
-    mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
-    mx::ImageHandlerPtr imageHandler = mx::ImageHandler::create(nullptr);
-    imageHandler->addLoader(stbLoader);
+
+    std::ofstream imageHandlerLog;
+    imageHandlerLog.open("render_image_handler_test.txt");
+    bool imagesLoaded = false;
+    try
+    {
+        ImageHandlerTestOptions options;
+        options.logFile = &imageHandlerLog;
+
+        imageHandlerLog << "** Test STB image loader **" << std::endl;
+        mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
+        mx::ImageHandlerPtr imageHandler = mx::ImageHandler::create(nullptr);
+        imageHandler->addLoader(stbLoader);
+        options.testExtensions = stbLoader->supportedExtensions();
+        options.imageHandler = imageHandler;
+        testImageHandler(options);
+
 #ifdef MATERIALX_BUILD_CONTRIB
-    mx::TinyEXRImageLoaderPtr exrLoader = mx::TinyEXRImageLoader::create();
-    imageHandler->addLoader(exrLoader);
+        imageHandlerLog << "** Test TinyEXR image loader **" << std::endl;
+        mx::TinyEXRImageLoaderPtr exrLoader = mx::TinyEXRImageLoader::create();
+        mx::ImageHandlerPtr imageHandler2 = mx::ImageHandler::create(nullptr);
+        imageHandler2->addLoader(exrLoader);
+        options.testExtensions = exrLoader->supportedExtensions();
+        options.imageHandler = imageHandler2;
+        testImageHandler(options);
 #endif
 
+#if defined(MATERIALX_BUILD_OIIO) && defined(OPENIMAGEIO_ROOT_DIR)
+        imageHandlerLog << "** Test OpenImageIO image loader **" << std::endl;
+        mx::OiioImageLoaderPtr oiioLoader = mx::OiioImageLoader::create();
+        mx::ImageHandlerPtr imageHandler3 = mx::ImageHandler::create(nullptr);
+        imageHandler3->addLoader(oiioLoader);
+        options.testExtensions = oiioLoader->supportedExtensions();
+        options.imageHandler = imageHandler3;
+        testImageHandler(options);
+#endif
+        imagesLoaded = true;
+    }
+    catch (mx::ExceptionShaderValidationError& e)
+    {
+        for (auto error : e.errorLog())
+        {
+            imageHandlerLog << e.what() << " " << error << std::endl;
+        }
+    }
+    CHECK(imagesLoaded);
+    imageHandlerLog.close();
 }
 
 TEST_CASE("Render TestSuite", "[render]")

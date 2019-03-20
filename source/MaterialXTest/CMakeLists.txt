@@ -37,6 +37,13 @@ add_test(NAME MaterialXTest
          COMMAND MaterialXTest
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+if(MATERIALX_BUILD_OIIO AND OPENIMAGEIO_ROOT_DIR)
+    message("Copying OIIO executable dependencies from: ${OPENIMAGEIO_ROOT_DIR}/bin" )
+    add_custom_command(TARGET MaterialXTest POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                   ${OPENIMAGEIO_ROOT_DIR}/bin ${CMAKE_CURRENT_BINARY_DIR})
+endif()
+
 add_custom_command(TARGET MaterialXTest POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                    ${CMAKE_SOURCE_DIR}/libraries ${CMAKE_CURRENT_BINARY_DIR}/libraries)
@@ -86,3 +93,4 @@ target_link_libraries(
     MaterialXTest ${LIBS}
     ${CMAKE_DL_LIBS}
 )
+
