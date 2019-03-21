@@ -173,7 +173,7 @@ static mx::OslValidatorPtr createOSLValidator(std::ostream& log)
 //
 class ShaderValidTestOptions
 {
-public:
+  public:
     void print(std::ostream& output) const
     {
         output << "Shader Validation Test Options:" << std::endl;
@@ -249,10 +249,10 @@ public:
     bool dumpGlslUniformsAndAttributes = true;
 
     // Non-shader GLSL geometry file
-    MaterialX::FilePath glslNonShaderGeometry = "sphere.obj";
+    MaterialX::FilePath glslNonShaderGeometry;
 
     // Shader GLSL geometry file
-    MaterialX::FilePath glslShaderGeometry = "shaderball.obj";
+    MaterialX::FilePath glslShaderGeometry;
 
     // Radiance IBL file
     MaterialX::FilePath radianceIBLPath;
@@ -968,9 +968,13 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
     const std::string GLSL_SHADER_GEOMETRY_STRING("glslShaderGeometry");
     const std::string RADIANCE_IBL_PATH_STRING("radianceIBLPath");
     const std::string IRRADIANCE_IBL_PATH_STRING("irradianceIBLPath");
+    const std::string SPHERE_OBJ("sphere.obj");
+    const std::string SHADERBALL_OBJ("shaderball.obj");
 
     options.overrideFiles.clear();
     options.dumpGeneratedCode = false;
+    options.glslNonShaderGeometry = SPHERE_OBJ;
+    options.glslShaderGeometry = SHADERBALL_OBJ;
 
     MaterialX::DocumentPtr doc = MaterialX::createDocument();
     try {
