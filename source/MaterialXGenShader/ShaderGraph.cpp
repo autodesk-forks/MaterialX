@@ -888,8 +888,10 @@ void ShaderGraph::bypass(const GenContext& context, ShaderNode* node, size_t inp
             if (!downstream->getChannels().empty())
             {
                 // call getSwizzledValue on the input
-                input->setValue(context.getShaderGenerator().getSyntax()->getSwizzledValue(input->getValue(), input->getType(), 
-                                downstream->getChannels(), downstream->getType());
+                input->setValue(context.getShaderGenerator().getSyntax().getSwizzledValue(input->getValue(), 
+                                                                                          input->getType(), 
+                                                                                          downstream->getChannels(), 
+                                                                                          downstream->getType()));
                 input->setType(downstream->getType());
             }
         }
