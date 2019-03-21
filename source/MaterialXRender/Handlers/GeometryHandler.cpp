@@ -1,8 +1,13 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXGenShader/Util.h>
 #include <MaterialXRender/Handlers/GeometryHandler.h>
 
 namespace MaterialX
-{ 
+{
 void GeometryHandler::addLoader(GeometryLoaderPtr loader)
 {
     const StringVec& extensions = loader->supportedExtensions();
@@ -71,22 +76,22 @@ void GeometryHandler::computeBounds()
     }
 }
 
-bool GeometryHandler::loadGeometry(const std::string& location)
+bool GeometryHandler::loadGeometry(const FilePath& filePath)
 {
     // Early return if already loaded
-    if (hasGeometry(location))
+    if (hasGeometry(filePath))
         return true;
 
     bool loaded = false;
 
     std::pair <GeometryLoaderMap::iterator, GeometryLoaderMap::iterator> range;
-    string extension = MaterialX::getFileExtension(location);
+    string extension = MaterialX::getFileExtension(filePath);
     range = _geometryLoaders.equal_range(extension);
     GeometryLoaderMap::iterator first = --range.second;
     GeometryLoaderMap::iterator last = --range.first;
     for (auto it = first; it != last; --it)
     {
-        loaded = it->second->load(location, _meshes);
+        loaded = it->second->load(filePath, _meshes);
         if (loaded)
         {
             break;

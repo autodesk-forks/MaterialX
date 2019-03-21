@@ -1,5 +1,10 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXGenShader/TypeDesc.h>
-#include <MaterialXGenShader/Shader.h>
+#include <MaterialXGenShader/ShaderGenerator.h>
 
 namespace MaterialX
 {
@@ -17,13 +22,18 @@ namespace
     }
 }
 
-TypeDesc::TypeDesc(const string& name, unsigned char basetype, unsigned char semantic, int size, bool editable, const std::unordered_map<char, int>& channelMapping)
-    : _name(name)
-    , _basetype(basetype)
-    , _semantic(semantic)
-    , _size(size)
-    , _editable(editable)
-    , _channelMapping(channelMapping)
+//
+// TypeDesc methods
+//
+
+TypeDesc::TypeDesc(const string& name, unsigned char basetype, unsigned char semantic, int size,
+                   bool editable, const std::unordered_map<char, int>& channelMapping) :
+    _name(name),
+    _basetype(basetype),
+    _semantic(semantic),
+    _size(size),
+    _editable(editable),
+    _channelMapping(channelMapping)
 {
 }
 

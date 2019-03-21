@@ -1,7 +1,15 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_GENOPTIONS_H
 #define MATERIALX_GENOPTIONS_H
 
-#include <MaterialXCore/Library.h>
+/// @file
+/// Shader generation options class
+
+#include <MaterialXGenShader/Library.h>
 
 namespace MaterialX
 {
@@ -35,13 +43,20 @@ enum HwSpecularEnvironmentMethod
     SPECULAR_ENVIRONMENT_FIS
 };
 
+/// @class GenOptions 
 /// Class holding options to configure shader generation.
 class GenOptions
 {
   public:
-    GenOptions();
-
-    virtual ~GenOptions() {}
+    GenOptions() :
+        shaderInterfaceType(SHADER_INTERFACE_COMPLETE),
+        fileTextureVerticalFlip(false),
+        hwTransparency(false),
+        hwSpecularEnvironmentMethod(SPECULAR_ENVIRONMENT_PREFILTER),
+        hwMaxActiveLightSources(3)
+    {
+    }
+    virtual ~GenOptions() { }
 
     // TODO: Add options for:
     //  - shader gen optimization level
@@ -49,6 +64,17 @@ class GenOptions
 
     /// Sets the type of shader interface to be generated
     int shaderInterfaceType;
+
+    /// If true the y-component of texture coordinates used for sampling
+    /// file textures will be flipped before sampling. This can be used if
+    /// file textures need to be flipped vertically to match the target's
+    /// texture space convention. By default this option is false.
+    bool fileTextureVerticalFlip;
+
+    /// An optional override for the target color space.
+    /// Shader fragments will be generated to transform
+    /// input values and textures into this color space.
+    string targetColorSpaceOverride;
 
     /// Sets if transparency is needed or not for HW shaders.
     /// If a surface shader has potential of being transparent
@@ -61,16 +87,9 @@ class GenOptions
     /// lighting for HW shader targets.
     int hwSpecularEnvironmentMethod;
 
-    /// If true the y-component of texture coordinates used for sampling
-    /// file textures will be flipped before sampling. This can be used if
-    /// file textures need to be flipped vertically to match the target's
-    /// texture space convention. By default this option is false.
-    bool fileTextureVerticalFlip;
-
-    /// An optional override for the target color space.
-    /// Shader fragments will be generated to transform
-    /// input values and textures into this color space.
-    string targetColorSpaceOverride;
+    /// Sets the maximum number of light sources that can
+    /// be active at once.
+    unsigned int hwMaxActiveLightSources;
 };
 
 } // namespace MaterialX

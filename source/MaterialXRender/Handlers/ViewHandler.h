@@ -1,5 +1,13 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_VIEWHANDLER_H
 #define MATERIALX_VIEWHANDLER_H
+
+/// @file
+/// Utility for providing view data
 
 #include <MaterialXCore/Types.h>
 #include <memory>
@@ -10,7 +18,7 @@ namespace MaterialX
 /// Shared pointer to a ViewHandler
 using ViewHandlerPtr = std::shared_ptr<class ViewHandler>;
 
-/// @class @ViewHandler
+/// @class ViewHandler
 /// Utility view handler for creating and providing 
 /// View data for shader binding.
 ///
@@ -40,6 +48,10 @@ class ViewHandler
                                         float farClipPlane);
 
     /// Set a matrix to an orthographic projection
+    /// @param left Left clip plane
+    /// @param right Right clip plane
+    /// @param bottom Bottom clip plane
+    /// @param top Top clip plane
     /// @param nearClipPlane Near clip plane
     /// @param farClipPlane Far clip plane
     void setOrthoGraphicProjectionMatrix(float left,

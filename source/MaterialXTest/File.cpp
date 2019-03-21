@@ -32,11 +32,11 @@ TEST_CASE("Syntactic operations", "[file]")
 
 TEST_CASE("File system operations", "[file]")
 {
-    std::vector<std::string> filenames =
+    mx::StringVec filenames =
     {
-        "documents/Libraries/stdlib/stdlib_defs.mtlx",
-        "documents/Examples/MaterialBasic.mtlx",
-        "documents/Examples/PaintMaterials.mtlx",
+        "libraries/stdlib/stdlib_defs.mtlx",
+        "resources/Materials/Examples/MaterialBasic.mtlx",
+        "resources/Materials/Examples/PaintMaterials.mtlx",
     };
 
     for (const std::string& filename : filenames)
@@ -44,5 +44,25 @@ TEST_CASE("File system operations", "[file]")
         mx::FilePath path(filename);
         REQUIRE(path.exists());
         REQUIRE(mx::FileSearchPath().find(path).exists());
+    }
+}
+
+TEST_CASE("File search path operations", "[file]")
+{
+    std::string searchPath = "libraries/stdlib" + 
+                             mx::PATH_LIST_SEPARATOR + 
+                             "resources/Materials/Examples";
+
+    mx::StringVec filenames =
+    {
+        "stdlib_defs.mtlx",
+        "MaterialBasic.mtlx",
+        "PaintMaterials.mtlx",
+    };
+
+    for (const std::string& filename : filenames)
+    {
+        mx::FilePath path(filename);
+        REQUIRE(mx::FileSearchPath(searchPath, mx::PATH_LIST_SEPARATOR).find(path).exists());
     }
 }

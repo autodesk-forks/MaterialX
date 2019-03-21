@@ -1,5 +1,13 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_SHADERVALIDATOR_H
 #define MATERIALX_SHADERVALIDATOR_H
+
+/// @file
+/// Base class for shader validation
 
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXRender/ShaderValidators/ExceptionShaderValidationError.h>
@@ -15,14 +23,14 @@ namespace MaterialX
 /// Shared pointer to a shader validator
 using ShaderValidatorPtr = std::shared_ptr<class ShaderValidator>;
 
-/// @class @ShaderValidator
+/// @class ShaderValidator
 /// Base class for a shader validator
 ///
 class ShaderValidator
 {
   public:
     /// A map with name and source code for each shader stage.
-    using StageMap = std::unordered_map<string, string>;
+    using StageMap = StringMap;
 
   public:
     /// Destructor
@@ -49,7 +57,7 @@ class ShaderValidator
     }
 
     /// Set light handler to use for light bindings
-    /// @param imageHandler Handler used for lights
+    /// @param lightHandler Handler used for lights
     void setLightHandler(const HwLightHandlerPtr lightHandler)
     {
         _lightHandler = lightHandler;
@@ -109,9 +117,9 @@ class ShaderValidator
     /// @{
 
     /// Save the current contents the offscreen hardware buffer to disk.
-    /// @param fileName Name of file to save rendered image to.
+    /// @param filePath Path to file to save rendered image to.
     /// @param floatingPoint Format of output image is floating point.
-    virtual void save(const std::string& fileName, bool floatingPoint) = 0;
+    virtual void save(const FilePath& filePath, bool floatingPoint) = 0;
     
     /// @}
 

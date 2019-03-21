@@ -1,12 +1,21 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_SHADERGEN_UTIL_H
 #define MATERIALX_SHADERGEN_UTIL_H
 
-/// Utility methods
+/// @file
+/// Shader generation utility methods
 
-#include <MaterialXCore/Library.h>
+#include <MaterialXGenShader/Library.h>
+
+#include <MaterialXCore/Document.h>
 #include <MaterialXCore/Element.h>
 #include <MaterialXCore/Interface.h>
-#include <MaterialXCore/Document.h>
+
+#include <MaterialXFormat/File.h>
 
 namespace MaterialX
 {
@@ -14,23 +23,28 @@ namespace MaterialX
 class ShaderGenerator;
 
 /// Make the directory with the given path if it doesn't already exist
-void makeDirectory(const std::string& directoryPath);
+void makeDirectory(const string& directoryPath);
 
 /// Removes the extension from the provided filename
-std::string removeExtension(const std::string& filename);
+string removeExtension(const string& filename);
 
 /// Directory scanner utility. Finds all subdirectories in the given directory
-void getSubDirectories(const std::string& baseDirectory, StringVec& relativePaths);
+void getSubDirectories(const string& baseDirectory, StringVec& relativePaths);
 
 /// Directory file scanner utility. Finds all files with a given extension
 /// in the given directory.
-void getFilesInDirectory(const std::string& directory, StringVec& files, const std::string& extension);
+void getFilesInDirectory(const string& directory, StringVec& files, const string& extension);
 
 /// Reads the contents of a file into the given string
 bool readFile(const string& filename, string& content);
 
 /// Returns the extension of the given filename
 string getFileExtension(const string& filename);
+
+/// Scans for all documents under a root path and returns documents which can be loaded
+/// Optionally can test and log errors if the document is not considered to be valid.
+void loadDocuments(const FilePath& rootPath, const StringSet& skipFiles,
+    vector<DocumentPtr>& documents, StringVec& documentsPaths);
 
 /// Returns true if the given element is a surface shader with the potential
 /// of beeing transparent. This can be used by HW shader generators to determine
@@ -63,16 +77,13 @@ bool elementRequiresShading(const TypedElementPtr element);
 /// This includes all outputs on node graphs and shader references which are not
 /// part of any included library. Light shaders are not considered to be renderable.
 /// The option to include node graphs referened by shader references is disabled by default.
-void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>& elements, bool includeReferencedGraphs=false);
+void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>& elements, 
+                            bool includeReferencedGraphs=false, std::ostream* errorLog=nullptr);
 
 /// Given a path to a element, find the corresponding element with the same name
 /// on an associated nodedef if it exists. A target string should be provided
 /// if the path is to a Node as definitions for Nodes can be target specific.
 ValueElementPtr findNodeDefChild(const string& path, DocumentPtr doc, const string& target);
-
-// From a set of nodes, create a mapping of nodedef identifiers to numbers
-void mapNodeDefToIdentiers(const std::vector<NodePtr>& nodes,
-                           std::unordered_map<string, unsigned int>& ids);
 
 /// Set of possible UI properties for an element 
 struct UIProperties

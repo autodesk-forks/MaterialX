@@ -1,64 +1,93 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXGenShader/ShaderNode.h>
+
+#include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 #include <MaterialXGenShader/TypeDesc.h>
 #include <MaterialXGenShader/Util.h>
 
-#include <MaterialXCore/Document.h>
-#include <MaterialXCore/Value.h>
-
-#include <MaterialXFormat/File.h>
-
-#include <iostream>
-#include <sstream>
-#include <stack>
-
 namespace MaterialX
 {
 
+//
+// ShaderPort methods
+//
+
+ShaderPort::ShaderPort(ShaderNode* node, const TypeDesc* type, const string& name, ValuePtr value) :
+    _node(node),
+    _type(type),
+    _name(name),
+    _variable(name),
+    _value(value),
+    _flags(0)
+{
+}
+
+//
+// ShaderInput methods
+//
+
+ShaderInput::ShaderInput(ShaderNode* node, const TypeDesc* type, const string& name) :
+    ShaderPort(node, type, name),
+    _connection(nullptr)
+{
+}
+
 void ShaderInput::makeConnection(ShaderOutput* src)
 {
-    this->connection = src;
-    src->connections.insert(this);
+    _connection = src;
+    src->_connections.insert(this);
 }
 
 void ShaderInput::breakConnection()
 {
-    if (this->connection)
+    if (_connection)
     {
-        this->connection->connections.erase(this);
-        this->connection = nullptr;
+        _connection->_connections.erase(this);
+        _connection = nullptr;
     }
+}
+
+//
+// ShaderOutput methods
+//
+
+ShaderOutput::ShaderOutput(ShaderNode* node, const TypeDesc* type, const string& name) :
+    ShaderPort(node, type, name)
+{
 }
 
 void ShaderOutput::makeConnection(ShaderInput* dst)
 {
-    dst->connection = this;
-    this->connections.insert(dst);
+    dst->_connection = this;
+    _connections.insert(dst);
 }
 
 void ShaderOutput::breakConnection(ShaderInput* dst)
 {
-    this->connections.erase(dst);
-    dst->connection = nullptr;
+    _connections.erase(dst);
+    dst->_connection = nullptr;
 }
 
 void ShaderOutput::breakConnection()
 {
-    for (ShaderInput* input : this->connections)
+    for (ShaderInput* input : _connections)
     {
-        input->connection = nullptr;
+        input->_connection = nullptr;
     }
-    this->connections.clear();
+    _connections.clear();
 }
 
 namespace
 {
     ShaderNodePtr createEmptyNode()
     {
-        ShaderNodePtr node = std::make_shared<ShaderNode>("");
-        node->addContextID(ShaderGenerator::CONTEXT_DEFAULT);
-        return node;
+        return std::make_shared<ShaderNode>(nullptr, "");
     }
 }
 
@@ -73,10 +102,27 @@ const string ShaderNode::BSDF_T = "T";
 const string ShaderNode::TRANSFORM_POINT = "transformpoint";
 const string ShaderNode::TRANSFORM_VECTOR = "transformvector";
 const string ShaderNode::TRANSFORM_NORMAL = "transformnormal";
+const string ShaderNode::TEXTURE2D_GROUPNAME = "texture2d";
+const string ShaderNode::TEXTURE3D_GROUPNAME = "texture3d";
+const string ShaderNode::PROCEDURAL2D_GROUPNAME = "procedural2d";
+const string ShaderNode::PROCEDURAL3D_GROUPNAME = "procedural3d";
+const string ShaderNode::CONVOLUTION2D_GROUPNAME = "convolution2d";
+
+//
+// ShaderNode methods
+//
+
+ShaderNode::ShaderNode(const ShaderGraph* parent, const string& name) :
+    _parent(parent),
+    _name(name),
+    _classification(0),
+    _impl(nullptr)
+{
+}
 
 bool ShaderNode::referencedConditionally() const
 {
-    if (_scopeInfo.type == ShaderNode::ScopeInfo::Type::SINGLE)
+    if (_scopeInfo.type == ShaderNode::ScopeInfo::SINGLE)
     {
         int numBranches = 0;
         uint32_t mask = _scopeInfo.conditionBitmask;
@@ -94,78 +140,60 @@ bool ShaderNode::referencedConditionally() const
 
 void ShaderNode::ScopeInfo::adjustAtConditionalInput(ShaderNode* condNode, int branch, const uint32_t fullMask)
 {
-    if (type == ScopeInfo::Type::GLOBAL || (type == ScopeInfo::Type::SINGLE && conditionBitmask == fullConditionMask))
+    if (type == ScopeInfo::GLOBAL || (type == ScopeInfo::SINGLE && conditionBitmask == fullConditionMask))
     {
-        type = ScopeInfo::Type::SINGLE;
+        type = ScopeInfo::SINGLE;
         conditionalNode = condNode;
         conditionBitmask = 1 << branch;
         fullConditionMask = fullMask;
     }
-    else if (type == ScopeInfo::Type::SINGLE)
+    else if (type == ScopeInfo::SINGLE)
     {
-        type = ScopeInfo::Type::MULTIPLE;
+        type = ScopeInfo::MULTIPLE;
         conditionalNode = nullptr;
     }
 }
 
 void ShaderNode::ScopeInfo::merge(const ScopeInfo &fromScope)
 {
-    if (type == ScopeInfo::Type::UNKNOWN || fromScope.type == ScopeInfo::Type::GLOBAL)
+    if (type == ScopeInfo::UNKNOWN || fromScope.type == ScopeInfo::GLOBAL)
     {
         *this = fromScope;
     }
-    else if (type == ScopeInfo::Type::GLOBAL)
+    else if (type == ScopeInfo::GLOBAL)
     {
 
     }
-    else if (type == ScopeInfo::Type::SINGLE && fromScope.type == ScopeInfo::Type::SINGLE && conditionalNode == fromScope.conditionalNode)
+    else if (type == ScopeInfo::SINGLE && fromScope.type == ScopeInfo::SINGLE && conditionalNode == fromScope.conditionalNode)
     {
         conditionBitmask |= fromScope.conditionBitmask;
 
         // This node is needed for all branches so it is no longer conditional
         if (conditionBitmask == fullConditionMask)
         {
-            type = ScopeInfo::Type::GLOBAL;
+            type = ScopeInfo::GLOBAL;
             conditionalNode = nullptr;
         }
     }
     else
     {
-        // NOTE: Right now multiple scopes is not really used, it works exactly as ScopeInfo::Type::GLOBAL
-        type = ScopeInfo::Type::MULTIPLE;
+        // NOTE: Right now multiple scopes is not really used, it works exactly as ScopeInfo::GLOBAL
+        type = ScopeInfo::MULTIPLE;
         conditionalNode = nullptr;
     }
 }
 
-ShaderNode::ShaderNode(const string& name)
-    : _name(name)
-    , _classification(0)
-    , _samplingInput(nullptr)
-    , _impl(nullptr)
+ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, const NodeDef& nodeDef, GenContext& context)
 {
-}
+    ShaderNodePtr newNode = std::make_shared<ShaderNode>(parent, name);
 
-static bool elementCanBeSampled2D(const Element& element)
-{
-    const string TEXCOORD_NAME("texcoord");
-    return (element.getName() == TEXCOORD_NAME);
-}
-
-static bool elementCanBeSampled3D(const Element& element)
-{
-    const string POSITION_NAME("position");
-    return (element.getName() == POSITION_NAME);
-}
-
-ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const GenOptions& options)
-{
-    ShaderNodePtr newNode = std::make_shared<ShaderNode>(name);
+    const ShaderGenerator& shadergen = context.getShaderGenerator();
 
     // Find the implementation for this nodedef
     InterfaceElementPtr impl = nodeDef.getImplementation(shadergen.getTarget(), shadergen.getLanguage());
     if (impl)
     {
-        newNode->_impl = shadergen.getImplementation(impl, options);
+        newNode->_impl = shadergen.getImplementation(*impl, context);
     }
     if (!newNode->_impl)
     {
@@ -175,11 +203,6 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
 
     // Check for classification based on group name
     unsigned int groupClassification = 0;
-    const string TEXTURE2D_GROUPNAME("texture2d");
-    const string TEXTURE3D_GROUPNAME("texture3d");
-    const string PROCEDURAL2D_GROUPNAME("procedural2d");
-    const string PROCEDURAL3D_GROUPNAME("procedural3d");
-    const string CONVOLUTION2D_GROUPNAME("convolution2d");
     string groupName = nodeDef.getNodeGroup();
     if (!groupName.empty())
     {
@@ -196,44 +219,32 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
             groupClassification = Classification::CONVOLUTION2D;
         }
     }
-    newNode->_samplingInput = nullptr;
 
     // Create interface from nodedef
-    const vector<ValueElementPtr> nodeDefInputs = nodeDef.getChildrenOfType<ValueElement>();
-    for (const ValueElementPtr& elem : nodeDefInputs)
+    const vector<ValueElementPtr> nodeDefPorts = nodeDef.getChildrenOfType<ValueElement>();
+    for (const ValueElementPtr& port : nodeDefPorts)
     {
-        if (elem->isA<Output>())
+        const TypeDesc* portType = TypeDesc::get(port->getType());
+        if (port->isA<Output>())
         {
-            newNode->addOutput(elem->getName(), TypeDesc::get(elem->getType()));
+            newNode->addOutput(port->getName(), portType);
         }
         else
         {
-            ShaderInput* input = nullptr;
-            const TypeDesc* enumerationType = nullptr;
-            ValuePtr enumValue = shadergen.remapEnumeration(elem, nodeDef, enumerationType);
-            if (enumerationType)
+            const string& portValue = port->getValueString();
+            std::pair<const TypeDesc*, ValuePtr> enumResult;
+            if (context.getShaderGenerator().remapEnumeration(*port, portValue, enumResult))
             {
-                input = newNode->addInput(elem->getName(), enumerationType);
-                if (enumValue)
-                {
-                    input->value = enumValue;
-                }
+                ShaderInput* input = newNode->addInput(port->getName(), enumResult.first);
+                input->setValue(enumResult.second);
             }
             else
             {
-                const TypeDesc* elemTypeDesc = TypeDesc::get(elem->getType());
-                input = newNode->addInput(elem->getName(), elemTypeDesc);
-                if (!elem->getValueString().empty())
+                ShaderInput* input = newNode->addInput(port->getName(), portType);
+                if (!portValue.empty())
                 {
-                    input->value = elem->getValue();
+                    input->setValue(port->getValue());
                 }
-            }
-
-            // Determine if this input can be sampled
-            if ((groupClassification == Classification::SAMPLE2D && elementCanBeSampled2D(*elem)) ||
-                (groupClassification == Classification::SAMPLE3D && elementCanBeSampled3D(*elem)))
-            {
-                newNode->_samplingInput = input;
             }
         }
     }
@@ -251,15 +262,15 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
 
     // First, check for specific output types
     const ShaderOutput* primaryOutput = newNode->getOutput();
-    if (primaryOutput->type == Type::SURFACESHADER)
+    if (primaryOutput->getType() == Type::SURFACESHADER)
     {
         newNode->_classification = Classification::SURFACE | Classification::SHADER;
     }
-    else if (primaryOutput->type == Type::LIGHTSHADER)
+    else if (primaryOutput->getType() == Type::LIGHTSHADER)
     {
         newNode->_classification = Classification::LIGHT | Classification::SHADER;
     }
-    else if (primaryOutput->type == Type::BSDF)
+    else if (primaryOutput->getType() == Type::BSDF)
     {
         newNode->_classification = Classification::BSDF | Classification::CLOSURE;
 
@@ -275,11 +286,11 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
             newNode->_classification |= Classification::BSDF_T;
         }
     }
-    else if (primaryOutput->type == Type::EDF)
+    else if (primaryOutput->getType() == Type::EDF)
     {
         newNode->_classification = Classification::EDF | Classification::CLOSURE;
     }
-    else if (primaryOutput->type == Type::VDF)
+    else if (primaryOutput->getType() == Type::VDF)
     {
         newNode->_classification = Classification::VDF | Classification::CLOSURE;
     }
@@ -318,9 +329,14 @@ ShaderNodePtr ShaderNode::create(const string& name, const NodeDef& nodeDef, Sha
     // Add in group classification
     newNode->_classification |= groupClassification;
 
-    // Let the shader generator assign in which contexts to use this node
-    shadergen.addContextIDs(newNode.get());
+    return newNode;
+}
 
+ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, ShaderNodeImplPtr impl, unsigned int classification)
+{
+    ShaderNodePtr newNode = std::make_shared<ShaderNode>(parent, name);
+    newNode->_impl = impl;
+    newNode->_classification = classification;
     return newNode;
 }
 
@@ -333,7 +349,7 @@ void ShaderNode::setPaths(const Node& node, const NodeDef& nodeDef, bool include
         ShaderInput* input = getInput(nodeValue->getName());
         if (input)
         {
-            input->path = nodeValue->getNamePath();
+            input->setPath(nodeValue->getNamePath());
         }
     }
 
@@ -351,74 +367,44 @@ void ShaderNode::setPaths(const Node& node, const NodeDef& nodeDef, bool include
     for (const ValueElementPtr& nodeInput : nodeInputs)
     {
         ShaderInput* input = getInput(nodeInput->getName());
-        if (input && input->path.empty())
+        if (input && input->getPath().empty())
         {
-            input->path = nodePath + NAME_PATH_SEPARATOR + nodeInput->getName();
+            input->setPath(nodePath + NAME_PATH_SEPARATOR + nodeInput->getName());
         }
     }
     const vector<ParameterPtr> nodeParameters = nodeDef.getChildrenOfType<Parameter>();
     for (const ParameterPtr& nodeParameter : nodeParameters)
     {
         ShaderInput* input = getInput(nodeParameter->getName());
-        if (input && input->path.empty())
+        if (input && input->getPath().empty())
         {
-            input->path = nodePath + NAME_PATH_SEPARATOR + nodeParameter->getName();
+            input->setPath(nodePath + NAME_PATH_SEPARATOR + nodeParameter->getName());
         }
     }
 }
 
-void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, ShaderGenerator& shadergen)
+void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, GenContext& context)
 {
     // Copy input values from the given node
     const vector<ValueElementPtr> nodeValues = node.getChildrenOfType<ValueElement>();
     for (const ValueElementPtr& nodeValue : nodeValues)
     {
-        const string& valueString = nodeValue->getValueString();
         ShaderInput* input = getInput(nodeValue->getName());
-        if (input)
+        ValueElementPtr nodeDefInput = nodeDef.getChildOfType<ValueElement>(nodeValue->getName());
+        if (input && nodeDefInput)
         {
-            const TypeDesc* enumerationType = nullptr;
-            ValuePtr value = shadergen.remapEnumeration(nodeValue, nodeDef, enumerationType);
-            if (value)
+            const string& valueString = nodeValue->getValueString();
+            std::pair<const TypeDesc*, ValuePtr> enumResult;
+            if (context.getShaderGenerator().remapEnumeration(*nodeDefInput, valueString, enumResult))
             {
-                input->value = value;
+                input->setValue(enumResult.second);
             }
             else if (!valueString.empty())
             {
-                input->value = nodeValue->getValue();
-            }
-
-            InputPtr inputElem = nodeValue->asA<Input>();
-            if (inputElem)
-            {
-                input->channels = inputElem->getChannels();
+                input->setValue(nodeValue->getResolvedValue());
             }
         }
     }
-}
-
-ShaderNodePtr ShaderNode::createColorTransformNode(const string& name, ShaderNodeImplPtr shaderImpl, const TypeDesc* type, ShaderGenerator& shadergen)
-{
-    ShaderNodePtr newNode = std::make_shared<ShaderNode>(name);
-    newNode->_impl = shaderImpl;
-    newNode->_classification = Classification::TEXTURE | Classification::COLOR_SPACE_TRANSFORM;
-    ShaderInput* input = newNode->addInput("in", type);
-
-    if(type == Type::COLOR3)
-    {
-        input->value = Value::createValue(Color3(0.0f, 0.0f, 0.0f));
-    }
-    else if(type == Type::COLOR4)
-    {
-        input->value = Value::createValue(Color4(0.0f, 0.0f, 0.0f, 1.0));
-    }
-    else
-    {
-        throw ExceptionShaderGenError("Invalid type specified to createColorTransform: '" + type->getName() + "'");
-    }
-    newNode->addOutput("out", type);
-    shadergen.addContextIDs(newNode.get());
-    return newNode;
 }
 
 ShaderInput* ShaderNode::getInput(const string& name)
@@ -452,14 +438,7 @@ ShaderInput* ShaderNode::addInput(const string& name, const TypeDesc* type)
         throw ExceptionShaderGenError("An input named '" + name + "' already exists on node '" + _name + "'");
     }
 
-    ShaderInputPtr input = std::make_shared<ShaderInput>();
-    input->name = name;
-    input->path = EMPTY_STRING;
-    input->variable = name;
-    input->type = type;
-    input->node = this;
-    input->value = nullptr;
-    input->connection = nullptr;
+    ShaderInputPtr input = std::make_shared<ShaderInput>(this, type, name);
     _inputMap[name] = input;
     _inputOrder.push_back(input.get());
 
@@ -473,11 +452,7 @@ ShaderOutput* ShaderNode::addOutput(const string& name, const TypeDesc* type)
         throw ExceptionShaderGenError("An output named '" + name + "' already exists on node '" + _name + "'");
     }
 
-    ShaderOutputPtr output = std::make_shared<ShaderOutput>();
-    output->name = name;
-    output->variable = name;
-    output->type = type;
-    output->node = this;
+    ShaderOutputPtr output = std::make_shared<ShaderOutput>(this, type, name);
     _outputMap[name] = output;
     _outputOrder.push_back(output.get());
 

@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_SWITCHNODE_H
 #define MATERIALX_SWITCHNODE_H
 
@@ -12,10 +17,10 @@ class SwitchNode : public ShaderNodeImpl
 public:
     static ShaderNodeImplPtr create();
 
-    void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderGenerator& shadergen, Shader& shader) override;
+    void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 
 public:
-    static const vector<string> INPUT_NAMES;
+    static const StringVec INPUT_NAMES;
 };
 
 } // namespace MaterialX

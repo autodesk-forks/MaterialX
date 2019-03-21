@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXRender/HardwarePlatform.h>
 
 #if defined(OSWin_) || defined(_WIN32)
@@ -17,10 +22,10 @@
 #define STB_IMAGE_STATIC 1
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <MaterialXRender/External/stb/stb_image_write.h>
+#include <MaterialXRender/External/StbImage/stb_image_write.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <MaterialXRender/External/stb/stb_image.h>
+#include <MaterialXRender/External/StbImage/stb_image.h>
 
 #if defined(OSWin_) || defined(_WIN32)
     #pragma warning( pop ) 
@@ -31,12 +36,12 @@
 #endif
 
 
-#include <MaterialXRender/Handlers/stbImageLoader.h>
+#include <MaterialXRender/Handlers/StbImageLoader.h>
 
 namespace MaterialX
 {
-bool stbImageLoader::saveImage(const std::string& fileName,
-                                    const ImageDesc& imageDesc)
+bool StbImageLoader::saveImage(const FilePath& filePath,
+                               const ImageDesc& imageDesc)
 {
     int returnValue = -1;
 
@@ -45,33 +50,35 @@ bool stbImageLoader::saveImage(const std::string& fileName,
     int channels = static_cast<int>(imageDesc.channelCount);
     void* data = imageDesc.resourceBuffer;
 
-    std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
+    const string filePathName = filePath.asString();
+
+    std::string extension = (filePathName.substr(filePathName.find_last_of(".") + 1));
     if (extension == PNG_EXTENSION)
     {
-        returnValue = stbi_write_png(fileName.c_str(), w, h, channels, data, w * 4);
+        returnValue = stbi_write_png(filePathName.c_str(), w, h, channels, data, w * 4);
     }
     else if (extension == BMP_EXTENSION)
     {
-        returnValue = stbi_write_bmp(fileName.c_str(), w, h, channels, data);
+        returnValue = stbi_write_bmp(filePathName.c_str(), w, h, channels, data);
     }
     else if (extension == TGA_EXTENSION)
     { 
-        returnValue = stbi_write_tga(fileName.c_str(), w, h, channels, data);
+        returnValue = stbi_write_tga(filePathName.c_str(), w, h, channels, data);
     }
     else if (extension == JPG_EXTENSION || extension == JPEG_EXTENSION)
     {
-        returnValue = stbi_write_jpg(fileName.c_str(), w, h, channels, data, 100);
+        returnValue = stbi_write_jpg(filePathName.c_str(), w, h, channels, data, 100);
     }
     else if (extension == HDR_EXTENSION)
     {
-        returnValue = stbi_write_hdr(fileName.c_str(), w, h, channels, static_cast<float*>(data));
+        returnValue = stbi_write_hdr(filePathName.c_str(), w, h, channels, static_cast<float*>(data));
     }
     return (returnValue == 1);
 }
 
-bool stbImageLoader::acquireImage(const std::string& fileName,
-                                      ImageDesc& imageDesc,
-                                      bool /*generateMipMaps*/)
+bool StbImageLoader::acquireImage(const FilePath& filePath,
+                                  ImageDesc& imageDesc,
+                                  bool /*generateMipMaps*/)
 {
     imageDesc.width = imageDesc.height = imageDesc.channelCount = 0;
     imageDesc.resourceBuffer = nullptr;
@@ -83,6 +90,8 @@ bool stbImageLoader::acquireImage(const std::string& fileName,
 
     // Set to 0 to mean to not override the read-in number of channels
     const int REQUIRED_CHANNEL_COUNT = 0;
+
+    const string fileName = filePath.asString();
 
     // If HDR, switch to float reader
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));

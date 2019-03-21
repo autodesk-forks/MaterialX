@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX__EXCEPTIONSHADERVALIDATIONERROR_H
 #define MATERIALX__EXCEPTIONSHADERVALIDATIONERROR_H
 
@@ -7,7 +12,7 @@ namespace MaterialX
 {
 
 /// Error string list type
-using ShaderValidationErrorList = vector<string>;
+using ShaderValidationErrorList = StringVec;
 
 /// @class @ExceptionShaderValidationError
 /// An exception that is thrown when shader validation fails.

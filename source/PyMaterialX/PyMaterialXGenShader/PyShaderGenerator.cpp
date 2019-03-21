@@ -1,11 +1,13 @@
 //
-// TM & (c) 2019 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
 // All rights reserved.  See LICENSE.txt for license.
 //
 
 #include <PyMaterialX/PyMaterialX.h>
 
+#include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
+#include <MaterialXGenShader/GenContext.h>
 
 #include <string>
 
@@ -38,156 +40,297 @@ class PyShaderGenerator : public mx::ShaderGenerator
         );
     }
 
-    mx::ShaderPtr generate(const std::string& shaderName, mx::ElementPtr element, const mx::GenOptions& options) override
+    mx::ShaderPtr generate(const std::string& name, mx::ElementPtr element, mx::GenContext& context) const override
     {
         PYBIND11_OVERLOAD_PURE(
             mx::ShaderPtr,
             mx::ShaderGenerator,
             generate,
-            shaderName,
+            name,
             element,
-            options
+            context
         );
     }
 
-    void emitTypeDefinitions(mx::Shader& shader) override
+    void emitScopeBegin(mx::ShaderStage& stage, mx::Syntax::Punctuation punc) const override
     {
         PYBIND11_OVERLOAD(
             void,
             mx::ShaderGenerator,
-            emitTypeDefinitions,
-            shader
+            emitScopeBegin,
+            stage,
+            punc
         );
     }
 
-    void emitFunctionDefinitions(mx::Shader& shader) override
+    void emitScopeEnd(mx::ShaderStage& stage, bool semicolon, bool newline) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitScopeEnd,
+            stage,
+            semicolon,
+            newline
+        );
+    }
+
+    void emitLineBegin(mx::ShaderStage& stage) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitLineBegin,
+            stage
+        );
+    }
+
+    void emitLineEnd(mx::ShaderStage& stage, bool semicolon) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitLineEnd,
+            stage,
+            semicolon
+        );
+    }
+
+    void emitLineBreak(mx::ShaderStage& stage) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitLineBreak,
+            stage
+        );
+    }
+
+    void emitString(const std::string& str, mx::ShaderStage& stage) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitString,
+            str,
+            stage
+        );
+    }
+
+    void emitLine(const std::string& str, mx::ShaderStage& stage, bool semicolon) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitLine,
+            str,
+            stage,
+            semicolon
+        );
+    }
+
+    void emitComment(const std::string& str, mx::ShaderStage& stage) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitComment,
+            str,
+            stage
+        );
+    }
+
+    void emitBlock(const std::string& str, mx::GenContext& context, mx::ShaderStage& stage) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitBlock,
+            str,
+            context,
+            stage
+        );
+    }
+
+    void emitInclude(const std::string& file, mx::GenContext& context, mx::ShaderStage& stage) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitInclude,
+            file,
+            context,
+            stage
+        );
+    }
+
+    void emitFunctionDefinition(const mx::ShaderNode& node, mx::GenContext& context, mx::ShaderStage& stage) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitFunctionDefinition,
+            node,
+            context,
+            stage
+        );
+    }
+
+    void emitFunctionCall(const mx::ShaderNode& node, mx::GenContext& context, mx::ShaderStage& stage, bool checkScope) const override
+    {
+        PYBIND11_OVERLOAD(
+            void,
+            mx::ShaderGenerator,
+            emitFunctionCall,
+            node,
+            context,
+            stage,
+            checkScope
+        );
+    }
+
+    void emitFunctionDefinitions(const mx::ShaderGraph& graph, mx::GenContext& context, mx::ShaderStage& stage) const override
     {
         PYBIND11_OVERLOAD(
             void,
             mx::ShaderGenerator,
             emitFunctionDefinitions,
-            shader
+            graph,
+            context,
+            stage
         );
     }
 
-    void emitFunctionCalls(const mx::GenContext& context, mx::Shader& shader) override
+    void emitFunctionCalls(const mx::ShaderGraph& graph, mx::GenContext& context, mx::ShaderStage& stage) const override
     {
         PYBIND11_OVERLOAD(
             void,
             mx::ShaderGenerator,
             emitFunctionCalls,
+            graph,
             context,
-            shader
+            stage
         );
     }
 
-    void emitFinalOutput(mx::Shader& shader) const override
+    void emitTypeDefinitions(mx::GenContext& context, mx::ShaderStage& stage) const override
     {
         PYBIND11_OVERLOAD(
             void,
             mx::ShaderGenerator,
-            emitFinalOutput,
-            shader
+            emitTypeDefinitions,
+            context,
+            stage
         );
     }
 
-    void emitInput(const mx::GenContext& context, const mx::ShaderInput* input, mx::Shader& shader) const override
+    void emitInput(const mx::ShaderInput* input, mx::GenContext& context, mx::ShaderStage& stage) const override
     {
         PYBIND11_OVERLOAD(
             void,
             mx::ShaderGenerator,
             emitInput,
-            context,
             input,
-            shader
+            context,
+            stage
         );
     }
 
-    void getInput(const mx::GenContext& context, const mx::ShaderInput* input, std::string& result) const override
-    {
-        PYBIND11_OVERLOAD(
-            void,
-            mx::ShaderGenerator,
-            getInput,
-            context,
-            input,
-            result
-        );
-    }
-
-    void emitOutput(const mx::GenContext& context, const mx::ShaderOutput* output, bool includeType, bool assignDefault, mx::Shader& shader) const override
+    void emitOutput(const mx::ShaderOutput* output, bool includeType, bool assignValue, mx::GenContext& context, mx::ShaderStage& stage) const override
     {
         PYBIND11_OVERLOAD(
             void,
             mx::ShaderGenerator,
             emitOutput,
-            context,
             output,
             includeType,
-            assignDefault,
-            shader
+            assignValue,
+            context,
+            stage
         );
     }
 
-    void emitVariableBlock(const mx::Shader::VariableBlock& block, const std::string& qualifier, const std::string& separator, mx::Shader& shader) override
+    void emitVariableDeclarations(const mx::VariableBlock& block, const std::string& qualifier, const std::string& separator, mx::GenContext& context, mx::ShaderStage& stage, bool assignValue) const override
     {
         PYBIND11_OVERLOAD(
             void,
             mx::ShaderGenerator,
-            emitVariableBlock,
+            emitVariableDeclarations,
             block,
             qualifier,
             separator,
-            shader
+            context,
+            stage,
+            assignValue
         );
     }
 
-    void emitVariable(const mx::Shader::Variable& variable, const std::string& qualifier, mx::Shader& shader) override
+    void emitVariableDeclaration(const mx::ShaderPort* variable, const std::string& qualifier, mx::GenContext& context, mx::ShaderStage& stage, bool assignValue) const override
     {
         PYBIND11_OVERLOAD(
             void,
             mx::ShaderGenerator,
-            emitVariable,
+            emitVariableDeclaration,
             variable,
             qualifier,
-            shader
+            context,
+            stage,
+            assignValue
         );
     }
 
-    void addContextIDs(mx::ShaderNode* node) const override
+    std::string getUpstreamResult(const mx::ShaderInput* input, mx::GenContext& context) const override
     {
         PYBIND11_OVERLOAD(
-            void,
+            std::string,
             mx::ShaderGenerator,
-            addContextIDs,
-            node
+            getUpstreamResult,
+            input,
+            context
         );
     }
 
-    mx::ValuePtr remapEnumeration(const mx::ValueElementPtr& input, const mx::InterfaceElement& mappingElement, const mx::TypeDesc*& enumerationType) override
+    bool remapEnumeration(const mx::ValueElement& input, const std::string& value, std::pair<const mx::TypeDesc*, mx::ValuePtr>& result) const override
     {
         PYBIND11_OVERLOAD(
-            mx::ValuePtr,
+            bool,
             mx::ShaderGenerator,
             remapEnumeration,
             input,
-            mappingElement,
-            enumerationType
+            value,
+            result
         );
     }
 
-    mx::ValuePtr remapEnumeration(const std::string& inputName, const std::string& inputValue, const std::string& inputType,
-                                  const mx::InterfaceElement& mappingElement, const mx::TypeDesc*& enumerationType) override
+  protected:
+    mx::ShaderStagePtr createStage(const std::string& name, mx::Shader& shader) const override
     {
         PYBIND11_OVERLOAD(
-            mx::ValuePtr,
+            mx::ShaderStagePtr,
             mx::ShaderGenerator,
-            remapEnumeration,
-            inputName,
-            inputValue,
-            inputType,
-            mappingElement,
-            enumerationType
+            createStage,
+            name,
+            shader
+        );
+    }
+
+    mx::ShaderNodeImplPtr createSourceCodeImplementation(const mx::Implementation& impl) const override
+    {
+        PYBIND11_OVERLOAD(
+            mx::ShaderNodeImplPtr,
+            mx::ShaderGenerator,
+            createSourceCodeImplementation,
+            impl
+        );
+    }
+
+    mx::ShaderNodeImplPtr createCompoundImplementation(const mx::NodeGraph& impl) const override
+    {
+        PYBIND11_OVERLOAD(
+            mx::ShaderNodeImplPtr,
+            mx::ShaderGenerator,
+            createCompoundImplementation,
+            impl
         );
     }
 };
@@ -195,11 +338,9 @@ class PyShaderGenerator : public mx::ShaderGenerator
 void bindPyShaderGenerator(py::module& mod)
 {
     py::class_<mx::ShaderGenerator, PyShaderGenerator, mx::ShaderGeneratorPtr>(mod, "ShaderGenerator")
-        .def(py::init([](mx::SyntaxPtr syntax) { return new PyShaderGenerator(syntax); }))
         .def("getLanguage", &mx::ShaderGenerator::getLanguage)
         .def("getTarget", &mx::ShaderGenerator::getTarget)
         .def("generate", &mx::ShaderGenerator::generate)
         .def("setColorManagementSystem", &mx::ShaderGenerator::setColorManagementSystem)
-        .def("getColorManagementSystem", &mx::ShaderGenerator::getColorManagementSystem)
-        .def("registerSourceCodeSearchPath", &mx::ShaderGenerator::registerSourceCodeSearchPath);
+        .def("getColorManagementSystem", &mx::ShaderGenerator::getColorManagementSystem);
 }

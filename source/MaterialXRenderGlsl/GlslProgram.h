@@ -1,12 +1,22 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_GLSLPROGRAM_H
 #define MATERIALX_GLSLPROGRAM_H
 
-#include <MaterialXGenShader/HwShader.h>
+/// @file
+/// GLSL Program interfaces
+
+#include <MaterialXGenShader/Shader.h>
+
 #include <MaterialXRender/ShaderValidators/ExceptionShaderValidationError.h>
 #include <MaterialXRender/Handlers/ViewHandler.h>
 #include <MaterialXRender/Handlers/ImageHandler.h>
 #include <MaterialXRender/Handlers/GeometryHandler.h>
 #include <MaterialXRender/Handlers/HwLightHandler.h>
+
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -40,7 +50,7 @@ class GlslProgram
 
     /// Set up code stages to validate based on an input hardware shader.
     /// @param shader Hardware shader to use
-    void setStages(const HwShaderPtr shader);
+    void setStages(const ShaderPtr shader);
 
     /// Set the code stages based on a list of stage strings.
     /// Refer to the ordering of stages as defined by a HwShader.
@@ -223,7 +233,7 @@ class GlslProgram
     /// @{
 
     /// Bind an individual texture to a program uniform location
-    bool bindTexture(unsigned int uniformType, int uniformLocation, const FilePath& fileName,
+    bool bindTexture(unsigned int uniformType, int uniformLocation, const FilePath& filePath,
                      ImageHandlerPtr imageHandler, bool generateMipMaps, const ImageSamplingProperties& imageProperties);
 
     /// Utility to check for OpenGL context errors.
@@ -239,7 +249,7 @@ class GlslProgram
   private:
     /// Stages used to create program
     /// Map of stage name and its source code
-    std::unordered_map<string, string> _stages;
+      StringMap _stages;
 
     /// Generated program. A non-zero number indicates a valid shader program.
     unsigned int _programId;
@@ -250,7 +260,7 @@ class GlslProgram
     InputMap _attributeList;
 
     /// Hardware shader (if any) used for program creation
-    HwShaderPtr _hwShader;
+    ShaderPtr _shader;
 
     /// Attribute buffer resource handles
     /// for each attribute identifier in the program

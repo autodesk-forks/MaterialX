@@ -1,3 +1,8 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXGenOgsFx/OgsFxSyntax.h>
 
 #include <MaterialXGenShader/Shader.h>
@@ -17,7 +22,7 @@ namespace
     public:
         OgsFxAggregateTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
             const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
-            const vector<string>& members = EMPTY_MEMBERS)
+            const StringVec& members = EMPTY_MEMBERS)
             : AggregateTypeSyntax(name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
         {}
 
@@ -33,7 +38,7 @@ namespace
             }
         }
 
-        string getValue(const vector<string>& values, bool uniform) const override
+        string getValue(const StringVec& values, bool uniform) const override
         {
             if (values.empty())
             {

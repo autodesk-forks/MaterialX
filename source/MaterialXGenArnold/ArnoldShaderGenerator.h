@@ -1,5 +1,13 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_ARNOLDSHADERGENERATOR_H
 #define MATERIALX_ARNOLDSHADERGENERATOR_H
+
+/// @file
+/// Arnold OSL shader generator
 
 #include <MaterialXGenOsl/OslShaderGenerator.h>
 
@@ -8,6 +16,7 @@ namespace MaterialX
 
 using ArnoldShaderGeneratorPtr = shared_ptr<class ArnoldShaderGenerator>;
 
+/// @class ArnoldShaderGenerator 
 /// An OSL shader generator targeting the Arnold renderer
 class ArnoldShaderGenerator : public OslShaderGenerator
 {

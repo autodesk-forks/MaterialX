@@ -6,6 +6,11 @@ include_directories(
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE materialx_header "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 
+if(NOT MATERIALX_BUILD_OIIO)
+    list(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/Handlers/OiioImageLoader.h")
+    list(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/Handlers/OiioImageLoader.cpp")
+endif()
+
 function(assign_source_group prefix)
     foreach(_source IN ITEMS ${ARGN})
         if (IS_ABSOLUTE "${_source}")
@@ -50,6 +55,16 @@ elseif (UNIX AND NOT APPLE)
     )
 endif(MSVC)
 
+if(MATERIALX_BUILD_OIIO)
+	set(OPENIMAGEIO_ROOT_DIR ${MATERIALX_OIIO_DIR})
+	list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/External/OpenImageIO")
+	find_package(OpenImageIO REQUIRED)
+	if(OPENIMAGEIO_FOUND)
+		include_directories(${OPENIMAGEIO_INCLUDE_DIR})
+		target_link_libraries(MaterialXRender ${OPENIMAGEIO_LIBRARIES})
+	endif()
+endif()
+
 set_target_properties(
     MaterialXRender PROPERTIES
     OUTPUT_NAME MaterialXRender
@@ -63,7 +78,7 @@ install(TARGETS MaterialXRender
 )
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/include/MaterialXRender/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/include/MaterialXRender/ MESSAGE_NEVER
     FILES_MATCHING PATTERN "*.h*")
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/MaterialXRender.pdb"

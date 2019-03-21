@@ -1,92 +1,162 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_SHADERNODE_H
 #define MATERIALX_SHADERNODE_H
 
-#include <MaterialXCore/Node.h>
-#include <MaterialXCore/Document.h>
+/// @file
+/// Classes for nodes created during shader generation
 
-#include <MaterialXGenShader/TypeDesc.h>
+#include <MaterialXGenShader/Library.h>
+
 #include <MaterialXGenShader/ShaderNodeImpl.h>
+#include <MaterialXGenShader/TypeDesc.h>
 
-#include <set>
+#include <MaterialXCore/Node.h>
 
 namespace MaterialX
 {
 
 class ShaderNode;
+class ShaderPort;
 class ShaderInput;
 class ShaderOutput;
+class ShaderGraph;
 
+/// Shared pointer to a ShaderPort
+using ShaderPortPtr = shared_ptr<class ShaderPort>;
+/// Shared pointer to a ShaderInput
 using ShaderInputPtr = shared_ptr<class ShaderInput>;
+/// Shared pointer to a ShaderOutput
 using ShaderOutputPtr = shared_ptr<class ShaderOutput>;
+/// Shared pointer to a ShaderNode
 using ShaderNodePtr = shared_ptr<class ShaderNode>;
+/// Shared pointer to a ShaderInput
 using ShaderInputSet = std::set<ShaderInput*>;
 
+/// @class ShaderPort
 /// An input or output port on a ShaderNode
-class ShaderPort
+class ShaderPort : public std::enable_shared_from_this<ShaderPort>
 {
   public:
-    static const unsigned int VARIABLE_NOT_RENAMABLE = 1 << 0; // Variable should not be automatically named
+    /// Flags set on shader ports.
+    static const unsigned int EMITTED = 1 << 0;
 
-    /// Copy data from another port to this port
-    void copyData(const ShaderPort& other)
+    ShaderPort(ShaderNode* node, const TypeDesc* type, const string& name, ValuePtr value = nullptr);
+
+    /// Return a shared pointer instance of this object.
+    ShaderPortPtr getSelf()
     {
-        value = other.value;
-        path = other.path;
-
-        if (ShaderPort::VARIABLE_NOT_RENAMABLE & other.flags)
-        {
-            variable = other.variable;
-            flags |= ShaderPort::VARIABLE_NOT_RENAMABLE;
-        }
+        return shared_from_this();
     }
 
-    /// Port type.
-    const TypeDesc* type;
+    /// Return the node this port belongs to.
+    ShaderNode* getNode() { return _node; }
 
-    /// Port name.
-    string name;
+    /// Return the node this port belongs to.
+    const ShaderNode* getNode() const { return _node; }
 
-    // Path to the origin (input/parameter element) for this shader port.
-    // Can be used to map client side node inputs to uniforms on the generated shader,
-    // if input values change during rendering.
-    string path;
+    /// Set the data type for this port.
+    void setType(const TypeDesc* type) { _type = type; }
 
-    /// Variable name as used in generated code.
-    string variable;
+    /// Return the data type for this port.
+    const TypeDesc* getType() const { return _type; }
 
-    /// Parent node.
-    ShaderNode* node;
+    /// Set the name of this port.
+    void setName(const string& name) { _name = name; }
 
-    /// A value, or nullptr if not assigned.
-    ValuePtr value;
+    /// Return the name of this port.
+    const string& getName() const { return _name; }
 
-    /// Property flags
-    unsigned int flags;
+    /// Set the variable name of this port.
+    void setVariable(const string& name) { _variable = name; }
+
+    /// Return the variable name of this port.
+    const string& getVariable() const { return _variable; }
+
+    /// Set the variable semantic of this port.
+    void setSemantic(const string& semantic) { _semantic = semantic; }
+
+    /// Return the variable semantic of this port.
+    const string& getSemantic() const { return _semantic; }
+
+    /// Set a value on this port.
+    void setValue(ValuePtr value) { _value = value; }
+
+    /// Return the value set on this port.
+    ValuePtr getValue() const { return _value; }
+
+    /// Set the path to this port.
+    void setPath(const string& path) { _path = path; }
+
+    /// Return the path to this port.
+    const string& getPath() const { return _path; }
+
+    /// Set the emitted state on this port to true.
+    void setEmitted() { _flags |= EMITTED; }
+
+    /// Return the emitted state of this port.
+    bool isEmitted() const { return (_flags & EMITTED) != 0; }
+
+    /// Set flags on this port.
+    void setFlags(unsigned int flags) { _flags = flags; }
+
+    /// Return flags set on this port.
+    unsigned int getFlags() const { return _flags; }
+
+  protected:
+    ShaderNode* _node;
+    const TypeDesc* _type;
+    string _name;
+    string _path;
+    string _semantic;
+    string _variable;
+    ValuePtr _value;
+    unsigned int _flags;
 };
 
+/// @class ShaderInput
 /// An input on a ShaderNode
 class ShaderInput : public ShaderPort
 {
   public:
-    /// A connection to an upstream node output, or nullptr if not connected.
-    ShaderOutput* connection;
+    ShaderInput(ShaderNode* node, const TypeDesc* type, const string& name);
 
-    /// An optional channels attribute
-    string channels;
+    /// Return a connection to an upstream node output,
+    /// or nullptr if not connected.
+    ShaderOutput* getConnection() { return _connection; }
+
+    /// Return a connection to an upstream node output,
+    /// or nullptr if not connected.
+    const ShaderOutput* getConnection() const { return _connection; }
 
     /// Make a connection from the given source output to this input.
     void makeConnection(ShaderOutput* src);
 
     /// Break the connection to this input.
     void breakConnection();
+
+  protected:
+    ShaderOutput* _connection;
+    friend class ShaderOutput;
 };
 
+/// @class ShaderOutput
 /// An output on a ShaderNode
 class ShaderOutput : public ShaderPort
 {
   public:
-    /// A set of connections to downstream node inputs, empty if not connected.
-    ShaderInputSet connections;
+    ShaderOutput(ShaderNode* node, const TypeDesc* type, const string& name);
+
+    /// Return a set of connections to downstream node inputs,
+    /// empty if not connected.
+    ShaderInputSet& getConnections() { return _connections; }
+
+    /// Return a set of connections to downstream node inputs,
+    /// empty if not connected.
+    const ShaderInputSet& getConnections() const { return _connections; }
 
     /// Make a connection from this output to the given input
     void makeConnection(ShaderInput* dst);
@@ -96,60 +166,66 @@ class ShaderOutput : public ShaderPort
 
     /// Break all connections from this output
     void breakConnection();
+
+  protected:
+    ShaderInputSet _connections;
+    friend class ShaderInput;
 };
 
+/// @class ShaderNode
 /// Class representing a node in the shader generation DAG
 class ShaderNode
 {
   public:
-    virtual ~ShaderNode() {}
+    virtual ~ShaderNode() { }
 
     /// Flags for classifying nodes into different categories.
     class Classification
     {
     public:
         // Node classes
-        static const unsigned int TEXTURE     = 1 << 0;  // Any node that outputs floats, colors, vectors, etc.
-        static const unsigned int CLOSURE     = 1 << 1;  // Any node that represents light integration
-        static const unsigned int SHADER      = 1 << 2;  // Any node that outputs a shader
+        static const unsigned int TEXTURE     = 1 << 0;  /// Any node that outputs floats, colors, vectors, etc.
+        static const unsigned int CLOSURE     = 1 << 1;  /// Any node that represents light integration
+        static const unsigned int SHADER      = 1 << 2;  /// Any node that outputs a shader
         // Specific texture node types
-        static const unsigned int FILETEXTURE = 1 << 3;  // A file texture node
-        static const unsigned int CONDITIONAL = 1 << 4;  // A conditional node
-        static const unsigned int CONSTANT    = 1 << 5;  // A constant node
+        static const unsigned int FILETEXTURE = 1 << 3;  /// A file texture node
+        static const unsigned int CONDITIONAL = 1 << 4;  /// A conditional node
+        static const unsigned int CONSTANT    = 1 << 5;  /// A constant node
         // Specific closure types
-        static const unsigned int BSDF        = 1 << 6;  // A BDFS node
-        static const unsigned int BSDF_R      = 1 << 7;  // A BDFS node only for reflection
-        static const unsigned int BSDF_T      = 1 << 8;  // A BDFS node only for transmission
-        static const unsigned int EDF         = 1 << 9;  // A EDF node
-        static const unsigned int VDF         = 1 << 10; // A VDF node
+        static const unsigned int BSDF        = 1 << 6;  /// A BDFS node
+        static const unsigned int BSDF_R      = 1 << 7;  /// A BDFS node only for reflection
+        static const unsigned int BSDF_T      = 1 << 8;  /// A BDFS node only for transmission
+        static const unsigned int EDF         = 1 << 9;  /// A EDF node
+        static const unsigned int VDF         = 1 << 10; /// A VDF node
         // Specific shader types
-        static const unsigned int SURFACE     = 1 << 11;  // A surface shader node
-        static const unsigned int VOLUME      = 1 << 12; // A volume shader node
-        static const unsigned int LIGHT       = 1 << 13; // A light shader node
+        static const unsigned int SURFACE     = 1 << 11; /// A surface shader node
+        static const unsigned int VOLUME      = 1 << 12; /// A volume shader node
+        static const unsigned int LIGHT       = 1 << 13; /// A light shader node
         // Specific conditional types
-        static const unsigned int IFELSE      = 1 << 14; // An if-else statement
-        static const unsigned int SWITCH      = 1 << 15; // A switch statement
+        static const unsigned int IFELSE      = 1 << 14; /// An if-else statement
+        static const unsigned int SWITCH      = 1 << 15; /// A switch statement
         // Types based on nodegroup
-        static const unsigned int SAMPLE2D    = 1 << 16; // Can be sampled in 2D (uv space)
-        static const unsigned int SAMPLE3D    = 1 << 17; // Can be sampled in 3D (position)
-        static const unsigned int CONVOLUTION2D = 1 << 18; // Performs a convolution in 2D (uv space)
+        static const unsigned int SAMPLE2D    = 1 << 16; /// Can be sampled in 2D (uv space)
+        static const unsigned int SAMPLE3D    = 1 << 17; /// Can be sampled in 3D (position)
+        static const unsigned int CONVOLUTION2D = 1 << 18; /// Performs a convolution in 2D (uv space)
 
-        static const unsigned int COLOR_SPACE_TRANSFORM = 1 << 19; // Performs color space transformation
+        static const unsigned int COLOR_SPACE_TRANSFORM = 1 << 19; /// Performs color space transformation
 
-        static const unsigned int DO_NOT_OPTIMIZE = 1 << 20; // Flag that this should not be optimized
+        static const unsigned int DO_NOT_OPTIMIZE = 1 << 20; /// Flag that this should not be optimized
 
-        static const unsigned int TRANSFORM_POINT = 1 << 21; // A transform point node
-        static const unsigned int TRANSFORM_VECTOR = 1 << 22; // A transform vector node
-        static const unsigned int TRANSFORM_NORMAL = 1 << 23; // A transform normal node
+        static const unsigned int TRANSFORM_POINT = 1 << 21; /// A transform point node
+        static const unsigned int TRANSFORM_VECTOR = 1 << 22; /// A transform vector node
+        static const unsigned int TRANSFORM_NORMAL = 1 << 23; /// A transform normal node
     };
 
+    /// @struct ScopeInfo
     /// Information on source code scope for the node.
     ///
-    /// TODO: Refactor the scope handling, using scope id's instead
+    /// @todo: Refactor the scope handling, using scope id's instead
     ///
     struct ScopeInfo
     {
-        enum class Type
+        enum Type
         {
             UNKNOWN,
             GLOBAL,
@@ -157,7 +233,7 @@ class ShaderNode
             MULTIPLE
         };
 
-        ScopeInfo() : type(Type::UNKNOWN), conditionalNode(nullptr), conditionBitmask(0), fullConditionMask(0) {}
+        ScopeInfo() : type(UNKNOWN), conditionalNode(nullptr), conditionBitmask(0), fullConditionMask(0) {}
 
         void merge(const ScopeInfo& fromScope);
         void adjustAtConditionalInput(ShaderNode* condNode, int branch, const uint32_t condMask);
@@ -180,19 +256,34 @@ class ShaderNode
     static const string TRANSFORM_POINT;
     static const string TRANSFORM_VECTOR;
     static const string TRANSFORM_NORMAL;
+    static const string TEXTURE2D_GROUPNAME;
+    static const string TEXTURE3D_GROUPNAME;
+    static const string PROCEDURAL2D_GROUPNAME;
+    static const string PROCEDURAL3D_GROUPNAME;
+    static const string CONVOLUTION2D_GROUPNAME;
 
   public:
     /// Constructor.
-    ShaderNode(const string& name);
+    ShaderNode(const ShaderGraph* parent, const string& name);
 
-    /// Create a new node from a nodedef
-    static ShaderNodePtr create(const string& name, const NodeDef& nodeDef, ShaderGenerator& shadergen, const GenOptions& options);
+    /// Create a new node from a nodedef.
+    static ShaderNodePtr create(const ShaderGraph* parent, const string& name, const NodeDef& nodeDef, 
+                                GenContext& context);
 
-    /// Create a new color transform node from a ShaderNodeImpl and type.
-    static ShaderNodePtr createColorTransformNode(const string& name, ShaderNodeImplPtr shaderImpl, const TypeDesc* type, ShaderGenerator& shadergen);
+    /// Create a new node from a node implementation.
+    static ShaderNodePtr create(const ShaderGraph* parent, const string& name, ShaderNodeImplPtr impl,
+                                unsigned int classification = Classification::TEXTURE);
 
     /// Return true if this node is a graph.
     virtual bool isAGraph() const { return false; }
+
+    /// Return the parent graph that owns this node.
+    /// If this node is a root graph it has no parent
+    /// and nullptr will be returned.
+    const ShaderGraph* getParent() const
+    {
+        return _parent;
+    }
 
     /// Return true if this node matches the given classification.
     bool hasClassification(unsigned int c) const
@@ -207,9 +298,9 @@ class ShaderNode
     }
 
     /// Return the implementation used for this node.
-    ShaderNodeImpl* getImplementation()
+    const ShaderNodeImpl& getImplementation() const
     {
-        return _impl.get();
+        return *_impl;
     }
 
     /// Return the scope info for this node.
@@ -234,7 +325,7 @@ class ShaderNode
     }
 
     /// Set input values from the given node and nodedef.
-    void setValues(const Node& node, const NodeDef& nodeDef, ShaderGenerator& shadergen);
+    void setValues(const Node& node, const NodeDef& nodeDef, GenContext& context);
 
     /// Set input element paths for the given node and nodedef.
     void setPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs=true);
@@ -263,13 +354,6 @@ class ShaderNode
     const vector<ShaderInput*>& getInputs() const { return _inputOrder; }
     const vector<ShaderOutput*>& getOutputs() const { return _outputOrder; }
 
-    /// Get input which is used for sampling. If there is none
-    /// then a null pointer is returned.
-    ShaderInput* getSamplingInput() const
-    {
-        return _samplingInput;
-    }
-
     /// Returns true if an input is editable by users.
     /// Editable inputs are allowed to be published as shader uniforms
     /// and hence must be presentable in a user interface.
@@ -286,13 +370,8 @@ class ShaderNode
         return (!_impl || _impl->isEditable(input));
     }
 
-    /// Add the given contex id to the set of contexts used for this node.
-    void addContextID(int id) { _contextIDs.insert(id); }
-
-    /// Return the set of contexts id's for the contexts used for this node.
-    const std::set<int>& getContextIDs() const { return _contextIDs; }
-
   protected:
+    const ShaderGraph* _parent;
     string _name;
     unsigned int _classification;
 
@@ -302,12 +381,9 @@ class ShaderNode
     std::unordered_map<string, ShaderOutputPtr> _outputMap;
     vector<ShaderOutput*> _outputOrder;
 
-    ShaderInput* _samplingInput;
-
     ShaderNodeImplPtr _impl;
     ScopeInfo _scopeInfo;
     std::set<const ShaderNode*> _usedClosures;
-    std::set<int> _contextIDs;
 
     friend class ShaderGraph;
 };

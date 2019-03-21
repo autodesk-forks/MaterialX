@@ -1,4 +1,11 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #include <MaterialXGenGlsl/Nodes/TimeNodeGlsl.h>
+
+#include <MaterialXGenShader/Shader.h>
 
 namespace MaterialX
 {
@@ -8,26 +15,24 @@ ShaderNodeImplPtr TimeNodeGlsl::create()
     return std::make_shared<TimeNodeGlsl>();
 }
 
-void TimeNodeGlsl::createVariables(const ShaderNode& /*node*/, ShaderGenerator& /*shadergen*/, Shader& shader_)
+void TimeNodeGlsl::createVariables(const ShaderNode&, GenContext&, Shader& shader) const
 {
-    HwShader& shader = static_cast<HwShader&>(shader_);
-
-    shader.createUniform(HwShader::PIXEL_STAGE, HwShader::PRIVATE_UNIFORMS, Type::FLOAT, "u_frame");
+    ShaderStage& ps = shader.getStage(Stage::PIXEL);
+    addStageUniform(HW::PRIVATE_UNIFORMS, Type::FLOAT, "u_frame", ps);
 }
 
-void TimeNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderGenerator& shadergen, Shader& shader_)
+void TimeNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-    HwShader& shader = static_cast<HwShader&>(shader_);
-
-    BEGIN_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
-        shader.beginLine();
-        shadergen.emitOutput(context, node.getOutput(), true, false, shader);
-        shader.addStr(" = u_frame / ");
+    BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
+        const ShaderGenerator& shadergen = context.getShaderGenerator();
+        shadergen.emitLineBegin(stage);
+        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+        shadergen.emitString(" = u_frame / ", stage);
         const ShaderInput* fpsInput = node.getInput("fps");
-        const string fps = fpsInput->value->getValueString();
-        shader.addStr(fps);
-        shader.endLine();
-    END_SHADER_STAGE(shader, HwShader::PIXEL_STAGE)
+        const string fps = fpsInput->getValue()->getValueString();
+        shadergen.emitString(fps, stage);
+        shadergen.emitLineEnd(stage);
+    END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
 } // namespace MaterialX

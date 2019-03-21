@@ -5,6 +5,7 @@
 
 #include <MaterialXTest/Catch/catch.hpp>
 
+#include <MaterialXFormat/Environ.h>
 #include <MaterialXFormat/File.h>
 #include <MaterialXFormat/XmlIo.h>
 
@@ -27,12 +28,14 @@ TEST_CASE("Load content", "[xmlio]")
         "NodeGraphs.mtlx",
         "PaintMaterials.mtlx",
         "PostShaderComposite.mtlx",
-        "PreShaderComposite.mtlx",
-        "BxDF/alSurface.mtlx",
-        "BxDF/Disney_BRDF_2012.mtlx",
-        "BxDF/Disney_BSDF_2015.mtlx",
+        "PreShaderComposite.mtlx"
     };
-    std::string searchPath = "documents/Libraries/stdlib;documents/Libraries/stdlib/osl;documents/Examples";
+
+    std::string searchPath = "libraries/stdlib" +
+                             mx::PATH_LIST_SEPARATOR +
+                             "libraries/stdlib/osl" +
+                             mx::PATH_LIST_SEPARATOR +
+                             "resources/Materials/Examples";
 
     // Read the standard library.
     std::vector<mx::DocumentPtr> libs;
@@ -40,7 +43,13 @@ TEST_CASE("Load content", "[xmlio]")
     {
         mx::DocumentPtr lib = mx::createDocument();
         mx::readFromXmlFile(lib, filename, searchPath);
-        REQUIRE(lib->validate());
+        std::string message;
+        bool docValid = lib->validate(&message);
+        if (!docValid)
+        {
+            WARN("[" + filename + "] " + message);
+        }
+        REQUIRE(docValid);
         libs.push_back(lib);
     }
 
@@ -50,6 +59,10 @@ TEST_CASE("Load content", "[xmlio]")
     {
         mx::DocumentPtr doc = mx::createDocument();
         mx::readFromXmlFile(doc, filename, searchPath);
+        for (mx::DocumentPtr lib : libs)
+        {
+            doc->importLibrary(lib);
+        }
         std::string message;
         bool docValid = doc->validate(&message);
         if (!docValid)
@@ -103,13 +116,6 @@ TEST_CASE("Load content", "[xmlio]")
         mx::DocumentPtr writtenDoc = mx::createDocument();
         mx::readFromXmlString(writtenDoc, xmlString);
         REQUIRE(*writtenDoc == *doc);
-
-        // Combine document with the standard library.
-        for (mx::DocumentPtr lib : libs)
-        {
-            doc->importLibrary(lib);
-        }
-        REQUIRE(doc->validate());
 
         // Flatten subgraph references.
         for (mx::NodeGraphPtr nodeGraph : doc->getNodeGraphs())
@@ -177,6 +183,14 @@ TEST_CASE("Load content", "[xmlio]")
     readOptions.readXIncludeFunction = nullptr;
     mx::readFromXmlFile(flatDoc, filename, searchPath, &readOptions);
     REQUIRE(*flatDoc != *doc);
+
+    // Read document using environment search path.
+    mx::setEnviron(mx::MATERIALX_SEARCH_PATH_ENV_VAR, searchPath);
+    mx::DocumentPtr envDoc = mx::createDocument();
+    mx::readFromXmlFile(envDoc, filename);
+    REQUIRE(*envDoc == *doc);
+    mx::removeEnviron(mx::MATERIALX_SEARCH_PATH_ENV_VAR);
+    REQUIRE_THROWS_AS(mx::readFromXmlFile(envDoc, filename), mx::ExceptionFileMissing&);
 
     // Serialize to XML with a custom predicate that skips images.
     auto skipImages = [](mx::ElementPtr elem)

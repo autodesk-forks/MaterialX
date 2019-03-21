@@ -1,5 +1,13 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_MESH_H
 #define MATERIALX_MESH_H
+
+/// @file
+/// Mesh interfaces
 
 #include <MaterialXCore/Types.h>
 #include <string>
@@ -117,7 +125,7 @@ class MeshStream
 /// Shader pointer to a mesh stream
 using MeshPartitionPtr = shared_ptr<class MeshPartition>;
 
-/// @class @MeshPartition
+/// @class MeshPartition
 /// Class that describes a sub-region of a mesh using vertex indexing.
 /// Note that a face is considered to be a triangle.
 class MeshPartition
@@ -195,7 +203,7 @@ using MeshList = vector<MeshPtr>;
 /// Map of names to mesh
 using MeshMap = std::unordered_map<string, MeshPtr>;
 
-/// @class @Mesh
+/// @class Mesh
 /// Container for mesh data
 ///
 class Mesh
@@ -350,15 +358,21 @@ class Mesh
     }
 
     /// Generate tangents and optionally bitangents for a given 
-    /// set of postions, texture coordinates and normals.
-    /// @param positions Positions to use
-    /// @param texcoords Texture coordinates to use
-    /// @param normals Normals to use
-    /// @param tangents Tangents to produce
-    /// @param bitangents Bitangents to produce.
+    /// set of positions, texture coordinates and normals.
+    /// @param positionStream Positions to use
+    /// @param texcoordStream Texture coordinates to use
+    /// @param normalStream Normals to use
+    /// @param tangentStream Tangents to produce
+    /// @param bitangentStream Bitangents to produce.
     /// Returns true if successful.
     bool generateTangents(MeshStreamPtr positionStream, MeshStreamPtr texcoordStream, MeshStreamPtr normalStream,
                           MeshStreamPtr tangentStream, MeshStreamPtr bitangentStream);   
+
+    /// Merge all mesh partitions into one.
+    void mergePartitions();
+
+    /// Split the mesh into a single partition per UDIM.
+    void splitByUdims();
 
   private:
     string _identifier;

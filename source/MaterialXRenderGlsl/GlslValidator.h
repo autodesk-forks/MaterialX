@@ -1,8 +1,15 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_GLSLVALIDATOR_H
 #define MATERIALX_GLSLVALIDATOR_H
 
+/// @file
+/// GLSL code validator
+
 #include <MaterialXRender/ShaderValidators/ShaderValidator.h>
-#include <MaterialXGenShader/HwShader.h>
 #include <MaterialXRender/ShaderValidators/ExceptionShaderValidationError.h>
 #include <MaterialXRender/Handlers/ImageHandler.h>
 #include <MaterialXRenderHw/Window/SimpleWindow.h>
@@ -74,9 +81,9 @@ class GlslValidator : public ShaderValidator
     /// @{
 
     /// Save the current contents the offscreen hardware buffer to disk.
-    /// @param fileName Name of file to save rendered image to.
+    /// @param filePath Name of file to save rendered image to.
     /// @param floatingPoint Format of output image is floating point.
-    void save(const string& fileName, bool floatingPoint) override;
+    void save(const FilePath& filePath, bool floatingPoint) override;
 
     /// Return the GLSL program wrapper class
     MaterialX::GlslProgramPtr program()

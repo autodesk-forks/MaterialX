@@ -1,7 +1,15 @@
+//
+// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 #ifndef MATERIALX_TYPEDESC_H
 #define MATERIALX_TYPEDESC_H
 
-#include <MaterialXCore/Library.h>
+/// @file
+/// Type descriptor for a MaterialX data type.
+
+#include <MaterialXGenShader/Library.h>
 
 namespace MaterialX
 {
