@@ -3,8 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-// Compile if module flags were set
-#if defined(MATERIALX_TEST_RENDER) && defined(MATERIALX_BUILD_RENDEROSL) && defined(MATERIALX_BUILD_RENDERGLSL)
+#if defined(MATERIALX_BUILD_RENDER) 
 
 // Run only on supported platforms
 #include <MaterialXRender/HardwarePlatform.h>
@@ -1233,12 +1232,8 @@ void testImageHandler(ImageHandlerTestOptions& options)
     CHECK(loadFailed == 0);
 }
 
-TEST_CASE("Image Handler Load", "[rendercore]")
+TEST_CASE("Render: Image Handler Load", "[rendercore]")
 {
-#if !defined(MATERIALX_BUILD_RENDER) 
-    return;
-#endif
-
     std::ofstream imageHandlerLog;
     imageHandlerLog.open("render_image_handler_test.txt");
     bool imagesLoaded = false;
@@ -1289,11 +1284,20 @@ TEST_CASE("Image Handler Load", "[rendercore]")
     imageHandlerLog.close();
 }
 
-TEST_CASE("Render TestSuite", "[render]")
+TEST_CASE("Render: TestSuite", "[render]")
 {
-#if !defined(MATERIALX_BUILD_RENDERGLSL) && !defined(MATERIALX_BUILD_RENDEROSL)
-    return;
+    bool skipTest = false;
+#if !defined(MATERIALX_TEST_RENDER) 
+    skipTest = true;
 #endif
+#if !defined(MATERIALX_BUILD_RENDERGLSL) && !defined(MATERIALX_BUILD_RENDEROSL)
+    skipTest = true;
+#endif
+
+    if (skipTest)
+    {
+        return;
+    }
 
     // Profiling times
     ShaderValidProfileTimes profileTimes;
