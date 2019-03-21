@@ -456,7 +456,7 @@ static void runOGSFXValidation(const std::string& shaderName, mx::TypedElementPt
                     file.close();
                 }
             }
-            catch (mx::ExceptionShaderGenError& e)
+            catch (mx::Exception& e)
             {
                 log << ">> " << e.what() << "\n";
 
@@ -795,7 +795,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                 contextOptions = options;
                 shader = shadergen.generate(shaderName, element, context);
             }
-            catch (mx::ExceptionShaderGenError& e)
+            catch (mx::Exception& e)
             {
                 log << ">> " << e.what() << "\n";
                 shader = nullptr;

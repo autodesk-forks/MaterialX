@@ -7,7 +7,7 @@ Tests the channel attribute.
 <materialx version="1.36">
   <nodegraph name="image4_to_color2_out" type="">
     <image name="image4" type="color4">
-      <parameter name="file" type="filename" value="documents/TestSuite/Images/marble.png" />
+      <parameter name="file" type="filename" value="resources/Images/marble.png" />
       <parameter name="uaddressmode" type="string" value="black"/>
       <parameter name="vaddressmode" type="string" value="clamp"/>
       <parameter name="filtertype" type="string" value="linear"/>
@@ -36,7 +36,7 @@ Tests the channel attribute.
 
   <nodegraph name="image4_to_color2_in" type="">
     <image name="image4" type="color4">
-      <parameter name="file" type="filename" value="documents/TestSuite/Images/marble.png" />
+      <parameter name="file" type="filename" value="resources/Images/marble.png" />
       <parameter name="uaddressmode" type="string" value="black"/>
       <parameter name="vaddressmode" type="string" value="clamp"/>
       <parameter name="filtertype" type="string" value="linear"/>
