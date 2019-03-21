@@ -466,6 +466,11 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
         if (outputSocket->getConnection())
         {
             string finalOutput = outputSocket->getConnection()->getVariable();
+            if (!outputSocket->getChannels().empty())
+            {
+                finalOutput = _syntax->getSwizzledVariable(finalOutput, outputSocket->getConnection()->getType(), 
+                                                            outputSocket->getChannels(), outputSocket->getType());
+            }
 
             if (graph.hasClassification(ShaderNode::Classification::SURFACE))
             {

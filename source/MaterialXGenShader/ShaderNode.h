@@ -132,6 +132,12 @@ class ShaderInput : public ShaderPort
     /// or nullptr if not connected.
     const ShaderOutput* getConnection() const { return _connection; }
 
+    /// Set optional channels value
+    void setChannels(const string& channels) { _channels = channels; }
+
+    /// Get optional channels value
+    const string& getChannels() const { return _channels; }
+
     /// Make a connection from the given source output to this input.
     void makeConnection(ShaderOutput* src);
 
@@ -140,6 +146,7 @@ class ShaderInput : public ShaderPort
 
   protected:
     ShaderOutput* _connection;
+    string _channels;
     friend class ShaderOutput;
 };
 
