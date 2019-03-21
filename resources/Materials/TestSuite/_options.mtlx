@@ -40,19 +40,19 @@
       <parameter name="validateElementToRender" type="boolean" value="false" />
 
       <!-- Perform source code compilation validation test -->
-      <parameter name="compileCode" type="boolean" value="false" />
+      <parameter name="compileCode" type="boolean" value="true" />
 
       <!-- Perform rendering validation test -->
-      <parameter name="renderImages" type="boolean" value="false" />
+      <parameter name="renderImages" type="boolean" value="true" />
 
       <!-- Perform saving of image. Can only be disabled for GLSL tests -->
-      <parameter name="saveImages" type="boolean" value="false" />
+      <parameter name="saveImages" type="boolean" value="true" />
 
       <!-- Set this to be true if it is desired to dump out GLSL uniform and attribut information to the logging file -->
-      <parameter name="dumpGlslUniformsAndAttributes" type="boolean" value="false" />
+      <parameter name="dumpGlslUniformsAndAttributes" type="boolean" value="true" />
 
       <!-- Set this to be true if it is desired to always dump out generated source code to disk instead of just on compile errors -->
-      <parameter name="dumpGeneratedCode" type="boolean" value="false" />
+      <parameter name="dumpGeneratedCode" type="boolean" value="true" />
 
       <!-- Geometry file to use for rendering non-shader elements in GLSL.
         A relative path specifier is relative to the folder "/resources/Geometry/" -->
