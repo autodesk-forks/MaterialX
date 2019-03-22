@@ -112,6 +112,10 @@ static mx::GlslValidatorPtr createGLSLValidator(const std::string& fileName, std
             log << e.what() << " " << error << std::endl;
         }
     }
+    catch (mx::Exception& e)
+    {
+        log << e.what() << std::endl;
+    }
     REQUIRE(initialized);
 
     return validator;
@@ -556,7 +560,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                 shader = shadergen.generate(shaderName, element, context);
                 generationTimer.endTimer();
             }
-            catch (mx::ExceptionShaderGenError& e)
+            catch (mx::Exception& e)
             {
                 log << ">> " << e.what() << "\n";
                 shader = nullptr;
@@ -655,15 +659,6 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     validator.validateInputs();
                 }
 
-                if (options.shaderInterfaceType == mx::SHADER_INTERFACE_REDUCED)
-                {
-                    log << "-- SHADER_INTERFACE_REDUCED output:" << std::endl;
-                }
-                else
-                {
-                    log << "-- SHADER_INTERFACE_COMPLETE output:" << std::endl;
-                }
-
                 if (testOptions.dumpGlslUniformsAndAttributes)
                 {
                     AdditiveScopedTimer printTimer(profileTimes.glslTimes.ioTime, "GLSL io time");
@@ -748,6 +743,10 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                     log << e.what() << " " << error << std::endl;
                 }
                 log << ">> Refer to shader code in dump files: " << shaderPath << "_ps.glsl and _vs.glsl files" << std::endl;
+            }
+            catch (mx::Exception& e)
+            {
+                log << e.what() << std::endl;
             }
             CHECK(validated);
         }
@@ -940,6 +939,10 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                     log << e.what() << " " << error << std::endl;
                 }
                 log << ">> Refer to shader code in dump file: " << shaderPath << ".osl file" << std::endl;
+            }
+            catch (mx::Exception& e)
+            {
+                std::cout << e.what();
             }
             CHECK(validated);
         }
@@ -1284,6 +1287,10 @@ TEST_CASE("Render: Image Handler Load", "[rendercore]")
             imageHandlerLog << e.what() << " " << error << std::endl;
         }
     }
+    catch (mx::Exception& e)
+    {
+        std::cout << e.what();
+    }
     CHECK(imagesLoaded);
     imageHandlerLog.close();
 }
@@ -1562,7 +1569,7 @@ TEST_CASE("Render: TestSuite", "[render]")
             {
                 mx::findRenderableElements(doc, elements);
             }
-            catch (mx::ExceptionShaderGenError& e)
+            catch (mx::Exception& e)
             {
                 docValidLog << e.what() << std::endl;
                 WARN("Find renderable elements failed, see: " + docValidLogFilename + " for details.");

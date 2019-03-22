@@ -1,11 +1,13 @@
 <!--
 
-Tests the channel attribute.
+Tests the channel attribute for inputs and outputs
 
 -->
 <?xml version="1.0"?>
 <materialx version="1.36">
-  <nodegraph name="image4_to_color2_out" type="">
+   <!-- Output test -->
+   <!-- Passes -->
+   <nodegraph name="image4_to_color2_ra_out" type="">
     <image name="image4" type="color4">
       <parameter name="file" type="filename" value="resources/Images/marble.png" />
       <parameter name="uaddressmode" type="string" value="black"/>
@@ -15,27 +17,36 @@ Tests the channel attribute.
     </image>
     <output name="out" type="color2" nodename="image4" channels="ra" />
   </nodegraph>
-  <nodegraph name="float_to_color4_out" type="">
+
+   <!-- OSL fails generate -->
+   <nodegraph name="float_to_color4_rrrr_out" type="">
     <constant name="constant1" type="float">
       <parameter name="value" type="float" value="1.0" />
     </constant>
     <output name="out" type="color4" nodename="constant1" channels="rrrr" />
   </nodegraph>
-  <nodegraph name="color2_to_color4_out" type="">
+   
+   <!-- GLSL Fails compile, OSL fails generate (Incorrect type specified for value) -->
+  <nodegraph name="color2_to_color4_arar_out" type="">
     <constant name="constant1" type="color2">
       <parameter name="value" type="color2" value="1.0, 0.0" />
     </constant>
     <output name="out" type="color4" nodename="constant1" channels="arar" />
   </nodegraph>
-  <nodegraph name="color4_to_float_out" type="">
+
+   <!-- GLSL Fails compile -->
+   <nodegraph name="color4_to_float_g_out" type="">
     <constant name="constant1" type="color4">
       <parameter name="value" type="color4" value="0.0, 0.5, 0.75, 1.0" />
     </constant>
     <output name="out" type="float" nodename="constant1" channels="g" />
   </nodegraph>
 
-  <nodegraph name="image4_to_color2_in" type="">
-    <image name="image4" type="color4">
+   <!-- Input tests -->
+   
+  <nodegraph name="image4_to_color2_ra_in" type="">
+     <!-- Passes -->
+     <image name="image4" type="color4">
       <parameter name="file" type="filename" value="resources/Images/marble.png" />
       <parameter name="uaddressmode" type="string" value="black"/>
       <parameter name="vaddressmode" type="string" value="clamp"/>
@@ -44,11 +55,13 @@ Tests the channel attribute.
     </image>
     <add name="add1" type="color2">
       <input name="in1" type="color2" nodename="image4" channels="ra" />
-      <input name="in2" type="color2" value="0.0, 0.0" />
+      <input name="in2" type="color2" value="0.5, 0.0" />
     </add>
     <output name="out" type="color2" nodename="add1" />
   </nodegraph>
-  <nodegraph name="float_to_color4_in" type="">
+
+   <!-- OSL fails to generate -->
+   <nodegraph name="float_to_color4_rrrr_in" type="">
     <constant name="constant1" type="float">
       <parameter name="value" type="float" value="1.0" />
     </constant>
@@ -58,7 +71,9 @@ Tests the channel attribute.
     </add>
     <output name="out" type="color4" nodename="add1" />
   </nodegraph>
-  <nodegraph name="color2_to_color4_in" type="">
+   
+   <!-- GLSL Fails compile, OSL fails to generate -->
+   <nodegraph name="color2_to_color4_arar_in" type="">
     <constant name="constant1" type="color2">
       <parameter name="value" type="color2" value="1.0, 0.0" />
     </constant>
@@ -68,7 +83,9 @@ Tests the channel attribute.
     </add>
     <output name="out" type="color4" nodename="add1" />
   </nodegraph>
-  <nodegraph name="color4_to_float_in" type="">
+
+   <!-- GLSL Fails compile, OSL fails to compile (arg declared as: float add1_in1 = 0, 0.5, 0.75, 1,  -->
+   <nodegraph name="color4_to_float_g_in" type="">
     <constant name="constant1" type="color4">
       <parameter name="value" type="color4" value="0.0, 0.5, 0.75, 1.0" />
     </constant>
