@@ -9,7 +9,7 @@ Tests the channel attribute for inputs and outputs
    <!-- Passes -->
    <nodegraph name="image4_to_color2_ra_out" type="">
     <image name="image4" type="color4">
-      <parameter name="file" type="filename" value="resources/Images/marble.png" />
+      <parameter name="file" type="filename" value="resources/Images/san_giuseppe_bridge.hdr" />
       <parameter name="uaddressmode" type="string" value="black"/>
       <parameter name="vaddressmode" type="string" value="clamp"/>
       <parameter name="filtertype" type="string" value="linear"/>
@@ -17,6 +17,28 @@ Tests the channel attribute for inputs and outputs
     </image>
     <output name="out" type="color2" nodename="image4" channels="ra" />
   </nodegraph>
+
+   <nodegraph name="image4_to_color3_bgr_out" type="">
+      <image name="image4" type="color4">
+         <parameter name="file" type="filename" value="resources/Images/san_giuseppe_bridge.hdr" />
+         <parameter name="uaddressmode" type="string" value="black"/>
+         <parameter name="vaddressmode" type="string" value="clamp"/>
+         <parameter name="filtertype" type="string" value="linear"/>
+         <parameter name="frameendaction" type="string" value="periodic"/>
+      </image>
+      <output name="out" type="color3" nodename="image4" channels="bgr" />
+   </nodegraph>
+
+   <nodegraph name="image4_to_float_g_out" type="">
+      <image name="image4" type="color4">
+         <parameter name="file" type="filename" value="resources/Images/san_giuseppe_bridge.hdr" />
+         <parameter name="uaddressmode" type="string" value="black"/>
+         <parameter name="vaddressmode" type="string" value="clamp"/>
+         <parameter name="filtertype" type="string" value="linear"/>
+         <parameter name="frameendaction" type="string" value="periodic"/>
+      </image>
+      <output name="out" type="float" nodename="image4" channels="g" />
+   </nodegraph>
 
    <!-- OSL fails generate -->
    <nodegraph name="float_to_color4_rrrr_out" type="">
@@ -43,11 +65,11 @@ Tests the channel attribute for inputs and outputs
   </nodegraph>
 
    <!-- Input tests -->
-   
-  <nodegraph name="image4_to_color2_ra_in" type="">
-     <!-- Passes -->
-     <image name="image4" type="color4">
-      <parameter name="file" type="filename" value="resources/Images/marble.png" />
+
+   <!-- Passes -->
+   <nodegraph name="image4_to_color2_ra_in" type="">
+      <image name="image4" type="color4">
+      <parameter name="file" type="filename" value="resources/Images/san_giuseppe_bridge.hdr" />
       <parameter name="uaddressmode" type="string" value="black"/>
       <parameter name="vaddressmode" type="string" value="clamp"/>
       <parameter name="filtertype" type="string" value="linear"/>
@@ -55,10 +77,40 @@ Tests the channel attribute for inputs and outputs
     </image>
     <add name="add1" type="color2">
       <input name="in1" type="color2" nodename="image4" channels="ra" />
-      <input name="in2" type="color2" value="0.5, 0.0" />
+      <input name="in2" type="color2" value="0.5, 0.5" />
     </add>
     <output name="out" type="color2" nodename="add1" />
   </nodegraph>
+
+   <nodegraph name="image4_to_color3_bgr_in" type="">
+      <image name="image4" type="color4">
+         <parameter name="file" type="filename" value="resources/Images/san_giuseppe_bridge.hdr" />
+         <parameter name="uaddressmode" type="string" value="black"/>
+         <parameter name="vaddressmode" type="string" value="clamp"/>
+         <parameter name="filtertype" type="string" value="linear"/>
+         <parameter name="frameendaction" type="string" value="periodic"/>
+      </image>
+      <add name="add1" type="color3">
+         <input name="in1" type="color3" nodename="image4" channels="bgr" />
+         <input name="in2" type="color3" value="0.5, 0.5, 0.5" />
+      </add>
+      <output name="out" type="color3" nodename="add1" />
+   </nodegraph>
+
+   <nodegraph name="image4_to_float_g_in" type="">
+      <image name="image4" type="color4">
+         <parameter name="file" type="filename" value="resources/Images/san_giuseppe_bridge.hdr" />
+         <parameter name="uaddressmode" type="string" value="black"/>
+         <parameter name="vaddressmode" type="string" value="clamp"/>
+         <parameter name="filtertype" type="string" value="linear"/>
+         <parameter name="frameendaction" type="string" value="periodic"/>
+      </image>
+      <add name="add1" type="float">
+         <input name="in1" type="float" nodename="image4" channels="g" />
+         <input name="in2" type="float" value="0.5" />
+      </add>
+      <output name="out" type="float" nodename="add1" />
+   </nodegraph>
 
    <!-- OSL fails to generate -->
    <nodegraph name="float_to_color4_rrrr_in" type="">
