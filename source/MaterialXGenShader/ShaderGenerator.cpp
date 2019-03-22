@@ -216,11 +216,11 @@ string ShaderGenerator::getUpstreamResult(const ShaderInput* input, GenContext& 
         {
             upString = _syntax->getDefaultValue(input->getType());
         }
-        if (!input->getChannels().empty())
-        {
-            ValuePtr upSwizzleValue = _syntax->getSwizzledValue(upValue, TypeDesc::get(upValue->getTypeString()), input->getChannels(), input->getType());
-            upString = upSwizzleValue->getValueString();
-        }
+        //if (!input->getChannels().empty())
+        //{
+       //     ValuePtr upSwizzleValue = _syntax->getSwizzledValue(upValue, TypeDesc::get(upValue->getTypeString()), input->getChannels(), input->getType());
+        //    upString = upSwizzleValue->getValueString();
+        //}
         return upString;
     }
 
