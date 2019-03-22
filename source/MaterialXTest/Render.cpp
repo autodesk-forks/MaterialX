@@ -96,7 +96,7 @@ static mx::GlslValidatorPtr createGLSLValidator(const std::string& fileName, std
         std::string geometryFile;
         if (fileName.length())
         {
-            geometryFile =  mx::FilePath::getCurrentPath() / mx::FilePath("resources/Geometry/") / mx::FilePath(fileName);
+            geometryFile = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Geometry/") / mx::FilePath(fileName);
             if (!geometryHandler.hasGeometry(geometryFile))
             {
                 geometryHandler.clearGeometry();
@@ -159,7 +159,7 @@ static mx::OslValidatorPtr createOSLValidator(std::ostream& log)
             validator->setOslUtilityOSOPath(shaderPath);
         }
     }
-    catch(mx::ExceptionShaderValidationError& e)
+    catch (mx::ExceptionShaderValidationError& e)
     {
         for (auto error : e.errorLog())
         {
@@ -526,7 +526,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
     std::vector<mx::GenOptions> optionsList;
     getGenerationOptions(testOptions, context.getOptions(), optionsList);
 
-    if(element && doc)
+    if (element && doc)
     {
         log << "------------ Run GLSL validation with element: " << element->getNamePath() << "-------------------" << std::endl;
 
@@ -691,7 +691,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                             if (!uiProperties.enumeration.empty())
                             {
                                 log << ". Enumeration: {";
-                                for (size_t i=0; i<uiProperties.enumeration.size(); i++)
+                                for (size_t i = 0; i<uiProperties.enumeration.size(); i++)
                                     log << uiProperties.enumeration[i] << " ";
                                 log << "}";
                             }
@@ -780,7 +780,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
     std::vector<mx::GenOptions> optionsList;
     getGenerationOptions(testOptions, context.getOptions(), optionsList);
 
-    if(element && doc)
+    if (element && doc)
     {
         log << "------------ Run OSL validation with element: " << element->getNamePath() << "-------------------" << std::endl;
 
@@ -866,7 +866,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                     mx::StringMap separatorMapper;
                     separatorMapper["\\\\"] = "/";
                     separatorMapper["\\"] = "/";
-                    for (size_t i=0; i<uniforms.size(); ++i)
+                    for (size_t i = 0; i<uniforms.size(); ++i)
                     {
                         const mx::ShaderPort* uniform = uniforms[i];
                         if (uniform->getType() != MaterialX::Type::FILENAME)
@@ -1000,7 +1000,7 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
                     }
                     if (name == LIGHT_FILES_STRING)
                     {
-                        options.lightFiles  = MaterialX::splitString(p->getValueString(), ",");
+                        options.lightFiles = MaterialX::splitString(p->getValueString(), ",");
                     }
                     else if (name == SHADER_INTERFACES_STRING)
                     {
