@@ -460,7 +460,6 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                 }
                 inputSocket->setPath(bindInput->getNamePath());
                 input->setPath(inputSocket->getPath());
-                input->setChannels(inputSocket->getChannels());
             }
 
             // If no explicit connection, connect to geometric node if a geomprop is used
@@ -497,7 +496,6 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             {
                 inputSocket->setPath(path);
             }
-            inputSocket->setChannels(input->getChannels());
         }
         const vector<ParameterPtr> nodeParameters = nodeDef->getChildrenOfType<Parameter>();
         for (const ParameterPtr& nodeParameter : nodeParameters)
@@ -716,7 +714,6 @@ void ShaderGraph::finalize(GenContext& context)
                             inputSocket = addInputSocket(interfaceName, input->getType());
                             inputSocket->setPath(input->getPath());
                             inputSocket->setValue(input->getValue());
-                            inputSocket->setChannels(input->getChannels());
                         }
                         inputSocket->makeConnection(input);
                     }

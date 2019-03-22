@@ -265,28 +265,24 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     emitFunctionCalls(graph, context, stage);
 
     // Emit final output
-    if (outputSocket->getConnection())
+    const ShaderOutput* outConnection = outputSocket->getConnection();
+    if (outConnection)
     {
-        string finalResult = outputSocket->getConnection()->getVariable();
-        if (!outputSocket->getChannels().empty())
+        string finalResult = outConnection->getVariable();
+        const string& channels = outputSocket->getChannels();
+        if (!channels.empty())
         {
             string preResult = finalResult;
-            finalResult = _syntax->getSwizzledVariable(preResult, outputSocket->getConnection()->getType(), outputSocket->getChannels(),
-                                                       outputSocket->getType());
+            finalResult = _syntax->getSwizzledVariable(preResult, outConnection->getType(), channels, outputType);
         }
         emitLine(outputSocket->getVariable() + " = " + finalResult, stage);
     }
     else
     {
         ValuePtr outputValue = outputSocket->getValue();
-        //if (outputValue && !outputSocket->getChannels().empty())
-        //{
-        //    outputValue = _syntax->getSwizzledValue(outputValue, TypeDesc::get(outputValue->getTypeString()), 
-        //                        outputSocket->getChannels(), outputSocket->getType());
-        //}
         emitLine(outputSocket->getVariable() + " = " + (outputValue ?
-            _syntax->getValue(outputSocket->getType(), *outputValue) :
-            _syntax->getDefaultValue(outputSocket->getType())), stage);
+                _syntax->getValue(outputType, *outputValue) :
+                _syntax->getDefaultValue(outputType)), stage);
     }
 
     // End shader body
