@@ -206,13 +206,29 @@ string ShaderGenerator::getUpstreamResult(const ShaderInput* input, GenContext& 
 {
     if (!input->getConnection())
     {
-        return input->getValue() ? _syntax->getValue(input->getType(), *input->getValue()) : _syntax->getDefaultValue(input->getType());
+        ValuePtr upValue = input->getValue();
+        string upString;
+        if (upValue)
+        {
+            upString = _syntax->getValue(input->getType(), *input->getValue());
+        }
+        else
+        {
+            upString = _syntax->getDefaultValue(input->getType());
+        }
+        if (!input->getChannels().empty())
+        {
+            ValuePtr upSwizzleValue = _syntax->getSwizzledValue(upValue, TypeDesc::get(upValue->getTypeString()), input->getChannels(), input->getType());
+            upString = upSwizzleValue->getValueString();
+        }
+        return upString;
     }
 
     string variable = input->getConnection()->getVariable();
     if (!input->getChannels().empty())
     {
-        variable = _syntax->getSwizzledVariable(variable, input->getConnection()->getType(), input->getChannels(), input->getType());
+        string newVariable = _syntax->getSwizzledVariable(variable, input->getConnection()->getType(), input->getChannels(), input->getType());
+        variable = newVariable;
     }
 
     // Look for any additional suffix to append

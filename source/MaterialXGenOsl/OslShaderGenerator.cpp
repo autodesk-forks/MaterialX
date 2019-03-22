@@ -270,15 +270,22 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
         string finalResult = outputSocket->getConnection()->getVariable();
         if (!outputSocket->getChannels().empty())
         {
-            finalResult = _syntax->getSwizzledVariable(finalResult, outputSocket->getConnection()->getType(), outputSocket->getChannels(), 
+            string preResult = finalResult;
+            finalResult = _syntax->getSwizzledVariable(preResult, outputSocket->getConnection()->getType(), outputSocket->getChannels(),
                                                        outputSocket->getType());
         }
         emitLine(outputSocket->getVariable() + " = " + finalResult, stage);
     }
     else
     {
-        emitLine(outputSocket->getVariable() + " = " + (outputSocket->getValue() ?
-            _syntax->getValue(outputSocket->getType(), *outputSocket->getValue()) :
+        ValuePtr outputValue = outputSocket->getValue();
+        if (outputValue && !outputSocket->getChannels().empty())
+        {
+            outputValue = _syntax->getSwizzledValue(outputValue, TypeDesc::get(outputValue->getTypeString()), 
+                                outputSocket->getChannels(), outputSocket->getType());
+        }
+        emitLine(outputSocket->getVariable() + " = " + (outputValue ?
+            _syntax->getValue(outputSocket->getType(), *outputValue) :
             _syntax->getDefaultValue(outputSocket->getType())), stage);
     }
 

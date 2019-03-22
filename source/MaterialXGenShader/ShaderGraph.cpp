@@ -460,6 +460,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                 }
                 inputSocket->setPath(bindInput->getNamePath());
                 input->setPath(inputSocket->getPath());
+                input->setChannels(inputSocket->getChannels());
             }
 
             // If no explicit connection, connect to geometric node if a geomprop is used
@@ -496,6 +497,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             {
                 inputSocket->setPath(path);
             }
+            inputSocket->setChannels(input->getChannels());
         }
         const vector<ParameterPtr> nodeParameters = nodeDef->getChildrenOfType<Parameter>();
         for (const ParameterPtr& nodeParameter : nodeParameters)
@@ -714,6 +716,7 @@ void ShaderGraph::finalize(GenContext& context)
                             inputSocket = addInputSocket(interfaceName, input->getType());
                             inputSocket->setPath(input->getPath());
                             inputSocket->setValue(input->getValue());
+                            inputSocket->setChannels(input->getChannels());
                         }
                         inputSocket->makeConnection(input);
                     }
@@ -887,12 +890,12 @@ void ShaderGraph::bypass(const GenContext& context, ShaderNode* node, size_t inp
             downstream->setPath(input->getPath());
             if (!downstream->getChannels().empty())
             {
-                // call getSwizzledValue on the input
-                input->setValue(context.getShaderGenerator().getSyntax().getSwizzledValue(input->getValue(), 
+                // Get swizzled value on input
+                downstream->setValue(context.getShaderGenerator().getSyntax().getSwizzledValue(input->getValue(),
                                                                                           input->getType(), 
                                                                                           downstream->getChannels(), 
                                                                                           downstream->getType()));
-                input->setType(downstream->getType());
+                downstream->setType(downstream->getType());
             }
         }
     }

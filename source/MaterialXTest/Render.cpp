@@ -1345,6 +1345,7 @@ TEST_CASE("Render: TestSuite", "[render]")
 #ifdef MATERIALX_BUILD_RENDEROSL
     std::ostream& oslLog(std::cout);
 #endif
+    std::string docValidLogFilename = "std::out";
     std::ostream& docValidLog(std::cout);
     std::ostream& profilingLog(std::cout);
 #endif

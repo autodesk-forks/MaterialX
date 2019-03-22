@@ -100,6 +100,12 @@ class ShaderPort : public std::enable_shared_from_this<ShaderPort>
     /// Return the emitted state of this port.
     bool isEmitted() const { return (_flags & EMITTED) != 0; }
 
+    /// Set optional channels value
+    void setChannels(const string& channels) { _channels = channels; }
+
+    /// Get optional channels value
+    const string& getChannels() const { return _channels; }
+
     /// Set flags on this port.
     void setFlags(unsigned int flags) { _flags = flags; }
 
@@ -114,6 +120,7 @@ class ShaderPort : public std::enable_shared_from_this<ShaderPort>
     string _semantic;
     string _variable;
     ValuePtr _value;
+    string _channels;
     unsigned int _flags;
 };
 
@@ -132,12 +139,6 @@ class ShaderInput : public ShaderPort
     /// or nullptr if not connected.
     const ShaderOutput* getConnection() const { return _connection; }
 
-    /// Set optional channels value
-    void setChannels(const string& channels) { _channels = channels; }
-
-    /// Get optional channels value
-    const string& getChannels() const { return _channels; }
-
     /// Make a connection from the given source output to this input.
     void makeConnection(ShaderOutput* src);
 
@@ -146,7 +147,6 @@ class ShaderInput : public ShaderPort
 
   protected:
     ShaderOutput* _connection;
-    string _channels;
     friend class ShaderOutput;
 };
 
