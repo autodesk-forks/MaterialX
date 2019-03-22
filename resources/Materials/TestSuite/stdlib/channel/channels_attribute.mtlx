@@ -5,8 +5,11 @@ Tests the channel attribute for inputs and outputs
 -->
 <?xml version="1.0"?>
 <materialx version="1.36">
-   <!-- Output test -->
-   <!-- Passes -->
+   <!--
+
+    Output test
+
+    -->
    <nodegraph name="image4_to_color2_ra_out" type="">
     <image name="image4" type="color4">
       <parameter name="file" type="filename" value="resources/Images/san_giuseppe_bridge.hdr" />
@@ -40,23 +43,41 @@ Tests the channel attribute for inputs and outputs
       <output name="out" type="float" nodename="image4" channels="g" />
    </nodegraph>
 
-   <!-- OSL fails generate -->
    <nodegraph name="float_to_color4_rrrr_out" type="">
     <constant name="constant1" type="float">
       <parameter name="value" type="float" value="1.0" />
     </constant>
     <output name="out" type="color4" nodename="constant1" channels="rrrr" />
   </nodegraph>
-   
-   <!-- GLSL Fails compile, OSL fails generate (Incorrect type specified for value) -->
+
   <nodegraph name="color2_to_color4_arar_out" type="">
     <constant name="constant1" type="color2">
-      <parameter name="value" type="color2" value="1.0, 0.0" />
+      <parameter name="value" type="color2" value="0.5, 1.0" />
     </constant>
     <output name="out" type="color4" nodename="constant1" channels="arar" />
   </nodegraph>
 
-   <!-- GLSL Fails compile -->
+  <nodegraph name="color3_to_color4_bgr1_out" type="">
+    <constant name="constant1" type="color3">
+      <parameter name="value" type="color3" value="0.5, 0.7, 1.0" />
+    </constant>
+    <output name="out" type="color4" nodename="constant1" channels="bgr1" />
+  </nodegraph>
+
+  <nodegraph name="color4_to_color3_bgr_out" type="">
+    <constant name="constant1" type="color4">
+      <parameter name="value" type="color4" value="0.5, 0.7, 0.9, 1.0" />
+    </constant>
+    <output name="out" type="color3" nodename="constant1" channels="bgr" />
+  </nodegraph>
+
+  <nodegraph name="color4_to_color2_bg_out" type="">
+    <constant name="constant1" type="color4">
+      <parameter name="value" type="color4" value="0.5, 0.7, 0.9, 1.0" />
+    </constant>
+    <output name="out" type="color2" nodename="constant1" channels="bg" />
+  </nodegraph>
+
    <nodegraph name="color4_to_float_g_out" type="">
     <constant name="constant1" type="color4">
       <parameter name="value" type="color4" value="0.0, 0.5, 0.75, 1.0" />
@@ -64,9 +85,12 @@ Tests the channel attribute for inputs and outputs
     <output name="out" type="float" nodename="constant1" channels="g" />
   </nodegraph>
 
-   <!-- Input tests -->
 
-   <!-- Passes -->
+   <!--
+
+   Input tests
+
+    -->
    <nodegraph name="image4_to_color2_ra_in" type="">
       <image name="image4" type="color4">
       <parameter name="file" type="filename" value="resources/Images/san_giuseppe_bridge.hdr" />
@@ -112,7 +136,6 @@ Tests the channel attribute for inputs and outputs
       <output name="out" type="float" nodename="add1" />
    </nodegraph>
 
-   <!-- OSL fails to generate -->
    <nodegraph name="float_to_color4_rrrr_in" type="">
     <constant name="constant1" type="float">
       <parameter name="value" type="float" value="1.0" />
@@ -123,20 +146,53 @@ Tests the channel attribute for inputs and outputs
     </add>
     <output name="out" type="color4" nodename="add1" />
   </nodegraph>
-   
-   <!-- GLSL Fails compile, OSL fails to generate -->
+
    <nodegraph name="color2_to_color4_arar_in" type="">
     <constant name="constant1" type="color2">
-      <parameter name="value" type="color2" value="1.0, 0.0" />
+      <parameter name="value" type="color2" value="0.5, 1.0" />
     </constant>
     <add name="add1" type="color4">
       <input name="in1" type="color4" nodename="constant1" channels="arar" />
-      <input name="in2" type="color4" value="0.0, 0.0, 0.0, 0.0" />
+      <input name="in2" type="color4" value="0.1, 0.1, 0.1, 0.0" />
     </add>
     <output name="out" type="color4" nodename="add1" />
   </nodegraph>
 
-   <!-- GLSL Fails compile, OSL fails to compile (arg declared as: float add1_in1 = 0, 0.5, 0.75, 1,  -->
+  <nodegraph name="color3_to_color4_bgr1_in" type="">
+   <constant name="constant1" type="color3">
+     <parameter name="value" type="color3" value="0.5, 0.7, 1.0" />
+   </constant>
+   <add name="add1" type="color4">
+     <input name="in1" type="color4" nodename="constant1" channels="bgr1" />
+     <input name="in2" type="color4" value="0.1, 0.1, 0.1, 0.0" />
+   </add>
+   <output name="out" type="color4" nodename="add1" />
+  </nodegraph>
+
+  <nodegraph name="color4_to_color3_bgr_in" type="">
+   <constant name="constant1" type="color4">
+     <parameter name="value" type="color4" value="0.0, 0.5, 0.75, 1.0" />
+   </constant>
+   <add name="add1" type="color3">
+     <input name="in1" type="color3" nodename="constant1" channels="bgr" />
+     <input name="in2" type="color3" value="0.5, 0.5, 0.5" />
+   </add>
+   <output name="out" type="color3" nodename="add1" />
+  </nodegraph>
+
+<!--
+  <nodegraph name="color4_to_color2_bg_in" type="">
+   <constant name="constant1" type="color4">
+     <parameter name="value" type="color4" value="0.0, 0.5, 0.75, 1.0" />
+   </constant>
+   <add name="add1" type="color2">
+     <input name="in1" type="color2" nodename="constant1" channels="bg" />
+     <input name="in2" type="color2" value="0.5, 0.5" />
+   </add>
+   <output name="out" type="color2" nodename="add1" />
+  </nodegraph>
+-->
+
    <nodegraph name="color4_to_float_g_in" type="">
     <constant name="constant1" type="color4">
       <parameter name="value" type="color4" value="0.0, 0.5, 0.75, 1.0" />
