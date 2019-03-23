@@ -29,7 +29,7 @@ Tests the channel attribute for inputs and outputs
          <parameter name="filtertype" type="string" value="linear"/>
          <parameter name="frameendaction" type="string" value="periodic"/>
       </image>
-      <output name="out" type="color3" nodename="image4" channels="bgr" />
+      <output name="out" type="color3" nodename="image4" channels="bbb" />
    </nodegraph>
 
    <nodegraph name="image4_to_float_g_out" type="">
@@ -169,23 +169,23 @@ Tests the channel attribute for inputs and outputs
       <output name="out" type="color4" nodename="add1" />
    </nodegraph>
 
-   <nodegraph name="color4_to_color3_bgr_in" type="">
+   <nodegraph name="color4_to_color3_rga_in" type="">
       <constant name="constant1" type="color4">
          <parameter name="value" type="color4" value="0.0, 0.5, 0.75, 1.0" />
       </constant>
       <add name="add1" type="color3">
-         <input name="in1" type="color3" nodename="constant1" channels="bgr" />
+         <input name="in1" type="color3" nodename="constant1" channels="rga" />
          <input name="in2" type="color3" value="0.5, 0.5, 0.5" />
       </add>
       <output name="out" type="color3" nodename="add1" />
    </nodegraph>
 
-   <nodegraph name="color4_to_color2_ra_in" type="">
+   <nodegraph name="color4_to_color2_rg_in" type="">
       <constant name="constant1" type="color4">
          <parameter name="value" type="color4" value="0.0, 0.5, 0.75, 1.0" />
       </constant>
       <add name="add1" type="color2">
-         <input name="in1" type="color2" nodename="constant1" channels="ra" />
+         <input name="in1" type="color2" nodename="constant1" channels="rg" />
          <input name="in2" type="color2" value="0.5, 0.5" />
       </add>
       <output name="out" type="color2" nodename="add1" />

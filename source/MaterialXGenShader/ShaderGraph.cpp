@@ -885,14 +885,18 @@ void ShaderGraph::bypass(const GenContext& context, ShaderNode* node, size_t inp
             output->breakConnection(downstream);
             downstream->setValue(input->getValue());
             downstream->setPath(input->getPath());
-            if (!downstream->getChannels().empty())
+
+            // Swizzle the input value. Once done clear the channel to indicate
+            // no further swizzling is reqiured.
+            const string& channels = downstream->getChannels();
+            if (!channels.empty())
             {
-                // Get swizzled value on input
                 downstream->setValue(context.getShaderGenerator().getSyntax().getSwizzledValue(input->getValue(),
                                                                                           input->getType(), 
-                                                                                          downstream->getChannels(), 
+                                                                                          channels,
                                                                                           downstream->getType()));
                 downstream->setType(downstream->getType());
+                downstream->setChannels(EMPTY_STRING);
             }
         }
     }
