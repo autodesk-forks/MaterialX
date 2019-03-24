@@ -79,7 +79,7 @@ if (MATERIALX_BUILD_RENDEROSL)
 endif()
 
 # Viewer options
-option(MATERIALX_BUILD_VIEWER "Build the MaterialX Viewer. " OFF)
+option(MATERIALX_BUILD_VIEWER "Build the MaterialX Viewer. " ON)
 
 # Adjust the default installation path
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
