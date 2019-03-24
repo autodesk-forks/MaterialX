@@ -41,12 +41,12 @@ mx::Matrix44 createViewMatrix(const mx::Vector3& eye,
 
 mx::Matrix44 createPerspectiveMatrix(float left, float right,
                                      float bottom, float top,
-                                     float near, float far)
+                                     float nearP, float farP)
 {
     return mx::Matrix44(
-        (2.0f * near) / (right - left), 0.0f, (right + left) / (right - left), 0.0f,
-        0.0f, (2.0f * near) / (top - bottom), (top + bottom) / (top - bottom), 0.0f,
-        0.0f, 0.0f, -(far + near) / (far - near), -(2.0f * far * near) / (far - near),
+        (2.0f * nearP) / (right - left), 0.0f, (right + left) / (right - left), 0.0f,
+        0.0f, (2.0f * nearP) / (top - bottom), (top + bottom) / (top - bottom), 0.0f,
+        0.0f, 0.0f, -(farP + nearP) / (farP - nearP), -(2.0f * farP * nearP) / (farP - nearP),
         0.0f, 0.0f, -1.0f, 0.0f);
 }
 

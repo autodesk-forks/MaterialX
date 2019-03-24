@@ -343,7 +343,7 @@ void Material::bindImages(mx::GLTextureHandlerPtr imageHandler, const mx::FileSe
 }
 
 bool Material::bindImage(std::string filename, const std::string& uniformName, mx::GLTextureHandlerPtr imageHandler,
-                         mx::ImageDesc& desc, const std::string& udim, std::array<float, 4>* fallbackColor)
+                         mx::ImageDesc& desc, const std::string& udim, mx::Color4* fallbackColor)
 {
     if (!_glShader)
     {
@@ -453,7 +453,7 @@ void Material::bindLights(mx::HwLightHandlerPtr lightHandler, mx::GLTextureHandl
         { "u_envIrradiance", indirectLighting ? (std::string) lightHandler->getLightEnvIrradiancePath() : mx::EMPTY_STRING }
     };
     const std::string udim;
-    std::array<float, 4> fallbackColor = { 0.0, 0.0, 0.0, 1.0 };
+    mx::Color4 fallbackColor = { 0.0, 0.0, 0.0, 1.0 };
     for (auto pair : lightTextures)
     {
         if (_glShader->uniform(pair.first, false) != -1)
