@@ -11,7 +11,7 @@ namespace {
 class EditorFormHelper : public ng::FormHelper
 {
   public:
-    EditorFormHelper(ng::Screen *screen) : ng::FormHelper(screen) { }
+    explicit EditorFormHelper(ng::Screen *screen) : ng::FormHelper(screen) { }
     ~EditorFormHelper() { }
 
     void setPreGroupSpacing(int val) { mPreGroupSpacing = val; }
