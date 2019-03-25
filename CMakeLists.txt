@@ -168,6 +168,7 @@ if (MATERIALX_BUILD_RENDER)
 endif(MATERIALX_BUILD_RENDER)
 
 if (MATERIALX_BUILD_VIEWER)
+    add_compile_options(-Wno-misleading-indentation)
     add_subdirectory(source/MaterialXView)
 endif()
 if (MATERIALX_BUILD_CONTRIB)
