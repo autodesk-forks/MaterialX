@@ -13,20 +13,22 @@ set(NANOGUI_BUILD_PYTHON OFF CACHE BOOL " " FORCE)
 set(NANOGUI_INSTALL OFF CACHE BOOL " " FORCE)
 
 # Turn off some additional warnings in NanoGUI dependents
+set(PREV_CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+set(PREV_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 if(MSVC)
-    set(PREV_CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-    set(PREV_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4389")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4389")
+#else()
+    add_compile_options(-Wno-misleading-indentation)
+    add_compile_options(-Wno-format-truncation)
+    add_compile_options(-Wno-implicit-fallthrough)
 endif()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/NanoGUI external/NanoGUI)
 set_property(TARGET nanogui nanogui-obj glfw glfw_objects PROPERTY FOLDER "External")
 
-if(MSVC)
-    set(CMAKE_C_FLAGS ${PREV_CMAKE_C_FLAGS})
-    set(CMAKE_CXX_FLAGS ${PREV_CMAKE_CXX_FLAGS})
-endif()
+set(CMAKE_C_FLAGS ${PREV_CMAKE_C_FLAGS})
+set(CMAKE_CXX_FLAGS ${PREV_CMAKE_CXX_FLAGS})
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/../
