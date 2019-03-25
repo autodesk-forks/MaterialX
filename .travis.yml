@@ -9,9 +9,6 @@ matrix:
       if: tag IS present
       addons:
         apt:
-          sources:
-            - deadsnakes
-            - kubuntu-backports
           packages:
             - libglu1-mesa-dev
             - libxxf86vm-dev
@@ -25,9 +22,6 @@ matrix:
       env: CONFIG=Release
       addons:
         apt:
-          sources:
-            - deadsnakes
-            - kubuntu-backports
           packages:
             - libglu1-mesa-dev
             - libxxf86vm-dev
@@ -42,9 +36,6 @@ matrix:
       if: tag IS present
       addons:
         apt:
-          sources:
-            - deadsnakes
-            - kubuntu-backports
           packages:
             - libglu1-mesa-dev
             - libxxf86vm-dev
@@ -58,9 +49,6 @@ matrix:
       env: CONFIG=Release
       addons:
         apt:
-          sources:
-            - deadsnakes
-            - kubuntu-backports
           packages:
             - libglu1-mesa-dev
             - libxxf86vm-dev
@@ -92,8 +80,6 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - deadsnakes
-            - kubuntu-backports
           packages:
             - g++-6
             - libglu1-mesa-dev
@@ -110,8 +96,6 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - deadsnakes
-            - kubuntu-backports
           packages:
             - g++-8
             - libglu1-mesa-dev
@@ -129,8 +113,6 @@ matrix:
           sources:
             - llvm-toolchain-trusty-7
             - ubuntu-toolchain-r-test
-            - deadsnakes
-            - kubuntu-backports
           packages:
             - clang-7
             - libglu1-mesa-dev

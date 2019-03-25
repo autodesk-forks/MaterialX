@@ -23,7 +23,9 @@ include_directories(
 add_definitions(${NANOGUI_EXTRA_DEFS})
 
 if(MSVC)
-    add_compile_options(/D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS)
+    add_compile_options(/D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS /wd4389)
+elseif(LINUX)
+    add_compile_options(-Wno-misleading-indentation)
 endif()
 
 add_executable(MaterialXView ${materialx_source} ${materialx_headers})
