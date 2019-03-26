@@ -126,12 +126,12 @@ class ShaderGraph : public ShaderNode
     void finalize(GenContext& context);
 
     /// Optimize the graph, removing redundant paths.
-    void optimize(const GenContext& context);
+    void optimize(GenContext& context);
 
     /// Bypass a node for a particular input and output,
     /// effectively connecting the input's upstream connection
     /// with the output's downstream connections.
-    void bypass(const GenContext& context, ShaderNode* node, size_t inputIndex, size_t outputIndex = 0);
+    void bypass(GenContext& context, ShaderNode* node, size_t inputIndex, size_t outputIndex = 0);
 
     /// Sort the nodes in topological order.
     /// @throws ExceptionFoundCycle if a cycle is encountered.

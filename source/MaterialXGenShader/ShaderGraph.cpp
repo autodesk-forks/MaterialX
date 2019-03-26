@@ -764,7 +764,7 @@ void ShaderGraph::disconnect(ShaderNode* node) const
     }
 }
 
-void ShaderGraph::optimize(const GenContext& context)
+void ShaderGraph::optimize(GenContext& context)
 {
     size_t numEdits = 0;
     for (ShaderNode* node : getNodes())
@@ -853,7 +853,7 @@ void ShaderGraph::optimize(const GenContext& context)
     }
 }
 
-void ShaderGraph::bypass(const GenContext& context, ShaderNode* node, size_t inputIndex, size_t outputIndex)
+void ShaderGraph::bypass(GenContext& context, ShaderNode* node, size_t inputIndex, size_t outputIndex)
 {
     ShaderInput* input = node->getInput(inputIndex);
     ShaderOutput* output = node->getOutput(outputIndex);

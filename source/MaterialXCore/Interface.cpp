@@ -34,7 +34,7 @@ std::unordered_map<string, std::set<char>> PortElement::_swizzlePatterns =
     {"vector4", { '0', '1', 'x', 'y', 'z', 'w' }}
 };
 
-// Mappiung from a type to the acceptable swizzle pattern size
+// Mapping from a type to the acceptable swizzle pattern size
 std::unordered_map<string, size_t> PortElement::_swizzlePatternSizes =
 {
     {"float", 1},
