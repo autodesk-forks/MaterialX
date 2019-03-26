@@ -272,8 +272,7 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
         const string& channels = outputSocket->getChannels();
         if (!channels.empty())
         {
-            string preResult = finalResult;
-            finalResult = _syntax->getSwizzledVariable(preResult, outConnection->getType(), channels, outputType);
+            finalResult = _syntax->getSwizzledVariable(finalResult, outConnection->getType(), channels, outputType);
         }
         emitLine(outputSocket->getVariable() + " = " + finalResult, stage);
     }

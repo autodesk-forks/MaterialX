@@ -212,8 +212,7 @@ string ShaderGenerator::getUpstreamResult(const ShaderInput* input, GenContext& 
     string variable = input->getConnection()->getVariable();
     if (!input->getChannels().empty())
     {
-        string newVariable = _syntax->getSwizzledVariable(variable, input->getConnection()->getType(), input->getChannels(), input->getType());
-        variable = newVariable;
+        variable = _syntax->getSwizzledVariable(variable, input->getConnection()->getType(), input->getChannels(), input->getType());
     }
 
     // Look for any additional suffix to append
