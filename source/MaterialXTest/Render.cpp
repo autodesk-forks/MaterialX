@@ -20,6 +20,7 @@
 #include <MaterialXGenShader/HwShaderGenerator.h>
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
 #include <MaterialXRender/Handlers/HwLightHandler.h>
+#include <MaterialXRender/Util.h>
 
 #ifdef MATERIALX_BUILD_RENDERGLSL
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>

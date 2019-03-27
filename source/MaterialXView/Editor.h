@@ -3,21 +3,17 @@
 
 #include <MaterialXGenShader/HwShaderGenerator.h>
 #include <MaterialXGenShader/Util.h>
+#include <MaterialXRender/Util.h>
 
 #include <nanogui/formhelper.h>
 #include <nanogui/screen.h>
+
+#include <map>
 
 namespace mx = MaterialX;
 namespace ng = nanogui;
 
 class Viewer;
-
-struct EditorItem
-{
-    std::string label;
-    mx::ShaderPort* variable = nullptr;
-    mx::UIProperties ui;
-};
 
 class PropertyEditor 
 {
@@ -41,7 +37,7 @@ class PropertyEditor
 
   protected:
     void create(Viewer& parent);
-    void addItemToForm(const EditorItem& item, const std::string& group,
+    void addItemToForm(const mx::UIPropertyItem& item, const std::string& group,
                        ng::FormHelper& form, Viewer* viewer);
       
     bool _visible;
