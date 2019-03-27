@@ -73,9 +73,6 @@ class Material
         _udim = val;
     }
 
-    /// Generate shader source for a given element and generation context.
-    mx::ShaderPtr generateSource(mx::GenContext& context, mx::ElementPtr elem);
-
     /// Generate a shader from the given inputs.
     bool generateShader(mx::GenContext& context);
 
@@ -123,8 +120,8 @@ class Material
     /// Draw the given mesh partition.
     void drawPartition(mx::MeshPartitionPtr part) const;
 
-    // Return the block of public uniforms for this material.
-    const mx::VariableBlock* getPublicUniforms() const;
+    /// Return the block of public uniforms for this material.
+    mx::VariableBlock* getPublicUniforms() const;
 
     /// Find a public uniform from its MaterialX path.
     mx::ShaderPort* findUniform(const std::string& path) const;

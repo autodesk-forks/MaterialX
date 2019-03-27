@@ -3,6 +3,7 @@
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/Util.h>
+#include <MaterialXRender/Util.h>
 #include <MaterialXRender/Handlers/OiioImageLoader.h>
 #include <MaterialXRender/Handlers/StbImageLoader.h>
 #include <MaterialXRender/Handlers/TinyObjLoader.h>
@@ -724,7 +725,7 @@ void Viewer::saveActiveMaterialSource()
         mx::TypedElementPtr elem = material ? material->getElement() : nullptr;
         if (elem)
         {
-            mx::ShaderPtr shader = material->generateSource(_genContext, elem);
+            mx::ShaderPtr shader = createShader(elem->getNamePath(), _genContext, elem);
             if (shader)
             {
                 std::string vertexShader = shader->getSourceCode(mx::Stage::VERTEX);
