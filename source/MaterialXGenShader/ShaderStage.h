@@ -99,14 +99,14 @@ class VariableBlock
     /// no variable is found by the given name.
     const ShaderPort* find(const string& name) const;
 
+    /// Find a port based on a predicate
+    ShaderPort* find(const ShaderPortPredicate& predicate);
+
     /// Add a new shader port to this block.
     ShaderPort* add(const TypeDesc* type, const string& name, ValuePtr value = nullptr);
 
     /// Add an existing shader port to this block.
     void add(ShaderPortPtr port);
-
-    /// Find a port based on a predicate
-    ShaderPort* findByPredicate(const ShaderPortPredicate& predicate);
 
   private:
     string _name;

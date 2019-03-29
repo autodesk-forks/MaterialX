@@ -7,6 +7,8 @@
 
 #include <MaterialXFormat/File.h>
 
+#include <nanogui/messagedialog.h>
+
 #include <iostream>
 
 using MatrixXfProxy = Eigen::Map<const ng::MatrixXf>;
@@ -47,7 +49,7 @@ size_t Material::loadDocument(mx::DocumentPtr destinationDoc, const mx::FilePath
         }
         else
         {
-            std::cerr << "Include file not found: " << filename << std::endl;
+            new ng::MessageDialog(nullptr, ng::MessageDialog::Type::Warning, "Include file not found:", filename);
         }
     };
     mx::readFromXmlFile(doc, filePath, mx::EMPTY_STRING, &readOptions);
@@ -538,9 +540,9 @@ mx::VariableBlock* Material::getPublicUniforms() const
         mx::VariableBlock& block = stage.getUniformBlock(mx::HW::PUBLIC_UNIFORMS);
         return &block;
     }
-    catch (mx::Exception& /*e*/)
+    catch (mx::Exception& e)
     {
-        // Pass-though. Caller weill handle null return values.
+        new ng::MessageDialog(nullptr, ng::MessageDialog::Type::Warning, "Unable to find shader uniforms", e.what());
     }
     return nullptr;
 }
@@ -551,7 +553,7 @@ mx::ShaderPort* Material::findUniform(const std::string& path) const
     if (publicUniforms)
     { 
         // Scan block based on path match predicate
-        return publicUniforms->findByPredicate(
+        return publicUniforms->find(
             [path](mx::ShaderPort* port)
             {
                 return (port && (port->getPath() == path));

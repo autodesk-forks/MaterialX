@@ -23,7 +23,7 @@ void bindPyShaderStage(py::module& mod)
         .def("empty", &mx::VariableBlock::empty)
         .def("size", &mx::VariableBlock::size)
         .def("find", static_cast<mx::ShaderPort* (mx::VariableBlock::*)(const std::string&)>(&mx::VariableBlock::find))
-        .def("findByPredicate", &mx::VariableBlock::findByPredicate)
+        .def("find", (mx::ShaderPort* (mx::VariableBlock::*)(const mx::ShaderPortPredicate& )) &mx::VariableBlock::find)
         .def("__len__", &mx::VariableBlock::size)
         .def("__getitem__", [](const mx::VariableBlock &vb, size_t i)
         {
