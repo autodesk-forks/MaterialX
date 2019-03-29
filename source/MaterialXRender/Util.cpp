@@ -37,42 +37,8 @@ ShaderPtr createConstantShader(GenContext& context,
     output->setConnectedNode(constant);
 
     // Generate the shader
-    ShaderPtr shader = createShader(shaderName, context, output);
-    return shader;
+    return createShader(shaderName, context, output);
 }
-
-VariableBlock* getUniformBlock(ShaderPtr shader, const string& stageName, const string& blockName)
-{
-    try
-    {
-        ShaderStage& stage = shader->getStage(stageName);
-        VariableBlock& block = stage.getUniformBlock(blockName);
-        return &block;
-    }
-    catch (Exception& /*e*/)
-    {
-    }
-    return nullptr;
-}
-
-ShaderPort* findUniform(const VariableBlock* block, const std::string& path)
-{
-    if (!block)
-    {
-        return nullptr;
-    }
-
-    for (auto uniform : block->getVariableOrder())
-    {
-        if (uniform->getPath() == path)
-        {
-            return uniform;
-        }
-    }
-
-    return nullptr;
-}
-
 
 unsigned int getUIProperties(const ValueElementPtr nodeDefElement, UIProperties& uiProperties)
 {

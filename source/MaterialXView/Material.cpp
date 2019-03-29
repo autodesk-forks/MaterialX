@@ -528,11 +528,34 @@ void Material::drawPartition(mx::MeshPartitionPtr part) const
 
 mx::VariableBlock* Material::getPublicUniforms() const
 {
-    return _hwShader ? mx::getUniformBlock(_hwShader, mx::Stage::PIXEL, mx::HW::PUBLIC_UNIFORMS) : nullptr;
+    if (!_hwShader)
+    {
+        return nullptr;
+    }
+    try
+    {
+        mx::ShaderStage& stage = _hwShader->getStage(mx::Stage::PIXEL);
+        mx::VariableBlock& block = stage.getUniformBlock(mx::HW::PUBLIC_UNIFORMS);
+        return &block;
+    }
+    catch (mx::Exception& /*e*/)
+    {
+        // Pass-though. Caller weill handle null return values.
+    }
+    return nullptr;
 }
 
 mx::ShaderPort* Material::findUniform(const std::string& path) const
 {
-    const mx::VariableBlock* publicUniforms = getPublicUniforms();
-    return publicUniforms ? mx::findUniform(publicUniforms, path) : nullptr;
+    mx::VariableBlock* publicUniforms = getPublicUniforms();
+    if (publicUniforms)
+    { 
+        // Scan block based on path match predicate
+        return publicUniforms->findByPredicate(
+            [path](mx::ShaderPort* port)
+            {
+                return (port && (port->getPath() == path));
+            });
+    }
+    return nullptr;
 }

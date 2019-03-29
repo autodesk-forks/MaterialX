@@ -31,14 +31,8 @@ namespace MaterialX
                                    const Color3& color);
 
     /// @}
-    /// @name Introspection and UI utilities
+    /// @name User interface utilities
     /// @{ 
-
-    /// Get a named uniform block for a given shader stage
-    VariableBlock* getUniformBlock(ShaderPtr shader, const string& stageName, const string& blockName);
-
-    /// Find a variable in shader's variable block which matches a given Element path.
-    ShaderPort* findUniform(const VariableBlock* block, const std::string& path);
 
     /// Set of possible UI properties for an element 
     struct UIProperties

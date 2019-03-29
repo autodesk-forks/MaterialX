@@ -75,6 +75,19 @@ void VariableBlock::add(ShaderPortPtr port)
     }
 }
 
+
+ShaderPort* VariableBlock::findByPredicate(const ShaderPortPredicate& predicate)
+{
+    for (ShaderPort* port : getVariableOrder())
+    {
+        if (predicate(port))
+        {
+            return port;
+        }
+    }
+    return nullptr;
+}
+
 //
 // ShaderStage methods
 //

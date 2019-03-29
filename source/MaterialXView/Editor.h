@@ -8,8 +8,6 @@
 #include <nanogui/formhelper.h>
 #include <nanogui/screen.h>
 
-#include <map>
-
 namespace mx = MaterialX;
 namespace ng = nanogui;
 
