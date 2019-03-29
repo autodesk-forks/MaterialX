@@ -1205,7 +1205,7 @@ struct ImageHandlerTestOptions
     mx::ImageHandlerPtr imageHandler;
     std::ofstream* logFile;
 
-    mx::StringVec testExtensions;
+    mx::StringSet testExtensions;
     mx::StringVec skipExtensions;
 };
 

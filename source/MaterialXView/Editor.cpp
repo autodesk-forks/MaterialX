@@ -504,11 +504,14 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                             const mx::GLTextureHandlerPtr handler = viewer->getImageHandler();
                             if (handler)
                             {
-                                std::string filename = ng::file_dialog({ { "png", "PNG" },
-                                                                         { "jpeg", "JPEG" },
-                                                                         { "hdr", "HDR" },
-                                                                         { "gif", "GIF" },
-                                                                         { "bmp", "BMP" } }, false);
+                                mx::StringSet extensions;
+                                handler->supportedExtensions(extensions);
+                                std::vector<std::pair<std::string, std::string>> filetypes;
+                                for (auto extension : extensions)
+                                {
+                                    filetypes.push_back(std::make_pair(extension, extension));
+                                }
+                                std::string filename = ng::file_dialog(filetypes, false);
                                 if (!filename.empty())
                                 {
                                     uniform->setValue(mx::Value::createValue<std::string>(filename));

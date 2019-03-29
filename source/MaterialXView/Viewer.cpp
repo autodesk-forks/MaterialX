@@ -159,6 +159,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     // Set default generator options.
     _genContext.getOptions().hwSpecularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
     _genContext.getOptions().targetColorSpaceOverride = "lin_rec709";
+    _genContext.getOptions().fileTextureVerticalFlip = true;
 
     // Set default light information before initialization
     _lightFileName = "resources/Materials/TestSuite/Utilities/Lights/default_viewer_lights.mtlx";
