@@ -49,7 +49,7 @@ bool TinyEXRImageLoader::saveImage(const FilePath& filePath,
 
 bool TinyEXRImageLoader::acquireImage(const FilePath& filePath,
                                       ImageDesc& imageDesc,
-                                      bool /*generateMipMaps*/)
+                                      const HwImageDescRestrictions* /*restrictions*/)
 {
     int returnValue = -1;
     imageDesc.width = imageDesc.height = imageDesc.channelCount = 0;

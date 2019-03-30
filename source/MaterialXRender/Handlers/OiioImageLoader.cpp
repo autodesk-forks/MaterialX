@@ -41,7 +41,7 @@ bool OiioImageLoader::saveImage(const FilePath& /*filePath*/,
 
 bool OiioImageLoader::acquireImage(const FilePath& filePath,
                                   ImageDesc& imageDesc,
-                                  bool /*generateMipMaps*/)
+                                  const HwImageDescRestrictions* restrictions)
 {
     imageDesc.width = imageDesc.height = imageDesc.channelCount = 0;
     imageDesc.resourceBuffer = nullptr;
@@ -53,31 +53,49 @@ bool OiioImageLoader::acquireImage(const FilePath& filePath,
     }
 
     OIIO::ImageSpec imageSpec = imageInput->spec();
-    if (imageSpec.format == OIIO::TypeDesc::HALF)
+    switch (imageSpec.format.basetype)
     {
-        // Due to display issue with 16-bit tiled exrs,
-        // treat as 32-bit float.
-        imageSpec.set_format(OIIO::TypeDesc::FLOAT);
+    case OIIO::TypeDesc::UINT8:
+    {
+        imageDesc.baseType = ImageDesc::BaseType::UINT8;
+        break;
     }
-
-    if (imageSpec.format != OIIO::TypeDesc::UINT8 &&
-        imageSpec.format != OIIO::TypeDesc::FLOAT)
+    case OIIO::TypeDesc::FLOAT:
     {
+        imageDesc.baseType = ImageDesc::BaseType::FLOAT;
+        break;
+    }
+    case OIIO::TypeDesc::HALF:
+    {
+        if (restrictions && restrictions->supportedBaseTypes.count(ImageDesc::BaseType::HALF_FLOAT) == 0)
+        {
+            // 16-bit float is not support so loadin as 32-bit float.
+            imageSpec.set_format(OIIO::TypeDesc::FLOAT);
+        }
+        else
+        {
+            imageDesc.baseType = ImageDesc::BaseType::HALF_FLOAT;
+        }
+        break;
+    }
+    default:
         return false;
-    }
+    };
 
     imageDesc.width = imageSpec.width;
     imageDesc.height = imageSpec.height;
     imageDesc.channelCount = imageSpec.nchannels;
-    imageDesc.baseType = (imageSpec.format == OIIO::TypeDesc::FLOAT) ? ImageDesc::BaseType::FLOAT : ImageDesc::BaseType::UINT8;
     imageDesc.computeMipCount();
 
     size_t imageBytes = (size_t) imageSpec.image_bytes();
     void* imageBuf = malloc(imageBytes);
-    imageInput->read_image(imageSpec.format, imageBuf);
-    imageDesc.resourceBuffer = imageBuf;
-    
-    return true;
+    if (imageInput->read_image(imageSpec.format, imageBuf))
+    {
+        imageDesc.resourceBuffer = imageBuf;
+        return true;
+    }
+    free(imageBuf);
+    return false;
 }
 
 } // namespace MaterialX

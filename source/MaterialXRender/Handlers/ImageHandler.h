@@ -27,6 +27,7 @@ class ImageDesc
     enum class BaseType
     {
         UINT8,
+        HALF_FLOAT,
         FLOAT
     };
 
@@ -57,6 +58,18 @@ class ImageDesc
     {
         mipCount = (unsigned int)std::log2(std::max(width, height)) + 1;
     }
+};
+
+/// Structure containing harware image description restrictions
+class HwImageDescRestrictions
+{
+  public:
+    /// List of channel counts that can be supported
+    std::set<unsigned int> supportedChannelCounts;
+    /// List of base types that can be supported
+    std::set<ImageDesc::BaseType> supportedBaseTypes;
+    /// List of image types that can be support
+    std::set<ImageDesc::ImageType> supportedImageTypes;
 };
 
 /// @class ImageSamplingProperties
@@ -125,9 +138,10 @@ class ImageLoader
     /// Acquire an image from disk. This method must be implemented by derived classes.
     /// @param filePath Path to load image from
     /// @param imageDesc Description of image updated during load.
-    /// @param generateMipMaps Generate mip maps if supported.
+    /// @param restrictions Hardware image description restrictions. Default value is nullptr, meaning no restrictions.
     /// @return if load succeeded
-    virtual bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc, bool generateMipMaps) = 0;
+    virtual bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
+                              const HwImageDescRestrictions* restrictions = nullptr) = 0;
 
   protected:
     /// List of supported string extensions
@@ -164,7 +178,10 @@ class ImageHandler
     void addLoader(ImageLoaderPtr loader);
     
     /// Default destructor
-    virtual ~ImageHandler() {}
+    virtual ~ImageHandler() 
+    {
+        delete _restrictions;
+    }
 
     /// Get a list of extensions supported by the handler
     void supportedExtensions(StringSet& extensions);
@@ -255,6 +272,9 @@ class ImageHandler
 
     /// Filename search path
     FileSearchPath _searchPath;
+
+    /// Support restrictions
+    HwImageDescRestrictions* _restrictions;
 };
 
 } // namespace MaterialX

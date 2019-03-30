@@ -30,7 +30,8 @@ public:
     virtual ~TinyEXRImageLoader() {}    
 
     bool saveImage(const FilePath& filePath, const ImageDesc &imageDesc) override;
-    bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc, bool generateMipMaps) override;
+    bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
+                      const HwImageDescRestrictions* restrictions = nullptr) override;
 };
 
 } // namespace MaterialX;

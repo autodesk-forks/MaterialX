@@ -30,11 +30,7 @@ class GLTextureHandler : public ImageHandler
     }
 
     /// Default constructor
-    GLTextureHandler(ImageLoaderPtr imageLoader) :
-        ParentClass(imageLoader),
-        _maxImageUnits(-1)
-    {
-    }
+    GLTextureHandler(ImageLoaderPtr imageLoader);
     
     /// Default destructor
     virtual ~GLTextureHandler() {}

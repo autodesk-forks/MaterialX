@@ -29,7 +29,7 @@ class PyImageLoader : public mx::ImageLoader
         );
     }
 
-    bool acquireImage(const mx::FilePath& filePath, mx::ImageDesc &imageDesc, bool generateMipMaps) override
+    bool acquireImage(const mx::FilePath& filePath, mx::ImageDesc &imageDesc, const mx::HwImageDescRestrictions* restrictions = nullptr) override
     {
         PYBIND11_OVERLOAD_PURE(
             bool,
@@ -37,7 +37,7 @@ class PyImageLoader : public mx::ImageLoader
             acquireImage,
             filePath,
             imageDesc,
-            generateMipMaps
+            restrictions
         );
     }
 

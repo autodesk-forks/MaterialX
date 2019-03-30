@@ -76,9 +76,8 @@ bool StbImageLoader::saveImage(const FilePath& filePath,
     return (returnValue == 1);
 }
 
-bool StbImageLoader::acquireImage(const FilePath& filePath,
-                                  ImageDesc& imageDesc,
-                                  bool /*generateMipMaps*/)
+bool StbImageLoader::acquireImage(const FilePath& filePath, ImageDesc &imageDesc,
+                                  const HwImageDescRestrictions* /*restrictions*/) 
 {
     imageDesc.width = imageDesc.height = imageDesc.channelCount = 0;
     imageDesc.resourceBuffer = nullptr;

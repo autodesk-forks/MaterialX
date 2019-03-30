@@ -25,7 +25,8 @@ string ImageLoader::TIFF_EXTENSION = "tiff";
 string ImageLoader::TXT_EXTENSION = "txt";
 string ImageLoader::TXR_EXTENSION = "txr";
 
-ImageHandler::ImageHandler(ImageLoaderPtr imageLoader)
+ImageHandler::ImageHandler(ImageLoaderPtr imageLoader) :
+    _restrictions(nullptr)
 {
     addLoader(imageLoader);
 }
@@ -73,7 +74,7 @@ bool ImageHandler::saveImage(const FilePath& filePath,
     return false;
 }
 
-bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, bool generateMipMaps, const Color4* /*fallbackColor*/)
+bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, bool /*generateMipMaps*/, const Color4* /*fallbackColor*/)
 {
     FilePath foundFilePath = findFile(filePath);
 
@@ -84,7 +85,7 @@ bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
     ImageLoaderMap::iterator last= --range.first;
     for (auto it = first; it != last; --it)
     {
-        bool acquired = it->second->acquireImage(foundFilePath, imageDesc, generateMipMaps);
+        bool acquired = it->second->acquireImage(foundFilePath, imageDesc, _restrictions);
         if (acquired)
         {
             return true;

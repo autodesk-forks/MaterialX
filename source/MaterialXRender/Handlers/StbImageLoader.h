@@ -52,9 +52,10 @@ class StbImageLoader : public ImageLoader
     /// Load an image from disk. This method must be implemented by derived classes.
     /// @param filePath Path to file to load image from
     /// @param imageDesc Description of image updated during load.
-    /// @param generateMipMaps Generate mip maps if supported.
+    /// @param restrictions Hardware image description restrictions. Default value is nullptr, meaning no restrictions.
     /// @return if load succeeded
-    bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc, bool generateMipMaps) override;
+    bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc,
+                      const HwImageDescRestrictions* restrictions = nullptr) override;
 };
 
 } // namespace MaterialX;
