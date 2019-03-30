@@ -71,6 +71,7 @@ bool OiioImageLoader::acquireImage(const FilePath& filePath,
         {
             // 16-bit float is not support so loadin as 32-bit float.
             imageSpec.set_format(OIIO::TypeDesc::FLOAT);
+            imageDesc.baseType = ImageDesc::BaseType::FLOAT;
         }
         else
         {

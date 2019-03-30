@@ -16,7 +16,7 @@ GLTextureHandler::GLTextureHandler(ImageLoaderPtr imageLoader) :
 {
     _restrictions = new HwImageDescRestrictions();
     _restrictions->supportedChannelCounts = { 1, 2, 3, 4 };
-    _restrictions->supportedBaseTypes = { ImageDesc::BaseType::HALF_FLOAT, ImageDesc::BaseType::UINT8 };
+    _restrictions->supportedBaseTypes = { ImageDesc::BaseType::FLOAT, ImageDesc::BaseType::UINT8 };
     _restrictions->supportedImageTypes = { ImageDesc::ImageType::IMAGE2D };
 }
 

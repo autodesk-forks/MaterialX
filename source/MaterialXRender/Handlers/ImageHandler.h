@@ -119,6 +119,7 @@ class ImageLoader
     static string TIF_EXTENSION;
     static string TIFF_EXTENSION;
     static string TXT_EXTENSION;
+    static string TX_EXTENSION;
     static string TXR_EXTENSION;
 
     /// Returns a list of supported extensions

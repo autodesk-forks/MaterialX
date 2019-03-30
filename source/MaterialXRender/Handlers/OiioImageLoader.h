@@ -40,6 +40,7 @@ class OiioImageLoader : public ImageLoader
         _extensions.insert(EXR_EXTENSION);
         _extensions.insert(TIF_EXTENSION);
         _extensions.insert(TIFF_EXTENSION);
+        _extensions.insert(TX_EXTENSION);
         _extensions.insert(TXT_EXTENSION);
         _extensions.insert(TXR_EXTENSION);
     }

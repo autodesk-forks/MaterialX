@@ -22,6 +22,7 @@ string ImageLoader::PSD_EXTENSION = "psd";
 string ImageLoader::TGA_EXTENSION = "tga";
 string ImageLoader::TIF_EXTENSION = "tif";
 string ImageLoader::TIFF_EXTENSION = "tiff";
+string ImageLoader::TX_EXTENSION = "tx";
 string ImageLoader::TXT_EXTENSION = "txt";
 string ImageLoader::TXR_EXTENSION = "txr";
 
