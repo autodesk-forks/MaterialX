@@ -24,18 +24,31 @@ namespace MaterialX
 class ImageDesc
 {
   public:
+    enum class BaseType
+    {
+        UINT8,
+        FLOAT
+    };
+
+    enum class ImageType
+    {
+        IMAGE2D
+    };
+
     /// Image width
-    unsigned width = 0; 
+    unsigned int width = 0; 
     /// Image height
-    unsigned height = 0;
+    unsigned int height = 0;
     /// Number of channels
     unsigned int channelCount = 0;
     /// Number of mip map levels
     unsigned int mipCount = 0;
     /// CPU buffer. May be empty
     void* resourceBuffer = nullptr;
-    /// Is buffer floating point
-    bool floatingPoint = true;
+    /// Base type
+    BaseType baseType = BaseType::UINT8;
+    /// Image Type
+    ImageType imageType = ImageType::IMAGE2D;
     /// Hardware target dependent resource identifier. May be undefined.
     unsigned int resourceId = 0;
 

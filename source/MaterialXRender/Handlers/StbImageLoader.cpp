@@ -98,13 +98,13 @@ bool StbImageLoader::acquireImage(const FilePath& filePath,
     if (extension == HDR_EXTENSION)
     {
         buffer = stbi_loadf(fileName.c_str(), &iwidth, &iheight, &ichannelCount, REQUIRED_CHANNEL_COUNT);
-        imageDesc.floatingPoint = true;
+        imageDesc.baseType = ImageDesc::BaseType::FLOAT;
     }
     // Otherwise use fixed point reader
     else
     {
         buffer = stbi_load(fileName.c_str(), &iwidth, &iheight, &ichannelCount, REQUIRED_CHANNEL_COUNT);
-        imageDesc.floatingPoint = false;
+        imageDesc.baseType = ImageDesc::BaseType::UINT8;
     }
     if (buffer)
     {

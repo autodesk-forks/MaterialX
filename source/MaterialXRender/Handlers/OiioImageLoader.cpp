@@ -69,7 +69,7 @@ bool OiioImageLoader::acquireImage(const FilePath& filePath,
     imageDesc.width = imageSpec.width;
     imageDesc.height = imageSpec.height;
     imageDesc.channelCount = imageSpec.nchannels;
-    imageDesc.floatingPoint = (imageSpec.format == OIIO::TypeDesc::FLOAT);
+    imageDesc.baseType = (imageSpec.format == OIIO::TypeDesc::FLOAT) ? ImageDesc::BaseType::FLOAT : ImageDesc::BaseType::UINT8;
     imageDesc.computeMipCount();
 
     size_t imageBytes = (size_t) imageSpec.image_bytes();

@@ -67,7 +67,7 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         glActiveTexture(GL_TEXTURE0 + imageDesc.resourceId);
         glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
 
-        GLint internalFormat = imageDesc.floatingPoint ? GL_RGBA32F : GL_RGBA;
+        GLint internalFormat = (imageDesc.baseType == ImageDesc::BaseType::FLOAT) ? GL_RGBA32F : GL_RGBA;
         GLint format = GL_RGBA;
         switch (imageDesc.channelCount)
         {
@@ -100,7 +100,7 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         }
 
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageDesc.width, imageDesc.height,
-            0, format, imageDesc.floatingPoint ? GL_FLOAT : GL_UNSIGNED_BYTE, imageDesc.resourceBuffer);
+            0, format, (imageDesc.baseType == ImageDesc::BaseType::FLOAT) ? GL_FLOAT : GL_UNSIGNED_BYTE, imageDesc.resourceBuffer);
 
         if (generateMipMaps)
         {
@@ -122,7 +122,7 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         desc.channelCount = 4;
         desc.width = 1;
         desc.height = 1;
-        desc.floatingPoint = true;
+        desc.baseType = ImageDesc::BaseType::FLOAT;
         createColorImage(*fallbackColor, desc);
         cacheImage(filePath, desc);
         textureLoaded = true;

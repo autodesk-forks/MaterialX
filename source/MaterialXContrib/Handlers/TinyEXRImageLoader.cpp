@@ -5,10 +5,7 @@
 
 #include <MaterialXRender/HardwarePlatform.h>
 
-#if defined(OSWin_) && defined(_WIN64)
-#define TINYEXR_USABLE
-#endif
-#if defined(OSMac_) || defined(OSLinux)
+#if defined(OSWin_) || defined(OSMac_) || defined(OSLinux)
 #define TINYEXR_USABLE
 #endif
 
@@ -36,11 +33,12 @@ namespace MaterialX
 {
 #if defined(TINYEXR_USABLE)
 
-bool TinyEXRImageLoader::saveImage(const std::string& fileName,
+bool TinyEXRImageLoader::saveImage(const FilePath& filePath,
                                     const ImageDesc& imageDesc)
 {
     int returnValue = -1;
     // Fail with any type other than exr.
+    const string& fileName = filePath.asString();
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
     if (extension == EXR_EXTENSION)
     {
@@ -49,7 +47,7 @@ bool TinyEXRImageLoader::saveImage(const std::string& fileName,
     return (returnValue == 0);
 }
 
-bool TinyEXRImageLoader::acquireImage(const std::string& fileName,
+bool TinyEXRImageLoader::acquireImage(const FilePath& filePath,
                                       ImageDesc& imageDesc,
                                       bool /*generateMipMaps*/)
 {
@@ -58,6 +56,7 @@ bool TinyEXRImageLoader::acquireImage(const std::string& fileName,
     imageDesc.resourceBuffer = nullptr;
 
     // Fail with any type other than exr.
+    const string& fileName = filePath.asString();
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
     if (extension == EXR_EXTENSION)
     {
@@ -72,7 +71,7 @@ bool TinyEXRImageLoader::acquireImage(const std::string& fileName,
             imageDesc.resourceBuffer = buffer;
             imageDesc.width = iwidth;
             imageDesc.height = iheight;
-            imageDesc.floatingPoint = true;
+            imageDesc.baseType = ImageDesc::BaseType::FLOAT;
         }
     }
     imageDesc.computeMipCount();
@@ -82,13 +81,13 @@ bool TinyEXRImageLoader::acquireImage(const std::string& fileName,
 
 
 #else
-bool TinyEXRImageLoader::saveImage(const std::string& /*fileName*/,
+bool TinyEXRImageLoader::saveImage(const FilePath& /*filePath*/,
                                     const ImageDesc& /*imageDesc*/)
 {
     return false;
 }
 
-bool TinyEXRImageLoader::acquireImage(const std::string& /*fileName*/,
+bool TinyEXRImageLoader::acquireImage(const FilePath& /*filePath*/,
                                       ImageDesc& /*imageDesc*/,
                                       bool /*generateMipMaps*/)
 {

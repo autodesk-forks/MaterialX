@@ -126,7 +126,7 @@ void bindPyImageHandler(py::module& mod)
         .def_readwrite("channelCount", &mx::ImageDesc::channelCount)
         .def_readwrite("mipCount", &mx::ImageDesc::mipCount)
         .def_readwrite("resourceBuffer", &mx::ImageDesc::resourceBuffer)
-        .def_readwrite("floatingPoint", &mx::ImageDesc::floatingPoint)
+        .def_readwrite("baseType", &mx::ImageDesc::baseType)
         .def_readwrite("resourceId", &mx::ImageDesc::resourceId)
         .def("computeMipCount", &mx::ImageDesc::computeMipCount);
 
