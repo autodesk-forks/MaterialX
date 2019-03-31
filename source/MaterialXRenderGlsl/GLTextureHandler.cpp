@@ -16,7 +16,7 @@ GLTextureHandler::GLTextureHandler(ImageLoaderPtr imageLoader) :
 {
     _restrictions = new HwImageDescRestrictions();
     _restrictions->supportedChannelCounts = { 1, 2, 3, 4 };
-    _restrictions->supportedBaseTypes = { ImageDesc::BaseType::FLOAT, ImageDesc::BaseType::UINT8 };
+    _restrictions->supportedBaseTypes = { ImageDesc::BaseType::HALF_FLOAT, ImageDesc::BaseType::FLOAT, ImageDesc::BaseType::UINT8 };
     _restrictions->supportedImageTypes = { ImageDesc::ImageType::IMAGE2D };
 }
 
@@ -77,7 +77,20 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         glActiveTexture(GL_TEXTURE0 + imageDesc.resourceId);
         glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
 
-        GLint internalFormat = (imageDesc.baseType == ImageDesc::BaseType::FLOAT) ? GL_RGBA32F : GL_RGBA;
+        GLint internalFormat = GL_RGBA;
+        GLenum type = GL_UNSIGNED_BYTE;
+
+        if (imageDesc.baseType == ImageDesc::BaseType::FLOAT)
+        {
+            internalFormat = GL_RGBA32F;
+            type = GL_FLOAT;
+        }
+        else if (imageDesc.baseType == ImageDesc::BaseType::HALF_FLOAT)
+        {
+            internalFormat = GL_RGBA16F;
+            type = GL_HALF_FLOAT;
+        }
+
         GLint format = GL_RGBA;
         switch (imageDesc.channelCount)
         {
@@ -110,7 +123,7 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         }
 
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imageDesc.width, imageDesc.height,
-            0, format, (imageDesc.baseType == ImageDesc::BaseType::FLOAT) ? GL_FLOAT : GL_UNSIGNED_BYTE, imageDesc.resourceBuffer);
+            0, format, type, imageDesc.resourceBuffer);
 
         if (generateMipMaps)
         {
