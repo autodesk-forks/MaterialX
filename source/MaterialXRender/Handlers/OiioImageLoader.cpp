@@ -33,10 +33,47 @@
 namespace MaterialX
 {
 
-bool OiioImageLoader::saveImage(const FilePath& /*filePath*/,
-                                const ImageDesc &/*imageDesc*/)
+bool OiioImageLoader::saveImage(const FilePath& filePath,
+                                const ImageDesc &imageDesc)
 {
-    throw Exception("Unimplemented method OiioImageLoader::saveImage.");
+    OIIO::ImageSpec imageSpec;
+    imageSpec.width = imageDesc.width;
+    imageSpec.height = imageDesc.height;
+    imageSpec.nchannels = imageDesc.channelCount;
+
+    OIIO::TypeDesc format = OIIO::TypeDesc::UINT8;
+    switch (imageDesc.baseType)
+    {
+    case ImageDesc::BaseType::FLOAT:
+    {
+        format.basetype = OIIO::TypeDesc::FLOAT;
+        break;
+    }
+    case ImageDesc::BaseType::HALF_FLOAT:
+    {
+        format.basetype = OIIO::TypeDesc::HALF;
+        break;
+    }
+    case ImageDesc::BaseType::UINT8:
+        break;
+    default:
+        return false;
+    };
+
+
+    OIIO::ImageOutput* imageOutput = OIIO::ImageOutput::create(filePath);
+    if (!imageOutput)
+    {
+        return false;
+    }
+
+    bool written = false;
+    if (imageOutput->open(filePath, imageSpec))
+    {
+        written = imageOutput->write_image(format, imageDesc.resourceBuffer);
+        imageOutput->close();
+    }
+    return written;
 }
 
 bool OiioImageLoader::acquireImage(const FilePath& filePath,
@@ -55,32 +92,32 @@ bool OiioImageLoader::acquireImage(const FilePath& filePath,
     OIIO::ImageSpec imageSpec = imageInput->spec();
     switch (imageSpec.format.basetype)
     {
-    case OIIO::TypeDesc::UINT8:
-    {
-        imageDesc.baseType = ImageDesc::BaseType::UINT8;
-        break;
-    }
-    case OIIO::TypeDesc::FLOAT:
-    {
-        imageDesc.baseType = ImageDesc::BaseType::FLOAT;
-        break;
-    }
-    case OIIO::TypeDesc::HALF:
-    {
-        if (restrictions && restrictions->supportedBaseTypes.count(ImageDesc::BaseType::HALF_FLOAT) == 0)
+        case OIIO::TypeDesc::UINT8:
         {
-            // 16-bit float is not support so loadin as 32-bit float.
-            imageSpec.set_format(OIIO::TypeDesc::FLOAT);
+            imageDesc.baseType = ImageDesc::BaseType::UINT8;
+            break;
+        }
+        case OIIO::TypeDesc::FLOAT:
+        {
             imageDesc.baseType = ImageDesc::BaseType::FLOAT;
+            break;
         }
-        else
+        case OIIO::TypeDesc::HALF:
         {
-            imageDesc.baseType = ImageDesc::BaseType::HALF_FLOAT;
+            if (restrictions && restrictions->supportedBaseTypes.count(ImageDesc::BaseType::HALF_FLOAT) == 0)
+            {
+                // 16-bit float is not support so loadin as 32-bit float.
+                imageSpec.set_format(OIIO::TypeDesc::FLOAT);
+                imageDesc.baseType = ImageDesc::BaseType::FLOAT;
+            }
+            else
+            {
+                imageDesc.baseType = ImageDesc::BaseType::HALF_FLOAT;
+            }
+            break;
         }
-        break;
-    }
-    default:
-        return false;
+        default:
+            return false;
     };
 
     imageDesc.width = imageSpec.width;
@@ -90,13 +127,14 @@ bool OiioImageLoader::acquireImage(const FilePath& filePath,
 
     size_t imageBytes = (size_t) imageSpec.image_bytes();
     void* imageBuf = malloc(imageBytes);
+    bool read = false;
     if (imageInput->read_image(imageSpec.format, imageBuf))
     {
         imageDesc.resourceBuffer = imageBuf;
-        return true;
+        read = true;
     }
-    free(imageBuf);
-    return false;
+    imageInput->close();
+    return read;
 }
 
 } // namespace MaterialX
