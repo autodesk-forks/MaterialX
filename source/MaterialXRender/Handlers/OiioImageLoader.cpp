@@ -60,18 +60,15 @@ bool OiioImageLoader::saveImage(const FilePath& filePath,
         return false;
     };
 
-
-    OIIO::ImageOutput* imageOutput = OIIO::ImageOutput::create(filePath);
-    if (!imageOutput)
-    {
-        return false;
-    }
-
     bool written = false;
-    if (imageOutput->open(filePath, imageSpec))
+    OIIO::ImageOutput* imageOutput = OIIO::ImageOutput::create(filePath);
+    if (imageOutput)
     {
-        written = imageOutput->write_image(format, imageDesc.resourceBuffer);
-        imageOutput->close();
+        if (imageOutput->open(filePath, imageSpec))
+        {
+            written = imageOutput->write_image(format, imageDesc.resourceBuffer);
+            imageOutput->close();
+        }
     }
     return written;
 }
