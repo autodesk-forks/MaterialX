@@ -270,7 +270,7 @@ class ImageHandler
     /// Return image description restrictions. By default nullptr is
     /// returned meaning no restrictions. Derived classes can override
     /// this to add restrictions specific to that handler.
-    virtual const ImageDescRestrictions* getRestrictions() { return nullptr; }
+    virtual const ImageDescRestrictions* getRestrictions() const { return nullptr; }
 
     /// Image loader utilities
     ImageLoaderMap _imageLoaders;

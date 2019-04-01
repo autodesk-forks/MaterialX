@@ -81,7 +81,7 @@ class GLTextureHandler : public ImageHandler
     void deleteImage(MaterialX::ImageDesc& imageDesc) override;
 
     /// Return restrictions specific to this handler
-    const ImageDescRestrictions* getRestrictions() const 
+    const ImageDescRestrictions* getRestrictions() const override
     { 
         return &_restrictions;
     }
