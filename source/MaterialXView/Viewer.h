@@ -155,6 +155,7 @@ class Viewer : public ng::Screen
 
     // Image save
     bool _captureFrame;
+    mx::FilePath _captureFrameFileName;
 };
 
 #endif // MATERIALXVIEW_VIEWER_H

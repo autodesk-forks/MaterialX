@@ -5,11 +5,6 @@
 
 #include <MaterialXRender/HardwarePlatform.h>
 
-#if defined(OSWin_) || defined(OSMac_) || defined(OSLinux)
-#define TINYEXR_USABLE
-#endif
-
-#if defined(TINYEXR_USABLE)
 #define TINYEXR_IMPLEMENTATION
 #include <cstdlib>
 #include <cstdio>
@@ -25,33 +20,48 @@
 #ifdef max_cache
 #define max max_cache
 #endif
-#endif
 
 #include <MaterialXContrib/Handlers/TinyEXRImageLoader.h>
 
 namespace MaterialX
 {
-#if defined(TINYEXR_USABLE)
-
 bool TinyEXRImageLoader::saveImage(const FilePath& filePath,
                                    const ImageDesc& imageDesc,
-                                   const bool& /*yFlip*/)
+                                   const bool& /*verticalFlip*/)
 {
+    if (imageDesc.baseType != ImageDesc::BASETYPE_FLOAT ||
+        imageDesc.baseType != ImageDesc::BASETYPE_HALF)
+    {
+        return false;
+    }
+
     int returnValue = -1;
     // Fail with any type other than exr.
     const string& fileName = filePath.asString();
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
     if (extension == EXR_EXTENSION)
     {
-        returnValue = SaveEXR(static_cast<float*>(imageDesc.resourceBuffer), static_cast<int>(imageDesc.width), static_cast<int>(imageDesc.height), imageDesc.channelCount, 1 /* save as 16 bit float format */, fileName.c_str());
+        // TODO: vertical flip is unsupported currently in loader
+
+        int saveAsHalf = (imageDesc.baseType == ImageDesc::BASETYPE_HALF) ? 1 : 0;
+        returnValue = SaveEXR(static_cast<float*>(imageDesc.resourceBuffer),
+                                static_cast<int>(imageDesc.width),
+                                static_cast<int>(imageDesc.height), imageDesc.channelCount,
+                                saveAsHalf, fileName.c_str());
     }
     return (returnValue == 0);
 }
 
 bool TinyEXRImageLoader::acquireImage(const FilePath& filePath,
                                       ImageDesc& imageDesc,
-                                      const HwImageDescRestrictions* /*restrictions*/)
+                                      const ImageDescRestrictions* restrictions)
 {
+    // Early out if returning float is unsupported
+    if (restrictions && restrictions->supportedBaseTypes.count(ImageDesc::BASETYPE_FLOAT) == 0)
+    {
+        return false;
+    }
+
     int returnValue = -1;
     imageDesc.width = imageDesc.height = imageDesc.channelCount = 0;
     imageDesc.resourceBuffer = nullptr;
@@ -72,7 +82,7 @@ bool TinyEXRImageLoader::acquireImage(const FilePath& filePath,
             imageDesc.resourceBuffer = buffer;
             imageDesc.width = iwidth;
             imageDesc.height = iheight;
-            imageDesc.baseType = ImageDesc::BaseType::FLOAT;
+            imageDesc.baseType = ImageDesc::BASETYPE_FLOAT;
         }
     }
     imageDesc.computeMipCount();
@@ -80,20 +90,4 @@ bool TinyEXRImageLoader::acquireImage(const FilePath& filePath,
     return (returnValue == 0);
 }
 
-
-#else
-bool TinyEXRImageLoader::saveImage(const FilePath& /*filePath*/,
-                                    const ImageDesc& /*imageDesc*/)
-{
-    return false;
-}
-
-bool TinyEXRImageLoader::acquireImage(const FilePath& /*filePath*/,
-                                      ImageDesc& /*imageDesc*/,
-                                      bool /*generateMipMaps*/)
-{
-    return false;
-}
-
-#endif
 }

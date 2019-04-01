@@ -31,9 +31,9 @@ public:
 
     bool saveImage(const FilePath& filePath,
                     const ImageDesc &imageDesc,
-                    const bool& yFlip = false) override;
+                    const bool& verticalFlip = false) override;
     bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc,
-                      const HwImageDescRestrictions* restrictions = nullptr) override;
+                      const ImageDescRestrictions* restrictions = nullptr) override;
 };
 
 } // namespace MaterialX;

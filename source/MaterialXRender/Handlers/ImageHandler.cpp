@@ -10,6 +10,12 @@
 
 namespace MaterialX
 {
+string ImageDesc::BASETYPE_UINT8 = "UINT8";
+string ImageDesc::BASETYPE_HALF = "HALF";
+string ImageDesc::BASETYPE_FLOAT = "FLOAT";
+
+string ImageDesc::IMAGETYPE_2D = "IMAGE2D";
+
 string ImageLoader::BMP_EXTENSION = "bmp";
 string ImageLoader::EXR_EXTENSION = "exr";
 string ImageLoader::GIF_EXTENSION = "gif";
@@ -56,7 +62,7 @@ void ImageHandler::supportedExtensions(StringSet& extensions)
 
 bool ImageHandler::saveImage(const FilePath& filePath,
                              const ImageDesc &imageDesc,
-                             const bool& yFlip)
+                             const bool& verticalFlip)
 {
     FilePath foundFilePath = findFile(filePath);
 
@@ -67,7 +73,7 @@ bool ImageHandler::saveImage(const FilePath& filePath,
     ImageLoaderMap::iterator last = --range.first;
     for (auto it = first; it != last; --it)
     {
-        bool saved = it->second->saveImage(foundFilePath, imageDesc, yFlip);
+        bool saved = it->second->saveImage(foundFilePath, imageDesc, verticalFlip);
         if (saved)
         {
             return true;

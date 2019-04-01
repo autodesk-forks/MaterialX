@@ -779,7 +779,27 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
 
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
-        _captureFrame = true;
+        mx::StringSet extensions;
+        _imageHandler->supportedExtensions(extensions);
+        if (!extensions.empty())
+        {
+            std::vector<std::pair<std::string, std::string>> filetypes;
+            for (auto extension : extensions)
+            {
+                filetypes.push_back(std::make_pair(extension, extension));
+            }
+            std::string fileName = ng::file_dialog(filetypes, true);
+            if (!fileName.empty())
+            {
+                std::string fileExtension = (fileName.substr(fileName.find_last_of(".") + 1));
+                if (extensions.count(fileExtension) == 0)
+                {
+                    fileName += "." + *extensions.begin();
+                }
+                _captureFrameFileName = fileName;
+                _captureFrame = true;
+            }
+        }
     }
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
@@ -921,6 +941,8 @@ void Viewer::drawContents()
 
     if (_captureFrame)
     {
+        bool saved = false;
+
         glFlush();
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -928,32 +950,28 @@ void Viewer::drawContents()
         // Must multipy by pixel ratio to handle device DPI
         int w = mSize.x() * static_cast<int>(mPixelRatio);
         int h = mSize.y() * static_cast<int>(mPixelRatio);
-        size_t bufferSize = w * h * 4;
+        size_t bufferSize = w * h * 3;
         uint8_t* buffer = new uint8_t[bufferSize];
         if (buffer)
         {
-            glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+            glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
             mx::ImageDesc desc;
             desc.width = w;
             desc.height = h;
-            desc.channelCount = 4;
+            desc.channelCount = 3;
             desc.resourceBuffer = buffer;
-            desc.baseType = mx::ImageDesc::BaseType::UINT8;
-            const std::string fileName("MaterialXView_capture.png");
-            mx::FilePath filePath = _searchPath[0] / fileName;
-            bool saved = _imageHandler->saveImage(filePath, desc, true);
-            if (saved)
-            {
-                std::cout << "Captured frame(" 
-                    << std::to_string(desc.width) << "," 
-                    << std::to_string(desc.height) << "). to: "
-                    << filePath.asString() << std::endl;
-            }
+            desc.baseType = mx::ImageDesc::BASETYPE_UINT8;
+            saved = _imageHandler->saveImage(_captureFrameFileName, desc, true);
             delete[] buffer;
         }
-
         _captureFrame = false;
+
+        if (!saved)
+        {
+            new ng::MessageDialog(this, ng::MessageDialog::Type::Information,
+                "Failed to save frame to disk: ", _captureFrameFileName.asString());
+        }
     }
 }
 

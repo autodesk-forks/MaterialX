@@ -14,10 +14,8 @@ GLTextureHandler::GLTextureHandler(ImageLoaderPtr imageLoader) :
     ParentClass(imageLoader),
     _maxImageUnits(-1)
 {
-    _restrictions = new HwImageDescRestrictions();
-    _restrictions->supportedChannelCounts = { 1, 2, 3, 4 };
-    _restrictions->supportedBaseTypes = { ImageDesc::BaseType::HALF_FLOAT, ImageDesc::BaseType::FLOAT, ImageDesc::BaseType::UINT8 };
-    _restrictions->supportedImageTypes = { ImageDesc::ImageType::IMAGE2D };
+    _restrictions = new ImageDescRestrictions();
+    _restrictions->supportedBaseTypes = { ImageDesc::BASETYPE_HALF, ImageDesc::BASETYPE_FLOAT, ImageDesc::BASETYPE_UINT8 };
 }
 
 bool GLTextureHandler::createColorImage(const Color4& color,
@@ -80,12 +78,12 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         GLint internalFormat = GL_RGBA;
         GLenum type = GL_UNSIGNED_BYTE;
 
-        if (imageDesc.baseType == ImageDesc::BaseType::FLOAT)
+        if (imageDesc.baseType == ImageDesc::BASETYPE_FLOAT)
         {
             internalFormat = GL_RGBA32F;
             type = GL_FLOAT;
         }
-        else if (imageDesc.baseType == ImageDesc::BaseType::HALF_FLOAT)
+        else if (imageDesc.baseType == ImageDesc::BASETYPE_HALF)
         {
             internalFormat = GL_RGBA16F;
             type = GL_HALF_FLOAT;
@@ -145,7 +143,7 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         desc.channelCount = 4;
         desc.width = 1;
         desc.height = 1;
-        desc.baseType = ImageDesc::BaseType::FLOAT;
+        desc.baseType = ImageDesc::BASETYPE_FLOAT;
         createColorImage(*fallbackColor, desc);
         cacheImage(filePath, desc);
         textureLoaded = true;

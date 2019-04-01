@@ -35,7 +35,7 @@ namespace MaterialX
 
 bool OiioImageLoader::saveImage(const FilePath& filePath,
                                 const ImageDesc &imageDesc,
-                                const bool& yFlip)
+                                const bool& verticalFlip)
 {
     OIIO::ImageSpec imageSpec;
     imageSpec.width = imageDesc.width;
@@ -44,25 +44,20 @@ bool OiioImageLoader::saveImage(const FilePath& filePath,
 
     unsigned int byteCount = 1;
     OIIO::TypeDesc format = OIIO::TypeDesc::UINT8;
-    switch (imageDesc.baseType)
+    if (imageDesc.baseType == ImageDesc::BASETYPE_FLOAT)
     {
-    case ImageDesc::BaseType::FLOAT:
-    {
-        format.basetype = OIIO::TypeDesc::FLOAT;
+        format = OIIO::TypeDesc::FLOAT;
         byteCount = 4;
-        break;
     }
-    case ImageDesc::BaseType::HALF_FLOAT:
+    else if (imageDesc.baseType == ImageDesc::BASETYPE_HALF)
     {
-        format.basetype = OIIO::TypeDesc::HALF;
+        format = OIIO::TypeDesc::HALF;
         byteCount = 2;
-        break;
     }
-    case ImageDesc::BaseType::UINT8:
-        break;
-    default:
+    else if (imageDesc.baseType != ImageDesc::BASETYPE_UINT8)
+    {
         return false;
-    };
+    }
 
     bool written = false;
     OIIO::ImageOutput* imageOutput = OIIO::ImageOutput::create(filePath);
@@ -70,7 +65,7 @@ bool OiioImageLoader::saveImage(const FilePath& filePath,
     {
         if (imageOutput->open(filePath, imageSpec))
         {
-            if (yFlip)
+            if (verticalFlip)
             {
                 int scanlinesize = imageDesc.width * imageDesc.channelCount * byteCount;
                 written = imageOutput->write_image(
@@ -94,7 +89,7 @@ bool OiioImageLoader::saveImage(const FilePath& filePath,
 
 bool OiioImageLoader::acquireImage(const FilePath& filePath,
                                   ImageDesc& imageDesc,
-                                  const HwImageDescRestrictions* restrictions)
+                                  const ImageDescRestrictions* restrictions)
 {
     imageDesc.width = imageDesc.height = imageDesc.channelCount = 0;
     imageDesc.resourceBuffer = nullptr;
@@ -110,45 +105,51 @@ bool OiioImageLoader::acquireImage(const FilePath& filePath,
     {
         case OIIO::TypeDesc::UINT8:
         {
-            imageDesc.baseType = ImageDesc::BaseType::UINT8;
+            imageDesc.baseType = ImageDesc::BASETYPE_UINT8;
             break;
         }
         case OIIO::TypeDesc::FLOAT:
         {
-            imageDesc.baseType = ImageDesc::BaseType::FLOAT;
+            imageDesc.baseType = ImageDesc::BASETYPE_FLOAT;
             break;
         }
         case OIIO::TypeDesc::HALF:
         {
-            if (restrictions && restrictions->supportedBaseTypes.count(ImageDesc::BaseType::HALF_FLOAT) == 0)
+            // If 16-bit float is not support try loading in 32-bit float.
+            if (restrictions && restrictions->supportedBaseTypes.count(ImageDesc::BASETYPE_HALF) == 0)
             {
-                // 16-bit float is not support so loadin as 32-bit float.
                 imageSpec.set_format(OIIO::TypeDesc::FLOAT);
-                imageDesc.baseType = ImageDesc::BaseType::FLOAT;
+                imageDesc.baseType = ImageDesc::BASETYPE_FLOAT;
             }
             else
             {
-                imageDesc.baseType = ImageDesc::BaseType::HALF_FLOAT;
+                imageDesc.baseType = ImageDesc::BASETYPE_HALF;
             }
             break;
         }
         default:
-            return false;
+            break;
     };
 
-    imageDesc.width = imageSpec.width;
-    imageDesc.height = imageSpec.height;
-    imageDesc.channelCount = imageSpec.nchannels;
-    imageDesc.computeMipCount();
-
-    size_t imageBytes = (size_t) imageSpec.image_bytes();
-    void* imageBuf = malloc(imageBytes);
     bool read = false;
-    if (imageInput->read_image(imageSpec.format, imageBuf))
+    // Check if base type is unsupported before trying to load
+    if (!restrictions ||
+        (restrictions && restrictions->supportedBaseTypes.count(imageDesc.baseType)))
     {
-        imageDesc.resourceBuffer = imageBuf;
-        read = true;
+        imageDesc.width = imageSpec.width;
+        imageDesc.height = imageSpec.height;
+        imageDesc.channelCount = imageSpec.nchannels;
+        imageDesc.computeMipCount();
+
+        size_t imageBytes = (size_t)imageSpec.image_bytes();
+        void* imageBuf = malloc(imageBytes);
+        if (imageInput->read_image(imageSpec.format, imageBuf))
+        {
+            imageDesc.resourceBuffer = imageBuf;
+            read = true;
+        }
     }
+
     imageInput->close();
     return read;
 }

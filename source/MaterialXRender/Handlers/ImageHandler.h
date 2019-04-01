@@ -24,17 +24,21 @@ namespace MaterialX
 class ImageDesc
 {
   public:
-    enum class BaseType
-    {
-        UINT8,
-        HALF_FLOAT,
-        FLOAT
-    };
+    /// Image base type identifier
+    using BaseType = string;
+    /// Set of base type identifiers
+    using BaseTypeSet = std::set<BaseType>;
 
-    enum class ImageType
-    {
-        IMAGE2D
-    };
+    /// Preset base type identifiers
+    static BaseType BASETYPE_UINT8;
+    static BaseType BASETYPE_HALF;
+    static BaseType BASETYPE_FLOAT;
+
+    /// Image type identifier
+    using ImageType = string;
+
+    /// Preset image type identifiers
+    static ImageType IMAGETYPE_2D;
 
     /// Image width
     unsigned int width = 0; 
@@ -47,9 +51,9 @@ class ImageDesc
     /// CPU buffer. May be empty
     void* resourceBuffer = nullptr;
     /// Base type
-    BaseType baseType = BaseType::UINT8;
+    BaseType baseType = BASETYPE_UINT8;
     /// Image Type
-    ImageType imageType = ImageType::IMAGE2D;
+    ImageType imageType = IMAGETYPE_2D;
     /// Hardware target dependent resource identifier. May be undefined.
     unsigned int resourceId = 0;
 
@@ -61,15 +65,11 @@ class ImageDesc
 };
 
 /// Structure containing harware image description restrictions
-class HwImageDescRestrictions
+class ImageDescRestrictions
 {
   public:
-    /// List of channel counts that can be supported
-    std::set<unsigned int> supportedChannelCounts;
     /// List of base types that can be supported
-    std::set<ImageDesc::BaseType> supportedBaseTypes;
-    /// List of image types that can be support
-    std::set<ImageDesc::ImageType> supportedImageTypes;
+    ImageDesc::BaseTypeSet supportedBaseTypes;
 };
 
 /// @class ImageSamplingProperties
@@ -133,11 +133,11 @@ class ImageLoader
     /// @param filePath Path to save image to
     /// @param imageDesc Description of image
     /// @return if save succeeded
-    /// @param yFlip Whether the image should be flipped in Y during save
+    /// @param verticalFlip Whether the image should be flipped in Y during save
     /// @return if save succeeded
     virtual bool saveImage(const FilePath& filePath,
                            const ImageDesc &imageDesc,
-                           const bool& yFlip = false) = 0;
+                           const bool& verticalFlip = false) = 0;
 
     /// Acquire an image from disk. This method must be implemented by derived classes.
     /// @param filePath Path to load image from
@@ -145,7 +145,7 @@ class ImageLoader
     /// @param restrictions Hardware image description restrictions. Default value is nullptr, meaning no restrictions.
     /// @return if load succeeded
     virtual bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
-                              const HwImageDescRestrictions* restrictions = nullptr) = 0;
+                              const ImageDescRestrictions* restrictions = nullptr) = 0;
 
   protected:
     /// List of supported string extensions
@@ -190,17 +190,14 @@ class ImageHandler
     /// Get a list of extensions supported by the handler
     void supportedExtensions(StringSet& extensions);
 
-    /// Get a list of extensions supported by the handler
-    void supportedExtensions(StringSet& extensions);
-
     /// Save image to disk. This method must be implemented by derived classes.
     /// The first image loader which supports the file name extension will be used.
     /// @param filePath Name of file to save image to
-    /// @param yFlip Whether the image should be flipped in Y during save
+    /// @param verticalFlip Whether the image should be flipped in Y during save
     /// @return if save succeeded
     virtual bool saveImage(const FilePath& filePath,
                            const ImageDesc &imageDesc,
-                           const bool& yFlip = false);
+                           const bool& verticalFlip = false);
 
     /// Acquire an image from disk. This method must be implemented by derived classes.
     /// The first image loader which supports the file name extension will be used.
@@ -282,7 +279,7 @@ class ImageHandler
     FileSearchPath _searchPath;
 
     /// Support restrictions
-    HwImageDescRestrictions* _restrictions;
+    ImageDescRestrictions* _restrictions;
 };
 
 } // namespace MaterialX

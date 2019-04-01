@@ -42,13 +42,20 @@ namespace MaterialX
 {
 bool StbImageLoader::saveImage(const FilePath& filePath,
                                const ImageDesc& imageDesc,
-                               const bool& yFlip)
+                               const bool& verticalFlip)
 {
+    bool isChar = imageDesc.baseType != ImageDesc::BASETYPE_UINT8;
+    bool isFloat = imageDesc.baseType != ImageDesc::BASETYPE_FLOAT;
+    if (!isChar && !isFloat)
+    {
+        return false;
+    }
+
     int returnValue = -1;
 
     // Set global "flip" flag
     int prevFlip = stbi__flip_vertically_on_write;
-    stbi__flip_vertically_on_write = yFlip ? 1 : 0;
+    stbi__flip_vertically_on_write = verticalFlip ? 1 : 0;
 
     int w = static_cast<int>(imageDesc.width);
     int h = static_cast<int>(imageDesc.height);
@@ -58,28 +65,34 @@ bool StbImageLoader::saveImage(const FilePath& filePath,
     const string filePathName = filePath.asString();
 
     std::string extension = (filePathName.substr(filePathName.find_last_of(".") + 1));
-    if (extension == PNG_EXTENSION)
+    if (!isFloat)
     {
-        returnValue = stbi_write_png(filePathName.c_str(), w, h, channels, data, w * 4);
+        if (extension == PNG_EXTENSION)
+        {
+            returnValue = stbi_write_png(filePathName.c_str(), w, h, channels, data, w * 4);
+        }
+        else if (extension == BMP_EXTENSION)
+        {
+            returnValue = stbi_write_bmp(filePathName.c_str(), w, h, channels, data);
+        }
+        else if (extension == TGA_EXTENSION)
+        {
+            returnValue = stbi_write_tga(filePathName.c_str(), w, h, channels, data);
+        }
+        else if (extension == JPG_EXTENSION || extension == JPEG_EXTENSION)
+        {
+            returnValue = stbi_write_jpg(filePathName.c_str(), w, h, channels, data, 100);
+        }
     }
-    else if (extension == BMP_EXTENSION)
+    else
     {
-        returnValue = stbi_write_bmp(filePathName.c_str(), w, h, channels, data);
-    }
-    else if (extension == TGA_EXTENSION)
-    { 
-        returnValue = stbi_write_tga(filePathName.c_str(), w, h, channels, data);
-    }
-    else if (extension == JPG_EXTENSION || extension == JPEG_EXTENSION)
-    {
-        returnValue = stbi_write_jpg(filePathName.c_str(), w, h, channels, data, 100);
-    }
-    else if (extension == HDR_EXTENSION)
-    {
-        returnValue = stbi_write_hdr(filePathName.c_str(), w, h, channels, static_cast<float*>(data));
+        if (extension == HDR_EXTENSION)
+        {
+            returnValue = stbi_write_hdr(filePathName.c_str(), w, h, channels, static_cast<float*>(data));
+        }
     }
 
-    if (yFlip)
+    if (verticalFlip)
     {
         stbi__flip_vertically_on_write = prevFlip;
     }
@@ -87,7 +100,7 @@ bool StbImageLoader::saveImage(const FilePath& filePath,
 }
 
 bool StbImageLoader::acquireImage(const FilePath& filePath, ImageDesc &imageDesc,
-                                  const HwImageDescRestrictions* /*restrictions*/) 
+                                  const ImageDescRestrictions* restrictions) 
 {
     imageDesc.width = imageDesc.height = imageDesc.channelCount = 0;
     imageDesc.resourceBuffer = nullptr;
@@ -106,14 +119,24 @@ bool StbImageLoader::acquireImage(const FilePath& filePath, ImageDesc &imageDesc
     std::string extension = (fileName.substr(fileName.find_last_of(".") + 1));
     if (extension == HDR_EXTENSION)
     {
+        // Early out if base type is unsupported
+        if (restrictions && restrictions->supportedBaseTypes.count(ImageDesc::BASETYPE_FLOAT) == 0)
+        {
+            return false;
+        }
         buffer = stbi_loadf(fileName.c_str(), &iwidth, &iheight, &ichannelCount, REQUIRED_CHANNEL_COUNT);
-        imageDesc.baseType = ImageDesc::BaseType::FLOAT;
+        imageDesc.baseType = ImageDesc::BASETYPE_FLOAT;
     }
     // Otherwise use fixed point reader
     else
     {
+        // Early out if base type is unsupported
+        if (restrictions && restrictions->supportedBaseTypes.count(ImageDesc::BASETYPE_UINT8) == 0)
+        {
+            return false;
+        }
         buffer = stbi_load(fileName.c_str(), &iwidth, &iheight, &ichannelCount, REQUIRED_CHANNEL_COUNT);
-        imageDesc.baseType = ImageDesc::BaseType::UINT8;
+        imageDesc.baseType = ImageDesc::BASETYPE_UINT8;
     }
     if (buffer)
     {
