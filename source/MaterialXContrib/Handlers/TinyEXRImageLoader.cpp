@@ -29,7 +29,7 @@ bool TinyEXRImageLoader::saveImage(const FilePath& filePath,
                                    const ImageDesc& imageDesc,
                                    const bool& /*verticalFlip*/)
 {
-    if (imageDesc.baseType != ImageDesc::BASETYPE_FLOAT ||
+    if (imageDesc.baseType != ImageDesc::BASETYPE_FLOAT &&
         imageDesc.baseType != ImageDesc::BASETYPE_HALF)
     {
         return false;

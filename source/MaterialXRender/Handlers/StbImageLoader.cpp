@@ -44,8 +44,8 @@ bool StbImageLoader::saveImage(const FilePath& filePath,
                                const ImageDesc& imageDesc,
                                const bool& verticalFlip)
 {
-    bool isChar = imageDesc.baseType != ImageDesc::BASETYPE_UINT8;
-    bool isFloat = imageDesc.baseType != ImageDesc::BASETYPE_FLOAT;
+    bool isChar = imageDesc.baseType == ImageDesc::BASETYPE_UINT8;
+    bool isFloat = imageDesc.baseType == ImageDesc::BASETYPE_FLOAT;
     if (!isChar && !isFloat)
     {
         return false;
