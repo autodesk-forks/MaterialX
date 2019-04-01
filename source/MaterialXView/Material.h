@@ -73,6 +73,9 @@ class Material
         _udim = val;
     }
 
+    /// Load shader source from file.
+    bool loadSource(const mx::FilePath& vertexStage, const mx::FilePath& pixelStage, const std::string& shaderName, bool hasTransparency);
+
     /// Generate a shader from the given inputs.
     bool generateShader(mx::GenContext& context);
 
