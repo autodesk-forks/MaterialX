@@ -190,6 +190,9 @@ class ImageHandler
     /// Get a list of extensions supported by the handler
     void supportedExtensions(StringSet& extensions);
 
+    /// Get a list of extensions supported by the handler
+    void supportedExtensions(StringSet& extensions);
+
     /// Save image to disk. This method must be implemented by derived classes.
     /// The first image loader which supports the file name extension will be used.
     /// @param filePath Name of file to save image to
