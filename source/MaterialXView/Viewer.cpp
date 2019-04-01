@@ -120,7 +120,8 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _mergeMaterials(false),
     _assignLooks(false),
     _outlineSelection(false),
-    _envSamples(DEFAULT_ENV_SAMPLES)
+    _envSamples(DEFAULT_ENV_SAMPLES),
+    _captureFrame(false)
 {
     _window = new ng::Window(this, "Viewer Options");
     _window->setPosition(ng::Vector2i(15, 15));
@@ -749,6 +750,11 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
     {
         return true;
     }
+
+    if (key == GLFW_KEY_F && action == GLFW_PRESS)
+    {
+        _captureFrame = true;
+    }
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         try
@@ -876,6 +882,43 @@ void Viewer::drawContents()
             _wireMaterial->drawPartition(activeGeom);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
+    }
+
+    if (_captureFrame)
+    {
+        glFlush();
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+        // Must multipy by pixel ratio to handle device DPI
+        int w = mSize.x() * static_cast<int>(mPixelRatio);
+        int h = mSize.y() * static_cast<int>(mPixelRatio);
+        size_t bufferSize = w * h * 4;
+        uint8_t* buffer = new uint8_t[bufferSize];
+        if (buffer)
+        {
+            glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
+            mx::ImageDesc desc;
+            desc.width = w;
+            desc.height = h;
+            desc.channelCount = 4;
+            desc.resourceBuffer = buffer;
+            desc.baseType = mx::ImageDesc::BaseType::UINT8;
+            const std::string fileName("MaterialXView_capture.png");
+            mx::FilePath filePath = _searchPath[0] / fileName;
+            bool saved = _imageHandler->saveImage(filePath, desc, true);
+            if (saved)
+            {
+                std::cout << "Captured frame(" 
+                    << std::to_string(desc.width) << "," 
+                    << std::to_string(desc.height) << "). to: "
+                    << filePath.asString() << std::endl;
+            }
+            delete[] buffer;
+        }
+
+        _captureFrame = false;
     }
 }
 
