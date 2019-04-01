@@ -14,8 +14,7 @@ GLTextureHandler::GLTextureHandler(ImageLoaderPtr imageLoader) :
     ParentClass(imageLoader),
     _maxImageUnits(-1)
 {
-    _restrictions = new ImageDescRestrictions();
-    _restrictions->supportedBaseTypes = { ImageDesc::BASETYPE_HALF, ImageDesc::BASETYPE_FLOAT, ImageDesc::BASETYPE_UINT8 };
+    _restrictions.supportedBaseTypes = { ImageDesc::BASETYPE_HALF, ImageDesc::BASETYPE_FLOAT, ImageDesc::BASETYPE_UINT8 };
 }
 
 bool GLTextureHandler::createColorImage(const Color4& color,

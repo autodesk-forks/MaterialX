@@ -35,7 +35,7 @@ namespace MaterialX
 
 bool OiioImageLoader::saveImage(const FilePath& filePath,
                                 const ImageDesc &imageDesc,
-                                const bool& verticalFlip)
+                                bool verticalFlip)
 {
     OIIO::ImageSpec imageSpec;
     imageSpec.width = imageDesc.width;
@@ -133,8 +133,7 @@ bool OiioImageLoader::acquireImage(const FilePath& filePath,
 
     bool read = false;
     // Check if base type is unsupported before trying to load
-    if (!restrictions ||
-        (restrictions && restrictions->supportedBaseTypes.count(imageDesc.baseType)))
+    if (!restrictions || restrictions->supportedBaseTypes.count(imageDesc.baseType))
     {
         imageDesc.width = imageSpec.width;
         imageDesc.height = imageSpec.height;

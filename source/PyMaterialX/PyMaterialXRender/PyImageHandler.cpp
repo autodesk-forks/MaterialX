@@ -18,7 +18,7 @@ class PyImageLoader : public mx::ImageLoader
     {
     }
 
-    bool saveImage(const mx::FilePath& filePath, const mx::ImageDesc &imageDesc, const bool& verticalFlip) override
+    bool saveImage(const mx::FilePath& filePath, const mx::ImageDesc &imageDesc, bool verticalFlip) override
     {
         PYBIND11_OVERLOAD_PURE(
             bool,
@@ -52,7 +52,7 @@ class PyImageHandler : public mx::ImageHandler
     {
     }
 
-    bool saveImage(const mx::FilePath& filePath, const mx::ImageDesc &imageDesc, const bool& verticalFlip = false) override
+    bool saveImage(const mx::FilePath& filePath, const mx::ImageDesc &imageDesc, bool verticalFlip = false) override
     {
         PYBIND11_OVERLOAD(
             bool,

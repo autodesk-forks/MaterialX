@@ -55,7 +55,7 @@ class OiioImageLoader : public ImageLoader
     /// @return if save succeeded
     bool saveImage(const FilePath& filePath,
                    const ImageDesc &imageDesc,
-                   const bool& verticalFlip = false) override;
+                   bool verticalFlip = false) override;
 
     /// Load an image from disk. This method must be implemented by derived classes.
     /// @param filePath Path to file to load image from

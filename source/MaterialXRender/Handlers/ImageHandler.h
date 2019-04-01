@@ -137,7 +137,7 @@ class ImageLoader
     /// @return if save succeeded
     virtual bool saveImage(const FilePath& filePath,
                            const ImageDesc &imageDesc,
-                           const bool& verticalFlip = false) = 0;
+                           bool verticalFlip = false) = 0;
 
     /// Acquire an image from disk. This method must be implemented by derived classes.
     /// @param filePath Path to load image from
@@ -182,10 +182,7 @@ class ImageHandler
     void addLoader(ImageLoaderPtr loader);
     
     /// Default destructor
-    virtual ~ImageHandler() 
-    {
-        delete _restrictions;
-    }
+    virtual ~ImageHandler() { };
 
     /// Get a list of extensions supported by the handler
     void supportedExtensions(StringSet& extensions);
@@ -197,7 +194,7 @@ class ImageHandler
     /// @return if save succeeded
     virtual bool saveImage(const FilePath& filePath,
                            const ImageDesc &imageDesc,
-                           const bool& verticalFlip = false);
+                           bool verticalFlip = false);
 
     /// Acquire an image from disk. This method must be implemented by derived classes.
     /// The first image loader which supports the file name extension will be used.
@@ -270,6 +267,11 @@ class ImageHandler
     /// an image is deleted from the handler.
     virtual void deleteImage(ImageDesc& imageDesc);
 
+    /// Return image description restrictions. By default nullptr is
+    /// returned meaning no restrictions. Derived classes can override
+    /// this to add restrictions specific to that handler.
+    virtual const ImageDescRestrictions* getRestrictions() { return nullptr; }
+
     /// Image loader utilities
     ImageLoaderMap _imageLoaders;
     /// Image description cache
@@ -277,9 +279,6 @@ class ImageHandler
 
     /// Filename search path
     FileSearchPath _searchPath;
-
-    /// Support restrictions
-    ImageDescRestrictions* _restrictions;
 };
 
 } // namespace MaterialX

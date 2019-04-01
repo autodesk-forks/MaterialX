@@ -80,8 +80,17 @@ class GLTextureHandler : public ImageHandler
     /// Any OpenGL texture resource and as well as any CPU side reosurce memory will be deleted. 
     void deleteImage(MaterialX::ImageDesc& imageDesc) override;
 
+    /// Return restrictions specific to this handler
+    const ImageDescRestrictions* getRestrictions() const 
+    { 
+        return &_restrictions;
+    }
+
     /// Maximum number of available image units
     int _maxImageUnits;
+
+    /// Support restrictions
+    ImageDescRestrictions _restrictions;
 };
 
 } // namespace MaterialX

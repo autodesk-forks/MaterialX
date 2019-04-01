@@ -27,7 +27,7 @@ namespace MaterialX
 {
 bool TinyEXRImageLoader::saveImage(const FilePath& filePath,
                                    const ImageDesc& imageDesc,
-                                   const bool& /*verticalFlip*/)
+                                   bool /*verticalFlip*/)
 {
     if (imageDesc.baseType != ImageDesc::BASETYPE_FLOAT &&
         imageDesc.baseType != ImageDesc::BASETYPE_HALF)

@@ -31,7 +31,7 @@ public:
 
     bool saveImage(const FilePath& filePath,
                     const ImageDesc &imageDesc,
-                    const bool& verticalFlip = false) override;
+                    bool verticalFlip = false) override;
     bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc,
                       const ImageDescRestrictions* restrictions = nullptr) override;
 };
