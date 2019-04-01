@@ -18,14 +18,15 @@ class PyImageLoader : public mx::ImageLoader
     {
     }
 
-    bool saveImage(const mx::FilePath& filePath, const mx::ImageDesc &imageDesc) override
+    bool saveImage(const mx::FilePath& filePath, const mx::ImageDesc &imageDesc, const bool& yFlip) override
     {
         PYBIND11_OVERLOAD_PURE(
             bool,
             mx::ImageLoader,
             saveImage,
             filePath,
-            imageDesc
+            imageDesc,
+            yFlip
         );
     }
 
@@ -51,14 +52,15 @@ class PyImageHandler : public mx::ImageHandler
     {
     }
 
-    bool saveImage(const mx::FilePath& filePath, const mx::ImageDesc &imageDesc) override
+    bool saveImage(const mx::FilePath& filePath, const mx::ImageDesc &imageDesc, const bool& yFlip = false) override
     {
         PYBIND11_OVERLOAD(
             bool,
             mx::ImageHandler,
             saveImage,
             filePath,
-            imageDesc
+            imageDesc,
+            yFlip
         );
     }
 

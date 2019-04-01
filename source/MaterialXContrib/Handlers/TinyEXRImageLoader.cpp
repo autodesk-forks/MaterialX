@@ -34,7 +34,8 @@ namespace MaterialX
 #if defined(TINYEXR_USABLE)
 
 bool TinyEXRImageLoader::saveImage(const FilePath& filePath,
-                                    const ImageDesc& imageDesc)
+                                   const ImageDesc& imageDesc,
+                                   const bool& /*yFlip*/)
 {
     int returnValue = -1;
     // Fail with any type other than exr.

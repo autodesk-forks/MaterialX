@@ -55,7 +55,8 @@ void ImageHandler::supportedExtensions(StringSet& extensions)
 }
 
 bool ImageHandler::saveImage(const FilePath& filePath,
-                            const ImageDesc &imageDesc)
+                             const ImageDesc &imageDesc,
+                             const bool& yFlip)
 {
     FilePath foundFilePath = findFile(filePath);
 
@@ -66,7 +67,7 @@ bool ImageHandler::saveImage(const FilePath& filePath,
     ImageLoaderMap::iterator last = --range.first;
     for (auto it = first; it != last; --it)
     {
-        bool saved = it->second->saveImage(foundFilePath, imageDesc);
+        bool saved = it->second->saveImage(foundFilePath, imageDesc, yFlip);
         if (saved)
         {
             return true;

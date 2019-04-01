@@ -29,8 +29,10 @@ public:
 
     virtual ~TinyEXRImageLoader() {}    
 
-    bool saveImage(const FilePath& filePath, const ImageDesc &imageDesc) override;
-    bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
+    bool saveImage(const FilePath& filePath,
+                    const ImageDesc &imageDesc,
+                    const bool& yFlip = false) override;
+    bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc,
                       const HwImageDescRestrictions* restrictions = nullptr) override;
 };
 

@@ -41,9 +41,14 @@
 namespace MaterialX
 {
 bool StbImageLoader::saveImage(const FilePath& filePath,
-                               const ImageDesc& imageDesc)
+                               const ImageDesc& imageDesc,
+                               const bool& yFlip)
 {
     int returnValue = -1;
+
+    // Set global "flip" flag
+    int prevFlip = stbi__flip_vertically_on_write;
+    stbi__flip_vertically_on_write = yFlip ? 1 : 0;
 
     int w = static_cast<int>(imageDesc.width);
     int h = static_cast<int>(imageDesc.height);
@@ -72,6 +77,11 @@ bool StbImageLoader::saveImage(const FilePath& filePath,
     else if (extension == HDR_EXTENSION)
     {
         returnValue = stbi_write_hdr(filePathName.c_str(), w, h, channels, static_cast<float*>(data));
+    }
+
+    if (yFlip)
+    {
+        stbi__flip_vertically_on_write = prevFlip;
     }
     return (returnValue == 1);
 }

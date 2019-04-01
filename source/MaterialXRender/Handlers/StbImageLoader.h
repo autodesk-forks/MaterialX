@@ -45,9 +45,11 @@ class StbImageLoader : public ImageLoader
     /// Save image to disk. This method must be implemented by derived classes.
     /// @param filePath Path to file to save image to
     /// @param imageDesc Description of image
+    /// @param yFlip Whether the image should be flipped in Y during save
     /// @return if save succeeded
     bool saveImage(const FilePath& filePath,
-                   const ImageDesc &imageDesc) override;
+                   const ImageDesc &imageDesc,
+                   const bool& yFlip = false) override;
 
     /// Load an image from disk. This method must be implemented by derived classes.
     /// @param filePath Path to file to load image from

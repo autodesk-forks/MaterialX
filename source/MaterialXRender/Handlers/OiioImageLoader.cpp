@@ -34,24 +34,28 @@ namespace MaterialX
 {
 
 bool OiioImageLoader::saveImage(const FilePath& filePath,
-                                const ImageDesc &imageDesc)
+                                const ImageDesc &imageDesc,
+                                const bool& yFlip)
 {
     OIIO::ImageSpec imageSpec;
     imageSpec.width = imageDesc.width;
     imageSpec.height = imageDesc.height;
     imageSpec.nchannels = imageDesc.channelCount;
 
+    unsigned int byteCount = 1;
     OIIO::TypeDesc format = OIIO::TypeDesc::UINT8;
     switch (imageDesc.baseType)
     {
     case ImageDesc::BaseType::FLOAT:
     {
         format.basetype = OIIO::TypeDesc::FLOAT;
+        byteCount = 4;
         break;
     }
     case ImageDesc::BaseType::HALF_FLOAT:
     {
         format.basetype = OIIO::TypeDesc::HALF;
+        byteCount = 2;
         break;
     }
     case ImageDesc::BaseType::UINT8:
@@ -66,7 +70,22 @@ bool OiioImageLoader::saveImage(const FilePath& filePath,
     {
         if (imageOutput->open(filePath, imageSpec))
         {
-            written = imageOutput->write_image(format, imageDesc.resourceBuffer);
+            if (yFlip)
+            {
+                int scanlinesize = imageDesc.width * imageDesc.channelCount * byteCount;
+                written = imageOutput->write_image(
+                            format, 
+                            static_cast<char *>(imageDesc.resourceBuffer) + (imageDesc.height - 1) * scanlinesize,
+                            OIIO::AutoStride, // default x stride
+                            static_cast<OIIO::stride_t>(-scanlinesize), // special y stride
+                            OIIO::AutoStride);
+            }
+            else
+            {
+                written = imageOutput->write_image(
+                            format,
+                            imageDesc.resourceBuffer);
+            }
             imageOutput->close();
         }
     }
