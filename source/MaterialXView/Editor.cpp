@@ -98,6 +98,19 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         form.addGroup(group);
     }
 
+    // Find out if the uniform is editable. Some
+    // inputs may be optimized out during compilation.
+    bool editable = false;
+    MaterialPtr material = viewer->getSelectedMaterial();
+    if (material)
+    {
+        mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
+        if (uniform)
+        {
+            editable = true;
+        }
+    }
+
     // Integer input. Can map to a combo box if an enumeration
     if (value->isA<int>())
     {
@@ -109,6 +122,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             std::string enumValue = enumeration[v];
 
             ng::ComboBox* comboBox = new ng::ComboBox(form.window(), {""});
+            comboBox->setEnabled(editable);
             comboBox->setItems(enumeration);
             comboBox->setSelectedIndex(v);
             comboBox->setFontSize(form.widgetFontSize());
@@ -134,8 +148,8 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         else
         {
             nanogui::detail::FormWidget<int, std::true_type>* intVar =
-                form.addVariable(label, v, true);
-            intVar->setSpinnable(true);
+                form.addVariable(label, v, editable);
+            intVar->setSpinnable(editable);
             intVar->setCallback([path, viewer](int v)
             {
                 MaterialPtr material = viewer->getSelectedMaterial();
@@ -157,8 +171,8 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     {
         float v = value->asA<float>();
         nanogui::detail::FormWidget<float, std::true_type>* floatVar =
-            form.addVariable(label, v, true);
-        floatVar->setSpinnable(true);
+            form.addVariable(label, v, editable);
+        floatVar->setSpinnable(editable);
         if (min)
             floatVar->setMinValue(min->asA<float>());
         if (max)
@@ -188,7 +202,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         c.b() = 0.0f;
         c.w() = 1.0f;
         nanogui::detail::FormWidget<nanogui::Color, std::true_type>* colorVar =
-            form.addVariable(label, c, true);
+            form.addVariable(label, c, editable);
         colorVar->setFinalCallback([path, viewer, colorVar](const ng::Color &c)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -231,6 +245,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         if (index >= 0)
         {
             ng::ComboBox* comboBox = new ng::ComboBox(form.window(), { "" });
+            comboBox->setEnabled(editable);
             comboBox->setItems(enumeration);
             comboBox->setSelectedIndex(index);
             comboBox->setFontSize(form.widgetFontSize());
@@ -263,7 +278,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             c.b() = v[2];
             c.w() = 1.0;
             nanogui::detail::FormWidget<nanogui::Color, std::true_type>* colorVar =
-                form.addVariable(label, c, true);
+                form.addVariable(label, c, editable);
             colorVar->setFinalCallback([path, viewer](const ng::Color &c)
             {
                 MaterialPtr material = viewer->getSelectedMaterial();
@@ -291,7 +306,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         c.b() = v[2];
         c.w() = v[3];
         nanogui::detail::FormWidget<nanogui::Color, std::true_type>* colorVar =
-            form.addVariable(label, c, true);
+            form.addVariable(label, c, editable);
         colorVar->setFinalCallback([path, viewer](const ng::Color &c)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -314,9 +329,9 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     {
         mx::Vector2 v = value->asA<mx::Vector2>();
         nanogui::detail::FormWidget<float, std::true_type>* v1 =
-            form.addVariable(label + ".x", v[0], true);
+            form.addVariable(label + ".x", v[0], editable);
         nanogui::detail::FormWidget<float, std::true_type>* v2 =
-            form.addVariable(label + ".y", v[1], true);
+            form.addVariable(label + ".y", v[1], editable);
         v1->setCallback([v2, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -330,7 +345,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 material->getShader()->setUniform(uniform->getName(), v);
             }
         });
-        v1->setSpinnable(true);
+        v1->setSpinnable(editable);
         v2->setCallback([v1, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -344,7 +359,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 material->getShader()->setUniform(uniform->getName(), v);
             }
         });
-        v2->setSpinnable(true);
+        v2->setSpinnable(editable);
     }
 
     // Vec 3 input
@@ -352,11 +367,11 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     {
         mx::Vector3 v = value->asA<mx::Vector3>();
         nanogui::detail::FormWidget<float, std::true_type>* v1 = 
-            form.addVariable(label + ".x", v[0], true);
+            form.addVariable(label + ".x", v[0], editable);
         nanogui::detail::FormWidget<float, std::true_type>* v2 =
-            form.addVariable(label + ".y", v[1], true);
+            form.addVariable(label + ".y", v[1], editable);
         nanogui::detail::FormWidget<float, std::true_type>* v3 =
-            form.addVariable(label + ".z", v[2], true);
+            form.addVariable(label + ".z", v[2], editable);
         v1->setCallback([v2, v3, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -371,7 +386,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 material->getShader()->setUniform(uniform->getName(), v);
             }
         });
-        v1->setSpinnable(true);
+        v1->setSpinnable(editable);
         v2->setCallback([v1, v3, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -386,7 +401,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 material->getShader()->setUniform(uniform->getName(), v);
             }
         });
-        v2->setSpinnable(true);
+        v2->setSpinnable(editable);
         v3->setCallback([v1, v2, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -401,7 +416,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 material->getShader()->setUniform(uniform->getName(), v);
             }
         });
-        v3->setSpinnable(true);
+        v3->setSpinnable(editable);
     }
 
     // Vec 4 input
@@ -409,13 +424,13 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     {
         mx::Vector4 v = value->asA<mx::Vector4>();
         nanogui::detail::FormWidget<float, std::true_type>* v1 =
-            form.addVariable(label + ".x", v[0], true);
+            form.addVariable(label + ".x", v[0], editable);
         nanogui::detail::FormWidget<float, std::true_type>* v2 =
-            form.addVariable(label + ".y", v[1], true);
+            form.addVariable(label + ".y", v[1], editable);
         nanogui::detail::FormWidget<float, std::true_type>* v3 =
-            form.addVariable(label + ".z", v[2], true);
+            form.addVariable(label + ".z", v[2], editable);
         nanogui::detail::FormWidget<float, std::true_type>* v4 =
-            form.addVariable(label + ".w", v[3], true);
+            form.addVariable(label + ".w", v[3], editable);
         v1->setCallback([v2, v3, v4, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -431,7 +446,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 material->getShader()->setUniform(uniform->getName(), v);
             }
         });
-        v1->setSpinnable(true);
+        v1->setSpinnable(editable);
         v2->setCallback([v1, v3, v4, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -447,7 +462,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 material->getShader()->setUniform(uniform->getName(), v);
             }
         });
-        v2->setSpinnable(true);
+        v2->setSpinnable(editable);
         v3->setCallback([v1, v2, v4, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -463,7 +478,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 material->getShader()->setUniform(uniform->getName(), v);
             }
         });
-        v3->setSpinnable(true);
+        v3->setSpinnable(editable);
         v4->setCallback([v1, v2, v3, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -479,7 +494,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 material->getShader()->setUniform(uniform->getName(), v);
             }
         });
-        v4->setSpinnable(true);
+        v4->setSpinnable(editable);
     }
 
     // String
@@ -492,6 +507,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             {
                 ng::Button* buttonVar = new ng::Button(form.window(), mx::FilePath(v).getBaseName());
                 form.addWidget(label, buttonVar);
+                buttonVar->setEnabled(editable);
                 buttonVar->setFontSize(form.widgetFontSize()-1);
                 buttonVar->setCallback([buttonVar, path, viewer]()
                 {
@@ -526,7 +542,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             else
             {
                 nanogui::detail::FormWidget<std::string, std::true_type>* stringVar =
-                    form.addVariable(label, v, true);
+                    form.addVariable(label, v, editable);
                 stringVar->setCallback([path, viewer](const std::string &v)
                 {
                     MaterialPtr material = viewer->getSelectedMaterial();
