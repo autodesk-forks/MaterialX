@@ -77,7 +77,7 @@ void PropertyEditor::create(Viewer& parent)
 }
 
 void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::string& group,
-                                   ng::FormHelper& form, Viewer* viewer)
+                                   ng::FormHelper& form, Viewer* viewer, bool editable)
 {
     const mx::UIProperties& ui = item.ui;
     mx::ValuePtr value = item.variable->getValue();
@@ -96,19 +96,6 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     if (!group.empty())
     {
         form.addGroup(group);
-    }
-
-    // Find out if the uniform is editable. Some
-    // inputs may be optimized out during compilation.
-    bool editable = false;
-    MaterialPtr material = viewer->getSelectedMaterial();
-    if (material)
-    {
-        mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-        if (uniform)
-        {
-            editable = true;
-        }
     }
 
     // Integer input. Can map to a combo box if an enumeration
@@ -592,20 +579,33 @@ void PropertyEditor::updateContents(Viewer* viewer)
                                     pathSeparator, groups, unnamedGroups); 
 
         std::string previousFolder;
+        // Make all inputs editable for now. Could make this read-only as well.
+        const bool editable = true;
         for (auto it = groups.begin(); it != groups.end(); ++it)
         {
             const std::string& folder = it->first;
             const mx::UIPropertyItem& item = it->second;
-            addItemToForm(item, (previousFolder == folder) ? mx::EMPTY_STRING : folder, *_form, viewer);
-            previousFolder.assign(folder);
+
+            // Find out if the uniform is editable. Some
+            // inputs may be optimized out during compilation.
+            if (material->findUniform(item.variable->getPath()))
+            {
+                addItemToForm(item, (previousFolder == folder) ? mx::EMPTY_STRING : folder, *_form, viewer, editable);
+                previousFolder.assign(folder);
+            }
         }
+
         if (!unnamedGroups.empty())
         {
             _form->addGroup("Other");
         }
         for (auto it2 = unnamedGroups.begin(); it2 != unnamedGroups.end(); ++it2)
         {
-            addItemToForm(it2->second, mx::EMPTY_STRING, *_form, viewer);
+            const mx::UIPropertyItem& item = it2->second;
+            if (material->findUniform(item.variable->getPath()))
+            {
+                addItemToForm(item, mx::EMPTY_STRING, *_form, viewer, editable);
+            }
         }
     }
     viewer->performLayout();

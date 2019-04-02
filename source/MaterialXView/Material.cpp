@@ -616,12 +616,9 @@ mx::ShaderPort* Material::findUniform(const std::string& path) const
             });
 
         // Check if the uniform exists in the shader program
-        if (port)
+        if (port && !_uniformNames.count(port->getName()))
         {
-            if (!_uniformNames.count(port->getName()))
-            {
-                port = nullptr;
-            }
+            port = nullptr;
         }
     }
     return port;
