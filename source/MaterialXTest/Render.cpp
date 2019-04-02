@@ -20,6 +20,7 @@
 #include <MaterialXGenShader/HwShaderGenerator.h>
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
 #include <MaterialXRender/Handlers/HwLightHandler.h>
+#include <MaterialXRender/Util.h>
 
 #ifdef MATERIALX_BUILD_RENDERGLSL
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
@@ -1146,7 +1147,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
         mx::StringVec whiteList =
         {
             "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
-            "volumeshader", "IM_constant_string_", "IM_constant_filename_", "IM_dot_string"
+            "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue"
         };
         unsigned int implementationUseCount = 0;
         for (auto libraryImpl : libraryImpls)
@@ -1204,7 +1205,7 @@ struct ImageHandlerTestOptions
     mx::ImageHandlerPtr imageHandler;
     std::ofstream* logFile;
 
-    mx::StringVec testExtensions;
+    mx::StringSet testExtensions;
     mx::StringVec skipExtensions;
 };
 
@@ -1345,6 +1346,7 @@ TEST_CASE("Render: TestSuite", "[render]")
 #ifdef MATERIALX_BUILD_RENDEROSL
     std::ostream& oslLog(std::cout);
 #endif
+    std::string docValidLogFilename = "std::out";
     std::ostream& docValidLog(std::cout);
     std::ostream& profilingLog(std::cout);
 #endif

@@ -3,6 +3,7 @@
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/Util.h>
+#include <MaterialXRender/Util.h>
 #include <MaterialXRender/Handlers/OiioImageLoader.h>
 #include <MaterialXRender/Handlers/StbImageLoader.h>
 #include <MaterialXRender/Handlers/TinyObjLoader.h>
@@ -119,7 +120,8 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _mergeMaterials(false),
     _assignLooks(false),
     _outlineSelection(false),
-    _envSamples(DEFAULT_ENV_SAMPLES)
+    _envSamples(DEFAULT_ENV_SAMPLES),
+    _captureFrame(false)
 {
     _window = new ng::Window(this, "Viewer Options");
     _window->setPosition(ng::Vector2i(15, 15));
@@ -158,6 +160,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     // Set default generator options.
     _genContext.getOptions().hwSpecularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
     _genContext.getOptions().targetColorSpaceOverride = "lin_rec709";
+    _genContext.getOptions().fileTextureVerticalFlip = true;
 
     // Set default light information before initialization
     _lightFileName = "resources/Materials/TestSuite/Utilities/Lights/default_viewer_lights.mtlx";
@@ -192,7 +195,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
 
     mx::TinyObjLoaderPtr loader = mx::TinyObjLoader::create();
     _geometryHandler.addLoader(loader);
-    _geometryHandler.loadGeometry(meshFilename);
+    _geometryHandler.loadGeometry(_searchPath.find(meshFilename));
     updateGeometrySelections();
 
     // Initialize camera
@@ -204,7 +207,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
 
     try
     {
-        Material::loadDocument(_doc, _materialFilename, _stdLib, _modifiers, _materials);
+        Material::loadDocument(_doc, _searchPath.find(_materialFilename), _stdLib, _modifiers, _materials);
         updateMaterialSelections();
         setMaterialSelection(0);
         if (_materials.size())
@@ -287,8 +290,8 @@ void Viewer::setupLights(mx::DocumentPtr doc, const std::string& envRadiancePath
         }
 
         // Set up IBL inputs
-        _lightHandler->setLightEnvRadiancePath(envRadiancePath);
-        _lightHandler->setLightEnvIrradiancePath(envIrradiancePath);
+        _lightHandler->setLightEnvRadiancePath(_searchPath.find(envRadiancePath));
+        _lightHandler->setLightEnvIrradiancePath(_searchPath.find(envIrradiancePath));
     }
     catch (std::exception& e)
     {
@@ -499,7 +502,7 @@ void Viewer::createLoadMaterialsInterface(Widget* parent, const std::string labe
                     {
                         initializeDocument(_stdLib);
                     }
-                    size_t newRenderables = Material::loadDocument(_doc, _materialFilename, _stdLib, _modifiers, _materials);
+                    size_t newRenderables = Material::loadDocument(_doc, _searchPath.find(_materialFilename), _stdLib, _modifiers, _materials);
                     if (newRenderables > 0)
                     {
                         updateMaterialSelections();
@@ -729,7 +732,7 @@ void Viewer::saveActiveMaterialSource()
         mx::TypedElementPtr elem = material ? material->getElement() : nullptr;
         if (elem)
         {
-            mx::ShaderPtr shader = material->generateSource(_genContext, elem);
+            mx::ShaderPtr shader = createShader(elem->getNamePath(), _genContext, elem);
             if (shader)
             {
                 std::string vertexShader = shader->getSourceCode(mx::Stage::VERTEX);
@@ -778,6 +781,31 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
     {
         return true;
     }
+
+    if (key == GLFW_KEY_F && action == GLFW_PRESS)
+    {
+        mx::StringSet extensions;
+        _imageHandler->supportedExtensions(extensions);
+        if (!extensions.empty())
+        {
+            std::vector<std::pair<std::string, std::string>> filetypes;
+            for (auto extension : extensions)
+            {
+                filetypes.push_back(std::make_pair(extension, extension));
+            }
+            std::string fileName = ng::file_dialog(filetypes, true);
+            if (!fileName.empty())
+            {
+                std::string fileExtension = (fileName.substr(fileName.find_last_of(".") + 1));
+                if (extensions.count(fileExtension) == 0)
+                {
+                    fileName += "." + *extensions.begin();
+                }
+                _captureFrameFileName = fileName;
+                _captureFrame = true;
+            }
+        }
+    }
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         try
@@ -785,7 +813,7 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
             if (!_materialFilename.isEmpty())
             {
                 initializeDocument(_stdLib);
-                size_t newRenderables = Material::loadDocument(_doc, _materialFilename, _stdLib, _modifiers, _materials);
+                size_t newRenderables = Material::loadDocument(_doc, _searchPath.find(_materialFilename), _stdLib, _modifiers, _materials);
                 if (newRenderables)
                 {
                     updateMaterialSelections();
@@ -913,6 +941,41 @@ void Viewer::drawContents()
             _wireMaterial->bindViewInformation(world, view, proj);
             _wireMaterial->drawPartition(activeGeom);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+    }
+
+    if (_captureFrame)
+    {
+        bool saved = false;
+
+        glFlush();
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+        // Must multipy by pixel ratio to handle device DPI
+        int w = mSize.x() * static_cast<int>(mPixelRatio);
+        int h = mSize.y() * static_cast<int>(mPixelRatio);
+        size_t bufferSize = w * h * 3;
+        uint8_t* buffer = new uint8_t[bufferSize];
+        if (buffer)
+        {
+            glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+
+            mx::ImageDesc desc;
+            desc.width = w;
+            desc.height = h;
+            desc.channelCount = 3;
+            desc.resourceBuffer = buffer;
+            desc.baseType = mx::ImageDesc::BASETYPE_UINT8;
+            saved = _imageHandler->saveImage(_captureFrameFileName, desc, true);
+            delete[] buffer;
+        }
+        _captureFrame = false;
+
+        if (!saved)
+        {
+            new ng::MessageDialog(this, ng::MessageDialog::Type::Information,
+                "Failed to save frame to disk: ", _captureFrameFileName.asString());
         }
     }
 }

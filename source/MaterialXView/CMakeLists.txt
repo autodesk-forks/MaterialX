@@ -16,11 +16,12 @@ set(NANOGUI_INSTALL OFF CACHE BOOL " " FORCE)
 set(PREV_CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
 set(PREV_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 if(MSVC)
-    add_compile_options(/wd4389)
+    add_compile_options(/wd4389 -DEIGEN_DONT_VECTORIZE)
 elseif(UNIX AND NOT APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wno-misleading-indentation)
     add_compile_options(-Wno-format-truncation)
     add_compile_options(-Wno-implicit-fallthrough)
+    add_compile_options(-Wno-int-in-bool-context)
     add_compile_options(-Wno-maybe-uninitialized) # GCC-8 only
 endif()
 
@@ -60,7 +61,5 @@ add_custom_command(TARGET MaterialXView POST_BUILD
 
 install(TARGETS MaterialXView
         DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libraries/
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/libraries")
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources/
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/resources")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/MaterialXView.pdb"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/" OPTIONAL)

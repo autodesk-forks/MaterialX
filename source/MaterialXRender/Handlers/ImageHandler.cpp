@@ -10,6 +10,12 @@
 
 namespace MaterialX
 {
+string ImageDesc::BASETYPE_UINT8 = "UINT8";
+string ImageDesc::BASETYPE_HALF = "HALF";
+string ImageDesc::BASETYPE_FLOAT = "FLOAT";
+
+string ImageDesc::IMAGETYPE_2D = "IMAGE2D";
+
 string ImageLoader::BMP_EXTENSION = "bmp";
 string ImageLoader::EXR_EXTENSION = "exr";
 string ImageLoader::GIF_EXTENSION = "gif";
@@ -22,7 +28,9 @@ string ImageLoader::PSD_EXTENSION = "psd";
 string ImageLoader::TGA_EXTENSION = "tga";
 string ImageLoader::TIF_EXTENSION = "tif";
 string ImageLoader::TIFF_EXTENSION = "tiff";
+string ImageLoader::TX_EXTENSION = "tx";
 string ImageLoader::TXT_EXTENSION = "txt";
+string ImageLoader::TXR_EXTENSION = "txr";
 
 ImageHandler::ImageHandler(ImageLoaderPtr imageLoader)
 {
@@ -33,7 +41,7 @@ void ImageHandler::addLoader(ImageLoaderPtr loader)
 {
     if (loader)
     {
-        const StringVec& extensions = loader->supportedExtensions();
+        const StringSet& extensions = loader->supportedExtensions();
         for (auto extension : extensions)
         {
             _imageLoaders.insert(std::pair<string, ImageLoaderPtr>(extension, loader));
@@ -41,8 +49,19 @@ void ImageHandler::addLoader(ImageLoaderPtr loader)
     }
 }
 
+void ImageHandler::supportedExtensions(StringSet& extensions)
+{
+    extensions.clear();
+    for (auto loader : _imageLoaders)
+    {
+        const StringSet& loaderExtensions = loader.second->supportedExtensions();
+        extensions.insert(loaderExtensions.begin(), loaderExtensions.end());
+    }
+}
+
 bool ImageHandler::saveImage(const FilePath& filePath,
-                            const ImageDesc &imageDesc)
+                             const ImageDesc &imageDesc,
+                             bool verticalFlip)
 {
     FilePath foundFilePath = findFile(filePath);
 
@@ -53,7 +72,7 @@ bool ImageHandler::saveImage(const FilePath& filePath,
     ImageLoaderMap::iterator last = --range.first;
     for (auto it = first; it != last; --it)
     {
-        bool saved = it->second->saveImage(foundFilePath, imageDesc);
+        bool saved = it->second->saveImage(foundFilePath, imageDesc, verticalFlip);
         if (saved)
         {
             return true;
@@ -62,7 +81,7 @@ bool ImageHandler::saveImage(const FilePath& filePath,
     return false;
 }
 
-bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, bool generateMipMaps, const Color4* /*fallbackColor*/)
+bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, bool /*generateMipMaps*/, const Color4* /*fallbackColor*/)
 {
     FilePath foundFilePath = findFile(filePath);
 
@@ -73,7 +92,7 @@ bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
     ImageLoaderMap::iterator last= --range.first;
     for (auto it = first; it != last; --it)
     {
-        bool acquired = it->second->acquireImage(foundFilePath, imageDesc, generateMipMaps);
+        bool acquired = it->second->acquireImage(foundFilePath, imageDesc, getRestrictions());
         if (acquired)
         {
             return true;
