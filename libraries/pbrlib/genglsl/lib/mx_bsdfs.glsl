@@ -56,10 +56,29 @@ float mx_microfacet_ggx_smith_G(float NdotL, float NdotV, float alpha)
     return mx_microfacet_ggx_G1(NdotL, alpha) * mx_microfacet_ggx_G1(NdotV, alpha);
 }
 
+// http://blog.selfshadow.com/publications/s2017-shading-course/imageworks/s2017_pbs_imageworks_sheen.pdf (Equation 2)
+float mx_microfacet_sheen_NDF(float NdotH, float alpha)
+{
+    float invAlpha = 1.0 / alpha;
+    float cos2h = NdotH * NdotH;
+    float sin2h = 1.0 - cos2h;
+    return (2.0 + invAlpha) * pow(sin2h, invAlpha * 0.5) / (2.0 * M_PI);
+}
+
 vec3 mx_fresnel_schlick(float cosTheta, vec3 F0, vec3 F90, float exponent)
 {
     float x = clamp(1.0 - cosTheta, 0.0, 1.0);
     return mix(F0, F90, pow(x, exponent));
+}
+
+vec3 mx_fresnel_schlick(float cosTheta, vec3 F0)
+{
+    if (cosTheta < 0.0)
+        return vec3(1.0);
+    float x = 1.0 - cosTheta;
+    float x2 = x*x;
+    float x5 = x2*x2*x;
+    return F0 + (1.0 - F0) * x5;
 }
 
 float mx_fresnel_schlick(float cosTheta, float ior)
