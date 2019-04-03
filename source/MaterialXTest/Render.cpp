@@ -1224,12 +1224,11 @@ void testImageHandler(ImageHandlerTestOptions& options)
         for (const mx::FilePath& file : files)
         {
             const mx::FilePath filePath = imagePath / file;
-            const std::string& fileName = filePath;
             mx::ImageDesc desc;
             bool loaded = options.imageHandler->acquireImage(filePath, desc, false, nullptr);
             if (options.logFile)
             {
-                *(options.logFile) << "Loaded image: " << fileName << ". Loaded: " << loaded << std::endl;
+                *(options.logFile) << "Loaded image: " << filePath.asString() << ". Loaded: " << loaded << std::endl;
             }
             if (!loaded)
             {

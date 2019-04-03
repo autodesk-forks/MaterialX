@@ -8,8 +8,6 @@
 #include <MaterialXRender/Handlers/ImageHandler.h>
 #include <cmath>
 
-#include <iostream>
-
 namespace MaterialX
 {
 string ImageDesc::BASETYPE_UINT8 = "UINT8";
