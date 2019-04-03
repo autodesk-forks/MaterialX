@@ -66,18 +66,24 @@ bool ImageHandler::saveImage(const FilePath& filePath,
                              bool verticalFlip)
 {
     FilePath foundFilePath = findFile(filePath);
-
-    std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
-    string extension = foundFilePath.getExtension();
-    range = _imageLoaders.equal_range(extension);
-    ImageLoaderMap::iterator first = --range.second;
-    ImageLoaderMap::iterator last = --range.first;
-    for (auto it = first; it != last; --it)
+    if (foundFilePath.isEmpty())
     {
-        bool saved = it->second->saveImage(foundFilePath, imageDesc, verticalFlip);
-        if (saved)
+        return false;
+    }
+
+    string extension = foundFilePath.getExtension();
+    ImageLoaderMap::reverse_iterator iter;
+    for (iter = _imageLoaders.rbegin(); iter != _imageLoaders.rend(); ++iter)
+    {
+        ImageLoaderPtr loader = iter->second;
+        if (loader && loader->supportedExtensions().count(extension))
         {
-            return true;
+            bool saved = iter->second->saveImage(foundFilePath, imageDesc, verticalFlip);
+            if (saved)
+            {
+                std::cout << "Saved image: " << foundFilePath.asString() << std::endl;
+                return true;
+            }
         }
     }
     return false;
@@ -93,22 +99,37 @@ bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
         return false;
     }
 
-    std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
     string extension = foundFilePath.getExtension();
+    ImageLoaderMap::reverse_iterator iter;
+    for (iter = _imageLoaders.rbegin(); iter != _imageLoaders.rend(); ++iter)
+    {
+        ImageLoaderPtr loader = iter->second;
+        if (loader && loader->supportedExtensions().count(extension))
+        {
+            std::cout << "-- Use loader to acquire \n";
+            bool acquired = loader->acquireImage(foundFilePath, imageDesc, getRestrictions());
+            if (acquired)
+            {
+                std::cout << "ImageHandler::acquireImage: FOUND END\n";
+                return true;
+            }
+        }
+    }
+#if 0
+    std::pair <::iterator, ImageLoaderMap::iterator> range;
     range = _imageLoaders.equal_range(extension);
     ImageLoaderMap::iterator first = --range.second;
     ImageLoaderMap::iterator last= --range.first;
     for (auto it = first; it != last; --it)
     {
-        ImageLoaderPtr loader = it->second;
         std::cout << "-- Use loader to acquire \n";
-        bool acquired = loader ? loader->acquireImage(foundFilePath, imageDesc, getRestrictions()) : false;
         if (acquired)
         {
             std::cout << "ImageHandler::acquireImage: FOUND END\n";
             return true;
         }
     }
+#endif
     std::cout << "ImageHandler::acquireImage: NOT FOUND END\n";
     return false;
 }
