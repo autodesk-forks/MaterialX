@@ -1211,7 +1211,6 @@ struct ImageHandlerTestOptions
 void testImageHandler(ImageHandlerTestOptions& options)
 {
     mx::FilePath imagePath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Images/");
-    std::cout << "Read from image path: " << imagePath.asString() << std::endl;
     mx::FilePathVec files;
 
     unsigned int loadFailed = 0;
@@ -1225,13 +1224,11 @@ void testImageHandler(ImageHandlerTestOptions& options)
         for (const mx::FilePath& file : files)
         {
             const mx::FilePath filePath = imagePath / file;
-            std::cout << "Try reading image : " << filePath.asString() << std::endl;
             const std::string& fileName = filePath;
             mx::ImageDesc desc;
             bool loaded = options.imageHandler->acquireImage(filePath, desc, false, nullptr);
             if (options.logFile)
             {
-                std::cout << "Loaded image: " << fileName << ". Loaded: " << loaded << std::endl;
                 *(options.logFile) << "Loaded image: " << fileName << ". Loaded: " << loaded << std::endl;
             }
             if (!loaded)
@@ -1253,20 +1250,15 @@ TEST_CASE("Render: Image Handler Load", "[rendercore]")
         ImageHandlerTestOptions options;
         options.logFile = &imageHandlerLog;
 
-        std::cout << "** Test STB image loader **" << std::endl;
         imageHandlerLog << "** Test STB image loader **" << std::endl;
         mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
-        std::cout << "-Create handler\n";
         mx::ImageHandlerPtr imageHandler = mx::ImageHandler::create(nullptr);
-        std::cout << "-Add loader \n";
         imageHandler->addLoader(stbLoader);
-        std::cout << "- set options \n";
         options.testExtensions = stbLoader->supportedExtensions();
         options.imageHandler = imageHandler;
         testImageHandler(options);
-        std::cout << "** END Test STB image loader **" << std::endl;
 
-#ifdef MATERIALX_BUILD_CONTRIB_1
+#ifdef MATERIALX_BUILD_CONTRIB
         imageHandlerLog << "** Test TinyEXR image loader **" << std::endl;
         mx::TinyEXRImageLoaderPtr exrLoader = mx::TinyEXRImageLoader::create();
         mx::ImageHandlerPtr imageHandler2 = mx::ImageHandler::create(nullptr);
@@ -1276,7 +1268,7 @@ TEST_CASE("Render: Image Handler Load", "[rendercore]")
         testImageHandler(options);
 #endif
 
-#if defined(MATERIALX_BUILD_OIIO_1) && defined(OPENIMAGEIO_ROOT_DIR)
+#if defined(MATERIALX_BUILD_OIIO) && defined(OPENIMAGEIO_ROOT_DIR)
         imageHandlerLog << "** Test OpenImageIO image loader **" << std::endl;
         mx::OiioImageLoaderPtr oiioLoader = mx::OiioImageLoader::create();
         mx::ImageHandlerPtr imageHandler3 = mx::ImageHandler::create(nullptr);
