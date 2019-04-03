@@ -107,7 +107,7 @@ class FilePath
     }
 
     /// Return the file extension of the given path.
-    string getExtension()
+    string getExtension() const
     {
         string baseName = getBaseName();
         size_t i = baseName.rfind('.');

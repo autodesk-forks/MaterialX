@@ -66,7 +66,7 @@ bool ImageHandler::saveImage(const FilePath& filePath,
     FilePath foundFilePath = findFile(filePath);
 
     std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
-    string extension = MaterialX::getFileExtension(foundFilePath);
+    string extension = foundFilePath.getExtension();
     range = _imageLoaders.equal_range(extension);
     ImageLoaderMap::iterator first = --range.second;
     ImageLoaderMap::iterator last = --range.first;
@@ -86,7 +86,7 @@ bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
     FilePath foundFilePath = findFile(filePath);
 
     std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
-    string extension = MaterialX::getFileExtension(foundFilePath);
+    string extension = foundFilePath.getExtension();
     range = _imageLoaders.equal_range(extension);
     ImageLoaderMap::iterator first = --range.second;
     ImageLoaderMap::iterator last= --range.first;
