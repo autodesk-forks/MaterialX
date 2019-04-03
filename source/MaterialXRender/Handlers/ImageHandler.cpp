@@ -8,6 +8,8 @@
 #include <MaterialXRender/Handlers/ImageHandler.h>
 #include <cmath>
 
+#include <iostream>
+
 namespace MaterialX
 {
 string ImageDesc::BASETYPE_UINT8 = "UINT8";
@@ -83,7 +85,13 @@ bool ImageHandler::saveImage(const FilePath& filePath,
 
 bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, bool /*generateMipMaps*/, const Color4* /*fallbackColor*/)
 {
+    std::cout << "ImageHandler::acquireImage: START\n";
     FilePath foundFilePath = findFile(filePath);
+    std::cout << "ImageHandler::acquireImage: foundFilePath = " << foundFilePath.asString() << std::endl;
+    if (foundFilePath.isEmpty())
+    {
+        return false;
+    }
 
     std::pair <ImageLoaderMap::iterator, ImageLoaderMap::iterator> range;
     string extension = foundFilePath.getExtension();
@@ -92,12 +100,16 @@ bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
     ImageLoaderMap::iterator last= --range.first;
     for (auto it = first; it != last; --it)
     {
-        bool acquired = it->second->acquireImage(foundFilePath, imageDesc, getRestrictions());
+        ImageLoaderPtr loader = it->second;
+        std::cout << "-- Use loader to acquire \n";
+        bool acquired = loader ? loader->acquireImage(foundFilePath, imageDesc, getRestrictions()) : false;
         if (acquired)
         {
+            std::cout << "ImageHandler::acquireImage: FOUND END\n";
             return true;
         }
     }
+    std::cout << "ImageHandler::acquireImage: NOT FOUND END\n";
     return false;
 }
 

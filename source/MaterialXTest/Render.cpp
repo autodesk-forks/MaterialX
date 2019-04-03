@@ -1256,8 +1256,11 @@ TEST_CASE("Render: Image Handler Load", "[rendercore]")
         std::cout << "** Test STB image loader **" << std::endl;
         imageHandlerLog << "** Test STB image loader **" << std::endl;
         mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
+        std::cout << "-Create handler\n";
         mx::ImageHandlerPtr imageHandler = mx::ImageHandler::create(nullptr);
+        std::cout << "-Add loader \n";
         imageHandler->addLoader(stbLoader);
+        std::cout << "- set options \n";
         options.testExtensions = stbLoader->supportedExtensions();
         options.imageHandler = imageHandler;
         testImageHandler(options);
