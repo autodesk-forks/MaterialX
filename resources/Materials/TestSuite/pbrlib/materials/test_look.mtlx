@@ -2,7 +2,7 @@
 <materialx version="1.36">
   <look name="testLook" xpos="6.91517" ypos="20.179">
     <materialassign name="standAssign" collection="standCollection" material="Chrome" xpos="5.86547" ypos="6.06086" />
-    <materialassign name="ballAssign" collection="ballCollection" material="3D_Marble" xpos="7.1349" ypos="8.03504" />
+    <materialassign name="ballAssign" collection="ballCollection" material="Marble_3D" xpos="7.1349" ypos="8.03504" />
     <materialassign name="ringAssign" collection="ringCollection" material="Tiled_Wood" xpos="5.89655" ypos="10.3773" />
     <materialassign name="shellAssign" collection="shellCollection" material="Tiled_Brass" xpos="5.89335" ypos="13.7173" />
   </look>
