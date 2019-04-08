@@ -42,22 +42,23 @@ To clear the entries, disable `Add Materials` and load in a new `.mtlx` file. Th
 
 **Figure 1**: The following image shows the options for selecting an active group and assigning a material for a group. In this example, a group called `stand` has been assigned the material `M_jade`.
 A wireframe overlay is applied to the `stand` geometry in the viewer.
-
-<img src="/documents/Images/MaterialXView_Materials_And_Geomtery_Groups.png" width="480">
+<p><img src="/documents/Images/MaterialXView_Materials_And_Geomtery_Groups.png" width="320"></p>
 
 ### 3. Looks
 
 The binding between materials and geometry can be performed by loading in a MaterialX document which contains a look if the 'Assign Looks' option is enabled. If the referenced material and assigned geometry exist then the material will be assigned.
 
 **Figure 2**: The follow shows a example look which has been applied to a group of geometry.
-<img src="/documents/Images/MaterialXView_AssignedLook.png" width="320">
-
+<p><img src="/documents/Images/MaterialXView_AssignedLook.png" width="320"></p>
 
 ### 4. Lighting
 
 **MaterialXView** currently provides built-in direct and indirect lighting (IBL). You can enable one or both by selecting `Advanced Settings > Lighting Options`.
 
 To improve the indirect lighting highlights on your material, increase the `Advanced Settings > Environment Samples`. This may cause your system to slow down, so you may want to balance speed with quality.
+
+**Figure 3**: Render with  indirect lighting enabled on the left, and with the addition of direct lighting on the right.
+<p><img src="/documents/Images/MaterialXView_DirectLighting_Compare.png" width="480"></p>
 
 ### Utilites
 
@@ -67,8 +68,8 @@ To improve the indirect lighting highlights on your material, increase the `Adva
 
 ### Example Images
 
-**Figure 3:** Standard Surface Shader with procedural and uniform materials
-<img src="/documents/Images/MaterialXView_StandardSurface_01.png" width="1024">
+**Figure 4:** Standard Surface Shader with procedural and uniform materials
+<p><img src="/documents/Images/MaterialXView_StandardSurface_01.png" width="1024"></p>
 
-**Figure4:** Standard Surface Shader with textured, color-space-managed materials
-<img src="/documents/Images/MaterialXView_StandardSurface_02.png" width="480">
+**Figure 5:** Standard Surface Shader with textured, color-space-managed materials
+<p><img src="/documents/Images/MaterialXView_StandardSurface_02.png" width="480"></p>

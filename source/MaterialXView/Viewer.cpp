@@ -193,8 +193,9 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _imageHandler = mx::GLTextureHandler::create(imageLoader);
 
     mx::TinyObjLoaderPtr loader = mx::TinyObjLoader::create();
-    _geometryHandler.addLoader(loader);
-    _geometryHandler.loadGeometry(_searchPath.find(meshFilename));
+    _geometryHandler = mx::GeometryHandler::create();
+    _geometryHandler->addLoader(loader);
+    _geometryHandler->loadGeometry(_searchPath.find(meshFilename));
     updateGeometrySelections();
 
     // Initialize camera
@@ -330,7 +331,7 @@ void Viewer::initializeDocument(mx::DocumentPtr libraries)
 
 void Viewer::assignMaterial(MaterialPtr material, mx::MeshPartitionPtr geometry)
 {
-    const mx::MeshList& meshes = _geometryHandler.getMeshes();
+    const mx::MeshList& meshes = _geometryHandler->getMeshes();
     if (meshes.empty())
     {
         return;
@@ -366,10 +367,10 @@ void Viewer::createLoadMeshInterface(Widget* parent, const std::string label)
         std::string filename = ng::file_dialog({ { "obj", "Wavefront OBJ" } }, false);
         if (!filename.empty())
         {
-            _geometryHandler.clearGeometry();
-            if (_geometryHandler.loadGeometry(filename))
+            _geometryHandler->clearGeometry();
+            if (_geometryHandler->loadGeometry(filename))
             {
-                const mx::MeshList& meshes = _geometryHandler.getMeshes();
+                const mx::MeshList& meshes = _geometryHandler->getMeshes();
                 if (!meshes.empty())
                 {
                     if (_splitByUdims)
@@ -429,7 +430,7 @@ void Viewer::createLoadMaterialsInterface(Widget* parent, const std::string labe
                         for (auto m : _materials)
                         {
                             m->generateShader(_genContext);
-                            mx::MeshPtr mesh = _geometryHandler.getMeshes()[0];
+                            mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
                             if (mesh)
                             {
                                 m->bindMesh(mesh);
@@ -621,11 +622,11 @@ void Viewer::createAdvancedSettings(Widget* parent)
 void Viewer::updateGeometrySelections()
 {
     _geometryList.clear();
-    if (_geometryHandler.getMeshes().empty())
+    if (_geometryHandler->getMeshes().empty())
     {
         return;
     }
-    mx::MeshPtr mesh = _geometryHandler.getMeshes()[0];
+    mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
 
     if (_wireMaterial)
     {
@@ -1014,7 +1015,7 @@ bool Viewer::mouseMotionEvent(const ng::Vector2i& p,
         computeCameraMatrices(world, view, proj);
         mx::Matrix44 worldView = view * world;
 
-        mx::MeshPtr mesh = _geometryHandler.getMeshes()[0];
+        mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
         mx::Vector3 boxMin = mesh->getMinimumBounds();
         mx::Vector3 boxMax = mesh->getMaximumBounds();
         mx::Vector3 sphereCenter = (boxMax + boxMin) / 2.0;
@@ -1077,11 +1078,11 @@ void Viewer::initCamera()
     _arcball = ng::Arcball();
     _arcball.setSize(mSize);
 
-    if (_geometryHandler.getMeshes().empty())
+    if (_geometryHandler->getMeshes().empty())
     {
         return;
     }
-    mx::MeshPtr mesh = _geometryHandler.getMeshes()[0];
+    mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
 
     mx::Vector3 boxMin = mesh->getMinimumBounds();
     mx::Vector3 boxMax = mesh->getMaximumBounds();
