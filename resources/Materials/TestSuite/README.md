@@ -1,11 +1,10 @@
-# Render Test Suite
+# Shader Generation and Render Test Suite
 
-The sub-folders in the test suite contain a set of input MaterialX documents. During execution of the test suite, each file is parsed to determine renderable elements.  For each element the appropriate shader generator is used to produced source code. The source code is then compiled, and/or rendered as part of the validation test.
-For the GLSL and OSL shading languages: compiled code and renders are produced. For OGSFX on the code generation step is performed.
+The sub-folders in the test suite contain a set of input MaterialX documents. During execution of the test suite, each file is parsed to determine renderable elements.  For each element the appropriate shader generator is used to produced source code for ShaderGen tests. For Render validation tests the code is compiled, and/or rendered.
 
 ## Folder layout
 
-- At the top level, the [options file (_options.mtlx)](_options.mtlx) is a MaterialX document defines the set of test execution options. The values may be edited locally as desired.
+- At the top level, the [options file (_options.mtlx)](_options.mtlx) is a MaterialX document defines the set of execution options for the Render test. The values may be edited locally as desired.
 - The main grouping of input files is by library: ([stdlib](stdlib) and [pbrlib](pbrlib)).
 - Additional sub-folders group documents based on Element group or category. For example math tests are found in [stdlib/math](stdlib/math)), with:
     - `math.mtlx`
