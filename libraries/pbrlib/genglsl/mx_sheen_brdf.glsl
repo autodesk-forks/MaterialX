@@ -28,9 +28,10 @@ void mx_sheen_brdf_reflection(vec3 L, vec3 V, float weight, vec3 color, float ro
     // https://blog.selfshadow.com/publications/s2013-shading-course/rad/s2013_pbs_rad_notes.pdf
     vec3 fr = D * F / (4.0 * (NdotL + NdotV - NdotL*NdotV));
 
-    // Top layer transmission to atttenuate base layer
-    // TODO: We should use a LUT of directional albedo for this
-    float topTrans = 1.0;
+    // Top layer transmission to atttenuate base layer.
+    // We use a LUT of directional albedo for this.
+    float albedo = mx_microfacet_sheen_albedo(NdotV, alpha);
+    float topTrans = clamp(1.0 - albedo, 0.0, 1.0);
 
     // We need to include NdotL from the light integral here
     // as in this case it's not cancelled out by the BRDF denominator.
@@ -46,20 +47,50 @@ void mx_sheen_brdf_transmission(vec3 V, float weight, vec3 color, float roughnes
         return;
     }
 
+    float NdotV = dot(N,V);
+    if (NdotV <= 0.0)
+    {
+        result = base;
+        return;
+    }
+
     // Sheen BRDF has no transmission but we must
     // attenuate the base layer transmission by the
     // inverse of top layer reflectance.
 
-    // Abs here to allow transparency through backfaces
-    float NdotV = abs(dot(N,V));
-    vec3 F = mx_fresnel_schlick(NdotV, color);
-    F *= weight;
+    // Top layer transmission to atttenuate base layer.
+    // We use a LUT of directional albedo for this.
+    float alpha = clamp(roughness*roughness, M_FLOAT_EPS, 1.0);
+    float albedo = mx_microfacet_sheen_albedo(NdotV, alpha);
+    float topTrans = clamp(1.0 - albedo, 0.0, 1.0);
 
-    result = base * (1.0 - F); // Base layer transmission attenuated by top fresnel
+    result = base * topTrans; // Base layer transmission attenuated by top layer
 }
 
-void mx_sheen_brdf_indirect(vec3 V, float weight, vec3 color, float roughness, vec3 normal, BSDF base, out vec3 result)
+void mx_sheen_brdf_indirect(vec3 V, float weight, vec3 color, float roughness, vec3 N, BSDF base, out vec3 result)
 {
-    // TODO: implement this
-    result = base;
+    if (weight < M_FLOAT_EPS)
+    {
+        result = base;
+        return;
+    }
+
+    float NdotV = dot(N,V);
+    if (NdotV <= 0.0)
+    {
+        result = base;
+        return;
+    }
+
+    vec3 Li = mx_environment_radiance_sheen(N, roughness);
+    vec3 F = color * weight;
+
+    // Top layer transmission to atttenuate base layer.
+    // We use a LUT of directional albedo for this.
+    float alpha = clamp(roughness*roughness, M_FLOAT_EPS, 1.0);
+    float albedo = mx_microfacet_sheen_albedo(NdotV, alpha);
+    float topTrans = clamp(1.0 - albedo, 0.0, 1.0);
+
+    result = Li * F           // Top layer reflection
+           + base * topTrans; // Base layer reflection attenuated by top layer
 }
