@@ -427,10 +427,10 @@ void Viewer::createLoadMaterialsInterface(Widget* parent, const std::string labe
                         // or nodegraph has changed on disc.
                         _genContext.clearNodeImplementations();
 
+                        mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
                         for (auto m : _materials)
                         {
                             m->generateShader(_genContext);
-                            mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
                             if (mesh)
                             {
                                 m->bindMesh(mesh);
@@ -452,7 +452,7 @@ void Viewer::createLoadMaterialsInterface(Widget* parent, const std::string labe
                 }
             }
 
-            // The try loading looks
+            // Then try loading looks
             if (_assignLooks)
             {
                 try
