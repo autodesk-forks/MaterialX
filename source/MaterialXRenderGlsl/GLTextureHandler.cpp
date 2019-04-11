@@ -228,11 +228,6 @@ int GLTextureHandler::mapFilterTypeToGL(int filterTypeEnum)
     return filterType;
 }
 
-void GLTextureHandler::clearImageCache()
-{
-    ParentClass::clearImageCache();
-}
-
 void GLTextureHandler::deleteImage(MaterialX::ImageDesc& imageDesc)
 {
     if (!glActiveTexture)

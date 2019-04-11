@@ -67,7 +67,10 @@ class ImageDesc
     /// Deallocator to free resource buffer memory. If not defined then malloc() is
     /// assumed to have been used to allocate the buffer and corresponding free() is
     /// used to deallocate.
-    ImageBufferDeallocator resourceBufferDeallocator = nullptr;
+    ImageBufferDeallocator resourceBufferDeallocator = [](void *buffer)
+    {
+        free(buffer);
+    };
 
     /// Compute the number of mip map levels based on size of the image
     void computeMipCount()
