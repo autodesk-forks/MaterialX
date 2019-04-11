@@ -128,8 +128,7 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         }
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        free(imageDesc.resourceBuffer);
-        imageDesc.resourceBuffer = nullptr;
+        imageDesc.freeResourceBuffer();
 
         cacheImage(filePath, imageDesc);
         textureLoaded = true;
@@ -231,11 +230,6 @@ int GLTextureHandler::mapFilterTypeToGL(int filterTypeEnum)
 
 void GLTextureHandler::clearImageCache()
 {
-    ImageDescCache& cache = getImageCache();
-    for (auto iter : cache)
-    {
-        deleteImage(iter.second);
-    }
     ParentClass::clearImageCache();
 }
 

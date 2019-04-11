@@ -8,6 +8,8 @@
 #include <MaterialXRender/Handlers/ImageHandler.h>
 #include <cmath>
 
+#include <iostream>
+
 namespace MaterialX
 {
 string ImageDesc::BASETYPE_UINT8 = "UINT8";
@@ -114,9 +116,15 @@ bool ImageHandler::acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
 bool ImageHandler::createColorImage(const Color4& color,
                                     ImageDesc& desc)
 {
+    unsigned int bufferSize = desc.width * desc.height * desc.channelCount;
+    if (bufferSize < 1)
+    {
+        return false;
+    }
+
     // Create a solid color image
     //
-    desc.resourceBuffer = new float[desc.width * desc.height * desc.channelCount];
+    desc.resourceBuffer = new float[bufferSize];
     float* pixel = static_cast<float*>(desc.resourceBuffer);
     for (size_t i = 0; i<desc.width; i++)
     {
@@ -129,6 +137,11 @@ bool ImageHandler::createColorImage(const Color4& color,
         }
     }
     desc.computeMipCount();
+    desc.resourceBufferDeallocator = [](void *buffer)
+    {
+        std::cout << "Deallocate generated color image" << std::endl;
+        delete[] buffer;
+    };
     return true;
 }
 
@@ -171,11 +184,17 @@ FilePath ImageHandler::findFile(const FilePath& filePath)
 
 void ImageHandler::deleteImage(ImageDesc& imageDesc)
 {
-    if (imageDesc.resourceBuffer)
+    imageDesc.freeResourceBuffer();
+}
+
+void ImageHandler::clearImageCache()
+{
+    for (auto iter : _imageCache)
     {
-        free(imageDesc.resourceBuffer);
-        imageDesc.resourceBuffer = nullptr;
+        std::cout << "Free resources for image: " << iter.first << std::endl;
+        deleteImage(iter.second);
     }
+    _imageCache.clear();
 }
 
 }
