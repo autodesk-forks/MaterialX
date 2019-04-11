@@ -19,7 +19,7 @@
 
 namespace MaterialX
 {
-/// A function to perform image buffer deallaction
+/// A function to perform image buffer deallocation
 using ImageBufferDeallocator = std::function<void(void*)>;
 
 /// @class ImageDesc
