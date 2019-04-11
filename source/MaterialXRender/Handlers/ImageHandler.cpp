@@ -137,8 +137,7 @@ bool ImageHandler::createColorImage(const Color4& color,
     desc.computeMipCount();
     desc.resourceBufferDeallocator = [](void *buffer)
     {
-        std::cout << "Deallocate generated color image" << std::endl;
-        delete[] buffer;
+        delete[] static_cast<float*>(buffer);
     };
     return true;
 }
