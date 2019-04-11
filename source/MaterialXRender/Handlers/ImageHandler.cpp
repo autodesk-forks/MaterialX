@@ -16,6 +16,22 @@ string ImageDesc::BASETYPE_FLOAT = "FLOAT";
 
 string ImageDesc::IMAGETYPE_2D = "IMAGE2D";
 
+void ImageDesc::freeResourceBuffer()
+{
+    if (resourceBuffer)
+    {
+        if (resourceBufferDeallocator)
+        {
+            resourceBufferDeallocator(resourceBuffer);
+        }
+        else
+        {
+            free(resourceBuffer);
+        }
+        resourceBuffer = nullptr;
+    }
+}
+
 string ImageLoader::BMP_EXTENSION = "bmp";
 string ImageLoader::EXR_EXTENSION = "exr";
 string ImageLoader::GIF_EXTENSION = "gif";

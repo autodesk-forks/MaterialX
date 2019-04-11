@@ -79,21 +79,7 @@ class ImageDesc
     }
 
     /// Free any resource buffer memory
-    void freeResourceBuffer()
-    {
-        if (resourceBuffer)
-        {
-            if (resourceBufferDeallocator)
-            {
-                resourceBufferDeallocator(resourceBuffer);
-            }
-            else
-            {
-                free(resourceBuffer);
-            }
-            resourceBuffer = nullptr;
-        }
-    }
+    void freeResourceBuffer();
 };
 
 /// Structure containing harware image description restrictions

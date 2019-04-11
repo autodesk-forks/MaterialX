@@ -35,7 +35,6 @@ bool GLTextureHandler::createColorImage(const Color4& color,
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, imageDesc.width, imageDesc.height, 0, GL_RGBA, GL_FLOAT, imageDesc.resourceBuffer);
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
-
         return true;
     }
     return false;
@@ -129,7 +128,6 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         glBindTexture(GL_TEXTURE_2D, 0);
 
         imageDesc.freeResourceBuffer();
-
         cacheImage(filePath, imageDesc);
         textureLoaded = true;
     }
@@ -143,6 +141,7 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         desc.height = 1;
         desc.baseType = ImageDesc::BASETYPE_FLOAT;
         createColorImage(*fallbackColor, desc);
+        desc.freeResourceBuffer();
         cacheImage(filePath, desc);
         textureLoaded = true;
     }
