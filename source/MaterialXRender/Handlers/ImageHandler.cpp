@@ -8,8 +8,6 @@
 #include <MaterialXRender/Handlers/ImageHandler.h>
 #include <cmath>
 
-#include <iostream>
-
 namespace MaterialX
 {
 string ImageDesc::BASETYPE_UINT8 = "UINT8";
@@ -191,7 +189,6 @@ void ImageHandler::clearImageCache()
 {
     for (auto iter : _imageCache)
     {
-        std::cout << "Free resources for image: " << iter.first << std::endl;
         deleteImage(iter.second);
     }
     _imageCache.clear();

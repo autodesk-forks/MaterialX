@@ -147,7 +147,6 @@ bool OiioImageLoader::acquireImage(const FilePath& filePath,
             imageDesc.resourceBuffer = imageBuf;
             imageDesc.resourceBufferDeallocator = [](void* buffer)
             {
-                std::cout << "Free OIIO image\n";
                 free(buffer);
             };
             read = true;
