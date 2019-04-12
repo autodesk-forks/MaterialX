@@ -288,7 +288,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
     }
 }
 
-TEST_CASE("Render: TestSuite", "[renderosl]")
+TEST_CASE("Render: OSL TestSuite", "[renderosl]")
 {
     // Test has been turned off so just do nothing.
     // Check for an option file

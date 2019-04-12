@@ -360,7 +360,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
     }
 }
 
-TEST_CASE("Render: TestSuite", "[renderglsl]")
+TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
 {
     // Test has been turned off so just do nothing.
     // Check for an option file
