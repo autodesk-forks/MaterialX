@@ -113,7 +113,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                               RenderUtil::ShaderValidProfileTimes& profileTimes,
                               const mx::FileSearchPath& imageSearchPath, const std::string& outputPath=".")
 {
-    RenderUtil::AdditiveScopedTimer totalGLSLTime(profileTimes.glslTimes.totalTime, "GLSL total time");
+    RenderUtil::AdditiveScopedTimer totalGLSLTime(profileTimes.languageTimes.totalTime, "GLSL total time");
 
     const mx::ShaderGenerator& shadergen = context.getShaderGenerator();
 
@@ -148,7 +148,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
 
             // Note: mkdir will fail if the directory already exists which is ok.
             {
-                RenderUtil::AdditiveScopedTimer ioDir(profileTimes.glslTimes.ioTime, "GLSL dir time");
+                RenderUtil::AdditiveScopedTimer ioDir(profileTimes.languageTimes.ioTime, "GLSL dir time");
                 outputFilePath.createDirectory();
             }
 
@@ -156,11 +156,11 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
             mx::ShaderPtr shader;
             try
             {
-                RenderUtil::AdditiveScopedTimer transpTimer(profileTimes.glslTimes.transparencyTime, "GLSL transparency time");
+                RenderUtil::AdditiveScopedTimer transpTimer(profileTimes.languageTimes.transparencyTime, "GLSL transparency time");
                 options.hwTransparency = mx::isTransparentSurface(element, shadergen);
                 transpTimer.endTimer();
 
-                RenderUtil::AdditiveScopedTimer generationTimer(profileTimes.glslTimes.generationTime, "GLSL generation time");
+                RenderUtil::AdditiveScopedTimer generationTimer(profileTimes.languageTimes.generationTime, "GLSL generation time");
                 mx::GenOptions& contextOptions = context.getOptions();
                 contextOptions = options;
                 contextOptions.fileTextureVerticalFlip = true;
@@ -186,7 +186,7 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
 
             if (testOptions.dumpGeneratedCode)
             {
-                RenderUtil::AdditiveScopedTimer dumpTimer(profileTimes.glslTimes.ioTime, "GLSL io time");
+                RenderUtil::AdditiveScopedTimer dumpTimer(profileTimes.languageTimes.ioTime, "GLSL io time");
                 std::ofstream file;
                 file.open(shaderPath + "_vs.glsl");
                 file << vertexSourceCode;
@@ -261,14 +261,14 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                 }
 
                 {
-                    RenderUtil::AdditiveScopedTimer compileTimer(profileTimes.glslTimes.compileTime, "GLSL compile time");
+                    RenderUtil::AdditiveScopedTimer compileTimer(profileTimes.languageTimes.compileTime, "GLSL compile time");
                     validator.validateCreation(shader);
                     validator.validateInputs();
                 }
 
                 if (testOptions.dumpGlslUniformsAndAttributes)
                 {
-                    RenderUtil::AdditiveScopedTimer printTimer(profileTimes.glslTimes.ioTime, "GLSL io time");
+                    RenderUtil::AdditiveScopedTimer printTimer(profileTimes.languageTimes.ioTime, "GLSL io time");
                     log << "* Uniform:" << std::endl;
                     program->printUniforms(log);
                     log << "* Attributes:" << std::endl;
@@ -319,14 +319,14 @@ static void runGLSLValidation(const std::string& shaderName, mx::TypedElementPtr
                 if (testOptions.renderImages)
                 {
                     {
-                        RenderUtil::AdditiveScopedTimer renderTimer(profileTimes.glslTimes.renderTime, "GLSL render time");
+                        RenderUtil::AdditiveScopedTimer renderTimer(profileTimes.languageTimes.renderTime, "GLSL render time");
                         validator.getImageHandler()->setSearchPath(imageSearchPath);
                         validator.validateRender(!isShader);
                     }
 
                     if (testOptions.saveImages)
                     {
-                        RenderUtil::AdditiveScopedTimer ioTimer(profileTimes.glslTimes.imageSaveTime, "GLSL image save time");
+                        RenderUtil::AdditiveScopedTimer ioTimer(profileTimes.languageTimes.imageSaveTime, "GLSL image save time");
                         std::string fileName = shaderPath + "_glsl.png";
                         validator.save(fileName, false);
                     }
@@ -371,7 +371,7 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
     {
         return;
     }
-    if (!options.runOSLTests)
+    if (!options.runGLSLTests)
     {
         return;
     }
@@ -382,15 +382,16 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
     RenderUtil::AdditiveScopedTimer totalTime(profileTimes.totalTime, "Global total time");
 
 #ifdef LOG_TO_FILE
-    std::ofstream glslLogfile("genglsl_render_test.txt");
-    std::ostream& glslLog(glslLogfile);
-    std::string docValidLogFilename = "genglsl_render_validate_doc_log.txt";
+    const std::string PREFIX("genglsl");
+   std::ofstream logfile(PREFIX + "_render_test.txt");
+    std::ostream& log(logfile);
+    std::string docValidLogFilename = PREFIX + "_render_validate_doc.txt";
     std::ofstream docValidLogFile(docValidLogFilename);
     std::ostream& docValidLog(docValidLogFile);
-    std::ofstream profilingLogfile("genglsl_render_profiling_log.txt");
+    std::ofstream profilingLogfile(PREFIX + "__render_profiling_log.txt");
     std::ostream& profilingLog(profilingLogfile);
 #else
-    std::ostream& glslLog(std::cout);
+    std::ostream& log(std::cout);
     std::string docValidLogFilename(std::out);
     std::ostream& docValidLog(std::cout);
     std::ostream& profilingLog(std::cout);
@@ -411,12 +412,6 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
     dirs = baseDirectory.getSubDirectories();
 
     ioTimer.endTimer();
-
-    // All tests have been turned off so just stop the test.
-    if (!options.runGLSLTests && !options.runOSLTests && !options.runOGSFXTests)
-    {
-        return;
-    }
 
     // Library search path
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
@@ -451,35 +446,30 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
     ioTimer.endTimer();
 
     // Create validators and generators
-    RenderUtil::AdditiveScopedTimer glslSetupTime(profileTimes.glslTimes.setupTime, "GLSL setup time");
+    RenderUtil::AdditiveScopedTimer setupTime(profileTimes.languageTimes.setupTime, "Setup time");
 
-    mx::GlslValidatorPtr glslValidator = createGLSLValidator("sphere.obj", glslLog);
-    mx::ShaderGeneratorPtr glslShaderGenerator = mx::GlslShaderGenerator::create();
+    mx::GlslValidatorPtr validator = createGLSLValidator("sphere.obj", log);
+    mx::ShaderGeneratorPtr shaderGenerator = mx::GlslShaderGenerator::create();
 
-    mx::ColorManagementSystemPtr glslColorManagementSystem = mx::DefaultColorManagementSystem::create(glslShaderGenerator->getLanguage());
-    glslColorManagementSystem->loadLibrary(dependLib);
-    glslShaderGenerator->setColorManagementSystem(glslColorManagementSystem);
+    mx::ColorManagementSystemPtr colorManagementSystem = mx::DefaultColorManagementSystem::create(shaderGenerator->getLanguage());
+    colorManagementSystem->loadLibrary(dependLib);
+    shaderGenerator->setColorManagementSystem(colorManagementSystem);
 
-    mx::GenContext glslContext(glslShaderGenerator);
-    glslContext.registerSourceCodeSearchPath(searchPath);
+    mx::GenContext context(shaderGenerator);
+    context.registerSourceCodeSearchPath(searchPath);
 
-    glslSetupTime.endTimer();
+    setupTime.endTimer();
 
     mx::CopyOptions importOptions;
     importOptions.skipDuplicateElements = true;
 
     mx::LightHandlerPtr glslLightHandler = nullptr;
-    if (options.runGLSLTests)
     {
-        RenderUtil::AdditiveScopedTimer glslSetupLightingTimer(profileTimes.glslTimes.setupTime, "GLSL setup lighting time");
-
-        if (glslShaderGenerator)
-        {
-            // Add lights as a dependency
-            glslLightHandler = mx::LightHandler::create();
-            RenderUtil::createLightRig(dependLib, *glslLightHandler, glslContext,
+        RenderUtil::AdditiveScopedTimer glslSetupLightingTimer(profileTimes.languageTimes.setupTime, "GLSL setup lighting time");
+        // Add lights as a dependency
+        glslLightHandler = mx::LightHandler::create();
+        RenderUtil::createLightRig(dependLib, *glslLightHandler, context,
                            options.radianceIBLPath, options.irradianceIBLPath);
-        }
     }
 
     // Map to replace "/" in Element path names with "_".
@@ -528,7 +518,7 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
 
             validateTimer.startTimer();
             std::cout << "Validating MTLX file: " << filename << std::endl;
-            glslLog << "MTLX Filename: " << filename << std::endl;
+            log << "MTLX Filename: " << filename << std::endl;
 
             // Validate the test document
             std::string validationErrors;
@@ -573,10 +563,9 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
                 {
                     mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
                     elementName = mx::createValidName(elementName);
-                    if (options.runGLSLTests)
                     {
                         renderableSearchTimer.startTimer();
-                        mx::InterfaceElementPtr impl = nodeDef->getImplementation(glslShaderGenerator->getTarget(), glslShaderGenerator->getLanguage());
+                        mx::InterfaceElementPtr impl = nodeDef->getImplementation(shaderGenerator->getTarget(), shaderGenerator->getLanguage());
                         renderableSearchTimer.endTimer();
                         if (impl)
                         {
@@ -586,7 +575,7 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
                                 mx::InterfaceElementPtr nodeGraphImpl = nodeGraph ? nodeGraph->getImplementation() : nullptr;
                                 usedImpls.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl->getName());
                             }
-                            runGLSLValidation(elementName, element, *glslValidator, glslContext, glslLightHandler, doc, glslLog, options, profileTimes, imageSearchPath, outputPath);
+                            runGLSLValidation(elementName, element, *validator, context, glslLightHandler, doc, log, options, profileTimes, imageSearchPath, outputPath);
                         }
                     }
                 }
@@ -596,8 +585,8 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
 
     // Dump out profiling information
     totalTime.endTimer();
-    printRunLog(profileTimes, options, usedImpls, profilingLog, dependLib, glslContext,
-        mx::GlslShaderGenerator::LANGUAGE);
+    printRunLog(profileTimes, options, usedImpls, profilingLog, dependLib, context,
+                mx::GlslShaderGenerator::LANGUAGE);
 }
 
 #endif

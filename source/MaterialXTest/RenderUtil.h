@@ -155,22 +155,17 @@ class ShaderValidProfileTimes
 public:
     void print(std::ostream& output) const
     {
-        output << "Overall time: " << totalTime << " seconds" << std::endl;
-        output << "\tOverhead time: " << (totalTime - glslTimes.totalTime - ogsfxTimes.totalTime - oslTimes.totalTime) << " seconds" << std::endl;
+        output << "Overall time: " << languageTimes.totalTime << " seconds" << std::endl;
         output << "\tI/O time: " << ioTime << " seconds" << std::endl;
         output << "\tValidation time: " << validateTime << " seconds" << std::endl;
         output << "\tRenderable search time: " << renderableSearchTime << " seconds" << std::endl;
 
-        glslTimes.print("GLSL Profile Times:", output);
-        oslTimes.print("OSL Profile Times:", output);
-        ogsfxTimes.print("OGSFX Profile Times:", output);
+        languageTimes.print("GLSL Profile Times:", output);
 
         output << "Elements tested: " << elementsTested << std::endl;
     }
 
-    LanguageProfileTimes glslTimes;
-    LanguageProfileTimes ogsfxTimes;
-    LanguageProfileTimes oslTimes;
+    LanguageProfileTimes languageTimes;
     double totalTime = 0;
     double ioTime = 0.0;
     double validateTime = 0.0;

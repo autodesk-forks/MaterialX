@@ -99,7 +99,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                              std::ostream& log, const RenderUtil::ShaderValidTestOptions& testOptions, RenderUtil::ShaderValidProfileTimes& profileTimes,
                              const mx::FileSearchPath& imageSearchPath, const std::string& outputPath=".")
 {
-    RenderUtil::AdditiveScopedTimer totalOSLTime(profileTimes.oslTimes.totalTime, "OSL total time");
+    RenderUtil::AdditiveScopedTimer totalOSLTime(profileTimes.languageTimes.totalTime, "OSL total time");
 
     const mx::ShaderGenerator& shadergen = context.getShaderGenerator();
 
@@ -128,7 +128,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             mx::ShaderPtr shader;
             try
             {
-                RenderUtil::AdditiveScopedTimer genTimer(profileTimes.oslTimes.generationTime, "OSL generation time");
+                RenderUtil::AdditiveScopedTimer genTimer(profileTimes.languageTimes.generationTime, "OSL generation time");
                 mx::GenOptions& contextOptions = context.getOptions();
                 contextOptions = options;
                 shader = shadergen.generate(shaderName, element, context);
@@ -156,7 +156,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 
             // Note: mkdir will fail if the directory already exists which is ok.
             {
-                RenderUtil::AdditiveScopedTimer ioDir(profileTimes.oslTimes.ioTime, "OSL dir time");
+                RenderUtil::AdditiveScopedTimer ioDir(profileTimes.languageTimes.ioTime, "OSL dir time");
                 outputFilePath.createDirectory();
             }
 
@@ -165,7 +165,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             // Write out osl file
             if (testOptions.dumpGeneratedCode)
             {
-                RenderUtil::AdditiveScopedTimer ioTimer(profileTimes.oslTimes.ioTime, "OSL io time");
+                RenderUtil::AdditiveScopedTimer ioTimer(profileTimes.languageTimes.ioTime, "OSL io time");
                 std::ofstream file;
                 file.open(shaderPath + ".osl");
                 file << shader->getSourceCode();
@@ -187,7 +187,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 
                 // Validate compilation
                 {
-                    RenderUtil::AdditiveScopedTimer compileTimer(profileTimes.oslTimes.compileTime, "OSL compile time");
+                    RenderUtil::AdditiveScopedTimer compileTimer(profileTimes.languageTimes.compileTime, "OSL compile time");
                     validator.validateCreation(shader);
                 }
 
@@ -252,7 +252,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 
                         // Validate rendering
                         {
-                            RenderUtil::AdditiveScopedTimer renderTimer(profileTimes.oslTimes.renderTime, "OSL render time");
+                            RenderUtil::AdditiveScopedTimer renderTimer(profileTimes.languageTimes.renderTime, "OSL render time");
                             validator.validateRender();
                         }
                     }
@@ -281,7 +281,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             }
             catch (mx::Exception& e)
             {
-                std::cout << e.what();
+                log << e.what();
             }
             CHECK(validated);
         }
@@ -310,15 +310,16 @@ TEST_CASE("Render: OSL TestSuite", "[renderosl]")
     RenderUtil::AdditiveScopedTimer totalTime(profileTimes.totalTime, "Global total time");
 
 #ifdef LOG_TO_FILE
-    std::ofstream oslLogfile("genosl_vanilla_render_test.txt");
-    std::ostream& oslLog(oslLogfile);
-    std::string docValidLogFilename = "genosl_vanilla_render_validate_doc.txt";
+    const std::string PREFIX("genosl_vanilla");
+    std::ofstream logfile(PREFIX + "_render_test.txt");
+    std::ostream& log(logfile);
+    std::string docValidLogFilename = PREFIX + "_render_validate_doc.txt";
     std::ofstream docValidLogFile(docValidLogFilename);
     std::ostream& docValidLog(docValidLogFile);
-    std::ofstream profilingLogfile("genosl_vanilla__render_profiling_log.txt");
+    std::ofstream profilingLogfile(PREFIX + "__render_profiling_log.txt");
     std::ostream& profilingLog(profilingLogfile);
 #else
-    std::ostream& oslLog(std::cout);
+    std::ostream& log(std::cout);
     std::string docValidLogFilename(std::out);
     std::ostream& docValidLog(std::cout);
     std::ostream& profilingLog(std::cout);
@@ -357,20 +358,20 @@ TEST_CASE("Render: OSL TestSuite", "[renderosl]")
     ioTimer.endTimer();
 
     // Create validators and generators
-    RenderUtil::AdditiveScopedTimer oslSetupTime(profileTimes.oslTimes.setupTime, "OSL setup time");
+    RenderUtil::AdditiveScopedTimer setupTime(profileTimes.languageTimes.setupTime, "Setup time");
 
-    mx::OslValidatorPtr oslValidator = createOSLValidator(oslLog);
-    mx::ShaderGeneratorPtr oslShaderGenerator = mx::OslShaderGenerator::create();
+    mx::OslValidatorPtr validator = createOSLValidator(log);
+    mx::ShaderGeneratorPtr shaderGenerator = mx::OslShaderGenerator::create();
 
-    mx::GenContext oslContext(oslShaderGenerator);
-    oslContext.registerSourceCodeSearchPath(searchPath);
-    oslContext.registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
+    mx::ColorManagementSystemPtr colorManagementSystem = mx::DefaultColorManagementSystem::create(shaderGenerator->getLanguage());
+    colorManagementSystem->loadLibrary(dependLib);
+    shaderGenerator->setColorManagementSystem(colorManagementSystem);
 
-    mx::ColorManagementSystemPtr oslColorManagementSystem = mx::DefaultColorManagementSystem::create(oslShaderGenerator->getLanguage());
-    oslColorManagementSystem->loadLibrary(dependLib);
-    oslShaderGenerator->setColorManagementSystem(oslColorManagementSystem);
+    mx::GenContext context(shaderGenerator);
+    context.registerSourceCodeSearchPath(searchPath);
+    context.registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
 
-    oslSetupTime.endTimer();
+    setupTime.endTimer();
 
     mx::CopyOptions importOptions;
     importOptions.skipDuplicateElements = true;
@@ -421,8 +422,7 @@ TEST_CASE("Render: OSL TestSuite", "[renderosl]")
 
             validateTimer.startTimer();
             std::cout << "Validating MTLX file: " << filename << std::endl;
-            if (options.runOSLTests)
-                oslLog << "MTLX Filename: " << filename << std::endl;
+            log << "MTLX Filename: " << filename << std::endl;
 
             // Validate the test document
             std::string validationErrors;
@@ -467,20 +467,19 @@ TEST_CASE("Render: OSL TestSuite", "[renderosl]")
                 {
                     mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
                     elementName = mx::createValidName(elementName);
-                    if (options.runOSLTests)
                     {
                         renderableSearchTimer.startTimer();
-                        mx::InterfaceElementPtr impl2 = nodeDef->getImplementation(oslShaderGenerator->getTarget(), oslShaderGenerator->getLanguage());
+                        mx::InterfaceElementPtr impl = nodeDef->getImplementation(shaderGenerator->getTarget(), shaderGenerator->getLanguage());
                         renderableSearchTimer.endTimer();
-                        if (impl2)
+                        if (impl)
                         {
                             if (options.checkImplCount)
                             {
-                                mx::NodeGraphPtr nodeGraph = impl2->asA<mx::NodeGraph>();
+                                mx::NodeGraphPtr nodeGraph = impl->asA<mx::NodeGraph>();
                                 mx::InterfaceElementPtr nodeGraphImpl = nodeGraph ? nodeGraph->getImplementation() : nullptr;
-                                usedImpls.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl2->getName());
+                                usedImpls.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl->getName());
                             }
-                            runOSLValidation(elementName, element, *oslValidator, oslContext, doc, oslLog, options, profileTimes, imageSearchPath, outputPath);
+                            runOSLValidation(elementName, element, *validator, context, doc, log, options, profileTimes, imageSearchPath, outputPath);
                         }
                     }
                 }
@@ -490,8 +489,7 @@ TEST_CASE("Render: OSL TestSuite", "[renderosl]")
 
     // Dump out profiling information
     totalTime.endTimer();
-
-    printRunLog(profileTimes, options, usedImpls, profilingLog, dependLib, oslContext,
+    printRunLog(profileTimes, options, usedImpls, profilingLog, dependLib, context,
                 mx::OslShaderGenerator::LANGUAGE);
 }
 
