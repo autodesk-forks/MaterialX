@@ -28,10 +28,10 @@ namespace mx = MaterialX;
 class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
 {
   public:
-    GlslShaderRenderTester()
+    GlslShaderRenderTester() :
+        _languageTargetString(mx::GlslShaderGenerator::LANGUAGE + "_" +
+        mx::GlslShaderGenerator::TARGET)
     {
-        _languageTargetString = mx::GlslShaderGenerator::LANGUAGE + "_" +
-                                mx::GlslShaderGenerator::TARGET;
     }
 
   protected:
