@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
    Test suite options file which is parsed when the "render" category units tests are executed.
-    
+
    Execution uses existing code generator instances to produce the code and corresponding validator
    instance to check the validity of the generated code by compiling and/or rendering
-   the code to produce images on disk. 
-   
-   Input uniform and stream checking as well as node implementation coverage and profiling 
+   the code to produce images on disk.
+
+   Input uniform and stream checking as well as node implementation coverage and profiling
    can also be performed depending on the options enabled.
 -->
 <materialx version="1.36">

@@ -213,7 +213,7 @@ class ShaderRenderTester
 {
   public:
     ShaderRenderTester() {};
-    ~ShaderRenderTester() {};
+    virtual ~ShaderRenderTester() {};
     bool validate();
 
   protected:
@@ -225,7 +225,7 @@ class ShaderRenderTester
 
     // Load any addition libraries requird by the generator
     virtual void loadLibraries(mx::DocumentPtr /*dependLib*/,
-        RenderUtil::RenderTestOptions& /*options*/) {};
+                               RenderUtil::RenderTestOptions& /*options*/) {};
 
     //
     // Code generation methods
@@ -236,8 +236,8 @@ class ShaderRenderTester
     virtual void registerSourceCodeSearchPaths(mx::GenContext& /*context*/) {};
     // Register any lights used by the generation context
     virtual void registerLights(mx::DocumentPtr /*dependLib*/, 
-        const RenderUtil::RenderTestOptions &/*options*/,
-        mx::GenContext& /*context*/) {};
+                                const RenderUtil::RenderTestOptions &/*options*/,
+                                mx::GenContext& /*context*/) {};
 
     //
     // Code validation methods (compile and render)
@@ -263,18 +263,26 @@ class ShaderRenderTester
 
     // Get implemenation "whitelist" for those implementations that have
     // been skipped for checking
-    virtual void getImplementationWhiteList(mx::StringVec& whiteList) = 0;
+    virtual void getImplementationWhiteList(mx::StringSet& whiteList) = 0;
 
-    // Print summary of run
+    // Check to see that all implemenations have been tested for a given
+    // lanuage.
+    void checkImplementationUsage(const std::string& language,
+                                  mx::StringSet& usedImpls,
+                                  mx::DocumentPtr dependLib,
+                                  mx::GenContext& context,
+                                  std::ostream& stream);
+
+    // Print execution summary 
     void printRunLog(const RenderProfileTimes &profileTimes,
                      const RenderTestOptions& options,
                      mx::StringSet& usedImpls,
-                     std::ostream& profilingLog,
+                     std::ostream& stream,
                      mx::DocumentPtr dependLib,
                      mx::GenContext& context,
                      const std::string& language);
 
-    // Generator used
+    // Generator to use
     mx::ShaderGeneratorPtr _shaderGenerator;
 };
 

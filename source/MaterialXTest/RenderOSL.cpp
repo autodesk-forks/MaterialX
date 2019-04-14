@@ -52,7 +52,7 @@ class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
         const mx::FileSearchPath& imageSearchPath,
         const std::string& outputPath = ".") override;
     
-    void getImplementationWhiteList(mx::StringVec& whiteList) override;
+    void getImplementationWhiteList(mx::StringSet& whiteList) override;
 
     std::string _languageTargetString = "genosl_vanilla";
     mx::OslValidatorPtr _validator;
@@ -307,7 +307,7 @@ bool OslShaderRenderTester::runValidator(
     return true;
 }
 
-void OslShaderRenderTester::getImplementationWhiteList(mx::StringVec& whiteList)
+void OslShaderRenderTester::getImplementationWhiteList(mx::StringSet& whiteList)
 {
     whiteList = {
         "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",

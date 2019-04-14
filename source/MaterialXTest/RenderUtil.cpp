@@ -219,87 +219,108 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
     return false;
 }
 
-void ShaderRenderTester::printRunLog(const RenderProfileTimes &profileTimes,
-    const RenderTestOptions& options,
-    mx::StringSet& usedImpls,
-    std::ostream& profilingLog,
-    mx::DocumentPtr dependLib,
-    mx::GenContext& context,
-    const std::string& language)
+void ShaderRenderTester::checkImplementationUsage(const std::string& language,
+                                                  mx::StringSet& usedImpls,
+                                                  mx::DocumentPtr dependLib,
+                                                  mx::GenContext& context,
+                                                  std::ostream& stream)
 {
-    profileTimes.print(profilingLog);
+    // Get list of implementations a given langauge. 
+    std::set<mx::ImplementationPtr> libraryImpls;
+    const std::vector<mx::ElementPtr>& children = dependLib->getChildren();
+    for (auto child : children)
+    {
+        mx::ImplementationPtr impl = child->asA<mx::Implementation>();
+        if (!impl)
+        {
+            continue;
+        }
 
-    profilingLog << "---------------------------------------" << std::endl;
-    options.print(profilingLog);
+        if (impl->getLanguage() == language)
+        {
+            libraryImpls.insert(impl);
+        }
+    }
+
+    mx::StringSet whiteList;
+    getImplementationWhiteList(whiteList);
+
+    unsigned int implementationUseCount = 0;
+    mx::StringVec skippedImplementations;
+    mx::StringVec missedImplementations;
+    for (auto libraryImpl : libraryImpls)
+    {
+        const std::string& implName = libraryImpl->getName();
+
+        // Skip white-list items
+        bool inWhiteList = false;
+        for (auto w : whiteList)
+        {
+            if (implName.find(w) != std::string::npos)
+            {
+                inWhiteList = true;
+                break;
+            }
+        }
+        if (inWhiteList)
+        {
+            skippedImplementations.push_back(implName);
+            implementationUseCount++;
+            continue;
+        }
+
+        if (usedImpls.count(implName))
+        {
+            implementationUseCount++;
+            continue;
+        }
+
+        if (context.findNodeImplementation(implName))
+        {
+            implementationUseCount++;
+            continue;
+        }
+        missedImplementations.push_back(implName);
+    }
+
+    size_t libraryCount = libraryImpls.size();
+    stream << "Tested: " << implementationUseCount << " out of: " << libraryCount << " library implementations." << std::endl;
+    stream << "Skipped: " << skippedImplementations.size() << " implementations." << std::endl;
+    if (skippedImplementations.size())
+    {
+        for (auto implName : skippedImplementations)
+        {
+            stream << "\t" << implName << std::endl;
+        }
+    }
+    stream << "Untested: " << missedImplementations.size() << " implementations." << std::endl;
+    if (missedImplementations.size())
+    {
+        for (auto implName : missedImplementations)
+        {
+            stream << "\t" << implName << std::endl;
+        }
+        CHECK(implementationUseCount == libraryCount);
+    }
+}
+
+void ShaderRenderTester::printRunLog(const RenderProfileTimes &profileTimes,
+                                    const RenderTestOptions& options,
+                                    mx::StringSet& usedImpls,
+                                    std::ostream& stream,
+                                    mx::DocumentPtr dependLib,
+                                    mx::GenContext& context,
+                                    const std::string& language)
+{
+    profileTimes.print(stream);
+
+    stream << "---------------------------------------" << std::endl;
+    options.print(stream);
 
     if (options.checkImplCount)
     {
-        profilingLog << "---------------------------------------" << std::endl;
-
-        // Get implementation count from libraries. 
-        std::set<mx::ImplementationPtr> libraryImpls;
-        const std::vector<mx::ElementPtr>& children = dependLib->getChildren();
-        for (auto child : children)
-        {
-            mx::ImplementationPtr impl = child->asA<mx::Implementation>();
-            if (!impl)
-            {
-                continue;
-            }
-
-            // Only check implementations for languages we're interested in and
-            // are testing.
-            // 
-            if (impl->getLanguage() == language)
-            {
-                libraryImpls.insert(impl);
-            }
-        }
-
-        size_t skipCount = 0;
-        profilingLog << "-- Possibly missed implementations ----" << std::endl;
-        mx::StringVec whiteList;
-        getImplementationWhiteList(whiteList);
-        
-        unsigned int implementationUseCount = 0;
-        for (auto libraryImpl : libraryImpls)
-        {
-            const std::string& implName = libraryImpl->getName();
-
-            // Skip white-list items
-            bool inWhiteList = false;
-            for (auto w : whiteList)
-            {
-                if (implName.find(w) != std::string::npos)
-                {
-                    skipCount++;
-                    inWhiteList = true;
-                    break;
-                }
-            }
-            if (inWhiteList)
-            {
-                implementationUseCount++;
-                continue;
-            }
-
-            if (usedImpls.count(implName))
-            {
-                implementationUseCount++;
-                continue;
-            }
-
-            if (context.findNodeImplementation(implName))
-            {
-                implementationUseCount++;
-                continue;
-            }
-            profilingLog << "\t" << implName << std::endl;
-        }
-        size_t libraryCount = libraryImpls.size();
-        profilingLog << "Tested: " << implementationUseCount << " out of: " << libraryCount << " library implementations." << std::endl;
-        // Enable when implementations and testing are complete
-        // CHECK(implementationUseCount == libraryCount);
+        stream << "---------------------------------------" << std::endl;
+        checkImplementationUsage(language, usedImpls, dependLib, context, stream);
     }
 }
 

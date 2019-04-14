@@ -67,7 +67,7 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
         const mx::FileSearchPath& imageSearchPath,
         const std::string& outputPath = ".") override;
 
-    void getImplementationWhiteList(mx::StringVec& whiteList) override;
+    void getImplementationWhiteList(mx::StringSet& whiteList) override;
 
     std::string _languageTargetString;
     mx::GlslValidatorPtr _validator;
@@ -416,12 +416,11 @@ bool GlslShaderRenderTester::runValidator(
     return true;
 }
 
-void GlslShaderRenderTester::getImplementationWhiteList(mx::StringVec& whiteList)
+void GlslShaderRenderTester::getImplementationWhiteList(mx::StringSet& whiteList)
 {
-    whiteList = {
-        "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
-        "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue"
-    };
+    const mx::StringVec list = { "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
+        "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue" };
+    whiteList.insert(list.begin(), list.end());
 }
 
 TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
