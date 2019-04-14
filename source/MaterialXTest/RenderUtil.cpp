@@ -5,6 +5,7 @@
 
 
 #include <MaterialXTest/RenderUtil.h>
+#include <MaterialXTest/Catch/catch.hpp>
 
 namespace mx = MaterialX;
 
@@ -280,6 +281,214 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes,
         // Enable when implementations and testing are complete
         // CHECK(implementationUseCount == libraryCount);
     }
+}
+
+bool ShaderRenderTester::testRender()
+{
+    // Test has been turned off so just do nothing.
+    // Check for an option file
+    mx::FilePath path = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");
+    const mx::FilePath optionsPath = path / mx::FilePath("_options.mtlx");
+    RenderUtil::ShaderValidTestOptions options;
+    if (!getTestOptions(optionsPath, options))
+    {
+        return false;
+    }
+    bool run = runTest(options);
+    if (!run)
+    {
+        return false;
+    }
+
+    // Profiling times
+    RenderUtil::ShaderValidProfileTimes profileTimes;
+    // Global setup timer
+    RenderUtil::AdditiveScopedTimer totalTime(profileTimes.totalTime, "Global total time");
+
+#ifdef LOG_TO_FILE
+    const std::string prefex = logPrefixName();
+    std::ofstream logfile(prefex + "_render_test.txt");
+    std::ostream& log(logfile);
+    std::string docValidLogFilename = prefex + "_render_validate_doc.txt";
+    std::ofstream docValidLogFile(docValidLogFilename);
+    std::ostream& docValidLog(docValidLogFile);
+    std::ofstream profilingLogfile(prefex + "__render_profiling_log.txt");
+    std::ostream& profilingLog(profilingLogfile);
+#else
+    std::ostream& log(std::cout);
+    std::string docValidLogFilename = "std::cout";
+    std::ostream& docValidLog(std::cout);
+    std::ostream& profilingLog(std::cout);
+#endif
+
+    // For debugging, add files to this set to override
+    // which files in the test suite are being tested.
+    // Add only the test suite filename not the full path.
+    mx::StringSet testfileOverride;
+    for (auto filterFile : options.overrideFiles)
+    {
+        testfileOverride.insert(filterFile);
+    }
+
+    RenderUtil::AdditiveScopedTimer ioTimer(profileTimes.ioTime, "Global I/O time");
+    mx::FilePathVec dirs;
+    mx::FilePath baseDirectory = path;
+    dirs = baseDirectory.getSubDirectories();
+
+    ioTimer.endTimer();
+
+    // Library search path
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
+
+    // Load in the library dependencies once
+    // This will be imported in each test document below
+    ioTimer.startTimer();
+    mx::DocumentPtr dependLib = mx::createDocument();
+    mx::StringSet excludeFiles;
+    // Make this generic --- TODO 
+    //excludeFiles.insert("stdlib_" + mx::GlslShaderGenerator::LANGUAGE + "_impl.mtlx");
+    //excludeFiles.insert("stdlib_" + mx::GlslShaderGenerator::LANGUAGE + "_ogsfx_impl.mtlx");
+
+    const mx::StringVec libraries = { "stdlib", "pbrlib" };
+    GenShaderUtil::loadLibraries(libraries, searchPath, dependLib, &excludeFiles);
+    GenShaderUtil::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/bxdf/standard_surface.mtlx"), dependLib);
+    ioTimer.endTimer();
+
+    // Create validators and generators
+    RenderUtil::AdditiveScopedTimer setupTime(profileTimes.languageTimes.setupTime, "Setup time");
+
+    createShaderGenerator();
+    createValidator(log);
+
+    mx::ColorManagementSystemPtr colorManagementSystem = mx::DefaultColorManagementSystem::create(_shaderGenerator->getLanguage());
+    colorManagementSystem->loadLibrary(dependLib);
+    _shaderGenerator->setColorManagementSystem(colorManagementSystem);
+
+    mx::GenContext context(_shaderGenerator);
+    context.registerSourceCodeSearchPath(searchPath);
+    registerSourceCodeSearchPaths(context);
+
+    setupTime.endTimer();
+
+    mx::CopyOptions importOptions;
+    importOptions.skipDuplicateElements = true;
+
+    // Map to replace "/" in Element path names with "_".
+    mx::StringMap pathMap;
+    pathMap["/"] = "_";
+
+    RenderUtil::AdditiveScopedTimer validateTimer(profileTimes.validateTime, "Global validation time");
+    RenderUtil::AdditiveScopedTimer renderableSearchTimer(profileTimes.renderableSearchTime, "Global renderable search time");
+
+    mx::StringSet usedImpls;
+
+    const std::string MTLX_EXTENSION("mtlx");
+    const std::string OPTIONS_FILENAME("_options.mtlx");
+    for (auto dir : dirs)
+    {
+        ioTimer.startTimer();
+        mx::FilePathVec files;
+        files = dir.getFilesInDirectory(MTLX_EXTENSION);
+        ioTimer.endTimer();
+
+        for (const std::string& file : files)
+        {
+
+            if (file == OPTIONS_FILENAME)
+            {
+                continue;
+            }
+
+            ioTimer.startTimer();
+            // Check if a file override set is used and ignore all files
+            // not part of the override set
+            if (testfileOverride.size() && testfileOverride.count(file) == 0)
+            {
+                ioTimer.endTimer();
+                continue;
+            }
+
+            const mx::FilePath filePath = mx::FilePath(dir) / mx::FilePath(file);
+            const std::string filename = filePath;
+
+            mx::DocumentPtr doc = mx::createDocument();
+            mx::readFromXmlFile(doc, filename, dir);
+
+            doc->importLibrary(dependLib, &importOptions);
+            ioTimer.endTimer();
+
+            validateTimer.startTimer();
+            std::cout << "Validating MTLX file: " << filename << std::endl;
+            log << "MTLX Filename: " << filename << std::endl;
+
+            // Validate the test document
+            std::string validationErrors;
+            bool validDoc = doc->validate(&validationErrors);
+            if (!validDoc)
+            {
+                docValidLog << filename << std::endl;
+                docValidLog << validationErrors << std::endl;
+            }
+            validateTimer.endTimer();
+            CHECK(validDoc);
+
+            renderableSearchTimer.startTimer();
+            std::vector<mx::TypedElementPtr> elements;
+            try
+            {
+                mx::findRenderableElements(doc, elements);
+            }
+            catch (mx::Exception& e)
+            {
+                docValidLog << e.what() << std::endl;
+                WARN("Find renderable elements failed, see: " + docValidLogFilename + " for details.");
+            }
+            renderableSearchTimer.endTimer();
+
+            std::string outputPath = mx::FilePath(dir) / mx::FilePath(mx::removeExtension(file));
+            mx::FileSearchPath imageSearchPath(dir);
+            for (auto element : elements)
+            {
+                mx::OutputPtr output = element->asA<mx::Output>();
+                mx::ShaderRefPtr shaderRef = element->asA<mx::ShaderRef>();
+                mx::NodeDefPtr nodeDef = nullptr;
+                if (output)
+                {
+                    nodeDef = output->getConnectedNode()->getNodeDef();
+                }
+                else if (shaderRef)
+                {
+                    nodeDef = shaderRef->getNodeDef();
+                }
+                if (nodeDef)
+                {
+                    mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
+                    elementName = mx::createValidName(elementName);
+                    {
+                        renderableSearchTimer.startTimer();
+                        mx::InterfaceElementPtr impl = nodeDef->getImplementation(_shaderGenerator->getTarget(), _shaderGenerator->getLanguage());
+                        renderableSearchTimer.endTimer();
+                        if (impl)
+                        {
+                            if (options.checkImplCount)
+                            {
+                                mx::NodeGraphPtr nodeGraph = impl->asA<mx::NodeGraph>();
+                                mx::InterfaceElementPtr nodeGraphImpl = nodeGraph ? nodeGraph->getImplementation() : nullptr;
+                                usedImpls.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl->getName());
+                            }
+                            runValidator(elementName, element, context, doc, log, options, profileTimes, imageSearchPath, outputPath);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Dump out profiling information
+    totalTime.endTimer();
+    printRunLog(profileTimes, options, usedImpls, profilingLog, dependLib, context,
+        _shaderGenerator->getLanguage());
+    return true;
 }
 
 } // namespace RenderUtil

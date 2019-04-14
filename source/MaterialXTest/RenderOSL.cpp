@@ -7,78 +7,91 @@
 
 #include <MaterialXRender/HardwarePlatform.h>
 
-#include <MaterialXTest/Catch/catch.hpp>
-#include <MaterialXTest/GenShaderUtil.h>
-
-#include <MaterialXCore/Document.h>
-
-#include <MaterialXFormat/XmlIo.h>
-
-#include <MaterialXGenShader/Util.h>
-#include <MaterialXGenShader/HwShaderGenerator.h>
-#include <MaterialXGenShader/DefaultColorManagementSystem.h>
-#include <MaterialXRender/Handlers/LightHandler.h>
-#include <MaterialXRender/Util.h>
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
-
 #include <MaterialXGenOsl/OslShaderGenerator.h>
 #include <MaterialXRenderOsl/OslValidator.h>
 
-#ifdef MATERIALX_BUILD_CONTRIB
-#include <MaterialXContrib/Handlers/TinyEXRImageLoader.h>
-#endif
-#ifdef MATERIALX_BUILD_OIIO
-#include <MaterialXRender/Handlers/OiioImageLoader.h>
-#endif
-#include <MaterialXRender/Handlers/StbImageLoader.h>
-
-#include <MaterialXRender/Handlers/GeometryHandler.h>
-#include <MaterialXRender/Handlers/TinyObjLoader.h>
-
-#include <fstream>
-#include <iostream>
-#include <unordered_set>
-
+#include <MaterialXTest/Catch/catch.hpp>
 #include <MaterialXTest/RenderUtil.h>
+
+//#include <fstream>
+//#include <iostream>
 
 namespace mx = MaterialX;
 
-#define LOG_TO_FILE
+class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
+{
+  protected:
+    bool runTest(const RenderUtil::ShaderValidTestOptions& testOptions) const override
+    {
+        return (testOptions.runOSLTests);
+    }
+
+    const std::string& logPrefixName() override
+    {
+        return _prefixString;
+    }
+    
+    void createShaderGenerator() override
+    {
+        _shaderGenerator = mx::OslShaderGenerator::create();
+    }
+
+    void registerSourceCodeSearchPaths(mx::GenContext& context) override
+    {
+        mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
+        context.registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
+    }
+
+    void createValidator(std::ostream& log) override;
+
+    bool runValidator(const std::string& shaderName,
+        mx::TypedElementPtr element,
+        mx::GenContext& context,
+        mx::DocumentPtr doc,
+        std::ostream& log,
+        const RenderUtil::ShaderValidTestOptions& testOptions,
+        RenderUtil::ShaderValidProfileTimes& profileTimes,
+        const mx::FileSearchPath& imageSearchPath,
+        const std::string& outputPath = ".") override;
+    
+    std::string _prefixString = "genosl_vanilla";
+    mx::OslValidatorPtr _validator;
+};
 
 // Validator setup
-static mx::OslValidatorPtr createOSLValidator(std::ostream& log)
+void OslShaderRenderTester::createValidator(std::ostream& log)
 {
     bool initialized = false;
 
-    mx::OslValidatorPtr validator = mx::OslValidator::create();
+    _validator = mx::OslValidator::create();
     const std::string oslcExecutable(MATERIALX_OSLC_EXECUTABLE);
-    validator->setOslCompilerExecutable(oslcExecutable);
+    _validator->setOslCompilerExecutable(oslcExecutable);
     const std::string testRenderExecutable(MATERIALX_TESTRENDER_EXECUTABLE);
-    validator->setOslTestRenderExecutable(testRenderExecutable);
-    validator->setOslIncludePath(mx::FilePath(MATERIALX_OSL_INCLUDE_PATH));
+    _validator->setOslTestRenderExecutable(testRenderExecutable);
+    _validator->setOslIncludePath(mx::FilePath(MATERIALX_OSL_INCLUDE_PATH));
     try
     {
-        validator->initialize();
-        validator->setImageHandler(nullptr);
-        validator->setLightHandler(nullptr);
+        _validator->initialize();
+        _validator->setImageHandler(nullptr);
+        _validator->setLightHandler(nullptr);
         initialized = true;
 
         // Pre-compile some required shaders for testrender
         if (!oslcExecutable.empty() && !testRenderExecutable.empty())
         {
             mx::FilePath shaderPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite/Utilities/");
-            validator->setOslOutputFilePath(shaderPath);
+            _validator->setOslOutputFilePath(shaderPath);
 
             const std::string OSL_EXTENSION("osl");
             mx::FilePathVec files = shaderPath.getFilesInDirectory(OSL_EXTENSION);
             for (auto file : files)
             {
                 mx::FilePath filePath = shaderPath / file;
-                validator->compileOSL(filePath.asString());
+                _validator->compileOSL(filePath.asString());
             }
 
             // Set the search path for these compiled shaders.
-            validator->setOslUtilityOSOPath(shaderPath);
+            _validator->setOslUtilityOSOPath(shaderPath);
         }
     }
     catch (mx::ExceptionShaderValidationError& e)
@@ -89,15 +102,19 @@ static mx::OslValidatorPtr createOSLValidator(std::ostream& log)
         }
     }
     REQUIRE(initialized);
-
-    return validator;
 }
 
 // Validator execution
-static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr element,
-                             mx::OslValidator& validator, mx::GenContext& context, mx::DocumentPtr doc,
-                             std::ostream& log, const RenderUtil::ShaderValidTestOptions& testOptions, RenderUtil::ShaderValidProfileTimes& profileTimes,
-                             const mx::FileSearchPath& imageSearchPath, const std::string& outputPath=".")
+bool OslShaderRenderTester::runValidator(
+                         const std::string& shaderName,
+                         mx::TypedElementPtr element,
+                         mx::GenContext& context, 
+                         mx::DocumentPtr doc,
+                         std::ostream& log, 
+                         const RenderUtil::ShaderValidTestOptions& testOptions, 
+                         RenderUtil::ShaderValidProfileTimes& profileTimes,
+                         const mx::FileSearchPath& imageSearchPath, 
+                         const std::string& outputPath)
 {
     RenderUtil::AdditiveScopedTimer totalOSLTime(profileTimes.languageTimes.totalTime, "OSL total time");
 
@@ -110,7 +127,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
         if (!element->validate(&message))
         {
             log << "Element is invalid: " << message << std::endl;
-            return;
+            return false;
         }
     }
 
@@ -142,7 +159,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             if (shader == nullptr)
             {
                 log << ">> Failed to generate shader\n";
-                return;
+                return false;
             }
             CHECK(shader->getSourceCode().length() > 0);
 
@@ -174,7 +191,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
 
             if (!testOptions.compileCode)
             {
-                return;
+                return false;
             }
 
             // Validate
@@ -182,13 +199,13 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             try
             {
                 // Set output path and shader name
-                validator.setOslOutputFilePath(outputFilePath);
-                validator.setOslShaderName(shaderName);
+                _validator->setOslOutputFilePath(outputFilePath);
+                _validator->setOslShaderName(shaderName);
 
                 // Validate compilation
                 {
                     RenderUtil::AdditiveScopedTimer compileTimer(profileTimes.languageTimes.compileTime, "OSL compile time");
-                    validator.validateCreation(shader);
+                    _validator->validateCreation(shader);
                 }
 
                 if (testOptions.renderImages)
@@ -227,7 +244,7 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                             }
                         }
                     }
-                    validator.setShaderParameterOverrides(overrides);
+                    _validator->setShaderParameterOverrides(overrides);
 
                     const mx::VariableBlock& outputs = stage.getOutputBlock(mx::OSL::OUTPUTS);
                     if (outputs.size() > 0)
@@ -243,17 +260,17 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
                         const std::string& sceneTemplateFile = mx::elementRequiresShading(element) ? SHADING_SCENE_FILE : NON_SHADING_SCENE_FILE;
 
                         // Set shader output name and type to use
-                        validator.setOslShaderOutput(outputName, outputType);
+                        _validator->setOslShaderOutput(outputName, outputType);
 
                         // Set scene template file. For now we only have the constant color scene file
                         mx::FilePath sceneTemplatePath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite/Utilities/");
                         sceneTemplatePath = sceneTemplatePath / sceneTemplateFile;
-                        validator.setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
+                        _validator->setOslTestRenderSceneTemplateFile(sceneTemplatePath.asString());
 
                         // Validate rendering
                         {
                             RenderUtil::AdditiveScopedTimer renderTimer(profileTimes.languageTimes.renderTime, "OSL render time");
-                            validator.validateRender();
+                            _validator->validateRender();
                         }
                     }
                     else
@@ -286,211 +303,16 @@ static void runOSLValidation(const std::string& shaderName, mx::TypedElementPtr 
             CHECK(validated);
         }
     }
+
+    return true;
 }
+
 
 TEST_CASE("Render: OSL TestSuite", "[renderosl]")
 {
-    // Test has been turned off so just do nothing.
-    // Check for an option file
-    mx::FilePath path = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");
-    const mx::FilePath optionsPath = path / mx::FilePath("_options.mtlx");
-    RenderUtil::ShaderValidTestOptions options;
-    if (!getTestOptions(optionsPath, options))
-    {
-        return;
-    }
-    if (!options.runOSLTests)
-    {
-        return;
-    }
-
-    // Profiling times
-    RenderUtil::ShaderValidProfileTimes profileTimes;
-    // Global setup timer
-    RenderUtil::AdditiveScopedTimer totalTime(profileTimes.totalTime, "Global total time");
-
-#ifdef LOG_TO_FILE
-    const std::string PREFIX("genosl_vanilla");
-    std::ofstream logfile(PREFIX + "_render_test.txt");
-    std::ostream& log(logfile);
-    std::string docValidLogFilename = PREFIX + "_render_validate_doc.txt";
-    std::ofstream docValidLogFile(docValidLogFilename);
-    std::ostream& docValidLog(docValidLogFile);
-    std::ofstream profilingLogfile(PREFIX + "__render_profiling_log.txt");
-    std::ostream& profilingLog(profilingLogfile);
-#else
-    std::ostream& log(std::cout);
-    std::string docValidLogFilename(std::out);
-    std::ostream& docValidLog(std::cout);
-    std::ostream& profilingLog(std::cout);
-#endif
-
-    // For debugging, add files to this set to override
-    // which files in the test suite are being tested.
-    // Add only the test suite filename not the full path.
-    mx::StringSet testfileOverride;
-    for (auto filterFile : options.overrideFiles)
-    {
-        testfileOverride.insert(filterFile);
-    }
-
-    RenderUtil::AdditiveScopedTimer ioTimer(profileTimes.ioTime, "Global I/O time");
-    mx::FilePathVec dirs;
-    mx::FilePath baseDirectory = path;
-    dirs = baseDirectory.getSubDirectories();
-
-    ioTimer.endTimer();
-
-    // Library search path
-    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
-
-    // Load in the library dependencies once
-    // This will be imported in each test document below
-    ioTimer.startTimer();
-    mx::DocumentPtr dependLib = mx::createDocument();
-    mx::StringSet excludeFiles;
-    excludeFiles.insert("stdlib_" + mx::GlslShaderGenerator::LANGUAGE + "_impl.mtlx");
-    excludeFiles.insert("stdlib_" + mx::GlslShaderGenerator::LANGUAGE + "_ogsfx_impl.mtlx");
-
-    const mx::StringVec libraries = { "stdlib", "pbrlib" };
-    GenShaderUtil::loadLibraries(libraries, searchPath, dependLib, &excludeFiles);
-    GenShaderUtil::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/bxdf/standard_surface.mtlx"), dependLib);
-    ioTimer.endTimer();
-
-    // Create validators and generators
-    RenderUtil::AdditiveScopedTimer setupTime(profileTimes.languageTimes.setupTime, "Setup time");
-
-    mx::OslValidatorPtr validator = createOSLValidator(log);
-    mx::ShaderGeneratorPtr shaderGenerator = mx::OslShaderGenerator::create();
-
-    mx::ColorManagementSystemPtr colorManagementSystem = mx::DefaultColorManagementSystem::create(shaderGenerator->getLanguage());
-    colorManagementSystem->loadLibrary(dependLib);
-    shaderGenerator->setColorManagementSystem(colorManagementSystem);
-
-    mx::GenContext context(shaderGenerator);
-    context.registerSourceCodeSearchPath(searchPath);
-    context.registerSourceCodeSearchPath(searchPath / mx::FilePath("stdlib/osl"));
-
-    setupTime.endTimer();
-
-    mx::CopyOptions importOptions;
-    importOptions.skipDuplicateElements = true;
-
-    // Map to replace "/" in Element path names with "_".
-    mx::StringMap pathMap;
-    pathMap["/"] = "_";
-
-    RenderUtil::AdditiveScopedTimer validateTimer(profileTimes.validateTime, "Global validation time");
-    RenderUtil::AdditiveScopedTimer renderableSearchTimer(profileTimes.renderableSearchTime, "Global renderable search time");
-
-    mx::StringSet usedImpls;
-
-    const std::string MTLX_EXTENSION("mtlx");
-    const std::string OPTIONS_FILENAME("_options.mtlx");
-    for (auto dir : dirs)
-    {
-        ioTimer.startTimer();
-        mx::FilePathVec files;
-        files = dir.getFilesInDirectory(MTLX_EXTENSION);
-        ioTimer.endTimer();
-
-        for (const std::string& file : files)
-        {
-
-            if (file == OPTIONS_FILENAME)
-            {
-                continue;
-            }
-
-            ioTimer.startTimer();
-            // Check if a file override set is used and ignore all files
-            // not part of the override set
-            if (testfileOverride.size() && testfileOverride.count(file) == 0)
-            {
-                ioTimer.endTimer();
-                continue;
-            }
-
-            const mx::FilePath filePath = mx::FilePath(dir) / mx::FilePath(file);
-            const std::string filename = filePath;
-
-            mx::DocumentPtr doc = mx::createDocument();
-            mx::readFromXmlFile(doc, filename, dir);
-
-            doc->importLibrary(dependLib, &importOptions);
-            ioTimer.endTimer();
-
-            validateTimer.startTimer();
-            std::cout << "Validating MTLX file: " << filename << std::endl;
-            log << "MTLX Filename: " << filename << std::endl;
-
-            // Validate the test document
-            std::string validationErrors;
-            bool validDoc = doc->validate(&validationErrors);
-            if (!validDoc)
-            {
-                docValidLog << filename << std::endl;
-                docValidLog << validationErrors << std::endl;
-            }
-            validateTimer.endTimer();
-            CHECK(validDoc);
-
-            renderableSearchTimer.startTimer();
-            std::vector<mx::TypedElementPtr> elements;
-            try
-            {
-                mx::findRenderableElements(doc, elements);
-            }
-            catch (mx::Exception& e)
-            {
-                docValidLog << e.what() << std::endl;
-                WARN("Find renderable elements failed, see: " + docValidLogFilename + " for details.");
-            }
-            renderableSearchTimer.endTimer();
-
-            std::string outputPath = mx::FilePath(dir) / mx::FilePath(mx::removeExtension(file));
-            mx::FileSearchPath imageSearchPath(dir);
-            for (auto element : elements)
-            {
-                mx::OutputPtr output = element->asA<mx::Output>();
-                mx::ShaderRefPtr shaderRef = element->asA<mx::ShaderRef>();
-                mx::NodeDefPtr nodeDef = nullptr;
-                if (output)
-                {
-                    nodeDef = output->getConnectedNode()->getNodeDef();
-                }
-                else if (shaderRef)
-                {
-                    nodeDef = shaderRef->getNodeDef();
-                }
-                if (nodeDef)
-                {
-                    mx::string elementName = mx::replaceSubstrings(element->getNamePath(), pathMap);
-                    elementName = mx::createValidName(elementName);
-                    {
-                        renderableSearchTimer.startTimer();
-                        mx::InterfaceElementPtr impl = nodeDef->getImplementation(shaderGenerator->getTarget(), shaderGenerator->getLanguage());
-                        renderableSearchTimer.endTimer();
-                        if (impl)
-                        {
-                            if (options.checkImplCount)
-                            {
-                                mx::NodeGraphPtr nodeGraph = impl->asA<mx::NodeGraph>();
-                                mx::InterfaceElementPtr nodeGraphImpl = nodeGraph ? nodeGraph->getImplementation() : nullptr;
-                                usedImpls.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl->getName());
-                            }
-                            runOSLValidation(elementName, element, *validator, context, doc, log, options, profileTimes, imageSearchPath, outputPath);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Dump out profiling information
-    totalTime.endTimer();
-    printRunLog(profileTimes, options, usedImpls, profilingLog, dependLib, context,
-                mx::OslShaderGenerator::LANGUAGE);
+    OslShaderRenderTester renderTester;
+    renderTester.testRender();
 }
+
 
 #endif

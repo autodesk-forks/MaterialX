@@ -21,6 +21,8 @@
 #include <chrono>
 #include <ctime>
 
+#define LOG_TO_FILE
+
 namespace mx = MaterialX;
 
 namespace RenderUtil
@@ -160,7 +162,7 @@ public:
         output << "\tValidation time: " << validateTime << " seconds" << std::endl;
         output << "\tRenderable search time: " << renderableSearchTime << " seconds" << std::endl;
 
-        languageTimes.print("GLSL Profile Times:", output);
+        languageTimes.print("Profile Times:", output);
 
         output << "Elements tested: " << elementsTested << std::endl;
     }
@@ -236,6 +238,29 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes,
     mx::DocumentPtr dependLib,
     mx::GenContext& context,
     const std::string& language);
+
+class ShaderRenderTester
+{
+  public:
+    bool testRender();
+  protected:
+    virtual bool runTest(const RenderUtil::ShaderValidTestOptions& testOptions) const = 0;
+    virtual const std::string& logPrefixName() = 0;
+    virtual void createShaderGenerator() = 0;
+    virtual void registerSourceCodeSearchPaths(mx::GenContext& context) = 0;
+    virtual void createValidator(std::ostream& log) = 0;
+    virtual bool runValidator(const std::string& shaderName,
+        mx::TypedElementPtr element,
+        mx::GenContext& context,
+        mx::DocumentPtr doc,
+        std::ostream& log,
+        const RenderUtil::ShaderValidTestOptions& testOptions,
+        RenderUtil::ShaderValidProfileTimes& profileTimes,
+        const mx::FileSearchPath& imageSearchPath,
+        const std::string& outputPath = ".") = 0;
+
+    mx::ShaderGeneratorPtr _shaderGenerator;
+};
 
 } // namespace RenderUtil
 
