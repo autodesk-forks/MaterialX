@@ -25,66 +25,48 @@
 
 namespace mx = MaterialX;
 
+// Utilities for running render tests.
+//
+// Execution uses existing code generator instances to produce the code and corresponding validator
+// instance to check the validity of the generated code by compiling and / or rendering
+// the code to produce images on disk.
+// 
+// Input uniform and stream checking as well as node implementation coverage and profiling
+// can also be performed depending on the options enabled.
+//
+// See the test suite file "_options.mtlx" which is parsed during validaiton to
+// restrive validation options.
+//
 namespace RenderUtil
 {
 void createLightRig(mx::DocumentPtr doc, mx::LightHandler& lightHandler, mx::GenContext& context,
     const mx::FilePath& envIrradiancePath, const mx::FilePath& envRadiancePath);
 
 //
-// Shader validation options structure
+// Render validation options. Reflects the _options.mtlx
+// file in the test suite area.
 //
-class ShaderValidTestOptions
+class RenderTestOptions
 {
-public:
-    void print(std::ostream& output) const
-    {
-        output << "Shader Validation Test Options:" << std::endl;
-        output << "\tOverride Files: ";
-        for (auto overrideFile : overrideFiles)
-        {
-            output << overrideFile << " ";
-        }
-        output << std::endl;
-        output << "\tLight Setup Files: ";
-        for (auto lightFile : lightFiles)
-        {
-            output << lightFile << " ";
-        }
-        output << std::endl;
-        output << "\tRun GLSL Tests: " << runGLSLTests << std::endl;
-        output << "\tRun OGSFX Tests: " << runOGSFXTests << std::endl;
-        output << "\tRun OSL Tests: " << runOSLTests << std::endl;
-        output << "\tCheck Implementation Usage Count: " << checkImplCount << std::endl;
-        output << "\tDump Generated Code: " << dumpGeneratedCode << std::endl;
-        output << "\tShader Interfaces: " << shaderInterfaces << std::endl;
-        output << "\tValidate Element To Render: " << validateElementToRender << std::endl;
-        output << "\tCompile code: " << compileCode << std::endl;
-        output << "\tRender Images: " << renderImages << std::endl;
-        output << "\tSave Images: " << saveImages << std::endl;
-        output << "\tDump GLSL Uniforms and Attributes  " << dumpGlslUniformsAndAttributes << std::endl;
-        output << "\tGLSL Non-Shader Geometry: " << glslNonShaderGeometry.asString() << std::endl;
-        output << "\tGLSL Shader Geometry: " << glslShaderGeometry.asString() << std::endl;
-        output << "\tRadiance IBL File Path " << radianceIBLPath.asString() << std::endl;
-        output << "\tIrradiance IBL File Path: " << irradianceIBLPath.asString() << std::endl;
-    }
+  public:
+    // Print out options
+    void print(std::ostream& output) const;
+
+    // Option options from an options file
+    bool readOptions(const std::string& optionFile);
 
     // Filter list of files to only run validation on.
     MaterialX::StringVec overrideFiles;
+
+    // List of language,target pair identifier storage as 
+    // strings in the form <language>_<target>.
+    MaterialX::StringSet languageAndTargets;
 
     // Comma separated list of light setup files
     mx::StringVec lightFiles;
 
     // Set to true to always dump generated code to disk
     bool dumpGeneratedCode = false;
-
-    // Execute GLSL tests
-    bool runGLSLTests = true;
-
-    // Execute OGSFX tests
-    bool runOGSFXTests = false;
-
-    // Execute OSL tests
-    bool runOSLTests = true;
 
     // Check the count of number of implementations used
     bool checkImplCount = true;
@@ -104,17 +86,17 @@ public:
     // Perform rendering validation test
     bool renderImages = true;
 
-    // Perform saving of image. Can only be disabled for GLSL tests.
+    // Perform saving of image. 
     bool saveImages = true;
 
-    // Set this to be true if it is desired to dump out GLSL uniform and attribut information to the logging file.
-    bool dumpGlslUniformsAndAttributes = true;
+    // Set this to be true if it is desired to dump out uniform and attribut information to the logging file.
+    bool dumpUniformsAndAttributes = true;
 
-    // Non-shader GLSL geometry file
-    MaterialX::FilePath glslNonShaderGeometry;
+    // Non-shaded geometry file
+    MaterialX::FilePath unShadedGeometry;
 
-    // Shader GLSL geometry file
-    MaterialX::FilePath glslShaderGeometry;
+    // Shaded geometry file
+    MaterialX::FilePath shadedGeometry;
 
     // Radiance IBL file
     MaterialX::FilePath radianceIBLPath;
@@ -123,62 +105,11 @@ public:
     MaterialX::FilePath irradianceIBLPath;
 };
 
-// Per language profile times
-class LanguageProfileTimes
-{
-public:
-    void print(const std::string& label, std::ostream& output) const
-    {
-        output << label << std::endl;
-        output << "\tTotal: " << totalTime << " seconds" << std::endl;;
-        output << "\tSetup: " << setupTime << " seconds" << std::endl;;
-        output << "\tTransparency: " << transparencyTime << " seconds" << std::endl;;
-        output << "\tGeneration: " << generationTime << " seconds" << std::endl;;
-        output << "\tCompile: " << compileTime << " seconds" << std::endl;
-        output << "\tRender: " << renderTime << " seconds" << std::endl;
-        output << "\tI/O: " << ioTime << " seconds" << std::endl;
-        output << "\tImage save: " << imageSaveTime << " seconds" << std::endl;
-    }
-    double totalTime = 0.0;
-    double setupTime = 0.0;
-    double transparencyTime = 0.0;
-    double generationTime = 0.0;
-    double compileTime = 0.0;
-    double renderTime = 0.0;
-    double ioTime = 0.0;
-    double imageSaveTime = 0.0;
-};
-
-//
-// Shader validation profiling structure
-//
-class ShaderValidProfileTimes
-{
-public:
-    void print(std::ostream& output) const
-    {
-        output << "Overall time: " << languageTimes.totalTime << " seconds" << std::endl;
-        output << "\tI/O time: " << ioTime << " seconds" << std::endl;
-        output << "\tValidation time: " << validateTime << " seconds" << std::endl;
-        output << "\tRenderable search time: " << renderableSearchTime << " seconds" << std::endl;
-
-        languageTimes.print("Profile Times:", output);
-
-        output << "Elements tested: " << elementsTested << std::endl;
-    }
-
-    LanguageProfileTimes languageTimes;
-    double totalTime = 0;
-    double ioTime = 0.0;
-    double validateTime = 0.0;
-    double renderableSearchTime = 0.0;
-    unsigned int elementsTested = 0;
-};
-
 // Scoped timer which adds a duration to a given externally reference timing duration
+//
 class AdditiveScopedTimer
 {
-public:
+  public:
     AdditiveScopedTimer(double& durationRefence, const std::string& label)
         : _duration(durationRefence)
         , _label(label)
@@ -215,7 +146,7 @@ public:
         }
     }
 
-protected:
+  protected:
     double& _duration;
     bool _debugUpdate = false;
     std::string _label;
@@ -223,47 +154,127 @@ protected:
 };
 
 
-// Create a list of generation options based on unit test options
-// These options will override the original generation context options.
-void getGenerationOptions(const ShaderValidTestOptions& testOptions,
-    const mx::GenOptions& originalOptions,
-    std::vector<mx::GenOptions>& optionsList);
+// Per language profile times
+//
+class LanguageProfileTimes
+{
+  public:
+    void print(const std::string& label, std::ostream& output) const
+    {
+        output << label << std::endl;
+        output << "\tTotal: " << totalTime << " seconds" << std::endl;;
+        output << "\tSetup: " << setupTime << " seconds" << std::endl;;
+        output << "\tTransparency: " << transparencyTime << " seconds" << std::endl;;
+        output << "\tGeneration: " << generationTime << " seconds" << std::endl;;
+        output << "\tCompile: " << compileTime << " seconds" << std::endl;
+        output << "\tRender: " << renderTime << " seconds" << std::endl;
+        output << "\tI/O: " << ioTime << " seconds" << std::endl;
+        output << "\tImage save: " << imageSaveTime << " seconds" << std::endl;
+    }
+    double totalTime = 0.0;
+    double setupTime = 0.0;
+    double transparencyTime = 0.0;
+    double generationTime = 0.0;
+    double compileTime = 0.0;
+    double renderTime = 0.0;
+    double ioTime = 0.0;
+    double imageSaveTime = 0.0;
+};
 
-bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& options);
+// Render validation profiling structure
+//
+class RenderProfileTimes
+{
+  public:
+    void print(std::ostream& output) const
+    {
+        output << "Overall time: " << languageTimes.totalTime << " seconds" << std::endl;
+        output << "\tI/O time: " << ioTime << " seconds" << std::endl;
+        output << "\tValidation time: " << validateTime << " seconds" << std::endl;
+        output << "\tRenderable search time: " << renderableSearchTime << " seconds" << std::endl;
 
-void printRunLog(const ShaderValidProfileTimes &profileTimes,
-    const ShaderValidTestOptions& options,
-    mx::StringSet& usedImpls,
-    std::ostream& profilingLog,
-    mx::DocumentPtr dependLib,
-    mx::GenContext& context,
-    const std::string& language);
+        languageTimes.print("Profile Times:", output);
 
+        output << "Elements tested: " << elementsTested << std::endl;
+    }
+
+    LanguageProfileTimes languageTimes;
+    double totalTime = 0;
+    double ioTime = 0.0;
+    double validateTime = 0.0;
+    double renderableSearchTime = 0.0;
+    unsigned int elementsTested = 0;
+};
+
+// Base class used for performing compilation and render tests for a given
+// shading language and target.
+//
 class ShaderRenderTester
 {
   public:
-    bool testRender();
+    ShaderRenderTester() {};
+    ~ShaderRenderTester() {};
+    bool validate();
+
   protected:
-    virtual bool runTest(const RenderUtil::ShaderValidTestOptions& testOptions) const = 0;
-    virtual const std::string& logPrefixName() = 0;
-    virtual void createShaderGenerator() = 0;
-    virtual void registerSourceCodeSearchPaths(mx::GenContext& context) = 0;
+    // The shading language / target being tested
+    virtual const std::string& languageTargetString() = 0;
+
+    // Check if testing should be performed based in input options
+    virtual bool runTest(const RenderUtil::RenderTestOptions& testOptions) const = 0;
+
+    // Load any addition libraries requird by the generator
     virtual void loadLibraries(mx::DocumentPtr /*dependLib*/,
-                                RenderUtil::ShaderValidTestOptions& /*options*/) {};
+        RenderUtil::RenderTestOptions& /*options*/) {};
+
+    //
+    // Code generation methods
+    //
+    // Create the appropirate code generator for the language/target
+    virtual void createShaderGenerator() = 0;
+    // Register any addition source code paths used by the generator
+    virtual void registerSourceCodeSearchPaths(mx::GenContext& /*context*/) {};
+    // Register any lights used by the generation context
     virtual void registerLights(mx::DocumentPtr /*dependLib*/, 
-        const RenderUtil::ShaderValidTestOptions &/*options*/,
+        const RenderUtil::RenderTestOptions &/*options*/,
         mx::GenContext& /*context*/) {};
+
+    //
+    // Code validation methods (compile and render)
+    //
+    // Create a validator for the generated code
     virtual void createValidator(std::ostream& log) = 0;
+    // Run the validator
     virtual bool runValidator(const std::string& shaderName,
         mx::TypedElementPtr element,
         mx::GenContext& context,
         mx::DocumentPtr doc,
         std::ostream& log,
-        const RenderUtil::ShaderValidTestOptions& testOptions,
-        RenderUtil::ShaderValidProfileTimes& profileTimes,
+        const RenderUtil::RenderTestOptions& testOptions,
+        RenderUtil::RenderProfileTimes& profileTimes,
         const mx::FileSearchPath& imageSearchPath,
         const std::string& outputPath = ".") = 0;
 
+    // Create a list of generation options based on unit test options
+    // These options will override the original generation context options.
+    void getGenerationOptions(const RenderTestOptions& testOptions,
+                              const mx::GenOptions& originalOptions,
+                              std::vector<mx::GenOptions>& optionsList);
+
+    // Get implemenation "whitelist" for those implementations that have
+    // been skipped for checking
+    virtual void getImplementationWhiteList(mx::StringVec& whiteList) = 0;
+
+    // Print summary of run
+    void printRunLog(const RenderProfileTimes &profileTimes,
+                     const RenderTestOptions& options,
+                     mx::StringSet& usedImpls,
+                     std::ostream& profilingLog,
+                     mx::DocumentPtr dependLib,
+                     mx::GenContext& context,
+                     const std::string& language);
+
+    // Generator used
     mx::ShaderGeneratorPtr _shaderGenerator;
 };
 

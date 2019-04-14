@@ -11,6 +11,7 @@ namespace mx = MaterialX;
 
 namespace RenderUtil
 {
+// Utility to create a light rig for hardware render testing
 void createLightRig(mx::DocumentPtr doc, mx::LightHandler& lightHandler, mx::GenContext& context,
                     const mx::FilePath& envIrradiancePath, const mx::FilePath& envRadiancePath)
 {
@@ -28,9 +29,9 @@ void createLightRig(mx::DocumentPtr doc, mx::LightHandler& lightHandler, mx::Gen
 
 // Create a list of generation options based on unit test options
 // These options will override the original generation context options.
-void getGenerationOptions(const ShaderValidTestOptions& testOptions,
-    const mx::GenOptions& originalOptions,
-    std::vector<mx::GenOptions>& optionsList)
+void ShaderRenderTester::getGenerationOptions(const RenderTestOptions& testOptions,
+                                             const mx::GenOptions& originalOptions,
+                                             std::vector<mx::GenOptions>& optionsList)
 {
     optionsList.clear();
     if (testOptions.shaderInterfaces & 1)
@@ -48,40 +49,74 @@ void getGenerationOptions(const ShaderValidTestOptions& testOptions,
     }
 }
 
-
-bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& options)
+void RenderTestOptions::print(std::ostream& output) const
 {
-    const std::string SHADER_VALID_TEST_OPTIONS_STRING("ShaderValidTestOptions");
+    output << "Render Test Options:" << std::endl;
+    output << "\tOverride Files: { ";
+    for (auto overrideFile : overrideFiles) { output << overrideFile << " "; }
+    output << "} " << std::endl;
+    output << "\tLight Setup Files: { ";
+    for (auto lightFile : lightFiles) { output << lightFile << " "; }
+    output << "} " << std::endl;
+    output << "\tLanguage / Targets to run: " << std::endl;
+    for (auto  l : languageAndTargets)
+    {
+        mx::StringVec languageAndTarget = mx::splitString(l, "_");
+        size_t count = languageAndTarget.size();
+        output << "\t\tLanguage: " << ((count > 0) ? languageAndTarget[0] : "NONE") << ". ";
+        output << "Target: " << ((count > 1) ? languageAndTarget[1] : "NONE");
+        output << std::endl;
+    }
+    output << "\tCheck Implementation Usage Count: " << checkImplCount << std::endl;
+    output << "\tDump Generated Code: " << dumpGeneratedCode << std::endl;
+    output << "\tShader Interfaces: " << shaderInterfaces << std::endl;
+    output << "\tValidate Element To Render: " << validateElementToRender << std::endl;
+    output << "\tCompile code: " << compileCode << std::endl;
+    output << "\tRender Images: " << renderImages << std::endl;
+    output << "\tSave Images: " << saveImages << std::endl;
+    output << "\tDump uniforms and Attributes  " << dumpUniformsAndAttributes << std::endl;
+    output << "\tNon-Shaded Geometry: " << unShadedGeometry.asString() << std::endl;
+    output << "\tShaderdGeometry: " << shadedGeometry.asString() << std::endl;
+    output << "\tRadiance IBL File Path " << radianceIBLPath.asString() << std::endl;
+    output << "\tIrradiance IBL File Path: " << irradianceIBLPath.asString() << std::endl;
+}
+
+
+
+bool RenderTestOptions::readOptions(const std::string& optionFile)
+{
+    // These strings should make the input names defined in the
+    // RenderTestOptions nodedef in test suite file _options.mtlx
+    //
+    const std::string RENDER_TEST_OPTIONS_STRING("RenderTestOptions");
     const std::string OVERRIDE_FILES_STRING("overrideFiles");
+    const std::string LANGUAGE_AND_TARGETS_STRING("languageAndTargets");
     const std::string LIGHT_FILES_STRING("lightFiles");
     const std::string SHADER_INTERFACES_STRING("shaderInterfaces");
     const std::string VALIDATE_ELEMENT_TO_RENDER_STRING("validateElementToRender");
     const std::string COMPILE_CODE_STRING("compileCode");
     const std::string RENDER_IMAGES_STRING("renderImages");
     const std::string SAVE_IMAGES_STRING("saveImages");
-    const std::string DUMP_GLSL_UNIFORMS_AND_ATTRIBUTES_STRING("dumpGlslUniformsAndAttributes");
-    const std::string RUN_OSL_TESTS_STRING("runOSLTests");
-    const std::string RUN_GLSL_TESTS_STRING("runGLSLTests");
-    const std::string RUN_OGSFX_TESTS_STRING("runOGSFXTests");
+    const std::string DUMP_UNIFORMS_AND_ATTRIBUTES_STRING("dumpUniformsAndAttributes");
     const std::string CHECK_IMPL_COUNT_STRING("checkImplCount");
     const std::string DUMP_GENERATED_CODE_STRING("dumpGeneratedCode");
-    const std::string GLSL_NONSHADER_GEOMETRY_STRING("glslNonShaderGeometry");
-    const std::string GLSL_SHADER_GEOMETRY_STRING("glslShaderGeometry");
+    const std::string UNSHADED_GEOMETRY_STRING("unShadedGeometry");
+    const std::string SHADED_GEOMETRY_STRING("shadedGeometry");
     const std::string RADIANCE_IBL_PATH_STRING("radianceIBLPath");
     const std::string IRRADIANCE_IBL_PATH_STRING("irradianceIBLPath");
     const std::string SPHERE_OBJ("sphere.obj");
     const std::string SHADERBALL_OBJ("shaderball.obj");
 
-    options.overrideFiles.clear();
-    options.dumpGeneratedCode = false;
-    options.glslNonShaderGeometry = SPHERE_OBJ;
-    options.glslShaderGeometry = SHADERBALL_OBJ;
+    overrideFiles.clear();
+    dumpGeneratedCode = false;
+    unShadedGeometry = SPHERE_OBJ;
+    shadedGeometry = SHADERBALL_OBJ;
 
     MaterialX::DocumentPtr doc = MaterialX::createDocument();
     try {
         MaterialX::readFromXmlFile(doc, optionFile);
 
-        MaterialX::NodeDefPtr optionDefs = doc->getNodeDef(SHADER_VALID_TEST_OPTIONS_STRING);
+        MaterialX::NodeDefPtr optionDefs = doc->getNodeDef(RENDER_TEST_OPTIONS_STRING);
         if (optionDefs)
         {
             for (MaterialX::ParameterPtr p : optionDefs->getParameters())
@@ -92,101 +127,88 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
                 {
                     if (name == OVERRIDE_FILES_STRING)
                     {
-                        options.overrideFiles = MaterialX::splitString(p->getValueString(), ",");
+                        overrideFiles = MaterialX::splitString(p->getValueString(), ",");
                     }
                     if (name == LIGHT_FILES_STRING)
                     {
-                        options.lightFiles = MaterialX::splitString(p->getValueString(), ",");
+                        lightFiles = MaterialX::splitString(p->getValueString(), ",");
                     }
                     else if (name == SHADER_INTERFACES_STRING)
                     {
-                        options.shaderInterfaces = val->asA<int>();
+                        shaderInterfaces = val->asA<int>();
                     }
                     else if (name == VALIDATE_ELEMENT_TO_RENDER_STRING)
                     {
-                        options.validateElementToRender = val->asA<bool>();
+                        validateElementToRender = val->asA<bool>();
                     }
                     else if (name == COMPILE_CODE_STRING)
                     {
-                        options.compileCode = val->asA<bool>();
+                        compileCode = val->asA<bool>();
                     }
                     else if (name == RENDER_IMAGES_STRING)
                     {
-                        options.renderImages = val->asA<bool>();
+                        renderImages = val->asA<bool>();
                     }
                     else if (name == SAVE_IMAGES_STRING)
                     {
-                        options.saveImages = val->asA<bool>();
+                        saveImages = val->asA<bool>();
                     }
-                    else if (name == DUMP_GLSL_UNIFORMS_AND_ATTRIBUTES_STRING)
+                    else if (name == DUMP_UNIFORMS_AND_ATTRIBUTES_STRING)
                     {
-                        options.dumpGlslUniformsAndAttributes = val->asA<bool>();
+                        dumpUniformsAndAttributes = val->asA<bool>();
                     }
-                    else if (name == RUN_OSL_TESTS_STRING)
+                    else if (name == LANGUAGE_AND_TARGETS_STRING)
                     {
-                        options.runOSLTests = val->asA<bool>();
-                    }
-                    else if (name == RUN_GLSL_TESTS_STRING)
-                    {
-                        options.runGLSLTests = val->asA<bool>();
-                    }
-                    else if (name == RUN_OGSFX_TESTS_STRING)
-                    {
-                        options.runOGSFXTests = val->asA<bool>();
+                        mx::StringVec list =  mx::splitString(p->getValueString(), ",");
+                        for (auto l : list)
+                        {
+                            languageAndTargets.insert(l);
+                        }
                     }
                     else if (name == CHECK_IMPL_COUNT_STRING)
                     {
-                        options.checkImplCount = val->asA<bool>();
+                        checkImplCount = val->asA<bool>();
                     }
                     else if (name == DUMP_GENERATED_CODE_STRING)
                     {
-                        options.dumpGeneratedCode = val->asA<bool>();
+                        dumpGeneratedCode = val->asA<bool>();
                     }
-                    else if (name == GLSL_NONSHADER_GEOMETRY_STRING)
+                    else if (name == UNSHADED_GEOMETRY_STRING)
                     {
-                        options.glslNonShaderGeometry = p->getValueString();
+                        unShadedGeometry = p->getValueString();
                     }
-                    else if (name == GLSL_SHADER_GEOMETRY_STRING)
+                    else if (name == SHADED_GEOMETRY_STRING)
                     {
-                        options.glslShaderGeometry = p->getValueString();
+                        shadedGeometry = p->getValueString();
                     }
                     else if (name == RADIANCE_IBL_PATH_STRING)
                     {
-                        options.radianceIBLPath = p->getValueString();
+                        radianceIBLPath = p->getValueString();
                     }
                     else if (name == IRRADIANCE_IBL_PATH_STRING)
                     {
-                        options.irradianceIBLPath = p->getValueString();
+                        irradianceIBLPath = p->getValueString();
                     }
                 }
             }
         }
 
         // Disable render and save of images if not compiled code will be generated
-        if (!options.compileCode)
+        if (!compileCode)
         {
-            options.renderImages = false;
-            options.saveImages = false;
+            renderImages = false;
+            saveImages = false;
         }
         // Disable saving images, if no images are to be produced
-        if (!options.renderImages)
+        if (!renderImages)
         {
-            options.saveImages = false;
+            saveImages = false;
         }
 
         // If there is a filter on the files to run turn off profile checking
-        if (!options.overrideFiles.empty())
+        if (!overrideFiles.empty())
         {
-            options.checkImplCount = false;
-        }
-
-        // If implementation count check is required, then OSL and GLSL/OGSFX
-        // code generation must be executed to be able to check implementation usage.
-        if (options.checkImplCount)
-        {
-            options.runGLSLTests = true;
-            options.runOSLTests = true;
-            options.runOGSFXTests = true;
+            checkImplCount = false;
         }
         return true;
     }
@@ -197,8 +219,8 @@ bool getTestOptions(const std::string& optionFile, ShaderValidTestOptions& optio
     return false;
 }
 
-void printRunLog(const ShaderValidProfileTimes &profileTimes,
-    const ShaderValidTestOptions& options,
+void ShaderRenderTester::printRunLog(const RenderProfileTimes &profileTimes,
+    const RenderTestOptions& options,
     mx::StringSet& usedImpls,
     std::ostream& profilingLog,
     mx::DocumentPtr dependLib,
@@ -236,11 +258,9 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes,
 
         size_t skipCount = 0;
         profilingLog << "-- Possibly missed implementations ----" << std::endl;
-        mx::StringVec whiteList =
-        {
-            "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
-            "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue"
-        };
+        mx::StringVec whiteList;
+        getImplementationWhiteList(whiteList);
+        
         unsigned int implementationUseCount = 0;
         for (auto libraryImpl : libraryImpls)
         {
@@ -283,14 +303,14 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes,
     }
 }
 
-bool ShaderRenderTester::testRender()
+bool ShaderRenderTester::validate()
 {
     // Test has been turned off so just do nothing.
     // Check for an option file
     mx::FilePath path = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");
     const mx::FilePath optionsPath = path / mx::FilePath("_options.mtlx");
-    RenderUtil::ShaderValidTestOptions options;
-    if (!getTestOptions(optionsPath, options))
+    RenderUtil::RenderTestOptions options;
+    if (!options.readOptions(optionsPath))
     {
         return false;
     }
@@ -301,12 +321,12 @@ bool ShaderRenderTester::testRender()
     }
 
     // Profiling times
-    RenderUtil::ShaderValidProfileTimes profileTimes;
+    RenderUtil::RenderProfileTimes profileTimes;
     // Global setup timer
     RenderUtil::AdditiveScopedTimer totalTime(profileTimes.totalTime, "Global total time");
 
 #ifdef LOG_TO_FILE
-    const std::string prefex = logPrefixName();
+    const std::string prefex = languageTargetString();
     std::ofstream logfile(prefex + "_render_test.txt");
     std::ostream& log(logfile);
     std::string docValidLogFilename = prefex + "_render_validate_doc.txt";
@@ -345,9 +365,6 @@ bool ShaderRenderTester::testRender()
     ioTimer.startTimer();
     mx::DocumentPtr dependLib = mx::createDocument();
     mx::StringSet excludeFiles;
-    // Make this generic --- TODO 
-    //excludeFiles.insert("stdlib_" + mx::GlslShaderGenerator::LANGUAGE + "_impl.mtlx");
-    //excludeFiles.insert("stdlib_" + mx::GlslShaderGenerator::LANGUAGE + "_ogsfx_impl.mtlx");
 
     const mx::StringVec libraries = { "stdlib", "pbrlib" };
     GenShaderUtil::loadLibraries(libraries, searchPath, dependLib, &excludeFiles);
@@ -422,7 +439,7 @@ bool ShaderRenderTester::testRender()
             ioTimer.endTimer();
 
             validateTimer.startTimer();
-            std::cout << "Validating MTLX file: " << filename << std::endl;
+            std::cout << "- Validating MTLX file: " << filename << std::endl;
             log << "MTLX Filename: " << filename << std::endl;
 
             // Validate the test document

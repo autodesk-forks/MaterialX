@@ -6,8 +6,6 @@ include_directories(
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 if(NOT MATERIALX_BUILD_RENDER)
     list(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/Render.cpp")
-endif()
-if(NOT MATERIALX_TEST_RENDER)
     list(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/RenderGLSL.cpp")
     list(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/RenderOSL.cpp")
 endif()
