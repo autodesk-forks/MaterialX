@@ -352,6 +352,8 @@ bool ShaderRenderTester::testRender()
     const mx::StringVec libraries = { "stdlib", "pbrlib" };
     GenShaderUtil::loadLibraries(libraries, searchPath, dependLib, &excludeFiles);
     GenShaderUtil::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/bxdf/standard_surface.mtlx"), dependLib);
+    // Load any addition per validator libraries
+    loadLibraries(dependLib, options);
     ioTimer.endTimer();
 
     // Create validators and generators
@@ -372,6 +374,8 @@ bool ShaderRenderTester::testRender()
 
     mx::CopyOptions importOptions;
     importOptions.skipDuplicateElements = true;
+
+    registerLights(dependLib, options, context);
 
     // Map to replace "/" in Element path names with "_".
     mx::StringMap pathMap;

@@ -248,6 +248,11 @@ class ShaderRenderTester
     virtual const std::string& logPrefixName() = 0;
     virtual void createShaderGenerator() = 0;
     virtual void registerSourceCodeSearchPaths(mx::GenContext& context) = 0;
+    virtual void loadLibraries(mx::DocumentPtr /*dependLib*/,
+                                RenderUtil::ShaderValidTestOptions& /*options*/) {};
+    virtual void registerLights(mx::DocumentPtr /*dependLib*/, 
+        const RenderUtil::ShaderValidTestOptions &/*options*/,
+        mx::GenContext& /*context*/) {};
     virtual void createValidator(std::ostream& log) = 0;
     virtual bool runValidator(const std::string& shaderName,
         mx::TypedElementPtr element,
