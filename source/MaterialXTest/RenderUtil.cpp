@@ -305,12 +305,12 @@ void ShaderRenderTester::checkImplementationUsage(const std::string& language,
 }
 
 void ShaderRenderTester::printRunLog(const RenderProfileTimes &profileTimes,
-                                    const RenderTestOptions& options,
-                                    mx::StringSet& usedImpls,
-                                    std::ostream& stream,
-                                    mx::DocumentPtr dependLib,
-                                    mx::GenContext& context,
-                                    const std::string& language)
+                                     const RenderTestOptions& options,
+                                     mx::StringSet& usedImpls,
+                                     std::ostream& stream,
+                                     mx::DocumentPtr dependLib,
+                                     mx::GenContext& context,
+                                     const std::string& language)
 {
     profileTimes.print(stream);
 
@@ -348,9 +348,9 @@ bool ShaderRenderTester::validate()
 
 #ifdef LOG_TO_FILE
     const std::string prefex = languageTargetString();
-    std::ofstream logfile(prefex + "_render_test.txt");
+    std::ofstream logfile(prefex + "_render_log.txt");
     std::ostream& log(logfile);
-    std::string docValidLogFilename = prefex + "_render_validate_doc.txt";
+    std::string docValidLogFilename = prefex + "_render_doc_validatiion_log.txt";
     std::ofstream docValidLogFile(docValidLogFilename);
     std::ostream& docValidLog(docValidLogFile);
     std::ofstream profilingLogfile(prefex + "__render_profiling_log.txt");
@@ -529,7 +529,7 @@ bool ShaderRenderTester::validate()
     // Dump out profiling information
     totalTime.endTimer();
     printRunLog(profileTimes, options, usedImpls, profilingLog, dependLib, context,
-        _shaderGenerator->getLanguage());
+                _shaderGenerator->getLanguage());
     return true;
 }
 

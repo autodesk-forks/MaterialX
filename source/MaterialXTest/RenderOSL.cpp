@@ -17,6 +17,13 @@ namespace mx = MaterialX;
 
 class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
 {
+  public:
+    OslShaderRenderTester() :
+        _languageTargetString(mx::OslShaderGenerator::LANGUAGE + "_" +
+            mx::OslShaderGenerator::TARGET)
+    {
+    }
+
   protected:
     bool runTest(const RenderUtil::RenderTestOptions& testOptions) const override
     {
@@ -43,18 +50,18 @@ class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
     void createValidator(std::ostream& log) override;
 
     bool runValidator(const std::string& shaderName,
-        mx::TypedElementPtr element,
-        mx::GenContext& context,
-        mx::DocumentPtr doc,
-        std::ostream& log,
-        const RenderUtil::RenderTestOptions& testOptions,
-        RenderUtil::RenderProfileTimes& profileTimes,
-        const mx::FileSearchPath& imageSearchPath,
-        const std::string& outputPath = ".") override;
+                      mx::TypedElementPtr element,
+                      mx::GenContext& context,
+                      mx::DocumentPtr doc,
+                      std::ostream& log,
+                      const RenderUtil::RenderTestOptions& testOptions,
+                      RenderUtil::RenderProfileTimes& profileTimes,
+                      const mx::FileSearchPath& imageSearchPath,
+                      const std::string& outputPath = ".") override;
     
     void getImplementationWhiteList(mx::StringSet& whiteList) override;
 
-    std::string _languageTargetString = "genosl_vanilla";
+    std::string _languageTargetString;
     mx::OslValidatorPtr _validator;
 };
 
@@ -64,11 +71,16 @@ void OslShaderRenderTester::createValidator(std::ostream& log)
     bool initialized = false;
 
     _validator = mx::OslValidator::create();
+
+    // Set up additional utilities required to run OSL testing including
+    // oslc and testrender paths and OSL include path
+    //
     const std::string oslcExecutable(MATERIALX_OSLC_EXECUTABLE);
     _validator->setOslCompilerExecutable(oslcExecutable);
     const std::string testRenderExecutable(MATERIALX_TESTRENDER_EXECUTABLE);
     _validator->setOslTestRenderExecutable(testRenderExecutable);
     _validator->setOslIncludePath(mx::FilePath(MATERIALX_OSL_INCLUDE_PATH));
+
     try
     {
         _validator->initialize();
@@ -105,16 +117,15 @@ void OslShaderRenderTester::createValidator(std::ostream& log)
 }
 
 // Validator execution
-bool OslShaderRenderTester::runValidator(
-                         const std::string& shaderName,
-                         mx::TypedElementPtr element,
-                         mx::GenContext& context, 
-                         mx::DocumentPtr doc,
-                         std::ostream& log, 
-                         const RenderUtil::RenderTestOptions& testOptions, 
-                         RenderUtil::RenderProfileTimes& profileTimes,
-                         const mx::FileSearchPath& imageSearchPath, 
-                         const std::string& outputPath)
+bool OslShaderRenderTester::runValidator(const std::string& shaderName,
+                                         mx::TypedElementPtr element,
+                                         mx::GenContext& context, 
+                                         mx::DocumentPtr doc,
+                                         std::ostream& log, 
+                                         const RenderUtil::RenderTestOptions& testOptions, 
+                                         RenderUtil::RenderProfileTimes& profileTimes,
+                                         const mx::FileSearchPath& imageSearchPath, 
+                                         const std::string& outputPath)
 {
     RenderUtil::AdditiveScopedTimer totalOSLTime(profileTimes.languageTimes.totalTime, "OSL total time");
 
@@ -182,7 +193,7 @@ bool OslShaderRenderTester::runValidator(
             // Write out osl file
             if (testOptions.dumpGeneratedCode)
             {
-                RenderUtil::AdditiveScopedTimer ioTimer(profileTimes.languageTimes.ioTime, "OSL io time");
+                RenderUtil::AdditiveScopedTimer ioTimer(profileTimes.languageTimes.ioTime, "OSL I/O time");
                 std::ofstream file;
                 file.open(shaderPath + ".osl");
                 file << shader->getSourceCode();
@@ -309,7 +320,8 @@ bool OslShaderRenderTester::runValidator(
 
 void OslShaderRenderTester::getImplementationWhiteList(mx::StringSet& whiteList)
 {
-    whiteList = {
+    whiteList = 
+    {
         "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
         "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue"
     };

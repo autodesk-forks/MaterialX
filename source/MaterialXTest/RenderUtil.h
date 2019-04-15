@@ -112,6 +112,7 @@ class AdditiveScopedTimer
   public:
     AdditiveScopedTimer(double& durationRefence, const std::string& label)
         : _duration(durationRefence)
+        , _debugUpdate(false)
         , _label(label)
     {
         startTimer();
@@ -147,8 +148,8 @@ class AdditiveScopedTimer
     }
 
   protected:
-    double& _duration;
-    bool _debugUpdate = false;
+    double _duration;
+    bool _debugUpdate;
     std::string _label;
     std::chrono::time_point<std::chrono::system_clock> _startTime;
 };
@@ -223,7 +224,7 @@ class ShaderRenderTester
     // Check if testing should be performed based in input options
     virtual bool runTest(const RenderUtil::RenderTestOptions& testOptions) const = 0;
 
-    // Load any addition libraries requird by the generator
+    // Load any additional libraries requird by the generator
     virtual void loadLibraries(mx::DocumentPtr /*dependLib*/,
                                RenderUtil::RenderTestOptions& /*options*/) {};
 
@@ -232,8 +233,10 @@ class ShaderRenderTester
     //
     // Create the appropirate code generator for the language/target
     virtual void createShaderGenerator() = 0;
-    // Register any addition source code paths used by the generator
+
+    // Register any additional source code paths used by the generator
     virtual void registerSourceCodeSearchPaths(mx::GenContext& /*context*/) {};
+    
     // Register any lights used by the generation context
     virtual void registerLights(mx::DocumentPtr /*dependLib*/, 
                                 const RenderUtil::RenderTestOptions &/*options*/,
@@ -244,6 +247,7 @@ class ShaderRenderTester
     //
     // Create a validator for the generated code
     virtual void createValidator(std::ostream& log) = 0;
+    
     // Run the validator
     virtual bool runValidator(const std::string& shaderName,
         mx::TypedElementPtr element,
