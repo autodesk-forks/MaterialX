@@ -9,9 +9,6 @@
 #include <MaterialXRenderGlsl/GlslValidator.h>
 #include <MaterialXRenderGlsl/GLTextureHandler.h>
 
-#ifdef MATERIALX_BUILD_CONTRIB
-#include <MaterialXContrib/TinyEXRImageLoader.h>
-#endif
 #ifdef MATERIALX_BUILD_OIIO
 #include <MaterialXRender/OiioImageLoader.h>
 #endif
@@ -130,10 +127,6 @@ void GlslShaderRenderTester::createValidator(std::ostream& log)
         // Set image handler on validator
         mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
         mx::GLTextureHandlerPtr imageHandler = mx::GLTextureHandler::create(stbLoader);
-#ifdef MATERIALX_BUILD_CONTRIB
-        mx::TinyEXRImageLoaderPtr exrLoader = mx::TinyEXRImageLoader::create();
-        imageHandler->addLoader(exrLoader);
-#endif
         _validator->setImageHandler(imageHandler);
 
         // Set geometry handler on validator

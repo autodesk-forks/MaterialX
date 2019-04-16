@@ -190,16 +190,6 @@ TEST_CASE("Render: Image Handler Load", "[rendercore]")
         options.imageHandler = imageHandler;
         testImageHandler(options);
 
-#ifdef MATERIALX_BUILD_CONTRIB
-        imageHandlerLog << "** Test TinyEXR image loader **" << std::endl;
-        mx::TinyEXRImageLoaderPtr exrLoader = mx::TinyEXRImageLoader::create();
-        mx::ImageHandlerPtr imageHandler2 = mx::ImageHandler::create(nullptr);
-        imageHandler2->addLoader(exrLoader);
-        options.testExtensions = exrLoader->supportedExtensions();
-        options.imageHandler = imageHandler2;
-        testImageHandler(options);
-#endif
-
 #if defined(MATERIALX_BUILD_OIIO) && defined(OPENIMAGEIO_ROOT_DIR)
         imageHandlerLog << "** Test OpenImageIO image loader **" << std::endl;
         mx::OiioImageLoaderPtr oiioLoader = mx::OiioImageLoader::create();
