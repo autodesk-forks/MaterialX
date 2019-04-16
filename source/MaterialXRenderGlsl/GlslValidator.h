@@ -124,7 +124,7 @@ class GlslValidator : public ShaderValidator
     /// Utility to check for OpenGL context errors.
     /// Will throw an ExceptionShaderValidationError exception which will list of the errors found
     /// if any errors encountered.
-    void checkErrors();
+    void checkErrors(const std::string& location = {} );
 
     /// GLSL program.
     GlslProgramPtr _program;

@@ -10,6 +10,7 @@
 #import <Cocoa/Cocoa.h>
 #import <AppKit/NSApplication.h>
 #import "GLCocoaWrappers.h"
+#import <Foundation/Foundation.h>
 
 void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colorSize, int depthFormat,
 								int stencilFormat, int auxBuffers, int accumSize, bool minimumPolicy,
@@ -66,7 +67,13 @@ void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colo
 		list[i++] = NSOpenGLPFASampleBuffers; list[i++] = TRUE;
 		list[i++] = NSOpenGLPFASamples; list[i++] = 4;
 	}
-
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
+    list[i++] = NSOpenGLPFAOpenGLProfile;
+    list[i++] = NSOpenGLProfileVersion4_1Core;
+#else
+    list[i++] = NSOpenGLPFAOpenGLProfile;
+    list[i++] = NSOpenGLProfileVersion3_2Core;
+#endif
 	list[ i++] = 0 ;
 
 	NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:list];
@@ -112,6 +119,7 @@ void* NSOpenGLCreateContextWrapper(void* pPixelFormat, void *pDummyContext)
 
 void NSOpenGLSetDrawable(void* pContext, void* pWindow)
 {
+	NSLog(@"CREATING WINDOW!!");
 	// Create local autorelease pool for any objects that need to be autoreleased.
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -207,15 +215,50 @@ void* NSOpenGLGetWindow(void* pView)
 
 void NSOpenGLInitializeGLLibrary()
 {
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+  unsigned int attributeCount = 0;
+#define ADD_ATTR(x) { attributes[attributeCount++] = x; }
+#define ADD_ATTR2(x, y) { ADD_ATTR(x); ADD_ATTR(y); }
+
+  // Arbitrary array size here
+  NSOpenGLPixelFormatAttribute attributes[40];
+
+  ADD_ATTR(NSOpenGLPFAAccelerated);
+  ADD_ATTR(NSOpenGLPFAClosestPolicy);
+  ADD_ATTR(NSOpenGLPFADoubleBuffer);
+  ADD_ATTR2(NSOpenGLPFAColorSize, 24);
+  ADD_ATTR2(NSOpenGLPFAAlphaSize, 8);
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
+    ADD_ATTR2(NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core);
+#else
+    ADD_ATTR2(NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core);
+#endif
+
+  ADD_ATTR(0);
+
+/*
 	// Create local autorelease pool for any objects that need to be autoreleased (needed in batch mode).
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSOpenGLPixelFormatAttribute attrib[] = {NSOpenGLPFAAllRenderers, NSOpenGLPFADoubleBuffer, 0};
-	NSOpenGLPixelFormat *dummyPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrib];
+*/
+
+	NSOpenGLPixelFormat *dummyPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
 	if (nil != dummyPixelFormat)
-    {
-		[dummyPixelFormat release];
+        {
+          printf("FAILED TO GET PIXEL FORMAT!");
+          NSLog(@"FAILED TO GET PIXEL FORMAT!");
+          [dummyPixelFormat release];
+	}
+	else
+	{
+          printf("PASSED TO GET PIXEL FORMAT!");
+	  NSLog(@"PASSED TO GET PIXEL FORMAT!");
 	}
 	[pool release];
+
+#undef ADD_ATTR
+#undef ADD_ATTR2
 }
+
 
 #endif

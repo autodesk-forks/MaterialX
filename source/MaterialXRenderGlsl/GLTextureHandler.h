@@ -25,18 +25,18 @@ class GLTextureHandler : public ImageHandler
 
     /// Static instance create function
     static GLTextureHandlerPtr create(ImageLoaderPtr imageLoader)
-    { 
+    {
         return std::make_shared<GLTextureHandler>(imageLoader);
     }
 
     /// Default constructor
     GLTextureHandler(ImageLoaderPtr imageLoader);
-    
+
     /// Default destructor
     virtual ~GLTextureHandler() {}
 
 
-    /// Utility to create a solid color color image 
+    /// Utility to create a solid color color image
     /// This method will create an OpenGL texture resource and return it's resource identifier
     /// as part of the image description returned.
     /// @param color Color to set
@@ -45,7 +45,7 @@ class GLTextureHandler : public ImageHandler
     bool createColorImage(const Color4& color,
                           ImageDesc& imageDesc) override;
 
-    /// Acquire an image from disk. 
+    /// Acquire an image from disk.
     /// The first image loader which supports the file name extension will be used.
     /// This method will create an OpenGL texture resource and return it's resource identifier
     /// as part of the image description returned.
@@ -77,20 +77,26 @@ class GLTextureHandler : public ImageHandler
   protected:
     /// Delete an image
     /// @param imageDesc Image description indicate which image to delete.
-    /// Any OpenGL texture resource and as well as any CPU side reosurce memory will be deleted. 
+    /// Any OpenGL texture resource and as well as any CPU side reosurce memory will be deleted.
     void deleteImage(MaterialX::ImageDesc& imageDesc) override;
 
     /// Return restrictions specific to this handler
     const ImageDescRestrictions* getRestrictions() const override
-    { 
+    {
         return &_restrictions;
     }
+
+    int getAvailableActiveTextureUnit();
+    int getTextureUnitForResource(unsigned int resourceId);
 
     /// Maximum number of available image units
     int _maxImageUnits;
 
     /// Support restrictions
     ImageDescRestrictions _restrictions;
+
+    bool _activeTexturesInitialized;
+    std::vector<unsigned int> _activeTextures;
 };
 
 } // namespace MaterialX

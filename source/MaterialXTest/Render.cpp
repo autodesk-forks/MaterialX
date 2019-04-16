@@ -1134,8 +1134,8 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
             // Only check implementations for languages we're interested in and
             // are testing.
             // 
-            if ((options.runGLSLTests && impl->getLanguage() == mx::GlslShaderGenerator::LANGUAGE) ||
-                (options.runOSLTests && impl->getLanguage() == mx::OslShaderGenerator::LANGUAGE))
+            if ((options.runGLSLTests && impl->getLanguage() == mx::GlslShaderGenerator::LANGUAGE))
+//                (options.runOSLTests && impl->getLanguage() == mx::OslShaderGenerator::LANGUAGE))
             {
                 libraryImpls.insert(impl);
             }
@@ -1394,7 +1394,7 @@ TEST_CASE("Render: TestSuite", "[render]")
     if (!options.runOSLTests)
     {
         excludeFiles.insert("stdlib_osl_impl.mtlx");
-        excludeFiles.insert("stdlib_" + mx::OslShaderGenerator::LANGUAGE + "_impl.mtlx");
+        //excludeFiles.insert("stdlib_" + mx::OslShaderGenerator::LANGUAGE + "_impl.mtlx");
     }
 
     const mx::StringVec libraries = { "stdlib", "pbrlib" };

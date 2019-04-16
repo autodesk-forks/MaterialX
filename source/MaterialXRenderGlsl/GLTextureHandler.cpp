@@ -10,9 +10,25 @@
 
 namespace MaterialX
 {
+void checkErrors(const std::string& location)
+{
+    ShaderValidationErrorList errors;
+
+    GLenum error;
+    while ((error = glGetError()) != GL_NO_ERROR)
+    {
+        errors.push_back(location + ": OpenGL error: " + std::to_string(error));
+    }
+    if (errors.size())
+    {
+        throw ExceptionShaderValidationError("OpenGL context error.", errors);
+    }
+}
+
 GLTextureHandler::GLTextureHandler(ImageLoaderPtr imageLoader) :
     ParentClass(imageLoader),
-    _maxImageUnits(-1)
+    _maxImageUnits(-1),
+    _activeTexturesInitialized(false)
 {
     _restrictions.supportedBaseTypes = { ImageDesc::BASETYPE_HALF, ImageDesc::BASETYPE_FLOAT, ImageDesc::BASETYPE_UINT8 };
 }
@@ -30,7 +46,10 @@ bool GLTextureHandler::createColorImage(const Color4& color,
     {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glGenTextures(1, &imageDesc.resourceId);
-        glActiveTexture(GL_TEXTURE0 + imageDesc.resourceId);
+
+        int textureUnit = getTextureUnitForResource(imageDesc.resourceId);
+        if (textureUnit < 0) return false;
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
         glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, imageDesc.width, imageDesc.height, 0, GL_RGBA, GL_FLOAT, imageDesc.resourceBuffer);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -46,6 +65,17 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
                                     bool generateMipMaps,
                                     const Color4* fallbackColor)
 {
+    if(!_activeTexturesInitialized)
+    {
+        printf("BIND IMAGE1\n");
+        int maxTextureUnits;
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+        _activeTextures.resize(maxTextureUnits, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+        printf("MAX TEXTURE UNITS: %d\n", maxTextureUnits);
+        _activeTexturesInitialized = true;
+        printf("BIND IMAGE2\n");
+    }
+
     if (filePath.isEmpty())
     {
         return false;
@@ -71,7 +101,10 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         imageDesc.resourceId = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glGenTextures(1, &imageDesc.resourceId);
-        glActiveTexture(GL_TEXTURE0 + imageDesc.resourceId);
+
+        int textureUnit = getAvailableActiveTextureUnit();
+        _activeTextures[textureUnit] = imageDesc.resourceId;
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
         glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
 
         GLint internalFormat = GL_RGBA;
@@ -174,8 +207,17 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
         {
             return false;
         }
-        glActiveTexture(GL_TEXTURE0 + resourceId);
+
+        int numTextures;
+        glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &numTextures);
+        printf("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: %d\n", numTextures);
+        printf("Resource Id: %d\n", resourceId);
+        int textureUnit = getTextureUnitForResource(resourceId);
+        if (textureUnit < 0) return false;
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
+        checkErrors("bindImage1");
         glBindTexture(GL_TEXTURE_2D, resourceId);
+        checkErrors("bindImage2");
 
         // Set up texture properties
         //
@@ -249,14 +291,41 @@ void GLTextureHandler::deleteImage(MaterialX::ImageDesc& imageDesc)
     if (imageDesc.resourceId != MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
     {
         // Unbind a texture from image unit and delete the texture
-        glActiveTexture(GL_TEXTURE0 + imageDesc.resourceId);
+        int textureUnit = getTextureUnitForResource(imageDesc.resourceId);
+        if(textureUnit < 0) return;
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
         glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
         glDeleteTextures(1, &imageDesc.resourceId);
+        _activeTextures[textureUnit] = 0;
         imageDesc.resourceId = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
     }
 
     // Delete any CPU side memory
     ParentClass::deleteImage(imageDesc);
+}
+
+int GLTextureHandler::getAvailableActiveTextureUnit()
+{
+    for(int i=0; i<_activeTextures.size(); i++)
+    {
+        if(_activeTextures[i] == MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int GLTextureHandler::getTextureUnitForResource(unsigned int resourceId)
+{
+    for(int i=0; i<_activeTextures.size(); i++)
+    {
+        if(_activeTextures[i] == resourceId)
+        {
+            return i;
+        }
+    }
+    return -1;
 }
 
 }

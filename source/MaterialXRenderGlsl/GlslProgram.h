@@ -239,7 +239,7 @@ class GlslProgram
     /// Utility to check for OpenGL context errors.
     /// Will throw an ExceptionShaderValidationError exception which will list of the errors found
     /// if any errors encountered.
-    void checkErrors();
+    void checkErrors(const std::string& location);
 
     /// Delete any currently created shader program
     void deleteProgram();
@@ -276,6 +276,8 @@ class GlslProgram
 
     /// Program texture map
     std::unordered_map<std::string, unsigned int> _programTextures;
+
+    std::set<int> _enabledLocations;
 };
 
 } // namespace MaterialX
