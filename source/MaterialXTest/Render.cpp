@@ -16,20 +16,20 @@
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
 
 #include <MaterialXRender/Util.h>
-#include <MaterialXRender/ShaderValidators/ExceptionShaderValidationError.h>
+#include <MaterialXRender/ExceptionShaderValidationError.h>
 
 #include <MaterialXTest/RenderUtil.h>
 
 #ifdef MATERIALX_BUILD_CONTRIB
-#include <MaterialXContrib/Handlers/TinyEXRImageLoader.h>
+#include <MaterialXContrib/TinyEXRImageLoader.h>
 #endif
 #ifdef MATERIALX_BUILD_OIIO
-#include <MaterialXRender/Handlers/OiioImageLoader.h>
+#include <MaterialXRender/OiioImageLoader.h>
 #endif
-#include <MaterialXRender/Handlers/StbImageLoader.h>
+#include <MaterialXRender/StbImageLoader.h>
 
-#include <MaterialXRender/Handlers/GeometryHandler.h>
-#include <MaterialXRender/Handlers/TinyObjLoader.h>
+#include <MaterialXRender/GeometryHandler.h>
+#include <MaterialXRender/TinyObjLoader.h>
 
 #include <fstream>
 #include <iostream>
