@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<materialx version="1.37" cms="default_cms" colorspace="lin_rec709">
+   <xi:include href="libraries/metal_definition.mtlx" />
+
+   <material name="Steel_Braided_22twil">
+      <!-- Use shading normal -->
+      <shaderref name="shaderref0" node="testmetal">
+         <bindinput name="MetalF0" type="color3" value="0.35, 0.35, 0.35" />
+         <bindinput name="SurfaceAnisotropy" type="float" value="0.9" />
+         <bindinput name="SurfaceRoughness" type="float" value="0.447214" />
+         <bindinput name="SurfaceAlbedo" type="color3" output="SurfaceAlbedo_output" nodegraph="Steel_Braided_22twil_Input_Graph" />
+         <bindinput name="SurfaceRotation" type="float" output="SurfaceRotation_output" nodegraph="Steel_Braided_22twil_Input_Graph" />
+         <bindinput name="SurfaceCutout" type="color3" output="SurfaceCutout_output" nodegraph="Steel_Braided_22twil_Input_Graph" />
+      </shaderref>
+   </material>
+
+   <nodegraph name="Steel_Braided_22twil_Input_Graph">
+      <!-- SurfaceAlbedo -->
+      <image name="SurfaceAlbedo_color" type="color3">
+         <parameter name="file" type="filename" value="textures/braided_steel_2twill_spec_hc.jpg" colorspace="lin_rec709" />
+         <input name="texcoord" type="vector2" nodename="albedo_transform" />
+         <parameter name="uaddressmode" type="string" value="periodic" />
+         <parameter name="vaddressmode" type="string" value="periodic" />
+         <parameter name="filtertype" type="string" value="linear" />
+      </image>
+      <texcoord name="albedo_texcoord" type="vector2" />
+      <transformpoint name="albedo_transform" type="vector2">
+         <input name="mat" type="matrix33" value="14.2857, 0.0, 0.0, 0.0, 14.2857, 0.0, 0.0, 0.0, 1.0" />
+         <input name="in" type="vector2" nodename="albedo_texcoord" />
+      </transformpoint>
+      <output name="SurfaceAlbedo_output" type="color3" nodename="SurfaceAlbedo_color" />
+
+      <!-- SurfaceRotation -->
+      <texcoord name="rotation_texcoord" type="vector2" />
+      <transformpoint name="rotation_transform" type="vector2">
+         <input name="mat" type="matrix33" value="14.2857, 0.0, 0.0, 0.0, 14.2857, 0.0, 0.0, 0.0, 1.0" />
+         <input name="in" type="vector2" nodename="rotation_texcoord" />
+      </transformpoint>
+      <image name="SurfaceRotation_map" type="float" >
+         <parameter name="file" type="filename" value="textures/braided_steel_2twill_anisdir.jpg" colorspace="lin_rec709" />
+         <input name="texcoord" type="vector2" nodename="rotation_transform" />
+      </image>
+
+      <output name="SurfaceRotation_output" type="float" nodename="SurfaceRotation_map" />
+
+      <!-- SurfaceCutout -->
+      <image name="SurfaceCutout_mask" type="color3">
+         <parameter name="file" type="filename" value="textures/braided_steel_2twill_cutout.jpg" colorspace="lin_rec709" />
+         <input name="texcoord" type="vector2" nodename="cutout_transform" />
+      </image>
+      <texcoord name="cutout_texcoord" type="vector2" />
+      <transformpoint name="cutout_transform" type="vector2">
+         <input name="mat" type="matrix33" value="14.2857, 0.0, 0.0, 0.0, 14.2857, 0.0, 0.0, 0.0,1.0" />
+         <input name="in" type="vector2" nodename="cutout_texcoord" />
+      </transformpoint>
+      <output name="SurfaceCutout_output" type="color3" nodename="SurfaceCutout_mask" />
+   </nodegraph>
+
+
+   <look name="look1">
+      <materialassign name="materialassign1" material="Steel_Braided_22twil" collection="collection1" />
+   </look>
+   <collection name="collection1" geomprefix="/*" />
+</materialx>
