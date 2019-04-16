@@ -148,7 +148,7 @@ class AdditiveScopedTimer
     }
 
   protected:
-    double _duration;
+    double &_duration;
     bool _debugUpdate;
     std::string _label;
     std::chrono::time_point<std::chrono::system_clock> _startTime;
