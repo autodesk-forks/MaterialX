@@ -260,7 +260,6 @@ bool GlslProgram::bind()
     if (_programId > UNDEFINED_OPENGL_RESOURCE_ID)
     {
         glUseProgram(_programId);
-        checkErrors("bind");
         return true;
     }
     return false;
@@ -279,8 +278,6 @@ void GlslProgram::bindInputs(ViewHandlerPtr viewHandler,
         errors.push_back("Cannot bind inputs without a valid program");
         throw ExceptionShaderValidationError(errorType, errors);
     }
-
-    checkErrors("bindInputs");
 
     // Parse for uniforms and attributes
     getUniformsList();
@@ -483,37 +480,29 @@ void GlslProgram::bindStreams(MeshPtr mesh)
                 glUniform4fv(Input.second->location, 1, floatVal);
         }
     }
-
-    checkErrors("bindStreams");
 }
 
 void GlslProgram::unbindGeometry()
 {
     // Cleanup attribute bindings
     //
-    checkErrors("unbindGeometry1");
     int numberAttributes = 0;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numberAttributes);
-    checkErrors("unbindGeometry2");
     //for (int i = 0; i < numberAttributes; i++)
     for(int i : _enabledLocations)
     {
         glDisableVertexAttribArray(i);
-    checkErrors("unbindGeometry3: " + std::to_string(i));
     }
     _enabledLocations.clear();
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
-    checkErrors("unbindGeometry4");
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
-    checkErrors("unbindGeometry5");
 
     // Clean up buffers
     //
     if (_indexBuffer > 0)
     {
         glDeleteBuffers(1, &_indexBuffer);
-    checkErrors("unbindGeometry6");
         _indexBuffer = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
     }
     for (auto attributeBufferId : _attributeBufferIds)
@@ -522,18 +511,14 @@ void GlslProgram::unbindGeometry()
         if (bufferId > 0)
         {
             glDeleteBuffers(1, &bufferId);
-    checkErrors("unbindGeometry7");
         }
     }
     _attributeBufferIds.clear();
-
-    checkErrors("unbindGeometry8");
 }
 
 void GlslProgram::unbindTextures(ImageHandlerPtr imageHandler)
 {
     imageHandler->clearImageCache();
-    checkErrors("unbindTextures");
 }
 
 bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, const FilePath& filePath,
@@ -545,19 +530,14 @@ bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, con
         uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
     {
         ImageDesc imageDesc;
-        checkErrors("bindTexture 0 - " + filePath.asString());
         bool haveImage = imageHandler->acquireImage(filePath, imageDesc, generateMipMaps, &(samplingProperties.defaultColor));
-        checkErrors("bindTexture 1 - " + filePath.asString());
 
-        printf("HAVE IMAGE\n");
         if (haveImage)
         {
-        printf("HAVE IMAGE: TRUE\n");
             // Map location to a texture unit
-            glUniform1i(uniformLocation, imageDesc.resourceId);
+            glUniform1i(uniformLocation, imageHandler->getBoundTextureLocation(imageDesc.resourceId));
             textureBound = imageHandler->bindImage(filePath, samplingProperties);
         }
-        checkErrors("bindTexture 2 - " + filePath.asString() + ", " + std::to_string(imageDesc.resourceId));
     }
     return textureBound;
 }
@@ -640,13 +620,11 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
             }
         }
     }
-    checkErrors("bindTextures2");
 }
 
 
 void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr imageHandler)
 {
-    checkErrors("bindLighting1");
     if (!lightHandler)
     {
         // Nothing to bind if a light handler is not used.
@@ -715,7 +693,6 @@ void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr i
                 fileName = ibl.second;
             }
             ImageSamplingProperties desc;
-    checkErrors("bindLighting1");
             bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, desc);
         }
     }
@@ -1014,7 +991,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         }
     }
 
-    checkErrors("bindViewInformation");
+    checkErrors();
 }
 
 void GlslProgram::bindTimeAndFrame()
@@ -1269,7 +1246,6 @@ int GlslProgram::mapTypeToOpenGLType(const TypeDesc* type)
 
 const GlslProgram::InputMap& GlslProgram::updateAttributesList()
 {
-    printf("updateAttributeList: 1\n");
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL attribute parsing error.");
 
@@ -1278,7 +1254,6 @@ const GlslProgram::InputMap& GlslProgram::updateAttributesList()
         return _attributeList;
     }
 
-    printf("updateAttributeList: 2\n");
     if (_programId <= UNDEFINED_OPENGL_RESOURCE_ID)
     {
         errors.push_back("Cannot parse for attributes without a valid program");
@@ -1291,7 +1266,6 @@ const GlslProgram::InputMap& GlslProgram::updateAttributesList()
     glGetProgramiv(_programId, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxNameLength);
     char* attributeName = new char[maxNameLength];
 
-    printf("updateAttributeList: 3\n");
     for (int i = 0; i < numAttributes; i++)
     {
         GLint attributeSize = 0;
@@ -1300,9 +1274,7 @@ const GlslProgram::InputMap& GlslProgram::updateAttributesList()
         GLint attributeLocation = glGetAttribLocation(_programId, attributeName);
         if (attributeLocation >= 0)
         {
-    printf("updateAttributeList: 4\n");
             InputPtr inputPtr = std::make_shared<Input>(attributeLocation, attributeType, attributeSize, EMPTY_STRING);
-    printf("updateAttributeList: 5\n");
 
             // Attempt to pull out the set number for specific attributes
             //
@@ -1456,14 +1428,14 @@ void GlslProgram::printAttributes(std::ostream& outputStream)
     }
 }
 
-void GlslProgram::checkErrors(const std::string &location)
+void GlslProgram::checkErrors()
 {
     ShaderValidationErrorList errors;
 
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR)
     {
-        errors.push_back(location + ": OpenGL error: " + std::to_string(error));
+        errors.push_back("OpenGL error: " + std::to_string(error));
     }
     if (errors.size())
     {

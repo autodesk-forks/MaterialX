@@ -102,16 +102,16 @@ void GlslValidator::initialize()
  		    int major, minor;
 		    glGetIntegerv(GL_MAJOR_VERSION, &major);
 		    glGetIntegerv(GL_MINOR_VERSION, &minor);
-                    printf("Major %d\n", major);
-                    printf("Minor: %d\n", minor);
-/*
+
+#ifndef OSMac_
+
                     if (!glewIsSupported("GL_VERSION_4_0"))
                     {
                         initializedFunctions = false;
                         errors.push_back("OpenGL version 4.0 not supported");
                         throw ExceptionShaderValidationError(errorType, errors);
                     }
-*/
+#endif
                     if (initializedFunctions)
                     {
                         glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
@@ -395,23 +395,18 @@ void GlslValidator::bindFixedFunctionViewInformation()
 {
     // Bind projection
     glMatrixMode(GL_PROJECTION);
-    checkErrors("bindFixedFunctionViewInformation1");
     Matrix44& projection = _viewHandler->projectionMatrix();
     glLoadMatrixf(&(projection[0][0]));
-    checkErrors("bindFixedFunctionViewInformation2");
 
     // Bind model view matrix
     glMatrixMode(GL_MODELVIEW);
-    checkErrors("bindFixedFunctionViewInformation3");
     Matrix44 viewMatrix = _viewHandler->viewMatrix();
     // Note: (model * view) is just Identity * view.
     glLoadMatrixf(&(viewMatrix[0][0]));
-    checkErrors("bindFixedFunctionViewInformation4");
 }
 
 void GlslValidator::validateRender(bool orthographicView)
 {
-    checkErrors("validateRender1");
     _orthographicView = orthographicView;
 
     ShaderValidationErrorList errors;
@@ -428,7 +423,6 @@ void GlslValidator::validateRender(bool orthographicView)
         throw ExceptionShaderValidationError(errorType, errors);
     }
 
-    checkErrors("validateRender2");
     // Set up target
     bindTarget(true);
 
@@ -436,15 +430,12 @@ void GlslValidator::validateRender(bool orthographicView)
     glDepthFunc(GL_LESS);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    checkErrors("validateRender3");
     // Set up viewing / projection matrices for an orthographic rendering
     glViewport(0, 0, _frameBufferWidth, _frameBufferHeight);
 
-    checkErrors("validateRender4");
     // Update viewing information
     updateViewInformation();
 
-    checkErrors("validateRender5");
     // Set view information for fixed function
     //bindFixedFunctionViewInformation();
 
@@ -479,7 +470,6 @@ void GlslValidator::validateRender(bool orthographicView)
                         glDrawElements(GL_TRIANGLES, (GLsizei)indexData.size(), GL_UNSIGNED_INT, (void*)0);
                     }
                 }
-                checkErrors("validateRender");
 
                 // Unbind resources
                 _program->unbind();
@@ -524,7 +514,7 @@ void GlslValidator::save(const FilePath& filePath, bool floatingPoint)
     bindTarget(false);
     try
     {
-        checkErrors("save");
+        checkErrors();
     }
     catch (ExceptionShaderValidationError& e)
     {
@@ -550,14 +540,14 @@ void GlslValidator::save(const FilePath& filePath, bool floatingPoint)
     }
 }
 
-void GlslValidator::checkErrors(const std::string& location)
+void GlslValidator::checkErrors()
 {
     ShaderValidationErrorList errors;
 
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR)
     {
-        errors.push_back(location + ": OpenGL error: " + std::to_string(error));
+        errors.push_back("OpenGL error: " + std::to_string(error));
     }
     if (errors.size())
     {

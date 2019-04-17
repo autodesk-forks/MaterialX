@@ -41,7 +41,7 @@ class ImageDesc
     static ImageType IMAGETYPE_2D;
 
     /// Image width
-    unsigned int width = 0; 
+    unsigned int width = 0;
     /// Image height
     unsigned int height = 0;
     /// Number of channels
@@ -144,7 +144,7 @@ class ImageLoader
     /// @param imageDesc Description of image updated during load.
     /// @param restrictions Hardware image description restrictions. Default value is nullptr, meaning no restrictions.
     /// @return if load succeeded
-    virtual bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc, 
+    virtual bool acquireImage(const FilePath& filePath, ImageDesc &imageDesc,
                               const ImageDescRestrictions* restrictions = nullptr) = 0;
 
   protected:
@@ -180,7 +180,7 @@ class ImageHandler
     /// extensions
     /// @param loader Loader to add to list of available loaders.
     void addLoader(ImageLoaderPtr loader);
-    
+
     /// Default destructor
     virtual ~ImageHandler() { };
 
@@ -206,14 +206,14 @@ class ImageHandler
     /// @return if load succeeded in loading image or created fallback image.
     virtual bool acquireImage(const FilePath& filePath, ImageDesc& desc, bool generateMipMaps, const Color4* fallbackColor);
 
-    /// Utility to create a solid color color image 
+    /// Utility to create a solid color color image
     /// @param color Color to set
     /// @param imageDesc Description of image updated during load.
     /// @return if creation succeeded
     virtual bool createColorImage(const Color4& color,
                                   ImageDesc& imageDesc);
- 
-    /// Bind an image. Derived classes should implement this method to handle logical binding of 
+
+    /// Bind an image. Derived classes should implement this method to handle logical binding of
     /// an image resource. The default implementation performs no action.
     /// @param identifier Identifier for image description to bind.
     /// @param samplingProperties Sampling properties for the image
@@ -221,7 +221,7 @@ class ImageHandler
     virtual bool bindImage(const string& identifier, const ImageSamplingProperties& samplingProperties);
 
     /// Clear the contents of the image cache.
-    /// deleteImage() will be called for each cache description to 
+    /// deleteImage() will be called for each cache description to
     /// allow derived classes to clean up any associated resources.
     virtual void clearImageCache()
     {
@@ -239,6 +239,12 @@ class ImageHandler
     {
         return _searchPath;
     }
+
+    virtual int getBoundTextureLocation(unsigned int resourceId)
+    {
+        return 0;
+    }
+
 
   protected:
     /// Cache an image for reuse.

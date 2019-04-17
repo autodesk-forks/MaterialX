@@ -74,6 +74,8 @@ class GLTextureHandler : public ImageHandler
     /// Clear image cache
     void clearImageCache() override;
 
+    int getBoundTextureLocation(unsigned int resourceId) override;
+
   protected:
     /// Delete an image
     /// @param imageDesc Image description indicate which image to delete.
@@ -86,8 +88,7 @@ class GLTextureHandler : public ImageHandler
         return &_restrictions;
     }
 
-    int getAvailableActiveTextureUnit();
-    int getTextureUnitForResource(unsigned int resourceId);
+    int getNextAvailableTextureLocation();
 
     /// Maximum number of available image units
     int _maxImageUnits;
@@ -95,8 +96,8 @@ class GLTextureHandler : public ImageHandler
     /// Support restrictions
     ImageDescRestrictions _restrictions;
 
-    bool _activeTexturesInitialized;
-    std::vector<unsigned int> _activeTextures;
+    bool _boundTextureLocationsInitialized;
+    std::vector<unsigned int> _boundTextureLocations;
 };
 
 } // namespace MaterialX
