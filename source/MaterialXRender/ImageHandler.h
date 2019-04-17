@@ -200,7 +200,7 @@ class ImageHandler
     void addLoader(ImageLoaderPtr loader);
 
     /// Default destructor
-    virtual ~ImageHandler() 
+    virtual ~ImageHandler()
     {
         clearImageCache();
     };
@@ -258,7 +258,8 @@ class ImageHandler
         return _searchPath;
     }
 
-    virtual int getBoundTextureLocation(unsigned int resourceId)
+    /// Returns the bound texture location for a given resource
+    virtual int getBoundTextureLocation(unsigned int)
     {
         return 0;
     }
