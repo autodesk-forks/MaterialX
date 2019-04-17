@@ -328,8 +328,8 @@ bool ShaderRenderTester::validate()
 {
     // Test has been turned off so just do nothing.
     // Check for an option file
-    mx::FilePath path = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");
-    const mx::FilePath optionsPath = path / mx::FilePath("_options.mtlx");
+    mx::FilePath testRoot = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");
+    const mx::FilePath optionsPath = testRoot / mx::FilePath("_options.mtlx");
     RenderUtil::RenderTestOptions options;
     if (!options.readOptions(optionsPath))
     {
@@ -373,8 +373,9 @@ bool ShaderRenderTester::validate()
 
     RenderUtil::AdditiveScopedTimer ioTimer(profileTimes.ioTime, "Global I/O time");
     mx::FilePathVec dirs;
-    mx::FilePath baseDirectory = path;
-    dirs = baseDirectory.getSubDirectories();
+    dirs = testRoot.getSubDirectories();
+    const mx::FilePath standardSurfacePath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/Examples/StandardSurface");
+    dirs.push_back(standardSurfacePath);
 
     ioTimer.endTimer();
 
