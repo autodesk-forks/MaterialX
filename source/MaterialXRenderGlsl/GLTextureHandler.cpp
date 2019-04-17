@@ -282,7 +282,7 @@ int GLTextureHandler::getBoundTextureLocation(unsigned int resourceId)
     {
         if(_boundTextureLocations[i] == resourceId)
         {
-            return i;
+            return static_cast<int>(i);
         }
     }
     return -1;
@@ -294,7 +294,7 @@ int GLTextureHandler::getNextAvailableTextureLocation()
     {
         if(_boundTextureLocations[i] == MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
         {
-            return i;
+            return static_cast<int>(i);
         }
     }
     return -1;
