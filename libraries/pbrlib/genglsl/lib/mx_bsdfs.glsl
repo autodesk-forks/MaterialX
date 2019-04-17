@@ -81,6 +81,7 @@ float mx_microfacet_ggx_smith_G(float NdotL, float NdotV, float alpha)
 // http://blog.selfshadow.com/publications/s2017-shading-course/imageworks/s2017_pbs_imageworks_sheen.pdf (Equation 2)
 float mx_microfacet_sheen_NDF(float cosTheta, float roughness)
 {
+    // Given roughness is assumed to be clamped to [M_FLOAT_EPS, 1.0]
     float invRoughness = 1.0 / roughness;
     float cos2 = cosTheta * cosTheta;
     float sin2 = 1.0 - cos2;
