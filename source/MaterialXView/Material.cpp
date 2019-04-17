@@ -409,7 +409,9 @@ bool Material::bindImage(std::string filename, const std::string& uniformName, m
     }
 
     // Bind the image and set its sampling properties.
-    _glShader->setUniform(uniformName, imageHandler->getBoundTextureLocation(desc.resourceId));
+    int textureLocation = imageHandler->getBoundTextureLocation(desc.resourceId);
+    if (textureLocation < 0) return false;
+    _glShader->setUniform(uniformName, textureLocation);
     mx::ImageSamplingProperties samplingProperties;
     imageHandler->bindImage(filename, samplingProperties);
 
@@ -470,8 +472,8 @@ void Material::bindUniform(const std::string& name, mx::ConstValuePtr value)
     }
 }
 
-void Material::bindLights(mx::LightHandlerPtr lightHandler, mx::GLTextureHandlerPtr imageHandler, 
-                          const mx::FileSearchPath& imagePath, int envSamples, bool directLighting, 
+void Material::bindLights(mx::LightHandlerPtr lightHandler, mx::GLTextureHandlerPtr imageHandler,
+                          const mx::FileSearchPath& imagePath, int envSamples, bool directLighting,
                           bool indirectLighting)
 {
     if (!_glShader)

@@ -95,7 +95,6 @@ class GLTextureHandler : public ImageHandler
     /// Support restrictions
     ImageDescRestrictions _restrictions;
 
-    bool _boundTextureLocationsInitialized;
     std::vector<unsigned int> _boundTextureLocations;
 };
 

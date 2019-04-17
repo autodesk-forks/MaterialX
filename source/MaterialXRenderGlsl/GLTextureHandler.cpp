@@ -13,8 +13,7 @@ namespace MaterialX
 
 GLTextureHandler::GLTextureHandler(ImageLoaderPtr imageLoader) :
     ParentClass(imageLoader),
-    _maxImageUnits(-1),
-    _boundTextureLocationsInitialized(false)
+    _maxImageUnits(-1)
 {
     _restrictions.supportedBaseTypes = { ImageDesc::BASETYPE_HALF, ImageDesc::BASETYPE_FLOAT, ImageDesc::BASETYPE_UINT8 };
 }
@@ -50,12 +49,17 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
                                     bool generateMipMaps,
                                     const Color4* fallbackColor)
 {
-    if(!_boundTextureLocationsInitialized)
+    if(_boundTextureLocations.size() == 0)
     {
         int maxTextureUnits;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+        if (maxTextureUnits <= 0)
+        {
+            ShaderValidationErrorList errors;
+            errors.push_back("No texture units available");
+            throw ExceptionShaderValidationError("OpenGL context error.", errors);
+        }
         _boundTextureLocations.resize(maxTextureUnits, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
-        _boundTextureLocationsInitialized = true;
     }
 
     if (filePath.isEmpty())
@@ -274,7 +278,7 @@ void GLTextureHandler::deleteImage(MaterialX::ImageDesc& imageDesc)
 
 int GLTextureHandler::getBoundTextureLocation(unsigned int resourceId)
 {
-    for(int i=0; i<_boundTextureLocations.size(); i++)
+    for(size_t i=0; i<_boundTextureLocations.size(); i++)
     {
         if(_boundTextureLocations[i] == resourceId)
         {
@@ -286,7 +290,7 @@ int GLTextureHandler::getBoundTextureLocation(unsigned int resourceId)
 
 int GLTextureHandler::getNextAvailableTextureLocation()
 {
-    for(int i=0; i<_boundTextureLocations.size(); i++)
+    for(size_t i=0; i<_boundTextureLocations.size(); i++)
     {
         if(_boundTextureLocations[i] == MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
         {

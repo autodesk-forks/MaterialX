@@ -261,7 +261,7 @@ class ImageHandler
     /// Returns the bound texture location for a given resource
     virtual int getBoundTextureLocation(unsigned int)
     {
-        return 0;
+        return -1;
     }
 
 
