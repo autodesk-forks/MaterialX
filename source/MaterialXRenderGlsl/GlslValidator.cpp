@@ -99,10 +99,6 @@ void GlslValidator::initialize()
                     bool initializedFunctions = true;
 
                     glewInit();
- 		    int major, minor;
-		    glGetIntegerv(GL_MAJOR_VERSION, &major);
-		    glGetIntegerv(GL_MINOR_VERSION, &minor);
-
 #ifndef OSMac_
 
                     if (!glewIsSupported("GL_VERSION_4_0"))
@@ -403,6 +399,8 @@ void GlslValidator::bindFixedFunctionViewInformation()
     Matrix44 viewMatrix = _viewHandler->viewMatrix();
     // Note: (model * view) is just Identity * view.
     glLoadMatrixf(&(viewMatrix[0][0]));
+
+    checkErrors();
 }
 
 void GlslValidator::validateRender(bool orthographicView)
@@ -436,9 +434,6 @@ void GlslValidator::validateRender(bool orthographicView)
     // Update viewing information
     updateViewInformation();
 
-    // Set view information for fixed function
-    //bindFixedFunctionViewInformation();
-
     try
     {
         // Bind program and input parameters
@@ -470,6 +465,7 @@ void GlslValidator::validateRender(bool orthographicView)
                         glDrawElements(GL_TRIANGLES, (GLsizei)indexData.size(), GL_UNSIGNED_INT, (void*)0);
                     }
                 }
+                checkErrors();
 
                 // Unbind resources
                 _program->unbind();

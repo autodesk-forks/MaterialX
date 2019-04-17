@@ -3,7 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#if defined(MATERIALX_BUILD_RENDER) 
+#if defined(MATERIALX_BUILD_RENDER)
 
 // Run only on supported platforms
 #include <MaterialXRender/HardwarePlatform.h>
@@ -371,8 +371,8 @@ protected:
 
 // Create a list of generation options based on unit test options
 // These options will override the original generation context options.
-void getGenerationOptions(const ShaderValidTestOptions& testOptions, 
-                          const mx::GenOptions& originalOptions, 
+void getGenerationOptions(const ShaderValidTestOptions& testOptions,
+                          const mx::GenOptions& originalOptions,
                           std::vector<mx::GenOptions>& optionsList)
 {
     optionsList.clear();
@@ -1120,7 +1120,7 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
     {
         profilingLog << "---------------------------------------" << std::endl;
 
-        // Get implementation count from libraries. 
+        // Get implementation count from libraries.
         std::set<mx::ImplementationPtr> libraryImpls;
         const std::vector<mx::ElementPtr>& children = dependLib->getChildren();
         for (auto child : children)
@@ -1133,9 +1133,15 @@ void printRunLog(const ShaderValidProfileTimes &profileTimes, const ShaderValidT
 
             // Only check implementations for languages we're interested in and
             // are testing.
-            // 
+            //
+#if defined(MATERIALX_BUILD_RENDERGLSL) && defined(MATERIALX_BUILD_RENDEROSL)
             if ((options.runGLSLTests && impl->getLanguage() == mx::GlslShaderGenerator::LANGUAGE))
-//                (options.runOSLTests && impl->getLanguage() == mx::OslShaderGenerator::LANGUAGE))
+                (options.runOSLTests && impl->getLanguage() == mx::OslShaderGenerator::LANGUAGE))
+#elif MATERIALX_BUILD_RENDERGLSL
+            if (options.runGLSLTests && impl->getLanguage() == mx::GlslShaderGenerator::LANGUAGE)
+#elif MATERIALX_BUILD_RENDEROSL
+            if (options.runOSLTests && impl->getLanguage() == mx::OslShaderGenerator::LANGUAGE)
+#endif
             {
                 libraryImpls.insert(impl);
             }
@@ -1298,7 +1304,7 @@ TEST_CASE("Render: Image Handler Load", "[rendercore]")
 TEST_CASE("Render: TestSuite", "[render]")
 {
     bool skipTest = false;
-#if !defined(MATERIALX_TEST_RENDER) 
+#if !defined(MATERIALX_TEST_RENDER)
     skipTest = true;
 #endif
 #if !defined(MATERIALX_BUILD_RENDERGLSL) && !defined(MATERIALX_BUILD_RENDEROSL)
@@ -1388,13 +1394,17 @@ TEST_CASE("Render: TestSuite", "[render]")
     mx::StringSet excludeFiles;
     if (!options.runGLSLTests && !options.runOGSFXTests)
     {
+#ifdef MATERIALX_BUILD_RENDERGLSL
         excludeFiles.insert("stdlib_" + mx::GlslShaderGenerator::LANGUAGE + "_impl.mtlx");
         excludeFiles.insert("stdlib_" + mx::GlslShaderGenerator::LANGUAGE + "_ogsfx_impl.mtlx");
+#endif
     }
     if (!options.runOSLTests)
     {
         excludeFiles.insert("stdlib_osl_impl.mtlx");
-        //excludeFiles.insert("stdlib_" + mx::OslShaderGenerator::LANGUAGE + "_impl.mtlx");
+#ifdef MATERIALX_BUILD_RENDEROSL
+        excludeFiles.insert("stdlib_" + mx::OslShaderGenerator::LANGUAGE + "_impl.mtlx");
+#endif
     }
 
     const mx::StringVec libraries = { "stdlib", "pbrlib" };

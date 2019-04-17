@@ -105,7 +105,6 @@ void GlslProgram::deleteProgram()
     {
         glUseProgram(0);
         glDeleteProgram(_programId);
-//      glDeleteObjectARB(_programId);
         _programId = UNDEFINED_OPENGL_RESOURCE_ID;
     }
 
@@ -260,6 +259,7 @@ bool GlslProgram::bind()
     if (_programId > UNDEFINED_OPENGL_RESOURCE_ID)
     {
         glUseProgram(_programId);
+        checkErrors();
         return true;
     }
     return false;
@@ -278,6 +278,8 @@ void GlslProgram::bindInputs(ViewHandlerPtr viewHandler,
         errors.push_back("Cannot bind inputs without a valid program");
         throw ExceptionShaderValidationError(errorType, errors);
     }
+
+    checkErrors();
 
     // Parse for uniforms and attributes
     getUniformsList();
@@ -480,6 +482,8 @@ void GlslProgram::bindStreams(MeshPtr mesh)
                 glUniform4fv(Input.second->location, 1, floatVal);
         }
     }
+
+    checkErrors();
 }
 
 void GlslProgram::unbindGeometry()
@@ -488,7 +492,6 @@ void GlslProgram::unbindGeometry()
     //
     int numberAttributes = 0;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numberAttributes);
-    //for (int i = 0; i < numberAttributes; i++)
     for(int i : _enabledLocations)
     {
         glDisableVertexAttribArray(i);
@@ -514,11 +517,14 @@ void GlslProgram::unbindGeometry()
         }
     }
     _attributeBufferIds.clear();
+
+    checkErrors();
 }
 
 void GlslProgram::unbindTextures(ImageHandlerPtr imageHandler)
 {
     imageHandler->clearImageCache();
+    checkErrors();
 }
 
 bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, const FilePath& filePath,
@@ -538,6 +544,7 @@ bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, con
             glUniform1i(uniformLocation, imageHandler->getBoundTextureLocation(imageDesc.resourceId));
             textureBound = imageHandler->bindImage(filePath, samplingProperties);
         }
+        checkErrors();
     }
     return textureBound;
 }
@@ -620,6 +627,7 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
             }
         }
     }
+    checkErrors();
 }
 
 
