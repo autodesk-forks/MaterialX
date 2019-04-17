@@ -71,6 +71,7 @@ class GLTextureHandler : public ImageHandler
     /// Utility to map a filter type enumeration to an OpenGL filter type
     static int mapFilterTypeToGL(int filterTypeEnum);
 
+    /// Returns the bound texture location for a given resource
     int getBoundTextureLocation(unsigned int resourceId) override;
 
   protected:
@@ -85,6 +86,7 @@ class GLTextureHandler : public ImageHandler
         return &_restrictions;
     }
 
+    /// Returns the first free texture location that can be bound to.
     int getNextAvailableTextureLocation();
 
     /// Maximum number of available image units

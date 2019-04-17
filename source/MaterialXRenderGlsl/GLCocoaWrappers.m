@@ -10,7 +10,6 @@
 #import <Cocoa/Cocoa.h>
 #import <AppKit/NSApplication.h>
 #import "GLCocoaWrappers.h"
-#import <Foundation/Foundation.h>
 
 void* NSOpenGLChoosePixelFormatWrapper(bool allRenders, int bufferType, int colorSize, int depthFormat,
                                 int stencilFormat, int auxBuffers, int accumSize, bool minimumPolicy,
