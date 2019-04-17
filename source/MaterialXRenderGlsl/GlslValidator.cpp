@@ -5,8 +5,8 @@
 
 #include <MaterialXRenderGlsl/External/GLew/glew.h>
 #include <MaterialXRenderGlsl/GlslValidator.h>
-#include <MaterialXRender/Handlers/GeometryHandler.h>
-#include <MaterialXRender/Handlers/SampleObjLoader.h>
+#include <MaterialXRender/GeometryHandler.h>
+#include <MaterialXRender/SampleObjLoader.h>
 
 #include <iostream>
 #include <algorithm>
@@ -43,7 +43,8 @@ GlslValidator::GlslValidator() :
     _program = GlslProgram::create();
 
     SampleObjLoaderPtr loader = SampleObjLoader::create();
-    _geometryHandler.addLoader(loader);
+    _geometryHandler = GeometryHandler::create();
+    _geometryHandler->addLoader(loader);
 
     _viewHandler = ViewHandler::create();
 }
@@ -366,7 +367,7 @@ void GlslValidator::updateViewInformation()
     Vector3& viewPosition = _viewHandler->viewPosition();
 
     // Offset view position a little beyond geometry bounds
-    Vector3 minBounds = _geometryHandler.getMinimumBounds();
+    Vector3 minBounds = _geometryHandler->getMinimumBounds();
     float distance = minBounds.getMagnitude() + 0.5f;
 
     viewPosition[0] = 0.0f;
@@ -454,7 +455,7 @@ void GlslValidator::validateRender(bool orthographicView)
                 _program->bindInputs(_viewHandler, _geometryHandler, _imageHandler, _lightHandler);
 
                 // Draw all the partitions of all the meshes in the handler
-                for (auto mesh : _geometryHandler.getMeshes())
+                for (auto mesh : _geometryHandler->getMeshes())
                 {
                     for (size_t i = 0; i < mesh->getPartitionCount(); i++)
                     {
@@ -527,6 +528,8 @@ void GlslValidator::save(const FilePath& filePath, bool floatingPoint)
     desc.channelCount = 4;
     desc.resourceBuffer = buffer;
     bool saved = _imageHandler->saveImage(filePath, desc);
+
+    desc.resourceBuffer = nullptr;
     delete[] buffer;
 
     if (!saved)

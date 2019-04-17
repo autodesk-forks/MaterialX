@@ -11,11 +11,11 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-#include <MaterialXRender/ShaderValidators/ExceptionShaderValidationError.h>
-#include <MaterialXRender/Handlers/ViewHandler.h>
-#include <MaterialXRender/Handlers/ImageHandler.h>
-#include <MaterialXRender/Handlers/GeometryHandler.h>
-#include <MaterialXRender/Handlers/HwLightHandler.h>
+#include <MaterialXRender/ExceptionShaderValidationError.h>
+#include <MaterialXRender/ViewHandler.h>
+#include <MaterialXRender/ImageHandler.h>
+#include <MaterialXRender/GeometryHandler.h>
+#include <MaterialXRender/LightHandler.h>
 
 #include <vector>
 #include <string>
@@ -145,9 +145,9 @@ class GlslProgram
 
     /// Bind inputs
     void bindInputs(ViewHandlerPtr viewHandler,
-                    GeometryHandler& geometryHandler,
+                    GeometryHandlerPtr geometryHandler,
                     ImageHandlerPtr imageHandler,
-                    HwLightHandlerPtr lightHandler);
+                    LightHandlerPtr lightHandler);
 
     /// Unbind inputs
     void unbindInputs(ImageHandlerPtr imageHandler);
@@ -181,7 +181,7 @@ class GlslProgram
     void unbindTextures(ImageHandlerPtr imageHandler);
 
     /// Bind lighting
-    void bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr imageHandler);
+    void bindLighting(LightHandlerPtr lightHandler, ImageHandlerPtr imageHandler);
 
     /// Bind view information
     void bindViewInformation(ViewHandlerPtr viewHandler);

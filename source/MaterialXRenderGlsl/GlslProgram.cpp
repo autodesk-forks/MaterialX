@@ -266,9 +266,9 @@ bool GlslProgram::bind()
 }
 
 void GlslProgram::bindInputs(ViewHandlerPtr viewHandler,
-                            GeometryHandler& geometryHandler,
+                            GeometryHandlerPtr geometryHandler,
                             ImageHandlerPtr imageHandler,
-                            HwLightHandlerPtr lightHandler)
+                            LightHandlerPtr lightHandler)
 {
     // Bind the program to use
     if (!bind())
@@ -287,7 +287,7 @@ void GlslProgram::bindInputs(ViewHandlerPtr viewHandler,
 
     // Bind based on inputs found
     bindViewInformation(viewHandler);
-    for (auto mesh : geometryHandler.getMeshes())
+    for (auto mesh : geometryHandler->getMeshes())
     {
         bindStreams(mesh);
     }
@@ -631,7 +631,7 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
 }
 
 
-void GlslProgram::bindLighting(HwLightHandlerPtr lightHandler, ImageHandlerPtr imageHandler)
+void GlslProgram::bindLighting(LightHandlerPtr lightHandler, ImageHandlerPtr imageHandler)
 {
     if (!lightHandler)
     {

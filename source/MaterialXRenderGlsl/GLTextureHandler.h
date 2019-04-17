@@ -9,7 +9,7 @@
 /// @file
 /// OpenGL texture handler
 
-#include <MaterialXRender/Handlers/ImageHandler.h>
+#include <MaterialXRender/ImageHandler.h>
 
 namespace MaterialX
 {
@@ -70,9 +70,6 @@ class GLTextureHandler : public ImageHandler
 
     /// Utility to map a filter type enumeration to an OpenGL filter type
     static int mapFilterTypeToGL(int filterTypeEnum);
-
-    /// Clear image cache
-    void clearImageCache() override;
 
     int getBoundTextureLocation(unsigned int resourceId) override;
 

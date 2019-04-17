@@ -65,7 +65,7 @@ void PropertyEditor::create(Viewer& parent)
     _formWindow = new ng::Window(&parent, "Property Editor");
     ng::AdvancedGridLayout* layout = new ng::AdvancedGridLayout({ 10, 0, 10, 0 }, {});
     layout->setMargin(2);
-    layout->setColStretch(2, 0);
+    layout->setColStretch(2, 1);
     if (previousPosition.x() < 0)
         previousPosition.x() = 0;
     if (previousPosition.y() < 0)
@@ -167,15 +167,12 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         floatVar->setCallback([path, viewer](float v)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            if (material)
+            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
+            if (uniform)
             {
-                mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-                if (uniform)
-                {
-                    material->getShader()->bind();
-                    material->getShader()->setUniform(uniform->getName(), v);
-                }                
-            }
+                material->getShader()->bind();
+                material->getShader()->setUniform(uniform->getName(), v);
+            }                
         });
     }
 

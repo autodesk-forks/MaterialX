@@ -269,9 +269,8 @@ bool Material::generateShader(mx::GenContext& context)
     return true;
 }
 
-void Material::bindShader(mx::GenContext& context)
+void Material::bindShader()
 {
-    generateShader(context);
     if (_glShader)
     {
         _glShader->bind();
@@ -471,8 +470,8 @@ void Material::bindUniform(const std::string& name, mx::ConstValuePtr value)
     }
 }
 
-void Material::bindLights(mx::HwLightHandlerPtr lightHandler, mx::GLTextureHandlerPtr imageHandler,
-                          const mx::FileSearchPath& imagePath, int envSamples, bool directLighting,
+void Material::bindLights(mx::LightHandlerPtr lightHandler, mx::GLTextureHandlerPtr imageHandler, 
+                          const mx::FileSearchPath& imagePath, int envSamples, bool directLighting, 
                           bool indirectLighting)
 {
     if (!_glShader)
@@ -514,7 +513,7 @@ void Material::bindLights(mx::HwLightHandlerPtr lightHandler, mx::GLTextureHandl
     }
 
     // Skip direct lights if unsupported by the shader.
-    if (!directLighting || _glShader->uniform("u_numActiveLightSources", false) == -1)
+    if (_glShader->uniform("u_numActiveLightSources", false) == -1)
     {
         return;
     }
