@@ -119,7 +119,7 @@ class Node : public InterfaceElement
     /// Given a connecting element (Input/Output/BindInput) return the NodeDef output
     /// corresponding to the output the element is connected to. This is only valid if
     /// the NodeDef has explicit outputs defined, e.g. multiple outputs or an explicitly 
-    /// named output. If this is not the case, nulltptr is returned, which implies the
+    /// named output. If this is not the case, nullptr is returned, which implies the
     /// node is a standard node with a single implicit output.
     OutputPtr getNodeDefOutput(ElementPtr connectingElement);
 
