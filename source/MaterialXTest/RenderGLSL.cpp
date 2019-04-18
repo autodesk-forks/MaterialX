@@ -3,8 +3,6 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#if defined(MATERIALX_TEST_RENDER) && defined(MATERIALX_BUILD_RENDERGLSL)
-
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXRenderGlsl/GlslValidator.h>
 #include <MaterialXRenderGlsl/GLTextureHandler.h>
@@ -17,7 +15,14 @@
 #include <MaterialXRender/GeometryHandler.h>
 #include <MaterialXRender/TinyObjLoader.h>
 
+#if defined(__linux__)
+#define NonePrev None
+#undef None
+#endif
 #include <MaterialXTest/Catch/catch.hpp>
+#if defined(__linux__)
+    #define None NonePrev
+#endif
 #include <MaterialXTest/RenderUtil.h>
 
 namespace mx = MaterialX;
@@ -39,7 +44,7 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
     {
         return _languageTargetString;
     }
-    
+
     bool runTest(const RenderUtil::RenderTestOptions& testOptions) const override
     {
         return (testOptions.languageAndTargets.count(_languageTargetString) > 0);
@@ -53,7 +58,7 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
         _shaderGenerator = mx::GlslShaderGenerator::create();
     }
 
-    void registerLights(mx::DocumentPtr document, 
+    void registerLights(mx::DocumentPtr document,
                         const RenderUtil::RenderTestOptions &options, mx::GenContext& context) override;
 
     void createValidator(std::ostream& log) override;
@@ -76,7 +81,7 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
 };
 
 // In addition to standard texture and shader definition libraries, additional lighting files
-// are loaded in. If no files are specifed in the input options, a sample 
+// are loaded in. If no files are specifed in the input options, a sample
 // compound light type and a set of lights in a "light rig" are loaded in to a given
 // document.
 void GlslShaderRenderTester::loadLibraries(mx::DocumentPtr document,
@@ -101,7 +106,7 @@ void GlslShaderRenderTester::loadLibraries(mx::DocumentPtr document,
 
 // Create a light handler and populate it based on lights found in a given document
 void GlslShaderRenderTester::registerLights(mx::DocumentPtr document,
-                                            const RenderUtil::RenderTestOptions &options, 
+                                            const RenderUtil::RenderTestOptions &options,
                                             mx::GenContext& context)
 {
     _lightHandler = mx::LightHandler::create();
@@ -112,7 +117,7 @@ void GlslShaderRenderTester::registerLights(mx::DocumentPtr document,
 
 //
 // Create a validator with the apporpraite image, geometry and light handlers.
-// The light handler on the validator is cleared on initialization to indicate no lighting 
+// The light handler on the validator is cleared on initialization to indicate no lighting
 // is required. During code generation, if the element to validate requires lighting then
 // the handler _lightHandler will be used.
 //
@@ -138,7 +143,7 @@ void GlslShaderRenderTester::createValidator(std::ostream& log)
             geometryHandler->loadGeometry(geometryFile);
         }
 
-        // Set light handler. 
+        // Set light handler.
         _validator->setLightHandler(nullptr);
 
         initialized = true;
@@ -444,5 +449,3 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
 
     renderTester.validate(testRootPaths, optionsFilePath);
 }
-
-#endif
