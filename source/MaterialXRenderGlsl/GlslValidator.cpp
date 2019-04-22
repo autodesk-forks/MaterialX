@@ -100,15 +100,13 @@ void GlslValidator::initialize()
                     bool initializedFunctions = true;
 
                     glewInit();
-#if !defined(__APPLE__)
-
                     if (!glewIsSupported("GL_VERSION_4_0"))
                     {
                         initializedFunctions = false;
                         errors.push_back("OpenGL version 4.0 not supported");
                         throw ExceptionShaderValidationError(errorType, errors);
                     }
-#endif
+
                     if (initializedFunctions)
                     {
                         glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
@@ -350,42 +348,58 @@ void GlslValidator::validateInputs()
 // Binders
 ////////////////////////////////////////////////////////////////////////////////////
 
+
+Matrix44 createViewMatrix(const Vector3& eye,
+    const Vector3& target,
+    const Vector3& up)
+{
+    Vector3 z = (target - eye).getNormalized();
+    Vector3 x = z.cross(up).getNormalized();
+    Vector3 y = x.cross(z);
+
+    return Matrix44(
+        x[0], x[1], x[2], -x.dot(eye),
+        y[0], y[1], y[2], -y.dot(eye),
+        -z[0], -z[1], -z[2], z.dot(eye),
+        0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+Matrix44 createPerspectiveMatrix(float left, float right,
+    float bottom, float top,
+    float nearP, float farP)
+{
+    return Matrix44(
+        (2.0f * nearP) / (right - left), 0.0f, (right + left) / (right - left), 0.0f,
+        0.0f, (2.0f * nearP) / (top - bottom), (top + bottom) / (top - bottom), 0.0f,
+        0.0f, 0.0f, -(farP + nearP) / (farP - nearP), -(2.0f * farP * nearP) / (farP - nearP),
+        0.0f, 0.0f, -1.0f, 0.0f);
+}
+
 void GlslValidator::updateViewInformation()
 {
-    // Assume identify for model's world matrix
-    Matrix44& modelMatrix = _viewHandler->worldMatrix();
-    modelMatrix = Matrix44::IDENTITY;
+    Vector3 _eye(0.0f, 0.0f, 3.5f);
+    Vector3 _center;
+    Vector3 _up(0.0f, 1.0f, 0.0f);
+    float _zoom(1.0f);
+    float _viewAngle(45.0f);
+    float _nearDist(0.05f);
+    float _farDist(100.0f);
 
-    Matrix44& viewMatrix = _viewHandler->viewMatrix();
-    viewMatrix = Matrix44::IDENTITY;
+    Vector3 _modelTranslation;
+    Vector3 _modelTranslationStart;
+    float _modelZoom(1.0f);
 
-    Vector3& viewDirection = _viewHandler->viewDirection();
-    viewDirection[0] = 0.0f;
-    viewDirection[1] = 0.0f;
-    viewDirection[2] = 1.0f;
+    const float PI = std::acos(-1.0f);
+    float fH = std::tan(_viewAngle / 360.0f * PI) * _nearDist;
+    float fW = fH * 1.0f;
 
-    Vector3& viewPosition = _viewHandler->viewPosition();
-
-    // Offset view position a little beyond geometry bounds
-    Vector3 minBounds = _geometryHandler->getMinimumBounds();
-    float distance = minBounds.getMagnitude() + 0.5f;
-
-    viewPosition[0] = 0.0f;
-    viewPosition[1] = 0.0f;
-    viewPosition[2] = -distance;
-
-    viewMatrix = viewMatrix.createTranslation(viewPosition);
-
-    // Update projection matrix
-    if (_orthographicView)
-    {
-        _viewHandler->setOrthoGraphicProjectionMatrix(-1.0f, 1.0f, -1.0f, 1.0f, NEAR_PLANE_ORTHO, FAR_PLANE_ORTHO);
-    }
-    else
-    {
-        float aspectRatio = (float)_frameBufferWidth / (float)_frameBufferHeight;
-        _viewHandler->setPerspectiveProjectionMatrix(FOV_PERSP, aspectRatio, NEAR_PLANE_PERSP, FAR_PLANE_PERSP);
-    }
+    Matrix44& world = _viewHandler->worldMatrix();
+    Matrix44& view = _viewHandler->viewMatrix();
+    Matrix44& proj = _viewHandler->projectionMatrix();
+    view = createViewMatrix(_eye, _center, _up);
+    proj = createPerspectiveMatrix(-fW, fW, -fH, fH, _nearDist, _farDist);
+    world = Matrix44::createScale(Vector3(_zoom * _modelZoom));
+    world *= Matrix44::createTranslation(_modelTranslation).getTranspose();
 }
 
 void GlslValidator::bindFixedFunctionViewInformation()
@@ -434,6 +448,9 @@ void GlslValidator::validateRender(bool orthographicView)
 
     // Update viewing information
     updateViewInformation();
+
+    // Set view information for fixed function
+    bindFixedFunctionViewInformation();
 
     try
     {
