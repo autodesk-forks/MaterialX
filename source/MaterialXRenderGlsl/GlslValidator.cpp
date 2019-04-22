@@ -377,7 +377,7 @@ Matrix44 createPerspectiveMatrix(float left, float right,
 
 void GlslValidator::updateViewInformation()
 {
-    Vector3 _eye(0.0f, 0.0f, 3.5f);
+    Vector3 _eye(0.0f, 0.0f, 3.0f);
     Vector3 _center;
     Vector3 _up(0.0f, 1.0f, 0.0f);
     float _zoom(1.0f);
@@ -386,12 +386,20 @@ void GlslValidator::updateViewInformation()
     float _farDist(100.0f);
 
     Vector3 _modelTranslation;
-    Vector3 _modelTranslationStart;
     float _modelZoom(1.0f);
 
     const float PI = std::acos(-1.0f);
     float fH = std::tan(_viewAngle / 360.0f * PI) * _nearDist;
     float fW = fH * 1.0f;
+
+    MeshPtr mesh = _geometryHandler->getMeshes()[0];
+
+    Vector3 boxMin = mesh->getMinimumBounds();
+    Vector3 boxMax = mesh->getMaximumBounds();
+    Vector3 sphereCenter = (boxMax + boxMin) / 2.0;
+    float sphereRadius = (sphereCenter - boxMin).getMagnitude();
+    _modelZoom = 2.0f / sphereRadius;
+    _modelTranslation = sphereCenter * -1.0f;
 
     Matrix44& world = _viewHandler->worldMatrix();
     Matrix44& view = _viewHandler->viewMatrix();
