@@ -538,8 +538,12 @@ bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, con
         if (haveImage)
         {
             // Map location to a texture unit
-            glUniform1i(uniformLocation, imageDesc.resourceId);
-            textureBound = imageHandler->bindImage(filePath, samplingProperties);
+            int textureLocation = imageHandler->getBoundTextureLocation(imageDesc.resourceId);
+            if (textureLocation >= 0) 
+            {
+               glUniform1i(uniformLocation, textureLocation);
+               textureBound = imageHandler->bindImage(filePath, samplingProperties);
+            }
         }
         checkErrors();
     }

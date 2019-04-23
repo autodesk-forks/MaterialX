@@ -14,11 +14,11 @@
 namespace MaterialX
 {
 // View information
-const float NEAR_PLANE_ORTHO = 0.01f;
-const float FAR_PLANE_ORTHO = 100.0f;
-const float FOV_PERSP = 70.0f; // degrees
-const float NEAR_PLANE_PERSP = 0.01f;
-const float FAR_PLANE_PERSP = 100.0f;
+//const float NEAR_PLANE_ORTHO = 0.01f;
+//const float FAR_PLANE_ORTHO = 100.0f;
+//const float FOV_PERSP = 70.0f; // degrees
+//const float NEAR_PLANE_PERSP = 0.01f;
+//const float FAR_PLANE_PERSP = 100.0f;
 
 //
 // Creator
@@ -109,7 +109,7 @@ void GlslValidator::initialize()
 
                     if (initializedFunctions)
                     {
-                        glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
+                        glClearColor(0.4f, 0.4f, 1.0f, 1.0f);
                         glClearStencil(0);
 
                         _initialized = true;
@@ -458,7 +458,7 @@ void GlslValidator::validateRender(bool orthographicView)
     updateViewInformation();
 
     // Set view information for fixed function
-    bindFixedFunctionViewInformation();
+    //bindFixedFunctionViewInformation();
 
     try
     {
