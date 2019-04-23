@@ -14,11 +14,9 @@
 namespace MaterialX
 {
 // View information
-//const float NEAR_PLANE_ORTHO = 0.01f;
-//const float FAR_PLANE_ORTHO = 100.0f;
-//const float FOV_PERSP = 70.0f; // degrees
-//const float NEAR_PLANE_PERSP = 0.01f;
-//const float FAR_PLANE_PERSP = 100.0f;
+const float FOV_PERSP = 45.0f; // degrees
+const float NEAR_PLANE_PERSP = 0.05f;
+const float FAR_PLANE_PERSP = 100.0f;
 
 //
 // Creator
@@ -37,8 +35,7 @@ GlslValidator::GlslValidator() :
     _frameBufferHeight(512),
     _initialized(false),
     _window(nullptr),
-    _context(nullptr),
-    _orthographicView(true)
+    _context(nullptr)
 {
     _program = GlslProgram::create();
 
@@ -100,13 +97,14 @@ void GlslValidator::initialize()
                     bool initializedFunctions = true;
 
                     glewInit();
+#if !defined(__APPLE__)
                     if (!glewIsSupported("GL_VERSION_4_0"))
                     {
                         initializedFunctions = false;
                         errors.push_back("OpenGL version 4.0 not supported");
                         throw ExceptionShaderValidationError(errorType, errors);
                     }
-
+#endif
                     if (initializedFunctions)
                     {
                         glClearColor(0.4f, 0.4f, 1.0f, 1.0f);
@@ -347,89 +345,41 @@ void GlslValidator::validateInputs()
 ////////////////////////////////////////////////////////////////////////////////////
 // Binders
 ////////////////////////////////////////////////////////////////////////////////////
-
-
-Matrix44 createViewMatrix(const Vector3& eye,
-    const Vector3& target,
-    const Vector3& up)
+void GlslValidator::updateViewInformation(const Vector3& eye,
+    const Vector3& center,
+    const Vector3& up,
+    float zoom,
+    float viewAngle,
+    float nearDist,
+    float farDist,
+    float modelZoom)
 {
-    Vector3 z = (target - eye).getNormalized();
-    Vector3 x = z.cross(up).getNormalized();
-    Vector3 y = x.cross(z);
-
-    return Matrix44(
-        x[0], x[1], x[2], -x.dot(eye),
-        y[0], y[1], y[2], -y.dot(eye),
-        -z[0], -z[1], -z[2], z.dot(eye),
-        0.0f, 0.0f, 0.0f, 1.0f);
-}
-
-Matrix44 createPerspectiveMatrix(float left, float right,
-    float bottom, float top,
-    float nearP, float farP)
-{
-    return Matrix44(
-        (2.0f * nearP) / (right - left), 0.0f, (right + left) / (right - left), 0.0f,
-        0.0f, (2.0f * nearP) / (top - bottom), (top + bottom) / (top - bottom), 0.0f,
-        0.0f, 0.0f, -(farP + nearP) / (farP - nearP), -(2.0f * farP * nearP) / (farP - nearP),
-        0.0f, 0.0f, -1.0f, 0.0f);
-}
-
-void GlslValidator::updateViewInformation()
-{
-    Vector3 _eye(0.0f, 0.0f, 40.0f);
-    Vector3 _center;
-    Vector3 _up(0.0f, 1.0f, 0.0f);
-    float _zoom(10.0f);
-    float _viewAngle(45.0f);
-    float _nearDist(0.05f);
-    float _farDist(100.0f);
-
-    Vector3 _modelTranslation;
-    float _modelZoom(1.0f);
-
     const float PI = std::acos(-1.0f);
-    float fH = std::tan(_viewAngle / 360.0f * PI) * _nearDist;
+    float fH = std::tan(viewAngle / 360.0f * PI) * nearDist;
     float fW = fH * 1.0f;
 
-    MeshPtr mesh = _geometryHandler->getMeshes()[0];
-
-    Vector3 boxMin = mesh->getMinimumBounds();
-    Vector3 boxMax = mesh->getMaximumBounds();
+    Vector3 boxMin = _geometryHandler->getMinimumBounds();
+    Vector3 boxMax = _geometryHandler->getMaximumBounds();
     Vector3 sphereCenter = (boxMax + boxMin) / 2.0;
     float sphereRadius = (sphereCenter - boxMin).getMagnitude();
-    _modelZoom = 2.0f / sphereRadius;
-    _modelTranslation = sphereCenter * -1.0f;
+    modelZoom = 2.0f / sphereRadius;
+    Vector3 modelTranslation = sphereCenter * -1.0f;
 
     Matrix44& world = _viewHandler->worldMatrix();
     Matrix44& view = _viewHandler->viewMatrix();
     Matrix44& proj = _viewHandler->projectionMatrix();
-    view = createViewMatrix(_eye, _center, _up);
-    proj = createPerspectiveMatrix(-fW, fW, -fH, fH, _nearDist, _farDist);
-    world = Matrix44::createScale(Vector3(_zoom * _modelZoom));
-    world *= Matrix44::createTranslation(_modelTranslation).getTranspose();
+    view = ViewHandler::createViewMatrix(eye, center, up);
+    proj = ViewHandler::createPerspectiveMatrix(-fW, fW, -fH, fH, nearDist, farDist);
+    world = Matrix44::createScale(Vector3(zoom * modelZoom));
+    world *= Matrix44::createTranslation(modelTranslation).getTranspose();
+
+    Matrix44 invView = view.getInverse();
+    _viewHandler->viewDirection() = { invView[0][2], invView[1][2], invView[2][2] };
+    _viewHandler->viewPosition() = { invView[0][3], invView[1][3], invView[2][3] };
 }
 
-void GlslValidator::bindFixedFunctionViewInformation()
+void GlslValidator::validateRender()
 {
-    // Bind projection
-    glMatrixMode(GL_PROJECTION);
-    Matrix44& projection = _viewHandler->projectionMatrix();
-    glLoadMatrixf(&(projection[0][0]));
-
-    // Bind model view matrix
-    glMatrixMode(GL_MODELVIEW);
-    Matrix44 viewMatrix = _viewHandler->viewMatrix();
-    // Note: (model * view) is just Identity * view.
-    glLoadMatrixf(&(viewMatrix[0][0]));
-
-    checkErrors();
-}
-
-void GlslValidator::validateRender(bool orthographicView)
-{
-    _orthographicView = orthographicView;
-
     ShaderValidationErrorList errors;
     const string errorType("GLSL rendering error.");
 
@@ -451,11 +401,15 @@ void GlslValidator::validateRender(bool orthographicView)
     glDepthFunc(GL_LESS);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Set up viewing / projection matrices for an orthographic rendering
     glViewport(0, 0, _frameBufferWidth, _frameBufferHeight);
 
     // Update viewing information
-    updateViewInformation();
+    const Vector3 eye(0.0f, 0.0f, 40.0f);
+    const Vector3 center;
+    const Vector3 up(0.0f, 1.0f, 0.0f);
+    float zoom(10.0f);
+    float modelZoom(1.0f);
+    updateViewInformation(eye, center, up, zoom, FOV_PERSP, NEAR_PLANE_PERSP, FAR_PLANE_PERSP, modelZoom);
 
     try
     {

@@ -73,8 +73,7 @@ class GlslValidator : public ShaderValidator
 
     /// Perform validation that inputs can be bound to and
     /// rendered with. Rendering is to an offscreen hardware buffer.
-    /// @param orthographicView Render orthographically
-    void validateRender(bool orthographicView=true) override;
+    void validateRender() override;
 
     /// @}
     /// @name Utilities
@@ -115,10 +114,14 @@ class GlslValidator : public ShaderValidator
     /// @{
 
     /// Update viewing information
-    void updateViewInformation();
-
-    /// Bind viewing information for fixed function
-    void bindFixedFunctionViewInformation();
+    void updateViewInformation(const Vector3& eye,
+                               const Vector3& center,
+                               const Vector3& up,
+                               float zoom,
+                               float viewAngle,
+                               float nearDist,
+                               float farDist,
+                               float modelZoom);
 
   private:
     /// Utility to check for OpenGL context errors.
@@ -150,9 +153,6 @@ class GlslValidator : public ShaderValidator
     SimpleWindowPtr _window;
     /// Dummy OpenGL context for OpenGL usage
     GLUtilityContextPtr _context;
-
-    /// Whether to draw a flat quad or use 3d perspective view
-    bool _orthographicView;
 };
 
 } // namespace MaterialX

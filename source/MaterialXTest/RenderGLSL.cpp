@@ -468,7 +468,7 @@ bool GlslShaderRenderTester::runValidator(const std::string& shaderName,
                     {
                         RenderUtil::AdditiveScopedTimer renderTimer(profileTimes.languageTimes.renderTime, "GLSL render time");
                         _validator->getImageHandler()->setSearchPath(imageSearchPath);
-                        _validator->validateRender(!isShader);
+                        _validator->validateRender();
                     }
 
                     if (testOptions.saveImages)
