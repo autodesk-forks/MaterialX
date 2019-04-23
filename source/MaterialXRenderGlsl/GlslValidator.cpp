@@ -377,10 +377,10 @@ Matrix44 createPerspectiveMatrix(float left, float right,
 
 void GlslValidator::updateViewInformation()
 {
-    Vector3 _eye(0.0f, 0.0f, 3.0f);
+    Vector3 _eye(0.0f, 0.0f, 40.0f);
     Vector3 _center;
     Vector3 _up(0.0f, 1.0f, 0.0f);
-    float _zoom(1.0f);
+    float _zoom(10.0f);
     float _viewAngle(45.0f);
     float _nearDist(0.05f);
     float _farDist(100.0f);
