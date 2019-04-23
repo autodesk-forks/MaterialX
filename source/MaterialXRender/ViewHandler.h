@@ -40,9 +40,9 @@ class ViewHandler
                                      const Vector3& up);
 
     /// Create a perpective matrix given a set of clip planes
-    static Matrix44 ViewHandler::createPerspectiveMatrix(float left, float right,
-                                                         float bottom, float top,
-                                                         float nearP, float farP);
+    static Matrix44 createPerspectiveMatrix(float left, float right,
+                                            float bottom, float top,
+                                            float nearP, float farP);
 
     /// Set the world matrix
     void setWorldMatrix(Matrix44& m)

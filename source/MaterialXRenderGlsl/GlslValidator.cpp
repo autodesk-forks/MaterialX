@@ -107,7 +107,7 @@ void GlslValidator::initialize()
 #endif
                     if (initializedFunctions)
                     {
-                        glClearColor(0.4f, 0.4f, 1.0f, 1.0f);
+                        glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
                         glClearStencil(0);
 
                         _initialized = true;
@@ -346,13 +346,12 @@ void GlslValidator::validateInputs()
 // Binders
 ////////////////////////////////////////////////////////////////////////////////////
 void GlslValidator::updateViewInformation(const Vector3& eye,
-    const Vector3& center,
-    const Vector3& up,
-    float zoom,
-    float viewAngle,
-    float nearDist,
-    float farDist,
-    float modelZoom)
+                                          const Vector3& center,
+                                          const Vector3& up,                                          
+                                          float viewAngle,
+                                          float nearDist,
+                                          float farDist,
+                                          float objectScale)
 {
     const float PI = std::acos(-1.0f);
     float fH = std::tan(viewAngle / 360.0f * PI) * nearDist;
@@ -362,7 +361,7 @@ void GlslValidator::updateViewInformation(const Vector3& eye,
     Vector3 boxMax = _geometryHandler->getMaximumBounds();
     Vector3 sphereCenter = (boxMax + boxMin) / 2.0;
     float sphereRadius = (sphereCenter - boxMin).getMagnitude();
-    modelZoom = 2.0f / sphereRadius;
+    float meshFit = 2.0f / sphereRadius;
     Vector3 modelTranslation = sphereCenter * -1.0f;
 
     Matrix44& world = _viewHandler->worldMatrix();
@@ -370,7 +369,7 @@ void GlslValidator::updateViewInformation(const Vector3& eye,
     Matrix44& proj = _viewHandler->projectionMatrix();
     view = ViewHandler::createViewMatrix(eye, center, up);
     proj = ViewHandler::createPerspectiveMatrix(-fW, fW, -fH, fH, nearDist, farDist);
-    world = Matrix44::createScale(Vector3(zoom * modelZoom));
+    world = Matrix44::createScale(Vector3(objectScale * meshFit));
     world *= Matrix44::createTranslation(modelTranslation).getTranspose();
 
     Matrix44 invView = view.getInverse();
@@ -407,9 +406,8 @@ void GlslValidator::validateRender()
     const Vector3 eye(0.0f, 0.0f, 40.0f);
     const Vector3 center;
     const Vector3 up(0.0f, 1.0f, 0.0f);
-    float zoom(10.0f);
-    float modelZoom(1.0f);
-    updateViewInformation(eye, center, up, zoom, FOV_PERSP, NEAR_PLANE_PERSP, FAR_PLANE_PERSP, modelZoom);
+    float objectScale(10.0f);
+    updateViewInformation(eye, center, up, FOV_PERSP, NEAR_PLANE_PERSP, FAR_PLANE_PERSP, objectScale);
 
     try
     {

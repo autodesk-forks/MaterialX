@@ -114,14 +114,20 @@ class GlslValidator : public ShaderValidator
     /// @{
 
     /// Update viewing information
+    /// @param eye Eye position
+    /// @param center Center of focus 
+    /// @param up Up vector
+    /// @param viewAngle Viewing angle in degrees
+    /// @param nearDist Distance to near plane
+    /// @param farDist Distance to far plane
+    /// @param objectScale Scale to apply to geometry
     void updateViewInformation(const Vector3& eye,
                                const Vector3& center,
                                const Vector3& up,
-                               float zoom,
                                float viewAngle,
                                float nearDist,
                                float farDist,
-                               float modelZoom);
+                               float objectScale);
 
   private:
     /// Utility to check for OpenGL context errors.

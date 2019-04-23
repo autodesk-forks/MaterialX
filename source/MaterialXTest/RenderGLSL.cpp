@@ -111,7 +111,7 @@ void GlslShaderRenderTester::registerLights(mx::DocumentPtr document,
 {
     _lightHandler = mx::LightHandler::create();
     RenderUtil::createLightRig(document, *_lightHandler, context,
-                               options.radianceIBLPath, options.irradianceIBLPath);
+                               options.irradianceIBLPath, options.radianceIBLPath);
 }
 
 
@@ -513,7 +513,7 @@ void GlslShaderRenderTester::getImplementationWhiteList(mx::StringSet& whiteList
     whiteList =
     {
         "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
-        "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue"
+        "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue", "IM_light_genglsl"
     };
 }
 
