@@ -134,15 +134,6 @@ void GlslShaderRenderTester::createValidator(std::ostream& log)
         mx::GLTextureHandlerPtr imageHandler = mx::GLTextureHandler::create(stbLoader);
         _validator->setImageHandler(imageHandler);
 
-        // Set geometry handler on validator
-        mx::GeometryHandlerPtr geometryHandler = _validator->getGeometryHandler();
-        std::string geometryFile = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Geometry/") / mx::FilePath("sphere.obj");
-        if (!geometryHandler->hasGeometry(geometryFile))
-        {
-            geometryHandler->clearGeometry();
-            geometryHandler->loadGeometry(geometryFile);
-        }
-
         // Set light handler.
         _validator->setLightHandler(nullptr);
 
@@ -160,6 +151,81 @@ void GlslShaderRenderTester::createValidator(std::ostream& log)
         log << e.what() << std::endl;
     }
     REQUIRE(initialized);
+}
+
+// If these streams don't exist add them for completeness for testing
+void addAdditionalTestStreams(mx::MeshPtr mesh)
+{
+    size_t vertexCount = mesh->getVertexCount();
+    if (vertexCount < 1)
+    {
+        return;
+    }
+
+    const std::string TEXCOORD_STREAM0_NAME("i_" + mx::MeshStream::TEXCOORD_ATTRIBUTE + "_0");
+    mx::MeshStreamPtr texCoordStream1 = mesh->getStream(TEXCOORD_STREAM0_NAME);
+    mx::MeshFloatBuffer uv = texCoordStream1->getData();
+
+    const std::string TEXCOORD_STREAM1_NAME("i_" + mx::MeshStream::TEXCOORD_ATTRIBUTE + "_1");
+    mx::MeshFloatBuffer* texCoordData2 = nullptr;
+    if (!mesh->getStream(TEXCOORD_STREAM1_NAME))
+    {
+        mx::MeshStreamPtr texCoordStream2 = mx::MeshStream::create(TEXCOORD_STREAM1_NAME, mx::MeshStream::TEXCOORD_ATTRIBUTE, 1);
+        texCoordStream2->setStride(2);
+        texCoordData2 = &(texCoordStream2->getData());
+        texCoordData2->resize(vertexCount * 2);
+        mesh->addStream(texCoordStream2);
+    }
+
+    const std::string COLOR_STREAM0_NAME("i_" + mx::MeshStream::COLOR_ATTRIBUTE + "_0");
+    mx::MeshFloatBuffer* colorData1 = nullptr;
+    if (!mesh->getStream(COLOR_STREAM0_NAME))
+    {
+        mx::MeshStreamPtr colorStream1 = mx::MeshStream::create(COLOR_STREAM0_NAME, mx::MeshStream::COLOR_ATTRIBUTE, 0);
+        colorData1 = &(colorStream1->getData());
+        colorStream1->setStride(4);
+        colorData1->resize(vertexCount * 4);
+        mesh->addStream(colorStream1);
+    }
+
+    const std::string COLOR_STREAM1_NAME("i_" + mx::MeshStream::COLOR_ATTRIBUTE + "_1");
+    mx::MeshFloatBuffer* colorData2 = nullptr;
+    if (!mesh->getStream(COLOR_STREAM1_NAME))
+    {
+        mx::MeshStreamPtr colorStream2 = mx::MeshStream::create(COLOR_STREAM1_NAME, mx::MeshStream::COLOR_ATTRIBUTE, 1);
+        colorData2 = &(colorStream2->getData());
+        colorStream2->setStride(4);
+        colorData2->resize(vertexCount * 4);
+        mesh->addStream(colorStream2);
+    }
+
+    if (!uv.empty())
+    {
+        for (size_t i = 0; i < vertexCount; i++)
+        {
+            // Fake second set of texture coordinates
+            if (texCoordData2)
+            {
+                (*texCoordData2)[i * 2] = uv[i * 2 + 1];
+                (*texCoordData2)[i * 2 + 1] = uv[i * 2];
+            }
+            if (colorData1)
+            {
+                // Fake some colors
+                (*colorData1)[i*4] = uv[i*2];
+                (*colorData1)[i*4+1] = uv[i*2+1];
+                (*colorData1)[i * 4 + 2] = 1.0f;
+                (*colorData1)[i * 4 + 3] = 1.0f;
+            }
+            if (colorData2)
+            {
+                (*colorData2)[i*4] = 1.0f;
+                (*colorData2)[i * 4+1] = uv[i*2];
+                (*colorData2)[i * 4 + 2] = uv[i*2+1];
+                (*colorData2)[i * 4 + 3] = 1.0f;
+            }
+        }
+    }
 }
 
 bool GlslShaderRenderTester::runValidator(const std::string& shaderName,
@@ -292,6 +358,11 @@ bool GlslShaderRenderTester::runValidator(const std::string& shaderName,
                     {
                         geomHandler->clearGeometry();
                         geomHandler->loadGeometry(geomPath);
+                        const mx::MeshList& meshes = geomHandler->getMeshes();
+                        if (!meshes.empty())
+                        {
+                            addAdditionalTestStreams(meshes[0]);
+                        }
                     }
 
                     // Set shaded element lights
@@ -320,6 +391,11 @@ bool GlslShaderRenderTester::runValidator(const std::string& shaderName,
                     {
                         geomHandler->clearGeometry();
                         geomHandler->loadGeometry(geomPath);
+                        const mx::MeshList& meshes = geomHandler->getMeshes();
+                        if (!meshes.empty())
+                        {
+                            addAdditionalTestStreams(meshes[0]);
+                        }
                     }
 
                     // Clear lights for unshaded element
