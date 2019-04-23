@@ -457,9 +457,6 @@ void GlslValidator::validateRender(bool orthographicView)
     // Update viewing information
     updateViewInformation();
 
-    // Set view information for fixed function
-    //bindFixedFunctionViewInformation();
-
     try
     {
         // Bind program and input parameters
