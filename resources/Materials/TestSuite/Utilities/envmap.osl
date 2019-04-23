@@ -5,7 +5,7 @@ void calculateLodBias(float lodBias, output float lod)
 
 void latlong_map_lookup(vector dir, string filename, float lodBias, output color result)
 {
-   vector transformedDir = rotate(dir, M_PI/2, vector(0, 0, -1));
+   vector transformedDir = rotate(dir, M_PI_2, vector(0, 0, -1));
    float M_PI_INV = 1.0/M_PI;
    float latitude = -asin(transformedDir[0]) * M_PI_INV + 0.5;
    latitude = clamp(latitude, 0.01, 0.99);
