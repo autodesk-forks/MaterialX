@@ -153,7 +153,8 @@ void GlslShaderRenderTester::createValidator(std::ostream& log)
     REQUIRE(initialized);
 }
 
-// If these streams don't exist add them for completeness for testing
+// If these streams don't exist add them for testing purposes
+//
 void addAdditionalTestStreams(mx::MeshPtr mesh)
 {
     size_t vertexCount = mesh->getVertexCount();
@@ -203,26 +204,30 @@ void addAdditionalTestStreams(mx::MeshPtr mesh)
     {
         for (size_t i = 0; i < vertexCount; i++)
         {
+            const size_t i2 = 2 * i;
+            const size_t i21 = i2 + 1;
+            const size_t i4 = 4 * i;
+
             // Fake second set of texture coordinates
             if (texCoordData2)
             {
-                (*texCoordData2)[i * 2] = uv[i * 2 + 1];
-                (*texCoordData2)[i * 2 + 1] = uv[i * 2];
+                (*texCoordData2)[i2] = uv[i21];
+                (*texCoordData2)[i21] = uv[i2];
             }
             if (colorData1)
             {
                 // Fake some colors
-                (*colorData1)[i*4] = uv[i*2];
-                (*colorData1)[i*4+1] = uv[i*2+1];
-                (*colorData1)[i * 4 + 2] = 1.0f;
-                (*colorData1)[i * 4 + 3] = 1.0f;
+                (*colorData1)[i4] = uv[i2];
+                (*colorData1)[i4 + 1] = uv[i21];
+                (*colorData1)[i4 + 2] = 1.0f;
+                (*colorData1)[i4 + 3] = 1.0f;
             }
             if (colorData2)
             {
-                (*colorData2)[i*4] = 1.0f;
-                (*colorData2)[i * 4+1] = uv[i*2];
-                (*colorData2)[i * 4 + 2] = uv[i*2+1];
-                (*colorData2)[i * 4 + 3] = 1.0f;
+                (*colorData2)[i4] = 1.0f;
+                (*colorData2)[i4 + 1] = uv[i2];
+                (*colorData2)[i4 + 2] = uv[i21];
+                (*colorData2)[i4 + 3] = 1.0f;
             }
         }
     }
