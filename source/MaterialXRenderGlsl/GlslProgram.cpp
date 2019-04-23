@@ -702,8 +702,7 @@ void GlslProgram::bindLighting(LightHandlerPtr lightHandler, ImageHandlerPtr ima
                 fileName = ibl.second;
             }
             ImageSamplingProperties desc;
-            bool bound = bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, desc);
-            std::cout << "Bound IBL: " << fileName << ". " << bound << std::endl;
+            bindTexture(uniformType, uniformLocation, fileName, imageHandler, true, desc);
         }
     }
 

@@ -222,6 +222,7 @@ bool GlslShaderRenderTester::runValidator(const std::string& shaderName,
                 RenderUtil::AdditiveScopedTimer generationTimer(profileTimes.languageTimes.generationTime, "GLSL generation time");
                 mx::GenOptions& contextOptions = context.getOptions();
                 contextOptions = options;
+                contextOptions.targetColorSpaceOverride = "lin_rec709";
                 contextOptions.fileTextureVerticalFlip = true;
                 shader = shadergen.generate(shaderName, element, context);
                 generationTimer.endTimer();

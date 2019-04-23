@@ -6,7 +6,7 @@
 #include <MaterialXRenderGlsl/External/GLew/glew.h>
 #include <MaterialXRenderGlsl/GlslValidator.h>
 #include <MaterialXRender/GeometryHandler.h>
-#include <MaterialXRender/SampleObjLoader.h>
+#include <MaterialXRender/TinyObjLoader.h>
 
 #include <iostream>
 #include <algorithm>
@@ -42,7 +42,7 @@ GlslValidator::GlslValidator() :
 {
     _program = GlslProgram::create();
 
-    SampleObjLoaderPtr loader = SampleObjLoader::create();
+    TinyObjLoaderPtr loader = TinyObjLoader::create();
     _geometryHandler = GeometryHandler::create();
     _geometryHandler->addLoader(loader);
 
@@ -552,7 +552,7 @@ void GlslValidator::save(const FilePath& filePath, bool floatingPoint)
     desc.height = _frameBufferHeight;
     desc.channelCount = 4;
     desc.resourceBuffer = buffer;
-    bool saved = _imageHandler->saveImage(filePath, desc);
+    bool saved = _imageHandler->saveImage(filePath, desc, true);
 
     desc.resourceBuffer = nullptr;
     delete[] buffer;
