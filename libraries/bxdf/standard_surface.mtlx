@@ -73,10 +73,31 @@
       <input name="anisotropy" type="float" interfacename="specular_anisotropy" />
     </roughness_anisotropy>
 
+    <!-- Colors influenced by coat ("coat gamma") -->
+    <clamp name="coat_clamped" type="float">
+      <input name="in" type="float" interfacename="coat" />
+    </clamp>
+    <multiply name="coat_gamma_multiply" type="float">
+      <input name="in1" type="float" nodename="coat_clamped" />
+      <input name="in2" type="float" interfacename="coat_affect_color" />
+    </multiply>
+    <add name="coat_gamma" type="float">
+      <input name="in1" type="float" nodename="coat_gamma_multiply" />
+      <input name="in2" type="float" value="1.0" />
+    </add>
+    <power name="coat_affected_diffuse_color" type="color3">
+      <input name="in1" type="color3" interfacename="base_color" />
+      <input name="in2" type="float" nodename="coat_gamma" />
+    </power>
+    <power name="coat_affected_subsurface_color" type="color3">
+      <input name="in1" type="color3" interfacename="subsurface_color" />
+      <input name="in2" type="float" nodename="coat_gamma" />
+    </power>
+
     <!-- Diffuse Layer -->
     <diffuse_brdf name="diffuse_bsdf" type="BSDF">
       <input name="weight" type="float" interfacename="base" />
-      <input name="color" type="color3" interfacename="base_color" />
+      <input name="color" type="color3" nodename="coat_affected_diffuse_color" />
       <input name="roughness" type="float" interfacename="diffuse_roughness" />
       <input name="normal" type="vector3" interfacename="normal" />
     </diffuse_brdf>
@@ -91,7 +112,7 @@
     <!-- Subsurface Layer -->
     <diffuse_btdf name="subsurface_bsdf" type="BSDF">
       <input name="weight" type="float" value="1.0" />
-      <input name="color" type="color3" interfacename="subsurface_color" />
+      <input name="color" type="color3" nodename="coat_affected_subsurface_color" />
       <input name="normal" type="vector3" interfacename="normal" />
     </diffuse_btdf>
     <mix name="subsurface_mix" type="BSDF">
