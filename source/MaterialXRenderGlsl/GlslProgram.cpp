@@ -865,9 +865,6 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
     //
     // View direction and position
     //
-    Matrix44& view = viewHandler->viewMatrix();
-    Matrix44 invView = view.getInverse();
-
     const MaterialX::GlslProgram::InputMap& uniformList = getUniformsList();
     auto Input = uniformList.find("u_viewPosition");
     if (Input != uniformList.end())
@@ -986,6 +983,8 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
     //
     // View matrix variants
     //
+    Matrix44& view = viewHandler->viewMatrix();
+
     // View matrix
     Input = uniformList.find("u_viewMatrix");
     if (Input != uniformList.end())
