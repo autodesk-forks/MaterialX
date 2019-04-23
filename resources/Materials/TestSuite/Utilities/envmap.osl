@@ -1,11 +1,34 @@
-shader envmap(float Kb = 1, string filename = "")
+void calculateLodBias(float lodBias, output float lod)
 {
-   vector dir = normalize(I);
-   float radial = atan2(-dir[2], dir[0]);
-   float nradial = acos(dir[1]);
-   float r = 0.5 * sin(nradial * 0.5);
-   float tu = 0.5 + r * cos(radial);
-   float tv = 0.5 - r * sin(radial);
-   color c = texture(filename, tu, tv);
-   Ci = Kb * c * background();
+    lod = lodBias < 0.25 ? sqrt(lodBias) : 0.5*lodBias + 0.375;
+}
+
+void latlong_map_lookup(vector dir, string filename, float lodBias, output color result)
+{
+   vector transformedDir = rotate(dir, M_PI/2, vector(0, 0, -1));
+   float M_PI_INV = 1.0/M_PI;
+   float latitude = -asin(transformedDir[0]) * M_PI_INV + 0.5;
+   latitude = clamp(latitude, 0.01, 0.99);
+   float longitude = atan2(transformedDir[1], -transformedDir[2]) * M_PI_INV * 0.5 + 0.5;
+   if (lodBias > 0)
+   {
+      float lod;
+      calculateLodBias(lodBias, lod);
+      result = texture(filename, longitude, latitude, "blur", lod);
+   }
+   else
+   {
+      result = texture(filename, longitude, latitude);
+   }
+}
+
+shader envmap(float Kb = 1, string radiance_filename = "", string irradiance_filename = "", float specular_roughness = 0)
+{
+   // This is pure specular reflection lookup. Needs to be replaced
+   vector R = reflect (I, N);
+   color c;
+   color c2;
+   latlong_map_lookup(R, radiance_filename, specular_roughness, c);
+   latlong_map_lookup(N, irradiance_filename, 0, c2);
+   Ci = Kb * (c + c2) * background();
 }
