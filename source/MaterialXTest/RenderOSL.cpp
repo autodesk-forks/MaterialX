@@ -231,6 +231,7 @@ bool OslShaderRenderTester::runValidator(const std::string& shaderName,
                     for (size_t i = 0; i<uniforms.size(); ++i)
                     {
                         const mx::ShaderPort* uniform = uniforms[i];
+
                         // Bind input images
                         if (uniform->getType() != MaterialX::Type::FILENAME)
                         {
@@ -252,19 +253,10 @@ bool OslShaderRenderTester::runValidator(const std::string& shaderName,
                                 }
                             }
                         }
-
-                        // Bind specular roughness
-                        if (uniform->getName() == "specular_roughness")
-                        {
-                          std::string roughness("string specular_roughness " + uniform->getValue()->getValueString() + "\";\n");
-                          envOverrides.push_back(roughness);
-                        }
                     }
                     // Bind IBL image name overrides.
-                    std::string radiance_filename("string radiance_filename \"resources/Images/san_giuseppe_bridge.hdr\";\n");
-                    envOverrides.push_back(radiance_filename);
-                    std::string irradiance_filename("string irradiance_filename \"resources/Images/san_giuseppe_bridge_diffuse.hdr\";\n");
-                    envOverrides.push_back(irradiance_filename);
+                    std::string envmap_filename("string envmap_filename \"resources/Images/san_giuseppe_bridge.hdr\";\n");
+                    envOverrides.push_back(envmap_filename);
 
                     _validator->setShaderParameterOverrides(overrides);
                     _validator->setEnvShaderParameterOverrides(envOverrides);
