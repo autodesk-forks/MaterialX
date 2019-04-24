@@ -417,7 +417,9 @@ bool Material::bindImage(std::string filename, const std::string& uniformName, m
     }
 
     // Bind the image and set its sampling properties.
-    _glShader->setUniform(uniformName, desc.resourceId);
+    int textureLocation = imageHandler->getBoundTextureLocation(desc.resourceId);
+    if (textureLocation < 0) return false;
+    _glShader->setUniform(uniformName, textureLocation);
     mx::ImageSamplingProperties samplingProperties;
     imageHandler->bindImage(filename, samplingProperties);
 
@@ -478,8 +480,8 @@ void Material::bindUniform(const std::string& name, mx::ConstValuePtr value)
     }
 }
 
-void Material::bindLights(mx::LightHandlerPtr lightHandler, mx::GLTextureHandlerPtr imageHandler, 
-                          const mx::FileSearchPath& imagePath, int envSamples, bool directLighting, 
+void Material::bindLights(mx::LightHandlerPtr lightHandler, mx::GLTextureHandlerPtr imageHandler,
+                          const mx::FileSearchPath& imagePath, int envSamples, bool directLighting,
                           bool indirectLighting)
 {
     if (!_glShader)
@@ -514,7 +516,10 @@ void Material::bindLights(mx::LightHandlerPtr lightHandler, mx::GLTextureHandler
                 // Bind any associated uniforms.
                 if (pair.first == "u_envRadiance")
                 {
-                    _glShader->setUniform("u_envRadianceMips", desc.mipCount);
+                    if (_glShader->uniform("u_envRadianceMips", false) != -1)
+                    {
+                        _glShader->setUniform("u_envRadianceMips", desc.mipCount);
+                    }
                 }
             }
         }
@@ -614,7 +619,7 @@ mx::ShaderPort* Material::findUniform(const std::string& path) const
     mx::ShaderPort* port = nullptr;
     mx::VariableBlock* publicUniforms = getPublicUniforms();
     if (publicUniforms)
-    { 
+    {
         // Scan block based on path match predicate
         port = publicUniforms->find(
             [path](mx::ShaderPort* port)
