@@ -110,14 +110,29 @@
     </sheen_brdf>
 
     <!-- Subsurface Layer -->
-    <diffuse_btdf name="subsurface_bsdf" type="BSDF">
+    <diffuse_btdf name="translucent_bsdf" type="BSDF">
       <input name="weight" type="float" value="1.0" />
       <input name="color" type="color3" nodename="coat_affected_subsurface_color" />
       <input name="normal" type="vector3" interfacename="normal" />
     </diffuse_btdf>
+    <subsurface_brdf name="subsurface_bsdf" type="BSDF">
+      <input name="weight" type="float" value="1.0" />
+      <input name="color" type="color3" nodename="coat_affected_subsurface_color" />
+      <input name="radius" type="vector3" interfacename="subsurface_radius"/>
+      <input name="anisotropy" type="float" interfacename="subsurface_anisotropy"/>
+      <input name="normal" type="vector3" interfacename="normal" />
+    </subsurface_brdf>
+    <convert name="subsurface_selector" type="float">
+      <input name="in" type="boolean" interfacename="thin_walled" />
+    </convert>
+    <mix name="selected_subsurface_bsdf" type="BSDF">
+      <input name="fg" type="BSDF" nodename="subsurface_bsdf" />
+      <input name="bg" type="BSDF" nodename="translucent_bsdf" />
+      <input name="mix" type="float" nodename="subsurface_selector" />
+    </mix>
     <mix name="subsurface_mix" type="BSDF">
       <input name="fg" type="BSDF" nodename="sheen_bsdf" />
-      <input name="bg" type="BSDF" nodename="subsurface_bsdf" />
+      <input name="bg" type="BSDF" nodename="selected_subsurface_bsdf" />
       <input name="mix" type="float" interfacename="subsurface" />
     </mix>
 
