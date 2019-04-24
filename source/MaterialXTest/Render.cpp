@@ -3,6 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
+
 #include <MaterialXTest/Catch/catch.hpp>
 #include <MaterialXTest/GenShaderUtil.h>
 
@@ -20,7 +21,7 @@
 #include <MaterialXTest/RenderUtil.h>
 
 #ifdef MATERIALX_BUILD_CONTRIB
-#include <MaterialXContrib/Handlers/TinyEXRImageLoader.h>
+#include <MaterialXContrib/TinyEXRImageLoader.h>
 #endif
 #ifdef MATERIALX_BUILD_OIIO
 #include <MaterialXRender/OiioImageLoader.h>
@@ -114,6 +115,7 @@ TEST_CASE("Render: Geometry Handler Load", "[rendercore]")
     CHECK(geomLoaded);
     geomHandlerLog.close();
 }
+
 
 struct ImageHandlerTestOptions
 {
