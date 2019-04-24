@@ -459,9 +459,4 @@ bool NodeGraph::validate(string* message) const
     return GraphElement::validate(message) && res;
 }
 
-ConstNodeDefPtr NodeGraph::getDeclaration(const string&) const
-{
-    return getNodeDef();
-}
-
 } // namespace MaterialX

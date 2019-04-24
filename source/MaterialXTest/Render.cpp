@@ -21,7 +21,7 @@
 #include <MaterialXTest/RenderUtil.h>
 
 #ifdef MATERIALX_BUILD_CONTRIB
-#include <MaterialXContrib/TinyEXRImageLoader.h>
+#include <MaterialXContrib/Handlers/TinyEXRImageLoader.h>
 #endif
 #ifdef MATERIALX_BUILD_OIIO
 #include <MaterialXRender/OiioImageLoader.h>
