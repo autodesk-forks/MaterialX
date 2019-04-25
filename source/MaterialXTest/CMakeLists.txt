@@ -58,7 +58,7 @@ set (LIBS
     MaterialXCore
     MaterialXFormat
     MaterialXGenShader
-    MaterialXGenOsl
+    MaterialXGenOsl   
     MaterialXGenGlsl
     MaterialXRender
     MaterialXRenderOsl
@@ -67,6 +67,9 @@ set (LIBS
 )
 
 # Add language specific generators
+if (MATERIALX_BUILD_GEN_ARNOLD)
+    LIST(APPEND LIBS "MaterialXGenArnold")
+endif()
 if (MATERIALX_BUILD_GEN_OGSFX)
     LIST(APPEND LIBS "MaterialXGenOgsFx")
 endif()
