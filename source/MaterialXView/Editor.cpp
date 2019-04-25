@@ -8,8 +8,6 @@
 #include <nanogui/vscrollpanel.h>
 #include <nanogui/textbox.h>
 
-#include <iostream>
-
 namespace {
 
 class EditorFormHelper : public ng::FormHelper
@@ -75,7 +73,6 @@ void PropertyEditor::create(Viewer& parent)
     ng::GridLayout *layout = new ng::GridLayout(ng::Orientation::Horizontal, 2,
                                                 ng::Alignment::Minimum, 2, 2);
     layout->setColAlignment({ ng::Alignment::Minimum, ng::Alignment::Minimum });
-    layout->setSpacing(0, 0);
     _container->setLayout(layout);
 }
 
@@ -90,8 +87,6 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     mx::ValuePtr max = ui.uiMax;
     const mx::StringVec& enumeration = ui.enumeration;
     const std::vector<mx::ValuePtr> enumValues = ui.enumerationValues;
-
-    std::cout << "addItemToForm: " << label << ". Path: " << path << std::endl;
 
     if (!value)
     {
@@ -200,8 +195,9 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     {
         bool v = value->asA<bool>();
         new ng::Label(container, label);
-        ng::CheckBox* boolVar = new ng::CheckBox(container);
+        ng::CheckBox* boolVar = new ng::CheckBox(container, "");
         boolVar->setChecked(v);
+        boolVar->setFontSize(15);
         boolVar->setCallback([path, viewer](bool v)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -590,9 +586,9 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             else
             {
                 new ng::Label(container, label);
-                auto stringVar =  new ng::TextBox(container);
+                ng::TextBox* stringVar =  new ng::TextBox(container, v);
                 stringVar->setFixedSize({ 100, 20 });
-#if 0
+                stringVar->setFontSize(15);
                 stringVar->setCallback([path, viewer](const std::string &v)
                 {
                     MaterialPtr material = viewer->getSelectedMaterial();
@@ -601,8 +597,8 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                     {
                         uniform->setValue(mx::Value::createValue<std::string>(v));
                     }
+                    return true;
                 });
-#endif
             }
         }
     }
