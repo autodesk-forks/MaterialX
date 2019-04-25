@@ -28,7 +28,7 @@ class EditorFormHelper : public ng::FormHelper
 //
 class MyColorPicker : public ng::ColorPicker
 {
-public:
+  public:
     MyColorPicker(ng::Widget *parent, const ng::Color& color) :
         ng::ColorPicker(parent, color)
     {
@@ -45,15 +45,15 @@ public:
         for (size_t i = 0; i < colorLabels.size(); i++)
         {
             new ng::Label(floatGroup, colorLabels[i]);
-            mColorWidgets[i] = new ng::FloatBox<float>(floatGroup, color[i]);
-            mColorWidgets[i]->setEditable(true);
-            mColorWidgets[i]->setAlignment(ng::TextBox::Alignment::Right);
-            mColorWidgets[i]->setFixedSize(ng::Vector2i(70, 20));
-            mColorWidgets[i]->setFontSize(15);
-            mColorWidgets[i]->setSpinnable(true);
-            mColorWidgets[i]->setCallback([&](float)
+            _colorWidgets[i] = new ng::FloatBox<float>(floatGroup, color[i]);
+            _colorWidgets[i]->setEditable(true);
+            _colorWidgets[i]->setAlignment(ng::TextBox::Alignment::Right);
+            _colorWidgets[i]->setFixedSize(ng::Vector2i(70, 20));
+            _colorWidgets[i]->setFontSize(15);
+            _colorWidgets[i]->setSpinnable(true);
+            _colorWidgets[i]->setCallback([&](float)
             {
-                ng::Color value(mColorWidgets[0]->value(), mColorWidgets[1]->value(), mColorWidgets[2]->value(), mColorWidgets[3]->value());
+                ng::Color value(_colorWidgets[0]->value(), _colorWidgets[1]->value(), _colorWidgets[2]->value(), _colorWidgets[3]->value());
                 mColorWheel->setColor(value);
                 mPickButton->setBackgroundColor(value);
                 mPickButton->setTextColor(value.contrastingColor());
@@ -63,14 +63,15 @@ public:
         // The color wheel does not handle alpha properly, so only
         // overwrite RGB in the callback.
         mCallback = [&](const ng::Color &value) {
-            mColorWidgets[0]->setValue(value[0]);
-            mColorWidgets[1]->setValue(value[1]);
-            mColorWidgets[2]->setValue(value[2]);
+            _colorWidgets[0]->setValue(value[0]);
+            _colorWidgets[1]->setValue(value[1]);
+            _colorWidgets[2]->setValue(value[2]);
         };
     }
 
+  protected:
     // Additional numeric entry / feedback widgets
-    ng::FloatBox<float>* mColorWidgets[4];
+    ng::FloatBox<float>* _colorWidgets[4];
 };
 
 } // anonymous namespace
