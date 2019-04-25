@@ -1,0 +1,86 @@
+<!--
+Basic noise tests:
+- cellnoise2d
+- cellnoise3d
+- fractal3d
+- noise2d
+- noise3d
+-->
+
+
+<?xml version="1.0"?>
+<materialx version="1.36">
+  <nodegraph name="cellnoise3d" type="" xpos="5.27769" ypos="14.6465">
+    <cellnoise3d name="cellnoise3d1" type="float" xpos="5.18398" ypos="4.94234">
+      <input name="position" type="vector3" value="0.0, 0.0, 0.0" output="out" nodename="multiply1" />
+    </cellnoise3d>
+    <output name="out" type="float" output="out" nodename="cellnoise3d1" />
+    <position name="position1" type="vector3" xpos="4.87103" ypos="7.95556">
+      <parameter name="space" type="string" value="object" />
+    </position>
+    <multiply name="multiply1" type="vector3" xpos="6.75172" ypos="9.18">
+      <input name="in1" type="vector3" value="0.0, 0.0, 0.0" output="out" nodename="position1" />
+      <input name="in2" type="vector3" value="20.0000, 20.0000, 20.0000" />
+    </multiply>
+  </nodegraph>
+  <nodegraph name="fractal3d" type="" xpos="5.29008" ypos="15.7312">
+    <fractal3d name="fractal3d1" type="float" xpos="5.74483" ypos="4.74">
+      <parameter name="amplitude" type="float" value="10.0000" />
+      <parameter name="octaves" type="integer" value="2" />
+      <parameter name="lacunarity" type="float" value="2.0000" />
+      <parameter name="diminish" type="float" value="0.5000" />
+      <input name="position" type="vector3" value="0.0, 0.0, 0.0" output="out" nodename="multiply1" />
+    </fractal3d>
+    <output name="out" type="float" output="out" nodename="fractal3d1" />
+    <position name="position1" type="vector3" xpos="5.4131" ypos="8.33688">
+      <parameter name="space" type="string" value="object" />
+    </position>
+    <multiply name="multiply1" type="vector3" xpos="6.92242" ypos="7.61036">
+      <input name="in1" type="vector3" value="0.0, 0.0, 0.0" output="out" nodename="position1" />
+      <input name="in2" type="vector3" value="20.0000, 20.0000, 20.0000" />
+    </multiply>
+  </nodegraph>
+  <nodegraph name="noise3d" type="" xpos="5.29008" ypos="17.8">
+    <noise3d name="noise3d1" type="float" xpos="6.40765" ypos="5.58824">
+      <parameter name="amplitude" type="float" value="10.0000" />
+      <parameter name="pivot" type="float" value="0.0000" />
+      <input name="position" type="vector3" value="0.0, 0.0, 0.0" output="out" nodename="multiply1" />
+    </noise3d>
+    <position name="position1" type="vector3" xpos="5.10181" ypos="7.25518">
+      <parameter name="space" type="string" value="object" />
+    </position>
+    <multiply name="multiply1" type="vector3" xpos="6.2069" ypos="9.02">
+      <input name="in1" type="vector3" value="0.0, 0.0, 0.0" output="out" nodename="position1" />
+      <input name="in2" type="vector3" value="20.0000, 20.0000, 20.0000" />
+    </multiply>
+    <output name="out" type="float" output="out" nodename="noise3d1" />
+  </nodegraph>
+  <nodegraph name="noise2d" type="" xpos="5.29008" ypos="16.7883">
+    <noise2d name="noise2d1" type="float" xpos="6.35129" ypos="6.36646">
+      <parameter name="amplitude" type="float" value="10.0000" />
+      <parameter name="pivot" type="float" value="0.0" />
+      <input name="texcoord" type="vector2" value="0.0, 0.0" output="out" nodename="multiply1" />
+    </noise2d>
+    <output name="out" type="float" output="out" nodename="noise2d1" />
+    <texcoord name="texcoord1" type="vector2" xpos="3.23942" ypos="7.3902">
+      <parameter name="index" type="integer" value="0" />
+    </texcoord>
+    <multiply name="multiply1" type="vector2" xpos="4.84983" ypos="7.87244">
+      <input name="in1" type="vector2" value="0.0, 0.0" output="out" nodename="texcoord1" />
+      <input name="in2" type="vector2" value="100.0000, 100.0000" />
+    </multiply>
+  </nodegraph>
+  <nodegraph name="cellnoise2d" type="" xpos="5.28582" ypos="13.671">
+    <cellnoise2d name="cellnoise2d1" type="float" xpos="6.12857" ypos="5.67386">
+      <input name="texcoord" type="vector2" value="0.0, 0.0" output="out" nodename="multiply1" />
+    </cellnoise2d>
+    <texcoord name="texcoord1" type="vector2" xpos="4.61073" ypos="8.06452">
+      <parameter name="index" type="integer" value="0" />
+    </texcoord>
+    <multiply name="multiply1" type="vector2" xpos="6.68965" ypos="8.7">
+      <input name="in1" type="vector2" value="0.0, 0.0" output="out" nodename="texcoord1" />
+      <input name="in2" type="vector2" value="100.0000, 100.0000" />
+    </multiply>
+    <output name="out" type="float" output="out" nodename="cellnoise2d1" />
+  </nodegraph>
+</materialx>
