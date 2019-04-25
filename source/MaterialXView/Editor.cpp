@@ -8,6 +8,8 @@
 #include <nanogui/vscrollpanel.h>
 #include <nanogui/textbox.h>
 #include <nanogui/slider.h>
+#include <nanogui/colorwheel.h>
+#include <nanogui/colorpicker.h>
 
 namespace {
 
@@ -20,6 +22,55 @@ class EditorFormHelper : public ng::FormHelper
     void setPreGroupSpacing(int val) { mPreGroupSpacing = val; }
     void setPostGroupSpacing(int val) { mPostGroupSpacing = val; }
     void setVariableSpacing(int val) { mVariableSpacing = val; }
+};
+
+// Custom color picker so we can get numeric entry and feedback.
+//
+class MyColorPicker : public ng::ColorPicker
+{
+public:
+    MyColorPicker(ng::Widget *parent, const ng::Color& color) :
+        ng::ColorPicker(parent, color)
+    {
+        ng::Popup *popup = this->popup();
+        ng::Widget *floatGroup = new ng::Widget(popup);
+        auto layout =
+            new ng::GridLayout(ng::Orientation::Horizontal, 2,
+                ng::Alignment::Middle, 2, 2);
+        layout->setColAlignment({ ng::Alignment::Fill, ng::Alignment::Fill });
+        layout->setSpacing(1, 1);
+        floatGroup->setLayout(layout);
+
+        const std::vector<std::string> colorLabels = { "Red", "Green", "Blue", "Alpha" };
+        for (size_t i = 0; i < colorLabels.size(); i++)
+        {
+            new ng::Label(floatGroup, colorLabels[i]);
+            mColorWidgets[i] = new ng::FloatBox<float>(floatGroup, color[i]);
+            mColorWidgets[i]->setEditable(true);
+            mColorWidgets[i]->setAlignment(ng::TextBox::Alignment::Right);
+            mColorWidgets[i]->setFixedSize(ng::Vector2i(70, 20));
+            mColorWidgets[i]->setFontSize(15);
+            mColorWidgets[i]->setSpinnable(true);
+            mColorWidgets[i]->setCallback([&](float)
+            {
+                ng::Color value(mColorWidgets[0]->value(), mColorWidgets[1]->value(), mColorWidgets[2]->value(), mColorWidgets[3]->value());
+                mColorWheel->setColor(value);
+                mPickButton->setBackgroundColor(value);
+                mPickButton->setTextColor(value.contrastingColor());
+            });
+        }
+
+        // The color wheel does not handle alpha properly, so only
+        // overwrite RGB in the callback.
+        mCallback = [&](const ng::Color &value) {
+            mColorWidgets[0]->setValue(value[0]);
+            mColorWidgets[1]->setValue(value[1]);
+            mColorWidgets[2]->setValue(value[2]);
+        };
+    }
+
+    // Additional numeric entry / feedback widgets
+    ng::FloatBox<float>* mColorWidgets[4];
 };
 
 } // anonymous namespace
@@ -82,7 +133,7 @@ void PropertyEditor::create(Viewer& parent)
     // 3 cell layout for label plus widget value pair.
     _gridLayout3 = new ng::GridLayout(ng::Orientation::Horizontal, 3,
         ng::Alignment::Minimum, 2, 2);
-    _gridLayout3->setColAlignment({ ng::Alignment::Minimum, ng::Alignment::Minimum, ng::Alignment::Maximum });
+    _gridLayout3->setColAlignment({ ng::Alignment::Minimum, ng::Alignment::Maximum, ng::Alignment::Maximum });
 }
 
 ng::FloatBox<float>* PropertyEditor::makeFloatWidget(ng::Widget* container, const std::string label, mx::ValuePtr value,
@@ -166,7 +217,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         ng::Label* groupLabel =  new ng::Label(twoColumns, group);
         groupLabel->setFontSize(20);
         groupLabel->setFont("sans-bold");
-        new ng::Label(container, "");
+        new ng::Label(twoColumns, "");
     }
 
     // Integer input. Can map to a combo box if an enumeration
@@ -277,7 +328,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         c.g() = v[1];
         c.b() = 0.0f;
         c.w() = 1.0f;
-        auto colorVar = new ng::ColorPicker(twoColumns, c);
+        auto colorVar = new MyColorPicker(twoColumns, c);
         colorVar->setFixedSize({ 100, 20 });
         colorVar->setFontSize(15);
         colorVar->setFinalCallback([path, viewer, colorVar](const ng::Color &c)
@@ -358,7 +409,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             c.w() = 1.0;
             
             new ng::Label(twoColumns, label);
-            auto colorVar = new ng::ColorPicker(twoColumns, c);
+            auto colorVar = new MyColorPicker(twoColumns, c);
             colorVar->setFixedSize({ 100, 20 });
             colorVar->setFontSize(15);
             colorVar->setFinalCallback([path, viewer](const ng::Color &c)
@@ -391,7 +442,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         c.g() = v[1];
         c.b() = v[2];
         c.w() = v[3];
-        auto colorVar = new ng::ColorPicker(twoColumns, c);
+        auto colorVar = new MyColorPicker(twoColumns, c);
         colorVar->setFixedSize({ 100, 20 });
         colorVar->setFontSize(15);
         colorVar->setFinalCallback([path, viewer](const ng::Color &c)
@@ -471,7 +522,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         auto v2 = new ng::FloatBox<float>(twoColumns, v[1]);
         v2->setFixedSize({ 100, 20 });
         v2->setFontSize(15);
-        new ng::Label(container, label + ".z");
+        new ng::Label(twoColumns, label + ".z");
         auto v3 = new ng::FloatBox<float>(twoColumns, v[2]);
         v3->setFixedSize({ 100, 20 });
         v3->setFontSize(15);
@@ -530,7 +581,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         twoColumns->setLayout(_gridLayout2);
 
         mx::Vector4 v = value->asA<mx::Vector4>();
-        new ng::Label(container, label + ".x");
+        new ng::Label(twoColumns, label + ".x");
         auto v1 = new ng::FloatBox<float>(twoColumns, v[0]);
         v1->setFixedSize({ 100, 20 });
         v1->setFontSize(15);
