@@ -783,7 +783,7 @@ void PropertyEditor::updateContents(Viewer* viewer)
             const mx::UIPropertyItem& item = it2->second;
             if (material->findUniform(item.variable->getPath()))
             {
-                addItemToForm(item, addedLabel ? mx::EMPTY_STRING : "Other", _container, viewer, editable);
+                addItemToForm(item, addedLabel ? mx::EMPTY_STRING : otherString, _container, viewer, editable);
                 addedLabel = true;
                 addedItems = true;
             }
