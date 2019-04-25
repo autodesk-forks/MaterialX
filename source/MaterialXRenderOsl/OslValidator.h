@@ -3,8 +3,8 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#ifndef MATERIALX_OslValidator_H
-#define MATERIALX_OslValidator_H
+#ifndef MATERIALX_OSLVALIDATOR_H
+#define MATERIALX_OSLVALIDATOR_H
 
 /// @file
 /// OSL code validator
@@ -12,12 +12,10 @@
 #include <MaterialXRender/ShaderValidator.h>
 #include <MaterialXRender/ExceptionShaderValidationError.h>
 #include <MaterialXRender/ImageHandler.h>
-#include <vector>
-#include <string>
-#include <map>
 
 namespace MaterialX
 {
+
 // Shared pointer to an OslValidator
 using OslValidatorPtr = std::shared_ptr<class OslValidator>;
 
@@ -83,9 +81,7 @@ class OslValidator : public ShaderValidator
     /// Usage of both executables requires compiled source (.oso) files as input.
     /// A shader output must be set before running this test via the setOslOutputName() method to
     /// ensure that the appropriate .oso files can be located.
-    ///
-    /// @param orthographicView Render orthographically
-    void validateRender(bool orthographicView=true) override;
+    void validateRender() override;
 
     /// @}
     /// @name Utilities
@@ -248,4 +244,5 @@ class OslValidator : public ShaderValidator
 };
 
 } // namespace MaterialX
+
 #endif

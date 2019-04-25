@@ -2,7 +2,10 @@ file(GLOB pymaterialxrender_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB pymaterialxrender_headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 if(NOT MATERIALX_BUILD_OIIO)
     list(REMOVE_ITEM pymaterialxrender_source "${CMAKE_CURRENT_SOURCE_DIR}/PyOiioImageLoader.cpp")
-endif(NOT MATERIALX_BUILD_OIIO)
+endif()
+if(NOT MATERIALX_BUILD_CONTRIB)
+    list(REMOVE_ITEM pymaterialxrender_source "${CMAKE_CURRENT_SOURCE_DIR}/PySampleObjLoader.cpp")
+endif()
 
 pybind11_add_module(PyMaterialXRender SHARED ${PYBIND11_MODULE_FLAGS} ${pymaterialxrender_source} ${pymaterialxrender_headers})
 
@@ -19,11 +22,19 @@ set_target_properties(
     VERSION "${MATERIALX_LIBRARY_VERSION}"
     SOVERSION "${MATERIALX_MAJOR_VERSION}")
 
-target_link_libraries(
+if(NOT MATERIALX_BUILD_CONTRIB)
+  target_link_libraries(
     PyMaterialXRender
     PUBLIC PyMaterialXGenShader
            MaterialXRender
     PRIVATE ${CMAKE_DL_LIBS})
-
+else()
+  target_link_libraries(
+    PyMaterialXRender
+    PUBLIC PyMaterialXGenShader
+           MaterialXRender
+           MaterialXContrib
+    PRIVATE ${CMAKE_DL_LIBS})
+endif()
 install(TARGETS PyMaterialXRender
         DESTINATION "${CMAKE_INSTALL_PREFIX}/python/MaterialX")

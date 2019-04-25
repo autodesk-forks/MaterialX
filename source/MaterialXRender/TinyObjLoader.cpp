@@ -72,9 +72,8 @@ bool TinyObjLoader::load(const FilePath& filePath, MeshList& meshList)
     Vector3 boxMin = { MAX_FLOAT, MAX_FLOAT, MAX_FLOAT };
     Vector3 boxMax = { -MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT };
 
-    for (size_t partIndex = 0; partIndex < shapes.size(); partIndex++)
+    for (const tinyobj::shape_t& shape : shapes)
     {
-        const tinyobj::shape_t& shape = shapes[partIndex];
         size_t faceCount = shape.mesh.indices.size();
         if (faceCount == 0)
         {
@@ -195,9 +194,11 @@ bool TinyObjLoader::load(const FilePath& filePath, MeshList& meshList)
     mesh->setSphereCenter(sphereCenter);
     mesh->setSphereRadius((sphereCenter - boxMin).getMagnitude());
 
-    mesh->generateTangents(positionStream, texCoordStream, normalStream, tangentStream, nullptr);
+    MeshStreamPtr bitangentStream = MeshStream::create("i_" + MeshStream::BITANGENT_ATTRIBUTE, MeshStream::BITANGENT_ATTRIBUTE, 0);
+    mesh->generateTangents(positionStream, texCoordStream, normalStream, tangentStream, bitangentStream);
+    mesh->addStream(bitangentStream);
 
     return true;
 }
 
-}
+} // namespace MaterialX
