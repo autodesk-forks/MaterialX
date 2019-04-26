@@ -102,7 +102,7 @@ void GlslValidator::initialize()
                         throw ExceptionShaderValidationError(errorType, errors);
                     }
 #endif
-                    glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
+                    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
                     glClearStencil(0);
 
                     _initialized = true;

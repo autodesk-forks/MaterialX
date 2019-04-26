@@ -9,9 +9,9 @@
       color Cin %background_color%;
       shader constant_color_background layer1;
    </ShaderGroup>
-   <!--
+
    <Background resolution="1024" />
-   -->
+
    <!-- Shader graph for routing to output layer:
    input_shader_parameter_overrides : are parameter overrides for the input shader
    %input_shader_type% : type of an input shader to feed into the output shader.
