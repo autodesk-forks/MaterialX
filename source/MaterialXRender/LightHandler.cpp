@@ -76,7 +76,7 @@ void LightHandler::registerLights(DocumentPtr doc, const std::vector<NodePtr>& l
     }
 
     // Make sure max light count is large enough
-    const unsigned int lightCount = unsigned int(lights.size());
+    const unsigned int lightCount = (unsigned int)lights.size();
     if (lightCount > context.getOptions().hwMaxActiveLightSources)
     {
         context.getOptions().hwMaxActiveLightSources = lightCount;
