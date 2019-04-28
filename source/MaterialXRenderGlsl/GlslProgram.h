@@ -278,7 +278,8 @@ class GlslProgram
     /// Program texture map
     std::unordered_map<std::string, unsigned int> _programTextures;
 
-    std::set<int> _enabledLocations;
+    /// Enabled vertex stream program locations
+    std::set<int> _enabledStreamLocations;
 };
 
 } // namespace MaterialX

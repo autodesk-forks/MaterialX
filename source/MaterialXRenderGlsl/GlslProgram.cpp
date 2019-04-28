@@ -368,7 +368,7 @@ void GlslProgram::bindAttribute(const MaterialX::GlslProgram::InputMap& inputs, 
         }
 
         glEnableVertexAttribArray(location);
-        _enabledLocations.insert(location);
+        _enabledStreamLocations.insert(location);
         glVertexAttribPointer(location, stride, GL_FLOAT, GL_FALSE, 0, 0);
     }
 }
@@ -393,7 +393,7 @@ void GlslProgram::bindPartition(MeshPartitionPtr partition)
 
 void GlslProgram::bindStreams(MeshPtr mesh)
 {
-    _enabledLocations.clear(); 
+    _enabledStreamLocations.clear(); 
     ShaderValidationErrorList errors;
     const std::string errorType("GLSL geometry bind error.");
 
@@ -492,11 +492,11 @@ void GlslProgram::unbindGeometry()
     //
     int numberAttributes = 0;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numberAttributes);
-    for (int i : _enabledLocations)
+    for (int i : _enabledStreamLocations)
     {
         glDisableVertexAttribArray(i);
     }
-    _enabledLocations.clear();
+    _enabledStreamLocations.clear();
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);

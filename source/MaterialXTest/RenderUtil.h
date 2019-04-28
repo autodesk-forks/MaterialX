@@ -98,10 +98,26 @@ class RenderTestOptions
     // Shaded geometry file
     MaterialX::FilePath shadedGeometry;
 
-    // Radiance IBL file
+    // Amount to scale geometry. 
+    float geometryScale;
+
+    // Enable direct lighting. Default is true. 
+    bool enableDirectLighting;
+
+    // Enable indirect lighting. Default is true. 
+    bool enableIndirectLighting;
+
+    // Environment lookup option:
+    // 0 : Prefiltered : This requires that both a radiance and an irradiance IBL
+    //                    be specified
+    // 1 : Importance sampling : Only a radiance IBL is not not required for sampling.
+    // Default value is 1.
+    int environmentLookup;
+
+    // Radiance IBL file.
     MaterialX::FilePath radianceIBLPath;
 
-    // IradianceIBL file
+    // IrradianceIBL file. Reqiured if using pre-filtered lookup option.
     MaterialX::FilePath irradianceIBLPath;
 };
 
