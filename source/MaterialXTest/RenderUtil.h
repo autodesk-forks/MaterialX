@@ -56,11 +56,11 @@ class RenderTestOptions
     bool readOptions(const std::string& optionFile);
 
     // Filter list of files to only run validation on.
-    MaterialX::StringVec overrideFiles;
+    mx::StringVec overrideFiles;
 
     // List of language,target pair identifier storage as 
     // strings in the form <language>_<target>.
-    MaterialX::StringSet languageAndTargets;
+    mx::StringSet languageAndTargets;
 
     // Comma separated list of light setup files
     mx::StringVec lightFiles;
@@ -107,18 +107,17 @@ class RenderTestOptions
     // Enable indirect lighting. Default is true. 
     bool enableIndirectLighting;
 
-    // Environment lookup option:
-    // 0 : Prefiltered : This requires that both a radiance and an irradiance IBL
-    //                    be specified
-    // 1 : Importance sampling : Only a radiance IBL is not not required for sampling.
+    // Method for specular environment sampling (only used for HW rendering):
+    //   0 : Prefiltered - Use a radiance IBL texture that has been prefiltered with the BRDF.
+    //   1 : Filtered Importance Sampling - Use FIS to sample the IBL texture according to the BRDF in runtime.
     // Default value is 1.
-    int environmentLookup;
+    int specularEnvironmentMethod;
 
     // Radiance IBL file.
-    MaterialX::FilePath radianceIBLPath;
+    mx::FilePath radianceIBLPath;
 
-    // IrradianceIBL file. Reqiured if using pre-filtered lookup option.
-    MaterialX::FilePath irradianceIBLPath;
+    // Irradiance IBL file.
+    mx::FilePath irradianceIBLPath;
 };
 
 // Scoped timer which adds a duration to a given externally reference timing duration

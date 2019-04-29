@@ -80,12 +80,10 @@ void RenderTestOptions::print(std::ostream& output) const
     output << "\tGeometry Scale: " << geometryScale << std::endl;
     output << "\tEnable Direct Lighting: " << enableDirectLighting << std::endl;
     output << "\tEnable Indirect Lighting: " << enableIndirectLighting << std::endl;
-    output << "\tEnvironment Lookup: " << environmentLookup << std::endl;
+    output << "\tSpecular Environment Method: " << specularEnvironmentMethod << std::endl;
     output << "\tRadiance IBL File Path " << radianceIBLPath.asString() << std::endl;
     output << "\tIrradiance IBL File Path: " << irradianceIBLPath.asString() << std::endl;
 }
-
-
 
 bool RenderTestOptions::readOptions(const std::string& optionFile)
 {
@@ -109,7 +107,7 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
     const std::string GEOMETRY_SCALE_STRING("geometryScale");
     const std::string ENABLE_DIRECT_LIGHTING("enableDirectLighting");
     const std::string ENABLE_INDIRECT_LIGHTING("enableIndirectLighting");
-    const std::string ENVIRONMENT_LOOKUP("environmentLookup");
+    const std::string SPECULAR_ENVIRONMENT_METHOD("specularEnvironmentMethod");
     const std::string RADIANCE_IBL_PATH_STRING("radianceIBLPath");
     const std::string IRRADIANCE_IBL_PATH_STRING("irradianceIBLPath");
     const std::string SPHERE_OBJ("sphere.obj");
@@ -122,7 +120,7 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
     geometryScale = 1.0f;
     enableDirectLighting = true;
     enableIndirectLighting = true;
-    environmentLookup = 1;
+    specularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
 
     MaterialX::DocumentPtr doc = MaterialX::createDocument();
     try {
@@ -207,9 +205,9 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
                     {
                         enableIndirectLighting = val->asA<bool>();
                     }
-                    else if (name == ENVIRONMENT_LOOKUP)
+                    else if (name == SPECULAR_ENVIRONMENT_METHOD)
                     {
-                        environmentLookup = val->asA<int>();
+                        specularEnvironmentMethod = val->asA<int>();
                     }
                     else if (name == RADIANCE_IBL_PATH_STRING)
                     {
