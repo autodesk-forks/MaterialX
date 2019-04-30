@@ -200,6 +200,23 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _geometryHandler->loadGeometry(_searchPath.find(meshFilename));
     updateGeometrySelections();
 
+    _envGeometryHandler = mx::GeometryHandler::create();
+    _envGeometryHandler->addLoader(loader);
+    mx::FilePath envSphere("resources/Geometry/sphere.obj");
+    _envGeometryHandler->loadGeometry(_searchPath.find(envSphere));
+    const std::string envShaderName("__ENV_SHADER_NAME__");
+    _envMaterial = Material::create();
+    try
+    {
+        _envMaterial->generateImageShader(_genContext, _stdLib, envShaderName, _envRadiancePath);
+        _envMaterial->bindMesh(_envGeometryHandler->getMeshes()[0]);
+    }
+    catch (std::exception& e)
+    {
+        _envMaterial = nullptr;
+        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to generate environment shader", e.what());
+    }
+
     // Initialize camera
     initCamera();
     setResizeCallback([this](ng::Vector2i size)
@@ -951,6 +968,27 @@ void Viewer::drawContents()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDisable(GL_CULL_FACE);
     glEnable(GL_FRAMEBUFFER_SRGB);
+
+    if (_envMaterial)
+    {
+        GLShaderPtr envShader = _envMaterial->getShader();
+        auto meshes = _envGeometryHandler->getMeshes();
+        auto envPart = !meshes.empty() ? meshes[0]->getPartition(0) : nullptr;
+        if (envShader && envPart)
+        {
+            //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);
+            envShader->bind();
+            mx::Matrix44 scaleEnv = mx::Matrix44::createScale({ 10.0f, 10.0f, 10.0f });
+            _envMaterial->bindViewInformation(world * scaleEnv, view, proj);
+            _envMaterial->bindImages(_imageHandler, _searchPath, _envMaterial->getUdim());
+            _envMaterial->drawPartition(envPart);
+            //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glDisable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+        }
+    }
 
     mx::TypedElementPtr lastBoundShader;
     for (auto assignment : _materialAssignments)

@@ -88,6 +88,12 @@ class Material
                                 const std::string& shaderName,
                                 const mx::Color3& color);
 
+    /// Generate a consta image shader
+    bool generateImageShader(mx::GenContext& context,
+                                mx::DocumentPtr stdLib,
+                                const std::string& shaderName,
+                                const mx::FilePath& imagePath);
+
     /// Return the underlying OpenGL shader.
     GLShaderPtr getShader() const
     {

@@ -193,6 +193,33 @@ bool Material::generateConstantShader(mx::GenContext& context,
     return _glShader->init(shaderName, vertexShader, pixelShader);
 }
 
+bool Material::generateImageShader(mx::GenContext& context,
+                                        mx::DocumentPtr stdLib,
+                                        const std::string& shaderName,
+                                        const mx::FilePath& imagePath)
+{
+    // Construct the constant color nodegraph
+    mx::DocumentPtr doc = mx::createDocument();
+    doc->importLibrary(stdLib);
+    mx::NodeGraphPtr nodeGraph = doc->addNodeGraph();
+    mx::NodePtr image = nodeGraph->addNode("image", "myimage");
+    image->setParameterValue("file", imagePath.asString(), mx::FILENAME_TYPE_STRING);
+    mx::OutputPtr output = nodeGraph->addOutput();
+    output->setConnectedNode(image);
+
+    _hwShader = createShader(shaderName, context, output); 
+    if (!_hwShader)
+    {
+        return false;
+    }
+    std::string vertexShader = _hwShader->getSourceCode(mx::Stage::VERTEX);
+    std::string pixelShader = _hwShader->getSourceCode(mx::Stage::PIXEL);
+
+    // Compile and return.
+    _glShader = std::make_shared<ng::GLShader>();
+    return _glShader->init(shaderName, vertexShader, pixelShader);
+}
+
 bool Material::loadSource(const mx::FilePath& vertexShaderFile, const mx::FilePath& pixelShaderFile, const std::string& shaderName, bool hasTransparency)
 {
     _hasTransparency = hasTransparency;

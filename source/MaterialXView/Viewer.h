@@ -142,6 +142,9 @@ class Viewer : public ng::Screen
     mx::GLTextureHandlerPtr _imageHandler;
     mx::LightHandlerPtr _lightHandler;
 
+    mx::GeometryHandlerPtr _envGeometryHandler;
+    MaterialPtr _envMaterial;
+
     // Shader generator
     mx::GenContext _genContext;
 
