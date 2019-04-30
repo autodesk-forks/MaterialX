@@ -980,13 +980,9 @@ void Viewer::drawContents()
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT);
             envShader->bind();
-            //mx::Matrix44 scaleEnv = mx::Matrix44::createScale({ 10.0f, 10.0f, 10.0f });
-            const mx::Matrix44 scaleEnv(
-                -10, 0, 0, 0,
-                0, 10, 0, 0,
-                0, 0, -10, 0,
-                0, 0, 0, 1);
-            _envMaterial->bindViewInformation(world * scaleEnv, view, proj);
+            mx::Matrix44 scaleEnv = mx::Matrix44::createScale({ 10.0f, 10.0f, 10.0f });
+            mx::Matrix44 rotateEnv = mx::Matrix44::createRotationY(90.0f);
+            _envMaterial->bindViewInformation(world * scaleEnv * rotateEnv, view, proj);
             _envMaterial->bindImages(_imageHandler, _searchPath, _envMaterial->getUdim());
             _envMaterial->drawPartition(envPart);
             //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
