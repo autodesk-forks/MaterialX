@@ -104,6 +104,7 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
     const std::string SHADED_GEOMETRY_STRING("shadedGeometry");
     const std::string RADIANCE_IBL_PATH_STRING("radianceIBLPath");
     const std::string IRRADIANCE_IBL_PATH_STRING("irradianceIBLPath");
+    const std::string TRANSFORM_UVS_STRING("transformUVs");
     const std::string SPHERE_OBJ("sphere.obj");
     const std::string SHADERBALL_OBJ("shaderball.obj");
 
@@ -190,6 +191,10 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
                     else if (name == IRRADIANCE_IBL_PATH_STRING)
                     {
                         irradianceIBLPath = p->getValueString();
+                    }
+                    else if (name == TRANSFORM_UVS_STRING)
+                    {
+                        transformUVs = val->asA<mx::Matrix44>();
                     }
                 }
             }

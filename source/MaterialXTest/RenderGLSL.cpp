@@ -7,6 +7,8 @@
 #include <MaterialXRenderGlsl/GlslValidator.h>
 #include <MaterialXRenderGlsl/GLTextureHandler.h>
 
+#include <MaterialXCore/Types.h>
+
 #ifdef MATERIALX_BUILD_OIIO
 #include <MaterialXRender/OiioImageLoader.h>
 #endif
@@ -62,6 +64,8 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
                         const RenderUtil::RenderTestOptions &options, mx::GenContext& context) override;
 
     void createValidator(std::ostream& log) override;
+
+    void transformUVs(const mx::MeshList& meshes, const mx::Matrix44& matrixTransform) const;
 
     bool runValidator(const std::string& shaderName,
                       mx::TypedElementPtr element,
@@ -233,6 +237,20 @@ void addAdditionalTestStreams(mx::MeshPtr mesh)
     }
 }
 
+void GlslShaderRenderTester::transformUVs(const mx::MeshList& meshes, const mx::Matrix44& matrixTransform) const
+{
+    for(mx::MeshPtr mesh : meshes)
+    {
+        const std::string TEXCOORD_STREAM0_NAME("i_" + mx::MeshStream::TEXCOORD_ATTRIBUTE + "_0");
+        mx::MeshStreamPtr uvStream = mesh->getStream(TEXCOORD_STREAM0_NAME);
+        uvStream->transform(matrixTransform);
+
+        const std::string TEXCOORD_STREAM1_NAME("i_" + mx::MeshStream::TEXCOORD_ATTRIBUTE + "_1");
+        mx::MeshStreamPtr uvStream2 = mesh->getStream(TEXCOORD_STREAM1_NAME);
+        uvStream2->transform(matrixTransform);
+    }
+}
+
 bool GlslShaderRenderTester::runValidator(const std::string& shaderName,
                                           mx::TypedElementPtr element,
                                           mx::GenContext& context,
@@ -367,6 +385,7 @@ bool GlslShaderRenderTester::runValidator(const std::string& shaderName,
                         if (!meshes.empty())
                         {
                             addAdditionalTestStreams(meshes[0]);
+                            transformUVs(meshes, testOptions.transformUVs);
                         }
                     }
 
@@ -400,6 +419,7 @@ bool GlslShaderRenderTester::runValidator(const std::string& shaderName,
                         if (!meshes.empty())
                         {
                             addAdditionalTestStreams(meshes[0]);
+                            transformUVs(meshes, testOptions.transformUVs);
                         }
                     }
 
