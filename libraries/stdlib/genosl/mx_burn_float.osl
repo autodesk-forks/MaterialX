@@ -1,6 +1,6 @@
 void mx_burn_float(float fg, float bg, float mix, output float out)
 {
-    if (fg < M_FLOAT_EPS)
+    if (abs(fg) < M_FLOAT_EPS)
     {
         out = 0.0;
         return;

@@ -1,0 +1,24 @@
+void mx_disjointover_color2(color2 fg, color2 bg, float mix, output color2 out)
+{
+  float summedAlpha = fg.a + bg.a;
+
+  if (summedAlpha <= 1)
+  {
+      out.r = fg.r + bg.r;
+  }
+  else
+  {
+      if (abs(bg.a) < M_FLOAT_EPS)
+      {
+        out.r = 0.0;
+      }
+      else
+      {
+        out.r = fg.r + ((bg.r * (1-fg.a)) / bg.a);
+      }
+  }
+  out.a = min(summedAlpha, 1.0);
+
+  out.r = out.r * mix + (1.0 - mix) * bg.r;
+  out.a = out.a * mix + (1.0 - mix) * bg.a;
+}
