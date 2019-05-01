@@ -2,5 +2,6 @@
 
 void mx_splitlr_float(float valuel, float valuer, float center, vec2 texcoord, out float result)
 {
-    result = mix(valuel, valuer, mx_aastep(center, texcoord.x));
+    vec2 uv = mx_get_target_uv(texcoord);
+    result = mix(valuel, valuer, mx_aastep(center, uv.x));
 }

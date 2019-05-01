@@ -1,5 +1,6 @@
 void mx_noise2d_vector2(vector2 amplitude, float pivot, vector2 texcoord, output vector2 result)
 {
-    vector2 value = noise("snoise", texcoord.x, texcoord.y);
+    vector2 uv = mx_get_target_uv(texcoord);
+    vector2 value = noise("snoise", uv.x, uv.y);
     result = value * amplitude + pivot;
 }

@@ -1,0 +1,5 @@
+void mx_ramptb_vector2(vector2 valuet, vector2 valueb, vector2 texcoord, output vector2 result)
+{
+    vector2 uv = mx_get_target_uv(texcoord);
+    result = mix(valuet, valueb, clamp(uv.y, 0, 1));
+}

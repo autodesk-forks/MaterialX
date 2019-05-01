@@ -1,4 +1,5 @@
 void mx_cellnoise2d_float(vector2 texcoord, output float result)
 {
-    result = cellnoise(texcoord.x, texcoord.y);
+    vector2 uv = mx_get_target_uv(texcoord);
+    result = cellnoise(uv.x, uv.y);
 }

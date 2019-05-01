@@ -1,0 +1,5 @@
+void mx_splittb_color4(color4 valuet, color4 valueb, float center, vector2 texcoord, output color4 result)
+{
+    vector2 uv = mx_get_target_uv(texcoord);
+    result = mix(valuet, valueb, aastep(center, uv.y));
+}

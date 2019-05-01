@@ -57,22 +57,22 @@
   <implementation name="IM_constant_filename_genosl" nodedef="ND_constant_filename" file="stdlib/genosl/mx_constant.inline" language="genosl"/>
 
   <!-- <ramplr> -->
-  <implementation name="IM_ramplr_float_genosl" nodedef="ND_ramplr_float" file="stdlib/genosl/mx_ramplr.inline" language="genosl"/>
-  <implementation name="IM_ramplr_color2_genosl" nodedef="ND_ramplr_color2" file="stdlib/genosl/mx_ramplr.inline" language="genosl"/>
-  <implementation name="IM_ramplr_color3_genosl" nodedef="ND_ramplr_color3" file="stdlib/genosl/mx_ramplr.inline" language="genosl"/>
-  <implementation name="IM_ramplr_color4_genosl" nodedef="ND_ramplr_color4" file="stdlib/genosl/mx_ramplr.inline" language="genosl"/>
-  <implementation name="IM_ramplr_vector2_genosl" nodedef="ND_ramplr_vector2" file="stdlib/genosl/mx_ramplr.inline" language="genosl"/>
-  <implementation name="IM_ramplr_vector3_genosl" nodedef="ND_ramplr_vector3" file="stdlib/genosl/mx_ramplr.inline" language="genosl"/>
-  <implementation name="IM_ramplr_vector4_genosl" nodedef="ND_ramplr_vector4" file="stdlib/genosl/mx_ramplr.inline" language="genosl"/>
+  <implementation name="IM_ramplr_float_genosl" nodedef="ND_ramplr_float" file="stdlib/genosl/mx_ramplr_float.osl" function="mx_ramplr_float" language="genosl"/>
+  <implementation name="IM_ramplr_color2_genosl" nodedef="ND_ramplr_color2" file="stdlib/genosl/mx_ramplr_color2.osl" function="mx_ramplr_color2" language="genosl"/>
+  <implementation name="IM_ramplr_color3_genosl" nodedef="ND_ramplr_color3" file="stdlib/genosl/mx_ramplr_color3.osl" function="mx_ramplr_color3" language="genosl"/>
+  <implementation name="IM_ramplr_color4_genosl" nodedef="ND_ramplr_color4" file="stdlib/genosl/mx_ramplr_color4.osl" function="mx_ramplr_color4" language="genosl"/>
+  <implementation name="IM_ramplr_vector2_genosl" nodedef="ND_ramplr_vector2" file="stdlib/genosl/mx_ramplr_vector2.osl" function="mx_ramplr_vector2" language="genosl"/>
+  <implementation name="IM_ramplr_vector3_genosl" nodedef="ND_ramplr_vector3" file="stdlib/genosl/mx_ramplr_vector3.osl" function="mx_ramplr_vector3" language="genosl"/>
+  <implementation name="IM_ramplr_vector4_genosl" nodedef="ND_ramplr_vector4" file="stdlib/genosl/mx_ramplr_vector4.osl" function="mx_ramplr_vector4" language="genosl"/>
 
   <!-- <ramptb> -->
-  <implementation name="IM_ramptb_float_genosl" nodedef="ND_ramptb_float" file="stdlib/genosl/mx_ramptb.inline" language="genosl"/>
-  <implementation name="IM_ramptb_color2_genosl" nodedef="ND_ramptb_color2" file="stdlib/genosl/mx_ramptb.inline" language="genosl"/>
-  <implementation name="IM_ramptb_color3_genosl" nodedef="ND_ramptb_color3" file="stdlib/genosl/mx_ramptb.inline" language="genosl"/>
-  <implementation name="IM_ramptb_color4_genosl" nodedef="ND_ramptb_color4" file="stdlib/genosl/mx_ramptb.inline" language="genosl"/>
-  <implementation name="IM_ramptb_vector2_genosl" nodedef="ND_ramptb_vector2" file="stdlib/genosl/mx_ramptb.inline" language="genosl"/>
-  <implementation name="IM_ramptb_vector3_genosl" nodedef="ND_ramptb_vector3" file="stdlib/genosl/mx_ramptb.inline" language="genosl"/>
-  <implementation name="IM_ramptb_vector4_genosl" nodedef="ND_ramptb_vector4" file="stdlib/genosl/mx_ramptb.inline" language="genosl"/>
+  <implementation name="IM_ramptb_float_genosl" nodedef="ND_ramptb_float" file="stdlib/genosl/mx_ramptb_float.osl" function="mx_ramptb_float" language="genosl"/>
+  <implementation name="IM_ramptb_color2_genosl" nodedef="ND_ramptb_color2" file="stdlib/genosl/mx_ramptb_color2.osl" function="mx_ramptb_color2" language="genosl"/>
+  <implementation name="IM_ramptb_color3_genosl" nodedef="ND_ramptb_color3" file="stdlib/genosl/mx_ramptb_color3.osl" function="mx_ramptb_color3" language="genosl"/>
+  <implementation name="IM_ramptb_color4_genosl" nodedef="ND_ramptb_color4" file="stdlib/genosl/mx_ramptb_color4.osl" function="mx_ramptb_color4" language="genosl"/>
+  <implementation name="IM_ramptb_vector2_genosl" nodedef="ND_ramptb_vector2" file="stdlib/genosl/mx_ramptb_vector2.osl" function="mx_ramptb_vector2" language="genosl"/>
+  <implementation name="IM_ramptb_vector3_genosl" nodedef="ND_ramptb_vector3" file="stdlib/genosl/mx_ramptb_vector3.osl" function="mx_ramptb_vector3" language="genosl"/>
+  <implementation name="IM_ramptb_vector4_genosl" nodedef="ND_ramptb_vector4" file="stdlib/genosl/mx_ramptb_vector4.osl" function="mx_ramptb_vector4" language="genosl"/>
 
   <!-- <ramp4> -->
   <implementation name="IM_ramp4_float_genosl" nodedef="ND_ramp4_float" file="stdlib/genosl/mx_ramp4_float.osl" function="mx_ramp4_float" language="genosl"/>
@@ -84,22 +84,22 @@
   <implementation name="IM_ramp4_vector4_genosl" nodedef="ND_ramp4_vector4" file="stdlib/genosl/mx_ramp4_vector4.osl" function="mx_ramp4_vector4" language="genosl"/>
 
   <!-- <splitlr> -->
-  <implementation name="IM_splitlr_float_genosl" nodedef="ND_splitlr_float" file="stdlib/genosl/mx_splitlr.inline" language="genosl"/>
-  <implementation name="IM_splitlr_color2_genosl" nodedef="ND_splitlr_color2" file="stdlib/genosl/mx_splitlr.inline" language="genosl"/>
-  <implementation name="IM_splitlr_color3_genosl" nodedef="ND_splitlr_color3" file="stdlib/genosl/mx_splitlr.inline" language="genosl"/>
-  <implementation name="IM_splitlr_color4_genosl" nodedef="ND_splitlr_color4" file="stdlib/genosl/mx_splitlr.inline" language="genosl"/>
-  <implementation name="IM_splitlr_vector2_genosl" nodedef="ND_splitlr_vector2" file="stdlib/genosl/mx_splitlr.inline" language="genosl"/>
-  <implementation name="IM_splitlr_vector3_genosl" nodedef="ND_splitlr_vector3" file="stdlib/genosl/mx_splitlr.inline" language="genosl"/>
-  <implementation name="IM_splitlr_vector4_genosl" nodedef="ND_splitlr_vector4" file="stdlib/genosl/mx_splitlr.inline" language="genosl"/>
+  <implementation name="IM_splitlr_float_genosl" nodedef="ND_splitlr_float" file="stdlib/genosl/mx_splitlr_float.osl" function="mx_splitlr_float" language="genosl"/>
+  <implementation name="IM_splitlr_color2_genosl" nodedef="ND_splitlr_color2" file="stdlib/genosl/mx_splitlr_color2.osl" function="mx_splitlr_color2" language="genosl"/>
+  <implementation name="IM_splitlr_color3_genosl" nodedef="ND_splitlr_color3" file="stdlib/genosl/mx_splitlr_color3.osl" function="mx_splitlr_color3" language="genosl"/>
+  <implementation name="IM_splitlr_color4_genosl" nodedef="ND_splitlr_color4" file="stdlib/genosl/mx_splitlr_color4.osl" function="mx_splitlr_color4" language="genosl"/>
+  <implementation name="IM_splitlr_vector2_genosl" nodedef="ND_splitlr_vector2" file="stdlib/genosl/mx_splitlr_vector2.osl" function="mx_splitlr_vector2" language="genosl"/>
+  <implementation name="IM_splitlr_vector3_genosl" nodedef="ND_splitlr_vector3" file="stdlib/genosl/mx_splitlr_vector3.osl" function="mx_splitlr_vector3" language="genosl"/>
+  <implementation name="IM_splitlr_vector4_genosl" nodedef="ND_splitlr_vector4" file="stdlib/genosl/mx_splitlr_vector4.osl" function="mx_splitlr_vector4" language="genosl"/>
 
   <!-- <splittb> -->
-  <implementation name="IM_splittb_float_genosl" nodedef="ND_splittb_float" file="stdlib/genosl/mx_splittb.inline" language="genosl"/>
-  <implementation name="IM_splittb_color2_genosl" nodedef="ND_splittb_color2" file="stdlib/genosl/mx_splittb.inline" language="genosl"/>
-  <implementation name="IM_splittb_color3_genosl" nodedef="ND_splittb_color3" file="stdlib/genosl/mx_splittb.inline" language="genosl"/>
-  <implementation name="IM_splittb_color4_genosl" nodedef="ND_splittb_color4" file="stdlib/genosl/mx_splittb.inline" language="genosl"/>
-  <implementation name="IM_splittb_vector2_genosl" nodedef="ND_splittb_vector2" file="stdlib/genosl/mx_splittb.inline" language="genosl"/>
-  <implementation name="IM_splittb_vector3_genosl" nodedef="ND_splittb_vector3" file="stdlib/genosl/mx_splittb.inline" language="genosl"/>
-  <implementation name="IM_splittb_vector4_genosl" nodedef="ND_splittb_vector4" file="stdlib/genosl/mx_splittb.inline" language="genosl"/>
+  <implementation name="IM_splittb_float_genosl" nodedef="ND_splittb_float" file="stdlib/genosl/mx_splittb_float.osl" function="mx_splittb_float" language="genosl"/>
+  <implementation name="IM_splittb_color2_genosl" nodedef="ND_splittb_color2" file="stdlib/genosl/mx_splittb_color2.osl" function="mx_splittb_color2" language="genosl"/>
+  <implementation name="IM_splittb_color3_genosl" nodedef="ND_splittb_color3" file="stdlib/genosl/mx_splittb_color3.osl" function="mx_splittb_color3" language="genosl"/>
+  <implementation name="IM_splittb_color4_genosl" nodedef="ND_splittb_color4" file="stdlib/genosl/mx_splittb_color4.osl" function="mx_splittb_color4" language="genosl"/>
+  <implementation name="IM_splittb_vector2_genosl" nodedef="ND_splittb_vector2" file="stdlib/genosl/mx_splittb_vector2.osl" function="mx_splittb_vector2" language="genosl"/>
+  <implementation name="IM_splittb_vector3_genosl" nodedef="ND_splittb_vector3" file="stdlib/genosl/mx_splittb_vector3.osl" function="mx_splittb_vector3" language="genosl"/>
+  <implementation name="IM_splittb_vector4_genosl" nodedef="ND_splittb_vector4" file="stdlib/genosl/mx_splittb_vector4.osl" function="mx_splittb_vector4" language="genosl"/>
 
   <!-- <noise2d> -->
   <implementation name="IM_noise2d_float_genosl" nodedef="ND_noise2d_float" file="stdlib/genosl/mx_noise2d_float.osl" function="mx_noise2d_float" language="genosl"/>
