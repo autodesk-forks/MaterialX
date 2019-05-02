@@ -220,7 +220,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
         }
 
         // Set up world matrix for drawing
-        const float scaleFactor = 1000.0f;
+        const float scaleFactor = 300.0f;
         _envMatrix = mx::Matrix44::createScale(mx::Vector3(scaleFactor));
 
         const std::string envShaderName("__ENV_SHADER_NAME__");
