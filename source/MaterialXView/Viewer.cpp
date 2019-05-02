@@ -204,17 +204,26 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _envGeometryHandler->addLoader(loader);
     mx::FilePath envSphere("resources/Geometry/sphere.obj");
     _envGeometryHandler->loadGeometry(_searchPath.find(envSphere));
-    const std::string envShaderName("__ENV_SHADER_NAME__");
-    _envMaterial = Material::create();
-    try
+    const mx::MeshList& meshes = _envGeometryHandler->getMeshes();
+    if (!meshes.empty())
     {
-        _envMaterial->generateImageShader(_genContext, _stdLib, envShaderName, _envRadiancePath);
-        _envMaterial->bindMesh(_envGeometryHandler->getMeshes()[0]);
-    }
-    catch (std::exception& e)
-    {
-        _envMaterial = nullptr;
-        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to generate environment shader", e.what());
+        mx::MeshPtr mesh = meshes[0];
+        mx::MeshStreamPtr stream = mesh->getStream(mx::MeshStream::TEXCOORD_ATTRIBUTE, 0);
+        mx::Matrix44 s = mx::Matrix44::createScale({ -1.0, 1.0f, 1.0f });
+        mx::Matrix44 t = mx::Matrix44::createTranslation({ 1.0f, 0.0f, 0.0f });
+        stream->transform(s * t);
+        const std::string envShaderName("__ENV_SHADER_NAME__");
+        _envMaterial = Material::create();
+        try
+        {
+            _envMaterial->generateImageShader(_genContext, _stdLib, envShaderName, _envRadiancePath);
+            _envMaterial->bindMesh(_envGeometryHandler->getMeshes()[0]);
+        }
+        catch (std::exception& e)
+        {
+            _envMaterial = nullptr;
+            new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to generate environment shader", e.what());
+        }
     }
 
     // Initialize camera
