@@ -204,9 +204,9 @@ bool Material::generateImageShader(mx::GenContext& context,
     mx::NodeGraphPtr nodeGraph = doc->addNodeGraph();
     mx::NodePtr image = nodeGraph->addNode("image", "myimage");
     image->setParameterValue("file", imagePath.asString(), mx::FILENAME_TYPE_STRING);
-    //const std::string addressMode("black");
-    //image->setParameterValue("uaddressmode", addressMode);
-    //image->setParameterValue("vaddressmode", addressMode);
+    const std::string addressMode("clamp");
+    image->setParameterValue("uaddressmode", addressMode);
+    image->setParameterValue("vaddressmode", addressMode);
     mx::OutputPtr output = nodeGraph->addOutput();
     output->setConnectedNode(image);
 
@@ -402,7 +402,7 @@ void Material::bindImages(mx::GLTextureHandlerPtr imageHandler, const mx::FileSe
     const std::string IMAGE_SEPERATOR("_");
     const std::string UADDRESS_MODE_POST_FIX("_uaddressmode");
     const std::string VADDRESS_MODE_POST_FIX("_vaddressmode");
-    const std::string FILTER_TYPE_POST_FIX("_filterType");
+    const std::string FILTER_TYPE_POST_FIX("_filtertype");
     const std::string DEFAULT_COLOR_POST_FIX("_default");
     const int INVALID_MAPPED_INT_VALUE = -1; // Any value < 0 is not considered to be invalid
 

@@ -211,7 +211,8 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
         mx::MeshStreamPtr stream = mesh->getStream(mx::MeshStream::TEXCOORD_ATTRIBUTE, 0);
         mx::Matrix44 s = mx::Matrix44::createScale({ -1.0, 1.0f, 1.0f });
         mx::Matrix44 t = mx::Matrix44::createTranslation({ 1.0f, 0.0f, 0.0f });
-        stream->transform(s * t);
+        t = t.getTranspose();
+        stream->transform(t * s);
         const std::string envShaderName("__ENV_SHADER_NAME__");
         _envMaterial = Material::create();
         try
