@@ -69,10 +69,10 @@ namespace GenShaderUtil
                               const mx::FilePath& libSearchPath, const mx::FileSearchPath& srcSearchPath, 
                               const mx::FilePath& logFilePath) :
             _shaderGenerator(shaderGenerator),
-            _logFilePath(logFilePath),
+            _testRootPaths(testRootPaths),
             _libSearchPath(libSearchPath),
             _srcSearchPath(srcSearchPath),
-            _testRootPaths(testRootPaths)
+            _logFilePath(logFilePath)
         {
         }
 
