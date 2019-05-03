@@ -43,7 +43,6 @@ bool TinyObjLoader::load(const FilePath& filePath, MeshList& meshList)
 
     MeshPtr mesh = Mesh::create(filePath);
     meshList.push_back(mesh);
-    mesh->setVertexCount(vertexCount);
     mesh->setSourceUri(filePath);
     MeshStreamPtr positionStream = MeshStream::create("i_" + MeshStream::POSITION_ATTRIBUTE, MeshStream::POSITION_ATTRIBUTE, 0);
     MeshFloatBuffer& positions = positionStream->getData();
@@ -63,23 +62,35 @@ bool TinyObjLoader::load(const FilePath& filePath, MeshList& meshList)
     MeshFloatBuffer& tangents = tangentStream->getData();
     mesh->addStream(tangentStream);
 
-    positions.resize(vertexCount * 3);
-    normals.resize(vertexCount * 3);
-    texcoords.resize(vertexCount * 2);
-    tangents.resize(vertexCount * 3);
+    // Explode the geometry, since we may have unshared geometry
+    // in position, normal or uv
+    size_t totalIndexCount = 0;
+    for (const tinyobj::shape_t& shape : shapes)
+    {
+        totalIndexCount += shape.mesh.indices.size();
+    }
+    positions.resize(totalIndexCount * 3);
+    normals.resize(totalIndexCount * 3);
+    texcoords.resize(totalIndexCount * 2);
+    tangents.resize(totalIndexCount * 3);
+    mesh->setVertexCount(totalIndexCount);
 
     const float MAX_FLOAT = std::numeric_limits<float>::max();
     Vector3 boxMin = { MAX_FLOAT, MAX_FLOAT, MAX_FLOAT };
     Vector3 boxMax = { -MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT };
 
+    int writeIndex0 = 0;
+    int writeIndex1 = 1;
+    int writeIndex2 = 2;
+
     for (const tinyobj::shape_t& shape : shapes)
     {
-        size_t faceCount = shape.mesh.indices.size();
-        if (faceCount == 0)
+        size_t indexCount = shape.mesh.indices.size();
+        if (indexCount == 0)
         {
             continue;
         }
-        faceCount /= 3;
+        size_t faceCount = indexCount / 3;
 
         MeshPartitionPtr part = MeshPartition::create();
         part->setIdentifier(shape.name);
@@ -93,21 +104,7 @@ bool TinyObjLoader::load(const FilePath& filePath, MeshList& meshList)
             const tinyobj::index_t& indexObj0 = shape.mesh.indices[faceIndex * 3 + 0];
             const tinyobj::index_t& indexObj1 = shape.mesh.indices[faceIndex * 3 + 1];
             const tinyobj::index_t& indexObj2 = shape.mesh.indices[faceIndex * 3 + 2];
-
-            int writeIndex0, writeIndex1, writeIndex2;
-            if (vertComponentCount == attrib.vertices.size())
-            {
-                writeIndex0 = indexObj0.vertex_index;
-                writeIndex1 = indexObj1.vertex_index;
-                writeIndex2 = indexObj2.vertex_index;
-            }
-            else
-            {
-                writeIndex0 = indexObj0.normal_index;
-                writeIndex1 = indexObj1.normal_index;
-                writeIndex2 = indexObj2.normal_index;
-            }
-  
+ 
             // Copy indices.
             indices[faceIndex * 3 + 0] = writeIndex0;
             indices[faceIndex * 3 + 1] = writeIndex1;
@@ -130,6 +127,13 @@ bool TinyObjLoader::load(const FilePath& filePath, MeshList& meshList)
                 boxMax[k] = std::max(v[2][k], boxMax[k]);
             }
 
+            Vector3* pos = reinterpret_cast<Vector3*>(&(positions[writeIndex0 * 3]));
+            *pos = v[0];
+            pos = reinterpret_cast<Vector3*>(&(positions[writeIndex1 * 3]));
+            *pos = v[1];
+            pos = reinterpret_cast<Vector3*>(&(positions[writeIndex2 * 3]));
+            *pos = v[2];
+
             // Copy or compute normals
             Vector3 n[3];
             if (indexObj0.normal_index >= 0 &&
@@ -151,6 +155,13 @@ bool TinyObjLoader::load(const FilePath& filePath, MeshList& meshList)
                 n[2] = faceNorm;
             }
 
+            Vector3* norm = reinterpret_cast<Vector3*>(&(normals[writeIndex0 * 3]));
+            *norm = n[0];
+            norm = reinterpret_cast<Vector3*>(&(normals[writeIndex1 * 3]));
+            *norm = n[1];
+            norm = reinterpret_cast<Vector3*>(&(normals[writeIndex2 * 3]));
+            *norm = n[2];
+
             // Copy texture coordinates.
             Vector2 t[3];
             if (indexObj0.texcoord_index >= 0 &&
@@ -165,26 +176,16 @@ bool TinyObjLoader::load(const FilePath& filePath, MeshList& meshList)
                 }
             }
 
-            Vector3* pos = reinterpret_cast<Vector3*>(&(positions[writeIndex0 * 3]));
-            *pos = v[0];
-            pos = reinterpret_cast<Vector3*>(&(positions[writeIndex1 * 3]));
-            *pos = v[1];
-            pos = reinterpret_cast<Vector3*>(&(positions[writeIndex2 * 3]));
-            *pos = v[2];
-
-            Vector3* norm = reinterpret_cast<Vector3*>(&(normals[writeIndex0 * 3]));
-            *norm = n[0];
-            norm = reinterpret_cast<Vector3*>(&(normals[writeIndex1 * 3]));
-            *norm = n[1];
-            norm = reinterpret_cast<Vector3*>(&(normals[writeIndex2 * 3]));
-            *norm = n[2];
-
             Vector2* texcoord = reinterpret_cast<Vector2*>(&(texcoords[writeIndex0 * 2]));
             *texcoord = t[0];
             texcoord = reinterpret_cast<Vector2*>(&(texcoords[writeIndex1 * 2]));
             *texcoord = t[1];
             texcoord = reinterpret_cast<Vector2*>(&(texcoords[writeIndex2 * 2]));
             *texcoord = t[2];
+
+            writeIndex0 += 3;
+            writeIndex1 += 3;
+            writeIndex2 += 3;
         }
     }
 
