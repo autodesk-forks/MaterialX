@@ -35,18 +35,12 @@ namespace mx = MaterialX;
 class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
 {
   public:
-    GlslShaderRenderTester() :
-        _languageTargetString(mx::GlslShaderGenerator::LANGUAGE + "_" +
-        mx::GlslShaderGenerator::TARGET)
+    GlslShaderRenderTester(mx::ShaderGeneratorPtr shaderGenerator) :
+        RenderUtil::ShaderRenderTester(shaderGenerator)
     {
     }
 
   protected:
-    const std::string& languageTargetString() override
-    {
-        return _languageTargetString;
-    }
-
     bool runTest(const RenderUtil::RenderTestOptions& testOptions) const override
     {
         return (testOptions.languageAndTargets.count(_languageTargetString) > 0);
@@ -55,13 +49,8 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
     void loadLibraries(mx::DocumentPtr document,
                        RenderUtil::RenderTestOptions& options) override;
 
-    void createShaderGenerator() override
-    {
-        _shaderGenerator = mx::GlslShaderGenerator::create();
-    }
-
-    void registerLights(mx::DocumentPtr document,
-                        const RenderUtil::RenderTestOptions &options, mx::GenContext& context) override;
+    void registerLights(mx::DocumentPtr document, const RenderUtil::RenderTestOptions &options, 
+                        mx::GenContext& context) override;
 
     void createValidator(std::ostream& log) override;
 
@@ -79,7 +68,6 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
 
     void getImplementationWhiteList(mx::StringSet& whiteList) override;
 
-    std::string _languageTargetString;
     mx::GlslValidatorPtr _validator;
     mx::LightHandlerPtr _lightHandler;
 };
@@ -531,7 +519,7 @@ void GlslShaderRenderTester::getImplementationWhiteList(mx::StringSet& whiteList
 
 TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
 {
-    GlslShaderRenderTester renderTester;
+    GlslShaderRenderTester renderTester(mx::GlslShaderGenerator::create());
 
     mx::FilePathVec testRootPaths;
     mx::FilePath testRoot = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");

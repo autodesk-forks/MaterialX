@@ -20,15 +20,11 @@ class GlslShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
   public:
     using ParentClass = GenShaderUtil::ShaderGeneratorTester;
 
-    GlslShaderGeneratorTester(const mx::FilePathVec& testRootPaths, const mx::FilePath& libSearchPath,
-                              const mx::FileSearchPath& srcSearchPath, const mx::FilePath& logFilePath) :
-        GenShaderUtil::ShaderGeneratorTester(testRootPaths, libSearchPath, srcSearchPath, logFilePath)
+    GlslShaderGeneratorTester(mx::ShaderGeneratorPtr shaderGenerator, const mx::FilePathVec& testRootPaths, 
+                              const mx::FilePath& libSearchPath, const mx::FileSearchPath& srcSearchPath, 
+                              const mx::FilePath& logFilePath) :
+        GenShaderUtil::ShaderGeneratorTester(shaderGenerator, testRootPaths, libSearchPath, srcSearchPath, logFilePath)
     {}
-
-    void createGenerator() override
-    {
-        _shaderGenerator = mx::GlslShaderGenerator::create();
-    }
 
     void setTestStages() override
     {
