@@ -20,11 +20,6 @@ class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
     }
 
   protected:
-    bool runTest(const RenderUtil::RenderTestOptions& testOptions) const override
-    {
-        return (testOptions.languageAndTargets.count(_languageTargetString) > 0);
-    }
-
     void registerSourceCodeSearchPaths(mx::GenContext& context) override
     {
         // Include extra OSL implementation files
@@ -46,7 +41,6 @@ class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
 
     void getImplementationWhiteList(mx::StringSet& whiteList) override;
 
-    std::string _languageTargetString;
     mx::OslValidatorPtr _validator;
 };
 

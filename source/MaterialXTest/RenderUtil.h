@@ -239,7 +239,10 @@ class ShaderRenderTester
 
   protected:
     // Check if testing should be performed based in input options
-    virtual bool runTest(const RenderUtil::RenderTestOptions& testOptions) const = 0;
+    virtual bool runTest(const RenderUtil::RenderTestOptions& testOptions)
+    {
+        return (testOptions.languageAndTargets.count(_languageTargetString) > 0);
+    }
 
     // Add files to skip
     void addSkipFiles()

@@ -3,13 +3,8 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#ifndef GENGLSL_UTIL_H
-#define GENGLSL_UTIL_H
-
-#include <MaterialXTest/Catch/catch.hpp>
-
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
-#include <MaterialXGenGlsl/GlslSyntax.h>
+#ifndef GENGLSL_H
+#define GENGLSL_H
 
 #include <MaterialXTest/GenShaderUtil.h>
 
@@ -42,4 +37,4 @@ class GlslShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
     }
 };
 
-#endif // GENGLSL_UTIL_H
+#endif // GENGLSL_H

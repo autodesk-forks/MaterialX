@@ -41,11 +41,6 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
     }
 
   protected:
-    bool runTest(const RenderUtil::RenderTestOptions& testOptions) const override
-    {
-        return (testOptions.languageAndTargets.count(_languageTargetString) > 0);
-    }
-
     void loadLibraries(mx::DocumentPtr document,
                        RenderUtil::RenderTestOptions& options) override;
 
