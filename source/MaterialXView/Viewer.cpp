@@ -227,7 +227,8 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
         _envMaterial = Material::create();
         try
         {
-            _envMaterial->generateImageShader(_genContext, _stdLib, envShaderName, _envRadiancePath);
+            const std::string addressMode("clamp");
+            _envMaterial->generateImageShader(_genContext, _stdLib, envShaderName, _envRadiancePath, addressMode);
             _envMaterial->bindMesh(_envGeometryHandler->getMeshes()[0]);
         }
         catch (std::exception& e)

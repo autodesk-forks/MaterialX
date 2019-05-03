@@ -196,15 +196,15 @@ bool Material::generateConstantShader(mx::GenContext& context,
 bool Material::generateImageShader(mx::GenContext& context,
                                         mx::DocumentPtr stdLib,
                                         const std::string& shaderName,
-                                        const mx::FilePath& imagePath)
+                                        const mx::FilePath& imagePath,
+                                        const std::string& addressMode)
 {
-    // Construct the constant color nodegraph
+    // Construct the unshaded image nodegraph
     mx::DocumentPtr doc = mx::createDocument();
     doc->importLibrary(stdLib);
     mx::NodeGraphPtr nodeGraph = doc->addNodeGraph();
     mx::NodePtr image = nodeGraph->addNode("image", "myimage");
     image->setParameterValue("file", imagePath.asString(), mx::FILENAME_TYPE_STRING);
-    const std::string addressMode("clamp");
     image->setParameterValue("uaddressmode", addressMode);
     image->setParameterValue("vaddressmode", addressMode);
     mx::OutputPtr output = nodeGraph->addOutput();
