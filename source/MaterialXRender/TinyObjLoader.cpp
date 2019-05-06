@@ -113,7 +113,7 @@ bool TinyObjLoader::load(const FilePath& filePath, MeshList& meshList)
 
             // Copy positions and compute bounding box.
             Vector3 v[MeshStream::STRIDE_3D];
-            for (int k = 0; k < MeshStream::STRIDE_3D; k++)
+            for (unsigned int k = 0; k < MeshStream::STRIDE_3D; k++)
             {
                 v[0][k] = attrib.vertices[indexObj0.vertex_index * MeshStream::STRIDE_3D + k];
                 v[1][k] = attrib.vertices[indexObj1.vertex_index * MeshStream::STRIDE_3D + k];
