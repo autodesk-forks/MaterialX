@@ -47,6 +47,17 @@ def main(argv):
 
     fh = open(outputfile,"w+")
     fh.write("<html>\n")
+    fh.write("<style>\n")
+    fh.write("td {")
+    fh.write("    padding: 10;")
+    fh.write("    border: 3px solid black;")
+    fh.write("}")
+    fh.write("table, tbody, th, .td_image {")
+    fh.write("    border-collapse: collapse;")
+    fh.write("    padding: 0;")
+    fh.write("    margin: 0;")
+    fh.write("}")
+    fh.write("</style>")
     fh.write("<body>\n")
 
     # Iterate over subdirectories
@@ -63,6 +74,7 @@ def main(argv):
             continue
         elif len(glslFiles) > 0 and len(oslFiles) > 0:
             fh.write("<h1>" + subdir + ":</h1><br>\n")
+            fh.write("<table>\n")
             for glslFile, oslFile in zip(glslFiles, oslFiles):
                 fullGlslPath = os.path.join(subdir, glslFile)
                 fullOslPath = os.path.join(subdir, oslFile)
@@ -71,30 +83,29 @@ def main(argv):
                     createDiff(fullGlslPath, fullOslPath, diffPath)
                 else:
                     diffPath = None
-                fh.write("<table>\n")
                 fh.write("    <tr>\n")
                 if glslFile:
-                    fh.write("        <td><img src='" + fullGlslPath + "' style='background-color:black;'/></td>\n")
+                    fh.write("        <td class='td_image'><img src='" + fullGlslPath + "' style='background-color:black;'/></td>\n")
                 if oslFile:
-                    fh.write("        <td><img src='" + fullOslPath + "' style='background-color:black;'/></td>\n")
+                    fh.write("        <td class='td_image'><img src='" + fullOslPath + "' style='background-color:black;'/></td>\n")
                 if diffPath:
-                    fh.write("        <td><img src='" + diffPath + "' style='background-color:black;'/></td>\n")
+                    fh.write("        <td class='td_image'><img src='" + diffPath + "' style='background-color:black;'/></td>\n")
                 fh.write("    </tr>\n")
                 fh.write("    <tr>\n")
                 if glslFile:
                     if ENABLE_TIMESTAMPS:
-                        fh.write("        <td>" + glslFile + "(" + str(datetime.datetime.fromtimestamp(os.path.getmtime(fullGlslPath))) + ")</td>\n")
+                        fh.write("        <td align='center'>" + glslFile + "(" + str(datetime.datetime.fromtimestamp(os.path.getmtime(fullGlslPath))) + ")</td>\n")
                     else:
-                        fh.write("        <td>" + glslFile + "</td>\n")
+                        fh.write("        <td align='center'>" + glslFile + "</td>\n")
                 if oslFile:
                     if ENABLE_TIMESTAMPS:
-                        fh.write("        <td>" + oslFile + "(" + str(datetime.datetime.fromtimestamp(os.path.getmtime(fullOslPath))) + ")</td>\n")
+                        fh.write("        <td align='center'>" + oslFile + "(" + str(datetime.datetime.fromtimestamp(os.path.getmtime(fullOslPath))) + ")</td>\n")
                     else:
-                        fh.write("        <td>" + oslFile + "</td>\n")
+                        fh.write("        <td align='center'>" + oslFile + "</td>\n")
                 if diffPath:
-                    fh.write("        <td>" + glslFile[0:-8] + "diff.png" + "</td>\n")
+                    fh.write("        <td align='center'>" + glslFile[0:-8] + "diff.png" + "</td>\n")
                 fh.write("    </tr>\n")
-                fh.write("</table><br><br>\n")
+            fh.write("</table><br><br>\n")
 
     fh.write("</body>\n")
     fh.write("</html>\n")
