@@ -18,7 +18,7 @@ namespace mx = MaterialX;
 class OgsFxShaderRenderTester : public RenderUtil::ShaderRenderTester
 {
 public:
-    OgsFxShaderRenderTester(mx::ShaderGeneratorPtr shaderGenerator) :
+    explicit OgsFxShaderRenderTester(mx::ShaderGeneratorPtr shaderGenerator) :
         RenderUtil::ShaderRenderTester(shaderGenerator)
     {
     }

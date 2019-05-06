@@ -35,7 +35,7 @@ namespace mx = MaterialX;
 class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
 {
   public:
-    GlslShaderRenderTester(mx::ShaderGeneratorPtr shaderGenerator) :
+    explicit GlslShaderRenderTester(mx::ShaderGeneratorPtr shaderGenerator) :
         RenderUtil::ShaderRenderTester(shaderGenerator)
     {
     }
