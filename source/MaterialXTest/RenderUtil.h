@@ -157,14 +157,17 @@ class ShaderRenderTester
 
   protected:
     // Check if testing should be performed based in input options
+#if defined(MATERIALX_TEST_RENDER)
     virtual bool runTest(const GenShaderUtil::TestSuiteOptions& testOptions)
     {
-#if defined(MATERIALX_TEST_RENDER)
         return (testOptions.languageAndTargets.count(_languageTargetString) > 0);
-#else
-        return false;
-#endif
     }
+#else
+    virtual bool runTest(const GenShaderUtil::TestSuiteOptions& /*testOptions*/)
+    {
+        return false;
+    }
+#endif
 
     // Add files to skip
     void addSkipFiles()
