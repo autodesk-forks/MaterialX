@@ -778,7 +778,7 @@ void ShaderGraph::disconnect(ShaderNode* node) const
     }
     for (ShaderOutput* output : node->getOutputs())
     {
-        output->breakConnection();
+        output->breakConnections();
     }
 }
 

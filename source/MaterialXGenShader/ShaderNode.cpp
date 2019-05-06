@@ -79,7 +79,7 @@ void ShaderOutput::breakConnection(ShaderInput* dst)
     dst->breakConnection(); 
 }
 
-void ShaderOutput::breakConnection()
+void ShaderOutput::breakConnections()
 {
     ShaderInputSet inputSet(_connections);
     for (ShaderInput* input : inputSet)
