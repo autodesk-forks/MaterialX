@@ -274,109 +274,23 @@ void ShaderRenderTester::getGenerationOptions(const RenderTestOptions& testOptio
     }
 }
 
-void ShaderRenderTester::checkImplementationUsage(const std::string& language,
-                                                  mx::StringSet& usedImpls,
-                                                  mx::DocumentPtr dependLib,
-                                                  mx::GenContext& context,
-                                                  std::ostream& stream)
-{
-    // Get list of implementations a given langauge.
-    std::set<mx::ImplementationPtr> libraryImpls;
-    const std::vector<mx::ElementPtr>& children = dependLib->getChildren();
-    for (auto child : children)
-    {
-        mx::ImplementationPtr impl = child->asA<mx::Implementation>();
-        if (!impl)
-        {
-            continue;
-        }
-
-        if (impl->getLanguage() == language)
-        {
-            libraryImpls.insert(impl);
-        }
-    }
-
-    mx::StringSet whiteList;
-    getImplementationWhiteList(whiteList);
-
-    unsigned int implementationUseCount = 0;
-    mx::StringVec skippedImplementations;
-    mx::StringVec missedImplementations;
-    for (auto libraryImpl : libraryImpls)
-    {
-        const std::string& implName = libraryImpl->getName();
-
-        // Skip white-list items
-        bool inWhiteList = false;
-        for (auto w : whiteList)
-        {
-            if (implName.find(w) != std::string::npos)
-            {
-                inWhiteList = true;
-                break;
-            }
-        }
-        if (inWhiteList)
-        {
-            skippedImplementations.push_back(implName);
-            implementationUseCount++;
-            continue;
-        }
-
-        if (usedImpls.count(implName))
-        {
-            implementationUseCount++;
-            continue;
-        }
-
-        if (context.findNodeImplementation(implName))
-        {
-            implementationUseCount++;
-            continue;
-        }
-        missedImplementations.push_back(implName);
-    }
-
-    size_t libraryCount = libraryImpls.size();
-    stream << "Tested: " << implementationUseCount << " out of: " << libraryCount << " library implementations." << std::endl;
-    stream << "Skipped: " << skippedImplementations.size() << " implementations." << std::endl;
-    if (skippedImplementations.size())
-    {
-        for (auto implName : skippedImplementations)
-        {
-            stream << "\t" << implName << std::endl;
-        }
-    }
-    stream << "Untested: " << missedImplementations.size() << " implementations." << std::endl;
-    if (missedImplementations.size())
-    {
-        for (auto implName : missedImplementations)
-        {
-            stream << "\t" << implName << std::endl;
-        }
-        CHECK(implementationUseCount == libraryCount);
-    }
-}
-
 void ShaderRenderTester::printRunLog(const RenderProfileTimes &profileTimes,
                                      const RenderTestOptions& options,
-                                     mx::StringSet& usedImpls,
                                      std::ostream& stream,
-                                     mx::DocumentPtr dependLib,
-                                     mx::GenContext& context,
-                                     const std::string& language)
+                                     mx::DocumentPtr dependLib)
 {
     profileTimes.print(stream);
 
     stream << "---------------------------------------" << std::endl;
     options.print(stream);
 
-    if (options.checkImplCount)
-    {
-        stream << "---------------------------------------" << std::endl;
-        checkImplementationUsage(language, usedImpls, dependLib, context, stream);
-    }
+    //if (options.checkImplCount)
+    //{
+    //    stream << "---------------------------------------" << std::endl;
+    //    mx::StringSet whiteList;
+    //    getImplementationWhiteList(whiteList);
+    //    GenShaderUtil::checkImplementationUsage(language, usedImpls, whiteList, dependLib, context, stream);
+    //}
 }
 
 bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx::FilePath optionsFilePath)
@@ -583,8 +497,8 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
 
     // Dump out profiling information
     totalTime.endTimer();
-    printRunLog(profileTimes, options, usedImpls, profilingLog, dependLib, context,
-                _shaderGenerator->getLanguage());
+    printRunLog(profileTimes, options, profilingLog, dependLib);
+
     return true;
 }
 

@@ -293,26 +293,11 @@ class ShaderRenderTester
                               const mx::GenOptions& originalOptions,
                               std::vector<mx::GenOptions>& optionsList);
 
-    // Get implemenation "whitelist" for those implementations that have
-    // been skipped for checking
-    virtual void getImplementationWhiteList(mx::StringSet& whiteList) = 0;
-
-    // Check to see that all implemenations have been tested for a given
-    // lanuage.
-    void checkImplementationUsage(const std::string& language,
-                                  mx::StringSet& usedImpls,
-                                  mx::DocumentPtr dependLib,
-                                  mx::GenContext& context,
-                                  std::ostream& stream);
-
     // Print execution summary
     void printRunLog(const RenderProfileTimes &profileTimes,
                      const RenderTestOptions& options,
-                     mx::StringSet& usedImpls,
                      std::ostream& stream,
-                     mx::DocumentPtr dependLib,
-                     mx::GenContext& context,
-                     const std::string& language);
+                     mx::DocumentPtr dependLib);
 
     // Generator to use
     mx::ShaderGeneratorPtr _shaderGenerator;

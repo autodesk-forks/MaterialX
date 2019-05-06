@@ -113,6 +113,16 @@ namespace GenShaderUtil
         void testGeneration(const mx::GenOptions& generateOptions);
 
     protected:
+        // Check to see that all implemenations have been tested for a given
+        // language.
+        void checkImplementationUsage(mx::StringSet& usedImpls,
+                                      mx::GenContext& context,
+                                      std::ostream& stream);
+
+        // Get implemenation "whitelist" for those implementations that have
+        // been skipped for checking
+        virtual void getImplementationWhiteList(mx::StringSet& whiteList) = 0;
+
         mx::ShaderGeneratorPtr _shaderGenerator;
         mx::DefaultColorManagementSystemPtr _colorManagementSystem;
         mx::DocumentPtr _dependLib;
@@ -131,6 +141,8 @@ namespace GenShaderUtil
 
         std::vector<mx::NodePtr> _lights;
         std::unordered_map<std::string, unsigned int> _lightIdentifierMap;
+
+        mx::StringSet _usedImplementations;
     };
 }
 

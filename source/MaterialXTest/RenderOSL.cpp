@@ -39,8 +39,6 @@ class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
                       const mx::FileSearchPath& imageSearchPath,
                       const std::string& outputPath = ".") override;
 
-    void getImplementationWhiteList(mx::StringSet& whiteList) override;
-
     mx::OslValidatorPtr _validator;
 };
 
@@ -305,16 +303,6 @@ bool OslShaderRenderTester::runValidator(const std::string& shaderName,
 
     return true;
 }
-
-void OslShaderRenderTester::getImplementationWhiteList(mx::StringSet& whiteList)
-{
-    whiteList =
-    {
-        "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
-        "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue"
-    };
-}
-
 
 TEST_CASE("Render: OSL TestSuite", "[renderosl]")
 {

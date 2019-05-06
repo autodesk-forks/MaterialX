@@ -309,6 +309,91 @@ void testUniqueNames(mx::GenContext& context, const std::string& stage)
     REQUIRE(sgNode1->getOutput()->getVariable() == "unique_names_out");
 }
 
+
+void ShaderGeneratorTester::checkImplementationUsage(mx::StringSet& usedImpls,
+                                                     mx::GenContext& context,
+                                                     std::ostream& stream)
+{
+    // Get list of implementations a given langauge.
+    std::set<mx::ImplementationPtr> libraryImpls;
+    const std::vector<mx::ElementPtr>& children = _dependLib->getChildren();
+    for (auto child : children)
+    {
+        mx::ImplementationPtr impl = child->asA<mx::Implementation>();
+        if (!impl)
+        {
+            continue;
+        }
+
+        if (impl->getLanguage() == _shaderGenerator->getLanguage())
+        {
+            libraryImpls.insert(impl);
+        }
+    }
+
+    mx::StringSet whiteList;
+    getImplementationWhiteList(whiteList);
+
+    unsigned int implementationUseCount = 0;
+    mx::StringVec skippedImplementations;
+    mx::StringVec missedImplementations;
+    for (auto libraryImpl : libraryImpls)
+    {
+        const std::string& implName = libraryImpl->getName();
+
+        // Skip white-list items
+        bool inWhiteList = false;
+        for (auto w : whiteList)
+        {
+            if (implName.find(w) != std::string::npos)
+            {
+                inWhiteList = true;
+                break;
+            }
+        }
+        if (inWhiteList)
+        {
+            skippedImplementations.push_back(implName);
+            implementationUseCount++;
+            continue;
+        }
+
+        if (usedImpls.count(implName))
+        {
+            implementationUseCount++;
+            continue;
+        }
+
+        if (context.findNodeImplementation(implName))
+        {
+            implementationUseCount++;
+            continue;
+        }
+        missedImplementations.push_back(implName);
+    }
+
+    size_t libraryCount = libraryImpls.size();
+    stream << "Tested: " << implementationUseCount << " out of: " << libraryCount << " library implementations." << std::endl;
+    stream << "Skipped: " << skippedImplementations.size() << " implementations." << std::endl;
+    if (skippedImplementations.size())
+    {
+        for (auto implName : skippedImplementations)
+        {
+            stream << "\t" << implName << std::endl;
+        }
+    }
+    stream << "Untested: " << missedImplementations.size() << " implementations." << std::endl;
+    if (missedImplementations.size())
+    {
+        for (auto implName : missedImplementations)
+        {
+            stream << "\t" << implName << std::endl;
+        }
+        CHECK(implementationUseCount == libraryCount);
+    }
+}
+
+
 bool ShaderGeneratorTester::generateCode(mx::GenContext& context, const std::string& shaderName, mx::TypedElementPtr element,
                                          std::ostream& log, mx::StringVec testStages, mx::StringVec& sourceCode)
 {
@@ -554,6 +639,11 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
                 mx::InterfaceElementPtr impl = nodeDef->getImplementation(_shaderGenerator->getTarget(), _shaderGenerator->getLanguage());
                 if (impl)
                 {
+                    // Record implementations tested
+                    mx::NodeGraphPtr nodeGraph = impl->asA<mx::NodeGraph>();
+                    mx::InterfaceElementPtr nodeGraphImpl = nodeGraph ? nodeGraph->getImplementation() : nullptr;
+                    _usedImplementations.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl->getName());
+
                     _logFile << "------------ Run validation with element: " << namePath << "------------" << std::endl;
                     mx::StringVec sourceCode;
                     bool generatedCode = generateCode(context, elementName, element, _logFile, _testStages, sourceCode);
@@ -580,6 +670,9 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
         CHECK(missingImplementations == 0);
         CHECK(codeGenerationFailures == 0);
     }
+
+    _logFile << "---------------------------------------" << std::endl;
+    checkImplementationUsage(_usedImplementations, context, _logFile);
 
     // End logging
     if (_logFile.is_open())

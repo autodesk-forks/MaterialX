@@ -42,8 +42,6 @@ protected:
         const mx::FileSearchPath& imageSearchPath,
         const std::string& outputPath = ".") override;
 
-    void getImplementationWhiteList(mx::StringSet& whiteList) override;
-
     mx::LightHandlerPtr _lightHandler;
 };
 
@@ -171,16 +169,6 @@ bool OgsFxShaderRenderTester::runValidator(const std::string& shaderName,
     }
 
     return true;
-}
-
-void OgsFxShaderRenderTester::getImplementationWhiteList(mx::StringSet& whiteList)
-{
-    whiteList =
-    {
-        "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
-        "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue", "IM_light_genglsl",
-        "IM_point_light_genglsl", "IM_spot_light_genglsl", "IM_directional_light_genglsl"
-    };
 }
 
 TEST_CASE("Render: OgsFx TestSuite", "[renderglsl]")
