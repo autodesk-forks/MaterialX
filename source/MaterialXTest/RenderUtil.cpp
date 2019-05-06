@@ -85,11 +85,12 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     GenShaderUtil::TestSuiteOptions options;
     if (!options.readOptions(optionsFilePath))
     {
+        std::cout << "Can't find options file. Skip test." << std::endl;
         return false;
     }
-    bool run = runTest(options);
-    if (!run)
+    if (!runTest(options))
     {
+        std::cout << "Language / target: " << _languageTargetString << " not set to run. Skip test." << std::endl;
         return false;
     }
 
@@ -113,9 +114,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     std::ostream& profilingLog(std::cout);
 #endif
 
-    // For debugging, add files to this set to override
-    // which files in the test suite are being tested.
-    // Add only the test suite filename not the full path.
+    // Add files to override the files in the test suite to be tested.
     mx::StringSet testfileOverride;
     for (auto filterFile : options.overrideFiles)
     {

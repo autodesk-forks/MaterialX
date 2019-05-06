@@ -537,13 +537,20 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
     TestSuiteOptions options;
     if (!options.readOptions(optionsFilePath))
     {
-        std::cout << "Can't find options file. Skip test\n";
+        std::cout << "Can't find options file. Skip test." << std::endl;
         return;
     }
     if (!runTest(options))
     {
-        std::cout << "Language/target not set to run. Skip test\n";
+        std::cout << "Language / target: " << _languageTargetString << " not set to run. Skip test." << std::endl;
         return;
+    }
+
+    // Add files to override the files in the test suite to be examined.
+    mx::StringSet overrideFiles;
+    for (auto filterFile : options.overrideFiles)
+    {
+        overrideFiles.insert(filterFile);
     }
 
     // Start logging
@@ -562,7 +569,7 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
     // Load in all documents to test
     for (auto testRoot : _testRootPaths)
     {
-        mx::loadDocuments(testRoot, _skipFiles, _documents, _documentPaths);
+        mx::loadDocuments(testRoot, _skipFiles, overrideFiles, _documents, _documentPaths);
     }
 
     // Scan each document for renderable elements and check code generation
@@ -654,9 +661,12 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
                 if (impl)
                 {
                     // Record implementations tested
-                    mx::NodeGraphPtr nodeGraph = impl->asA<mx::NodeGraph>();
-                    mx::InterfaceElementPtr nodeGraphImpl = nodeGraph ? nodeGraph->getImplementation() : nullptr;
-                    _usedImplementations.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl->getName());
+                    if (options.checkImplCount)
+                    {
+                        mx::NodeGraphPtr nodeGraph = impl->asA<mx::NodeGraph>();
+                        mx::InterfaceElementPtr nodeGraphImpl = nodeGraph ? nodeGraph->getImplementation() : nullptr;
+                        _usedImplementations.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl->getName());
+                    }
 
                     _logFile << "------------ Run validation with element: " << namePath << "------------" << std::endl;
                     mx::StringVec sourceCode;
@@ -685,8 +695,11 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
         CHECK(codeGenerationFailures == 0);
     }
 
-    _logFile << "---------------------------------------" << std::endl;
-    checkImplementationUsage(_usedImplementations, context, _logFile);
+    if (options.checkImplCount)
+    {
+        _logFile << "---------------------------------------------------" << std::endl;
+        checkImplementationUsage(_usedImplementations, context, _logFile);
+    }
 
     // End logging
     if (_logFile.is_open())
