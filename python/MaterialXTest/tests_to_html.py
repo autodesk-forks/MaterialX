@@ -10,7 +10,7 @@ try:
     from PIL import Image
     from PIL import ImageChops
     DIFF_ENABLED = True
-except:
+except Exception:
     DIFF_ENABLED = False
 
 def createDiff(image1Path, image2Path, imageDiffPath):
@@ -19,9 +19,8 @@ def createDiff(image1Path, image2Path, imageDiffPath):
         image2 = Image.open(image2Path).convert('RGB')
         diff = ImageChops.difference(image1, image2)
         diff.save(imageDiffPath)
-    except:
+    except Exception:
         print "Failed to create image diff between: " + image1Path + ", " + image2Path
-        pass
 
 def main(argv):
     inputdir = '.'
@@ -29,7 +28,7 @@ def main(argv):
     CREATE_DIFF = False
     ENABLE_TIMESTAMPS = False
     try:
-        opts, args = getopt.getopt(argv,"hi:o:dt",["idir=", "ofile="])
+        opts, _ = getopt.getopt(argv,"hi:o:dt",["idir=", "ofile="])
     except getopt.GetoptError:
         print 'tests_to_html.py -i <inputdir> -o <outputfile> -d -t'
         sys.exit(2)
@@ -51,14 +50,14 @@ def main(argv):
     fh.write("<body>\n")
 
     # Iterate over subdirectories
-    for subdir, dirs, files in os.walk(inputdir):
+    for subdir, _, files in os.walk(inputdir):
         glslFiles = []
         oslFiles = []
-        for file in files:
-            if file.endswith("glsl.png"):
-                glslFiles.append(file)
-            if file.endswith("osl.png"):
-                oslFiles.append(file)
+        for curFile in files:
+            if curFile.endswith("glsl.png"):
+                glslFiles.append(curFile)
+            if curFile.endswith("osl.png"):
+                oslFiles.append(curFile)
         if len(glslFiles) != len(oslFiles):
             print ("Number of glsl files does not match number of osl files in dir: " + subdir)
             continue
