@@ -530,8 +530,22 @@ void ShaderGeneratorTester::registerLights(mx::DocumentPtr doc, const std::vecto
     context.getOptions().hwMaxActiveLightSources = lightSourceCount;
 }
 
-void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions)
+void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, const std::string& optionsFilePath)
 {
+    // Test has been turned off so just do nothing.
+    // Check for an option file
+    TestSuiteOptions options;
+    if (!options.readOptions(optionsFilePath))
+    {
+        std::cout << "Can't find options file. Skip test\n";
+        return;
+    }
+    if (!runTest(options))
+    {
+        std::cout << "Language/target not set to run. Skip test\n";
+        return;
+    }
+
     // Start logging
     _logFile.open(_logFilePath);
 
@@ -679,6 +693,218 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
     {
         _logFile.close();
     }
+}
+
+void TestSuiteOptions::print(std::ostream& output) const
+{
+    output << "Render Test Options:" << std::endl;
+    output << "\tOverride Files: { ";
+    for (auto overrideFile : overrideFiles) { output << overrideFile << " "; }
+    output << "} " << std::endl;
+    output << "\tLight Setup Files: { ";
+    for (auto lightFile : lightFiles) { output << lightFile << " "; }
+    output << "} " << std::endl;
+    output << "\tLanguage / Targets to run: " << std::endl;
+    for (auto l : languageAndTargets)
+    {
+        mx::StringVec languageAndTarget = mx::splitString(l, "_");
+        size_t count = languageAndTarget.size();
+        output << "\t\tLanguage: " << ((count > 0) ? languageAndTarget[0] : "NONE") << ". ";
+        output << "Target: " << ((count > 1) ? languageAndTarget[1] : "NONE");
+        output << std::endl;
+    }
+    output << "\tCheck Implementation Usage Count: " << checkImplCount << std::endl;
+    output << "\tDump Generated Code: " << dumpGeneratedCode << std::endl;
+    output << "\tShader Interfaces: " << shaderInterfaces << std::endl;
+    output << "\tValidate Element To Render: " << validateElementToRender << std::endl;
+    output << "\tCompile code: " << compileCode << std::endl;
+    output << "\tRender Images: " << renderImages << std::endl;
+    output << "\tSave Images: " << saveImages << std::endl;
+    output << "\tDump uniforms and Attributes  " << dumpUniformsAndAttributes << std::endl;
+    output << "\tNon-Shaded Geometry: " << unShadedGeometry.asString() << std::endl;
+    output << "\tShaded Geometry: " << shadedGeometry.asString() << std::endl;
+    output << "\tGeometry Scale: " << geometryScale << std::endl;
+    output << "\tEnable Direct Lighting: " << enableDirectLighting << std::endl;
+    output << "\tEnable Indirect Lighting: " << enableIndirectLighting << std::endl;
+    output << "\tSpecular Environment Method: " << specularEnvironmentMethod << std::endl;
+    output << "\tRadiance IBL File Path " << radianceIBLPath.asString() << std::endl;
+    output << "\tIrradiance IBL File Path: " << irradianceIBLPath.asString() << std::endl;
+}
+
+bool TestSuiteOptions::readOptions(const std::string& optionFile)
+{
+    // These strings should make the input names defined in the
+    // GenShaderUtil::TestSuiteOptions nodedef in test suite file _options.mtlx
+    //
+    const std::string RENDER_TEST_OPTIONS_STRING("TestSuiteOptions");
+    const std::string OVERRIDE_FILES_STRING("overrideFiles");
+    const std::string LANGUAGE_AND_TARGETS_STRING("languageAndTargets");
+    const std::string LIGHT_FILES_STRING("lightFiles");
+    const std::string SHADER_INTERFACES_STRING("shaderInterfaces");
+    const std::string VALIDATE_ELEMENT_TO_RENDER_STRING("validateElementToRender");
+    const std::string COMPILE_CODE_STRING("compileCode");
+    const std::string RENDER_IMAGES_STRING("renderImages");
+    const std::string SAVE_IMAGES_STRING("saveImages");
+    const std::string DUMP_UNIFORMS_AND_ATTRIBUTES_STRING("dumpUniformsAndAttributes");
+    const std::string CHECK_IMPL_COUNT_STRING("checkImplCount");
+    const std::string DUMP_GENERATED_CODE_STRING("dumpGeneratedCode");
+    const std::string UNSHADED_GEOMETRY_STRING("unShadedGeometry");
+    const std::string SHADED_GEOMETRY_STRING("shadedGeometry");
+    const std::string GEOMETRY_SCALE_STRING("geometryScale");
+    const std::string ENABLE_DIRECT_LIGHTING("enableDirectLighting");
+    const std::string ENABLE_INDIRECT_LIGHTING("enableIndirectLighting");
+    const std::string SPECULAR_ENVIRONMENT_METHOD("specularEnvironmentMethod");
+    const std::string RADIANCE_IBL_PATH_STRING("radianceIBLPath");
+    const std::string IRRADIANCE_IBL_PATH_STRING("irradianceIBLPath");
+    const std::string TRANSFORM_UVS_STRING("transformUVs");
+    const std::string SPHERE_OBJ("sphere.obj");
+    const std::string SHADERBALL_OBJ("shaderball.obj");
+
+    overrideFiles.clear();
+    dumpGeneratedCode = false;
+    unShadedGeometry = SPHERE_OBJ;
+    shadedGeometry = SHADERBALL_OBJ;
+    geometryScale = 1.0f;
+    enableDirectLighting = true;
+    enableIndirectLighting = true;
+    specularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
+
+    MaterialX::DocumentPtr doc = MaterialX::createDocument();
+    try {
+        MaterialX::readFromXmlFile(doc, optionFile);
+
+        MaterialX::NodeDefPtr optionDefs = doc->getNodeDef(RENDER_TEST_OPTIONS_STRING);
+        if (optionDefs)
+        {
+            for (MaterialX::ParameterPtr p : optionDefs->getParameters())
+            {
+                const std::string& name = p->getName();
+                MaterialX::ValuePtr val = p->getValue();
+                if (val)
+                {
+                    if (name == OVERRIDE_FILES_STRING)
+                    {
+                        overrideFiles = MaterialX::splitString(p->getValueString(), ",");
+                    }
+                    else if (name == LIGHT_FILES_STRING)
+                    {
+                        lightFiles = MaterialX::splitString(p->getValueString(), ",");
+                    }
+                    else if (name == SHADER_INTERFACES_STRING)
+                    {
+                        shaderInterfaces = val->asA<int>();
+                    }
+                    else if (name == VALIDATE_ELEMENT_TO_RENDER_STRING)
+                    {
+                        validateElementToRender = val->asA<bool>();
+                    }
+                    else if (name == COMPILE_CODE_STRING)
+                    {
+                        compileCode = val->asA<bool>();
+                    }
+                    else if (name == RENDER_IMAGES_STRING)
+                    {
+                        renderImages = val->asA<bool>();
+                    }
+                    else if (name == SAVE_IMAGES_STRING)
+                    {
+                        saveImages = val->asA<bool>();
+                    }
+                    else if (name == DUMP_UNIFORMS_AND_ATTRIBUTES_STRING)
+                    {
+                        dumpUniformsAndAttributes = val->asA<bool>();
+                    }
+                    else if (name == LANGUAGE_AND_TARGETS_STRING)
+                    {
+                        mx::StringVec list = mx::splitString(p->getValueString(), ",");
+                        for (auto l : list)
+                        {
+                            languageAndTargets.insert(l);
+                        }
+                    }
+                    else if (name == CHECK_IMPL_COUNT_STRING)
+                    {
+                        checkImplCount = val->asA<bool>();
+                    }
+                    else if (name == DUMP_GENERATED_CODE_STRING)
+                    {
+                        dumpGeneratedCode = val->asA<bool>();
+                    }
+                    else if (name == UNSHADED_GEOMETRY_STRING)
+                    {
+                        unShadedGeometry = p->getValueString();
+                    }
+                    else if (name == SHADED_GEOMETRY_STRING)
+                    {
+                        shadedGeometry = p->getValueString();
+                    }
+                    else if (name == GEOMETRY_SCALE_STRING)
+                    {
+                        geometryScale = val->asA<float>();
+                    }
+                    else if (name == ENABLE_DIRECT_LIGHTING)
+                    {
+                        enableDirectLighting = val->asA<bool>();
+                    }
+                    else if (name == ENABLE_INDIRECT_LIGHTING)
+                    {
+                        enableIndirectLighting = val->asA<bool>();
+                    }
+                    else if (name == SPECULAR_ENVIRONMENT_METHOD)
+                    {
+                        specularEnvironmentMethod = val->asA<int>();
+                    }
+                    else if (name == RADIANCE_IBL_PATH_STRING)
+                    {
+                        radianceIBLPath = p->getValueString();
+                    }
+                    else if (name == IRRADIANCE_IBL_PATH_STRING)
+                    {
+                        irradianceIBLPath = p->getValueString();
+                    }
+                    else if (name == TRANSFORM_UVS_STRING)
+                    {
+                        transformUVs = val->asA<mx::Matrix44>();
+                    }
+                }
+            }
+        }
+
+        // Disable render and save of images if not compiled code will be generated
+        if (!compileCode)
+        {
+            renderImages = false;
+            saveImages = false;
+        }
+        // Disable saving images, if no images are to be produced
+        if (!renderImages)
+        {
+            saveImages = false;
+        }
+        // Disable direct lighting
+        if (!enableDirectLighting)
+        {
+            lightFiles.clear();
+        }
+        // Disable indirect lighting
+        if (!enableIndirectLighting)
+        {
+            radianceIBLPath.assign(mx::EMPTY_STRING);
+            irradianceIBLPath.assign(mx::EMPTY_STRING);
+        }
+
+        // If there is a filter on the files to run turn off profile checking
+        if (!overrideFiles.empty())
+        {
+            checkImplCount = false;
+        }
+        return true;
+    }
+    catch (mx::Exception& e)
+    {
+        std::cout << e.what();
+    }
+    return false;
 }
 
 } // namespace GenShaderUtil

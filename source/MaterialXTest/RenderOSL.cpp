@@ -34,7 +34,7 @@ class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
                       mx::GenContext& context,
                       mx::DocumentPtr doc,
                       std::ostream& log,
-                      const RenderUtil::RenderTestOptions& testOptions,
+                      const GenShaderUtil::TestSuiteOptions& testOptions,
                       RenderUtil::RenderProfileTimes& profileTimes,
                       const mx::FileSearchPath& imageSearchPath,
                       const std::string& outputPath = ".") override;
@@ -99,7 +99,7 @@ bool OslShaderRenderTester::runValidator(const std::string& shaderName,
                                          mx::GenContext& context,
                                          mx::DocumentPtr doc,
                                          std::ostream& log,
-                                         const RenderUtil::RenderTestOptions& testOptions,
+                                         const GenShaderUtil::TestSuiteOptions& testOptions,
                                          RenderUtil::RenderProfileTimes& profileTimes,
                                          const mx::FileSearchPath& imageSearchPath,
                                          const std::string& outputPath)

@@ -42,9 +42,9 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
 
   protected:
     void loadLibraries(mx::DocumentPtr document,
-                       RenderUtil::RenderTestOptions& options) override;
+                       GenShaderUtil::TestSuiteOptions& options) override;
 
-    void registerLights(mx::DocumentPtr document, const RenderUtil::RenderTestOptions &options, 
+    void registerLights(mx::DocumentPtr document, const GenShaderUtil::TestSuiteOptions &options, 
                         mx::GenContext& context) override;
 
     void createValidator(std::ostream& log) override;
@@ -56,7 +56,7 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
                       mx::GenContext& context,
                       mx::DocumentPtr doc,
                       std::ostream& log,
-                      const RenderUtil::RenderTestOptions& testOptions,
+                      const GenShaderUtil::TestSuiteOptions& testOptions,
                       RenderUtil::RenderProfileTimes& profileTimes,
                       const mx::FileSearchPath& imageSearchPath,
                       const std::string& outputPath = ".") override;
@@ -70,7 +70,7 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
 // compound light type and a set of lights in a "light rig" are loaded in to a given
 // document.
 void GlslShaderRenderTester::loadLibraries(mx::DocumentPtr document,
-                                           RenderUtil::RenderTestOptions& options)
+                                           GenShaderUtil::TestSuiteOptions& options)
 {
     mx::FilePath lightDir = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite/Utilities/Lights");
     for (auto lightFile : options.lightFiles)
@@ -81,7 +81,7 @@ void GlslShaderRenderTester::loadLibraries(mx::DocumentPtr document,
 
 // Create a light handler and populate it based on lights found in a given document
 void GlslShaderRenderTester::registerLights(mx::DocumentPtr document,
-                                            const RenderUtil::RenderTestOptions &options,
+                                            const GenShaderUtil::TestSuiteOptions &options,
                                             mx::GenContext& context)
 {
     _lightHandler = mx::LightHandler::create();
@@ -227,7 +227,7 @@ bool GlslShaderRenderTester::runValidator(const std::string& shaderName,
                                           mx::GenContext& context,
                                           mx::DocumentPtr doc,
                                           std::ostream& log,
-                                          const RenderUtil::RenderTestOptions& testOptions,
+                                          const GenShaderUtil::TestSuiteOptions& testOptions,
                                           RenderUtil::RenderProfileTimes& profileTimes,
                                           const mx::FileSearchPath& imageSearchPath,
                                           const std::string& outputPath)

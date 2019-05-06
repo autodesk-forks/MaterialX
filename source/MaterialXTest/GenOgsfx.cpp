@@ -118,7 +118,8 @@ static void generateOgsFxCode()
     OgsFxShaderGeneratorTester tester(testRootPaths, libSearchPath, srcSearchPath, logPath);
 
     const mx::GenOptions genOptions;
-    tester.testGeneration(genOptions);
+    mx::FilePath optionsFilePath = testRootPath / mx::FilePath("_options.mtlx");
+    tester.validate(genOptions, optionsFilePath);
 }
 
 TEST_CASE("GenShader: OGSFX Shader Generation", "[genogsfx]")
