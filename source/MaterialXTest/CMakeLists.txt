@@ -63,7 +63,7 @@ set (LIBS
     MaterialXCore
     MaterialXFormat
     MaterialXGenShader
-    MaterialXGenOsl   
+    MaterialXGenOsl
     MaterialXGenGlsl
     MaterialXRender
     MaterialXRenderOsl
