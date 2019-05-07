@@ -27,28 +27,6 @@ void createLightRig(mx::DocumentPtr doc, mx::LightHandler& lightHandler, mx::Gen
     lightHandler.setLightEnvRadiancePath(envRadiancePath);
 }
 
-// Create a list of generation options based on unit test options
-// These options will override the original generation context options.
-void ShaderRenderTester::getGenerationOptions(const RenderTestOptions& testOptions,
-                                             const mx::GenOptions& originalOptions,
-                                             std::vector<mx::GenOptions>& optionsList)
-{
-    optionsList.clear();
-    if (testOptions.shaderInterfaces & 1)
-    {
-        mx::GenOptions reducedOption = originalOptions;
-        reducedOption.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
-        optionsList.push_back(reducedOption);
-    }
-    // Alway fallback to complete if no options specified.
-    if ((testOptions.shaderInterfaces & 2) || optionsList.empty())
-    {
-        mx::GenOptions completeOption = originalOptions;
-        completeOption.shaderInterfaceType = mx::SHADER_INTERFACE_COMPLETE;
-        optionsList.push_back(completeOption);
-    }
-}
-
 void RenderTestOptions::print(std::ostream& output) const
 {
     output << "Render Test Options:" << std::endl;
@@ -77,11 +55,13 @@ void RenderTestOptions::print(std::ostream& output) const
     output << "\tDump uniforms and Attributes  " << dumpUniformsAndAttributes << std::endl;
     output << "\tNon-Shaded Geometry: " << unShadedGeometry.asString() << std::endl;
     output << "\tShaded Geometry: " << shadedGeometry.asString() << std::endl;
+    output << "\tGeometry Scale: " << geometryScale << std::endl;
+    output << "\tEnable Direct Lighting: " << enableDirectLighting << std::endl;
+    output << "\tEnable Indirect Lighting: " << enableIndirectLighting << std::endl;
+    output << "\tSpecular Environment Method: " << specularEnvironmentMethod << std::endl;
     output << "\tRadiance IBL File Path " << radianceIBLPath.asString() << std::endl;
     output << "\tIrradiance IBL File Path: " << irradianceIBLPath.asString() << std::endl;
 }
-
-
 
 bool RenderTestOptions::readOptions(const std::string& optionFile)
 {
@@ -102,8 +82,13 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
     const std::string DUMP_GENERATED_CODE_STRING("dumpGeneratedCode");
     const std::string UNSHADED_GEOMETRY_STRING("unShadedGeometry");
     const std::string SHADED_GEOMETRY_STRING("shadedGeometry");
+    const std::string GEOMETRY_SCALE_STRING("geometryScale");
+    const std::string ENABLE_DIRECT_LIGHTING("enableDirectLighting");
+    const std::string ENABLE_INDIRECT_LIGHTING("enableIndirectLighting");
+    const std::string SPECULAR_ENVIRONMENT_METHOD("specularEnvironmentMethod");
     const std::string RADIANCE_IBL_PATH_STRING("radianceIBLPath");
     const std::string IRRADIANCE_IBL_PATH_STRING("irradianceIBLPath");
+    const std::string TRANSFORM_UVS_STRING("transformUVs");
     const std::string SPHERE_OBJ("sphere.obj");
     const std::string SHADERBALL_OBJ("shaderball.obj");
 
@@ -111,6 +96,10 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
     dumpGeneratedCode = false;
     unShadedGeometry = SPHERE_OBJ;
     shadedGeometry = SHADERBALL_OBJ;
+    geometryScale = 1.0f;
+    enableDirectLighting = true;
+    enableIndirectLighting = true;
+    specularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
 
     MaterialX::DocumentPtr doc = MaterialX::createDocument();
     try {
@@ -129,7 +118,7 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
                     {
                         overrideFiles = MaterialX::splitString(p->getValueString(), ",");
                     }
-                    if (name == LIGHT_FILES_STRING)
+                    else if (name == LIGHT_FILES_STRING)
                     {
                         lightFiles = MaterialX::splitString(p->getValueString(), ",");
                     }
@@ -183,6 +172,22 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
                     {
                         shadedGeometry = p->getValueString();
                     }
+                    else if (name == GEOMETRY_SCALE_STRING)
+                    {
+                        geometryScale = val->asA<float>();
+                    }
+                    else if (name == ENABLE_DIRECT_LIGHTING)
+                    {
+                        enableDirectLighting = val->asA<bool>();
+                    }
+                    else if (name == ENABLE_INDIRECT_LIGHTING)
+                    {
+                        enableIndirectLighting = val->asA<bool>();
+                    }
+                    else if (name == SPECULAR_ENVIRONMENT_METHOD)
+                    {
+                        specularEnvironmentMethod = val->asA<int>();
+                    }
                     else if (name == RADIANCE_IBL_PATH_STRING)
                     {
                         radianceIBLPath = p->getValueString();
@@ -190,6 +195,10 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
                     else if (name == IRRADIANCE_IBL_PATH_STRING)
                     {
                         irradianceIBLPath = p->getValueString();
+                    }
+                    else if (name == TRANSFORM_UVS_STRING)
+                    {
+                        transformUVs = val->asA<mx::Matrix44>();
                     }
                 }
             }
@@ -206,6 +215,17 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
         {
             saveImages = false;
         }
+        // Disable direct lighting
+        if (!enableDirectLighting)
+        {
+            lightFiles.clear();
+        }
+        // Disable indirect lighting
+        if (!enableIndirectLighting)
+        {
+            radianceIBLPath.assign(mx::EMPTY_STRING);
+            irradianceIBLPath.assign(mx::EMPTY_STRING);
+        }
 
         // If there is a filter on the files to run turn off profile checking
         if (!overrideFiles.empty())
@@ -219,6 +239,39 @@ bool RenderTestOptions::readOptions(const std::string& optionFile)
         std::cout << e.what();
     }
     return false;
+}
+
+
+ShaderRenderTester::ShaderRenderTester(mx::ShaderGeneratorPtr shaderGenerator) :
+    _shaderGenerator(shaderGenerator),
+    _languageTargetString(shaderGenerator->getLanguage() + "_" + shaderGenerator->getTarget())
+{
+}
+
+ShaderRenderTester::~ShaderRenderTester()
+{
+}
+
+// Create a list of generation options based on unit test options
+// These options will override the original generation context options.
+void ShaderRenderTester::getGenerationOptions(const RenderTestOptions& testOptions,
+                                              const mx::GenOptions& originalOptions,
+                                              std::vector<mx::GenOptions>& optionsList)
+{
+    optionsList.clear();
+    if (testOptions.shaderInterfaces & 1)
+    {
+        mx::GenOptions reducedOption = originalOptions;
+        reducedOption.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
+        optionsList.push_back(reducedOption);
+    }
+    // Alway fallback to complete if no options specified.
+    if ((testOptions.shaderInterfaces & 2) || optionsList.empty())
+    {
+        mx::GenOptions completeOption = originalOptions;
+        completeOption.shaderInterfaceType = mx::SHADER_INTERFACE_COMPLETE;
+        optionsList.push_back(completeOption);
+    }
 }
 
 void ShaderRenderTester::checkImplementationUsage(const std::string& language,
@@ -347,13 +400,12 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     RenderUtil::AdditiveScopedTimer totalTime(profileTimes.totalTime, "Global total time");
 
 #ifdef LOG_TO_FILE
-    const std::string prefex = languageTargetString();
-    std::ofstream logfile(prefex + "_render_log.txt");
+    std::ofstream logfile(_languageTargetString + "_render_log.txt");
     std::ostream& log(logfile);
-    std::string docValidLogFilename = prefex + "_render_doc_validation_log.txt";
+    std::string docValidLogFilename = _languageTargetString + "_render_doc_validation_log.txt";
     std::ofstream docValidLogFile(docValidLogFilename);
     std::ostream& docValidLog(docValidLogFile);
-    std::ofstream profilingLogfile(prefex + "__render_profiling_log.txt");
+    std::ofstream profilingLogfile(_languageTargetString + "__render_profiling_log.txt");
     std::ostream& profilingLog(profilingLogfile);
 #else
     std::ostream& log(std::cout);
@@ -402,7 +454,6 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     // Create validators and generators
     RenderUtil::AdditiveScopedTimer setupTime(profileTimes.languageTimes.setupTime, "Setup time");
 
-    createShaderGenerator();
     createValidator(log);
 
     mx::ColorManagementSystemPtr colorManagementSystem = mx::DefaultColorManagementSystem::create(_shaderGenerator->getLanguage());

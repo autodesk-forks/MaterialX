@@ -30,7 +30,7 @@ namespace mx = MaterialX;
 // Execution uses existing code generator instances to produce the code and corresponding validator
 // instance to check the validity of the generated code by compiling and / or rendering
 // the code to produce images on disk.
-// 
+//
 // Input uniform and stream checking as well as node implementation coverage and profiling
 // can also be performed depending on the options enabled.
 //
@@ -56,11 +56,11 @@ class RenderTestOptions
     bool readOptions(const std::string& optionFile);
 
     // Filter list of files to only run validation on.
-    MaterialX::StringVec overrideFiles;
+    mx::StringVec overrideFiles;
 
-    // List of language,target pair identifier storage as 
+    // List of language,target pair identifier storage as
     // strings in the form <language>_<target>.
-    MaterialX::StringSet languageAndTargets;
+    mx::StringSet languageAndTargets;
 
     // Comma separated list of light setup files
     mx::StringVec lightFiles;
@@ -86,7 +86,7 @@ class RenderTestOptions
     // Perform rendering validation test
     bool renderImages = true;
 
-    // Perform saving of image. 
+    // Perform saving of image.
     bool saveImages = true;
 
     // Set this to be true if it is desired to dump out uniform and attribut information to the logging file.
@@ -98,11 +98,30 @@ class RenderTestOptions
     // Shaded geometry file
     MaterialX::FilePath shadedGeometry;
 
-    // Radiance IBL file
-    MaterialX::FilePath radianceIBLPath;
+    // Amount to scale geometry. 
+    float geometryScale;
 
-    // IradianceIBL file
-    MaterialX::FilePath irradianceIBLPath;
+    // Enable direct lighting. Default is true. 
+    bool enableDirectLighting;
+
+    // Enable indirect lighting. Default is true. 
+    bool enableIndirectLighting;
+
+    // Method for specular environment sampling (only used for HW rendering):
+    //   0 : Prefiltered - Use a radiance IBL texture that has been prefiltered with the BRDF.
+    //   1 : Filtered Importance Sampling - Use FIS to sample the IBL texture according to the BRDF in runtime.
+    // Default value is 1.
+    int specularEnvironmentMethod;
+
+    // Radiance IBL file.
+    mx::FilePath radianceIBLPath;
+
+    // Irradiance IBL file.
+    mx::FilePath irradianceIBLPath;
+
+    // Transforms UVs of loaded geometry
+    MaterialX::Matrix44 transformUVs;
+
 };
 
 // Scoped timer which adds a duration to a given externally reference timing duration
@@ -213,23 +232,23 @@ class RenderProfileTimes
 class ShaderRenderTester
 {
   public:
-    ShaderRenderTester() {};
-    virtual ~ShaderRenderTester() {};
+    ShaderRenderTester(mx::ShaderGeneratorPtr shaderGenerator);
+    virtual ~ShaderRenderTester();
+
     bool validate(const mx::FilePathVec& testRootPaths, const mx::FilePath optionsFilePath);
 
   protected:
-    // The shading language / target being tested
-    virtual const std::string& languageTargetString() = 0;
-
     // Check if testing should be performed based in input options
-    virtual bool runTest(const RenderUtil::RenderTestOptions& testOptions) const = 0;
+    virtual bool runTest(const RenderUtil::RenderTestOptions& testOptions)
+    {
+        return (testOptions.languageAndTargets.count(_languageTargetString) > 0);
+    }
 
     // Add files to skip
     void addSkipFiles()
     {
         _skipFiles.insert("_options.mtlx");
         _skipFiles.insert("light_rig.mtlx");
-        _skipFiles.insert("lightcompoundtest_ng.mtlx");
         _skipFiles.insert("lightcompoundtest.mtlx");
         _skipFiles.insert("default_viewer_lights.mtlx");
     }
@@ -241,23 +260,22 @@ class ShaderRenderTester
     //
     // Code generation methods
     //
-    // Create the appropirate code generator for the language/target
-    virtual void createShaderGenerator() = 0;
 
     // Register any additional source code paths used by the generator
     virtual void registerSourceCodeSearchPaths(mx::GenContext& /*context*/) {};
-    
+
     // Register any lights used by the generation context
-    virtual void registerLights(mx::DocumentPtr /*dependLib*/, 
+    virtual void registerLights(mx::DocumentPtr /*dependLib*/,
                                 const RenderUtil::RenderTestOptions &/*options*/,
                                 mx::GenContext& /*context*/) {};
 
     //
     // Code validation methods (compile and render)
     //
+
     // Create a validator for the generated code
     virtual void createValidator(std::ostream& log) = 0;
-    
+
     // Run the validator
     virtual bool runValidator(const std::string& shaderName,
         mx::TypedElementPtr element,
@@ -287,7 +305,7 @@ class ShaderRenderTester
                                   mx::GenContext& context,
                                   std::ostream& stream);
 
-    // Print execution summary 
+    // Print execution summary
     void printRunLog(const RenderProfileTimes &profileTimes,
                      const RenderTestOptions& options,
                      mx::StringSet& usedImpls,
@@ -298,6 +316,8 @@ class ShaderRenderTester
 
     // Generator to use
     mx::ShaderGeneratorPtr _shaderGenerator;
+    const std::string _languageTargetString;
+
     // Files to skip
     mx::StringSet _skipFiles;
 };
@@ -305,4 +325,3 @@ class ShaderRenderTester
 } // namespace RenderUtil
 
 #endif
-

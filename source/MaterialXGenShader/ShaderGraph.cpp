@@ -32,7 +32,7 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& cont
     {
         if (!port->isA<Output>())
         {
-            const string& portValue = port->getValueString();
+            const string& portValue = port->getResolvedValueString();
             std::pair<const TypeDesc*, ValuePtr> enumResult;
             if (context.getShaderGenerator().remapEnumeration(*port, portValue, enumResult))
             {
@@ -251,11 +251,14 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
 void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTransform& transform, GenContext& context)
 {
     ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
-    if (!colorManagementSystem)
+    if (!colorManagementSystem || input->getConnection())
     {
+        // Ignore inputs with connections as they are not 
+        // allowed to have colorspaces specified.
         return;
     }
-    string colorTransformNodeName = input->getNode()->getName() + "_" + input->getName() + "_cm";
+
+    const string colorTransformNodeName = input->getNode()->getName() + "_" + input->getName() + "_cm";
     ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(this, transform, colorTransformNodeName, context);
 
     if (colorTransformNodePtr)
@@ -282,7 +285,8 @@ void ShaderGraph::addColorTransformNode(ShaderOutput* output, const ColorSpaceTr
     {
         return;
     }
-    string colorTransformNodeName = output->getNode()->getName() + "_" + output->getName() + "_cm";
+
+    const string colorTransformNodeName = output->getNode()->getName() + "_" + output->getName() + "_cm";
     ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(this, transform, colorTransformNodeName, context);
 
     if (colorTransformNodePtr)
@@ -441,9 +445,10 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             if (bindParam)
             {
                 // Copy value from binding
-                if (!bindParam->getValueString().empty())
+                ValuePtr bindParamValue = bindParam->getResolvedValue();
+                if (bindParamValue)
                 {
-                    inputSocket->setValue(bindParam->getValue());
+                    inputSocket->setValue(bindParamValue);
                 }
                 inputSocket->setPath(bindParam->getNamePath());
                 input->setPath(inputSocket->getPath());
@@ -468,9 +473,10 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             if (bindInput)
             {
                 // Copy value from binding
-                if (!bindInput->getValueString().empty())
+                ValuePtr bindInputValue = bindInput->getResolvedValue();
+                if (bindInputValue)
                 {
-                    inputSocket->setValue(bindInput->getValue());
+                    inputSocket->setValue(bindInputValue);
                 }
                 inputSocket->setPath(bindInput->getNamePath());
                 input->setPath(inputSocket->getPath());
@@ -774,7 +780,7 @@ void ShaderGraph::disconnect(ShaderNode* node) const
     }
     for (ShaderOutput* output : node->getOutputs())
     {
-        output->breakConnection();
+        output->breakConnections();
     }
 }
 
@@ -1091,19 +1097,15 @@ void ShaderGraph::populateInputColorTransformMap(ColorManagementSystemPtr colorM
     const string& sourceColorSpace = input->getActiveColorSpace();
     if (shaderInput && !sourceColorSpace.empty())
     {
-        // Can skip inputs with connections as they are not legally allowed to have colorspaces specified.
-        if (!shaderInput->getConnection())
+        if(shaderInput->getType() == Type::COLOR3 || shaderInput->getType() == Type::COLOR4)
         {
-            if(shaderInput->getType() == Type::COLOR3 || shaderInput->getType() == Type::COLOR4)
+            // If we're converting between two identical color spaces than we have no work to do.
+            if (sourceColorSpace != targetColorSpace)
             {
-                // If we're converting between two identical color spaces than we have no work to do.
-                if (sourceColorSpace != targetColorSpace)
+                ColorSpaceTransform transform(sourceColorSpace, targetColorSpace, shaderInput->getType());
+                if (colorManagementSystem->supportsTransform(transform))
                 {
-                    ColorSpaceTransform transform(sourceColorSpace, targetColorSpace, shaderInput->getType());
-                    if (colorManagementSystem->supportsTransform(transform))
-                    {
-                        _inputColorTransformMap.emplace(shaderInput, transform);
-                    }
+                    _inputColorTransformMap.emplace(shaderInput, transform);
                 }
             }
         }

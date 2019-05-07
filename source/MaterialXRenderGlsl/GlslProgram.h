@@ -17,12 +17,9 @@
 #include <MaterialXRender/GeometryHandler.h>
 #include <MaterialXRender/LightHandler.h>
 
-#include <vector>
-#include <string>
-#include <unordered_map>
-
 namespace MaterialX
 {
+
 // Shared pointer to a GlslProgram
 using GlslProgramPtr = std::shared_ptr<class GlslProgram>;
 
@@ -234,7 +231,8 @@ class GlslProgram
 
     /// Bind an individual texture to a program uniform location
     bool bindTexture(unsigned int uniformType, int uniformLocation, const FilePath& filePath,
-                     ImageHandlerPtr imageHandler, bool generateMipMaps, const ImageSamplingProperties& imageProperties);
+                     ImageHandlerPtr imageHandler, bool generateMipMaps, const ImageSamplingProperties& imageProperties,
+                     ImageDesc& desc);
 
     /// Utility to check for OpenGL context errors.
     /// Will throw an ExceptionShaderValidationError exception which will list of the errors found
@@ -277,7 +275,8 @@ class GlslProgram
     /// Program texture map
     std::unordered_map<std::string, unsigned int> _programTextures;
 
-    std::set<int> _enabledLocations;
+    /// Enabled vertex stream program locations
+    std::set<int> _enabledStreamLocations;
 };
 
 } // namespace MaterialX

@@ -40,6 +40,7 @@ ShaderInput::ShaderInput(ShaderNode* node, const TypeDesc* type, const string& n
 
 void ShaderInput::makeConnection(ShaderOutput* src)
 {
+    breakConnection();
     _connection = src;
     src->_connections.insert(this);
 }
@@ -64,23 +65,33 @@ ShaderOutput::ShaderOutput(ShaderNode* node, const TypeDesc* type, const string&
 
 void ShaderOutput::makeConnection(ShaderInput* dst)
 {
-    dst->_connection = this;
-    _connections.insert(dst);
+    dst->makeConnection(this);
 }
 
 void ShaderOutput::breakConnection(ShaderInput* dst)
 {
-    _connections.erase(dst);
-    dst->_connection = nullptr;
+    if (!_connections.count(dst))
+    {
+        throw ExceptionShaderGenError(
+            "Cannot break non-existent connection from output: " + getNode()->getName() + "." + getName()
+            + " to input: " + dst->getNode()->getName() + "." + dst->getName());
+    }
+    dst->breakConnection(); 
 }
 
-void ShaderOutput::breakConnection()
+void ShaderOutput::breakConnections()
 {
-    for (ShaderInput* input : _connections)
+    ShaderInputSet inputSet(_connections);
+    for (ShaderInput* input : inputSet)
     {
-        input->_connection = nullptr;
+        input->breakConnection();
     }
-    _connections.clear();
+
+    if (!_connections.empty())
+    {
+        throw ExceptionShaderGenError("Number of output connections not broken properly'" + std::to_string(_connections.size()) +
+            " for output: " + getNode()->getName() + "." + getName());
+    }
 }
 
 namespace
@@ -230,7 +241,7 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
         }
         else
         {
-            const string& portValue = port->getValueString();
+            const string& portValue = port->getResolvedValueString();
             std::pair<const TypeDesc*, ValuePtr> enumResult;
             if (context.getShaderGenerator().remapEnumeration(*port, portValue, enumResult))
             {
@@ -242,7 +253,7 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
                 ShaderInput* input = newNode->addInput(port->getName(), portType);
                 if (!portValue.empty())
                 {
-                    input->setValue(port->getValue());
+                    input->setValue(port->getResolvedValue());
                 }
             }
         }
@@ -389,7 +400,7 @@ void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, GenContext&
         ValueElementPtr nodeDefInput = nodeDef.getActiveValueElement(nodeValue->getName());
         if (input && nodeDefInput)
         {
-            const string& valueString = nodeValue->getValueString();
+            const string& valueString = nodeValue->getResolvedValueString();
             std::pair<const TypeDesc*, ValuePtr> enumResult;
             if (context.getShaderGenerator().remapEnumeration(*nodeDefInput, valueString, enumResult))
             {

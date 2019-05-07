@@ -92,6 +92,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
                const std::string& meshFilename,
                const std::string& materialFilename,
                const DocumentModifiers& modifiers,
+               mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
                int multiSampleCount) :
     ng::Screen(ng::Vector2i(1280, 960), "MaterialXView",
         true, false,
@@ -102,7 +103,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _zoom(1.0f),
     _viewAngle(45.0f),
     _nearDist(0.05f),
-    _farDist(100.0f),
+    _farDist(5000.0f),
     _modelZoom(1.0f),
     _translationActive(false),
     _translationStart(0, 0),
@@ -119,7 +120,9 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _mergeMaterials(false),
     _assignLooks(false),
     _outlineSelection(false),
+    _specularEnvironmentMethod(specularEnvironmentMethod),
     _envSamples(DEFAULT_ENV_SAMPLES),
+    _drawEnvironment(false),
     _captureFrame(false)
 {
     _window = new ng::Window(this, "Viewer Options");
@@ -157,7 +160,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     });
 
     // Set default generator options.
-    _genContext.getOptions().hwSpecularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
+    _genContext.getOptions().hwSpecularEnvironmentMethod = _specularEnvironmentMethod;
     _genContext.getOptions().targetColorSpaceOverride = "lin_rec709";
     _genContext.getOptions().fileTextureVerticalFlip = true;
 
@@ -197,6 +200,43 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _geometryHandler->addLoader(loader);
     _geometryHandler->loadGeometry(_searchPath.find(meshFilename));
     updateGeometrySelections();
+
+    _envGeometryHandler = mx::GeometryHandler::create();
+    _envGeometryHandler->addLoader(loader);
+    mx::FilePath envSphere("resources/Geometry/sphere.obj");
+    _envGeometryHandler->loadGeometry(_searchPath.find(envSphere));
+    const mx::MeshList& meshes = _envGeometryHandler->getMeshes();
+    if (!meshes.empty())
+    {
+        // Invert u and rotate 90 degrees.
+        mx::MeshPtr mesh = meshes[0];
+        mx::MeshStreamPtr stream = mesh->getStream(mx::MeshStream::TEXCOORD_ATTRIBUTE, 0);
+        mx::MeshFloatBuffer &buffer = stream->getData();
+        size_t stride = stream->getStride();
+        for (size_t i = 0; i < buffer.size() / stride; i++)
+        {
+            float val = (buffer[i*stride] * -1.0f) + 1.25f;
+            buffer[i*stride] = (val < 0.0f) ? (val + 1.0f) : ((val > 1.0f) ? val -= 1.0f : val);
+        }
+
+        // Set up world matrix for drawing
+        const float scaleFactor = 300.0f;
+        _envMatrix = mx::Matrix44::createScale(mx::Vector3(scaleFactor));
+
+        const std::string envShaderName("__ENV_SHADER_NAME__");
+        _envMaterial = Material::create();
+        try
+        {
+            const std::string addressMode("clamp");
+            _envMaterial->generateImageShader(_genContext, _stdLib, envShaderName, _envRadiancePath, addressMode);
+            _envMaterial->bindMesh(_envGeometryHandler->getMeshes()[0]);
+        }
+        catch (std::exception& e)
+        {
+            _envMaterial = nullptr;
+            new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to generate environment shader", e.what());
+        }
+    }
 
     // Initialize camera
     initCamera();
@@ -600,23 +640,33 @@ void Viewer::createAdvancedSettings(Widget* parent)
         _outlineSelection = enable;
     });
 
-    Widget* sampleGroup = new Widget(advancedPopup);
-    sampleGroup->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
-    new ng::Label(sampleGroup, "Environment Samples:");
-    mx::StringVec sampleOptions;
-    for (int i = MIN_ENV_SAMPLES; i <= MAX_ENV_SAMPLES; i *= 4)
+    ng::CheckBox* drawEnvironmentBox = new ng::CheckBox(advancedPopup, "Render Environment");
+    drawEnvironmentBox->setChecked(_drawEnvironment);
+    drawEnvironmentBox->setCallback([this](bool enable)
     {
-        mProcessEvents = false;
-        sampleOptions.push_back(std::to_string(i));
-        mProcessEvents = true;
-    }
-    ng::ComboBox* sampleBox = new ng::ComboBox(sampleGroup, sampleOptions);
-    sampleBox->setChevronIcon(-1);
-    sampleBox->setSelectedIndex((int) std::log2(DEFAULT_ENV_SAMPLES / MIN_ENV_SAMPLES) / 2);
-    sampleBox->setCallback([this](int index)
-    {
-        _envSamples = MIN_ENV_SAMPLES * (int) std::pow(4, index);
+        _drawEnvironment = enable;
     });
+
+    if (_specularEnvironmentMethod == mx::SPECULAR_ENVIRONMENT_FIS)
+    {
+        Widget* sampleGroup = new Widget(advancedPopup);
+        sampleGroup->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
+        new ng::Label(sampleGroup, "Environment Samples:");
+        mx::StringVec sampleOptions;
+        for (int i = MIN_ENV_SAMPLES; i <= MAX_ENV_SAMPLES; i *= 4)
+        {
+            mProcessEvents = false;
+            sampleOptions.push_back(std::to_string(i));
+            mProcessEvents = true;
+        }
+        ng::ComboBox* sampleBox = new ng::ComboBox(sampleGroup, sampleOptions);
+        sampleBox->setChevronIcon(-1);
+        sampleBox->setSelectedIndex((int)std::log2(DEFAULT_ENV_SAMPLES / MIN_ENV_SAMPLES) / 2);
+        sampleBox->setCallback([this](int index)
+        {
+            _envSamples = MIN_ENV_SAMPLES * (int)std::pow(4, index);
+        });
+    }
 }
 
 void Viewer::updateGeometrySelections()
@@ -725,7 +775,42 @@ MaterialPtr Viewer::setMaterialSelection(size_t index)
     return nullptr;
 }
 
-void Viewer::saveActiveMaterialSource()
+void Viewer::reloadDocument()
+{
+    try
+    {
+        if (!_materialFilename.isEmpty())
+        {
+            initializeDocument(_stdLib);
+            size_t newRenderables = Material::loadDocument(_doc, _searchPath.find(_materialFilename), _stdLib, _modifiers, _materials);
+            if (newRenderables)
+            {
+                updateMaterialSelections();
+                setMaterialSelection(0);
+                if (!_materials.empty())
+                {
+                    assignMaterial(_materials[0]);
+                }
+            }
+        }
+    }
+    catch (std::exception& e)
+    {
+        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to load document", e.what());
+    }
+    try
+    {
+        updateMaterialSelections();
+        setMaterialSelection(_selectedMaterial);
+        updatePropertyEditor();
+    }
+    catch (std::exception& e)
+    {
+        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Shader Generation Error", e.what());
+    }
+}
+
+void Viewer::saveShaderSource()
 {
     try
     {
@@ -751,7 +836,7 @@ void Viewer::saveActiveMaterialSource()
     }
 }
 
-void Viewer::loadActiveMaterialSource()
+void Viewer::loadShaderSource()
 {
     try
     {
@@ -778,6 +863,43 @@ void Viewer::loadActiveMaterialSource()
     }
 }
 
+void Viewer::saveDotFiles()
+{
+    try
+    {
+        MaterialPtr material = getSelectedMaterial();
+        mx::TypedElementPtr elem = material ? material->getElement() : nullptr;
+        if (elem)
+        {
+            mx::ShaderRefPtr shaderRef = elem->asA<mx::ShaderRef>();
+            for (mx::BindInputPtr bindInput : shaderRef->getBindInputs())
+            {
+                mx::OutputPtr output = bindInput->getConnectedOutput();
+                mx::ConstNodeGraphPtr nodeGraph = output ? output->getAncestorOfType<mx::NodeGraph>() : nullptr;
+                if (nodeGraph)
+                {
+                    std::string dot = nodeGraph->asStringDot();
+                    std::string baseName = _searchPath[0] / nodeGraph->getName();
+                    writeTextFile(dot, baseName + ".dot");
+                }
+            }
+
+            mx::NodeDefPtr nodeDef = shaderRef ? shaderRef->getNodeDef() : nullptr;
+            mx::InterfaceElementPtr implement = nodeDef ? nodeDef->getImplementation() : nullptr;
+            mx::NodeGraphPtr nodeGraph = implement ? implement->asA<mx::NodeGraph>() : nullptr;
+            if (nodeGraph)
+            {
+                std::string dot = nodeGraph->asStringDot();
+                std::string baseName = _searchPath[0] / nodeDef->getName();
+                writeTextFile(dot, baseName + ".dot");
+            }
+        }
+    }
+    catch (std::exception& e)
+    {
+        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Cannot save dot file for material", e.what());
+    }
+}
 
 bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
 {
@@ -786,6 +908,36 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
         return true;
     }
 
+    // Reload the current document from file.
+    if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    {
+        reloadDocument();
+        return true;
+    }
+
+    // Save the current shader source to file.
+    if (key == GLFW_KEY_S && action == GLFW_PRESS)
+    {
+        saveShaderSource();
+        return true;
+    }
+
+    // Load shader source from file.  Editing the source files before loading
+    // provides a way to debug and experiment with shader source code.
+    if (key == GLFW_KEY_L && action == GLFW_PRESS)
+    {
+        loadShaderSource();
+        return true;
+    }
+
+    // Save each node graph in the current material as a dot file.
+    if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    {
+        saveDotFiles();
+        return true;
+    }
+
+    // Capture the current frame and save to file.
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
         mx::StringSet extensions;
@@ -809,57 +961,6 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
                 _captureFrame = true;
             }
         }
-    }
-    if (key == GLFW_KEY_R && action == GLFW_PRESS)
-    {
-        try
-        {
-            if (!_materialFilename.isEmpty())
-            {
-                initializeDocument(_stdLib);
-                size_t newRenderables = Material::loadDocument(_doc, _searchPath.find(_materialFilename), _stdLib, _modifiers, _materials);
-                if (newRenderables)
-                {
-                    updateMaterialSelections();
-                    setMaterialSelection(0);
-                    if (!_materials.empty())
-                    {
-                        assignMaterial(_materials[0]);
-                    }
-                }
-            }
-        }
-        catch (std::exception& e)
-        {
-            new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to load document", e.what());
-        }
-        try
-        {
-            updateMaterialSelections();
-            setMaterialSelection(_selectedMaterial);
-            updatePropertyEditor();
-        }
-        catch (std::exception& e)
-        {
-            new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Shader Generation Error", e.what());
-        }
-        return true;
-    }
-
-    // Save active material if any
-    if (key == GLFW_KEY_S && action == GLFW_PRESS)
-    {
-        saveActiveMaterialSource();
-        return true;
-    }
-
-    // Load a material previously saved to file.
-    // Editing the source files before loading gives a way to debug
-    // and experiment with shader source code.
-    if (key == GLFW_KEY_L && action == GLFW_PRESS)
-    {
-        loadActiveMaterialSource();
-        return true;
     }
 
     // Allow left and right keys to cycle through the renderable elements
@@ -908,6 +1009,24 @@ void Viewer::drawContents()
     glDisable(GL_CULL_FACE);
     glEnable(GL_FRAMEBUFFER_SRGB);
 
+    if (_drawEnvironment && _envMaterial)
+    {
+        GLShaderPtr envShader = _envMaterial->getShader();
+        auto meshes = _envGeometryHandler->getMeshes();
+        auto envPart = !meshes.empty() ? meshes[0]->getPartition(0) : nullptr;
+        if (envShader && envPart)
+        {
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);
+            envShader->bind();
+            _envMaterial->bindViewInformation(_envMatrix, view, proj);
+            _envMaterial->bindImages(_imageHandler, _searchPath, _envMaterial->getUdim());
+            _envMaterial->drawPartition(envPart);
+            glDisable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+        }
+    }
+
     mx::TypedElementPtr lastBoundShader;
     for (auto assignment : _materialAssignments)
     {
@@ -926,7 +1045,8 @@ void Viewer::drawContents()
             glDisable(GL_BLEND);
         }
         material->bindViewInformation(world, view, proj);
-        material->bindLights(_lightHandler, _imageHandler, _searchPath, _envSamples, _directLighting, _indirectLighting);
+        material->bindLights(_lightHandler, _imageHandler, _searchPath, _directLighting, _indirectLighting,
+                             _specularEnvironmentMethod, _envSamples);
         material->bindImages(_imageHandler, _searchPath, material->getUdim());
         material->drawPartition(geom);
     }

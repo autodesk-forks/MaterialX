@@ -105,6 +105,7 @@ void OslValidator::renderOSL(const FilePath& dirPath, const string& shaderName, 
         (isRemappable ? CONSTANT_COLOR_SHADER_PREFIX_STRING + _oslShaderOutputType : CONSTANT_COLOR_SHADER_STRING);
 
     // Perform token replacement
+    const string ENVIRONMENT_SHADER_PARAMETER_OVERRIDES("%environment_shader_parameter_overrides%");
     const string OUTPUT_SHADER_TYPE_STRING("%output_shader_type%");
     const string OUTPUT_SHADER_INPUT_STRING("%output_shader_input%");
     const string OUTPUT_SHADER_INPUT_VALUE_STRING("Cin");
@@ -112,7 +113,7 @@ void OslValidator::renderOSL(const FilePath& dirPath, const string& shaderName, 
     const string INPUT_SHADER_PARAMETER_OVERRIDES("%input_shader_parameter_overrides%");
     const string INPUT_SHADER_OUTPUT_STRING("%input_shader_output%");
     const string BACKGROUND_COLOR_STRING("%background_color%");
-    const string backgroundColor("0.0 0.0 0.0"); // TODO: Make this a user input
+    const string backgroundColor("0.4 0.4 0.4"); // TODO: Make this a user input
 
     StringMap replacementMap;
     replacementMap[OUTPUT_SHADER_TYPE_STRING] = outputShader;
@@ -123,7 +124,13 @@ void OslValidator::renderOSL(const FilePath& dirPath, const string& shaderName, 
     {
         overrideString.append(param);
     }
+    string envOverrideString;
+    for (auto param : _envOslShaderParameterOverrides)
+    {
+        envOverrideString.append(param);
+    }
     replacementMap[INPUT_SHADER_PARAMETER_OVERRIDES] = overrideString;
+    replacementMap[ENVIRONMENT_SHADER_PARAMETER_OVERRIDES] = envOverrideString;
     replacementMap[INPUT_SHADER_OUTPUT_STRING] = outputName;
     replacementMap[BACKGROUND_COLOR_STRING] = backgroundColor;
     string sceneString = replaceSubstrings(sceneTemplateString, replacementMap);

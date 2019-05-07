@@ -14,28 +14,12 @@ namespace mx = MaterialX;
 class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
 {
   public:
-    OslShaderRenderTester() :
-        _languageTargetString(mx::OslShaderGenerator::LANGUAGE + "_" +
-            mx::OslShaderGenerator::TARGET)
+    explicit OslShaderRenderTester(mx::ShaderGeneratorPtr shaderGenerator) :
+        RenderUtil::ShaderRenderTester(shaderGenerator)
     {
     }
 
   protected:
-    bool runTest(const RenderUtil::RenderTestOptions& testOptions) const override
-    {
-        return (testOptions.languageAndTargets.count(_languageTargetString) > 0);
-    }
-
-    const std::string& languageTargetString() override
-    {
-        return _languageTargetString;
-    }
-
-    void createShaderGenerator() override
-    {
-        _shaderGenerator = mx::OslShaderGenerator::create();
-    }
-
     void registerSourceCodeSearchPaths(mx::GenContext& context) override
     {
         // Include extra OSL implementation files
@@ -57,7 +41,6 @@ class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
 
     void getImplementationWhiteList(mx::StringSet& whiteList) override;
 
-    std::string _languageTargetString;
     mx::OslValidatorPtr _validator;
 };
 
@@ -155,6 +138,7 @@ bool OslShaderRenderTester::runValidator(const std::string& shaderName,
                 RenderUtil::AdditiveScopedTimer genTimer(profileTimes.languageTimes.generationTime, "OSL generation time");
                 mx::GenOptions& contextOptions = context.getOptions();
                 contextOptions = options;
+                contextOptions.targetColorSpaceOverride = "lin_rec709";
                 shader = shadergen.generate(shaderName, element, context);
             }
             catch (mx::Exception& e)
@@ -224,12 +208,15 @@ bool OslShaderRenderTester::runValidator(const std::string& shaderName,
                     const mx::VariableBlock& uniforms = stage.getUniformBlock(mx::OSL::UNIFORMS);
 
                     mx::StringVec overrides;
+                    mx::StringVec envOverrides;
                     mx::StringMap separatorMapper;
                     separatorMapper["\\\\"] = "/";
                     separatorMapper["\\"] = "/";
                     for (size_t i = 0; i<uniforms.size(); ++i)
                     {
                         const mx::ShaderPort* uniform = uniforms[i];
+
+                        // Bind input images
                         if (uniform->getType() != MaterialX::Type::FILENAME)
                         {
                             continue;
@@ -251,7 +238,12 @@ bool OslShaderRenderTester::runValidator(const std::string& shaderName,
                             }
                         }
                     }
+                    // Bind IBL image name overrides.
+                    std::string envmap_filename("string envmap_filename \"resources/Images/san_giuseppe_bridge.hdr\";\n");
+                    envOverrides.push_back(envmap_filename);
+
                     _validator->setShaderParameterOverrides(overrides);
+                    _validator->setEnvShaderParameterOverrides(envOverrides);
 
                     const mx::VariableBlock& outputs = stage.getOutputBlock(mx::OSL::OUTPUTS);
                     if (outputs.size() > 0)
@@ -326,7 +318,7 @@ void OslShaderRenderTester::getImplementationWhiteList(mx::StringSet& whiteList)
 
 TEST_CASE("Render: OSL TestSuite", "[renderosl]")
 {
-    OslShaderRenderTester renderTester;
+    OslShaderRenderTester renderTester(mx::OslShaderGenerator::create());
 
     mx::FilePathVec testRootPaths;
     mx::FilePath testRoot = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");

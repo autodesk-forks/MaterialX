@@ -379,7 +379,6 @@ void ShaderGeneratorTester::addSkipFiles()
 {
     _skipFiles.insert("_options.mtlx");
     _skipFiles.insert("light_rig.mtlx");
-    _skipFiles.insert("lightcompoundtest_ng.mtlx");
     _skipFiles.insert("lightcompoundtest.mtlx");
     _skipFiles.insert("default_viewer_lights.mtlx");
 }
@@ -451,9 +450,6 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
     // Start logging
     _logFile.open(_logFilePath);
 
-    // Generator setup
-    createGenerator();
-
     // Dependent library setup
     setupDependentLibraries();
     addColorManagement();
@@ -523,7 +519,7 @@ void ShaderGeneratorTester::testGeneration(const mx::GenOptions& generateOptions
         }
         CHECK(docValid);
 
-        // Traverse the renderable documents and run validation the validation step
+        // Traverse the renderable documents and run the validation step
         int missingNodeDefs = 0;
         int missingImplementations = 0;
         int codeGenerationFailures = 0;

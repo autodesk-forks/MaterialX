@@ -34,7 +34,10 @@ class DocumentModifiers
 class Material
 {
   public:
-    Material() {}
+    Material() :
+        _hasTransparency(false)
+    {
+    }
     ~Material() { }
 
     static MaterialPtr create()
@@ -88,6 +91,13 @@ class Material
                                 const std::string& shaderName,
                                 const mx::Color3& color);
 
+    /// Generate an unshaded image shader
+    bool generateImageShader(mx::GenContext& context,
+                             mx::DocumentPtr stdLib,
+                             const std::string& shaderName,
+                             const mx::FilePath& imagePath,
+                             const std::string& addressMode);
+
     /// Return the underlying OpenGL shader.
     GLShaderPtr getShader() const
     {
@@ -113,11 +123,11 @@ class Material
 
     /// Bind a single image.
     bool bindImage(std::string filename, const std::string& uniformName, mx::GLTextureHandlerPtr imageHandler,
-                   mx::ImageDesc& desc, const std::string& udim = mx::EMPTY_STRING, mx::Color4* fallbackColor = nullptr);
+                   mx::ImageDesc& desc, const mx::ImageSamplingProperties& samplingProperties, const std::string& udim = mx::EMPTY_STRING, mx::Color4* fallbackColor = nullptr);
 
     /// Bind lights to shader.
     void bindLights(mx::LightHandlerPtr lightHandler, mx::GLTextureHandlerPtr imageHandler, const mx::FileSearchPath& imagePath, 
-                    int envSamples, bool directLighting, bool indirectLighting);
+                    bool directLighting, bool indirectLighting, mx::HwSpecularEnvironmentMethod specularEnvironmentMethod, int envSamples);
 
     /// Bind the given mesh to this material.
     void bindMesh(mx::MeshPtr mesh) const;
