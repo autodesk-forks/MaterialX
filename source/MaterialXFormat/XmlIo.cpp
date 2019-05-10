@@ -190,7 +190,8 @@ void processXIncludes(DocumentPtr doc, xml_node& xmlNode, const string& searchPa
                             includeSearchPath = filePath.asString() + PATH_LIST_SEPARATOR + searchPath;
                         }
                     }
-                    else
+                    // Set default search path if no parent path found
+                    if (includeSearchPath.empty())
                     {
                         includeSearchPath = searchPath;
                     }
