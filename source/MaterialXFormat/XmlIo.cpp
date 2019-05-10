@@ -170,7 +170,22 @@ void processXIncludes(DocumentPtr doc, xml_node& xmlNode, const string& searchPa
                 DocumentPtr library = createDocument();
                 XmlReadOptions xiReadOptions = readOptions ? *readOptions : XmlReadOptions();
                 xiReadOptions.parentXIncludes.push_back(filename);
-                readXIncludeFunction(library, filename, searchPath, &xiReadOptions);
+
+                // Prepend the directory of the parent to accomodate
+                // includes relative the the parent file location.
+                string includeSarchPath(searchPath);
+                string parentUri = doc->getSourceUri();
+                if (!parentUri.empty())
+                {
+                    FileSearchPath s(searchPath);
+                    FilePath filePath = s.find(parentUri);
+                    if (!filePath.isEmpty())
+                    {
+                        filePath.pop();
+                        includeSarchPath = filePath.asString() + PATH_LIST_SEPARATOR + searchPath;
+                    }
+                }
+                readXIncludeFunction(library, filename, includeSarchPath, &xiReadOptions);
 
                 // Import the library document.
                 doc->importLibrary(library, readOptions);
@@ -259,7 +274,6 @@ void readFromXmlFile(DocumentPtr doc, const string& filename, const string& sear
     xml_document xmlDoc;
     xmlDocumentFromFile(xmlDoc, filename, searchPath);
 
-    documentFromXml(doc, xmlDoc, searchPath, readOptions);
     if (readOptions && !readOptions->parentXIncludes.empty())
     {
         doc->setSourceUri(readOptions->parentXIncludes[0]);
@@ -268,6 +282,7 @@ void readFromXmlFile(DocumentPtr doc, const string& filename, const string& sear
     {
         doc->setSourceUri(filename);
     }
+    documentFromXml(doc, xmlDoc, searchPath, readOptions);
 }
 
 void readFromXmlString(DocumentPtr doc, const string& str, const XmlReadOptions* readOptions)
