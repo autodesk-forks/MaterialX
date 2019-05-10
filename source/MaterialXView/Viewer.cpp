@@ -188,7 +188,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     }
 
     // Construct the appropriate image handler for this build.
-    // Most recently added load will be checked first.
+    // Most recently added loader will be checked first.
     mx::ImageLoaderPtr stdImageLoader = mx::StbImageLoader::create();
     _imageHandler = mx::GLTextureHandler::create(stdImageLoader);
 #if MATERIALX_BUILD_OIIO
@@ -1018,7 +1018,7 @@ void Viewer::drawContents()
         {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT);
-            envShader->bind();            
+            envShader->bind();
             _envMaterial->bindViewInformation(_envMatrix, view, proj);
             _envMaterial->bindImages(_imageHandler, _searchPath, _envMaterial->getUdim());
             _envMaterial->drawPartition(envPart);
