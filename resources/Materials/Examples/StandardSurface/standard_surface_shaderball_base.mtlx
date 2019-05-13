@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <materialx version="1.36">
-  <material name="Default">
+  <material name="Default_Base">
     <shaderref name="SR_shaderball_base" node="standard_surface">
       <bindinput name="base" type="float" value="0.8"/>
       <bindinput name="base_color" type="color3" value="0.114, 0.114, 0.114"/>
