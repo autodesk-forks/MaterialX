@@ -221,7 +221,7 @@ void MeshStream::transform(const Matrix44 &matrix)
            getType() == MeshStream::TEXCOORD_ATTRIBUTE ||
            getType() == MeshStream::GEOMETRY_PROPERTY_ATTRIBUTE)
         {
-            vec = matrix.transform(vec);
+            vec = matrix.multiply(vec);
         }
         else if(getType() == MeshStream::NORMAL_ATTRIBUTE ||
                 getType() == MeshStream::TANGENT_ATTRIBUTE ||
