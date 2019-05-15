@@ -52,7 +52,7 @@ Tests the channel attribute for inputs and outputs
 
    <nodegraph name="color2_to_color4_arar_out" type="">
       <constant name="constant1" type="color2">
-         <parameter name="value" type="color2" value="0.5, 1.0" />
+         <parameter name="value" type="color2" value="1.0, 0.5" />
       </constant>
       <output name="out" type="color4" nodename="constant1" channels="arar" />
    </nodegraph>
@@ -149,7 +149,7 @@ Tests the channel attribute for inputs and outputs
 
    <nodegraph name="color2_to_color4_arar_in" type="">
       <constant name="constant1" type="color2">
-         <parameter name="value" type="color2" value="0.5, 1.0" />
+         <parameter name="value" type="color2" value="1.0, 0.5" />
       </constant>
       <add name="add1" type="color4">
          <input name="in1" type="color4" nodename="constant1" channels="arar" />
