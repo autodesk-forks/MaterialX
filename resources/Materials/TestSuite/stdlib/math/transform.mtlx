@@ -104,7 +104,7 @@ Basic transform function tests each test is in a separate graph for each variati
   <nodegraph name="tf_vector_vector4M" xpos="6.77241" ypos="0.411679">
     <transformvector name="transformvector1" type="vector4" xpos="5.73505" ypos="11.4101">
       <input name="in" type="vector4" nodename="normal1" channels="xyz0"/>
-      <input name="mat" type="matrix44" value="0.5, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0" />
+      <input name="mat" type="matrix44" value="0.5, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0" />
     </transformvector>
     <output name="out" type="vector4" nodename="transformvector1" channels="xyz1"/>
     <normal name="normal1" type="vector3" xpos="4.77303" ypos="13.4329">
@@ -115,7 +115,7 @@ Basic transform function tests each test is in a separate graph for each variati
   <nodegraph name="tf_vector3_vector4M" xpos="6.93103" ypos="29.02">
     <transformvector name="transformvector3M4" type="vector3" xpos="5.1253" ypos="10.5662">
       <input name="in" type="vector3" value="1.0, 0.5, 0.0" nodename="normal1" />
-      <input name="mat" type="matrix44" value="0.5, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0" />
+      <input name="mat" type="matrix44" value="0.5, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0" />
     </transformvector>
     <output name="out" type="vector3" nodename="transformvector3M4" />
     <normal name="normal1" type="vector3" xpos="4.77303" ypos="13.4329">
@@ -150,7 +150,7 @@ Basic transform function tests each test is in a separate graph for each variati
   <nodegraph name="tf_normal3_vector4M" xpos="6.93103" ypos="29.02">
     <transformnormal name="transformnormal3M4" type="vector3" xpos="5.1253" ypos="10.5662">
       <input name="in" type="vector3" value="1.0, 0.5, 0.0" nodename="normal1" />
-      <input name="mat" type="matrix44" value="0.5, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0" />
+      <input name="mat" type="matrix44" value="0.5, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0" />
     </transformnormal>
     <output name="out" type="vector3" nodename="transformnormal3M4" />
     <normal name="normal1" type="vector3" xpos="4.77303" ypos="13.4329">
