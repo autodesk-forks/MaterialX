@@ -88,12 +88,12 @@ mx::DocumentPtr loadLibraries(const mx::StringVec& libraryFolders, const mx::Fil
 //
 
 Viewer::Viewer(const mx::StringVec& libraryFolders,
-    const mx::FileSearchPath& searchPath,
-    const std::string& meshFilename,
-    const std::string& materialFilename,
-    const DocumentModifiers& modifiers,
-    mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
-    int multiSampleCount) :
+               const mx::FileSearchPath& searchPath,
+               const std::string& meshFilename,
+               const std::string& materialFilename,
+               const DocumentModifiers& modifiers,
+               mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
+               int multiSampleCount) :
     ng::Screen(ng::Vector2i(1280, 960), "MaterialXView",
         true, false,
         8, 8, 24, 8,
@@ -177,7 +177,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _stdLib = loadLibraries(_libraryFolders, _searchPath);
     initializeDocument(_stdLib);
 
-    // Generate wireframe materials.
+    // Generate wireframe material.
     const std::string constantShaderName("__WIRE_SHADER_NAME__");
     const mx::Color3 color(1.0f);
     _wireMaterial = Material::create();
@@ -1051,7 +1051,7 @@ void Viewer::drawScene3D()
         }
         material->bindViewInformation(world, view, proj);
         material->bindLights(_lightHandler, _imageHandler, _searchPath, _directLighting, _indirectLighting,
-            _specularEnvironmentMethod, _envSamples);
+                             _specularEnvironmentMethod, _envSamples);
         material->bindImages(_imageHandler, _searchPath, material->getUdim());
         material->drawPartition(geom);
     }
@@ -1104,8 +1104,6 @@ void Viewer::drawScene3D()
         }
     }
 }
-
-using MatrixXfProxy = Eigen::Map<const ng::MatrixXf>;
 
 mx::MeshStreamPtr Viewer::createUvPositionStream(mx::MeshPtr mesh, 
                                                  const std::string& uvStreamName, 
@@ -1194,7 +1192,7 @@ void Viewer::drawScene2D()
         return;
     }
     mx::MeshFloatBuffer &buffer = uvStream3D->getData();
-    MatrixXfProxy positions(&buffer[0], uvStream3D->getStride(), buffer.size() / uvStream3D->getStride());
+    Eigen::Map<const ng::MatrixXf> positions(&buffer[0], uvStream3D->getStride(), buffer.size() / uvStream3D->getStride());
 
     shader->bind();
     shader->uploadAttrib("i_position", positions);
