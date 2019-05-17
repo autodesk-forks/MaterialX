@@ -88,12 +88,12 @@ mx::DocumentPtr loadLibraries(const mx::StringVec& libraryFolders, const mx::Fil
 //
 
 Viewer::Viewer(const mx::StringVec& libraryFolders,
-               const mx::FileSearchPath& searchPath,
-               const std::string& meshFilename,
-               const std::string& materialFilename,
-               const DocumentModifiers& modifiers,
-               mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
-               int multiSampleCount) :
+    const mx::FileSearchPath& searchPath,
+    const std::string& meshFilename,
+    const std::string& materialFilename,
+    const DocumentModifiers& modifiers,
+    mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
+    int multiSampleCount) :
     ng::Screen(ng::Vector2i(1280, 960), "MaterialXView",
         true, false,
         8, 8, 24, 8,
@@ -123,7 +123,10 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _specularEnvironmentMethod(specularEnvironmentMethod),
     _envSamples(DEFAULT_ENV_SAMPLES),
     _drawEnvironment(false),
-    _captureFrame(false)
+    _captureFrame(false),
+    _drawUVGeometry(false),
+    _uvScale(2.0f, 2.0f, 1.0f),
+    _uvTranslation(-0.5f, 0.5f, 0.0f)
 {
     _window = new ng::Window(this, "Viewer Options");
     _window->setPosition(ng::Vector2i(15, 15));
@@ -173,7 +176,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _stdLib = loadLibraries(_libraryFolders, _searchPath);
     initializeDocument(_stdLib);
 
-    // Generate wireframe material.
+    // Generate wireframe materials.
     const std::string constantShaderName("__WIRE_SHADER_NAME__");
     const mx::Color3 color(1.0f);
     _wireMaterial = Material::create();
@@ -989,15 +992,23 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
         return true;
     }
 
+    if (key == GLFW_KEY_U)
+    {
+        if (action == GLFW_PRESS)
+        {
+            _drawUVGeometry = true;
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            _drawUVGeometry = false;
+        }
+    }
+
     return false;
 }
 
-void Viewer::drawContents()
+void Viewer::drawScene3D()
 {
-    if (_geometryList.empty() || _materials.empty())
-    {
-        return;
-    }
 
     mx::Matrix44 world, view, proj;
     computeCameraMatrices(world, view, proj);
@@ -1045,7 +1056,7 @@ void Viewer::drawContents()
         }
         material->bindViewInformation(world, view, proj);
         material->bindLights(_lightHandler, _imageHandler, _searchPath, _directLighting, _indirectLighting,
-                             _specularEnvironmentMethod, _envSamples);
+            _specularEnvironmentMethod, _envSamples);
         material->bindImages(_imageHandler, _searchPath, material->getUdim());
         material->drawPartition(geom);
     }
@@ -1099,8 +1110,142 @@ void Viewer::drawContents()
     }
 }
 
+using MatrixXfProxy = Eigen::Map<const ng::MatrixXf>;
+
+mx::MeshStreamPtr Viewer::createUvPositionStream(mx::MeshPtr mesh, 
+                                                 const std::string& uvStreamName, 
+                                                 unsigned int index,
+                                                 const std::string& positionStreamName)
+{
+    mx::MeshStreamPtr uvStream3D = mesh->getStream(positionStreamName);
+    if (!uvStream3D)
+    {
+        uvStream3D = mx::MeshStream::create(positionStreamName, mx::MeshStream::POSITION_ATTRIBUTE, 0);
+        mesh->addStream(uvStream3D);
+
+        mx::MeshStreamPtr uvStream2D = mesh->getStream(uvStreamName, index);
+        mx::MeshFloatBuffer &uvPos2D = uvStream2D->getData();
+        mx::MeshFloatBuffer &uvPos3D = uvStream3D->getData();
+        size_t uvCount = uvPos2D.size() / 2;
+        uvPos3D.resize(uvCount * 3);
+        const float MAX_FLOAT = std::numeric_limits<float>::max();
+        mx::Vector3 boxMin = { MAX_FLOAT, MAX_FLOAT, 0.0f };
+        mx::Vector3 boxMax = { -MAX_FLOAT, -MAX_FLOAT, 0.0f };
+        for (size_t i = 0; i < uvCount; i++)
+        {
+            float u = uvPos2D[i * 2];
+            uvPos3D[i * 3] = u;
+            float v = uvPos2D[i * 2 + 1];
+            uvPos3D[i * 3 + 1] = v;
+            uvPos3D[i * 3 + 2] = 0.0f;
+
+            boxMin[0] = std::min(u, boxMin[0]);
+            boxMin[1] = std::min(v, boxMin[1]);
+            boxMax[0] = std::max(u, boxMax[0]);
+            boxMax[1] = std::max(v, boxMax[1]);
+        }
+
+        mx::Vector3 sphereCenter = (boxMax + boxMin) / 2.0;
+        float sphereRadius = (sphereCenter - boxMin).getMagnitude();
+        _uvScale[0] = 2.0f / sphereRadius;
+        _uvScale[1] = 2.0f / sphereRadius;
+        _uvScale[2] = 1.0f;
+        _uvTranslation[0] = -sphereCenter[0];
+        _uvTranslation[1] = -sphereCenter[1];
+        _uvTranslation[2] = 0.0f;
+    }
+
+    return uvStream3D;
+}
+
+void Viewer::drawScene2D()
+{
+    // Create uv shader if it does not exist
+    if (!_wireMaterialUV)
+    {
+        const std::string shaderName("__UV_WIRE_SHADER_NAME__");
+        const mx::Color3 color(1.0f);
+        _wireMaterialUV = Material::create();
+        try
+        {
+            _wireMaterialUV->generateConstantShader(_genContext, _stdLib, shaderName, color);
+        }
+        catch (std::exception& e)
+        {
+            _wireMaterialUV = nullptr;
+            std::cerr << "Failed to generate uv wire shader: " << e.what();
+            return;
+        }
+    }
+
+    GLShaderPtr shader = _wireMaterialUV ? _wireMaterialUV->getShader() : nullptr;
+    if (!shader || _geometryList.empty())
+    {
+        return;
+    }
+    if (shader->attrib("i_position") == -1)
+    {
+        return;
+    }
+
+    // Create and bind uvs as input positions
+    mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
+    const std::string uvStream3DName(mx::MeshStream::TEXCOORD_ATTRIBUTE + "_3D");
+    mx::MeshStreamPtr uvStream3D = createUvPositionStream(mesh, 
+                                                          mx::MeshStream::TEXCOORD_ATTRIBUTE, 0,
+                                                          uvStream3DName);
+    if (!uvStream3D)
+    {
+        return;
+    }
+    mx::MeshFloatBuffer &buffer = uvStream3D->getData();
+    MatrixXfProxy positions(&buffer[0], uvStream3D->getStride(), buffer.size() / uvStream3D->getStride());
+
+    shader->bind();
+    shader->uploadAttrib("i_position", positions);
+
+    // Compute matrices
+    mx::Matrix44 world, view, proj;
+    float fH = std::tan(_viewAngle / 360.0f * PI) * _nearDist;
+    float fW = fH * (float)mSize.x() / (float)mSize.y();
+    view = createViewMatrix(_eye, _center, _up);
+    proj = createPerspectiveMatrix(-fW, fW, -fH, fH, _nearDist, _farDist);
+    world = mx::Matrix44::createScale(_uvScale);
+    world *= mx::Matrix44::createTranslation(_uvTranslation).getTranspose();
+
+    _wireMaterialUV->bindViewInformation(world, view, proj);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    for (mx::MeshPartitionPtr geom : _geometryList)
+    {
+        _wireMaterialUV->drawPartition(geom);
+    }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void Viewer::drawContents()
+{
+    if (_geometryList.empty() || _materials.empty())
+    {
+        return;
+    }
+    if (_drawUVGeometry)
+    {
+        drawScene2D();
+    }
+    else
+    {
+        drawScene3D();
+    }
+}
+
 bool Viewer::scrollEvent(const ng::Vector2i& p, const ng::Vector2f& rel)
 {
+    if (_drawUVGeometry)
+    {
+        return true;
+    }
+
     if (!Screen::scrollEvent(p, rel))
     {
         _zoom = std::max(0.1f, _zoom * ((rel.y() > 0) ? 1.1f : 0.9f));
@@ -1113,6 +1258,11 @@ bool Viewer::mouseMotionEvent(const ng::Vector2i& p,
                               int button,
                               int modifiers)
 {
+    if (_drawUVGeometry)
+    {
+        return true;
+    }
+
     if (Screen::mouseMotionEvent(p, rel, button, modifiers))
     {
         return true;
@@ -1162,6 +1312,10 @@ bool Viewer::mouseMotionEvent(const ng::Vector2i& p,
 
 bool Viewer::mouseButtonEvent(const ng::Vector2i& p, int button, bool down, int modifiers)
 {
+    if (_drawUVGeometry)
+    {
+        return true;
+    }
     if (!Screen::mouseButtonEvent(p, button, down, modifiers))
     {
         if (button == GLFW_MOUSE_BUTTON_1 && !modifiers)
