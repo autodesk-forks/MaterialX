@@ -552,7 +552,6 @@ class Matrix33 : public MatrixN<Matrix33, float, 3>
     Vector2 transformPoint(const Vector2& rhs) const;
     Vector2 transformVector(const Vector2& rhs) const;
     Vector3 transformNormal(const Vector3& rhs) const;
-    Vector2 transformNormal(const Vector2& rhs) const;
 
     /// @}
     /// @name 2D Transformations
@@ -599,7 +598,6 @@ class Matrix44 : public MatrixN<Matrix44, float, 4>
     Vector4 multiply(const Vector4& rhs) const;
     Vector3 transformPoint(const Vector3& rhs) const;
     Vector3 transformVector(const Vector3& rhs) const;
-    Vector4 transformNormal(const Vector4& rhs) const;
     Vector3 transformNormal(const Vector3& rhs) const;
 
     /// @}

@@ -113,13 +113,6 @@ Vector3 Matrix33::transformNormal(const Vector3& rhs) const
     return getInverse().getTranspose().multiply(rhs);
 }
 
-Vector2 Matrix33::transformNormal(const Vector2& rhs) const
-{
-    Vector3 rhs3(rhs[0], rhs[1], 0.0f);
-    rhs3 = transformNormal(rhs3);
-    return Vector2(rhs3[0], rhs3[1]);
-}
-
 Matrix33 Matrix33::createTranslation(const Vector2& v)
 {
     return Matrix33(1.0f, 0.0f, 0.0f,
@@ -245,15 +238,10 @@ Vector3 Matrix44::transformVector(const Vector3& rhs) const
     return Vector3(rhs4[0], rhs4[1], rhs4[2]);
 }
 
-Vector4 Matrix44::transformNormal(const Vector4& rhs) const
-{
-    return getInverse().getTranspose().multiply(rhs);
-}
-
 Vector3 Matrix44::transformNormal(const Vector3& rhs) const
 {
     Vector4 rhs4(rhs[0], rhs[1], rhs[2], 0.0f);
-    rhs4 = transformNormal(rhs4);
+    rhs4 = getInverse().getTranspose().multiply(rhs4);
     return Vector3(rhs4[0], rhs4[1], rhs4[2]);
 }
 
