@@ -174,11 +174,12 @@ class Viewer : public ng::Screen
     bool _captureFrame;
     mx::FilePath _captureFrameFileName;
 
-    // Draw uvs
+    // UV wireframe drawing
     bool _drawUVGeometry;
     MaterialPtr _wireMaterialUV;
     mx::Vector3 _uvScale;
     mx::Vector3 _uvTranslation;
+    float _uvZoom;
 };
 
 #endif // MATERIALXVIEW_VIEWER_H

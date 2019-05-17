@@ -126,7 +126,8 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _captureFrame(false),
     _drawUVGeometry(false),
     _uvScale(2.0f, 2.0f, 1.0f),
-    _uvTranslation(-0.5f, 0.5f, 0.0f)
+    _uvTranslation(-0.5f, 0.5f, 0.0f),
+    _uvZoom(1.0f)
 {
     _window = new ng::Window(this, "Viewer Options");
     _window->setPosition(ng::Vector2i(15, 15));
@@ -992,16 +993,10 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
         return true;
     }
 
-    if (key == GLFW_KEY_U)
+    if ((key == GLFW_KEY_U) && (action == GLFW_PRESS))
     {
-        if (action == GLFW_PRESS)
-        {
-            _drawUVGeometry = true;
-        }
-        else if (action == GLFW_RELEASE)
-        {
-            _drawUVGeometry = false;
-        }
+        _drawUVGeometry = !_drawUVGeometry;
+        return true;
     }
 
     return false;
@@ -1210,7 +1205,7 @@ void Viewer::drawScene2D()
     float fW = fH * (float)mSize.x() / (float)mSize.y();
     view = createViewMatrix(_eye, _center, _up);
     proj = createPerspectiveMatrix(-fW, fW, -fH, fH, _nearDist, _farDist);
-    world = mx::Matrix44::createScale(_uvScale);
+    world = mx::Matrix44::createScale(_uvScale * _uvZoom);
     world *= mx::Matrix44::createTranslation(_uvTranslation).getTranspose();
 
     _wireMaterialUV->bindViewInformation(world, view, proj);
@@ -1241,14 +1236,16 @@ void Viewer::drawContents()
 
 bool Viewer::scrollEvent(const ng::Vector2i& p, const ng::Vector2f& rel)
 {
-    if (_drawUVGeometry)
-    {
-        return true;
-    }
-
     if (!Screen::scrollEvent(p, rel))
     {
-        _zoom = std::max(0.1f, _zoom * ((rel.y() > 0) ? 1.1f : 0.9f));
+        if (_drawUVGeometry)
+        {
+            _uvZoom = std::max(0.1f, _uvZoom * ((rel.y() > 0) ? 1.1f : 0.9f));
+        }
+        else
+        {
+            _zoom = std::max(0.1f, _zoom * ((rel.y() > 0) ? 1.1f : 0.9f));;
+        }
     }
     return true;
 }
@@ -1258,12 +1255,12 @@ bool Viewer::mouseMotionEvent(const ng::Vector2i& p,
                               int button,
                               int modifiers)
 {
-    if (_drawUVGeometry)
+    if (Screen::mouseMotionEvent(p, rel, button, modifiers))
     {
         return true;
     }
 
-    if (Screen::mouseMotionEvent(p, rel, button, modifiers))
+    if (_drawUVGeometry)
     {
         return true;
     }
@@ -1312,23 +1309,26 @@ bool Viewer::mouseMotionEvent(const ng::Vector2i& p,
 
 bool Viewer::mouseButtonEvent(const ng::Vector2i& p, int button, bool down, int modifiers)
 {
+    if (Screen::mouseButtonEvent(p, button, down, modifiers))
+    {
+        return true;
+    }
+
     if (_drawUVGeometry)
     {
         return true;
     }
-    if (!Screen::mouseButtonEvent(p, button, down, modifiers))
+
+    if (button == GLFW_MOUSE_BUTTON_1 && !modifiers)
     {
-        if (button == GLFW_MOUSE_BUTTON_1 && !modifiers)
-        {
-            _arcball.button(p, down);
-        }
-        else if (button == GLFW_MOUSE_BUTTON_2 ||
-                (button == GLFW_MOUSE_BUTTON_1 && modifiers == GLFW_MOD_SHIFT))
-        {
-            _modelTranslationStart = _modelTranslation;
-            _translationActive = true;
-            _translationStart = p;
-        }
+        _arcball.button(p, down);
+    }
+    else if (button == GLFW_MOUSE_BUTTON_2 ||
+            (button == GLFW_MOUSE_BUTTON_1 && modifiers == GLFW_MOD_SHIFT))
+    {
+        _modelTranslationStart = _modelTranslation;
+        _translationActive = true;
+        _translationStart = p;
     }
     if (button == GLFW_MOUSE_BUTTON_1 && !down)
     {
