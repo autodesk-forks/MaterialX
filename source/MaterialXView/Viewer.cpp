@@ -1021,33 +1021,51 @@ void Viewer::drawScene3D()
         }
     }
 
-    mx::TypedElementPtr lastBoundShader;
+    // Opaque pass
+    glDisable(GL_BLEND);
     for (auto assignment : _materialAssignments)
     {
         mx::MeshPartitionPtr geom = assignment.first;
         MaterialPtr material = assignment.second;
-        mx::TypedElementPtr shader = material->getElement();
-
-        material->bindShader();
         if (material->hasTransparency())
         {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            continue;
         }
-        else
+        mx::TypedElementPtr shader = material->getElement();
+        material->bindShader();
+        material->bindViewInformation(world, view, proj);
+        material->bindLights(_lightHandler, _imageHandler, _searchPath, _directLighting, _indirectLighting,
+                                _specularEnvironmentMethod, _envSamples);
+        material->bindImages(_imageHandler, _searchPath, material->getUdim());
+        material->drawPartition(geom);
+    }
+
+    // Transparent pass
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // Cull back-faces otherwise they render black (unlit)
+    glEnable(GL_CULL_FACE);
+    for (auto assignment : _materialAssignments)
+    {
+        mx::MeshPartitionPtr geom = assignment.first;
+        MaterialPtr material = assignment.second;
+        if (!material->hasTransparency())
         {
-            glDisable(GL_BLEND);
+            continue;
         }
+        mx::TypedElementPtr shader = material->getElement();
+        material->bindShader();
         material->bindViewInformation(world, view, proj);
         material->bindLights(_lightHandler, _imageHandler, _searchPath, _directLighting, _indirectLighting,
                              _specularEnvironmentMethod, _envSamples);
         material->bindImages(_imageHandler, _searchPath, material->getUdim());
         material->drawPartition(geom);
     }
-
+    glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     glDisable(GL_FRAMEBUFFER_SRGB);
 
+    // Wireframe pass
     if (_outlineSelection)
     {
         GLShaderPtr shader = _wireMaterial->getShader();
@@ -1198,9 +1216,17 @@ void Viewer::drawScene2D()
     _wireMaterialUV->bindViewInformation(world, view, proj);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    for (mx::MeshPartitionPtr geom : _geometryList)
+    if (_outlineSelection && (_selectedGeom < _geometryList.size()))
     {
-        _wireMaterialUV->drawPartition(geom);
+        mx::MeshPartitionPtr activeGeom = _geometryList[_selectedGeom];
+        _wireMaterialUV->drawPartition(activeGeom);
+    }
+    else
+    {
+        for (mx::MeshPartitionPtr geom : _geometryList)
+        {
+            _wireMaterialUV->drawPartition(geom);
+        }
     }
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
