@@ -160,7 +160,10 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _materialSelectionBox->setCallback([this](int choice)
     {
         setMaterialSelection(choice);
-        assignMaterial(_materials[_selectedMaterial], _geometryList[_selectedGeom]);
+        if (_selectedMaterial < _materials.size())
+        {
+            assignMaterial(_materials[_selectedMaterial], _geometryList[_selectedGeom]);
+        }
     });
 
     // Set default generator options.
@@ -1117,13 +1120,19 @@ mx::MeshStreamPtr Viewer::createUvPositionStream(mx::MeshPtr mesh,
                                                  unsigned int index,
                                                  const std::string& positionStreamName)
 {
+    // If there are no uvs to display then just return an empty 3d stream
+    mx::MeshStreamPtr uvStream2D = mesh->getStream(uvStreamName, index);
+    if (!uvStream2D)
+    {
+        return nullptr;
+    }
+
     mx::MeshStreamPtr uvStream3D = mesh->getStream(positionStreamName);
     if (!uvStream3D)
     {
         uvStream3D = mx::MeshStream::create(positionStreamName, mx::MeshStream::POSITION_ATTRIBUTE, 0);
         mesh->addStream(uvStream3D);
 
-        mx::MeshStreamPtr uvStream2D = mesh->getStream(uvStreamName, index);
         mx::MeshFloatBuffer &uvPos2D = uvStream2D->getData();
         mx::MeshFloatBuffer &uvPos3D = uvStream3D->getData();
         size_t uvCount = uvPos2D.size() / 2;
@@ -1178,7 +1187,7 @@ void Viewer::drawScene2D()
         }
     }
 
-    GLShaderPtr shader = _wireMaterialUV ? _wireMaterialUV->getShader() : nullptr;
+    GLShaderPtr shader = _wireMaterialUV->getShader();
     if (!shader || _geometryList.empty())
     {
         return;
