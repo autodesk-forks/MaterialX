@@ -56,56 +56,58 @@ macro(DEPEND_MAYAAPI_LINK targetname)
     ENDFOREACH(F)
 endmacro(DEPEND_MAYAAPI_LINK)
 
-# Adjust compiler settings
-if(MSVC)
-    if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-        string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+if (EXISTS "${MAYA_DEBUG_DIR}" OR EXISTS "${MAYA_RELEASE_DIR}")
+    # Adjust compiler settings
+    if(MSVC)
+        if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+            string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+        else()
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+        endif()
     endif()
+
+    file(GLOB _source  "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+    file(GLOB _headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+
+    file(GLOB _scripts "${CMAKE_CURRENT_SOURCE_DIR}/*.mel")
+    file(GLOB _mods "${CMAKE_CURRENT_SOURCE_DIR}/*.mod")
+
+    source_group("Header Files" FILES ${_headers})
+    source_group("Source Files" FILES ${_source})
+
+    add_library(MaterialXNode SHARED
+        ${_source}
+        ${_headers}
+    )
+
+    set_target_properties(
+        MaterialXNode
+        PROPERTIES
+        OUTPUT_NAME MaterialXNode
+        COMPILE_FLAGS "${EXTERNAL_COMPILE_FLAGS}"
+        LINK_FLAGS "${EXTERNAL_LINK_FLAGS}"
+        VERSION ${MATERIALX_NODE_VERSION}
+        SOVERSION ${MATERIALX_NODE_VERSION}
+        PREFIX ""
+        SUFFIX ".mll"
+    )
+
+    include_directories(
+        ${EXTERNAL_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
+    )
+    DEPEND_MAYAAPI_INCLUDE()
+
+    target_link_libraries(
+        MaterialXNode
+        MaterialXCore
+        MaterialXFormat
+        ${CMAKE_DL_LIBS}
+    )
+    DEPEND_MAYAAPI_LINK(MaterialXNode)
+
+    install(TARGETS MaterialXNode DESTINATION ${CMAKE_INSTALL_PREFIX}/MaterialXNode/plug-ins)
+    install(FILES ${_scripts} DESTINATION ${CMAKE_INSTALL_PREFIX}/MaterialXNode/scripts)
+    install(FILES ${_mods} DESTINATION ${CMAKE_INSTALL_PREFIX}/MaterialXNode)
 endif()
-
-file(GLOB _source  "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-file(GLOB _headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
-
-file(GLOB _scripts "${CMAKE_CURRENT_SOURCE_DIR}/*.mel")
-file(GLOB _mods "${CMAKE_CURRENT_SOURCE_DIR}/*.mod")
-
-source_group("Header Files" FILES ${_headers})
-source_group("Source Files" FILES ${_source})
-
-add_library(MaterialXNode SHARED
-    ${_source}
-    ${_headers}
-)
-
-set_target_properties(
-    MaterialXNode
-    PROPERTIES
-    OUTPUT_NAME MaterialXNode
-    COMPILE_FLAGS "${EXTERNAL_COMPILE_FLAGS}"
-    LINK_FLAGS "${EXTERNAL_LINK_FLAGS}"
-    VERSION ${MATERIALX_NODE_VERSION}
-    SOVERSION ${MATERIALX_NODE_VERSION}
-    PREFIX ""
-    SUFFIX ".mll"
-)
-
-include_directories(
-    ${EXTERNAL_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../source
-)
-DEPEND_MAYAAPI_INCLUDE()
-
-target_link_libraries(
-    MaterialXNode
-    MaterialXCore
-    MaterialXFormat
-    ${CMAKE_DL_LIBS}
-)
-DEPEND_MAYAAPI_LINK(MaterialXNode)
-
-install(TARGETS MaterialXNode DESTINATION ${CMAKE_INSTALL_PREFIX}/MaterialXNode/plug-ins)
-install(FILES ${_scripts} DESTINATION ${CMAKE_INSTALL_PREFIX}/MaterialXNode/scripts)
-install(FILES ${_mods} DESTINATION ${CMAKE_INSTALL_PREFIX}/MaterialXNode)
