@@ -40,7 +40,10 @@ enum HwSpecularEnvironmentMethod
 
     /// Use Filtered Importance Sampling for
     /// specular environment/indirect lighting.
-    SPECULAR_ENVIRONMENT_FIS
+    SPECULAR_ENVIRONMENT_FIS,
+
+    /// Do not use specular environment maps
+    SPECULAR_ENVIRONMENT_NONE
 };
 
 /// @class GenOptions 
