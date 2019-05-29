@@ -6,7 +6,7 @@
 
 class MaterialXNode : public MPxNode
 {
-public:
+  public:
 	MaterialXNode();
 	~MaterialXNode() override;
 
@@ -16,6 +16,9 @@ public:
 
 	static const MTypeId s_typeId;
 	static const MString s_typeName;
+	static MObject s_materialXAttr;
+	static MObject s_targetAttr;
+
 };
 
-#endif /* MATERIALXNODE_H */
+#endif /* MATERIALX_NODE_H */

@@ -103,6 +103,8 @@ if (EXISTS "${MAYA_DEBUG_DIR}" OR EXISTS "${MAYA_RELEASE_DIR}")
         MaterialXNode
         MaterialXCore
         MaterialXFormat
+        MaterialXGenShader
+        MaterialXRender
         ${CMAKE_DL_LIBS}
     )
     DEPEND_MAYAAPI_LINK(MaterialXNode)

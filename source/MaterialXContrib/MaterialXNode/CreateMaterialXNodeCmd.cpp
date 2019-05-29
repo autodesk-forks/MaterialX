@@ -1,8 +1,10 @@
 #include "CreateMaterialXNodeCmd.h"
 #include "MaterialXNode.h"
+#include "Utils.h"
+#include "Plugin.h"
 
-#include <MaterialXCore/Document.h>
 #include <MaterialXFormat/XmlIo.h>
+#include <MaterialXGenShader/Util.h>
 
 #include <maya/MArgParser.h>
 #include <maya/MSelectionList.h>
@@ -11,6 +13,7 @@
 #include <maya/MArgDatabase.h>
 #include <maya/MStringArray.h>
 #include <maya/MFnNumericAttribute.h>
+#include <maya/MFnTypedAttribute.h>
 #include <maya/MGlobal.h>
 
 #include <algorithm>
@@ -53,37 +56,36 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 	}
 	if (materialXDocument.length() > 0 && targetString.length() > 0)
 	{
+		// Load document
+		MaterialX::DocumentPtr doc = MaterialX::createDocument();
+		MaterialX::readFromXmlFile(doc, materialXDocument.asChar());
+
+		// Load libraries
+		MaterialX::FilePath libSearchPath = Plugin::instance().getLibrarySearchPath();
+		const MaterialX::StringVec libraries = { "stdlib", "pbrlib" };
+		loadLibraries(libraries, libSearchPath, doc);
+
+		// Check to make sure the targetString is a valid output node
+		if (!validOutputSpecified(doc, targetString.asChar()))
+		{
+			displayError("A valid output path must be specified");
+			return MS::kFailure;
+		}
+
+		// Create the MaterialX node
 		MObject materialXObject = m_dgMod.createNode(MaterialXNode::s_typeId);
+
+		// Generate a valid Maya node name from the path string (converting '/'s to '_'s)
 		std::string nodeName = targetString.asChar();
 		std::replace(nodeName.begin(), nodeName.end(), '/', '_');
 		m_dgMod.renameNode(materialXObject, nodeName.c_str());
 
-		MaterialX::DocumentPtr doc = MaterialX::createDocument();
-		MaterialX::readFromXmlFile(doc, materialXDocument.asChar());
+		std::string materialXDocumentContents = MaterialX::writeToXmlString(doc);
+		MPlug materialXPlug(materialXObject, MaterialXNode::s_materialXAttr);
+		m_dgMod.newPlugValueString(materialXPlug, materialXDocumentContents.c_str());
 
-		MaterialX::ElementPtr element = doc->getDescendant(targetString.asChar());
-		if (element->isA<MaterialX::Node>())
-		{
-			// Create attributes for all inputs/parameters on the node
-			MaterialX::NodePtr node = element->asA<MaterialX::Node>();
-			for (MaterialX::ElementPtr element2 : node->getChildren())
-			{
-				if (element2->isA<MaterialX::Input>())
-				{
-					MaterialX::InputPtr input = element2->asA<MaterialX::Input>();
-					createAttribute(materialXObject, input->getName(), input->getType(), input->getValue()->getValueString());
-				}
-				if (element2->isA<MaterialX::Parameter>())
-				{
-					MaterialX::ParameterPtr parameter = element2->asA<MaterialX::Parameter>();
-					createAttribute(materialXObject, parameter->getName(), parameter->getType(), parameter->getValue()->getValueString());
-				}
-			}
-		}
-		else if (element->isA<MaterialX::NodeGraph>())
-		{
-			// TODO: Implement me!
-		}
+		MPlug targetPlug(materialXObject, MaterialXNode::s_targetAttr);
+		m_dgMod.newPlugValueString(targetPlug, targetString);
 
 		m_dgMod.doIt();
 	}
@@ -104,97 +106,119 @@ void* CreateMaterialXNodeCmd::creator()
 	return new CreateMaterialXNodeCmd();
 }
 
-// Retrieves the floating point values from a string
-void getValues(const std::string& value, std::vector<double> &results, int numValues)
+// Determines whether the output specified is valid
+bool CreateMaterialXNodeCmd::validOutputSpecified(MaterialX::DocumentPtr doc, const std::string &targetOutputPath)
 {
-	std::stringstream ss(value);
-	std::string s;
-	int i = 0;
-	while (getline(ss, s, ' ') && i++ < numValues) {
-		results.push_back(std::stod(s));
+	std::vector<MaterialX::TypedElementPtr> elements;
+	MaterialX::findRenderableElements(doc, elements);
+	for (MaterialX::TypedElementPtr element : elements)
+	{
+		if (element->getNamePath() == targetOutputPath)
+		{
+			return true;
+		}
 	}
+	return false;
 }
 
 // Sets the value of the specified MaterialXNode attribute
-void CreateMaterialXNodeCmd::setAttributeValue(MObject &materialXObject, MObject &attr, std::vector<double> &values)
+void CreateMaterialXNodeCmd::setAttributeValue(MObject &materialXObject, MObject &attr, const float* values, unsigned int size)
 {
 	MPlug plug(materialXObject, attr);
-	int i = 0;
-	if (values.size() == 1)
+	if (size == 1)
 	{
-		m_dgMod.newPlugValueDouble(plug, values[0]);
+		m_dgMod.newPlugValueDouble(plug, *values);
 	}
 	else
 	{
-		for (double value : values)
+		for (unsigned int i=0; i<size; i++)
 		{
-			MPlug indexPlug = plug.child(i++);
-			m_dgMod.newPlugValueDouble(indexPlug, value);
+			MPlug indexPlug = plug.child(i);
+			m_dgMod.newPlugValueDouble(indexPlug, values[i]);
 		}
 	}
 }
 
-// Creates the specified attribute on the provided MaterialXNode
-void CreateMaterialXNodeCmd::createAttribute(MObject &materialXObject, const std::string &name, const std::string &type, const std::string &value)
+void  CreateMaterialXNodeCmd::setAttributeValue(MObject &materialXObject, MObject &attr, const std::string& stringValue)
+{
+	MPlug plug(materialXObject, attr);
+	m_dgMod.newPlugValueString(plug, stringValue.c_str());
+}
+
+void CreateMaterialXNodeCmd::createAttribute(MObject &materialXObject, const std::string& /*name*/, const MaterialX::UIPropertyItem& propertyItem)
 {
 	MFnNumericAttribute numericAttr;
+	MFnTypedAttribute typedAttr;
 	MObject attr;
-	if (type == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
-	{
-		attr = numericAttr.create(name.c_str(), name.c_str(), MFnNumericData::k2Double, 0.0);
-		std::vector<double> values;
-		getValues(value, values, 2);
-		m_dgMod.addAttribute(materialXObject, attr);
-		setAttributeValue(materialXObject, attr, values);
-	}
-	else if (type == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
-	{
-		attr = numericAttr.create(name.c_str(), name.c_str(), MFnNumericData::k3Double, 0.0);
-		std::vector<double> values;
-		getValues(value, values, 3);
-		m_dgMod.addAttribute(materialXObject, attr);
-		setAttributeValue(materialXObject, attr, values);
-	}
-	else if (type == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
-	{
-		attr = numericAttr.create(name.c_str(), name.c_str(), MFnNumericData::k4Double, 0.0);
-		std::vector<double> values;
-		getValues(value, values, 4);
-		m_dgMod.addAttribute(materialXObject, attr);
-		setAttributeValue(materialXObject, attr, values);
-	}
-	else if (type == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
-	{
-		attr = numericAttr.create(name.c_str(), name.c_str(), MFnNumericData::k2Double, 0.0);
-		std::vector<double> values;
-		getValues(value, values, 2);
-		m_dgMod.addAttribute(materialXObject, attr);
-		setAttributeValue(materialXObject, attr, values);
-	}
-	else if (type == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
-	{
-		attr = numericAttr.create(name.c_str(), name.c_str(), MFnNumericData::k3Double, 0.0);
-		std::vector<double> values;
-		getValues(value, values, 3);
-		m_dgMod.addAttribute(materialXObject, attr);
-		setAttributeValue(materialXObject, attr, values);
-	}
-	else if (type == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
-	{
-		attr = numericAttr.create(name.c_str(), name.c_str(), MFnNumericData::k4Double, 0.0);
-		std::vector<double> values;
-		getValues(value, values, 4);
-		m_dgMod.addAttribute(materialXObject, attr);
-		setAttributeValue(materialXObject, attr, values);
-	}
-	else if (type == MaterialX::TypedValue<float>::TYPE)
-	{
-		attr = numericAttr.create(name.c_str(), name.c_str(), MFnNumericData::kDouble, 0.0);
-		std::vector<double> values;
-		getValues(value, values, 1);
-		m_dgMod.addAttribute(materialXObject, attr);
-		setAttributeValue(materialXObject, attr, values);
-	}
 
-	// TODO: Implement other data types
+	std::string label = propertyItem.label;
+	MaterialX::ValuePtr value = propertyItem.value;
+	if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
+	{
+		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::k2Double, 0.0);
+		m_dgMod.addAttribute(materialXObject, attr);
+		MaterialX::Color2 color2 = value->asA<MaterialX::Color2>();
+		setAttributeValue(materialXObject, attr, color2.data(), 2);
+	}
+	else if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
+	{
+		attr = numericAttr.createColor(label.c_str(), label.c_str());
+		m_dgMod.addAttribute(materialXObject, attr);
+		MaterialX::Color3 color3 = value->asA<MaterialX::Color3>();
+		setAttributeValue(materialXObject, attr, color3.data(), 3);
+	}
+	else if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
+	{
+		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::k4Double, 0.0);
+		m_dgMod.addAttribute(materialXObject, attr);
+		MaterialX::Color4 color4 = value->asA<MaterialX::Color4>();
+		setAttributeValue(materialXObject, attr, color4.data(), 4);
+	}
+	else if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
+	{
+		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::k2Double, 0.0);
+		m_dgMod.addAttribute(materialXObject, attr);
+		MaterialX::Vector2 vector2 = value->asA<MaterialX::Vector2>();
+		setAttributeValue(materialXObject, attr, vector2.data(), 2);
+	}
+	else if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
+	{
+		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::k3Double, 0.0);
+		m_dgMod.addAttribute(materialXObject, attr);
+		MaterialX::Vector3 vector3 = value->asA<MaterialX::Vector3>();
+		setAttributeValue(materialXObject, attr, vector3.data(), 3);
+	}
+	else if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
+	{
+		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::k4Double, 0.0);
+		m_dgMod.addAttribute(materialXObject, attr);
+		MaterialX::Vector4 vector4 = value->asA<MaterialX::Vector4>();
+		setAttributeValue(materialXObject, attr, vector4.data(), 4);
+	}
+	else if (value->getTypeString() == MaterialX::TypedValue<float>::TYPE)
+	{
+		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::kDouble, 0.0);
+		m_dgMod.addAttribute(materialXObject, attr);
+		float floatValue = value->asA<float>();
+		setAttributeValue(materialXObject, attr, &floatValue, 1);
+	}
+	else if (value->getTypeString() == MaterialX::TypedValue<std::string>::TYPE)
+	{
+		attr = typedAttr.create(label.c_str(), label.c_str(), MFnData::kString, MObject::kNullObj);
+		m_dgMod.addAttribute(materialXObject, attr);
+		std::string stringValue = value->asA<std::string>();
+		setAttributeValue(materialXObject, attr, stringValue);
+	}
+}
+
+void CreateMaterialXNodeCmd::createAttributes(MObject &materialXObject, const MaterialX::UIPropertyGroup& groups, const MaterialX::UIPropertyGroup& unnamedGroups)
+{
+	for (auto groupIt = groups.begin(); groupIt != groups.end(); ++groupIt)
+	{
+		createAttribute(materialXObject, groupIt->first, groupIt->second);
+	}
+	for (auto unnamedGroupIt = unnamedGroups.begin(); unnamedGroupIt != unnamedGroups.end(); ++unnamedGroupIt)
+	{
+		createAttribute(materialXObject, unnamedGroupIt->first, unnamedGroupIt->second);
+	}
 }
