@@ -275,8 +275,11 @@ ShaderPtr GlslShaderGenerator::generate(const string& name, ElementPtr element, 
 void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
 {
     // Add version directive
-    emitLine("#version " + getVersion(), stage, false);
-    emitLineBreak(stage);
+    if (context.getOptions().emitVersionString)
+    {
+        emitLine("#version " + getVersion(), stage, false);
+        emitLineBreak(stage);
+    }
 
     // Add all constants
     const VariableBlock& constants = stage.getConstantBlock();
@@ -334,9 +337,12 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
 
 void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const
 {
-    // Add version directive
-    emitLine("#version " + getVersion(), stage, false);
-    emitLineBreak(stage);
+    if (context.getOptions().emitVersionString)
+    {
+        // Add version directive
+        emitLine("#version " + getVersion(), stage, false);
+        emitLineBreak(stage);
+    }
 
     // Add global constants and type definitions
     emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_defines.glsl", context, stage);
