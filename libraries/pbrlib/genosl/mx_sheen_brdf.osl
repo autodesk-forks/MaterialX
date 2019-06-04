@@ -44,7 +44,7 @@ void mx_sheen_brdf(float weight, color Ks, float roughness, vector N, BSDF base,
 {
     if (weight > M_FLOAT_EPS)
     {
-        // TODO: Normalization should not be needed. My suspision is that
+        // TODO: Normalization should not be needed. My suspicion is that
         // BSDF sampling of new outgoing direction in 'testrender' needs
         // to be fixed.
         vector V = normalize(-I);
