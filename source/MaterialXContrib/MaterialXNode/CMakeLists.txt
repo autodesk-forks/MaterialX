@@ -71,13 +71,11 @@ if (EXISTS "${MAYA_DEBUG_DIR}" OR EXISTS "${MAYA_RELEASE_DIR}")
 
     file(GLOB _scripts "${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.mel")
     file(GLOB _mods "${CMAKE_CURRENT_SOURCE_DIR}/mods/*.mod")
-    file(GLOB _resources "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.*")
 
     source_group("Header Files" FILES ${_headers})
     source_group("Source Files" FILES ${_source})
     source_group("Scripts" FILES ${_scripts})
     source_group("Mods" FILES ${_mods})
-    source_group("Resources" FILES ${_resources})
 
     add_library(MaterialXNode SHARED
         ${_source}
@@ -117,6 +115,6 @@ if (EXISTS "${MAYA_DEBUG_DIR}" OR EXISTS "${MAYA_RELEASE_DIR}")
 
     install(TARGETS MaterialXNode DESTINATION ${CMAKE_INSTALL_PREFIX}/MaterialXNode/plug-ins)
     install(FILES ${_scripts} DESTINATION ${CMAKE_INSTALL_PREFIX}/MaterialXNode/scripts)
-    install(FILES ${_resources} DESTINATION ${CMAKE_INSTALL_PREFIX}/MaterialXNode/resources)
     install(FILES ${_mods} DESTINATION ${CMAKE_INSTALL_PREFIX}/MaterialXNode)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resources DESTINATION "${CMAKE_INSTALL_PREFIX}/MaterialXNode/resources")
 endif()

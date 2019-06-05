@@ -83,9 +83,7 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
 
 		std::stringstream glslStream;
 		_glslWrapper->getDocument(glslStream);
-		std::stringstream xmlFileStream;
-		std::ifstream xmlFile(Plugin::instance().getOGSXMLFragmentPath().asString());
-		xmlFileStream << xmlFile.rdbuf();
+        std::string xmlFileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/tiledImage.xml");
 
 		std::cout << "MaterialXTextureOverride 7" << std::endl;
 		// Register fragments with the manager if needed
@@ -98,10 +96,10 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
 			if (fragmentMgr)
 			{
 				std::cout << "MaterialXTextureOverride 8" << std::endl;
-				fragmentMgr->setEffectOutputDirectory("C:/tmp");
-				fragmentMgr->setIntermediateGraphOutputDirectory("C:/tmp");
-				_fragmentName = fragmentMgr->addShadeFragmentFromBuffer(xmlFileStream.str().c_str(), false);// glslStream.str().c_str(), false);
-				std::cout << "MaterialXTextureOverride 9" << std::endl;
+				fragmentMgr->setEffectOutputDirectory("d:/work/");
+				fragmentMgr->setIntermediateGraphOutputDirectory("d:/work/");
+				_fragmentName = fragmentMgr->addShadeFragmentFromFile(xmlFileName.c_str(), false);
+				std::cout << "MaterialXTextureOverride read fragment: " << _fragmentName << std::endl;
 			}
 		}
     }
@@ -189,7 +187,7 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 				}
 
                 // Set texture
-                MString fileName("C:/Users/feldstj/dev/MaterialX/build_public/installed/resources/Images/grid.png");
+                std::string fileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "grid.png");
 				MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
 				if (renderer)
 				{
@@ -197,7 +195,7 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 					if (textureManager)
 					{
 						MHWRender::MTexture* texture =
-						textureManager->acquireTexture(fileName, "");
+						textureManager->acquireTexture(fileName.c_str(), "");
 						if (texture)
 						{
 							MHWRender::MTextureAssignment textureAssignment;
@@ -427,15 +425,19 @@ TestFileNodeOverride::TestFileNodeOverride(const MObject& obj)
             bool graphAdded = fragmentMgr->hasFragment(sFragmentGraphName);
             if (!fragAdded)
             {
-                fragAdded = (sFragmentName == fragmentMgr->addShadeFragmentFromBuffer(sFragmentBody, false));
+                //fragAdded = (sFragmentName == fragmentMgr->addShadeFragmentFromBuffer(, false));
+                std::string body(Plugin::instance().getOGSXMLFragmentPath().asString() + "/" + sFragmentName.asChar() + ".xml");
+                fragAdded = (sFragmentName == fragmentMgr->addShadeFragmentFromFile(body.c_str(), false));
             }
             if (!structAdded)
             {
-                structAdded = (sFragmentOutputName == fragmentMgr->addShadeFragmentFromBuffer(sFragmentOutputBody, false));
+                std::string structS(Plugin::instance().getOGSXMLFragmentPath().asString() + "/" + sFragmentOutputName.asChar() + ".xml");
+                structAdded = (sFragmentOutputName == fragmentMgr->addShadeFragmentFromFile(structS.c_str(), false));
             }
             if (!graphAdded)
             {
-                graphAdded = (sFragmentGraphName == fragmentMgr->addFragmentGraphFromBuffer(sFragmentGraphBody));
+                std::string graphS(Plugin::instance().getOGSXMLFragmentPath().asString() + "/" + sFragmentGraphName.asChar() + ".xml");
+                graphAdded = (sFragmentGraphName == fragmentMgr->addFragmentGraphFromFile(graphS.c_str()));
             }
 
             // If we have them all, use the final graph for the override

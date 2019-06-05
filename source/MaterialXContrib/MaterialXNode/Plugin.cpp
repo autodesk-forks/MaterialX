@@ -19,7 +19,7 @@ void Plugin::initialize(const std::string& loadPath)
 {
 	MaterialX::FilePath searchPath(loadPath);
 	_librarySearchPath = searchPath / MaterialX::FilePath("../../libraries");
-	_ogsXmlFragmentPath = searchPath / MaterialX::FilePath("../resources/tiledImage.xml");
+	_ogsXmlFragmentPath = searchPath / MaterialX::FilePath("../resources");
 }
 
 ///////////////////////////////////////////////////////////////
