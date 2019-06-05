@@ -83,7 +83,7 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
 
 		std::stringstream glslStream;
 		_glslWrapper->getDocument(glslStream);
-        std::string xmlFileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/tiledImage.xml");
+        std::string xmlFileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/tiledImageReduced.xml");
 
 		std::cout << "MaterialXTextureOverride 7" << std::endl;
 		// Register fragments with the manager if needed
@@ -182,12 +182,12 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 				
 				if (samplerState)
 				{
-                    status = shader.setParameter("mapSampler", *samplerState);
-                    std::cout << "Bind map mapSampler: " << status << std::endl;
+                    status = shader.setParameter("textureSampler", *samplerState);
+                    std::cout << "Bind map textureSampler: " << status << std::endl;
 				}
 
                 // Set texture
-                std::string fileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "grid.png");
+                std::string fileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/grid.png");
 				MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
 				if (renderer)
 				{
@@ -274,141 +274,11 @@ TestFileNodeOverride::TestFileNodeOverride(const MObject& obj)
     , fResolvedMapName("")
     , fResolvedSamplerName("")
 {
-    // Define fragments and fragment graph needed for VP2 version of shader,
-    // these could also be defined in separate XML files.
+    // Define fragments and fragment graph needed for VP2 version of shader.
     //
     static const MString sFragmentOutputName("myFragOutput");
-    static const char* sFragmentOutputBody =
-        "<fragment uiName=\"myFragOutput\" name=\"myFragOutput\" type=\"structure\" class=\"ShadeFragment\" version=\"1.0\">"
-        "	<description><![CDATA[Struct output for simple file texture fragment]]></description>"
-        "	<properties>"
-        "		<struct name=\"myFragOutput\" struct_name=\"myFragOutput\" />"
-        "	</properties>"
-        "	<values>"
-        "	</values>"
-        "	<outputs>"
-        "		<alias name=\"myFragOutput\" struct_name=\"myFragOutput\" />"
-        "		<float3 name=\"outColor\" semantic=\"mayaCMSemantic\" />"
-        "		<float name=\"outAlpha\" />"
-        "	</outputs>"
-        "	<implementation>"
-        "	<implementation render=\"OGSRenderer\" language=\"Cg\" lang_version=\"2.1\">"
-        "		<function_name val=\"\" />"
-        "		<declaration name=\"myFragOutput\"><![CDATA["
-        "struct myFragOutput \n"
-        "{ \n"
-        "	float3 outColor; \n"
-        "	float outAlpha; \n"
-        "}; \n]]>"
-        "		</declaration>"
-        "	</implementation>"
-        "	<implementation render=\"OGSRenderer\" language=\"HLSL\" lang_version=\"11.0\">"
-        "		<function_name val=\"\" />"
-        "		<declaration name=\"myFragOutput\"><![CDATA["
-        "struct myFragOutput \n"
-        "{ \n"
-        "	float3 outColor; \n"
-        "	float outAlpha; \n"
-        "}; \n]]>"
-        "		</declaration>"
-        "	</implementation>"
-        "	<implementation render=\"OGSRenderer\" language=\"GLSL\" lang_version=\"3.0\">"
-        "		<function_name val=\"\" />"
-        "		<declaration name=\"myFragOutput\"><![CDATA["
-        "struct myFragOutput \n"
-        "{ \n"
-        "	vec3 outColor; \n"
-        "	float outAlpha; \n"
-        "}; \n]]>"
-        "		</declaration>"
-        "	</implementation>"
-        "	</implementation>"
-        "</fragment>";
-
     static const MString sFragmentName("fileTexturePluginFragment");
-    static const char* sFragmentBody =
-        "<fragment uiName=\"fileTexturePluginFragment\" name=\"fileTexturePluginFragment\" type=\"plumbing\" class=\"ShadeFragment\" version=\"1.0\">"
-        "	<description><![CDATA[Simple file texture fragment]]></description>"
-        "	<properties>"
-        "		<float2 name=\"uvCoord\" semantic=\"mayaUvCoordSemantic\" flags=\"varyingInputParam\" />"
-        "		<texture2 name=\"map\" />"
-        "		<sampler name=\"textureSampler\" />"
-        "	</properties>"
-        "	<values>"
-        "	</values>"
-        "	<outputs>"
-        "		<struct name=\"output\" struct_name=\"myFragOutput\" />"
-        "	</outputs>"
-        "	<implementation>"
-        "	<implementation render=\"OGSRenderer\" language=\"Cg\" lang_version=\"2.100000\">"
-        "		<function_name val=\"fileTexturePluginFragment\" />"
-        "		<source><![CDATA["
-        "myFragOutput fileTexturePluginFragment(float2 uv, texture2D map, sampler2D mapSampler) \n"
-        "{ \n"
-        "	myFragOutput result; \n"
-        "	uv -= floor(uv); \n"
-        "	uv.y = 1.0f - uv.y; \n"
-        "	float4 color = tex2D(mapSampler, uv); \n"
-        "	result.outColor = color.rgb; \n"
-        "	result.outAlpha = color.a; \n"
-        "	return result; \n"
-        "} \n]]>"
-        "		</source>"
-        "	</implementation>"
-        "	<implementation render=\"OGSRenderer\" language=\"HLSL\" lang_version=\"11.000000\">"
-        "		<function_name val=\"fileTexturePluginFragment\" />"
-        "		<source><![CDATA["
-        "myFragOutput fileTexturePluginFragment(float2 uv, Texture2D map, sampler mapSampler) \n"
-        "{ \n"
-        "	myFragOutput result; \n"
-        "	uv -= floor(uv); \n"
-        "	uv.y = 1.0f - uv.y; \n"
-        "	float4 color = map.Sample(mapSampler, uv); \n"
-        "	result.outColor = color.rgb; \n"
-        "	result.outAlpha = color.a; \n"
-        "	return result; \n"
-        "} \n]]>"
-        "		</source>"
-        "	</implementation>"
-        "	<implementation render=\"OGSRenderer\" language=\"GLSL\" lang_version=\"3.0\">"
-        "		<function_name val=\"fileTexturePluginFragment\" />"
-        "		<source><![CDATA["
-        "myFragOutput fileTexturePluginFragment(vec2 uv, sampler2D mapSampler) \n"
-        "{ \n"
-        "	myFragOutput result; \n"
-        "	uv -= floor(uv); \n"
-        "	uv.y = 1.0f - uv.y; \n"
-        "	vec4 color = texture(mapSampler, uv); \n"
-        "	result.outColor = color.rgb; \n"
-        "	result.outAlpha = color.a; \n"
-        "	return result; \n"
-        "} \n]]>"
-        "		</source>"
-        "	</implementation>"
-        "	</implementation>"
-        "</fragment>";
-
     static const MString sFragmentGraphName("fileTexturePluginGraph");
-    static const char* sFragmentGraphBody =
-        "<fragment_graph name=\"fileTexturePluginGraph\" ref=\"fileTexturePluginGraph\" class=\"FragmentGraph\" version=\"1.0\">"
-        "	<fragments>"
-        "			<fragment_ref name=\"fileTexturePluginFragment\" ref=\"fileTexturePluginFragment\" />"
-        "			<fragment_ref name=\"myFragOutput\" ref=\"myFragOutput\" />"
-        "	</fragments>"
-        "	<connections>"
-        "		<connect from=\"fileTexturePluginFragment.output\" to=\"myFragOutput.myFragOutput\" />"
-        "	</connections>"
-        "	<properties>"
-        "		<float2 name=\"uvCoord\" ref=\"fileTexturePluginFragment.uvCoord\" semantic=\"mayaUvCoordSemantic\" flags=\"varyingInputParam\" />"
-        "		<texture2 name=\"map\" ref=\"fileTexturePluginFragment.map\" />"
-        "		<sampler name=\"textureSampler\" ref=\"fileTexturePluginFragment.textureSampler\" />"
-        "	</properties>"
-        "	<values>"
-        "	</values>"
-        "	<outputs>"
-        "		<struct name=\"output\" ref=\"myFragOutput.myFragOutput\" />"
-        "	</outputs>"
-        "</fragment_graph>";
 
     // Register fragments with the manager if needed
     //
@@ -425,7 +295,6 @@ TestFileNodeOverride::TestFileNodeOverride(const MObject& obj)
             bool graphAdded = fragmentMgr->hasFragment(sFragmentGraphName);
             if (!fragAdded)
             {
-                //fragAdded = (sFragmentName == fragmentMgr->addShadeFragmentFromBuffer(, false));
                 std::string body(Plugin::instance().getOGSXMLFragmentPath().asString() + "/" + sFragmentName.asChar() + ".xml");
                 fragAdded = (sFragmentName == fragmentMgr->addShadeFragmentFromFile(body.c_str(), false));
             }
