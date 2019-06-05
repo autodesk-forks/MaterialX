@@ -11,6 +11,17 @@
 #include <maya/MRenderUtil.h>
 #include <maya/MFloatVector.h>
 
+#define MAKE_INPUT(attr) \
+	CHECK_MSTATUS(attr.setKeyable(true)); \
+	CHECK_MSTATUS(attr.setStorable(true)); \
+	CHECK_MSTATUS(attr.setReadable(true)); \
+	CHECK_MSTATUS(attr.setWritable(true));
+
+#define MAKE_OUTPUT(attr) \
+	CHECK_MSTATUS(attr.setKeyable(false)); \
+	CHECK_MSTATUS(attr.setStorable(false)); \
+	CHECK_MSTATUS(attr.setReadable(true)); \
+	CHECK_MSTATUS(attr.setWritable(false));
 
 const MTypeId MaterialXNode::MATERIALX_NODE_TYPEID(0x00042402);
 const MString MaterialXNode::MATERIALX_NODE_TYPENAME("MaterialXNode");
@@ -26,6 +37,8 @@ MObject MaterialXNode::ELEMENT_ATTRIBUTE;
 MString MaterialXNode::OUT_COLOR_ATTRIBUTE_LONG_NAME("outColor");
 MString MaterialXNode::OUT_COLOR_ATTRIBUTE_SHORT_NAME("oc");
 MObject MaterialXNode::OUT_COLOR_ATTRIBUTE;
+
+MObject MaterialXNode::UV_COORD_ATTRIBUTE;
 
 MaterialXNode::MaterialXNode()
 {
@@ -70,6 +83,14 @@ MStatus MaterialXNode::initialize()
 	CHECK_MSTATUS(typedAttr.setReadable(true));
 	CHECK_MSTATUS(typedAttr.setWritable(false));
 	CHECK_MSTATUS(addAttribute(OUT_COLOR_ATTRIBUTE));
+
+    MObject child1 = nAttr.create("uCoord", "u", MFnNumericData::kFloat);
+    MObject child2 = nAttr.create("vCoord", "v", MFnNumericData::kFloat);
+    UV_COORD_ATTRIBUTE = nAttr.create("uvCoord", "uv", child1, child2);
+    MAKE_INPUT(nAttr);
+    CHECK_MSTATUS(nAttr.setHidden(true));
+    CHECK_MSTATUS(addAttribute(UV_COORD_ATTRIBUTE));
+    CHECK_MSTATUS(attributeAffects(UV_COORD_ATTRIBUTE, OUT_COLOR_ATTRIBUTE));
 
 	CHECK_MSTATUS(attributeAffects(ELEMENT_ATTRIBUTE, OUT_COLOR_ATTRIBUTE));
 	CHECK_MSTATUS(attributeAffects(DOCUMENT_ATTRIBUTE, OUT_COLOR_ATTRIBUTE));
@@ -189,18 +210,6 @@ MStatus TestFileNode::compute(const MPlug& plug, MDataBlock& block)
 
     return MS::kSuccess;
 }
-
-#define MAKE_INPUT(attr) \
-	CHECK_MSTATUS(attr.setKeyable(true)); \
-	CHECK_MSTATUS(attr.setStorable(true)); \
-	CHECK_MSTATUS(attr.setReadable(true)); \
-	CHECK_MSTATUS(attr.setWritable(true));
-
-#define MAKE_OUTPUT(attr) \
-	CHECK_MSTATUS(attr.setKeyable(false)); \
-	CHECK_MSTATUS(attr.setStorable(false)); \
-	CHECK_MSTATUS(attr.setReadable(true)); \
-	CHECK_MSTATUS(attr.setWritable(false));
 
 // Attributes
 MObject TestFileNode::aFileName;

@@ -3,9 +3,10 @@
 
 #include <maya/MPxNode.h>
 #include <maya/MObject.h>
+#include <maya/MImage.h>
 
 
-
+/*
 #include <maya/MFnPlugin.h>
 #include <maya/MPxNode.h>
 #include <maya/MIOStream.h>
@@ -18,7 +19,6 @@
 #include <maya/MFnTypedAttribute.h>
 #include <maya/MFnStringData.h>
 #include <maya/MRenderUtil.h>
-#include <maya/MImage.h>
 #include <maya/MFloatVector.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDrawRegistry.h>
@@ -28,6 +28,7 @@
 #include <maya/MShaderManager.h>
 #include <maya/MTextureManager.h>
 #include <maya/MStateManager.h>
+*/
 
 // Node Declaration
 class TestFileNode : public MPxNode
@@ -93,6 +94,8 @@ class MaterialXNode : public MPxNode
 	static MString OUT_COLOR_ATTRIBUTE_LONG_NAME;
 	static MString OUT_COLOR_ATTRIBUTE_SHORT_NAME;
 	static MObject OUT_COLOR_ATTRIBUTE;
+
+    static MObject UV_COORD_ATTRIBUTE;
 };
 
 #endif /* MATERIALX_NODE_H */
