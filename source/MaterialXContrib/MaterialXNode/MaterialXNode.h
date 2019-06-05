@@ -4,6 +4,69 @@
 #include <maya/MPxNode.h>
 #include <maya/MObject.h>
 
+
+
+#include <maya/MFnPlugin.h>
+#include <maya/MPxNode.h>
+#include <maya/MIOStream.h>
+#include <maya/MString.h>
+#include <maya/MTypeId.h>
+#include <maya/MPlug.h>
+#include <maya/MDataBlock.h>
+#include <maya/MDataHandle.h>
+#include <maya/MFnNumericAttribute.h>
+#include <maya/MFnTypedAttribute.h>
+#include <maya/MFnStringData.h>
+#include <maya/MRenderUtil.h>
+#include <maya/MImage.h>
+#include <maya/MFloatVector.h>
+#include <maya/MFnDependencyNode.h>
+#include <maya/MDrawRegistry.h>
+#include <maya/MPxShadingNodeOverride.h>
+#include <maya/MViewport2Renderer.h>
+#include <maya/MFragmentManager.h>
+#include <maya/MShaderManager.h>
+#include <maya/MTextureManager.h>
+#include <maya/MStateManager.h>
+
+// Node Declaration
+class TestFileNode : public MPxNode
+{
+public:
+    static void* creator();
+    static MStatus initialize();
+
+    TestFileNode();
+    ~TestFileNode() override;
+
+    MStatus setDependentsDirty(
+        const MPlug& plug,
+        MPlugArray& plugArray) override;
+    MStatus compute(const MPlug&, MDataBlock&) override;
+
+    // ID tag for use with binary file format
+    static const MTypeId id;
+
+private:
+    MImage fImage;
+    size_t fWidth;
+    size_t fHeight;
+
+    // Attributes
+    static MObject aFileName;
+    static MObject aCMConfigPath;
+    static MObject aCMWorkingSpace;
+    static MObject aColorSpace;
+    static MObject aCMEnabled;
+    static MObject aCMConfigEnabled;
+    static MObject aUVCoord;
+    static MObject aOutColor;
+    static MObject aOutAlpha;
+
+    friend class FileNodeOverride;
+};
+
+
 class MaterialXNode : public MPxNode
 {
   public:

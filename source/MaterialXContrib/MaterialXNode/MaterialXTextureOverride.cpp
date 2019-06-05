@@ -256,3 +256,312 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 		}
 	}
 }
+
+
+////////////////////////////////////////////////////////////////////////////
+// Override Implementation
+////////////////////////////////////////////////////////////////////////////
+MHWRender::MPxShadingNodeOverride* TestFileNodeOverride::creator(
+    const MObject& obj)
+{
+    return new TestFileNodeOverride(obj);
+}
+
+TestFileNodeOverride::TestFileNodeOverride(const MObject& obj)
+    : MPxShadingNodeOverride(obj)
+    , fObject(obj)
+    , fFragmentName("")
+    , fFileName("")
+    , fSamplerState(NULL)
+    , fResolvedMapName("")
+    , fResolvedSamplerName("")
+{
+    // Define fragments and fragment graph needed for VP2 version of shader,
+    // these could also be defined in separate XML files.
+    //
+    static const MString sFragmentOutputName("myFragOutput");
+    static const char* sFragmentOutputBody =
+        "<fragment uiName=\"myFragOutput\" name=\"myFragOutput\" type=\"structure\" class=\"ShadeFragment\" version=\"1.0\">"
+        "	<description><![CDATA[Struct output for simple file texture fragment]]></description>"
+        "	<properties>"
+        "		<struct name=\"myFragOutput\" struct_name=\"myFragOutput\" />"
+        "	</properties>"
+        "	<values>"
+        "	</values>"
+        "	<outputs>"
+        "		<alias name=\"myFragOutput\" struct_name=\"myFragOutput\" />"
+        "		<float3 name=\"outColor\" semantic=\"mayaCMSemantic\" />"
+        "		<float name=\"outAlpha\" />"
+        "	</outputs>"
+        "	<implementation>"
+        "	<implementation render=\"OGSRenderer\" language=\"Cg\" lang_version=\"2.1\">"
+        "		<function_name val=\"\" />"
+        "		<declaration name=\"myFragOutput\"><![CDATA["
+        "struct myFragOutput \n"
+        "{ \n"
+        "	float3 outColor; \n"
+        "	float outAlpha; \n"
+        "}; \n]]>"
+        "		</declaration>"
+        "	</implementation>"
+        "	<implementation render=\"OGSRenderer\" language=\"HLSL\" lang_version=\"11.0\">"
+        "		<function_name val=\"\" />"
+        "		<declaration name=\"myFragOutput\"><![CDATA["
+        "struct myFragOutput \n"
+        "{ \n"
+        "	float3 outColor; \n"
+        "	float outAlpha; \n"
+        "}; \n]]>"
+        "		</declaration>"
+        "	</implementation>"
+        "	<implementation render=\"OGSRenderer\" language=\"GLSL\" lang_version=\"3.0\">"
+        "		<function_name val=\"\" />"
+        "		<declaration name=\"myFragOutput\"><![CDATA["
+        "struct myFragOutput \n"
+        "{ \n"
+        "	vec3 outColor; \n"
+        "	float outAlpha; \n"
+        "}; \n]]>"
+        "		</declaration>"
+        "	</implementation>"
+        "	</implementation>"
+        "</fragment>";
+
+    static const MString sFragmentName("fileTexturePluginFragment");
+    static const char* sFragmentBody =
+        "<fragment uiName=\"fileTexturePluginFragment\" name=\"fileTexturePluginFragment\" type=\"plumbing\" class=\"ShadeFragment\" version=\"1.0\">"
+        "	<description><![CDATA[Simple file texture fragment]]></description>"
+        "	<properties>"
+        "		<float2 name=\"uvCoord\" semantic=\"mayaUvCoordSemantic\" flags=\"varyingInputParam\" />"
+        "		<texture2 name=\"map\" />"
+        "		<sampler name=\"textureSampler\" />"
+        "	</properties>"
+        "	<values>"
+        "	</values>"
+        "	<outputs>"
+        "		<struct name=\"output\" struct_name=\"myFragOutput\" />"
+        "	</outputs>"
+        "	<implementation>"
+        "	<implementation render=\"OGSRenderer\" language=\"Cg\" lang_version=\"2.100000\">"
+        "		<function_name val=\"fileTexturePluginFragment\" />"
+        "		<source><![CDATA["
+        "myFragOutput fileTexturePluginFragment(float2 uv, texture2D map, sampler2D mapSampler) \n"
+        "{ \n"
+        "	myFragOutput result; \n"
+        "	uv -= floor(uv); \n"
+        "	uv.y = 1.0f - uv.y; \n"
+        "	float4 color = tex2D(mapSampler, uv); \n"
+        "	result.outColor = color.rgb; \n"
+        "	result.outAlpha = color.a; \n"
+        "	return result; \n"
+        "} \n]]>"
+        "		</source>"
+        "	</implementation>"
+        "	<implementation render=\"OGSRenderer\" language=\"HLSL\" lang_version=\"11.000000\">"
+        "		<function_name val=\"fileTexturePluginFragment\" />"
+        "		<source><![CDATA["
+        "myFragOutput fileTexturePluginFragment(float2 uv, Texture2D map, sampler mapSampler) \n"
+        "{ \n"
+        "	myFragOutput result; \n"
+        "	uv -= floor(uv); \n"
+        "	uv.y = 1.0f - uv.y; \n"
+        "	float4 color = map.Sample(mapSampler, uv); \n"
+        "	result.outColor = color.rgb; \n"
+        "	result.outAlpha = color.a; \n"
+        "	return result; \n"
+        "} \n]]>"
+        "		</source>"
+        "	</implementation>"
+        "	<implementation render=\"OGSRenderer\" language=\"GLSL\" lang_version=\"3.0\">"
+        "		<function_name val=\"fileTexturePluginFragment\" />"
+        "		<source><![CDATA["
+        "myFragOutput fileTexturePluginFragment(vec2 uv, sampler2D mapSampler) \n"
+        "{ \n"
+        "	myFragOutput result; \n"
+        "	uv -= floor(uv); \n"
+        "	uv.y = 1.0f - uv.y; \n"
+        "	vec4 color = texture(mapSampler, uv); \n"
+        "	result.outColor = color.rgb; \n"
+        "	result.outAlpha = color.a; \n"
+        "	return result; \n"
+        "} \n]]>"
+        "		</source>"
+        "	</implementation>"
+        "	</implementation>"
+        "</fragment>";
+
+    static const MString sFragmentGraphName("fileTexturePluginGraph");
+    static const char* sFragmentGraphBody =
+        "<fragment_graph name=\"fileTexturePluginGraph\" ref=\"fileTexturePluginGraph\" class=\"FragmentGraph\" version=\"1.0\">"
+        "	<fragments>"
+        "			<fragment_ref name=\"fileTexturePluginFragment\" ref=\"fileTexturePluginFragment\" />"
+        "			<fragment_ref name=\"myFragOutput\" ref=\"myFragOutput\" />"
+        "	</fragments>"
+        "	<connections>"
+        "		<connect from=\"fileTexturePluginFragment.output\" to=\"myFragOutput.myFragOutput\" />"
+        "	</connections>"
+        "	<properties>"
+        "		<float2 name=\"uvCoord\" ref=\"fileTexturePluginFragment.uvCoord\" semantic=\"mayaUvCoordSemantic\" flags=\"varyingInputParam\" />"
+        "		<texture2 name=\"map\" ref=\"fileTexturePluginFragment.map\" />"
+        "		<sampler name=\"textureSampler\" ref=\"fileTexturePluginFragment.textureSampler\" />"
+        "	</properties>"
+        "	<values>"
+        "	</values>"
+        "	<outputs>"
+        "		<struct name=\"output\" ref=\"myFragOutput.myFragOutput\" />"
+        "	</outputs>"
+        "</fragment_graph>";
+
+    // Register fragments with the manager if needed
+    //
+    MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
+    if (theRenderer)
+    {
+        MHWRender::MFragmentManager* fragmentMgr =
+            theRenderer->getFragmentManager();
+        if (fragmentMgr)
+        {
+            // Add fragments if needed
+            bool fragAdded = fragmentMgr->hasFragment(sFragmentName);
+            bool structAdded = fragmentMgr->hasFragment(sFragmentOutputName);
+            bool graphAdded = fragmentMgr->hasFragment(sFragmentGraphName);
+            if (!fragAdded)
+            {
+                fragAdded = (sFragmentName == fragmentMgr->addShadeFragmentFromBuffer(sFragmentBody, false));
+            }
+            if (!structAdded)
+            {
+                structAdded = (sFragmentOutputName == fragmentMgr->addShadeFragmentFromBuffer(sFragmentOutputBody, false));
+            }
+            if (!graphAdded)
+            {
+                graphAdded = (sFragmentGraphName == fragmentMgr->addFragmentGraphFromBuffer(sFragmentGraphBody));
+            }
+
+            // If we have them all, use the final graph for the override
+            if (fragAdded && structAdded && graphAdded)
+            {
+                fFragmentName = sFragmentGraphName;
+            }
+        }
+    }
+}
+
+TestFileNodeOverride::~TestFileNodeOverride()
+{
+    MHWRender::MStateManager::releaseSamplerState(fSamplerState);
+    fSamplerState = NULL;
+}
+
+MHWRender::DrawAPI TestFileNodeOverride::supportedDrawAPIs() const
+{
+    return MHWRender::kOpenGL | MHWRender::kDirectX11 | MHWRender::kOpenGLCoreProfile;
+}
+
+MString TestFileNodeOverride::fragmentName() const
+{
+    // Reset cached parameter names since the effect is being rebuilt
+    fResolvedMapName = "";
+    fResolvedSamplerName = "";
+
+    return fFragmentName;
+}
+
+void TestFileNodeOverride::getCustomMappings(
+    MHWRender::MAttributeParameterMappingList& mappings)
+{
+    // Set up some mappings for the parameters on the file texture fragment,
+    // there is no correspondence to attributes on the node for the texture
+    // parameters.
+    MHWRender::MAttributeParameterMapping mapMapping(
+        "map", "", false, true);
+    mappings.append(mapMapping);
+
+    MHWRender::MAttributeParameterMapping textureSamplerMapping(
+        "textureSampler", "", false, true);
+    mappings.append(textureSamplerMapping);
+}
+
+void TestFileNodeOverride::updateDG()
+{
+    // Pull the file name from the DG for use in updateShader
+    MStatus status;
+    MFnDependencyNode node(fObject, &status);
+    if (status)
+    {
+        MString name;
+        node.findPlug("fileName", true).getValue(name);
+        MRenderUtil::exactFileTextureName(name, false, "", "", fFileName);
+    }
+}
+
+void TestFileNodeOverride::updateShader(
+    MHWRender::MShaderInstance& shader,
+    const MHWRender::MAttributeParameterMappingList& mappings)
+{
+    // Handle resolved name caching
+    if (fResolvedMapName.length() == 0)
+    {
+        const MHWRender::MAttributeParameterMapping* mapping =
+            mappings.findByParameterName("map");
+        if (mapping)
+        {
+            fResolvedMapName = mapping->resolvedParameterName();
+        }
+    }
+    if (fResolvedSamplerName.length() == 0)
+    {
+        const MHWRender::MAttributeParameterMapping* mapping =
+            mappings.findByParameterName("textureSampler");
+        if (mapping)
+        {
+            fResolvedSamplerName = mapping->resolvedParameterName();
+        }
+    }
+
+    // Set the parameters on the shader
+    if (fResolvedMapName.length() > 0 && fResolvedSamplerName.length() > 0)
+    {
+        // Set sampler to linear-wrap
+        if (!fSamplerState)
+        {
+            MHWRender::MSamplerStateDesc desc;
+            desc.filter = MHWRender::MSamplerState::kAnisotropic;
+            desc.maxAnisotropy = 16;
+            fSamplerState = MHWRender::MStateManager::acquireSamplerState(desc);
+        }
+        if (fSamplerState)
+        {
+            shader.setParameter(fResolvedSamplerName, *fSamplerState);
+        }
+
+        // Set texture
+        MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+        if (renderer)
+        {
+            MHWRender::MTextureManager* textureManager =
+                renderer->getTextureManager();
+            if (textureManager)
+            {
+                MHWRender::MTexture* texture =
+                    textureManager->acquireTexture(fFileName, "");
+                if (texture)
+                {
+                    MHWRender::MTextureAssignment textureAssignment;
+                    textureAssignment.texture = texture;
+                    shader.setParameter(fResolvedMapName, textureAssignment);
+
+                    // release our reference now that it is set on the shader
+                    textureManager->releaseTexture(texture);
+                }
+            }
+        }
+    }
+}
+
+bool TestFileNodeOverride::valueChangeRequiresFragmentRebuild(const MPlug* /*plug*/) const
+{
+    return true;
+    //return MHWRender::MPxShadingNodeOverride::valueChangeRequiresFragmentRebuild(plug);
+}
+
