@@ -149,7 +149,7 @@ void MaterialXTextureOverride::updateDG()
 }
 
 void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader, 
-                                            const MHWRender::MAttributeParameterMappingList& /*mappings*/)
+                                            const MHWRender::MAttributeParameterMappingList& mappings)
 {
     MStringArray params;
     shader.parameterList(params);
@@ -160,8 +160,15 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 
     MStatus status;
 	const MaterialX::StringMap& inputs = _glslWrapper->getPathInputMap();
+	MString resolvedName;
 	for (auto i : inputs)
 	{
+		const MHWRender::MAttributeParameterMapping* mapping = mappings.findByParameterName(i.second.c_str());
+		if (mapping)
+		{
+			resolvedName = mapping->resolvedParameterName();
+		}
+
 		MaterialX::ElementPtr element = _document->getDescendant(i.first);
 		if (!element) continue;
 		MaterialX::ValueElementPtr valueElement = element->asA<MaterialX::ValueElement>();
@@ -169,7 +176,7 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 		{
 			if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)
 			{
-				std::cout << "updateShader (filename): " << i.second.c_str() << std::endl;
+				std::cout << "updateShader (filename): " << resolvedName << std::endl;
 				MHWRender::MSamplerStateDesc desc;
 				desc.filter = MHWRender::MSamplerState::kAnisotropic;
 				desc.maxAnisotropy = 16;
@@ -182,7 +189,7 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 				}
 
                 // Set texture
-                MString fileName("d:/Work/materialx/MaterialX-adsk-public/build_public_rel/installed/resources/Images/grid.png");
+                MString fileName("C:/Users/feldstj/dev/MaterialX/build_public/installed/resources/Images/grid.png");
 				MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
 				if (renderer)
 				{
@@ -207,44 +214,44 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
 			{
 				MaterialX::Vector2 vector2 = valueElement->getValue()->asA<MaterialX::Vector2>();
-				shader.setArrayParameter(i.second.c_str(), vector2.data(), 2);
-				std::cout << "updateShader (vector2): " << i.second.c_str() << std::endl;
+				shader.setArrayParameter(resolvedName, vector2.data(), 2);
+				std::cout << "updateShader (vector2): " << resolvedName << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
 			{
 				MaterialX::Vector3 vector3 = valueElement->getValue()->asA<MaterialX::Vector3>();
-				shader.setArrayParameter(i.second.c_str(), vector3.data(), 3);
-				std::cout << "updateShader (vector3): " << i.second.c_str() << std::endl;
+				shader.setArrayParameter(resolvedName, vector3.data(), 3);
+				std::cout << "updateShader (vector3): " << resolvedName << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
 			{
 				MaterialX::Vector4 vector4 = valueElement->getValue()->asA<MaterialX::Vector4>();
-				shader.setArrayParameter(i.second.c_str(), vector4.data(), 4);
-				std::cout << "updateShader (vector4): " << i.second.c_str() << std::endl;
+				shader.setArrayParameter(resolvedName, vector4.data(), 4);
+				std::cout << "updateShader (vector4): " << resolvedName << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
 			{
-				std::cout << "updateShader (color2): " << i.second.c_str() << std::endl;
+				std::cout << "updateShader (color2): " << resolvedName << std::endl;
 				MaterialX::Color2 color2 = valueElement->getValue()->asA<MaterialX::Color2>();
-				shader.setArrayParameter(i.second.c_str(), color2.data(), 2);
+				shader.setArrayParameter(resolvedName, color2.data(), 2);
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
 			{
-				std::cout << "updateShader (color3): " << i.second.c_str() << std::endl;
+				std::cout << "updateShader (color3): " << resolvedName << std::endl;
 				MaterialX::Color3 color3 = valueElement->getValue()->asA<MaterialX::Color3>();
-				shader.setArrayParameter(i.second.c_str(), color3.data(), 3);
+				shader.setArrayParameter(resolvedName, color3.data(), 3);
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
 			{
-				std::cout << "updateShader (color4): " << i.second.c_str() << std::endl;
+				std::cout << "updateShader (color4): " << resolvedName << std::endl;
 				MaterialX::Color4 color4 = valueElement->getValue()->asA<MaterialX::Color4>();
-				shader.setArrayParameter(i.second.c_str(), color4.data(), 4);
+				shader.setArrayParameter(resolvedName, color4.data(), 4);
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Matrix44>::TYPE)
 			{
-				std::cout << "updateShader (mat44): " << i.second.c_str() << std::endl;
+				std::cout << "updateShader (mat44): " << resolvedName << std::endl;
 				MaterialX::Matrix44 mat44 = valueElement->getValue()->asA<MaterialX::Matrix44>();
-				shader.setArrayParameter(i.second.c_str(), mat44.data(), 16);
+				shader.setArrayParameter(resolvedName, mat44.data(), 16);
 			}
 		}
 	}
