@@ -30,5 +30,6 @@ void bindPyGenOptions(py::module& mod)
         .def_readwrite("hwTransparency", &mx::GenOptions::hwTransparency)
         .def_readwrite("hwSpecularEnvironmentMethod", &mx::GenOptions::hwSpecularEnvironmentMethod)
         .def_readwrite("hwMaxActiveLightSources", &mx::GenOptions::hwMaxActiveLightSources)
+        .def_readwrite("emitVersionString", &mx::GenOptions::emitVersionString)
         .def(py::init<>());
 }
