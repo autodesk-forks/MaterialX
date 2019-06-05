@@ -22,6 +22,9 @@ void Plugin::initialize(const std::string& loadPath)
 	_ogsXmlFragmentPath = searchPath / MaterialX::FilePath("../resources/tiledImage.xml");
 }
 
+///////////////////////////////////////////////////////////////
+static const MString sRegistrantId("testFileTexturePlugin");
+
 // Plugin configuration
 //
 MStatus initializePlugin(MObject obj)
@@ -48,7 +51,23 @@ MStatus initializePlugin(MObject obj)
 		MaterialXTextureOverride::REGISTRANT_ID,
 		MaterialXTextureOverride::creator));
 
-	return MS::kSuccess;
+    ///////////////////////////////////////////////////////////////////////
+    const MString UserClassify("texture/2d:drawdb/shader/texture/2d/testFileTexture");
+
+    CHECK_MSTATUS(plugin.registerNode(
+        "testFileTexture",
+        TestFileNode::id,
+        TestFileNode::creator,
+        TestFileNode::initialize,
+        MPxNode::kDependNode,
+        &UserClassify));
+
+    CHECK_MSTATUS(MHWRender::MDrawRegistry::registerShadingNodeOverrideCreator(
+            "drawdb/shader/texture/2d/testFileTexture",
+            sRegistrantId,
+            TestFileNodeOverride::creator));
+
+    return MS::kSuccess;
 }
 
 MStatus uninitializePlugin(MObject obj)
@@ -64,6 +83,14 @@ MStatus uninitializePlugin(MObject obj)
 		MHWRender::MDrawRegistry::deregisterShadingNodeOverrideCreator(
 		"drawdb/shader/texture/2d/materialXNode",
 		MaterialXTextureOverride::REGISTRANT_ID));
+
+    ///////////////////////////////////////////
+    CHECK_MSTATUS(plugin.deregisterNode(TestFileNode::id));
+    CHECK_MSTATUS(
+        MHWRender::MDrawRegistry::deregisterShadingNodeOverrideCreator(
+            "drawdb/shader/texture/2d/testFileTexture",
+            sRegistrantId));
+
 
 	return MS::kSuccess;
 }
