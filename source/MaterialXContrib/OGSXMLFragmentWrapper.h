@@ -55,6 +55,12 @@ class OGSXMLFragmentWrapper
         return _pathInputMap;
     }
 
+    /// Get fragment name
+    const string& getFragmentName() const
+    {
+        return _fragmentName;
+    }
+
     /// @}
     /// @name Load
     /// @{
@@ -74,6 +80,9 @@ class OGSXMLFragmentWrapper
     
     // Internally cache XML document
     void* _xmlDocument;
+
+    // Fragment name
+    string _fragmentName;
 
     // Mapping from MTLX Element paths to fragment input names
     StringMap _pathInputMap;

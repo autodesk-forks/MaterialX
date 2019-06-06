@@ -22,7 +22,6 @@ const MString MaterialXTextureOverride::REGISTRANT_ID = "materialXTexture";
 MHWRender::MPxShadingNodeOverride* MaterialXTextureOverride::creator(const MObject& obj)
 {
 	std::cout.rdbuf(std::cerr.rdbuf());
-	std::cout << "MaterialXTextureOverride::creator" << std::endl;
 	return new MaterialXTextureOverride(obj);
 }
 
@@ -30,8 +29,6 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
 	: MPxShadingNodeOverride(obj)
 	, _object(obj)
 {
-	std::cout << "MaterialXTextureOverride 0" << std::endl;
-
 	MStatus status;
 	MFnDependencyNode depNode(_object, &status);
 	if (status)
@@ -52,40 +49,29 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
 		MaterialX::loadLibraries(libraries, libSearchPath, _document);
 
 		std::cout.rdbuf(std::cerr.rdbuf());
-		std::cout << "MaterialXTextureOverride 1" << std::endl;
 	
 		std::vector<MaterialX::GenContext*> contexts;
         MaterialX::GenContext* glslContext = new MaterialX::GenContext(MaterialX::GlslShaderGenerator::create());
-
-		std::cout << "MaterialXTextureOverride 2" << std::endl;
 
         // Stop emission of environment map lookups.
         glslContext->getOptions().hwSpecularEnvironmentMethod = MaterialX::SPECULAR_ENVIRONMENT_NONE;
         glslContext->registerSourceCodeSearchPath(libSearchPath);
         contexts.push_back(glslContext);
 
-		std::cout << "MaterialXTextureOverride 3" << std::endl;
-
 		_glslWrapper = new MaterialX::OGSXMLFragmentWrapper(glslContext);
 		_glslWrapper->setOutputVertexShader(true);
-
-		std::cout << "MaterialXTextureOverride 4" << std::endl;
 		
 		MaterialX::ElementPtr element = _document->getDescendant(_element.asChar());
         MaterialX::OutputPtr output = element->asA<MaterialX::Output>();
         MaterialX::NodePtr node;
-		std::cout << "MaterialXTextureOverride 5" << std::endl;
 		if (output)
         {
-			std::cout << "MaterialXTextureOverride 6" << std::endl;
+			std::cout << "MaterialXTextureOverride: Create XML wrapper" << std::endl;
 			_glslWrapper->createWrapper(output);
+            // Get the fragment name
+            _fragmentName.set(_glslWrapper->getFragmentName().c_str());
         }
 
-		std::stringstream glslStream;
-		_glslWrapper->getDocument(glslStream);
-        std::string xmlFileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/tiledImageReduced.xml");
-
-		std::cout << "MaterialXTextureOverride 7" << std::endl;
 		// Register fragments with the manager if needed
 		//
 		MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
@@ -95,18 +81,25 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
 			theRenderer->getFragmentManager();
 			if (fragmentMgr)
 			{
-				std::cout << "MaterialXTextureOverride 8" << std::endl;
-				fragmentMgr->setEffectOutputDirectory("d:/work/");
-				fragmentMgr->setIntermediateGraphOutputDirectory("d:/work/");
-				_fragmentName = fragmentMgr->addShadeFragmentFromFile(xmlFileName.c_str(), false);
-				std::cout << "MaterialXTextureOverride read fragment: " << _fragmentName << std::endl;
+                bool fragmentExists = (_fragmentName.length() > 0) && fragmentMgr->hasFragment(_fragmentName);
+                if (!fragmentExists)
+                {
+                    std::stringstream glslStream;
+                    _glslWrapper->getDocument(glslStream);
+                    std::string xmlFileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/tiledImageReduced.xml");
+
+                    fragmentMgr->setEffectOutputDirectory("d:/work/");
+                    fragmentMgr->setIntermediateGraphOutputDirectory("d:/work/");
+                    _fragmentName = fragmentMgr->addShadeFragmentFromFile(xmlFileName.c_str(), false);
+                }
 			}
 		}
+
+        std::cout << "MaterialXTextureOverride: Add XML fragment to manager: " << _fragmentName << std::endl;
     }
     catch (MaterialX::Exception& e)
     {
-		std::cout << "MaterialXTextureOverride BAD!!!" << std::endl;
-        std::cerr << "Failed to generate OGS XML wrapper: " << e.what() << std::endl;
+        std::cerr << "MaterialXTextureOverride: Failed to generate XML wrapper: " << e.what() << std::endl;
     }
 }
 
@@ -136,7 +129,7 @@ void MaterialXTextureOverride::getCustomMappings(MHWRender::MAttributeParameterM
 	for (auto i : inputs)
 	{
 		std::cout.rdbuf(std::cerr.rdbuf());
-		std::cout << "getCustomMappings: " << i.second.c_str() << std::endl;
+		std::cout << "MaterialXTextureOverride: Get custom mappings: " << i.second.c_str() << std::endl;
 		MHWRender::MAttributeParameterMapping mapping(i.second.c_str(), "", false, true);
 		mappings.append(mapping);
 	}
@@ -153,15 +146,15 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
     shader.parameterList(params);
     for (unsigned int i = 0; i < params.length(); i++)
     {
-        std::cout << "Shader param: " << params[i] << std::endl;
+        std::cout << "MaterialXTextureOverride: shader param: " << params[i].asChar() << std::endl;
     }
 
     MStatus status;
 	const MaterialX::StringMap& inputs = _glslWrapper->getPathInputMap();
-	MString resolvedName;
 	for (auto i : inputs)
 	{
-		const MHWRender::MAttributeParameterMapping* mapping = mappings.findByParameterName(i.second.c_str());
+        MString resolvedName(i.second.c_str());
+        const MHWRender::MAttributeParameterMapping* mapping = mappings.findByParameterName(i.second.c_str());
 		if (mapping)
 		{
 			resolvedName = mapping->resolvedParameterName();
@@ -183,10 +176,11 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 				if (samplerState)
 				{
                     status = shader.setParameter("textureSampler", *samplerState);
-                    std::cout << "Bind map textureSampler: " << status << std::endl;
+                    std::cout << "Bind sampler: " << resolvedName <<  ". Status: " << status << std::endl;
 				}
 
                 // Set texture
+                // TODO: This is hard-coded and should come from the Element.
                 std::string fileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/grid.png");
 				MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
 				if (renderer)
@@ -201,7 +195,7 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 							MHWRender::MTextureAssignment textureAssignment;
 							textureAssignment.texture = texture;
                             status = shader.setParameter("map", textureAssignment);
-                            std::cout << "Bind map: " << status << std::endl;
+                            std::cout << "Bind map: " << resolvedName << ". Status: " << status << std::endl;
 
 							// release our reference now that it is set on the shader
 							textureManager->releaseTexture(texture);
@@ -212,45 +206,45 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
 			{
 				MaterialX::Vector2 vector2 = valueElement->getValue()->asA<MaterialX::Vector2>();
-				shader.setArrayParameter(resolvedName, vector2.data(), 2);
-				std::cout << "updateShader (vector2): " << resolvedName << std::endl;
+                status = shader.setArrayParameter(resolvedName, vector2.data(), 2);
+				std::cout << "updateShader (vector2): " << resolvedName << ". Status: " << status << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
 			{
 				MaterialX::Vector3 vector3 = valueElement->getValue()->asA<MaterialX::Vector3>();
-				shader.setArrayParameter(resolvedName, vector3.data(), 3);
-				std::cout << "updateShader (vector3): " << resolvedName << std::endl;
+                status = shader.setArrayParameter(resolvedName, vector3.data(), 3);
+				std::cout << "updateShader (vector3): " << resolvedName << ". Status: " << status << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
 			{
 				MaterialX::Vector4 vector4 = valueElement->getValue()->asA<MaterialX::Vector4>();
-				shader.setArrayParameter(resolvedName, vector4.data(), 4);
-				std::cout << "updateShader (vector4): " << resolvedName << std::endl;
+                status = shader.setArrayParameter(resolvedName, vector4.data(), 4);
+				std::cout << "updateShader (vector4): " << resolvedName << ". Status: " << status << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
 			{
-				std::cout << "updateShader (color2): " << resolvedName << std::endl;
 				MaterialX::Color2 color2 = valueElement->getValue()->asA<MaterialX::Color2>();
-				shader.setArrayParameter(resolvedName, color2.data(), 2);
-			}
+                status = shader.setArrayParameter(resolvedName, color2.data(), 2);
+                std::cout << "updateShader (color2): " << resolvedName << ". Status: " << status << std::endl;
+            }
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
 			{
-				std::cout << "updateShader (color3): " << resolvedName << std::endl;
 				MaterialX::Color3 color3 = valueElement->getValue()->asA<MaterialX::Color3>();
-				shader.setArrayParameter(resolvedName, color3.data(), 3);
-			}
+                status = shader.setArrayParameter(resolvedName, color3.data(), 3);
+                std::cout << "updateShader (color3): " << resolvedName << std::endl;
+            }
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
 			{
-				std::cout << "updateShader (color4): " << resolvedName << std::endl;
 				MaterialX::Color4 color4 = valueElement->getValue()->asA<MaterialX::Color4>();
-				shader.setArrayParameter(resolvedName, color4.data(), 4);
-			}
+                status = shader.setArrayParameter(resolvedName, color4.data(), 4);
+                std::cout << "updateShader (color4): " << resolvedName << std::endl;
+            }
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Matrix44>::TYPE)
 			{
-				std::cout << "updateShader (mat44): " << resolvedName << std::endl;
 				MaterialX::Matrix44 mat44 = valueElement->getValue()->asA<MaterialX::Matrix44>();
-				shader.setArrayParameter(resolvedName, mat44.data(), 16);
-			}
+                status = shader.setArrayParameter(resolvedName, mat44.data(), 16);
+                std::cout << "updateShader (mat44): " << resolvedName << std::endl;
+            }
 		}
 	}
 }

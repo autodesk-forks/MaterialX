@@ -1,8 +1,9 @@
 <fragment uiName="tiled_image3_output" name="tiled_image3_output" type="plumbing" class="ShadeFragment" version="1.36">
   <description><![CDATA[MaterialX generated code for element: tiled_image3_output]]></description>
   <properties>
-	<texture2 name="map" />
-    <sampler name="mapSampler"  />
+    <float2 name="uvCoord" semantic="mayaUvCoordSemantic" flags="varyingInputParam" />
+    <texture2 name="map" />
+    <sampler name="textureSampler"  />
     <float3 name="tiled_image3_default"  />
     <float2 name="tiled_image3_uvtiling"  />
     <float2 name="tiled_image3_uvoffset"  />
@@ -10,7 +11,6 @@
     <int name="tiled_image3_framerange" />
     <int name="tiled_image3_frameoffset"  />
     <int name="tiled_image3_frameendaction"  />
-    <float2 name="uvCoord" semantic="mayaUvCoordSemantic" flags="varyingInputParam" />
   </properties>
   <values>
     <float3 name="tiled_image3_default" value="0, 0, 0" />
@@ -26,7 +26,8 @@
   <implementation>
     <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
       <function_name val="tiled_image3_function" />
-      <source><![CDATA[
+      <source>
+      <![CDATA[
 //
 // Function to transform uv-coordinates before texture sampling
 //
@@ -58,20 +59,20 @@ void NG_tiledimage_color3(sampler2D file, vec3 default1, vec2 texcoord, vec2 uvt
 }
 
 vec3 tiled_image3_function(
-    sampler2D mapSampler,
+   vec2 uv,
+   sampler2D mapSampler,
 	vec3 tiled_image3_default,
 	vec2 tiled_image3_uvtiling,
 	vec2 tiled_image3_uvoffset,
 	int tiled_image3_filtertype,
 	int tiled_image3_framerange,
 	int tiled_image3_frameoffset,
-	int tiled_image3_frameendaction,
-	float2 uvCoord)
+	int tiled_image3_frameendaction)
 {
-    vec2 geomprop_UV0_out = uvCoord;
+    vec2 geomprop_UV0_out = uv;
     vec3 tiled_image3_out = vec3(0.0);
     NG_tiledimage_color3(mapSampler, tiled_image3_default, geomprop_UV0_out, tiled_image3_uvtiling, tiled_image3_uvoffset, tiled_image3_filtertype, tiled_image3_framerange, tiled_image3_frameoffset, tiled_image3_frameendaction, tiled_image3_out);
-    return vec3(1.0f, 0.0f, 0.0f);
+    return tiled_image3_out;
 }
 
 ]]></source>

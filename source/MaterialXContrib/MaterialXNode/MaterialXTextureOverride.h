@@ -24,6 +24,11 @@ class MaterialXTextureOverride : public MHWRender::MPxShadingNodeOverride
 	void updateShader(MHWRender::MShaderInstance& shader,
 	                  const MHWRender::MAttributeParameterMappingList& mappings) override;
 
+    bool valueChangeRequiresFragmentRebuild(const MPlug* /*plug*/) const override
+    {
+        return true;
+    }
+
 	static const MString REGISTRANT_ID;
 
 private:
@@ -56,7 +61,7 @@ public:
         MHWRender::MShaderInstance& shader,
         const MHWRender::MAttributeParameterMappingList& mappings) override;
 
-    virtual bool valueChangeRequiresFragmentRebuild(const MPlug* plug) const;
+    bool valueChangeRequiresFragmentRebuild(const MPlug* plug) const override;
 
 private:
     TestFileNodeOverride(const MObject& obj);

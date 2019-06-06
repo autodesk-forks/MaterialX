@@ -307,6 +307,7 @@ void OGSXMLFragmentWrapper::createWrapperFromNode(NodePtr node, std::vector<GenC
     const string& nodeName = node->getName();
     xmlRoot.append_attribute(OGS_FRAGMENT_UI_NAME.c_str()) = nodeName.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_NAME.c_str()) = nodeName.c_str();
+    _fragmentName = nodeName;
     xmlRoot.append_attribute(OGS_FRAGMENT_TYPE.c_str()) = OGS_FRAGMENT_TYPE_PLUMBING.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_CLASS.c_str()) = OGS_FRAGMENT_CLASS_SHADERFRAGMENT.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_VERSION.c_str()) = OGS_VERSION_STRING.c_str();
@@ -434,6 +435,8 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
     const string& elementName = element->getName();
     xmlRoot.append_attribute(OGS_FRAGMENT_UI_NAME.c_str()) = elementName.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_NAME.c_str()) = elementName.c_str();
+    // TODO: determine what is a good unique fragment name to use.
+    _fragmentName = elementName.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_TYPE.c_str()) = OGS_FRAGMENT_TYPE_PLUMBING.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_CLASS.c_str()) = OGS_FRAGMENT_CLASS_SHADERFRAGMENT.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_VERSION.c_str()) = OGS_VERSION_STRING.c_str();
