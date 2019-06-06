@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <materialx version="1.36">
-  <!--
-    USD Preview Surface node definition.
-  -->
+
+  <!-- ======================================================================== -->
+  <!-- USD Preview Surface node definitions                                     -->
+  <!-- ======================================================================== -->
+
+  <!-- Node: usd_preview_surface -->
   <nodedef name="ND_usd_preview_surface_surfaceshader" node="usd_preview_surface" type="surfaceshader">
     <input name="diffuse_color" type="color3" value="0.18, 0.18, 0.18" />
     <input name="emissive_color" type="color3" value="0, 0, 0" />
@@ -20,9 +23,28 @@
     <input name="occlusion" type="float" value="1" />
   </nodedef>
 
-  <!--
-    USD Preview Surface nodegraph implementation.
-  -->
+  <!-- Node: usd_uv_texture -->
+  <nodedef name="ND_usd_uv_texture" node="usd_uv_texture" type="multioutput">
+    <parameter name="file" type="filename" />
+    <input name="st" type="vector2" defaultgeomprop="UV0" />
+    <parameter name="wrap_s" type="string" value="periodic" enum="black,clamp,periodic" />
+    <parameter name="wrap_t" type="string" value="periodic" enum="black,clamp,periodic" />
+    <input name="fallback" type="color4" value="0, 0, 0, 1" />
+    <input name="scale" type="color4" value="1, 1, 1, 1" />
+    <input name="bias" type="color4" value="0, 0, 0, 0" />
+    <output name="r" type="float" />
+    <output name="g" type="float" />
+    <output name="b" type="float" />
+    <output name="a" type="float" />
+    <output name="rgb" type="color3" />
+    <output name="rgba" type="color4" />
+  </nodedef>
+
+  <!-- ======================================================================== -->
+  <!-- USD Preview Surface nodegraph implementations                            -->
+  <!-- ======================================================================== -->
+
+  <!-- Node: usd_preview_surface -->
   <nodegraph name="IMP_usd_preview_surface_surfaceshader" nodedef="ND_usd_preview_surface_surfaceshader">
 
     <!-- Calculate normal from tangent space input-->
@@ -191,6 +213,31 @@
 
     <!-- Output -->
     <output name="out" type="surfaceshader" nodename="surface_constructor" />
-
   </nodegraph>
+
+  <!-- Node: usd_uv_texture -->
+  <nodegraph name="IMP_usd_uv_texture" nodedef="ND_usd_uv_texture">
+    <image name="image_reader" type="color4">
+      <parameter name="file" type="filename" interfacename="file"/>
+      <parameter name="default" type="color4" interfacename="fallback"/>
+      <input name="texcoord" type="vector2" interfacename="st"/>
+      <parameter name="uaddressmode" type="string" interfacename="wrap_s"/>
+      <parameter name="vaddressmode" type="string" interfacename="wrap_t"/>
+    </image>
+    <multiply name="image_scale" type="color4">
+      <input name="in1" type="color4" nodename="image_reader"/>
+      <input name="in2" type="color4" interfacename="scale"/>
+    </multiply>
+    <add name="image_bias" type="color4">
+      <input name="in1" type="color4" nodename="image_scale"/>
+      <input name="in2" type="color4" interfacename="bias"/>
+    </add>
+    <output name="r" type="float" nodename="image_bias" channels="r"/>
+    <output name="g" type="float" nodename="image_bias" channels="g"/>
+    <output name="b" type="float" nodename="image_bias" channels="b"/>
+    <output name="a" type="float" nodename="image_bias" channels="a"/>
+    <output name="rgb" type="color3" nodename="image_bias" channels="rgb"/>
+    <output name="rgba" type="color4" nodename="image_bias" />
+  </nodegraph>
+
 </materialx>
