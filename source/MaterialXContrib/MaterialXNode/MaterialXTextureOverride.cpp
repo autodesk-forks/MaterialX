@@ -8,6 +8,7 @@
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Util.h>
 #include <MaterialXFormat/XmlIo.h>
+#include <MaterialXRender/StbImageLoader.h>
 
 #include <maya/MFnDependencyNode.h>
 #include <maya/MFragmentManager.h>
@@ -86,7 +87,7 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
                 {
                     std::stringstream glslStream;
                     _glslWrapper->getDocument(glslStream);
-                    std::string xmlFileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/tiledImageReduced.xml");
+                    std::string xmlFileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/tiledImage.xml");
 
                     fragmentMgr->setEffectOutputDirectory("d:/work/");
                     fragmentMgr->setIntermediateGraphOutputDirectory("d:/work/");
@@ -101,6 +102,9 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
     {
         std::cerr << "MaterialXTextureOverride: Failed to generate XML wrapper: " << e.what() << std::endl;
     }
+
+    // TODO: Use our own image loader vs Mayas.
+    // MaterialX::StbImageLoaderPtr stbLoader = MaterialX::StbImageLoader::create();
 }
 
 MaterialXTextureOverride::~MaterialXTextureOverride()
@@ -123,6 +127,7 @@ MString MaterialXTextureOverride::fragmentName() const
 	return _fragmentName;
 }
 
+#if 0
 void MaterialXTextureOverride::getCustomMappings(MHWRender::MAttributeParameterMappingList& mappings)
 {
 	const MaterialX::StringMap& inputs = _glslWrapper->getPathInputMap();
@@ -134,6 +139,7 @@ void MaterialXTextureOverride::getCustomMappings(MHWRender::MAttributeParameterM
 		mappings.append(mapping);
 	}
 }
+#endif
 
 void MaterialXTextureOverride::updateDG()
 {
@@ -203,6 +209,11 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 					}
 				}				
 			}
+#if 0
+            // TODO: setArrayParameter is the incorrect call so disable all of these for now.
+            // Also none of these need to be set since they are supposed to be immutable.
+            // To modify the MaterialX document should be modified and a new shader generated.
+            // Note: To find out how to remove a fragment otherwise we cannot edit/update.
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
 			{
 				MaterialX::Vector2 vector2 = valueElement->getValue()->asA<MaterialX::Vector2>();
@@ -245,7 +256,8 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
                 status = shader.setArrayParameter(resolvedName, mat44.data(), 16);
                 std::cout << "updateShader (mat44): " << resolvedName << std::endl;
             }
-		}
+#endif
+        }
 	}
 }
 

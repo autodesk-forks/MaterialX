@@ -18,7 +18,7 @@ class MaterialXTextureOverride : public MHWRender::MPxShadingNodeOverride
 	MHWRender::DrawAPI supportedDrawAPIs() const override;
 
 	MString fragmentName() const override;
-	void getCustomMappings(MHWRender::MAttributeParameterMappingList& mappings) override;
+	//void getCustomMappings(MHWRender::MAttributeParameterMappingList& mappings) override;
 
 	void updateDG() override;
 	void updateShader(MHWRender::MShaderInstance& shader,
