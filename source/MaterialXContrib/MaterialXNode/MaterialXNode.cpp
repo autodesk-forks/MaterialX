@@ -38,8 +38,6 @@ MString MaterialXNode::OUT_COLOR_ATTRIBUTE_LONG_NAME("outColor");
 MString MaterialXNode::OUT_COLOR_ATTRIBUTE_SHORT_NAME("oc");
 MObject MaterialXNode::OUT_COLOR_ATTRIBUTE;
 
-MObject MaterialXNode::UV_COORD_ATTRIBUTE;
-
 MaterialXNode::MaterialXNode()
 {
 	std::cout << "MaterialXNode::MaterialXNode" << std::endl;
@@ -83,14 +81,6 @@ MStatus MaterialXNode::initialize()
 	CHECK_MSTATUS(typedAttr.setReadable(true));
 	CHECK_MSTATUS(typedAttr.setWritable(false));
 	CHECK_MSTATUS(addAttribute(OUT_COLOR_ATTRIBUTE));
-
-    MObject child1 = nAttr.create("uCoord", "u", MFnNumericData::kFloat);
-    MObject child2 = nAttr.create("vCoord", "v", MFnNumericData::kFloat);
-    UV_COORD_ATTRIBUTE = nAttr.create("uvCoord", "uv", child1, child2);
-    MAKE_INPUT(nAttr);
-    CHECK_MSTATUS(nAttr.setHidden(true));
-    CHECK_MSTATUS(addAttribute(UV_COORD_ATTRIBUTE));
-    CHECK_MSTATUS(attributeAffects(UV_COORD_ATTRIBUTE, OUT_COLOR_ATTRIBUTE));
 
 	CHECK_MSTATUS(attributeAffects(ELEMENT_ATTRIBUTE, OUT_COLOR_ATTRIBUTE));
 	CHECK_MSTATUS(attributeAffects(DOCUMENT_ATTRIBUTE, OUT_COLOR_ATTRIBUTE));

@@ -26,7 +26,7 @@ class MaterialXTextureOverride : public MHWRender::MPxShadingNodeOverride
 
     bool valueChangeRequiresFragmentRebuild(const MPlug* /*plug*/) const override
     {
-        return true;
+        return false;
     }
 
 	static const MString REGISTRANT_ID;

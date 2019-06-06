@@ -94,8 +94,6 @@ class MaterialXNode : public MPxNode
 	static MString OUT_COLOR_ATTRIBUTE_LONG_NAME;
 	static MString OUT_COLOR_ATTRIBUTE_SHORT_NAME;
 	static MObject OUT_COLOR_ATTRIBUTE;
-
-    static MObject UV_COORD_ATTRIBUTE;
 };
 
 #endif /* MATERIALX_NODE_H */
