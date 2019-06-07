@@ -31,28 +31,25 @@ bool stringEndsWith(const std::string& str, std::string const& end)
 //
 
 size_t Material::loadDocument(mx::DocumentPtr destinationDoc, const mx::FilePath& filePath,
-                              mx::DocumentPtr libraries, const DocumentModifiers& modifiers,
-                              std::vector<MaterialPtr>& materials)
+                              const mx::FileSearchPath& searchPath, mx::DocumentPtr libraries,
+                              const DocumentModifiers& modifiers, std::vector<MaterialPtr>& materials)
 {
     // Load the content document.
     mx::DocumentPtr doc = mx::createDocument();
     mx::XmlReadOptions readOptions;
     readOptions.readXIncludeFunction = [](mx::DocumentPtr doc, const std::string& filename, const std::string& searchPath, const mx::XmlReadOptions* options)
     {
-        mx::FileSearchPath fileSearchPath = mx::FileSearchPath(searchPath);
-        fileSearchPath.append(mx::getEnvironmentPath());
-
-        mx::FilePath resolvedFilename = fileSearchPath.find(filename);
+        mx::FilePath resolvedFilename = mx::FileSearchPath(searchPath).find(filename);
         if (resolvedFilename.exists())
         {
-            readFromXmlFile(doc, resolvedFilename, mx::EMPTY_STRING, options);
+            readFromXmlFile(doc, resolvedFilename, searchPath, options);
         }
         else
         {
-            std::cerr << "Include file not found:" << filename << std::endl;
+            std::cerr << "Include file not found: " << filename << std::endl;
         }
     };
-    mx::readFromXmlFile(doc, filePath, mx::EMPTY_STRING, &readOptions);
+    mx::readFromXmlFile(doc, filePath, searchPath.asString(), &readOptions);
 
     // Apply modifiers to the content document if requested.
     for (mx::ElementPtr elem : doc->traverseTree())
@@ -488,7 +485,7 @@ void Material::bindImages(mx::GLTextureHandlerPtr imageHandler, const mx::FileSe
     }
 }
 
-bool Material::bindImage(std::string filename, const std::string& uniformName, mx::GLTextureHandlerPtr imageHandler,
+bool Material::bindImage(const mx::FilePath& filename, const std::string& uniformName, mx::GLTextureHandlerPtr imageHandler,
                          mx::ImageDesc& desc, const mx::ImageSamplingProperties& samplingProperties, const std::string& udim, mx::Color4* fallbackColor)
 {
     if (!_glShader)
@@ -497,24 +494,32 @@ bool Material::bindImage(std::string filename, const std::string& uniformName, m
     }
 
     // Apply udim string if specified.
+    mx::FilePath resolvedFilename;
     if (!udim.empty())
     {
         mx::StringMap map;
         map[mx::UDIM_TOKEN] = udim;
-        filename = mx::replaceSubstrings(filename, map);
+        resolvedFilename = mx::FilePath(mx::replaceSubstrings(filename.asString(), map));
+    }
+    else
+    {
+        resolvedFilename = filename;
     }
 
     // Acquire the given image.
-    if (!imageHandler->acquireImage(filename, desc, true, fallbackColor) && !filename.empty())
+    resolvedFilename = imageHandler->getSearchPath().find(resolvedFilename);
+    if (!imageHandler->acquireImage(resolvedFilename, desc, true, fallbackColor) && !filename.isEmpty())
     {
-        std::cerr << "Failed to load image: " << filename << std::endl;
+        std::cerr << "Failed to load image: " << resolvedFilename.asString() << std::endl;
     }
 
     // Bind the image and set its sampling properties.
     int textureLocation = imageHandler->getBoundTextureLocation(desc.resourceId);
-    if (textureLocation < 0) return false;
-    _glShader->setUniform(uniformName, textureLocation);
-    imageHandler->bindImage(filename, samplingProperties);
+    if (textureLocation < 0)
+        return false;
+
+    _glShader->setUniform(uniformName, textureLocation, false);
+    imageHandler->bindImage(resolvedFilename, samplingProperties);
 
     return true;
 }
