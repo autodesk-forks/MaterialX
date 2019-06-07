@@ -642,7 +642,6 @@ void Viewer::loadMaterialDocument()
     try
     {
         size_t newRenderables = Material::loadDocument(_doc, _materialFilename, _searchPath, _stdLib, _modifiers, _materials);
-        size_t assignedGeoms = 0;
         if (newRenderables > 0)
         {
             updateMaterialSelections();
@@ -655,6 +654,7 @@ void Viewer::loadMaterialDocument()
             // Clear cached implementations, in case libraries on the file system have changed.
             _genContext.clearNodeImplementations();
 
+            size_t assignedGeoms = 0;
             mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
             for (size_t matIndex = 0; matIndex < _materials.size(); matIndex++)
             {
