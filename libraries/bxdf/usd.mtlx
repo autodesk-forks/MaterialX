@@ -29,7 +29,7 @@
     <input name="st" type="vector2" defaultgeomprop="UV0" />
     <parameter name="wrap_s" type="string" value="periodic" enum="black,clamp,periodic" />
     <parameter name="wrap_t" type="string" value="periodic" enum="black,clamp,periodic" />
-    <input name="fallback" type="color4" value="0, 0, 0, 1" />
+    <parameter name="fallback" type="color4" value="0, 0, 0, 1" />
     <input name="scale" type="color4" value="1, 1, 1, 1" />
     <input name="bias" type="color4" value="0, 0, 0, 0" />
     <output name="r" type="float" />
@@ -38,6 +38,44 @@
     <output name="a" type="float" />
     <output name="rgb" type="color3" />
     <output name="rgba" type="color4" />
+  </nodedef>
+
+  <!-- Node: usd_primvar_reader -->
+  <nodedef name="ND_usd_primvar_reader_integer" node="usd_primvar_reader" type="integer">
+    <parameter name="varname" type="string" />
+    <parameter name="fallback" type="integer" value="0" />
+  </nodedef>
+  <nodedef name="ND_usd_primvar_reader_boolean" node="usd_primvar_reader" type="boolean">
+    <parameter name="varname" type="string" />
+    <parameter name="fallback" type="boolean" value="false" />
+  </nodedef>
+  <nodedef name="ND_usd_primvar_reader_string" node="usd_primvar_reader" type="string">
+    <parameter name="varname" type="string" />
+    <parameter name="fallback" type="string" value="" />
+  </nodedef>
+  <nodedef name="ND_usd_primvar_reader_float" node="usd_primvar_reader" type="float">
+    <parameter name="varname" type="string" />
+    <parameter name="fallback" type="float" value="0" />
+  </nodedef>
+  <nodedef name="ND_usd_primvar_reader_vector2" node="usd_primvar_reader" type="vector2">
+    <parameter name="varname" type="string" />
+    <parameter name="fallback" type="vector2" value="0, 0" />
+  </nodedef>
+  <nodedef name="ND_usd_primvar_reader_vector3" node="usd_primvar_reader" type="vector3">
+    <parameter name="varname" type="string" />
+    <parameter name="fallback" type="vector3" value="0, 0, 0" />
+  </nodedef>
+  <nodedef name="ND_usd_primvar_reader_vector4" node="usd_primvar_reader" type="vector4">
+    <parameter name="varname" type="string" />
+    <parameter name="fallback" type="vector4" value="0, 0, 0, 0" />
+  </nodedef>
+
+  <!-- Node: usd_transform2d -->
+  <nodedef name="ND_usd_transform2d" node="usd_transform2d" type="vector2">
+    <input name="in" type="vector2"/>
+    <input name="rotation" type="float" value="0"/>
+    <input name="scale" type="vector2" value="1, 1"/>
+    <input name="translation" type="vector2" value="0, 0"/>
   </nodedef>
 
   <!-- ======================================================================== -->
@@ -212,7 +250,7 @@
     </surface>
 
     <!-- Output -->
-    <output name="out" type="surfaceshader" nodename="surface_constructor" />
+    <output name="surface" type="surfaceshader" nodename="surface_constructor" />
   </nodegraph>
 
   <!-- Node: usd_uv_texture -->
@@ -238,6 +276,61 @@
     <output name="a" type="float" nodename="image_bias" channels="a"/>
     <output name="rgb" type="color3" nodename="image_bias" channels="rgb"/>
     <output name="rgba" type="color4" nodename="image_bias" />
+  </nodegraph>
+
+  <!-- Node: usd_primvar_reader -->
+  <nodegraph name="IMP_usd_primvar_reader_integer" nodedef="ND_usd_primvar_reader_integer">
+    <geomattrvalue name="primvar" type="integer">
+      <parameter name="attrname" type="string" interfacename="varname"/>
+    </geomattrvalue>
+    <output name="result" type="integer" nodename="primvar"/>
+  </nodegraph>
+  <nodegraph name="IMP_usd_primvar_reader_boolean" nodedef="ND_usd_primvar_reader_boolean">
+    <geomattrvalue name="primvar" type="boolean">
+      <parameter name="attrname" type="string" interfacename="varname"/>
+    </geomattrvalue>
+    <output name="result" type="boolean" nodename="primvar"/>
+  </nodegraph>
+  <nodegraph name="IMP_usd_primvar_reader_string" nodedef="ND_usd_primvar_reader_string">
+    <geomattrvalue name="primvar" type="string">
+      <parameter name="attrname" type="string" interfacename="varname"/>
+    </geomattrvalue>
+    <output name="result" type="string" nodename="primvar"/>
+  </nodegraph>
+  <nodegraph name="IMP_usd_primvar_reader_float" nodedef="ND_usd_primvar_reader_float">
+    <geomattrvalue name="primvar" type="float">
+      <parameter name="attrname" type="string" interfacename="varname"/>
+    </geomattrvalue>
+    <output name="result" type="float" nodename="primvar"/>
+  </nodegraph>
+  <nodegraph name="IMP_usd_primvar_reader_vector2" nodedef="ND_usd_primvar_reader_vector2">
+    <geomattrvalue name="primvar" type="vector2">
+      <parameter name="attrname" type="string" interfacename="varname"/>
+    </geomattrvalue>
+    <output name="result" type="vector2" nodename="primvar"/>
+  </nodegraph>
+  <nodegraph name="IMP_usd_primvar_reader_vector3" nodedef="ND_usd_primvar_reader_vector3">
+    <geomattrvalue name="primvar" type="vector3">
+      <parameter name="attrname" type="string" interfacename="varname"/>
+    </geomattrvalue>
+    <output name="result" type="vector3" nodename="primvar"/>
+  </nodegraph>
+  <nodegraph name="IMP_usd_primvar_reader_vector4" nodedef="ND_usd_primvar_reader_vector4">
+    <geomattrvalue name="primvar" type="vector4">
+      <parameter name="attrname" type="string" interfacename="varname"/>
+    </geomattrvalue>
+    <output name="result" type="vector4" nodename="primvar"/>
+  </nodegraph>
+
+  <!-- Node: usd_transform2d -->
+  <nodegraph name="IMP_usd_transform2d" nodedef="ND_usd_transform2d">
+    <place2d name="placement" type="vector2">
+      <input name="texcoord" type="vector2" interfacename="in"/>
+      <input name="scale" type="vector2" interfacename="scale"/>
+      <input name="rotate" type="float" interfacename="rotation"/>
+      <input name="offset" type="vector2" interfacename="translation"/>
+    </place2d>
+    <output name="result" type="vector2" nodename="placement"/>
   </nodegraph>
 
 </materialx>
