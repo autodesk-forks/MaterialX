@@ -214,10 +214,10 @@ TEST_CASE("GenShader: Generate OGS fragment wrappers", "[genogsfrag]")
     {
         mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
         //mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/geometric/streams.mtlx");
-        mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/texture/tiledimage.mtlx");
+        //mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/texture/tiledimage.mtlx");
+        mx::readFromXmlFile(doc, "resources/Materials/Examples/StandardSurface/standard_surface_default.mtlx");
         mx::StringVec libraryFolders = { "stdlib", "pbrlib", "stdlib/genglsl", "pbrlib/genglsl", "bxdf" };
         GenShaderUtil::loadLibraries(libraryFolders, searchPath, doc);
-        //mx::readFromXmlFile(doc, "resources/Materials/Examples/StandardSurface/standard_surface_brass_tiled.mtlx");
 
         std::vector<mx::GenContext*> contexts;
         mx::GenContext* glslContext = new mx::GenContext(mx::GlslShaderGenerator::create());
@@ -251,6 +251,8 @@ TEST_CASE("GenShader: Generate OGS fragment wrappers", "[genogsfrag]")
             {
                 // TODO: Need to setup lighting information here...
                 glslContext->getOptions().hwSpecularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
+                // Don't handle direct lighting for now
+                glslContext->getOptions().hwMaxActiveLightSources = 0;
                 nodeDef = shaderRef->getNodeDef();
             }
             if (nodeDef)

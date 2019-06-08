@@ -11,6 +11,18 @@
 
 namespace MaterialX
 {
+class ShaderPort;
+
+// Utility class to extract property information from a MaterialX shader port
+class OGSXMLPropertyExtractor
+{
+public:
+    void getFlags(const ShaderPort* port, string& flags, bool isGlobal) const;
+    string getUniformSemantic(const ShaderPort* port) const;
+    bool isGlobalUniform(const ShaderPort* port, const string& remappedName) const;
+    void getStreamInformation(const ShaderPort* port, string& name, string& semantic) const;
+};
+
 /// @class OGSXMLFragmentWrapper
 /// Class representing an OGS XML Fragment Wrapper
 /// Interfaces allow the wrapper to be generated based on an input node and generator
@@ -71,8 +83,6 @@ class OGSXMLFragmentWrapper
     /// @}
 
   protected:
-    void getVertexUniformSemantic(const string& name, string& semantic) const;
-
     // Mapping from MTLX keywords to OGS fragment XML keywords
     StringMap _typeMap;
 
@@ -89,6 +99,9 @@ class OGSXMLFragmentWrapper
 
     // Context for generating shaders
     GenContext* _context;
+
+    // Utility extractor
+    OGSXMLPropertyExtractor _extractor;
 };
 
 } // namespace MaterialX
