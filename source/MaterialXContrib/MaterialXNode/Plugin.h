@@ -18,9 +18,9 @@ class Plugin
 		return _librarySearchPath;
 	}
 
-	MaterialX::FilePath getOGSXMLFragmentPath() const
+	MaterialX::FilePath getResourcePath() const
 	{
-		return _ogsXmlFragmentPath;
+		return _resourcePath;
 	}
 
   private:
@@ -29,7 +29,7 @@ class Plugin
 	}
 
 	std::string _librarySearchPath;
-	std::string _ogsXmlFragmentPath;
+	std::string _resourcePath;
 };
 
 #endif /* PLUGIN_H */

@@ -2,8 +2,8 @@
   <description><![CDATA[MaterialX generated code for element: tiled_image3_output]]></description>
   <properties>
     <float2 name="uvCoord" semantic="mayaUvCoordSemantic" flags="varyingInputParam" />
-    <texture2 name="map" />
-    <sampler name="textureSampler"  />
+    <texture2 name="tiled_image3_file" />
+    <sampler name="tiled_image3_fileSampler" /> // TODO: Follow OGS convention of adding "Sampler" to the texture name
     <float3 name="tiled_image3_default"  />
     <float2 name="tiled_image3_uvtiling"  />
     <float2 name="tiled_image3_uvoffset"  />

@@ -87,7 +87,7 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
                 {
                     std::stringstream glslStream;
                     _glslWrapper->getDocument(glslStream);
-                    std::string xmlFileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/tiledImage.xml");
+                    std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/tiledImage.xml");
 
                     fragmentMgr->setEffectOutputDirectory("d:/work/");
                     fragmentMgr->setIntermediateGraphOutputDirectory("d:/work/");
@@ -159,7 +159,8 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 	const MaterialX::StringMap& inputs = _glslWrapper->getPathInputMap();
 	for (auto i : inputs)
 	{
-        MString resolvedName(i.second.c_str());
+        std::string inputName(i.second);
+        MString resolvedName(inputName.c_str());
         const MHWRender::MAttributeParameterMapping* mapping = mappings.findByParameterName(i.second.c_str());
 		if (mapping)
 		{
@@ -173,41 +174,52 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 		{
 			if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)
 			{
-				std::cout << "updateShader (filename): " << resolvedName << std::endl;
-				MHWRender::MSamplerStateDesc desc;
-				desc.filter = MHWRender::MSamplerState::kAnisotropic;
-				desc.maxAnisotropy = 16;
-				const MSamplerState* samplerState = MHWRender::MStateManager::acquireSamplerState(desc);
-				
-				if (samplerState)
-				{
-                    status = shader.setParameter("textureSampler", *samplerState);
-                    std::cout << "Bind sampler: " << resolvedName <<  ". Status: " << status << std::endl;
-				}
+                // This is the hard-cided OGS convention to associate a texture with a sampler (via post-fix "Sampler" string)
+                std::string textureParameterName(resolvedName.asChar());
+                std::string samplerParameterName(textureParameterName + "Sampler");
 
-                // Set texture
-                // TODO: This is hard-coded and should come from the Element.
-                std::string fileName(Plugin::instance().getOGSXMLFragmentPath().asString() + "/grid.png");
-				MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
-				if (renderer)
-				{
-					MHWRender::MTextureManager* textureManager = renderer->getTextureManager();
-					if (textureManager)
-					{
-						MHWRender::MTexture* texture =
-						textureManager->acquireTexture(fileName.c_str(), "");
-						if (texture)
-						{
-							MHWRender::MTextureAssignment textureAssignment;
-							textureAssignment.texture = texture;
-                            status = shader.setParameter("map", textureAssignment);
-                            std::cout << "Bind map: " << resolvedName << ". Status: " << status << std::endl;
+                // Bind texture
+                std::string fileName; 
+                std::string valueString = valueElement->getValueString();
+                if (!valueString.empty())
+                {
+                    MaterialX::FileSearchPath searchPath(Plugin::instance().getResourcePath() / MaterialX::FilePath("Images"));
+                    MaterialX::FilePath imagePath = searchPath.find(valueString);
+                    if (imagePath.exists())
+                    {
+                        fileName = imagePath.asString();
+                        MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+                        if (renderer)
+                        {
+                            MHWRender::MTextureManager* textureManager = renderer->getTextureManager();
+                            if (textureManager)
+                            {
+                                MHWRender::MTexture* texture = textureManager->acquireTexture(fileName.c_str(), "");
+                                if (texture)
+                                {
+                                    MHWRender::MTextureAssignment textureAssignment;
+                                    textureAssignment.texture = texture;
+                                    status = shader.setParameter(textureParameterName.c_str(), textureAssignment);
+                                    std::cout << "Bind texture " << textureParameterName << ". Status: " << status << std::endl;
 
-							// release our reference now that it is set on the shader
-							textureManager->releaseTexture(texture);
-						}
-					}
-				}				
+                                    // release our reference now that it is set on the shader
+                                    textureManager->releaseTexture(texture);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Bind sampler
+                MHWRender::MSamplerStateDesc desc;
+                desc.filter = MHWRender::MSamplerState::kAnisotropic;
+                desc.maxAnisotropy = 16;
+                const MSamplerState* samplerState = MHWRender::MStateManager::acquireSamplerState(desc);
+                if (samplerState)
+                {
+                    status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
+                    std::cout << "Bind sampler: " << samplerParameterName << ". Status: " << status << std::endl;
+                }
 			}
 #if 0
             // TODO: setArrayParameter is the incorrect call so disable all of these for now.
@@ -301,17 +313,17 @@ TestFileNodeOverride::TestFileNodeOverride(const MObject& obj)
             bool graphAdded = fragmentMgr->hasFragment(sFragmentGraphName);
             if (!fragAdded)
             {
-                std::string body(Plugin::instance().getOGSXMLFragmentPath().asString() + "/" + sFragmentName.asChar() + ".xml");
+                std::string body(Plugin::instance().getResourcePath().asString() + "/" + sFragmentName.asChar() + ".xml");
                 fragAdded = (sFragmentName == fragmentMgr->addShadeFragmentFromFile(body.c_str(), false));
             }
             if (!structAdded)
             {
-                std::string structS(Plugin::instance().getOGSXMLFragmentPath().asString() + "/" + sFragmentOutputName.asChar() + ".xml");
+                std::string structS(Plugin::instance().getResourcePath().asString() + "/" + sFragmentOutputName.asChar() + ".xml");
                 structAdded = (sFragmentOutputName == fragmentMgr->addShadeFragmentFromFile(structS.c_str(), false));
             }
             if (!graphAdded)
             {
-                std::string graphS(Plugin::instance().getOGSXMLFragmentPath().asString() + "/" + sFragmentGraphName.asChar() + ".xml");
+                std::string graphS(Plugin::instance().getResourcePath().asString() + "/" + sFragmentGraphName.asChar() + ".xml");
                 graphAdded = (sFragmentGraphName == fragmentMgr->addFragmentGraphFromFile(graphS.c_str()));
             }
 

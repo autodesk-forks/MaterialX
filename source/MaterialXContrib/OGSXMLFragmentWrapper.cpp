@@ -595,9 +595,9 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
     addOGSImplementation(impls, language, language_version, functionName, pixelShaderCode, vertexShaderCode);
     if (isGLSL)
     {
-        // This is not correct code. Only to add in slots
-        addOGSImplementation(impls, "HLSL", "11.0", functionName, pixelShaderCode, vertexShaderCode);
-        addOGSImplementation(impls, "Cg", "2.1", functionName, pixelShaderCode, vertexShaderCode);
+        // TODO: Add in empty stubs for now as these languages have no generator.
+        addOGSImplementation(impls, "HLSL", "11.0", functionName, "// HLSL code", EMPTY_STRING.c_str());
+        addOGSImplementation(impls, "Cg", "2.1", functionName, "// Cg code", EMPTY_STRING.c_str());
     }
 }
 
