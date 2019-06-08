@@ -21,7 +21,7 @@
     <int name="tiled_image3_frameendaction" value="1" />
   </values>
   <outputs>
-    <float3 name="outColor" />
+    <float3 name="tiled_image3_output" />
   </outputs>
   <implementation>
     <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
