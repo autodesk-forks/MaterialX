@@ -116,14 +116,16 @@ void createOGSProperty(pugi::xml_node& propertiesNode, pugi::xml_node& valuesNod
     // a texture + a sampler 
     if (type == MTLX_GENSHADER_FILENAME)
     {
+        // Note: this makes the texture/sampler pair association adhere to OGS convention
+        // TODO: The code generator variant also needs to do this within the actual source to have a match.
         pugi::xml_node txt = propertiesNode.append_child(OGS_TEXTURE2.c_str());
-        txt.append_attribute(XML_NAME_STRING.c_str()) = (name + "_texture").c_str();
+        txt.append_attribute(XML_NAME_STRING.c_str()) = (name).c_str();
         if (!flags.empty())
         {
             txt.append_attribute(OGS_FLAGS.c_str()) = flags.c_str();
         }
         pugi::xml_node samp = propertiesNode.append_child(OGS_SAMPLER.c_str());
-        samp.append_attribute(XML_NAME_STRING.c_str()) = (name).c_str();
+        samp.append_attribute(XML_NAME_STRING.c_str()) = (name + "Sampler").c_str();
         if (!flags.empty())
         {
             samp.append_attribute(OGS_FLAGS.c_str()) = flags.c_str();
