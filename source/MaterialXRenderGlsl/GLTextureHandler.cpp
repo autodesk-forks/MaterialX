@@ -7,7 +7,6 @@
 #include <MaterialXRenderGlsl/GLTextureHandler.h>
 #include <MaterialXRenderGlsl/GlslProgram.h>
 #include <MaterialXRenderGlsl/External/GLew/glew.h>
-#include <iostream>
 
 namespace MaterialX
 {
@@ -197,7 +196,6 @@ bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingPr
         GLint magFilterType = (minFilterType == GL_LINEAR || minFilterType == GL_REPEAT) ? minFilterType : GL_LINEAR;
         GLint uaddressMode = mapAddressModeToGL(samplingProperties.uaddressMode);
         GLint vaddressMode = mapAddressModeToGL(samplingProperties.vaddressMode);
-        std::cout << "Umode: " << uaddressMode << ". Vmode: " << vaddressMode << std::endl;
         Color4 borderColor(samplingProperties.defaultColor);
         if (samplingProperties.uaddressMode == 0 && samplingProperties.vaddressMode == 0)
         {
@@ -237,7 +235,7 @@ int GLTextureHandler::mapAddressModeToGL(int addressModeEnum)
     };
 
     int addressMode = GL_REPEAT;
-    if (addressModeEnum > 0 && addressModeEnum < 4)
+    if (addressModeEnum >= 0 && addressModeEnum < 5)
     {
         addressMode = addressModes[addressModeEnum];
     }
