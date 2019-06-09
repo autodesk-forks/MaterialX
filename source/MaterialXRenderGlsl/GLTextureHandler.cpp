@@ -7,6 +7,7 @@
 #include <MaterialXRenderGlsl/GLTextureHandler.h>
 #include <MaterialXRenderGlsl/GlslProgram.h>
 #include <MaterialXRenderGlsl/External/GLew/glew.h>
+#include <iostream>
 
 namespace MaterialX
 {
@@ -159,7 +160,6 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
     return textureLoaded;
 }
 
-
 bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingProperties& samplingProperties)
 {
     const ImageDesc* cachedDesc = getCachedImage(filePath);
@@ -197,7 +197,13 @@ bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingPr
         GLint magFilterType = (minFilterType == GL_LINEAR || minFilterType == GL_REPEAT) ? minFilterType : GL_LINEAR;
         GLint uaddressMode = mapAddressModeToGL(samplingProperties.uaddressMode);
         GLint vaddressMode = mapAddressModeToGL(samplingProperties.vaddressMode);
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, samplingProperties.defaultColor.data());
+        std::cout << "Umode: " << uaddressMode << ". Vmode: " << vaddressMode << std::endl;
+        Color4 borderColor(samplingProperties.defaultColor);
+        if (samplingProperties.uaddressMode == 0 && samplingProperties.vaddressMode == 0)
+        {
+            borderColor = Color4(0.0f, 0.0f, 0.0f, 1.0);
+        }
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor.data());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, vaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterType);
@@ -210,18 +216,30 @@ bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingPr
 
 int GLTextureHandler::mapAddressModeToGL(int addressModeEnum)
 {
-    int addressMode = GL_REPEAT;
+    const vector<int> addressModes =
+    {
+        // Mapping is from "black". Use clamp to border
+        // with border color black to achieve this
+        GL_CLAMP_TO_BORDER,
 
-    // Mapping is from "black". Use clamp to border
-    // with border color black to achieve this
-    if (addressModeEnum == 0)
+        // Clamp
+        GL_CLAMP_TO_EDGE,
+
+        // Repeat
+        GL_REPEAT,
+
+        // Mirror
+        GL_MIRRORED_REPEAT,
+
+        // Mapping is from "default". Use clamp to border
+        // with default color to achieve this
+        GL_CLAMP_TO_BORDER
+    };
+
+    int addressMode = GL_REPEAT;
+    if (addressModeEnum > 0 && addressModeEnum < 4)
     {
-        addressMode = GL_CLAMP_TO_BORDER;
-    }
-    // Clamp
-    else if (addressModeEnum == 1)
-    {
-        addressMode = GL_CLAMP_TO_EDGE;
+        addressMode = addressModes[addressModeEnum];
     }
     return addressMode;
 }
