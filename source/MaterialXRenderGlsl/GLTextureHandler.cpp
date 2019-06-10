@@ -197,7 +197,8 @@ bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingPr
         GLint uaddressMode = mapAddressModeToGL(samplingProperties.uaddressMode);
         GLint vaddressMode = mapAddressModeToGL(samplingProperties.vaddressMode);
         Color4 borderColor(samplingProperties.defaultColor);
-        if (samplingProperties.uaddressMode == 0 && samplingProperties.vaddressMode == 0)
+        if (samplingProperties.uaddressMode == ImageSamplingProperties::AddressMode::BLACK && 
+            samplingProperties.vaddressMode == ImageSamplingProperties::AddressMode::BLACK)
         {
             borderColor = Color4(0.0f, 0.0f, 0.0f, 1.0);
         }
@@ -212,7 +213,7 @@ bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingPr
     return false;
 }
 
-int GLTextureHandler::mapAddressModeToGL(int addressModeEnum)
+int GLTextureHandler::mapAddressModeToGL(ImageSamplingProperties::AddressMode addressModeEnum)
 {
     const vector<int> addressModes =
     {
@@ -235,23 +236,21 @@ int GLTextureHandler::mapAddressModeToGL(int addressModeEnum)
     };
 
     int addressMode = GL_REPEAT;
-    if (addressModeEnum >= 0 && addressModeEnum < 5)
+    if (addressModeEnum != ImageSamplingProperties::AddressMode::UNSPECIFIED)
     {
-        addressMode = addressModes[addressModeEnum];
+        addressMode = addressModes[static_cast<int>(addressModeEnum)];
     }
     return addressMode;
 }
 
-int GLTextureHandler::mapFilterTypeToGL(int filterTypeEnum)
+int GLTextureHandler::mapFilterTypeToGL(ImageSamplingProperties::FilterType filterTypeEnum)
 {
     int filterType = GL_LINEAR_MIPMAP_LINEAR;
-    // 0 = closest
-    if (filterTypeEnum == 0)
+    if (filterTypeEnum == ImageSamplingProperties::FilterType::CLOSEST)
     {
         filterType = GL_NEAREST;
     }
-    // 1 == linear
-    else if (filterTypeEnum == 1)
+    else if (filterTypeEnum == ImageSamplingProperties::FilterType::LINEAR)
     {
         filterType = GL_LINEAR;
     }
