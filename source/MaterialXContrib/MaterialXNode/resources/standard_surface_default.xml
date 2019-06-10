@@ -4,9 +4,9 @@
   <properties>
     <float4x4 name="u_envMatrix" flags="isRequirementOnly" />
     <texture2 name="u_envIrradiance" flags="isRequirementOnly" />
-    <sampler name="u_envIrradianceSampler" flags="isRequirementOnly" /> // TODO: Follow OGS convention of adding "Sampler" to the texture name 
+    <sampler name="u_envIrradianceSampler" flags="isRequirementOnly" /> <!-- TODO: Follow OGS convention of adding "Sampler" to the texture name -->
     <texture2 name="u_envRadiance" flags="isRequirementOnly" />
-    <sampler name="u_envRadianceSampler" flags="isRequirementOnly" /> // TODO: Follow OGS convention of adding "Sampler" to the texture name 
+    <sampler name="u_envRadianceSampler" flags="isRequirementOnly" /> <!-- TODO: Follow OGS convention of adding "Sampler" to the texture name -->
     <int name="u_envRadianceMips" flags="isRequirementOnly" />
     <int name="u_envSamples" flags="isRequirementOnly" />
     <float3 name="u_viewPosition" semantic="WorldCameraPosition" flags="isRequirementOnly" />
@@ -104,8 +104,10 @@
   </outputs>
   <implementation>
     <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
-      <function_name val="main" />
-      <source><![CDATA[#define M_PI 3.1415926535897932384626433832795
+       <!-- Note: we cannot use the function main, since OGS effect building will use the funciton main() -->
+       <function_name val="main_function" />
+       <source>
+   <![CDATA[#define M_PI 3.1415926535897932384626433832795
 #define M_PI_INV 1.0/3.1415926535897932384626433832795
 #define M_GOLDEN_RATIO 1.6180339887498948482045868343656
 #define M_FLOAT_EPS 0.000001
@@ -1025,7 +1027,7 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
 
 // TODO: Arguments here manually added. Need to modify generator to place uniforms here
 // versus as global.
-void main(
+void main_function(
   float base,
    vec3 base_color,
    float diffuse_roughness,

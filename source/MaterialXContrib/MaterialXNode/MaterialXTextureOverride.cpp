@@ -40,18 +40,18 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
 
     try
     {
-		// Create document
-		_document = MaterialX::createDocument();
-		MaterialX::readFromXmlString(_document, _documentContent.asChar());
+        // Create document
+        _document = MaterialX::createDocument();
+        MaterialX::readFromXmlString(_document, _documentContent.asChar());
 
-		// Load libraries
-		MaterialX::FilePath libSearchPath = Plugin::instance().getLibrarySearchPath();
-		const MaterialX::StringVec libraries = { "stdlib", "pbrlib" };
-		MaterialX::loadLibraries(libraries, libSearchPath, _document);
+        // Load libraries - why is this done twice. Once in the command and once here??
+        MaterialX::FilePath libSearchPath = Plugin::instance().getLibrarySearchPath();
+        const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
+        MaterialX::loadLibraries(libraries, libSearchPath, _document);
 
-		std::cout.rdbuf(std::cerr.rdbuf());
-	
-		std::vector<MaterialX::GenContext*> contexts;
+        std::cout.rdbuf(std::cerr.rdbuf());
+
+        std::vector<MaterialX::GenContext*> contexts;
         MaterialX::GenContext* glslContext = new MaterialX::GenContext(MaterialX::GlslShaderGenerator::create());
 
         // Stop emission of environment map lookups.
@@ -59,44 +59,50 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
         glslContext->registerSourceCodeSearchPath(libSearchPath);
         contexts.push_back(glslContext);
 
-		_glslWrapper = new MaterialX::OGSXMLFragmentWrapper(glslContext);
-		_glslWrapper->setOutputVertexShader(true);
-		
-		MaterialX::ElementPtr element = _document->getDescendant(_element.asChar());
+        _glslWrapper = new MaterialX::OGSXMLFragmentWrapper(glslContext);
+        _glslWrapper->setOutputVertexShader(true);
+
+        MaterialX::ElementPtr element = _document->getDescendant(_element.asChar());
+        MaterialX::ShaderRefPtr shaderRef = element->asA<MaterialX::ShaderRef>();
         MaterialX::OutputPtr output = element->asA<MaterialX::Output>();
-        MaterialX::NodePtr node;
-		if (output)
+        if (!output && !shaderRef)
         {
-			std::cout << "MaterialXTextureOverride: Create XML wrapper" << std::endl;
-			_glslWrapper->createWrapper(output);
-            // Get the fragment name
-            _fragmentName.set(_glslWrapper->getFragmentName().c_str());
+            // Should never occur as we pre-filter renderables before creating the node + override
+            throw MaterialX::Exception("MaterialXTextureOverride: Invalid type to create wrapper for");
         }
 
-		// Register fragments with the manager if needed
-		//
-		MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
-		if (theRenderer)
-		{
-			MHWRender::MFragmentManager* fragmentMgr =
-			theRenderer->getFragmentManager();
-			if (fragmentMgr)
-			{
+        // TODO: This just indicates that lighting is required. As direct lighting
+        // is not supported, the requirement means that indirect lighting is required.
+        // bool requiresLighting = (shaderRef != nullptr);
+        std::cout << "MaterialXTextureOverride: Create XML wrapper" << std::endl;
+        _glslWrapper->createWrapper(element);
+        // Get the fragment name
+        _fragmentName.set(_glslWrapper->getFragmentName().c_str());
+
+        // Register fragments with the manager if needed
+        //
+        MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
+        if (theRenderer)
+        {
+            MHWRender::MFragmentManager* fragmentMgr =
+                theRenderer->getFragmentManager();
+            if (fragmentMgr)
+            {
                 bool fragmentExists = (_fragmentName.length() > 0) && fragmentMgr->hasFragment(_fragmentName);
                 if (!fragmentExists)
                 {
                     std::stringstream glslStream;
                     _glslWrapper->getDocument(glslStream);
-                    std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/tiledImage.xml");
+                    std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/standard_surface_default.xml");
 
+                    // TODO: This should not be hard-coded
                     fragmentMgr->setEffectOutputDirectory("d:/work/");
                     fragmentMgr->setIntermediateGraphOutputDirectory("d:/work/");
                     _fragmentName = fragmentMgr->addShadeFragmentFromFile(xmlFileName.c_str(), false);
                 }
-			}
-		}
-
-        std::cout << "MaterialXTextureOverride: Add XML fragment to manager: " << _fragmentName << std::endl;
+            }
+            std::cout << "MaterialXTextureOverride: Add XML fragment to manager: " << _fragmentName << std::endl;
+        }
     }
     catch (MaterialX::Exception& e)
     {
