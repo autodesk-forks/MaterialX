@@ -1,10 +1,13 @@
 #ifndef MATERIALXNODE_H
 #define MATERIALXNODE_H
 
+#include "MaterialXData.h"
+#include "../OGSXMLFragmentWrapper.h"
+
+#include <maya/MDGModifier.h>
 #include <maya/MPxNode.h>
 #include <maya/MObject.h>
 #include <maya/MImage.h>
-
 
 /*
 #include <maya/MFnPlugin.h>
@@ -67,7 +70,6 @@ private:
     friend class FileNodeOverride;
 };
 
-
 class MaterialXNode : public MPxNode
 {
   public:
@@ -76,24 +78,36 @@ class MaterialXNode : public MPxNode
 
 	static void* creator();
 	static MStatus initialize();
+	void createOutputAttr(MDGModifier& mdgModifier);
+	MStatus setDependentsDirty(const MPlug &plugBeingDirtied, MPlugArray & affectedPlugs) override;
 	MTypeId	typeId() const override;
 	SchedulingType schedulingType() const override;
+	bool setInternalValue(const MPlug &plug, const MDataHandle &dataHandle) override;
+	void createAttributesFromDocument(MDGModifier& mdgModifier);
+	void setMaterialXData(MaterialXData* data)
+	{
+		materialXData = data;
+	}
 
 	static const MTypeId MATERIALX_NODE_TYPEID;
 	static const MString MATERIALX_NODE_TYPENAME;
 
     /// Attribute holding a MaterialX document
-    static MString DOCUMENT_ATTRIBUTE_LONG_NAME;
-    static MString DOCUMENT_ATTRIBUTE_SHORT_NAME;
+	static MString DOCUMENT_ATTRIBUTE_LONG_NAME;
+	static MString DOCUMENT_ATTRIBUTE_SHORT_NAME;
 	static MObject DOCUMENT_ATTRIBUTE;
-    /// Attribute holding a MaterialX element name
-    static MString ELEMENT_ATTRIBUTE_LONG_NAME;
-    static MString ELEMENT_ATTRIBUTE_SHORT_NAME;
-    static MObject ELEMENT_ATTRIBUTE;
-	/// Attribute holding the output color of the node
-	static MString OUT_COLOR_ATTRIBUTE_LONG_NAME;
-	static MString OUT_COLOR_ATTRIBUTE_SHORT_NAME;
-	static MObject OUT_COLOR_ATTRIBUTE;
+	/// Attribute holding a MaterialX element name
+	static MString ELEMENT_ATTRIBUTE_LONG_NAME;
+	static MString ELEMENT_ATTRIBUTE_SHORT_NAME;
+	static MObject ELEMENT_ATTRIBUTE;
+
+	MaterialXData* materialXData;
+
+  private:
+	  void setAttributeValue(MObject &materialXObject, MObject &attr, float* values, unsigned int size, MDGModifier& mdgModifier);
+
+	MObject _outAttr;
+	std::unordered_map<std::string, MaterialX::ElementPtr> _attributeElementPairMap;
 };
 
 class MaterialXTextureNode : public MaterialXNode

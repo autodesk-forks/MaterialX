@@ -5,7 +5,6 @@
 
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenShader/HwShaderGenerator.h>
-#include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Util.h>
 #include <MaterialXFormat/XmlIo.h>
 #include <MaterialXRender/StbImageLoader.h>
@@ -32,97 +31,35 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
 	: MPxShadingNodeOverride(obj)
 	, _object(obj)
 {
+	/*
 	MStatus status;
 	MFnDependencyNode depNode(_object, &status);
-	if (status)
+	MaterialXNode* node = dynamic_cast<MaterialXNode*>(depNode.userNode());
+
+	if (node)
 	{
-		depNode.findPlug(MaterialXNode::DOCUMENT_ATTRIBUTE_LONG_NAME, false, &status).getValue(_documentContent);
-		depNode.findPlug(MaterialXNode::ELEMENT_ATTRIBUTE_LONG_NAME, false, &status).getValue(_element);
-	}
+		try
+		{
+			std::cout.rdbuf(std::cerr.rdbuf());
+			MaterialXData& materialXData = node->materialXData;
+			node->createAttributesFromDocument();
+			materialXData.registerFragments();
 
-    try
-    {
-        // Create document
-        _document = MaterialX::createDocument();
-        MaterialX::readFromXmlString(_document, _documentContent.asChar());
+			std::cout << "MaterialXTextureOverride: Add XML fragment to manager: " << materialXData.fragmentName << std::endl;
+		}
+		catch (MaterialX::Exception& e)
+		{
+			std::cerr << "MaterialXTextureOverride: Failed to generate XML wrapper: " << e.what() << std::endl;
+		}
 
-        // Load libraries - why is this done twice. Once in the command and once here??
-        MaterialX::FilePath libSearchPath = Plugin::instance().getLibrarySearchPath();
-        const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
-        MaterialX::loadLibraries(libraries, libSearchPath, _document);
-
-        std::cout.rdbuf(std::cerr.rdbuf());
-
-        std::vector<MaterialX::GenContext*> contexts;
-        MaterialX::GenContext* glslContext = new MaterialX::GenContext(MaterialX::GlslShaderGenerator::create());
-
-        // Stop emission of environment map lookups.
-        glslContext->getOptions().hwSpecularEnvironmentMethod = MaterialX::SPECULAR_ENVIRONMENT_NONE;
-        glslContext->registerSourceCodeSearchPath(libSearchPath);
-        contexts.push_back(glslContext);
-
-        _glslWrapper = new MaterialX::OGSXMLFragmentWrapper(glslContext);
-        _glslWrapper->setOutputVertexShader(true);
-
-        MaterialX::ElementPtr element = _document->getDescendant(_element.asChar());
-        MaterialX::ShaderRefPtr shaderRef = element->asA<MaterialX::ShaderRef>();
-        MaterialX::OutputPtr output = element->asA<MaterialX::Output>();
-        if (!output && !shaderRef)
-        {
-            // Should never occur as we pre-filter renderables before creating the node + override
-            throw MaterialX::Exception("MaterialXTextureOverride: Invalid type to create wrapper for");
-        }
-
-        // TODO: This just indicates that lighting is required. As direct lighting
-        // is not supported, the requirement means that indirect lighting is required.
-        // bool requiresLighting = (shaderRef != nullptr);
-        std::cout << "MaterialXTextureOverride: Create XML wrapper" << std::endl;
-        _glslWrapper->createWrapper(element);
-        // Get the fragment name
-        _fragmentName.set(_glslWrapper->getFragmentName().c_str());
-
-        // Register fragments with the manager if needed
-        //
-        MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
-        if (theRenderer)
-        {
-            MHWRender::MFragmentManager* fragmentMgr =
-                theRenderer->getFragmentManager();
-            if (fragmentMgr)
-            {
-                bool fragmentExists = (_fragmentName.length() > 0) && fragmentMgr->hasFragment(_fragmentName);
-                if (!fragmentExists)
-                {
-                    std::stringstream glslStream;
-                    _glslWrapper->getDocument(glslStream);
-                    std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/standard_surface_default.xml");
-
-                    // TODO: This should not be hard-coded
-                    fragmentMgr->setEffectOutputDirectory("d:/work/");
-                    fragmentMgr->setIntermediateGraphOutputDirectory("d:/work/");
-                    _fragmentName = fragmentMgr->addShadeFragmentFromFile(xmlFileName.c_str(), false);
-                }
-            }
-            std::cout << "MaterialXTextureOverride: Add XML fragment to manager: " << _fragmentName << std::endl;
-        }
-    }
-    catch (MaterialX::Exception& e)
-    {
-        std::cerr << "MaterialXTextureOverride: Failed to generate XML wrapper: " << e.what() << std::endl;
-    }
-
-    // TODO: Use our own image loader vs Mayas.
-    // MaterialX::StbImageLoaderPtr stbLoader = MaterialX::StbImageLoader::create();
+		// TODO: Use our own image loader vs Mayas.
+		// MaterialX::StbImageLoaderPtr stbLoader = MaterialX::StbImageLoader::create();
+	}*/
 }
 
 MaterialXTextureOverride::~MaterialXTextureOverride()
 {
 	// TODO: Free sampler state here!
-
-	if (_glslWrapper)
-	{
-		delete _glslWrapper;
-	}
 }
 
 MHWRender::DrawAPI MaterialXTextureOverride::supportedDrawAPIs() const
@@ -132,22 +69,31 @@ MHWRender::DrawAPI MaterialXTextureOverride::supportedDrawAPIs() const
 
 MString MaterialXTextureOverride::fragmentName() const
 {
-	return _fragmentName;
+	MStatus status;
+	MFnDependencyNode depNode(_object, &status);
+	MaterialXNode* node = dynamic_cast<MaterialXNode*>(depNode.userNode());
+	return node->materialXData->fragmentName;
 }
 
-#if 0
+/*
 void MaterialXTextureOverride::getCustomMappings(MHWRender::MAttributeParameterMappingList& mappings)
 {
-	const MaterialX::StringMap& inputs = _glslWrapper->getPathInputMap();
-	for (auto i : inputs)
+	MStatus status;
+	MFnDependencyNode depNode(_object, &status);
+	MaterialXNode* node = dynamic_cast<MaterialXNode*>(depNode.userNode());
+
+	if (node)
 	{
-		std::cout.rdbuf(std::cerr.rdbuf());
-		std::cout << "MaterialXTextureOverride: Get custom mappings: " << i.second.c_str() << std::endl;
-		MHWRender::MAttributeParameterMapping mapping(i.second.c_str(), "", false, true);
-		mappings.append(mapping);
+		const MaterialX::StringMap& inputs = node->materialXData.glslFragmentWrapper->getPathInputMap();
+		for (auto i : inputs)
+		{
+			std::cout.rdbuf(std::cerr.rdbuf());
+			std::cout << "MaterialXTextureOverride: Get custom mappings: " << i.second.c_str() << std::endl;
+			MHWRender::MAttributeParameterMapping mapping(i.second.c_str(), "", false, true);
+			mappings.append(mapping);
+		}
 	}
-}
-#endif
+}*/
 
 void MaterialXTextureOverride::updateDG()
 {
@@ -158,13 +104,16 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 {
     MStringArray params;
     shader.parameterList(params);
-    for (unsigned int i = 0; i < params.length(); i++)
+    for (unsigned int j = 0; j < params.length(); j++)
     {
-        std::cout << "MaterialXTextureOverride: shader param: " << params[i].asChar() << std::endl;
+        std::cout << "MaterialXTextureOverride: shader param: " << params[j].asChar() << std::endl;
     }
 
-    MStatus status;
-	const MaterialX::StringMap& inputs = _glslWrapper->getPathInputMap();
+	MStatus status;
+	MFnDependencyNode depNode(_object, &status);
+	MaterialXNode* node = dynamic_cast<MaterialXNode*>(depNode.userNode());
+	if (!node) return;
+	const MaterialX::StringMap& inputs = node->materialXData->glslFragmentWrapper->getPathInputMap();
 	for (auto i : inputs)
 	{
         std::string inputName(i.second);
@@ -175,7 +124,7 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 			resolvedName = mapping->resolvedParameterName();
 		}
 
-		MaterialX::ElementPtr element = _document->getDescendant(i.first);
+		MaterialX::ElementPtr element = node->materialXData->doc->getDescendant(i.first);
 		if (!element) continue;
 		MaterialX::ValueElementPtr valueElement = element->asA<MaterialX::ValueElement>();
 		if (valueElement)
@@ -229,46 +178,51 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
                     std::cout << "Bind sampler: " << samplerParameterName << ". Status: " << status << std::endl;
                 }
 			}
-#if 0
-            // TODO: setArrayParameter is the incorrect call so disable all of these for now.
+
+			// TODO: setArrayParameter is the incorrect call so disable all of these for now.
             // Also none of these need to be set since they are supposed to be immutable.
             // To modify the MaterialX document should be modified and a new shader generated.
             // Note: To find out how to remove a fragment otherwise we cannot edit/update.
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
 			{
 				MaterialX::Vector2 vector2 = valueElement->getValue()->asA<MaterialX::Vector2>();
-                status = shader.setArrayParameter(resolvedName, vector2.data(), 2);
+				MFloatVector floatVector(vector2[0], vector2[1]);
+				status = shader.setParameter(resolvedName, floatVector);
 				std::cout << "updateShader (vector2): " << resolvedName << ". Status: " << status << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
 			{
 				MaterialX::Vector3 vector3 = valueElement->getValue()->asA<MaterialX::Vector3>();
-                status = shader.setArrayParameter(resolvedName, vector3.data(), 3);
+				MFloatVector floatVector(vector3[0], vector3[1], vector3[2]);
+				status = shader.setParameter(resolvedName, floatVector);
 				std::cout << "updateShader (vector3): " << resolvedName << ". Status: " << status << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
 			{
-				MaterialX::Vector4 vector4 = valueElement->getValue()->asA<MaterialX::Vector4>();
-                status = shader.setArrayParameter(resolvedName, vector4.data(), 4);
-				std::cout << "updateShader (vector4): " << resolvedName << ". Status: " << status << std::endl;
+//				MaterialX::Vector4 vector4 = valueElement->getValue()->asA<MaterialX::Vector4>();
+//				MFloatVector floatVector(vector4[0], vector4[1], vector4[2], vector4[3]);
+//				status = shader.setParameter(resolvedName, floatVector);
+//				std::cout << "updateShader (vector4): " << resolvedName << ". Status: " << status << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
 			{
 				MaterialX::Color2 color2 = valueElement->getValue()->asA<MaterialX::Color2>();
-                status = shader.setArrayParameter(resolvedName, color2.data(), 2);
-                std::cout << "updateShader (color2): " << resolvedName << ". Status: " << status << std::endl;
+				MFloatVector floatVector(color2[0], color2[1]);
+				status = shader.setParameter(resolvedName, floatVector);
+				std::cout << "updateShader (color2): " << resolvedName << ". Status: " << status << std::endl;
             }
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
 			{
 				MaterialX::Color3 color3 = valueElement->getValue()->asA<MaterialX::Color3>();
-                status = shader.setArrayParameter(resolvedName, color3.data(), 3);
-                std::cout << "updateShader (color3): " << resolvedName << std::endl;
+				MFloatVector floatVector(color3[0], color3[1], color3[2]);
+				status = shader.setParameter(resolvedName, floatVector);
+				std::cout << "updateShader (color3): " << resolvedName << std::endl;
             }
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
 			{
-				MaterialX::Color4 color4 = valueElement->getValue()->asA<MaterialX::Color4>();
-                status = shader.setArrayParameter(resolvedName, color4.data(), 4);
-                std::cout << "updateShader (color4): " << resolvedName << std::endl;
+//				MaterialX::Color4 color4 = valueElement->getValue()->asA<MaterialX::Color4>();
+//                status = shader.setArrayParameter(resolvedName, color4.data(), 4);
+//                std::cout << "updateShader (color4): " << resolvedName << std::endl;
             }
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Matrix44>::TYPE)
 			{
@@ -276,7 +230,6 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
                 status = shader.setArrayParameter(resolvedName, mat44.data(), 16);
                 std::cout << "updateShader (mat44): " << resolvedName << std::endl;
             }
-#endif
         }
 	}
 }

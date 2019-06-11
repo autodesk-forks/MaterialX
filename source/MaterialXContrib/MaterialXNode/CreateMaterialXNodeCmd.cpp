@@ -4,7 +4,6 @@
 #include "Plugin.h"
 
 #include <MaterialXFormat/XmlIo.h>
-#include <MaterialXGenShader/Util.h>
 
 #include <maya/MArgParser.h>
 #include <maya/MSelectionList.h>
@@ -47,28 +46,19 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 		return status;
 
 	MString materialXDocument;
-	MString elementName;
+	MString elementPath;
 	if( parser.isFlagSet(kDocumentFlag) )
 	{
 		argData.getFlagArgument(kDocumentFlag, 0, materialXDocument);
 	}
 	if (parser.isFlagSet(kElementFlag))
 	{
-		argData.getFlagArgument(kElementFlag, 0, elementName);
+		argData.getFlagArgument(kElementFlag, 0, elementPath);
 	}
-	if (materialXDocument.length() > 0 && elementName.length() > 0)
+	if (materialXDocument.length() > 0 && elementPath.length() > 0)
 	{
-		// Load document
-		MaterialX::DocumentPtr doc = MaterialX::createDocument();
-		MaterialX::readFromXmlFile(doc, materialXDocument.asChar());
-
-		// Load libraries
-		MaterialX::FilePath libSearchPath = Plugin::instance().getLibrarySearchPath();
-		const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
-        MaterialX::loadLibraries(libraries, libSearchPath, doc);
-
-		// Check to make sure the elementName is a valid output node
-		if (!validOutputSpecified(doc, elementName.asChar()))
+		MaterialXData* materialXData = new MaterialXData(materialXDocument.asChar(), elementPath.asChar());
+		if (!materialXData->isValidOutput())
 		{
 			displayError("The element specified is not renderable.");
 			return MS::kFailure;
@@ -80,15 +70,32 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         );
 
 		// Generate a valid Maya node name from the path string
-        std::string nodeName = MaterialX::createValidName(elementName.asChar());
+		std::string nodeName = MaterialX::createValidName(elementPath.asChar());
 		_dgModifier.renameNode(node, nodeName.c_str());
 
-		std::string documentString = MaterialX::writeToXmlString(doc);
+		materialXData->createXMLWrapper();
+		materialXData->registerFragments();
+
+		MFnDependencyNode depNode(node);
+		MaterialXNode* materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
+		if (materialXNode)
+		{
+			materialXNode->setMaterialXData(materialXData);
+			materialXNode->createOutputAttr(_dgModifier);
+		}
+
+		std::string documentString = MaterialX::writeToXmlString(materialXData->doc);
 		MPlug materialXPlug(node, MaterialXNode::DOCUMENT_ATTRIBUTE);
 		_dgModifier.newPlugValueString(materialXPlug, documentString.c_str());
 
 		MPlug elementPlug(node, MaterialXNode::ELEMENT_ATTRIBUTE);
-		_dgModifier.newPlugValueString(elementPlug, elementName);
+		_dgModifier.newPlugValueString(elementPlug, elementPath);
+
+		if (materialXNode)
+		{
+			// TODO: Figure out why adding this in causes the texture to go black
+//			materialXNode->createAttributesFromDocument(_dgModifier);
+		}
 
 		_dgModifier.doIt();
 	}
@@ -107,28 +114,6 @@ MSyntax CreateMaterialXNodeCmd::newSyntax()
 void* CreateMaterialXNodeCmd::creator()
 {
 	return new CreateMaterialXNodeCmd();
-}
-
-// Determines whether the output specified is valid
-bool CreateMaterialXNodeCmd::validOutputSpecified(MaterialX::DocumentPtr doc, const std::string &elementPath)
-{
-	std::vector<MaterialX::TypedElementPtr> elements;
-    try {
-        MaterialX::findRenderableElements(doc, elements);
-        for (MaterialX::TypedElementPtr element : elements)
-        {
-            std::string pathCompare(element->getNamePath());
-            if (pathCompare == elementPath)
-            {
-                return true;
-            }
-        }
-    }
-    catch (MaterialX::Exception& e)
-    {
-        std::cerr << "Failed to find renderable element in document: " << e.what() << std::endl;
-    }
-	return false;
 }
 
 // Sets the value of the specified MaterialXNode attribute
