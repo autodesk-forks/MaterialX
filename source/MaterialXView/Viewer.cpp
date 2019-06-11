@@ -817,7 +817,6 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
     }
 
     size_t newRenderables = (_materials.size() - previousMaterialCount);
-    size_t assignedGeoms = 0;
     if (newRenderables > 0)
     {
         size_t firstNewMaterial = _materials.size() - newRenderables;
@@ -854,7 +853,6 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                     if (!materialRef->getGeometryBindings(partGeomName).empty())
                     {
                         assignMaterial(part, mat);
-                        assignedGeoms++;
                     }
                 }
             }
