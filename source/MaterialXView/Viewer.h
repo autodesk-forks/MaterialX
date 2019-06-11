@@ -73,7 +73,8 @@ class Viewer : public ng::Screen
     void saveShaderSource();
     void loadShaderSource();
     void saveDotFiles();
-
+    void reloadShaders();
+        
     /// Assign the given material to the given geometry, or remove any
     /// existing assignment if the given material is nullptr.
     void assignMaterial(mx::MeshPartitionPtr geometry, MaterialPtr material);

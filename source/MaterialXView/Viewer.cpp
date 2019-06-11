@@ -878,6 +878,21 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
     updateMaterialSelectionUI();
 }
 
+void Viewer::reloadShaders()
+{
+    try
+    {
+        for (MaterialPtr material : _materials)
+        {
+            material->generateShader(_genContext);
+        }
+    }
+    catch (std::exception& e)
+    {
+        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Shader Generation Error", e.what());
+    }
+}
+
 void Viewer::saveShaderSource()
 {
     try
