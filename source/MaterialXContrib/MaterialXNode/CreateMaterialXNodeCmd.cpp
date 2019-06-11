@@ -75,7 +75,9 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 		}
 
 		// Create the MaterialX node
-		MObject node = _dgModifier.createNode(MaterialXNode::MATERIALX_NODE_TYPEID);
+		MObject node = _dgModifier.createNode(
+            MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
+        );
 
 		// Generate a valid Maya node name from the path string
         std::string nodeName = MaterialX::createValidName(elementName.asChar());

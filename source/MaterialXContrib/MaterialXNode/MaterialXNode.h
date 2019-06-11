@@ -96,4 +96,15 @@ class MaterialXNode : public MPxNode
 	static MObject OUT_COLOR_ATTRIBUTE;
 };
 
+class MaterialXTextureNode : public MaterialXNode
+{
+public:
+    static void* creator();
+    static MStatus initialize();
+    MTypeId	typeId() const override;
+
+    static const MTypeId MATERIALX_TEXTURE_NODE_TYPEID;
+    static const MString MATERIALX_TEXTURE_NODE_TYPENAME;
+};
+
 #endif /* MATERIALX_NODE_H */

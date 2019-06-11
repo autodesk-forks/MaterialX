@@ -42,6 +42,9 @@ MString MaterialXNode::OUT_COLOR_ATTRIBUTE_LONG_NAME("out"); // ("tiled_image3_o
 MString MaterialXNode::OUT_COLOR_ATTRIBUTE_SHORT_NAME("oc");
 MObject MaterialXNode::OUT_COLOR_ATTRIBUTE;
 
+const MTypeId MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID(0x00042403);
+const MString MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPENAME("MaterialXTextureNode");
+
 MaterialXNode::MaterialXNode()
 {
 	std::cout << "MaterialXNode::MaterialXNode" << std::endl;
@@ -287,3 +290,28 @@ MStatus TestFileNode::initialize()
     return MS::kSuccess;
 }
 
+//////////////////////////////////////////////////////////////////////////
+
+MTypeId MaterialXTextureNode::typeId() const
+{
+    return MATERIALX_TEXTURE_NODE_TYPEID;
+}
+
+void* MaterialXTextureNode::creator()
+{
+    std::cout.rdbuf(std::cerr.rdbuf());
+    std::cout << "MaterialXTextureNode::creator" << std::endl;
+    return new MaterialXTextureNode();
+}
+
+MStatus MaterialXTextureNode::initialize()
+{
+    std::cout << "MaterialXTextureNode::initialize" << std::endl;
+
+    CHECK_MSTATUS(inheritAttributesFrom(MATERIALX_NODE_TYPENAME));
+
+    CHECK_MSTATUS(attributeAffects(ELEMENT_ATTRIBUTE, OUT_COLOR_ATTRIBUTE));
+    CHECK_MSTATUS(attributeAffects(DOCUMENT_ATTRIBUTE, OUT_COLOR_ATTRIBUTE));
+
+    return MS::kSuccess;
+}
