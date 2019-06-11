@@ -210,7 +210,7 @@ bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingPr
 
 int GLTextureHandler::mapAddressModeToGL(ImageSamplingProperties::AddressMode addressModeEnum)
 {
-    const vector<int> addressModes =
+    const vector<int> addressModes 
     {
         // Constant color. Use clamp to border
         // with border color to achieve this
