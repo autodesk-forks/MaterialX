@@ -126,9 +126,12 @@ ShaderPtr HwShaderGenerator::createShader(const string& name, ElementPtr element
     // Add the pixel stage output. This needs to be a color4 for rendering,
     // so copy name and variable from the graph output but set type to color4.
     // TODO: Improve this to support multiple outputs and other data types.
+    // TODO: If this is only outputing a fragment then we want to preserve the originl type
+    // or allow a type to be specified.
     ShaderGraphOutputSocket* outputSocket = graph->getOutputSocket();
     ShaderPort* output = psOutputs->add(Type::COLOR4, outputSocket->getName());
     output->setVariable(outputSocket->getVariable());
+    output->setPath(outputSocket->getPath());
 
     // Create shader variables for all nodes that need this.
     for (ShaderNode* node : graph->getNodes())
