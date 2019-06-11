@@ -1,117 +1,197 @@
-<?xml version="1.0"?>
-<fragment uiName="SR_default" name="SR_default" type="plumbing" class="ShadeFragment" version="1.36">
-  <description><![CDATA[MaterialX generated code for element: SR_default]]></description>
-  <properties>
-     <!-- Non varying parameter name can be used as is. Varying come through via a structure. -->
-    <float4x4 name="u_envMatrix" flags="isRequirementOnly" />
-    <texture2 name="u_envIrradiance" flags="isRequirementOnly" />
-    <sampler name="u_envIrradianceSampler" flags="isRequirementOnly" /> <!-- TODO: Follow OGS convention of adding "Sampler" to the texture name -->
-    <texture2 name="u_envRadiance" flags="isRequirementOnly" />
-    <sampler name="u_envRadianceSampler" flags="isRequirementOnly" /> <!-- TODO: Follow OGS convention of adding "Sampler" to the texture name -->
-    <int name="u_envRadianceMips" flags="isRequirementOnly" />
-    <int name="u_envSamples" flags="isRequirementOnly" />
-    <float3 name="u_viewPosition" semantic="WorldCameraPosition" flags="isRequirementOnly" /> 
-    <int name="u_numActiveLightSources" flags="isRequirementOnly" />
-     <!-- end non-varying globals -->
-    <float name="base" />
-    <float3 name="base_color" />
-    <float name="diffuse_roughness" />
-    <float name="specular" />
-    <float3 name="specular_color" />
-    <float name="specular_roughness" />
-    <float name="specular_IOR" />
-    <float name="specular_anisotropy" />
-    <float name="specular_rotation" />
-    <float name="metalness" />
-    <float name="transmission" />
-    <float3 name="transmission_color" />
-    <float name="transmission_depth" />
-    <float3 name="transmission_scatter" />
-    <float name="transmission_scatter_anisotropy" />
-    <float name="transmission_dispersion" />
-    <float name="transmission_extra_roughness" />
-    <float name="subsurface" />
-    <float3 name="subsurface_color" />
-    <float3 name="subsurface_radius" />
-    <float name="subsurface_scale" />
-    <float name="subsurface_anisotropy" />
-    <float name="sheen" />
-    <float3 name="sheen_color" />
-    <float name="sheen_roughness" />
-    <bool name="thin_walled" />
-    <float name="coat" />
-    <float3 name="coat_color" />
-    <float name="coat_roughness" />
-    <float name="coat_anisotropy" />
-    <float name="coat_rotation" />
-    <float name="coat_IOR" />
-    <float name="coat_affect_color" />
-    <float name="coat_affect_roughness" />
-    <float name="thin_film_thickness" />
-    <float name="thin_film_IOR" />
-    <float name="emission" />
-    <float3 name="emission_color" />
-    <float3 name="opacity" />
-     <!-- Varying globals come in through input structure -->
-    <float3 name="positionWorld" semantic="Pw" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="normalWorld" semantic="Nw" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="tangentWorld" semantic="mayaTangentIn" flags="isRequirementOnly, varyingInputParam" />
-     <!-- end varying globals -->
-  </properties>
-  <values>
-    <float4x4 name="u_envMatrix" value="-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1" />
-    <int name="u_envRadianceMips" value="1" />
-    <int name="u_envSamples" value="16" />
-    <int name="u_numActiveLightSources" value="0" />
-    <float name="base" value="0.8" />
-    <float3 name="base_color" value="1, 1, 1" />
-    <float name="diffuse_roughness" value="0" />
-    <float name="specular" value="1" />
-    <float3 name="specular_color" value="1, 1, 1" />
-    <float name="specular_roughness" value="0.1" />
-    <float name="specular_IOR" value="1.52" />
-    <float name="specular_anisotropy" value="0" />
-    <float name="specular_rotation" value="0" />
-    <float name="metalness" value="0" />
-    <float name="transmission" value="0" />
-    <float3 name="transmission_color" value="1, 1, 1" />
-    <float name="transmission_depth" value="0" />
-    <float3 name="transmission_scatter" value="0, 0, 0" />
-    <float name="transmission_scatter_anisotropy" value="0" />
-    <float name="transmission_dispersion" value="0" />
-    <float name="transmission_extra_roughness" value="0" />
-    <float name="subsurface" value="0" />
-    <float3 name="subsurface_color" value="1, 1, 1" />
-    <float3 name="subsurface_radius" value="1, 1, 1" />
-    <float name="subsurface_scale" value="1" />
-    <float name="subsurface_anisotropy" value="0" />
-    <float name="sheen" value="0" />
-    <float3 name="sheen_color" value="1, 1, 1" />
-    <float name="sheen_roughness" value="0.3" />
-    <bool name="thin_walled" value="false" />
-    <float name="coat" value="0" />
-    <float3 name="coat_color" value="1, 1, 1" />
-    <float name="coat_roughness" value="0.1" />
-    <float name="coat_anisotropy" value="0" />
-    <float name="coat_rotation" value="0" />
-    <float name="coat_IOR" value="1.5" />
-    <float name="coat_affect_color" value="0" />
-    <float name="coat_affect_roughness" value="0" />
-    <float name="thin_film_thickness" value="0" />
-    <float name="thin_film_IOR" value="1.5" />
-    <float name="emission" value="0" />
-    <float3 name="emission_color" value="1, 1, 1" />
-    <float3 name="opacity" value="1, 1, 1" />
-  </values>
-  <outputs>
-    <float3 name="out" />
-  </outputs>
-  <implementation>
-    <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
-       <!-- Note: we cannot use the function main, since OGS effect building will use the funciton main() -->
-       <function_name val="main_function" />
-       <source>
-   <![CDATA[#define M_PI 3.1415926535897932384626433832795
+// ===========================================================================
+// Copyright 2017 Autodesk, Inc. All rights reserved.
+// 
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
+//**************************************************************************/ 
+// Copyright 2015 Autodesk, Inc. 
+// All rights reserved. 
+// 
+// This computer source code and related instructions and comments are the 
+// unpublished confidential and proprietary information of Autodesk, Inc. 
+// and are protected under Federal copyright and state trade secret law. 
+// They may not be disclosed to, copied or used by any third party without 
+// the prior written consent of Autodesk, Inc. 
+//**************************************************************************/ 
+
+//
+// Compiled Fragment: reqdVtxFormat
+//
+
+
+
+////////////////////// 
+// reqdVtxFormat_VS
+
+
+attribute vertexInS
+{
+    // vertexInS
+vec3 Pm : POSITION; 
+vec3 tangentWorld : TEXCOORD0; 
+vec3 normalWorld : TEXCOORD1; 
+vec3 positionWorld : TEXCOORD2; 
+}
+
+//  Declarations 
+
+attribute vertOutS
+{
+    // vertOutS
+vec3 positionWorld : TEXCOORD0; 
+vec3 normalWorld : TEXCOORD1; 
+vec3 tangentWorld : TEXCOORD2; 
+vec3 Pw : TEXCOORD3; 
+}
+
+
+//  Globals 
+uniform mat4 World : world; 
+uniform float DepthPriority : depthpriority; 
+uniform mat4 WorldViewProj : worldviewprojection; 
+
+attribute fragInS
+{
+    // fragInS
+vec3 positionWorld : TEXCOORD0; 
+vec3 normalWorld : TEXCOORD1; 
+vec3 tangentWorld : TEXCOORD2; 
+vec3 Pw : TEXCOORD3; 
+}
+
+attribute fragOutS
+{
+    vec4 ColorOut;
+}
+
+//  Declarations 
+struct mayaSurfaceShaderOutput {
+	vec3 outColor;
+	vec3 outTransparency;
+	vec3 outGlowColor;
+	vec3 outMatteOpacity;
+	vec4 outSurfaceFinal;
+};
+
+//  Globals 
+uniform mat4 u_envMatrix; 
+uniform texture2D u_envIrradiance; 
+uniform sampler2D u_envIrradianceSampler= sampler_state
+{ 
+    Texture = <u_envIrradiance>; 
+}; 
+uniform texture2D u_envRadiance; 
+uniform sampler2D u_envRadianceSampler= sampler_state
+{ 
+    Texture = <u_envRadiance>; 
+}; 
+uniform int u_envRadianceMips=1; 
+uniform int u_envSamples=16; 
+uniform vec3 u_viewPosition : WorldCameraPosition; 
+uniform int u_numActiveLightSources=0; 
+uniform float base=0.800000; 
+uniform vec3 base_color={ 1.000000, 1.000000, 1.000000 }; 
+uniform float diffuse_roughness=0.000000; 
+uniform float specular=1.000000; 
+uniform vec3 specular_color={ 1.000000, 1.000000, 1.000000 }; 
+uniform float specular_roughness=0.100000; 
+uniform float specular_IOR=1.520000; 
+uniform float specular_anisotropy=0.000000; 
+uniform float specular_rotation=0.000000; 
+uniform float metalness=0.000000; 
+uniform float transmission=0.000000; 
+uniform vec3 transmission_color={ 1.000000, 1.000000, 1.000000 }; 
+uniform float transmission_depth=0.000000; 
+uniform vec3 transmission_scatter={ 0.000000, 0.000000, 0.000000 }; 
+uniform float transmission_scatter_anisotropy=0.000000; 
+uniform float transmission_dispersion=0.000000; 
+uniform float transmission_extra_roughness=0.000000; 
+uniform float subsurface=0.000000; 
+uniform vec3 subsurface_color={ 1.000000, 1.000000, 1.000000 }; 
+uniform vec3 subsurface_radius={ 1.000000, 1.000000, 1.000000 }; 
+uniform float subsurface_scale=1.000000; 
+uniform float subsurface_anisotropy=0.000000; 
+uniform float sheen=0.000000; 
+uniform vec3 sheen_color={ 1.000000, 1.000000, 1.000000 }; 
+uniform float sheen_roughness=0.300000; 
+uniform bool thin_walled=0; 
+uniform float coat=0.000000; 
+uniform vec3 coat_color={ 1.000000, 1.000000, 1.000000 }; 
+uniform float coat_roughness=0.100000; 
+uniform float coat_anisotropy=0.000000; 
+uniform float coat_rotation=0.000000; 
+uniform float coat_IOR=1.500000; 
+uniform float coat_affect_color=0.000000; 
+uniform float coat_affect_roughness=0.000000; 
+uniform float thin_film_thickness=0.000000; 
+uniform float thin_film_IOR=1.500000; 
+uniform float emission=0.000000; 
+uniform vec3 emission_color={ 1.000000, 1.000000, 1.000000 }; 
+uniform vec3 opacity={ 1.000000, 1.000000, 1.000000 }; 
+uniform vec3 surfaceShader_1outTransparency : outTransparency; 
+uniform vec3 surfaceShader_1outGlowColor : outGlowColor; 
+uniform vec3 surfaceShader_1outMatteOpacity : outMatteOpacity; 
+uniform bool mayaAlphaCut : mayaAlphaCut; 
+uniform float extraOpacity=1.000000; 
+uniform bool fogEnabled=0; 
+uniform mat4 ViewProj : viewprojection; 
+uniform float fogStart=0.000000; 
+uniform float fogEnd=92.000000; 
+uniform int fogMode=0; 
+uniform float fogDensity=0.100000; 
+uniform vec4 fogColor={ 0.500000, 0.500000, 0.500000, 1.000000 }; 
+uniform float fogMultiplier=1.000000; 
+
+GLSLShader reqdVtxFormat_VS
+{
+
+//  Fragments 
+vec3 iNamedUsage0_F3(vec3 val ){ return val; } 
+
+vec3 iNamedUsage1_F3(vec3 val ){ return val; } 
+
+vec3 iNamedUsage2_F3(vec3 val ){ return val; } 
+
+highp vec3 iPw( in vec3 pm, highp mat4 world ) 
+{ 
+    return ( world * vec4(pm, 1.0) ).xyz; 
+} 
+
+highp vec4 iPcPriority(in vec3 pm, in float depthPriority, in highp mat4 worldViewProjectionC) 
+{ 
+    highp vec4 P = ( worldViewProjectionC * vec4(pm,1.0) ); 
+    P.z -= P.w * 2.0 * depthPriority; 
+    return P; 
+} 
+
+
+
+ // Vertex Shader 
+void main() 
+ { 
+
+     // ShaderBody 
+        VS_OUT.positionWorld = iNamedUsage0_F3( positionWorld ); 
+    VS_OUT.normalWorld = iNamedUsage1_F3( normalWorld ); 
+    VS_OUT.tangentWorld = iNamedUsage2_F3( tangentWorld ); 
+    VS_OUT.Pw = iPw( Pm, World ); 
+      gl_Position = iPcPriority ( Pm, DepthPriority, WorldViewProj ); 
+ 
+ } 
+}
+
+
+////////////////////// 
+// reqdVtxFormat
+
+
+GLSLShader reqdVtxFormat
+{
+
+//  Fragments 
+#define M_PI 3.1415926535897932384626433832795
 #define M_PI_INV 1.0/3.1415926535897932384626433832795
 #define M_GOLDEN_RATIO 1.6180339887498948482045868343656
 #define M_FLOAT_EPS 0.000001
@@ -1084,16 +1164,97 @@ vec3 main_function(
     return SR_default_out.color;
 }
 
-]]></source>
-    </implementation>
-    <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
-      <function_name val="main" />
-      <source><![CDATA[// HLSL]]></source>
-    </implementation>
-    <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
-      <function_name val="main" />
-      <source>
-   <![CDATA[// Cg]]></source>
-    </implementation>
-  </implementation>
-</fragment>
+
+mayaSurfaceShaderOutput mayaSurfaceShaderDiffuse(
+	vec3 outColor, 
+	vec3 outTransparency, 
+	vec3 outGlowColor, 
+	vec3 outMatteOpacity) 
+{ 
+	mayaSurfaceShaderOutput result; 
+	result.outColor = outColor; 
+	if(!mayaAlphaCut) {
+		result.outColor *= saturate(1.0f - outTransparency); 
+	} 
+	result.outTransparency = outTransparency; 
+	result.outGlowColor = outGlowColor; 
+	result.outMatteOpacity = outMatteOpacity; 
+	return result; 
+} 
+
+vec3 Pw( in vec3 ipw )
+{ 
+    return ipw; 
+} 
+
+vec4 mayaFogDepth(vec3 Pw, mat4x4 ViewProj, float fogStart, float fogEnd, int fogMode, float fogDensity) 
+{ 
+    vec4 pc = mul( ViewProj, vec4(Pw,1.0f) ); 
+    float distanceToCamera = abs(pc.w); 
+    float fogFactor = 0.0f;  
+    if (fogMode == 0) { 
+		fogFactor = saturate((fogEnd - distanceToCamera) / (fogEnd - fogStart)); 
+    } 
+    else if (fogMode == 1) { 
+		fogFactor = 1.0f / exp(distanceToCamera * fogDensity); 
+    } 
+    else if (fogMode == 2) { 
+		fogFactor = 1.0f / exp(pow(distanceToCamera * fogDensity, 2)); 
+    } 
+    return vec4(fogFactor, fogFactor, fogFactor, 1.0f); 
+} 
+
+mayaSurfaceShaderOutput mayaComputeSurfaceFinal(
+	mayaSurfaceShaderOutput input_is_glsl_kw, 
+	float extraOpacity, 
+	bool fogEnabled, 
+	vec4 fogDepthSurface, 
+	vec4 fogColor, 
+	float fogMultiplier) 
+{ 
+	const vec3 intenseVec = vec3(0.3333, 0.3333, 0.3333); 
+	vec3 opacity = saturate(1.0f - input_is_glsl_kw.outTransparency); 
+	if (fogEnabled) { 
+		float fogFactor = (1.0f - fogDepthSurface.x) * fogColor.a * fogMultiplier; 
+		float opacityAvg = (opacity.x + opacity.y + opacity.z) / 3; 
+		fogColor *= vec4(opacityAvg, opacityAvg, opacityAvg, 1.0f); 
+		input_is_glsl_kw.outColor =  lerp(input_is_glsl_kw.outColor, fogColor.xyz, fogFactor); 
+	} 
+	input_is_glsl_kw.outSurfaceFinal = extraOpacity * vec4(input_is_glsl_kw.outColor, dot(opacity, intenseVec)); 
+	return input_is_glsl_kw; 
+} 
+
+
+vec4 mayaSurfaceShaderOutputTooutSurfaceFinal(mayaSurfaceShaderOutput input_is_glsl_kw) 
+{ 
+	return input_is_glsl_kw.outSurfaceFinal; 
+} 
+
+
+ // Pixel Shader 
+void main()
+{ 
+
+     // ShaderBody 
+    mayaSurfaceShaderOutput s_mayaSurfaceShaderOutput4696; 
+    vec3 v_out4702 = main_function( base, base_color, diffuse_roughness, specular, specular_color, specular_roughness, specular_IOR, specular_anisotropy, specular_rotation, metalness, transmission, transmission_color, transmission_depth, transmission_scatter, transmission_scatter_anisotropy, transmission_dispersion, transmission_extra_roughness, subsurface, subsurface_color, subsurface_radius, subsurface_scale, subsurface_anisotropy, sheen, sheen_color, sheen_roughness, thin_walled, coat, coat_color, coat_roughness, coat_anisotropy, coat_rotation, coat_IOR, coat_affect_color, coat_affect_roughness, thin_film_thickness, thin_film_IOR, emission, emission_color, opacity ); 
+    mayaSurfaceShaderOutput v_mayaSurfaceShaderDiffuse4698 = mayaSurfaceShaderDiffuse( v_out4702, surfaceShader_1outTransparency, surfaceShader_1outGlowColor, surfaceShader_1outMatteOpacity ); 
+    vec3 v_Pw4706 = Pw( PIX_IN.Pw ); 
+    vec4 v_maya_FogDepthSurface4699 = mayaFogDepth( v_Pw4706, ViewProj, fogStart, fogEnd, fogMode, fogDensity ); 
+    s_mayaSurfaceShaderOutput4696 = mayaComputeSurfaceFinal( v_mayaSurfaceShaderDiffuse4698, extraOpacity, fogEnabled, v_maya_FogDepthSurface4699, fogColor, fogMultiplier ); 
+    vec4 v_outSurfaceFinal4691 = mayaSurfaceShaderOutputTooutSurfaceFinal( s_mayaSurfaceShaderOutput4696 ); 
+
+ColorOut = v_outSurfaceFinal4691;
+} 
+}
+
+
+/////////////////////// Techniques /////// 
+technique Main
+{
+    pass P0
+    {
+        VertexShader ( in vertexInS , out vertOutS VS_OUT ) = reqdVtxFormat_VS;
+        PixelShader ( in fragInS PIX_IN , out fragOutS ) = reqdVtxFormat;
+    }
+}
