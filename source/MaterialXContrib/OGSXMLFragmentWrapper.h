@@ -67,6 +67,14 @@ class OGSXMLFragmentWrapper
         return _pathInputMap;
     }
 
+    /// Get list of Element paths and corresponding fragment output names
+    /// If the output is a ShaderRef then the path is to that element
+    /// as there are no associated child output Elements.
+    const StringMap& getPathOutputMap() const
+    {
+        return _pathOutputMap;
+    }
+
     /// Get fragment name
     const string& getFragmentName() const
     {
@@ -96,6 +104,9 @@ class OGSXMLFragmentWrapper
 
     // Mapping from MTLX Element paths to fragment input names
     StringMap _pathInputMap;
+
+    // Mapping from MTLX Element paths to fragment output names
+    StringMap _pathOutputMap;
 
     // Context for generating shaders
     GenContext* _context;

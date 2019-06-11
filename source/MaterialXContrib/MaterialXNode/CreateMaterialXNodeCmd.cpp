@@ -64,7 +64,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
 		// Load libraries
 		MaterialX::FilePath libSearchPath = Plugin::instance().getLibrarySearchPath();
-		const MaterialX::StringVec libraries = { "stdlib", "pbrlib" };
+		const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
         MaterialX::loadLibraries(libraries, libSearchPath, doc);
 
 		// Check to make sure the elementName is a valid output node
@@ -80,8 +80,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         );
 
 		// Generate a valid Maya node name from the path string
-		std::string nodeName = elementName.asChar();
-        MaterialX::createValidName(nodeName);
+        std::string nodeName = MaterialX::createValidName(elementName.asChar());
 		_dgModifier.renameNode(node, nodeName.c_str());
 
 		std::string documentString = MaterialX::writeToXmlString(doc);
@@ -114,14 +113,21 @@ void* CreateMaterialXNodeCmd::creator()
 bool CreateMaterialXNodeCmd::validOutputSpecified(MaterialX::DocumentPtr doc, const std::string &elementPath)
 {
 	std::vector<MaterialX::TypedElementPtr> elements;
-	MaterialX::findRenderableElements(doc, elements);
-	for (MaterialX::TypedElementPtr element : elements)
-	{
-		if (element->getNamePath() == elementPath)
-		{
-			return true;
-		}
-	}
+    try {
+        MaterialX::findRenderableElements(doc, elements);
+        for (MaterialX::TypedElementPtr element : elements)
+        {
+            std::string pathCompare(element->getNamePath());
+            if (pathCompare == elementPath)
+            {
+                return true;
+            }
+        }
+    }
+    catch (MaterialX::Exception& e)
+    {
+        std::cerr << "Failed to find renderable element in document: " << e.what() << std::endl;
+    }
 	return false;
 }
 

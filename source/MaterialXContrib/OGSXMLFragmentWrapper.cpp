@@ -393,6 +393,7 @@ bool OGSXMLPropertyExtractor::isGlobalUniform(const ShaderPort* port, const stri
 void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
 {
     _pathInputMap.clear();
+    _pathOutputMap.clear();
 
     string shaderName(element->getName());
     ShaderGenerator& generator = _context->getShaderGenerator();
@@ -478,7 +479,11 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
             createOGSProperty(xmlProperties, xmlValues,
                 name, typeString, value, semantic, flags, _typeMap);
 
-            _pathInputMap[path] = name;
+            if (!path.empty())
+            {
+                //std::cout << "Add path: " << path << ". Frag name: " << name << std::endl;
+                _pathInputMap[path] = name;
+            }
         }
     }
 
@@ -575,6 +580,13 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
             // generation should have added a transform already (i.e. mayaCMSemantic)
             string semantic = v->getSemantic();
             createOGSOutput(xmlOutputs, name, typeString, semantic, _typeMap);
+
+            // Add to cached list of output name
+            if (!path.empty())
+            {
+                //std::cout << "Add output path: " << path << ". Frag name: " << name << std::endl;
+                _pathOutputMap[path] = name;
+            }
         }
     }
 
@@ -618,117 +630,5 @@ void OGSXMLFragmentWrapper::readDocument(std::istream& istream, std::ostream& os
     }
     document.save(ostream, XML_TAB_STRING.c_str());
 }
-
-#if 0 // TO DETERMINE IF STILL USEFUL
-void OGSXMLFragmentWrapper::createWrapperFromNode(NodePtr node, std::vector<GenContext*> contexts)
-{
-    NodeDefPtr nodeDef = node->getNodeDef();
-    if (!nodeDef)
-    {
-        return;
-    }
-
-    const string OGS_VERSION_STRING(node->getDocument()->getVersionString());
-
-    pugi::xml_node xmlRoot = static_cast<pugi::xml_document*>(_xmlDocument)->append_child(OGS_FRAGMENT.c_str());
-    const string& nodeName = node->getName();
-    xmlRoot.append_attribute(OGS_FRAGMENT_UI_NAME.c_str()) = nodeName.c_str();
-    xmlRoot.append_attribute(OGS_FRAGMENT_NAME.c_str()) = nodeName.c_str();
-    _fragmentName = nodeName;
-    xmlRoot.append_attribute(OGS_FRAGMENT_TYPE.c_str()) = OGS_FRAGMENT_TYPE_PLUMBING.c_str();
-    xmlRoot.append_attribute(OGS_FRAGMENT_CLASS.c_str()) = OGS_FRAGMENT_CLASS_SHADERFRAGMENT.c_str();
-    xmlRoot.append_attribute(OGS_FRAGMENT_VERSION.c_str()) = OGS_VERSION_STRING.c_str();
-
-    string description("MaterialX generated code for element: " + nodeName);
-    xmlRoot.append_child(OGS_FRAGMENT_DESCRIPTION).c_str()) = pugi::node_cdata).set_value(description.c_str()
-
-        // Scan inputs and parameters and create "properties" and 
-        // "values" children from the nodeDef
-        string semantic;
-    pugi::xml_node xmlProperties = xmlRoot.append_child(OGS_PROPERTIES.c_str());
-    pugi::xml_node xmlValues = xmlRoot.append_child(OGS_VALUES.c_str());
-    for (auto input : node->getInputs())
-    {
-        string value = input->getValue() ? input->getValue()->getValueString() : "";
-
-        GeomPropDefPtr geomprop = input->getDefaultGeomProp();
-        if (geomprop)
-        {
-            string geomNodeDefName = "ND_" + geomprop->getGeomProp() + "_" + input->getType();
-            NodeDefPtr geomNodeDef = node->getDocument()->getNodeDef(geomNodeDefName);
-            if (geomNodeDef)
-            {
-                string geompropString = geomNodeDef->getAttribute("node");
-                if (geompropString == "texcoord")
-                {
-                    semantic = OGS_MAYA_UV_COORD_SEMANTIC;
-                }
-            }
-        }
-        string flags;
-        createOGSProperty(xmlProperties, xmlValues,
-            input->getName(), input->getType(), value, semantic, flags, _typeMap);
-    }
-    for (auto input : node->getParameters())
-    {
-        string value = input->getValue() ? input->getValue()->getValueString() : "";
-        string flags;
-        createOGSProperty(xmlProperties, xmlValues,
-            input->getName(), input->getType(), value, "", flags, _typeMap);
-    }
-
-    // Scan outputs and create "outputs"
-    pugi::xml_node xmlOutputs = xmlRoot.append_child(OGS_OUTPUTS.c_str());
-    // Note: We don't want to attach a CM semantic here since code
-    // generation should have added a transform already (i.e. mayaCMSemantic)
-    semantic.clear();
-    for (auto output : node->getActiveOutputs())
-    {
-        createOGSOutput(xmlOutputs, output->getName(), output->getType(), semantic, _typeMap);
-    }
-
-    pugi::xml_node impls = xmlRoot.append_child(OGS_IMPLEMENTATION.c_str());
-
-    string shaderName(node->getName());
-    // Work-around: Need to get a node which can be sampled. Should not be required.
-    vector<PortElementPtr> samplers = node->getDownstreamPorts();
-    if (!samplers.empty())
-    {
-        for (auto context : contexts)
-        {
-            PortElementPtr port = samplers[0];
-            ShaderGenerator& generator = context->getShaderGenerator();
-            ShaderPtr shader = nullptr;
-            try
-            {
-                shader = generator.generate(shaderName, port, *context);
-            }
-            catch (Exception& e)
-            {
-                std::cerr << "Failed to generate source code: " << e.what() << std::endl;
-                continue;
-            }
-            const string& code = shader->getSourceCode();
-
-            // Need to get the actual code via shader generation.
-            pugi::xml_node impl = impls.append_child(OGS_IMPLEMENTATION.c_str());
-            {
-                impl.append_attribute(OGS_RENDER) = OGS_MAYA_RENDER.c_str();
-                impl.append_attribute(OGS_LANGUAGE.c_str()) = generator.getLanguage().c_str();
-                impl.append_attribute(OGS_LANGUAGE_VERSION.c_str()) = generator.getTarget().c_str();
-            }
-            pugi::xml_node func = impl.append_child(OGS_FUNCTION_NAME.c_str());
-            {
-                func.append_attribute(OGS_FUNCTION_VAL.c_str()) = nodeDef->getName().c_str();
-            }
-            pugi::xml_node source = impl.append_child(OGS_SOURCE.c_str());
-            {
-                source.append_child(pugi::node_cdata).set_value(code.c_str());
-            }
-        }
-    }
-}
-#endif
-
 
 } // namespace MaterialX

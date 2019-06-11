@@ -38,7 +38,7 @@ MObject MaterialXNode::ELEMENT_ATTRIBUTE;
 // This is currently hard-coded to the tileImage.mtlx/xml example. Believe there is a way
 // to create a dynamic map between the attr and the parameter name in the VP2 API, but
 // better to use use the proper name in the first place.
-MString MaterialXNode::OUT_COLOR_ATTRIBUTE_LONG_NAME("tiled_image3_output");
+MString MaterialXNode::OUT_COLOR_ATTRIBUTE_LONG_NAME("out"); // ("tiled_image3_output");
 MString MaterialXNode::OUT_COLOR_ATTRIBUTE_SHORT_NAME("oc");
 MObject MaterialXNode::OUT_COLOR_ATTRIBUTE;
 
