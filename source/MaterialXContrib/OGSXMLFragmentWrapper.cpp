@@ -557,6 +557,7 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
     }
 
     // Scan outputs and create "outputs"
+    _outputList.clear();
     pugi::xml_node xmlOutputs = xmlRoot.append_child(OGS_OUTPUTS.c_str());
     for (auto uniformsIt : ps.getOutputBlocks())
     {
@@ -575,6 +576,9 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
             // generation should have added a transform already (i.e. mayaCMSemantic)
             string semantic = v->getSemantic();
             createOGSOutput(xmlOutputs, name, typeString, semantic, _typeMap);
+            
+            // Add to cached list of output name
+            _outputList.push_back(name);
         }
     }
 

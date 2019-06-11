@@ -67,6 +67,12 @@ class OGSXMLFragmentWrapper
         return _pathInputMap;
     }
 
+    /// get list of output fragment names 
+    const StringVec& getOutputList() const
+    {
+        return _outputList;
+    }
+
     /// Get fragment name
     const string& getFragmentName() const
     {
@@ -96,6 +102,9 @@ class OGSXMLFragmentWrapper
 
     // Mapping from MTLX Element paths to fragment input names
     StringMap _pathInputMap;
+
+    // List of outputs
+    StringVec _outputList;
 
     // Context for generating shaders
     GenContext* _context;
