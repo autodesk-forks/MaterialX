@@ -197,11 +197,6 @@ bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingPr
         GLint uaddressMode = mapAddressModeToGL(samplingProperties.uaddressMode);
         GLint vaddressMode = mapAddressModeToGL(samplingProperties.vaddressMode);
         Color4 borderColor(samplingProperties.defaultColor);
-        if (samplingProperties.uaddressMode == ImageSamplingProperties::AddressMode::BLACK && 
-            samplingProperties.vaddressMode == ImageSamplingProperties::AddressMode::BLACK)
-        {
-            borderColor = Color4(0.0f, 0.0f, 0.0f, 1.0);
-        }
         glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor.data());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, vaddressMode);
@@ -217,8 +212,8 @@ int GLTextureHandler::mapAddressModeToGL(ImageSamplingProperties::AddressMode ad
 {
     const vector<int> addressModes =
     {
-        // Mapping is from "black". Use clamp to border
-        // with border color black to achieve this
+        // Constant color. Use clamp to border
+        // with border color to achieve this
         GL_CLAMP_TO_BORDER,
 
         // Clamp
@@ -228,11 +223,7 @@ int GLTextureHandler::mapAddressModeToGL(ImageSamplingProperties::AddressMode ad
         GL_REPEAT,
 
         // Mirror
-        GL_MIRRORED_REPEAT,
-
-        // Mapping is from "default". Use clamp to border
-        // with default color to achieve this
-        GL_CLAMP_TO_BORDER
+        GL_MIRRORED_REPEAT
     };
 
     int addressMode = GL_REPEAT;

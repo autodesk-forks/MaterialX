@@ -103,11 +103,10 @@ class ImageSamplingProperties
     enum class AddressMode : int
     { 
         UNSPECIFIED = -1,
-        BLACK = 0,
+        CONSTANT = 0,
         CLAMP = 1, 
         PERIODIC = 2,
-        MIRROR = 3,
-        CONSTANT = 4
+        MIRROR = 3
     };
 
     /// Address mode in U
