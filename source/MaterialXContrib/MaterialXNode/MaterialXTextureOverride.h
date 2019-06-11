@@ -34,11 +34,6 @@ class MaterialXTextureOverride : public MHWRender::MPxShadingNodeOverride
 private:
 	MaterialXTextureOverride(const MObject& obj);
 
-	MaterialX::OGSXMLFragmentWrapper* _glslWrapper;
-	MaterialX::DocumentPtr _document;
-	MString _fragmentName;
-	MString _documentContent;
-	MString _element;
 	MObject _object;
 };
 
