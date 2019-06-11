@@ -214,7 +214,8 @@ TEST_CASE("GenShader: Generate OGS fragment wrappers", "[genogsfrag]")
     {
         mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
         //mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/geometric/streams.mtlx");
-        //mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/texture/tiledimage.mtlx");
+        //mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/texture/tiledImage.mtlx");
+        //mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/texture/image_addressing.mtlx");
         mx::readFromXmlFile(doc, "resources/Materials/Examples/StandardSurface/standard_surface_default.mtlx");
         mx::StringVec libraryFolders = { "stdlib", "pbrlib", "stdlib/genglsl", "pbrlib/genglsl", "bxdf" };
         GenShaderUtil::loadLibraries(libraryFolders, searchPath, doc);
@@ -258,7 +259,7 @@ TEST_CASE("GenShader: Generate OGS fragment wrappers", "[genogsfrag]")
             if (nodeDef)
             {
                 glslWrapper.createWrapper(elem);
-                oslWrapper.createWrapper(elem);
+                //oslWrapper.createWrapper(elem);
             }
         }
 
