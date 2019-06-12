@@ -94,6 +94,14 @@ ShaderPtr HwShaderGenerator::createShader(const string& name, ElementPtr element
     // Add a block for data from vertex to pixel shader.
     addStageConnectorBlock(HW::VERTEX_DATA, "vd", *vs, *ps);
 
+    // Disable specular environment code if lighting is not required.
+    bool lighting = graph->hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE) ||
+                    graph->hasClassification(ShaderNode::Classification::BSDF);
+    if (!lighting)
+    {
+        context.getOptions().hwSpecularEnvironmentMethod = SPECULAR_ENVIRONMENT_NONE;
+    }
+
     if (context.getOptions().hwSpecularEnvironmentMethod != SPECULAR_ENVIRONMENT_NONE)
     {
         // Create uniforms for environment lighting
@@ -102,9 +110,9 @@ ShaderPtr HwShaderGenerator::createShader(const string& name, ElementPtr element
         // just setting explicit values here for now since the matrix is simple.
         // In general the values will need to be "sanitized" for hardware.
         const Matrix44 yRotationPI(-1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, -1, 0,
-            0, 0, 0, 1);
+                                    0, 1, 0, 0,
+                                    0, 0, -1, 0,
+                                    0, 0, 0, 1);
         psPrivateUniforms->add(Type::MATRIX44, "u_envMatrix", Value::createValue<Matrix44>(yRotationPI));
         psPrivateUniforms->add(Type::FILENAME, "u_envIrradiance");
         psPrivateUniforms->add(Type::FILENAME, "u_envRadiance");

@@ -72,6 +72,7 @@
       <!-- Method for specular environment sampling (only used for HW rendering):
             0 : Prefiltered: Use a radiance IBL texture that has been prefiltered with the BRDF.
             1 : Filtered Importance Sampling: Use FIS to sample the IBL texture according to the BRDF in runtime.
+            2 : Disable environment mapping.
             Default value is 1.
       -->
       <parameter name="specularEnvironmentMethod" type="integer" value="1" />

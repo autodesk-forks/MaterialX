@@ -323,15 +323,10 @@ void OgsFxShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     }
 
     // Emit environment lighting functions
-    if (context.getOptions().hwSpecularEnvironmentMethod == SPECULAR_ENVIRONMENT_FIS)
+    if (lighting)
     {
-        emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_fis.glsl", context, stage);
+        emitSpecularEnvironment(context, stage);
     }
-    else
-    {
-        emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_prefilter.glsl", context, stage);
-    }
-    emitLineBreak(stage);
 
     // Add all functions for node implementations
     emitFunctionDefinitions(graph, context, stage);
