@@ -119,7 +119,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     }
     emitScopeEnd(stage);
 
-    // Add function body.
+    // Add function body
     emitScopeBegin(stage);
 
     if (graph.hasClassification(ShaderNode::Classification::CLOSURE))
@@ -185,7 +185,6 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
 
     // End function
     emitScopeEnd(stage);
-    emitLineBreak(stage);
 
     return shader;
 }

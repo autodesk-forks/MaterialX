@@ -8,7 +8,10 @@
 #include <MaterialXCore/Document.h>
 #include <MaterialXFormat/File.h>
 
+#include <MaterialXGenShader/Shader.h>
+
 #include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
+#include <MaterialXGenOgsXml/OgsXmlGenerator.h>
 
 #include <MaterialXTest/GenShaderUtil.h>
 #include <MaterialXTest/GenGlsl.h>
@@ -56,7 +59,28 @@ static void generateOgsXml()
     tester.validate(genOptions, optionsFilePath);
 }
 
-TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
+TEST_CASE("GenShader: OGS Fragment Generation", "[ogsxml]")
 {
     generateOgsXml();
+}
+
+TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
+{
+    mx::DocumentPtr doc = mx::createDocument();
+
+    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
+    GenShaderUtil::loadLibraries({ "stdlib", "pbrlib" }, searchPath, doc);
+
+    mx::ShaderGeneratorPtr glslGenerator = mx::GlslFragmentGenerator::create();
+    mx::GenContext glslContext(glslGenerator);
+    glslContext.registerSourceCodeSearchPath(searchPath);
+
+    mx::NodeGraphPtr graph = doc->getNodeGraph("NG_tiledimage_float");
+    mx::OutputPtr output = graph->getOutput("N_out_float");
+
+    mx::ShaderPtr glsl = glslGenerator->generate(graph->getName(), output, glslContext);
+
+    mx::OgsXmlGenerator xmlGenerator;
+    std::ofstream file(graph->getName() + ".xml");
+    xmlGenerator.generate(glsl.get(), nullptr, file);
 }

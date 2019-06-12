@@ -8,29 +8,44 @@
 
 #include <MaterialXGenShader/Shader.h>
 
+#include <MaterialXFormat/XmlIo.h>
+#include <MaterialXFormat/PugiXML/pugixml.hpp>
+
+using namespace pugi;
+
 namespace MaterialX
 {
 
 namespace
 {
-    // Semantics used by OgsXml
-    static const StringMap OGSXML_SEMANTICS_MAP =
+    // Data types used by OGS
+    static const std::unordered_map<const TypeDesc*, const pugi::char_t*> OGS_TYPE_MAP =
     {
-        { "i_position", "POSITION"},
-        { "i_normal", "NORMAL" },
-        { "i_tangent", "TANGENT" },
-        { "i_bitangent", "BINORMAL" },
+        { Type::BOOLEAN, "bool" },
+        { Type::FLOAT, "float" },
+        { Type::INTEGER, "int" },
+        { Type::STRING, "int" },
+        { Type::COLOR2, "float2" },
+        { Type::COLOR3, "float3" },
+        { Type::COLOR4, "float4" },
+        { Type::VECTOR2, "float2" },
+        { Type::VECTOR3, "float3" },
+        { Type::VECTOR4, "float4" },
+        { Type::MATRIX33, "float4x4" },
+        { Type::MATRIX44, "float4x4" }
+    };
 
-        { "i_texcoord_0", "TEXCOORD0" },
-        { "i_texcoord_1", "TEXCOORD1" },
-        { "i_texcoord_2", "TEXCOORD2" },
-        { "i_texcoord_3", "TEXCOORD3" },
-        { "i_texcoord_4", "TEXCOORD4" },
-        { "i_texcoord_5", "TEXCOORD5" },
-        { "i_texcoord_6", "TEXCOORD6" },
-        { "i_texcoord_7", "TEXCOORD7" },
-
-        { "i_color_0", "COLOR0" },
+    // Semantics used by OGS
+    static const std::unordered_map<string, const pugi::char_t*> OGS_SEMANTICS_MAP =
+    {
+        { "positionWorld", "Pw"},
+        { "positionObject", "Pm"},
+        { "normalWorld", "Nw" },
+        { "normalObject", "Nm" },
+        { "tangentWorld", "mayaTangentIn" },
+        { "bitangentWorld", "mayaBitangentIn" },
+        { "texcoord_0", "mayaUvCoordSemantic" },
+        { "color_0", "colorset" },
 
         { "u_worldMatrix", "World" },
         { "u_worldInverseMatrix", "WorldInverse" },
@@ -57,6 +72,85 @@ namespace
         { "u_frame", "Frame" },
         { "u_time", "Time" }
     };
+
+    // String constants
+    const pugi::char_t* INDENTATION("  ");
+    const pugi::char_t* NAME("name");
+    const pugi::char_t* VALUE("value");
+    const pugi::char_t* VALUES("values");
+    const pugi::char_t* FRAGMENT("fragment");
+    const pugi::char_t* UI_NAME("uiName");
+    const pugi::char_t* TYPE("type");
+    const pugi::char_t* CLASS("class");
+    const pugi::char_t* VERSION("version");
+    const pugi::char_t* PLUMBING("plumbing");
+    const pugi::char_t* SHADER_FRAGMENT("ShadeFragment");
+    const pugi::char_t* DESCRIPTION("description");
+    const pugi::char_t* PROPERTIES("properties");
+    const pugi::char_t* GLOBAL_PROPERTY("isRequirementOnly");
+    const pugi::char_t* OUTPUTS("outputs");
+    const pugi::char_t* IMPLEMENTATION("implementation");
+    const pugi::char_t* RENDER("render");
+    const pugi::char_t* OGS_RENDER("OGSRenderer");
+    const pugi::char_t* LANGUAGE("language");
+    const pugi::char_t* LANGUAGE_VERSION("lang_version");
+    const pugi::char_t* GLSL_LANGUAGE("GLSL");
+    const pugi::char_t* GLSL_LANGUAGE_VERSION("3.0");
+    const pugi::char_t* FUNCTION_NAME("function_name");
+    const pugi::char_t* FUNCTION_VAL("val");
+    const pugi::char_t* SOURCE("source");
+    const pugi::char_t* VERTEX_SOURCE("vertex_source");
+    const pugi::char_t* SEMANTIC("semantic");
+    const pugi::char_t* FLAGS("flags");
+    const pugi::char_t* VARYING_INPUT_PARAM("varyingInputParam");
+    const pugi::char_t* TEXTURE2("texture2");
+    const pugi::char_t* SAMPLER("sampler");
+
+
+    void xmlAddImplementation(pugi::xml_node& parent, const string& language, const string& languageVersion,
+        const string& functionName, const string& pixelShader, const string& vertexShader)
+    {
+        pugi::xml_node impl = parent.append_child(IMPLEMENTATION);
+        {
+            impl.append_attribute(RENDER) = OGS_RENDER;
+            impl.append_attribute(LANGUAGE) = language.c_str();
+            impl.append_attribute(LANGUAGE_VERSION) = languageVersion.c_str();
+            pugi::xml_node func = impl.append_child(FUNCTION_NAME);
+            func.append_attribute(FUNCTION_VAL) = functionName.c_str();
+            if (!vertexShader.empty())
+            {
+                pugi::xml_node vertexSource = impl.append_child(VERTEX_SOURCE);
+                vertexSource.append_child(pugi::node_cdata).set_value(vertexShader.c_str());
+            }
+            pugi::xml_node pixelSource = impl.append_child(SOURCE);
+            pixelSource.append_child(pugi::node_cdata).set_value(pixelShader.c_str());
+        }
+    }
+
+    void xmlAddProperties(pugi::xml_node& parent, const VariableBlock& block, const string& flags = EMPTY_STRING)
+    {
+        for (size_t i = 0; i < block.size(); ++i)
+        {
+            const ShaderPort* p = block[i];
+
+            auto type = OGS_TYPE_MAP.find(p->getType());
+            if (type != OGS_TYPE_MAP.end())
+            {
+                pugi::xml_node prop = parent.append_child(type->second);
+                prop.append_attribute(NAME) = p->getVariable().c_str();
+                auto semantic = OGS_SEMANTICS_MAP.find(p->getName());
+                if (semantic != OGS_SEMANTICS_MAP.end())
+                {
+                    prop.append_attribute(SEMANTIC) = semantic->second;
+                }
+                if (!flags.empty())
+                {
+                    prop.append_attribute(FLAGS) = flags.c_str();
+                }
+            }
+        }
+    }
+
 }
 
 
@@ -64,12 +158,46 @@ OgsXmlGenerator::OgsXmlGenerator()
 {
 }
 
-void OgsXmlGenerator::generate(const Shader* glsl, const Shader* /*hlsl*/, std::ostream& stream)
+void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostream& stream)
 {
-    if (glsl)
+    if (glsl == nullptr && hlsl == nullptr)
     {
-        stream << glsl->getSourceCode(Stage::PIXEL);
+        throw ExceptionShaderGenError("Both GLSL and HLSL shaders are null, at least one language must be given to generate XML fragments");
     }
+
+    xml_document xmlDocument;
+
+    pugi::xml_node xmlRoot = xmlDocument.append_child(FRAGMENT);
+    xmlRoot.append_attribute(UI_NAME) = glsl->getName().c_str();
+    xmlRoot.append_attribute(NAME) = glsl->getName().c_str();
+    xmlRoot.append_attribute(TYPE) = PLUMBING;
+    xmlRoot.append_attribute(CLASS) = SHADER_FRAGMENT;
+    xmlRoot.append_attribute(VERSION) = "1";
+
+    pugi::xml_node xmlDescription = xmlRoot.append_child(DESCRIPTION);
+    xmlDescription.append_child(pugi::node_cdata).set_value("Code generated from MaterialX description");
+
+    // Create the interface using one of the shaders (interface should be the same)
+    const Shader* shader = glsl != nullptr ? glsl : hlsl;
+    const ShaderStage& stage = shader->getStage(Stage::PIXEL);
+
+    // Add properties
+    pugi::xml_node xmlProperties = xmlRoot.append_child(PROPERTIES);
+    xmlAddProperties(xmlProperties, stage.getUniformBlock(HW::PRIVATE_UNIFORMS), "isRequirementOnly");
+    xmlAddProperties(xmlProperties, stage.getUniformBlock(HW::PUBLIC_UNIFORMS));
+    xmlAddProperties(xmlProperties, stage.getInputBlock(HW::VERTEX_DATA), "isRequirementOnly, varyingInputParam");
+
+    // Add values
+    pugi::xml_node xmlValues = xmlRoot.append_child(VALUES);
+
+
+    // Add implementations
+    pugi::xml_node xmlImpementations = xmlRoot.append_child(IMPLEMENTATION);
+    xmlAddImplementation(xmlImpementations, "GLSL", "3.0",  glsl->getName(), glsl ? glsl->getSourceCode(Stage::PIXEL) : "// GLSL", EMPTY_STRING);
+    xmlAddImplementation(xmlImpementations, "HLSL", "11.0", glsl->getName(), hlsl ? hlsl->getSourceCode(Stage::PIXEL) : "// HLSL", EMPTY_STRING);
+    xmlAddImplementation(xmlImpementations, "Cg", "2.1", glsl->getName(), "// Cg", EMPTY_STRING);
+
+    xmlDocument.save(stream, INDENTATION);
 }
 
 } // namespace MaterialX
