@@ -86,9 +86,6 @@ class GenOptions
     /// Sets the maximum number of light sources that can
     /// be active at once.
     unsigned int hwMaxActiveLightSources;
-
-    /// Emit version string (if applicable)
-    bool emitVersionString;
 };
 
 } // namespace MaterialX
