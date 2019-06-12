@@ -122,4 +122,15 @@ public:
     static const MString MATERIALX_TEXTURE_NODE_TYPENAME;
 };
 
+class MaterialXSurfaceNode : public MaterialXNode
+{
+public:
+    static void* creator();
+    static MStatus initialize();
+    MTypeId	typeId() const override;
+
+    static const MTypeId MATERIALX_SURFACE_NODE_TYPEID;
+    static const MString MATERIALX_SURFACE_NODE_TYPENAME;
+};
+
 #endif /* MATERIALX_NODE_H */
