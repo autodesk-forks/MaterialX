@@ -18,11 +18,17 @@
 #include <algorithm>
 #include <sstream>
 
-#define kDocumentFlag     "d"
-#define kDocumentFlagLong "document"
+namespace
+{
+    const char* const kDocumentFlag     = "d";
+    const char* const kDocumentFlagLong = "document";
 
-#define kElementFlag       "e"
-#define kElementFlagLong   "element"
+    const char* const kElementFlag      = "e";
+    const char* const kElementFlagLong  = "element";
+    
+    const char* const kTextureFlag      = "t";
+    const char* const kTextureFlagLong  = "texture";
+}
 
 MString CreateMaterialXNodeCmd::NAME("CreateMaterialXNode");
 
@@ -70,7 +76,8 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
             // Create the MaterialX node
             MObject node = _dgModifier.createNode(
-                MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
+                parser.isFlagSet(kTextureFlag) ? MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
+                : MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPEID
             );
 
             // Generate a valid Maya node name from the path string
@@ -120,6 +127,7 @@ MSyntax CreateMaterialXNodeCmd::newSyntax()
 	MSyntax syntax;
 	syntax.addFlag(kDocumentFlag, kDocumentFlagLong, MSyntax::kString);
 	syntax.addFlag(kElementFlag, kElementFlagLong, MSyntax::kString);
+    syntax.addFlag(kTextureFlag, kTextureFlagLong, MSyntax::kNoArg);
 	return syntax;
 }
 
