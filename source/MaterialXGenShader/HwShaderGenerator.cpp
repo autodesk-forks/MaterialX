@@ -97,12 +97,7 @@ ShaderPtr HwShaderGenerator::createShader(const string& name, ElementPtr element
     // Disable specular environment code if lighting is not required.
     bool lighting = graph->hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE) ||
                     graph->hasClassification(ShaderNode::Classification::BSDF);
-    if (!lighting)
-    {
-        context.getOptions().hwSpecularEnvironmentMethod = SPECULAR_ENVIRONMENT_NONE;
-    }
-
-    if (context.getOptions().hwSpecularEnvironmentMethod != SPECULAR_ENVIRONMENT_NONE)
+    if (lighting && context.getOptions().hwSpecularEnvironmentMethod != SPECULAR_ENVIRONMENT_NONE)
     {
         // Create uniforms for environment lighting
         // Note: Generation of the rotation matrix using floating point math can result
@@ -134,8 +129,6 @@ ShaderPtr HwShaderGenerator::createShader(const string& name, ElementPtr element
     // Add the pixel stage output. This needs to be a color4 for rendering,
     // so copy name and variable from the graph output but set type to color4.
     // TODO: Improve this to support multiple outputs and other data types.
-    // TODO: If this is only outputing a fragment then we want to preserve the originl type
-    // or allow a type to be specified.
     ShaderGraphOutputSocket* outputSocket = graph->getOutputSocket();
     ShaderPort* output = psOutputs->add(Type::COLOR4, outputSocket->getName());
     output->setVariable(outputSocket->getVariable());

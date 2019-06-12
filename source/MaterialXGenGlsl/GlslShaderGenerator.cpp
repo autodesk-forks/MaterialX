@@ -323,6 +323,7 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
     emitFunctionDefinitions(graph, context, stage);
 
     // Add main function. Cache the signature for the stage
+    setSignature(stage, "main");
     emitLine("void main()", stage, false);
     emitScopeBegin(stage);
     emitLine("vec4 hPositionWorld = u_worldMatrix * vec4(i_position, 1.0)", stage);
