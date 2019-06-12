@@ -19,13 +19,16 @@ struct MaterialXData
 	void createXMLWrapper();
 	void registerFragments();
 
+    MaterialXData& operator=(const MaterialXData&) = delete;
+    MaterialXData& operator=(MaterialXData&&) = delete;
+
 	MaterialX::FilePath libSearchPath;
 	MaterialX::DocumentPtr doc;
 	MaterialX::ElementPtr element;
 
 	MString fragmentName;
-	MaterialX::OGSXMLFragmentWrapper* glslFragmentWrapper;
-	std::vector<MaterialX::GenContext*> contexts;
+	std::unique_ptr<MaterialX::OGSXMLFragmentWrapper> glslFragmentWrapper;
+	std::vector<std::unique_ptr<MaterialX::GenContext>> contexts;
 
   private:
 	void createDocument(const std::string& materialXDocument);

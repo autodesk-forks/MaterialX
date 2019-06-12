@@ -19,24 +19,22 @@ MaterialXData::MaterialXData(const std::string& materialXDocument, const std::st
 		element = doc->getDescendant(elementPath);
 	}
 
-	MaterialX::GenContext* glslContext = new MaterialX::GenContext(MaterialX::GlslShaderGenerator::create());
+    std::unique_ptr<MaterialX::GenContext> glslContext{
+        new MaterialX::GenContext(MaterialX::GlslShaderGenerator::create())
+    };
 
 	// Stop emission of environment map lookups.
 	glslContext->getOptions().hwSpecularEnvironmentMethod = MaterialX::SPECULAR_ENVIRONMENT_NONE;
 	glslContext->registerSourceCodeSearchPath(libSearchPath);
-	contexts.push_back(glslContext);
 
-	glslFragmentWrapper = new MaterialX::OGSXMLFragmentWrapper(glslContext);
+    glslFragmentWrapper.reset(new MaterialX::OGSXMLFragmentWrapper(glslContext.get()));
 	glslFragmentWrapper->setOutputVertexShader(true);
 
+    contexts.push_back(std::move(glslContext));
 }
 
 MaterialXData::~MaterialXData()
 {
-	if (glslFragmentWrapper)
-	{
-		delete glslFragmentWrapper;
-	}
 }
 
 void MaterialXData::createDocument(const std::string& materialXDocument)

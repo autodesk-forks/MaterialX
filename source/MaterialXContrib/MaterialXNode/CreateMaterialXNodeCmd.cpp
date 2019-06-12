@@ -57,7 +57,10 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 	}
 	if (materialXDocument.length() > 0 && elementPath.length() > 0)
 	{
-		MaterialXData* materialXData = new MaterialXData(materialXDocument.asChar(), elementPath.asChar());
+        std::unique_ptr<MaterialXData> materialXData{
+            new MaterialXData(materialXDocument.asChar(), elementPath.asChar())
+        };
+
 		if (!materialXData->isValidOutput())
 		{
 			displayError("The element specified is not renderable.");
@@ -77,14 +80,17 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 		materialXData->registerFragments();
 
 		MFnDependencyNode depNode(node);
-		MaterialXNode* materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
-		if (materialXNode)
-		{
-			materialXNode->setMaterialXData(materialXData);
-			materialXNode->createOutputAttr(_dgModifier);
-		}
+		auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
+        if (!materialXNode)
+        {
+            return MS::kFailure;
+        }
 
-		std::string documentString = MaterialX::writeToXmlString(materialXData->doc);
+        std::string documentString = MaterialX::writeToXmlString(materialXData->doc);
+
+		materialXNode->setMaterialXData(std::move(materialXData));
+		materialXNode->createOutputAttr(_dgModifier);
+		
 		MPlug materialXPlug(node, MaterialXNode::DOCUMENT_ATTRIBUTE);
 		_dgModifier.newPlugValueString(materialXPlug, documentString.c_str());
 

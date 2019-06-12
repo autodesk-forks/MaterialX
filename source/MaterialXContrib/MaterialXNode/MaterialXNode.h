@@ -84,9 +84,10 @@ class MaterialXNode : public MPxNode
 	SchedulingType schedulingType() const override;
 	bool setInternalValue(const MPlug &plug, const MDataHandle &dataHandle) override;
 	void createAttributesFromDocument(MDGModifier& mdgModifier);
-	void setMaterialXData(MaterialXData* data)
+
+	void setMaterialXData(std::unique_ptr<MaterialXData>&& data)
 	{
-		materialXData = data;
+		materialXData = std::move(data);
 	}
 
 	static const MTypeId MATERIALX_NODE_TYPEID;
@@ -101,7 +102,7 @@ class MaterialXNode : public MPxNode
 	static MString ELEMENT_ATTRIBUTE_SHORT_NAME;
 	static MObject ELEMENT_ATTRIBUTE;
 
-	MaterialXData* materialXData;
+    std::unique_ptr<MaterialXData> materialXData;
 
   private:
 	  void setAttributeValue(MObject &materialXObject, MObject &attr, float* values, unsigned int size, MDGModifier& mdgModifier);

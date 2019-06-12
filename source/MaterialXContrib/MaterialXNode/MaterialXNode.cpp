@@ -47,10 +47,6 @@ MaterialXNode::MaterialXNode()
 MaterialXNode::~MaterialXNode()
 {
 	std::cout << "MaterialXNode::~MaterialXNode" << std::endl;
-	if (materialXData)
-	{
-		delete materialXData;
-	}
 }
 
 void* MaterialXNode::creator()
