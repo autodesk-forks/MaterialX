@@ -57,53 +57,59 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 	}
 	if (materialXDocument.length() > 0 && elementPath.length() > 0)
 	{
-        std::unique_ptr<MaterialXData> materialXData{
-            new MaterialXData(materialXDocument.asChar(), elementPath.asChar())
-        };
-
-		if (!materialXData->isValidOutput())
-		{
-			displayError("The element specified is not renderable.");
-			return MS::kFailure;
-		}
-
-		// Create the MaterialX node
-		MObject node = _dgModifier.createNode(
-            MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
-        );
-
-		// Generate a valid Maya node name from the path string
-		std::string nodeName = MaterialX::createValidName(elementPath.asChar());
-		_dgModifier.renameNode(node, nodeName.c_str());
-
-		materialXData->createXMLWrapper();
-		materialXData->registerFragments();
-
-		MFnDependencyNode depNode(node);
-		auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
-        if (!materialXNode)
+        try
         {
+            std::unique_ptr<MaterialXData> materialXData{
+                new MaterialXData(materialXDocument.asChar(), elementPath.asChar())
+            };
+
+            if (!materialXData->isValidOutput())
+            {
+                throw MaterialX::Exception("The element specified is not renderable.");
+            }
+
+            // Create the MaterialX node
+            MObject node = _dgModifier.createNode(
+                MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
+            );
+
+            // Generate a valid Maya node name from the path string
+            std::string nodeName = MaterialX::createValidName(elementPath.asChar());
+            _dgModifier.renameNode(node, nodeName.c_str());
+
+            materialXData->createXMLWrapper();
+            materialXData->registerFragments();
+
+            MFnDependencyNode depNode(node);
+            auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
+            if (!materialXNode)
+            {
+                throw MaterialX::Exception("Unexpected DG node type.");
+            }
+
+            std::string documentString = MaterialX::writeToXmlString(materialXData->doc);
+
+            materialXNode->setMaterialXData(std::move(materialXData));
+            materialXNode->createOutputAttr(_dgModifier);
+
+            MPlug materialXPlug(node, MaterialXNode::DOCUMENT_ATTRIBUTE);
+            _dgModifier.newPlugValueString(materialXPlug, documentString.c_str());
+
+            MPlug elementPlug(node, MaterialXNode::ELEMENT_ATTRIBUTE);
+            _dgModifier.newPlugValueString(elementPlug, elementPath);
+
+            // TODO: Figure out why adding this in causes the texture to go black
+            // materialXNode->createAttributesFromDocument(_dgModifier);
+
+            _dgModifier.doIt();
+        }
+        catch (MaterialX::Exception& e)
+        {
+            std::cout << "CreateMaterialXNodeCmd failed to create MaterialX node: "
+                << e.what() << std::endl;
+
             return MS::kFailure;
         }
-
-        std::string documentString = MaterialX::writeToXmlString(materialXData->doc);
-
-		materialXNode->setMaterialXData(std::move(materialXData));
-		materialXNode->createOutputAttr(_dgModifier);
-		
-		MPlug materialXPlug(node, MaterialXNode::DOCUMENT_ATTRIBUTE);
-		_dgModifier.newPlugValueString(materialXPlug, documentString.c_str());
-
-		MPlug elementPlug(node, MaterialXNode::ELEMENT_ATTRIBUTE);
-		_dgModifier.newPlugValueString(elementPlug, elementPath);
-
-		if (materialXNode)
-		{
-			// TODO: Figure out why adding this in causes the texture to go black
-//			materialXNode->createAttributesFromDocument(_dgModifier);
-		}
-
-		_dgModifier.doIt();
 	}
 
 	return MS::kSuccess;
