@@ -103,6 +103,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     // Add function signature
     string functionName = shader->getName();
     _syntax->makeValidName(functionName);
+    setFunctionName(functionName, stage);
     emitLine("vec3 " + functionName, stage, false); // TODO: We are always outputting vec3 for now
     emitScopeBegin(stage, Syntax::PARENTHESES);
     const VariableBlock& uniforms = stage.getUniformBlock(HW::PUBLIC_UNIFORMS);

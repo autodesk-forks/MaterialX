@@ -220,9 +220,9 @@ void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostr
 
     // Add implementations
     pugi::xml_node xmlImpementations = xmlRoot.append_child(IMPLEMENTATION);
-    xmlAddImplementation(xmlImpementations, "GLSL", "3.0",  glsl->getName(), glsl ? glsl->getSourceCode(Stage::PIXEL) : "// GLSL");
-    xmlAddImplementation(xmlImpementations, "HLSL", "11.0", glsl->getName(), hlsl ? hlsl->getSourceCode(Stage::PIXEL) : "// HLSL");
-    xmlAddImplementation(xmlImpementations, "Cg", "2.1", glsl->getName(), "// Cg");
+    xmlAddImplementation(xmlImpementations, "GLSL", "3.0",  stage.getFunctionName(), glsl ? glsl->getSourceCode(Stage::PIXEL) : "// GLSL");
+    xmlAddImplementation(xmlImpementations, "HLSL", "11.0", stage.getFunctionName(), hlsl ? hlsl->getSourceCode(Stage::PIXEL) : "// HLSL");
+    xmlAddImplementation(xmlImpementations, "Cg", "2.1", stage.getFunctionName(), "// Cg");
 
     xmlDocument.save(stream, INDENTATION);
 }
