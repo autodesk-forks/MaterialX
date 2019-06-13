@@ -33,7 +33,7 @@
 //
 vec2 mx_get_target_uv(vec2 uv)
 {
-   return uv;
+   return vec2(uv.x, 1.0 - uv.y);
 }
 
 void mx_image_color3(sampler2D tex_sampler, int layer, vec3 defaultval, vec2 texcoord, int uaddressmode, int vaddressmode, int filtertype, int framerange, int frameoffset, int frameendaction, out vec3 result)

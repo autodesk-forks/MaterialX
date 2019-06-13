@@ -531,7 +531,7 @@ vec3 mx_environment_irradiance(vec3 N)
 //
 vec2 mx_get_target_uv(vec2 uv)
 {
-   return uv;
+    return vec2(uv.x, 1.0 - uv.y);
 }
 
 int numActiveLightSources()
