@@ -127,32 +127,62 @@ namespace
         }
     }
 
+    void xmlSetProperty(pugi::xml_node& prop, const string& name, const string& variable, const string& flags = EMPTY_STRING)
+    {
+        prop.append_attribute(NAME) = variable.c_str();
+        auto semantic = OGS_SEMANTICS_MAP.find(name);
+        if (semantic != OGS_SEMANTICS_MAP.end())
+        {
+            prop.append_attribute(SEMANTIC) = semantic->second;
+        }
+        if (!flags.empty())
+        {
+            prop.append_attribute(FLAGS) = flags.c_str();
+        }
+    }
+
     void xmlAddProperties(pugi::xml_node& parent, const VariableBlock& block, const string& flags = EMPTY_STRING)
     {
         for (size_t i = 0; i < block.size(); ++i)
         {
             const ShaderPort* p = block[i];
-
-            auto type = OGS_TYPE_MAP.find(p->getType());
-            if (type != OGS_TYPE_MAP.end())
+            if (p->getType() == Type::FILENAME)
             {
-                pugi::xml_node prop = parent.append_child(type->second);
-                prop.append_attribute(NAME) = p->getVariable().c_str();
-                auto semantic = OGS_SEMANTICS_MAP.find(p->getName());
-                if (semantic != OGS_SEMANTICS_MAP.end())
+                pugi::xml_node texture = parent.append_child(TEXTURE2);
+                xmlSetProperty(texture, p->getName(), p->getVariable(), flags);
+                pugi::xml_node sampler = parent.append_child(SAMPLER);
+                xmlSetProperty(sampler, p->getName(), p->getVariable()+"Sampler", flags);
+            }
+            else
+            {
+                auto type = OGS_TYPE_MAP.find(p->getType());
+                if (type != OGS_TYPE_MAP.end())
                 {
-                    prop.append_attribute(SEMANTIC) = semantic->second;
-                }
-                if (!flags.empty())
-                {
-                    prop.append_attribute(FLAGS) = flags.c_str();
+                    pugi::xml_node prop = parent.append_child(type->second);
+                    xmlSetProperty(prop, p->getName(), p->getVariable(), flags);
                 }
             }
         }
     }
 
+    void xmlAddValues(pugi::xml_node& parent, const VariableBlock& block)
+    {
+        for (size_t i = 0; i < block.size(); ++i)
+        {
+            const ShaderPort* p = block[i];
+            if (p->getValue())
+            {
+                auto type = OGS_TYPE_MAP.find(p->getType());
+                if (type != OGS_TYPE_MAP.end())
+                {
+                    pugi::xml_node val = parent.append_child(type->second);
+                    val.append_attribute(NAME) = p->getVariable().c_str();
+                    val.append_attribute(VALUE) = p->getValue()->getValueString().c_str();
+                }
+            }
+        }
+    }
 }
-
 
 OgsXmlGenerator::OgsXmlGenerator()
 {
@@ -189,7 +219,8 @@ void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostr
 
     // Add values
     pugi::xml_node xmlValues = xmlRoot.append_child(VALUES);
-
+    xmlAddValues(xmlValues, stage.getUniformBlock(HW::PRIVATE_UNIFORMS));
+    xmlAddValues(xmlValues, stage.getUniformBlock(HW::PUBLIC_UNIFORMS));
 
     // Add implementations
     pugi::xml_node xmlImpementations = xmlRoot.append_child(IMPLEMENTATION);

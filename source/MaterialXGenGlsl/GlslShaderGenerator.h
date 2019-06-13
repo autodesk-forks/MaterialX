@@ -137,6 +137,8 @@ class GlslImplementation : public ShaderNodeImpl
     const string& getLanguage() const override;
     const string& getTarget() const override;
 
+    bool isEditable(const ShaderInput& input) const override;
+
   protected:
     GlslImplementation() {}
 

@@ -713,6 +713,17 @@ const string GlslImplementation::MODEL = "model";
 const string GlslImplementation::INDEX = "index";
 const string GlslImplementation::ATTRNAME = "attrname";
 
+namespace
+{
+    // List name of inputs that are not to be editable and
+    // published as shader uniforms in GLSL.
+    const std::set<string> IMMUTABLE_INPUTS = 
+    {
+        // Geometric node inputs are immutable since a shader needs regeneration if they change.
+        "index", "space", "attrname"
+    };
+}
+
 const string& GlslImplementation::getLanguage() const
 {
     return GlslShaderGenerator::LANGUAGE;
@@ -721,6 +732,11 @@ const string& GlslImplementation::getLanguage() const
 const string& GlslImplementation::getTarget() const
 {
     return GlslShaderGenerator::TARGET;
+}
+
+bool GlslImplementation::isEditable(const ShaderInput& input) const
+{
+    return IMMUTABLE_INPUTS.count(input.getName()) == 0;
 }
 
 }
