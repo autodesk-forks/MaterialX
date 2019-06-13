@@ -19,6 +19,11 @@ MaterialXData::MaterialXData(const std::string& materialXDocument, const std::st
 		element = doc->getDescendant(elementPath);
 	}
 
+    if (!element)
+    {
+        throw MaterialX::Exception("Element not found");
+    }
+
     std::unique_ptr<MaterialX::GenContext> glslContext{
         new MaterialX::GenContext(MaterialX::GlslShaderGenerator::create())
     };
@@ -50,7 +55,10 @@ void MaterialXData::createDocument(const std::string& materialXDocument)
 
 bool MaterialXData::isValidOutput()
 {
-	if (!element) return false;
+    if (!element)
+    {
+        return false;
+    }
 
 	const std::string& elementPath = element->getNamePath();
 	std::vector<MaterialX::TypedElementPtr> elements;
