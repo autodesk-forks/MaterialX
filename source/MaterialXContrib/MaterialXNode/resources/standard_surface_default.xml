@@ -10,7 +10,7 @@
     <sampler name="u_envRadianceSampler" flags="isRequirementOnly" /> <!-- TODO: Follow OGS convention of adding "Sampler" to the texture name -->
     <int name="u_envRadianceMips" flags="isRequirementOnly" />
     <int name="u_envSamples" flags="isRequirementOnly" />
-    <float3 name="u_viewPosition" semantic="WorldCameraPosition" flags="isRequirementOnly" />
+    <float3 name="u_viewPosition" semantic="WorldCameraPosition" flags="isRequirementOnly" /> <!-- or should this be ViewPosition ?-->
     <int name="u_numActiveLightSources" flags="isRequirementOnly" />
      <!-- end non-varying globals -->
     <float name="base" />
@@ -52,10 +52,11 @@
     <float name="emission" />
     <float3 name="emission_color" />
     <float3 name="opacity" />
-     <!-- Varying globals come in through input structure -->
-    <float3 name="positionWorld" semantic="Pw" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="normalWorld" semantic="NORMAL" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="tangentWorld" semantic="TANGENT" flags="isRequirementOnly, varyingInputParam" />
+     <!-- Varying globals come in through input structure
+          Name matters for space e.g. Nw means normal world  -->
+    <float3 name="Pw" semantic="POSITION" flags="isRequirementOnly, varyingInputParam" />
+    <float3 name="Nw" semantic="NORMAL" flags="isRequirementOnly, varyingInputParam" />
+    <float3 name="Tw" semantic="TANGENT" flags="isRequirementOnly, varyingInputParam" />
      <!-- end varying globals -->
   </properties>
   <values>
@@ -155,8 +156,8 @@ uniform LightData u_lightData[MAX_LIGHT_SOURCES];
 // input structure for the pixel shader. Seems to be PIX_IN for some reason.
 //in VertexData
 //{
-//    vec3 normalWorld;
-//    vec3 tangentWorld;
+//    vec3 Nw;
+//    vec3 Tw;
 //    vec3 positionWorld;
 //} vd;
 
@@ -914,13 +915,13 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
 {
     roughnessinfo coat_roughness_out = roughnessinfo(M_FLOAT_EPS, M_FLOAT_EPS, M_FLOAT_EPS, M_FLOAT_EPS);
     mx_roughness_anisotropy(coat_roughness, coat_anisotropy, coat_roughness_out);
-    vec3 geomprop_Tworld_out = normalize(PIX_IN.tangentWorld);
+    vec3 geomprop_Tworld_out = normalize(PIX_IN.Tw);
     float coat_affect_roughness_multiply1_out = coat_affect_roughness * coat;
     const float coat_clamped_low_tmp = 0.000000;
     const float coat_clamped_high_tmp = 1.000000;
     float coat_clamped_out = clamp(coat, coat_clamped_low_tmp, coat_clamped_high_tmp);
     float subsurface_selector_out = float(thin_walled);
-    vec3 geomprop_Vworld_out = normalize(PIX_IN.positionWorld - u_viewPosition);
+    vec3 geomprop_Vworld_out = normalize(PIX_IN.Pw - u_viewPosition);
     const vec3 coat_attenuation_bg_tmp = vec3(1.000000, 1.000000, 1.000000);
     vec3 coat_attenuation_out = mix(coat_attenuation_bg_tmp, coat_color, coat);
     vec3 emission_weight_out = emission_color * emission;
@@ -948,13 +949,13 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
     surfaceshader standard_surface_constructor_out = surfaceshader(vec3(0.0),vec3(0.0));
     {
         // Light loop
-        vec3 N = normalize(PIX_IN.normalWorld);
-        vec3 V = normalize(u_viewPosition - PIX_IN.positionWorld);
+        vec3 N = normalize(PIX_IN.Nw);
+        vec3 V = normalize(u_viewPosition - PIX_IN.Pw);
         int numLights = numActiveLightSources();
         lightshader lightShader;
         for (int activeLightIndex = 0; activeLightIndex < numLights; ++activeLightIndex)
         {
-            sampleLightSource(u_lightData[activeLightIndex], PIX_IN.positionWorld, lightShader);
+            sampleLightSource(u_lightData[activeLightIndex], PIX_IN.Pw, lightShader);
             vec3 L = lightShader.direction;
 
             // Calculate the BSDF response for this light source
@@ -1076,8 +1077,8 @@ vec3 main_function(
    vec3 opacity
 )
 {
-    vec3 geomprop_Nworld_out = normalize(PIX_IN.normalWorld);
-    vec3 geomprop_Tworld_out = normalize(PIX_IN.tangentWorld);
+    vec3 geomprop_Nworld_out = normalize(PIX_IN.Nw);
+    vec3 geomprop_Tworld_out = normalize(PIX_IN.Tw);
 
     surfaceshader SR_default_out = surfaceshader(vec3(0.0),vec3(0.0));
     IMPL_standard_surface_surfaceshader(base, base_color, diffuse_roughness, specular, specular_color, specular_roughness, specular_IOR, specular_anisotropy, specular_rotation, metalness, transmission, transmission_color, transmission_depth, transmission_scatter, transmission_scatter_anisotropy, transmission_dispersion, transmission_extra_roughness, subsurface, subsurface_color, subsurface_radius, subsurface_scale, subsurface_anisotropy, sheen, sheen_color, sheen_roughness, thin_walled, geomprop_Nworld_out, geomprop_Tworld_out, coat, coat_color, coat_roughness, coat_anisotropy, coat_rotation, coat_IOR, geomprop_Nworld_out, coat_affect_color, coat_affect_roughness, thin_film_thickness, thin_film_IOR, emission, emission_color, opacity, SR_default_out);

@@ -155,13 +155,26 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
                     MHWRender::MTextureAssignment textureAssignment;
                     textureAssignment.texture = texture;
                     status = shader.setParameter(parameterName.c_str(), textureAssignment);
-                    std::cout << "Bound file: " << imagePath.asString() << " to shader parameter:" << parameterName << ". Status: " << status << std::endl;
+                    std::cout << "Bound file: " << imagePath.asString() << " to shader parameter:" << parameterName << ". Status: " << 
+                        status << "\r\n";
 
                     // release our reference now that it is set on the shader
                     textureManager->releaseTexture(texture);
                 }
             }
         }
+    }
+
+    // Bind sampler
+    std::string samplerParameterName(parameterName + "Sampler");
+    MHWRender::MSamplerStateDesc desc;
+    desc.filter = MHWRender::MSamplerState::kAnisotropic;
+    desc.maxAnisotropy = 16;
+    const MSamplerState* samplerState = MHWRender::MStateManager::acquireSamplerState(desc);
+    if (samplerState)
+    {
+        status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
+        std::cout << "Bind sampler: " << samplerParameterName << ". Status: " << status << "\r\n";
     }
 
     return status;
@@ -182,7 +195,7 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
     shader.parameterList(params);
     for (unsigned int j = 0; j < params.length(); j++)
     {
-        std::cout << "MaterialXTextureOverride: shader param: " << params[j].asChar() << std::endl;
+        std::cout << "MaterialXTextureOverride: shader param: " << params[i].asChar() << "\n";
     }
 
     MaterialX::FileSearchPath imageSearchPath(Plugin::instance().getResourcePath() / MaterialX::FilePath("Images"));
@@ -226,7 +239,6 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 			{
                 // This is the hard-cided OGS convention to associate a texture with a sampler (via post-fix "Sampler" string)
                 std::string textureParameterName(resolvedName.asChar());
-                std::string samplerParameterName(textureParameterName + "Sampler");
 
                 // Bind texture
                 std::string fileName; 
@@ -234,17 +246,6 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
                 if (!valueString.empty())
                 {
                     status = bindFileTexture(shader, textureParameterName, imageSearchPath, valueString);
-                }
-
-                // Bind sampler
-                MHWRender::MSamplerStateDesc desc;
-                desc.filter = MHWRender::MSamplerState::kAnisotropic;
-                desc.maxAnisotropy = 16;
-                const MSamplerState* samplerState = MHWRender::MStateManager::acquireSamplerState(desc);
-                if (samplerState)
-                {
-                    status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
-                    std::cout << "Bind sampler: " << samplerParameterName << ". Status: " << status << std::endl;
                 }
 			}
 

@@ -95,11 +95,11 @@ const string OGS_SAMPLER("sampler");
 const string OGS_SEMANTIC("semantic");
 const string OGS_FLAGS("flags");
 const string OGS_VARYING_INPUT_PARAM("varyingInputParam");
-const string OGS_POSITION_WORLD_SEMANTIC("Pw");
-const string OGS_POSITION_OBJECT_SEMANTIC("Pm");
+const string OGS_POSITION_WORLD_SEMANTIC("POSITION");
+const string OGS_POSITION_OBJECT_SEMANTIC("POSITION");
 const string OGS_NORMAL_WORLD_SEMANTIC("NORMAL");
-const string OGS_NORMAL_OBJECT_SEMANTIC("Nm");
-const string OGS_COLORSET_SEMANTIC("colorset");
+const string OGS_NORMAL_OBJECT_SEMANTIC("NORMAL");
+const string OGS_COLORSET_SEMANTIC("COLOR0");
 const string OGS_MAYA_BITANGENT_SEMANTIC("BINORMAL"); // Maya bitangent semantic
 const string OGS_MAYA_TANGENT_SEMANTIC("TANGENT"); // Tangent semantic
 const string OGS_MAYA_UV_COORD_SEMANTIC("mayaUvCoordSemantic");  // Maya uv semantic
@@ -228,6 +228,22 @@ void OGSXMLPropertyExtractor::getStreamInformation(const ShaderPort* port, strin
         return;
     }
 
+    /* Should just use a map here.
+    { "i_position", "POSITION"},
+    { "i_normal", "NORMAL" },
+    { "i_tangent", "TANGENT" },
+    { "i_bitangent", "BINORMAL" },
+
+    { "i_texcoord_0", "TEXCOORD0" },
+    { "i_texcoord_1", "TEXCOORD1" },
+    { "i_texcoord_2", "TEXCOORD2" },
+    { "i_texcoord_3", "TEXCOORD3" },
+    { "i_texcoord_4", "TEXCOORD4" },
+    { "i_texcoord_5", "TEXCOORD5" },
+    { "i_texcoord_6", "TEXCOORD6" },
+    { "i_texcoord_7", "TEXCOORD7" },
+    */
+
     if (name.find(MTLX_GENHW_POSITION) != string::npos)
     {
         // TODO: Determine how to tell if object / model space is required
@@ -236,7 +252,7 @@ void OGSXMLPropertyExtractor::getStreamInformation(const ShaderPort* port, strin
     }
     else if (name.find(MTLX_GENHW_UVSET) != string::npos)
     {
-        // TODO: Remove leadning "i_"
+        // TODO: Remove leading "i_"
         semantic = OGS_MAYA_UV_COORD_SEMANTIC;
     }
     else if (name.find(MTLX_GENHW_NORMAL) != string::npos)
@@ -307,7 +323,7 @@ string OGSXMLPropertyExtractor::getUniformSemantic(const ShaderPort* port) const
         { "u_worldViewProjectionMatrix", "WorldViewProjection" },
 
         { "u_viewDirection", "ViewDirection" },
-        { "u_viewPosition", "WorldCameraPosition" }
+        { "u_viewPosition", "WorldCameraPosition" } // Or should this be ViewPosition as for the GLSL plug-in ?
     };
     auto val = semanticMap.find(name);
     if (val != semanticMap.end())
@@ -510,7 +526,8 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
                 // and not the pixel shader name. Need to figure out what to
                 // do with code gen so that we get the correct name.
                 string name = vertexInput->getName();
-                if (name.empty())
+                // Position is always pass through so cannot pass through again. Need to use pixel struct .Pw value.
+                if (name.empty() || name.find(MTLX_GENHW_POSITION))
                 {
                     continue;
                 }
