@@ -103,7 +103,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     // Add function signature
     string functionName = shader->getName();
     _syntax->makeValidName(functionName);
-    emitLine("vec4 " + functionName, stage, false); // TODO: We are always outputting vec4 for now
+    emitLine("vec3 " + functionName, stage, false); // TODO: We are always outputting vec3 for now
     emitScopeBegin(stage, Syntax::PARENTHESES);
     const VariableBlock& uniforms = stage.getUniformBlock(HW::PUBLIC_UNIFORMS);
     const size_t numUniforms = uniforms.size();
@@ -127,7 +127,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
         // Handle the case where the graph is a direct closure.
         // We don't support rendering closures without attaching 
         // to a surface shader, so just output black.
-        emitLine("return vec4(0.0, 0.0, 0.0, 1.0)", stage);
+        emitLine("return vec3(0.0)", stage);
     }
     else
     {
@@ -149,19 +149,19 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
             {
                 if (context.getOptions().hwTransparency)
                 {
-                    emitLine("float outAlpha = clamp(1.0 - dot(" + finalOutput + ".transparency, vec3(0.3333)), 0.0, 1.0)", stage);
-                    emitLine("return vec4(" + finalOutput + ".color, outAlpha)", stage);
+                    // emitLine("float outAlpha = clamp(1.0 - dot(" + finalOutput + ".transparency, vec3(0.3333)), 0.0, 1.0)", stage);
+                    emitLine("return " + finalOutput + ".color", stage);
                 }
                 else
                 {
-                    emitLine("return vec4(" + finalOutput + ".color, 1.0)", stage);
+                    emitLine("return " + finalOutput + ".color", stage);
                 }
             }
             else
             {
-                if (!outputSocket->getType()->isFloat4())
+                if (!outputSocket->getType()->isFloat3())
                 {
-                    toVec4(outputSocket->getType(), finalOutput);
+                    toVec3(outputSocket->getType(), finalOutput);
                 }
                 emitLine("return " + finalOutput, stage);
             }
@@ -169,11 +169,11 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
         else
         {
             string outputValue = outputSocket->getValue() ? _syntax->getValue(outputSocket->getType(), *outputSocket->getValue()) : _syntax->getDefaultValue(outputSocket->getType());
-            if (!outputSocket->getType()->isFloat4())
+            if (!outputSocket->getType()->isFloat3())
             {
                 string finalOutput = outputSocket->getVariable() + "_tmp";
                 emitLine(_syntax->getTypeName(outputSocket->getType()) + " " + finalOutput + " = " + outputValue, stage);
-                toVec4(outputSocket->getType(), finalOutput);
+                toVec3(outputSocket->getType(), finalOutput);
                 emitLine("return " + finalOutput, stage);
             }
             else
@@ -187,6 +187,31 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     emitScopeEnd(stage);
 
     return shader;
+}
+
+void GlslFragmentGenerator::toVec3(const TypeDesc* type, string& variable)
+{
+    if (type->isFloat2())
+    {
+        variable = "vec3(" + variable + ", 0.0)";
+    }
+    else if (type->isFloat4())
+    {
+        variable = variable + ".xyz";
+    }
+    else if (type == Type::FLOAT || type == Type::INTEGER)
+    {
+        variable = "vec3(" + variable + ", " + variable + ", " + variable + ")";
+    }
+    else if (type == Type::BSDF || type == Type::EDF)
+    {
+        variable = "vec3(" + variable + ")";
+    }
+    else
+    {
+        // Can't understand other types. Just return black.
+        variable = "vec3(0.0, 0.0, 0.0)";
+    }
 }
 
 } // namespace MaterialX

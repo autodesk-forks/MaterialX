@@ -87,28 +87,25 @@ namespace
     const pugi::char_t* SHADER_FRAGMENT("ShadeFragment");
     const pugi::char_t* DESCRIPTION("description");
     const pugi::char_t* PROPERTIES("properties");
-    const pugi::char_t* GLOBAL_PROPERTY("isRequirementOnly");
+    const pugi::char_t* OUT("out");
     const pugi::char_t* OUTPUTS("outputs");
     const pugi::char_t* IMPLEMENTATION("implementation");
     const pugi::char_t* RENDER("render");
     const pugi::char_t* OGS_RENDER("OGSRenderer");
     const pugi::char_t* LANGUAGE("language");
     const pugi::char_t* LANGUAGE_VERSION("lang_version");
-    const pugi::char_t* GLSL_LANGUAGE("GLSL");
-    const pugi::char_t* GLSL_LANGUAGE_VERSION("3.0");
     const pugi::char_t* FUNCTION_NAME("function_name");
     const pugi::char_t* FUNCTION_VAL("val");
     const pugi::char_t* SOURCE("source");
     const pugi::char_t* VERTEX_SOURCE("vertex_source");
     const pugi::char_t* SEMANTIC("semantic");
     const pugi::char_t* FLAGS("flags");
-    const pugi::char_t* VARYING_INPUT_PARAM("varyingInputParam");
     const pugi::char_t* TEXTURE2("texture2");
     const pugi::char_t* SAMPLER("sampler");
 
 
     void xmlAddImplementation(pugi::xml_node& parent, const string& language, const string& languageVersion,
-        const string& functionName, const string& pixelShader, const string& vertexShader)
+        const string& functionName, const string& functionSource)
     {
         pugi::xml_node impl = parent.append_child(IMPLEMENTATION);
         {
@@ -117,13 +114,8 @@ namespace
             impl.append_attribute(LANGUAGE_VERSION) = languageVersion.c_str();
             pugi::xml_node func = impl.append_child(FUNCTION_NAME);
             func.append_attribute(FUNCTION_VAL) = functionName.c_str();
-            if (!vertexShader.empty())
-            {
-                pugi::xml_node vertexSource = impl.append_child(VERTEX_SOURCE);
-                vertexSource.append_child(pugi::node_cdata).set_value(vertexShader.c_str());
-            }
-            pugi::xml_node pixelSource = impl.append_child(SOURCE);
-            pixelSource.append_child(pugi::node_cdata).set_value(pixelShader.c_str());
+            pugi::xml_node source = impl.append_child(SOURCE);
+            source.append_child(pugi::node_cdata).set_value(functionSource.c_str());
         }
     }
 
@@ -222,11 +214,16 @@ void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostr
     xmlAddValues(xmlValues, stage.getUniformBlock(HW::PRIVATE_UNIFORMS));
     xmlAddValues(xmlValues, stage.getUniformBlock(HW::PUBLIC_UNIFORMS));
 
+    // Add a color3 output
+    pugi::xml_node xmlOutputs = xmlRoot.append_child(OUTPUTS);
+    pugi::xml_node xmlOut = xmlOutputs.append_child(OGS_TYPE_MAP.at(Type::COLOR3));
+    xmlOut.append_attribute(NAME) = OUT;
+
     // Add implementations
     pugi::xml_node xmlImpementations = xmlRoot.append_child(IMPLEMENTATION);
-    xmlAddImplementation(xmlImpementations, "GLSL", "3.0",  glsl->getName(), glsl ? glsl->getSourceCode(Stage::PIXEL) : "// GLSL", EMPTY_STRING);
-    xmlAddImplementation(xmlImpementations, "HLSL", "11.0", glsl->getName(), hlsl ? hlsl->getSourceCode(Stage::PIXEL) : "// HLSL", EMPTY_STRING);
-    xmlAddImplementation(xmlImpementations, "Cg", "2.1", glsl->getName(), "// Cg", EMPTY_STRING);
+    xmlAddImplementation(xmlImpementations, "GLSL", "3.0",  glsl->getName(), glsl ? glsl->getSourceCode(Stage::PIXEL) : "// GLSL");
+    xmlAddImplementation(xmlImpementations, "HLSL", "11.0", glsl->getName(), hlsl ? hlsl->getSourceCode(Stage::PIXEL) : "// HLSL");
+    xmlAddImplementation(xmlImpementations, "Cg", "2.1", glsl->getName(), "// Cg");
 
     xmlDocument.save(stream, INDENTATION);
 }

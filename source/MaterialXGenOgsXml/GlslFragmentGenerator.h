@@ -29,6 +29,9 @@ public:
     ShaderPtr generate(const string& name, ElementPtr element, GenContext& context) const override;
 
     static const string TARGET;
+
+protected:
+    static void toVec3(const TypeDesc* type, string& variable);
 };
 
 }
