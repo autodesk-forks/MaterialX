@@ -97,11 +97,11 @@ const string OGS_FLAGS("flags");
 const string OGS_VARYING_INPUT_PARAM("varyingInputParam");
 const string OGS_POSITION_WORLD_SEMANTIC("Pw");
 const string OGS_POSITION_OBJECT_SEMANTIC("Pm");
-const string OGS_NORMAL_WORLD_SEMANTIC("Nw");
+const string OGS_NORMAL_WORLD_SEMANTIC("NORMAL");
 const string OGS_NORMAL_OBJECT_SEMANTIC("Nm");
 const string OGS_COLORSET_SEMANTIC("colorset");
-const string OGS_MAYA_BITANGENT_SEMANTIC("mayaBitangentIn"); // Maya bitangent semantic
-const string OGS_MAYA_TANGENT_SEMANTIC("mayaTangentIn"); // Maya tangent semantic
+const string OGS_MAYA_BITANGENT_SEMANTIC("BINORMAL"); // Maya bitangent semantic
+const string OGS_MAYA_TANGENT_SEMANTIC("TANGENT"); // Tangent semantic
 const string OGS_MAYA_UV_COORD_SEMANTIC("mayaUvCoordSemantic");  // Maya uv semantic
 
 void createOGSProperty(pugi::xml_node& propertiesNode, pugi::xml_node& valuesNode,
