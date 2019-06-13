@@ -97,7 +97,6 @@ namespace
     const pugi::char_t* FUNCTION_NAME("function_name");
     const pugi::char_t* FUNCTION_VAL("val");
     const pugi::char_t* SOURCE("source");
-    const pugi::char_t* VERTEX_SOURCE("vertex_source");
     const pugi::char_t* SEMANTIC("semantic");
     const pugi::char_t* FLAGS("flags");
     const pugi::char_t* TEXTURE2("texture2");
