@@ -3,16 +3,18 @@
 
 #include <MaterialXCore/Document.h>
 #include <MaterialXGenShader/GenContext.h>
-
-#include "../OGSXMLFragmentWrapper.h"
+#include <MaterialXContrib/OGSXMLFragmentWrapper.h>
 
 #include <maya/MString.h>
 
 #include <vector>
 
+using OGSXMLFragmentWrapperPtr = std::unique_ptr<MaterialX::OGSXMLFragmentWrapper>;
+
 struct MaterialXData
 {
-	MaterialXData(const std::string& materialXDocument, const std::string& elementPath);
+  public:
+    MaterialXData(const std::string& materialXDocument, const std::string& elementPath);
 	~MaterialXData();
 
 	bool isValidOutput();
@@ -22,13 +24,29 @@ struct MaterialXData
     MaterialXData& operator=(const MaterialXData&) = delete;
     MaterialXData& operator=(MaterialXData&&) = delete;
 
-	MaterialX::FilePath libSearchPath;
-	MaterialX::DocumentPtr doc;
-	MaterialX::ElementPtr element;
+    MaterialX::DocumentPtr getDocument() const
+    {
+        return _doc;
+    }
 
-	MString fragmentName;
-	std::unique_ptr<MaterialX::OGSXMLFragmentWrapper> glslFragmentWrapper;
-	std::vector<std::unique_ptr<MaterialX::GenContext>> contexts;
+    const MString& getFragmentName()
+    {
+        return _fragmentName;
+    }
+
+    MaterialX::OGSXMLFragmentWrapper* getFragmentWrapper() const
+    {
+        return _xmlFragmentWrapper.get();
+    }
+
+  protected:
+	MaterialX::FilePath _libSearchPath;
+	MaterialX::DocumentPtr _doc;
+	MaterialX::ElementPtr _element;
+
+	MString _fragmentName;
+    OGSXMLFragmentWrapperPtr _xmlFragmentWrapper;
+	std::vector<std::unique_ptr<MaterialX::GenContext>> _contexts;
 
   private:
 	void createDocument(const std::string& materialXDocument);

@@ -481,8 +481,13 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
 
             if (!path.empty())
             {
-                //std::cout << "Add path: " << path << ". Frag name: " << name << std::endl;
+                std::cout << "Add path: " << path << ". Frag name: " << name << std::endl;
                 _pathInputMap[path] = name;
+            }
+            else
+            {
+                std::cout << "Add input globals name: " << name << std::endl;
+                _globalsList.push_back(name);
             }
         }
     }
@@ -584,7 +589,7 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
             // Add to cached list of output name
             if (!path.empty())
             {
-                //std::cout << "Add output path: " << path << ". Frag name: " << name << std::endl;
+                std::cout << "Add output path: " << path << ". Frag name: " << name << std::endl;
                 _pathOutputMap[path] = name;
             }
         }
