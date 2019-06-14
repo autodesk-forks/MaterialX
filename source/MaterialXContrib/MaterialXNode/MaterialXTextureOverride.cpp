@@ -5,6 +5,7 @@
 
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenShader/HwShaderGenerator.h>
+#include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Util.h>
 #include <MaterialXFormat/XmlIo.h>
 #include <MaterialXRender/StbImageLoader.h>
@@ -134,7 +135,8 @@ void MaterialXTextureOverride::updateDG()
 }
 
 MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& parameterName, 
-                        const MaterialX::FileSearchPath& searchPath, const std::string& fileName)
+                        const MaterialX::FileSearchPath& searchPath, const std::string& fileName,
+                        MHWRender::MTextureDescription& textureDescription)
 {
     MStatus status = MStatus::kFailure;
 
@@ -157,6 +159,9 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
                     status = shader.setParameter(parameterName.c_str(), textureAssignment);
                     std::cout << "Bound file: " << imagePath.asString() << " to shader parameter:" << parameterName << ". Status: " << 
                         status << "\r\n";
+
+                    // Get back the texture description
+                    texture->textureDescription(textureDescription);
 
                     // release our reference now that it is set on the shader
                     textureManager->releaseTexture(texture);
@@ -191,30 +196,55 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
         return;
     }
 
-    MStringArray params;
-    shader.parameterList(params);
-    for (unsigned int j = 0; j < params.length(); j++)
+    MStringArray parameterList;
+    shader.parameterList(parameterList);
+    for (unsigned int i = 0; i < parameterList.length(); i++)
     {
-        std::cout << "MaterialXTextureOverride: shader param: " << params[i].asChar() << "\n";
+        std::cout << "MaterialXTextureOverride: shader param: " << parameterList[i].asChar() << "\n";
     }
 
     MaterialX::FileSearchPath imageSearchPath(Plugin::instance().getResourcePath() / MaterialX::FilePath("Images"));
+
+    // TODO: These should be options
+    std::string envRadiancePath = "san_giuseppe_bridge.hdr";
+    std::string envIrradiancePath = "san_giuseppe_bridge_diffuse.hdr";
+    const std::string irradianceParameter("u_envIrradiance");
+    const std::string radianceParameter("u_envRadiance");
+    MString radianceMipsParameter("u_envRadianceMips");
 
     // Bind globals which are not associated with any document elements
     const MaterialX::StringVec& globals = node->materialXData->getFragmentWrapper()->getGlobalsList();
     for (auto global : globals)
     {
-        // TODO: These should be options
-        std::string envRadiancePath = "san_giuseppe_bridge.hdr";
-        std::string envIrradiancePath = "san_giuseppe_bridge_diffuse.hdr";
-
-        if (global == "u_envIrradiance")
+        // Set irradiance map
+        MHWRender::MTextureDescription textureDescription;
+        if (global == irradianceParameter)
         {
-            status = bindFileTexture(shader, global, imageSearchPath, envIrradiancePath);
+            if (parameterList.indexOf(global.c_str()) >= 0)
+            {
+                status = bindFileTexture(shader, global, imageSearchPath, envIrradiancePath, textureDescription);
+            }
         }
-        else if (global == "u_envRadiance")
+
+        // Set radiance map
+        else if (global == radianceParameter)
         {
-            status = bindFileTexture(shader, global, imageSearchPath, envRadiancePath);
+            if (parameterList.indexOf(global.c_str()) >= 0)
+            {
+                status = bindFileTexture(shader, global, imageSearchPath, envRadiancePath, textureDescription);
+                if (status == MStatus::kSuccess)
+                {
+                    if (status == MStatus::kSuccess)
+                    {
+                        if (parameterList.indexOf(radianceMipsParameter) >= 0)
+                        {
+                            int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
+                            status = shader.setParameter(radianceMipsParameter, mipCount);
+                            std::cout << "Bind radiance mip count: " << mipCount << " Status: " << status << std::endl;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -245,7 +275,8 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
                 const std::string& valueString = valueElement->getValueString();
                 if (!valueString.empty())
                 {
-                    status = bindFileTexture(shader, textureParameterName, imageSearchPath, valueString);
+                    MHWRender::MTextureDescription textureDescription;
+                    status = bindFileTexture(shader, textureParameterName, imageSearchPath, valueString, textureDescription);
                 }
 			}
 
@@ -461,7 +492,7 @@ void TestFileNodeOverride::updateShader(
             if (textureManager)
             {
                 MHWRender::MTexture* texture =
-                    textureManager->acquireTexture(fFileName, "");
+                    textureManager->acquireTexture(fFileName, "", 0);
                 if (texture)
                 {
                     MHWRender::MTextureAssignment textureAssignment;
