@@ -11,12 +11,12 @@
 
 MaterialXData::MaterialXData(const std::string& materialXDocument, const std::string& elementPath)
 {
-	_libSearchPath = Plugin::instance().getLibrarySearchPath();
+	_librarySearchPath = Plugin::instance().getLibrarySearchPath();
 	createDocument(materialXDocument);
 
-	if (_doc)
+	if (_document)
 	{
-		_element = _doc->getDescendant(elementPath);
+		_element = _document->getDescendant(elementPath);
 	}
 
     if (!_element)
@@ -32,12 +32,12 @@ MaterialXData::~MaterialXData()
 void MaterialXData::createDocument(const std::string& materialXDocument)
 {
 	// Create document
-	_doc = MaterialX::createDocument();
-	MaterialX::readFromXmlFile(_doc, materialXDocument);
+	_document = MaterialX::createDocument();
+	MaterialX::readFromXmlFile(_document, materialXDocument);
 
 	// Load libraries
 	const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
-	MaterialX::loadLibraries(libraries, _libSearchPath, _doc);
+	MaterialX::loadLibraries(libraries, _librarySearchPath, _document);
 }
 
 bool MaterialXData::isValidOutput()
@@ -50,7 +50,7 @@ bool MaterialXData::isValidOutput()
 	const std::string& elementPath = _element->getNamePath();
 	std::vector<MaterialX::TypedElementPtr> elements;
 	try {
-		MaterialX::findRenderableElements(_doc, elements);
+		MaterialX::findRenderableElements(_document, elements);
 		for (MaterialX::TypedElementPtr currentElement : elements)
 		{
 			std::string pathCompare(currentElement->getNamePath());
@@ -83,7 +83,7 @@ void MaterialXData::createXMLWrapper()
         };
 
         // Stop emission of environment map lookups.
-        glslContext->registerSourceCodeSearchPath(_libSearchPath);
+        glslContext->registerSourceCodeSearchPath(_librarySearchPath);
         if (shaderRef)
         {
             glslContext->getOptions().hwSpecularEnvironmentMethod = MaterialX::SPECULAR_ENVIRONMENT_FIS;
