@@ -31,6 +31,7 @@ MHWRender::MPxShadingNodeOverride* MaterialXTextureOverride::creator(const MObje
 MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
 	: MPxShadingNodeOverride(obj)
 	, _object(obj)
+    , _enableEditing(false)
 {
 	/*
 	MStatus status;
@@ -267,6 +268,14 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
         }
     }
 
+    // This is unnecessary overhead if we are read-only. Updates should be based on whats
+    // dirty and not everythhing. There are a lot of attributes on shader graph and this is
+    // a waste of effort currently.
+    if (!_enableEditing)
+    {
+        return;
+    }
+
     MaterialX::DocumentPtr document = node->materialXData->getDocument();
 	const MaterialX::StringMap& inputs = node->materialXData->getFragmentWrapper()->getPathInputMap();
 	for (auto i : inputs)
@@ -286,7 +295,7 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 		{
 			if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)
 			{
-                // This is the hard-cided OGS convention to associate a texture with a sampler (via post-fix "Sampler" string)
+                // This is the hard-coded OGS convention to associate a texture with a sampler (via post-fix "Sampler" string)
                 std::string textureParameterName(resolvedName.asChar());
 
                 // Bind texture
@@ -299,7 +308,6 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
                 }
 			}
 
-            // Note: To find out how to remove a fragment otherwise we cannot edit/update.
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
 			{
 				MaterialX::Vector2 vector2 = valueElement->getValue()->asA<MaterialX::Vector2>();

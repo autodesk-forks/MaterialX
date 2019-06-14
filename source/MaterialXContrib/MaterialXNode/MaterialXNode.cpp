@@ -169,38 +169,38 @@ bool MaterialXNode::setInternalValue(const MPlug &plug, const MDataHandle &dataH
 				std::string type = valueElement->getType();
 				if (type == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
 				{
-					double2& value = dataHandle.asDouble2();
-					valueElement->setValue(MaterialX::Vector2(static_cast<float>(value[0]), static_cast<float>(value[1])));
+                    float2& value = dataHandle.asFloat2();
+                    valueElement->setValue(MaterialX::Vector2(value[0], value[1]));
 				}
 				else if (type == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
 				{
-					double3& value = dataHandle.asDouble3();
-					valueElement->setValue(MaterialX::Vector3(static_cast<float>(value[0]), static_cast<float>(value[1]), static_cast<float>(value[2])));
+                    float3& value = dataHandle.asFloat3();
+                    valueElement->setValue(MaterialX::Vector3(value[0], value[1], value[2]));
 				}
 				else if (type == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
 				{
-					//double4& value = dataHandle.asDouble4();
-					//valueElement->setValue(MaterialX::Vector4(static_cast<float>(value[0]), static_cast<float>(value[1]), static_cast<float>(value[2]), static_cast<float>(value[3])));
+                    MFloatVector& value = dataHandle.asFloatVector();
+                    valueElement->setValue(MaterialX::Vector4(value[0], value[1], value[2], value[3]));
 				}
 				else if (type == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
 				{
-					double2& value = dataHandle.asDouble2();
-					valueElement->setValue(MaterialX::Color2(static_cast<float>(value[0]), static_cast<float>(value[1])));
+                    float2& value = dataHandle.asFloat2();
+                    valueElement->setValue(MaterialX::Color2(value[0], value[1]));
 				}
 				else if (type == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
 				{
-					double3& value = dataHandle.asDouble3();
-					valueElement->setValue(MaterialX::Color3(static_cast<float>(value[0]), static_cast<float>(value[1]), static_cast<float>(value[2])));
+					float3& value = dataHandle.asFloat3();
+					valueElement->setValue(MaterialX::Color3(value[0], value[1], value[2]));
 				}
 				else if (type == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
 				{
-					//double4& value = dataHandle.asDouble4();
-					//valueElement->setValue(MaterialX::Color4(static_cast<float>(value[0]), static_cast<float>(value[1]), static_cast<float>(value[2]), static_cast<float>(value[3])));
+					MFloatVector& value = dataHandle.asFloatVector();
+                    valueElement->setValue(MaterialX::Color4(value[0], value[1], value[2], value[3]));
 				}
 				else if (type == MaterialX::TypedValue<float>::TYPE)
 				{
-					double& value = dataHandle.asDouble();
-					valueElement->setValue(static_cast<float>(value));
+					float& value = dataHandle.asFloat();
+					valueElement->setValue(value);
 				}
 			}
 		}
