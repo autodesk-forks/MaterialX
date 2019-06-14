@@ -210,7 +210,8 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
     std::string envIrradiancePath = "san_giuseppe_bridge_diffuse.hdr";
     const std::string irradianceParameter("u_envIrradiance");
     const std::string radianceParameter("u_envRadiance");
-    MString radianceMipsParameter("u_envRadianceMips");
+    const std::string radianceMipsParameter("u_envRadianceMips");
+    const std::string environmentMatrixParameter("u_envMatrix");
 
     // Bind globals which are not associated with any document elements
     const MaterialX::StringVec& globals = node->materialXData->getFragmentWrapper()->getGlobalsList();
@@ -236,14 +237,32 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
                 {
                     if (status == MStatus::kSuccess)
                     {
-                        if (parameterList.indexOf(radianceMipsParameter) >= 0)
+                        if (parameterList.indexOf(radianceMipsParameter.c_str()) >= 0)
                         {
                             int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
-                            status = shader.setParameter(radianceMipsParameter, mipCount);
+                            status = shader.setParameter(radianceMipsParameter.c_str(), mipCount);
                             std::cout << "Bind radiance mip count: " << mipCount << " Status: " << status << std::endl;
                         }
                     }
                 }
+            }
+        }
+
+        // Environment matrix
+        else if (global == environmentMatrixParameter)
+        {
+            if (parameterList.indexOf(global.c_str()) >= 0)
+            {
+                const float yRotationPI[4][4]{
+                    -1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, -1, 0,
+                    0, 0, 0, 1
+                };
+                MFloatMatrix matrix(yRotationPI);
+                //matrix.setToIdentity();
+                status = shader.setParameter(environmentMatrixParameter.c_str(), matrix);
+                std::cout << "Bind environment matrix: " << environmentMatrixParameter << ". Status: " << status << std::endl;
             }
         }
     }
