@@ -67,6 +67,11 @@ bool MaterialXData::isValidOutput()
 	return false;
 }
 
+bool MaterialXData::elementIsAShader() const
+{
+    return (_element ? _element->isA<MaterialX::ShaderRef>() : false);
+}
+
 void MaterialXData::createXMLWrapper()
 {
 	MaterialX::OutputPtr output = _element->asA<MaterialX::Output>();

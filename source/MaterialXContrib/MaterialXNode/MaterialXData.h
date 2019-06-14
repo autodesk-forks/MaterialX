@@ -27,17 +27,17 @@ struct MaterialXData
     /// The element path and document that the element resides in are passed in
     /// as input arguments
     MaterialXData(const std::string& materialXDocument, const std::string& elementPath);
-	~MaterialXData();
+    ~MaterialXData();
 
     /// Returns whether the element set to render is a valid output
-	bool isValidOutput();
+    bool isValidOutput();
 
     /// Create the OGS XML wrapper for shader fragments associated
     /// with the element set to render
-	void createXMLWrapper();
+    void createXMLWrapper();
 
     /// Register the fragment(s)
-	void registerFragments();
+    void registerFragments();
 
     MaterialXData& operator=(const MaterialXData&) = delete;
     MaterialXData& operator=(MaterialXData&&) = delete;
@@ -60,6 +60,10 @@ struct MaterialXData
         return _xmlFragmentWrapper.get();
     }
 
+    /// Return if the element to render represents a shader graph
+    /// as opposed to a texture grraph.
+    bool elementIsAShader() const;
+
   protected:
     MaterialX::FilePath _librarySearchPath;
     MaterialX::DocumentPtr _document;
@@ -70,7 +74,7 @@ struct MaterialXData
     std::vector<std::unique_ptr<MaterialX::GenContext>> _contexts;
 
   private:
-	void createDocument(const std::string& materialXDocument);
+    void createDocument(const std::string& materialXDocument);
 };
 
 #endif // MATERIALX_DATA_H
