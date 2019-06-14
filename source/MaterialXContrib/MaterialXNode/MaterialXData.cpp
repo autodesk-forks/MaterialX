@@ -102,21 +102,25 @@ void MaterialXData::createXMLWrapper()
 void MaterialXData::registerFragments()
 {
 	// Register fragments with the manager if needed
-	//
-	MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
-	if (theRenderer)
+	//	
+	if (MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer())
 	{
-		MHWRender::MFragmentManager* fragmentMgr =
-			theRenderer->getFragmentManager();
-		if (fragmentMgr)
+        if (MHWRender::MFragmentManager* fragmentMgr = theRenderer->getFragmentManager())
 		{
-			bool fragmentExists = (glslFragmentWrapper->getFragmentName().size() > 0) && fragmentMgr->hasFragment(glslFragmentWrapper->getFragmentName().c_str());
+			const bool fragmentExists = (glslFragmentWrapper->getFragmentName().size() > 0)
+                && fragmentMgr->hasFragment(glslFragmentWrapper->getFragmentName().c_str());
+
 			if (!fragmentExists)
 			{
 				std::stringstream glslStream;
 				glslFragmentWrapper->getDocument(glslStream);
-				std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/tiledImage.xml");
+				const std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/tiledImage.xml");
 				fragmentName = fragmentMgr->addShadeFragmentFromFile(xmlFileName.c_str(), false);
+
+                if (fragmentName.length() == 0)
+                {
+                    throw MaterialX::Exception("Failed to add OGS shader fragment from file.");
+                }
 			}
 		}
 	}
