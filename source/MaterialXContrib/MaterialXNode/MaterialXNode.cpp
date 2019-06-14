@@ -86,21 +86,27 @@ MStatus MaterialXNode::initialize()
 
 void MaterialXNode::createOutputAttr(MDGModifier& mdgModifier)
 {
-	if (materialXData)
+	if (materialXData && materialXData->getFragmentWrapper())
 	{
-		MFnNumericAttribute nAttr;
+        const MaterialX::StringMap& outputMap = materialXData->getFragmentWrapper()->getPathOutputMap();
+        if (outputMap.size())
+        {
+            MString outputName(outputMap.begin()->second.c_str());
+            if (outputName.length())
+            {
+                MFnNumericAttribute nAttr;
+                _outAttr = nAttr.createColor(outputName, outputName);
+                CHECK_MSTATUS(nAttr.setStorable(false));
+                CHECK_MSTATUS(nAttr.setInternal(false));
+                CHECK_MSTATUS(nAttr.setReadable(true));
+                CHECK_MSTATUS(nAttr.setWritable(false));
+                CHECK_MSTATUS(nAttr.setCached(true));
+                CHECK_MSTATUS(nAttr.setHidden(false));
 
-		MString outputName = materialXData->getFragmentWrapper()->getFragmentName().c_str();
-		_outAttr = nAttr.createColor(outputName, outputName);
-		CHECK_MSTATUS(nAttr.setStorable(false));
-		CHECK_MSTATUS(nAttr.setInternal(false));
-		CHECK_MSTATUS(nAttr.setReadable(true));
-		CHECK_MSTATUS(nAttr.setWritable(false));
-		CHECK_MSTATUS(nAttr.setCached(true));
-		CHECK_MSTATUS(nAttr.setHidden(false));
-
-		mdgModifier.addAttribute(thisMObject(), _outAttr);
-//		CHECK_MSTATUS(addAttribute(_outAttr));
+                mdgModifier.addAttribute(thisMObject(), _outAttr);
+                //		CHECK_MSTATUS(addAttribute(_outAttr));
+            }
+        }
 	}
 }
 

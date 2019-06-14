@@ -131,8 +131,8 @@ void MaterialXData::registerFragments()
 			{
                 std::stringstream glslStream;
                 _xmlFragmentWrapper->getDocument(glslStream);
-                //std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/standard_surface_default.xml");
-                std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/tiledImage.xml");
+                std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/standard_surface_default.xml");
+                //std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/tiledImage.xml");
 
                 // TODO: This should not be hard-coded
                 std::string dumpPath("d:/work/shader_dump/");
