@@ -4,6 +4,7 @@
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MStringArray.h>
+#include <maya/MPlugArray.h>
 #include <maya/MDGModifier.h>
 #include <maya/MFnStringData.h>
 #include <maya/MFnTypedAttribute.h>
@@ -85,21 +86,27 @@ MStatus MaterialXNode::initialize()
 
 void MaterialXNode::createOutputAttr(MDGModifier& mdgModifier)
 {
-	if (materialXData)
+	if (materialXData && materialXData->getFragmentWrapper())
 	{
-		MFnNumericAttribute nAttr;
+        const MaterialX::StringMap& outputMap = materialXData->getFragmentWrapper()->getPathOutputMap();
+        if (outputMap.size())
+        {
+            MString outputName(outputMap.begin()->second.c_str());
+            if (outputName.length())
+            {
+                MFnNumericAttribute nAttr;
+                _outAttr = nAttr.createColor(outputName, outputName);
+                CHECK_MSTATUS(nAttr.setStorable(false));
+                CHECK_MSTATUS(nAttr.setInternal(false));
+                CHECK_MSTATUS(nAttr.setReadable(true));
+                CHECK_MSTATUS(nAttr.setWritable(false));
+                CHECK_MSTATUS(nAttr.setCached(true));
+                CHECK_MSTATUS(nAttr.setHidden(false));
 
-		MString outputName = materialXData->glslFragmentWrapper->getFragmentName().c_str();
-		_outAttr = nAttr.createColor(outputName, outputName);
-		CHECK_MSTATUS(nAttr.setStorable(false));
-		CHECK_MSTATUS(nAttr.setInternal(false));
-		CHECK_MSTATUS(nAttr.setReadable(true));
-		CHECK_MSTATUS(nAttr.setWritable(false));
-		CHECK_MSTATUS(nAttr.setCached(true));
-		CHECK_MSTATUS(nAttr.setHidden(false));
-
-		mdgModifier.addAttribute(thisMObject(), _outAttr);
-//		CHECK_MSTATUS(addAttribute(_outAttr));
+                mdgModifier.addAttribute(thisMObject(), _outAttr);
+                //		CHECK_MSTATUS(addAttribute(_outAttr));
+            }
+        }
 	}
 }
 
@@ -135,7 +142,7 @@ bool MaterialXNode::setInternalValue(const MPlug &plug, const MDataHandle &dataH
 	}
 	else if (plug == ELEMENT_ATTRIBUTE)
 	{
-		if (materialXData->doc)
+		if (materialXData->getDocument())
 		{
 			//MString elementPath = dataHandle.asString();
 			//materialXData->element = materialXData->doc->getDescendant(elementPath.asChar());
@@ -162,38 +169,38 @@ bool MaterialXNode::setInternalValue(const MPlug &plug, const MDataHandle &dataH
 				std::string type = valueElement->getType();
 				if (type == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
 				{
-					double2& value = dataHandle.asDouble2();
-					valueElement->setValue(MaterialX::Vector2(static_cast<float>(value[0]), static_cast<float>(value[1])));
+                    float2& value = dataHandle.asFloat2();
+                    valueElement->setValue(MaterialX::Vector2(value[0], value[1]));
 				}
 				else if (type == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
 				{
-					double3& value = dataHandle.asDouble3();
-					valueElement->setValue(MaterialX::Vector3(static_cast<float>(value[0]), static_cast<float>(value[1]), static_cast<float>(value[2])));
+                    float3& value = dataHandle.asFloat3();
+                    valueElement->setValue(MaterialX::Vector3(value[0], value[1], value[2]));
 				}
 				else if (type == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
 				{
-					double4& value = dataHandle.asDouble4();
-					valueElement->setValue(MaterialX::Vector4(static_cast<float>(value[0]), static_cast<float>(value[1]), static_cast<float>(value[2]), static_cast<float>(value[3])));
+                    MFloatVector& value = dataHandle.asFloatVector();
+                    valueElement->setValue(MaterialX::Vector4(value[0], value[1], value[2], value[3]));
 				}
 				else if (type == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
 				{
-					double2& value = dataHandle.asDouble2();
-					valueElement->setValue(MaterialX::Color2(static_cast<float>(value[0]), static_cast<float>(value[1])));
+                    float2& value = dataHandle.asFloat2();
+                    valueElement->setValue(MaterialX::Color2(value[0], value[1]));
 				}
 				else if (type == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
 				{
-					double3& value = dataHandle.asDouble3();
-					valueElement->setValue(MaterialX::Color3(static_cast<float>(value[0]), static_cast<float>(value[1]), static_cast<float>(value[2])));
+					float3& value = dataHandle.asFloat3();
+					valueElement->setValue(MaterialX::Color3(value[0], value[1], value[2]));
 				}
 				else if (type == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
 				{
-					double4& value = dataHandle.asDouble4();
-					valueElement->setValue(MaterialX::Color4(static_cast<float>(value[0]), static_cast<float>(value[1]), static_cast<float>(value[2]), static_cast<float>(value[3])));
+					MFloatVector& value = dataHandle.asFloatVector();
+                    valueElement->setValue(MaterialX::Color4(value[0], value[1], value[2], value[3]));
 				}
 				else if (type == MaterialX::TypedValue<float>::TYPE)
 				{
-					double& value = dataHandle.asDouble();
-					valueElement->setValue(static_cast<float>(value));
+					float& value = dataHandle.asFloat();
+					valueElement->setValue(value);
 				}
 			}
 		}
@@ -220,12 +227,16 @@ void MaterialXNode::setAttributeValue(MObject &materialXObject, MObject &attr, f
 
 void MaterialXNode::createAttributesFromDocument(MDGModifier& mdgModifier)
 {
-	if (!materialXData || !materialXData->doc) return;
+    MaterialX::DocumentPtr document;
+    if (!materialXData || !(document= materialXData->getDocument()))
+    {
+        return;
+    }
 
-	const MaterialX::StringMap& inputMap = materialXData->glslFragmentWrapper->getPathInputMap();
+	const MaterialX::StringMap& inputMap = materialXData->getFragmentWrapper()->getPathInputMap();
 	for (auto it = inputMap.begin(); it != inputMap.end(); ++it)
 	{
-		MaterialX::ElementPtr element = materialXData->doc->getDescendant(it->first);
+		MaterialX::ElementPtr element = document->getDescendant(it->first);
 		if (!element) continue;
 		MObject mobject = thisMObject();
 		if (element->isA<MaterialX::ValueElement>())

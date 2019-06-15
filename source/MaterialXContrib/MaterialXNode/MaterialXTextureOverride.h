@@ -35,6 +35,9 @@ private:
 	MaterialXTextureOverride(const MObject& obj);
 
 	MObject _object;
+
+    // Is editing allowed
+    bool _enableEditing;
 };
 
 /////////////////////////////////////////////

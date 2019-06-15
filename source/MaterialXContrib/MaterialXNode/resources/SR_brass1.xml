@@ -1,8 +1,7 @@
 <?xml version="1.0"?>
-<fragment uiName="SR_default" name="SR_default" type="plumbing" class="ShadeFragment" version="1.36">
-  <description><![CDATA[MaterialX generated code for element: SR_default]]></description>
+<fragment uiName="SR_brass1" name="SR_brass1" type="plumbing" class="ShadeFragment" version="1">
+  <description><![CDATA[Code generated from MaterialX description]]></description>
   <properties>
-     <!-- Non varying parameter name can be used as is. Varying come through via a structure. -->
     <float4x4 name="u_envMatrix" flags="isRequirementOnly" />
     <texture2 name="u_envIrradiance" flags="isRequirementOnly" />
     <sampler name="u_envIrradianceSampler" flags="isRequirementOnly" />
@@ -10,15 +9,13 @@
     <sampler name="u_envRadianceSampler" flags="isRequirementOnly" />
     <int name="u_envRadianceMips" flags="isRequirementOnly" />
     <int name="u_envSamples" flags="isRequirementOnly" />
-    <float3 name="u_viewPosition" semantic="WorldCameraPosition" flags="isRequirementOnly" /> <!-- ViewPosition never changes -->
+    <float3 name="u_viewPosition" semantic="WorldCameraPosition" flags="isRequirementOnly" />
     <int name="u_numActiveLightSources" flags="isRequirementOnly" />
-     <!-- end non-varying globals -->
     <float name="base" />
     <float3 name="base_color" />
     <float name="diffuse_roughness" />
     <float name="specular" />
     <float3 name="specular_color" />
-    <float name="specular_roughness" />
     <float name="specular_IOR" />
     <float name="specular_anisotropy" />
     <float name="specular_rotation" />
@@ -40,8 +37,6 @@
     <float name="sheen_roughness" />
     <bool name="thin_walled" />
     <float name="coat" />
-    <float3 name="coat_color" />
-    <float name="coat_roughness" />
     <float name="coat_anisotropy" />
     <float name="coat_rotation" />
     <float name="coat_IOR" />
@@ -52,28 +47,43 @@
     <float name="emission" />
     <float3 name="emission_color" />
     <float3 name="opacity" />
-     <!-- Varying globals come in through input structure
-          Name matters for space e.g. Nw means normal world  -->
-    <float3 name="Pw" semantic="POSITION" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="Nw" semantic="NORMAL" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="Tw" semantic="TANGENT" flags="isRequirementOnly, varyingInputParam" />
-     <!-- end varying globals -->
+    <texture2 name="image_roughness_file" />
+    <sampler name="image_roughness_fileSampler" />
+    <float name="image_roughness_default" />
+    <float2 name="image_roughness_uvtiling" />
+    <float2 name="image_roughness_uvoffset" />
+    <int name="image_roughness_filtertype" />
+    <int name="image_roughness_framerange" />
+    <int name="image_roughness_frameoffset" />
+    <int name="image_roughness_frameendaction" />
+    <texture2 name="image_color_file" />
+    <sampler name="image_color_fileSampler" />
+    <float3 name="image_color_default" />
+    <float2 name="image_color_uvtiling" />
+    <float2 name="image_color_uvoffset" />
+    <int name="image_color_filtertype" />
+    <int name="image_color_framerange" />
+    <int name="image_color_frameoffset" />
+    <int name="image_color_frameendaction" />
+    <float3 name="tangentWorld" semantic="mayaTangentIn" flags="isRequirementOnly, varyingInputParam" />
+    <float3 name="normalWorld" semantic="Nw" flags="isRequirementOnly, varyingInputParam" />
+    <float2 name="texcoord_0" semantic="mayaUvCoordSemantic" flags="isRequirementOnly, varyingInputParam" />
+    <float3 name="positionWorld" semantic="Pw" flags="isRequirementOnly, varyingInputParam" />
   </properties>
   <values>
     <float4x4 name="u_envMatrix" value="-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1" />
-    <int name="u_envRadianceMips" value="10" />
-    <int name="u_envSamples" value="4" />
+    <int name="u_envRadianceMips" value="1" />
+    <int name="u_envSamples" value="16" />
     <int name="u_numActiveLightSources" value="0" />
-    <float name="base" value="0.8" />
+    <float name="base" value="1" />
     <float3 name="base_color" value="1, 1, 1" />
     <float name="diffuse_roughness" value="0" />
-    <float name="specular" value="1" />
+    <float name="specular" value="0" />
     <float3 name="specular_color" value="1, 1, 1" />
-    <float name="specular_roughness" value="0.1" />
     <float name="specular_IOR" value="1.52" />
     <float name="specular_anisotropy" value="0" />
     <float name="specular_rotation" value="0" />
-    <float name="metalness" value="0" />
+    <float name="metalness" value="1" />
     <float name="transmission" value="0" />
     <float3 name="transmission_color" value="1, 1, 1" />
     <float name="transmission_depth" value="0" />
@@ -90,9 +100,7 @@
     <float3 name="sheen_color" value="1, 1, 1" />
     <float name="sheen_roughness" value="0.3" />
     <bool name="thin_walled" value="false" />
-    <float name="coat" value="0" />
-    <float3 name="coat_color" value="1, 1, 1" />
-    <float name="coat_roughness" value="0.1" />
+    <float name="coat" value="1" />
     <float name="coat_anisotropy" value="0" />
     <float name="coat_rotation" value="0" />
     <float name="coat_IOR" value="1.5" />
@@ -103,20 +111,30 @@
     <float name="emission" value="0" />
     <float3 name="emission_color" value="1, 1, 1" />
     <float3 name="opacity" value="1, 1, 1" />
+    <float name="image_roughness_default" value="0" />
+    <float2 name="image_roughness_uvtiling" value="1, 1" />
+    <float2 name="image_roughness_uvoffset" value="0, 0" />
+    <int name="image_roughness_filtertype" value="1" />
+    <int name="image_roughness_frameoffset" value="0" />
+    <int name="image_roughness_frameendaction" value="0" />
+    <float3 name="image_color_default" value="0, 0, 0" />
+    <float2 name="image_color_uvtiling" value="1, 1" />
+    <float2 name="image_color_uvoffset" value="0, 0" />
+    <int name="image_color_filtertype" value="1" />
+    <int name="image_color_frameoffset" value="0" />
+    <int name="image_color_frameendaction" value="0" />
   </values>
   <outputs>
     <float3 name="out" />
   </outputs>
   <implementation>
     <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
-       <!-- Note: we cannot use the function main, since OGS effect building will use the funciton main() -->
-       <function_name val="main_function" />
-       <source>
-   <![CDATA[#define M_PI 3.1415926535897932384626433832795
+      <function_name val="SR_brass1" />
+      <source><![CDATA[#define M_PI 3.1415926535897932384626433832795
 #define M_PI_INV 1.0/3.1415926535897932384626433832795
 #define M_GOLDEN_RATIO 1.6180339887498948482045868343656
 #define M_FLOAT_EPS 0.000001
-#define MAX_LIGHT_SOURCES 1
+#define MAX_LIGHT_SOURCES 3
 
 #define BSDF vec3
 #define EDF vec3
@@ -126,43 +144,6 @@ struct surfaceshader { vec3 color; vec3 transparency; };
 struct volumeshader { VDF vdf; EDF edf; };
 struct displacementshader { vec3 offset; float scale; };
 struct lightshader { vec3 intensity; vec3 direction; };
-
-// TODO: Is generated so cannot be added here otherwise it will show up twice.
-// Uniform block: PrivateUniforms
-//uniform mat4 u_envMatrix = mat4(-1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, -1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000);
-//uniform sampler2D u_envIrradianceSampler;
-//uniform sampler2D u_envRadianceSampler;
-//uniform int u_envRadianceMips = 1;
-//uniform int u_envSamples = 16;
-//uniform vec3 u_viewPosition = vec3(0.0);
-//uniform int u_numActiveLightSources = 0;
-
-// Manually comment out. These should never be output by any generator in the
-// first place since it is never used.
-//uniform int geomprop_Nworld_space = 2;
-//uniform int geomprop_Tworld_space = 2;
-//uniform int geomprop_Tworld_index = 0;
-
-struct LightData
-{
-    int type;
-};
-
-uniform LightData u_lightData[MAX_LIGHT_SOURCES];
-
-// Manually commented out. This is only the pixel shader so comment
-// out the vertex in and pixel out
-// Q: Can make this a input requirement, but how to tell what the name of the
-// input structure for the pixel shader. Seems to be PIX_IN for some reason.
-//in VertexData
-//{
-//    vec3 Nw;
-//    vec3 Tw;
-//    vec3 positionWorld;
-//} vd;
-
-// Pixel shader outputs
-//out vec4 out1;
 
 float mx_square(float x)
 {
@@ -463,7 +444,6 @@ float mx_latlong_compute_lod(vec3 dir, float pdf, float maxMipLevel, int envSamp
     return max(effectiveMaxMipLevel - 0.5 * log2(envSamples * pdf * distortion), 0.0);
 }
 
-
 vec3 mx_latlong_map_lookup(vec3 dir, mat4 transform, float lod, sampler2D sampler)
 {
     vec3 envDir = normalize((transform * vec4(dir,0.0)).xyz);
@@ -525,7 +505,7 @@ vec3 mx_environment_radiance(vec3 N, vec3 V, vec3 X, roughnessinfo roughness, in
 
 vec3 mx_environment_irradiance(vec3 N)
 {
-    return mx_latlong_map_lookup(N, u_envMatrix, 0.0, u_envIrradianceSampler);
+    return mx_latlong_map_lookup(N, u_envMatrix, 0.0, u_envIrradiancSampler);
 }
 
 //
@@ -544,6 +524,52 @@ int numActiveLightSources()
 void sampleLightSource(LightData light, vec3 position, out lightshader result)
 {
     result.intensity = vec3(0.0);
+}
+
+void mx_image_float(sampler2D tex_sampler, int layer, float defaultval, vec2 texcoord, int uaddressmode, int vaddressmode, int filtertype, int framerange, int frameoffset, int frameendaction, out float result)
+{
+    // TODO: Fix handling of addressmode
+    if(textureSize(tex_sampler, 0).x > 1)
+    {
+        vec2 uv = mx_get_target_uv(texcoord);
+        result = texture(tex_sampler, uv).r;
+    }
+    else
+    {
+        result = defaultval;
+    }
+}
+
+void NG_tiledimage_float(sampler2D file, float default1, vec2 texcoord, vec2 uvtiling, vec2 uvoffset, int filtertype, int framerange, int frameoffset, int frameendaction, out float N_out_float)
+{
+    vec2 N_mult_float_out = texcoord * uvtiling;
+    vec2 N_sub_float_out = N_mult_float_out - uvoffset;
+    float N_img_float_out = 0.0;
+    mx_image_float(file, 0, default1, N_sub_float_out, 2, 2, filtertype, framerange, frameoffset, frameendaction, N_img_float_out);
+    N_out_float = N_img_float_out;
+}
+
+void mx_image_color3(sampler2D tex_sampler, int layer, vec3 defaultval, vec2 texcoord, int uaddressmode, int vaddressmode, int filtertype, int framerange, int frameoffset, int frameendaction, out vec3 result)
+{
+    // TODO: Fix handling of addressmode
+    if(textureSize(tex_sampler, 0).x > 1)
+    {
+        vec2 uv = mx_get_target_uv(texcoord);
+        result = texture(tex_sampler, uv).rgb;
+    }
+    else
+    {
+        result = defaultval;
+    }
+}
+
+void NG_tiledimage_color3(sampler2D file, vec3 default1, vec2 texcoord, vec2 uvtiling, vec2 uvoffset, int filtertype, int framerange, int frameoffset, int frameendaction, out vec3 N_out_color3)
+{
+    vec2 N_mult_color3_out = texcoord * uvtiling;
+    vec2 N_sub_color3_out = N_mult_color3_out - uvoffset;
+    vec3 N_img_color3_out = vec3(0.0);
+    mx_image_color3(file, 0, default1, N_sub_color3_out, 2, 2, filtertype, framerange, frameoffset, frameendaction, N_img_color3_out);
+    N_out_color3 = N_img_color3_out;
 }
 
 void mx_roughness_anisotropy(float roughness, float anisotropy, out roughnessinfo result)
@@ -694,34 +720,6 @@ void mx_diffuse_brdf_indirect(vec3 V, float weight, vec3 color, float roughness,
     result = Li * color * weight;
 }
 
-// Fake with simple diffuse transmission
-void mx_subsurface_brdf_reflection(vec3 L, vec3 V, float weight, vec3 color, vec3 radius, float anisotropy, vec3 normal, out BSDF result)
-{
-    // Invert normal since we're transmitting light from the other side
-    float NdotL = dot(L, -normal);
-    if (NdotL <= 0.0 || weight < M_FLOAT_EPS)
-    {
-        result = BSDF(0.0);
-        return;
-    }
-
-    result = color * weight * NdotL * M_PI_INV;
-}
-
-// Fake with simple diffuse transmission
-void mx_subsurface_brdf_indirect(vec3 V, float weight, vec3 color, vec3 radius, float anisotropy, vec3 normal, out vec3 result)
-{
-    if (weight < M_FLOAT_EPS)
-    {
-        result = vec3(0.0);
-        return;
-    }
-
-    // Invert normal since we're transmitting light from the other side
-    vec3 Li = mx_environment_irradiance(-normal);
-    result = Li * color * weight;
-}
-
 // We fake diffuse transmission by using diffuse reflection from the opposite side.
 // So this BTDF is really a BRDF.
 void mx_diffuse_btdf_reflection(vec3 L, vec3 V, float weight, vec3 color, vec3 normal, out BSDF result)
@@ -738,6 +736,34 @@ void mx_diffuse_btdf_reflection(vec3 L, vec3 V, float weight, vec3 color, vec3 n
 }
 
 void mx_diffuse_btdf_indirect(vec3 V, float weight, vec3 color, vec3 normal, out vec3 result)
+{
+    if (weight < M_FLOAT_EPS)
+    {
+        result = vec3(0.0);
+        return;
+    }
+
+    // Invert normal since we're transmitting light from the other side
+    vec3 Li = mx_environment_irradiance(-normal);
+    result = Li * color * weight;
+}
+
+// Fake with simple diffuse transmission
+void mx_subsurface_brdf_reflection(vec3 L, vec3 V, float weight, vec3 color, vec3 radius, float anisotropy, vec3 normal, out BSDF result)
+{
+    // Invert normal since we're transmitting light from the other side
+    float NdotL = dot(L, -normal);
+    if (NdotL <= 0.0 || weight < M_FLOAT_EPS)
+    {
+        result = BSDF(0.0);
+        return;
+    }
+
+    result = color * weight * NdotL * M_PI_INV;
+}
+
+// Fake with simple diffuse transmission
+void mx_subsurface_brdf_indirect(vec3 V, float weight, vec3 color, vec3 radius, float anisotropy, vec3 normal, out vec3 result)
 {
     if (weight < M_FLOAT_EPS)
     {
@@ -916,13 +942,13 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
 {
     roughnessinfo coat_roughness_out = roughnessinfo(M_FLOAT_EPS, M_FLOAT_EPS, M_FLOAT_EPS, M_FLOAT_EPS);
     mx_roughness_anisotropy(coat_roughness, coat_anisotropy, coat_roughness_out);
-    vec3 geomprop_Tworld_out = normalize(PIX_IN.Tw);
+    vec3 geomprop_Tworld_out = normalize(PIX_IN.tangentWorld);
     float coat_affect_roughness_multiply1_out = coat_affect_roughness * coat;
     const float coat_clamped_low_tmp = 0.000000;
     const float coat_clamped_high_tmp = 1.000000;
     float coat_clamped_out = clamp(coat, coat_clamped_low_tmp, coat_clamped_high_tmp);
     float subsurface_selector_out = float(thin_walled);
-    vec3 geomprop_Vworld_out = normalize(PIX_IN.Pw - u_viewPosition);
+    vec3 geomprop_Vworld_out = normalize(PIX_IN.positionWorld - u_viewPosition);
     const vec3 coat_attenuation_bg_tmp = vec3(1.000000, 1.000000, 1.000000);
     vec3 coat_attenuation_out = mix(coat_attenuation_bg_tmp, coat_color, coat);
     vec3 emission_weight_out = emission_color * emission;
@@ -950,13 +976,13 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
     surfaceshader standard_surface_constructor_out = surfaceshader(vec3(0.0),vec3(0.0));
     {
         // Light loop
-        vec3 N = normalize(PIX_IN.Nw);
-        vec3 V = normalize(u_viewPosition - PIX_IN.Pw);
+        vec3 N = normalize(vd.normalWorld);
+        vec3 V = normalize(u_viewPosition - vd.positionWorld);
         int numLights = numActiveLightSources();
         lightshader lightShader;
         for (int activeLightIndex = 0; activeLightIndex < numLights; ++activeLightIndex)
         {
-            sampleLightSource(u_lightData[activeLightIndex], PIX_IN.Pw, lightShader);
+            sampleLightSource(u_lightData[activeLightIndex], vd.positionWorld, lightShader);
             vec3 L = lightShader.direction;
 
             // Calculate the BSDF response for this light source
@@ -965,10 +991,10 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
             BSDF transmission_bsdf_out = BSDF(0.0);
             BSDF diffuse_bsdf_out = BSDF(0.0);
             mx_diffuse_brdf_reflection(L, V, base, coat_affected_diffuse_color_out, diffuse_roughness, normal, diffuse_bsdf_out);
-            BSDF subsurface_bsdf_out = BSDF(0.0);
-            mx_subsurface_brdf_reflection(L, V, 1.000000, coat_affected_subsurface_color_out, subsurface_radius, subsurface_anisotropy, normal, subsurface_bsdf_out);
             BSDF translucent_bsdf_out = BSDF(0.0);
             mx_diffuse_btdf_reflection(L, V, 1.000000, coat_affected_subsurface_color_out, normal, translucent_bsdf_out);
+            BSDF subsurface_bsdf_out = BSDF(0.0);
+            mx_subsurface_brdf_reflection(L, V, 1.000000, coat_affected_subsurface_color_out, subsurface_radius, subsurface_anisotropy, normal, subsurface_bsdf_out);
             BSDF sheen_bsdf_out = BSDF(0.0);
             mx_sheen_brdf_reflection(L, V, sheen, sheen_color, sheen_roughness, normal, diffuse_bsdf_out, sheen_bsdf_out);
             BSDF selected_subsurface_bsdf_out = BSDF(0.0);
@@ -1004,10 +1030,10 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
             BSDF transmission_bsdf_out = BSDF(0.0);
             BSDF diffuse_bsdf_out = BSDF(0.0);
             mx_diffuse_brdf_indirect(V, base, coat_affected_diffuse_color_out, diffuse_roughness, normal, diffuse_bsdf_out);
-            BSDF subsurface_bsdf_out = BSDF(0.0);
-            mx_subsurface_brdf_indirect(V, 1.000000, coat_affected_subsurface_color_out, subsurface_radius, subsurface_anisotropy, normal, subsurface_bsdf_out);
             BSDF translucent_bsdf_out = BSDF(0.0);
             mx_diffuse_btdf_indirect(V, 1.000000, coat_affected_subsurface_color_out, normal, translucent_bsdf_out);
+            BSDF subsurface_bsdf_out = BSDF(0.0);
+            mx_subsurface_brdf_indirect(V, 1.000000, coat_affected_subsurface_color_out, subsurface_radius, subsurface_anisotropy, normal, subsurface_bsdf_out);
             BSDF sheen_bsdf_out = BSDF(0.0);
             mx_sheen_brdf_indirect(V, sheen, sheen_color, sheen_roughness, normal, diffuse_bsdf_out, sheen_bsdf_out);
             BSDF selected_subsurface_bsdf_out = BSDF(0.0);
@@ -1034,84 +1060,83 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
     out1 = standard_surface_constructor_out;
 }
 
-// TODO: Arguments here manually added. Need to modify generator to place uniforms here
-// versus as global.
-vec3 main_function(
-   float base,
-   vec3 base_color,
-   float diffuse_roughness,
-   float specular,
-   vec3 specular_color,
-   float specular_roughness,
-   float specular_IOR,
-   float specular_anisotropy,
-   float specular_rotation,
-   float metalness,
-   float transmission,
-   vec3 transmission_color,
-   float transmission_depth,
-   vec3 transmission_scatter,
-   float transmission_scatter_anisotropy,
-   float transmission_dispersion,
-   float transmission_extra_roughness,
-   float subsurface,
-   vec3 subsurface_color,
-   vec3 subsurface_radius,
-   float subsurface_scale,
-   float subsurface_anisotropy,
-   float sheen,
-   vec3 sheen_color,
-   float sheen_roughness,
-   bool thin_walled,
-   float coat,
-   vec3 coat_color,
-   float coat_roughness,
-   float coat_anisotropy,
-   float coat_rotation,
-   float coat_IOR,
-   float coat_affect_color,
-   float coat_affect_roughness,
-   float thin_film_thickness,
-   float thin_film_IOR,
-   float emission,
-   vec3 emission_color,
-   vec3 opacity
+vec3 SR_brass1
+(
+    float base,
+    vec3 base_color,
+    float diffuse_roughness,
+    float specular,
+    vec3 specular_color,
+    float specular_IOR,
+    float specular_anisotropy,
+    float specular_rotation,
+    float metalness,
+    float transmission,
+    vec3 transmission_color,
+    float transmission_depth,
+    vec3 transmission_scatter,
+    float transmission_scatter_anisotropy,
+    float transmission_dispersion,
+    float transmission_extra_roughness,
+    float subsurface,
+    vec3 subsurface_color,
+    vec3 subsurface_radius,
+    float subsurface_scale,
+    float subsurface_anisotropy,
+    float sheen,
+    vec3 sheen_color,
+    float sheen_roughness,
+    bool thin_walled,
+    float coat,
+    float coat_anisotropy,
+    float coat_rotation,
+    float coat_IOR,
+    float coat_affect_color,
+    float coat_affect_roughness,
+    float thin_film_thickness,
+    float thin_film_IOR,
+    float emission,
+    vec3 emission_color,
+    vec3 opacity,
+    uniform sampler2D image_roughness_fileSampler,
+    float image_roughness_default,
+    vec2 image_roughness_uvtiling,
+    vec2 image_roughness_uvoffset,
+    int image_roughness_filtertype,
+    int image_roughness_framerange,
+    int image_roughness_frameoffset,
+    int image_roughness_frameendaction,
+    uniform sampler2D image_color_fileSampler,
+    vec3 image_color_default,
+    vec2 image_color_uvtiling,
+    vec2 image_color_uvoffset,
+    int image_color_filtertype,
+    int image_color_framerange,
+    int image_color_frameoffset,
+    int image_color_frameendaction
 )
 {
-    vec3 geomprop_Nworld_out = normalize(PIX_IN.Nw);
-    vec3 geomprop_Tworld_out = normalize(PIX_IN.Tw);
+    vec3 geomprop_Tworld_out = normalize(PIX_IN.tangentWorld);
+    vec3 geomprop_Nworld_out = normalize(PIX_IN.normalWorld);
+    vec2 geomprop_UV0_out = PIX_IN.texcoord_0;
+    float image_roughness_out = 0.0;
+    NG_tiledimage_float(image_roughness_fileSampler, image_roughness_default, geomprop_UV0_out, image_roughness_uvtiling, image_roughness_uvoffset, image_roughness_filtertype, image_roughness_framerange, image_roughness_frameoffset, image_roughness_frameendaction, image_roughness_out);
+    vec3 image_color_out = vec3(0.0);
+    NG_tiledimage_color3(image_color_fileSampler, image_color_default, geomprop_UV0_out, image_color_uvtiling, image_color_uvoffset, image_color_filtertype, image_color_framerange, image_color_frameoffset, image_color_frameendaction, image_color_out);
 
-    surfaceshader SR_default_out = surfaceshader(vec3(0.0),vec3(0.0));
-    IMPL_standard_surface_surfaceshader(base, base_color, diffuse_roughness, specular, specular_color, specular_roughness, specular_IOR, specular_anisotropy, specular_rotation, metalness, transmission, transmission_color, transmission_depth, transmission_scatter, transmission_scatter_anisotropy, transmission_dispersion, transmission_extra_roughness, subsurface, subsurface_color, subsurface_radius, subsurface_scale, subsurface_anisotropy, sheen, sheen_color, sheen_roughness, thin_walled, geomprop_Nworld_out, geomprop_Tworld_out, coat, coat_color, coat_roughness, coat_anisotropy, coat_rotation, coat_IOR, geomprop_Nworld_out, coat_affect_color, coat_affect_roughness, thin_film_thickness, thin_film_IOR, emission, emission_color, opacity, SR_default_out);
-
-    //vec3 N = normalize(PIX_IN.Nw);
-    //vec3 V = normalize(u_viewPosition - PIX_IN.Pw);
-    //vec3 T = normalize(PIX_IN.Tw);
-
-    //vec2 proj = mx_latlong_projection(N);
-    //return texture(u_envIrradianceSampler, proj).rgb;
-
-    //return mx_environment_irradiance(N);
-    //roughnessinfo roughness = roughnessinfo(M_FLOAT_EPS, M_FLOAT_EPS, M_FLOAT_EPS, M_FLOAT_EPS);
-    //vec3 val = mx_environment_radiance(N, V, T, roughness, 0);
-    //return val;
-
-    //return vec3(proj,0.0);
-    //return mx_environment_irradiance(N);
-    return SR_default_out.color;
-    //return normalize(u_viewPosition - PIX_IN.Pw);
+    surfaceshader SR_brass1_out = surfaceshader(vec3(0.0),vec3(0.0));
+    IMPL_standard_surface_surfaceshader(base, base_color, diffuse_roughness, specular, specular_color, image_roughness_out, specular_IOR, specular_anisotropy, specular_rotation, metalness, transmission, transmission_color, transmission_depth, transmission_scatter, transmission_scatter_anisotropy, transmission_dispersion, transmission_extra_roughness, subsurface, subsurface_color, subsurface_radius, subsurface_scale, subsurface_anisotropy, sheen, sheen_color, sheen_roughness, thin_walled, geomprop_Nworld_out, geomprop_Tworld_out, coat, image_color_out, image_roughness_out, coat_anisotropy, coat_rotation, coat_IOR, geomprop_Nworld_out, coat_affect_color, coat_affect_roughness, thin_film_thickness, thin_film_IOR, emission, emission_color, opacity, SR_brass1_out);
+    returnSR_brass1_out.color;
 }
-
 ]]></source>
     </implementation>
     <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
-      <function_name val="main" />
+      <function_name val="SR_brass1" />
       <source><![CDATA[// HLSL]]></source>
     </implementation>
     <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
-      <function_name val="main" />
-      <source>
-   <![CDATA[// Cg]]></source>
+      <function_name val="SR_brass1" />
+      <source><![CDATA[// Cg]]></source>
     </implementation>
   </implementation>
 </fragment>

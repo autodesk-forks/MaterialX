@@ -87,7 +87,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
                 throw MaterialX::Exception("Unexpected DG node type.");
             }
 
-            std::string documentString = MaterialX::writeToXmlString(materialXData->doc);
+            std::string documentString = MaterialX::writeToXmlString(materialXData->getDocument());
 
             materialXNode->setMaterialXData(std::move(materialXData));
             materialXNode->createOutputAttr(_dgModifier);
