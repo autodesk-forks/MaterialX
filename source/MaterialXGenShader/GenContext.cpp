@@ -14,7 +14,8 @@ namespace MaterialX
 //
 
 GenContext::GenContext(ShaderGeneratorPtr sg) :
-    _sg(sg)
+    _sg(sg),
+    _identifierIndex(0)
 {
     if (!_sg)
     {
@@ -25,28 +26,30 @@ GenContext::GenContext(ShaderGeneratorPtr sg) :
 
 void GenContext::addIdentifier(const string& name)
 {
-    if (_identifiers.count(name) == 0)
+    if (_identifiers.count(name))
     {
-        _identifiers[name] = 0;
+        throw ExceptionShaderGenError("Identifier '" + name + "' is already used.");
     }
+    _identifiers.insert(name);
+    ++_identifierIndex;
 }
 
 void GenContext::makeIdentifier(string& name)
 {
-    auto it = _identifiers.find(name);
-    if (it != _identifiers.end())
+    string id = name;
+    while (_identifiers.count(id))
     {
-        name += std::to_string(++(it->second));
+        id = name + std::to_string(++_identifierIndex);
     }
-    else
-    {
-        _identifiers[name] = 0;
-    }
+    name = id;
+    _identifiers.insert(name);
+    ++_identifierIndex;
 }
 
 void GenContext::clearIdentifiers()
 {
     _identifiers.clear();
+    _identifierIndex = 0;
 }
 
 void GenContext::addNodeImplementation(const string& name, ShaderNodeImplPtr impl)

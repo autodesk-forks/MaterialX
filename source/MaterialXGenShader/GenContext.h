@@ -208,8 +208,9 @@ class GenContext
     // Search path for finding source files.
     FileSearchPath _sourceCodeSearchPath;
 
-    // Map keeping track of unique identifier names.
-    std::unordered_map<string, size_t> _identifiers;
+    // Set of unique identifier names.
+    StringSet _identifiers;
+    size_t _identifierIndex;
 
     // Cached shader node implementations.
     std::unordered_map<string, ShaderNodeImplPtr> _nodeImpls;

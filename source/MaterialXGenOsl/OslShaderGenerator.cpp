@@ -226,7 +226,9 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     setFunctionName(functionName, stage);
     emitLine(functionName, stage, false);
     emitScopeBegin(stage, Syntax::PARENTHESES);
-    emitLine("float dummy = 0.0,", stage, false);
+    string dummy = "dummy";
+    context.makeIdentifier(dummy);
+    emitLine("float " + dummy + " = 0.0,", stage, false);
 
     // Emit all varying inputs
     const VariableBlock& inputs = stage.getInputBlock(OSL::INPUTS);
