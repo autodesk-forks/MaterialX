@@ -170,6 +170,7 @@ OslShaderGenerator::OslShaderGenerator() :
 
 ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
+    resetIdentifiers(context);
     ShaderPtr shader = createShader(name, element, context);
 
     const ShaderGraph& graph = shader->getGraph();
@@ -221,7 +222,7 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
 
     // Begin shader signature.
     string functionName = shader->getName();
-    _syntax->makeValidName(functionName);
+    context.makeIdentifier(functionName);
     setFunctionName(functionName, stage);
     emitLine(functionName, stage, false);
     emitScopeBegin(stage, Syntax::PARENTHESES);

@@ -102,7 +102,6 @@ namespace
     const pugi::char_t* TEXTURE2("texture2");
     const pugi::char_t* SAMPLER("sampler");
 
-
     void xmlAddImplementation(pugi::xml_node& parent, const string& language, const string& languageVersion,
         const string& functionName, const string& functionSource)
     {
@@ -139,10 +138,15 @@ namespace
             const ShaderPort* p = block[i];
             if (p->getType() == Type::FILENAME)
             {
-                pugi::xml_node texture = parent.append_child(TEXTURE2);
-                xmlSetProperty(texture, p->getName(), p->getVariable(), flags);
-                pugi::xml_node sampler = parent.append_child(SAMPLER);
-                xmlSetProperty(sampler, p->getName(), p->getVariable()+"Sampler", flags);
+                const string& samplerName = p->getVariable();
+                if (samplerName.size() > 7 && samplerName.substr(samplerName.size() - 7) == OgsXmlGenerator::SAMPLER_SUFFIX)
+                {
+                    string textureName = samplerName.substr(0, samplerName.size() - 7);
+                    pugi::xml_node texture = parent.append_child(TEXTURE2);
+                    xmlSetProperty(texture, p->getName(), textureName, flags);
+                    pugi::xml_node sampler = parent.append_child(SAMPLER);
+                    xmlSetProperty(sampler, p->getName(), samplerName, flags);
+                }
             }
             else
             {
@@ -174,6 +178,8 @@ namespace
         }
     }
 }
+
+const string OgsXmlGenerator::SAMPLER_SUFFIX = "Sampler";
 
 OgsXmlGenerator::OgsXmlGenerator()
 {

@@ -4,6 +4,7 @@
 //
 
 #include <MaterialXGenShader/GenContext.h>
+#include <MaterialXGenShader/ShaderGenerator.h>
 
 namespace MaterialX
 {
@@ -19,6 +20,33 @@ GenContext::GenContext(ShaderGeneratorPtr sg) :
     {
         throw ExceptionShaderGenError("GenContext must have a valid shader generator");
     }
+    _sg->resetIdentifiers(*this);
+}
+
+void GenContext::addIdentifier(const string& name)
+{
+    if (_identifiers.count(name) == 0)
+    {
+        _identifiers[name] = 0;
+    }
+}
+
+void GenContext::makeIdentifier(string& name)
+{
+    auto it = _identifiers.find(name);
+    if (it != _identifiers.end())
+    {
+        name += std::to_string(++(it->second));
+    }
+    else
+    {
+        _identifiers[name] = 0;
+    }
+}
+
+void GenContext::clearIdentifiers()
+{
+    _identifiers.clear();
 }
 
 void GenContext::addNodeImplementation(const string& name, ShaderNodeImplPtr impl)

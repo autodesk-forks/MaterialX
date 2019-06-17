@@ -4,17 +4,37 @@
 //
 
 #include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
+#include <MaterialXGenOgsXml/OgsXmlGenerator.h>
 
 #include <MaterialXGenShader/Shader.h>
 
 namespace MaterialX
 {
 
+string GlslFragmentSyntax::getVariableName(const string& name, const TypeDesc* type, GenContext& context) const
+{
+    string variable = GlslSyntax::getVariableName(name, type, context);
+    // A filename input corresponds to a texture sampler uniform
+    // which requires a special suffix in OGS XML fragments.
+    if (type == Type::FILENAME)
+    {
+        // Make sure it's not already used.
+        if (variable.size() <= OgsXmlGenerator::SAMPLER_SUFFIX.size() || 
+            variable.substr(variable.size() - OgsXmlGenerator::SAMPLER_SUFFIX.size()) != OgsXmlGenerator::SAMPLER_SUFFIX)
+        {
+            variable += OgsXmlGenerator::SAMPLER_SUFFIX;
+        }
+    }
+    return variable;
+}
+
 const string GlslFragmentGenerator::TARGET = "ogsxml";
 
 GlslFragmentGenerator::GlslFragmentGenerator() :
     GlslShaderGenerator()
 {
+    // Use our custom syntax class
+    _syntax = std::make_shared<GlslFragmentSyntax>();
 }
 
 ShaderGeneratorPtr GlslFragmentGenerator::create()
@@ -24,6 +44,7 @@ ShaderGeneratorPtr GlslFragmentGenerator::create()
 
 ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
+    resetIdentifiers(context);
     ShaderPtr shader = createShader(name, element, context);
 
     ShaderStage& stage = shader->getStage(Stage::PIXEL);
@@ -102,7 +123,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
 
     // Add function signature
     string functionName = shader->getName();
-    _syntax->makeValidName(functionName);
+    context.makeIdentifier(functionName);
     setFunctionName(functionName, stage);
     emitLine("vec3 " + functionName, stage, false); // TODO: We are always outputting vec3 for now
     emitScopeBegin(stage, Syntax::PARENTHESES);

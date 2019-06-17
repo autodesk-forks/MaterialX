@@ -226,6 +226,17 @@ string ShaderGenerator::getUpstreamResult(const ShaderInput* input, GenContext& 
     return variable;
 }
 
+void ShaderGenerator::resetIdentifiers(GenContext& context) const
+{
+    // Clear any previous identifiers and add in the restricted names
+    // as already taken names.
+    context.clearIdentifiers();
+    for (auto name : _syntax->getRestrictedNames())
+    {
+        context.addIdentifier(name);
+    }
+}
+
 void ShaderGenerator::registerImplementation(const string& name, CreatorFunction<ShaderNodeImpl> creator)
 {
     _implFactory.registerClass(name, creator);

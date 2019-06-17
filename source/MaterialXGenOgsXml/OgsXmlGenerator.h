@@ -21,6 +21,9 @@ public:
 
     /// Generate OSG XML for the given shader fragments, output to the given stream.
     static void generate(const Shader* glsl, const Shader* hlsl, std::ostream& stream);
+
+    /// String constants
+    static const string SAMPLER_SUFFIX;
 };
 
 }

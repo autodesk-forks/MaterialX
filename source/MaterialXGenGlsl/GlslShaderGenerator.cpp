@@ -254,6 +254,7 @@ GlslShaderGenerator::GlslShaderGenerator() :
 
 ShaderPtr GlslShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
+    resetIdentifiers(context);
     ShaderPtr shader = createShader(name, element, context);
 
     // Turn on fixed float formatting to make sure float values are

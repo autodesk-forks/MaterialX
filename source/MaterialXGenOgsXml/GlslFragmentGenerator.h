@@ -9,10 +9,18 @@
 /// @file
 /// GLSL fragment generator
 
+#include <MaterialXGenGlsl/GlslSyntax.h>
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 
 namespace MaterialX
 {
+
+/// Syntax class for GLSL fragments.
+class GlslFragmentSyntax : public GlslSyntax
+{
+public:
+    string getVariableName(const string& name, const TypeDesc* type, GenContext& context) const override;
+};
 
 using GlslFragmentGeneratorPtr = shared_ptr<class GlslFragmentGenerator>;
 
