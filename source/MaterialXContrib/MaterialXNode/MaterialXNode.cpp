@@ -40,6 +40,9 @@ MObject MaterialXNode::ELEMENT_ATTRIBUTE;
 const MTypeId MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID(0x00042403);
 const MString MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPENAME("MaterialXTextureNode");
 
+const MTypeId MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPEID(0x00042404);
+const MString MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPENAME("MaterialXSurfaceNode");
+
 MaterialXNode::MaterialXNode()
 {
 	std::cout << "MaterialXNode::MaterialXNode" << std::endl;
@@ -507,6 +510,27 @@ void* MaterialXTextureNode::creator()
 MStatus MaterialXTextureNode::initialize()
 {
     std::cout << "MaterialXTextureNode::initialize" << std::endl;
+
+    CHECK_MSTATUS(inheritAttributesFrom(MATERIALX_NODE_TYPENAME));
+
+    return MS::kSuccess;
+}
+
+MTypeId MaterialXSurfaceNode::typeId() const
+{
+    return MATERIALX_SURFACE_NODE_TYPEID;
+}
+
+void* MaterialXSurfaceNode::creator()
+{
+    std::cout.rdbuf(std::cerr.rdbuf());
+    std::cout << "MaterialXSurfaceNode::creator" << std::endl;
+    return new MaterialXSurfaceNode();
+}
+
+MStatus MaterialXSurfaceNode::initialize()
+{
+    std::cout << "MaterialXSurfaceNode::initialize" << std::endl;
 
     CHECK_MSTATUS(inheritAttributesFrom(MATERIALX_NODE_TYPENAME));
 

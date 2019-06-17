@@ -9,11 +9,11 @@
 #include <maya/MViewport2Renderer.h>
 #include <maya/MFragmentManager.h>
 
-MaterialXData::MaterialXData(const std::string& materialXDocument, const std::string& elementPath)    
+MaterialXData::MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath)
     : _genContext(MaterialX::GlslShaderGenerator::create())
 {
 	_librarySearchPath = Plugin::instance().getLibrarySearchPath();
-    setData(materialXDocument, elementPath);
+    setData(materialXDocumentPath, elementPath);
 }
 
 bool MaterialXData::setData(const std::string& materialXDocument, const std::string& elementPath)
@@ -57,17 +57,17 @@ const MaterialX::StringMap& MaterialXData::getPathOutputMap() const
     return _xmlFragmentWrapper.getPathOutputMap();
 }
 
-void MaterialXData::createDocument(const std::string& materialXDocument)
+void MaterialXData::createDocument(const std::string& materialXDocumentPath)
 {
 	// Create document
 	_document = MaterialX::createDocument();
 
 	// Load libraries
-	const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
+	static const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
 	MaterialX::loadLibraries(libraries, _librarySearchPath, _document);
 
     // Read document contents from disk
-    MaterialX::readFromXmlFile(_document, materialXDocument);
+    MaterialX::readFromXmlFile(_document, materialXDocumentPath);
 }
 
 bool MaterialXData::elementIsAShader() const
@@ -116,7 +116,7 @@ void MaterialXData::generateXML()
 }
 
 // TODO: This does not belong here. To migrate out to another class.
-void MaterialXData::registerFragments()
+void MaterialXData::registerFragments(const std::string& ogsXmlPath)
 {
 	// Register fragments with the manager if needed
 	//	
@@ -129,10 +129,10 @@ void MaterialXData::registerFragments()
 
 			if (!fragmentExists)
 			{
-                std::stringstream glslStream;
-                getXML(glslStream);
-                std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/standard_surface_default.xml");
-                //std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/tiledImage.xml");
+                // XML should come from here. For now allow to get from a input path
+                // std::stringstream glslStream;
+                // getXML(glslStream);
+                std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
 
                 // TODO: This should not be hard-coded
                 std::string dumpPath("d:/work/shader_dump/");

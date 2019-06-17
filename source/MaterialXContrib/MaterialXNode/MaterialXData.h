@@ -21,12 +21,13 @@
 struct MaterialXData
 {
   public:
-    /// Create MaterialX data constainer.
-    MaterialXData(const std::string& materialXDocument, const std::string& elementPath);
+    /// The element path and document that the element resides in are passed in
+    /// as input arguments
+    MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath);
     ~MaterialXData();
 
     /// Set the MaterialX Document and selement path.
-    bool setData(const std::string& materialXDocument, const std::string& elementPath);
+    bool setData(const std::string& materialXDocumentPath, const std::string& elementPath);
 
     /// Returns whether we have valid output element
     bool isValidOutput()
@@ -39,7 +40,7 @@ struct MaterialXData
     void generateXML();
 
     /// Register the fragment(s)
-    void registerFragments();
+    void registerFragments(const std::string& ogsXmlPath);
 
     MaterialXData& operator=(const MaterialXData&) = delete;
     MaterialXData& operator=(MaterialXData&&) = delete;
