@@ -86,9 +86,9 @@ MStatus MaterialXNode::initialize()
 
 void MaterialXNode::createOutputAttr(MDGModifier& mdgModifier)
 {
-	if (materialXData && materialXData->getFragmentWrapper())
+	if (materialXData && materialXData->isValidOutput())
 	{
-        const MaterialX::StringMap& outputMap = materialXData->getFragmentWrapper()->getPathOutputMap();
+        const MaterialX::StringMap& outputMap = materialXData->getPathOutputMap();
         if (outputMap.size())
         {
             MString outputName(outputMap.begin()->second.c_str());
@@ -228,12 +228,12 @@ void MaterialXNode::setAttributeValue(MObject &materialXObject, MObject &attr, f
 void MaterialXNode::createAttributesFromDocument(MDGModifier& mdgModifier)
 {
     MaterialX::DocumentPtr document;
-    if (!materialXData || !(document= materialXData->getDocument()))
+    if (!materialXData || !(document = materialXData->getDocument()))
     {
         return;
     }
 
-	const MaterialX::StringMap& inputMap = materialXData->getFragmentWrapper()->getPathInputMap();
+	const MaterialX::StringMap& inputMap = materialXData->getPathInputMap();
 	for (auto it = inputMap.begin(); it != inputMap.end(); ++it)
 	{
 		MaterialX::ElementPtr element = document->getDescendant(it->first);

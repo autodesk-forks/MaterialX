@@ -31,7 +31,7 @@ class OGSXMLFragmentWrapper
 {
   public:
     /// Default constructor
-    OGSXMLFragmentWrapper(GenContext* context);
+    OGSXMLFragmentWrapper();
 
     /// Default desctructor
     ~OGSXMLFragmentWrapper();
@@ -40,10 +40,10 @@ class OGSXMLFragmentWrapper
     /// @{
 
     /// Add a fragment wrapper for a shader generated from a given element
-    void createWrapper(ElementPtr node);
+    void generate(const string& shaderName, ElementPtr node, GenContext& context);
 
     /// Get the contents of the cached XML document as a stream.
-    void getDocument(std::ostream& stream);
+    void getXML(std::ostream& stream) const;
 
     /// Set to output vertex shader code (if any)
     void setOutputVertexShader(bool val)

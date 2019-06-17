@@ -33,84 +33,6 @@ MaterialXTextureOverride::MaterialXTextureOverride(const MObject& obj)
 	, _object(obj)
     , _enableEditing(false)
 {
-	/*
-	MStatus status;
-	MFnDependencyNode depNode(_object, &status);
-	MaterialXNode* node = dynamic_cast<MaterialXNode*>(depNode.userNode());
-
-        MaterialX::ElementPtr element = _document->getDescendant(_element.asChar());
-        MaterialX::ShaderRefPtr shaderRef = element->asA<MaterialX::ShaderRef>();
-        MaterialX::OutputPtr output = element->asA<MaterialX::Output>();
-        if (!output && !shaderRef)
-        {
-            // Should never occur as we pre-filter renderables before creating the node + override
-            throw MaterialX::Exception("MaterialXTextureOverride: Invalid type to create wrapper for");
-        }
-
-        std::vector<MaterialX::GenContext*> contexts;
-        MaterialX::GenContext* glslContext = new MaterialX::GenContext(MaterialX::GlslShaderGenerator::create());
-
-        // Stop emission of environment map lookups.
-        glslContext->registerSourceCodeSearchPath(libSearchPath);
-        if (shaderRef)
-        {
-            glslContext->getOptions().hwSpecularEnvironmentMethod = MaterialX::SPECULAR_ENVIRONMENT_FIS;
-            glslContext->getOptions().hwMaxActiveLightSources = 0;
-        }
-        else
-        {
-            glslContext->getOptions().hwSpecularEnvironmentMethod = MaterialX::SPECULAR_ENVIRONMENT_NONE;
-        }
-        glslContext->getOptions().fileTextureVerticalFlip = true;
-
-        _glslWrapper = new MaterialX::OGSXMLFragmentWrapper(glslContext);
-        _glslWrapper->setOutputVertexShader(true);     
-
-        // TODO: This just indicates that lighting is required. As direct lighting
-        // is not supported, the requirement means that indirect lighting is required.
-        // bool requiresLighting = (shaderRef != nullptr);
-        std::cout << "MaterialXTextureOverride: Create XML wrapper" << std::endl;
-        _glslWrapper->createWrapper(element);
-        // Get the fragment name
-        _fragmentName.set(_glslWrapper->getFragmentName().c_str());
-
-        // Register fragments with the manager if needed
-        //
-        MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
-        if (theRenderer)
-        {
-            MHWRender::MFragmentManager* fragmentMgr =
-                theRenderer->getFragmentManager();
-            if (fragmentMgr)
-            {
-                bool fragmentExists = (_fragmentName.length() > 0) && fragmentMgr->hasFragment(_fragmentName);
-                if (!fragmentExists)
-                {
-                    std::stringstream glslStream;
-                    _glslWrapper->getDocument(glslStream);
-                    std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/standard_surface_default.xml");
-                    //std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/tiledImage.xml");
-                    
-                    // TODO: This should not be hard-coded
-                    std::string dumpPath("d:/work/shader_dump/");
-                    MaterialX::FileSearchPath path = MaterialX::getEnvironmentPath("TEMP");
-                    if (path.size() > 0)
-                    {
-                        dumpPath = path[0].asString();
-                    }
-                    fragmentMgr->setEffectOutputDirectory(dumpPath.c_str());
-                    fragmentMgr->setIntermediateGraphOutputDirectory(dumpPath.c_str());
-                    _fragmentName = fragmentMgr->addShadeFragmentFromFile(xmlFileName.c_str(), false);
-                }
-            }
-            std::cout << "MaterialXTextureOverride: Add XML fragment to manager: " << _fragmentName << std::endl;
-        }
-    }
-    catch (MaterialX::Exception& e)
-    {
-        std::cerr << "MaterialXTextureOverride: Failed to generate XML wrapper: " << e.what() << std::endl;
-    }
-	}*/
 }
 
 MaterialXTextureOverride::~MaterialXTextureOverride()
@@ -128,22 +50,24 @@ MString MaterialXTextureOverride::fragmentName() const
 	MStatus status;
 	MFnDependencyNode depNode(_object, &status);
 	MaterialXNode* node = dynamic_cast<MaterialXNode*>(depNode.userNode());
-	return node->materialXData->getFragmentName();
+	return node->materialXData->getFragmentName().c_str();
 }
 
 void MaterialXTextureOverride::updateDG()
 {
 }
 
+// This should be a shared utility
 MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& parameterName, 
                         const MaterialX::FileSearchPath& searchPath, const std::string& fileName,
+                        const MHWRender::MSamplerStateDesc& samplerDescription, 
                         MHWRender::MTextureDescription& textureDescription)
 {
     MStatus status = MStatus::kFailure;
 
+    // Bind file texture
     MaterialX::FilePath imagePath = searchPath.find(fileName);
     bool imageFound = imagePath.exists();
-    std::cout << "> Bind image file: " << imagePath.asString() << ": " << imageFound << std::endl;
     if (imageFound)
     {
         MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
@@ -152,14 +76,12 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
             MHWRender::MTextureManager* textureManager = renderer->getTextureManager();
             if (textureManager)
             {
-                MHWRender::MTexture* texture = textureManager->acquireTexture(imagePath.asString().c_str(), "");
+                MHWRender::MTexture* texture = textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str());
                 if (texture)
                 {
                     MHWRender::MTextureAssignment textureAssignment;
                     textureAssignment.texture = texture;
                     status = shader.setParameter(parameterName.c_str(), textureAssignment);
-                    std::cout << "Bound file: " << imagePath.asString() << " to shader parameter:" << parameterName << ". Status: " << 
-                        status << "\r\n";
 
                     // Get back the texture description
                     texture->textureDescription(textureDescription);
@@ -171,19 +93,85 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
         }
     }
 
-    // Bind sampler
-    std::string samplerParameterName(parameterName + "Sampler");
-    MHWRender::MSamplerStateDesc desc;
-    desc.filter = MHWRender::MSamplerState::kAnisotropic;
-    desc.maxAnisotropy = 16;
-    const MSamplerState* samplerState = MHWRender::MStateManager::acquireSamplerState(desc);
+    // Bind sampler. This is not correct as it's not taking into account
+    // the MaterialX sampler state.
+    const std::string SAMPLE_PREFIX_STRING("Sampler");
+    std::string samplerParameterName(parameterName + SAMPLE_PREFIX_STRING);
+    const MSamplerState* samplerState = MHWRender::MStateManager::acquireSamplerState(samplerDescription);
     if (samplerState)
     {
         status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
-        std::cout << "Bind sampler: " << samplerParameterName << ". Status: " << status << "\r\n";
     }
 
     return status;
+}
+
+// This should be a shared utility
+void bindEnvironmentLighting(MHWRender::MShaderInstance& shader, 
+                             const MaterialX::StringVec& globals,
+                             const MStringArray parameterList,
+                             const MaterialX::FileSearchPath imageSearchPath, 
+                             const std::string& envRadiancePath,
+                             const std::string envIrradiancePath)
+{
+    static std::string IRRADIANCE_PARAMETER("u_envIrradiance");
+    static std::string RADIANCE_PARAMETER("u_envRadiance");
+    static std::string RADIANCE_MIPS_PARAMETER("u_envRadianceMips");
+    static std::string ENVIRONMENT_MATRIX_PARAMETER("u_envMatrix");
+
+    MHWRender::MSamplerStateDesc samplerDescription;
+    samplerDescription.filter = MHWRender::MSamplerState::kAnisotropic;
+    samplerDescription.maxAnisotropy = 16;
+
+    // Bind globals which are not associated with any document elements
+    MStatus status;
+    for (auto global : globals)
+    {
+        // Set irradiance map
+        MHWRender::MTextureDescription textureDescription;
+        if (global == IRRADIANCE_PARAMETER)
+        {
+            if (parameterList.indexOf(global.c_str()) >= 0)
+            {
+                status = bindFileTexture(shader, global, imageSearchPath, envIrradiancePath,
+                                         samplerDescription, textureDescription);
+            }
+        }
+
+        // Set radiance map
+        else if (global == RADIANCE_PARAMETER)
+        {
+            if (parameterList.indexOf(global.c_str()) >= 0)
+            {
+                status = bindFileTexture(shader, global, imageSearchPath, envRadiancePath, 
+                                         samplerDescription, textureDescription);
+                if (status == MStatus::kSuccess)
+                {
+                    if (parameterList.indexOf(global.c_str()) >= 0)
+                    {
+                        int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
+                        status = shader.setParameter(global.c_str(), mipCount);
+                    }
+                }
+            }
+        }
+
+        // Environment matrix
+        else if (global == ENVIRONMENT_MATRIX_PARAMETER)
+        {
+            if (parameterList.indexOf(global.c_str()) >= 0)
+            {
+                const float yRotationPI[4][4]{
+                    -1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, -1, 0,
+                    0, 0, 0, 1
+                };
+                MFloatMatrix matrix(yRotationPI);
+                status = shader.setParameter(global.c_str(), matrix);
+            }
+        }
+    }
 }
 
 void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader, 
@@ -197,130 +185,88 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
         return;
     }
 
-    MStringArray parameterList;
+    MStringArray parameterList;    
     shader.parameterList(parameterList);
-    for (unsigned int i = 0; i < parameterList.length(); i++)
+    bool debug = false;
+    if (debug)
     {
-        std::cout << "MaterialXTextureOverride: shader param: " << parameterList[i].asChar() << "\n";
+        for (unsigned int i = 0; i < parameterList.length(); i++)
+        {
+            std::cout << "MaterialXTextureOverride: shader param: " << parameterList[i].asChar() << "\n";
+        }
     }
 
-    MaterialX::FileSearchPath imageSearchPath(Plugin::instance().getResourcePath() / MaterialX::FilePath("Images"));
+    // Set up image file name search path. Assume we are using built in images located in resource path
+    // TODO: Be able to add more image search paths.
+    static std::string IMAGE_FOLDER("Images");
+    MaterialX::FileSearchPath imageSearchPath(Plugin::instance().getResourcePath() / MaterialX::FilePath(IMAGE_FOLDER));
 
+    const MaterialX::StringVec& globals = node->materialXData->getGlobalsList();
+
+    // Bind environment lighting
     // TODO: These should be options
     std::string envRadiancePath = "san_giuseppe_bridge.hdr";
     std::string envIrradiancePath = "san_giuseppe_bridge_diffuse.hdr";
-    const std::string irradianceParameter("u_envIrradiance");
-    const std::string radianceParameter("u_envRadiance");
-    const std::string radianceMipsParameter("u_envRadianceMips");
-    const std::string environmentMatrixParameter("u_envMatrix");
-
-    // Bind globals which are not associated with any document elements
-    const MaterialX::StringVec& globals = node->materialXData->getFragmentWrapper()->getGlobalsList();
-    for (auto global : globals)
-    {
-        // Set irradiance map
-        MHWRender::MTextureDescription textureDescription;
-        if (global == irradianceParameter)
-        {
-            if (parameterList.indexOf(global.c_str()) >= 0)
-            {
-                status = bindFileTexture(shader, global, imageSearchPath, envIrradiancePath, textureDescription);
-            }
-        }
-
-        // Set radiance map
-        else if (global == radianceParameter)
-        {
-            if (parameterList.indexOf(global.c_str()) >= 0)
-            {
-                status = bindFileTexture(shader, global, imageSearchPath, envRadiancePath, textureDescription);
-                if (status == MStatus::kSuccess)
-                {
-                    if (status == MStatus::kSuccess)
-                    {
-                        if (parameterList.indexOf(radianceMipsParameter.c_str()) >= 0)
-                        {
-                            int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
-                            status = shader.setParameter(radianceMipsParameter.c_str(), mipCount);
-                            std::cout << "Bind radiance mip count: " << mipCount << " Status: " << status << std::endl;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Environment matrix
-        else if (global == environmentMatrixParameter)
-        {
-            if (parameterList.indexOf(global.c_str()) >= 0)
-            {
-                const float yRotationPI[4][4]{
-                    -1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, -1, 0,
-                    0, 0, 0, 1
-                };
-                MFloatMatrix matrix(yRotationPI);
-                //matrix.setToIdentity();
-                status = shader.setParameter(environmentMatrixParameter.c_str(), matrix);
-                std::cout << "Bind environment matrix: " << environmentMatrixParameter << ". Status: " << status << std::endl;
-            }
-        }
-    }
-
-    // This is unnecessary overhead if we are read-only. Updates should be based on whats
-    // dirty and not everythhing. There are a lot of attributes on shader graph and this is
-    // a waste of effort currently.
-    if (!_enableEditing)
-    {
-        return;
-    }
+    bindEnvironmentLighting(shader, globals, parameterList, imageSearchPath, 
+                            envRadiancePath, envIrradiancePath);
 
     MaterialX::DocumentPtr document = node->materialXData->getDocument();
-	const MaterialX::StringMap& inputs = node->materialXData->getFragmentWrapper()->getPathInputMap();
+	const MaterialX::StringMap& inputs = node->materialXData->getPathInputMap();
 	for (auto i : inputs)
-	{
-        std::string inputName(i.second);
-        MString resolvedName(inputName.c_str());
-        const MHWRender::MAttributeParameterMapping* mapping = mappings.findByParameterName(i.second.c_str());
-		if (mapping)
-		{
-			resolvedName = mapping->resolvedParameterName();
-		}
-
-		MaterialX::ElementPtr element = document->getDescendant(i.first);
-		if (!element) continue;
-		MaterialX::ValueElementPtr valueElement = element->asA<MaterialX::ValueElement>();
+	{		
+        MaterialX::ElementPtr element = document->getDescendant(i.first);
+        MaterialX::ValueElementPtr valueElement = element ? element->asA<MaterialX::ValueElement>() : nullptr;
 		if (valueElement)
 		{
-			if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)
+            std::string inputName(i.second);
+            MString resolvedName(inputName.c_str());
+            const MHWRender::MAttributeParameterMapping* mapping = mappings.findByParameterName(i.second.c_str());
+            if (mapping)
+            {
+                resolvedName = mapping->resolvedParameterName();
+            }
+            
+            if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)
 			{
                 // This is the hard-coded OGS convention to associate a texture with a sampler (via post-fix "Sampler" string)
                 std::string textureParameterName(resolvedName.asChar());
 
-                // Bind texture
+                // Bind texture and sampler
                 std::string fileName; 
                 const std::string& valueString = valueElement->getValueString();
                 if (!valueString.empty())
                 {
                     MHWRender::MTextureDescription textureDescription;
-                    status = bindFileTexture(shader, textureParameterName, imageSearchPath, valueString, textureDescription);
+
+                    // TODO: This should come from the element and not hard-coded.
+                    MHWRender::MSamplerStateDesc samplerDescription;
+                    samplerDescription.filter = MHWRender::MSamplerState::kAnisotropic;
+                    samplerDescription.maxAnisotropy = 16;
+
+                    status = bindFileTexture(shader, textureParameterName, imageSearchPath, valueString, 
+                                             samplerDescription, textureDescription);
                 }
 			}
 
-			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
+            // This is unnecessary overhead if we are read-only. Updates should be based on whats
+            // dirty and not everythhing. There are a lot of attributes on shader graph and this is
+            // a waste of effort currently.
+            if (!_enableEditing)
+            {
+                continue;
+            }
+
+            if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
 			{
 				MaterialX::Vector2 vector2 = valueElement->getValue()->asA<MaterialX::Vector2>();
 				MFloatVector floatVector(vector2[0], vector2[1]);
 				status = shader.setParameter(resolvedName, floatVector);
-				std::cout << "updateShader (vector2): " << resolvedName << ". Status: " << status << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
 			{
 				MaterialX::Vector3 vector3 = valueElement->getValue()->asA<MaterialX::Vector3>();
 				MFloatVector floatVector(vector3[0], vector3[1], vector3[2]);
 				status = shader.setParameter(resolvedName, floatVector);
-				std::cout << "updateShader (vector3): " << resolvedName << ". Status: " << status << std::endl;
 			}
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
 			{
@@ -334,14 +280,12 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 				MaterialX::Color2 color2 = valueElement->getValue()->asA<MaterialX::Color2>();
 				MFloatVector floatVector(color2[0], color2[1]);
 				status = shader.setParameter(resolvedName, floatVector);
-				std::cout << "updateShader (color2): " << resolvedName << ". Status: " << status << std::endl;
             }
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
 			{
 				MaterialX::Color3 color3 = valueElement->getValue()->asA<MaterialX::Color3>();
 				MFloatVector floatVector(color3[0], color3[1], color3[2]);
 				status = shader.setParameter(resolvedName, floatVector);
-				std::cout << "updateShader (color3): " << resolvedName << std::endl;
             }
 			else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
 			{
@@ -353,7 +297,6 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
 			{
 				MaterialX::Matrix44 mat44 = valueElement->getValue()->asA<MaterialX::Matrix44>();
                 status = shader.setArrayParameter(resolvedName, mat44.data(), 16);
-                std::cout << "updateShader (mat44): " << resolvedName << std::endl;
             }
         }
 	}
