@@ -26,7 +26,7 @@ struct MaterialXData
     /// Create MaterialX data constainer.
     /// The element path and document that the element resides in are passed in
     /// as input arguments
-    MaterialXData(const std::string& materialXDocument, const std::string& elementPath);
+    MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath);
     ~MaterialXData();
 
     /// Returns whether the element set to render is a valid output
@@ -37,7 +37,7 @@ struct MaterialXData
     void createXMLWrapper();
 
     /// Register the fragment(s)
-    void registerFragments();
+    void registerFragments(const std::string& ogsXmlPath);
 
     MaterialXData& operator=(const MaterialXData&) = delete;
     MaterialXData& operator=(MaterialXData&&) = delete;

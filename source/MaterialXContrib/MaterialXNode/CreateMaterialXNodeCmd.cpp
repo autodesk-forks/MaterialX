@@ -25,9 +25,12 @@ namespace
 
     const char* const kElementFlag      = "e";
     const char* const kElementFlagLong  = "element";
-    
+
     const char* const kTextureFlag      = "t";
     const char* const kTextureFlagLong  = "texture";
+
+    const char* const kOgsXmlFlag       = "x";
+    const char* const kOgsXmlFlagLong   = "ogsxml";
 }
 
 MString CreateMaterialXNodeCmd::NAME("CreateMaterialXNode");
@@ -42,82 +45,102 @@ CreateMaterialXNodeCmd::~CreateMaterialXNodeCmd()
 
 MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 {
-	// Parse the shader node
-	//
-	MArgParser parser( syntax(), args );
+    // Parse the shader node
+    //
+    MArgParser parser(syntax(), args);
 
-	MStatus status;
-	MArgDatabase argData( syntax(), args, &status );
-	if ( !status )
-		return status;
+    MStatus status;
+    MArgDatabase argData(syntax(), args, &status);
+    if (!status)
+        return status;
 
-	MString materialXDocument;
-	MString elementPath;
-	if( parser.isFlagSet(kDocumentFlag) )
-	{
-		argData.getFlagArgument(kDocumentFlag, 0, materialXDocument);
-	}
-	if (parser.isFlagSet(kElementFlag))
-	{
-		argData.getFlagArgument(kElementFlag, 0, elementPath);
-	}
-	if (materialXDocument.length() > 0 && elementPath.length() > 0)
-	{
-        try
+    try
+    {
+        MString materialXDocument;
+        if (parser.isFlagSet(kDocumentFlag))
         {
-            std::unique_ptr<MaterialXData> materialXData{
-                new MaterialXData(materialXDocument.asChar(), elementPath.asChar())
-            };
-
-            if (!materialXData->isValidOutput())
-            {
-                throw MaterialX::Exception("The element specified is not renderable.");
-            }
-
-            // Create the MaterialX node
-            MObject node = _dgModifier.createNode(
-                parser.isFlagSet(kTextureFlag) ? MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
-                : MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPEID
-            );
-
-            // Generate a valid Maya node name from the path string
-            std::string nodeName = MaterialX::createValidName(elementPath.asChar());
-            _dgModifier.renameNode(node, nodeName.c_str());
-
-            materialXData->createXMLWrapper();
-            materialXData->registerFragments();
-
-            MFnDependencyNode depNode(node);
-            auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
-            if (!materialXNode)
-            {
-                throw MaterialX::Exception("Unexpected DG node type.");
-            }
-
-            std::string documentString = MaterialX::writeToXmlString(materialXData->getDocument());
-
-            materialXNode->setMaterialXData(std::move(materialXData));
-            materialXNode->createOutputAttr(_dgModifier);
-
-            MPlug materialXPlug(node, MaterialXNode::DOCUMENT_ATTRIBUTE);
-            _dgModifier.newPlugValueString(materialXPlug, documentString.c_str());
-
-            MPlug elementPlug(node, MaterialXNode::ELEMENT_ATTRIBUTE);
-            _dgModifier.newPlugValueString(elementPlug, elementPath);
-
-            // TODO: Figure out why adding this in causes the texture to go black
-            // materialXNode->createAttributesFromDocument(_dgModifier);
-
-            _dgModifier.doIt();
+            argData.getFlagArgument(kDocumentFlag, 0, materialXDocument);
         }
-        catch (MaterialX::Exception& e)
+
+        if (materialXDocument.length() == 0)
         {
-            std::cout << "CreateMaterialXNodeCmd failed to create MaterialX node: "
-                << e.what() << std::endl;
-
-            return MS::kFailure;
+            throw MaterialX::Exception("MaterialX document file path is empty.");
         }
-	}
+
+        MString elementPath;
+	    if (parser.isFlagSet(kElementFlag))
+	    {
+		    argData.getFlagArgument(kElementFlag, 0, elementPath);
+	    }
+
+        if (elementPath.length() == 0)
+        {
+            throw MaterialX::Exception("MaterialX element path is empty.");
+        }
+
+        MString ogsXmlPath;
+        if (parser.isFlagSet(kOgsXmlFlag))
+        {
+            argData.getFlagArgument(kOgsXmlFlag, 0, ogsXmlPath);
+        }
+
+        if (ogsXmlPath.length() == 0)
+        {
+            throw MaterialX::Exception("OGS XML fragment file path is empty.");
+        }
+
+        std::unique_ptr<MaterialXData> materialXData{
+            new MaterialXData(materialXDocument.asChar(), elementPath.asChar())
+        };
+
+        if (!materialXData->isValidOutput())
+        {
+            throw MaterialX::Exception("The element specified is not renderable.");
+        }
+
+        // Create the MaterialX node
+        MObject node = _dgModifier.createNode(
+            parser.isFlagSet(kTextureFlag) ? MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
+            : MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPEID
+        );
+
+        // Generate a valid Maya node name from the path string
+        std::string nodeName = MaterialX::createValidName(elementPath.asChar());
+        _dgModifier.renameNode(node, nodeName.c_str());
+
+        materialXData->createXMLWrapper();
+        materialXData->registerFragments(ogsXmlPath.asChar());
+
+        MFnDependencyNode depNode(node);
+        auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
+        if (!materialXNode)
+        {
+            throw MaterialX::Exception("Unexpected DG node type.");
+        }
+
+        std::string documentString = MaterialX::writeToXmlString(materialXData->getDocument());
+
+        materialXNode->setMaterialXData(std::move(materialXData));
+        materialXNode->createOutputAttr(_dgModifier);
+
+        MPlug materialXPlug(node, MaterialXNode::DOCUMENT_ATTRIBUTE);
+        _dgModifier.newPlugValueString(materialXPlug, documentString.c_str());
+
+        MPlug elementPlug(node, MaterialXNode::ELEMENT_ATTRIBUTE);
+        _dgModifier.newPlugValueString(elementPlug, elementPath);
+
+        // TODO: Figure out why adding this in causes the texture to go black
+        // materialXNode->createAttributesFromDocument(_dgModifier);
+
+        _dgModifier.doIt();
+    }
+    catch (MaterialX::Exception& e)
+    {
+        std::cout << "CreateMaterialXNodeCmd failed to create MaterialX node: "
+            << e.what() << std::endl;
+
+        return MS::kFailure;
+    }
 
 	return MS::kSuccess;
  }
@@ -127,6 +150,7 @@ MSyntax CreateMaterialXNodeCmd::newSyntax()
 	MSyntax syntax;
 	syntax.addFlag(kDocumentFlag, kDocumentFlagLong, MSyntax::kString);
 	syntax.addFlag(kElementFlag, kElementFlagLong, MSyntax::kString);
+    syntax.addFlag(kOgsXmlFlag, kOgsXmlFlagLong, MSyntax::kString);
     syntax.addFlag(kTextureFlag, kTextureFlagLong, MSyntax::kNoArg);
 	return syntax;
 }

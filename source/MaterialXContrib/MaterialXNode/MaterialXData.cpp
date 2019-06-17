@@ -9,10 +9,10 @@
 #include <maya/MViewport2Renderer.h>
 #include <maya/MFragmentManager.h>
 
-MaterialXData::MaterialXData(const std::string& materialXDocument, const std::string& elementPath)
+MaterialXData::MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath)
 {
 	_librarySearchPath = Plugin::instance().getLibrarySearchPath();
-	createDocument(materialXDocument);
+	createDocument(materialXDocumentPath);
 
 	if (_document)
 	{
@@ -29,14 +29,14 @@ MaterialXData::~MaterialXData()
 {
 }
 
-void MaterialXData::createDocument(const std::string& materialXDocument)
+void MaterialXData::createDocument(const std::string& materialXDocumentPath)
 {
 	// Create document
 	_document = MaterialX::createDocument();
-	MaterialX::readFromXmlFile(_document, materialXDocument);
+	MaterialX::readFromXmlFile(_document, materialXDocumentPath);
 
 	// Load libraries
-	const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
+	static const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
 	MaterialX::loadLibraries(libraries, _librarySearchPath, _document);
 }
 
@@ -121,7 +121,7 @@ void MaterialXData::createXMLWrapper()
 	}
 }
 
-void MaterialXData::registerFragments()
+void MaterialXData::registerFragments(const std::string& ogsXmlPath)
 {
 	// Register fragments with the manager if needed
 	//	
@@ -136,8 +136,7 @@ void MaterialXData::registerFragments()
 			{
                 std::stringstream glslStream;
                 _xmlFragmentWrapper->getDocument(glslStream);
-                std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/standard_surface_default.xml");
-                //std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/tiledImage.xml");
+                std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
 
                 // TODO: This should not be hard-coded
                 std::string dumpPath("d:/work/shader_dump/");
