@@ -335,11 +335,7 @@ void OgsFxShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
 
     // Add main function. Cache the signature for the stage
     emitLine("void main()", stage, false);
-<<<<<<< HEAD
-    setSignature(stage, "main");
-=======
     setFunctionName("main", stage);
->>>>>>> adsk_contrib/dev
     emitScopeBegin(stage);
 
     if (graph.hasClassification(ShaderNode::Classification::CLOSURE))
