@@ -9,6 +9,7 @@
 #include <maya/MDrawRegistry.h>
 #include <maya/MGlobal.h>
 #include <maya/MIOStream.h>
+#include <maya/MHWShaderSwatchGenerator.h>
 
 Plugin& Plugin::instance()
 {
@@ -65,13 +66,15 @@ MStatus initializePlugin(MObject obj)
     }
 
     {
-        CHECK_MSTATUS(MHWRender::MDrawRegistry::registerShadingNodeOverrideCreator(
+        CHECK_MSTATUS(MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
             MaterialXSurfaceOverride::DRAW_CLASSIFICATION,
             MaterialXSurfaceOverride::REGISTRANT_ID,
             MaterialXSurfaceOverride::creator));
 
+        const MString& swatchName = MHWShaderSwatchGenerator::initialize();
+
         static const MString surfaceNodeClassification =
-            MString("shader/surface:") + MaterialXSurfaceOverride::DRAW_CLASSIFICATION;
+            MString("shader/surface:") + MaterialXSurfaceOverride::DRAW_CLASSIFICATION + ":swatch/" + swatchName;
 
         CHECK_MSTATUS(plugin.registerNode(
             MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPENAME,
