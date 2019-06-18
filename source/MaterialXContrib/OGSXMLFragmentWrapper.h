@@ -61,6 +61,12 @@ class OGSXMLFragmentWrapper
         return _outputVertexShader;
     }
 
+    /// Get list of global inputs which are not associated with any Element
+    const StringVec&  getGlobalsList() const
+    {
+        return _globalsList;
+    }
+
     /// Get list of Element paths and corresponding fragment input names
     const StringMap& getPathInputMap() const
     {
@@ -102,10 +108,13 @@ class OGSXMLFragmentWrapper
     // Fragment name
     string _fragmentName;
 
-    // Mapping from MTLX Element paths to fragment input names
+    // List of globals which are not associated with any Element.
+    StringVec _globalsList;
+
+    // Mapping from MaterialX Element paths to fragment input names
     StringMap _pathInputMap;
 
-    // Mapping from MTLX Element paths to fragment output names
+    // Mapping from MaterialX Element paths to fragment output names
     StringMap _pathOutputMap;
 
     // Context for generating shaders

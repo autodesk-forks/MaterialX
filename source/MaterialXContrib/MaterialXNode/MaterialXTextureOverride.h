@@ -29,17 +29,15 @@ class MaterialXTextureOverride : public MHWRender::MPxShadingNodeOverride
         return false;
     }
 
-	static const MString REGISTRANT_ID;
+	static const MString REGISTRANT_ID, DRAW_CLASSIFICATION;
 
 private:
 	MaterialXTextureOverride(const MObject& obj);
 
-	MaterialX::OGSXMLFragmentWrapper* _glslWrapper;
-	MaterialX::DocumentPtr _document;
-	MString _fragmentName;
-	MString _documentContent;
-	MString _element;
 	MObject _object;
+
+    // Is editing allowed
+    bool _enableEditing;
 };
 
 /////////////////////////////////////////////
