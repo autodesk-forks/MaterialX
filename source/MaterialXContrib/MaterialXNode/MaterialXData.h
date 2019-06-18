@@ -8,33 +8,36 @@
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXContrib/OGSXMLFragmentWrapper.h>
 
-#include <maya/MString.h>
-
 /// @class MaterialXData
 /// Wrapper for MaterialX associated data. 
 ///
 /// Keeps track of an element to render and it's associated document.
 ///
-/// Can optionally create and cache an OGS XML wrapper instance 
-/// which wraps up the interface and shader code shader code generated based 
+/// Can optionally create and cache an XML wrapper instance 
+/// which wraps up the interface and shader code for code generated based 
 /// on the specified element to render.
-/// Currently only code for GLSL is generated.
+/// Currently the only language target available is GLSL.
 ///
 struct MaterialXData
 {
   public:
-    /// Create MaterialX data constainer.
     /// The element path and document that the element resides in are passed in
     /// as input arguments
     MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath);
     ~MaterialXData();
 
-    /// Returns whether the element set to render is a valid output
-    bool isValidOutput();
+    /// Set the MaterialX Document and selement path.
+    bool setData(const std::string& materialXDocumentPath, const std::string& elementPath);
+
+    /// Returns whether we have valid output element
+    bool isValidOutput()
+    {
+        return (nullptr != _element);
+    }
 
     /// Create the OGS XML wrapper for shader fragments associated
     /// with the element set to render
-    void createXMLWrapper();
+    void generateXML();
 
     /// Register the fragment(s)
     void registerFragments(const std::string& ogsXmlPath);
@@ -48,33 +51,41 @@ struct MaterialXData
         return _document;
     }
 
-    /// Return name of shader fragment
-    const MString& getFragmentName() const
-    {
-        return _fragmentName;
-    }
+    /// Return XML string
+    void getXML(std::ostream& stream) const;
 
-    /// Retuern pointer to the OGS XML wrapper
-    MaterialX::OGSXMLFragmentWrapper* getFragmentWrapper() const
-    {
-        return _xmlFragmentWrapper.get();
-    }
+    /// Return name of shader fragment
+    const std::string& getFragmentName() const;
+
+    /// Get list of global inputs which are not associated with any Element
+    const MaterialX::StringVec&  getGlobalsList() const;
+
+    /// Get list of Element paths and corresponding fragment input names
+    const MaterialX::StringMap& getPathInputMap() const;
+
+    /// Get list of Element paths and corresponding fragment output names
+    /// If the output is a ShaderRef then the path is to that element
+    /// as there are no associated child output Elements.
+    const MaterialX::StringMap& getPathOutputMap() const;
 
     /// Return if the element to render represents a shader graph
     /// as opposed to a texture grraph.
     bool elementIsAShader() const;
 
   protected:
+    /// Returns whether the element is renderable
+    bool isRenderable();
+    void createDocument(const std::string& materialXDocument);
+
+  private:
+    // Reference document and element
     MaterialX::FilePath _librarySearchPath;
     MaterialX::DocumentPtr _document;
     MaterialX::ElementPtr _element;
 
-    MString _fragmentName;
-    std::unique_ptr<MaterialX::OGSXMLFragmentWrapper> _xmlFragmentWrapper;
-    std::vector<std::unique_ptr<MaterialX::GenContext>> _contexts;
-
-  private:
-    void createDocument(const std::string& materialXDocument);
+    // TODO: This is currently a prototype interface
+    MaterialX::GenContext _genContext;
+    MaterialX::OGSXMLFragmentWrapper _xmlFragmentWrapper;
 };
 
 #endif // MATERIALX_DATA_H

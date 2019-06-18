@@ -19,8 +19,7 @@
 
 namespace MaterialX
 {
-OGSXMLFragmentWrapper::OGSXMLFragmentWrapper(GenContext* context) :
-    _context(context)
+OGSXMLFragmentWrapper::OGSXMLFragmentWrapper()
 {
     _xmlDocument = new pugi::xml_document();
 
@@ -406,17 +405,16 @@ bool OGSXMLPropertyExtractor::isGlobalUniform(const ShaderPort* port, const stri
     return false;
 }
 
-void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
+void OGSXMLFragmentWrapper::generate(const string& shaderName, ElementPtr element, GenContext& context)
 {
     _pathInputMap.clear();
     _pathOutputMap.clear();
 
-    string shaderName(element->getName());
-    ShaderGenerator& generator = _context->getShaderGenerator();
+    ShaderGenerator& generator = context.getShaderGenerator();
     ShaderPtr shader = nullptr;
     try
     {
-        shader = generator.generate(shaderName, element, *_context);
+        shader = generator.generate(shaderName, element, context);
     }
     catch (Exception& e)
     {
@@ -439,8 +437,6 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
     const string& elementName = element->getName();
     xmlRoot.append_attribute(OGS_FRAGMENT_UI_NAME.c_str()) = elementName.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_NAME.c_str()) = elementName.c_str();
-    // TODO: determine what is a good unique fragment name to use.
-    _fragmentName = elementName.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_TYPE.c_str()) = OGS_FRAGMENT_TYPE_PLUMBING.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_CLASS.c_str()) = OGS_FRAGMENT_CLASS_SHADERFRAGMENT.c_str();
     xmlRoot.append_attribute(OGS_FRAGMENT_VERSION.c_str()) = OGS_VERSION_STRING.c_str();
@@ -635,9 +631,12 @@ void OGSXMLFragmentWrapper::createWrapper(ElementPtr element)
         addOGSImplementation(impls, "HLSL", "11.0", functionName, "// HLSL code", EMPTY_STRING.c_str());
         addOGSImplementation(impls, "Cg", "2.1", functionName, "// Cg code", EMPTY_STRING.c_str());
     }
+
+    // Cache fragment name. 
+    _fragmentName = elementName.c_str();
 }
 
-void OGSXMLFragmentWrapper::getDocument(std::ostream& stream)
+void OGSXMLFragmentWrapper::getXML(std::ostream& stream) const
 {
     static_cast<pugi::xml_document*>(_xmlDocument)->save(stream, XML_TAB_STRING.c_str());
 }
