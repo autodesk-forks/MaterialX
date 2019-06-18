@@ -112,7 +112,7 @@ void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
                              const MStringArray parameterList,
                              const MaterialX::FileSearchPath imageSearchPath, 
                              const std::string& envRadiancePath,
-                             const std::string envIrradiancePath)
+                             const std::string& envIrradiancePath)
 {
     static std::string IRRADIANCE_PARAMETER("u_envIrradiance");
     static std::string RADIANCE_PARAMETER("u_envRadiance");
@@ -147,7 +147,7 @@ void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
                                          samplerDescription, textureDescription);
                 if (status == MStatus::kSuccess)
                 {
-                    if (parameterList.indexOf(global.c_str()) >= 0)
+                    if (parameterList.indexOf(RADIANCE_MIPS_PARAMETER.c_str()) >= 0)
                     {
                         int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
                         status = shader.setParameter(global.c_str(), mipCount);
@@ -185,16 +185,9 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
         return;
     }
 
+    // Get the parameter list fo checking against.
     MStringArray parameterList;    
     shader.parameterList(parameterList);
-    bool debug = false;
-    if (debug)
-    {
-        for (unsigned int i = 0; i < parameterList.length(); i++)
-        {
-            std::cout << "MaterialXTextureOverride: shader param: " << parameterList[i].asChar() << "\n";
-        }
-    }
 
     // Set up image file name search path. Assume we are using built in images located in resource path
     // TODO: Be able to add more image search paths.
