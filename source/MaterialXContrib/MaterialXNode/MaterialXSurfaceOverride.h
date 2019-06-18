@@ -5,12 +5,13 @@
 
 #include <MaterialXCore/Document.h>
 
-#include <maya/MPxShadingNodeOverride.h>
+#include <maya/MPxSurfaceShadingNodeOverride.h>
 
-class MaterialXSurfaceOverride : public MHWRender::MPxShadingNodeOverride
+class MaterialXSurfaceOverride
+    : public MHWRender::MPxSurfaceShadingNodeOverride
 {
   public:
-	static MHWRender::MPxShadingNodeOverride* creator(const MObject& obj);
+	static MHWRender::MPxSurfaceShadingNodeOverride* creator(const MObject&);
 
 	~MaterialXSurfaceOverride() override;
 

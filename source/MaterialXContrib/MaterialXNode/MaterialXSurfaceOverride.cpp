@@ -22,14 +22,15 @@ const MString
     MaterialXSurfaceOverride::REGISTRANT_ID = "materialXSurface",
     MaterialXSurfaceOverride::DRAW_CLASSIFICATION = "drawdb/shader/surface/materialX";
 
-MHWRender::MPxShadingNodeOverride* MaterialXSurfaceOverride::creator(const MObject& obj)
+MHWRender::MPxSurfaceShadingNodeOverride*
+MaterialXSurfaceOverride::creator(const MObject& obj)
 {
 	std::cout.rdbuf(std::cerr.rdbuf());
 	return new MaterialXSurfaceOverride(obj);
 }
 
 MaterialXSurfaceOverride::MaterialXSurfaceOverride(const MObject& obj)
-	: MPxShadingNodeOverride(obj)
+	: MPxSurfaceShadingNodeOverride(obj)
 	, _object(obj)
 {
 	MStatus status;
