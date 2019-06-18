@@ -20,22 +20,18 @@ void NormalNodeGlsl::createVariables(const ShaderNode& node, GenContext&, Shader
     ShaderStage& vs = shader.getStage(Stage::VERTEX);
     ShaderStage& ps = shader.getStage(Stage::PIXEL);
 
-    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, "i_normal", vs);
+    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, HW::IN_NORMAL, vs);
 
     const ShaderInput* spaceInput = node.getInput(SPACE);
     const int space = spaceInput ? spaceInput->getValue()->asA<int>() : OBJECT_SPACE;
     if (space == WORLD_SPACE)
     {
-        addStageUniform(HW::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldInverseTransposeMatrix", vs);
-        addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, "normalWorld", vs, ps);
-    }
-    else if (space == MODEL_SPACE)
-    {
-        addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, "normalModel", vs, ps);
+        addStageUniform(HW::PRIVATE_UNIFORMS, Type::MATRIX44, HW::WORLD_INVERSE_TRANSPOSE_MATRIX, vs);
+        addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, HW::NORMAL_WORLD, vs, ps);
     }
     else
     {
-        addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, "normalObject", vs, ps);
+        addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, HW::NORMAL_OBJECT, vs, ps);
     }
 }
 
@@ -51,29 +47,20 @@ void NormalNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& contex
         const string prefix = vertexData.getInstance() + ".";
         if (space == WORLD_SPACE)
         {
-            ShaderPort* normal = vertexData["normalWorld"];
+            ShaderPort* normal = vertexData[HW::NORMAL_WORLD];
             if (!normal->isEmitted())
             {
                 normal->setEmitted();
-                shadergen.emitLine(prefix + normal->getVariable() + " = (u_worldInverseTransposeMatrix * vec4(i_normal,0.0)).xyz", stage);
-            }
-        }
-        else if (space == MODEL_SPACE)
-        {
-            ShaderPort* normal = vertexData["normalModel"];
-            if (!normal->isEmitted())
-            {
-                normal->setEmitted();
-                shadergen.emitLine(prefix + normal->getVariable() + " = i_normal", stage);
+                shadergen.emitLine(prefix + normal->getVariable() + " = (" + HW::WORLD_INVERSE_TRANSPOSE_MATRIX + " * vec4(" + HW::IN_NORMAL + ",0.0)).xyz", stage);
             }
         }
         else
         {
-            ShaderPort* normal = vertexData["normalObject"];
+            ShaderPort* normal = vertexData[HW::NORMAL_OBJECT];
             if (!normal->isEmitted())
             {
                 normal->setEmitted();
-                shadergen.emitLine(prefix + normal->getVariable() + " = i_normal", stage);
+                shadergen.emitLine(prefix + normal->getVariable() + " = " + HW::IN_NORMAL, stage);
             }
         }
     END_SHADER_STAGE(shader, Stage::VERTEX)
@@ -85,17 +72,12 @@ void NormalNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& contex
         shadergen.emitOutput(node.getOutput(), true, false, context, stage);
         if (space == WORLD_SPACE)
         {
-            const ShaderPort* normal = vertexData["normalWorld"];
-            shadergen.emitString(" = normalize(" + prefix + normal->getVariable() + ")", stage);
-        }
-        else if (space == MODEL_SPACE)
-        {
-            const ShaderPort* normal = vertexData["normalModel"];
+            const ShaderPort* normal = vertexData[HW::NORMAL_WORLD];
             shadergen.emitString(" = normalize(" + prefix + normal->getVariable() + ")", stage);
         }
         else
         {
-            const ShaderPort* normal = vertexData["normalObject"];
+            const ShaderPort* normal = vertexData[HW::NORMAL_OBJECT];
             shadergen.emitString(" = normalize(" + prefix + normal->getVariable() + ")", stage);
         }
         shadergen.emitLineEnd(stage);

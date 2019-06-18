@@ -55,11 +55,11 @@ Uniform variables :
     u_lightData[]                       struct     Array of struct LightData holding parameters for active light sources.
                                                    The LightData struct is built dynamically depending on requirements for
                                                    bound light shaders.
+    u_envMatrix                         mat4       Rotation matrix for the environment.
     u_envIrradiance                     sampler2D  Sampler for the texture used for diffuse environment lighting.
     u_envRadiance                       sampler2D  Sampler for the texture used for specular environment lighting.
     u_envRadianceMips                   int        Number of mipmaps used on the specular environment texture.
-    u_envMatrix                         mat4       Rotation matrix for the environment.
-    u_envSamples                        int        Samples to use if Filtered Importance Sampling is used for specular environment lighting.
+    u_envRadianceSamples                int        Samples to use if Filtered Importance Sampling is used for specular environment lighting.
 
 ------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------

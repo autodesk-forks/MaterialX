@@ -22,18 +22,65 @@ namespace Stage
 
 namespace HW
 {
-    const string VERTEX_INPUTS    = "VertexInputs";
-    const string VERTEX_DATA      = "VertexData";
-    const string PRIVATE_UNIFORMS = "PrivateUniforms";
-    const string PUBLIC_UNIFORMS  = "PublicUniforms";
-    const string LIGHT_DATA       = "LightData";
-    const string PIXEL_OUTPUTS    = "PixelOutputs";
-    const string NORMAL_DIR       = "N";
-    const string LIGHT_DIR        = "L";
-    const string VIEW_DIR         = "V";
-    const string ATTR_TRANSPARENT = "transparent";
-    const string USER_DATA_CLOSURE_CONTEXT = "udcc";
-    const string USER_DATA_LIGHT_SHADERS   = "udls";
+    // Tokens substitution identifiers
+    const string IN_POSITION                    = "$inPosition";
+    const string IN_NORMAL                      = "$inNormal";
+    const string IN_TANGENT                     = "$inTangent";
+    const string IN_BITANGENT                   = "$inBitangent";
+    const string IN_TEXCOORD                    = "$inTexcoord";
+    const string IN_COLOR                       = "$inColor";
+    const string POSITION_WORLD                 = "$positionWorld";
+    const string NORMAL_WORLD                   = "$normalWorld";
+    const string TANGENT_WORLD                  = "$tangentWorld";
+    const string BITANGENT_WORLD                = "$bitangentWorld";
+    const string POSITION_OBJECT                = "$positionObject";
+    const string NORMAL_OBJECT                  = "$normalObject";
+    const string TANGENT_OBJECT                 = "$tangentObject";
+    const string BITANGENT_OBJECT               = "$bitangentObject";
+    const string TEXCOORD                       = "$texcoord";
+    const string COLOR                          = "$color";
+    const string WORLD_MATRIX                   = "$worldMatrix";
+    const string WORLD_INVERSE_MATRIX           = "$worldInverseMatrix";
+    const string WORLD_TRANSPOSE_MATRIX         = "$worldTransposeMatrix";
+    const string WORLD_INVERSE_TRANSPOSE_MATRIX = "$worldInverseTransposeMatrix";
+    const string VIEW_MATRIX                    = "$viewMatrix";
+    const string VIEW_INVERSE_MATRIX            = "$viewInverseMatrix";
+    const string VIEW_TRANSPOSE_MATRIX          = "$viewTransposeMatrix";
+    const string VIEW_INVERSE_TRANSPOSE_MATRIX  = "$viewInverseTransposeMatrix";
+    const string PROJ_MATRIX                    = "$projectionMatrix";
+    const string PROJ_INVERSE_MATRIX            = "$projectionInverseMatrix";
+    const string PROJ_TRANSPOSE_MATRIX          = "$projectionTransposeMatrix";
+    const string PROJ_INVERSE_TRANSPOSE_MATRIX  = "$projectionInverseTransposeMatrix";
+    const string WORLD_VIEW_MATRIX              = "$worldViewMatrix";
+    const string VIEW_PROJECTION_MATRIX         = "$viewProjectionMatrix";
+    const string WORLD_VIEW_PROJECTION_MATRIX   = "$worldViewProjectionMatrix";
+    const string VIEW_POSITION                  = "$viewPosition";
+    const string VIEW_DIRECTION                 = "$viewDirection";
+    const string FRAME                          = "$frame";
+    const string TIME                           = "$time";
+    const string GEOMATTR                       = "$geomattr";
+    const string NUM_ACTIVE_LIGHT_SOURCES       = "$numActiveLightSources";
+    const string ENV_MATRIX                     = "$envMatrix";
+    const string ENV_IRRADIANCE                 = "$envIrradiance";
+    const string ENV_RADIANCE                   = "$envRadiance";
+    const string ENV_RADIANCE_MIPS              = "$envRadianceMips";
+    const string ENV_RADIANCE_SAMPLES           = "$envRadianceSamples";
+    const string VERTEX_DATA_INSTANCE           = "$vd";
+    const string LIGHT_DATA_INSTANCE            = "$lightData";
+
+    // Fixed identifiers
+    const string VERTEX_INPUTS                  = "VertexInputs";
+    const string VERTEX_DATA                    = "VertexData";
+    const string PRIVATE_UNIFORMS               = "PrivateUniforms";
+    const string PUBLIC_UNIFORMS                = "PublicUniforms";
+    const string LIGHT_DATA                     = "LightData";
+    const string PIXEL_OUTPUTS                  = "PixelOutputs";
+    const string NORMAL_DIR                     = "N";
+    const string LIGHT_DIR                      = "L";
+    const string VIEW_DIR                       = "V";
+    const string ATTR_TRANSPARENT               = "transparent";
+    const string USER_DATA_CLOSURE_CONTEXT      = "udcc";
+    const string USER_DATA_LIGHT_SHADERS        = "udls";
 }
 
 //
@@ -43,6 +90,56 @@ namespace HW
 HwShaderGenerator::HwShaderGenerator(SyntaxPtr syntax) :
     ShaderGenerator(syntax)
 {
+    // Set default identifiers names for all tokens.
+    // Derived generators can override these names.
+    _identifiers =
+    {
+        { HW::IN_POSITION, "i_position"},
+        { HW::IN_NORMAL, "i_normal" },
+        { HW::IN_TANGENT, "i_tangent" },
+        { HW::IN_BITANGENT, "i_bitangent" },
+        { HW::IN_TEXCOORD, "i_texcoord" },
+        { HW::IN_COLOR, "i_color" },
+        { HW::POSITION_WORLD, "positionWorld" },
+        { HW::NORMAL_WORLD, "normalWorld" },
+        { HW::TANGENT_WORLD, "tangentWorld" },
+        { HW::BITANGENT_WORLD, "bitangentWorld" },
+        { HW::POSITION_OBJECT, "positionObject" },
+        { HW::NORMAL_OBJECT, "normalObject" },
+        { HW::TANGENT_OBJECT, "tangentObject" },
+        { HW::BITANGENT_OBJECT, "bitangentObject" },
+        { HW::TEXCOORD, "texcoord" },
+        { HW::COLOR, "color" },
+        { HW::WORLD_MATRIX, "u_worldMatrix" },
+        { HW::WORLD_INVERSE_MATRIX, "u_worldInverseMatrix" },
+        { HW::WORLD_TRANSPOSE_MATRIX, "u_worldTransposeMatrix" },
+        { HW::WORLD_INVERSE_TRANSPOSE_MATRIX, "u_worldInverseTransposeMatrix" },
+        { HW::VIEW_MATRIX, "u_viewMatrix" },
+        { HW::VIEW_INVERSE_MATRIX, "u_viewInverseMatrix" },
+        { HW::VIEW_TRANSPOSE_MATRIX, "u_viewTransposeMatrix" },
+        { HW::VIEW_INVERSE_TRANSPOSE_MATRIX, "u_viewInverseTransposeMatrix" },
+        { HW::PROJ_MATRIX, "u_projectionMatrix" },
+        { HW::PROJ_INVERSE_MATRIX, "u_projectionInverseMatrix" },
+        { HW::PROJ_TRANSPOSE_MATRIX, "u_projectionTransposeMatrix" },
+        { HW::PROJ_INVERSE_TRANSPOSE_MATRIX, "u_projectionInverseTransposeMatrix" },
+        { HW::WORLD_VIEW_MATRIX, "u_worldViewMatrix" },
+        { HW::VIEW_PROJECTION_MATRIX, "u_viewProjectionMatrix" },
+        { HW::WORLD_VIEW_PROJECTION_MATRIX, "u_worldViewProjectionMatrix" },
+        { HW::VIEW_POSITION, "u_viewPosition" },
+        { HW::VIEW_DIRECTION, "u_viewDirection" },
+        { HW::FRAME, "u_frame" },
+        { HW::TIME, "u_time" },
+        { HW::GEOMATTR, "u_geomattr" },
+        { HW::NUM_ACTIVE_LIGHT_SOURCES, "u_numActiveLightSources" },
+        { HW::ENV_MATRIX, "u_envMatrix" },
+        { HW::ENV_IRRADIANCE, "u_envIrradiance" },
+        { HW::ENV_RADIANCE, "u_envRadiance" },
+        { HW::ENV_RADIANCE_MIPS, "u_envRadianceMips" },
+        { HW::ENV_RADIANCE_SAMPLES, "u_envRadianceSamples" },
+        { HW::VERTEX_DATA_INSTANCE, "vd" },
+        { HW::LIGHT_DATA_INSTANCE, "u_lightData" }
+    };
+
     // Create closure contexts for defining closure functions
     //
     // Reflection context
@@ -78,21 +175,21 @@ ShaderPtr HwShaderGenerator::createShader(const string& name, ElementPtr element
 
     // Create required variables for vertex stage
     VariableBlock& vsInputs = vs->getInputBlock(HW::VERTEX_INPUTS);
-    vsInputs.add(Type::VECTOR3, "i_position");
+    vsInputs.add(Type::VECTOR3, HW::IN_POSITION);
     VariableBlock& vsPrivateUniforms = vs->getUniformBlock(HW::PRIVATE_UNIFORMS);
-    vsPrivateUniforms.add(Type::MATRIX44, "u_worldMatrix");
-    vsPrivateUniforms.add(Type::MATRIX44, "u_viewProjectionMatrix");
+    vsPrivateUniforms.add(Type::MATRIX44, HW::WORLD_MATRIX);
+    vsPrivateUniforms.add(Type::MATRIX44, HW::VIEW_PROJECTION_MATRIX);
 
     // Create pixel stage.
     ShaderStagePtr ps = createStage(Stage::PIXEL, *shader);
     VariableBlockPtr psOutputs = ps->createOutputBlock(HW::PIXEL_OUTPUTS, "o_ps");
     VariableBlockPtr psPrivateUniforms = ps->createUniformBlock(HW::PRIVATE_UNIFORMS, "u_prv");
     VariableBlockPtr psPublicUniforms = ps->createUniformBlock(HW::PUBLIC_UNIFORMS, "u_pub");
-    VariableBlockPtr lightData = ps->createUniformBlock(HW::LIGHT_DATA, "u_lightData");
+    VariableBlockPtr lightData = ps->createUniformBlock(HW::LIGHT_DATA, HW::LIGHT_DATA_INSTANCE);
     lightData->add(Type::INTEGER, "type");
 
     // Add a block for data from vertex to pixel shader.
-    addStageConnectorBlock(HW::VERTEX_DATA, "vd", *vs, *ps);
+    addStageConnectorBlock(HW::VERTEX_DATA, HW::VERTEX_DATA_INSTANCE, *vs, *ps);
 
     if (context.getOptions().hwSpecularEnvironmentMethod != SPECULAR_ENVIRONMENT_NONE)
     {
@@ -105,11 +202,11 @@ ShaderPtr HwShaderGenerator::createShader(const string& name, ElementPtr element
             0, 1, 0, 0,
             0, 0, -1, 0,
             0, 0, 0, 1);
-        psPrivateUniforms->add(Type::MATRIX44, "u_envMatrix", Value::createValue<Matrix44>(yRotationPI));
-        psPrivateUniforms->add(Type::FILENAME, "u_envIrradiance");
-        psPrivateUniforms->add(Type::FILENAME, "u_envRadiance");
-        psPrivateUniforms->add(Type::INTEGER, "u_envRadianceMips", Value::createValue<int>(1));
-        psPrivateUniforms->add(Type::INTEGER, "u_envSamples", Value::createValue<int>(16));
+        psPrivateUniforms->add(Type::MATRIX44, HW::ENV_MATRIX, Value::createValue<Matrix44>(yRotationPI));
+        psPrivateUniforms->add(Type::FILENAME, HW::ENV_IRRADIANCE);
+        psPrivateUniforms->add(Type::FILENAME, HW::ENV_RADIANCE);
+        psPrivateUniforms->add(Type::INTEGER, HW::ENV_RADIANCE_MIPS, Value::createValue<int>(1));
+        psPrivateUniforms->add(Type::INTEGER, HW::ENV_RADIANCE_SAMPLES, Value::createValue<int>(16));
     }
 
     // Create uniforms for the published graph interface

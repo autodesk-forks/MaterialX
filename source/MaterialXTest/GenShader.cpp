@@ -39,6 +39,23 @@ namespace mx = MaterialX;
 // Base tests
 //
 
+TEST_CASE("GenShader: Utilities", "[genshader]")
+{
+    // Test simple text substitution
+    std::string test1 = "Look behind you, a $threeheaded $monkey!";
+    std::string result1 = "Look behind you, a mighty pirate!";
+    mx::StringMap subst1 = { {"$threeheaded","mighty"}, {"$monkey","pirate"} };
+    mx::tokenSubstitution(subst1, test1);
+    REQUIRE(test1 == result1);
+
+    // Test uniform name substitution
+    std::string test2 = "uniform vec3 $radianceEnv;";
+    std::string result2 = "uniform vec3 u_radianceEnvSampler;";
+    mx::StringMap subst2 = { {"$radianceEnv","u_radianceEnvSampler"} };
+    mx::tokenSubstitution(subst2, test2);
+    REQUIRE(test2 == result2);
+}
+
 TEST_CASE("GenShader: Valid Libraries", "[genshader]")
 {
     mx::DocumentPtr doc = mx::createDocument();

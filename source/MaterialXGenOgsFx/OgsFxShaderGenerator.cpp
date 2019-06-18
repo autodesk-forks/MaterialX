@@ -105,6 +105,8 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
     // Emit code for vertex and pixel shader stages
     emitVertexStage(graph, context, vs);
     emitPixelStage(graph, context, ps);
+    replaceIdentifiers(_identifiers, vs);
+    replaceIdentifiers(_identifiers, ps);
 
     //
     // Assemble the final effects shader
@@ -236,10 +238,10 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
     emitScopeBegin(fx);
     emitLine("pass p0", fx, false);
     emitScopeBegin(fx);
-    emitLine("VertexShader(in VertexInputs, out VertexData vd) = { VS }", fx);
+    emitLine("VertexShader(in VertexInputs, out VertexData " + HW::VERTEX_DATA_INSTANCE +") = { VS }", fx);
     emitLine(lighting ?
-        "PixelShader(in VertexData vd, out PixelOutput) = { LightingFunctions, PS }" :
-        "PixelShader(in VertexData vd, out PixelOutput) = { PS }", fx);
+        "PixelShader(in VertexData " + HW::VERTEX_DATA_INSTANCE + ", out PixelOutput) = { LightingFunctions, PS }" :
+        "PixelShader(in VertexData " + HW::VERTEX_DATA_INSTANCE + ", out PixelOutput) = { PS }", fx);
     emitScopeEnd(fx);
     emitScopeEnd(fx);
     emitLineBreak(fx);
@@ -267,8 +269,8 @@ void OgsFxShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext&
     setFunctionName("main", stage);
     emitLine("void main()", stage, false);
     emitScopeBegin(stage);
-    emitLine("vec4 hPositionWorld = u_worldMatrix * vec4(i_position, 1.0)", stage);
-    emitLine("gl_Position = u_viewProjectionMatrix * hPositionWorld", stage);
+    emitLine("vec4 hPositionWorld = " + HW::WORLD_MATRIX + " * vec4(" + HW::IN_POSITION + ", 1.0)", stage);
+    emitLine("gl_Position = " + HW::VIEW_PROJECTION_MATRIX + " * hPositionWorld", stage);
     emitFunctionCalls(graph, context, stage);
     emitScopeEnd(stage);
     emitScopeEnd(stage);
@@ -515,11 +517,6 @@ ShaderPtr OgsFxShaderGenerator::createShader(const string& name, ElementPtr elem
 void OgsFxShaderGenerator::getTechniqueParams(const Shader&, string&) const
 {
     // Default implementation doesn't use any technique parameters
-}
-
-const StringMap* OgsFxShaderGenerator::getSemanticMap() const
-{
-    return &OGSFX_DEFAULT_SEMANTICS_MAP;
 }
 
 } // namespace MaterialX

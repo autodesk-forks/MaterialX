@@ -35,6 +35,19 @@ GlslFragmentGenerator::GlslFragmentGenerator() :
 {
     // Use our custom syntax class
     _syntax = std::make_shared<GlslFragmentSyntax>();
+
+    // Set identifier names to match OGS.
+    _identifiers[HW::POSITION_WORLD]        = "Pw";
+    _identifiers[HW::POSITION_OBJECT]       = "Pm";
+    _identifiers[HW::NORMAL_WORLD]          = "Nw";
+    _identifiers[HW::NORMAL_OBJECT]         = "Nm";
+    _identifiers[HW::TANGENT_WORLD]         = "Tw";
+    _identifiers[HW::TANGENT_OBJECT]        = "Tm";
+    _identifiers[HW::BITANGENT_WORLD]       = "Bw";
+    _identifiers[HW::BITANGENT_OBJECT]      = "Bm";
+    _identifiers[HW::VERTEX_DATA_INSTANCE]  = "PIX_IN";
+    _identifiers[HW::ENV_IRRADIANCE]        = "u_envIrradianceSampler";
+    _identifiers[HW::ENV_RADIANCE]          = "u_envRadianceSampler";
 }
 
 ShaderGeneratorPtr GlslFragmentGenerator::create()
@@ -48,10 +61,6 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     ShaderPtr shader = createShader(name, element, context);
 
     ShaderStage& stage = shader->getStage(Stage::PIXEL);
-
-    // Rename the pixel stage input struct to match OGS.
-    VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
-    vertexData.setInstance("PIX_IN");
 
     // Turn on fixed float formatting to make sure float values are
     // emitted with a decimal point and not as integers, and to avoid
@@ -207,6 +216,9 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
 
     // End function
     emitScopeEnd(stage);
+
+    // Replace all token identifiers with real names
+    replaceIdentifiers(_identifiers, stage);
 
     return shader;
 }

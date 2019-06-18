@@ -165,12 +165,6 @@ class ShaderGenerator
     virtual bool remapEnumeration(const ValueElement& input, const string& value,
                                   std::pair<const TypeDesc*, ValuePtr>& result) const;
 
-    /// Return any semantics associated with uniforms
-    virtual const StringMap* getSemanticMap() const
-    {
-        return nullptr;
-    }
-
   protected:
     /// Protected constructor
     ShaderGenerator(SyntaxPtr syntax);
@@ -193,6 +187,9 @@ class ShaderGenerator
     {
         stage.setFunctionName(functionName);
     }
+
+    /// Replace tokens with real identifiers according to the given map.
+    void replaceIdentifiers(const StringMap& identifiers, ShaderStage& stage) const;
 
   protected:
     static const string SEMICOLON;

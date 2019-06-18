@@ -38,12 +38,14 @@ namespace
     // Semantics used by OGS
     static const std::unordered_map<string, const pugi::char_t*> OGS_SEMANTICS_MAP =
     {
-        { "positionWorld", "Pw"},
-        { "positionObject", "Pm"},
-        { "normalWorld", "Nw" },
-        { "normalObject", "Nm" },
-        { "tangentWorld", "mayaTangentIn" },
-        { "bitangentWorld", "mayaBitangentIn" },
+        { "Pw", "POSITION"},
+        { "Pm", "POSITION"},
+        { "Nw", "NORMAL" },
+        { "Nm", "NORMAL" },
+        { "Tw", "TANGENT" },
+        { "Tm", "TANGENT" },
+        { "Bw", "BINORMAL" },
+        { "Bm", "BINORMAL" },
         { "texcoord_0", "mayaUvCoordSemantic" },
         { "color_0", "colorset" },
 
@@ -87,7 +89,6 @@ namespace
     const pugi::char_t* SHADER_FRAGMENT("ShadeFragment");
     const pugi::char_t* DESCRIPTION("description");
     const pugi::char_t* PROPERTIES("properties");
-    const pugi::char_t* OUT("out");
     const pugi::char_t* OUTPUTS("outputs");
     const pugi::char_t* IMPLEMENTATION("implementation");
     const pugi::char_t* RENDER("render");
@@ -220,9 +221,15 @@ void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostr
     xmlAddValues(xmlValues, stage.getUniformBlock(HW::PUBLIC_UNIFORMS));
 
     // Add a color3 output
+    const VariableBlock& outputs = stage.getOutputBlock(HW::PIXEL_OUTPUTS);
+    if (outputs.empty())
+    {
+        throw ExceptionShaderGenError("Shader stage has no output");
+    }
+    const ShaderPort* output = outputs[0];
     pugi::xml_node xmlOutputs = xmlRoot.append_child(OUTPUTS);
     pugi::xml_node xmlOut = xmlOutputs.append_child(OGS_TYPE_MAP.at(Type::COLOR3));
-    xmlOut.append_attribute(NAME) = OUT;
+    xmlOut.append_attribute(NAME) = output->getVariable().c_str();
 
     // Add implementations
     pugi::xml_node xmlImpementations = xmlRoot.append_child(IMPLEMENTATION);

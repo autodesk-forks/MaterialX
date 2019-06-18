@@ -265,10 +265,12 @@ ShaderPtr GlslShaderGenerator::generate(const string& name, ElementPtr element, 
     // Emit code for vertex shader stage
     ShaderStage& vs = shader->getStage(Stage::VERTEX);
     emitVertexStage(shader->getGraph(), context, vs);
+    replaceIdentifiers(_identifiers, vs);
 
     // Emit code for pixel shader stage
     ShaderStage& ps = shader->getStage(Stage::PIXEL);
     emitPixelStage(shader->getGraph(), context, ps);
+    replaceIdentifiers(_identifiers, ps);
 
     return shader;
 }
@@ -330,8 +332,8 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
     setFunctionName("main", stage);
     emitLine("void main()", stage, false);
     emitScopeBegin(stage);
-    emitLine("vec4 hPositionWorld = u_worldMatrix * vec4(i_position, 1.0)", stage);
-    emitLine("gl_Position = u_viewProjectionMatrix * hPositionWorld", stage);
+    emitLine("vec4 hPositionWorld = " + HW::WORLD_MATRIX + " * vec4(" + HW::IN_POSITION + ", 1.0)", stage);
+    emitLine("gl_Position = " + HW::VIEW_PROJECTION_MATRIX + " * hPositionWorld", stage);
     emitFunctionCalls(graph, context, stage);
     emitScopeEnd(stage);
     emitLineBreak(stage);

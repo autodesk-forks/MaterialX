@@ -11,20 +11,6 @@
 namespace MaterialX
 {
 
-namespace
-{
-    static const string LIGHT_LOOP_BEGIN =
-        "vec3 N = normalize(vd.normalWorld);\n"
-        "vec3 V = normalize(u_viewPosition - vd.positionWorld);\n"
-        "int numLights = numActiveLightSources();\n"
-        "lightshader lightShader;\n"
-        "for (int activeLightIndex = 0; activeLightIndex < numLights; ++activeLightIndex)\n";
-
-    static const string LIGHT_CONTRIBUTION =
-        "sampleLightSource(u_lightData[activeLightIndex], vd.positionWorld, lightShader);\n"
-        "vec3 L = lightShader.direction;\n";
-}
-
 SurfaceNodeGlsl::SurfaceNodeGlsl()
 {
     // Create closure contexts for calling closure functions.
@@ -64,15 +50,15 @@ void SurfaceNodeGlsl::createVariables(const ShaderNode&, GenContext&, Shader& sh
     ShaderStage& vs = shader.getStage(Stage::VERTEX);
     ShaderStage& ps = shader.getStage(Stage::PIXEL);
 
-    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, "i_position", vs);
-    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, "i_normal", vs);
-    addStageUniform(HW::PRIVATE_UNIFORMS, Type::MATRIX44, "u_worldInverseTransposeMatrix", vs);
+    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, HW::IN_POSITION, vs);
+    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, HW::IN_NORMAL, vs);
+    addStageUniform(HW::PRIVATE_UNIFORMS, Type::MATRIX44, HW::WORLD_INVERSE_TRANSPOSE_MATRIX, vs);
 
-    addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, "positionWorld", vs, ps);
-    addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, "normalWorld", vs, ps);
+    addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, HW::POSITION_WORLD, vs, ps);
+    addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, HW::NORMAL_WORLD, vs, ps);
 
-    addStageUniform(HW::PRIVATE_UNIFORMS, Type::VECTOR3, "u_viewPosition", ps);
-    ShaderPort* numActiveLights = addStageUniform(HW::PRIVATE_UNIFORMS, Type::INTEGER, "u_numActiveLightSources", ps);
+    addStageUniform(HW::PRIVATE_UNIFORMS, Type::VECTOR3, HW::VIEW_POSITION, ps);
+    ShaderPort* numActiveLights = addStageUniform(HW::PRIVATE_UNIFORMS, Type::INTEGER, HW::NUM_ACTIVE_LIGHT_SOURCES, ps);
     numActiveLights->setValue(Value::createValue<int>(0));
 }
 
@@ -85,17 +71,17 @@ void SurfaceNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& conte
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
         VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
         const string prefix = vertexData.getInstance() + ".";
-        ShaderPort* position = vertexData["positionWorld"];
+        ShaderPort* position = vertexData[HW::POSITION_WORLD];
         if (!position->isEmitted())
         {
             position->setEmitted();
             shadergen.emitLine(prefix + position->getVariable() + " = hPositionWorld.xyz", stage);
         }
-        ShaderPort* normal = vertexData["normalWorld"];
+        ShaderPort* normal = vertexData[HW::NORMAL_WORLD];
         if (!normal->isEmitted())
         {
             normal->setEmitted();
-            shadergen.emitLine(prefix + normal->getVariable() + " = normalize((u_worldInverseTransposeMatrix * vec4(i_normal, 0)).xyz)", stage);
+            shadergen.emitLine(prefix + normal->getVariable() + " = normalize((" + HW::WORLD_INVERSE_TRANSPOSE_MATRIX + " * vec4(" + HW::IN_NORMAL + ", 0)).xyz)", stage);
         }
     END_SHADER_STAGE(stage, Stage::VERTEX)
 
@@ -130,10 +116,16 @@ void SurfaceNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& conte
         //
 
         shadergen.emitComment("Light loop", stage);
-        shadergen.emitBlock(LIGHT_LOOP_BEGIN, context, stage);
+        shadergen.emitLine("vec3 N = normalize(" + HW::VERTEX_DATA_INSTANCE + "." + HW::NORMAL_WORLD + ")", stage);
+        shadergen.emitLine("vec3 V = normalize(" + HW::VIEW_POSITION + " - " + HW::VERTEX_DATA_INSTANCE + "." + HW::POSITION_WORLD + ")", stage);
+        shadergen.emitLine("int numLights = numActiveLightSources()", stage);
+        shadergen.emitLine("lightshader lightShader", stage);
+        shadergen.emitLine("for (int activeLightIndex = 0; activeLightIndex < numLights; ++activeLightIndex)", stage, false);
+
         shadergen.emitScopeBegin(stage);
 
-        shadergen.emitBlock(LIGHT_CONTRIBUTION, context, stage);
+        shadergen.emitLine("sampleLightSource(" + HW::LIGHT_DATA_INSTANCE + "[activeLightIndex], " + HW::VERTEX_DATA_INSTANCE + "." + HW::POSITION_WORLD + ", lightShader)", stage);
+        shadergen.emitLine("vec3 L = lightShader.direction", stage);
         shadergen.emitLineBreak(stage);
 
         shadergen.emitComment("Calculate the BSDF response for this light source", stage);

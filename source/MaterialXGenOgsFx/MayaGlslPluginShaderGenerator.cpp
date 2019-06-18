@@ -13,7 +13,6 @@ namespace MaterialX
 
 namespace
 {
-    static const string VIEW_POSITON_UNIFORM_NAME = "u_viewPosition";
     static const string VIEW_POSITON_SEMANTIC = "ViewPosition";
 }
 
@@ -34,7 +33,7 @@ ShaderPtr MayaGlslPluginShaderGenerator::createShader(const string& name, Elemen
         ShaderStage& stage = shader->getStage(i);
         for (auto it : stage.getUniformBlocks())
         {
-            ShaderPort* v = it.second->find(VIEW_POSITON_UNIFORM_NAME);
+            ShaderPort* v = it.second->find(HW::VIEW_POSITION);
             if (v)
             {
                 v->setSemantic(VIEW_POSITON_SEMANTIC);

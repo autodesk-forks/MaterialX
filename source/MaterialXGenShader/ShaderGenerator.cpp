@@ -9,6 +9,7 @@
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
+#include <MaterialXGenShader/Util.h>
 
 #include <MaterialXFormat/File.h>
 
@@ -288,6 +289,55 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const InterfaceElement& ele
 bool ShaderGenerator::remapEnumeration(const ValueElement&, const string&, std::pair<const TypeDesc*, ValuePtr>&) const
 {
     return false;
+}
+
+namespace
+{
+    void replace(const StringMap& identifiers, ShaderPort* port)
+    {
+        string name = port->getName();
+        tokenSubstitution(identifiers, name);
+        port->setName(name);
+        string variable = port->getVariable();
+        tokenSubstitution(identifiers, variable);
+        port->setVariable(variable);
+    }
+}
+
+void ShaderGenerator::replaceIdentifiers(const StringMap& identifiers, ShaderStage& stage) const
+{
+    // Replace identifiers in source code
+    tokenSubstitution(identifiers, stage._code);
+
+    // Replace identifiers on shader interface
+    for (size_t i = 0; i < stage._constants.size(); ++i)
+    {
+        replace(identifiers, stage._constants[i]);
+    }
+    for (auto it : stage._uniforms)
+    {
+        VariableBlock& uniforms = *it.second;
+        for (size_t i = 0; i < uniforms.size(); ++i)
+        {
+            replace(identifiers, uniforms[i]);
+        }
+    }
+    for (auto it : stage._inputs)
+    {
+        VariableBlock& inputs = *it.second;
+        for (size_t i = 0; i < inputs.size(); ++i)
+        {
+            replace(identifiers, inputs[i]);
+        }
+    }
+    for (auto it : stage._outputs)
+    {
+        VariableBlock& outputs = *it.second;
+        for (size_t i = 0; i < outputs.size(); ++i)
+        {
+            replace(identifiers, outputs[i]);
+        }
+    }
 }
 
 ShaderStagePtr ShaderGenerator::createStage(const string& name, Shader& shader) const

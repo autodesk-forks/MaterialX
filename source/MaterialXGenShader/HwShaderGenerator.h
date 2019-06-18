@@ -27,6 +27,58 @@ namespace Stage
 /// HW specific identifiers.
 namespace HW
 {
+    /// Identifiers for vertex stage inputs (token substitution)
+    extern const string IN_POSITION;
+    extern const string IN_NORMAL;
+    extern const string IN_TANGENT;
+    extern const string IN_BITANGENT;
+    extern const string IN_TEXCOORD;
+    extern const string IN_COLOR;
+
+    /// Identifiers for pixel stage inputs (token substitution)
+    extern const string POSITION_WORLD;
+    extern const string NORMAL_WORLD;
+    extern const string TANGENT_WORLD;
+    extern const string BITANGENT_WORLD;
+    extern const string POSITION_OBJECT;
+    extern const string NORMAL_OBJECT;
+    extern const string TANGENT_OBJECT;
+    extern const string BITANGENT_OBJECT;
+    extern const string TEXCOORD;
+    extern const string COLOR;
+
+    /// Identifiers for uniforms (token substitution)
+    extern const string WORLD_MATRIX;
+    extern const string WORLD_INVERSE_MATRIX;
+    extern const string WORLD_TRANSPOSE_MATRIX;
+    extern const string WORLD_INVERSE_TRANSPOSE_MATRIX;
+    extern const string VIEW_MATRIX;
+    extern const string VIEW_INVERSE_MATRIX;
+    extern const string VIEW_TRANSPOSE_MATRIX;
+    extern const string VIEW_INVERSE_TRANSPOSE_MATRIX;
+    extern const string PROJ_MATRIX;
+    extern const string PROJ_INVERSE_MATRIX;
+    extern const string PROJ_TRANSPOSE_MATRIX;
+    extern const string PROJ_INVERSE_TRANSPOSE_MATRIX;
+    extern const string WORLD_VIEW_MATRIX;
+    extern const string VIEW_PROJECTION_MATRIX;
+    extern const string WORLD_VIEW_PROJECTION_MATRIX;
+    extern const string VIEW_POSITION;
+    extern const string VIEW_DIRECTION;
+    extern const string FRAME;
+    extern const string TIME;
+    extern const string GEOMATTR;
+    extern const string NUM_ACTIVE_LIGHT_SOURCES;
+    extern const string ENV_MATRIX;
+    extern const string ENV_IRRADIANCE;
+    extern const string ENV_RADIANCE;
+    extern const string ENV_RADIANCE_MIPS;
+    extern const string ENV_RADIANCE_SAMPLES;
+
+    /// Identifiers for variable blocks instances (token substitution).
+    extern const string VERTEX_DATA_INSTANCE;
+    extern const string LIGHT_DATA_INSTANCE;
+
     /// Identifiers for variable blocks.
     extern const string VERTEX_INPUTS;    // Geometric inputs for vertex stage.
     extern const string VERTEX_DATA;      // Connector block for data transfer from vertex stage to pixel stage.
@@ -214,6 +266,9 @@ protected:
 
     /// Override the compound implementation creator.
     ShaderNodeImplPtr createCompoundImplementation(const NodeGraph& impl) const override;
+
+    /// Map of substitutions for source code identifiers.
+    StringMap _identifiers;
 
     /// Closure contexts for defining closure functions.
     HwClosureContextPtr _defReflection;

@@ -481,9 +481,9 @@ void Material::bindLights(mx::LightHandlerPtr lightHandler, mx::GLTextureHandler
     // Bind environment light uniforms and images.
     if (specularEnvironmentMethod == mx::SPECULAR_ENVIRONMENT_FIS)
     {
-        if (_glShader->uniform("u_envSamples", false) != -1)
+        if (_glShader->uniform("u_envRadianceSamples", false) != -1)
         {
-            _glShader->setUniform("u_envSamples", envSamples);
+            _glShader->setUniform("u_envRadianceSamples", envSamples);
         }
     }
     mx::StringMap lightTextures = {
