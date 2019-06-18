@@ -621,7 +621,7 @@ void OGSXMLFragmentWrapper::generate(const string& shaderName, ElementPtr elemen
         language_version = OGS_GLSL_LANGUAGE_VERSION;
     }
 
-    const string& functionName = ps.getSignature();
+    const string& functionName = ps.getFunctionName();
     const string& vertexShaderCode = _outputVertexShader ? shader->getSourceCode(Stage::VERTEX) : EMPTY_STRING;
 
     addOGSImplementation(impls, language, language_version, functionName, pixelShaderCode, vertexShaderCode);
