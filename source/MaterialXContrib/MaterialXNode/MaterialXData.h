@@ -74,7 +74,7 @@ struct MaterialXData
 
   protected:
     /// Returns whether the element is renderable
-    bool isRenderable();    
+    bool isRenderable();
     void createDocument(const std::string& materialXDocument);
 
   private:

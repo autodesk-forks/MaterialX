@@ -12,7 +12,7 @@
 MaterialXData::MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath)
     : _genContext(MaterialX::GlslShaderGenerator::create())
 {
-	_librarySearchPath = Plugin::instance().getLibrarySearchPath();
+    _librarySearchPath = Plugin::instance().getLibrarySearchPath();
     setData(materialXDocumentPath, elementPath);
 }
 
@@ -23,7 +23,7 @@ bool MaterialXData::setData(const std::string& materialXDocument, const std::str
     {
         _element = _document->getDescendant(elementPath);
     }
-    
+
     // Check that the element is renderable
     return isRenderable();
 }
@@ -59,12 +59,12 @@ const MaterialX::StringMap& MaterialXData::getPathOutputMap() const
 
 void MaterialXData::createDocument(const std::string& materialXDocumentPath)
 {
-	// Create document
-	_document = MaterialX::createDocument();
+    // Create document
+    _document = MaterialX::createDocument();
 
-	// Load libraries
-	static const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
-	MaterialX::loadLibraries(libraries, _librarySearchPath, _document);
+    // Load libraries
+    static const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
+    MaterialX::loadLibraries(libraries, _librarySearchPath, _document);
 
     // Read document contents from disk
     MaterialX::readFromXmlFile(_document, materialXDocumentPath);
@@ -82,13 +82,13 @@ void MaterialXData::generateXML()
         return;
     }
 
-	MaterialX::OutputPtr output = _element->asA<MaterialX::Output>();
-	MaterialX::ShaderRefPtr shaderRef = _element->asA<MaterialX::ShaderRef>();
-	if (!output && !shaderRef)
-	{
-		// Should never occur as we pre-filter renderables before creating the node + override
-		throw MaterialX::Exception("Invalid element to create wrapper for " + _element->getName());
-	}
+    MaterialX::OutputPtr output = _element->asA<MaterialX::Output>();
+    MaterialX::ShaderRefPtr shaderRef = _element->asA<MaterialX::ShaderRef>();
+    if (!output && !shaderRef)
+    {
+        // Should never occur as we pre-filter renderables before creating the node + override
+        throw MaterialX::Exception("Invalid element to create wrapper for " + _element->getName());
+    }
 
     // Set up generator context. For shaders use FIS environment lookup,
     // but disable this for textures to avoid additional unneeded XML parameter
@@ -118,17 +118,17 @@ void MaterialXData::generateXML()
 // TODO: This does not belong here. To migrate out to another class.
 void MaterialXData::registerFragments(const std::string& ogsXmlPath)
 {
-	// Register fragments with the manager if needed
-	//	
-	if (MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer())
-	{
+    // Register fragments with the manager if needed
+    //	
+    if (MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer())
+    {
         if (MHWRender::MFragmentManager* fragmentMgr = theRenderer->getFragmentManager())
-		{
-			const bool fragmentExists = (getFragmentName().size() > 0)
+        {
+            const bool fragmentExists = (getFragmentName().size() > 0)
                 && fragmentMgr->hasFragment(getFragmentName().c_str());
 
-			if (!fragmentExists)
-			{
+            if (!fragmentExists)
+            {
                 // XML should come from here. For now allow to get from a input path
                 // std::stringstream glslStream;
                 // getXML(glslStream);
@@ -149,9 +149,9 @@ void MaterialXData::registerFragments(const std::string& ogsXmlPath)
                 {
                     throw MaterialX::Exception("Failed to add OGS shader fragment from file.");
                 }
-			}
-		}
-	}
+            }
+        }
+    }
 }
 
 bool MaterialXData::isRenderable()
