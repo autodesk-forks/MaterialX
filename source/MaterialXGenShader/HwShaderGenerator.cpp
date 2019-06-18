@@ -75,9 +75,9 @@ namespace HW
     const string PUBLIC_UNIFORMS                = "PublicUniforms";
     const string LIGHT_DATA                     = "LightData";
     const string PIXEL_OUTPUTS                  = "PixelOutputs";
-    const string NORMAL_DIR                     = "N";
-    const string LIGHT_DIR                      = "L";
-    const string VIEW_DIR                       = "V";
+    const string DIR_N                          = "N";
+    const string DIR_L                          = "L";
+    const string DIR_V                          = "V";
     const string ATTR_TRANSPARENT               = "transparent";
     const string USER_DATA_CLOSURE_CONTEXT      = "udcc";
     const string USER_DATA_LIGHT_SHADERS        = "udls";
@@ -145,20 +145,20 @@ HwShaderGenerator::HwShaderGenerator(SyntaxPtr syntax) :
     // Reflection context
     _defReflection = HwClosureContext::create(HwClosureContext::REFLECTION);
     _defReflection->setSuffix("_reflection");
-    _defReflection->addArgument(Type::VECTOR3, HW::LIGHT_DIR);
-    _defReflection->addArgument(Type::VECTOR3, HW::VIEW_DIR);
+    _defReflection->addArgument(Type::VECTOR3, HW::DIR_L);
+    _defReflection->addArgument(Type::VECTOR3, HW::DIR_V);
     // Transmission context
     _defTransmission = HwClosureContext::create(HwClosureContext::TRANSMISSION);
     _defTransmission->setSuffix("_transmission");
-    _defTransmission->addArgument(Type::VECTOR3, HW::VIEW_DIR);
+    _defTransmission->addArgument(Type::VECTOR3, HW::DIR_V);
     // Indirect context
     _defIndirect = HwClosureContext::create(HwClosureContext::INDIRECT);
     _defIndirect->setSuffix("_indirect");
-    _defIndirect->addArgument(Type::VECTOR3, HW::VIEW_DIR);
+    _defIndirect->addArgument(Type::VECTOR3, HW::DIR_V);
     // Emission context
     _defEmission = HwClosureContext::create(HwClosureContext::EMISSION);
-    _defEmission->addArgument(Type::VECTOR3, HW::NORMAL_DIR);
-    _defEmission->addArgument(Type::VECTOR3, HW::LIGHT_DIR);
+    _defEmission->addArgument(Type::VECTOR3, HW::DIR_N);
+    _defEmission->addArgument(Type::VECTOR3, HW::DIR_L);
 }
 
 ShaderPtr HwShaderGenerator::createShader(const string& name, ElementPtr element, GenContext& context) const

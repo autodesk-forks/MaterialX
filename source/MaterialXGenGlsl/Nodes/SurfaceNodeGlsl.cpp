@@ -18,20 +18,20 @@ SurfaceNodeGlsl::SurfaceNodeGlsl()
     // Reflection context
     _callReflection = HwClosureContext::create(HwClosureContext::REFLECTION);
     _callReflection->setSuffix("_reflection");
-    _callReflection->addArgument(Type::VECTOR3, HW::LIGHT_DIR);
-    _callReflection->addArgument(Type::VECTOR3, HW::VIEW_DIR);
+    _callReflection->addArgument(Type::VECTOR3, HW::DIR_L);
+    _callReflection->addArgument(Type::VECTOR3, HW::DIR_V);
     // Transmission context
     _callTransmission = HwClosureContext::create(HwClosureContext::TRANSMISSION);
     _callTransmission->setSuffix("_transmission");
-    _callTransmission->addArgument(Type::VECTOR3, HW::VIEW_DIR);
+    _callTransmission->addArgument(Type::VECTOR3, HW::DIR_V);
     // Indirect context
     _callIndirect = HwClosureContext::create(HwClosureContext::INDIRECT);
     _callIndirect->setSuffix("_indirect");
-    _callIndirect->addArgument(Type::VECTOR3, HW::VIEW_DIR);
+    _callIndirect->addArgument(Type::VECTOR3, HW::DIR_V);
     // Emission context
     _callEmission = HwClosureContext::create(HwClosureContext::EMISSION);
-    _callEmission->addArgument(Type::VECTOR3, HW::NORMAL_DIR);
-    _callEmission->addArgument(Type::VECTOR3, HW::VIEW_DIR);
+    _callEmission->addArgument(Type::VECTOR3, HW::DIR_N);
+    _callEmission->addArgument(Type::VECTOR3, HW::DIR_V);
 }
 
 ShaderNodeImplPtr SurfaceNodeGlsl::create()
