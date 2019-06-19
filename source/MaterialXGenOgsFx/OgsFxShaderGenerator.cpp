@@ -104,9 +104,9 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
 
     // Emit code for vertex and pixel shader stages
     emitVertexStage(graph, context, vs);
+    replaceTokens(_tokenSubstitutions, vs);
     emitPixelStage(graph, context, ps);
-    replaceIdentifiers(_identifiers, vs);
-    replaceIdentifiers(_identifiers, ps);
+    replaceTokens(_tokenSubstitutions, ps);
 
     //
     // Assemble the final effects shader
@@ -238,10 +238,10 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
     emitScopeBegin(fx);
     emitLine("pass p0", fx, false);
     emitScopeBegin(fx);
-    emitLine("VertexShader(in VertexInputs, out VertexData " + HW::VERTEX_DATA_INSTANCE +") = { VS }", fx);
+    emitLine("VertexShader(in VertexInputs, out VertexData " + HW::T_VERTEX_DATA_INSTANCE +") = { VS }", fx);
     emitLine(lighting ?
-        "PixelShader(in VertexData " + HW::VERTEX_DATA_INSTANCE + ", out PixelOutput) = { LightingFunctions, PS }" :
-        "PixelShader(in VertexData " + HW::VERTEX_DATA_INSTANCE + ", out PixelOutput) = { PS }", fx);
+        "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { LightingFunctions, PS }" :
+        "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { PS }", fx);
     emitScopeEnd(fx);
     emitScopeEnd(fx);
     emitLineBreak(fx);
@@ -269,8 +269,8 @@ void OgsFxShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext&
     setFunctionName("main", stage);
     emitLine("void main()", stage, false);
     emitScopeBegin(stage);
-    emitLine("vec4 hPositionWorld = " + HW::WORLD_MATRIX + " * vec4(" + HW::IN_POSITION + ", 1.0)", stage);
-    emitLine("gl_Position = " + HW::VIEW_PROJECTION_MATRIX + " * hPositionWorld", stage);
+    emitLine("vec4 hPositionWorld = " + HW::T_WORLD_MATRIX + " * vec4(" + HW::T_IN_POSITION + ", 1.0)", stage);
+    emitLine("gl_Position = " + HW::T_VIEW_PROJECTION_MATRIX + " * hPositionWorld", stage);
     emitFunctionCalls(graph, context, stage);
     emitScopeEnd(stage);
     emitScopeEnd(stage);

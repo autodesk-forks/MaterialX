@@ -37,11 +37,11 @@ void SurfaceShaderNodeGlsl::createVariables(const ShaderNode&, GenContext&, Shad
     ShaderStage& vs = shader.getStage(Stage::VERTEX);
     ShaderStage& ps = shader.getStage(Stage::PIXEL);
 
-    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, HW::IN_POSITION, vs);
-    addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, HW::POSITION_WORLD, vs, ps);
+    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, HW::T_IN_POSITION, vs);
+    addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, HW::T_POSITION_WORLD, vs, ps);
 
-    addStageUniform(HW::PRIVATE_UNIFORMS, Type::VECTOR3, HW::VIEW_POSITION, ps);
-    ShaderPort* numActiveLights = addStageUniform(HW::PRIVATE_UNIFORMS, Type::INTEGER, HW::NUM_ACTIVE_LIGHT_SOURCES, ps);
+    addStageUniform(HW::PRIVATE_UNIFORMS, Type::VECTOR3, HW::T_VIEW_POSITION, ps);
+    ShaderPort* numActiveLights = addStageUniform(HW::PRIVATE_UNIFORMS, Type::INTEGER, HW::T_NUM_ACTIVE_LIGHT_SOURCES, ps);
     numActiveLights->setValue(Value::createValue<int>(0));
 }
 
@@ -50,7 +50,7 @@ void SurfaceShaderNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext&
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
         VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
         const string prefix = vertexData.getInstance() + ".";
-        ShaderPort* position = vertexData[HW::POSITION_WORLD];
+        ShaderPort* position = vertexData[HW::T_POSITION_WORLD];
         if (!position->isEmitted())
         {
             position->setEmitted();

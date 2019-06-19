@@ -82,15 +82,60 @@ Uniform variables :
 /// HW specific identifiers.
 namespace HW
 {
-    /// Token identifiers for vertex stage inputs
+    /// Token identifiers
+    extern const string T_IN_POSITION;
+    extern const string T_IN_NORMAL;
+    extern const string T_IN_TANGENT;
+    extern const string T_IN_BITANGENT;
+    extern const string T_IN_TEXCOORD;
+    extern const string T_IN_COLOR;
+    extern const string T_POSITION_WORLD;
+    extern const string T_NORMAL_WORLD;
+    extern const string T_TANGENT_WORLD;
+    extern const string T_BITANGENT_WORLD;
+    extern const string T_POSITION_OBJECT;
+    extern const string T_NORMAL_OBJECT;
+    extern const string T_TANGENT_OBJECT;
+    extern const string T_BITANGENT_OBJECT;
+    extern const string T_TEXCOORD;
+    extern const string T_COLOR;
+    extern const string T_WORLD_MATRIX;
+    extern const string T_WORLD_INVERSE_MATRIX;
+    extern const string T_WORLD_TRANSPOSE_MATRIX;
+    extern const string T_WORLD_INVERSE_TRANSPOSE_MATRIX;
+    extern const string T_VIEW_MATRIX;
+    extern const string T_VIEW_INVERSE_MATRIX;
+    extern const string T_VIEW_TRANSPOSE_MATRIX;
+    extern const string T_VIEW_INVERSE_TRANSPOSE_MATRIX;
+    extern const string T_PROJ_MATRIX;
+    extern const string T_PROJ_INVERSE_MATRIX;
+    extern const string T_PROJ_TRANSPOSE_MATRIX;
+    extern const string T_PROJ_INVERSE_TRANSPOSE_MATRIX;
+    extern const string T_WORLD_VIEW_MATRIX;
+    extern const string T_VIEW_PROJECTION_MATRIX;
+    extern const string T_WORLD_VIEW_PROJECTION_MATRIX;
+    extern const string T_VIEW_POSITION;
+    extern const string T_VIEW_DIRECTION;
+    extern const string T_FRAME;
+    extern const string T_TIME;
+    extern const string T_GEOMATTR;
+    extern const string T_NUM_ACTIVE_LIGHT_SOURCES;
+    extern const string T_ENV_MATRIX;
+    extern const string T_ENV_IRRADIANCE;
+    extern const string T_ENV_RADIANCE;
+    extern const string T_ENV_RADIANCE_MIPS;
+    extern const string T_ENV_RADIANCE_SAMPLES;
+    extern const string T_VERTEX_DATA_INSTANCE;
+    extern const string T_LIGHT_DATA_INSTANCE;
+
+    /// Default names for identifiers.
+    /// Replacing above tokens in final code.
     extern const string IN_POSITION;
     extern const string IN_NORMAL;
     extern const string IN_TANGENT;
     extern const string IN_BITANGENT;
     extern const string IN_TEXCOORD;
     extern const string IN_COLOR;
-
-    /// Token identifiers for pixel stage inputs
     extern const string POSITION_WORLD;
     extern const string NORMAL_WORLD;
     extern const string TANGENT_WORLD;
@@ -101,8 +146,6 @@ namespace HW
     extern const string BITANGENT_OBJECT;
     extern const string TEXCOORD;
     extern const string COLOR;
-
-    /// Token identifiers for uniforms
     extern const string WORLD_MATRIX;
     extern const string WORLD_INVERSE_MATRIX;
     extern const string WORLD_TRANSPOSE_MATRIX;
@@ -129,8 +172,6 @@ namespace HW
     extern const string ENV_RADIANCE;
     extern const string ENV_RADIANCE_MIPS;
     extern const string ENV_RADIANCE_SAMPLES;
-
-    /// Token identifiers for variable blocks instances.
     extern const string VERTEX_DATA_INSTANCE;
     extern const string LIGHT_DATA_INSTANCE;
 
@@ -328,9 +369,6 @@ protected:
 
     /// Override the compound implementation creator.
     ShaderNodeImplPtr createCompoundImplementation(const NodeGraph& impl) const override;
-
-    /// Map of substitutions for source code identifiers.
-    StringMap _identifiers;
 
     /// Closure contexts for defining closure functions.
     HwClosureContextPtr _defReflection;

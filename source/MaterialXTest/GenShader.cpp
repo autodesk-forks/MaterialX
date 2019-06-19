@@ -49,9 +49,9 @@ TEST_CASE("GenShader: Utilities", "[genshader]")
     REQUIRE(test1 == result1);
 
     // Test uniform name substitution
-    std::string test2 = "uniform vec3 $radianceEnv;";
-    std::string result2 = "uniform vec3 u_radianceEnvSampler;";
-    mx::StringMap subst2 = { {"$radianceEnv","u_radianceEnvSampler"} };
+    std::string test2 = "uniform vec3 " + mx::HW::T_ENV_RADIANCE + ";";
+    std::string result2 = "uniform vec3 " + mx::HW::ENV_RADIANCE + ";";
+    mx::StringMap subst2 = { {mx::HW::T_ENV_RADIANCE, mx::HW::ENV_RADIANCE} };
     mx::tokenSubstitution(subst2, test2);
     REQUIRE(test2 == result2);
 }

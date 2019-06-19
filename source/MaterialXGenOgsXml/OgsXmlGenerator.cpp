@@ -193,21 +193,21 @@ void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostr
         throw ExceptionShaderGenError("Both GLSL and HLSL shaders are null, at least one language must be given to generate XML fragments");
     }
 
+    // Create the interface using one of the shaders (interface should be the same)
+    const Shader* shader = glsl != nullptr ? glsl : hlsl;
+    const ShaderStage& stage = shader->getStage(Stage::PIXEL);
+
     xml_document xmlDocument;
 
     pugi::xml_node xmlRoot = xmlDocument.append_child(FRAGMENT);
-    xmlRoot.append_attribute(UI_NAME) = glsl->getName().c_str();
-    xmlRoot.append_attribute(NAME) = glsl->getName().c_str();
+    xmlRoot.append_attribute(UI_NAME) = shader->getName().c_str();
+    xmlRoot.append_attribute(NAME) = shader->getName().c_str();
     xmlRoot.append_attribute(TYPE) = PLUMBING;
     xmlRoot.append_attribute(CLASS) = SHADER_FRAGMENT;
     xmlRoot.append_attribute(VERSION) = "1";
 
     pugi::xml_node xmlDescription = xmlRoot.append_child(DESCRIPTION);
     xmlDescription.append_child(pugi::node_cdata).set_value("Code generated from MaterialX description");
-
-    // Create the interface using one of the shaders (interface should be the same)
-    const Shader* shader = glsl != nullptr ? glsl : hlsl;
-    const ShaderStage& stage = shader->getStage(Stage::PIXEL);
 
     // Add properties
     pugi::xml_node xmlProperties = xmlRoot.append_child(PROPERTIES);

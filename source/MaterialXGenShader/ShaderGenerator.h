@@ -188,8 +188,8 @@ class ShaderGenerator
         stage.setFunctionName(functionName);
     }
 
-    /// Replace tokens with real identifiers according to the given map.
-    void replaceIdentifiers(const StringMap& identifiers, ShaderStage& stage) const;
+    /// Replace tokens with identifiers according to the given substitutions map.
+    void replaceTokens(const StringMap& substitutions, ShaderStage& stage) const;
 
   protected:
     static const string SEMICOLON;
@@ -198,6 +198,7 @@ class ShaderGenerator
     SyntaxPtr _syntax;
     Factory<ShaderNodeImpl> _implFactory;
     ColorManagementSystemPtr _colorManagementSystem;
+    StringMap _tokenSubstitutions;
 };
 
 } // namespace MaterialX

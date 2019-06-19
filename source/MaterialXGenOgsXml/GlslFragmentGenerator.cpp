@@ -36,18 +36,18 @@ GlslFragmentGenerator::GlslFragmentGenerator() :
     // Use our custom syntax class
     _syntax = std::make_shared<GlslFragmentSyntax>();
 
-    // Set identifier names to match OGS.
-    _identifiers[HW::POSITION_WORLD]        = "Pw";
-    _identifiers[HW::POSITION_OBJECT]       = "Pm";
-    _identifiers[HW::NORMAL_WORLD]          = "Nw";
-    _identifiers[HW::NORMAL_OBJECT]         = "Nm";
-    _identifiers[HW::TANGENT_WORLD]         = "Tw";
-    _identifiers[HW::TANGENT_OBJECT]        = "Tm";
-    _identifiers[HW::BITANGENT_WORLD]       = "Bw";
-    _identifiers[HW::BITANGENT_OBJECT]      = "Bm";
-    _identifiers[HW::VERTEX_DATA_INSTANCE]  = "PIX_IN";
-    _identifiers[HW::ENV_IRRADIANCE]        = "u_envIrradianceSampler";
-    _identifiers[HW::ENV_RADIANCE]          = "u_envRadianceSampler";
+    // Set identifier names to match OGS naming convention.
+    _tokenSubstitutions[HW::T_POSITION_WORLD]       = "Pw";
+    _tokenSubstitutions[HW::T_POSITION_OBJECT]      = "Pm";
+    _tokenSubstitutions[HW::T_NORMAL_WORLD]         = "Nw";
+    _tokenSubstitutions[HW::T_NORMAL_OBJECT]        = "Nm";
+    _tokenSubstitutions[HW::T_TANGENT_WORLD]        = "Tw";
+    _tokenSubstitutions[HW::T_TANGENT_OBJECT]       = "Tm";
+    _tokenSubstitutions[HW::T_BITANGENT_WORLD]      = "Bw";
+    _tokenSubstitutions[HW::T_BITANGENT_OBJECT]     = "Bm";
+    _tokenSubstitutions[HW::T_VERTEX_DATA_INSTANCE] = "PIX_IN";
+    _tokenSubstitutions[HW::T_ENV_IRRADIANCE]       = "u_envIrradianceSampler";
+    _tokenSubstitutions[HW::T_ENV_RADIANCE]         = "u_envRadianceSampler";
 }
 
 ShaderGeneratorPtr GlslFragmentGenerator::create()
@@ -217,8 +217,8 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     // End function
     emitScopeEnd(stage);
 
-    // Replace all token identifiers with real names
-    replaceIdentifiers(_identifiers, stage);
+    // Replace all tokens with real identifier names
+    replaceTokens(_tokenSubstitutions, stage);
 
     return shader;
 }

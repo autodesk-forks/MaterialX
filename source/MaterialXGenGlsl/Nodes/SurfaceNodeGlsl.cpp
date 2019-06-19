@@ -50,15 +50,15 @@ void SurfaceNodeGlsl::createVariables(const ShaderNode&, GenContext&, Shader& sh
     ShaderStage& vs = shader.getStage(Stage::VERTEX);
     ShaderStage& ps = shader.getStage(Stage::PIXEL);
 
-    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, HW::IN_POSITION, vs);
-    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, HW::IN_NORMAL, vs);
-    addStageUniform(HW::PRIVATE_UNIFORMS, Type::MATRIX44, HW::WORLD_INVERSE_TRANSPOSE_MATRIX, vs);
+    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, HW::T_IN_POSITION, vs);
+    addStageInput(HW::VERTEX_INPUTS, Type::VECTOR3, HW::T_IN_NORMAL, vs);
+    addStageUniform(HW::PRIVATE_UNIFORMS, Type::MATRIX44, HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX, vs);
 
-    addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, HW::POSITION_WORLD, vs, ps);
-    addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, HW::NORMAL_WORLD, vs, ps);
+    addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, HW::T_POSITION_WORLD, vs, ps);
+    addStageConnector(HW::VERTEX_DATA, Type::VECTOR3, HW::T_NORMAL_WORLD, vs, ps);
 
-    addStageUniform(HW::PRIVATE_UNIFORMS, Type::VECTOR3, HW::VIEW_POSITION, ps);
-    ShaderPort* numActiveLights = addStageUniform(HW::PRIVATE_UNIFORMS, Type::INTEGER, HW::NUM_ACTIVE_LIGHT_SOURCES, ps);
+    addStageUniform(HW::PRIVATE_UNIFORMS, Type::VECTOR3, HW::T_VIEW_POSITION, ps);
+    ShaderPort* numActiveLights = addStageUniform(HW::PRIVATE_UNIFORMS, Type::INTEGER, HW::T_NUM_ACTIVE_LIGHT_SOURCES, ps);
     numActiveLights->setValue(Value::createValue<int>(0));
 }
 
@@ -71,17 +71,17 @@ void SurfaceNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& conte
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
         VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
         const string prefix = vertexData.getInstance() + ".";
-        ShaderPort* position = vertexData[HW::POSITION_WORLD];
+        ShaderPort* position = vertexData[HW::T_POSITION_WORLD];
         if (!position->isEmitted())
         {
             position->setEmitted();
             shadergen.emitLine(prefix + position->getVariable() + " = hPositionWorld.xyz", stage);
         }
-        ShaderPort* normal = vertexData[HW::NORMAL_WORLD];
+        ShaderPort* normal = vertexData[HW::T_NORMAL_WORLD];
         if (!normal->isEmitted())
         {
             normal->setEmitted();
-            shadergen.emitLine(prefix + normal->getVariable() + " = normalize((" + HW::WORLD_INVERSE_TRANSPOSE_MATRIX + " * vec4(" + HW::IN_NORMAL + ", 0)).xyz)", stage);
+            shadergen.emitLine(prefix + normal->getVariable() + " = normalize((" + HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX + " * vec4(" + HW::T_IN_NORMAL + ", 0)).xyz)", stage);
         }
     END_SHADER_STAGE(stage, Stage::VERTEX)
 
@@ -116,15 +116,15 @@ void SurfaceNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& conte
         //
 
         shadergen.emitComment("Light loop", stage);
-        shadergen.emitLine("vec3 N = normalize(" + HW::VERTEX_DATA_INSTANCE + "." + HW::NORMAL_WORLD + ")", stage);
-        shadergen.emitLine("vec3 V = normalize(" + HW::VIEW_POSITION + " - " + HW::VERTEX_DATA_INSTANCE + "." + HW::POSITION_WORLD + ")", stage);
+        shadergen.emitLine("vec3 N = normalize(" + HW::T_VERTEX_DATA_INSTANCE + "." + HW::T_NORMAL_WORLD + ")", stage);
+        shadergen.emitLine("vec3 V = normalize(" + HW::T_VIEW_POSITION + " - " + HW::T_VERTEX_DATA_INSTANCE + "." + HW::T_POSITION_WORLD + ")", stage);
         shadergen.emitLine("int numLights = numActiveLightSources()", stage);
         shadergen.emitLine("lightshader lightShader", stage);
         shadergen.emitLine("for (int activeLightIndex = 0; activeLightIndex < numLights; ++activeLightIndex)", stage, false);
 
         shadergen.emitScopeBegin(stage);
 
-        shadergen.emitLine("sampleLightSource(" + HW::LIGHT_DATA_INSTANCE + "[activeLightIndex], " + HW::VERTEX_DATA_INSTANCE + "." + HW::POSITION_WORLD + ", lightShader)", stage);
+        shadergen.emitLine("sampleLightSource(" + HW::T_LIGHT_DATA_INSTANCE + "[activeLightIndex], " + HW::T_VERTEX_DATA_INSTANCE + "." + HW::T_POSITION_WORLD + ", lightShader)", stage);
         shadergen.emitLine("vec3 L = lightShader.direction", stage);
         shadergen.emitLineBreak(stage);
 

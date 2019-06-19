@@ -229,12 +229,19 @@ string ShaderGenerator::getUpstreamResult(const ShaderInput* input, GenContext& 
 
 void ShaderGenerator::resetIdentifiers(GenContext& context) const
 {
-    // Clear any previous identifiers and add in the restricted names
-    // as already taken names.
+    // Clear any previous identifiers.
     context.clearIdentifiers();
+
+    // Add in the restricted names as taken names.
     for (auto name : _syntax->getRestrictedNames())
     {
         context.addIdentifier(name);
+    }
+
+    // Add in the token substitution identifiers as taken names
+    for (auto it : _tokenSubstitutions)
+    {
+        context.addIdentifier(it.second);
     }
 }
 
@@ -293,33 +300,33 @@ bool ShaderGenerator::remapEnumeration(const ValueElement&, const string&, std::
 
 namespace
 {
-    void replace(const StringMap& identifiers, ShaderPort* port)
+    void replace(const StringMap& substitutions, ShaderPort* port)
     {
         string name = port->getName();
-        tokenSubstitution(identifiers, name);
+        tokenSubstitution(substitutions, name);
         port->setName(name);
         string variable = port->getVariable();
-        tokenSubstitution(identifiers, variable);
+        tokenSubstitution(substitutions, variable);
         port->setVariable(variable);
     }
 }
 
-void ShaderGenerator::replaceIdentifiers(const StringMap& identifiers, ShaderStage& stage) const
+void ShaderGenerator::replaceTokens(const StringMap& substitutions, ShaderStage& stage) const
 {
-    // Replace identifiers in source code
-    tokenSubstitution(identifiers, stage._code);
+    // Replace tokens in source code
+    tokenSubstitution(substitutions, stage._code);
 
-    // Replace identifiers on shader interface
+    // Replace tokens on shader interface
     for (size_t i = 0; i < stage._constants.size(); ++i)
     {
-        replace(identifiers, stage._constants[i]);
+        replace(substitutions, stage._constants[i]);
     }
     for (auto it : stage._uniforms)
     {
         VariableBlock& uniforms = *it.second;
         for (size_t i = 0; i < uniforms.size(); ++i)
         {
-            replace(identifiers, uniforms[i]);
+            replace(substitutions, uniforms[i]);
         }
     }
     for (auto it : stage._inputs)
@@ -327,7 +334,7 @@ void ShaderGenerator::replaceIdentifiers(const StringMap& identifiers, ShaderSta
         VariableBlock& inputs = *it.second;
         for (size_t i = 0; i < inputs.size(); ++i)
         {
-            replace(identifiers, inputs[i]);
+            replace(substitutions, inputs[i]);
         }
     }
     for (auto it : stage._outputs)
@@ -335,7 +342,7 @@ void ShaderGenerator::replaceIdentifiers(const StringMap& identifiers, ShaderSta
         VariableBlock& outputs = *it.second;
         for (size_t i = 0; i < outputs.size(); ++i)
         {
-            replace(identifiers, outputs[i]);
+            replace(substitutions, outputs[i]);
         }
     }
 }

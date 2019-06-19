@@ -67,11 +67,11 @@ const string& TransformVectorNodeGlsl::getMatrix(const string& fromSpace, const 
 {
     if ((fromSpace == MODEL || fromSpace == OBJECT) && toSpace == WORLD)
     {
-        return HW::WORLD_MATRIX;
+        return HW::T_WORLD_MATRIX;
     }
     else if (fromSpace == WORLD && (toSpace == MODEL || toSpace == OBJECT))
     {
-        return HW::WORLD_INVERSE_MATRIX;
+        return HW::T_WORLD_INVERSE_MATRIX;
     }
     return EMPTY_STRING;
 }
