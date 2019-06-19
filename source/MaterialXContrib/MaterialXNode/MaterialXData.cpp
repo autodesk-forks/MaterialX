@@ -3,21 +3,25 @@
 #include "Util.h"
 
 #include <MaterialXFormat/XmlIo.h>
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+//#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
 #include <MaterialXGenShader/Util.h>
 
 #include <maya/MViewport2Renderer.h>
 #include <maya/MFragmentManager.h>
 
 MaterialXData::MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath)
-    : _genContext(MaterialX::GlslShaderGenerator::create())
+    : _shaderGenerator(MaterialX::GlslFragmentGenerator::create()),
+      _genContext(_shaderGenerator)
 {
+    // This should be settable instead of hard-coded.
     _librarySearchPath = Plugin::instance().getLibrarySearchPath();
     setData(materialXDocumentPath, elementPath);
 }
 
 bool MaterialXData::setData(const std::string& materialXDocument, const std::string& elementPath)
 {
+    clearXML();
     createDocument(materialXDocument);
     if (_document)
     {
@@ -34,27 +38,27 @@ MaterialXData::~MaterialXData()
 
 const std::string& MaterialXData::getFragmentName() const
 {
-    return _xmlFragmentWrapper.getFragmentName();
+    return _fragmentName;
 }
 
-void MaterialXData::getXML(std::ostream& stream) const
+const std::string& MaterialXData::getFragmentWrapper() const
 {
-    _xmlFragmentWrapper.getXML(stream);
+    return _fragmentWrapper;
 }
 
-const MaterialX::StringVec&  MaterialXData::getGlobalsList() const
+const MaterialX::StringVec& MaterialXData::getGlobalsList() const
 {
-    return _xmlFragmentWrapper.getGlobalsList();
+    return _globalsList;
 }
 
 const MaterialX::StringMap& MaterialXData::getPathInputMap() const
 {
-    return _xmlFragmentWrapper.getPathInputMap();
+    return _pathInputMap;
 }
 
 const MaterialX::StringMap& MaterialXData::getPathOutputMap() const
 {
-    return _xmlFragmentWrapper.getPathOutputMap();
+    return _pathOutputMap;
 }
 
 void MaterialXData::createDocument(const std::string& materialXDocumentPath)
@@ -75,8 +79,20 @@ bool MaterialXData::elementIsAShader() const
     return (_element ? _element->isA<MaterialX::ShaderRef>() : false);
 }
 
+void MaterialXData::clearXML()
+{
+    _pathInputMap.clear();
+    _pathOutputMap.clear();
+    _globalsList.clear();
+    _fragmentName.clear();
+    _fragmentWrapper.clear();
+}
+
 void MaterialXData::generateXML()
 {
+    // Reset cached data
+    clearXML();
+
     if (!_element)
     {
         return;
@@ -105,49 +121,124 @@ void MaterialXData::generateXML()
     _genContext.getOptions().hwMaxActiveLightSources = 0;
     // For Maya we need to insert a V-flip fragment
     _genContext.getOptions().fileTextureVerticalFlip = true;
-    // We do not reuqire vertex shader output to XML    
-    _xmlFragmentWrapper.setOutputVertexShader(false);
 
-    // Generator XML wrapper
-    // TODO: Determine what is a suitable unique name for VP2 fragments using
-    // this as a starting identifier.
+    // Generate shader and put into XML wrapper.
     const std::string shaderName(_element->getName());
-    _xmlFragmentWrapper.generate(shaderName, _element, _genContext);
+    MaterialX::ShaderPtr shader = _shaderGenerator->generate(shaderName, _element, _genContext);
+    if (shader)
+    {
+        std::stringstream stream;
+        _generator.generate(shader.get(), nullptr, stream);
+        _fragmentWrapper = stream.str();
+        if (_fragmentWrapper.empty())
+        {
+            return;
+        }
+
+        const MaterialX::ShaderStage& ps = shader->getStage(MaterialX::Stage::PIXEL);
+
+        // Cache global parameters
+        for (auto uniformsIt : ps.getUniformBlocks())
+        {
+            const MaterialX::VariableBlock& uniforms = *uniformsIt.second;
+
+            // Skip light uniforms
+            if (uniforms.getName() == MaterialX::HW::LIGHT_DATA)
+            {
+                continue;
+            }
+
+            //bool isPrivate = uniforms.getName() == MaterialX::HW::PRIVATE_UNIFORMS;
+            for (size_t i = 0; i < uniforms.size(); i++)
+            {
+                const MaterialX::ShaderPort* port = uniforms[i];
+                if (!port)
+                {
+                    continue;
+                }
+                const std::string& name = port->getName();
+                if (name.empty())
+                {
+                    continue;
+                }
+                const std::string& path = port->getPath();
+                // Globals have no path
+                if (path.empty())
+                {
+                    std::cout << "Add input globals name: " << name << std::endl;
+                    _globalsList.push_back(name);
+                }
+                else
+                {
+                    std::cout << "Add path: " << path << ". Frag name: " << name << std::endl;
+                    _pathInputMap[path] = name;
+                }
+            }
+        }
+
+        // Cache output parameters
+        for (auto uniformsIt : ps.getOutputBlocks())
+        {
+            const MaterialX::VariableBlock& uniforms = *uniformsIt.second;
+            for (size_t i = 0; i < uniforms.size(); ++i)
+            {
+                const MaterialX::ShaderPort* v = uniforms[i];
+                std::string name = v->getVariable();
+                std::string path = v->getPath();
+                if (name.empty() || path.empty())
+                {
+                    continue;
+                }
+                std::cout << "Add output path: " << path << ". Frag name: " << name << std::endl;
+                _pathOutputMap[path] = name;
+            }
+        }
+    }
 }
 
 // TODO: This does not belong here. To migrate out to another class.
 void MaterialXData::registerFragments(const std::string& ogsXmlPath)
 {
-    // Register fragments with the manager if needed
-    //	
-    if (MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer())
+    MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
+    MHWRender::MFragmentManager* fragmentManager = theRenderer ? theRenderer->getFragmentManager() : nullptr;
+    if (!fragmentManager)
     {
-        if (MHWRender::MFragmentManager* fragmentMgr = theRenderer->getFragmentManager())
+        return;
+    }
+        
+    // TODO: This should not be hard-coded
+    std::string dumpPath("d:/work/shader_dump/");
+    MaterialX::FileSearchPath path = MaterialX::getEnvironmentPath("TEMP");
+    if (path.size() > 0)
+    {
+        dumpPath = path[0].asString();
+    }
+    fragmentManager->setEffectOutputDirectory(dumpPath.c_str());
+    fragmentManager->setIntermediateGraphOutputDirectory(dumpPath.c_str());
+
+    // Register fragments with the manager if needed
+    const std::string& fragmentString = getFragmentWrapper();
+    const std::string& fragmentName = getFragmentName();
+    if (fragmentName.empty() || fragmentString.empty())
+    {
+        return;
+    }
+
+    const bool fragmentExists = fragmentManager->hasFragment(fragmentName.c_str());
+    if (!fragmentExists)
+    {
+        // XML should come from here. For now allow to get from a input path
+        MString fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
+        if (fragmentNameM.length() == 0)
         {
-            const bool fragmentExists = (getFragmentName().size() > 0)
-                && fragmentMgr->hasFragment(getFragmentName().c_str());
-
-            if (!fragmentExists)
+            // TODO: This should be a fallback fragment.
+            if (!ogsXmlPath.empty())
             {
-                // XML should come from here. For now allow to get from a input path
-                // std::stringstream glslStream;
-                // getXML(glslStream);
                 std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
-
-                // TODO: This should not be hard-coded
-                std::string dumpPath("d:/work/shader_dump/");
-                MaterialX::FileSearchPath path = MaterialX::getEnvironmentPath("TEMP");
-                if (path.size() > 0)
+                fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
+                if (fragmentNameM.length() == 0)
                 {
-                    dumpPath = path[0].asString();
-                }
-                fragmentMgr->setEffectOutputDirectory(dumpPath.c_str());
-                fragmentMgr->setIntermediateGraphOutputDirectory(dumpPath.c_str());
-                MString fragmentName = fragmentMgr->addShadeFragmentFromFile(xmlFileName.c_str(), false);
-
-                if (fragmentName.length() == 0)
-                {
-                    throw MaterialX::Exception("Failed to add OGS shader fragment from file.");
+                    throw MaterialX::Exception("Failed to add OGS shader fragment." + getFragmentName());
                 }
             }
         }

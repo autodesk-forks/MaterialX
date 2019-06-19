@@ -6,7 +6,9 @@
 
 #include <MaterialXCore/Document.h>
 #include <MaterialXGenShader/GenContext.h>
-#include <MaterialXContrib/OGSXMLFragmentWrapper.h>
+//#include <MaterialXContrib/OGSXMLFragmentWrapper.h>
+#include <MaterialXGenOgsXml/OgsXmlGenerator.h>
+#include <MaterialXGenShader/Shader.h>
 
 /// @class MaterialXData
 /// Wrapper for MaterialX associated data. 
@@ -52,18 +54,18 @@ struct MaterialXData
     }
 
     /// Return XML string
-    void getXML(std::ostream& stream) const;
+    const std::string& getFragmentWrapper() const;
 
     /// Return name of shader fragment
     const std::string& getFragmentName() const;
 
-    /// Get list of global inputs which are not associated with any Element
-    const MaterialX::StringVec&  getGlobalsList() const;
+    /// Get list of XML global inputs which are not associated with any Element
+    const MaterialX::StringVec& getGlobalsList() const;
 
-    /// Get list of Element paths and corresponding fragment input names
+    /// Get list of Element paths and corresponding XML input names
     const MaterialX::StringMap& getPathInputMap() const;
 
-    /// Get list of Element paths and corresponding fragment output names
+    /// Get list of Element paths and corresponding XML output names
     /// If the output is a ShaderRef then the path is to that element
     /// as there are no associated child output Elements.
     const MaterialX::StringMap& getPathOutputMap() const;
@@ -75,7 +77,10 @@ struct MaterialXData
   protected:
     /// Returns whether the element is renderable
     bool isRenderable();
+
     void createDocument(const std::string& materialXDocument);
+
+    void clearXML();
 
   private:
     // Reference document and element
@@ -84,8 +89,24 @@ struct MaterialXData
     MaterialX::ElementPtr _element;
 
     // TODO: This is currently a prototype interface
+    MaterialX::ShaderGeneratorPtr _shaderGenerator;
     MaterialX::GenContext _genContext;
-    MaterialX::OGSXMLFragmentWrapper _xmlFragmentWrapper;
+    MaterialX::OgsXmlGenerator _generator;
+
+    // XML fragment name
+    std::string _fragmentName;
+
+    // XML fragment wrapper
+    std::string _fragmentWrapper;
+
+    // List of XML globals which are not associated with any Element.
+    MaterialX::StringVec _globalsList;
+
+    // Mapping from MaterialX Element paths to XML input names
+    MaterialX::StringMap _pathInputMap;
+
+    // Mapping from MaterialX Element paths to XML output names
+    MaterialX::StringMap _pathOutputMap;
 };
 
 #endif // MATERIALX_DATA_H
