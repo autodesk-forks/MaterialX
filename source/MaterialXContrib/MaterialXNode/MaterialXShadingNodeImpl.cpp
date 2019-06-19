@@ -23,9 +23,60 @@
 
 namespace
 {
+    struct Vp2TextureDeleter
+    {
+        void operator () (MHWRender::MTexture* texture)
+        {
+            if (!texture)
+            {
+                return;
+            }
+
+            MHWRender::MRenderer* const renderer = MRenderer::theRenderer();
+            if (!renderer)
+            {
+                return;
+            }
+
+            MHWRender::MTextureManager* const
+                textureMgr = renderer->getTextureManager();
+
+            if (!textureMgr)
+            {
+                return;
+            }
+
+            textureMgr->releaseTexture(texture);
+        };
+    };
+
+    using VP2TextureUniquePtr = std::unique_ptr<
+        MHWRender::MTexture,
+        Vp2TextureDeleter
+    >;
+
+    struct Vp2SamplerDeleter
+    {
+        void operator () (const MHWRender::MSamplerState* sampler)
+        {
+            if (sampler)
+            {
+                MHWRender::MStateManager::releaseSamplerState(sampler);
+            }
+        };
+    };
+
+    using Vp2SamplerUniquePtr = std::unique_ptr<
+        const MHWRender::MSamplerState,
+        Vp2SamplerDeleter
+    >;
+
     // This should be a shared utility
-    MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& parameterName,
-        const MaterialX::FileSearchPath& searchPath, const std::string& fileName,
+    MStatus bindFileTexture(
+        MHWRender::MShaderInstance& shader,
+        const std::string& parameterName,
+        const MaterialX::FileSearchPath& searchPath,
+        const std::string& fileName,
         const MHWRender::MSamplerStateDesc& samplerDescription,
         MHWRender::MTextureDescription& textureDescription
     )
@@ -43,18 +94,18 @@ namespace
                 MHWRender::MTextureManager* textureManager = renderer->getTextureManager();
                 if (textureManager)
                 {
-                    MHWRender::MTexture* texture = textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str());
+                    VP2TextureUniquePtr texture(
+                        textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str())
+                    );
+
                     if (texture)
                     {
                         MHWRender::MTextureAssignment textureAssignment;
-                        textureAssignment.texture = texture;
+                        textureAssignment.texture = texture.get();
                         status = shader.setParameter(parameterName.c_str(), textureAssignment);
 
                         // Get back the texture description
                         texture->textureDescription(textureDescription);
-
-                        // release our reference now that it is set on the shader
-                        textureManager->releaseTexture(texture);
                     }
                 }
             }
@@ -64,7 +115,7 @@ namespace
         // the MaterialX sampler state.
         const std::string SAMPLE_PREFIX_STRING("Sampler");
         std::string samplerParameterName(parameterName + SAMPLE_PREFIX_STRING);
-        const MSamplerState* samplerState = MHWRender::MStateManager::acquireSamplerState(samplerDescription);
+        Vp2SamplerUniquePtr samplerState{ MHWRender::MStateManager::acquireSamplerState(samplerDescription) };
         if (samplerState)
         {
             status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
@@ -93,7 +144,7 @@ namespace
 
         // Bind globals which are not associated with any document elements
         MStatus status;
-        for (auto global : globals)
+        for (const auto& global : globals)
         {
             // Set irradiance map
             MHWRender::MTextureDescription textureDescription;
@@ -101,7 +152,7 @@ namespace
             {
                 if (parameterList.indexOf(global.c_str()) >= 0)
                 {
-                    status = bindFileTexture(shader, global, imageSearchPath, envIrradiancePath,
+                    status = ::bindFileTexture(shader, global, imageSearchPath, envIrradiancePath,
                         samplerDescription, textureDescription);
                 }
             }
@@ -111,8 +162,9 @@ namespace
             {
                 if (parameterList.indexOf(global.c_str()) >= 0)
                 {
-                    status = bindFileTexture(shader, global, imageSearchPath, envRadiancePath,
+                    status = ::bindFileTexture(shader, global, imageSearchPath, envRadiancePath,
                         samplerDescription, textureDescription);
+
                     if (status == MStatus::kSuccess)
                     {
                         if (parameterList.indexOf(RADIANCE_MIPS_PARAMETER.c_str()) >= 0)
@@ -153,7 +205,6 @@ MaterialXShadingNodeImpl<BASE>::MaterialXShadingNodeImpl(const MObject& obj)
 template <class BASE>
 MaterialXShadingNodeImpl<BASE>::~MaterialXShadingNodeImpl()
 {
-	// TODO: Free sampler state here!
 }
 
 template <class BASE>
