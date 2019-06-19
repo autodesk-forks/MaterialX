@@ -1,9 +1,6 @@
 #ifndef MaterialXShadingNodeImpl_H
 #define MaterialXShadingNodeImpl_H
 
-#include "../OGSXMLFragmentWrapper.h"
-
-#include <MaterialXCore/Document.h>
 #include <maya/MViewport2Renderer.h>
 
 template <class BASE>
@@ -25,7 +22,7 @@ class MaterialXShadingNodeImpl : public BASE
         const MHWRender::MAttributeParameterMappingList&
     ) override;
 
-    bool valueChangeRequiresFragmentRebuild(const MPlug* /*plug*/) const override
+    bool valueChangeRequiresFragmentRebuild(const MPlug*) const override
     {
         return false;
     }
@@ -36,9 +33,9 @@ class MaterialXShadingNodeImpl : public BASE
   private:
     MaterialXShadingNodeImpl(const MObject&);
 
-	MObject _object;
+    MObject _object;
 
-    // Is editing allowed
+    // Is editing allowed?
     bool _enableEditing = false;
 };
 

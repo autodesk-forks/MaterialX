@@ -1,8 +1,6 @@
 #ifndef MaterialXTextureOverride_H
 #define MaterialXTextureOverride_H
 
-#include "../OGSXMLFragmentWrapper.h"
-#include <MaterialXCore/Document.h>
 #include "MaterialXShadingNodeImpl.h"
 
 #include <maya/MPxShadingNodeOverride.h>

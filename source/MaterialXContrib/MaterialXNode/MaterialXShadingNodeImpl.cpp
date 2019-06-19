@@ -2,203 +2,191 @@
 
 #include "MaterialXNode.h"
 #include "Plugin.h"
-#include "Util.h"
 
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
-#include <MaterialXGenShader/HwShaderGenerator.h>
-#include <MaterialXGenShader/GenContext.h>
-#include <MaterialXGenShader/Util.h>
-#include <MaterialXFormat/XmlIo.h>
-#include <MaterialXRender/StbImageLoader.h>
-
-#include <maya/MFnDependencyNode.h>
-#include <maya/MFragmentManager.h>
-#include <maya/MRenderUtil.h>
 #include <maya/MShaderManager.h>
 #include <maya/MTextureManager.h>
 #include <maya/MPxShadingNodeOverride.h>
 #include <maya/MPxSurfaceShadingNodeOverride.h>
 
-#include <fstream>
-
 namespace
 {
-    struct Vp2TextureDeleter
+struct Vp2TextureDeleter
+{
+    void operator () (MHWRender::MTexture* texture)
     {
-        void operator () (MHWRender::MTexture* texture)
+        if (!texture)
         {
-            if (!texture)
-            {
-                return;
-            }
+            return;
+        }
 
-            MHWRender::MRenderer* const renderer = MRenderer::theRenderer();
-            if (!renderer)
-            {
-                return;
-            }
+        MHWRender::MRenderer* const renderer = MRenderer::theRenderer();
+        if (!renderer)
+        {
+            return;
+        }
 
-            MHWRender::MTextureManager* const
-                textureMgr = renderer->getTextureManager();
+        MHWRender::MTextureManager* const
+            textureMgr = renderer->getTextureManager();
 
-            if (!textureMgr)
-            {
-                return;
-            }
+        if (!textureMgr)
+        {
+            return;
+        }
 
-            textureMgr->releaseTexture(texture);
-        };
+        textureMgr->releaseTexture(texture);
     };
+};
 
-    using VP2TextureUniquePtr = std::unique_ptr<
-        MHWRender::MTexture,
-        Vp2TextureDeleter
-    >;
+using VP2TextureUniquePtr = std::unique_ptr<
+    MHWRender::MTexture,
+    Vp2TextureDeleter
+>;
 
-    struct Vp2SamplerDeleter
+struct Vp2SamplerDeleter
+{
+    void operator () (const MHWRender::MSamplerState* sampler)
     {
-        void operator () (const MHWRender::MSamplerState* sampler)
+        if (sampler)
         {
-            if (sampler)
-            {
-                MHWRender::MStateManager::releaseSamplerState(sampler);
-            }
-        };
+            MHWRender::MStateManager::releaseSamplerState(sampler);
+        }
     };
+};
 
-    using Vp2SamplerUniquePtr = std::unique_ptr<
-        const MHWRender::MSamplerState,
-        Vp2SamplerDeleter
-    >;
+using Vp2SamplerUniquePtr = std::unique_ptr<
+    const MHWRender::MSamplerState,
+    Vp2SamplerDeleter
+>;
 
-    // This should be a shared utility
-    MStatus bindFileTexture(
-        MHWRender::MShaderInstance& shader,
-        const std::string& parameterName,
-        const MaterialX::FileSearchPath& searchPath,
-        const std::string& fileName,
-        const MHWRender::MSamplerStateDesc& samplerDescription,
-        MHWRender::MTextureDescription& textureDescription
-    )
+// This should be a shared utility
+MStatus bindFileTexture(
+    MHWRender::MShaderInstance& shader,
+    const std::string& parameterName,
+    const MaterialX::FileSearchPath& searchPath,
+    const std::string& fileName,
+    const MHWRender::MSamplerStateDesc& samplerDescription,
+    MHWRender::MTextureDescription& textureDescription
+)
+{
+    MStatus status = MStatus::kFailure;
+
+    // Bind file texture
+    MaterialX::FilePath imagePath = searchPath.find(fileName);
+    bool imageFound = imagePath.exists();
+    if (imageFound)
     {
-        MStatus status = MStatus::kFailure;
-
-        // Bind file texture
-        MaterialX::FilePath imagePath = searchPath.find(fileName);
-        bool imageFound = imagePath.exists();
-        if (imageFound)
+        MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+        if (renderer)
         {
-            MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
-            if (renderer)
+            MHWRender::MTextureManager* textureManager = renderer->getTextureManager();
+            if (textureManager)
             {
-                MHWRender::MTextureManager* textureManager = renderer->getTextureManager();
-                if (textureManager)
+                VP2TextureUniquePtr texture(
+                    textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str())
+                );
+
+                if (texture)
                 {
-                    VP2TextureUniquePtr texture(
-                        textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str())
-                    );
+                    MHWRender::MTextureAssignment textureAssignment;
+                    textureAssignment.texture = texture.get();
+                    status = shader.setParameter(parameterName.c_str(), textureAssignment);
 
-                    if (texture)
+                    // Get back the texture description
+                    texture->textureDescription(textureDescription);
+                }
+            }
+        }
+    }
+
+    // Bind sampler. This is not correct as it's not taking into account
+    // the MaterialX sampler state.
+    const std::string SAMPLE_PREFIX_STRING("Sampler");
+    std::string samplerParameterName(parameterName + SAMPLE_PREFIX_STRING);
+    Vp2SamplerUniquePtr samplerState{ MHWRender::MStateManager::acquireSamplerState(samplerDescription) };
+    if (samplerState)
+    {
+        status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
+    }
+
+    return status;
+}
+
+// This should be a shared utility
+void bindEnvironmentLighting(
+    MHWRender::MShaderInstance& shader,
+    const MaterialX::StringVec& globals,
+    const MStringArray parameterList,
+    const MaterialX::FileSearchPath imageSearchPath,
+    const std::string& envRadiancePath,
+    const std::string& envIrradiancePath
+)
+{
+    static std::string IRRADIANCE_PARAMETER("u_envIrradiance");
+    static std::string RADIANCE_PARAMETER("u_envRadiance");
+    static std::string RADIANCE_MIPS_PARAMETER("u_envRadianceMips");
+    static std::string ENVIRONMENT_MATRIX_PARAMETER("u_envMatrix");
+
+    MHWRender::MSamplerStateDesc samplerDescription;
+    samplerDescription.filter = MHWRender::MSamplerState::kAnisotropic;
+    samplerDescription.maxAnisotropy = 16;
+
+    // Bind globals which are not associated with any document elements
+    MStatus status;
+    for (const auto& global : globals)
+    {
+        // Set irradiance map
+        MHWRender::MTextureDescription textureDescription;
+        if (global == IRRADIANCE_PARAMETER)
+        {
+            if (parameterList.indexOf(global.c_str()) >= 0)
+            {
+                status = ::bindFileTexture(shader, global, imageSearchPath, envIrradiancePath,
+                    samplerDescription, textureDescription);
+            }
+        }
+
+        // Set radiance map
+        else if (global == RADIANCE_PARAMETER)
+        {
+            if (parameterList.indexOf(global.c_str()) >= 0)
+            {
+                status = ::bindFileTexture(shader, global, imageSearchPath, envRadiancePath,
+                    samplerDescription, textureDescription);
+
+                if (status == MStatus::kSuccess)
+                {
+                    if (parameterList.indexOf(RADIANCE_MIPS_PARAMETER.c_str()) >= 0)
                     {
-                        MHWRender::MTextureAssignment textureAssignment;
-                        textureAssignment.texture = texture.get();
-                        status = shader.setParameter(parameterName.c_str(), textureAssignment);
-
-                        // Get back the texture description
-                        texture->textureDescription(textureDescription);
+                        int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
+                        status = shader.setParameter(global.c_str(), mipCount);
                     }
                 }
             }
         }
 
-        // Bind sampler. This is not correct as it's not taking into account
-        // the MaterialX sampler state.
-        const std::string SAMPLE_PREFIX_STRING("Sampler");
-        std::string samplerParameterName(parameterName + SAMPLE_PREFIX_STRING);
-        Vp2SamplerUniquePtr samplerState{ MHWRender::MStateManager::acquireSamplerState(samplerDescription) };
-        if (samplerState)
+        // Environment matrix
+        else if (global == ENVIRONMENT_MATRIX_PARAMETER)
         {
-            status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
-        }
-
-        return status;
-    }
-
-    // This should be a shared utility
-    void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
-        const MaterialX::StringVec& globals,
-        const MStringArray parameterList,
-        const MaterialX::FileSearchPath imageSearchPath,
-        const std::string& envRadiancePath,
-        const std::string& envIrradiancePath
-    )
-    {
-        static std::string IRRADIANCE_PARAMETER("u_envIrradiance");
-        static std::string RADIANCE_PARAMETER("u_envRadiance");
-        static std::string RADIANCE_MIPS_PARAMETER("u_envRadianceMips");
-        static std::string ENVIRONMENT_MATRIX_PARAMETER("u_envMatrix");
-
-        MHWRender::MSamplerStateDesc samplerDescription;
-        samplerDescription.filter = MHWRender::MSamplerState::kAnisotropic;
-        samplerDescription.maxAnisotropy = 16;
-
-        // Bind globals which are not associated with any document elements
-        MStatus status;
-        for (const auto& global : globals)
-        {
-            // Set irradiance map
-            MHWRender::MTextureDescription textureDescription;
-            if (global == IRRADIANCE_PARAMETER)
+            if (parameterList.indexOf(global.c_str()) >= 0)
             {
-                if (parameterList.indexOf(global.c_str()) >= 0)
-                {
-                    status = ::bindFileTexture(shader, global, imageSearchPath, envIrradiancePath,
-                        samplerDescription, textureDescription);
-                }
-            }
-
-            // Set radiance map
-            else if (global == RADIANCE_PARAMETER)
-            {
-                if (parameterList.indexOf(global.c_str()) >= 0)
-                {
-                    status = ::bindFileTexture(shader, global, imageSearchPath, envRadiancePath,
-                        samplerDescription, textureDescription);
-
-                    if (status == MStatus::kSuccess)
-                    {
-                        if (parameterList.indexOf(RADIANCE_MIPS_PARAMETER.c_str()) >= 0)
-                        {
-                            int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
-                            status = shader.setParameter(global.c_str(), mipCount);
-                        }
-                    }
-                }
-            }
-
-            // Environment matrix
-            else if (global == ENVIRONMENT_MATRIX_PARAMETER)
-            {
-                if (parameterList.indexOf(global.c_str()) >= 0)
-                {
-                    const float yRotationPI[4][4]{
-                        -1, 0, 0, 0,
-                        0, 1, 0, 0,
-                        0, 0, -1, 0,
-                        0, 0, 0, 1
-                    };
-                    MFloatMatrix matrix(yRotationPI);
-                    status = shader.setParameter(global.c_str(), matrix);
-                }
+                const float yRotationPI[4][4]{
+                    -1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, -1, 0,
+                    0, 0, 0, 1
+                };
+                MFloatMatrix matrix(yRotationPI);
+                status = shader.setParameter(global.c_str(), matrix);
             }
         }
     }
+}
 } // anonymous namespace
 
 template <class BASE>
 MaterialXShadingNodeImpl<BASE>::MaterialXShadingNodeImpl(const MObject& obj)
-	: BASE(obj)
-	, _object(obj)
+    : BASE(obj)
+    , _object(obj)
 {
 }
 
@@ -211,9 +199,9 @@ template <class BASE>
 MString
 MaterialXShadingNodeImpl<BASE>::fragmentName() const
 {
-	MStatus status;
-	MFnDependencyNode depNode(_object, &status);
-	const auto* const node = dynamic_cast<MaterialXNode*>(depNode.userNode());
+    MStatus status;
+    MFnDependencyNode depNode(_object, &status);
+    const auto* const node = dynamic_cast<MaterialXNode*>(depNode.userNode());
     const MaterialXData* const data = node ? node->materialXData.get() : nullptr;
     return data ? data->getFragmentName().c_str() : "";
 }
@@ -238,7 +226,7 @@ MaterialXShadingNodeImpl<BASE>::updateShader(
         return;
     }
 
-    // Get the parameter list fo checking against.
+    // Get the parameter list for checking against.
     MStringArray parameterList;    
     shader.parameterList(parameterList);
 
@@ -257,10 +245,10 @@ MaterialXShadingNodeImpl<BASE>::updateShader(
                             envRadiancePath, envIrradiancePath);
 
     MaterialX::DocumentPtr document = node->materialXData->getDocument();
-	const MaterialX::StringMap& inputs = node->materialXData->getPathInputMap();
+    const MaterialX::StringMap& inputs = node->materialXData->getPathInputMap();
 
-	for (const std::pair<std::string, std::string>& input : inputs)
-	{		
+    for (const std::pair<std::string, std::string>& input : inputs)
+    {
         MaterialX::ElementPtr element = document->getDescendant(input.first);
         if (!element)
         {
@@ -282,7 +270,7 @@ MaterialXShadingNodeImpl<BASE>::updateShader(
         }
             
         if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)
-		{
+        {
             // This is the hard-coded OGS convention to associate a texture with a sampler (via post-fix "Sampler" string)
             std::string textureParameterName(resolvedName.asChar());
 
@@ -301,7 +289,7 @@ MaterialXShadingNodeImpl<BASE>::updateShader(
                 status = ::bindFileTexture(shader, textureParameterName, imageSearchPath, valueString, 
                                             samplerDescription, textureDescription);
             }
-		}
+        }
 
         // This is unnecessary overhead if we are read-only. Updates should be based on whats
         // dirty and not everything. There are a lot of attributes on shader graph and this is
@@ -312,48 +300,48 @@ MaterialXShadingNodeImpl<BASE>::updateShader(
         }
 
         if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
-		{
-			MaterialX::Vector2 vector2 = valueElement->getValue()->asA<MaterialX::Vector2>();
-			MFloatVector floatVector(vector2[0], vector2[1]);
-			status = shader.setParameter(resolvedName, floatVector);
-		}
-		else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
-		{
-			MaterialX::Vector3 vector3 = valueElement->getValue()->asA<MaterialX::Vector3>();
-			MFloatVector floatVector(vector3[0], vector3[1], vector3[2]);
-			status = shader.setParameter(resolvedName, floatVector);
-		}
-		else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
-		{
-//				MaterialX::Vector4 vector4 = valueElement->getValue()->asA<MaterialX::Vector4>();
-//				MFloatVector floatVector(vector4[0], vector4[1], vector4[2], vector4[3]);
-//				status = shader.setParameter(resolvedName, floatVector);
-//				std::cout << "updateShader (vector4): " << resolvedName << ". Status: " << status << std::endl;
-		}
-		else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
-		{
-			MaterialX::Color2 color2 = valueElement->getValue()->asA<MaterialX::Color2>();
-			MFloatVector floatVector(color2[0], color2[1]);
-			status = shader.setParameter(resolvedName, floatVector);
+        {
+            MaterialX::Vector2 vector2 = valueElement->getValue()->asA<MaterialX::Vector2>();
+            MFloatVector floatVector(vector2[0], vector2[1]);
+            status = shader.setParameter(resolvedName, floatVector);
         }
-		else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
-		{
-			MaterialX::Color3 color3 = valueElement->getValue()->asA<MaterialX::Color3>();
-			MFloatVector floatVector(color3[0], color3[1], color3[2]);
-			status = shader.setParameter(resolvedName, floatVector);
+        else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
+        {
+            MaterialX::Vector3 vector3 = valueElement->getValue()->asA<MaterialX::Vector3>();
+            MFloatVector floatVector(vector3[0], vector3[1], vector3[2]);
+            status = shader.setParameter(resolvedName, floatVector);
         }
-		else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
-		{
-//				MaterialX::Color4 color4 = valueElement->getValue()->asA<MaterialX::Color4>();
-//                status = shader.setArrayParameter(resolvedName, color4.data(), 4);
-//                std::cout << "updateShader (color4): " << resolvedName << std::endl;
+        else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
+        {
+            //				MaterialX::Vector4 vector4 = valueElement->getValue()->asA<MaterialX::Vector4>();
+            //				MFloatVector floatVector(vector4[0], vector4[1], vector4[2], vector4[3]);
+            //				status = shader.setParameter(resolvedName, floatVector);
+            //				std::cout << "updateShader (vector4): " << resolvedName << ". Status: " << status << std::endl;
         }
-		else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Matrix44>::TYPE)
-		{
-			MaterialX::Matrix44 mat44 = valueElement->getValue()->asA<MaterialX::Matrix44>();
+        else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
+        {
+            MaterialX::Color2 color2 = valueElement->getValue()->asA<MaterialX::Color2>();
+            MFloatVector floatVector(color2[0], color2[1]);
+            status = shader.setParameter(resolvedName, floatVector);
+        }
+        else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
+        {
+            MaterialX::Color3 color3 = valueElement->getValue()->asA<MaterialX::Color3>();
+            MFloatVector floatVector(color3[0], color3[1], color3[2]);
+            status = shader.setParameter(resolvedName, floatVector);
+        }
+        else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
+        {
+            //				MaterialX::Color4 color4 = valueElement->getValue()->asA<MaterialX::Color4>();
+            //                status = shader.setArrayParameter(resolvedName, color4.data(), 4);
+            //                std::cout << "updateShader (color4): " << resolvedName << std::endl;
+        }
+        else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Matrix44>::TYPE)
+        {
+            MaterialX::Matrix44 mat44 = valueElement->getValue()->asA<MaterialX::Matrix44>();
             status = shader.setArrayParameter(resolvedName, mat44.data(), 16);
         }
-	}
+    }
 }
 
 class MaterialXTextureOverride;
