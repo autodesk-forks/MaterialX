@@ -5,6 +5,7 @@
 
 #include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
 #include <MaterialXGenOgsXml/OgsXmlGenerator.h>
+#include <MaterialXGenGlsl/GlslShaderGenerator.h>
 
 #include <MaterialXGenShader/Shader.h>
 
@@ -85,24 +86,28 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     }
 
     bool lighting = graph.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE) ||
-        graph.hasClassification(ShaderNode::Classification::BSDF);
+                    graph.hasClassification(ShaderNode::Classification::BSDF);
+
+    // Emit lighting functions
+    if (lighting)
+    {
+        const VariableBlock& lightData = stage.getUniformBlock(HW::LIGHT_DATA);
+        emitLine("struct " + lightData.getName(), stage, false);
+        emitScopeBegin(stage);
+        emitVariableDeclarations(lightData, EMPTY_STRING, SEMICOLON, context, stage, false);
+        emitScopeEnd(stage, true);
+        emitLineBreak(stage);
+        emitLine("uniform " + lightData.getName() + " " + lightData.getInstance() + "[MAX_LIGHT_SOURCES]", stage);
+        emitLineBreak(stage);
+    }
 
     // Emit common math functions
     emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_math.glsl", context, stage);
     emitLineBreak(stage);
 
-    // Emit lighting functions
     if (lighting)
     {
-        if (context.getOptions().hwSpecularEnvironmentMethod == SPECULAR_ENVIRONMENT_FIS)
-        {
-            emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_fis.glsl", context, stage);
-        }
-        else
-        {
-            emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_prefilter.glsl", context, stage);
-        }
-        emitLineBreak(stage);
+        emitSpecularEnvironment(context, stage);
     }
 
     // Emit sampling code if needed
@@ -245,6 +250,20 @@ void GlslFragmentGenerator::toVec3(const TypeDesc* type, string& variable)
     {
         // Can't understand other types. Just return black.
         variable = "vec3(0.0, 0.0, 0.0)";
+    }
+}
+
+void GlslFragmentGenerator::emitVariableDeclaration(const ShaderPort* variable, const string& qualifier,
+                                                    GenContext& context, ShaderStage& stage,
+                                                    bool assignValue) const
+{
+    if (variable->getType() == Type::FILENAME)
+    {
+        emitString("sampler2D " + variable->getVariable(), stage);
+    }
+    else
+    {
+        GlslShaderGenerator::emitVariableDeclaration(variable, qualifier, context, stage, assignValue);
     }
 }
 

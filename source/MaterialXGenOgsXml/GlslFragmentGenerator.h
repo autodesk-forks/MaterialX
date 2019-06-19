@@ -18,7 +18,7 @@ namespace MaterialX
 /// Syntax class for GLSL fragments.
 class GlslFragmentSyntax : public GlslSyntax
 {
-public:
+  public:
     string getVariableName(const string& name, const TypeDesc* type, GenContext& context) const override;
 };
 
@@ -27,7 +27,7 @@ using GlslFragmentGeneratorPtr = shared_ptr<class GlslFragmentGenerator>;
 /// GLSL shader generator specialized for usage in OGS fragment wrappers.
 class GlslFragmentGenerator : public GlslShaderGenerator
 {
-public:
+  public:
     GlslFragmentGenerator();
 
     static ShaderGeneratorPtr create();
@@ -36,9 +36,12 @@ public:
 
     ShaderPtr generate(const string& name, ElementPtr element, GenContext& context) const override;
 
+    void emitVariableDeclaration(const ShaderPort* variable, const string& qualifier, GenContext& context, ShaderStage& stage,
+                                 bool assignValue = true) const override;
+
     static const string TARGET;
 
-protected:
+  protected:
     static void toVec3(const TypeDesc* type, string& variable);
 };
 

@@ -123,8 +123,10 @@ void MaterialXData::generateXML()
     _genContext.getOptions().fileTextureVerticalFlip = true;
 
     // Generate shader and put into XML wrapper.
-    const std::string shaderName(_element->getName());
-    MaterialX::ShaderPtr shader = _shaderGenerator->generate(shaderName, _element, _genContext);
+    // TODO: Generate unique fragment names
+    _fragmentName = _element->getNamePath();
+    _fragmentName = MaterialX::createValidName(_fragmentName);
+    MaterialX::ShaderPtr shader = _shaderGenerator->generate(_fragmentName, _element, _genContext);
     if (shader)
     {
         std::stringstream stream;
