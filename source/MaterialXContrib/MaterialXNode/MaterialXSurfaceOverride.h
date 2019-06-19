@@ -2,44 +2,21 @@
 #define MaterialXSurfaceOverride_H
 
 #include "../OGSXMLFragmentWrapper.h"
-
 #include <MaterialXCore/Document.h>
+#include "MaterialXShadingNodeImpl.h"
 
 #include <maya/MPxSurfaceShadingNodeOverride.h>
 
 class MaterialXSurfaceOverride
-    : public MHWRender::MPxSurfaceShadingNodeOverride
+    : public MaterialXShadingNodeImpl<MHWRender::MPxSurfaceShadingNodeOverride>
 {
   public:
-	static MHWRender::MPxSurfaceShadingNodeOverride* creator(const MObject&);
+    static MHWRender::MPxSurfaceShadingNodeOverride* creator(const MObject&);
 
-	~MaterialXSurfaceOverride() override;
+    static const MString REGISTRANT_ID, DRAW_CLASSIFICATION;
 
-	MHWRender::DrawAPI supportedDrawAPIs() const override;
-
-	MString fragmentName() const override;
-	//void getCustomMappings(MHWRender::MAttributeParameterMappingList& mappings) override;
-
-	void updateDG() override;
-	void updateShader(MHWRender::MShaderInstance& shader,
-	                  const MHWRender::MAttributeParameterMappingList& mappings) override;
-
-    bool valueChangeRequiresFragmentRebuild(const MPlug* /*plug*/) const override
-    {
-        return false;
-    }
-
-	static const MString REGISTRANT_ID, DRAW_CLASSIFICATION;
-
-private:
-	MaterialXSurfaceOverride(const MObject& obj);
-
-	MaterialX::OGSXMLFragmentWrapper* _glslWrapper;
-	MaterialX::DocumentPtr _document;
-	MString _fragmentName;
-	MString _documentContent;
-	MString _element;
-	MObject _object;
+  private:
+    using MaterialXShadingNodeImpl<MHWRender::MPxSurfaceShadingNodeOverride>::MaterialXShadingNodeImpl;
 };
 
 #endif /* MATERIALX_NODE_OVERRIDE_H */
