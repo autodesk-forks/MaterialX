@@ -7,7 +7,7 @@
 
 #include <maya/MPxShadingNodeOverride.h>
 
-/// VP2 Texture fragment override
+/// VP2 texture shading node override
 class MaterialXTextureOverride
     : public MaterialXShadingNodeImpl<MHWRender::MPxShadingNodeOverride>
 {

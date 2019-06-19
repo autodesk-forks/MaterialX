@@ -7,6 +7,7 @@
 
 #include <maya/MPxSurfaceShadingNodeOverride.h>
 
+/// VP2 surface shading node override
 class MaterialXSurfaceOverride
     : public MaterialXShadingNodeImpl<MHWRender::MPxSurfaceShadingNodeOverride>
 {
@@ -16,7 +17,8 @@ class MaterialXSurfaceOverride
     static const MString REGISTRANT_ID, DRAW_CLASSIFICATION;
 
   private:
+    /// Inheriting the constructor from the base class.
     using MaterialXShadingNodeImpl<MHWRender::MPxSurfaceShadingNodeOverride>::MaterialXShadingNodeImpl;
 };
 
-#endif /* MATERIALX_NODE_OVERRIDE_H */
+#endif
