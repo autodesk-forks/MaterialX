@@ -38,6 +38,8 @@ mark_as_advanced(MATERIALX_PYTHON_OCIO_DIR)
 mark_as_advanced(MATERIALX_PYTHON_PYBIND11_DIR)
 
 # Shading language generation options
+option(MATERIALX_BUILD_GEN_OGSXML "Build the OGSXML shader generator back-end." ON)
+mark_as_advanced(MATERIALX_BUILD_GEN_OGSXML)
 option(MATERIALX_BUILD_GEN_OGSFX "Build the OGSFX shader generator back-end." ON)
 mark_as_advanced(MATERIALX_BUILD_GEN_OGSFX)
 option(MATERIALX_BUILD_GEN_ARNOLD "Build the Arnold OSL shader generator back-end." ON)
@@ -123,6 +125,10 @@ add_subdirectory(source/MaterialXGenShader)
 add_subdirectory(source/MaterialXGenOsl)
 add_subdirectory(source/MaterialXGenGlsl)
 
+if (MATERIALX_BUILD_GEN_OGSXML)
+    add_definitions(-DMATERIALX_BUILD_GEN_OGSXML)
+    add_subdirectory(source/MaterialXGenOgsXml)
+endif()
 if (MATERIALX_BUILD_GEN_OGSFX)
     add_definitions(-DMATERIALX_BUILD_GEN_OGSFX)
     add_subdirectory(source/MaterialXGenOgsFx)
@@ -178,3 +184,7 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.6.2")
         set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT MaterialXTest)
     endif()
 endif()
+
+# install MaterialX find_package module
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}" MESSAGE_NEVER)

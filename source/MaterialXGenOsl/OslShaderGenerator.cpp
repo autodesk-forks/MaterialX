@@ -170,6 +170,7 @@ OslShaderGenerator::OslShaderGenerator() :
 
 ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
+    resetIdentifiers(context);
     ShaderPtr shader = createShader(name, element, context);
 
     const ShaderGraph& graph = shader->getGraph();
@@ -219,13 +220,15 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
         emitString("shader ", stage);
     }
 
-    // Begin shader signature. Cache the signature for the stage
-    string emitShaderName = shader->getName();
-    _syntax->makeValidName(emitShaderName);
-    setSignature(stage, emitShaderName);
-    emitLine(emitShaderName, stage, false);
+    // Begin shader signature.
+    string functionName = shader->getName();
+    context.makeIdentifier(functionName);
+    setFunctionName(functionName, stage);
+    emitLine(functionName, stage, false);
     emitScopeBegin(stage, Syntax::PARENTHESES);
-    emitLine("float dummy = 0.0,", stage, false);
+    string dummy = "dummy";
+    context.makeIdentifier(dummy);
+    emitLine("float " + dummy + " = 0.0,", stage, false);
 
     // Emit all varying inputs
     const VariableBlock& inputs = stage.getInputBlock(OSL::INPUTS);

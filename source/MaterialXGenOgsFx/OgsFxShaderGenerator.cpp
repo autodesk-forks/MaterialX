@@ -91,6 +91,7 @@ ShaderGeneratorPtr OgsFxShaderGenerator::create()
 
 ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
+    resetIdentifiers(context);
     ShaderPtr shader = createShader(name, element, context);
 
     // Turn on fixed formatting since OgsFx doesn't support scientific values
@@ -103,7 +104,9 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
 
     // Emit code for vertex and pixel shader stages
     emitVertexStage(graph, context, vs);
+    replaceTokens(_tokenSubstitutions, vs);
     emitPixelStage(graph, context, ps);
+    replaceTokens(_tokenSubstitutions, ps);
 
     //
     // Assemble the final effects shader
@@ -235,10 +238,10 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
     emitScopeBegin(fx);
     emitLine("pass p0", fx, false);
     emitScopeBegin(fx);
-    emitLine("VertexShader(in VertexInputs, out VertexData vd) = { VS }", fx);
+    emitLine("VertexShader(in VertexInputs, out VertexData " + HW::T_VERTEX_DATA_INSTANCE +") = { VS }", fx);
     emitLine(lighting ?
-        "PixelShader(in VertexData vd, out PixelOutput) = { LightingFunctions, PS }" :
-        "PixelShader(in VertexData vd, out PixelOutput) = { PS }", fx);
+        "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { LightingFunctions, PS }" :
+        "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { PS }", fx);
     emitScopeEnd(fx);
     emitScopeEnd(fx);
     emitLineBreak(fx);
@@ -263,11 +266,11 @@ void OgsFxShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext&
     emitFunctionDefinitions(graph, context, stage);
 
     // Add main function
+    setFunctionName("main", stage);
     emitLine("void main()", stage, false);
-    setSignature(stage, "main");
     emitScopeBegin(stage);
-    emitLine("vec4 hPositionWorld = u_worldMatrix * vec4(i_position, 1.0)", stage);
-    emitLine("gl_Position = u_viewProjectionMatrix * hPositionWorld", stage);
+    emitLine("vec4 hPositionWorld = " + HW::T_WORLD_MATRIX + " * vec4(" + HW::T_IN_POSITION + ", 1.0)", stage);
+    emitLine("gl_Position = " + HW::T_VIEW_PROJECTION_MATRIX + " * hPositionWorld", stage);
     emitFunctionCalls(graph, context, stage);
     emitScopeEnd(stage);
     emitScopeEnd(stage);
@@ -323,24 +326,19 @@ void OgsFxShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     }
 
     // Emit environment lighting functions
-    if (context.getOptions().hwSpecularEnvironmentMethod == SPECULAR_ENVIRONMENT_FIS)
+    if (lighting)
     {
-        emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_fis.glsl", context, stage);
+        emitSpecularEnvironment(context, stage);
     }
-    else
-    {
-        emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_prefilter.glsl", context, stage);
-    }
-    emitLineBreak(stage);
 
     // Add all functions for node implementations
     emitFunctionDefinitions(graph, context, stage);
 
     const ShaderGraphOutputSocket* outputSocket = graph.getOutputSocket();
 
-    // Add main function. Cache the signature for the stage
+    // Add main function
+    setFunctionName("main", stage);
     emitLine("void main()", stage, false);
-    setSignature(stage, "main");
     emitScopeBegin(stage);
 
     if (graph.hasClassification(ShaderNode::Classification::CLOSURE))
@@ -514,11 +512,6 @@ ShaderPtr OgsFxShaderGenerator::createShader(const string& name, ElementPtr elem
 void OgsFxShaderGenerator::getTechniqueParams(const Shader&, string&) const
 {
     // Default implementation doesn't use any technique parameters
-}
-
-const StringMap* OgsFxShaderGenerator::getSemanticMap() const
-{
-    return &OGSFX_DEFAULT_SEMANTICS_MAP;
 }
 
 } // namespace MaterialX
