@@ -70,57 +70,6 @@ void elementFromXml(const xml_node& xmlNode, ElementPtr elem, const XmlReadOptio
     }
 }
 
-void createOGSProperty(xml_node& propertiesNode, xml_node& valuesNode,
-            const std::string& name, 
-            const std::string& type, 
-            const std::string& value,
-            const std::string& semantic,
-            StringMap& typeMap)
-{
-    // Special case filename
-    if (type == "filename")
-    {
-        xml_node txt = propertiesNode.append_child("texture2");
-        txt.append_attribute("name") = name.c_str();
-        xml_node samp = propertiesNode.append_child("sampler");
-        samp.append_attribute("name") = (name + "_textureSampler").c_str();
-    }
-    // Q: How to handle geometry streams?
-    else
-    { 
-        string ogsType = typeMap[type];
-        if (!typeMap.count(type))
-            return;
-
-        xml_node prop = propertiesNode.append_child(ogsType.c_str());
-        prop.append_attribute("name") = name.c_str();
-        if (!semantic.empty())
-        {
-            prop.append_attribute("semantic") = semantic.c_str();
-            prop.append_attribute("flags") = "varyingInputParam";
-        }
-
-        xml_node val = valuesNode.append_child(ogsType.c_str());
-        val.append_attribute("name") = name.c_str();
-        val.append_attribute("value") = value.c_str();
-    }
-}
-
-// Creates output children on "outputs" node
-void createOGSOutput(xml_node& outputsNode, 
-    const std::string& name,
-    const std::string& type,
-    const std::string& /*value*/,
-    StringMap& typeMap)
-{
-    if (!typeMap.count(type))
-        return;
-
-    string ogsType = typeMap[type];
-    xml_node prop = outputsNode.append_child(ogsType.c_str());
-    prop.append_attribute("name") = name.c_str();
-}
-
 void elementToXml(ConstElementPtr elem, xml_node& xmlNode, const XmlWriteOptions* writeOptions)
 {
     bool writeXIncludeEnable = writeOptions ? writeOptions->writeXIncludeEnable : true;

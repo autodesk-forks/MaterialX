@@ -581,4 +581,37 @@ ValueElementPtr findNodeDefChild(const string& path, DocumentPtr doc, const stri
     return valueElement;
 }
 
+namespace
+{
+    const char TOKEN_PREFIX = '$';
+}
+
+void tokenSubstitution(const StringMap& substitutions, string& source)
+{
+    string buffer;
+    size_t pos = 0, len = source.length();
+    while (pos < len)
+    {
+        size_t p1 = source.find_first_of(TOKEN_PREFIX, pos);
+        if (p1 != string::npos && p1 + 1 < len)
+        {
+            buffer += source.substr(pos, p1 - pos);
+            pos = p1 + 1;
+            string token = { TOKEN_PREFIX };
+            while (pos < len && isalnum(source[pos]))
+            {
+                token += source[pos++];
+            }
+            auto it = substitutions.find(token);
+            buffer += (it != substitutions.end() ? it->second : token);
+        }
+        else
+        {
+            buffer += source.substr(pos);
+            break;
+        }
+    }
+    source = buffer;
+}
+
 } // namespace MaterialX

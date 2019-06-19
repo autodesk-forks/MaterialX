@@ -254,6 +254,7 @@ GlslShaderGenerator::GlslShaderGenerator() :
 
 ShaderPtr GlslShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
+    resetIdentifiers(context);
     ShaderPtr shader = createShader(name, element, context);
 
     // Turn on fixed float formatting to make sure float values are
@@ -264,10 +265,12 @@ ShaderPtr GlslShaderGenerator::generate(const string& name, ElementPtr element, 
     // Emit code for vertex shader stage
     ShaderStage& vs = shader->getStage(Stage::VERTEX);
     emitVertexStage(shader->getGraph(), context, vs);
+    replaceTokens(_tokenSubstitutions, vs);
 
     // Emit code for pixel shader stage
     ShaderStage& ps = shader->getStage(Stage::PIXEL);
     emitPixelStage(shader->getGraph(), context, ps);
+    replaceTokens(_tokenSubstitutions, ps);
 
     return shader;
 }
@@ -325,11 +328,12 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
 
     emitFunctionDefinitions(graph, context, stage);
 
-    // Add main function. Cache the signature for the stage
+    // Add main function
+    setFunctionName("main", stage);
     emitLine("void main()", stage, false);
     emitScopeBegin(stage);
-    emitLine("vec4 hPositionWorld = u_worldMatrix * vec4(i_position, 1.0)", stage);
-    emitLine("gl_Position = u_viewProjectionMatrix * hPositionWorld", stage);
+    emitLine("vec4 hPositionWorld = " + HW::T_WORLD_MATRIX + " * vec4(" + HW::T_IN_POSITION + ", 1.0)", stage);
+    emitLine("gl_Position = " + HW::T_VIEW_PROJECTION_MATRIX + " * hPositionWorld", stage);
     emitFunctionCalls(graph, context, stage);
     emitScopeEnd(stage);
     emitLineBreak(stage);
@@ -452,9 +456,9 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
 
     const ShaderGraphOutputSocket* outputSocket = graph.getOutputSocket();
 
-    // Add main function. Cache the signature for the stage
+    // Add main function
+    setFunctionName("main", stage);
     emitLine("void main()", stage, false);
-    setSignature(stage, "main");
     emitScopeBegin(stage);
 
     if (graph.hasClassification(ShaderNode::Classification::CLOSURE))
@@ -713,6 +717,17 @@ const string GlslImplementation::MODEL = "model";
 const string GlslImplementation::INDEX = "index";
 const string GlslImplementation::ATTRNAME = "attrname";
 
+namespace
+{
+    // List name of inputs that are not to be editable and
+    // published as shader uniforms in GLSL.
+    const std::set<string> IMMUTABLE_INPUTS = 
+    {
+        // Geometric node inputs are immutable since a shader needs regeneration if they change.
+        "index", "space", "attrname"
+    };
+}
+
 const string& GlslImplementation::getLanguage() const
 {
     return GlslShaderGenerator::LANGUAGE;
@@ -721,6 +736,11 @@ const string& GlslImplementation::getLanguage() const
 const string& GlslImplementation::getTarget() const
 {
     return GlslShaderGenerator::TARGET;
+}
+
+bool GlslImplementation::isEditable(const ShaderInput& input) const
+{
+    return IMMUTABLE_INPUTS.count(input.getName()) == 0;
 }
 
 }
