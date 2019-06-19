@@ -65,10 +65,10 @@
     <int name="image_color_framerange" />
     <int name="image_color_frameoffset" />
     <int name="image_color_frameendaction" />
-    <float3 name="tangentWorld" semantic="mayaTangentIn" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="normalWorld" semantic="Nw" flags="isRequirementOnly, varyingInputParam" />
+    <float3 name="Pw" semantic="POSITION" flags="isRequirementOnly, varyingInputParam" />
+     <float3 name="Tw" semantic="TANGENT" flags="isRequirementOnly, varyingInputParam" />
+    <float3 name="Nw" semantic="NORMAL" flags="isRequirementOnly, varyingInputParam" />
     <float2 name="texcoord_0" semantic="mayaUvCoordSemantic" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="positionWorld" semantic="Pw" flags="isRequirementOnly, varyingInputParam" />
   </properties>
   <values>
     <float4x4 name="u_envMatrix" value="-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1" />
@@ -130,7 +130,8 @@
   <implementation>
     <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
       <function_name val="SR_brass1" />
-      <source><![CDATA[#define M_PI 3.1415926535897932384626433832795
+      <source>
+   <![CDATA[#define M_PI 3.1415926535897932384626433832795
 #define M_PI_INV 1.0/3.1415926535897932384626433832795
 #define M_GOLDEN_RATIO 1.6180339887498948482045868343656
 #define M_FLOAT_EPS 0.000001
@@ -144,6 +145,13 @@ struct surfaceshader { vec3 color; vec3 transparency; };
 struct volumeshader { VDF vdf; EDF edf; };
 struct displacementshader { vec3 offset; float scale; };
 struct lightshader { vec3 intensity; vec3 direction; };
+
+struct LightData
+{
+    int type;
+};
+
+uniform LightData u_lightData[MAX_LIGHT_SOURCES];
 
 float mx_square(float x)
 {
@@ -505,7 +513,7 @@ vec3 mx_environment_radiance(vec3 N, vec3 V, vec3 X, roughnessinfo roughness, in
 
 vec3 mx_environment_irradiance(vec3 N)
 {
-    return mx_latlong_map_lookup(N, u_envMatrix, 0.0, u_envIrradiancSampler);
+    return mx_latlong_map_lookup(N, u_envMatrix, 0.0, u_envIrradianceSampler);
 }
 
 //
@@ -942,13 +950,13 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
 {
     roughnessinfo coat_roughness_out = roughnessinfo(M_FLOAT_EPS, M_FLOAT_EPS, M_FLOAT_EPS, M_FLOAT_EPS);
     mx_roughness_anisotropy(coat_roughness, coat_anisotropy, coat_roughness_out);
-    vec3 geomprop_Tworld_out = normalize(PIX_IN.tangentWorld);
+    vec3 geomprop_Tworld_out = normalize(PIX_IN.Tw);
     float coat_affect_roughness_multiply1_out = coat_affect_roughness * coat;
     const float coat_clamped_low_tmp = 0.000000;
     const float coat_clamped_high_tmp = 1.000000;
     float coat_clamped_out = clamp(coat, coat_clamped_low_tmp, coat_clamped_high_tmp);
     float subsurface_selector_out = float(thin_walled);
-    vec3 geomprop_Vworld_out = normalize(PIX_IN.positionWorld - u_viewPosition);
+    vec3 geomprop_Vworld_out = normalize(PIX_IN.Pw - u_viewPosition);
     const vec3 coat_attenuation_bg_tmp = vec3(1.000000, 1.000000, 1.000000);
     vec3 coat_attenuation_out = mix(coat_attenuation_bg_tmp, coat_color, coat);
     vec3 emission_weight_out = emission_color * emission;
@@ -976,13 +984,13 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
     surfaceshader standard_surface_constructor_out = surfaceshader(vec3(0.0),vec3(0.0));
     {
         // Light loop
-        vec3 N = normalize(vd.normalWorld);
-        vec3 V = normalize(u_viewPosition - vd.positionWorld);
+        vec3 N = normalize(PIX_IN.Nw);
+        vec3 V = normalize(u_viewPosition - PIX_IN.Pw);
         int numLights = numActiveLightSources();
         lightshader lightShader;
         for (int activeLightIndex = 0; activeLightIndex < numLights; ++activeLightIndex)
         {
-            sampleLightSource(u_lightData[activeLightIndex], vd.positionWorld, lightShader);
+            sampleLightSource(u_lightData[activeLightIndex], PIX_IN.Pw, lightShader);
             vec3 L = lightShader.direction;
 
             // Calculate the BSDF response for this light source
@@ -1098,7 +1106,7 @@ vec3 SR_brass1
     float emission,
     vec3 emission_color,
     vec3 opacity,
-    uniform sampler2D image_roughness_fileSampler,
+    sampler2D image_roughness_fileSampler,
     float image_roughness_default,
     vec2 image_roughness_uvtiling,
     vec2 image_roughness_uvoffset,
@@ -1106,7 +1114,7 @@ vec3 SR_brass1
     int image_roughness_framerange,
     int image_roughness_frameoffset,
     int image_roughness_frameendaction,
-    uniform sampler2D image_color_fileSampler,
+    sampler2D image_color_fileSampler,
     vec3 image_color_default,
     vec2 image_color_uvtiling,
     vec2 image_color_uvoffset,
@@ -1116,8 +1124,8 @@ vec3 SR_brass1
     int image_color_frameendaction
 )
 {
-    vec3 geomprop_Tworld_out = normalize(PIX_IN.tangentWorld);
-    vec3 geomprop_Nworld_out = normalize(PIX_IN.normalWorld);
+    vec3 geomprop_Tworld_out = normalize(PIX_IN.Tw);
+    vec3 geomprop_Nworld_out = normalize(PIX_IN.Nw);
     vec2 geomprop_UV0_out = PIX_IN.texcoord_0;
     float image_roughness_out = 0.0;
     NG_tiledimage_float(image_roughness_fileSampler, image_roughness_default, geomprop_UV0_out, image_roughness_uvtiling, image_roughness_uvoffset, image_roughness_filtertype, image_roughness_framerange, image_roughness_frameoffset, image_roughness_frameendaction, image_roughness_out);
@@ -1126,7 +1134,7 @@ vec3 SR_brass1
 
     surfaceshader SR_brass1_out = surfaceshader(vec3(0.0),vec3(0.0));
     IMPL_standard_surface_surfaceshader(base, base_color, diffuse_roughness, specular, specular_color, image_roughness_out, specular_IOR, specular_anisotropy, specular_rotation, metalness, transmission, transmission_color, transmission_depth, transmission_scatter, transmission_scatter_anisotropy, transmission_dispersion, transmission_extra_roughness, subsurface, subsurface_color, subsurface_radius, subsurface_scale, subsurface_anisotropy, sheen, sheen_color, sheen_roughness, thin_walled, geomprop_Nworld_out, geomprop_Tworld_out, coat, image_color_out, image_roughness_out, coat_anisotropy, coat_rotation, coat_IOR, geomprop_Nworld_out, coat_affect_color, coat_affect_roughness, thin_film_thickness, thin_film_IOR, emission, emission_color, opacity, SR_brass1_out);
-    returnSR_brass1_out.color;
+    return SR_brass1_out.color;
 }
 ]]></source>
     </implementation>

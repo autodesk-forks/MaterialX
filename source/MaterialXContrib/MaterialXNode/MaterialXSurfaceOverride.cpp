@@ -22,14 +22,15 @@ const MString
     MaterialXSurfaceOverride::REGISTRANT_ID = "materialXSurface",
     MaterialXSurfaceOverride::DRAW_CLASSIFICATION = "drawdb/shader/surface/materialX";
 
-MHWRender::MPxShadingNodeOverride* MaterialXSurfaceOverride::creator(const MObject& obj)
+MHWRender::MPxSurfaceShadingNodeOverride*
+MaterialXSurfaceOverride::creator(const MObject& obj)
 {
 	std::cout.rdbuf(std::cerr.rdbuf());
 	return new MaterialXSurfaceOverride(obj);
 }
 
 MaterialXSurfaceOverride::MaterialXSurfaceOverride(const MObject& obj)
-	: MPxShadingNodeOverride(obj)
+	: MPxSurfaceShadingNodeOverride(obj)
 	, _object(obj)
 {
 	MStatus status;
@@ -61,7 +62,7 @@ MaterialXSurfaceOverride::MaterialXSurfaceOverride(const MObject& obj)
         glslContext->registerSourceCodeSearchPath(libSearchPath);
         contexts.push_back(glslContext);
 
-        _glslWrapper = new MaterialX::OGSXMLFragmentWrapper(glslContext);
+        _glslWrapper = new MaterialX::OGSXMLFragmentWrapper();
         _glslWrapper->setOutputVertexShader(true);
 
         MaterialX::ElementPtr element = _document->getDescendant(_element.asChar());
@@ -77,7 +78,7 @@ MaterialXSurfaceOverride::MaterialXSurfaceOverride(const MObject& obj)
         // is not supported, the requirement means that indirect lighting is required.
         // bool requiresLighting = (shaderRef != nullptr);
         std::cout << "MaterialXSurfaceOverride: Create XML wrapper" << std::endl;
-        _glslWrapper->createWrapper(element);
+        _glslWrapper->generate(element->getName(), element, *glslContext);
         // Get the fragment name
         _fragmentName.set(_glslWrapper->getFragmentName().c_str());
 
@@ -94,7 +95,7 @@ MaterialXSurfaceOverride::MaterialXSurfaceOverride(const MObject& obj)
                 if (!fragmentExists)
                 {
                     std::stringstream glslStream;
-                    _glslWrapper->getDocument(glslStream);
+                    _glslWrapper->getXML(glslStream);
                     std::string xmlFileName(Plugin::instance().getResourcePath().asString() + "/standard_surface_default.xml");
 
                     // TODO: This should not be hard-coded

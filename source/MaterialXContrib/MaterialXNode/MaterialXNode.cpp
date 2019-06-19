@@ -40,6 +40,9 @@ MObject MaterialXNode::ELEMENT_ATTRIBUTE;
 const MTypeId MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID(0x00042403);
 const MString MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPENAME("MaterialXTextureNode");
 
+const MTypeId MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPEID(0x00042404);
+const MString MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPENAME("MaterialXSurfaceNode");
+
 MaterialXNode::MaterialXNode()
 {
 	std::cout << "MaterialXNode::MaterialXNode" << std::endl;
@@ -86,9 +89,9 @@ MStatus MaterialXNode::initialize()
 
 void MaterialXNode::createOutputAttr(MDGModifier& mdgModifier)
 {
-	if (materialXData && materialXData->getFragmentWrapper())
+	if (materialXData && materialXData->isValidOutput())
 	{
-        const MaterialX::StringMap& outputMap = materialXData->getFragmentWrapper()->getPathOutputMap();
+        const MaterialX::StringMap& outputMap = materialXData->getPathOutputMap();
         if (outputMap.size())
         {
             MString outputName(outputMap.begin()->second.c_str());
@@ -228,12 +231,12 @@ void MaterialXNode::setAttributeValue(MObject &materialXObject, MObject &attr, f
 void MaterialXNode::createAttributesFromDocument(MDGModifier& mdgModifier)
 {
     MaterialX::DocumentPtr document;
-    if (!materialXData || !(document= materialXData->getDocument()))
+    if (!materialXData || !(document = materialXData->getDocument()))
     {
         return;
     }
 
-	const MaterialX::StringMap& inputMap = materialXData->getFragmentWrapper()->getPathInputMap();
+	const MaterialX::StringMap& inputMap = materialXData->getPathInputMap();
 	for (auto it = inputMap.begin(); it != inputMap.end(); ++it)
 	{
 		MaterialX::ElementPtr element = document->getDescendant(it->first);
@@ -507,6 +510,27 @@ void* MaterialXTextureNode::creator()
 MStatus MaterialXTextureNode::initialize()
 {
     std::cout << "MaterialXTextureNode::initialize" << std::endl;
+
+    CHECK_MSTATUS(inheritAttributesFrom(MATERIALX_NODE_TYPENAME));
+
+    return MS::kSuccess;
+}
+
+MTypeId MaterialXSurfaceNode::typeId() const
+{
+    return MATERIALX_SURFACE_NODE_TYPEID;
+}
+
+void* MaterialXSurfaceNode::creator()
+{
+    std::cout.rdbuf(std::cerr.rdbuf());
+    std::cout << "MaterialXSurfaceNode::creator" << std::endl;
+    return new MaterialXSurfaceNode();
+}
+
+MStatus MaterialXSurfaceNode::initialize()
+{
+    std::cout << "MaterialXSurfaceNode::initialize" << std::endl;
 
     CHECK_MSTATUS(inheritAttributesFrom(MATERIALX_NODE_TYPENAME));
 
