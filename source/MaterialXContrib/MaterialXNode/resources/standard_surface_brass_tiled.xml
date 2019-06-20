@@ -125,7 +125,7 @@
     <int name="image_color_frameendaction" value="0" />
   </values>
   <outputs>
-    <float3 name="out" />
+    <float3 name="out590" />
   </outputs>
   <implementation>
     <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">

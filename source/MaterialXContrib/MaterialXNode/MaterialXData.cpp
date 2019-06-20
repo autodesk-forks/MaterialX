@@ -136,6 +136,11 @@ void MaterialXData::generateXML()
         {
             return;
         }
+        else
+        {
+            std::cout << "XML WRAPPER: " << std::endl;
+            std::cout << _fragmentWrapper << std::endl;
+        }
 
         const MaterialX::ShaderStage& ps = shader->getStage(MaterialX::Stage::PIXEL);
 
@@ -229,19 +234,23 @@ void MaterialXData::registerFragments(const std::string& ogsXmlPath)
     const bool fragmentExists = fragmentManager->hasFragment(fragmentName.c_str());
     if (!fragmentExists)
     {
-        // XML should come from here. For now allow to get from a input path
-        MString fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
-        if (fragmentNameM.length() == 0)
+        if (!ogsXmlPath.empty())
         {
-            // TODO: This should be a fallback fragment.
-            if (!ogsXmlPath.empty())
+            std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
+            MString fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
+            if (fragmentNameM.length() == 0)
             {
-                std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
-                fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
-                if (fragmentNameM.length() == 0)
-                {
-                    throw MaterialX::Exception("Failed to add OGS shader fragment." + getFragmentName());
-                }
+                throw MaterialX::Exception("Failed to add OGS shader fragment." + getFragmentName());
+            }
+        }
+        else
+        {
+            // XML should come from here. For now allow to get from a input path
+            MString fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
+            if (fragmentNameM.length() == 0)
+            {
+                // TODO: This should be a fallback fragment.
+                throw MaterialX::Exception("Failed to add OGS shader fragment." + getFragmentName());
             }
         }
     }
