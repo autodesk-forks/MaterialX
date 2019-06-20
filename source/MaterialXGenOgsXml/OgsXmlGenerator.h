@@ -23,6 +23,7 @@ public:
     static void generate(const Shader* glsl, const Shader* hlsl, std::ostream& stream);
 
     /// String constants
+    static const string OUTPUT_NAME;
     static const string SAMPLER_SUFFIX;
 };
 

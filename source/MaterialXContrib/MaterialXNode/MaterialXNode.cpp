@@ -11,6 +11,8 @@
 
 #include <MaterialXCore/Document.h>
 #include <MaterialXFormat/XmlIo.h>
+#include <MaterialXGenOgsXml/OgsXmlGenerator.h>
+
 #include <maya/MRenderUtil.h>
 #include <maya/MFloatVector.h>
 
@@ -89,28 +91,20 @@ MStatus MaterialXNode::initialize()
 
 void MaterialXNode::createOutputAttr(MDGModifier& mdgModifier)
 {
-	if (materialXData && materialXData->isValidOutput())
-	{
-        const MaterialX::StringMap& outputMap = materialXData->getPathOutputMap();
-        if (outputMap.size())
-        {
-            MString outputName(outputMap.begin()->second.c_str());
-            if (outputName.length())
-            {
-                MFnNumericAttribute nAttr;
-                _outAttr = nAttr.createColor(outputName, outputName);
-                CHECK_MSTATUS(nAttr.setStorable(false));
-                CHECK_MSTATUS(nAttr.setInternal(false));
-                CHECK_MSTATUS(nAttr.setReadable(true));
-                CHECK_MSTATUS(nAttr.setWritable(false));
-                CHECK_MSTATUS(nAttr.setCached(true));
-                CHECK_MSTATUS(nAttr.setHidden(false));
+    if (materialXData && materialXData->isValidOutput())
+    {
+        const MString outputName(MaterialX::OgsXmlGenerator::OUTPUT_NAME.c_str());
+        MFnNumericAttribute nAttr;
+        _outAttr = nAttr.createColor(outputName, outputName);
+        CHECK_MSTATUS(nAttr.setStorable(false));
+        CHECK_MSTATUS(nAttr.setInternal(false));
+        CHECK_MSTATUS(nAttr.setReadable(true));
+        CHECK_MSTATUS(nAttr.setWritable(false));
+        CHECK_MSTATUS(nAttr.setCached(true));
+        CHECK_MSTATUS(nAttr.setHidden(false));
 
-                mdgModifier.addAttribute(thisMObject(), _outAttr);
-                //		CHECK_MSTATUS(addAttribute(_outAttr));
-            }
-        }
-	}
+        mdgModifier.addAttribute(thisMObject(), _outAttr);
+    }
 }
 
 MStatus MaterialXNode::setDependentsDirty(const MPlug &/*plugBeingDirtied*/, MPlugArray & affectedPlugs)
