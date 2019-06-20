@@ -117,7 +117,7 @@ void MaterialXData::generateXML()
     MaterialX::ShaderPtr shader = _shaderGenerator->generate(_fragmentName, _element, _genContext);
     if (shader)
     {
-        std::stringstream stream;
+        std::ostringstream stream;
         // Note: This name must match the the fragment name used for registration
         // or the registration will fail.
         _generator.generate(_fragmentName, shader.get(), nullptr, stream);
@@ -128,6 +128,8 @@ void MaterialXData::generateXML()
         }
         else
         {
+            // Strip out any '\r' characters.
+            _fragmentWrapper.erase(std::remove(_fragmentWrapper.begin(), _fragmentWrapper.end(), '\r'), _fragmentWrapper.end());
             std::cout << "XML WRAPPER: " << std::endl;
             std::cout << _fragmentWrapper << std::endl;
         }
