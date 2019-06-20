@@ -103,7 +103,7 @@ TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
                     for (size_t i = 0; i < uniforms.size(); ++i)
                     {
                         const MaterialX::ShaderPort* v = uniforms[i];
-                        std::string name = v->getVariable();
+                        std::string name = "out"; 
                         std::string path = v->getPath();
                         if (name.empty() || path.empty())
                         {

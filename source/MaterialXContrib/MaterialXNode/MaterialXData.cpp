@@ -190,7 +190,7 @@ void MaterialXData::generateXML()
             for (size_t i = 0; i < uniforms.size(); ++i)
             {
                 const MaterialX::ShaderPort* v = uniforms[i];
-                std::string name = v->getVariable();
+                std::string name = "out";
                 std::string path = v->getPath();
                 if (name.empty() || path.empty())
                 {
@@ -198,6 +198,7 @@ void MaterialXData::generateXML()
                 }
                 std::cout << "Add output path: " << path << ". Frag name: " << name << std::endl;
                 _pathOutputMap[path] = name;
+                break;
             }
         }
     }
