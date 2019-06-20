@@ -78,7 +78,8 @@ class MaterialXNode : public MPxNode
 
 	static void* creator();
 	static MStatus initialize();
-	void createOutputAttr(MDGModifier& mdgModifier);
+
+    void createOutputAttr(MDGModifier& mdgModifier);
 	MStatus setDependentsDirty(const MPlug &plugBeingDirtied, MPlugArray & affectedPlugs) override;
 	MTypeId	typeId() const override;
 	SchedulingType schedulingType() const override;

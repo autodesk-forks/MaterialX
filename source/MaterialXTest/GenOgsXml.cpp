@@ -35,7 +35,24 @@ TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
 
     mx::OgsXmlGenerator xmlGenerator;
 
+    mx::StringVec testGraphs = { };
     mx::StringVec testMaterials = { "Tiled_Brass" };
+
+    for (auto testGraph : testGraphs)
+    {
+        mx::NodeGraphPtr graph = doc->getNodeGraph(testGraph);
+        if (graph)
+        {
+            std::vector<mx::OutputPtr> outputs = graph->getOutputs();
+            for (auto output : outputs)
+            {
+                const std::string name = graph->getName() + "_" + output->getName();
+                mx::ShaderPtr shader = glslGenerator->generate(name, output, glslContext);
+                std::ofstream file(name + ".xml");
+                xmlGenerator.generate(shader.get(), nullptr, file);
+            }
+        }
+    }
 
     for (auto testMaterial : testMaterials)
     {
@@ -48,71 +65,6 @@ TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
                 mx::ShaderPtr shader = glslGenerator->generate(shaderRef->getName(), shaderRef, glslContext);
                 std::ofstream file(shaderRef->getName() + ".xml");
                 xmlGenerator.generate(shader.get(), nullptr, file);
-
-                std::string _fragmentName;
-                std::string _fragmentWrapper;
-                MaterialX::StringVec _globalsList;
-                MaterialX::StringMap _pathInputMap;
-                MaterialX::StringMap _pathOutputMap;
-
-                const MaterialX::ShaderStage& ps = shader->getStage(MaterialX::Stage::PIXEL);
-
-                // Cache global parameters
-                for (auto uniformsIt : ps.getUniformBlocks())
-                {
-                    const MaterialX::VariableBlock& uniforms = *uniformsIt.second;
-
-                    // Skip light uniforms
-                    if (uniforms.getName() == MaterialX::HW::LIGHT_DATA)
-                    {
-                        continue;
-                    }
-
-                    //bool isPrivate = uniforms.getName() == MaterialX::HW::PRIVATE_UNIFORMS;
-                    for (size_t i = 0; i < uniforms.size(); i++)
-                    {
-                        const MaterialX::ShaderPort* port = uniforms[i];
-                        if (!port)
-                        {
-                            continue;
-                        }
-                        const std::string& name = port->getVariable();
-                        if (name.empty())
-                        {
-                            continue;
-                        }
-                        const std::string& path = port->getPath();
-                        // Globals have no path
-                        if (path.empty())
-                        {
-                            std::cout << "Add input globals name: " << name << std::endl;
-                            _globalsList.push_back(name);
-                        }
-                        else
-                        {
-                            std::cout << "Add path: " << path << ". Frag name: " << name << std::endl;
-                            _pathInputMap[path] = name;
-                        }
-                    }
-                }
-
-                // Cache output parameters
-                for (auto uniformsIt : ps.getOutputBlocks())
-                {
-                    const MaterialX::VariableBlock& uniforms = *uniformsIt.second;
-                    for (size_t i = 0; i < uniforms.size(); ++i)
-                    {
-                        const MaterialX::ShaderPort* v = uniforms[i];
-                        std::string name = v->getVariable();
-                        std::string path = v->getPath();
-                        if (name.empty() || path.empty())
-                        {
-                            continue;
-                        }
-                        std::cout << "Add output path: " << path << ". Frag name: " << name << std::endl;
-                        _pathOutputMap[path] = name;
-                    }
-                }
             }
         }
     }

@@ -18,6 +18,8 @@
 
 #include <fstream>
 
+namespace mx = MaterialX;
+
 const MString
     MaterialXTextureOverride::REGISTRANT_ID = "materialXTexture",
     MaterialXTextureOverride::DRAW_CLASSIFICATION = "drawdb/shader/texture/2d/materialX";
@@ -82,10 +84,7 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
                     MHWRender::MTextureAssignment textureAssignment;
                     textureAssignment.texture = texture;
                     status = shader.setParameter(parameterName.c_str(), textureAssignment);
-
-                    std::cout << "Bind texture: " << parameterName
-                        << ". image: " << imagePath.asString() << ". Status: "
-                        << status << std::endl;
+                    std::cout << "Bind " << parameterName << " = " << imagePath.asString() << " (" << status << ")" << std::endl;
 
                     // Get back the texture description
                     texture->textureDescription(textureDescription);
@@ -105,10 +104,7 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
     if (samplerState)
     {
         status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
-        std::cout << "Bind sampler: " << samplerParameterName
-             << " Status: "
-            << status << std::endl;
-
+        std::cout << "Bind " << samplerParameterName << " (" << status << ")" << std::endl;
     }
 
     return status;
@@ -116,78 +112,61 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
 
 // This should be a shared utility
 void bindEnvironmentLighting(MHWRender::MShaderInstance& shader, 
-                             const MaterialX::StringVec& globals,
                              const MStringArray parameterList,
                              const MaterialX::FileSearchPath imageSearchPath, 
                              const std::string& envRadiancePath,
                              const std::string& envIrradiancePath)
 {
-    static std::string IRRADIANCE_PARAMETER("u_envIrradiance");
-    static std::string RADIANCE_PARAMETER("u_envRadiance");
-    static std::string RADIANCE_MIPS_PARAMETER("u_envRadianceMips");
-    static std::string ENVIRONMENT_MATRIX_PARAMETER("u_envMatrix");
-
     MHWRender::MSamplerStateDesc samplerDescription;
     samplerDescription.filter = MHWRender::MSamplerState::kAnisotropic;
     samplerDescription.maxAnisotropy = 16;
 
-    // Bind globals which are not associated with any document elements
     MStatus status;
-    for (auto global : globals)
+
+    // Set irradiance map
+    MHWRender::MTextureDescription textureDescription;
+    if (parameterList.indexOf(mx::HW::ENV_IRRADIANCE.c_str()) >= 0)
     {
-        // Set irradiance map
-        MHWRender::MTextureDescription textureDescription;
-        if (global == IRRADIANCE_PARAMETER)
+        status = bindFileTexture(shader, mx::HW::ENV_IRRADIANCE, imageSearchPath, envIrradiancePath, samplerDescription, textureDescription);
+    }
+
+    // Set radiance map
+    if (parameterList.indexOf(mx::HW::ENV_RADIANCE.c_str()) >= 0)
+    {
+        status = bindFileTexture(shader, mx::HW::ENV_RADIANCE, imageSearchPath, envRadiancePath, samplerDescription, textureDescription);
+        if (status == MStatus::kSuccess)
         {
-            if (parameterList.indexOf(global.c_str()) >= 0)
+            if (parameterList.indexOf(mx::HW::ENV_RADIANCE_MIPS.c_str()) >= 0)
             {
-                status = bindFileTexture(shader, global, imageSearchPath, envIrradiancePath,
-                                         samplerDescription, textureDescription);
+                const int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
+                status = shader.setParameter(mx::HW::ENV_RADIANCE_MIPS.c_str(), mipCount);
+                std::cout << "Bind " << mx::HW::ENV_RADIANCE_MIPS << " = " 
+                          << std::to_string(mipCount) << " (" << status << ")" << std::endl;
+            }
+
+            if (parameterList.indexOf(mx::HW::ENV_RADIANCE_SAMPLES.c_str()) >= 0)
+            {
+                const int envSamples = 16;
+                status = shader.setParameter(mx::HW::ENV_RADIANCE_SAMPLES.c_str(), int(envSamples));
+                std::cout << "Bind " << mx::HW::ENV_RADIANCE_SAMPLES << " = "
+                          << std::to_string(envSamples) << " (" << status << ")" << std::endl;
             }
         }
+    }
 
-        // Set radiance map
-        else if (global == RADIANCE_PARAMETER)
-        {
-            if (parameterList.indexOf(global.c_str()) >= 0)
-            {
-                status = bindFileTexture(shader, global, imageSearchPath, envRadiancePath, 
-                                         samplerDescription, textureDescription);
-                if (status == MStatus::kSuccess)
-                {
-                    if (parameterList.indexOf(RADIANCE_MIPS_PARAMETER.c_str()) >= 0)
-                    {
-                        int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
-                        status = shader.setParameter(global.c_str(), mipCount);
-
-                        std::cout << "Bind mip levels: " << global
-                            << ". Val: " << std::to_string(mipCount) << ". Status: "
-                            << status << std::endl;
-                    }
-                }
-            }
-        }
-
-        // Environment matrix
-        else if (global == ENVIRONMENT_MATRIX_PARAMETER)
-        {
-            if (parameterList.indexOf(global.c_str()) >= 0)
-            {
-                const float yRotationPI[4][4]{
-                    -1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, -1, 0,
-                    0, 0, 0, 1
-                };
-                MFloatMatrix matrix(yRotationPI);
-                matrix.setToIdentity();
-                status = shader.setParameter(global.c_str(), matrix);
-
-                std::cout << "Bind env matrix: " << global
-                    << ". Status: " << status << std::endl;
-
-            }
-        }
+    // Environment matrix
+    if (parameterList.indexOf(mx::HW::ENV_MATRIX.c_str()) >= 0)
+    {
+        const float yRotationPI[4][4]{
+            -1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, -1, 0,
+            0, 0, 0, 1
+        };
+        MFloatMatrix matrix(yRotationPI);
+        matrix.setToIdentity();
+        status = shader.setParameter(mx::HW::ENV_MATRIX.c_str(), matrix);
+        std::cout << "Bind " << mx::HW::ENV_MATRIX << " (" << status << ")" << std::endl;
     }
 }
 
@@ -211,13 +190,11 @@ void MaterialXTextureOverride::updateShader(MHWRender::MShaderInstance& shader,
     static std::string IMAGE_FOLDER("Images");
     MaterialX::FileSearchPath imageSearchPath(Plugin::instance().getResourcePath() / MaterialX::FilePath(IMAGE_FOLDER));
 
-    const MaterialX::StringVec& globals = node->materialXData->getGlobalsList();
-
     // Bind environment lighting
     // TODO: These should be options
     std::string envRadiancePath = "san_giuseppe_bridge.hdr";
     std::string envIrradiancePath = "san_giuseppe_bridge_diffuse.hdr";
-    bindEnvironmentLighting(shader, globals, parameterList, imageSearchPath, 
+    bindEnvironmentLighting(shader, parameterList, imageSearchPath, 
                             envRadiancePath, envIrradiancePath);
 
     MaterialX::DocumentPtr document = node->materialXData->getDocument();

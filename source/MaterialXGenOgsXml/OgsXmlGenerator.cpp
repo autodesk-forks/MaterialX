@@ -199,6 +199,7 @@ namespace
     }
 }
 
+const string OgsXmlGenerator::OUTPUT_NAME = "outColor";
 const string OgsXmlGenerator::SAMPLER_SUFFIX = "Sampler";
 
 OgsXmlGenerator::OgsXmlGenerator()
@@ -245,10 +246,9 @@ void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostr
     {
         throw ExceptionShaderGenError("Shader stage has no output");
     }
-    const ShaderPort* output = outputs[0];
     pugi::xml_node xmlOutputs = xmlRoot.append_child(OUTPUTS);
     pugi::xml_node xmlOut = xmlOutputs.append_child(OGS_TYPE_MAP.at(Type::COLOR3));
-    xmlOut.append_attribute(NAME) = output->getVariable().c_str();
+    xmlOut.append_attribute(NAME) = OUTPUT_NAME.c_str();
 
     // Add implementations
     pugi::xml_node xmlImpementations = xmlRoot.append_child(IMPLEMENTATION);

@@ -6,7 +6,6 @@
 
 #include <MaterialXCore/Document.h>
 #include <MaterialXGenShader/GenContext.h>
-//#include <MaterialXContrib/OGSXMLFragmentWrapper.h>
 #include <MaterialXGenOgsXml/OgsXmlGenerator.h>
 #include <MaterialXGenShader/Shader.h>
 
@@ -59,16 +58,8 @@ struct MaterialXData
     /// Return name of shader fragment
     const std::string& getFragmentName() const;
 
-    /// Get list of XML global inputs which are not associated with any Element
-    const MaterialX::StringVec& getGlobalsList() const;
-
     /// Get list of Element paths and corresponding XML input names
     const MaterialX::StringMap& getPathInputMap() const;
-
-    /// Get list of Element paths and corresponding XML output names
-    /// If the output is a ShaderRef then the path is to that element
-    /// as there are no associated child output Elements.
-    const MaterialX::StringMap& getPathOutputMap() const;
 
     /// Return if the element to render represents a shader graph
     /// as opposed to a texture grraph.
@@ -99,14 +90,8 @@ struct MaterialXData
     // XML fragment wrapper
     std::string _fragmentWrapper;
 
-    // List of XML globals which are not associated with any Element.
-    MaterialX::StringVec _globalsList;
-
     // Mapping from MaterialX Element paths to XML input names
     MaterialX::StringMap _pathInputMap;
-
-    // Mapping from MaterialX Element paths to XML output names
-    MaterialX::StringMap _pathOutputMap;
 };
 
 #endif // MATERIALX_DATA_H

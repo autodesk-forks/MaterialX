@@ -46,19 +46,9 @@ const std::string& MaterialXData::getFragmentWrapper() const
     return _fragmentWrapper;
 }
 
-const MaterialX::StringVec& MaterialXData::getGlobalsList() const
-{
-    return _globalsList;
-}
-
 const MaterialX::StringMap& MaterialXData::getPathInputMap() const
 {
     return _pathInputMap;
-}
-
-const MaterialX::StringMap& MaterialXData::getPathOutputMap() const
-{
-    return _pathOutputMap;
 }
 
 void MaterialXData::createDocument(const std::string& materialXDocumentPath)
@@ -82,8 +72,6 @@ bool MaterialXData::elementIsAShader() const
 void MaterialXData::clearXML()
 {
     _pathInputMap.clear();
-    _pathOutputMap.clear();
-    _globalsList.clear();
     _fragmentName.clear();
     _fragmentWrapper.clear();
 }
@@ -143,8 +131,6 @@ void MaterialXData::generateXML()
         }
 
         const MaterialX::ShaderStage& ps = shader->getStage(MaterialX::Stage::PIXEL);
-
-        // Cache global parameters
         for (auto uniformsIt : ps.getUniformBlocks())
         {
             const MaterialX::VariableBlock& uniforms = *uniformsIt.second;
@@ -159,45 +145,13 @@ void MaterialXData::generateXML()
             for (size_t i = 0; i < uniforms.size(); i++)
             {
                 const MaterialX::ShaderPort* port = uniforms[i];
-                if (!port)
-                {
-                    continue;
-                }
                 const std::string& name = port->getName();
-                if (name.empty())
-                {
-                    continue;
-                }
                 const std::string& path = port->getPath();
-                // Globals have no path
-                if (path.empty())
-                {
-                    std::cout << "Add input globals name: " << name << std::endl;
-                    _globalsList.push_back(name);
-                }
-                else
+                if (!path.empty())
                 {
                     std::cout << "Add path: " << path << ". Frag name: " << name << std::endl;
                     _pathInputMap[path] = name;
                 }
-            }
-        }
-
-        // Cache output parameters
-        for (auto uniformsIt : ps.getOutputBlocks())
-        {
-            const MaterialX::VariableBlock& uniforms = *uniformsIt.second;
-            for (size_t i = 0; i < uniforms.size(); ++i)
-            {
-                const MaterialX::ShaderPort* v = uniforms[i];
-                std::string name = v->getVariable();
-                std::string path = v->getPath();
-                if (name.empty() || path.empty())
-                {
-                    continue;
-                }
-                std::cout << "Add output path: " << path << ". Frag name: " << name << std::endl;
-                _pathOutputMap[path] = name;
             }
         }
     }
