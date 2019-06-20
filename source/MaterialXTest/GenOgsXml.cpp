@@ -49,7 +49,9 @@ TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
                 const std::string name = graph->getName() + "_" + output->getName();
                 mx::ShaderPtr shader = glslGenerator->generate(name, output, glslContext);
                 std::ofstream file(name + ".xml");
-                xmlGenerator.generate(shader.get(), nullptr, file);
+                std::string shaderName = output->getNamePath();
+                shaderName = MaterialX::createValidName(shaderName);
+                xmlGenerator.generate(shaderName, shader.get(), nullptr, file);
             }
         }
     }
@@ -64,7 +66,9 @@ TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
             {
                 mx::ShaderPtr shader = glslGenerator->generate(shaderRef->getName(), shaderRef, glslContext);
                 std::ofstream file(shaderRef->getName() + ".xml");
-                xmlGenerator.generate(shader.get(), nullptr, file);
+                std::string shaderName = shaderRef->getNamePath();
+                shaderName = MaterialX::createValidName(shaderName);
+                xmlGenerator.generate(shaderName, shader.get(), nullptr, file);
             }
         }
     }

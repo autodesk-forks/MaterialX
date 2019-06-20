@@ -20,7 +20,7 @@ public:
     OgsXmlGenerator();
 
     /// Generate OSG XML for the given shader fragments, output to the given stream.
-    static void generate(const Shader* glsl, const Shader* hlsl, std::ostream& stream);
+    static void generate(const string& shaderName, const Shader* glsl, const Shader* hlsl, std::ostream& stream);
 
     /// String constants
     static const string OUTPUT_NAME;

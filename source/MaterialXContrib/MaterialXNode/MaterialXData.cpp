@@ -118,7 +118,9 @@ void MaterialXData::generateXML()
     if (shader)
     {
         std::stringstream stream;
-        _generator.generate(shader.get(), nullptr, stream);
+        // Note: This name must match the the fragment name used for registration
+        // or the registration will fail.
+        _generator.generate(_fragmentName, shader.get(), nullptr, stream);
         _fragmentWrapper = stream.str();
         if (_fragmentWrapper.empty())
         {
@@ -205,6 +207,14 @@ void MaterialXData::registerFragments(const std::string& ogsXmlPath)
             {
                 // TODO: This should be a fallback fragment.
                 throw MaterialX::Exception("Failed to add OGS shader fragment." + getFragmentName());
+            }
+
+            const MHWRender::MShaderManager* shaderManager = theRenderer->getShaderManager();
+            TESTSHADER = shaderManager->getFragmentShader(fragmentNameM, "", false, nullptr, nullptr);
+            if (!TESTSHADER)
+            {
+                // TODO: This should be a fallback fragment.
+                throw MaterialX::Exception("Failed to create shader from shader fragment." + getFragmentName());
             }
         }
     }

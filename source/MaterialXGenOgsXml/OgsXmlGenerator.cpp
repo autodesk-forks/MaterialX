@@ -206,7 +206,7 @@ OgsXmlGenerator::OgsXmlGenerator()
 {
 }
 
-void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostream& stream)
+void OgsXmlGenerator::generate(const std::string& shaderName, const Shader* glsl, const Shader* hlsl, std::ostream& stream)
 {
     if (glsl == nullptr && hlsl == nullptr)
     {
@@ -220,8 +220,8 @@ void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostr
     xml_document xmlDocument;
 
     pugi::xml_node xmlRoot = xmlDocument.append_child(FRAGMENT);
-    xmlRoot.append_attribute(UI_NAME) = shader->getName().c_str();
-    xmlRoot.append_attribute(NAME) = shader->getName().c_str();
+    xmlRoot.append_attribute(UI_NAME) = shaderName.c_str();
+    xmlRoot.append_attribute(NAME) = shaderName.c_str();
     xmlRoot.append_attribute(TYPE) = PLUMBING;
     xmlRoot.append_attribute(CLASS) = SHADER_FRAGMENT;
     xmlRoot.append_attribute(VERSION) = "1";

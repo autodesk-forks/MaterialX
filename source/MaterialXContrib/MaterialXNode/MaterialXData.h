@@ -9,6 +9,8 @@
 #include <MaterialXGenOgsXml/OgsXmlGenerator.h>
 #include <MaterialXGenShader/Shader.h>
 
+#include <maya/MShaderManager.h>
+
 /// @class MaterialXData
 /// Wrapper for MaterialX associated data. 
 ///
@@ -72,6 +74,8 @@ struct MaterialXData
     void createDocument(const std::string& materialXDocument);
 
     void clearXML();
+
+    MHWRender::MShaderInstance* TESTSHADER = nullptr;
 
   private:
     // Reference document and element
