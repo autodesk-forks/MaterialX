@@ -137,6 +137,25 @@ namespace
         for (size_t i = 0; i < block.size(); ++i)
         {
             const ShaderPort* p = block[i];
+            if (p->getName() == "Pw")
+            {
+                auto type = OGS_TYPE_MAP.find(p->getType());
+                if (type != OGS_TYPE_MAP.end())
+                {
+                    pugi::xml_node prop = parent.append_child(type->second);
+                    xmlSetProperty(prop, p->getName(), p->getVariable(), flags);
+                }
+            }
+        }
+
+        for (size_t i = 0; i < block.size(); ++i)
+        {
+            const ShaderPort* p = block[i];
+
+            if (p->getName() == "Pw")
+            {
+                continue;
+            }
             if (p->getType() == Type::FILENAME)
             {
                 const string& samplerName = p->getVariable();

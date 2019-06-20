@@ -31,6 +31,7 @@ TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
     mx::ShaderGeneratorPtr glslGenerator = mx::GlslFragmentGenerator::create();
     mx::GenContext glslContext(glslGenerator);
     glslContext.registerSourceCodeSearchPath(librariesPath);
+    glslContext.getOptions().fileTextureVerticalFlip = true;
 
     mx::OgsXmlGenerator xmlGenerator;
 

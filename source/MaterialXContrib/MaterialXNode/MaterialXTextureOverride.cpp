@@ -83,6 +83,10 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
                     textureAssignment.texture = texture;
                     status = shader.setParameter(parameterName.c_str(), textureAssignment);
 
+                    std::cout << "Bind texture: " << parameterName
+                        << ". image: " << imagePath.asString() << ". Status: "
+                        << status << std::endl;
+
                     // Get back the texture description
                     texture->textureDescription(textureDescription);
 
@@ -101,6 +105,10 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
     if (samplerState)
     {
         status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
+        std::cout << "Bind sampler: " << samplerParameterName
+             << " Status: "
+            << status << std::endl;
+
     }
 
     return status;
@@ -151,6 +159,10 @@ void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
                     {
                         int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
                         status = shader.setParameter(global.c_str(), mipCount);
+
+                        std::cout << "Bind mip levels: " << global
+                            << ". Val: " << std::to_string(mipCount) << ". Status: "
+                            << status << std::endl;
                     }
                 }
             }
@@ -168,7 +180,12 @@ void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
                     0, 0, 0, 1
                 };
                 MFloatMatrix matrix(yRotationPI);
+                matrix.setToIdentity();
                 status = shader.setParameter(global.c_str(), matrix);
+
+                std::cout << "Bind env matrix: " << global
+                    << ". Status: " << status << std::endl;
+
             }
         }
     }
