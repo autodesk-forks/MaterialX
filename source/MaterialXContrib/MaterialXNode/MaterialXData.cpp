@@ -3,15 +3,16 @@
 #include "Util.h"
 
 #include <MaterialXFormat/XmlIo.h>
-//#include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
 #include <MaterialXGenShader/Util.h>
 
 #include <maya/MViewport2Renderer.h>
 #include <maya/MFragmentManager.h>
 
+namespace mx = MaterialX;
+
 MaterialXData::MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath)
-    : _shaderGenerator(MaterialX::GlslFragmentGenerator::create()),
+    : _shaderGenerator(mx::GlslFragmentGenerator::create()),
       _genContext(_shaderGenerator)
 {
     // This should be settable instead of hard-coded.
@@ -46,7 +47,7 @@ const std::string& MaterialXData::getFragmentWrapper() const
     return _fragmentWrapper;
 }
 
-const MaterialX::StringMap& MaterialXData::getPathInputMap() const
+const mx::StringMap& MaterialXData::getPathInputMap() const
 {
     return _pathInputMap;
 }
@@ -54,19 +55,21 @@ const MaterialX::StringMap& MaterialXData::getPathInputMap() const
 void MaterialXData::createDocument(const std::string& materialXDocumentPath)
 {
     // Create document
-    _document = MaterialX::createDocument();
+    _document = mx::createDocument();
 
     // Load libraries
-    static const MaterialX::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
-    MaterialX::loadLibraries(libraries, _librarySearchPath, _document);
+    static const mx::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
+    mx::loadLibraries(libraries, _librarySearchPath, _document);
 
     // Read document contents from disk
-    MaterialX::readFromXmlFile(_document, materialXDocumentPath);
+    mx::XmlReadOptions readOptions;
+    readOptions.skipDuplicateElements = true;
+    mx::readFromXmlFile(_document, materialXDocumentPath);
 }
 
 bool MaterialXData::elementIsAShader() const
 {
-    return (_element ? _element->isA<MaterialX::ShaderRef>() : false);
+    return (_element ? _element->isA<mx::ShaderRef>() : false);
 }
 
 void MaterialXData::clearXML()
@@ -86,12 +89,12 @@ void MaterialXData::generateXML()
         return;
     }
 
-    MaterialX::OutputPtr output = _element->asA<MaterialX::Output>();
-    MaterialX::ShaderRefPtr shaderRef = _element->asA<MaterialX::ShaderRef>();
+    mx::OutputPtr output = _element->asA<mx::Output>();
+    mx::ShaderRefPtr shaderRef = _element->asA<mx::ShaderRef>();
     if (!output && !shaderRef)
     {
         // Should never occur as we pre-filter renderables before creating the node + override
-        throw MaterialX::Exception("Invalid element to create wrapper for " + _element->getName());
+        throw mx::Exception("Invalid element to create wrapper for " + _element->getName());
     }
 
     // Set up generator context. For shaders use FIS environment lookup,
@@ -100,11 +103,11 @@ void MaterialXData::generateXML()
     _genContext.registerSourceCodeSearchPath(_librarySearchPath);
     if (shaderRef)
     {
-        _genContext.getOptions().hwSpecularEnvironmentMethod = MaterialX::SPECULAR_ENVIRONMENT_FIS;
+        _genContext.getOptions().hwSpecularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
     }
     else
     {
-        _genContext.getOptions().hwSpecularEnvironmentMethod = MaterialX::SPECULAR_ENVIRONMENT_NONE;
+        _genContext.getOptions().hwSpecularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_NONE;
     }
     _genContext.getOptions().hwMaxActiveLightSources = 0;
     // For Maya we need to insert a V-flip fragment
@@ -113,8 +116,8 @@ void MaterialXData::generateXML()
     // Generate shader and put into XML wrapper.
     // TODO: Generate unique fragment names
     _fragmentName = _element->getNamePath();
-    _fragmentName = MaterialX::createValidName(_fragmentName);
-    MaterialX::ShaderPtr shader = _shaderGenerator->generate(_fragmentName, _element, _genContext);
+    _fragmentName = mx::createValidName(_fragmentName);
+    mx::ShaderPtr shader = _shaderGenerator->generate(_fragmentName, _element, _genContext);
     if (shader)
     {
         std::ostringstream stream;
@@ -134,22 +137,28 @@ void MaterialXData::generateXML()
             std::cout << _fragmentWrapper << std::endl;
         }
 
-        const MaterialX::ShaderStage& ps = shader->getStage(MaterialX::Stage::PIXEL);
+        const mx::ShaderStage& ps = shader->getStage(mx::Stage::PIXEL);
         for (auto uniformsIt : ps.getUniformBlocks())
         {
-            const MaterialX::VariableBlock& uniforms = *uniformsIt.second;
+            const mx::VariableBlock& uniforms = *uniformsIt.second;
 
             // Skip light uniforms
-            if (uniforms.getName() == MaterialX::HW::LIGHT_DATA)
+            if (uniforms.getName() == mx::HW::LIGHT_DATA)
             {
                 continue;
             }
 
-            //bool isPrivate = uniforms.getName() == MaterialX::HW::PRIVATE_UNIFORMS;
+            //bool isPrivate = uniforms.getName() == mx::HW::PRIVATE_UNIFORMS;
             for (size_t i = 0; i < uniforms.size(); i++)
             {
-                const MaterialX::ShaderPort* port = uniforms[i];
-                const std::string& name = port->getName();
+                const mx::ShaderPort* port = uniforms[i];
+                std::string name = port->getVariable();
+                if (port->getType()->getSemantic() == mx::TypeDesc::SEMANTIC_FILENAME)
+                {
+                    // Strip out the "Sampler" post-fix
+                    size_t pos = name.find(mx::OgsXmlGenerator::SAMPLER_SUFFIX);
+                    name.erase(pos, mx::OgsXmlGenerator::SAMPLER_SUFFIX.length());
+                }
                 const std::string& path = port->getPath();
                 if (!path.empty())
                 {
@@ -173,7 +182,7 @@ void MaterialXData::registerFragments(const std::string& ogsXmlPath)
         
     // TODO: This should not be hard-coded
     std::string dumpPath("d:/work/shader_dump/");
-    MaterialX::FileSearchPath path = MaterialX::getEnvironmentPath("TEMP");
+    mx::FileSearchPath path = mx::getEnvironmentPath("TEMP");
     if (path.size() > 0)
     {
         dumpPath = path[0].asString();
@@ -198,7 +207,7 @@ void MaterialXData::registerFragments(const std::string& ogsXmlPath)
             MString fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
             if (fragmentNameM.length() == 0)
             {
-                throw MaterialX::Exception("Failed to add OGS shader fragment." + getFragmentName());
+                throw mx::Exception("Failed to add OGS shader fragment." + getFragmentName());
             }
         }
         else
@@ -208,7 +217,7 @@ void MaterialXData::registerFragments(const std::string& ogsXmlPath)
             if (fragmentNameM.length() == 0)
             {
                 // TODO: This should be a fallback fragment.
-                throw MaterialX::Exception("Failed to add OGS shader fragment." + getFragmentName());
+                throw mx::Exception("Failed to add OGS shader fragment." + getFragmentName());
             }
 
             const MHWRender::MShaderManager* shaderManager = theRenderer->getShaderManager();
@@ -216,7 +225,7 @@ void MaterialXData::registerFragments(const std::string& ogsXmlPath)
             if (!TESTSHADER)
             {
                 // TODO: This should be a fallback fragment.
-                throw MaterialX::Exception("Failed to create shader from shader fragment." + getFragmentName());
+                throw mx::Exception("Failed to create shader from shader fragment." + getFragmentName());
             }
         }
     }
@@ -230,10 +239,10 @@ bool MaterialXData::isRenderable()
     }
 
     const std::string& elementPath = _element->getNamePath();
-    std::vector<MaterialX::TypedElementPtr> elements;
+    std::vector<mx::TypedElementPtr> elements;
     try {
-        MaterialX::findRenderableElements(_document, elements);
-        for (MaterialX::TypedElementPtr currentElement : elements)
+        mx::findRenderableElements(_document, elements);
+        for (mx::TypedElementPtr currentElement : elements)
         {
             std::string pathCompare(currentElement->getNamePath());
             if (pathCompare == elementPath)
@@ -242,7 +251,7 @@ bool MaterialXData::isRenderable()
             }
         }
     }
-    catch (MaterialX::Exception& e)
+    catch (mx::Exception& e)
     {
         std::cerr << "Failed to find renderable element in document: " << e.what() << std::endl;
     }
