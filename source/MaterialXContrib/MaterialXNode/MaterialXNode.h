@@ -2,7 +2,7 @@
 #define MATERIALXNODE_H
 
 #include "MaterialXData.h"
-#include "../OGSXMLFragmentWrapper.h"
+#include <MaterialXContrib/OGSXMLFragmentWrapper.h>
 
 #include <maya/MDGModifier.h>
 #include <maya/MPxNode.h>
