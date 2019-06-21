@@ -22,7 +22,7 @@ MaterialXData::MaterialXData(const std::string& materialXDocumentPath, const std
 
 bool MaterialXData::setData(const std::string& materialXDocument, const std::string& elementPath)
 {
-    clearXML();
+    clearXml();
     createDocument(materialXDocument);
     if (_document)
     {
@@ -72,7 +72,7 @@ bool MaterialXData::elementIsAShader() const
     return (_element ? _element->isA<mx::ShaderRef>() : false);
 }
 
-void MaterialXData::clearXML()
+void MaterialXData::clearXml()
 {
     _pathInputMap.clear();
     _fragmentName.clear();
@@ -82,7 +82,7 @@ void MaterialXData::clearXML()
 void MaterialXData::generateXML()
 {
     // Reset cached data
-    clearXML();
+    clearXml();
 
     if (!_element)
     {

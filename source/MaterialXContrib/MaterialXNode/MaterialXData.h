@@ -71,11 +71,11 @@ struct MaterialXData
     /// Returns whether the element is renderable
     bool isRenderable();
 
+    /// Create a new document from disk
     void createDocument(const std::string& materialXDocument);
 
-    void clearXML();
-
-    MHWRender::MShaderInstance* TESTSHADER = nullptr;
+    /// Reset any Xml related data.
+    void clearXml();
 
   private:
     // Reference document and element
