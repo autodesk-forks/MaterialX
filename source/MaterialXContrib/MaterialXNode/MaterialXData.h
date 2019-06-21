@@ -40,7 +40,7 @@ struct MaterialXData
 
     /// Create the OGS XML wrapper for shader fragments associated
     /// with the element set to render
-    void generateXML();
+    void generateXml();
 
     /// Register the fragment(s)
     void registerFragments(const std::string& ogsXmlPath);

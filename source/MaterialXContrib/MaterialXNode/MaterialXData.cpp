@@ -79,7 +79,7 @@ void MaterialXData::clearXml()
     _fragmentWrapper.clear();
 }
 
-void MaterialXData::generateXML()
+void MaterialXData::generateXml()
 {
     // Reset cached data
     clearXml();
@@ -138,9 +138,9 @@ void MaterialXData::generateXML()
         // Extract out the input fragment parameter names along with their
         // associated Element paths to allow for value binding.
         const mx::ShaderStage& ps = shader->getStage(mx::Stage::PIXEL);
-        for (const auto& uniformsIt : ps.getUniformBlocks())
+        for (const auto& blockMap : ps.getUniformBlocks())
         {
-            const mx::VariableBlock& uniforms = *uniformsIt.second;
+            const mx::VariableBlock& uniforms = *blockMap.second;
 
             // Skip light uniforms
             if (uniforms.getName() == mx::HW::LIGHT_DATA)

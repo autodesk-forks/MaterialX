@@ -293,7 +293,7 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
     }
 
     // Add all uniforms
-    for (auto it : stage.getUniformBlocks())
+    for (const auto& it : stage.getUniformBlocks())
     {
         const VariableBlock& uniforms = *it.second;
         if (!uniforms.empty())
@@ -386,7 +386,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
     }
 
     // Add all uniforms
-    for (auto it : stage.getUniformBlocks())
+    for (const auto& it : stage.getUniformBlocks())
     {
         const VariableBlock& uniforms = *it.second;
 

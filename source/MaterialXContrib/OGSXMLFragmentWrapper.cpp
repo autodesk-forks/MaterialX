@@ -451,9 +451,9 @@ void OGSXMLFragmentWrapper::generate(const string& shaderName, ElementPtr elemen
 
     const ShaderStage& ps = shader->getStage(Stage::PIXEL);
     // TODO: Need a way to know if a uniform is global or in input function argument
-    for (auto uniformsIt : ps.getUniformBlocks())
+    for (const auto& uniformMap : ps.getUniformBlocks())
     {
-        const VariableBlock& uniforms = *uniformsIt.second;
+        const VariableBlock& uniforms = *uniformMap.second;
         // Skip light uniforms
         if (uniforms.getName() == HW::LIGHT_DATA)
         {
@@ -581,9 +581,9 @@ void OGSXMLFragmentWrapper::generate(const string& shaderName, ElementPtr elemen
 
     // Scan outputs and create "outputs"
     pugi::xml_node xmlOutputs = xmlRoot.append_child(OGS_OUTPUTS.c_str());
-    for (auto uniformsIt : ps.getOutputBlocks())
+    for (auto uniformMap : ps.getOutputBlocks())
     {
-        const VariableBlock& uniforms = *uniformsIt.second;
+        const VariableBlock& uniforms = *uniformMap.second;
         for (size_t i = 0; i < uniforms.size(); ++i)
         {
             const ShaderPort* v = uniforms[i];

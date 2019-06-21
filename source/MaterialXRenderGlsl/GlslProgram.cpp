@@ -1210,9 +1210,9 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
         }
 
         // Process pixel stage uniforms
-        for (auto uniformsIt : ps.getUniformBlocks())
+        for (const auto& uniformMap : ps.getUniformBlocks())
         {
-            const VariableBlock& uniforms = *uniformsIt.second;
+            const VariableBlock& uniforms = *uniformMap.second;
             if (uniforms.getName() == HW::LIGHT_DATA)
             {
                 // Need to go through LightHandler to match with uniforms
@@ -1255,9 +1255,9 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
         }
 
         // Process vertex stage uniforms
-        for (auto uniformsIt : vs.getUniformBlocks())
+        for (const auto& uniformMap : vs.getUniformBlocks())
         {
-            const VariableBlock& uniforms = *uniformsIt.second;
+            const VariableBlock& uniforms = *uniformMap.second;
             for (size_t i = 0; i < uniforms.size(); ++i)
             {
                 const ShaderPort* v = uniforms[i];
