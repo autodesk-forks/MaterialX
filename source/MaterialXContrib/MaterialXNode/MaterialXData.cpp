@@ -133,10 +133,10 @@ void MaterialXData::generateXML()
         {
             // Strip out any '\r' characters.
             _fragmentWrapper.erase(std::remove(_fragmentWrapper.begin(), _fragmentWrapper.end(), '\r'), _fragmentWrapper.end());
-            std::cout << "XML WRAPPER: " << std::endl;
-            std::cout << _fragmentWrapper << std::endl;
         }
 
+        // Extract out the input fragment parameter names along with their
+        // associated Element paths to allow for value binding.
         const mx::ShaderStage& ps = shader->getStage(mx::Stage::PIXEL);
         for (auto uniformsIt : ps.getUniformBlocks())
         {
@@ -148,21 +148,19 @@ void MaterialXData::generateXML()
                 continue;
             }
 
-            //bool isPrivate = uniforms.getName() == mx::HW::PRIVATE_UNIFORMS;
             for (size_t i = 0; i < uniforms.size(); i++)
             {
                 const mx::ShaderPort* port = uniforms[i];
-                std::string name = port->getVariable();
-                if (port->getType()->getSemantic() == mx::TypeDesc::SEMANTIC_FILENAME)
-                {
-                    // Strip out the "Sampler" post-fix
-                    size_t pos = name.find(mx::OgsXmlGenerator::SAMPLER_SUFFIX);
-                    name.erase(pos, mx::OgsXmlGenerator::SAMPLER_SUFFIX.length());
-                }
                 const std::string& path = port->getPath();
                 if (!path.empty())
                 {
-                    std::cout << "Add path: " << path << ". Frag name: " << name << std::endl;
+                    std::string name = port->getVariable();
+                    if (port->getType()->getSemantic() == mx::TypeDesc::SEMANTIC_FILENAME)
+                    {
+                        // Strip out the "sampler" post-fix to get the texture name.
+                        size_t pos = name.find(mx::OgsXmlGenerator::SAMPLER_SUFFIX);
+                        name.erase(pos, mx::OgsXmlGenerator::SAMPLER_SUFFIX.length());
+                    }
                     _pathInputMap[path] = name;
                 }
             }
@@ -170,7 +168,6 @@ void MaterialXData::generateXML()
     }
 }
 
-// TODO: This does not belong here. To migrate out to another class.
 void MaterialXData::registerFragments(const std::string& ogsXmlPath)
 {
     MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
@@ -201,32 +198,25 @@ void MaterialXData::registerFragments(const std::string& ogsXmlPath)
     const bool fragmentExists = fragmentManager->hasFragment(fragmentName.c_str());
     if (!fragmentExists)
     {
+        MString fragmentNameM;
+
+        // Allow for an explicit XML file to be specified.
         if (!ogsXmlPath.empty())
         {
             std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
-            MString fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
-            if (fragmentNameM.length() == 0)
-            {
-                throw mx::Exception("Failed to add OGS shader fragment." + getFragmentName());
-            }
+            fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
         }
+
+        // When no override file is specified use the generated XML
         else
         {
-            // XML should come from here. For now allow to get from a input path
-            MString fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
-            if (fragmentNameM.length() == 0)
-            {
-                // TODO: This should be a fallback fragment.
-                throw mx::Exception("Failed to add OGS shader fragment." + getFragmentName());
-            }
+            fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
+        }
 
-            const MHWRender::MShaderManager* shaderManager = theRenderer->getShaderManager();
-            TESTSHADER = shaderManager->getFragmentShader(fragmentNameM, "", false, nullptr, nullptr);
-            if (!TESTSHADER)
-            {
-                // TODO: This should be a fallback fragment.
-                throw mx::Exception("Failed to create shader from shader fragment." + getFragmentName());
-            }
+        // TODO: Add a fallback shader.
+        if (fragmentNameM.length() == 0)
+        {
+            throw mx::Exception("Failed to add shader fragment." + getFragmentName());
         }
     }
 }

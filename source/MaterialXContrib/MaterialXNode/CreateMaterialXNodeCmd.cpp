@@ -84,11 +84,6 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
             argData.getFlagArgument(kOgsXmlFlag, 0, ogsXmlPath);
         }
 
-        //if (ogsXmlPath.length() == 0)
-        //{
-        //    throw MaterialX::Exception("OGS XML fragment file path is empty.");
-        //}
-
         std::unique_ptr<MaterialXData> materialXData{
             new MaterialXData(materialXDocument.asChar(), elementPath.asChar())
         };

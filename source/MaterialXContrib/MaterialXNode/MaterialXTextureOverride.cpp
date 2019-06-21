@@ -84,7 +84,6 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
                     MHWRender::MTextureAssignment textureAssignment;
                     textureAssignment.texture = texture;
                     status = shader.setParameter(parameterName.c_str(), textureAssignment);
-                    std::cout << "Bind " << parameterName << " = " << imagePath.asString() << " (" << status << ")" << std::endl;
 
                     // Get back the texture description
                     texture->textureDescription(textureDescription);
@@ -104,7 +103,6 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader, const std::string& p
     if (samplerState)
     {
         status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
-        std::cout << "Bind " << samplerParameterName << " (" << status << ")" << std::endl;
     }
 
     return status;
@@ -140,16 +138,12 @@ void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
             {
                 const int mipCount = (int)std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight)) + 1;
                 status = shader.setParameter(mx::HW::ENV_RADIANCE_MIPS.c_str(), mipCount);
-                std::cout << "Bind " << mx::HW::ENV_RADIANCE_MIPS << " = " 
-                          << std::to_string(mipCount) << " (" << status << ")" << std::endl;
             }
 
             if (parameterList.indexOf(mx::HW::ENV_RADIANCE_SAMPLES.c_str()) >= 0)
             {
                 const int envSamples = 16;
                 status = shader.setParameter(mx::HW::ENV_RADIANCE_SAMPLES.c_str(), int(envSamples));
-                std::cout << "Bind " << mx::HW::ENV_RADIANCE_SAMPLES << " = "
-                          << std::to_string(envSamples) << " (" << status << ")" << std::endl;
             }
         }
     }
@@ -164,9 +158,7 @@ void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
             0, 0, 0, 1
         };
         MFloatMatrix matrix(yRotationPI);
-        matrix.setToIdentity();
         status = shader.setParameter(mx::HW::ENV_MATRIX.c_str(), matrix);
-        std::cout << "Bind " << mx::HW::ENV_MATRIX << " (" << status << ")" << std::endl;
     }
 }
 
