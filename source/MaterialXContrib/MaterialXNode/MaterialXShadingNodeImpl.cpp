@@ -102,7 +102,7 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
     // the MaterialX sampler state.
     const std::string SAMPLE_PREFIX_STRING("Sampler");
     std::string samplerParameterName(parameterName + SAMPLE_PREFIX_STRING);
-    Vp2SamplerUniquePtr samplerState(MHWRender::MStateManager::acquireSamplerState(samplerDescription));
+    Vp2SamplerUniquePtr samplerState{ MHWRender::MStateManager::acquireSamplerState(samplerDescription) };
     if (samplerState)
     {
         status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
