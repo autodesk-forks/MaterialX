@@ -1175,8 +1175,8 @@ void Viewer::drawScene3D()
             _ambOccMaterial->bindShader();
             _ambOccMaterial->bindViewInformation(world, view, proj);
             _ambOccMaterial->bindLights(_lightHandler, _imageHandler, _searchPath,
-                _directLighting, _indirectLighting,
-                _specularEnvironmentMethod, _envSamples);
+                                        _directLighting, _indirectLighting,
+                                        _specularEnvironmentMethod, _envSamples);
             _ambOccMaterial->bindImages(_imageHandler, _searchPath, material->getUdim());
             _ambOccMaterial->drawPartition(geom);
         }
