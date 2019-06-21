@@ -1,5 +1,5 @@
-#ifndef MaterialXSurfaceOverride_H
-#define MaterialXSurfaceOverride_H
+#ifndef MATERIALX_SURFACE_OVERRIDE_H
+#define MATERIALX_SURFACE_OVERRIDE_H
 
 #include "MaterialXShadingNodeImpl.h"
 

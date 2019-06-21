@@ -84,11 +84,6 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
             argData.getFlagArgument(kOgsXmlFlag, 0, ogsXmlPath);
         }
 
-        if (ogsXmlPath.length() == 0)
-        {
-            throw MaterialX::Exception("OGS XML fragment file path is empty.");
-        }
-
         std::unique_ptr<MaterialXData> materialXData{
             new MaterialXData(materialXDocument.asChar(), elementPath.asChar())
         };
@@ -108,7 +103,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         std::string nodeName = MaterialX::createValidName(elementPath.asChar());
         _dgModifier.renameNode(node, nodeName.c_str());
 
-        materialXData->generateXML();
+        materialXData->generateXml();
         materialXData->registerFragments(ogsXmlPath.asChar());
 
         MFnDependencyNode depNode(node);

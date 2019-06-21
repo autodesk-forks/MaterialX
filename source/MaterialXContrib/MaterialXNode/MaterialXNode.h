@@ -73,42 +73,43 @@ private:
 class MaterialXNode : public MPxNode
 {
   public:
-	MaterialXNode();
-	~MaterialXNode() override;
+    MaterialXNode();
+    ~MaterialXNode() override;
 
-	static void* creator();
-	static MStatus initialize();
-	void createOutputAttr(MDGModifier& mdgModifier);
-	MStatus setDependentsDirty(const MPlug &plugBeingDirtied, MPlugArray & affectedPlugs) override;
-	MTypeId	typeId() const override;
-	SchedulingType schedulingType() const override;
-	bool setInternalValue(const MPlug &plug, const MDataHandle &dataHandle) override;
-	void createAttributesFromDocument(MDGModifier& mdgModifier);
+    static void* creator();
+    static MStatus initialize();
 
-	void setMaterialXData(std::unique_ptr<MaterialXData>&& data)
-	{
-		materialXData = std::move(data);
-	}
+    void createOutputAttr(MDGModifier& mdgModifier);
+    MStatus setDependentsDirty(const MPlug &plugBeingDirtied, MPlugArray & affectedPlugs) override;
+    MTypeId	typeId() const override;
+    SchedulingType schedulingType() const override;
+    bool setInternalValue(const MPlug &plug, const MDataHandle &dataHandle) override;
+    void createAttributesFromDocument(MDGModifier& mdgModifier);
 
-	static const MTypeId MATERIALX_NODE_TYPEID;
-	static const MString MATERIALX_NODE_TYPENAME;
+    void setMaterialXData(std::unique_ptr<MaterialXData>&& data)
+    {
+        materialXData = std::move(data);
+    }
+
+    static const MTypeId MATERIALX_NODE_TYPEID;
+    static const MString MATERIALX_NODE_TYPENAME;
 
     /// Attribute holding a MaterialX document
-	static MString DOCUMENT_ATTRIBUTE_LONG_NAME;
-	static MString DOCUMENT_ATTRIBUTE_SHORT_NAME;
-	static MObject DOCUMENT_ATTRIBUTE;
-	/// Attribute holding a MaterialX element name
-	static MString ELEMENT_ATTRIBUTE_LONG_NAME;
-	static MString ELEMENT_ATTRIBUTE_SHORT_NAME;
-	static MObject ELEMENT_ATTRIBUTE;
+    static MString DOCUMENT_ATTRIBUTE_LONG_NAME;
+    static MString DOCUMENT_ATTRIBUTE_SHORT_NAME;
+    static MObject DOCUMENT_ATTRIBUTE;
+    /// Attribute holding a MaterialX element name
+    static MString ELEMENT_ATTRIBUTE_LONG_NAME;
+    static MString ELEMENT_ATTRIBUTE_SHORT_NAME;
+    static MObject ELEMENT_ATTRIBUTE;
 
     std::unique_ptr<MaterialXData> materialXData;
 
   private:
-	  void setAttributeValue(MObject &materialXObject, MObject &attr, float* values, unsigned int size, MDGModifier& mdgModifier);
+    void setAttributeValue(MObject &materialXObject, MObject &attr, float* values, unsigned int size, MDGModifier& mdgModifier);
 
-	MObject _outAttr;
-	std::unordered_map<std::string, MaterialX::ElementPtr> _attributeElementPairMap;
+    MObject _outAttr;
+    std::unordered_map<std::string, MaterialX::ElementPtr> _attributeElementPairMap;
 };
 
 class MaterialXTextureNode : public MaterialXNode

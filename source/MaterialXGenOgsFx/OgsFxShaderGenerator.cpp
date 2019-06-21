@@ -491,7 +491,7 @@ ShaderPtr OgsFxShaderGenerator::createShader(const string& name, ElementPtr elem
                 }
             }
         }
-        for (auto it : stage.getUniformBlocks())
+        for (const auto& it : stage.getUniformBlocks())
         {
             VariableBlock& block = *it.second;
             for (size_t j = 0; j < block.size(); ++j)

@@ -137,6 +137,25 @@ namespace
         for (size_t i = 0; i < block.size(); ++i)
         {
             const ShaderPort* p = block[i];
+            if (p->getName() == "Pw")
+            {
+                auto type = OGS_TYPE_MAP.find(p->getType());
+                if (type != OGS_TYPE_MAP.end())
+                {
+                    pugi::xml_node prop = parent.append_child(type->second);
+                    xmlSetProperty(prop, p->getName(), p->getVariable(), flags);
+                }
+            }
+        }
+
+        for (size_t i = 0; i < block.size(); ++i)
+        {
+            const ShaderPort* p = block[i];
+
+            if (p->getName() == "Pw")
+            {
+                continue;
+            }
             if (p->getType() == Type::FILENAME)
             {
                 const string& samplerName = p->getVariable();
@@ -180,13 +199,14 @@ namespace
     }
 }
 
+const string OgsXmlGenerator::OUTPUT_NAME = "out";
 const string OgsXmlGenerator::SAMPLER_SUFFIX = "Sampler";
 
 OgsXmlGenerator::OgsXmlGenerator()
 {
 }
 
-void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostream& stream)
+void OgsXmlGenerator::generate(const std::string& shaderName, const Shader* glsl, const Shader* hlsl, std::ostream& stream)
 {
     if (glsl == nullptr && hlsl == nullptr)
     {
@@ -200,8 +220,8 @@ void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostr
     xml_document xmlDocument;
 
     pugi::xml_node xmlRoot = xmlDocument.append_child(FRAGMENT);
-    xmlRoot.append_attribute(UI_NAME) = shader->getName().c_str();
-    xmlRoot.append_attribute(NAME) = shader->getName().c_str();
+    xmlRoot.append_attribute(UI_NAME) = shaderName.c_str();
+    xmlRoot.append_attribute(NAME) = shaderName.c_str();
     xmlRoot.append_attribute(TYPE) = PLUMBING;
     xmlRoot.append_attribute(CLASS) = SHADER_FRAGMENT;
     xmlRoot.append_attribute(VERSION) = "1";
@@ -226,10 +246,9 @@ void OgsXmlGenerator::generate(const Shader* glsl, const Shader* hlsl, std::ostr
     {
         throw ExceptionShaderGenError("Shader stage has no output");
     }
-    const ShaderPort* output = outputs[0];
     pugi::xml_node xmlOutputs = xmlRoot.append_child(OUTPUTS);
     pugi::xml_node xmlOut = xmlOutputs.append_child(OGS_TYPE_MAP.at(Type::COLOR3));
-    xmlOut.append_attribute(NAME) = output->getVariable().c_str();
+    xmlOut.append_attribute(NAME) = OUTPUT_NAME.c_str();
 
     // Add implementations
     pugi::xml_node xmlImpementations = xmlRoot.append_child(IMPLEMENTATION);

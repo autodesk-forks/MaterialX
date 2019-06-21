@@ -31,10 +31,30 @@ TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
     mx::ShaderGeneratorPtr glslGenerator = mx::GlslFragmentGenerator::create();
     mx::GenContext glslContext(glslGenerator);
     glslContext.registerSourceCodeSearchPath(librariesPath);
+    glslContext.getOptions().fileTextureVerticalFlip = true;
 
     mx::OgsXmlGenerator xmlGenerator;
 
+    mx::StringVec testGraphs = { };
     mx::StringVec testMaterials = { "Tiled_Brass" };
+
+    for (auto testGraph : testGraphs)
+    {
+        mx::NodeGraphPtr graph = doc->getNodeGraph(testGraph);
+        if (graph)
+        {
+            std::vector<mx::OutputPtr> outputs = graph->getOutputs();
+            for (auto output : outputs)
+            {
+                const std::string name = graph->getName() + "_" + output->getName();
+                mx::ShaderPtr shader = glslGenerator->generate(name, output, glslContext);
+                std::ofstream file(name + ".xml");
+                std::string shaderName = output->getNamePath();
+                shaderName = MaterialX::createValidName(shaderName);
+                xmlGenerator.generate(shaderName, shader.get(), nullptr, file);
+            }
+        }
+    }
 
     for (auto testMaterial : testMaterials)
     {
@@ -44,9 +64,11 @@ TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
             std::vector<mx::ShaderRefPtr> shaderRefs = mtrl->getShaderRefs();
             for (auto shaderRef : shaderRefs)
             {
-                mx::ShaderPtr glsl = glslGenerator->generate(shaderRef->getName(), shaderRef, glslContext);
+                mx::ShaderPtr shader = glslGenerator->generate(shaderRef->getName(), shaderRef, glslContext);
                 std::ofstream file(shaderRef->getName() + ".xml");
-                xmlGenerator.generate(glsl.get(), nullptr, file);
+                std::string shaderName = shaderRef->getNamePath();
+                shaderName = MaterialX::createValidName(shaderName);
+                xmlGenerator.generate(shaderName, shader.get(), nullptr, file);
             }
         }
     }

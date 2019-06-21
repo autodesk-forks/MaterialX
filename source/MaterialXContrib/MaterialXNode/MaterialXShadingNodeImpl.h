@@ -1,5 +1,5 @@
-#ifndef MaterialXShadingNodeImpl_H
-#define MaterialXShadingNodeImpl_H
+#ifndef MATERIALX_SHADINGNODE_IMPL_H
+#define MATERIALX_SHADINGNODE_IMPL_H
 
 #include <maya/MViewport2Renderer.h>
 
@@ -13,7 +13,6 @@ class MaterialXShadingNodeImpl : public BASE
     }
 
     MString fragmentName() const override;
-    //void getCustomMappings(MHWRender::MAttributeParameterMappingList& mappings) override;
 
     void updateDG() override;
 
@@ -30,7 +29,6 @@ class MaterialXShadingNodeImpl : public BASE
   protected:
     ~MaterialXShadingNodeImpl() override;
 
-  private:
     MaterialXShadingNodeImpl(const MObject&);
 
     MObject _object;
@@ -39,4 +37,4 @@ class MaterialXShadingNodeImpl : public BASE
     bool _enableEditing = false;
 };
 
-#endif /* MATERIALX_NODE_OVERRIDE_H */
+#endif /* MATERIALX_SHADINGNODE_IMPL_H */

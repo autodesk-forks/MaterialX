@@ -1,5 +1,5 @@
-#ifndef MaterialXTextureOverride_H
-#define MaterialXTextureOverride_H
+#ifndef MATERIALX_TEXTURE_OVERRIDE_H
+#define MATERIALX_TEXTURE_OVERRIDE_H
 
 #include "MaterialXShadingNodeImpl.h"
 
@@ -14,7 +14,7 @@ class MaterialXTextureOverride
 
     static const MString REGISTRANT_ID, DRAW_CLASSIFICATION;
 
-  private:
+  protected:
     /// Inheriting the constructor from the base class.
     using MaterialXShadingNodeImpl<MHWRender::MPxShadingNodeOverride>::MaterialXShadingNodeImpl;
 };

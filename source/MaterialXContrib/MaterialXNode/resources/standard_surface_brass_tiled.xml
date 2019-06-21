@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<fragment uiName="SR_brass1" name="SR_brass1" type="plumbing" class="ShadeFragment" version="1">
+<fragment uiName="Tiled_Brass_SR_brass1" name="Tiled_Brass_SR_brass1" type="plumbing" class="ShadeFragment" version="1">
   <description><![CDATA[Code generated from MaterialX description]]></description>
   <properties>
     <float4x4 name="u_envMatrix" flags="isRequirementOnly" />

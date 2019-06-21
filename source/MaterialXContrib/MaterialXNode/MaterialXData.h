@@ -6,7 +6,10 @@
 
 #include <MaterialXCore/Document.h>
 #include <MaterialXGenShader/GenContext.h>
-#include <MaterialXContrib/OGSXMLFragmentWrapper.h>
+#include <MaterialXGenOgsXml/OgsXmlGenerator.h>
+#include <MaterialXGenShader/Shader.h>
+
+#include <maya/MShaderManager.h>
 
 /// @class MaterialXData
 /// Wrapper for MaterialX associated data. 
@@ -37,7 +40,7 @@ struct MaterialXData
 
     /// Create the OGS XML wrapper for shader fragments associated
     /// with the element set to render
-    void generateXML();
+    void generateXml();
 
     /// Register the fragment(s)
     void registerFragments(const std::string& ogsXmlPath);
@@ -52,21 +55,13 @@ struct MaterialXData
     }
 
     /// Return XML string
-    void getXML(std::ostream& stream) const;
+    const std::string& getFragmentWrapper() const;
 
     /// Return name of shader fragment
     const std::string& getFragmentName() const;
 
-    /// Get list of global inputs which are not associated with any Element
-    const MaterialX::StringVec&  getGlobalsList() const;
-
-    /// Get list of Element paths and corresponding fragment input names
+    /// Get list of Element paths and corresponding XML input names
     const MaterialX::StringMap& getPathInputMap() const;
-
-    /// Get list of Element paths and corresponding fragment output names
-    /// If the output is a ShaderRef then the path is to that element
-    /// as there are no associated child output Elements.
-    const MaterialX::StringMap& getPathOutputMap() const;
 
     /// Return if the element to render represents a shader graph
     /// as opposed to a texture grraph.
@@ -75,7 +70,12 @@ struct MaterialXData
   protected:
     /// Returns whether the element is renderable
     bool isRenderable();
+
+    /// Create a new document from disk
     void createDocument(const std::string& materialXDocument);
+
+    /// Reset any Xml related data.
+    void clearXml();
 
   private:
     // Reference document and element
@@ -84,8 +84,18 @@ struct MaterialXData
     MaterialX::ElementPtr _element;
 
     // TODO: This is currently a prototype interface
+    MaterialX::ShaderGeneratorPtr _shaderGenerator;
     MaterialX::GenContext _genContext;
-    MaterialX::OGSXMLFragmentWrapper _xmlFragmentWrapper;
+    MaterialX::OgsXmlGenerator _generator;
+
+    // XML fragment name
+    std::string _fragmentName;
+
+    // XML fragment wrapper
+    std::string _fragmentWrapper;
+
+    // Mapping from MaterialX Element paths to XML input names
+    MaterialX::StringMap _pathInputMap;
 };
 
 #endif // MATERIALX_DATA_H

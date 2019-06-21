@@ -9,3 +9,4 @@ MHWRender::MPxShadingNodeOverride* MaterialXTextureOverride::creator(const MObje
 	std::cout.rdbuf(std::cerr.rdbuf());
 	return new MaterialXTextureOverride(obj);
 }
+
