@@ -22,21 +22,3 @@ deploy
 # Ignore local editor settings
 .vscode/*
 
-build_public_rel/
-resources/Materials/TestSuite/libraries/prism_presets_May16/
-resources/Materials/TestSuite/libraries/prism_presets_May16.zip
-rel_publicbuild_viewer.bat
-rel_publicbuild_vcpkg.bat
-rel_publicbuild_oiio_viewer.bat
-shaderx_merge_build.bat
-rel_publicbuild_oiio_no_testsuite.bat
-rel_publicbuild_nopython.bat
-rel_publicbuild_all.bat
-rel_publicbuild.bat
-publicbuild_arnold_osl.bat
-publicbuild.bat
-ilm_build.bat
-docs.txt
-cpTest.bat
-cpRelTest.bat
-cpAllTest.bat
