@@ -138,7 +138,7 @@ void MaterialXData::generateXML()
         // Extract out the input fragment parameter names along with their
         // associated Element paths to allow for value binding.
         const mx::ShaderStage& ps = shader->getStage(mx::Stage::PIXEL);
-        for (auto uniformsIt : ps.getUniformBlocks())
+        for (const auto& uniformsIt : ps.getUniformBlocks())
         {
             const mx::VariableBlock& uniforms = *uniformsIt.second;
 
