@@ -33,7 +33,7 @@ ShaderPtr MayaGlslPluginShaderGenerator::createShader(const string& name, Elemen
         ShaderStage& stage = shader->getStage(i);
         for (const auto& uniformMap : stage.getUniformBlocks())
         {
-            ShaderPort* v = shader.second->find(HW::T_VIEW_POSITION);
+            ShaderPort* v = uniformMap.second->find(HW::T_VIEW_POSITION);
             if (v)
             {
                 v->setSemantic(VIEW_POSITON_SEMANTIC);

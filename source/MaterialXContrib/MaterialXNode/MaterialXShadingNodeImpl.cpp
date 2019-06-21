@@ -8,18 +8,8 @@
 #include <maya/MPxShadingNodeOverride.h>
 #include <maya/MPxSurfaceShadingNodeOverride.h>
 
-#include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include <MaterialXData.h>
 #include <MaterialXGenShader/HwShaderGenerator.h>
-#include <MaterialXGenShader/GenContext.h>
-#include <MaterialXGenShader/Util.h>
-#include <MaterialXFormat/XmlIo.h>
-#include <MaterialXRender/StbImageLoader.h>
-
-#include <maya/MFnDependencyNode.h>
-#include <maya/MFragmentManager.h>
-#include <maya/MRenderUtil.h>
-#include <maya/MShaderManager.h>
-#include <maya/MTextureManager.h>
 
 namespace mx = MaterialX;
 
@@ -94,18 +84,15 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
             MHWRender::MTextureManager* textureManager = renderer->getTextureManager();
             if (textureManager)
             {
-                MHWRender::MTexture* texture = textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str());
+                VP2TextureUniquePtr texture(textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str()));
                 if (texture)
                 {
                     MHWRender::MTextureAssignment textureAssignment;
-                    textureAssignment.texture = texture;
+                    textureAssignment.texture = texture.get();
                     status = shader.setParameter(parameterName.c_str(), textureAssignment);
 
                     // Get back the texture description
                     texture->textureDescription(textureDescription);
-
-                    // release our reference now that it is set on the shader
-                    textureManager->releaseTexture(texture);
                 }
             }
         }
@@ -115,7 +102,7 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
     // the MaterialX sampler state.
     const std::string SAMPLE_PREFIX_STRING("Sampler");
     std::string samplerParameterName(parameterName + SAMPLE_PREFIX_STRING);
-    const MSamplerState* samplerState = MHWRender::MStateManager::acquireSamplerState(samplerDescription);
+    Vp2SamplerUniquePtr samplerState(MHWRender::MStateManager::acquireSamplerState(samplerDescription));
     if (samplerState)
     {
         status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
@@ -167,7 +154,8 @@ void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
     // Environment matrix
     if (parameterList.indexOf(mx::HW::ENV_MATRIX.c_str()) >= 0)
     {
-        const float yRotationPI[4][4]{
+        const float yRotationPI[4][4]
+        {
             -1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, -1, 0,
@@ -214,13 +202,13 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
 {
     MStatus status;
     MFnDependencyNode depNode(_object, &status);
-    MaterialXNode* node = dynamic_cast<MaterialXNode*>(depNode.userNode());
+    const auto* const node = dynamic_cast<MaterialXNode*>(depNode.userNode());
     if (!node)
     {
         return;
     }
 
-    // Get the parameter list fo checking against.
+    // Get the parameter list to check existence against.
     MStringArray parameterList;
     shader.parameterList(parameterList);
 
@@ -233,7 +221,7 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
     // TODO: These should be options
     std::string envRadiancePath = "san_giuseppe_bridge.hdr";
     std::string envIrradiancePath = "san_giuseppe_bridge_diffuse.hdr";
-    bindEnvironmentLighting(shader, parameterList, imageSearchPath,
+    ::bindEnvironmentLighting(shader, parameterList, imageSearchPath,
         envRadiancePath, envIrradiancePath);
 
     MaterialX::DocumentPtr document = node->materialXData->getDocument();
@@ -275,7 +263,7 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
             }
 
             // This is unnecessary overhead if we are read-only. Updates should be based on whats
-            // dirty and not everythhing. There are a lot of attributes on shader graph and this is
+            // dirty and not everything. There are a lot of attributes on shader graph and this is
             // a waste of effort currently.
             if (!_enableEditing)
             {
