@@ -984,7 +984,7 @@ void IMPL_standard_surface_surfaceshader(float base, vec3 base_color, float diff
     surfaceshader standard_surface_constructor_out = surfaceshader(vec3(0.0),vec3(0.0));
     {
         // Light loop
-        vec3 N = normalize(PIX_IN.Nw);
+        vec3 N = normalize(Nw);
         vec3 V = normalize(u_viewPosition - PIX_IN.Pw);
         int numLights = numActiveLightSources();
         lightshader lightShader;
