@@ -1,4 +1,4 @@
-void mx_normalmap(vector value, int tangent_space,  vector N, vector U, output vector result)
+void mx_normal_map(vector value, int tangent_space,  vector N, vector U, output vector result)
 {
     // Tangent space
     if (tangent_space == 1)
