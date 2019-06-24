@@ -11,6 +11,6 @@ void mx_normal_map(vec3 value, int map_space, float normal_scale, vec3 N, vec3 T
     else
     {
         vec3 n = value * 2.0 - 1.0;
-        result = normalize(n * normal_scale);
+        result = normalize(n);
     }
 }
