@@ -9,7 +9,7 @@
 #include <MaterialXGenOgsXml/OgsXmlGenerator.h>
 #include <MaterialXGenShader/Shader.h>
 
-#include <maya/MShaderManager.h>
+namespace mx = MaterialX;
 
 /// @class MaterialXData
 /// Wrapper for MaterialX associated data. 
@@ -26,30 +26,33 @@ struct MaterialXData
   public:
     /// The element path and document that the element resides in are passed in
     /// as input arguments
-    MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath);
+    MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath, const mx::FilePath& librarySearchPath);
     ~MaterialXData();
 
-    /// Set the MaterialX Document and selement path.
-    bool setData(const std::string& materialXDocumentPath, const std::string& elementPath);
+    /// Set the element to render with.
+    /// If the element specified is an empty string then an attempt will be
+    /// make to find the first renderable element.
+    bool setRenderableElement(const std::string& materialXDocumentPath, const std::string& elementPath);
 
-    /// Returns whether we have valid output element
-    bool isValidOutput()
+    /// Returns the path of the element to render
+    std::string getElementPath() const
     {
-        return (nullptr != _element);
+        if (_element)
+        {
+            return _element->getNamePath();
+        }
+        return mx::EMPTY_STRING;
     }
 
     /// Create the OGS XML wrapper for shader fragments associated
     /// with the element set to render
     void generateXml();
 
-    /// Register the fragment(s)
-    void registerFragments(const std::string& ogsXmlPath);
-
     MaterialXData& operator=(const MaterialXData&) = delete;
     MaterialXData& operator=(MaterialXData&&) = delete;
 
     /// Return MaterialX document 
-    MaterialX::DocumentPtr getDocument() const
+    mx::DocumentPtr getDocument() const
     {
         return _document;
     }
@@ -61,7 +64,7 @@ struct MaterialXData
     const std::string& getFragmentName() const;
 
     /// Get list of Element paths and corresponding XML input names
-    const MaterialX::StringMap& getPathInputMap() const;
+    const mx::StringMap& getPathInputMap() const;
 
     /// Return if the element to render represents a shader graph
     /// as opposed to a texture grraph.
@@ -79,14 +82,14 @@ struct MaterialXData
 
   private:
     // Reference document and element
-    MaterialX::FilePath _librarySearchPath;
-    MaterialX::DocumentPtr _document;
-    MaterialX::ElementPtr _element;
+    mx::FilePath _librarySearchPath;
+    mx::DocumentPtr _document;
+    mx::ElementPtr _element;
 
     // TODO: This is currently a prototype interface
-    MaterialX::ShaderGeneratorPtr _shaderGenerator;
-    MaterialX::GenContext _genContext;
-    MaterialX::OgsXmlGenerator _generator;
+    mx::ShaderGeneratorPtr _shaderGenerator;
+    mx::GenContext _genContext;
+    mx::OgsXmlGenerator _generator;
 
     // XML fragment name
     std::string _fragmentName;
@@ -95,7 +98,7 @@ struct MaterialXData
     std::string _fragmentWrapper;
 
     // Mapping from MaterialX Element paths to XML input names
-    MaterialX::StringMap _pathInputMap;
+    mx::StringMap _pathInputMap;
 };
 
 #endif // MATERIALX_DATA_H

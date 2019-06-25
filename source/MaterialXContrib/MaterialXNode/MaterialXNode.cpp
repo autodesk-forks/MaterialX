@@ -91,7 +91,7 @@ MStatus MaterialXNode::initialize()
 
 void MaterialXNode::createOutputAttr(MDGModifier& mdgModifier)
 {
-    if (materialXData && materialXData->isValidOutput())
+    if (materialXData && !materialXData->getElementPath().empty())
     {
         const MString outputName(MaterialX::OgsXmlGenerator::OUTPUT_NAME.c_str());
         MFnNumericAttribute nAttr;

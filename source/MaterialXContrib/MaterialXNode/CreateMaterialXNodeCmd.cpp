@@ -15,25 +15,89 @@
 #include <maya/MFnTypedAttribute.h>
 #include <maya/MGlobal.h>
 
+#include <maya/MViewport2Renderer.h>
+#include <maya/MFragmentManager.h>
+
 #include <algorithm>
 #include <sstream>
 
+namespace mx = MaterialX;
+
 namespace
 {
-    const char* const kDocumentFlag     = "d";
-    const char* const kDocumentFlagLong = "document";
+const char* const kDocumentFlag     = "d";
+const char* const kDocumentFlagLong = "document";
 
-    const char* const kElementFlag      = "e";
-    const char* const kElementFlagLong  = "element";
+const char* const kElementFlag      = "e";
+const char* const kElementFlagLong  = "element";
 
-    const char* const kTextureFlag      = "t";
-    const char* const kTextureFlagLong  = "texture";
+const char* const kTextureFlag      = "t";
+const char* const kTextureFlagLong  = "texture";
 
-    const char* const kOgsXmlFlag       = "x";
-    const char* const kOgsXmlFlagLong   = "ogsxml";
+const char* const kOgsXmlFlag       = "x";
+const char* const kOgsXmlFlagLong   = "ogsxml";
+
+void registerFragment(const MaterialXData& materialData, const std::string& ogsXmlPath)
+{
+    MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
+    MHWRender::MFragmentManager* fragmentManager = theRenderer ? theRenderer->getFragmentManager() : nullptr;
+    if (!fragmentManager)
+    {
+        return;
+    }
+
+    MString previousOutputDirectory(fragmentManager->getEffectOutputDirectory());
+    MString previousIntermdiateDirectory(fragmentManager->getIntermediateGraphOutputDirectory());
+    mx::FilePath dumpPath(Plugin::instance().getShaderDebugPath());
+    bool setDumpPath = !dumpPath.isEmpty();
+    if (setDumpPath)
+    {
+        fragmentManager->setEffectOutputDirectory(dumpPath.asString().c_str());
+        fragmentManager->setIntermediateGraphOutputDirectory(dumpPath.asString().c_str());
+    }
+
+    // Register fragments with the manager if needed
+    const std::string& fragmentString = materialData.getFragmentWrapper();
+    const std::string& fragmentName = materialData.getFragmentName();
+    if (fragmentName.empty() || fragmentString.empty())
+    {
+        return;
+    }
+
+    MString fragmentNameM;
+    const bool fragmentExists = fragmentManager->hasFragment(fragmentName.c_str());
+    if (!fragmentExists)
+    {
+        // Allow for an explicit XML file to be specified.
+        if (!ogsXmlPath.empty())
+        {
+            std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
+            fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
+        }
+
+        // When no override file is specified use the generated XML
+        else
+        {
+            fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
+        }
+    }
+
+    if (setDumpPath)
+    {
+        fragmentManager->setEffectOutputDirectory(previousOutputDirectory);
+        fragmentManager->setIntermediateGraphOutputDirectory(previousIntermdiateDirectory);
+    }
+
+    // TODO: Add a fallback shader.
+    if (fragmentNameM.length() == 0)
+    {
+        throw mx::Exception("Failed to add shader fragment: " + materialData.getFragmentName());
+    }
 }
 
-MString CreateMaterialXNodeCmd::NAME("CreateMaterialXNode");
+}
+
+MString CreateMaterialXNodeCmd::NAME("createMaterialXNode");
 
 CreateMaterialXNodeCmd::CreateMaterialXNodeCmd()
 {
@@ -54,6 +118,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
     if (!status)
         return status;
 
+    MString elementPath;
     try
     {
         MString materialXDocument;
@@ -64,19 +129,13 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
         if (materialXDocument.length() == 0)
         {
-            throw MaterialX::Exception("MaterialX document file path is empty.");
+            throw mx::Exception("MaterialX document file path is empty.");
         }
 
-        MString elementPath;
 	    if (parser.isFlagSet(kElementFlag))
 	    {
 		    argData.getFlagArgument(kElementFlag, 0, elementPath);
 	    }
-
-        if (elementPath.length() == 0)
-        {
-            throw MaterialX::Exception("MaterialX element path is empty.");
-        }
 
         MString ogsXmlPath;
         if (parser.isFlagSet(kOgsXmlFlag))
@@ -85,12 +144,13 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         }
 
         std::unique_ptr<MaterialXData> materialXData{
-            new MaterialXData(materialXDocument.asChar(), elementPath.asChar())
+            new MaterialXData(materialXDocument.asChar(), elementPath.asChar(), Plugin::instance().getLibrarySearchPath())
         };
 
-        if (!materialXData->isValidOutput())
+        elementPath.set(materialXData->getElementPath().c_str());
+        if (elementPath.length() == 0)
         {
-            throw MaterialX::Exception("The element specified is not renderable.");
+            throw mx::Exception("The element specified is not renderable.");
         }
 
         // Create the MaterialX node
@@ -100,20 +160,20 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         );
 
         // Generate a valid Maya node name from the path string
-        std::string nodeName = MaterialX::createValidName(elementPath.asChar());
+        std::string nodeName = mx::createValidName(elementPath.asChar());
         _dgModifier.renameNode(node, nodeName.c_str());
 
         materialXData->generateXml();
-        materialXData->registerFragments(ogsXmlPath.asChar());
+        registerFragment(*materialXData, ogsXmlPath.asChar());
 
         MFnDependencyNode depNode(node);
         auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
         if (!materialXNode)
         {
-            throw MaterialX::Exception("Unexpected DG node type.");
+            throw mx::Exception("Unexpected DG node type.");
         }
 
-        std::string documentString = MaterialX::writeToXmlString(materialXData->getDocument());
+        std::string documentString = mx::writeToXmlString(materialXData->getDocument());
 
         materialXNode->setMaterialXData(std::move(materialXData));
         materialXNode->createOutputAttr(_dgModifier);
@@ -129,15 +189,18 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
         _dgModifier.doIt();
     }
-    catch (MaterialX::Exception& e)
+    catch (mx::Exception& e)
     {
-        std::cout << "CreateMaterialXNodeCmd failed to create MaterialX node: "
-            << e.what() << std::endl;
-
+        MString message("Failed to create MaterialX node: ");
+        message += MString(e.what());
+        MGlobal::displayError(message);
         return MS::kFailure;
     }
 
-	return MS::kSuccess;
+    MString message("Created MaterialX node: ");
+    message += elementPath;
+    MGlobal::displayInfo(message);
+    return MS::kSuccess;
  }
 
 MSyntax CreateMaterialXNodeCmd::newSyntax()
@@ -179,64 +242,64 @@ void  CreateMaterialXNodeCmd::setAttributeValue(MObject &materialXObject, MObjec
     _dgModifier.newPlugValueString(plug, stringValue.c_str());
 }
 
-void CreateMaterialXNodeCmd::createAttribute(MObject &materialXObject, const std::string& /*name*/, const MaterialX::UIPropertyItem& propertyItem)
+void CreateMaterialXNodeCmd::createAttribute(MObject &materialXObject, const std::string& /*name*/, const mx::UIPropertyItem& propertyItem)
 {
 	MFnNumericAttribute numericAttr;
 	MFnTypedAttribute typedAttr;
 	MObject attr;
 
 	std::string label = propertyItem.label;
-	MaterialX::ValuePtr value = propertyItem.value;
-	if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
+	mx::ValuePtr value = propertyItem.value;
+	if (value->getTypeString() == mx::TypedValue<mx::Color2>::TYPE)
 	{
 		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::k2Double, 0.0);
 		_dgModifier.addAttribute(materialXObject, attr);
-		MaterialX::Color2 color2 = value->asA<MaterialX::Color2>();
+		mx::Color2 color2 = value->asA<mx::Color2>();
 		setAttributeValue(materialXObject, attr, color2.data(), 2);
 	}
-	else if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
+	else if (value->getTypeString() == mx::TypedValue<mx::Color3>::TYPE)
 	{
 		attr = numericAttr.createColor(label.c_str(), label.c_str());
 		_dgModifier.addAttribute(materialXObject, attr);
-		MaterialX::Color3 color3 = value->asA<MaterialX::Color3>();
+		mx::Color3 color3 = value->asA<mx::Color3>();
 		setAttributeValue(materialXObject, attr, color3.data(), 3);
 	}
-	else if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
+	else if (value->getTypeString() == mx::TypedValue<mx::Color4>::TYPE)
 	{
 		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::k4Double, 0.0);
 		_dgModifier.addAttribute(materialXObject, attr);
-		MaterialX::Color4 color4 = value->asA<MaterialX::Color4>();
+		mx::Color4 color4 = value->asA<mx::Color4>();
 		setAttributeValue(materialXObject, attr, color4.data(), 4);
 	}
-	else if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
+	else if (value->getTypeString() == mx::TypedValue<mx::Vector2>::TYPE)
 	{
 		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::k2Double, 0.0);
 		_dgModifier.addAttribute(materialXObject, attr);
-		MaterialX::Vector2 vector2 = value->asA<MaterialX::Vector2>();
+		mx::Vector2 vector2 = value->asA<mx::Vector2>();
 		setAttributeValue(materialXObject, attr, vector2.data(), 2);
 	}
-	else if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
+	else if (value->getTypeString() == mx::TypedValue<mx::Vector3>::TYPE)
 	{
 		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::k3Double, 0.0);
 		_dgModifier.addAttribute(materialXObject, attr);
-		MaterialX::Vector3 vector3 = value->asA<MaterialX::Vector3>();
+		mx::Vector3 vector3 = value->asA<mx::Vector3>();
 		setAttributeValue(materialXObject, attr, vector3.data(), 3);
 	}
-	else if (value->getTypeString() == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
+	else if (value->getTypeString() == mx::TypedValue<mx::Vector4>::TYPE)
 	{
 		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::k4Double, 0.0);
 		_dgModifier.addAttribute(materialXObject, attr);
-		MaterialX::Vector4 vector4 = value->asA<MaterialX::Vector4>();
+		mx::Vector4 vector4 = value->asA<mx::Vector4>();
 		setAttributeValue(materialXObject, attr, vector4.data(), 4);
 	}
-	else if (value->getTypeString() == MaterialX::TypedValue<float>::TYPE)
+	else if (value->getTypeString() == mx::TypedValue<float>::TYPE)
 	{
 		attr = numericAttr.create(label.c_str(), label.c_str(), MFnNumericData::kDouble, 0.0);
 		_dgModifier.addAttribute(materialXObject, attr);
 		float floatValue = value->asA<float>();
 		setAttributeValue(materialXObject, attr, &floatValue, 1);
 	}
-	else if (value->getTypeString() == MaterialX::TypedValue<std::string>::TYPE)
+	else if (value->getTypeString() == mx::TypedValue<std::string>::TYPE)
 	{
 		attr = typedAttr.create(label.c_str(), label.c_str(), MFnData::kString, MObject::kNullObj);
 		_dgModifier.addAttribute(materialXObject, attr);
@@ -245,7 +308,7 @@ void CreateMaterialXNodeCmd::createAttribute(MObject &materialXObject, const std
 	}
 }
 
-void CreateMaterialXNodeCmd::createAttributes(MObject &materialXObject, const MaterialX::UIPropertyGroup& groups, const MaterialX::UIPropertyGroup& unnamedGroups)
+void CreateMaterialXNodeCmd::createAttributes(MObject &materialXObject, const mx::UIPropertyGroup& groups, const mx::UIPropertyGroup& unnamedGroups)
 {
 	for (auto groupIt = groups.begin(); groupIt != groups.end(); ++groupIt)
 	{
