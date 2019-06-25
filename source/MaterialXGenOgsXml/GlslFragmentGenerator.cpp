@@ -153,6 +153,23 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
         }
         emitLineEnd(stage, false);
     }
+    // Special case handling of world space normals which for now must be added 
+    // as a "dummy" argument if it exists.
+    const VariableBlock& streams = stage.getInputBlock(HW::VERTEX_DATA);
+    const size_t numStreams = streams.size();
+    for (size_t i = 0; i < numStreams; ++i)
+    {
+        const ShaderPort* p = streams[i];
+        if (p->getName() == HW::T_NORMAL_WORLD)
+        {
+            emitLineBegin(stage);
+            emitString(COMMA, stage);
+            emitVariableDeclaration(p, EMPTY_STRING, context, stage, false);
+            emitLineEnd(stage, false);
+            break;
+        }
+    }
+
     emitScopeEnd(stage);
 
     // Add function body

@@ -81,6 +81,10 @@ void registerFragment(const MaterialXData& materialData, const std::string& ogsX
             fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
         }
     }
+    else
+    {
+        fragmentNameM.set(fragmentName.c_str());
+    }
 
     if (setDumpPath)
     {
