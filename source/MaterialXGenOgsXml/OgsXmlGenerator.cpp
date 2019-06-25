@@ -38,14 +38,15 @@ namespace
     // Semantics used by OGS
     static const std::unordered_map<string, const pugi::char_t*> OGS_SEMANTICS_MAP =
     {
-        { "Pw", "POSITION"},
-        { "Pm", "POSITION"},
-        { "Nw", "NORMAL" },
-        { "Nm", "NORMAL" },
-        { "Tw", "TANGENT" },
-        { "Tm", "TANGENT" },
-        { "Bw", "BINORMAL" },
-        { "Bm", "BINORMAL" },
+        // Note: The semantics of Pw, Nw and Tw have to match the name of the property.
+        { "Pw", "Pw"},
+        { "Pm", "Pm"},
+        { "Nw", "Nw" },
+        { "Nm", "Nm" },
+        { "Tw", "Tw" },
+        { "Tm", "Tm" },
+        { "Bw", "Bw" },
+        { "Bm", "Bm" },
         { "texcoord_0", "mayaUvCoordSemantic" },
         { "color_0", "colorset" },
 
@@ -73,6 +74,23 @@ namespace
 
         { "u_frame", "Frame" },
         { "u_time", "Time" }
+    };
+
+    // Custom flags required by OGS XML
+    static const StringMap OGS_FLAGS_MAP = 
+    {
+        // Note: Nw has to be a varyingInputParam instead of a global (isRequirementOnly).
+        // This is because the pixel shader main function generated preprocesses Nw before passing it 
+        // to the main function of the fragment graph.
+        //
+        { "Pw", "isRequirementOnly" },
+        { "Pm", "isRequirementOnly" },
+        { "Nw", "varyingInputParam" },
+        { "Nm", "isRequirementOnly" },
+        { "Tw", "isRequirementOnly" },
+        { "Tm", "isRequirementOnly" },
+        { "Bw", "isRequirementOnly" },
+        { "Bm", "isRequirementOnly" } 
     };
 
     // String constants
@@ -126,7 +144,12 @@ namespace
         {
             prop.append_attribute(SEMANTIC) = semantic->second;
         }
-        if (!flags.empty())
+        auto flag = OGS_FLAGS_MAP.find(name);
+        if (flag != OGS_FLAGS_MAP.end())
+        {
+            prop.append_attribute(FLAGS) = flag->second.c_str();
+        }
+        else if (!flags.empty())
         {
             prop.append_attribute(FLAGS) = flags.c_str();
         }

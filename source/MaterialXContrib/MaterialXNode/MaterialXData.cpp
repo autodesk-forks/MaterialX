@@ -1,36 +1,45 @@
-#include "MaterialXData.h"
-#include "Plugin.h"
-#include "Util.h"
+#include <MaterialXData.h>
+#include <Util.h>
 
 #include <MaterialXFormat/XmlIo.h>
 #include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
 #include <MaterialXGenShader/Util.h>
 
-#include <maya/MViewport2Renderer.h>
-#include <maya/MFragmentManager.h>
-
-namespace mx = MaterialX;
-
-MaterialXData::MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath)
+MaterialXData::MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath, const MaterialX::FilePath& librarySearchPath)
     : _shaderGenerator(mx::GlslFragmentGenerator::create()),
-      _genContext(_shaderGenerator)
+      _genContext(_shaderGenerator),
+      _librarySearchPath(librarySearchPath)
 {
-    // This should be settable instead of hard-coded.
-    _librarySearchPath = Plugin::instance().getLibrarySearchPath();
-    setData(materialXDocumentPath, elementPath);
+    setRenderableElement(materialXDocumentPath, elementPath);
 }
 
-bool MaterialXData::setData(const std::string& materialXDocument, const std::string& elementPath)
+bool MaterialXData::setRenderableElement(const std::string& materialXDocument, const std::string& elementPath)
 {
     clearXml();
+    _document = nullptr;
+    _element = nullptr;
+
     createDocument(materialXDocument);
     if (_document)
     {
-        _element = _document->getDescendant(elementPath);
+        // Nothing specified. Find the first renderable element and use that
+        if (elementPath.length() == 0)
+        {
+            std::vector<mx::TypedElementPtr> elements;
+            mx::findRenderableElements(_document, elements);
+            if (!elements.empty())
+            {
+                _element = elements[0];
+                return true;
+            }
+        }
+        else
+        {
+            _element = _document->getDescendant(elementPath);
+            return isRenderable();
+        }
     }
-
-    // Check that the element is renderable
-    return isRenderable();
+    return false;
 }
 
 MaterialXData::~MaterialXData()
@@ -168,59 +177,6 @@ void MaterialXData::generateXml()
     }
 }
 
-void MaterialXData::registerFragments(const std::string& ogsXmlPath)
-{
-    MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
-    MHWRender::MFragmentManager* fragmentManager = theRenderer ? theRenderer->getFragmentManager() : nullptr;
-    if (!fragmentManager)
-    {
-        return;
-    }
-        
-    // TODO: This should not be hard-coded
-    std::string dumpPath("d:/work/shader_dump/");
-    mx::FileSearchPath path = mx::getEnvironmentPath("TEMP");
-    if (path.size() > 0)
-    {
-        dumpPath = path[0].asString();
-    }
-    fragmentManager->setEffectOutputDirectory(dumpPath.c_str());
-    fragmentManager->setIntermediateGraphOutputDirectory(dumpPath.c_str());
-
-    // Register fragments with the manager if needed
-    const std::string& fragmentString = getFragmentWrapper();
-    const std::string& fragmentName = getFragmentName();
-    if (fragmentName.empty() || fragmentString.empty())
-    {
-        return;
-    }
-
-    const bool fragmentExists = fragmentManager->hasFragment(fragmentName.c_str());
-    if (!fragmentExists)
-    {
-        MString fragmentNameM;
-
-        // Allow for an explicit XML file to be specified.
-        if (!ogsXmlPath.empty())
-        {
-            std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
-            fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
-        }
-
-        // When no override file is specified use the generated XML
-        else
-        {
-            fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
-        }
-
-        // TODO: Add a fallback shader.
-        if (fragmentNameM.length() == 0)
-        {
-            throw mx::Exception("Failed to add shader fragment." + getFragmentName());
-        }
-    }
-}
-
 bool MaterialXData::isRenderable()
 {
     if (!_element)
@@ -230,7 +186,8 @@ bool MaterialXData::isRenderable()
 
     const std::string& elementPath = _element->getNamePath();
     std::vector<mx::TypedElementPtr> elements;
-    try {
+    try 
+    {
         mx::findRenderableElements(_document, elements);
         for (mx::TypedElementPtr currentElement : elements)
         {
@@ -243,7 +200,7 @@ bool MaterialXData::isRenderable()
     }
     catch (mx::Exception& e)
     {
-        std::cerr << "Failed to find renderable element in document: " << e.what() << std::endl;
+        throw mx::Exception("Failed to find renderable element in document: " + std::string(e.what()));
     }
     return false;
 }

@@ -22,6 +22,8 @@ void Plugin::initialize(const std::string& loadPath)
 	MaterialX::FilePath searchPath(loadPath);
 	_librarySearchPath = searchPath / MaterialX::FilePath("../../libraries");
 	_resourcePath = searchPath / MaterialX::FilePath("../resources");
+    // Set to resource path for now
+    _shaderDebugPath = _resourcePath;
 }
 
 ///////////////////////////////////////////////////////////////
