@@ -65,9 +65,9 @@
     <int name="image_color_framerange" />
     <int name="image_color_frameoffset" />
     <int name="image_color_frameendaction" />
-    <float3 name="Pw" semantic="POSITION" flags="isRequirementOnly, varyingInputParam" />
-     <float3 name="Tw" semantic="TANGENT" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="Nw" semantic="NORMAL" flags="isRequirementOnly, varyingInputParam" />
+    <float3 name="Pw" semantic="Pw" flags="isRequirementOnly" />
+    <float3 name="Nw" semantic="Nw" flags="varyingInputParam" />
+    <float3 name="Tw" semantic="Tw" flags="isRequirementOnly" />
     <float2 name="texcoord_0" semantic="mayaUvCoordSemantic" flags="isRequirementOnly, varyingInputParam" />
   </properties>
   <values>
@@ -1121,7 +1121,8 @@ vec3 SR_brass1
     int image_color_filtertype,
     int image_color_framerange,
     int image_color_frameoffset,
-    int image_color_frameendaction
+    int image_color_frameendaction,
+    vec3 Nw
 )
 {
     vec3 geomprop_Tworld_out = normalize(PIX_IN.Tw);

@@ -54,9 +54,9 @@
     <float3 name="opacity" />
      <!-- Varying globals come in through input structure
           Name matters for space e.g. Nw means normal world  -->
-    <float3 name="Pw" semantic="POSITION" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="Nw" semantic="NORMAL" flags="isRequirementOnly, varyingInputParam" />
-    <float3 name="Tw" semantic="TANGENT" flags="isRequirementOnly, varyingInputParam" />
+    <float3 name="Pw" semantic="Pw" flags="isRequirementOnly" />
+    <float3 name="Nw" semantic="Nw" flags="varyingInputParam" />
+    <float3 name="Tw" semantic="Tw" flags="isRequirementOnly" />
      <!-- end varying globals -->
   </properties>
   <values>
@@ -1075,7 +1075,8 @@ vec3 main_function(
    float thin_film_IOR,
    float emission,
    vec3 emission_color,
-   vec3 opacity
+   vec3 opacity,
+   vec3 Nw
 )
 {
     vec3 geomprop_Nworld_out = normalize(PIX_IN.Nw);
