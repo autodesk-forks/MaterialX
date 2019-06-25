@@ -7,6 +7,7 @@
 #include <MaterialXGenOgsFx/OgsFxSyntax.h>
 
 #include <MaterialXGenShader/Shader.h>
+#include <MaterialXGenShader/Util.h>
 
 namespace MaterialX
 {
@@ -237,11 +238,13 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
     }
     emitScopeBegin(fx);
     emitLine("pass p0", fx, false);
+    std::string vertexDataInstance = HW::T_VERTEX_DATA_INSTANCE;
+    tokenSubstitution(_tokenSubstitutions, vertexDataInstance);
     emitScopeBegin(fx);
-    emitLine("VertexShader(in VertexInputs, out VertexData " + HW::T_VERTEX_DATA_INSTANCE +") = { VS }", fx);
+    emitLine("VertexShader(in VertexInputs, out VertexData " + vertexDataInstance +") = { VS }", fx);
     emitLine(lighting ?
-        "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { LightingFunctions, PS }" :
-        "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { PS }", fx);
+        "PixelShader(in VertexData " + vertexDataInstance + ", out PixelOutput) = { LightingFunctions, PS }" :
+        "PixelShader(in VertexData " + vertexDataInstance + ", out PixelOutput) = { PS }", fx);
     emitScopeEnd(fx);
     emitScopeEnd(fx);
     emitLineBreak(fx);
@@ -344,7 +347,7 @@ void OgsFxShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     if (graph.hasClassification(ShaderNode::Classification::CLOSURE))
     {
         // Handle the case where the graph is a direct closure.
-        // We don't support rendering closures without attaching 
+        // We don't support rendering closures without attaching
         // to a surface shader, so just output black.
         emitLine(outputSocket->getVariable() + " = vec4(0.0, 0.0, 0.0, 1.0)", stage);
     }
@@ -484,7 +487,9 @@ ShaderPtr OgsFxShaderGenerator::createShader(const string& name, ElementPtr elem
             for (size_t j = 0; j < block.size(); ++j)
             {
                 ShaderPort* v = block[j];
-                auto sematic = OGSFX_DEFAULT_SEMANTICS_MAP.find(v->getName());
+                std::string portName = v->getName();
+                tokenSubstitution(_tokenSubstitutions, portName);
+                auto sematic = OGSFX_DEFAULT_SEMANTICS_MAP.find(portName);
                 if (sematic != OGSFX_DEFAULT_SEMANTICS_MAP.end())
                 {
                     v->setSemantic(sematic->second);
@@ -497,7 +502,9 @@ ShaderPtr OgsFxShaderGenerator::createShader(const string& name, ElementPtr elem
             for (size_t j = 0; j < block.size(); ++j)
             {
                 ShaderPort* v = block[j];
-                auto sematic = OGSFX_DEFAULT_SEMANTICS_MAP.find(v->getName());
+                std::string portName = v->getName();
+                tokenSubstitution(_tokenSubstitutions, portName);
+                auto sematic = OGSFX_DEFAULT_SEMANTICS_MAP.find(portName);
                 if (sematic != OGSFX_DEFAULT_SEMANTICS_MAP.end())
                 {
                     v->setSemantic(sematic->second);
