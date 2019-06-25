@@ -9,21 +9,22 @@
 class Plugin
 {
   public:
-	static Plugin& instance();
+    static Plugin& instance();
 
-	void initialize(const std::string& loadPath);
+    /// Plugin initialization
+    void initialize(const std::string& loadPath);
 
     /// Get root path to search for MaterialX libraries
-	const MaterialX::FilePath& getLibrarySearchPath() const
-	{
-		return _librarySearchPath;
-	}
+    const MaterialX::FilePath& getLibrarySearchPath() const
+    {
+        return _librarySearchPath;
+    }
 
     /// Get root path to search for MaterialX resources
     const MaterialX::FilePath& getResourcePath() const
-	{
-		return _resourcePath;
-	}
+    {
+        return _resourcePath;
+    }
 
     /// Get path for shader debugging output
     const MaterialX::FilePath& getShaderDebugPath() const
@@ -32,11 +33,11 @@ class Plugin
     }
 
   private:
-	Plugin()
-	{
-	}
+    Plugin()
+    {
+    }
 
-	MaterialX::FilePath _librarySearchPath;
+    MaterialX::FilePath _librarySearchPath;
     MaterialX::FilePath _resourcePath;
     MaterialX::FilePath _shaderDebugPath;
 };

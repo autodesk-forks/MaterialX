@@ -156,18 +156,13 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     // Special case handling of world space normals which for now must be added 
     // as a "dummy" argument if it exists.
     const VariableBlock& streams = stage.getInputBlock(HW::VERTEX_DATA);
-    const size_t numStreams = streams.size();
-    for (size_t i = 0; i < numStreams; ++i)
-    {
-        const ShaderPort* p = streams[i];
-        if (p->getName() == HW::T_NORMAL_WORLD)
-        {
-            emitLineBegin(stage);
-            emitString(COMMA, stage);
-            emitVariableDeclaration(p, EMPTY_STRING, context, stage, false);
-            emitLineEnd(stage, false);
-            break;
-        }
+    const ShaderPort* port = streams.find(HW::T_NORMAL_WORLD);
+    if (port)
+    { 
+        emitLineBegin(stage);
+        emitString(COMMA, stage);
+        emitVariableDeclaration(port, EMPTY_STRING, context, stage, false);
+        emitLineEnd(stage, false);
     }
 
     emitScopeEnd(stage);

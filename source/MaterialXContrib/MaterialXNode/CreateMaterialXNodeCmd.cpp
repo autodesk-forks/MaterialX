@@ -43,59 +43,59 @@ void registerFragment(const MaterialXData& materialData, const std::string& ogsX
     MHWRender::MFragmentManager* fragmentManager = theRenderer ? theRenderer->getFragmentManager() : nullptr;
     if (!fragmentManager)
     {
-        return;
+        throw mx::Exception("Failed to find fragment manager");
     }
 
-    MString previousOutputDirectory(fragmentManager->getEffectOutputDirectory());
-    MString previousIntermdiateDirectory(fragmentManager->getIntermediateGraphOutputDirectory());
-    mx::FilePath dumpPath(Plugin::instance().getShaderDebugPath());
-    bool setDumpPath = !dumpPath.isEmpty();
-    if (setDumpPath)
-    {
-        fragmentManager->setEffectOutputDirectory(dumpPath.asString().c_str());
-        fragmentManager->setIntermediateGraphOutputDirectory(dumpPath.asString().c_str());
-    }
+    // Name of fragment created or reused
+    MString fragmentNameM;
 
     // Register fragments with the manager if needed
     const std::string& fragmentString = materialData.getFragmentWrapper();
     const std::string& fragmentName = materialData.getFragmentName();
-    if (fragmentName.empty() || fragmentString.empty())
+    if (!fragmentName.empty() && !fragmentString.empty())
     {
-        return;
-    }
-
-    MString fragmentNameM;
-    const bool fragmentExists = fragmentManager->hasFragment(fragmentName.c_str());
-    if (!fragmentExists)
-    {
-        // Allow for an explicit XML file to be specified.
-        if (!ogsXmlPath.empty())
+        MString previousOutputDirectory(fragmentManager->getEffectOutputDirectory());
+        MString previousIntermdiateDirectory(fragmentManager->getIntermediateGraphOutputDirectory());
+        mx::FilePath dumpPath(Plugin::instance().getShaderDebugPath());
+        bool setDumpPath = !dumpPath.isEmpty();
+        if (setDumpPath)
         {
-            std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
-            fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
+            fragmentManager->setEffectOutputDirectory(dumpPath.asString().c_str());
+            fragmentManager->setIntermediateGraphOutputDirectory(dumpPath.asString().c_str());
         }
 
-        // When no override file is specified use the generated XML
+        const bool fragmentExists = fragmentManager->hasFragment(fragmentName.c_str());
+        if (!fragmentExists)
+        {
+            // Allow for an explicit XML file to be specified.
+            if (!ogsXmlPath.empty())
+            {
+                std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
+                fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
+            }
+
+            // When no override file is specified use the generated XML
+            else
+            {
+                fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
+            }
+        }
         else
         {
-            fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
+            fragmentNameM.set(fragmentName.c_str());
+        }
+
+        if (setDumpPath)
+        {
+            fragmentManager->setEffectOutputDirectory(previousOutputDirectory);
+            fragmentManager->setIntermediateGraphOutputDirectory(previousIntermdiateDirectory);
         }
     }
-    else
-    {
-        fragmentNameM.set(fragmentName.c_str());
-    }
 
-    if (setDumpPath)
-    {
-        fragmentManager->setEffectOutputDirectory(previousOutputDirectory);
-        fragmentManager->setIntermediateGraphOutputDirectory(previousIntermdiateDirectory);
-    }
-
-    // TODO: Add a fallback shader.
+    // TODO: On failure a fallback shader should be provided.
     if (fragmentNameM.length() == 0)
     {
-        throw mx::Exception("Failed to add shader fragment: " + materialData.getFragmentName());
+        throw mx::Exception("Failed to add shader fragment: (" + fragmentName + ")");
     }
 }
 
