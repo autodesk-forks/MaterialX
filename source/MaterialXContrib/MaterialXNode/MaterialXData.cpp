@@ -5,7 +5,9 @@
 #include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
 #include <MaterialXGenShader/Util.h>
 
-MaterialXData::MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath, const MaterialX::FilePath& librarySearchPath)
+MaterialXData::MaterialXData(const std::string& materialXDocumentPath, 
+                             const std::string& elementPath, 
+                             const MaterialX::FileSearchPath& librarySearchPath)
     : _shaderGenerator(mx::GlslFragmentGenerator::create()),
       _genContext(_shaderGenerator),
       _librarySearchPath(librarySearchPath)
@@ -68,7 +70,7 @@ void MaterialXData::createDocument(const std::string& materialXDocumentPath)
 
     // Load libraries
     static const mx::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
-    mx::loadLibraries(libraries, _librarySearchPath, _document);
+    MaterialXMaya::loadLibraries(libraries, _librarySearchPath, _document);
 
     // Read document contents from disk
     mx::XmlReadOptions readOptions;

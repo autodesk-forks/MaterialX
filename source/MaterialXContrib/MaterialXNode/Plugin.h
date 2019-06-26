@@ -14,16 +14,16 @@ class Plugin
     /// Plugin initialization
     void initialize(const std::string& loadPath);
 
-    /// Get root path to search for MaterialX libraries
-    const MaterialX::FilePath& getLibrarySearchPath() const
+    /// Get the search paths for MaterialX libraries
+    const MaterialX::FileSearchPath& getLibrarySearchPath() const
     {
         return _librarySearchPath;
     }
 
-    /// Get root path to search for MaterialX resources
-    const MaterialX::FilePath& getResourcePath() const
+    /// Get the search paths for resources
+    const MaterialX::FileSearchPath& getResourceSearchPath() const
     {
-        return _resourcePath;
+        return _resourceSearchPath;
     }
 
     /// Get path for shader debugging output
@@ -37,8 +37,8 @@ class Plugin
     {
     }
 
-    MaterialX::FilePath _librarySearchPath;
-    MaterialX::FilePath _resourcePath;
+    MaterialX::FileSearchPath _librarySearchPath;
+    MaterialX::FileSearchPath _resourceSearchPath;
     MaterialX::FilePath _shaderDebugPath;
 };
 

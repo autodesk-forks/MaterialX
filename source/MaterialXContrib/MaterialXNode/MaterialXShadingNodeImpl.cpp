@@ -93,9 +93,17 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
 
                     // Get back the texture description
                     texture->textureDescription(textureDescription);
+
+                    std::cout << "*** BOUND find file: " << fileName << ". Search path: "
+                        << searchPath.asString() << std::endl;
                 }
             }
         }
+    }
+    else
+    {
+        std::cout << "*** CANNOT BIND find file: " << fileName << ". Search path: "
+            << searchPath.asString() << std::endl;
     }
 
     // Bind sampler. This is not correct as it's not taking into account
@@ -214,8 +222,9 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
 
     // Set up image file name search path. Assume we are using built in images located in resource path
     // TODO: Be able to add more image search paths.
-    static std::string IMAGE_FOLDER("Images");
-    MaterialX::FileSearchPath imageSearchPath(Plugin::instance().getResourcePath() / MaterialX::FilePath(IMAGE_FOLDER));
+    //static std::string IMAGE_FOLDER("Images");
+    MaterialX::FileSearchPath imageSearchPath = Plugin::instance().getResourceSearchPath();
+        //(getResourcePath() / MaterialX::FilePath(IMAGE_FOLDER));
 
     // Bind environment lighting
     // TODO: These should be options

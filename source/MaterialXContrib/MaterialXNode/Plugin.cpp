@@ -19,11 +19,20 @@ Plugin& Plugin::instance()
 
 void Plugin::initialize(const std::string& loadPath)
 {
+    // Always include plug-in load path
 	MaterialX::FilePath searchPath(loadPath);
-	_librarySearchPath = searchPath / MaterialX::FilePath("../../libraries");
-	_resourcePath = searchPath / MaterialX::FilePath("../resources");
+    
+    // Search in standard library directories
+    _librarySearchPath.append(searchPath);
+    _librarySearchPath.append(searchPath / MaterialX::FilePath("../../libraries"));
+
+    // Search in standard installed resources directories and plug-in relative resources
+    _resourceSearchPath.append(searchPath);
+    _librarySearchPath.append(searchPath / MaterialX::FilePath("../../resources"));
+    _resourceSearchPath.append(searchPath / MaterialX::FilePath("../resources"));
+
     // Set to resource path for now
-    _shaderDebugPath = _resourcePath;
+    _shaderDebugPath = _resourceSearchPath[0];
 }
 
 ///////////////////////////////////////////////////////////////
