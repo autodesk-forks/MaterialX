@@ -75,7 +75,7 @@ void MaterialXData::createDocument(const std::string& materialXDocumentPath)
     // Read document contents from disk
     mx::XmlReadOptions readOptions;
     readOptions.skipDuplicateElements = true;
-    mx::readFromXmlFile(_document, materialXDocumentPath);
+    mx::readFromXmlFile(_document, materialXDocumentPath, mx::EMPTY_STRING, &readOptions);
 }
 
 bool MaterialXData::elementIsAShader() const

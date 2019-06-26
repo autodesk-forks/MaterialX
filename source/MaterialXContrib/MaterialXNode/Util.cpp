@@ -12,7 +12,6 @@ namespace MaterialXMaya
 
 void loadLibrary(const mx::FilePath& filePath, mx::DocumentPtr doc)
 {
-    std::cout << "Load library: " << filePath.asString() << std::endl;
 	mx::DocumentPtr libDoc = mx::createDocument();
     mx::XmlReadOptions readOptions;
     readOptions.skipDuplicateElements = true;
@@ -41,6 +40,25 @@ void loadLibraries(const mx::StringVec& libraryNames,
 			}
 		}
 	}
+}
+
+mx::FilePath findInSubdirectories(const mx::FileSearchPath& searchPaths,
+                                  const mx::FilePath& filePath)
+{
+    mx::FilePath foundPath;
+    for (size_t i = 0; i < searchPaths.size(); i++)
+    {
+        for (const mx::FilePath& directory : searchPaths[i].getSubDirectories())
+        {
+            mx::FileSearchPath searchPath(directory);
+            foundPath = searchPath.find(filePath);
+            if (foundPath.exists())
+            {
+                return foundPath;
+            }
+        }
+    }
+    return foundPath;
 }
 
 } // namespace MaterialXMaya

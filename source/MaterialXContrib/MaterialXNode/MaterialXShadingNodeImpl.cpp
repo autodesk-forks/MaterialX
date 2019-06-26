@@ -2,6 +2,7 @@
 
 #include "MaterialXNode.h"
 #include "Plugin.h"
+#include "Util.h"
 
 #include <maya/MShaderManager.h>
 #include <maya/MTextureManager.h>
@@ -74,15 +75,13 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
     MStatus status = MStatus::kFailure;
 
     // Bind file texture
-    MaterialX::FilePath imagePath = searchPath.find(fileName);
-    bool imageFound = imagePath.exists();
-    if (imageFound)
+    MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+    MHWRender::MTextureManager* textureManager = renderer ? textureManager = renderer->getTextureManager() : nullptr;
+    if (textureManager)
     {
-        MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
-        if (renderer)
+        MaterialX::FilePath imagePath = MaterialXMaya::findInSubdirectories(searchPath, fileName);
+        if (!imagePath.isEmpty())
         {
-            MHWRender::MTextureManager* textureManager = renderer->getTextureManager();
-            if (textureManager)
             {
                 VP2TextureUniquePtr texture(textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str()));
                 if (texture)
@@ -93,17 +92,15 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
 
                     // Get back the texture description
                     texture->textureDescription(textureDescription);
-
-                    std::cout << "*** BOUND find file: " << fileName << ". Search path: "
-                        << searchPath.asString() << std::endl;
                 }
             }
         }
-    }
-    else
-    {
-        std::cout << "*** CANNOT BIND find file: " << fileName << ". Search path: "
-            << searchPath.asString() << std::endl;
+        else
+        {
+            // TODO: Add a fallback image here to use.
+            std::cerr << "Cannot find image file: " << fileName << ". Search paths: "
+                      << searchPath.asString() << std::endl;
+        }
     }
 
     // Bind sampler. This is not correct as it's not taking into account

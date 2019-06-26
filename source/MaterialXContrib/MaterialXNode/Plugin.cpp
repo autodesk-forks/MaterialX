@@ -28,7 +28,7 @@ void Plugin::initialize(const std::string& loadPath)
 
     // Search in standard installed resources directories and plug-in relative resources
     _resourceSearchPath.append(searchPath);
-    _librarySearchPath.append(searchPath / MaterialX::FilePath("../../resources"));
+    _resourceSearchPath.append(searchPath / MaterialX::FilePath("../../resources"));
     _resourceSearchPath.append(searchPath / MaterialX::FilePath("../resources"));
 
     // Set to resource path for now
