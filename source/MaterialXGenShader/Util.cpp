@@ -49,6 +49,8 @@ void loadDocuments(const FilePath& rootPath, const StringSet& skipFiles, const S
                    vector<DocumentPtr>& documents, StringVec& documentsPaths, StringVec& errors)
 {
     errors.clear();
+    XmlReadOptions readOptions;
+    readOptions.skipDuplicateElements = true;
     for (const FilePath& dir : rootPath.getSubDirectories())
     {
         for (const FilePath& file : dir.getFilesInDirectory(MTLX_EXTENSION))
@@ -60,7 +62,7 @@ void loadDocuments(const FilePath& rootPath, const StringSet& skipFiles, const S
                 const FilePath filePath = dir / file;
                 try
                 {
-                    readFromXmlFile(doc, filePath, dir);
+                    readFromXmlFile(doc, filePath, dir, &readOptions);
                     documents.push_back(doc);
                     documentsPaths.push_back(filePath.asString());
                 }
