@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <materialx version="1.36">
-  <nodegraph name="NG_algclamp_float" nodedef="ND_algclamp_float">
+   <xi:include href="alglib_defs.mtlx" />
+   <nodegraph name="NG_algclamp_float" nodedef="ND_algclamp_float">
     <max name="ND_max_float_1" type="float">
       <input name="in1" type="float" interfacename="val" />
       <input name="in2" type="float" interfacename="i_min" />
