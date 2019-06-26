@@ -37,7 +37,7 @@ const char* const kTextureFlagLong  = "texture";
 const char* const kOgsXmlFlag       = "x";
 const char* const kOgsXmlFlagLong   = "ogsxml";
 
-void registerFragment(const MaterialXData& materialData, const std::string& ogsXmlPath)
+void registerFragment(const MaterialXData& materialData, const std::string& ogsXmlFileName)
 {
     MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
     MHWRender::MFragmentManager* fragmentManager = theRenderer ? theRenderer->getFragmentManager() : nullptr;
@@ -67,14 +67,18 @@ void registerFragment(const MaterialXData& materialData, const std::string& ogsX
         const bool fragmentExists = fragmentManager->hasFragment(fragmentName.c_str());
         if (!fragmentExists)
         {
-            // Allow for an explicit XML file to be specified.
-            if (!ogsXmlPath.empty())
+            // If explicit XML file specified use it.
+            mx::FilePath ogsXmlPath;
+            if (!ogsXmlFileName.empty())
             {
-                std::string xmlFileName(Plugin::instance().getResourcePath() / ogsXmlPath);
-                fragmentNameM = fragmentManager->addShadeFragmentFromFile(xmlFileName.c_str(), false);
+                ogsXmlPath = Plugin::instance().getResourceSearchPath().find(ogsXmlFileName);
+                if (!ogsXmlPath.isEmpty())
+                {
+                    fragmentNameM = fragmentManager->addShadeFragmentFromFile(ogsXmlPath.asString().c_str(), false);
+                }
             }
 
-            // When no override file is specified use the generated XML
+            // Otherwise use the generated XML
             else
             {
                 fragmentNameM = fragmentManager->addShadeFragmentFromBuffer(fragmentString.c_str(), false);
@@ -141,10 +145,10 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 		    argData.getFlagArgument(kElementFlag, 0, elementPath);
 	    }
 
-        MString ogsXmlPath;
+        MString ogsXmlFileName;
         if (parser.isFlagSet(kOgsXmlFlag))
         {
-            argData.getFlagArgument(kOgsXmlFlag, 0, ogsXmlPath);
+            argData.getFlagArgument(kOgsXmlFlag, 0, ogsXmlFileName);
         }
 
         std::unique_ptr<MaterialXData> materialXData{
@@ -168,7 +172,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         _dgModifier.renameNode(node, nodeName.c_str());
 
         materialXData->generateXml();
-        registerFragment(*materialXData, ogsXmlPath.asChar());
+        registerFragment(*materialXData, ogsXmlFileName.asChar());
 
         MFnDependencyNode depNode(node);
         auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());

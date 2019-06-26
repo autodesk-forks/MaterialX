@@ -5,15 +5,26 @@
 #include <MaterialXCore/Interface.h>
 #include <MaterialXFormat/File.h>
 
-namespace MaterialX
-{
-void getInputs(MaterialX::OutputPtr output, std::vector<MaterialX::ValueElementPtr> &results);
-void loadLibrary(const MaterialX::FilePath& file, MaterialX::DocumentPtr doc);
-void loadLibraries(
-    const MaterialX::StringVec& libraryNames,
-    const MaterialX::FilePath& searchPath,
-    MaterialX::DocumentPtr doc,
-    const MaterialX::StringSet* excludeFiles = nullptr);
-}
+namespace mx = MaterialX;
 
-#endif /* UTILS_H */
+namespace MaterialXMaya
+{
+
+/// Load a given MaterialX file into a document
+void loadLibrary(const mx::FilePath& file, mx::DocumentPtr doc);
+
+/// Load all MaterialX files with a given set of library name into a document..
+/// Note that all library files will have a URI set on them.
+void loadLibraries(const mx::StringVec& libraryNames,
+                   const mx::FileSearchPath& searchPath,
+                   mx::DocumentPtr doc,
+                   const mx::StringSet* excludeFiles = nullptr);
+
+/// Find a given file path under a set of search paths. The search is performed
+/// on all subdirectories for each search path
+mx::FilePath findInSubdirectories(const mx::FileSearchPath& searchPaths,
+                                  const mx::FilePath& filePath);
+
+} // namespace MaterialXMaya
+
+#endif

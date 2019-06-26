@@ -26,7 +26,7 @@ struct MaterialXData
   public:
     /// The element path and document that the element resides in are passed in
     /// as input arguments
-    MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath, const mx::FilePath& librarySearchPath);
+    MaterialXData(const std::string& materialXDocumentPath, const std::string& elementPath, const mx::FileSearchPath& librarySearchPath);
     ~MaterialXData();
 
     /// Set the element to render with.
@@ -82,7 +82,7 @@ struct MaterialXData
 
   private:
     // Reference document and element
-    mx::FilePath _librarySearchPath;
+    mx::FileSearchPath _librarySearchPath;
     mx::DocumentPtr _document;
     mx::ElementPtr _element;
 

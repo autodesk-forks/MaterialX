@@ -2,6 +2,7 @@
 
 #include "MaterialXNode.h"
 #include "Plugin.h"
+#include "Util.h"
 
 #include <maya/MShaderManager.h>
 #include <maya/MTextureManager.h>
@@ -74,15 +75,13 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
     MStatus status = MStatus::kFailure;
 
     // Bind file texture
-    MaterialX::FilePath imagePath = searchPath.find(fileName);
-    bool imageFound = imagePath.exists();
-    if (imageFound)
+    MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+    MHWRender::MTextureManager* textureManager = renderer ? textureManager = renderer->getTextureManager() : nullptr;
+    if (textureManager)
     {
-        MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
-        if (renderer)
+        MaterialX::FilePath imagePath = MaterialXMaya::findInSubdirectories(searchPath, fileName);
+        if (!imagePath.isEmpty())
         {
-            MHWRender::MTextureManager* textureManager = renderer->getTextureManager();
-            if (textureManager)
             {
                 VP2TextureUniquePtr texture(textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str()));
                 if (texture)
@@ -95,6 +94,12 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
                     texture->textureDescription(textureDescription);
                 }
             }
+        }
+        else
+        {
+            // TODO: Add a fallback image here to use.
+            std::cerr << "Cannot find image file: " << fileName << ". Search paths: "
+                      << searchPath.asString() << std::endl;
         }
     }
 
@@ -214,8 +219,9 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
 
     // Set up image file name search path. Assume we are using built in images located in resource path
     // TODO: Be able to add more image search paths.
-    static std::string IMAGE_FOLDER("Images");
-    MaterialX::FileSearchPath imageSearchPath(Plugin::instance().getResourcePath() / MaterialX::FilePath(IMAGE_FOLDER));
+    //static std::string IMAGE_FOLDER("Images");
+    MaterialX::FileSearchPath imageSearchPath = Plugin::instance().getResourceSearchPath();
+        //(getResourcePath() / MaterialX::FilePath(IMAGE_FOLDER));
 
     // Bind environment lighting
     // TODO: These should be options
