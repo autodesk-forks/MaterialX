@@ -82,7 +82,9 @@ mx::DocumentPtr loadLibraries(const mx::StringVec& libraryFolders, const mx::Fil
         {
             mx::FilePath file = path / filename;
             mx::DocumentPtr libDoc = mx::createDocument();
-            mx::readFromXmlFile(libDoc, file);
+            mx::XmlReadOptions readOptions;
+            readOptions.skipDuplicateElements = true;
+            mx::readFromXmlFile(libDoc, file, mx::EMPTY_STRING, &readOptions);
             libDoc->setSourceUri(file);
             mx::CopyOptions copyOptions;
             copyOptions.skipDuplicateElements = true;
@@ -357,7 +359,9 @@ void Viewer::setupLights(mx::DocumentPtr doc)
     {
         try
         {
-            mx::readFromXmlFile(lightDoc, path.asString());
+            mx::XmlReadOptions readOptions;
+            readOptions.skipDuplicateElements = true;                
+            mx::readFromXmlFile(lightDoc, path.asString(), mx::EMPTY_STRING, &readOptions);
             lightDoc->setSourceUri(path);
             doc->importLibrary(lightDoc, &copyOptions);
         }
@@ -720,6 +724,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
 {
     // Set up read options.
     mx::XmlReadOptions readOptions;
+    readOptions.skipDuplicateElements = true;
     readOptions.readXIncludeFunction = [](mx::DocumentPtr doc, const std::string& filename,
                                           const std::string& searchPath, const mx::XmlReadOptions* options)
     {
