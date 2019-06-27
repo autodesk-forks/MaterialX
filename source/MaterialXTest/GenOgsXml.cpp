@@ -36,7 +36,7 @@ TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
     mx::OgsXmlGenerator xmlGenerator;
 
     mx::StringVec testGraphs = { };
-    mx::StringVec testMaterials = { "Tiled_Brass" };
+    mx::StringVec testMaterials = { "Tiled_Brass", "Brass_Wire_Mesh" };
 
     for (auto testGraph : testGraphs)
     {
