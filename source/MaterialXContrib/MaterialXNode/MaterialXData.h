@@ -48,10 +48,6 @@ struct MaterialXData
         return _element ? _element->getNamePath() : mx::EMPTY_STRING;
     }
 
-    /// Create the OGS XML wrapper for shader fragments associated
-    /// with the element set to render
-    void generateXml();
-
     MaterialXData& operator=(const MaterialXData&) = delete;
     MaterialXData& operator=(MaterialXData&&) = delete;
 
@@ -76,6 +72,10 @@ struct MaterialXData
     bool elementIsAShader() const;
 
   private:
+    /// Create the OGS XML wrapper for shader fragments associated
+    /// with the element set to render
+    void generateFragment();
+
     // Reference document and element
     mx::DocumentPtr _document;
     mx::ElementPtr _element;

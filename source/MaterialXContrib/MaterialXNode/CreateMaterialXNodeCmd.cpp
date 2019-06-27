@@ -173,7 +173,6 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         std::string nodeName = mx::createValidName(elementPath.asChar());
         _dgModifier.renameNode(node, nodeName.c_str());
 
-        materialXData->generateXml();
         ::registerFragment(*materialXData, ogsXmlFileName.asChar());
 
         MFnDependencyNode depNode(node);

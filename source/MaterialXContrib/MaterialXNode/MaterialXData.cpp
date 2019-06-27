@@ -77,6 +77,15 @@ MaterialXData::MaterialXData(   mx::DocumentPtr document,
     }
 
     _genContext.registerSourceCodeSearchPath(librarySearchPath);
+
+    try
+    {
+        generateFragment();
+    }
+    catch (mx::Exception& e)
+    {
+        throw mx::Exception(std::string("Failed to generate OGS shader fragment: ") + e.what());
+    }
 }
 
 MaterialXData::MaterialXData(   const std::string& materialXDocumentPath,
@@ -112,11 +121,11 @@ bool MaterialXData::elementIsAShader() const
     return _element && _element->isA<mx::ShaderRef>();
 }
 
-void MaterialXData::generateXml()
+void MaterialXData::generateFragment()
 {
     if (!_element)
     {
-        return;
+        throw mx::Exception("Element is NULL");
     }
 
     mx::OutputPtr output = _element->asA<mx::Output>();
@@ -142,53 +151,53 @@ void MaterialXData::generateXml()
     _fragmentName = _element->getNamePath();
     _fragmentName = mx::createValidName(_fragmentName);
     mx::ShaderPtr shader = _shaderGenerator->generate(_fragmentName, _element, _genContext);
-    if (shader)
+    if (!shader)
     {
-        std::ostringstream stream;
-        // Note: This name must match the the fragment name used for registration
-        // or the registration will fail.
-        _generator.generate(_fragmentName, shader.get(), nullptr, stream);
-        _fragmentSource = stream.str();
-        if (_fragmentSource.empty())
+        throw mx::Exception("Failed to generate shader");
+    }
+
+    std::ostringstream stream;
+    // Note: This name must match the the fragment name used for registration
+    // or the registration will fail.
+    _generator.generate(_fragmentName, shader.get(), nullptr, stream);
+    _fragmentSource = stream.str();
+    if (_fragmentSource.empty())
+    {
+        throw mx::Exception("Generated shader source is empty");
+    }
+
+    // Strip out any '\r' characters.
+    _fragmentSource.erase(
+        std::remove(_fragmentSource.begin(), _fragmentSource.end(), '\r'), _fragmentSource.end()
+    );
+
+    // Extract out the input fragment parameter names along with their
+    // associated Element paths to allow for value binding.
+    const mx::ShaderStage& pixelShader = shader->getStage(mx::Stage::PIXEL);
+    for (const auto& blockMap : pixelShader.getUniformBlocks())
+    {
+        const mx::VariableBlock& uniforms = *blockMap.second;
+
+        // Skip light uniforms
+        if (uniforms.getName() == mx::HW::LIGHT_DATA)
         {
-            return;
+            continue;
         }
-        else
+
+        for (size_t i = 0; i < uniforms.size(); i++)
         {
-            // Strip out any '\r' characters.
-            _fragmentSource.erase(
-                std::remove(_fragmentSource.begin(), _fragmentSource.end(), '\r'), _fragmentSource.end()
-            );
-        }
-
-        // Extract out the input fragment parameter names along with their
-        // associated Element paths to allow for value binding.
-        const mx::ShaderStage& ps = shader->getStage(mx::Stage::PIXEL);
-        for (const auto& blockMap : ps.getUniformBlocks())
-        {
-            const mx::VariableBlock& uniforms = *blockMap.second;
-
-            // Skip light uniforms
-            if (uniforms.getName() == mx::HW::LIGHT_DATA)
+            const mx::ShaderPort* port = uniforms[i];
+            const std::string& path = port->getPath();
+            if (!path.empty())
             {
-                continue;
-            }
-
-            for (size_t i = 0; i < uniforms.size(); i++)
-            {
-                const mx::ShaderPort* port = uniforms[i];
-                const std::string& path = port->getPath();
-                if (!path.empty())
+                std::string name = port->getVariable();
+                if (port->getType()->getSemantic() == mx::TypeDesc::SEMANTIC_FILENAME)
                 {
-                    std::string name = port->getVariable();
-                    if (port->getType()->getSemantic() == mx::TypeDesc::SEMANTIC_FILENAME)
-                    {
-                        // Strip out the "sampler" post-fix to get the texture name.
-                        size_t pos = name.find(mx::OgsXmlGenerator::SAMPLER_SUFFIX);
-                        name.erase(pos, mx::OgsXmlGenerator::SAMPLER_SUFFIX.length());
-                    }
-                    _pathInputMap[path] = name;
+                    // Strip out the "sampler" post-fix to get the texture name.
+                    size_t pos = name.find(mx::OgsXmlGenerator::SAMPLER_SUFFIX);
+                    name.erase(pos, mx::OgsXmlGenerator::SAMPLER_SUFFIX.length());
                 }
+                _pathInputMap[path] = name;
             }
         }
     }
