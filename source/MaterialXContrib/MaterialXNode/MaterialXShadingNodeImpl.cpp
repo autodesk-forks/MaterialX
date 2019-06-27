@@ -232,98 +232,52 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
 
     MaterialX::DocumentPtr document = node->materialXData->getDocument();
     const MaterialX::StringMap& inputs = node->materialXData->getPathInputMap();
-    for (auto i : inputs)
+    for (const auto& input : inputs)
     {
-        MaterialX::ElementPtr element = document->getDescendant(i.first);
-        MaterialX::ValueElementPtr valueElement = element ? element->asA<MaterialX::ValueElement>() : nullptr;
-        if (valueElement)
+        MaterialX::ElementPtr element = document->getDescendant(input.first);
+        if (!element)
         {
-            std::string inputName(i.second);
-            MString resolvedName(inputName.c_str());
-            const MHWRender::MAttributeParameterMapping* mapping = mappings.findByParameterName(i.second.c_str());
-            if (mapping)
-            {
-                resolvedName = mapping->resolvedParameterName();
-            }
+            continue;
+        }
 
-            if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)
-            {
-                // This is the hard-coded OGS convention to associate a texture with a sampler (via post-fix "Sampler" string)
-                std::string textureParameterName(resolvedName.asChar());
+        MaterialX::ValueElementPtr valueElement = element->asA<MaterialX::ValueElement>();
+        if (!valueElement)
+        {
+            continue;
+        }
 
-                // Bind texture and sampler
-                std::string fileName;
-                const std::string& valueString = valueElement->getValueString();
-                if (!valueString.empty())
-                {
-                    MHWRender::MTextureDescription textureDescription;
+        const std::string& inputName = input.second;
+        MString resolvedName(inputName.c_str());
 
-                    // TODO: This should come from the element and not hard-coded.
-                    MHWRender::MSamplerStateDesc samplerDescription;
-                    samplerDescription.filter = MHWRender::MSamplerState::kAnisotropic;
-                    samplerDescription.maxAnisotropy = 16;
+        const MHWRender::MAttributeParameterMapping* mapping = mappings.findByParameterName(input.second.c_str());
+        if (mapping)
+        {
+            resolvedName = mapping->resolvedParameterName();
+        }
 
-                    status = bindFileTexture(shader, textureParameterName, imageSearchPath, valueString,
-                        samplerDescription, textureDescription);
-                }
-            }
+        if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)
+        {
+            // This is the hard-coded OGS convention to associate a texture with a sampler (via post-fix "Sampler" string)
+            std::string textureParameterName(resolvedName.asChar());
 
-            // This is unnecessary overhead if we are read-only. Updates should be based on whats
-            // dirty and not everything. There are a lot of attributes on shader graph and this is
-            // a waste of effort currently.
-            if (!_enableEditing)
+            // Bind texture and sampler
+            std::string fileName;
+            const std::string& valueString = valueElement->getValueString();
+            if (!valueString.empty())
             {
-                continue;
-            }
+                MHWRender::MTextureDescription textureDescription;
 
-            if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector2>::TYPE)
-            {
-                MaterialX::Vector2 vector2 = valueElement->getValue()->asA<MaterialX::Vector2>();
-                MFloatVector floatVector(vector2[0], vector2[1]);
-                status = shader.setParameter(resolvedName, floatVector);
-            }
-            else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector3>::TYPE)
-            {
-                MaterialX::Vector3 vector3 = valueElement->getValue()->asA<MaterialX::Vector3>();
-                MFloatVector floatVector(vector3[0], vector3[1], vector3[2]);
-                status = shader.setParameter(resolvedName, floatVector);
-            }
-            else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Vector4>::TYPE)
-            {
-                //				MaterialX::Vector4 vector4 = valueElement->getValue()->asA<MaterialX::Vector4>();
-                //				MFloatVector floatVector(vector4[0], vector4[1], vector4[2], vector4[3]);
-                //				status = shader.setParameter(resolvedName, floatVector);
-                //				std::cout << "updateShader (vector4): " << resolvedName << ". Status: " << status << std::endl;
-            }
-            else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color2>::TYPE)
-            {
-                MaterialX::Color2 color2 = valueElement->getValue()->asA<MaterialX::Color2>();
-                MFloatVector floatVector(color2[0], color2[1]);
-                status = shader.setParameter(resolvedName, floatVector);
-            }
-            else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color3>::TYPE)
-            {
-                MaterialX::Color3 color3 = valueElement->getValue()->asA<MaterialX::Color3>();
-                MFloatVector floatVector(color3[0], color3[1], color3[2]);
-                status = shader.setParameter(resolvedName, floatVector);
-            }
-            else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Color4>::TYPE)
-            {
-                //				MaterialX::Color4 color4 = valueElement->getValue()->asA<MaterialX::Color4>();
-                //                status = shader.setArrayParameter(resolvedName, color4.data(), 4);
-                //                std::cout << "updateShader (color4): " << resolvedName << std::endl;
-            }
-            else if (valueElement->getType() == MaterialX::TypedValue<MaterialX::Matrix44>::TYPE)
-            {
-                MaterialX::Matrix44 mat44 = valueElement->getValue()->asA<MaterialX::Matrix44>();
-                status = shader.setArrayParameter(resolvedName, mat44.data(), 16);
+                // TODO: This should come from the element and not hard-coded.
+                MHWRender::MSamplerStateDesc samplerDescription;
+                samplerDescription.filter = MHWRender::MSamplerState::kAnisotropic;
+                samplerDescription.maxAnisotropy = 16;
+
+                status = bindFileTexture(shader, textureParameterName, imageSearchPath, valueString,
+                    samplerDescription, textureDescription);
             }
         }
     }
 }
-
-class MaterialXTextureOverride;
-class MaterialXSurfaceOverride;
 
 namespace MHWRender
 {

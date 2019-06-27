@@ -32,9 +32,6 @@ class MaterialXShadingNodeImpl : public BASE
     MaterialXShadingNodeImpl(const MObject&);
 
     MObject _object;
-
-    // Is editing allowed?
-    bool _enableEditing = false;
 };
 
 #endif /* MATERIALX_SHADINGNODE_IMPL_H */
