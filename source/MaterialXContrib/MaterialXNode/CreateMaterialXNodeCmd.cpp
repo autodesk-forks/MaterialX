@@ -1,6 +1,6 @@
 #include "CreateMaterialXNodeCmd.h"
 #include "MaterialXNode.h"
-#include "Util.h"
+#include "MaterialXUtil.h"
 #include "Plugin.h"
 
 #include <MaterialXFormat/XmlIo.h>
@@ -50,7 +50,7 @@ void registerFragment(const MaterialXData& materialData, const std::string& ogsX
     MString fragmentNameM;
 
     // Register fragments with the manager if needed
-    const std::string& fragmentString = materialData.getFragmentWrapper();
+    const std::string& fragmentString = materialData.getFragmentSource();
     const std::string& fragmentName = materialData.getFragmentName();
     if (!fragmentName.empty() && !fragmentString.empty())
     {
@@ -152,7 +152,9 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         }
 
         std::unique_ptr<MaterialXData> materialXData{
-            new MaterialXData(materialXDocument.asChar(), elementPath.asChar(), Plugin::instance().getLibrarySearchPath())
+            new MaterialXData(materialXDocument.asChar(),
+                              elementPath.asChar(),
+                              Plugin::instance().getLibrarySearchPath())
         };
 
         elementPath.set(materialXData->getElementPath().c_str());
@@ -172,7 +174,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         _dgModifier.renameNode(node, nodeName.c_str());
 
         materialXData->generateXml();
-        registerFragment(*materialXData, ogsXmlFileName.asChar());
+        ::registerFragment(*materialXData, ogsXmlFileName.asChar());
 
         MFnDependencyNode depNode(node);
         auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
@@ -191,9 +193,6 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
         MPlug elementPlug(node, MaterialXNode::ELEMENT_ATTRIBUTE);
         _dgModifier.newPlugValueString(elementPlug, elementPath);
-
-        // TODO: Figure out why adding this in causes the texture to go black
-        // materialXNode->createAttributesFromDocument(_dgModifier);
 
         _dgModifier.doIt();
     }

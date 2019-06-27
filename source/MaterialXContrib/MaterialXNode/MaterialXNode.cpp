@@ -1,6 +1,6 @@
 #include "MaterialXNode.h"
 #include "Plugin.h"
-#include "Util.h"
+#include "MaterialXUtil.h"
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MStringArray.h>

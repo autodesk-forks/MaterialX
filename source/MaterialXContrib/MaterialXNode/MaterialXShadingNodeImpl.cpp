@@ -2,7 +2,7 @@
 
 #include "MaterialXNode.h"
 #include "Plugin.h"
-#include "Util.h"
+#include "MaterialXUtil.h"
 
 #include <maya/MShaderManager.h>
 #include <maya/MTextureManager.h>
@@ -203,7 +203,7 @@ void MaterialXShadingNodeImpl<BASE>::updateDG()
 
 template <class BASE>
 void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& shader,
-                                            const MHWRender::MAttributeParameterMappingList& mappings)
+                                                  const MHWRender::MAttributeParameterMappingList& mappings)
 {
     MStatus status;
     MFnDependencyNode depNode(_object, &status);
@@ -225,8 +225,10 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
 
     // Bind environment lighting
     // TODO: These should be options
-    std::string envRadiancePath = "san_giuseppe_bridge.hdr";
-    std::string envIrradiancePath = "san_giuseppe_bridge_diffuse.hdr";
+    static const std::string
+        envRadiancePath = "san_giuseppe_bridge.hdr",
+        envIrradiancePath = "san_giuseppe_bridge_diffuse.hdr";
+
     ::bindEnvironmentLighting(shader, parameterList, imageSearchPath,
         envRadiancePath, envIrradiancePath);
 
@@ -247,21 +249,15 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
         }
 
         const std::string& inputName = input.second;
-        MString resolvedName(inputName.c_str());
-
-        const MHWRender::MAttributeParameterMapping* mapping = mappings.findByParameterName(input.second.c_str());
-        if (mapping)
-        {
-            resolvedName = mapping->resolvedParameterName();
-        }
+        const MHWRender::MAttributeParameterMapping* const mapping = mappings.findByParameterName(inputName.c_str());
+        const MString resolvedName = mapping ? mapping->resolvedParameterName() : inputName.c_str();
 
         if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)
         {
             // This is the hard-coded OGS convention to associate a texture with a sampler (via post-fix "Sampler" string)
-            std::string textureParameterName(resolvedName.asChar());
+            const std::string textureParameterName(resolvedName.asChar());
 
             // Bind texture and sampler
-            std::string fileName;
             const std::string& valueString = valueElement->getValueString();
             if (!valueString.empty())
             {
@@ -272,7 +268,7 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
                 samplerDescription.filter = MHWRender::MSamplerState::kAnisotropic;
                 samplerDescription.maxAnisotropy = 16;
 
-                status = bindFileTexture(shader, textureParameterName, imageSearchPath, valueString,
+                status = ::bindFileTexture(shader, textureParameterName, imageSearchPath, valueString,
                     samplerDescription, textureDescription);
             }
         }
