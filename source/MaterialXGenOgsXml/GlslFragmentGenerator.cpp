@@ -30,6 +30,7 @@ string GlslFragmentSyntax::getVariableName(const string& name, const TypeDesc* t
 }
 
 const string GlslFragmentGenerator::TARGET = "ogsxml";
+const string GlslFragmentGenerator::MATRIX3_TO_MATRIX4_POSTFIX = "4";
 
 GlslFragmentGenerator::GlslFragmentGenerator() :
     GlslShaderGenerator()
@@ -136,6 +137,10 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     const ShaderGraphOutputSocket* outputSocket = graph.getOutputSocket();
 
     // Add function signature
+    // Keep track of arguments we changed from matrix3 to matrix4 as additional
+    // code must be inserted to get back the matrix3 version
+    StringVec convertMatrixStrings;
+
     string functionName = shader->getName();
     context.makeIdentifier(functionName);
     setFunctionName(functionName, stage);
@@ -146,6 +151,10 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     for (size_t i = 0; i < numUniforms; ++i)
     {
         emitLineBegin(stage);
+        if (uniforms[i]->getType() == Type::MATRIX33)
+        {
+            convertMatrixStrings.push_back(uniforms[i]->getVariable());
+        }
         emitVariableDeclaration(uniforms[i], EMPTY_STRING, context, stage, false);
         if (i < numUniforms-1)
         {
@@ -179,6 +188,12 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     }
     else
     {
+        // Insert matrix converters
+        for (const string& argument : convertMatrixStrings)
+        {
+            emitLine("mat3 " + argument + " = mat3(" + argument + GlslFragmentGenerator::MATRIX3_TO_MATRIX4_POSTFIX + ")", stage, true);
+        }
+
         // Add all function calls
         emitFunctionCalls(graph, context, stage);
 
@@ -272,6 +287,11 @@ void GlslFragmentGenerator::emitVariableDeclaration(const ShaderPort* variable, 
     if (variable->getType() == Type::FILENAME)
     {
         emitString("sampler2D " + variable->getVariable(), stage);
+    }
+    // We change matrix3 to matrix4 input arguments
+    else if (variable->getType() == Type::MATRIX33)
+    {
+        emitString("mat4 " + variable->getVariable() + MATRIX3_TO_MATRIX4_POSTFIX, stage);
     }
     else
     {

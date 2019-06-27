@@ -11,6 +11,8 @@
 #include <MaterialXFormat/XmlIo.h>
 #include <MaterialXFormat/PugiXML/pugixml.hpp>
 
+#include <MaterialXCore/Value.h>
+
 using namespace pugi;
 
 namespace MaterialX
@@ -197,7 +199,15 @@ namespace
                 if (type != OGS_TYPE_MAP.end())
                 {
                     pugi::xml_node prop = parent.append_child(type->second);
-                    xmlSetProperty(prop, p->getName(), p->getVariable(), flags);
+                    if (p->getType() == Type::MATRIX33)
+                    {
+                        string var = p->getVariable() + GlslFragmentGenerator::MATRIX3_TO_MATRIX4_POSTFIX;
+                        xmlSetProperty(prop, p->getName(), var, flags);
+                    }
+                    else
+                    {
+                        xmlSetProperty(prop, p->getName(), p->getVariable(), flags);
+                    }
                 }
             }
         }
@@ -214,8 +224,26 @@ namespace
                 if (type != OGS_TYPE_MAP.end())
                 {
                     pugi::xml_node val = parent.append_child(type->second);
-                    val.append_attribute(NAME) = p->getVariable().c_str();
-                    val.append_attribute(VALUE) = p->getValue()->getValueString().c_str();
+                    if (p->getType() == Type::MATRIX33)
+                    {
+                        // Change the variable name + promote from a matrix33 to a matrix44
+                        string var = p->getVariable() + GlslFragmentGenerator::MATRIX3_TO_MATRIX4_POSTFIX;
+                        val.append_attribute(NAME) = var.c_str();
+
+                        Matrix33 matrix33 = fromValueString<Matrix33>(p->getValue()->getValueString());
+                        const Matrix44 matrix44(
+                            matrix33[0][0], matrix33[0][1], matrix33[0][2], 0,
+                            matrix33[1][0], matrix33[1][1], matrix33[1][2], 0,
+                            matrix33[2][0], matrix33[2][1], matrix33[2][2], 0,
+                            0.0f, 0.0f, 0.0f, 1.0f);
+                        ValuePtr matrix44Value = Value::createValue<Matrix44>(matrix44);
+                        val.append_attribute(VALUE) = matrix44Value->getValueString().c_str();
+                    }
+                    else
+                    {
+                        val.append_attribute(NAME) = p->getVariable().c_str();
+                        val.append_attribute(VALUE) = p->getValue()->getValueString().c_str();
+                    }
                 }
             }
         }
