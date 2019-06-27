@@ -40,6 +40,7 @@ class GlslFragmentGenerator : public GlslShaderGenerator
                                  bool assignValue = true) const override;
 
     static const string TARGET;
+    static const string MATRIX3_TO_MATRIX4_POSTFIX;
 
   protected:
     static void toVec3(const TypeDesc* type, string& variable);
