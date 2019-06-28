@@ -1,6 +1,6 @@
 #include "CreateMaterialXNodeCmd.h"
 #include "MaterialXNode.h"
-#include "Util.h"
+#include "MaterialXUtil.h"
 #include "Plugin.h"
 
 #include <MaterialXFormat/XmlIo.h>
@@ -50,18 +50,18 @@ void registerFragment(const MaterialXData& materialData, const std::string& ogsX
     MString fragmentNameM;
 
     // Register fragments with the manager if needed
-    const std::string& fragmentString = materialData.getFragmentWrapper();
+    const std::string& fragmentString = materialData.getFragmentSource();
     const std::string& fragmentName = materialData.getFragmentName();
     if (!fragmentName.empty() && !fragmentString.empty())
     {
-        MString previousOutputDirectory(fragmentManager->getEffectOutputDirectory());
-        MString previousIntermdiateDirectory(fragmentManager->getIntermediateGraphOutputDirectory());
         mx::FilePath dumpPath(Plugin::instance().getShaderDebugPath());
-        bool setDumpPath = !dumpPath.isEmpty();
-        if (setDumpPath)
+        if (!dumpPath.isEmpty())
         {
-            fragmentManager->setEffectOutputDirectory(dumpPath.asString().c_str());
-            fragmentManager->setIntermediateGraphOutputDirectory(dumpPath.asString().c_str());
+            std::string dumpPathString(dumpPath.asString());
+            // Add explicitly as VP2 does no prepend a folder separator, and thus fails silently to output anything.
+            dumpPathString += "/"; 
+            fragmentManager->setEffectOutputDirectory(dumpPathString.c_str());
+            fragmentManager->setIntermediateGraphOutputDirectory(dumpPathString.c_str());
         }
 
         const bool fragmentExists = fragmentManager->hasFragment(fragmentName.c_str());
@@ -87,12 +87,6 @@ void registerFragment(const MaterialXData& materialData, const std::string& ogsX
         else
         {
             fragmentNameM.set(fragmentName.c_str());
-        }
-
-        if (setDumpPath)
-        {
-            fragmentManager->setEffectOutputDirectory(previousOutputDirectory);
-            fragmentManager->setIntermediateGraphOutputDirectory(previousIntermdiateDirectory);
         }
     }
 
@@ -152,7 +146,9 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         }
 
         std::unique_ptr<MaterialXData> materialXData{
-            new MaterialXData(materialXDocument.asChar(), elementPath.asChar(), Plugin::instance().getLibrarySearchPath())
+            new MaterialXData(materialXDocument.asChar(),
+                              elementPath.asChar(),
+                              Plugin::instance().getLibrarySearchPath())
         };
 
         elementPath.set(materialXData->getElementPath().c_str());
@@ -171,8 +167,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         std::string nodeName = mx::createValidName(elementPath.asChar());
         _dgModifier.renameNode(node, nodeName.c_str());
 
-        materialXData->generateXml();
-        registerFragment(*materialXData, ogsXmlFileName.asChar());
+        ::registerFragment(*materialXData, ogsXmlFileName.asChar());
 
         MFnDependencyNode depNode(node);
         auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
@@ -191,9 +186,6 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
         MPlug elementPlug(node, MaterialXNode::ELEMENT_ATTRIBUTE);
         _dgModifier.newPlugValueString(elementPlug, elementPath);
-
-        // TODO: Figure out why adding this in causes the texture to go black
-        // materialXNode->createAttributesFromDocument(_dgModifier);
 
         _dgModifier.doIt();
     }

@@ -1,4 +1,4 @@
-#include "Util.h"
+#include "MaterialXUtil.h"
 
 #include <MaterialXCore/Traversal.h>
 #include <MaterialXFormat/XmlIo.h>
