@@ -23,7 +23,6 @@ class MaterialXNode : public MPxNode
     MTypeId	typeId() const override;
     SchedulingType schedulingType() const override;
     bool setInternalValue(const MPlug &plug, const MDataHandle &dataHandle) override;
-    void createAttributesFromDocument(MDGModifier& mdgModifier);
 
     const MaterialXData* getMaterialXData() const
     {
@@ -38,10 +37,11 @@ class MaterialXNode : public MPxNode
     static const MTypeId MATERIALX_NODE_TYPEID;
     static const MString MATERIALX_NODE_TYPENAME;
 
-    /// Attribute holding a MaterialX document
+    /// Attribute holding a path to MaterialX document file
     static MString DOCUMENT_ATTRIBUTE_LONG_NAME;
     static MString DOCUMENT_ATTRIBUTE_SHORT_NAME;
     static MObject DOCUMENT_ATTRIBUTE;
+
     /// Attribute holding a MaterialX element name
     static MString ELEMENT_ATTRIBUTE_LONG_NAME;
     static MString ELEMENT_ATTRIBUTE_SHORT_NAME;
@@ -53,7 +53,6 @@ class MaterialXNode : public MPxNode
     std::unique_ptr<MaterialXData> _materialXData;
 
     MObject _outAttr;
-    std::unordered_map<std::string, MaterialX::ElementPtr> _attributeElementPairMap;
 };
 
 class MaterialXTextureNode : public MaterialXNode
