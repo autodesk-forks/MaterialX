@@ -7,7 +7,6 @@
 #include <MaterialXGenOgsFx/OgsFxSyntax.h>
 
 #include <MaterialXGenShader/Shader.h>
-#include <MaterialXGenShader/Util.h>
 
 namespace MaterialX
 {
@@ -17,46 +16,46 @@ namespace
     // Semantics used by OgsFx
     static const StringMap OGSFX_DEFAULT_SEMANTICS_MAP =
     {
-        { "i_position", "POSITION"},
-        { "i_normal", "NORMAL" },
-        { "i_tangent", "TANGENT" },
-        { "i_bitangent", "BINORMAL" },
+        { HW::T_IN_POSITION, "POSITION"},
+        { HW::T_IN_NORMAL, "NORMAL" },
+        { HW::T_IN_TANGENT, "TANGENT" },
+        { HW::T_IN_BITANGENT, "BINORMAL" },
 
-        { "i_texcoord_0", "TEXCOORD0" },
-        { "i_texcoord_1", "TEXCOORD1" },
-        { "i_texcoord_2", "TEXCOORD2" },
-        { "i_texcoord_3", "TEXCOORD3" },
-        { "i_texcoord_4", "TEXCOORD4" },
-        { "i_texcoord_5", "TEXCOORD5" },
-        { "i_texcoord_6", "TEXCOORD6" },
-        { "i_texcoord_7", "TEXCOORD7" },
+        { HW::T_IN_TEXCOORD + "_0", "TEXCOORD0" },
+        { HW::T_IN_TEXCOORD + "_1", "TEXCOORD1" },
+        { HW::T_IN_TEXCOORD + "_2", "TEXCOORD2" },
+        { HW::T_IN_TEXCOORD + "_3", "TEXCOORD3" },
+        { HW::T_IN_TEXCOORD + "_4", "TEXCOORD4" },
+        { HW::T_IN_TEXCOORD + "_5", "TEXCOORD5" },
+        { HW::T_IN_TEXCOORD + "_6", "TEXCOORD6" },
+        { HW::T_IN_TEXCOORD + "_7", "TEXCOORD7" },
 
-        { "i_color_0", "COLOR0" },
+        { HW::T_IN_COLOR + "_0", "COLOR0" },
 
-        { "u_worldMatrix", "World" },
-        { "u_worldInverseMatrix", "WorldInverse" },
-        { "u_worldTransposeMatrix", "WorldTranspose" },
-        { "u_worldInverseTransposeMatrix", "WorldInverseTranspose" },
+        { HW::T_WORLD_MATRIX, "World" },
+        { HW::T_WORLD_INVERSE_MATRIX, "WorldInverse" },
+        { HW::T_WORLD_TRANSPOSE_MATRIX, "WorldTranspose" },
+        { HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX, "WorldInverseTranspose" },
 
-        { "u_viewMatrix", "View" },
-        { "u_viewInverseMatrix", "ViewInverse" },
-        { "u_viewTransposeMatrix", "ViewTranspose" },
-        { "u_viewInverseTransposeMatrix", "ViewInverseTranspose" },
+        { HW::T_VIEW_MATRIX, "View" },
+        { HW::T_VIEW_INVERSE_MATRIX, "ViewInverse" },
+        { HW::T_VIEW_TRANSPOSE_MATRIX, "ViewTranspose" },
+        { HW::T_VIEW_INVERSE_TRANSPOSE_MATRIX, "ViewInverseTranspose" },
 
-        { "u_projectionMatrix", "Projection" },
-        { "u_projectionInverseMatrix", "ProjectionInverse" },
-        { "u_projectionTransposeMatrix", "ProjectionTranspose" },
-        { "u_projectionInverseTransposeMatrix", "ProjectionInverseTranspose" },
+        { HW::T_PROJ_MATRIX, "Projection" },
+        { HW::T_PROJ_INVERSE_MATRIX, "ProjectionInverse" },
+        { HW::T_PROJ_TRANSPOSE_MATRIX, "ProjectionTranspose" },
+        { HW::T_PROJ_INVERSE_TRANSPOSE_MATRIX, "ProjectionInverseTranspose" },
 
-        { "u_worldViewMatrix", "WorldView" },
-        { "u_viewProjectionMatrix", "ViewProjection" },
-        { "u_worldViewProjectionMatrix", "WorldViewProjection" },
+        { HW::T_WORLD_VIEW_MATRIX, "WorldView" },
+        { HW::T_VIEW_PROJECTION_MATRIX, "ViewProjection" },
+        { HW::T_WORLD_VIEW_PROJECTION_MATRIX, "WorldViewProjection" },
 
-        { "u_viewDirection", "ViewDirection" },
-        { "u_viewPosition", "WorldCameraPosition" },
+        { HW::T_VIEW_DIRECTION, "ViewDirection" },
+        { HW::T_VIEW_POSITION, "WorldCameraPosition" },
 
-        { "u_frame", "Frame" },
-        { "u_time", "Time" }
+        { HW::T_FRAME, "Frame" },
+        { HW::T_TIME, "Time" }
     };
 
     static const StringMap OGSFX_GET_LIGHT_DATA_MAP =
@@ -238,16 +237,16 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
     }
     emitScopeBegin(fx);
     emitLine("pass p0", fx, false);
-    std::string vertexDataInstance = HW::T_VERTEX_DATA_INSTANCE;
-    tokenSubstitution(_tokenSubstitutions, vertexDataInstance);
     emitScopeBegin(fx);
-    emitLine("VertexShader(in VertexInputs, out VertexData " + vertexDataInstance +") = { VS }", fx);
+    emitLine("VertexShader(in VertexInputs, out VertexData " + HW::T_VERTEX_DATA_INSTANCE +") = { VS }", fx);
     emitLine(lighting ?
-        "PixelShader(in VertexData " + vertexDataInstance + ", out PixelOutput) = { LightingFunctions, PS }" :
-        "PixelShader(in VertexData " + vertexDataInstance + ", out PixelOutput) = { PS }", fx);
+        "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { LightingFunctions, PS }" :
+        "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { PS }", fx);
     emitScopeEnd(fx);
     emitScopeEnd(fx);
     emitLineBreak(fx);
+
+    replaceTokens(_tokenSubstitutions, fx);
 
     return shader;
 }
@@ -487,9 +486,7 @@ ShaderPtr OgsFxShaderGenerator::createShader(const string& name, ElementPtr elem
             for (size_t j = 0; j < block.size(); ++j)
             {
                 ShaderPort* v = block[j];
-                std::string portName = v->getName();
-                tokenSubstitution(_tokenSubstitutions, portName);
-                auto sematic = OGSFX_DEFAULT_SEMANTICS_MAP.find(portName);
+                auto sematic = OGSFX_DEFAULT_SEMANTICS_MAP.find(v->getName());
                 if (sematic != OGSFX_DEFAULT_SEMANTICS_MAP.end())
                 {
                     v->setSemantic(sematic->second);
@@ -502,9 +499,7 @@ ShaderPtr OgsFxShaderGenerator::createShader(const string& name, ElementPtr elem
             for (size_t j = 0; j < block.size(); ++j)
             {
                 ShaderPort* v = block[j];
-                std::string portName = v->getName();
-                tokenSubstitution(_tokenSubstitutions, portName);
-                auto sematic = OGSFX_DEFAULT_SEMANTICS_MAP.find(portName);
+                auto sematic = OGSFX_DEFAULT_SEMANTICS_MAP.find(v->getName());
                 if (sematic != OGSFX_DEFAULT_SEMANTICS_MAP.end())
                 {
                     v->setSemantic(sematic->second);

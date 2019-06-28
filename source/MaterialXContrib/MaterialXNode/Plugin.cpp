@@ -32,7 +32,7 @@ void Plugin::initialize(const std::string& loadPath)
     _resourceSearchPath.append(searchPath / MaterialX::FilePath("../resources"));
 
     // Set to resource path for now
-    _shaderDebugPath = _resourceSearchPath[0];
+    _shaderDebugPath = _resourceSearchPath[1];
 }
 
 ///////////////////////////////////////////////////////////////
