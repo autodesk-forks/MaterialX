@@ -67,7 +67,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     // Turn on fixed float formatting to make sure float values are
     // emitted with a decimal point and not as integers, and to avoid
     // any scientific notation which isn't supported by all OpenGL targets.
-    Value::ScopedFloatFormatting fmt(Value::FloatFormatFixed);
+    ScopedFloatFormatting fmt(Value::FloatFormatFixed);
 
     const ShaderGraph& graph = shader->getGraph();
 
