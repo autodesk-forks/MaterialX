@@ -54,14 +54,14 @@ void registerFragment(const MaterialXData& materialData, const std::string& ogsX
     const std::string& fragmentName = materialData.getFragmentName();
     if (!fragmentName.empty() && !fragmentString.empty())
     {
-        MString previousOutputDirectory(fragmentManager->getEffectOutputDirectory());
-        MString previousIntermdiateDirectory(fragmentManager->getIntermediateGraphOutputDirectory());
         mx::FilePath dumpPath(Plugin::instance().getShaderDebugPath());
-        bool setDumpPath = !dumpPath.isEmpty();
-        if (setDumpPath)
+        if (!dumpPath.isEmpty())
         {
-            fragmentManager->setEffectOutputDirectory(dumpPath.asString().c_str());
-            fragmentManager->setIntermediateGraphOutputDirectory(dumpPath.asString().c_str());
+            std::string dumpPathString(dumpPath.asString());
+            // Add explicitly as VP2 does no prepend a folder separator, and thus fails silently to output anything.
+            dumpPathString += "/"; 
+            fragmentManager->setEffectOutputDirectory(dumpPathString.c_str());
+            fragmentManager->setIntermediateGraphOutputDirectory(dumpPathString.c_str());
         }
 
         const bool fragmentExists = fragmentManager->hasFragment(fragmentName.c_str());
@@ -87,12 +87,6 @@ void registerFragment(const MaterialXData& materialData, const std::string& ogsX
         else
         {
             fragmentNameM.set(fragmentName.c_str());
-        }
-
-        if (setDumpPath)
-        {
-            fragmentManager->setEffectOutputDirectory(previousOutputDirectory);
-            fragmentManager->setIntermediateGraphOutputDirectory(previousIntermdiateDirectory);
         }
     }
 
