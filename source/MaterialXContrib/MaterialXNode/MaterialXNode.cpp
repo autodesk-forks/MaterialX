@@ -91,7 +91,7 @@ MStatus MaterialXNode::initialize()
 
 void MaterialXNode::createOutputAttr(MDGModifier& mdgModifier)
 {
-    if (materialXData && !materialXData->getElementPath().empty())
+    if (_materialXData && !_materialXData->getElementPath().empty())
     {
         const MString outputName(MaterialX::OgsXmlGenerator::OUTPUT_NAME.c_str());
         MFnNumericAttribute nAttr;
@@ -130,7 +130,7 @@ MPxNode::SchedulingType MaterialXNode::schedulingType() const
 
 bool MaterialXNode::setInternalValue(const MPlug &plug, const MDataHandle &dataHandle)
 {
-	if (!materialXData) return false;
+	if (!_materialXData) return false;
 
 	if (plug == DOCUMENT_ATTRIBUTE)
 	{
@@ -139,7 +139,7 @@ bool MaterialXNode::setInternalValue(const MPlug &plug, const MDataHandle &dataH
 	}
 	else if (plug == ELEMENT_ATTRIBUTE)
 	{
-		if (materialXData->getDocument())
+		if (_materialXData->getDocument())
 		{
 			//MString elementPath = dataHandle.asString();
 			//materialXData->element = materialXData->doc->getDescendant(elementPath.asChar());
@@ -225,12 +225,12 @@ void MaterialXNode::setAttributeValue(MObject &materialXObject, MObject &attr, f
 void MaterialXNode::createAttributesFromDocument(MDGModifier& mdgModifier)
 {
     MaterialX::DocumentPtr document;
-    if (!materialXData || !(document = materialXData->getDocument()))
+    if (!_materialXData || !(document = _materialXData->getDocument()))
     {
         return;
     }
 
-	const MaterialX::StringMap& inputMap = materialXData->getPathInputMap();
+	const MaterialX::StringMap& inputMap = _materialXData->getPathInputMap();
 	for (auto it = inputMap.begin(); it != inputMap.end(); ++it)
 	{
 		MaterialX::ElementPtr element = document->getDescendant(it->first);

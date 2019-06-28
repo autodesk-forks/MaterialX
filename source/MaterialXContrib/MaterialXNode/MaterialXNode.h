@@ -25,9 +25,14 @@ class MaterialXNode : public MPxNode
     bool setInternalValue(const MPlug &plug, const MDataHandle &dataHandle) override;
     void createAttributesFromDocument(MDGModifier& mdgModifier);
 
+    const MaterialXData* getMaterialXData() const
+    {
+        return _materialXData.get();
+    }
+
     void setMaterialXData(std::unique_ptr<MaterialXData>&& data)
     {
-        materialXData = std::move(data);
+        _materialXData = std::move(data);
     }
 
     static const MTypeId MATERIALX_NODE_TYPEID;
@@ -42,10 +47,10 @@ class MaterialXNode : public MPxNode
     static MString ELEMENT_ATTRIBUTE_SHORT_NAME;
     static MObject ELEMENT_ATTRIBUTE;
 
-    std::unique_ptr<MaterialXData> materialXData;
-
   private:
     void setAttributeValue(MObject &materialXObject, MObject &attr, float* values, unsigned int size, MDGModifier& mdgModifier);
+
+    std::unique_ptr<MaterialXData> _materialXData;
 
     MObject _outAttr;
     std::unordered_map<std::string, MaterialX::ElementPtr> _attributeElementPairMap;
