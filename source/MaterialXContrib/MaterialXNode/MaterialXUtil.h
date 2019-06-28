@@ -25,6 +25,9 @@ void loadLibraries(const mx::StringVec& libraryNames,
 mx::FilePath findInSubdirectories(const mx::FileSearchPath& searchPaths,
                                   const mx::FilePath& filePath);
 
+mx::DocumentPtr loadDocument(const std::string& materialXDocumentPath,
+                             const MaterialX::FileSearchPath& librarySearchPath);
+
 } // namespace MaterialXMaya
 
 #endif

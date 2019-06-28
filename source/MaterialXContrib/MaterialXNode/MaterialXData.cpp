@@ -5,31 +5,6 @@
 #include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
 #include <MaterialXGenShader/Util.h>
 
-namespace
-{
-mx::DocumentPtr createDocument( const std::string& materialXDocumentPath,
-                                const MaterialX::FileSearchPath& librarySearchPath )
-{
-    // Create document
-    mx::DocumentPtr document = mx::createDocument();
-    if (!document)
-    {
-        throw mx::Exception("Failed to create a MaterialX document");
-    }
-
-    // Load libraries
-    static const mx::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
-    MaterialXMaya::loadLibraries(libraries, librarySearchPath, document);
-
-    // Read document contents from disk
-    mx::XmlReadOptions readOptions;
-    readOptions.skipDuplicateElements = true;
-    mx::readFromXmlFile(document, materialXDocumentPath, mx::EMPTY_STRING, &readOptions);
-
-    return document;
-}
-}
-
 MaterialXData::MaterialXData(   mx::DocumentPtr document,
                                 const std::string& elementPath, 
                                 const MaterialX::FileSearchPath& librarySearchPath )
@@ -82,20 +57,11 @@ MaterialXData::MaterialXData(   mx::DocumentPtr document,
     {
         generateFragment();
     }
-    catch (mx::Exception& e)
+    catch (std::exception& e)
     {
         throw mx::Exception(std::string("Failed to generate OGS shader fragment: ") + e.what());
     }
 }
-
-MaterialXData::MaterialXData(   const std::string& materialXDocumentPath,
-                                const std::string& elementPath,
-                                const MaterialX::FileSearchPath& librarySearchPath )
-    : MaterialXData(::createDocument(materialXDocumentPath, librarySearchPath),
-                    elementPath,
-                    librarySearchPath )
-{}
-
 
 MaterialXData::~MaterialXData()
 {

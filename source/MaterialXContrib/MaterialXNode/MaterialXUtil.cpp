@@ -61,5 +61,27 @@ mx::FilePath findInSubdirectories(const mx::FileSearchPath& searchPaths,
     return foundPath;
 }
 
+mx::DocumentPtr loadDocument(const std::string& materialXDocumentPath,
+                             const MaterialX::FileSearchPath& librarySearchPath)
+{
+    // Create document
+    mx::DocumentPtr document = mx::createDocument();
+    if (!document)
+    {
+        throw mx::Exception("Failed to create a MaterialX document");
+    }
+
+    // Load libraries
+    static const mx::StringVec libraries = { "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl" };
+    MaterialXMaya::loadLibraries(libraries, librarySearchPath, document);
+
+    // Read document contents from disk
+    mx::XmlReadOptions readOptions;
+    readOptions.skipDuplicateElements = true;
+    mx::readFromXmlFile(document, materialXDocumentPath, mx::EMPTY_STRING, &readOptions);
+
+    return document;
+}
+
 } // namespace MaterialXMaya
 

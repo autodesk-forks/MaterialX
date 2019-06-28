@@ -19,19 +19,18 @@ class MaterialXNode : public MPxNode
     static MStatus initialize();
 
     void createOutputAttr(MDGModifier& mdgModifier);
-    MStatus setDependentsDirty(const MPlug &plugBeingDirtied, MPlugArray & affectedPlugs) override;
+    MStatus setDependentsDirty(const MPlug& plugBeingDirtied, MPlugArray& affectedPlugs) override;
     MTypeId	typeId() const override;
     SchedulingType schedulingType() const override;
-    bool setInternalValue(const MPlug &plug, const MDataHandle &dataHandle) override;
+
+    bool getInternalValue(const MPlug&, MDataHandle&) override;
+    bool setInternalValue(const MPlug&, const MDataHandle&) override;
+
+    void setData(const MString& documentFilePath, const MString& xmlElementPath, std::unique_ptr<MaterialXData>&&);
 
     const MaterialXData* getMaterialXData() const
     {
         return _materialXData.get();
-    }
-
-    void setMaterialXData(std::unique_ptr<MaterialXData>&& data)
-    {
-        _materialXData = std::move(data);
     }
 
     static const MTypeId MATERIALX_NODE_TYPEID;
@@ -48,7 +47,7 @@ class MaterialXNode : public MPxNode
     static MObject ELEMENT_ATTRIBUTE;
 
   private:
-    void setAttributeValue(MObject &materialXObject, MObject &attr, float* values, unsigned int size, MDGModifier& mdgModifier);
+    MString _documentFilePath, _xmlElementPath;
 
     std::unique_ptr<MaterialXData> _materialXData;
 

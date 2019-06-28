@@ -8,6 +8,7 @@
 #include <maya/MDGModifier.h>
 #include <maya/MFnStringData.h>
 #include <maya/MFnTypedAttribute.h>
+#include <maya/MGlobal.h>
 
 #include <MaterialXCore/Document.h>
 #include <MaterialXFormat/XmlIo.h>
@@ -70,18 +71,18 @@ MStatus MaterialXNode::initialize()
 	MFnStringData stringData;
 
 	MObject theString = stringData.create();
+
 	DOCUMENT_ATTRIBUTE = typedAttr.create(DOCUMENT_ATTRIBUTE_LONG_NAME, DOCUMENT_ATTRIBUTE_SHORT_NAME, MFnData::kString, theString);
-	CHECK_MSTATUS(typedAttr.setStorable(true));
-	CHECK_MSTATUS(typedAttr.setReadable(true));
-	CHECK_MSTATUS(typedAttr.setInternal(true));
-	CHECK_MSTATUS(typedAttr.setCached(false));
+    CHECK_MSTATUS(typedAttr.setInternal(true));
+    CHECK_MSTATUS(typedAttr.setKeyable(false));
+    CHECK_MSTATUS(typedAttr.setAffectsAppearance(true));
+    CHECK_MSTATUS(typedAttr.setUsedAsFilename(true));
 	CHECK_MSTATUS(addAttribute(DOCUMENT_ATTRIBUTE));
 
 	ELEMENT_ATTRIBUTE = typedAttr.create(ELEMENT_ATTRIBUTE_LONG_NAME, ELEMENT_ATTRIBUTE_SHORT_NAME, MFnData::kString, theString);
-	CHECK_MSTATUS(typedAttr.setStorable(true));
-	CHECK_MSTATUS(typedAttr.setReadable(true));
-	CHECK_MSTATUS(typedAttr.setInternal(true));
-	CHECK_MSTATUS(typedAttr.setCached(false));
+    CHECK_MSTATUS(typedAttr.setInternal(true));
+    CHECK_MSTATUS(typedAttr.setKeyable(false));
+    CHECK_MSTATUS(typedAttr.setAffectsAppearance(true));
 	CHECK_MSTATUS(addAttribute(ELEMENT_ATTRIBUTE));
 
 	return MS::kSuccess;
@@ -126,58 +127,119 @@ MPxNode::SchedulingType MaterialXNode::schedulingType() const
 	return MPxNode::SchedulingType::kParallel;
 }
 
-bool MaterialXNode::setInternalValue(const MPlug &plug, const MDataHandle &dataHandle)
+bool MaterialXNode::getInternalValue(const MPlug& plug, MDataHandle& dataHandle)
 {
-    if (!_materialXData)
+    if (plug == DOCUMENT_ATTRIBUTE)
     {
-        return false;
+        dataHandle.set(_documentFilePath);
+    }
+    else if (plug == ELEMENT_ATTRIBUTE)
+    {
+        dataHandle.set(_xmlElementPath);
+    }
+    else
+    {
+        return MPxNode::getInternalValue(plug, dataHandle);
     }
 
-	if (plug == DOCUMENT_ATTRIBUTE)
-	{
-		//MString documentContent = dataHandle.asString();
-		//materialXData->createDocument(documentContent.asChar());
-	}
-	else if (plug == ELEMENT_ATTRIBUTE)
-	{
-		if (_materialXData->getDocument())
-		{
-			//MString elementPath = dataHandle.asString();
-			//materialXData->element = materialXData->doc->getDescendant(elementPath.asChar());
-		}
-	}
-	else if (plug == _outAttr)
-	{
-		return MPxNode::setInternalValue(plug, dataHandle);
-	}
-	else
-	{
-		std::string plugName = plug.partialName().asChar();
-		if (plug.isChild())
-		{
-			MPlug plug2 = plug.parent();
-			plugName = plug2.partialName().asChar();
-		}
-	}
-
-	return true;
+    return true;
 }
 
-void MaterialXNode::setAttributeValue(MObject &materialXObject, MObject &attr, float* values, unsigned int size, MDGModifier& mdgModifier)
+bool MaterialXNode::setInternalValue(const MPlug& plug, const MDataHandle& dataHandle)
 {
-	MPlug plug(materialXObject, attr);
-	if (size == 1)
-	{
-		mdgModifier.newPlugValueDouble(plug, values[0]);
-	}
-	else
-	{
-		for(unsigned int i=0; i<size; i++)
-		{
-			MPlug indexPlug = plug.child(i);
-			mdgModifier.newPlugValueDouble(indexPlug, values[i]);
-		}
-	}
+    auto displayError = [this](const char* error)
+    {
+        MString message("Failed to create shader for ");
+        message += typeName();
+        message += ' ';
+        message += name();
+        message += ": ";
+        message += error;
+        MGlobal::displayError(message);
+    };
+
+    auto loadDocument = [this]()
+    {
+        return MaterialXMaya::loadDocument(
+            _documentFilePath.asChar(), Plugin::instance().getLibrarySearchPath()
+        );
+    };
+
+    if (plug == DOCUMENT_ATTRIBUTE)
+    {
+        const MString& value = dataHandle.asString();
+        if (_documentFilePath == value)
+        {
+            return true;
+        }
+
+        _documentFilePath = value;
+        _materialXData.reset();
+
+        try
+        {
+            _materialXData.reset( new MaterialXData(
+                loadDocument(),
+                _xmlElementPath.asChar(),
+                Plugin::instance().getLibrarySearchPath()
+            ));
+        }
+        catch (std::exception& e)
+        {
+            displayError(e.what());
+        }
+    }
+    else if (plug == ELEMENT_ATTRIBUTE)
+    {
+        const MString& value = dataHandle.asString();
+        if (_xmlElementPath == value)
+        {
+            return true;
+        }
+
+        _xmlElementPath = value;
+        mx::DocumentPtr document;
+
+        if (_materialXData)
+        {
+            document = _materialXData->getDocument();
+            _materialXData.reset();
+        }
+
+        try
+        {
+            if (!document)
+            {
+                document = loadDocument();
+            }
+
+            _materialXData.reset(new MaterialXData(
+                document,
+                _xmlElementPath.asChar(),
+                Plugin::instance().getLibrarySearchPath()
+            ));
+        }
+        catch (std::exception& e)
+        {
+            displayError(e.what());
+        }
+    }
+    else
+    {
+        return MPxNode::setInternalValue(plug, dataHandle);
+    }
+
+    // Even if we fail to create a valid shader, we allow attribute values to be changed.
+    return true;
+}
+
+void MaterialXNode::setData(const MString& documentFilePath,
+                            const MString& xmlElementPath,
+                            std::unique_ptr<MaterialXData>&& materialXData)
+{
+    _documentFilePath = documentFilePath;
+    _xmlElementPath = xmlElementPath;
+    _materialXData = std::move(materialXData);
 }
 
 MTypeId MaterialXTextureNode::typeId() const

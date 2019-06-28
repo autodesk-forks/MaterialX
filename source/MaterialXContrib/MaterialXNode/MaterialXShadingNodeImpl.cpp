@@ -213,6 +213,12 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
         return;
     }
 
+    const MaterialXData* const materialXData = node->getMaterialXData();
+    if (!materialXData)
+    {
+        return;
+    }
+
     // Get the parameter list to check existence against.
     MStringArray parameterList;
     shader.parameterList(parameterList);
@@ -232,8 +238,8 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
     ::bindEnvironmentLighting(shader, parameterList, imageSearchPath,
         envRadiancePath, envIrradiancePath);
 
-    MaterialX::DocumentPtr document = node->getMaterialXData()->getDocument();
-    const MaterialX::StringMap& inputs = node->getMaterialXData()->getPathInputMap();
+    MaterialX::DocumentPtr document = materialXData->getDocument();
+    const MaterialX::StringMap& inputs = materialXData->getPathInputMap();
     for (const auto& input : inputs)
     {
         MaterialX::ElementPtr element = document->getDescendant(input.first);
@@ -249,7 +255,9 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
         }
 
         const std::string& inputName = input.second;
-        const MHWRender::MAttributeParameterMapping* const mapping = mappings.findByParameterName(inputName.c_str());
+        const MHWRender::MAttributeParameterMapping* const mapping =
+            mappings.findByParameterName(inputName.c_str());
+
         const MString resolvedName = mapping ? mapping->resolvedParameterName() : inputName.c_str();
 
         if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)
