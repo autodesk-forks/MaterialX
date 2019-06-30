@@ -48,7 +48,7 @@
          <parameter name="filtertype" type="string" value="linear" />
          <parameter name="framerange" type="string" value="" />
          <parameter name="frameoffset" type="integer" value="0" />
-         <parameter name="frameendaction" type="string" value="black" />
+         <parameter name="frameendaction" type="string" value="constant" />
       </image>
       <multiply name="node_multiply_7" type="vector3">
          <input name="in1" type="vector3" nodename="node_position_8" />
@@ -107,7 +107,7 @@
          <parameter name="filtertype" type="string" value="linear" />
          <parameter name="framerange" type="string" value="" />
          <parameter name="frameoffset" type="integer" value="0" />
-         <parameter name="frameendaction" type="string" value="black" />
+         <parameter name="frameendaction" type="string" value="constant" />
       </image>
       <mix name="node_mix_12" type="color3">
          <input name="fg" type="color3" nodename="node_mix_9" />
@@ -135,7 +135,7 @@
          <parameter name="filtertype" type="string" value="linear" />
          <parameter name="framerange" type="string" value="" />
          <parameter name="frameoffset" type="integer" value="0" />
-         <parameter name="frameendaction" type="string" value="black" />
+         <parameter name="frameendaction" type="string" value="constant" />
       </image>
       <add name="node_add_27" type="float">
          <input name="in1" type="float" nodename="node_mix_29" />
@@ -161,7 +161,7 @@
          <parameter name="filtertype" type="string" value="linear" />
          <parameter name="framerange" type="string" value="" />
          <parameter name="frameoffset" type="integer" value="0" />
-         <parameter name="frameendaction" type="string" value="black" />
+         <parameter name="frameendaction" type="string" value="constant" />
       </image>
       <position name="node_position_8" type="vector3">
          <parameter name="space" type="string" value="object" />
@@ -176,7 +176,7 @@
          <parameter name="filtertype" type="string" value="linear" />
          <parameter name="framerange" type="string" value="" />
          <parameter name="frameoffset" type="integer" value="0" />
-         <parameter name="frameendaction" type="string" value="black" />
+         <parameter name="frameendaction" type="string" value="constant" />
       </image>
       <image name="node_image_vector3_33" type="vector3" GLSLFX_usage="rust_normal" expose="true">
          <input name="texcoord" type="vector2" nodename="node_multiply_31" />
@@ -188,7 +188,7 @@
          <parameter name="filtertype" type="string" value="linear" />
          <parameter name="framerange" type="string" value="" />
          <parameter name="frameoffset" type="integer" value="0" />
-         <parameter name="frameendaction" type="string" value="black" />
+         <parameter name="frameendaction" type="string" value="constant" />
       </image>
       <add name="node_add_19" type="vector3">
          <input name="in1" type="vector3" nodename="node_multiply_34" />
@@ -208,7 +208,7 @@
          <parameter name="filtertype" type="string" value="linear" />
          <parameter name="framerange" type="string" value="" />
          <parameter name="frameoffset" type="integer" value="0" />
-         <parameter name="frameendaction" type="string" value="black" />
+         <parameter name="frameendaction" type="string" value="constant" />
       </image>
       <mix name="node_mix_29" type="float">
          <input name="fg" type="float" nodename="node_add_24" />
