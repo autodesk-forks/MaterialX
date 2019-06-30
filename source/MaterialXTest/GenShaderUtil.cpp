@@ -95,6 +95,9 @@ void checkImplementations(mx::GenContext& context,
         "ambientocclusion",
         "arrayappend",
         "curveadjust",
+        "worleynoise2d",
+        "worleynoise3d",
+        "geompropvalue"
     };
     skipNodeTypes.insert(generatorSkipNodeTypes.begin(), generatorSkipNodeTypes.end());
 
