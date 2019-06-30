@@ -385,7 +385,7 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
     return false;
 }
 
-void mapValueToColor(const ValuePtr value, Color4& color)
+void mapValueToColor(ConstValuePtr value, Color4& color)
 {
     color = { 0.0, 0.0, 0.0, 1.0 };
     if (!value)
@@ -436,7 +436,7 @@ void mapValueToColor(const ValuePtr value, Color4& color)
     }
 }
 
-bool requiresImplementation(const NodeDefPtr nodeDef)
+bool requiresImplementation(ConstNodeDefPtr nodeDef)
 {
     if (!nodeDef)
     {
@@ -447,7 +447,7 @@ bool requiresImplementation(const NodeDefPtr nodeDef)
     return !typeAttribute.empty() && typeAttribute != TYPE_NONE;
 }
 
-bool elementRequiresShading(const TypedElementPtr element)
+bool elementRequiresShading(ConstTypedElementPtr element)
 {
     string elementType(element->getType());
     static StringSet colorClosures =
@@ -459,7 +459,7 @@ bool elementRequiresShading(const TypedElementPtr element)
             colorClosures.count(elementType) > 0);
 }
 
-void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>& elements, bool includeReferencedGraphs)
+void findRenderableElements(ConstDocumentPtr doc, vector<TypedElementPtr>& elements, bool includeReferencedGraphs)
 {
     std::unordered_set<OutputPtr> processedOutputs;
 
@@ -473,7 +473,8 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
                 NodeDefPtr nodeDef = shaderRef->getNodeDef();
                 if (!nodeDef)
                 {
-                    throw ExceptionShaderGenError("Could not find a nodedef for shaderref '" + shaderRef->getName() + "' in material '" + shaderRef->getParent()->getName() + "'");
+                    throw ExceptionShaderGenError("Could not find a nodedef for shaderref '" + shaderRef->getName() +
+                                                  "' in material '" + shaderRef->getParent()->getName() + "'");
                 }
                 if (requiresImplementation(nodeDef))
                 {
@@ -497,7 +498,6 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
     }
 
     // Find node graph outputs. Skip any light shaders
-    const string LIGHT_SHADER("lightshader");
     for (NodeGraphPtr nodeGraph : doc->getNodeGraphs())
     {
         // Skip anything from an include file including libraries.
@@ -510,7 +510,7 @@ void findRenderableElements(const DocumentPtr& doc, std::vector<TypedElementPtr>
                     continue;
                 }
                 NodePtr node = output->getConnectedNode();
-                if (node && node->getType() != LIGHT_SHADER)
+                if (node && node->getType() != LIGHT_SHADER_TYPE_STRING)
                 {
                     NodeDefPtr nodeDef = node->getNodeDef();
                     if (!nodeDef)
