@@ -123,7 +123,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         MString documentFilePath;
         if (parser.isFlagSet(kDocumentFlag))
         {
-            argData.getFlagArgument(kDocumentFlag, 0, documentFilePath);
+            CHECK_MSTATUS(argData.getFlagArgument(kDocumentFlag, 0, documentFilePath));
         }
 
         if (documentFilePath.length() == 0)
@@ -133,13 +133,13 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
 	    if (parser.isFlagSet(kElementFlag))
 	    {
-		    argData.getFlagArgument(kElementFlag, 0, elementPath);
+            CHECK_MSTATUS(argData.getFlagArgument(kElementFlag, 0, elementPath));
 	    }
 
         MString ogsXmlFileName;
         if (parser.isFlagSet(kOgsXmlFlag))
         {
-            argData.getFlagArgument(kOgsXmlFlag, 0, ogsXmlFileName);
+            CHECK_MSTATUS(argData.getFlagArgument(kOgsXmlFlag, 0, ogsXmlFileName));
         }
 
         mx::DocumentPtr document = MaterialXMaya::loadDocument(
@@ -158,9 +158,19 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
             throw mx::Exception("The element specified is not renderable.");
         }
 
+        bool asTexture = false;
+        if (parser.isFlagSet(kTextureFlag))
+        {
+            CHECK_MSTATUS(argData.getFlagArgument(kTextureFlag, 0, asTexture));
+        }
+        else
+        {
+            asTexture = !materialXData->elementIsAShader();
+        }
+
         // Create the MaterialX node
         MObject node = _dgModifier.createNode(
-            parser.isFlagSet(kTextureFlag) ? MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
+            asTexture ? MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
             : MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPEID
         );
 
@@ -206,7 +216,7 @@ MSyntax CreateMaterialXNodeCmd::newSyntax()
 	syntax.addFlag(kDocumentFlag, MaterialXNode::DOCUMENT_ATTRIBUTE_LONG_NAME.asChar(), MSyntax::kString);
 	syntax.addFlag(kElementFlag, MaterialXNode::ELEMENT_ATTRIBUTE_LONG_NAME.asChar(), MSyntax::kString);
     syntax.addFlag(kOgsXmlFlag, kOgsXmlFlagLong, MSyntax::kString);
-    syntax.addFlag(kTextureFlag, kTextureFlagLong, MSyntax::kNoArg);
+    syntax.addFlag(kTextureFlag, kTextureFlagLong, MSyntax::kBoolean);
 	return syntax;
 }
 
