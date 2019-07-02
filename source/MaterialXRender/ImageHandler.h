@@ -277,6 +277,10 @@ class ImageHandler
     /// @return true if succeded to bind
     virtual bool bindImage(const FilePath& filePath, const ImageSamplingProperties& samplingProperties);
 
+    /// Unbind an image. The default implementation performs no action.
+    /// @param filePath File path to image description to unbind
+    virtual bool unbindImage(const FilePath& filePath);
+
     /// Clear the contents of the image cache.
     /// deleteImage() will be called for each cache description to
     /// allow derived classes to clean up any associated resources.
@@ -302,7 +306,6 @@ class ImageHandler
     {
         return -1;
     }
-
 
   protected:
     /// Cache an image for reuse.

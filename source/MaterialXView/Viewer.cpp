@@ -1147,6 +1147,7 @@ void Viewer::drawScene3D()
                              _specularEnvironmentMethod, _envSamples);
         material->bindImages(_imageHandler, _searchPath, material->getUdim());
         material->drawPartition(geom);
+        material->unbindImages(_imageHandler);
     }
 
     // Transparent pass
@@ -1168,6 +1169,7 @@ void Viewer::drawScene3D()
                              _specularEnvironmentMethod, _envSamples);
         material->bindImages(_imageHandler, _searchPath, material->getUdim());
         material->drawPartition(geom);
+        material->unbindImages(_imageHandler);
     }
     
     // Ambient occlusion pass
@@ -1192,6 +1194,7 @@ void Viewer::drawScene3D()
                                         _specularEnvironmentMethod, _envSamples);
             _ambOccMaterial->bindImages(_imageHandler, _searchPath, material->getUdim());
             _ambOccMaterial->drawPartition(geom);
+            _ambOccMaterial->unbindImages(_imageHandler);
         }
     }
     

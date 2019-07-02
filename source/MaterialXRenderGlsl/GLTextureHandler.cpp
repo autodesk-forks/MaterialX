@@ -61,7 +61,6 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         if (textureUnit < 0)
             return false;
 
-        _boundTextureLocations[textureUnit] = imageDesc.resourceId;
         glActiveTexture(GL_TEXTURE0 + textureUnit);
         glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
 
@@ -141,7 +140,6 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
             if (textureUnit < 0)
                 return false;
 
-            _boundTextureLocations[textureUnit] = imageDesc.resourceId;
             glActiveTexture(GL_TEXTURE0 + textureUnit);
             glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, imageDesc.width, imageDesc.height, 0,
@@ -182,9 +180,17 @@ bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingPr
             return false;
         }
 
+        // Update bound location if not already bound
         int textureUnit = getBoundTextureLocation(resourceId);
         if (textureUnit < 0)
+        {
+            textureUnit = getNextAvailableTextureLocation();
+        }
+        if (textureUnit < 0)
+        {
             return false;
+        }      
+        _boundTextureLocations[textureUnit] = resourceId;
 
         glActiveTexture(GL_TEXTURE0 + textureUnit);
         glBindTexture(GL_TEXTURE_2D, resourceId);
@@ -208,9 +214,85 @@ bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingPr
     return false;
 }
 
+bool GLTextureHandler::unbindImage(const FilePath& filePath)
+{
+    const ImageDesc* cachedDesc = getCachedImage(filePath);
+    if (cachedDesc)
+    {
+        return unbindImage(*cachedDesc);
+    }
+    return false;
+}
+
+bool GLTextureHandler::unbindImage(const ImageDesc& imageDesc)
+{
+    if (!glActiveTexture)
+    {
+        glewInit();
+    }
+
+    if (imageDesc.resourceId != MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
+    {
+        int textureUnit = getBoundTextureLocation(imageDesc.resourceId);
+        if (textureUnit >= 0)
+        {
+            glActiveTexture(GL_TEXTURE0 + textureUnit);
+            glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+            _boundTextureLocations[textureUnit] = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+void GLTextureHandler::deleteImage(ImageDesc& imageDesc)
+{
+    if (!glActiveTexture)
+    {
+        glewInit();
+    }
+
+    // Unbind a texture from image unit if bound and delete the texture
+    if (imageDesc.resourceId != MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
+    {
+        unbindImage(imageDesc);
+        glDeleteTextures(1, &imageDesc.resourceId);
+        imageDesc.resourceId = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
+    }
+
+    // Delete any CPU side memory
+    ImageHandler::deleteImage(imageDesc);
+}
+
+int GLTextureHandler::getBoundTextureLocation(unsigned int resourceId)
+{
+    for(size_t i=0; i<_boundTextureLocations.size(); i++)
+    {
+        if(_boundTextureLocations[i] == resourceId)
+        {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+int GLTextureHandler::getNextAvailableTextureLocation()
+{
+    for(size_t i=0; i<_boundTextureLocations.size(); i++)
+    {
+        if(_boundTextureLocations[i] == MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
+        {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+
 int GLTextureHandler::mapAddressModeToGL(ImageSamplingProperties::AddressMode addressModeEnum)
 {
-    const vector<int> addressModes 
+    const vector<int> addressModes
     {
         // Constant color. Use clamp to border
         // with border color to achieve this
@@ -246,53 +328,6 @@ int GLTextureHandler::mapFilterTypeToGL(ImageSamplingProperties::FilterType filt
         filterType = GL_LINEAR;
     }
     return filterType;
-}
-
-void GLTextureHandler::deleteImage(MaterialX::ImageDesc& imageDesc)
-{
-    if (!glActiveTexture)
-    {
-        glewInit();
-    }
-
-    if (imageDesc.resourceId != MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
-    {
-        // Unbind a texture from image unit and delete the texture
-        int textureUnit = getBoundTextureLocation(imageDesc.resourceId);
-        if(textureUnit < 0) return;
-        glActiveTexture(GL_TEXTURE0 + textureUnit);
-        glBindTexture(GL_TEXTURE_2D, MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
-        glDeleteTextures(1, &imageDesc.resourceId);
-        _boundTextureLocations[textureUnit] = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
-        imageDesc.resourceId = MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID;
-    }
-
-    // Delete any CPU side memory
-    ImageHandler::deleteImage(imageDesc);
-}
-
-int GLTextureHandler::getBoundTextureLocation(unsigned int resourceId)
-{
-    for(size_t i=0; i<_boundTextureLocations.size(); i++)
-    {
-        if(_boundTextureLocations[i] == resourceId)
-        {
-            return static_cast<int>(i);
-        }
-    }
-    return -1;
-}
-
-int GLTextureHandler::getNextAvailableTextureLocation()
-{
-    for(size_t i=0; i<_boundTextureLocations.size(); i++)
-    {
-        if(_boundTextureLocations[i] == MaterialX::GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID)
-        {
-            return static_cast<int>(i);
-        }
-    }
-    return -1;
 }
 
 }

@@ -162,6 +162,11 @@ bool ImageHandler::bindImage(const FilePath& /*filePath*/, const ImageSamplingPr
     return false;
 }
 
+bool ImageHandler::unbindImage(const FilePath& /*filePath*/)
+{
+    return false;
+}
+
 void ImageHandler::cacheImage(const string& filePath, const ImageDesc& desc)
 {
     if (!_imageCache.count(filePath))

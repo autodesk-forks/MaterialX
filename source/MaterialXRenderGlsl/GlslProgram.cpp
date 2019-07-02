@@ -539,12 +539,14 @@ bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, con
     {
         if (imageHandler->acquireImage(resolvedFilePath, desc, generateMipMaps, &(samplingProperties.defaultColor)))
         {
-            // Map location to a texture unit
-            int textureLocation = imageHandler->getBoundTextureLocation(desc.resourceId);
-            if (textureLocation >= 0) 
+            textureBound = imageHandler->bindImage(resolvedFilePath, samplingProperties);
+            if (textureBound)
             {
-               glUniform1i(uniformLocation, textureLocation);
-               textureBound = imageHandler->bindImage(resolvedFilePath, samplingProperties);
+                int textureLocation = imageHandler->getBoundTextureLocation(desc.resourceId);
+                if (textureLocation >= 0)
+                {
+                    glUniform1i(uniformLocation, textureLocation);
+                }
             }
         }
         checkErrors();
