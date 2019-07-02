@@ -26,16 +26,13 @@ namespace mx = MaterialX;
 namespace
 {
 const char* const kDocumentFlag     = "d";
-const char* const kDocumentFlagLong = "document";
-
 const char* const kElementFlag      = "e";
-const char* const kElementFlagLong  = "element";
 
 const char* const kTextureFlag      = "t";
-const char* const kTextureFlagLong  = "texture";
+const char* const kTextureFlagLong  = "asTexture";
 
 const char* const kOgsXmlFlag       = "x";
-const char* const kOgsXmlFlagLong   = "ogsxml";
+const char* const kOgsXmlFlagLong   = "ogsXml";
 
 void registerFragment(const MaterialXData& materialData, const std::string& ogsXmlFileName)
 {
@@ -186,6 +183,13 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         materialXNode->createOutputAttr(_dgModifier);
 
         _dgModifier.doIt();
+
+        MString message("Created ");
+        message += materialXNode->typeName();
+        message += " node: ";
+        message += materialXNode->name();
+        MGlobal::displayInfo(message);
+        return MS::kSuccess;
     }
     catch (std::exception& e)
     {
@@ -194,18 +198,13 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         MGlobal::displayError(message);
         return MS::kFailure;
     }
-
-    MString message("Created MaterialX node: ");
-    message += elementPath;
-    MGlobal::displayInfo(message);
-    return MS::kSuccess;
  }
 
 MSyntax CreateMaterialXNodeCmd::newSyntax()
 {
 	MSyntax syntax;
-	syntax.addFlag(kDocumentFlag, kDocumentFlagLong, MSyntax::kString);
-	syntax.addFlag(kElementFlag, kElementFlagLong, MSyntax::kString);
+	syntax.addFlag(kDocumentFlag, MaterialXNode::DOCUMENT_ATTRIBUTE_LONG_NAME.asChar(), MSyntax::kString);
+	syntax.addFlag(kElementFlag, MaterialXNode::ELEMENT_ATTRIBUTE_LONG_NAME.asChar(), MSyntax::kString);
     syntax.addFlag(kOgsXmlFlag, kOgsXmlFlagLong, MSyntax::kString);
     syntax.addFlag(kTextureFlag, kTextureFlagLong, MSyntax::kNoArg);
 	return syntax;
