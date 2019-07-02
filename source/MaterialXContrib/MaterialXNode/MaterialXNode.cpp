@@ -135,7 +135,7 @@ bool MaterialXNode::getInternalValue(const MPlug& plug, MDataHandle& dataHandle)
     }
     else if (plug == ELEMENT_ATTRIBUTE)
     {
-        dataHandle.set(_xmlElementPath);
+        dataHandle.set(_elementPath);
     }
     else
     {
@@ -180,7 +180,7 @@ bool MaterialXNode::setInternalValue(const MPlug& plug, const MDataHandle& dataH
         {
             _materialXData.reset( new MaterialXData(
                 loadDocument(),
-                _xmlElementPath.asChar(),
+                _elementPath.asChar(),
                 Plugin::instance().getLibrarySearchPath()
             ));
         }
@@ -192,12 +192,12 @@ bool MaterialXNode::setInternalValue(const MPlug& plug, const MDataHandle& dataH
     else if (plug == ELEMENT_ATTRIBUTE)
     {
         const MString& value = dataHandle.asString();
-        if (_xmlElementPath == value)
+        if (_elementPath == value)
         {
             return true;
         }
 
-        _xmlElementPath = value;
+        _elementPath = value;
         mx::DocumentPtr document;
 
         if (_materialXData)
@@ -215,7 +215,7 @@ bool MaterialXNode::setInternalValue(const MPlug& plug, const MDataHandle& dataH
 
             _materialXData.reset(new MaterialXData(
                 document,
-                _xmlElementPath.asChar(),
+                _elementPath.asChar(),
                 Plugin::instance().getLibrarySearchPath()
             ));
         }
@@ -234,11 +234,11 @@ bool MaterialXNode::setInternalValue(const MPlug& plug, const MDataHandle& dataH
 }
 
 void MaterialXNode::setData(const MString& documentFilePath,
-                            const MString& xmlElementPath,
+                            const MString& elementPath,
                             std::unique_ptr<MaterialXData>&& materialXData)
 {
     _documentFilePath = documentFilePath;
-    _xmlElementPath = xmlElementPath;
+    _elementPath = elementPath;
     _materialXData = std::move(materialXData);
 }
 

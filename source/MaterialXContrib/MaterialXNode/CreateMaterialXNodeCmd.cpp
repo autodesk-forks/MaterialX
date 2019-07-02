@@ -120,7 +120,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
     if (!status)
         return status;
 
-    MString xmlElementPath;
+    MString elementPath;
     try
     {
         MString documentFilePath;
@@ -136,7 +136,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
 	    if (parser.isFlagSet(kElementFlag))
 	    {
-		    argData.getFlagArgument(kElementFlag, 0, xmlElementPath);
+		    argData.getFlagArgument(kElementFlag, 0, elementPath);
 	    }
 
         MString ogsXmlFileName;
@@ -151,12 +151,12 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
         std::unique_ptr<MaterialXData> materialXData{
             new MaterialXData(document,
-                              xmlElementPath.asChar(),
+                              elementPath.asChar(),
                               Plugin::instance().getLibrarySearchPath())
         };
 
-        xmlElementPath.set(materialXData->getElementPath().c_str());
-        if (xmlElementPath.length() == 0)
+        elementPath.set(materialXData->getElementPath().c_str());
+        if (elementPath.length() == 0)
         {
             throw mx::Exception("The element specified is not renderable.");
         }
@@ -169,7 +169,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
         // Generate a valid Maya node name from the path string
         {
-            const std::string nodeName = mx::createValidName(xmlElementPath.asChar());
+            const std::string nodeName = mx::createValidName(elementPath.asChar());
             _dgModifier.renameNode(node, nodeName.c_str());
         }
 
@@ -182,7 +182,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
             throw mx::Exception("Unexpected DG node type.");
         }
 
-        materialXNode->setData(documentFilePath, xmlElementPath, std::move(materialXData));
+        materialXNode->setData(documentFilePath, elementPath, std::move(materialXData));
         materialXNode->createOutputAttr(_dgModifier);
 
         _dgModifier.doIt();
@@ -196,7 +196,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
     }
 
     MString message("Created MaterialX node: ");
-    message += xmlElementPath;
+    message += elementPath;
     MGlobal::displayInfo(message);
     return MS::kSuccess;
  }
