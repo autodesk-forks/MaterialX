@@ -301,12 +301,22 @@ void Material::bindViewInformation(const mx::Matrix44& world, const mx::Matrix44
     }
 }
 
+void Material::unbindImages(mx::GLTextureHandlerPtr imageHandler)
+{
+    for (auto filePath : _boundImages)
+    {
+        imageHandler->unbindImage(filePath);
+    }
+}
+
 void Material::bindImages(mx::GLTextureHandlerPtr imageHandler, const mx::FileSearchPath& searchPath, const std::string& udim)
 {
     if (!_glShader)
     {
         return;
     }
+
+    _boundImages.clear();
 
     const std::string IMAGE_SEPARATOR("_");
     const std::string UADDRESS_MODE_POST_FIX("_uaddressmode");
@@ -371,16 +381,22 @@ void Material::bindImages(mx::GLTextureHandlerPtr imageHandler, const mx::FileSe
         }
 
         mx::ImageDesc desc;
-        bindImage(filename, uniformName, imageHandler, desc, samplingProperties, udim, &fallbackColor);
+        mx::FilePath resolvedFilename = bindImage(filename, uniformName, imageHandler, desc, samplingProperties, udim, &fallbackColor);
+        if (!resolvedFilename.isEmpty())
+        {
+            _boundImages.push_back(resolvedFilename);
+        }
     }
 }
 
-bool Material::bindImage(const mx::FilePath& filename, const std::string& uniformName, mx::GLTextureHandlerPtr imageHandler,
-                         mx::ImageDesc& desc, const mx::ImageSamplingProperties& samplingProperties, const std::string& udim, mx::Color4* fallbackColor)
+mx::FilePath Material::bindImage(const mx::FilePath& filename, const std::string& uniformName, mx::GLTextureHandlerPtr imageHandler,
+                                 mx::ImageDesc& desc, const mx::ImageSamplingProperties& samplingProperties, const std::string& udim, mx::Color4* fallbackColor)
 {
+    mx::FilePath returnPath;
+
     if (!_glShader)
     {
-        return false;
+        return returnPath;
     }
 
     // Apply udim string if specified.
@@ -401,17 +417,20 @@ bool Material::bindImage(const mx::FilePath& filename, const std::string& unifor
     if (!imageHandler->acquireImage(resolvedFilename, desc, true, fallbackColor) && !filename.isEmpty())
     {
         std::cerr << "Failed to load image: " << resolvedFilename.asString() << std::endl;
+        return returnPath;
     }
 
     // Bind the image and set its sampling properties.
-    int textureLocation = imageHandler->getBoundTextureLocation(desc.resourceId);
-    if (textureLocation < 0)
-        return false;
-
-    _glShader->setUniform(uniformName, textureLocation, false);
-    imageHandler->bindImage(resolvedFilename, samplingProperties);
-
-    return true;
+    if (imageHandler->bindImage(resolvedFilename, samplingProperties))
+    {
+        int textureLocation = imageHandler->getBoundTextureLocation(desc.resourceId);
+        if (textureLocation >= 0)
+        {
+            _glShader->setUniform(uniformName, textureLocation, false);
+            return resolvedFilename;
+        }
+    }
+    return returnPath;
 }
 
 void Material::bindUniform(const std::string& name, mx::ConstValuePtr value)
@@ -506,7 +525,7 @@ void Material::bindLights(mx::LightHandlerPtr lightHandler, mx::GLTextureHandler
             samplingProperties.vaddressMode = mx::ImageSamplingProperties::AddressMode::CLAMP;
             samplingProperties.filterType = mx::ImageSamplingProperties::FilterType::CUBIC;
 
-            if (bindImage(filename, pair.first, imageHandler, desc, samplingProperties, udim, &fallbackColor))
+            if (!bindImage(filename, pair.first, imageHandler, desc, samplingProperties, udim, &fallbackColor).isEmpty())
             {
                 if (specularEnvironmentMethod == mx::SPECULAR_ENVIRONMENT_FIS)
                 {
