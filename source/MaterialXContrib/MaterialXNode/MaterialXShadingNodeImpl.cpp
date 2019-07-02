@@ -192,7 +192,7 @@ MaterialXShadingNodeImpl<BASE>::fragmentName() const
     MStatus status;
     MFnDependencyNode depNode(_object, &status);
     const auto* const node = dynamic_cast<MaterialXNode*>(depNode.userNode());
-    const MaterialXData* const data = node ? node->materialXData.get() : nullptr;
+    const MaterialXData* const data = node ? node->getMaterialXData() : nullptr;
     return data ? data->getFragmentName().c_str() : "";
 }
 
@@ -209,6 +209,12 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
     MFnDependencyNode depNode(_object, &status);
     const auto* const node = dynamic_cast<MaterialXNode*>(depNode.userNode());
     if (!node)
+    {
+        return;
+    }
+
+    const MaterialXData* const materialXData = node->getMaterialXData();
+    if (!materialXData)
     {
         return;
     }
@@ -232,8 +238,8 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
     ::bindEnvironmentLighting(shader, parameterList, imageSearchPath,
         envRadiancePath, envIrradiancePath);
 
-    MaterialX::DocumentPtr document = node->materialXData->getDocument();
-    const MaterialX::StringMap& inputs = node->materialXData->getPathInputMap();
+    MaterialX::DocumentPtr document = materialXData->getDocument();
+    const MaterialX::StringMap& inputs = materialXData->getPathInputMap();
     for (const auto& input : inputs)
     {
         MaterialX::ElementPtr element = document->getDescendant(input.first);
@@ -249,7 +255,9 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
         }
 
         const std::string& inputName = input.second;
-        const MHWRender::MAttributeParameterMapping* const mapping = mappings.findByParameterName(inputName.c_str());
+        const MHWRender::MAttributeParameterMapping* const mapping =
+            mappings.findByParameterName(inputName.c_str());
+
         const MString resolvedName = mapping ? mapping->resolvedParameterName() : inputName.c_str();
 
         if (valueElement->getType() == MaterialX::FILENAME_TYPE_STRING)

@@ -123,13 +123,13 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
     MString elementPath;
     try
     {
-        MString materialXDocument;
+        MString documentFilePath;
         if (parser.isFlagSet(kDocumentFlag))
         {
-            argData.getFlagArgument(kDocumentFlag, 0, materialXDocument);
+            argData.getFlagArgument(kDocumentFlag, 0, documentFilePath);
         }
 
-        if (materialXDocument.length() == 0)
+        if (documentFilePath.length() == 0)
         {
             throw mx::Exception("MaterialX document file path is empty.");
         }
@@ -145,8 +145,12 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
             argData.getFlagArgument(kOgsXmlFlag, 0, ogsXmlFileName);
         }
 
+        mx::DocumentPtr document = MaterialXMaya::loadDocument(
+            documentFilePath.asChar(), Plugin::instance().getLibrarySearchPath()
+        );
+
         std::unique_ptr<MaterialXData> materialXData{
-            new MaterialXData(materialXDocument.asChar(),
+            new MaterialXData(document,
                               elementPath.asChar(),
                               Plugin::instance().getLibrarySearchPath())
         };
@@ -164,8 +168,10 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         );
 
         // Generate a valid Maya node name from the path string
-        std::string nodeName = mx::createValidName(elementPath.asChar());
-        _dgModifier.renameNode(node, nodeName.c_str());
+        {
+            const std::string nodeName = mx::createValidName(elementPath.asChar());
+            _dgModifier.renameNode(node, nodeName.c_str());
+        }
 
         ::registerFragment(*materialXData, ogsXmlFileName.asChar());
 
@@ -176,20 +182,12 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
             throw mx::Exception("Unexpected DG node type.");
         }
 
-        std::string documentString = mx::writeToXmlString(materialXData->getDocument());
-
-        materialXNode->setMaterialXData(std::move(materialXData));
+        materialXNode->setData(documentFilePath, elementPath, std::move(materialXData));
         materialXNode->createOutputAttr(_dgModifier);
-
-        MPlug materialXPlug(node, MaterialXNode::DOCUMENT_ATTRIBUTE);
-        _dgModifier.newPlugValueString(materialXPlug, documentString.c_str());
-
-        MPlug elementPlug(node, MaterialXNode::ELEMENT_ATTRIBUTE);
-        _dgModifier.newPlugValueString(elementPlug, elementPath);
 
         _dgModifier.doIt();
     }
-    catch (mx::Exception& e)
+    catch (std::exception& e)
     {
         MString message("Failed to create MaterialX node: ");
         message += MString(e.what());

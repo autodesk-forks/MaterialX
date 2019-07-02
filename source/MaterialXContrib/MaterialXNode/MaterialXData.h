@@ -32,13 +32,8 @@ struct MaterialXData
                     const std::string& elementPath,
                     const mx::FileSearchPath& librarySearchPath);
 
-    /// The element path and the file path to the document that the element resides
-    /// in are passed in as input arguments.
-    /// If the element specified is an empty string then an attempt will be
-    /// made to find the first renderable element.
-    MaterialXData(  const std::string& materialXDocumentPath,
-                    const std::string& elementPath,
-                    const mx::FileSearchPath& librarySearchPath);
+    MaterialXData(const MaterialXData&) = delete;
+    MaterialXData(MaterialXData&&) = delete;
 
     ~MaterialXData();
 

@@ -19,36 +19,39 @@ class MaterialXNode : public MPxNode
     static MStatus initialize();
 
     void createOutputAttr(MDGModifier& mdgModifier);
-    MStatus setDependentsDirty(const MPlug &plugBeingDirtied, MPlugArray & affectedPlugs) override;
+    MStatus setDependentsDirty(const MPlug& plugBeingDirtied, MPlugArray& affectedPlugs) override;
     MTypeId	typeId() const override;
     SchedulingType schedulingType() const override;
-    bool setInternalValue(const MPlug &plug, const MDataHandle &dataHandle) override;
-    void createAttributesFromDocument(MDGModifier& mdgModifier);
 
-    void setMaterialXData(std::unique_ptr<MaterialXData>&& data)
+    bool getInternalValue(const MPlug&, MDataHandle&) override;
+    bool setInternalValue(const MPlug&, const MDataHandle&) override;
+
+    void setData(const MString& documentFilePath, const MString& elementPath, std::unique_ptr<MaterialXData>&&);
+
+    const MaterialXData* getMaterialXData() const
     {
-        materialXData = std::move(data);
+        return _materialXData.get();
     }
 
     static const MTypeId MATERIALX_NODE_TYPEID;
     static const MString MATERIALX_NODE_TYPENAME;
 
-    /// Attribute holding a MaterialX document
+    /// Attribute holding a path to MaterialX document file
     static MString DOCUMENT_ATTRIBUTE_LONG_NAME;
     static MString DOCUMENT_ATTRIBUTE_SHORT_NAME;
     static MObject DOCUMENT_ATTRIBUTE;
+
     /// Attribute holding a MaterialX element name
     static MString ELEMENT_ATTRIBUTE_LONG_NAME;
     static MString ELEMENT_ATTRIBUTE_SHORT_NAME;
     static MObject ELEMENT_ATTRIBUTE;
 
-    std::unique_ptr<MaterialXData> materialXData;
-
   private:
-    void setAttributeValue(MObject &materialXObject, MObject &attr, float* values, unsigned int size, MDGModifier& mdgModifier);
+    MString _documentFilePath, _elementPath;
+
+    std::unique_ptr<MaterialXData> _materialXData;
 
     MObject _outAttr;
-    std::unordered_map<std::string, MaterialX::ElementPtr> _attributeElementPairMap;
 };
 
 class MaterialXTextureNode : public MaterialXNode
