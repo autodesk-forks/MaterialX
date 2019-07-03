@@ -131,10 +131,10 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
             throw mx::Exception("MaterialX document file path is empty.");
         }
 
-	    if (parser.isFlagSet(kElementFlag))
-	    {
+        if (parser.isFlagSet(kElementFlag))
+        {
             CHECK_MSTATUS(argData.getFlagArgument(kElementFlag, 0, elementPath));
-	    }
+        }
 
         MString ogsXmlFileName;
         if (parser.isFlagSet(kOgsXmlFlag))
@@ -212,40 +212,40 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
 
 MSyntax CreateMaterialXNodeCmd::newSyntax()
 {
-	MSyntax syntax;
-	syntax.addFlag(kDocumentFlag, MaterialXNode::DOCUMENT_ATTRIBUTE_LONG_NAME.asChar(), MSyntax::kString);
-	syntax.addFlag(kElementFlag, MaterialXNode::ELEMENT_ATTRIBUTE_LONG_NAME.asChar(), MSyntax::kString);
+    MSyntax syntax;
+    syntax.addFlag(kDocumentFlag, MaterialXNode::DOCUMENT_ATTRIBUTE_LONG_NAME.asChar(), MSyntax::kString);
+    syntax.addFlag(kElementFlag, MaterialXNode::ELEMENT_ATTRIBUTE_LONG_NAME.asChar(), MSyntax::kString);
     syntax.addFlag(kOgsXmlFlag, kOgsXmlFlagLong, MSyntax::kString);
     syntax.addFlag(kTextureFlag, kTextureFlagLong, MSyntax::kBoolean);
-	return syntax;
+    return syntax;
 }
 
 void* CreateMaterialXNodeCmd::creator()
 {
-	return new CreateMaterialXNodeCmd();
+    return new CreateMaterialXNodeCmd();
 }
 
 // Sets the value of the specified MaterialXNode attribute
 void CreateMaterialXNodeCmd::setAttributeValue(MObject &materialXObject, MObject &attr, const float* values, unsigned int size)
 {
-	MPlug plug(materialXObject, attr);
-	if (size == 1)
-	{
-		_dgModifier.newPlugValueDouble(plug, *values);
-	}
-	else
-	{
-		for (unsigned int i=0; i<size; i++)
-		{
-			MPlug indexPlug = plug.child(i);
-			_dgModifier.newPlugValueDouble(indexPlug, values[i]);
-		}
-	}
+    MPlug plug(materialXObject, attr);
+    if (size == 1)
+    {
+        _dgModifier.newPlugValueDouble(plug, *values);
+    }
+    else
+    {
+        for (unsigned int i = 0; i < size; i++)
+        {
+            MPlug indexPlug = plug.child(i);
+            _dgModifier.newPlugValueDouble(indexPlug, values[i]);
+        }
+    }
 }
 
 void  CreateMaterialXNodeCmd::setAttributeValue(MObject &materialXObject, MObject &attr, const std::string& stringValue)
 {
-	MPlug plug(materialXObject, attr);
+    MPlug plug(materialXObject, attr);
     _dgModifier.newPlugValueString(plug, stringValue.c_str());
 }
 
