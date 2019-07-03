@@ -69,16 +69,11 @@ struct MaterialXData
   private:
     /// Create the OGS XML wrapper for shader fragments associated
     /// with the element set to render
-    void generateFragment();
+    void generateFragment(const mx::FileSearchPath& librarySearchPath);
 
     // Reference document and element
     mx::DocumentPtr _document;
     mx::ElementPtr _element;
-
-    // TODO: This is currently a prototype interface
-    mx::ShaderGeneratorPtr _shaderGenerator;
-    mx::GenContext _genContext;
-    mx::OgsXmlGenerator _generator;
 
     // XML fragment name
     std::string _fragmentName;
