@@ -307,19 +307,19 @@ class ImageHandler
         return -1;
     }
 
- /// Resolve file path with any udim qualifier
+    /// Resolve file path with any udim qualifier
     /// @param filePath File path to resolve
     /// @param udimString udim string replacement
     /// @param udimTile Returned tile location
     /// @returns Resolved file path
-    FilePath getResolveUDIMInformation(const FilePath& filePath, const string& udimString, vector<int>& udimTile);
+    static FilePath getResolveUDIMInformation(const FilePath& filePath, const string& udimString, vector<int>& udimTile);
 
     /// Resolve file path with any udim qualifier
     /// @param filePath File path to resolve
     /// @param udimSet Set of udim string replacements
     /// @param udimTile Returned tile locations. Each pair of numbers is a tile location.
     /// @returns List of resolved file path
-    FilePathVec getResolveUDIMInformation(const FilePath& filePath, const StringVec& udimSet, vector<int>& udimTiles);
+    static FilePathVec getResolveUDIMInformation(const FilePath& filePath, const StringVec& udimSet, vector<int>& udimTiles);
 
   protected:
     /// Cache an image for reuse.
