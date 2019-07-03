@@ -32,19 +32,19 @@
 const MTypeId MaterialXNode::MATERIALX_NODE_TYPEID(0x00042402);
 const MString MaterialXNode::MATERIALX_NODE_TYPENAME("MaterialXNode");
 
-MString MaterialXNode::DOCUMENT_ATTRIBUTE_LONG_NAME("document");
+MString MaterialXNode::DOCUMENT_ATTRIBUTE_LONG_NAME("documentFilePath");
 MString MaterialXNode::DOCUMENT_ATTRIBUTE_SHORT_NAME("doc");
 MObject MaterialXNode::DOCUMENT_ATTRIBUTE;
 
-MString MaterialXNode::ELEMENT_ATTRIBUTE_LONG_NAME("element");
+MString MaterialXNode::ELEMENT_ATTRIBUTE_LONG_NAME("elementPath");
 MString MaterialXNode::ELEMENT_ATTRIBUTE_SHORT_NAME("ele");
 MObject MaterialXNode::ELEMENT_ATTRIBUTE;
 
 const MTypeId MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID(0x00042403);
-const MString MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPENAME("MaterialXTextureNode");
+const MString MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPENAME("MaterialXTexture");
 
 const MTypeId MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPEID(0x00042404);
-const MString MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPENAME("MaterialXSurfaceNode");
+const MString MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPENAME("MaterialXSurface");
 
 MaterialXNode::MaterialXNode()
 {
