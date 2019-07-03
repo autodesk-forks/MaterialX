@@ -318,7 +318,7 @@ class ImageHandler
     /// @param filePath File path to resolve
     /// @param udimSet Set of udim string replacements
     /// @param udimTile Returned tile locations. Each pair of numbers is a tile location.
-    /// @returns List of resolved file path
+    /// @returns List of resolved file paths
     static FilePathVec getResolveUDIMInformation(const FilePath& filePath, const StringVec& udimSet, vector<int>& udimTiles);
 
   protected:

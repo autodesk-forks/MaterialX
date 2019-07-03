@@ -221,7 +221,7 @@ FilePath ImageHandler::getResolveUDIMInformation(const FilePath& filePath, const
     }    
 
     int udimVal = std::stoi(udimString);
-    if (udimVal <= 1000 && udimVal >= 2000)
+    if (udimVal <= 1000 || udimVal >= 2000)
     {
         throw Exception("Invalid udim value specified" + udimString);
     }
