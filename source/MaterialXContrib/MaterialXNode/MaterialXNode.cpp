@@ -3,31 +3,22 @@
 #include "MaterialXUtil.h"
 
 #include <maya/MFnNumericAttribute.h>
-#include <maya/MStringArray.h>
-#include <maya/MPlugArray.h>
 #include <maya/MDGModifier.h>
 #include <maya/MFnStringData.h>
 #include <maya/MFnTypedAttribute.h>
 #include <maya/MGlobal.h>
 
-#include <MaterialXCore/Document.h>
-#include <MaterialXFormat/XmlIo.h>
-#include <MaterialXGenOgsXml/OgsXmlGenerator.h>
-
-#include <maya/MRenderUtil.h>
-#include <maya/MFloatVector.h>
-
 #define MAKE_INPUT(attr) \
-	CHECK_MSTATUS(attr.setKeyable(true)); \
-	CHECK_MSTATUS(attr.setStorable(true)); \
-	CHECK_MSTATUS(attr.setReadable(true)); \
-	CHECK_MSTATUS(attr.setWritable(true));
+    CHECK_MSTATUS(attr.setKeyable(true)); \
+    CHECK_MSTATUS(attr.setStorable(true)); \
+    CHECK_MSTATUS(attr.setReadable(true)); \
+    CHECK_MSTATUS(attr.setWritable(true));
 
 #define MAKE_OUTPUT(attr) \
-	CHECK_MSTATUS(attr.setKeyable(false)); \
-	CHECK_MSTATUS(attr.setStorable(false)); \
-	CHECK_MSTATUS(attr.setReadable(true)); \
-	CHECK_MSTATUS(attr.setWritable(false));
+    CHECK_MSTATUS(attr.setKeyable(false)); \
+    CHECK_MSTATUS(attr.setStorable(false)); \
+    CHECK_MSTATUS(attr.setReadable(true)); \
+    CHECK_MSTATUS(attr.setWritable(false));
 
 const MTypeId MaterialXNode::MATERIALX_NODE_TYPEID(0x00042402);
 const MString MaterialXNode::MATERIALX_NODE_TYPENAME("MaterialXNode");
@@ -48,44 +39,38 @@ const MString MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPENAME("MaterialXSu
 
 MaterialXNode::MaterialXNode()
 {
-	std::cout << "MaterialXNode::MaterialXNode" << std::endl;
 }
 
 MaterialXNode::~MaterialXNode()
 {
-	std::cout << "MaterialXNode::~MaterialXNode" << std::endl;
 }
 
 void* MaterialXNode::creator()
 {
-	std::cout.rdbuf(std::cerr.rdbuf());
-	std::cout << "MaterialXNode::creator" << std::endl;
-	return new MaterialXNode();
+    return new MaterialXNode();
 }
 
 MStatus MaterialXNode::initialize()
 {
-	std::cout << "MaterialXNode::initialize" << std::endl;
+    MFnTypedAttribute typedAttr;
+    MFnStringData stringData;
 
-	MFnTypedAttribute typedAttr;
-	MFnStringData stringData;
+    MObject theString = stringData.create();
 
-	MObject theString = stringData.create();
-
-	DOCUMENT_ATTRIBUTE = typedAttr.create(DOCUMENT_ATTRIBUTE_LONG_NAME, DOCUMENT_ATTRIBUTE_SHORT_NAME, MFnData::kString, theString);
+    DOCUMENT_ATTRIBUTE = typedAttr.create(DOCUMENT_ATTRIBUTE_LONG_NAME, DOCUMENT_ATTRIBUTE_SHORT_NAME, MFnData::kString, theString);
     CHECK_MSTATUS(typedAttr.setInternal(true));
     CHECK_MSTATUS(typedAttr.setKeyable(false));
     CHECK_MSTATUS(typedAttr.setAffectsAppearance(true));
     CHECK_MSTATUS(typedAttr.setUsedAsFilename(true));
-	CHECK_MSTATUS(addAttribute(DOCUMENT_ATTRIBUTE));
+    CHECK_MSTATUS(addAttribute(DOCUMENT_ATTRIBUTE));
 
-	ELEMENT_ATTRIBUTE = typedAttr.create(ELEMENT_ATTRIBUTE_LONG_NAME, ELEMENT_ATTRIBUTE_SHORT_NAME, MFnData::kString, theString);
+    ELEMENT_ATTRIBUTE = typedAttr.create(ELEMENT_ATTRIBUTE_LONG_NAME, ELEMENT_ATTRIBUTE_SHORT_NAME, MFnData::kString, theString);
     CHECK_MSTATUS(typedAttr.setInternal(true));
     CHECK_MSTATUS(typedAttr.setKeyable(false));
     CHECK_MSTATUS(typedAttr.setAffectsAppearance(true));
-	CHECK_MSTATUS(addAttribute(ELEMENT_ATTRIBUTE));
+    CHECK_MSTATUS(addAttribute(ELEMENT_ATTRIBUTE));
 
-	return MS::kSuccess;
+    return MS::kSuccess;
 }
 
 void MaterialXNode::createOutputAttr(MDGModifier& mdgModifier)
@@ -108,13 +93,13 @@ void MaterialXNode::createOutputAttr(MDGModifier& mdgModifier)
 
 MStatus MaterialXNode::setDependentsDirty(const MPlug &/*plugBeingDirtied*/, MPlugArray & affectedPlugs)
 {
-	if (!_outAttr.isNull())
-	{
-		MPlug outPlug(thisMObject(), _outAttr);
-		affectedPlugs.append(outPlug);
-	}
+    if (!_outAttr.isNull())
+    {
+        MPlug outPlug(thisMObject(), _outAttr);
+        affectedPlugs.append(outPlug);
+    }
 
-	return MS::kSuccess;
+    return MS::kSuccess;
 }
 
 MTypeId MaterialXNode::typeId() const
@@ -124,7 +109,7 @@ MTypeId MaterialXNode::typeId() const
 
 MPxNode::SchedulingType MaterialXNode::schedulingType() const
 {
-	return MPxNode::SchedulingType::kParallel;
+    return MPxNode::SchedulingType::kParallel;
 }
 
 bool MaterialXNode::getInternalValue(const MPlug& plug, MDataHandle& dataHandle)
@@ -249,17 +234,12 @@ MTypeId MaterialXTextureNode::typeId() const
 
 void* MaterialXTextureNode::creator()
 {
-    std::cout.rdbuf(std::cerr.rdbuf());
-    std::cout << "MaterialXTextureNode::creator" << std::endl;
     return new MaterialXTextureNode();
 }
 
 MStatus MaterialXTextureNode::initialize()
 {
-    std::cout << "MaterialXTextureNode::initialize" << std::endl;
-
     CHECK_MSTATUS(inheritAttributesFrom(MATERIALX_NODE_TYPENAME));
-
     return MS::kSuccess;
 }
 
@@ -270,15 +250,11 @@ MTypeId MaterialXSurfaceNode::typeId() const
 
 void* MaterialXSurfaceNode::creator()
 {
-    std::cout.rdbuf(std::cerr.rdbuf());
-    std::cout << "MaterialXSurfaceNode::creator" << std::endl;
     return new MaterialXSurfaceNode();
 }
 
 MStatus MaterialXSurfaceNode::initialize()
 {
-    std::cout << "MaterialXSurfaceNode::initialize" << std::endl;
-
     CHECK_MSTATUS(inheritAttributesFrom(MATERIALX_NODE_TYPENAME));
 
     return MS::kSuccess;
