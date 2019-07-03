@@ -9,8 +9,6 @@ MaterialXData::MaterialXData(   mx::DocumentPtr document,
                                 const std::string& elementPath, 
                                 const MaterialX::FileSearchPath& librarySearchPath )
     : _document(document)
-    , _shaderGenerator(mx::GlslFragmentGenerator::create())
-    , _genContext(_shaderGenerator)
 {
     if (!_document)
     {
@@ -51,11 +49,9 @@ MaterialXData::MaterialXData(   mx::DocumentPtr document,
         }
     }
 
-    _genContext.registerSourceCodeSearchPath(librarySearchPath);
-
     try
     {
-        generateFragment();
+        generateFragment(librarySearchPath);
     }
     catch (std::exception& e)
     {
@@ -87,7 +83,7 @@ bool MaterialXData::elementIsAShader() const
     return _element && _element->isA<mx::ShaderRef>();
 }
 
-void MaterialXData::generateFragment()
+void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath)
 {
     if (!_element)
     {
@@ -102,30 +98,37 @@ void MaterialXData::generateFragment()
         throw mx::Exception("Invalid element to create wrapper for " + _element->getName());
     }
 
+    mx::ShaderGeneratorPtr shaderGenerator = mx::GlslFragmentGenerator::create();
+    mx::GenContext genContext(shaderGenerator);
+
     // Set up generator context. For shaders use FIS environment lookup,
     // but disable this for textures to avoid additional unneeded XML parameter
     // generation.
-    _genContext.getOptions().hwSpecularEnvironmentMethod =
+    genContext.registerSourceCodeSearchPath(librarySearchPath);
+    genContext.getOptions().hwSpecularEnvironmentMethod =
         shaderRef ? mx::SPECULAR_ENVIRONMENT_FIS : mx::SPECULAR_ENVIRONMENT_NONE;
 
-    _genContext.getOptions().hwMaxActiveLightSources = 0;
+    genContext.getOptions().hwMaxActiveLightSources = 0;
     // For Maya we need to insert a V-flip fragment
-    _genContext.getOptions().fileTextureVerticalFlip = true;
+    genContext.getOptions().fileTextureVerticalFlip = true;
 
     // Generate shader and put into XML wrapper.
     // TODO: Generate unique fragment names
     _fragmentName = _element->getNamePath();
     _fragmentName = mx::createValidName(_fragmentName);
-    mx::ShaderPtr shader = _shaderGenerator->generate(_fragmentName, _element, _genContext);
+
+    mx::ShaderPtr shader = shaderGenerator->generate(_fragmentName, _element, genContext);
     if (!shader)
     {
         throw mx::Exception("Failed to generate shader");
     }
 
     std::ostringstream stream;
+    mx::OgsXmlGenerator ogsXmlGenerator;
+
     // Note: This name must match the the fragment name used for registration
     // or the registration will fail.
-    _generator.generate(_fragmentName, shader.get(), nullptr, stream);
+    ogsXmlGenerator.generate(_fragmentName, shader.get(), nullptr, stream);
     _fragmentSource = stream.str();
     if (_fragmentSource.empty())
     {
