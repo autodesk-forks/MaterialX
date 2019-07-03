@@ -212,6 +212,7 @@ FilePath ImageHandler::getResolveUDIMInformation(const FilePath& filePath, const
 {
     FilePath resolvedFilePath = filePath;
     udimTile.resize(2);
+    // If not tiled then the location is tile 0,0.
     udimTile[0] = udimTile[1] = 0;
 
     if (udimString.empty())
@@ -237,6 +238,31 @@ FilePath ImageHandler::getResolveUDIMInformation(const FilePath& filePath, const
     udimTile[1] = (udimVal - udimTile[0] - 1) / 10;
 
     return resolvedFilePath;
+}
+
+FilePathVec ImageHandler::getResolveUDIMInformation(const FilePath& filePath, const StringVec& udimSet, vector<int>& udimTiles)
+{
+    FilePathVec resolvedFilePaths;
+    if (udimSet.empty())
+    {
+        return resolvedFilePaths;
+    }    
+
+    for (const string& udimString : udimSet)
+    {
+        if (udimString.empty())
+        {
+            continue;
+        }
+
+        vector<int> udimTile;
+        FilePath resolvedFilePath = getResolveUDIMInformation(filePath, udimString, udimTile);
+        resolvedFilePaths.push_back(resolvedFilePath);
+        udimTiles.push_back(udimTile[0]);
+        udimTiles.push_back(udimTile[1]);
+    }
+
+    return resolvedFilePaths;
 }
 
 } // namespace MaterialX
