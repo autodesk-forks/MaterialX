@@ -14,49 +14,56 @@ namespace MaterialX
 namespace
 {
     // Semantics used by OgsFx
-    static const StringMap OGSFX_DEFAULT_SEMANTICS_MAP =
+    static StringMap OGSFX_DEFAULT_SEMANTICS_MAP;
+
+    void InitOgsFxDefaultSemanticsMap()
     {
-        { HW::T_IN_POSITION, "POSITION"},
-        { HW::T_IN_NORMAL, "NORMAL" },
-        { HW::T_IN_TANGENT, "TANGENT" },
-        { HW::T_IN_BITANGENT, "BINORMAL" },
+        if(OGSFX_DEFAULT_SEMANTICS_MAP.empty())
+        {
+            OGSFX_DEFAULT_SEMANTICS_MAP = {
+                { HW::T_IN_POSITION, "POSITION"},
+                { HW::T_IN_NORMAL, "NORMAL" },
+                { HW::T_IN_TANGENT, "TANGENT" },
+                { HW::T_IN_BITANGENT, "BINORMAL" },
 
-        { HW::T_IN_TEXCOORD + "_0", "TEXCOORD0" },
-        { HW::T_IN_TEXCOORD + "_1", "TEXCOORD1" },
-        { HW::T_IN_TEXCOORD + "_2", "TEXCOORD2" },
-        { HW::T_IN_TEXCOORD + "_3", "TEXCOORD3" },
-        { HW::T_IN_TEXCOORD + "_4", "TEXCOORD4" },
-        { HW::T_IN_TEXCOORD + "_5", "TEXCOORD5" },
-        { HW::T_IN_TEXCOORD + "_6", "TEXCOORD6" },
-        { HW::T_IN_TEXCOORD + "_7", "TEXCOORD7" },
+                { HW::T_IN_TEXCOORD + "_0", "TEXCOORD0" },
+                { HW::T_IN_TEXCOORD + "_1", "TEXCOORD1" },
+                { HW::T_IN_TEXCOORD + "_2", "TEXCOORD2" },
+                { HW::T_IN_TEXCOORD + "_3", "TEXCOORD3" },
+                { HW::T_IN_TEXCOORD + "_4", "TEXCOORD4" },
+                { HW::T_IN_TEXCOORD + "_5", "TEXCOORD5" },
+                { HW::T_IN_TEXCOORD + "_6", "TEXCOORD6" },
+                { HW::T_IN_TEXCOORD + "_7", "TEXCOORD7" },
 
-        { HW::T_IN_COLOR + "_0", "COLOR0" },
+                { HW::T_IN_COLOR + "_0", "COLOR0" },
 
-        { HW::T_WORLD_MATRIX, "World" },
-        { HW::T_WORLD_INVERSE_MATRIX, "WorldInverse" },
-        { HW::T_WORLD_TRANSPOSE_MATRIX, "WorldTranspose" },
-        { HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX, "WorldInverseTranspose" },
+                { HW::T_WORLD_MATRIX, "World" },
+                { HW::T_WORLD_INVERSE_MATRIX, "WorldInverse" },
+                { HW::T_WORLD_TRANSPOSE_MATRIX, "WorldTranspose" },
+                { HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX, "WorldInverseTranspose" },
 
-        { HW::T_VIEW_MATRIX, "View" },
-        { HW::T_VIEW_INVERSE_MATRIX, "ViewInverse" },
-        { HW::T_VIEW_TRANSPOSE_MATRIX, "ViewTranspose" },
-        { HW::T_VIEW_INVERSE_TRANSPOSE_MATRIX, "ViewInverseTranspose" },
+                { HW::T_VIEW_MATRIX, "View" },
+                { HW::T_VIEW_INVERSE_MATRIX, "ViewInverse" },
+                { HW::T_VIEW_TRANSPOSE_MATRIX, "ViewTranspose" },
+                { HW::T_VIEW_INVERSE_TRANSPOSE_MATRIX, "ViewInverseTranspose" },
 
-        { HW::T_PROJ_MATRIX, "Projection" },
-        { HW::T_PROJ_INVERSE_MATRIX, "ProjectionInverse" },
-        { HW::T_PROJ_TRANSPOSE_MATRIX, "ProjectionTranspose" },
-        { HW::T_PROJ_INVERSE_TRANSPOSE_MATRIX, "ProjectionInverseTranspose" },
+                { HW::T_PROJ_MATRIX, "Projection" },
+                { HW::T_PROJ_INVERSE_MATRIX, "ProjectionInverse" },
+                { HW::T_PROJ_TRANSPOSE_MATRIX, "ProjectionTranspose" },
+                { HW::T_PROJ_INVERSE_TRANSPOSE_MATRIX, "ProjectionInverseTranspose" },
 
-        { HW::T_WORLD_VIEW_MATRIX, "WorldView" },
-        { HW::T_VIEW_PROJECTION_MATRIX, "ViewProjection" },
-        { HW::T_WORLD_VIEW_PROJECTION_MATRIX, "WorldViewProjection" },
+                { HW::T_WORLD_VIEW_MATRIX, "WorldView" },
+                { HW::T_VIEW_PROJECTION_MATRIX, "ViewProjection" },
+                { HW::T_WORLD_VIEW_PROJECTION_MATRIX, "WorldViewProjection" },
 
-        { HW::T_VIEW_DIRECTION, "ViewDirection" },
-        { HW::T_VIEW_POSITION, "WorldCameraPosition" },
+                { HW::T_VIEW_DIRECTION, "ViewDirection" },
+                { HW::T_VIEW_POSITION, "WorldCameraPosition" },
 
-        { HW::T_FRAME, "Frame" },
-        { HW::T_TIME, "Time" }
-    };
+                { HW::T_FRAME, "Frame" },
+                { HW::T_TIME, "Time" }
+            };
+        }
+    }
 
     static const StringMap OGSFX_GET_LIGHT_DATA_MAP =
     {
@@ -81,6 +88,7 @@ const string OgsFxShaderGenerator::TARGET = "ogsfx";
 OgsFxShaderGenerator::OgsFxShaderGenerator()
     : GlslShaderGenerator()
 {
+    InitOgsFxDefaultSemanticsMap();
     _syntax = OgsFxSyntax::create();
 }
 
