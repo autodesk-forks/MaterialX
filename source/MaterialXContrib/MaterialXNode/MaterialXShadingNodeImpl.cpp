@@ -88,7 +88,7 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
             mx::FilePathVec udimPaths = mx::ImageHandler::getResolveUDIMInformation(fileName, *udimSet, udimTiles);
             if (udimTiles.size() != udimPaths.size() * 2)
             {
-                throw mx::Exception("Failed to resolve UDIM information properly for file:" + fileName);
+                throw mx::Exception("Failed to resolve UDIM information properly for file: " + fileName);
             }
             MStringArray mTilePaths;
             MFloatArray mTilePositions;
