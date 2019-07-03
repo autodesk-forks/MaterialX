@@ -72,7 +72,7 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
                         const std::string& fileName,
                         const MHWRender::MSamplerStateDesc& samplerDescription,
                         MHWRender::MTextureDescription& textureDescription,
-                        const mx::StringVec* udimSet = nullptr)
+                        const mx::StringVec* udimIdentifiers = nullptr)
 {
     MStatus status = MStatus::kFailure;
 
@@ -81,12 +81,13 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
     MHWRender::MTextureManager* textureManager = renderer ? textureManager = renderer->getTextureManager() : nullptr;
     if (textureManager)
     {
-        MTexture *texture = nullptr;
-        if (udimSet && !udimSet->empty())
+        VP2TextureUniquePtr texturePtr;
+        if (udimIdentifiers && !udimIdentifiers->empty())
         {
-            std::vector<int> udimTiles;
-            mx::FilePathVec udimPaths = mx::ImageHandler::getResolveUDIMInformation(fileName, *udimSet, udimTiles);
-            if (udimTiles.size() != udimPaths.size() * 2)
+            std::vector<mx::Vector2> udimCoordinates{ mx::ImageHandler::getUdimCoordinates(*udimIdentifiers) };
+            mx::FilePathVec udimPaths{ mx::ImageHandler::getUdimPaths(fileName, *udimIdentifiers) };
+            // Make sure we have 1:1 match of paths to coordinates.
+            if (udimCoordinates.size() != udimPaths.size())
             {
                 throw mx::Exception("Failed to resolve UDIM information properly for file: " + fileName);
             }
@@ -98,35 +99,33 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
             for (size_t i=0; i<udimPaths.size(); i++)
             {
                 MaterialX::FilePath resolvedPath = MaterialXMaya::findInSubdirectories(searchPath, udimPaths[i]);
-                const mx::FilePath& udimPath = resolvedPath;
-                mTilePaths.append(udimPath.asString().c_str());
-                mTilePositions.append(static_cast<float>(udimTiles[i * 2]));
-                mTilePositions.append(static_cast<float>(udimTiles[i * 2 + 1]));
+                mTilePaths.append(resolvedPath.asString().c_str());
+                mTilePositions.append(udimCoordinates[i][0]);
+                mTilePositions.append(udimCoordinates[i][1]);
             }
             const unsigned int UDIM_BAKE_WIDTH = 4096;
             const unsigned int UDIM_BAKE_HEIGHT = 4096;
             // Note: we do not use the uv scale and offset. Ideally this should be used for the texture lookup code
             // but at this point the shader code has already been generated.
-            texture = textureManager->acquireTiledTexture(fileName.c_str(), mTilePaths, mTilePositions, 
-                                                          undefinedColor, UDIM_BAKE_WIDTH, UDIM_BAKE_HEIGHT, 
-                                                          failedTilePaths, uvScaleOffset);
+            texturePtr.reset(textureManager->acquireTiledTexture(fileName.c_str(), mTilePaths, mTilePositions,
+                                                                 undefinedColor, UDIM_BAKE_WIDTH, UDIM_BAKE_HEIGHT, 
+                                                                 failedTilePaths, uvScaleOffset));
         }
         else
         {
             MaterialX::FilePath imagePath = MaterialXMaya::findInSubdirectories(searchPath, fileName);
             if (!imagePath.isEmpty())
             {
-                texture = textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str());
+                texturePtr.reset(textureManager->acquireTexture(imagePath.asString().c_str(), MaterialX::EMPTY_STRING.c_str()));
             }
         }
 
         MHWRender::MTextureAssignment textureAssignment;
-        VP2TextureUniquePtr texturePtr(texture);
-        textureAssignment.texture = texture;
-        if (texture)
+        textureAssignment.texture = texturePtr.get();
+        if (texturePtr)
         {
             // Get back the texture description
-            texture->textureDescription(textureDescription);
+            texturePtr->textureDescription(textureDescription);
         }
         status = shader.setParameter(parameterName.c_str(), textureAssignment);
         if (!status)
@@ -275,10 +274,10 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
 
     // Look for any udimset on the document to use for texture binding.
     mx::ValuePtr udimSetValue = document->getGeomAttrValue("udimset");
-    const mx::StringVec* uvdimStrings = nullptr;
+    const mx::StringVec* udimIdentifiers = nullptr;
     if (udimSetValue && udimSetValue->isA<mx::StringVec>())
     {
-        uvdimStrings = &(udimSetValue->asA<mx::StringVec>());
+        udimIdentifiers = &(udimSetValue->asA<mx::StringVec>());
     }
 
     const MaterialX::StringMap& inputs = materialXData->getPathInputMap();
@@ -319,7 +318,7 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
                 samplerDescription.maxAnisotropy = 16;
 
                 status = ::bindFileTexture(shader, textureParameterName, imageSearchPath, valueString,
-                                           samplerDescription, textureDescription, uvdimStrings);
+                                           samplerDescription, textureDescription, udimIdentifiers);
             }
         }
     }

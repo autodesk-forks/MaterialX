@@ -400,15 +400,15 @@ mx::FilePath Material::bindImage(const mx::FilePath& filePath, const std::string
     }
 
     // Apply udim string if specified.
-    mx::FilePath resolvedFilename;
+    mx::FilePath resolvedFilename = filePath;
     if (!udim.empty())
     {
-        std::vector<int> udimTile;
-        resolvedFilename = imageHandler->getResolveUDIMInformation(filePath, udim, udimTile);
-    }
-    else
-    {
-        resolvedFilename = filePath;
+        const mx::StringVec udimSet{ udim };
+        mx::FilePathVec udimPaths = imageHandler->getUdimPaths(filePath, udimSet);
+        if (!udimPaths.empty())
+        {
+            resolvedFilename = udimPaths[0];
+        }
     }
 
     // Acquire the given image.
