@@ -208,4 +208,35 @@ void ImageHandler::clearImageCache()
     _imageCache.clear();
 }
 
+FilePath ImageHandler::getResolveUDIMInformation(const FilePath& filePath, const string& udimString, vector<int>& udimTile)
+{
+    FilePath resolvedFilePath = filePath;
+    udimTile.resize(2);
+    udimTile[0] = udimTile[1] = 0;
+
+    if (udimString.empty())
+    {
+        return resolvedFilePath;
+    }    
+
+    int udimVal = std::stoi(udimString);
+    if (udimVal <= 1000 && udimVal >= 2000)
+    {
+        throw Exception("Invalid udim value specified" + udimString);
+    }
+
+    // Compute resolved UDIM name
+    StringMap map;
+    map[UDIM_TOKEN] = udimString;
+    resolvedFilePath = FilePath(replaceSubstrings(filePath.asString(), map));
+    
+    // Compute UDIM tile location
+    udimVal -= 1000;
+    udimTile[0] = udimVal % 10;
+    udimTile[0] = (udimTile[0] == 0) ? 9 : udimTile[0] - 1;
+    udimTile[1] = (udimVal - udimTile[0] - 1) / 10;
+
+    return resolvedFilePath;
+}
+
 } // namespace MaterialX
