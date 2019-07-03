@@ -86,9 +86,7 @@ mx::DocumentPtr loadLibraries(const mx::StringVec& libraryFolders, const mx::Fil
             readOptions.skipDuplicateElements = true;
             mx::readFromXmlFile(libDoc, file, mx::EMPTY_STRING, &readOptions);
             libDoc->setSourceUri(file);
-            mx::CopyOptions copyOptions;
-            copyOptions.skipDuplicateElements = true;
-            doc->importLibrary(libDoc, &copyOptions);
+            doc->importLibrary(libDoc);
         }
     }
     return doc;
@@ -353,9 +351,6 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
 
 void Viewer::setupLights(mx::DocumentPtr doc)
 {
-    mx::CopyOptions copyOptions;
-    copyOptions.skipDuplicateElements = true;
-
     // Import lights
     mx::DocumentPtr lightDoc = mx::createDocument();
     mx::FilePath path = _searchPath.find(_lightFileName);
@@ -367,7 +362,7 @@ void Viewer::setupLights(mx::DocumentPtr doc)
             readOptions.skipDuplicateElements = true;                
             mx::readFromXmlFile(lightDoc, path.asString(), mx::EMPTY_STRING, &readOptions);
             lightDoc->setSourceUri(path);
-            doc->importLibrary(lightDoc, &copyOptions);
+            doc->importLibrary(lightDoc);
         }
         catch (std::exception& e)
         {
@@ -763,9 +758,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
         mx::readFromXmlFile(doc, filename, _searchPath.asString(), &readOptions);
 
         // Import libraries.
-        mx::CopyOptions copyOptions;
-        copyOptions.skipDuplicateElements = true;
-        doc->importLibrary(libraries, &copyOptions);
+        doc->importLibrary(libraries);
 
         // Add lighting 
         setupLights(doc);

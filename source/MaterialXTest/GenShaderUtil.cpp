@@ -23,9 +23,7 @@ void loadLibrary(const mx::FilePath& file, mx::DocumentPtr doc)
     mx::XmlReadOptions readOptions;
     readOptions.skipDuplicateElements = true;
     mx::readFromXmlFile(libDoc, file, mx::EMPTY_STRING, &readOptions);
-    mx::CopyOptions copyOptions;
-    copyOptions.skipDuplicateElements = true;
-    doc->importLibrary(libDoc, &copyOptions);
+    doc->importLibrary(libDoc);
 }
 
 void loadLibraries(const mx::StringVec& libraryNames,
@@ -597,13 +595,11 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
     context.getOptions() = generateOptions;
     context.registerSourceCodeSearchPath(_srcSearchPath);
 
-    mx::XmlReadOptions importOptions;
-    importOptions.skipDuplicateElements = true;
     size_t documentIndex = 0;
     for (auto doc : _documents)
     {
         // Add in dependent libraries
-        doc->importLibrary(_dependLib, &importOptions);
+        doc->importLibrary(_dependLib);
 
         // Find and register lights
         findLights(doc, _lights);
