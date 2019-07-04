@@ -9,8 +9,6 @@
 #include <MaterialXFormat/File.h>
 #include <MaterialXFormat/XmlIo.h>
 
-#include <fstream> 
-
 namespace mx = MaterialX;
 
 TEST_CASE("Load content", "[xmlio]")
@@ -164,7 +162,7 @@ TEST_CASE("Load content", "[xmlio]")
     writeOptions.writeXIncludeEnable = false;
     writeOptions.elementPredicate = skipImages;
     std::string xmlString = mx::writeToXmlString(doc, &writeOptions);
-     
+        
     // Reconstruct and verify that the document contains no images.
     mx::DocumentPtr writtenDoc = mx::createDocument();
     mx::readFromXmlString(writtenDoc, xmlString);
@@ -180,13 +178,11 @@ TEST_CASE("Load content", "[xmlio]")
     REQUIRE(imageElementCount == 0);
 
     // Import duplicate libraries into document.
-    mx::CopyOptions copyOptions;
-    copyOptions.skipDuplicateElements = true;
     mx::DocumentPtr dupDoc = mx::createDocument();
     for (mx::DocumentPtr lib : libs)
     {
         dupDoc->importLibrary(lib);
-        dupDoc->importLibrary(lib, &copyOptions);
+        dupDoc->importLibrary(lib);
     }
     REQUIRE(dupDoc->validate());
 
