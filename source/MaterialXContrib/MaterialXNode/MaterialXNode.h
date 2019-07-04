@@ -18,8 +18,6 @@ class MaterialXNode : public MPxNode
     static void* creator();
     static MStatus initialize();
 
-    void createOutputAttr(MDGModifier& mdgModifier);
-    MStatus setDependentsDirty(const MPlug& plugBeingDirtied, MPlugArray& affectedPlugs) override;
     MTypeId	typeId() const override;
     SchedulingType schedulingType() const override;
 
@@ -46,12 +44,11 @@ class MaterialXNode : public MPxNode
     static MString ELEMENT_ATTRIBUTE_SHORT_NAME;
     static MObject ELEMENT_ATTRIBUTE;
 
+    static MObject OUT_ATTRIBUTE;
+
   private:
     MString _documentFilePath, _elementPath;
-
     std::unique_ptr<MaterialXData> _materialXData;
-
-    MObject _outAttr;
 };
 
 class MaterialXTextureNode : public MaterialXNode

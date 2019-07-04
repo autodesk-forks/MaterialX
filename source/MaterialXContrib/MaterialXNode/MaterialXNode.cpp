@@ -31,6 +31,8 @@ MString MaterialXNode::ELEMENT_ATTRIBUTE_LONG_NAME("elementPath");
 MString MaterialXNode::ELEMENT_ATTRIBUTE_SHORT_NAME("ele");
 MObject MaterialXNode::ELEMENT_ATTRIBUTE;
 
+MObject MaterialXNode::OUT_ATTRIBUTE;
+
 const MTypeId MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID(0x00042403);
 const MString MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPENAME("MaterialXTexture");
 
@@ -70,34 +72,29 @@ MStatus MaterialXNode::initialize()
     CHECK_MSTATUS(typedAttr.setAffectsAppearance(true));
     CHECK_MSTATUS(addAttribute(ELEMENT_ATTRIBUTE));
 
-    return MS::kSuccess;
-}
+    static const MString outColorName(MaterialX::OgsXmlGenerator::OUTPUT_NAME.c_str());
 
-void MaterialXNode::createOutputAttr(MDGModifier& mdgModifier)
-{
-    if (_materialXData && !_materialXData->getElementPath().empty())
-    {
-        const MString outputName(MaterialX::OgsXmlGenerator::OUTPUT_NAME.c_str());
-        MFnNumericAttribute nAttr;
-        _outAttr = nAttr.createColor(outputName, outputName);
-        CHECK_MSTATUS(nAttr.setStorable(false));
-        CHECK_MSTATUS(nAttr.setInternal(false));
-        CHECK_MSTATUS(nAttr.setReadable(true));
-        CHECK_MSTATUS(nAttr.setWritable(false));
-        CHECK_MSTATUS(nAttr.setCached(true));
-        CHECK_MSTATUS(nAttr.setHidden(false));
+    MFnNumericAttribute nAttr;
+    MObject outColorR = nAttr.create(outColorName + "R", "ocr", MFnNumericData::kFloat, 0.0);
+    MObject outColorG = nAttr.create(outColorName + "G", "ocg", MFnNumericData::kFloat, 0.0);
+    MObject outColorB = nAttr.create(outColorName + "B", "ocb", MFnNumericData::kFloat, 0.0);
+    OUT_ATTRIBUTE = nAttr.create(outColorName, "oc", outColorR, outColorG, outColorB);
+    MAKE_OUTPUT(nAttr);
+    CHECK_MSTATUS(nAttr.setUsedAsColor(true));
+    
+    /*
+    OUT_ATTRIBUTE = nAttr.createColor(outColorName, outColorName);
+    CHECK_MSTATUS(nAttr.setStorable(false));
+    CHECK_MSTATUS(nAttr.setInternal(false));
+    CHECK_MSTATUS(nAttr.setReadable(true));
+    CHECK_MSTATUS(nAttr.setWritable(false));
+    CHECK_MSTATUS(nAttr.setCached(true));
+    CHECK_MSTATUS(nAttr.setHidden(false));*/
 
-        mdgModifier.addAttribute(thisMObject(), _outAttr);
-    }
-}
+    CHECK_MSTATUS(addAttribute(OUT_ATTRIBUTE));
 
-MStatus MaterialXNode::setDependentsDirty(const MPlug &/*plugBeingDirtied*/, MPlugArray & affectedPlugs)
-{
-    if (!_outAttr.isNull())
-    {
-        MPlug outPlug(thisMObject(), _outAttr);
-        affectedPlugs.append(outPlug);
-    }
+    CHECK_MSTATUS(attributeAffects(DOCUMENT_ATTRIBUTE, OUT_ATTRIBUTE));
+    CHECK_MSTATUS(attributeAffects(ELEMENT_ATTRIBUTE, OUT_ATTRIBUTE));
 
     return MS::kSuccess;
 }
@@ -136,9 +133,9 @@ bool MaterialXNode::setInternalValue(const MPlug& plug, const MDataHandle& dataH
     {
         MString message("Failed to create shader for ");
         message += typeName();
-        message += ' ';
+        message += " '";
         message += name();
-        message += ": ";
+        message += "': ";
         message += error;
         MGlobal::displayError(message);
     };
