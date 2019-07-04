@@ -166,10 +166,18 @@
     </dielectric_brdf>
 
     <!-- Metal Layer -->
+    <multiply name="metal_reflectivity" type="color3">
+      <input name="in1" type="color3" interfacename="base_color" />
+      <input name="in2" type="float" interfacename="base" />
+    </multiply>
+    <multiply name="metal_edgecolor" type="color3">
+      <input name="in1" type="color3" interfacename="specular_color" />
+      <input name="in2" type="float" interfacename="specular" />
+    </multiply>
     <conductor_brdf name="metal_bsdf" type="BSDF">
-      <input name="weight" type="float" interfacename="base" />
-      <input name="reflectivity" type="color3" interfacename="base_color"/>
-      <input name="edgecolor" type="color3" interfacename="specular_color"/>
+      <input name="weight" type="float" value="1.0" />
+      <input name="reflectivity" type="color3" nodename="metal_reflectivity"/>
+      <input name="edgecolor" type="color3" nodename="metal_edgecolor"/>
       <input name="roughness" type="roughnessinfo" nodename="main_rougness" />
       <input name="normal" type="vector3" interfacename="normal" />
       <input name="tangent" type="vector3" interfacename="tangent" />
