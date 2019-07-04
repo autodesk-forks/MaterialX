@@ -4,6 +4,22 @@
 
 NANOGUI_FORCE_DISCRETE_GPU();
 
+const std::string options = 
+" Options: \n"
+"    --library [FILEPATH]     Additional library folder location\n"
+"    --path [FILEPATH]        Additional file search path location\n"
+"    --mesh [FILENAME]        Mesh filename\n"
+"    --material [FILENAME]    Material filename\n"
+"    --envMethod [INTEGER]    Environment lighting method (0 = filtered importance sampling, 1 = prefiltered environment maps, Default is 0)\n"
+"    --envRad [FILENAME]      Specify the environment radiance HDR\n"
+"    --envIrrad [FILENAME]    Specify the environment irradiance HDR\n"
+"    --msaa [INTEGER]         Multisampling count for anti-aliasing (0 = disabled, Default is 0)\n"
+"    --refresh [INTEGER]      Refresh period for the viewer in milliseconds (-1 = disabled, Default is 50)\n"
+"    --remap [TOKEN1:TOKEN2]  Remap one token to another when MaterialX document is loaded\n"
+"    --skip [NAME]            Skip elements matching the given name attribute\n"
+"    --terminator [STRING]    Enforce the given terminator string for file prefixes\n"
+"    --help                   Print this list\n";
+
 int main(int argc, char* const argv[])
 {  
     std::vector<std::string> tokens;
@@ -14,10 +30,13 @@ int main(int argc, char* const argv[])
 
     mx::StringVec libraryFolders = { "libraries/stdlib", "libraries/pbrlib", "libraries/stdlib/genglsl", "libraries/pbrlib/genglsl", "libraries/bxdf" };
     mx::FileSearchPath searchPath;
-    std::string meshFilename = "resources/Geometry/arnold_shaderball.obj";
+    std::string meshFilename = "resources/Geometry/shaderball.obj";
     std::string materialFilename = "resources/Materials/Examples/StandardSurface/standard_surface_default.mtlx";
+    std::string envRadiancePath = "resources/Images/san_giuseppe_bridge.hdr";
+    std::string envIrradiancePath = "resources/Images/san_giuseppe_bridge_diffuse.hdr";
     DocumentModifiers modifiers;
     int multiSampleCount = 0;
+    int refresh = 50;
     mx::HwSpecularEnvironmentMethod specularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
 
     for (size_t i = 0; i < tokens.size(); i++)
@@ -40,6 +59,29 @@ int main(int argc, char* const argv[])
         {
             materialFilename = nextToken;
         }
+        if (token == "--envMethod" && !nextToken.empty())
+        {
+            if (std::stoi(nextToken) == 1)
+            {
+                specularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_PREFILTER;
+            }
+        }
+        if (token == "--envRad" && !nextToken.empty())
+        {
+            envRadiancePath = nextToken;
+        }
+        if (token == "--envIrrad" && !nextToken.empty())
+        {
+            envIrradiancePath = nextToken;
+        }
+        if (token == "--msaa" && !nextToken.empty())
+        {
+            multiSampleCount = std::stoi(nextToken);
+        }
+        if (token == "--refresh" && !nextToken.empty())
+        {
+            refresh = std::stoi(nextToken);
+        }
         if (token == "--remap" && !nextToken.empty())
         {
             mx::StringVec vec = mx::splitString(nextToken, ":");
@@ -56,16 +98,10 @@ int main(int argc, char* const argv[])
         {
             modifiers.filePrefixTerminator = nextToken;
         }
-        if (token == "--envMethod" && !nextToken.empty())
+        if (token == "--help")
         {
-            if (std::stoi(nextToken) == 1)
-            {
-                specularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_PREFILTER;
-            }
-        }
-        if (token == "--msaa" && !nextToken.empty())
-        {
-            multiSampleCount = std::stoi(nextToken);
+            std::cout << options << std::endl;
+            return 0;
         }
     }
 
@@ -94,6 +130,7 @@ int main(int argc, char* const argv[])
         }
     }
     searchPath.append(parentCurrentPath);
+    searchPath.prepend(currentPath);
 
     try
     {
@@ -105,9 +142,11 @@ int main(int argc, char* const argv[])
                                                 materialFilename,
                                                 modifiers,
                                                 specularEnvironmentMethod,
+                                                envRadiancePath,
+                                                envIrradiancePath,
                                                 multiSampleCount);
             viewer->setVisible(true);
-            ng::mainloop();
+            ng::mainloop(refresh);
         }
     
         ng::shutdown();

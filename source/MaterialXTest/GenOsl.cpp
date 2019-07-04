@@ -37,7 +37,7 @@ TEST_CASE("GenShader: OSL Syntax", "[genosl]")
     REQUIRE(syntax->getOutputTypeName(mx::Type::BSDF) == "output BSDF");
 
     // Set fixed precision with one digit
-    mx::Value::ScopedFloatFormatting format(mx::Value::FloatFormatFixed, 1);
+    mx::ScopedFloatFormatting format(mx::Value::FloatFormatFixed, 1);
 
     std::string value;
     value = syntax->getDefaultValue(mx::Type::FLOAT);
@@ -95,7 +95,7 @@ TEST_CASE("GenShader: OSL Implementation Check", "[genosl]")
     generatorSkipNodeTypes.insert("spot_light");
     mx::StringSet generatorSkipNodeDefs;
 
-    GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs, 38);
+    GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs, 54);
 }
 
 TEST_CASE("GenShader: OSL Unique Names", "[genosl]")

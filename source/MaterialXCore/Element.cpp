@@ -373,10 +373,9 @@ InheritanceIterator Element::traverseInheritance() const
     return InheritanceIterator(getSelf());
 }
 
-void Element::copyContentFrom(const ConstElementPtr& source, const CopyOptions* copyOptions)
+void Element::copyContentFrom(const ConstElementPtr& source)
 {
     DocumentPtr doc = getDocument();
-    bool skipDuplicateElements = copyOptions && copyOptions->skipDuplicateElements;
 
     // Handle change notifications.
     ScopedUpdate update(doc);
@@ -388,12 +387,7 @@ void Element::copyContentFrom(const ConstElementPtr& source, const CopyOptions* 
 
     for (const ConstElementPtr& child : source->getChildren())
     {
-        const string& name = child->getName();
-        if (skipDuplicateElements && getChild(name))
-        {
-            continue;
-        }
-        ElementPtr childCopy = addChildOfCategory(child->getCategory(), name);
+        ElementPtr childCopy = addChildOfCategory(child->getCategory(), child->getName());
         childCopy->copyContentFrom(child);
     }
 }
@@ -580,6 +574,7 @@ bool ValueElement::validate(string* message) const
     }
     if (hasInterfaceName())
     {
+        validateRequire(isA<Parameter>() || isA<Input>(), res, message, "Only parameter and input elements support interface names");
         ConstNodeGraphPtr nodeGraph = getAncestorOfType<NodeGraph>();
         NodeDefPtr nodeDef = nodeGraph ? nodeGraph->getNodeDef() : nullptr;
         if (nodeDef)
@@ -588,7 +583,16 @@ bool ValueElement::validate(string* message) const
             validateRequire(valueElem != nullptr, res, message, "Interface name not found in referenced NodeDef");
             if (valueElem)
             {
-                validateRequire(valueElem->getType() == getType(), res, message, "Interface name refers to value element of a different type");
+                ConstPortElementPtr portElem = asA<PortElement>();
+                if (portElem && portElem->hasChannels())
+                {
+                    bool valid = portElem->validChannelsString(portElem->getChannels(), valueElem->getType(), getType());
+                    validateRequire(valid, res, message, "Invalid channels string for interface name");
+                }
+                else
+                {
+                    validateRequire(getType() == valueElem->getType(), res, message, "Interface name refers to value element of a different type");
+                }
             }
         }
     }

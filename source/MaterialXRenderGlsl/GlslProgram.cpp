@@ -538,17 +538,18 @@ bool GlslProgram::bindTexture(unsigned int uniformType, int uniformLocation, con
                               const ImageSamplingProperties& samplingProperties, ImageDesc& desc)
 {
     bool textureBound = false;
+    FilePath resolvedFilePath = imageHandler->getSearchPath().find(filePath);
     if (uniformLocation >= 0 &&
         uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
     {
-        if (imageHandler->acquireImage(filePath, desc, generateMipMaps, &(samplingProperties.defaultColor)))
+        if (imageHandler->acquireImage(resolvedFilePath, desc, generateMipMaps, &(samplingProperties.defaultColor)))
         {
             // Map location to a texture unit
             int textureLocation = imageHandler->getBoundTextureLocation(desc.resourceId);
             if (textureLocation >= 0) 
             {
                glUniform1i(uniformLocation, textureLocation);
-               textureBound = imageHandler->bindImage(filePath, samplingProperties);
+               textureBound = imageHandler->bindImage(resolvedFilePath, samplingProperties);
             }
         }
         checkErrors();
@@ -618,15 +619,15 @@ void GlslProgram::bindTextures(ImageHandlerPtr imageHandler)
                 const int INVALID_MAPPED_INT_VALUE = -1; // Any value < 0 is not considered to be invalid
                 const std::string uaddressModeStr = root + UADDRESS_MODE_POST_FIX;
                 ValuePtr intValue = findUniformValue(uaddressModeStr, uniformList);
-                samplingProperties.uaddressMode = intValue && intValue->isA<int>() ? intValue->asA<int>() : INVALID_MAPPED_INT_VALUE;
+                samplingProperties.uaddressMode = ImageSamplingProperties::AddressMode(intValue && intValue->isA<int>() ? intValue->asA<int>() : INVALID_MAPPED_INT_VALUE);
 
                 const std::string vaddressmodeStr = root + VADDRESS_MODE_POST_FIX;
                 intValue = findUniformValue(vaddressmodeStr, uniformList);
-                samplingProperties.vaddressMode = intValue && intValue->isA<int>() ? intValue->asA<int>() : INVALID_MAPPED_INT_VALUE;
+                samplingProperties.vaddressMode = ImageSamplingProperties::AddressMode(intValue && intValue->isA<int>() ? intValue->asA<int>() : INVALID_MAPPED_INT_VALUE);
 
                 const std::string filtertypeStr = root + FILTER_TYPE_POST_FIX;
                 intValue = findUniformValue(filtertypeStr, uniformList);
-                samplingProperties.filterType = intValue && intValue->isA<int>() ? intValue->asA<int>() : INVALID_MAPPED_INT_VALUE;
+                samplingProperties.filterType = ImageSamplingProperties::FilterType(intValue && intValue->isA<int>() ? intValue->asA<int>() : INVALID_MAPPED_INT_VALUE);
 
                 const std::string defaultColorStr = root + DEFAULT_COLOR_POST_FIX;
                 ValuePtr colorValue = findUniformValue(defaultColorStr, uniformList);

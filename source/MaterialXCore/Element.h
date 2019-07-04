@@ -25,7 +25,6 @@ class Token;
 class StringResolver;
 class Document;
 class Material;
-class CopyOptions;
 
 /// A shared pointer to an Element
 using ElementPtr = shared_ptr<Element>;
@@ -768,10 +767,7 @@ class Element : public std::enable_shared_from_this<Element>
 
     /// Copy all attributes and descendants from the given element to this one.
     /// @param source The element from which content is copied.
-    /// @param copyOptions An optional pointer to a CopyOptions object.
-    ///    If provided, then the given options will affect the behavior of the
-    ///    copy function.  Defaults to a null pointer.
-    void copyContentFrom(const ConstElementPtr& source, const CopyOptions* copyOptions = nullptr);
+    void copyContentFrom(const ConstElementPtr& source);
 
     /// Clear all attributes and descendants from this element.
     void clearContent();
@@ -1107,7 +1103,6 @@ class ValueElement : public TypedElement
 
   public:
     static const string VALUE_ATTRIBUTE;
-    static const string PUBLIC_NAME_ATTRIBUTE;
     static const string INTERFACE_NAME_ATTRIBUTE;
     static const string IMPLEMENTATION_NAME_ATTRIBUTE;
     static const string IMPLEMENTATION_TYPE_ATTRIBUTE;
@@ -1278,22 +1273,6 @@ class StringResolver
     string _geomPrefix;
     StringMap _filenameMap;
     StringMap _geomNameMap;
-};
-
-/// @class CopyOptions
-/// A set of options for controlling the behavior of element copy operations.
-class CopyOptions
-{
-  public:
-    CopyOptions() :
-        skipDuplicateElements(false)
-    {
-    }
-    ~CopyOptions() { }
-
-    /// If true, elements at the same scope with duplicate names will be skipped;
-    /// otherwise, they will trigger an exception.  Defaults to false.
-    bool skipDuplicateElements;
 };
 
 /// @class ExceptionOrphanedElement

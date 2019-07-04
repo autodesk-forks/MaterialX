@@ -259,7 +259,7 @@ ShaderPtr GlslShaderGenerator::generate(const string& name, ElementPtr element, 
     // Turn on fixed float formatting to make sure float values are
     // emitted with a decimal point and not as integers, and to avoid
     // any scientific notation which isn't supported by all OpenGL targets.
-    Value::ScopedFloatFormatting fmt(Value::FloatFormatFixed);
+    ScopedFloatFormatting fmt(Value::FloatFormatFixed);
 
     // Emit code for vertex shader stage
     ShaderStage& vs = shader->getStage(Stage::VERTEX);
@@ -323,12 +323,35 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
     emitFunctionDefinitions(graph, context, stage);
 
     // Add main function
+    setFunctionName("main", stage);
     emitLine("void main()", stage, false);
     emitScopeBegin(stage);
     emitLine("vec4 hPositionWorld = u_worldMatrix * vec4(i_position, 1.0)", stage);
     emitLine("gl_Position = u_viewProjectionMatrix * hPositionWorld", stage);
     emitFunctionCalls(graph, context, stage);
     emitScopeEnd(stage);
+    emitLineBreak(stage);
+}
+
+void GlslShaderGenerator::emitSpecularEnvironment(GenContext& context, ShaderStage& stage) const
+{
+    int specularMethod = context.getOptions().hwSpecularEnvironmentMethod;
+    if (specularMethod == SPECULAR_ENVIRONMENT_FIS)
+    {
+        emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_fis.glsl", context, stage);
+    }
+    else if (specularMethod == SPECULAR_ENVIRONMENT_PREFILTER)
+    {
+        emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_prefilter.glsl", context, stage);
+    }
+    else if (specularMethod == SPECULAR_ENVIRONMENT_NONE)
+    {
+        emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_none.glsl", context, stage);
+    }
+    else
+    {
+        throw ExceptionShaderGenError("Invalid hardware specular environment method specified: '" + std::to_string(specularMethod) + "'");
+    }
     emitLineBreak(stage);
 }
 
@@ -410,15 +433,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
     // Emit lighting functions
     if (lighting)
     {
-        if (context.getOptions().hwSpecularEnvironmentMethod == SPECULAR_ENVIRONMENT_FIS)
-        {
-            emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_fis.glsl", context, stage);
-        }
-        else
-        {
-            emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_environment_prefilter.glsl", context, stage);
-        }
-        emitLineBreak(stage);
+        emitSpecularEnvironment(context, stage);
     }
 
     // Emit sampling code if needed
@@ -447,6 +462,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
     const ShaderGraphOutputSocket* outputSocket = graph.getOutputSocket();
 
     // Add main function
+    setFunctionName("main", stage);
     emitLine("void main()", stage, false);
     emitScopeBegin(stage);
 

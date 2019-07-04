@@ -301,10 +301,10 @@
 
   <!--
     Node: <complex_ior>
-    A node for converting scientific/complex IOR to the artistic IOR used by the conductorbsdf node.
+    A node for converting scientific/complex IOR to the artistic IOR used by the conductor_brdf node.
   -->
   <nodedef name="ND_complex_ior" node="complex_ior" type="multioutput" nodegroup="pbr"
-           doc="A node for converting scientific/complex IOR to the artistic IOR used by the conductorbsdf node.">
+           doc="A node for converting scientific/complex IOR to the artistic IOR used by the conductor_brdf node.">
     <input name="ior" type="vector3"/>
     <input name="extinction" type="vector3"/>
     <output name="reflectivity" type="color3"/>
@@ -312,13 +312,15 @@
   </nodedef>
 
   <!--
-    Node: <normalmap>
+    Node: <artistic_ior>
+    A node for converting artistic IOR to scientific/complex IOR.
   -->
-  <nodedef name="ND_normalmap" node="normalmap" type="vector3" nodegroup="pbr">
-    <input name="in" type="vector3" value="0.5, 0.5, 1.0"/>
-    <parameter name="tangent_space" type="integer" value="1"/>
-    <input name="normal" type="vector3" defaultgeomprop="Nworld"/>
-    <input name="tangent" type="vector3" defaultgeomprop="Tworld"/>
+  <nodedef name="ND_artistic_ior" node="artistic_ior" type="multioutput" nodegroup="pbr"
+           doc="A node for converting artistic IOR to scientific/complex IOR.">
+    <input name="reflectivity" type="color3"/>
+    <input name="edgecolor" type="color3"/>
+    <output name="ior" type="vector3"/>
+    <output name="extinction" type="vector3"/>
   </nodedef>
 
   <!--

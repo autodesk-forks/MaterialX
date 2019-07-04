@@ -18,32 +18,6 @@ GLTextureHandler::GLTextureHandler(ImageLoaderPtr imageLoader) :
     _restrictions.supportedBaseTypes = { ImageDesc::BASETYPE_HALF, ImageDesc::BASETYPE_FLOAT, ImageDesc::BASETYPE_UINT8 };
 }
 
-bool GLTextureHandler::createColorImage(const Color4& color,
-                                        ImageDesc& imageDesc)
-{
-    if (!glActiveTexture)
-    {
-        glewInit();
-    }
-
-    ImageHandler::createColorImage(color, imageDesc);
-    if ((imageDesc.width * imageDesc.height > 0) && imageDesc.resourceBuffer)
-    {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glGenTextures(1, &imageDesc.resourceId);
-
-        int textureUnit = getBoundTextureLocation(imageDesc.resourceId);
-        if (textureUnit < 0) return false;
-        glActiveTexture(GL_TEXTURE0 + textureUnit);
-        glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, imageDesc.width, imageDesc.height, 0, GL_RGBA, GL_FLOAT, imageDesc.resourceBuffer);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        return true;
-    }
-    return false;
-}
-
 bool GLTextureHandler::acquireImage(const FilePath& filePath,
                                     ImageDesc& imageDesc,
                                     bool generateMipMaps,
@@ -84,7 +58,9 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
         glGenTextures(1, &imageDesc.resourceId);
 
         int textureUnit = getNextAvailableTextureLocation();
-        if (textureUnit < 0) return false;
+        if (textureUnit < 0)
+            return false;
+
         _boundTextureLocations[textureUnit] = imageDesc.resourceId;
         glActiveTexture(GL_TEXTURE0 + textureUnit);
         glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
@@ -151,23 +127,41 @@ bool GLTextureHandler::acquireImage(const FilePath& filePath,
     // Create a fallback texture if failed to load
     if (!textureLoaded && fallbackColor)
     {
-        ImageDesc desc;
-        desc.channelCount = 4;
-        desc.width = 1;
-        desc.height = 1;
-        desc.baseType = ImageDesc::BASETYPE_FLOAT;
-        createColorImage(*fallbackColor, desc);
-        desc.freeResourceBuffer();
-        cacheImage(filePath, desc);
+        imageDesc.channelCount = 4;
+        imageDesc.width = 1;
+        imageDesc.height = 1;
+        imageDesc.baseType = ImageDesc::BASETYPE_FLOAT;
+        createColorImage(*fallbackColor, imageDesc);
+        if ((imageDesc.width * imageDesc.height > 0) && imageDesc.resourceBuffer)
+        {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glGenTextures(1, &imageDesc.resourceId);
+
+            int textureUnit = getNextAvailableTextureLocation();
+            if (textureUnit < 0)
+                return false;
+
+            _boundTextureLocations[textureUnit] = imageDesc.resourceId;
+            glActiveTexture(GL_TEXTURE0 + textureUnit);
+            glBindTexture(GL_TEXTURE_2D, imageDesc.resourceId);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, imageDesc.width, imageDesc.height, 0,
+                GL_RGBA, GL_FLOAT, imageDesc.resourceBuffer);
+            if (generateMipMaps)
+            {
+                glGenerateMipmap(GL_TEXTURE_2D);
+            }
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+        imageDesc.freeResourceBuffer();
+        cacheImage(filePath, imageDesc);
     }
 
     return textureLoaded;
 }
 
-
-bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingProperties& samplingProperties)
+bool GLTextureHandler::bindImage(const FilePath& filePath, const ImageSamplingProperties& samplingProperties)
 {
-    const ImageDesc* cachedDesc = getCachedImage(identifier);
+    const ImageDesc* cachedDesc = getCachedImage(filePath);
     if (cachedDesc)
     {
         if (!glActiveTexture)
@@ -189,7 +183,9 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
         }
 
         int textureUnit = getBoundTextureLocation(resourceId);
-        if (textureUnit < 0) return false;
+        if (textureUnit < 0)
+            return false;
+
         glActiveTexture(GL_TEXTURE0 + textureUnit);
         glBindTexture(GL_TEXTURE_2D, resourceId);
 
@@ -200,7 +196,8 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
         GLint magFilterType = (minFilterType == GL_LINEAR || minFilterType == GL_REPEAT) ? minFilterType : GL_LINEAR;
         GLint uaddressMode = mapAddressModeToGL(samplingProperties.uaddressMode);
         GLint vaddressMode = mapAddressModeToGL(samplingProperties.vaddressMode);
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, samplingProperties.defaultColor.data());
+        Color4 borderColor(samplingProperties.defaultColor);
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor.data());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, vaddressMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilterType);
@@ -211,36 +208,38 @@ bool GLTextureHandler::bindImage(const string &identifier, const ImageSamplingPr
     return false;
 }
 
-int GLTextureHandler::mapAddressModeToGL(int addressModeEnum)
+int GLTextureHandler::mapAddressModeToGL(ImageSamplingProperties::AddressMode addressModeEnum)
 {
-    int addressMode = GL_REPEAT;
+    const vector<int> addressModes 
+    {
+        // Constant color. Use clamp to border
+        // with border color to achieve this
+        GL_CLAMP_TO_BORDER,
 
-    // Mapping is from "black". Use clamp to border
-    // with border color black to achieve this
-    if (addressModeEnum == 0)
+        // Clamp
+        GL_CLAMP_TO_EDGE,
+
+        // Repeat
+        GL_REPEAT,
+
+        // Mirror
+        GL_MIRRORED_REPEAT
+    };
+
+    int addressMode = GL_REPEAT;
+    if (addressModeEnum != ImageSamplingProperties::AddressMode::UNSPECIFIED)
     {
-        addressMode = GL_CLAMP_TO_BORDER;
-    }
-    // Clamp
-    else if (addressModeEnum == 1)
-    {
-        addressMode = GL_CLAMP_TO_EDGE;
+        addressMode = addressModes[static_cast<int>(addressModeEnum)];
     }
     return addressMode;
 }
 
-int GLTextureHandler::mapFilterTypeToGL(int filterTypeEnum)
+int GLTextureHandler::mapFilterTypeToGL(ImageSamplingProperties::FilterType filterTypeEnum)
 {
     int filterType = GL_LINEAR_MIPMAP_LINEAR;
-    // 0 = closest
-    if (filterTypeEnum == 0)
+    if (filterTypeEnum == ImageSamplingProperties::FilterType::CLOSEST)
     {
-        filterType = GL_NEAREST;
-    }
-    // 1 == linear
-    else if (filterTypeEnum == 1)
-    {
-        filterType = GL_LINEAR;
+        filterType = GL_NEAREST_MIPMAP_NEAREST;
     }
     return filterType;
 }

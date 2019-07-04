@@ -29,7 +29,7 @@ TEST_CASE("GenShader: OGSFX Syntax", "[genogsfx]")
     REQUIRE(syntax->getOutputTypeName(mx::Type::BSDF) == "out BSDF");
 
     // Set fixed precision with one digit
-    mx::Value::ScopedFloatFormatting format(mx::Value::FloatFormatFixed, 1);
+    mx::ScopedFloatFormatting format(mx::Value::FloatFormatFixed, 1);
 
     std::string value;
     value = syntax->getDefaultValue(mx::Type::FLOAT);
@@ -68,7 +68,7 @@ TEST_CASE("GenShader: OGSFX Implementation Check", "[genogsfx]")
 
     mx::StringSet generatorSkipNodeTypes;
     mx::StringSet generatorSkipNodeDefs;
-    GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs, 34);
+    GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs, 50);
 }
 
 TEST_CASE("GenShader: OGSFX Unique Names", "[genogsfx]")
