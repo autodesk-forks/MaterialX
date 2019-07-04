@@ -3,21 +3,21 @@
   <nodegraph name="NG_brass1" colorspace="srgb_texture" fileprefix="resources/Images/">
     <tiledimage name="image_color" type="color3">
       <parameter name="file" type="filename" value="brass_color.jpg" />
-      <parameter name="uvtiling" type="vector2" value="4.0, 4.0"/>
+      <input name="uvtiling" type="vector2" value="4.0, 4.0"/>
     </tiledimage>
     <tiledimage name="image_roughness" type="float">
       <parameter name="file" type="filename" value="brass_roughness.jpg" />
-      <parameter name="uvtiling" type="vector2" value="4.0, 4.0"/>
+      <input name="uvtiling" type="vector2" value="4.0, 4.0"/>
     </tiledimage>
     <output name="out_color" type="color3" nodename="image_color" />
     <output name="out_roughness" type="float" nodename="image_roughness" />
   </nodegraph>
 
   <material name="USD_Tiled_Brass">
-    <shaderref name="SR_brass1" node="usd_preview_surface">
-      <bindinput name="diffuse_color" type="color3" nodegraph="NG_brass1" output="out_color" />
-      <bindinput name="use_specular_workflow" type="integer" value="0" />
-      <bindinput name="specular_color" type="color3" value="0, 0, 0" />
+    <shaderref name="SR_brass1" node="UsdPreviewSurface">
+      <bindinput name="diffuseColor" type="color3" nodegraph="NG_brass1" output="out_color" />
+      <bindinput name="useSpecularWorkflow" type="integer" value="0" />
+      <bindinput name="specularColor" type="color3" value="0, 0, 0" />
       <bindinput name="metalness" type="float" value="1" />
       <bindinput name="roughness" type="float" nodegraph="NG_brass1" output="out_roughness" />
       <bindinput name="ior" type="float" value="50" />
