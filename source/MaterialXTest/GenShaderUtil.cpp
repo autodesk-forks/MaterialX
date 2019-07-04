@@ -20,9 +20,7 @@ namespace GenShaderUtil
 void loadLibrary(const mx::FilePath& file, mx::DocumentPtr doc)
 {
     mx::DocumentPtr libDoc = mx::createDocument();
-    mx::XmlReadOptions readOptions;
-    readOptions.skipDuplicateElements = true;
-    mx::readFromXmlFile(libDoc, file, mx::EMPTY_STRING, &readOptions);
+    mx::readFromXmlFile(libDoc, file);
     mx::CopyOptions copyOptions;
     copyOptions.skipDuplicateElements = true;
     doc->importLibrary(libDoc, &copyOptions);
@@ -597,13 +595,26 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
     context.getOptions() = generateOptions;
     context.registerSourceCodeSearchPath(_srcSearchPath);
 
-    mx::XmlReadOptions importOptions;
-    importOptions.skipDuplicateElements = true;
     size_t documentIndex = 0;
+    mx::CopyOptions copyOptions;
+    copyOptions.skipDuplicateElements = true;
     for (auto doc : _documents)
     {
         // Add in dependent libraries
-        doc->importLibrary(_dependLib, &importOptions);
+        bool importedLibrary = false;
+        try
+        {
+            doc->importLibrary(_dependLib, &copyOptions);
+            importedLibrary = true;
+        }
+        catch (mx::Exception& e)
+        {
+            _logFile << "Failed to import library into file: " 
+                    << _documentPaths[documentIndex] << ". Error: "
+                    << e.what() << std::endl;
+            CHECK(importedLibrary);
+            continue;
+        }
 
         // Find and register lights
         findLights(doc, _lights);

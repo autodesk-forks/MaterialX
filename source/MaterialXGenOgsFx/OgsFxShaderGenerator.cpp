@@ -13,8 +13,32 @@ namespace MaterialX
 
 namespace
 {
-    // Semantics used by OgsFx
-    static const StringMap OGSFX_DEFAULT_SEMANTICS_MAP =
+    static const StringMap OGSFX_GET_LIGHT_DATA_MAP =
+    {
+        { "type", "mx_getLightType" },
+        { "position", "mx_getLightPos" },
+        { "direction", "mx_getLightDir" },
+        { "color", "mx_getLightColor" },
+        { "intensity", "mx_getLightIntensity" },
+        { "decay_rate", "mx_getLightDecayRate" },
+        { "inner_angle", "mx_getLightConeAngle" },
+        { "outer_angle", "mx_getLightPenumbraAngle" }
+    };
+}
+
+namespace Stage
+{
+    const string EFFECT = "effect";
+}
+
+const string OgsFxShaderGenerator::TARGET = "ogsfx";
+
+OgsFxShaderGenerator::OgsFxShaderGenerator()
+    : GlslShaderGenerator()
+{
+    _syntax = OgsFxSyntax::create();
+
+    _semanticsMap =
     {
         { HW::T_IN_POSITION, "POSITION"},
         { HW::T_IN_NORMAL, "NORMAL" },
@@ -57,31 +81,6 @@ namespace
         { HW::T_FRAME, "Frame" },
         { HW::T_TIME, "Time" }
     };
-
-    static const StringMap OGSFX_GET_LIGHT_DATA_MAP =
-    {
-        { "type", "mx_getLightType" },
-        { "position", "mx_getLightPos" },
-        { "direction", "mx_getLightDir" },
-        { "color", "mx_getLightColor" },
-        { "intensity", "mx_getLightIntensity" },
-        { "decay_rate", "mx_getLightDecayRate" },
-        { "inner_angle", "mx_getLightConeAngle" },
-        { "outer_angle", "mx_getLightPenumbraAngle" }
-    };
-}
-
-namespace Stage
-{
-    const string EFFECT = "effect";
-}
-
-const string OgsFxShaderGenerator::TARGET = "ogsfx";
-
-OgsFxShaderGenerator::OgsFxShaderGenerator()
-    : GlslShaderGenerator()
-{
-    _syntax = OgsFxSyntax::create();
 }
 
 ShaderGeneratorPtr OgsFxShaderGenerator::create()
@@ -486,8 +485,8 @@ ShaderPtr OgsFxShaderGenerator::createShader(const string& name, ElementPtr elem
             for (size_t j = 0; j < block.size(); ++j)
             {
                 ShaderPort* v = block[j];
-                auto sematic = OGSFX_DEFAULT_SEMANTICS_MAP.find(v->getName());
-                if (sematic != OGSFX_DEFAULT_SEMANTICS_MAP.end())
+                auto sematic = _semanticsMap.find(v->getName());
+                if (sematic != _semanticsMap.end())
                 {
                     v->setSemantic(sematic->second);
                 }
@@ -499,8 +498,8 @@ ShaderPtr OgsFxShaderGenerator::createShader(const string& name, ElementPtr elem
             for (size_t j = 0; j < block.size(); ++j)
             {
                 ShaderPort* v = block[j];
-                auto sematic = OGSFX_DEFAULT_SEMANTICS_MAP.find(v->getName());
-                if (sematic != OGSFX_DEFAULT_SEMANTICS_MAP.end())
+                auto sematic = _semanticsMap.find(v->getName());
+                if (sematic != _semanticsMap.end())
                 {
                     v->setSemantic(sematic->second);
                 }

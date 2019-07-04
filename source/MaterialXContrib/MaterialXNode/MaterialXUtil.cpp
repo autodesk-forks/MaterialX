@@ -13,12 +13,10 @@ namespace MaterialXMaya
 void loadLibrary(const mx::FilePath& filePath, mx::DocumentPtr doc)
 {
 	mx::DocumentPtr libDoc = mx::createDocument();
-    mx::XmlReadOptions readOptions;
-    readOptions.skipDuplicateElements = true;
-	mx::readFromXmlFile(libDoc, filePath, mx::EMPTY_STRING, &readOptions);
-	mx::CopyOptions copyOptions;
-	copyOptions.skipDuplicateElements = true;
-	doc->importLibrary(libDoc, &copyOptions);
+	mx::readFromXmlFile(libDoc, filePath, mx::EMPTY_STRING);
+    mx::CopyOptions copyOptions;
+    copyOptions.skipDuplicateElements = true;
+    doc->importLibrary(libDoc, &copyOptions);
 }
 
 void loadLibraries(const mx::StringVec& libraryNames,
@@ -76,9 +74,7 @@ mx::DocumentPtr loadDocument(const std::string& materialXDocumentPath,
     MaterialXMaya::loadLibraries(libraries, librarySearchPath, document);
 
     // Read document contents from disk
-    mx::XmlReadOptions readOptions;
-    readOptions.skipDuplicateElements = true;
-    mx::readFromXmlFile(document, materialXDocumentPath, mx::EMPTY_STRING, &readOptions);
+    mx::readFromXmlFile(document, materialXDocumentPath, mx::EMPTY_STRING);
 
     return document;
 }
