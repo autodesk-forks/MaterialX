@@ -180,11 +180,13 @@ TEST_CASE("Load content", "[xmlio]")
     REQUIRE(imageElementCount == 0);
 
     // Import duplicate libraries into document.
+    mx::CopyOptions copyOptions;
+    copyOptions.skipDuplicateElements = true;
     mx::DocumentPtr dupDoc = mx::createDocument();
     for (mx::DocumentPtr lib : libs)
     {
         dupDoc->importLibrary(lib);
-        dupDoc->importLibrary(lib);
+        dupDoc->importLibrary(lib, &copyOptions);
     }
     REQUIRE(dupDoc->validate());
 
