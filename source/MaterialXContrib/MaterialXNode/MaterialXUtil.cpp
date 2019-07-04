@@ -14,7 +14,9 @@ void loadLibrary(const mx::FilePath& filePath, mx::DocumentPtr doc)
 {
 	mx::DocumentPtr libDoc = mx::createDocument();
 	mx::readFromXmlFile(libDoc, filePath, mx::EMPTY_STRING);
-	doc->importLibrary(libDoc);
+    mx::CopyOptions copyOptions;
+    copyOptions.skipDuplicateElements = true;
+    doc->importLibrary(libDoc, &copyOptions);
 }
 
 void loadLibraries(const mx::StringVec& libraryNames,
