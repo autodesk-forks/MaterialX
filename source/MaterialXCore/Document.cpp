@@ -150,6 +150,14 @@ void Document::importLibrary(const ConstDocumentPtr& library, const CopyOptions*
     for (const ConstElementPtr& child : library->getChildren())
     {
         string childName = child->getQualifiedName(child->getName());
+
+        // Skip elements from a previous import of the same library.
+        ConstElementPtr previous = getChild(childName);
+        if (previous && previous->getActiveSourceUri() == library->getSourceUri())
+        {
+            continue;
+        }
+
         if (skipDuplicateElements && getChild(childName))
         {
             continue;

@@ -9,8 +9,6 @@
 #include <MaterialXFormat/File.h>
 #include <MaterialXFormat/XmlIo.h>
 
-#include <fstream> 
-
 namespace mx = MaterialX;
 
 TEST_CASE("Load content", "[xmlio]")
@@ -135,18 +133,14 @@ TEST_CASE("Load content", "[xmlio]")
         REQUIRE(referencesValid);
     }
 
-    // Read the same document twice with duplicate elements skipped.
+    // Read reference document.
     mx::DocumentPtr doc = mx::createDocument();
-    mx::XmlReadOptions readOptions;
-    readOptions.skipDuplicateElements = true;
     std::string filename = "PostShaderComposite.mtlx";
-    mx::readFromXmlFile(doc, filename, searchPath, &readOptions);
-    mx::readFromXmlFile(doc, filename, searchPath, &readOptions);
-    REQUIRE(doc->validate());
+    mx::readFromXmlFile(doc, filename, searchPath);
 
     // Read document without XIncludes.
     mx::DocumentPtr flatDoc = mx::createDocument();
-    readOptions = mx::XmlReadOptions();
+    mx::XmlReadOptions readOptions;
     readOptions.readXIncludeFunction = nullptr;
     mx::readFromXmlFile(flatDoc, filename, searchPath, &readOptions);
     REQUIRE(*flatDoc != *doc);
@@ -168,7 +162,7 @@ TEST_CASE("Load content", "[xmlio]")
     writeOptions.writeXIncludeEnable = false;
     writeOptions.elementPredicate = skipImages;
     std::string xmlString = mx::writeToXmlString(doc, &writeOptions);
-     
+        
     // Reconstruct and verify that the document contains no images.
     mx::DocumentPtr writtenDoc = mx::createDocument();
     mx::readFromXmlString(writtenDoc, xmlString);
@@ -182,6 +176,15 @@ TEST_CASE("Load content", "[xmlio]")
         }
     }
     REQUIRE(imageElementCount == 0);
+
+    // Import duplicate libraries into document.
+    mx::DocumentPtr dupDoc = mx::createDocument();
+    for (mx::DocumentPtr lib : libs)
+    {
+        dupDoc->importLibrary(lib);
+        dupDoc->importLibrary(lib);
+    }
+    REQUIRE(dupDoc->validate());
 
     // Read a non-existent document.
     mx::DocumentPtr nonExistentDoc = mx::createDocument();
