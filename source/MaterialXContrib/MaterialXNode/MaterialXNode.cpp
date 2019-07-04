@@ -81,15 +81,6 @@ MStatus MaterialXNode::initialize()
     OUT_ATTRIBUTE = nAttr.create(outColorName, "oc", outColorR, outColorG, outColorB);
     MAKE_OUTPUT(nAttr);
     CHECK_MSTATUS(nAttr.setUsedAsColor(true));
-    
-    /*
-    OUT_ATTRIBUTE = nAttr.createColor(outColorName, outColorName);
-    CHECK_MSTATUS(nAttr.setStorable(false));
-    CHECK_MSTATUS(nAttr.setInternal(false));
-    CHECK_MSTATUS(nAttr.setReadable(true));
-    CHECK_MSTATUS(nAttr.setWritable(false));
-    CHECK_MSTATUS(nAttr.setCached(true));
-    CHECK_MSTATUS(nAttr.setHidden(false));*/
 
     CHECK_MSTATUS(addAttribute(OUT_ATTRIBUTE));
 
