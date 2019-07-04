@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <materialx version="1.36">
-   <xi:include href="alglib_defs.mtlx" />
+   <!-- xi:include href="alglib_defs.mtlx" /> -->
    <xi:include href="alglib_ng.mtlx" />
    <xi:include href="bxdf/ubershader_defs.mtlx" />
-   <xi:include href="bxdf/standard_surface.mtlx" />
+   <!-- <xi:include href="bxdf/standard_surface.mtlx" /> -->
    <nodedef name="ND_MtlxShader" type="multioutput" node="MtlxShader">
       <parameter name="rust_tiling" type="float" value="1.0" uifolder="Material Parameters" uimin="0.0" uimax="2.0" />
       <parameter name="rust_roughness" type="float" value="1.0" uifolder="Material Parameters" uimin="0.0" uimax="2.0" />
