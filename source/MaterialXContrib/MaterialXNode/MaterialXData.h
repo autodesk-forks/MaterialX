@@ -8,6 +8,7 @@
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenOgsXml/OgsXmlGenerator.h>
 #include <MaterialXGenShader/Shader.h>
+#include <MaterialXRender/ImageHandler.h>
 
 namespace mx = MaterialX;
 
@@ -66,23 +67,29 @@ struct MaterialXData
     /// as opposed to a texture graph.
     bool elementIsAShader() const;
 
+    /// Get image sampling properties for a given file parameter
+    mx::ImageSamplingProperties getImageSamplngProperties(const std::string& fileParameterName) const;
+
   private:
     /// Create the OGS XML wrapper for shader fragments associated
     /// with the element set to render
     void generateFragment(const mx::FileSearchPath& librarySearchPath);
 
-    // Reference document and element
+    /// Reference document and element
     mx::DocumentPtr _document;
     mx::ElementPtr _element;
 
-    // XML fragment name
+    /// XML fragment name
     std::string _fragmentName;
 
-    // XML fragment wrapper
+    /// XML fragment wrapper
     std::string _fragmentSource;
 
-    // Mapping from MaterialX Element paths to XML input names
+    /// Mapping from MaterialX Element paths to XML input names
     mx::StringMap _pathInputMap;
+
+    /// MaterialX shader 
+    mx::ShaderPtr _shader;
 };
 
 #endif // MATERIALX_DATA_H

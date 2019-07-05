@@ -2,8 +2,8 @@
 #include "MaterialXUtil.h"
 
 #include <MaterialXFormat/XmlIo.h>
-#include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
 #include <MaterialXGenShader/Util.h>
+#include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
 
 MaterialXData::MaterialXData(   mx::DocumentPtr document,
                                 const std::string& elementPath, 
@@ -116,8 +116,8 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
     _fragmentName = _element->getNamePath();
     _fragmentName = mx::createValidName(_fragmentName);
 
-    mx::ShaderPtr shader = shaderGenerator->generate(_fragmentName, _element, genContext);
-    if (!shader)
+    _shader = shaderGenerator->generate(_fragmentName, _element, genContext);
+    if (!_shader)
     {
         throw mx::Exception("Failed to generate shader");
     }
@@ -127,7 +127,7 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
 
     // Note: This name must match the the fragment name used for registration
     // or the registration will fail.
-    ogsXmlGenerator.generate(_fragmentName, shader.get(), nullptr, stream);
+    ogsXmlGenerator.generate(_fragmentName, _shader.get(), nullptr, stream);
     _fragmentSource = stream.str();
     if (_fragmentSource.empty())
     {
@@ -141,7 +141,7 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
 
     // Extract out the input fragment parameter names along with their
     // associated Element paths to allow for value binding.
-    const mx::ShaderStage& pixelShader = shader->getStage(mx::Stage::PIXEL);
+    const mx::ShaderStage& pixelShader = _shader->getStage(mx::Stage::PIXEL);
     for (const auto& blockMap : pixelShader.getUniformBlocks())
     {
         const mx::VariableBlock& uniforms = *blockMap.second;
@@ -169,4 +169,17 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
             }
         }
     }
+}
+
+mx::ImageSamplingProperties MaterialXData::getImageSamplngProperties(const std::string& fileParameterName) const
+{
+    mx::ImageSamplingProperties samplingProperties;
+    if (_shader && _shader->hasStage(mx::Stage::PIXEL))
+    {
+        mx::ShaderStage& stage = _shader->getStage(mx::Stage::PIXEL);
+        mx::VariableBlock& block = stage.getUniformBlock(mx::HW::PUBLIC_UNIFORMS);
+        samplingProperties.setProperties(fileParameterName, block);
+
+    }
+    return samplingProperties;
 }
