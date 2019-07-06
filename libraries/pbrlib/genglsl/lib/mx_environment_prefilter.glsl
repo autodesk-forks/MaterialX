@@ -38,10 +38,10 @@ vec3 mx_latlong_map_lookup(vec3 dir, mat4 transform, float lodBias, sampler2D sa
 vec3 mx_environment_radiance(vec3 N, vec3 V, vec3 X, vec2 roughness, int distribution)
 {
     vec3 dir = reflect(-V, N);
-    return mx_latlong_map_lookup(dir, u_envMatrix, max(roughness.x, roughness.y), u_envRadiance);
+    return mx_latlong_map_lookup(dir, $envMatrix, max(roughness.x, roughness.y), $envRadiance);
 }
 
 vec3 mx_environment_irradiance(vec3 N)
 {
-    return mx_latlong_map_lookup(N, u_envMatrix, u_envIrradiance);
+    return mx_latlong_map_lookup(N, $envMatrix, $envIrradiance);
 }
