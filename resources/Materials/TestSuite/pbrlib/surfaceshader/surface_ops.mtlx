@@ -51,7 +51,7 @@
       <input name="weight" type="float" value="1.0" />
       <input name="reflectivity" type="color3" value="0.944 0.776 0.373" />
       <input name="edgecolor" type="color3" value="0.998 0.981 0.751" />
-      <input name="roughness" type="vector2" value="" />
+      <input name="roughness" type="vector2" value="0.0, 0.0" />
       <input name="normal" type="vector3" value="0.0, 0.0, 0.0" />
       <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
       <input name="distribution" type="string" value="ggx" />
@@ -61,7 +61,7 @@
       <input name="color0" type="color3" value="1.0, 1.0, 1.0" />
       <input name="color90" type="color3" value="1.0, 1.0, 1.0" />
       <input name="exponent" type="float" value="5.0" />
-      <input name="roughness" type="vector2" value="" nodename="roughness_dual1" />
+      <input name="roughness" type="vector2" nodename="roughness_dual1" />
       <input name="normal" type="vector3" value="0.0, 0.0, 0.0" />
       <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
       <input name="distribution" type="string" value="ggx" />
