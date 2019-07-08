@@ -180,6 +180,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     mx::StringSet usedImpls;
 
     mx::CopyOptions copyOptions;
+    copyOptions.skipConflictingElements = true;
 
     const std::string MTLX_EXTENSION("mtlx");
     for (auto dir : dirs)
