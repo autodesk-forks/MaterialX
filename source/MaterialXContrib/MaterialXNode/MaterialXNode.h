@@ -53,6 +53,8 @@ class MaterialXNode : public MPxNode
 
   private:
     MString _documentFilePath, _elementPath;
+
+    mx::DocumentPtr _document;
     std::unique_ptr<MaterialXData> _materialXData;
 };
 
