@@ -215,6 +215,11 @@ void MaterialXNode::setData(const MString& documentFilePath,
     _documentFilePath = documentFilePath;
     _elementPath = elementPath;
     _materialXData = std::move(materialXData);
+
+    if (_materialXData)
+    {
+        _document = _materialXData->getDocument();
+    }
 }
 
 MTypeId MaterialXTextureNode::typeId() const
