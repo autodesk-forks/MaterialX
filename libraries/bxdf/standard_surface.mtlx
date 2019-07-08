@@ -73,26 +73,44 @@
       <input name="anisotropy" type="float" interfacename="specular_anisotropy" />
     </roughness_anisotropy>
 
-    <!-- Colors influenced by coat ("coat gamma") -->
+    <!-- Colors influenced by coat -->
     <clamp name="coat_clamped" type="float">
       <input name="in" type="float" interfacename="coat" />
     </clamp>
-    <multiply name="coat_gamma_multiply" type="float">
-      <input name="in1" type="float" nodename="coat_clamped" />
-      <input name="in2" type="float" interfacename="coat_affect_color" />
+    <mix name="coat_tint" type="color3">
+      <input name="fg" type="color3" interfacename="coat_color" />
+      <input name="bg" type="color3" value="1.0, 1.0, 1.0" />
+      <input name="mix" type="float" interfacename="coat_affect_color" />
+    </mix>
+    <fresnel name="coat_fresnel" type="float">
+      <input name="ior" type="float" interfacename="coat_IOR" />
+      <input name="normal" type="vector3" interfacename="coat_normal" />
+    </fresnel>
+    <invert name="coat_fresnel_inv" type="float">
+      <input name="in" type="float" nodename="coat_fresnel" />
+    </invert>
+    <multiply name="coat_tint_total" type="color3">
+      <input name="in1" type="color3" nodename="coat_tint" />
+      <input name="in2" type="float" nodename="coat_fresnel_inv" />
     </multiply>
-    <add name="coat_gamma" type="float">
-      <input name="in1" type="float" nodename="coat_gamma_multiply" />
-      <input name="in2" type="float" value="1.0" />
-    </add>
-    <power name="coat_affected_diffuse_color" type="color3">
+    <mix name="coat_tint_with_fresnel" type="color3">
+      <input name="fg" type="color3" nodename="coat_tint_total" />
+      <input name="bg" type="color3" value="1.0, 1.0, 1.0" />
+      <input name="mix" type="float" nodename="coat_clamped" />
+    </mix>
+
+    <multiply name="coat_affected_diffuse_color" type="color3">
       <input name="in1" type="color3" interfacename="base_color" />
-      <input name="in2" type="float" nodename="coat_gamma" />
-    </power>
-    <power name="coat_affected_subsurface_color" type="color3">
+      <input name="in2" type="color3" nodename="coat_tint_with_fresnel" />
+    </multiply>
+    <multiply name="coat_affected_subsurface_color" type="color3">
       <input name="in1" type="color3" interfacename="subsurface_color" />
-      <input name="in2" type="float" nodename="coat_gamma" />
-    </power>
+      <input name="in2" type="color3" nodename="coat_tint_with_fresnel" />
+    </multiply>
+    <multiply name="coat_affected_emission_color" type="color3">
+      <input name="in1" type="color3" interfacename="emission_color" />
+      <input name="in2" type="color3" nodename="coat_tint_with_fresnel" />
+    </multiply>
 
     <!-- Diffuse Layer -->
     <diffuse_brdf name="diffuse_bsdf" type="BSDF">
@@ -188,17 +206,12 @@
       <input name="bg" type="BSDF" nodename="specular_bsdf" />
       <input name="mix" type="float" interfacename="metalness" />
     </mix>
-
-    <!-- Coat Layer -->
-    <mix name="coat_attenuation" type="color3" >
-      <input name="fg" type="color3" interfacename="coat_color" />
-      <input name="bg" type="color3" value="1.0, 1.0, 1.0" />
-      <input name="mix" type="float" interfacename="coat" />
-    </mix>
     <multiply name="metalness_mix_attenuated" type="BSDF">
       <input name="in1" type="BSDF" nodename="metalness_mix" />
-      <input name="in2" type="color3" nodename="coat_attenuation" />
+      <input name="in2" type="color3" nodename="coat_tint_with_fresnel" />
     </multiply>
+
+    <!-- Coat Layer -->
     <roughness_anisotropy name="coat_roughness" type="vector2">
       <input name="roughness" type="float" interfacename="coat_roughness" />
       <input name="anisotropy" type="float" interfacename="coat_anisotropy" />
@@ -215,31 +228,11 @@
 
     <!-- Emission Layer -->
     <multiply name="emission_weight" type="color3">
-      <input name="in1" type="color3" interfacename="emission_color" />
+      <input name="in1" type="color3" nodename="coat_affected_emission_color" />
       <input name="in2" type="float" interfacename="emission" />
     </multiply>
-    <fresnel name="coat_fresnel" type="float">
-      <input name="ior" type="float" interfacename="coat_IOR" />
-      <input name="normal" type="vector3" interfacename="coat_normal" />
-    </fresnel>
-    <invert name="coat_fresnel_inv" type="float">
-      <input name="in" type="float" nodename="coat_fresnel" />
-    </invert>
-    <multiply name="coat_color_fresnel" type="color3">
-      <input name="in1" type="color3" interfacename="coat_color" />
-      <input name="in2" type="float" nodename="coat_fresnel_inv" />
-    </multiply>
-    <mix name="coat_emission_attenuation" type="color3" >
-      <input name="fg" type="color3" nodename="coat_color_fresnel" />
-      <input name="bg" type="color3" value="1.0, 1.0, 1.0" />
-      <input name="mix" type="float" interfacename="coat" />
-    </mix>
-    <multiply name="emission_weight_attenuated" type="color3">
-      <input name="in1" type="color3" nodename="emission_weight" />
-      <input name="in2" type="color3" nodename="coat_emission_attenuation" />
-    </multiply>
     <uniform_edf name="emission_edf" type="EDF">
-      <input name="intensity" type="color3" nodename="emission_weight_attenuated" />
+      <input name="intensity" type="color3" nodename="emission_weight" />
     </uniform_edf>
 
     <!-- Surface construction with opacity -->
