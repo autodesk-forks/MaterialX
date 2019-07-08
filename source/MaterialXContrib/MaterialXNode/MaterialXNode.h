@@ -54,7 +54,11 @@ class MaterialXNode : public MPxNode
   private:
     MString _documentFilePath, _elementPath;
 
+    /// MaterialXData keeps a shared pointer to the document but we also keep
+    /// another shared pointer here to avoid reloading the document when the
+    /// element path becomes invalid and the MaterialXData doesn't exist.
     mx::DocumentPtr _document;
+
     std::unique_ptr<MaterialXData> _materialXData;
 };
 
