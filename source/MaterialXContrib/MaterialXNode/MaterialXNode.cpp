@@ -1,6 +1,7 @@
 #include "MaterialXNode.h"
 #include "Plugin.h"
 #include "MaterialXUtil.h"
+#include "MayaUtil.h"
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MDGModifier.h>
@@ -138,6 +139,19 @@ bool MaterialXNode::setInternalValue(const MPlug& plug, const MDataHandle& dataH
         );
     };
 
+    auto createAndRegister = [this](mx::DocumentPtr document)
+    {
+        _materialXData.reset(new MaterialXData(
+            document,
+            _elementPath.asChar(),
+            Plugin::instance().getLibrarySearchPath()
+        ));
+
+        MaterialXMaya::registerFragment(
+            _materialXData->getFragmentName(), _materialXData->getFragmentSource()
+        );
+    };
+
     if (plug == DOCUMENT_ATTRIBUTE)
     {
         const MString& value = dataHandle.asString();
@@ -151,11 +165,7 @@ bool MaterialXNode::setInternalValue(const MPlug& plug, const MDataHandle& dataH
 
         try
         {
-            _materialXData.reset( new MaterialXData(
-                loadDocument(),
-                _elementPath.asChar(),
-                Plugin::instance().getLibrarySearchPath()
-            ));
+            createAndRegister(loadDocument());
         }
         catch (std::exception& e)
         {
@@ -186,11 +196,7 @@ bool MaterialXNode::setInternalValue(const MPlug& plug, const MDataHandle& dataH
                 document = loadDocument();
             }
 
-            _materialXData.reset(new MaterialXData(
-                document,
-                _elementPath.asChar(),
-                Plugin::instance().getLibrarySearchPath()
-            ));
+            createAndRegister(document);
         }
         catch (std::exception& e)
         {
