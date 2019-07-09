@@ -83,7 +83,7 @@ TEST_CASE("GenShader: GLSL Implementation Check", "[genglsl]")
 
     mx::StringSet generatorSkipNodeTypes;
     mx::StringSet generatorSkipNodeDefs;
-    GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs, 50);
+    GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs, 64);
 }
 
 TEST_CASE("GenShader: GLSL Unique Names", "[genglsl]")
@@ -101,10 +101,12 @@ TEST_CASE("GenShader: Bind Light Shaders", "[genglsl]")
     mx::DocumentPtr doc = mx::createDocument();
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
-    loadLibraries({ "stdlib", "pbrlib" }, searchPath, doc);
+    loadLibraries({ "stdlib", "pbrlib", "lights" }, searchPath, doc);
 
     mx::NodeDefPtr pointLightShader = doc->getNodeDef("ND_point_light");
     mx::NodeDefPtr spotLightShader = doc->getNodeDef("ND_spot_light");
+    REQUIRE(pointLightShader != nullptr);
+    REQUIRE(spotLightShader != nullptr);
 
     mx::GenContext context(mx::GlslShaderGenerator::create());
     context.registerSourceCodeSearchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
