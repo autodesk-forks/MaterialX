@@ -125,6 +125,10 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
             {
                 genContext.getOptions().targetColorSpaceOverride = MATERIALX_LINEAR_WORKING_SPACE;
             }
+            else
+            {
+                genContext.getOptions().targetColorSpaceOverride = documentColorSpace;
+            }
         }
 
         // Set up generator context. For shaders use FIS environment lookup,
