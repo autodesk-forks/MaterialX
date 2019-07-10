@@ -543,7 +543,7 @@ void findRenderableElements(ConstDocumentPtr doc, vector<TypedElementPtr>& eleme
     {
         // Skip anything from an include file including libraries.
         // Skip any nodegraph which is a definition
-        if (!nodeGraph->hasSourceUri() && !nodeGraph->hasAttribute("nodedef"))
+        if (!nodeGraph->hasSourceUri() && !nodeGraph->hasAttribute(InterfaceElement::NODE_DEF_ATTRIBUTE))
         {
             for (OutputPtr output : nodeGraph->getOutputs())
             {
