@@ -79,9 +79,9 @@ void ShaderGenerator::emitBlock(const string& str, GenContext& context, ShaderSt
     stage.addBlock(str, context);
 }
 
-void ShaderGenerator::emitInclude(const string& file, GenContext& context, ShaderStage& stage) const
+void ShaderGenerator::emitInclude(const string& file, GenContext& context, ShaderStage& stage, const StringMap* tokenMap) const
 {
-    stage.addInclude(file, context);
+    stage.addInclude(file, context, tokenMap);
 }
 
 void ShaderGenerator::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const

@@ -120,14 +120,19 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     }
 
     // Emit uv transform function
+    StringMap transformMap;  
+    transformMap["$scaleX"] = "1.0";
+    transformMap["$scaleY"] = "1.0";
+    transformMap["$offsetX"] = "1.0";
+    transformMap["$offsetX"] = "1.0";
     if (context.getOptions().fileTextureVerticalFlip)
     {
-        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_get_target_uv_vflip.glsl", context, stage);
+        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_get_target_uv_vflip.glsl", context, stage, &transformMap);
         emitLineBreak(stage);
     }
     else
     {
-        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_get_target_uv_noop.glsl", context, stage);
+        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_get_target_uv_noop.glsl", context, stage, &transformMap);
         emitLineBreak(stage);
     }
 

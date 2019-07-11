@@ -315,7 +315,7 @@ void ShaderStage::addBlock(const string& str, GenContext& context)
     }
 }
 
-void ShaderStage::addInclude(const string& file, GenContext& context)
+void ShaderStage::addInclude(const string& file, GenContext& context, const StringMap* tokenReplacement)
 {
     const string path = context.resolveSourceFile(file);
 
@@ -325,6 +325,10 @@ void ShaderStage::addInclude(const string& file, GenContext& context)
         if (!readFile(path, content))
         {
             throw ExceptionShaderGenError("Could not find include file: '" + file + "'");
+        }
+        if (tokenReplacement)
+        {
+            content = replaceSubstrings(content, *tokenReplacement);
         }
         _includes.insert(path);
         addBlock(content, context);

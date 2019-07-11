@@ -152,7 +152,7 @@ class PyShaderGenerator : public mx::ShaderGenerator
         );
     }
 
-    void emitInclude(const std::string& file, mx::GenContext& context, mx::ShaderStage& stage) const override
+    void emitInclude(const std::string& file, mx::GenContext& context, mx::ShaderStage& stage, const mx::StringMap* tokenMap) const override
     {
         PYBIND11_OVERLOAD(
             void,
@@ -160,7 +160,8 @@ class PyShaderGenerator : public mx::ShaderGenerator
             emitInclude,
             file,
             context,
-            stage
+            stage,
+            tokenMap
         );
     }
 
