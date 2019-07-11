@@ -38,6 +38,9 @@ TEST_CASE("GenShader: OGS XML Generation", "[genogsxml]")
     mx::StringVec testGraphs = { };
     mx::StringVec testMaterials = { "Tiled_Brass", "Brass_Wire_Mesh" };
 
+    constexpr mx::Shader* hlslShader = nullptr;
+    constexpr bool hwTransparency = false;
+
     for (const auto& testGraph : testGraphs)
     {
         mx::NodeGraphPtr graph = doc->getNodeGraph(testGraph);
@@ -51,7 +54,7 @@ TEST_CASE("GenShader: OGS XML Generation", "[genogsxml]")
                 std::ofstream file(name + ".xml");
                 std::string shaderName = output->getNamePath();
                 shaderName = MaterialX::createValidName(shaderName);
-                xmlGenerator.generate(shaderName, shader.get(), nullptr, file);
+                xmlGenerator.generate(shaderName, shader.get(), hlslShader, hwTransparency, file);
             }
         }
     }
@@ -68,7 +71,7 @@ TEST_CASE("GenShader: OGS XML Generation", "[genogsxml]")
                 std::ofstream file(shaderRef->getName() + ".xml");
                 std::string shaderName = shaderRef->getNamePath();
                 shaderName = MaterialX::createValidName(shaderName);
-                xmlGenerator.generate(shaderName, shader.get(), nullptr, file);
+                xmlGenerator.generate(shaderName, shader.get(), hlslShader, hwTransparency, file);
             }
         }
     }

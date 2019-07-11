@@ -106,6 +106,10 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
         throw mx::Exception("Invalid element to create wrapper for " + _element->getName());
     }
 
+    // TODO: figure out how to determine this: from UI or from the document?
+    // For now, can flip this variable in a debugger.
+    static bool hwTransparency = true;
+
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::GlslFragmentGenerator::create();
         mx::GenContext genContext(shaderGenerator);
@@ -113,7 +117,7 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
         // Set up color management. We assume the target render space is linear
         // if not found in the document. Currently the default system has no other color space targets.
         //
-        static std::string MATERIALX_LINEAR_WORKING_SPACE("lin_rec709");
+        static const std::string MATERIALX_LINEAR_WORKING_SPACE("lin_rec709");
         const std::string language = shaderGenerator->getLanguage();
         mx::DefaultColorManagementSystemPtr colorManagementSystem = mx::DefaultColorManagementSystem::create(language);
         if (colorManagementSystem)
@@ -121,14 +125,9 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
             shaderGenerator->setColorManagementSystem(colorManagementSystem);
             colorManagementSystem->loadLibrary(_document);
             const std::string& documentColorSpace = _document->getAttribute(mx::Element::COLOR_SPACE_ATTRIBUTE);
-            if (documentColorSpace.empty())
-            {
-                genContext.getOptions().targetColorSpaceOverride = MATERIALX_LINEAR_WORKING_SPACE;
-            }
-            else
-            {
-                genContext.getOptions().targetColorSpaceOverride = documentColorSpace;
-            }
+
+            genContext.getOptions().targetColorSpaceOverride =
+                documentColorSpace.empty() ? MATERIALX_LINEAR_WORKING_SPACE : documentColorSpace;
         }
 
         // Set up generator context. For shaders use FIS environment lookup,
@@ -141,6 +140,8 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
         genContext.getOptions().hwMaxActiveLightSources = 0;
         // For Maya we need to insert a V-flip fragment
         genContext.getOptions().fileTextureVerticalFlip = true;
+
+        genContext.getOptions().hwTransparency = hwTransparency;
 
         // Generate the fragment source (shader and XML wrapper).
         _fragmentName = _element->getNamePath();
@@ -159,9 +160,11 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
         std::ostringstream sourceStream;
         mx::OgsXmlGenerator ogsXmlGenerator;
 
+        constexpr mx::Shader* hlslShader = nullptr;
+
         // Note: This name must match the the fragment name used for registration
         // or the registration will fail.
-        ogsXmlGenerator.generate(FRAGMENT_NAME_TOKEN, _shader.get(), nullptr, sourceStream);
+        ogsXmlGenerator.generate(FRAGMENT_NAME_TOKEN, _shader.get(), hlslShader, hwTransparency, sourceStream);
         _fragmentSource = sourceStream.str();
         if (_fragmentSource.empty())
         {
