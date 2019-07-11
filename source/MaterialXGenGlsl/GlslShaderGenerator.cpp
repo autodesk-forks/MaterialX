@@ -455,20 +455,16 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
 
     // Emit uv transform function
     StringMap transformMap;
-    transformMap["$scaleX"] = "1.0";
-    transformMap["$scaleY"] = "1.0";
-    transformMap["$offsetX"] = "1.0";
-    transformMap["$offsetX"] = "1.0";
     if (context.getOptions().fileTextureVerticalFlip)
     {
-        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_get_target_uv_vflip.glsl", context, stage, &transformMap);
-        emitLineBreak(stage);
+        transformMap["$flip"] = "1.0 - ";
     }
     else
     {
-        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_get_target_uv_noop.glsl", context, stage, &transformMap);
-        emitLineBreak(stage);
+        transformMap["$flip"] = "";
     }
+    emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.glsl", context, stage, &transformMap);
+    emitLineBreak(stage);
 
     // Add all functions for node implementations
     emitFunctionDefinitions(graph, context, stage);

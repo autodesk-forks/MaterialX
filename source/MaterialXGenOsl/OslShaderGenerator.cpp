@@ -191,21 +191,18 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     }
 
     // Emit uv transform function
+    // Emit uv transform function
     StringMap transformMap;
-    transformMap["$scaleX"] = "1.0";
-    transformMap["$scaleY"] = "1.0";
-    transformMap["$offsetX"] = "1.0";
-    transformMap["$offsetX"] = "1.0";
     if (context.getOptions().fileTextureVerticalFlip)
     {
-        emitInclude("stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_get_target_uv_vflip.osl", context, stage, &transformMap);
-        emitLineBreak(stage);
+        transformMap["$flip"] = "1.0 - ";
     }
     else
     {
-        emitInclude("stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_get_target_uv_noop.osl", context, stage, &transformMap);
-        emitLineBreak(stage);
+        transformMap["$flip"] = "";
     }
+    emitInclude("stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.osl", context, stage, &transformMap);
+    emitLineBreak(stage);
 
     // Emit function definitions for all nodes
     emitFunctionDefinitions(graph, context, stage);
