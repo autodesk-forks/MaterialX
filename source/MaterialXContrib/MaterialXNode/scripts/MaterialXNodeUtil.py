@@ -1,5 +1,6 @@
 import os
 import maya.cmds as cmds
+import maya.mel as mel
 
 from subprocess import Popen
 from distutils.spawn import find_executable
@@ -10,13 +11,13 @@ def editMaterialXDocument(documentPath, element, editor):
         print ("Unable to find editor: " + editor)
     else:
         print "Launching editor..."
-        editor_dir = os.path.dirname(editor_path)
-        Popen([editor, documentPath, element], cwd=editor_dir)
+        cmd = "system(\"start " + editor + " \\\"" + documentPath + "\\\"\");"
+        mel.eval(cmd)
 
 def editMaterialXNode(nodeName):
     documentFilePath = cmds.getAttr(nodeName + "documentFilePath")
     elementPath = cmds.getAttr(nodeName + "elementPath")
-    editor = "LookdevX.exe"
+    editor = os.environ['MAYA_MATERIALX_EDITOR'] if 'MAYA_MATERIALX_EDITOR' in os.environ else "Notepad.exe"
     editMaterialXDocument(documentFilePath, elementPath, editor)
 
 def getMaterialXNodesForDocument(documentPath):
