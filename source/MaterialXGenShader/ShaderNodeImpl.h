@@ -63,6 +63,9 @@ class ShaderNodeImpl
         return _hash;
     }
 
+    /// Add additional inputs on the node 
+    virtual void addInputs(ShaderNode& node, GenContext& context) const;
+
     /// Create shader variables needed for the implementation of this node (e.g. uniforms, inputs and outputs).
     /// Used if the node requires input data from the application.
     virtual void createVariables(const ShaderNode& node, GenContext& context, Shader& shader) const;

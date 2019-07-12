@@ -256,6 +256,9 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
         }
     }
 
+    // Add any additional inputs required by the implementation
+    newNode->getImplementation().addInputs(*newNode, context);
+
     // Add a default output if needed
     if (newNode->numOutputs() == 0)
     {

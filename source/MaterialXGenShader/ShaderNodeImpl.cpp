@@ -34,6 +34,10 @@ void ShaderNodeImpl::initialize(const InterfaceElement& element, GenContext&)
     _hash = std::hash<string>{}(_name);
 }
 
+void ShaderNodeImpl::addInputs(ShaderNode&, GenContext&) const
+{
+}
+
 void ShaderNodeImpl::createVariables(const ShaderNode&, GenContext&, Shader&) const
 {
 }
