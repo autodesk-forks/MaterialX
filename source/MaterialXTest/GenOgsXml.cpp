@@ -26,7 +26,10 @@ TEST_CASE("GenShader: OGS XML Generation", "[genogsxml]")
     loadLibraries({ "stdlib", "pbrlib", "bxdf", "lights" }, librariesPath, doc);
 
     const mx::FilePath resourcesPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources");
-    loadLibraries({ "Materials/TestSuite", "Materials/Examples" }, librariesPath, doc);
+    mx::FileSearchPath searchPath;
+    searchPath.append(resourcesPath);
+    searchPath.append(librariesPath);
+    loadLibraries({ "Materials/TestSuite/libraries/metal", "Materials/Examples" }, searchPath, doc);
 
     mx::ShaderGeneratorPtr glslGenerator = mx::GlslFragmentGenerator::create();
     mx::GenContext glslContext(glslGenerator);
