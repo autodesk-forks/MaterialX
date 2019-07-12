@@ -2,7 +2,6 @@ import os
 import maya.cmds as cmds
 import maya.mel as mel
 
-from subprocess import Popen
 from distutils.spawn import find_executable
 
 def editMaterialXDocument(documentPath, element, editor):
@@ -17,8 +16,11 @@ def editMaterialXDocument(documentPath, element, editor):
 def editMaterialXNode(nodeName):
     documentFilePath = cmds.getAttr(nodeName + "documentFilePath")
     elementPath = cmds.getAttr(nodeName + "elementPath")
-    editor = os.environ['MAYA_MATERIALX_EDITOR'] if 'MAYA_MATERIALX_EDITOR' in os.environ else "Notepad.exe"
-    editMaterialXDocument(documentFilePath, elementPath, editor)
+    if cmds.optionVar(exists='MAYA_MATERIALX_EDITOR'):
+        editor = cmds.optionVar(q='MAYA_MATERIALX_EDITOR')
+        editMaterialXDocument(documentFilePath, elementPath, editor)
+    else:
+        print "Please set optionVar: 'MAYA_MATERIALX_EDITOR'"
 
 def getMaterialXNodesForDocument(documentPath):
     nodes = cmds.ls(type="MaterialXNode")
