@@ -28,13 +28,14 @@
 #include <MaterialXGenGlsl/Nodes/TransformPointNodeGlsl.h>
 #include <MaterialXGenGlsl/Nodes/TransformNormalNodeGlsl.h>
 
-#include <MaterialXGenShader/Nodes/SourceCodeNode.h>
+#include <MaterialXGenShader/Nodes/HwSourceCodeNode.h>
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>
 #include <MaterialXGenShader/Nodes/ConvertNode.h>
 #include <MaterialXGenShader/Nodes/CombineNode.h>
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/CompareNode.h>
 #include <MaterialXGenShader/Nodes/BlurNode.h>
+#include <MaterialXGenShader/Nodes/HwImageNode.h>
 
 namespace MaterialX
 {
@@ -247,6 +248,15 @@ GlslShaderGenerator::GlslShaderGenerator() :
 
     // <!-- <ND_transformnormal> ->
     registerImplementation("IM_transformnormal_vector3_" + GlslShaderGenerator::LANGUAGE, TransformNormalNodeGlsl::create);
+
+    // <!-- <image> -->
+    registerImplementation("IM_image_float_" + GlslShaderGenerator::LANGUAGE, HwImageNode::create);
+    registerImplementation("IM_image_color2_" + GlslShaderGenerator::LANGUAGE, HwImageNode::create);
+    registerImplementation("IM_image_color3_" + GlslShaderGenerator::LANGUAGE, HwImageNode::create);
+    registerImplementation("IM_image_color4_" + GlslShaderGenerator::LANGUAGE, HwImageNode::create);
+    registerImplementation("IM_image_vector2_" + GlslShaderGenerator::LANGUAGE, HwImageNode::create);
+    registerImplementation("IM_image_vector3_" + GlslShaderGenerator::LANGUAGE, HwImageNode::create);
+    registerImplementation("IM_image_vector4_" + GlslShaderGenerator::LANGUAGE, HwImageNode::create);
 
     _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "numActiveLightSources", NumLightsNodeGlsl::create()));
     _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "sampleLightSource", LightSamplerNodeGlsl::create()));
