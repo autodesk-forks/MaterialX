@@ -11,6 +11,7 @@
 #include <maya/MPxSurfaceShadingNodeOverride.h>
 
 #include <MaterialXData.h>
+#include <MaterialXGenShader/Util.h>
 #include <MaterialXGenShader/HwShaderGenerator.h>
 #include <MaterialXRender/ImageHandler.h>
 
@@ -85,8 +86,8 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
         VP2TextureUniquePtr texturePtr;
         if (udimIdentifiers && !udimIdentifiers->empty())
         {
-            std::vector<mx::Vector2> udimCoordinates{ mx::ImageHandler::getUdimCoordinates(*udimIdentifiers) };
-            mx::FilePathVec udimPaths{ mx::ImageHandler::getUdimPaths(fileName, *udimIdentifiers) };
+            std::vector<mx::Vector2> udimCoordinates{ mx::getUdimCoordinates(*udimIdentifiers) };
+            mx::FilePathVec udimPaths{ mx::getUdimPaths(fileName, *udimIdentifiers) };
             // Make sure we have 1:1 match of paths to coordinates.
             if (udimCoordinates.size() != udimPaths.size())
             {

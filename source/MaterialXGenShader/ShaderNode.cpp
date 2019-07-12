@@ -405,6 +405,12 @@ void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, GenContext&
             }
         }
     }
+
+    // Set implementation specific values.
+    if (_impl)
+    {
+        _impl->setValues(node, *this, context);
+    }
 }
 
 ShaderInput* ShaderNode::getInput(const string& name)

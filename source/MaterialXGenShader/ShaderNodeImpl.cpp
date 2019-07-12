@@ -38,6 +38,10 @@ void ShaderNodeImpl::addInputs(ShaderNode&, GenContext&) const
 {
 }
 
+void ShaderNodeImpl::setValues(const Node&, ShaderNode&, GenContext&) const
+{
+}
+
 void ShaderNodeImpl::createVariables(const ShaderNode&, GenContext&, Shader&) const
 {
 }

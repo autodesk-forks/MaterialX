@@ -18,6 +18,7 @@ public:
     static ShaderNodeImplPtr create();
 
     void addInputs(ShaderNode& node, GenContext& context) const override;
+    void setValues(const Node& node, ShaderNode& shaderNode, GenContext& context) const override;
     void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 };
 

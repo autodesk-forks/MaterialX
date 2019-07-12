@@ -27,6 +27,11 @@ void ImageNode::addInputs(ShaderNode& node, GenContext&) const
     input->setValue(Value::createValue<Vector2>(Vector2(0.0f, 0.0f)));
 }
 
+void ImageNode::setValues(const Node& /*node*/, ShaderNode& /*shaderNode*/, GenContext& /*context*/) const
+{
+    // TODO: Share code with HWImageNode.
+}
+
 void ImageNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     SourceCodeNode::emitFunctionCall(node, context, stage);
