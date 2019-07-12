@@ -69,6 +69,8 @@ class MaterialXData
     /// Get image sampling properties for a given file parameter
     mx::ImageSamplingProperties getImageSamplngProperties(const std::string& fileParameterName) const;
 
+    bool isTransparent() const { return _isTransparent; }
+
   private:
     /// Create the OGS XML wrapper for shader fragments associated
     /// with the element set to render
@@ -89,6 +91,8 @@ class MaterialXData
 
     /// MaterialX shader 
     mx::ShaderPtr _shader;
+
+    bool _isTransparent = false;
 };
 
 #endif // MATERIALX_DATA_H

@@ -106,10 +106,6 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
         throw mx::Exception("Invalid element to create wrapper for " + _element->getName());
     }
 
-    // TODO: figure out how to determine this: from UI or from the document?
-    // For now, can flip this variable in a debugger.
-    static bool hwTransparency = true;
-
     {
         mx::ShaderGeneratorPtr shaderGenerator = mx::GlslFragmentGenerator::create();
         mx::GenContext genContext(shaderGenerator);
@@ -141,7 +137,8 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
         // For Maya we need to insert a V-flip fragment
         genContext.getOptions().fileTextureVerticalFlip = true;
 
-        genContext.getOptions().hwTransparency = hwTransparency;
+        _isTransparent = mx::isTransparentSurface(_element, *shaderGenerator);
+        genContext.getOptions().hwTransparency = _isTransparent;
 
         // Generate the fragment source (shader and XML wrapper).
         _fragmentName = _element->getNamePath();
@@ -164,7 +161,7 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
 
         // Note: This name must match the the fragment name used for registration
         // or the registration will fail.
-        ogsXmlGenerator.generate(FRAGMENT_NAME_TOKEN, _shader.get(), hlslShader, hwTransparency, sourceStream);
+        ogsXmlGenerator.generate(FRAGMENT_NAME_TOKEN, _shader.get(), hlslShader, _isTransparent, sourceStream);
         _fragmentSource = sourceStream.str();
         if (_fragmentSource.empty())
         {
