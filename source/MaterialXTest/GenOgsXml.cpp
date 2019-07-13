@@ -18,33 +18,38 @@
 
 namespace mx = MaterialX;
 
-TEST_CASE("GenShader: OGS XML Generation", "[genogsxml]")
+TEST_CASE("GenShader: OGS XML Generation", "[ogsxml]")
 {
+    INFO("Start genogsxml");
     mx::DocumentPtr doc = mx::createDocument();
 
     const mx::FilePath librariesPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
-    std::cout << "Load lib 1 START\n";
+    INFO("Load lib 1 START");
     loadLibraries({ "stdlib", "pbrlib", "bxdf", "lights" }, librariesPath, doc);
-    std::cout << "Load lib 2 END\n";
+    INFO("Load lib 2 END");
 
     const mx::FilePath resourcesPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources");
     mx::FileSearchPath searchPath;
     searchPath.append(resourcesPath);
     searchPath.append(librariesPath);
-    std::cout << "Load lib 1 START\n";
+    INFO("Load lib 1 START");
     loadLibraries({ "Materials/TestSuite/libraries/metal", "Materials/Examples" }, searchPath, doc);
-    std::cout << "Load lib 2 END\n";
+    INFO("Load lib 2 END");
 
+    INFO("Create glsl generator START");
     mx::ShaderGeneratorPtr glslGenerator = mx::GlslFragmentGenerator::create();
+    INFO("Create glsl generator end");
+    INFO("Create context START");
     mx::GenContext glslContext(glslGenerator);
+    INFO("Create context end");
     glslContext.registerSourceCodeSearchPath(librariesPath);
     glslContext.getOptions().fileTextureVerticalFlip = true;
 
     mx::OgsXmlGenerator xmlGenerator;
 
-    mx::StringVec testGraphs = { };
+    //mx::StringVec testGraphs = { };
     mx::StringVec testMaterials = { "Tiled_Brass", "Brass_Wire_Mesh" };
-
+#if 0
     for (const auto& testGraph : testGraphs)
     {
         mx::NodeGraphPtr graph = doc->getNodeGraph(testGraph);
@@ -62,17 +67,17 @@ TEST_CASE("GenShader: OGS XML Generation", "[genogsxml]")
             }
         }
     }
-
+#endif
     for (const auto& testMaterial : testMaterials)
     {
         mx::MaterialPtr mtrl = doc->getMaterial(testMaterial);
-        std::cout << "Scan material: " << testMaterial << "\n";
+        INFO("Scan material: " + testMaterial);
         if (mtrl)
         {
             std::vector<mx::ShaderRefPtr> shaderRefs = mtrl->getShaderRefs();
             for (const auto& shaderRef : shaderRefs)
             {
-                std::cout << "Generate shaderref: " << shaderRef->getNamePath() << "\n";
+                INFO("Generate shaderref: " + shaderRef->getNamePath());
                 mx::ShaderPtr shader = nullptr;
                 try
                 {
@@ -80,7 +85,7 @@ TEST_CASE("GenShader: OGS XML Generation", "[genogsxml]")
                 }
                 catch (mx::Exception& e)
                 {
-                    std::cout << "Failed to generate GLSL: " << e.what() << std::endl;
+                    INFO("Failed to generate GLSL: " + std::string(e.what()));
                 }
                 if (shader)
                 {
@@ -93,7 +98,7 @@ TEST_CASE("GenShader: OGS XML Generation", "[genogsxml]")
                     }
                     catch (mx::Exception& e)
                     {
-                        std::cout << "Failed to generate GLSL XML: " << e.what() << std::endl;
+                        INFO("Failed to generate GLSL XML: " + std::string(e.what()));
                     }
                 }
             }
