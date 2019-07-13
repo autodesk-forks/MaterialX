@@ -23,13 +23,17 @@ TEST_CASE("GenShader: OGS XML Generation", "[genogsxml]")
     mx::DocumentPtr doc = mx::createDocument();
 
     const mx::FilePath librariesPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
+    std::cout << "Load lib 1 START\n";
     loadLibraries({ "stdlib", "pbrlib", "bxdf", "lights" }, librariesPath, doc);
+    std::cout << "Load lib 2 END\n";
 
     const mx::FilePath resourcesPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources");
     mx::FileSearchPath searchPath;
     searchPath.append(resourcesPath);
     searchPath.append(librariesPath);
+    std::cout << "Load lib 1 START\n";
     loadLibraries({ "Materials/TestSuite/libraries/metal", "Materials/Examples" }, searchPath, doc);
+    std::cout << "Load lib 2 END\n";
 
     mx::ShaderGeneratorPtr glslGenerator = mx::GlslFragmentGenerator::create();
     mx::GenContext glslContext(glslGenerator);
@@ -62,16 +66,36 @@ TEST_CASE("GenShader: OGS XML Generation", "[genogsxml]")
     for (const auto& testMaterial : testMaterials)
     {
         mx::MaterialPtr mtrl = doc->getMaterial(testMaterial);
+        std::cout << "Scan material: " << testMaterial << "\n";
         if (mtrl)
         {
             std::vector<mx::ShaderRefPtr> shaderRefs = mtrl->getShaderRefs();
             for (const auto& shaderRef : shaderRefs)
             {
-                mx::ShaderPtr shader = glslGenerator->generate(shaderRef->getName(), shaderRef, glslContext);
-                std::ofstream file(shaderRef->getName() + ".xml");
-                std::string shaderName = shaderRef->getNamePath();
-                shaderName = MaterialX::createValidName(shaderName);
-                xmlGenerator.generate(shaderName, shader.get(), nullptr, file);
+                std::cout << "Generate shaderref: " << shaderRef->getNamePath() << "\n";
+                mx::ShaderPtr shader = nullptr;
+                try
+                {
+                    shader = glslGenerator->generate(shaderRef->getName(), shaderRef, glslContext);
+                }
+                catch (mx::Exception& e)
+                {
+                    std::cout << "Failed to generate GLSL: " << e.what() << std::endl;
+                }
+                if (shader)
+                {
+                    std::ofstream file(shaderRef->getName() + ".xml");
+                    std::string shaderName = shaderRef->getNamePath();
+                    shaderName = MaterialX::createValidName(shaderName);
+                    try
+                    {
+                        xmlGenerator.generate(shaderName, shader.get(), nullptr, file);
+                    }
+                    catch (mx::Exception& e)
+                    {
+                        std::cout << "Failed to generate GLSL XML: " << e.what() << std::endl;
+                    }
+                }
             }
         }
     }
