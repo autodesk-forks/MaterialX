@@ -268,6 +268,9 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     // End shader body
     emitScopeEnd(stage);
 
+    // Perform token substitution
+    replaceTokens(_tokenSubstitutions, stage);
+
     return shader;
 }
 
