@@ -1,5 +1,5 @@
 //
-// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// TM & (c) 2019 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
 // All rights reserved.  See LICENSE.txt for license.
 //
 
@@ -19,7 +19,6 @@ public:
 
     void addInputs(ShaderNode& node, GenContext& context) const override;
     void setValues(const Node& node, ShaderNode& shaderNode, GenContext& context) const override;
-    void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 };
 
 } // namespace MaterialX

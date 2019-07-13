@@ -71,7 +71,7 @@ class ShaderGenerator
 
     /// Add the contents of an include file. Making sure it is 
     /// only included once for the shader stage.
-    virtual void emitInclude(const string& file, GenContext& context, ShaderStage& stage, const StringMap* tokenMap=nullptr) const;
+    virtual void emitInclude(const string& file, GenContext& context, ShaderStage& stage) const;
 
     /// Add a value.
     template<typename T>

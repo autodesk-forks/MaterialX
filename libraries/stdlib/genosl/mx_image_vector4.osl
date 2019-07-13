@@ -1,4 +1,4 @@
-void mx_image_vector4(string file, string layer, vector4 default_value, vector2 texcoord, string uaddressmode, string vaddressmode, string filtertype, string framerange, int frameoffset, string frameendaction, vector2 uv_scale, vector2 uv_offset, output vector4 out)
+void mx_image_vector4(string file, string layer, vector4 default_value, vector2 texcoord, string uaddressmode, string vaddressmode, string filtertype, string framerange, int frameoffset, string frameendaction, output vector4 out)
 {
     if (file == "" ||
         (uaddressmode == "constant" && (texcoord.x<0.0 || texcoord.x>1.0)) ||
@@ -10,7 +10,7 @@ void mx_image_vector4(string file, string layer, vector4 default_value, vector2 
 
     color missingColor = color(default_value.x, default_value.y, default_value.z);
     float missingAlpha = default_value.w;
-    vector2 st = mx_transform_uv(texcoord, uv_scale, uv_offset);
+    vector2 st = mx_transform_uv(texcoord, vector2(1.0, 1.0), vector2(0.0, 0.0));
     float alpha;
     color rgb = texture(file, st.x, st.y, "alpha", alpha, "subimage", layer,
                         "missingcolor", missingColor, "missingalpha", missingAlpha, "swrap", uaddressmode, "twrap", vaddressmode);

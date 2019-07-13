@@ -1,5 +1,5 @@
 //
-// TM & (c) 2017 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// TM & (c) 2019 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
 // All rights reserved.  See LICENSE.txt for license.
 //
 
@@ -12,6 +12,9 @@
 
 namespace MaterialX
 {
+// Additional implementaton arguments for image nodes
+const string UV_SCALE = "uv_scale";
+const string UV_OFFSET = "uv_offset";
 
 ShaderNodeImplPtr HwImageNode::create()
 {
@@ -20,16 +23,18 @@ ShaderNodeImplPtr HwImageNode::create()
 
 void HwImageNode::addInputs(ShaderNode& node, GenContext&) const
 {
-    // Add additional scale and offset inputs
-    ShaderInput* input = node.addInput("uv_scale", Type::VECTOR2);
+    // Add additional scale and offset inputs to match implementation arguments
+    ShaderInput* input = node.addInput(UV_SCALE, Type::VECTOR2);
     input->setValue(Value::createValue<Vector2>(Vector2(1.0f, 1.0f)));
-    input = node.addInput("uv_offset", Type::VECTOR2);
+    input = node.addInput(UV_OFFSET, Type::VECTOR2);
     input->setValue(Value::createValue<Vector2>(Vector2(0.0f, 0.0f)));
 }
 
 void HwImageNode::setValues(const Node& node, ShaderNode& shaderNode, GenContext& context) const
 {
-    if (context.getOptions().normalizeUdimTexCoords)
+    // Remap uvs to normalized 0..1 space if the original UDIMs in a UDIM set
+    // have been mapped to a single texture atlas which must be accessed in 0..1 space.
+    if (context.getOptions().hwNormalizeUdimTexCoords)
     {
         ParameterPtr file = node.getParameter("file");
         if (file)
@@ -38,7 +43,7 @@ void HwImageNode::setValues(const Node& node, ShaderNode& shaderNode, GenContext
             const string& fileName = file->getValueString();
             if (fileName.find(UDIM_TOKEN) != string::npos)
             {
-                ValuePtr udimSetValue = node.getDocument()->getGeomAttrValue("udimset");
+                ValuePtr udimSetValue = node.getDocument()->getGeomAttrValue(UDIMSET);
                 if (udimSetValue && udimSetValue->isA<StringVec>())
                 {
                     const StringVec& udimIdentifiers = udimSetValue->asA<StringVec>();
@@ -48,31 +53,20 @@ void HwImageNode::setValues(const Node& node, ShaderNode& shaderNode, GenContext
                     Vector2 offsetUV{ 0.0f, 0.0f };
                     getUdimScaleAndOffset(udimCoordinates, scaleUV, offsetUV);
 
-                    ShaderInput* input = shaderNode.getInput("uv_scale");
+                    ShaderInput* input = shaderNode.getInput(UV_SCALE);
                     if (input)
                     {
-                        //std::cout << "Handle UDIMS scale: " << std::to_string(scaleUV[0]) 
-                        //    << " , " << std::to_string(scaleUV[1])
-                        //    << std::endl;
                         input->setValue(Value::createValue<Vector2>(scaleUV));
                     }
-                    input = shaderNode.getInput("uv_offset");
+                    input = shaderNode.getInput(UV_OFFSET);
                     if (input)
                     {
-                        //std::cout << "Handle UDIMS offset: " << std::to_string(offsetUV[0])
-                        //    << " , " << std::to_string(offsetUV[1])
-                        //    << std::endl;
                         input->setValue(Value::createValue<Vector2>(offsetUV));
                     }
                 }
             }
         }
     }
-}
-
-void HwImageNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
-{
-    HwSourceCodeNode::emitFunctionCall(node, context, stage);
 }
 
 } // namespace MaterialX

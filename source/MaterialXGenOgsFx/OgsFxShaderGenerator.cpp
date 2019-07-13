@@ -315,16 +315,7 @@ void OgsFxShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     }
 
     // Emit uv transform function
-    StringMap transformMap;
-    if (context.getOptions().fileTextureVerticalFlip)
-    {
-        transformMap["$flip"] = "1.0 - ";
-    }
-    else
-    {
-        transformMap["$flip"] = "";
-    }
-    emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.glsl", context, stage, &transformMap);
+    emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.glsl", context, stage);
     emitLineBreak(stage);
 
     // Emit environment lighting functions

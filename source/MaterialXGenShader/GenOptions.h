@@ -83,13 +83,16 @@ class GenOptions
     /// lighting for HW shader targets.
     int hwSpecularEnvironmentMethod;
 
-    /// Sets whether to transform texture coordinates to normalize
-    /// uv space when UDIMs images are bound to an image.
-    bool normalizeUdimTexCoords;
-
     /// Sets the maximum number of light sources that can
     /// be active at once.
     unsigned int hwMaxActiveLightSources;
+
+    /// Sets whether to transform texture coordinates to normalize
+    /// uv space when UDIMs images are bound to an image. Can be
+    /// enabled for when texture atlas generation is performed to
+    /// compress a set of UDIMs into a single normalized image for
+    /// hardware rendering.
+    bool hwNormalizeUdimTexCoords;
 };
 
 } // namespace MaterialX

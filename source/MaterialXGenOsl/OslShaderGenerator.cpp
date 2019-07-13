@@ -16,7 +16,6 @@
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/CompareNode.h>
 #include <MaterialXGenShader/Nodes/BlurNode.h>
-#include <MaterialXGenShader/Nodes/ImageNode.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
 namespace MaterialX
@@ -168,15 +167,6 @@ OslShaderGenerator::OslShaderGenerator() :
     registerImplementation("IM_blur_vector2_" + OslShaderGenerator::LANGUAGE, BlurNode::create);
     registerImplementation("IM_blur_vector3_" + OslShaderGenerator::LANGUAGE, BlurNode::create);
     registerImplementation("IM_blur_vector4_" + OslShaderGenerator::LANGUAGE, BlurNode::create);
-
-    // <!-- <image> -->
-    registerImplementation("IM_image_float_" + OslShaderGenerator::LANGUAGE, ImageNode::create);
-    registerImplementation("IM_image_color2_" + OslShaderGenerator::LANGUAGE, ImageNode::create);
-    registerImplementation("IM_image_color3_" + OslShaderGenerator::LANGUAGE, ImageNode::create);
-    registerImplementation("IM_image_color4_" + OslShaderGenerator::LANGUAGE, ImageNode::create);
-    registerImplementation("IM_image_vector2_" + OslShaderGenerator::LANGUAGE, ImageNode::create);
-    registerImplementation("IM_image_vector3_" + OslShaderGenerator::LANGUAGE, ImageNode::create);
-    registerImplementation("IM_image_vector4_" + OslShaderGenerator::LANGUAGE, ImageNode::create);
 }
 
 ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
@@ -202,17 +192,7 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     }
 
     // Emit uv transform function
-    // Emit uv transform function
-    StringMap transformMap;
-    if (context.getOptions().fileTextureVerticalFlip)
-    {
-        transformMap["$flip"] = "1.0 - ";
-    }
-    else
-    {
-        transformMap["$flip"] = "";
-    }
-    emitInclude("stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.osl", context, stage, &transformMap);
+    emitInclude("stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.osl", context, stage);
     emitLineBreak(stage);
 
     // Emit function definitions for all nodes

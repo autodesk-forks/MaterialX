@@ -79,9 +79,9 @@ void ShaderGenerator::emitBlock(const string& str, GenContext& context, ShaderSt
     stage.addBlock(str, context);
 }
 
-void ShaderGenerator::emitInclude(const string& file, GenContext& context, ShaderStage& stage, const StringMap* tokenMap) const
+void ShaderGenerator::emitInclude(const string& file, GenContext& context, ShaderStage& stage) const
 {
-    stage.addInclude(file, context, tokenMap);
+    stage.addInclude(file, context);
 }
 
 void ShaderGenerator::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
@@ -236,6 +236,18 @@ void ShaderGenerator::resetIdentifiers(GenContext& context) const
     for (const auto& name : _syntax->getRestrictedNames())
     {
         context.addIdentifier(name);
+    }
+
+    // Add V-flip token substitution
+    const string T_VFLIP = "$vFlip";
+    ShaderGenerator* nonConstThis = const_cast<ShaderGenerator *>(this);
+    if (context.getOptions().fileTextureVerticalFlip)
+    {
+        nonConstThis->_tokenSubstitutions[T_VFLIP] = "1.0 - ";
+    }
+    else
+    {
+        nonConstThis->_tokenSubstitutions[T_VFLIP] = "";
     }
 
     // Add in the token substitution identifiers as taken names

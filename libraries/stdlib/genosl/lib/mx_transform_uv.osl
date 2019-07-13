@@ -4,5 +4,5 @@
 vector2 mx_transform_uv(vector2 texcoord, vector2 uv_scale, vector2 uv_offset)
 {
     texcoord = texcoord * uv_scale + uv_offset;
-    return vector2(texcoord.x, $flip texcoord.y);
+    return vector2(texcoord.x, $vFlip texcoord.y);
 }
