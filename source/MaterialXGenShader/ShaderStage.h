@@ -221,7 +221,7 @@ class ShaderStage
 
     /// Add the contents of an include file. Making sure it is 
     /// only included once for the shader stage.
-    void addInclude(const string& file, GenContext& context, const StringMap* tokenReplacement=nullptr);
+    void addInclude(const string& file, GenContext& context);
 
     /// Add a value.
     template<typename T>

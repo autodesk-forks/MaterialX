@@ -13,8 +13,6 @@
 
 #include <MaterialXCore/Document.h>
 
-#include <iostream>
-
 namespace MaterialX
 {
 
@@ -660,7 +658,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, GenContext& context)
                             }
                         }
                     }
-                }             
+                }
             }
         }
     }

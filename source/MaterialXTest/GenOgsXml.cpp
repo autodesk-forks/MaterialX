@@ -113,7 +113,7 @@ static void generateXmlCode()
     tester.validate(genOptions, optionsFilePath);
 }
 
-TEST_CASE("GenShader: OGS XML Shader Generation", "[ogsxml]")
+TEST_CASE("GenShader: OGS XML Shader Generation", "[genogsxml]")
 {
     generateXmlCode();
 }
