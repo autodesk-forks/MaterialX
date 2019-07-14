@@ -23,7 +23,7 @@ class OgsXmlShaderGeneratorTester : public GlslShaderGeneratorTester
 public:
     OgsXmlShaderGeneratorTester(const mx::FilePathVec& testRootPaths, const mx::FilePath& libSearchPath,
         const mx::FileSearchPath& srcSearchPath, const mx::FilePath& logFilePath) :
-        GlslShaderGeneratorTester(mx::GlslShaderGenerator::create(), testRootPaths, libSearchPath, srcSearchPath, logFilePath)
+        GlslShaderGeneratorTester(mx::GlslFragmentGenerator::create(), testRootPaths, libSearchPath, srcSearchPath, logFilePath)
     {
         dumpMaterials = { "Tiled_Brass", "Brass_Wire_Mesh" };
     }
