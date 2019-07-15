@@ -174,11 +174,18 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
         emitLineEnd(stage, false);
     }
 
-    emitLineBegin(stage);
-    emitString(COMMA, stage);
-    emitString("float ", stage);
-    emitString(OgsXmlGenerator::VP_TRANSPARENCY_NAME, stage);
-    emitLineEnd(stage, false);
+    if (context.getOptions().hwTransparency)
+    {
+        // A dummy argument not used in the generated shader code but necessary to
+        // map onto an OGS fragment parameter and a shading node DG attribute with
+        // the same name that can be set to a non-0 value to let Maya know that the
+        // surface is transparent.
+        emitLineBegin(stage);
+        emitString(COMMA, stage);
+        emitString("float ", stage);
+        emitString(OgsXmlGenerator::VP_TRANSPARENCY_NAME, stage);
+        emitLineEnd(stage, false);
+    }
 
     emitScopeEnd(stage);
 

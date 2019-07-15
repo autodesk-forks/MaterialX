@@ -143,7 +143,7 @@ void MaterialXData::generateFragment(const mx::FileSearchPath& librarySearchPath
         genOptions.fileTextureVerticalFlip = true;
 
         _isTransparent = mx::isTransparentSurface(_element, *shaderGenerator);
-        genContext.getOptions().hwTransparency = _isTransparent;
+        genOptions.hwTransparency = _isTransparent;
 
         // Maya viewport uses texture atlas for tile image so enabled
         // texture coordinate transform to go from original UDIM range to

@@ -290,6 +290,10 @@ void OgsXmlGenerator::generate( const std::string& shaderName, const Shader* gls
 
     if (hwTransparency)
     {
+        // A dummy argument not used in the generated shader code but necessary to
+        // map onto an OGS fragment parameter and a shading node DG attribute with
+        // the same name that can be set to a non-0 value to let Maya know that the
+        // surface is transparent.
         pugi::xml_node p = xmlProperties.append_child("float");
         xmlSetProperty(p, "", VP_TRANSPARENCY_NAME.c_str());
     }
