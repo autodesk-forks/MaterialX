@@ -120,8 +120,14 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     }
 
     // Emit uv transform function
-    emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.glsl", context, stage);
-    emitLineBreak(stage);
+    if (!context.getOptions().fileTextureVerticalFlip)
+    {
+        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.glsl", context, stage);
+    }
+    else
+    {
+        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv_vflip.glsl", context, stage);
+    }
 
     // Add all functions for node implementations
     emitFunctionDefinitions(graph, context, stage);

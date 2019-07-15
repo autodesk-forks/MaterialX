@@ -238,18 +238,6 @@ void ShaderGenerator::resetIdentifiers(GenContext& context) const
         context.addIdentifier(name);
     }
 
-    // Add V-flip token substitution
-    const string T_VFLIP = "$vFlip";
-    ShaderGenerator* nonConstThis = const_cast<ShaderGenerator *>(this);
-    if (context.getOptions().fileTextureVerticalFlip)
-    {
-        nonConstThis->_tokenSubstitutions[T_VFLIP] = "1.0 - ";
-    }
-    else
-    {
-        nonConstThis->_tokenSubstitutions[T_VFLIP] = "";
-    }
-
     // Add in the token substitution identifiers as taken names
     for (const auto& it : _tokenSubstitutions)
     {

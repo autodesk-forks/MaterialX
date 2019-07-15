@@ -315,8 +315,14 @@ void OgsFxShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     }
 
     // Emit uv transform function
-    emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.glsl", context, stage);
-    emitLineBreak(stage);
+    if (!context.getOptions().fileTextureVerticalFlip)
+    {
+        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.glsl", context, stage);
+    }
+    else
+    {
+        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv_vflip.glsl", context, stage);
+    }
 
     // Emit environment lighting functions
     if (lighting)

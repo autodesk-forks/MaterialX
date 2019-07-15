@@ -192,7 +192,14 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     }
 
     // Emit uv transform function
-    emitInclude("stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.osl", context, stage);
+    if (!context.getOptions().fileTextureVerticalFlip)
+    {
+        emitInclude("stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.osl", context, stage);
+    }
+    else
+    {
+        emitInclude("stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv_vflip.osl", context, stage);
+    }
     emitLineBreak(stage);
 
     // Emit function definitions for all nodes
