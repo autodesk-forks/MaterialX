@@ -71,7 +71,7 @@ class MaterialXData
 
     /// OGS does not support matrix3. As such the matrix4 parameter name is computed from the matrix3 name.
     /// This utility performs this computation.
-    std::string getMatrix4Name(const std::string& matrix3Name) const;
+    static std::string getMatrix4Name(const std::string& matrix3Name);
 
   private:
     /// Create the OGS XML wrapper for shader fragments associated

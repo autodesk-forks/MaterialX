@@ -355,7 +355,7 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
                     }
                 }
                 // Note: the parameter exposed uses a derived matrix44 name.
-                std::string matrix4Name = materialXData->getMatrix4Name(resolvedName.asChar());
+                std::string matrix4Name = MaterialXData::getMatrix4Name(resolvedName.asChar());
                 status = shader.setParameter(matrix4Name.c_str(), mayaValue);
             }
 
