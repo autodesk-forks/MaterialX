@@ -26,6 +26,7 @@ public:
 
     /// String constants
     static const string OUTPUT_NAME;
+    static const string VP_TRANSPARENCY_NAME;
     static const string SAMPLER_SUFFIX;
 };
 

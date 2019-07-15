@@ -251,6 +251,7 @@ namespace
 }
 
 const string OgsXmlGenerator::OUTPUT_NAME = "outColor";
+const string OgsXmlGenerator::VP_TRANSPARENCY_NAME = "vp2Transparency";
 const string OgsXmlGenerator::SAMPLER_SUFFIX = "Sampler";
 
 OgsXmlGenerator::OgsXmlGenerator()
@@ -286,6 +287,12 @@ void OgsXmlGenerator::generate( const std::string& shaderName, const Shader* gls
     xmlAddProperties(xmlProperties, stage.getUniformBlock(HW::PRIVATE_UNIFORMS), "isRequirementOnly");
     xmlAddProperties(xmlProperties, stage.getUniformBlock(HW::PUBLIC_UNIFORMS));
     xmlAddProperties(xmlProperties, stage.getInputBlock(HW::VERTEX_DATA), "isRequirementOnly, varyingInputParam");
+
+    if (hwTransparency)
+    {
+        pugi::xml_node p = xmlProperties.append_child("float");
+        xmlSetProperty(p, "", VP_TRANSPARENCY_NAME.c_str());
+    }
 
     // Add values
     pugi::xml_node xmlValues = xmlRoot.append_child(VALUES);

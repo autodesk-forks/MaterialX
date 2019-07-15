@@ -176,6 +176,12 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
         emitLineEnd(stage, false);
     }
 
+    emitLineBegin(stage);
+    emitString(COMMA, stage);
+    emitString("float ", stage);
+    emitString(OgsXmlGenerator::VP_TRANSPARENCY_NAME, stage);
+    emitLineEnd(stage, false);
+
     emitScopeEnd(stage);
 
     // Add function body
