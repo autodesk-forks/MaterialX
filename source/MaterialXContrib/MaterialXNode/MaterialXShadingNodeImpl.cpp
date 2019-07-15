@@ -340,7 +340,7 @@ void MaterialXShadingNodeImpl<BASE>::updateShader(MHWRender::MShaderInstance& sh
                 }
                 status = shader.setParameter(resolvedName, mayaValue);
             }
-            if (mtxValue->isA<mx::Matrix33>())
+            else if (mtxValue->isA<mx::Matrix33>())
             {
                 // Must promote matrix33 to matrix44 as the API
                 // has no matrix33 parameter binding interface.
