@@ -9,7 +9,6 @@
 #include <maya/MFnStringData.h>
 #include <maya/MFnTypedAttribute.h>
 #include <maya/MGlobal.h>
-#include <maya/M3dView.h>
 
 #define MAKE_INPUT(attr) \
     CHECK_MSTATUS(attr.setKeyable(true)); \
