@@ -5,8 +5,6 @@
 /// MaterialX Data wrapper
 
 #include <MaterialXCore/Document.h>
-#include <MaterialXGenShader/GenContext.h>
-#include <MaterialXGenOgsXml/OgsXmlGenerator.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXRender/ImageHandler.h>
 
@@ -83,8 +81,8 @@ class MaterialXData
     /// XML fragment name
     std::string _fragmentName;
 
-   // XML fragment source
-   std::string _fragmentSource;
+    // XML fragment source
+    std::string _fragmentSource;
 
     /// Mapping from MaterialX Element paths to XML input names
     mx::StringMap _pathInputMap;

@@ -5,6 +5,8 @@
 #include <MaterialXGenShader/Util.h>
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
 #include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
+#include <MaterialXGenShader/GenContext.h>
+#include <MaterialXGenOgsXml/OgsXmlGenerator.h>
 
 MaterialXData::MaterialXData(   mx::DocumentPtr document,
                                 const std::string& elementPath,
