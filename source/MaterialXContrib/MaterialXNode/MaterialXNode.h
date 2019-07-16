@@ -26,7 +26,8 @@ class MaterialXNode : public MPxNode
     bool setInternalValue(const MPlug&, const MDataHandle&) override;
 
     void setData(const MString& documentFilePath, const MString& elementPath, std::unique_ptr<MaterialXData>&&);
-    void createAndRegisterFragment(bool reloadDocument=false);
+    void createAndRegisterFragment();
+    void reloadDocument();
 
     const MaterialXData* getMaterialXData() const
     {

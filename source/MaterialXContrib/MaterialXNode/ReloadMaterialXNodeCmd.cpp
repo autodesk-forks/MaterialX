@@ -51,7 +51,7 @@ MStatus ReloadMaterialXNodeCmd::doIt(const MArgList &args)
             throw mx::Exception("MaterialXNode not found");
         }
 
-        materialXNode->createAndRegisterFragment(true);
+        materialXNode->reloadDocument();
     }
     catch (std::exception& e)
     {

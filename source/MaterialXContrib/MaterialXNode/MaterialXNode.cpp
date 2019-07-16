@@ -120,7 +120,7 @@ bool MaterialXNode::getInternalValue(const MPlug& plug, MDataHandle& dataHandle)
     return true;
 }
 
-void MaterialXNode::createAndRegisterFragment(bool reloadDocument)
+void MaterialXNode::createAndRegisterFragment()
 {
     try
     {
@@ -129,7 +129,7 @@ void MaterialXNode::createAndRegisterFragment(bool reloadDocument)
             return;
         }
 
-        if (!_document || reloadDocument)
+        if (!_document)
         {
             _document = MaterialXMaya::loadDocument(
                 _documentFilePath.asChar(), Plugin::instance().getLibrarySearchPath()
@@ -158,12 +158,6 @@ void MaterialXNode::createAndRegisterFragment(bool reloadDocument)
         MaterialXMaya::registerFragment(
             _materialXData->getFragmentName(), _materialXData->getFragmentSource()
         );
-
-        if (reloadDocument)
-        {
-            // TODO: Figure out a better way to refresh the viewport
-            MGlobal::executeCommand("ogs -reset");
-        }
     }
     catch (std::exception& e)
     {
@@ -177,6 +171,13 @@ void MaterialXNode::createAndRegisterFragment(bool reloadDocument)
     }
 }
 
+void MaterialXNode::reloadDocument()
+{
+    _document = nullptr;
+    createAndRegisterFragment();
+    // TODO: Figure out a better way to refresh the viewport
+    MGlobal::executeCommand("ogs -reset");
+}
 
 bool MaterialXNode::setInternalValue(const MPlug& plug, const MDataHandle& dataHandle)
 {
