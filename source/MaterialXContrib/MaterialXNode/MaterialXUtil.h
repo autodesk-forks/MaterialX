@@ -19,9 +19,13 @@ mx::FilePath findInSubdirectories(const mx::FileSearchPath& searchPaths,
 mx::DocumentPtr loadDocument(const std::string& materialXDocumentPath,
                              const MaterialX::FileSearchPath& librarySearchPath);
 
-/// Find renderable elements in a document. If a specific element is desired then this will
-/// be checked to see if it is renderable.
-std::vector<mx::TypedElementPtr> getRenderableElements(mx::DocumentPtr document, const std::string &desiredElementPath);
+/// Given an element path return a pointer to it within a document if it is considered to be renderable.
+/// @param document Document to examine
+/// @param renderableElements List of elements in the document that are considered to be renderable.
+/// @param elementPath Path to element to find
+mx::TypedElementPtr getRenderableElement(mx::DocumentPtr document,
+                                        const std::vector<mx::TypedElementPtr> renderableElements,
+                                        const std::string &desiredElementPath);
 
 } // namespace MaterialXMaya
 
