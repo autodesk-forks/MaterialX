@@ -165,8 +165,12 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
             CHECK_MSTATUS(argData.getFlagArgument(kElementFlag, 0, elementPath));
             if (elementPath.length())
             {
-                renderableElements.clear();
-                mx::ElementPtr desiredElement = MaterialXMaya::getRenderableElement(document, renderableElements, elementPath.asChar());
+                mx::TypedElementPtr desiredElement = MaterialXMaya::getRenderableElement(document, renderableElements, elementPath.asChar());
+                if (desiredElement)
+                {
+                    renderableElements.clear();
+                    renderableElements.push_back(desiredElement);
+                }
             }
         }
 
