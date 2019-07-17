@@ -50,5 +50,47 @@ mx::DocumentPtr loadDocument(const std::string& materialXDocumentPath,
     return document;
 }
 
+std::vector<mx::TypedElementPtr> getRenderableElements(mx::DocumentPtr document, const std::string &desiredElementPath)
+{
+    std::vector<mx::TypedElementPtr> renderableElements;
+    mx::findRenderableElements(document, renderableElements);
+    if (renderableElements.empty())
+    {
+        throw mx::Exception("There are no renderable elements in the document.");
+    }
+
+    // Nothing specified. Find all renderable elements
+    if (!desiredElementPath.empty())
+    {
+        mx::ElementPtr element = document->getDescendant(desiredElementPath);
+        if (!element)
+        {
+            std::string message = "Element '";
+            message += desiredElementPath;
+            message += "' not found in the document.";
+            throw mx::Exception(message);
+        }
+
+        auto it = std::find_if(
+            renderableElements.begin(),
+            renderableElements.end(),
+            [element](mx::TypedElementPtr renderableElement) -> bool
+        {
+            return (element->getNamePath() == renderableElement->getNamePath());
+        }
+        );
+
+        if (it == renderableElements.end())
+        {
+            throw mx::Exception("The specified element is not renderable");
+        }
+        renderableElements.clear();
+        renderableElements.push_back(element->asA<mx::TypedElement>());
+    }
+
+    return renderableElements;
+}
+
+
 } // namespace MaterialXMaya
 

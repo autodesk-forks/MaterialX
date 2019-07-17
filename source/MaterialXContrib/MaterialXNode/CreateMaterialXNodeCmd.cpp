@@ -116,78 +116,94 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
             CHECK_MSTATUS(argData.getFlagArgument(kElementFlag, 0, elementPath));
         }
 
-        std::unique_ptr<MaterialXData> materialXData{
-            new MaterialXData(document,
-                              elementPath.asChar(),
-                              Plugin::instance().getLibrarySearchPath())
-        };
+        // Determine what renderables will be used to create fragment shaders and Maya nodes
+        std::string desiredElementPath(elementPath.asChar());
+        std::vector<mx::TypedElementPtr> renderableElements{
+            MaterialXMaya::getRenderableElements(document, desiredElementPath) };
 
-        MString ogsXmlFileName;
-        if (parser.isFlagSet(kOgsXmlFlag))
+        const MaterialX::FileSearchPath& searchPath = Plugin::instance().getLibrarySearchPath();
+        MStringArray nodeNames;
+        for (auto renderableElement : renderableElements)
         {
-            CHECK_MSTATUS(argData.getFlagArgument(kOgsXmlFlag, 0, ogsXmlFileName));
-        }
+            std::string renderableElementPath = renderableElement->getNamePath();
 
-        if (ogsXmlFileName.length() > 0)
-        {
-            ::registerDebugFragment(ogsXmlFileName.asChar());
-        }
-        else
-        {
-            MaterialXMaya::registerFragment(
-                materialXData->getFragmentName(), materialXData->getFragmentSource()
+            std::unique_ptr<MaterialXData> materialXData{
+                new MaterialXData(document,
+                                  renderableElement,
+                                  searchPath)
+            };
+
+            MString ogsXmlFileName;
+            if (parser.isFlagSet(kOgsXmlFlag))
+            {
+                CHECK_MSTATUS(argData.getFlagArgument(kOgsXmlFlag, 0, ogsXmlFileName));
+            }
+
+            if (ogsXmlFileName.length() > 0)
+            {
+                ::registerDebugFragment(ogsXmlFileName.asChar());
+            }
+            else
+            {
+                MaterialXMaya::registerFragment(
+                    materialXData->getFragmentName(), materialXData->getFragmentSource()
+                );
+            }
+
+            // Decide what kind of node we want to create
+            bool asTexture = false;
+            if (parser.isFlagSet(kTextureFlag))
+            {
+                CHECK_MSTATUS(argData.getFlagArgument(kTextureFlag, 0, asTexture));
+            }
+            else
+            {
+                asTexture = !materialXData->elementIsAShader();
+            }
+
+            // Create the MaterialX node
+            MObject node = _dgModifier.createNode(
+                asTexture ? MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
+                : MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPEID
             );
-        }
 
-        elementPath.set(materialXData->getElementPath().c_str());
-        if (elementPath.length() == 0)
-        {
-            throw mx::Exception("The element specified is not renderable.");
-        }
-
-        // Decide what kind of node we want to create
-        bool asTexture = false;
-        if (parser.isFlagSet(kTextureFlag))
-        {
-            CHECK_MSTATUS(argData.getFlagArgument(kTextureFlag, 0, asTexture));
-        }
-        else
-        {
-            asTexture = !materialXData->elementIsAShader();
-        }
-
-        // Create the MaterialX node
-        MObject node = _dgModifier.createNode(
-            asTexture ? MaterialXTextureNode::MATERIALX_TEXTURE_NODE_TYPEID
-            : MaterialXSurfaceNode::MATERIALX_SURFACE_NODE_TYPEID
-        );
-
-        // Generate a valid Maya node name from the path string
-        {
-            const std::string nodeName = mx::createValidName(elementPath.asChar());
+            // Generate a valid Maya node name from the path string
+            const std::string nodeName = mx::createValidName(renderableElementPath);
             _dgModifier.renameNode(node, nodeName.c_str());
+
+            MFnDependencyNode depNode(node);
+            auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
+            if (!materialXNode)
+            {
+                throw mx::Exception("Unexpected DG node type.");
+            }
+
+            materialXNode->setData(documentFilePath, renderableElementPath.c_str(), std::move(materialXData));
+
+            nodeNames.append(nodeName.c_str());
         }
 
-        MFnDependencyNode depNode(node);
-        auto materialXNode = dynamic_cast<MaterialXNode*>(depNode.userNode());
-        if (!materialXNode)
+        status = _dgModifier.doIt();
+        if (!status)
         {
-            throw mx::Exception("Unexpected DG node type.");
+            unsigned int nodeNameCount = nodeNames.length();
+            std::string nodeString;
+            if (nodeNameCount)
+            {
+                nodeString = nodeNames[0].asChar();
+                for (unsigned int i = 1; i < nodeNameCount; i++)
+                {
+                    nodeString += std::string(",") + nodeNames[i].asChar();
+                }
+            }
+            throw mx::Exception(nodeString);
         }
-
-        materialXNode->setData(documentFilePath, elementPath, std::move(materialXData));
-        _dgModifier.doIt();
-
-        MString message("Created ");
-        message += materialXNode->typeName();
-        message += " node: ";
-        message += materialXNode->name();
-        MGlobal::displayInfo(message);
-        return MS::kSuccess;
+        setResult(nodeNames);        
+        return status;
     }
     catch (std::exception& e)
     {
-        MString message("Failed to create MaterialX node: ");
+        MString message("Failed to create MaterialX nodes: ");
         message += MString(e.what());
         MGlobal::displayError(message);
         return MS::kFailure;
