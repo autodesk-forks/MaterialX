@@ -38,18 +38,36 @@ class MaterialXNode : public MPxNode
         return _documentFilePath;
     }
 
+    const MString& getEnvRadianceFileName() const
+    {
+        return _envRadianceFileName;
+    }
+
+    const MString& getEnvIrradianceFileName() const
+    {
+        return _envIrradianceFileName;
+    }
+
     static const MTypeId MATERIALX_NODE_TYPEID;
     static const MString MATERIALX_NODE_TYPENAME;
 
     /// Attribute holding a path to MaterialX document file
-    static MString DOCUMENT_ATTRIBUTE_LONG_NAME;
-    static MString DOCUMENT_ATTRIBUTE_SHORT_NAME;
+    static const MString DOCUMENT_ATTRIBUTE_LONG_NAME;
+    static const MString DOCUMENT_ATTRIBUTE_SHORT_NAME;
     static MObject DOCUMENT_ATTRIBUTE;
 
     /// Attribute holding a MaterialX element name
-    static MString ELEMENT_ATTRIBUTE_LONG_NAME;
-    static MString ELEMENT_ATTRIBUTE_SHORT_NAME;
+    static const MString ELEMENT_ATTRIBUTE_LONG_NAME;
+    static const MString ELEMENT_ATTRIBUTE_SHORT_NAME;
     static MObject ELEMENT_ATTRIBUTE;
+
+    static const MString ENV_RADIANCE_ATTRIBUTE_LONG_NAME;
+    static const MString ENV_RADIANCE_ATTRIBUTE_SHORT_NAME;
+    static MObject ENV_RADIANCE_ATTRIBUTE;
+
+    static const MString ENV_IRRADIANCE_ATTRIBUTE_LONG_NAME;
+    static const MString ENV_IRRADIANCE_ATTRIBUTE_SHORT_NAME;
+    static MObject ENV_IRRADIANCE_ATTRIBUTE;
 
     static MObject OUT_ATTRIBUTE;
 
@@ -60,6 +78,7 @@ class MaterialXNode : public MPxNode
     void createAndRegisterFragment();
 
     MString _documentFilePath, _elementPath;
+    MString _envRadianceFileName, _envIrradianceFileName;
 
     /// MaterialXData keeps a shared pointer to the document but we also keep
     /// another shared pointer here to avoid reloading the document when the
