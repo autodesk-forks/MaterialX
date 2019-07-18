@@ -83,7 +83,9 @@ class MaterialXNode : public MPxNode
     void createAndRegisterFragment();
 
     MString _documentFilePath, _elementPath;
-    MString _envRadianceFileName, _envIrradianceFileName;
+
+    MString _envRadianceFileName = "san_giuseppe_bridge.hdr";
+    MString _envIrradianceFileName = "san_giuseppe_bridge_diffuse.hdr";
 
     /// MaterialXData keeps a shared pointer to the document but we also keep
     /// another shared pointer here to avoid reloading the document when the

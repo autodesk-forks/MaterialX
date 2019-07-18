@@ -268,8 +268,18 @@ void MaterialXNode::setData(const MString& documentFilePath,
 {
     _documentFilePath = documentFilePath;
     _elementPath = elementPath;
-    _envRadianceFileName = envRadianceFileName;
-    _envIrradianceFileName = envIrradianceFileName;
+
+    // If the command doesn't provide environment map file names,
+    // leave them set to the default values.
+    if (envRadianceFileName.length() > 0)
+    {
+        _envRadianceFileName = envRadianceFileName;
+    }
+
+    if (envIrradianceFileName.length() > 0)
+    {
+        _envIrradianceFileName = envIrradianceFileName;
+    }
 
     _materialXData = std::move(materialXData);
     if (_materialXData)
