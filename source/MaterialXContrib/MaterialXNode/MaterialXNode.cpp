@@ -262,12 +262,16 @@ bool MaterialXNode::getInternalValue(const MPlug& plug, MDataHandle& dataHandle)
 
 void MaterialXNode::setData(const MString& documentFilePath,
                             const MString& elementPath,
+                            const MString& envRadianceFileName,
+                            const MString& envIrradianceFileName,
                             std::unique_ptr<MaterialXData>&& materialXData)
 {
     _documentFilePath = documentFilePath;
     _elementPath = elementPath;
-    _materialXData = std::move(materialXData);
+    _envRadianceFileName = envRadianceFileName;
+    _envIrradianceFileName = envIrradianceFileName;
 
+    _materialXData = std::move(materialXData);
     if (_materialXData)
     {
         _document = _materialXData->getDocument();

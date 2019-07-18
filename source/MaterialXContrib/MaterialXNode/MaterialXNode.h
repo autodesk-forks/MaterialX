@@ -25,7 +25,12 @@ class MaterialXNode : public MPxNode
     bool getInternalValue(const MPlug&, MDataHandle&) override;
     bool setInternalValue(const MPlug&, const MDataHandle&) override;
 
-    void setData(const MString& documentFilePath, const MString& elementPath, std::unique_ptr<MaterialXData>&&);    
+    void setData(   const MString& documentFilePath,
+                    const MString& elementPath,
+                    const MString& envRadianceFileName,
+                    const MString& envIrradianceFileName,
+                    std::unique_ptr<MaterialXData>&& ); 
+
     void reloadDocument();
 
     const MaterialXData* getMaterialXData() const
