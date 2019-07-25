@@ -71,14 +71,14 @@ namespace MaterialX
     /// Interface for holding the UI properties associated shader port
     struct UIPropertyItem
     {
-        std::string label;
+        string label;
         ValuePtr value;
         ShaderPort* variable = nullptr;
         UIProperties ui;
     };
 
     /// A grouping of property items by name
-    using UIPropertyGroup = std::multimap<std::string, UIPropertyItem>;
+    using UIPropertyGroup = std::multimap<string, UIPropertyItem>;
 
     /// Utility to group UI properties items based on Element group name from an element.
     /// Returns a list of named and unnamed groups.
