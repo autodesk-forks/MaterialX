@@ -61,7 +61,7 @@ namespace MaterialX
 
     /// Get the UI properties for a given nodedef element.
     /// Returns the number of properties found.
-    unsigned int getUIProperties(ValueElementPtr nodeDefElement, UIProperties& uiProperties);
+    unsigned int getUIProperties(ConstValueElementPtr nodeDefElement, UIProperties& uiProperties);
 
     /// Get the UI properties for a given element path. If the path is to a node, a target
     /// identifier can be provided.
@@ -78,7 +78,7 @@ namespace MaterialX
     };
 
     /// A grouping of property items by name
-    using UIPropertyGroup = std::multimap<string, UIPropertyItem>;
+    using UIPropertyGroup = std::multimap<std::string, UIPropertyItem>;
 
     /// Utility to group UI properties items based on Element group name from an element.
     /// Returns a list of named and unnamed groups.
