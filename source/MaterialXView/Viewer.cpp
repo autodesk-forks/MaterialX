@@ -525,7 +525,7 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
         //save document
         if (!filename.empty() && !_materials.empty())
         {
-            auto& doc = _materials.front()->getDocument();
+            mx::DocumentPtr doc = _materials.front()->getDocument();
             MaterialX::writeToXmlFile(doc, filename);
         }
 
