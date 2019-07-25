@@ -219,14 +219,8 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
 
     createLoadMeshInterface(_window, "Load Mesh");
     createLoadMaterialsInterface(_window, "Load Material");
-
-    ng::Button* editorButton = new ng::Button(_window, "Property Editor");
-    editorButton->setFlags(ng::Button::ToggleButton);
-    editorButton->setChangeCallback([this](bool state)
-    {
-        _propertyEditor.setVisible(state);
-        performLayout();
-    });
+    createSaveMaterialsInterface(_window, "Save Material");
+    createPropertyEditorInterface(_window, "Property Editor");
 
     // Set this before building UI as this flag is used
     // for the UI building
@@ -516,6 +510,44 @@ void Viewer::createLoadMaterialsInterface(Widget* parent, const std::string& lab
             loadDocument(_materialFilename, _stdLib);
         }
         mProcessEvents = true;
+    });
+}
+
+void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& label)
+{
+    ng::Button* materialButton = new ng::Button(parent, label);
+    materialButton->setIcon(ENTYPO_ICON_SAVE);
+    materialButton->setCallback([this]()
+    {
+        mProcessEvents = false;
+        std::string filename = ng::file_dialog({ { "mtlx", "MaterialX" } }, true);
+
+        //save document
+        if (!filename.empty() && !_materials.empty())
+        {
+            auto& doc = _materials.front()->getDocument();
+            MaterialX::writeToXmlFile(doc, filename);
+        }
+
+        //reload document
+        if (!filename.empty() && _materialFilename != filename)
+        {
+            _materialFilename = filename;
+            assignMaterial(getSelectedGeometry(), nullptr);
+            loadDocument(_materialFilename, _stdLib);
+        }
+        mProcessEvents = true;
+    });
+}
+
+void Viewer::createPropertyEditorInterface(Widget* parent, const std::string& label)
+{
+    ng::Button* editorButton = new ng::Button(_window, "Property Editor");
+    editorButton->setFlags(ng::Button::ToggleButton);
+    editorButton->setChangeCallback([this](bool state)
+    {
+        _propertyEditor.setVisible(state);
+        performLayout();
     });
 }
 

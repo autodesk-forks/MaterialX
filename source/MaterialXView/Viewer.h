@@ -107,6 +107,8 @@ class Viewer : public ng::Screen
 
     void createLoadMeshInterface(Widget* parent, const std::string& label);
     void createLoadMaterialsInterface(Widget* parent, const std::string& label);
+    void createSaveMaterialsInterface(Widget* parent, const std::string& label);
+    void createPropertyEditorInterface(Widget* parent, const std::string& label);
     void createAdvancedSettings(Widget* parent);
 
     mx::MeshStreamPtr createUvPositionStream(mx::MeshPtr mesh, 
