@@ -34,7 +34,10 @@ class Plugin
         return _librarySearchPath;
     }
 
-    mx::ConstDocumentPtr getLibraryDocument() const;
+    mx::ConstDocumentPtr getLibraryDocument() const
+    {
+        return _libraryDocument;
+    }
 
   private:
     Plugin()

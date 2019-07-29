@@ -13,7 +13,7 @@
 #include <maya/MViewport2Renderer.h>
 #include <maya/MFragmentManager.h>
 
-#include <set>
+#include <unordered_set>
 
 namespace MaterialXMaya
 {
@@ -57,10 +57,11 @@ void Plugin::initialize(const std::string& pluginLoadPath)
 void Plugin::loadLibraries()
 {
     _librarySearchPath = mx::FileSearchPath();
+    _libraryDocument = mx::createDocument();
 
     {
         // Hash set to avoid duplicates.
-        std::set<std::string> uniquePaths;
+        std::unordered_set<std::string> uniquePaths;
 
         auto appendFilePath = [this, &uniquePaths](const mx::FilePath& filePath)
         {
@@ -76,15 +77,35 @@ void Plugin::loadLibraries()
         MStringArray extraSearchPaths;
         MGlobal::executeCommand("optionVar -q materialXLibrarySearchPaths", extraSearchPaths);
 
-        for (const MString& path : extraSearchPaths)
+        for (const MString& mstrPath : extraSearchPaths)
         {
-            const std::string strPath = path.asChar();
+            const std::string strPath = mstrPath.asChar();
             if (uniquePaths.insert(strPath).second)
             {
                 _librarySearchPath.append(mx::FilePath(strPath));
             }
         }
     }
+
+    std::unordered_set<std::string> uniqueLibraryNames{
+        "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl", "lights", "lights/genglsl"
+    };
+
+    {
+        MStringArray extraLibraryNames;
+        MGlobal::executeCommand("optionVar -q materialXLibraryNames", extraLibraryNames);
+
+        for (const MString& mstrLibraryName : extraLibraryNames)
+        {
+            uniqueLibraryNames.insert(mstrLibraryName.asChar());
+        }
+    }
+
+    mx::loadLibraries(
+        mx::StringVec(uniqueLibraryNames.begin(), uniqueLibraryNames.end()),
+        _librarySearchPath,
+        _libraryDocument
+    );
 }
 
 } // namespace MaterialXMaya
