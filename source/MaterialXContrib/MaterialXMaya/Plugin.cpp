@@ -13,6 +13,8 @@
 #include <maya/MViewport2Renderer.h>
 #include <maya/MFragmentManager.h>
 
+#include <set>
+
 namespace MaterialXMaya
 {
 
@@ -22,19 +24,15 @@ Plugin& Plugin::instance()
     return s_instance;
 }
 
-void Plugin::initialize(const std::string& loadPath)
+void Plugin::initialize(const std::string& pluginLoadPath)
 {
     // Always include plug-in load path
-    const mx::FilePath searchPath(loadPath);
-    
-    // Search in standard library directories
-    _librarySearchPath.append(searchPath);
-    _librarySearchPath.append(searchPath / mx::FilePath("../../libraries"));
+    _pluginLoadPath = pluginLoadPath;
 
     // Search in standard installed resources directories and plug-in relative resources
-    _resourceSearchPath.append(searchPath);
-    _resourceSearchPath.append(searchPath / mx::FilePath("../../resources"));
-    _resourceSearchPath.append(searchPath / mx::FilePath("../resources"));
+    _resourceSearchPath.append(_pluginLoadPath);
+    _resourceSearchPath.append(_pluginLoadPath / mx::FilePath("../../resources"));
+    _resourceSearchPath.append(_pluginLoadPath / mx::FilePath("../resources"));
 
     MHWRender::MRenderer* const theRenderer = MHWRender::MRenderer::theRenderer();
     MHWRender::MFragmentManager* const fragmentManager = theRenderer ? theRenderer->getFragmentManager() : nullptr;
@@ -51,6 +49,41 @@ void Plugin::initialize(const std::string& loadPath)
         shaderDebugPath += "/";
         fragmentManager->setEffectOutputDirectory(shaderDebugPath.c_str());
         fragmentManager->setIntermediateGraphOutputDirectory(shaderDebugPath.c_str());
+    }
+
+    loadLibraries();
+}
+
+void Plugin::loadLibraries()
+{
+    _librarySearchPath = mx::FileSearchPath();
+
+    {
+        // Hash set to avoid duplicates.
+        std::set<std::string> uniquePaths;
+
+        auto appendFilePath = [this, &uniquePaths](const mx::FilePath& filePath)
+        {
+            if (uniquePaths.insert(filePath.asString()).second)
+            {
+                _librarySearchPath.append(filePath);
+            }
+        };
+
+        appendFilePath(_pluginLoadPath);
+        appendFilePath(_pluginLoadPath / mx::FilePath("../../libraries"));
+
+        MStringArray extraSearchPaths;
+        MGlobal::executeCommand("optionVar -q materialXLibrarySearchPaths", extraSearchPaths);
+
+        for (const MString& path : extraSearchPaths)
+        {
+            const std::string strPath = path.asChar();
+            if (uniquePaths.insert(strPath).second)
+            {
+                _librarySearchPath.append(mx::FilePath(strPath));
+            }
+        }
     }
 }
 
