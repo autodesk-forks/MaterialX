@@ -37,8 +37,8 @@ global proc MaterialXSurface_FilePathReplace(string $attrName)
 global proc MaterialXSurface_FileBrowser(string $attrName) 
 {
     // Start in current file's directory if possible. 
-	string $sStartingdir = `textField -q -fileName documentFilePathField`;
-	$sStartingdir = `match ".*/" $sStartingdir`; 
+    string $sStartingdir = `textField -q -fileName documentFilePathField`;
+    $sStartingdir = `match ".*/" $sStartingdir`; 
 
     string $fileNames[] = `fileDialog2
         -caption "Open MaterialX Document"
