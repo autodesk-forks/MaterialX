@@ -522,6 +522,12 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
         mProcessEvents = false;
         std::string filename = ng::file_dialog({ { "mtlx", "MaterialX" } }, true);
 
+        //sync document with editor changes
+        for(auto& material: _materials)
+        {
+            material->persistUniformChanges();
+        }
+
         //save document
         if (!filename.empty() && !_materials.empty())
         {

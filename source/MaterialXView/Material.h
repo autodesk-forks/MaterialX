@@ -164,9 +164,13 @@ class Material
     /// Find a public uniform from its MaterialX path.
     mx::ShaderPort* findUniform(const std::string& path) const;
 
+    /// Check all uniform values and save the changes in the material document.
+    void persistUniformChanges();
+
   protected:
     void bindUniform(const std::string& name, mx::ConstValuePtr value);
     void updateUniformsList();
+    std::unordered_map<std::string, std::string> uniformValues() const;
 
   protected:
     GLShaderPtr _glShader;
