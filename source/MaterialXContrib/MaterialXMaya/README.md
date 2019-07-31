@@ -13,10 +13,10 @@ To build this plug-in, the `MATERIALX_BUILD_CONTRIB` build flag must be enabled 
 The plug-in defines two Maya nodes: `MaterialXSurfaceNode` and `MaterialXTextureNode`, accessible in Hypershade in the _Surface_ and _2D Textures_ categories, respectively. A new `MaterialXSurfaceNode` can be assigned to a shape via the [Marking Menu](https://knowledge.autodesk.com/support/maya/learn-explore/caas/CloudHelp/cloudhelp/2019/ENU/Maya-LightingShading/files/GUID-D41AF807-F7CB-447E-BACC-7F0867C14E8D-htm.html).
 
 Both node types expose the following attributes:
-* `documentFilePath`: the file path to the MaterialX document (an XML file with extension .mtlx);
-* `elementPath`: the path to the MaterialX element within the document to generate the shader for;
-* `environmentRadianceMap`: the file path to the environment map to use for specular shading, defaults to a texture that ships with the plug-in;
-* `environmentIrradianceMap`: the file path to the environment map to use for diffuse shading, defaults to a texture that ships with the plug-in.
+*   `documentFilePath`: the file path to the MaterialX document (an XML file with extension .mtlx);
+*   `elementPath`: the path to the MaterialX element within the document to generate the shader for;
+*   `environmentRadianceMap`: the file path to the environment map to use for specular shading, defaults to a texture that ships with the plug-in;
+*   `environmentIrradianceMap`: the file path to the environment map to use for diffuse shading, defaults to a texture that ships with the plug-in.
 
 Modifying any one of these attributes via GUI or scripting causes the shading node to refresh in the viewport.
 
@@ -81,8 +81,8 @@ To open the MaterialX document in the editor, press the **Edit** button in the A
 
 ## Limitations
 
-* No DirectX11/HLSL support.
-* No support for Maya light sources and shadow maps. Image-based lighting defined by the `environmentRadianceMap` and `environmentIrradianceMap` node attributes is the only type of lighting currently supported.
+*   No DirectX11/HLSL support.
+*   No support for Maya light sources and shadow maps. Image-based lighting defined by the `environmentRadianceMap` and `environmentIrradianceMap` node attributes is the only type of lighting currently supported.
 
 ## Usage
 
