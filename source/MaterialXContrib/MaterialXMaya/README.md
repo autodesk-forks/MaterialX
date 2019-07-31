@@ -41,7 +41,8 @@ If this argument is omitted, the command creates one node per each renderable el
   -ei -envIrradiance     String
   -er -envRadiance       String
 ```
-Allows to specify environment maps to use for IBL on the created nodes (see the node documentation). Default assets are used if this argument is omitted.
+
+These arguments allow to specify environment maps to use for IBL on the created nodes (see the node documentation). Default assets are used if this argument is omitted.
 
 ```
    -t -asTexture         on|off
@@ -59,10 +60,21 @@ Reloads the document and refreshes the viewport shader for the MaterialX node wi
 
 ## MaterialX Libraries
 
+The plug-in loads a set of standard MaterialX libraries (installed together with the plugin)  at plug-in load time. When documents are loaded for particular MaterialX nodes, they import these libraries from memory instead of reading them from the file system.
+
+Users can configure additional library search paths and library directory names with the optionVars `materialXLibrarySearchPaths` and `materialXLibraryNames` respectively which both hold arrays of strings. Here's an example of how these strings can be manipulated in MEL:
+
+```MEL
+optionVar -sva materialXLibrarySearchPaths "D:/MaterialX/Teapot_Demo_MatX"
+optionVar -sva materialXLibraryNames "stdlib"
+```
+
+## LookdevX integration1
+
 ## Limitations
 
 * No DirectX11/HLSL support.
-* No support for Maya light sources. Image-based lighting defined by the `environmentRadianceMap` and `environmentIrradianceMap` node attributes is the only type of lighting currently supported.
+* No support for Maya light sources and shadow maps. Image-based lighting defined by the `environmentRadianceMap` and `environmentIrradianceMap` node attributes is the only type of lighting currently supported.
 
 ## Usage
 
