@@ -522,25 +522,17 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
         mProcessEvents = false;
         std::string filename = ng::file_dialog({ { "mtlx", "MaterialX" } }, true);
 
-        //sync document with editor changes
-        for(auto& material: _materials)
-        {
-            material->persistUniformChanges();
-        }
-
-        //save document
+        // Save document
         if (!filename.empty() && !_materials.empty())
         {
             mx::DocumentPtr doc = _materials.front()->getDocument();
             MaterialX::writeToXmlFile(doc, filename);
         }
 
-        //reload document
+        // Update material file name
         if (!filename.empty() && _materialFilename != filename)
         {
             _materialFilename = filename;
-            assignMaterial(getSelectedGeometry(), nullptr);
-            loadDocument(_materialFilename, _stdLib);
         }
         mProcessEvents = true;
     });

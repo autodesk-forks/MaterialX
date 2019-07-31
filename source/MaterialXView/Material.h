@@ -164,13 +164,27 @@ class Material
     /// Find a public uniform from its MaterialX path.
     mx::ShaderPort* findUniform(const std::string& path) const;
 
-    /// Check all uniform values and save the changes in the material document.
-    void persistUniformChanges();
+    /// Change the uniform value inside shader and MaterialX doc.
+    void changeUniformElement(mx::ShaderPort* uniform, const std::string& value);
+
+    /// Set the value in the uniform path.
+    void setUniformInt(const std::string& path, int value);
+
+    /// Set the value in the uniform path.
+    void setUniformFloat(const std::string& path, float value);
+
+    /// Set the value in the uniform path.
+    void setUniformVec2(const std::string& path, const ng::Vector2f& value);
+
+    /// Set the value in the uniform path.
+    void setUniformVec3(const std::string& path, const ng::Vector3f& value);
+
+    /// Set the value in the uniform path.
+    void setUniformVec4(const std::string& path, const ng::Vector4f& value);
 
   protected:
     void bindUniform(const std::string& name, mx::ConstValuePtr value);
     void updateUniformsList();
-    std::unordered_map<std::string, std::string> uniformValues() const;
 
   protected:
     GLShaderPtr _glShader;

@@ -78,7 +78,7 @@ void ShaderRenderTester::printRunLog(const RenderProfileTimes &profileTimes,
     //}
 }
 
-void ShaderRenderTester::loadDependLibraries(GenShaderUtil::TestSuiteOptions options, mx::FilePath searchPath, mx::DocumentPtr& dependLib)
+void ShaderRenderTester::loadDependentLibraries(GenShaderUtil::TestSuiteOptions options, mx::FilePath searchPath, mx::DocumentPtr& dependLib)
 {
     dependLib = mx::createDocument();
 
@@ -178,7 +178,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     // This will be imported in each test document below
     ioTimer.startTimer();
     mx::DocumentPtr dependLib;
-    loadDependLibraries(options, searchPath, dependLib);
+    loadDependentLibraries(options, searchPath, dependLib);
     ioTimer.endTimer();
 
     // Create validators and generators

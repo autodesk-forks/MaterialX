@@ -179,79 +179,6 @@ void Material::updateUniformsList()
     delete[] uniformName;
 }
 
-std::unordered_map<std::string, std::string> Material::uniformValues() const
-{
-    std::unordered_map<std::string, std::string> values;
-
-    // Must bind to be able to inspect the uniforms
-    _glShader->bind();
-
-    GLint _programId = 0;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &_programId);
-    int uniformCount = -1;
-    int uniformSize = -1;
-    GLenum uniformType = 0;
-    int maxNameLength = 0;
-    glGetProgramiv(_programId, GL_ACTIVE_UNIFORMS, &uniformCount);
-    glGetProgramiv(_programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxNameLength);
-    std::unique_ptr<char> uniformName(new char[maxNameLength]);
-    for (int i = 0; i < uniformCount; i++)
-    {
-        glGetActiveUniform(_programId, GLuint(i), maxNameLength, nullptr, &uniformSize, &uniformType, uniformName.get());
-        GLint uniformLocation = glGetUniformLocation(_programId, uniformName.get());
-        std::string varName;
-        varName = uniformName.get();
-        if (uniformLocation >= 0)
-        {
-            std::stringstream value;
-            switch (uniformType)
-            {
-                case GL_INT:
-                {
-                    GLint ival = 0;
-                    glGetUniformiv(_programId, uniformLocation, &ival);
-                    value << ival;
-                    break;
-                }
-                case GL_FLOAT:
-                {
-                    GLfloat fval1[1] = { 0.0 };
-                    glGetUniformfv(_programId, uniformLocation, fval1);
-                    value << fval1[0];
-                    break;
-                }
-                case GL_FLOAT_VEC2:
-                {
-                    GLfloat fval2[2] = { 0.0, 0.0 };
-                    glGetUniformfv(_programId, uniformLocation, fval2);
-                    value << fval2[0] << ", " << fval2[1];
-                    break;
-                }
-                case GL_FLOAT_VEC3:
-                {
-                    GLfloat fval3[3] = { 0.0, 0.0, 0.0 };
-                    glGetUniformfv(_programId, uniformLocation, fval3);
-                    value << fval3[0] << ", " << fval3[1] << ", " << fval3[2];
-                    break;
-                }
-                case GL_FLOAT_VEC4:
-                {
-                    GLfloat fval4[4] = { 0.0, 0.0, 0.0, 0.0 };
-                    glGetUniformfv(_programId, uniformLocation, fval4);
-                    value << fval4[0] << ", " << fval4[1] << ", " << fval4[2] << ", " << fval4[3];
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
-            }
-            values[varName] = value.str();
-        }
-    }
-    return values;
-}
-
 bool Material::generateShader(mx::GenContext& context)
 {
     if (!_elem)
@@ -683,35 +610,82 @@ mx::ShaderPort* Material::findUniform(const std::string& path) const
     return port;
 }
 
-void Material::persistUniformChanges()
+void Material::changeUniformElement(mx::ShaderPort* uniform, const std::string& value)
 {
-    mx::VariableBlock* publicUniforms = getPublicUniforms();
-    if (publicUniforms)
+    assert(uniform);
+    uniform->setValue(mx::Value::createValueFromStrings(value, uniform->getValue()->getTypeString()));
+    mx::ElementPtr element = _doc->getDescendant(uniform->getPath());
+    if (element)
     {
-        auto values = uniformValues();
-        for(size_t i=0; i < publicUniforms->size(); ++i)
+        mx::ValueElementPtr valueElement = element->asA<MaterialX::ValueElement>();
+        if (valueElement)
         {
-            mx::ShaderPort* uniform = (*publicUniforms)[i];
-            assert(uniform);
-            const auto variableName = uniform->getVariable();
-            if(values.find(variableName) != values.end())
-            {
-                mx::ValuePtr mtxValue = uniform->getValue();
-                const std::string viewValue = values[variableName];
-                if(!viewValue.empty() && viewValue != mtxValue->getValueString())
-                {
-                    uniform->setValue(mx::Value::createValueFromStrings(viewValue, uniform->getValue()->getTypeString()));
-                    mx::ElementPtr element = _doc->getDescendant(uniform->getPath());
-                    if (element)
-                    {
-                        mx::ValueElementPtr valueElement = element->asA<MaterialX::ValueElement>();
-                        if(valueElement)
-                        {
-                            valueElement->setValueString(viewValue);
-                        }
-                    }
-                }
-            }
+            valueElement->setValueString(value);
         }
+    }
+}
+
+void Material::setUniformInt(const std::string& path, int value)
+{
+    mx::ShaderPort* uniform = findUniform(path);
+    if (uniform)
+    {
+        getShader()->bind();
+        getShader()->setUniform(uniform->getVariable(), value);
+        std::stringstream intValue;
+        intValue << value;
+        changeUniformElement(uniform, intValue.str());
+    }
+}
+
+void Material::setUniformFloat(const std::string& path, float value)
+{
+    mx::ShaderPort* uniform = findUniform(path);
+    if (uniform)
+    {
+        getShader()->bind();
+        getShader()->setUniform(uniform->getVariable(), value);
+        std::stringstream floatValue;
+        floatValue << value;
+        changeUniformElement(uniform, floatValue.str());
+    }
+}
+
+void Material::setUniformVec2(const std::string& path, const ng::Vector2f& value)
+{
+    mx::ShaderPort* uniform = findUniform(path);
+    if (uniform)
+    {
+        getShader()->bind();
+        getShader()->setUniform(uniform->getVariable(), value);
+        std::stringstream vec2Value;
+        vec2Value << value[0] << mx::ARRAY_VALID_SEPARATORS << value[1];
+        changeUniformElement(uniform, vec2Value.str());
+    }
+}
+
+void Material::setUniformVec3(const std::string& path, const ng::Vector3f& value)
+{
+    mx::ShaderPort* uniform = findUniform(path);
+    if (uniform)
+    {        
+        getShader()->bind();
+        getShader()->setUniform(uniform->getVariable(), value);
+        std::stringstream vec3Value;
+        vec3Value << value[0] << mx::ARRAY_VALID_SEPARATORS << value[1] << mx::ARRAY_VALID_SEPARATORS << value[2];
+        changeUniformElement(uniform, vec3Value.str());
+    }    
+}
+
+void Material::setUniformVec4(const std::string& path, const ng::Vector4f& value)
+{
+    mx::ShaderPort* uniform = findUniform(path);
+    if (uniform)
+    {
+        getShader()->bind();
+        getShader()->setUniform(uniform->getVariable(), value);
+        std::stringstream vec4Value;        
+        vec4Value << value[0] << mx::ARRAY_VALID_SEPARATORS << value[1] << mx::ARRAY_VALID_SEPARATORS << value[2] << mx::ARRAY_VALID_SEPARATORS << value[3];
+        changeUniformElement(uniform, vec4Value.str());
     }
 }

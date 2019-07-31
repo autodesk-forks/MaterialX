@@ -168,12 +168,7 @@ ng::FloatBox<float>* PropertyEditor::makeFloatWidget(ng::Widget* container, cons
         MaterialPtr material = viewer->getSelectedMaterial();
         if (material)
         {
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
-            {
-                material->getShader()->bind();
-                material->getShader()->setUniform(uniform->getVariable(), value);
-            }
+            material->setUniformFloat(path, value);            
         }
     });
     floatVar->setCallback([slider, path, viewer](float value)
@@ -182,12 +177,7 @@ ng::FloatBox<float>* PropertyEditor::makeFloatWidget(ng::Widget* container, cons
         MaterialPtr material = viewer->getSelectedMaterial();
         if (material)
         {
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
-            {
-                material->getShader()->bind();
-                material->getShader()->setUniform(uniform->getVariable(), value);
-            }
+            material->setUniformFloat(path, value);
         }
     });
 
@@ -244,19 +234,8 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             comboBox->setCallback([path, viewer, enumValues](int v)
             {
                 MaterialPtr material = viewer->getSelectedMaterial();
-                mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-                if (uniform)
-                {
-                    material->getShader()->bind();
-                    if (v < (int) enumValues.size())
-                    {
-                        material->getShader()->setUniform(uniform->getVariable(), enumValues[v]->asA<int>());
-                    }
-                    else
-                    {
-                        material->getShader()->setUniform(uniform->getVariable(), v);
-                    }
-                }
+                const int intv = v < (int)enumValues.size() ? enumValues[v]->asA<int>() : v;
+                material->setUniformInt(path, intv);
             });
         }
         else
@@ -274,12 +253,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 MaterialPtr material = viewer->getSelectedMaterial();
                 if (material)
                 {
-                    mx::ShaderPort* uniform = material->findUniform(path);
-                    if (uniform)
-                    {
-                        material->getShader()->bind();
-                        material->getShader()->setUniform(uniform->getVariable(), v);
-                    }
+                    material->setUniformFloat(path, static_cast<int>(v));
                 }
             });
         }
@@ -307,11 +281,9 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         boolVar->setCallback([path, viewer](bool v)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if(material)
             {
-                material->getShader()->bind();
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformFloat(path, v);
             }
         });
     }
@@ -335,14 +307,12 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         colorVar->setFinalCallback([path, viewer, colorVar](const ng::Color &c)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if(material)
             {
-                material->getShader()->bind();
                 ng::Vector2f v;
                 v.x() = c.r();
                 v.y() = c.g();
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec2(path, v);
                 ng::Color c2 = c;
                 c2.b() = 0.0f;
                 c2.w() = 1.0f;
@@ -384,10 +354,8 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             comboBox->setCallback([path, enumValues, viewer](int index)
             {
                 MaterialPtr material = viewer->getSelectedMaterial();
-                mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-                if (uniform)
+                if (material)
                 {
-                    material->getShader()->bind();
                     if (index < (int) enumValues.size())
                     {
                         mx::Color3 c = enumValues[index]->asA<mx::Color3>();
@@ -395,7 +363,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                         v.x() = c[0];
                         v.y() = c[1];
                         v.z() = c[2];
-                        material->getShader()->setUniform(uniform->getVariable(), v);
+                        material->setUniformVec3(path, v);
                     }
                 }
             });
@@ -416,16 +384,11 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             colorVar->setFinalCallback([path, viewer](const ng::Color &c)
             {
                 MaterialPtr material = viewer->getSelectedMaterial();
-                mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-                if (uniform)
-                {
-                    material->getShader()->bind();
-                    ng::Vector3f v;
-                    v.x() = c.r();
-                    v.y() = c.g();
-                    v.z() = c.b();
-                    material->getShader()->setUniform(uniform->getVariable(), v);
-                }
+                ng::Vector3f v;
+                v[0] = c.r();
+                v[1] = c.g();
+                v[2] = c.b();
+                material->setUniformVec3(path, v);
             });
         }
     }
@@ -449,16 +412,14 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         colorVar->setFinalCallback([path, viewer](const ng::Color &c)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if (material)
             {
-                material->getShader()->bind();
                 ng::Vector4f v;
                 v.x() = c.r();
                 v.y() = c.g();
                 v.z() = c.b();
                 v.w() = c.w();
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec4(path, v);
             }
         });
     }
@@ -481,28 +442,25 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         v1->setCallback([v2, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if (material)
             {
-                material->getShader()->bind();
                 ng::Vector2f v;
                 v.x() = f;
                 v.y() = v2->value();
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec2(path, v);
             }
         });
         v1->setSpinnable(editable);
         v2->setCallback([v1, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if (material)
             {
                 material->getShader()->bind();
                 ng::Vector2f v;
                 v.x() = v1->value();
                 v.y() = f;
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec2(path, v);
             }
         });
         v2->setSpinnable(editable);
@@ -531,45 +489,41 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         v1->setCallback([v2, v3, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if (material)
             {
                 material->getShader()->bind();
                 ng::Vector3f v;
                 v.x() = f;
                 v.y() = v2->value();
                 v.z() = v3->value();
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec3(path, v);
             }
         });
         v1->setSpinnable(editable);
         v2->setCallback([v1, v3, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if (material)
             {
                 material->getShader()->bind();
                 ng::Vector3f v;
                 v.x() = v1->value();
                 v.y() = f;
                 v.z() = v3->value();
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec3(path, v);
             }
         });
         v2->setSpinnable(editable);
         v3->setCallback([v1, v2, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if (material)
             {
-                material->getShader()->bind();
                 ng::Vector3f v;
                 v.x() = v1->value();
                 v.y() = v2->value();
                 v.z() = f;
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec3(path, v);
             }
         });
         v3->setSpinnable(editable);
@@ -602,64 +556,56 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         v1->setCallback([v2, v3, v4, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if (material)
             {
-                material->getShader()->bind();
                 ng::Vector4f v;
                 v.x() = f;
                 v.y() = v2->value();
                 v.z() = v3->value();
                 v.w() = v4->value();
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec4(path, v);
             }
         });
         v1->setSpinnable(editable);
         v2->setCallback([v1, v3, v4, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if (material)
             {
-                material->getShader()->bind();
                 ng::Vector4f v;
                 v.x() = v1->value();
                 v.y() = f;
                 v.z() = v3->value();
                 v.w() = v4->value();
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec4(path, v);
             }
         });
         v2->setSpinnable(editable);
         v3->setCallback([v1, v2, v4, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if (material)
             {
-                material->getShader()->bind();
                 ng::Vector4f v;
                 v.x() = v1->value();
                 v.y() = v2->value();
                 v.z() = f;
                 v.w() = v4->value();
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec4(path, v);
             }
         });
         v3->setSpinnable(editable);
         v4->setCallback([v1, v2, v3, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
-            if (uniform)
+            if (material)
             {
-                material->getShader()->bind();
                 ng::Vector4f v;
                 v.x() = v1->value();
                 v.y() = v2->value();
                 v.z() = v3->value();
                 v.w() = f;
-                material->getShader()->setUniform(uniform->getVariable(), v);
+                material->setUniformVec4(path, v);
             }
         });
         v4->setSpinnable(editable);
