@@ -62,14 +62,22 @@ Reloads the document and refreshes the viewport shader for the MaterialX node wi
 
 The plug-in loads a set of standard MaterialX libraries (installed together with the plugin)  at plug-in load time. When documents are loaded for particular MaterialX nodes, they import these libraries from memory instead of reading them from the file system.
 
-Users can configure additional library search paths and library directory names with the optionVars `materialXLibrarySearchPaths` and `materialXLibraryNames` respectively which both hold arrays of strings. Here's an example of how these strings can be manipulated in MEL:
+Users can configure additional library search paths and library directory names with the option variables `materialXLibrarySearchPaths` and `materialXLibraryNames` respectively which both hold arrays of strings. Here's an example of how these strings can be manipulated in MEL:
 
 ```MEL
-optionVar -sva materialXLibrarySearchPaths "D:/MaterialX/Teapot_Demo_MatX"
-optionVar -sva materialXLibraryNames "stdlib"
+optionVar -stringValueAppend materialXLibrarySearchPaths "D:/MaterialX/Teapot_Demo_MatX"
+optionVar -stringValueAppend materialXLibraryNames "stdlib"
 ```
 
-## LookdevX integration1
+## LookdevX integration
+
+The plug-in integrates with LookdevX or any other editor that can open MaterialX document files. The `MAYA_MATERIALX_EDITOR` option variable needs to be set to the path of the editor executable to enable the integration, for example:
+
+```MEL
+optionVar -stringValue MAYA_MATERIALX_EDITOR "D:/LookdevX_07_23_2019/bin/LookdevX.exe"
+```
+
+To open the MaterialX document in the editor, press the Edit button in the Attribute Editor for the MaterialX node. Once the document has been edited and saved, you can press the Reload button the Attribute Editor which will execute the `reloadMaterialXNode` command, refreshing the shader in the viewport.
 
 ## Limitations
 
