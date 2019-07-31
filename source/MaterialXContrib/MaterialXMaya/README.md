@@ -42,12 +42,12 @@ If this argument is omitted, the command creates one node per each renderable el
   -er -envRadiance       String
 ```
 
-These arguments allow to specify environment maps to use for IBL on the created nodes (see the node documentation). Default assets are used if this argument is omitted.
+These arguments allow to specify environment maps to use for IBL on the created nodes (see the node documentation). Default assets are used if these arguments are omitted.
 
 ```
    -t -asTexture         on|off
 ```
-If specified, determines the type of nodes to create with this command (`MaterialXSurfaceNode` or `MaterialXTextureNode`). If omitted, the type of nodes to create depends on the type of the MaterialX element (`MaterialXSurfaceNode` for shader refs, `MaterialXTextureNode` otherwise).
+If specified, determines the type of nodes to create with this command (`MaterialXSurfaceNode` or `MaterialXTextureNode`). If omitted, the type of nodes to create is determined by the type of the MaterialX element (`MaterialXSurfaceNode` for shader refs, `MaterialXTextureNode` otherwise).
 
 ```
    -x -ogsXml            String
@@ -60,9 +60,9 @@ Reloads the document and refreshes the viewport shader for the MaterialX node wi
 
 ## MaterialX Libraries
 
-The plug-in loads a set of standard MaterialX libraries (installed together with the plugin)  at plug-in load time. When documents are loaded for particular MaterialX nodes, they import these libraries from memory instead of reading them from the file system.
+The plug-in loads a set of standard MaterialX libraries (installed together with the plug-in)  at load time. When documents are loaded for particular MaterialX nodes, they import these libraries from memory instead of reading them from the file system.
 
-Users can configure additional library search paths and library directory names with the option variables `materialXLibrarySearchPaths` and `materialXLibraryNames` respectively which both hold arrays of strings. Here's an example of how these strings can be manipulated in MEL:
+Users can configure additional library search paths and library directory names with the option variables `materialXLibrarySearchPaths` and `materialXLibraryNames` respectively which both hold arrays of strings. Here's an example of how these variables can be manipulated in MEL:
 
 ```MEL
 optionVar -stringValueAppend materialXLibrarySearchPaths "D:/MaterialX/Teapot_Demo_MatX"
@@ -74,10 +74,10 @@ optionVar -stringValueAppend materialXLibraryNames "stdlib"
 The plug-in integrates with LookdevX or any other editor that can open MaterialX document files. The `MAYA_MATERIALX_EDITOR` option variable needs to be set to the path of the editor executable to enable the integration, for example:
 
 ```MEL
-optionVar -stringValue MAYA_MATERIALX_EDITOR "D:/LookdevX_07_23_2019/bin/LookdevX.exe"
+optionVar -stringValue MAYA_MATERIALX_EDITOR "D:/LookdevX/bin/LookdevX.exe"
 ```
 
-To open the MaterialX document in the editor, press the Edit button in the Attribute Editor for the MaterialX node. Once the document has been edited and saved, you can press the Reload button the Attribute Editor which will execute the `reloadMaterialXNode` command, refreshing the shader in the viewport.
+To open the MaterialX document in the editor, press the **Edit** button in the Attribute Editor for the MaterialX node. Once the document has been edited and saved, you can press the **Reload** button the Attribute Editor which will execute the `reloadMaterialXNode` command, refreshing the shader in the viewport.
 
 ## Limitations
 
