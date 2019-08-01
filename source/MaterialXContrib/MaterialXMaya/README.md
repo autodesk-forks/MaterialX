@@ -31,13 +31,12 @@ You can find the `environmentRadianceMap` and `environmentIrradianceMap` attribu
 
 The element name can be found in a _shaderref_ or _output_ element of the .mtlx document. For example, in `standard_surface_carpaint.mtlx`, the material name and element name are as follows:
 
-```
+```MEL
 <material name="Car_Paint">
     <shaderref name="SR_carpaint" node="standard_surface">
 ```
     
 The element path is therefore: _Car_Paint/SR_carpaint_.
-
 
 Modifying any one of these attributes via GUI or scripting causes the shading node to refresh in the viewport.
 
@@ -58,7 +57,6 @@ Required argument: the path to a valid MaterialX document.
 If specified, the command tries to create a node for the given element. If the path is invalid or the element is not renderable, the command fails.
 
 If this argument is omitted, the command creates one node per renderable element found in the document.
-
 
 ```MEL
   -ei -envIrradiance     String
@@ -93,8 +91,6 @@ reloadMaterialXNode Jade_SR_jade
 ```
 
 Reloads the document and refreshes the viewport shader mapped to the specified MaterialX node. This command is useful when the contents of the document file have changed on disk, e.g. due to editing in LookdevX or an external XML editor.
-
-
 
 ## MaterialX Libraries
 
