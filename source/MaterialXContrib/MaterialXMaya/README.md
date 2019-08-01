@@ -9,9 +9,9 @@ This module contains code for a sample Maya plug-in which implements Maya surfac
 To build this plug-in, the `MATERIALX_BUILD_CONTRIB` build flag must be enabled and the respective `MAYA_DEBUG_DIR` and/or `MAYA_RELEASE_DIR` build directory options set. The minimum required Maya version is Maya 2019.
 
 ## Load
-To load the plug-in, set your MAYA_MODULE_PATH to the folder containing the MaterialXNode.mod file. 
+To load the plug-in, set your MAYA_MODULE_PATH to the folder containing the MaterialXMaya.mod file. 
 
-Upon startup of Maya, load the MaterialXNode plug-in via the Plug-in Manager. 
+Upon startup of Maya, load the MaterialXMaya plug-in via the Plug-in Manager. 
 
 You can now create MaterialX nodes in your scene. 
 
@@ -52,7 +52,7 @@ Creates one or many MaterialX nodes from the specified MaterialX document. The c
 ```
 Required argument: the path to a valid MaterialX document.
 
-> Note: A shader that is created via command is not listed in the Browser of the Hypershade (unlike those created via the Create tab of the Hypershade). It will, however, appear in the marking menu, from which you can assign it to your object. 
+> Note: A shader that is created via this command is not listed in the Browser of the Hypershade (unlike those created via the Create tab of the Hypershade). It will, however, appear in the marking menu, from which you can assign it to your object. 
 The shader is named _materialName_elementName_.
 
 ```MEL
@@ -99,7 +99,7 @@ Reloads the document and refreshes the viewport shader mapped to the specified M
 
 ## MaterialX Libraries
 
-The plug-in loads a set of standard MaterialX libraries (installed with the plug-in) at load time. When documents are loaded for a particular MaterialX node, they import these libraries from memory instead of reading them from the file system.
+The plug-in loads a set of standard MaterialX libraries (installed with the plug-in) at load time. When a document is loaded for a MaterialX node, it imports these libraries from memory instead of reading them from the file system.
 
 Users can configure additional library search paths and library directory names with the option variables `materialXLibrarySearchPaths` and `materialXLibraryNames` respectively which both hold arrays of strings. 
 The following are a couple of examples in MEL:
@@ -111,7 +111,7 @@ optionVar -stringValueAppend materialXLibraryNames "stdlib"
 
 ## LookdevX integration
 
-The MaterialXNode plug-in integrates with LookdevX or any other editor that can open MaterialX document files. To enable the integration with the LookdexX editor, set the `MAYA_MATERIALX_EDITOR` option variable to the path of the editor executable, for example:
+The MaterialXMaya plug-in integrates with LookdevX or any other editor that can open MaterialX document files. To enable the integration with the LookdexX editor, set the `MAYA_MATERIALX_EDITOR` option variable to the path of the editor executable, for example:
 
 ```MEL
 optionVar -stringValue MAYA_MATERIALX_EDITOR "D:/LookdevX/bin/LookdevX.exe"
