@@ -52,7 +52,7 @@ Creates one or many MaterialX nodes from the specified MaterialX document. The c
 Required argument: the path to a valid MaterialX document.
 
 > Note: A shader that is created via this command is not listed in the Browser of the Hypershade (unlike those created via the Create tab of the Hypershade). It will, however, appear in the marking menu, from which you can assign it to your object. 
-The shader is named _materialName_elementName_.
+> The shader is named _materialName_elementName_.
 
 ```MEL
    -e -elementPath       String
