@@ -59,7 +59,7 @@ The shader is named <materialName_elementName>.
    -e -elementPath       String
 ```
 
-An example is as follows::
+An example is as follows:
 ```
 createMaterialXNode -d "D:/myMaterialsDirectory/standard_surface_brass_tiled.mtlx" -e "Tiled_Brass/SR_brass1"
 ```
