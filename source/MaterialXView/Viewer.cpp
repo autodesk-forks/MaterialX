@@ -24,6 +24,8 @@ const int DEFAULT_ENV_SAMPLES = 16;
 
 namespace {
 
+mx::StringVec skippedXIncludes;
+
 mx::Matrix44 createViewMatrix(const mx::Vector3& eye,
                               const mx::Vector3& target,
                               const mx::Vector3& up)
@@ -90,6 +92,7 @@ mx::DocumentPtr loadLibraries(const mx::StringVec& libraryFolders, const mx::Fil
             mx::readFromXmlFile(libDoc, file, mx::EMPTY_STRING, &readOptions);
             libDoc->setSourceUri(file);
             doc->importLibrary(libDoc, &copyOptions);
+            skippedXIncludes.push_back(file);
         }
     }
     return doc;
@@ -266,6 +269,8 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _genContext.getOptions().targetColorSpaceOverride = "lin_rec709";
     _genContext.getOptions().fileTextureVerticalFlip = true;
 
+    skippedXIncludes.clear();
+
     // Set default light information before initialization
     _lightFileName = "resources/Materials/TestSuite/Utilities/Lights/default_viewer_lights.mtlx";
 
@@ -364,6 +369,7 @@ void Viewer::setupLights(mx::DocumentPtr doc)
             mx::CopyOptions copyOptions;
             copyOptions.skipConflictingElements = true;
             doc->importLibrary(lightDoc, &copyOptions);
+            skippedXIncludes.push_back(path);
         }
         catch (std::exception& e)
         {
@@ -526,7 +532,9 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
         if (!filename.empty() && !_materials.empty())
         {
             mx::DocumentPtr doc = _materials.front()->getDocument();
-            MaterialX::writeToXmlFile(doc, filename);
+            mx::XmlWriteOptions writeOptions;
+            writeOptions.ignoredXIncludes = skippedXIncludes;
+            MaterialX::writeToXmlFile(doc, filename, &writeOptions);
         }
 
         // Update material file name
