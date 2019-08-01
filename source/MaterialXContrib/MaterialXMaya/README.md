@@ -31,7 +31,7 @@ You can find the `environmentRadianceMap` and `environmentIrradianceMap` attribu
 
 The element name can be found in a _shaderref_ or _output_ element of the .mtlx document. For example, in `standard_surface_carpaint.mtlx`, the material name and element name are as follows:
 
-```MEL
+```XML
 <material name="Car_Paint">
     <shaderref name="SR_carpaint" node="standard_surface">
 ```
