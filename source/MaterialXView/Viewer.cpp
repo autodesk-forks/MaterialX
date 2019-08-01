@@ -548,7 +548,7 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
 
 void Viewer::createPropertyEditorInterface(Widget* parent, const std::string& label)
 {
-    ng::Button* editorButton = new ng::Button(_window, "Property Editor");
+    ng::Button* editorButton = new ng::Button(parent, label);
     editorButton->setFlags(ng::Button::ToggleButton);
     editorButton->setChangeCallback([this](bool state)
     {
