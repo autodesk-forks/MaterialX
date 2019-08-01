@@ -30,7 +30,7 @@ Use the format <material name/element name>.
 
 You can find the `environmentRadianceMap` and `environmentIrradianceMap` attributes in the Extra Attributes section of the Attribute Editor.
 
-The element name can be found in the shaderref element of the .mtlx document. For example, in `standard_surface_carpaint.mtlx`, the material name and element name are as follows:
+The element name can be found in a _shaderref_ or _output_ element of the .mtlx document. For example, in `standard_surface_carpaint.mtlx`, the material name and element name are as follows:
 
 ```
 <material name="Car_Paint">
