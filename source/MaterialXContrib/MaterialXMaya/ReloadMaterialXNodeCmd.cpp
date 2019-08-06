@@ -64,7 +64,7 @@ MStatus ReloadMaterialXNodeCmd::doIt(const MArgList &args)
         return MS::kFailure;
     }
 
-	return MS::kSuccess;
+    return MS::kSuccess;
 }
 
 MSyntax ReloadMaterialXNodeCmd::newSyntax()

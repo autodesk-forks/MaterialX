@@ -21,6 +21,18 @@ ReloadMaterialXLibrariesCmd::~ReloadMaterialXLibrariesCmd()
 
 MStatus ReloadMaterialXLibrariesCmd::doIt(const MArgList& /*args*/)
 {
+    try
+    {
+        Plugin::instance().loadLibraries();
+    }
+    catch (std::exception& e)
+    {
+        MString message("Failed to reload MaterialX libraries: ");
+        message += MString(e.what());
+        MGlobal::displayError(message);
+        return MS::kFailure;
+    }
+
     return MS::kSuccess;
 }
 
