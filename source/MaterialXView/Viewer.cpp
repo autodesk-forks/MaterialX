@@ -24,8 +24,6 @@ const int DEFAULT_ENV_SAMPLES = 16;
 
 namespace {
 
-mx::StringVec skippedXIncludes;
-
 mx::Matrix44 createViewMatrix(const mx::Vector3& eye,
                               const mx::Vector3& target,
                               const mx::Vector3& up)
@@ -72,9 +70,10 @@ void writeTextFile(const std::string& text, const std::string& filePath)
     file.close();
 }
 
-mx::DocumentPtr loadLibraries(const mx::StringVec& libraryFolders, const mx::FileSearchPath& searchPath)
+std::pair<mx::DocumentPtr, mx::StringVec> loadLibraries(const mx::StringVec& libraryFolders, const mx::FileSearchPath& searchPath)
 {
     mx::DocumentPtr doc = mx::createDocument();
+    mx::StringVec xincludeFiles;
     for (const std::string& libraryFolder : libraryFolders)
     {
         mx::FilePath path = searchPath.find(libraryFolder);
@@ -92,10 +91,10 @@ mx::DocumentPtr loadLibraries(const mx::StringVec& libraryFolders, const mx::Fil
             mx::readFromXmlFile(libDoc, file, mx::EMPTY_STRING, &readOptions);
             libDoc->setSourceUri(file);
             doc->importLibrary(libDoc, &copyOptions);
-            skippedXIncludes.push_back(file);
+            xincludeFiles.push_back(file);
         }
     }
-    return doc;
+    return std::make_pair(doc, xincludeFiles);
 }
 
 void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers& modifiers)
@@ -269,13 +268,14 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _genContext.getOptions().targetColorSpaceOverride = "lin_rec709";
     _genContext.getOptions().fileTextureVerticalFlip = true;
 
-    skippedXIncludes.clear();
-
     // Set default light information before initialization
     _lightFileName = "resources/Materials/TestSuite/Utilities/Lights/default_viewer_lights.mtlx";
 
     // Initialize standard library and color management.
-    _stdLib = loadLibraries(_libraryFolders, _searchPath);
+    const auto stdDocAndXIncludes = loadLibraries(_libraryFolders, _searchPath);
+     _stdLib = stdDocAndXIncludes.first;
+     _xincludeFiles = stdDocAndXIncludes.second;
+
     mx::DefaultColorManagementSystemPtr cms = mx::DefaultColorManagementSystem::create(_genContext.getShaderGenerator().getLanguage());
     cms->loadLibrary(_stdLib);
     for (size_t i = 0; i < _searchPath.size(); i++)
@@ -369,7 +369,7 @@ void Viewer::setupLights(mx::DocumentPtr doc)
             mx::CopyOptions copyOptions;
             copyOptions.skipConflictingElements = true;
             doc->importLibrary(lightDoc, &copyOptions);
-            skippedXIncludes.push_back(path);
+            _xincludeFiles.push_back(path);
         }
         catch (std::exception& e)
         {
@@ -533,7 +533,7 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
         {
             mx::DocumentPtr doc = _materials.front()->getDocument();
             mx::XmlWriteOptions writeOptions;
-            writeOptions.ignoredXIncludes = skippedXIncludes;
+            writeOptions.ignoredXIncludes = _xincludeFiles;
             MaterialX::writeToXmlFile(doc, filename, &writeOptions);
         }
 

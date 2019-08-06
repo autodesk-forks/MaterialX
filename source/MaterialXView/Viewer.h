@@ -141,6 +141,7 @@ class Viewer : public ng::Screen
     mx::DocumentPtr _stdLib;
     mx::FilePath _materialFilename;
     DocumentModifiers _modifiers;
+    mx::StringVec _xincludeFiles;
 
     // Lighting information
     std::string _lightFileName;

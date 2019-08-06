@@ -612,7 +612,11 @@ mx::ShaderPort* Material::findUniform(const std::string& path) const
 
 void Material::changeUniformElement(mx::ShaderPort* uniform, const std::string& value)
 {
-    assert(uniform);
+    if (nullptr == uniform)
+    {
+        throw std::runtime_error("Null ShaderPort");
+    }
+    
     uniform->setValue(mx::Value::createValueFromStrings(value, uniform->getValue()->getTypeString()));
     mx::ElementPtr element = _doc->getDescendant(uniform->getPath());
     if (element)
