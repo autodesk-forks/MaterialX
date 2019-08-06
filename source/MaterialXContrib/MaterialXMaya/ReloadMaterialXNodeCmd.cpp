@@ -69,14 +69,14 @@ MStatus ReloadMaterialXNodeCmd::doIt(const MArgList &args)
 
 MSyntax ReloadMaterialXNodeCmd::newSyntax()
 {
-	MSyntax syntax;
-	syntax.addArg(MSyntax::kString); // Name of the node to reload
-	return syntax;
+    MSyntax syntax;
+    syntax.addArg(MSyntax::kString); // Name of the node to reload
+    return syntax;
 }
 
 void* ReloadMaterialXNodeCmd::creator()
 {
-	return new ReloadMaterialXNodeCmd();
+    return new ReloadMaterialXNodeCmd();
 }
 
 } // namespace MaterialXMaya

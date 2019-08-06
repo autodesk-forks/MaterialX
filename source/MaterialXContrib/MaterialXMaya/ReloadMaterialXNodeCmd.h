@@ -12,16 +12,16 @@ namespace MaterialXMaya
 class ReloadMaterialXNodeCmd : MPxCommand
 {
 public:
-	ReloadMaterialXNodeCmd();
-	~ReloadMaterialXNodeCmd() override;
+    ReloadMaterialXNodeCmd();
+    ~ReloadMaterialXNodeCmd() override;
 
-	MStatus doIt(const MArgList&) override;
-	bool isUndoable() { return false; }
+    MStatus doIt(const MArgList&) override;
+    bool isUndoable() { return false; }
 
-	static MSyntax newSyntax();
-	static void* creator();
+    static MSyntax newSyntax();
+    static void* creator();
 
-	static MString NAME;
+    static MString NAME;
 };
 
 } // namespace MaterialXMaya
