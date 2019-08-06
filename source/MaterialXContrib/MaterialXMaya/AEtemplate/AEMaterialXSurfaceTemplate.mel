@@ -4,6 +4,7 @@ global proc MaterialXSurface_CommandButtonsNew(string $nodeName)
     string $reloadCommand = "reloadMaterialXNode \"" + $nodeName + "\"";
     button -label "Edit" -command $editCommand editButton;
     button -label "Reload" -command $reloadCommand reloadButton;
+    button -label "Reload Libraries" -command "reloadMaterialXLibraries";
 }
 
 global proc MaterialXSurface_CommandButtonsReplace(string $nodeName)
