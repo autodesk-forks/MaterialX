@@ -91,7 +91,7 @@ CreateMaterialXNodeCmd::~CreateMaterialXNodeCmd()
 
 std::string CreateMaterialXNodeCmd::createNode( mx::DocumentPtr document,
                                                 mx::TypedElementPtr renderableElement,
-                                                CreateAs createAs,
+                                                NodeTypeToCreate nodeTypeToCreate,
                                                 const MString& documentFilePath,
                                                 const mx::FileSearchPath& searchPath,
                                                 const MString& envRadianceFileName,
@@ -105,8 +105,8 @@ std::string CreateMaterialXNodeCmd::createNode( mx::DocumentPtr document,
         ogsFragment->getFragmentName(), ogsFragment->getFragmentSource()
     );
 
-    const bool createAsTexture = createAs == CreateAs::TEXTURE
-        || (createAs == CreateAs::AUTO && !ogsFragment->elementIsAShader());
+    const bool createAsTexture = nodeTypeToCreate == NodeTypeToCreate::TEXTURE
+        || (nodeTypeToCreate == NodeTypeToCreate::AUTO && !ogsFragment->elementIsAShader());
 
     // Create the MaterialX node
     MObject nodeObj = _dgModifier.createNode(
@@ -201,12 +201,12 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
             registerDebugFragment(ogsXmlFileName.asChar());
         }
 
-        CreateAs createAs = CreateAs::AUTO;
+        NodeTypeToCreate nodeTypeToCreate = NodeTypeToCreate::AUTO;
         if (parser.isFlagSet(kAsTextureFlag))
         {
             bool createAsTexture = false;
             CHECK_MSTATUS(argData.getFlagArgument(kAsTextureFlag, 0, createAsTexture));
-            createAs = createAsTexture ? CreateAs::TEXTURE : CreateAs::SURFACE;
+            nodeTypeToCreate = createAsTexture ? NodeTypeToCreate::TEXTURE : NodeTypeToCreate::SURFACE;
         }
 
         MString envRadianceFileName;
@@ -226,7 +226,7 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         {
             std::string nodeName = createNode(  document,
                                                 renderableElement,
-                                                createAs,
+                                                nodeTypeToCreate,
                                                 documentFilePath,
                                                 Plugin::instance().getLibrarySearchPath(),
                                                 envRadianceFileName,
@@ -237,12 +237,12 @@ MStatus CreateMaterialXNodeCmd::doIt( const MArgList &args )
         status = _dgModifier.doIt();
         if (!status)
         {
-            const unsigned int nCreatedNodes = createdNodeNames.length();
+            const unsigned int createdNodeCount = createdNodeNames.length();
             std::string msg;
-            if (nCreatedNodes > 0)
+            if (createdNodeCount > 0)
             {
                 msg = createdNodeNames[0].asChar();
-                for (unsigned int i = 1; i < nCreatedNodes; i++)
+                for (unsigned int i = 1; i < createdNodeCount; i++)
                 {
                     msg += std::string(", ") + createdNodeNames[i].asChar();
                 }

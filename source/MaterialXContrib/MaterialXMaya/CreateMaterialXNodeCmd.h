@@ -33,7 +33,7 @@ class CreateMaterialXNodeCmd : MPxCommand
 
   private:
     /// Specifies the type of shading node to create
-    enum class CreateAs
+    enum class NodeTypeToCreate
     {
         AUTO,       ///< Determined by the type of the MaterialX element
         SURFACE,    ///< A surface shading node
@@ -43,14 +43,14 @@ class CreateMaterialXNodeCmd : MPxCommand
     /// Create a new Maya node for a given renderable element
     /// @param document Document containing the element
     /// @param renderableElement Element to use
-    /// @param createAs The type of shading node to create
+    /// @param nodeTypeToCreate The type of shading node to create
     /// @param documentFilePath Path to document
     /// @param searchPath Shader generation source paths
     /// @return Name of Maya node created
     std::string createNode(
         mx::DocumentPtr document,
         mx::TypedElementPtr renderableElement,
-        CreateAs createAs,
+        NodeTypeToCreate nodeTypeToCreate,
         const MString& documentFilePath,
         const mx::FileSearchPath& searchPath,
         const MString& envRadianceFileName,
