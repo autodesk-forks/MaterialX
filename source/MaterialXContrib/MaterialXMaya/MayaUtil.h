@@ -1,6 +1,9 @@
 #ifndef MATERIALX_MAYA_MAYAUTIL_H
 #define MATERIALX_MAYA_MAYAUTIL_H
 
+/// @file
+/// Maya Viewport 2.0 utilities
+
 #include <maya/MTextureManager.h>
 #include <maya/MStateManager.h>
 
