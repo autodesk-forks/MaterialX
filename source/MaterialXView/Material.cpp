@@ -616,8 +616,7 @@ void Material::changeUniformElement(mx::ShaderPort* uniform, const std::string& 
     {
         throw std::runtime_error("Null ShaderPort");
     }
-    
-    uniform->setValue(mx::Value::createValueFromStrings(value, uniform->getValue()->getTypeString()));
+    uniform->setValue(mx::Value::createValueFromStrings(value, uniform->getType()->getName()));
     mx::ElementPtr element = _doc->getDescendant(uniform->getPath());
     if (element)
     {
@@ -691,5 +690,16 @@ void Material::setUniformVec4(const std::string& path, const ng::Vector4f& value
         std::stringstream vec4Value;        
         vec4Value << value[0] << mx::ARRAY_VALID_SEPARATORS << value[1] << mx::ARRAY_VALID_SEPARATORS << value[2] << mx::ARRAY_VALID_SEPARATORS << value[3];
         changeUniformElement(uniform, vec4Value.str());
+    }
+}
+
+void Material::setUniformEnum(const std::string& path, int index, const std::string& value)
+{
+    mx::ShaderPort* uniform = findUniform(path);
+    if (uniform)
+    {
+        getShader()->bind();
+        getShader()->setUniform(uniform->getVariable(), index);
+        changeUniformElement(uniform, value);
     }
 }

@@ -182,6 +182,9 @@ class Material
     /// Set the value for an element with a given path.
     void setUniformVec4(const std::string& path, const ng::Vector4f& value);
 
+    /// Set the value for an element with a given path.
+    void setUniformEnum(const std::string& path, int index, const std::string& value);
+
   protected:
     void bindUniform(const std::string& name, mx::ConstValuePtr value);
     void updateUniformsList();

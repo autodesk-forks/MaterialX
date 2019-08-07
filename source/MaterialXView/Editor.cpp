@@ -216,11 +216,34 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     {
         int v = value->asA<int>();
 
-        // Create a combo box. The items are the enumerations in order.
-        if (v < (int) enumeration.size())
+        const size_t INVALID_INDEX = std::numeric_limits<size_t>::max();
+        auto indexInEnumeration = [&value, &enumValues, &enumeration, INVALID_INDEX]()
         {
-            std::string enumValue = enumeration[v];
+            size_t index = 0;
+            for(auto& enumValue: enumValues)
+            {
+                if(value->getValueString() == enumValue->getValueString())
+                {
+                    return index;
+                }
+                index++;
+            }
+            index = 0;
+            for(auto& enumName: enumeration)
+            {
+                if(value->getValueString() == enumName)
+                {
+                    return index;
+                }
+                index++;
+            }
+            return INVALID_INDEX;
+        };
 
+        // Create a combo box. The items are the enumerations in order.
+        const size_t valueIndex = indexInEnumeration();
+        if (INVALID_INDEX != valueIndex)
+        {
             ng::Widget* twoColumns = new ng::Widget(container);
             twoColumns->setLayout(_gridLayout2);
 
@@ -228,14 +251,20 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             ng::ComboBox* comboBox = new ng::ComboBox(twoColumns, {""});
             comboBox->setEnabled(editable);
             comboBox->setItems(enumeration);
-            comboBox->setSelectedIndex(v);
+            comboBox->setSelectedIndex(valueIndex);
             comboBox->setFixedSize(ng::Vector2i(100, 20));
             comboBox->setFontSize(15);
-            comboBox->setCallback([path, viewer, enumValues](int v)
+            comboBox->setCallback([path, viewer, enumeration, enumValues](int index)
             {
                 MaterialPtr material = viewer->getSelectedMaterial();
-                const int intv = v < (int)enumValues.size() ? enumValues[v]->asA<int>() : v;
-                material->setUniformInt(path, intv);
+                if(index >= 0 && static_cast<size_t>(index) < enumValues.size())
+                {
+                    material->setUniformInt(path, enumValues[index]->asA<int>());
+                }
+                else if(index >= 0 && static_cast<size_t>(index) < enumeration.size())
+                {
+                    material->setUniformEnum(path, index, enumeration[index]);
+                }
             });
         }
         else
