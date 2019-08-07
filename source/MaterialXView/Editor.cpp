@@ -214,8 +214,6 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     // Integer input. Can map to a combo box if an enumeration
     if (value->isA<int>())
     {
-        int v = value->asA<int>();
-
         const size_t INVALID_INDEX = std::numeric_limits<size_t>::max();
         auto indexInEnumeration = [&value, &enumValues, &enumeration, INVALID_INDEX]()
         {
@@ -251,7 +249,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             ng::ComboBox* comboBox = new ng::ComboBox(twoColumns, {""});
             comboBox->setEnabled(editable);
             comboBox->setItems(enumeration);
-            comboBox->setSelectedIndex(valueIndex);
+            comboBox->setSelectedIndex(static_cast<int>(valueIndex));
             comboBox->setFixedSize(ng::Vector2i(100, 20));
             comboBox->setFontSize(15);
             comboBox->setCallback([path, viewer, enumeration, enumValues](int index)
