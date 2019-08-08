@@ -22,10 +22,6 @@ matrix:
     # Standard builds
     - os: linux
       compiler: gcc
-      env: CONFIG=Debug
-      if: tag IS present
-    - os: linux
-      compiler: gcc
       env: CONFIG=Release
     - os: linux
       compiler: gcc
@@ -34,10 +30,6 @@ matrix:
     - os: linux
       compiler: clang
       env: CONFIG=Release
-    - os: osx
-      compiler: gcc
-      env: CONFIG=Debug
-      if: tag IS present
     - os: osx
       compiler: gcc
       env: CONFIG=Release
@@ -102,6 +94,6 @@ deploy:
       on:
         repo: autodesk-forks/MaterialX
         #all_branches: true
-        branch: adsk_config/shaderx
+        branch: adsk_config/release
         tags: true
         condition: "$CC = gcc"
