@@ -24,7 +24,7 @@ namespace
 class SearchPathBuilder
 {
   public:
-    SearchPathBuilder(mx::FileSearchPath& searchPath)
+    explicit SearchPathBuilder(mx::FileSearchPath& searchPath)
         : _searchPath(searchPath)
     {
         _searchPath = mx::FileSearchPath();
