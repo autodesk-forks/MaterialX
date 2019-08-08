@@ -215,7 +215,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     if (value->isA<int>())
     {
         const size_t INVALID_INDEX = std::numeric_limits<size_t>::max();
-        auto indexInEnumeration = [&value, &enumValues, &enumeration, INVALID_INDEX]()
+        auto indexInEnumeration = [&value, &enumValues, &enumeration]()
         {
             size_t index = 0;
             for(auto& enumValue: enumValues)
@@ -235,7 +235,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 }
                 index++;
             }
-            return INVALID_INDEX;
+            return std::numeric_limits<size_t>::max(); // INVALID_INDEX;
         };
 
         // Create a combo box. The items are the enumerations in order.
