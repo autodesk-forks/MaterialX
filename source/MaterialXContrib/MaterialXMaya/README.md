@@ -133,10 +133,10 @@ On the other hand, all libraries can be reloaded explicitly with the `reloadMate
 ## Resource Search Paths
 
 Texture files referenced by MaterialX documents are searched for under the following paths, in order:
-* The path to the parent directory of the document file.
-* The path to the directory the plug-in was loaded from.
-* A set of standard paths relative to the plug-in load path.
-* A set of user-defined paths configured via the string array option variable `materialXResourceSearchPaths`, e.g.
+*   The path to the parent directory of the document file.
+*   The path to the directory the plug-in was loaded from.
+*   A set of standard paths relative to the plug-in load path.
+*   A set of user-defined paths configured via the string array option variable `materialXResourceSearchPaths`, e.g.
 
 ```MEL
 optionVar -stringValueAppend materialXResourceSearchPaths "D:/MaterialX/Demo/Textures"
