@@ -5,12 +5,12 @@
 This module contains code for a sample Maya plug-in which implements Maya surface and texture shading nodes representing MaterialX nodes in Maya's OpenGL viewport (VP2.0).
 To support this functionality, MaterialX elements are compiled into GLSL code as well as XML shade fragment wrappers required by Maya to integrate the fragments into the final viewport shader.
 
-## Build
+## Building
 
 To build this plug-in, the `MATERIALX_BUILD_CONTRIB` build flag must be enabled and the respective `MAYA_DEBUG_DIR` and/or `MAYA_RELEASE_DIR` build directory options must be set.
 The minimum required Maya version is Maya 2019.
 
-## Load
+## Loading
 To load the plug-in, set your MAYA_MODULE_PATH to the folder containing the MaterialXMaya.mod file. 
 
 Upon startup of Maya, load the MaterialXMaya plug-in via the Plug-in Manager. 
