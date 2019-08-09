@@ -865,6 +865,16 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
             }
             if (udimSetValue && udimSetValue->isA<mx::StringVec>())
             {
+                for (const std::string& udim : udimSetValue->asA<mx::StringVec>())
+                {
+                    MaterialPtr mat = Material::create();
+                    mat->setDocument(doc);
+                    mat->setElement(typedElem);
+                    mat->setUdim(udim);
+                    newMaterials.push_back(mat);
+                    
+                    udimElement = typedElem;
+                }
             }
             else
             {
