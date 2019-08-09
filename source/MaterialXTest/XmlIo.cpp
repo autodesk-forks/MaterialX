@@ -210,9 +210,9 @@ TEST_CASE("Load content", "[xmlio]")
     {
         if (elem->hasSourceUri())
         {
-            for (auto doc : libs)
+            for (auto lib : libs)
             {
-                if (doc->getSourceUri() == elem->getSourceUri())
+                if (lib->getSourceUri() == elem->getSourceUri())
                 {
                     return false;
                 }
@@ -222,12 +222,10 @@ TEST_CASE("Load content", "[xmlio]")
     };
     writeOptions.writeXIncludeEnable = true;
     writeOptions.elementPredicate = skipLibIncludes;
-    xmlString = mx::writeToXmlString(doc, &writeOptions);
-
-    // Reconstruct and verify that the document contains no xincludes.
+    xmlString = mx::writeToXmlString(writtenDoc, &writeOptions);
+    // Verify that the document contains no xincludes.
     writtenDoc = mx::createDocument();
     mx::readFromXmlString(writtenDoc, xmlString);
-    REQUIRE(*writtenDoc != *doc);
     bool hasSourceUri = false;
     for (mx::ElementPtr elem : writtenDoc->traverseTree())
     {
