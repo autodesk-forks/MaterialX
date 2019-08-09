@@ -126,9 +126,11 @@ optionVar -stringValueAppend materialXLibrarySearchPaths "D:/MaterialX/Demo/Libr
 optionVar -stringValueAppend materialXLibraryNames "stdlib"
 ```
 
-Please note that library and per-node document loading are independent of each other. When a MaterialX document is loaded for a `MaterialXSurfaceNode` or `MaterialXTextureNode`, it imports elements from the libraries currently in memory which speeds up document loading.
+The loading of libraries and the loading of documents for `MaterialXSurfaceNode` or `MaterialXTextureNode` are independent of each other.
+In the latter case, the plug-in imports elements from the libraries currently in memory, which speeds up document loading.
 
-On the other hand, all libraries can be reloaded explicitly with the `reloadMaterialXLibraries` Maya command which does not affect the currently loaded documents. The updated libraries will be imported by documents loaded or reloaded afterwards.
+On the other hand, all libraries can be reloaded explicitly with the `reloadMaterialXLibraries` Maya command which does not affect the currently loaded documents.
+The updated libraries will be imported by documents loaded or reloaded afterwards.
 
 ## Resource Search Paths
 
@@ -155,7 +157,7 @@ To open the MaterialX document in the editor, press **Edit** in the Attribute Ed
 ## Debugging
 
 When a Maya plug-in shading node provides a shade fragment to Maya, it's composited with Maya's standard fragments to form a complex shading graph, which in its turn is used to generate the final GLSL shader effect to render with in the viewport.
-Maya API [allows](https://help.autodesk.com/view/MAYAUL/2019/ENU/?guid=Maya_SDK_MERGED_cpp_ref_class_m_h_w_render_1_1_m_fragment_manager_html) plug-ins to configure paths where to save these intermediate files for debugging purposes.
+The Maya API [allows](https://help.autodesk.com/view/MAYAUL/2019/ENU/?guid=Maya_SDK_MERGED_cpp_ref_class_m_h_w_render_1_1_m_fragment_manager_html) plug-ins to configure paths to which these intermediate files can be saved for debugging purposes.
 
 `MaterialXMaya` reads the value of the `materialXIntermediateDumpPath` option variable when the plug-in is loaded and configures it as the dump path for both kinds of intermediate files described above.
 Here is a sample MEL command to set this value:
