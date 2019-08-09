@@ -130,7 +130,7 @@ The loading of libraries and the loading of documents for `MaterialXSurfaceNode`
 In the latter case, the plug-in imports elements from the libraries currently in memory, which speeds up document loading.
 
 On the other hand, all libraries can be reloaded explicitly with the `reloadMaterialXLibraries` Maya command which does not affect the currently loaded documents.
-The updated libraries will be imported by documents loaded or reloaded subsequently.
+The updated libraries will be imported by documents that are subsequently loaded or reloaded.
 
 ## Resource Search Paths
 
