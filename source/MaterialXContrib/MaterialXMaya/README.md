@@ -24,8 +24,8 @@ A `MaterialXTextureNode` can be mapped to any shader. For example, you can map i
 Both node types expose the following attributes:
 *   `documentFilePath`: the file path to the MaterialX document (an XML file with extension `.mtlx`).
 *   `elementPath`: the path to the MaterialX element within the document, in a slash-delimited format similar to XPath, e.g. <material name/element name>. 
-*   `environmentRadianceMap`: the file path to the environment map to use for specular shading. Defaults to a texture that ships with the plug-in.
-*   `environmentIrradianceMap`: the file path to the environment map to use for diffuse shading. Defaults to a texture that ships with the plug-in.
+*   `environmentRadianceMap`: the file name of the environment map to use for specular shading. Defaults to a texture that ships with the plug-in.
+*   `environmentIrradianceMap`: the file name of the environment map to use for diffuse shading. Defaults to a texture that ships with the plug-in.
 
 You can find the `environmentRadianceMap` and `environmentIrradianceMap` attributes in the Extra Attributes section of the Attribute Editor.
 
