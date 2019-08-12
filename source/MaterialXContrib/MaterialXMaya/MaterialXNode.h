@@ -18,7 +18,6 @@ class OgsFragment;
 
 /// @class MaterialXNode
 /// The base class for both surface and texture shading nodes.
-///
 class MaterialXNode : public MPxNode
 {
   public:
@@ -52,7 +51,7 @@ class MaterialXNode : public MPxNode
                     const MString& envIrradianceFileName,
                     std::unique_ptr<OgsFragment>&& ogsFragment );
 
-    /// Reloads the document, rebuilds the OGS fragment and refreshes the node in the viewport.
+    /// Reloads the document, regenerates the OGS fragment and refreshes the node in the viewport.
     void reloadDocument();
 
     /// Returns the OGS fragment.
@@ -110,19 +109,27 @@ class MaterialXNode : public MPxNode
     /// @}
 
     /// The output color attribute, required to correctly connect the node to a shading group.
-    /// Maps onto 
+    /// Maps onto an output parameter with the same name in the generated OGS shade fragment.
     static MObject OUT_ATTRIBUTE;
 
   protected:
+    /// An object representing an OGS shade fragment created by the command for this node.
     std::unique_ptr<OgsFragment> _ogsFragment;
 
   private:
+    /// If the current document pointer is null, creates a new document based
+    /// on the the document file path attribute.
+    /// (Re)generates the OGS fragment based on the element path attribute and
+    /// registers it in VP2 under a unique name.
     void createAndRegisterFragment();
 
+    /// @name Storage for internal Maya attributes.
+    /// @{
     MString _documentFilePath, _elementPath;
 
     MString _envRadianceFileName = "goegap_4k_dim.hdr";
     MString _envIrradianceFileName = "goegap_4k_dim.convolved.hdr";
+    /// @}
 
     /// The OgsFragment keeps a shared pointer to the document it was created
     /// from but we also keep another shared pointer here to avoid reloading
@@ -131,6 +138,10 @@ class MaterialXNode : public MPxNode
     mx::DocumentPtr _document;
 };
 
+/// @class MaterialXTextureNode
+/// MaterialX texture shading node, accessible from the Hypershade under the
+/// 2D Textures category. The output attribute can be connected to an input on
+/// a surface node.
 class MaterialXTextureNode : public MaterialXNode
 {
 public:
@@ -142,6 +153,9 @@ public:
     static const MString MATERIALX_TEXTURE_NODE_TYPENAME;
 };
 
+/// @class MaterialXSurfaceNode
+/// MaterialX surface shading node, accessible from the Hypershade under the
+/// Surface category.
 class MaterialXSurfaceNode : public MaterialXNode
 {
 public:
@@ -154,6 +168,11 @@ public:
     static const MTypeId MATERIALX_SURFACE_NODE_TYPEID;
     static const MString MATERIALX_SURFACE_NODE_TYPENAME;
 
+    /// The input transparency attribute, registered in VP2 as such by
+    /// MaterialXMaya::SurfaceOverride::transparencyParameter().
+    /// It stores a dummy value set above 0 if the surface is internally
+    /// determined by MaterialX to be transparent. This makes VP2 render this
+    /// surface in transparency passes.
     static MObject VP2_TRANSPARENCY_ATTRIBUTE;
 };
 

@@ -2,7 +2,7 @@
 #define MATERIALX_MAYA_MAYAUTIL_H
 
 /// @file
-/// Maya Viewport 2.0 utilities
+/// Maya Viewport 2.0 utilities.
 
 #include <maya/MTextureManager.h>
 #include <maya/MStateManager.h>
@@ -14,10 +14,14 @@ namespace MaterialXMaya
 {
 namespace MayaUtil
 {
+
+/// Registers an OGS shade fragment stored in a string in VP2. Throws an
+/// exception if a fragment with the same name is already registered.
 void registerFragment(const std::string& fragmentName, const std::string& fragmentSource);
 
 struct TextureDeleter
 {
+    /// Releases the reference to the VP2 texture owned by a smart pointer.
     void operator()(MHWRender::MTexture* texture);
 };
 
@@ -28,6 +32,7 @@ using TextureUniquePtr = std::unique_ptr<
 
 struct SamplerDeleter
 {
+    /// Releases the reference to the VP2 sampler owned by a smart pointer.
     void operator()(const MHWRender::MSamplerState* sampler);
 };
 

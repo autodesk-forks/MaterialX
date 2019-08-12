@@ -221,11 +221,6 @@ ShadingNodeOverride<BASE>::valueChangeRequiresFragmentRebuild(const MPlug* plug)
 }
 
 template <class BASE>
-void ShadingNodeOverride<BASE>::updateDG()
-{
-}
-
-template <class BASE>
 void ShadingNodeOverride<BASE>::updateShader(MHWRender::MShaderInstance& shader,
                                              const MHWRender::MAttributeParameterMappingList& mappings)
 {

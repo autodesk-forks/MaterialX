@@ -20,9 +20,10 @@ You can now create MaterialX nodes in your scene.
 ## Maya Nodes
 
 The plug-in defines two Maya nodes: `MaterialXSurfaceNode` and `MaterialXTextureNode`, accessible from the Hypershade under the _Surface_ and _2D Textures_ categories, respectively.
+
 A `MaterialXSurfaceNode` can be assigned to a shape via the [Marking Menu](https://knowledge.autodesk.com/support/maya/learn-explore/caas/CloudHelp/cloudhelp/2019/ENU/Maya-LightingShading/files/GUID-D41AF807-F7CB-447E-BACC-7F0867C14E8D-htm.html).
 
-A `MaterialXTextureNode` can be mapped to any shader.
+A `MaterialXTextureNode` can be connected to any surface node.
 For example, you can map its OutColor attribute to the Color attribute of a Lambert, or the Specular Color of an aiStandardSurface. 
 
 Both node types expose the following attributes:
