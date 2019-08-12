@@ -10,7 +10,7 @@ namespace MaterialXMaya
 {
 
 /// @class ReloadMaterialXLibrariesCmd
-/// Reloads all MaterialX libraries used by the plug-in
+/// Reloads all MaterialX libraries used by the plug-in.
 ///
 class ReloadMaterialXLibrariesCmd : MPxCommand
 {

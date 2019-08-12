@@ -23,7 +23,7 @@ class Plugin
     /// Get the singleton instance.
     static Plugin& instance();
 
-    /// Plugin initialization.
+    /// Plug-in initialization.
     void initialize(const std::string& pluginLoadPath);
 
     /// Get the search paths for resources such as texture files.

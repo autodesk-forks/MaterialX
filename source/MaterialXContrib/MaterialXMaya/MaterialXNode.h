@@ -36,7 +36,7 @@ class MaterialXNode : public MPxNode
     bool setInternalValue(const MPlug&, const MDataHandle&) override;
     /// @}
 
-    /// Sets the attributes values and the OGS fragment owned by the node
+    /// Set the attribute values and the OGS fragment owned by the node
     /// when creating the node with CreateMaterialXNodeCmd.
     /// @param documentFilePath The path to the MaterialX document file.
     /// @param elementPath The path to the MaterialX element within the document.
@@ -54,25 +54,25 @@ class MaterialXNode : public MPxNode
     /// Reloads the document, regenerates the OGS fragment and refreshes the node in the viewport.
     void reloadDocument();
 
-    /// Returns the OGS fragment.
+    /// Return the OGS fragment.
     const OgsFragment* getOgsFragment() const
     {
         return _ogsFragment.get();
     }
 
-    /// Returns the document file path.
+    /// Return the document file path.
     const MString& getDocumentFilePath() const
     {
         return _documentFilePath;
     }
 
-    /// Returns the file name of the environment map to use for specular shading.
+    /// Return the file name of the environment map to use for specular shading.
     const MString& getEnvRadianceFileName() const
     {
         return _envRadianceFileName;
     }
 
-    /// Returns the file name of the environment map to use for diffuse shading.
+    /// Return the file name of the environment map to use for diffuse shading.
     const MString& getEnvIrradianceFileName() const
     {
         return _envIrradianceFileName;
@@ -86,6 +86,7 @@ class MaterialXNode : public MPxNode
     static const MString DOCUMENT_ATTRIBUTE_LONG_NAME;
     static const MString DOCUMENT_ATTRIBUTE_SHORT_NAME;
     static MObject DOCUMENT_ATTRIBUTE;
+    /// @}
 
     /// @name Attribute holding the path to the MaterialX element within the document.
     /// @{
@@ -113,7 +114,7 @@ class MaterialXNode : public MPxNode
     static MObject OUT_ATTRIBUTE;
 
   protected:
-    /// An object representing an OGS shade fragment created by the command for this node.
+    /// An object representing an OGS shade fragment generated for this node.
     std::unique_ptr<OgsFragment> _ogsFragment;
 
   private:
@@ -155,7 +156,8 @@ public:
 
 /// @class MaterialXSurfaceNode
 /// MaterialX surface shading node, accessible from the Hypershade under the
-/// Surface category.
+/// Surface category and available for assignment to a shape via the Marking
+/// Menu.
 class MaterialXSurfaceNode : public MaterialXNode
 {
 public:
@@ -170,7 +172,7 @@ public:
 
     /// The input transparency attribute, registered in VP2 as such by
     /// MaterialXMaya::SurfaceOverride::transparencyParameter().
-    /// It stores a dummy value set above 0 if the surface is internally
+    /// Stores a dummy value set above 0 if the surface is internally
     /// determined by MaterialX to be transparent. This makes VP2 render this
     /// surface in transparency passes.
     static MObject VP2_TRANSPARENCY_ATTRIBUTE;

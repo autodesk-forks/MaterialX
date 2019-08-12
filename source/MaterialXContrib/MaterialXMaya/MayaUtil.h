@@ -15,8 +15,10 @@ namespace MaterialXMaya
 namespace MayaUtil
 {
 
-/// Registers an OGS shade fragment stored in a string in VP2. Throws an
-/// exception if a fragment with the same name is already registered.
+/// Registers an OGS shade fragment in VP2. Throws an exception if a fragment
+/// with the same name is already registered.
+/// @param The unique name of the fragment to use for registration.
+/// @param The code of the fragment stored in a string.
 void registerFragment(const std::string& fragmentName, const std::string& fragmentSource);
 
 struct TextureDeleter

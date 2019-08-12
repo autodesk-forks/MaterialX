@@ -10,7 +10,7 @@
 namespace MaterialXMaya
 {
 
-/// A template base class for surface and texture shading node overrides since
+/// Base class for surface and texture shading node overrides, templated since
 /// they need to derive from different Maya API classes.
 ///
 template <class BASE>
@@ -22,7 +22,7 @@ class ShadingNodeOverride : public BASE
         return MHWRender::kOpenGL | MHWRender::kOpenGLCoreProfile;
     }
 
-    /// Return the name of the OGS fragment used for this shading node to Maya.
+    /// Return the name of the OGS fragment used for this shading node.
     MString fragmentName() const override;
 
     /// Set VP2 shader parameters based on MaterialX values and bind texture
@@ -33,7 +33,7 @@ class ShadingNodeOverride : public BASE
     ) override;
 
     /// Determine if changing the value of the specified plug should refresh
-    /// the shader in Maya's viewport.
+    /// the shader in the viewport.
     bool valueChangeRequiresFragmentRebuild(const MPlug*) const override;
 
   protected:

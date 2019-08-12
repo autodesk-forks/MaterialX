@@ -31,7 +31,8 @@ class OgsFragment
 
     ~OgsFragment();
 
-    /// Returns the path to the renderable element within the document.
+    /// Return the path to the renderable MaterialX element within the document
+    /// that this fragment was created for.
     std::string getElementPath() const
     {
         return _element ? _element->getNamePath() : mx::EMPTY_STRING;
@@ -40,7 +41,7 @@ class OgsFragment
     OgsFragment& operator=(const OgsFragment&) = delete;
     OgsFragment& operator=(OgsFragment&&) = delete;
 
-    /// Returns the MaterialX document.
+    /// Return the MaterialX document.
     mx::DocumentPtr getDocument() const
     {
         return _document;
@@ -68,8 +69,8 @@ class OgsFragment
     /// determined by MaterialX at generation time.
     bool isTransparent() const { return _isTransparent; }
 
-    /// OGS does not support matrix3. As such the matrix4 parameter name is derived from the matrix3 name.
-    /// This utility performs this computation.
+    /// Derive a matrix4 parameter name from a matrix3 parameter name.
+    /// Required because OGS doesn't support matrix3 parameters.
     static std::string getMatrix4Name(const std::string& matrix3Name);
 
   private:
