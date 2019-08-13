@@ -18,7 +18,7 @@ namespace MaterialXMaya
 {
 
 /// @class CreateMaterialXNodeCmd
-/// Creates one or many MaterialX nodes from the specified MaterialX document.
+/// Creates one or more MaterialX nodes from the specified MaterialX document.
 ///
 class CreateMaterialXNodeCmd : MPxCommand
 {
