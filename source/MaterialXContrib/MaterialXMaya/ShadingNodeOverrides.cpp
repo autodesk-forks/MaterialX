@@ -257,7 +257,7 @@ void ShadingNodeOverride<BASE>::updateShader(MHWRender::MShaderInstance& shader,
 
     // Set up image file name search path.
     mx::FilePath documentPath(node->getDocumentFilePath().asChar());
-    documentPath.pop();
+    documentPath = documentPath.getParentPath();
     mx::FileSearchPath imageSearchPath = Plugin::instance().getResourceSearchPath(); 
     imageSearchPath.prepend(documentPath);
 
