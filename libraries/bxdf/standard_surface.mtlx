@@ -9,8 +9,10 @@
             doc="Multiplier on the intensity of the diffuse reflection." />
       <input name="base_color" type="color3" value="1, 1, 1" uimin="0,0,0" uimax="1,1,1" uiname="Base Color"  uifolder="Base"
             doc="Color of the diffuse reflection." />
-      <input name="diffuse_roughness" type="float" value="0" uimin="0.0" uimax="1.0" uiname="Diffuse Roughness"  uifolder="Diffuse" uiadvanced="true"
+      <input name="diffuse_roughness" type="float" value="0" uimin="0.0" uimax="1.0" uiname="Diffuse Roughness"  uifolder="Base" uiadvanced="true"
             doc="Roughness of the diffuse reflection. Higher values cause the surface to appear flatter and darker." />
+      <input name="metalness" type="float" value="0" uimin="0.0" uimax="1.0" uiname="Metalness" uifolder="Base"
+            doc="Specifies how metallic the material appears. At its maximum, the surface behaves like a metal, using fully specular reflection and complex fresnel." />
       <input name="specular" type="float" value="1" uimin="0.0" uimax="1.0" uiname="Specular" uifolder="Specular"
             doc="Multiplier on the intensity of the specular reflection." />
       <input name="specular_color" type="color3" value="1, 1, 1" uimin="0,0,0" uimax="1,1,1" uiname="Specular Color" uifolder="Specular"
@@ -20,12 +22,10 @@
       <input name="specular_IOR" type="float" value="1.5" uimin="0.0" uimax="3.0" uiname="Index of Refraction" uifolder="Specular"
             doc="Index of refraction for specular reflection." />
       <input name="specular_anisotropy" type="float" value="0" uimin="0.0" uimax="1.0" uiname="Specular Anisotropy" uifolder="Specular" uiadvanced="true"
-            doc="The directional bias of reflected and transmited light resulting in materials appearing rougher or glossier in certain directions." />
+            doc="The directional bias of reflected and transmitted light resulting in materials appearing rougher or glossier in certain directions." />
       <input name="specular_rotation" type="float" value="0" uimin="0.0" uimax="1.0" uiname="Specular Rotation" uifolder="Specular" uiadvanced="true"
             doc="Rotation of the axis of specular anisotropy around the surface normal." />
-      <input name="metalness" type="float" value="0" uimin="0.0" uimax="1.0" uiname="Metalness" uifolder="Specular"
-            doc="Specifies how metallic the material appears. At its maximum, the surface behaves like a metal, using fully specular reflection and complex fresnel." />
-      <input name="transmission" type="float" value="0" uimin="0.0" uimax="1.0" uiname="Transmission" uifolder="Transmission"
+      <input name="transmission" type="float" value="0" uimin="0.0" uimax="1.0" uiname="Transmission" uifolder="Transmission" uiadvanced="true"
             doc="Transmission of light through the surface for materials such as glass or water. The greater the value the more transparent the material." />
       <input name="transmission_color" type="color3" value="1, 1, 1" uimin="0,0,0" uimax="1,1,1" uiname="Transmission Color" uifolder="Transmission" uiadvanced="true"
             doc="Color tint on the transmitted light." />
@@ -55,12 +55,6 @@
             doc="The color of the sheen layer." />
       <input name="sheen_roughness" type="float" value="0.3" uimin="0.0" uimax="1.0" uiname="Sheen Roughness" uifolder="Sheen" uiadvanced="true"
             doc="The roughness of the sheen layer." />
-      <input name="thin_walled" type="boolean" value="false" uiname="Thin Walled" uifolder="Geometry" uiadvanced="true"
-            doc="If tue the surface is double-sided and represents an infinitely thin shell. Suiteable for thin objects such as tree leafs or paper"/>
-      <input name="normal" type="vector3" defaultgeomprop="Nworld" uiname="Normal" uifolder="Geometry"
-            doc="Input geometric normal" />
-      <input name="tangent" type="vector3"  defaultgeomprop="Tworld" uiname="Tangent Input" uifolder="Geometry"
-            doc="Input geometric tangent" />
       <input name="coat" type="float" value="0" uimin="0.0" uimax="1.0" uiname="Coat" uifolder="Coat"
             doc="The weight of a reflective clear-coat layer on top of the material. Use for materials such as car paint or an oily layer." />
       <input name="coat_color" type="color3" value="1, 1, 1" uimin="0,0,0" uimax="1,1,1" uiname="Coat Color" uifolder="Coat"
@@ -73,7 +67,7 @@
             doc="The rotation of the anisotropic effect of the clear-coat layer." />
       <input name="coat_IOR" type="float" value="1.5" uimin="0.0" uimax="3.0" uiname="Coat Index of Refraction" uifolder="Coat"
             doc="The index of refraction of the clear-coat layer." />
-      <input name="coat_normal" type="vector3" defaultgeomprop="Nworld" uimin="0,0,0" uimax="1,1,1" uiname="Coat normal" uifolder="Geometry"
+      <input name="coat_normal" type="vector3" defaultgeomprop="Nworld" uimin="0,0,0" uimax="1,1,1" uiname="Coat normal" uifolder="Coat"
             doc="Input normal for clear-coat layer" />
       <input name="coat_affect_color" type="float" value="0" uimin="0,0,0" uimax="1,1,1" uiname="Coat Affect Color" uifolder="Coat" uiadvanced="true"
             doc="Controls the saturation of diffuse reflection and subsurface scattering below the clear-coat." />
@@ -89,6 +83,12 @@
             doc="The color of the emitted light." />
       <input name="opacity" type="color3" value="1, 1, 1" uimin="0,0,0" uimax="1,1,1" uiname="Opacity" uifolder="Geometry"
             doc="The opacity of the entire material." />
+      <input name="thin_walled" type="boolean" value="false" uiname="Thin Walled" uifolder="Geometry" uiadvanced="true"
+            doc="If tue the surface is double-sided and represents an infinitely thin shell. Suiteable for thin objects such as tree leafs or paper"/>
+      <input name="normal" type="vector3" defaultgeomprop="Nworld" uiname="Normal" uifolder="Geometry"
+            doc="Input geometric normal" />
+      <input name="tangent" type="vector3"  defaultgeomprop="Tworld" uiname="Tangent Input" uifolder="Geometry"
+          doc="Input geometric tangent" />
   </nodedef>
 
   <!--
