@@ -127,7 +127,7 @@
            doc="A subsurface scattering BSDF for true subsurface scattering.">
     <input name="weight" type="float" value="1.0" uimin="0.0" uimax="1.0"/>
     <input name="color" type="color3" value="0.18, 0.18, 0.18"/>
-    <input name="radius" type="color3" value="1.0, 1.0, 1.0"/>
+    <input name="radius" type="vector3" value="1.0, 1.0, 1.0"/>
     <input name="anisotropy" type="float" value="0.0"/>
     <input name="normal" type="vector3" defaultgeomprop="Nworld"/>
   </nodedef>
