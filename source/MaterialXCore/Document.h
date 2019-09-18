@@ -15,6 +15,7 @@
 #include <MaterialXCore/Material.h>
 #include <MaterialXCore/Node.h>
 #include <MaterialXCore/Variant.h>
+#include <MaterialXCore/Units.h>
 
 namespace MaterialX
 {
@@ -557,6 +558,19 @@ class Document : public GraphElement
     virtual void disableCallbacks() { }
 
     /// @}
+    /// @name Unit converters
+    /// @{
+
+    /// Add a converter.
+    bool addUnitConverter(UnitTypeDefPtr def, UnitConverterPtr converter);
+
+    /// Remove a converter.
+    bool removeUnitConverter(UnitTypeDefPtr def);
+
+    /// Clear all converters.
+    void clearUnitConverters();
+
+    /// @}
 
   public:
     static const string CATEGORY;
@@ -566,6 +580,7 @@ class Document : public GraphElement
   private:
     class Cache;
     std::unique_ptr<Cache> _cache;
+    std::unordered_map<string, UnitConverterPtr> _unitConverters;
 };
 
 /// @class ScopedUpdate

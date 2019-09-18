@@ -391,7 +391,7 @@ class Member : public TypedElement
 };
 
 /// @class UnitDef
-/// A unit definition within a uUnitTypeDef.
+/// A unit definition within a UnitTypeDef.
 class UnitDef : public Element
 {
   public:
@@ -401,41 +401,15 @@ class UnitDef : public Element
       }
       virtual ~UnitDef() { }
 
-      /// Set the scale attribute of the UnitDef.
-      void setScaleValue(const string& scale)
-      {
-          setAttribute(SCALE_ATTRIBUTE, scale);
-      }
-
-      /// Return the scale string of the UnitDef.
-      const string& getScaleValue() const
-      {
-          return getAttribute(SCALE_ATTRIBUTE);
-      }
-
-      /// Set the offset attribute of the UnitDef.
-      void setOffsetValue(const string& scale)
-      {
-          setAttribute(OFFSET_ATTRIBUTE, scale);
-      }
-
-      /// Return the offset string of the UnitDef.
-      const string& getOffsetValue() const
-      {
-          return getAttribute(OFFSET_ATTRIBUTE);
-      }
-
-public:
+  public:
     static const string CATEGORY;
-    static const string SCALE_ATTRIBUTE;
-    static const string OFFSET_ATTRIBUTE;
 };
 
 /// @class UnitTypeDef
 /// A unit type definition element within a Document.
 class UnitTypeDef : public Element
 {
-public:
+  public:
     UnitTypeDef(ElementPtr parent, const string& name) :
         Element(parent, CATEGORY, name)
     {
@@ -446,9 +420,9 @@ public:
     /// @{
 
     /// Set the defaut string of the UnitTypeDef.
-    void setDefault(const string& default)
+    void setDefault(const string& value)
     {
-        setAttribute(DEFAULT_ATTRIBUTE, default);
+        setAttribute(DEFAULT_ATTRIBUTE, value);
     }
 
     /// Return true if the given TypeDef has a default string.
@@ -497,7 +471,7 @@ public:
 
     /// @}
 
-public:
+  public:
     static const string CATEGORY;
     static const string DEFAULT_ATTRIBUTE;
 };

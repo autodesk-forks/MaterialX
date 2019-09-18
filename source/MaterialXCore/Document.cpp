@@ -638,4 +638,35 @@ void Document::onClearContent(ElementPtr)
     _cache->valid = false;
 }
 
+bool Document::addUnitConverter(UnitTypeDefPtr def, UnitConverterPtr converter)
+{
+    const string& name = def->getName();
+    if (_unitConverters.find(name) != _unitConverters.end())
+    {
+        return false;
+    }
+    _unitConverters[name] = converter;
+    return true;
+}
+
+/// Remove a converter.
+bool Document::removeUnitConverter(UnitTypeDefPtr def)
+{
+    const string& name = def->getName();
+    auto it = _unitConverters.find(name);
+    if (it == _unitConverters.end())
+    {
+        return false;
+    }
+
+    _unitConverters.erase(it);
+    return true;
+}
+
+/// Clear all converters.
+void Document::clearUnitConverters()
+{
+    _unitConverters.clear();
+}
+
 } // namespace MaterialX
