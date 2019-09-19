@@ -579,11 +579,14 @@ class Document : public GraphElement
         removeChildOfType<UnitTypeDef>(name);
     }
 
-    /// Add a unit converter.
+    /// Add a unit converter for a given UnitTypeDef.
     bool addUnitConverter(UnitTypeDefPtr def, UnitConverterPtr converter);
 
-    /// Remove a unit converter.
+    /// Remove a unit converter for a given UnitTypeDef.
     bool removeUnitConverter(UnitTypeDefPtr def);
+
+    /// Get a unit converter for a given UnitTypeDef
+    UnitConverterPtr getUnitConverter(UnitTypeDefPtr def);
 
     /// Clear all unit converters.
     void clearUnitConverters();

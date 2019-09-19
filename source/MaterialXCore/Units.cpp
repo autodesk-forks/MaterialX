@@ -26,6 +26,8 @@ namespace MaterialX
 
 LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef)
 {
+    static const string SCALE_ATTRIBUTE = "scale";
+
     // Build a unit scale map for each UnitDef. 
     vector<UnitDefPtr> unitDefs = unitTypeDef->getUnitDefs();
     for (UnitDefPtr unitdef : unitDefs)
@@ -33,13 +35,23 @@ LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef)
         const string& name = unitdef->getName();
         if (!name.empty())
         {
-            const string& scaleString = unitdef->getAttribute("scale");
+            const string& scaleString = unitdef->getAttribute(SCALE_ATTRIBUTE);
             if (!scaleString.empty())
             {
                 ValuePtr scaleValue = Value::createValueFromStrings(scaleString, getTypeString<float>());
                 _unitScale[name] = scaleValue->asA<float>();
             }
         }
+    }
+
+    // In case the default unit was not specified in the unittypedef explicit
+    // add this to be able to accept converstion with the default 
+    // as the output unit
+    const string& defaultUnit = unitTypeDef->getDefault();
+    auto it = _unitScale.find(defaultUnit);
+    if (it == _unitScale.end())
+    {
+        _unitScale[defaultUnit] = 1.0f;
     }
 }
 
@@ -51,6 +63,11 @@ UnitConverterPtr LengthUnitConverter::create(UnitTypeDefPtr unitTypeDef)
 
 float LengthUnitConverter::convert(float input, const string& inputUnit, const string& outputUnit) const
 {
+    if (inputUnit == outputUnit)
+    {
+        return 1.0f;
+    }
+
     auto it = _unitScale.find(inputUnit);
     if (it == _unitScale.end())
     {

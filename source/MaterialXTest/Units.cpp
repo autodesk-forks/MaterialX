@@ -27,9 +27,15 @@ TEST_CASE("Length", "[units]")
     mx::UnitConverterPtr converter = mx::LengthUnitConverter::create(lengthTypeDef);
     REQUIRE(converter);
     doc->addUnitConverter(lengthTypeDef, converter);
-    //converter = doc->getUnitConverter(lengthTypeDef); // to add
-    //REQUIRE(converter);
+    converter = doc->getUnitConverter(lengthTypeDef);
+    REQUIRE(converter);
 
     float result = converter->convert(0.1f, "kilometer", "millimeter");
     REQUIRE((result - 10000.0f) < EPSILON);
+    result = converter->convert(1.0f, "meter", "meter");
+    REQUIRE((result - 1.0f) < EPSILON);
+    result = converter->convert(1.0f, "mile", "meter");
+    REQUIRE((result - 0.000621f) < EPSILON);
+    result = converter->convert(1.0f, "meter", "mile");
+    REQUIRE((result - (1.0 / 0.000621f)) < EPSILON);
 }

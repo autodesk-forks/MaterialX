@@ -51,6 +51,7 @@
       <unitdef name="micron" scale="1000000.0" offset="0.0" />
       <unitdef name="millimeter" scale="1000.0" offset="0.0" />
       <unitdef name="centimeter" scale="100.0" offset="0.0" />
+      <!-- <unitdef name="meter" scale="1.0" offset="0.0" /> -->
       <unitdef name="kilometer" scale="0.001" offset="0.0" />
       <unitdef name="foot" scale="3.281" offset="0.0" />
       <unitdef name="inch" scale="39.37" offset="0.0" />

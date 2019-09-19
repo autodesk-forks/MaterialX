@@ -85,5 +85,12 @@ void bindPyDocument(py::module& mod)
         .def("getColorManagementSystem", &mx::Document::getColorManagementSystem)
         .def("setColorManagementConfig", &mx::Document::setColorManagementConfig)
         .def("hasColorManagementConfig", &mx::Document::hasColorManagementConfig)
-        .def("getColorManagementConfig", &mx::Document::getColorManagementConfig);
+        .def("getColorManagementConfig", &mx::Document::getColorManagementConfig)
+        .def("getUnitTypeDef", &mx::Document::getUnitTypeDef)
+        .def("getUnitTypeDefs", &mx::Document::getUnitTypeDefs)
+        .def("removeUnitTypeDef", &mx::Document::removeUnitTypeDef)
+        .def("addUnitConverter", &mx::Document::addUnitConverter)
+        .def("removeUnitConverter", &mx::Document::removeUnitConverter)
+        .def("getUnitConverter", &mx::Document::getUnitConverter)
+        .def("clearUnitConverters", &mx::Document::clearUnitConverters);
 }

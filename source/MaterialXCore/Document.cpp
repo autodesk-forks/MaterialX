@@ -649,7 +649,6 @@ bool Document::addUnitConverter(UnitTypeDefPtr def, UnitConverterPtr converter)
     return true;
 }
 
-/// Remove a converter.
 bool Document::removeUnitConverter(UnitTypeDefPtr def)
 {
     const string& name = def->getName();
@@ -663,7 +662,18 @@ bool Document::removeUnitConverter(UnitTypeDefPtr def)
     return true;
 }
 
-/// Clear all converters.
+UnitConverterPtr Document::getUnitConverter(UnitTypeDefPtr def)
+{
+    const string& name = def->getName();
+    auto it = _unitConverters.find(name);
+    if (it != _unitConverters.end())
+    {
+        return it->second;
+    }
+    return nullptr;
+}
+
+
 void Document::clearUnitConverters()
 {
     _unitConverters.clear();
