@@ -13,7 +13,7 @@
 * prior written consent of Autodesk, Inc.
 *
 * @file Units.cpp
-* @brief Units implementation.
+* @brief Units support
 */
 
 
@@ -65,7 +65,7 @@ float LengthUnitConverter::convert(float input, const string& inputUnit, const s
     }
     float toScale = it->second;
 
-    return (input * toScale / fromScale);
+    return (input * fromScale / toScale);
 }
 
 }

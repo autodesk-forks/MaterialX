@@ -764,5 +764,7 @@ INSTANTIATE_CONCRETE_SUBCLASS(Variant, "variant")
 INSTANTIATE_CONCRETE_SUBCLASS(VariantAssign, "variantassign")
 INSTANTIATE_CONCRETE_SUBCLASS(VariantSet, "variantset")
 INSTANTIATE_CONCRETE_SUBCLASS(Visibility, "visibility")
+INSTANTIATE_CONCRETE_SUBCLASS(UnitDef, "unitdef")
+INSTANTIATE_CONCRETE_SUBCLASS(UnitTypeDef, "unittypedef")
 
 } // namespace MaterialX

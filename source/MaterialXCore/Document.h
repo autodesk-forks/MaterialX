@@ -558,16 +558,34 @@ class Document : public GraphElement
     virtual void disableCallbacks() { }
 
     /// @}
-    /// @name Unit converters
+    /// @name Unit support
     /// @{
 
-    /// Add a converter.
+    /// Return the NodeDef, if any, with the given name.
+    UnitTypeDefPtr getUnitTypeDef(const string& name) const
+    {
+        return getChildOfType<UnitTypeDef>(name);
+    }
+
+    /// Return a vector of all UnitTypeDef elements in the document.
+    vector<UnitTypeDefPtr> getUnitTypeDefs() const
+    {
+        return getChildrenOfType<UnitTypeDef>();
+    }
+
+    /// Remove the NodeDef, if any, with the given name.
+    void removeUnitTypeDef(const string& name)
+    {
+        removeChildOfType<UnitTypeDef>(name);
+    }
+
+    /// Add a unit converter.
     bool addUnitConverter(UnitTypeDefPtr def, UnitConverterPtr converter);
 
-    /// Remove a converter.
+    /// Remove a unit converter.
     bool removeUnitConverter(UnitTypeDefPtr def);
 
-    /// Clear all converters.
+    /// Clear all unit converters.
     void clearUnitConverters();
 
     /// @}
