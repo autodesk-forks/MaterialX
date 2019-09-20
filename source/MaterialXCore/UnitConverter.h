@@ -13,12 +13,12 @@
 * not be disclosed to, copied or used by any third party without the prior
 * written consent of Autodesk, Inc.
 *
-* @file Units.h
-* @brief Units declaration.
+* @file UnitConverter.h
+* @brief Unit converter classes.
 */
 
-#ifndef MATERIALX_UNITS_H_
-#define MATERIALX_UNITS_H_
+#ifndef MATERIALX_UNITCONVERTER_H_
+#define MATERIALX_UNITCONVERTER_H_
 
 #include <MaterialXCore/Library.h>
 
@@ -70,4 +70,4 @@ class LengthUnitConverter : public UnitConverter
 
 }  // namespace MaterialX
 
-#endif  // MATERIALX_UNITS_H_
+#endif  // MATERIALX_UNITCONVERTER_H_

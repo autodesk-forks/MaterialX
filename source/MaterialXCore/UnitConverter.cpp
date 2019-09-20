@@ -19,7 +19,7 @@
 
 #include <MaterialXCore/Util.h>
 #include <MaterialXCore/Value.h>
-#include <MaterialXCore/Units.h>
+#include <MaterialXCore/UnitConverter.h>
 
 namespace MaterialX
 {

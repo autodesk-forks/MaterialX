@@ -619,22 +619,8 @@ bool ValueElement::validate(string* message) const
     if (hasUnitString())
     {
         const string& unitString = getUnitString();
-        vector<UnitTypeDefPtr> typeDefs = getDocument()->getUnitTypeDefs();
-        bool unitExists = false;
-        for (UnitTypeDefPtr typeDef : typeDefs)
-        {
-            if (typeDef->getDefault() == unitString)
-            {
-                unitExists = true;
-                break;
-            }
-            if (typeDef->getUnitDef(unitString))
-            {
-                unitExists = true;
-                break;
-            }
-        }
-        validateRequire(unitExists, res, message, "Unit definition does not exist in document");
+        UnitTypeDefPtr typeDef = getDocument()->getUnitTypeDefWithUnit(unitString);
+        validateRequire(typeDef != nullptr, res, message, "Unit definition does not exist in document");
     }
 
     return TypedElement::validate(message) && res;

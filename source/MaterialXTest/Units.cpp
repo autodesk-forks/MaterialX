@@ -6,7 +6,7 @@
 #include <MaterialXTest/Catch/catch.hpp>
 
 #include <MaterialXCore/Document.h>
-#include <MaterialXCore/Units.h>
+#include <MaterialXCore/UnitConverter.h>
 #include <MaterialXFormat/File.h>
 #include <MaterialXGenShader/Util.h>
 
@@ -39,7 +39,6 @@ TEST_CASE("UnitAttribute", "[units]")
     output->setUnitString("foot");
     REQUIRE(output->hasUnitString());
     REQUIRE(!output->getUnitString().empty());
-
 
     REQUIRE(doc->validate());
 }
