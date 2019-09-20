@@ -1098,6 +1098,28 @@ class ValueElement : public TypedElement
     ValuePtr getDefaultValue() const;
 
     /// @}
+    /// @name Units
+    /// @{
+
+    /// Set the unit string .
+    void setUnitString(const string& unit)
+    {
+        setAttribute(UNIT_ATTRIBUTE, unit);
+    }
+
+    /// Return true if a unit string exists.
+    bool hasUnitString() const
+    {
+        return hasAttribute(UNIT_ATTRIBUTE);
+    }
+
+    /// Return the unit string.
+    const string& getUnitString() const
+    {
+        return getAttribute(UNIT_ATTRIBUTE);
+    }
+
+    /// @}
     /// @name Validation
     /// @{
 
@@ -1114,6 +1136,7 @@ class ValueElement : public TypedElement
     static const string IMPLEMENTATION_TYPE_ATTRIBUTE;
     static const string ENUM_ATTRIBUTE;
     static const string ENUM_VALUES_ATTRIBUTE;
+    static const string UNIT_ATTRIBUTE;
     static const string UI_NAME_ATTRIBUTE;
     static const string UI_FOLDER_ATTRIBUTE;
     static const string UI_MIN_ATTRIBUTE;

@@ -59,8 +59,8 @@
       <unitdef name="mile" scale="0.000621" offset="0.0" />
    </unittypedef>
 
-   <!-- ======================================================================== -->
-  <!-- Geometric Properties
+  <!-- ======================================================================== -->
+  <!-- Geometric Properties                                                     -->
   <!-- ======================================================================== -->
 
   <geompropdef name="Pobject" type="vector3" geomprop="position" space="object"/>

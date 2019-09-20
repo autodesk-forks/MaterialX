@@ -28,6 +28,7 @@ const string ValueElement::ENUM_ATTRIBUTE = "enum";
 const string ValueElement::IMPLEMENTATION_NAME_ATTRIBUTE = "implname";
 const string ValueElement::IMPLEMENTATION_TYPE_ATTRIBUTE = "impltype";
 const string ValueElement::ENUM_VALUES_ATTRIBUTE = "enumvalues";
+const string ValueElement::UNIT_ATTRIBUTE = "unit";
 const string ValueElement::UI_NAME_ATTRIBUTE = "uiname";
 const string ValueElement::UI_FOLDER_ATTRIBUTE = "uifolder";
 const string ValueElement::UI_MIN_ATTRIBUTE = "uimin";
@@ -615,6 +616,27 @@ bool ValueElement::validate(string* message) const
             }
         }
     }
+    if (hasUnitString())
+    {
+        const string& unitString = getUnitString();
+        vector<UnitTypeDefPtr> typeDefs = getDocument()->getUnitTypeDefs();
+        bool unitExists = false;
+        for (UnitTypeDefPtr typeDef : typeDefs)
+        {
+            if (typeDef->getDefault() == unitString)
+            {
+                unitExists = true;
+                break;
+            }
+            if (typeDef->getUnitDef(unitString))
+            {
+                unitExists = true;
+                break;
+            }
+        }
+        validateRequire(unitExists, res, message, "Unit definition does not exist in document");
+    }
+
     return TypedElement::validate(message) && res;
 }
 
