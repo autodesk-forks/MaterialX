@@ -173,6 +173,10 @@ void Document::importLibrary(const ConstDocumentPtr& library, const CopyOptions*
         {
             childCopy->setColorSpace(library->getColorSpace());
         }
+        if (!childCopy->hasUnit() && library->hasUnit())
+        {
+            childCopy->setUnit(library->getUnit());
+        }
         if (!childCopy->hasNamespace() && library->hasNamespace())
         {
             childCopy->setNamespace(library->getNamespace());

@@ -445,6 +445,13 @@ bool Element::validate(string* message) const
         res = child->validate(message) && res;
     }
     validateRequire(!hasInheritanceCycle(), res, message, "Cycle in element inheritance chain");
+
+    if (hasUnit())
+    {
+        const string& unit = getUnit();
+        UnitTypeDefPtr typeDef = getDocument()->getUnitTypeDefWithUnit(unit);
+        validateRequire(typeDef != nullptr, res, message, "Unit definition does not exist in document");
+    }
     return res;
 }
 
@@ -616,13 +623,6 @@ bool ValueElement::validate(string* message) const
             }
         }
     }
-    if (hasUnitString())
-    {
-        const string& unitString = getUnitString();
-        UnitTypeDefPtr typeDef = getDocument()->getUnitTypeDefWithUnit(unitString);
-        validateRequire(typeDef != nullptr, res, message, "Unit definition does not exist in document");
-    }
-
     return TypedElement::validate(message) && res;
 }
 
