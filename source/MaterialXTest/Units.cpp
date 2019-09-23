@@ -51,12 +51,15 @@ TEST_CASE("Length", "[units]")
     mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef("length");
     REQUIRE(lengthTypeDef);
 
-    mx::UnitConverterPtr converter = mx::LengthUnitConverter::create(lengthTypeDef);
-    REQUIRE(converter);
-    doc->addUnitConverter(lengthTypeDef, converter);
-    converter = doc->getUnitConverter(lengthTypeDef);
-    REQUIRE(converter);
+    mx::UnitConverterPtr uconverter = mx::LengthUnitConverter::create(lengthTypeDef);
+    REQUIRE(uconverter);
+    doc->addUnitConverter(lengthTypeDef, uconverter);
+    uconverter = doc->getUnitConverter(lengthTypeDef);
+    REQUIRE(uconverter);
 
+    mx::LengthUnitConverterPtr converter = std::dynamic_pointer_cast<mx::LengthUnitConverter>(uconverter);
+
+    // Use converter to convert
     float result = converter->convert(0.1f, "kilometer", "millimeter");
     REQUIRE((result - 10000.0f) < EPSILON);
     result = converter->convert(1.0f, "meter", "meter");
@@ -65,4 +68,11 @@ TEST_CASE("Length", "[units]")
     REQUIRE((result - 0.000621f) < EPSILON);
     result = converter->convert(1.0f, "meter", "mile");
     REQUIRE((result - (1.0 / 0.000621f)) < EPSILON);
+
+    // Use explicit converter values
+    const std::unordered_map<std::string, float>& unitScale = converter->getUnitScale();
+    result = 0.1f * unitScale.find("kilometer")->second / unitScale.find("millimeter")->second;
+    REQUIRE((result - 10000.0f) < EPSILON);
+    const std::string& defaultUnit = converter->getGefaultUnit();
+    REQUIRE(defaultUnit == lengthTypeDef->getDefault());
 }
