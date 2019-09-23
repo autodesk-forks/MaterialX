@@ -503,6 +503,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         outputSocket->makeConnection(newNode->getOutput());
         outputSocket->setPath(shaderRef->getNamePath());
 
+        // Unit parameters
+        const string& targetUnit = context.getOptions().targetUnit.empty() ? element->getDocument()->getActiveUnit() : context.getOptions().targetUnit;
+            
         // Handle node parameters
         for (ParameterPtr elem : nodeDef->getActiveParameters())
         {
@@ -527,12 +530,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     const string& targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
                         element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindParam, targetColorSpace);
-
-                    //TODO: GET DEFAULT UNIT
-                    UnitSystemPtr unitSystem = context.getShaderGenerator().getUnitSystem();
-                    const string& targetUnit = context.getOptions().targetUnit.empty() ? "foot" : context.getOptions().targetUnit;
-
-                    graph->populateInputUnitTransformMap(unitSystem, graph->_nodeMap[newNodeName], bindParam, targetUnit);
+                    graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName], bindParam, targetUnit);
                 }
                 inputSocket->setPath(bindParam->getNamePath());
                 input->setPath(inputSocket->getPath());
@@ -567,14 +565,8 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     const string& targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
                         element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindInput, targetColorSpace);
+                    graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName], bindInput, targetUnit);
 
-
-                    UnitSystemPtr unitSystem = context.getShaderGenerator().getUnitSystem();
-                    //TODO: Get default unit
-                    const string& targetUnit = context.getOptions().targetUnit.empty() ?
-                        "foot" : context.getOptions().targetUnit;
-
-                    graph->populateInputUnitTransformMap(unitSystem, graph->_nodeMap[newNodeName], bindInput, targetUnit);
                 }
                 inputSocket->setPath(bindInput->getNamePath());
                 input->setPath(inputSocket->getPath());
@@ -762,9 +754,8 @@ ShaderNode* ShaderGraph::addNode(const Node& node, GenContext& context)
 
     //Unit System:
     UnitSystemPtr unitSystem = context.getShaderGenerator().getUnitSystem();
-    //TODO: GET DEFAULT UNIT 
     const string& targetUnit = context.getOptions().targetUnit.empty() ?
-        "foot" : context.getOptions().targetUnit;
+        _document->getActiveUnit() : context.getOptions().targetUnit;
 
     if (unitSystem && !targetUnit.empty())
     {
