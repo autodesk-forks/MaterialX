@@ -86,6 +86,7 @@ class Viewer : public ng::Screen
     void drawScene2D();
 
     void setupLights(mx::DocumentPtr doc);
+    void setupUnitConverter(mx::DocumentPtr doc);
     void loadDocument(const mx::FilePath& filename, mx::DocumentPtr libraries);
     void reloadShaders();
     void loadStandardLibraries();
@@ -202,6 +203,10 @@ class Viewer : public ng::Screen
     // Image save
     bool _captureFrame;
     mx::FilePath _captureFrameFileName;
+
+    // Working space
+    std::string _unitspace;
+    mx::StringVec unitOptions;
 
     // UV wireframe drawing
     bool _drawUVGeometry;

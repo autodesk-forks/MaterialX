@@ -87,7 +87,7 @@ class LengthUnitConverter;
 /// A shared pointer to an LengthUnitConverter
 using LengthUnitConverterPtr = shared_ptr<LengthUnitConverter>;
 /// A shared pointer to a const LengthUnitConverter
-using ConstLentghUnitConverterPtr = shared_ptr<const LengthUnitConverter>;
+using ConstLengthUnitConverterPtr = shared_ptr<const LengthUnitConverter>;
 
 /// @class LLengthUnitConverter
 /// An unit conversion utility for handling length.
@@ -105,6 +105,8 @@ class LengthUnitConverter : public UnitConverter
     /// @param inputUnit Unit of input value
     /// @param outputUnit Unit for output value
     float convert(float input, const string& inputUnit, const string& outputUnit) const override;
+
+    static const string LENGTH_UNIT;
 
   private:
     LengthUnitConverter(UnitTypeDefPtr unitTypeDef);

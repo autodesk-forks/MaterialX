@@ -12,6 +12,7 @@
 #include <MaterialXGenShader/Util.h>
 #include <MaterialXGenShader/HwShaderGenerator.h>
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
+#include <MaterialXGenShader/DefaultUnitSystem.h>
 
 #include <MaterialXRender/Util.h>
 #include <MaterialXRender/LightHandler.h>

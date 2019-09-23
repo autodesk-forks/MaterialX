@@ -24,7 +24,13 @@
 namespace MaterialX
 {
 
+<<<<<<< HEAD
 UnitConverter::UnitConverter(UnitTypeDefPtr unitTypeDef)
+=======
+const string LengthUnitConverter::LENGTH_UNIT = "length";
+
+LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef)
+>>>>>>> Add a simple unit system similar to the existing cms.
 {
     static const string SCALE_ATTRIBUTE = "scale";
     static const string OFFSET_ATTRIBUTE = "offset";

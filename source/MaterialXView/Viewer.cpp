@@ -1,6 +1,7 @@
 #include <MaterialXView/Viewer.h>
 
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
+#include <MaterialXGenShader/DefaultUnitSystem.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXRender/OiioImageLoader.h>
 #include <MaterialXRender/StbImageLoader.h>
@@ -203,6 +204,10 @@ Viewer::Viewer(const mx::FilePathVec& libraryFolders,
     _uvTranslation(-0.5f, 0.5f, 0.0f),
     _uvZoom(1.0f)
 {
+
+    // Set default unit
+    _unitspace = "meter";
+    
     // Transpary option before creating Advanced UI 
     // as this flag is used to set the default value.
     _genContext.getOptions().hwTransparency = true;
@@ -258,6 +263,7 @@ Viewer::Viewer(const mx::FilePathVec& libraryFolders,
     // Set default generator options.
     _genContext.getOptions().hwSpecularEnvironmentMethod = _specularEnvironmentMethod;
     _genContext.getOptions().targetColorSpaceOverride = "lin_rec709";
+    _genContext.getOptions().targetUnit = _unitspace;
     _genContext.getOptions().fileTextureVerticalFlip = true;
 
     // Set default light information before initialization
@@ -409,6 +415,15 @@ void Viewer::setupLights(mx::DocumentPtr doc)
     {
         new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to set up lighting", e.what());
     }
+}
+
+void Viewer::setupUnitConverter(mx::DocumentPtr doc)
+{
+    mx::UnitSystemPtr unitSystem = mx::DefaultUnitSystem::create(_genContext.getShaderGenerator().getLanguage());
+    unitSystem->loadDocument(doc);
+    _genContext.getShaderGenerator().setUnitSystem(unitSystem);
+    mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
+    doc->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));
 }
 
 void Viewer::assignMaterial(mx::MeshPartitionPtr geometry, MaterialPtr material)
@@ -652,6 +667,44 @@ void Viewer::createAdvancedSettings(Widget* parent)
         _showAdvancedProperties = enable;
         updateDisplayedProperties();
     });
+
+    //Units
+    {
+        Widget* sampleGroup = new Widget(advancedPopup);
+        sampleGroup->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
+        new ng::Label(sampleGroup, "Unit Space:");
+
+       
+        {
+            //TODO: Need a get supported units
+            mProcessEvents = false;
+            unitOptions.push_back("nanometer");
+            unitOptions.push_back("micron");
+            unitOptions.push_back("millimeter");
+            unitOptions.push_back("centimeter");
+            unitOptions.push_back("meter");
+            unitOptions.push_back("kilometer");
+            unitOptions.push_back("foot");
+            unitOptions.push_back("inch");
+            unitOptions.push_back("yard");
+            unitOptions.push_back("mile");
+            mProcessEvents = true;
+        }
+        ng::ComboBox* sampleBox = new ng::ComboBox(sampleGroup, unitOptions);
+        sampleBox->setChevronIcon(-1);
+
+        int index = (int) std::distance(unitOptions.begin(),
+                                     std::find(unitOptions.begin(),
+                                               unitOptions.end(),
+                                               _unitspace));
+        sampleBox->setSelectedIndex(index);
+        sampleBox->setCallback([this](int index)
+        {
+            _unitspace = unitOptions[index];
+            _genContext.getOptions().targetUnit= _unitspace;
+            reloadShaders();
+        });
+    }
 }
 
 void Viewer::updateGeometrySelections()
@@ -811,6 +864,9 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
 
         // Add lighting 
         setupLights(doc);
+
+        // Define Unit converters
+        setupUnitConverter(doc);
 
         // Apply modifiers to the content document.
         applyModifiers(doc, _modifiers);
