@@ -190,7 +190,6 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     _shaderGenerator->setColorManagementSystem(colorManagementSystem);
 
     mx::UnitSystemPtr unitSystem = mx::DefaultUnitSystem::create(_shaderGenerator->getLanguage());
-    unitSystem->loadLibrary(dependLib);
     _shaderGenerator->setUnitSystem(unitSystem);
 
     mx::GenContext context(_shaderGenerator);
@@ -253,6 +252,12 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
             }
 
             doc->importLibrary(dependLib, &copyOptions);
+            
+            // Setup Unit system converters
+            _shaderGenerator->getUnitSystem()->loadDocument(doc);
+            mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
+            doc->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));
+
             ioTimer.endTimer();
 
             validateTimer.startTimer();

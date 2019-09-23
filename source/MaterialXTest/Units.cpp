@@ -8,7 +8,6 @@
 #include <MaterialXCore/Document.h>
 #include <MaterialXCore/UnitConverter.h>
 #include <MaterialXFormat/File.h>
-#include <MaterialXFormat/XmlIo.h>
 #include <MaterialXGenShader/TypeDesc.h>
 #include <MaterialXGenShader/Util.h>
 
@@ -111,6 +110,7 @@ TEST_CASE("UnitEvaluation", "[units]")
     REQUIRE((result - 10000.0f) < EPSILON);
     const std::string& defaultUnit = converter->getGefaultUnit();
     REQUIRE(defaultUnit == lengthTypeDef->getDefault());
+<<<<<<< HEAD
 }
 <<<<<<< HEAD
 
@@ -205,3 +205,6 @@ TEST_CASE("Units Test", "[unitstesting]")
 }
 #endif
 >>>>>>> Add a simple unit system similar to the existing cms.
+=======
+}
+>>>>>>> Fix up test case
