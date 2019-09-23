@@ -1240,7 +1240,7 @@ void ShaderGraph::populateInputColorTransformMap(ColorManagementSystemPtr colorM
 void ShaderGraph::populateInputUnitTransformMap(UnitSystemPtr unitSystem, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetUnitSpace)
 {
     ShaderInput* shaderInput = shaderNode->getInput(input->getName());
-    const string& sourceUnitSpace = input->getUnitString();
+    const string& sourceUnitSpace = input->getUnit();
     if (shaderInput && !sourceUnitSpace.empty())
     {
         if (shaderInput->getType() != Type::COLOR2 &&
