@@ -24,6 +24,8 @@
 namespace MaterialX
 {
 
+const string LengthUnitConverter::LENGTH_UNIT = "length";
+
 LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef)
 {
     static const string SCALE_ATTRIBUTE = "scale";
