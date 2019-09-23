@@ -36,7 +36,9 @@ void bindPyUnitConverters(py::module& mod)
         .def(py::init<>())
         .def("convert", &mx::UnitConverter::convert);
 
-    py::class_<mx::LengthUnitConverter, mx::UnitConverter>(mod, "LengthUnitConverter")
+    py::class_<mx::LengthUnitConverter, mx::UnitConverter, mx::LengthUnitConverterPtr>(mod, "LengthUnitConverter")
         .def_static("create", &mx::LengthUnitConverter::create)
-        .def("convert", &mx::LengthUnitConverter::convert);
+        .def("convert", &mx::LengthUnitConverter::convert)
+        .def("getUnitScale", &mx::LengthUnitConverter::convert)
+        .def("getGefaultUnit", &mx::LengthUnitConverter::convert);
 }

@@ -23,27 +23,60 @@ TEST_CASE("UnitAttribute", "[units]")
     std::vector<mx::UnitTypeDefPtr> unitTypeDefs = doc->getUnitTypeDefs();
     REQUIRE(!unitTypeDefs.empty());
 
-    mx::NodeGraphPtr nodeGraph = doc->addNodeGraph();
+    doc->setUnit("millimeter");
 
+    mx::NodeGraphPtr nodeGraph = doc->addNodeGraph();
+    nodeGraph->setName("graph1");
+
+    // Basic get/set unit testing
     mx::NodePtr constant = nodeGraph->addNode("constant");
+    constant->setName("constant1");
     constant->setParameterValue("value", mx::Color3(0.5f));
     mx::ParameterPtr param = constant->getParameter("value");
-    param->setUnitString("meter");
-    REQUIRE(param->hasUnitString());
-    REQUIRE(!param->getUnitString().empty());
+    param->setName("param1");
+    param->setUnit("meter");
+    REQUIRE(param->hasUnit());
+    REQUIRE(!param->getUnit().empty());
 
+    // Test for valid unit names
     mx::OutputPtr output = nodeGraph->addOutput();
     output->setConnectedNode(constant);
-    output->setUnitString("bad unit");
+    output->setUnit("bad unit");
     REQUIRE(!output->validate());
-    output->setUnitString("foot");
-    REQUIRE(output->hasUnitString());
-    REQUIRE(!output->getUnitString().empty());
+    output->setUnit("foot");
+    REQUIRE(output->hasUnit());
+    REQUIRE(!output->getUnit().empty());
 
     REQUIRE(doc->validate());
+
+    // Check for target unit search. Parent units are inches,
+    // library units are "mile"
+    // - Parent doc traversal check
+    mx::DocumentPtr parentDoc = mx::createDocument();
+    parentDoc->setUnit("foot");
+    mx::NodeGraphPtr nodeGraph2 = parentDoc->addNodeGraph();
+    nodeGraph2->setName("parent_graph1");
+
+    mx::ElementPtr nodeGraph3 = parentDoc->getDescendant("/parent_graph1");
+    REQUIRE(nodeGraph3);
+    const std::string& au = nodeGraph3->getActiveUnit();
+    const std::string& u = nodeGraph3->getUnit();
+    REQUIRE((au == "foot" && u.empty()));
+
+    // - Imported doc traversal check
+    mx::CopyOptions copyOptions;
+    copyOptions.skipConflictingElements = true;
+    doc->setUnit("mile");
+    parentDoc->importLibrary(doc, &copyOptions);
+
+    mx::ElementPtr const1 = parentDoc->getDescendant("/graph1/constant1");
+    REQUIRE(const1);
+    const std::string& c1 = const1->getActiveUnit();
+    const std::string& c2 = const1->getUnit();
+    REQUIRE((c1 == "mile" && c2.empty()));
 }
 
-TEST_CASE("Length", "[units]")
+TEST_CASE("UnitEvaluation", "[units]")
 {
     mx::DocumentPtr doc = mx::createDocument();
     mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
@@ -76,3 +109,4 @@ TEST_CASE("Length", "[units]")
     const std::string& defaultUnit = converter->getGefaultUnit();
     REQUIRE(defaultUnit == lengthTypeDef->getDefault());
 }
+
