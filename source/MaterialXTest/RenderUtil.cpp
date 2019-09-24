@@ -255,8 +255,10 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
             
             // Setup Unit system converters
             _shaderGenerator->getUnitSystem()->loadDocument(doc);
+            mx::UnitConverterRegistryPtr registry = mx::UnitConverterRegistry::create();
             mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
-            doc->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));
+            registry->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));
+
 
             ioTimer.endTimer();
 

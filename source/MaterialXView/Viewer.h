@@ -207,6 +207,7 @@ class Viewer : public ng::Screen
     // Working space
     std::string _unitspace;
     mx::StringVec unitOptions;
+    mx::UnitConverterRegistryPtr _unitRegistry;
 
     // UV wireframe drawing
     bool _drawUVGeometry;

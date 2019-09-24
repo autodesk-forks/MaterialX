@@ -32,7 +32,7 @@ UnitSystem::UnitSystem()
 {
 }
 
-void UnitSystem::loadDocument(DocumentPtr document)
+void UnitSystem::loadLibrary(DocumentPtr document)
 {
     _document = document;
 }
@@ -92,13 +92,14 @@ ShaderNodePtr UnitSystem::createNode(const ShaderGraph* parent, const UnitTransf
 
     
     // Length Unit Conversion
+    UnitConverterRegistryPtr unitRegistry = UnitConverterRegistry::create();
     UnitTypeDefPtr lengthTypeDef = _document->getUnitTypeDef(LengthUnitConverter::LENGTH_UNIT);
-    if (!_document->getUnitConverter(lengthTypeDef))
+    if (!unitRegistry->getUnitConverter(lengthTypeDef))
     {
         throw ExceptionTypeError("Undefined Unit convertor for: " + LengthUnitConverter::LENGTH_UNIT);
     }
 
-    LengthUnitConverterPtr lengthConverter = std::dynamic_pointer_cast<LengthUnitConverter>(_document->getUnitConverter(lengthTypeDef));
+    LengthUnitConverterPtr lengthConverter = std::dynamic_pointer_cast<LengthUnitConverter>(unitRegistry->getUnitConverter(lengthTypeDef));
 
     // Add the conversion code
     const std::unordered_map<std::string, float>& unitScale = lengthConverter->getUnitScale();

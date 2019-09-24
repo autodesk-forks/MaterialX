@@ -56,7 +56,7 @@ public:
     virtual const string& getName() const = 0;
 
     /// assign document with unit implementations replacing any previously loaded content.
-    virtual void loadDocument(DocumentPtr document);
+    virtual void loadLibrary(DocumentPtr document);
 
     /// Returns whether this unit system supports a provided transform
     bool supportsTransform(const UnitTransform& transform) const;

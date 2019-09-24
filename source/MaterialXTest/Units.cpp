@@ -8,10 +8,12 @@
 #include <MaterialXCore/Document.h>
 #include <MaterialXCore/UnitConverter.h>
 #include <MaterialXFormat/File.h>
+#include <MaterialXFormat/XmlIo.h>
 #include <MaterialXGenShader/TypeDesc.h>
 #include <MaterialXGenShader/Util.h>
 
 #include <cmath>
+#include <iostream>
 
 namespace mx = MaterialX;
 
@@ -110,12 +112,8 @@ TEST_CASE("UnitEvaluation", "[units]")
     REQUIRE((result - 10000.0f) < EPSILON);
     const std::string& defaultUnit = converter->getGefaultUnit();
     REQUIRE(defaultUnit == lengthTypeDef->getDefault());
-<<<<<<< HEAD
 }
-<<<<<<< HEAD
 
-=======
-#if 0
 TEST_CASE("Units Test", "[unitstesting]")
 {
     mx::FilePath libraryPath("libraries/stdlib");
@@ -134,12 +132,12 @@ TEST_CASE("Units Test", "[unitstesting]")
         mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
         REQUIRE(lengthTypeDef);
 
-        mx::UnitConverterPtr converter = mx::LengthUnitConverter::create(lengthTypeDef);
-        REQUIRE(converter);
-        doc->addUnitConverter(lengthTypeDef, converter);
-        converter = doc->getUnitConverter(lengthTypeDef);
-        REQUIRE(converter);
-        
+        mx::UnitConverterPtr uconverter = mx::LengthUnitConverter::create(lengthTypeDef);
+        REQUIRE(uconverter);
+        mx::UnitConverterRegistryPtr registry = mx::UnitConverterRegistry::create();
+        registry->addUnitConverter(lengthTypeDef, uconverter);
+        uconverter = registry->getUnitConverter(lengthTypeDef);
+        REQUIRE(uconverter);
 
         // Traverse the document tree
         std::cout << "Default unit is:" << lengthTypeDef->getDefault() << std::endl;
@@ -162,13 +160,13 @@ TEST_CASE("Units Test", "[unitstesting]")
                                   << "input_type: " << type->getName() << std::endl
                                   << "input_value:" << value_string << std::endl;
 
-                        if (input->hasUnitString()) {
-                            std::cout << "input_unit_type: " << input->getUnitString() << std::endl;
+                        if (input->hasUnit()) {
+                            std::cout << "input_unit_type: " << input->getUnit() << std::endl;
 
                             if (type->isScalar() && value)
                             {
                                 float val = value->asA<float>();
-                                float cval = converter->convert(val, input->getUnitString(), lengthTypeDef->getDefault());
+                                float cval = uconverter->convert(val, input->getUnit(), lengthTypeDef->getDefault());
                                 std::cout << "converted_value:" << cval << std::endl;
                             }
                         }
@@ -185,14 +183,14 @@ TEST_CASE("Units Test", "[unitstesting]")
                             << "param_type: " << type->getName() << std::endl
                             << "param_value: " << param->getValueString() << std::endl;
 
-                        if (param->hasUnitString()) {
-                            std::cout << "param_unit_type: " << param->getUnitString() << std::endl;
+                        if (param->hasUnit()) {
+                            std::cout << "param_unit_type: " << param->getUnit() << std::endl;
 
                             if (type->isScalar() && value)
                             {
                                 float val = value->asA<float>();
-                                float cval = converter->convert(val, param->getUnitString(), lengthTypeDef->getDefault());
-                                std::cout << "From: " + param->getUnitString() << std::endl
+                                float cval = uconverter->convert(val, param->getUnit(), lengthTypeDef->getDefault());
+                                std::cout << "From: " + param->getUnit() << std::endl
                                     << "To: " << lengthTypeDef->getDefault() << std::endl
                                     << "converted_value: " << cval << std::endl;
                             }
@@ -203,8 +201,3 @@ TEST_CASE("Units Test", "[unitstesting]")
         }
     }
 }
-#endif
->>>>>>> Add a simple unit system similar to the existing cms.
-=======
-}
->>>>>>> Fix up test case
