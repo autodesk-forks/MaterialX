@@ -111,7 +111,7 @@ float LengthUnitConverter::convert(float input, const string& inputUnit, const s
 
 UnitConverterRegistryPtr UnitConverterRegistry::create()
 {
-    std::shared_ptr<UnitConverterRegistry> registry(new UnitConverterRegistry());
+    static std::shared_ptr<UnitConverterRegistry> registry(new UnitConverterRegistry());
     return registry;
 }
 

@@ -94,6 +94,10 @@ TEST_CASE("UnitEvaluation", "[units]")
     uconverter = registry->getUnitConverter(lengthTypeDef);
     REQUIRE(uconverter);
 
+    mx::UnitConverterRegistryPtr registry2 = mx::UnitConverterRegistry::create();
+
+    REQUIRE(registry == registry2);
+
     mx::LengthUnitConverterPtr converter = std::dynamic_pointer_cast<mx::LengthUnitConverter>(uconverter);
 
     // Use converter to convert
