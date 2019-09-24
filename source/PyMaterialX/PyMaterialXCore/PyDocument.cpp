@@ -89,9 +89,5 @@ void bindPyDocument(py::module& mod)
         .def("getUnitTypeDef", &mx::Document::getUnitTypeDef)
         .def("getUnitTypeDefWithUnit", &mx::Document::getUnitTypeDefWithUnit)
         .def("getUnitTypeDefs", &mx::Document::getUnitTypeDefs)
-        .def("removeUnitTypeDef", &mx::Document::removeUnitTypeDef)
-        .def("addUnitConverter", &mx::Document::addUnitConverter)
-        .def("removeUnitConverter", &mx::Document::removeUnitConverter)
-        .def("getUnitConverter", &mx::Document::getUnitConverter)
-        .def("clearUnitConverters", &mx::Document::clearUnitConverters);
+        .def("removeUnitTypeDef", &mx::Document::removeUnitTypeDef);
 }

@@ -419,19 +419,19 @@ class UnitTypeDef : public Element
     /// @name Semantic
     /// @{
 
-    /// Set the defaut string of the UnitTypeDef.
+    /// Set the default unit string for the UnitTypeDef.
     void setDefault(const string& value)
     {
         setAttribute(DEFAULT_ATTRIBUTE, value);
     }
 
-    /// Return true if the given TypeDef has a default string.
+    /// Return true if the given TypeDef has a default unit string.
     bool hasDefault() const
     {
         return hasAttribute(DEFAULT_ATTRIBUTE);
     }
 
-    /// Return the default string of the UnitTypeDef.
+    /// Return the default unit string for the UnitTypeDef.
     const string& getDefault() const
     {
         return getAttribute(DEFAULT_ATTRIBUTE);
@@ -442,12 +442,15 @@ class UnitTypeDef : public Element
     /// @{
 
     /// Add a UnitDef to the UnitTypeDef.
-    /// @param name The name of the new Member.
-    ///     If no name is specified, then a unique name will automatically be
-    ///     generated.
+    /// @param name The name of the new UnitDef. An exception is thrown
+    /// if the name provided is an empty string.
     /// @return A shared pointer to the new UnitDef.
-    UnitDefPtr addUnitDef(const string& name = EMPTY_STRING)
+    UnitDefPtr addUnitDef(const string& name)
     {
+        if (name.empty())
+        {
+            throw Exception("A unit definition name cannot be empty");
+        }
         return addChild<UnitDef>(name);
     }
 

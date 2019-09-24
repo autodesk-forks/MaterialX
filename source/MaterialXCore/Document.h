@@ -561,13 +561,13 @@ class Document : public GraphElement
     /// @name Unit support
     /// @{
 
-    /// Return the UnitTypeeDef, if any, with the given name.
+    /// Return the UnitTypeDef, if any, with the given name.
     UnitTypeDefPtr getUnitTypeDef(const string& name) const
     {
         return getChildOfType<UnitTypeDef>(name);
     }
 
-    /// Return the UnitTypeeDef, if any, with a matching unit name.
+    /// Return the UnitTypeDef, if any, with a matching unit name.
     UnitTypeDefPtr getUnitTypeDefWithUnit(const string& unitName) const;
 
     /// Return a vector of all UnitTypeDef elements in the document.
@@ -576,23 +576,11 @@ class Document : public GraphElement
         return getChildrenOfType<UnitTypeDef>();
     }
 
-    /// Remove the UnitTypeeDef, if any, with the given name.
+    /// Remove the UnitTypeDef, if any, with the given name.
     void removeUnitTypeDef(const string& name)
     {
         removeChildOfType<UnitTypeDef>(name);
-    }
-
-    /// Add a unit converter for a given UnitTypeDef.
-    bool addUnitConverter(UnitTypeDefPtr def, UnitConverterPtr converter);
-
-    /// Remove a unit converter for a given UnitTypeDef.
-    bool removeUnitConverter(UnitTypeDefPtr def);
-
-    /// Get a unit converter for a given UnitTypeDef
-    UnitConverterPtr getUnitConverter(UnitTypeDefPtr def);
-
-    /// Clear all unit converters.
-    void clearUnitConverters();
+    }    
 
     /// @}
 
@@ -604,7 +592,6 @@ class Document : public GraphElement
   private:
     class Cache;
     std::unique_ptr<Cache> _cache;
-    std::unordered_map<string, UnitConverterPtr> _unitConverters;
 };
 
 /// @class ScopedUpdate

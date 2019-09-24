@@ -86,8 +86,9 @@ TEST_CASE("UnitEvaluation", "[units]")
 
     mx::UnitConverterPtr uconverter = mx::LengthUnitConverter::create(lengthTypeDef);
     REQUIRE(uconverter);
-    doc->addUnitConverter(lengthTypeDef, uconverter);
-    uconverter = doc->getUnitConverter(lengthTypeDef);
+    mx::UnitConverterRegistryPtr registry = mx::UnitConverterRegistry::create();
+    registry->addUnitConverter(lengthTypeDef, uconverter);
+    uconverter = registry->getUnitConverter(lengthTypeDef);
     REQUIRE(uconverter);
 
     mx::LengthUnitConverterPtr converter = std::dynamic_pointer_cast<mx::LengthUnitConverter>(uconverter);
