@@ -13,7 +13,7 @@ namespace mx = MaterialX;
 class PyUnitConverter : public mx::UnitConverter 
 {
   public:
-    PyUnitConverter(mx::UnitTypeDefPtr unitTypeDef)
+      explicit PyUnitConverter(mx::UnitTypeDefPtr unitTypeDef)
         : mx::UnitConverter(unitTypeDef)
     {
     }
