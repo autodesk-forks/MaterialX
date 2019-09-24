@@ -8,7 +8,10 @@
 #include <MaterialXCore/Document.h>
 #include <MaterialXCore/UnitConverter.h>
 #include <MaterialXFormat/File.h>
+<<<<<<< HEAD
 #include <MaterialXFormat/XmlIo.h>
+=======
+>>>>>>> cc7195720ac94eca58504a4bb8f7d79c4255ee1e
 #include <MaterialXGenShader/TypeDesc.h>
 #include <MaterialXGenShader/Util.h>
 
@@ -113,6 +116,7 @@ TEST_CASE("UnitEvaluation", "[units]")
     const std::string& defaultUnit = converter->getGefaultUnit();
     REQUIRE(defaultUnit == lengthTypeDef->getDefault());
 }
+<<<<<<< HEAD
 
 TEST_CASE("Units Test", "[unitstesting]")
 {
@@ -201,3 +205,5 @@ TEST_CASE("Units Test", "[unitstesting]")
         }
     }
 }
+=======
+>>>>>>> cc7195720ac94eca58504a4bb8f7d79c4255ee1e

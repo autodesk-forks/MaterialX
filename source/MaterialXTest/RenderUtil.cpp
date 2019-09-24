@@ -254,7 +254,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
             doc->importLibrary(dependLib, &copyOptions);
             
             // Setup Unit system converters
-            _shaderGenerator->getUnitSystem()->loadDocument(doc);
+            //_shaderGenerator->getUnitSystem()->loadLibrary(_stdlib);
             mx::UnitConverterRegistryPtr registry = mx::UnitConverterRegistry::create();
             mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
             registry->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));

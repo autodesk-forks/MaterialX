@@ -207,7 +207,10 @@ Viewer::Viewer(const mx::FilePathVec& libraryFolders,
 
     // Set default unit
     _unitspace = "meter";
+<<<<<<< HEAD
     _unitRegistry = mx::UnitConverterRegistry::create();
+=======
+>>>>>>> cc7195720ac94eca58504a4bb8f7d79c4255ee1e
     
     // Transpary option before creating Advanced UI 
     // as this flag is used to set the default value.
@@ -421,10 +424,17 @@ void Viewer::setupLights(mx::DocumentPtr doc)
 void Viewer::setupUnitConverter(mx::DocumentPtr doc)
 {
     mx::UnitSystemPtr unitSystem = mx::DefaultUnitSystem::create(_genContext.getShaderGenerator().getLanguage());
+<<<<<<< HEAD
     unitSystem->loadLibrary(_stdLib);
     _genContext.getShaderGenerator().setUnitSystem(unitSystem);
     mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
     _unitRegistry->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));
+=======
+    unitSystem->loadDocument(doc);
+    _genContext.getShaderGenerator().setUnitSystem(unitSystem);
+    mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
+    doc->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));
+>>>>>>> cc7195720ac94eca58504a4bb8f7d79c4255ee1e
 }
 
 void Viewer::assignMaterial(mx::MeshPartitionPtr geometry, MaterialPtr material)
