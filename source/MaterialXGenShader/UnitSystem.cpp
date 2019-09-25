@@ -16,10 +16,11 @@ namespace MaterialX
 // Unit transform methods
 //
 
-UnitTransform::UnitTransform(const string& ss, const string& ts, const TypeDesc* t) :
+UnitTransform::UnitTransform(const string& ss, const string& ts, const TypeDesc* t, const string& unittype) :
     sourceUnit(ss),
-    targetUnit(ts),
-    type(t)
+    targetLengthUnit(ts),
+    type(t),
+    unitType(unittype)
 {
     if (type != Type::FLOAT && type != Type::VECTOR2 && type != Type::VECTOR3 && type != Type::VECTOR4)
     {
@@ -27,9 +28,11 @@ UnitTransform::UnitTransform(const string& ss, const string& ts, const TypeDesc*
     }
 }
 
+const string UnitSystem::UNITSYTEM_NAME = "default_unit_system";
 
-UnitSystem::UnitSystem()
+UnitSystem::UnitSystem(const string& language)
 {
+    _language = createValidName(language);
 }
 
 void UnitSystem::loadLibrary(DocumentPtr document)
@@ -37,9 +40,20 @@ void UnitSystem::loadLibrary(DocumentPtr document)
     _document = document;
 }
 
+UnitSystemPtr UnitSystem::create(const string& language)
+{
+    UnitSystemPtr result(new UnitSystem(language));
+    return result;
+}
+
+string UnitSystem::getImplementationName(const UnitTransform& transform, const string& unitname) const
+{
+    return "IM_" + unitname + "_unit_" + transform.type->getName() + "_" + _language;
+}
+
 bool UnitSystem::supportsTransform(const UnitTransform& transform) const
 {
-    const string implName = getImplementationName(transform);
+    const string implName = getImplementationName(transform, LengthUnitConverter::LENGTH_UNIT);
     ImplementationPtr impl = _document->getImplementation(implName);
     return impl != nullptr;
 }
@@ -47,11 +61,11 @@ bool UnitSystem::supportsTransform(const UnitTransform& transform) const
 ShaderNodePtr UnitSystem::createNode(const ShaderGraph* parent, const UnitTransform& transform, const string& name,
     GenContext& context) const
 {
-    const string implName = getImplementationName(transform);
+    const string implName = getImplementationName(transform, LengthUnitConverter::LENGTH_UNIT);
     ImplementationPtr impl = _document->getImplementation(implName);
     if (!impl)
     {
-        throw ExceptionShaderGenError("No implementation found for transform: ('" + transform.sourceUnit + "', '" + transform.targetUnit + "').");
+        throw ExceptionShaderGenError("No implementation found for transform: ('" + transform.sourceUnit + "', '" + transform.targetLengthUnit + "').");
     }
 
     // Check if it's created and cached already,
@@ -115,10 +129,10 @@ ShaderNodePtr UnitSystem::createNode(const ShaderGraph* parent, const UnitTransf
     }
 
     {
-        const auto it = unitScale.find(transform.targetUnit);
+        const auto it = unitScale.find(transform.targetLengthUnit);
         if (it == unitScale.end())
         {
-            throw ExceptionTypeError("Unrecognized target unit: " + transform.targetUnit);
+            throw ExceptionTypeError("Unrecognized target unit: " + transform.targetLengthUnit);
         }
 
         ShaderInput* convertTo = shaderNode->addInput("unit_to", Type::INTEGER);

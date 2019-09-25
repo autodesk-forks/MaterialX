@@ -189,7 +189,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     colorManagementSystem->loadLibrary(dependLib);
     _shaderGenerator->setColorManagementSystem(colorManagementSystem);
 
-    mx::UnitSystemPtr unitSystem = mx::DefaultUnitSystem::create(_shaderGenerator->getLanguage());
+    mx::UnitSystemPtr unitSystem = mx::UnitSystem::create(_shaderGenerator->getLanguage());
     _shaderGenerator->setUnitSystem(unitSystem);
 
     mx::GenContext context(_shaderGenerator);

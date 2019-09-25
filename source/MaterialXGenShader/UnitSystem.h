@@ -29,18 +29,20 @@ using UnitSystemPtr = shared_ptr<class UnitSystem>;
 /// Structure that represents unit transform information
 struct UnitTransform
 {
-    UnitTransform(const string& ss, const string& ts, const TypeDesc* t);
+    UnitTransform(const string& ss, const string& ts, const TypeDesc* t, const string& unittype);
 
     string sourceUnit;
-    string targetUnit;
+    string targetLengthUnit;
     const TypeDesc* type;
+    string unitType;
 
     /// Comparison operator
     bool operator==(const UnitTransform &other) const
     {
         return sourceUnit == other.sourceUnit &&
-            targetUnit == other.targetUnit &&
-            type == other.type;
+            targetLengthUnit == other.targetLengthUnit &&
+            type == other.type && 
+            unitType == other.unitType;
     }
 };
 
@@ -52,8 +54,14 @@ class UnitSystem
 public:
     virtual ~UnitSystem() { }
 
+    /// Create a new UnitSystem
+    static UnitSystemPtr create(const string& language);
+
     /// Return the UnitSystem name
-    virtual const string& getName() const = 0;
+    virtual const string& getName() const
+    {
+        return UnitSystem::UNITSYTEM_NAME;
+    }
 
     /// assign document with unit implementations replacing any previously loaded content.
     virtual void loadLibrary(DocumentPtr document);
@@ -65,15 +73,20 @@ public:
     ShaderNodePtr createNode(const ShaderGraph* parent, const UnitTransform& transform, const string& name,
         GenContext& context) const;
 
+    /// Returns an implementation name for a given transform
+    virtual string getImplementationName(const UnitTransform& transform, const string& unitname) const;
+
+    static const string UNITSYTEM_NAME;
+
 protected:
     /// Protected constructor
-    UnitSystem();
+    UnitSystem(const string& language);
 
-    /// Returns an implementation name for a given transform
-    virtual string getImplementationName(const UnitTransform& transform) const = 0;
+
 
 protected:
     DocumentPtr _document;
+    string _language;
 };
 
 } // namespace MaterialX

@@ -515,20 +515,3 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
 
     renderTester.validate(testRootPaths, optionsFilePath);
 }
-
-#if 0
-TEST_CASE("Render: GLSL Units", "[glslunit]")
-{
-    GlslShaderRenderTester renderTester(mx::GlslShaderGenerator::create());
-
-    const mx::FilePath testRootPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");
-    const mx::FilePath testRootPath2 = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/Examples/Units");
-
-    mx::FilePathVec testRootPaths;
-    testRootPaths.push_back(testRootPath2);
-    std::string root = testRootPath;
-    mx::FilePath optionsFilePath = testRootPath / mx::FilePath("_options.mtlx");
-
-    renderTester.validate(testRootPaths, optionsFilePath);
-}
-#endif

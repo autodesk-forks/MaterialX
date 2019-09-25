@@ -97,7 +97,7 @@ class GenOptions
     /// Define the target unit space.
     /// Shader fragments will be generated to transform
     /// input unit values to this unit space.
-    string targetUnit;
+    string targetLengthUnit;
     
 };
 

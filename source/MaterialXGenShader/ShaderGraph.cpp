@@ -504,7 +504,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         outputSocket->setPath(shaderRef->getNamePath());
 
         // Unit parameters
-        const string& targetUnit = context.getOptions().targetUnit.empty() ? element->getDocument()->getActiveUnit() : context.getOptions().targetUnit;
+        const string& targetLengthUnit = context.getOptions().targetLengthUnit.empty() ? element->getActiveUnit() : context.getOptions().targetLengthUnit;
             
         // Handle node parameters
         for (ParameterPtr elem : nodeDef->getActiveParameters())
@@ -530,7 +530,8 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     const string& targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
                         element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindParam, targetColorSpace);
-                    graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName], bindParam, targetUnit);
+                    // Collect transforms that are Length units.
+                    graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName], bindParam, targetLengthUnit, LengthUnitConverter::LENGTH_UNIT);
                 }
                 inputSocket->setPath(bindParam->getNamePath());
                 input->setPath(inputSocket->getPath());
@@ -565,7 +566,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     const string& targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
                         element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindInput, targetColorSpace);
-                    graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName], bindInput, targetUnit);
+                    graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName], bindInput, targetLengthUnit, LengthUnitConverter::LENGTH_UNIT);
 
                 }
                 inputSocket->setPath(bindInput->getNamePath());
@@ -752,20 +753,17 @@ ShaderNode* ShaderGraph::addNode(const Node& node, GenContext& context)
         }
     }
 
-    //Unit System:
+    //Unit Conversion: Only applicable if Unit system and a TargetLengthUnit is defined.
     UnitSystemPtr unitSystem = context.getShaderGenerator().getUnitSystem();
-    const string& targetUnit = context.getOptions().targetUnit.empty() ?
-        _document->getActiveUnit() : context.getOptions().targetUnit;
-
-    if (unitSystem && !targetUnit.empty())
+    if (unitSystem && !context.getOptions().targetLengthUnit.empty())
     {
         for (InputPtr input : node.getInputs())
         {
-            populateInputUnitTransformMap(unitSystem, newNode, input, targetUnit);
+            populateInputUnitTransformMap(unitSystem, newNode, input, context.getOptions().targetLengthUnit, LengthUnitConverter::LENGTH_UNIT);
         }
         for (ParameterPtr parameter : node.getParameters())
         {
-            populateInputUnitTransformMap(unitSystem, newNode, parameter, targetUnit);
+            populateInputUnitTransformMap(unitSystem, newNode, parameter, context.getOptions().targetLengthUnit, LengthUnitConverter::LENGTH_UNIT);
         }
     }
     return newNode.get();
@@ -1228,7 +1226,7 @@ void ShaderGraph::populateInputColorTransformMap(ColorManagementSystemPtr colorM
     }
 }
 
-void ShaderGraph::populateInputUnitTransformMap(UnitSystemPtr unitSystem, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetUnitSpace)
+void ShaderGraph::populateInputUnitTransformMap(UnitSystemPtr unitSystem, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetUnitSpace, const string& unitType)
 {
     ShaderInput* shaderInput = shaderNode->getInput(input->getName());
     const string& sourceUnitSpace = input->getUnit();
@@ -1240,7 +1238,7 @@ void ShaderGraph::populateInputUnitTransformMap(UnitSystemPtr unitSystem, Shader
         {
             if (sourceUnitSpace != targetUnitSpace)
             {
-                UnitTransform transform(sourceUnitSpace, targetUnitSpace, shaderInput->getType());
+                UnitTransform transform(sourceUnitSpace, targetUnitSpace, shaderInput->getType(), unitType);
                 if (unitSystem->supportsTransform(transform))
                 {
                     // std::cout << "Unit conversion supported for " << sourceUnitSpace << " to " << targetUnitSpace << std::endl;

@@ -1,7 +1,7 @@
 #include <MaterialXView/Viewer.h>
 
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
-#include <MaterialXGenShader/DefaultUnitSystem.h>
+#include <MaterialXGenShader/UnitSystem.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXRender/OiioImageLoader.h>
 #include <MaterialXRender/StbImageLoader.h>
@@ -264,7 +264,7 @@ Viewer::Viewer(const mx::FilePathVec& libraryFolders,
     // Set default generator options.
     _genContext.getOptions().hwSpecularEnvironmentMethod = _specularEnvironmentMethod;
     _genContext.getOptions().targetColorSpaceOverride = "lin_rec709";
-    _genContext.getOptions().targetUnit = _unitspace;
+    _genContext.getOptions().targetLengthUnit = _unitspace;
     _genContext.getOptions().fileTextureVerticalFlip = true;
 
     // Set default light information before initialization
@@ -420,7 +420,7 @@ void Viewer::setupLights(mx::DocumentPtr doc)
 
 void Viewer::setupUnitConverter(mx::DocumentPtr doc)
 {
-    mx::UnitSystemPtr unitSystem = mx::DefaultUnitSystem::create(_genContext.getShaderGenerator().getLanguage());
+    mx::UnitSystemPtr unitSystem = mx::UnitSystem::create(_genContext.getShaderGenerator().getLanguage());
     unitSystem->loadLibrary(_stdLib);
     _genContext.getShaderGenerator().setUnitSystem(unitSystem);
     mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
@@ -702,7 +702,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
         sampleBox->setCallback([this](int index)
         {
             _unitspace = unitOptions[index];
-            _genContext.getOptions().targetUnit= _unitspace;
+            _genContext.getOptions().targetLengthUnit= _unitspace;
             reloadShaders();
         });
     }
