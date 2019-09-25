@@ -35,7 +35,7 @@ using LengthUnitConverterPtr = shared_ptr<LengthUnitConverter>;
 /// A shared pointer to a const LengthUnitConverter
 using ConstLengthUnitConverterPtr = shared_ptr<const LengthUnitConverter>;
 
-/// @class LLengthUnitConverter
+/// @class LengthUnitConverter
 /// An unit conversion utility for handling length.
 /// - The base unit for conversion is "meter".
 /// - The following units are supported by default:
@@ -58,10 +58,10 @@ class LengthUnitConverter
     /// Creator 
     static LengthUnitConverterPtr create();
 
-    /// Set a new unit conversions to meters
+    /// Set a new unit conversion. 
     void setMetersPerUnit(const string& unit, float metersPerUnit);
 
-    /// get the unit conversion to meters
+    /// Get the unit conversion. 
     float getMetersPerUnit(const string& unit) const;
 
     /// Convert a given value in a given unit to a desired unit
