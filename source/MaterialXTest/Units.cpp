@@ -144,63 +144,48 @@ TEST_CASE("UnitDocument", "[units]")
         REQUIRE(uconverter);
 
         // Traverse the document tree
-        std::cout << "Default unit is:" << lengthTypeDef->getDefault() << std::endl;
         for (mx::ElementPtr elem : doc->traverseTree())
         {
             // If we have nodes with inputs
             mx::NodePtr pNode = elem->asA<mx::Node>();
             if (pNode) 
             {
-                std::string category = pNode->getCategory();
-                std::cout << "category:" << category << std::endl;
 
                 if (pNode->getInputCount()) {
                     for (mx::InputPtr input : pNode->getInputs()) {
                         const mx::TypeDesc* type = mx::TypeDesc::get(input->getType());
                         const mx::ValuePtr value = input->getValue();
-                        std::string value_string = value ? value->getValueString() : "No value ";
-
-                        std::cout << "input_name: " << input->getName() << std::endl
-                                  << "input_type: " << type->getName() << std::endl
-                                  << "input_value:" << value_string << std::endl;
-
                         if (input->hasUnit()) {
-                            std::cout << "input_unit_type: " << input->getUnit() << std::endl;
 
                             if (type->isScalar() && value)
                             {
-                                float val = value->asA<float>();
-                                float cval = uconverter->convert(val, input->getUnit(), lengthTypeDef->getDefault());
-                                std::cout << "converted_value:" << cval << std::endl;
+                                float originalval = value->asA<float>();
+                                float convertedValue = uconverter->convert(originalval, input->getUnit(), lengthTypeDef->getDefault());
+                                float reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), input->getUnit());
+                                REQUIRE(originalval == reconvert);
                             }
                         }
                     }
                 }
-            
+
                 if (pNode->getParameterCount()) {
                     for (mx::ParameterPtr param: pNode->getParameters()) {
                         const mx::TypeDesc* type = mx::TypeDesc::get(param->getType());
                         const mx::ValuePtr value = param->getValue();
                         std::string value_string = value ? value->getValueString() : "No value ";
-
-                        std::cout << "param_name: " << param->getName() << std::endl
-                            << "param_type: " << type->getName() << std::endl
-                            << "param_value: " << param->getValueString() << std::endl;
-
                         if (param->hasUnit()) {
-                            std::cout << "param_unit_type: " << param->getUnit() << std::endl;
 
                             if (type->isScalar() && value)
                             {
-                                float val = value->asA<float>();
-                                float cval = uconverter->convert(val, param->getUnit(), lengthTypeDef->getDefault());
-                                std::cout << "From: " + param->getUnit() << std::endl
-                                    << "To: " << lengthTypeDef->getDefault() << std::endl
-                                    << "converted_value: " << cval << std::endl;
+                                float originalval = value->asA<float>();
+                                float convertedValue = uconverter->convert(originalval, param->getUnit(), lengthTypeDef->getDefault());
+                                float reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), param->getUnit());
+                                REQUIRE(originalval == reconvert);
                             }
                         }
                     }
                 }
+
             }
         }
     }

@@ -89,7 +89,7 @@ float LengthUnitConverter::convert(float input, const string& inputUnit, const s
 {
     if (inputUnit == outputUnit)
     {
-        return 1.0f;
+        return input;
     }
 
     auto it = _unitScale.find(inputUnit);
