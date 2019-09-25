@@ -251,33 +251,33 @@ class Element : public std::enable_shared_from_this<Element>
     /// @name Units
     /// @{
 
-    /// Set the unit.
-    void setUnit(const string& unit)
+    /// Set the unit value for a given unit type 
+    void setUnit(const string& unittype, const string& unit)
     {
-        setAttribute(UNIT_ATTRIBUTE, unit);
+        setAttribute(unittype, unit);
     }
 
-    /// Return true if a unit attribute exists.
-    bool hasUnit() const
+    /// Return true if a given given unit type attribute exists.
+    bool hasUnit(const string& unittype) const
     {
-        return hasAttribute(UNIT_ATTRIBUTE);
+        return hasAttribute(unittype);
     }
 
-    /// Return the unit .
-    const string& getUnit() const
+    /// Return the unit for a given unit type
+    const string& getUnit(const string& unittype) const
     {
-        return getAttribute(UNIT_ATTRIBUTE);
+        return getAttribute(unittype);
     }
 
     /// Return the unit string that is active at the scope of this
     /// element, taking all ancestor elements into account.
-    const string& getActiveUnit() const
+    const string& getActiveUnit(const string& unittype) const
     {
         for (ConstElementPtr elem = getSelf(); elem; elem = elem->getParent())
         {
-            if (elem->hasUnit())
+            if (elem->hasUnit(unittype))
             {
-                return elem->getUnit();
+                return elem->getUnit(unittype);
             }
         }
         return EMPTY_STRING;
@@ -870,7 +870,7 @@ class Element : public std::enable_shared_from_this<Element>
     static const string FILE_PREFIX_ATTRIBUTE;
     static const string GEOM_PREFIX_ATTRIBUTE;
     static const string COLOR_SPACE_ATTRIBUTE;
-    static const string UNIT_ATTRIBUTE;
+    static const string LENGTH_UNIT_ATTRIBUTE;
     static const string TARGET_ATTRIBUTE;
     static const string VERSION_ATTRIBUTE;
     static const string DEFAULT_VERSION_ATTRIBUTE;

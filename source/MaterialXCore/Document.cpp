@@ -173,9 +173,9 @@ void Document::importLibrary(const ConstDocumentPtr& library, const CopyOptions*
         {
             childCopy->setColorSpace(library->getColorSpace());
         }
-        if (!childCopy->hasUnit() && library->hasUnit())
+        if (!childCopy->hasUnit(LENGTH_UNIT_ATTRIBUTE) && library->hasUnit(LENGTH_UNIT_ATTRIBUTE))
         {
-            childCopy->setUnit(library->getUnit());
+            childCopy->setUnit(library->getUnit(LENGTH_UNIT_ATTRIBUTE), LENGTH_UNIT_ATTRIBUTE);
         }
         if (!childCopy->hasNamespace() && library->hasNamespace())
         {
@@ -640,19 +640,6 @@ void Document::onCopyContent(ElementPtr)
 void Document::onClearContent(ElementPtr)
 {
     _cache->valid = false;
-}
-
-UnitTypeDefPtr Document::getUnitTypeDefWithUnit(const string& unitName) const
-{
-    for (UnitTypeDefPtr typeDef : getUnitTypeDefs())
-    {
-        if (typeDef->getDefault() == unitName ||
-            typeDef->getUnitDef(unitName))
-        {
-            return typeDef;
-        }
-    }
-    return nullptr;
 }
 
 } // namespace MaterialX

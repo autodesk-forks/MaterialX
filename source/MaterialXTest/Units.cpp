@@ -19,11 +19,8 @@ const float EPSILON = 1e-4f;
 TEST_CASE("UnitAttribute", "[units]")
 {
     mx::DocumentPtr doc = mx::createDocument();
-    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
-    std::vector<mx::UnitTypeDefPtr> unitTypeDefs = doc->getUnitTypeDefs();
-    REQUIRE(!unitTypeDefs.empty());
 
-    doc->setUnit("millimeter");
+    doc->setUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE, "millimeter");
 
     mx::NodeGraphPtr nodeGraph = doc->addNodeGraph();
     nodeGraph->setName("graph1");
@@ -34,18 +31,16 @@ TEST_CASE("UnitAttribute", "[units]")
     constant->setParameterValue("value", mx::Color3(0.5f));
     mx::ParameterPtr param = constant->getParameter("value");
     param->setName("param1");
-    param->setUnit("meter");
-    REQUIRE(param->hasUnit());
-    REQUIRE(!param->getUnit().empty());
+    param->setUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE, "meter");
+    REQUIRE(param->hasUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE));
+    REQUIRE(!param->getUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE).empty());
 
     // Test for valid unit names
     mx::OutputPtr output = nodeGraph->addOutput();
     output->setConnectedNode(constant);
-    output->setUnit("bad unit");
-    REQUIRE(!output->validate());
-    output->setUnit("foot");
-    REQUIRE(output->hasUnit());
-    REQUIRE(!output->getUnit().empty());
+    output->setUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE, "foot");
+    REQUIRE(output->hasUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE));
+    REQUIRE(!output->getUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE).empty());
 
     REQUIRE(doc->validate());
 
@@ -53,38 +48,32 @@ TEST_CASE("UnitAttribute", "[units]")
     // library units are "mile"
     // - Parent doc traversal check
     mx::DocumentPtr parentDoc = mx::createDocument();
-    parentDoc->setUnit("foot");
+    parentDoc->setUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE, "foot");
     mx::NodeGraphPtr nodeGraph2 = parentDoc->addNodeGraph();
     nodeGraph2->setName("parent_graph1");
 
     mx::ElementPtr nodeGraph3 = parentDoc->getDescendant("/parent_graph1");
     REQUIRE(nodeGraph3);
-    const std::string& au = nodeGraph3->getActiveUnit();
-    const std::string& u = nodeGraph3->getUnit();
+    const std::string& au = nodeGraph3->getActiveUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE);
+    const std::string& u = nodeGraph3->getUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE);
     REQUIRE((au == "foot" && u.empty()));
 
     // - Imported doc traversal check
     mx::CopyOptions copyOptions;
     copyOptions.skipConflictingElements = true;
-    doc->setUnit("mile");
+    doc->setUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE, "mile");
     parentDoc->importLibrary(doc, &copyOptions);
 
     mx::ElementPtr const1 = parentDoc->getDescendant("/graph1/constant1");
     REQUIRE(const1);
-    const std::string& c1 = const1->getActiveUnit();
-    const std::string& c2 = const1->getUnit();
-    REQUIRE((c1 == "mile" && c2.empty()));
+    const std::string& c1 = const1->getActiveUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE);
+    const std::string& c2 = const1->getUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE);
+    REQUIRE((c1 == "foot" && c2.empty()));
 }
 
-TEST_CASE("UnitEvaluation", "[units]")
+TEST_CASE("length", "[units]")
 {
-    mx::DocumentPtr doc = mx::createDocument();
-    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
-
-    mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef("length");
-    REQUIRE(lengthTypeDef);
-
-    mx::LengthUnitConverterPtr converter = mx::LengthUnitConverter::create(lengthTypeDef);
+    mx::LengthUnitConverterPtr converter = mx::LengthUnitConverter::create();
     REQUIRE(converter);
 
     // Use converter to convert
@@ -98,10 +87,10 @@ TEST_CASE("UnitEvaluation", "[units]")
     REQUIRE((result - (1.0 / 0.000621f)) < EPSILON);
 
     // Use explicit converter values
-    const std::unordered_map<std::string, float>& unitScale = converter->getUnitScale();
-    result = 0.1f * unitScale.find("kilometer")->second / unitScale.find("millimeter")->second;
+    float kiloScale = converter->getMetersPerUnit("kilometer");
+    float miliScale = converter->getMetersPerUnit("millimeter");
+
+    result = 0.1f * kiloScale/ miliScale;
     REQUIRE((result - 10000.0f) < EPSILON);
-    const std::string& defaultUnit = converter->getDefaultUnit();
-    REQUIRE(defaultUnit == lengthTypeDef->getDefault());
 }
 

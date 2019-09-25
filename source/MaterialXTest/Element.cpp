@@ -27,14 +27,14 @@ TEST_CASE("Element", "[element]")
     // Set hierarchical properties
     doc->setFilePrefix("folder/");
     doc->setColorSpace("lin_rec709");
-    doc->setUnit("meter");
+    doc->setUnit("lengthunit", "meter");
     REQUIRE(elem1->getActiveFilePrefix() == doc->getFilePrefix());
     REQUIRE(elem2->getActiveColorSpace() == doc->getColorSpace());
-    REQUIRE(elem2->getActiveUnit() == doc->getUnit());
+    REQUIRE(elem2->getActiveUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE) == doc->getUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE));
     elem2->setColorSpace("srgb_texture");
-    elem2->setUnit("kilometer");
+    elem2->setUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE, "kilometer");
     REQUIRE(elem2->getActiveColorSpace() == elem2->getColorSpace());
-    REQUIRE(elem2->getActiveUnit() == elem2->getUnit());
+    REQUIRE(elem2->getActiveUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE) == elem2->getUnit(mx::Element::LENGTH_UNIT_ATTRIBUTE));
 
     // Set typed attributes.
     REQUIRE(elem1->getTypedAttribute<bool>("customFlag") == false);

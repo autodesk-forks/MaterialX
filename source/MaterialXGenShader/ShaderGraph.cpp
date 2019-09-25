@@ -459,7 +459,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     input->setBindInput();
                     ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
                     const string& targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
-                        element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
+                        element->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindParam, targetColorSpace);
                 }
                 inputSocket->setPath(bindParam->getNamePath());
@@ -493,7 +493,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     input->setBindInput();
                     ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
                     const string& targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
-                        element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
+                        element->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindInput, targetColorSpace);
                 }
                 inputSocket->setPath(bindInput->getNamePath());
@@ -634,7 +634,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, GenContext& context)
 
     ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
     const string& targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
-        _document->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
+        node.getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
 
     if (colorManagementSystem && !targetColorSpace.empty())
     {

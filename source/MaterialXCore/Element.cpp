@@ -16,7 +16,7 @@ const string Element::NAME_ATTRIBUTE = "name";
 const string Element::FILE_PREFIX_ATTRIBUTE = "fileprefix";
 const string Element::GEOM_PREFIX_ATTRIBUTE = "geomprefix";
 const string Element::COLOR_SPACE_ATTRIBUTE = "colorspace";
-const string Element::UNIT_ATTRIBUTE = "unit";
+const string Element::LENGTH_UNIT_ATTRIBUTE = "unitlength";
 const string Element::TARGET_ATTRIBUTE = "target";
 const string Element::VERSION_ATTRIBUTE = "version";
 const string Element::DEFAULT_VERSION_ATTRIBUTE = "isdefaultversion";
@@ -445,13 +445,6 @@ bool Element::validate(string* message) const
         res = child->validate(message) && res;
     }
     validateRequire(!hasInheritanceCycle(), res, message, "Cycle in element inheritance chain");
-
-    if (hasUnit())
-    {
-        const string& unit = getUnit();
-        UnitTypeDefPtr typeDef = getDocument()->getUnitTypeDefWithUnit(unit);
-        validateRequire(typeDef != nullptr, res, message, "Unit definition does not exist in document");
-    }
     return res;
 }
 
@@ -772,7 +765,5 @@ INSTANTIATE_CONCRETE_SUBCLASS(Variant, "variant")
 INSTANTIATE_CONCRETE_SUBCLASS(VariantAssign, "variantassign")
 INSTANTIATE_CONCRETE_SUBCLASS(VariantSet, "variantset")
 INSTANTIATE_CONCRETE_SUBCLASS(Visibility, "visibility")
-INSTANTIATE_CONCRETE_SUBCLASS(UnitDef, "unitdef")
-INSTANTIATE_CONCRETE_SUBCLASS(UnitTypeDef, "unittypedef")
 
 } // namespace MaterialX

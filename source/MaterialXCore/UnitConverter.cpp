@@ -12,8 +12,8 @@
 * trade secret law. They may not be disclosed to, copied or used by any third party without the
 * prior written consent of Autodesk, Inc.
 *
-* @file Units.cpp
-* @brief Units support
+* @file UnitConverter.cpp
+* @brief Support for unit conversion
 */
 
 
@@ -24,64 +24,42 @@
 namespace MaterialX
 {
 
-UnitConverter::UnitConverter(UnitTypeDefPtr unitTypeDef)
+LengthUnitConverter::LengthUnitConverter()
 {
-    static const string SCALE_ATTRIBUTE = "scale";
-    static const string OFFSET_ATTRIBUTE = "offset";
+    static const string BASE_UNIT_NAME = "meter";
+    _baseUnit = BASE_UNIT_NAME;
 
-    // Populate the unit scale and offset maps for each UnitDef. 
-    vector<UnitDefPtr> unitDefs = unitTypeDef->getUnitDefs();
-    for (UnitDefPtr unitdef : unitDefs)
-    {
-        const string& name = unitdef->getName();
-        if (!name.empty())
-        {
-            const string& scaleString = unitdef->getAttribute(SCALE_ATTRIBUTE);
-            if (!scaleString.empty())
-            {
-                ValuePtr scaleValue = Value::createValueFromStrings(scaleString, getTypeString<float>());
-                _unitScale[name] = scaleValue->asA<float>();
-            }
-            else
-            {
-                _unitScale[name] = 1.0f;
-            }
-
-            const string& offsetString = unitdef->getAttribute(SCALE_ATTRIBUTE);
-            if (!offsetString.empty())
-            {
-                ValuePtr offsetValue = Value::createValueFromStrings(offsetString, getTypeString<float>());
-                _unitOffset[name] = offsetValue->asA<float>();
-            }
-            else
-            {
-                _unitOffset[name] = 0.0f;
-            }
-        }
-    }
-
-    // In case the default unit was not specified in the unittypedef explicit
-    // add this to be able to accept converstion with the default 
-    // as the input or output unit
-    _defaultUnit = unitTypeDef->getDefault();
-    auto it = _unitScale.find(_defaultUnit);
-    if (it == _unitScale.end())
-    {
-        _unitScale[_defaultUnit] = 1.0f;
-        _unitOffset[_defaultUnit] = 0.0f;
-    }
+    setMetersPerUnit("nanometer", 1000000000.0f);
+    setMetersPerUnit("micron", 1000000.0f);
+    setMetersPerUnit("millimeter", 1000.0f);
+    setMetersPerUnit("centimeter", 100.0f);
+    setMetersPerUnit(BASE_UNIT_NAME, 1.0f);
+    setMetersPerUnit("kilometer", 0.001f);
+    setMetersPerUnit("foot", 3.281f);
+    setMetersPerUnit("inch", 39.37f);
+    setMetersPerUnit("yard", 1.093613f);
+    setMetersPerUnit("mile", 0.000621f);    
 }
 
-
-LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
-    UnitConverter(unitTypeDef)
+LengthUnitConverterPtr LengthUnitConverter::create()
 {
-}
-
-LengthUnitConverterPtr LengthUnitConverter::create(UnitTypeDefPtr unitTypeDef)
-{
-    std::shared_ptr<LengthUnitConverter> converter(new LengthUnitConverter(unitTypeDef));
+    std::shared_ptr<LengthUnitConverter> converter(new LengthUnitConverter());
     return converter;
+}
+
+void LengthUnitConverter::setMetersPerUnit(const string& unit, float metersPerUnit)
+{
+    _unitScale[unit] = metersPerUnit;
+}
+
+float LengthUnitConverter::getMetersPerUnit(const string& unit) const
+{
+    auto it = _unitScale.find(unit);
+    if (it != _unitScale.end())
+    {
+        return it->second;
+    }
+    throw ExceptionTypeError("Unrecognized unit: " + unit);
 }
 
 float LengthUnitConverter::convert(float input, const string& inputUnit, const string& outputUnit) const

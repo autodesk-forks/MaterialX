@@ -28,60 +28,6 @@
 namespace MaterialX
 {
 
-class UnitConverter;
-
-/// A shared pointer to an UnitConverter
-using UnitConverterPtr = shared_ptr<UnitConverter>;
-/// A shared pointer to a const UnitConverter
-using ConstUnitConverterPtr = shared_ptr<const UnitConverter>;
-
-/// @class UnitConverter
-/// An unit conversion utility class.
-///
-/// This class can perform a linear conversion for a given UnitTypeDef.
-/// The conversion of a value to the default unit is defined as multipling 
-/// by a scale value and adding an offset value. 
-/// Reversing these operations performs a conversion from the default unit.
-///
-class UnitConverter
-{
-  public:
-    UnitConverter(UnitTypeDefPtr unitTypeDef);
-    virtual ~UnitConverter() { }
-
-    /// Convert a given value in a given unit to a desired unit
-    /// @param input Input value to convert
-    /// @param inputUnit Unit of input value
-    /// @param outputUnit Unit for output value
-    virtual float convert(float input, const string& inputUnit, const string& outputUnit) const = 0;
-
-    /// Return the mappings from unit names to the scale value
-    /// defined by a linear converter. 
-    const std::unordered_map<string, float>& getUnitScale() const
-    {
-        return _unitScale;
-    }
-
-    /// Return the mappings from unit names to the offset value
-    /// defined by a linear converter. 
-    const std::unordered_map<string, float>& getUnitOffset() const
-    {
-        return _unitScale;
-    }
-
-
-    /// Return the name of the default unit for "length"
-    const string& getDefaultUnit() const
-    {
-        return _defaultUnit;
-    }
-
-  protected:
-    string _defaultUnit;
-    std::unordered_map<string, float> _unitScale;
-    std::unordered_map<string, float> _unitOffset;
-};
-
 class LengthUnitConverter;
 
 /// A shared pointer to an LengthUnitConverter
@@ -91,23 +37,50 @@ using ConstLengthUnitConverterPtr = shared_ptr<const LengthUnitConverter>;
 
 /// @class LLengthUnitConverter
 /// An unit conversion utility for handling length.
+/// - The base unit for conversion is "meter".
+/// - The following units are supported by default:
+///     - "nanometer"
+///     - "micron", 
+///     - "millimeter",
+///     - "centimeter",
+///     - "meter",
+///     - "kilometer", 
+///     - "foot", 
+///     - "inch", 
+///     - "yard", 
+///     - "mile"
 ///
-class LengthUnitConverter : public UnitConverter
+class LengthUnitConverter
 {
   public:
     virtual ~LengthUnitConverter() { }
 
     /// Creator 
-    static LengthUnitConverterPtr create(UnitTypeDefPtr unitTypeDef);
+    static LengthUnitConverterPtr create();
+
+    /// Set a new unit conversions to meters
+    void setMetersPerUnit(const string& unit, float metersPerUnit);
+
+    /// get the unit conversion to meters
+    float getMetersPerUnit(const string& unit) const;
 
     /// Convert a given value in a given unit to a desired unit
     /// @param input Input value to convert
     /// @param inputUnit Unit of input value
     /// @param outputUnit Unit for output value
-    float convert(float input, const string& inputUnit, const string& outputUnit) const override;
+    float convert(float input, const string& inputUnit, const string& outputUnit) const;
+
+    /// Return base unit used for conversion
+    const string& getBaseUnit() const
+    {
+        return _baseUnit;
+    }
 
   private:
-    LengthUnitConverter(UnitTypeDefPtr unitTypeDef);
+    LengthUnitConverter();
+
+    string _baseUnit;
+    std::unordered_map<string, float> _unitScale;
 };
 
 }  // namespace MaterialX
