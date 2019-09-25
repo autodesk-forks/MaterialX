@@ -516,6 +516,7 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
     renderTester.validate(testRootPaths, optionsFilePath);
 }
 
+#if 0
 TEST_CASE("Render: GLSL Units", "[glslunit]")
 {
     GlslShaderRenderTester renderTester(mx::GlslShaderGenerator::create());
@@ -530,3 +531,4 @@ TEST_CASE("Render: GLSL Units", "[glslunit]")
 
     renderTester.validate(testRootPaths, optionsFilePath);
 }
+#endif
