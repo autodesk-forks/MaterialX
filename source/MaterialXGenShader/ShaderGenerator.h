@@ -156,7 +156,7 @@ class ShaderGenerator
         _unitSystem = unitSystem;
     }
 
-    /// Returns the color management system
+    /// Returns the unit system
     UnitSystemPtr getUnitSystem() const
     {
         return _unitSystem;

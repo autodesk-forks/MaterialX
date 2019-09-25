@@ -680,15 +680,15 @@ void Viewer::createAdvancedSettings(Widget* parent)
             //TODO: Need a get supported units
             mProcessEvents = false;
             unitOptions.push_back("nanometer");
-            unitOptions.push_back("micron");
             unitOptions.push_back("millimeter");
+            unitOptions.push_back("micron");
             unitOptions.push_back("centimeter");
-            unitOptions.push_back("meter");
-            unitOptions.push_back("kilometer");
             unitOptions.push_back("foot");
+            unitOptions.push_back("kilometer");
             unitOptions.push_back("inch");
             unitOptions.push_back("yard");
             unitOptions.push_back("mile");
+            unitOptions.push_back("meter");
             mProcessEvents = true;
         }
         ng::ComboBox* sampleBox = new ng::ComboBox(sampleGroup, unitOptions);
