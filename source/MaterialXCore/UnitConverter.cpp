@@ -55,14 +55,14 @@ UnitConverter::UnitConverter(UnitTypeDefPtr unitTypeDef)
             }
             else
             {
-                _unitOffset[name] = 1.0f;
+                _unitOffset[name] = 0.0f;
             }
         }
     }
 
     // In case the default unit was not specified in the unittypedef explicit
     // add this to be able to accept converstion with the default 
-    // as the output unit
+    // as the input or output unit
     _defaultUnit = unitTypeDef->getDefault();
     auto it = _unitScale.find(_defaultUnit);
     if (it == _unitScale.end())
@@ -88,7 +88,7 @@ float LengthUnitConverter::convert(float input, const string& inputUnit, const s
 {
     if (inputUnit == outputUnit)
     {
-        return 1.0f;
+        return input;
     }
 
     auto it = _unitScale.find(inputUnit);
@@ -106,53 +106,6 @@ float LengthUnitConverter::convert(float input, const string& inputUnit, const s
     float toScale = it->second;
 
     return (input * fromScale / toScale);
-}
-
-UnitConverterRegistryPtr UnitConverterRegistry::create()
-{
-    std::shared_ptr<UnitConverterRegistry> registry(new UnitConverterRegistry());
-    return registry;
-}
-
-bool UnitConverterRegistry::addUnitConverter(UnitTypeDefPtr def, UnitConverterPtr converter)
-{
-    const string& name = def->getName();
-    if (_unitConverters.find(name) != _unitConverters.end())
-    {
-        return false;
-    }
-    _unitConverters[name] = converter;
-    return true;
-}
-
-bool UnitConverterRegistry::removeUnitConverter(UnitTypeDefPtr def)
-{
-    const string& name = def->getName();
-    auto it = _unitConverters.find(name);
-    if (it == _unitConverters.end())
-    {
-        return false;
-    }
-
-    _unitConverters.erase(it);
-    return true;
-}
-
-UnitConverterPtr UnitConverterRegistry::getUnitConverter(UnitTypeDefPtr def)
-{
-    const string& name = def->getName();
-    auto it = _unitConverters.find(name);
-    if (it != _unitConverters.end())
-    {
-        return it->second;
-    }
-    return nullptr;
-}
-
-
-void UnitConverterRegistry::clearUnitConverters()
-{
-    _unitConverters.clear();
 }
 
 }

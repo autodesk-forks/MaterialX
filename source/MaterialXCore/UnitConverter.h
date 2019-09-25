@@ -71,7 +71,7 @@ class UnitConverter
 
 
     /// Return the name of the default unit for "length"
-    const string& getGefaultUnit() const
+    const string& getDefaultUnit() const
     {
         return _defaultUnit;
     }
@@ -87,7 +87,7 @@ class LengthUnitConverter;
 /// A shared pointer to an LengthUnitConverter
 using LengthUnitConverterPtr = shared_ptr<LengthUnitConverter>;
 /// A shared pointer to a const LengthUnitConverter
-using ConstLentghUnitConverterPtr = shared_ptr<const LengthUnitConverter>;
+using ConstLengthUnitConverterPtr = shared_ptr<const LengthUnitConverter>;
 
 /// @class LLengthUnitConverter
 /// An unit conversion utility for handling length.
@@ -98,7 +98,7 @@ class LengthUnitConverter : public UnitConverter
     virtual ~LengthUnitConverter() { }
 
     /// Creator 
-    static UnitConverterPtr create(UnitTypeDefPtr unitTypeDef);
+    static LengthUnitConverterPtr create(UnitTypeDefPtr unitTypeDef);
 
     /// Convert a given value in a given unit to a desired unit
     /// @param input Input value to convert
@@ -108,46 +108,6 @@ class LengthUnitConverter : public UnitConverter
 
   private:
     LengthUnitConverter(UnitTypeDefPtr unitTypeDef);
-};
-
-
-class UnitConverterRegistry;
-
-/// A shared pointer to an UnitConverterRegistry
-using UnitConverterRegistryPtr = shared_ptr<UnitConverterRegistry>;
-/// A shared pointer to a const UnitConverterRegistry
-using ConstUnitConverterRegistryPtr = shared_ptr<const UnitConverterRegistry>;
-
-/// @class UnitConverterRegistry
-/// A registry of unit converters.
-///
-class UnitConverterRegistry
-{
-  public:
-    virtual ~UnitConverterRegistry() { }
-
-    /// Creator 
-    static UnitConverterRegistryPtr create();
-
-    /// Add a unit converter for a given UnitTypeDef.
-    /// Returns false if a converter has already been registered for the given UnitTypeDef 
-    bool addUnitConverter(UnitTypeDefPtr def, UnitConverterPtr converter);
-
-    /// Remove a unit converter for a given UnitTypeDef.
-    /// Returns false if a converter does not exist for the given UnitTypeDef 
-    bool removeUnitConverter(UnitTypeDefPtr def);
-
-    /// Get a unit converter for a given UnitTypeDef
-    /// Returns any empty pointer if a converter does not exist for the given UnitTypeDef 
-    UnitConverterPtr getUnitConverter(UnitTypeDefPtr def);
-
-    /// Clear all unit converters from the registry.
-    void clearUnitConverters();
-
-  private:
-    UnitConverterRegistry() { }
-
-    std::unordered_map<string, UnitConverterPtr> _unitConverters;
 };
 
 }  // namespace MaterialX
