@@ -78,7 +78,7 @@ LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
 {
 }
 
-UnitConverterPtr LengthUnitConverter::create(UnitTypeDefPtr unitTypeDef)
+LengthUnitConverterPtr LengthUnitConverter::create(UnitTypeDefPtr unitTypeDef)
 {
     std::shared_ptr<LengthUnitConverter> converter(new LengthUnitConverter(unitTypeDef));
     return converter;
