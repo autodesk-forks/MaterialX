@@ -23,8 +23,10 @@
 
 namespace MaterialX
 {
+const string LengthUnitConverter::LENGTH_UNIT = "length";
 
-UnitConverter::UnitConverter(UnitTypeDefPtr unitTypeDef)
+LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
+    UnitConverter()
 {
     static const string SCALE_ATTRIBUTE = "scale";
     static const string OFFSET_ATTRIBUTE = "offset";
@@ -46,17 +48,6 @@ UnitConverter::UnitConverter(UnitTypeDefPtr unitTypeDef)
             {
                 _unitScale[name] = 1.0f;
             }
-
-            const string& offsetString = unitdef->getAttribute(SCALE_ATTRIBUTE);
-            if (!offsetString.empty())
-            {
-                ValuePtr offsetValue = Value::createValueFromStrings(offsetString, getTypeString<float>());
-                _unitOffset[name] = offsetValue->asA<float>();
-            }
-            else
-            {
-                _unitOffset[name] = 0.0f;
-            }
         }
     }
 
@@ -68,14 +59,7 @@ UnitConverter::UnitConverter(UnitTypeDefPtr unitTypeDef)
     if (it == _unitScale.end())
     {
         _unitScale[_defaultUnit] = 1.0f;
-        _unitOffset[_defaultUnit] = 0.0f;
-    }
-}
-
-
-LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
-    UnitConverter(unitTypeDef)
-{
+    }    
 }
 
 LengthUnitConverterPtr LengthUnitConverter::create(UnitTypeDefPtr unitTypeDef)
@@ -106,6 +90,53 @@ float LengthUnitConverter::convert(float input, const string& inputUnit, const s
     float toScale = it->second;
 
     return (input * fromScale / toScale);
+}
+
+UnitConverterRegistryPtr UnitConverterRegistry::create()
+{
+    static std::shared_ptr<UnitConverterRegistry> registry(new UnitConverterRegistry());
+    return registry;
+}
+
+bool UnitConverterRegistry::addUnitConverter(UnitTypeDefPtr def, UnitConverterPtr converter)
+{
+    const string& name = def->getName();
+    if (_unitConverters.find(name) != _unitConverters.end())
+    {
+        return false;
+    }
+    _unitConverters[name] = converter;
+    return true;
+}
+
+bool UnitConverterRegistry::removeUnitConverter(UnitTypeDefPtr def)
+{
+    const string& name = def->getName();
+    auto it = _unitConverters.find(name);
+    if (it == _unitConverters.end())
+    {
+        return false;
+    }
+
+    _unitConverters.erase(it);
+    return true;
+}
+
+UnitConverterPtr UnitConverterRegistry::getUnitConverter(UnitTypeDefPtr def)
+{
+    const string& name = def->getName();
+    auto it = _unitConverters.find(name);
+    if (it != _unitConverters.end())
+    {
+        return it->second;
+    }
+    return nullptr;
+}
+
+
+void UnitConverterRegistry::clearUnitConverters()
+{
+    _unitConverters.clear();
 }
 
 }

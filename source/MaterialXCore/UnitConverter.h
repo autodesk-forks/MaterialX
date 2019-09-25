@@ -46,7 +46,7 @@ using ConstUnitConverterPtr = shared_ptr<const UnitConverter>;
 class UnitConverter
 {
   public:
-    UnitConverter(UnitTypeDefPtr unitTypeDef);
+    UnitConverter() {};
     virtual ~UnitConverter() { }
 
     /// Convert a given value in a given unit to a desired unit
@@ -54,32 +54,6 @@ class UnitConverter
     /// @param inputUnit Unit of input value
     /// @param outputUnit Unit for output value
     virtual float convert(float input, const string& inputUnit, const string& outputUnit) const = 0;
-
-    /// Return the mappings from unit names to the scale value
-    /// defined by a linear converter. 
-    const std::unordered_map<string, float>& getUnitScale() const
-    {
-        return _unitScale;
-    }
-
-    /// Return the mappings from unit names to the offset value
-    /// defined by a linear converter. 
-    const std::unordered_map<string, float>& getUnitOffset() const
-    {
-        return _unitScale;
-    }
-
-
-    /// Return the name of the default unit for "length"
-    const string& getDefaultUnit() const
-    {
-        return _defaultUnit;
-    }
-
-  protected:
-    string _defaultUnit;
-    std::unordered_map<string, float> _unitScale;
-    std::unordered_map<string, float> _unitOffset;
 };
 
 class LengthUnitConverter;
@@ -100,14 +74,73 @@ class LengthUnitConverter : public UnitConverter
     /// Creator 
     static LengthUnitConverterPtr create(UnitTypeDefPtr unitTypeDef);
 
+    /// Return the name of the default unit for "length"
+    const string& getDefaultUnit() const
+    {
+        return _defaultUnit;
+    }
+
+    /// Return the mappings from unit names to the scale value
+    /// defined by a linear converter. 
+    const std::unordered_map<string, float>& getUnitScale() const
+    {
+        return _unitScale;
+    }
+
     /// Convert a given value in a given unit to a desired unit
     /// @param input Input value to convert
     /// @param inputUnit Unit of input value
     /// @param outputUnit Unit for output value
     float convert(float input, const string& inputUnit, const string& outputUnit) const override;
 
+    /// Length unit type name
+    static const string LENGTH_UNIT;
+
   private:
     LengthUnitConverter(UnitTypeDefPtr unitTypeDef);
+
+    std::unordered_map<string, float> _unitScale;
+    string _defaultUnit;
+};
+
+
+class UnitConverterRegistry;
+
+/// A shared pointer to an UnitConverterRegistry
+using UnitConverterRegistryPtr = shared_ptr<UnitConverterRegistry>;
+/// A shared pointer to a const UnitConverterRegistry
+using ConstUnitConverterRegistryPtr = shared_ptr<const UnitConverterRegistry>;
+
+/// @class UnitConverterRegistry
+/// A registry of unit converters.
+///
+class UnitConverterRegistry
+{
+  public:
+    virtual ~UnitConverterRegistry() { }
+
+    /// Creator 
+    static UnitConverterRegistryPtr create();
+
+    /// Add a unit converter for a given UnitTypeDef.
+    /// Returns false if a converter has already been registered for the given UnitTypeDef 
+    bool addUnitConverter(UnitTypeDefPtr def, UnitConverterPtr converter);
+
+    /// Remove a unit converter for a given UnitTypeDef.
+    /// Returns false if a converter does not exist for the given UnitTypeDef 
+    bool removeUnitConverter(UnitTypeDefPtr def);
+
+    /// Get a unit converter for a given UnitTypeDef
+    /// Returns any empty pointer if a converter does not exist for the given UnitTypeDef 
+    UnitConverterPtr getUnitConverter(UnitTypeDefPtr def);
+
+    /// Clear all unit converters from the registry.
+    void clearUnitConverters();
+
+  private:
+    UnitConverterRegistry() { }
+
+    std::unordered_map<string, UnitConverterPtr> _unitConverters;
 };
 
 }  // namespace MaterialX

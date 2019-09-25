@@ -81,11 +81,18 @@ TEST_CASE("UnitEvaluation", "[units]")
     mx::DocumentPtr doc = mx::createDocument();
     mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
 
-    mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef("length");
+    mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
     REQUIRE(lengthTypeDef);
+
+    mx::UnitConverterRegistryPtr registry = mx::UnitConverterRegistry::create();
+    mx::UnitConverterRegistryPtr registry2 = mx::UnitConverterRegistry::create();
+    REQUIRE(registry == registry2);
 
     mx::LengthUnitConverterPtr converter = mx::LengthUnitConverter::create(lengthTypeDef);
     REQUIRE(converter);
+    registry->addUnitConverter(lengthTypeDef, converter);
+    mx::UnitConverterPtr uconverter = registry->getUnitConverter(lengthTypeDef);
+    REQUIRE(uconverter);
 
     // Use converter to convert
     float result = converter->convert(0.1f, "kilometer", "millimeter");
