@@ -380,7 +380,6 @@ void ShaderGraph::addUnitTransformNode(ShaderOutput* output, const UnitTransform
     }
 }
 
-
 ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const NodeGraph& nodeGraph, GenContext& context)
 {
     NodeDefPtr nodeDef = nodeGraph.getNodeDef();
@@ -567,7 +566,6 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                         element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindInput, targetColorSpace);
                     graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName], bindInput, targetLengthUnit, LengthUnitConverter::LENGTH_UNIT);
-
                 }
                 inputSocket->setPath(bindInput->getNamePath());
                 input->setPath(inputSocket->getPath());

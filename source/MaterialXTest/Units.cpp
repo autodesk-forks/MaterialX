@@ -13,7 +13,6 @@
 #include <MaterialXGenShader/Util.h>
 
 #include <cmath>
-#include <iostream>
 
 namespace mx = MaterialX;
 

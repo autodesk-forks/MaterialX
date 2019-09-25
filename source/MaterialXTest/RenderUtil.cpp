@@ -259,7 +259,6 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
             mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
             registry->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));
 
-
             ioTimer.endTimer();
 
             validateTimer.startTimer();
