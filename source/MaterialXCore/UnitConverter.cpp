@@ -23,8 +23,10 @@
 
 namespace MaterialX
 {
+const string LengthUnitConverter::LENGTH_UNIT = "length";
 
-UnitConverter::UnitConverter(UnitTypeDefPtr unitTypeDef)
+LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
+    UnitConverter()
 {
     static const string SCALE_ATTRIBUTE = "scale";
     static const string OFFSET_ATTRIBUTE = "offset";
@@ -46,40 +48,21 @@ UnitConverter::UnitConverter(UnitTypeDefPtr unitTypeDef)
             {
                 _unitScale[name] = 1.0f;
             }
-
-            const string& offsetString = unitdef->getAttribute(SCALE_ATTRIBUTE);
-            if (!offsetString.empty())
-            {
-                ValuePtr offsetValue = Value::createValueFromStrings(offsetString, getTypeString<float>());
-                _unitOffset[name] = offsetValue->asA<float>();
-            }
-            else
-            {
-                _unitOffset[name] = 1.0f;
-            }
         }
     }
 
     // In case the default unit was not specified in the unittypedef explicit
     // add this to be able to accept converstion with the default 
-    // as the output unit
+    // as the input or output unit
     _defaultUnit = unitTypeDef->getDefault();
     auto it = _unitScale.find(_defaultUnit);
     if (it == _unitScale.end())
     {
         _unitScale[_defaultUnit] = 1.0f;
-        _unitOffset[_defaultUnit] = 0.0f;
     }
 }
 
-const string LengthUnitConverter::LENGTH_UNIT = "length";
-
-LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
-    UnitConverter(unitTypeDef)
-{
-}
-
-UnitConverterPtr LengthUnitConverter::create(UnitTypeDefPtr unitTypeDef)
+LengthUnitConverterPtr LengthUnitConverter::create(UnitTypeDefPtr unitTypeDef)
 {
     std::shared_ptr<LengthUnitConverter> converter(new LengthUnitConverter(unitTypeDef));
     return converter;

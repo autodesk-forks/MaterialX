@@ -46,7 +46,7 @@ using ConstUnitConverterPtr = shared_ptr<const UnitConverter>;
 class UnitConverter
 {
   public:
-    UnitConverter(UnitTypeDefPtr unitTypeDef);
+    UnitConverter() {};
     virtual ~UnitConverter() { }
 
     /// Convert a given value in a given unit to a desired unit
@@ -54,32 +54,6 @@ class UnitConverter
     /// @param inputUnit Unit of input value
     /// @param outputUnit Unit for output value
     virtual float convert(float input, const string& inputUnit, const string& outputUnit) const = 0;
-
-    /// Return the mappings from unit names to the scale value
-    /// defined by a linear converter. 
-    const std::unordered_map<string, float>& getUnitScale() const
-    {
-        return _unitScale;
-    }
-
-    /// Return the mappings from unit names to the offset value
-    /// defined by a linear converter. 
-    const std::unordered_map<string, float>& getUnitOffset() const
-    {
-        return _unitScale;
-    }
-
-
-    /// Return the name of the default unit for "length"
-    const string& getGefaultUnit() const
-    {
-        return _defaultUnit;
-    }
-
-  protected:
-    string _defaultUnit;
-    std::unordered_map<string, float> _unitScale;
-    std::unordered_map<string, float> _unitOffset;
 };
 
 class LengthUnitConverter;
@@ -98,7 +72,20 @@ class LengthUnitConverter : public UnitConverter
     virtual ~LengthUnitConverter() { }
 
     /// Creator 
-    static UnitConverterPtr create(UnitTypeDefPtr unitTypeDef);
+    static LengthUnitConverterPtr create(UnitTypeDefPtr unitTypeDef);
+
+    /// Return the name of the default unit for "length"
+    const string& getDefaultUnit() const
+    {
+        return _defaultUnit;
+    }
+
+    /// Return the mappings from unit names to the scale value
+    /// defined by a linear converter. 
+    const std::unordered_map<string, float>& getUnitScale() const
+    {
+        return _unitScale;
+    }
 
     /// Convert a given value in a given unit to a desired unit
     /// @param input Input value to convert
@@ -106,10 +93,14 @@ class LengthUnitConverter : public UnitConverter
     /// @param outputUnit Unit for output value
     float convert(float input, const string& inputUnit, const string& outputUnit) const override;
 
+    /// Length unit type name
     static const string LENGTH_UNIT;
 
   private:
     LengthUnitConverter(UnitTypeDefPtr unitTypeDef);
+
+    std::unordered_map<string, float> _unitScale;
+    string _defaultUnit;
 };
 
 
