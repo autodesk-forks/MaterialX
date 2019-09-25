@@ -59,7 +59,7 @@ LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
     if (it == _unitScale.end())
     {
         _unitScale[_defaultUnit] = 1.0f;
-    }    
+    }
 }
 
 LengthUnitConverterPtr LengthUnitConverter::create(UnitTypeDefPtr unitTypeDef)

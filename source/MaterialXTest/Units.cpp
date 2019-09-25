@@ -8,6 +8,8 @@
 #include <MaterialXCore/Document.h>
 #include <MaterialXCore/UnitConverter.h>
 #include <MaterialXFormat/File.h>
+#include <MaterialXFormat/XmlIo.h>
+#include <MaterialXGenShader/TypeDesc.h>
 #include <MaterialXGenShader/Util.h>
 
 #include <cmath>
@@ -84,3 +86,75 @@ TEST_CASE("UnitEvaluation", "[units]")
     REQUIRE(defaultUnit == lengthTypeDef->getDefault());
 }
 
+TEST_CASE("UnitDocument", "[units]")
+{
+    mx::FilePath libraryPath("libraries/stdlib");
+    mx::FilePath examplesPath("resources/Materials/Examples/Units");
+    std::string searchPath = libraryPath.asString() +
+        mx::PATH_LIST_SEPARATOR +
+        examplesPath.asString();
+
+    // Read and validate each example document.
+    for (std::string filename : examplesPath.getFilesInDirectory(mx::MTLX_EXTENSION))
+    {
+        mx::DocumentPtr doc = mx::createDocument();
+        mx::readFromXmlFile(doc, filename, searchPath);
+        mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
+
+        mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
+        REQUIRE(lengthTypeDef);
+
+        mx::UnitConverterPtr uconverter = mx::LengthUnitConverter::create(lengthTypeDef);
+        REQUIRE(uconverter);
+        mx::UnitConverterRegistryPtr registry = mx::UnitConverterRegistry::create();
+        registry->addUnitConverter(lengthTypeDef, uconverter);
+        uconverter = registry->getUnitConverter(lengthTypeDef);
+        REQUIRE(uconverter);
+
+        // Traverse the document tree
+        for (mx::ElementPtr elem : doc->traverseTree())
+        {
+            // If we have nodes with inputs
+            mx::NodePtr pNode = elem->asA<mx::Node>();
+            if (pNode) 
+            {
+
+                if (pNode->getInputCount()) {
+                    for (mx::InputPtr input : pNode->getInputs()) {
+                        const mx::TypeDesc* type = mx::TypeDesc::get(input->getType());
+                        const mx::ValuePtr value = input->getValue();
+                        if (input->hasUnit()) {
+
+                            if (type->isScalar() && value)
+                            {
+                                float originalval = value->asA<float>();
+                                float convertedValue = uconverter->convert(originalval, input->getUnit(), lengthTypeDef->getDefault());
+                                float reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), input->getUnit());
+                                REQUIRE(originalval == reconvert);
+                            }
+                        }
+                    }
+                }
+
+                if (pNode->getParameterCount()) {
+                    for (mx::ParameterPtr param: pNode->getParameters()) {
+                        const mx::TypeDesc* type = mx::TypeDesc::get(param->getType());
+                        const mx::ValuePtr value = param->getValue();
+                        std::string value_string = value ? value->getValueString() : "No value ";
+                        if (param->hasUnit()) {
+
+                            if (type->isScalar() && value)
+                            {
+                                float originalval = value->asA<float>();
+                                float convertedValue = uconverter->convert(originalval, param->getUnit(), lengthTypeDef->getDefault());
+                                float reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), param->getUnit());
+                                REQUIRE(originalval == reconvert);
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+}
