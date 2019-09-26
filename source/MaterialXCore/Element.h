@@ -1090,6 +1090,28 @@ class ValueElement : public TypedElement
     ValuePtr getDefaultValue() const;
 
     /// @}
+    /// @name Units
+    /// @{
+
+    /// Set the unit.
+    void setUnit(const string& unit)
+    {
+        setAttribute(UNIT_ATTRIBUTE, unit);
+    }
+
+    /// Return true if a unit attribute exists.
+    bool hasUnit() const
+    {
+        return hasAttribute(UNIT_ATTRIBUTE);
+    }
+
+    /// Return the unit .
+    const string& getUnit() const
+    {
+        return getAttribute(UNIT_ATTRIBUTE);
+    }
+
+    /// @}
     /// @name Validation
     /// @{
 
@@ -1111,6 +1133,7 @@ class ValueElement : public TypedElement
     static const string UI_MIN_ATTRIBUTE;
     static const string UI_MAX_ATTRIBUTE;
     static const string UI_ADVANCED_ATTRIBUTE;
+    static const string UNIT_ATTRIBUTE;
 };
 
 /// @class Token
