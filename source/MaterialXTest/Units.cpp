@@ -23,8 +23,6 @@ TEST_CASE("UnitAttribute", "[units]")
     std::vector<mx::UnitTypeDefPtr> unitTypeDefs = doc->getUnitTypeDefs();
     REQUIRE(!unitTypeDefs.empty());
 
-    doc->setUnit("millimeter");
-
     mx::NodeGraphPtr nodeGraph = doc->addNodeGraph();
     nodeGraph->setName("graph1");
 
@@ -48,32 +46,6 @@ TEST_CASE("UnitAttribute", "[units]")
     REQUIRE(!output->getUnit().empty());
 
     REQUIRE(doc->validate());
-
-    // Check for target unit search. Parent units are inches,
-    // library units are "mile"
-    // - Parent doc traversal check
-    mx::DocumentPtr parentDoc = mx::createDocument();
-    parentDoc->setUnit("foot");
-    mx::NodeGraphPtr nodeGraph2 = parentDoc->addNodeGraph();
-    nodeGraph2->setName("parent_graph1");
-
-    mx::ElementPtr nodeGraph3 = parentDoc->getDescendant("/parent_graph1");
-    REQUIRE(nodeGraph3);
-    const std::string& au = nodeGraph3->getActiveUnit();
-    const std::string& u = nodeGraph3->getUnit();
-    REQUIRE((au == "foot" && u.empty()));
-
-    // - Imported doc traversal check
-    mx::CopyOptions copyOptions;
-    copyOptions.skipConflictingElements = true;
-    doc->setUnit("mile");
-    parentDoc->importLibrary(doc, &copyOptions);
-
-    mx::ElementPtr const1 = parentDoc->getDescendant("/graph1/constant1");
-    REQUIRE(const1);
-    const std::string& c1 = const1->getActiveUnit();
-    const std::string& c2 = const1->getUnit();
-    REQUIRE((c1 == "mile" && c2.empty()));
 }
 
 TEST_CASE("UnitEvaluation", "[units]")

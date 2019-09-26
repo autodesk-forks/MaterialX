@@ -16,7 +16,6 @@ const string Element::NAME_ATTRIBUTE = "name";
 const string Element::FILE_PREFIX_ATTRIBUTE = "fileprefix";
 const string Element::GEOM_PREFIX_ATTRIBUTE = "geomprefix";
 const string Element::COLOR_SPACE_ATTRIBUTE = "colorspace";
-const string Element::UNIT_ATTRIBUTE = "unit";
 const string Element::TARGET_ATTRIBUTE = "target";
 const string Element::VERSION_ATTRIBUTE = "version";
 const string Element::DEFAULT_VERSION_ATTRIBUTE = "isdefaultversion";
@@ -34,6 +33,7 @@ const string ValueElement::UI_FOLDER_ATTRIBUTE = "uifolder";
 const string ValueElement::UI_MIN_ATTRIBUTE = "uimin";
 const string ValueElement::UI_MAX_ATTRIBUTE = "uimax";
 const string ValueElement::UI_ADVANCED_ATTRIBUTE = "uiadvanced";
+const string ValueElement::UNIT_ATTRIBUTE = "unit";
 
 Element::CreatorMap Element::_creatorMap;
 
@@ -446,12 +446,6 @@ bool Element::validate(string* message) const
     }
     validateRequire(!hasInheritanceCycle(), res, message, "Cycle in element inheritance chain");
 
-    if (hasUnit())
-    {
-        const string& unit = getUnit();
-        UnitTypeDefPtr typeDef = getDocument()->getUnitTypeDefWithUnit(unit);
-        validateRequire(typeDef != nullptr, res, message, "Unit definition does not exist in document");
-    }
     return res;
 }
 
@@ -622,6 +616,12 @@ bool ValueElement::validate(string* message) const
                 }
             }
         }
+    }
+    if (hasUnit())
+    {
+        const string& unit = getUnit();
+        UnitTypeDefPtr typeDef = getDocument()->getUnitTypeDefWithUnit(unit);
+        validateRequire(typeDef != nullptr, res, message, "Unit definition does not exist in document");
     }
     return TypedElement::validate(message) && res;
 }
