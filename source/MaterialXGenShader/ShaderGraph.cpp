@@ -437,6 +437,10 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         outputSocket->makeConnection(newNode->getOutput());
         outputSocket->setPath(shaderRef->getNamePath());
 
+        ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
+        const string& targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
+            element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
+
         // Handle node parameters
         for (ParameterPtr elem : nodeDef->getActiveParameters())
         {
@@ -457,9 +461,6 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     inputSocket->setValue(bindParamValue);
 
                     input->setBindInput();
-                    ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
-                    const string& targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
-                        element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindParam, targetColorSpace);
                 }
                 inputSocket->setPath(bindParam->getNamePath());
@@ -491,9 +492,6 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     inputSocket->setValue(bindInputValue);
 
                     input->setBindInput();
-                    ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
-                    const string& targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
-                        element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindInput, targetColorSpace);
                 }
                 inputSocket->setPath(bindInput->getNamePath());

@@ -147,6 +147,7 @@ void Document::initialize()
 void Document::importLibrary(const ConstDocumentPtr& library, const CopyOptions* copyOptions)
 {
     bool skipConflictingElements = copyOptions && copyOptions->skipConflictingElements;
+    const string&  libraryColorSpace = library->getColorSpace();
     for (const ConstElementPtr& child : library->getChildren())
     {
         string childName = child->getQualifiedName(child->getName());
@@ -169,7 +170,7 @@ void Document::importLibrary(const ConstDocumentPtr& library, const CopyOptions*
         {
             childCopy->setGeomPrefix(library->getGeomPrefix());
         }
-        if (!childCopy->hasColorSpace() && library->hasColorSpace())
+        if (!libraryColorSpace.empty() && !libraryColorSpace.empty())
         {
             childCopy->setColorSpace(library->getColorSpace());
         }
