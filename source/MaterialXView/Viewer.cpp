@@ -628,7 +628,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
     transparencyBox->setCallback([this](bool enable)
     {
         _genContext.getOptions().hwTransparency = enable;
-        reloadShaders();
+        reloadShaders(false);
     });
 
     ng::CheckBox* drawEnvironmentBox = new ng::CheckBox(advancedPopup, "Render Environment");
@@ -703,7 +703,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
         {
             _unitspace = unitOptions[index];
             _genContext.getOptions().targetLengthUnit= _unitspace;
-            reloadShaders();
+            reloadShaders(true);
         });
     }
 }
@@ -1015,13 +1015,18 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
     updateMaterialSelectionUI();
 }
 
-void Viewer::reloadShaders()
+void Viewer::reloadShaders(bool forceCreation)
 {
     try
     {
+        const mx::MeshList& meshes = _geometryHandler->getMeshes();
         for (MaterialPtr material : _materials)
         {
-            material->generateShader(_genContext);
+            material->generateShader(_genContext, forceCreation);
+            if (forceCreation && !meshes.empty())
+            {
+                material->bindMesh(meshes[0]);
+            }
         }
     }
     catch (std::exception& e)

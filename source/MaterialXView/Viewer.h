@@ -88,7 +88,7 @@ class Viewer : public ng::Screen
     void setupLights(mx::DocumentPtr doc);
     void setupUnitConverter(mx::DocumentPtr doc);
     void loadDocument(const mx::FilePath& filename, mx::DocumentPtr libraries);
-    void reloadShaders();
+    void reloadShaders(bool forceCreation);
     void loadStandardLibraries();
     void saveShaderSource();
     void loadShaderSource();
