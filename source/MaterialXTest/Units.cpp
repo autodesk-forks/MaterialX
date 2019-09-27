@@ -140,7 +140,6 @@ TEST_CASE("UnitDocument", "[units]")
                     for (mx::ParameterPtr param: pNode->getParameters()) {
                         const mx::TypeDesc* type = mx::TypeDesc::get(param->getType());
                         const mx::ValuePtr value = param->getValue();
-                        std::string value_string = value ? value->getValueString() : "No value ";
                         if (param->hasUnit()) {
 
                             if (type->isScalar() && value)
