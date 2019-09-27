@@ -54,6 +54,10 @@ class UnitConverter
     /// @param inputUnit Unit of input value
     /// @param outputUnit Unit for output value
     virtual float convert(float input, const string& inputUnit, const string& outputUnit) const = 0;
+
+    /// Given a unit name return a value that it can map to as an integer
+    /// Returns -1 value if not found
+    virtual int getUnitAsInteger(const string&) const { return -1; }
 };
 
 class LengthUnitConverter;
@@ -92,6 +96,10 @@ class LengthUnitConverter : public UnitConverter
     /// @param inputUnit Unit of input value
     /// @param outputUnit Unit for output value
     float convert(float input, const string& inputUnit, const string& outputUnit) const override;
+
+    /// Given a unit name return a value that it can map to as an integer
+    /// Returns -1 value if not found
+    int getUnitAsInteger(const string& unitName) const override;
 
     /// Length unit type name
     static const string LENGTH_UNIT;
@@ -136,6 +144,10 @@ class UnitConverterRegistry
 
     /// Clear all unit converters from the registry.
     void clearUnitConverters();
+
+    /// Given a unit name return a value that it can map to as an integer
+    /// Returns -1 value if not found
+    int getUnitAsInteger(const string& unitName) const;
 
   private:
     UnitConverterRegistry() { }

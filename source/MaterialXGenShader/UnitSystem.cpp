@@ -29,6 +29,7 @@ UnitTransform::UnitTransform(const string& ss, const string& ts, const TypeDesc*
 }
 
 const string UnitSystem::UNITSYTEM_NAME = "default_unit_system";
+const string UnitSystem::LENGTH_UNIT_TARGET_NAME = "u_lengthUnitTarget";
 
 UnitSystem::UnitSystem(const string& language)
 {
@@ -58,7 +59,7 @@ bool UnitSystem::supportsTransform(const UnitTransform& transform) const
     return impl != nullptr;
 }
 
-ShaderNodePtr UnitSystem::createNode(const ShaderGraph* parent, const UnitTransform& transform, const string& name,
+ShaderNodePtr UnitSystem::createNode(ShaderGraph* parent, const UnitTransform& transform, const string& name,
     GenContext& context) const
 {
     const string implName = getImplementationName(transform, LengthUnitConverter::LENGTH_UNIT);
@@ -116,27 +117,34 @@ ShaderNodePtr UnitSystem::createNode(const ShaderGraph* parent, const UnitTransf
     LengthUnitConverterPtr lengthConverter = std::dynamic_pointer_cast<LengthUnitConverter>(unitRegistry->getUnitConverter(lengthTypeDef));
 
     // Add the conversion code
-    const std::unordered_map<std::string, float>& unitScale = lengthConverter->getUnitScale();
     {
-        const auto it = unitScale.find(transform.sourceUnit);
-        if (it == unitScale.end())
+        int value = lengthConverter->getUnitAsInteger(transform.sourceUnit);
+        if (value < 0)
         {
             throw ExceptionTypeError("Unrecognized source unit: " + transform.sourceUnit);
         }
 
         ShaderInput* convertFrom = shaderNode->addInput("unit_from", Type::INTEGER);
-        convertFrom->setValue(Value::createValue((int)std::distance(unitScale.begin(), it)));
+        convertFrom->setValue(Value::createValue(value));
     }
 
     {
-        const auto it = unitScale.find(transform.targetLengthUnit);
-        if (it == unitScale.end())
+        int value = lengthConverter->getUnitAsInteger(transform.targetLengthUnit);
+        if (value < 0)
         {
             throw ExceptionTypeError("Unrecognized target unit: " + transform.targetLengthUnit);
         }
 
         ShaderInput* convertTo = shaderNode->addInput("unit_to", Type::INTEGER);
-        convertTo->setValue(Value::createValue((int)std::distance(unitScale.begin(), it)));
+
+        // Create a graph input to connect to the "unit_to" if it does not already exist.
+        ShaderGraphInputSocket* globalInput = parent->getInputSocket(LENGTH_UNIT_TARGET_NAME);
+        if (!globalInput)
+        {
+            globalInput = parent->addInputSocket(LENGTH_UNIT_TARGET_NAME, Type::INTEGER);
+        }
+        globalInput->setValue(Value::createValue(value));
+        convertTo->makeConnection(globalInput);
     }
 
     shaderNode->addOutput("out", transform.type);

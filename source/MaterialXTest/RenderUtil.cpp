@@ -3,6 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
+#include <MaterialXCore/UnitConverter.h>
 #include <MaterialXGenShader/Util.h>
 #include <MaterialXTest/RenderUtil.h>
 #include <MaterialXTest/Catch/catch.hpp>

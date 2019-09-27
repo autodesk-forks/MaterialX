@@ -702,8 +702,11 @@ void Viewer::createAdvancedSettings(Widget* parent)
         sampleBox->setCallback([this](int index)
         {
             _unitspace = unitOptions[index];
-            _genContext.getOptions().targetLengthUnit= _unitspace;
-            reloadShaders(true);
+            _genContext.getOptions().targetLengthUnit = _unitspace;
+            for (MaterialPtr material : _materials)
+            {
+                material->bindUnits(_unitRegistry, _genContext);
+            }    
         });
     }
 }

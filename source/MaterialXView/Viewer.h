@@ -1,6 +1,7 @@
 #ifndef MATERIALXVIEW_VIEWER_H
 #define MATERIALXVIEW_VIEWER_H
 
+#include <MaterialXCore/UnitConverter.h>
 #include <MaterialXView/Editor.h>
 #include <MaterialXView/Material.h>
 #include <MaterialXRender/GeometryHandler.h>

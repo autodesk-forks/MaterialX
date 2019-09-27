@@ -9,6 +9,8 @@
 /// @file
 /// Unit  system classes
 
+#include <MaterialXCore/UnitConverter.h>
+
 #include <MaterialXGenShader/Library.h>
 
 #include <MaterialXGenShader/ShaderNode.h>
@@ -70,13 +72,14 @@ public:
     bool supportsTransform(const UnitTransform& transform) const;
 
     /// Create a node to use to perform the given unit space transformation.
-    ShaderNodePtr createNode(const ShaderGraph* parent, const UnitTransform& transform, const string& name,
+    ShaderNodePtr createNode(ShaderGraph* parent, const UnitTransform& transform, const string& name,
         GenContext& context) const;
 
     /// Returns an implementation name for a given transform
     virtual string getImplementationName(const UnitTransform& transform, const string& unitname) const;
 
     static const string UNITSYTEM_NAME;
+    static const string LENGTH_UNIT_TARGET_NAME;
 
 protected:
     /// Protected constructor

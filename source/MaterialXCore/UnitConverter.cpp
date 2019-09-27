@@ -92,6 +92,17 @@ float LengthUnitConverter::convert(float input, const string& inputUnit, const s
     return (input * fromScale / toScale);
 }
 
+/// Given a unit name return a value that it can map to as an integer
+int LengthUnitConverter::getUnitAsInteger(const string& unitName) const
+{
+    const auto it = _unitScale.find(unitName);
+    if (it == _unitScale.end())
+    {
+        return -1;
+    }
+    return static_cast<int>(std::distance(_unitScale.begin(), it));
+}
+
 UnitConverterRegistryPtr UnitConverterRegistry::create()
 {
     static std::shared_ptr<UnitConverterRegistry> registry(new UnitConverterRegistry());
@@ -138,5 +149,17 @@ void UnitConverterRegistry::clearUnitConverters()
 {
     _unitConverters.clear();
 }
+
+int UnitConverterRegistry::getUnitAsInteger(const string& unitName) const
+{
+    for (auto it : _unitConverters)
+    {
+        int value = it.second->getUnitAsInteger(unitName);
+        if (value >= 0)
+            return value;
+    }
+    return -1;
+}
+
 
 }
