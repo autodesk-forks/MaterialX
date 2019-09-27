@@ -170,9 +170,12 @@ void Document::importLibrary(const ConstDocumentPtr& library, const CopyOptions*
         {
             childCopy->setGeomPrefix(library->getGeomPrefix());
         }
-        if (!libraryColorSpace.empty() && !libraryColorSpace.empty())
+        if (!libraryColorSpace.empty())
         {
-            childCopy->setColorSpace(library->getColorSpace());
+            if (!childCopy->hasColorSpace() || childCopy->isA<Output>())
+            {
+                childCopy->setColorSpace(library->getColorSpace());
+            }
         }
         if (!childCopy->hasNamespace() && library->hasNamespace())
         {
