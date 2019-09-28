@@ -152,7 +152,7 @@ class Material
                     bool directLighting, bool indirectLighting, mx::HwSpecularEnvironmentMethod specularEnvironmentMethod, int envSamples);
 
     /// Bind units.
-    void Material::bindUnits(mx::UnitConverterRegistryPtr registry, const mx::GenContext& context);
+    void bindUnits(mx::UnitConverterRegistryPtr registry, const mx::GenContext& context);
 
     /// Bind the given mesh to this material.
     void bindMesh(mx::MeshPtr mesh) const;
