@@ -124,9 +124,7 @@ TEST_CASE("UnitDocument", "[units]")
                     for (mx::InputPtr input : pNode->getInputs()) {
                         const mx::TypeDesc* type = mx::TypeDesc::get(input->getType());
                         const mx::ValuePtr value = input->getValue();
-                        REQUIRE(value);
-
-                        if (input->hasUnit()) {
+                        if (input->hasUnit() && value) {
 
                             if (type->isScalar())
                             {
@@ -164,8 +162,7 @@ TEST_CASE("UnitDocument", "[units]")
                     for (mx::ParameterPtr param: pNode->getParameters()) {
                         const mx::TypeDesc* type = mx::TypeDesc::get(param->getType());
                         const mx::ValuePtr value = param->getValue();
-                        REQUIRE(value);
-                        if (param->hasUnit()) {
+                        if (param->hasUnit() && value) {
 
                             if (type->isScalar())
                             {
