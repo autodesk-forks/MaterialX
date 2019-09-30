@@ -3,12 +3,12 @@
 
 <!-- scale -->
 <constant name="realscale" type="float">
-   <parameter name="value" type="float" value="1.25" unit="meter" />
+   <parameter name="value" type="float" value="1.25" unit="meter" unittype="length"/>
 </constant>
 
   <!-- scale -->
 <constant name="albedo_realworldscale" type="vector2">
-      <parameter name="value" type="vector2" value="0.25, 0.25" unit="meter" />
+      <parameter name="value" type="vector2" value="0.25, 0.25" unit="meter" unittype="length"/>
 </constant>
  
 <!-- 1/scale -->
@@ -20,7 +20,7 @@
  
 <!-- offset -->
 <constant name="albedo_realworldoffset" type="vector2">
-      <parameter name="value" type="vector2" value="0.2, 0.2" unit="millimeter" />
+      <parameter name="value" type="vector2" value="0.2, 0.2" unit="millimeter" unittype="length"/>
 </constant>
  
 <!-- connect the unit converted parameters to a placement node -->
@@ -34,7 +34,7 @@
  
  
 <image name="SurfaceAlbedo_color" type="color3" colorspace="raw">
-  <parameter name="file" type="filename" value="textures/mesh_wire_spec.png" />
+  <parameter name="file" type="filename" value="resources/Images/grid.png" />
   <input name="texcoord" type="vector2" nodename="albedo_placement_transform" />
 </image>
 <output name="SurfaceAlbedo_output" type="color3" nodename="SurfaceAlbedo_color" />
