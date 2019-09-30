@@ -632,7 +632,7 @@ bool ValueElement::validate(string* message) const
     {
         bool foundUnit = false;
         const string& unit = getUnit();
-        if (unitDefType && (unitDefType->getDefault() == unit) ||
+        if ((unitDefType && (unitDefType->getDefault() == unit)) ||
             getDocument()->getChild(unit))
         {
             foundUnit = true;
