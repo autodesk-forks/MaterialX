@@ -34,6 +34,7 @@ TEST_CASE("UnitAttribute", "[units]")
     constant->setParameterValue("value", mx::Color3(0.5f));
     mx::ParameterPtr param = constant->getParameter("value");
     param->setName("param1");
+    param->setUnitType("length");
     param->setUnit("meter");
     REQUIRE(param->hasUnit());
     REQUIRE(!param->getUnit().empty());
@@ -41,6 +42,7 @@ TEST_CASE("UnitAttribute", "[units]")
     // Test for valid unit names
     mx::OutputPtr output = nodeGraph->addOutput();
     output->setConnectedNode(constant);
+    output->setUnitType("length");
     output->setUnit("bad unit");
     REQUIRE(!output->validate());
     output->setUnit("foot");

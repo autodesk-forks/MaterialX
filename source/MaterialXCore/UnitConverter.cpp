@@ -29,7 +29,6 @@ LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
     UnitConverter()
 {
     static const string SCALE_ATTRIBUTE = "scale";
-    static const string OFFSET_ATTRIBUTE = "offset";
 
     // Populate the unit scale and offset maps for each UnitDef. 
     vector<UnitDefPtr> unitDefs = unitTypeDef->getUnitDefs();
