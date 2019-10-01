@@ -120,18 +120,38 @@ TEST_CASE("UnitDocument", "[units]")
             mx::NodePtr pNode = elem->asA<mx::Node>();
             if (pNode) 
             {
-
                 if (pNode->getInputCount()) {
                     for (mx::InputPtr input : pNode->getInputs()) {
                         const mx::TypeDesc* type = mx::TypeDesc::get(input->getType());
                         const mx::ValuePtr value = input->getValue();
-                        if (input->hasUnit()) {
+                        if (input->hasUnit() && value) {
 
-                            if (type->isScalar() && value)
+                            if (type->isScalar())
                             {
                                 float originalval = value->asA<float>();
                                 float convertedValue = uconverter->convert(originalval, input->getUnit(), lengthTypeDef->getDefault());
                                 float reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), input->getUnit());
+                                REQUIRE(originalval == reconvert);
+                            }
+                            else if (type->isFloat2())
+                            {
+                                mx::Vector2 originalval = value->asA<mx::Vector2>();
+                                mx::Vector2 convertedValue = uconverter->convert(originalval, input->getUnit(), lengthTypeDef->getDefault());
+                                mx::Vector2 reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), input->getUnit());
+                                REQUIRE(originalval == reconvert);
+                            }
+                            else if (type->isFloat3())
+                            {
+                                mx::Vector3 originalval = value->asA<mx::Vector3>();
+                                mx::Vector3 convertedValue = uconverter->convert(originalval, input->getUnit(), lengthTypeDef->getDefault());
+                                mx::Vector3 reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), input->getUnit());
+                                REQUIRE(originalval == reconvert);
+                            }
+                            else if (type->isFloat4())
+                            {
+                                mx::Vector4 originalval = value->asA<mx::Vector4>();
+                                mx::Vector4 convertedValue = uconverter->convert(originalval, input->getUnit(), lengthTypeDef->getDefault());
+                                mx::Vector4 reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), input->getUnit());
                                 REQUIRE(originalval == reconvert);
                             }
                         }
@@ -142,13 +162,34 @@ TEST_CASE("UnitDocument", "[units]")
                     for (mx::ParameterPtr param: pNode->getParameters()) {
                         const mx::TypeDesc* type = mx::TypeDesc::get(param->getType());
                         const mx::ValuePtr value = param->getValue();
-                        if (param->hasUnit()) {
+                        if (param->hasUnit() && value) {
 
-                            if (type->isScalar() && value)
+                            if (type->isScalar())
                             {
                                 float originalval = value->asA<float>();
                                 float convertedValue = uconverter->convert(originalval, param->getUnit(), lengthTypeDef->getDefault());
                                 float reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), param->getUnit());
+                                REQUIRE(originalval == reconvert);
+                            }
+                            else if (type->isFloat2())
+                            {
+                                mx::Vector2 originalval = value->asA<mx::Vector2>();
+                                mx::Vector2 convertedValue = uconverter->convert(originalval, param->getUnit(), lengthTypeDef->getDefault());
+                                mx::Vector2 reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), param->getUnit());
+                                REQUIRE(originalval == reconvert);
+                            }
+                            else if (type->isFloat3())
+                            {
+                                mx::Vector3 originalval = value->asA<mx::Vector3>();
+                                mx::Vector3 convertedValue = uconverter->convert(originalval, param->getUnit(), lengthTypeDef->getDefault());
+                                mx::Vector3 reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), param->getUnit());
+                                REQUIRE(originalval == reconvert);
+                            }
+                            else if (type->isFloat4())
+                            {
+                                mx::Vector4 originalval = value->asA<mx::Vector4>();
+                                mx::Vector4 convertedValue = uconverter->convert(originalval, param->getUnit(), lengthTypeDef->getDefault());
+                                mx::Vector4 reconvert = uconverter->convert(convertedValue, lengthTypeDef->getDefault(), param->getUnit());
                                 REQUIRE(originalval == reconvert);
                             }
                         }

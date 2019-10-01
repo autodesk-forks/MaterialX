@@ -67,13 +67,8 @@ LengthUnitConverterPtr LengthUnitConverter::create(UnitTypeDefPtr unitTypeDef)
     return converter;
 }
 
-float LengthUnitConverter::convert(float input, const string& inputUnit, const string& outputUnit) const
+float LengthUnitConverter::conversionRatio(const string& inputUnit, const string& outputUnit) const
 {
-    if (inputUnit == outputUnit)
-    {
-        return input;
-    }
-
     auto it = _unitScale.find(inputUnit);
     if (it == _unitScale.end())
     {
@@ -88,7 +83,48 @@ float LengthUnitConverter::convert(float input, const string& inputUnit, const s
     }
     float toScale = it->second;
 
-    return (input * fromScale / toScale);
+    return (fromScale / toScale);
+
+}
+
+float LengthUnitConverter::convert(float input, const string& inputUnit, const string& outputUnit) const
+{
+    if (inputUnit == outputUnit)
+    {
+        return input;
+    }
+
+    return (input * conversionRatio(inputUnit, outputUnit));
+}
+
+Vector2 LengthUnitConverter::convert(Vector2 input, const string& inputUnit, const string& outputUnit) const
+{
+    if (inputUnit == outputUnit)
+    {
+        return input;
+    }
+
+    return (input * conversionRatio(inputUnit, outputUnit));
+}
+
+Vector3 LengthUnitConverter::convert(Vector3 input, const string& inputUnit, const string& outputUnit) const
+{
+    if (inputUnit == outputUnit)
+    {
+        return input;
+    }
+
+    return (input * conversionRatio(inputUnit, outputUnit));
+}
+
+Vector4 LengthUnitConverter::convert(Vector4 input, const string& inputUnit, const string& outputUnit) const
+{
+    if (inputUnit == outputUnit)
+    {
+        return input;
+    }
+
+    return (input * conversionRatio(inputUnit, outputUnit));
 }
 
 /// Given a unit name return a value that it can map to as an integer

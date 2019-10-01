@@ -3,12 +3,12 @@
 
 <!-- scale -->
 <constant name="realscale" type="float">
-   <parameter name="value" type="float" value="1.25" unit="meter" unittype="length"/>
+   <parameter name="value" type="float" value="1.25" unit="centimeter" unittype="length"/>
 </constant>
 
   <!-- scale -->
 <constant name="albedo_realworldscale" type="vector2">
-      <parameter name="value" type="vector2" value="0.25, 0.25" unit="meter" unittype="length"/>
+      <parameter name="value" type="vector2" value="0.25, 0.25" unit="inch" unittype="length"/>
 </constant>
  
 <!-- 1/scale -->

@@ -58,6 +58,25 @@ class UnitConverter
     /// Given a unit name return a value that it can map to as an integer
     /// Returns -1 value if not found
     virtual int getUnitAsInteger(const string&) const { return -1; }
+
+    /// Convert a given value in a given unit to a desired unit
+    /// @param input Input value to convert
+    /// @param inputUnit Unit of input value
+    /// @param outputUnit Unit for output value
+    virtual Vector2 convert(Vector2 input, const string& inputUnit, const string& outputUnit) const = 0;
+
+    /// Convert a given value in a given unit to a desired unit
+    /// @param input Input value to convert
+    /// @param inputUnit Unit of input value
+    /// @param outputUnit Unit for output value
+    virtual Vector3 convert(Vector3 input, const string& inputUnit, const string& outputUnit) const = 0;
+
+    /// Convert a given value in a given unit to a desired unit
+    /// @param input Input value to convert
+    /// @param inputUnit Unit of input value
+    /// @param outputUnit Unit for output value
+    virtual Vector4 convert(Vector4 input, const string& inputUnit, const string& outputUnit) const = 0;
+
 };
 
 class LengthUnitConverter;
@@ -91,6 +110,11 @@ class LengthUnitConverter : public UnitConverter
         return _unitScale;
     }
 
+    /// Ratio between the given unit to a desired unit
+    /// @param inputUnit Unit of input value
+    /// @param outputUnit Unit for output value
+    float conversionRatio(const string& inputUnit, const string& outputUnit) const;
+
     /// Convert a given value in a given unit to a desired unit
     /// @param input Input value to convert
     /// @param inputUnit Unit of input value
@@ -100,6 +124,24 @@ class LengthUnitConverter : public UnitConverter
     /// Given a unit name return a value that it can map to as an integer
     /// Returns -1 value if not found
     int getUnitAsInteger(const string& unitName) const override;
+
+    /// Convert a given value in a given unit to a desired unit
+    /// @param input Input value to convert
+    /// @param inputUnit Unit of input value
+    /// @param outputUnit Unit for output value
+    Vector2 convert(Vector2 input, const string& inputUnit, const string& outputUnit) const override;
+
+    /// Convert a given value in a given unit to a desired unit
+    /// @param input Input value to convert
+    /// @param inputUnit Unit of input value
+    /// @param outputUnit Unit for output value
+    Vector3 convert(Vector3 input, const string& inputUnit, const string& outputUnit) const override;
+
+    /// Convert a given value in a given unit to a desired unit
+    /// @param input Input value to convert
+    /// @param inputUnit Unit of input value
+    /// @param outputUnit Unit for output value
+    Vector4 convert(Vector4 input, const string& inputUnit, const string& outputUnit) const override;
 
     /// Length unit type name
     static const string LENGTH_UNIT;
