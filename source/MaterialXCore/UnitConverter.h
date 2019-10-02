@@ -59,6 +59,10 @@ class UnitConverter
     /// Returns -1 value if not found
     virtual int getUnitAsInteger(const string&) const { return -1; }
 
+    /// Given an integer index return the unit name in the map used by the converter
+    /// Returns Empty string if not found
+    virtual string getUnit(unsigned int) const { return EMPTY_STRING; }
+
     /// Convert a given value in a given unit to a desired unit
     /// @param input Input value to convert
     /// @param inputUnit Unit of input value
@@ -125,6 +129,10 @@ class LengthUnitConverter : public UnitConverter
     /// Returns -1 value if not found
     int getUnitAsInteger(const string& unitName) const override;
 
+    /// Given an integer index return the unit name in the map used by the converter
+    /// Returns Empty string if not found
+    virtual string getUnit(unsigned int index) const override;
+
     /// Convert a given value in a given unit to a desired unit
     /// @param input Input value to convert
     /// @param inputUnit Unit of input value
@@ -150,6 +158,7 @@ class LengthUnitConverter : public UnitConverter
     LengthUnitConverter(UnitTypeDefPtr unitTypeDef);
 
     std::unordered_map<string, float> _unitScale;
+    std::unordered_map<string, unsigned int> _unitEnumeration;
     string _defaultUnit;
 };
 
