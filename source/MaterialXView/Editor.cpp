@@ -190,11 +190,11 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     const mx::UIProperties& ui = item.ui;
     mx::ValuePtr value = item.variable->getValue();
     std::string label = item.label;
-    /*const std::string& unit = item.variable->getUnit();
+    const std::string& unit = item.variable->getUnit();
     if (!unit.empty())
     {
-        label += std::string("(") + unit + std::string(")");
-    }*/
+        label += std::string(" (") + unit + std::string(")");
+    }
     const std::string& path = item.variable->getPath();
     mx::ValuePtr min = ui.uiMin;
     mx::ValuePtr max = ui.uiMax;

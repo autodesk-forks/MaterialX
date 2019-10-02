@@ -1269,7 +1269,7 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                         input->typeString = v->getType()->getName();
                         input->value = v->getValue();
                         input->path = v->getPath();
-                        //input->unit = v->getUnit();
+                        input->unit = v->getUnit();
                     }
                     else
                     {
@@ -1279,6 +1279,7 @@ const GlslProgram::InputMap& GlslProgram::updateUniformsList()
                             + "\". Type: \"" + v->getType()->getName()
                             + "\". Semantic: \"" + v->getSemantic()
                             + "\". Value: \"" + (v->getValue() ? v->getValue()->getValueString() : "<none>")
+                            + "\". Unit: \"" + (!v->getUnit().empty() ? v->getUnit() : "<none>")
                             + "\". GLType: " + std::to_string(mapTypeToOpenGLType(v->getType()))
                         );
                         uniformTypeMismatchFound = true;

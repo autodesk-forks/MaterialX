@@ -568,7 +568,7 @@ void Material::bindUnits(mx::UnitConverterRegistryPtr registry, const mx::GenCon
     mx::VariableBlock* publicUniforms = getPublicUniforms();
     if (publicUniforms)
     {
-        // Scan block based on path match predicate
+        // Scan block based on unit name match predicate
         port = publicUniforms->find(
             [](mx::ShaderPort* port)
         {
