@@ -61,7 +61,7 @@ class UnitConverter
 
     /// Given an integer index return the unit name in the map used by the converter
     /// Returns Empty string if not found
-    virtual string getUnit(unsigned int) const { return EMPTY_STRING; }
+    virtual string getUnitFromInteger(unsigned int) const { return EMPTY_STRING; }
 
     /// Convert a given value in a given unit to a desired unit
     /// @param input Input value to convert
@@ -107,6 +107,9 @@ class LengthUnitConverter : public UnitConverter
         return _defaultUnit;
     }
 
+    /// @name Conversion
+    /// @{
+
     /// Return the mappings from unit names to the scale value
     /// defined by a linear converter. 
     const std::unordered_map<string, float>& getUnitScale() const
@@ -125,14 +128,6 @@ class LengthUnitConverter : public UnitConverter
     /// @param outputUnit Unit for output value
     float convert(float input, const string& inputUnit, const string& outputUnit) const override;
 
-    /// Given a unit name return a value that it can map to as an integer
-    /// Returns -1 value if not found
-    int getUnitAsInteger(const string& unitName) const override;
-
-    /// Given an integer index return the unit name in the map used by the converter
-    /// Returns Empty string if not found
-    virtual string getUnit(unsigned int index) const override;
-
     /// Convert a given value in a given unit to a desired unit
     /// @param input Input value to convert
     /// @param inputUnit Unit of input value
@@ -150,6 +145,20 @@ class LengthUnitConverter : public UnitConverter
     /// @param inputUnit Unit of input value
     /// @param outputUnit Unit for output value
     Vector4 convert(Vector4 input, const string& inputUnit, const string& outputUnit) const override;
+
+    /// @}
+    /// @name Shader Mapping
+    /// @{
+
+    /// Given a unit name return a value that it can map to as an integer.
+    /// Returns -1 value if not found
+    int getUnitAsInteger(const string& unitName) const override;
+
+    /// Given an integer index return the unit name in the map used by the converter.
+    /// Returns Empty string if not found
+    virtual string getUnitFromInteger(unsigned int index) const override;
+
+    /// @}
 
     /// Length unit type name
     static const string LENGTH_UNIT;

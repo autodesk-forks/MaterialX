@@ -140,7 +140,7 @@ int LengthUnitConverter::getUnitAsInteger(const string& unitName) const
     return -1;
 }
 
-string LengthUnitConverter::getUnit(unsigned int index) const
+string LengthUnitConverter::getUnitFromInteger(unsigned int index) const
 {
     auto it = std::find_if(
                 _unitEnumeration.begin(), _unitEnumeration.end(),
