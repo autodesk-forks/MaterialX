@@ -23,6 +23,6 @@ void bindPyShaderPort(py::module& mod)
         .def("getValue", &mx::ShaderPort::getValue)
         .def("setPath", &mx::ShaderPort::setPath)
         .def("getPath", &mx::ShaderPort::getPath)
-        /*.def("setUnit", &mx::ShaderPort::setUnit)
-        .def("getUnit", &mx::ShaderPort::getUnit) */;
+        .def("setUnit", &mx::ShaderPort::setUnit)
+        .def("getUnit", &mx::ShaderPort::getUnit);
 }
