@@ -337,6 +337,10 @@ void ShaderGraph::addUnitTransformNode(ShaderInput* input, const UnitTransform& 
         shaderInput->setVariable(input->getNode()->getName() + "_" + input->getName());
         shaderInput->setValue(input->getValue());
         shaderInput->setPath(input->getPath());
+        if (!transform.sourceUnit.empty())
+        {
+            //shaderInput->setUnit(transform.sourceUnit);
+        }
 
         if (input->isBindInput())
         {
