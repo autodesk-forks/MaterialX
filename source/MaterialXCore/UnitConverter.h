@@ -194,6 +194,10 @@ class UnitConverterRegistry
   private:
     UnitConverterRegistry() { }
 
+    UnitConverterRegistry(const UnitConverterRegistry&) = delete;
+
+    UnitConverterRegistry& operator=(const UnitConverterRegistry&) = delete;
+
     std::unordered_map<string, UnitConverterPtr> _unitConverters;
 };
 

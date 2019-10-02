@@ -197,6 +197,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     mx::UnitTypeDefPtr lengthTypeDef = dependLib->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
     registry->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));
     _shaderGenerator->getUnitSystem()->loadLibrary(dependLib);
+    _shaderGenerator->getUnitSystem()->setUnitConverterRegistry(registry);
 
     mx::GenContext context(_shaderGenerator);
     context.registerSourceCodeSearchPath(searchPath);
