@@ -34,7 +34,7 @@ struct UnitTransform
     UnitTransform(const string& ss, const string& ts, const TypeDesc* t, const string& unittype);
 
     string sourceUnit;
-    string targetLengthUnit;
+    string targetUnit;
     const TypeDesc* type;
     string unitType;
 
@@ -42,7 +42,7 @@ struct UnitTransform
     bool operator==(const UnitTransform &other) const
     {
         return sourceUnit == other.sourceUnit &&
-            targetLengthUnit == other.targetLengthUnit &&
+            targetUnit == other.targetUnit &&
             type == other.type && 
             unitType == other.unitType;
     }
@@ -64,6 +64,12 @@ public:
     {
         return UnitSystem::UNITSYTEM_NAME;
     }
+
+    /// Assign unit converter registry replacing any previous assignment
+    virtual void setUnitConverterRegistry(UnitConverterRegistryPtr registry);
+    
+    /// Returns the currently assigned unit converter registry
+    virtual UnitConverterRegistryPtr getUnitConverterRegistry() const;
 
     /// assign document with unit implementations replacing any previously loaded content.
     virtual void loadLibrary(DocumentPtr document);
@@ -88,6 +94,7 @@ protected:
 
 
 protected:
+    UnitConverterRegistryPtr _unitRegistry;
     DocumentPtr _document;
     string _language;
 };

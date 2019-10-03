@@ -562,7 +562,7 @@ void Material::bindLights(mx::LightHandlerPtr lightHandler, mx::GLTextureHandler
     }
 }
 
-void Material::bindUnits(mx::UnitConverterRegistryPtr registry, const mx::GenContext& context)
+void Material::bindUnits(mx::UnitConverterRegistryPtr& registry, const mx::GenContext& context)
 {
     mx::ShaderPort* port = nullptr;
     mx::VariableBlock* publicUniforms = getPublicUniforms();

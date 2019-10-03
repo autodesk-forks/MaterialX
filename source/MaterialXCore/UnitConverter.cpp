@@ -158,7 +158,7 @@ string LengthUnitConverter::getUnitFromInteger(unsigned int index) const
 
 UnitConverterRegistryPtr UnitConverterRegistry::create()
 {
-    static std::shared_ptr<UnitConverterRegistry> registry(new UnitConverterRegistry());
+    static UnitConverterRegistryPtr registry(new UnitConverterRegistry());
     return registry;
 }
 
