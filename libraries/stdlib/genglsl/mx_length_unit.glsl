@@ -1,19 +1,3 @@
-
-#define LENGTH_UNITS 10
-// nanometer, millimeter, micron, centimeter, foot, yard, kilometer, inch, mile, meter
-uniform float u_length_unit_scales[LENGTH_UNITS] = float[](
-    1000000000.0,
-    1000.0,
-    1000000.0,
-    100.0,
-    3.28099990,
-    1.09361303,
-    0.00100000005,
-    39.3699989,
-    0.000621000014,
-    1.0
-);
-
 float unit_ratio(int unit_from, int unit_to) {
     return (u_length_unit_scales[unit_from] / u_length_unit_scales[unit_to]);
 }

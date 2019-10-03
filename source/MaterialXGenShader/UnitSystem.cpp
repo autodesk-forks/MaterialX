@@ -8,10 +8,49 @@
 #include <MaterialXCore/UnitConverter.h>
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
+#include <MaterialXGenShader/ShaderStage.h>
+#include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
 namespace MaterialX
 {
+// Helper class to create constantBlock for mx_length_unit
+class LengthUnitNode : public SourceCodeNode
+{
+public:
+    LengthUnitNode(LengthUnitConverterPtr lengthUnitConverter)
+        :_lengthUnitConverter(lengthUnitConverter) {}
+
+    static ShaderNodeImplPtr create(LengthUnitConverterPtr lengthUnitConverter);
+    
+    void createVariables(const ShaderNode& node, GenContext& context, Shader& shader) const override;
+
+protected:
+    LengthUnitConverterPtr _lengthUnitConverter;
+};
+
+ShaderNodeImplPtr LengthUnitNode::create(LengthUnitConverterPtr lengthUnitConverter)
+{
+    return std::make_shared<LengthUnitNode>(lengthUnitConverter);
+}
+
+void LengthUnitNode::createVariables(const ShaderNode&, GenContext&, Shader& shader) const
+{
+
+    ShaderStage& stage = shader.getStage(Stage::PIXEL);
+    VariableBlock& constants = stage.getConstantBlock();
+    
+    vector<float> lengthUnitScales;
+    lengthUnitScales.reserve(_lengthUnitConverter->getUnitScale().size());
+
+    for (auto scaleValue : _lengthUnitConverter->getUnitScale()) {
+        lengthUnitScales.push_back(scaleValue.second);
+    }
+    // see mx_length_unit
+    constants.add(Type::FLOATARRAY, "u_length_unit_scales", Value::createValue<vector<float>>(lengthUnitScales));
+}
+
+
 //
 // Unit transform methods
 //
@@ -79,12 +118,20 @@ ShaderNodePtr UnitSystem::createNode(ShaderGraph* parent, const UnitTransform& t
         throw ExceptionShaderGenError("No implementation found for transform: ('" + transform.sourceUnit + "', '" + transform.targetUnit + "').");
     }
 
+    // Length Unit Conversion
+    UnitTypeDefPtr lengthTypeDef = _document->getUnitTypeDef(LengthUnitConverter::LENGTH_UNIT);
+    if (!_unitRegistry && !_unitRegistry->getUnitConverter(lengthTypeDef))
+    {
+        throw ExceptionTypeError("Unit registry unavaliable or undefined Unit convertor for: " + LengthUnitConverter::LENGTH_UNIT);
+    }
+    LengthUnitConverterPtr lengthConverter = std::dynamic_pointer_cast<LengthUnitConverter>(_unitRegistry->getUnitConverter(lengthTypeDef));
+
     // Check if it's created and cached already,
     // otherwise create and cache it.
     ShaderNodeImplPtr nodeImpl = context.findNodeImplementation(implName);
     if (!nodeImpl)
     {
-        nodeImpl = SourceCodeNode::create();
+        nodeImpl = LengthUnitNode::create(lengthConverter);
         nodeImpl->initialize(*impl, context);
         context.addNodeImplementation(implName, nodeImpl);
     }
@@ -114,54 +161,40 @@ ShaderNodePtr UnitSystem::createNode(ShaderGraph* parent, const UnitTransform& t
     {
         throw ExceptionShaderGenError("Invalid type specified to unitTransform: '" + transform.type->getName() + "'");
     }
-
-    
-    // Length Unit Conversion
-    UnitTypeDefPtr lengthTypeDef = _document->getUnitTypeDef(LengthUnitConverter::LENGTH_UNIT);
-    if (_unitRegistry && _unitRegistry->getUnitConverter(lengthTypeDef))
+   
+    // Add the conversion code
     {
-        LengthUnitConverterPtr lengthConverter = std::dynamic_pointer_cast<LengthUnitConverter>(_unitRegistry->getUnitConverter(lengthTypeDef));
-
-        // Add the conversion code
+        int value = lengthConverter->getUnitAsInteger(transform.sourceUnit);
+        if (value < 0)
         {
-            int value = lengthConverter->getUnitAsInteger(transform.sourceUnit);
-            if (value < 0)
-            {
-                throw ExceptionTypeError("Unrecognized source unit: " + transform.sourceUnit);
-            }
-
-            ShaderInput* convertFrom = shaderNode->addInput("unit_from", Type::INTEGER);
-            convertFrom->setValue(Value::createValue(value));
+            throw ExceptionTypeError("Unrecognized source unit: " + transform.sourceUnit);
         }
 
+        ShaderInput* convertFrom = shaderNode->addInput("unit_from", Type::INTEGER);
+        convertFrom->setValue(Value::createValue(value));
+    }
+
+    {
+        int value = lengthConverter->getUnitAsInteger(transform.targetUnit);
+        if (value < 0)
         {
-            int value = lengthConverter->getUnitAsInteger(transform.targetUnit);
-            if (value < 0)
-            {
-                throw ExceptionTypeError("Unrecognized target unit: " + transform.targetUnit);
-            }
-
-            ShaderInput* convertTo = shaderNode->addInput("unit_to", Type::INTEGER);
-
-            // Create a graph input to connect to the "unit_to" if it does not already exist.
-            ShaderGraphInputSocket* globalInput = parent->getInputSocket(LENGTH_UNIT_TARGET_NAME);
-            if (!globalInput)
-            {
-                globalInput = parent->addInputSocket(LENGTH_UNIT_TARGET_NAME, Type::INTEGER);
-            }
-            globalInput->setValue(Value::createValue(value));
-            convertTo->makeConnection(globalInput);
+            throw ExceptionTypeError("Unrecognized target unit: " + transform.targetUnit);
         }
 
-        shaderNode->addOutput("out", transform.type);
+        ShaderInput* convertTo = shaderNode->addInput("unit_to", Type::INTEGER);
 
-        return shaderNode;
+        // Create a graph input to connect to the "unit_to" if it does not already exist.
+        ShaderGraphInputSocket* globalInput = parent->getInputSocket(LENGTH_UNIT_TARGET_NAME);
+        if (!globalInput)
+        {
+            globalInput = parent->addInputSocket(LENGTH_UNIT_TARGET_NAME, Type::INTEGER);
+        }
+        globalInput->setValue(Value::createValue(value));
+        convertTo->makeConnection(globalInput);
     }
-    else
-    {
-        throw ExceptionTypeError("Unit registry unavaliable or undefined Unit convertor for: " + LengthUnitConverter::LENGTH_UNIT);
+
+    shaderNode->addOutput("out", transform.type);
+
+    return shaderNode;
     }
-
-}
-
 } // namespace MaterialX
