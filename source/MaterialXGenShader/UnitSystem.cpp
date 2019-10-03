@@ -18,7 +18,7 @@ namespace MaterialX
 class LengthUnitNode : public SourceCodeNode
 {
 public:
-    LengthUnitNode(LengthUnitConverterPtr lengthUnitConverter)
+    explicit LengthUnitNode(LengthUnitConverterPtr lengthUnitConverter)
         :_lengthUnitConverter(lengthUnitConverter) {}
 
     static ShaderNodeImplPtr create(LengthUnitConverterPtr lengthUnitConverter);
