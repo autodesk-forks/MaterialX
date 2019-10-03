@@ -23,7 +23,7 @@ public:
 
     static ShaderNodeImplPtr create(LengthUnitConverterPtr lengthUnitConverter);
     
-    void createVariables(const ShaderNode& node, GenContext& context, Shader& shader) const override;
+    void emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 
 protected:
     LengthUnitConverterPtr _lengthUnitConverter;
@@ -34,22 +34,40 @@ ShaderNodeImplPtr LengthUnitNode::create(LengthUnitConverterPtr lengthUnitConver
     return std::make_shared<LengthUnitNode>(lengthUnitConverter);
 }
 
-void LengthUnitNode::createVariables(const ShaderNode&, GenContext&, Shader& shader) const
+void LengthUnitNode::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-
-    ShaderStage& stage = shader.getStage(Stage::PIXEL);
-    VariableBlock& constants = stage.getConstantBlock();
     
+    
+    // Emit the helper funtion unit_ratio that embeds a look up table for unit scale
     vector<float> lengthUnitScales;
     lengthUnitScales.reserve(_lengthUnitConverter->getUnitScale().size());
-
     for (auto scaleValue : _lengthUnitConverter->getUnitScale()) {
         lengthUnitScales.push_back(scaleValue.second);
     }
-    // see mx_length_unit
-    constants.add(Type::FLOATARRAY, "u_length_unit_scales", Value::createValue<vector<float>>(lengthUnitScales));
-}
+    // see stdlib/gen*/mx_length_unit. This helper function is called by these shaders.
+    const string VAR_LENGTH_UNIT_SCALE = "u_length_unit_scales";
+    VariableBlock lengthUnitLUT("unitLUT", EMPTY_STRING);
+    lengthUnitLUT.add(Type::FLOATARRAY, VAR_LENGTH_UNIT_SCALE, Value::createValue<vector<float>>(lengthUnitScales));
 
+    BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
+    const ShaderGenerator& shadergen = context.getShaderGenerator();
+    shadergen.emitString("float unit_ratio(int unit_from, int unit_to)", stage);
+    shadergen.emitLineBreak(stage);
+    shadergen.emitScopeBegin(stage);
+
+    shadergen.emitLineBreak(stage);
+    shadergen.emitVariableDeclarations(lengthUnitLUT, shadergen.getSyntax().getConstantQualifier(), ";", context, stage, true);
+    
+    shadergen.emitLineBreak(stage);
+    shadergen.emitString("return ("+ VAR_LENGTH_UNIT_SCALE + "[unit_from] / " + VAR_LENGTH_UNIT_SCALE +"[unit_to]);", stage);
+    shadergen.emitLineBreak(stage);
+    shadergen.emitScopeEnd(stage);
+    shadergen.emitLineBreak(stage);
+    END_SHADER_STAGE(shader, Stage::PIXEL)
+
+    // Emit registered implementation 
+    SourceCodeNode::emitFunctionDefinition(node, context, stage);
+}
 
 //
 // Unit transform methods
