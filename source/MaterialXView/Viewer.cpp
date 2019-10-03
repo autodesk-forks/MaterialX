@@ -422,6 +422,7 @@ void Viewer::setupUnitConverter(mx::DocumentPtr doc)
 {
     mx::UnitSystemPtr unitSystem = mx::UnitSystem::create(_genContext.getShaderGenerator().getLanguage());
     unitSystem->loadLibrary(_stdLib);
+    unitSystem->setUnitConverterRegistry(_unitRegistry);
     _genContext.getShaderGenerator().setUnitSystem(unitSystem);
     mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
     _unitRegistry->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));

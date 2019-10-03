@@ -190,12 +190,21 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     colorManagementSystem->loadLibrary(dependLib);
     _shaderGenerator->setColorManagementSystem(colorManagementSystem);
 
+    // Setup Unit system and working space
     mx::UnitSystemPtr unitSystem = mx::UnitSystem::create(_shaderGenerator->getLanguage());
     _shaderGenerator->setUnitSystem(unitSystem);
+    mx::UnitConverterRegistryPtr registry = mx::UnitConverterRegistry::create();
+    mx::UnitTypeDefPtr lengthTypeDef = dependLib->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
+    registry->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));
+    _shaderGenerator->getUnitSystem()->loadLibrary(dependLib);
+    _shaderGenerator->getUnitSystem()->setUnitConverterRegistry(registry);
 
     mx::GenContext context(_shaderGenerator);
     context.registerSourceCodeSearchPath(searchPath);
     registerSourceCodeSearchPaths(context);
+
+    // Set target unit space    
+    context.getOptions().targetLengthUnit = lengthTypeDef->getDefault();
 
     setupTime.endTimer();
 
@@ -254,12 +263,6 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
 
             doc->importLibrary(dependLib, &copyOptions);
             
-            // Setup Unit system converters
-            //_shaderGenerator->getUnitSystem()->loadLibrary(_stdlib);
-            mx::UnitConverterRegistryPtr registry = mx::UnitConverterRegistry::create();
-            mx::UnitTypeDefPtr lengthTypeDef = doc->getUnitTypeDef(mx::LengthUnitConverter::LENGTH_UNIT);
-            registry->addUnitConverter(lengthTypeDef, mx::LengthUnitConverter::create(lengthTypeDef));
-
             ioTimer.endTimer();
 
             validateTimer.startTimer();
