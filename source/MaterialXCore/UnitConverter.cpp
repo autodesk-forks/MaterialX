@@ -16,7 +16,7 @@
 * @brief Units support
 */
 
-
+#include <algorithm>
 #include <MaterialXCore/Util.h>
 #include <MaterialXCore/Value.h>
 #include <MaterialXCore/UnitConverter.h>
@@ -29,6 +29,7 @@ LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
     UnitConverter()
 {
     static const string SCALE_ATTRIBUTE = "scale";
+    unsigned int enumerant = 0;
 
     // Populate the unit scale and offset maps for each UnitDef. 
     vector<UnitDefPtr> unitDefs = unitTypeDef->getUnitDefs();
@@ -47,6 +48,7 @@ LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
             {
                 _unitScale[name] = 1.0f;
             }
+            _unitEnumeration[name] = enumerant++;
         }
     }
 
@@ -58,6 +60,7 @@ LengthUnitConverter::LengthUnitConverter(UnitTypeDefPtr unitTypeDef) :
     if (it == _unitScale.end())
     {
         _unitScale[_defaultUnit] = 1.0f;
+        _unitEnumeration[_defaultUnit] = enumerant++;
     }
 }
 
@@ -127,15 +130,30 @@ Vector4 LengthUnitConverter::convert(Vector4 input, const string& inputUnit, con
     return (input * conversionRatio(inputUnit, outputUnit));
 }
 
-/// Given a unit name return a value that it can map to as an integer
 int LengthUnitConverter::getUnitAsInteger(const string& unitName) const
 {
-    const auto it = _unitScale.find(unitName);
-    if (it == _unitScale.end())
+    const auto it = _unitEnumeration.find(unitName);
+    if (it != _unitEnumeration.end())
     {
-        return -1;
+        return it->second;
     }
-    return static_cast<int>(std::distance(_unitScale.begin(), it));
+    return -1;
+}
+
+string LengthUnitConverter::getUnitFromInteger(unsigned int index) const
+{
+    auto it = std::find_if(
+                _unitEnumeration.begin(), _unitEnumeration.end(),
+                [&index](const std::pair<string, unsigned int> &e)->bool
+                {
+                    return (e.second == index);
+                });
+
+    if (it != _unitEnumeration.end())
+    {
+        return it->first;
+    }
+    return EMPTY_STRING;
 }
 
 UnitConverterRegistryPtr UnitConverterRegistry::create()

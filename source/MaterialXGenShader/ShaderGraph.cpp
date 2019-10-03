@@ -272,6 +272,7 @@ void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTran
         shaderInput->setVariable(input->getNode()->getName() + "_" + input->getName());
         shaderInput->setValue(input->getValue());
         shaderInput->setPath(input->getPath());
+        shaderInput->setUnit(EMPTY_STRING);
 
         if (input->isBindInput())
         {
@@ -337,6 +338,7 @@ void ShaderGraph::addUnitTransformNode(ShaderInput* input, const UnitTransform& 
         shaderInput->setVariable(input->getNode()->getName() + "_" + input->getName());
         shaderInput->setValue(input->getValue());
         shaderInput->setPath(input->getPath());
+        shaderInput->setUnit(input->getUnit());
 
         if (input->isBindInput())
         {
@@ -469,6 +471,11 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         ShaderGraphOutputSocket* outputSocket = graph->addOutputSocket(output->getName(), TypeDesc::get(output->getType()));
         outputSocket->setPath(output->getNamePath());
         outputSocket->setChannels(output->getChannels());
+        const string& outputUnit = output->getUnit();
+        if (!outputUnit.empty())
+        {
+            outputSocket->setUnit(outputUnit);
+        }
 
         // Start traversal from this output
         root = output;
@@ -527,11 +534,17 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                         element->getDocument()->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindParam, targetColorSpace);
                     // Collect transforms that are Length units.
-                    graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName], 
-                                                         bindParam, context.getOptions().targetLengthUnit, LengthUnitConverter::LENGTH_UNIT);
+                    graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName],
+                        bindParam, context.getOptions().targetLengthUnit, LengthUnitConverter::LENGTH_UNIT);
                 }
                 inputSocket->setPath(bindParam->getNamePath());
                 input->setPath(inputSocket->getPath());
+                const string& bindParamUnit = bindParam->getUnit();
+                if (!bindParamUnit.empty())
+                {
+                    inputSocket->setUnit(bindParamUnit);
+                    input->setUnit(bindParamUnit);
+                }
             }
 
             // Connect to the graph input
@@ -568,6 +581,12 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                 }
                 inputSocket->setPath(bindInput->getNamePath());
                 input->setPath(inputSocket->getPath());
+                const string& bindInputUnit = bindInput->getUnit();
+                if (!bindInputUnit.empty())
+                {
+                    inputSocket->setUnit(bindInputUnit);
+                    input->setUnit(bindInputUnit);
+                }
             }
 
             // If no explicit connection, connect to geometric node if a geomprop is used
@@ -587,21 +606,30 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             }
         }
 
-        // Add shareRef nodedef paths
+        // Add shaderRef nodedef paths
         const string& nodePath = shaderRef->getNamePath();
         for (const ValueElementPtr& nodeInput : nodeDef->getActiveInputs())
         {
             const string& inputName = nodeInput->getName();
             const string path = nodePath + NAME_PATH_SEPARATOR + inputName;
+            const string& unit = nodeInput->getUnit();
             ShaderInput* input = newNode->getInput(inputName);
             if (input && input->getPath().empty())
             {
                 input->setPath(path);
             }
+            if (input && input->getUnit().empty() && !unit.empty())
+            {
+                input->setUnit(unit);
+            }
             ShaderGraphInputSocket* inputSocket = graph->getInputSocket(inputName);
             if (inputSocket && inputSocket->getPath().empty())
             {
                 inputSocket->setPath(path);
+            }
+            if (inputSocket && inputSocket->getUnit().empty() && !unit.empty())
+            {
+                inputSocket->setUnit(unit);
             }
         }
         for (const ParameterPtr& nodeParameter : nodeDef->getActiveParameters())
@@ -845,6 +873,7 @@ void ShaderGraph::finalize(GenContext& context)
                             inputSocket = addInputSocket(interfaceName, input->getType());
                             inputSocket->setPath(input->getPath());
                             inputSocket->setValue(input->getValue());
+                            inputSocket->setUnit(input->getUnit());
                         }
                         inputSocket->makeConnection(input);
                     }
@@ -1016,6 +1045,11 @@ void ShaderGraph::bypass(GenContext& context, ShaderNode* node, size_t inputInde
             output->breakConnection(downstream);
             downstream->setValue(input->getValue());
             downstream->setPath(input->getPath());
+            const string& inputUnit = input->getUnit();
+            if (!inputUnit.empty())
+            {
+                downstream->setUnit(inputUnit);
+            }
 
             // Swizzle the input value. Once done clear the channel to indicate
             // no further swizzling is reqiured.
@@ -1245,7 +1279,7 @@ void ShaderGraph::populateInputUnitTransformMap(UnitSystemPtr unitSystem, Shader
                 UnitTransform transform(sourceUnitSpace, targetUnitSpace, shaderInput->getType(), unitType);
                 if (unitSystem->supportsTransform(transform))
                 {
-                    // std::cout << "Unit conversion supported for " << sourceUnitSpace << " to " << targetUnitSpace << std::endl;
+                    shaderInput->setUnit(sourceUnitSpace);
                     _inputUnitTransformMap.emplace(shaderInput, transform);
                 }
             }

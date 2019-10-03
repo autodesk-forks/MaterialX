@@ -86,6 +86,11 @@ TEST_CASE("UnitEvaluation", "[units]")
     REQUIRE((result - 10000.0f) < EPSILON);
     const std::string& defaultUnit = converter->getDefaultUnit();
     REQUIRE(defaultUnit == lengthTypeDef->getDefault());
+
+    // Test integrer mapping
+    unsigned int unitNumber = converter->getUnitAsInteger("mile");
+    const std::string& unitName = converter->getUnitFromInteger(unitNumber);
+    REQUIRE(unitName == "mile");
 }
 
 TEST_CASE("UnitDocument", "[units]")
