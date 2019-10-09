@@ -589,7 +589,7 @@ void Material::bindUnits(mx::UnitConverterRegistryPtr& registry, const mx::GenCo
 
     if (port)
     {
-        int intPortValue = registry->getUnitAsInteger(context.getOptions().targetLengthUnit);
+        int intPortValue = registry->getUnitAsInteger(context.getOptions().targetDistanceUnit);
         if (intPortValue >= 0)
         {
             port->setValue(mx::Value::createValue(intPortValue));
