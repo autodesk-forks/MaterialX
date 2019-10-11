@@ -40,7 +40,7 @@ add_executable(MaterialXView ${materialx_source} ${materialx_headers})
 
 set_target_properties(
     MaterialXView PROPERTIES
-    DEBUG_POSTFIX "d")
+    DEBUG_POSTFIX ${MATERIALX_DEBUG_POSTFIX})
 
 target_link_libraries(
     MaterialXView

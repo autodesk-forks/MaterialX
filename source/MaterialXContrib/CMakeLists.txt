@@ -24,7 +24,7 @@ set_target_properties(
     LINK_FLAGS "${EXTERNAL_LINK_FLAGS}"
     VERSION "${MATERIALX_LIBRARY_VERSION}"
     SOVERSION "${MATERIALX_MAJOR_VERSION}"
-    DEBUG_POSTFIX "d")
+    DEBUG_POSTFIX ${MATERIALX_DEBUG_POSTFIX})
 
 target_link_libraries(
     MaterialXContrib
