@@ -605,6 +605,27 @@ void Document::upgradeVersion()
         minorVersion = 36;
     }
 
+    // Upgrade to versions 1.37 and up
+    if ((majorVersion == 1 && minorVersion < 37) || majorVersion < 1)
+    {
+        auto typeToOutputs = [](InterfaceElementPtr interfaceElem)
+        {
+            if (interfaceElem && interfaceElem->hasType())
+            {
+                string type = interfaceElem->getType();
+                if (type != MULTI_OUTPUT_TYPE_STRING)
+                {
+                    interfaceElem->addOutput("out", type);
+                }
+                interfaceElem->removeAttribute(TypedElement::TYPE_ATTRIBUTE);
+            }
+        };
+        for (NodeDefPtr nodeDef : getNodeDefs())
+        {
+            typeToOutputs(nodeDef);
+        }
+    }
+
     if (majorVersion == MATERIALX_MAJOR_VERSION &&
         minorVersion == MATERIALX_MINOR_VERSION)
     {

@@ -320,7 +320,7 @@ class Document : public GraphElement
                           const string& node = EMPTY_STRING)
     {
         NodeDefPtr child = addChild<NodeDef>(name);
-        child->setType(type);
+        child->addOutput("out", type);
         if (!node.empty())
         {
             child->setNodeString(node);

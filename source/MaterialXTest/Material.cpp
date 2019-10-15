@@ -27,6 +27,7 @@ TEST_CASE("Material", "[material]")
 
     // Create an inherited shader nodedef.
     mx::NodeDefPtr anisoSrf = doc->addNodeDef("ND_anisoSrf", "surfaceshader", "anisoSrf");
+    anisoSrf->removeOutput("out");
     anisoSrf->setInheritsFrom(simpleSrf);
     mx::ParameterPtr anisotropy = anisoSrf->setParameterValue("anisotropy", 0.0f);
     REQUIRE(anisoSrf->getInheritsFrom() == simpleSrf);

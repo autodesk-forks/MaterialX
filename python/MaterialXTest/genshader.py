@@ -47,6 +47,7 @@ class TestGenShader(unittest.TestCase):
 
         # Create a nodedef taking three color3 and producing another color3
         nodeDef = doc.addNodeDef("ND_foo", "color3", "foo")
+        nodeDef.removeOutput("out");
         fooInputA = nodeDef.addInput("a", "color3")
         fooInputB = nodeDef.addInput("b", "color3")
         fooOutput = nodeDef.addOutput("o", "color3")
