@@ -32,6 +32,9 @@ const string ValueElement::UI_NAME_ATTRIBUTE = "uiname";
 const string ValueElement::UI_FOLDER_ATTRIBUTE = "uifolder";
 const string ValueElement::UI_MIN_ATTRIBUTE = "uimin";
 const string ValueElement::UI_MAX_ATTRIBUTE = "uimax";
+const string ValueElement::UI_SOFT_MIN_ATTRIBUTE = "uisoftmin";
+const string ValueElement::UI_SOFT_MAX_ATTRIBUTE = "uisoftmax";
+const string ValueElement::UI_STEP_ATTRIBUTE = "uistep";
 const string ValueElement::UI_ADVANCED_ATTRIBUTE = "uiadvanced";
 const string ValueElement::UNIT_ATTRIBUTE = "unit";
 const string ValueElement::UNITTYPE_ATTRIBUTE = "unittype";
@@ -634,24 +637,37 @@ bool ValueElement::validate(string* message) const
             }
         }
     }
-    UnitTypeDefPtr unitDefType;
+    UnitTypeDefPtr unitTypeDef;
     if (hasUnitType())
     {
         const string& unittype = getUnitType();
         if (!unittype.empty())
         {
-            unitDefType = getDocument()->getUnitTypeDef(unittype);
-            validateRequire(unitDefType != nullptr, res, message, "Unit type definition does not exist in document");
+            unitTypeDef = getDocument()->getUnitTypeDef(unittype);
+            validateRequire(unitTypeDef != nullptr, res, message, "Unit type definition does not exist in document");
         }
     }            
     if (hasUnit())
     {
         bool foundUnit = false;
-        const string& unit = getUnit();
-        if ((unitDefType && (unitDefType->getDefault() == unit)) ||
-            getDocument()->getChild(unit))
+        if (unitTypeDef)
         {
-            foundUnit = true;
+            const string& unit = getUnit();
+            if (unitTypeDef->getDefault() == unit)
+            {
+                foundUnit = true;
+            }
+            else
+            {
+                for (UnitDefPtr unitDef : unitTypeDef->getUnitDefs())
+                {
+                    if (unitDef->getUnit(unit))
+                    {
+                        foundUnit = true;
+                        break;
+                    }
+                }
+            }
         }
         validateRequire(foundUnit, res, message, "Unit definition does not exist in document");
     }
@@ -804,6 +820,7 @@ INSTANTIATE_CONCRETE_SUBCLASS(Variant, "variant")
 INSTANTIATE_CONCRETE_SUBCLASS(VariantAssign, "variantassign")
 INSTANTIATE_CONCRETE_SUBCLASS(VariantSet, "variantset")
 INSTANTIATE_CONCRETE_SUBCLASS(Visibility, "visibility")
+INSTANTIATE_CONCRETE_SUBCLASS(Unit, "unit")
 INSTANTIATE_CONCRETE_SUBCLASS(UnitDef, "unitdef")
 INSTANTIATE_CONCRETE_SUBCLASS(UnitTypeDef, "unittypedef")
 
