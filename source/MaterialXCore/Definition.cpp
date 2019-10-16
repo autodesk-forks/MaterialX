@@ -93,7 +93,7 @@ vector<ShaderRefPtr> NodeDef::getInstantiatingShaderRefs() const
 bool NodeDef::validate(string* message) const
 {
     bool res = true;
-    validateRequire(!hasType(), res, message, "Nodedef should not have a type");
+    validateRequire(!hasType(), res, message, "Nodedef should not have a type but an explicit output");
     return InterfaceElement::validate(message) && res;
 }
 
