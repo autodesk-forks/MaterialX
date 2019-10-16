@@ -608,8 +608,9 @@ void Document::upgradeVersion()
     // Upgrade to versions 1.37 and up
     if ((majorVersion == 1 && minorVersion < 37) || majorVersion < 1)
     {
-        auto typeToOutputs = [](InterfaceElementPtr interfaceElem)
+        for (NodeDefPtr nodeDef : getNodeDefs())
         {
+            InterfaceElementPtr interfaceElem = std::static_pointer_cast<InterfaceElement>(nodeDef);
             if (interfaceElem && interfaceElem->hasType())
             {
                 string type = interfaceElem->getType();
@@ -619,10 +620,6 @@ void Document::upgradeVersion()
                 }
                 interfaceElem->removeAttribute(TypedElement::TYPE_ATTRIBUTE);
             }
-        };
-        for (NodeDefPtr nodeDef : getNodeDefs())
-        {
-            typeToOutputs(nodeDef);
         }
     }
 
