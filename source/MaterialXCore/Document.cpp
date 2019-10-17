@@ -605,21 +605,18 @@ void Document::upgradeVersion()
         minorVersion = 36;
     }
 
-    // Upgrade to versions 1.37 and up
-    if ((majorVersion == 1 && minorVersion < 37) || majorVersion < 1)
+    // Upgrade path for 1.37 (change types to child outputs)
+    for (NodeDefPtr nodeDef : getNodeDefs())
     {
-        for (NodeDefPtr nodeDef : getNodeDefs())
+        InterfaceElementPtr interfaceElem = std::static_pointer_cast<InterfaceElement>(nodeDef);
+        if (interfaceElem && interfaceElem->hasType())
         {
-            InterfaceElementPtr interfaceElem = std::static_pointer_cast<InterfaceElement>(nodeDef);
-            if (interfaceElem && interfaceElem->hasType())
+            string type = interfaceElem->getType();
+            if (type != MULTI_OUTPUT_TYPE_STRING)
             {
-                string type = interfaceElem->getType();
-                if (type != MULTI_OUTPUT_TYPE_STRING)
-                {
-                    interfaceElem->addOutput("out", type);
-                }
-                interfaceElem->removeAttribute(TypedElement::TYPE_ATTRIBUTE);
+                interfaceElem->addOutput("out", type);
             }
+            interfaceElem->removeAttribute(TypedElement::TYPE_ATTRIBUTE);
         }
     }
 
