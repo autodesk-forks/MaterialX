@@ -5,7 +5,9 @@
     <input name="diffColor" type="color3" />
     <output name="out" type="surfaceshader" />
   </nodedef>
-  <nodedef name="ND_NodeB" node="NodeB" inherit="ND_NodeA" />
+  <nodedef name="ND_NodeB" node="NodeB" inherit="ND_NodeA">
+    <output name="out" type="surfaceshader" />
+  </nodedef>
 
   <nodegraph name="NG_NodeA" nodedef="ND_NodeA">
     <diffuse_brdf name="diffuseBsdf" type="BSDF">

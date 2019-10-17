@@ -109,14 +109,15 @@ class NodeDef : public InterfaceElement
     /// Return the element's output type.
     const string& getType() const override
     {
-        size_t numActiveOutputs = getActiveOutputs().size();
+        const vector<OutputPtr>& activeOutputs = getActiveOutputs();
+        size_t numActiveOutputs = activeOutputs.size();
         if (numActiveOutputs > 1)
         {
             return MULTI_OUTPUT_TYPE_STRING;
         }
         else if (numActiveOutputs == 1)
         {
-            return getActiveOutputs()[0]->getType();
+            return activeOutputs[0]->getType();
         }
         else
         {

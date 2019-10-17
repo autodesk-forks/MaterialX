@@ -43,6 +43,15 @@ const std::unordered_map<string, size_t> PortElement::CHANNELS_PATTERN_LENGTH =
     { "vector4", 4 }
 };
 
+// Structure needed for ValueElement set comparison
+struct ValueElementCompare
+{
+    bool operator() (ValueElementPtr lhs, ValueElementPtr rhs) const
+    {
+        return lhs->getName() < rhs->getName();
+    }
+};
+
 //
 // PortElement methods
 //
@@ -317,10 +326,17 @@ InputPtr InterfaceElement::getActiveInput(const string& name) const
 vector<InputPtr> InterfaceElement::getActiveInputs() const
 {
     vector<InputPtr> activeInputs;
+    std::set<InputPtr, ValueElementCompare> activeInputsSet;
     for (ConstElementPtr elem : traverseInheritance())
     {
         vector<InputPtr> inputs = elem->asA<InterfaceElement>()->getInputs();
-        activeInputs.insert(activeInputs.end(), inputs.begin(), inputs.end());
+        for (InputPtr input : inputs)
+        {
+            if (activeInputsSet.insert(input).second)
+            {
+                activeInputs.push_back(input);
+            }
+        }
     }
     return activeInputs;
 }
@@ -338,13 +354,21 @@ OutputPtr InterfaceElement::getActiveOutput(const string& name) const
     return nullptr;
 }
 
+
 vector<OutputPtr> InterfaceElement::getActiveOutputs() const
 {
     vector<OutputPtr> activeOutputs;
+    std::set<OutputPtr, ValueElementCompare> activeOutputsSet;
     for (ConstElementPtr elem : traverseInheritance())
     {
         vector<OutputPtr> outputs = elem->asA<InterfaceElement>()->getOutputs();
-        activeOutputs.insert(activeOutputs.end(), outputs.begin(), outputs.end());
+        for (OutputPtr output : outputs)
+        {
+            if (activeOutputsSet.insert(output).second)
+            {
+                activeOutputs.push_back(output);
+            }
+        }
     }
     return activeOutputs;
 }
@@ -389,10 +413,17 @@ ValueElementPtr InterfaceElement::getActiveValueElement(const string& name) cons
 vector<ValueElementPtr> InterfaceElement::getActiveValueElements() const
 {
     vector<ValueElementPtr> activeValueElems;
+    std::set<ValueElementPtr, ValueElementCompare> activeValueElemsSet;
     for (ConstElementPtr interface : traverseInheritance())
     {
         vector<ValueElementPtr> valueElems = interface->getChildrenOfType<ValueElement>();
-        activeValueElems.insert(activeValueElems.end(), valueElems.begin(), valueElems.end());
+        for (ValueElementPtr valueElem : valueElems)
+        {
+            if (activeValueElemsSet.insert(valueElem).second)
+            {
+                activeValueElems.push_back(valueElem);
+            }
+        }
     }
     return activeValueElems;
 }
