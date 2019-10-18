@@ -15,7 +15,6 @@
 #include <MaterialXCore/Material.h>
 #include <MaterialXCore/Node.h>
 #include <MaterialXCore/Variant.h>
-#include <MaterialXCore/UnitConverter.h>
 
 namespace MaterialX
 {
