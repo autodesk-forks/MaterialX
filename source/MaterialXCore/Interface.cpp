@@ -43,13 +43,9 @@ const std::unordered_map<string, size_t> PortElement::CHANNELS_PATTERN_LENGTH =
     { "vector4", 4 }
 };
 
-// Structure needed for ValueElement set comparison
-struct ValueElementCompare
+auto VALUE_ELEMENT_COMPARE = [](ValueElementPtr lhs, ValueElementPtr rhs)
 {
-    bool operator() (ValueElementPtr lhs, ValueElementPtr rhs) const
-    {
-        return lhs->getName() < rhs->getName();
-    }
+    return lhs->getName() < rhs->getName();
 };
 
 //
@@ -326,7 +322,7 @@ InputPtr InterfaceElement::getActiveInput(const string& name) const
 vector<InputPtr> InterfaceElement::getActiveInputs() const
 {
     vector<InputPtr> activeInputs;
-    std::set<InputPtr, ValueElementCompare> activeInputsSet;
+    std::set<InputPtr, decltype(VALUE_ELEMENT_COMPARE)> activeInputsSet(VALUE_ELEMENT_COMPARE);
     for (ConstElementPtr elem : traverseInheritance())
     {
         vector<InputPtr> inputs = elem->asA<InterfaceElement>()->getInputs();
@@ -358,7 +354,7 @@ OutputPtr InterfaceElement::getActiveOutput(const string& name) const
 vector<OutputPtr> InterfaceElement::getActiveOutputs() const
 {
     vector<OutputPtr> activeOutputs;
-    std::set<OutputPtr, ValueElementCompare> activeOutputsSet;
+    std::set<OutputPtr, decltype(VALUE_ELEMENT_COMPARE)> activeOutputsSet(VALUE_ELEMENT_COMPARE);
     for (ConstElementPtr elem : traverseInheritance())
     {
         vector<OutputPtr> outputs = elem->asA<InterfaceElement>()->getOutputs();
@@ -413,7 +409,7 @@ ValueElementPtr InterfaceElement::getActiveValueElement(const string& name) cons
 vector<ValueElementPtr> InterfaceElement::getActiveValueElements() const
 {
     vector<ValueElementPtr> activeValueElems;
-    std::set<ValueElementPtr, ValueElementCompare> activeValueElemsSet;
+    std::set<ValueElementPtr, decltype(VALUE_ELEMENT_COMPARE)> activeValueElemsSet(VALUE_ELEMENT_COMPARE);
     for (ConstElementPtr interface : traverseInheritance())
     {
         vector<ValueElementPtr> valueElems = interface->getChildrenOfType<ValueElement>();

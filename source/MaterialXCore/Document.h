@@ -321,7 +321,10 @@ class Document : public GraphElement
                           const string& node = EMPTY_STRING)
     {
         NodeDefPtr child = addChild<NodeDef>(name);
-        child->addOutput("out", type);
+        if (!type.empty() && type != MULTI_OUTPUT_TYPE_STRING)
+        {
+            child->addOutput("out", type);
+        }
         if (!node.empty())
         {
             child->setNodeString(node);
@@ -606,9 +609,6 @@ class Document : public GraphElement
     {
         return getChildOfType<UnitTypeDef>(name);
     }
-
-    /// Return the UnitTypeDef, if any, with a matching unit name.
-    UnitTypeDefPtr getUnitTypeDefWithUnit(const string& unitName) const;
 
     /// Return a vector of all UnitTypeDef elements in the document.
     vector<UnitTypeDefPtr> getUnitTypeDefs() const
