@@ -13,6 +13,16 @@
 namespace MaterialX
 {
 
+namespace
+{
+    auto ValueElementLess = [](ValueElementPtr lhs, ValueElementPtr rhs)
+    {
+        return lhs->getName() < rhs->getName();
+    };
+
+    using ValueElementSet = std::set<ValueElementPtr, decltype(ValueElementLess)>;
+}
+
 const string PortElement::NODE_NAME_ATTRIBUTE = "nodename";
 const string PortElement::OUTPUT_ATTRIBUTE = "output";
 const string PortElement::CHANNELS_ATTRIBUTE = "channels";
@@ -41,11 +51,6 @@ const std::unordered_map<string, size_t> PortElement::CHANNELS_PATTERN_LENGTH =
     { "vector2", 2 },
     { "vector3", 3 },
     { "vector4", 4 }
-};
-
-auto VALUE_ELEMENT_COMPARE = [](ValueElementPtr lhs, ValueElementPtr rhs)
-{
-    return lhs->getName() < rhs->getName();
 };
 
 //
@@ -322,7 +327,7 @@ InputPtr InterfaceElement::getActiveInput(const string& name) const
 vector<InputPtr> InterfaceElement::getActiveInputs() const
 {
     vector<InputPtr> activeInputs;
-    std::set<InputPtr, decltype(VALUE_ELEMENT_COMPARE)> activeInputsSet(VALUE_ELEMENT_COMPARE);
+    ValueElementSet activeInputsSet(ValueElementLess);
     for (ConstElementPtr elem : traverseInheritance())
     {
         vector<InputPtr> inputs = elem->asA<InterfaceElement>()->getInputs();
@@ -354,7 +359,7 @@ OutputPtr InterfaceElement::getActiveOutput(const string& name) const
 vector<OutputPtr> InterfaceElement::getActiveOutputs() const
 {
     vector<OutputPtr> activeOutputs;
-    std::set<OutputPtr, decltype(VALUE_ELEMENT_COMPARE)> activeOutputsSet(VALUE_ELEMENT_COMPARE);
+    ValueElementSet activeOutputsSet(ValueElementLess);
     for (ConstElementPtr elem : traverseInheritance())
     {
         vector<OutputPtr> outputs = elem->asA<InterfaceElement>()->getOutputs();
@@ -409,7 +414,7 @@ ValueElementPtr InterfaceElement::getActiveValueElement(const string& name) cons
 vector<ValueElementPtr> InterfaceElement::getActiveValueElements() const
 {
     vector<ValueElementPtr> activeValueElems;
-    std::set<ValueElementPtr, decltype(VALUE_ELEMENT_COMPARE)> activeValueElemsSet(VALUE_ELEMENT_COMPARE);
+    ValueElementSet activeValueElemsSet(ValueElementLess);
     for (ConstElementPtr interface : traverseInheritance())
     {
         vector<ValueElementPtr> valueElems = interface->getChildrenOfType<ValueElement>();
