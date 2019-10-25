@@ -108,6 +108,12 @@
 #define bswap_32(x) _byteswap_ulong(x)
 #define bswap_64(x) _byteswap_uint64(x)
 
+#pragma warning( push )
+#pragma warning( disable : 4267)
+#pragma warning( disable : 4307)
+#pragma warning( disable : 4456)
+#pragma warning( disable : 4127)
+
 #elif defined(__APPLE__)
 
 // Mac OS X / Darwin features
@@ -378,9 +384,9 @@ STATIC_INLINE uint32_t Mur(uint32_t a, uint32_t h) {
 template <typename T> STATIC_INLINE T DebugTweak(T x) {
   if (debug_mode) {
     if (sizeof(x) == 4) {
-      x = ~Bswap32(x * c1);
+      x = (uint32_t)(~Bswap32((uint32_t)(x * c1)));
     } else {
-      x = ~Bswap64(x * k1);
+      x = (uint32_t)(~Bswap64(x * k1));
     }
   }
   return x;
@@ -11824,5 +11830,9 @@ int main() {
   farmhashxoTest::RunTest();
   __builtin_unreachable();
 }
+
+#ifdef _WIN32
+#pragma warning( pop ) 
+#endif
 
 #endif  // FARMHASHSELFTEST

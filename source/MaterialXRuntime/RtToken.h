@@ -221,7 +221,6 @@ private:
         string _str;
         size_t _hash;
     };
-    struct Entry;
     const Entry* _entry;
     friend struct RtTokenRegistry;
 };
