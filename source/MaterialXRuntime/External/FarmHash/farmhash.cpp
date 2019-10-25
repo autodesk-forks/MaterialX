@@ -1909,7 +1909,7 @@ uint64_t Hash64(const char* s, size_t len) {
 // May change from time to time, may differ on different platforms, may differ
 // depending on NDEBUG.
 size_t Hash(const char* s, size_t len) {
-  return sizeof(size_t) == 8 ? Hash64(s, len) : Hash32(s, len);
+  return size_t(sizeof(size_t) == 8 ? Hash64(s, len) : Hash32(s, len));
 }
 
 // Hash function for a byte array.  For convenience, a 64-bit seed is also

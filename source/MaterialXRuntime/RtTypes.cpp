@@ -4,6 +4,7 @@
 //
 
 #include <MaterialXRuntime/RtTypes.h>
+#include <memory>
 
 namespace MaterialX
 {
