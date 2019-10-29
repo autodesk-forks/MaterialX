@@ -538,7 +538,7 @@ RtApiType RtCoreIo::getApiType() const
     return RtApiType::CORE_IO;
 }
 
-void RtCoreIo::read(const DocumentPtr& doc, RtReadFilter filter)
+void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
 {
     PrvStage* stage = data()->asA<PrvStage>();
     readAttributes(doc, stage, {});
@@ -569,7 +569,7 @@ void RtCoreIo::read(const DocumentPtr& doc, RtReadFilter filter)
     }
 }
 
-void RtCoreIo::write(DocumentPtr& doc, RtWriteFilter filter)
+void RtCoreIo::write(DocumentPtr& doc, RtCoreIo::WriteFilter filter)
 {
     PrvStage* stage = data()->asA<PrvStage>();
     writeAttributes(stage, doc);

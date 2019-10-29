@@ -49,7 +49,7 @@ public:
 
     /// Create a new portdef and add it to a nodedef if specified.
     static RtObject createNew(const RtToken& name, const RtToken& type, const RtValue& value,
-                              uint32_t flags, RtObject nodedef = RtObject());
+                              uint32_t flags, RtObject parent = RtObject());
 
     /// Return the type for this API.
     RtApiType getApiType() const override;
