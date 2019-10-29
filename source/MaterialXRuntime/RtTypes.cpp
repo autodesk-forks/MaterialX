@@ -93,7 +93,7 @@ namespace
         RtTypeDesc* newType(const RtToken& name, unsigned char basetype, unsigned char sematic = RtTypeDesc::SEMANTIC_NONE,
                             size_t size = 1, const ChannelMap& channelMapping = ChannelMap())
         {
-            _map[name] = std::make_unique<RtTypeDesc>(name, basetype, sematic, size);
+            _map[name] = std::unique_ptr<RtTypeDesc>(new RtTypeDesc(name, basetype, sematic, size));
 
             RtTypeDesc* ptr = _map[name].get();
             for (auto it : channelMapping)

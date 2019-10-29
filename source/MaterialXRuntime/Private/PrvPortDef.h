@@ -72,12 +72,12 @@ public:
 
     bool isInput() const
     {
-        return _flags & RtPortFlag::INPUT;
+        return (_flags & RtPortFlag::INPUT) != 0;
     }
 
     bool isOutput() const
     {
-        return _flags & RtPortFlag::OUTPUT;
+        return (_flags & RtPortFlag::OUTPUT) != 0;
     }
 
     bool isConnectable() const
@@ -87,12 +87,12 @@ public:
 
     bool isUniform() const
     {
-        return _flags & RtPortFlag::UNIFORM;
+        return (_flags & RtPortFlag::UNIFORM) != 0;
     }
 
     bool isInterface() const
     {
-        return _flags & RtPortFlag::INTERFACE;
+        return (_flags & RtPortFlag::INTERFACE) != 0;
     }
 
     static const RtToken DEFAULT_OUTPUT_NAME;

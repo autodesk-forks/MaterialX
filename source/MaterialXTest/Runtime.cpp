@@ -41,6 +41,28 @@ TEST_CASE("Runtime: Token", "[runtime]")
     REQUIRE(tok1 == std::string("hej"));
     REQUIRE("hej" == tok1);
     REQUIRE(std::string("hej") == tok1);
+
+    mx::RtTokenMap<int> intMap;
+    intMap["one"] = 1;
+    intMap["two"] = 2;
+    intMap["three"] = 3;
+    REQUIRE(intMap.size() == 3);
+    REQUIRE(intMap.count("one"));
+    REQUIRE(intMap["one"] == 1);
+    REQUIRE(intMap.count("two"));
+    REQUIRE(intMap["two"] == 2);
+    REQUIRE(intMap.count("three"));
+    REQUIRE(intMap["three"] == 3);
+
+    mx::RtTokenSet intSet;
+    intSet.insert("one");
+    intSet.insert("two");
+    intSet.insert("three");
+    REQUIRE(intSet.size() == 3);
+    REQUIRE(intSet.count("one"));
+    REQUIRE(intSet.count("two"));
+    REQUIRE(intSet.count("three"));
+    REQUIRE(!intSet.count("four"));
 }
 
 TEST_CASE("Runtime: Values", "[runtime]")

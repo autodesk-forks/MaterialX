@@ -108,6 +108,9 @@
 #define bswap_32(x) _byteswap_ulong(x)
 #define bswap_64(x) _byteswap_uint64(x)
 
+#pragma warning( push )
+#pragma warning( disable : 4267)
+
 #elif defined(__APPLE__)
 
 // Mac OS X / Darwin features
@@ -382,6 +385,20 @@ template <typename T> STATIC_INLINE T DebugTweak(T x) {
     } else {
       x = ~Bswap64(x * k1);
     }
+  }
+  return x;
+}
+
+template <> uint32_t DebugTweak(uint32_t x) {
+  if (debug_mode) {
+    x = ~Bswap32(x * c1);
+  }
+  return x;
+}
+
+template <> uint64_t DebugTweak(uint64_t x) {
+  if (debug_mode) {
+    x = ~Bswap64(x * k1);
   }
   return x;
 }
@@ -1629,11 +1646,11 @@ uint32_t Hash32(const char *s, size_t len) {
   f = f * 5 + 0xe6546b64;
   size_t iters = (len - 1) / 20;
   do {
-    uint32_t a0 = Rotate(Fetch(s) * c1, 17) * c2;
-    uint32_t a1 = Fetch(s + 4);
-    uint32_t a2 = Rotate(Fetch(s + 8) * c1, 17) * c2;
-    uint32_t a3 = Rotate(Fetch(s + 12) * c1, 17) * c2;
-    uint32_t a4 = Fetch(s + 16);
+    a0 = Rotate(Fetch(s) * c1, 17) * c2;
+    a1 = Fetch(s + 4);
+    a2 = Rotate(Fetch(s + 8) * c1, 17) * c2;
+    a3 = Rotate(Fetch(s + 12) * c1, 17) * c2;
+    a4 = Fetch(s + 16);
     h ^= a0;
     h = Rotate(h, 18);
     h = h * 5 + 0xe6546b64;
@@ -1903,7 +1920,7 @@ uint64_t Hash64(const char* s, size_t len) {
 // May change from time to time, may differ on different platforms, may differ
 // depending on NDEBUG.
 size_t Hash(const char* s, size_t len) {
-  return sizeof(size_t) == 8 ? Hash64(s, len) : Hash32(s, len);
+  return size_t(sizeof(size_t) == 8 ? Hash64(s, len) : Hash32(s, len));
 }
 
 // Hash function for a byte array.  For convenience, a 64-bit seed is also
@@ -11824,5 +11841,9 @@ int main() {
   farmhashxoTest::RunTest();
   __builtin_unreachable();
 }
+
+#ifdef _WIN32
+#pragma warning( pop ) 
+#endif
 
 #endif  // FARMHASHSELFTEST

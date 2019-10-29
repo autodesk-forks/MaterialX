@@ -23,10 +23,12 @@ class RtCoreIo : public RtApiBase
 {
 public:
     /// Filter function type used for filtering elements during read.
-    using RtReadFilter = std::function<bool(const ElementPtr& elem)>;
+    /// If the filter returns false the element will not be read.
+    using ReadFilter = std::function<bool(const ElementPtr& elem)>;
 
-    /// Filter function type used for filtering elements during write.
-    using RtWriteFilter = std::function<bool(const RtObject& obj)>;
+    /// Filter function type used for filtering objects during write.
+    /// If the filter returns false the object will not be written.
+    using WriteFilter = std::function<bool(const RtObject& obj)>;
 
 public:
     /// Constructor attaching this API to a stage.
@@ -36,10 +38,14 @@ public:
     RtApiType getApiType() const override;
 
     /// Read contents from a document.
-    void read(const DocumentPtr& doc, RtReadFilter filter = nullptr);
+    /// If a filter is used only elements accepted by the filter
+    /// will be red from the document.
+    void read(const DocumentPtr& doc, ReadFilter filter = nullptr);
 
     /// Write all stage contents to a document.
-    void write(DocumentPtr& doc, RtWriteFilter filter = nullptr);
+    /// If a filter is used only elements accepted by the filter
+    /// will be written to the document.
+    void write(DocumentPtr& doc, WriteFilter filter = nullptr);
 };
 
 }
