@@ -62,7 +62,7 @@ void PrvCompound::addElement(PrvObjectHandle elem)
     PrvElement* el = elem->asA<PrvElement>();
     if (_elementsByName.count(el->getName()))
     {
-        throw ExceptionRuntimeError("An element named '" + el->getName().str() + "' already exists in '" + getName().str() + "'");
+        return;
     }
 
     _elements.push_back(elem);
