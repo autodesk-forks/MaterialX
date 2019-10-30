@@ -8,6 +8,12 @@
 
 #include <sstream>
 
+#ifndef _WIN32
+// Disable warnings for breaking strict aliasing.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 namespace MaterialX
 {
 
@@ -121,3 +127,7 @@ string RtValue::getValueString(const RtToken& type) const
 }
 
 }
+
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif
