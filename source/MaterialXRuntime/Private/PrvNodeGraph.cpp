@@ -5,7 +5,7 @@
 
 #include <MaterialXRuntime/Private/PrvNodeGraph.h>
 
-#include <MaterialXRuntime/RtTypes.h>
+#include <MaterialXRuntime/RtTypeDef.h>
 
 /// @file
 /// TODO: Docs

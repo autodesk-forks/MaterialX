@@ -9,7 +9,7 @@
 #include <MaterialXRuntime/RtPortDef.h>
 #include <MaterialXRuntime/RtNode.h>
 #include <MaterialXRuntime/RtNodeGraph.h>
-#include <MaterialXRuntime/RtTypes.h>
+#include <MaterialXRuntime/RtTypeDef.h>
 
 #include <MaterialXRuntime/Private/PrvStage.h>
 #include <MaterialXRuntime/Private/PrvNodeDef.h>

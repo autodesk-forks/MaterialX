@@ -110,6 +110,7 @@
 
 #pragma warning( push )
 #pragma warning( disable : 4267)
+#pragma warning( disable : 4307)
 #pragma warning( disable : 6297)
 #pragma warning( disable : 26451)
 #pragma warning( disable : 26450)
