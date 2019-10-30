@@ -475,6 +475,8 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
         case mx::RtObjType::NODEGRAPH:
             nodeGraphCount++;
             break;
+        default:
+            break;
         }
     }
     REQUIRE(nodeCount == doc->getNodes().size());
@@ -504,6 +506,8 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
         case mx::RtObjType::NODEGRAPH:
             nodeGraphCount++;
             break;
+        default:
+            break;
         }
     }
     REQUIRE(nodeCount == 1);
@@ -526,6 +530,8 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
         case mx::RtObjType::NODEGRAPH:
             nodeGraphCount++;
             break;
+        default:
+            break;
         }
     }
     REQUIRE(nodeCount == 0);
@@ -538,11 +544,9 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
     nodeCount = 0;
     for (auto it = nodegraph.traverseTree(); !it.isDone(); ++it)
     {
-        switch ((*it).getObjType())
+        if ((*it).getObjType() == mx::RtObjType::NODE)
         {
-        case mx::RtObjType::NODE:
             nodeCount++;
-            break;
         }
     }
     REQUIRE(nodeCount == 3);
