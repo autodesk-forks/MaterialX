@@ -47,54 +47,48 @@ public:
     static const RtToken AUTO;
 };
 
-/// @class RtTypeDesc
-/// A type descriptor for MaterialX data types.
-/// All types need to have a type descriptor registered in order for the runtime
-/// to know about the type. A unique type descriptor pointer can be used for type
+/// @class RtTypeDef
+/// A type definition for MaterialX data types.
+/// All types need to have a type definition registered in order for the runtime
+/// to know about the type. A unique type definition pointer can be used for type
 /// comparisons as well as getting more information about the type.
 /// All standard library data types are registered by default. Custom types can be
-/// registered using RtTypeDesc::registerType().
-class RtTypeDesc
+/// registered using RtTypeDef::registerType().
+class RtTypeDef
 {
 public:
-    enum BaseType
-    {
-        BASETYPE_NONE,
-        BASETYPE_BOOLEAN,
-        BASETYPE_INTEGER,
-        BASETYPE_FLOAT,
-        BASETYPE_STRING,
-        BASETYPE_STRUCT,
-        BASETYPE_LAST
-    };
+    /// Identifiers for base types.
+    static const RtToken BASETYPE_NONE;
+    static const RtToken BASETYPE_BOOLEAN;
+    static const RtToken BASETYPE_INTEGER;
+    static const RtToken BASETYPE_FLOAT;
+    static const RtToken BASETYPE_STRING;
+    static const RtToken BASETYPE_STRUCT;
 
-    enum Semantic
-    {
-        SEMANTIC_NONE,
-        SEMANTIC_COLOR,
-        SEMANTIC_VECTOR,
-        SEMANTIC_MATRIX,
-        SEMANTIC_FILENAME,
-        SEMANTIC_CLOSURE,
-        SEMANTIC_SHADER,
-        SEMANTIC_LAST
-    };
+    /// Identifiers for type semantics.
+    static const RtToken SEMANTIC_NONE;
+    static const RtToken SEMANTIC_COLOR;
+    static const RtToken SEMANTIC_VECTOR;
+    static const RtToken SEMANTIC_MATRIX;
+    static const RtToken SEMANTIC_FILENAME;
+    static const RtToken SEMANTIC_CLOSURE;
+    static const RtToken SEMANTIC_SHADER;
 
 public:
     /// Constructor.
-    RtTypeDesc(const string& name, unsigned char basetype, unsigned char semantic, size_t size);
+    RtTypeDef(const RtToken& name, const RtToken& basetype, const RtToken& semantic, size_t size);
 
     /// Destructor.
-    ~RtTypeDesc();
+    ~RtTypeDef();
 
     /// Return the name of the type.
-    const string& getName() const;
+    const RtToken& getName() const;
 
     /// Return the basetype for the type.
-    unsigned char getBaseType() const;
+    const RtToken& getBaseType() const;
 
     /// Return the semantic for the type.
-    unsigned char getSemantic() const;
+    const RtToken& getSemantic() const;
 
     /// Return the number of elements the type is composed of.
     /// Will return 1 for scalar types and a size greater than 1 for aggregate type.
@@ -145,14 +139,18 @@ public:
         return getSize() == 4 && (getSemantic() == SEMANTIC_COLOR || getSemantic() == SEMANTIC_VECTOR);
     }
 
+    /// Return a set of all types that this type can be connected to.
+    /// The type itself is also included in this set.
+    const RtTokenSet& getValidConnectionTypes() const;
+
     /// Register a type descriptor for a MaterialX data type.
     /// Throws an exception if a type with the same name is already registered.
-    static RtTypeDesc* registerType(const RtToken& name, unsigned char basetype,
-                                    unsigned char semantic = SEMANTIC_NONE, size_t size = 1);
+    static RtTypeDef* registerType(const RtToken& name, const RtToken& basetype,
+                                    const RtToken& semantic = SEMANTIC_NONE, size_t size = 1);
 
     /// Get a type descriptor for given type name.
     /// Returns nullptr if no such type is registered.
-    static const RtTypeDesc* findType(const RtToken& name);
+    static const RtTypeDef* findType(const RtToken& name);
 
 private:
     void* _ptr;

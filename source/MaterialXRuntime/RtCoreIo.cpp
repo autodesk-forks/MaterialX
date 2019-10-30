@@ -547,31 +547,30 @@ void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
     {
         if (!filter || filter(elem))
         {
+            PrvObjectHandle objH;
             if (elem->isA<NodeDef>())
             {
                 // Make sure the nodedef has not been loaded already.
                 // When reading node instances their nodedef is loaded as well.
-                if (!stage->findElementByName(RtToken(elem->getName())))
+                if (stage->findElementByName(RtToken(elem->getName())))
                 {
-                    PrvObjectHandle objH = readNodeDef(elem->asA<NodeDef>());
-                    stage->addElement(objH);
+                    continue;
                 }
+                objH = readNodeDef(elem->asA<NodeDef>());
             }
             else if (elem->isA<Node>())
             {
-                PrvObjectHandle objH = readNode(elem->asA<Node>(), stage);
-                stage->addElement(objH);
+                objH = readNode(elem->asA<Node>(), stage);
             }
             else if (elem->isA<NodeGraph>())
             {
-                PrvObjectHandle objH = readNodeGraph(elem->asA<NodeGraph>(), stage);
-                stage->addElement(objH);
+                objH = readNodeGraph(elem->asA<NodeGraph>(), stage);
             }
             else
             {
-                PrvObjectHandle objH = readUnknown(elem);
-                stage->addElement(objH);
+                objH = readUnknown(elem);
             }
+            stage->addElement(objH);
         }
     }
 }

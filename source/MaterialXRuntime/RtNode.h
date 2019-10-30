@@ -93,6 +93,9 @@ public:
     /// Return true if this port is connected.
     bool isConnected() const;
 
+    /// Return true if this port can be connected to the other port.
+    bool canConnectTo(const RtPort& other) const;
+
     /// Connect this port to a destination input port.
     void connectTo(const RtPort& dest);
 

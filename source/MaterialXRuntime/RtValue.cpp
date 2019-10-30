@@ -4,7 +4,7 @@
 //
 
 #include <MaterialXRuntime/RtValue.h>
-#include <MaterialXRuntime/RtTypes.h>
+#include <MaterialXRuntime/RtTypeDef.h>
 
 #include <sstream>
 

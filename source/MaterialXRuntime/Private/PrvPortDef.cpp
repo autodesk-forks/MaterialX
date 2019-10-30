@@ -25,4 +25,11 @@ PrvObjectHandle PrvPortDef::createNew(const RtToken& name, const RtToken& type, 
     return std::make_shared<PrvPortDef>(name, type, value, flags);
 }
 
+bool PrvPortDef::canConnectTo(const PrvPortDef* other) const
+{
+    // TODO: Check if the data types are compatible.
+    return isConnectable() && other->isConnectable() && // both must be connectable
+           isOutput() != other->isOutput();             // they must be of different kinds
+}
+
 }

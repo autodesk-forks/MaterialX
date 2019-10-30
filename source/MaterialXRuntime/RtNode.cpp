@@ -155,6 +155,17 @@ bool RtPort::isConnected() const
     return !node->_ports[_index].connections.empty();
 }
 
+bool RtPort::canConnectTo(const RtPort& other) const
+{
+    const PrvNode* node = _data->asA<PrvNode>();
+    const PrvPortDef* port = node->nodedef()->port(_index);
+
+    const PrvNode* otherNode = other.data()->asA<PrvNode>();
+    const PrvPortDef* otherPort = otherNode->nodedef()->port(other._index);
+
+    return node != otherNode && port->canConnectTo(otherPort);
+}
+
 void RtPort::connectTo(const RtPort& dest)
 {
     PrvNode::connect(*this, dest);

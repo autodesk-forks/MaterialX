@@ -15,11 +15,11 @@
 #include <MaterialXRuntime/RtStage.h>
 #include <MaterialXRuntime/RtPortDef.h>
 #include <MaterialXRuntime/RtNodeDef.h>
+#include <MaterialXRuntime/RtTypeDef.h>
 #include <MaterialXRuntime/RtNode.h>
 #include <MaterialXRuntime/RtNodeGraph.h>
 #include <MaterialXRuntime/RtCoreIo.h>
 #include <MaterialXRuntime/RtTraversal.h>
-#include <MaterialXRuntime/RtTypes.h>
 
 #include <MaterialXGenShader/Util.h>
 
@@ -112,42 +112,47 @@ TEST_CASE("Runtime: Values", "[runtime]")
 TEST_CASE("Runtime: Types", "[runtime]")
 {
     // Make sure the standard types are registered
-    const mx::RtTypeDesc* floatType = mx::RtTypeDesc::findType("float");
+    const mx::RtTypeDef* floatType = mx::RtTypeDef::findType("float");
     REQUIRE(floatType != nullptr);
-    REQUIRE(floatType->getBaseType() == mx::RtTypeDesc::BASETYPE_FLOAT);
-    const mx::RtTypeDesc* integerType = mx::RtTypeDesc::findType("integer");
+    REQUIRE(floatType->getBaseType() == mx::RtTypeDef::BASETYPE_FLOAT);
+    const mx::RtTypeDef* integerType = mx::RtTypeDef::findType("integer");
     REQUIRE(integerType != nullptr);
-    REQUIRE(integerType->getBaseType() == mx::RtTypeDesc::BASETYPE_INTEGER);
-    const mx::RtTypeDesc* booleanType = mx::RtTypeDesc::findType("boolean");
+    REQUIRE(integerType->getBaseType() == mx::RtTypeDef::BASETYPE_INTEGER);
+    const mx::RtTypeDef* booleanType = mx::RtTypeDef::findType("boolean");
     REQUIRE(booleanType != nullptr);
-    REQUIRE(booleanType->getBaseType() == mx::RtTypeDesc::BASETYPE_BOOLEAN);
-    const mx::RtTypeDesc* color2Type = mx::RtTypeDesc::findType("color2");
+    REQUIRE(booleanType->getBaseType() == mx::RtTypeDef::BASETYPE_BOOLEAN);
+    const mx::RtTypeDef* color2Type = mx::RtTypeDef::findType("color2");
     REQUIRE(color2Type != nullptr);
-    REQUIRE(color2Type->getBaseType() == mx::RtTypeDesc::BASETYPE_FLOAT);
-    REQUIRE(color2Type->getSemantic() == mx::RtTypeDesc::SEMANTIC_COLOR);
+    REQUIRE(color2Type->getBaseType() == mx::RtTypeDef::BASETYPE_FLOAT);
+    REQUIRE(color2Type->getSemantic() == mx::RtTypeDef::SEMANTIC_COLOR);
     REQUIRE(color2Type->isFloat2());
-    const mx::RtTypeDesc* color3Type = mx::RtTypeDesc::findType("color3");
+    const mx::RtTypeDef* color3Type = mx::RtTypeDef::findType("color3");
     REQUIRE(color3Type != nullptr);
-    REQUIRE(color3Type->getBaseType() == mx::RtTypeDesc::BASETYPE_FLOAT);
-    REQUIRE(color3Type->getSemantic() == mx::RtTypeDesc::SEMANTIC_COLOR);
+    REQUIRE(color3Type->getBaseType() == mx::RtTypeDef::BASETYPE_FLOAT);
+    REQUIRE(color3Type->getSemantic() == mx::RtTypeDef::SEMANTIC_COLOR);
     REQUIRE(color3Type->isFloat3());
-    const mx::RtTypeDesc* color4Type = mx::RtTypeDesc::findType("color4");
+    const mx::RtTypeDef* color4Type = mx::RtTypeDef::findType("color4");
     REQUIRE(color4Type != nullptr);
-    REQUIRE(color4Type->getBaseType() == mx::RtTypeDesc::BASETYPE_FLOAT);
-    REQUIRE(color4Type->getSemantic() == mx::RtTypeDesc::SEMANTIC_COLOR);
+    REQUIRE(color4Type->getBaseType() == mx::RtTypeDef::BASETYPE_FLOAT);
+    REQUIRE(color4Type->getSemantic() == mx::RtTypeDef::SEMANTIC_COLOR);
     REQUIRE(color4Type->isFloat4());
 
     // Make sure we can register a new custom type
-    const mx::RtTypeDesc* fooType = mx::RtTypeDesc::registerType("foo", mx::RtTypeDesc::BASETYPE_FLOAT, mx::RtTypeDesc::SEMANTIC_COLOR, 5);
+    const mx::RtTypeDef* fooType = mx::RtTypeDef::registerType("foo", mx::RtTypeDef::BASETYPE_FLOAT, mx::RtTypeDef::SEMANTIC_COLOR, 5);
     REQUIRE(fooType != nullptr);
-    const mx::RtTypeDesc* fooType2 = mx::RtTypeDesc::findType("foo");
+    const mx::RtTypeDef* fooType2 = mx::RtTypeDef::findType("foo");
     REQUIRE(fooType2 == fooType);
 
     // Make sure we can't use a name already take
-    REQUIRE_THROWS(mx::RtTypeDesc::registerType("color3", mx::RtTypeDesc::BASETYPE_FLOAT));
+    REQUIRE_THROWS(mx::RtTypeDef::registerType("color3", mx::RtTypeDef::BASETYPE_FLOAT));
 
     // Make sure we can't request an unknown type
-    REQUIRE(mx::RtTypeDesc::findType("bar") == nullptr);
+    REQUIRE(mx::RtTypeDef::findType("bar") == nullptr);
+
+    // Make sure a type is connectable to its own type
+    // TODO: Extend to test more types when type auto cast is implemented.
+    REQUIRE(floatType->getValidConnectionTypes().count(floatType->getName()));
+    REQUIRE(!floatType->getValidConnectionTypes().count(color4Type->getName()));
 }
 
 TEST_CASE("Runtime: Nodes", "[runtime]")
@@ -216,6 +221,13 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     mx::RtPort add2_in1 = add2.findPort("in1");
     mx::RtPort add2_in2 = add2.findPort("in2");
     mx::RtPort add2_out = add2.findPort("out");
+
+    // Test port connectability
+    REQUIRE(add1_out.canConnectTo(add2_in1));
+    REQUIRE(add2_in1.canConnectTo(add1_out));
+    REQUIRE(!add1_out.canConnectTo(add1_in1));
+    REQUIRE(!add1_out.canConnectTo(add2_out));
+    REQUIRE(!add2_in1.canConnectTo(add1_in1));
 
     // Make port connections
     mx::RtNode::connect(add1_out, add2_in1);
