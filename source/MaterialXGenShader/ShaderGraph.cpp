@@ -195,7 +195,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
         if (!geomNodeDef)
         {
             throw ExceptionShaderGenError("Could not find a nodedef named '" + geomNodeDefName +
-                "' for defaultgeomprop on input '" + input->getNode()->getName() + "." + input->getName() + "'");
+                "' for defaultgeomprop on input '" + input->getFullName() + "'");
         }
 
         ShaderNodePtr geomNode = ShaderNode::create(this, geomNodeName, *geomNodeDef, context);
@@ -259,7 +259,7 @@ void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTran
         // allowed to have colorspaces specified.
         return;
     }
-    const string colorTransformNodeName = input->getNode()->getName() + "_" + input->getName() + "_cm";
+    const string colorTransformNodeName = input->getFullName() + "_cm";
     ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(this, transform, colorTransformNodeName, context);
 
     if (colorTransformNodePtr)
@@ -271,7 +271,7 @@ void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTran
         ShaderOutput* colorTransformNodeOutput = colorTransformNode->getOutput(0);
 
         ShaderInput* shaderInput = colorTransformNode->getInput(0);
-        shaderInput->setVariable(input->getNode()->getName() + "_" + input->getName());
+        shaderInput->setVariable(input->getFullName());
         shaderInput->setValue(input->getValue());
         shaderInput->setPath(input->getPath());
         shaderInput->setUnit(EMPTY_STRING);
@@ -294,7 +294,7 @@ void ShaderGraph::addColorTransformNode(ShaderOutput* output, const ColorSpaceTr
         return;
     }
 
-    const string colorTransformNodeName = output->getNode()->getName() + "_" + output->getName() + "_cm";
+    const string colorTransformNodeName = output->getFullName() + "_cm";
     ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(this, transform, colorTransformNodeName, context);
 
     if (colorTransformNodePtr)
@@ -325,7 +325,7 @@ void ShaderGraph::addUnitTransformNode(ShaderInput* input, const UnitTransform& 
     {
         return;
     }
-    const string unitTransformNodeName = input->getNode()->getName() + "_" + input->getName() + "_unit";
+    const string unitTransformNodeName = input->getFullName() + "_unit";
     ShaderNodePtr unitTransformNodePtr = unitSystem->createNode(this, transform, unitTransformNodeName, context);
 
     if (unitTransformNodePtr)
@@ -339,7 +339,7 @@ void ShaderGraph::addUnitTransformNode(ShaderInput* input, const UnitTransform& 
         ShaderOutput* unitTransformNodeOutput = unitTransformNode->getOutput(0);
 
         ShaderInput* shaderInput = unitTransformNode->getInput(0);
-        shaderInput->setVariable(input->getNode()->getName() + "_" + input->getName());
+        shaderInput->setVariable(input->getFullName());
         shaderInput->setValue(input->getValue());
         shaderInput->setPath(input->getPath());
         shaderInput->setUnit(input->getUnit());
@@ -362,11 +362,12 @@ void ShaderGraph::addUnitTransformNode(ShaderOutput* output, const UnitTransform
         return;
     }
 
-    const string unitTransformNodeName = output->getNode()->getName() + "_" + output->getName() + "_unit";
+    const string unitTransformNodeName = output->getFullName() + "_unit";
     ShaderNodePtr unitTransformNodePtr = unitSystem->createNode(this, transform, unitTransformNodeName, context);
 
     if (unitTransformNodePtr)
     {
+        std::cout << "Insert new transform node: " << unitTransformNodePtr->getName() << std::endl;
         _nodeMap[unitTransformNodePtr->getName()] = unitTransformNodePtr;
         _nodeOrder.push_back(unitTransformNodePtr.get());
 
@@ -376,13 +377,23 @@ void ShaderGraph::addUnitTransformNode(ShaderOutput* output, const UnitTransform
         ShaderInputSet inputs = output->getConnections();
         for (ShaderInput* input : inputs)
         {
+            string inname = input->getFullName();
             input->breakConnection();
+            std::cout << "Break connection between: " << inname 
+                << " and " << output->getFullName() 
+                << std::endl;
             input->makeConnection(unitTransformNodeOutput);
+            std::cout << "Make connection between:" << inname
+                << " and " << unitTransformNodeOutput->getFullName()
+                << std::endl;
         }
 
         // Connect the node to the upstream output
         ShaderInput* unitTransformNodeInput = unitTransformNode->getInput(0);
         unitTransformNodeInput->makeConnection(output);
+        std::cout << "Connection " << output->getFullName()
+            << " and " << unitTransformNodeInput->getFullName()
+            << std::endl;
     }
 }
 
@@ -1262,14 +1273,14 @@ void ShaderGraph::setVariableNames(GenContext& context)
     {
         for (ShaderInput* input : node->getInputs())
         {
-            string variable = input->getNode()->getName() + "_" + input->getName();
+            string variable = input->getFullName();
             variable = syntax.getVariableName(variable, input->getType(), context);
             input->setVariable(variable);
         }
         for (ShaderOutput* output : node->getOutputs())
         {
             // Node outputs use long names for better code readability
-            string variable = output->getNode()->getName() + "_" + output->getName();
+            string variable = output->getFullName();
             variable = syntax.getVariableName(variable, output->getType(), context);
             output->setVariable(variable);
         }
@@ -1342,7 +1353,7 @@ void ShaderGraph::populateUnitTransformMap(bool asInput, UnitSystemPtr unitSyste
     bool supportedType = (shaderPort->getType() == Type::FLOAT ||
                         shaderPort->getType() == Type::VECTOR2 ||
                         shaderPort->getType() == Type::VECTOR3 ||
-                        shaderPort->getType() == Type::VECTOR3);
+                        shaderPort->getType() == Type::VECTOR4);
     if (supportedType)
     {
         UnitTransform transform(sourceUnitSpace, targetUnitSpace, shaderPort->getType(), unitType);
@@ -1439,7 +1450,7 @@ void ShaderGraphEdgeIterator::extendPathUpstream(ShaderOutput* upstream, ShaderI
     // Check for cycles.
     if (_path.count(upstream))
     {
-        throw ExceptionFoundCycle("Encountered cycle at element: " + upstream->getNode()->getName() + "." + upstream->getName());
+        throw ExceptionFoundCycle("Encountered cycle at element: " + upstream->getFullName());
     }
 
     // Extend the current path to the new element.
