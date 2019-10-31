@@ -13,6 +13,8 @@
 
 #include <MaterialXCore/Document.h>
 
+#include <iostream>
+
 namespace MaterialX
 {
 
@@ -328,6 +330,8 @@ void ShaderGraph::addUnitTransformNode(ShaderInput* input, const UnitTransform& 
 
     if (unitTransformNodePtr)
     {
+        std::cout << "Tramsform from: " << transform.sourceUnit << " to " << transform.targetUnit << std::endl;
+
         _nodeMap[unitTransformNodePtr->getName()] = unitTransformNodePtr;
         _nodeOrder.push_back(unitTransformNodePtr.get());
 
@@ -539,7 +543,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     input->setBindInput();
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindParam, targetColorSpace);
 
-                    graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName],
+                    graph->populateUnitTransformMap(true, context.getShaderGenerator().getUnitSystem(), inputSocket,
                         bindParam, context.getOptions().targetDistanceUnit);
                 }
                 inputSocket->setPath(bindParam->getNamePath());
@@ -578,7 +582,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
 
                     input->setBindInput();
                     graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindInput, targetColorSpace);
-                    graph->populateInputUnitTransformMap(context.getShaderGenerator().getUnitSystem(), graph->_nodeMap[newNodeName], bindInput, 
+                    graph->populateUnitTransformMap(true, context.getShaderGenerator().getUnitSystem(), inputSocket, bindInput, 
                                                          context.getOptions().targetDistanceUnit);
                 }
                 inputSocket->setPath(bindInput->getNamePath());
@@ -751,7 +755,8 @@ ShaderNode* ShaderGraph::addNode(const Node& node, GenContext& context)
             populateInputColorTransformMap(colorManagementSystem, newNode, parameter, targetColorSpace);
         }
 
-        // Check if this is a file texture node that requires color transformation.
+        // Check if this is a file texture node that requires additional transformations to be
+        // connected to their output.
         if (newNode->hasClassification(ShaderNode::Classification::FILETEXTURE))
         {
             ParameterPtr file = node.getParameter("file");
@@ -790,11 +795,37 @@ ShaderNode* ShaderGraph::addNode(const Node& node, GenContext& context)
     {
         for (InputPtr input : node.getInputs())
         {
-            populateInputUnitTransformMap(unitSystem, newNode, input, context.getOptions().targetDistanceUnit);
+            ShaderInput* inputPort = newNode->getInput(input->getName());
+            populateUnitTransformMap(true, unitSystem, inputPort, input, context.getOptions().targetDistanceUnit);
         }
         for (ParameterPtr parameter : node.getParameters())
         {
-            populateInputUnitTransformMap(unitSystem, newNode, parameter, context.getOptions().targetDistanceUnit);
+            ShaderInput* inputPort = newNode->getInput(parameter->getName());
+            populateUnitTransformMap(true, unitSystem, inputPort, parameter, context.getOptions().targetDistanceUnit);
+        }
+
+        // Check if this is a file texture node that requires additional transformations to be
+        // connected to their output.
+        if (newNode->hasClassification(ShaderNode::Classification::FILETEXTURE))
+        {
+            ParameterPtr file = node.getParameter("file");
+            if (file)
+            {
+                const TypeDesc* fileType = TypeDesc::get(node.getType());
+
+                // Add unit transform if type is supported
+                if (fileType == Type::FLOAT ||
+                    fileType == Type::VECTOR2 ||
+                    fileType == Type::VECTOR3 ||
+                    fileType == Type::VECTOR4)
+                {
+                    ShaderOutput* shaderOutput = newNode->getOutput();
+                    if (shaderOutput)
+                    {
+                        populateUnitTransformMap(false, unitSystem, shaderOutput, file, context.getOptions().targetDistanceUnit);
+                    }
+                }
+            }
         }
     }
     return newNode.get();
@@ -1268,8 +1299,14 @@ void ShaderGraph::populateInputColorTransformMap(ColorManagementSystemPtr colorM
     }
 }
 
-void ShaderGraph::populateInputUnitTransformMap(UnitSystemPtr unitSystem, ShaderNodePtr shaderNode, ValueElementPtr input, const string& globalTargetUnitSpace)
+void ShaderGraph::populateUnitTransformMap(bool asInput, UnitSystemPtr unitSystem, ShaderPort* shaderPort, ValueElementPtr input, const string& globalTargetUnitSpace)
 {
+    const string& sourceUnitSpace = input->getUnit();
+    if (!shaderPort || sourceUnitSpace.empty())
+    {
+        return;
+    }
+
     const string& unitType = input->getUnitType();
     if (!input->getDocument()->getUnitTypeDef(unitType))
     {
@@ -1282,28 +1319,32 @@ void ShaderGraph::populateInputUnitTransformMap(UnitSystemPtr unitSystem, Shader
         targetUnitSpace = globalTargetUnitSpace;
     }
 
-    // Don't perfrom unit conversion if targetUnitSpace is unspecified.
-    if (targetUnitSpace.empty())
-        return;
-
-    ShaderInput* shaderInput = shaderNode->getInput(input->getName());
-    const string& sourceUnitSpace = input->getUnit();
-    if (shaderInput && !sourceUnitSpace.empty())
+    // Don't perform unit conversion if targetUnitSpace is unspecified.
+    // or the source and target are the same
+    if (targetUnitSpace.empty() || sourceUnitSpace == targetUnitSpace)
     {
-        // Only support convertion for float and vectors. arrays, matrices are not supported.
-        if (shaderInput->getType() == Type::FLOAT ||
-            shaderInput->getType() == Type::VECTOR2 || 
-            shaderInput->getType() == Type::VECTOR3 ||
-            shaderInput->getType() == Type::VECTOR4)
+        return;
+    }
+
+    // Only support convertion for float and vectors. arrays, matrices are not supported.
+    // TODO: This should be provided by the UnitSystem.
+    bool supportedType = (shaderPort->getType() == Type::FLOAT ||
+                        shaderPort->getType() == Type::VECTOR2 ||
+                        shaderPort->getType() == Type::VECTOR3 ||
+                        shaderPort->getType() == Type::VECTOR3);
+    if (supportedType)
+    {
+        UnitTransform transform(sourceUnitSpace, targetUnitSpace, shaderPort->getType(), unitType);
+        if (unitSystem->supportsTransform(transform))
         {
-            if (sourceUnitSpace != targetUnitSpace)
+            shaderPort->setUnit(sourceUnitSpace);
+            if (asInput)
             {
-                UnitTransform transform(sourceUnitSpace, targetUnitSpace, shaderInput->getType(), unitType);
-                if (unitSystem->supportsTransform(transform))
-                {
-                    shaderInput->setUnit(sourceUnitSpace);
-                    _inputUnitTransformMap.emplace(shaderInput, transform);
-                }
+                _inputUnitTransformMap.emplace(static_cast<ShaderInput*>(shaderPort), transform);
+            }
+            else
+            {
+                _outputUnitTransformMap.emplace(static_cast<ShaderOutput*>(shaderPort), transform);
             }
         }
     }
