@@ -13,8 +13,6 @@
 
 #include <MaterialXCore/Document.h>
 
-#include <iostream>
-
 namespace MaterialX
 {
 
@@ -330,8 +328,6 @@ void ShaderGraph::addUnitTransformNode(ShaderInput* input, const UnitTransform& 
 
     if (unitTransformNodePtr)
     {
-        std::cout << "Tramsform from: " << transform.sourceUnit << " to " << transform.targetUnit << std::endl;
-
         _nodeMap[unitTransformNodePtr->getName()] = unitTransformNodePtr;
         _nodeOrder.push_back(unitTransformNodePtr.get());
 
@@ -367,7 +363,6 @@ void ShaderGraph::addUnitTransformNode(ShaderOutput* output, const UnitTransform
 
     if (unitTransformNodePtr)
     {
-        std::cout << "Insert new transform node: " << unitTransformNodePtr->getName() << std::endl;
         _nodeMap[unitTransformNodePtr->getName()] = unitTransformNodePtr;
         _nodeOrder.push_back(unitTransformNodePtr.get());
 
@@ -379,21 +374,12 @@ void ShaderGraph::addUnitTransformNode(ShaderOutput* output, const UnitTransform
         {
             string inname = input->getFullName();
             input->breakConnection();
-            std::cout << "Break connection between: " << inname 
-                << " and " << output->getFullName() 
-                << std::endl;
             input->makeConnection(unitTransformNodeOutput);
-            std::cout << "Make connection between:" << inname
-                << " and " << unitTransformNodeOutput->getFullName()
-                << std::endl;
         }
 
         // Connect the node to the upstream output
         ShaderInput* unitTransformNodeInput = unitTransformNode->getInput(0);
         unitTransformNodeInput->makeConnection(output);
-        std::cout << "Connection " << output->getFullName()
-            << " and " << unitTransformNodeInput->getFullName()
-            << std::endl;
     }
 }
 
