@@ -755,8 +755,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, GenContext& context)
             populateInputColorTransformMap(colorManagementSystem, newNode, parameter, targetColorSpace);
         }
 
-        // Check if this is a file texture node that requires additional transformations to be
-        // connected to their output.
+        // Check if this is a file texture node that requires color transformation.
         if (newNode->hasClassification(ShaderNode::Classification::FILETEXTURE))
         {
             ParameterPtr file = node.getParameter("file");
@@ -804,8 +803,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, GenContext& context)
             populateUnitTransformMap(true, unitSystem, inputPort, parameter, context.getOptions().targetDistanceUnit);
         }
 
-        // Check if this is a file texture node that requires additional transformations to be
-        // connected to their output.
+        // Check if this is a file texture node that requires unit transformation.
         if (newNode->hasClassification(ShaderNode::Classification::FILETEXTURE))
         {
             ParameterPtr file = node.getParameter("file");
