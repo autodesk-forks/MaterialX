@@ -541,9 +541,10 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     inputSocket->setValue(bindParamValue);
 
                     input->setBindInput();
-                    graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindParam, targetColorSpace);
-
-                    graph->populateUnitTransformMap(true, context.getShaderGenerator().getUnitSystem(), inputSocket,
+                    ShaderNodePtr updateNode = graph->_nodeMap[newNodeName];
+                    graph->populateInputColorTransformMap(colorManagementSystem, updateNode, bindParam, targetColorSpace);
+                    ShaderInput* updateInput = updateNode->getInput(bindParam->getName());
+                    graph->populateUnitTransformMap(true, context.getShaderGenerator().getUnitSystem(), updateInput,
                         bindParam, context.getOptions().targetDistanceUnit);
                 }
                 inputSocket->setPath(bindParam->getNamePath());
@@ -581,8 +582,10 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     inputSocket->setValue(bindInputValue);
 
                     input->setBindInput();
-                    graph->populateInputColorTransformMap(colorManagementSystem, graph->_nodeMap[newNodeName], bindInput, targetColorSpace);
-                    graph->populateUnitTransformMap(true, context.getShaderGenerator().getUnitSystem(), inputSocket, bindInput, 
+                    ShaderNodePtr updateNode = graph->_nodeMap[newNodeName];
+                    graph->populateInputColorTransformMap(colorManagementSystem, updateNode, bindInput, targetColorSpace);
+                    ShaderInput* updateInput = updateNode->getInput(bindInput->getName());
+                    graph->populateUnitTransformMap(true, context.getShaderGenerator().getUnitSystem(), updateInput, bindInput,
                                                          context.getOptions().targetDistanceUnit);
                 }
                 inputSocket->setPath(bindInput->getNamePath());
@@ -1320,11 +1323,19 @@ void ShaderGraph::populateUnitTransformMap(bool asInput, UnitSystemPtr unitSyste
     }
 
     // Don't perform unit conversion if targetUnitSpace is unspecified.
-    // or the source and target are the same
-    if (targetUnitSpace.empty() || sourceUnitSpace == targetUnitSpace)
+    if (targetUnitSpace.empty())
     {
         return;
     }
+
+    // TODO: Consider this to be an optimization option as
+    // this allows for the source and target unit to be the same value
+    // while still allowing target unit updates on a compiled shader as the
+    // target is exposed as an input uniform.
+    //if (sourceUnitSpace == targetUnitSpace)
+    //{
+    //    return;
+    //}
 
     // Only support convertion for float and vectors. arrays, matrices are not supported.
     // TODO: This should be provided by the UnitSystem.
