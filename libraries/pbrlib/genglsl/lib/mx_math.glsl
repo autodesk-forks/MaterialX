@@ -1,3 +1,8 @@
+#version 450
+
+#define M_FLOAT_EPS 0.0001f
+#define M_GOLDEN_RATIO 1
+
 float mx_square(float x)
 {
     return x*x;
@@ -66,4 +71,8 @@ float mx_golden_ratio_sequence(int i)
 vec2 mx_spherical_fibonacci(int i, int numSamples)
 {
     return vec2((float(i) + 0.5) / float(numSamples), mx_golden_ratio_sequence(i));
+}
+
+void main()
+{
 }
