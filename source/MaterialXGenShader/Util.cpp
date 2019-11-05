@@ -699,6 +699,11 @@ ValueElementPtr findNodeDefChild(const string& path, DocumentPtr doc, const stri
 namespace
 {
     const char TOKEN_PREFIX = '$';
+
+    inline bool isValidTokenChar(const char ch)
+    {
+        return ch == '_' || isalnum(ch);
+    }
 }
 
 void tokenSubstitution(const StringMap& substitutions, string& source)
@@ -713,7 +718,7 @@ void tokenSubstitution(const StringMap& substitutions, string& source)
             buffer += source.substr(pos, p1 - pos);
             pos = p1 + 1;
             string token = { TOKEN_PREFIX };
-            while (pos < len && isalnum(source[pos]))
+            while (pos < len && isValidTokenChar(source[pos]))
             {
                 token += source[pos++];
             }
