@@ -24,7 +24,7 @@ namespace MaterialX
 
 const string ShaderGenerator::SEMICOLON = ";";
 const string ShaderGenerator::COMMA = ",";
-const string ShaderGenerator::T_FILE_TRANSFORM_UV = "$FILE_TRANSFORM_UV";
+const string ShaderGenerator::T_FILE_TRANSFORM_UV = "$fileTransformUv";
 
 //
 // ShaderGenerator methods
