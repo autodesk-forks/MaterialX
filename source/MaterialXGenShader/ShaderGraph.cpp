@@ -480,6 +480,109 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         // Start traversal from this output
         root = output;
     }
+    else if (element->isA<Node>())
+    {
+        NodePtr node = element->asA<Node>();
+
+        NodeDefPtr nodeDef = node->getNodeDef();
+        if (!nodeDef)
+        {
+            throw ExceptionShaderGenError("Could not find a nodedef for node '" + node->getName() + "'");
+        }
+
+        graph = std::make_shared<ShaderGraph>(parent, name, element->getDocument());
+
+        // Create input sockets
+        graph->addInputSockets(*nodeDef, context);
+
+        // Create output sockets
+        graph->addOutputSockets(*nodeDef);
+
+        // Create this shader node in the graph.
+        const string& newNodeName = node->getName();
+        ShaderNodePtr newNode = ShaderNode::create(graph.get(), newNodeName, *nodeDef, context);
+        graph->_nodeMap[newNodeName] = newNode;
+        graph->_nodeOrder.push_back(newNode.get());
+
+        // Connect it to the graph output
+        //
+        // TODO: Support multioutput nodes
+        //
+        ShaderGraphOutputSocket* outputSocket = graph->getOutputSocket();
+        outputSocket->makeConnection(newNode->getOutput());
+        outputSocket->setPath(node->getNamePath());
+
+        // Handle node parameters
+        for (ParameterPtr elem : nodeDef->getActiveParameters())
+        {
+            ShaderGraphInputSocket* inputSocket = graph->getInputSocket(elem->getName());
+            ShaderInput* input = newNode->getInput(elem->getName());
+            if (!inputSocket || !input)
+            {
+                throw ExceptionShaderGenError("Node parameter '" + elem->getName() + "' doesn't match an existing input on graph '" + graph->getName() + "'");
+            }
+
+            ParameterPtr paramPtr = node->getParameter(elem->getName());
+            if (paramPtr)
+            {
+                ValuePtr value = paramPtr->getResolvedValue();
+                if (value)
+                {
+                    inputSocket->setValue(value);
+                }
+
+                inputSocket->setPath(paramPtr->getNamePath());
+                input->setPath(inputSocket->getPath());
+
+                const string& unit = paramPtr->getUnit();
+                if (!unit.empty())
+                {
+                    inputSocket->setUnit(unit);
+                    input->setUnit(unit);
+                }
+            }
+
+            // Connect to the graph input
+            inputSocket->makeConnection(input);
+        }
+
+        // Handle node inputs
+        for (const InputPtr& elem : nodeDef->getActiveInputs())
+        {
+            ShaderGraphInputSocket* inputSocket = graph->getInputSocket(elem->getName());
+            ShaderInput* input = newNode->getInput(elem->getName());
+            if (!inputSocket || !input)
+            {
+                throw ExceptionShaderGenError("Node input '" + elem->getName() + "' doesn't match an existing input on graph '" + graph->getName() + "'");
+            }
+
+            InputPtr inputPtr = node->getInput(elem->getName());
+            if (inputPtr)
+            {
+                ValuePtr value = inputPtr->getResolvedValue();
+                if (value)
+                {
+                    inputSocket->setValue(value);
+                }
+
+                inputSocket->setPath(inputPtr->getNamePath());
+                input->setPath(inputSocket->getPath());
+
+                const string& unit = inputPtr->getUnit();
+                if (!unit.empty())
+                {
+                    inputSocket->setUnit(unit);
+                    input->setUnit(unit);
+                }
+            }
+
+            // Connect to the graph input
+            inputSocket->makeConnection(input);
+        }
+
+        // No traversal of uppstream dependencies
+        root = nullptr;
+    }
     else if (element->isA<ShaderRef>())
     {
         ShaderRefPtr shaderRef = element->asA<ShaderRef>();
@@ -655,13 +758,16 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         material = shaderRef->getParent()->asA<Material>();
     }
 
-    if (!root)
+    if (!graph)
     {
         throw ExceptionShaderGenError("Shader generation from element '" + element->getName() + "' of type '" + element->getCategory() + "' is not supported");
     }
 
     // Traverse and create all dependencies upstream
-    graph->addUpstreamDependencies(*root, material, context);
+    if (root)
+    {
+        graph->addUpstreamDependencies(*root, material, context);
+    }
 
     // Add classification according to root node
     ShaderGraphOutputSocket* outputSocket = graph->getOutputSocket();
@@ -688,7 +794,7 @@ ShaderNode* ShaderGraph::addNode(const Node& node, GenContext& context)
     _nodeMap[name] = newNode;
     _nodeOrder.push_back(newNode.get());
 
-    // Check if the node is a convolution. If so mark that the graph has a convolution
+    // Check if the node is a convolution node and mark the graph as such.
     if (newNode->hasClassification(Classification::CONVOLUTION2D))
     {
         _classification |= Classification::CONVOLUTION2D;
