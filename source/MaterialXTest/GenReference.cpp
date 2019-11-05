@@ -20,19 +20,25 @@ namespace mx = MaterialX;
 
 TEST_CASE("GenShader: OSL Reference", "[genshader]")
 {
-    mx::DocumentPtr doc = mx::createDocument();
+    mx::DocumentPtr stdlibDoc = mx::createDocument();
+    mx::DocumentPtr implDoc = mx::createDocument();
 
     mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
-    loadLibraries({ "stdlib" }, searchPath, doc);
+    loadLibraries({ "stdlib" }, searchPath, stdlibDoc);
+
+    mx::FilePath librariesPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
+    mx::FilePath outputPathRel = "stdlib/reference/osl";
+    mx::FilePath outputPath    = librariesPath / outputPathRel;
+
+    // Create output directory
+    outputPath.getParentPath().createDirectory();
+    outputPath.createDirectory();
 
     mx::ShaderGeneratorPtr generator = mx::OslShaderGenerator::create();
     mx::GenContext context(generator);
-    context.registerSourceCodeSearchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    context.registerSourceCodeSearchPath(librariesPath);
 
-    mx::FilePath outputDirector = mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/reference/osl");
-    outputDirector.createDirectory();
-
-    const std::vector<mx::NodeDefPtr> nodedefs = doc->getNodeDefs();
+    const std::vector<mx::NodeDefPtr> nodedefs = stdlibDoc->getNodeDefs();
     for (const mx::NodeDefPtr& nodedef : nodedefs)
     {
         std::string nodeName = nodedef->getName();
@@ -41,17 +47,17 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
             nodeName = nodeName.substr(3);
         }
 
-        mx::NodePtr node = doc->addNode(nodedef->getNodeString(), nodeName, nodedef->getType());
+        mx::NodePtr node = stdlibDoc->addNode(nodedef->getNodeString(), nodeName, nodedef->getType());
         REQUIRE(node);
 
+        const std::string filename = nodeName + ".osl";
         try
         {
             mx::ShaderPtr shader = generator->generate(node->getName(), node, context);
-
-            mx::FilePath filename = outputDirector / (nodeName + ".osl");
-
             std::ofstream file;
-            file.open(filename.asString());
+            const std::string filepath = (outputPath / filename).asString();
+            file.open(filepath);
+            REQUIRE(file.is_open());
             file << shader->getSourceCode();
             file.close();
         }
@@ -61,6 +67,14 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
             std::cout << e.what() << std::endl;
         }
 
-        doc->removeChild(node->getName());
+        stdlibDoc->removeChild(node->getName());
+
+        mx::ImplementationPtr impl = implDoc->addImplementation("IM_" + nodeName + "_osl");
+        impl->setNodeDef(nodedef);
+        impl->setFile(outputPathRel / filename);
+        impl->setFunction(node->getName());
+        impl->setLanguage("osl");
     }
+
+    mx::writeToXmlFile(implDoc, outputPath / "stdlib_osl_impl.mtlx");
 }
