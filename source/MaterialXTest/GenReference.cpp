@@ -71,7 +71,7 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
 
         mx::ImplementationPtr impl = implDoc->addImplementation("IM_" + nodeName + "_osl");
         impl->setNodeDef(nodedef);
-        impl->setFile(outputPathRel / filename);
+        impl->setFile((outputPathRel / filename).asString(mx::FilePath::FormatPosix));
         impl->setFunction(node->getName());
         impl->setLanguage("osl");
     }
