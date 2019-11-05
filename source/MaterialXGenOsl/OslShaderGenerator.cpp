@@ -191,16 +191,16 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
         emitLineBreak(stage);
     }
 
-    // Emit uv transform function
-    if (!context.getOptions().fileTextureVerticalFlip)
+    // Set the include file to use for uv transformations,
+    // depending on the vertical flip flag.
+    if (context.getOptions().fileTextureVerticalFlip)
     {
-        emitInclude("stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.osl", context, stage);
+        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv_vflip.osl";
     }
     else
     {
-        emitInclude("stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv_vflip.osl", context, stage);
+        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "stdlib/" + OslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.osl";
     }
-    emitLineBreak(stage);
 
     // Emit function definitions for all nodes
     emitFunctionDefinitions(graph, context, stage);
@@ -226,9 +226,6 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     setFunctionName(functionName, stage);
     emitLine(functionName, stage, false);
     emitScopeBegin(stage, Syntax::PARENTHESES);
-    string dummy = "dummy";
-    context.makeIdentifier(dummy);
-    emitLine("float " + dummy + " = 0.0,", stage, false);
 
     // Emit all varying inputs
     const VariableBlock& inputs = stage.getInputBlock(OSL::INPUTS);
@@ -336,11 +333,6 @@ void OslShaderGenerator::emitIncludes(ShaderStage& stage, GenContext& context) c
     static const string INCLUDE_SUFFIX = "\"";
     static const StringVec INCLUDE_FILES =
     {
-        "color2.h",
-        "color4.h",
-        "matrix33.h",
-        "vector2.h",
-        "vector4.h",
         "mx_funcs.h"
     };
 
