@@ -153,7 +153,8 @@ class Syntax
     /// Modify the given name string to remove any invalid characters or tokens.
     virtual void makeValidName(string& name) const;
 
-    ///
+    /// Make sure the given name is a unique identifier,
+    /// updating it if needed to make it unique.
     virtual void makeIdentifier(string& name, IdentifierMap& identifiers) const;
 
     /// Create a unique identifier for the given variable name and type.

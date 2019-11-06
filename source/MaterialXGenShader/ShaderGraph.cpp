@@ -586,7 +586,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             inputSocket->makeConnection(input);
         }
 
-        // No traversal of uppstream dependencies
+        // No traversal of upstream dependencies
         root = nullptr;
     }
     else if (element->isA<ShaderRef>())
