@@ -13,10 +13,43 @@
 
 #include <MaterialXGenShader/Util.h>
 #include <MaterialXGenShader/Shader.h>
+#include <MaterialXGenShader/ShaderStage.h>
 #include <MaterialXGenOsl/OslShaderGenerator.h>
 #include <MaterialXGenOsl/OslSyntax.h>
 
 namespace mx = MaterialX;
+
+const mx::ShaderPort* getShaderPort(const mx::ShaderStage& stage, const std::string& name)
+{
+    for (const auto& it : stage.getUniformBlocks())
+    {
+        const mx::VariableBlock& block = *it.second;
+        const mx::ShaderPort* port = block.find(name);
+        if (port)
+        {
+            return port;
+        }
+    }
+    for (const auto& it : stage.getInputBlocks())
+    {
+        const mx::VariableBlock& block = *it.second;
+        const mx::ShaderPort* port = block.find(name);
+        if (port)
+        {
+            return port;
+        }
+    }
+    for (const auto& it : stage.getOutputBlocks())
+    {
+        const mx::VariableBlock& block = *it.second;
+        const mx::ShaderPort* port = block.find(name);
+        if (port)
+        {
+            return port;
+        }
+    }
+    return nullptr;
+}
 
 TEST_CASE("GenShader: OSL Reference", "[genshader]")
 {
@@ -39,6 +72,8 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
     context.registerSourceCodeSearchPath(librariesPath);
 
     const std::vector<mx::NodeDefPtr> nodedefs = stdlibDoc->getNodeDefs();
+//    const std::vector<mx::NodeDefPtr> nodedefs = { stdlibDoc->getNodeDef("ND_place2d_vector2") };
+
     for (const mx::NodeDefPtr& nodedef : nodedefs)
     {
         std::string nodeName = nodedef->getName();
@@ -54,12 +89,38 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
         try
         {
             mx::ShaderPtr shader = generator->generate(node->getName(), node, context);
+
             std::ofstream file;
             const std::string filepath = (outputPath / filename).asString();
             file.open(filepath);
             REQUIRE(file.is_open());
             file << shader->getSourceCode();
             file.close();
+
+            mx::ImplementationPtr impl = implDoc->addImplementation("IM_" + nodeName + "_osl");
+            impl->setNodeDef(nodedef);
+            impl->setFile((outputPathRel / filename).asString(mx::FilePath::FormatPosix));
+            impl->setFunction(node->getName());
+            impl->setLanguage("osl");
+
+            mx::ShaderStage stage = shader->getStage(mx::Stage::PIXEL);
+            for (const mx::ValueElementPtr elem : nodedef->getActiveValueElements())
+            {
+                const mx::ShaderPort* port = getShaderPort(stage, elem->getName());
+                if (port && port->getName() != port->getVariable())
+                {
+                    if (elem->isA<mx::Input>())
+                    {
+                        mx::InputPtr input = impl->addInput(elem->getName(), elem->getType());
+                        input->setImplementationName(port->getVariable());
+                    }
+                    else
+                    {
+                        mx::ParameterPtr param = impl->addParameter(elem->getName(), elem->getType());
+                        param->setImplementationName(port->getVariable());
+                    }
+                }
+            }
         }
         catch (mx::ExceptionShaderGenError e)
         {
@@ -69,11 +130,6 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
 
         stdlibDoc->removeChild(node->getName());
 
-        mx::ImplementationPtr impl = implDoc->addImplementation("IM_" + nodeName + "_osl");
-        impl->setNodeDef(nodedef);
-        impl->setFile((outputPathRel / filename).asString(mx::FilePath::FormatPosix));
-        impl->setFunction(node->getName());
-        impl->setLanguage("osl");
     }
 
     mx::writeToXmlFile(implDoc, outputPath / "stdlib_osl_impl.mtlx");
