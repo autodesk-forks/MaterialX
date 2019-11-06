@@ -90,7 +90,6 @@ ShaderGeneratorPtr OgsFxShaderGenerator::create()
 
 ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
-    resetIdentifiers(context);
     ShaderPtr shader = createShader(name, element, context);
 
     // Turn on fixed formatting since OgsFx doesn't support scientific values

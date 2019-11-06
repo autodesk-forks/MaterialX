@@ -15,6 +15,7 @@
 #include <MaterialXGenShader/UnitSystem.h>
 #include <MaterialXGenShader/ShaderNode.h>
 #include <MaterialXGenShader/TypeDesc.h>
+#include <MaterialXGenShader/Syntax.h>
 
 #include <MaterialXCore/Document.h>
 #include <MaterialXCore/Node.h>
@@ -44,7 +45,7 @@ class ShaderGraph : public ShaderNode
 {
   public:
     /// Constructor.
-    ShaderGraph(const ShaderGraph* parent, const string& name, ConstDocumentPtr document);
+    ShaderGraph(const ShaderGraph* parent, const string& name, ConstDocumentPtr document, const StringSet& reservedWords);
 
     /// Desctructor.
     virtual ~ShaderGraph() { }
@@ -101,6 +102,9 @@ class ShaderGraph : public ShaderNode
 
     /// Return an iterator for traversal upstream from the given output
     static ShaderGraphEdgeIterator traverseUpstream(ShaderOutput* output);
+
+    /// Return the map of unique identifiers used in the scope of this graph.
+    IdentifierMap& getIdentifierMap() { return _identifiers; }
 
   protected:
     /// Add input sockets from an interface element (nodedef, nodegraph or node)
@@ -166,6 +170,7 @@ class ShaderGraph : public ShaderNode
     ConstDocumentPtr _document;
     std::unordered_map<string, ShaderNodePtr> _nodeMap;
     std::vector<ShaderNode*> _nodeOrder;
+    IdentifierMap _identifiers;
 
     // Temporary storage for inputs that require color transformations
     std::unordered_map<ShaderInput*, ColorSpaceTransform> _inputColorTransformMap;

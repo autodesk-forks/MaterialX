@@ -20,10 +20,15 @@ namespace MaterialX
 // ShaderGraph methods
 //
 
-ShaderGraph::ShaderGraph(const ShaderGraph* parent, const string& name, ConstDocumentPtr document) :
+ShaderGraph::ShaderGraph(const ShaderGraph* parent, const string& name, ConstDocumentPtr document, const StringSet& reservedWords) :
     ShaderNode(parent, name),
     _document(document)
 {
+    // Add all reserved words as taken identifiers
+    for (const string& n : reservedWords)
+    {
+        _identifiers[n] = 1;
+    }
 }
 
 void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& context)
@@ -392,7 +397,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const NodeGraph& n
 
     string graphName = nodeGraph.getName();
     context.getShaderGenerator().getSyntax().makeValidName(graphName);
-    ShaderGraphPtr graph = std::make_shared<ShaderGraph>(parent, graphName, nodeGraph.getDocument());
+    ShaderGraphPtr graph = std::make_shared<ShaderGraph>(parent, graphName, nodeGraph.getDocument(), context.getReservedWords());
 
     // Clear classification
     graph->_classification = 0;
@@ -459,7 +464,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             throw ExceptionShaderGenError("Given output '" + output->getName() + "' has no interface valid for shader generation");
         }
 
-        graph = std::make_shared<ShaderGraph>(parent, name, element->getDocument());
+        graph = std::make_shared<ShaderGraph>(parent, name, element->getDocument(), context.getReservedWords());
 
         // Clear classification
         graph->_classification = 0;
@@ -490,7 +495,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             throw ExceptionShaderGenError("Could not find a nodedef for node '" + node->getName() + "'");
         }
 
-        graph = std::make_shared<ShaderGraph>(parent, name, element->getDocument());
+        graph = std::make_shared<ShaderGraph>(parent, name, element->getDocument(), context.getReservedWords());
 
         // Create input sockets
         graph->addInputSockets(*nodeDef, context);
@@ -593,7 +598,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             throw ExceptionShaderGenError("Could not find a nodedef for shader '" + shaderRef->getName() + "'");
         }
 
-        graph = std::make_shared<ShaderGraph>(parent, name, element->getDocument());
+        graph = std::make_shared<ShaderGraph>(parent, name, element->getDocument(), context.getReservedWords());
 
         // Create input sockets
         graph->addInputSockets(*nodeDef, context);
@@ -1322,12 +1327,12 @@ void ShaderGraph::setVariableNames(GenContext& context)
 
     for (ShaderGraphInputSocket* inputSocket : getInputSockets())
     {
-        const string variable = syntax.getVariableName(inputSocket->getName(), inputSocket->getType(), context);
+        const string variable = syntax.getVariableName(inputSocket->getName(), inputSocket->getType(), _identifiers);
         inputSocket->setVariable(variable);
     }
     for (ShaderGraphOutputSocket* outputSocket : getOutputSockets())
     {
-        const string variable = syntax.getVariableName(outputSocket->getName(), outputSocket->getType(), context);
+        const string variable = syntax.getVariableName(outputSocket->getName(), outputSocket->getType(), _identifiers);
         outputSocket->setVariable(variable);
     }
     for (ShaderNode* node : getNodes())
@@ -1335,14 +1340,14 @@ void ShaderGraph::setVariableNames(GenContext& context)
         for (ShaderInput* input : node->getInputs())
         {
             string variable = input->getNode()->getName() + "_" + input->getName();
-            variable = syntax.getVariableName(variable, input->getType(), context);
+            variable = syntax.getVariableName(variable, input->getType(), _identifiers);
             input->setVariable(variable);
         }
         for (ShaderOutput* output : node->getOutputs())
         {
             // Node outputs use long names for better code readability
             string variable = output->getNode()->getName() + "_" + output->getName();
-            variable = syntax.getVariableName(variable, output->getType(), context);
+            variable = syntax.getVariableName(variable, output->getType(), _identifiers);
             output->setVariable(variable);
         }
     }
