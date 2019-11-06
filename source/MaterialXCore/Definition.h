@@ -485,7 +485,7 @@ class UnitDef : public Element
         return getChildOfType<Unit>(name);
     }
 
-    /// Return a vector of all Member elements in the TypeDef.
+    /// Return a vector of all Unit elements in the UnitDef.
     vector<UnitPtr> getUnits() const
     {
         return getChildrenOfType<Unit>();
@@ -508,39 +508,19 @@ class UnitDef : public Element
 /// A unit type definition element within a Document.
 class UnitTypeDef : public Element
 {
-public:
+  public:
     UnitTypeDef(ElementPtr parent, const string& name) :
         Element(parent, CATEGORY, name)
     {
     }
     virtual ~UnitTypeDef() { }
 
-    /// Set the default unit string for the UnitTypeDef.
-    void setDefault(const string& value)
-    {
-        setAttribute(DEFAULT_ATTRIBUTE, value);
-    }
-
-    /// Return true if the given TypeDef has a default unit string.
-    bool hasDefault() const
-    {
-        return hasAttribute(DEFAULT_ATTRIBUTE);
-    }
-
-    /// Return the default unit string for the UnitTypeDef.
-    const string& getDefault() const
-    {
-        return getAttribute(DEFAULT_ATTRIBUTE);
-    }
-
     /// Find all UnitDefs for the UnitTypeDef
     vector<UnitDefPtr> getUnitDefs() const;
 
-public:
+  public:
     static const string CATEGORY;
-    static const string DEFAULT_ATTRIBUTE;
 };
-
 
 } // namespace MaterialX
 
