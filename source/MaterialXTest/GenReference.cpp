@@ -120,7 +120,7 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
                 }
             }
         }
-        catch (mx::ExceptionShaderGenError e)
+        catch (mx::ExceptionShaderGenError& e)
         {
             std::cout << "Failed generating node '" << nodeName << " : ";
             std::cout << e.what() << std::endl;
