@@ -72,8 +72,6 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
     context.registerSourceCodeSearchPath(librariesPath);
 
     const std::vector<mx::NodeDefPtr> nodedefs = stdlibDoc->getNodeDefs();
-//    const std::vector<mx::NodeDefPtr> nodedefs = { stdlibDoc->getNodeDef("ND_place2d_vector2") };
-
     for (const mx::NodeDefPtr& nodedef : nodedefs)
     {
         std::string nodeName = nodedef->getName();
