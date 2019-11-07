@@ -44,15 +44,19 @@ public:
     /// if no such node is found.
     RtObject findNode(const RtToken& name) const;
 
-    /// Set the interface for the graph, creating inputs and outputs 
-    /// according to the given nodedef object.
-    void setInterface(RtObject nodedef);
+    /// Return the port count.
+    size_t numPorts() const;
 
-    /// Return the internal node holding the input interface.
-    RtObject getInputsNode() const;
+    /// Return the port count.
+    size_t numOutputs() const;
 
-    /// Return the internal node holding the output interface.
-    RtObject getOutputsNode() const;
+    /// Return a port by index, or a null object 
+    /// if no such port exists.
+    RtPort getPort(size_t index) const;
+
+    /// Find a port by name, or a null object 
+    /// if no such port is found.
+    RtPort findPort(const RtToken& name) const;
 
     /// Convert this graph to a string in the DOT language syntax. This can be
     /// used to visualise the graph using GraphViz (http://www.graphviz.org).

@@ -90,11 +90,6 @@ public:
         return (_flags & RtPortFlag::UNIFORM) != 0;
     }
 
-    bool isInterface() const
-    {
-        return (_flags & RtPortFlag::INTERFACE) != 0;
-    }
-
     bool canConnectTo(const PrvPortDef* dest) const;
 
     static const RtToken DEFAULT_OUTPUT_NAME;

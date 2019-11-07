@@ -203,12 +203,12 @@ namespace
         }
 
         const RtToken nodedefName(srcNodedef->getName());
-        PrvObjectHandle nodedefH = stage->findElementByName(nodedefName);
+        PrvObjectHandle nodedefH = stage->findChildByName(nodedefName);
         if (!nodedefH)
         {
             // NodeDef is not loaded yet so create it now.
             nodedefH = readNodeDef(srcNodedef);
-            stage->addElement(nodedefH);
+            stage->addChild(nodedefH);
         }
 
         const RtToken nodeName(src->getName());
@@ -236,45 +236,32 @@ namespace
 
     PrvObjectHandle readNodeGraph(const NodeGraphPtr& src, PrvStage* stage)
     {
-        PrvObjectHandle graphInterfaceH;
-        PrvNodeDef* graphInterface;
-
-        NodeDefPtr srcNodedef = src->getNodeDef();
-        if (srcNodedef)
-        {
-            graphInterfaceH = readNodeDef(srcNodedef);
-            graphInterface = graphInterfaceH->asA<PrvNodeDef>();
-        }
-        else
-        {
-            // No nodedef was set on the graph, so create an interface
-            // with the graph outputs, and assign the interface below.
-            // Set the category to the custom graph interface category
-            // to indicate this is not a "real" nodedef from a library.
-            const RtToken nodedefName("ND_" + src->getName());
-            graphInterfaceH = PrvNodeDef::createNew(nodedefName, PrvNodeGraph::GRAPH_INTERFACE_CATEGORY);
-            graphInterface = graphInterfaceH->asA<PrvNodeDef>();
-
-            for (auto elem : src->getOutputs())
-            {
-                const RtToken name(elem->getName());
-                const RtToken type(elem->getType());
-                PrvObjectHandle output = PrvPortDef::createNew(name, type, RtValue(),
-                                                               RtPortFlag::OUTPUT);
-                graphInterface->addPort(output);
-            }
-        }
-
         const RtToken nodegraphName(src->getName());
         PrvObjectHandle nodegraphH = PrvNodeGraph::createNew(nodegraphName);
         PrvNodeGraph* nodegraph = nodegraphH->asA<PrvNodeGraph>();
 
         readAttributes(src, nodegraph, nodegraphIgnoreAttr);
 
-        // Assign the graph interface.
-        nodegraph->setInterface(graphInterfaceH);
-        PrvNode* graphInputs = nodegraph->inputsNode();
-        PrvNode* graphOutputs = nodegraph->outputsNode();
+        bool fixedInterface = false;
+        NodeDefPtr srcNodeDef = src->getNodeDef();
+        if (srcNodeDef)
+        {
+            fixedInterface = true;
+            PrvObjectHandle graphNodeDefH = readNodeDef(srcNodeDef);
+            nodegraph->createInterface(graphNodeDefH);
+        }
+        else
+        {
+            // No nodedef interface was set on the graph.
+            // Create all outputs here, inputs are created
+            // from internal interface connections below.
+            for (auto elem : src->getOutputs())
+            {
+                const RtToken name(elem->getName());
+                const RtToken type(elem->getType());
+                nodegraph->addPort(PrvPortDef::createNew(name, type, RtValue(), RtPortFlag::OUTPUT));
+            }
+        }
 
         // Create all nodes.
         for (auto child : src->getChildren())
@@ -283,7 +270,7 @@ namespace
             if (srcNnode)
             {
                 PrvObjectHandle nodeH = readNode(srcNnode, stage);
-                nodegraph->addElement(nodeH);
+                nodegraph->addChild(nodeH);
 
                 // Check for connections to the graph interface
                 PrvNode* node = nodeH->asA<PrvNode>();
@@ -293,11 +280,20 @@ namespace
                     if (!interfaceName.empty())
                     {
                         const RtToken graphInputName(interfaceName);
-                        RtPort graphInput = graphInputs->findPort(graphInputName);
+                        RtPort graphInput = nodegraph->findPort(graphInputName);
                         if (!graphInput)
                         {
-                            throw ExceptionRuntimeError("Interface name '" + interfaceName + "' does not match an input on the interface for nodegraph '" + 
-                                                        nodegraph->getName().str() + "'");
+                            if (fixedInterface)
+                            {
+                                // The input should have been created already.
+                                // This is an error so throw up.
+                                throw ExceptionRuntimeError("Interface name '" + interfaceName + "' does not match an input on the nodedef set for nodegraph '" +
+                                    nodegraph->getName().str() + "'");
+                            }
+                            // Create the input
+                            const RtToken graphInputType(elem->getType());
+                            const RtValue graphInputValue(readValue(elem->getValue(), graphInputType, nodegraph->getValueStorage()));
+                            nodegraph->addPort(PrvPortDef::createNew(graphInputName, graphInputType, graphInputValue, RtPortFlag::INPUT));
                         }
                         const RtToken inputName(elem->getName());
                         RtPort input = node->findPort(inputName);
@@ -331,9 +327,11 @@ namespace
                     if (downstreamElem->isA<Output>())
                     {
                         RtPort output = upstreamNode->getPort(0); // TODO: Fixme!
-                        RtPort graphOutput = graphOutputs->numPorts() == 1 ? // Single outputs can have arbitrary names.
-                            graphOutputs->getPort(0) :                       // so access by index in that case.
-                            graphOutputs->findPort(RtToken(downstreamElem->getName()));
+                        // Single outputs can have arbitrary names,
+                        // so access by index in that case.
+                        RtPort graphOutput = nodegraph->numOutputs() == 1 ?
+                            nodegraph->getPort(0) :
+                            nodegraph->findPort(RtToken(downstreamElem->getName()));
                         PrvNode::connect(output, graphOutput);
                     }
                     else
@@ -368,7 +366,7 @@ namespace
 
         for (auto child : src->getChildren())
         {
-            elem->addElement(readUnknown(child));
+            elem->addChild(readUnknown(child));
         }
 
         return elemH;
@@ -442,8 +440,10 @@ namespace
                     if (input.isConnected())
                     {
                         RtPort sourcePort = input.getSourcePort();
-                        if (sourcePort.isInterface())
+                        PrvNode* sourceNode = sourcePort.data()->asA<PrvNode>();
+                        if (sourceNode->getCategory() == PrvNodeGraph::INTERNAL_NODEDEF)
                         {
+                            // This is a connection to the internal node of a graph
                             valueElem->setInterfaceName(sourcePort.getName());
                         }
                     }
@@ -458,13 +458,14 @@ namespace
                     if (input.isConnected())
                     {
                         RtPort sourcePort = input.getSourcePort();
-                        if (sourcePort.isInterface())
+                        PrvNode* sourceNode = sourcePort.data()->asA<PrvNode>();
+                        if (sourceNode->getCategory() == PrvNodeGraph::INTERNAL_NODEDEF)
                         {
+                            // This is a connection to the internal node of a graph
                             valueElem->setInterfaceName(sourcePort.getName());
                         }
                         else
                         {
-                            PrvNode* sourceNode = sourcePort.data()->asA<PrvNode>();
                             InputPtr inputElem = valueElem->asA<Input>();
                             inputElem->setNodeName(sourceNode->getName());
                             if (sourceNode->numOutputs() > 1)
@@ -507,7 +508,7 @@ namespace
         NodeGraphPtr destNodeGraph = dest->addNodeGraph(nodegraph->getName());
         writeAttributes(nodegraph, destNodeGraph);
 
-        for (auto node : nodegraph->getElements())
+        for (auto node : nodegraph->getChildren())
         {
             writeNode(node->asA<PrvNode>(), destNodeGraph);
         }
@@ -520,7 +521,7 @@ namespace
         ElementPtr unknownElem = dest->addChildOfCategory(unknown->getCategory(), unknown->getName());
         writeAttributes(unknown, unknownElem);
 
-        for (auto child : unknown->getElements())
+        for (auto child : unknown->getChildren())
         {
             writeUnknown(child->asA<PrvUnknown>(), unknownElem);
         }
@@ -552,7 +553,7 @@ void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
             {
                 // Make sure the nodedef has not been loaded already.
                 // When reading node instances their nodedef is loaded as well.
-                if (stage->findElementByName(RtToken(elem->getName())))
+                if (stage->findChildByName(RtToken(elem->getName())))
                 {
                     continue;
                 }
@@ -570,7 +571,7 @@ void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
             {
                 objH = readUnknown(elem);
             }
-            stage->addElement(objH);
+            stage->addChild(objH);
         }
     }
 }
@@ -580,9 +581,9 @@ void RtCoreIo::write(DocumentPtr& doc, RtCoreIo::WriteFilter filter)
     PrvStage* stage = data()->asA<PrvStage>();
     writeAttributes(stage, doc);
 
-    for (size_t i = 0; i < stage->numElements(); ++i)
+    for (size_t i = 0; i < stage->numChildren(); ++i)
     {
-        PrvObjectHandle elem = stage->getElement(i);
+        PrvObjectHandle elem = stage->getChild(i);
         if (!filter || filter(RtObject(elem)))
         {
             if (elem->getObjType() == RtObjType::NODEDEF)

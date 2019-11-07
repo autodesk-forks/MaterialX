@@ -4,6 +4,7 @@
 //
 
 #include <MaterialXRuntime/Private/PrvNode.h>
+#include <MaterialXRuntime/RtToken.h>
 
 /// @file
 /// TODO: Docs
@@ -17,20 +18,25 @@ PrvNode::Port::Port() :
 {
 }
 
-PrvNode::PrvNode(const RtToken& name, const PrvObjectHandle& nd) :
-    PrvElement(RtObjType::NODE, name),
+PrvNode::PrvNode(const RtToken& name, const PrvObjectHandle& nd, RtObjType /*objType*/) :
+    PrvValueStoringElement(RtObjType::NODE, name),
     _nodedef(nd)
 {
-    const size_t numPorts = nodedef()->numElements();
+    const size_t numPorts = nodedef()->numPorts();
     _ports.resize(numPorts);
 
     // Set indices and default values
     for (size_t i = 0; i < numPorts; ++i)
     {
         PrvPortDef* p = nodedef()->port(i);
-        _portIndices[p->getName()] = i;
         _ports[i].value = p->getValue();
     }
+}
+
+PrvNode::PrvNode(const RtToken& name, RtObjType /*objType*/) :
+    PrvValueStoringElement(RtObjType::NODEGRAPH, name),
+    _nodedef(nullptr)
+{
 }
 
 PrvObjectHandle PrvNode::createNew(const RtToken& name, const PrvObjectHandle& nodedef)

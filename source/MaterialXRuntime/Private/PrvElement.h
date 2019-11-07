@@ -29,7 +29,31 @@ public:
         return _name;
     }
 
+    void addChild(PrvObjectHandle elem);
+
+    void removeChild(const RtToken& name);
+
+    size_t numChildren() const
+    {
+        return _children.size();
+    }
+
+    PrvObjectHandle getChild(size_t index) const
+    {
+        return index < _children.size() ? _children[index] : nullptr;
+    }
+
+    const PrvObjectHandleVec& getChildren() const
+    {
+        return _children;
+    }
+
+    virtual PrvObjectHandle findChildByName(const RtToken& name) const;
+
+    virtual PrvObjectHandle findChildByPath(const string& path) const;
+
     void addAttribute(const RtToken& name, const RtToken& type, const RtValue& value);
+
     void removeAttribute(const RtToken& name);
 
     const RtAttribute* getAttribute(const RtToken& name) const
@@ -59,6 +83,8 @@ public:
         return _attributes.size();
     }
 
+    static const string PATH_SEPARATOR;
+
 protected:
     PrvElement(RtObjType objType, const RtToken& name);
 
@@ -67,58 +93,38 @@ protected:
         _name = name;
     }
 
+    RtToken _name;
+
+    PrvObjectHandleVec _children;
+    RtTokenMap<PrvObjectHandle> _childrenByName;
+
     using AttrPtr = std::shared_ptr<RtAttribute>;
 
-    RtToken _name;
     vector<AttrPtr> _attributes;
     RtTokenMap<AttrPtr> _attributesByName;
+
     friend class PrvStage;
 };
 
 
-class PrvCompound : public PrvElement
+class PrvValueStoringElement : public PrvElement
 {
 public:
-    PrvCompound(RtObjType objType, const RtToken& name);
-
-    virtual ~PrvCompound() {}
-
-    void addElement(PrvObjectHandle elem);
-    void removeElement(const RtToken& name);
-
-    size_t numElements() const
-    {
-        return _elements.size();
-    }
-
-    PrvObjectHandle getElement(size_t index) const
-    {
-        return index < _elements.size() ? _elements[index] : nullptr;
-    }
-
-    const PrvObjectHandleVec& getElements() const
-    {
-        return _elements;
-    }
-
-    virtual PrvObjectHandle findElementByName(const RtToken& name) const;
-    virtual PrvObjectHandle findElementByPath(const string& path) const;
-
     RtLargeValueStorage& getValueStorage()
     {
         return _storage;
     }
 
-    static const string PATH_SEPARATOR;
-
 protected:
-    PrvObjectHandleVec _elements;
-    RtTokenMap<PrvObjectHandle> _elementsByName;
+    PrvValueStoringElement(RtObjType objType, const RtToken& name):
+        PrvElement(objType, name)
+    {}
+
     RtLargeValueStorage _storage;
 };
 
 
-class PrvUnknown : public PrvCompound
+class PrvUnknown : public PrvElement
 {
 public:
     PrvUnknown(const RtToken& name, const RtToken& category);

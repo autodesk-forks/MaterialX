@@ -27,7 +27,7 @@ RtObject RtNodeDef::createNew(const RtToken& name, const RtToken& category, RtOb
         {
             throw ExceptionRuntimeError("Given parent object is not a valid stage");
         }
-        parent.data()->asA<PrvStage>()->addElement(nodedef);
+        parent.data()->asA<PrvStage>()->addChild(nodedef);
     }
 
     return RtObject(nodedef);
@@ -50,7 +50,7 @@ void RtNodeDef::addPort(RtObject portdef)
 
 size_t RtNodeDef::numPorts() const
 {
-    return data()->asA<PrvNodeDef>()->numElements();
+    return data()->asA<PrvNodeDef>()->numChildren();
 }
 
 size_t RtNodeDef::numOutputs() const
@@ -60,13 +60,13 @@ size_t RtNodeDef::numOutputs() const
 
 RtObject RtNodeDef::getPort(size_t index) const
 {
-    PrvObjectHandle portdef = data()->asA<PrvNodeDef>()->getElement(index);
+    PrvObjectHandle portdef = data()->asA<PrvNodeDef>()->getChild(index);
     return RtObject(portdef);
 }
 
 RtObject RtNodeDef::findPort(const RtToken& name) const
 {
-    PrvObjectHandle portdef = data()->asA<PrvNodeDef>()->findElementByName(name);
+    PrvObjectHandle portdef = data()->asA<PrvNodeDef>()->findChildByName(name);
     return RtObject(portdef);
 }
 

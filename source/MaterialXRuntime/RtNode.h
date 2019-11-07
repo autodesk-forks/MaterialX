@@ -63,9 +63,6 @@ public:
     /// Return true if this port is connectable.
     bool isConnectable() const;
 
-    /// Return true if this is a graph interface port.
-    bool isInterface() const;
-
     /// Return the value for this port.
     const RtValue& getValue() const;
 
@@ -145,6 +142,7 @@ private:
     PrvObjectHandle _data;
     size_t _index;
     friend class PrvNode;
+    friend class PrvNodeGraph;
 };
 
 /// @class RtNode

@@ -27,7 +27,7 @@ RtObject RtNodeGraph::createNew(const RtToken& name, RtObject parent)
         {
             throw ExceptionRuntimeError("Given parent object is not a valid stage");
         }
-        parent.data()->asA<PrvStage>()->addElement(nodegraph);
+        parent.data()->asA<PrvStage>()->addChild(nodegraph);
     }
 
     return RtObject(nodegraph);
@@ -45,36 +45,39 @@ void RtNodeGraph::addNode(RtObject node)
 
 size_t RtNodeGraph::numNodes() const
 {
-    return data()->asA<PrvNodeGraph>()->numElements();
+    return data()->asA<PrvNodeGraph>()->numChildren();
 }
 
 RtObject RtNodeGraph::getNode(size_t index) const
 {
-    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->getElement(index);
+    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->getChild(index);
     return RtObject(node);
 }
 
 RtObject RtNodeGraph::findNode(const RtToken& name) const
 {
-    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->findElementByName(name);
+    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->findChildByName(name);
     return RtObject(node);
 }
 
-void RtNodeGraph::setInterface(RtObject nodedef)
+size_t RtNodeGraph::numPorts() const
 {
-    return data()->asA<PrvNodeGraph>()->setInterface(nodedef.data());
+    return data()->asA<PrvNodeGraph>()->numPorts();
 }
 
-RtObject RtNodeGraph::getInputsNode() const
+size_t RtNodeGraph::numOutputs() const
 {
-    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->getInputsNode();
-    return RtObject(node);
+    return data()->asA<PrvNodeGraph>()->numOutputs();
 }
 
-RtObject RtNodeGraph::getOutputsNode() const
+RtPort RtNodeGraph::getPort(size_t index) const
 {
-    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->getOutputsNode();
-    return RtObject(node);
+    return data()->asA<PrvNodeGraph>()->getPort(index);
+}
+
+RtPort RtNodeGraph::findPort(const RtToken& name) const
+{
+    return data()->asA<PrvNodeGraph>()->findPort(name);
 }
 
 string RtNodeGraph::asStringDot() const

@@ -13,16 +13,14 @@
 namespace MaterialX
 {
 
-const RtToken PrvNodeGraph::INPUTS("inputs");
-const RtToken PrvNodeGraph::OUTPUTS("outputs");
-const RtToken PrvNodeGraph::GRAPH_INPUTS("graphoutputs");
-const RtToken PrvNodeGraph::GRAPH_OUTPUTS("graphinputs");
-const RtToken PrvNodeGraph::GRAPH_INTERFACE_CATEGORY("__graphinterface"); // internal name so use prefix to reduce risk of name collisions
-const RtToken PrvNodeGraph::ATTR_NODEDEF("nodedef");
+const RtToken PrvNodeGraph::INTERNAL_NODEDEF("__internal_nodedef__");
+const RtToken PrvNodeGraph::INTERNAL_NODE("__internal_node__");
 
 PrvNodeGraph::PrvNodeGraph(const RtToken& name) :
-    PrvCompound(RtObjType::NODEGRAPH, name)
+    PrvNode(name)
 {
+    _internalNodeDef = PrvNodeDef::createNew(INTERNAL_NODEDEF, INTERNAL_NODEDEF);
+    _internalNode = PrvNode::createNew(INTERNAL_NODE, _internalNodeDef);
 }
 
 PrvObjectHandle PrvNodeGraph::createNew(const RtToken& name)
@@ -36,59 +34,110 @@ void PrvNodeGraph::addNode(PrvObjectHandle node)
     {
         throw ExceptionRuntimeError("Given object is not a valid node");
     }
-    PrvNode* n = node->asA<PrvNode>();
-    if (_elementsByName.count(n->getName()))
-    {
-        throw ExceptionRuntimeError("A node named '" + n->getName().str() + "' already exists for nodegraph '" + getName().str() + "'");
-    }
-    _elements.push_back(node);
-    _elementsByName[n->getName()] = node;
+    addChild(node);
 }
 
-void PrvNodeGraph::setInterface(PrvObjectHandle nodedef)
+/*
+void PrvNodeGraph::createInterface(PrvObjectHandle nodedef)
 {
-    if (!nodedef->hasApi(RtApiType::NODEDEF))
+    _externalNodeDef = nodedef;
+
+    PrvNodeDef* externDef = externalNodeDef();
+    PrvNodeDef* internDef = internalNodeDef();
+
+    // Create the internal interface as a mirror of the external interface.
+    // 
+    // First the inputs which turn into outputs.
+    for (size_t i = externDef->numOutputs(); i < externDef->numPorts(); ++i)
     {
-        throw ExceptionRuntimeError("Given object is not a valid nodedef");
-    }
-
-    PrvNodeDef* nd = nodedef->asA<PrvNodeDef>();
-
-    if (nd->getCategory() != GRAPH_INTERFACE_CATEGORY)
-    {
-        addAttribute(ATTR_NODEDEF, RtType::TOKEN, RtValue(nd->getName()));
-    }
-
-    // Create nodedefs for the input and output interface nodes.
-    _inputsDef = PrvNodeDef::createNew(INPUTS, GRAPH_INPUTS);
-    _outputsDef = PrvNodeDef::createNew(OUTPUTS, GRAPH_OUTPUTS);
-
-    for (size_t i = 0; i < nd->numElements(); ++i)
-    {
-        const PrvPortDef* p = nd->port(i);
+        const PrvPortDef* p = externDef->port(i);
         uint32_t flags = p->getFlags();
-        PrvNodeDef* def;
-        if (p->isInput())
-        {
-            // And interface input turns into an output on the inputs node.
-            flags &= ~RtPortFlag::INPUT;
-            flags |= RtPortFlag::OUTPUT | RtPortFlag::INTERFACE;
-            def = _inputsDef->asA<PrvNodeDef>();
-        }
-        else
-        {
-            // And interface output turns into an input on the outputs node.
-            flags &= ~RtPortFlag::OUTPUT;
-            flags |= RtPortFlag::INPUT | RtPortFlag::INTERFACE;
-            def = _outputsDef->asA<PrvNodeDef>();
-        }
+        flags &= ~RtPortFlag::INPUT;
+        flags |= RtPortFlag::OUTPUT;
         PrvObjectHandle port = PrvPortDef::createNew(p->getName(), p->getType(), p->getValue(), flags);
-        def->addPort(port);
+        internDef->addPort(port);
+    }
+    // Then the outputs which turn into inputs.
+    for (size_t i = 0; i < externDef->numOutputs(); ++i)
+    {
+        const PrvPortDef* p = externDef->port(i);
+        uint32_t flags = p->getFlags();
+        flags &= ~RtPortFlag::OUTPUT;
+        flags |= RtPortFlag::INPUT;
+        PrvObjectHandle port = PrvPortDef::createNew(p->getName(), p->getType(), p->getValue(), flags);
+        internDef->addPort(port);
     }
 
-    // Instantiate the input and output interface nodes.
-    _inputsNode = PrvNode::createNew(INPUTS, _inputsDef);
-    _outputsNode = PrvNode::createNew(OUTPUTS, _outputsDef);
+    _externalNode = PrvNode::createNew(EXTERNAL_NODE, _externalNodeDef);
+    _internalNode = PrvNode::createNew(INTERNAL_NODE, _internalNodeDef);
+}
+*/
+
+void PrvNodeGraph::addPort(PrvObjectHandle portdef)
+{
+    nodedef()->addPort(portdef);
+
+    PrvNodeDef* internDef = internalNodeDef();
+    PrvNode* internNode = internalNode();
+
+    const PrvPortDef* pd = portdef->asA<PrvPortDef>();
+    uint32_t flags = pd->getFlags();
+
+    PrvNode::Port p;
+    p.value = pd->getValue();
+    p.colorspace = pd->getColorSpace();
+    p.unit = pd->getUnit();
+
+    if (pd->isInput())
+    {
+        // Insert last among the inputs
+        _ports.push_back(p);
+
+        // Create a portdef for internal node
+        // reversing type input<->output
+        flags &= ~RtPortFlag::INPUT;
+        flags |= RtPortFlag::OUTPUT;
+        internDef->addPort(PrvPortDef::createNew(pd->getName(), pd->getType(), pd->getValue(), flags));
+
+        // Insert last among the internal outputs
+        auto it = internNode->_ports.begin() + internNode->numOutputs();
+        internNode->_ports.insert(it, 1, p);
+    }
+    else // an output
+    {
+        // Insert last among the outputs
+        auto it = _ports.begin() + numOutputs();
+        _ports.insert(it, 1, p);
+
+        // Create a portdef for internal node
+        // reversing type input<->output
+        flags &= ~RtPortFlag::OUTPUT;
+        flags |= RtPortFlag::INPUT;
+        internDef->addPort(PrvPortDef::createNew(pd->getName(), pd->getType(), pd->getValue(), flags));
+
+        // Insert last among the internal inputs
+        internNode->_ports.push_back(p);
+    }
+}
+
+void PrvNodeGraph::removePort(const RtToken& name)
+{
+    size_t index = nodedef()->findPortIndex(name);
+    if (index != INVALID_INDEX)
+    {
+        _ports.erase(_ports.begin() + index);
+    }
+    nodedef()->removePort(name);
+
+    PrvNodeDef* internDef = internalNodeDef();
+    PrvNode* internNode = internalNode();
+
+    index = internDef->findPortIndex(name);
+    if (index != INVALID_INDEX)
+    {
+        internNode->_ports.erase(internNode->_ports.begin() + index);
+    }
+    internDef->removePort(name);
 }
 
 string PrvNodeGraph::asStringDot() const
@@ -96,15 +145,13 @@ string PrvNodeGraph::asStringDot() const
     string dot = "digraph {\n";
 
     // Add alla nodes.
-    PrvNode* inputs = inputsNode();
-    dot += "    \"" + inputs->getName().str() + "\" ";
+    dot += "    \"inputs\" ";
     dot += "[shape=box];\n";
-    PrvNode* outputs = outputsNode();
-    dot += "    \"" + outputs->getName().str() + "\" ";
+    dot += "    \"outputs\" ";
     dot += "[shape=box];\n";
 
     // Add alla nodes.
-    for (size_t i = 0; i < numNodes(); ++i)
+    for (size_t i = 0; i < numChildren(); ++i)
     {
         dot += "    \"" + node(i)->getName().str() + "\" ";
         dot += "[shape=ellipse];\n";
@@ -112,6 +159,11 @@ string PrvNodeGraph::asStringDot() const
 
     auto writeConnections = [](PrvNode* n, string& dot)
     {
+        string dstName = n->getName().str();
+        if (n->getName() == INTERNAL_NODE)
+        {
+            dstName += "outputs";
+        }
         for (size_t j = 0; j < n->numPorts(); ++j)
         {
             RtPort p = n->getPort(j);
@@ -119,19 +171,25 @@ string PrvNodeGraph::asStringDot() const
             {
                 RtPort src = p.getSourcePort();
                 RtNode srcNode(src.getNode());
-                dot += "    \"" + srcNode.getName().str();
-                dot += "\" -> \"" + n->getName().str();
+                string srcName = srcNode.getName().str();
+                if (srcNode.getName() == INTERNAL_NODE)
+                {
+                    srcName += "inputs";
+                }
+                dot += "    \"" + srcName;
+                dot += "\" -> \"" + dstName;
                 dot += "\" [label=\"" + p.getName().str() + "\"];\n";
             }
         }
     };
 
     // Add all connections.
-    for (size_t i = 0; i < numNodes(); ++i)
+    for (size_t i = 0; i < numChildren(); ++i)
     {
         writeConnections(node(i), dot);
     }
-    writeConnections(outputs, dot);
+
+    writeConnections(internalNode(), dot);
 
     dot += "}\n";
 

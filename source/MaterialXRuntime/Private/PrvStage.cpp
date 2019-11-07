@@ -17,7 +17,7 @@ namespace MaterialX
 {
 
 PrvStage::PrvStage(const RtToken& name) :
-    PrvCompound(RtObjType::STAGE, name),
+    PrvElement(RtObjType::STAGE, name),
     _selfRefCount(0)
 {
 }
@@ -57,17 +57,17 @@ void PrvStage::removeReference(const RtToken& name)
     }
 }
 
-PrvObjectHandle PrvStage::findElementByName(const RtToken& name) const
+PrvObjectHandle PrvStage::findChildByName(const RtToken& name) const
 {
-    auto it = _elementsByName.find(name);
-    if (it != _elementsByName.end())
+    auto it = _childrenByName.find(name);
+    if (it != _childrenByName.end())
     {
         return it->second;
     }
     for (auto rs : _refStages)
     {
         PrvStage* refStage = rs->asA<PrvStage>();
-        PrvObjectHandle elem = refStage->findElementByName(name);
+        PrvObjectHandle elem = refStage->findChildByName(name);
         if (elem)
         {
             return elem;
@@ -76,7 +76,7 @@ PrvObjectHandle PrvStage::findElementByName(const RtToken& name) const
     return nullptr;
 }
 
-PrvObjectHandle PrvStage::findElementByPath(const string& path) const
+PrvObjectHandle PrvStage::findChildByPath(const string& path) const
 {
     const StringVec elementNames = splitString(path, PATH_SEPARATOR);
     if (elementNames.empty())
@@ -86,23 +86,21 @@ PrvObjectHandle PrvStage::findElementByPath(const string& path) const
 
     size_t i = 0;
     RtToken name(elementNames[i++]);
-    PrvObjectHandle elem = findElementByName(name);
+    PrvObjectHandle elem = findChildByName(name);
 
     while (elem && i < elementNames.size())
     {
-        if (elem->hasApi(RtApiType::COMPOUND))
-        {
-            name = elementNames[i];
-            elem = elem->asA<PrvCompound>()->findElementByName(name);
-        }
-        else if (elem->hasApi(RtApiType::NODE))
+        name = elementNames[i++];
+        if (elem->hasApi(RtApiType::NODE))
         {
             PrvNode* node = elem->asA<PrvNode>();
             PrvNodeDef* nodedef = node->getNodeDef()->asA<PrvNodeDef>();
-            name = elementNames[i];
-            elem = nodedef->findElementByName(name);
+            elem = nodedef->findChildByName(name);
         }
-        ++i;
+        else
+        {
+            elem = elem->asA<PrvElement>()->findChildByName(name);
+        }
     }
 
     if (!elem || i < elementNames.size())
@@ -112,7 +110,7 @@ PrvObjectHandle PrvStage::findElementByPath(const string& path) const
         for (auto it : _refStages)
         {
             PrvStage* refStage = it->asA<PrvStage>();
-            elem = refStage->findElementByPath(path);
+            elem = refStage->findChildByPath(path);
             if (elem)
             {
                 break;

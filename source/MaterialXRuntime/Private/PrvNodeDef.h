@@ -18,7 +18,7 @@
 namespace MaterialX
 {
 
-class PrvNodeDef : public PrvCompound
+class PrvNodeDef : public PrvValueStoringElement
 {
 public:
     PrvNodeDef(const RtToken& name, const RtToken& category);
@@ -31,11 +31,12 @@ public:
     }
 
     void addPort(PrvObjectHandle portdef);
+
     void removePort(const RtToken& name);
 
     size_t numPorts() const
     {
-        return numElements();
+        return numChildren();
     }
 
     size_t numOutputs() const
@@ -43,13 +44,22 @@ public:
         return _numOutputs;
     }
 
+    size_t findPortIndex(const RtToken& name)
+    {
+        auto it = _portIndex.find(name);
+        return it != _portIndex.end() ? it->second : INVALID_INDEX;
+    }
+
     // Short syntax getter for convenience.
-    PrvPortDef* port(const RtToken& name) const { return findElementByName(name)->asA<PrvPortDef>(); }
-    PrvPortDef* port(size_t index) const { return getElement(index)->asA<PrvPortDef>(); }
+    PrvPortDef* port(const RtToken& name) const { return findChildByName(name)->asA<PrvPortDef>(); }
+    PrvPortDef* port(size_t index) const { return getChild(index)->asA<PrvPortDef>(); }
 
 protected:
+    void rebuildPortIndex();
+
     RtToken _category;
     size_t _numOutputs;
+    RtTokenMap<size_t> _portIndex;
     friend class PrvNode;
     friend class PrvNodeGraph;
     friend class RtPort;

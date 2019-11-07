@@ -105,9 +105,4 @@ bool RtPortDef::isUniform() const
     return data()->asA<PrvPortDef>()->isUniform();
 }
 
-bool RtPortDef::isInterface() const
-{
-    return data()->asA<PrvPortDef>()->isInterface();
-}
-
 }

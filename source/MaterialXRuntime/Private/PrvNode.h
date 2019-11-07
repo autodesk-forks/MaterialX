@@ -19,10 +19,16 @@ namespace MaterialX
 
 using RtPortVec = vector<RtPort>;
 
-class PrvNode : public PrvElement
+class PrvNode : public PrvValueStoringElement
 {
 public:
-    PrvNode(const RtToken& name, const PrvObjectHandle& nodedef);
+    // Constructor creating a node with a fixed interface
+    // This is the constructor to use for ordinary nodes.
+    PrvNode(const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType = RtObjType::NODE);
+
+    // Constructor creating a node without a fixed interface.
+    // NOTE: This is only to be used for constructing nodegraphs.
+    PrvNode(const RtToken& name, RtObjType objType = RtObjType::NODEGRAPH);
 
     static PrvObjectHandle createNew(const RtToken& name, const PrvObjectHandle& nodedef);
 
@@ -55,14 +61,8 @@ public:
 
     RtPort findPort(const RtToken& name)
     {
-        const size_t index = findPortIndex(name);
+        const size_t index = nodedef()->findPortIndex(name);
         return index != INVALID_INDEX ? RtPort(shared_from_this(), index) : RtPort();
-    }
-
-    size_t findPortIndex(const RtToken& name)
-    {
-        auto it = _portIndices.find(name);
-        return it != _portIndices.end() ? it->second : INVALID_INDEX;
     }
 
     static void connect(const RtPort& source, const RtPort& dest);
@@ -90,9 +90,9 @@ protected:
 
     PrvObjectHandle _nodedef;
     vector<Port> _ports;
-    RtTokenMap<size_t> _portIndices;
-    RtLargeValueStorage _storage;
+
     friend class RtPort;
+    friend class PrvNodeGraph;
 };
 
 }

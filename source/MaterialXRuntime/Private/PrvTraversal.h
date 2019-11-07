@@ -128,7 +128,7 @@ public:
     }
 
 private:
-    using StackFrame = std::tuple<PrvCompound*, int, int>;
+    using StackFrame = std::tuple<PrvElement*, int, int>;
 
     PrvObjectHandle _current;
     vector<StackFrame> _stack;

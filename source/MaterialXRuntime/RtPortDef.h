@@ -33,9 +33,6 @@ public:
 
     /// Port is a uniform.
     static const uint32_t UNIFORM       = 0x00000008;
-
-    /// Port is part of a graph interface.
-    static const uint32_t INTERFACE     = 0x00000010;
 };
 
 /// @class RtPortDef
@@ -92,9 +89,6 @@ public:
 
     /// Return true if this port is uniform.
     bool isUniform() const;
-
-    /// Return true if this is a graph interface port.
-    bool isInterface() const;
 };
 
 }

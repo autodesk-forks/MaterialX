@@ -32,9 +32,9 @@ RtPort::RtPort(RtObject node, RtObject portdef) :
     if (node.hasApi(RtApiType::NODE) && portdef.hasApi(RtApiType::PORTDEF))
     {
         _data = node.data();
-        PrvNode * n = _data->asA<PrvNode>();
+        PrvNode* n = _data->asA<PrvNode>();
         RtPortDef pd(portdef);
-        _index = n->findPortIndex(pd.getName());
+        _index = n->nodedef()->findPortIndex(pd.getName());
     }
 }
 
@@ -93,12 +93,6 @@ bool RtPort::isConnectable() const
 {
     PrvNode* node = _data->asA<PrvNode>();
     return node->nodedef()->port(_index)->isConnectable();
-}
-
-bool RtPort::isInterface() const
-{
-    PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->port(_index)->isInterface();
 }
 
 const RtValue& RtPort::getValue() const
@@ -218,18 +212,11 @@ RtObject RtNode::createNew(const RtToken& name, RtObject nodedef, RtObject paren
 
     if (parent)
     {
-        if (parent.hasApi(RtApiType::STAGE))
-        {
-            parent.data()->asA<PrvStage>()->addElement(node);
-        }
-        else if (parent.hasApi(RtApiType::NODEGRAPH))
-        {
-            parent.data()->asA<PrvNodeGraph>()->addElement(node);
-        }
-        else
+        if (!(parent.hasApi(RtApiType::STAGE) || parent.hasApi(RtApiType::NODEGRAPH)))
         {
             throw ExceptionRuntimeError("Parent object must be a stage or a nodegraph");
         }
+        parent.data()->asA<PrvElement>()->addChild(node);
     }
 
     return RtObject(node);

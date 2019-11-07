@@ -17,7 +17,7 @@
 namespace MaterialX
 {
 
-class PrvNodeGraph : public PrvCompound
+class PrvNodeGraph : public PrvNode
 {
 public:
     PrvNodeGraph(const RtToken& name);
@@ -26,44 +26,47 @@ public:
 
     void addNode(PrvObjectHandle node);
 
-    size_t numNodes() const
+
+    PrvObjectHandle createInterface(PrvObjectHandle nodedef);
+
+
+    void addPort(PrvObjectHandle portdef);
+
+    void removePort(const RtToken& name);
+
+
+    RtPort getInternalPort(size_t index)
     {
-        return numElements();
+        PrvPortDef* portdef = internalNodeDef()->port(index);
+        return portdef ? RtPort(_internalNode, index) : RtPort();
     }
 
-    void setInterface(PrvObjectHandle nodedef);
-
-    PrvObjectHandle getInputsNode() const
+    RtPort findInternalPort(const RtToken& name)
     {
-        return _inputsNode;
+        const size_t index = findInternalPortIndex(name);
+        return index != INVALID_INDEX ? RtPort(_internalNode, index) : RtPort();
     }
 
-    PrvObjectHandle getOutputsNode() const
+    size_t findInternalPortIndex(const RtToken& name)
     {
-        return _outputsNode;
+        return internalNodeDef()->findPortIndex(name);
     }
 
     string asStringDot() const;
 
-    // Short syntax getter for convenience.
-    PrvNode* node(const RtToken& name) const { return (PrvNode*)findElementByName(name).get(); }
-    PrvNode* node(size_t index) const { return (PrvNode*)getElement(index).get(); }
-    PrvNode* inputsNode() const { return (PrvNode*)_inputsNode.get(); }
-    PrvNode* outputsNode() const { return (PrvNode*)_outputsNode.get(); }
+    PrvNode* node(const RtToken& name) const { return (PrvNode*)findChildByName(name).get(); }
+    PrvNode* node(size_t index) const { return (PrvNode*)getChild(index).get(); }
+
+    PrvNodeDef* internalNodeDef() const { return (PrvNodeDef*)_internalNodeDef.get(); }
+    PrvNode* internalNode() const { return (PrvNode*)_internalNode.get(); }
 
     // Token constants.
-    static const RtToken INPUTS;
-    static const RtToken OUTPUTS;
-    static const RtToken GRAPH_INPUTS;
-    static const RtToken GRAPH_OUTPUTS;
-    static const RtToken GRAPH_INTERFACE_CATEGORY;
-    static const RtToken ATTR_NODEDEF;
+    static const RtToken INTERNAL_NODEDEF;
+    static const RtToken INTERNAL_NODE;
 
 protected:
-    PrvObjectHandle _inputsNode;
-    PrvObjectHandle _inputsDef;
-    PrvObjectHandle _outputsNode;
-    PrvObjectHandle _outputsDef;
+    PrvObjectHandle _internalNodeDef;
+    PrvObjectHandle _internalNode;
 };
 
 }

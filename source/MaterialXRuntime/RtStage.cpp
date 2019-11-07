@@ -41,23 +41,23 @@ void RtStage::addElement(RtObject elem)
     {
         throw ExceptionRuntimeError("A stage cannot be added as direct child of another stage. Use addReference() instead to reference the stage.");
     }
-    data()->asA<PrvStage>()->addElement(elem.data());
+    data()->asA<PrvStage>()->addChild(elem.data());
 }
 
 void RtStage::removeElement(const RtToken& name)
 {
-    data()->asA<PrvStage>()->removeElement(name);
+    data()->asA<PrvStage>()->removeChild(name);
 }
 
 RtObject RtStage::findElementByName(const RtToken& name) const
 {
-    PrvObjectHandle elem = data()->asA<PrvStage>()->findElementByName(name);
+    PrvObjectHandle elem = data()->asA<PrvStage>()->findChildByName(name);
     return RtObject(elem);
 }
 
 RtObject RtStage::findElementByPath(const string& path) const
 {
-    PrvObjectHandle elem = data()->asA<PrvStage>()->findElementByPath(path);
+    PrvObjectHandle elem = data()->asA<PrvStage>()->findChildByPath(path);
     return RtObject(elem);
 }
 
