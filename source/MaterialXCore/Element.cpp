@@ -32,7 +32,12 @@ const string ValueElement::UI_NAME_ATTRIBUTE = "uiname";
 const string ValueElement::UI_FOLDER_ATTRIBUTE = "uifolder";
 const string ValueElement::UI_MIN_ATTRIBUTE = "uimin";
 const string ValueElement::UI_MAX_ATTRIBUTE = "uimax";
+const string ValueElement::UI_SOFT_MIN_ATTRIBUTE = "uisoftmin";
+const string ValueElement::UI_SOFT_MAX_ATTRIBUTE = "uisoftmax";
+const string ValueElement::UI_STEP_ATTRIBUTE = "uistep";
 const string ValueElement::UI_ADVANCED_ATTRIBUTE = "uiadvanced";
+const string ValueElement::UNIT_ATTRIBUTE = "unit";
+const string ValueElement::UNITTYPE_ATTRIBUTE = "unittype";
 
 Element::CreatorMap Element::_creatorMap;
 
@@ -452,7 +457,7 @@ StringResolverPtr Element::createStringResolver(const string& geom,
                                                 const string& target,
                                                 const string& type) const
 {
-    StringResolverPtr resolver = std::make_shared<StringResolver>();
+    StringResolverPtr resolver = StringResolver::create();
 
     // Compute file and geom prefixes as this scope.
     resolver->setFilePrefix(getActiveFilePrefix());
@@ -584,6 +589,26 @@ ValuePtr ValueElement::getDefaultValue() const
     return ValuePtr();
 }
 
+const string& ValueElement::getActiveUnit() const
+{
+    // Return the unit, if any, stored in our declaration.
+    ConstElementPtr parent = getParent();
+    ConstInterfaceElementPtr interface = parent ? parent->asA<InterfaceElement>() : nullptr;
+    if (interface)
+    {
+        ConstNodeDefPtr decl = interface->getDeclaration();
+        if (decl)
+        {
+            ValueElementPtr value = decl->getActiveValueElement(getName());
+            if (value)
+            {
+                return value->getUnit();
+            }
+        }
+    }
+    return EMPTY_STRING;
+}
+
 bool ValueElement::validate(string* message) const
 {
     bool res = true;
@@ -614,6 +639,33 @@ bool ValueElement::validate(string* message) const
                 }
             }
         }
+    }
+    UnitTypeDefPtr unitTypeDef;
+    if (hasUnitType())
+    {
+        const string& unittype = getUnitType();
+        if (!unittype.empty())
+        {
+            unitTypeDef = getDocument()->getUnitTypeDef(unittype);
+            validateRequire(unitTypeDef != nullptr, res, message, "Unit type definition does not exist in document");
+        }
+    }            
+    if (hasUnit())
+    {
+        bool foundUnit = false;
+        if (unitTypeDef)
+        {
+            const string& unit = getUnit();
+            for (UnitDefPtr unitDef : unitTypeDef->getUnitDefs())
+            {
+                if (unitDef->getUnit(unit))
+                {
+                    foundUnit = true;
+                    break;
+                }
+            }
+        }
+        validateRequire(foundUnit, res, message, "Unit definition does not exist in document");
     }
     return TypedElement::validate(message) && res;
 }
@@ -760,6 +812,9 @@ INSTANTIATE_CONCRETE_SUBCLASS(PropertySetAssign, "propertysetassign")
 INSTANTIATE_CONCRETE_SUBCLASS(ShaderRef, "shaderref")
 INSTANTIATE_CONCRETE_SUBCLASS(Token, "token")
 INSTANTIATE_CONCRETE_SUBCLASS(TypeDef, "typedef")
+INSTANTIATE_CONCRETE_SUBCLASS(Unit, "unit")
+INSTANTIATE_CONCRETE_SUBCLASS(UnitDef, "unitdef")
+INSTANTIATE_CONCRETE_SUBCLASS(UnitTypeDef, "unittypedef")
 INSTANTIATE_CONCRETE_SUBCLASS(Variant, "variant")
 INSTANTIATE_CONCRETE_SUBCLASS(VariantAssign, "variantassign")
 INSTANTIATE_CONCRETE_SUBCLASS(VariantSet, "variantset")

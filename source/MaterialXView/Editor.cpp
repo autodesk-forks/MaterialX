@@ -3,13 +3,13 @@
 #include <MaterialXView/Viewer.h>
 
 #include <nanogui/button.h>
+#include <nanogui/colorpicker.h>
+#include <nanogui/colorwheel.h>
 #include <nanogui/combobox.h>
 #include <nanogui/layout.h>
-#include <nanogui/vscrollpanel.h>
-#include <nanogui/textbox.h>
 #include <nanogui/slider.h>
-#include <nanogui/colorwheel.h>
-#include <nanogui/colorpicker.h>
+#include <nanogui/textbox.h>
+#include <nanogui/vscrollpanel.h>
 
 namespace {
 
@@ -24,12 +24,12 @@ class EditorFormHelper : public ng::FormHelper
     void setVariableSpacing(int val) { mVariableSpacing = val; }
 };
 
-// Custom color picker so we can get numeric entry and feedback.
+// Custom color picker with numeric entry and feedback.
 //
-class MyColorPicker : public ng::ColorPicker
+class EditorColorPicker : public ng::ColorPicker
 {
   public:
-    MyColorPicker(ng::Widget *parent, const ng::Color& color) :
+    EditorColorPicker(ng::Widget *parent, const ng::Color& color) :
         ng::ColorPicker(parent, color)
     {
         ng::Popup *popup = this->popup();
@@ -138,7 +138,7 @@ void PropertyEditor::create(Viewer& parent)
 }
 
 ng::FloatBox<float>* PropertyEditor::makeFloatWidget(ng::Widget* container, const std::string& label, mx::ValuePtr value,
-                                                     bool editable, mx::ValuePtr min, mx::ValuePtr max,
+                                                     bool editable, const mx::UIProperties& ui,
                                                      Viewer* viewer, const std::string& path)
 {
     new ng::Label(container, label);
@@ -147,19 +147,39 @@ ng::FloatBox<float>* PropertyEditor::makeFloatWidget(ng::Widget* container, cons
 
     ng::Slider *slider = new ng::Slider(container);
     slider->setValue(v);
+    auto range = std::pair<float, float>(0.0f, 0.0f);
 
     ng::FloatBox<float>* floatVar = new ng::FloatBox<float>(container, v);
     floatVar->setFixedSize(ng::Vector2i(100, 20));
     floatVar->setEditable(editable);
     floatVar->setFontSize(15);
     floatVar->setAlignment(ng::TextBox::Alignment::Right);
-    if (min)
+    if (ui.uiMin)
     {
-        floatVar->setMinValue(min->asA<float>());
+        floatVar->setMinValue(ui.uiMin->asA<float>());
+        range.first = ui.uiMin->asA<float>();
     }
-    if (max)
+    if (ui.uiMax)
     {
-        floatVar->setMinValue(min->asA<float>());
+        floatVar->setMaxValue(ui.uiMax->asA<float>());
+        range.second = ui.uiMax->asA<float>();
+    }
+    if (ui.uiSoftMin)
+    {
+        range.first = ui.uiSoftMin->asA<float>();
+    }
+    if (ui.uiSoftMax)
+    {
+        range.second = ui.uiSoftMax->asA<float>();
+    }
+    if (range.first != range.second)
+    {
+        slider->setRange(range);
+    }
+    if (ui.uiStep)
+    {
+        floatVar->setValueIncrement(ui.uiStep->asA<float>());
+        floatVar->setSpinnable(true);
     }
 
     slider->setCallback([floatVar, path, viewer](float value) 
@@ -168,11 +188,13 @@ ng::FloatBox<float>* PropertyEditor::makeFloatWidget(ng::Widget* container, cons
         MaterialPtr material = viewer->getSelectedMaterial();
         if (material)
         {
-            material->setUniformFloat(path, value);            
+            material->setUniformFloat(path, floatVar->value());
         }
     });
-    floatVar->setCallback([slider, path, viewer](float value)
+    floatVar->setCallback([floatVar, slider, path, viewer](float /*unclamped*/)
     {
+        // https://github.com/wjakob/nanogui/issues/205
+        float value = floatVar->value();
         slider->setValue(value);
         MaterialPtr material = viewer->getSelectedMaterial();
         if (material)
@@ -189,10 +211,13 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
 {
     const mx::UIProperties& ui = item.ui;
     mx::ValuePtr value = item.variable->getValue();
-    const std::string& label = item.label;
+    std::string label = item.label;
+    const std::string& unit = item.variable->getUnit();
+    if (!unit.empty())
+    {
+        label += std::string(" (") + unit + std::string(")");
+    }
     const std::string& path = item.variable->getPath();
-    mx::ValuePtr min = ui.uiMin;
-    mx::ValuePtr max = ui.uiMax;
     const mx::StringVec& enumeration = ui.enumeration;
     const std::vector<mx::ValuePtr> enumValues = ui.enumerationValues;
 
@@ -218,18 +243,18 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         auto indexInEnumeration = [&value, &enumValues, &enumeration]()
         {
             size_t index = 0;
-            for(auto& enumValue: enumValues)
+            for (auto& enumValue: enumValues)
             {
-                if(value->getValueString() == enumValue->getValueString())
+                if (value->getValueString() == enumValue->getValueString())
                 {
                     return index;
                 }
                 index++;
             }
             index = 0;
-            for(auto& enumName: enumeration)
+            for (auto& enumName: enumeration)
             {
-                if(value->getValueString() == enumName)
+                if (value->getValueString() == enumName)
                 {
                     return index;
                 }
@@ -255,11 +280,11 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             comboBox->setCallback([path, viewer, enumeration, enumValues](int index)
             {
                 MaterialPtr material = viewer->getSelectedMaterial();
-                if(index >= 0 && static_cast<size_t>(index) < enumValues.size())
+                if (index >= 0 && static_cast<size_t>(index) < enumValues.size())
                 {
                     material->setUniformInt(path, enumValues[index]->asA<int>());
                 }
-                else if(index >= 0 && static_cast<size_t>(index) < enumeration.size())
+                else if (index >= 0 && static_cast<size_t>(index) < enumeration.size())
                 {
                     material->setUniformEnum(path, index, enumeration[index]);
                 }
@@ -274,15 +299,30 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             auto intVar = new ng::IntBox<int>(twoColumns);
             intVar->setFixedSize(ng::Vector2i(100, 20));
             intVar->setFontSize(15);
+            intVar->setEditable(editable);
             intVar->setSpinnable(editable);
-            intVar->setCallback([path, viewer](int v)
+            intVar->setCallback([intVar, path, viewer](int /*unclamped*/)
             {
                 MaterialPtr material = viewer->getSelectedMaterial();
                 if (material)
                 {
-                    material->setUniformInt(path, v);
+                    // https://github.com/wjakob/nanogui/issues/205
+                    material->setUniformInt(path, intVar->value());
                 }
             });
+            if (ui.uiMin)
+            {
+                intVar->setMinValue(ui.uiMin->asA<int>());
+            }
+            if (ui.uiMax)
+            {
+                intVar->setMaxValue(ui.uiMax->asA<int>());
+            }
+            if (ui.uiStep)
+            {
+                intVar->setValueIncrement(ui.uiStep->asA<int>());
+            }
+            intVar->setValue(value->asA<int>());
         }
     }
 
@@ -291,7 +331,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     {
         ng::Widget* threeColumns = new ng::Widget(container);
         threeColumns->setLayout(_gridLayout3);
-        makeFloatWidget(threeColumns, label, value, editable, min, max, viewer, path);
+        makeFloatWidget(threeColumns, label, value, editable, ui, viewer, path);
     }
 
     // Boolean widget
@@ -308,7 +348,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         boolVar->setCallback([path, viewer](bool v)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            if(material)
+            if (material)
             {
                 material->setUniformFloat(path, v);
             }
@@ -328,13 +368,13 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         c.g() = v[1];
         c.b() = 0.0f;
         c.w() = 1.0f;
-        auto colorVar = new MyColorPicker(twoColumns, c);
+        auto colorVar = new EditorColorPicker(twoColumns, c);
         colorVar->setFixedSize({ 100, 20 });
         colorVar->setFontSize(15);
         colorVar->setFinalCallback([path, viewer, colorVar](const ng::Color &c)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
-            if(material)
+            if (material)
             {
                 ng::Vector2f v;
                 v.x() = c.r();
@@ -357,7 +397,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         // Determine if there is an enumeration for this
         mx::Color3 color = value->asA<mx::Color3>();
         int index = -1;
-        if (enumeration.size() && enumValues.size())
+        if (!enumeration.empty() && !enumValues.empty())
         {
             index = 0;
             for (size_t i = 0; i < enumValues.size(); i++)
@@ -405,7 +445,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             c.w() = 1.0;
             
             new ng::Label(twoColumns, label);
-            auto colorVar = new MyColorPicker(twoColumns, c);
+            auto colorVar = new EditorColorPicker(twoColumns, c);
             colorVar->setFixedSize({ 100, 20 });
             colorVar->setFontSize(15);
             colorVar->setFinalCallback([path, viewer](const ng::Color &c)
@@ -433,7 +473,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         c.g() = v[1];
         c.b() = v[2];
         c.w() = v[3];
-        auto colorVar = new MyColorPicker(twoColumns, c);
+        auto colorVar = new EditorColorPicker(twoColumns, c);
         colorVar->setFixedSize({ 100, 20 });
         colorVar->setFontSize(15);
         colorVar->setFinalCallback([path, viewer](const ng::Color &c)
@@ -661,7 +701,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                     {
                         if (uniform->getType() == mx::Type::FILENAME)
                         {
-                            const mx::GLTextureHandlerPtr handler = viewer->getImageHandler();
+                            mx::ImageHandlerPtr handler = viewer->getImageHandler();
                             if (handler)
                             {
                                 mx::StringSet extensions;
@@ -715,6 +755,20 @@ void PropertyEditor::updateContents(Viewer* viewer)
         return;
     }
 
+    // Shading model display
+    mx::TypedElementPtr elem = material ? material->getElement() : nullptr;
+    std::string shaderName = elem ? elem->getAttribute("node") : mx::EMPTY_STRING;
+    if (!shaderName.empty())
+    {
+        ng::Widget* twoColumns = new ng::Widget(_container);
+        twoColumns->setLayout(_gridLayout2);
+        ng::Label* modelLabel = new ng::Label(twoColumns, "Shading Model");
+        modelLabel->setFontSize(20);
+        modelLabel->setFont("sans-bold");
+        ng::Label* nameLabel = new ng::Label(twoColumns, shaderName);
+        nameLabel->setFontSize(20);
+    }
+
     const bool showAdvancedItems = viewer->showAdvancedProperties();
     bool addedItems = false;
     const mx::VariableBlock* publicUniforms = material->getPublicUniforms();
@@ -734,7 +788,7 @@ void PropertyEditor::updateContents(Viewer* viewer)
             const std::string& folder = it->first;
             const mx::UIPropertyItem& item = it->second;
 
-            if(item.ui.uiAdvanced && !showAdvancedItems)
+            if (item.ui.uiAdvanced && !showAdvancedItems)
             {
                 continue;
             }

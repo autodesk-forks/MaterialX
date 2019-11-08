@@ -1,10 +1,5 @@
-include_directories(
-    ${EXTERNAL_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../
-)
-
 file(GLOB materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-file(GLOB materialx_headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+file(GLOB materialx_headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h*")
 
 add_library(MaterialXCore STATIC ${materialx_source} ${materialx_headers})
 
@@ -18,19 +13,27 @@ set_target_properties(
     COMPILE_FLAGS "${EXTERNAL_COMPILE_FLAGS}"
     LINK_FLAGS "${EXTERNAL_LINK_FLAGS}"
     VERSION "${MATERIALX_LIBRARY_VERSION}"
-    SOVERSION "${MATERIALX_MAJOR_VERSION}")
+    SOVERSION "${MATERIALX_MAJOR_VERSION}"
+    DEBUG_POSTFIX ${MATERIALX_DEBUG_POSTFIX})
 
 target_link_libraries(
     MaterialXCore
-    ${CMAKE_DL_LIBS}
+    ${CMAKE_DL_LIBS})
+
+target_include_directories(MaterialXCore
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        ${EXTERNAL_INCLUDE_DIRS}
 )
 
 install(TARGETS MaterialXCore
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/
-)
+    EXPORT MaterialX
+    ARCHIVE DESTINATION lib)
 
 install(FILES ${materialx_headers}
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/include/MaterialXCore/)
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/include/MaterialXCore/)
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/MaterialXCore.pdb"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/" OPTIONAL)
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/" OPTIONAL)

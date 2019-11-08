@@ -50,8 +50,7 @@ TEST_CASE("Value strings", "[value]")
     REQUIRE(mx::toValueString(mx::Color3(1.0f)) == "1, 1, 1");
     REQUIRE(mx::toValueString(std::string("text")) == "text");
 
-    // Convert from data values to value strings
-    // using the various float formattings.
+    // Convert from floats to value strings with custom formatting.
     {
         mx::ScopedFloatFormatting fmt(mx::Value::FloatFormatFixed, 3);
         REQUIRE(mx::toValueString(0.1234f) == "0.123");
@@ -107,16 +106,21 @@ TEST_CASE("Typed values", "[value]")
                    std::string("second_value"));
 
     // Array types
-    testTypedValue(std::vector<int>{1, 2, 3},
-                   std::vector<int>{4, 5, 6});
-    testTypedValue(std::vector<bool>{false, false, false},
-                   std::vector<bool>{true, true, true});
-    testTypedValue(std::vector<float>{1.0f, 2.0f, 3.0f},
-                   std::vector<float>{4.0f, 5.0f, 6.0f});
-    testTypedValue(std::vector<std::string>{"one", "two", "three"},
-                   std::vector<std::string>{"four", "five", "six"});
+    testTypedValue(mx::IntVec{1, 2, 3},
+                   mx::IntVec{4, 5, 6});
+    testTypedValue(mx::BoolVec{false, false, false},
+                   mx::BoolVec{true, true, true});
+    testTypedValue(mx::FloatVec{1.0f, 2.0f, 3.0f},
+                   mx::FloatVec{4.0f, 5.0f, 6.0f});
+    testTypedValue(mx::StringVec{"one", "two", "three"},
+                   mx::StringVec{"four", "five", "six"});
 
     // Alias types
     testTypedValue<long>(1l, 2l);
     testTypedValue<double>(1.0, 2.0);
+
+    // Construct a string value from a string literal
+    mx::ValuePtr value = mx::Value::createValue("text");
+    REQUIRE(value->isA<std::string>());
+    REQUIRE(value->asA<std::string>() == "text");
 }

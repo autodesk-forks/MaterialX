@@ -4,34 +4,36 @@
 //
 
 #include <MaterialXRenderGlsl/External/GLew/glew.h>
-#include <MaterialXRenderGlsl/GlslValidator.h>
-#include <MaterialXRender/GeometryHandler.h>
+#include <MaterialXRenderGlsl/GlslRenderer.h>
+#include <MaterialXRenderGlsl/GLUtilityContext.h>
+#include <MaterialXRenderHw/SimpleWindow.h>
 #include <MaterialXRender/TinyObjLoader.h>
 
 #include <iostream>
 
 namespace MaterialX
 {
+
 // View information
 const float FOV_PERSP = 45.0f; // degrees
 const float NEAR_PLANE_PERSP = 0.05f;
 const float FAR_PLANE_PERSP = 100.0f;
 
 //
-// Creator
+// GlslRenderer methods
 //
-GlslValidatorPtr GlslValidator::create()
+
+GlslRendererPtr GlslRenderer::create(unsigned int res)
 {
-    return std::shared_ptr<GlslValidator>(new GlslValidator());
+    return GlslRendererPtr(new GlslRenderer(res));
 }
 
-GlslValidator::GlslValidator() :
-    ShaderValidator(),
+GlslRenderer::GlslRenderer(unsigned int res) :
     _colorTarget(0),
     _depthTarget(0),
     _frameBuffer(0),
-    _frameBufferWidth(512),
-    _frameBufferHeight(512),
+    _frameBufferWidth(res),
+    _frameBufferHeight(res),
     _initialized(false),
     _window(nullptr),
     _context(nullptr)
@@ -45,7 +47,7 @@ GlslValidator::GlslValidator() :
     _viewHandler = ViewHandler::create();
 }
 
-GlslValidator::~GlslValidator()
+GlslRenderer::~GlslRenderer()
 {
     // Clean up the program
     _program = nullptr;
@@ -60,9 +62,9 @@ GlslValidator::~GlslValidator()
     _window = nullptr;
 }
 
-void GlslValidator::initialize()
+void GlslRenderer::initialize()
 {
-    ShaderValidationErrorList errors;
+    StringVec errors;
     const string errorType("OpenGL utilities initialization.");
 
     if (!_initialized)
@@ -70,14 +72,14 @@ void GlslValidator::initialize()
         // Create window
         _window = SimpleWindow::create();
 
-        const char* windowName = "Validator Window";
+        const char* windowName = "Renderer Window";
         bool created = _window->initialize(const_cast<char *>(windowName),
                                           _frameBufferWidth, _frameBufferHeight,
                                           nullptr);
         if (!created)
         {
             errors.push_back("Failed to create window for testing.");
-            throw ExceptionShaderValidationError(errorType, errors);
+            throw ExceptionShaderRenderError(errorType, errors);
         }
         else
         {
@@ -86,7 +88,7 @@ void GlslValidator::initialize()
             if (!_context)
             {
                 errors.push_back("Failed to create OpenGL context for testing.");
-                throw ExceptionShaderValidationError(errorType, errors);
+                throw ExceptionShaderRenderError(errorType, errors);
             }
             else
             {
@@ -98,7 +100,7 @@ void GlslValidator::initialize()
                     if (!glewIsSupported("GL_VERSION_4_0"))
                     {
                         errors.push_back("OpenGL version 4.0 not supported");
-                        throw ExceptionShaderValidationError(errorType, errors);
+                        throw ExceptionShaderRenderError(errorType, errors);
                     }
 #endif
                     glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
@@ -111,7 +113,7 @@ void GlslValidator::initialize()
     }
 }
 
-void GlslValidator::deleteTarget()
+void GlslRenderer::deleteTarget()
 {
     if (_frameBuffer)
     {
@@ -125,20 +127,20 @@ void GlslValidator::deleteTarget()
     }
 }
 
-bool GlslValidator::createTarget()
+bool GlslRenderer::createTarget()
 {
-    ShaderValidationErrorList errors;
+    StringVec errors;
     const string errorType("OpenGL target creation failure.");
 
     if (!_context)
     {
         errors.push_back("No valid OpenGL context to create target with.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
     if (!_context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to create target with.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
 
     // Only frame buffer only once
@@ -231,7 +233,7 @@ bool GlslValidator::createTarget()
         }
 
         errors.push_back(errorMessage);
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
 
     // Unbind on cleanup
@@ -240,7 +242,7 @@ bool GlslValidator::createTarget()
     return true;
 }
 
-bool GlslValidator::bindTarget(bool bind)
+bool GlslRenderer::bindTarget(bool bind)
 {
     // Make sure we have a target to bind first
     createTarget();
@@ -250,9 +252,9 @@ bool GlslValidator::bindTarget(bool bind)
     {
         if (!_frameBuffer)
         {
-            ShaderValidationErrorList errors;
+            StringVec errors;
             errors.push_back("No framebuffer exists to bind.");
-            throw ExceptionShaderValidationError("OpenGL target bind failure.", errors);
+            throw ExceptionShaderRenderError("OpenGL target bind failure.", errors);
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
@@ -268,42 +270,42 @@ bool GlslValidator::bindTarget(bool bind)
     return true;
 }
 
-void GlslValidator::validateCreation(const ShaderPtr shader)
+void GlslRenderer::createProgram(const ShaderPtr shader)
 {
-    ShaderValidationErrorList errors;
+    StringVec errors;
     const string errorType("GLSL program creation error.");
 
     if (!_context)
     {
         errors.push_back("No valid OpenGL context to create program with.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
 
     }
     if (!_context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to create program.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
 
     _program->setStages(shader);
     _program->build();
 }
 
-void GlslValidator::validateCreation(const StageMap& stages)
+void GlslRenderer::createProgram(const StageMap& stages)
 {
-    ShaderValidationErrorList errors;
+    StringVec errors;
     const string errorType("GLSL program creation error.");
 
     if (!_context)
     {
         errors.push_back("No valid OpenGL context to create program with.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
 
     }
     if (!_context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to create program.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
 
     for (const auto& it : stages)
@@ -313,21 +315,80 @@ void GlslValidator::validateCreation(const StageMap& stages)
     _program->build();
 }
 
-void GlslValidator::validateInputs()
+void GlslRenderer::renderTextureSpace(bool encodeSrgb)
 {
-    ShaderValidationErrorList errors;
+    bindTarget(true);
+    if (encodeSrgb)
+    {
+        glEnable(GL_FRAMEBUFFER_SRGB);
+    }
+    else
+    {
+        glDisable(GL_FRAMEBUFFER_SRGB);
+    }
+    glViewport(0, 0, _frameBufferWidth, _frameBufferHeight);
+
+    _program->bind();
+
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    _program->bindTextures(_imageHandler);
+
+    glBindVertexArray(vao);
+    float vertices[] =
+    {
+         // positions       // texcoords
+         1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f
+    };
+    unsigned int indices[] =
+    {
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+    
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (3 * sizeof(float)));
+
+    GLuint ebo;
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    bindTarget(false);
+    checkErrors();
+
+    _program->unbind();
+    _program->unbindInputs(_imageHandler);
+}
+
+void GlslRenderer::validateInputs()
+{
+    StringVec errors;
     const string errorType("GLSL program input error.");
 
     if (!_context)
     {
         errors.push_back("No valid OpenGL context to validate inputs.");
-        throw ExceptionShaderValidationError(errorType, errors);
-
+        throw ExceptionShaderRenderError(errorType, errors);
     }
     if (!_context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to validate inputs.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
 
     // Check that the generated uniforms and attributes are valid
@@ -335,16 +396,13 @@ void GlslValidator::validateInputs()
     _program->getAttributesList();
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-// Binders
-////////////////////////////////////////////////////////////////////////////////////
-void GlslValidator::updateViewInformation(const Vector3& eye,
-                                          const Vector3& center,
-                                          const Vector3& up,                                          
-                                          float viewAngle,
-                                          float nearDist,
-                                          float farDist,
-                                          float objectScale)
+void GlslRenderer::updateViewInformation(const Vector3& eye,
+                                           const Vector3& center,
+                                           const Vector3& up,                                          
+                                           float viewAngle,
+                                           float nearDist,
+                                           float farDist,
+                                           float objectScale)
 {
     const float PI = std::acos(-1.0f);
     float fH = std::tan(viewAngle / 360.0f * PI) * nearDist;
@@ -370,20 +428,20 @@ void GlslValidator::updateViewInformation(const Vector3& eye,
     _viewHandler->viewPosition() = { invView[0][3], invView[1][3], invView[2][3] };
 }
 
-void GlslValidator::validateRender()
+void GlslRenderer::render()
 {
-    ShaderValidationErrorList errors;
+    StringVec errors;
     const string errorType("GLSL rendering error.");
 
     if (!_context)
     {
         errors.push_back("No valid OpenGL context to render to.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
     if (!_context->makeCurrent())
     {
         errors.push_back("Cannot make OpenGL context current to render to.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
 
     // Set up target
@@ -414,7 +472,7 @@ void GlslValidator::validateRender()
             if (!_program->haveActiveAttributes())
             {
                 errors.push_back("Program has no input vertex data.");
-                throw ExceptionShaderValidationError(errorType, errors);
+                throw ExceptionShaderRenderError(errorType, errors);
             }
             else
             {
@@ -442,7 +500,7 @@ void GlslValidator::validateRender()
             }
         }
     }
-    catch (ExceptionShaderValidationError& /*e*/)
+    catch (ExceptionShaderRenderError& /*e*/)
     {
         bindTarget(false);
         throw;
@@ -452,15 +510,15 @@ void GlslValidator::validateRender()
     bindTarget(false);
 }
 
-void GlslValidator::save(const FilePath& filePath, bool floatingPoint)
+void GlslRenderer::save(const FilePath& filePath, bool floatingPoint)
 {
-    ShaderValidationErrorList errors;
+    StringVec errors;
     const string errorType("GLSL image save error.");
 
     if (!_imageHandler)
     {
         errors.push_back("No image handler specified.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
 
     size_t bufferSize = _frameBufferWidth * _frameBufferHeight * 4;
@@ -468,7 +526,7 @@ void GlslValidator::save(const FilePath& filePath, bool floatingPoint)
     if (!buffer)
     {
         errors.push_back("Failed to read color buffer back.");
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
 
     // Read back from the color texture.
@@ -481,12 +539,12 @@ void GlslValidator::save(const FilePath& filePath, bool floatingPoint)
     {
         checkErrors();
     }
-    catch (ExceptionShaderValidationError& e)
+    catch (ExceptionShaderRenderError& e)
     {
         delete[] buffer;
         errors.push_back("Failed to read color buffer back.");
         errors.insert(std::end(errors), std::begin(e.errorLog()), std::end(e.errorLog()));
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
 
     // Save using the handler
@@ -503,13 +561,13 @@ void GlslValidator::save(const FilePath& filePath, bool floatingPoint)
     if (!saved)
     {
         errors.push_back("Failed to save to file:" + filePath.asString());
-        throw ExceptionShaderValidationError(errorType, errors);
+        throw ExceptionShaderRenderError(errorType, errors);
     }
 }
 
-void GlslValidator::checkErrors()
+void GlslRenderer::checkErrors()
 {
-    ShaderValidationErrorList errors;
+    StringVec errors;
 
     GLenum error;
     while ((error = glGetError()) != GL_NO_ERROR)
@@ -518,8 +576,8 @@ void GlslValidator::checkErrors()
     }
     if (errors.size())
     {
-        throw ExceptionShaderValidationError("OpenGL context error.", errors);
+        throw ExceptionShaderRenderError("OpenGL context error.", errors);
     }
 }
 
-}
+} // namespace MaterialX

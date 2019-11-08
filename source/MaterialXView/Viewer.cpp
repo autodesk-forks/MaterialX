@@ -1,11 +1,15 @@
 #include <MaterialXView/Viewer.h>
 
-#include <MaterialXGenShader/DefaultColorManagementSystem.h>
-#include <MaterialXGenShader/Shader.h>
+#include <MaterialXRenderGlsl/GLTextureHandler.h>
+#include <MaterialXRenderGlsl/TextureBaker.h>
+
 #include <MaterialXRender/OiioImageLoader.h>
 #include <MaterialXRender/StbImageLoader.h>
 #include <MaterialXRender/TinyObjLoader.h>
 #include <MaterialXRender/Util.h>
+
+#include <MaterialXGenShader/DefaultColorManagementSystem.h>
+#include <MaterialXGenShader/Shader.h>
 
 #include <nanogui/button.h>
 #include <nanogui/combobox.h>
@@ -56,10 +60,7 @@ bool stringEndsWith(const std::string& str, std::string const& end)
     {
         return !str.compare(str.length() - end.length(), end.length(), end);
     }
-    else
-    {
-        return false;
-    }
+    return false;
 }
 
 void writeTextFile(const std::string& text, const std::string& filePath)
@@ -70,31 +71,26 @@ void writeTextFile(const std::string& text, const std::string& filePath)
     file.close();
 }
 
-std::pair<mx::DocumentPtr, mx::StringVec> loadLibraries(const mx::StringVec& libraryFolders, const mx::FileSearchPath& searchPath)
+mx::DocumentPtr loadLibraries(const mx::FilePathVec& libraryFolders, const mx::FileSearchPath& searchPath)
 {
     mx::DocumentPtr doc = mx::createDocument();
-    mx::StringVec xincludeFiles;
     for (const std::string& libraryFolder : libraryFolders)
     {
-        mx::FilePath path = searchPath.find(libraryFolder);
-        mx::FilePathVec filenames = path.getFilesInDirectory("mtlx");
-
         mx::CopyOptions copyOptions;
         copyOptions.skipConflictingElements = true;
 
         mx::XmlReadOptions readOptions;
         readOptions.skipConflictingElements = true;
-        for (const std::string& filename : filenames)
+
+        mx::FilePath libraryPath = searchPath.find(libraryFolder);
+        for (const mx::FilePath& filename : libraryPath.getFilesInDirectory(mx::MTLX_EXTENSION))
         {
-            mx::FilePath file = path / filename;
             mx::DocumentPtr libDoc = mx::createDocument();
-            mx::readFromXmlFile(libDoc, file, mx::EMPTY_STRING, &readOptions);
-            libDoc->setSourceUri(file);
+            mx::readFromXmlFile(libDoc, libraryPath / filename, mx::FileSearchPath(), &readOptions);
             doc->importLibrary(libDoc, &copyOptions);
-            xincludeFiles.push_back(file);
         }
     }
-    return std::make_pair(doc, xincludeFiles);
+    return doc;
 }
 
 void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers& modifiers)
@@ -163,7 +159,7 @@ void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers& modifiers)
 // Viewer methods
 //
 
-Viewer::Viewer(const mx::StringVec& libraryFolders,
+Viewer::Viewer(const mx::FilePathVec& libraryFolders,
                const mx::FileSearchPath& searchPath,
                const std::string& meshFilename,
                const std::string& materialFilename,
@@ -198,8 +194,10 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _selectedGeom(0),
     _selectedMaterial(0),
     _genContext(mx::GlslShaderGenerator::create()),
+    _unitRegistry(mx::UnitConverterRegistry::create()),
     _splitByUdims(false),
     _mergeMaterials(false),
+    _bakeTextures(false),
     _outlineSelection(false),
     _specularEnvironmentMethod(specularEnvironmentMethod),
     _envSamples(DEFAULT_ENV_SAMPLES),
@@ -211,13 +209,12 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
     _uvTranslation(-0.5f, 0.5f, 0.0f),
     _uvZoom(1.0f)
 {
-    // Transpary option before creating Advanced UI 
-    // as this flag is used to set the default value.
-    _genContext.getOptions().hwTransparency = true;
-
     _window = new ng::Window(this, "Viewer Options");
     _window->setPosition(ng::Vector2i(15, 15));
     _window->setLayout(new ng::GroupLayout());
+
+    // Initialize the standard libraries and color/unit management.
+    loadStandardLibraries();
 
     createLoadMeshInterface(_window, "Load Mesh");
     createLoadMaterialsInterface(_window, "Load Material");
@@ -242,7 +239,7 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
             {
                 setSelectedMaterial(_materialAssignments[getSelectedGeometry()]);
             }
-            updatePropertyEditor();
+            updateDisplayedProperties();
             updateMaterialSelectionUI();
         }
     });
@@ -270,19 +267,6 @@ Viewer::Viewer(const mx::StringVec& libraryFolders,
 
     // Set default light information before initialization
     _lightFileName = "resources/Materials/TestSuite/Utilities/Lights/default_viewer_lights.mtlx";
-
-    // Initialize standard library and color management.
-    const auto stdDocAndXIncludes = loadLibraries(_libraryFolders, _searchPath);
-     _stdLib = stdDocAndXIncludes.first;
-     _xincludeFiles = stdDocAndXIncludes.second;
-
-    mx::DefaultColorManagementSystemPtr cms = mx::DefaultColorManagementSystem::create(_genContext.getShaderGenerator().getLanguage());
-    cms->loadLibrary(_stdLib);
-    for (size_t i = 0; i < _searchPath.size(); i++)
-    {
-        _genContext.registerSourceCodeSearchPath(_searchPath[i]);
-    }
-    _genContext.getShaderGenerator().setColorManagementSystem(cms);
 
     // Generate wireframe material.
     const std::string constantShaderName("__WIRE_SHADER_NAME__");
@@ -363,13 +347,13 @@ void Viewer::setupLights(mx::DocumentPtr doc)
         {
             mx::XmlReadOptions readOptions;
             readOptions.skipConflictingElements = true;
-            mx::readFromXmlFile(lightDoc, path.asString(), mx::EMPTY_STRING, &readOptions);
+            mx::readFromXmlFile(lightDoc, path, mx::FileSearchPath(), &readOptions);
             lightDoc->setSourceUri(path);
 
             mx::CopyOptions copyOptions;
             copyOptions.skipConflictingElements = true;
             doc->importLibrary(lightDoc, &copyOptions);
-            _xincludeFiles.push_back(path);
+            _xincludeFiles.insert(path);
         }
         catch (std::exception& e)
         {
@@ -450,7 +434,7 @@ void Viewer::assignMaterial(mx::MeshPartitionPtr geometry, MaterialPtr material)
     if (geometry == getSelectedGeometry())
     {
         setSelectedMaterial(material);
-        updatePropertyEditor();
+        updateDisplayedProperties();
     }
 }
 
@@ -526,30 +510,60 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
     materialButton->setCallback([this]()
     {
         mProcessEvents = false;
-        std::string filename = ng::file_dialog({ { "mtlx", "MaterialX" } }, true);
+        MaterialPtr material = getSelectedMaterial();
+        mx::FilePath filename = ng::file_dialog({ { "mtlx", "MaterialX" } }, true);
 
         // Save document
-        if (!filename.empty() && !_materials.empty())
+        if (material && !filename.isEmpty())
         {
-            mx::DocumentPtr doc = _materials.front()->getDocument();
-            // Add element predicate to prune out writing elements from included files
-            auto skipXincludes = [this](mx::ConstElementPtr elem)
+            mx::DocumentPtr doc = material->getDocument();
+            if (filename.getExtension() != mx::MTLX_EXTENSION)
             {
-                if (elem->hasSourceUri())
-                {
-                    return (std::find(_xincludeFiles.begin(), _xincludeFiles.end(), elem->getSourceUri()) == _xincludeFiles.end());
-                }
-                return true;
-            };
-            mx::XmlWriteOptions writeOptions;
-            writeOptions.writeXIncludeEnable = true;
-            writeOptions.elementPredicate = skipXincludes;
-            MaterialX::writeToXmlFile(doc, filename, &writeOptions);
-        }
+                filename = mx::FilePath(filename.asString() + "." + mx::MTLX_EXTENSION);
+            }
 
-        // Update material file name
-        if (!filename.empty() && _materialFilename != filename)
-        {
+            mx::ShaderRefPtr shaderRef = material->getElement()->asA<mx::ShaderRef>();
+            if (_bakeTextures && shaderRef)
+            {
+                mx::FileSearchPath searchPath = _searchPath;
+                if (material->getDocument())
+                {
+                    mx::FilePath documentFilename = material->getDocument()->getSourceUri();
+                    searchPath.append(documentFilename.getParentPath());
+                }
+
+                mx::ImageHandlerPtr imageHandler = mx::GLTextureHandler::create(mx::StbImageLoader::create());
+                imageHandler->setSearchPath(searchPath);
+                if (!material->getUdim().empty())
+                {
+                    mx::StringResolverPtr resolver = mx::StringResolver::create();
+                    resolver->setUdimString(material->getUdim());
+                    imageHandler->setFilenameResolver(resolver);
+                }
+
+                mx::TextureBakerPtr baker = mx::TextureBaker::create();
+                baker->setImageHandler(imageHandler);
+                baker->bakeShaderInputs(shaderRef, _genContext, filename.getParentPath());
+                baker->writeBakedDocument(shaderRef, filename);
+            }
+            else
+            {
+                // Add element predicate to prune out writing elements from included files
+                auto skipXincludes = [this](mx::ConstElementPtr elem)
+                {
+                    if (elem->hasSourceUri())
+                    {
+                        return (_xincludeFiles.count(elem->getSourceUri()) == 0);
+                    }
+                    return true;
+                };
+                mx::XmlWriteOptions writeOptions;
+                writeOptions.writeXIncludeEnable = true;
+                writeOptions.elementPredicate = skipXincludes;
+                mx::writeToXmlFile(doc, filename, &writeOptions);
+            }
+
+            // Update material file name
             _materialFilename = filename;
         }
         mProcessEvents = true;
@@ -592,6 +606,31 @@ void Viewer::createAdvancedSettings(Widget* parent)
     {
         _mergeMaterials = enable;
     });    
+
+    ng::CheckBox* bakeTexturesBox = new ng::CheckBox(advancedPopup, "Bake Textures");
+    bakeTexturesBox->setChecked(_bakeTextures);
+    bakeTexturesBox->setCallback([this](bool enable)
+    {
+        _bakeTextures = enable;
+    });    
+
+    Widget* unitGroup = new Widget(advancedPopup);
+    unitGroup->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
+    new ng::Label(unitGroup, "Distance Unit:");
+    _distanceUnitBox = new ng::ComboBox(unitGroup, _distanceUnitOptions);
+    _distanceUnitBox->setFixedSize(ng::Vector2i(100, 20));
+    _distanceUnitBox->setChevronIcon(-1);
+    _distanceUnitBox->setSelectedIndex(_distanceUnitConverter->getUnitAsInteger("meter"));
+    _distanceUnitBox->setCallback([this](int index)
+    {
+        mProcessEvents = false;
+        _genContext.getOptions().targetDistanceUnit = _distanceUnitOptions[index];
+        for (MaterialPtr material : _materials)
+        {
+            material->bindUnits(_unitRegistry, _genContext);
+        }
+        mProcessEvents = true;
+    });
 
     new ng::Label(advancedPopup, "Lighting Options");
 
@@ -668,7 +707,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
     showAdvancedProperties->setCallback([this](bool enable)
     {
         _showAdvancedProperties = enable;
-        updatePropertyEditor();
+        updateDisplayedProperties();
     });
 }
 
@@ -785,17 +824,17 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
     // Set up read options.
     mx::XmlReadOptions readOptions;
     readOptions.skipConflictingElements = true;
-    readOptions.readXIncludeFunction = [](mx::DocumentPtr doc, const std::string& filename,
-                                          const std::string& searchPath, const mx::XmlReadOptions* options)
+    readOptions.readXIncludeFunction = [](mx::DocumentPtr doc, const mx::FilePath& filename,
+                                          const mx::FileSearchPath& searchPath, const mx::XmlReadOptions* options)
     {
-        mx::FilePath resolvedFilename = mx::FileSearchPath(searchPath).find(filename);
+        mx::FilePath resolvedFilename = searchPath.find(filename);
         if (resolvedFilename.exists())
         {
             readFromXmlFile(doc, resolvedFilename, searchPath, options);
         }
         else
         {
-            std::cerr << "Include file not found: " << filename << std::endl;
+            std::cerr << "Include file not found: " << filename.asString() << std::endl;
         }
     };
 
@@ -820,7 +859,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
     {
         // Load source document.
         mx::DocumentPtr doc = mx::createDocument();
-        mx::readFromXmlFile(doc, filename, _searchPath.asString(), &readOptions);
+        mx::readFromXmlFile(doc, filename, _searchPath, &readOptions);
 
         // Import libraries.
         mx::CopyOptions copyOptions; 
@@ -891,8 +930,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
             _materials.insert(_materials.end(), newMaterials.begin(), newMaterials.end());
 
             // Set the default image search path.
-            mx::FilePath materialFolder = _materialFilename;
-            materialFolder.pop();
+            mx::FilePath materialFolder = _materialFilename.getParentPath();
             _imageHandler->setSearchPath(mx::FileSearchPath(materialFolder));
 
             mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
@@ -933,9 +971,8 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                 mx::MaterialPtr materialRef = shaderRef ? shaderRef->getParent()->asA<mx::Material>() : nullptr;
                 if (materialRef)
                 {
-                    for (size_t partIndex = 0; partIndex < _geometryList.size(); partIndex++)
+                    for (mx::MeshPartitionPtr part : _geometryList)
                     {
-                        mx::MeshPartitionPtr part = _geometryList[partIndex];
                         std::string partGeomName = part->getIdentifier();
                         if (!materialRef->getGeometryBindings(partGeomName).empty())
                         {
@@ -976,15 +1013,22 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
     // Update material UI.
     updateMaterialSelections();
     updateMaterialSelectionUI();
+
+    performLayout();
 }
 
 void Viewer::reloadShaders()
 {
     try
     {
+        const mx::MeshList& meshes = _geometryHandler->getMeshes();
         for (MaterialPtr material : _materials)
         {
             material->generateShader(_genContext);
+            if (!meshes.empty())
+            {
+                material->bindMesh(meshes[0]);
+            }
         }
     }
     catch (std::exception& e)
@@ -1087,6 +1131,44 @@ void Viewer::saveDotFiles()
     }
 }
 
+void Viewer::loadStandardLibraries()
+{
+    // Initialize the standard library.
+    _stdLib = loadLibraries(_libraryFolders, _searchPath);
+    for (std::string sourceUri : _stdLib->getReferencedSourceUris())
+    {
+        _xincludeFiles.insert(sourceUri);
+    }
+
+    // Initialize color management.
+    mx::DefaultColorManagementSystemPtr cms = mx::DefaultColorManagementSystem::create(_genContext.getShaderGenerator().getLanguage());
+    cms->loadLibrary(_stdLib);
+    _genContext.registerSourceCodeSearchPath(_searchPath);
+    _genContext.getShaderGenerator().setColorManagementSystem(cms);
+
+    // Initialize unit management.
+    mx::UnitSystemPtr unitSystem = mx::UnitSystem::create(_genContext.getShaderGenerator().getLanguage());
+    unitSystem->loadLibrary(_stdLib);
+    unitSystem->setUnitConverterRegistry(_unitRegistry);
+    _genContext.getShaderGenerator().setUnitSystem(unitSystem);
+    mx::UnitTypeDefPtr distanceTypeDef = _stdLib->getUnitTypeDef("distance");
+    _distanceUnitConverter = mx::LinearUnitConverter::create(distanceTypeDef);
+    _unitRegistry->addUnitConverter(distanceTypeDef, _distanceUnitConverter);
+    mx::UnitTypeDefPtr angleTypeDef = _stdLib->getUnitTypeDef("angle");
+    mx::LinearUnitConverterPtr angleConverter = mx::LinearUnitConverter::create(angleTypeDef);
+    _unitRegistry->addUnitConverter(angleTypeDef, angleConverter);
+    _genContext.getOptions().targetDistanceUnit = "meter";
+
+    // Create the list of supported distance units.
+    auto unitScales = _distanceUnitConverter->getUnitScale();
+    _distanceUnitOptions.resize(unitScales.size());
+    for (auto unitScale : unitScales)
+    {
+        int location = _distanceUnitConverter->getUnitAsInteger(unitScale.first);
+        _distanceUnitOptions[location] = unitScale.first;
+    }
+}
+
 bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
 {
     if (Screen::keyboardEvent(key, scancode, action, modifiers))
@@ -1100,6 +1182,17 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
         MaterialPtr material = getSelectedMaterial();
         mx::DocumentPtr doc = material ? material->getDocument() : nullptr;
         mx::FilePath filename = doc ? mx::FilePath(doc->getSourceUri()) : _materialFilename;
+        loadDocument(filename, _stdLib);
+        return true;
+    }
+
+    // Reload all files from standard library
+    if (key == GLFW_KEY_R && modifiers == GLFW_MOD_SHIFT && action == GLFW_PRESS)
+    {
+        MaterialPtr material = getSelectedMaterial();
+        mx::DocumentPtr doc = material ? material->getDocument() : nullptr;
+        mx::FilePath filename = doc ? mx::FilePath(doc->getSourceUri()) : _materialFilename;
+        loadStandardLibraries();
         loadDocument(filename, _stdLib);
         return true;
     }
@@ -1207,7 +1300,7 @@ void Viewer::drawScene3D()
             glCullFace(GL_FRONT);
             envShader->bind();
             _envMaterial->bindViewInformation(_envMatrix, view, proj);
-            _envMaterial->bindImages(_imageHandler, _searchPath, _envMaterial->getUdim());
+            _envMaterial->bindImages(_imageHandler, _searchPath);
             _envMaterial->drawPartition(envPart);
             glDisable(GL_CULL_FACE);
             glCullFace(GL_BACK);
@@ -1230,7 +1323,7 @@ void Viewer::drawScene3D()
         material->bindLights(_lightHandler, _imageHandler, _searchPath,
                              _directLighting, _indirectLighting,
                              _specularEnvironmentMethod, _envSamples);
-        material->bindImages(_imageHandler, _searchPath, material->getUdim());
+        material->bindImages(_imageHandler, _searchPath);
         material->drawPartition(geom);
         material->unbindImages(_imageHandler);
     }
@@ -1252,7 +1345,7 @@ void Viewer::drawScene3D()
         material->bindLights(_lightHandler, _imageHandler, _searchPath,
                              _directLighting, _indirectLighting,
                              _specularEnvironmentMethod, _envSamples);
-        material->bindImages(_imageHandler, _searchPath, material->getUdim());
+        material->bindImages(_imageHandler, _searchPath);
         material->drawPartition(geom);
         material->unbindImages(_imageHandler);
     }
@@ -1277,7 +1370,7 @@ void Viewer::drawScene3D()
             _ambOccMaterial->bindLights(_lightHandler, _imageHandler, _searchPath,
                                         _directLighting, _indirectLighting,
                                         _specularEnvironmentMethod, _envSamples);
-            _ambOccMaterial->bindImages(_imageHandler, _searchPath, material->getUdim());
+            _ambOccMaterial->bindImages(_imageHandler, _searchPath);
             _ambOccMaterial->drawPartition(geom);
             _ambOccMaterial->unbindImages(_imageHandler);
         }
@@ -1616,7 +1709,7 @@ void Viewer::computeCameraMatrices(mx::Matrix44& world,
     world *= mx::Matrix44::createTranslation(_modelTranslation).getTranspose();
 }
 
-void Viewer::updatePropertyEditor()
+void Viewer::updateDisplayedProperties()
 {
     _propertyEditor.updateContents(this);
 }

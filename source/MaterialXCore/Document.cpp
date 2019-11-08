@@ -190,6 +190,19 @@ void Document::importLibrary(const ConstDocumentPtr& library, const CopyOptions*
     }
 }
 
+StringSet Document::getReferencedSourceUris() const
+{
+    StringSet sourceUris;
+    for (ElementPtr elem : traverseTree())
+    {
+        if (elem->hasSourceUri())
+        {
+            sourceUris.insert(elem->getSourceUri());
+        }
+    }
+    return sourceUris;
+}
+
 std::pair<int, int> Document::getVersionIntegers() const
 {
     if (!hasVersionString())
@@ -586,6 +599,21 @@ void Document::upgradeVersion()
             }
         }
         minorVersion = 36;
+    }
+
+    // Upgrade path for 1.37 (change types to child outputs)
+    for (NodeDefPtr nodeDef : getNodeDefs())
+    {
+        InterfaceElementPtr interfaceElem = std::static_pointer_cast<InterfaceElement>(nodeDef);
+        if (interfaceElem && interfaceElem->hasType())
+        {
+            string type = interfaceElem->getAttribute(TypedElement::TYPE_ATTRIBUTE);
+            if (type != MULTI_OUTPUT_TYPE_STRING)
+            {
+                interfaceElem->addOutput("out", type);
+            }
+            interfaceElem->removeAttribute(TypedElement::TYPE_ATTRIBUTE);
+        }
     }
 
     if (majorVersion == MATERIALX_MAJOR_VERSION &&

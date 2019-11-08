@@ -30,6 +30,9 @@ class Implementation;
 class TypeDef;
 class Member;
 class ShaderRef;
+class Unit;
+class UnitDef;
+class UnitTypeDef;
 
 /// A shared pointer to a NodeDef
 using NodeDefPtr = shared_ptr<NodeDef>;
@@ -50,6 +53,21 @@ using ConstTypeDefPtr = shared_ptr<const TypeDef>;
 using MemberPtr = shared_ptr<Member>;
 /// A shared pointer to a const Member
 using ConstMemberPtr = shared_ptr<const Member>;
+
+/// A shared pointer to a Unit
+using UnitPtr = shared_ptr<Unit>;
+/// A shared pointer to a const Unit
+using ConstUnitPtr = shared_ptr<const Unit>;
+
+/// A shared pointer to a UnitDef
+using UnitDefPtr = shared_ptr<UnitDef>;
+/// A shared pointer to a const UnitDef
+using ConstUnitDefPtr = shared_ptr<const UnitDef>;
+
+/// A shared pointer to a UnitTypeDef
+using UnitTypeDefPtr = shared_ptr<UnitTypeDef>;
+/// A shared pointer to a const UnitTypeDef
+using ConstUnitTypeDefPtr = shared_ptr<const UnitTypeDef>;
 
 /// @class NodeDef
 /// A node definition element within a Document.
@@ -86,6 +104,25 @@ class NodeDef : public InterfaceElement
     const string& getNodeString() const
     {
         return getAttribute(NODE_ATTRIBUTE);
+    }
+
+    /// Return the element's output type.
+    const string& getType() const override
+    {
+        const vector<OutputPtr>& activeOutputs = getActiveOutputs();
+        size_t numActiveOutputs = activeOutputs.size();
+        if (numActiveOutputs > 1)
+        {
+            return MULTI_OUTPUT_TYPE_STRING;
+        }
+        else if (numActiveOutputs == 1)
+        {
+            return activeOutputs[0]->getType();
+        }
+        else
+        {
+            throw Exception("Nodedef: " + getName() + " has no outputs");
+        }
     }
 
     /// @}
@@ -373,6 +410,113 @@ class Member : public TypedElement
     {
     }
     virtual ~Member() { }
+
+  public:
+    static const string CATEGORY;
+};
+
+/// @class Unit
+/// A unit declaration within a UnitDef.
+class Unit : public Element
+{
+  public:
+      Unit(ElementPtr parent, const string& name) :
+          Element(parent, CATEGORY, name)
+      {
+      }
+      virtual ~Unit() { }
+
+  public:
+    static const string CATEGORY;
+};
+
+/// @class UnitDef
+/// A unit definition element within a Document.
+class UnitDef : public Element
+{
+  public:
+    UnitDef(ElementPtr parent, const string& name) :
+        Element(parent, CATEGORY, name)
+    {
+    }
+    virtual ~UnitDef() { }
+
+    /// @name Unit Type methods
+    /// @{
+
+    /// Set the element's unittype string.
+    void setUnitType(const string& type)
+    {
+        setAttribute(UNITTYPE_ATTRIBUTE, type);
+    }
+
+    /// Return true if the given element has a unittype string.
+    bool hasUnitType() const
+    {
+        return hasAttribute(UNITTYPE_ATTRIBUTE);
+    }
+
+    /// Return the element's type string.
+    const string& getUnitType() const
+    {
+        return getAttribute(UNITTYPE_ATTRIBUTE);
+    }
+
+    /// @}
+    /// @name Unit methods
+    /// @{
+
+    /// Add a Unit to the UnitDef.
+    /// @param name The name of the new Unit. An exception is thrown
+    /// if the name provided is an empty string.
+    /// @return A shared pointer to the new Unit.
+    UnitPtr addUnit(const string& name)
+    {
+        if (name.empty())
+        {
+            throw Exception("A unit definition name cannot be empty");
+        }
+        return addChild<Unit>(name);
+    }
+
+    /// Return the Unit, if any, with the given name.
+    UnitPtr getUnit(const string& name) const
+    {
+        return getChildOfType<Unit>(name);
+    }
+
+    /// Return a vector of all Unit elements in the UnitDef.
+    vector<UnitPtr> getUnits() const
+    {
+        return getChildrenOfType<Unit>();
+    }
+
+    /// Remove the Unit, if any, with the given name.
+    void removeUnit(const string& name)
+    {
+        removeChildOfType<Unit>(name);
+    }
+
+    /// @}
+
+  public:
+    static const string CATEGORY;
+    static const string UNITTYPE_ATTRIBUTE;
+};
+
+/// @class UnitTypeDef
+/// A unit type definition element within a Document.
+class UnitTypeDef : public Element
+{
+  public:
+    UnitTypeDef(ElementPtr parent, const string& name) :
+        Element(parent, CATEGORY, name)
+    {
+    }
+    virtual ~UnitTypeDef() { }
+
+    /// Find all UnitDefs for the UnitTypeDef
+    vector<UnitDefPtr> getUnitDefs() const;
 
   public:
     static const string CATEGORY;

@@ -6,6 +6,7 @@
 #include <MaterialXRender/GeometryHandler.h>
 #include <MaterialXRender/LightHandler.h>
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
+#include <MaterialXGenShader/UnitConverter.h>
 
 namespace mx = MaterialX;
 namespace ng = nanogui;
@@ -13,7 +14,7 @@ namespace ng = nanogui;
 class Viewer : public ng::Screen
 {
   public:
-    Viewer(const mx::StringVec& libraryFolders,
+    Viewer(const mx::FilePathVec& libraryFolders,
            const mx::FileSearchPath& searchPath,
            const std::string& meshFilename,
            const std::string& materialFilename,
@@ -71,7 +72,7 @@ class Viewer : public ng::Screen
         return _searchPath;
     }
 
-    const mx::GLTextureHandlerPtr getImageHandler() const
+    mx::ImageHandlerPtr getImageHandler() const
     {
         return _imageHandler;
     }
@@ -88,6 +89,7 @@ class Viewer : public ng::Screen
     void setupLights(mx::DocumentPtr doc);
     void loadDocument(const mx::FilePath& filename, mx::DocumentPtr libraries);
     void reloadShaders();
+    void loadStandardLibraries();
     void saveShaderSource();
     void loadShaderSource();
     void saveDotFiles();
@@ -103,7 +105,7 @@ class Viewer : public ng::Screen
     void updateGeometrySelections();
     void updateMaterialSelections();
     void updateMaterialSelectionUI();
-    void updatePropertyEditor();
+    void updateDisplayedProperties();
 
     void createLoadMeshInterface(Widget* parent, const std::string& label);
     void createLoadMaterialsInterface(Widget* parent, const std::string& label);
@@ -136,12 +138,12 @@ class Viewer : public ng::Screen
     ng::Vector2i _translationStart;
 
     // Document management
-    mx::StringVec _libraryFolders;
+    mx::FilePathVec _libraryFolders;
     mx::FileSearchPath _searchPath;
     mx::DocumentPtr _stdLib;
     mx::FilePath _materialFilename;
     DocumentModifiers _modifiers;
-    mx::StringVec _xincludeFiles;
+    mx::StringSet _xincludeFiles;
 
     // Lighting information
     std::string _lightFileName;
@@ -171,7 +173,7 @@ class Viewer : public ng::Screen
 
     // Resource handlers
     mx::GeometryHandlerPtr _geometryHandler;
-    mx::GLTextureHandlerPtr _imageHandler;
+    mx::ImageHandlerPtr _imageHandler;
     mx::LightHandlerPtr _lightHandler;
 
     // Supporting materials and geometry.
@@ -182,11 +184,20 @@ class Viewer : public ng::Screen
     // Shader generator
     mx::GenContext _genContext;
 
+    // Unit registry
+    mx::UnitConverterRegistryPtr _unitRegistry;
+
     // Mesh options
     bool _splitByUdims;
 
     // Material options
     bool _mergeMaterials;
+    bool _bakeTextures;
+
+    // Unit options
+    mx::StringVec _distanceUnitOptions;
+    ng::ComboBox* _distanceUnitBox;
+    mx::LinearUnitConverterPtr _distanceUnitConverter;
 
     // Render options
     bool _outlineSelection;

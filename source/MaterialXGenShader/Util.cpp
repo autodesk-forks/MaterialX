@@ -45,8 +45,9 @@ bool readFile(const string& filename, string& contents)
     return false;
 }
 
-void loadDocuments(const FilePath& rootPath, const FileSearchPath& searchPath, const StringSet& skipFiles, const StringSet& includeFiles,
-                   vector<DocumentPtr>& documents, StringVec& documentsPaths, StringVec& errors)
+void loadDocuments(const FilePath& rootPath, const FileSearchPath& searchPath, const StringSet& skipFiles,
+                   const StringSet& includeFiles, vector<DocumentPtr>& documents, StringVec& documentsPaths,
+                   StringVec& errors)
 {
     for (const FilePath& dir : rootPath.getSubDirectories())
     {
@@ -59,9 +60,9 @@ void loadDocuments(const FilePath& rootPath, const FileSearchPath& searchPath, c
                 const FilePath filePath = dir / file;
                 try
                 {
-                    FileSearchPath readSearchPath(searchPath.asString());
+                    FileSearchPath readSearchPath(searchPath);
                     readSearchPath.append(dir);
-                    readFromXmlFile(doc, filePath, readSearchPath.asString());
+                    readFromXmlFile(doc, filePath, readSearchPath);
                     documents.push_back(doc);
                     documentsPaths.push_back(filePath.asString());
                 }
@@ -79,7 +80,7 @@ void loadLibrary(const FilePath& file, DocumentPtr doc)
     DocumentPtr libDoc = createDocument();
     XmlReadOptions readOptions;
     readOptions.skipConflictingElements = true;
-    readFromXmlFile(libDoc, file, EMPTY_STRING, &readOptions);
+    readFromXmlFile(libDoc, file, FileSearchPath(), &readOptions);
     CopyOptions copyOptions;
     copyOptions.skipConflictingElements = true;
     doc->importLibrary(libDoc, &copyOptions);
@@ -188,7 +189,7 @@ namespace
                     {
                         opaque = true;
                     }
-                    else if (opacity->getNodeName() == EMPTY_STRING && opacity->getInterfaceName() == EMPTY_STRING)
+                    else if (opacity->getNodeName().empty() && opacity->getInterfaceName().empty())
                     {
                         ValuePtr value = opacity->getValue();
                         if (!value || (value->isA<float>() && isOne(value->asA<float>())))
@@ -261,7 +262,7 @@ namespace
                         {
                             transmissionInterfaceNames.insert(tranmsInterfaceName);
                         }
-                        if (transmission->getNodeName() == EMPTY_STRING)
+                        if (transmission->getNodeName().empty())
                         {
                             // Unconnected, check the value
                             ValuePtr value = transmission->getValue();
@@ -289,7 +290,7 @@ namespace
                             {
                                 opacityInterfaceNames.insert(opacityInterfaceName);
                             }
-                            if (opacity->getNodeName() == EMPTY_STRING)
+                            if (opacity->getNodeName().empty())
                             {
                                 // Unconnected, check the value
                                 ValuePtr value = opacity->getValue();
@@ -427,7 +428,7 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
                 NodeGraphPtr graph = impl->asA<NodeGraph>();
 
                 vector<OutputPtr> outputs = graph->getActiveOutputs();
-                if (outputs.size() > 0)
+                if (!outputs.empty())
                 {
                     const OutputPtr& output = outputs[0];
                     if (TypeDesc::get(output->getType()) == Type::SURFACESHADER)
@@ -726,29 +727,6 @@ void tokenSubstitution(const StringMap& substitutions, string& source)
         }
     }
     source = buffer;
-}
-
-FilePathVec getUdimPaths(const FilePath& filePath, const StringVec& udimIdentifiers)
-{
-    FilePathVec resolvedFilePaths;
-    if (udimIdentifiers.empty())
-    {
-        return resolvedFilePaths;
-    }
-
-    for (const string& udimIdentifier : udimIdentifiers)
-    {
-        if (udimIdentifier.empty())
-        {
-            continue;
-        }
-
-        StringMap map;
-        map[UDIM_TOKEN] = udimIdentifier;
-        resolvedFilePaths.push_back(FilePath(replaceSubstrings(filePath.asString(), map)));
-    }
-
-    return resolvedFilePaths;
 }
 
 vector<Vector2> getUdimCoordinates(const StringVec& udimIdentifiers)

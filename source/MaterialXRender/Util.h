@@ -9,10 +9,11 @@
 /// @file
 /// Rendering utility methods
 
-#include <MaterialXCore/Document.h>
-#include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/GenContext.h>
+#include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/Util.h>
+
+#include <MaterialXCore/Document.h>
 
 #include <map>
 
@@ -54,6 +55,15 @@ namespace MaterialX
 
         /// UI maximum value
         ValuePtr uiMax;
+
+        /// UI soft minimum value
+        ValuePtr uiSoftMin;
+
+        /// UI soft maximum value
+        ValuePtr uiSoftMax;
+
+        /// UI step value
+        ValuePtr uiStep;
 
         /// UI advanced element
         bool uiAdvanced = false;

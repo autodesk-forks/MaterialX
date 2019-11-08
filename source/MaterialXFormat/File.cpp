@@ -17,16 +17,15 @@
 #include <dirent.h>
 #endif
 
+#include <array>
 #include <cctype>
 #include <cerrno>
-#include <climits>
 #include <cstring>
 
 namespace MaterialX
 {
 
-const string VALID_SEPARATORS_WINDOWS = "/\\";
-const string VALID_SEPARATORS_POSIX = "/";
+const string VALID_SEPARATORS = "/\\";
 
 const char PREFERRED_SEPARATOR_WINDOWS = '\\';
 const char PREFERRED_SEPARATOR_POSIX = '/';
@@ -42,13 +41,17 @@ const string MATERIALX_SEARCH_PATH_ENV_VAR = "MATERIALX_SEARCH_PATH";
 // FilePath methods
 //
 
-void FilePath::assign(const string& str, Format format)
+void FilePath::assign(const string& str)
 {
     _type = TypeRelative;
-    if (format == FormatWindows)
+    _vec = splitString(str, VALID_SEPARATORS);
+    if (!str.empty())
     {
-        _vec = splitString(str, VALID_SEPARATORS_WINDOWS);
-        if (str.size() >= 2)
+        if (str[0] == PREFERRED_SEPARATOR_POSIX)
+        {
+            _type = TypeAbsolute;
+        }
+        else if (str.size() >= 2)
         {
             if (std::isalpha(str[0]) && str[1] == ':')
             {
@@ -60,15 +63,6 @@ void FilePath::assign(const string& str, Format format)
             }
         }
     }
-    else
-    {
-        _vec = splitString(str, VALID_SEPARATORS_POSIX);
-        if (!str.empty() && str[0] == PREFERRED_SEPARATOR_POSIX)
-        {
-            _type = TypeAbsolute;
-        }
-    }
-    _format = format;
 }
 
 string FilePath::asString(Format format) const
@@ -109,10 +103,6 @@ FilePath FilePath::operator/(const FilePath& rhs) const
     {
         throw Exception("Appended path must be relative.");
     }
-    if (_format != rhs._format)
-    {
-        throw Exception("Appended path must have the same format.");
-    }
 
     FilePath combined(*this);
     for (const string& str : rhs._vec)
@@ -120,14 +110,6 @@ FilePath FilePath::operator/(const FilePath& rhs) const
         combined._vec.push_back(str);
     }
     return combined;
-}
-
-void FilePath::pop()
-{
-    if (!isEmpty())
-    {
-        _vec.pop_back();
-    }
 }
 
 bool FilePath::exists() const
@@ -241,7 +223,7 @@ FilePathVec FilePath::getSubDirectories() const
     return dirs;
 }
 
-void FilePath::createDirectory()
+void FilePath::createDirectory() const
 {
 #if defined(_WIN32)
     _mkdir(asString().c_str());
@@ -253,19 +235,19 @@ void FilePath::createDirectory()
 FilePath FilePath::getCurrentPath()
 {
 #if defined(_WIN32)
-    char buf[MAX_PATH];
-    if (!GetCurrentDirectory(MAX_PATH, buf))
+    std::array<char, MAX_PATH> buf;
+    if (!GetCurrentDirectory(MAX_PATH, buf.data()))
     {
         throw Exception("Error in getCurrentPath: " + std::to_string(GetLastError()));
     }
-    return FilePath(buf);
+    return FilePath(buf.data());
 #else
-    char buf[PATH_MAX];
-    if (getcwd(buf, PATH_MAX) == NULL)
+    std::array<char, PATH_MAX> buf;
+    if (getcwd(buf.data(), PATH_MAX) == NULL)
     {
         throw Exception("Error in getCurrentPath: " + string(strerror(errno)));
     }
-    return FilePath(buf);
+    return FilePath(buf.data());
 #endif
 }
 

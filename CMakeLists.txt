@@ -1,24 +1,24 @@
 project(MaterialX)
 set(MATERIALX_MAJOR_VERSION 1)
-set(MATERIALX_MINOR_VERSION 36)
-set(MATERIALX_BUILD_VERSION 4)
+set(MATERIALX_MINOR_VERSION 37)
+set(MATERIALX_BUILD_VERSION 0)
 set(MATERIALX_LIBRARY_VERSION ${MATERIALX_MAJOR_VERSION}.${MATERIALX_MINOR_VERSION}.${MATERIALX_BUILD_VERSION})
 
 cmake_minimum_required(VERSION 3.1)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 set(CMAKE_MACOSX_RPATH ON)
-include(CheckCXXCompilerFlag)
-include(CMakeDependentOption)
 enable_testing()
 
-option(MATERIALX_BUILD_PYTHON "Build the MaterialX Python package from C++ bindings. Requires Python 2.6 or greater." OFF)
+option(MATERIALX_BUILD_PYTHON "Build the MaterialX Python package from C++ bindings. Requires Python 2.7 or greater." OFF)
 option(MATERIALX_BUILD_VIEWER "Build the MaterialX Viewer." ON)
 option(MATERIALX_BUILD_DOCS "Create HTML documentation using Doxygen. Requires that Doxygen be installed." OFF)
 option(MATERIALX_PYTHON_LTO "Enable link-time optimizations for MaterialX Python." ON)
 option(MATERIALX_INSTALL_PYTHON "Install the MaterialX Python package as a third-party library when the install target is built." ON)
 option(MATERIALX_WARNINGS_AS_ERRORS "Interpret all compiler warnings as errors." OFF)
 
+set (MATERIALX_DEBUG_POSTFIX "d" CACHE STRING 
+    "Postfix to append to the target file name for debug configuration (e.g. 'd').")
 set(MATERIALX_PYTHON_VERSION "" CACHE STRING
     "Python version to be used in building the MaterialX Python package (e.g. '2.7').")
 set(MATERIALX_PYTHON_EXECUTABLE "" CACHE FILEPATH
@@ -32,6 +32,7 @@ mark_as_advanced(MATERIALX_BUILD_DOCS)
 mark_as_advanced(MATERIALX_PYTHON_LTO)
 mark_as_advanced(MATERIALX_INSTALL_PYTHON)
 mark_as_advanced(MATERIALX_WARNINGS_AS_ERRORS)
+mark_as_advanced(MATERIALX_DEBUG_POSTFIX)
 mark_as_advanced(MATERIALX_PYTHON_VERSION)
 mark_as_advanced(MATERIALX_PYTHON_EXECUTABLE)
 mark_as_advanced(MATERIALX_PYTHON_OCIO_DIR)
@@ -109,21 +110,25 @@ if(MSVC)
         set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Z7")
     endif()
 else()
-    add_compile_options(-Wall -Wno-missing-braces -Wno-unused-function)
-    if(APPLE)
-        add_compile_options(-Wno-deprecated-declarations)
-    endif()
+    add_compile_options(-Wall -Wno-missing-braces)
     if(MATERIALX_WARNINGS_AS_ERRORS)
         add_compile_options(-Werror)
     endif()
-    if(CMAKE_CXX_COMPILER_ID MATCHES Clang)
-        add_compile_options(-Wno-deprecated-register)
-        CHECK_CXX_COMPILER_FLAG(-Wno-undefined-var-template UNDEFINED_VAR_TEMPLATE_FLAG)
-        if(UNDEFINED_VAR_TEMPLATE_FLAG)
-            add_compile_options(-Wno-undefined-var-template)
-        endif()
-    endif()
 endif()
+
+# Shared functions
+function(assign_source_group prefix)
+    foreach(_source IN ITEMS ${ARGN})
+        if(IS_ABSOLUTE "${_source}")
+            file(RELATIVE_PATH _source_rel "${CMAKE_CURRENT_SOURCE_DIR}" "${_source}")
+        else()
+            set(_source_rel "${_source}")
+        endif()
+        get_filename_component(_source_path "${_source_rel}" PATH)
+        string(REPLACE "/" "\\" _source_path_msvc "${_source_path}")
+        source_group("${prefix}\\${_source_path_msvc}" FILES "${_source}")
+    endforeach()
+endfunction(assign_source_group)
 
 # Add core subdirectories
 add_subdirectory(source/MaterialXCore)
@@ -202,6 +207,24 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.6.2")
     endif()
 endif()
 
-# install MaterialX find_package module
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}" MESSAGE_NEVER)
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/cmake/MaterialXConfigVersion.cmake
+    VERSION ${CMAKE_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+# Package for using the developer build
+export(
+    EXPORT MaterialX
+    FILE ${CMAKE_BINARY_DIR}/cmake/MaterialXConfig.cmake
+    )
+
+# Package for using the installed build
+install(
+    EXPORT      MaterialX
+    DESTINATION cmake
+    FILE        MaterialXConfig.cmake)
+install(
+    FILES "${CMAKE_BINARY_DIR}/cmake/MaterialXConfigVersion.cmake"
+    DESTINATION cmake)

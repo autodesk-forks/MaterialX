@@ -11,18 +11,16 @@
 namespace MaterialX
 {
 
-/// Implementation using data driven static source code.
-/// This is the defaul implementation used for all nodes that 
-/// does not have a custom ShaderNodeImpl class.
+/// Node implementation using data-driven static source code.
+/// This is the default implementation used for all nodes that 
+/// do not have a custom ShaderNodeImpl class.
 class SourceCodeNode : public ShaderNodeImpl
 {
 public:
     static ShaderNodeImplPtr create();
 
-    void initialize(const InterfaceElement& implementation, GenContext& context) override;
-
+    void initialize(const InterfaceElement& element, GenContext& context) override;
     void emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
-
     void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 
 protected:

@@ -29,11 +29,9 @@ string removeExtension(const string& filename);
 bool readFile(const string& filename, string& content);
 
 /// Scans for all documents under a root path and returns documents which can be loaded
-void loadDocuments(const FilePath& rootPath,
-                   const FileSearchPath& searchPath,
-                   const StringSet& skipFiles, const StringSet& includeFiles,
-                   vector<DocumentPtr>& documents, StringVec& documentsPaths,
-                   StringVec& errorLog);
+void loadDocuments(const FilePath& rootPath, const FileSearchPath& searchPath, const StringSet& skipFiles,
+                   const StringSet& includeFiles, vector<DocumentPtr>& documents, StringVec& documentsPaths,
+                   StringVec& errors);
 
 /// Load a given MaterialX library into a document
 void loadLibrary(const FilePath& file, DocumentPtr doc);
@@ -95,14 +93,6 @@ ValueElementPtr findNodeDefChild(const string& path, DocumentPtr doc, const stri
 /// The full token name, including '$' and all following alphanumeric character, will be replaced
 /// by the corresponding string in the substitution map, if the token exists in the map.
 void tokenSubstitution(const StringMap& substitutions, string& source);
-
-/// Perform UDIM token replace using an input file path and a list of token
-/// replacements (UDIM identifiers). A new path will be created for
-/// each identifier.
-/// @param filePath File path with UDIM token
-/// @param udimIdentifiers List of UDIM identifiers
-/// @returns List of file paths
-FilePathVec getUdimPaths(const FilePath& filePath, const StringVec& udimIdentifiers);
 
 /// Compute the UDIM coordinates for a set of UDIM identifiers
 /// @return List of UDIM coordinates
