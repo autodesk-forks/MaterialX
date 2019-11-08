@@ -148,11 +148,6 @@ template<> void valueFromString(const string& str, bool& value)
         throw ExceptionRuntimeError("Failed setting value from string: " + str);
 }
 
-template<> void valueFromString(const string& str, string& value)
-{
-    value = str;
-}
-
 template<> void valueFromString(const string& str, RtToken& value)
 {
     value = RtToken(str);
