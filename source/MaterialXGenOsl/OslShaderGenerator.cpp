@@ -204,13 +204,14 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     // Emit function definitions for all nodes
     emitFunctionDefinitions(graph, context, stage);
 
-    // Emit shader type
-    const ShaderGraphOutputSocket* outputSocket = graph.getOutputSocket();
-    if (outputSocket->getType() == Type::SURFACESHADER)
+    // Emit shader type, determined from the first
+    // output if there are multiple outputs.
+    const ShaderGraphOutputSocket* outputSocket0 = graph.getOutputSocket(0);
+    if (outputSocket0->getType() == Type::SURFACESHADER)
     {
         emitString("surface ", stage);
     }
-    else if (outputSocket->getType() == Type::VOLUMESHADER)
+    else if (outputSocket0->getType() == Type::VOLUMESHADER)
     {
         emitString("volume ", stage);
     }
@@ -241,11 +242,16 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     emitVariableDeclarations(uniforms, _syntax->getUniformQualifier(), COMMA, context, stage);
 
     // Emit shader output
-    // TODO: Support multiple outputs
-    const TypeDesc* outputType = outputSocket->getType();
-    const string type = _syntax->getOutputTypeName(outputType);
-    const string value = _syntax->getDefaultValue(outputType, true);
-    emitLine(type + " " + outputSocket->getVariable() + " = " + value, stage, false);
+    const VariableBlock& outputs = stage.getOutputBlock(OSL::OUTPUTS);
+    for (size_t i = 0; i < outputs.size(); ++i)
+    {
+        const ShaderPort* output = outputs[i];
+        const TypeDesc* outputType = output->getType();
+        const string type = _syntax->getOutputTypeName(outputType);
+        const string value = _syntax->getDefaultValue(outputType, true);
+        const string& delim = (i == outputs.size() - 1) ? EMPTY_STRING : COMMA;
+        emitLine(type + " " + output->getVariable() + " = " + value + delim, stage, false);
+    }
 
     // End shader signature
     emitScopeEnd(stage);
@@ -264,9 +270,13 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     // Emit function calls for all nodes
     emitFunctionCalls(graph, context, stage);
 
-    // Emit final output
-    const string result = getUpstreamResult(outputSocket, context);
-    emitLine(outputSocket->getVariable() + " = " + result, stage);
+    // Emit final outputs
+    for (size_t i = 0; i < outputs.size(); ++i)
+    {
+        const ShaderGraphOutputSocket* outputSocket = graph.getOutputSocket(i);
+        const string result = getUpstreamResult(outputSocket, context);
+        emitLine(outputSocket->getVariable() + " = " + result, stage);
+    }
 
     // End shader body
     emitScopeEnd(stage);

@@ -93,8 +93,8 @@ class ShaderGraph : public ShaderNode
     const vector<ShaderGraphInputSocket*>& getInputSockets() const { return _outputOrder; }
     const vector<ShaderGraphOutputSocket*>& getOutputSockets() const { return _inputOrder; }
 
-    /// Add new node
-    ShaderNode* addNode(const Node& node, GenContext& context);
+    /// Create a new node in the graph
+    ShaderNode* createNode(const Node& node, GenContext& context);
 
     /// Add input/output sockets
     ShaderGraphInputSocket* addInputSocket(const string& name, const TypeDesc* type);
@@ -107,6 +107,9 @@ class ShaderGraph : public ShaderNode
     IdentifierMap& getIdentifierMap() { return _identifiers; }
 
   protected:
+    /// Add a node to the graph
+    void addNode(ShaderNodePtr node);
+
     /// Add input sockets from an interface element (nodedef, nodegraph or node)
     void addInputSockets(const InterfaceElement& elem, GenContext& context);
 
