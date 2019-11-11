@@ -46,6 +46,28 @@ public:
     /// or a null object if no such port exists.
     RtObject getPort(size_t index) const;
 
+    /// Get the index offset for outputs.
+    /// This index points to the first output.
+    size_t getOutputsOffset() const;
+
+    /// Get the index offset for inputs.
+    /// This index points to the first input.
+    size_t getInputsOffset() const;
+
+    /// Get the i:th output port definition,
+    /// or a null object if no such port exists.
+    RtObject getOutput(size_t index) const
+    {
+        return getPort(getOutputsOffset() + index);
+    }
+
+    /// Get the i:th input port definition,
+    /// or a null object if no such port exists.
+    RtObject getInput(size_t index) const
+    {
+        return getPort(getInputsOffset() + index);
+    }
+
     /// Find a port definition by name.
     /// Return a null object if no such port is found.
     RtObject findPort(const RtToken& name) const;

@@ -167,7 +167,7 @@ namespace
                 const RtToken portType(elem->getType());
                 const RtValue portValue(readValue(elem->getValue(), portType, nodedef->getValueStorage()));
 
-                PrvObjectHandle inputH = PrvPortDef::createNew(portName, portType, portValue, RtPortFlag::INPUT);
+                PrvObjectHandle inputH = PrvPortDef::createNew(portName, portType, portValue);
                 PrvPortDef* input = inputH->asA<PrvPortDef>();
                 input->setColorSpace(RtToken(elem->getColorSpace()));
                 // TODO: fix when units are implemented in core
@@ -181,7 +181,7 @@ namespace
                 const RtToken portType(elem->getType());
                 const RtValue portValue(readValue(elem->getValue(), portType, nodedef->getValueStorage()));
 
-                PrvObjectHandle inputH = PrvPortDef::createNew(portName, portType, portValue, RtPortFlag::INPUT | RtPortFlag::UNIFORM);
+                PrvObjectHandle inputH = PrvPortDef::createNew(portName, portType, portValue, RtPortFlag::UNIFORM);
                 PrvPortDef* input = inputH->asA<PrvPortDef>();
                 input->setColorSpace(RtToken(elem->getColorSpace()));
                 // TODO: fix when units are implemented in core
@@ -247,8 +247,30 @@ namespace
         if (srcNodeDef)
         {
             fixedInterface = true;
-            PrvObjectHandle graphNodeDefH = readNodeDef(srcNodeDef);
-            nodegraph->createInterface(graphNodeDefH);
+
+            vector<ValueElementPtr> elements = srcNodeDef->getChildrenOfType<ValueElement>();
+
+            // Create outputs first
+            for (auto elem : elements)
+            {
+                if (elem->isA<Output>())
+                {
+                    const RtToken name(elem->getName());
+                    const RtToken type(elem->getType());
+                    nodegraph->addPort(PrvPortDef::createNew(name, type, RtValue(), RtPortFlag::OUTPUT));
+                }
+            }
+            // Create inputs second
+            for (auto elem : elements)
+            {
+                if (!elem->isA<Output>())
+                {
+                    const RtToken name(elem->getName());
+                    const RtToken type(elem->getType());
+                    const uint32_t flags = elem->isA<Parameter>() ? RtPortFlag::DEFAULTS | RtPortFlag::UNIFORM : RtPortFlag::DEFAULTS;
+                    nodegraph->addPort(PrvPortDef::createNew(name, type, RtValue(), flags));
+                }
+            }
         }
         else
         {
@@ -279,10 +301,11 @@ namespace
                     const string& interfaceName = elem->getInterfaceName();
                     if (!interfaceName.empty())
                     {
-                        const RtToken graphInputName(interfaceName);
-                        RtPort graphInput = nodegraph->findPort(graphInputName);
-                        if (!graphInput)
+                        const RtToken internalInputName(interfaceName);
+                        RtPort inputSocket = nodegraph->findInputSocket(internalInputName);
+                        if (!inputSocket)
                         {
+                            // Create the input on the graph
                             if (fixedInterface)
                             {
                                 // The input should have been created already.
@@ -290,14 +313,13 @@ namespace
                                 throw ExceptionRuntimeError("Interface name '" + interfaceName + "' does not match an input on the nodedef set for nodegraph '" +
                                     nodegraph->getName().str() + "'");
                             }
-                            // Create the input
                             const RtToken graphInputType(elem->getType());
                             const RtValue graphInputValue(readValue(elem->getValue(), graphInputType, nodegraph->getValueStorage()));
-                            nodegraph->addPort(PrvPortDef::createNew(graphInputName, graphInputType, graphInputValue, RtPortFlag::INPUT));
+                            nodegraph->addPort(PrvPortDef::createNew(internalInputName, graphInputType, graphInputValue));
                         }
                         const RtToken inputName(elem->getName());
                         RtPort input = node->findPort(inputName);
-                        PrvNode::connect(graphInput, input);
+                        PrvNode::connect(inputSocket, input);
                     }
                 }
             }
@@ -329,10 +351,10 @@ namespace
                         RtPort output = upstreamNode->getPort(0); // TODO: Fixme!
                         // Single outputs can have arbitrary names,
                         // so access by index in that case.
-                        RtPort graphOutput = nodegraph->numOutputs() == 1 ?
-                            nodegraph->getPort(0) :
-                            nodegraph->findPort(RtToken(downstreamElem->getName()));
-                        PrvNode::connect(output, graphOutput);
+                        RtPort outputSocket = nodegraph->numOutputs() == 1 ?
+                            nodegraph->getOutputSocket(0) :
+                            nodegraph->findOutputSocket(RtToken(downstreamElem->getName()));
+                        PrvNode::connect(output, outputSocket);
                     }
                     else
                     {
@@ -382,7 +404,7 @@ namespace
 
         for (size_t i = numOutputs; i < numPorts; ++i)
         {
-            const PrvPortDef* input = nodedef->port(i);
+            const PrvPortDef* input = nodedef->getPort(i);
 
             ValueElementPtr destInput;
             if (input->isUniform())
@@ -410,7 +432,7 @@ namespace
         }
         for (size_t i = 0; i < numOutputs; ++i)
         {
-            const PrvPortDef* output = nodedef->port(i);
+            const PrvPortDef* output = nodedef->getPort(i);
             OutputPtr destOutput = destNodeDef->addOutput(output->getName(), output->getType().str());
             writeAttributes(output, destOutput);
         }
@@ -421,15 +443,12 @@ namespace
     {
         const PrvNodeDef* nodedef = node->nodedef();
 
-        const size_t numPorts = nodedef->numPorts();
-        const size_t numOutputs = nodedef->numOutputs();
-
-        string type = numOutputs == 1 ? nodedef->port(0)->getType().str() : "multioutput";
+        const string type = nodedef->numOutputs() == 1 ? nodedef->getPort(0)->getType().str() : "multioutput";
         NodePtr destNode = dest->addNode(nodedef->getCategory(), node->getName().str(), type);
 
-        for (size_t i = numOutputs; i < numPorts; ++i)
+        for (size_t i = 0; i < nodedef->numInputs(); ++i)
         {
-            const PrvPortDef* inputDef = nodedef->port(i);
+            const PrvPortDef* inputDef = nodedef->getInput(i);
             RtPort input = const_cast<PrvNode*>(node)->findPort(inputDef->getName());
             if (input.isConnected() || input.getValue() != inputDef->getValue())
             {
@@ -440,8 +459,7 @@ namespace
                     if (input.isConnected())
                     {
                         RtPort sourcePort = input.getSourcePort();
-                        PrvNode* sourceNode = sourcePort.data()->asA<PrvNode>();
-                        if (sourceNode->getCategory() == PrvNodeGraph::INTERNAL_NODEDEF)
+                        if (sourcePort.isSocket())
                         {
                             // This is a connection to the internal node of a graph
                             valueElem->setInterfaceName(sourcePort.getName());
@@ -458,14 +476,14 @@ namespace
                     if (input.isConnected())
                     {
                         RtPort sourcePort = input.getSourcePort();
-                        PrvNode* sourceNode = sourcePort.data()->asA<PrvNode>();
-                        if (sourceNode->getCategory() == PrvNodeGraph::INTERNAL_NODEDEF)
+                        if (sourcePort.isSocket())
                         {
                             // This is a connection to the internal node of a graph
                             valueElem->setInterfaceName(sourcePort.getName());
                         }
                         else
                         {
+                            PrvNode* sourceNode = sourcePort.data()->asA<PrvNode>();
                             InputPtr inputElem = valueElem->asA<Input>();
                             inputElem->setNodeName(sourceNode->getName());
                             if (sourceNode->numOutputs() > 1)
@@ -491,13 +509,10 @@ namespace
                 }
             }
         }
-        if (numOutputs > 1)
+        for (size_t i = 0; i < nodedef->numOutputs(); ++i)
         {
-            for (size_t i = 0; i < numOutputs; ++i)
-            {
-                const PrvPortDef* output = nodedef->port(i);
-                OutputPtr destOutput = destNode->addOutput(output->getName(), output->getType().str());
-            }
+            const PrvPortDef* output = nodedef->getOutput(i);
+            OutputPtr destOutput = destNode->addOutput(output->getName(), output->getType().str());
         }
 
         writeAttributes(node, destNode);

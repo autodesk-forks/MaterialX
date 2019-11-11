@@ -10,7 +10,7 @@
 /// TODO: Docs
 
 #include <MaterialXRuntime/Library.h>
-#include <MaterialXRuntime/RtElement.h>
+#include <MaterialXRuntime/RtNode.h>
 
 namespace MaterialX
 {
@@ -18,7 +18,7 @@ namespace MaterialX
 /// @class RtNodeGraph
 /// API for creating and editing nodegraphs. This API can only be
 /// attached to objects of type NODEGRAPH.
-class RtNodeGraph : public RtElement
+class RtNodeGraph : public RtNode
 {
 public:
     /// Constructor attaching and object to the API.
@@ -44,19 +44,25 @@ public:
     /// if no such node is found.
     RtObject findNode(const RtToken& name) const;
 
-    /// Return the port count.
-    size_t numPorts() const;
+    /// Return an output socket by index, or a null object if no such port exists.
+    /// Sockets are the internal ports which nodes inside the graph can connect
+    /// to in order to interface with the outside.
+    RtPort getOutputSocket(size_t index) const;
 
-    /// Return the port count.
-    size_t numOutputs() const;
+    /// Return an input socket by index, or a null object if no such port exists.
+    /// Sockets are the internal ports which nodes inside the graph can connect
+    /// to in order to interface with the outside.
+    RtPort getInputSocket(size_t index) const;
 
-    /// Return a port by index, or a null object 
-    /// if no such port exists.
-    RtPort getPort(size_t index) const;
+    /// Find an output socket by name, or a null object if no such port is found.
+    /// Sockets are the internal ports which nodes inside the graph can connect
+    /// to in order to interface with the outside.
+    RtPort findOutputSocket(const RtToken& name) const;
 
-    /// Find a port by name, or a null object 
-    /// if no such port is found.
-    RtPort findPort(const RtToken& name) const;
+    /// Find an input socket by name, or a null object if no such port is found.
+    /// Sockets are the internal ports which nodes inside the graph can connect
+    /// to in order to interface with the outside.
+    RtPort findInputSocket(const RtToken& name) const;
 
     /// Convert this graph to a string in the DOT language syntax. This can be
     /// used to visualise the graph using GraphViz (http://www.graphviz.org).

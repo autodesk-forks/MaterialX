@@ -7,6 +7,7 @@
 
 #include <MaterialXRuntime/Private/PrvPortDef.h>
 #include <MaterialXRuntime/Private/PrvNodeDef.h>
+#include <MaterialXRuntime/Private/PrvNodeGraph.h>
 
 namespace MaterialX
 {
@@ -26,9 +27,13 @@ RtObject RtPortDef::createNew(const RtToken& name, const RtToken& type, const Rt
         {
             parent.data()->asA<PrvNodeDef>()->addPort(portdef);
         }
+        else if (parent.hasApi(RtApiType::NODEGRAPH))
+        {
+            parent.data()->asA<PrvNodeGraph>()->addPort(portdef);
+        }
         else
         {
-            throw ExceptionRuntimeError("Parent object must be a nodedef");
+            throw ExceptionRuntimeError("Parent object must be a nodedef or a nodegraph");
         }
     }
 

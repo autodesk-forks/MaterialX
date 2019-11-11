@@ -91,8 +91,9 @@ PrvObjectHandle PrvStage::findChildByPath(const string& path) const
     while (elem && i < elementNames.size())
     {
         name = elementNames[i++];
-        if (elem->hasApi(RtApiType::NODE))
+        if (elem->getObjType() == RtObjType::NODE)
         {
+            // For nodes find the portdef on the corresponding nodedef
             PrvNode* node = elem->asA<PrvNode>();
             PrvNodeDef* nodedef = node->getNodeDef()->asA<PrvNodeDef>();
             elem = nodedef->findChildByName(name);

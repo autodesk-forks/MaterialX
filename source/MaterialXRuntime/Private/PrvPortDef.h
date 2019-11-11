@@ -23,7 +23,8 @@ class PrvPortDef : public PrvElement
 public:
     PrvPortDef(const RtToken& name, const RtToken& type, const RtValue& value, uint32_t flags);
 
-    static PrvObjectHandle createNew(const RtToken& name, const RtToken& type, const RtValue& value, uint32_t flags);
+    static PrvObjectHandle createNew(const RtToken& name, const RtToken& type, const RtValue& value, 
+                                     uint32_t flags = RtPortFlag::DEFAULTS);
 
     const RtToken& getType() const
     {
@@ -72,7 +73,7 @@ public:
 
     bool isInput() const
     {
-        return (_flags & RtPortFlag::INPUT) != 0;
+        return !isOutput();
     }
 
     bool isOutput() const

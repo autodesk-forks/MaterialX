@@ -44,15 +44,48 @@ public:
         return _numOutputs;
     }
 
+    size_t numInputs() const
+    {
+        return numPorts() - numOutputs();
+    }
+
+    PrvPortDef* getPort(size_t index) const
+    {
+        return getChild(index)->asA<PrvPortDef>();
+    }
+
+    size_t getOutputsOffset() const
+    {
+        // Outputs are stored first
+        return 0;
+    }
+
+    size_t getInputsOffset() const
+    {
+        // Inputs are stored after the outputs
+        return _numOutputs;
+    }
+
+    PrvPortDef* getOutput(size_t index) const
+    {
+        return getPort(getOutputsOffset() + index);
+    }
+
+    PrvPortDef* getInput(size_t index) const
+    {
+        return getPort(getInputsOffset() + index);
+    }
+
+    PrvPortDef* findPort(const RtToken& name) const
+    {
+        return findChildByName(name)->asA<PrvPortDef>();
+    }
+
     size_t findPortIndex(const RtToken& name)
     {
         auto it = _portIndex.find(name);
         return it != _portIndex.end() ? it->second : INVALID_INDEX;
     }
-
-    // Short syntax getter for convenience.
-    PrvPortDef* port(const RtToken& name) const { return findChildByName(name)->asA<PrvPortDef>(); }
-    PrvPortDef* port(size_t index) const { return getChild(index)->asA<PrvPortDef>(); }
 
 protected:
     void rebuildPortIndex();

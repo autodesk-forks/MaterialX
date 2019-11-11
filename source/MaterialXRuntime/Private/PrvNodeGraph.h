@@ -26,30 +26,32 @@ public:
 
     void addNode(PrvObjectHandle node);
 
-
-    PrvObjectHandle createInterface(PrvObjectHandle nodedef);
-
-
     void addPort(PrvObjectHandle portdef);
 
     void removePort(const RtToken& name);
 
-
-    RtPort getInternalPort(size_t index)
+    RtPort getInputSocket(size_t index) const
     {
-        PrvPortDef* portdef = internalNodeDef()->port(index);
-        return portdef ? RtPort(_internalNode, index) : RtPort();
+        const PrvPortDef* portdef = inputSocketsNodeDef()->getPort(index);
+        return portdef ? RtPort(_inputSockets, index) : RtPort();
     }
 
-    RtPort findInternalPort(const RtToken& name)
+    RtPort getOutputSocket(size_t index) const
     {
-        const size_t index = findInternalPortIndex(name);
-        return index != INVALID_INDEX ? RtPort(_internalNode, index) : RtPort();
+        const PrvPortDef* portdef = outputSocketsNodeDef()->getPort(index);
+        return portdef ? RtPort(_outputSockets, index) : RtPort();
     }
 
-    size_t findInternalPortIndex(const RtToken& name)
+    RtPort findInputSocket(const RtToken& name) const
     {
-        return internalNodeDef()->findPortIndex(name);
+        const size_t index = inputSocketsNodeDef()->findPortIndex(name);
+        return index != INVALID_INDEX ? RtPort(_inputSockets, index) : RtPort();
+    }
+
+    RtPort findOutputSocket(const RtToken& name) const
+    {
+        const size_t index = outputSocketsNodeDef()->findPortIndex(name);
+        return index != INVALID_INDEX ? RtPort(_outputSockets, index) : RtPort();
     }
 
     string asStringDot() const;
@@ -57,16 +59,26 @@ public:
     PrvNode* node(const RtToken& name) const { return (PrvNode*)findChildByName(name).get(); }
     PrvNode* node(size_t index) const { return (PrvNode*)getChild(index).get(); }
 
-    PrvNodeDef* internalNodeDef() const { return (PrvNodeDef*)_internalNodeDef.get(); }
-    PrvNode* internalNode() const { return (PrvNode*)_internalNode.get(); }
-
     // Token constants.
-    static const RtToken INTERNAL_NODEDEF;
-    static const RtToken INTERNAL_NODE;
+    static const RtToken UNPUBLISHED_NODEDEF;
+    static const RtToken INPUT_SOCKETS_NODEDEF;
+    static const RtToken OUTPUT_SOCKETS_NODEDEF;
+    static const RtToken INPUT_SOCKETS;
+    static const RtToken OUTPUT_SOCKETS;
+    static const RtToken SOCKETS_NODE_TYPE;
 
 protected:
-    PrvObjectHandle _internalNodeDef;
-    PrvObjectHandle _internalNode;
+    PrvNodeDef* inputSocketsNodeDef() const { return (PrvNodeDef*)_inputSocketsNodeDef.get(); }
+    PrvNode* inputSockets() const { return (PrvNode*)_inputSockets.get(); }
+
+    PrvNodeDef* outputSocketsNodeDef() const { return (PrvNodeDef*)_outputSocketsNodeDef.get(); }
+    PrvNode* outputSockets() const { return (PrvNode*)_outputSockets.get(); }
+
+    PrvObjectHandle _inputSocketsNodeDef;
+    PrvObjectHandle _inputSockets;
+
+    PrvObjectHandle _outputSocketsNodeDef;
+    PrvObjectHandle _outputSockets;
 };
 
 }

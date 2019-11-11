@@ -49,7 +49,7 @@ bool RtPort::isValid() const
     if (_data)
     {
         PrvNode* node = _data->asA<PrvNode>();
-        return node->nodedef()->port(_index) != nullptr;
+        return node->nodedef()->getPort(_index) != nullptr;
     }
     return false;
 }
@@ -57,13 +57,13 @@ bool RtPort::isValid() const
 const RtToken& RtPort::getName() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->port(_index)->getName();
+    return node->nodedef()->getPort(_index)->getName();
 }
 
 const RtToken& RtPort::getType() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->port(_index)->getType();
+    return node->nodedef()->getPort(_index)->getType();
 }
 
 RtObject RtPort::getNode() const
@@ -74,25 +74,31 @@ RtObject RtPort::getNode() const
 int32_t RtPort::getFlags() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->port(_index)->getFlags();
+    return node->nodedef()->getPort(_index)->getFlags();
 }
 
 bool RtPort::isInput() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->port(_index)->isInput();
+    return node->nodedef()->getPort(_index)->isInput();
 }
 
 bool RtPort::isOutput() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->port(_index)->isOutput();
+    return node->nodedef()->getPort(_index)->isOutput();
 }
 
 bool RtPort::isConnectable() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->port(_index)->isConnectable();
+    return node->nodedef()->getPort(_index)->isConnectable();
+}
+
+bool RtPort::isSocket() const
+{
+    PrvNode* node = _data->asA<PrvNode>();
+    return node->getCategory() == PrvNodeGraph::SOCKETS_NODE_TYPE;
 }
 
 const RtValue& RtPort::getValue() const
@@ -152,10 +158,10 @@ bool RtPort::isConnected() const
 bool RtPort::canConnectTo(const RtPort& other) const
 {
     const PrvNode* node = _data->asA<PrvNode>();
-    const PrvPortDef* port = node->nodedef()->port(_index);
+    const PrvPortDef* port = node->nodedef()->getPort(_index);
 
     const PrvNode* otherNode = other.data()->asA<PrvNode>();
-    const PrvPortDef* otherPort = otherNode->nodedef()->port(other._index);
+    const PrvPortDef* otherPort = otherNode->nodedef()->getPort(other._index);
 
     return node != otherNode && port->canConnectTo(otherPort);
 }
@@ -242,9 +248,24 @@ size_t RtNode::numOutputs() const
     return data()->asA<PrvNode>()->numOutputs();
 }
 
+size_t RtNode::numInputs() const
+{
+    return numPorts() - numOutputs();
+}
+
 RtPort RtNode::getPort(size_t index) const
 {
     return data()->asA<PrvNode>()->getPort(index);
+}
+
+size_t RtNode::getOutputsOffset() const
+{
+    return data()->asA<PrvNode>()->getOutputsOffset();
+}
+
+size_t RtNode::getInputsOffset() const
+{
+    return data()->asA<PrvNode>()->getInputsOffset();
 }
 
 RtPort RtNode::findPort(const RtToken& name) const

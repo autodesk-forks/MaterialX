@@ -22,17 +22,17 @@ class RtValue;
 class RtPortFlag
 {
 public:
-    /// Port is an input.
-    static const uint32_t INPUT         = 0x00000001;
-
     /// Port is an output.
-    static const uint32_t OUTPUT        = 0x00000002;
+    static const uint32_t OUTPUT        = 0x00000001;
 
     /// Port is not connectable.
-    static const uint32_t UNCONNECTABLE = 0x00000004;
+    static const uint32_t UNCONNECTABLE = 0x00000002;
 
     /// Port is a uniform.
-    static const uint32_t UNIFORM       = 0x00000008;
+    static const uint32_t UNIFORM       = 0x00000004;
+
+    /// Default ports are connectable, varying, inputs.
+    static const uint32_t DEFAULTS = 0x00000000;
 };
 
 /// @class RtPortDef
@@ -44,9 +44,10 @@ public:
     /// Constructor attaching and object to the API.
     RtPortDef(const RtObject& obj);
 
-    /// Create a new portdef and add it to a nodedef if specified.
+    /// Create a new portdef and add it to a parent if specified.
+    /// The parent must be a nodedefs or a nodegraph.
     static RtObject createNew(const RtToken& name, const RtToken& type, const RtValue& value,
-                              uint32_t flags, RtObject nodedef = RtObject());
+                              uint32_t flags = RtPortFlag::DEFAULTS, RtObject parent = RtObject());
 
     /// Return the type for this API.
     RtApiType getApiType() const override;

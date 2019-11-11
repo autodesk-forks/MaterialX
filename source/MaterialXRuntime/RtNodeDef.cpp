@@ -58,6 +58,16 @@ size_t RtNodeDef::numOutputs() const
     return data()->asA<PrvNodeDef>()->numOutputs();
 }
 
+size_t RtNodeDef::getOutputsOffset() const
+{
+    return data()->asA<PrvNodeDef>()->getOutputsOffset();
+}
+
+size_t RtNodeDef::getInputsOffset() const
+{
+    return data()->asA<PrvNodeDef>()->getInputsOffset();
+}
+
 RtObject RtNodeDef::getPort(size_t index) const
 {
     PrvObjectHandle portdef = data()->asA<PrvNodeDef>()->getChild(index);

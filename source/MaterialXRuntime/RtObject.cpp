@@ -21,12 +21,6 @@ namespace
             RtObjType::NODEGRAPH,
             RtObjType::STAGE
         },
-        // RtApiType::COMPOUND
-        {
-            RtObjType::NODEDEF,
-            RtObjType::NODEGRAPH,
-            RtObjType::STAGE
-        },
         // RtApiType::PORTDEF
         {
             RtObjType::PORTDEF
@@ -62,6 +56,9 @@ namespace
             RtObjType::NODE,
             RtObjType::NODEGRAPH,
             RtObjType::STAGE
+        },
+        // RtApiType::GRAPH_ITERATOR
+        {
         }
     };
 }

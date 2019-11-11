@@ -13,7 +13,7 @@ namespace MaterialX
 {
 
 RtNodeGraph::RtNodeGraph(const RtObject& obj) :
-    RtElement(obj)
+    RtNode(obj)
 {
 }
 
@@ -60,24 +60,24 @@ RtObject RtNodeGraph::findNode(const RtToken& name) const
     return RtObject(node);
 }
 
-size_t RtNodeGraph::numPorts() const
+RtPort RtNodeGraph::getOutputSocket(size_t index) const
 {
-    return data()->asA<PrvNodeGraph>()->numPorts();
+    return data()->asA<PrvNodeGraph>()->getOutputSocket(index);
 }
 
-size_t RtNodeGraph::numOutputs() const
+RtPort RtNodeGraph::getInputSocket(size_t index) const
 {
-    return data()->asA<PrvNodeGraph>()->numOutputs();
+    return data()->asA<PrvNodeGraph>()->getInputSocket(index);
 }
 
-RtPort RtNodeGraph::getPort(size_t index) const
+RtPort RtNodeGraph::findOutputSocket(const RtToken& name) const
 {
-    return data()->asA<PrvNodeGraph>()->getPort(index);
+    return data()->asA<PrvNodeGraph>()->findOutputSocket(name);
 }
 
-RtPort RtNodeGraph::findPort(const RtToken& name) const
+RtPort RtNodeGraph::findInputSocket(const RtToken& name) const
 {
-    return data()->asA<PrvNodeGraph>()->findPort(name);
+    return data()->asA<PrvNodeGraph>()->findInputSocket(name);
 }
 
 string RtNodeGraph::asStringDot() const

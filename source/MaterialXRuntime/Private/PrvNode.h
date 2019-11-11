@@ -27,7 +27,7 @@ public:
     PrvNode(const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType = RtObjType::NODE);
 
     // Constructor creating a node without a fixed interface.
-    // NOTE: This is only to be used for constructing nodegraphs.
+    // Used for constructing nodegraphs.
     PrvNode(const RtToken& name, RtObjType objType = RtObjType::NODEGRAPH);
 
     static PrvObjectHandle createNew(const RtToken& name, const PrvObjectHandle& nodedef);
@@ -52,10 +52,24 @@ public:
         return nodedef()->numOutputs();
     }
 
+    size_t numInputs() const
+    {
+        return numPorts() - numOutputs();
+    }
+
+    size_t getOutputsOffset() const
+    {
+        return nodedef()->getOutputsOffset();
+    }
+
+    size_t getInputsOffset() const
+    {
+        return nodedef()->getInputsOffset();
+    }
+
     RtPort getPort(size_t index)
     {
-        PrvNodeDef* nodedef = _nodedef->asA<PrvNodeDef>();
-        PrvPortDef* portdef = nodedef->port(index);
+        PrvPortDef* portdef = nodedef()->getPort(index);
         return portdef ? RtPort(shared_from_this(), index) : RtPort();
     }
 

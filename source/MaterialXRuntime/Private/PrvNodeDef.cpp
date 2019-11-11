@@ -40,17 +40,11 @@ void PrvNodeDef::addPort(PrvObjectHandle portdef)
     // We want to preserve the ordering of having all outputs stored before any inputs.
     // So if inputs are already stored we need to handled inserting the new output in
     // the right place.
-    if (p->isOutput() && _children.size() && !_children.back()->asA<PrvPortDef>()->isOutput())
+    if (p->isOutput() && numPorts() > numOutputs())
     {
         // Insert the new output after the last output.
-        for (auto it = _children.begin(); it != _children.end(); ++it)
-        {
-            if (!(*it)->asA<PrvPortDef>()->isOutput())
-            {
-                _children.insert(it, portdef);
-                break;
-            }
-        }
+        auto it = _children.begin() + numOutputs();
+        _children.insert(it, 1, portdef);
     }
     else
     {
@@ -64,7 +58,7 @@ void PrvNodeDef::addPort(PrvObjectHandle portdef)
 
 void PrvNodeDef::removePort(const RtToken& name)
 {
-    PrvPortDef* p = port(name);
+    PrvPortDef* p = findPort(name);
     if (p)
     {
         _numOutputs -= p->isOutput();
@@ -77,7 +71,7 @@ void PrvNodeDef::rebuildPortIndex()
 {
     for (size_t i = 0; i < numPorts(); ++i)
     {
-        _portIndex[port(i)->getName()] = i;
+        _portIndex[getPort(i)->getName()] = i;
     }
 }
 

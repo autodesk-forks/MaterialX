@@ -95,7 +95,7 @@ PrvTreeIterator::PrvTreeIterator(PrvObjectHandle root, RtTraversalFilter filter)
     _current(nullptr),
     _filter(filter)
 {
-    if (root->hasApi(RtApiType::COMPOUND))
+    if (root->hasApi(RtApiType::ELEMENT))
     {
         // Initialize the stack and start iteration to the first element.
         PrvElement* elem = root->asA<PrvElement>();
@@ -123,15 +123,18 @@ PrvTreeIterator& PrvTreeIterator::operator++()
         }
 
         if (_current && 
-            _current->hasApi(RtApiType::COMPOUND) &&
+            _current->hasApi(RtApiType::ELEMENT) &&
             !_current->hasApi(RtApiType::STAGE))
         {
             PrvElement* elem = _current->asA<PrvElement>();
-            _stack.push_back(std::make_tuple(elem, 0, -1));
-            _current = elem->getChildren()[0];
-            if (!_filter || _filter(RtObject(_current)))
+            if (elem->numChildren())
             {
-                return *this;
+                _stack.push_back(std::make_tuple(elem, 0, -1));
+                _current = elem->getChild(0);
+                if (!_filter || _filter(RtObject(_current)))
+                {
+                    return *this;
+                }
             }
         }
 
@@ -157,10 +160,10 @@ PrvTreeIterator& PrvTreeIterator::operator++()
             if (stageIndex + 1 < int(stage->getReferencedStages().size()))
             {
                 PrvStage* refStage = stage->getReferencedStages()[++stageIndex]->asA<PrvStage>();
-                if (!refStage->getChildren().empty())
+                if (refStage->numChildren())
                 {
                     _stack.push_back(std::make_tuple(refStage, 0, stageIndex));
-                    _current = refStage->getChildren()[0];
+                    _current = refStage->getChild(0);
                     if (!_filter || _filter(RtObject(_current)))
                     {
                         return *this;
@@ -215,10 +218,10 @@ PrvGraphIterator& PrvGraphIterator::operator++()
         PrvNode* node = _current.first.data()->asA<PrvNode>();
 
         // Check if we have any inputs.
-        if (node->numPorts() > node->numOutputs())
+        if (node->numInputs())
         {
             // Traverse to the first upstream edge of this element.
-            const size_t inputIndex = node->numOutputs();
+            const size_t inputIndex = node->getInputsOffset();
             _stack.push_back(StackFrame(_current.first, inputIndex));
 
             RtPort input = node->getPort(inputIndex);
