@@ -38,11 +38,16 @@ public:
     /// Remove a reference to another stage.
     void removeReference(const RtToken& name);
 
+    void copyReferences(RtObject stage);
+
     /// Add an element to the stage.
     void addElement(RtObject elem);
 
     /// Remove an element from the stage.
     void removeElement(const RtToken& name);
+
+    /// Clear the elements in a stage
+    void clearElements();
 
     /// Return an element by name,
     /// or a null object if no such element exists.

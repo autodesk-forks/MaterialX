@@ -44,6 +44,11 @@ void PrvElement::removeAttribute(const RtToken& name)
     _attributesByName.erase(name);
 }
 
+void PrvElement::clearAttributes()
+{
+    _attributes.clear();
+    _attributesByName.clear();
+}
 
 const string PrvCompound::PATH_SEPARATOR = "/";
 
@@ -80,6 +85,12 @@ void PrvCompound::removeElement(const RtToken& name)
         }
     }
     _elementsByName.erase(name);
+}
+
+void PrvCompound::clearElements()
+{
+    _elements.clear();
+    _elementsByName.clear();
 }
 
 PrvObjectHandle PrvCompound::findElementByName(const RtToken& name) const

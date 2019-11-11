@@ -31,6 +31,7 @@ public:
 
     void addAttribute(const RtToken& name, const RtToken& type, const RtValue& value);
     void removeAttribute(const RtToken& name);
+    void clearAttributes();
 
     const RtAttribute* getAttribute(const RtToken& name) const
     {
@@ -85,6 +86,7 @@ public:
 
     void addElement(PrvObjectHandle elem);
     void removeElement(const RtToken& name);
+    void clearElements();
 
     size_t numElements() const
     {

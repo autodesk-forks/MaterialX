@@ -16,6 +16,7 @@
 #include <MaterialXRuntime/Private/PrvNode.h>
 #include <MaterialXRuntime/Private/PrvNodeGraph.h>
 
+#include <MaterialXGenShader/Util.h>
 #include <sstream>
 
 namespace MaterialX
@@ -487,8 +488,10 @@ RtApiType RtCoreIo::getApiType() const
 void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
 {
     PrvStage* stage = data()->asA<PrvStage>();
+    stage->clearAttributes();
     readAttributes(doc, stage, {});
 
+    stage->clearElements();
     for (auto elem : doc->getChildren())
     {
         if (!filter || filter(elem))
@@ -518,6 +521,46 @@ void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
             }
             stage->addElement(objH);
         }
+    }
+}
+
+void RtCoreIo::loadLibraries(const StringVec& libraryPaths, FileSearchPath& searchPaths, const RtToken& referenceName)
+{
+    // Always add in local search paths
+    FilePath currentPath(FilePath::getCurrentPath());
+    FilePath parentCurrentPath = currentPath.getParentPath();
+    const FilePath librariesPath("libraries");
+    FilePath fullPath(currentPath / librariesPath);
+    if (!fullPath.exists())
+    {
+        fullPath = parentCurrentPath / librariesPath;
+        if (fullPath.exists())
+        {
+            searchPaths.append(fullPath);
+        }
+    }
+    else
+    {
+        searchPaths.append(fullPath);
+    }
+    searchPaths.append(parentCurrentPath);
+    searchPaths.prepend(currentPath);
+
+    DocumentPtr libraryDoc = createDocument();
+    MaterialX::loadLibraries(libraryPaths, searchPaths, libraryDoc);
+
+    if (!referenceName.str().empty())
+    {
+        RtObject libraryStage = RtStage::createNew(referenceName);
+        RtCoreIo libStageIo(libraryStage);
+        libStageIo.read(libraryDoc);
+
+        PrvStage* stage = data()->asA<PrvStage>();
+        stage->addReference(libStageIo.data());
+    }
+    else
+    {
+        read(libraryDoc);
     }
 }
 

@@ -10,6 +10,7 @@
 #include <MaterialXRuntime/RtStage.h>
 
 #include <MaterialXCore/Document.h>
+#include <MaterialXFormat/File.h>
 
 /// @file
 /// TODO: Docs
@@ -46,6 +47,9 @@ public:
     /// If a filter is used only elements accepted by the filter
     /// will be written to the document.
     void write(DocumentPtr& doc, WriteFilter filter = nullptr);
+
+    /// Read in dependent libraries into stage or as a stage reference
+    void loadLibraries(const StringVec& libraryPaths, FileSearchPath& searchPaths, const RtToken& referenceName);
 };
 
 }
