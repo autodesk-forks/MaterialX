@@ -35,6 +35,12 @@ void RtStage::removeReference(const RtToken& name)
     data()->asA<PrvStage>()->removeReference(name);
 }
 
+RtStage RtStage::getReference(const RtToken& name) const
+{
+    return RtObject(data()->asA<PrvStage>()->getReference(name));
+}
+
+
 void RtStage::copyReferences(RtObject stage)
 {
     PrvStage* thisPrvStage = data()->asA<PrvStage>();

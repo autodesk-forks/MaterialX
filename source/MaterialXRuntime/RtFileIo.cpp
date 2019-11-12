@@ -3,7 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/RtCoreIo.h>
+#include <MaterialXRuntime/RtFileIo.h>
 #include <MaterialXRuntime/RtObject.h>
 #include <MaterialXRuntime/RtNodeDef.h>
 #include <MaterialXRuntime/RtPortDef.h>
@@ -475,17 +475,17 @@ namespace
 
 } // end anonymous namespace
 
-RtCoreIo::RtCoreIo(RtObject stage) :
+RtFileIo::RtFileIo(RtObject stage) :
     RtApiBase(stage)
 {
 }
 
-RtApiType RtCoreIo::getApiType() const
+RtApiType RtFileIo::getApiType() const
 {
     return RtApiType::CORE_IO;
 }
 
-void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
+void RtFileIo::read(const DocumentPtr& doc, RtFileIo::ReadFilter filter)
 {
     PrvStage* stage = data()->asA<PrvStage>();
     stage->clearAttributes();
@@ -524,9 +524,30 @@ void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
     }
 }
 
-void RtCoreIo::loadLibraries(const StringVec& libraryPaths, FileSearchPath& searchPaths, const RtToken& referenceName)
+void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, RtFileIo::ReadFilter filter)
+{
+    try
+    {
+        DocumentPtr document = createDocument();
+        XmlReadOptions readOptions;
+        readOptions.skipConflictingElements = true;
+        readFromXmlFile(document, documentPath, searchPaths, &readOptions);
+
+        CopyOptions copyOptions;
+        copyOptions.skipConflictingElements = true;
+
+        read(document, filter);
+    }
+    catch(Exception&)
+    {
+        return;
+    }
+}
+
+void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths, const RtToken& referenceName)
 {
     // Always add in local search paths
+    FileSearchPath totalSearchPaths = searchPaths;
     FilePath currentPath(FilePath::getCurrentPath());
     FilePath parentCurrentPath = currentPath.getParentPath();
     const FilePath librariesPath("libraries");
@@ -536,23 +557,23 @@ void RtCoreIo::loadLibraries(const StringVec& libraryPaths, FileSearchPath& sear
         fullPath = parentCurrentPath / librariesPath;
         if (fullPath.exists())
         {
-            searchPaths.append(fullPath);
+            totalSearchPaths.append(fullPath);
         }
     }
     else
     {
-        searchPaths.append(fullPath);
+        totalSearchPaths.append(fullPath);
     }
-    searchPaths.append(parentCurrentPath);
-    searchPaths.prepend(currentPath);
+    totalSearchPaths.append(parentCurrentPath);
+    totalSearchPaths.prepend(currentPath);
 
     DocumentPtr libraryDoc = createDocument();
-    MaterialX::loadLibraries(libraryPaths, searchPaths, libraryDoc);
+    MaterialX::loadLibraries(libraryPaths, totalSearchPaths, libraryDoc);
 
     if (!referenceName.str().empty())
     {
         RtObject libraryStage = RtStage::createNew(referenceName);
-        RtCoreIo libStageIo(libraryStage);
+        RtFileIo libStageIo(libraryStage);
         libStageIo.read(libraryDoc);
 
         PrvStage* stage = data()->asA<PrvStage>();
@@ -564,7 +585,7 @@ void RtCoreIo::loadLibraries(const StringVec& libraryPaths, FileSearchPath& sear
     }
 }
 
-void RtCoreIo::write(DocumentPtr& doc, RtCoreIo::WriteFilter filter)
+void RtFileIo::write(DocumentPtr& doc, RtFileIo::WriteFilter filter)
 {
     PrvStage* stage = data()->asA<PrvStage>();
     writeAttributes(stage, doc);
@@ -598,6 +619,14 @@ void RtCoreIo::write(DocumentPtr& doc, RtCoreIo::WriteFilter filter)
             }
         }
     }
+}
+
+void RtFileIo::write(const FilePath& documentPath, const XmlWriteOptions* writeOptions, WriteFilter filter)
+{
+    DocumentPtr document = createDocument(); 
+    write(document, filter);
+    
+    writeToXmlFile(document, documentPath, writeOptions);
 }
 
 }

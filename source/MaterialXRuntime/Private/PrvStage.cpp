@@ -57,6 +57,19 @@ void PrvStage::removeReference(const RtToken& name)
     }
 }
 
+PrvObjectHandle PrvStage::getReference(const RtToken& name) const
+{
+    for (auto it = _refStages.begin(); it != _refStages.end(); ++it)
+    {
+        PrvStage* stage = (*it)->asA<PrvStage>();
+        if (stage->getName() == name)
+        {
+            return *it;
+        }
+    }
+    return nullptr;
+}
+
 PrvObjectHandle PrvStage::findElementByName(const RtToken& name) const
 {
     auto it = _elementsByName.find(name);

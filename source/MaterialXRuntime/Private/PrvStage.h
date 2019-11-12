@@ -23,6 +23,7 @@ public:
 
     void addReference(PrvObjectHandle stage);
     void removeReference(const RtToken& name);
+    PrvObjectHandle getReference(const RtToken& name) const;
 
     const PrvObjectHandleVec& getReferencedStages() const
     {
