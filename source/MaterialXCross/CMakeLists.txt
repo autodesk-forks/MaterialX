@@ -17,9 +17,34 @@ endfunction(assign_source_group)
 assign_source_group("Header Files" ${materialx_header})
 assign_source_group("Source Files" ${materialx_source})
 
+set(MATERIALX_GLSLANG_DIR "" CACHE STRING "Location of glslang.")
+set(MATERIALX_SPIRV_CROSS_DIR "" CACHE STRING "Location of SPIRV-Cross.")
+
 add_library(MaterialXCross STATIC 
     ${materialx_source} 
-    ${materialx_header})
+    ${materialx_header}
+)
+
+if (IS_DIRECTORY ${MATERIALX_GLSLANG_DIR})
+    add_subdirectory(${MATERIALX_GLSLANG_DIR} glslang)
+endif()
+if (NOT TARGET glslang)
+    message(FATAL_ERROR "glslang was not found - required for compilation")
+endif()
+if(WIN32)
+    # This is unfortunate but glslang forces our
+    # platform toolset to be v110, which we may not even have
+    # installed, undo anything glslang has done to it.
+    set(CMAKE_GENERATOR_TOOLSET "${OLD_PLATFORM_TOOLSET}" CACHE STRING
+        "Platform Toolset" FORCE)
+endif()
+
+if (IS_DIRECTORY ${MATERIALX_SPIRV_CROSS_DIR})
+    add_subdirectory(${MATERIALX_SPIRV_CROSS_DIR} spirv-cross)
+endif()
+if (NOT TARGET spirv-cross-core)
+    message(FATAL_ERROR "SPIRV-Cross was not found - required for compilation")
+endif()
 
 set_target_properties(
     MaterialXCross PROPERTIES
