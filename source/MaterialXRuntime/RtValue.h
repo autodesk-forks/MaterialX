@@ -53,6 +53,14 @@ private:
     std::vector<T*> _storage;
 };
 
+/// @struct RtLargeValueStorage
+/// Struct with storage for data types that are larger than 16 bytes.
+struct RtLargeValueStorage
+{
+    RtValueStore<string> str;
+    RtValueStore<Matrix33> mtx33;
+    RtValueStore<Matrix44> mtx44;
+};
 
 /// @class RtValue
 /// Generic value class for storing values of all the data types
@@ -258,6 +266,10 @@ public:
     /// in the given type.
     string getValueString(const RtToken& type) const;
 
+    /// Set the value from a string representation of a
+    /// value in the given type.
+    void setValueString(const RtToken& type, const string& value, RtLargeValueStorage& store);
+
 private:
     // 16 bytes of data storage to hold the main data types,
     // up to four component vector/color. Larger data types
@@ -265,16 +277,6 @@ private:
     // Storage is aligned to 64-bit to hold pointers for
     // heap allocated data types as well as other pointers.
     uint64_t _data[2];
-};
-
-
-/// @struct RtLargeValueStorage
-/// Struct with storage for data types that are larger than 16 bytes.
-struct RtLargeValueStorage
-{
-    RtValueStore<string> str;
-    RtValueStore<Matrix33> mtx33;
-    RtValueStore<Matrix44> mtx44;
 };
 
 }

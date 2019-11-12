@@ -126,6 +126,125 @@ string RtValue::getValueString(const RtToken& type) const
     return ss.str();
 }
 
+namespace {
+
+template<class T>
+void valueFromString(const string& str, T& value)
+{
+    std::stringstream ss(str);
+    if (!(ss >> value))
+    {
+        throw ExceptionRuntimeError("Failed setting value from string: " + str);
+    }
+}
+
+template<> void valueFromString(const string& str, bool& value)
+{
+    if (str == VALUE_STRING_TRUE)
+        value = true;
+    else if (str == VALUE_STRING_FALSE)
+        value = false;
+    else
+        throw ExceptionRuntimeError("Failed setting value from string: " + str);
+}
+
+template<> void valueFromString(const string& str, RtToken& value)
+{
+    value = RtToken(str);
+}
+
+template<size_t N, class T>
+void vectorFromString(const string& str, T& value)
+{
+    StringVec tokens = splitString(str, ARRAY_VALID_SEPARATORS);
+    if (tokens.size() != N)
+    {
+        throw ExceptionRuntimeError("Failed setting value from string: " + str);
+    }
+    for (size_t i = 0; i < N; ++i)
+    {
+        valueFromString(tokens[i], value[i]);
+    }
+}
+
+template<size_t N, class T>
+void matrixFromString(const string& str, T& value)
+{
+    StringVec tokens = splitString(str, ARRAY_VALID_SEPARATORS);
+    if (tokens.size() != N*N)
+    {
+        throw ExceptionRuntimeError("Failed setting value from string: " + str);
+    }
+    for (size_t i = 0; i < N; ++i)
+    {
+        for (size_t j = 0; j < N; ++j)
+        {
+            valueFromString(tokens[i * N + j], value[i][j]);
+        }
+    }
+}
+
+}
+
+void RtValue::setValueString(const RtToken& type, const string& str, RtLargeValueStorage& store)
+{
+    std::stringstream ss(str);
+    if (type == RtType::BOOLEAN)
+    {
+        valueFromString(str, asBool());
+    }
+    else if (type == RtType::FLOAT)
+    {
+        valueFromString(str, asFloat());
+    }
+    else if (type == RtType::INTEGER)
+    {
+        valueFromString(str, asInt());
+    }
+    else if (type == RtType::COLOR2)
+    {
+        vectorFromString<2>(str, asColor2());
+    }
+    else if (type == RtType::COLOR3)
+    {
+        vectorFromString<3>(str, asColor3());
+    }
+    else if (type == RtType::COLOR4)
+    {
+        vectorFromString<4>(str, asColor4());
+    }
+    else if (type == RtType::VECTOR2)
+    {
+        vectorFromString<2>(str, asVector2());
+    }
+    else if (type == RtType::VECTOR3)
+    {
+        vectorFromString<3>(str, asVector3());
+    }
+    else if (type == RtType::VECTOR4)
+    {
+        vectorFromString<4>(str, asVector4());
+    }
+    else if (type == RtType::MATRIX33)
+    {
+        *this = RtValue(Matrix33::IDENTITY, store.mtx33);
+        matrixFromString<3>(str, asMatrix33());
+    }
+    else if (type == RtType::MATRIX44)
+    {
+        *this = RtValue(Matrix44::IDENTITY, store.mtx44);
+        matrixFromString<4>(str, asMatrix44());
+    }
+    else if (type == RtType::STRING || type == RtType::FILENAME)
+    {
+        *this = RtValue(str, store.str);
+    }
+    else if (type == RtType::TOKEN)
+    {
+        valueFromString(str, asToken());
+    }
+}
+
 }
 
 #ifndef _WIN32

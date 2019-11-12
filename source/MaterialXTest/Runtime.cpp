@@ -107,6 +107,32 @@ TEST_CASE("Runtime: Values", "[runtime]")
     REQUIRE(mtx33.asMatrix33().isEquivalent(testmatrix, 1e-6f));
     mtx33.asMatrix33()[0][0] = 42.0f;
     REQUIRE(!mtx33.asMatrix33().isEquivalent(testmatrix, 1e-6f));
+
+    mx::RtValue value;
+    mx::RtLargeValueStorage storage;
+    value.setValueString(mx::RtType::BOOLEAN, "true", storage);
+    REQUIRE(value.asBool());
+    value.setValueString(mx::RtType::BOOLEAN, "false", storage);
+    REQUIRE(!value.asBool());
+    value.setValueString(mx::RtType::INTEGER, "23", storage);
+    REQUIRE(value.asInt() == 23);
+    value.setValueString(mx::RtType::FLOAT, "1234.5678", storage);
+    REQUIRE(fabs(value.asFloat() - 1234.5678f) < 1e-3f);
+    value.setValueString(mx::RtType::COLOR2, "1.0, 2.0", storage);
+    REQUIRE(value.asColor2() == mx::Color2(1.0, 2.0));
+    value.setValueString(mx::RtType::COLOR3, "1.0, 2.0, 3.0", storage);
+    REQUIRE(value.asColor3() == mx::Color3(1.0, 2.0, 3.0));
+    value.setValueString(mx::RtType::COLOR4, "1.0, 2.0, 3.0, 4.0", storage);
+    REQUIRE(value.asColor4() == mx::Color4(1.0, 2.0, 3.0, 4.0));
+    value.setValueString(mx::RtType::MATRIX33, "1.0, 0.0, 0.0,  0.0, 1.0, 0.0,  0.0, 0.0, 1.0", storage);
+    REQUIRE(value.asMatrix33() == mx::Matrix33::IDENTITY);
+    value.setValueString(mx::RtType::MATRIX44, "1.0, 0.0, 0.0, 0.0,  0.0, 1.0, 0.0, 0.0,  0.0, 0.0, 1.0, 0.0,  0.0, 0.0, 0.0, 1.0", storage);
+    REQUIRE(value.asMatrix44() == mx::Matrix44::IDENTITY);
+    value.setValueString(mx::RtType::STRING, "materialx", storage);
+    REQUIRE(value.asString() == "materialx");
+    value.setValueString(mx::RtType::TOKEN, "materialx", storage);
+    REQUIRE(value.asToken() == mx::RtToken("materialx"));
+    REQUIRE_THROWS(value.setValueString(mx::RtType::INTEGER, "true", storage));
 }
 
 TEST_CASE("Runtime: Types", "[runtime]")

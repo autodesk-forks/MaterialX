@@ -41,63 +41,9 @@ namespace
         {
             return RtValue();
         }
-
-        if (type == RtType::BOOLEAN)
-        {
-            return RtValue(v->asA<bool>());
-        }
-        else if (type == RtType::FLOAT)
-        {
-            return RtValue(v->asA<float>());
-        }
-        else if (type == RtType::INTEGER)
-        {
-            return RtValue(v->asA<int>());
-        }
-        else if (type == RtType::COLOR2)
-        {
-            return RtValue(v->asA<Color2>());
-        }
-        else if (type == RtType::COLOR3)
-        {
-            return RtValue(v->asA<Color3>());
-        }
-        else if (type == RtType::COLOR4)
-        {
-            return RtValue(v->asA<Color4>());
-        }
-        else if (type == RtType::VECTOR2)
-        {
-            return RtValue(v->asA<Vector2>());
-        }
-        else if (type == RtType::VECTOR3)
-        {
-            return RtValue(v->asA<Vector3>());
-        }
-        else if (type == RtType::VECTOR4)
-        {
-            return RtValue(v->asA<Vector4>());
-        }
-        else if (type == RtType::MATRIX33)
-        {
-            return RtValue(v->asA<Matrix33>(), storage.mtx33);
-        }
-        else if (type == RtType::MATRIX44)
-        {
-            return RtValue(v->asA<Matrix44>(), storage.mtx44);
-        }
-        else if (type == RtType::STRING || type == RtType::FILENAME)
-        {
-            return RtValue(v->asA<string>(), storage.str);
-        }
-        else if (type == RtType::TOKEN)
-        {
-            return RtValue(RtToken(v->asA<string>()));
-        }
-        else
-        {
-            return RtValue();
-        }
+        RtValue value;
+        value.setValueString(type, v->getValueString(), storage);
+        return value;
     }
 
     void readAttributes(const ElementPtr src, PrvElement* dest, const StringSet& ignoreList)
