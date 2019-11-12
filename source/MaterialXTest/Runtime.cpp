@@ -185,10 +185,12 @@ TEST_CASE("Runtime: Types", "[runtime]")
     REQUIRE(color4Type->getChannelIndex('g') == 1);
     REQUIRE(color4Type->getChannelIndex('b') == 2);
     REQUIRE(color4Type->getChannelIndex('a') == 3);
+    REQUIRE(color4Type->getChannelIndex('q') == -1);
     REQUIRE(color4Type->getChannelName(0) == 'r');
     REQUIRE(color4Type->getChannelName(1) == 'g');
     REQUIRE(color4Type->getChannelName(2) == 'b');
     REQUIRE(color4Type->getChannelName(3) == 'a');
+    REQUIRE(color4Type->getChannelName(7) == -1);
 }
 
 TEST_CASE("Runtime: Nodes", "[runtime]")
