@@ -178,6 +178,10 @@ public:
     /// Return the input port count.
     size_t numInputs() const;
 
+    /// Return a port corresponding to the given portdef object,
+    /// or a null object if no such port exists.
+    RtPort getPort(RtObject portdef) const;
+
     /// Return a port by index, or a null object 
     /// if no such port exists.
     RtPort getPort(size_t index) const;
@@ -203,10 +207,6 @@ public:
     {
         return getPort(getInputsOffset() + index);
     }
-
-    /// Return a port corresponding to the given portdef object,
-    /// or a null object if no such port exists.
-    RtPort getPort(RtObject portdef) const;
 
     /// Find a port by name, or a null object 
     /// if no such port is found.

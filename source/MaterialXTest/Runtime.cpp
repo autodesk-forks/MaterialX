@@ -281,8 +281,14 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     mx::RtNodeGraph graph1(graphObj1);
 
     // Create two multiply nodes in the graph.
-    mx::RtObject mulObj1 = mx::RtNode::createNew("add3", multiplyDef.getObject(), graphObj1);
-    mx::RtObject mulObj2 = mx::RtNode::createNew("add4", multiplyDef.getObject(), graphObj1);
+    mx::RtObject mulObj1 = mx::RtNode::createNew("add1", multiplyDef.getObject(), graphObj1);
+    mx::RtObject mulObj2 = mx::RtNode::createNew("add2", multiplyDef.getObject(), graphObj1);
+    REQUIRE(graph1.numNodes() == 2);
+
+    // Test deleting a node.
+    mx::RtObject mulObj3 = mx::RtNode::createNew("add3", multiplyDef.getObject(), graphObj1);
+    REQUIRE(graph1.numNodes() == 3);
+    graph1.removeNode("add3");
     REQUIRE(graph1.numNodes() == 2);
 
     // Add interface port definitions to the graph.
@@ -296,6 +302,14 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(graph1.getInputSocket(0).isOutput());
     REQUIRE(graph1.getInputSocket(1).isOutput());
     REQUIRE(graph1.getOutputSocket(0).isInput());
+
+    // Test deleting a port.
+    mx::RtPortDef::createNew("c", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, graphObj1);
+    REQUIRE(graph1.numPorts() == 4);
+    REQUIRE(graph1.findInputSocket("c").isValid());
+    graph1.removePort("c");
+    REQUIRE(graph1.numPorts() == 3);
+    REQUIRE(!graph1.findInputSocket("c").isValid());
 
     // Attach the node API for the two node objects.
     mx::RtNode mul1(mulObj1);
@@ -312,8 +326,8 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(graph1.findOutputSocket("out").getSourcePort() == mul2.findPort("out"));
 
     // Test finding a port by path.
-    mx::RtObject node = stage.findElementByPath("/graph1/add4");
-    mx::RtObject portdef = stage.findElementByPath("/graph1/add4/out");
+    mx::RtObject node = stage.findElementByPath("/graph1/add2");
+    mx::RtObject portdef = stage.findElementByPath("/graph1/add2/out");
     REQUIRE(node.isValid());
     REQUIRE(portdef.isValid());
     REQUIRE(node.hasApi(mx::RtApiType::NODE));
@@ -607,10 +621,6 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
     size_t numEdges = 0;
     for (auto it = outSocket.traverseUpstream(); !it.isDone(); ++it)
     {
-
-        std::cout << mx::RtNode((*it).second.getNode()).getName().str() << "." << (*it).second.getName().str() << " -> ";
-        std::cout << mx::RtNode((*it).first.getNode()).getName().str() << "." << (*it).first.getName().str() << std::endl;
-
         ++numEdges;
     }
     REQUIRE(numEdges == 12);

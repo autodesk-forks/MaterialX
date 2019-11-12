@@ -344,7 +344,7 @@ namespace
                 if (upstreamElem->isA<Node>() && !processedInterfaces.count(upstreamElem.get()))
                 {
                     const RtToken upstreamNodeName(upstreamElem->getName());
-                    PrvNode* upstreamNode = nodegraph->node(upstreamNodeName);
+                    PrvNode* upstreamNode = nodegraph->findNode(upstreamNodeName);
 
                     if (downstreamElem->isA<Output>())
                     {
@@ -360,7 +360,7 @@ namespace
                     {
                         const RtToken downstreamNodeName(downstreamElem->getName());
                         const RtToken downstreamInputName(connectingElem->getName());
-                        PrvNode* downstreamNode = nodegraph->node(downstreamNodeName);
+                        PrvNode* downstreamNode = nodegraph->findNode(downstreamNodeName);
                         RtPort input = downstreamNode->findPort(downstreamInputName);
                         RtPort output = upstreamNode->getPort(0); // TODO: Fixme!
                         PrvNode::connect(output, input);

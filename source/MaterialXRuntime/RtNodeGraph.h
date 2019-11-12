@@ -33,6 +33,12 @@ public:
     /// Add a node to the graph.
     void addNode(RtObject node);
 
+    /// Remove a node from the graph.
+    void removeNode(const RtToken& name);
+
+    /// Remove a port from the graph.
+    void removePort(const RtToken& name);
+
     /// Return the node count.
     size_t numNodes() const;
 
@@ -47,11 +53,13 @@ public:
     /// Return an output socket by index, or a null object if no such port exists.
     /// Sockets are the internal ports which nodes inside the graph can connect
     /// to in order to interface with the outside.
+    /// The given index should be in range [0, numOutputs].
     RtPort getOutputSocket(size_t index) const;
 
     /// Return an input socket by index, or a null object if no such port exists.
     /// Sockets are the internal ports which nodes inside the graph can connect
     /// to in order to interface with the outside.
+    /// The given index should be in range [0, numInputs].
     RtPort getInputSocket(size_t index) const;
 
     /// Find an output socket by name, or a null object if no such port is found.

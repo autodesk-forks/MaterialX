@@ -26,6 +26,11 @@ public:
 
     void addNode(PrvObjectHandle node);
 
+    void removeNode(const RtToken& name)
+    {
+        removeChild(name);
+    }
+
     void addPort(PrvObjectHandle portdef);
 
     void removePort(const RtToken& name);
@@ -54,10 +59,17 @@ public:
         return index != INVALID_INDEX ? RtPort(_outputSockets, index) : RtPort();
     }
 
-    string asStringDot() const;
+    PrvNode* getNode(size_t index) const
+    {
+        return (PrvNode*)getChild(index).get();
+    }
 
-    PrvNode* node(const RtToken& name) const { return (PrvNode*)findChildByName(name).get(); }
-    PrvNode* node(size_t index) const { return (PrvNode*)getChild(index).get(); }
+    PrvNode* findNode(const RtToken& name) const
+    {
+        return (PrvNode*)findChildByName(name).get();
+    }
+
+    string asStringDot() const;
 
     // Token constants.
     static const RtToken UNPUBLISHED_NODEDEF;

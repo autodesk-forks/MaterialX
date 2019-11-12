@@ -131,7 +131,7 @@ string PrvNodeGraph::asStringDot() const
     // Add alla nodes.
     for (size_t i = 0; i < numChildren(); ++i)
     {
-        dot += "    \"" + node(i)->getName().str() + "\" ";
+        dot += "    \"" + getNode(i)->getName().str() + "\" ";
         dot += "[shape=ellipse];\n";
     }
 
@@ -164,7 +164,7 @@ string PrvNodeGraph::asStringDot() const
     // Add all connections.
     for (size_t i = 0; i < numChildren(); ++i)
     {
-        writeConnections(node(i), dot);
+        writeConnections(getNode(i), dot);
     }
 
     writeConnections(outputSockets(), dot);

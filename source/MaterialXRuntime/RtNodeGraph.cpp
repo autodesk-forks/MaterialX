@@ -43,6 +43,16 @@ void RtNodeGraph::addNode(RtObject node)
     return data()->asA<PrvNodeGraph>()->addNode(node.data());
 }
 
+void RtNodeGraph::removeNode(const RtToken& name)
+{
+    return data()->asA<PrvNodeGraph>()->removeNode(name);
+}
+
+void RtNodeGraph::removePort(const RtToken& name)
+{
+    return data()->asA<PrvNodeGraph>()->removePort(name);
+}
+
 size_t RtNodeGraph::numNodes() const
 {
     return data()->asA<PrvNodeGraph>()->numChildren();
