@@ -18,17 +18,17 @@ const RtToken PrvNodeGraph::INPUT_SOCKETS_NODEDEF("__inputsockets_nodedef__");
 const RtToken PrvNodeGraph::OUTPUT_SOCKETS_NODEDEF("__outputsockets_nodedef__");
 const RtToken PrvNodeGraph::INPUT_SOCKETS("__inputsockets__");
 const RtToken PrvNodeGraph::OUTPUT_SOCKETS("__outputsockets__");
-const RtToken PrvNodeGraph::SOCKETS_NODE_TYPE("__sockets__");
+const RtToken PrvNodeGraph::SOCKETS_NODE_NAME("__sockets__");
 
 PrvNodeGraph::PrvNodeGraph(const RtToken& name) :
     PrvNode(name)
 {
     _nodedef = PrvNodeDef::createNew(UNPUBLISHED_NODEDEF, UNPUBLISHED_NODEDEF);
 
-    _inputSocketsNodeDef = PrvNodeDef::createNew(INPUT_SOCKETS_NODEDEF, SOCKETS_NODE_TYPE);
+    _inputSocketsNodeDef = PrvNodeDef::createNew(INPUT_SOCKETS_NODEDEF, SOCKETS_NODE_NAME);
     _inputSockets = PrvNode::createNew(INPUT_SOCKETS, _inputSocketsNodeDef);
 
-    _outputSocketsNodeDef = PrvNodeDef::createNew(OUTPUT_SOCKETS_NODEDEF, SOCKETS_NODE_TYPE);
+    _outputSocketsNodeDef = PrvNodeDef::createNew(OUTPUT_SOCKETS_NODEDEF, SOCKETS_NODE_NAME);
     _outputSockets = PrvNode::createNew(OUTPUT_SOCKETS, _outputSocketsNodeDef);
 }
 

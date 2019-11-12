@@ -43,14 +43,24 @@ void RtNodeGraph::addNode(RtObject node)
     return data()->asA<PrvNodeGraph>()->addNode(node.data());
 }
 
-void RtNodeGraph::removeNode(const RtToken& name)
+void RtNodeGraph::removeNode(RtObject node)
 {
-    return data()->asA<PrvNodeGraph>()->removeNode(name);
+    if (!node.hasApi(RtApiType::NODE))
+    {
+        throw ExceptionRuntimeError("Given object is not a node");
+    }
+    PrvNode* n = node.data()->asA<PrvNode>();
+    return data()->asA<PrvNodeGraph>()->removeNode(n->getName());
 }
 
-void RtNodeGraph::removePort(const RtToken& name)
+void RtNodeGraph::removePort(RtObject portdef)
 {
-    return data()->asA<PrvNodeGraph>()->removePort(name);
+    if (!portdef.hasApi(RtApiType::PORTDEF))
+    {
+        throw ExceptionRuntimeError("Given object is not a portdef");
+    }
+    PrvPortDef* p = portdef.data()->asA<PrvPortDef>();
+    return data()->asA<PrvNodeGraph>()->removePort(p->getName());
 }
 
 size_t RtNodeGraph::numNodes() const

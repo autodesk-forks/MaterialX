@@ -38,14 +38,24 @@ RtApiType RtNodeDef::getApiType() const
     return RtApiType::NODEDEF;
 }
 
-const RtToken& RtNodeDef::getCategory() const
+const RtToken& RtNodeDef::getNodeName() const
 {
-    return data()->asA<PrvNodeDef>()->getCategory();
+    return data()->asA<PrvNodeDef>()->getNodeName();
 }
 
 void RtNodeDef::addPort(RtObject portdef)
 {
     return data()->asA<PrvNodeDef>()->addPort(portdef.data());
+}
+
+void RtNodeDef::removePort(RtObject portdef)
+{
+    if (!portdef.hasApi(RtApiType::PORTDEF))
+    {
+        throw ExceptionRuntimeError("Given object is not a portdef");
+    }
+    PrvPortDef* p = portdef.data()->asA<PrvPortDef>();
+    return data()->asA<PrvNodeDef>()->removePort(p->getName());
 }
 
 size_t RtNodeDef::numPorts() const

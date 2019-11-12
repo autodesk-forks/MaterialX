@@ -98,7 +98,7 @@ bool RtPort::isConnectable() const
 bool RtPort::isSocket() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->getCategory() == PrvNodeGraph::SOCKETS_NODE_TYPE;
+    return node->getNodeName() == PrvNodeGraph::SOCKETS_NODE_NAME;
 }
 
 const RtValue& RtPort::getValue() const
@@ -233,9 +233,14 @@ RtApiType RtNode::getApiType() const
     return RtApiType::NODE;
 }
 
-const RtToken& RtNode::getCategory() const
+RtObject RtNode::getNodeDef() const
 {
-    return data()->asA<PrvNode>()->getCategory();
+    return RtObject(data()->asA<PrvNode>()->getNodeDef());
+}
+
+const RtToken& RtNode::getNodeName() const
+{
+    return data()->asA<PrvNode>()->getNodeName();
 }
 
 size_t RtNode::numPorts() const

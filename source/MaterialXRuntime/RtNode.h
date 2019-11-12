@@ -166,8 +166,11 @@ public:
     /// Return the type for this API.
     RtApiType getApiType() const override;
 
-    /// Return the node category for this node.
-    const RtToken& getCategory() const;
+    /// Return the nodedef of this node.
+    RtObject getNodeDef() const;
+
+    /// Return the node name for this node.
+    const RtToken& getNodeName() const;
 
     /// Return the port count.
     size_t numPorts() const;

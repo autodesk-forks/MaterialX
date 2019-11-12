@@ -34,10 +34,10 @@ public:
     void addNode(RtObject node);
 
     /// Remove a node from the graph.
-    void removeNode(const RtToken& name);
+    void removeNode(RtObject node);
 
     /// Remove a port from the graph.
-    void removePort(const RtToken& name);
+    void removePort(RtObject portdef);
 
     /// Return the node count.
     size_t numNodes() const;

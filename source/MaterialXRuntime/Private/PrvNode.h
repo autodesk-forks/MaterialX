@@ -37,9 +37,9 @@ public:
         return _nodedef;
     }
 
-    const RtToken& getCategory() const
+    const RtToken& getNodeName() const
     {
-        return nodedef()->getCategory();
+        return nodedef()->getNodeName();
     }
 
     size_t numPorts() const

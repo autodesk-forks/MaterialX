@@ -12,9 +12,9 @@
 namespace MaterialX
 {
 
-PrvNodeDef::PrvNodeDef(const RtToken& name, const RtToken& category) :
+PrvNodeDef::PrvNodeDef(const RtToken& name, const RtToken& nodeName) :
     PrvValueStoringElement(RtObjType::NODEDEF, name),
-    _category(category),
+    _nodeName(nodeName),
     _numOutputs(0)
 {
 }

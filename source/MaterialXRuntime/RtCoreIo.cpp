@@ -345,7 +345,7 @@ namespace
         const size_t numPorts = nodedef->numPorts();
         const size_t numOutputs = nodedef->numOutputs();
 
-        NodeDefPtr destNodeDef = dest->addNodeDef(nodedef->getName(), EMPTY_STRING, nodedef->getCategory());
+        NodeDefPtr destNodeDef = dest->addNodeDef(nodedef->getName(), EMPTY_STRING, nodedef->getNodeName());
         writeAttributes(nodedef, destNodeDef);
 
         for (size_t i = numOutputs; i < numPorts; ++i)
@@ -390,7 +390,7 @@ namespace
         const PrvNodeDef* nodedef = node->nodedef();
 
         const string type = nodedef->numOutputs() == 1 ? nodedef->getPort(0)->getType().str() : "multioutput";
-        NodePtr destNode = dest->addNode(nodedef->getCategory(), node->getName().str(), type);
+        NodePtr destNode = dest->addNode(nodedef->getNodeName(), node->getName().str(), type);
 
         for (size_t i = 0; i < nodedef->numInputs(); ++i)
         {

@@ -23,11 +23,11 @@ class PrvNodeDef : public PrvValueStoringElement
 public:
     PrvNodeDef(const RtToken& name, const RtToken& category);
 
-    static PrvObjectHandle createNew(const RtToken& name, const RtToken& category);
+    static PrvObjectHandle createNew(const RtToken& name, const RtToken& nodeName);
 
-    const RtToken& getCategory() const
+    const RtToken& getNodeName() const
     {
-        return _category;
+        return _nodeName;
     }
 
     void addPort(PrvObjectHandle portdef);
@@ -90,7 +90,7 @@ public:
 protected:
     void rebuildPortIndex();
 
-    RtToken _category;
+    RtToken _nodeName;
     size_t _numOutputs;
     RtTokenMap<size_t> _portIndex;
     friend class PrvNode;

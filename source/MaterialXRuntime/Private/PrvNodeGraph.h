@@ -77,7 +77,7 @@ public:
     static const RtToken OUTPUT_SOCKETS_NODEDEF;
     static const RtToken INPUT_SOCKETS;
     static const RtToken OUTPUT_SOCKETS;
-    static const RtToken SOCKETS_NODE_TYPE;
+    static const RtToken SOCKETS_NODE_NAME;
 
 protected:
     PrvNodeDef* inputSocketsNodeDef() const { return (PrvNodeDef*)_inputSocketsNodeDef.get(); }

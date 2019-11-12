@@ -25,16 +25,19 @@ public:
     RtNodeDef(const RtObject& obj);
 
     /// Create a new nodedef and add it to a stage if specified.
-    static RtObject createNew(const RtToken& name, const RtToken& category, RtObject stage = RtObject());
+    static RtObject createNew(const RtToken& name, const RtToken& nodeName, RtObject stage = RtObject());
 
     /// Return the type for this API.
     RtApiType getApiType() const override;
 
-    /// Return the node category.
-    const RtToken& getCategory() const;
+    /// Return the node name.
+    const RtToken& getNodeName() const;
 
     /// Add an port definition.
     void addPort(RtObject portdef);
+
+    /// Remove an port definition.
+    void removePort(RtObject portdef);
 
     /// Return the port count.
     size_t numPorts() const;
