@@ -8,8 +8,8 @@ set (CMAKE_CXX_STANDARD 11)
 
 set(MATERIALX_NODE_VERSION "${MATERIALX_NODE_VERSION_MAJOR}.${MATERIALX_NODE_VERSION_MINOR}")
 set(SOVERSION ${MATERIALX_NODE_VERSION_MAJOR} CACHE STRING "Set the SO version in the SO name of the output library")
-SET(MAYA_DEBUG_DIR "" CACHE STRING "Location of Maya debug installation.")
-SET(MAYA_RELEASE_DIR "" CACHE STRING "Location of Maya release installation.")
+set(MAYA_DEBUG_DIR "" CACHE STRING "Location of Maya debug installation.")
+set(MAYA_RELEASE_DIR "" CACHE STRING "Location of Maya release installation.")
 
 macro(DEPEND_MAYAAPI_INCLUDE)
     if (CMAKE_BUILD_TYPE MATCHES Debug)
