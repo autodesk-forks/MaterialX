@@ -20,11 +20,6 @@ assign_source_group("Source Files" ${materialx_source})
 set(MATERIALX_GLSLANG_DIR "" CACHE STRING "Location of glslang.")
 set(MATERIALX_SPIRV_CROSS_DIR "" CACHE STRING "Location of SPIRV-Cross.")
 
-add_library(MaterialXCross STATIC 
-    ${materialx_source} 
-    ${materialx_header}
-)
-
 # Please note that glslang modifies the default install directory so it's best
 # to set it explicitly with CMAKE_INSTALL_PREFIX in the build script.
 if (IS_DIRECTORY ${MATERIALX_GLSLANG_DIR})
@@ -48,6 +43,11 @@ if (NOT TARGET spirv-cross-core)
     message(FATAL_ERROR "SPIRV-Cross was not found - required for compilation")
 endif()
 
+add_library(MaterialXCross STATIC 
+    ${materialx_source} 
+    ${materialx_header}
+)
+
 set_target_properties(
     MaterialXCross PROPERTIES
     OUTPUT_NAME MaterialXCross
@@ -59,12 +59,14 @@ set_target_properties(
 
 target_link_libraries(
     MaterialXCross
+    glslang OSDependent OGLCompiler HLSL glslang SPIRV
     ${CMAKE_DL_LIBS})
 
 target_include_directories(MaterialXCross
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
         $<INSTALL_INTERFACE:include>
+        ${glslang_SOURCE_DIR}
     PRIVATE
         ${EXTERNAL_INCLUDE_DIRS}
 )

@@ -7,6 +7,7 @@
 #include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenOgsXml/OgsXmlGenerator.h>
+#include <MaterialXCross/Cross.h>
 
 namespace MaterialXMaya
 {
@@ -107,7 +108,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         // Set to use no direct lighting
         genOptions.hwMaxActiveLightSources = 0;
         
-        // Maya images require a texture coordaintes to be flipped in V.
+        // Maya images require a texture coordinates to be flipped in V.
         genOptions.fileTextureVerticalFlip = true;
 
         _isTransparent = mx::isTransparentSurface(_element, *glslGenerator);
@@ -137,7 +138,13 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
 
         // Note: This name must match the the fragment name used for registration
         // or the registration will fail.
-        ogsXmlGenerator.generate(FRAGMENT_NAME_TOKEN, *_glslShader, "", _isTransparent, sourceStream);
+        ogsXmlGenerator.generate(
+            FRAGMENT_NAME_TOKEN,
+            *_glslShader,
+            mx::glslToHlsl(_glslShader->getSourceCode(mx::Stage::PIXEL)),
+            _isTransparent,
+            sourceStream
+        );
         _fragmentSource = sourceStream.str();
         if (_fragmentSource.empty())
         {
