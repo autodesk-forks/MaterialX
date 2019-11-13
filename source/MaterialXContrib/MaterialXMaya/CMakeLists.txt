@@ -94,7 +94,7 @@ if (EXISTS "${MAYA_DEBUG_DIR}" OR EXISTS "${MAYA_RELEASE_DIR}")
         SOVERSION ${MATERIALX_NODE_VERSION}
         PREFIX ""
         SUFFIX ".mll"
-        DEBUG_POSTFIX ${MATERIALX_DEBUG_POSTFIX}
+        DEBUG_POSTFIX ""
     )
 
     include_directories(
@@ -112,6 +112,7 @@ if (EXISTS "${MAYA_DEBUG_DIR}" OR EXISTS "${MAYA_RELEASE_DIR}")
         MaterialXGenShader
         MaterialXGenOgsXml
         MaterialXRender
+        MaterialXCross
         ${CMAKE_DL_LIBS}
     )
     DEPEND_MAYAAPI_LINK(${PROJECT_NAME})
