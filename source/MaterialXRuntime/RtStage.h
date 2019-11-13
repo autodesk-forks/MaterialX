@@ -32,11 +32,17 @@ public:
     /// Create a new empty stage.
     static RtObject createNew(const RtToken& name);
 
+    /// Initialize a stage to be empty
+    void initialize();
+
     /// Add a reference to another stage.
     void addReference(RtObject stage);
 
     /// Remove a reference to another stage.
     void removeReference(const RtToken& name);
+
+    /// Remove all references to other stages
+    void removeReferences();
 
     /// Return the number of references
     size_t numReferences() const;

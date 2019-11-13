@@ -20,6 +20,11 @@ PrvElement::PrvElement(RtObjType objType, const RtToken& name) :
 {
 }
 
+void PrvElement::initialize()
+{
+    clearAttributes();
+    clearChildren();
+}
 
 void PrvElement::addChild(PrvObjectHandle elem)
 {

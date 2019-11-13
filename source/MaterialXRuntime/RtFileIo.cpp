@@ -504,10 +504,8 @@ RtApiType RtFileIo::getApiType() const
 void RtFileIo::read(const DocumentPtr& doc, RtFileIo::ReadFilter filter)
 {
     PrvStage* stage = data()->asA<PrvStage>();
-    stage->clearAttributes();
     readAttributes(doc, stage, {});
 
-    stage->clearChildren();
     for (auto elem : doc->getChildren())
     {
         if (!filter || filter(elem))

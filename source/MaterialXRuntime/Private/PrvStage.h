@@ -21,9 +21,13 @@ public:
 
     static PrvObjectHandle createNew(const RtToken& name);
 
+    void initialize();
+
     void addReference(PrvObjectHandle stage);
 
     void removeReference(const RtToken& name);
+
+    void removeReferences();
 
     size_t numReferences() const;
 

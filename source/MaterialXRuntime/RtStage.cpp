@@ -25,6 +25,11 @@ RtObject RtStage::createNew(const RtToken& name)
     return RtObject(PrvStage::createNew(name));
 }
 
+void RtStage::initialize()
+{
+    data()->asA<PrvStage>()->initialize();
+}
+
 void RtStage::addReference(RtObject stage)
 {
     data()->asA<PrvStage>()->addReference(stage.data());
@@ -35,7 +40,11 @@ void RtStage::removeReference(const RtToken& name)
     data()->asA<PrvStage>()->removeReference(name);
 }
 
-/// Return the number of references
+void RtStage::removeReferences()
+{
+    data()->asA<PrvStage>()->removeReferences();
+}
+
 size_t RtStage::numReferences() const
 {
     return data()->asA<PrvStage>()->numReferences();

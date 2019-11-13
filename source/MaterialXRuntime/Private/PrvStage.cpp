@@ -27,6 +27,12 @@ PrvObjectHandle PrvStage::createNew(const RtToken& name)
     return std::make_shared<PrvStage>(name);
 }
 
+void PrvStage::initialize()
+{
+    PrvElement::initialize();
+    removeReferences();
+}
+
 void PrvStage::addReference(PrvObjectHandle stage)
 {
     if (!stage->hasApi(RtApiType::STAGE))
@@ -55,6 +61,13 @@ void PrvStage::removeReference(const RtToken& name)
             break;
         }
     }
+}
+
+void PrvStage::removeReferences()
+{
+    _selfRefCount = 0;
+    _refStages.clear();
+    _refStagesSet.clear();
 }
 
 size_t PrvStage::numReferences() const

@@ -24,6 +24,8 @@ class PrvElement : public PrvObject
 public:
     virtual ~PrvElement() {}
 
+    void initialize();
+
     const RtToken& getName() const
     {
         return _name;
