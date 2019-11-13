@@ -25,6 +25,8 @@ add_library(MaterialXCross STATIC
     ${materialx_header}
 )
 
+# Please note that glslang modifies the default install directory so it's best
+# to set it explicitly with CMAKE_INSTALL_PREFIX in the build script.
 if (IS_DIRECTORY ${MATERIALX_GLSLANG_DIR})
     add_subdirectory(${MATERIALX_GLSLANG_DIR} glslang)
 endif()
