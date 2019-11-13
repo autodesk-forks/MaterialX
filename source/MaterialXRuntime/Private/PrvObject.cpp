@@ -24,41 +24,38 @@ namespace
         {
             RtApiType::ELEMENT,
             RtApiType::PORTDEF,
-            RtApiType::TREE_ITERATOR,
+            RtApiType::TREE_ITERATOR
         },
         // NODEDEF
         {
             RtApiType::ELEMENT,
-            RtApiType::COMPOUND,
             RtApiType::NODEDEF,
-            RtApiType::TREE_ITERATOR,
+            RtApiType::TREE_ITERATOR
         },
         // NODE
         {
             RtApiType::ELEMENT,
             RtApiType::NODE,
-            RtApiType::TREE_ITERATOR,
+            RtApiType::TREE_ITERATOR
         },
         // NODEGRAPH
         {
             RtApiType::ELEMENT,
-            RtApiType::COMPOUND,
+            RtApiType::NODE,
             RtApiType::NODEGRAPH,
-            RtApiType::TREE_ITERATOR,
+            RtApiType::TREE_ITERATOR
         },
         // STAGE
         {
             RtApiType::ELEMENT,
-            RtApiType::COMPOUND,
             RtApiType::STAGE,
             RtApiType::CORE_IO,
             RtApiType::TREE_ITERATOR,
-            RtApiType::STAGE_ITERATOR,
+            RtApiType::STAGE_ITERATOR
         },
         // UNKNOWN
         {
-            RtApiType::ELEMENT,
-            RtApiType::COMPOUND,
+            RtApiType::ELEMENT
         },
     };
 }

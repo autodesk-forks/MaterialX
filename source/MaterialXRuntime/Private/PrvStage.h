@@ -14,7 +14,7 @@
 namespace MaterialX
 {
 
-class PrvStage : public PrvCompound
+class PrvStage : public PrvElement
 {
 public:
     PrvStage(const RtToken& name);
@@ -22,6 +22,7 @@ public:
     static PrvObjectHandle createNew(const RtToken& name);
 
     void addReference(PrvObjectHandle stage);
+
     void removeReference(const RtToken& name);
     PrvObjectHandle getReference(const RtToken& name) const;
 
@@ -30,8 +31,9 @@ public:
         return _refStages;
     }
 
-    PrvObjectHandle findElementByName(const RtToken& name) const override;
-    PrvObjectHandle findElementByPath(const string& path) const override;
+    PrvObjectHandle findChildByName(const RtToken& name) const override;
+
+    PrvObjectHandle findChildByPath(const string& path) const override;
 
 protected:
     size_t _selfRefCount;

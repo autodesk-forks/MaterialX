@@ -17,7 +17,7 @@
 namespace MaterialX
 {
 
-class PrvNodeGraph : public PrvCompound
+class PrvNodeGraph : public PrvNode
 {
 public:
     PrvNodeGraph(const RtToken& name);
@@ -26,44 +26,71 @@ public:
 
     void addNode(PrvObjectHandle node);
 
-    size_t numNodes() const
+    void removeNode(const RtToken& name)
     {
-        return numElements();
+        removeChild(name);
     }
 
-    void setInterface(PrvObjectHandle nodedef);
+    void addPort(PrvObjectHandle portdef);
 
-    PrvObjectHandle getInputsNode() const
+    void removePort(const RtToken& name);
+
+    RtPort getInputSocket(size_t index) const
     {
-        return _inputsNode;
+        const PrvPortDef* portdef = inputSocketsNodeDef()->getPort(index);
+        return portdef ? RtPort(_inputSockets, index) : RtPort();
     }
 
-    PrvObjectHandle getOutputsNode() const
+    RtPort getOutputSocket(size_t index) const
     {
-        return _outputsNode;
+        const PrvPortDef* portdef = outputSocketsNodeDef()->getPort(index);
+        return portdef ? RtPort(_outputSockets, index) : RtPort();
+    }
+
+    RtPort findInputSocket(const RtToken& name) const
+    {
+        const size_t index = inputSocketsNodeDef()->findPortIndex(name);
+        return index != INVALID_INDEX ? RtPort(_inputSockets, index) : RtPort();
+    }
+
+    RtPort findOutputSocket(const RtToken& name) const
+    {
+        const size_t index = outputSocketsNodeDef()->findPortIndex(name);
+        return index != INVALID_INDEX ? RtPort(_outputSockets, index) : RtPort();
+    }
+
+    PrvNode* getNode(size_t index) const
+    {
+        return (PrvNode*)getChild(index).get();
+    }
+
+    PrvNode* findNode(const RtToken& name) const
+    {
+        return (PrvNode*)findChildByName(name).get();
     }
 
     string asStringDot() const;
 
-    // Short syntax getter for convenience.
-    PrvNode* node(const RtToken& name) const { return (PrvNode*)findElementByName(name).get(); }
-    PrvNode* node(size_t index) const { return (PrvNode*)getElement(index).get(); }
-    PrvNode* inputsNode() const { return (PrvNode*)_inputsNode.get(); }
-    PrvNode* outputsNode() const { return (PrvNode*)_outputsNode.get(); }
-
     // Token constants.
-    static const RtToken INPUTS;
-    static const RtToken OUTPUTS;
-    static const RtToken GRAPH_INPUTS;
-    static const RtToken GRAPH_OUTPUTS;
-    static const RtToken GRAPH_INTERFACE_CATEGORY;
-    static const RtToken ATTR_NODEDEF;
+    static const RtToken UNPUBLISHED_NODEDEF;
+    static const RtToken INPUT_SOCKETS_NODEDEF;
+    static const RtToken OUTPUT_SOCKETS_NODEDEF;
+    static const RtToken INPUT_SOCKETS;
+    static const RtToken OUTPUT_SOCKETS;
+    static const RtToken SOCKETS_NODE_NAME;
 
 protected:
-    PrvObjectHandle _inputsNode;
-    PrvObjectHandle _inputsDef;
-    PrvObjectHandle _outputsNode;
-    PrvObjectHandle _outputsDef;
+    PrvNodeDef* inputSocketsNodeDef() const { return (PrvNodeDef*)_inputSocketsNodeDef.get(); }
+    PrvNode* inputSockets() const { return (PrvNode*)_inputSockets.get(); }
+
+    PrvNodeDef* outputSocketsNodeDef() const { return (PrvNodeDef*)_outputSocketsNodeDef.get(); }
+    PrvNode* outputSockets() const { return (PrvNode*)_outputSockets.get(); }
+
+    PrvObjectHandle _inputSocketsNodeDef;
+    PrvObjectHandle _inputSockets;
+
+    PrvObjectHandle _outputSocketsNodeDef;
+    PrvObjectHandle _outputSockets;
 };
 
 }

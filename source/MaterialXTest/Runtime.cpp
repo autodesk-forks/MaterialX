@@ -205,9 +205,15 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(addDef.numAttributes() == 1);
 
     // Add ports to the nodedef
-    mx::RtPortDef::createNew("in1", "float", mx::RtValue(1.0f), mx::RtPortFlag::INPUT, addDefObj);
-    mx::RtPortDef::createNew("in2", "float", mx::RtValue(42.0f), mx::RtPortFlag::INPUT, addDefObj);
+    mx::RtPortDef::createNew("in1", "float", mx::RtValue(1.0f), mx::RtPortFlag::DEFAULTS, addDefObj);
+    mx::RtPortDef::createNew("in2", "float", mx::RtValue(42.0f), mx::RtPortFlag::DEFAULTS, addDefObj);
+    mx::RtPortDef::createNew("in3", "float", mx::RtValue(42.0f), mx::RtPortFlag::DEFAULTS, addDefObj);
     mx::RtPortDef::createNew("out", "float", mx::RtValue(0.0f), mx::RtPortFlag::OUTPUT, addDefObj);
+    REQUIRE(addDef.numPorts() == 4);
+
+    // Delete a port
+    mx::RtObject in3Port = addDef.findPort("in3");
+    addDef.removePort(in3Port);
     REQUIRE(addDef.numPorts() == 3);
 
     // Test the new ports
@@ -288,16 +294,15 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
 
 }
 
-TEST_CASE("Runtime: Graphs", "[runtime]")
+TEST_CASE("Runtime: NodeGraphs", "[runtime]")
 {
     mx::RtObject stageObj = mx::RtStage::createNew("root");
     mx::RtStage stage(stageObj);
 
     // Create a new nodedef for a multiply node.
-    // Attching the object to the API directly.
     mx::RtNodeDef multiplyDef = mx::RtNodeDef::createNew("ND_multiply_float", "multiply", stageObj);
-    mx::RtPortDef::createNew("in1", "float", mx::RtValue(0.0f), mx::RtPortFlag::INPUT, multiplyDef.getObject());
-    mx::RtPortDef::createNew("in2", "float", mx::RtValue(0.0f), mx::RtPortFlag::INPUT, multiplyDef.getObject());
+    mx::RtPortDef::createNew("in1", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, multiplyDef.getObject());
+    mx::RtPortDef::createNew("in2", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, multiplyDef.getObject());
     mx::RtPortDef::createNew("out", "float", mx::RtValue(0.0f), mx::RtPortFlag::OUTPUT, multiplyDef.getObject());
 
     // Create a nodegraph object.
@@ -308,44 +313,55 @@ TEST_CASE("Runtime: Graphs", "[runtime]")
     mx::RtNodeGraph graph1(graphObj1);
 
     // Create two multiply nodes in the graph.
-    mx::RtObject mulObj1 = mx::RtNode::createNew("add3", multiplyDef.getObject(), graphObj1);
-    mx::RtObject mulObj2 = mx::RtNode::createNew("add4", multiplyDef.getObject(), graphObj1);
+    mx::RtObject mulObj1 = mx::RtNode::createNew("add1", multiplyDef.getObject(), graphObj1);
+    mx::RtObject mulObj2 = mx::RtNode::createNew("add2", multiplyDef.getObject(), graphObj1);
     REQUIRE(graph1.numNodes() == 2);
 
-    // Create a new nodedef object for defining the graph interface.
-    // Attching the object to the API directly.
-    mx::RtNodeDef bobDef = mx::RtNodeDef::createNew("ND_bob", "bob", stageObj);
+    // Test deleting a node.
+    mx::RtObject mulObj3 = mx::RtNode::createNew("add3", multiplyDef.getObject(), graphObj1);
+    REQUIRE(graph1.numNodes() == 3);
+    graph1.removeNode(mulObj3);
+    REQUIRE(graph1.numNodes() == 2);
 
-    // Add ports to the nodedef.
-    mx::RtPortDef::createNew("a", "float", mx::RtValue(0.0f), mx::RtPortFlag::INPUT, bobDef.getObject());
-    mx::RtPortDef::createNew("b", "float", mx::RtValue(0.0f), mx::RtPortFlag::INPUT, bobDef.getObject());
-    mx::RtPortDef::createNew("out", "float", mx::RtValue(0.0f), mx::RtPortFlag::OUTPUT, bobDef.getObject());
-    REQUIRE(bobDef.numPorts() == 3);
+    // Add interface port definitions to the graph.
+    mx::RtPortDef::createNew("a", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, graphObj1);
+    mx::RtPortDef::createNew("b", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, graphObj1);
+    mx::RtPortDef::createNew("out", "float", mx::RtValue(0.0f), mx::RtPortFlag::OUTPUT, graphObj1);
+    REQUIRE(graph1.numPorts() == 3);
+    REQUIRE(graph1.findInputSocket("a").isValid());
+    REQUIRE(graph1.findInputSocket("b").isValid());
+    REQUIRE(graph1.findOutputSocket("out").isValid());
+    REQUIRE(graph1.getInputSocket(0).isOutput());
+    REQUIRE(graph1.getInputSocket(1).isOutput());
+    REQUIRE(graph1.getOutputSocket(0).isInput());
 
-    // Set the interface and test the interface nodes.
-    graph1.setInterface(bobDef.getObject());
-    mx::RtNode inputs = graph1.getInputsNode();
-    REQUIRE(inputs.numPorts() == 2);
-    mx::RtNode outputs = graph1.getOutputsNode();
-    REQUIRE(outputs.numPorts() == 1);
+    // Test deleting a port.
+    mx::RtPortDef::createNew("c", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, graphObj1);
+    REQUIRE(graph1.numPorts() == 4);
+    REQUIRE(graph1.findInputSocket("c").isValid());
+    mx::RtObject cPort = mx::RtNodeDef(graph1.getNodeDef()).findPort("c");
+    REQUIRE(cPort);
+    graph1.removePort(cPort);
+    REQUIRE(graph1.numPorts() == 3);
+    REQUIRE(!graph1.findInputSocket("c").isValid());
 
     // Attach the node API for the two node objects.
     mx::RtNode mul1(mulObj1);
     mx::RtNode mul2(mulObj2);
 
     // Connect the graph nodes to each other and the interface.
-    mx::RtNode::connect(inputs.findPort("a"), mul1.findPort("in1"));
-    mx::RtNode::connect(inputs.findPort("b"), mul1.findPort("in2"));
+    mx::RtNode::connect(graph1.findInputSocket("a"), mul1.findPort("in1"));
+    mx::RtNode::connect(graph1.findInputSocket("b"), mul1.findPort("in2"));
     mx::RtNode::connect(mul1.findPort("out"), mul2.findPort("in1"));
-    mx::RtNode::connect(inputs.findPort("a"), mul2.findPort("in2"));
-    mx::RtNode::connect(mul2.findPort("out"), outputs.findPort("out"));
-    REQUIRE(inputs.findPort("a").numDestinationPorts() == 2);
-    REQUIRE(inputs.findPort("b").numDestinationPorts() == 1);
-    REQUIRE(outputs.findPort("out").getSourcePort() == mul2.findPort("out"));
+    mx::RtNode::connect(graph1.findInputSocket("a"), mul2.findPort("in2"));
+    mx::RtNode::connect(mul2.findPort("out"), graph1.findOutputSocket("out"));
+    REQUIRE(graph1.findInputSocket("a").numDestinationPorts() == 2);
+    REQUIRE(graph1.findInputSocket("b").numDestinationPorts() == 1);
+    REQUIRE(graph1.findOutputSocket("out").getSourcePort() == mul2.findPort("out"));
 
     // Test finding a port by path.
-    mx::RtObject node = stage.findElementByPath("/graph1/add4");
-    mx::RtObject portdef = stage.findElementByPath("/graph1/add4/out");
+    mx::RtObject node = stage.findElementByPath("/graph1/add2");
+    mx::RtObject portdef = stage.findElementByPath("/graph1/add2/out");
     REQUIRE(node.isValid());
     REQUIRE(portdef.isValid());
     REQUIRE(node.hasApi(mx::RtApiType::NODE));
@@ -358,8 +374,8 @@ TEST_CASE("Runtime: Graphs", "[runtime]")
 
 TEST_CASE("Runtime: CoreIo", "[runtime]")
 {
-    mx::FileSearchPath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
-
+    mx::FileSearchPath searchPath;
+    searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     {
         // Create a document.
         mx::DocumentPtr doc = mx::createDocument();
@@ -368,7 +384,7 @@ TEST_CASE("Runtime: CoreIo", "[runtime]")
         // Create a stage and import the document data.
         mx::RtObject stageObj = mx::RtStage::createNew("test1");
         mx::RtFileIo stageIo(stageObj);
-        stageIo.loadLibraries({ "stdlib" }, searchPath, mx::RtToken(""));
+        stageIo.loadLibraries({ "stdlib" }, searchPath);
 
         // Get a nodegraph and write a dot file for inspection.
         mx::RtStage stage(stageObj);
@@ -406,7 +422,7 @@ TEST_CASE("Runtime: CoreIo", "[runtime]")
     {
         // Load stdlib into a stage
         mx::RtStage stdlibStage = mx::RtStage::createNew("stdlib");
-        mx::RtFileIo(stdlibStage.getObject()).loadLibraries({ "stdlib" }, searchPath, mx::RtToken(""));
+        mx::RtFileIo(stdlibStage.getObject()).loadLibraries({ "stdlib" }, searchPath);
 
         // Create a new working space stage.
         mx::RtStage stage = mx::RtStage::createNew("test2");
@@ -445,9 +461,10 @@ TEST_CASE("Runtime: Stage References", "[runtime]")
     mx::RtStage mainStage(mainStageObj);
 
     // Load in stdlib in as a referenced stage ("libs").
-    mx::FileSearchPath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
+    mx::FileSearchPath searchPath;
+    searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     mx::RtFileIo fileIO(mainStageObj); 
-    fileIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath, mx::RtToken("libs"));
+    fileIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
 
     // Test access and usage of contents from the referenced library.
     mx::RtNodeDef nodedef = mainStage.findElementByName("ND_complex_ior");
@@ -613,9 +630,7 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
     // Find the output port on the nodegraph above,
     // and test traversing the graph upstream from 
     // this output.
-    mx::RtNode outSockets = nodegraph.getOutputsNode();
-    REQUIRE(outSockets.numPorts() == 1);
-    mx::RtPort outSocket = outSockets.getPort(0);
+    mx::RtPort outSocket = nodegraph.getOutputSocket(0);
     REQUIRE(outSocket.isInput());
     REQUIRE(outSocket.isConnected());
     REQUIRE(outSocket.getSourcePort());

@@ -57,10 +57,11 @@ public:
     /// Write all stage contents to a document.
     /// If a filter is used only elements accepted by the filter
     /// will be written to the document.
-    void write(const FilePath& documentPath, const XmlWriteOptions* writeOptions, WriteFilter filter = nullptr);
+    void write(const FilePath& documentPath, const XmlWriteOptions* writeOptions = nullptr, WriteFilter filter = nullptr);
 
-    /// Read in dependent libraries into stage or as a stage reference
-    void loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths, const RtToken& referenceName);
+    /// Read in dependent libraries as referenced stages, with one reference
+    /// per unique library file.
+    void loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
 };
 
 }

@@ -40,7 +40,6 @@ enum class RtObjType
 enum class RtApiType
 {
     ELEMENT,
-    COMPOUND,
     PORTDEF,
     NODEDEF,
     NODE,

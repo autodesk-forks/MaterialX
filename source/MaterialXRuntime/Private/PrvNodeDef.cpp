@@ -12,9 +12,9 @@
 namespace MaterialX
 {
 
-PrvNodeDef::PrvNodeDef(const RtToken& name, const RtToken& category) :
-    PrvCompound(RtObjType::NODEDEF, name),
-    _category(category),
+PrvNodeDef::PrvNodeDef(const RtToken& name, const RtToken& nodeName) :
+    PrvValueStoringElement(RtObjType::NODEDEF, name),
+    _nodeName(nodeName),
     _numOutputs(0)
 {
 }
@@ -32,41 +32,46 @@ void PrvNodeDef::addPort(PrvObjectHandle portdef)
     }
 
     PrvPortDef* p = portdef->asA<PrvPortDef>();
-    if (_elementsByName.count(p->getName()))
+    if (_childrenByName.count(p->getName()))
     {
         throw ExceptionRuntimeError("A port named '" + p->getName().str() + "' already exists for nodedef '" + getName().str() + "'");
     }
 
     // We want to preserve the ordering of having all outputs stored before any inputs.
-    // So if inputs are already stored we need to handled inserting the a new output in
+    // So if inputs are already stored we need to handled inserting the new output in
     // the right place.
-    if (p->isOutput() && _elements.size() && !_elements.back()->asA<PrvPortDef>()->isOutput())
+    if (p->isOutput() && numPorts() > numOutputs())
     {
         // Insert the new output after the last output.
-        for (auto it = _elements.begin(); it != _elements.end(); ++it)
-        {
-            if (!(*it)->asA<PrvPortDef>()->isOutput())
-            {
-                _elements.insert(it, portdef);
-                break;
-            }
-        }
+        auto it = _children.begin() + numOutputs();
+        _children.insert(it, 1, portdef);
     }
     else
     {
-        _elements.push_back(portdef);
+        _children.push_back(portdef);
     }
-    _elementsByName[p->getName()] = portdef;
+
+    _childrenByName[p->getName()] = portdef;
     _numOutputs += p->isOutput();
+    rebuildPortIndex();
 }
 
 void PrvNodeDef::removePort(const RtToken& name)
 {
-    PrvPortDef* p = port(name);
+    PrvPortDef* p = findPort(name);
     if (p)
     {
         _numOutputs -= p->isOutput();
-        removeElement(name);
+        removeChild(name);
+        rebuildPortIndex();
+    }
+}
+
+void PrvNodeDef::rebuildPortIndex()
+{
+    for (size_t i = 0; i < numPorts(); ++i)
+    {
+        _portIndex[getPort(i)->getName()] = i;
     }
 }
 

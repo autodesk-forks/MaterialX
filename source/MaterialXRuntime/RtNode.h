@@ -63,8 +63,9 @@ public:
     /// Return true if this port is connectable.
     bool isConnectable() const;
 
-    /// Return true if this is a graph interface port.
-    bool isInterface() const;
+    /// Return true if this port is an internal
+    /// socket on a nodegraph.
+    bool isSocket() const;
 
     /// Return the value for this port.
     const RtValue& getValue() const;
@@ -145,11 +146,12 @@ private:
     PrvObjectHandle _data;
     size_t _index;
     friend class PrvNode;
+    friend class PrvNodeGraph;
 };
 
 /// @class RtNode
-/// API for accessing a node instance. This API can only be
-/// attached to objects of type NODE.
+/// API for accessing a node instance. This API can be
+/// attached to objects of type NODE and NODEGRAPH.
 class RtNode : public RtElement
 {
 public:
@@ -164,22 +166,50 @@ public:
     /// Return the type for this API.
     RtApiType getApiType() const override;
 
-    /// Return the node category for this node.
-    const RtToken& getCategory() const;
+    /// Return the nodedef of this node.
+    RtObject getNodeDef() const;
+
+    /// Return the node name for this node.
+    const RtToken& getNodeName() const;
 
     /// Return the port count.
     size_t numPorts() const;
 
-    /// Return the port count.
+    /// Return the output port count.
     size_t numOutputs() const;
+
+    /// Return the input port count.
+    size_t numInputs() const;
+
+    /// Return a port corresponding to the given portdef object,
+    /// or a null object if no such port exists.
+    RtPort getPort(RtObject portdef) const;
 
     /// Return a port by index, or a null object 
     /// if no such port exists.
     RtPort getPort(size_t index) const;
 
-    /// Return a port corresponding to the given portdef object,
-    /// or a null object if no such port exists.
-    RtPort getPort(RtObject portdef) const;
+    /// Get the index offset for outputs.
+    /// This index points to the first output.
+    size_t getOutputsOffset() const;
+
+    /// Get the index offset for inputs.
+    /// This index points to the first input.
+    size_t getInputsOffset() const;
+
+    /// Get the i:th output port, or a null object
+    /// if no such port exists.
+    RtPort getOutput(size_t index) const
+    {
+        return getPort(getOutputsOffset() + index);
+    }
+
+    /// Get the i:th input port, or a null object
+    /// if no such port exists.
+    RtPort getInput(size_t index) const
+    {
+        return getPort(getInputsOffset() + index);
+    }
 
     /// Find a port by name, or a null object 
     /// if no such port is found.

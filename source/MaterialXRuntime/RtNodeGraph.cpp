@@ -13,7 +13,7 @@ namespace MaterialX
 {
 
 RtNodeGraph::RtNodeGraph(const RtObject& obj) :
-    RtElement(obj)
+    RtNode(obj)
 {
 }
 
@@ -27,7 +27,7 @@ RtObject RtNodeGraph::createNew(const RtToken& name, RtObject parent)
         {
             throw ExceptionRuntimeError("Given parent object is not a valid stage");
         }
-        parent.data()->asA<PrvStage>()->addElement(nodegraph);
+        parent.data()->asA<PrvStage>()->addChild(nodegraph);
     }
 
     return RtObject(nodegraph);
@@ -43,38 +43,61 @@ void RtNodeGraph::addNode(RtObject node)
     return data()->asA<PrvNodeGraph>()->addNode(node.data());
 }
 
+void RtNodeGraph::removeNode(RtObject node)
+{
+    if (!node.hasApi(RtApiType::NODE))
+    {
+        throw ExceptionRuntimeError("Given object is not a node");
+    }
+    PrvNode* n = node.data()->asA<PrvNode>();
+    return data()->asA<PrvNodeGraph>()->removeNode(n->getName());
+}
+
+void RtNodeGraph::removePort(RtObject portdef)
+{
+    if (!portdef.hasApi(RtApiType::PORTDEF))
+    {
+        throw ExceptionRuntimeError("Given object is not a portdef");
+    }
+    PrvPortDef* p = portdef.data()->asA<PrvPortDef>();
+    return data()->asA<PrvNodeGraph>()->removePort(p->getName());
+}
+
 size_t RtNodeGraph::numNodes() const
 {
-    return data()->asA<PrvNodeGraph>()->numElements();
+    return data()->asA<PrvNodeGraph>()->numChildren();
 }
 
 RtObject RtNodeGraph::getNode(size_t index) const
 {
-    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->getElement(index);
+    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->getChild(index);
     return RtObject(node);
 }
 
 RtObject RtNodeGraph::findNode(const RtToken& name) const
 {
-    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->findElementByName(name);
+    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->findChildByName(name);
     return RtObject(node);
 }
 
-void RtNodeGraph::setInterface(RtObject nodedef)
+RtPort RtNodeGraph::getOutputSocket(size_t index) const
 {
-    return data()->asA<PrvNodeGraph>()->setInterface(nodedef.data());
+    return data()->asA<PrvNodeGraph>()->getOutputSocket(index);
 }
 
-RtObject RtNodeGraph::getInputsNode() const
+RtPort RtNodeGraph::getInputSocket(size_t index) const
 {
-    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->getInputsNode();
-    return RtObject(node);
+    return data()->asA<PrvNodeGraph>()->getInputSocket(index);
 }
 
-RtObject RtNodeGraph::getOutputsNode() const
+RtPort RtNodeGraph::findOutputSocket(const RtToken& name) const
 {
-    PrvObjectHandle node = data()->asA<PrvNodeGraph>()->getOutputsNode();
-    return RtObject(node);
+    return data()->asA<PrvNodeGraph>()->findOutputSocket(name);
+}
+
+RtPort RtNodeGraph::findInputSocket(const RtToken& name) const
+{
+    return data()->asA<PrvNodeGraph>()->findInputSocket(name);
 }
 
 string RtNodeGraph::asStringDot() const

@@ -12,10 +12,85 @@
 namespace MaterialX
 {
 
+const string PrvElement::PATH_SEPARATOR = "/";
+
 PrvElement::PrvElement(RtObjType objType, const RtToken& name) :
     PrvObject(objType),
     _name(name)
 {
+}
+
+
+void PrvElement::addChild(PrvObjectHandle elem)
+{
+    if (!elem->hasApi(RtApiType::ELEMENT))
+    {
+        throw ExceptionRuntimeError("Given object is not a valid element");
+    }
+
+    PrvElement* el = elem->asA<PrvElement>();
+    if (_childrenByName.count(el->getName()))
+    {
+        throw ExceptionRuntimeError("An element named '" + el->getName().str() + "' already exists in '" + getName().str() + "'");
+    }
+
+    _children.push_back(elem);
+    _childrenByName[el->getName()] = elem;
+}
+
+void PrvElement::removeChild(const RtToken& name)
+{
+    for (auto it = _children.begin(); it != _children.end(); ++it)
+    {
+        if ((*it)->asA<PrvElement>()->getName() == name)
+        {
+            _children.erase(it);
+            break;
+        }
+    }
+    _childrenByName.erase(name);
+}
+
+PrvObjectHandle PrvElement::findChildByName(const RtToken& name) const
+{
+    auto it = _childrenByName.find(name);
+    return it != _childrenByName.end() ? it->second : nullptr;
+}
+
+PrvObjectHandle PrvElement::findChildByPath(const string& path) const
+{
+    const StringVec elementNames = splitString(path, PATH_SEPARATOR);
+    if (elementNames.empty())
+    {
+        return nullptr;
+    }
+
+    size_t i = 0;
+    RtToken name = RtToken(elementNames[i++]);
+    PrvObjectHandle elem = findChildByName(name);
+
+    while (elem != nullptr && i < elementNames.size())
+    {
+        name = RtToken(elementNames[i++]);
+        if (elem->hasApi(RtApiType::NODE))
+        {
+            PrvNode* node = elem->asA<PrvNode>();
+            PrvNodeDef* nodedef = node->getNodeDef()->asA<PrvNodeDef>();
+            elem = nodedef->findChildByName(name);
+        }
+        else
+        {
+            elem = elem->asA<PrvElement>()->findChildByName(name);
+        }
+    }
+
+    return elem;
+}
+
+void PrvElement::clearChildren()
+{
+    _children.clear();
+    _childrenByName.clear();
 }
 
 void PrvElement::addAttribute(const RtToken& name, const RtToken& type, const RtValue& value)
@@ -50,90 +125,8 @@ void PrvElement::clearAttributes()
     _attributesByName.clear();
 }
 
-const string PrvCompound::PATH_SEPARATOR = "/";
-
-PrvCompound::PrvCompound(RtObjType objType, const RtToken& name) :
-    PrvElement(objType, name)
-{
-}
-
-void PrvCompound::addElement(PrvObjectHandle elem)
-{
-    if (!elem->hasApi(RtApiType::ELEMENT))
-    {
-        throw ExceptionRuntimeError("Given object is not a valid element");
-    }
-
-    PrvElement* el = elem->asA<PrvElement>();
-    if (_elementsByName.count(el->getName()))
-    {
-        throw ExceptionRuntimeError("An element named '" + el->getName().str() + "' already exists in '" + getName().str() + "'");
-    }
-
-    _elements.push_back(elem);
-    _elementsByName[el->getName()] = elem;
-}
-
-void PrvCompound::removeElement(const RtToken& name)
-{
-    for (auto it = _elements.begin(); it != _elements.end(); ++it)
-    {
-        if ((*it)->asA<PrvElement>()->getName() == name)
-        {
-            _elements.erase(it);
-            break;
-        }
-    }
-    _elementsByName.erase(name);
-}
-
-void PrvCompound::clearElements()
-{
-    _elements.clear();
-    _elementsByName.clear();
-}
-
-PrvObjectHandle PrvCompound::findElementByName(const RtToken& name) const
-{
-    auto it = _elementsByName.find(name);
-    return it != _elementsByName.end() ? it->second : nullptr;
-}
-
-PrvObjectHandle PrvCompound::findElementByPath(const string& path) const
-{
-    const StringVec elementNames = splitString(path, PATH_SEPARATOR);
-    if (elementNames.empty())
-    {
-        return nullptr;
-    }
-
-    size_t i = 0;
-    RtToken name = RtToken(elementNames[i++]);
-    PrvObjectHandle elem = findElementByName(name);
-
-    while (elem != nullptr && i < elementNames.size())
-    {
-        if (elem->hasApi(RtApiType::COMPOUND))
-        {
-            name = RtToken(elementNames[i]);
-            elem = elem->asA<PrvCompound>()->findElementByName(name);
-        }
-        else if (elem->hasApi(RtApiType::NODE))
-        {
-            PrvNode* node = elem->asA<PrvNode>();
-            PrvNodeDef* nodedef = node->getNodeDef()->asA<PrvNodeDef>();
-            name = RtToken(elementNames[i]);
-            elem = nodedef->findElementByName(name);
-        }
-        ++i;
-    }
-
-    return elem;
-}
-
-
 PrvUnknown::PrvUnknown(const RtToken& name, const RtToken& category) :
-    PrvCompound(RtObjType::UNKNOWN, name),
+    PrvElement(RtObjType::UNKNOWN, name),
     _category(category)
 {
 }

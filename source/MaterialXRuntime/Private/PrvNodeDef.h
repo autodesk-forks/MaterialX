@@ -18,24 +18,25 @@
 namespace MaterialX
 {
 
-class PrvNodeDef : public PrvCompound
+class PrvNodeDef : public PrvValueStoringElement
 {
 public:
     PrvNodeDef(const RtToken& name, const RtToken& category);
 
-    static PrvObjectHandle createNew(const RtToken& name, const RtToken& category);
+    static PrvObjectHandle createNew(const RtToken& name, const RtToken& nodeName);
 
-    const RtToken& getCategory() const
+    const RtToken& getNodeName() const
     {
-        return _category;
+        return _nodeName;
     }
 
     void addPort(PrvObjectHandle portdef);
+
     void removePort(const RtToken& name);
 
     size_t numPorts() const
     {
-        return numElements();
+        return numChildren();
     }
 
     size_t numOutputs() const
@@ -43,13 +44,55 @@ public:
         return _numOutputs;
     }
 
-    // Short syntax getter for convenience.
-    PrvPortDef* port(const RtToken& name) const { return findElementByName(name)->asA<PrvPortDef>(); }
-    PrvPortDef* port(size_t index) const { return getElement(index)->asA<PrvPortDef>(); }
+    size_t numInputs() const
+    {
+        return numPorts() - numOutputs();
+    }
+
+    PrvPortDef* getPort(size_t index) const
+    {
+        return getChild(index)->asA<PrvPortDef>();
+    }
+
+    size_t getOutputsOffset() const
+    {
+        // Outputs are stored first
+        return 0;
+    }
+
+    size_t getInputsOffset() const
+    {
+        // Inputs are stored after the outputs
+        return _numOutputs;
+    }
+
+    PrvPortDef* getOutput(size_t index) const
+    {
+        return getPort(getOutputsOffset() + index);
+    }
+
+    PrvPortDef* getInput(size_t index) const
+    {
+        return getPort(getInputsOffset() + index);
+    }
+
+    PrvPortDef* findPort(const RtToken& name) const
+    {
+        return findChildByName(name)->asA<PrvPortDef>();
+    }
+
+    size_t findPortIndex(const RtToken& name)
+    {
+        auto it = _portIndex.find(name);
+        return it != _portIndex.end() ? it->second : INVALID_INDEX;
+    }
 
 protected:
-    RtToken _category;
+    void rebuildPortIndex();
+
+    RtToken _nodeName;
     size_t _numOutputs;
+    RtTokenMap<size_t> _portIndex;
     friend class PrvNode;
     friend class PrvNodeGraph;
     friend class RtPort;

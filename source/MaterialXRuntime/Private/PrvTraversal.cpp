@@ -53,9 +53,9 @@ PrvStageIterator& PrvStageIterator::operator++()
 
         bool pop = true;
 
-        if (elemIndex + 1 < int(stage->getElements().size()))
+        if (elemIndex + 1 < int(stage->getChildren().size()))
         {
-            _current = stage->getElements()[++elemIndex];
+            _current = stage->getChildren()[++elemIndex];
             if (!_filter || _filter(RtObject(_current)))
             {
                 return *this;
@@ -65,10 +65,10 @@ PrvStageIterator& PrvStageIterator::operator++()
         else if (stageIndex + 1 < int(stage->getReferencedStages().size()))
         {
             PrvStage* refStage = stage->getReferencedStages()[++stageIndex]->asA<PrvStage>();
-            if (!refStage->getElements().empty())
+            if (!refStage->getChildren().empty())
             {
                 _stack.push_back(std::make_tuple(refStage, 0, stageIndex));
-                _current = refStage->getElements()[0];
+                _current = refStage->getChildren()[0];
                 if (!_filter || _filter(RtObject(_current)))
                 {
                     return *this;
@@ -95,11 +95,11 @@ PrvTreeIterator::PrvTreeIterator(PrvObjectHandle root, RtTraversalFilter filter)
     _current(nullptr),
     _filter(filter)
 {
-    if (root->hasApi(RtApiType::COMPOUND))
+    if (root->hasApi(RtApiType::ELEMENT))
     {
         // Initialize the stack and start iteration to the first element.
-        PrvCompound* comp = root->asA<PrvCompound>();
-        _stack.push_back(std::make_tuple(comp, -1, -1));
+        PrvElement* elem = root->asA<PrvElement>();
+        _stack.push_back(std::make_tuple(elem, -1, -1));
         ++*this;
     }
 }
@@ -123,44 +123,47 @@ PrvTreeIterator& PrvTreeIterator::operator++()
         }
 
         if (_current && 
-            _current->hasApi(RtApiType::COMPOUND) &&
+            _current->hasApi(RtApiType::ELEMENT) &&
             !_current->hasApi(RtApiType::STAGE))
         {
-            PrvCompound* comp = _current->asA<PrvCompound>();
-            _stack.push_back(std::make_tuple(comp, 0, -1));
-            _current = comp->getElements()[0];
-            if (!_filter || _filter(RtObject(_current)))
+            PrvElement* elem = _current->asA<PrvElement>();
+            if (elem->numChildren())
             {
-                return *this;
+                _stack.push_back(std::make_tuple(elem, 0, -1));
+                _current = elem->getChild(0);
+                if (!_filter || _filter(RtObject(_current)))
+                {
+                    return *this;
+                }
             }
         }
 
         StackFrame& frame = _stack.back();
-        PrvCompound* comp = std::get<0>(frame);
+        PrvElement* elem = std::get<0>(frame);
         int& elemIndex = std::get<1>(frame);
         int& stageIndex = std::get<2>(frame);
 
         bool filterUsed = false;
 
-        if (elemIndex + 1 < int(comp->getElements().size()))
+        if (elemIndex + 1 < int(elem->getChildren().size()))
         {
-            _current = comp->getElements()[++elemIndex];
+            _current = elem->getChildren()[++elemIndex];
             if (!_filter || _filter(RtObject(_current)))
             {
                 return *this;
             }
             filterUsed = true;
         }
-        else if (comp->hasApi(RtApiType::STAGE))
+        else if (elem->hasApi(RtApiType::STAGE))
         {
-            PrvStage* stage = comp->asA<PrvStage>();
+            PrvStage* stage = elem->asA<PrvStage>();
             if (stageIndex + 1 < int(stage->getReferencedStages().size()))
             {
                 PrvStage* refStage = stage->getReferencedStages()[++stageIndex]->asA<PrvStage>();
-                if (!refStage->getElements().empty())
+                if (refStage->numChildren())
                 {
                     _stack.push_back(std::make_tuple(refStage, 0, stageIndex));
-                    _current = refStage->getElements()[0];
+                    _current = refStage->getChild(0);
                     if (!_filter || _filter(RtObject(_current)))
                     {
                         return *this;
@@ -215,10 +218,10 @@ PrvGraphIterator& PrvGraphIterator::operator++()
         PrvNode* node = _current.first.data()->asA<PrvNode>();
 
         // Check if we have any inputs.
-        if (node->numPorts() > node->numOutputs())
+        if (node->numInputs())
         {
             // Traverse to the first upstream edge of this element.
-            const size_t inputIndex = node->numOutputs();
+            const size_t inputIndex = node->getInputsOffset();
             _stack.push_back(StackFrame(_current.first, inputIndex));
 
             RtPort input = node->getPort(inputIndex);

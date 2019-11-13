@@ -25,16 +25,19 @@ public:
     RtNodeDef(const RtObject& obj);
 
     /// Create a new nodedef and add it to a stage if specified.
-    static RtObject createNew(const RtToken& name, const RtToken& category, RtObject stage = RtObject());
+    static RtObject createNew(const RtToken& name, const RtToken& nodeName, RtObject stage = RtObject());
 
     /// Return the type for this API.
     RtApiType getApiType() const override;
 
-    /// Return the node category.
-    const RtToken& getCategory() const;
+    /// Return the node name.
+    const RtToken& getNodeName() const;
 
     /// Add an port definition.
     void addPort(RtObject portdef);
+
+    /// Remove an port definition.
+    void removePort(RtObject portdef);
 
     /// Return the port count.
     size_t numPorts() const;
@@ -45,6 +48,28 @@ public:
     /// Return a port definition by index,
     /// or a null object if no such port exists.
     RtObject getPort(size_t index) const;
+
+    /// Get the index offset for outputs.
+    /// This index points to the first output.
+    size_t getOutputsOffset() const;
+
+    /// Get the index offset for inputs.
+    /// This index points to the first input.
+    size_t getInputsOffset() const;
+
+    /// Get the i:th output port definition,
+    /// or a null object if no such port exists.
+    RtObject getOutput(size_t index) const
+    {
+        return getPort(getOutputsOffset() + index);
+    }
+
+    /// Get the i:th input port definition,
+    /// or a null object if no such port exists.
+    RtObject getInput(size_t index) const
+    {
+        return getPort(getInputsOffset() + index);
+    }
 
     /// Find a port definition by name.
     /// Return a null object if no such port is found.
