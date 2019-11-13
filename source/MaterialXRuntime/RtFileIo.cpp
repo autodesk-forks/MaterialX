@@ -562,31 +562,10 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
 
 void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
 {
-    // Always add in local search paths
-    FileSearchPath totalSearchPaths = searchPaths;
-    FilePath currentPath(FilePath::getCurrentPath());
-    FilePath parentCurrentPath = currentPath.getParentPath();
-    const FilePath librariesPath("libraries");
-    FilePath fullPath(currentPath / librariesPath);
-    if (!fullPath.exists())
-    {
-        fullPath = parentCurrentPath / librariesPath;
-        if (fullPath.exists())
-        {
-            totalSearchPaths.append(fullPath);
-        }
-    }
-    else
-    {
-        totalSearchPaths.append(fullPath);
-    }
-    totalSearchPaths.append(parentCurrentPath);
-    totalSearchPaths.prepend(currentPath);
-
     // We must create a single document with all dependents since the read
     // functionality current looks for definitions within the same document.
     DocumentPtr libraryDoc = createDocument();
-    StringVec libraryNames = MaterialX::loadLibraries(libraryPaths, totalSearchPaths, libraryDoc);
+    StringVec libraryNames = MaterialX::loadLibraries(libraryPaths, searchPaths, libraryDoc);
 
     PrvStage* stage = data()->asA<PrvStage>();
     for (const string& uri : libraryNames)

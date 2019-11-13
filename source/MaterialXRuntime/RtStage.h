@@ -38,11 +38,14 @@ public:
     /// Remove a reference to another stage.
     void removeReference(const RtToken& name);
 
-    /// Get a reference
-    RtStage getReference(const RtToken& name) const;
+    /// Return the number of references
+    size_t numReferences() const;
 
-    /// Copy references between stages
-    void copyReferences(RtObject stage);
+    /// Get a reference by index.
+    RtObject getReference(size_t index) const;
+
+    /// Find a reference by name
+    RtObject findReference(const RtToken& name) const;
 
     /// Add an element to the stage.
     void addElement(RtObject elem);

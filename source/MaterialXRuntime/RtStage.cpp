@@ -35,20 +35,20 @@ void RtStage::removeReference(const RtToken& name)
     data()->asA<PrvStage>()->removeReference(name);
 }
 
-RtStage RtStage::getReference(const RtToken& name) const
+/// Return the number of references
+size_t RtStage::numReferences() const
 {
-    return RtObject(data()->asA<PrvStage>()->getReference(name));
+    return data()->asA<PrvStage>()->numReferences();
 }
 
-
-void RtStage::copyReferences(RtObject stage)
+RtObject RtStage::getReference(size_t index) const
 {
-    PrvStage* thisPrvStage = data()->asA<PrvStage>();
-    PrvStage* otherPrvStage = data()->asA<PrvStage>();
-    for (auto refStages : otherPrvStage->getReferencedStages())
-    {
-        thisPrvStage->addReference(refStages);
-    }
+    return data()->asA<PrvStage>()->getReference(index);
+}
+
+RtObject RtStage::findReference(const RtToken& name) const
+{
+    return RtObject(data()->asA<PrvStage>()->findReference(name));
 }
 
 void RtStage::addElement(RtObject elem)

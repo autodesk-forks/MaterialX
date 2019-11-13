@@ -57,7 +57,17 @@ void PrvStage::removeReference(const RtToken& name)
     }
 }
 
-PrvObjectHandle PrvStage::getReference(const RtToken& name) const
+size_t PrvStage::numReferences() const
+{
+    return _refStages.size();
+}
+
+PrvObjectHandle PrvStage::getReference(size_t index) const
+{
+    return index < _refStages.size() ? _refStages[index] : nullptr;
+}
+
+PrvObjectHandle PrvStage::findReference(const RtToken& name) const
 {
     for (auto it = _refStages.begin(); it != _refStages.end(); ++it)
     {
