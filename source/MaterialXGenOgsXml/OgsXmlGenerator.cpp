@@ -258,17 +258,16 @@ OgsXmlGenerator::OgsXmlGenerator()
 {
 }
 
-void OgsXmlGenerator::generate( const std::string& shaderName, const Shader* glsl, const Shader* hlsl,
-                                bool hwTransparency, std::ostream& stream)
+void OgsXmlGenerator::generate(
+    const std::string& shaderName,
+    const Shader& glslShader,
+    const std::string& hlslSource,
+    bool hwTransparency,
+    std::ostream& stream
+)
 {
-    if (glsl == nullptr && hlsl == nullptr)
-    {
-        throw ExceptionShaderGenError("Both GLSL and HLSL shaders are null, at least one language must be given to generate XML fragments");
-    }
-
     // Create the interface using one of the shaders (interface should be the same)
-    const Shader* shader = glsl != nullptr ? glsl : hlsl;
-    const ShaderStage& stage = shader->getStage(Stage::PIXEL);
+    const ShaderStage& stage = glslShader.getStage(Stage::PIXEL);
 
     xml_document xmlDocument;
 
@@ -315,8 +314,8 @@ void OgsXmlGenerator::generate( const std::string& shaderName, const Shader* gls
 
     // Add implementations
     pugi::xml_node xmlImpementations = xmlRoot.append_child(IMPLEMENTATION);
-    xmlAddImplementation(xmlImpementations, "GLSL", "3.0",  stage.getFunctionName(), glsl ? glsl->getSourceCode(Stage::PIXEL) : "// GLSL");
-    xmlAddImplementation(xmlImpementations, "HLSL", "11.0", stage.getFunctionName(), hlsl ? hlsl->getSourceCode(Stage::PIXEL) : "// HLSL");
+    xmlAddImplementation(xmlImpementations, "GLSL", "3.0",  stage.getFunctionName(), glslShader.getSourceCode(Stage::PIXEL));
+    xmlAddImplementation(xmlImpementations, "HLSL", "11.0", stage.getFunctionName(), hlslSource);
     xmlAddImplementation(xmlImpementations, "Cg", "2.1", stage.getFunctionName(), "// Cg");
 
     xmlDocument.save(stream, INDENTATION);

@@ -21,7 +21,11 @@ public:
 
     /// Generate OSG XML for the given shader fragments, output to the given stream.
     static void generate(
-        const string& shaderName, const Shader* glsl, const Shader* hlsl, bool hwTransparency, std::ostream&
+        const string& shaderName,
+        const Shader& glslShader,
+        const std::string& hlslSource,
+        bool hwTransparency,
+        std::ostream&
     );
 
     /// String constants

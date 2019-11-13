@@ -77,19 +77,19 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
     }
 
     {
-        mx::ShaderGeneratorPtr shaderGenerator = mx::GlslFragmentGenerator::create();
-        mx::GenContext genContext(shaderGenerator);
+        mx::ShaderGeneratorPtr glslGenerator = mx::GlslFragmentGenerator::create();
+        mx::GenContext genContext(glslGenerator);
         mx::GenOptions& genOptions = genContext.getOptions();
 
         // Set up color management. We assume the target render space is linear
         // if not found in the document. Currently the default system has no other color space targets.
         //
         static const std::string MATERIALX_LINEAR_WORKING_SPACE("lin_rec709");
-        const std::string language = shaderGenerator->getLanguage();
+        const std::string language = glslGenerator->getLanguage();
         mx::DefaultColorManagementSystemPtr colorManagementSystem = mx::DefaultColorManagementSystem::create(language);
         if (colorManagementSystem)
         {
-            shaderGenerator->setColorManagementSystem(colorManagementSystem);
+            glslGenerator->setColorManagementSystem(colorManagementSystem);
             colorManagementSystem->loadLibrary(_document);
             const std::string& documentColorSpace = _document->getAttribute(mx::Element::COLOR_SPACE_ATTRIBUTE);
 
@@ -110,7 +110,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         // Maya images require a texture coordaintes to be flipped in V.
         genOptions.fileTextureVerticalFlip = true;
 
-        _isTransparent = mx::isTransparentSurface(_element, *shaderGenerator);
+        _isTransparent = mx::isTransparentSurface(_element, *glslGenerator);
         genOptions.hwTransparency = _isTransparent;
 
         // Maya viewport uses texture atlas for tile image so enabled
@@ -122,8 +122,8 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         _fragmentName = _element->getNamePath();
         _fragmentName = mx::createValidName(_fragmentName);
 
-        _shader = shaderGenerator->generate(_fragmentName, _element, genContext);
-        if (!_shader)
+        _glslShader = glslGenerator->generate(_fragmentName, _element, genContext);
+        if (!_glslShader)
         {
             throw mx::Exception("Failed to generate shader");
         }
@@ -135,11 +135,9 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         std::ostringstream sourceStream;
         mx::OgsXmlGenerator ogsXmlGenerator;
 
-        constexpr mx::Shader* hlslShader = nullptr;
-
         // Note: This name must match the the fragment name used for registration
         // or the registration will fail.
-        ogsXmlGenerator.generate(FRAGMENT_NAME_TOKEN, _shader.get(), hlslShader, _isTransparent, sourceStream);
+        ogsXmlGenerator.generate(FRAGMENT_NAME_TOKEN, *_glslShader, "", _isTransparent, sourceStream);
         _fragmentSource = sourceStream.str();
         if (_fragmentSource.empty())
         {
@@ -167,7 +165,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
     // Extract out the input fragment parameter names along with their
     // associated Element paths to allow for value binding.
     //
-    const mx::ShaderStage& pixelShader = _shader->getStage(mx::Stage::PIXEL);
+    const mx::ShaderStage& pixelShader = _glslShader->getStage(mx::Stage::PIXEL);
     for (const auto& blockMap : pixelShader.getUniformBlocks())
     {
         const mx::VariableBlock& uniforms = *blockMap.second;
@@ -200,9 +198,9 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
 mx::ImageSamplingProperties OgsFragment::getImageSamplngProperties(const std::string& fileParameterName) const
 {
     mx::ImageSamplingProperties samplingProperties;
-    if (_shader && _shader->hasStage(mx::Stage::PIXEL))
+    if (_glslShader && _glslShader->hasStage(mx::Stage::PIXEL))
     {
-        mx::ShaderStage& stage = _shader->getStage(mx::Stage::PIXEL);
+        mx::ShaderStage& stage = _glslShader->getStage(mx::Stage::PIXEL);
         mx::VariableBlock& block = stage.getUniformBlock(mx::HW::PUBLIC_UNIFORMS);
         samplingProperties.setProperties(fileParameterName, block);
 

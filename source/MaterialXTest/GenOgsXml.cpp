@@ -58,7 +58,7 @@ public:
         std::ostringstream sourceStream;
 
         constexpr bool hwTransparency = false;
-        xmlGenerator.generate(cleanShaderName, shader.get(), nullptr, hwTransparency, sourceStream);
+        xmlGenerator.generate(cleanShaderName, *shader, "", hwTransparency, sourceStream);
         std::string fragmentSource = sourceStream.str();
         if (fragmentSource.empty())
         {
