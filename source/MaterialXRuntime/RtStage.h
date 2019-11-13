@@ -84,6 +84,9 @@ public:
     /// stages. If a filter is set it will be called to control which
     /// objects to return.
     RtStageIterator traverseStage(RtTraversalFilter filter = nullptr);
+
+  protected:
+    friend class RtFileIo;
 };
 
 }

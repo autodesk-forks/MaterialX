@@ -389,9 +389,6 @@ TEST_CASE("Runtime: CoreIo", "[runtime]")
     mx::FileSearchPath searchPath;
     searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     {
-        // Create a document.
-        mx::DocumentPtr doc = mx::createDocument();
-
         // Load in stdlib
         // Create a stage and import the document data.
         mx::RtObject stageObj = mx::RtStage::createNew("test1");
@@ -460,9 +457,7 @@ TEST_CASE("Runtime: CoreIo", "[runtime]")
         texcoord1_out.connectTo(tiledimage1_texcoord);
         texcoord1_index.getValue().asInt() = 2;
 
-        mx::DocumentPtr exportDoc = mx::createDocument();
-        mx::RtFileIo(stage.getObject()).write(exportDoc);
-        mx::writeToXmlFile(exportDoc, stage.getName().str() + "_export.mtlx");
+        mx::RtFileIo(stage.getObject()).write(stage.getName().str() + "_export.mtlx");
     }
 }
 
@@ -495,18 +490,20 @@ TEST_CASE("Runtime: Stage References", "[runtime]")
     REQUIRE(!nodeObj.isValid());
 }
 
-TEST_CASE("Runtime: Traversal", "[runtime]")
+TEST_CASE("Runtime: Traversal", "[runtime1]")
 {
     // Create a main stage.
     mx::RtStage mainStage = mx::RtStage::createNew("main");
 
     // Load stdlib in a seperate stage.
-    mx::RtStage stdlibStage = mx::RtStage::createNew("stdlib");
     mx::DocumentPtr doc = mx::createDocument();
-    mx::FilePath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
+    mx::FileSearchPath searchPath;
+    searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     loadLibraries({ "stdlib", "pbrlib" }, searchPath, doc);
-    mx::RtFileIo coreIO(stdlibStage.getObject());
-    coreIO.read(doc);
+    
+    mx::RtStage stdlibStage = mx::RtStage::createNew("stdlib");
+    mx::RtFileIo stdlibIO(stdlibStage.getObject());
+    stdlibIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
 
     // Count elements traversing the full stdlib stage
     size_t nodeCount = 0, nodeDefCount = 0, nodeGraphCount = 0;
@@ -531,8 +528,9 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
     REQUIRE(nodeDefCount == doc->getNodeDefs().size());
     REQUIRE(nodeGraphCount == doc->getNodeGraphs().size());
 
-    mainStage.addReference(stdlibStage.getObject());
-    
+    mx::RtFileIo mainStageIO(mainStage.getObject());
+    mainStageIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
+
     mx::RtNodeDef nodedef = mainStage.findElementByName("ND_subtract_vector3");
     REQUIRE(nodedef);
     mx::RtObject nodeObj = mx::RtNode::createNew("sub1", nodedef.getObject(), mainStage.getObject());

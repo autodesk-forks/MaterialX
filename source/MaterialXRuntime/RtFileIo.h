@@ -39,16 +39,6 @@ public:
     /// Return the type for this API.
     RtApiType getApiType() const override;
 
-    /// Read contents from a document.
-    /// If a filter is used only elements accepted by the filter
-    /// will be red from the document.
-    void read(const DocumentPtr& doc, ReadFilter filter = nullptr);
-
-    /// Write all stage contents to a document.
-    /// If a filter is used only elements accepted by the filter
-    /// will be written to the document.
-    void write(DocumentPtr& doc, WriteFilter filter = nullptr);
-
     /// Read contents from a file path.
     /// If a filter is used only elements accepted by the filter
     /// will be red from the document.
@@ -62,6 +52,17 @@ public:
     /// Read in dependent libraries as referenced stages, with one reference
     /// per unique library file.
     void loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
+
+private:
+    /// Read contents from a document.
+    /// If a filter is used only elements accepted by the filter
+    /// will be red from the document.
+    void read(const DocumentPtr& doc, RtStage* searchStage, ReadFilter filter = nullptr);
+
+    /// Write all stage contents to a document.
+    /// If a filter is used only elements accepted by the filter
+    /// will be written to the document.
+    void write(DocumentPtr& doc, WriteFilter filter = nullptr);
 };
 
 }
