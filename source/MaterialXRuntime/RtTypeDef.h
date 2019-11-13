@@ -96,12 +96,16 @@ public:
     /// until an array is instantiated.
     size_t getSize() const;
 
+    /// Set the channel index for the supplied channel name.
+    void setChannelIndex(char channel, int index);
+
     /// Returns the channel index for the supplied channel name.
     /// Will return -1 on failure to find a matching index.
     int getChannelIndex(char channel) const;
 
-    /// Set the channel index for the supplied channel name.
-    void setChannelIndex(char channel, int index);
+    /// Returns the channel name for the supplied channel index.
+    /// Will return -1 on failure to find a matching name.
+    char getChannelName(int index) const;
 
     /// Return true if the type is a scalar type.
     bool isScalar() const

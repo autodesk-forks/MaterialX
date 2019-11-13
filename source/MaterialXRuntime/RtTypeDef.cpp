@@ -195,6 +195,19 @@ int RtTypeDef::getChannelIndex(char channel) const
     return it != ptr->_channelMapping.end() ? it->second : -1;
 }
 
+char RtTypeDef::getChannelName(int index) const
+{
+    TypeDef* ptr = static_cast<TypeDef*>(_ptr);
+    for (auto it : ptr->_channelMapping)
+    {
+        if (it.second == index)
+        {
+            return it.first;
+        }
+    }
+    return -1;
+}
+
 void RtTypeDef::setChannelIndex(char channel, int index)
 {
     static_cast<TypeDef*>(_ptr)->_channelMapping[channel] = index;
