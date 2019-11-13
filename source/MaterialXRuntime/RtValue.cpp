@@ -88,11 +88,11 @@ string RtValue::getValueString(const RtToken& type) const
         {
             for (size_t j = 0; j < 3; j++)
             {
-                ss << v[i][j];
-                if (i + j < 9)
+                if (i || j)
                 {
                     ss << ", ";
                 }
+                ss << v[i][j];
             }
         }
     }
@@ -103,11 +103,11 @@ string RtValue::getValueString(const RtToken& type) const
         {
             for (size_t j = 0; j < 4; j++)
             {
-                ss << v[i][j];
-                if (i + j < 16)
+                if (i || j)
                 {
                     ss << ", ";
                 }
+                ss << v[i][j];
             }
         }
     }
