@@ -123,7 +123,6 @@ std::vector<uint32_t> glslToSpirv(const std::string& glslSource)
     glslang::TShader shader(EShLangFragment);
 
     static const std::string preamble =
-        "#version 450\n\n"  // TODO: generate based on an argument or skip?
         "void main()\n"
         "{\n"
         "}\n\n";
@@ -136,7 +135,7 @@ std::vector<uint32_t> glslToSpirv(const std::string& glslSource)
     shader.setStringsWithLengths(&shaderStrings, &stringLengths, 1);
 
     {
-        constexpr int defaultVersion = 100;
+        constexpr int defaultVersion = 450;
         constexpr bool forwardCompatible = false;
         constexpr auto messages = static_cast<EShMessages>(
             EShMsgSpvRules | EShMsgVulkanRules | EShMsgKeepUncalled | EShMsgDebugInfo
