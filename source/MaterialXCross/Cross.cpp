@@ -138,7 +138,7 @@ std::vector<uint32_t> glslToSpirv(const std::string& glslSource)
         constexpr int defaultVersion = 450;
         constexpr bool forwardCompatible = false;
         constexpr auto messages = static_cast<EShMessages>(
-            EShMsgSpvRules | EShMsgVulkanRules | EShMsgKeepUncalled | EShMsgDebugInfo
+            EShMsgSpvRules | EShMsgKeepUncalled | EShMsgDebugInfo
         );
         glslang::TShader::ForbidIncluder forbidIncluder;
 
