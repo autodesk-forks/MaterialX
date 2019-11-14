@@ -16,15 +16,16 @@
 namespace MaterialX
 {
 
-PrvStage::PrvStage(const RtToken& name) :
+PrvStage::PrvStage(const RtToken& name, const RtToken& uri) :
     PrvElement(RtObjType::STAGE, name),
-    _selfRefCount(0)
+    _selfRefCount(0),
+    _sourceUri(uri)
 {
 }
 
 PrvObjectHandle PrvStage::createNew(const RtToken& name)
 {
-    return std::make_shared<PrvStage>(name);
+    return std::make_shared<PrvStage>(name, RtToken(""));
 }
 
 void PrvStage::initialize()

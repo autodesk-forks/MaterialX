@@ -39,6 +39,16 @@ public:
     /// Return the type for this API.
     RtApiType getApiType() const override;
 
+    /// Read contents from a stream
+    /// If a filter is used only elements accepted by the filter
+    /// will be red from the document.
+    void read(std::istream& stream, ReadFilter filter = nullptr);
+
+    /// Write all stage contents to stream.
+    /// If a filter is used only elements accepted by the filter
+    /// will be written to the document.
+    void write(std::ostream& stream, const XmlWriteOptions* writeOptions = nullptr, WriteFilter filter = nullptr);
+
     /// Read contents from a file path.
     /// If a filter is used only elements accepted by the filter
     /// will be red from the document.
@@ -57,7 +67,7 @@ private:
     /// Read contents from a document.
     /// If a filter is used only elements accepted by the filter
     /// will be red from the document.
-    void read(const DocumentPtr& doc, RtStage* searchStage, ReadFilter filter = nullptr);
+    void read(const DocumentPtr& doc, const string& uri, RtStage* searchStage, ReadFilter filter = nullptr);
 
     /// Write all stage contents to a document.
     /// If a filter is used only elements accepted by the filter

@@ -384,7 +384,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(port1 == mul2.findPort("out"));
 }
 
-TEST_CASE("Runtime: CoreIo", "[runtime]")
+TEST_CASE("Runtime: FileIo", "[runtime3]")
 {
     mx::FileSearchPath searchPath;
     searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
@@ -457,7 +457,28 @@ TEST_CASE("Runtime: CoreIo", "[runtime]")
         texcoord1_out.connectTo(tiledimage1_texcoord);
         texcoord1_index.getValue().asInt() = 2;
 
-        mx::RtFileIo(stage.getObject()).write(stage.getName().str() + "_export.mtlx");
+        mx::RtFileIo fileIO(stage.getObject());
+        fileIO.write(stage.getName().str() + "_export.mtlx");
+        stage.initialize();
+        //stage.addReference(stdlibStage.getObject());
+        fileIO.read(mx::FilePath(stage.getName().str() + "_export.mtlx"),
+            mx::FileSearchPath(), nullptr);
+    
+        // Test read and write to stream
+        std::stringstream stream1;
+        fileIO.write(stream1);
+        std::cout << "*** stream 1:\n" << stream1.str()
+            << std::endl;
+
+        //stage.clearElements();
+        fileIO.read(stream1);
+
+        std::stringstream stream2;
+        fileIO.write(stream2);
+        std::cout << "*** stream 2:\n" << stream1.str()
+            << std::endl;
+
+        REQUIRE(stream1.str() == stream2.str());
     }
 }
 
@@ -490,7 +511,7 @@ TEST_CASE("Runtime: Stage References", "[runtime]")
     REQUIRE(!nodeObj.isValid());
 }
 
-TEST_CASE("Runtime: Traversal", "[runtime1]")
+TEST_CASE("Runtime: Traversal", "[runtime]")
 {
     // Create a main stage.
     mx::RtStage mainStage = mx::RtStage::createNew("main");

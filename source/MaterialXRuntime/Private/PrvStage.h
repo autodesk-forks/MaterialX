@@ -17,11 +17,21 @@ namespace MaterialX
 class PrvStage : public PrvElement
 {
 public:
-    PrvStage(const RtToken& name);
+    PrvStage(const RtToken& name, const RtToken& sourceUri);
 
     static PrvObjectHandle createNew(const RtToken& name);
 
     void initialize();
+
+    const RtToken& getSourceUri() const
+    {
+        return _sourceUri;
+    }
+
+    void setSourceUri(const RtToken& uri)
+    {
+        _sourceUri = uri;
+    }
 
     void addReference(PrvObjectHandle stage);
 
@@ -48,6 +58,7 @@ protected:
     size_t _selfRefCount;
     PrvObjectHandleVec _refStages;
     PrvObjectHandleSet _refStagesSet;
+    RtToken _sourceUri;
 };
 
 }

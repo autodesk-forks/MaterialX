@@ -491,6 +491,25 @@ namespace
         }
     }
 
+    void writeSourceUris(PrvStage* stage, DocumentPtr doc)
+    {
+        const PrvObjectHandleVec& refs = stage->getReferencedStages();
+        for (size_t i = 0; i < refs.size(); i++)
+        {
+            const PrvObjectHandle refStage = refs[i];
+            PrvStage* pStage = refStage->asA<PrvStage>();
+            if (pStage->numReferences())
+            {
+                writeSourceUris(pStage, doc);
+            }
+            RtToken uri = pStage->getSourceUri();
+            if (!uri.str().empty())
+            {
+                prependXInclude(doc, uri.str());
+            }
+        }
+    }
+
 } // end anonymous namespace
 
 RtFileIo::RtFileIo(RtObject stage) :
@@ -503,11 +522,12 @@ RtApiType RtFileIo::getApiType() const
     return RtApiType::CORE_IO;
 }
 
-void RtFileIo::read(const DocumentPtr& doc, RtStage* searchStage, RtFileIo::ReadFilter filter)
+void RtFileIo::read(const DocumentPtr& doc, const string& uri, RtStage* searchStage, RtFileIo::ReadFilter filter)
 {
     PrvStage* stage = data()->asA<PrvStage>();
     PrvStage* prvSearchStage = searchStage ? searchStage->data()->asA<PrvStage>() : nullptr;
     readAttributes(doc, stage, {});
+    stage->setSourceUri(RtToken(uri));
 
     for (auto elem : doc->getChildren())
     {
@@ -540,27 +560,33 @@ void RtFileIo::read(const DocumentPtr& doc, RtStage* searchStage, RtFileIo::Read
             }
             stage->addChild(objH);
         }
-    }
+    } 
 }
 
 void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, RtFileIo::ReadFilter filter)
 {
-    try
-    {
-        DocumentPtr document = createDocument();
-        XmlReadOptions readOptions;
-        readOptions.skipConflictingElements = true;
-        readFromXmlFile(document, documentPath, searchPaths, &readOptions);
+    DocumentPtr document = createDocument();
+    XmlReadOptions readOptions;
+    readOptions.skipConflictingElements = true;
+    readFromXmlFile(document, documentPath, searchPaths, &readOptions);
 
-        CopyOptions copyOptions;
-        copyOptions.skipConflictingElements = true;
+    CopyOptions copyOptions;
+    copyOptions.skipConflictingElements = true;
 
-        read(document, nullptr, filter);
-    }
-    catch(Exception&)
-    {
-        return;
-    }
+    read(document, documentPath.asString(), nullptr, filter);
+}
+
+void RtFileIo::read(std::istream& stream, ReadFilter filter)
+{
+    DocumentPtr document = createDocument();
+    XmlReadOptions readOptions;
+    readOptions.skipConflictingElements = true;
+    readFromXmlStream(document, stream, &readOptions);
+
+    CopyOptions copyOptions;
+    copyOptions.skipConflictingElements = true;
+
+    read(document, RtToken(""), nullptr, filter);
 }
 
 void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
@@ -576,7 +602,7 @@ void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath
         RtStage libraryStage = RtStage::createNew(RtToken(uri));
         RtFileIo libStageIo(libraryStage.getObject());
         RtStage searchStage(getObject());
-        libStageIo.read(libraryDoc, &searchStage,
+        libStageIo.read(libraryDoc, uri, &searchStage,
             [uri](const ElementPtr &e)
         {
             return (e->getActiveSourceUri() == uri);
@@ -589,6 +615,8 @@ void RtFileIo::write(DocumentPtr& doc, RtFileIo::WriteFilter filter)
 {
     PrvStage* stage = data()->asA<PrvStage>();
     writeAttributes(stage, doc);
+
+    writeSourceUris(stage, doc);
 
     for (size_t i = 0; i < stage->numChildren(); ++i)
     {
@@ -627,6 +655,14 @@ void RtFileIo::write(const FilePath& documentPath, const XmlWriteOptions* writeO
     write(document, filter);
     
     writeToXmlFile(document, documentPath, writeOptions);
+}
+
+void RtFileIo::write(std::ostream& stream, const XmlWriteOptions* writeOptions, WriteFilter filter)
+{
+    DocumentPtr document = createDocument();
+    write(document, filter);
+
+    writeToXmlStream(document, stream, writeOptions);
 }
 
 }
