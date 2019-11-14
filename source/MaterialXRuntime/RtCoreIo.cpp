@@ -35,14 +35,14 @@ namespace
     static const StringSet nodegraphIgnoreAttr  = { "name", "nodedef" };
     static const StringSet unknownIgnoreAttr    = { "name" };
 
-    RtValue readValue(const ValuePtr& v, const RtToken& type, RtLargeValueStorage& storage)
+    RtValue readValue(const ValuePtr& src, const RtToken& type, RtLargeValueStorage& storage)
     {
-        if (!v)
+        if (!src)
         {
             return RtValue();
         }
         RtValue value;
-        value.setValueString(type, v->getValueString(), storage);
+        value.setValueString(type, src->getValueString(), storage);
         return value;
     }
 
@@ -58,7 +58,8 @@ namespace
                 // Save all attributes as string tokens.
                 const RtToken attrName(name);
                 const RtToken attrValue(src->getAttribute(name));
-                dest->addAttribute(attrName, RtType::TOKEN, RtValue(attrValue));
+                RtAttribute* attr = dest->addAttribute(attrName, RtType::TOKEN);
+                attr->getValue().asToken() = attrValue;
             }
         }
     }
@@ -72,12 +73,12 @@ namespace
         }
     }
 
-    PrvObjectHandle readNodeDef(const NodeDefPtr& src)
+    void readNodeDef(const NodeDefPtr& src, PrvStage* stage)
     {
         const RtToken name(src->getName());
-        const RtToken category(src->getNodeString());
+        const RtToken nodeName(src->getNodeString());
 
-        PrvObjectHandle nodedefH = PrvNodeDef::createNew(name, category);
+        PrvObjectHandle nodedefH = PrvNodeDef::createNew(stage, name, nodeName);
         PrvNodeDef* nodedef = nodedefH->asA<PrvNodeDef>();
 
         readAttributes(src, nodedef, nodedefIgnoreAttr);
@@ -89,19 +90,15 @@ namespace
             {
                 const RtToken portName(elem->getName());
                 const RtToken portType(elem->getType());
-                PrvObjectHandle outputH = PrvPortDef::createNew(portName, portType, RtValue(), 
-                                                                RtPortFlag::OUTPUT);
+                PrvObjectHandle outputH = PrvPortDef::createNew(nodedef, portName, portType, RtPortFlag::OUTPUT);
                 PrvPortDef* output = outputH->asA<PrvPortDef>();
                 readAttributes(elem, output, portdefIgnoreAttr);
-                nodedef->addPort(outputH);
             }
         }
         else
         {
             const RtToken type(src->getType());
-            PrvObjectHandle outputH = PrvPortDef::createNew(PrvPortDef::DEFAULT_OUTPUT_NAME, type, RtValue(),
-                                                            RtPortFlag::OUTPUT);
-            nodedef->addPort(outputH);
+            PrvPortDef::createNew(nodedef, PrvPortDef::DEFAULT_OUTPUT_NAME, type, RtPortFlag::OUTPUT);
         }
 
         // Add inputs
@@ -113,13 +110,13 @@ namespace
                 const RtToken portType(elem->getType());
                 const RtValue portValue(readValue(elem->getValue(), portType, nodedef->getValueStorage()));
 
-                PrvObjectHandle inputH = PrvPortDef::createNew(portName, portType, portValue);
+                PrvObjectHandle inputH = PrvPortDef::createNew(nodedef, portName, portType);
                 PrvPortDef* input = inputH->asA<PrvPortDef>();
+                input->setValue(portValue);
                 input->setColorSpace(RtToken(elem->getColorSpace()));
                 // TODO: fix when units are implemented in core
                 // input->setUnit(RtToken(elem->getUnit()));
                 readAttributes(elem, input, portdefIgnoreAttr);
-                nodedef->addPort(inputH);
             }
             else if (elem->isA<Parameter>())
             {
@@ -127,20 +124,18 @@ namespace
                 const RtToken portType(elem->getType());
                 const RtValue portValue(readValue(elem->getValue(), portType, nodedef->getValueStorage()));
 
-                PrvObjectHandle inputH = PrvPortDef::createNew(portName, portType, portValue, RtPortFlag::UNIFORM);
+                PrvObjectHandle inputH = PrvPortDef::createNew(nodedef, portName, portType, RtPortFlag::UNIFORM);
                 PrvPortDef* input = inputH->asA<PrvPortDef>();
+                input->setValue(portValue);
                 input->setColorSpace(RtToken(elem->getColorSpace()));
                 // TODO: fix when units are implemented in core
                 // input->setUnit(RtToken(elem->getUnit()));
                 readAttributes(elem, input, portdefIgnoreAttr);
-                nodedef->addPort(inputH);
             }
         }
-
-        return nodedefH;
     }
 
-    PrvObjectHandle readNode(const NodePtr& src, PrvStage* stage)
+    PrvNode* readNode(const NodePtr& src, PrvElement* parent, PrvStage* stage)
     {
         NodeDefPtr srcNodedef = src->getNodeDef();
         if (!srcNodedef)
@@ -153,12 +148,11 @@ namespace
         if (!nodedefH)
         {
             // NodeDef is not loaded yet so create it now.
-            nodedefH = readNodeDef(srcNodedef);
-            stage->addChild(nodedefH);
+            readNodeDef(srcNodedef, stage);
         }
 
         const RtToken nodeName(src->getName());
-        PrvObjectHandle nodeH = PrvNode::createNew(nodeName, nodedefH);
+        PrvObjectHandle nodeH = PrvNode::createNew(parent, nodeName, nodedefH);
         PrvNode* node = nodeH->asA<PrvNode>();
 
         readAttributes(src, node, nodeIgnoreAttr);
@@ -177,13 +171,13 @@ namespace
             port.setValue(portValue);
         }
 
-        return nodeH;
+        return node;
     }
 
-    PrvObjectHandle readNodeGraph(const NodeGraphPtr& src, PrvStage* stage)
+    PrvNodeGraph* readNodeGraph(const NodeGraphPtr& src, PrvElement* parent, PrvStage* stage)
     {
         const RtToken nodegraphName(src->getName());
-        PrvObjectHandle nodegraphH = PrvNodeGraph::createNew(nodegraphName);
+        PrvObjectHandle nodegraphH = PrvNodeGraph::createNew(parent, nodegraphName);
         PrvNodeGraph* nodegraph = nodegraphH->asA<PrvNodeGraph>();
 
         readAttributes(src, nodegraph, nodegraphIgnoreAttr);
@@ -203,7 +197,7 @@ namespace
                 {
                     const RtToken name(elem->getName());
                     const RtToken type(elem->getType());
-                    nodegraph->addPort(PrvPortDef::createNew(name, type, RtValue(), RtPortFlag::OUTPUT));
+                    nodegraph->addPort(PrvPortDef::createNew(nodegraph, name, type, RtPortFlag::OUTPUT));
                 }
             }
             // Create inputs second
@@ -213,8 +207,8 @@ namespace
                 {
                     const RtToken name(elem->getName());
                     const RtToken type(elem->getType());
-                    const uint32_t flags = elem->isA<Parameter>() ? RtPortFlag::DEFAULTS | RtPortFlag::UNIFORM : RtPortFlag::DEFAULTS;
-                    nodegraph->addPort(PrvPortDef::createNew(name, type, RtValue(), flags));
+                    const uint32_t flags = elem->isA<Parameter>() ? RtPortFlag::UNIFORM : 0;
+                    nodegraph->addPort(PrvPortDef::createNew(nodegraph, name, type, flags));
                 }
             }
         }
@@ -227,7 +221,7 @@ namespace
             {
                 const RtToken name(elem->getName());
                 const RtToken type(elem->getType());
-                nodegraph->addPort(PrvPortDef::createNew(name, type, RtValue(), RtPortFlag::OUTPUT));
+                nodegraph->addPort(PrvPortDef::createNew(nodegraph, name, type, RtPortFlag::OUTPUT));
             }
         }
 
@@ -237,11 +231,9 @@ namespace
             NodePtr srcNnode = child->asA<Node>();
             if (srcNnode)
             {
-                PrvObjectHandle nodeH = readNode(srcNnode, stage);
-                nodegraph->addChild(nodeH);
+                PrvNode* node = readNode(srcNnode, nodegraph, stage);
 
                 // Check for connections to the graph interface
-                PrvNode* node = nodeH->asA<PrvNode>();
                 for (auto elem : srcNnode->getChildrenOfType<ValueElement>())
                 {
                     const string& interfaceName = elem->getInterfaceName();
@@ -261,7 +253,8 @@ namespace
                             }
                             const RtToken graphInputType(elem->getType());
                             const RtValue graphInputValue(readValue(elem->getValue(), graphInputType, nodegraph->getValueStorage()));
-                            nodegraph->addPort(PrvPortDef::createNew(internalInputName, graphInputType, graphInputValue));
+                            PrvObjectHandle socket = PrvPortDef::createNew(nodegraph, internalInputName, graphInputType);
+                            socket->asA<PrvPortDef>()->setValue(graphInputValue);
                         }
                         const RtToken inputName(elem->getName());
                         RtPort input = node->findPort(inputName);
@@ -319,25 +312,25 @@ namespace
             }
         }
 
-        return nodegraphH;
+        return nodegraph;
     }
 
-    PrvObjectHandle readUnknown(const ElementPtr& src)
+    PrvUnknown* readUnknown(const ElementPtr& src, PrvElement* parent)
     {
         const RtToken name(src->getName());
         const RtToken category(src->getCategory());
 
-        PrvObjectHandle elemH = PrvUnknown::createNew(name, category);
+        PrvObjectHandle elemH = PrvUnknown::createNew(parent, name, category);
         PrvUnknown* elem = elemH->asA<PrvUnknown>();
 
         readAttributes(src, elem, unknownIgnoreAttr);
 
         for (auto child : src->getChildren())
         {
-            elem->addChild(readUnknown(child));
+            readUnknown(child, elem);
         }
 
-        return elemH;
+        return elem;
     }
 
     void writeNodeDef(const PrvNodeDef* nodedef, DocumentPtr dest)
@@ -387,7 +380,7 @@ namespace
     template<typename T>
     void writeNode(const PrvNode* node, T dest)
     {
-        const PrvNodeDef* nodedef = node->nodedef();
+        const PrvNodeDef* nodedef = node->getNodeDef()->asA<PrvNodeDef>();
 
         const string type = nodedef->numOutputs() == 1 ? nodedef->getPort(0)->getType().str() : "multioutput";
         NodePtr destNode = dest->addNode(nodedef->getNodeName(), node->getName().str(), type);
@@ -509,7 +502,6 @@ void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
     {
         if (!filter || filter(elem))
         {
-            PrvObjectHandle objH;
             if (elem->isA<NodeDef>())
             {
                 // Make sure the nodedef has not been loaded already.
@@ -518,21 +510,20 @@ void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
                 {
                     continue;
                 }
-                objH = readNodeDef(elem->asA<NodeDef>());
+                readNodeDef(elem->asA<NodeDef>(), stage);
             }
             else if (elem->isA<Node>())
             {
-                objH = readNode(elem->asA<Node>(), stage);
+                readNode(elem->asA<Node>(), stage, stage);
             }
             else if (elem->isA<NodeGraph>())
             {
-                objH = readNodeGraph(elem->asA<NodeGraph>(), stage);
+                readNodeGraph(elem->asA<NodeGraph>(), stage, stage);
             }
             else
             {
-                objH = readUnknown(elem);
+                readUnknown(elem, stage);
             }
-            stage->addChild(objH);
         }
     }
 }

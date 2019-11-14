@@ -30,9 +30,6 @@ public:
 
     /// Port is a uniform.
     static const uint32_t UNIFORM       = 0x00000004;
-
-    /// Default ports are connectable, varying, inputs.
-    static const uint32_t DEFAULTS = 0x00000000;
 };
 
 /// @class RtPortDef
@@ -46,8 +43,7 @@ public:
 
     /// Create a new portdef and add it to a parent if specified.
     /// The parent must be a nodedefs or a nodegraph.
-    static RtObject createNew(const RtToken& name, const RtToken& type, const RtValue& value,
-                              uint32_t flags = RtPortFlag::DEFAULTS, RtObject parent = RtObject());
+    static RtObject createNew(RtObject parent, const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
     /// Return the type for this API.
     RtApiType getApiType() const override;

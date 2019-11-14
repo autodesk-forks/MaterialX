@@ -17,7 +17,7 @@ namespace MaterialX
 {
 
 PrvStage::PrvStage(const RtToken& name) :
-    PrvElement(RtObjType::STAGE, name),
+    PrvValueStoringElement(RtObjType::STAGE, nullptr, name),
     _selfRefCount(0)
 {
 }

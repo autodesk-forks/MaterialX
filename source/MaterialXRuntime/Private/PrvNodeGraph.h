@@ -20,9 +20,9 @@ namespace MaterialX
 class PrvNodeGraph : public PrvNode
 {
 public:
-    PrvNodeGraph(const RtToken& name);
+    PrvNodeGraph(PrvElement* parent, const RtToken& name);
 
-    static PrvObjectHandle createNew(const RtToken& name);
+    static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name);
 
     void addNode(PrvObjectHandle node);
 

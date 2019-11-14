@@ -20,21 +20,32 @@ const RtToken PrvNodeGraph::INPUT_SOCKETS("__inputsockets__");
 const RtToken PrvNodeGraph::OUTPUT_SOCKETS("__outputsockets__");
 const RtToken PrvNodeGraph::SOCKETS_NODE_NAME("__sockets__");
 
-PrvNodeGraph::PrvNodeGraph(const RtToken& name) :
-    PrvNode(name)
+PrvNodeGraph::PrvNodeGraph(PrvElement* parent, const RtToken& name) :
+    PrvNode(parent, name)
 {
-    _nodedef = PrvNodeDef::createNew(UNPUBLISHED_NODEDEF, UNPUBLISHED_NODEDEF);
+    _nodedef = PrvNodeDef::createNew(nullptr, UNPUBLISHED_NODEDEF, UNPUBLISHED_NODEDEF);
 
-    _inputSocketsNodeDef = PrvNodeDef::createNew(INPUT_SOCKETS_NODEDEF, SOCKETS_NODE_NAME);
-    _inputSockets = PrvNode::createNew(INPUT_SOCKETS, _inputSocketsNodeDef);
+    _inputSocketsNodeDef = PrvNodeDef::createNew(nullptr, INPUT_SOCKETS_NODEDEF, SOCKETS_NODE_NAME);
+    _inputSockets = PrvNode::createNew(nullptr, INPUT_SOCKETS, _inputSocketsNodeDef);
 
-    _outputSocketsNodeDef = PrvNodeDef::createNew(OUTPUT_SOCKETS_NODEDEF, SOCKETS_NODE_NAME);
-    _outputSockets = PrvNode::createNew(OUTPUT_SOCKETS, _outputSocketsNodeDef);
+    _outputSocketsNodeDef = PrvNodeDef::createNew(nullptr, OUTPUT_SOCKETS_NODEDEF, SOCKETS_NODE_NAME);
+    _outputSockets = PrvNode::createNew(nullptr, OUTPUT_SOCKETS, _outputSocketsNodeDef);
 }
 
-PrvObjectHandle PrvNodeGraph::createNew(const RtToken& name)
+PrvObjectHandle PrvNodeGraph::createNew(PrvElement* parent, const RtToken& name)
 {
-    return std::make_shared<PrvNodeGraph>(name);
+    if (parent && !(parent->hasApi(RtApiType::STAGE) || parent->hasApi(RtApiType::NODEGRAPH)))
+    {
+        throw ExceptionRuntimeError("Parent must be a stage or a nodegraph");
+    }
+
+    PrvObjectHandle node(new PrvNodeGraph(parent, name));
+    if (parent)
+    {
+        parent->addChild(node);
+    }
+
+    return node;
 }
 
 void PrvNodeGraph::addNode(PrvObjectHandle node)
@@ -57,33 +68,37 @@ void PrvNodeGraph::addPort(PrvObjectHandle portdef)
     p.unit = pd->getUnit();
 
     // Add to external interface
-    nodedef()->addPort(portdef);
+    def()->addPort(portdef);
     if (_ports.empty())
     {
         _ports.push_back(p);
     }
     else
     {
-        size_t index = nodedef()->findPortIndex(pd->getName());
+        size_t index = def()->findPortIndex(pd->getName());
         _ports.insert(_ports.begin() + index, p);
     }
 
     // Add to internal interface
     if (pd->isOutput())
     {
-        outputSocketsNodeDef()->addPort(PrvPortDef::createNew(pd->getName(), pd->getType(), pd->getValue(), flags & ~RtPortFlag::OUTPUT));
+        PrvObjectHandle socket = PrvPortDef::createNew(outputSocketsNodeDef(), pd->getName(), pd->getType(), flags & ~RtPortFlag::OUTPUT);
+        socket->asA<PrvPortDef>()->setValue(pd->getValue());
+
         outputSockets()->_ports.push_back(p);
     }
     else
     {
-        inputSocketsNodeDef()->addPort(PrvPortDef::createNew(pd->getName(), pd->getType(), pd->getValue(), flags | RtPortFlag::OUTPUT));
+        PrvObjectHandle socket = PrvPortDef::createNew(inputSocketsNodeDef(), pd->getName(), pd->getType(), flags | RtPortFlag::OUTPUT);
+        socket->asA<PrvPortDef>()->setValue(pd->getValue());
+
         inputSockets()->_ports.push_back(p);
     }
 }
 
 void PrvNodeGraph::removePort(const RtToken& name)
 {
-    const PrvPortDef* portdef = nodedef()->findPort(name);
+    const PrvPortDef* portdef = def()->findPort(name);
     if (!portdef)
     {
         return;
@@ -110,12 +125,12 @@ void PrvNodeGraph::removePort(const RtToken& name)
     }
 
     // Remove from external interface
-    size_t index = nodedef()->findPortIndex(name);
+    size_t index = def()->findPortIndex(name);
     if (index != INVALID_INDEX)
     {
         _ports.erase(_ports.begin() + index);
     }
-    nodedef()->removePort(name);
+    def()->removePort(name);
 }
 
 string PrvNodeGraph::asStringDot() const

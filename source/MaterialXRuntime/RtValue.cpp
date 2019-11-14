@@ -243,6 +243,67 @@ void RtValue::setValueString(const RtToken& type, const string& str, RtLargeValu
     {
         valueFromString(str, asToken());
     }
+    else
+    {
+        throw ExceptionRuntimeError("RtValue does not support type " + type.str());
+    }
+}
+
+RtValue RtValue::createNew(const RtToken& type, RtLargeValueStorage& store)
+{
+    if (type == RtType::BOOLEAN)
+    {
+        return RtValue(false);
+    }
+    else if (type == RtType::FLOAT)
+    {
+        return RtValue(0.0f);
+    }
+    else if (type == RtType::INTEGER)
+    {
+        return RtValue(1);
+    }
+    else if (type == RtType::COLOR2)
+    {
+        return RtValue(Color2(0.0, 0.0));
+    }
+    else if (type == RtType::COLOR3)
+    {
+        return RtValue(Color3(0.0, 0.0, 0.0));
+    }
+    else if (type == RtType::COLOR4)
+    {
+        return RtValue(Color4(0.0, 0.0, 0.0, 0.0));
+    }
+    else if (type == RtType::VECTOR2)
+    {
+        return RtValue(Vector2(0.0, 0.0));
+    }
+    else if (type == RtType::VECTOR3)
+    {
+        return RtValue(Vector3(0.0, 0.0, 0.0));
+    }
+    else if (type == RtType::VECTOR4)
+    {
+        return RtValue(Vector4(0.0, 0.0, 0.0, 0.0));
+    }
+    else if (type == RtType::MATRIX33)
+    {
+        return RtValue(Matrix33::IDENTITY, store.mtx33);
+    }
+    else if (type == RtType::MATRIX44)
+    {
+        return RtValue(Matrix33::IDENTITY, store.mtx33);
+    }
+    else if (type == RtType::STRING || type == RtType::FILENAME)
+    {
+        return RtValue(EMPTY_STRING, store.str);
+    }
+    else if (type == RtType::TOKEN)
+    {
+        return RtValue(EMPTY_TOKEN);
+    }
+    throw ExceptionRuntimeError("RtValue does not support type " + type.str());
 }
 
 }

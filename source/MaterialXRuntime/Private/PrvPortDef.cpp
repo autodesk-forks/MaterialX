@@ -4,25 +4,43 @@
 //
 
 #include <MaterialXRuntime/Private/PrvPortDef.h>
+#include <MaterialXRuntime/Private/PrvNodeDef.h>
+#include <MaterialXRuntime/Private/PrvNodeGraph.h>
 
 namespace MaterialX
 {
 
 const RtToken PrvPortDef::DEFAULT_OUTPUT_NAME("out");
 
-PrvPortDef::PrvPortDef(const RtToken& name, const RtToken& type, const RtValue& value, uint32_t flags) :
-PrvElement(RtObjType::PORTDEF, name),
+PrvPortDef::PrvPortDef(PrvElement* parent, const RtToken& name, const RtToken& type, uint32_t flags) :
+PrvElement(RtObjType::PORTDEF, parent, name),
 _type(type),
-_value(value),
+_value(RtValue::createNew(type, parent->getValueStorage())),
 _colorspace(EMPTY_TOKEN),
 _unit(EMPTY_TOKEN),
 _flags(flags)
 {
 }
 
-PrvObjectHandle PrvPortDef::createNew(const RtToken& name, const RtToken& type, const RtValue& value, uint32_t flags)
+PrvObjectHandle PrvPortDef::createNew(PrvElement* parent, const RtToken& name, const RtToken& type, uint32_t flags)
 {
-    return std::make_shared<PrvPortDef>(name, type, value, flags);
+    if (!(parent && (parent->hasApi(RtApiType::NODEDEF) || parent->hasApi(RtApiType::NODEGRAPH))))
+    {
+        throw ExceptionRuntimeError("PrvPortDef::createNew: Parent must be a nodedef or nodegraph");
+    }
+
+    PrvObjectHandle portdef(new PrvPortDef(parent, name, type, flags));
+
+    if (parent->hasApi(RtApiType::NODEDEF))
+    {
+        parent->asA<PrvNodeDef>()->addPort(portdef);
+    }
+    else
+    {
+        parent->asA<PrvNodeGraph>()->addPort(portdef);
+    }
+
+    return portdef;
 }
 
 bool PrvPortDef::canConnectTo(const PrvPortDef* other) const

@@ -14,10 +14,21 @@ namespace MaterialX
 
 const string PrvElement::PATH_SEPARATOR = "/";
 
-PrvElement::PrvElement(RtObjType objType, const RtToken& name) :
+PrvElement::PrvElement(RtObjType objType, PrvElement* parent, const RtToken& name) :
     PrvObject(objType),
-    _name(name)
+    _name(name),
+    _parent(parent)
 {
+}
+
+PrvElement* PrvElement::getRoot() const
+{
+    PrvElement* root = const_cast<PrvElement*>(this);
+    while (root->_parent)
+    {
+        root = root->_parent;
+    }
+    return root;
 }
 
 void PrvElement::addChild(PrvObjectHandle elem)
@@ -86,7 +97,7 @@ PrvObjectHandle PrvElement::findChildByPath(const string& path) const
     return elem;
 }
 
-void PrvElement::addAttribute(const RtToken& name, const RtToken& type, const RtValue& value)
+RtAttribute* PrvElement::addAttribute(const RtToken& name, const RtToken& type)
 {
     auto it = _attributesByName.find(name);
     if (it != _attributesByName.end())
@@ -94,9 +105,11 @@ void PrvElement::addAttribute(const RtToken& name, const RtToken& type, const Rt
         throw ExceptionRuntimeError("An attribute named '" + name.str() + "' already exists for '" + getName().str() + "'");
     }
 
-    AttrPtr attr(new RtAttribute(name, type, value));
+    AttrPtr attr(new RtAttribute(name, type, this));
     _attributes.push_back(attr);
     _attributesByName[name] = attr;
+
+    return attr.get();
 }
 
 void PrvElement::removeAttribute(const RtToken& name)
@@ -112,16 +125,25 @@ void PrvElement::removeAttribute(const RtToken& name)
     _attributesByName.erase(name);
 }
 
+RtLargeValueStorage& PrvElement::getValueStorage()
+{
+    if (!_parent)
+    {
+        throw ExceptionRuntimeError("Trying to get value storage for an element with no storage and no parent: '" + getName().str() + "'");
+    }
+    return _parent->getValueStorage();
+}
 
-PrvUnknown::PrvUnknown(const RtToken& name, const RtToken& category) :
-    PrvElement(RtObjType::UNKNOWN, name),
+
+PrvUnknown::PrvUnknown(PrvElement* parent, const RtToken& name, const RtToken& category) :
+    PrvValueStoringElement(RtObjType::UNKNOWN, parent, name),
     _category(category)
 {
 }
 
-PrvObjectHandle PrvUnknown::createNew(const RtToken& name, const RtToken& category)
+PrvObjectHandle PrvUnknown::createNew(PrvElement* parent, const RtToken& name, const RtToken& category)
 {
-    return std::make_shared<PrvUnknown>(name, category);
+    return std::make_shared<PrvUnknown>(parent, name, category);
 }
 
 }

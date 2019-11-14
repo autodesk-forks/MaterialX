@@ -21,16 +21,14 @@ namespace MaterialX
 class PrvNodeDef : public PrvValueStoringElement
 {
 public:
-    PrvNodeDef(const RtToken& name, const RtToken& category);
+    PrvNodeDef(PrvElement* parent, const RtToken& name, const RtToken& category);
 
-    static PrvObjectHandle createNew(const RtToken& name, const RtToken& nodeName);
+    static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const RtToken& nodeName);
 
     const RtToken& getNodeName() const
     {
         return _nodeName;
     }
-
-    void addPort(PrvObjectHandle portdef);
 
     void removePort(const RtToken& name);
 
@@ -88,6 +86,8 @@ public:
     }
 
 protected:
+    void addPort(PrvObjectHandle portdef);
+
     void rebuildPortIndex();
 
     RtToken _nodeName;
@@ -95,6 +95,7 @@ protected:
     RtTokenMap<size_t> _portIndex;
     friend class PrvNode;
     friend class PrvNodeGraph;
+    friend class PrvPortDef;
     friend class RtPort;
 };
 

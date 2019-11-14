@@ -24,17 +24,14 @@ public:
     /// Constructor attaching and object to the API.
     RtNodeDef(const RtObject& obj);
 
-    /// Create a new nodedef and add it to a stage if specified.
-    static RtObject createNew(const RtToken& name, const RtToken& nodeName, RtObject stage = RtObject());
+    /// Create a new nodedef in a stage.
+    static RtObject createNew(RtObject stage, const RtToken& name, const RtToken& nodeName);
 
     /// Return the type for this API.
     RtApiType getApiType() const override;
 
     /// Return the node name.
     const RtToken& getNodeName() const;
-
-    /// Add an port definition.
-    void addPort(RtObject portdef);
 
     /// Remove an port definition.
     void removePort(RtObject portdef);

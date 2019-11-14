@@ -270,6 +270,10 @@ public:
     /// value in the given type.
     void setValueString(const RtToken& type, const string& value, RtLargeValueStorage& store);
 
+    /// Create a new value of given type.
+    /// Use the given storage if the type is a large value.
+    static RtValue createNew(const RtToken& type, RtLargeValueStorage& store);
+
 private:
     // 16 bytes of data storage to hold the main data types,
     // up to four component vector/color. Larger data types

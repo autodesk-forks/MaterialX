@@ -34,7 +34,7 @@ RtPort::RtPort(RtObject node, RtObject portdef) :
         _data = node.data();
         PrvNode* n = _data->asA<PrvNode>();
         RtPortDef pd(portdef);
-        _index = n->nodedef()->findPortIndex(pd.getName());
+        _index = n->def()->findPortIndex(pd.getName());
     }
 }
 
@@ -49,7 +49,7 @@ bool RtPort::isValid() const
     if (_data)
     {
         PrvNode* node = _data->asA<PrvNode>();
-        return node->nodedef()->getPort(_index) != nullptr;
+        return node->def()->getPort(_index) != nullptr;
     }
     return false;
 }
@@ -57,13 +57,13 @@ bool RtPort::isValid() const
 const RtToken& RtPort::getName() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->getPort(_index)->getName();
+    return node->def()->getPort(_index)->getName();
 }
 
 const RtToken& RtPort::getType() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->getPort(_index)->getType();
+    return node->def()->getPort(_index)->getType();
 }
 
 RtObject RtPort::getNode() const
@@ -74,25 +74,25 @@ RtObject RtPort::getNode() const
 int32_t RtPort::getFlags() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->getPort(_index)->getFlags();
+    return node->def()->getPort(_index)->getFlags();
 }
 
 bool RtPort::isInput() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->getPort(_index)->isInput();
+    return node->def()->getPort(_index)->isInput();
 }
 
 bool RtPort::isOutput() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->getPort(_index)->isOutput();
+    return node->def()->getPort(_index)->isOutput();
 }
 
 bool RtPort::isConnectable() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->nodedef()->getPort(_index)->isConnectable();
+    return node->def()->getPort(_index)->isConnectable();
 }
 
 bool RtPort::isSocket() const
@@ -158,10 +158,10 @@ bool RtPort::isConnected() const
 bool RtPort::canConnectTo(const RtPort& other) const
 {
     const PrvNode* node = _data->asA<PrvNode>();
-    const PrvPortDef* port = node->nodedef()->getPort(_index);
+    const PrvPortDef* port = node->def()->getPort(_index);
 
     const PrvNode* otherNode = other.data()->asA<PrvNode>();
-    const PrvPortDef* otherPort = otherNode->nodedef()->getPort(other._index);
+    const PrvPortDef* otherPort = otherNode->def()->getPort(other._index);
 
     return node != otherNode && port->canConnectTo(otherPort);
 }
@@ -207,25 +207,20 @@ RtNode::RtNode(const RtObject& obj) :
 {
 }
 
-RtObject RtNode::createNew(const RtToken& name, RtObject nodedef, RtObject parent)
+RtObject RtNode::createNew(RtObject parent, const RtToken& name, RtObject nodedef)
 {
+    if (!(parent.hasApi(RtApiType::STAGE) || parent.hasApi(RtApiType::NODEGRAPH)))
+    {
+        throw ExceptionRuntimeError("Parent object must be a stage or a nodegraph");
+    }
+
     if (!nodedef.hasApi(RtApiType::NODEDEF))
     {
         throw ExceptionRuntimeError("Given nodedef object is not a valid nodedef");
     }
 
-    PrvObjectHandle node = PrvNode::createNew(name, nodedef.data());
-
-    if (parent)
-    {
-        if (!(parent.hasApi(RtApiType::STAGE) || parent.hasApi(RtApiType::NODEGRAPH)))
-        {
-            throw ExceptionRuntimeError("Parent object must be a stage or a nodegraph");
-        }
-        parent.data()->asA<PrvElement>()->addChild(node);
-    }
-
-    return RtObject(node);
+    PrvElement* parentElem = parent.data()->asA<PrvElement>();
+    return RtObject(PrvNode::createNew(parentElem, name, nodedef.data()));
 }
 
 RtApiType RtNode::getApiType() const

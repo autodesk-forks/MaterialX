@@ -29,6 +29,13 @@ public:
         return _name;
     }
 
+    PrvElement* getParent() const
+    {
+        return _parent;
+    }
+
+    PrvElement* getRoot() const;
+
     void addChild(PrvObjectHandle elem);
 
     void removeChild(const RtToken& name);
@@ -52,7 +59,7 @@ public:
 
     virtual PrvObjectHandle findChildByPath(const string& path) const;
 
-    void addAttribute(const RtToken& name, const RtToken& type, const RtValue& value);
+    RtAttribute* addAttribute(const RtToken& name, const RtToken& type);
 
     void removeAttribute(const RtToken& name);
 
@@ -83,23 +90,24 @@ public:
         return _attributes.size();
     }
 
+    virtual RtLargeValueStorage& getValueStorage();
+
     static const string PATH_SEPARATOR;
 
 protected:
-    PrvElement(RtObjType objType, const RtToken& name);
+    PrvElement(RtObjType objType, PrvElement* parent, const RtToken& name);
 
     void setName(const RtToken& name)
     {
         _name = name;
     }
 
+    PrvElement* _parent;
     RtToken _name;
-
     PrvObjectHandleVec _children;
     RtTokenMap<PrvObjectHandle> _childrenByName;
 
     using AttrPtr = std::shared_ptr<RtAttribute>;
-
     vector<AttrPtr> _attributes;
     RtTokenMap<AttrPtr> _attributesByName;
 
@@ -110,26 +118,26 @@ protected:
 class PrvValueStoringElement : public PrvElement
 {
 public:
-    RtLargeValueStorage& getValueStorage()
+    RtLargeValueStorage& getValueStorage() override
     {
         return _storage;
     }
 
 protected:
-    PrvValueStoringElement(RtObjType objType, const RtToken& name):
-        PrvElement(objType, name)
+    PrvValueStoringElement(RtObjType objType, PrvElement* parent, const RtToken& name):
+        PrvElement(objType, parent, name)
     {}
 
     RtLargeValueStorage _storage;
 };
 
 
-class PrvUnknown : public PrvElement
+class PrvUnknown : public PrvValueStoringElement
 {
 public:
-    PrvUnknown(const RtToken& name, const RtToken& category);
+    PrvUnknown(PrvElement* parent, const RtToken& name, const RtToken& category);
 
-    static PrvObjectHandle createNew(const RtToken& name, const RtToken& category);
+    static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const RtToken& category);
 
     const RtToken& getCategory() const
     {
