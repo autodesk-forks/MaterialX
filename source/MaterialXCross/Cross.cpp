@@ -150,7 +150,10 @@ std::vector<uint32_t> glslToSpirv(const std::string& glslSource)
             forbidIncluder
         ))
         {
-            throw Exception("glslang failed to parse shader fragment");
+            const char* const log = shader.getInfoLog();
+            throw Exception(
+                std::string("glslang failed to parse the GLSL fragment: ") + log
+            );
         }
     }
 
