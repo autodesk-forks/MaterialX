@@ -5,6 +5,8 @@
 #include "MaterialXNode.h"
 #include "ShadingNodeOverrides.h"
 
+#include <MaterialXCross/Cross.h>
+
 #include <maya/MFnPlugin.h>
 #include <maya/MDrawRegistry.h>
 #include <maya/MGlobal.h>
@@ -234,6 +236,7 @@ MStatus initializePlugin(MObject obj)
             &surfaceNodeClassification));
     }
 
+    mx::Cross::initialize();
     return MS::kSuccess;
 }
 
@@ -262,5 +265,6 @@ MStatus uninitializePlugin(MObject obj)
             SurfaceOverride::DRAW_CLASSIFICATION,
             SurfaceOverride::REGISTRANT_ID ));
 
+    mx::Cross::finalize();
     return MS::kSuccess;
 }

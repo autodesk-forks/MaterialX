@@ -6,6 +6,8 @@
 
 namespace MaterialX
 {
+namespace Cross
+{
 namespace
 {
 // Copied from glslang/MachineIndependent/ShaderLang.cpp
@@ -158,9 +160,21 @@ std::vector<uint32_t> glslToSpirv(const std::string& glslSource)
 }
 } // anonymous namespace
 
+void initialize()
+{
+    glslang::InitializeProcess();
+}
+
+void finalize()
+{
+    glslang::FinalizeProcess();
+}
+
 std::string glslToHlsl(const std::string& glslSource)
 {
     std::vector<uint32_t> spirv = glslToSpirv(glslSource);
     return "";
+}
+
 }
 }
