@@ -134,6 +134,9 @@ std::vector<uint32_t> glslToSpirv(const std::string& glslSource)
     const int stringLengths = static_cast<int>(glslSource.size());
     shader.setStringsWithLengths(&shaderStrings, &stringLengths, 1);
 
+    // Permits uniforms without explicit layout locations
+    shader.setAutoMapLocations(true);
+
     {
         constexpr int defaultVersion = 450;
         constexpr bool forwardCompatible = false;
