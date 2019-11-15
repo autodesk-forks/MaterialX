@@ -397,12 +397,16 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
 
         // Get a nodegraph and write a dot file for inspection.
         mx::RtStage stage(stageObj);
+        mx::RtObject graphDef = stage.findElementByName("ND_tiledimage_float");
+        REQUIRE(graphDef);
         mx::RtNodeGraph graph = stage.findElementByName("NG_tiledimage_float");
         REQUIRE(graph);
         std::ofstream dotfile;
         dotfile.open(graph.getName().str() + ".dot");
         dotfile << graph.asStringDot();
         dotfile.close();
+        mx::RtObject image1 = mx::RtNode::createNew("tiledImage1", graphDef, stageObj);
+        REQUIRE(image1.hasApi(mx::RtApiType::NODE));
 
         // Get a nodedef and create two new instances of it.
         mx::RtObject multiplyObj = stage.findElementByName("ND_multiply_color3");
@@ -415,18 +419,34 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
         mul2.findPort("in2").getValue().asColor3() = mx::Color3(0.6f, 0.3f, 0.5f);
         mul2.findPort("in2").setColorSpace("srgb_texture");
 
+        mx::RtNodeGraph stageGraph = mx::RtNodeGraph::createNew("graph1", stageObj);
+        REQUIRE(stageGraph);
+        stageGraph.addNode(image1);
+
         // Write the full stage to a new document
         // and save it to file for inspection.
         stageIo.write(stage.getName().str() + "_export.mtlx", nullptr);
 
-        // Write only nodegraphs to a new document
-        // and save it to file for inspection.
+        // Write out the node using a given node definition
         mx::RtWriteOptions writeOptions;
+        writeOptions.writeFilter = [graphDef](const mx::RtObject& obj) -> bool
+        {  
+            if (obj.getObjType() == mx::RtObjType::NODE)
+            {
+                mx::RtNode node(obj);
+                mx::RtNodeDef nodedef = node.getNodeDef();
+                return  (nodedef.getName().str() == "ND_tiledimage_float");
+            }
+            return false;
+        };
+        writeOptions.writeIncludes = false;
+        stageIo.write(stage.getName().str() + "_nodedef_export.mtlx", &writeOptions);
+
+        // Write out a nodegraph only
         writeOptions.writeFilter = [](const mx::RtObject& obj) -> bool
         {
-            return obj.hasApi(mx::RtApiType::NODEGRAPH);
+            return (obj.hasApi(mx::RtApiType::NODEGRAPH));
         };
-        writeOptions.writeIncludes = true;
         stageIo.write(stage.getName().str() + "_nodegraph_export.mtlx", &writeOptions);
     }
 
