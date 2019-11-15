@@ -10,7 +10,9 @@ namespace Cross
     void initialize();
     void finalize();
 
-    std::string glslToHlsl(const std::string& glslSource);
+    std::string glslToHlsl(
+        const std::string& glslUniformDefinitions, const std::string& glslCode
+    );
 }
 }
 

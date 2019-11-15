@@ -141,7 +141,10 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         ogsXmlGenerator.generate(
             FRAGMENT_NAME_TOKEN,
             *_glslShader,
-            mx::Cross::glslToHlsl(_glslShader->getSourceCode(mx::Stage::PIXEL)),
+            mx::Cross::glslToHlsl(
+                _glslShader->getSourceCode(mx::Stage::PRIVATE_UNIFORMS),
+                _glslShader->getSourceCode(mx::Stage::PIXEL)
+            ),
             _isTransparent,
             sourceStream
         );

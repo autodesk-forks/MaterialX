@@ -118,21 +118,31 @@ const TBuiltInResource defaultTBuiltInResource = {
     /* .generalConstantMatrixVectorIndexing = */ 1,
 } };
 
-std::vector<uint32_t> glslToSpirv(const std::string& glslSource)
+std::vector<uint32_t> glslToSpirv(
+    const std::string& glslUniformDefinitions,
+    const std::string& glslCode
+)
 {
-    glslang::TShader shader(EShLangFragment);
-
-    static const std::string preamble =
+    static const std::string dummyMain =
         "void main()\n"
         "{\n"
         "}\n\n";
 
-    shader.setPreamble(preamble.c_str());
-    shader.setEntryPoint("main");
+    const char* shaderStrings[]{
+        glslUniformDefinitions.data(),
+        glslCode.data(),
+        dummyMain.data()
+    };
 
-    const char* const shaderStrings = glslSource.data();
-    const int stringLengths = static_cast<int>(glslSource.size());
-    shader.setStringsWithLengths(&shaderStrings, &stringLengths, 1);
+    const int stringLengths[]{
+        static_cast<int>(glslUniformDefinitions.size()),
+        static_cast<int>(glslCode.size()),
+        static_cast<int>(dummyMain.size())
+    };
+
+    glslang::TShader shader(EShLangFragment);
+    shader.setStringsWithLengths(shaderStrings, stringLengths, 3);
+    shader.setEntryPoint("main");
 
     // Permits uniforms without explicit layout locations
     shader.setAutoMapLocations(true);
@@ -175,9 +185,12 @@ void finalize()
     glslang::FinalizeProcess();
 }
 
-std::string glslToHlsl(const std::string& glslSource)
+std::string glslToHlsl(
+    const std::string& glslUniformDefinitions,
+    const std::string& glslCode
+)
 {
-    std::vector<uint32_t> spirv = glslToSpirv(glslSource);
+    std::vector<uint32_t> spirv = glslToSpirv(glslUniformDefinitions, glslCode);
     return "";
 }
 

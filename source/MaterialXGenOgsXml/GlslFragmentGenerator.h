@@ -39,9 +39,10 @@ class GlslFragmentGenerator : public GlslShaderGenerator
 
     const string& getTarget() const override { return TARGET; }
 
-    ShaderPtr generate(const string& name, ElementPtr element, GenContext& context) const override;
+    ShaderPtr createShader(const string& name, ElementPtr, GenContext&) const override;
+    ShaderPtr generate(const string& name, ElementPtr, GenContext&) const override;
 
-    void emitVariableDeclaration(const ShaderPort* variable, const string& qualifier, GenContext& context, ShaderStage& stage,
+    void emitVariableDeclaration(const ShaderPort* variable, const string& qualifier, GenContext&, ShaderStage&,
                                  bool assignValue = true) const override;
 
     static const string TARGET;

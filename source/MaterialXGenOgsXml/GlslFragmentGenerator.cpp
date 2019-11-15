@@ -62,24 +62,19 @@ ShaderGeneratorPtr GlslFragmentGenerator::create()
     return std::make_shared<GlslFragmentGenerator>();
 }
 
+ShaderPtr GlslFragmentGenerator::createShader(const string& name, ElementPtr element, GenContext& context) const
+{
+    ShaderPtr shader = GlslShaderGenerator::createShader(name, element, context);
+    createStage(Stage::PRIVATE_UNIFORMS, *shader);
+    return shader;
+}
+
 ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
     ShaderPtr shader = createShader(name, element, context);
 
     ShaderStage& pixelStage = shader->getStage(Stage::PIXEL);
     ShaderGraph& graph = shader->getGraph();
-
-    {
-        const VariableBlock& privateUniforms = pixelStage.getUniformBlock(HW::PUBLIC_UNIFORMS);
-        if (!privateUniforms.empty())
-        {
-            ShaderStage& uniformStage = shader->getStage(Stage::PRIVATE_UNIFORMS);
-            emitVariableDeclarations(
-                privateUniforms, _syntax->getUniformQualifier(), SEMICOLON, context, uniformStage
-            );
-            emitLineBreak(uniformStage);
-        }
-    }
 
     // Turn on fixed float formatting to make sure float values are
     // emitted with a decimal point and not as integers, and to avoid
@@ -275,6 +270,18 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
 
     // Replace all tokens with real identifier names
     replaceTokens(_tokenSubstitutions, pixelStage);
+
+    {
+        const VariableBlock& privateUniforms = pixelStage.getUniformBlock(HW::PRIVATE_UNIFORMS);
+        if (!privateUniforms.empty())
+        {
+            ShaderStage& uniformStage = shader->getStage(Stage::PRIVATE_UNIFORMS);
+            emitVariableDeclarations(
+                privateUniforms, _syntax->getUniformQualifier(), SEMICOLON, context, uniformStage
+            );
+            emitLineBreak(uniformStage);
+        }
+    }
 
     return shader;
 }
