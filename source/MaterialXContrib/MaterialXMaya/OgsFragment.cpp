@@ -9,6 +9,8 @@
 #include <MaterialXGenOgsXml/OgsXmlGenerator.h>
 #include <MaterialXCross/Cross.h>
 
+#include <maya/MGlobal.h>
+
 namespace MaterialXMaya
 {
 
@@ -136,18 +138,24 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         std::ostringstream sourceStream;
         mx::OgsXmlGenerator ogsXmlGenerator;
 
-        // Note: This name must match the the fragment name used for registration
-        // or the registration will fail.
-        ogsXmlGenerator.generate(
-            FRAGMENT_NAME_TOKEN,
-            *_glslShader,
-            mx::Cross::glslToHlsl(
+        std::string hlslSource;
+        try
+        {
+            hlslSource = mx::Cross::glslToHlsl(
                 _glslShader->getSourceCode(mx::Stage::PRIVATE_UNIFORMS),
                 _glslShader->getSourceCode(mx::Stage::PIXEL)
-            ),
-            _isTransparent,
-            sourceStream
-        );
+            );
+        }
+        catch (std::exception& e)
+        {
+            MString message("Failed to cross-compile GLSL fragment to HLSL: ");
+            message += MString(e.what());
+            MGlobal::displayError(message);
+        }
+
+        // Note: This name must match the the fragment name used for registration
+        // or the registration will fail.
+        ogsXmlGenerator.generate(FRAGMENT_NAME_TOKEN, *_glslShader, hlslSource, _isTransparent, sourceStream);
         _fragmentSource = sourceStream.str();
         if (_fragmentSource.empty())
         {
