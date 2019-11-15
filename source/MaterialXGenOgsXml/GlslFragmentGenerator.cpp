@@ -14,7 +14,7 @@ namespace MaterialX
 
 namespace Stage
 {
-    const string PRIVATE_UNIFORMS = "private_uniforms";
+    const string PIXEL_GLOBALS = "pixel_globals";
 }
 
 string GlslFragmentSyntax::getVariableName(const string& name, const TypeDesc* type, IdentifierMap& identifiers) const
@@ -65,7 +65,7 @@ ShaderGeneratorPtr GlslFragmentGenerator::create()
 ShaderPtr GlslFragmentGenerator::createShader(const string& name, ElementPtr element, GenContext& context) const
 {
     ShaderPtr shader = GlslShaderGenerator::createShader(name, element, context);
-    createStage(Stage::PRIVATE_UNIFORMS, *shader);
+    createStage(Stage::PIXEL_GLOBALS, *shader);
     return shader;
 }
 
@@ -271,17 +271,30 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     // Replace all tokens with real identifier names
     replaceTokens(_tokenSubstitutions, pixelStage);
 
+    ShaderStage& globalsStage = shader->getStage(Stage::PIXEL_GLOBALS);
+
+    const VariableBlock& privateUniforms = pixelStage.getUniformBlock(HW::PRIVATE_UNIFORMS);
+    if (!privateUniforms.empty())
     {
-        const VariableBlock& privateUniforms = pixelStage.getUniformBlock(HW::PRIVATE_UNIFORMS);
-        if (!privateUniforms.empty())
-        {
-            ShaderStage& uniformStage = shader->getStage(Stage::PRIVATE_UNIFORMS);
-            emitVariableDeclarations(
-                privateUniforms, _syntax->getUniformQualifier(), SEMICOLON, context, uniformStage
-            );
-            emitLineBreak(uniformStage);
-        }
+        emitVariableDeclarations(
+            privateUniforms, _syntax->getUniformQualifier(), SEMICOLON, context, globalsStage
+        );
+        emitLineBreak(globalsStage);
     }
+
+    const VariableBlock& vertexData = pixelStage.getInputBlock(HW::VERTEX_DATA);
+    if (!vertexData.empty())
+    {
+        emitLine("in " + vertexData.getName(), globalsStage, false);
+        emitScopeBegin(globalsStage);
+        emitVariableDeclarations(vertexData, EMPTY_STRING, SEMICOLON, context, globalsStage, false);
+        emitScopeEnd(globalsStage, false, false);
+        emitString(" " + vertexData.getInstance() + SEMICOLON, globalsStage);
+        emitLineBreak(globalsStage);
+        emitLineBreak(globalsStage);
+    }
+
+    replaceTokens(_tokenSubstitutions, globalsStage);
 
     return shader;
 }

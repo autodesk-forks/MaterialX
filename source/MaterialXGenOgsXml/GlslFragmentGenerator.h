@@ -17,7 +17,7 @@ namespace MaterialX
 
 namespace Stage
 {
-    extern const string PRIVATE_UNIFORMS;
+    extern const string PIXEL_GLOBALS;
 }
 
 /// Syntax class for GLSL fragments.

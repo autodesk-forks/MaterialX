@@ -142,7 +142,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         try
         {
             hlslSource = mx::Cross::glslToHlsl(
-                _glslShader->getSourceCode(mx::Stage::PRIVATE_UNIFORMS),
+                _glslShader->getSourceCode(mx::Stage::PIXEL_GLOBALS),
                 _glslShader->getSourceCode(mx::Stage::PIXEL)
             );
         }
