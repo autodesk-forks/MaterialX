@@ -265,6 +265,8 @@ namespace
                             const RtToken graphInputType(elem->getType());
                             const RtValue graphInputValue(readValue(elem->getValue(), graphInputType, nodegraph->getValueStorage()));
                             nodegraph->addPort(PrvPortDef::createNew(internalInputName, graphInputType, graphInputValue));
+
+                            inputSocket = nodegraph->findInputSocket(internalInputName);
                         }
                         const RtToken inputName(elem->getName());
                         RtPort input = node->findPort(inputName);
