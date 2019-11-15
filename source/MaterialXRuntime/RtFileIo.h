@@ -51,7 +51,7 @@ class RtWriteOptions
     using WriteFilter = std::function<bool(const RtObject& obj)>;
 
   public:
-     RtWriteOptions::RtWriteOptions() :
+     RtWriteOptions() :
           writeIncludes(true),
           writeFilter(nullptr)
     {
