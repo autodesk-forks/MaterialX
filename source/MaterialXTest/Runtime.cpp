@@ -417,15 +417,16 @@ TEST_CASE("Runtime: FileIo", "[runtime3]")
 
         // Write the full stage to a new document
         // and save it to file for inspection.
-        stageIo.write(stage.getName().str() + "_export.mtlx", nullptr, nullptr);
+        stageIo.write(stage.getName().str() + "_export.mtlx", nullptr);
 
         // Write only nodegraphs to a new document
         // and save it to file for inspection.
-        auto nodeGraphFilter = [](const mx::RtObject& obj) -> bool
+        mx::RtWriteOptions writeOptions;
+        writeOptions.writeFilter = [](const mx::RtObject& obj) -> bool
         {
             return obj.hasApi(mx::RtApiType::NODEGRAPH);
         };
-        stageIo.write(stage.getName().str() + "_nodegraph_export.mtlx", nullptr, nodeGraphFilter);
+        stageIo.write(stage.getName().str() + "_nodegraph_export.mtlx", &writeOptions);
     }
 
     {
@@ -457,8 +458,8 @@ TEST_CASE("Runtime: FileIo", "[runtime3]")
         texcoord1_out.connectTo(tiledimage1_texcoord);
         texcoord1_index.getValue().asInt() = 2;
 
-        mx::XmlWriteOptions writeOptions;
-        writeOptions.writeXIncludeEnable = true;
+        mx::RtWriteOptions writeOptions;
+        writeOptions.writeIncludes = true;
 
         mx::RtFileIo fileIO(stage.getObject());
         fileIO.write(stage.getName().str() + "_export.mtlx");
@@ -468,18 +469,18 @@ TEST_CASE("Runtime: FileIo", "[runtime3]")
     
         // Test read and write to stream
         std::stringstream stream1;
+        std::cout << "*Write stream 1:\n";
         fileIO.write(stream1, &writeOptions);
-        std::cout << "*** stream 1:\n" << stream1.str()
-            << std::endl;
+        std::cout << stream1.str() << std::endl;
 
         stage.initialize();
         fileIO.read(stream1);
         fileIO.write(stage.getName().str() + "_export2.mtlx");
 
         std::stringstream stream2;
+        std::cout << "*Write stream 2:\n";
         fileIO.write(stream2, &writeOptions);
-        std::cout << "*** stream 2:\n" << stream2.str()
-            << std::endl;
+        std::cout << stream1.str() << std::endl;
 
         //CHECK(stream1.str() == stream2.str());
     }

@@ -19,6 +19,8 @@
 #include <MaterialXGenShader/Util.h>
 #include <sstream>
 
+#include <iostream>
+
 namespace MaterialX
 {
 
@@ -507,6 +509,7 @@ namespace
             RtToken uri = pStage->getSourceUri();
             if (!uri.str().empty())
             {
+                std::cout << "- Write source URI: " << uri.str() << std::endl;
                 prependXInclude(doc, uri.str());
             }
         }
@@ -524,13 +527,14 @@ RtApiType RtFileIo::getApiType() const
     return RtApiType::CORE_IO;
 }
 
-void RtFileIo::read(const DocumentPtr& doc, const string& uri, RtStage* searchStage, RtFileIo::ReadFilter filter)
+void RtFileIo::read(const DocumentPtr& doc, const string& uri, RtStage* searchStage, const RtReadOptions* readOptions)
 {
     PrvStage* stage = data()->asA<PrvStage>();
     PrvStage* prvSearchStage = searchStage ? searchStage->data()->asA<PrvStage>() : nullptr;
     readAttributes(doc, stage, {});
     stage->setSourceUri(RtToken(uri));
 
+    RtReadOptions::ReadFilter filter = readOptions ? readOptions->readFilter : nullptr;
     for (auto elem : doc->getChildren())
     {
         if (!filter || filter(elem))
@@ -565,30 +569,32 @@ void RtFileIo::read(const DocumentPtr& doc, const string& uri, RtStage* searchSt
     } 
 }
 
-void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, RtFileIo::ReadFilter filter)
+void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, const RtReadOptions* readOptions)
 {
     DocumentPtr document = createDocument();
-    XmlReadOptions readOptions;
-    readOptions.skipConflictingElements = true;
-    readFromXmlFile(document, documentPath, searchPaths, &readOptions);
+    XmlReadOptions xmlReadOptions;
+    xmlReadOptions.skipConflictingElements = true;
+    if (readOptions)
+    {
+        xmlReadOptions.skipConflictingElements = readOptions->skipConflictingElements;
+    }
+    readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
 
-    CopyOptions copyOptions;
-    copyOptions.skipConflictingElements = true;
-
-    read(document, documentPath.asString(), nullptr, filter);
+    read(document, documentPath.asString(), nullptr, readOptions);
 }
 
-void RtFileIo::read(std::istream& stream, ReadFilter filter)
+void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
 {
     DocumentPtr document = createDocument();
-    XmlReadOptions readOptions;
-    readOptions.skipConflictingElements = true;
-    readFromXmlStream(document, stream, &readOptions);
+    XmlReadOptions xmlReadOptions;
+    xmlReadOptions.skipConflictingElements = true;
+    if (readOptions)
+    {
+        xmlReadOptions.skipConflictingElements = readOptions->skipConflictingElements;
+    }
+    readFromXmlStream(document, stream, &xmlReadOptions);
 
-    CopyOptions copyOptions;
-    copyOptions.skipConflictingElements = true;
-
-    read(document, RtToken(""), nullptr, filter);
+    read(document, RtToken(""), nullptr, readOptions);
 }
 
 void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
@@ -604,22 +610,24 @@ void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath
         RtStage libraryStage = RtStage::createNew(RtToken(uri));
         RtFileIo libStageIo(libraryStage.getObject());
         RtStage searchStage(getObject());
-        libStageIo.read(libraryDoc, uri, &searchStage,
-            [uri](const ElementPtr &e)
+        RtReadOptions readOptions;
+        readOptions.readFilter = [uri](const ElementPtr &e)
         {
             return (e->getActiveSourceUri() == uri);
-        });
+        };
+        libStageIo.read(libraryDoc, uri, &searchStage, &readOptions);
         stage->addReference(libStageIo.data());
     }
 }
 
-void RtFileIo::write(DocumentPtr& doc, RtFileIo::WriteFilter filter)
+void RtFileIo::write(DocumentPtr& doc, const RtWriteOptions* writeOptions)
 {
     PrvStage* stage = data()->asA<PrvStage>();
     writeAttributes(stage, doc);
 
     writeSourceUris(stage, doc);
 
+    RtWriteOptions::WriteFilter filter = writeOptions ? writeOptions->writeFilter : nullptr;
     for (size_t i = 0; i < stage->numChildren(); ++i)
     {
         PrvObjectHandle elem = stage->getChild(i);
@@ -651,20 +659,33 @@ void RtFileIo::write(DocumentPtr& doc, RtFileIo::WriteFilter filter)
     }
 }
 
-void RtFileIo::write(const FilePath& documentPath, const XmlWriteOptions* writeOptions, WriteFilter filter)
+void RtFileIo::write(const FilePath& documentPath, const RtWriteOptions* options)
 {
     DocumentPtr document = createDocument(); 
-    write(document, filter);
+    write(document, options);
     
-    writeToXmlFile(document, documentPath, writeOptions);
+    std::cout << "* WRITE file: " << documentPath.asString() << std::endl;
+    XmlWriteOptions xmlWriteOptions;
+    xmlWriteOptions.writeXIncludeEnable = true;
+    if (options)
+    {
+        xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
+    }
+    writeToXmlFile(document, documentPath, &xmlWriteOptions);
 }
 
-void RtFileIo::write(std::ostream& stream, const XmlWriteOptions* writeOptions, WriteFilter filter)
+void RtFileIo::write(std::ostream& stream, const RtWriteOptions* options)
 {
     DocumentPtr document = createDocument();
-    write(document, filter);
+    write(document, options);
 
-    writeToXmlStream(document, stream, writeOptions);
+    XmlWriteOptions xmlWriteOptions;
+    xmlWriteOptions.writeXIncludeEnable = true;
+    if (options)
+    {
+        xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
+    }
+    writeToXmlStream(document, stream, &xmlWriteOptions);
 }
 
 }
