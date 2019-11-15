@@ -457,6 +457,9 @@ TEST_CASE("Runtime: FileIo", "[runtime3]")
         texcoord1_out.connectTo(tiledimage1_texcoord);
         texcoord1_index.getValue().asInt() = 2;
 
+        mx::XmlWriteOptions writeOptions;
+        writeOptions.writeXIncludeEnable = true;
+
         mx::RtFileIo fileIO(stage.getObject());
         fileIO.write(stage.getName().str() + "_export.mtlx");
         stage.initialize();
@@ -466,15 +469,15 @@ TEST_CASE("Runtime: FileIo", "[runtime3]")
     
         // Test read and write to stream
         std::stringstream stream1;
-        fileIO.write(stream1);
+        fileIO.write(stream1, &writeOptions);
         std::cout << "*** stream 1:\n" << stream1.str()
             << std::endl;
 
-        //stage.clearElements();
+        stage.initialize();
         fileIO.read(stream1);
 
         std::stringstream stream2;
-        fileIO.write(stream2);
+        fileIO.write(stream2, &writeOptions);
         std::cout << "*** stream 2:\n" << stream1.str()
             << std::endl;
 
