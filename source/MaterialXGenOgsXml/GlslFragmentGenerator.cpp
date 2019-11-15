@@ -12,6 +12,11 @@
 namespace MaterialX
 {
 
+namespace Stage
+{
+    const string PRIVATE_UNIFORMS = "private_uniforms";
+}
+
 string GlslFragmentSyntax::getVariableName(const string& name, const TypeDesc* type, IdentifierMap& identifiers) const
 {
     string variable = GlslSyntax::getVariableName(name, type, identifiers);
@@ -61,27 +66,39 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
 {
     ShaderPtr shader = createShader(name, element, context);
 
-    ShaderStage& stage = shader->getStage(Stage::PIXEL);
+    ShaderStage& pixelStage = shader->getStage(Stage::PIXEL);
     ShaderGraph& graph = shader->getGraph();
+
+    {
+        const VariableBlock& privateUniforms = pixelStage.getUniformBlock(HW::PUBLIC_UNIFORMS);
+        if (!privateUniforms.empty())
+        {
+            ShaderStage& uniformStage = shader->getStage(Stage::PRIVATE_UNIFORMS);
+            emitVariableDeclarations(
+                privateUniforms, _syntax->getUniformQualifier(), SEMICOLON, context, uniformStage
+            );
+            emitLineBreak(uniformStage);
+        }
+    }
 
     // Turn on fixed float formatting to make sure float values are
     // emitted with a decimal point and not as integers, and to avoid
     // any scientific notation which isn't supported by all OpenGL targets.
-    ScopedFloatFormatting fmt(Value::FloatFormatFixed);
+    ScopedFloatFormatting floatFormatting(Value::FloatFormatFixed);
 
     // Add global constants and type definitions
-    emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_defines.glsl", context, stage);
+    emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_defines.glsl", context, pixelStage);
     const unsigned int maxLights = std::max(1u, context.getOptions().hwMaxActiveLightSources);
-    emitLine("#define MAX_LIGHT_SOURCES " + std::to_string(maxLights), stage, false);
-    emitLineBreak(stage);
-    emitTypeDefinitions(context, stage);
+    emitLine("#define MAX_LIGHT_SOURCES " + std::to_string(maxLights), pixelStage, false);
+    emitLineBreak(pixelStage);
+    emitTypeDefinitions(context, pixelStage);
 
     // Add all constants
-    const VariableBlock& constants = stage.getConstantBlock();
+    const VariableBlock& constants = pixelStage.getConstantBlock();
     if (!constants.empty())
     {
-        emitVariableDeclarations(constants, _syntax->getConstantQualifier(), SEMICOLON, context, stage);
-        emitLineBreak(stage);
+        emitVariableDeclarations(constants, _syntax->getConstantQualifier(), SEMICOLON, context, pixelStage);
+        emitLineBreak(pixelStage);
     }
 
     bool lighting = graph.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE) ||
@@ -90,46 +107,40 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     // Emit lighting functions
     if (lighting)
     {
-        const VariableBlock& lightData = stage.getUniformBlock(HW::LIGHT_DATA);
-        emitLine("struct " + lightData.getName(), stage, false);
-        emitScopeBegin(stage);
-        emitVariableDeclarations(lightData, EMPTY_STRING, SEMICOLON, context, stage, false);
-        emitScopeEnd(stage, true);
-        emitLineBreak(stage);
-        emitLine("uniform " + lightData.getName() + " " + lightData.getInstance() + "[MAX_LIGHT_SOURCES]", stage);
-        emitLineBreak(stage);
+        const VariableBlock& lightData = pixelStage.getUniformBlock(HW::LIGHT_DATA);
+        emitLine("struct " + lightData.getName(), pixelStage, false);
+        emitScopeBegin(pixelStage);
+        emitVariableDeclarations(lightData, EMPTY_STRING, SEMICOLON, context, pixelStage, false);
+        emitScopeEnd(pixelStage, true);
+        emitLineBreak(pixelStage);
+        emitLine("uniform " + lightData.getName() + " " + lightData.getInstance() + "[MAX_LIGHT_SOURCES]", pixelStage);
+        emitLineBreak(pixelStage);
     }
 
     // Emit common math functions
-    emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_math.glsl", context, stage);
-    emitLineBreak(stage);
+    emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_math.glsl", context, pixelStage);
+    emitLineBreak(pixelStage);
 
     if (lighting)
     {
-        emitSpecularEnvironment(context, stage);
+        emitSpecularEnvironment(context, pixelStage);
     }
 
     // Emit sampling code if needed
     if (graph.hasClassification(ShaderNode::Classification::CONVOLUTION2D))
     {
         // Emit sampling functions
-        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_sampling.glsl", context, stage);
-        emitLineBreak(stage);
+        emitInclude("stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_sampling.glsl", context, pixelStage);
+        emitLineBreak(pixelStage);
     }
 
     // Set the include file to use for uv transformations,
     // depending on the vertical flip flag.
-    if (context.getOptions().fileTextureVerticalFlip)
-    {
-        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv_vflip.glsl";
-    }
-    else
-    {
-        _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "stdlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_transform_uv.glsl";
-    }
+    _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = "stdlib/" + GlslShaderGenerator::LANGUAGE +
+        (context.getOptions().fileTextureVerticalFlip ? "/lib/mx_transform_uv_vflip.glsl": "/lib/mx_transform_uv.glsl");
 
     // Add all functions for node implementations
-    emitFunctionDefinitions(graph, context, stage);
+    emitFunctionDefinitions(graph, context, pixelStage);
 
     const ShaderGraphOutputSocket* outputSocket = graph.getOutputSocket();
 
@@ -140,37 +151,39 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
 
     string functionName = shader->getName();
     _syntax->makeIdentifier(functionName, graph.getIdentifierMap());
-    setFunctionName(functionName, stage);
+    setFunctionName(functionName, pixelStage);
 
-    emitLine((context.getOptions().hwTransparency ? "vec4 " : "vec3 ") + functionName, stage, false);
+    emitLine((context.getOptions().hwTransparency ? "vec4 " : "vec3 ") + functionName, pixelStage, false);
 
-    emitScopeBegin(stage, Syntax::PARENTHESES);
-    const VariableBlock& uniforms = stage.getUniformBlock(HW::PUBLIC_UNIFORMS);
-    const size_t numUniforms = uniforms.size();
-    for (size_t i = 0; i < numUniforms; ++i)
+    // Emit public uniforms as function arguments
+    //
+    emitScopeBegin(pixelStage, Syntax::PARENTHESES);
+    const VariableBlock& publicUniforms = pixelStage.getUniformBlock(HW::PUBLIC_UNIFORMS);
+    const size_t numPublicUniforms = publicUniforms.size();
+    for (size_t i = 0; i < numPublicUniforms; ++i)
     {
-        emitLineBegin(stage);
-        if (uniforms[i]->getType() == Type::MATRIX33)
+        emitLineBegin(pixelStage);
+        if (publicUniforms[i]->getType() == Type::MATRIX33)
         {
-            convertMatrixStrings.push_back(uniforms[i]->getVariable());
+            convertMatrixStrings.push_back(publicUniforms[i]->getVariable());
         }
-        emitVariableDeclaration(uniforms[i], EMPTY_STRING, context, stage, false);
-        if (i < numUniforms - 1)
+        emitVariableDeclaration(publicUniforms[i], EMPTY_STRING, context, pixelStage, false);
+        if (i < numPublicUniforms - 1)
         {
-            emitString(COMMA, stage);
+            emitString(COMMA, pixelStage);
         }
-        emitLineEnd(stage, false);
+        emitLineEnd(pixelStage, false);
     }
     // Special case handling of world space normals which for now must be added 
     // as a "dummy" argument if it exists.
-    const VariableBlock& streams = stage.getInputBlock(HW::VERTEX_DATA);
+    const VariableBlock& streams = pixelStage.getInputBlock(HW::VERTEX_DATA);
     const ShaderPort* port = streams.find(HW::T_NORMAL_WORLD);
     if (port)
     { 
-        emitLineBegin(stage);
-        emitString(COMMA, stage);
-        emitVariableDeclaration(port, EMPTY_STRING, context, stage, false);
-        emitLineEnd(stage, false);
+        emitLineBegin(pixelStage);
+        emitString(COMMA, pixelStage);
+        emitVariableDeclaration(port, EMPTY_STRING, context, pixelStage, false);
+        emitLineEnd(pixelStage, false);
     }
 
     if (context.getOptions().hwTransparency)
@@ -179,35 +192,35 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
         // map onto an OGS fragment parameter and a shading node DG attribute with
         // the same name that can be set to a non-0 value to let Maya know that the
         // surface is transparent.
-        emitLineBegin(stage);
-        emitString(COMMA, stage);
-        emitString("float ", stage);
-        emitString(OgsXmlGenerator::VP_TRANSPARENCY_NAME, stage);
-        emitLineEnd(stage, false);
+        emitLineBegin(pixelStage);
+        emitString(COMMA, pixelStage);
+        emitString("float ", pixelStage);
+        emitString(OgsXmlGenerator::VP_TRANSPARENCY_NAME, pixelStage);
+        emitLineEnd(pixelStage, false);
     }
 
-    emitScopeEnd(stage);
+    emitScopeEnd(pixelStage);
 
     // Add function body
-    emitScopeBegin(stage);
+    emitScopeBegin(pixelStage);
 
     if (graph.hasClassification(ShaderNode::Classification::CLOSURE))
     {
         // Handle the case where the graph is a direct closure.
         // We don't support rendering closures without attaching 
         // to a surface shader, so just output black.
-        emitLine("return vec3(0.0)", stage);
+        emitLine("return vec3(0.0)", pixelStage);
     }
     else
     {
         // Insert matrix converters
         for (const string& argument : convertMatrixStrings)
         {
-            emitLine("mat3 " + argument + " = mat3(" + argument + GlslFragmentGenerator::MATRIX3_TO_MATRIX4_POSTFIX + ")", stage, true);
+            emitLine("mat3 " + argument + " = mat3(" + argument + GlslFragmentGenerator::MATRIX3_TO_MATRIX4_POSTFIX + ")", pixelStage, true);
         }
 
         // Add all function calls
-        emitFunctionCalls(graph, context, stage);
+        emitFunctionCalls(graph, context, pixelStage);
 
         // Emit final result
         const ShaderOutput* outputConnection = outputSocket->getConnection();
@@ -224,11 +237,11 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
             {
                 if (context.getOptions().hwTransparency)
                 {
-                    emitLine("return vec4(" + finalOutput + ".color, clamp(1.0 - dot(" + finalOutput + ".transparency, vec3(0.3333)), 0.0, 1.0))", stage);
+                    emitLine("return vec4(" + finalOutput + ".color, clamp(1.0 - dot(" + finalOutput + ".transparency, vec3(0.3333)), 0.0, 1.0))", pixelStage);
                 }
                 else
                 {
-                    emitLine("return " + finalOutput + ".color", stage);
+                    emitLine("return " + finalOutput + ".color", pixelStage);
                 }
             }
             else
@@ -237,7 +250,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
                 {
                     toVec3(outputSocket->getType(), finalOutput);
                 }
-                emitLine("return " + finalOutput, stage);
+                emitLine("return " + finalOutput, pixelStage);
             }
         }
         else
@@ -246,22 +259,22 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
             if (!outputSocket->getType()->isFloat3())
             {
                 string finalOutput = outputSocket->getVariable() + "_tmp";
-                emitLine(_syntax->getTypeName(outputSocket->getType()) + " " + finalOutput + " = " + outputValue, stage);
+                emitLine(_syntax->getTypeName(outputSocket->getType()) + " " + finalOutput + " = " + outputValue, pixelStage);
                 toVec3(outputSocket->getType(), finalOutput);
-                emitLine("return " + finalOutput, stage);
+                emitLine("return " + finalOutput, pixelStage);
             }
             else
             {
-                emitLine("return " + outputValue, stage);
+                emitLine("return " + outputValue, pixelStage);
             }
         }
     }
 
     // End function
-    emitScopeEnd(stage);
+    emitScopeEnd(pixelStage);
 
     // Replace all tokens with real identifier names
-    replaceTokens(_tokenSubstitutions, stage);
+    replaceTokens(_tokenSubstitutions, pixelStage);
 
     return shader;
 }

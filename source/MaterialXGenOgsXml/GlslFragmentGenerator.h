@@ -15,6 +15,11 @@
 namespace MaterialX
 {
 
+namespace Stage
+{
+    extern const string PRIVATE_UNIFORMS;
+}
+
 /// Syntax class for GLSL fragments.
 class GlslFragmentSyntax : public GlslSyntax
 {
