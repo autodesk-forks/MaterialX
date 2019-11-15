@@ -2,7 +2,7 @@
 #include "MaterialXCore/Library.h"
 
 #include "glslang/Public/ShaderLang.h"
-#include "StandAlone/ResourceLimits.h"
+#include "SPIRV/GlslangToSpv.h"
 
 namespace MaterialX
 {
@@ -181,6 +181,18 @@ std::vector<uint32_t> glslToSpirv(
     }
 
     std::vector<uint32_t> spirv;
+
+    {
+        glslang::SpvOptions options;
+        options.generateDebugInfo = true;
+        options.disableOptimizer = true;
+        options.optimizeSize = false;
+
+        glslang::GlslangToSpv(
+            *program.getIntermediate(EShLangFragment), spirv, &options
+        );
+    }
+
     return spirv;
 }
 } // anonymous namespace
