@@ -165,9 +165,19 @@ std::vector<uint32_t> glslToSpirv(
         {
             const char* const log = shader.getInfoLog();
             throw Exception(
-                std::string("glslang failed to parse the GLSL fragment: ") + log
+                std::string("glslang failed to parse the GLSL fragment:\n") + log
             );
         }
+    }
+
+    glslang::TProgram program;
+    program.addShader(&shader);
+    if (!program.link(EShMsgDefault) /*&& program.mapIO()*/)
+    {
+        const char* const log = program.getInfoLog();
+        throw Exception(
+            std::string("glslang failed to link the GLSL fragment:\n") + log
+        );
     }
 
     std::vector<uint32_t> spirv;
