@@ -108,31 +108,38 @@ TEST_CASE("Runtime: Values", "[runtime]")
     mtx33.asMatrix33()[0][0] = 42.0f;
     REQUIRE(!mtx33.asMatrix33().isEquivalent(testmatrix, 1e-6f));
 
-    mx::RtValue value;
+    // Test unmarshalling values from string representations.
+    // For small values (<=16byts) the same value instance can be reused
+    // For multiple value types.
     mx::RtLargeValueStorage storage;
-    value.setValueString(mx::RtType::BOOLEAN, "true", storage);
+    mx::RtValue value = mx::RtValue::createNew(mx::RtType::BOOLEAN, storage);
+    mx::RtValue::unmarshal(mx::RtType::BOOLEAN, "true", value);
     REQUIRE(value.asBool());
-    value.setValueString(mx::RtType::BOOLEAN, "false", storage);
+    mx::RtValue::unmarshal(mx::RtType::BOOLEAN, "false", value);
     REQUIRE(!value.asBool());
-    value.setValueString(mx::RtType::INTEGER, "23", storage);
+    mx::RtValue::unmarshal(mx::RtType::INTEGER, "23", value);
     REQUIRE(value.asInt() == 23);
-    value.setValueString(mx::RtType::FLOAT, "1234.5678", storage);
+    mx::RtValue::unmarshal(mx::RtType::FLOAT, "1234.5678", value);
     REQUIRE(fabs(value.asFloat() - 1234.5678f) < 1e-3f);
-    value.setValueString(mx::RtType::COLOR2, "1.0, 2.0", storage);
+    mx::RtValue::unmarshal(mx::RtType::COLOR2, "1.0, 2.0", value);
     REQUIRE(value.asColor2() == mx::Color2(1.0, 2.0));
-    value.setValueString(mx::RtType::COLOR3, "1.0, 2.0, 3.0", storage);
+    mx::RtValue::unmarshal(mx::RtType::COLOR3, "1.0, 2.0, 3.0", value);
     REQUIRE(value.asColor3() == mx::Color3(1.0, 2.0, 3.0));
-    value.setValueString(mx::RtType::COLOR4, "1.0, 2.0, 3.0, 4.0", storage);
+    mx::RtValue::unmarshal(mx::RtType::COLOR4, "1.0, 2.0, 3.0, 4.0", value);
     REQUIRE(value.asColor4() == mx::Color4(1.0, 2.0, 3.0, 4.0));
-    value.setValueString(mx::RtType::MATRIX33, "1.0, 0.0, 0.0,  0.0, 1.0, 0.0,  0.0, 0.0, 1.0", storage);
-    REQUIRE(value.asMatrix33() == mx::Matrix33::IDENTITY);
-    value.setValueString(mx::RtType::MATRIX44, "1.0, 0.0, 0.0, 0.0,  0.0, 1.0, 0.0, 0.0,  0.0, 0.0, 1.0, 0.0,  0.0, 0.0, 0.0, 1.0", storage);
-    REQUIRE(value.asMatrix44() == mx::Matrix44::IDENTITY);
-    value.setValueString(mx::RtType::STRING, "materialx", storage);
-    REQUIRE(value.asString() == "materialx");
-    value.setValueString(mx::RtType::TOKEN, "materialx", storage);
+    mx::RtValue::unmarshal(mx::RtType::TOKEN, "materialx", value);
     REQUIRE(value.asToken() == mx::RtToken("materialx"));
-    REQUIRE_THROWS(value.setValueString(mx::RtType::INTEGER, "true", storage));
+    // For large values (>16bytes) we need to allocate a new value instance per type
+    mx::RtValue matrix33Value = mx::RtValue::createNew(mx::RtType::MATRIX33, storage);
+    mx::RtValue::unmarshal(mx::RtType::MATRIX33, "1.0, 0.0, 0.0,  0.0, 1.0, 0.0,  0.0, 0.0, 1.0", matrix33Value);
+    REQUIRE(matrix33Value.asMatrix33() == mx::Matrix33::IDENTITY);
+    mx::RtValue matrix44Value = mx::RtValue::createNew(mx::RtType::MATRIX44, storage);
+    mx::RtValue::unmarshal(mx::RtType::MATRIX44, "1.0, 0.0, 0.0, 0.0,  0.0, 1.0, 0.0, 0.0,  0.0, 0.0, 1.0, 0.0,  0.0, 0.0, 0.0, 1.0", matrix44Value);
+    REQUIRE(matrix44Value.asMatrix44() == mx::Matrix44::IDENTITY);
+    mx::RtValue stringValue = mx::RtValue::createNew(mx::RtType::STRING, storage);
+    mx::RtValue::unmarshal(mx::RtType::STRING, "materialx", stringValue);
+    REQUIRE(stringValue.asString() == "materialx");
+    REQUIRE_THROWS(mx::RtValue::unmarshal(mx::RtType::INTEGER, "true", value));
 }
 
 TEST_CASE("Runtime: Types", "[runtime]")
@@ -150,27 +157,59 @@ TEST_CASE("Runtime: Types", "[runtime]")
     const mx::RtTypeDef* color2Type = mx::RtTypeDef::findType("color2");
     REQUIRE(color2Type != nullptr);
     REQUIRE(color2Type->getBaseType() == mx::RtTypeDef::BASETYPE_FLOAT);
-    REQUIRE(color2Type->getSemantic() == mx::RtTypeDef::SEMANTIC_COLOR);
-    REQUIRE(color2Type->isFloat2());
     const mx::RtTypeDef* color3Type = mx::RtTypeDef::findType("color3");
     REQUIRE(color3Type != nullptr);
     REQUIRE(color3Type->getBaseType() == mx::RtTypeDef::BASETYPE_FLOAT);
     REQUIRE(color3Type->getSemantic() == mx::RtTypeDef::SEMANTIC_COLOR);
-    REQUIRE(color3Type->isFloat3());
     const mx::RtTypeDef* color4Type = mx::RtTypeDef::findType("color4");
     REQUIRE(color4Type != nullptr);
     REQUIRE(color4Type->getBaseType() == mx::RtTypeDef::BASETYPE_FLOAT);
     REQUIRE(color4Type->getSemantic() == mx::RtTypeDef::SEMANTIC_COLOR);
-    REQUIRE(color4Type->isFloat4());
 
     // Make sure we can register a new custom type
-    const mx::RtTypeDef* fooType = mx::RtTypeDef::registerType("foo", mx::RtTypeDef::BASETYPE_FLOAT, mx::RtTypeDef::SEMANTIC_COLOR, 5);
+    auto createFoo = [](mx::RtLargeValueStorage&) -> mx::RtValue
+    {
+        return mx::RtValue(7);
+    };
+    auto copyFoo = [](const mx::RtValue& src, mx::RtValue& dest)
+    {
+        dest = src;
+    };
+    auto marshalFoo = [](const mx::RtValue&, std::string& dest)
+    {
+        dest = "42";
+    };
+    auto unmarshalFoo = [](const std::string&, mx::RtValue& dest)
+    {
+        dest = mx::RtValue(42);
+    };
+    mx::RtValueFuncs fooFuncs = { createFoo, copyFoo, marshalFoo, unmarshalFoo };
+    const mx::RtTypeDef* fooType = mx::RtTypeDef::registerType("foo", mx::RtTypeDef::BASETYPE_FLOAT, fooFuncs, mx::RtTypeDef::SEMANTIC_COLOR, 5);
     REQUIRE(fooType != nullptr);
     const mx::RtTypeDef* fooType2 = mx::RtTypeDef::findType("foo");
     REQUIRE(fooType2 == fooType);
 
+    // Test create/parse/copy values
+    mx::RtLargeValueStorage store;
+
+    mx::RtValue fooValue = fooType->createValue(store);
+    REQUIRE(fooValue.asInt() == 7);
+    fooType->unmarshalValue("bar", fooValue);
+    REQUIRE(fooValue.asInt() == 42);
+
+    const mx::RtTypeDef* stringType = mx::RtTypeDef::findType("string");
+    mx::RtValue stringValue1 = stringType->createValue(store);
+    mx::RtValue stringValue2 = stringType->createValue(store);
+    stringValue1.asString() = "foobar";
+    stringType->copyValue(stringValue1, stringValue2);
+    REQUIRE(stringValue2.asString() == "foobar");
+
+    mx::RtValue intValue = integerType->createValue(store);
+    integerType->unmarshalValue("12345", intValue);
+    REQUIRE(intValue.asInt() == 12345);
+
     // Make sure we can't use a name already take
-    REQUIRE_THROWS(mx::RtTypeDef::registerType("color3", mx::RtTypeDef::BASETYPE_FLOAT));
+    REQUIRE_THROWS(mx::RtTypeDef::registerType("color3", mx::RtTypeDef::BASETYPE_FLOAT, fooFuncs));
 
     // Make sure we can't request an unknown type
     REQUIRE(mx::RtTypeDef::findType("bar") == nullptr);
@@ -205,7 +244,7 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(!stage == false);
 
     // Create a new nodedef object for defining an add node
-    mx::RtObject addDefObj = mx::RtNodeDef::createNew("ND_add_float", "add", stageObj);
+    mx::RtObject addDefObj = mx::RtNodeDef::createNew(stageObj, "ND_add_float", "add");
     REQUIRE(addDefObj.isValid());
     REQUIRE(addDefObj.hasApi(mx::RtApiType::NODEDEF));
 
@@ -213,14 +252,15 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     mx::RtNodeDef addDef(addDefObj);
 
     // Add an attribute to the nodedef
-    addDef.addAttribute("version", "float", mx::RtValue(1.0f));
+    mx::RtAttribute* attr = addDef.addAttribute("version", "float");
+    attr->setValue(mx::RtValue(1.0f));
     REQUIRE(addDef.numAttributes() == 1);
 
     // Add ports to the nodedef
-    mx::RtPortDef::createNew("in1", "float", mx::RtValue(1.0f), mx::RtPortFlag::DEFAULTS, addDefObj);
-    mx::RtPortDef::createNew("in2", "float", mx::RtValue(42.0f), mx::RtPortFlag::DEFAULTS, addDefObj);
-    mx::RtPortDef::createNew("in3", "float", mx::RtValue(42.0f), mx::RtPortFlag::DEFAULTS, addDefObj);
-    mx::RtPortDef::createNew("out", "float", mx::RtValue(0.0f), mx::RtPortFlag::OUTPUT, addDefObj);
+    mx::RtPortDef::createNew(addDefObj, "in1", "float");
+    mx::RtPortDef::createNew(addDefObj, "in2", "float");
+    mx::RtPortDef::createNew(addDefObj, "in3", "float");
+    mx::RtPortDef::createNew(addDefObj, "out", "float", mx::RtPortFlag::OUTPUT);
     REQUIRE(addDef.numPorts() == 4);
 
     // Delete a port
@@ -246,11 +286,11 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(in1.getValue().asFloat() == 7.0f);
 
     // Try to create a node from an invalid nodedef object
-    REQUIRE_THROWS(mx::RtNode::createNew("foo", mx::RtObject(), stageObj));
+    REQUIRE_THROWS(mx::RtNode::createNew(stageObj, "foo", mx::RtObject()));
 
     // Create two new node instances from the add nodedef
-    mx::RtObject add1Obj = mx::RtNode::createNew("add1", addDefObj, stageObj);
-    mx::RtObject add2Obj = mx::RtNode::createNew("add2", addDefObj, stageObj);
+    mx::RtObject add1Obj = mx::RtNode::createNew(stageObj, "add1", addDefObj);
+    mx::RtObject add2Obj = mx::RtNode::createNew(stageObj, "add2", addDefObj);
     REQUIRE(add1Obj.isValid());
     REQUIRE(add2Obj.isValid());
 
@@ -311,34 +351,34 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     mx::RtObject stageObj = mx::RtStage::createNew("root");
     mx::RtStage stage(stageObj);
 
-    // Create a new nodedef for a multiply node.
-    mx::RtNodeDef multiplyDef = mx::RtNodeDef::createNew("ND_multiply_float", "multiply", stageObj);
-    mx::RtPortDef::createNew("in1", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, multiplyDef.getObject());
-    mx::RtPortDef::createNew("in2", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, multiplyDef.getObject());
-    mx::RtPortDef::createNew("out", "float", mx::RtValue(0.0f), mx::RtPortFlag::OUTPUT, multiplyDef.getObject());
+    // Create a new nodedef for an add node.
+    mx::RtObject addFloatObj = mx::RtNodeDef::createNew(stageObj, "ND_add_float", "add");
+    mx::RtPortDef::createNew(addFloatObj, "in1", "float");
+    mx::RtPortDef::createNew(addFloatObj, "in2", "float");
+    mx::RtPortDef::createNew(addFloatObj, "out", "float", mx::RtPortFlag::OUTPUT);
 
     // Create a nodegraph object.
-    mx::RtObject graphObj1 = mx::RtNodeGraph::createNew("graph1", stageObj);
+    mx::RtObject graphObj1 = mx::RtNodeGraph::createNew(stageObj, "graph1");
     REQUIRE(graphObj1.isValid());
 
     // Attach the nodegraph API to the object.
     mx::RtNodeGraph graph1(graphObj1);
 
-    // Create two multiply nodes in the graph.
-    mx::RtObject mulObj1 = mx::RtNode::createNew("add1", multiplyDef.getObject(), graphObj1);
-    mx::RtObject mulObj2 = mx::RtNode::createNew("add2", multiplyDef.getObject(), graphObj1);
+    // Create two add nodes in the graph.
+    mx::RtObject addObj1 = mx::RtNode::createNew(graphObj1, "add1", addFloatObj);
+    mx::RtObject addObj2 = mx::RtNode::createNew(graphObj1, "add2", addFloatObj);
     REQUIRE(graph1.numNodes() == 2);
 
     // Test deleting a node.
-    mx::RtObject mulObj3 = mx::RtNode::createNew("add3", multiplyDef.getObject(), graphObj1);
+    mx::RtObject addObj3 = mx::RtNode::createNew(graphObj1, "add3", addFloatObj);
     REQUIRE(graph1.numNodes() == 3);
-    graph1.removeNode(mulObj3);
+    graph1.removeNode(addObj3);
     REQUIRE(graph1.numNodes() == 2);
 
     // Add interface port definitions to the graph.
-    mx::RtPortDef::createNew("a", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, graphObj1);
-    mx::RtPortDef::createNew("b", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, graphObj1);
-    mx::RtPortDef::createNew("out", "float", mx::RtValue(0.0f), mx::RtPortFlag::OUTPUT, graphObj1);
+    mx::RtPortDef::createNew(graphObj1, "a", "float");
+    mx::RtPortDef::createNew(graphObj1, "b", "float");
+    mx::RtPortDef::createNew(graphObj1, "out", "float", mx::RtPortFlag::OUTPUT);
     REQUIRE(graph1.numPorts() == 3);
     REQUIRE(graph1.findInputSocket("a").isValid());
     REQUIRE(graph1.findInputSocket("b").isValid());
@@ -348,7 +388,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(graph1.getOutputSocket(0).isInput());
 
     // Test deleting a port.
-    mx::RtPortDef::createNew("c", "float", mx::RtValue(0.0f), mx::RtPortFlag::DEFAULTS, graphObj1);
+    mx::RtPortDef::createNew(graphObj1, "c", "float");
     REQUIRE(graph1.numPorts() == 4);
     REQUIRE(graph1.findInputSocket("c").isValid());
     mx::RtObject cPort = mx::RtNodeDef(graph1.getNodeDef()).findPort("c");
@@ -358,18 +398,18 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(!graph1.findInputSocket("c").isValid());
 
     // Attach the node API for the two node objects.
-    mx::RtNode mul1(mulObj1);
-    mx::RtNode mul2(mulObj2);
+    mx::RtNode add1(addObj1);
+    mx::RtNode add2(addObj2);
 
     // Connect the graph nodes to each other and the interface.
-    mx::RtNode::connect(graph1.findInputSocket("a"), mul1.findPort("in1"));
-    mx::RtNode::connect(graph1.findInputSocket("b"), mul1.findPort("in2"));
-    mx::RtNode::connect(mul1.findPort("out"), mul2.findPort("in1"));
-    mx::RtNode::connect(graph1.findInputSocket("a"), mul2.findPort("in2"));
-    mx::RtNode::connect(mul2.findPort("out"), graph1.findOutputSocket("out"));
+    mx::RtNode::connect(graph1.findInputSocket("a"), add1.findPort("in1"));
+    mx::RtNode::connect(graph1.findInputSocket("b"), add1.findPort("in2"));
+    mx::RtNode::connect(add1.findPort("out"), add2.findPort("in1"));
+    mx::RtNode::connect(graph1.findInputSocket("a"), add2.findPort("in2"));
+    mx::RtNode::connect(add2.findPort("out"), graph1.findOutputSocket("out"));
     REQUIRE(graph1.findInputSocket("a").numDestinationPorts() == 2);
     REQUIRE(graph1.findInputSocket("b").numDestinationPorts() == 1);
-    REQUIRE(graph1.findOutputSocket("out").getSourcePort() == mul2.findPort("out"));
+    REQUIRE(graph1.findOutputSocket("out").getSourcePort() == add2.findPort("out"));
 
     // Test finding a port by path.
     mx::RtObject node = stage.findElementByPath("/graph1/add2");
@@ -381,7 +421,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
 
     // Test getting a port instance from node and portdef.
     mx::RtPort port1(node, portdef);
-    REQUIRE(port1 == mul2.findPort("out"));
+    REQUIRE(port1 == add2.findPort("out"));
 }
 
 TEST_CASE("Runtime: CoreIo", "[runtime]")
@@ -410,15 +450,15 @@ TEST_CASE("Runtime: CoreIo", "[runtime]")
         dotfile.close();
 
         // Get a nodedef and create two new instances of it.
-        mx::RtObject multiplyObj = stage.findElementByName("ND_multiply_color3");
-        REQUIRE(multiplyObj);
-        mx::RtNode mul1 = mx::RtNode::createNew("mul1", multiplyObj, stageObj);
-        mx::RtNode mul2 = mx::RtNode::createNew("mul2", multiplyObj, stageObj);
-        REQUIRE(mul1);
-        REQUIRE(mul2);
-        mul2.findPort("in1").getValue().asColor3() = mx::Color3(0.3f, 0.5f, 0.4f);
-        mul2.findPort("in2").getValue().asColor3() = mx::Color3(0.6f, 0.3f, 0.5f);
-        mul2.findPort("in2").setColorSpace("srgb_texture");
+        mx::RtObject multiplyColor3Obj = stage.findElementByName("ND_multiply_color3");
+        REQUIRE(multiplyColor3Obj);
+        mx::RtNode mult1 = mx::RtNode::createNew(stageObj, "mul1", multiplyColor3Obj);
+        mx::RtNode mult2 = mx::RtNode::createNew(stageObj, "mul2", multiplyColor3Obj);
+        REQUIRE(mult1);
+        REQUIRE(mult2);
+        mult2.findPort("in1").getValue().asColor3() = mx::Color3(0.3f, 0.5f, 0.4f);
+        mult2.findPort("in2").getValue().asColor3() = mx::Color3(0.6f, 0.3f, 0.5f);
+        mult2.findPort("in2").setColorSpace("srgb_texture");
 
         // Write the full stage to a new document
         // and save it to file for inspection.
@@ -457,8 +497,8 @@ TEST_CASE("Runtime: CoreIo", "[runtime]")
         mx::RtObject texcoordDef = stage.findElementByName("ND_texcoord_vector2");
         REQUIRE(tiledimageDef);
         REQUIRE(texcoordDef);
-        mx::RtNode tiledimage1 = mx::RtNode::createNew("tiledimage1", tiledimageDef, stage.getObject());
-        mx::RtNode texcoord1 = mx::RtNode::createNew("texcoord1", texcoordDef, stage.getObject());
+        mx::RtNode tiledimage1 = mx::RtNode::createNew(stage.getObject(), "tiledimage1", tiledimageDef);
+        mx::RtNode texcoord1 = mx::RtNode::createNew(stage.getObject(), "texcoord1", texcoordDef);
         REQUIRE(tiledimage1);
         REQUIRE(texcoord1);
         mx::RtPort tiledimage1_texcoord = tiledimage1.findPort("texcoord");
@@ -496,7 +536,7 @@ TEST_CASE("Runtime: Stage References", "[runtime]")
     // Test access and usage of contents from the referenced library.
     mx::RtNodeDef nodedef = mainStage.findElementByName("ND_complex_ior");
     REQUIRE(nodedef.isValid());
-    mx::RtObject nodeObj = mx::RtNode::createNew("complex1", nodedef.getObject(), mainStage.getObject());
+    mx::RtObject nodeObj = mx::RtNode::createNew(mainStage.getObject(), "complex1", nodedef.getObject());
     REQUIRE(nodeObj.isValid());
 
     // Write the stage to a new document, 
@@ -553,7 +593,7 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
     
     mx::RtNodeDef nodedef = mainStage.findElementByName("ND_subtract_vector3");
     REQUIRE(nodedef);
-    mx::RtObject nodeObj = mx::RtNode::createNew("sub1", nodedef.getObject(), mainStage.getObject());
+    mx::RtObject nodeObj = mx::RtNode::createNew(mainStage.getObject(), "sub1", nodedef.getObject());
     REQUIRE(nodeObj);
 
     // Travers using a filter to return only node objects.

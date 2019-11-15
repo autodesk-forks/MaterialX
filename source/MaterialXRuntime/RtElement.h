@@ -58,6 +58,9 @@ public:
         _value = value;
     }
 
+    /// Return a string representation for the value of this port.
+    string getValueString() const;
+
 private:
     /// Private constructor.
     RtAttribute(const RtToken& name, const RtToken& type, PrvElement* parent);

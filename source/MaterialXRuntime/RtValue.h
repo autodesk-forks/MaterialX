@@ -62,6 +62,20 @@ struct RtLargeValueStorage
     RtValueStore<Matrix44> mtx44;
 };
 
+class RtValue;
+using RtValueCreateFunc = std::function<RtValue(RtLargeValueStorage&)>;
+using RtValueCopyFunc = std::function<void(const RtValue&, RtValue&)>;
+using RtValueMarshalFunc = std::function<void(const RtValue&, string&)>;
+using RtValueUnmarshalFunc = std::function<void(const string&, RtValue&)>;
+
+struct RtValueFuncs
+{
+    RtValueCreateFunc create;
+    RtValueCopyFunc copy;
+    RtValueMarshalFunc marshal;
+    RtValueUnmarshalFunc unmarshal;
+};
+
 /// @class RtValue
 /// Generic value class for storing values of all the data types
 /// supported by the API. Values that fit into 16 bytes of data
@@ -262,17 +276,20 @@ public:
         return !(*this==other);
     }
 
-    /// Return a string representing the value
-    /// in the given type.
-    string getValueString(const RtToken& type) const;
-
-    /// Set the value from a string representation of a
-    /// value in the given type.
-    void setValueString(const RtToken& type, const string& value, RtLargeValueStorage& store);
-
     /// Create a new value of given type.
     /// Use the given storage if the type is a large value.
     static RtValue createNew(const RtToken& type, RtLargeValueStorage& store);
+
+    /// Copy a value from one instance to another.
+    /// Both RtValue instances must be initialized for the given type.
+    static void copy(const RtToken& type, const RtValue& src, RtValue& dest);
+
+    /// Marchal an RtValue of given type into a string representation.
+    static void marshal(const RtToken& type, const RtValue& src, string& dest);
+
+    /// Unmarchal a value from a string representation into a RtValue of the given type.
+    /// Destination RtValue must been initialized for the given type.
+    static void unmarshal(const RtToken& type, const string& src, RtValue& dest);
 
 private:
     // 16 bytes of data storage to hold the main data types,

@@ -17,6 +17,14 @@ RtAttribute::RtAttribute(const RtToken& name, const RtToken& type, PrvElement* p
 {
 }
 
+string RtAttribute::getValueString() const
+{
+    string dest;
+    RtValue::marshal(getType(), _value, dest);
+    return dest;
+}
+
+
 RtElement::RtElement(const RtObject& obj)
 {
     setObject(obj);

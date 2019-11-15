@@ -74,10 +74,11 @@ public:
     RtValue& getValue();
 
     /// Set a new value on the port.
+    /// The given value must be of the same type as this ports value.
     void setValue(const RtValue& v);
 
     /// Return a string representation for the value of this port.
-    string getValueString();
+    string getValueString() const;
 
     /// Get the color space for this value.
     const RtToken& getColorSpace() const;

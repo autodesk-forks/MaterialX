@@ -35,17 +35,6 @@ namespace
     static const StringSet nodegraphIgnoreAttr  = { "name", "nodedef" };
     static const StringSet unknownIgnoreAttr    = { "name" };
 
-    RtValue readValue(const ValuePtr& src, const RtToken& type, RtLargeValueStorage& storage)
-    {
-        if (!src)
-        {
-            return RtValue();
-        }
-        RtValue value;
-        value.setValueString(type, src->getValueString(), storage);
-        return value;
-    }
-
     void readAttributes(const ElementPtr src, PrvElement* dest, const StringSet& ignoreList)
     {
         // Read in any attributes so we can export the element again
@@ -69,7 +58,7 @@ namespace
         for (size_t i = 0; i < elem->numAttributes(); ++i)
         {
             const RtAttribute* attr = elem->getAttribute(i);
-            dest->setAttribute(attr->getName(), attr->getValue().getValueString(attr->getType()));
+            dest->setAttribute(attr->getName(), attr->getValueString());
         }
     }
 
@@ -108,11 +97,14 @@ namespace
             {
                 const RtToken portName(elem->getName());
                 const RtToken portType(elem->getType());
-                const RtValue portValue(readValue(elem->getValue(), portType, nodedef->getValueStorage()));
+                const string& valueStr = elem->getValueString();
 
                 PrvObjectHandle inputH = PrvPortDef::createNew(nodedef, portName, portType);
                 PrvPortDef* input = inputH->asA<PrvPortDef>();
-                input->setValue(portValue);
+                if (!valueStr.empty())
+                {
+                    RtValue::unmarshal(portType, valueStr, input->getValue());
+                }
                 input->setColorSpace(RtToken(elem->getColorSpace()));
                 // TODO: fix when units are implemented in core
                 // input->setUnit(RtToken(elem->getUnit()));
@@ -122,11 +114,14 @@ namespace
             {
                 const RtToken portName(elem->getName());
                 const RtToken portType(elem->getType());
-                const RtValue portValue(readValue(elem->getValue(), portType, nodedef->getValueStorage()));
+                const string& valueStr = elem->getValueString();
 
                 PrvObjectHandle inputH = PrvPortDef::createNew(nodedef, portName, portType, RtPortFlag::UNIFORM);
                 PrvPortDef* input = inputH->asA<PrvPortDef>();
-                input->setValue(portValue);
+                if (!valueStr.empty())
+                {
+                    RtValue::unmarshal(portType, valueStr, input->getValue());
+                }
                 input->setColorSpace(RtToken(elem->getColorSpace()));
                 // TODO: fix when units are implemented in core
                 // input->setUnit(RtToken(elem->getUnit()));
@@ -166,9 +161,12 @@ namespace
             {
                 throw ExceptionRuntimeError("No port named '" + elem->getName() + "' was found on runtime node '" + node->getName().str() + "'");
             }
-            const RtToken portType(elem->getType());
-            const RtValue portValue(readValue(elem->getValue(), portType, node->getValueStorage()));
-            port.setValue(portValue);
+            const string& valueStr = elem->getValueString();
+            if (!valueStr.empty())
+            {
+                const RtToken portType(elem->getType());
+                RtValue::unmarshal(portType, valueStr, port.getValue());
+            }
         }
 
         return node;
@@ -197,7 +195,7 @@ namespace
                 {
                     const RtToken name(elem->getName());
                     const RtToken type(elem->getType());
-                    nodegraph->addPort(PrvPortDef::createNew(nodegraph, name, type, RtPortFlag::OUTPUT));
+                    PrvPortDef::createNew(nodegraph, name, type, RtPortFlag::OUTPUT);
                 }
             }
             // Create inputs second
@@ -208,7 +206,7 @@ namespace
                     const RtToken name(elem->getName());
                     const RtToken type(elem->getType());
                     const uint32_t flags = elem->isA<Parameter>() ? RtPortFlag::UNIFORM : 0;
-                    nodegraph->addPort(PrvPortDef::createNew(nodegraph, name, type, flags));
+                    PrvPortDef::createNew(nodegraph, name, type, flags);
                 }
             }
         }
@@ -221,7 +219,7 @@ namespace
             {
                 const RtToken name(elem->getName());
                 const RtToken type(elem->getType());
-                nodegraph->addPort(PrvPortDef::createNew(nodegraph, name, type, RtPortFlag::OUTPUT));
+                PrvPortDef::createNew(nodegraph, name, type, RtPortFlag::OUTPUT);
             }
         }
 
@@ -251,10 +249,14 @@ namespace
                                 throw ExceptionRuntimeError("Interface name '" + interfaceName + "' does not match an input on the nodedef set for nodegraph '" +
                                     nodegraph->getName().str() + "'");
                             }
-                            const RtToken graphInputType(elem->getType());
-                            const RtValue graphInputValue(readValue(elem->getValue(), graphInputType, nodegraph->getValueStorage()));
-                            PrvObjectHandle socket = PrvPortDef::createNew(nodegraph, internalInputName, graphInputType);
-                            socket->asA<PrvPortDef>()->setValue(graphInputValue);
+                            const RtToken portType(elem->getType());
+                            PrvObjectHandle socket = PrvPortDef::createNew(nodegraph, internalInputName, portType);
+                            
+                            const string& valueStr = elem->getValueString();
+                            if (!valueStr.empty())
+                            {
+                                RtValue::unmarshal(portType, valueStr, socket->asA<PrvPortDef>()->getValue());
+                            }
                         }
                         const RtToken inputName(elem->getName());
                         RtPort input = node->findPort(inputName);
@@ -355,7 +357,7 @@ namespace
                 destInput = destNodeDef->addInput(input->getName(), input->getType().str());
             }
 
-            destInput->setValueString(input->getValue().getValueString(input->getType()));
+            destInput->setValueString(input->getValueString());
 
             if (input->getColorSpace())
             {

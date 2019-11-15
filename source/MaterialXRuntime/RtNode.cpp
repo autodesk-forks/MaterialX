@@ -119,10 +119,12 @@ void RtPort::setValue(const RtValue& v)
     node->_ports[_index].value = v;
 }
 
-string RtPort::getValueString()
+string RtPort::getValueString() const
 {
     PrvNode* node = _data->asA<PrvNode>();
-    return node->_ports[_index].value.getValueString(getType());
+    string dest;
+    RtValue::marshal(getType(), node->_ports[_index].value, dest);
+    return dest;
 }
 
 const RtToken& RtPort::getColorSpace() const

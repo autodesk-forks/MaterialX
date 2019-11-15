@@ -45,6 +45,13 @@ public:
         _value = v;
     }
 
+    string getValueString() const
+    {
+        string dest;
+        RtValue::marshal(getType(), _value, dest);
+        return dest;
+    }
+
     const RtToken& getColorSpace() const
     {
         return _colorspace;

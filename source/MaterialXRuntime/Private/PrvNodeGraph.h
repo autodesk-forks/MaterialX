@@ -31,8 +31,6 @@ public:
         removeChild(name);
     }
 
-    void addPort(PrvObjectHandle portdef);
-
     void removePort(const RtToken& name);
 
     RtPort getInputSocket(size_t index) const
@@ -80,6 +78,8 @@ public:
     static const RtToken SOCKETS_NODE_NAME;
 
 protected:
+    void addPort(PrvObjectHandle portdef);
+
     PrvNodeDef* inputSocketsNodeDef() const { return (PrvNodeDef*)_inputSocketsNodeDef.get(); }
     PrvNode* inputSockets() const { return (PrvNode*)_inputSockets.get(); }
 
@@ -88,9 +88,9 @@ protected:
 
     PrvObjectHandle _inputSocketsNodeDef;
     PrvObjectHandle _inputSockets;
-
     PrvObjectHandle _outputSocketsNodeDef;
     PrvObjectHandle _outputSockets;
+    friend class PrvPortDef;
 };
 
 }
