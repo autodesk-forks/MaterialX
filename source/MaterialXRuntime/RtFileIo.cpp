@@ -19,8 +19,6 @@
 #include <MaterialXGenShader/Util.h>
 #include <sstream>
 
-#include <iostream>
-
 namespace MaterialX
 {
 
@@ -509,7 +507,6 @@ namespace
             RtToken uri = pStage->getSourceUri();
             if (!uri.str().empty())
             {
-                std::cout << "- Write source URI: " << uri.str() << std::endl;
                 prependXInclude(doc, uri.str());
             }
         }
@@ -625,7 +622,10 @@ void RtFileIo::write(DocumentPtr& doc, const RtWriteOptions* writeOptions)
     PrvStage* stage = data()->asA<PrvStage>();
     writeAttributes(stage, doc);
 
-    writeSourceUris(stage, doc);
+    if (writeOptions && writeOptions->writeIncludes)
+    {
+        writeSourceUris(stage, doc);
+    }
 
     RtWriteOptions::WriteFilter filter = writeOptions ? writeOptions->writeFilter : nullptr;
     for (size_t i = 0; i < stage->numChildren(); ++i)
@@ -664,9 +664,7 @@ void RtFileIo::write(const FilePath& documentPath, const RtWriteOptions* options
     DocumentPtr document = createDocument(); 
     write(document, options);
     
-    std::cout << "* WRITE file: " << documentPath.asString() << std::endl;
     XmlWriteOptions xmlWriteOptions;
-    xmlWriteOptions.writeXIncludeEnable = true;
     if (options)
     {
         xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
@@ -680,7 +678,6 @@ void RtFileIo::write(std::ostream& stream, const RtWriteOptions* options)
     write(document, options);
 
     XmlWriteOptions xmlWriteOptions;
-    xmlWriteOptions.writeXIncludeEnable = true;
     if (options)
     {
         xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;

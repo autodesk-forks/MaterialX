@@ -384,7 +384,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(port1 == mul2.findPort("out"));
 }
 
-TEST_CASE("Runtime: FileIo", "[runtime3]")
+TEST_CASE("Runtime: FileIo", "[runtime]")
 {
     mx::FileSearchPath searchPath;
     searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
@@ -426,6 +426,7 @@ TEST_CASE("Runtime: FileIo", "[runtime3]")
         {
             return obj.hasApi(mx::RtApiType::NODEGRAPH);
         };
+        writeOptions.writeIncludes = true;
         stageIo.write(stage.getName().str() + "_nodegraph_export.mtlx", &writeOptions);
     }
 
@@ -462,27 +463,17 @@ TEST_CASE("Runtime: FileIo", "[runtime3]")
         writeOptions.writeIncludes = true;
 
         mx::RtFileIo fileIO(stage.getObject());
-        fileIO.write(stage.getName().str() + "_export.mtlx");
+        fileIO.write(stage.getName().str() + "_export.mtlx", &writeOptions);
         stage.initialize();
         fileIO.read(mx::FilePath(stage.getName().str() + "_export.mtlx"),
             mx::FileSearchPath(), nullptr);
     
         // Test read and write to stream
         std::stringstream stream1;
-        std::cout << "*Write stream 1:\n";
         fileIO.write(stream1, &writeOptions);
-        std::cout << stream1.str() << std::endl;
-
         stage.initialize();
         fileIO.read(stream1);
         fileIO.write(stage.getName().str() + "_export2.mtlx");
-
-        std::stringstream stream2;
-        std::cout << "*Write stream 2:\n";
-        fileIO.write(stream2, &writeOptions);
-        std::cout << stream1.str() << std::endl;
-
-        //CHECK(stream1.str() == stream2.str());
     }
 }
 
