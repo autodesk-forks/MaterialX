@@ -637,38 +637,29 @@ void GlslShaderGenerator::emitVariableDeclaration(const ShaderPort* variable, co
                                                   GenContext&, ShaderStage& stage,
                                                   bool assignValue) const
 {
-    // A file texture input needs special handling on GLSL
-    if (variable->getType() == Type::FILENAME)
+    string str = qualifier.empty() ? EMPTY_STRING : qualifier + " ";
+    str += _syntax->getTypeName(variable->getType()) + " " + variable->getVariable();
+
+    // If an array we need an array qualifier (suffix) for the variable name
+    if (variable->getType()->isArray() && variable->getValue())
     {
-        // Samplers must always be uniforms
-        emitString("uniform sampler2D " + variable->getVariable(), stage);
+        str += _syntax->getArraySuffix(variable->getType(), *variable->getValue());
     }
-    else
+
+    if (!variable->getSemantic().empty())
     {
-        string str = qualifier.empty() ? EMPTY_STRING : qualifier + " ";
-        str += _syntax->getTypeName(variable->getType()) + " " + variable->getVariable();
-
-        // If an array we need an array qualifier (suffix) for the variable name
-        if (variable->getType()->isArray() && variable->getValue())
-        {
-            str += _syntax->getArraySuffix(variable->getType(), *variable->getValue());
-        }
-
-        if (!variable->getSemantic().empty())
-        {
-            str += " : " + variable->getSemantic();
-        }
-
-        if (assignValue)
-        {
-            const string valueStr = (variable->getValue() ?
-                _syntax->getValue(variable->getType(), *variable->getValue(), true) :
-                _syntax->getDefaultValue(variable->getType(), true));
-            str += valueStr.empty() ? EMPTY_STRING : " = " + valueStr;
-        }
-
-        emitString(str, stage);
+        str += " : " + variable->getSemantic();
     }
+
+    if (assignValue)
+    {
+        const string valueStr = (variable->getValue() ?
+            _syntax->getValue(variable->getType(), *variable->getValue(), true) :
+            _syntax->getDefaultValue(variable->getType(), true));
+        str += valueStr.empty() ? EMPTY_STRING : " = " + valueStr;
+    }
+
+    emitString(str, stage);
 }
 
 ShaderNodeImplPtr GlslShaderGenerator::createCompoundImplementation(const NodeGraph& impl) const

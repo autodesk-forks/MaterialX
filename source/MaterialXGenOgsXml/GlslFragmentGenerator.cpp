@@ -315,14 +315,11 @@ void GlslFragmentGenerator::emitVariableDeclaration(const ShaderPort* variable, 
                                                     GenContext& context, ShaderStage& stage,
                                                     bool assignValue) const
 {
-    if (variable->getType() == Type::FILENAME)
-    {
-        emitString("sampler2D " + variable->getVariable(), stage);
-    }
     // We change matrix3 to matrix4 input arguments
-    else if (variable->getType() == Type::MATRIX33)
+    if (variable->getType() == Type::MATRIX33)
     {
-        emitString("mat4 " + variable->getVariable() + MATRIX3_TO_MATRIX4_POSTFIX, stage);
+        string qualifierPrefix = qualifier.empty() ? EMPTY_STRING : qualifier + " ";
+        emitString(qualifierPrefix + "mat4 " + variable->getVariable() + MATRIX3_TO_MATRIX4_POSTFIX, stage);
     }
     else
     {
