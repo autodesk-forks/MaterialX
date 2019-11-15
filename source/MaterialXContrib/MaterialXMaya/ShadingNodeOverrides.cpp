@@ -39,7 +39,7 @@ const MString
 namespace
 {
 // This should be a shared utility
-MStatus bindFileTexture(MHWRender::MShaderInstance& shader, 
+MStatus bindFileTexture(MHWRender::MShaderInstance& shaderInstance, 
                         const std::string& parameterName,
                         const mx::FileSearchPath& searchPath, 
                         const std::string& fileName,
@@ -130,7 +130,7 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
             std::cerr << "*Unable to find image file: " << fileName << " in search paths: "
                 << searchPath.asString() << std::endl;
         }
-        status = shader.setParameter(parameterName.c_str(), textureAssignment);
+        status = shaderInstance.setParameter(parameterName.c_str(), textureAssignment);
         if (!status)
         {
             std::cerr << "*Unable to bind image file: " << fileName << std::endl;
@@ -143,14 +143,14 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shader,
     MayaUtil::SamplerUniquePtr samplerState{ MHWRender::MStateManager::acquireSamplerState(samplerDescription) };
     if (samplerState)
     {
-        status = shader.setParameter(samplerParameterName.c_str(), *samplerState);
+        status = shaderInstance.setParameter(samplerParameterName.c_str(), *samplerState);
     }
 
     return status;
 }
 
 // This should be a shared utility
-void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
+void bindEnvironmentLighting(MHWRender::MShaderInstance& shaderInstance,
                             const MStringArray parameterList,
                             const mx::FileSearchPath imageSearchPath,
                             const MaterialXNode& node)
@@ -165,27 +165,27 @@ void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
     MHWRender::MTextureDescription textureDescription;
     if (parameterList.indexOf(mx::HW::ENV_IRRADIANCE.c_str()) >= 0)
     {
-        status = bindFileTexture(shader, mx::HW::ENV_IRRADIANCE, imageSearchPath,
+        status = bindFileTexture(shaderInstance, mx::HW::ENV_IRRADIANCE, imageSearchPath,
                                  node.getEnvIrradianceFileName().asChar(), samplerDescription, textureDescription, nullptr);
     }
 
     // Set radiance map
     if (parameterList.indexOf(mx::HW::ENV_RADIANCE.c_str()) >= 0)
     {
-        status = bindFileTexture(shader, mx::HW::ENV_RADIANCE, imageSearchPath,
+        status = bindFileTexture(shaderInstance, mx::HW::ENV_RADIANCE, imageSearchPath,
                                  node.getEnvRadianceFileName().asChar(), samplerDescription, textureDescription, nullptr);
         if (status == MStatus::kSuccess)
         {
             if (parameterList.indexOf(mx::HW::ENV_RADIANCE_MIPS.c_str()) >= 0)
             {
                 const int mipCount = static_cast<int>(std::log2(std::max(textureDescription.fWidth, textureDescription.fHeight))) + 1;
-                status = shader.setParameter(mx::HW::ENV_RADIANCE_MIPS.c_str(), mipCount);
+                status = shaderInstance.setParameter(mx::HW::ENV_RADIANCE_MIPS.c_str(), mipCount);
             }
 
             if (parameterList.indexOf(mx::HW::ENV_RADIANCE_SAMPLES.c_str()) >= 0)
             {
                 constexpr int envSamples = 16;
-                status = shader.setParameter(mx::HW::ENV_RADIANCE_SAMPLES.c_str(), envSamples);
+                status = shaderInstance.setParameter(mx::HW::ENV_RADIANCE_SAMPLES.c_str(), envSamples);
             }
         }
     }
@@ -202,7 +202,7 @@ void bindEnvironmentLighting(MHWRender::MShaderInstance& shader,
         };
 
         static const MFloatMatrix ENV_MATRIX(Y_ROTATION_PI);
-        status = shader.setParameter(mx::HW::ENV_MATRIX.c_str(), ENV_MATRIX);
+        status = shaderInstance.setParameter(mx::HW::ENV_MATRIX.c_str(), ENV_MATRIX);
     }
 }
 
