@@ -95,15 +95,16 @@ TEST_CASE("Runtime: Values", "[runtime]")
     ptr.clear();
     REQUIRE(ptr.asPtr() == (void*)0);
 
-    mx::RtValueStore<std::string> stringStore;
-    mx::RtValueStore<mx::Matrix33> mtx33Store;
+    // Test creating large values.
+    // An stage is needed to take ownership of allocated data.
+    mx::RtObject stageObj = mx::RtStage::createNew("stage1");
 
     const std::string teststring("MaterialX");
-    mx::RtValue str(teststring, stringStore);
+    mx::RtValue str(teststring, stageObj);
     REQUIRE(str.asString() == teststring);
 
     const mx::Matrix33 testmatrix(mx::Matrix33::IDENTITY);
-    mx::RtValue mtx33(testmatrix, mtx33Store);
+    mx::RtValue mtx33(testmatrix, stageObj);
     REQUIRE(mtx33.asMatrix33().isEquivalent(testmatrix, 1e-6f));
     mtx33.asMatrix33()[0][0] = 42.0f;
     REQUIRE(!mtx33.asMatrix33().isEquivalent(testmatrix, 1e-6f));
@@ -111,8 +112,7 @@ TEST_CASE("Runtime: Values", "[runtime]")
     // Test unmarshalling values from string representations.
     // For small values (<=16byts) the same value instance can be reused
     // For multiple value types.
-    mx::RtLargeValueStorage storage;
-    mx::RtValue value = mx::RtValue::createNew(mx::RtType::BOOLEAN, storage);
+    mx::RtValue value = mx::RtValue::createNew(mx::RtType::BOOLEAN, stageObj);
     mx::RtValue::unmarshal(mx::RtType::BOOLEAN, "true", value);
     REQUIRE(value.asBool());
     mx::RtValue::unmarshal(mx::RtType::BOOLEAN, "false", value);
@@ -130,13 +130,13 @@ TEST_CASE("Runtime: Values", "[runtime]")
     mx::RtValue::unmarshal(mx::RtType::TOKEN, "materialx", value);
     REQUIRE(value.asToken() == mx::RtToken("materialx"));
     // For large values (>16bytes) we need to allocate a new value instance per type
-    mx::RtValue matrix33Value = mx::RtValue::createNew(mx::RtType::MATRIX33, storage);
+    mx::RtValue matrix33Value = mx::RtValue::createNew(mx::RtType::MATRIX33, stageObj);
     mx::RtValue::unmarshal(mx::RtType::MATRIX33, "1.0, 0.0, 0.0,  0.0, 1.0, 0.0,  0.0, 0.0, 1.0", matrix33Value);
     REQUIRE(matrix33Value.asMatrix33() == mx::Matrix33::IDENTITY);
-    mx::RtValue matrix44Value = mx::RtValue::createNew(mx::RtType::MATRIX44, storage);
+    mx::RtValue matrix44Value = mx::RtValue::createNew(mx::RtType::MATRIX44, stageObj);
     mx::RtValue::unmarshal(mx::RtType::MATRIX44, "1.0, 0.0, 0.0, 0.0,  0.0, 1.0, 0.0, 0.0,  0.0, 0.0, 1.0, 0.0,  0.0, 0.0, 0.0, 1.0", matrix44Value);
     REQUIRE(matrix44Value.asMatrix44() == mx::Matrix44::IDENTITY);
-    mx::RtValue stringValue = mx::RtValue::createNew(mx::RtType::STRING, storage);
+    mx::RtValue stringValue = mx::RtValue::createNew(mx::RtType::STRING, stageObj);
     mx::RtValue::unmarshal(mx::RtType::STRING, "materialx", stringValue);
     REQUIRE(stringValue.asString() == "materialx");
     REQUIRE_THROWS(mx::RtValue::unmarshal(mx::RtType::INTEGER, "true", value));
@@ -167,7 +167,7 @@ TEST_CASE("Runtime: Types", "[runtime]")
     REQUIRE(color4Type->getSemantic() == mx::RtTypeDef::SEMANTIC_COLOR);
 
     // Make sure we can register a new custom type
-    auto createFoo = [](mx::RtLargeValueStorage&) -> mx::RtValue
+    auto createFoo = [](mx::RtObject&) -> mx::RtValue
     {
         return mx::RtValue(7);
     };
@@ -190,21 +190,22 @@ TEST_CASE("Runtime: Types", "[runtime]")
     REQUIRE(fooType2 == fooType);
 
     // Test create/parse/copy values
-    mx::RtLargeValueStorage store;
+    // An stage is needed to hold allocated data.
+    mx::RtObject stageObj = mx::RtStage::createNew("stage1");
 
-    mx::RtValue fooValue = fooType->createValue(store);
+    mx::RtValue fooValue = fooType->createValue(stageObj);
     REQUIRE(fooValue.asInt() == 7);
     fooType->unmarshalValue("bar", fooValue);
     REQUIRE(fooValue.asInt() == 42);
 
     const mx::RtTypeDef* stringType = mx::RtTypeDef::findType("string");
-    mx::RtValue stringValue1 = stringType->createValue(store);
-    mx::RtValue stringValue2 = stringType->createValue(store);
+    mx::RtValue stringValue1 = stringType->createValue(stageObj);
+    mx::RtValue stringValue2 = stringType->createValue(stageObj);
     stringValue1.asString() = "foobar";
     stringType->copyValue(stringValue1, stringValue2);
     REQUIRE(stringValue2.asString() == "foobar");
 
-    mx::RtValue intValue = integerType->createValue(store);
+    mx::RtValue intValue = integerType->createValue(stageObj);
     integerType->unmarshalValue("12345", intValue);
     REQUIRE(intValue.asInt() == 12345);
 

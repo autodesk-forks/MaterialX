@@ -10,10 +10,10 @@
 namespace MaterialX
 {
 
-RtAttribute::RtAttribute(const RtToken& name, const RtToken& type, PrvElement* parent) :
+RtAttribute::RtAttribute(const RtToken& name, const RtToken& type, RtObject parent) :
     _name(name),
     _type(type),
-    _value(RtValue::createNew(type, parent->getValueStorage()))
+    _value(RtValue::createNew(type, parent))
 {
 }
 

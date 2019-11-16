@@ -13,7 +13,7 @@ namespace MaterialX
 {
 
 PrvNodeDef::PrvNodeDef(PrvElement* parent, const RtToken& name, const RtToken& nodeName) :
-    PrvValueStoringElement(RtObjType::NODEDEF, parent, name),
+    PrvAllocatingElement(RtObjType::NODEDEF, parent, name),
     _nodeName(nodeName),
     _numOutputs(0)
 {

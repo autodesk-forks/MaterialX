@@ -19,7 +19,7 @@ PrvNode::Port::Port() :
 }
 
 PrvNode::PrvNode(PrvElement* parent, const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType) :
-    PrvValueStoringElement(objType, parent, name),
+    PrvAllocatingElement(objType, parent, name),
     _nodedef(nodedef)
 {
     const size_t numPorts = def()->numPorts();
@@ -34,7 +34,7 @@ PrvNode::PrvNode(PrvElement* parent, const RtToken& name, const PrvObjectHandle&
 }
 
 PrvNode::PrvNode(PrvElement* parent, const RtToken& name, RtObjType objType) :
-    PrvValueStoringElement(objType, parent, name),
+    PrvAllocatingElement(objType, parent, name),
     _nodedef(nullptr)
 {
 }

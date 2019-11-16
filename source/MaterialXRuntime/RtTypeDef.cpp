@@ -62,9 +62,9 @@ RtTypeDef::~RtTypeDef()
     delete static_cast<PrvTypeDef*>(_ptr);
 }
 
-RtValue RtTypeDef::createValue(RtLargeValueStorage& store) const
+RtValue RtTypeDef::createValue(RtObject& owner) const
 {
-    return static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().create(store);
+    return static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().create(owner);
 }
 
 void RtTypeDef::copyValue(const RtValue& src, RtValue& dest) const

@@ -19,6 +19,46 @@ namespace MaterialX
 using PrvObjectHandleVec = vector<PrvObjectHandle>;
 using PrvObjectHandleSet = std::set<PrvObjectHandle>;
 
+class PrvAllocator
+{
+public:
+    ~PrvAllocator()
+    {
+        free();
+    }
+
+    // Allocate and return a block of data.
+    uint8_t* alloc(size_t size)
+    {
+        uint8_t* ptr = new uint8_t[size];
+        _storage.push_back(ptr);
+        return ptr;
+    }
+
+    // Allocate and and return a single object of templated type.
+    // The object constructor is called to initialize it.
+    template<class T>
+    T* allocType()
+    {
+        uint8_t* buffer = alloc(sizeof(T));
+        return new (buffer) T();
+    }
+
+    // Free all allocated data.
+    void free()
+    {
+        for (uint8_t* ptr : _storage)
+        {
+            delete[] ptr;
+        }
+        _storage.clear();
+    }
+
+private:
+    std::vector<uint8_t*> _storage;
+};
+
+
 class PrvElement : public PrvObject
 {
 public:
@@ -90,7 +130,7 @@ public:
         return _attributes.size();
     }
 
-    virtual RtLargeValueStorage& getValueStorage();
+    virtual PrvAllocator& getAllocator();
 
     static const string PATH_SEPARATOR;
 
@@ -115,27 +155,27 @@ protected:
 };
 
 
-class PrvValueStoringElement : public PrvElement
+class PrvAllocatingElement : public PrvElement
 {
 public:
-    RtLargeValueStorage& getValueStorage() override
+    PrvAllocator& getAllocator() override
     {
-        return _storage;
+        return _allocator;
     }
 
 protected:
-    PrvValueStoringElement(RtObjType objType, PrvElement* parent, const RtToken& name):
+    PrvAllocatingElement(RtObjType objType, PrvElement* parent, const RtToken& name):
         PrvElement(objType, parent, name)
     {}
 
-    RtLargeValueStorage _storage;
+    PrvAllocator _allocator;
 };
 
 
-class PrvUnknown : public PrvValueStoringElement
+class PrvUnknownElement : public PrvElement
 {
 public:
-    PrvUnknown(PrvElement* parent, const RtToken& name, const RtToken& category);
+    PrvUnknownElement(PrvElement* parent, const RtToken& name, const RtToken& category);
 
     static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const RtToken& category);
 

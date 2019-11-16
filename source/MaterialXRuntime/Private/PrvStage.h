@@ -14,7 +14,7 @@
 namespace MaterialX
 {
 
-class PrvStage : public PrvValueStoringElement
+class PrvStage : public PrvAllocatingElement
 {
 public:
     PrvStage(const RtToken& name);

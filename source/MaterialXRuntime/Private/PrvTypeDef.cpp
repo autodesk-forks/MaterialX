@@ -7,6 +7,8 @@
 
 #include <MaterialXRuntime/RtTypeDef.h>
 
+#include <MaterialXCore/Util.h>
+
 #include <sstream>
 
 namespace MaterialX
@@ -16,27 +18,27 @@ namespace
 {
 
 template<class T>
-RtValue createValue(RtLargeValueStorage&)
+RtValue createValue(RtObject&)
 {
     return RtValue((T)0);
 }
-template<> RtValue createValue<Matrix33>(RtLargeValueStorage& store)
+template<> RtValue createValue<Matrix33>(RtObject& owner)
 {
-    return RtValue(Matrix33::IDENTITY, store.mtx33);
+    return RtValue(Matrix33::IDENTITY, owner);
 }
-template<> RtValue createValue<Matrix44>(RtLargeValueStorage& store)
+template<> RtValue createValue<Matrix44>(RtObject& owner)
 {
-    return RtValue(Matrix44::IDENTITY, store.mtx44);
+    return RtValue(Matrix44::IDENTITY, owner);
 }
-template<> RtValue createValue<string>(RtLargeValueStorage& store)
+template<> RtValue createValue<string>(RtObject& owner)
 {
-    return RtValue(string(""), store.str);
+    return RtValue(string(""), owner);
 }
-template<> RtValue createValue<RtToken>(RtLargeValueStorage&)
+template<> RtValue createValue<RtToken>(RtObject&)
 {
     return RtValue(EMPTY_TOKEN);
 }
-RtValue createNoneValue(RtLargeValueStorage&)
+RtValue createNoneValue(RtObject&)
 {
     return RtValue(0);
 }

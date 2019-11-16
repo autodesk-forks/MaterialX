@@ -105,7 +105,7 @@ RtAttribute* PrvElement::addAttribute(const RtToken& name, const RtToken& type)
         throw ExceptionRuntimeError("An attribute named '" + name.str() + "' already exists for '" + getName().str() + "'");
     }
 
-    AttrPtr attr(new RtAttribute(name, type, this));
+    AttrPtr attr(new RtAttribute(name, type, getRtObject()));
     _attributes.push_back(attr);
     _attributesByName[name] = attr;
 
@@ -125,25 +125,25 @@ void PrvElement::removeAttribute(const RtToken& name)
     _attributesByName.erase(name);
 }
 
-RtLargeValueStorage& PrvElement::getValueStorage()
+PrvAllocator& PrvElement::getAllocator()
 {
     if (!_parent)
     {
-        throw ExceptionRuntimeError("Trying to get value storage for an element with no storage and no parent: '" + getName().str() + "'");
+        throw ExceptionRuntimeError("Trying to get allocator for an element with no allocator and no parent: '" + getName().str() + "'");
     }
-    return _parent->getValueStorage();
+    return _parent->getAllocator();
 }
 
 
-PrvUnknown::PrvUnknown(PrvElement* parent, const RtToken& name, const RtToken& category) :
-    PrvValueStoringElement(RtObjType::UNKNOWN, parent, name),
+PrvUnknownElement::PrvUnknownElement(PrvElement* parent, const RtToken& name, const RtToken& category) :
+    PrvElement(RtObjType::UNKNOWN, parent, name),
     _category(category)
 {
 }
 
-PrvObjectHandle PrvUnknown::createNew(PrvElement* parent, const RtToken& name, const RtToken& category)
+PrvObjectHandle PrvUnknownElement::createNew(PrvElement* parent, const RtToken& name, const RtToken& category)
 {
-    return std::make_shared<PrvUnknown>(parent, name, category);
+    return PrvObjectHandle(new PrvUnknownElement(parent, name, category));
 }
 
 }

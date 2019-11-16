@@ -317,13 +317,13 @@ namespace
         return nodegraph;
     }
 
-    PrvUnknown* readUnknown(const ElementPtr& src, PrvElement* parent)
+    PrvUnknownElement* readUnknown(const ElementPtr& src, PrvElement* parent)
     {
         const RtToken name(src->getName());
         const RtToken category(src->getCategory());
 
-        PrvObjectHandle elemH = PrvUnknown::createNew(parent, name, category);
-        PrvUnknown* elem = elemH->asA<PrvUnknown>();
+        PrvObjectHandle elemH = PrvUnknownElement::createNew(parent, name, category);
+        PrvUnknownElement* elem = elemH->asA<PrvUnknownElement>();
 
         readAttributes(src, elem, unknownIgnoreAttr);
 
@@ -472,14 +472,14 @@ namespace
 
     }
 
-    void writeUnknown(const PrvUnknown* unknown, ElementPtr dest)
+    void writeUnknown(const PrvUnknownElement* unknown, ElementPtr dest)
     {
         ElementPtr unknownElem = dest->addChildOfCategory(unknown->getCategory(), unknown->getName());
         writeAttributes(unknown, unknownElem);
 
         for (auto child : unknown->getChildren())
         {
-            writeUnknown(child->asA<PrvUnknown>(), unknownElem);
+            writeUnknown(child->asA<PrvUnknownElement>(), unknownElem);
         }
     }
 
@@ -554,7 +554,7 @@ void RtCoreIo::write(DocumentPtr& doc, RtCoreIo::WriteFilter filter)
             }
             else if (elem->getObjType() == RtObjType::UNKNOWN)
             {
-                writeUnknown(elem->asA<PrvUnknown>(), doc->asA<Element>());
+                writeUnknown(elem->asA<PrvUnknownElement>(), doc->asA<Element>());
             }
             else
             {

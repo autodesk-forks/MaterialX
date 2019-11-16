@@ -10,6 +10,8 @@
 
 #include <MaterialXRuntime/RtObject.h>
 
+#include <MaterialXCore/Util.h>
+
 /// @file
 /// TODO: Docs
 
@@ -17,7 +19,7 @@ namespace MaterialX
 {
 
 PrvStage::PrvStage(const RtToken& name) :
-    PrvValueStoringElement(RtObjType::STAGE, nullptr, name),
+    PrvAllocatingElement(RtObjType::STAGE, nullptr, name),
     _selfRefCount(0)
 {
 }

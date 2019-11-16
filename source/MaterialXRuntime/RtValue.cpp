@@ -6,6 +6,8 @@
 #include <MaterialXRuntime/RtValue.h>
 #include <MaterialXRuntime/RtTypeDef.h>
 
+#include <MaterialXRuntime/Private/PrvElement.h>
+
 #include <sstream>
 
 #ifndef _WIN32
@@ -17,33 +19,44 @@
 namespace MaterialX
 {
 
-RtValue::RtValue(const Matrix33& v, RtValueStore<Matrix33>& store)
+RtValue::RtValue(const Matrix33& v, RtObject& owner)
 {
-    *reinterpret_cast<Matrix33**>(&_data) = store.alloc();
+    // Allocate storage for the value.
+    PrvAllocator& allocator = owner.data()->asA<PrvElement>()->getAllocator();
+    *reinterpret_cast<Matrix33**>(&_data) = allocator.allocType<Matrix33>();
+
+    // Copy the value.
     asMatrix33() = v;
 }
 
-RtValue::RtValue(const Matrix44& v, RtValueStore<Matrix44>& store)
+RtValue::RtValue(const Matrix44& v, RtObject& owner)
 {
-    *reinterpret_cast<Matrix44**>(&_data) = store.alloc();
+    // Allocate storage for the value.
+    PrvAllocator& allocator = owner.data()->asA<PrvElement>()->getAllocator();
+    *reinterpret_cast<Matrix44**>(&_data) = allocator.allocType<Matrix44>();
+
+    // Copy the value.
     asMatrix44() = v;
 }
 
-RtValue::RtValue(const string& v, RtValueStore<string>& store)
+RtValue::RtValue(const string& v, RtObject& owner)
 {
-    string* ptr = store.alloc();
-    *ptr = v;
-    asPtr() = ptr;
+    // Allocate storage for the value.
+    PrvAllocator& allocator = owner.data()->asA<PrvElement>()->getAllocator();
+    *reinterpret_cast<string**>(&_data) = allocator.allocType<string>();
+
+    // Copy the value.
+    asString() = v;
 }
 
-RtValue RtValue::createNew(const RtToken& type, RtLargeValueStorage& store)
+RtValue RtValue::createNew(const RtToken& type, RtObject owner)
 {
     const RtTypeDef* typeDef = RtTypeDef::findType(type);
     if (!typeDef)
     {
         throw ExceptionRuntimeError("Type '" + type.str() + "' is not a registered type");
     }
-    return typeDef->createValue(store);
+    return typeDef->createValue(owner);
 }
 
 void RtValue::marshal(const RtToken& type, const RtValue& src, string& dest)

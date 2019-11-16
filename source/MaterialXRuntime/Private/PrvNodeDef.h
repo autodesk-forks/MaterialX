@@ -18,7 +18,7 @@
 namespace MaterialX
 {
 
-class PrvNodeDef : public PrvValueStoringElement
+class PrvNodeDef : public PrvAllocatingElement
 {
 public:
     PrvNodeDef(PrvElement* parent, const RtToken& name, const RtToken& category);

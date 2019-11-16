@@ -63,7 +63,7 @@ public:
 
 private:
     /// Private constructor.
-    RtAttribute(const RtToken& name, const RtToken& type, PrvElement* parent);
+    RtAttribute(const RtToken& name, const RtToken& type, RtObject parent);
 
     RtToken _name;
     RtToken _type;

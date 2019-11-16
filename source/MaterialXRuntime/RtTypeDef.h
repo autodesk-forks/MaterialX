@@ -131,7 +131,9 @@ public:
     const RtTokenSet& getValidConnectionTypes() const;
 
     /// Create a new value of this type.
-    RtValue createValue(RtLargeValueStorage& store) const;
+    /// If the type is a large value the given object will take
+    /// ownership of allocated data.
+    RtValue createValue(RtObject& owner) const;
 
     /// Copy data from one value to another.
     void copyValue(const RtValue& src, RtValue& dest) const;

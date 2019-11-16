@@ -19,7 +19,7 @@ namespace MaterialX
 
 using RtPortVec = vector<RtPort>;
 
-class PrvNode : public PrvValueStoringElement
+class PrvNode : public PrvAllocatingElement
 {
 public:
     // Constructor creating a node with a fixed interface
@@ -82,11 +82,6 @@ public:
     static void connect(const RtPort& source, const RtPort& dest);
 
     static void disconnect(const RtPort& source, const RtPort& dest);
-
-    RtLargeValueStorage& getValueStorage()
-    {
-        return _storage;
-    }
 
 protected:
     PrvNodeDef* def() const
