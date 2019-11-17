@@ -563,7 +563,7 @@ RtApiType RtFileIo::getApiType() const
     return RtApiType::CORE_IO;
 }
 
-void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, ReadFilter filter)
+void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, RtFileIo::ReadFilter filter)
 {
     try
     {
@@ -581,7 +581,7 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
     }
 }
 
-void RtFileIo::write(const FilePath& documentPath, const XmlWriteOptions* writeOptions, WriteFilter filter)
+void RtFileIo::write(const FilePath& documentPath, const XmlWriteOptions* writeOptions, RtFileIo::WriteFilter filter)
 {
     PrvStage* stage = data()->asA<PrvStage>();
 
