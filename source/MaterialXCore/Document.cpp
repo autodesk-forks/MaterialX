@@ -147,7 +147,6 @@ void Document::initialize()
 void Document::importLibrary(const ConstDocumentPtr& library, const CopyOptions* copyOptions)
 {
     bool skipConflictingElements = copyOptions && copyOptions->skipConflictingElements;
-    const string&  libraryColorSpace = library->getColorSpace();
     for (const ConstElementPtr& child : library->getChildren())
     {
         string childName = child->getQualifiedName(child->getName());
@@ -170,12 +169,9 @@ void Document::importLibrary(const ConstDocumentPtr& library, const CopyOptions*
         {
             childCopy->setGeomPrefix(library->getGeomPrefix());
         }
-        if (!libraryColorSpace.empty())
+        if (!childCopy->hasColorSpace() && library->hasColorSpace())
         {
-            if (!childCopy->hasColorSpace() || childCopy->isA<Output>())
-            {
-                childCopy->setColorSpace(library->getColorSpace());
-            }
+            childCopy->setColorSpace(library->getColorSpace());
         }
         if (!childCopy->hasNamespace() && library->hasNamespace())
         {
@@ -611,7 +607,7 @@ void Document::upgradeVersion()
         InterfaceElementPtr interfaceElem = std::static_pointer_cast<InterfaceElement>(nodeDef);
         if (interfaceElem && interfaceElem->hasType())
         {
-            string type = interfaceElem->getType();
+            string type = interfaceElem->getAttribute(TypedElement::TYPE_ATTRIBUTE);
             if (type != MULTI_OUTPUT_TYPE_STRING)
             {
                 interfaceElem->addOutput("out", type);

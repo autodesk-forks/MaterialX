@@ -12,9 +12,10 @@
 #include <MaterialXGenShader/Library.h>
 
 #include <MaterialXGenShader/ColorManagementSystem.h>
-#include <MaterialXGenShader/UnitSystem.h>
 #include <MaterialXGenShader/ShaderNode.h>
 #include <MaterialXGenShader/TypeDesc.h>
+#include <MaterialXGenShader/Syntax.h>
+#include <MaterialXGenShader/UnitSystem.h>
 
 #include <MaterialXCore/Document.h>
 #include <MaterialXCore/Node.h>
@@ -44,7 +45,7 @@ class ShaderGraph : public ShaderNode
 {
   public:
     /// Constructor.
-    ShaderGraph(const ShaderGraph* parent, const string& name, ConstDocumentPtr document);
+    ShaderGraph(const ShaderGraph* parent, const string& name, ConstDocumentPtr document, const StringSet& reservedWords);
 
     /// Desctructor.
     virtual ~ShaderGraph() { }
@@ -92,8 +93,8 @@ class ShaderGraph : public ShaderNode
     const vector<ShaderGraphInputSocket*>& getInputSockets() const { return _outputOrder; }
     const vector<ShaderGraphOutputSocket*>& getOutputSockets() const { return _inputOrder; }
 
-    /// Add new node
-    ShaderNode* addNode(const Node& node, GenContext& context);
+    /// Create a new node in the graph
+    ShaderNode* createNode(const Node& node, GenContext& context);
 
     /// Add input/output sockets
     ShaderGraphInputSocket* addInputSocket(const string& name, const TypeDesc* type);
@@ -102,7 +103,13 @@ class ShaderGraph : public ShaderNode
     /// Return an iterator for traversal upstream from the given output
     static ShaderGraphEdgeIterator traverseUpstream(ShaderOutput* output);
 
+    /// Return the map of unique identifiers used in the scope of this graph.
+    IdentifierMap& getIdentifierMap() { return _identifiers; }
+
   protected:
+    /// Add a node to the graph
+    void addNode(ShaderNodePtr node);
+
     /// Add input sockets from an interface element (nodedef, nodegraph or node)
     void addInputSockets(const InterfaceElement& elem, GenContext& context);
 
@@ -156,9 +163,9 @@ class ShaderGraph : public ShaderNode
     /// has a color space attribute and has a type of color3 or color4.
     void populateInputColorTransformMap(ColorManagementSystemPtr colorManagementSystem, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace);
 
-    /// Populates the input unit transform map if the provided input/parameter
-    /// has a unit attribute and has a type of float.
-    void populateInputUnitTransformMap(UnitSystemPtr unitSystem, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetUnitSpace, const string& unitType);
+    /// Populates the appropriate unit transform map if the provided input/parameter or output
+    /// has a unit attribute and is of the supported type
+    void populateUnitTransformMap(bool asInput, UnitSystemPtr unitSystem, ShaderPort* shaderPort, ValueElementPtr element, const string& targetUnitSpace);
 
     /// Break all connections on a node
     void disconnect(ShaderNode* node) const;
@@ -166,6 +173,7 @@ class ShaderGraph : public ShaderNode
     ConstDocumentPtr _document;
     std::unordered_map<string, ShaderNodePtr> _nodeMap;
     std::vector<ShaderNode*> _nodeOrder;
+    IdentifierMap _identifiers;
 
     // Temporary storage for inputs that require color transformations
     std::unordered_map<ShaderInput*, ColorSpaceTransform> _inputColorTransformMap;

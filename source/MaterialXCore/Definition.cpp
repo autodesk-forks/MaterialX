@@ -27,7 +27,6 @@ const string Implementation::FILE_ATTRIBUTE = "file";
 const string Implementation::FUNCTION_ATTRIBUTE = "function";
 const string Implementation::LANGUAGE_ATTRIBUTE = "language";
 const string UnitDef::UNITTYPE_ATTRIBUTE = "unittype";
-const string UnitTypeDef::DEFAULT_ATTRIBUTE = "default";
 
 //
 // NodeDef methods
@@ -51,7 +50,7 @@ InterfaceElementPtr NodeDef::getImplementation(const string& target, const strin
         {
             continue;
         }
-        if (!matchLanguage ||
+        if (!matchLanguage || 
             implement->getLanguage() == language)
         {
             return interface;
@@ -62,7 +61,7 @@ InterfaceElementPtr NodeDef::getImplementation(const string& target, const strin
     // There is no language check as node graphs are considered to be language independent.
     for (InterfaceElementPtr interface : interfaces)
     {
-        if (interface->isA<Implementation>() ||
+        if (interface->isA<Implementation>() || 
             !targetStringsMatch(interface->getTarget(), target) ||
             !isVersionCompatible(interface))
         {

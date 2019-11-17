@@ -1,7 +1,7 @@
 project(MaterialX)
 set(MATERIALX_MAJOR_VERSION 1)
-set(MATERIALX_MINOR_VERSION 36)
-set(MATERIALX_BUILD_VERSION 5)
+set(MATERIALX_MINOR_VERSION 37)
+set(MATERIALX_BUILD_VERSION 0)
 set(MATERIALX_LIBRARY_VERSION ${MATERIALX_MAJOR_VERSION}.${MATERIALX_MINOR_VERSION}.${MATERIALX_BUILD_VERSION})
 
 cmake_minimum_required(VERSION 3.1)
@@ -208,6 +208,24 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.6.2")
     endif()
 endif()
 
-# Install MaterialX find_package module
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}" MESSAGE_NEVER)
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/cmake/MaterialXConfigVersion.cmake
+    VERSION ${CMAKE_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+# Package for using the developer build
+export(
+    EXPORT MaterialX
+    FILE ${CMAKE_BINARY_DIR}/cmake/MaterialXConfig.cmake
+    )
+
+# Package for using the installed build
+install(
+    EXPORT      MaterialX
+    DESTINATION cmake
+    FILE        MaterialXConfig.cmake)
+install(
+    FILES "${CMAKE_BINARY_DIR}/cmake/MaterialXConfigVersion.cmake"
+    DESTINATION cmake)

@@ -50,7 +50,7 @@ public:
         return static_cast<const T*>(this);
     }
 
-    RtObject getRtObject()
+    RtObject getObject()
     {
         return RtObject(shared_from_this());
     }

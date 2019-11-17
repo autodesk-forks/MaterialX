@@ -35,6 +35,26 @@ void RtStage::removeReference(const RtToken& name)
     data()->asA<PrvStage>()->removeReference(name);
 }
 
+void RtStage::removeReferences()
+{
+    data()->asA<PrvStage>()->removeReferences();
+}
+
+size_t RtStage::numReferences() const
+{
+    return data()->asA<PrvStage>()->numReferences();
+}
+
+RtObject RtStage::getReference(size_t index) const
+{
+    return data()->asA<PrvStage>()->getReference(index);
+}
+
+RtObject RtStage::findReference(const RtToken& name) const
+{
+    return RtObject(data()->asA<PrvStage>()->findReference(name));
+}
+
 void RtStage::addElement(RtObject elem)
 {
     if (elem.hasApi(RtApiType::STAGE))

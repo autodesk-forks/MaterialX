@@ -3,7 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/RtCoreIo.h>
+#include <MaterialXRuntime/RtFileIo.h>
 #include <MaterialXRuntime/RtObject.h>
 #include <MaterialXRuntime/RtNodeDef.h>
 #include <MaterialXRuntime/RtPortDef.h>
@@ -16,6 +16,7 @@
 #include <MaterialXRuntime/Private/PrvNode.h>
 #include <MaterialXRuntime/Private/PrvNodeGraph.h>
 
+#include <MaterialXGenShader/Util.h>
 #include <sstream>
 
 namespace MaterialX
@@ -335,6 +336,41 @@ namespace
         return elem;
     }
 
+    void readDocument(const DocumentPtr& doc, PrvStage* stage, RtFileIo::ReadFilter filter)
+    {
+        readAttributes(doc, stage, {});
+
+        for (auto elem : doc->getChildren())
+        {
+            if (!filter || filter(elem))
+            {
+                if (elem->isA<NodeDef>())
+                {
+                    // Make sure the nodedef has not been loaded already.
+                    // When reading node instances their nodedef is loaded as well.
+                    RtToken token(elem->getName());
+                    if (stage->findChildByName(token))
+                    {
+                        continue;
+                    }
+                    readNodeDef(elem->asA<NodeDef>(), stage);
+                }
+                else if (elem->isA<Node>())
+                {
+                    readNode(elem->asA<Node>(), stage, stage);
+                }
+                else if (elem->isA<NodeGraph>())
+                {
+                    readNodeGraph(elem->asA<NodeGraph>(), stage, stage);
+                }
+                else
+                {
+                    readUnknown(elem, stage);
+                }
+            }
+        }
+    }
+
     void writeNodeDef(const PrvNodeDef* nodedef, DocumentPtr dest)
     {
         const size_t numPorts = nodedef->numPorts();
@@ -483,87 +519,112 @@ namespace
         }
     }
 
+    void writeDocument(DocumentPtr& doc, PrvStage* stage, RtFileIo::WriteFilter filter)
+    {
+        writeAttributes(stage, doc);
+
+        for (size_t i = 0; i < stage->numChildren(); ++i)
+        {
+            PrvObjectHandle elem = stage->getChild(i);
+            if (!filter || filter(RtObject(elem)))
+            {
+                if (elem->getObjType() == RtObjType::NODEDEF)
+                {
+                    writeNodeDef(elem->asA<PrvNodeDef>(), doc);
+                }
+                else if (elem->getObjType() == RtObjType::NODE)
+                {
+                    writeNode(elem->asA<PrvNode>(), doc);
+                }
+                else if (elem->getObjType() == RtObjType::NODEGRAPH)
+                {
+                    writeNodeGraph(elem->asA<PrvNodeGraph>(), doc);
+                }
+                else if (elem->getObjType() == RtObjType::UNKNOWN)
+                {
+                    writeUnknown(elem->asA<PrvUnknownElement>(), doc->asA<Element>());
+                }
+                else
+                {
+                    std::stringstream str;
+                    str << "Exporting object type '" << size_t(elem->getObjType()) << "' is not supported";
+                    throw ExceptionRuntimeError(str.str());
+                }
+            }
+        }
+    }
+
 } // end anonymous namespace
 
-RtCoreIo::RtCoreIo(RtObject stage) :
+RtFileIo::RtFileIo(RtObject stage) :
     RtApiBase(stage)
 {
 }
 
-RtApiType RtCoreIo::getApiType() const
+RtApiType RtFileIo::getApiType() const
 {
     return RtApiType::CORE_IO;
 }
 
-void RtCoreIo::read(const DocumentPtr& doc, RtCoreIo::ReadFilter filter)
+void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, RtFileIo::ReadFilter filter)
 {
-    PrvStage* stage = data()->asA<PrvStage>();
-    readAttributes(doc, stage, {});
-
-    for (auto elem : doc->getChildren())
+    try
     {
-        if (!filter || filter(elem))
-        {
-            if (elem->isA<NodeDef>())
-            {
-                // Make sure the nodedef has not been loaded already.
-                // When reading node instances their nodedef is loaded as well.
-                if (stage->findChildByName(RtToken(elem->getName())))
-                {
-                    continue;
-                }
-                readNodeDef(elem->asA<NodeDef>(), stage);
-            }
-            else if (elem->isA<Node>())
-            {
-                readNode(elem->asA<Node>(), stage, stage);
-            }
-            else if (elem->isA<NodeGraph>())
-            {
-                readNodeGraph(elem->asA<NodeGraph>(), stage, stage);
-            }
-            else
-            {
-                readUnknown(elem, stage);
-            }
-        }
+        DocumentPtr document = createDocument();
+        XmlReadOptions readOptions;
+        readOptions.skipConflictingElements = true;
+        readFromXmlFile(document, documentPath, searchPaths, &readOptions);
+
+        CopyOptions copyOptions;
+        copyOptions.skipConflictingElements = true;
+
+        PrvStage* stage = data()->asA<PrvStage>();
+
+        readDocument(document, stage, filter);
+    }
+    catch(Exception&)
+    {
+        return;
     }
 }
 
-void RtCoreIo::write(DocumentPtr& doc, RtCoreIo::WriteFilter filter)
+void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
 {
     PrvStage* stage = data()->asA<PrvStage>();
-    writeAttributes(stage, doc);
 
-    for (size_t i = 0; i < stage->numChildren(); ++i)
+    // We must create a single document with all dependents since the read
+    // functionality currently looks for definitions within the same document.
+    DocumentPtr libraryDoc = createDocument();
+    StringVec libraryNames = MaterialX::loadLibraries(libraryPaths, searchPaths, libraryDoc);
+
+    for (const string& uri : libraryNames)
     {
-        PrvObjectHandle elem = stage->getChild(i);
-        if (!filter || filter(RtObject(elem)))
+        PrvObjectHandle libraryStageH = PrvStage::createNew(RtToken(uri));
+        PrvStage* libraryStage = libraryStageH->asA<PrvStage>();
+
+        // Add a temporary reference to include contents from the parent stage
+        // in searches for nodedefs.
+        libraryStage->addReference(stage->shared_from_this());
+
+        readDocument(libraryDoc, libraryStage, [uri](const ElementPtr &e)
         {
-            if (elem->getObjType() == RtObjType::NODEDEF)
-            {
-                writeNodeDef(elem->asA<PrvNodeDef>(), doc);
-            }
-            else if (elem->getObjType() == RtObjType::NODE)
-            {
-                writeNode(elem->asA<PrvNode>(), doc);
-            }
-            else if (elem->getObjType() == RtObjType::NODEGRAPH)
-            {
-                writeNodeGraph(elem->asA<PrvNodeGraph>(), doc);
-            }
-            else if (elem->getObjType() == RtObjType::UNKNOWN)
-            {
-                writeUnknown(elem->asA<PrvUnknownElement>(), doc->asA<Element>());
-            }
-            else
-            {
-                std::stringstream str;
-                str << "Exporting object type '" << size_t(elem->getObjType()) << "' is not supported";
-                throw ExceptionRuntimeError(str.str());
-            }
-        }
+            return (e->getActiveSourceUri() == uri);
+        });
+
+        // Remove temporary reference
+        libraryStage->removeReference(stage->getName());
+
+        stage->addReference(libraryStageH);
     }
+}
+
+void RtFileIo::write(const FilePath& documentPath, const XmlWriteOptions* writeOptions, WriteFilter filter)
+{
+    PrvStage* stage = data()->asA<PrvStage>();
+
+    DocumentPtr document = createDocument();
+    writeDocument(document, stage, filter);
+    writeToXmlFile(document, documentPath, writeOptions);
 }
 
 }

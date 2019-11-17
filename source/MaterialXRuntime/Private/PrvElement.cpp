@@ -105,7 +105,7 @@ RtAttribute* PrvElement::addAttribute(const RtToken& name, const RtToken& type)
         throw ExceptionRuntimeError("An attribute named '" + name.str() + "' already exists for '" + getName().str() + "'");
     }
 
-    AttrPtr attr(new RtAttribute(name, type, getRtObject()));
+    AttrPtr attr(new RtAttribute(name, type, getObject()));
     _attributes.push_back(attr);
     _attributesByName[name] = attr;
 
@@ -133,7 +133,6 @@ PrvAllocator& PrvElement::getAllocator()
     }
     return _parent->getAllocator();
 }
-
 
 PrvUnknownElement::PrvUnknownElement(PrvElement* parent, const RtToken& name, const RtToken& category) :
     PrvElement(RtObjType::UNKNOWN, parent, name),

@@ -93,28 +93,27 @@ void marshalVector(const T& src, string& dest)
     std::stringstream ss;
     for (size_t i = 0; i < T::numElements(); ++i)
     {
-        ss << src[i];
-        if (i != T::numElements()-1)
+        if (i)
         {
             ss << ", ";
         }
+        ss << src[i];
     }
     dest = ss.str();
 }
 template<class T>
 void marshalMatrix(const T& src, string& dest)
 {
-    const size_t last = T::numRows() * T::numColumns() - 1;
     std::stringstream ss;
     for (size_t i = 0; i < T::numColumns(); i++)
     {
         for (size_t j = 0; j < T::numRows(); j++)
         {
-            ss << src[i][j];
-            if (i + j != last)
+            if (i || j)
             {
                 ss << ", ";
             }
+            ss << src[i][j];
         }
     }
     dest = ss.str();

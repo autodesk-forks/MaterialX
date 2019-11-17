@@ -32,11 +32,26 @@ public:
     /// Create a new empty stage.
     static RtObject createNew(const RtToken& name);
 
+    /// Initialize a stage to be empty
+    void initialize();
+
     /// Add a reference to another stage.
     void addReference(RtObject stage);
 
     /// Remove a reference to another stage.
     void removeReference(const RtToken& name);
+
+    /// Remove all references to other stages
+    void removeReferences();
+
+    /// Return the number of references
+    size_t numReferences() const;
+
+    /// Get a reference by index.
+    RtObject getReference(size_t index) const;
+
+    /// Find a reference by name
+    RtObject findReference(const RtToken& name) const;
 
     /// Add an element to the stage.
     void addElement(RtObject elem);
@@ -66,6 +81,9 @@ public:
     /// stages. If a filter is set it will be called to control which
     /// objects to return.
     RtStageIterator traverseStage(RtTraversalFilter filter = nullptr);
+
+  protected:
+    friend class RtFileIo;
 };
 
 }

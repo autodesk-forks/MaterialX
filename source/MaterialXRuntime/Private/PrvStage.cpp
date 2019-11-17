@@ -59,6 +59,36 @@ void PrvStage::removeReference(const RtToken& name)
     }
 }
 
+void PrvStage::removeReferences()
+{
+    _selfRefCount = 0;
+    _refStages.clear();
+    _refStagesSet.clear();
+}
+
+size_t PrvStage::numReferences() const
+{
+    return _refStages.size();
+}
+
+PrvObjectHandle PrvStage::getReference(size_t index) const
+{
+    return index < _refStages.size() ? _refStages[index] : nullptr;
+}
+
+PrvObjectHandle PrvStage::findReference(const RtToken& name) const
+{
+    for (auto it = _refStages.begin(); it != _refStages.end(); ++it)
+    {
+        PrvStage* stage = (*it)->asA<PrvStage>();
+        if (stage->getName() == name)
+        {
+            return *it;
+        }
+    }
+    return nullptr;
+}
+
 PrvObjectHandle PrvStage::findChildByName(const RtToken& name) const
 {
     auto it = _childrenByName.find(name);

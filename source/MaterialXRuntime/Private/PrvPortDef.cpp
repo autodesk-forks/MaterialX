@@ -15,7 +15,7 @@ const RtToken PrvPortDef::DEFAULT_OUTPUT_NAME("out");
 PrvPortDef::PrvPortDef(PrvElement* parent, const RtToken& name, const RtToken& type, uint32_t flags) :
 PrvElement(RtObjType::PORTDEF, parent, name),
 _type(type),
-_value(RtValue::createNew(type, parent->getRtObject())),
+_value(RtValue::createNew(type, parent->getObject())),
 _colorspace(EMPTY_TOKEN),
 _unit(EMPTY_TOKEN),
 _flags(flags)
