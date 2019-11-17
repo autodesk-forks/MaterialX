@@ -19,8 +19,7 @@
 namespace MaterialX
 {
 
-/// API for read and write of data from MaterialXCore documents
-/// to MaterialXRuntime stages.
+/// API for read and write of data from MaterialX files.
 class RtFileIo : public RtApiBase
 {
 public:
@@ -41,7 +40,7 @@ public:
 
     /// Read contents from a file path.
     /// If a filter is used only elements accepted by the filter
-    /// will be red from the document.
+    /// will be read from the document.
     void read(const FilePath& documentPath, const FileSearchPath& searchPaths, ReadFilter filter = nullptr);
 
     /// Write all stage contents to a document.
@@ -49,8 +48,8 @@ public:
     /// will be written to the document.
     void write(const FilePath& documentPath, const XmlWriteOptions* writeOptions = nullptr, WriteFilter filter = nullptr);
 
-    /// Read in dependent libraries as referenced stages, with one reference
-    /// per unique library file.
+    /// Read all contents from one or more libraries.
+    /// All MaterialX files found inside the given libraries will be read.
     void loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
 };
 

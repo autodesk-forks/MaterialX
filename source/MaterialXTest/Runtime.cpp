@@ -531,24 +531,20 @@ TEST_CASE("Runtime: Stage References", "[runtime]")
     REQUIRE(!nodeObj.isValid());
 }
 
-TEST_CASE("Runtime: Traversal", "[runtime1]")
+TEST_CASE("Runtime: Traversal", "[runtime]")
 {
-    // Create a main stage.
-    mx::RtStage mainStage = mx::RtStage::createNew("main");
-
-    // Load stdlib in a seperate stage.
-    mx::DocumentPtr doc = mx::createDocument();
     mx::FileSearchPath searchPath;
     searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
-    loadLibraries({ "stdlib", "pbrlib" }, searchPath, doc);
-    
-    mx::RtStage stdlibStage = mx::RtStage::createNew("stdlib");
-    mx::RtFileIo stdlibIO(stdlibStage.getObject());
-    stdlibIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
+
+    // Load standard libraries in a stage.
+    mx::RtObject libStageObj = mx::RtStage::createNew("libs");
+    mx::RtFileIo libStageIO(libStageObj);
+    libStageIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
 
     // Count elements traversing the full stdlib stage
+    mx::RtStage libStage(libStageObj);
     size_t nodeCount = 0, nodeDefCount = 0, nodeGraphCount = 0;
-    for (auto it = stdlibStage.traverseStage(); !it.isDone(); ++it)
+    for (auto it = libStage.traverseStage(); !it.isDone(); ++it)
     {
         switch ((*it).getObjType())
         {
@@ -565,12 +561,18 @@ TEST_CASE("Runtime: Traversal", "[runtime1]")
             break;
         }
     }
+
+    // Loading the same libraries into a MaterialX document
+    // and tests the same element counts.
+    mx::DocumentPtr doc = mx::createDocument();
+    loadLibraries({ "stdlib", "pbrlib" }, searchPath, doc);
     REQUIRE(nodeCount == doc->getNodes().size());
     REQUIRE(nodeDefCount == doc->getNodeDefs().size());
     REQUIRE(nodeGraphCount == doc->getNodeGraphs().size());
 
-    mx::RtFileIo mainStageIO(mainStage.getObject());
-    mainStageIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
+    // Create a main stage.
+    mx::RtStage mainStage = mx::RtStage::createNew("main");
+    mainStage.addReference(libStageObj);
 
     mx::RtNodeDef nodedef = mainStage.findElementByName("ND_subtract_vector3");
     REQUIRE(nodedef);

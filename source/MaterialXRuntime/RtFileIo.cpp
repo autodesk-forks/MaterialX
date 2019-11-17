@@ -340,19 +340,18 @@ namespace
     {
         readAttributes(doc, stage, {});
 
-        for (auto elem : doc->getChildren())
+        for (const ElementPtr& elem : doc->getChildren())
         {
             if (!filter || filter(elem))
             {
+                // Make sure the element has not been loaded already.
+                if (stage->findChildByName(RtToken(elem->getName())))
+                {
+                    continue;
+                }
+
                 if (elem->isA<NodeDef>())
                 {
-                    // Make sure the nodedef has not been loaded already.
-                    // When reading node instances their nodedef is loaded as well.
-                    RtToken token(elem->getName());
-                    if (stage->findChildByName(token))
-                    {
-                        continue;
-                    }
                     readNodeDef(elem->asA<NodeDef>(), stage);
                 }
                 else if (elem->isA<Node>())
@@ -504,8 +503,6 @@ namespace
         {
             writeNode(node->asA<PrvNode>(), destNodeGraph);
         }
-
-
     }
 
     void writeUnknown(const PrvUnknownElement* unknown, ElementPtr dest)
@@ -566,7 +563,7 @@ RtApiType RtFileIo::getApiType() const
     return RtApiType::CORE_IO;
 }
 
-void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, RtFileIo::ReadFilter filter)
+void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, ReadFilter filter)
 {
     try
     {
@@ -575,46 +572,12 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
         readOptions.skipConflictingElements = true;
         readFromXmlFile(document, documentPath, searchPaths, &readOptions);
 
-        CopyOptions copyOptions;
-        copyOptions.skipConflictingElements = true;
-
         PrvStage* stage = data()->asA<PrvStage>();
-
         readDocument(document, stage, filter);
     }
     catch(Exception&)
     {
         return;
-    }
-}
-
-void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
-{
-    PrvStage* stage = data()->asA<PrvStage>();
-
-    // We must create a single document with all dependents since the read
-    // functionality currently looks for definitions within the same document.
-    DocumentPtr libraryDoc = createDocument();
-    StringVec libraryNames = MaterialX::loadLibraries(libraryPaths, searchPaths, libraryDoc);
-
-    for (const string& uri : libraryNames)
-    {
-        PrvObjectHandle libraryStageH = PrvStage::createNew(RtToken(uri));
-        PrvStage* libraryStage = libraryStageH->asA<PrvStage>();
-
-        // Add a temporary reference to include contents from the parent stage
-        // in searches for nodedefs.
-        libraryStage->addReference(stage->shared_from_this());
-
-        readDocument(libraryDoc, libraryStage, [uri](const ElementPtr &e)
-        {
-            return (e->getActiveSourceUri() == uri);
-        });
-
-        // Remove temporary reference
-        libraryStage->removeReference(stage->getName());
-
-        stage->addReference(libraryStageH);
     }
 }
 
@@ -625,6 +588,47 @@ void RtFileIo::write(const FilePath& documentPath, const XmlWriteOptions* writeO
     DocumentPtr document = createDocument();
     writeDocument(document, stage, filter);
     writeToXmlFile(document, documentPath, writeOptions);
+}
+
+void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
+{
+    PrvStage* stage = data()->asA<PrvStage>();
+
+    // Load all content into a document.
+    DocumentPtr doc = createDocument();
+    MaterialX::loadLibraries(libraryPaths, searchPaths, doc);
+
+    // First, load all nodedefs. Having these available is needed
+    // when node instances are loaded later.
+    for (const NodeDefPtr& nodedef : doc->getNodeDefs())
+    {
+        if (!stage->findChildByName(RtToken(nodedef->getName())))
+        {
+            readNodeDef(nodedef, stage);
+        }
+    }
+
+    // Second, load all other elements.
+    for (const ElementPtr& elem : doc->getChildren())
+    {
+        if (elem->isA<NodeDef>() || stage->findChildByName(RtToken(elem->getName())))
+        {
+            continue;
+        }
+
+        if (elem->isA<Node>())
+        {
+            readNode(elem->asA<Node>(), stage, stage);
+        }
+        else if (elem->isA<NodeGraph>())
+        {
+            readNodeGraph(elem->asA<NodeGraph>(), stage, stage);
+        }
+        else
+        {
+            readUnknown(elem, stage);
+        }
+    }
 }
 
 }
