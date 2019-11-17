@@ -19,6 +19,11 @@ namespace MaterialX
 using PrvObjectHandleVec = vector<PrvObjectHandle>;
 using PrvObjectHandleSet = std::set<PrvObjectHandle>;
 
+// Allocator class handling allocation of data for elements.
+// The data allocated is kept by the allocator and freed
+// upon allocator destruction or by calling free() explicitly.
+// NOTE: Data is stored as raw byte pointers and destructors
+// for allocated objects will not be called when freeing data.
 class PrvAllocator
 {
 public:
@@ -35,7 +40,7 @@ public:
         return ptr;
     }
 
-    // Allocate and and return a single object of templated type.
+    // Allocate and return a single object of templated type.
     // The object constructor is called to initialize it.
     template<class T>
     T* allocType()
@@ -55,7 +60,7 @@ public:
     }
 
 private:
-    std::vector<uint8_t*> _storage;
+    vector<uint8_t*> _storage;
 };
 
 
