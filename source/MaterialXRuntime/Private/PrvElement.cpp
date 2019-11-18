@@ -16,8 +16,8 @@ const string PrvElement::PATH_SEPARATOR = "/";
 
 PrvElement::PrvElement(RtObjType objType, PrvElement* parent, const RtToken& name) :
     PrvObject(objType),
-    _name(name),
-    _parent(parent)
+    _parent(parent),
+    _name(name)
 {
 }
 
