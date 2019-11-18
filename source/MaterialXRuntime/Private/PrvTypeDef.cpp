@@ -267,6 +267,19 @@ void unmarshalNoneValue(const string&, RtValue& dest)
 
 }
 
+PrvTypeDef::PrvTypeDef(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs, const RtToken& semantic,
+    size_t size, const ChannelMap& channelMap) :
+    _name(name),
+    _basetype(basetype),
+    _funcs(funcs),
+    _semantic(semantic),
+    _size(size),
+    _channelMap(channelMap)
+{
+    // TODO: Handle other types in connections
+    _connectionTypes.insert(name);
+}
+
 PrvTypeDefRegistry::PrvTypeDefRegistry()
 {
     // Register all default types.

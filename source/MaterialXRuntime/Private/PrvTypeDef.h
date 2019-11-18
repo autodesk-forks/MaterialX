@@ -18,18 +18,8 @@ public:
     using ChannelMap = std::unordered_map<char, int>;
 
 public:
-    PrvTypeDef(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs, const RtToken& sematic,
-               size_t size, const ChannelMap& channelMap = ChannelMap()) :
-        _name(name),
-        _basetype(basetype),
-        _funcs(funcs),
-        _semantic(sematic),
-        _size(size),
-        _channelMap(channelMap)
-    {
-        // TODO: Handle other types in connections
-        _connectionTypes.insert(name);
-    }
+    PrvTypeDef(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs, const RtToken& semantic,
+        size_t size, const ChannelMap& channelMap = ChannelMap());
 
     const RtToken& getName() const
     {
@@ -69,9 +59,9 @@ public:
 private:
     const RtToken _name;
     const RtToken _basetype;
+    const RtValueFuncs _funcs;
     const RtToken _semantic;
     const size_t _size;
-    const RtValueFuncs _funcs;
     ChannelMap _channelMap;
     RtTokenSet _connectionTypes;
 };
