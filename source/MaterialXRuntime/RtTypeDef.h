@@ -48,6 +48,29 @@ public:
     static const RtToken AUTO;
 };
 
+/// Function type for creating a value of a specific data type.
+using RtValueCreateFunc = std::function<RtValue(RtObject & owner)>;
+
+/// Function type for copying a value of a specific data type.
+using RtValueCopyFunc = std::function<void(const RtValue & src, RtValue & dest)>;
+
+/// Function type for marshaling a value of a specific data type.
+using RtValueMarshalFunc = std::function<void(const RtValue & src, string & dest)>;
+
+/// Function type for demarshaling a value of a specific data type.
+using RtValueUnmarshalFunc = std::function<void(const string & src, RtValue & dest)>;
+
+/// @struct RtValueFuncs
+/// Struct holding functions for creation and marshaling
+/// of values of a specific data type.
+struct RtValueFuncs
+{
+    RtValueCreateFunc create;
+    RtValueCopyFunc copy;
+    RtValueMarshalFunc marshal;
+    RtValueUnmarshalFunc unmarshal;
+};
+
 /// @class RtTypeDef
 /// A type definition for MaterialX data types.
 /// All types need to have a type definition registered in order for the runtime

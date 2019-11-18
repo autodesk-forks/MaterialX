@@ -24,21 +24,6 @@
 namespace MaterialX
 {
 
-class RtValue;
-
-using RtValueCreateFunc = std::function<RtValue(RtObject& owner)>;
-using RtValueCopyFunc = std::function<void(const RtValue& src, RtValue& dest)>;
-using RtValueMarshalFunc = std::function<void(const RtValue& src, string& dest)>;
-using RtValueUnmarshalFunc = std::function<void(const string& src, RtValue& dest)>;
-
-struct RtValueFuncs
-{
-    RtValueCreateFunc create;
-    RtValueCopyFunc copy;
-    RtValueMarshalFunc marshal;
-    RtValueUnmarshalFunc unmarshal;
-};
-
 /// @class RtValue
 /// Generic value class for storing values of all the data types
 /// supported by the API. Values that fit into 16 bytes of data
