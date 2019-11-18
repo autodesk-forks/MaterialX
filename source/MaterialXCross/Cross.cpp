@@ -149,12 +149,14 @@ std::vector<uint32_t> glslToSpirv(
     // Permits uniforms without explicit layout locations
     shader.setAutoMapLocations(true);
 
+    constexpr auto messages = static_cast<EShMessages>(
+        EShMsgSpvRules | EShMsgKeepUncalled | EShMsgDebugInfo
+    );
+
     {
         constexpr int defaultVersion = 450;
         constexpr bool forwardCompatible = false;
-        constexpr auto messages = static_cast<EShMessages>(
-            EShMsgSpvRules | EShMsgKeepUncalled | EShMsgDebugInfo
-        );
+        
         glslang::TShader::ForbidIncluder forbidIncluder;
 
         if (!shader.parse(
@@ -174,7 +176,7 @@ std::vector<uint32_t> glslToSpirv(
 
     glslang::TProgram program;
     program.addShader(&shader);
-    if (!program.link(EShMsgDefault) /*&& program.mapIO()*/)
+    if (!program.link(messages) /*&& program.mapIO()*/)
     {
         const char* const log = program.getInfoLog();
         throw Exception(
@@ -200,8 +202,22 @@ std::vector<uint32_t> glslToSpirv(
 
 std::string spirvToHlsl(std::vector<uint32_t>&& spirv)
 {
-    auto compiler = std::make_unique<spirv_cross::CompilerHLSL>(std::move(spirv));
-    return "";
+    auto crossCompiler = std::make_unique<spirv_cross::CompilerHLSL>(std::move(spirv));
+    crossCompiler->set_entry_point("main", spv::ExecutionModelFragment);
+
+    {
+        spirv_cross::CompilerGLSL::Options commonOptions = crossCompiler->get_common_options();
+        commonOptions.export_functions = true;
+        crossCompiler->set_common_options(commonOptions);
+    }
+
+    //{
+    //    CompilerHLSL::Options hlslOptions = crossCompiler->get_hlsl_options();
+    //    hlslOptions.combined_image_samplers = false; // do we need this?
+    //    crossCompiler->set_common_options(hlslOptions);
+    //}
+
+    return crossCompiler->compile();
 }
 
 } // anonymous namespace
