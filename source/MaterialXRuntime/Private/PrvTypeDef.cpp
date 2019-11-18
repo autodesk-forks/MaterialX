@@ -65,9 +65,12 @@ void copyNoneValue(const RtValue&, RtValue&)
 }
 
 template<class T>
-void marshalValue(const RtValue& src, string& dest)
+void marshalValue(const RtValue&, string&)
 {
+    // TODO: Fix this for gcc/clang
+#ifdef _WIN32
     static_assert(false, "marshalValue must be specialized for all types");
+#endif
 }
 template <> void marshalValue<bool>(const RtValue& src, string& dest)
 {
