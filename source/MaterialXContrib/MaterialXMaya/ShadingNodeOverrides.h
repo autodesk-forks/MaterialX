@@ -19,7 +19,7 @@ class ShadingNodeOverride : public BASE
   public:
     MHWRender::DrawAPI supportedDrawAPIs() const override
     {
-        return MHWRender::kOpenGL | MHWRender::kOpenGLCoreProfile;
+        return MHWRender::kOpenGL | MHWRender::kOpenGLCoreProfile | MHWRender::kDirectX11;
     }
 
     /// Return the name of the OGS fragment used for this shading node.
