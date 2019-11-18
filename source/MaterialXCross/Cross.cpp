@@ -4,6 +4,8 @@
 #include "glslang/Public/ShaderLang.h"
 #include "SPIRV/GlslangToSpv.h"
 
+#include "spirv_hlsl.hpp"
+
 namespace MaterialX
 {
 namespace Cross
@@ -185,7 +187,7 @@ std::vector<uint32_t> glslToSpirv(
     {
         glslang::SpvOptions options;
         options.generateDebugInfo = true;
-        options.disableOptimizer = true;
+        options.disableOptimizer = true; 
         options.optimizeSize = false;
 
         glslang::GlslangToSpv(
@@ -195,6 +197,13 @@ std::vector<uint32_t> glslToSpirv(
 
     return spirv;
 }
+
+std::string spirvToHlsl(std::vector<uint32_t>&& spirv)
+{
+    auto compiler = std::make_unique<spirv_cross::CompilerHLSL>(std::move(spirv));
+    return "";
+}
+
 } // anonymous namespace
 
 void initialize()
@@ -212,8 +221,8 @@ std::string glslToHlsl(
     const std::string& glslCode
 )
 {
-    std::vector<uint32_t> spirv = glslToSpirv(glslGlobalDefinitions, glslCode);
-    return "";
+    std::vector<uint32_t> spirv = glslToSpirv(glslGlobalDefinitions, glslCode);    
+    return spirvToHlsl(std::move(spirv));
 }
 
 }

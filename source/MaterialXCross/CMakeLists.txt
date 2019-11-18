@@ -60,6 +60,7 @@ set_target_properties(
 target_link_libraries(
     MaterialXCross
     glslang OSDependent OGLCompiler HLSL glslang SPIRV
+    spirv-cross-core spirv-cross-hlsl
     ${CMAKE_DL_LIBS})
 
 target_include_directories(MaterialXCross
@@ -67,6 +68,7 @@ target_include_directories(MaterialXCross
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
         $<INSTALL_INTERFACE:include>
         ${glslang_SOURCE_DIR}
+        ${MATERIALX_SPIRV_CROSS_DIR}
     PRIVATE
         ${EXTERNAL_INCLUDE_DIRS}
 )
