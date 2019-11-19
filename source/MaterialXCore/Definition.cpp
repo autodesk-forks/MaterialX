@@ -18,6 +18,7 @@ const string PROCEDURAL_NODE_GROUP = "procedural";
 const string GEOMETRIC_NODE_GROUP = "geometric";
 const string ADJUSTMENT_NODE_GROUP = "adjustment";
 const string CONDITIONAL_NODE_GROUP = "conditional";
+const string ORGANIZATION_NODE_GROUP = "organization";
 
 const string NodeDef::NODE_ATTRIBUTE = "node";
 const string NodeDef::NODE_GROUP_ATTRIBUTE = "nodegroup";
@@ -31,6 +32,30 @@ const string UnitDef::UNITTYPE_ATTRIBUTE = "unittype";
 //
 // NodeDef methods
 //
+
+const string& NodeDef::getType() const
+{
+    // Organizational nodes have no output type
+    if (getNodeGroup() == ORGANIZATION_NODE_GROUP)
+    {
+        return ORGANIZATION_NODE_GROUP;
+    }
+
+    const vector<OutputPtr>& activeOutputs = getActiveOutputs();
+    size_t numActiveOutputs = activeOutputs.size();
+    if (numActiveOutputs > 1)
+    {
+        return MULTI_OUTPUT_TYPE_STRING;
+    }
+    else if (numActiveOutputs == 1)
+    {
+        return activeOutputs[0]->getType();
+    }
+    else
+    {
+        throw Exception("Nodedef: " + getName() + " has no outputs");
+    }
+}
 
 InterfaceElementPtr NodeDef::getImplementation(const string& target, const string& language) const
 {
