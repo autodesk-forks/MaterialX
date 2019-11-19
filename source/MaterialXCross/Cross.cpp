@@ -200,9 +200,19 @@ std::vector<uint32_t> glslToSpirv(
     return spirv;
 }
 
+class HlslFragmentCrossCompiler : public spirv_cross::CompilerHLSL
+{
+public:
+    using spirv_cross::CompilerHLSL::CompilerHLSL;
+
+    void emit_uniform(const spirv_cross::SPIRVariable&) override
+    {
+    }
+};
+
 std::string spirvToHlsl(std::vector<uint32_t>&& spirv)
 {
-    auto crossCompiler = std::make_unique<spirv_cross::CompilerHLSL>(std::move(spirv));
+    auto crossCompiler = std::make_unique<HlslFragmentCrossCompiler>(std::move(spirv));
     crossCompiler->set_entry_point("main", spv::ExecutionModelFragment);
 
     {
