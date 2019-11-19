@@ -210,22 +210,18 @@ public:
     }
 };
 
-std::string spirvToHlsl(std::vector<uint32_t>&& spirv)
+std::string spirvToHlsl(
+    std::vector<uint32_t>&& spirv,
+    const std::string& fragmentName
+)
 {
     auto crossCompiler = std::make_unique<HlslFragmentCrossCompiler>(std::move(spirv));
     crossCompiler->set_entry_point("main", spv::ExecutionModelFragment);
 
-    {
-        spirv_cross::CompilerGLSL::Options commonOptions = crossCompiler->get_common_options();
-        commonOptions.export_functions = true;
-        crossCompiler->set_common_options(commonOptions);
-    }
-
-    //{
-    //    CompilerHLSL::Options hlslOptions = crossCompiler->get_hlsl_options();
-    //    hlslOptions.combined_image_samplers = false; // do we need this?
-    //    crossCompiler->set_common_options(hlslOptions);
-    //}
+    spirv_cross::CompilerHLSL::Options hlslOptions = crossCompiler->get_hlsl_options();
+    //hlslOptions.combined_image_samplers = false; // do we need this?
+    hlslOptions.exported_functions.insert(fragmentName);
+    crossCompiler->set_hlsl_options(hlslOptions);
 
     return crossCompiler->compile();
 }
@@ -244,11 +240,12 @@ void finalize()
 
 std::string glslToHlsl(
     const std::string& glslGlobalDefinitions,
-    const std::string& glslCode
+    const std::string& glslFragment,
+    const std::string& fragmentName
 )
 {
-    std::vector<uint32_t> spirv = glslToSpirv(glslGlobalDefinitions, glslCode);    
-    return spirvToHlsl(std::move(spirv));
+    std::vector<uint32_t> spirv = glslToSpirv(glslGlobalDefinitions, glslFragment);
+    return spirvToHlsl(std::move(spirv), fragmentName);
 }
 
 }

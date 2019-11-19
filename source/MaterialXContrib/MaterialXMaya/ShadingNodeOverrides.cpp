@@ -372,7 +372,7 @@ void ShadingNodeOverride<BASE>::updateShader(MHWRender::MShaderInstance& shaderI
                     MHWRender::MTextureDescription textureDescription;
 
                     mx::ImageSamplingProperties samplingProperties
-                        = ogsFragment->getImageSamplngProperties(textureParameterName);
+                        = ogsFragment->getImageSamplingProperties(textureParameterName);
 
                     MHWRender::MSamplerStateDesc samplerDescription;
 

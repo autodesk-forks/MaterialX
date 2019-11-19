@@ -63,7 +63,7 @@ class OgsFragment
     bool elementIsAShader() const;
 
     /// Get image sampling properties for a given file parameter.
-    mx::ImageSamplingProperties getImageSamplngProperties(const std::string& fileParameterName) const;
+    mx::ImageSamplingProperties getImageSamplingProperties(const std::string& fileParameterName) const;
 
     /// Return whether the fragment represents a transparent surface, as
     /// determined by MaterialX at generation time.

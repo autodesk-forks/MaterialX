@@ -143,7 +143,8 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         {
             hlslSource = mx::Cross::glslToHlsl(
                 _glslShader->getSourceCode(mx::Stage::PIXEL_GLOBALS),
-                _glslShader->getSourceCode(mx::Stage::PIXEL)
+                _glslShader->getSourceCode(mx::Stage::PIXEL),
+                _fragmentName
             );
         }
         catch (std::exception& e)
@@ -213,7 +214,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
     }
 }
 
-mx::ImageSamplingProperties OgsFragment::getImageSamplngProperties(const std::string& fileParameterName) const
+mx::ImageSamplingProperties OgsFragment::getImageSamplingProperties(const std::string& fileParameterName) const
 {
     mx::ImageSamplingProperties samplingProperties;
     if (_glslShader && _glslShader->hasStage(mx::Stage::PIXEL))
