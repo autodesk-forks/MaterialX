@@ -81,7 +81,6 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
     std::ofstream logFile;
     logFile.open(logPath);
 
-    size_t i = 0;
     const std::vector<mx::NodeDefPtr> nodedefs = stdlibDoc->getNodeDefs();
     for (const mx::NodeDefPtr& nodedef : nodedefs)
     {
@@ -140,8 +139,6 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
         }
 
         stdlibDoc->removeChild(node->getName());
-
-        std::cout << ++i << " of " << nodedefs.size() << " completed." << std::endl;
     }
 
     mx::writeToXmlFile(implDoc, outputPath / "stdlib_osl_impl.mtlx");
