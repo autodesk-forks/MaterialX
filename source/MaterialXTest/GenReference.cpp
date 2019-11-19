@@ -51,7 +51,7 @@ const mx::ShaderPort* getShaderPort(const mx::ShaderStage& stage, const std::str
     return nullptr;
 }
 
-TEST_CASE("GenReference: genglsl reference implementation file", "[genreference]")
+TEST_CASE("GenReference: Reference implementation file test", "[genreference]")
 {
     const std::string LIBRARY = "stdlib";
 
@@ -84,12 +84,17 @@ TEST_CASE("GenReference: genglsl reference implementation file", "[genreference]
         const std::string logFilename = genlanguage[i] + "_impl_file_test.txt";
         const mx::FilePath logPath(logFilename);
         std::ofstream logFile;
-        logFile.open(logPath);
 
         mx::DocumentPtr implDoc = mx::createDocument();
         const std::vector<mx::NodeDefPtr> nodedefs = stdlibDoc->getNodeDefs();
         for (const mx::NodeDefPtr& nodedef : nodedefs)
         {
+            // Organizational nodes have no implementations
+            if (nodedef->getNodeGroup() == mx::ORGANIZATION_NODE_GROUP)
+            {
+                continue;
+            }
+
             std::string nodeName = nodedef->getName();
             if (nodeName.size() > 3 && nodeName.substr(0, 3) == DEFINITION_PREFIX)
             {
@@ -100,7 +105,7 @@ TEST_CASE("GenReference: genglsl reference implementation file", "[genreference]
             try
             {
                 mx::ImplementationPtr impl = implDoc->addImplementation(
-                    IMPLEMENTATION_PREFIX + nodeName + "_" + language[i]);
+                    IMPLEMENTATION_PREFIX + nodeName + "_" + genlanguage[i]);
                 impl->setNodeDef(nodedef);
                 impl->setFile((implPath / filename).asString(mx::FilePath::FormatPosix));
                 if (outputFunction[i])
@@ -111,6 +116,10 @@ TEST_CASE("GenReference: genglsl reference implementation file", "[genreference]
             }
             catch (mx::ExceptionShaderGenError& e)
             {
+                if (!logFile.is_open())
+                {
+                    logFile.open();
+                }
                 logFile << "Cannot create implementation reference for node: '" << nodeName << " : ";
                 logFile << e.what() << std::endl;
             }
@@ -118,10 +127,12 @@ TEST_CASE("GenReference: genglsl reference implementation file", "[genreference]
 
         // Save implementations to disk
         const std::string implFileName = LIBRARY + "_" + language[i] + "_" + IMPLEMENTATION_STRING + ".mtlx";
-        std::cout << "write OSL impl file to: " << (outputPath / implFileName).asString() << std::endl;
         mx::writeToXmlFile(implDoc, outputPath / implFileName);
 
-        logFile.close();
+        if (logFile.is_open())
+        {
+            logFile.close();
+        }
     }
 }
 
@@ -152,6 +163,12 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
     const std::vector<mx::NodeDefPtr> nodedefs = stdlibDoc->getNodeDefs();
     for (const mx::NodeDefPtr& nodedef : nodedefs)
     {
+        // Organizational nodes have no implementations
+        if (nodedef->getNodeGroup() == mx::ORGANIZATION_NODE_GROUP)
+        {
+            continue;
+        }
+
         std::string nodeName = nodedef->getName();
         if (nodeName.size() > 3 && nodeName.substr(0, 3) == "ND_")
         {
@@ -208,7 +225,6 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
 
     }
 
-    std::cout << "write OSL impl file to: " << (outputPath / "stdlib_osl_impl.mtlx").asString() << std::endl;
     mx::writeToXmlFile(implDoc, outputPath / "stdlib_osl_impl.mtlx");
 
     logFile.close();
