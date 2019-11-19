@@ -118,7 +118,7 @@ TEST_CASE("GenReference: Reference implementation file test", "[genreference]")
             {
                 if (!logFile.is_open())
                 {
-                    logFile.open();
+                    logFile.open(logPath);
                 }
                 logFile << "Cannot create implementation reference for node: '" << nodeName << " : ";
                 logFile << e.what() << std::endl;
@@ -126,7 +126,7 @@ TEST_CASE("GenReference: Reference implementation file test", "[genreference]")
         }
 
         // Save implementations to disk
-        const std::string implFileName = LIBRARY + "_" + language[i] + "_" + IMPLEMENTATION_STRING + ".mtlx";
+        const std::string implFileName = LIBRARY + "_" + language[i] + "_" + IMPLEMENTATION_STRING + ".refmtlx";
         mx::writeToXmlFile(implDoc, outputPath / implFileName);
 
         if (logFile.is_open())

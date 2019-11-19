@@ -38,7 +38,7 @@ const string& NodeDef::getType() const
     // Organizational nodes have no output type
     if (getNodeGroup() == ORGANIZATION_NODE_GROUP)
     {
-        return ORGANIZATION_NODE_GROUP;
+        return NONE_TYPE_STRING;
     }
 
     const vector<OutputPtr>& activeOutputs = getActiveOutputs();
