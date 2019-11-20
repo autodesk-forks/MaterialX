@@ -72,6 +72,7 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
     mx::ShaderGeneratorPtr generator = mx::OslShaderGenerator::create();
     mx::GenContext context(generator);
     context.registerSourceCodeSearchPath(librariesPath);
+    context.getOptions().fileTextureVerticalFlip = true;
 
     mx::OslRendererPtr oslRenderer = mx::OslRenderer::create();
     oslRenderer->setOslCompilerExecutable(MATERIALX_OSLC_EXECUTABLE);
@@ -90,7 +91,7 @@ TEST_CASE("GenShader: OSL Reference", "[genshader]")
             nodeName = nodeName.substr(3);
         }
 
-        mx::NodePtr node = stdlibDoc->addNode(nodedef->getNodeString(), nodeName, nodedef->getType());
+        mx::NodePtr node = stdlibDoc->addNodeInstance(nodedef, nodeName);
         REQUIRE(node);
 
         const std::string filename = nodeName + ".osl";

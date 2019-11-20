@@ -351,13 +351,19 @@ namespace
         {"UV0", "{u,v}"},
         {"Vworld", "I"}
     };
+
+    std::unordered_map<string, string> UI_WIDGET_METADATA =
+    {
+        {"filename", "string widget = \"filename\""},
+        {"boolean", "string widget = \"checkBox\""}
+    };
 }
 
 void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderStage& stage) const
 {
     for (size_t i = 0; i < inputs.size(); ++i)
     {
-        const ShaderInput* input = static_cast<const ShaderInput*>(inputs[i]);
+        const ShaderPort* input = inputs[i];
         const string& type = _syntax->getTypeName(input->getType());
         const string value = (input->getValue() ?
             _syntax->getValue(input->getType(), *input->getValue(), true) :
@@ -368,12 +374,22 @@ void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
         {
             auto it = GEOMPROP_DEFINITIONS.find(geomprop);
             const string& v = it != GEOMPROP_DEFINITIONS.end() ? it->second : value;
-            emitLine(type + " " + input->getVariable() + " = " + v + " [[ int lockgeom = 0 ]],", stage, false);
+            emitString(type + " " + input->getVariable() + " = " + v, stage);
         }
         else
         {
-            emitLine(type + " " + input->getVariable() + " = " + value + ",", stage, false);
+            emitString(type + " " + input->getVariable() + " = " + value, stage);
         }
+
+        // Add widget metadata.
+        auto it = UI_WIDGET_METADATA.find(input->getType()->getName());
+        if (it != UI_WIDGET_METADATA.end())
+        {
+            emitString(" [[ " + it->second + " ]]", stage);
+        }
+
+        emitString(",", stage);
+        emitLineBreak(stage);
     }
 }
 
