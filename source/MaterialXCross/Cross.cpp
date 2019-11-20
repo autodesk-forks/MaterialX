@@ -1,5 +1,6 @@
 #include "Cross.h"
 #include "MaterialXCore/Library.h"
+#include "MaterialXGenShader/HwShaderGenerator.h"
 
 #include "glslang/Public/ShaderLang.h"
 #include "SPIRV/GlslangToSpv.h"
@@ -205,8 +206,12 @@ class HlslFragmentCrossCompiler : public spirv_cross::CompilerHLSL
 public:
     using spirv_cross::CompilerHLSL::CompilerHLSL;
 
-    void emit_uniform(const spirv_cross::SPIRVariable&) override
+    void emit_uniform(const spirv_cross::SPIRVariable& var) override
     {
+        if (to_name(var.self) == HW::LIGHT_DATA_INSTANCE)
+        {
+            spirv_cross::CompilerHLSL::emit_uniform(var);
+        }
     }
 };
 
@@ -219,9 +224,25 @@ std::string spirvToHlsl(
     crossCompiler->set_entry_point("main", spv::ExecutionModelFragment);
 
     spirv_cross::CompilerHLSL::Options hlslOptions = crossCompiler->get_hlsl_options();
-    //hlslOptions.combined_image_samplers = false; // do we need this?
     hlslOptions.exported_functions.insert(fragmentName);
     crossCompiler->set_hlsl_options(hlslOptions);
+    
+    crossCompiler->build_combined_image_samplers();
+    /*if (args.combined_samplers_inherit_bindings)
+        spirv_cross_util::inherit_combined_sampler_bindings(*compiler);*/
+
+    // Give the remapped combined samplers new names.
+    for (auto &remap : crossCompiler->get_combined_image_samplers())
+    {
+        crossCompiler->set_name(
+            remap.combined_id,
+            spirv_cross::join(
+                "SPIRV_Cross_Combined",
+                crossCompiler->get_name(remap.image_id),
+                crossCompiler->get_name(remap.sampler_id)
+            )
+        );
+    }
 
     return crossCompiler->compile();
 }
