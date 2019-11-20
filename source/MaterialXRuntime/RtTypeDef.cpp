@@ -72,14 +72,14 @@ void RtTypeDef::copyValue(const RtValue& src, RtValue& dest) const
     static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().copy(src, dest);
 }
 
-void RtTypeDef::marshalValue(const RtValue& src, string& dest) const
+void RtTypeDef::toStringValue(const RtValue& src, string& dest) const
 {
-    static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().marshal(src, dest);
+    static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().toString(src, dest);
 }
 
-void RtTypeDef::unmarshalValue(const string& src, RtValue& dest) const
+void RtTypeDef::fromStringValue(const string& src, RtValue& dest) const
 {
-    static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().unmarshal(src, dest);
+    static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().fromString(src, dest);
 }
 
 const RtToken& RtTypeDef::getName() const

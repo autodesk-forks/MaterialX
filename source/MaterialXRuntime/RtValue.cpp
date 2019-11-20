@@ -59,24 +59,24 @@ RtValue RtValue::createNew(const RtToken& type, RtObject owner)
     return typeDef->createValue(owner);
 }
 
-void RtValue::marshal(const RtToken& type, const RtValue& src, string& dest)
+void RtValue::toString(const RtToken& type, const RtValue& src, string& dest)
 {
     const RtTypeDef* typeDef = RtTypeDef::findType(type);
     if (!typeDef)
     {
         throw ExceptionRuntimeError("Type '" + type.str() + "' is not a registered type");
     }
-    typeDef->marshalValue(src, dest);
+    typeDef->toStringValue(src, dest);
 }
 
-void RtValue::unmarshal(const RtToken& type, const string& src, RtValue& dest)
+void RtValue::fromString(const RtToken& type, const string& src, RtValue& dest)
 {
     const RtTypeDef* typeDef = RtTypeDef::findType(type);
     if (!typeDef)
     {
         throw ExceptionRuntimeError("Type '" + type.str() + "' is not a registered type");
     }
-    typeDef->unmarshalValue(src, dest);
+    typeDef->fromStringValue(src, dest);
 }
 
 void RtValue::copy(const RtToken& type, const RtValue& src, RtValue& dest)

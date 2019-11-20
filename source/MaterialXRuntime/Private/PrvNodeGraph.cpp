@@ -68,14 +68,14 @@ void PrvNodeGraph::addPort(PrvObjectHandle portdef)
     p.unit = pd->getUnit();
 
     // Add to external interface
-    def()->addPort(portdef);
+    nodeDef()->addPort(portdef);
     if (_ports.empty())
     {
         _ports.push_back(p);
     }
     else
     {
-        size_t index = def()->findPortIndex(pd->getName());
+        size_t index = nodeDef()->findPortIndex(pd->getName());
         _ports.insert(_ports.begin() + index, p);
     }
 
@@ -98,7 +98,7 @@ void PrvNodeGraph::addPort(PrvObjectHandle portdef)
 
 void PrvNodeGraph::removePort(const RtToken& name)
 {
-    const PrvPortDef* portdef = def()->findPort(name);
+    const PrvPortDef* portdef = nodeDef()->findPort(name);
     if (!portdef)
     {
         return;
@@ -125,12 +125,12 @@ void PrvNodeGraph::removePort(const RtToken& name)
     }
 
     // Remove from external interface
-    size_t index = def()->findPortIndex(name);
+    size_t index = nodeDef()->findPortIndex(name);
     if (index != INVALID_INDEX)
     {
         _ports.erase(_ports.begin() + index);
     }
-    def()->removePort(name);
+    nodeDef()->removePort(name);
 }
 
 string PrvNodeGraph::asStringDot() const

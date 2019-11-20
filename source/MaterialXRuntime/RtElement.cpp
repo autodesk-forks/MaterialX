@@ -20,10 +20,14 @@ RtAttribute::RtAttribute(const RtToken& name, const RtToken& type, RtObject pare
 string RtAttribute::getValueString() const
 {
     string dest;
-    RtValue::marshal(getType(), _value, dest);
+    RtValue::toString(getType(), _value, dest);
     return dest;
 }
 
+void RtAttribute::setValueString(const string& v)
+{
+    RtValue::fromString(getType(), v, _value);
+}
 
 RtElement::RtElement(const RtObject& obj)
 {

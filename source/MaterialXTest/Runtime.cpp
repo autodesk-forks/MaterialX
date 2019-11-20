@@ -113,33 +113,33 @@ TEST_CASE("Runtime: Values", "[runtime]")
     // For small values (<=16byts) the same value instance can be reused
     // For multiple value types.
     mx::RtValue value = mx::RtValue::createNew(mx::RtType::BOOLEAN, stageObj);
-    mx::RtValue::unmarshal(mx::RtType::BOOLEAN, "true", value);
+    mx::RtValue::fromString(mx::RtType::BOOLEAN, "true", value);
     REQUIRE(value.asBool());
-    mx::RtValue::unmarshal(mx::RtType::BOOLEAN, "false", value);
+    mx::RtValue::fromString(mx::RtType::BOOLEAN, "false", value);
     REQUIRE(!value.asBool());
-    mx::RtValue::unmarshal(mx::RtType::INTEGER, "23", value);
+    mx::RtValue::fromString(mx::RtType::INTEGER, "23", value);
     REQUIRE(value.asInt() == 23);
-    mx::RtValue::unmarshal(mx::RtType::FLOAT, "1234.5678", value);
+    mx::RtValue::fromString(mx::RtType::FLOAT, "1234.5678", value);
     REQUIRE(fabs(value.asFloat() - 1234.5678f) < 1e-3f);
-    mx::RtValue::unmarshal(mx::RtType::COLOR2, "1.0, 2.0", value);
+    mx::RtValue::fromString(mx::RtType::COLOR2, "1.0, 2.0", value);
     REQUIRE(value.asColor2() == mx::Color2(1.0, 2.0));
-    mx::RtValue::unmarshal(mx::RtType::COLOR3, "1.0, 2.0, 3.0", value);
+    mx::RtValue::fromString(mx::RtType::COLOR3, "1.0, 2.0, 3.0", value);
     REQUIRE(value.asColor3() == mx::Color3(1.0, 2.0, 3.0));
-    mx::RtValue::unmarshal(mx::RtType::COLOR4, "1.0, 2.0, 3.0, 4.0", value);
+    mx::RtValue::fromString(mx::RtType::COLOR4, "1.0, 2.0, 3.0, 4.0", value);
     REQUIRE(value.asColor4() == mx::Color4(1.0, 2.0, 3.0, 4.0));
-    mx::RtValue::unmarshal(mx::RtType::TOKEN, "materialx", value);
+    mx::RtValue::fromString(mx::RtType::TOKEN, "materialx", value);
     REQUIRE(value.asToken() == mx::RtToken("materialx"));
     // For large values (>16bytes) we need to allocate a new value instance per type
     mx::RtValue matrix33Value = mx::RtValue::createNew(mx::RtType::MATRIX33, stageObj);
-    mx::RtValue::unmarshal(mx::RtType::MATRIX33, "1.0, 0.0, 0.0,  0.0, 1.0, 0.0,  0.0, 0.0, 1.0", matrix33Value);
+    mx::RtValue::fromString(mx::RtType::MATRIX33, "1.0, 0.0, 0.0,  0.0, 1.0, 0.0,  0.0, 0.0, 1.0", matrix33Value);
     REQUIRE(matrix33Value.asMatrix33() == mx::Matrix33::IDENTITY);
     mx::RtValue matrix44Value = mx::RtValue::createNew(mx::RtType::MATRIX44, stageObj);
-    mx::RtValue::unmarshal(mx::RtType::MATRIX44, "1.0, 0.0, 0.0, 0.0,  0.0, 1.0, 0.0, 0.0,  0.0, 0.0, 1.0, 0.0,  0.0, 0.0, 0.0, 1.0", matrix44Value);
+    mx::RtValue::fromString(mx::RtType::MATRIX44, "1.0, 0.0, 0.0, 0.0,  0.0, 1.0, 0.0, 0.0,  0.0, 0.0, 1.0, 0.0,  0.0, 0.0, 0.0, 1.0", matrix44Value);
     REQUIRE(matrix44Value.asMatrix44() == mx::Matrix44::IDENTITY);
     mx::RtValue stringValue = mx::RtValue::createNew(mx::RtType::STRING, stageObj);
-    mx::RtValue::unmarshal(mx::RtType::STRING, "materialx", stringValue);
+    mx::RtValue::fromString(mx::RtType::STRING, "materialx", stringValue);
     REQUIRE(stringValue.asString() == "materialx");
-    REQUIRE_THROWS(mx::RtValue::unmarshal(mx::RtType::INTEGER, "true", value));
+    REQUIRE_THROWS(mx::RtValue::fromString(mx::RtType::INTEGER, "true", value));
 }
 
 TEST_CASE("Runtime: Types", "[runtime]")
@@ -195,7 +195,7 @@ TEST_CASE("Runtime: Types", "[runtime]")
 
     mx::RtValue fooValue = fooType->createValue(stageObj);
     REQUIRE(fooValue.asInt() == 7);
-    fooType->unmarshalValue("bar", fooValue);
+    fooType->fromStringValue("bar", fooValue);
     REQUIRE(fooValue.asInt() == 42);
 
     const mx::RtTypeDef* stringType = mx::RtTypeDef::findType("string");
@@ -206,7 +206,7 @@ TEST_CASE("Runtime: Types", "[runtime]")
     REQUIRE(stringValue2.asString() == "foobar");
 
     mx::RtValue intValue = integerType->createValue(stageObj);
-    integerType->unmarshalValue("12345", intValue);
+    integerType->fromStringValue("12345", intValue);
     REQUIRE(intValue.asInt() == 12345);
 
     // Make sure we can't use a name already take

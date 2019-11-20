@@ -58,8 +58,11 @@ public:
         _value = value;
     }
 
-    /// Return a string representation for the value of this port.
+    /// Return a string representation for the value of this attribute.
     string getValueString() const;
+
+    /// Set attribute value from a string representation.
+    void setValueString(const string& v);
 
 private:
     /// Private constructor.

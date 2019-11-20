@@ -80,6 +80,9 @@ public:
     /// Return a string representation for the value of this port.
     string getValueString() const;
 
+    /// Set the port value from a string representation.
+    void setValueString(const string& v);
+
     /// Get the color space for this value.
     const RtToken& getColorSpace() const;
 

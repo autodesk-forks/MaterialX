@@ -54,21 +54,21 @@ using RtValueCreateFunc = std::function<RtValue(RtObject & owner)>;
 /// Function type for copying a value of a specific data type.
 using RtValueCopyFunc = std::function<void(const RtValue & src, RtValue & dest)>;
 
-/// Function type for marshaling a value of a specific data type.
-using RtValueMarshalFunc = std::function<void(const RtValue & src, string & dest)>;
+/// Function type for converting a value of a specific data type.
+using RtValueToStringFunc = std::function<void(const RtValue & src, string & dest)>;
 
-/// Function type for demarshaling a value of a specific data type.
-using RtValueUnmarshalFunc = std::function<void(const string & src, RtValue & dest)>;
+/// Function type for converting a value of a specific data type.
+using RtValueFromStringFunc = std::function<void(const string & src, RtValue & dest)>;
 
 /// @struct RtValueFuncs
-/// Struct holding functions for creation and marshaling
+/// Struct holding functions for creation and conversion
 /// of values of a specific data type.
 struct RtValueFuncs
 {
     RtValueCreateFunc create;
     RtValueCopyFunc copy;
-    RtValueMarshalFunc marshal;
-    RtValueUnmarshalFunc unmarshal;
+    RtValueToStringFunc toString;
+    RtValueFromStringFunc fromString;
 };
 
 /// @class RtTypeDef
@@ -161,12 +161,12 @@ public:
     /// Copy data from one value to another.
     void copyValue(const RtValue& src, RtValue& dest) const;
 
-    /// Marchal an RtValue of this type into a string representation.
-    void marshalValue(const RtValue& src, string& dest) const;
+    /// Convert an RtValue of this type into a string representation.
+    void toStringValue(const RtValue& src, string& dest) const;
 
-    /// Unmarshal a string representation into a RtValue of this type.
+    /// Convert a string representation into an RtValue of this type.
     /// Destination RtValue must been initialized for the given type.
-    void unmarshalValue(const string& src, RtValue& dest) const;
+    void fromStringValue(const string& src, RtValue& dest) const;
 
     /// Register a type descriptor for a MaterialX data type.
     /// Throws an exception if a type with the same name is already registered.

@@ -22,13 +22,13 @@ PrvNode::PrvNode(PrvElement* parent, const RtToken& name, const PrvObjectHandle&
     PrvAllocatingElement(objType, parent, name),
     _nodedef(nodedef)
 {
-    const size_t numPorts = def()->numPorts();
+    const size_t numPorts = nodeDef()->numPorts();
     _ports.resize(numPorts);
 
     // Set indices and default values
     for (size_t i = 0; i < numPorts; ++i)
     {
-        PrvPortDef* p = def()->getPort(i);
+        PrvPortDef* p = nodeDef()->getPort(i);
         _ports[i].value = p->getValue();
     }
 }

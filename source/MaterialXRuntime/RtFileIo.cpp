@@ -104,7 +104,7 @@ namespace
                 PrvPortDef* input = inputH->asA<PrvPortDef>();
                 if (!valueStr.empty())
                 {
-                    RtValue::unmarshal(portType, valueStr, input->getValue());
+                    RtValue::fromString(portType, valueStr, input->getValue());
                 }
                 input->setColorSpace(RtToken(elem->getColorSpace()));
                 // TODO: fix when units are implemented in core
@@ -121,7 +121,7 @@ namespace
                 PrvPortDef* input = inputH->asA<PrvPortDef>();
                 if (!valueStr.empty())
                 {
-                    RtValue::unmarshal(portType, valueStr, input->getValue());
+                    RtValue::fromString(portType, valueStr, input->getValue());
                 }
                 input->setColorSpace(RtToken(elem->getColorSpace()));
                 // TODO: fix when units are implemented in core
@@ -166,7 +166,7 @@ namespace
             if (!valueStr.empty())
             {
                 const RtToken portType(elem->getType());
-                RtValue::unmarshal(portType, valueStr, port.getValue());
+                RtValue::fromString(portType, valueStr, port.getValue());
             }
         }
 
@@ -256,7 +256,7 @@ namespace
                             const string& valueStr = elem->getValueString();
                             if (!valueStr.empty())
                             {
-                                RtValue::unmarshal(portType, valueStr, socket->asA<PrvPortDef>()->getValue());
+                                RtValue::fromString(portType, valueStr, socket->asA<PrvPortDef>()->getValue());
                             }
                         }
                         const RtToken inputName(elem->getName());

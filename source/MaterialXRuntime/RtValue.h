@@ -233,12 +233,12 @@ public:
     /// Both RtValue instances must be initialized for the given type.
     static void copy(const RtToken& type, const RtValue& src, RtValue& dest);
 
-    /// Marchal an RtValue of given type into a string representation.
-    static void marshal(const RtToken& type, const RtValue& src, string& dest);
+    /// Convert an RtValue of given type into a string representation.
+    static void toString(const RtToken& type, const RtValue& src, string& dest);
 
-    /// Unmarchal a value from a string representation into a RtValue of the given type.
+    /// Convert a value from a string representation into an RtValue of the given type.
     /// Destination RtValue must been initialized for the given type.
-    static void unmarshal(const RtToken& type, const string& src, RtValue& dest);
+    static void fromString(const RtToken& type, const string& src, RtValue& dest);
 
 private:
     // 16 bytes of data storage to hold the main data types,

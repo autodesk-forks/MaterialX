@@ -48,7 +48,7 @@ public:
     string getValueString() const
     {
         string dest;
-        RtValue::marshal(getType(), _value, dest);
+        RtValue::toString(getType(), _value, dest);
         return dest;
     }
 

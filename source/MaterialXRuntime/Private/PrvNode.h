@@ -39,17 +39,17 @@ public:
 
     const RtToken& getNodeName() const
     {
-        return def()->getNodeName();
+        return nodeDef()->getNodeName();
     }
 
     size_t numPorts() const
     {
-        return def()->numPorts();
+        return nodeDef()->numPorts();
     }
 
     size_t numOutputs() const
     {
-        return def()->numOutputs();
+        return nodeDef()->numOutputs();
     }
 
     size_t numInputs() const
@@ -59,23 +59,23 @@ public:
 
     size_t getOutputsOffset() const
     {
-        return def()->getOutputsOffset();
+        return nodeDef()->getOutputsOffset();
     }
 
     size_t getInputsOffset() const
     {
-        return def()->getInputsOffset();
+        return nodeDef()->getInputsOffset();
     }
 
     RtPort getPort(size_t index)
     {
-        PrvPortDef* portdef = def()->getPort(index);
+        PrvPortDef* portdef = nodeDef()->getPort(index);
         return portdef ? RtPort(shared_from_this(), index) : RtPort();
     }
 
     RtPort findPort(const RtToken& name)
     {
-        const size_t index = def()->findPortIndex(name);
+        const size_t index = nodeDef()->findPortIndex(name);
         return index != INVALID_INDEX ? RtPort(shared_from_this(), index) : RtPort();
     }
 
@@ -84,7 +84,7 @@ public:
     static void disconnect(const RtPort& source, const RtPort& dest);
 
 protected:
-    PrvNodeDef* def() const
+    PrvNodeDef* nodeDef() const
     {
         return _nodedef->asA<PrvNodeDef>();
     }
