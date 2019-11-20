@@ -37,12 +37,6 @@ const string& NodeDef::getType() const
 {
     const vector<OutputPtr>& activeOutputs = getActiveOutputs();
 
-    // Some organizational nodes have no output types
-    if (getNodeGroup() == ORGANIZATION_NODE_GROUP && activeOutputs.empty())
-    {
-        return NONE_TYPE_STRING;
-    }
-
     size_t numActiveOutputs = activeOutputs.size();
     if (numActiveOutputs > 1)
     {
@@ -52,10 +46,7 @@ const string& NodeDef::getType() const
     {
         return activeOutputs[0]->getType();
     }
-    else
-    {
-        throw Exception("Nodedef: " + getName() + " has no outputs");
-    }
+    return EMPTY_STRING;
 }
 
 InterfaceElementPtr NodeDef::getImplementation(const string& target, const string& language) const

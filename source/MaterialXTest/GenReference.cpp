@@ -91,8 +91,8 @@ TEST_CASE("GenReference: Reference implementation file test", "[genreference]")
         const std::vector<mx::NodeDefPtr> nodedefs = stdlibDoc->getNodeDefs();
         for (const mx::NodeDefPtr& nodedef : nodedefs)
         {
-            // Some nodes have no type, such as some organizational nodes 
-            if (nodedef->getType() == mx::NONE_TYPE_STRING)
+            // Skip typeless nodes
+            if (nodedef->getType().empty())
             {
                 continue;
             }
@@ -180,8 +180,8 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
     const std::vector<mx::NodeDefPtr> nodedefs = stdlibDoc->getNodeDefs();
     for (const mx::NodeDefPtr& nodedef : nodedefs)
     {
-        // Some nodes have no type, such as some organizational nodes 
-        if (nodedef->getType() == mx::NONE_TYPE_STRING)
+        // Skip typeless nodes
+        if (nodedef->getType().empty())
         {
             continue;
         }
