@@ -13,12 +13,12 @@ namespace MaterialX
 const string COLOR_SEMANTIC = "color";
 const string SHADER_SEMANTIC = "shader";
 
-const string TEXTURE_NODE_GROUP = "texture";
-const string PROCEDURAL_NODE_GROUP = "procedural";
-const string GEOMETRIC_NODE_GROUP = "geometric";
-const string ADJUSTMENT_NODE_GROUP = "adjustment";
-const string CONDITIONAL_NODE_GROUP = "conditional";
-const string ORGANIZATION_NODE_GROUP = "organization";
+const string NodeDef::TEXTURE_NODE_GROUP = "texture";
+const string NodeDef::PROCEDURAL_NODE_GROUP = "procedural";
+const string NodeDef::GEOMETRIC_NODE_GROUP = "geometric";
+const string NodeDef::ADJUSTMENT_NODE_GROUP = "adjustment";
+const string NodeDef::CONDITIONAL_NODE_GROUP = "conditional";
+const string NodeDef::ORGANIZATION_NODE_GROUP = "organization";
 
 const string NodeDef::NODE_ATTRIBUTE = "node";
 const string NodeDef::NODE_GROUP_ATTRIBUTE = "nodegroup";
@@ -35,13 +35,14 @@ const string UnitDef::UNITTYPE_ATTRIBUTE = "unittype";
 
 const string& NodeDef::getType() const
 {
-    // Organizational nodes have no output type
-    if (getNodeGroup() == ORGANIZATION_NODE_GROUP)
+    const vector<OutputPtr>& activeOutputs = getActiveOutputs();
+
+    // Some organizational nodes have no output types
+    if (getNodeGroup() == ORGANIZATION_NODE_GROUP && activeOutputs.empty())
     {
         return NONE_TYPE_STRING;
     }
 
-    const vector<OutputPtr>& activeOutputs = getActiveOutputs();
     size_t numActiveOutputs = activeOutputs.size();
     if (numActiveOutputs > 1)
     {
