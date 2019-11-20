@@ -184,13 +184,9 @@ namespace
             if (shaderPort->getType() == Type::FILENAME)
             {
                 const string& samplerName = shaderPort->getVariable();
-                static const size_t SAMPLER_SUFFIX_LENGTH = OgsXmlGenerator::SAMPLER_SUFFIX.size();
-
-                if (samplerName.size() > SAMPLER_SUFFIX_LENGTH
-                    && samplerName.substr(samplerName.size() - SAMPLER_SUFFIX_LENGTH) == OgsXmlGenerator::SAMPLER_SUFFIX
-                )
+                const string textureName = OgsXmlGenerator::stripSamplerSuffix(samplerName);
+                if (!textureName.empty())
                 {
-                    string textureName = samplerName.substr(0, samplerName.size() - SAMPLER_SUFFIX_LENGTH);
                     pugi::xml_node texture = parent.append_child(TEXTURE2);
                     xmlSetProperty(texture, shaderPort->getName(), textureName, flags);
                     pugi::xml_node sampler = parent.append_child(SAMPLER);
@@ -257,6 +253,20 @@ namespace
 const string OgsXmlGenerator::OUTPUT_NAME = "outColor";
 const string OgsXmlGenerator::VP_TRANSPARENCY_NAME = "vp2Transparency";
 const string OgsXmlGenerator::SAMPLER_SUFFIX = "_sampler";
+
+bool OgsXmlGenerator::hasSamplerSuffix(const string& samplerName)
+{
+    static const size_t SUFFIX_LENGTH = SAMPLER_SUFFIX.size();
+    return samplerName.size() > SUFFIX_LENGTH
+        && 0 == samplerName.compare(samplerName.size() - SUFFIX_LENGTH, SUFFIX_LENGTH, SAMPLER_SUFFIX);
+}
+
+string OgsXmlGenerator::stripSamplerSuffix(const string& samplerName)
+{
+    static const size_t SUFFIX_LENGTH = SAMPLER_SUFFIX.size();
+    return hasSamplerSuffix(samplerName)
+        ? samplerName.substr(0, samplerName.size() - SUFFIX_LENGTH) : "";
+}
 
 OgsXmlGenerator::OgsXmlGenerator()
 {

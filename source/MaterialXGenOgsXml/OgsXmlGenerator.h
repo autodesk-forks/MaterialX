@@ -28,6 +28,9 @@ public:
         std::ostream&
     );
 
+    static bool hasSamplerSuffix(const string&);
+    static string stripSamplerSuffix(const string&);
+
     /// String constants
     static const string OUTPUT_NAME;
     static const string VP_TRANSPARENCY_NAME;

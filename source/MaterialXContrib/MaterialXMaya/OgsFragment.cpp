@@ -197,16 +197,19 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
 
         for (size_t i = 0; i < uniforms.size(); ++i)
         {
-            const mx::ShaderPort* port = uniforms[i];
+            const mx::ShaderPort* const port = uniforms[i];
             const std::string& path = port->getPath();
             if (!path.empty())
             {
-                std::string name = port->getVariable();
+                const std::string& name = port->getVariable();
                 if (port->getType()->getSemantic() == mx::TypeDesc::SEMANTIC_FILENAME)
                 {
-                    // Strip out the "_sampler" post-fix to get the texture name.
-                    size_t pos = name.rfind(mx::OgsXmlGenerator::SAMPLER_SUFFIX);
-                    name.erase(pos, mx::OgsXmlGenerator::SAMPLER_SUFFIX.length());
+                    std::string textureName = mx::OgsXmlGenerator::stripSamplerSuffix(name);
+                    if (!textureName.empty())
+                    {
+                        _pathInputMap[path] = textureName;
+                        continue;
+                    }
                 }
                 _pathInputMap[path] = name;
             }

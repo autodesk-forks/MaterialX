@@ -25,8 +25,7 @@ string GlslFragmentSyntax::getVariableName(const string& name, const TypeDesc* t
     if (type == Type::FILENAME)
     {
         // Make sure it's not already used.
-        if (variable.size() <= OgsXmlGenerator::SAMPLER_SUFFIX.size() || 
-            variable.substr(variable.size() - OgsXmlGenerator::SAMPLER_SUFFIX.size()) != OgsXmlGenerator::SAMPLER_SUFFIX)
+        if (!OgsXmlGenerator::hasSamplerSuffix(variable))
         {
             variable += OgsXmlGenerator::SAMPLER_SUFFIX;
         }
@@ -53,8 +52,8 @@ GlslFragmentGenerator::GlslFragmentGenerator() :
     _tokenSubstitutions[HW::T_BITANGENT_WORLD]      = "Bw";
     _tokenSubstitutions[HW::T_BITANGENT_OBJECT]     = "Bm";
     _tokenSubstitutions[HW::T_VERTEX_DATA_INSTANCE] = "PIX_IN";
-    _tokenSubstitutions[HW::T_ENV_IRRADIANCE]       = "u_envIrradiance" + OgsXmlGenerator::SAMPLER_SUFFIX;
-    _tokenSubstitutions[HW::T_ENV_RADIANCE]         = "u_envRadiance" + OgsXmlGenerator::SAMPLER_SUFFIX;
+    _tokenSubstitutions[HW::T_ENV_IRRADIANCE]       = HW::ENV_IRRADIANCE + OgsXmlGenerator::SAMPLER_SUFFIX;
+    _tokenSubstitutions[HW::T_ENV_RADIANCE]         = HW::ENV_RADIANCE + OgsXmlGenerator::SAMPLER_SUFFIX;
 }
 
 ShaderGeneratorPtr GlslFragmentGenerator::create()
