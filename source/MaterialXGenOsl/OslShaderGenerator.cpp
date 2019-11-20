@@ -369,6 +369,8 @@ void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
             _syntax->getValue(input->getType(), *input->getValue(), true) :
             _syntax->getDefaultValue(input->getType(), true));
 
+        emitLineBegin(stage);
+
         const string& geomprop = input->getGeomProp();
         if (!geomprop.empty())
         {
@@ -389,7 +391,7 @@ void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
         }
 
         emitString(",", stage);
-        emitLineBreak(stage);
+        emitLineEnd(stage, false);
     }
 }
 
