@@ -252,7 +252,7 @@ namespace
 
 const string OgsXmlGenerator::OUTPUT_NAME = "outColor";
 const string OgsXmlGenerator::VP_TRANSPARENCY_NAME = "vp2Transparency";
-const string OgsXmlGenerator::SAMPLER_SUFFIX = "Sampler";
+const string OgsXmlGenerator::SAMPLER_SUFFIX = "_sampler";
 
 OgsXmlGenerator::OgsXmlGenerator()
 {

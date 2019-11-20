@@ -53,8 +53,8 @@ GlslFragmentGenerator::GlslFragmentGenerator() :
     _tokenSubstitutions[HW::T_BITANGENT_WORLD]      = "Bw";
     _tokenSubstitutions[HW::T_BITANGENT_OBJECT]     = "Bm";
     _tokenSubstitutions[HW::T_VERTEX_DATA_INSTANCE] = "PIX_IN";
-    _tokenSubstitutions[HW::T_ENV_IRRADIANCE]       = "u_envIrradianceSampler";
-    _tokenSubstitutions[HW::T_ENV_RADIANCE]         = "u_envRadianceSampler";
+    _tokenSubstitutions[HW::T_ENV_IRRADIANCE]       = "u_envIrradiance" + OgsXmlGenerator::SAMPLER_SUFFIX;
+    _tokenSubstitutions[HW::T_ENV_RADIANCE]         = "u_envRadiance" + OgsXmlGenerator::SAMPLER_SUFFIX;
 }
 
 ShaderGeneratorPtr GlslFragmentGenerator::create()

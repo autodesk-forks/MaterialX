@@ -137,12 +137,12 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shaderInstance,
         }
     }
 
-    // Bind sampler
-    static const std::string SAMPLE_PREFIX_STRING("Sampler");
-    const std::string samplerParameterName = parameterName + SAMPLE_PREFIX_STRING;
-    MayaUtil::SamplerUniquePtr samplerState{ MHWRender::MStateManager::acquireSamplerState(samplerDescription) };
-    if (samplerState)
+    // Bind the sampler
+    if (MayaUtil::SamplerUniquePtr samplerState{
+        MHWRender::MStateManager::acquireSamplerState(samplerDescription)
+    })
     {
+        const std::string samplerParameterName = parameterName + mx::OgsXmlGenerator::SAMPLER_SUFFIX;
         status = shaderInstance.setParameter(samplerParameterName.c_str(), *samplerState);
     }
 
@@ -362,7 +362,6 @@ void ShadingNodeOverride<BASE>::updateShader(MHWRender::MShaderInstance& shaderI
 
             else if (valueElement->getType() == mx::FILENAME_TYPE_STRING)
             {
-                // This is the hard-coded OGS convention to associate a texture with a sampler (via post-fix "Sampler" string)
                 const std::string textureParameterName(resolvedName.asChar());
 
                 // Bind texture and sampler
