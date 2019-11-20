@@ -17,6 +17,8 @@
 #include <MaterialXGenOsl/OslShaderGenerator.h>
 #include <MaterialXGenOsl/OslSyntax.h>
 
+#include <MaterialXRenderOsl/OslRenderer.h>
+
 namespace mx = MaterialX;
 
 const mx::ShaderPort* getShaderPort(const mx::ShaderStage& stage, const std::string& name)
@@ -165,6 +167,11 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
     mx::ShaderGeneratorPtr generator = mx::OslShaderGenerator::create();
     mx::GenContext context(generator);
     context.registerSourceCodeSearchPath(librariesPath);
+    context.getOptions().fileTextureVerticalFlip = true;
+
+    mx::OslRendererPtr oslRenderer = mx::OslRenderer::create();
+    oslRenderer->setOslCompilerExecutable(MATERIALX_OSLC_EXECUTABLE);
+    oslRenderer->setOslIncludePath(MATERIALX_OSL_INCLUDE_PATH);
 
     const mx::FilePath logPath("genosl_reference_generate_test.txt");
     std::ofstream logFile;
@@ -185,7 +192,7 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
             nodeName = nodeName.substr(3);
         }
 
-        mx::NodePtr node = stdlibDoc->addNode(nodedef->getNodeString(), nodeName, nodedef->getType());
+        mx::NodePtr node = stdlibDoc->addNodeInstance(nodedef, nodeName);
         REQUIRE(node);
 
         const std::string filename = nodeName + ".osl";
@@ -199,6 +206,8 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
             REQUIRE(file.is_open());
             file << shader->getSourceCode();
             file.close();
+
+            oslRenderer->compileOSL(filepath);
 
             mx::ImplementationPtr impl = implDoc->addImplementation("IM_" + nodeName + "_osl");
             impl->setNodeDef(nodedef);
@@ -225,14 +234,13 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
                 }
             }
         }
-        catch (mx::ExceptionShaderGenError& e)
+        catch (mx::Exception & e)
         {
-            logFile << "Generating node not current supported: '" << nodeName << " : ";
+            logFile << "Error generating OSL reference for '" << nodeName << "' : " << std::endl;
             logFile << e.what() << std::endl;
         }
 
         stdlibDoc->removeChild(node->getName());
-
     }
 
     mx::writeToXmlFile(implDoc, outputPath / "stdlib_osl_impl.mtlx");
