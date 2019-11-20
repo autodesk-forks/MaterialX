@@ -151,8 +151,8 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shaderInstance,
 
 // This should be a shared utility
 void bindEnvironmentLighting(MHWRender::MShaderInstance& shaderInstance,
-                            const MStringArray parameterList,
-                            const mx::FileSearchPath imageSearchPath,
+                            const MStringArray& parameterList,
+                            const mx::FileSearchPath& imageSearchPath,
                             const MaterialXNode& node)
 {
     MHWRender::MSamplerStateDesc samplerDescription;
