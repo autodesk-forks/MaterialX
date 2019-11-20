@@ -94,6 +94,16 @@ TEST_CASE("GenReference: Reference implementation file test", "[genreference]")
             {
                 continue;
             }
+            bool hasOutputs = !nodedef->getActiveOutputs().empty();
+            CHECK(hasOutputs);
+            if (!hasOutputs)
+            {
+                if (!logFile.is_open())
+                {
+                    logFile.open(logPath);
+                }
+                logFile << "Cannot create implementation reference for nodedef which has not outputs: '" << nodedef->getName() << std::endl;
+            }
 
             std::string nodeName = nodedef->getName();
             if (nodeName.size() > 3 && nodeName.substr(0, 3) == DEFINITION_PREFIX)
