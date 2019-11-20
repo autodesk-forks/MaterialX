@@ -14,8 +14,7 @@
 namespace MaterialX
 {
 
-// Helper class to create the constant block for mx_<unittype>_unit
-class ScalarUnitNode : public SourceCodeNode
+class ScalarUnitNode : public ShaderNodeImpl
 {
   public:
     explicit ScalarUnitNode(LinearUnitConverterPtr scalarUnitConverter) :
@@ -26,6 +25,7 @@ class ScalarUnitNode : public SourceCodeNode
     static ShaderNodeImplPtr create(LinearUnitConverterPtr scalarUnitConverter);
 
     void emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
+    void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 
   protected:
     LinearUnitConverterPtr _scalarUnitConverter;
@@ -36,8 +36,9 @@ ShaderNodeImplPtr ScalarUnitNode::create(LinearUnitConverterPtr scalarUnitConver
     return std::make_shared<ScalarUnitNode>(scalarUnitConverter);
 }
 
-void ScalarUnitNode::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void ScalarUnitNode::emitFunctionDefinition(const ShaderNode& /*node*/, GenContext& context, ShaderStage& stage) const
 {
+BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     // Emit the helper funtion mx_<unittype>_unit_ratio that embeds a look up table for unit scale
     vector<float> unitScales;
     unitScales.reserve(_scalarUnitConverter->getUnitScale().size());
@@ -54,24 +55,37 @@ void ScalarUnitNode::emitFunctionDefinition(const ShaderNode& node, GenContext& 
     ScopedFloatFormatting fmt(Value::FloatFormatFixed, 15);
     unitLUT.add(Type::FLOATARRAY, VAR_UNIT_SCALE, Value::createValue<vector<float>>(unitScales));
 
-    BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     const ShaderGenerator& shadergen = context.getShaderGenerator();
-    shadergen.emitString("float mx_" + _scalarUnitConverter->getUnitType() + "_unit_ratio(int unit_from, int unit_to)", stage);
-    shadergen.emitLineBreak(stage);
+    shadergen.emitLine("float mx_" + _scalarUnitConverter->getUnitType() + "_unit_ratio(int unit_from, int unit_to)", stage, false);
     shadergen.emitScopeBegin(stage);
-
-    shadergen.emitLineBreak(stage);
     shadergen.emitVariableDeclarations(unitLUT, shadergen.getSyntax().getConstantQualifier(), ";", context, stage, true);
-
-    shadergen.emitLineBreak(stage);
-    shadergen.emitString("return ("+ VAR_UNIT_SCALE + "[unit_from] / " + VAR_UNIT_SCALE + "[unit_to]);", stage);
-    shadergen.emitLineBreak(stage);
+    shadergen.emitLine("return ("+ VAR_UNIT_SCALE + "[unit_from] / " + VAR_UNIT_SCALE + "[unit_to])", stage);
     shadergen.emitScopeEnd(stage);
     shadergen.emitLineBreak(stage);
-    END_SHADER_STAGE(shader, Stage::PIXEL)
+END_SHADER_STAGE(shader, Stage::PIXEL)
+}
 
-    // Emit registered implementation
-    SourceCodeNode::emitFunctionDefinition(node, context, stage);
+void ScalarUnitNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+{
+BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
+    const ShaderGenerator& shadergen = context.getShaderGenerator();
+
+    const ShaderInput* in = node.getInput(0);
+    const ShaderInput* from = node.getInput(1);
+    const ShaderInput* to = node.getInput(2);
+
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    shadergen.emitString(" = ", stage);
+    shadergen.emitInput(in, context, stage);
+    shadergen.emitString(" * ", stage);
+    shadergen.emitString("mx_" + _scalarUnitConverter->getUnitType() + "_unit_ratio(", stage);
+    shadergen.emitInput(from, context, stage);
+    shadergen.emitString(", ", stage);
+    shadergen.emitInput(to, context, stage);
+    shadergen.emitString(")", stage);
+    shadergen.emitLineEnd(stage);
+END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
 //
