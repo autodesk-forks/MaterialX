@@ -123,7 +123,7 @@ const TBuiltInResource defaultTBuiltInResource = {
 
 std::vector<uint32_t> glslToSpirv(
     const std::string& glslGlobalDefinitions,
-    const std::string& glslCode
+    const std::string& glslFragment
 )
 {
     static const std::string dummyMain =
@@ -133,13 +133,13 @@ std::vector<uint32_t> glslToSpirv(
 
     const char* shaderStrings[]{
         glslGlobalDefinitions.data(),
-        glslCode.data(),
+        glslFragment.data(),
         dummyMain.data()
     };
 
     const int stringLengths[]{
         static_cast<int>(glslGlobalDefinitions.size()),
-        static_cast<int>(glslCode.size()),
+        static_cast<int>(glslFragment.size()),
         static_cast<int>(dummyMain.size())
     };
 
