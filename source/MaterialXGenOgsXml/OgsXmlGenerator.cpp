@@ -161,52 +161,56 @@ namespace
     {
         for (size_t i = 0; i < block.size(); ++i)
         {
-            const ShaderPort* p = block[i];
-            if (p->getName() == "Pw")
+            const ShaderPort* const shaderPort = block[i];
+            if (shaderPort->getName() == "Pw")
             {
-                auto type = OGS_TYPE_MAP.find(p->getType());
+                auto type = OGS_TYPE_MAP.find(shaderPort->getType());
                 if (type != OGS_TYPE_MAP.end())
                 {
                     pugi::xml_node prop = parent.append_child(type->second);
-                    xmlSetProperty(prop, p->getName(), p->getVariable(), flags);
+                    xmlSetProperty(prop, shaderPort->getName(), shaderPort->getVariable(), flags);
                 }
             }
         }
 
         for (size_t i = 0; i < block.size(); ++i)
         {
-            const ShaderPort* p = block[i];
+            const ShaderPort* const shaderPort = block[i];
 
-            if (p->getName() == "Pw")
+            if (shaderPort->getName() == "Pw")
             {
                 continue;
             }
-            if (p->getType() == Type::FILENAME)
+            if (shaderPort->getType() == Type::FILENAME)
             {
-                const string& samplerName = p->getVariable();
-                if (samplerName.size() > 7 && samplerName.substr(samplerName.size() - 7) == OgsXmlGenerator::SAMPLER_SUFFIX)
+                const string& samplerName = shaderPort->getVariable();
+                static const size_t SAMPLER_SUFFIX_LENGTH = OgsXmlGenerator::SAMPLER_SUFFIX.size();
+
+                if (samplerName.size() > SAMPLER_SUFFIX_LENGTH
+                    && samplerName.substr(samplerName.size() - SAMPLER_SUFFIX_LENGTH) == OgsXmlGenerator::SAMPLER_SUFFIX
+                )
                 {
-                    string textureName = samplerName.substr(0, samplerName.size() - 7);
+                    string textureName = samplerName.substr(0, samplerName.size() - SAMPLER_SUFFIX_LENGTH);
                     pugi::xml_node texture = parent.append_child(TEXTURE2);
-                    xmlSetProperty(texture, p->getName(), textureName, flags);
+                    xmlSetProperty(texture, shaderPort->getName(), textureName, flags);
                     pugi::xml_node sampler = parent.append_child(SAMPLER);
-                    xmlSetProperty(sampler, p->getName(), samplerName, flags);
+                    xmlSetProperty(sampler, shaderPort->getName(), samplerName, flags);
                 }
             }
             else
             {
-                auto type = OGS_TYPE_MAP.find(p->getType());
+                auto type = OGS_TYPE_MAP.find(shaderPort->getType());
                 if (type != OGS_TYPE_MAP.end())
                 {
                     pugi::xml_node prop = parent.append_child(type->second);
-                    if (p->getType() == Type::MATRIX33)
+                    if (shaderPort->getType() == Type::MATRIX33)
                     {
-                        string var = p->getVariable() + GlslFragmentGenerator::MATRIX3_TO_MATRIX4_POSTFIX;
-                        xmlSetProperty(prop, p->getName(), var, flags);
+                        string var = shaderPort->getVariable() + GlslFragmentGenerator::MATRIX3_TO_MATRIX4_POSTFIX;
+                        xmlSetProperty(prop, shaderPort->getName(), var, flags);
                     }
                     else
                     {
-                        xmlSetProperty(prop, p->getName(), p->getVariable(), flags);
+                        xmlSetProperty(prop, shaderPort->getName(), shaderPort->getVariable(), flags);
                     }
                 }
             }
