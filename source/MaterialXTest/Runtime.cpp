@@ -432,9 +432,9 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
     {
         // Load in stdlib
         // Create a stage and import the document data.
-        mx::RtObject stageObj = mx::RtStage::createNew("test1");
+        mx::RtObject stageObj = mx::RtStage::createNew("stdlib");
         mx::RtFileIo stageIo(stageObj);
-        stageIo.loadLibraries({ "stdlib" }, searchPath);
+        stageIo.readLibraries({ "stdlib" }, searchPath);
 
         // Get a nodegraph and write a dot file for inspection.
         mx::RtStage stage(stageObj);
@@ -494,10 +494,10 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
     {
         // Load stdlib into a stage
         mx::RtStage stdlibStage = mx::RtStage::createNew("stdlib");
-        mx::RtFileIo(stdlibStage.getObject()).loadLibraries({ "stdlib" }, searchPath);
+        mx::RtFileIo(stdlibStage.getObject()).readLibraries({ "stdlib" }, searchPath);
 
         // Create a new working space stage.
-        mx::RtStage stage = mx::RtStage::createNew("test2");
+        mx::RtStage stage = mx::RtStage::createNew("main_with_xincludes");
 
         // Add reference to stdlib
         stage.addReference(stdlibStage.getObject());
@@ -520,37 +520,44 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
         texcoord1_out.connectTo(tiledimage1_texcoord);
         texcoord1_index.getValue().asInt() = 2;
 
-        // Test write and read-back with explicit includes
+        // Test write and read-back with explicit xincludes
         mx::RtWriteOptions writeOptions;
         writeOptions.writeIncludes = true;
 
         mx::RtFileIo fileIO(stage.getObject());
         fileIO.write(stage.getName().str() + "_export.mtlx", &writeOptions);
 
-        mx::RtStage stage3 = mx::RtStage::createNew("test3");
-        mx::RtFileIo fileIO3(stage3.getObject());
-        fileIO3.read(mx::FilePath(stage.getName().str() + "_export.mtlx"),
-            mx::FileSearchPath(), nullptr);
-    
-        // Test read and write to stream
+        // Test read and write to stream. Note that the steream includes
+        // xincludes with content that overlaps whats in the stdlib stage,
+        // so the "skip duplicates" flag must be set.
         std::stringstream stream1;
-        fileIO3.write(stream1, &writeOptions);
-        fileIO3.read(stream1);
-        fileIO3.write(stage3.getName().str() + "_export_stream.mtlx");
+        fileIO.write(stream1, &writeOptions);
+        REQUIRE(!stream1.str().empty());
+
+        mx::RtStage streamStage = mx::RtStage::createNew("stream");
+        mx::RtFileIo streamFileIO(streamStage.getObject());
+        streamStage.addReference(stdlibStage.getObject());
+        mx::RtReadOptions readOptions;
+        readOptions.skipConflictingElements = true;
+        streamFileIO.read(stream1, &readOptions);
+        streamFileIO.write(streamStage.getName().str() + "_export.mtlx", &writeOptions);
     }
 }
 
 TEST_CASE("Runtime: Stage References", "[runtime]")
 {
+    // Load in stdlib in as a referenced stage ("libs").
+    mx::RtObject libStageObj = mx::RtStage::createNew("libs");
+    mx::RtStage libStage(libStageObj);
+    mx::FileSearchPath searchPath;
+    searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    mx::RtFileIo fileIO(libStageObj);
+    fileIO.readLibraries({ "stdlib", "pbrlib" }, searchPath);
+
     // Create a main stage.
     mx::RtObject mainStageObj = mx::RtStage::createNew("main");
     mx::RtStage mainStage(mainStageObj);
-
-    // Load in stdlib in as a referenced stage ("libs").
-    mx::FileSearchPath searchPath;
-    searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
-    mx::RtFileIo fileIO(mainStageObj); 
-    fileIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
+    mainStage.addReference(libStageObj);
 
     // Test access and usage of contents from the referenced library.
     mx::RtNodeDef nodedef = mainStage.findElementByName("ND_complex_ior");
@@ -560,7 +567,9 @@ TEST_CASE("Runtime: Stage References", "[runtime]")
 
     // Write the stage to a new document, 
     // writing only the non-referenced content.
-    fileIO.write(mainStage.getName().str() + ".mtlx", nullptr);
+    mx::RtWriteOptions options;
+    options.writeIncludes = true;
+    fileIO.write(mainStage.getName().str() + ".mtlx", &options);
 
     // Make sure removal of the non-referenced node works
     const mx::RtToken nodeName = mx::RtNode(nodeObj).getName();
@@ -577,7 +586,7 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
     // Load standard libraries in a stage.
     mx::RtObject libStageObj = mx::RtStage::createNew("libs");
     mx::RtFileIo libStageIO(libStageObj);
-    libStageIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
+    libStageIO.readLibraries({ "stdlib", "pbrlib" }, searchPath);
 
     // Count elements traversing the full stdlib stage
     mx::RtStage libStage(libStageObj);

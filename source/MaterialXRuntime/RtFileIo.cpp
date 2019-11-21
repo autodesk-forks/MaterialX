@@ -336,14 +336,39 @@ namespace
         return elem;
     }
 
+    void readSourceUri(const DocumentPtr& doc, PrvStage* stage)
+    {
+        StringSet uris = doc->getReferencedSourceUris();
+        RtTokenList& stageUris = stage->getSourceUri();
+        for (const string& uri : uris)
+        {
+            stageUris.push_back(RtToken(uri));
+        }
+    }
+
     void readDocument(const DocumentPtr& doc, PrvStage* stage, const RtReadOptions* readOptions)
     {
         // Set the source location 
         const std::string& uri = doc->getSourceUri();
-        stage->setSourceUri(RtToken(uri));
+        RtTokenList uris = stage->getSourceUri();
+        uris.push_back(RtToken(uri));
         readAttributes(doc, stage, {});
 
         RtReadOptions::ReadFilter filter = readOptions ? readOptions->readFilter : nullptr;
+
+        // First, load all nodedefs. Having these available is needed
+        // when node instances are loaded later.
+        for (const NodeDefPtr& nodedef : doc->getNodeDefs())
+        {
+            if (!filter || filter(nodedef))
+            {
+                if (!stage->findChildByName(RtToken(nodedef->getName())))
+                {
+                    readNodeDef(nodedef, stage);
+                }
+            }
+        }
+
         for (const ElementPtr& elem : doc->getChildren())
         {
             if (!filter || filter(elem))
@@ -354,11 +379,7 @@ namespace
                     continue;
                 }
 
-                if (elem->isA<NodeDef>())
-                {
-                    readNodeDef(elem->asA<NodeDef>(), stage);
-                }
-                else if (elem->isA<Node>())
+                if (elem->isA<Node>())
                 {
                     readNode(elem->asA<Node>(), stage, stage);
                 }
@@ -531,10 +552,13 @@ namespace
             {
                 writeSourceUris(pStage, doc);
             }
-            RtToken uri = pStage->getSourceUri();
-            if (!uri.str().empty())
+            RtTokenList uris = pStage->getSourceUri();
+            if (!uris.empty())
             {
-                prependXInclude(doc, uri.str());
+                for (const RtToken& uri : uris)
+                {
+                    prependXInclude(doc, uri.str());
+                }
             }
         }
     }
@@ -637,13 +661,14 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
     }
 }
 
-void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
+void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
 {
     PrvStage* stage = data()->asA<PrvStage>();
 
     // Load all content into a document.
     DocumentPtr doc = createDocument();
     MaterialX::loadLibraries(libraryPaths, searchPaths, doc);
+    readSourceUri(doc, stage);
 
     // First, load all nodedefs. Having these available is needed
     // when node instances are loaded later.

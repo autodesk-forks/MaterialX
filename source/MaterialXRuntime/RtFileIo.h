@@ -104,7 +104,7 @@ public:
 
     /// Read all contents from one or more libraries.
     /// All MaterialX files found inside the given libraries will be read.
-    void loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
+    void readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
 };
 
 }
