@@ -18,22 +18,34 @@ class ScalarUnitNode : public ShaderNodeImpl
 {
   public:
     explicit ScalarUnitNode(LinearUnitConverterPtr scalarUnitConverter) :
-        _scalarUnitConverter(scalarUnitConverter)
+        _scalarUnitConverter(scalarUnitConverter),
+        _unitRatioFunctionName("mx_" + _scalarUnitConverter->getUnitType() + "_unit_ratio")
     {
     }
 
     static ShaderNodeImplPtr create(LinearUnitConverterPtr scalarUnitConverter);
 
+    void initialize(const InterfaceElement& element, GenContext& context) override;
     void emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
     void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 
   protected:
     LinearUnitConverterPtr _scalarUnitConverter;
+    const string _unitRatioFunctionName;
 };
 
 ShaderNodeImplPtr ScalarUnitNode::create(LinearUnitConverterPtr scalarUnitConverter)
 {
     return std::make_shared<ScalarUnitNode>(scalarUnitConverter);
+}
+
+void ScalarUnitNode::initialize(const InterfaceElement& element, GenContext& /*context*/)
+{
+    _name = element.getName();
+
+    // Use the unit ratio function name has hash to make sure this function
+    // is shared, and only emitted once, for all units of the same unit type.
+    _hash = std::hash<string>{}(_unitRatioFunctionName);
 }
 
 void ScalarUnitNode::emitFunctionDefinition(const ShaderNode& /*node*/, GenContext& context, ShaderStage& stage) const
@@ -56,7 +68,7 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     unitLUT.add(Type::FLOATARRAY, VAR_UNIT_SCALE, Value::createValue<vector<float>>(unitScales));
 
     const ShaderGenerator& shadergen = context.getShaderGenerator();
-    shadergen.emitLine("float mx_" + _scalarUnitConverter->getUnitType() + "_unit_ratio(int unit_from, int unit_to)", stage, false);
+    shadergen.emitLine("float " + _unitRatioFunctionName + "(int unit_from, int unit_to)", stage, false);
     shadergen.emitScopeBegin(stage);
     shadergen.emitVariableDeclarations(unitLUT, shadergen.getSyntax().getConstantQualifier(), ";", context, stage, true);
     shadergen.emitLine("return ("+ VAR_UNIT_SCALE + "[unit_from] / " + VAR_UNIT_SCALE + "[unit_to])", stage);
@@ -79,7 +91,7 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     shadergen.emitString(" = ", stage);
     shadergen.emitInput(in, context, stage);
     shadergen.emitString(" * ", stage);
-    shadergen.emitString("mx_" + _scalarUnitConverter->getUnitType() + "_unit_ratio(", stage);
+    shadergen.emitString(_unitRatioFunctionName + "(", stage);
     shadergen.emitInput(from, context, stage);
     shadergen.emitString(", ", stage);
     shadergen.emitInput(to, context, stage);
