@@ -17,20 +17,13 @@ RtNodeGraph::RtNodeGraph(const RtObject& obj) :
 {
 }
 
-RtObject RtNodeGraph::createNew(const RtToken& name, RtObject parent)
+RtObject RtNodeGraph::createNew(RtObject parent, const RtToken& name)
 {
-    PrvObjectHandle nodegraph = PrvNodeGraph::createNew(name);
-
-    if (parent)
+    if (!(parent.hasApi(RtApiType::STAGE) || parent.hasApi(RtApiType::NODEGRAPH)))
     {
-        if (!parent.hasApi(RtApiType::STAGE))
-        {
-            throw ExceptionRuntimeError("Given parent object is not a valid stage");
-        }
-        parent.data()->asA<PrvStage>()->addChild(nodegraph);
+        throw ExceptionRuntimeError("Parent object must be a stage or a nodegraph");
     }
-
-    return RtObject(nodegraph);
+    return RtObject(PrvNodeGraph::createNew(parent.data()->asA<PrvElement>(), name));
 }
 
 RtApiType RtNodeGraph::getApiType() const

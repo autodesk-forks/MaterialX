@@ -3,14 +3,15 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#ifndef MATERIALX_RTTYPES_H
-#define MATERIALX_RTTYPES_H
+#ifndef MATERIALX_RTTYPEDEF_H
+#define MATERIALX_RTTYPEDEF_H
 
 /// @file
 /// Type identifiers and type descriptors for runtime data types.
 
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtToken.h>
+#include <MaterialXRuntime/RtValue.h>
 
 namespace MaterialX
 {
@@ -47,6 +48,29 @@ public:
     static const RtToken AUTO;
 };
 
+/// Function type for creating a value of a specific data type.
+using RtValueCreateFunc = std::function<RtValue(RtObject & owner)>;
+
+/// Function type for copying a value of a specific data type.
+using RtValueCopyFunc = std::function<void(const RtValue & src, RtValue & dest)>;
+
+/// Function type for converting a value of a specific data type.
+using RtValueToStringFunc = std::function<void(const RtValue & src, string & dest)>;
+
+/// Function type for converting a value of a specific data type.
+using RtValueFromStringFunc = std::function<void(const string & src, RtValue & dest)>;
+
+/// @struct RtValueFuncs
+/// Struct holding functions for creation and conversion
+/// of values of a specific data type.
+struct RtValueFuncs
+{
+    RtValueCreateFunc create;
+    RtValueCopyFunc copy;
+    RtValueToStringFunc toString;
+    RtValueFromStringFunc fromString;
+};
+
 /// @class RtTypeDef
 /// A type definition for MaterialX data types.
 /// All types need to have a type definition registered in order for the runtime
@@ -76,7 +100,7 @@ public:
 
 public:
     /// Constructor.
-    RtTypeDef(const RtToken& name, const RtToken& basetype, const RtToken& semantic, size_t size);
+    RtTypeDef(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs, const RtToken& semantic, size_t size);
 
     /// Destructor.
     ~RtTypeDef();
@@ -125,32 +149,29 @@ public:
         return getSize() == 0;
     }
 
-    /// Return true if the type is an aggregate of 2 floats.
-    bool isFloat2() const 
-    { 
-        return getSize() == 2 && (getSemantic() == SEMANTIC_COLOR || getSemantic() == SEMANTIC_VECTOR);
-    }
-
-    /// Return true if the type is an aggregate of 3 floats.
-    bool isFloat3() const
-    {
-        return getSize() == 3 && (getSemantic() == SEMANTIC_COLOR || getSemantic() == SEMANTIC_VECTOR);
-    }
-
-    /// Return true if the type is an aggregate of 4 floats.
-    bool isFloat4() const
-    {
-        return getSize() == 4 && (getSemantic() == SEMANTIC_COLOR || getSemantic() == SEMANTIC_VECTOR);
-    }
-
     /// Return a set of all types that this type can be connected to.
     /// The type itself is also included in this set.
     const RtTokenSet& getValidConnectionTypes() const;
 
+    /// Create a new value of this type.
+    /// If the type is a large value the given object will take
+    /// ownership of allocated data.
+    RtValue createValue(RtObject& owner) const;
+
+    /// Copy data from one value to another.
+    void copyValue(const RtValue& src, RtValue& dest) const;
+
+    /// Convert an RtValue of this type into a string representation.
+    void toStringValue(const RtValue& src, string& dest) const;
+
+    /// Convert a string representation into an RtValue of this type.
+    /// Destination RtValue must been initialized for the given type.
+    void fromStringValue(const string& src, RtValue& dest) const;
+
     /// Register a type descriptor for a MaterialX data type.
     /// Throws an exception if a type with the same name is already registered.
-    static RtTypeDef* registerType(const RtToken& name, const RtToken& basetype,
-                                    const RtToken& semantic = SEMANTIC_NONE, size_t size = 1);
+    static RtTypeDef* registerType(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs,
+                                   const RtToken& semantic = SEMANTIC_NONE, size_t size = 1);
 
     /// Return the number of registered types.
     static size_t numTypes();

@@ -74,10 +74,14 @@ public:
     RtValue& getValue();
 
     /// Set a new value on the port.
+    /// The given value must be of the same type as this ports value.
     void setValue(const RtValue& v);
 
     /// Return a string representation for the value of this port.
-    string getValueString();
+    string getValueString() const;
+
+    /// Set the port value from a string representation.
+    void setValueString(const string& v);
 
     /// Get the color space for this value.
     const RtToken& getColorSpace() const;
@@ -161,7 +165,7 @@ public:
     /// Create a new node instance of the given nodedef type
     /// and add it to the parent object if specified.
     /// The parent must be a stage or a nodegraph object.
-    static RtObject createNew(const RtToken& name, RtObject nodedef, RtObject parent = RtObject());
+    static RtObject createNew(RtObject parent, const RtToken& name, RtObject nodedef);
 
     /// Return the type for this API.
     RtApiType getApiType() const override;

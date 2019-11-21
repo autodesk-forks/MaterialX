@@ -17,27 +17,13 @@ RtPortDef::RtPortDef(const RtObject& obj) :
 {
 }
 
-RtObject RtPortDef::createNew(const RtToken& name, const RtToken& type, const RtValue& value, uint32_t flags, RtObject parent)
+RtObject RtPortDef::createNew(RtObject parent, const RtToken& name, const RtToken& type, uint32_t flags)
 {
-    PrvObjectHandle portdef = PrvPortDef::createNew(name, type, value, flags);
-
-    if (parent)
+    if (!(parent.hasApi(RtApiType::NODEDEF) || parent.hasApi(RtApiType::NODEGRAPH)))
     {
-        if (parent.hasApi(RtApiType::NODEDEF))
-        {
-            parent.data()->asA<PrvNodeDef>()->addPort(portdef);
-        }
-        else if (parent.hasApi(RtApiType::NODEGRAPH))
-        {
-            parent.data()->asA<PrvNodeGraph>()->addPort(portdef);
-        }
-        else
-        {
-            throw ExceptionRuntimeError("Parent object must be a nodedef or a nodegraph");
-        }
+        throw ExceptionRuntimeError("Parent object must be a nodedef or a nodegraph");
     }
-
-    return RtObject(portdef);
+    return RtObject(PrvPortDef::createNew(parent.data()->asA<PrvElement>(), name, type, flags));
 }
 
 RtApiType RtPortDef::getApiType() const

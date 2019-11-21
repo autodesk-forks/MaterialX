@@ -14,16 +14,21 @@ namespace MaterialX
 
 const string PrvElement::PATH_SEPARATOR = "/";
 
-PrvElement::PrvElement(RtObjType objType, const RtToken& name) :
+PrvElement::PrvElement(RtObjType objType, PrvElement* parent, const RtToken& name) :
     PrvObject(objType),
+    _parent(parent),
     _name(name)
 {
 }
 
-void PrvElement::initialize()
+PrvElement* PrvElement::getRoot() const
 {
-    clearAttributes();
-    clearChildren();
+    PrvElement* root = const_cast<PrvElement*>(this);
+    while (root->_parent)
+    {
+        root = root->_parent;
+    }
+    return root;
 }
 
 void PrvElement::addChild(PrvObjectHandle elem)
@@ -92,13 +97,7 @@ PrvObjectHandle PrvElement::findChildByPath(const string& path) const
     return elem;
 }
 
-void PrvElement::clearChildren()
-{
-    _children.clear();
-    _childrenByName.clear();
-}
-
-void PrvElement::addAttribute(const RtToken& name, const RtToken& type, const RtValue& value)
+RtAttribute* PrvElement::addAttribute(const RtToken& name, const RtToken& type)
 {
     auto it = _attributesByName.find(name);
     if (it != _attributesByName.end())
@@ -106,9 +105,11 @@ void PrvElement::addAttribute(const RtToken& name, const RtToken& type, const Rt
         throw ExceptionRuntimeError("An attribute named '" + name.str() + "' already exists for '" + getName().str() + "'");
     }
 
-    AttrPtr attr(new RtAttribute(name, type, value));
+    AttrPtr attr(new RtAttribute(name, type, getObject()));
     _attributes.push_back(attr);
     _attributesByName[name] = attr;
+
+    return attr.get();
 }
 
 void PrvElement::removeAttribute(const RtToken& name)
@@ -124,21 +125,24 @@ void PrvElement::removeAttribute(const RtToken& name)
     _attributesByName.erase(name);
 }
 
-void PrvElement::clearAttributes()
+PrvAllocator& PrvElement::getAllocator()
 {
-    _attributes.clear();
-    _attributesByName.clear();
+    if (!_parent)
+    {
+        throw ExceptionRuntimeError("Trying to get allocator for an element with no allocator and no parent: '" + getName().str() + "'");
+    }
+    return _parent->getAllocator();
 }
 
-PrvUnknown::PrvUnknown(const RtToken& name, const RtToken& category) :
-    PrvElement(RtObjType::UNKNOWN, name),
+PrvUnknownElement::PrvUnknownElement(PrvElement* parent, const RtToken& name, const RtToken& category) :
+    PrvElement(RtObjType::UNKNOWN, parent, name),
     _category(category)
 {
 }
 
-PrvObjectHandle PrvUnknown::createNew(const RtToken& name, const RtToken& category)
+PrvObjectHandle PrvUnknownElement::createNew(PrvElement* parent, const RtToken& name, const RtToken& category)
 {
-    return std::make_shared<PrvUnknown>(name, category);
+    return PrvObjectHandle(new PrvUnknownElement(parent, name, category));
 }
 
 }

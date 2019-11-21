@@ -12,16 +12,27 @@
 namespace MaterialX
 {
 
-PrvNodeDef::PrvNodeDef(const RtToken& name, const RtToken& nodeName) :
-    PrvValueStoringElement(RtObjType::NODEDEF, name),
+PrvNodeDef::PrvNodeDef(PrvElement* parent, const RtToken& name, const RtToken& nodeName) :
+    PrvAllocatingElement(RtObjType::NODEDEF, parent, name),
     _nodeName(nodeName),
     _numOutputs(0)
 {
 }
 
-PrvObjectHandle PrvNodeDef::createNew(const RtToken& name, const RtToken& category)
+PrvObjectHandle PrvNodeDef::createNew(PrvElement* parent, const RtToken& name, const RtToken& category)
 {
-    return std::make_shared<PrvNodeDef>(name, category);
+    if (parent && !parent->hasApi(RtApiType::STAGE))
+    {
+        throw ExceptionRuntimeError("Given parent object is not a stage");
+    }
+
+    PrvObjectHandle nodedef(new PrvNodeDef(parent, name, category));
+    if (parent)
+    {
+        parent->addChild(nodedef);
+    }
+
+    return nodedef;
 }
 
 void PrvNodeDef::addPort(PrvObjectHandle portdef)

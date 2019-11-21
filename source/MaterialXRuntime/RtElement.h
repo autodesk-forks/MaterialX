@@ -17,6 +17,8 @@
 namespace MaterialX
 {
 
+class PrvElement;
+
 /// @class RtAttribute
 /// Class representing an attribute on an element. An attribute
 /// holds a name, a type and a value and is used to store data,
@@ -51,18 +53,20 @@ public:
     }
 
     /// Set attribute value.
-    void setValue(const RtValue& v)
+    void setValue(const RtValue& value)
     {
-        _value = v;
+        _value = value;
     }
+
+    /// Return a string representation for the value of this attribute.
+    string getValueString() const;
+
+    /// Set attribute value from a string representation.
+    void setValueString(const string& v);
 
 private:
     /// Private constructor.
-    RtAttribute(const RtToken& name, const RtToken& type, const RtValue& value) :
-        _name(name),
-        _type(type),
-        _value(value)
-    {}
+    RtAttribute(const RtToken& name, const RtToken& type, RtObject parent);
 
     RtToken _name;
     RtToken _type;
@@ -87,7 +91,7 @@ public:
     const RtToken& getName() const;
 
     /// Add an attribute.
-    void addAttribute(const RtToken& name, const RtToken& type, const RtValue& value);
+    RtAttribute* addAttribute(const RtToken& name, const RtToken& type);
 
     /// Return an attribute by name, or a nullptr
     /// if no such attribute exists.

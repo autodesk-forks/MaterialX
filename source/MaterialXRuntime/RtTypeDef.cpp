@@ -5,6 +5,8 @@
 
 #include <MaterialXRuntime/RtTypeDef.h>
 
+#include <MaterialXRuntime/Private/PrvTypeDef.h>
+
 namespace MaterialX
 {
 
@@ -35,114 +37,6 @@ const RtToken RtType::SURFACEMATERIAL("surfacematerial");
 const RtToken RtType::VOLUMEMATERIAL("volumematerial");
 const RtToken RtType::AUTO("auto");
 
-namespace
-{
-    using ChannelMap = std::unordered_map<char, int>;
-
-    struct TypeDef
-    {
-        TypeDef(const RtToken& name, const RtToken& basetype, const RtToken& sematic,
-                 size_t size, const ChannelMap& channelMapping = ChannelMap()) :
-            _name(name),
-            _basetype(basetype),
-            _semantic(sematic),
-            _size(size),
-            _channelMapping(channelMapping)
-        {
-            // TODO: Handle other types in connections
-            _connectionTypes.insert(name);
-        }
-
-        const RtTokenSet& getValidConnectionTypes() const
-        {
-            return _connectionTypes;
-        }
-
-        const RtToken _name;
-        const RtToken _basetype;
-        const RtToken _semantic;
-        const size_t _size;
-        std::unordered_map<char, int> _channelMapping;
-        RtTokenSet _connectionTypes;
-    };
-
-    class TypeDefRegistry
-    {
-    public:
-        TypeDefRegistry()
-        {
-            // Register all default types.
-            newType("boolean", RtTypeDef::BASETYPE_BOOLEAN);
-            newType("integer", RtTypeDef::BASETYPE_INTEGER);
-            newType("float", RtTypeDef::BASETYPE_FLOAT);
-            newType("vector2", RtTypeDef::BASETYPE_FLOAT, RtTypeDef::SEMANTIC_VECTOR, 2, { {'x', 0}, {'y', 1} });
-            newType("vector3", RtTypeDef::BASETYPE_FLOAT, RtTypeDef::SEMANTIC_VECTOR, 3, { {'x', 0}, {'y', 1}, {'z', 2} });
-            newType("vector4", RtTypeDef::BASETYPE_FLOAT, RtTypeDef::SEMANTIC_VECTOR, 4, { {'x', 0}, {'y', 1}, {'z', 2}, {'w', 3} });
-            newType("color2", RtTypeDef::BASETYPE_FLOAT, RtTypeDef::SEMANTIC_COLOR, 2, { {'r', 0}, {'a', 1} });
-            newType("color3", RtTypeDef::BASETYPE_FLOAT, RtTypeDef::SEMANTIC_COLOR, 3, { {'r', 0}, {'g', 1}, {'b', 2} });
-            newType("color4", RtTypeDef::BASETYPE_FLOAT, RtTypeDef::SEMANTIC_COLOR, 4, { {'r', 0}, {'g', 1}, {'b', 2}, {'a', 3} });
-            newType("matrix33", RtTypeDef::BASETYPE_FLOAT, RtTypeDef::SEMANTIC_MATRIX, 9);
-            newType("matrix44", RtTypeDef::BASETYPE_FLOAT, RtTypeDef::SEMANTIC_MATRIX, 16);
-            newType("token", RtTypeDef::BASETYPE_STRING);
-            newType("string", RtTypeDef::BASETYPE_STRING);
-            newType("filename", RtTypeDef::BASETYPE_STRING, RtTypeDef::SEMANTIC_FILENAME);
-            newType("integerarray", RtTypeDef::BASETYPE_INTEGER, RtTypeDef::SEMANTIC_NONE, 0);
-            newType("floatarray", RtTypeDef::BASETYPE_FLOAT, RtTypeDef::SEMANTIC_NONE, 0);
-            newType("BSDF", RtTypeDef::BASETYPE_NONE, RtTypeDef::SEMANTIC_CLOSURE);
-            newType("EDF", RtTypeDef::BASETYPE_NONE, RtTypeDef::SEMANTIC_CLOSURE);
-            newType("VDF", RtTypeDef::BASETYPE_NONE, RtTypeDef::SEMANTIC_CLOSURE);
-            newType("surfaceshader", RtTypeDef::BASETYPE_NONE, RtTypeDef::SEMANTIC_SHADER);
-            newType("volumeshader", RtTypeDef::BASETYPE_NONE, RtTypeDef::SEMANTIC_SHADER);
-            newType("displacementshader", RtTypeDef::BASETYPE_NONE, RtTypeDef::SEMANTIC_SHADER);
-            newType("lightshader", RtTypeDef::BASETYPE_NONE, RtTypeDef::SEMANTIC_SHADER);
-            newType("auto", RtTypeDef::BASETYPE_NONE);
-        }
-
-        RtTypeDef* newType(const RtToken& name, const RtToken& basetype, const RtToken& sematic = RtTypeDef::SEMANTIC_NONE,
-                            size_t size = 1, const ChannelMap& channelMapping = ChannelMap())
-        {
-            _types.push_back(std::unique_ptr<RtTypeDef>(new RtTypeDef(name, basetype, sematic, size)));
-
-            RtTypeDef* ptr = _types.back().get();
-            _typesByName[name] = ptr;
-
-            for (auto it : channelMapping)
-            {
-                ptr->setChannelIndex(it.first, it.second);
-            }
-
-            return ptr;
-        }
-
-        size_t numTypes()
-        {
-            return _types.size();
-        }
-
-        const RtTypeDef* getType(size_t index)
-        {
-            return index < _types.size() ? _types[index].get() : nullptr;
-        }
-
-        const RtTypeDef* findType(const RtToken& name)
-        {
-            auto it = _typesByName.find(name);
-            return it != _typesByName.end() ? it->second : nullptr;
-        }
-
-        static TypeDefRegistry& get()
-        {
-            static TypeDefRegistry _registry;
-            return _registry;
-        }
-
-    private:
-        using RtTypeDefPtr = std::unique_ptr<RtTypeDef>;
-        vector<RtTypeDefPtr> _types;
-        RtTokenMap<RtTypeDef*> _typesByName;
-    };
-}
-
 const RtToken RtTypeDef::BASETYPE_NONE = "none";
 const RtToken RtTypeDef::BASETYPE_BOOLEAN = "boolean";
 const RtToken RtTypeDef::BASETYPE_FLOAT = "float";
@@ -158,47 +52,67 @@ const RtToken RtTypeDef::SEMANTIC_FILENAME = "filename";
 const RtToken RtTypeDef::SEMANTIC_CLOSURE = "closure";
 const RtToken RtTypeDef::SEMANTIC_SHADER = "shader";
 
-RtTypeDef::RtTypeDef(const RtToken& name, const RtToken& basetype, const RtToken& semantic, size_t size) :
-    _ptr(new TypeDef(name, basetype, semantic, size))
+RtTypeDef::RtTypeDef(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs, const RtToken& semantic, size_t size) :
+    _ptr(new PrvTypeDef(name, basetype, funcs, semantic, size))
 {
 }
 
 RtTypeDef::~RtTypeDef()
 {
-    delete static_cast<TypeDef*>(_ptr);
+    delete static_cast<PrvTypeDef*>(_ptr);
+}
+
+RtValue RtTypeDef::createValue(RtObject& owner) const
+{
+    return static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().create(owner);
+}
+
+void RtTypeDef::copyValue(const RtValue& src, RtValue& dest) const
+{
+    static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().copy(src, dest);
+}
+
+void RtTypeDef::toStringValue(const RtValue& src, string& dest) const
+{
+    static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().toString(src, dest);
+}
+
+void RtTypeDef::fromStringValue(const string& src, RtValue& dest) const
+{
+    static_cast<PrvTypeDef*>(_ptr)->getValueFuncs().fromString(src, dest);
 }
 
 const RtToken& RtTypeDef::getName() const
 {
-    return static_cast<TypeDef*>(_ptr)->_name;
+    return static_cast<PrvTypeDef*>(_ptr)->getName();
 }
 
 const RtToken& RtTypeDef::getBaseType() const
 {
-    return static_cast<TypeDef*>(_ptr)->_basetype;
+    return static_cast<PrvTypeDef*>(_ptr)->getBaseType();
 }
 
 const RtToken& RtTypeDef::getSemantic() const
 {
-    return static_cast<TypeDef*>(_ptr)->_semantic;
+    return static_cast<PrvTypeDef*>(_ptr)->getSemantic();
 }
 
 size_t RtTypeDef::getSize() const
 {
-    return static_cast<TypeDef*>(_ptr)->_size;
+    return static_cast<PrvTypeDef*>(_ptr)->getSize();
 }
 
 int RtTypeDef::getChannelIndex(char channel) const
 {
-    TypeDef* ptr = static_cast<TypeDef*>(_ptr);
-    auto it = ptr->_channelMapping.find(channel);
-    return it != ptr->_channelMapping.end() ? it->second : -1;
+    PrvTypeDef* ptr = static_cast<PrvTypeDef*>(_ptr);
+    auto it = ptr->getChannelMap().find(channel);
+    return it != ptr->getChannelMap().end() ? it->second : -1;
 }
 
 char RtTypeDef::getChannelName(int index) const
 {
-    TypeDef* ptr = static_cast<TypeDef*>(_ptr);
-    for (auto it : ptr->_channelMapping)
+    PrvTypeDef* ptr = static_cast<PrvTypeDef*>(_ptr);
+    for (auto it : ptr->getChannelMap())
     {
         if (it.second == index)
         {
@@ -210,37 +124,37 @@ char RtTypeDef::getChannelName(int index) const
 
 void RtTypeDef::setChannelIndex(char channel, int index)
 {
-    static_cast<TypeDef*>(_ptr)->_channelMapping[channel] = index;
+    static_cast<PrvTypeDef*>(_ptr)->getChannelMap()[channel] = index;
 }
 
 const RtTokenSet& RtTypeDef::getValidConnectionTypes() const
 {
-    return static_cast<TypeDef*>(_ptr)->getValidConnectionTypes();
+    return static_cast<PrvTypeDef*>(_ptr)->getValidConnectionTypes();
 }
 
-RtTypeDef* RtTypeDef::registerType(const RtToken& name, const RtToken& basetype,
-                                     const RtToken& semantic, size_t size)
+RtTypeDef* RtTypeDef::registerType(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs,
+                                   const RtToken& semantic, size_t size)
 {
-    if (TypeDefRegistry::get().findType(name))
+    if (PrvTypeDefRegistry::get().findType(name))
     {
         throw ExceptionRuntimeError("A type named '" + name.str() + "' is already registered");
     }
-    return TypeDefRegistry::get().newType(name, basetype, semantic, size);
+    return PrvTypeDefRegistry::get().newType(name, basetype, funcs, semantic, size);
 }
 
 size_t RtTypeDef::numTypes()
 {
-    return TypeDefRegistry::get().numTypes();
+    return PrvTypeDefRegistry::get().numTypes();
 }
 
 const RtTypeDef* RtTypeDef::getType(size_t index)
 {
-    return TypeDefRegistry::get().getType(index);
+    return PrvTypeDefRegistry::get().getType(index);
 }
 
 const RtTypeDef* RtTypeDef::findType(const RtToken& name)
 {
-    return TypeDefRegistry::get().findType(name);
+    return PrvTypeDefRegistry::get().findType(name);
 }
 
 }

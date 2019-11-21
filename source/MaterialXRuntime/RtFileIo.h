@@ -94,7 +94,7 @@ public:
 
     /// Read contents from a file path.
     /// If a filter is used only elements accepted by the filter
-    /// will be red from the document.
+    /// will be read from the document.
     void read(const FilePath& documentPath, const FileSearchPath& searchPaths, const RtReadOptions* options = nullptr);
 
     /// Write all stage contents to a document.
@@ -102,20 +102,9 @@ public:
     /// will be written to the document.
     void write(const FilePath& documentPath, const RtWriteOptions* writeOptions = nullptr);
 
-    /// Read in dependent libraries as referenced stages, with one reference
-    /// per unique library file.
+    /// Read all contents from one or more libraries.
+    /// All MaterialX files found inside the given libraries will be read.
     void loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
-
-private:
-    /// Read contents from a document.
-    /// If a filter is used only elements accepted by the filter
-    /// will be red from the document.
-    void read(const DocumentPtr& doc, const string& uri, RtStage* searchStage, const RtReadOptions* options = nullptr);
-
-    /// Write all stage contents to a document.
-    /// If a filter is used only elements accepted by the filter
-    /// will be written to the document.
-    void write(DocumentPtr& doc, const RtWriteOptions* writeOptions = nullptr);
 };
 
 }

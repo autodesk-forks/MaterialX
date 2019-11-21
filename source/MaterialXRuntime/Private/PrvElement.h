@@ -19,17 +19,67 @@ namespace MaterialX
 using PrvObjectHandleVec = vector<PrvObjectHandle>;
 using PrvObjectHandleSet = std::set<PrvObjectHandle>;
 
+// Allocator class handling allocation of data for elements.
+// The data allocated is kept by the allocator and freed
+// upon allocator destruction or by calling free() explicitly.
+// NOTE: Data is stored as raw byte pointers and destructors
+// for allocated objects will not be called when freeing data.
+class PrvAllocator
+{
+public:
+    ~PrvAllocator()
+    {
+        free();
+    }
+
+    // Allocate and return a block of data.
+    uint8_t* alloc(size_t size)
+    {
+        uint8_t* ptr = new uint8_t[size];
+        _storage.push_back(ptr);
+        return ptr;
+    }
+
+    // Allocate and return a single object of templated type.
+    // The object constructor is called to initialize it.
+    template<class T>
+    T* allocType()
+    {
+        uint8_t* buffer = alloc(sizeof(T));
+        return new (buffer) T();
+    }
+
+    // Free all allocated data.
+    void free()
+    {
+        for (uint8_t* ptr : _storage)
+        {
+            delete[] ptr;
+        }
+        _storage.clear();
+    }
+
+private:
+    vector<uint8_t*> _storage;
+};
+
+
 class PrvElement : public PrvObject
 {
 public:
     virtual ~PrvElement() {}
 
-    void initialize();
-
     const RtToken& getName() const
     {
         return _name;
     }
+
+    PrvElement* getParent() const
+    {
+        return _parent;
+    }
+
+    PrvElement* getRoot() const;
 
     void addChild(PrvObjectHandle elem);
 
@@ -50,17 +100,13 @@ public:
         return _children;
     }
 
-    void clearChildren();
-
     virtual PrvObjectHandle findChildByName(const RtToken& name) const;
 
     virtual PrvObjectHandle findChildByPath(const string& path) const;
 
-    void addAttribute(const RtToken& name, const RtToken& type, const RtValue& value);
+    RtAttribute* addAttribute(const RtToken& name, const RtToken& type);
 
     void removeAttribute(const RtToken& name);
-
-    void clearAttributes();
 
     const RtAttribute* getAttribute(const RtToken& name) const
     {
@@ -89,23 +135,24 @@ public:
         return _attributes.size();
     }
 
+    virtual PrvAllocator& getAllocator();
+
     static const string PATH_SEPARATOR;
 
 protected:
-    PrvElement(RtObjType objType, const RtToken& name);
+    PrvElement(RtObjType objType, PrvElement* parent, const RtToken& name);
 
     void setName(const RtToken& name)
     {
         _name = name;
     }
 
+    PrvElement* _parent;
     RtToken _name;
-
     PrvObjectHandleVec _children;
     RtTokenMap<PrvObjectHandle> _childrenByName;
 
     using AttrPtr = std::shared_ptr<RtAttribute>;
-
     vector<AttrPtr> _attributes;
     RtTokenMap<AttrPtr> _attributesByName;
 
@@ -113,29 +160,29 @@ protected:
 };
 
 
-class PrvValueStoringElement : public PrvElement
+class PrvAllocatingElement : public PrvElement
 {
 public:
-    RtLargeValueStorage& getValueStorage()
+    PrvAllocator& getAllocator() override
     {
-        return _storage;
+        return _allocator;
     }
 
 protected:
-    PrvValueStoringElement(RtObjType objType, const RtToken& name):
-        PrvElement(objType, name)
+    PrvAllocatingElement(RtObjType objType, PrvElement* parent, const RtToken& name):
+        PrvElement(objType, parent, name)
     {}
 
-    RtLargeValueStorage _storage;
+    PrvAllocator _allocator;
 };
 
 
-class PrvUnknown : public PrvElement
+class PrvUnknownElement : public PrvElement
 {
 public:
-    PrvUnknown(const RtToken& name, const RtToken& category);
+    PrvUnknownElement(PrvElement* parent, const RtToken& name, const RtToken& category);
 
-    static PrvObjectHandle createNew(const RtToken& name, const RtToken& category);
+    static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const RtToken& category);
 
     const RtToken& getCategory() const
     {

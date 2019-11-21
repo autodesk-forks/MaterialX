@@ -21,10 +21,9 @@ namespace MaterialX
 class PrvPortDef : public PrvElement
 {
 public:
-    PrvPortDef(const RtToken& name, const RtToken& type, const RtValue& value, uint32_t flags);
+    PrvPortDef(PrvElement* parent, const RtToken& name, const RtToken& type, uint32_t flags);
 
-    static PrvObjectHandle createNew(const RtToken& name, const RtToken& type, const RtValue& value, 
-                                     uint32_t flags = RtPortFlag::DEFAULTS);
+    static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
     const RtToken& getType() const
     {
@@ -44,6 +43,13 @@ public:
     void setValue(const RtValue& v)
     {
         _value = v;
+    }
+
+    string getValueString() const
+    {
+        string dest;
+        RtValue::toString(getType(), _value, dest);
+        return dest;
     }
 
     const RtToken& getColorSpace() const

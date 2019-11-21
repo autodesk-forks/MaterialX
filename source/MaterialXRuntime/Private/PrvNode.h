@@ -19,18 +19,18 @@ namespace MaterialX
 
 using RtPortVec = vector<RtPort>;
 
-class PrvNode : public PrvValueStoringElement
+class PrvNode : public PrvAllocatingElement
 {
 public:
     // Constructor creating a node with a fixed interface
     // This is the constructor to use for ordinary nodes.
-    PrvNode(const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType = RtObjType::NODE);
+    PrvNode(PrvElement* parent, const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType = RtObjType::NODE);
 
     // Constructor creating a node without a fixed interface.
     // Used for constructing nodegraphs.
-    PrvNode(const RtToken& name, RtObjType objType = RtObjType::NODEGRAPH);
+    PrvNode(PrvElement* parent, const RtToken& name, RtObjType objType = RtObjType::NODEGRAPH);
 
-    static PrvObjectHandle createNew(const RtToken& name, const PrvObjectHandle& nodedef);
+    static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const PrvObjectHandle& nodedef);
 
     PrvObjectHandle getNodeDef() const
     {
@@ -39,17 +39,17 @@ public:
 
     const RtToken& getNodeName() const
     {
-        return nodedef()->getNodeName();
+        return nodeDef()->getNodeName();
     }
 
     size_t numPorts() const
     {
-        return nodedef()->numPorts();
+        return nodeDef()->numPorts();
     }
 
     size_t numOutputs() const
     {
-        return nodedef()->numOutputs();
+        return nodeDef()->numOutputs();
     }
 
     size_t numInputs() const
@@ -59,23 +59,23 @@ public:
 
     size_t getOutputsOffset() const
     {
-        return nodedef()->getOutputsOffset();
+        return nodeDef()->getOutputsOffset();
     }
 
     size_t getInputsOffset() const
     {
-        return nodedef()->getInputsOffset();
+        return nodeDef()->getInputsOffset();
     }
 
     RtPort getPort(size_t index)
     {
-        PrvPortDef* portdef = nodedef()->getPort(index);
+        PrvPortDef* portdef = nodeDef()->getPort(index);
         return portdef ? RtPort(shared_from_this(), index) : RtPort();
     }
 
     RtPort findPort(const RtToken& name)
     {
-        const size_t index = nodedef()->findPortIndex(name);
+        const size_t index = nodeDef()->findPortIndex(name);
         return index != INVALID_INDEX ? RtPort(shared_from_this(), index) : RtPort();
     }
 
@@ -83,14 +83,11 @@ public:
 
     static void disconnect(const RtPort& source, const RtPort& dest);
 
-    RtLargeValueStorage& getValueStorage()
+protected:
+    PrvNodeDef* nodeDef() const
     {
-        return _storage;
+        return _nodedef->asA<PrvNodeDef>();
     }
-
-    // Short syntax getter for convenience.
-    PrvNodeDef* nodedef() { return (PrvNodeDef*)_nodedef.get(); }
-    const PrvNodeDef* nodedef() const { return (PrvNodeDef*)_nodedef.get(); }
 
 protected:
     struct Port

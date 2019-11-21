@@ -25,11 +25,6 @@ RtObject RtStage::createNew(const RtToken& name)
     return RtObject(PrvStage::createNew(name));
 }
 
-void RtStage::initialize()
-{
-    data()->asA<PrvStage>()->initialize();
-}
-
 void RtStage::addReference(RtObject stage)
 {
     data()->asA<PrvStage>()->addReference(stage.data());
@@ -72,11 +67,6 @@ void RtStage::addElement(RtObject elem)
 void RtStage::removeElement(const RtToken& name)
 {
     data()->asA<PrvStage>()->removeChild(name);
-}
-
-void RtStage::clearElements()
-{
-    data()->asA<PrvStage>()->clearChildren();
 }
 
 RtObject RtStage::findElementByName(const RtToken& name) const

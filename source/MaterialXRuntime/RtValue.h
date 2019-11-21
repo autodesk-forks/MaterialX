@@ -10,10 +10,10 @@
 /// TODO: Docs
 
 #include <MaterialXRuntime/Library.h>
+#include <MaterialXRuntime/RtObject.h>
 #include <MaterialXRuntime/RtToken.h>
 
-#include <MaterialXCore/Value.h>
-
+#include <MaterialXCore/Types.h>
 
 #ifndef _WIN32
 // Disable warnings for breaking strict aliasing.
@@ -23,44 +23,6 @@
 
 namespace MaterialX
 {
-
-/// @class RtValueStore
-/// Class for allocating and keeping ownership of values
-/// that are too large in size to fit into a RtValue.
-template<typename T>
-class RtValueStore
-{
-public:
-    // Destructor.
-    ~RtValueStore()
-    {
-        for (T* ptr : _storage)
-        {
-            delete[] ptr;
-        }
-        _storage.clear();
-    }
-
-    // Allocate and return a new value.
-    T* alloc(size_t count = 1)
-    {
-        T* ptr = new T[count];
-        _storage.push_back(ptr);
-        return ptr;
-    }
-
-private:
-    std::vector<T*> _storage;
-};
-
-/// @struct RtLargeValueStorage
-/// Struct with storage for data types that are larger than 16 bytes.
-struct RtLargeValueStorage
-{
-    RtValueStore<string> str;
-    RtValueStore<Matrix33> mtx33;
-    RtValueStore<Matrix44> mtx44;
-};
 
 /// @class RtValue
 /// Generic value class for storing values of all the data types
@@ -88,9 +50,9 @@ public:
     explicit RtValue(void* v) { asPtr() = v; }
 
     /// Explicit value constructor for large values
-    explicit RtValue(const Matrix33& v, RtValueStore<Matrix33>& store);
-    explicit RtValue(const Matrix44& v, RtValueStore<Matrix44>& store);
-    explicit RtValue(const string& v, RtValueStore<string>& store);
+    explicit RtValue(const Matrix33& v, RtObject& owner);
+    explicit RtValue(const Matrix44& v, RtObject& owner);
+    explicit RtValue(const string& v, RtObject& owner);
 
     /// Return bool value.
     const bool& asBool() const
@@ -262,13 +224,21 @@ public:
         return !(*this==other);
     }
 
-    /// Return a string representing the value
-    /// in the given type.
-    string getValueString(const RtToken& type) const;
+    /// Create a new value of given type.
+    /// If the type is a large value the given object will take
+    /// ownership of allocated data.
+    static RtValue createNew(const RtToken& type, RtObject owner);
 
-    /// Set the value from a string representation of a
-    /// value in the given type.
-    void setValueString(const RtToken& type, const string& value, RtLargeValueStorage& store);
+    /// Copy a value from one instance to another.
+    /// Both RtValue instances must be initialized for the given type.
+    static void copy(const RtToken& type, const RtValue& src, RtValue& dest);
+
+    /// Convert an RtValue of given type into a string representation.
+    static void toString(const RtToken& type, const RtValue& src, string& dest);
+
+    /// Convert a value from a string representation into an RtValue of the given type.
+    /// Destination RtValue must been initialized for the given type.
+    static void fromString(const RtToken& type, const string& src, RtValue& dest);
 
 private:
     // 16 bytes of data storage to hold the main data types,

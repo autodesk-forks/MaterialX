@@ -17,18 +17,14 @@ RtNodeDef::RtNodeDef(const RtObject& obj) :
 {
 }
 
-RtObject RtNodeDef::createNew(const RtToken& name, const RtToken& category, RtObject parent)
+RtObject RtNodeDef::createNew(RtObject stage, const RtToken& name, const RtToken& category)
 {
-    PrvObjectHandle nodedef = PrvNodeDef::createNew(name, category);
-
-    if (parent)
+    if (!stage.hasApi(RtApiType::STAGE))
     {
-        if (!parent.hasApi(RtApiType::STAGE))
-        {
-            throw ExceptionRuntimeError("Given parent object is not a valid stage");
-        }
-        parent.data()->asA<PrvStage>()->addChild(nodedef);
+        throw ExceptionRuntimeError("Given object is not a valid stage");
     }
+
+    PrvObjectHandle nodedef = PrvNodeDef::createNew(stage.data()->asA<PrvElement>(), name, category);
 
     return RtObject(nodedef);
 }
@@ -41,11 +37,6 @@ RtApiType RtNodeDef::getApiType() const
 const RtToken& RtNodeDef::getNodeName() const
 {
     return data()->asA<PrvNodeDef>()->getNodeName();
-}
-
-void RtNodeDef::addPort(RtObject portdef)
-{
-    return data()->asA<PrvNodeDef>()->addPort(portdef.data());
 }
 
 void RtNodeDef::removePort(RtObject portdef)
