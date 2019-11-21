@@ -142,7 +142,7 @@ MStatus bindFileTexture(MHWRender::MShaderInstance& shaderInstance,
         MHWRender::MStateManager::acquireSamplerState(samplerDescription)
     })
     {
-        const std::string samplerParameterName = parameterName + mx::OgsXmlGenerator::SAMPLER_SUFFIX;
+        const std::string samplerParameterName = mx::OgsXmlGenerator::textureToSamplerName(parameterName);
         status = shaderInstance.setParameter(samplerParameterName.c_str(), *samplerState);
     }
 

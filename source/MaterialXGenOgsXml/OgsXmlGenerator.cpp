@@ -184,7 +184,7 @@ namespace
             if (shaderPort->getType() == Type::FILENAME)
             {
                 const string& samplerName = shaderPort->getVariable();
-                const string textureName = OgsXmlGenerator::stripSamplerSuffix(samplerName);
+                const string textureName = OgsXmlGenerator::samplerToTextureName(samplerName);
                 if (!textureName.empty())
                 {
                     pugi::xml_node texture = parent.append_child(TEXTURE2);
@@ -254,18 +254,27 @@ const string OgsXmlGenerator::OUTPUT_NAME = "outColor";
 const string OgsXmlGenerator::VP_TRANSPARENCY_NAME = "vp2Transparency";
 const string OgsXmlGenerator::SAMPLER_SUFFIX = "_sampler";
 
-bool OgsXmlGenerator::hasSamplerSuffix(const string& samplerName)
+bool OgsXmlGenerator::isSamplerName(const string& name)
 {
     static const size_t SUFFIX_LENGTH = SAMPLER_SUFFIX.size();
-    return samplerName.size() > SUFFIX_LENGTH
-        && 0 == samplerName.compare(samplerName.size() - SUFFIX_LENGTH, SUFFIX_LENGTH, SAMPLER_SUFFIX);
+    return name.size() > SUFFIX_LENGTH + 1
+        && name[0] == '_'
+        && 0 == name.compare(name.size() - SUFFIX_LENGTH, SUFFIX_LENGTH, SAMPLER_SUFFIX);
 }
 
-string OgsXmlGenerator::stripSamplerSuffix(const string& samplerName)
+string OgsXmlGenerator::textureToSamplerName(const string& textureName)
 {
-    static const size_t SUFFIX_LENGTH = SAMPLER_SUFFIX.size();
-    return hasSamplerSuffix(samplerName)
-        ? samplerName.substr(0, samplerName.size() - SUFFIX_LENGTH) : "";
+    string result = "_";
+    result += textureName;
+    result += SAMPLER_SUFFIX;
+    return result;
+}
+
+string OgsXmlGenerator::samplerToTextureName(const string& samplerName)
+{
+    static const size_t PREFIX_SUFFIX_LENGTH = SAMPLER_SUFFIX.size() + 1;
+    return isSamplerName(samplerName)
+        ? samplerName.substr(1, samplerName.size() - PREFIX_SUFFIX_LENGTH) : "";
 }
 
 OgsXmlGenerator::OgsXmlGenerator()

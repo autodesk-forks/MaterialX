@@ -28,12 +28,15 @@ public:
         std::ostream&
     );
 
-    static bool hasSamplerSuffix(const string&);
-    static string stripSamplerSuffix(const string&);
+    static bool isSamplerName(const string&);
+    static string textureToSamplerName(const string&);
+    static string samplerToTextureName(const string&);
 
     /// String constants
     static const string OUTPUT_NAME;
     static const string VP_TRANSPARENCY_NAME;
+
+private:
     static const string SAMPLER_SUFFIX;
 };
 

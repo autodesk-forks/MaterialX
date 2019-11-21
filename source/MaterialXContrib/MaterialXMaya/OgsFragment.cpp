@@ -204,7 +204,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
                 const std::string& name = port->getVariable();
                 if (port->getType()->getSemantic() == mx::TypeDesc::SEMANTIC_FILENAME)
                 {
-                    std::string textureName = mx::OgsXmlGenerator::stripSamplerSuffix(name);
+                    std::string textureName = mx::OgsXmlGenerator::samplerToTextureName(name);
                     if (!textureName.empty())
                     {
                         _pathInputMap[path] = textureName;
