@@ -46,7 +46,10 @@ const string& NodeDef::getType() const
     {
         return activeOutputs[0]->getType();
     }
-    return EMPTY_STRING;
+    else
+    {
+        throw Exception("Nodedef: " + getName() + " has no outputs");
+    }
 }
 
 InterfaceElementPtr NodeDef::getImplementation(const string& target, const string& language) const

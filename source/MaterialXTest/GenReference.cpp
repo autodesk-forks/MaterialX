@@ -91,11 +91,6 @@ TEST_CASE("GenReference: Reference implementation file test", "[genreference]")
         const std::vector<mx::NodeDefPtr> nodedefs = stdlibDoc->getNodeDefs();
         for (const mx::NodeDefPtr& nodedef : nodedefs)
         {
-            // Skip typeless nodes
-            if (nodedef->getType().empty())
-            {
-                continue;
-            }
             bool hasOutputs = !nodedef->getActiveOutputs().empty();
             CHECK(hasOutputs);
             if (!hasOutputs)
@@ -180,12 +175,6 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
     const std::vector<mx::NodeDefPtr> nodedefs = stdlibDoc->getNodeDefs();
     for (const mx::NodeDefPtr& nodedef : nodedefs)
     {
-        // Skip typeless nodes
-        if (nodedef->getType().empty())
-        {
-            continue;
-        }
-
         std::string nodeName = nodedef->getName();
         if (nodeName.size() > 3 && nodeName.substr(0, 3) == "ND_")
         {
@@ -243,7 +232,7 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
         stdlibDoc->removeChild(node->getName());
     }
 
-    mx::writeToXmlFile(implDoc, outputPath / "stdlib_osl_impl.mtlx");
+    mx::writeToXmlFile(implDoc, outputPath / "stdlib_osl_impl.refmtlx");
 
     logFile.close();
 }

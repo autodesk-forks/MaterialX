@@ -609,7 +609,7 @@ void Document::upgradeVersion()
         {
             string type = interfaceElem->getAttribute(TypedElement::TYPE_ATTRIBUTE);
             OutputPtr outputPtr;
-            if (!type.empty() && type != MULTI_OUTPUT_TYPE_STRING && type != NONE_TYPE_STRING)
+            if (!type.empty() && type != MULTI_OUTPUT_TYPE_STRING)
             {
                 outputPtr = interfaceElem->addOutput("out", type);
             }
