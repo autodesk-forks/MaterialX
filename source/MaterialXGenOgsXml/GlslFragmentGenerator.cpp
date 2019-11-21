@@ -249,7 +249,10 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
         }
         else
         {
-            string outputValue = outputSocket->getValue() ? _syntax->getValue(outputSocket->getType(), *outputSocket->getValue()) : _syntax->getDefaultValue(outputSocket->getType());
+            const string outputValue = outputSocket->getValue()
+                ? _syntax->getValue(outputSocket->getType(), *outputSocket->getValue())
+                : _syntax->getDefaultValue(outputSocket->getType());
+
             if (!outputSocket->getType()->isFloat3())
             {
                 string finalOutput = outputSocket->getVariable() + "_tmp";
@@ -275,6 +278,22 @@ ShaderPtr GlslFragmentGenerator::generate(const string& name, ElementPtr element
     const VariableBlock& privateUniforms = pixelStage.getUniformBlock(HW::PRIVATE_UNIFORMS);
     if (!privateUniforms.empty())
     {
+        for (size_t i = 0; i < privateUniforms.size(); ++i)
+        {
+            const std::string& originalName = privateUniforms[i]->getVariable();
+            const std::string textureName = OgsXmlGenerator::stripSamplerSuffix(originalName);
+            if (!textureName.empty())
+            {
+                emitLineBegin(globalsStage);
+                emitString("#define ", globalsStage);
+                emitString(originalName, globalsStage);
+                emitString(" ", globalsStage);
+                emitString(textureName, globalsStage);
+                emitLineEnd(globalsStage, false);
+            }
+        }
+        emitLineBreak(globalsStage);
+
         emitVariableDeclarations(
             privateUniforms, _syntax->getUniformQualifier(), SEMICOLON, context, globalsStage
         );
