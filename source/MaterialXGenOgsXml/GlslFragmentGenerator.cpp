@@ -51,7 +51,7 @@ GlslFragmentGenerator::GlslFragmentGenerator() :
     _tokenSubstitutions[HW::T_TANGENT_OBJECT]       = "Tm";
     _tokenSubstitutions[HW::T_BITANGENT_WORLD]      = "Bw";
     _tokenSubstitutions[HW::T_BITANGENT_OBJECT]     = "Bm";
-    _tokenSubstitutions[HW::T_VERTEX_DATA_INSTANCE] = "PIX_IN";
+    _tokenSubstitutions[HW::T_VERTEX_DATA_INSTANCE] = "g_mxVertexData";
     _tokenSubstitutions[HW::T_ENV_IRRADIANCE]       = OgsXmlGenerator::textureToSamplerName(HW::ENV_IRRADIANCE);
     _tokenSubstitutions[HW::T_ENV_RADIANCE]         = OgsXmlGenerator::textureToSamplerName(HW::ENV_RADIANCE);
 }
@@ -80,8 +80,21 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
     // any scientific notation which isn't supported by all OpenGL targets.
     ScopedFloatFormatting floatFormatting(Value::FloatFormatFixed);
 
+    const VariableBlock& vertexData = pixelStage.getInputBlock(HW::VERTEX_DATA);
+    if (!vertexData.empty())
+    {
+        emitLine("struct", pixelStage, false);
+        emitScopeBegin(pixelStage);
+        emitVariableDeclarations(vertexData, EMPTY_STRING, SEMICOLON, context, pixelStage, false);
+        emitScopeEnd(pixelStage, false, false);
+        emitString(" " + HW::T_VERTEX_DATA_INSTANCE, pixelStage);
+        emitLineEnd(pixelStage, true);
+        emitLineBreak(pixelStage);
+    }
+
     // Add global constants and type definitions
     emitInclude("pbrlib/" + GlslShaderGenerator::LANGUAGE + "/lib/mx_defines.glsl", context, pixelStage);
+
     const unsigned int maxLights = std::max(1u, context.getOptions().hwMaxActiveLightSources);
     emitLine("#define MAX_LIGHT_SOURCES " + std::to_string(maxLights), pixelStage, false);
     emitLineBreak(pixelStage);
@@ -95,8 +108,8 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
         emitLineBreak(pixelStage);
     }
 
-    bool lighting = graph.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE) ||
-                    graph.hasClassification(ShaderNode::Classification::BSDF);
+    const bool lighting = graph.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE)
+        || graph.hasClassification(ShaderNode::Classification::BSDF);
 
     // Emit lighting functions
     if (lighting)
@@ -139,6 +152,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
     const ShaderGraphOutputSocket* outputSocket = graph.getOutputSocket();
 
     // Add function signature
+
     // Keep track of arguments we changed from matrix3 to matrix4 as additional
     // code must be inserted to get back the matrix3 version
     StringVec convertMatrixStrings;
@@ -149,50 +163,63 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
 
     emitLine((context.getOptions().hwTransparency ? "vec4 " : "vec3 ") + functionName, pixelStage, false);
 
-    // Emit public uniforms as function arguments
+    // Emit public uniforms and vertex data as function arguments
     //
     emitScopeBegin(pixelStage, Syntax::PARENTHESES);
-    const VariableBlock& publicUniforms = pixelStage.getUniformBlock(HW::PUBLIC_UNIFORMS);
-    const size_t numPublicUniforms = publicUniforms.size();
-    for (size_t i = 0; i < numPublicUniforms; ++i)
     {
-        emitLineBegin(pixelStage);
-        if (publicUniforms[i]->getType() == Type::MATRIX33)
-        {
-            convertMatrixStrings.push_back(publicUniforms[i]->getVariable());
-        }
-        emitVariableDeclaration(publicUniforms[i], EMPTY_STRING, context, pixelStage, false);
-        if (i < numPublicUniforms - 1)
-        {
-            emitString(COMMA, pixelStage);
-        }
-        emitLineEnd(pixelStage, false);
-    }
-    // Special case handling of world space normals which for now must be added 
-    // as a "dummy" argument if it exists.
-    const VariableBlock& streams = pixelStage.getInputBlock(HW::VERTEX_DATA);
-    const ShaderPort* port = streams.find(HW::T_NORMAL_WORLD);
-    if (port)
-    { 
-        emitLineBegin(pixelStage);
-        emitString(COMMA, pixelStage);
-        emitVariableDeclaration(port, EMPTY_STRING, context, pixelStage, false);
-        emitLineEnd(pixelStage, false);
-    }
+        bool firstArgument = true;
 
-    if (context.getOptions().hwTransparency)
-    {
-        // A dummy argument not used in the generated shader code but necessary to
-        // map onto an OGS fragment parameter and a shading node DG attribute with
-        // the same name that can be set to a non-0 value to let Maya know that the
-        // surface is transparent.
-        emitLineBegin(pixelStage);
-        emitString(COMMA, pixelStage);
-        emitString("float ", pixelStage);
-        emitString(OgsXmlGenerator::VP_TRANSPARENCY_NAME, pixelStage);
-        emitLineEnd(pixelStage, false);
-    }
+        auto emitArgument = [this, &firstArgument, &pixelStage, &context](
+            const ShaderPort* shaderPort
+        ) -> void
+        {
+            if (firstArgument)
+            {
+                firstArgument = false;
+            }
+            else
+            {
+                emitString(COMMA, pixelStage);
+                emitLineEnd(pixelStage, false);
+            }
 
+            emitLineBegin(pixelStage);
+            emitVariableDeclaration(shaderPort, EMPTY_STRING, context, pixelStage, false);
+        };
+
+        const VariableBlock& publicUniforms = pixelStage.getUniformBlock(HW::PUBLIC_UNIFORMS);
+        for (size_t i = 0; i < publicUniforms.size(); ++i)
+        {
+            const ShaderPort* shaderPort = publicUniforms[i];
+
+            if (shaderPort->getType() == Type::MATRIX33)
+                convertMatrixStrings.push_back(publicUniforms[i]->getVariable());
+
+            emitArgument(shaderPort);
+        }
+
+        for (size_t i = 0; i < vertexData.size(); ++i)
+            emitArgument(vertexData[i]);
+
+        if (context.getOptions().hwTransparency)
+        {
+            // A dummy argument not used in the generated shader code but necessary to
+            // map onto an OGS fragment parameter and a shading node DG attribute with
+            // the same name that can be set to a non-0 value to let Maya know that the
+            // surface is transparent.
+
+            if (!firstArgument)
+            {
+                emitString(COMMA, pixelStage);
+                emitLineEnd(pixelStage, false);
+            }
+
+            emitLineBegin(pixelStage);
+            emitString("float ", pixelStage);
+            emitString(OgsXmlGenerator::VP_TRANSPARENCY_NAME, pixelStage);
+            emitLineEnd(pixelStage, false);
+        }
+    }
     emitScopeEnd(pixelStage);
 
     // Add function body
@@ -207,6 +234,19 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
     }
     else
     {
+        for (size_t i = 0; i < vertexData.size(); ++i)
+        {
+            const string& name = vertexData[i]->getVariable();
+
+            emitLineBegin(pixelStage);
+            emitString(HW::T_VERTEX_DATA_INSTANCE, pixelStage);
+            emitString(".", pixelStage);
+            emitString(name, pixelStage);
+            emitString(" = ", pixelStage);
+            emitString(name, pixelStage);
+            emitLineEnd(pixelStage, true);
+        }
+
         // Insert matrix converters
         for (const string& argument : convertMatrixStrings)
         {
@@ -217,8 +257,8 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
         emitFunctionCalls(graph, context, pixelStage);
 
         // Emit final result
-        const ShaderOutput* outputConnection = outputSocket->getConnection();
-        if (outputConnection)
+        //
+        if (const ShaderOutput* outputConnection = outputSocket->getConnection())
         {
             string finalOutput = outputConnection->getVariable();
             const string& channels = outputSocket->getChannels();
@@ -297,18 +337,6 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
         emitVariableDeclarations(
             privateUniforms, _syntax->getUniformQualifier(), SEMICOLON, context, globalsStage
         );
-        emitLineBreak(globalsStage);
-    }
-
-    const VariableBlock& vertexData = pixelStage.getInputBlock(HW::VERTEX_DATA);
-    if (!vertexData.empty())
-    {
-        emitLine("in " + vertexData.getName(), globalsStage, false);
-        emitScopeBegin(globalsStage);
-        emitVariableDeclarations(vertexData, EMPTY_STRING, SEMICOLON, context, globalsStage, false);
-        emitScopeEnd(globalsStage, false, false);
-        emitString(" " + vertexData.getInstance() + SEMICOLON, globalsStage);
-        emitLineBreak(globalsStage);
         emitLineBreak(globalsStage);
     }
 

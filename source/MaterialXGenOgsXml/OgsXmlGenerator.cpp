@@ -78,21 +78,25 @@ namespace
         { "u_time", "Time" }
     };
 
+    namespace OGS_INPUT_FLAGS
+    {
+        static const std::string
+            VARYING_INPUT_PARAM = "varyingInputParam",
+            IS_REQUIREMENT_ONLY = "isRequirementOnly";
+    }
+
+
     // Custom flags required by OGS XML
     static const StringMap OGS_FLAGS_MAP = 
     {
-        // Note: Nw has to be a varyingInputParam instead of a global (isRequirementOnly).
-        // This is because the pixel shader main function generated preprocesses Nw before passing it 
-        // to the main function of the fragment graph.
-        //
-        { "Pw", "isRequirementOnly" },
-        { "Pm", "isRequirementOnly" },
-        { "Nw", "varyingInputParam" },
-        { "Nm", "isRequirementOnly" },
-        { "Tw", "isRequirementOnly" },
-        { "Tm", "isRequirementOnly" },
-        { "Bw", "isRequirementOnly" },
-        { "Bm", "isRequirementOnly" } 
+        { "Pw", OGS_INPUT_FLAGS::VARYING_INPUT_PARAM },
+        { "Pm", OGS_INPUT_FLAGS::IS_REQUIREMENT_ONLY },
+        { "Nw", OGS_INPUT_FLAGS::VARYING_INPUT_PARAM },
+        { "Nm", OGS_INPUT_FLAGS::IS_REQUIREMENT_ONLY },
+        { "Tw", OGS_INPUT_FLAGS::VARYING_INPUT_PARAM },
+        { "Tm", OGS_INPUT_FLAGS::IS_REQUIREMENT_ONLY },
+        { "Bw", OGS_INPUT_FLAGS::IS_REQUIREMENT_ONLY },
+        { "Bm", OGS_INPUT_FLAGS::IS_REQUIREMENT_ONLY }
     };
 
     // String constants
