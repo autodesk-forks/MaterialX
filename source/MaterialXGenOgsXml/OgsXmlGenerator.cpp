@@ -78,7 +78,7 @@ namespace
         { "u_time", "Time" }
     };
 
-    namespace OGS_INPUT_FLAGS
+    namespace OgsInputFlags
     {
         static const std::string
             VARYING_INPUT_PARAM = "varyingInputParam",
@@ -89,14 +89,14 @@ namespace
     // Custom flags required by OGS XML
     static const StringMap OGS_FLAGS_MAP = 
     {
-        { "Pw", OGS_INPUT_FLAGS::VARYING_INPUT_PARAM },
-        { "Pm", OGS_INPUT_FLAGS::IS_REQUIREMENT_ONLY },
-        { "Nw", OGS_INPUT_FLAGS::VARYING_INPUT_PARAM },
-        { "Nm", OGS_INPUT_FLAGS::IS_REQUIREMENT_ONLY },
-        { "Tw", OGS_INPUT_FLAGS::VARYING_INPUT_PARAM },
-        { "Tm", OGS_INPUT_FLAGS::IS_REQUIREMENT_ONLY },
-        { "Bw", OGS_INPUT_FLAGS::IS_REQUIREMENT_ONLY },
-        { "Bm", OGS_INPUT_FLAGS::IS_REQUIREMENT_ONLY }
+        { "Pw", OgsInputFlags::VARYING_INPUT_PARAM },
+        { "Pm", OgsInputFlags::IS_REQUIREMENT_ONLY },
+        { "Nw", OgsInputFlags::VARYING_INPUT_PARAM },
+        { "Nm", OgsInputFlags::IS_REQUIREMENT_ONLY },
+        { "Tw", OgsInputFlags::VARYING_INPUT_PARAM },
+        { "Tm", OgsInputFlags::IS_REQUIREMENT_ONLY },
+        { "Bw", OgsInputFlags::IS_REQUIREMENT_ONLY },
+        { "Bm", OgsInputFlags::IS_REQUIREMENT_ONLY }
     };
 
     // String constants
@@ -142,49 +142,31 @@ namespace
         }
     }
 
-    void xmlSetProperty(pugi::xml_node& prop, const string& name, const string& variable, const string& flags = EMPTY_STRING)
+    void xmlSetProperty(pugi::xml_node& prop, const string& name, const string& variable, const string& defaultFlags = EMPTY_STRING)
     {
         prop.append_attribute(NAME) = variable.c_str();
-        auto semantic = OGS_SEMANTICS_MAP.find(name);
+        const auto semantic = OGS_SEMANTICS_MAP.find(name);
         if (semantic != OGS_SEMANTICS_MAP.end())
         {
             prop.append_attribute(SEMANTIC) = semantic->second;
         }
-        auto flag = OGS_FLAGS_MAP.find(name);
+        const auto flag = OGS_FLAGS_MAP.find(name);
         if (flag != OGS_FLAGS_MAP.end())
         {
             prop.append_attribute(FLAGS) = flag->second.c_str();
         }
-        else if (!flags.empty())
+        else if (!defaultFlags.empty())
         {
-            prop.append_attribute(FLAGS) = flags.c_str();
+            prop.append_attribute(FLAGS) = defaultFlags.c_str();
         }
     }
 
-    void xmlAddProperties(pugi::xml_node& parent, const VariableBlock& block, const string& flags = EMPTY_STRING)
+    void xmlAddProperties(pugi::xml_node& parent, const VariableBlock& block, const string& defaultFlags = EMPTY_STRING)
     {
         for (size_t i = 0; i < block.size(); ++i)
         {
             const ShaderPort* const shaderPort = block[i];
-            if (shaderPort->getName() == "Pw")
-            {
-                auto type = OGS_TYPE_MAP.find(shaderPort->getType());
-                if (type != OGS_TYPE_MAP.end())
-                {
-                    pugi::xml_node prop = parent.append_child(type->second);
-                    xmlSetProperty(prop, shaderPort->getName(), shaderPort->getVariable(), flags);
-                }
-            }
-        }
 
-        for (size_t i = 0; i < block.size(); ++i)
-        {
-            const ShaderPort* const shaderPort = block[i];
-
-            if (shaderPort->getName() == "Pw")
-            {
-                continue;
-            }
             if (shaderPort->getType() == Type::FILENAME)
             {
                 const string& samplerName = shaderPort->getVariable();
@@ -192,25 +174,25 @@ namespace
                 if (!textureName.empty())
                 {
                     pugi::xml_node texture = parent.append_child(TEXTURE2);
-                    xmlSetProperty(texture, shaderPort->getName(), textureName, flags);
+                    xmlSetProperty(texture, shaderPort->getName(), textureName, defaultFlags);
                     pugi::xml_node sampler = parent.append_child(SAMPLER);
-                    xmlSetProperty(sampler, shaderPort->getName(), samplerName, flags);
+                    xmlSetProperty(sampler, shaderPort->getName(), samplerName, defaultFlags);
                 }
             }
             else
             {
-                auto type = OGS_TYPE_MAP.find(shaderPort->getType());
+                const auto type = OGS_TYPE_MAP.find(shaderPort->getType());
                 if (type != OGS_TYPE_MAP.end())
                 {
                     pugi::xml_node prop = parent.append_child(type->second);
                     if (shaderPort->getType() == Type::MATRIX33)
                     {
-                        string var = shaderPort->getVariable() + GlslFragmentGenerator::MATRIX3_TO_MATRIX4_POSTFIX;
-                        xmlSetProperty(prop, shaderPort->getName(), var, flags);
+                        const string var = shaderPort->getVariable() + GlslFragmentGenerator::MATRIX3_TO_MATRIX4_POSTFIX;
+                        xmlSetProperty(prop, shaderPort->getName(), var, defaultFlags);
                     }
                     else
                     {
-                        xmlSetProperty(prop, shaderPort->getName(), shaderPort->getVariable(), flags);
+                        xmlSetProperty(prop, shaderPort->getName(), shaderPort->getVariable(), defaultFlags);
                     }
                 }
             }
@@ -310,9 +292,9 @@ void OgsXmlGenerator::generate(
 
     // Add properties
     pugi::xml_node xmlProperties = xmlRoot.append_child(PROPERTIES);
-    xmlAddProperties(xmlProperties, stage.getUniformBlock(HW::PRIVATE_UNIFORMS), "isRequirementOnly");
+    xmlAddProperties(xmlProperties, stage.getUniformBlock(HW::PRIVATE_UNIFORMS), OgsInputFlags::IS_REQUIREMENT_ONLY);
     xmlAddProperties(xmlProperties, stage.getUniformBlock(HW::PUBLIC_UNIFORMS));
-    xmlAddProperties(xmlProperties, stage.getInputBlock(HW::VERTEX_DATA), "isRequirementOnly, varyingInputParam");
+    xmlAddProperties(xmlProperties, stage.getInputBlock(HW::VERTEX_DATA), OgsInputFlags::VARYING_INPUT_PARAM);
 
     if (hwTransparency)
     {
