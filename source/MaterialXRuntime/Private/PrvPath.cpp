@@ -49,7 +49,7 @@ PrvObjectHandle PrvPath::getObject() const
     while (parent)
     {
         elem = parent->findChildByName(_path[i++]);
-        parent = i < _path.size() ? elem->asA<PrvElement>() : nullptr;
+        parent = elem && (i < _path.size()) ? elem->asA<PrvElement>() : nullptr;
     }
 
     return elem;
