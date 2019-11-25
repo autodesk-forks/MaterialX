@@ -18,6 +18,7 @@
 #include <MaterialXRuntime/RtTypeDef.h>
 #include <MaterialXRuntime/RtNode.h>
 #include <MaterialXRuntime/RtNodeGraph.h>
+#include <MaterialXRuntime/RtPath.h>
 #include <MaterialXRuntime/RtFileIo.h>
 #include <MaterialXRuntime/RtTraversal.h>
 
@@ -345,6 +346,25 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(mx::RtPortDef(elem1).getName() == "in2");
     REQUIRE(mx::RtPortDef(elem1).isInput());
 
+    // Test RtPath
+    mx::RtPath path1(add1Obj);
+    REQUIRE(path1.isValid());
+    REQUIRE(path1.getPathString() == "/add1");
+    REQUIRE(path1.hasApi(mx::RtApiType::NODE));
+    REQUIRE(path1.getObjType() == mx::RtObjType::NODE);
+    mx::RtPath path2(addDefObj);
+    REQUIRE(path2.isValid());
+    REQUIRE(path2.getPathString() == "/ND_add_float");
+    REQUIRE(path2.hasApi(mx::RtApiType::NODEDEF));
+    path2.push("in1");
+    REQUIRE(path2.isValid());
+    REQUIRE(path2.getPathString() == "/ND_add_float/in1");
+    REQUIRE(path2.hasApi(mx::RtApiType::PORTDEF));
+    path2.pop();
+    REQUIRE(path2.isValid());
+    REQUIRE(path2.getPathString() == "/ND_add_float");
+    path2.pop();
+    REQUIRE(!path2.isValid());
 }
 
 TEST_CASE("Runtime: NodeGraphs", "[runtime]")
@@ -419,6 +439,20 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(portdef.isValid());
     REQUIRE(node.hasApi(mx::RtApiType::NODE));
     REQUIRE(portdef.hasApi(mx::RtApiType::PORTDEF));
+
+    // Test RtPath
+    mx::RtPath path1(addObj1);
+    REQUIRE(path1.isValid());
+    REQUIRE(path1.getPathString() == "/graph1/add1");
+    REQUIRE(path1.getObject() == addObj1);
+    path1.pop();
+    REQUIRE(path1.isValid());
+    REQUIRE(path1.getPathString() == "/graph1");
+    REQUIRE(path1.getObject() == graphObj1);
+    path1.push(add2.getName());
+    REQUIRE(path1.isValid());
+    REQUIRE(path1.getPathString() == "/graph1/add2");
+    REQUIRE(path1.getObject() == addObj2);
 
     // Test getting a port instance from node and portdef.
     mx::RtPort port1(node, portdef);
@@ -508,27 +542,43 @@ TEST_CASE("Runtime: Stage References", "[runtime]")
     mx::RtObject mainStageObj = mx::RtStage::createNew("main");
     mx::RtStage mainStage(mainStageObj);
 
-    // Load in stdlib in as a referenced stage ("libs").
+    // Load in libraries in a separate stage.
+    mx::RtObject libStageObj = mx::RtStage::createNew("libs");
     mx::FileSearchPath searchPath;
     searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
-    mx::RtFileIo fileIO(mainStageObj); 
-    fileIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
+    mx::RtFileIo libFileIO(libStageObj);
+    libFileIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
+
+    // Reference the libs from the main stage.
+    mainStage.addReference(libStageObj);
 
     // Test access and usage of contents from the referenced library.
-    mx::RtNodeDef nodedef = mainStage.findElementByName("ND_complex_ior");
-    REQUIRE(nodedef.isValid());
-    mx::RtObject nodeObj = mx::RtNode::createNew(mainStage.getObject(), "complex1", nodedef.getObject());
-    REQUIRE(nodeObj.isValid());
+    mx::RtObject complexIorObj = mainStage.findElementByName("ND_complex_ior");
+    mx::RtNodeDef complexIor(complexIorObj);
+    REQUIRE(complexIor.isValid());
+    mx::RtObject complexIor1 = mx::RtNode::createNew(mainStage.getObject(), "complex1", complexIorObj);
+    REQUIRE(complexIor1.isValid());
 
-    // Write the stage to a new document, 
+    // Write the main stage to a new document,
     // writing only the non-referenced content.
-    fileIO.write(mainStage.getName().str() + ".mtlx", nullptr);
+    mx::RtFileIo mainFileIO(mainStageObj);
+    mainFileIO.write(mainStage.getName().str() + ".mtlx", nullptr);
 
     // Make sure removal of the non-referenced node works
-    const mx::RtToken nodeName = mx::RtNode(nodeObj).getName();
+    const mx::RtToken nodeName = mx::RtNode(complexIor1).getName();
     mainStage.removeElement(nodeName);
-    nodeObj = mainStage.findElementByName(nodeName);
-    REQUIRE(!nodeObj.isValid());
+    complexIor1 = mainStage.findElementByName(nodeName);
+    REQUIRE(!complexIor1.isValid());
+
+    // Test RtPath on referenced contents
+    mx::RtPath path1(complexIorObj);
+    REQUIRE(path1.isValid());
+    REQUIRE(path1.getPathString() == "/ND_complex_ior");
+    REQUIRE(path1.getObject() == complexIorObj);
+    path1.push("reflectivity");
+    REQUIRE(path1.isValid());
+    REQUIRE(path1.getPathString() == "/ND_complex_ior/reflectivity");
+    REQUIRE(path1.getObject() == complexIor.findPort("reflectivity"));
 }
 
 TEST_CASE("Runtime: Traversal", "[runtime]")
