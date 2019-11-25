@@ -17,6 +17,7 @@
 
 namespace MaterialX
 {
+
 /// @name Shader Utilities
 /// @{
 
@@ -31,77 +32,77 @@ ShaderPtr createConstantShader(GenContext& context,
                                const Color3& color);
 
 /// @}
-    /// @name User interface utilities
-    /// @{
+/// @name User Interface Utilities
+/// @{
 
-    /// Set of possible UI properties for an element
-    struct UIProperties
-    {
-        /// UI name
-        string uiName;
+/// Set of possible UI properties for an element
+struct UIProperties
+{
+	/// UI name
+	string uiName;
 
-        /// UI folder
-        string uiFolder;
+	/// UI folder
+	string uiFolder;
 
-        /// Enumeration
-        StringVec enumeration;
+	/// Enumeration
+	StringVec enumeration;
 
-        /// Enumeration Values
-        vector<ValuePtr> enumerationValues;
+	/// Enumeration Values
+	vector<ValuePtr> enumerationValues;
 
-        /// UI minimum value
-        ValuePtr uiMin;
+	/// UI minimum value
+	ValuePtr uiMin;
 
-        /// UI maximum value
-        ValuePtr uiMax;
+	/// UI maximum value
+	ValuePtr uiMax;
 
-        /// UI soft minimum value
-        ValuePtr uiSoftMin;
+	/// UI soft minimum value
+	ValuePtr uiSoftMin;
 
-        /// UI soft maximum value
-        ValuePtr uiSoftMax;
+	/// UI soft maximum value
+	ValuePtr uiSoftMax;
 
-        /// UI step value
-        ValuePtr uiStep;
+	/// UI step value
+	ValuePtr uiStep;
 
-        /// UI advanced element
-        bool uiAdvanced = false;
-    };
+	/// UI advanced element
+	bool uiAdvanced = false;
+};
 
-    /// Get the UI properties for a given nodedef element.
-    /// Returns the number of properties found.
-    unsigned int getUIProperties(ConstValueElementPtr nodeDefElement, UIProperties& uiProperties);
+/// Get the UI properties for a given nodedef element.
+/// Returns the number of properties found.
+unsigned int getUIProperties(ConstValueElementPtr nodeDefElement, UIProperties& uiProperties);
 
-    /// Get the UI properties for a given element path. If the path is to a node, a target
-    /// identifier can be provided.
-    /// Returns the number of properties found.
-    unsigned int getUIProperties(const string& path, DocumentPtr doc, const string& target, UIProperties& uiProperties);
+/// Get the UI properties for a given element path. If the path is to a node, a target
+/// identifier can be provided.
+/// Returns the number of properties found.
+unsigned int getUIProperties(const string& path, DocumentPtr doc, const string& target, UIProperties& uiProperties);
 
-    /// Interface for holding the UI properties associated shader port
-    struct UIPropertyItem
-    {
-        string label;
-        ValuePtr value;
-        ShaderPort* variable = nullptr;
-        UIProperties ui;
-    };
+/// Interface for holding the UI properties associated shader port
+struct UIPropertyItem
+{
+    string label;
+    ValuePtr value;
+    ShaderPort* variable = nullptr;
+    UIProperties ui;
+};
 
-    /// A grouping of property items by name
-    using UIPropertyGroup = std::multimap<string, UIPropertyItem>;
+/// A grouping of property items by name
+using UIPropertyGroup = std::multimap<string, UIPropertyItem>;
 
-    /// Utility to group UI properties items based on Element group name from an element.
-    /// Returns a list of named and unnamed groups.
-    void createUIPropertyGroups(ElementPtr uniformElement, DocumentPtr contentDocument, TypedElementPtr materialElement,
-                                const string& pathSeparator, UIPropertyGroup& groups,
-                                UIPropertyGroup& unnamedGroups, ShaderPort* uniform = nullptr);
+/// Utility to group UI properties items based on Element group name from an element.
+/// Returns a list of named and unnamed groups.
+void createUIPropertyGroups(ElementPtr uniformElement, DocumentPtr contentDocument, TypedElementPtr materialElement,
+                            const string& pathSeparator, UIPropertyGroup& groups,
+                            UIPropertyGroup& unnamedGroups, ShaderPort* uniform = nullptr);
 
-    /// Utility to group UI properties items based on Element group name from a VariableBlock.
-    /// Returns a list of named and unnamed groups.
-    void createUIPropertyGroups(const VariableBlock& block, DocumentPtr contentDocument, TypedElementPtr materialElement,
-                                const string& pathSeparator, UIPropertyGroup& groups,
-                                UIPropertyGroup& unnamedGroups);
+/// Utility to group UI properties items based on Element group name from a VariableBlock.
+/// Returns a list of named and unnamed groups.
+void createUIPropertyGroups(const VariableBlock& block, DocumentPtr contentDocument, TypedElementPtr materialElement,
+                            const string& pathSeparator, UIPropertyGroup& groups,
+                            UIPropertyGroup& unnamedGroups);
 
-    /// @}
+/// @}
 
 } // namespace MaterialX
 
