@@ -33,7 +33,7 @@
 #include <MaterialXGenShader/Nodes/ConvertNode.h>
 #include <MaterialXGenShader/Nodes/CombineNode.h>
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
-#include <MaterialXGenShader/Nodes/CompareNode.h>
+#include <MaterialXGenShader/Nodes/IfNode.h>
 #include <MaterialXGenShader/Nodes/BlurNode.h>
 #include <MaterialXGenShader/Nodes/HwImageNode.h>
 
@@ -55,14 +55,66 @@ GlslShaderGenerator::GlslShaderGenerator() :
     // Register all custom node implementation classes
     //
 
-    // <!-- <compare> -->
-    registerImplementation("IM_compare_float_" + GlslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_color2_" + GlslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_color3_" + GlslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_color4_" + GlslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_vector2_" + GlslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_vector3_" + GlslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_vector4_" + GlslShaderGenerator::LANGUAGE, CompareNode::create);
+    // <!-- <if*> -->
+    registerImplementation("IM_ifgreater_float_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM__ifgreater_vector4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+
+    registerImplementation("IM_ifgreater_float_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_floatI_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+
+    registerImplementation("IM_ifgreatereq_float_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_floatI_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+
+    registerImplementation("IM_ifequal_float_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_floatI_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_floatB_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color2B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color3B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color4B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector2B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector3B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector4B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
 
     // <!-- <switch> -->
     // <!-- 'which' type : float -->

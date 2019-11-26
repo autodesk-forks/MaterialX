@@ -671,7 +671,7 @@
   <!-- Conditional nodes                                                        -->
   <!-- ======================================================================== -->
 
-  <!-- <compare> -->
+  <!-- <compare> 
   <implementation name="IM_compare_float_genglsl" nodedef="ND_compare_float" language="genglsl"/>
   <implementation name="IM_compare_color2_genglsl" nodedef="ND_compare_color2" language="genglsl"/>
   <implementation name="IM_compare_color3_genglsl" nodedef="ND_compare_color3" language="genglsl"/>
@@ -679,8 +679,61 @@
   <implementation name="IM_compare_vector2_genglsl" nodedef="ND_compare_vector2" language="genglsl"/>
   <implementation name="IM_compare_vector3_genglsl" nodedef="ND_compare_vector3" language="genglsl"/>
   <implementation name="IM_compare_vector4_genglsl" nodedef="ND_compare_vector4" language="genglsl"/>
+-->
+   
+   <implementation name="IM_ifgreater_float_genglsl" nodedef="ND_ifgreater_float" language="genglsl" />
+   <implementation name="IM_ifgreater_color2_genglsl" nodedef="ND_ifgreater_color2" language="genglsl" />
+   <implementation name="IM_ifgreater_color3_genglsl" nodedef="ND_ifgreater_color3" language="genglsl" />
+   <implementation name="IM_ifgreater_color4_genglsl" nodedef="ND_ifgreater_color4" language="genglsl" />
+   <implementation name="IM_ifgreater_vector2_genglsl" nodedef="ND_ifgreater_vector2" language="genglsl" />
+   <implementation name="IM_ifgreater_vector3_genglsl" nodedef="ND_ifgreater_vector3" language="genglsl" />
+   <implementation name="IM_ifgreater_vector4_genglsl" nodedef="ND_ifgreater_vector4" language="genglsl" />
+   <implementation name="IM_ifgreater_floatI_genglsl" nodedef="ND_ifgreater_floatI" language="genglsl" />
+   <implementation name="IM_ifgreater_color2I_genglsl" nodedef="ND_ifgreater_color2I" language="genglsl" />
+   <implementation name="IM_ifgreater_color3I_genglsl" nodedef="ND_ifgreater_color3I" language="genglsl" />
+   <implementation name="IM_ifgreater_color4I_genglsl" nodedef="ND_ifgreater_color4I" language="genglsl" />
+   <implementation name="IM_ifgreater_vector2I_genglsl" nodedef="ND_ifgreater_vector2I" language="genglsl" />
+   <implementation name="IM_ifgreater_vector3I_genglsl" nodedef="ND_ifgreater_vector3I" language="genglsl" />
+   <implementation name="IM_ifgreater_vector4I_genglsl" nodedef="ND_ifgreater_vector4I" language="genglsl" />
+   
+   <implementation name="IM_ifgreatereq_float_genglsl" nodedef="ND_ifgreatereq_float" language="genglsl" />
+   <implementation name="IM_ifgreatereq_color2_genglsl" nodedef="ND_ifgreatereq_color2" language="genglsl" />
+   <implementation name="IM_ifgreatereq_color3_genglsl" nodedef="ND_ifgreatereq_color3" language="genglsl" />
+   <implementation name="IM_ifgreatereq_color4_genglsl" nodedef="ND_ifgreatereq_color4" language="genglsl" />
+   <implementation name="IM_ifgreatereq_vector2_genglsl" nodedef="ND_ifgreatereq_vector2" language="genglsl" />
+   <implementation name="IM_ifgreatereq_vector3_genglsl" nodedef="ND_ifgreatereq_vector3" language="genglsl" />
+   <implementation name="IM_ifgreatereq_vector4_genglsl" nodedef="ND_ifgreatereq_vector4" language="genglsl" />
+   <implementation name="IM_ifgreatereq_floatI_genglsl" nodedef="ND_ifgreatereq_floatI" language="genglsl" />
+   <implementation name="IM_ifgreatereq_color2I_genglsl" nodedef="ND_ifgreatereq_color2I" language="genglsl" />
+   <implementation name="IM_ifgreatereq_color3I_genglsl" nodedef="ND_ifgreatereq_color3I" language="genglsl" />
+   <implementation name="IM_ifgreatereq_color4I_genglsl" nodedef="ND_ifgreatereq_color4I" language="genglsl" />
+   <implementation name="IM_ifgreatereq_vector2I_genglsl" nodedef="ND_ifgreatereq_vector2I" language="genglsl" />
+   <implementation name="IM_ifgreatereq_vector3I_genglsl" nodedef="ND_ifgreatereq_vector3I" language="genglsl" />
+   <implementation name="IM_ifgreatereq_vector4I_genglsl" nodedef="ND_ifgreatereq_vector4I" language="genglsl" />
+   
+   <implementation name="IM_ifequal_float_genglsl" nodedef="ND_ifequal_float" language="genglsl" />
+   <implementation name="IM_ifequal_color2_genglsl" nodedef="ND_ifequal_color2" language="genglsl" />
+   <implementation name="IM_ifequal_color3_genglsl" nodedef="ND_ifequal_color3" language="genglsl" />
+   <implementation name="IM_ifequal_color4_genglsl" nodedef="ND_ifequal_color4" language="genglsl" />
+   <implementation name="IM_ifequal_vector2_genglsl" nodedef="ND_ifequal_vector2" language="genglsl" />
+   <implementation name="IM_ifequal_vector3_genglsl" nodedef="ND_ifequal_vector3" language="genglsl" />
+   <implementation name="IM_ifequal_vector4_genglsl" nodedef="ND_ifequal_vector4" language="genglsl" />
+   <implementation name="IM_ifequal_floatI_genglsl" nodedef="ND_ifequal_floatI" language="genglsl" />
+   <implementation name="IM_ifequal_color2I_genglsl" nodedef="ND_ifequal_color2I" language="genglsl" />
+   <implementation name="IM_ifequal_color3I_genglsl" nodedef="ND_ifequal_color3I" language="genglsl" />
+   <implementation name="IM_ifequal_color4I_genglsl" nodedef="ND_ifequal_color4I" language="genglsl" />
+   <implementation name="IM_ifequal_vector2I_genglsl" nodedef="ND_ifequal_vector2I" language="genglsl" />
+   <implementation name="IM_ifequal_vector3I_genglsl" nodedef="ND_ifequal_vector3I" language="genglsl" />
+   <implementation name="IM_ifequal_vector4I_genglsl" nodedef="ND_ifequal_vector4I" language="genglsl" />
+   <implementation name="IM_ifequal_floatB_genglsl" nodedef="ND_ifequal_floatB" language="genglsl" />
+   <implementation name="IM_ifequal_color2B_genglsl" nodedef="ND_ifequal_color2B" language="genglsl" />
+   <implementation name="IM_ifequal_color3B_genglsl" nodedef="ND_ifequal_color3B" language="genglsl" />
+   <implementation name="IM_ifequal_color4B_genglsl" nodedef="ND_ifequal_color4B" language="genglsl" />
+   <implementation name="IM_ifequal_vector2B_genglsl" nodedef="ND_ifequal_vector2B" language="genglsl" />
+   <implementation name="IM_ifequal_vector3B_genglsl" nodedef="ND_ifequal_vector3B" language="genglsl" />
+   <implementation name="IM_ifequal_vector4B_genglsl" nodedef="ND_ifequal_vector4B" language="genglsl" />
 
-  <!-- <switch> -->
+   <!-- <switch> -->
   <!-- 'which' type : float -->
   <implementation name="IM_switch_float_genglsl" nodedef="ND_switch_float" language="genglsl"/>
   <implementation name="IM_switch_color2_genglsl" nodedef="ND_switch_color2" language="genglsl"/>

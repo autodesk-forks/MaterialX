@@ -14,7 +14,7 @@
 #include <MaterialXGenShader/Nodes/ConvertNode.h>
 #include <MaterialXGenShader/Nodes/CombineNode.h>
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
-#include <MaterialXGenShader/Nodes/CompareNode.h>
+#include <MaterialXGenShader/Nodes/IfNode.h>
 #include <MaterialXGenShader/Nodes/BlurNode.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
@@ -33,14 +33,66 @@ OslShaderGenerator::OslShaderGenerator() :
 {
     // Register build-in implementations
 
-    // <!-- <compare> -->
-    registerImplementation("IM_compare_float_" + OslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_color2_" + OslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_color3_" + OslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_color4_" + OslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_vector2_" + OslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_vector3_" + OslShaderGenerator::LANGUAGE, CompareNode::create);
-    registerImplementation("IM_compare_vector4_" + OslShaderGenerator::LANGUAGE, CompareNode::create);
+    // <!-- <if*> -->
+    registerImplementation("IM_ifgreater_float_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color2_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color3_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color4_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector2_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector3_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM__ifgreater_vector4_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+
+    registerImplementation("IM_ifgreater_float_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color2_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color3_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color4_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector2_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector3_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector4_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_floatI_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color2I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color3I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_color4I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector2I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector3I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreater_vector4I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+
+    registerImplementation("IM_ifgreatereq_float_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color2_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color3_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color4_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector2_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector3_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector4_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_floatI_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color2I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color3I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_color4I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector2I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector3I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifgreatereq_vector4I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+
+    registerImplementation("IM_ifequal_float_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color2_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color3_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color4_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector2_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector3_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector4_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_floatI_"  + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color2I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color3I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color4I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector2I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector3I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector4I_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_floatB_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color2B_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color3B_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_color4B_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector2B_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector3B_" + OslShaderGenerator::LANGUAGE, IfNode::create);
+    registerImplementation("IM_ifequal_vector4B_" + OslShaderGenerator::LANGUAGE, IfNode::create);
 
     // <!-- <switch> -->
     // <!-- 'which' type : float -->

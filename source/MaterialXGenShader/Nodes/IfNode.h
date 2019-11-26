@@ -3,16 +3,16 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#ifndef MATERIALX_COMPARENODE_H
-#define MATERIALX_COMPARENODE_H
+#ifndef MATERIALX_IFNODE_H
+#define MATERIALX_IFNODE_H
 
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 
 namespace MaterialX
 {
 
-/// Compare node implementation
-class CompareNode : public ShaderNodeImpl
+/// Implemention which handles: ifgreater, ifgreaterql and ifequal nodes
+class IfNode : public ShaderNodeImpl
 {
 public:
     static ShaderNodeImplPtr create();

@@ -12,24 +12,24 @@
       <input name="in1" type="vector3" value="0.0, 0.0, 0.0" nodename="position1" />
       <input name="in2" type="vector3" value="1.0000, 1.0000, 1.0000" />
     </multiply>
-    <compare name="compare2" type="color3" xpos="5.97002" ypos="8.61048" adskDisplayMode="2">
-      <input name="intest" type="float" value="0.0" nodename="cellnoise3d1" />
-      <parameter name="cutoff" type="float" value="0.4400" />
+    <ifgreater name="compare2" type="color3" xpos="5.97002" ypos="8.61048" adskDisplayMode="2">
+      <input name="value1" type="float" value="0.0" nodename="cellnoise3d1" />
+      <input name="value2" type="float" value="0.4400" />
       <input name="in1" type="color3" value="0.0, 1.0000, 0.0" nodename="noise3d1" />
       <input name="in2" type="color3" value="0.0, 0.0000, 1.0000" nodename="compare3" />
-    </compare>
-    <compare name="compare1" type="color3" xpos="5.95711" ypos="5.76366" adskDisplayMode="2">
-      <input name="intest" type="float" value="0.0" nodename="cellnoise3d1" />
-      <parameter name="cutoff" type="float" value="0.3700" />
+    </ifgreater>
+    <ifgreater name="compare1" type="color3" xpos="5.95711" ypos="5.76366" adskDisplayMode="2">
+      <input name="value1" type="float" value="0.0" nodename="cellnoise3d1" />
+      <input name="value2" type="float" value="0.3700" />
       <input name="in1" type="color3" value="1.0000, 0.0, 0.0" nodename="mix1" />
       <input name="in2" type="color3" value="0.0, 0.0, 0.0" nodename="compare2" />
-    </compare>
-    <compare name="compare3" type="color3" xpos="6.01609" ypos="12.2133" adskDisplayMode="2">
-      <input name="intest" type="float" value="0.0" nodename="cellnoise3d1" />
-      <parameter name="cutoff" type="float" value="0.6800" />
+    </ifgreater>
+    <ifgreater name="compare3" type="color3" xpos="6.01609" ypos="12.2133" adskDisplayMode="2">
+      <input name="value1" type="float" value="0.0" nodename="cellnoise3d1" />
+      <input name="value2" type="float" value="0.6800" />
       <input name="in1" type="color3" value="0.0, 0.0, 1.0000" nodename="convert1" />
       <input name="in2" type="color3" value="0.0, 0.0, 0.0" nodename="fractal3d1" />
-    </compare>
+    </ifgreater>
     <fractal3d name="fractal3d1" type="color3" xpos="4.45249" ypos="15.9225" adskDisplayMode="2">
       <parameter name="amplitude" type="vector3" value="2.0000, 2.0000, 1.0000" />
       <parameter name="octaves" type="integer" value="3" />
