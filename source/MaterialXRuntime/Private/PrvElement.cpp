@@ -9,8 +9,6 @@
 
 #include <MaterialXCore/Util.h>
 
-#include <string>
-
 namespace MaterialX
 {
 
