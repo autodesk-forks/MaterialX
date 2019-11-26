@@ -7,7 +7,10 @@
 #include <MaterialXGenOgsXml/GlslFragmentGenerator.h>
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenOgsXml/OgsXmlGenerator.h>
+
+#ifdef MATERIALX_BUILD_CROSS
 #include <MaterialXCross/Cross.h>
+#endif
 
 #include <maya/MGlobal.h>
 
@@ -139,6 +142,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         mx::OgsXmlGenerator ogsXmlGenerator;
 
         std::string hlslSource;
+#ifdef MATERIALX_BUILD_CROSS
         try
         {
             hlslSource = mx::Cross::glslToHlsl(
@@ -153,7 +157,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
             message += MString(e.what());
             MGlobal::displayError(message);
         }
-
+#endif
         // Note: This name must match the the fragment name used for registration
         // or the registration will fail.
         ogsXmlGenerator.generate(FRAGMENT_NAME_TOKEN, *_glslShader, hlslSource, _isTransparent, sourceStream);

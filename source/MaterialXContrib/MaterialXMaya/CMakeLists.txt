@@ -112,7 +112,7 @@ if (EXISTS "${MAYA_DEBUG_DIR}" OR EXISTS "${MAYA_RELEASE_DIR}")
         MaterialXGenShader
         MaterialXGenOgsXml
         MaterialXRender
-        MaterialXCross
+        $<$<BOOL:${MATERIALX_BUILD_CROSS}>:MaterialXCross>
         ${CMAKE_DL_LIBS}
     )
     DEPEND_MAYAAPI_LINK(${PROJECT_NAME})
