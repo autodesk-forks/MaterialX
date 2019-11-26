@@ -4,7 +4,7 @@
     <cellnoise3d name="cellnoise3d1" type="float" xpos="4.5505" ypos="4.1665" adskDisplayMode="2">
       <input name="position" type="vector3" value="0.0, 0.0, 0.0" nodename="multiply1" />
     </cellnoise3d>
-    <output name="out" type="color3" nodename="compare1" />
+    <output name="out" type="color3" nodename="ifgreater1" />
     <position name="position1" type="vector3" xpos="2.97476" ypos="1.83258" adskDisplayMode="2">
       <parameter name="space" type="string" value="object" />
     </position>
@@ -12,19 +12,19 @@
       <input name="in1" type="vector3" value="0.0, 0.0, 0.0" nodename="position1" />
       <input name="in2" type="vector3" value="1.0000, 1.0000, 1.0000" />
     </multiply>
-    <ifgreater name="compare2" type="color3" xpos="5.97002" ypos="8.61048" adskDisplayMode="2">
+    <ifgreater name="ifgreater2" type="color3" xpos="5.97002" ypos="8.61048" adskDisplayMode="2">
       <input name="value1" type="float" value="0.0" nodename="cellnoise3d1" />
       <input name="value2" type="float" value="0.4400" />
       <input name="in1" type="color3" value="0.0, 1.0000, 0.0" nodename="noise3d1" />
-      <input name="in2" type="color3" value="0.0, 0.0000, 1.0000" nodename="compare3" />
+      <input name="in2" type="color3" value="0.0, 0.0000, 1.0000" nodename="ifgreater3" />
     </ifgreater>
-    <ifgreater name="compare1" type="color3" xpos="5.95711" ypos="5.76366" adskDisplayMode="2">
+    <ifgreater name="ifgreater1" type="color3" xpos="5.95711" ypos="5.76366" adskDisplayMode="2">
       <input name="value1" type="float" value="0.0" nodename="cellnoise3d1" />
       <input name="value2" type="float" value="0.3700" />
       <input name="in1" type="color3" value="1.0000, 0.0, 0.0" nodename="mix1" />
-      <input name="in2" type="color3" value="0.0, 0.0, 0.0" nodename="compare2" />
+      <input name="in2" type="color3" value="0.0, 0.0, 0.0" nodename="ifgreater2" />
     </ifgreater>
-    <ifgreater name="compare3" type="color3" xpos="6.01609" ypos="12.2133" adskDisplayMode="2">
+    <ifgreater name="ifgreater3" type="color3" xpos="6.01609" ypos="12.2133" adskDisplayMode="2">
       <input name="value1" type="float" value="0.0" nodename="cellnoise3d1" />
       <input name="value2" type="float" value="0.6800" />
       <input name="in1" type="color3" value="0.0, 0.0, 1.0000" nodename="convert1" />
