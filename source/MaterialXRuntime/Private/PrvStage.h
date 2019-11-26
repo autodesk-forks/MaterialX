@@ -21,9 +21,14 @@ public:
 
     static PrvObjectHandle createNew(const RtToken& name);
 
-    RtTokenList& getSourceUri()
+    const RtTokenList& getSourceUri() const
     {
         return _sourceUri;
+    }
+
+    void addSourceUri(const RtToken& uri)
+    {
+        _sourceUri.push_back(uri);
     }
 
     void addReference(PrvObjectHandle stage);

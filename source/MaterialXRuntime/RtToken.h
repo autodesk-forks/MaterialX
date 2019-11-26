@@ -19,10 +19,6 @@ class RtToken;
 /// Token representing an empty string.
 extern const RtToken EMPTY_TOKEN;
 
-/// A list of tokens
-class RtToken;
-using RtTokenList = std::vector<RtToken>;
-
 /// @class RtToken
 /// Interned string class. Holds a unique reference to a string.
 /// To be used for strings that changes rarely and where fast
@@ -235,6 +231,9 @@ using RtTokenMap = std::unordered_map<RtToken, T, RtToken::FastHash>;
 
 /// Class representing an unordered set of tokens.
 using RtTokenSet = std::unordered_set<RtToken, RtToken::FastHash>;
+
+/// Class representing a vector of tokens
+using RtTokenList = std::vector<RtToken>;
 
 }
 

@@ -339,10 +339,9 @@ namespace
     void readSourceUri(const DocumentPtr& doc, PrvStage* stage)
     {
         StringSet uris = doc->getReferencedSourceUris();
-        RtTokenList& stageUris = stage->getSourceUri();
         for (const string& uri : uris)
         {
-            stageUris.push_back(RtToken(uri));
+            stage->addSourceUri(RtToken(uri));
         }
     }
 
@@ -350,8 +349,7 @@ namespace
     {
         // Set the source location 
         const std::string& uri = doc->getSourceUri();
-        RtTokenList uris = stage->getSourceUri();
-        uris.push_back(RtToken(uri));
+        stage->addSourceUri(RtToken(uri));
         readAttributes(doc, stage, {});
 
         RtReadOptions::ReadFilter filter = readOptions ? readOptions->readFilter : nullptr;
@@ -541,18 +539,17 @@ namespace
         }
     }
 
-    void writeSourceUris(PrvStage* stage, DocumentPtr doc)
+    void writeSourceUris(const PrvStage* stage, DocumentPtr doc)
     {
         const PrvObjectHandleVec& refs = stage->getReferencedStages();
         for (size_t i = 0; i < refs.size(); i++)
         {
-            const PrvObjectHandle refStage = refs[i];
-            PrvStage* pStage = refStage->asA<PrvStage>();
+            const PrvStage* pStage = refs[i]->asA<PrvStage>();
             if (pStage->numReferences())
             {
                 writeSourceUris(pStage, doc);
             }
-            RtTokenList uris = pStage->getSourceUri();
+            const RtTokenList& uris = pStage->getSourceUri();
             if (!uris.empty())
             {
                 for (const RtToken& uri : uris)
@@ -634,9 +631,9 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
         PrvStage* stage = data()->asA<PrvStage>();
         readDocument(document, stage, readOptions);
     }
-    catch (Exception&)
+    catch (Exception& e)
     {
-        return;
+        throw ExceptionRuntimeError("Could not read file: " + documentPath.asString() + ". Error: " + e.what());
     }
 }
 void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
@@ -655,9 +652,9 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
         PrvStage* stage = data()->asA<PrvStage>();
         readDocument(document, stage, readOptions);
     }
-    catch (Exception&)
+    catch (Exception& e)
     {
-        return;
+        throw ExceptionRuntimeError(string("Could not read from stream. Error: ") + e.what());
     }
 }
 
