@@ -160,7 +160,7 @@ std::vector<uint32_t> glslToSpirv(
     );
 
     {
-        constexpr int defaultVersion = 450;
+        constexpr int defaultVersion = 400;
         constexpr bool forwardCompatible = false;
         
         glslang::TShader::ForbidIncluder forbidIncluder;
