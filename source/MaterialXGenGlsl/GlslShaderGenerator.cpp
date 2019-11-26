@@ -56,66 +56,31 @@ GlslShaderGenerator::GlslShaderGenerator() :
     //
 
     // <!-- <if*> -->
-    registerImplementation("IM_ifgreater_float_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_color2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_color3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_color4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_vector2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_vector3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM__ifgreater_vector4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-
-    registerImplementation("IM_ifgreater_float_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_color2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_color3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_color4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_vector2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_vector3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_vector4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_floatI_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_color2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_color3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_color4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_vector2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_vector3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreater_vector4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-
-    registerImplementation("IM_ifgreatereq_float_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_color2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_color3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_color4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_vector2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_vector3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_vector4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_floatI_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_color2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_color3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_color4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_vector2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_vector3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifgreatereq_vector4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-
-    registerImplementation("IM_ifequal_float_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_color2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_color3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_color4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_vector2_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_vector3_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_vector4_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_floatI_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_color2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_color3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_color4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_vector2I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_vector3I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_vector4I_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_floatB_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_color2B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_color3B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_color4B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_vector2B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_vector3B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-    registerImplementation("IM_ifequal_vector4B_" + GlslShaderGenerator::LANGUAGE, IfNode::create);
-
+    static const string SEPARATOR = "_";
+    static const string INT_SEPARATOR = "I_";
+    static const string BOOL_SEPARATOR = "B_";
+    static const StringVec IMPL_PREFIXES = { "IM_ifgreater_", "IM_ifgreatereq_", "IM_ifequal_" };
+    static const vector<bool> IMPL_HAS_INTVERSION = { true, true, true };
+    static const vector<bool> IMPL_HAS_BOOLVERSION = { false, false, true };
+    static const StringVec IMPL_TYPES = { "float", "color2", "color3", "color4", "vector2", "vector3", "vector4" };
+    for (size_t i=0; i<IMPL_PREFIXES.size(); i++)
+    {
+        const string& implPrefix = IMPL_PREFIXES[i];
+        for (const string& implType : IMPL_TYPES)
+        {
+            const string implRoot = implPrefix + implType;
+            registerImplementation(implRoot + SEPARATOR + GlslShaderGenerator::LANGUAGE, IfNode::create);
+            if (IMPL_HAS_INTVERSION[i])
+            {
+                registerImplementation(implRoot + INT_SEPARATOR + GlslShaderGenerator::LANGUAGE, IfNode::create);
+            }
+            if (IMPL_HAS_BOOLVERSION[i])
+            {
+                registerImplementation(implRoot + BOOL_SEPARATOR + GlslShaderGenerator::LANGUAGE, IfNode::create);
+            }
+        }
+    }
+    
     // <!-- <switch> -->
     // <!-- 'which' type : float -->
     registerImplementation("IM_switch_float_" + GlslShaderGenerator::LANGUAGE, SwitchNode::create);
