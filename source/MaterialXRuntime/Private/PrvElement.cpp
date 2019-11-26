@@ -9,6 +9,8 @@
 
 #include <MaterialXCore/Util.h>
 
+#include <string>
+
 namespace MaterialX
 {
 
@@ -24,29 +26,39 @@ PrvElement::PrvElement(RtObjType objType, const RtToken& name) :
 RtToken PrvElement::makeUniqueChildName(const RtToken& name) const
 {
     RtToken newName = name;
-    size_t i = 1;
-    while (findChildByName(newName))
+    if (findChildByName(name))
     {
-        newName = name.str() + std::to_string(i++);
+        // Find a number to append to the name, incrementing
+        // the counter until a unique name is found.
+        string baseName = name.str();
+        int i = 1;
+        const size_t n = name.str().find_last_not_of("0123456789") + 1;
+        if (n < name.str().size())
+        {
+            const string number = name.str().substr(n);
+            i = std::stoi(number) + 1;
+            baseName = baseName.substr(0, n);
+        }
+        do {
+            newName = baseName + std::to_string(i++);
+        } while (findChildByName(newName));
     }
     return newName;
 }
 
 void PrvElement::setName(const RtToken& name)
 {
-    if (name == _name)
+    if (name != _name)
     {
-        return;
+        RtToken uniqueName = name;
+        if (_parent)
+        {
+            uniqueName = _parent->makeUniqueChildName(name);
+            _parent->_childrenByName.erase(_name);
+            _parent->_childrenByName[uniqueName] = shared_from_this();
+        }
+        _name = uniqueName;
     }
-
-    RtToken uniqueName = name;
-    if (_parent)
-    {
-        uniqueName = _parent->makeUniqueChildName(name);
-        _parent->_childrenByName.erase(_name);
-        _parent->_childrenByName[uniqueName] = shared_from_this();
-    }
-    _name = uniqueName;
 }
 
 PrvElement* PrvElement::getRoot() const

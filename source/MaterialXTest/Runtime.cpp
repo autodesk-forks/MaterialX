@@ -350,7 +350,7 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
 
     // Test node creation when name is not unique
     mx::RtNode add3 = mx::RtNode::createNew(stageObj, "add1", addDefObj);
-    REQUIRE(add3.getName() == "add11");
+    REQUIRE(add3.getName() == "add3");
 
     // Find object by path
     mx::RtObject elem1 = stage.findElementByPath("/add1/in2");
