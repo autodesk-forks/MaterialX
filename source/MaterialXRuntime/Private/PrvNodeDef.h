@@ -21,7 +21,7 @@ namespace MaterialX
 class PrvNodeDef : public PrvAllocatingElement
 {
 public:
-    PrvNodeDef(PrvElement* parent, const RtToken& name, const RtToken& category);
+    PrvNodeDef(const RtToken& name, const RtToken& category);
 
     static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const RtToken& nodeName);
 

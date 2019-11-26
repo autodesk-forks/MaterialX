@@ -14,11 +14,39 @@ namespace MaterialX
 
 const string PrvElement::PATH_SEPARATOR = "/";
 
-PrvElement::PrvElement(RtObjType objType, PrvElement* parent, const RtToken& name) :
+PrvElement::PrvElement(RtObjType objType, const RtToken& name) :
     PrvObject(objType),
-    _parent(parent),
-    _name(name)
+    _name(name),
+    _parent(nullptr)
 {
+}
+
+RtToken PrvElement::makeUniqueChildName(const RtToken& name) const
+{
+    RtToken newName = name;
+    size_t i = 1;
+    while (findChildByName(newName))
+    {
+        newName = name.str() + std::to_string(i++);
+    }
+    return newName;
+}
+
+void PrvElement::setName(const RtToken& name)
+{
+    if (name == _name)
+    {
+        return;
+    }
+
+    RtToken uniqueName = name;
+    if (_parent)
+    {
+        uniqueName = _parent->makeUniqueChildName(name);
+        _parent->_childrenByName.erase(_name);
+        _parent->_childrenByName[uniqueName] = shared_from_this();
+    }
+    _name = uniqueName;
 }
 
 PrvElement* PrvElement::getRoot() const
@@ -31,21 +59,26 @@ PrvElement* PrvElement::getRoot() const
     return root;
 }
 
-void PrvElement::addChild(PrvObjectHandle elem)
+void PrvElement::addChild(PrvObjectHandle elemH)
 {
-    if (!elem->hasApi(RtApiType::ELEMENT))
+    if (!elemH->hasApi(RtApiType::ELEMENT))
     {
         throw ExceptionRuntimeError("Given object is not a valid element");
     }
 
-    PrvElement* el = elem->asA<PrvElement>();
-    if (_childrenByName.count(el->getName()))
+    PrvElement* elem = elemH->asA<PrvElement>();
+    if (elem->getParent())
     {
-        throw ExceptionRuntimeError("An element named '" + el->getName().str() + "' already exists in '" + getName().str() + "'");
+        throw ExceptionRuntimeError("Element '" + elem->getName().str() + "' already has a parent");
     }
 
-    _children.push_back(elem);
-    _childrenByName[el->getName()] = elem;
+    // Make sure the element name is unique within this scope.
+    const RtToken uniqueName = makeUniqueChildName(elem->getName());
+    elem->setName(uniqueName);
+
+    elem->setParent(this);
+    _children.push_back(elemH);
+    _childrenByName[elem->getName()] = elemH;
 }
 
 void PrvElement::removeChild(const RtToken& name)
@@ -134,15 +167,20 @@ PrvAllocator& PrvElement::getAllocator()
     return _parent->getAllocator();
 }
 
-PrvUnknownElement::PrvUnknownElement(PrvElement* parent, const RtToken& name, const RtToken& category) :
-    PrvElement(RtObjType::UNKNOWN, parent, name),
+PrvUnknownElement::PrvUnknownElement(const RtToken& name, const RtToken& category) :
+    PrvElement(RtObjType::UNKNOWN, name),
     _category(category)
 {
 }
 
 PrvObjectHandle PrvUnknownElement::createNew(PrvElement* parent, const RtToken& name, const RtToken& category)
 {
-    return PrvObjectHandle(new PrvUnknownElement(parent, name, category));
+    PrvObjectHandle elem(new PrvUnknownElement(name, category));
+    if (parent)
+    {
+        parent->addChild(elem);
+    }
+    return elem;
 }
 
 }

@@ -18,8 +18,8 @@ PrvNode::Port::Port() :
 {
 }
 
-PrvNode::PrvNode(PrvElement* parent, const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType) :
-    PrvAllocatingElement(objType, parent, name),
+PrvNode::PrvNode(const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType) :
+    PrvAllocatingElement(objType, name),
     _nodedef(nodedef)
 {
     const size_t numPorts = nodeDef()->numPorts();
@@ -33,8 +33,8 @@ PrvNode::PrvNode(PrvElement* parent, const RtToken& name, const PrvObjectHandle&
     }
 }
 
-PrvNode::PrvNode(PrvElement* parent, const RtToken& name, RtObjType objType) :
-    PrvAllocatingElement(objType, parent, name),
+PrvNode::PrvNode(const RtToken& name, RtObjType objType) :
+    PrvAllocatingElement(objType, name),
     _nodedef(nullptr)
 {
 }
@@ -46,7 +46,7 @@ PrvObjectHandle PrvNode::createNew(PrvElement* parent, const RtToken& name, cons
         throw ExceptionRuntimeError("Parent must be a stage or a nodegraph");
     }
 
-    PrvObjectHandle node(new PrvNode(parent, name, nodedef));
+    PrvObjectHandle node(new PrvNode(name, nodedef));
     if (parent)
     {
         parent->addChild(node);

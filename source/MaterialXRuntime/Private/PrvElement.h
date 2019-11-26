@@ -74,9 +74,18 @@ public:
         return _name;
     }
 
+    void setName(const RtToken& name);
+
     PrvElement* getParent() const
     {
         return _parent;
+    }
+
+    // Note: This should only be called from inside addChild or addPort.
+    // Arbitrary reparenting of elements is not supported.
+    void setParent(PrvElement* parent)
+    {
+        _parent = parent;
     }
 
     PrvElement* getRoot() const;
@@ -140,15 +149,13 @@ public:
     static const string PATH_SEPARATOR;
 
 protected:
-    PrvElement(RtObjType objType, PrvElement* parent, const RtToken& name);
+    PrvElement(RtObjType objType, const RtToken& name);
 
-    void setName(const RtToken& name)
-    {
-        _name = name;
-    }
+    // Make a unique name among the element's children.
+    RtToken makeUniqueChildName(const RtToken& name) const;
 
-    PrvElement* _parent;
     RtToken _name;
+    PrvElement* _parent;
     PrvObjectHandleVec _children;
     RtTokenMap<PrvObjectHandle> _childrenByName;
 
@@ -169,8 +176,8 @@ public:
     }
 
 protected:
-    PrvAllocatingElement(RtObjType objType, PrvElement* parent, const RtToken& name):
-        PrvElement(objType, parent, name)
+    PrvAllocatingElement(RtObjType objType, const RtToken& name):
+        PrvElement(objType, name)
     {}
 
     PrvAllocator _allocator;
@@ -180,8 +187,6 @@ protected:
 class PrvUnknownElement : public PrvElement
 {
 public:
-    PrvUnknownElement(PrvElement* parent, const RtToken& name, const RtToken& category);
-
     static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const RtToken& category);
 
     const RtToken& getCategory() const
@@ -189,7 +194,9 @@ public:
         return _category;
     }
 
-private:
+protected:
+    PrvUnknownElement(const RtToken& name, const RtToken& category);
+
     const RtToken _category;
 };
 

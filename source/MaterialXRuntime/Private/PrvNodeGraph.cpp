@@ -20,8 +20,8 @@ const RtToken PrvNodeGraph::INPUT_SOCKETS("__inputsockets__");
 const RtToken PrvNodeGraph::OUTPUT_SOCKETS("__outputsockets__");
 const RtToken PrvNodeGraph::SOCKETS_NODE_NAME("__sockets__");
 
-PrvNodeGraph::PrvNodeGraph(PrvElement* parent, const RtToken& name) :
-    PrvNode(parent, name)
+PrvNodeGraph::PrvNodeGraph(const RtToken& name) :
+    PrvNode(name)
 {
     _nodedef = PrvNodeDef::createNew(nullptr, UNPUBLISHED_NODEDEF, UNPUBLISHED_NODEDEF);
 
@@ -39,7 +39,7 @@ PrvObjectHandle PrvNodeGraph::createNew(PrvElement* parent, const RtToken& name)
         throw ExceptionRuntimeError("Parent must be a stage or a nodegraph");
     }
 
-    PrvObjectHandle node(new PrvNodeGraph(parent, name));
+    PrvObjectHandle node(new PrvNodeGraph(name));
     if (parent)
     {
         parent->addChild(node);

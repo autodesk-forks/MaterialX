@@ -21,8 +21,6 @@ namespace MaterialX
 class PrvPortDef : public PrvElement
 {
 public:
-    PrvPortDef(PrvElement* parent, const RtToken& name, const RtToken& type, uint32_t flags);
-
     static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
     const RtToken& getType() const
@@ -102,6 +100,8 @@ public:
     static const RtToken DEFAULT_OUTPUT_NAME;
 
 protected:
+    PrvPortDef(const RtToken& name, const RtToken& type, uint32_t flags, PrvAllocatingElement* parent);
+
     RtToken _type;
     RtValue _value;
     RtToken _colorspace;

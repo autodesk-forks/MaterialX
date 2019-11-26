@@ -44,6 +44,11 @@ const RtToken& RtElement::getName() const
     return data()->asA<PrvElement>()->getName();
 }
 
+void RtElement::setName(const RtToken& name)
+{
+    data()->asA<PrvElement>()->setName(name);
+}
+
 RtAttribute* RtElement::addAttribute(const RtToken& name, const RtToken& type)
 {
     PrvElement* elem = data()->asA<PrvElement>();

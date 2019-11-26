@@ -338,13 +338,26 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(add2_in1.getSourcePort() == add1_out);
     REQUIRE(add2_in2.getSourcePort() == add1_out);
 
+    // Test node renaming
+    add1.setName("foo");
+    REQUIRE(add1.getName() == "foo");
+    add2.setName("foo");
+    REQUIRE(add2.getName() == "foo1");
+    add1.setName("add1");
+    REQUIRE(add1.getName() == "add1");
+    add2.setName("add2");
+    REQUIRE(add2.getName() == "add2");
+
+    // Test node creation when name is not unique
+    mx::RtNode add3 = mx::RtNode::createNew(stageObj, "add1", addDefObj);
+    REQUIRE(add3.getName() == "add11");
+
     // Find object by path
     mx::RtObject elem1 = stage.findElementByPath("/add1/in2");
     REQUIRE(elem1.isValid());
     REQUIRE(elem1.hasApi(mx::RtApiType::PORTDEF));
     REQUIRE(mx::RtPortDef(elem1).getName() == "in2");
     REQUIRE(mx::RtPortDef(elem1).isInput());
-
 }
 
 TEST_CASE("Runtime: NodeGraphs", "[runtime]")

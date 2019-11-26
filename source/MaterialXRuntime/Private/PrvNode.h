@@ -22,14 +22,6 @@ using RtPortVec = vector<RtPort>;
 class PrvNode : public PrvAllocatingElement
 {
 public:
-    // Constructor creating a node with a fixed interface
-    // This is the constructor to use for ordinary nodes.
-    PrvNode(PrvElement* parent, const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType = RtObjType::NODE);
-
-    // Constructor creating a node without a fixed interface.
-    // Used for constructing nodegraphs.
-    PrvNode(PrvElement* parent, const RtToken& name, RtObjType objType = RtObjType::NODEGRAPH);
-
     static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const PrvObjectHandle& nodedef);
 
     PrvObjectHandle getNodeDef() const
@@ -84,6 +76,14 @@ public:
     static void disconnect(const RtPort& source, const RtPort& dest);
 
 protected:
+    // Constructor creating a node with a fixed interface
+    // This is the constructor to use for ordinary nodes.
+    PrvNode(const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType = RtObjType::NODE);
+
+    // Constructor creating a node without a fixed interface.
+    // Used for constructing nodegraphs.
+    PrvNode(const RtToken& name, RtObjType objType = RtObjType::NODEGRAPH);
+
     PrvNodeDef* nodeDef() const
     {
         return _nodedef->asA<PrvNodeDef>();

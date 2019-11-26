@@ -12,8 +12,8 @@ namespace MaterialX
 
 const RtToken PrvPortDef::DEFAULT_OUTPUT_NAME("out");
 
-PrvPortDef::PrvPortDef(PrvElement* parent, const RtToken& name, const RtToken& type, uint32_t flags) :
-PrvElement(RtObjType::PORTDEF, parent, name),
+PrvPortDef::PrvPortDef(const RtToken& name, const RtToken& type, uint32_t flags, PrvAllocatingElement* parent) :
+PrvElement(RtObjType::PORTDEF, name),
 _type(type),
 _value(RtValue::createNew(type, parent->getObject())),
 _colorspace(EMPTY_TOKEN),
@@ -29,7 +29,7 @@ PrvObjectHandle PrvPortDef::createNew(PrvElement* parent, const RtToken& name, c
         throw ExceptionRuntimeError("PrvPortDef::createNew: Parent must be a nodedef or nodegraph");
     }
 
-    PrvObjectHandle portdef(new PrvPortDef(parent, name, type, flags));
+    PrvObjectHandle portdef(new PrvPortDef(name, type, flags, parent->asA<PrvAllocatingElement>()));
 
     if (parent->hasApi(RtApiType::NODEDEF))
     {

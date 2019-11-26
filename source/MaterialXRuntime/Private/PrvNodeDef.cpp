@@ -12,8 +12,8 @@
 namespace MaterialX
 {
 
-PrvNodeDef::PrvNodeDef(PrvElement* parent, const RtToken& name, const RtToken& nodeName) :
-    PrvAllocatingElement(RtObjType::NODEDEF, parent, name),
+PrvNodeDef::PrvNodeDef(const RtToken& name, const RtToken& nodeName) :
+    PrvAllocatingElement(RtObjType::NODEDEF, name),
     _nodeName(nodeName),
     _numOutputs(0)
 {
@@ -26,7 +26,7 @@ PrvObjectHandle PrvNodeDef::createNew(PrvElement* parent, const RtToken& name, c
         throw ExceptionRuntimeError("Given parent object is not a stage");
     }
 
-    PrvObjectHandle nodedef(new PrvNodeDef(parent, name, category));
+    PrvObjectHandle nodedef(new PrvNodeDef(name, category));
     if (parent)
     {
         parent->addChild(nodedef);
@@ -47,6 +47,10 @@ void PrvNodeDef::addPort(PrvObjectHandle portdef)
     {
         throw ExceptionRuntimeError("A port named '" + p->getName().str() + "' already exists for nodedef '" + getName().str() + "'");
     }
+    if (p->getParent())
+    {
+        throw ExceptionRuntimeError("Port '" + p->getName().str() + "' already has a parent");
+    }
 
     // We want to preserve the ordering of having all outputs stored before any inputs.
     // So if inputs are already stored we need to handled inserting the new output in
@@ -62,6 +66,7 @@ void PrvNodeDef::addPort(PrvObjectHandle portdef)
         _children.push_back(portdef);
     }
 
+    p->setParent(this);
     _childrenByName[p->getName()] = portdef;
     _numOutputs += p->isOutput();
     rebuildPortIndex();
