@@ -19,10 +19,9 @@ namespace MaterialX
 /// Class representing a path which points to, and uniquely identifies,
 /// an object in a stage.
 /// Can be used to store references to objects in a stage hierarchy.
-/// Note that an RtPath may become invalid if the object pointed to,
-/// or any of its parents, are renamed, reparented or removed from the
-/// stage. Use path.isValid() to query if the path is still valid if
-/// paths are held on to while other stage operations may occure.
+/// Note that an RtPath may become invalid if the object pointed to or
+/// any of its parents are renamed, reparented or removed from the stage.
+/// RtPath::isValid() can be used to query if a path is still valid.
 class RtPath
 {
 public:
@@ -38,11 +37,13 @@ public:
     /// Return the type for the object at the end of the path.
     RtObjType getObjType() const;
 
-    /// Query if the given API type is supported by theobject
+    /// Query if the given API type is supported by the object
     /// at the end of this path.
     bool hasApi(RtApiType type) const;
 
-    /// Return the object pointer to by this path.
+    /// Return the object at the end of the path.
+    /// A null object is returned if the path is no
+    /// longer valid.
     RtObject getObject() const;
 
     /// Return a string representation of this path.
