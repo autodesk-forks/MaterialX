@@ -111,12 +111,12 @@
     <bitangent name="Bw" type="vector3">
       <parameter name="space" type="string" value="world"/>
     </bitangent>
-    <separate name="normal_components" type="multioutput">
+    <separate3 name="normal_components" type="multioutput">
       <input name="in" type="vector3" interfacename="normal"/>
       <output name="outx" type="float" />
       <output name="outy" type="float" />
       <output name="outz" type="float" />
-    </separate>
+    </separate3>
     <multiply name="normal_x" type="vector3">
       <input name="in1" type="vector3" nodename="Tw"/>
       <input name="in2" type="float" nodename="normal_components" output="outx"/>

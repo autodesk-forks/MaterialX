@@ -148,16 +148,16 @@ OslShaderGenerator::OslShaderGenerator() :
     registerImplementation("IM_convert_integer_float_" + OslShaderGenerator::LANGUAGE, ConvertNode::create);
 
     // <!-- <combine> -->
-    registerImplementation("IM_combine_color2_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_vector2_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_color3_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_vector3_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_color4_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_vector4_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_color4CF_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_vector4VF_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_color4CC_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_vector4VV_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_color2_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_vector2_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_color4CF_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_vector4VF_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_color4CC_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_vector4VV_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine3_color3_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine3_vector3_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine4_color4_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine4_vector4_" + OslShaderGenerator::LANGUAGE, CombineNode::create);
 
     // <!-- <blur> -->
     registerImplementation("IM_blur_float_" + OslShaderGenerator::LANGUAGE, BlurNode::create);

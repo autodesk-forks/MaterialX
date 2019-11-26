@@ -170,16 +170,16 @@ GlslShaderGenerator::GlslShaderGenerator() :
     registerImplementation("IM_convert_integer_float_" + GlslShaderGenerator::LANGUAGE, ConvertNode::create);
 
     // <!-- <combine> -->
-    registerImplementation("IM_combine_color2_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_vector2_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_color3_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_vector3_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_color4_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_vector4_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_color4CF_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_vector4VF_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_color4CC_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine_vector4VV_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_color2_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_vector2_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_color4CF_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_vector4VF_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_color4CC_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_vector4VV_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine3_color3_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine3_vector3_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine4_color4_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine4_vector4_" + GlslShaderGenerator::LANGUAGE, CombineNode::create);
 
     // <!-- <position> -->
     registerImplementation("IM_position_vector3_" + GlslShaderGenerator::LANGUAGE, PositionNodeGlsl::create);

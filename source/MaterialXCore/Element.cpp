@@ -624,7 +624,14 @@ bool ValueElement::validate(string* message) const
         if (nodeDef)
         {
             ValueElementPtr valueElem = nodeDef->getActiveValueElement(getInterfaceName());
-            validateRequire(valueElem != nullptr, res, message, "Interface name not found in referenced NodeDef");
+            if (valueElem != nullptr)
+            {
+                validateRequire(valueElem != nullptr, res, message, "Interface name not found in referenced NodeDef");
+            }
+            else
+            {
+                validateRequire(valueElem != nullptr, res, message, "Interface name not found in referenced NodeDef");
+            }
             if (valueElem)
             {
                 ConstPortElementPtr portElem = asA<PortElement>();

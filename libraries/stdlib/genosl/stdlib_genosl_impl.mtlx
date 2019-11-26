@@ -807,20 +807,21 @@
   <implementation name="IM_swizzle_vector4_vector3_genosl" nodedef="ND_swizzle_vector4_vector3" language="genosl"/>
   <implementation name="IM_swizzle_vector4_vector4_genosl" nodedef="ND_swizzle_vector4_vector4" language="genosl"/>
 
-  <!-- <combine> -->
-  <implementation name="IM_combine_color2_genosl" nodedef="ND_combine_color2" language="genosl"/>
-  <implementation name="IM_combine_vector2_genosl" nodedef="ND_combine_vector2" language="genosl"/>
-  <implementation name="IM_combine_color3_genosl" nodedef="ND_combine_color3" language="genosl"/>
-  <implementation name="IM_combine_vector3_genosl" nodedef="ND_combine_vector3" language="genosl"/>
-  <implementation name="IM_combine_color4_genosl" nodedef="ND_combine_color4" language="genosl"/>
-  <implementation name="IM_combine_vector4_genosl" nodedef="ND_combine_vector4" language="genosl"/>
-  <implementation name="IM_combine_color4CF_genosl" nodedef="ND_combine_color4CF" language="genosl"/>
-  <implementation name="IM_combine_vector4VF_genosl" nodedef="ND_combine_vector4VF" language="genosl"/>
-  <implementation name="IM_combine_color4CC_genosl" nodedef="ND_combine_color4CC" language="genosl"/>
-  <implementation name="IM_combine_vector4VV_genosl" nodedef="ND_combine_vector4VV" language="genosl"/>
+  <!-- <combine2> -->
+  <implementation name="IM_combine2_color2_genosl" nodedef="ND_combine2_color2" language="genosl"/>
+  <implementation name="IM_combine2_vector2_genosl" nodedef="ND_combine2_vector2" language="genosl"/>
+   <implementation name="IM_combine2_color4CF_genosl" nodedef="ND_combine2_color4CF" language="genosl"/>
+   <implementation name="IM_combine2_vector4VF_genosl" nodedef="ND_combine2_vector4VF" language="genosl"/>
+   <implementation name="IM_combine2_color4CC_genosl" nodedef="ND_combine2_color4CC" language="genosl"/>
+   <implementation name="IM_combine2_vector4VV_genosl" nodedef="ND_combine2_vector4VV" language="genosl"/>
+   <!-- <combine3> -->
+   <implementation name="IM_combine3_color3_genosl" nodedef="ND_combine3_color3" language="genosl"/>
+   <implementation name="IM_combine3_vector3_genosl" nodedef="ND_combine3_vector3" language="genosl"/>
+   <!-- <combine4> -->
+   <implementation name="IM_combine4_color4_genosl" nodedef="ND_combine4_color4" language="genosl"/>
+   <implementation name="IM_combine4_vector4_genosl" nodedef="ND_combine4_vector4" language="genosl"/>
 
-
-  <!-- ======================================================================== -->
+   <!-- ======================================================================== -->
   <!-- Convolution nodes                                                        -->
   <!-- ======================================================================== -->
 

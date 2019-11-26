@@ -4315,64 +4315,74 @@
   </nodedef>
 
   <!--
-    Node: <combine>
-    Combine the channels from two, three or four streams into the same number of channels of a
+    Node: <combine2>
+    Combine the channels from two streams into the same number of channels of a
     single output stream of a specified compatible type.
   -->
-  <nodedef name="ND_combine_color2" node="combine" nodegroup="channel">
+  <nodedef name="ND_combine2_color2" node="combine2" nodegroup="channel">
     <input name="in1" type="float" value="0.0"/>
     <input name="in2" type="float" value="0.0"/>
     <output name="out" type="color2" default="0.0, 0.0"/>
   </nodedef>
-  <nodedef name="ND_combine_vector2" node="combine" nodegroup="channel">
+  <nodedef name="ND_combine2_vector2" node="combine2" nodegroup="channel">
     <input name="in1" type="float" value="0.0"/>
     <input name="in2" type="float" value="0.0"/>
     <output name="out" type="vector2" default="0.0, 0.0"/>
   </nodedef>
-  <nodedef name="ND_combine_color3" node="combine" nodegroup="channel">
+  <nodedef name="ND_combine2_color4CF" node="combine2" nodegroup="channel">
+    <input name="in1" type="color3" value="0.0, 0.0, 0.0"/>
+    <input name="in2" type="float" value="0.0"/>
+    <output name="out" type="color4" default="0.0, 0.0, 0.0, 0.0"/>
+  </nodedef>
+  <nodedef name="ND_combine2_vector4VF" node="combine2" nodegroup="channel">
+    <input name="in1" type="vector3" value="0.0, 0.0, 0.0"/>
+    <input name="in2" type="float" value="0.0"/>
+    <output name="out" type="vector4" default="0.0, 0.0, 0.0, 0.0"/>
+  </nodedef>
+  <nodedef name="ND_combine2_color4CC" node="combine2" nodegroup="channel">
+    <input name="in1" type="color2" value="0.0, 0.0"/>
+    <input name="in2" type="color2" value="0.0, 0.0"/>
+    <output name="out" type="color4" default="0.0, 0.0, 0.0, 0.0"/>
+  </nodedef>
+  <nodedef name="ND_combine2_vector4VV" node="combine2" nodegroup="channel">
+    <input name="in1" type="vector2" value="0.0, 0.0"/>
+    <input name="in2" type="vector2" value="0.0, 0.0"/>
+    <output name="out" type="vector4" default="0.0, 0.0, 0.0, 0.0"/>
+  </nodedef>
+  <!--
+    Node: <combine3>
+    Combine the channels from three streams into the same number of channels of a
+    single output stream of a specified compatible type.
+  -->
+  <nodedef name="ND_combine3_color3" node="combine3" nodegroup="channel">
     <input name="in1" type="float" value="0.0"/>
     <input name="in2" type="float" value="0.0"/>
     <input name="in3" type="float" value="0.0"/>
     <output name="out" type="color3" default="0.0, 0.0, 0.0"/>
   </nodedef>
-  <nodedef name="ND_combine_vector3" node="combine" nodegroup="channel">
+  <nodedef name="ND_combine3_vector3" node="combine3" nodegroup="channel">
     <input name="in1" type="float" value="0.0"/>
     <input name="in2" type="float" value="0.0"/>
     <input name="in3" type="float" value="0.0"/>
     <output name="out" type="vector3" default="0.0, 0.0, 0.0"/>
   </nodedef>
-  <nodedef name="ND_combine_color4" node="combine" nodegroup="channel">
+  <!--
+    Node: <combine4>
+    Combine the channels from four streams into the same number of channels of a
+    single output stream of a specified compatible type.
+  -->
+  <nodedef name="ND_combine4_color4" node="combine4" nodegroup="channel">
     <input name="in1" type="float" value="0.0"/>
     <input name="in2" type="float" value="0.0"/>
     <input name="in3" type="float" value="0.0"/>
     <input name="in4" type="float" value="0.0"/>
     <output name="out" type="color4" default="0.0, 0.0, 0.0, 0.0"/>
   </nodedef>
-  <nodedef name="ND_combine_vector4" node="combine" nodegroup="channel">
+  <nodedef name="ND_combine4_vector4" node="combine4" nodegroup="channel">
     <input name="in1" type="float" value="0.0"/>
     <input name="in2" type="float" value="0.0"/>
     <input name="in3" type="float" value="0.0"/>
     <input name="in4" type="float" value="0.0"/>
-    <output name="out" type="vector4" default="0.0, 0.0, 0.0, 0.0"/>
-  </nodedef>
- <nodedef name="ND_combine_color4CF" node="combine" nodegroup="channel">
-    <input name="in1" type="color3" value="0.0, 0.0, 0.0"/>
-    <input name="in2" type="float" value="0.0"/>
-    <output name="out" type="color4" default="0.0, 0.0, 0.0, 0.0"/>
-  </nodedef>
-  <nodedef name="ND_combine_vector4VF" node="combine" nodegroup="channel">
-    <input name="in1" type="vector3" value="0.0, 0.0, 0.0"/>
-    <input name="in2" type="float" value="0.0"/>
-    <output name="out" type="vector4" default="0.0, 0.0, 0.0, 0.0"/>
-  </nodedef>
-  <nodedef name="ND_combine_color4CC" node="combine" nodegroup="channel">
-    <input name="in1" type="color2" value="0.0, 0.0"/>
-    <input name="in2" type="color2" value="0.0, 0.0"/>
-    <output name="out" type="color4" default="0.0, 0.0, 0.0, 0.0"/>
-  </nodedef>
-  <nodedef name="ND_combine_vector4VV" node="combine" nodegroup="channel">
-    <input name="in1" type="vector2" value="0.0, 0.0"/>
-    <input name="in2" type="vector2" value="0.0, 0.0"/>
     <output name="out" type="vector4" default="0.0, 0.0, 0.0, 0.0"/>
   </nodedef>
 
@@ -4412,39 +4422,39 @@
   </nodedef>
 
   <!--
-    Node: <separate> Supplemental Node
+    Node: <separate2>, <separate3>, <separate4> Supplemental Nodes
     Output each of the channels of a color/vector stream as a separate float output.
   -->
-  <nodedef name="ND_separate_color2" node="separate" nodegroup="channel">
+  <nodedef name="ND_separate2_color2" node="separate2" nodegroup="channel">
     <input name="in" type="color2" value="0.0, 0.0"/>
     <output name="outr" type="float" default="0.0"/>
     <output name="outa" type="float" default="0.0"/>
   </nodedef>
-  <nodedef name="ND_separate_vector2" node="separate" nodegroup="channel">
+  <nodedef name="ND_separate2_vector2" node="separate2" nodegroup="channel">
     <input name="in" type="vector2" value="0.0, 0.0"/>
     <output name="outx" type="float" default="0.0"/>
     <output name="outy" type="float" default="0.0"/>
   </nodedef>
-  <nodedef name="ND_separate_color3" node="separate" nodegroup="channel">
+  <nodedef name="ND_separate3_color3" node="separate3" nodegroup="channel">
     <input name="in" type="color3" value="0.0, 0.0, 0.0"/>
     <output name="outr" type="float" default="0.0"/>
     <output name="outg" type="float" default="0.0"/>
     <output name="outb" type="float" default="0.0"/>
   </nodedef>
-  <nodedef name="ND_separate_vector3" node="separate" nodegroup="channel">
+  <nodedef name="ND_separate3_vector3" node="separate3" nodegroup="channel">
     <input name="in" type="vector3" value="0.0, 0.0, 0.0"/>
     <output name="outx" type="float" default="0.0"/>
     <output name="outy" type="float" default="0.0"/>
     <output name="outz" type="float" default="0.0"/>
   </nodedef>
-  <nodedef name="ND_separate_color4" node="separate" nodegroup="channel">
+  <nodedef name="ND_separate4_color4" node="separate4" nodegroup="channel">
     <input name="in" type="color4" value="0.0, 0.0, 0.0, 0.0"/>
     <output name="outr" type="float" default="0.0"/>
     <output name="outg" type="float" default="0.0"/>
     <output name="outb" type="float" default="0.0"/>
     <output name="outa" type="float" default="0.0"/>
   </nodedef>
-  <nodedef name="ND_separate_vector4" node="separate" nodegroup="channel">
+  <nodedef name="ND_separate4_vector4" node="separate4" nodegroup="channel">
     <input name="in" type="vector4" value="0.0, 0.0, 0.0, 0.0"/>
     <output name="outx" type="float" default="0.0"/>
     <output name="outy" type="float" default="0.0"/>
