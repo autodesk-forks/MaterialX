@@ -637,6 +637,12 @@ void GlslShaderGenerator::emitVariableDeclaration(const ShaderPort* variable, co
                                                   GenContext&, ShaderStage& stage,
                                                   bool assignValue) const
 {
+    if (variable->getType() == Type::FILENAME)
+    {
+        // File paths are not supported as default values of uniforms and function arguments
+        assignValue = false;
+    }
+
     string str = qualifier.empty() ? EMPTY_STRING : qualifier + " ";
     str += _syntax->getTypeName(variable->getType()) + " " + variable->getVariable();
 
