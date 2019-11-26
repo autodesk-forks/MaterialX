@@ -168,14 +168,14 @@ else()
     add_subdirectory(source/MaterialXRenderGlsl)
 endif()
 
-if (MATERIALX_BUILD_CONTRIB)
-    add_definitions(-DMATERIALX_BUILD_CONTRIB)
-    add_subdirectory(source/MaterialXContrib)
-endif()
-
 if (MATERIALX_BUILD_CROSS)
     add_definitions(-DMATERIALX_BUILD_CROSS)
     add_subdirectory(source/MaterialXCross)
+endif()
+
+if (MATERIALX_BUILD_CONTRIB)
+    add_definitions(-DMATERIALX_BUILD_CONTRIB)
+    add_subdirectory(source/MaterialXContrib)
 endif()
 
 if(MATERIALX_TEST_RENDER)
