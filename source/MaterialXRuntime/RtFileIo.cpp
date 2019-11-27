@@ -148,7 +148,7 @@ namespace
         }
 
         const RtToken nodeName(src->getName());
-        PrvObjectHandle nodeH = PrvNode::createNew(parent, nodeName, nodedefH);
+        PrvObjectHandle nodeH = PrvNode::createNew(parent, nodedefH, nodeName);
         PrvNode* node = nodeH->asA<PrvNode>();
 
         readAttributes(src, node, nodeIgnoreAttr);

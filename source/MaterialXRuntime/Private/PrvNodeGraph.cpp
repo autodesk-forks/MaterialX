@@ -26,10 +26,10 @@ PrvNodeGraph::PrvNodeGraph(const RtToken& name) :
     _nodedef = PrvNodeDef::createNew(nullptr, UNPUBLISHED_NODEDEF, UNPUBLISHED_NODEDEF);
 
     _inputSocketsNodeDef = PrvNodeDef::createNew(nullptr, INPUT_SOCKETS_NODEDEF, SOCKETS_NODE_NAME);
-    _inputSockets = PrvNode::createNew(nullptr, INPUT_SOCKETS, _inputSocketsNodeDef);
+    _inputSockets = PrvNode::createNew(nullptr, _inputSocketsNodeDef, INPUT_SOCKETS);
 
     _outputSocketsNodeDef = PrvNodeDef::createNew(nullptr, OUTPUT_SOCKETS_NODEDEF, SOCKETS_NODE_NAME);
-    _outputSockets = PrvNode::createNew(nullptr, OUTPUT_SOCKETS, _outputSocketsNodeDef);
+    _outputSockets = PrvNode::createNew(nullptr, _outputSocketsNodeDef, OUTPUT_SOCKETS);
 }
 
 PrvObjectHandle PrvNodeGraph::createNew(PrvElement* parent, const RtToken& name)

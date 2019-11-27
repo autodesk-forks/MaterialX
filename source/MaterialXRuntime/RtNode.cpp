@@ -215,7 +215,7 @@ RtNode::RtNode(const RtObject& obj) :
 {
 }
 
-RtObject RtNode::createNew(RtObject parent, const RtToken& name, RtObject nodedef)
+RtObject RtNode::createNew(RtObject parent, RtObject nodedef, const RtToken& name)
 {
     if (!(parent.hasApi(RtApiType::STAGE) || parent.hasApi(RtApiType::NODEGRAPH)))
     {
@@ -228,7 +228,7 @@ RtObject RtNode::createNew(RtObject parent, const RtToken& name, RtObject nodede
     }
 
     PrvElement* parentElem = parent.data()->asA<PrvElement>();
-    return RtObject(PrvNode::createNew(parentElem, name, nodedef.data()));
+    return RtObject(PrvNode::createNew(parentElem, nodedef.data(), name));
 }
 
 RtApiType RtNode::getApiType() const

@@ -79,7 +79,7 @@ void PrvElement::addChild(PrvObjectHandle elemH)
     PrvElement* elem = elemH->asA<PrvElement>();
     if (elem->getParent())
     {
-        throw ExceptionRuntimeError("Element '" + elem->getName().str() + "' already has a parent");
+        throw ExceptionRuntimeError("Element '" + elem->getName().str() + "' is already a child of parent '" + elem->getParent()->getName().str() + "'");
     }
 
     // Make sure the element name is unique within this scope.

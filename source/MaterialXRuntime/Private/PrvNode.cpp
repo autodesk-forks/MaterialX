@@ -39,14 +39,23 @@ PrvNode::PrvNode(const RtToken& name, RtObjType objType) :
 {
 }
 
-PrvObjectHandle PrvNode::createNew(PrvElement* parent, const RtToken& name, const PrvObjectHandle& nodedef)
+PrvObjectHandle PrvNode::createNew(PrvElement* parent, const PrvObjectHandle& nodedef, const RtToken& name)
 {
     if (parent && !(parent->hasApi(RtApiType::STAGE) || parent->hasApi(RtApiType::NODEGRAPH)))
     {
         throw ExceptionRuntimeError("Parent must be a stage or a nodegraph");
     }
 
-    PrvObjectHandle node(new PrvNode(name, nodedef));
+    // If a name is not given generate one.
+    // The name will be made unique if needed
+    // when the node is added to the parent below.
+    RtToken nodeName = name;
+    if (nodeName == EMPTY_TOKEN)
+    {
+        nodeName = RtToken(nodedef->asA<PrvNodeDef>()->getNodeName().str() + "1");
+    }
+
+    PrvObjectHandle node(new PrvNode(nodeName, nodedef));
     if (parent)
     {
         parent->addChild(node);

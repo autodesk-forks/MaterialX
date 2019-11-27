@@ -22,7 +22,7 @@ using RtPortVec = vector<RtPort>;
 class PrvNode : public PrvAllocatingElement
 {
 public:
-    static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name, const PrvObjectHandle& nodedef);
+    static PrvObjectHandle createNew(PrvElement* parent, const PrvObjectHandle& nodedef, const RtToken& name);
 
     PrvObjectHandle getNodeDef() const
     {
