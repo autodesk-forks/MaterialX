@@ -32,9 +32,6 @@ public:
     /// Create a new empty stage.
     static RtObject createNew(const RtToken& name);
 
-    /// Initialize a stage to be empty
-    void initialize();
-
     /// Add a reference to another stage.
     void addReference(RtObject stage);
 

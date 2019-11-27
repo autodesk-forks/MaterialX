@@ -468,25 +468,29 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(port1 == add2.findPort("out"));
 }
 
-TEST_CASE("Runtime: CoreIo", "[runtime]")
+TEST_CASE("Runtime: FileIo", "[runtime]")
 {
     mx::FileSearchPath searchPath;
     searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     {
         // Load in stdlib
         // Create a stage and import the document data.
-        mx::RtObject stageObj = mx::RtStage::createNew("test1");
+        mx::RtObject stageObj = mx::RtStage::createNew("stdlib");
         mx::RtFileIo stageIo(stageObj);
-        stageIo.loadLibraries({ "stdlib" }, searchPath);
+        stageIo.readLibraries({ "stdlib" }, searchPath);
 
         // Get a nodegraph and write a dot file for inspection.
         mx::RtStage stage(stageObj);
+        mx::RtObject graphDef = stage.findElementByName("ND_tiledimage_float");
+        REQUIRE(graphDef);
         mx::RtNodeGraph graph = stage.findElementByName("NG_tiledimage_float");
         REQUIRE(graph);
         std::ofstream dotfile;
         dotfile.open(graph.getName().str() + ".dot");
         dotfile << graph.asStringDot();
         dotfile.close();
+        mx::RtObject image1 = mx::RtNode::createNew(stageObj, "tiledImage1", graphDef);
+        REQUIRE(image1.hasApi(mx::RtApiType::NODE));
 
         // Get a nodedef and create two new instances of it.
         mx::RtObject multiplyColor3Obj = stage.findElementByName("ND_multiply_color3");
@@ -499,26 +503,44 @@ TEST_CASE("Runtime: CoreIo", "[runtime]")
         mult2.findPort("in2").getValue().asColor3() = mx::Color3(0.6f, 0.3f, 0.5f);
         mult2.findPort("in2").setColorSpace("srgb_texture");
 
+        mx::RtNodeGraph stageGraph = mx::RtNodeGraph::createNew(stageObj, "graph1");
+        REQUIRE(stageGraph);
+        stageGraph.addNode(image1);
+
         // Write the full stage to a new document
         // and save it to file for inspection.
-        stageIo.write(stage.getName().str() + "_export.mtlx", nullptr, nullptr);
+        stageIo.write(stage.getName().str() + "_export.mtlx", nullptr);
 
-        // Write only nodegraphs to a new document
-        // and save it to file for inspection.
-        auto nodeGraphFilter = [](const mx::RtObject& obj) -> bool
-        {
-            return obj.hasApi(mx::RtApiType::NODEGRAPH);
+        // Write out the node using a given node definition
+        mx::RtWriteOptions writeOptions;
+        writeOptions.writeFilter = [graphDef](const mx::RtObject& obj) -> bool
+        {  
+            if (obj.getObjType() == mx::RtObjType::NODE)
+            {
+                mx::RtNode node(obj);
+                mx::RtNodeDef nodedef = node.getNodeDef();
+                return  (nodedef.getName().str() == "ND_tiledimage_float");
+            }
+            return false;
         };
-        stageIo.write(stage.getName().str() + "_nodegraph_export.mtlx", nullptr, nodeGraphFilter);
+        writeOptions.writeIncludes = false;
+        stageIo.write(stage.getName().str() + "_nodedef_export.mtlx", &writeOptions);
+
+        // Write out a nodegraph only
+        writeOptions.writeFilter = [](const mx::RtObject& obj) -> bool
+        {
+            return (obj.hasApi(mx::RtApiType::NODEGRAPH));
+        };
+        stageIo.write(stage.getName().str() + "_nodegraph_export.mtlx", &writeOptions);
     }
 
     {
         // Load stdlib into a stage
         mx::RtStage stdlibStage = mx::RtStage::createNew("stdlib");
-        mx::RtFileIo(stdlibStage.getObject()).loadLibraries({ "stdlib" }, searchPath);
+        mx::RtFileIo(stdlibStage.getObject()).readLibraries({ "stdlib" }, searchPath);
 
         // Create a new working space stage.
-        mx::RtStage stage = mx::RtStage::createNew("test2");
+        mx::RtStage stage = mx::RtStage::createNew("main_with_xincludes");
 
         // Add reference to stdlib
         stage.addReference(stdlibStage.getObject());
@@ -541,24 +563,43 @@ TEST_CASE("Runtime: CoreIo", "[runtime]")
         texcoord1_out.connectTo(tiledimage1_texcoord);
         texcoord1_index.getValue().asInt() = 2;
 
-        mx::RtFileIo(stage.getObject()).write(stage.getName().str() + "_export.mtlx");
+        // Test write and read-back with explicit xincludes
+        mx::RtWriteOptions writeOptions;
+        writeOptions.writeIncludes = true;
+
+        mx::RtFileIo fileIO(stage.getObject());
+        fileIO.write(stage.getName().str() + "_export.mtlx", &writeOptions);
+
+        // Test read and write to stream. Note that the steream includes
+        // xincludes with content that overlaps whats in the stdlib stage,
+        // so the "skip duplicates" flag must be set.
+        std::stringstream stream1;
+        fileIO.write(stream1, &writeOptions);
+        REQUIRE(!stream1.str().empty());
+
+        mx::RtStage streamStage = mx::RtStage::createNew("stream");
+        mx::RtFileIo streamFileIO(streamStage.getObject());
+        streamStage.addReference(stdlibStage.getObject());
+        mx::RtReadOptions readOptions;
+        readOptions.skipConflictingElements = true;
+        streamFileIO.read(stream1, &readOptions);
+        streamFileIO.write(streamStage.getName().str() + "_export.mtlx", &writeOptions);
     }
 }
 
 TEST_CASE("Runtime: Stage References", "[runtime]")
 {
+    // Load in stdlib as a referenced stage ("libs").
+    mx::RtObject libStageObj = mx::RtStage::createNew("libs");
+    mx::RtStage libStage(libStageObj);
+    mx::FileSearchPath searchPath;
+    searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    mx::RtFileIo libFileIo(libStageObj);
+    libFileIo.readLibraries({ "stdlib", "pbrlib" }, searchPath);
+
     // Create a main stage.
     mx::RtObject mainStageObj = mx::RtStage::createNew("main");
     mx::RtStage mainStage(mainStageObj);
-
-    // Load in libraries in a separate stage.
-    mx::RtObject libStageObj = mx::RtStage::createNew("libs");
-    mx::FileSearchPath searchPath;
-    searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
-    mx::RtFileIo libFileIO(libStageObj);
-    libFileIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
-
-    // Reference the libs from the main stage.
     mainStage.addReference(libStageObj);
 
     // Test access and usage of contents from the referenced library.
@@ -570,8 +611,10 @@ TEST_CASE("Runtime: Stage References", "[runtime]")
 
     // Write the main stage to a new document,
     // writing only the non-referenced content.
+    mx::RtWriteOptions options;
+    options.writeIncludes = true;
     mx::RtFileIo mainFileIO(mainStageObj);
-    mainFileIO.write(mainStage.getName().str() + ".mtlx", nullptr);
+    mainFileIO.write(mainStage.getName().str() + ".mtlx", &options);
 
     // Make sure removal of the non-referenced node works
     const mx::RtToken nodeName = mx::RtNode(complexIor1).getName();
@@ -598,7 +641,7 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
     // Load standard libraries in a stage.
     mx::RtObject libStageObj = mx::RtStage::createNew("libs");
     mx::RtFileIo libStageIO(libStageObj);
-    libStageIO.loadLibraries({ "stdlib", "pbrlib" }, searchPath);
+    libStageIO.readLibraries({ "stdlib", "pbrlib" }, searchPath);
 
     // Count elements traversing the full stdlib stage
     mx::RtStage libStage(libStageObj);
