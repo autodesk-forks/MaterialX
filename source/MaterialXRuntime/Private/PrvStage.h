@@ -21,6 +21,16 @@ public:
 
     static PrvObjectHandle createNew(const RtToken& name);
 
+    const RtTokenList& getSourceUri() const
+    {
+        return _sourceUri;
+    }
+
+    void addSourceUri(const RtToken& uri)
+    {
+        _sourceUri.push_back(uri);
+    }
+
     void addReference(PrvObjectHandle stage);
 
     void removeReference(const RtToken& name);
@@ -46,6 +56,7 @@ protected:
     size_t _selfRefCount;
     PrvObjectHandleVec _refStages;
     PrvObjectHandleSet _refStagesSet;
+    RtTokenList _sourceUri;
 };
 
 }

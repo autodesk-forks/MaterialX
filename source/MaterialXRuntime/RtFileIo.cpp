@@ -336,9 +336,36 @@ namespace
         return elem;
     }
 
-    void readDocument(const DocumentPtr& doc, PrvStage* stage, RtFileIo::ReadFilter filter)
+    void readSourceUri(const DocumentPtr& doc, PrvStage* stage)
     {
+        StringSet uris = doc->getReferencedSourceUris();
+        for (const string& uri : uris)
+        {
+            stage->addSourceUri(RtToken(uri));
+        }
+    }
+
+    void readDocument(const DocumentPtr& doc, PrvStage* stage, const RtReadOptions* readOptions)
+    {
+        // Set the source location 
+        const std::string& uri = doc->getSourceUri();
+        stage->addSourceUri(RtToken(uri));
         readAttributes(doc, stage, {});
+
+        RtReadOptions::ReadFilter filter = readOptions ? readOptions->readFilter : nullptr;
+
+        // First, load all nodedefs. Having these available is needed
+        // when node instances are loaded later.
+        for (const NodeDefPtr& nodedef : doc->getNodeDefs())
+        {
+            if (!filter || filter(nodedef))
+            {
+                if (!stage->findChildByName(RtToken(nodedef->getName())))
+                {
+                    readNodeDef(nodedef, stage);
+                }
+            }
+        }
 
         for (const ElementPtr& elem : doc->getChildren())
         {
@@ -350,11 +377,7 @@ namespace
                     continue;
                 }
 
-                if (elem->isA<NodeDef>())
-                {
-                    readNodeDef(elem->asA<NodeDef>(), stage);
-                }
-                else if (elem->isA<Node>())
+                if (elem->isA<Node>())
                 {
                     readNode(elem->asA<Node>(), stage, stage);
                 }
@@ -516,10 +539,38 @@ namespace
         }
     }
 
-    void writeDocument(DocumentPtr& doc, PrvStage* stage, RtFileIo::WriteFilter filter)
+    void writeSourceUris(const PrvStage* stage, DocumentPtr doc)
+    {
+        const PrvObjectHandleVec& refs = stage->getReferencedStages();
+        for (size_t i = 0; i < refs.size(); i++)
+        {
+            const PrvStage* pStage = refs[i]->asA<PrvStage>();
+            if (pStage->numReferences())
+            {
+                writeSourceUris(pStage, doc);
+            }
+            const RtTokenList& uris = pStage->getSourceUri();
+            if (!uris.empty())
+            {
+                for (const RtToken& uri : uris)
+                {
+                    prependXInclude(doc, uri.str());
+                }
+            }
+        }
+    }
+
+    void writeDocument(DocumentPtr& doc, PrvStage* stage, const RtWriteOptions* writeOptions)
     {
         writeAttributes(stage, doc);
 
+        // Write out any dependent includes
+        if (writeOptions && writeOptions->writeIncludes)
+        {
+            writeSourceUris(stage, doc);
+        }
+
+        RtWriteOptions::WriteFilter filter = writeOptions ? writeOptions->writeFilter : nullptr;
         for (size_t i = 0; i < stage->numChildren(); ++i)
         {
             PrvObjectHandle elem = stage->getChild(i);
@@ -549,7 +600,7 @@ namespace
                 }
             }
         }
-    }
+    } 
 
 } // end anonymous namespace
 
@@ -563,40 +614,58 @@ RtApiType RtFileIo::getApiType() const
     return RtApiType::CORE_IO;
 }
 
-void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, RtFileIo::ReadFilter filter)
+
+void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, const RtReadOptions* readOptions)
 {
     try
     {
         DocumentPtr document = createDocument();
-        XmlReadOptions readOptions;
-        readOptions.skipConflictingElements = true;
-        readFromXmlFile(document, documentPath, searchPaths, &readOptions);
+        XmlReadOptions xmlReadOptions;
+        xmlReadOptions.skipConflictingElements = true;
+        if (readOptions)
+        {
+            xmlReadOptions.skipConflictingElements = readOptions->skipConflictingElements;
+        }
+        readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
 
         PrvStage* stage = data()->asA<PrvStage>();
-        readDocument(document, stage, filter);
+        readDocument(document, stage, readOptions);
     }
-    catch(Exception&)
+    catch (Exception& e)
     {
-        return;
+        throw ExceptionRuntimeError("Could not read file: " + documentPath.asString() + ". Error: " + e.what());
+    }
+}
+void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
+{
+    try
+    {
+        DocumentPtr document = createDocument();
+        XmlReadOptions xmlReadOptions;
+        xmlReadOptions.skipConflictingElements = true;
+        if (readOptions)
+        {
+            xmlReadOptions.skipConflictingElements = readOptions->skipConflictingElements;
+        }
+        readFromXmlStream(document, stream, &xmlReadOptions);
+
+        PrvStage* stage = data()->asA<PrvStage>();
+        readDocument(document, stage, readOptions);
+    }
+    catch (Exception& e)
+    {
+        throw ExceptionRuntimeError(string("Could not read from stream. Error: ") + e.what());
     }
 }
 
-void RtFileIo::write(const FilePath& documentPath, const XmlWriteOptions* writeOptions, RtFileIo::WriteFilter filter)
-{
-    PrvStage* stage = data()->asA<PrvStage>();
-
-    DocumentPtr document = createDocument();
-    writeDocument(document, stage, filter);
-    writeToXmlFile(document, documentPath, writeOptions);
-}
-
-void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
+void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
 {
     PrvStage* stage = data()->asA<PrvStage>();
 
     // Load all content into a document.
     DocumentPtr doc = createDocument();
     MaterialX::loadLibraries(libraryPaths, searchPaths, doc);
+    readSourceUri(doc, stage);
 
     // First, load all nodedefs. Having these available is needed
     // when node instances are loaded later.
@@ -629,6 +698,36 @@ void RtFileIo::loadLibraries(const StringVec& libraryPaths, const FileSearchPath
             readUnknown(elem, stage);
         }
     }
+}
+
+void RtFileIo::write(const FilePath& documentPath, const RtWriteOptions* options)
+{
+    PrvStage* stage = data()->asA<PrvStage>();
+
+    DocumentPtr document = createDocument(); 
+    writeDocument(document, stage, options);
+    
+    XmlWriteOptions xmlWriteOptions;
+    if (options)
+    {
+        xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
+    }
+    writeToXmlFile(document, documentPath, &xmlWriteOptions);
+}
+
+void RtFileIo::write(std::ostream& stream, const RtWriteOptions* options)
+{
+    PrvStage* stage = data()->asA<PrvStage>();
+
+    DocumentPtr document = createDocument();
+    writeDocument(document, stage, options);
+
+    XmlWriteOptions xmlWriteOptions;
+    if (options)
+    {
+        xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
+    }
+    writeToXmlStream(document, stream, &xmlWriteOptions);
 }
 
 }

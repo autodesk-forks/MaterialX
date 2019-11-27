@@ -232,6 +232,9 @@ using RtTokenMap = std::unordered_map<RtToken, T, RtToken::FastHash>;
 /// Class representing an unordered set of tokens.
 using RtTokenSet = std::unordered_set<RtToken, RtToken::FastHash>;
 
+/// Class representing a vector of tokens
+using RtTokenList = std::vector<RtToken>;
+
 }
 
 #endif
