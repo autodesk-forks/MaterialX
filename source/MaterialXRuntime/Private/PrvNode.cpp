@@ -18,8 +18,9 @@ PrvNode::Port::Port() :
 {
 }
 
-PrvNode::PrvNode(const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType) :
-    PrvAllocatingElement(objType, name),
+// Construction with an interface is for nodes.
+PrvNode::PrvNode(const RtToken& name, const PrvObjectHandle& nodedef) :
+    PrvAllocatingElement(RtObjType::NODE, name),
     _nodedef(nodedef)
 {
     const size_t numPorts = nodeDef()->numPorts();
@@ -33,8 +34,9 @@ PrvNode::PrvNode(const RtToken& name, const PrvObjectHandle& nodedef, RtObjType 
     }
 }
 
-PrvNode::PrvNode(const RtToken& name, RtObjType objType) :
-    PrvAllocatingElement(objType, name),
+// Construction without an interface is only for nodegraphs.
+PrvNode::PrvNode(const RtToken& name) :
+    PrvAllocatingElement(RtObjType::NODEGRAPH, name),
     _nodedef(nullptr)
 {
 }

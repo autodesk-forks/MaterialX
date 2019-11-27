@@ -347,6 +347,8 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(add2.getName() == "foo1");
     add1.setName("add1");
     REQUIRE(add1.getName() == "add1");
+    add2.setName("foo");
+    REQUIRE(add2.getName() == "foo");
     add2.setName("add2");
     REQUIRE(add2.getName() == "add2");
 

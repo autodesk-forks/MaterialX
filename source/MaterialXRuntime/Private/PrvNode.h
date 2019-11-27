@@ -78,11 +78,11 @@ public:
 protected:
     // Constructor creating a node with a fixed interface
     // This is the constructor to use for ordinary nodes.
-    PrvNode(const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType = RtObjType::NODE);
+    PrvNode(const RtToken& name, const PrvObjectHandle& nodedef);
 
     // Constructor creating a node without a fixed interface.
     // Used for constructing nodegraphs.
-    PrvNode(const RtToken& name, RtObjType objType = RtObjType::NODEGRAPH);
+    PrvNode(const RtToken& name);
 
     PrvNodeDef* nodeDef() const
     {
