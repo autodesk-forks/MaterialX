@@ -365,6 +365,15 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(path2.getPathString() == "/ND_add_float");
     path2.pop();
     REQUIRE(!path2.isValid());
+
+    mx::RtPath pathA, pathB;
+    REQUIRE(!pathA.isValid());
+    pathA.setObject(add1Obj);
+    REQUIRE(pathA.isValid());
+    pathB.setObject(add1Obj);
+    REQUIRE(pathA == pathB);
+    pathB.setObject(add2Obj);
+    REQUIRE(pathA != pathB);
 }
 
 TEST_CASE("Runtime: NodeGraphs", "[runtime]")

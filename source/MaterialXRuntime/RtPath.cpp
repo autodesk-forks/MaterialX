@@ -10,15 +10,15 @@
 namespace MaterialX
 {
 
-RtPath::RtPath(RtObject obj) :
-    _ptr(nullptr)
+RtPath::RtPath() :
+    _ptr(new PrvPath())
 {
-    if (obj.hasApi(RtApiType::ELEMENT))
-    {
-        PrvElement* elem = obj.data()->asA<PrvElement>();
-        PrvElement* root = elem->getRoot();
-        _ptr = new PrvPath(root->shared_from_this(), elem->shared_from_this());
-    }
+}
+
+RtPath::RtPath(const RtObject& obj) :
+    _ptr(new PrvPath())
+{
+    setObject(obj);
 }
 
 RtPath::~RtPath()
@@ -44,6 +44,11 @@ bool RtPath::hasApi(RtApiType type) const
 RtObject RtPath::getObject() const
 {
     return RtObject(static_cast<PrvPath*>(_ptr)->getObject());
+}
+
+void RtPath::setObject(const RtObject& obj)
+{
+    static_cast<PrvPath*>(_ptr)->setObject(obj.data());
 }
 
 string RtPath::getPathString() const

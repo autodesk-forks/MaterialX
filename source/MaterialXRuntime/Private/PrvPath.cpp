@@ -8,32 +8,15 @@
 namespace MaterialX
 {
 
-PrvPath::PrvPath(PrvObjectHandle root, PrvObjectHandle obj) :
-    _root(root)
+PrvPath::PrvPath() :
+    _root(nullptr)
 {
-    PrvElement* elem = obj->asA<PrvElement>();
-    PrvElement* parent = elem->getParent();
+}
 
-    bool rootFound = false;
-
-    // Get the path from child down to parent and then reverse it
-    _path.push_back(elem->getName());
-    while (parent)
-    {
-        if (parent == root.get())
-        {
-            // Stop when reaching the given root.
-            rootFound = true;
-            break;
-        }
-        _path.push_back(parent->getName());
-        parent = parent->getParent();
-    }
-    if (!rootFound)
-    {
-        throw ExceptionRuntimeError("PrvPath constructor: object is not a child to the given root");
-    }
-    std::reverse(_path.begin(), _path.end());
+PrvPath::PrvPath(PrvObjectHandle obj) :
+    _root(nullptr)
+{
+    setObject(obj);
 }
 
 PrvObjectHandle PrvPath::getObject() const
@@ -53,6 +36,34 @@ PrvObjectHandle PrvPath::getObject() const
     }
 
     return elem;
+}
+
+void PrvPath::setObject(PrvObjectHandle obj)
+{
+    if (!(obj && obj->hasApi(RtApiType::ELEMENT)))
+    {
+        throw ExceptionRuntimeError("Cannot construct path, given object is not a valid element");
+    }
+
+    PrvElement* elem = obj->asA<PrvElement>();
+    PrvElement* root = elem->getRoot();
+    _root = root ? root->shared_from_this() : nullptr;
+
+    PrvElement* parent = elem->getParent();
+
+    // Get the path from child down to parent and then reverse it
+    _path.push_back(elem->getName());
+    while (parent)
+    {
+        if (parent == root)
+        {
+            // Stop when reaching the root.
+            break;
+        }
+        _path.push_back(parent->getName());
+        parent = parent->getParent();
+    }
+    std::reverse(_path.begin(), _path.end());
 }
 
 }

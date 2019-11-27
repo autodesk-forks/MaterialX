@@ -17,7 +17,8 @@ namespace MaterialX
 class PrvPath
 {
 public:
-    PrvPath(PrvObjectHandle root, PrvObjectHandle obj);
+    PrvPath();
+    PrvPath(PrvObjectHandle obj);
 
     bool isValid() const
     {
@@ -25,6 +26,8 @@ public:
     }
 
     PrvObjectHandle getObject() const;
+
+    void setObject(PrvObjectHandle obj);
 
     string getPathString()
     {

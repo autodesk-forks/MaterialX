@@ -25,12 +25,15 @@ namespace MaterialX
 class RtPath
 {
 public:
-    /// Construct a path from an object.
-    RtPath(RtObject obj);
+    /// Construct an empty path.
+    RtPath();
 
-    /// Desctructor.
+    /// Construct a path from an object.
+    RtPath(const RtObject& obj);
+
+    /// Destructor.
     ~RtPath();
-    
+
     /// Return true if the path points to a valid object.
     bool isValid() const;
 
@@ -45,6 +48,9 @@ public:
     /// A null object is returned if the path is no
     /// longer valid.
     RtObject getObject() const;
+
+    /// Reset the path to point to a new object.
+    void setObject(const RtObject& obj);
 
     /// Return a string representation of this path.
     string getPathString() const;
