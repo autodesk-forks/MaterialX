@@ -13,11 +13,9 @@ namespace MaterialX
 {
 
 const StringVec IfNode::INPUT_NAMES = { "value1", "value2", "in1", "in2" };
-
-ShaderNodeImplPtr IfNode::create()
-{
-    return std::make_shared<IfNode>();
-}
+string IfGreaterEqNode::EQUALITY_STRING = " >= ";
+string IfGreaterNode::EQUALITY_STRING = " > ";
+string IfEqualNode::EQUALITY_STRING = " == ";
 
 void IfNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
@@ -47,9 +45,9 @@ void IfNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Shade
             {
                 shadergen.emitLineBegin(stage);
                 shadergen.emitString("if (", stage);
-                shadergen.emitInput(value1, context, stage);
-                shadergen.emitString(" <= ", stage); // TODO: This needs to be generalized to "<,<=, and =="
                 shadergen.emitInput(value2, context, stage);
+                shadergen.emitString(equalityString(), stage);
+                shadergen.emitInput(value1, context, stage);
                 shadergen.emitString(")", stage);
                 shadergen.emitLineEnd(stage, false);
             }
@@ -77,5 +75,21 @@ void IfNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Shade
         }
     END_SHADER_STAGE(stage, Stage::PIXEL)
 }
+
+ShaderNodeImplPtr IfGreaterNode::create()
+{
+    return std::make_shared<IfGreaterNode>();
+}
+
+ShaderNodeImplPtr IfGreaterEqNode::create()
+{
+    return std::make_shared<IfGreaterEqNode>();
+}
+
+ShaderNodeImplPtr IfEqualNode::create()
+{
+    return std::make_shared<IfEqualNode>();
+}
+
 
 } // namespace MaterialX

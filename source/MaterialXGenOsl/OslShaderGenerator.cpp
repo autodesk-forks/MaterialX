@@ -38,6 +38,8 @@ OslShaderGenerator::OslShaderGenerator() :
     static const string INT_SEPARATOR = "I_";
     static const string BOOL_SEPARATOR = "B_";
     static const StringVec IMPL_PREFIXES = { "IM_ifgreater_", "IM_ifgreatereq_", "IM_ifequal_" };
+    static const vector<CreatorFunction<ShaderNodeImpl>> IMPL_CREATE_FUNCTIONS =
+            { IfGreaterNode::create,  IfGreaterEqNode::create, IfEqualNode::create };
     static const vector<bool> IMPL_HAS_INTVERSION = { true, true, true };
     static const vector<bool> IMPL_HAS_BOOLVERSION = { false, false, true };
     static const StringVec IMPL_TYPES = { "float", "color2", "color3", "color4", "vector2", "vector3", "vector4" };
@@ -47,14 +49,14 @@ OslShaderGenerator::OslShaderGenerator() :
         for (const string& implType : IMPL_TYPES)
         {
             const string implRoot = implPrefix + implType;
-            registerImplementation(implRoot + SEPARATOR + OslShaderGenerator::LANGUAGE, IfNode::create);
+            registerImplementation(implRoot + SEPARATOR + OslShaderGenerator::LANGUAGE, IMPL_CREATE_FUNCTIONS[i]);
             if (IMPL_HAS_INTVERSION[i])
             {
-                registerImplementation(implRoot + INT_SEPARATOR + OslShaderGenerator::LANGUAGE, IfNode::create);
+                registerImplementation(implRoot + INT_SEPARATOR + OslShaderGenerator::LANGUAGE, IMPL_CREATE_FUNCTIONS[i]);
             }
             if (IMPL_HAS_BOOLVERSION[i])
             {
-                registerImplementation(implRoot + BOOL_SEPARATOR + OslShaderGenerator::LANGUAGE, IfNode::create);
+                registerImplementation(implRoot + BOOL_SEPARATOR + OslShaderGenerator::LANGUAGE, IMPL_CREATE_FUNCTIONS[i]);
             }
         }
     }
