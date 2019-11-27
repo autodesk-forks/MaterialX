@@ -158,7 +158,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         }
 #endif
         std::ostringstream sourceStream;
-         mx::OgsXmlGenerator().generate(FRAGMENT_NAME_TOKEN, *_glslShader, hlslSource, _isTransparent, sourceStream);
+         mx::OgsXmlGenerator::generate(FRAGMENT_NAME_TOKEN, *_glslShader, hlslSource, _isTransparent, sourceStream);
         _fragmentSource = sourceStream.str();
         if (_fragmentSource.empty())
         {
