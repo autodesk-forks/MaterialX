@@ -13,6 +13,11 @@
 namespace MaterialX
 {
 
+namespace
+{
+    const RtToken DEFAULT_NODEGRAPH_NAME("nodegraph1");
+}
+
 const RtToken PrvNodeGraph::UNPUBLISHED_NODEDEF("__unpublished_nodedef__");
 const RtToken PrvNodeGraph::INPUT_SOCKETS_NODEDEF("__inputsockets_nodedef__");
 const RtToken PrvNodeGraph::OUTPUT_SOCKETS_NODEDEF("__outputsockets_nodedef__");
@@ -39,7 +44,12 @@ PrvObjectHandle PrvNodeGraph::createNew(PrvElement* parent, const RtToken& name)
         throw ExceptionRuntimeError("Parent must be a stage or a nodegraph");
     }
 
-    PrvObjectHandle node(new PrvNodeGraph(name));
+    // If a name is not given generate one.
+    // The name will be made unique if needed
+    // when the node is added to the parent below.
+    RtToken graphName = name == EMPTY_TOKEN ? DEFAULT_NODEGRAPH_NAME : name;
+
+    PrvObjectHandle node(new PrvNodeGraph(graphName));
     if (parent)
     {
         parent->addChild(node);

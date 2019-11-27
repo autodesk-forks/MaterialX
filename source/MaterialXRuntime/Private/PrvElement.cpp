@@ -77,12 +77,20 @@ void PrvElement::addChild(PrvObjectHandle elemH)
     }
 
     PrvElement* elem = elemH->asA<PrvElement>();
-    if (elem->getParent())
+    PrvElement* parent = elem->getParent();
+    if (parent)
     {
-        throw ExceptionRuntimeError("Element '" + elem->getName().str() + "' is already a child of parent '" + elem->getParent()->getName().str() + "'");
+        if (parent == this)
+        {
+            // We are already a parent to this child.
+            return;
+        }
+        // We must remove the element from the old parent
+        // as elements can't have multiple parents.
+        parent->removeChild(elem->getName());
     }
 
-    // Make sure the element name is unique within this scope.
+    // Make sure the element name is unique within the parent scope.
     const RtToken uniqueName = makeUniqueChildName(elem->getName());
     elem->setName(uniqueName);
 
@@ -95,9 +103,11 @@ void PrvElement::removeChild(const RtToken& name)
 {
     for (auto it = _children.begin(); it != _children.end(); ++it)
     {
-        if ((*it)->asA<PrvElement>()->getName() == name)
+        PrvElement* child = (*it)->asA<PrvElement>();
+        if (child->getName() == name)
         {
             _children.erase(it);
+            child->setParent(nullptr);
             break;
         }
     }

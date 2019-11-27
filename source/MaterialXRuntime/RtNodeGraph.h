@@ -26,7 +26,7 @@ public:
 
     /// Create a new nodegraph in the given parent.
     /// The parent must be a stage or another nodegraph.
-    static RtObject createNew(RtObject parent, const RtToken& name);
+    static RtObject createNew(RtObject parent, const RtToken& name = EMPTY_TOKEN);
 
     /// Return the type for this API.
     RtApiType getApiType() const override;

@@ -463,7 +463,7 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
         dotfile.open(graph.getName().str() + ".dot");
         dotfile << graph.asStringDot();
         dotfile.close();
-        mx::RtObject image1 = mx::RtNode::createNew(stageObj, "tiledImage1", graphDef);
+        mx::RtObject image1 = mx::RtNode::createNew(stageObj, graphDef);
         REQUIRE(image1.hasApi(mx::RtApiType::NODE));
 
         // Get a nodedef and create two new instances of it.
@@ -477,8 +477,11 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
         mult2.findPort("in2").getValue().asColor3() = mx::Color3(0.6f, 0.3f, 0.5f);
         mult2.findPort("in2").setColorSpace("srgb_texture");
 
-        mx::RtNodeGraph stageGraph = mx::RtNodeGraph::createNew(stageObj, "graph1");
+        mx::RtNodeGraph stageGraph = mx::RtNodeGraph::createNew(stageObj);
         REQUIRE(stageGraph);
+        REQUIRE(stageGraph.getName() == "nodegraph1");
+
+        // Move the image node into the graph.
         stageGraph.addNode(image1);
 
         // Write the full stage to a new document
