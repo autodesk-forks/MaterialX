@@ -60,7 +60,7 @@ class OgsFragment
 
     /// Return whether the element to render represents a surface shader graph
     /// as opposed to a texture graph.
-    bool elementIsAShader() const;
+    bool isElementAShader() const;
 
     /// Get image sampling properties for a given file parameter.
     mx::ImageSamplingProperties getImageSamplingProperties(const std::string& fileParameterName) const;

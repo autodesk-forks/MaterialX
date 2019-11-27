@@ -126,24 +126,30 @@ const TBuiltInResource defaultTBuiltInResource = {
     /* .generalConstantMatrixVectorIndexing = */ 1,
 } };
 
+/// Parse GLSL sources with glslang API and generate a SPIR-V binary blob.
+/// See glslToHlsl() for parameter meanings.
+///
 std::vector<uint32_t> glslToSpirv(
-    const std::string& glslGlobalDefinitions,
+    const std::string& glslPrivateUniforms,
     const std::string& glslFragment
 )
 {
+    // All tools in the SPIR-V ecosystem operate on complete shader stages
+    // with valid entry points. When providing source code for parsing, the
+    // easiest workaround for this is to provide a dummy entry point.
     static const std::string dummyMain =
         "void main()\n"
         "{\n"
         "}\n\n";
 
     const char* shaderStrings[]{
-        glslGlobalDefinitions.data(),
+        glslPrivateUniforms.data(),
         glslFragment.data(),
         dummyMain.data()
     };
 
     const int stringLengths[]{
-        static_cast<int>(glslGlobalDefinitions.size()),
+        static_cast<int>(glslPrivateUniforms.size()),
         static_cast<int>(glslFragment.size()),
         static_cast<int>(dummyMain.size())
     };
@@ -160,9 +166,11 @@ std::vector<uint32_t> glslToSpirv(
     );
 
     {
+        // The MaterialX GLSL generator is hardcoded to output GLSL 4.0
         constexpr int defaultVersion = 400;
         constexpr bool forwardCompatible = false;
         
+        // Don't support includes in the GLSL source.
         glslang::TShader::ForbidIncluder forbidIncluder;
 
         if (!shader.parse(
@@ -182,7 +190,7 @@ std::vector<uint32_t> glslToSpirv(
 
     glslang::TProgram program;
     program.addShader(&shader);
-    if (!program.link(messages) /*&& program.mapIO()*/)
+    if (!program.link(messages))
     {
         const char* const log = program.getInfoLog();
         throw Exception(
@@ -194,7 +202,7 @@ std::vector<uint32_t> glslToSpirv(
 
     {
         glslang::SpvOptions options;
-        options.generateDebugInfo = true;
+        options.generateDebugInfo = true;   // necessary to preserve symbols
         options.disableOptimizer = true; 
         options.optimizeSize = false;
 
@@ -211,6 +219,14 @@ class HlslFragmentCrossCompiler : public spirv_cross::CompilerHLSL
 public:
     using spirv_cross::CompilerHLSL::CompilerHLSL;
 
+    /// Override this method to omit all uniforms except light data in the HLSL
+    /// fragment. VP2 will generate these uniforms in the final HLSL shader
+    /// based on XML wrapper properties, so emitting these would lead to double
+    /// definition compilation errors.
+    /// Please note that the base class method had to be made protected in our
+    /// SPIRV-Cross fork to be able to delegate to it. So we need to either
+    /// maintain our fork (definitely for short-term) or contribute the change
+    /// upstream.
     void emit_uniform(const spirv_cross::SPIRVariable& var) override
     {
         if (to_name(var.self) == HW::LIGHT_DATA_INSTANCE)
@@ -220,6 +236,7 @@ public:
     }
 };
 
+/// Generate HLSL fragment code from a SPIR-V binary blob.
 std::string spirvToHlsl(
     std::vector<uint32_t>&& spirv,
     const std::string& fragmentName
@@ -229,10 +246,17 @@ std::string spirvToHlsl(
     crossCompiler->set_entry_point("main", spv::ExecutionModelFragment);
 
     spirv_cross::CompilerHLSL::Options hlslOptions = crossCompiler->get_hlsl_options();
-    hlslOptions.shader_model = 50;
-    hlslOptions.exported_functions.insert(fragmentName);
-    crossCompiler->set_hlsl_options(hlslOptions);
 
+    // Shader model 5.0 is required by DirectX 11
+    hlslOptions.shader_model = 50;
+
+    // Another custom modification in our SPIRV-Cross fork. The cross-compiler
+    // will generate code for call graphs rooted at the functions specified in
+    // this list even if they are not called from the entry point.
+    // The default behavior is to traverse from the entry point only.
+    hlslOptions.exported_functions.insert(fragmentName);
+
+    crossCompiler->set_hlsl_options(hlslOptions);
     return crossCompiler->compile();
 }
 
@@ -249,12 +273,12 @@ void finalize()
 }
 
 std::string glslToHlsl(
-    const std::string& glslGlobalDefinitions,
+    const std::string& glslPrivateUniforms,
     const std::string& glslFragment,
     const std::string& fragmentName
 )
 {
-    std::vector<uint32_t> spirv = glslToSpirv(glslGlobalDefinitions, glslFragment);
+    std::vector<uint32_t> spirv = glslToSpirv(glslPrivateUniforms, glslFragment);
     return spirvToHlsl(std::move(spirv), fragmentName);
 }
 

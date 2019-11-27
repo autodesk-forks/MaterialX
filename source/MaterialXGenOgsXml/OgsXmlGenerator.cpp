@@ -242,6 +242,11 @@ const string OgsXmlGenerator::SAMPLER_SUFFIX = "_sampler";
 
 bool OgsXmlGenerator::isSamplerName(const string& name)
 {
+    // We follow the SPIRV-Cross naming conventions for HLSL samplers
+    // auto-generated from combined GLSL sampers. This happens to be compatible
+    // with the OGS convention for pairing samplers and textures which only
+    // requires that the texture name be a substring of the sampler name.
+    
     static const size_t SUFFIX_LENGTH = SAMPLER_SUFFIX.size();
     return name.size() > SUFFIX_LENGTH + 1
         && name[0] == '_'
@@ -276,7 +281,7 @@ void OgsXmlGenerator::generate(
 )
 {
     // Create the interface using one of the shaders (interface should be the same)
-    const ShaderStage& stage = glslShader.getStage(Stage::PIXEL);
+    const ShaderStage& glslPixelStage = glslShader.getStage(Stage::PIXEL);
 
     xml_document xmlDocument;
 
@@ -292,9 +297,9 @@ void OgsXmlGenerator::generate(
 
     // Add properties
     pugi::xml_node xmlProperties = xmlRoot.append_child(PROPERTIES);
-    xmlAddProperties(xmlProperties, stage.getUniformBlock(HW::PRIVATE_UNIFORMS), OgsInputFlags::IS_REQUIREMENT_ONLY);
-    xmlAddProperties(xmlProperties, stage.getUniformBlock(HW::PUBLIC_UNIFORMS));
-    xmlAddProperties(xmlProperties, stage.getInputBlock(HW::VERTEX_DATA), OgsInputFlags::VARYING_INPUT_PARAM);
+    xmlAddProperties(xmlProperties, glslPixelStage.getUniformBlock(HW::PRIVATE_UNIFORMS), OgsInputFlags::IS_REQUIREMENT_ONLY);
+    xmlAddProperties(xmlProperties, glslPixelStage.getUniformBlock(HW::PUBLIC_UNIFORMS));
+    xmlAddProperties(xmlProperties, glslPixelStage.getInputBlock(HW::VERTEX_DATA), OgsInputFlags::VARYING_INPUT_PARAM);
 
     if (hwTransparency)
     {
@@ -308,11 +313,11 @@ void OgsXmlGenerator::generate(
 
     // Add values
     pugi::xml_node xmlValues = xmlRoot.append_child(VALUES);
-    xmlAddValues(xmlValues, stage.getUniformBlock(HW::PRIVATE_UNIFORMS));
-    xmlAddValues(xmlValues, stage.getUniformBlock(HW::PUBLIC_UNIFORMS));
+    xmlAddValues(xmlValues, glslPixelStage.getUniformBlock(HW::PRIVATE_UNIFORMS));
+    xmlAddValues(xmlValues, glslPixelStage.getUniformBlock(HW::PUBLIC_UNIFORMS));
 
     // Add a color3 output
-    const VariableBlock& outputs = stage.getOutputBlock(HW::PIXEL_OUTPUTS);
+    const VariableBlock& outputs = glslPixelStage.getOutputBlock(HW::PIXEL_OUTPUTS);
     if (outputs.empty())
     {
         throw ExceptionShaderGenError("Shader stage has no output");
@@ -323,9 +328,9 @@ void OgsXmlGenerator::generate(
 
     // Add implementations
     pugi::xml_node xmlImpementations = xmlRoot.append_child(IMPLEMENTATION);
-    xmlAddImplementation(xmlImpementations, "GLSL", "3.0",  stage.getFunctionName(), glslShader.getSourceCode(Stage::PIXEL));
-    xmlAddImplementation(xmlImpementations, "HLSL", "11.0", stage.getFunctionName(), hlslSource);
-    xmlAddImplementation(xmlImpementations, "Cg", "2.1", stage.getFunctionName(), "// Cg");
+    xmlAddImplementation(xmlImpementations, "GLSL", "3.0",  glslPixelStage.getFunctionName(), glslShader.getSourceCode(Stage::PIXEL));
+    xmlAddImplementation(xmlImpementations, "HLSL", "11.0", glslPixelStage.getFunctionName(), hlslSource);
+    xmlAddImplementation(xmlImpementations, "Cg", "2.1", glslPixelStage.getFunctionName(), "// Cg");
 
     xmlDocument.save(stream, INDENTATION);
 }
