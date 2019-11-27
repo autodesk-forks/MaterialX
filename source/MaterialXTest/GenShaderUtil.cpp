@@ -375,8 +375,7 @@ void ShaderGeneratorTester::checkImplementationUsage(mx::StringSet& usedImpls,
         {
             stream << "\t" << implName << std::endl;
         }
-        std::cout << "WIP: if-conditionals allowed to be missing: " << std::to_string(libraryCount-implementationUseCount) << std::endl;
-        //CHECK(implementationUseCount == libraryCount);
+        CHECK(implementationUseCount == libraryCount);
     }
 }
 
