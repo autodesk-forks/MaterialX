@@ -224,9 +224,11 @@ public:
     /// based on XML wrapper properties, so emitting these would lead to double
     /// definition compilation errors.
     /// Please note that the base class method had to be made protected in our
-    /// SPIRV-Cross fork to be able to delegate to it. So we need to either
-    /// maintain our fork (definitely for short-term) or contribute the change
-    /// upstream.
+    /// SPIRV-Cross fork to be able to delegate to it.
+    /// The light data uniform needs to be emitted because it's not part of the
+    /// fragment's XML interface. It's not actually used in the fragment so
+    /// future Maya lighting integration work may remove the need for the
+    /// SPIRV-Cross change.
     void emit_uniform(const spirv_cross::SPIRVariable& var) override
     {
         if (to_name(var.self) == HW::LIGHT_DATA_INSTANCE)
