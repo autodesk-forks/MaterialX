@@ -256,8 +256,8 @@
     <ifgreater name="cutout_opacity" type="float">
       <input name="value1" type="float" nodename="opacity_clamped" />
       <input name="value2" type="float" interfacename="opacityThreshold" />
-      <input name="in1" type="float" value="0" />
-      <input name="in2" type="float" value="1" />
+      <input name="in1" type="float" value="1" />
+      <input name="in2" type="float" value="0" />
     </ifgreater>
     <surface name="surface_constructor" type="surfaceshader">
       <input name="bsdf" type="BSDF" nodename="coat_bsdf" />

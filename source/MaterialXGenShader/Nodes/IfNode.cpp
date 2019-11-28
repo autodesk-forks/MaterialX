@@ -45,9 +45,9 @@ void IfNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Shade
             {
                 shadergen.emitLineBegin(stage);
                 shadergen.emitString("if (", stage);
-                shadergen.emitInput(value2, context, stage);
-                shadergen.emitString(equalityString(), stage);
                 shadergen.emitInput(value1, context, stage);
+                shadergen.emitString(equalityString(), stage);
+                shadergen.emitInput(value2, context, stage);
                 shadergen.emitString(")", stage);
                 shadergen.emitLineEnd(stage, false);
             }
