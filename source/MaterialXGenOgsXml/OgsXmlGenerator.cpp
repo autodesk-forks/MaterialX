@@ -268,10 +268,6 @@ string OgsXmlGenerator::samplerToTextureName(const string& samplerName)
         ? samplerName.substr(1, samplerName.size() - PREFIX_SUFFIX_LENGTH) : "";
 }
 
-OgsXmlGenerator::OgsXmlGenerator()
-{
-}
-
 void OgsXmlGenerator::generate(
     const std::string& shaderName,
     const Shader& glslShader,

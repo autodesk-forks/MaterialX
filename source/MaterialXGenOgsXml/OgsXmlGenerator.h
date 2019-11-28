@@ -17,8 +17,6 @@ namespace MaterialX
 class OgsXmlGenerator
 {
 public:
-    OgsXmlGenerator();
-
     /// Generate OSG XML for the given shader fragments, output to the given stream.
     static void generate(
         const string& shaderName,
