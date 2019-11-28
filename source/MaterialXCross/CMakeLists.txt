@@ -59,7 +59,7 @@ set_target_properties(
 
 target_link_libraries(
     MaterialXCross
-    glslang OSDependent OGLCompiler HLSL glslang SPIRV
+    glslang OSDependent OGLCompiler HLSL SPIRV
     spirv-cross-core spirv-cross-hlsl
     ${CMAKE_DL_LIBS})
 
