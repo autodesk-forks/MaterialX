@@ -243,7 +243,7 @@ const string OgsXmlGenerator::SAMPLER_SUFFIX = "_sampler";
 bool OgsXmlGenerator::isSamplerName(const string& name)
 {
     // We follow the SPIRV-Cross naming conventions for HLSL samplers
-    // auto-generated from combined GLSL sampers. This happens to be compatible
+    // auto-generated from combined GLSL samplers. This happens to be compatible
     // with the OGS convention for pairing samplers and textures which only
     // requires that the texture name be a substring of the sampler name.
     
