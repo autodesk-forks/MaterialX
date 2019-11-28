@@ -76,6 +76,11 @@ int32_t RtPortDef::getFlags() const
     return data()->asA<PrvPortDef>()->getFlags();
 }
 
+bool RtPortDef::hasFlag(uint32_t flag) const
+{
+    return data()->asA<PrvPortDef>()->hasFlag(flag);
+}
+
 bool RtPortDef::isInput() const
 {
     return data()->asA<PrvPortDef>()->isInput();

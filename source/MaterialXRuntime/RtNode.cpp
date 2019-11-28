@@ -25,7 +25,7 @@ RtPort::RtPort() :
 {
 }
 
-RtPort::RtPort(RtObject node, RtObject portdef) :
+RtPort::RtPort(const RtObject& node, const RtObject& portdef) :
     _data(nullptr),
     _index(INVALID_INDEX)
 {

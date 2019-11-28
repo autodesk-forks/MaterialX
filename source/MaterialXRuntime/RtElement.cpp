@@ -10,25 +10,6 @@
 namespace MaterialX
 {
 
-RtAttribute::RtAttribute(const RtToken& name, const RtToken& type, RtObject parent) :
-    _name(name),
-    _type(type),
-    _value(RtValue::createNew(type, parent))
-{
-}
-
-string RtAttribute::getValueString() const
-{
-    string dest;
-    RtValue::toString(getType(), _value, dest);
-    return dest;
-}
-
-void RtAttribute::setValueString(const string& v)
-{
-    RtValue::fromString(getType(), v, _value);
-}
-
 RtElement::RtElement(const RtObject& obj)
 {
     setObject(obj);
@@ -49,10 +30,10 @@ void RtElement::setName(const RtToken& name)
     data()->asA<PrvElement>()->setName(name);
 }
 
-RtAttribute* RtElement::addAttribute(const RtToken& name, const RtToken& type)
+RtAttribute* RtElement::addAttribute(const RtToken& name, const RtToken& type, uint32_t flags)
 {
     PrvElement* elem = data()->asA<PrvElement>();
-    return elem->addAttribute(name, type);
+    return elem->addAttribute(name, type, flags);
 }
 
 const RtAttribute* RtElement::getAttribute(const RtToken& name) const

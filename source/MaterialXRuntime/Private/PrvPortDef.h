@@ -75,6 +75,11 @@ public:
         return _flags;
     }
 
+    bool hasFlag(uint32_t flag) const
+    {
+        return (_flags & flag) != 0;
+    }
+
     bool isInput() const
     {
         return !isOutput();

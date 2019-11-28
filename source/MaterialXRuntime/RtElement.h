@@ -11,69 +11,11 @@
 
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtObject.h>
-#include <MaterialXRuntime/RtValue.h>
+#include <MaterialXRuntime/RtAttribute.h>
 #include <MaterialXRuntime/RtTraversal.h>
 
 namespace MaterialX
 {
-
-class PrvElement;
-
-/// @class RtAttribute
-/// Class representing an attribute on an element. An attribute
-/// holds a name, a type and a value and is used to store data,
-/// or metadata, on an element. Any data that is not explicitly 
-/// expressed by elements and sub-elements needs to be stored as
-/// attributes.
-class RtAttribute
-{
-public:
-    /// Get attribute name.
-    const RtToken& getName() const
-    {
-        return _name;
-    }
-
-    /// Get attribute type.
-    const RtToken& getType() const
-    {
-        return _type;
-    }
-
-    /// Get attribute value.
-    const RtValue& getValue() const
-    {
-        return _value;
-    }
-
-    /// Get attribute value.
-    RtValue& getValue()
-    {
-        return _value;
-    }
-
-    /// Set attribute value.
-    void setValue(const RtValue& value)
-    {
-        _value = value;
-    }
-
-    /// Return a string representation for the value of this attribute.
-    string getValueString() const;
-
-    /// Set attribute value from a string representation.
-    void setValueString(const string& v);
-
-private:
-    /// Private constructor.
-    RtAttribute(const RtToken& name, const RtToken& type, RtObject parent);
-
-    RtToken _name;
-    RtToken _type;
-    RtValue _value;
-    friend class PrvElement;
-};
-
 
 /// @class RtElement
 /// API for accessing an element. This API can be
@@ -96,7 +38,7 @@ public:
     void setName(const RtToken& name);
 
     /// Add an attribute.
-    RtAttribute* addAttribute(const RtToken& name, const RtToken& type);
+    RtAttribute* addAttribute(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
     /// Return an attribute by name, or a nullptr
     /// if no such attribute exists.

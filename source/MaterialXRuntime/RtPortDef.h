@@ -75,6 +75,9 @@ public:
     /// Return the flags set for this port.
     int32_t getFlags() const;
 
+    /// Return true if the given flag is set for this port.
+    bool hasFlag(uint32_t flag) const;
+
     /// Return true if this is an input port.
     bool isInput() const;
 

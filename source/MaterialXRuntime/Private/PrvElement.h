@@ -113,7 +113,7 @@ public:
 
     virtual PrvObjectHandle findChildByPath(const string& path) const;
 
-    RtAttribute* addAttribute(const RtToken& name, const RtToken& type);
+    RtAttribute* addAttribute(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
     void removeAttribute(const RtToken& name);
 

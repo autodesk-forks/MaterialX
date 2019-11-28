@@ -24,7 +24,7 @@ public:
     RtPort();
 
     /// Construct a port from a node and a portdef.
-    RtPort(RtObject node, RtObject portdef);
+    RtPort(const RtObject& node, const RtObject& portdef);
 
     /// Return true if the port is valid.
     bool isValid() const;

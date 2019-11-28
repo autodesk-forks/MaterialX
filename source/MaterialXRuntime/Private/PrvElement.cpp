@@ -150,7 +150,7 @@ PrvObjectHandle PrvElement::findChildByPath(const string& path) const
     return elem;
 }
 
-RtAttribute* PrvElement::addAttribute(const RtToken& name, const RtToken& type)
+RtAttribute* PrvElement::addAttribute(const RtToken& name, const RtToken& type, uint32_t flags)
 {
     auto it = _attributesByName.find(name);
     if (it != _attributesByName.end())
@@ -158,7 +158,7 @@ RtAttribute* PrvElement::addAttribute(const RtToken& name, const RtToken& type)
         throw ExceptionRuntimeError("An attribute named '" + name.str() + "' already exists for '" + getName().str() + "'");
     }
 
-    AttrPtr attr(new RtAttribute(name, type, getObject()));
+    AttrPtr attr(new RtAttribute(name, type, getObject(), flags));
     _attributes.push_back(attr);
     _attributesByName[name] = attr;
 
