@@ -13,6 +13,11 @@
 namespace MaterialX
 {
 
+namespace
+{
+    const RtToken DEFAULT_NODEGRAPH_NAME("nodegraph1");
+}
+
 const RtToken PrvNodeGraph::UNPUBLISHED_NODEDEF("__unpublished_nodedef__");
 const RtToken PrvNodeGraph::INPUT_SOCKETS_NODEDEF("__inputsockets_nodedef__");
 const RtToken PrvNodeGraph::OUTPUT_SOCKETS_NODEDEF("__outputsockets_nodedef__");
@@ -20,16 +25,16 @@ const RtToken PrvNodeGraph::INPUT_SOCKETS("__inputsockets__");
 const RtToken PrvNodeGraph::OUTPUT_SOCKETS("__outputsockets__");
 const RtToken PrvNodeGraph::SOCKETS_NODE_NAME("__sockets__");
 
-PrvNodeGraph::PrvNodeGraph(PrvElement* parent, const RtToken& name) :
-    PrvNode(parent, name)
+PrvNodeGraph::PrvNodeGraph(const RtToken& name) :
+    PrvNode(name)
 {
     _nodedef = PrvNodeDef::createNew(nullptr, UNPUBLISHED_NODEDEF, UNPUBLISHED_NODEDEF);
 
     _inputSocketsNodeDef = PrvNodeDef::createNew(nullptr, INPUT_SOCKETS_NODEDEF, SOCKETS_NODE_NAME);
-    _inputSockets = PrvNode::createNew(nullptr, INPUT_SOCKETS, _inputSocketsNodeDef);
+    _inputSockets = PrvNode::createNew(nullptr, _inputSocketsNodeDef, INPUT_SOCKETS);
 
     _outputSocketsNodeDef = PrvNodeDef::createNew(nullptr, OUTPUT_SOCKETS_NODEDEF, SOCKETS_NODE_NAME);
-    _outputSockets = PrvNode::createNew(nullptr, OUTPUT_SOCKETS, _outputSocketsNodeDef);
+    _outputSockets = PrvNode::createNew(nullptr, _outputSocketsNodeDef, OUTPUT_SOCKETS);
 }
 
 PrvObjectHandle PrvNodeGraph::createNew(PrvElement* parent, const RtToken& name)
@@ -39,7 +44,12 @@ PrvObjectHandle PrvNodeGraph::createNew(PrvElement* parent, const RtToken& name)
         throw ExceptionRuntimeError("Parent must be a stage or a nodegraph");
     }
 
-    PrvObjectHandle node(new PrvNodeGraph(parent, name));
+    // If a name is not given generate one.
+    // The name will be made unique if needed
+    // when the node is added to the parent below.
+    RtToken graphName = name == EMPTY_TOKEN ? DEFAULT_NODEGRAPH_NAME : name;
+
+    PrvObjectHandle node(new PrvNodeGraph(graphName));
     if (parent)
     {
         parent->addChild(node);

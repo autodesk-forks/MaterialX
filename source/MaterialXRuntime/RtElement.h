@@ -90,6 +90,11 @@ public:
     /// Get element name.
     const RtToken& getName() const;
 
+    /// Set element name.
+    /// The name may be changed to form a unique name within
+    /// the scope of this element and its siblings.
+    void setName(const RtToken& name);
+
     /// Add an attribute.
     RtAttribute* addAttribute(const RtToken& name, const RtToken& type);
 

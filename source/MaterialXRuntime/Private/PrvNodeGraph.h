@@ -20,8 +20,6 @@ namespace MaterialX
 class PrvNodeGraph : public PrvNode
 {
 public:
-    PrvNodeGraph(PrvElement* parent, const RtToken& name);
-
     static PrvObjectHandle createNew(PrvElement* parent, const RtToken& name);
 
     void addNode(PrvObjectHandle node);
@@ -78,6 +76,8 @@ public:
     static const RtToken SOCKETS_NODE_NAME;
 
 protected:
+    PrvNodeGraph(const RtToken& name);
+
     void addPort(PrvObjectHandle portdef);
 
     PrvNodeDef* inputSocketsNodeDef() const { return (PrvNodeDef*)_inputSocketsNodeDef.get(); }

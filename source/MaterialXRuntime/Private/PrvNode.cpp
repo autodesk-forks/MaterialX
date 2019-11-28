@@ -18,8 +18,9 @@ PrvNode::Port::Port() :
 {
 }
 
-PrvNode::PrvNode(PrvElement* parent, const RtToken& name, const PrvObjectHandle& nodedef, RtObjType objType) :
-    PrvAllocatingElement(objType, parent, name),
+// Construction with an interface is for nodes.
+PrvNode::PrvNode(const RtToken& name, const PrvObjectHandle& nodedef) :
+    PrvAllocatingElement(RtObjType::NODE, name),
     _nodedef(nodedef)
 {
     const size_t numPorts = nodeDef()->numPorts();
@@ -33,20 +34,30 @@ PrvNode::PrvNode(PrvElement* parent, const RtToken& name, const PrvObjectHandle&
     }
 }
 
-PrvNode::PrvNode(PrvElement* parent, const RtToken& name, RtObjType objType) :
-    PrvAllocatingElement(objType, parent, name),
+// Construction without an interface is only for nodegraphs.
+PrvNode::PrvNode(const RtToken& name) :
+    PrvAllocatingElement(RtObjType::NODEGRAPH, name),
     _nodedef(nullptr)
 {
 }
 
-PrvObjectHandle PrvNode::createNew(PrvElement* parent, const RtToken& name, const PrvObjectHandle& nodedef)
+PrvObjectHandle PrvNode::createNew(PrvElement* parent, const PrvObjectHandle& nodedef, const RtToken& name)
 {
     if (parent && !(parent->hasApi(RtApiType::STAGE) || parent->hasApi(RtApiType::NODEGRAPH)))
     {
         throw ExceptionRuntimeError("Parent must be a stage or a nodegraph");
     }
 
-    PrvObjectHandle node(new PrvNode(parent, name, nodedef));
+    // If a name is not given generate one.
+    // The name will be made unique if needed
+    // when the node is added to the parent below.
+    RtToken nodeName = name;
+    if (nodeName == EMPTY_TOKEN)
+    {
+        nodeName = RtToken(nodedef->asA<PrvNodeDef>()->getNodeName().str() + "1");
+    }
+
+    PrvObjectHandle node(new PrvNode(nodeName, nodedef));
     if (parent)
     {
         parent->addChild(node);

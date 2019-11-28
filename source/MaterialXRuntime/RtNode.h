@@ -165,7 +165,7 @@ public:
     /// Create a new node instance of the given nodedef type
     /// and add it to the parent object if specified.
     /// The parent must be a stage or a nodegraph object.
-    static RtObject createNew(RtObject parent, const RtToken& name, RtObject nodedef);
+    static RtObject createNew(RtObject parent, RtObject nodedef, const RtToken& name = EMPTY_TOKEN);
 
     /// Return the type for this API.
     RtApiType getApiType() const override;

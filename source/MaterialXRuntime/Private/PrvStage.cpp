@@ -19,7 +19,7 @@ namespace MaterialX
 {
 
 PrvStage::PrvStage(const RtToken& name) :
-    PrvAllocatingElement(RtObjType::STAGE, nullptr, name),
+    PrvAllocatingElement(RtObjType::STAGE, name),
     _selfRefCount(0)
 {
 }
