@@ -324,8 +324,6 @@
   <implementation name="IM_invert_vector3FA_genosl" nodedef="ND_invert_vector3FA" file="stdlib/genosl/mx_invert.inline" language="genosl"/>
   <implementation name="IM_invert_vector4_genosl" nodedef="ND_invert_vector4" file="stdlib/genosl/mx_invert.inline" language="genosl"/>
   <implementation name="IM_invert_vector4FA_genosl" nodedef="ND_invert_vector4FA" file="stdlib/genosl/mx_invert.inline" language="genosl"/>
-  <implementation name="IM_invert_matrix33_genosl" nodedef="ND_invert_matrix33" file="stdlib/genosl/mx_invertM.inline" language="genosl"/>
-  <implementation name="IM_invert_matrix44_genosl" nodedef="ND_invert_matrix44" file="stdlib/genosl/mx_invertM.inline" language="genosl"/>
 
   <!-- <absval> -->
   <implementation name="IM_absval_float_genosl" nodedef="ND_absval_float" file="stdlib/genosl/mx_absval.inline" language="genosl"/>
@@ -513,6 +511,10 @@
   <!-- <determinant> -->
   <implementation name="IM_determinant_matrix33_genosl" nodedef="ND_determinant_matrix33" file="stdlib/genosl/mx_determinant.inline" language="genosl"/>
   <implementation name="IM_determinant_matrix44_genosl" nodedef="ND_determinant_matrix44" file="stdlib/genosl/mx_determinant.inline" language="genosl"/>
+
+  <!-- <invertmatrix> -->
+  <implementation name="IM_invertmatrix_matrix33_genosl" nodedef="ND_invertmatrix_matrix33" file="stdlib/genosl/mx_invertM.inline" language="genosl"/>
+  <implementation name="IM_invertmatrix_matrix44_genosl" nodedef="ND_invertmatrix_matrix44" file="stdlib/genosl/mx_invertM.inline" language="genosl"/>
 
   <!-- <rotate> -->
   <implementation name="IM_rotate_vector2_genosl" nodedef="ND_rotate_vector2" file="stdlib/genosl/mx_rotate_vector2.osl" function="mx_rotate_vector2" language="genosl"/>

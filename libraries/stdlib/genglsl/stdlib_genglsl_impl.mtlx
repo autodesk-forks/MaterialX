@@ -319,8 +319,6 @@
   <implementation name="IM_invert_vector3FA_genglsl" nodedef="ND_invert_vector3FA" file="stdlib/genglsl/mx_invert.inline" language="genglsl"/>
   <implementation name="IM_invert_vector4_genglsl" nodedef="ND_invert_vector4" file="stdlib/genglsl/mx_invert.inline" language="genglsl"/>
   <implementation name="IM_invert_vector4FA_genglsl" nodedef="ND_invert_vector4FA" file="stdlib/genglsl/mx_invert.inline" language="genglsl"/>
-  <implementation name="IM_invert_matrix33_genglsl" nodedef="ND_invert_matrix33" file="stdlib/genglsl/mx_invertM.inline" language="genglsl"/>
-  <implementation name="IM_invert_matrix44_genglsl" nodedef="ND_invert_matrix44" file="stdlib/genglsl/mx_invertM.inline" language="genglsl"/>
 
   <!-- <absval> -->
   <implementation name="IM_absval_float_genglsl" nodedef="ND_absval_float" file="stdlib/genglsl/mx_absval.inline" language="genglsl"/>
@@ -508,6 +506,10 @@
   <!-- <determinant> -->
   <implementation name="IM_determinant_matrix33_genglsl" nodedef="ND_determinant_matrix33" file="stdlib/genglsl/mx_determinant.inline" language="genglsl"/>
   <implementation name="IM_determinant_matrix44_genglsl" nodedef="ND_determinant_matrix44" file="stdlib/genglsl/mx_determinant.inline" language="genglsl"/>
+
+  <!-- <invertmatrix> -->
+  <implementation name="IM_invertmatrix_matrix33_genglsl" nodedef="ND_invertmatrix_matrix33" file="stdlib/genglsl/mx_invertM.inline" language="genglsl"/>
+  <implementation name="IM_invertmatrix_matrix44_genglsl" nodedef="ND_invertmatrix_matrix44" file="stdlib/genglsl/mx_invertM.inline" language="genglsl"/>
 
   <!-- <rotate> -->
   <implementation name="IM_rotate_vector2_genglsl" nodedef="ND_rotate_vector2" file="stdlib/genglsl/mx_rotate_vector2.glsl" function="mx_rotate_vector2" language="genglsl"/>
@@ -743,7 +745,7 @@
   <implementation name="IM_switch_vector2I_genglsl" nodedef="ND_switch_vector2I" language="genglsl"/>
   <implementation name="IM_switch_vector3I_genglsl" nodedef="ND_switch_vector3I" language="genglsl"/>
   <implementation name="IM_switch_vector4I_genglsl" nodedef="ND_switch_vector4I" language="genglsl"/>
-  
+
   <!-- ======================================================================== -->
   <!-- Channel nodes                                                            -->
   <!-- ======================================================================== -->

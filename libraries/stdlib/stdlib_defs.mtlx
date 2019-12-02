@@ -1762,7 +1762,7 @@
   <!--
     Node: <invert>
     Subtract the incoming float/color/vector from "amount" in all channels,
-    outputting: amount - in.  Or, invert an incoming matrix.
+    outputting: amount - in.
   -->
   <nodedef name="ND_invert_float" node="invert" nodegroup="math">
     <input name="in" type="float" value="0.0"/>
@@ -1829,15 +1829,7 @@
     <parameter name="amount" type="float" value="1.0"/>
     <output name="out" type="vector4" defaultinput="in"/>
   </nodedef>
-  <nodedef name="ND_invert_matrix33" node="invert" nodegroup="math" defaultinput="in">
-    <input name="in" type="matrix33" value="1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0"/>
-    <output name="out" type="matrix33"/>
-  </nodedef>
-  <nodedef name="ND_invert_matrix44" node="invert" nodegroup="math" defaultinput="in">
-    <input name="in" type="matrix44" value="1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0"/>
-    <output name="out" type="matrix44"/>
-  </nodedef>
-
+ 
   <!--
     Node: <absval>
     The per-channel absolute value of the incoming float/color/vector.
@@ -2601,6 +2593,19 @@
   <nodedef name="ND_determinant_matrix44" node="determinant" nodegroup="math">
     <input name="in" type="matrix44" value="1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0"/>
     <output name="out" type="float" default="1.0"/>
+  </nodedef>
+
+  <!--
+    Node: <invertmatrix>
+    Invert an incoming matrix.
+  -->
+  <nodedef name="ND_invertmatrix_matrix33" node="invertmatrix" nodegroup="math">
+    <input name="in" type="matrix33" value="1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0"/>
+    <output name="out" type="matrix33" defaultinput="in"/>
+  </nodedef>
+  <nodedef name="ND_invertmatrix_matrix44" node="invertmatrix" nodegroup="math">
+    <input name="in" type="matrix44" value="1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0"/>
+    <output name="out" type="matrix44" defaultinput="in"/>
   </nodedef>
 
   <!--
