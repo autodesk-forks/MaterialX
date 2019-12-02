@@ -90,15 +90,15 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         // Set up color management. We assume the target render space is linear
         // if not found in the document. Currently the default system has no other color space targets.
         //
-        static const std::string MATERIALX_LINEAR_WORKING_SPACE("lin_rec709");
-        const std::string language = glslGenerator->getLanguage();
-        mx::DefaultColorManagementSystemPtr colorManagementSystem = mx::DefaultColorManagementSystem::create(language);
-        if (colorManagementSystem)
+        if ( mx::DefaultColorManagementSystemPtr colorManagementSystem =
+            mx::DefaultColorManagementSystem::create(glslGenerator->getLanguage())
+        )
         {
             glslGenerator->setColorManagementSystem(colorManagementSystem);
             colorManagementSystem->loadLibrary(_document);
             const std::string& documentColorSpace = _document->getAttribute(mx::Element::COLOR_SPACE_ATTRIBUTE);
 
+            static const std::string MATERIALX_LINEAR_WORKING_SPACE("lin_rec709");
             genOptions.targetColorSpaceOverride =
                 documentColorSpace.empty() ? MATERIALX_LINEAR_WORKING_SPACE : documentColorSpace;
         }
