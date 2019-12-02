@@ -74,12 +74,15 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         throw mx::Exception("Element is NULL");
     }
 
-    mx::OutputPtr output = _element->asA<mx::Output>();
-    mx::ShaderRefPtr shaderRef = _element->asA<mx::ShaderRef>();
-    if (!output && !shaderRef)
+    bool isSurface = false;
+    if (_element->asA<mx::ShaderRef>())
+    {
+        isSurface = true;
+    }
+    else if (!_element->asA<mx::Output>())
     {
         // Should never occur as we pre-filter renderables before creating the node + override
-        throw mx::Exception("Invalid element to create wrapper for " + _element->getName());
+        throw mx::Exception("Invalid element to create fragment for " + _element->getName());
     }
 
     {
@@ -108,7 +111,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
         // generation.
         genContext.registerSourceCodeSearchPath(librarySearchPath);
         genOptions.hwSpecularEnvironmentMethod =
-            shaderRef ? mx::SPECULAR_ENVIRONMENT_FIS : mx::SPECULAR_ENVIRONMENT_NONE;
+            isSurface ? mx::SPECULAR_ENVIRONMENT_FIS : mx::SPECULAR_ENVIRONMENT_NONE;
 
         // Set to use no direct lighting
         genOptions.hwMaxActiveLightSources = 0;
@@ -181,7 +184,7 @@ void OgsFragment::generateFragment(const mx::FileSearchPath& librarySearchPath)
     }
 
     {
-        // Note: This name must match the the fragment name used for fragment
+        // Note: This name must match the fragment name used for fragment
         // registration in Maya API or the registration will fail.
         //
         const mx::StringMap substitutions{ {FRAGMENT_NAME_TOKEN, _fragmentName} };
