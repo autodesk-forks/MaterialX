@@ -511,9 +511,11 @@
   <implementation name="IM_invertmatrix_matrix33_genglsl" nodedef="ND_invertmatrix_matrix33" file="stdlib/genglsl/mx_invertM.inline" language="genglsl"/>
   <implementation name="IM_invertmatrix_matrix44_genglsl" nodedef="ND_invertmatrix_matrix44" file="stdlib/genglsl/mx_invertM.inline" language="genglsl"/>
 
-  <!-- <rotate> -->
-  <implementation name="IM_rotate_vector2_genglsl" nodedef="ND_rotate_vector2" file="stdlib/genglsl/mx_rotate_vector2.glsl" function="mx_rotate_vector2" language="genglsl"/>
-  <implementation name="IM_rotate_vector3_genglsl" nodedef="ND_rotate_vector3" file="stdlib/genglsl/mx_rotate_vector3.glsl" function="mx_rotate_vector3" language="genglsl"/>
+  <!-- <rotate2d> -->
+  <implementation name="IM_rotate2d_vector2_genglsl" nodedef="ND_rotate2d_vector2" file="stdlib/genglsl/mx_rotate_vector2.glsl" function="mx_rotate_vector2" language="genglsl"/>
+
+  <!-- <rotate3d> -->
+  <implementation name="IM_rotate3d_vector3_genglsl" nodedef="ND_rotate3d_vector3" file="stdlib/genglsl/mx_rotate_vector3.glsl" function="mx_rotate_vector3" language="genglsl"/>
 
 
   <!-- ======================================================================== -->

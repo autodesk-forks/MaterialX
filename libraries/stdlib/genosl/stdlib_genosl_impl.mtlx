@@ -516,9 +516,11 @@
   <implementation name="IM_invertmatrix_matrix33_genosl" nodedef="ND_invertmatrix_matrix33" file="stdlib/genosl/mx_invertM.inline" language="genosl"/>
   <implementation name="IM_invertmatrix_matrix44_genosl" nodedef="ND_invertmatrix_matrix44" file="stdlib/genosl/mx_invertM.inline" language="genosl"/>
 
-  <!-- <rotate> -->
-  <implementation name="IM_rotate_vector2_genosl" nodedef="ND_rotate_vector2" file="stdlib/genosl/mx_rotate_vector2.osl" function="mx_rotate_vector2" language="genosl"/>
-  <implementation name="IM_rotate_vector3_genosl" nodedef="ND_rotate_vector3" file="stdlib/genosl/mx_rotate_vector3.osl" function="mx_rotate_vector3" language="genosl"/>
+  <!-- <rotate2d> -->
+  <implementation name="IM_rotate2d_vector2_genosl" nodedef="ND_rotate2d_vector2" file="stdlib/genosl/mx_rotate_vector2.osl" function="mx_rotate_vector2" language="genosl"/>
+
+  <!-- <rotate3d> -->
+  <implementation name="IM_rotate3d_vector3_genosl" nodedef="ND_rotate3d_vector3" file="stdlib/genosl/mx_rotate_vector3.osl" function="mx_rotate_vector3" language="genosl"/>
 
 
   <!-- ======================================================================== -->
