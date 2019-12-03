@@ -40,7 +40,7 @@ struct RtTokenRegistry
 
     const Entry* getEntryRaw(const char* s)
     {
-        const size_t hash = farmhash::Hash(s, strlen(s));
+        const size_t hash = farmhash::Hash(s, std::char_traits<char>::length(s));
         return getEntry(s, hash);
     }
 
