@@ -42,9 +42,17 @@ target_link_libraries(
     MaterialXFormat
     ${CMAKE_DL_LIBS})
 
-install(TARGETS MaterialXRuntime
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/
+target_include_directories(MaterialXRuntime
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        ${EXTERNAL_INCLUDE_DIRS}
 )
+
+install(TARGETS MaterialXRuntime
+    EXPORT MaterialX
+    ARCHIVE DESTINATION lib)
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
     DESTINATION ${CMAKE_INSTALL_PREFIX}/include/MaterialXRuntime/ MESSAGE_NEVER
