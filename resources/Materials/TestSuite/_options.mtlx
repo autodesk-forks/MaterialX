@@ -14,8 +14,6 @@
 
       <!-- List of comma separated file names acts as a filter to only test documents with these names -->
       <parameter name="overrideFiles" type="string" value="" />
-         <!-- conditional_if_int.mtlx,conditional_if_float.mtlx,procedural.mtlx" /> -->
-      <!-- conditional.mtlx,procedural.mtlx,prism_metals2.mtlx" -->
 
       <!-- Comma separated list of light setup files. Only used for hardware shading languages  -->
       <parameter name="lightFiles" type="string" value="default_viewer_lights.mtlx" />
