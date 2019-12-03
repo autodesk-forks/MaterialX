@@ -309,6 +309,12 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     mx::RtPort add2_in1 = add2.findPort("in1");
     mx::RtPort add2_in2 = add2.findPort("in2");
     mx::RtPort add2_out = add2.findPort("out");
+    REQUIRE(add1_in1.isValid());
+    REQUIRE(add1_in2.isValid());
+    REQUIRE(add1_out.isValid());
+    REQUIRE(add2_in1.isValid());
+    REQUIRE(add2_in2.isValid());
+    REQUIRE(add2_out.isValid());
 
     // Test port connectability
     REQUIRE(add1_out.canConnectTo(add2_in1));
