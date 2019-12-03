@@ -33,13 +33,13 @@ void RtElement::setName(const RtToken& name)
 RtObject RtElement::getParent() const
 {
     PvtElement* parent = data()->asA<PvtElement>()->getParent();
-    return parent ? RtObject(parent->shared_from_this()) : RtObject();
+    return parent ? PvtObject::object(parent->shared_from_this()) : RtObject();
 }
 
 RtObject RtElement::getRoot() const
 {
     PvtElement* root = data()->asA<PvtElement>()->getRoot();
-    return root ? RtObject(root->shared_from_this()) : RtObject();
+    return root ? PvtObject::object(root->shared_from_this()) : RtObject();
 }
 
 RtAttribute* RtElement::addAttribute(const RtToken& name, const RtToken& type, uint32_t flags)
