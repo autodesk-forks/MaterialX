@@ -100,11 +100,11 @@ Basic transform function tests each test is in a separate graph for each variati
   -->
    <nodegraph name="NG_transformpoint_vector2M3">
       <convert name="N_convtov3" type="vector3">
-         <input name="in" type="vector2"/>
+         <input name="in" type="vector2" value="0.5, 0.5"/>
       </convert>
       <transformmatrix name="N_transformpt" type="vector3">
          <input name="in" type="vector3" nodename="N_convtov3"/>
-         <input name="mat" type="matrix33"/>
+         <input name="mat" type="matrix33"  value="31.4961, 0.0, 0.0, 0.0, 31.4961, 0.0, 0.0, 0.0, 1.0"/>
       </transformmatrix>
       <convert name="N_convtov2" type="vector2">
          <input name="in" type="vector3" nodename="N_transformpt"/>
@@ -113,11 +113,12 @@ Basic transform function tests each test is in a separate graph for each variati
    </nodegraph>
    <nodegraph name="NG_transformpoint_vector3M4">
       <convert name="N_convtov4" type="vector4">
-         <input name="in" type="vector3"/>
+         <input name="in" type="vector3" value="1.0, 0.0, 0.0"/>
       </convert>
       <transformmatrix name="N_transformpt" type="vector4">
          <input name="in" type="vector4" nodename="N_convtov4"/>
-         <input name="mat" type="matrix44"/>
+         <input name="mat" type="matrix44" value="1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0" />
+         />
       </transformmatrix>
       <divide name="N_convtov3" type="vector3">
          <input name="in1" type="vector3" nodename="N_transformpt" channels="xyz"/>
@@ -132,11 +133,11 @@ Basic transform function tests each test is in a separate graph for each variati
   -->
    <nodegraph name="NG_transformvector_vector2M3">
       <convert name="N_convtov3" type="vector3">
-         <input name="in" type="vector2" />
+         <input name="in" type="vector2" value="0.5, 0.5"/>
       </convert>
       <transformmatrix name="N_transformvec" type="vector3">
          <input name="in" type="vector3" nodename="N_convtov3"/>
-         <input name="mat" type="matrix33" />
+         <input name="mat" type="matrix33"  value="31.4961, 0.0, 0.0, 0.0, 31.4961, 0.0, 0.0, 0.0,1.0"/>
       </transformmatrix>
       <convert name="N_convtov2" type="vector2">
          <input name="in" type="vector3" nodename="N_transformvec"/>
@@ -145,11 +146,11 @@ Basic transform function tests each test is in a separate graph for each variati
    </nodegraph>
    <nodegraph name="NG_transformvector_vector3M4">
       <convert name="N_convtov4" type="vector4">
-         <input name="in" type="vector3" />
+         <input name="in" type="vector3" value="1.0, 0.0, 0.0" />
       </convert>
       <transformmatrix name="N_transformvec" type="vector4">
          <input name="in" type="vector4" nodename="N_convtov4"/>
-         <input name="mat" type="matrix44" />
+         <input name="mat" type="matrix44" value="1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0" />
       </transformmatrix>
       <convert name="N_convtov3" type="vector3">
          <input name="in" type="vector4" nodename="N_transformvec"/>
@@ -165,7 +166,7 @@ Basic transform function tests each test is in a separate graph for each variati
   -->
    <nodegraph name="NG_transformnormal_vector3M4" >
       <convert name="N_convtov4" type="vector4">
-         <input name="in" type="vector3" />
+         <input name="in" type="vector3" value="1.0, 0.0, 0.0"/>
       </convert>
       <multiply name="N_zerow" type="vector4">
          <input name="in1" type="vector4" nodename="N_convtov4"/>
@@ -173,7 +174,7 @@ Basic transform function tests each test is in a separate graph for each variati
       </multiply>
       <transformmatrix name="N_transformnorm" type="vector4">
          <input name="in" type="vector4" nodename="N_zerow"/>
-         <input name="mat" type="matrix44" />
+         <input name="mat" type="matrix44" value="1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0" />
       </transformmatrix>
       <convert name="N_convtov3" type="vector3">
          <input name="in" type="vector4" nodename="N_transformnorm"/>
