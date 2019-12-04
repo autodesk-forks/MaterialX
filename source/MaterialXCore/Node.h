@@ -19,6 +19,7 @@ namespace MaterialX
 class Node;
 class GraphElement;
 class NodeGraph;
+class Backdrop;
 
 /// A shared pointer to a Node
 using NodePtr = shared_ptr<Node>;
@@ -34,6 +35,11 @@ using ConstGraphElementPtr = shared_ptr<const GraphElement>;
 using NodeGraphPtr = shared_ptr<NodeGraph>;
 /// A shared pointer to a const NodeGraph
 using ConstNodeGraphPtr = shared_ptr<const NodeGraph>;
+
+/// A shared pointer to a Backdrop
+using BackdropPtr = shared_ptr<Backdrop>;
+/// A shared pointer to a const Backdrop
+using ConstBackdropPtr = shared_ptr<const Backdrop>;
 
 /// @class Node
 /// A node element within a NodeGraph or Document.
@@ -280,6 +286,79 @@ class NodeGraph : public GraphElement
 
   public:
     static const string CATEGORY;
+};
+
+/// @class Backdrop
+/// A layout element used to contain, group and document other nodes.
+class Backdrop : public Element
+{
+  public:
+    Backdrop(ElementPtr parent, const string& name) :
+        Element(parent, CATEGORY, name),
+        _width(1.0),
+        _height(1.0)
+    {
+    }
+    virtual ~Backdrop() { }
+
+    /// Return the text note associated with the backdrop. By default 
+    /// no text is associated.
+    const string& getNote() const
+    {
+        return _note;
+    }
+
+    /// Set the text note associated with the backdrop.
+    void setNote(const string& note)
+    {
+        _note = note;
+    }
+
+    /// Returns a comma-separated list of node names that the
+    /// backdrop "contains".  By default a backdrop contains no nodes.
+    const string& getContains() const
+    {
+        return _contains;
+    }
+
+    /// Set the list of nodes that the backdrop "contains".
+    void setContains(const string& contains)
+    {
+        _contains = contains;
+    }
+
+    /// Get the width of the backdrop when drawn in a UI.
+    float getWidth() const
+    {
+        return _width;
+    }
+
+    /// Set the width of the backdrop when drawn in a UI.
+    void setWidth(float width)
+    {
+        _width = width;
+    }
+
+    /// Get the width of the backdrop when drawn in a UI.
+    float getHeight() const
+    {
+        return _height;
+    }
+
+    /// Set the height of the backdrop when drawn in a UI.
+    void setHeight(float height)
+    {
+        _height = height;
+    }
+
+  public:
+    static const string CATEGORY;
+
+  private:
+    string _note;
+    string _contains;
+    float _width;
+    float _height;
 };
 
 } // namespace MaterialX

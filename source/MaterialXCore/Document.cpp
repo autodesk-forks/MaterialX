@@ -601,27 +601,50 @@ void Document::upgradeVersion()
         minorVersion = 36;
     }
 
-    // Upgrade path for 1.37 (change types to child outputs)
-    for (NodeDefPtr nodeDef : getNodeDefs())
+    // Upgrade path for 1.37 
+    if (majorVersion == 1 && minorVersion == 37)
     {
-        InterfaceElementPtr interfaceElem = std::static_pointer_cast<InterfaceElement>(nodeDef);
-        if (interfaceElem && interfaceElem->hasType())
-        {
-            string type = interfaceElem->getAttribute(TypedElement::TYPE_ATTRIBUTE);
-            OutputPtr outputPtr;
-            if (!type.empty() && type != MULTI_OUTPUT_TYPE_STRING)
-            {
-                outputPtr = interfaceElem->addOutput("out", type);
-            }
-            interfaceElem->removeAttribute(TypedElement::TYPE_ATTRIBUTE);
 
-            const string& defaultInput = interfaceElem->getAttribute(Output::DEFAULT_INPUT_ATTRIBUTE);
-            if (outputPtr && !defaultInput.empty())
+        // Change types attribute to child outputs.
+        for (NodeDefPtr nodeDef : getNodeDefs())
+        {
+            InterfaceElementPtr interfaceElem = std::static_pointer_cast<InterfaceElement>(nodeDef);
+            if (interfaceElem && interfaceElem->hasType())
             {
-                outputPtr->setAttribute(Output::DEFAULT_INPUT_ATTRIBUTE, defaultInput);
+                string type = interfaceElem->getAttribute(TypedElement::TYPE_ATTRIBUTE);
+                OutputPtr outputPtr;
+                if (!type.empty() && type != MULTI_OUTPUT_TYPE_STRING)
+                {
+                    outputPtr = interfaceElem->addOutput("out", type);
+                }
+                interfaceElem->removeAttribute(TypedElement::TYPE_ATTRIBUTE);
+
+                const string& defaultInput = interfaceElem->getAttribute(Output::DEFAULT_INPUT_ATTRIBUTE);
+                if (outputPtr && !defaultInput.empty())
+                {
+                    outputPtr->setAttribute(Output::DEFAULT_INPUT_ATTRIBUTE, defaultInput);
+                }
+                interfaceElem->removeAttribute(Output::DEFAULT_INPUT_ATTRIBUTE);
             }
-            interfaceElem->removeAttribute(Output::DEFAULT_INPUT_ATTRIBUTE);
         }
+
+        // Convert backdrop nodes to backdrop elements
+        const string ND_BACKDROP = "backdrop";
+        for (NodePtr node : getNodes())
+        {
+            NodeDefPtr nodeDef = node->getNodeDef();
+            if (nodeDef && nodeDef->getName() == ND_BACKDROP)
+            {
+                BackdropPtr backdrop = addBackdrop(node->getName());
+                backdrop->setNote(node->getParameter("note")->asString());
+                backdrop->setContains(node->getParameter("contains")->asString());
+                backdrop->setWidth(*(node->getParameter("width"))->asA<float>());
+                backdrop->setHeight(*(node->getParameter("height"))->asA<float>());
+                // Need to add in rest of UI stuff like xpos
+            }
+            removeNode(node->getName());
+        }
+        removeNodeDef(ND_BACKDROP);
     }
 
     if (majorVersion == MATERIALX_MAJOR_VERSION &&
