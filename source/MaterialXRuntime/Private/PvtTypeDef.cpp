@@ -328,14 +328,14 @@ PvtTypeDefRegistry::PvtTypeDefRegistry()
     RtTypeDef* vector3 = newType("vector3", RtTypeDef::BASETYPE_FLOAT, vector3Funcs, RtTypeDef::SEMANTIC_VECTOR, 3);
     vector3->setComponent(0, "x", RtTypeDef::BASETYPE_FLOAT);
     vector3->setComponent(1, "y", RtTypeDef::BASETYPE_FLOAT);
-    vector3->setComponent(1, "z", RtTypeDef::BASETYPE_FLOAT);
+    vector3->setComponent(2, "z", RtTypeDef::BASETYPE_FLOAT);
 
     RtValueFuncs vector4Funcs = { createValue<Vector4>, copyValue<Vector4>, toStringValue<Vector4> , fromStringValue<Vector4> };
     RtTypeDef* vector4 = newType("vector4", RtTypeDef::BASETYPE_FLOAT, vector4Funcs, RtTypeDef::SEMANTIC_VECTOR, 4);
     vector4->setComponent(0, "x", RtTypeDef::BASETYPE_FLOAT);
     vector4->setComponent(1, "y", RtTypeDef::BASETYPE_FLOAT);
-    vector4->setComponent(1, "z", RtTypeDef::BASETYPE_FLOAT);
-    vector4->setComponent(1, "w", RtTypeDef::BASETYPE_FLOAT);
+    vector4->setComponent(2, "z", RtTypeDef::BASETYPE_FLOAT);
+    vector4->setComponent(3, "w", RtTypeDef::BASETYPE_FLOAT);
 
     RtValueFuncs matrix33Funcs = { createValue<Matrix33>, copyValue<Matrix33>, toStringValue<Matrix33> , fromStringValue<Matrix33> };
     newType("matrix33", RtTypeDef::BASETYPE_FLOAT, matrix33Funcs, RtTypeDef::SEMANTIC_MATRIX, 9);
