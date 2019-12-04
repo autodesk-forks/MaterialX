@@ -270,15 +270,20 @@ void unmarshalNoneValue(const string&, RtValue& dest)
 
 }
 
-PvtTypeDef::PvtTypeDef(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs, const RtToken& semantic,
-    size_t size, const ChannelMap& channelMap) :
+PvtTypeDef::PvtTypeDef(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs, 
+                       const RtToken& semantic, size_t size) :
     _name(name),
     _basetype(basetype),
     _funcs(funcs),
     _semantic(semantic),
-    _size(size),
-    _channelMap(channelMap)
+    _size(size)
 {
+    if (size > 1)
+    {
+        // An aggregate type so reserve space for the components.
+        _components.resize(size);
+    }
+
     // TODO: Handle other types in connections
     _connectionTypes.insert(name);
 }
@@ -297,22 +302,40 @@ PvtTypeDefRegistry::PvtTypeDefRegistry()
     newType("float", RtTypeDef::BASETYPE_FLOAT, floatFuncs);
 
     RtValueFuncs color2Funcs = { createValue<Color2>, copyValue<Color2>, marshalValue<Color2> , unmarshalValue<Color2> };
-    newType("color2", RtTypeDef::BASETYPE_FLOAT, color2Funcs, RtTypeDef::SEMANTIC_NONE, 2, { {'r', 0}, {'a', 1} });
+    RtTypeDef* color2 = newType("color2", RtTypeDef::BASETYPE_FLOAT, color2Funcs, RtTypeDef::SEMANTIC_NONE, 2);
+    color2->setComponent(0, "r", RtTypeDef::BASETYPE_FLOAT);
+    color2->setComponent(1, "a", RtTypeDef::BASETYPE_FLOAT);
 
     RtValueFuncs color3Funcs = { createValue<Color3>, copyValue<Color3>, marshalValue<Color3> , unmarshalValue<Color3> };
-    newType("color3", RtTypeDef::BASETYPE_FLOAT, color3Funcs, RtTypeDef::SEMANTIC_COLOR, 3, { {'r', 0}, {'g', 1}, {'b', 2} });
+    RtTypeDef* color3 = newType("color3", RtTypeDef::BASETYPE_FLOAT, color3Funcs, RtTypeDef::SEMANTIC_COLOR, 3);
+    color3->setComponent(0, "r", RtTypeDef::BASETYPE_FLOAT);
+    color3->setComponent(1, "g", RtTypeDef::BASETYPE_FLOAT);
+    color3->setComponent(2, "b", RtTypeDef::BASETYPE_FLOAT);
 
     RtValueFuncs color4Funcs = { createValue<Color4>, copyValue<Color4>, marshalValue<Color4> , unmarshalValue<Color4> };
-    newType("color4", RtTypeDef::BASETYPE_FLOAT, color4Funcs, RtTypeDef::SEMANTIC_COLOR, 4, { {'r', 0}, {'g', 1}, {'b', 2}, {'a', 3} });
+    RtTypeDef* color4 = newType("color4", RtTypeDef::BASETYPE_FLOAT, color4Funcs, RtTypeDef::SEMANTIC_COLOR, 4);
+    color4->setComponent(0, "r", RtTypeDef::BASETYPE_FLOAT);
+    color4->setComponent(1, "g", RtTypeDef::BASETYPE_FLOAT);
+    color4->setComponent(2, "b", RtTypeDef::BASETYPE_FLOAT);
+    color4->setComponent(3, "a", RtTypeDef::BASETYPE_FLOAT);
 
     RtValueFuncs vector2Funcs = { createValue<Vector2>, copyValue<Vector2>, marshalValue<Vector2> , unmarshalValue<Vector2> };
-    newType("vector2", RtTypeDef::BASETYPE_FLOAT, vector2Funcs, RtTypeDef::SEMANTIC_VECTOR, 2, { {'x', 0}, {'y', 1} });
+    RtTypeDef* vector2 = newType("vector2", RtTypeDef::BASETYPE_FLOAT, vector2Funcs, RtTypeDef::SEMANTIC_VECTOR, 2);
+    vector2->setComponent(0, "x", RtTypeDef::BASETYPE_FLOAT);
+    vector2->setComponent(1, "y", RtTypeDef::BASETYPE_FLOAT);
 
     RtValueFuncs vector3Funcs = { createValue<Vector3>, copyValue<Vector3>, marshalValue<Vector3> , unmarshalValue<Vector3> };
-    newType("vector3", RtTypeDef::BASETYPE_FLOAT, vector3Funcs, RtTypeDef::SEMANTIC_VECTOR, 3, { {'x', 0}, {'y', 1}, {'z', 2} });
+    RtTypeDef* vector3 = newType("vector3", RtTypeDef::BASETYPE_FLOAT, vector3Funcs, RtTypeDef::SEMANTIC_VECTOR, 3);
+    vector3->setComponent(0, "x", RtTypeDef::BASETYPE_FLOAT);
+    vector3->setComponent(1, "y", RtTypeDef::BASETYPE_FLOAT);
+    vector3->setComponent(1, "z", RtTypeDef::BASETYPE_FLOAT);
 
     RtValueFuncs vector4Funcs = { createValue<Vector4>, copyValue<Vector4>, marshalValue<Vector4> , unmarshalValue<Vector4> };
-    newType("vector4", RtTypeDef::BASETYPE_FLOAT, vector4Funcs, RtTypeDef::SEMANTIC_VECTOR, 4, { {'x', 0}, {'y', 1}, {'z', 2}, {'w', 3} });
+    RtTypeDef* vector4 = newType("vector4", RtTypeDef::BASETYPE_FLOAT, vector4Funcs, RtTypeDef::SEMANTIC_VECTOR, 4);
+    vector4->setComponent(0, "x", RtTypeDef::BASETYPE_FLOAT);
+    vector4->setComponent(1, "y", RtTypeDef::BASETYPE_FLOAT);
+    vector4->setComponent(1, "z", RtTypeDef::BASETYPE_FLOAT);
+    vector4->setComponent(1, "w", RtTypeDef::BASETYPE_FLOAT);
 
     RtValueFuncs matrix33Funcs = { createValue<Matrix33>, copyValue<Matrix33>, marshalValue<Matrix33> , unmarshalValue<Matrix33> };
     newType("matrix33", RtTypeDef::BASETYPE_FLOAT, matrix33Funcs, RtTypeDef::SEMANTIC_MATRIX, 9);
@@ -351,17 +374,12 @@ PvtTypeDefRegistry::PvtTypeDefRegistry()
 }
 
 RtTypeDef* PvtTypeDefRegistry::newType(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs,
-    const RtToken& sematic, size_t size, const PvtTypeDef::ChannelMap& channelMapping)
+                                       const RtToken& sematic, size_t size)
 {
     _types.push_back(std::unique_ptr<RtTypeDef>(new RtTypeDef(name, basetype, funcs, sematic, size)));
 
     RtTypeDef* ptr = _types.back().get();
     _typesByName[name] = ptr;
-
-    for (auto it : channelMapping)
-    {
-        ptr->setChannelIndex(it.first, it.second);
-    }
 
     return ptr;
 }
