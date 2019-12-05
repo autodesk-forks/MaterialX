@@ -534,10 +534,8 @@ TEST_CASE("Organization", "[nodegraph]")
     mx::readFromXmlFile(doc, "custom1_nodedef.mtlx");
     backdrop = doc->getBackdrop("custom1_backdrop");
     CHECK(backdrop != nullptr);
-    const std::string contains = backdrop->getContains();
-    CHECK(contains == "custom1");
+    CHECK(backdrop->getContains() == "custom1");
     CHECK(backdrop->getWidth() == 20.0f);
     CHECK(backdrop->getHeight() == 30.0f);
-    const std::string note = backdrop->getNote();
     CHECK(backdrop->getNote() == "My note.");
 }
