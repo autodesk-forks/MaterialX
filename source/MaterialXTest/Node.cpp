@@ -467,3 +467,77 @@ TEST_CASE("Prune nodes", "[nodegraph]")
     REQUIRE(elemOrder.size() == nodeGraph2->getChildren().size());
     REQUIRE(isTopologicalOrder(elemOrder));
 }
+
+TEST_CASE("Organization", "[nodegraph]")
+{
+    // Create a document.
+    mx::DocumentPtr doc = mx::createDocument();
+
+    // Create a node graph with the following structure:
+    //
+    //   [constant1] [constant2]      [image2]
+    //           \   /          \    /
+    // [image1] [add1]          [add2]
+    //        \  /   \______      |   
+    //    [multiply]        \__ [add3]         [noise3d]
+    //             \____________  |  ____________/
+    //                          [mix]
+    //                            |
+    //                         [output]
+    //
+    mx::NodeGraphPtr nodeGraph = doc->addNodeGraph("custom1_nodegraph_impl");
+    mx::NodePtr image1 = nodeGraph->addNode("image", "image1");
+    mx::NodePtr image2 = nodeGraph->addNode("image", "image2");
+    mx::NodePtr multiply = nodeGraph->addNode("multiply", "multiply");
+    mx::NodePtr constant1 = nodeGraph->addNode("constant", "constant1");
+    mx::NodePtr constant2 = nodeGraph->addNode("constant", "constant2");
+    mx::NodePtr add1 = nodeGraph->addNode("add", "add1");
+    mx::NodePtr add2 = nodeGraph->addNode("add", "add2");
+    mx::NodePtr add3 = nodeGraph->addNode("add", "add3");
+    mx::NodePtr noise3d = nodeGraph->addNode("noise3d", "noise3d");
+    mx::InputPtr noiseInput = noise3d->addInput("amplitude", "float");
+    noiseInput->setValue("2.0");
+    noiseInput->setType("float");
+    mx::NodePtr mix = nodeGraph->addNode("mix", "mix");
+    mx::OutputPtr output = nodeGraph->addOutput("output");
+    add1->setConnectedNode("in1", constant1);
+    add1->setConnectedNode("in2", constant2);
+    add2->setConnectedNode("in1", constant2);
+    add2->setConnectedNode("in2", image2);
+    add3->setConnectedNode("in1", add1);
+    add3->setConnectedNode("in2", add2);
+    multiply->setConnectedNode("in1", image1);
+    multiply->setConnectedNode("in2", add1);
+    mix->setConnectedNode("fg", multiply);
+    mix->setConnectedNode("bg", add3);
+    mix->setConnectedNode("mask", noise3d);
+    output->setConnectedNode(mix);
+
+    // Create a nodedef from the nodegraph
+    mx::NodeDefPtr nodeDef1 = doc->addNodeDef("ND_custom1");
+    nodeDef1->setNodeDefString("custom1");
+    nodeDef1->setNodeGroup("custom1_nodegroup");
+    nodeDef1->addInput("noiseAmplitude");
+    noise3d->getInput("amplitude")->setAttribute(mx::ValueElement::INTERFACE_NAME_ATTRIBUTE, "noiseAmplitude");
+    nodeGraph->setNodeDef(nodeDef1);
+
+    doc->addNode("custom1", "custom1_node");
+
+    // Add some backdrops
+    mx::BackdropPtr backdrop = doc->addBackdrop("custom1_backdrop");
+    backdrop->setContains("custom1");
+    backdrop->setWidth(20.0f);
+    backdrop->setHeight(30.0f);
+    backdrop->setNote("My note.");
+
+    mx::writeToXmlFile(doc, "custom1_nodedef.mtlx");
+    mx::readFromXmlFile(doc, "custom1_nodedef.mtlx");
+    backdrop = doc->getBackdrop("custom1_backdrop");
+    CHECK(backdrop != nullptr);
+    const std::string contains = backdrop->getContains();
+    CHECK(contains == "custom1");
+    CHECK(backdrop->getWidth() == 20.0f);
+    CHECK(backdrop->getHeight() == 30.0f);
+    const std::string note = backdrop->getNote();
+    CHECK(backdrop->getNote() == "My note.");
+}

@@ -602,9 +602,8 @@ void Document::upgradeVersion()
     }
 
     // Upgrade path for 1.37 
-    if (majorVersion == 1 && minorVersion == 37)
+    if (majorVersion == 1 && minorVersion == 36)
     {
-
         // Change types attribute to child outputs.
         for (NodeDefPtr nodeDef : getNodeDefs())
         {
@@ -615,7 +614,11 @@ void Document::upgradeVersion()
                 OutputPtr outputPtr;
                 if (!type.empty() && type != MULTI_OUTPUT_TYPE_STRING)
                 {
-                    outputPtr = interfaceElem->addOutput("out", type);
+                    outputPtr = interfaceElem->getOutput("out");
+                    if (!outputPtr)
+                    {
+                        outputPtr = interfaceElem->addOutput("out", type);
+                    }
                 }
                 interfaceElem->removeAttribute(TypedElement::TYPE_ATTRIBUTE);
 
@@ -636,13 +639,23 @@ void Document::upgradeVersion()
             if (nodeDef && nodeDef->getName() == ND_BACKDROP)
             {
                 BackdropPtr backdrop = addBackdrop(node->getName());
-                backdrop->setNote(node->getParameter("note")->asString());
-                backdrop->setContains(node->getParameter("contains")->asString());
-                backdrop->setWidth(*(node->getParameter("width"))->asA<float>());
-                backdrop->setHeight(*(node->getParameter("height"))->asA<float>());
-                // Need to add in rest of UI stuff like xpos
+                for (const ParameterPtr param : node->getParameters())
+                {
+                    ValuePtr value = param ? param->getValue() : nullptr;
+                    if (value)
+                    {
+                        if (value->isA<string>())
+                        {
+                            backdrop->setParameterValue(param->getName(), value->asA<string>());
+                        }
+                        else if (value->isA<float>())
+                        {
+                            backdrop->setParameterValue(param->getName(), value->asA<float>());
+                        }
+                    }
+                }
+                removeNode(node->getName());
             }
-            removeNode(node->getName());
         }
         removeNodeDef(ND_BACKDROP);
     }

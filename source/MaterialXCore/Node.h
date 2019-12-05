@@ -290,75 +290,47 @@ class NodeGraph : public GraphElement
 
 /// @class Backdrop
 /// A layout element used to contain, group and document other nodes.
-class Backdrop : public Element
+class Backdrop : public InterfaceElement
 {
   public:
     Backdrop(ElementPtr parent, const string& name) :
-        Element(parent, CATEGORY, name),
-        _width(1.0),
-        _height(1.0)
+        InterfaceElement(parent, CATEGORY, name)
     {
     }
     virtual ~Backdrop() { }
 
     /// Return the text note associated with the backdrop. By default 
     /// no text is associated.
-    const string& getNote() const
-    {
-        return _note;
-    }
+    string getNote() const;
 
     /// Set the text note associated with the backdrop.
-    void setNote(const string& note)
-    {
-        _note = note;
-    }
+    void setNote(const string& note);
 
     /// Returns a comma-separated list of node names that the
     /// backdrop "contains".  By default a backdrop contains no nodes.
-    const string& getContains() const
-    {
-        return _contains;
-    }
+    string getContains() const;
 
     /// Set the list of nodes that the backdrop "contains".
-    void setContains(const string& contains)
-    {
-        _contains = contains;
-    }
+    void setContains(const string& contains);
 
     /// Get the width of the backdrop when drawn in a UI.
-    float getWidth() const
-    {
-        return _width;
-    }
+    float getWidth() const;
 
     /// Set the width of the backdrop when drawn in a UI.
-    void setWidth(float width)
-    {
-        _width = width;
-    }
+    void setWidth(float width);
 
     /// Get the width of the backdrop when drawn in a UI.
-    float getHeight() const
-    {
-        return _height;
-    }
+    float getHeight() const;
 
     /// Set the height of the backdrop when drawn in a UI.
-    void setHeight(float height)
-    {
-        _height = height;
-    }
+    void setHeight(float height);
 
   public:
     static const string CATEGORY;
-
-  private:
-    string _note;
-    string _contains;
-    float _width;
-    float _height;
+    static const string NOTE_ATTRIBUTE;
+    static const string CONTAINS_ATTRIBUTE;
+    static const string WIDTH_ATTRIBUTE;
+    static const string HEIGHT_ATTRIBUTE;
 };
 
 } // namespace MaterialX
