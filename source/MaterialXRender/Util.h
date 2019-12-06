@@ -17,20 +17,20 @@
 
 namespace MaterialX
 {
-<<<<<<< HEAD
-    /// @name Shader utilities
-    /// @{
+/// @name Shader Utilities
+/// @{
 
-    /// Create a shader for a given element
-    ShaderPtr createShader(const string& shaderName, GenContext& context, ElementPtr elem);
+/// Create a shader for a given element.
+ShaderPtr createShader(const string& shaderName, GenContext& context, ElementPtr elem);
 
-    /// Create a shader with a constant color output for a given element
-    ShaderPtr createConstantShader(GenContext& context,
-                                   DocumentPtr stdLib,
-                                   const string& shaderName,
-                                   const Color3& color);
+/// Create a shader with a constant color output, using the given standard libraries
+/// for code generation.
+ShaderPtr createConstantShader(GenContext& context,
+                               DocumentPtr stdLib,
+                               const string& shaderName,
+                               const Color3& color);
 
-    /// @}
+/// @}
     /// @name User interface utilities
     /// @{
 
@@ -102,85 +102,6 @@ namespace MaterialX
                                 UIPropertyGroup& unnamedGroups);
 
     /// @}
-=======
-
-/// @name Shader Utilities
-/// @{
-
-/// Create a shader for a given element.
-ShaderPtr createShader(const string& shaderName, GenContext& context, ElementPtr elem);
-
-/// Create a shader with a constant color output, using the given standard libraries
-/// for code generation.
-ShaderPtr createConstantShader(GenContext& context,
-                               DocumentPtr stdLib,
-                               const string& shaderName,
-                               const Color3& color);
-
-/// @}
-/// @name User Interface Utilities
-/// @{
-
-/// Set of possible UI properties for an element
-struct UIProperties
-{
-    /// UI name
-    string uiName;
-
-    /// UI folder
-    string uiFolder;
-
-    /// Enumeration
-    StringVec enumeration;
-
-    /// Enumeration Values
-    vector<ValuePtr> enumerationValues;
-
-    /// UI minimum value
-    ValuePtr uiMin;
-
-    /// UI maximum value
-    ValuePtr uiMax;
-
-    /// UI advanced element
-    bool uiAdvanced = false;
-};
-
-/// Get the UI properties for a given nodedef element.
-/// Returns the number of properties found.
-unsigned int getUIProperties(ConstValueElementPtr nodeDefElement, UIProperties& uiProperties);
-
-/// Get the UI properties for a given element path. If the path is to a node, a target
-/// identifier can be provided.
-/// Returns the number of properties found.
-unsigned int getUIProperties(const string& path, DocumentPtr doc, const string& target, UIProperties& uiProperties);
-
-/// Interface for holding the UI properties associated shader port
-struct UIPropertyItem
-{
-    string label;
-    ValuePtr value;
-    ShaderPort* variable = nullptr;
-    UIProperties ui;
-};
-
-/// A grouping of property items by name
-using UIPropertyGroup = std::multimap<string, UIPropertyItem>;
-
-/// Utility to group UI properties items based on Element group name from an element.
-/// Returns a list of named and unnamed groups.
-void createUIPropertyGroups(ElementPtr uniformElement, DocumentPtr contentDocument, TypedElementPtr materialElement,
-                            const string& pathSeparator, UIPropertyGroup& groups,
-                            UIPropertyGroup& unnamedGroups, ShaderPort* uniform = nullptr);
-
-/// Utility to group UI properties items based on Element group name from a VariableBlock.
-/// Returns a list of named and unnamed groups.
-void createUIPropertyGroups(const VariableBlock& block, DocumentPtr contentDocument, TypedElementPtr materialElement,
-                            const string& pathSeparator, UIPropertyGroup& groups,
-                            UIPropertyGroup& unnamedGroups);
-
-/// @}
->>>>>>> 9100ac81... Move Image class to its own source and header files
 
 } // namespace MaterialX
 
