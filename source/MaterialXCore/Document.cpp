@@ -658,6 +658,8 @@ void Document::upgradeVersion()
             }
         }
         removeNodeDef(ND_BACKDROP);
+
+        minorVersion = 37;
     }
 
     if (majorVersion == MATERIALX_MAJOR_VERSION &&

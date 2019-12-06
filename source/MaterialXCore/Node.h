@@ -319,7 +319,7 @@ class Backdrop : public InterfaceElement
     /// Set the width of the backdrop when drawn in a UI.
     void setWidth(float width);
 
-    /// Get the width of the backdrop when drawn in a UI.
+    /// Get the height of the backdrop when drawn in a UI.
     float getHeight() const;
 
     /// Set the height of the backdrop when drawn in a UI.
