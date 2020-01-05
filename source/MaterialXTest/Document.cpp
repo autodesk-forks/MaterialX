@@ -6,6 +6,9 @@
 #include <MaterialXTest/Catch/catch.hpp>
 
 #include <MaterialXCore/Document.h>
+#include <MaterialXFormat/File.h>
+#include <MaterialXFormat/XmlIo.h>
+#include <MaterialXGenShader/Util.h>
 
 namespace mx = MaterialX;
 
@@ -106,5 +109,20 @@ TEST_CASE("Document", "[document]")
     REQUIRE(importedImpl->getNodeDef() == importedNodeDef);
 
     // Validate the combined document.
+    REQUIRE(doc->validate());
+}
+
+TEST_CASE("Version", "[document]")
+{
+    mx::DocumentPtr doc = mx::createDocument();
+    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
+    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_ng.mtlx"), doc);
+    mx::FileSearchPath searchPath = "resources/Materials/TestSuite/stdlib/upgrade/";
+
+    mx::readFromXmlFile(doc, "1_36_to_1_37.mtlx", searchPath);
+    mx::XmlWriteOptions writeOptions;
+    writeOptions.writeXIncludeEnable = true;
+    mx::writeToXmlFile(doc, "1_36_to_1_37_updated.mtlx", &writeOptions);
+
     REQUIRE(doc->validate());
 }

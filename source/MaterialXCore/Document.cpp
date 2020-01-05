@@ -641,18 +641,12 @@ void Document::upgradeVersion()
         StringVec nodesToRemove;
         for (NodePtr node : getNodes())
         {
-            NodeDefPtr nodeDef = node->getNodeDef();
-            if (!nodeDef)
-            {
-                continue;
-            }
-
             bool removeNode = false;
             const string& nodeCategory = node->getCategory();
 
             // Change category from "invert to "invertmatrix" for matrix invert nodes
             if (nodeCategory == INVERT_NODE && 
-               (nodeDef->getType() == "matrix33" || nodeDef->getType() == "matrix44"))
+               (node->getType() == "matrix33" || node->getType() == "matrix44"))
             {
                 node->setCategory(INVERT_MATRIX_NODE);
             }
@@ -660,31 +654,27 @@ void Document::upgradeVersion()
             // Change category from "rotate" to "rotate2d" or "rotate3d" nodes
             else if (nodeCategory == ROTATE_NODE)
             {
-                node->setCategory((nodeDef->getType() == "vector2") ? ROTATE2D_NODE : ROTATE3D_NODE);
+                node->setCategory((node->getType() == "vector2") ? ROTATE2D_NODE : ROTATE3D_NODE);
             }
 
             // Convert "compare" node to "ifgreater".
             else if (nodeCategory == COMPARE_NODE)
             {
-                NodePtr ifgreater = addNode("ifgreater", node->getName());
-                ifgreater->setType(node->getType());
-                ifgreater->copyContentFrom(node);
-                // "cutoff parameter becomes "value1" input
-                ParameterPtr cutoff = ifgreater->getParameter("cutoff");
+                node->setCategory("ifgreater");
+                // "cutoff" parameter becomes "value2" input
+                ParameterPtr cutoff = node->getParameter("cutoff");
                 if (cutoff)
                 {
-                    InputPtr value2 = ifgreater->addInput("value2");
+                    InputPtr value2 = node->addInput("value2");
                     value2->copyContentFrom(cutoff);
-                    cutoff->setName("value1");
-                    ifgreater->removeChild("cutoff");
+                    node->removeChild("cutoff");
                 }
-                // "intest" input becomes "value2" input
-                InputPtr intest = ifgreater->getInput("intest");
+                // "intest" input becomes "value1" input
+                InputPtr intest = node->getInput("intest");
                 if (intest)
                 {
-                    intest->setName("value2");
+                    intest->setName("value1");
                 }
-                removeNode = true;
             }
 
             // Change notes with category "tranform[vector|point|normal]",
@@ -693,7 +683,7 @@ void Document::upgradeVersion()
                      nodeCategory == "transformvector" ||
                      nodeCategory == "transformnormal")
             {
-                if (!nodeDef->getChild("fromspace") && !nodeDef->getChild("tospace"))
+                if (!node->getChild("fromspace") && !node->getChild("tospace"))
                 {
                     node->setCategory("transformmatrix");
                 }
@@ -702,7 +692,7 @@ void Document::upgradeVersion()
             // Convert "combine" to "combine2", "combine3" or "combine4"
             else if (nodeCategory == "combine")
             {
-                if (nodeDef->getChild("in4"))
+                if (node->getChild("in4"))
                 {
                     node->setCategory("combine4");
                 }
@@ -719,7 +709,7 @@ void Document::upgradeVersion()
             // Convert "separate" to "separate2", "separate3" or "separate4"
             else if (nodeCategory == "separate")
             {
-                InputPtr in = nodeDef->getInput("in");
+                InputPtr in = node->getInput("in");
                 if (in)
                 {
                     const string& inType = in->getType();
