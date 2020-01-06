@@ -117,12 +117,44 @@ TEST_CASE("Version", "[document]")
     mx::DocumentPtr doc = mx::createDocument();
     mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
     mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_ng.mtlx"), doc);
-    mx::FileSearchPath searchPath = "resources/Materials/TestSuite/stdlib/upgrade/";
+    mx::FileSearchPath searchPath("resources/Materials/TestSuite/stdlib/upgrade/");
 
     mx::readFromXmlFile(doc, "1_36_to_1_37.mtlx", searchPath);
+    REQUIRE(doc->validate());
+
     mx::XmlWriteOptions writeOptions;
     writeOptions.writeXIncludeEnable = true;
     mx::writeToXmlFile(doc, "1_36_to_1_37_updated.mtlx", &writeOptions);
 
-    REQUIRE(doc->validate());
+    mx::DocumentPtr doc2 = mx::createDocument();
+    mx::readFromXmlFile(doc2, "1_36_to_1_37_updated.mtlx");
+    REQUIRE(doc2->validate());
+
+    // Check conversion to desired types occurred
+    std::unordered_map<std::string, unsigned int> convertSet = 
+    {
+        { "invertmatrix", 0}, 
+        { "rotate2d", 0},
+        { "rotate3d", 0},
+        { "transformmatrix", 0},
+        { "ifgreatereq", 0}, 
+        { "separate2", 0}, 
+        { "separate3", 0},
+        { "separate4", 0},
+        { "combine2", 0}, 
+        { "combine3", 0},
+        { "combine4", 0}
+    };
+    for (mx::NodePtr node : doc2->getNodes())
+    {
+        auto convertItem = convertSet.find(node->getCategory());
+        if (convertItem != convertSet.end())
+        {
+            convertItem->second++;
+        }
+    }
+    for (auto convertItem : convertSet)
+    {
+        REQUIRE((convertItem.second > 0));
+    }
 }

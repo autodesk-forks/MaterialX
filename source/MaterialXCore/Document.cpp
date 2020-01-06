@@ -638,15 +638,32 @@ void Document::upgradeVersion()
         const string ROTATE2D_NODE = "rotate2d";
         const string ROTATE3D_NODE = "rotate3d";
         const string COMPARE_NODE = "compare";
-        StringVec nodesToRemove;
+        const string CUTOFF_PARAMETER = "cutoff";
+        const string INTEST_INPUT = "intest";
+        const string TRANSFORMPOINT_NODE = "transformpoint";
+        const string TRANSFORMVECTOR_NODE = "transformvector";
+        const string TRANSFORMNORMAL_NODE = "transformnormal";
+        const string FROMSPACE_INPUT = "fromspace";
+        const string TOSPACE_INPUT = "tospace";
+        const string TRANSFORMMATRIX_NODE = "transformmatrix";
+        const string IFGREATEREQ_NODE = "ifgreatereq";
+        const string VALUE1_INPUT = "value1";
+        const string VALUE2_INPUT = "value2";
+        const string COMBINE_NODE = "combine";
+        const string IN3_INPUT = "in3";
+        const string IN4_INPUT = "in4";
+        const string SEPARATE_NODE = "separate";
+        const string IN_INPUT = "in";
+        const string TWO_STRING = "2";
+        const string THREE_STRING = "3";
+        const string FOUR_STRING = "4";
         for (NodePtr node : getNodes())
         {
-            bool removeNode = false;
             const string& nodeCategory = node->getCategory();
 
             // Change category from "invert to "invertmatrix" for matrix invert nodes
-            if (nodeCategory == INVERT_NODE && 
-               (node->getType() == "matrix33" || node->getType() == "matrix44"))
+            if (nodeCategory == INVERT_NODE &&
+                (node->getType() == getTypeString<Matrix33>() || node->getType() == getTypeString<Matrix44>()))
             {
                 node->setCategory(INVERT_MATRIX_NODE);
             }
@@ -654,76 +671,76 @@ void Document::upgradeVersion()
             // Change category from "rotate" to "rotate2d" or "rotate3d" nodes
             else if (nodeCategory == ROTATE_NODE)
             {
-                node->setCategory((node->getType() == "vector2") ? ROTATE2D_NODE : ROTATE3D_NODE);
+                node->setCategory((node->getType() == getTypeString<Vector2>()) ? ROTATE2D_NODE : ROTATE3D_NODE);
             }
 
-            // Convert "compare" node to "ifgreater".
+            // Convert "compare" node to "ifgreatereq".
             else if (nodeCategory == COMPARE_NODE)
             {
-                node->setCategory("ifgreater");
-                // "cutoff" parameter becomes "value2" input
-                ParameterPtr cutoff = node->getParameter("cutoff");
+                node->setCategory(IFGREATEREQ_NODE);
+                // "cutoff" parameter becomes "value1" input
+                ParameterPtr cutoff = node->getParameter(CUTOFF_PARAMETER);
                 if (cutoff)
                 {
-                    InputPtr value2 = node->addInput("value2");
+                    InputPtr value2 = node->addInput(VALUE1_INPUT);
                     value2->copyContentFrom(cutoff);
-                    node->removeChild("cutoff");
+                    node->removeChild(CUTOFF_PARAMETER);
                 }
-                // "intest" input becomes "value1" input
-                InputPtr intest = node->getInput("intest");
+                // "intest" input becomes "value2" input
+                InputPtr intest = node->getInput(INTEST_INPUT);
                 if (intest)
                 {
-                    intest->setName("value1");
+                    intest->setName(VALUE2_INPUT);
                 }
             }
 
             // Change notes with category "tranform[vector|point|normal]",
             // which are not fromspace/tospace variants, to "transformmatrix"
-            else if (nodeCategory == "transformpoint" ||
-                     nodeCategory == "transformvector" ||
-                     nodeCategory == "transformnormal")
+            else if (nodeCategory == TRANSFORMPOINT_NODE ||
+                     nodeCategory == TRANSFORMVECTOR_NODE ||
+                     nodeCategory == TRANSFORMNORMAL_NODE)
             {
-                if (!node->getChild("fromspace") && !node->getChild("tospace"))
+                if (!node->getChild(FROMSPACE_INPUT) && !node->getChild(TOSPACE_INPUT))
                 {
-                    node->setCategory("transformmatrix");
+                    node->setCategory(TRANSFORMMATRIX_NODE);
                 }
             }
 
             // Convert "combine" to "combine2", "combine3" or "combine4"
-            else if (nodeCategory == "combine")
+            else if (nodeCategory == COMBINE_NODE)
             {
-                if (node->getChild("in4"))
+                if (node->getChild(IN4_INPUT))
                 {
-                    node->setCategory("combine4");
+                    node->setCategory(COMBINE_NODE + FOUR_STRING);
                 }
-                else if (node->getChild("in3"))
+                else if (node->getChild(IN3_INPUT))
                 {
-                    node->setCategory("combine3");
+                    node->setCategory(COMBINE_NODE + THREE_STRING);
                 }
                 else
                 {
-                    node->setCategory("combine2");
+                    node->setCategory(COMBINE_NODE + TWO_STRING);
                 }
             }
 
             // Convert "separate" to "separate2", "separate3" or "separate4"
-            else if (nodeCategory == "separate")
+            else if (nodeCategory == SEPARATE_NODE)
             {
-                InputPtr in = node->getInput("in");
+                InputPtr in = node->getInput(IN_INPUT);
                 if (in)
                 {
                     const string& inType = in->getType();
                     if (inType == getTypeString<Vector4>() || inType == getTypeString<Color4>())
                     {
-                        node->setCategory("separate4");
+                        node->setCategory(SEPARATE_NODE + FOUR_STRING);
                     }
                     else if (inType == getTypeString<Vector3>() || inType == getTypeString<Color3>())
                     {
-                        node->setCategory("separate3");
+                        node->setCategory(SEPARATE_NODE + THREE_STRING);
                     }
                     else
                     {
-                        node->setCategory("separate2");
+                        node->setCategory(SEPARATE_NODE + TWO_STRING);
                     }
                 }
             }
@@ -731,7 +748,8 @@ void Document::upgradeVersion()
             // Convert backdrop nodes to backdrop elements
             else if (nodeCategory == BACKDROP_NODE)
             {
-                BackdropPtr backdrop = addBackdrop(node->getName());
+                const string& nodeName = node->getName();
+                BackdropPtr backdrop = addBackdrop(nodeName);
                 for (const ParameterPtr param : node->getParameters())
                 {
                     ValuePtr value = param ? param->getValue() : nullptr;
@@ -747,20 +765,10 @@ void Document::upgradeVersion()
                         }
                     }
                 }
-                removeNode = true;
-            }
-
-            if (removeNode)
-            {
-                nodesToRemove.push_back(node->getName());
+                removeNode(nodeName);
             }
         }
 
-        // Remove deprecated nodes
-        for (const string& nodeName : nodesToRemove)
-        {
-            removeNode(nodeName);
-        }
         // Remove deprecated nodedefs
         removeNodeDef("ND_backdrop");
         removeNodeDef("ND_invert_matrix33");
