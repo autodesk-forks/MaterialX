@@ -58,30 +58,32 @@ class LookGroup : public Element
     /// Get comma separated list of looks
     const string& getLooks() const
     {
-        return getAttribute("looks");
+        return getAttribute(LOOKS_ATTRIBUTE);
     }
 
     /// Set comma separated list of looks
     void setLooks(const string& looks)
     {
-        setAttribute("looks", looks);
+        setAttribute(LOOKS_ATTRIBUTE, looks);
     }
 
     /// Return the active look (if specified).
     const string& getActiveLook() const
     {
-        return getAttribute("active");
+        return getAttribute(ACTIVE_ATTRIBUTE);
     }
 
     /// Set the active look
     void setActiveLook(const string& look)
     {
-        setAttribute("active", look);
+        setAttribute(ACTIVE_ATTRIBUTE, look);
     }
 
 
   public:
     static const string CATEGORY;
+    static const string LOOKS_ATTRIBUTE;
+    static const string ACTIVE_ATTRIBUTE;
 };
 
 /// @class Look
