@@ -18,15 +18,15 @@ Upgrade path test from 1.36 yo 1.37
    <invert name="invert_no_change_float" type="float">
       <input name="in" type="float" value="0.5"/>
    </invert>
-   <invert name="invert_no_change_vec2" type="vector2" xpos="5.75172" ypos="4.74">
+   <invert name="invert_no_change_vec2" type="vector2">
       <input name="in" type="vector2" value="0.5000, 0.5000" />
       <parameter name="amount" type="vector2" value="1.0, 0.5000" />
    </invert>
-   <invert name="invert_no_change_vec3" type="vector3" xpos="5.75172" ypos="4.74">
+   <invert name="invert_no_change_vec3" type="vector3">
       <input name="in" type="vector3" value="0.5000, 0.5000, 0.0" />
       <parameter name="amount" type="vector3" value="1.0, 0.5000, 0.0000" />
    </invert>
-   <invert name="invert_no_change_vec4" type="vector4" xpos="5.75172" ypos="4.74">
+   <invert name="invert_no_change_vec4" type="vector4">
       <input name="in" type="vector4" value="0.5000, 0.5000, 0.0, 1.0" />
       <parameter name="amount" type="vector4" value="1.0, 0.5000, 0.0000, 2.0000" />
    </invert>
@@ -43,43 +43,43 @@ Upgrade path test from 1.36 yo 1.37
    </rotate>
 
    <!-- compare to ifgreater -->
-   <compare name="compare_float" type="float" xpos="5.74483" ypos="4.42">
+   <compare name="compare_float" type="float">
       <input name="intest" type="float" value="0.5000" />
       <parameter name="cutoff" type="float" value="0.6000" />
       <input name="in1" type="float" value="1.0000" />
       <input name="in2" type="float" value="0.0" />
    </compare>
-   <compare name="compare_color2" type="color2" xpos="5.74483" ypos="4.42">
+   <compare name="compare_color2" type="color2">
       <input name="intest" type="float" value="0.5000" />
       <parameter name="cutoff" type="float" value="1.2000" />
       <input name="in1" type="color2" value="1.0000, 1.0" />
       <input name="in2" type="color2" value="0.0, 0.0000" />
    </compare>
-   <compare name="compare_color3" type="color3" xpos="5.74483" ypos="4.42">
+   <compare name="compare_color3" type="color3">
       <input name="intest" type="float" value="0.5000" />
       <parameter name="cutoff" type="float" value="-0.2000" />
       <input name="in1" type="color3" value="1.0000, 1.0000, 1.0000" />
       <input name="in2" type="color3" value="0.0, 0.0, 0.0" />
    </compare>
-   <compare name="compare_color4" type="color4" xpos="5.74483" ypos="4.42">
+   <compare name="compare_color4" type="color4">
       <input name="intest" type="float" value="0.5000" />
       <parameter name="cutoff" type="float" value="0.4000" />
       <input name="in1" type="color4" value="1.0000, 1.0000, 1.0000, 1.0" />
       <input name="in2" type="color4" value="0.0, 0.0, 0.0, 1.0" />
    </compare>
-   <compare name="compare_vector2" type="vector2" xpos="5.74483" ypos="4.42">
+   <compare name="compare_vector2" type="vector2">
       <input name="intest" type="float" value="0.5000" />
       <parameter name="cutoff" type="float" value="1.2000" />
       <input name="in1" type="vector2" value="1.0000, 1.0000" />
       <input name="in2" type="vector2" value="0.0, 0.0" />
    </compare>
-   <compare name="compare_vector3" type="vector3" xpos="5.74483" ypos="4.42">
+   <compare name="compare_vector3" type="vector3">
       <input name="intest" type="float" value="0.5000" />
       <parameter name="cutoff" type="float" value="-0.2000" />
       <input name="in1" type="vector3" value="1.0000, 1.0000, 1.0000" />
       <input name="in2" type="vector3" value="0.0, 0.0, 0.0" />
    </compare>
-   <compare name="compare_vector4" type="vector4" xpos="5.74483" ypos="4.42">
+   <compare name="compare_vector4" type="vector4">
       <input name="intest" type="float" value="0.5000" />
       <parameter name="cutoff" type="float" value="0.4000" />
       <input name="in1" type="vector4" value="1.0000, 1.0000, 1.0000, 1.0" />
@@ -140,16 +140,16 @@ Upgrade path test from 1.36 yo 1.37
    </transformnormal>
    
    <!-- combine to combine2/combine3/combine4-->
-   <combine name="combine2" type="color2" xpos="5.74483" ypos="4.58">
+   <combine name="combine2" type="color2">
       <input name="in1" type="float" value="0.5000" />
       <input name="in2" type="float" value="1.0000" />
    </combine>
-   <combine name="combine3" type="color3" xpos="5.74483" ypos="4.42">
+   <combine name="combine3" type="color3">
       <input name="in1" type="float" value="0.5000" />
       <input name="in2" type="float" value="1.0000" />
       <input name="in3" type="float" value="0.2500" />
    </combine>
-   <combine name="combine4" type="color4" xpos="5.74483" ypos="4.28">
+   <combine name="combine4" type="color4">
       <input name="in1" type="float" value="0.5000" />
       <input name="in2" type="float" value="1.0000" />
       <input name="in3" type="float" value="0.2500" />
