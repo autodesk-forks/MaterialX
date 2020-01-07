@@ -133,28 +133,28 @@ TEST_CASE("Version", "[document]")
     // Check conversion to desired types occurred
     std::unordered_map<std::string, unsigned int> convertSet = 
     {
-        { "invertmatrix", 0}, 
-        { "rotate2d", 0},
-        { "rotate3d", 0},
-        { "transformmatrix", 0},
-        { "ifgreatereq", 0}, 
-        { "separate2", 0}, 
-        { "separate3", 0},
-        { "separate4", 0},
-        { "combine2", 0}, 
-        { "combine3", 0},
-        { "combine4", 0}
+        { "invertmatrix", 2}, 
+        { "rotate2d", 1},
+        { "rotate3d", 1},
+        { "transformmatrix", 8},
+        { "ifgreatereq", 7}, 
+        { "separate2", 1}, 
+        { "separate3", 1},
+        { "separate4", 1},
+        { "combine2", 1}, 
+        { "combine3", 1},
+        { "combine4", 1}
     };
     for (mx::NodePtr node : doc2->getNodes())
     {
         auto convertItem = convertSet.find(node->getCategory());
         if (convertItem != convertSet.end())
         {
-            convertItem->second++;
+            convertItem->second--;
         }
     }
     for (auto convertItem : convertSet)
     {
-        REQUIRE((convertItem.second > 0));
+        REQUIRE((convertItem.second == 0));
     }
 }

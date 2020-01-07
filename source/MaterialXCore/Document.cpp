@@ -694,7 +694,7 @@ void Document::upgradeVersion()
                 }
             }
 
-            // Change notes with category "tranform[vector|point|normal]",
+            // Change nodes with category "tranform[vector|point|normal]",
             // which are not fromspace/tospace variants, to "transformmatrix"
             else if (nodeCategory == TRANSFORMPOINT_NODE ||
                      nodeCategory == TRANSFORMVECTOR_NODE ||
