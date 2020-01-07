@@ -289,53 +289,44 @@ class NodeGraph : public GraphElement
 
 /// @class Backdrop
 /// A layout element used to contain, group and document other nodes.
-class Backdrop : public Element
+class Backdrop : public InterfaceElement
 {
   public:
     Backdrop(ElementPtr parent, const string& name) :
-        Element(parent, CATEGORY, name)
+        InterfaceElement(parent, CATEGORY, name)
     {
     }
     virtual ~Backdrop() { }
 
-    /// Set the comma-separated list of nodes that this backdrop contains.
-    void setContains(const string& contains)
-    {
-        setAttribute(CONTAINS_ATTRIBUTE, contains);
-    }
+    /// Set the text note associated with the backdrop.
+    void setNote(const string& note);
 
-    /// Return the comma-separated list of nodes that this backdrop contains.
-    string getContains() const
-    {
-        return getAttribute(CONTAINS_ATTRIBUTE);
-    }
+    /// Return the text note associated with the backdrop. By default 
+    /// no text is associated.
+    string getNote() const;
+
+    /// Set the list of nodes that the backdrop "contains".
+    void setContains(const string& contains);
+
+    /// Returns a comma-separated list of node names that the
+    /// backdrop "contains".  By default a backdrop contains no nodes.
+    string getContains() const;
 
     /// Set the width of the backdrop when drawn in a UI.
-    void setWidth(float width)
-    {
-        setTypedAttribute<float>(WIDTH_ATTRIBUTE, width);
-    }
+    void setWidth(float width);
 
-    /// Return the width of the backdrop when drawn in a UI.
-    float getWidth() const
-    {
-        return getTypedAttribute<float>(WIDTH_ATTRIBUTE);
-    }
+    /// Get the width of the backdrop when drawn in a UI.
+    float getWidth() const;
 
     /// Set the height of the backdrop when drawn in a UI.
-    void setHeight(float height)
-    {
-        setTypedAttribute<float>(HEIGHT_ATTRIBUTE, height);
-    }
+    void setHeight(float height);
 
-    /// Return the height of the backdrop when drawn in a UI.
-    float getHeight() const
-    {
-        return getTypedAttribute<float>(HEIGHT_ATTRIBUTE);
-    }
+    /// Get the height of the backdrop when drawn in a UI.
+    float getHeight() const;
 
   public:
     static const string CATEGORY;
+    static const string NOTE_ATTRIBUTE;
     static const string CONTAINS_ATTRIBUTE;
     static const string WIDTH_ATTRIBUTE;
     static const string HEIGHT_ATTRIBUTE;
