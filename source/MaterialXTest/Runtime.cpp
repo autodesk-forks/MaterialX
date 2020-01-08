@@ -654,6 +654,48 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
     }
 }
 
+TEST_CASE("Runtime: FileIo NodeGraph", "[runtime]")
+{
+    mx::FileSearchPath searchPath;
+    searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+ 
+    // Load in stdlib to a stage.
+    mx::RtStage libStage = mx::RtStage::createNew("libs");
+    mx::RtFileIo libFileIo(libStage.getObject());
+    libFileIo.readLibraries({ "stdlib" }, searchPath);
+
+    // Create a main stage referencing the libs stage.
+    mx::RtStage mainStage = mx::RtStage::createNew("main");
+    mainStage.addReference(libStage.getObject());
+
+    // Create a nodegraph.
+    mx::RtNodeGraph graph = mx::RtNodeGraph::createNew(mainStage.getObject(), "testgraph");
+    graph.addPort("in", mx::RtType::FLOAT);
+    graph.addPort("out", mx::RtType::FLOAT, mx::RtPortFlag::OUTPUT);
+    mx::RtPort graphIn = graph.findPort("in");
+    mx::RtPort graphOut = graph.findPort("out");
+    mx::RtPort graphInSocket = graph.findInputSocket("in");
+    mx::RtPort graphOutSocket = graph.findOutputSocket("out");
+    REQUIRE(graphIn);
+    REQUIRE(graphOut);
+    REQUIRE(graphInSocket);
+    REQUIRE(graphOutSocket);
+
+    mx::RtNodeDef addNodeDef = mainStage.findElementByName("ND_add_float");
+    mx::RtNode add1 = mx::RtNode::createNew(graph.getObject(), addNodeDef.getObject());
+    mx::RtNode add2 = mx::RtNode::createNew(graph.getObject(), addNodeDef.getObject());
+    mx::RtNode::connect(graphInSocket, add1.findPort("in1"));
+    mx::RtNode::connect(add1.findPort("out"), add2.findPort("in1"));
+    mx::RtNode::connect(add2.findPort("out"), graphOutSocket);
+
+    // Create a node on root level and connect it downstream after the graph.
+    mx::RtNode add3 = mx::RtNode::createNew(mainStage.getObject(), addNodeDef.getObject());
+    mx::RtNode::connect(graphOut, add3.findPort("in1"));
+
+    mx::RtFileIo fileIo(mainStage.getObject());
+    fileIo.write(graph.getName().str() + "_export.mtlx");
+}
+
 TEST_CASE("Runtime: Rename", "[runtime]")
 {
     // Load in stdlib as a referenced stage ("libs").

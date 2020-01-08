@@ -481,7 +481,7 @@ namespace
                             PvtNode* sourceNode = sourcePort.data()->asA<PvtNode>();
                             InputPtr inputElem = valueElem->asA<Input>();
                             inputElem->setNodeName(sourceNode->getName());
-                            if (sourceNode->numOutputs() > 1)
+                            if (sourceNode->numOutputs() > 1 || sourceNode->hasApi(RtApiType::NODEGRAPH))
                             {
                                 inputElem->setOutputString(sourcePort.getName());
                             }
@@ -504,10 +504,16 @@ namespace
                 }
             }
         }
-        for (size_t i = 0; i < nodedef->numOutputs(); ++i)
+
+        // Write outputs.
+        // TODO: Decide if ALL outputs should be written explicitly for nodes (same as for nodegraphs).
+        if (nodedef->numOutputs() > 1)
         {
-            const PvtPortDef* output = nodedef->getOutput(i);
-            OutputPtr destOutput = destNode->addOutput(output->getName(), output->getType().str());
+            for (size_t i = 0; i < nodedef->numOutputs(); ++i)
+            {
+                const PvtPortDef* output = nodedef->getOutput(i);
+                OutputPtr destOutput = destNode->addOutput(output->getName(), output->getType().str());
+            }
         }
 
         writeAttributes(node, destNode);
@@ -518,9 +524,35 @@ namespace
         NodeGraphPtr destNodeGraph = dest->addNodeGraph(nodegraph->getName());
         writeAttributes(nodegraph, destNodeGraph);
 
+        // Write nodes.
         for (auto node : nodegraph->getChildren())
         {
             writeNode(node->asA<PvtNode>(), destNodeGraph);
+        }
+
+        // Write outputs.
+        for (size_t i=0; i<nodegraph->numOutputs(); ++i)
+        {
+            const RtPort nodegraphOutput = nodegraph->getOutputSocket(i);
+            OutputPtr output = destNodeGraph->addOutput(nodegraphOutput.getName(), nodegraphOutput.getType().str());
+
+            if (nodegraphOutput.isConnected())
+            {
+                const RtPort sourcePort = nodegraphOutput.getSourcePort();
+                if (sourcePort.isSocket())
+                {
+                    output->setInterfaceName(sourcePort.getName());
+                }
+                else
+                {
+                    const PvtNode* sourceNode = sourcePort.data()->asA<PvtNode>();
+                    output->setNodeName(sourceNode->getName());
+                    if (sourceNode->numOutputs() > 1)
+                    {
+                        output->setOutputString(sourcePort.getName());
+                    }
+                }
+            }
         }
     }
 
