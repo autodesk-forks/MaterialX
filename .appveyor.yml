@@ -21,7 +21,7 @@ environment:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       GENERATOR: Visual Studio 15 2017
       ARCH: x64
-      PYTHON: C:\Python36
+      PYTHON: C:\Python36-x64
       GENERATOR_NAME: vs2017
 
 configuration:
