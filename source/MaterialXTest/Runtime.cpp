@@ -684,10 +684,11 @@ TEST_CASE("Runtime: FileIo NodeGraph", "[runtime]")
     mx::RtNodeDef addNodeDef = mainStage.findElementByName("ND_add_float");
     mx::RtNode add1 = mx::RtNode::createNew(graph.getObject(), addNodeDef.getObject());
     mx::RtNode add2 = mx::RtNode::createNew(graph.getObject(), addNodeDef.getObject());
-    mx::RtNode add3 = mx::RtNode::createNew(graph.getObject(), addNodeDef.getObject());
     mx::RtNode::connect(graphInSocket, add1.findPort("in1"));
     mx::RtNode::connect(add1.findPort("out"), add2.findPort("in1"));
     mx::RtNode::connect(add2.findPort("out"), graphOutSocket);
+    // Add an unconnected node.
+    mx::RtNode::createNew(graph.getObject(), addNodeDef.getObject());
 
     // Create a node on root level and connect it downstream after the graph.
     mx::RtNode add4 = mx::RtNode::createNew(mainStage.getObject(), addNodeDef.getObject());
