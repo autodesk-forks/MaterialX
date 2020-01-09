@@ -33,6 +33,46 @@ namespace
     static const RtTokenSet nodegraphAttrs  = { "name", "nodedef" };
     static const RtTokenSet unknownAttrs    = { "name" };
 
+    PvtNode* findNodeOrThrow(const RtToken& name, PvtElement* parent)
+    {
+        PvtDataHandle nodeH = parent->findChildByName(name);
+        if (!nodeH)
+        {
+            throw ExceptionRuntimeError("Node '" + name.str() + "' is not a child of '" + parent->getName().str() + "'");
+        }
+        return nodeH->asA<PvtNode>();
+    }
+
+    RtPort findPortOrThrow(const RtToken& name, PvtNode* node)
+    {
+        RtPort port = node->findPort(name);
+        if (!port)
+        {
+            throw ExceptionRuntimeError("Node '" + node->getName().str() + "' has no port named '" + name.str() + "'");
+        }
+        return port;
+    }
+
+    void createNodeConnections(const vector<NodePtr>& nodeElements, PvtElement* parent)
+    {
+        for (const NodePtr& nodeElem : nodeElements)
+        {
+            PvtNode* node = findNodeOrThrow(RtToken(nodeElem->getName()), parent);
+            for (const InputPtr& elemInput : nodeElem->getInputs())
+            {
+                RtPort input = findPortOrThrow(RtToken(elemInput->getName()), node);
+                const string& connectedNodeName = elemInput->getNodeName();
+                if (!connectedNodeName.empty())
+                {
+                    PvtNode* connectedNode = findNodeOrThrow(RtToken(connectedNodeName), parent);
+                    const RtToken outputName(elemInput->getOutputString());
+                    RtPort output = findPortOrThrow(outputName != EMPTY_TOKEN ? outputName : PvtPortDef::DEFAULT_OUTPUT_NAME, connectedNode);
+                    RtNode::connect(output, input);
+                }
+            }
+        }
+    }
+
     void readCustomAttributes(const ElementPtr src, PvtElement* dest, const RtTokenSet& knownAttrs)
     {
         // Read in all custom attributes so we can export the element again
@@ -322,51 +362,20 @@ namespace
             }
         }
 
-        // Create all connections.
-        std::set<Edge> processedEdges;
-        std::set<Element*> processedInterfaces;
-        for (auto elem : src->getOutputs())
+        // Create connections between all nodes.
+        createNodeConnections(src->getNodes(), nodegraph);
+
+        // Create connections between nodes and the graph outputs.
+        for (const OutputPtr& elem : src->getOutputs())
         {
-            for (Edge edge : elem->traverseGraph())
+            const string& connectedNodeName = elem->getNodeName();
+            if (!connectedNodeName.empty())
             {
-                if (processedEdges.count(edge))
-                {
-                    continue;
-                }
-
-                ElementPtr downstreamElem = edge.getDownstreamElement();
-                ElementPtr connectingElem = edge.getConnectingElement();
-                ElementPtr upstreamElem = edge.getUpstreamElement();
-
-                if (upstreamElem->isA<Node>() && !processedInterfaces.count(upstreamElem.get()))
-                {
-                    const RtToken upstreamNodeName(upstreamElem->getName());
-                    PvtNode* upstreamNode = nodegraph->findNode(upstreamNodeName);
-
-                    if (downstreamElem->isA<Output>())
-                    {
-                        RtPort output = upstreamNode->getPort(0); // TODO: Fixme!
-                        // Single outputs can have arbitrary names,
-                        // so access by index in that case.
-                        RtPort outputSocket = nodegraph->numOutputs() == 1 ?
-                            nodegraph->getOutputSocket(0) :
-                            nodegraph->findOutputSocket(RtToken(downstreamElem->getName()));
-                        PvtNode::connect(output, outputSocket);
-                    }
-                    else
-                    {
-                        const RtToken downstreamNodeName(downstreamElem->getName());
-                        const RtToken downstreamInputName(connectingElem->getName());
-                        PvtNode* downstreamNode = nodegraph->findNode(downstreamNodeName);
-                        RtPort input = downstreamNode->findPort(downstreamInputName);
-                        RtPort output = upstreamNode->getPort(0); // TODO: Fixme!
-                        PvtNode::connect(output, input);
-                    }
-
-                    processedInterfaces.insert(upstreamElem.get());
-                }
-
-                processedEdges.insert(edge);
+                RtPort outputSocket = nodegraph->findOutputSocket(RtToken(elem->getName()));
+                PvtNode* connectedNode = findNodeOrThrow(RtToken(connectedNodeName), nodegraph);
+                const RtToken outputName(elem->getOutputString());
+                RtPort output = findPortOrThrow(outputName != EMPTY_TOKEN ? outputName : PvtPortDef::DEFAULT_OUTPUT_NAME, connectedNode);
+                RtNode::connect(output, outputSocket);
             }
         }
 
@@ -448,43 +457,8 @@ namespace
             }
         }
 
-        // Helper functions for finding nodes and ports
-        auto findNode = [](const RtToken& name, const PvtStage* stage)
-        { 
-            PvtDataHandle nodeH = stage->findChildByName(name);
-            if (!nodeH)
-            {
-                throw ExceptionRuntimeError("Node '" + name.str() + "' has not been loaded in the stage");
-            }
-            return nodeH->asA<PvtNode>();
-        };
-        auto findPort = [](const RtToken& name, PvtNode* node)
-        {
-            RtPort port = node->findPort(name);
-            if (!port)
-            {
-                throw ExceptionRuntimeError("Node '" + node->getName().str() + "' has not port named '" + name.str() + "'");
-            }
-            return port;
-        };
-
-        // Create connections for all root level nodes.
-        for (const NodePtr& elem : doc->getNodes())
-        {
-            PvtNode* node = findNode(RtToken(elem->getName()), stage);
-            for (const InputPtr& elemInput : elem->getInputs())
-            {
-                RtPort input = findPort(RtToken(elemInput->getName()), node);
-                const string& connectedNodeName = elemInput->getNodeName();
-                if (!connectedNodeName.empty())
-                {
-                    PvtNode* connectedNode = findNode(RtToken(connectedNodeName), stage);
-                    const RtToken outputName(elemInput->getOutputString());
-                    RtPort output = findPort(outputName != EMPTY_TOKEN ? outputName : RtToken("out"), connectedNode);
-                    RtNode::connect(output, input);
-                }
-            }
-        }
+        // Create connections between all root level nodes.
+        createNodeConnections(doc->getNodes(), stage);
     }
 
     void writeNodeDef(const PvtNodeDef* nodedef, DocumentPtr dest)
