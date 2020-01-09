@@ -571,8 +571,7 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
         // Move the image node into the graph.
         stageGraph.addNode(image1);
 
-        // Write the full stage to a new document
-        // and save it to file for inspection.
+        // Save the stage to file for inspection.
         stageIo.write(stage.getName().str() + "_export.mtlx", nullptr);
 
         // Write out the node using a given node definition
@@ -681,19 +680,36 @@ TEST_CASE("Runtime: FileIo NodeGraph", "[runtime]")
     REQUIRE(graphInSocket);
     REQUIRE(graphOutSocket);
 
+    // Add nodes to the graph.
     mx::RtNodeDef addNodeDef = mainStage.findElementByName("ND_add_float");
     mx::RtNode add1 = mx::RtNode::createNew(graph.getObject(), addNodeDef.getObject());
     mx::RtNode add2 = mx::RtNode::createNew(graph.getObject(), addNodeDef.getObject());
+    mx::RtNode add3 = mx::RtNode::createNew(graph.getObject(), addNodeDef.getObject());
     mx::RtNode::connect(graphInSocket, add1.findPort("in1"));
     mx::RtNode::connect(add1.findPort("out"), add2.findPort("in1"));
     mx::RtNode::connect(add2.findPort("out"), graphOutSocket);
 
     // Create a node on root level and connect it downstream after the graph.
-    mx::RtNode add3 = mx::RtNode::createNew(mainStage.getObject(), addNodeDef.getObject());
-    mx::RtNode::connect(graphOut, add3.findPort("in1"));
+    mx::RtNode add4 = mx::RtNode::createNew(mainStage.getObject(), addNodeDef.getObject());
+    mx::RtNode::connect(graphOut, add4.findPort("in1"));
 
+    mx::RtWriteOptions options;
+    options.writeIncludes = false;
+
+    // Save the stage to file for inspection.
+    const mx::FilePath filename = graph.getName().str() + "_export.mtlx";
     mx::RtFileIo fileIo(mainStage.getObject());
-    fileIo.write(graph.getName().str() + "_export.mtlx");
+    fileIo.write(filename, &options);
+
+    // Read the saved file to another stage.
+    mx::RtStage anotherStage = mx::RtStage::createNew("another");
+    anotherStage.addReference(libStage.getObject());
+    fileIo.setObject(anotherStage.getObject());
+    fileIo.read(filename, searchPath);
+
+    // Save the re-read stage to file for inspection.
+    const mx::FilePath filename2 = graph.getName().str() + "_another_export.mtlx";
+    fileIo.write(filename2, &options);
 }
 
 TEST_CASE("Runtime: Rename", "[runtime]")
