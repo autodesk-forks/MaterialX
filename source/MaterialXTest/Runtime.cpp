@@ -711,6 +711,12 @@ TEST_CASE("Runtime: FileIo NodeGraph", "[runtime]")
     // Save the re-read stage to file for inspection.
     const mx::FilePath filename2 = graph.getName().str() + "_another_export.mtlx";
     fileIo.write(filename2, &options);
+
+    std::ifstream file1(filename.asString());
+    std::string str1((std::istreambuf_iterator<char>(file1)), std::istreambuf_iterator<char>());
+    std::ifstream file2(filename2.asString());
+    std::string str2((std::istreambuf_iterator<char>(file2)), std::istreambuf_iterator<char>());
+    REQUIRE(str1 == str2);
 }
 
 TEST_CASE("Runtime: Rename", "[runtime]")
