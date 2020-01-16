@@ -592,9 +592,9 @@ namespace
         writeAttributes(node, destNode);
 
         // If we've got a surface shader at the top-level produce an equivalent material element from it
-        if (type == SURFACE_SHADER_TYPE_STRING && dest->isA<Document>())
+        if (type == SURFACE_SHADER_TYPE_STRING && dest->template isA<Document>())
         {
-            DocumentPtr doc = dest->asA<Document>();
+            DocumentPtr doc = dest->template asA<Document>();
             MaterialPtr material =
                 doc->addMaterial(destNode->getName() + "_Material");
             ShaderRefPtr shaderRef = material->addShaderRef(
