@@ -611,7 +611,7 @@ namespace
                         bindInput->setOutputString(input->getOutputString());
                     }
                 }
-		else
+                else
                 {
                     bindInput->setValueString(input->getValueString());
                 }
