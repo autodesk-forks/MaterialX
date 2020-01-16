@@ -590,6 +590,32 @@ namespace
         }
 
         writeAttributes(node, destNode);
+
+        // If we've got a surface shader at the top-level produce an equivalent material element from it
+        if (type == SURFACE_SHADER_TYPE_STRING && dest->isA<Document>()) {
+            DocumentPtr doc = dest->asA<Document>();
+            MaterialPtr material =
+                doc->addMaterial(destNode->getName() + "_Material");
+            ShaderRefPtr shaderRef = material->addShaderRef(
+                "sref", nodedef->getNodeName().str());
+            for (InputPtr input : destNode->getActiveInputs()) {
+                BindInputPtr bindInput =
+                    shaderRef->addBindInput(input->getName(), input->getType());
+                if (input->hasNodeName()) {
+                    if (input->hasOutputString()) {
+                        bindInput->setNodeGraphString(input->getNodeName());
+                        bindInput->setOutputString(input->getOutputString());
+                    }
+                } else {
+                    bindInput->setValueString(input->getValueString());
+                }
+            }
+            for (ParameterPtr param : destNode->getActiveParameters()) {
+                BindParamPtr bindParam =
+                    shaderRef->addBindParam(param->getName(), param->getType());
+                bindParam->setValueString(param->getValueString());
+            }
+        }
     }
 
     void writeNodeGraph(const PvtNodeGraph* nodegraph, DocumentPtr dest)
