@@ -53,7 +53,8 @@ class RtWriteOptions
   public:
      RtWriteOptions() :
           writeIncludes(true),
-          writeFilter(nullptr)
+          writeFilter(nullptr),
+          materialElementType(NONE)
     {
     }
     ~RtWriteOptions() { }
@@ -65,6 +66,37 @@ class RtWriteOptions
     /// Filter function type used for filtering objects during write.
     /// If the filter returns false the object will not be written.
     WriteFilter writeFilter;
+
+    /// Enum that specifies how to generate material elements.
+    ///
+    /// NONE: don't generate material elements
+    ///
+    /// WRITE: generate material elements from surface shaders
+    ///
+    /// DELETE: delete source surface shaders (must be used with
+    /// WRITE)
+    ///
+    /// LOOK: generate a look for the material element (must be
+    /// used with WRITE)
+    ///
+    /// WRITE_DELETE: generate material elements from surface
+    /// shaders and delete the surface shaders
+    ///
+    /// WRITE_LOOKS: generate material elements for surface shaders
+    /// and write out looks
+    ///
+    /// WRITE_LOOKS_DELETE: generate material elements from
+    /// surface shaders, delete the surface shaders and write out
+    /// looks
+    enum MaterialElementType{ NONE               = 0,
+                              WRITE              = 1 << 0,
+                              DELETE             = 1 << 1,
+                              LOOK               = 1 << 2,
+                              WRITE_DELETE       = WRITE | DELETE,
+                              WRITE_LOOKS        = WRITE | LOOK,
+                              WRITE_LOOKS_DELETE = WRITE | LOOK | DELETE };
+
+    MaterialElementType materialElementType;
 };
 
 /// API for read and write of data from MaterialXCore documents

@@ -506,7 +506,7 @@ namespace
     }
 
     template<typename T>
-    void writeNode(const PvtNode* node, T dest)
+    NodePtr writeNode(const PvtNode* node, T dest)
     {
         const PvtNodeDef* nodedef = node->getNodeDef()->asA<PvtNodeDef>();
 
@@ -591,18 +591,31 @@ namespace
 
         writeAttributes(node, destNode);
 
-        // If we've got a surface shader at the top-level produce an equivalent material element from it
-        if (type == SURFACE_SHADER_TYPE_STRING && dest->template isA<Document>())
+        return destNode;
+    }
+
+    void writeMaterialElements(const PvtNode* node, NodePtr mxNode, DocumentPtr doc, const RtWriteOptions* writeOptions)
+    {
+        if (!writeOptions || writeOptions->materialElementType == RtWriteOptions::MaterialElementType::NONE ||
+            !(writeOptions->materialElementType & RtWriteOptions::MaterialElementType::WRITE))
         {
-            DocumentPtr doc = dest->template asA<Document>();
-            MaterialPtr material =
-                doc->addMaterial(destNode->getName() + "_Material");
-            ShaderRefPtr shaderRef = material->addShaderRef(
-                "sref", nodedef->getNodeName().str());
-            for (InputPtr input : destNode->getActiveInputs())
+            return;
+        }
+
+        const PvtNodeDef* nodedef = node->getNodeDef()->asA<PvtNodeDef>();
+        const string type = nodedef->numOutputs() == 1
+                            ? nodedef->getPort(0)->getType().str()
+                            : "multioutput";
+
+        // If we've got a surface shader produce an equivalent material element from
+        // it
+        if (type == SURFACE_SHADER_TYPE_STRING)
+        {
+            MaterialPtr material = doc->addMaterial(mxNode->getName() + "_Material");
+            ShaderRefPtr shaderRef = material->addShaderRef("sref", nodedef->getNodeName().str());
+            for (InputPtr input : mxNode->getActiveInputs())
             {
-                BindInputPtr bindInput =
-                    shaderRef->addBindInput(input->getName(), input->getType());
+                BindInputPtr bindInput = shaderRef->addBindInput(input->getName(), input->getType());
                 if (input->hasNodeName())
                 {
                     if (input->hasOutputString())
@@ -616,11 +629,25 @@ namespace
                     bindInput->setValueString(input->getValueString());
                 }
             }
-            for (ParameterPtr param : destNode->getActiveParameters())
+            for (ParameterPtr param : mxNode->getActiveParameters())
             {
-                BindParamPtr bindParam =
-                    shaderRef->addBindParam(param->getName(), param->getType());
+                BindParamPtr bindParam = shaderRef->addBindParam(param->getName(), param->getType());
                 bindParam->setValueString(param->getValueString());
+            }
+            // Should we delete the surface shader?
+            if (writeOptions->materialElementType & RtWriteOptions::MaterialElementType::DELETE)
+            {
+                doc->removeChild(node->getName());
+            }
+            // Should we create a look for the material element?
+            if (writeOptions->materialElementType & RtWriteOptions::MaterialElementType::LOOK)
+            {
+                LookPtr look = doc->addLook();
+                MaterialAssignPtr materialAssign = look->addMaterialAssign();
+                materialAssign->setMaterial(material->getName());
+                CollectionPtr collection = doc->addCollection();
+                collection->setIncludeGeom("*");
+                materialAssign->setCollection(collection);
             }
         }
     }
@@ -716,7 +743,8 @@ namespace
                 }
                 else if (elem->getObjType() == RtObjType::NODE)
                 {
-                    writeNode(elem->asA<PvtNode>(), doc);
+                    NodePtr node = writeNode(elem->asA<PvtNode>(), doc);
+                    writeMaterialElements(elem->asA<PvtNode>(), node, doc, writeOptions);
                 }
                 else if (elem->getObjType() == RtObjType::NODEGRAPH)
                 {
