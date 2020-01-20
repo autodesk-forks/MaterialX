@@ -54,7 +54,7 @@ class RtWriteOptions
      RtWriteOptions() :
           writeIncludes(true),
           writeFilter(nullptr),
-          materialElementType(NONE)
+          materialWriteOp(NONE)
     {
     }
     ~RtWriteOptions() { }
@@ -88,15 +88,17 @@ class RtWriteOptions
     /// WRITE_LOOKS_DELETE: generate material elements from
     /// surface shaders, delete the surface shaders and write out
     /// looks
-    enum MaterialElementType{ NONE               = 0,
-                              WRITE              = 1 << 0,
-                              DELETE             = 1 << 1,
-                              LOOK               = 1 << 2,
-                              WRITE_DELETE       = WRITE | DELETE,
-                              WRITE_LOOKS        = WRITE | LOOK,
-                              WRITE_LOOKS_DELETE = WRITE | LOOK | DELETE };
+    ///
+    /// TODO: Look into removing this once Material nodes are supported
+    enum MaterialWriteOp{ NONE               = 0,
+                          WRITE              = 1 << 0,
+                          DELETE             = 1 << 1,
+                          LOOK               = 1 << 2,
+                          WRITE_DELETE       = WRITE | DELETE,
+                          WRITE_LOOKS        = WRITE | LOOK,
+                          WRITE_LOOKS_DELETE = WRITE | LOOK | DELETE };
 
-    MaterialElementType materialElementType;
+    MaterialWriteOp materialWriteOp;
 };
 
 /// API for read and write of data from MaterialXCore documents

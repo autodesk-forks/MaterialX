@@ -594,61 +594,45 @@ namespace
         return destNode;
     }
 
-    void writeMaterialElements(const PvtNode* node, NodePtr mxNode, DocumentPtr doc, const RtWriteOptions* writeOptions)
+    void writeMaterialElements(const PvtNode* node, NodePtr mxNode, const string& nodeName, DocumentPtr doc, const RtWriteOptions* writeOptions)
     {
-        if (!writeOptions || writeOptions->materialElementType == RtWriteOptions::MaterialElementType::NONE ||
-            !(writeOptions->materialElementType & RtWriteOptions::MaterialElementType::WRITE))
+        MaterialPtr material = doc->addMaterial(mxNode->getName() + "_Material");
+        ShaderRefPtr shaderRef = material->addShaderRef("sref", nodeName);
+        for (InputPtr input : mxNode->getActiveInputs())
         {
-            return;
+            BindInputPtr bindInput = shaderRef->addBindInput(input->getName(), input->getType());
+            if (input->hasNodeName())
+            {
+                if (input->hasOutputString())
+                {
+                    bindInput->setNodeGraphString(input->getNodeName());
+                    bindInput->setOutputString(input->getOutputString());
+                }
+            }
+            else
+            {
+                bindInput->setValueString(input->getValueString());
+            }
         }
-
-        const PvtNodeDef* nodedef = node->getNodeDef()->asA<PvtNodeDef>();
-        const string type = nodedef->numOutputs() == 1
-                            ? nodedef->getPort(0)->getType().str()
-                            : "multioutput";
-
-        // If we've got a surface shader produce an equivalent material element from
-        // it
-        if (type == SURFACE_SHADER_TYPE_STRING)
+        for (ParameterPtr param : mxNode->getActiveParameters())
         {
-            MaterialPtr material = doc->addMaterial(mxNode->getName() + "_Material");
-            ShaderRefPtr shaderRef = material->addShaderRef("sref", nodedef->getNodeName().str());
-            for (InputPtr input : mxNode->getActiveInputs())
-            {
-                BindInputPtr bindInput = shaderRef->addBindInput(input->getName(), input->getType());
-                if (input->hasNodeName())
-                {
-                    if (input->hasOutputString())
-                    {
-                        bindInput->setNodeGraphString(input->getNodeName());
-                        bindInput->setOutputString(input->getOutputString());
-                    }
-                }
-                else
-                {
-                    bindInput->setValueString(input->getValueString());
-                }
-            }
-            for (ParameterPtr param : mxNode->getActiveParameters())
-            {
-                BindParamPtr bindParam = shaderRef->addBindParam(param->getName(), param->getType());
-                bindParam->setValueString(param->getValueString());
-            }
-            // Should we delete the surface shader?
-            if (writeOptions->materialElementType & RtWriteOptions::MaterialElementType::DELETE)
-            {
-                doc->removeChild(node->getName());
-            }
-            // Should we create a look for the material element?
-            if (writeOptions->materialElementType & RtWriteOptions::MaterialElementType::LOOK)
-            {
-                LookPtr look = doc->addLook();
-                MaterialAssignPtr materialAssign = look->addMaterialAssign();
-                materialAssign->setMaterial(material->getName());
-                CollectionPtr collection = doc->addCollection();
-                collection->setIncludeGeom("*");
-                materialAssign->setCollection(collection);
-            }
+            BindParamPtr bindParam = shaderRef->addBindParam(param->getName(), param->getType());
+            bindParam->setValueString(param->getValueString());
+        }
+        // Should we delete the surface shader?
+        if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::DELETE)
+        {
+            doc->removeChild(node->getName());
+        }
+        // Should we create a look for the material element?
+        if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::LOOK)
+        {
+            LookPtr look = doc->addLook();
+            MaterialAssignPtr materialAssign = look->addMaterialAssign();
+            materialAssign->setMaterial(material->getName());
+            CollectionPtr collection = doc->addCollection();
+            collection->setIncludeGeom("*");
+            materialAssign->setCollection(collection);
         }
     }
 
@@ -743,8 +727,15 @@ namespace
                 }
                 else if (elem->getObjType() == RtObjType::NODE)
                 {
-                    NodePtr node = writeNode(elem->asA<PvtNode>(), doc);
-                    writeMaterialElements(elem->asA<PvtNode>(), node, doc, writeOptions);
+                    PvtNode* node = elem->asA<PvtNode>();
+                    NodePtr mxNode = writeNode(node, doc);
+                    const PvtNodeDef* nodedef = node->getNodeDef()->asA<PvtNodeDef>();
+                    if (writeOptions && writeOptions->materialWriteOp != RtWriteOptions::MaterialWriteOp::NONE &&
+                        writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE &&
+                        nodedef->numOutputs() == 1 && nodedef->getPort(0)->getType() == RtType::SURFACESHADER)
+                    {
+                        writeMaterialElements(node, mxNode, nodedef->getNodeName().str(), doc, writeOptions);
+                    }
                 }
                 else if (elem->getObjType() == RtObjType::NODEGRAPH)
                 {
