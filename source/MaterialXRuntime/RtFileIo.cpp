@@ -631,7 +631,7 @@ namespace
             MaterialAssignPtr materialAssign = look->addMaterialAssign();
             materialAssign->setMaterial(material->getName());
             CollectionPtr collection = doc->addCollection();
-            collection->setIncludeGeom("*");
+            collection->setIncludeGeom("/*");
             materialAssign->setCollection(collection);
         }
     }
@@ -730,8 +730,7 @@ namespace
                     PvtNode* node = elem->asA<PvtNode>();
                     NodePtr mxNode = writeNode(node, doc);
                     const PvtNodeDef* nodedef = node->getNodeDef()->asA<PvtNodeDef>();
-                    if (writeOptions && writeOptions->materialWriteOp != RtWriteOptions::MaterialWriteOp::NONE &&
-                        writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE &&
+                    if (writeOptions && writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE &&
                         nodedef->numOutputs() == 1 && nodedef->getPort(0)->getType() == RtType::SURFACESHADER)
                     {
                         writeMaterialElements(node, mxNode, nodedef->getNodeName().str(), doc, writeOptions);
