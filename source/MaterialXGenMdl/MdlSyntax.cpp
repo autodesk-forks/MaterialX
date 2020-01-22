@@ -23,16 +23,11 @@ class MdlArrayTypeSyntax : public ScalarTypeSyntax
         ScalarTypeSyntax(name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
     {}
 
-    string getValue(const Value& value, bool uniform) const override
+    string getValue(const Value& value, bool /*uniform*/) const override
     {
         if (!isEmpty(value))
         {
-            return "{" + value.getValueString() + "}";
-        }
-        // OSL disallows arrays without initialization when specified as input uniform
-        else if (uniform)
-        {
-            throw ExceptionShaderGenError("Uniform array cannot initialize to a empty value.");
+            return getName() + "[](" + value.getValueString() + ")";
         }
         return EMPTY_STRING;
     }
@@ -44,12 +39,12 @@ class MdlArrayTypeSyntax : public ScalarTypeSyntax
             throw ExceptionShaderGenError("No values given to construct an array value");
         }
 
-        string result = "{" + values[0];
+        string result = getName() + "[](" + values[0];
         for (size_t i = 1; i<values.size(); ++i)
         {
             result += ", " + values[i];
         }
-        result += "}";
+        result += ")";
 
         return result;
     }
@@ -68,7 +63,7 @@ class MdlFloatArrayTypeSyntax : public MdlArrayTypeSyntax
   protected:
     bool isEmpty(const Value& value) const override
     {
-        vector<float> valueArray = value.asA<vector<float>>();
+        const vector<float>& valueArray = value.asA<vector<float>>();
         return valueArray.empty();
     }
 };
@@ -83,159 +78,19 @@ class MdlIntegerArrayTypeSyntax : public MdlArrayTypeSyntax
   protected:
     bool isEmpty(const Value& value) const override
     {
-        vector<int> valueArray = value.asA<vector<int>>();
+        const vector<int>& valueArray = value.asA<vector<int>>();
         return valueArray.empty();
-    }
-};
-
-// In OSL vector2, vector4, color2 and color4 are custom struct types and require a different
-// value syntax for uniforms. So override the aggregate type syntax to support this.
-class MdlStructTypeSyntax : public AggregateTypeSyntax
-{
-  public:
-    MdlStructTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
-                        const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
-                        const StringVec& members = EMPTY_MEMBERS) :
-        AggregateTypeSyntax(name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
-    {}
-
-    string getValue(const Value& value, bool uniform) const override
-    {
-        if (uniform)
-        {
-            return "{" + value.getValueString() + "}";
-        }
-        else
-        {
-            return getName() + "(" + value.getValueString() + ")";
-        }
-    }
-
-    string getValue(const StringVec& values, bool uniform) const override
-    {
-        if (values.empty())
-        {
-            throw ExceptionShaderGenError("No values given to construct a value");
-        }
-
-        string result = uniform ? "{" : getName() + "(" + values[0];
-        for (size_t i = 1; i<values.size(); ++i)
-        {
-            result += ", " + values[i];
-        }
-        result += uniform ? "}" : ")";
-
-        return result;
-    }
-};
-
-// For the color4 type we need even more specialization since it's a struct of a struct:
-//
-// struct color4 {
-//    color rgb;
-//    float a;
-// }
-//
-class MdlColor4TypeSyntax : public MdlStructTypeSyntax
-{
-  public:
-    MdlColor4TypeSyntax() :
-        MdlStructTypeSyntax("color4", "color4(color(0.0), 0.0)", "{color(0.0), 0.0}", EMPTY_STRING, EMPTY_STRING, MdlSyntax::COLOR4_MEMBERS)
-    {}
-
-    string getValue(const Value& value, bool uniform) const override
-    {
-        StringStream ss;
-
-        // Set float format and precision for the stream
-        const Value::FloatFormat fmt = Value::getFloatFormat();
-        ss.setf(std::ios_base::fmtflags(
-            (fmt == Value::FloatFormatFixed ? std::ios_base::fixed :
-            (fmt == Value::FloatFormatScientific ? std::ios_base::scientific : 0))),
-            std::ios_base::floatfield);
-        ss.precision(Value::getFloatPrecision());
-
-        const Color4 c = value.asA<Color4>();
-
-        if (uniform)
-        {
-            ss << "{color(" << c[0] << ", " << c[1] << ", " << c[2] << "), " << c[3] << "}";
-        }
-        else
-        {
-            ss << "color4(color(" << c[0] << ", " << c[1] << ", " << c[2] << "), " << c[3] << ")";
-        }
-
-        return ss.str();
-    }
-
-    string getValue(const StringVec& values, bool uniform) const override
-    {
-        if (values.size() < 4)
-        {
-            throw ExceptionShaderGenError("Too few values given to construct a color4 value");
-        }
-
-        if (uniform)
-        {
-            return "{color(" + values[0] + ", " + values[1] + ", " + values[2] + "), " + values[3] + "}";
-        }
-        else
-        {
-            return "color4(color(" + values[0] + ", " + values[1] + ", " + values[2] + "), " + values[3] + ")";
-        }
-    }
-};
-
-class MdlMatrix3TypeSyntax : public AggregateTypeSyntax
-{
-  public:
-      MdlMatrix3TypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
-                         const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
-                         const StringVec& members = EMPTY_MEMBERS) :
-        AggregateTypeSyntax(name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
-    {}
-
-    string getValue(const Value& value, bool uniform) const
-    {
-        ScopedFloatFormatting fmt(Value::FloatFormatFixed, 3);
-        StringVec values = splitString(value.getValueString(), ",");
-        return getValue(values, uniform);
-    }
-
-    string getValue(const StringVec& values, bool /*uniform*/) const
-    {
-        if (values.empty())
-        {
-            throw ExceptionShaderGenError("No values given to construct a value");
-        }
-
-        // Write the value using a stream to maintain any float formatting set
-        // using Value::setFloatFormat() and Value::setFloatPrecision()
-        StringStream ss;
-        ss << getName() << "(";
-        for (size_t i = 0; i<values.size(); i++)
-        {
-            ss << values[i] << ", ";
-            if ((i+1) % 3 == 0)
-            {
-                ss << "0.000" << ", ";
-            }
-        }
-        static string ROW_4("0.000, 0.000, 0.000, 1.000");
-        ss << ROW_4 << ")";
-
-        return ss.str();
     }
 };
 
 } // anonymous namespace
 
-const StringVec MdlSyntax::VECTOR_MEMBERS  = { "[0]", "[1]", "[2]" };
 const StringVec MdlSyntax::VECTOR2_MEMBERS = { ".x", ".y" };
+const StringVec MdlSyntax::VECTOR3_MEMBERS = { ".x", ".y", ".z" };
 const StringVec MdlSyntax::VECTOR4_MEMBERS = { ".x", ".y", ".z", ".w" };
-const StringVec MdlSyntax::COLOR2_MEMBERS  = { ".r", ".a" };
-const StringVec MdlSyntax::COLOR4_MEMBERS  = { ".rgb[0]", ".rgb[1]", ".rgb[2]", ".a" };
+const StringVec MdlSyntax::COLOR2_MEMBERS = { "[0]", "[1]" };
+const StringVec MdlSyntax::COLOR3_MEMBERS = { "[0]", "[1]", "[2]" };
+const StringVec MdlSyntax::COLOR4_MEMBERS = { "[0]", "[1]", "[2]", "[3]" };
 
 //
 // MdlSyntax methods
@@ -303,20 +158,18 @@ MdlSyntax::MdlSyntax()
     (
         Type::BOOLEAN,
         std::make_shared<ScalarTypeSyntax>(
-            "int",
-            "0",
-            "0",
-            EMPTY_STRING,
-            "#define true 1\n#define false 0")
+            "bool",
+            "false",
+            "false")
     );
 
     registerTypeSyntax
     (
         Type::COLOR2,
-        std::make_shared<MdlStructTypeSyntax>(
-            "color2",
-            "color2(0.0, 0.0)",
-            "{0.0, 0.0}",
+        std::make_shared<AggregateTypeSyntax>(
+            "float2",
+            "float2(0.0)",
+            "float2(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
             COLOR2_MEMBERS)
@@ -324,31 +177,35 @@ MdlSyntax::MdlSyntax()
 
     registerTypeSyntax
     (
-        // Note: the color type in OSL is a built in type and
-        // should not use the custom MdlStructTypeSyntax.
         Type::COLOR3,
         std::make_shared<AggregateTypeSyntax>(
-            "color",
-            "color(0.0)",
-            "color(0.0)",
+            "float3",
+            "float3(0.0)",
+            "float3(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
-            VECTOR_MEMBERS)
+            COLOR3_MEMBERS)
     );
 
     registerTypeSyntax
     (
         Type::COLOR4,
-        std::make_shared<MdlColor4TypeSyntax>()
+        std::make_shared<AggregateTypeSyntax>(
+            "float4",
+            "float4(0.0)",
+            "float4(0.0)",
+            EMPTY_STRING,
+            EMPTY_STRING,
+            COLOR4_MEMBERS)
     );
 
     registerTypeSyntax
     (
         Type::VECTOR2,
-        std::make_shared<MdlStructTypeSyntax>(
-            "vector2",
-            "vector2(0.0, 0.0)",
-            "{0.0, 0.0}",
+        std::make_shared<AggregateTypeSyntax>(
+            "float2",
+            "float2(0.0)",
+            "float2(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
             VECTOR2_MEMBERS)
@@ -356,25 +213,23 @@ MdlSyntax::MdlSyntax()
 
     registerTypeSyntax
     (
-        // Note: the vector type in OSL is a built in type and
-        // should not use the custom MdlStructTypeSyntax.
         Type::VECTOR3,
         std::make_shared<AggregateTypeSyntax>(
-            "vector",
-            "vector(0.0)",
-            "vector(0.0)",
+            "float3",
+            "float3(0.0)",
+            "float3(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
-            VECTOR_MEMBERS)
+            VECTOR3_MEMBERS)
     );
 
     registerTypeSyntax
     (
         Type::VECTOR4,
-        std::make_shared<MdlStructTypeSyntax>(
-            "vector4",
-            "vector4(0.0, 0.0, 0.0, 0.0)",
-            "{0.0, 0.0, 0.0, 0.0}",
+        std::make_shared<AggregateTypeSyntax>(
+            "float4",
+            "float4(0.0)",
+            "float4(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
             VECTOR4_MEMBERS)
@@ -383,19 +238,19 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax
     (
         Type::MATRIX33,
-        std::make_shared<MdlMatrix3TypeSyntax>(
-            "matrix",
-            "matrix(1.0)",
-            "matrix(1.0)")
+        std::make_shared<AggregateTypeSyntax>(
+            "float3x3",
+            "float3x3(1.0)",
+            "float3x3(1.0)")
     );
 
     registerTypeSyntax
     (
         Type::MATRIX44,
         std::make_shared<AggregateTypeSyntax>(
-            "matrix",
-            "matrix(1.0)",
-            "matrix(1.0)")
+            "float4x4",
+            "float4x4(1.0)",
+            "float4x4(1.0)")
     );
 
     registerTypeSyntax
@@ -420,30 +275,27 @@ MdlSyntax::MdlSyntax()
     (
         Type::BSDF,
         std::make_shared<ScalarTypeSyntax>(
-            "BSDF",
-            "null_closure",
-            "0",
-            "closure color")
+            "bsdf",
+            EMPTY_STRING,
+            EMPTY_STRING)
     );
 
     registerTypeSyntax
     (
         Type::EDF,
         std::make_shared<ScalarTypeSyntax>(
-            "EDF",
-            "null_closure",
-            "0",
-            "closure color")
+            "edf",
+            EMPTY_STRING,
+            EMPTY_STRING)
     );
 
     registerTypeSyntax
     (
         Type::VDF,
         std::make_shared<ScalarTypeSyntax>(
-            "VDF",
-            "null_closure",
-            "0",
-            "closure color")
+            "vdf",
+            EMPTY_STRING,
+            EMPTY_STRING)
     );
 
     registerTypeSyntax
@@ -451,9 +303,8 @@ MdlSyntax::MdlSyntax()
         Type::SURFACESHADER,
         std::make_shared<ScalarTypeSyntax>(
             "surfaceshader",
-            "null_closure",
-            "0",
-            "closure color")
+            EMPTY_STRING,
+            EMPTY_STRING)
     );
 
     registerTypeSyntax
@@ -461,20 +312,17 @@ MdlSyntax::MdlSyntax()
         Type::VOLUMESHADER,
         std::make_shared<ScalarTypeSyntax>(
             "volumeshader",
-            "null_closure",
-            "0",
-            "closure color")
+            EMPTY_STRING,
+            EMPTY_STRING)
     );
 
     registerTypeSyntax
     (
         Type::DISPLACEMENTSHADER,
-        std::make_shared<MdlStructTypeSyntax>(
+        std::make_shared<ScalarTypeSyntax>(
             "displacementshader",
-            "{vector(0.0), 0.0}",
-            "{vector(0.0), 0.0}",
             EMPTY_STRING,
-            "struct displacementshader { vector offset; float scale; };")
+            EMPTY_STRING)
     );
 
     registerTypeSyntax
@@ -482,9 +330,8 @@ MdlSyntax::MdlSyntax()
         Type::LIGHTSHADER,
         std::make_shared<ScalarTypeSyntax>(
             "lightshader",
-            "null_closure",
-            "0",
-            "closure color")
+            EMPTY_STRING,
+            EMPTY_STRING)
     );
 }
 
