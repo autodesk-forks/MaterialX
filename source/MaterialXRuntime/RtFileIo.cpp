@@ -762,20 +762,23 @@ namespace
                         }
                         if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
                         {
-                            writeMaterialElements(node, mxNode, mxNode->getName(), nodedef->getNodeName().str(), doc, writeOptions);
-                        }
-                        else
-                        {
-                            // Get the connected material nodes and create material elements from them (using their names)
-                            size_t numOutputs = node->numOutputs();
-                            for (size_t j=0; i<numOutputs; ++j)
+                            if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::ADD_MATERIAL_NODES_FOR_SHADERS)
                             {
-                                RtPort outputPort = node->getPort(node->getOutputsOffset() + j);
-                                RtNode connectedNode(outputPort.getNode());
-                                if (connectedNode.numOutputs() > 0 && connectedNode.getOutput(0).getType() == "surfacematerial")
+                                // Get the connected material nodes and create material elements from them (using their names)
+                                size_t numOutputs = node->numOutputs();
+                                for (size_t j=0; i<numOutputs; ++j)
                                 {
-                                    writeMaterialElements(node, mxNode, connectedNode.getName(), nodedef->getNodeName().str(), doc, writeOptions);
+                                    RtPort outputPort = node->getPort(node->getOutputsOffset() + j);
+                                    RtNode connectedNode(outputPort.getNode());
+                                    if (connectedNode.numOutputs() > 0 && connectedNode.getOutput(0).getType() == "surfacematerial")
+                                    {
+                                        writeMaterialElements(node, mxNode, connectedNode.getName(), nodedef->getNodeName().str(), doc, writeOptions);
+                                    }
                                 }
+                            }
+                            else
+                            {
+                                writeMaterialElements(node, mxNode, mxNode->getName(), nodedef->getNodeName().str(), doc, writeOptions);
                             }
                         }
                     }
