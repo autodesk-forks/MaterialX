@@ -1,13 +1,16 @@
 #!/usr/bin/env python
+'''
+Generate MDL implementation directory based on MaterialX nodedefs
+'''
+
 import sys
 import os
-import string
-os.environ['PYTHONIOENCODING'] = 'utf-8'
+import string; os.environ['PYTHONIOENCODING'] = 'utf-8'
 import MaterialX as mx
 
 def usage():
     print 'genmdl.py: Generate implementation directory for mdl'
-    print 'Usage:  genmdl.py <library search path> <package name>'
+    print 'Usage:  genmdl.py <library search path> <module name>'
     
 def _getSubDirectories(libraryPath):
     return [name for name in os.listdir(libraryPath)
@@ -44,7 +47,6 @@ def _writeImports(file):
     file.write('import::tex::*; \n')                        
     file.write('\n')
 
-
 def main():
 
     if len(sys.argv) < 2:
@@ -72,21 +74,48 @@ def main():
     IMPLEMENTATION_STRING = 'impl'
     GENMDL = 'genmdl'
 
-    # Create target Directory if don't exist
+    # Create target directory if don't exist
     outputPath = os.path.join(libraryPath, GENMDL)
     if not os.path.exists(outputPath):
         os.mkdir(outputPath)
 
     file = None
-    wroteIncludes = True
+    
+    # Write to single file if module name specified
     if len(moduleName):
         file = open(outputPath + '/' + moduleName + '.mdl', 'w+')
         _writeImports(file)
         
+    # Dictionary to map from MaterialX type declarations 
+    # to MDL type declarations
+    typeMap = dict()
+    typeMap['boolean'] = 'bool'
+    typeMap['integer'] = 'int'
+    typeMap['color2'] = 'float2'
+    typeMap['color4'] = 'float4'
+    typeMap['vector2'] = 'float2'
+    typeMap['vector3'] = 'float3'
+    typeMap['vector4'] = 'float4'
+    typeMap['matrix33'] = 'float3x3'
+    typeMap['matrix44'] = 'float4x4'
+    typeMap['filename'] = 'string'
+    typeMap['geomname'] = 'string'
+    typeMap['floatarray'] = 'float[<count>]'
+    typeMap['integerarray'] = 'int[<count>]'
+    typeMap['color2array'] = 'float2[<count>]'
+    typeMap['color3array'] = 'color[<count>]'
+    typeMap['color4array'] = 'float4[<count>]'
+    typeMap['vector2array'] = 'float2[<count>]'
+    typeMap['vector3array'] = 'float3[<count>]'
+    typeMap['vector4array'] = 'float4[<count>]'
+    typeMap['stringarray'] = 'string[<count>]'
+    typeMap['geomnamearray'] = 'string[<count>]'
+
+    INDENT = '  '
+
     # Create an implementation per nodedef
     #
     implDoc = mx.createDocument()
-
     nodedefs = doc.getNodeDefs()
     for nodedef in nodedefs:
 
@@ -100,30 +129,6 @@ def main():
                 nodeName = nodeName[3:]
 
         filename = nodeName + '.mdl'
-        INDENT = '  '
-
-        typeMap = dict()
-        typeMap['boolean'] = 'bool'
-        typeMap['integer'] = 'int'
-        typeMap['color2'] = 'float2'
-        typeMap['color4'] = 'float4'
-        typeMap['vector2'] = 'float2'
-        typeMap['vector3'] = 'float3'
-        typeMap['vector4'] = 'float4'
-        typeMap['matrix33'] = 'float3x3'
-        typeMap['matrix44'] = 'float4x4'
-        typeMap['filename'] = 'string'
-        typeMap['geomname'] = 'string'
-        typeMap['floatarray'] = 'float[<count>]'
-        typeMap['integerarray'] = 'int[<count>]'
-        typeMap['color2array'] = 'float2[<count>]'
-        typeMap['color3array'] = 'color[<count>]'
-        typeMap['color4array'] = 'float4[<count>]'
-        typeMap['vector2array'] = 'float2[<count>]'
-        typeMap['vector3array'] = 'float3[<count>]'
-        typeMap['vector4array'] = 'float4[<count>]'
-        typeMap['stringarray'] = 'string[<count>]'
-        typeMap['geomnamearray'] = 'string[<count>]'
 
         implname = IMPLEMENTATION_PREFIX + nodeName + '_' + GENMDL
         impl = implDoc.addImplementation(implname)                    
@@ -140,6 +145,7 @@ def main():
         impl.setFunction(functionCallName)
         impl.setLanguage(GENMDL)
 
+        # If no module name, create a new mdl file per nodedef
         if len(moduleName) == 0:
             file = open(outputPath + '/' + filename, 'w+')
             _writeImports(file)
@@ -153,8 +159,9 @@ def main():
 
         file.write(outputType + ' ')
         file.write(functionName + '\n')
-        # Add input arguments
 
+        # Add input arguments
+        #
         elems = nodedef.getActiveValueElements()
         lastComma = len(elems) - 2
         i = 0
@@ -200,7 +207,7 @@ def main():
     if len(moduleName):
         file.close()
 
-    # Save implementations to disk
+    # Save implementation reference file to disk
     implFileName = LIBRARY + '_' + GENMDL + '_' + IMPLEMENTATION_STRING + '.mtlx'
     implPath = os.path.join(outputPath, implFileName)
     print('Wrote implementation file: ' + implPath + '\n')
