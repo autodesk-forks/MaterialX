@@ -54,7 +54,7 @@ class RtWriteOptions
      RtWriteOptions() :
           writeIncludes(true),
           writeFilter(nullptr),
-          materialWriteOp(WRITE_MATERIALS_AS_NODES)
+          materialWriteOp(NONE)
     {
     }
     ~RtWriteOptions() { }
@@ -74,8 +74,9 @@ class RtWriteOptions
     /// ADD_MATERIAL_NODES_FOR_SHADERS: generate material nodes from
     /// shaders
     ///
-    /// WRITE_MATERIALS_AS_NODES: writes out material nodes, otherwise
-    /// if not set, writes out material elements
+    /// WRITE_MATERIALS_AS_ELEMENTS: writes out equivalent material
+    /// elements for the material nodes present in a MaterialX
+    /// document. If not set, writes out just the material nodes.
     ///
     /// DELETE: delete source surface shaders
     ///
@@ -84,7 +85,7 @@ class RtWriteOptions
     /// TODO: Look into removing this once Material nodes are supported
     enum MaterialWriteOp{ NONE                           = 0,
                           ADD_MATERIAL_NODES_FOR_SHADERS = 1 << 0,
-                          WRITE_MATERIALS_AS_NODES       = 1 << 1,
+                          WRITE_MATERIALS_AS_ELEMENTS    = 1 << 1,
                           DELETE                         = 1 << 2,
                           LOOK                           = 1 << 3 };
 

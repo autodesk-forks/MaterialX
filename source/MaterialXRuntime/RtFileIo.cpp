@@ -760,7 +760,11 @@ namespace
                         {
                             createMaterialNode(node, mxNode, doc);
                         }
-                        if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_NODES)
+                        if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
+                        {
+                            writeMaterialElements(node, mxNode, mxNode->getName(), nodedef->getNodeName().str(), doc, writeOptions);
+                        }
+                        else
                         {
                             // Get the connected material nodes and create material elements from them (using their names)
                             size_t numOutputs = node->numOutputs();
@@ -773,10 +777,6 @@ namespace
                                     writeMaterialElements(node, mxNode, connectedNode.getName(), nodedef->getNodeName().str(), doc, writeOptions);
                                 }
                             }
-                        }
-                        else
-                        {
-                            writeMaterialElements(node, mxNode, mxNode->getName(), nodedef->getNodeName().str(), doc, writeOptions);
                         }
                     }
                 }
