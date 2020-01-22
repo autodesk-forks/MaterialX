@@ -622,7 +622,7 @@ namespace
         }
     }
 
-    void writeMaterialElements(const PvtNode* node, NodePtr mxNode, const string& materialBaseName, const string& nodeName, DocumentPtr doc, const RtWriteOptions* writeOptions)
+    void writeMaterialElementsHelper(PvtNode* node, NodePtr mxNode, const string& materialBaseName, const string& nodeName, DocumentPtr doc, const RtWriteOptions* writeOptions)
     {
         MaterialPtr material = doc->addMaterial(materialBaseName + "_Material");
         ShaderRefPtr shaderRef = material->addShaderRef("sref", nodeName);
@@ -661,6 +661,32 @@ namespace
             CollectionPtr collection = doc->addCollection();
             collection->setIncludeGeom("/*");
             materialAssign->setCollection(collection);
+        }
+    }
+
+    void writeMaterialElements(PvtNode* node, NodePtr mxNode, const string& nodeName, DocumentPtr doc, const RtWriteOptions* writeOptions)
+    {
+        if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::ADD_MATERIAL_NODES_FOR_SHADERS)
+        {
+            // Get the connected material nodes and create material elements from them (using their names)
+            size_t numOutputs = node->numOutputs();
+            for (size_t i=0; i<numOutputs; ++i)
+            {
+                RtPort outputPort = node->getPort(node->getOutputsOffset() + i);
+                size_t numDestinationPorts = outputPort.numDestinationPorts();
+                for (size_t j = 0; j < numDestinationPorts; ++j)
+                {
+                    RtNode connectedNode(outputPort.getDestinationPort(j).getNode());
+                    if (connectedNode.numOutputs() > 0 && connectedNode.getOutput(0).getType() == "material")
+                    {
+                        writeMaterialElementsHelper(node, mxNode, connectedNode.getName(), nodeName, doc, writeOptions);
+                    }
+                }
+            }
+        }
+        else
+        {
+            writeMaterialElementsHelper(node, mxNode, mxNode->getName(), nodeName, doc, writeOptions);
         }
     }
 
@@ -767,28 +793,7 @@ namespace
                         }
                         if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
                         {
-                            if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::ADD_MATERIAL_NODES_FOR_SHADERS)
-                            {
-                                // Get the connected material nodes and create material elements from them (using their names)
-                                size_t numOutputs = node->numOutputs();
-                                for (size_t j=0; j<numOutputs; ++j)
-                                {
-                                    RtPort outputPort = node->getPort(node->getOutputsOffset() + j);
-                                    size_t numDestinationPorts = outputPort.numDestinationPorts();
-                                    for (size_t j = 0; j < numDestinationPorts; ++j)
-                                    {
-                                        RtNode connectedNode(outputPort.getDestinationPort(j).getNode());
-                                        if (connectedNode.numOutputs() > 0 && connectedNode.getOutput(0).getType() == "material")
-                                        {
-                                            writeMaterialElements(node, mxNode, connectedNode.getName(), nodedef->getNodeName().str(), doc, writeOptions);
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                writeMaterialElements(node, mxNode, mxNode->getName(), nodedef->getNodeName().str(), doc, writeOptions);
-                            }
+                            writeMaterialElements(node, mxNode, nodedef->getNodeName(), doc, writeOptions);
                         }
                     }
                 }
