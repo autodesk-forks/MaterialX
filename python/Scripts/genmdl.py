@@ -182,7 +182,7 @@ def main():
             outType = typeMap[outType]
 
         file.write(outType + SPACE)
-        file.write(functionName + '\n')
+        file.write(functionName + '(\n')
 
         # Add input arguments
         #
