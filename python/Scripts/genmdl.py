@@ -177,11 +177,11 @@ def main():
         # Create a signature for the nodedef
         file.write('export ')
         # Add output argument
-        outputType = nodedef.getType()
-        if outputType in typeMap:
-            outputType = typeMap[outputType]
+        outType = nodedef.getType()
+        if outType in typeMap:
+            outType = typeMap[outType]
 
-        file.write(outputType + SPACE)
+        file.write(outType + SPACE)
         file.write(functionName + '\n')
 
         # Add input arguments
@@ -196,6 +196,8 @@ def main():
             if isinstance(elem, mx.Output):
                 outputValue = elem.getAttribute('default')
                 outputType = elem.getType()
+                if outputType in typeMap:
+                    outputType = typeMap[outputType]
                 continue
             # Parameters map to uniforms
             elif isinstance(elem, mx.Parameter):
@@ -220,14 +222,21 @@ def main():
             uiname = elem.getAttribute('uiname')
             uigroup = elem.getAttribute('uifolder')
             if len(description) or len(uiname) or len(uigroup):
-                file.write(INDENT + '\n[[')
+                file.write(INDENT + '\n' + INDENT + '[[')
+                count = 0
                 if len(description):
                     file.write(INDENT + INDENT + "anno::description(" + description + '")')
+                    count = count + 1
                 if len(uiname):
-                    file.write(",\n" + INDENT + INDENT + "anno::display_name(" + uiname + '")')
+                    if count > 0:
+                        file.write(',')
+                    file.write("\n" + INDENT + INDENT + "anno::display_name(" + uiname + '")')
+                    count = count + 1
                 if len(uigroup):
-                    file.write(",\n" + INDENT + INDENT + "anno::in_group(" + uigroup + '")')
-                file.write(INDENT + '\n]]')
+                    if count > 0:
+                        file.write(',')
+                    file.write("\n" + INDENT + INDENT + "anno::in_group(" + uigroup + '")')
+                file.write('\n' + INDENT + ']]')
 
             if i < lastComma:
                 file.write(',')
