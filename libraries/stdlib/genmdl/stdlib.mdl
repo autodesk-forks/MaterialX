@@ -1,0 +1,7751 @@
+mdl 1.6;
+import::anno::*;
+import::base::*;
+import::df::*;
+import::math::*;
+import::state::*;
+import::tex::*; 
+
+export float mx_image_float
+  string  file,
+  string  layer,
+  float  default = float(0.0),
+  float2  texcoord,
+  string  uaddressmode = string('periodic'),
+  string  vaddressmode = string('periodic'),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_image_color2
+  string  file,
+  string  layer,
+  float2  default = float2(0.0, 0.0),
+  float2  texcoord,
+  string  uaddressmode = string('periodic'),
+  string  vaddressmode = string('periodic'),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_image_color3
+  string  file,
+  string  layer,
+  color3  default = color3(0.0, 0.0, 0.0),
+  float2  texcoord,
+  string  uaddressmode = string('periodic'),
+  string  vaddressmode = string('periodic'),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_image_color4
+  string  file,
+  string  layer,
+  float4  default = float4(0.0, 0.0, 0.0, 0.0),
+  float2  texcoord,
+  string  uaddressmode = string('periodic'),
+  string  vaddressmode = string('periodic'),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_image_vector2
+  string  file,
+  string  layer,
+  float2  default = float2(0.0, 0.0),
+  float2  texcoord,
+  string  uaddressmode = string('periodic'),
+  string  vaddressmode = string('periodic'),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_image_vector3
+  string  file,
+  string  layer,
+  float3  default = float3(0.0, 0.0, 0.0),
+  float2  texcoord,
+  string  uaddressmode = string('periodic'),
+  string  vaddressmode = string('periodic'),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_image_vector4
+  string  file,
+  string  layer,
+  float4  default = float4(0.0, 0.0, 0.0, 0.0),
+  float2  texcoord,
+  string  uaddressmode = string('periodic'),
+  string  vaddressmode = string('periodic'),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_tiledimage_float
+  string  file,
+  float  default = float(0.0),
+  float2  texcoord,
+  float2  uvtiling = float2(1.0, 1.0),
+  float2  uvoffset = float2(0.0, 0.0),
+  float2  realworldimagesize = float2(1.0, 1.0),
+  float2  realworldtilesize = float2(1.0, 1.0),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_tiledimage_color2
+  string  file,
+  float2  default = float2(0.0, 0.0),
+  float2  texcoord,
+  float2  uvtiling = float2(1.0, 1.0),
+  float2  uvoffset = float2(0.0, 0.0),
+  float2  realworldimagesize = float2(1.0, 1.0),
+  float2  realworldtilesize = float2(1.0, 1.0),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_tiledimage_color3
+  string  file,
+  color3  default = color3(0.0, 0.0, 0.0),
+  float2  texcoord,
+  float2  uvtiling = float2(1.0, 1.0),
+  float2  uvoffset = float2(0.0, 0.0),
+  float2  realworldimagesize = float2(1.0, 1.0),
+  float2  realworldtilesize = float2(1.0, 1.0),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_tiledimage_color4
+  string  file,
+  float4  default = float4(0.0, 0.0, 0.0, 0.0),
+  float2  texcoord,
+  float2  uvtiling = float2(1.0, 1.0),
+  float2  uvoffset = float2(0.0, 0.0),
+  float2  realworldimagesize = float2(1.0, 1.0),
+  float2  realworldtilesize = float2(1.0, 1.0),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_tiledimage_vector2
+  string  file,
+  float2  default = float2(0.0, 0.0),
+  float2  texcoord,
+  float2  uvtiling = float2(1.0, 1.0),
+  float2  uvoffset = float2(0.0, 0.0),
+  float2  realworldimagesize = float2(1.0, 1.0),
+  float2  realworldtilesize = float2(1.0, 1.0),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_tiledimage_vector3
+  string  file,
+  float3  default = float3(0.0, 0.0, 0.0),
+  float2  texcoord,
+  float2  uvtiling = float2(1.0, 1.0),
+  float2  uvoffset = float2(0.0, 0.0),
+  float2  realworldimagesize = float2(1.0, 1.0),
+  float2  realworldtilesize = float2(1.0, 1.0),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_tiledimage_vector4
+  string  file,
+  float4  default = float4(0.0, 0.0, 0.0, 0.0),
+  float2  texcoord,
+  float2  uvtiling = float2(1.0, 1.0),
+  float2  uvoffset = float2(0.0, 0.0),
+  float2  realworldimagesize = float2(1.0, 1.0),
+  float2  realworldtilesize = float2(1.0, 1.0),
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_triplanarprojection_float
+  string  filex,
+  string  filey,
+  string  filez,
+  string  layerx,
+  string  layery,
+  string  layerz,
+  float  default = float(0.0),
+  float3  position,
+  float3  normal,
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_triplanarprojection_color2
+  string  filex,
+  string  filey,
+  string  filez,
+  string  layerx,
+  string  layery,
+  string  layerz,
+  float2  default = float2(0.0, 0.0),
+  float3  position,
+  float3  normal,
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_triplanarprojection_color3
+  string  filex,
+  string  filey,
+  string  filez,
+  string  layerx,
+  string  layery,
+  string  layerz,
+  color3  default = color3(0.0, 0.0, 0.0),
+  float3  position,
+  float3  normal,
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_triplanarprojection_color4
+  string  filex,
+  string  filey,
+  string  filez,
+  string  layerx,
+  string  layery,
+  string  layerz,
+  float4  default = float4(0.0, 0.0, 0.0, 0.0),
+  float3  position,
+  float3  normal,
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_triplanarprojection_vector2
+  string  filex,
+  string  filey,
+  string  filez,
+  string  layerx,
+  string  layery,
+  string  layerz,
+  float2  default = float2(0.0, 0.0),
+  float3  position,
+  float3  normal,
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_triplanarprojection_vector3
+  string  filex,
+  string  filey,
+  string  filez,
+  string  layerx,
+  string  layery,
+  string  layerz,
+  float3  default = float3(0.0, 0.0, 0.0),
+  float3  position,
+  float3  normal,
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_triplanarprojection_vector4
+  string  filex,
+  string  filey,
+  string  filez,
+  string  layerx,
+  string  layery,
+  string  layerz,
+  float4  default = float4(0.0, 0.0, 0.0, 0.0),
+  float3  position,
+  float3  normal,
+  string  filtertype = string('linear'),
+  string  framerange,
+  int  frameoffset = int(0),
+  string  frameendaction = string('constant')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_constant_float
+  float  value = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_constant_color2
+  float2  value = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_constant_color3
+  color3  value = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_constant_color4
+  float4  value = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_constant_vector2
+  float2  value = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_constant_vector3
+  float3  value = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_constant_vector4
+  float4  value = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export bool mx_constant_boolean
+  bool  value = bool(false)
+)
+{
+  // TODO: Add implementation here
+  bool outVal;
+  return outVal;
+}
+
+export int mx_constant_integer
+  int  value = int(0)
+)
+{
+  // TODO: Add implementation here
+  int outVal;
+  return outVal;
+}
+
+export float3x3 mx_constant_matrix33
+  float3x3  value = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float3x3 outVal;
+  return outVal;
+}
+
+export float4x4 mx_constant_matrix44
+  float4x4  value = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float4x4 outVal;
+  return outVal;
+}
+
+export string mx_constant_string
+  string  value
+)
+{
+  // TODO: Add implementation here
+  string outVal;
+  return outVal;
+}
+
+export string mx_constant_filename
+  string  value
+)
+{
+  // TODO: Add implementation here
+  string outVal;
+  return outVal;
+}
+
+export float mx_ramplr_float
+  float  valuel = float(0.0),
+  float  valuer = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ramplr_color2
+  float2  valuel = float2(0.0, 0.0),
+  float2  valuer = float2(0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ramplr_color3
+  color3  valuel = color3(0.0, 0.0, 0.0),
+  color3  valuer = color3(0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ramplr_color4
+  float4  valuel = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valuer = float4(0.0, 0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ramplr_vector2
+  float2  valuel = float2(0.0, 0.0),
+  float2  valuer = float2(0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ramplr_vector3
+  float3  valuel = float3(0.0, 0.0, 0.0),
+  float3  valuer = float3(0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ramplr_vector4
+  float4  valuel = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valuer = float4(0.0, 0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_ramptb_float
+  float  valuet = float(0.0),
+  float  valueb = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ramptb_color2
+  float2  valuet = float2(0.0, 0.0),
+  float2  valueb = float2(0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ramptb_color3
+  color3  valuet = color3(0.0, 0.0, 0.0),
+  color3  valueb = color3(0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ramptb_color4
+  float4  valuet = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valueb = float4(0.0, 0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ramptb_vector2
+  float2  valuet = float2(0.0, 0.0),
+  float2  valueb = float2(0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ramptb_vector3
+  float3  valuet = float3(0.0, 0.0, 0.0),
+  float3  valueb = float3(0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ramptb_vector4
+  float4  valuet = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valueb = float4(0.0, 0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_ramp4_float
+  float  valuetl = float(0.0),
+  float  valuetr = float(0.0),
+  float  valuebl = float(0.0),
+  float  valuebr = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ramp4_color2
+  float2  valuetl = float2(0.0, 0.0),
+  float2  valuetr = float2(0.0, 0.0),
+  float2  valuebl = float2(0.0, 0.0),
+  float2  valuebr = float2(0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ramp4_color3
+  color3  valuetl = color3(0.0, 0.0, 0.0),
+  color3  valuetr = color3(0.0, 0.0, 0.0),
+  color3  valuebl = color3(0.0, 0.0, 0.0),
+  color3  valuebr = color3(0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ramp4_color4
+  float4  valuetl = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valuetr = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valuebl = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valuebr = float4(0.0, 0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ramp4_vector2
+  float2  valuetl = float2(0.0, 0.0),
+  float2  valuetr = float2(0.0, 0.0),
+  float2  valuebl = float2(0.0, 0.0),
+  float2  valuebr = float2(0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ramp4_vector3
+  float3  valuetl = float3(0.0, 0.0, 0.0),
+  float3  valuetr = float3(0.0, 0.0, 0.0),
+  float3  valuebl = float3(0.0, 0.0, 0.0),
+  float3  valuebr = float3(0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ramp4_vector4
+  float4  valuetl = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valuetr = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valuebl = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valuebr = float4(0.0, 0.0, 0.0, 0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_splitlr_float
+  float  valuel = float(0.0),
+  float  valuer = float(0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_splitlr_color2
+  float2  valuel = float2(0.0, 0.0),
+  float2  valuer = float2(0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_splitlr_color3
+  color3  valuel = color3(0.0, 0.0, 0.0),
+  color3  valuer = color3(0.0, 0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_splitlr_color4
+  float4  valuel = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valuer = float4(0.0, 0.0, 0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_splitlr_vector2
+  float2  valuel = float2(0.0, 0.0),
+  float2  valuer = float2(0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_splitlr_vector3
+  float3  valuel = float3(0.0, 0.0, 0.0),
+  float3  valuer = float3(0.0, 0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_splitlr_vector4
+  float4  valuel = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valuer = float4(0.0, 0.0, 0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_splittb_float
+  float  valuet = float(0.0),
+  float  valueb = float(0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_splittb_color2
+  float2  valuet = float2(0.0, 0.0),
+  float2  valueb = float2(0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_splittb_color3
+  color3  valuet = color3(0.0, 0.0, 0.0),
+  color3  valueb = color3(0.0, 0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_splittb_color4
+  float4  valuet = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valueb = float4(0.0, 0.0, 0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_splittb_vector2
+  float2  valuet = float2(0.0, 0.0),
+  float2  valueb = float2(0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_splittb_vector3
+  float3  valuet = float3(0.0, 0.0, 0.0),
+  float3  valueb = float3(0.0, 0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_splittb_vector4
+  float4  valuet = float4(0.0, 0.0, 0.0, 0.0),
+  float4  valueb = float4(0.0, 0.0, 0.0, 0.0),
+  float  center = float(0.5),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_noise2d_float
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_noise2d_color2
+  float2  amplitude = float2(1.0, 1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_noise2d_color3
+  float3  amplitude = float3(1.0, 1.0, 1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_noise2d_color4
+  float4  amplitude = float4(1.0, 1.0, 1.0, 1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_noise2d_vector2
+  float2  amplitude = float2(1.0, 1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_noise2d_vector3
+  float3  amplitude = float3(1.0, 1.0, 1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_noise2d_vector4
+  float4  amplitude = float4(1.0, 1.0, 1.0, 1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_noise2d_color2FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_noise2d_color3FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_noise2d_color4FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_noise2d_vector2FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_noise2d_vector3FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_noise2d_vector4FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_noise3d_float
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_noise3d_color2
+  float2  amplitude = float2(1.0, 1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_noise3d_color3
+  float3  amplitude = float3(1.0, 1.0, 1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_noise3d_color4
+  float4  amplitude = float4(1.0, 1.0, 1.0, 1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_noise3d_vector2
+  float2  amplitude = float2(1.0, 1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_noise3d_vector3
+  float3  amplitude = float3(1.0, 1.0, 1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_noise3d_vector4
+  float4  amplitude = float4(1.0, 1.0, 1.0, 1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_noise3d_color2FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_noise3d_color3FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_noise3d_color4FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_noise3d_vector2FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_noise3d_vector3FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_noise3d_vector4FA
+  float  amplitude = float(1.0),
+  float  pivot = float(0.0),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_fractal3d_float
+  float  amplitude = float(1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_fractal3d_color2
+  float2  amplitude = float2(1.0, 1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_fractal3d_color3
+  float3  amplitude = float3(1.0, 1.0, 1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_fractal3d_color4
+  float4  amplitude = float4(1.0, 1.0, 1.0, 1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_fractal3d_vector2
+  float2  amplitude = float2(1.0, 1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_fractal3d_vector3
+  float3  amplitude = float3(1.0, 1.0, 1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_fractal3d_vector4
+  float4  amplitude = float4(1.0, 1.0, 1.0, 1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_fractal3d_color2FA
+  float  amplitude = float(1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_fractal3d_color3FA
+  float  amplitude = float(1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_fractal3d_color4FA
+  float  amplitude = float(1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_fractal3d_vector2FA
+  float  amplitude = float(1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_fractal3d_vector3FA
+  float  amplitude = float(1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_fractal3d_vector4FA
+  float  amplitude = float(1.0),
+  int  octaves = int(3),
+  float  lacunarity = float(2.0),
+  float  diminish = float(0.5),
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_cellnoise2d_float
+  float2  texcoord
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_cellnoise3d_float
+  float3  position
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_worleynoise2d_float
+  float2  texcoord,
+  float  jitter = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_worleynoise2d_vector2
+  float2  texcoord,
+  float  jitter = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_worleynoise2d_vector3
+  float2  texcoord,
+  float  jitter = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float mx_worleynoise3d_float
+  float3  position,
+  float  jitter = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_worleynoise3d_vector2
+  float3  position,
+  float  jitter = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_worleynoise3d_vector3
+  float3  position,
+  float  jitter = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_position_vector3
+  string  space = string('object')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_normal_vector3
+  string  space = string('object')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_tangent_vector3
+  string  space = string('object'),
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_bitangent_vector3
+  string  space = string('object'),
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float2 mx_texcoord_vector2
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_texcoord_vector3
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float mx_geomcolor_float
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_geomcolor_color2
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_geomcolor_color3
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_geomcolor_color4
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export int mx_geomattrvalue_integer
+  string  attrname
+)
+{
+  // TODO: Add implementation here
+  int outVal;
+  return outVal;
+}
+
+export bool mx_geomattrvalue_boolean
+  string  attrname
+)
+{
+  // TODO: Add implementation here
+  bool outVal;
+  return outVal;
+}
+
+export string mx_geomattrvalue_string
+  string  attrname
+)
+{
+  // TODO: Add implementation here
+  string outVal;
+  return outVal;
+}
+
+export float mx_geomattrvalue_float
+  string  attrname
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_geomattrvalue_color2
+  string  attrname
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_geomattrvalue_color3
+  string  attrname
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_geomattrvalue_color4
+  string  attrname
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_geomattrvalue_vector2
+  string  attrname
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_geomattrvalue_vector3
+  string  attrname
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_geomattrvalue_vector4
+  string  attrname
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export int mx_geompropvalue_integer
+  string  geomprop,
+  int  default = int(0)
+)
+{
+  // TODO: Add implementation here
+  int outVal;
+  return outVal;
+}
+
+export bool mx_geompropvalue_boolean
+  string  geomprop,
+  bool  default = bool(false)
+)
+{
+  // TODO: Add implementation here
+  bool outVal;
+  return outVal;
+}
+
+export string mx_geompropvalue_string
+  string  geomprop,
+  string  default
+)
+{
+  // TODO: Add implementation here
+  string outVal;
+  return outVal;
+}
+
+export float mx_geompropvalue_float
+  string  geomprop,
+  float  default = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_geompropvalue_color2
+  string  geomprop,
+  float2  default = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_geompropvalue_color3
+  string  geomprop,
+  color3  default = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_geompropvalue_color4
+  string  geomprop,
+  float4  default = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_geompropvalue_vector2
+  string  geomprop,
+  float2  default = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_geompropvalue_vector3
+  string  geomprop,
+  float3  default = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_geompropvalue_vector4
+  string  geomprop,
+  float4  default = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_ambientocclusion_float
+  float  coneangle = float(90.0),
+  float  maxdistance = float(1e38)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_frame_float
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_time_float
+  float  fps = float(24.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float3 mx_viewdirection_vector3
+  string  space = string('world')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float mx_add_float
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_add_color2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_add_color3
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_add_color4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_add_vector2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_add_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_add_vector4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float3x3 mx_add_matrix33
+  float3x3  in1 = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0),
+  float3x3  in2 = float3x3(0.0,0.0,0.0, 0.0,0.0,0.0, 0.0,0.0,0.0)
+)
+{
+  // TODO: Add implementation here
+  float3x3 outVal;
+  return outVal;
+}
+
+export float4x4 mx_add_matrix44
+  float4x4  in1 = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0),
+  float4x4  in2 = float4x4(0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0)
+)
+{
+  // TODO: Add implementation here
+  float4x4 outVal;
+  return outVal;
+}
+
+export surfaceshader mx_add_surfaceshader
+  surfaceshader  in1,
+  surfaceshader  in2
+)
+{
+  // TODO: Add implementation here
+  surfaceshader outVal;
+  return outVal;
+}
+
+export displacementshader mx_add_displacementshader
+  displacementshader  in1,
+  displacementshader  in2
+)
+{
+  // TODO: Add implementation here
+  displacementshader outVal;
+  return outVal;
+}
+
+export volumeshader mx_add_volumeshader
+  volumeshader  in1,
+  volumeshader  in2
+)
+{
+  // TODO: Add implementation here
+  volumeshader outVal;
+  return outVal;
+}
+
+export float2 mx_add_color2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_add_color3FA
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_add_color4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_add_vector2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_add_vector3FA
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_add_vector4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float3x3 mx_add_matrix33FA
+  float3x3  in1 = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float3x3 outVal;
+  return outVal;
+}
+
+export float4x4 mx_add_matrix44FA
+  float4x4  in1 = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4x4 outVal;
+  return outVal;
+}
+
+export float mx_subtract_float
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_subtract_color2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_subtract_color3
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_subtract_color4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_subtract_vector2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_subtract_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_subtract_vector4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float3x3 mx_subtract_matrix33
+  float3x3  in1 = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0),
+  float3x3  in2 = float3x3(0.0,0.0,0.0, 0.0,0.0,0.0, 0.0,0.0,0.0)
+)
+{
+  // TODO: Add implementation here
+  float3x3 outVal;
+  return outVal;
+}
+
+export float4x4 mx_subtract_matrix44
+  float4x4  in1 = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0),
+  float4x4  in2 = float4x4(0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0, 0.0,0.0,0.0,0.0)
+)
+{
+  // TODO: Add implementation here
+  float4x4 outVal;
+  return outVal;
+}
+
+export float2 mx_subtract_color2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_subtract_color3FA
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_subtract_color4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_subtract_vector2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_subtract_vector3FA
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_subtract_vector4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float3x3 mx_subtract_matrix33FA
+  float3x3  in1 = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float3x3 outVal;
+  return outVal;
+}
+
+export float4x4 mx_subtract_matrix44FA
+  float4x4  in1 = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4x4 outVal;
+  return outVal;
+}
+
+export float mx_multiply_float
+  float  in1 = float(0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_multiply_color2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_multiply_color3
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_multiply_color4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_multiply_vector2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_multiply_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_multiply_vector4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float3x3 mx_multiply_matrix33
+  float3x3  in1 = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0),
+  float3x3  in2 = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float3x3 outVal;
+  return outVal;
+}
+
+export float4x4 mx_multiply_matrix44
+  float4x4  in1 = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0),
+  float4x4  in2 = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float4x4 outVal;
+  return outVal;
+}
+
+export float2 mx_multiply_color2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_multiply_color3FA
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_multiply_color4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_multiply_vector2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_multiply_vector3FA
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_multiply_vector4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export surfaceshader mx_multiply_surfaceshaderF
+  surfaceshader  in1,
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  surfaceshader outVal;
+  return outVal;
+}
+
+export displacementshader mx_multiply_displacementshaderF
+  displacementshader  in1,
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  displacementshader outVal;
+  return outVal;
+}
+
+export volumeshader mx_multiply_volumeshaderF
+  volumeshader  in1,
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  volumeshader outVal;
+  return outVal;
+}
+
+export surfaceshader mx_multiply_surfaceshaderC
+  surfaceshader  in1,
+  color3  in2 = color3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  surfaceshader outVal;
+  return outVal;
+}
+
+export volumeshader mx_multiply_volumeshaderC
+  volumeshader  in1,
+  color3  in2 = color3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  volumeshader outVal;
+  return outVal;
+}
+
+export displacementshader mx_multiply_displacementshaderV
+  displacementshader  in1,
+  float3  in2 = float3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  displacementshader outVal;
+  return outVal;
+}
+
+export float mx_divide_float
+  float  in1 = float(0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_divide_color2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_divide_color3
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_divide_color4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_divide_vector2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_divide_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_divide_vector4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float3x3 mx_divide_matrix33
+  float3x3  in1 = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0),
+  float3x3  in2 = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float3x3 outVal;
+  return outVal;
+}
+
+export float4x4 mx_divide_matrix44
+  float4x4  in1 = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0),
+  float4x4  in2 = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float4x4 outVal;
+  return outVal;
+}
+
+export float2 mx_divide_color2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_divide_color3FA
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_divide_color4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_divide_vector2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_divide_vector3FA
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_divide_vector4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_modulo_float
+  float  in1 = float(0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_modulo_color2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_modulo_color3
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_modulo_color4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_modulo_vector2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_modulo_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_modulo_vector4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_modulo_color2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_modulo_color3FA
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_modulo_color4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_modulo_vector2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_modulo_vector3FA
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_modulo_vector4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_invert_float
+  float  in = float(0.0),
+  float  amount = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_invert_color2
+  float2  in = float2(0.0, 0.0),
+  float2  amount = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_invert_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  color3  amount = color3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_invert_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  amount = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_invert_vector2
+  float2  in = float2(0.0, 0.0),
+  float2  amount = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_invert_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  float3  amount = float3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_invert_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  amount = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_invert_color2FA
+  float2  in = float2(0.0, 0.0),
+  float  amount = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_invert_color3FA
+  color3  in = color3(0.0, 0.0, 0.0),
+  float  amount = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_invert_color4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  amount = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_invert_vector2FA
+  float2  in = float2(0.0, 0.0),
+  float  amount = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_invert_vector3FA
+  float3  in = float3(0.0, 0.0, 0.0),
+  float  amount = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_invert_vector4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  amount = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_absval_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_absval_color2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_absval_color3
+  color3  in = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_absval_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_absval_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_absval_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_absval_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_floor_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_floor_color2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_floor_color3
+  color3  in = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_floor_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_floor_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_floor_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_floor_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_ceil_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ceil_color2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ceil_color3
+  color3  in = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ceil_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ceil_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ceil_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ceil_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_power_float
+  float  in1 = float(0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_power_color2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_power_color3
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_power_color4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_power_vector2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_power_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_power_vector4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_power_color2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_power_color3FA
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_power_color4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_power_vector2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_power_vector3FA
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_power_vector4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_sin_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_cos_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_tan_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_asin_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_acos_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_atan2_float
+  float  in1 = float(1.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_sin_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float2 mx_cos_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float2 mx_tan_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float2 mx_asin_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float2 mx_acos_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float2 mx_atan2_vector2
+  float2  in1 = float2(1.0, 1.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_sin_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_cos_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_tan_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_asin_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_acos_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_atan2_vector3
+  float3  in1 = float3(1.0, 1.0, 1.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_sin_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_cos_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_tan_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_asin_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_acos_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_atan2_vector4
+  float4  in1 = float4(1.0, 1.0, 1.0, 1.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_sqrt_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_ln_float
+  float  in = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_exp_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_sqrt_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float2 mx_ln_vector2
+  float2  in = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float2 mx_exp_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_sqrt_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_ln_vector3
+  float3  in = float3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_exp_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_sqrt_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_ln_vector4
+  float4  in = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_exp_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_sign_float
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_sign_color2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_sign_color3
+  color3  in = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_sign_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_sign_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_sign_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_sign_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_clamp_float
+  float  in = float(0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_clamp_color2
+  float2  in = float2(0.0, 0.0),
+  float2  low = float2(0.0, 0.0),
+  float2  high = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_clamp_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  color3  low = color3(0.0, 0.0, 0.0),
+  color3  high = color3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_clamp_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  low = float4(0.0, 0.0, 0.0, 0.0),
+  float4  high = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_clamp_vector2
+  float2  in = float2(0.0, 0.0),
+  float2  low = float2(0.0, 0.0),
+  float2  high = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_clamp_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  float3  low = float3(0.0, 0.0, 0.0),
+  float3  high = float3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_clamp_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  low = float4(0.0, 0.0, 0.0, 0.0),
+  float4  high = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_clamp_color2FA
+  float2  in = float2(0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_clamp_color3FA
+  color3  in = color3(0.0, 0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_clamp_color4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_clamp_vector2FA
+  float2  in = float2(0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_clamp_vector3FA
+  float3  in = float3(0.0, 0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_clamp_vector4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_min_float
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_min_color2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_min_color3
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_min_color4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_min_vector2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_min_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_min_vector4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_min_color2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_min_color3FA
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_min_color4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_min_vector2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_min_vector3FA
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_min_vector4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_max_float
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_max_color2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_max_color3
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_max_color4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_max_vector2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_max_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_max_vector4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_max_color2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_max_color3FA
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_max_color4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_max_vector2FA
+  float2  in1 = float2(0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_max_vector3FA
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_max_vector4FA
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_normalize_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_normalize_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_normalize_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_magnitude_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_magnitude_vector3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_magnitude_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_dotproduct_vector2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_dotproduct_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_dotproduct_vector4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float3 mx_crossproduct_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_transformpoint_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  string  fromspace,
+  string  tospace
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_transformvector_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  string  fromspace,
+  string  tospace
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_transformnormal_vector3
+  float3  in = float3(0.0, 0.0, 1.0),
+  string  fromspace,
+  string  tospace
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float2 mx_transformmatrix_vector2M3
+  float2  in = float2(0.0, 0.0),
+  float3x3  mat = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_transformmatrix_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  float3x3  mat = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3 mx_transformmatrix_vector3M4
+  float3  in = float3(0.0, 0.0, 0.0),
+  float4x4  mat = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_transformmatrix_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4x4  mat = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float3 mx_normalmap
+  float3  in = float3(0.5, 0.5, 1.0),
+  string  space = string('tangent'),
+  float  scale = float(1.0),
+  float3  normal,
+  float3  tangent
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float3x3 mx_transpose_matrix33
+  float3x3  in = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float3x3 outVal;
+  return outVal;
+}
+
+export float4x4 mx_transpose_matrix44
+  float4x4  in = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float4x4 outVal;
+  return outVal;
+}
+
+export float mx_determinant_matrix33
+  float3x3  in = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_determinant_matrix44
+  float4x4  in = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float3x3 mx_invertmatrix_matrix33
+  float3x3  in = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float3x3 outVal;
+  return outVal;
+}
+
+export float4x4 mx_invertmatrix_matrix44
+  float4x4  in = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0)
+)
+{
+  // TODO: Add implementation here
+  float4x4 outVal;
+  return outVal;
+}
+
+export float2 mx_rotate2d_vector2
+  float2  in = float2(0.0, 0.0),
+  float  amount = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_rotate3d_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  float  amount = float(0.0),
+  float3  axis = float3(0.0, 1.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float2 mx_place2d_vector2
+  float2  texcoord = float2(0.0, 0.0),
+  float2  pivot = float2(0.0,0.0),
+  float2  scale = float2(1.0,1.0),
+  float  rotate = float(0.0),
+  float2  offset = float2(0.0,0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export int[<count>] mx_arrayappend_integer_integerarray
+  int  in1 = int(0),
+  int  in2 = int(0)
+)
+{
+  // TODO: Add implementation here
+  int[<count>] outVal;
+  return outVal;
+}
+
+export int[<count>] mx_arrayappend_integerarray_integerarray
+  int[<count>]  in1,
+  int  in2 = int(0)
+)
+{
+  // TODO: Add implementation here
+  int[<count>] outVal;
+  return outVal;
+}
+
+export float[<count>] mx_arrayappend_float_floatarray
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float[<count>] outVal;
+  return outVal;
+}
+
+export float[<count>] mx_arrayappend_floatarray_floatarray
+  float[<count>]  in1,
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float[<count>] outVal;
+  return outVal;
+}
+
+export float2[<count>] mx_arrayappend_color2_color2array
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2[<count>] outVal;
+  return outVal;
+}
+
+export float2[<count>] mx_arrayappend_color2array_color2array
+  float2[<count>]  in1,
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2[<count>] outVal;
+  return outVal;
+}
+
+export color[<count>] mx_arrayappend_color3_color3array
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color[<count>] outVal;
+  return outVal;
+}
+
+export color[<count>] mx_arrayappend_color3array_color3array
+  color[<count>]  in1,
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color[<count>] outVal;
+  return outVal;
+}
+
+export float4[<count>] mx_arrayappend_color4_color4array
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4[<count>] outVal;
+  return outVal;
+}
+
+export float4[<count>] mx_arrayappend_color4array_color4array
+  float4[<count>]  in1,
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4[<count>] outVal;
+  return outVal;
+}
+
+export float2[<count>] mx_arrayappend_vector2_vector2array
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2[<count>] outVal;
+  return outVal;
+}
+
+export float2[<count>] mx_arrayappend_vector2array_vector2array
+  float2[<count>]  in1,
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2[<count>] outVal;
+  return outVal;
+}
+
+export float3[<count>] mx_arrayappend_vector3_vector3array
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3[<count>] outVal;
+  return outVal;
+}
+
+export float3[<count>] mx_arrayappend_vector3array_vector3array
+  float3[<count>]  in1,
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3[<count>] outVal;
+  return outVal;
+}
+
+export float4[<count>] mx_arrayappend_vector4_vector4array
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4[<count>] outVal;
+  return outVal;
+}
+
+export float4[<count>] mx_arrayappend_vector4array_vector4array
+  float4[<count>]  in1,
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4[<count>] outVal;
+  return outVal;
+}
+
+export string[<count>] mx_arrayappend_string_stringarray
+  string  in1,
+  string  in2
+)
+{
+  // TODO: Add implementation here
+  string[<count>] outVal;
+  return outVal;
+}
+
+export string[<count>] mx_arrayappend_stringarray_stringarray
+  string[<count>]  in1,
+  string  in2
+)
+{
+  // TODO: Add implementation here
+  string[<count>] outVal;
+  return outVal;
+}
+
+export float mx_remap_float
+  float  in = float(0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_remap_color2
+  float2  in = float2(0.0, 0.0),
+  float2  inlow = float2(0.0, 0.0),
+  float2  inhigh = float2(1.0, 1.0),
+  float2  outlow = float2(0.0, 0.0),
+  float2  outhigh = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_remap_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  color3  inlow = color3(0.0, 0.0, 0.0),
+  color3  inhigh = color3(1.0, 1.0, 1.0),
+  color3  outlow = color3(0.0, 0.0, 0.0),
+  color3  outhigh = color3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_remap_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  inlow = float4(0.0, 0.0, 0.0, 0.0),
+  float4  inhigh = float4(1.0, 1.0, 1.0, 1.0),
+  float4  outlow = float4(0.0, 0.0, 0.0, 0.0),
+  float4  outhigh = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_remap_vector2
+  float2  in = float2(0.0, 0.0),
+  float2  inlow = float2(0.0, 0.0),
+  float2  inhigh = float2(1.0, 1.0),
+  float2  outlow = float2(0.0, 0.0),
+  float2  outhigh = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_remap_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  float3  inlow = float3(0.0, 0.0, 0.0),
+  float3  inhigh = float3(1.0, 1.0, 1.0),
+  float3  outlow = float3(0.0, 0.0, 0.0),
+  float3  outhigh = float3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_remap_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  inlow = float4(0.0, 0.0, 0.0, 0.0),
+  float4  inhigh = float4(1.0, 1.0, 1.0, 1.0),
+  float4  outlow = float4(0.0, 0.0, 0.0, 0.0),
+  float4  outhigh = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_remap_color2FA
+  float2  in = float2(0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_remap_color3FA
+  color3  in = color3(0.0, 0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_remap_color4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_remap_vector2FA
+  float2  in = float2(0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_remap_vector3FA
+  float3  in = float3(0.0, 0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_remap_vector4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_smoothstep_float
+  float  in = float(0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_smoothstep_color2
+  float2  in = float2(0.0, 0.0),
+  float2  low = float2(0.0, 0.0),
+  float2  high = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_smoothstep_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  color3  low = color3(0.0, 0.0, 0.0),
+  color3  high = color3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_smoothstep_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  low = float4(0.0, 0.0, 0.0, 0.0),
+  float4  high = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_smoothstep_vector2
+  float2  in = float2(0.0, 0.0),
+  float2  low = float2(0.0, 0.0),
+  float2  high = float2(1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_smoothstep_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  float3  low = float3(0.0, 0.0, 0.0),
+  float3  high = float3(1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_smoothstep_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  low = float4(0.0, 0.0, 0.0, 0.0),
+  float4  high = float4(1.0, 1.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_smoothstep_color2FA
+  float2  in = float2(0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_smoothstep_color3FA
+  color3  in = color3(0.0, 0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_smoothstep_color4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_smoothstep_vector2FA
+  float2  in = float2(0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_smoothstep_vector3FA
+  float3  in = float3(0.0, 0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_smoothstep_vector4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  low = float(0.0),
+  float  high = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_curveadjust_float
+  float  in = float(0.0),
+  float2[<count>]  knots
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_curveadjust_color2
+  float2  in = float2(0.0, 0.0),
+  float2[<count>]  knots
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_curveadjust_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  float2[<count>]  knots
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_curveadjust_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float2[<count>]  knots
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_curveadjust_vector2
+  float2  in = float2(0.0, 0.0),
+  float2[<count>]  knots
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_curveadjust_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  float2[<count>]  knots
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_curveadjust_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float2[<count>]  knots
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export color3 mx_luminance_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  color3  lumacoeffs = color3(0.272287, 0.6740818, 0.0536895)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_luminance_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  color3  lumacoeffs = color3(0.272287, 0.6740818, 0.0536895)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export color3 mx_rgbtohsv_color3
+  color3  in = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_rgbtohsv_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export color3 mx_hsvtorgb_color3
+  color3  in = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_hsvtorgb_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_contrast_float
+  float  in = float(0.0),
+  float  amount = float(1.0),
+  float  pivot = float(0.5)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_contrast_color2
+  float2  in = float2(0.0, 0.0),
+  float2  amount = float2(1.0, 1.0),
+  float2  pivot = float2(0.5, 0.5)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_contrast_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  color3  amount = color3(1.0, 1.0, 1.0),
+  color3  pivot = color3(0.5, 0.5, 0.5)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_contrast_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  amount = float4(1.0, 1.0, 1.0, 1.0),
+  float4  pivot = float4(0.5, 0.5, 0.5, 0.5)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_contrast_vector2
+  float2  in = float2(0.0, 0.0),
+  float2  amount = float2(1.0, 1.0),
+  float2  pivot = float2(0.5, 0.5)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_contrast_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  float3  amount = float3(1.0, 1.0, 1.0),
+  float3  pivot = float3(0.5, 0.5, 0.5)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_contrast_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  amount = float4(1.0, 1.0, 1.0, 1.0),
+  float4  pivot = float4(0.5, 0.5, 0.5, 0.5)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_contrast_color2FA
+  float2  in = float2(0.0, 0.0),
+  float  amount = float(1.0),
+  float  pivot = float(0.5)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_contrast_color3FA
+  color3  in = color3(0.0, 0.0, 0.0),
+  float  amount = float(1.0),
+  float  pivot = float(0.5)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_contrast_color4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  amount = float(1.0),
+  float  pivot = float(0.5)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_contrast_vector2FA
+  float2  in = float2(0.0, 0.0),
+  float  amount = float(1.0),
+  float  pivot = float(0.5)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_contrast_vector3FA
+  float3  in = float3(0.0, 0.0, 0.0),
+  float  amount = float(1.0),
+  float  pivot = float(0.5)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_contrast_vector4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  amount = float(1.0),
+  float  pivot = float(0.5)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_range_float
+  float  in = float(0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  gamma = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_range_color2
+  float2  in = float2(0.0, 0.0),
+  float2  inlow = float2(0.0, 0.0),
+  float2  inhigh = float2(1.0, 1.0),
+  float2  gamma = float2(1.0, 1.0),
+  float2  outlow = float2(0.0, 0.0),
+  float2  outhigh = float2(1.0, 1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_range_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  color3  inlow = color3(0.0, 0.0, 0.0),
+  color3  inhigh = color3(1.0, 1.0, 1.0),
+  color3  gamma = color3(1.0, 1.0, 1.0),
+  color3  outlow = color3(0.0, 0.0, 0.0),
+  color3  outhigh = color3(1.0, 1.0, 1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_range_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  inlow = float4(0.0, 0.0, 0.0, 0.0),
+  float4  inhigh = float4(1.0, 1.0, 1.0, 1.0),
+  float4  gamma = float4(1.0, 1.0, 1.0, 1.0),
+  float4  outlow = float4(0.0, 0.0, 0.0, 0.0),
+  float4  outhigh = float4(1.0, 1.0, 1.0, 1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_range_vector2
+  float2  in = float2(0.0, 0.0),
+  float2  inlow = float2(0.0, 0.0),
+  float2  inhigh = float2(1.0, 1.0),
+  float2  gamma = float2(1.0, 1.0),
+  float2  outlow = float2(0.0, 0.0),
+  float2  outhigh = float2(1.0, 1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_range_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  float3  inlow = float3(0.0, 0.0, 0.0),
+  float3  inhigh = float3(1.0, 1.0, 1.0),
+  float3  gamma = float3(1.0, 1.0, 1.0),
+  float3  outlow = float3(0.0, 0.0, 0.0),
+  float3  outhigh = float3(1.0, 1.0, 1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_range_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float4  inlow = float4(0.0, 0.0, 0.0, 0.0),
+  float4  inhigh = float4(1.0, 1.0, 1.0, 1.0),
+  float4  gamma = float4(1.0, 1.0, 1.0, 1.0),
+  float4  outlow = float4(0.0, 0.0, 0.0, 0.0),
+  float4  outhigh = float4(1.0, 1.0, 1.0, 1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_range_color2FA
+  float2  in = float2(0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  gamma = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_range_color3FA
+  color3  in = color3(0.0, 0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  gamma = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_range_color4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  gamma = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_range_vector2FA
+  float2  in = float2(0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  gamma = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_range_vector3FA
+  float3  in = float3(0.0, 0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  gamma = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_range_vector4FA
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  inlow = float(0.0),
+  float  inhigh = float(1.0),
+  float  gamma = float(1.0),
+  float  outlow = float(0.0),
+  float  outhigh = float(1.0),
+  bool  doclamp = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export color3 mx_hsvadjust_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  float3  amount = float3(0.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_hsvadjust_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float3  amount = float3(0.0, 1.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export color3 mx_saturate_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  float  amount = float(1.0),
+  color3  lumacoeffs = color3(0.272287, 0.6740818, 0.0536895)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_saturate_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  amount = float(1.0),
+  color3  lumacoeffs = color3(0.272287, 0.6740818, 0.0536895)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_premult_color2
+  float2  in = float2(0.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float4 mx_premult_color4
+  float4  in = float4(0.0, 0.0, 0.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_unpremult_color2
+  float2  in = float2(0.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float4 mx_unpremult_color4
+  float4  in = float4(0.0, 0.0, 0.0, 1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_plus_float
+  float  fg = float(0.0),
+  float  bg = float(0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_plus_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_plus_color3
+  color3  fg = color3(0.0, 0.0, 0.0),
+  color3  bg = color3(0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_plus_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_minus_float
+  float  fg = float(0.0),
+  float  bg = float(0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_minus_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_minus_color3
+  color3  fg = color3(0.0, 0.0, 0.0),
+  color3  bg = color3(0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_minus_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_difference_float
+  float  fg = float(0.0),
+  float  bg = float(0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_difference_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_difference_color3
+  color3  fg = color3(0.0, 0.0, 0.0),
+  color3  bg = color3(0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_difference_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_burn_float
+  float  fg = float(0.0),
+  float  bg = float(0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_burn_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_burn_color3
+  color3  fg = color3(0.0, 0.0, 0.0),
+  color3  bg = color3(0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_burn_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_dodge_float
+  float  fg = float(0.0),
+  float  bg = float(0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_dodge_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_dodge_color3
+  color3  fg = color3(0.0, 0.0, 0.0),
+  color3  bg = color3(0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_dodge_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_screen_float
+  float  fg = float(0.0),
+  float  bg = float(0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_screen_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_screen_color3
+  color3  fg = color3(0.0, 0.0, 0.0),
+  color3  bg = color3(0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_screen_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_overlay_float
+  float  fg = float(0.0),
+  float  bg = float(0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_overlay_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_overlay_color3
+  color3  fg = color3(0.0, 0.0, 0.0),
+  color3  bg = color3(0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_overlay_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_disjointover_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float4 mx_disjointover_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_in_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float4 mx_in_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_mask_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float4 mx_mask_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_matte_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float4 mx_matte_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_out_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float4 mx_out_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_over_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float4 mx_over_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_inside_float
+  float  in = float(0.0),
+  float  mask = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_inside_color2
+  float2  in = float2(0.0, 0.0),
+  float  mask = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_inside_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  float  mask = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_inside_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  mask = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_outside_float
+  float  in = float(0.0),
+  float  mask = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_outside_color2
+  float2  in = float2(0.0, 0.0),
+  float  mask = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_outside_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  float  mask = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_outside_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  mask = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_mix_float
+  float  fg = float(0.0),
+  float  bg = float(0.0),
+  float  mix = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_mix_color2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_mix_color3
+  color3  fg = color3(0.0, 0.0, 0.0),
+  color3  bg = color3(0.0, 0.0, 0.0),
+  float  mix = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_mix_color4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_mix_vector2
+  float2  fg = float2(0.0, 0.0),
+  float2  bg = float2(0.0, 0.0),
+  float  mix = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_mix_vector3
+  float3  fg = float3(0.0, 0.0, 0.0),
+  float3  bg = float3(0.0, 0.0, 0.0),
+  float  mix = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_mix_vector4
+  float4  fg = float4(0.0, 0.0, 0.0, 0.0),
+  float4  bg = float4(0.0, 0.0, 0.0, 0.0),
+  float  mix = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export surfaceshader mx_mix_surfaceshader
+  surfaceshader  fg,
+  surfaceshader  bg,
+  float  mix = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  surfaceshader outVal;
+  return outVal;
+}
+
+export displacementshader mx_mix_displacementshader
+  displacementshader  fg,
+  displacementshader  bg,
+  float  mix = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  displacementshader outVal;
+  return outVal;
+}
+
+export volumeshader mx_mix_volumeshader
+  volumeshader  fg,
+  volumeshader  bg,
+  float  mix = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  volumeshader outVal;
+  return outVal;
+}
+
+export float mx_ifgreater_float
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ifgreater_color2
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ifgreater_color3
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifgreater_color4
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ifgreater_vector2
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ifgreater_vector3
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifgreater_vector4
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_ifgreater_floatI
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ifgreater_color2I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ifgreater_color3I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifgreater_color4I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ifgreater_vector2I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ifgreater_vector3I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifgreater_vector4I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_ifgreatereq_float
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ifgreatereq_color2
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ifgreatereq_color3
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifgreatereq_color4
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ifgreatereq_vector2
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ifgreatereq_vector3
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifgreatereq_vector4
+  float  value1 = float(1.0),
+  float  value2 = float(0.0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_ifgreatereq_floatI
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ifgreatereq_color2I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ifgreatereq_color3I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifgreatereq_color4I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ifgreatereq_vector2I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ifgreatereq_vector3I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifgreatereq_vector4I
+  int  value1 = int(1),
+  int  value2 = int(0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_ifequal_float
+  float  value1 = float(0.0),
+  float  value2 = float(0.0),
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ifequal_color2
+  float  value1 = float(0.0),
+  float  value2 = float(0.0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ifequal_color3
+  float  value1 = float(0.0),
+  float  value2 = float(0.0),
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifequal_color4
+  float  value1 = float(0.0),
+  float  value2 = float(0.0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ifequal_vector2
+  float  value1 = float(0.0),
+  float  value2 = float(0.0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ifequal_vector3
+  float  value1 = float(0.0),
+  float  value2 = float(0.0),
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifequal_vector4
+  float  value1 = float(0.0),
+  float  value2 = float(0.0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_ifequal_floatI
+  int  value1 = int(0),
+  int  value2 = int(0),
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ifequal_color2I
+  int  value1 = int(0),
+  int  value2 = int(0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ifequal_color3I
+  int  value1 = int(0),
+  int  value2 = int(0),
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifequal_color4I
+  int  value1 = int(0),
+  int  value2 = int(0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ifequal_vector2I
+  int  value1 = int(0),
+  int  value2 = int(0),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ifequal_vector3I
+  int  value1 = int(0),
+  int  value2 = int(0),
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifequal_vector4I
+  int  value1 = int(0),
+  int  value2 = int(0),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_ifequal_floatB
+  bool  value1 = bool(false),
+  bool  value2 = bool(false),
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_ifequal_color2B
+  bool  value1 = bool(false),
+  bool  value2 = bool(false),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_ifequal_color3B
+  bool  value1 = bool(false),
+  bool  value2 = bool(false),
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifequal_color4B
+  bool  value1 = bool(false),
+  bool  value2 = bool(false),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_ifequal_vector2B
+  bool  value1 = bool(false),
+  bool  value2 = bool(false),
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_ifequal_vector3B
+  bool  value1 = bool(false),
+  bool  value2 = bool(false),
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_ifequal_vector4B
+  bool  value1 = bool(false),
+  bool  value2 = bool(false),
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_switch_float
+  float  in1 = float(0.0),
+  float  in2 = float(0.0),
+  float  in3 = float(0.0),
+  float  in4 = float(0.0),
+  float  in5 = float(0.0),
+  float  which = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_switch_color2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0),
+  float2  in3 = float2(0.0, 0.0),
+  float2  in4 = float2(0.0, 0.0),
+  float2  in5 = float2(0.0, 0.0),
+  float  which = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_switch_color3
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0),
+  color3  in3 = color3(0.0, 0.0, 0.0),
+  color3  in4 = color3(0.0, 0.0, 0.0),
+  color3  in5 = color3(0.0, 0.0, 0.0),
+  float  which = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_switch_color4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in3 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in4 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in5 = float4(0.0, 0.0, 0.0, 0.0),
+  float  which = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_switch_vector2
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0),
+  float2  in3 = float2(0.0, 0.0),
+  float2  in4 = float2(0.0, 0.0),
+  float2  in5 = float2(0.0, 0.0),
+  float  which = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_switch_vector3
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0),
+  float3  in3 = float3(0.0, 0.0, 0.0),
+  float3  in4 = float3(0.0, 0.0, 0.0),
+  float3  in5 = float3(0.0, 0.0, 0.0),
+  float  which = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_switch_vector4
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in3 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in4 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in5 = float4(0.0, 0.0, 0.0, 0.0),
+  float  which = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_switch_floatI
+  float  in1 = float(0.0),
+  float  in2 = float(0.0),
+  float  in3 = float(0.0),
+  float  in4 = float(0.0),
+  float  in5 = float(0.0),
+  int  which = int(0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_switch_color2I
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0),
+  float2  in3 = float2(0.0, 0.0),
+  float2  in4 = float2(0.0, 0.0),
+  float2  in5 = float2(0.0, 0.0),
+  int  which = int(0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_switch_color3I
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  color3  in2 = color3(0.0, 0.0, 0.0),
+  color3  in3 = color3(0.0, 0.0, 0.0),
+  color3  in4 = color3(0.0, 0.0, 0.0),
+  color3  in5 = color3(0.0, 0.0, 0.0),
+  int  which = int(0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_switch_color4I
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in3 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in4 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in5 = float4(0.0, 0.0, 0.0, 0.0),
+  int  which = int(0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_switch_vector2I
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0),
+  float2  in3 = float2(0.0, 0.0),
+  float2  in4 = float2(0.0, 0.0),
+  float2  in5 = float2(0.0, 0.0),
+  int  which = int(0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_switch_vector3I
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float3  in2 = float3(0.0, 0.0, 0.0),
+  float3  in3 = float3(0.0, 0.0, 0.0),
+  float3  in4 = float3(0.0, 0.0, 0.0),
+  float3  in5 = float3(0.0, 0.0, 0.0),
+  int  which = int(0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_switch_vector4I
+  float4  in1 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in2 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in3 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in4 = float4(0.0, 0.0, 0.0, 0.0),
+  float4  in5 = float4(0.0, 0.0, 0.0, 0.0),
+  int  which = int(0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_convert_float_color2
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_convert_float_color3
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_convert_float_color4
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_convert_float_vector2
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_convert_float_vector3
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_convert_float_vector4
+  float  in = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_convert_vector2_color2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_convert_vector2_vector3
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export color3 mx_convert_vector3_color3
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float2 mx_convert_vector3_vector2
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float4 mx_convert_vector3_vector4
+  float3  in = float3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_convert_vector4_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float3 mx_convert_vector4_vector3
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float2 mx_convert_color2_vector2
+  float2  in = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_convert_color3_vector3
+  color3  in = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_convert_color4_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_convert_color3_color4
+  color3  in = color3(0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export color3 mx_convert_color4_color3
+  float4  in = float4(0.0, 0.0, 0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float mx_convert_boolean_float
+  bool  in = bool(false)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_convert_integer_float
+  int  in = int(0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_float_color2
+  float  in = float(0.0),
+  string  channels = string('rr')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_swizzle_float_color3
+  float  in = float(0.0),
+  string  channels = string('rrr')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_float_color4
+  float  in = float(0.0),
+  string  channels = string('rrrr')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_float_vector2
+  float  in = float(0.0),
+  string  channels = string('xx')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_swizzle_float_vector3
+  float  in = float(0.0),
+  string  channels = string('xxx')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_float_vector4
+  float  in = float(0.0),
+  string  channels = string('xxxx')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_swizzle_color2_float
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('r')
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_color2_color2
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('rr')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_swizzle_color2_color3
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('rrr')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_color2_color4
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('rrrr')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_color2_vector2
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('rr')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_swizzle_color2_vector3
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('rrr')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_color2_vector4
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('rrrr')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_swizzle_color3_float
+  color3  in = color3(0.0, 0.0, 0.0),
+  string  channels = string('r')
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_color3_color2
+  color3  in = color3(0.0, 0.0, 0.0),
+  string  channels = string('rr')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_swizzle_color3_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  string  channels = string('rrr')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_color3_color4
+  color3  in = color3(0.0, 0.0, 0.0),
+  string  channels = string('rrrr')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_color3_vector2
+  color3  in = color3(0.0, 0.0, 0.0),
+  string  channels = string('rr')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_swizzle_color3_vector3
+  color3  in = color3(0.0, 0.0, 0.0),
+  string  channels = string('rrr')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_color3_vector4
+  color3  in = color3(0.0, 0.0, 0.0),
+  string  channels = string('rrrr')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_swizzle_color4_float
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('r')
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_color4_color2
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('rr')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_swizzle_color4_color3
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('rrr')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_color4_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('rrrr')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_color4_vector2
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('rr')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_swizzle_color4_vector3
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('rrr')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_color4_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('rrrr')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_swizzle_vector2_float
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('x')
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_vector2_color2
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('xx')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_swizzle_vector2_color3
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('xxx')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_vector2_color4
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('xxxx')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_vector2_vector2
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('xx')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_swizzle_vector2_vector3
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('xxx')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_vector2_vector4
+  float2  in = float2(0.0, 0.0),
+  string  channels = string('xxxx')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_swizzle_vector3_float
+  float3  in = float3(0.0, 0.0, 0.0),
+  string  channels = string('x')
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_vector3_color2
+  float3  in = float3(0.0, 0.0, 0.0),
+  string  channels = string('xx')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_swizzle_vector3_color3
+  float3  in = float3(0.0, 0.0, 0.0),
+  string  channels = string('xxx')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_vector3_color4
+  float3  in = float3(0.0, 0.0, 0.0),
+  string  channels = string('xxxx')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_vector3_vector2
+  float3  in = float3(0.0, 0.0, 0.0),
+  string  channels = string('xx')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_swizzle_vector3_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  string  channels = string('xxx')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_vector3_vector4
+  float3  in = float3(0.0, 0.0, 0.0),
+  string  channels = string('xxxx')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_swizzle_vector4_float
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('x')
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_vector4_color2
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('xx')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_swizzle_vector4_color3
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('xxx')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_vector4_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('xxxx')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_swizzle_vector4_vector2
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('xx')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_swizzle_vector4_vector3
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('xxx')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_swizzle_vector4_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  channels = string('xxxx')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_combine2_color2
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float2 mx_combine2_vector2
+  float  in1 = float(0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float4 mx_combine2_color4CF
+  color3  in1 = color3(0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_combine2_vector4VF
+  float3  in1 = float3(0.0, 0.0, 0.0),
+  float  in2 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_combine2_color4CC
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_combine2_vector4VV
+  float2  in1 = float2(0.0, 0.0),
+  float2  in2 = float2(0.0, 0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export color3 mx_combine3_color3
+  float  in1 = float(0.0),
+  float  in2 = float(0.0),
+  float  in3 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float3 mx_combine3_vector3
+  float  in1 = float(0.0),
+  float  in2 = float(0.0),
+  float  in3 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_combine4_color4
+  float  in1 = float(0.0),
+  float  in2 = float(0.0),
+  float  in3 = float(0.0),
+  float  in4 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float4 mx_combine4_vector4
+  float  in1 = float(0.0),
+  float  in2 = float(0.0),
+  float  in3 = float(0.0),
+  float  in4 = float(0.0)
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float mx_extract_color2
+  float2  in = float2(0.0, 0.0),
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_extract_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_extract_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_extract_vector2
+  float2  in = float2(0.0, 0.0),
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_extract_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float mx_extract_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  int  index = int(0)
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export multioutput mx_separate2_color2
+  float2  in = float2(0.0, 0.0),
+)
+{
+  // TODO: Add implementation here
+  multioutput outVal;
+  return outVal;
+}
+
+export multioutput mx_separate2_vector2
+  float2  in = float2(0.0, 0.0),
+)
+{
+  // TODO: Add implementation here
+  multioutput outVal;
+  return outVal;
+}
+
+export multioutput mx_separate3_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+)
+{
+  // TODO: Add implementation here
+  multioutput outVal;
+  return outVal;
+}
+
+export multioutput mx_separate3_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+)
+{
+  // TODO: Add implementation here
+  multioutput outVal;
+  return outVal;
+}
+
+export multioutput mx_separate4_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+)
+{
+  // TODO: Add implementation here
+  multioutput outVal;
+  return outVal;
+}
+
+export multioutput mx_separate4_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+)
+{
+  // TODO: Add implementation here
+  multioutput outVal;
+  return outVal;
+}
+
+export float mx_blur_float
+  float  in = float(0.0),
+  float  size = float(0.0),
+  string  filtertype = string('box')
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_blur_color2
+  float2  in = float2(0.0, 0.0),
+  float  size = float(0.0),
+  string  filtertype = string('box')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_blur_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  float  size = float(0.0),
+  string  filtertype = string('box')
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_blur_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  size = float(0.0),
+  string  filtertype = string('box')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_blur_vector2
+  float2  in = float2(0.0, 0.0),
+  float  size = float(0.0),
+  string  filtertype = string('box')
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_blur_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  float  size = float(0.0),
+  string  filtertype = string('box')
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_blur_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  float  size = float(0.0),
+  string  filtertype = string('box')
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float3 mx_heighttonormal_vector3
+  float  in = float(0.0),
+  float  scale = float(1.0)
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float mx_dot_float
+  float  in = float(0.0),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  float outVal;
+  return outVal;
+}
+
+export float2 mx_dot_color2
+  float2  in = float2(0.0, 0.0),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export color3 mx_dot_color3
+  color3  in = color3(0.0, 0.0, 0.0),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  color3 outVal;
+  return outVal;
+}
+
+export float4 mx_dot_color4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export float2 mx_dot_vector2
+  float2  in = float2(0.0, 0.0),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  float2 outVal;
+  return outVal;
+}
+
+export float3 mx_dot_vector3
+  float3  in = float3(0.0, 0.0, 0.0),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  float3 outVal;
+  return outVal;
+}
+
+export float4 mx_dot_vector4
+  float4  in = float4(0.0, 0.0, 0.0, 0.0),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  float4 outVal;
+  return outVal;
+}
+
+export bool mx_dot_boolean
+  bool  in = bool(false),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  bool outVal;
+  return outVal;
+}
+
+export int mx_dot_integer
+  int  in = int(0),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  int outVal;
+  return outVal;
+}
+
+export float3x3 mx_dot_matrix33
+  float3x3  in = float3x3(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  float3x3 outVal;
+  return outVal;
+}
+
+export float4x4 mx_dot_matrix44
+  float4x4  in = float4x4(1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0),
+  string  note
+)
+{
+  // TODO: Add implementation here
+  float4x4 outVal;
+  return outVal;
+}
+
+export string mx_dot_string
+  string  in,
+  string  note
+)
+{
+  // TODO: Add implementation here
+  string outVal;
+  return outVal;
+}
+
+export string mx_dot_filename
+  string  in,
+  string  note
+)
+{
+  // TODO: Add implementation here
+  string outVal;
+  return outVal;
+}
+
+export surfaceshader mx_dot_surfaceshader
+  surfaceshader  in,
+  string  note
+)
+{
+  // TODO: Add implementation here
+  surfaceshader outVal;
+  return outVal;
+}
+
+export displacementshader mx_dot_displacementshader
+  displacementshader  in,
+  string  note
+)
+{
+  // TODO: Add implementation here
+  displacementshader outVal;
+  return outVal;
+}
+
+export volumeshader mx_dot_volumeshader
+  volumeshader  in,
+  string  note
+)
+{
+  // TODO: Add implementation here
+  volumeshader outVal;
+  return outVal;
+}
+
+export lightshader mx_dot_lightshader
+  lightshader  in,
+  string  note
+)
+{
+  // TODO: Add implementation here
+  lightshader outVal;
+  return outVal;
+}
+
