@@ -602,18 +602,23 @@ namespace
         for (size_t i=0; i<numOutputs; ++i)
         {
             RtPort outputPort = node->getPort(node->getOutputsOffset() + i);
-            RtNode connectedNode(outputPort.getNode());
-            if (connectedNode.numOutputs() > 0 &&connectedNode.getOutput(0).getType() == "surfacematerial")
+            size_t numDestinationPorts = outputPort.numDestinationPorts();
+            for (size_t j=0; j<numDestinationPorts; ++j)
             {
-                isConnectedToMaterialNode = true;
-                break;
+                RtNode connectedNode(outputPort.getDestinationPort(j).getNode());
+                if (connectedNode.numOutputs() > 0 &&
+                    connectedNode.getOutput(0).getType() == "material")
+                {
+                    isConnectedToMaterialNode = true;
+                    break;
+                }
             }
         }
         
         if (!isConnectedToMaterialNode)
         {
             NodePtr materialNode = doc->addNode("surfacematerial", mxNode->getName() + "_SurfaceMaterial", "material");
-            mxNode->setConnectedNode("surfaceshader", materialNode);
+            materialNode->setConnectedNode("surfaceshader", mxNode);
         }
     }
 
@@ -766,13 +771,17 @@ namespace
                             {
                                 // Get the connected material nodes and create material elements from them (using their names)
                                 size_t numOutputs = node->numOutputs();
-                                for (size_t j=0; i<numOutputs; ++j)
+                                for (size_t j=0; j<numOutputs; ++j)
                                 {
                                     RtPort outputPort = node->getPort(node->getOutputsOffset() + j);
-                                    RtNode connectedNode(outputPort.getNode());
-                                    if (connectedNode.numOutputs() > 0 && connectedNode.getOutput(0).getType() == "surfacematerial")
+                                    size_t numDestinationPorts = outputPort.numDestinationPorts();
+                                    for (size_t j = 0; j < numDestinationPorts; ++j)
                                     {
-                                        writeMaterialElements(node, mxNode, connectedNode.getName(), nodedef->getNodeName().str(), doc, writeOptions);
+                                        RtNode connectedNode(outputPort.getDestinationPort(j).getNode());
+                                        if (connectedNode.numOutputs() > 0 && connectedNode.getOutput(0).getType() == "material")
+                                        {
+                                            writeMaterialElements(node, mxNode, connectedNode.getName(), nodedef->getNodeName().str(), doc, writeOptions);
+                                        }
                                     }
                                 }
                             }
