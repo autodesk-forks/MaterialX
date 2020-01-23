@@ -60,23 +60,23 @@ def _mapGeomProp(geomprop):
     outputValue = ''
     if len(geomprop):
         if geomprop.find('UV') >= 0:
-            outputValue = '::state::texture_coordinate(0).x, ::state::texture_coordinate(0).y'
+            outputValue = '::state::texture_coordinate(0).x,::state::texture_coordinate(0).y'
         elif geomprop.find('Pobject') >= 0:
-            outputValue = '::state::position()'
+            outputValue = '::state::transform_point(::state::coordinate_internal,::state::coordinate_object,::state::position())'
         elif geomprop.find('PWorld') >= 0:
-            outputValue = '::state::position()'
+            outputValue = '::state::transform_point(::state::coordinate_internal,::state::coordinate_world,::state::position())'
         elif geomprop.find('Nobject') >= 0:
-            outputValue = '::state::normal()'
+            outputValue = '::state::transform_normal(::state::coordinate_internal,::state::coordinate_object,::state::normal())'
         elif geomprop.find('Nworld') >= 0:
-            outputValue = '::state::normal()'
+            outputValue = '::state::transform_normal(::state::coordinate_internal,::state::coordinate_world,::state::normal())'
         elif geomprop.find('Tobject') >= 0:
-            outputValue = '::state::texture_tangent_u(0)'
+            outputValue = '::state::transform_vector(::state::coordinate_internal,::state::coordinate_object,::state::texture_tangent_u(0))'
         elif geomprop.find('Tworld') >= 0:
-            outputValue = '::state::texture_tangent_u(0)'
+            outputValue = 'state::transform_vector(::state::coordinate_internal,::state::coordinate_world,::state::texture_tangent_u(0))'
         elif geomprop.find('Bobject') >= 0:
-            outputValue = '::state::texture_tangent_u(0)'
+            outputValue = 'state::transform_vector(::state::coordinate_internal,::state::coordinate_object,::state::texture_tangent_v(0))'
         elif geomprop.find('Bworld') >= 0:
-            outputValue = '::state::texture_tangent_v(0)'
+            outputValue = '::state::transform_vector(::state::coordinate_internal,::state::coordinate_world,::state::texture_tangent_v(0))'
     return outputValue
 
 def _writeValueAssignment(file, outputValue, outputType):
