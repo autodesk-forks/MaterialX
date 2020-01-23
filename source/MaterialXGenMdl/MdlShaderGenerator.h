@@ -35,9 +35,6 @@ class MdlShaderGenerator : public ShaderGenerator
     /// the element and all dependencies upstream into shader code.
     ShaderPtr generate(const string& name, ElementPtr element, GenContext& context) const override;
 
-    /// Add all function calls for a graph.
-    void emitFunctionCalls(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const override;
-
     /// Unique identifier for the MDL language
     static const string LANGUAGE;
 
@@ -47,22 +44,15 @@ class MdlShaderGenerator : public ShaderGenerator
 protected:
 
     /// Create and initialize a new MDL shader for shader generation.
-    virtual ShaderPtr createShader(const string& name, ElementPtr element, GenContext& context) const;
-
-    /// Emit include headers needed by the generated shader code.
-    virtual void emitIncludes(ShaderStage& stage, GenContext& context) const;
+    ShaderPtr createShader(const string& name, ElementPtr element, GenContext& context) const;
 
     /// Emit a block of shader inputs.
-    virtual void emitShaderInputs(const VariableBlock& inputs, ShaderStage& stage) const;
-
-    /// Emit a block of shader outputs.
-    virtual void emitShaderOutputs(const VariableBlock& inputs, ShaderStage& stage) const;
+    void emitShaderInputs(const VariableBlock& inputs, ShaderStage& stage) const;
 };
 
 namespace MDL
 {
     /// Identifiers for MDL variable blocks
-    extern const string UNIFORMS;
     extern const string INPUTS;
     extern const string OUTPUTS;
 }

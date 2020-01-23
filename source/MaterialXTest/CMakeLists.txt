@@ -53,6 +53,7 @@ set(LIBS
     MaterialXCore
     MaterialXFormat
     MaterialXGenShader
+    MaterialXGenMdl
     MaterialXGenOsl
     MaterialXGenGlsl
     MaterialXRender

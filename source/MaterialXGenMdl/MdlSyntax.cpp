@@ -85,12 +85,13 @@ class MdlIntegerArrayTypeSyntax : public MdlArrayTypeSyntax
 
 } // anonymous namespace
 
+const string MdlSyntax::CONST_QUALIFIER = "const";
 const StringVec MdlSyntax::VECTOR2_MEMBERS = { ".x", ".y" };
 const StringVec MdlSyntax::VECTOR3_MEMBERS = { ".x", ".y", ".z" };
 const StringVec MdlSyntax::VECTOR4_MEMBERS = { ".x", ".y", ".z", ".w" };
 const StringVec MdlSyntax::COLOR2_MEMBERS = { "[0]", "[1]" };
 const StringVec MdlSyntax::COLOR3_MEMBERS = { "[0]", "[1]", "[2]" };
-const StringVec MdlSyntax::COLOR4_MEMBERS = { "[0]", "[1]", "[2]", "[3]" };
+const StringVec MdlSyntax::COLOR4_MEMBERS = { "rgb[0]", "[1]", "[2]", "[3]" };
 
 //
 // MdlSyntax methods
