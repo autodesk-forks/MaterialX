@@ -18,7 +18,7 @@ def usage():
     print '   - <module_name>.mdl: Module with signature stubs for each MaterialX nodedef'
     print '   - stdlib_genmdl_impl.mtlx: MaterialX nodedef implementation mapping file'
     print '- By default <module_name>="mymodule" and <version>="1.6"'
-    
+
 def _getSubDirectories(libraryPath):
     return [name for name in os.listdir(libraryPath)
             if os.path.isdir(os.path.join(libraryPath, name))]
@@ -43,13 +43,41 @@ def _loadLibraries(doc, searchPath, libraryPath):
             filePath = os.path.join(libraryPath, os.path.join(path, filename))
             _loadLibrary(filePath, doc)
 
-def _writeHeader(file, version):    
+def _writeHeader(file, version):
     file.write('mdl ' + version + ';\n')
     IMPORT_LIST = { 'anno', 'base', 'df', 'math', 'state', 'tex' }
     # To verify what are the minimal imports required
     for i in IMPORT_LIST:
         file.write('import::' + i + '::*;\n')
     file.write('\n')
+    file.write('// Custom color4 type\n')
+    file.write('export struct color4 {\n')
+    file.write('  color3 rgb  = color3(0.0);\n')
+    file.write('  float  a    = 1.0;\n')
+    file.write('};\n\n')
+
+def _mapGeomProp(geomprop):
+    outputValue = ''
+    if len(geomprop):
+        if geomprop.find('UV') >= 0:
+            outputValue = '::state::texture_coordinate(0).x, ::state::texture_coordinate(0).y'
+        elif geomprop.find('Pobject') >= 0:
+            outputValue = '::state::position()'
+        elif geomprop.find('PWorld') >= 0:
+            outputValue = '::state::position()'
+        elif geomprop.find('Nobject') >= 0:
+            outputValue = '::state::normal()'
+        elif geomprop.find('Nworld') >= 0:
+            outputValue = '::state::normal()'
+        elif geomprop.find('Tobject') >= 0:
+            outputValue = '::state::texture_tangent_u(0)'
+        elif geomprop.find('Tworld') >= 0:
+            outputValue = '::state::texture_tangent_u(0)'
+        elif geomprop.find('Bobject') >= 0:
+            outputValue = '::state::texture_tangent_u(0)'
+        elif geomprop.find('Bworld') >= 0:
+            outputValue = '::state::texture_tangent_v(0)'
+    return outputValue
 
 def _writeValueAssignment(file, outputValue, outputType):
    if len(outputValue):
@@ -98,20 +126,20 @@ def main():
         os.mkdir(outputPath)
 
     file = None
-    
+
     # Write to single file if module name specified
     if len(moduleName):
         file = open(outputPath + '/' + moduleName + '.mdl', 'w+')
         _writeHeader(file, version)
-        
-    # Dictionary to map from MaterialX type declarations 
+
+    # Dictionary to map from MaterialX type declarations
     # to MDL type declarations
     typeMap = dict()
     typeMap['boolean'] = 'bool'
     typeMap['integer'] = 'int'
     typeMap['color2'] = 'float2'
     typeMap['color3'] = 'color'
-    typeMap['color4'] = 'float4'
+    typeMap['color4'] = 'color4'
     typeMap['vector2'] = 'float2'
     typeMap['vector3'] = 'float3'
     typeMap['vector4'] = 'float4'
@@ -119,18 +147,21 @@ def main():
     typeMap['matrix44'] = 'float4x4'
     typeMap['filename'] = 'string'
     typeMap['geomname'] = 'string'
-    typeMap['floatarray'] = 'float[<count>]'
-    typeMap['integerarray'] = 'int[<count>]'
-    typeMap['color2array'] = 'float2[<count>]'
-    typeMap['color3array'] = 'color[<count>]'
-    typeMap['color4array'] = 'float4[<count>]'
-    typeMap['vector2array'] = 'float2[<count>]'
-    typeMap['vector3array'] = 'float3[<count>]'
-    typeMap['vector4array'] = 'float4[<count>]'
-    typeMap['stringarray'] = 'string[<count>]'
-    typeMap['geomnamearray'] = 'string[<count>]'
+    typeMap['floatarray'] = 'float[<N>]'
+    typeMap['integerarray'] = 'int[<N>]'
+    typeMap['color2array'] = 'float2[<N>]'
+    typeMap['color3array'] = 'color[<N>]'
+    typeMap['color4array'] = 'float4[<N>]'
+    typeMap['vector2array'] = 'float2[<N>]'
+    typeMap['vector3array'] = 'float3[<N>]'
+    typeMap['vector4array'] = 'float4[<N>]'
+    typeMap['stringarray'] = 'string[<N>]'
+    typeMap['geomnamearray'] = 'string[<N>]'
+    typeMap['surfaceshader'] = 'material_surface'
+    typeMap['displacementshader'] = 'material_geometry'
+    typeMap['lightshader'] = 'material_emission'
 
-    INDENT = '  '
+    INDENT = '\t'
     SPACE = ' '
     QUOTE = '"'
 
@@ -139,6 +170,10 @@ def main():
     implDoc = mx.createDocument()
     nodedefs = doc.getNodeDefs()
     for nodedef in nodedefs:
+
+        # These definitions are for organization only
+        if nodedef.getAttribute('nodegroup') == 'organization':
+            continue
 
         if len(nodedef.getActiveOutputs()) == 0:
            continue
@@ -155,7 +190,7 @@ def main():
         filename = nodeName + '.mdl'
 
         implname = IMPLEMENTATION_PREFIX + nodeName + '_' + GENMDL
-        impl = implDoc.addImplementation(implname)                    
+        impl = implDoc.addImplementation(implname)
         impl.setNodeDef(nodedef)
         if len(moduleName):
             impl.setFile('stdlib/genmdl/' + moduleName + '.mdl')
@@ -192,50 +227,64 @@ def main():
         for elem in elems:
 
             dataType = ''
+            defaultgeomprop = ''
+
             # Skip output elements
             if isinstance(elem, mx.Output):
                 outputValue = elem.getAttribute('default')
+                if outputValue == '[]':
+                    outputvalue = ''
                 outputType = elem.getType()
                 if outputType in typeMap:
                     outputType = typeMap[outputType]
                 continue
+
             # Parameters map to uniforms
             elif isinstance(elem, mx.Parameter):
-                dataType = 'uniform'
+                dataType = 'uniform '
             # Inputs map to varyings
             elif isinstance(elem, mx.Input):
-                dataType = 'varying'
+                dataType = ''
+                defaultgeomprop = elem.getAttribute('defaultgeomprop')
 
             typeString = elem.getType()
             if typeString in typeMap:
                 typeString = typeMap[typeString]
-            
+
             isString = (typeString == 'string')
-            file.write(INDENT + dataType)
-            file.write(SPACE + typeString)
-            file.write(SPACE + elem.getName())
-            valueString = elem.getValueString()
-            _writeValueAssignment(file, valueString, typeString)
+            file.write(INDENT + dataType + typeString + SPACE + elem.getName())
+            if len(defaultgeomprop) > 0:
+                valueString = _mapGeomProp(defaultgeomprop)
+            else:
+                valueString = elem.getValueString()
+            if len(valueString):
+                _writeValueAssignment(file, valueString, typeString)
 
             # Add annotations if any
             description = elem.getAttribute('doc')
+            if len(elem.getAttribute('enum')):
+                description = description + 'Enumeration {' + elem.getAttribute('enum') + '}.'
+            if len(elem.getAttribute('unittype')):
+                description = description + 'Unit Type:' + elem.getAttribute('unittype') + '.'
+            if len(elem.getAttribute('unit')):
+                description = description + ' Unit:' + elem.getAttribute('unit') + "."
             uiname = elem.getAttribute('uiname')
             uigroup = elem.getAttribute('uifolder')
             if len(description) or len(uiname) or len(uigroup):
                 file.write(INDENT + '\n' + INDENT + '[[')
                 count = 0
                 if len(description):
-                    file.write(INDENT + INDENT + "anno::description(" + description + '")')
+                    file.write("\n" + INDENT + INDENT + 'anno::description("' + description + '")')
                     count = count + 1
                 if len(uiname):
                     if count > 0:
                         file.write(',')
-                    file.write("\n" + INDENT + INDENT + "anno::display_name(" + uiname + '")')
+                    file.write("\n" + INDENT + INDENT + 'anno::display_name("' + uiname + '")')
                     count = count + 1
                 if len(uigroup):
                     if count > 0:
                         file.write(',')
-                    file.write("\n" + INDENT + INDENT + "anno::in_group(" + uigroup + '")')
+                    file.write("\n" + INDENT + INDENT + 'anno::in_group("' + uigroup + '")')
                 file.write('\n' + INDENT + ']]')
 
             if i < lastComma:
@@ -243,7 +292,13 @@ def main():
             file.write('\n')
             i = i + 1
 
-        file.write(') {\n')
+        file.write(')\n')
+        nodegroup = nodedef.getAttribute('nodegroup')
+        if len(nodegroup):
+            file.write(INDENT + '[[\n')
+            file.write(INDENT + INDENT + 'anno::description("Node Group: ' + nodegroup + '")\n')
+            file.write(INDENT + ']]\n')
+        file.write('{\n')
         file.write(INDENT + '// No-op. Return default value for now\n')
         file.write(INDENT + outputType + ' defaultValue')
         _writeValueAssignment(file, outputValue, outputType)
