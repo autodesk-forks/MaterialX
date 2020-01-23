@@ -619,7 +619,7 @@ namespace
         
         if (!isConnectedToMaterialNode)
         {
-            NodePtr materialNode = doc->addNode("surfacematerial", mxNode->getName() + "_SurfaceMaterial", MATERIAL_TYPE_STRING );
+            NodePtr materialNode = doc->addNode(SURFACE_MATERIAL_NODE_STRING, mxNode->getName() + "_SurfaceMaterial", MATERIAL_TYPE_STRING );
             materialNode->setConnectedNode(SURFACE_SHADER_TYPE_STRING, mxNode);
         }
     }
