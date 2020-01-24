@@ -88,10 +88,7 @@ bool PortElement::validate(string* message) const
     {
         if (hasOutputString())
         {
-            if (connectedNode->getType() != MULTI_OUTPUT_TYPE_STRING)
-            {
-                validateRequire(connectedNode->getType() == MULTI_OUTPUT_TYPE_STRING, res, message, "Multi-output type expected in port connection");
-            }
+            validateRequire(connectedNode->getType() == MULTI_OUTPUT_TYPE_STRING, res, message, "Multi-output type expected in port connection");
             NodeDefPtr connectedNodeDef = connectedNode->getNodeDef();
             if (connectedNodeDef)
             {
@@ -222,8 +219,6 @@ Edge Input::getUpstreamEdge(ConstMaterialPtr material, size_t index) const
         ConstNodeDefPtr nodeDef = interface ? interface->getDeclaration() : nullptr;
         if (nodeDef)
         {
-            // MATERIAL_NODE_CONVERT_TO_DO
-
             // Apply BindInput elements to the Input.
             for (ShaderRefPtr shaderRef : material->getActiveShaderRefs())
             {
