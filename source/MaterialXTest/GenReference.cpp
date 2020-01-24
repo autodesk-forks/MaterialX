@@ -189,7 +189,7 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
         {
             nodeName = nodeName.substr(3);
         }
-        if (nodeName == "material")
+        if (nodeName == mx::MATERIAL_TYPE_STRING)
         {
             continue;
         }

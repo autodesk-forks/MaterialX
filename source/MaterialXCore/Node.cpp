@@ -141,8 +141,6 @@ OutputPtr Node::getNodeDefOutput(ElementPtr connectingElement)
     }
     else
     {
-        // MATERIAL_NODE_CONVERT_TO_DO - can remove ?
-
         const BindInputPtr bindInput = connectingElement->asA<BindInput>();
         if (bindInput)
         {
