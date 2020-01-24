@@ -71,7 +71,7 @@ bool PortElement::validate(string* message) const
 {
     bool res = true;
 
-    NodePtr     connectedNode = getConnectedNode();
+    NodePtr connectedNode = getConnectedNode();
     if (hasNodeName())
     {
         if (connectedNode == nullptr)

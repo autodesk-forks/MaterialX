@@ -204,7 +204,7 @@ class GraphElement : public InterfaceElement
         return getChildrenOfType<Node>(category);
     }
 
-    /// Return a vector lf nodes in the graph which have a given type
+    /// Return a vector of nodes in the graph which have a given type
     vector<NodePtr> getNodesOfType(const string& nodeType) const
     {
         vector<NodePtr> nodes;

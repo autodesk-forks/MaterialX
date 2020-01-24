@@ -264,6 +264,7 @@ class Input : public PortElement
         return 1;
     }
 
+    /// Return the output, if any, to which this element is connected.
     OutputPtr getConnectedOutput() const;
 
     /// Return the node, if any, to which this element is connected.
