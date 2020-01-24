@@ -84,8 +84,6 @@ bool PortElement::validate(string* message) const
             }
         }
     }
-    // MATERIAL_NODE_CONVERT_TO_DO. This test does not handle node->nodegraph traversal
-#if 0
     if (connectedNode)
     {
         if (hasOutputString())
@@ -123,7 +121,6 @@ bool PortElement::validate(string* message) const
             validateRequire(getType() == connectedNode->getType(), res, message, "Mismatched types in port connection");
         }
     }
-#endif
     return ValueElement::validate(message) && res;
 }
 
