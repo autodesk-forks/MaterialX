@@ -45,22 +45,18 @@ def _loadLibraries(doc, searchPath, libraryPath):
 
 def _writeHeader(file, version):
     file.write('mdl ' + version + ';\n')
-    IMPORT_LIST = { 'anno', 'base', 'df', 'math', 'state', 'tex' }
+    file.write('using core import *;\n')
+    IMPORT_LIST = { 'anno', 'base', 'swizzle', 'math', 'state', 'tex' }
     # To verify what are the minimal imports required
     for i in IMPORT_LIST:
         file.write('import::' + i + '::*;\n')
     file.write('\n')
-    file.write('// Custom color4 type\n')
-    file.write('export struct color4 {\n')
-    file.write('  color3 rgb  = color3(0.0);\n')
-    file.write('  float  a    = 1.0;\n')
-    file.write('};\n\n')
 
 def _mapGeomProp(geomprop):
     outputValue = ''
     if len(geomprop):
         if geomprop.find('UV') >= 0:
-            outputValue = '::state::texture_coordinate(0).x,::state::texture_coordinate(0).y'
+            outputValue = 'swizzle::xy(::state::texture_coordinate(0))'
         elif geomprop.find('Pobject') >= 0:
             outputValue = '::state::transform_point(::state::coordinate_internal,::state::coordinate_object,::state::position())'
         elif geomprop.find('PWorld') >= 0:
@@ -79,8 +75,8 @@ def _mapGeomProp(geomprop):
             outputValue = '::state::transform_vector(::state::coordinate_internal,::state::coordinate_world,::state::texture_tangent_v(0))'
     return outputValue
 
-def _writeValueAssignment(file, outputValue, outputType):
-   if len(outputValue):
+def _writeValueAssignment(file, outputValue, outputType, writeEmptyValues):
+    if len(outputValue) or writeEmptyValues:
         file.write(' = ' + outputType + '(')
         if outputType == 'string':
             file.write('"')
@@ -88,6 +84,13 @@ def _writeValueAssignment(file, outputValue, outputType):
         if outputType == 'string':
             file.write('"')
         file.write(')')
+
+def _mapType(typeName, typeMap, functionName):
+    if 'mx_constant_filename' == functionName:
+        return 'string'
+    if typeName in typeMap:
+        return typeMap[typeName]
+    return typeName
 
 def main():
 
@@ -145,7 +148,7 @@ def main():
     typeMap['vector4'] = 'float4'
     typeMap['matrix33'] = 'float3x3'
     typeMap['matrix44'] = 'float4x4'
-    typeMap['filename'] = 'string'
+    typeMap['filename'] = 'texture_2d' # Assume all file textures are 2d for now
     typeMap['geomname'] = 'string'
     typeMap['floatarray'] = 'float[<N>]'
     typeMap['integerarray'] = 'int[<N>]'
@@ -213,8 +216,7 @@ def main():
         file.write('export ')
         # Add output argument
         outType = nodedef.getType()
-        if outType in typeMap:
-            outType = typeMap[outType]
+        outType = _mapType(outType, typeMap, functionName)
 
         file.write(outType + SPACE)
         file.write(functionName + '(\n')
@@ -235,8 +237,7 @@ def main():
                 if outputValue == '[]':
                     outputvalue = ''
                 outputType = elem.getType()
-                if outputType in typeMap:
-                    outputType = typeMap[outputType]
+                outputType = _mapType(outputType, typeMap, functionName)
                 continue
 
             # Parameters map to uniforms
@@ -247,18 +248,43 @@ def main():
                 dataType = ''
                 defaultgeomprop = elem.getAttribute('defaultgeomprop')
 
+            # Determine type
             typeString = elem.getType()
-            if typeString in typeMap:
-                typeString = typeMap[typeString]
-
+            isFileTexture = (typeString == 'filename')
+            typeString  = _mapType(typeString , typeMap, functionName)
             isString = (typeString == 'string')
-            file.write(INDENT + dataType + typeString + SPACE + elem.getName())
-            if len(defaultgeomprop) > 0:
+
+            # Determine value
+            isGeometryInput = len(defaultgeomprop) > 0
+            if isGeometryInput:
                 valueString = _mapGeomProp(defaultgeomprop)
             else:
                 valueString = elem.getValueString()
-            if len(valueString):
-                _writeValueAssignment(file, valueString, typeString)
+
+            parameterName = elem.getName();
+            isEnumeration = len(elem.getAttribute('enum')) > 0
+            # Remap enumerations.
+            # Note: This is hard-coded since there are no type enumerations in MaterialX to map from
+            if isEnumeration and not isGeometryInput:
+                ADDRESS_MODE = { 'constant', 'clamp', 'periodic', 'mirror'}
+                FILTER_LOOKUP = { 'closest', 'linear', 'cubic' }
+                COORDINATE_SPACES = { 'model', 'object' , 'world' }
+                FILTER_TYPE = { 'box', 'gaussian' }
+                if valueString in ADDRESS_MODE:
+                    typeString = 'mx_addressmode_type'
+                    valueString = typeString + '_' + valueString
+                elif valueString in FILTER_LOOKUP:
+                    typeString = 'mx_filterlookup_type'
+                    valueString = typeString + '_' + valueString
+                elif valueString in COORDINATE_SPACES:
+                    typeString = 'mx_coordinatespace_type'
+                    valueString = typeString + '_' + valueString
+                elif valueString in FILTER_TYPE:
+                    typeString = 'mx_filter_type'
+                    valueString = typeString + '_' + valueString
+
+            file.write(INDENT + dataType + typeString + SPACE + parameterName)
+            _writeValueAssignment(file, valueString, typeString, isFileTexture or isString)
 
             # Add annotations if any
             description = elem.getAttribute('doc')
@@ -301,7 +327,7 @@ def main():
         file.write('{\n')
         file.write(INDENT + '// No-op. Return default value for now\n')
         file.write(INDENT + outputType + ' defaultValue')
-        _writeValueAssignment(file, outputValue, outputType)
+        _writeValueAssignment(file, outputValue, outputType, outputType == 'texture_2d')
         file.write(';\n')
         file.write(INDENT + 'return defaultValue;\n')
         file.write('}\n\n')
