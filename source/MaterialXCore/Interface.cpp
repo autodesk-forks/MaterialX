@@ -14,6 +14,7 @@ namespace MaterialX
 {
 
 const string PortElement::NODE_NAME_ATTRIBUTE = "nodename";
+const string PortElement::NODE_GRAPH_ATTRIBUTE = "nodegraph";
 const string PortElement::OUTPUT_ATTRIBUTE = "output";
 const string PortElement::CHANNELS_ATTRIBUTE = "channels";
 const string InterfaceElement::NODE_DEF_ATTRIBUTE = "nodedef";
@@ -70,16 +71,29 @@ bool PortElement::validate(string* message) const
 {
     bool res = true;
 
-    NodePtr connectedNode = getConnectedNode();
+    NodePtr     connectedNode = getConnectedNode();
     if (hasNodeName())
     {
-        validateRequire(connectedNode != nullptr, res, message, "Invalid port connection");
+        if (connectedNode == nullptr)
+        {
+            //connectedNode = getConnectedNode();
+            NodeGraphPtr nodeGraph = resolveRootNameReference<NodeGraph>(getNodeName());
+            if (!nodeGraph)
+            {
+                validateRequire(connectedNode != nullptr, res, message, "Invalid port connection");
+            }
+        }
     }
+    // MATERIAL_NODE_CONVERT_TO_DO. This test does not handle node->nodegraph traversal
+#if 0
     if (connectedNode)
     {
         if (hasOutputString())
         {
-            validateRequire(connectedNode->getType() == MULTI_OUTPUT_TYPE_STRING, res, message, "Multi-output type expected in port connection");
+            if (connectedNode->getType() != MULTI_OUTPUT_TYPE_STRING)
+            {
+                validateRequire(connectedNode->getType() == MULTI_OUTPUT_TYPE_STRING, res, message, "Multi-output type expected in port connection");
+            }
             NodeDefPtr connectedNodeDef = connectedNode->getNodeDef();
             if (connectedNodeDef)
             {
@@ -109,6 +123,7 @@ bool PortElement::validate(string* message) const
             validateRequire(getType() == connectedNode->getType(), res, message, "Mismatched types in port connection");
         }
     }
+#endif
     return ValueElement::validate(message) && res;
 }
 
@@ -181,6 +196,26 @@ Edge Parameter::getUpstreamEdge(ConstMaterialPtr material, size_t index) const
 // Input methods
 //
 
+OutputPtr Input::getConnectedOutput() const
+{
+    if (hasNodeGraphName())
+    {
+        NodeGraphPtr nodeGraph = resolveRootNameReference<NodeGraph>(getNodeGraphName());
+        return nodeGraph ? nodeGraph->getOutput(getOutputString()) : OutputPtr();
+    }
+    return getDocument()->getOutput(getOutputString());
+}
+
+NodePtr Input::getConnectedNode() const
+{
+    OutputPtr output = getConnectedOutput();
+    if (output)
+    {
+        return output->getConnectedNode();
+    }
+    return PortElement::getConnectedNode();
+}
+
 Edge Input::getUpstreamEdge(ConstMaterialPtr material, size_t index) const
 {
     if (material && index < getUpstreamEdgeCount())
@@ -190,6 +225,8 @@ Edge Input::getUpstreamEdge(ConstMaterialPtr material, size_t index) const
         ConstNodeDefPtr nodeDef = interface ? interface->getDeclaration() : nullptr;
         if (nodeDef)
         {
+            // MATERIAL_NODE_CONVERT_TO_DO
+
             // Apply BindInput elements to the Input.
             for (ShaderRefPtr shaderRef : material->getActiveShaderRefs())
             {

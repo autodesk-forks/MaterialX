@@ -189,6 +189,10 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
         {
             nodeName = nodeName.substr(3);
         }
+        if (nodeName == "material")
+        {
+            continue;
+        }
 
         mx::NodePtr node = stdlibDoc->addNodeInstance(nodedef, nodeName);
         REQUIRE(node);
