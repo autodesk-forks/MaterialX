@@ -132,7 +132,7 @@ TEST_CASE("Observer", "[observer]")
 
     // Create a material that uses a shader instance.
     mx::NodePtr materialNode = doc->addNode("surfacematerial");
-    mx::NodePtr shaderNode = doc->addNode("simpleSrf", "mySimpleSrf", "surfaceshader");
+    doc->addNode("simpleSrf", "mySimpleSrf", "surfaceshader");
     mx::InputPtr shaderInput = materialNode->addInput(mx::SURFACE_SHADER_TYPE_STRING, mx::SURFACE_SHADER_TYPE_STRING);
     shaderInput->setAttribute("nodename", "mySimpleSrf");
 
