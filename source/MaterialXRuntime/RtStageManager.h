@@ -12,8 +12,6 @@
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtObject.h>
 
-#include <MaterialXFormat/File.h>
-
 #include <memory>
 
 namespace MaterialX

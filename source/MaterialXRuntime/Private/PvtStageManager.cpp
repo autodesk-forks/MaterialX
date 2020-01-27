@@ -5,8 +5,6 @@
 
 #include <MaterialXRuntime/Private/PvtStageManager.h>
 
-#include <MaterialXRuntime/RtStageManager.h>
-#include <MaterialXRuntime/RtFileIo.h>
 #include <MaterialXRuntime/RtStage.h>
 
 namespace MaterialX

@@ -6,10 +6,7 @@
 #ifndef MATERIALX_PVTSTAGEMANAGER_H
 #define MATERIALX_PVTSTAGEMANAGER_H
 
-#include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtObject.h>
-
-#include <MaterialXFormat/File.h>
 
 #include <unordered_map>
 
