@@ -28,6 +28,8 @@ class RtStageManager
 public:
     /// Creates a stage manager
     static RtStageManagerPtr createNew();
+    
+    virtual ~RtStageManager();
 
     /// Creates a stage
     RtObject createStage(const string& stageName);
