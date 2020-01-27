@@ -29,6 +29,7 @@ public:
     /// Creates a stage manager
     static RtStageManagerPtr createNew();
     
+    /// Destructor
     virtual ~RtStageManager();
 
     /// Creates a stage
