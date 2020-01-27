@@ -19,7 +19,7 @@ class PvtStageManager
     /// Constructor
     PvtStageManager();
 
-    /// Creates a stage that is referenced by the scene stage
+    /// Creates a stage
     RtObject createStage(const string& stageName);
 
     /// Deletes a stage known to the stage manager
