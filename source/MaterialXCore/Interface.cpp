@@ -74,9 +74,8 @@ bool PortElement::validate(string* message) const
     NodePtr connectedNode = getConnectedNode();
     if (hasNodeName())
     {
-        if (connectedNode == nullptr)
+        if (!connectedNode)
         {
-            //connectedNode = getConnectedNode();
             NodeGraphPtr nodeGraph = resolveRootNameReference<NodeGraph>(getNodeName());
             if (!nodeGraph)
             {
