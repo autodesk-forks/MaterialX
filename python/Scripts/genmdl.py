@@ -277,7 +277,7 @@ def main():
                 if outputValue == '[]':
                     outputvalue = ''
                 if not outputValue:
-                    outputValue = elem.getAttribute('defaultinput')
+                    outputValue =  FUNCTION_PARAMETER_PREFIX + elem.getAttribute('defaultinput')
                     routeInputToOutput = True
                 outputType = elem.getType()
                 outputType = _mapType(outputType, typeMap, functionName)
