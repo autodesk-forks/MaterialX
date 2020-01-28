@@ -16,6 +16,19 @@ namespace MaterialX
 namespace
 {
 
+class MdlFilenameTypeSyntax : public ScalarTypeSyntax
+{
+public:
+    MdlFilenameTypeSyntax() :
+        ScalarTypeSyntax("texture_2d", EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
+    {}
+
+    string getValue(const Value& value, bool /*uniform*/) const override
+    {
+        return getName() + "(\"" + value.getValueString() + "\")";
+    }
+};
+
 class MdlArrayTypeSyntax : public ScalarTypeSyntax
 {
   public:
@@ -86,6 +99,7 @@ class MdlIntegerArrayTypeSyntax : public MdlArrayTypeSyntax
 } // anonymous namespace
 
 const string MdlSyntax::CONST_QUALIFIER = "const";
+const string MdlSyntax::UNIFORM_QUALIFIER = "uniform";
 const StringVec MdlSyntax::VECTOR2_MEMBERS = { ".x", ".y" };
 const StringVec MdlSyntax::VECTOR3_MEMBERS = { ".x", ".y", ".z" };
 const StringVec MdlSyntax::VECTOR4_MEMBERS = { ".x", ".y", ".z", ".w" };
@@ -266,10 +280,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax
     (
         Type::FILENAME,
-        std::make_shared<StringTypeSyntax>(
-            "string",
-            "\"\"",
-            "\"\"")
+        std::make_shared<MdlFilenameTypeSyntax>()
     );
 
     registerTypeSyntax

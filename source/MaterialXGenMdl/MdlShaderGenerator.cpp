@@ -37,14 +37,19 @@ namespace
         {"Vworld", "state::direction()"}
     };
 
+    const string MDL_VERSION = "1.6";
+
     const vector<string> DEFAULT_IMPORTS = {
-        "import df::*",
-        "import base::*",
-        "import math::*",
-        "import state::*",
-        "import anno::*",
-        "import tex::*",
-        "import nvidia::core_definitions::*"
+        "import ::df::*",
+        "import ::base::*",
+        "import ::math::*",
+        "import ::state::*",
+        "import ::anno::*",
+        "import ::tex::*",
+        "import ::nvidia::core_definitions::*",
+        "import ::mx::stdlib::*",
+        "import ::mx::supplib::*",
+        "import ::mx::pbrlib::*"
     };
 }
 
@@ -222,6 +227,12 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
     ShaderGraph& graph = shader->getGraph();
     ShaderStage& stage = shader->getStage(Stage::PIXEL);
 
+    // Emit version
+    emitLine("mdl " + MDL_VERSION, stage);
+    emitLineBreak(stage);
+
+    emitLine("using mx = ::materialx", stage);
+
     // Emit module imports
     for (const string& module : DEFAULT_IMPORTS)
     {
@@ -360,9 +371,12 @@ ShaderPtr MdlShaderGenerator::createShader(const string& name, ElementPtr elemen
 
 void MdlShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderStage& stage) const
 {
+    const string uniformPrefix = _syntax->getUniformQualifier() + " ";
     for (size_t i = 0; i < inputs.size(); ++i)
     {
         const ShaderPort* input = inputs[i];
+
+        const string& qualifier = input->isUniform() ? uniformPrefix : EMPTY_STRING;
         const string& type = _syntax->getTypeName(input->getType());
         const string value = (input->getValue() ?
             _syntax->getValue(input->getType(), *input->getValue(), true) :
@@ -379,7 +393,7 @@ void MdlShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
         }
         else
         {
-            emitString(type + " " + input->getVariable() + " = " + value, stage);
+            emitString(qualifier + type + " " + input->getVariable() + " = " + value, stage);
         }
 
         if (i < inputs.size() - 1)

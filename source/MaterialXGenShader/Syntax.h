@@ -103,7 +103,7 @@ class Syntax
     /// Returns a mapping from disallowed tokens to replacement strings for this language syntax.
     const StringMap& getInvalidTokens() const { return _invalidTokens; }
 
-    /// Returns a type qualifier to be used when declaring types for output variables.
+    /// Returns a type qualifier to be used when declaring types for input variables.
     /// Default implementation returns empty string and derived syntax classes should
     /// override this method.
     virtual const string& getInputQualifier() const { return EMPTY_STRING; };

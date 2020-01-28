@@ -23,10 +23,11 @@ public:
 
     static SyntaxPtr create() { return std::make_shared<MdlSyntax>(); }
 
-    const string& getOutputQualifier() const override { return EMPTY_STRING; }
     const string& getConstantQualifier() const override { return CONST_QUALIFIER; };
+    const string& getUniformQualifier() const override { return UNIFORM_QUALIFIER; };
 
     static const string CONST_QUALIFIER;
+    static const string UNIFORM_QUALIFIER;
     static const StringVec VECTOR2_MEMBERS;
     static const StringVec VECTOR3_MEMBERS;
     static const StringVec VECTOR4_MEMBERS;

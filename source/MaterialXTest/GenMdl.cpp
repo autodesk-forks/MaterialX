@@ -120,8 +120,7 @@ TEST_CASE("GenShader: MDL Shader Generation", "[genmdl]")
 
     const mx::FilePath libSearchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
     mx::FileSearchPath srcSearchPath(libSearchPath.asString());
-    // TODO: Add MDL source search path
-    // srcSearchPath.append(libSearchPath / mx::FilePath(""));
+    srcSearchPath.append(libSearchPath / mx::FilePath("stdlib/genmdl"));
 
     const mx::FilePath logPath("genmdl_mdl_generate_test.txt");
 
