@@ -243,20 +243,25 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
         }
         else
         {
+            ShaderInput* input;
             const string& portValue = port->getResolvedValueString();
             std::pair<const TypeDesc*, ValuePtr> enumResult;
             if (context.getShaderGenerator().remapEnumeration(*port, portValue, enumResult))
             {
-                ShaderInput* input = newNode->addInput(port->getName(), enumResult.first);
+                input = newNode->addInput(port->getName(), enumResult.first);
                 input->setValue(enumResult.second);
             }
             else
             {
-                ShaderInput* input = newNode->addInput(port->getName(), portType);
+                input = newNode->addInput(port->getName(), portType);
                 if (!portValue.empty())
                 {
                     input->setValue(port->getResolvedValue());
                 }
+            }
+            if (port->isA<Parameter>())
+            {
+                input->setUniform();
             }
         }
     }
