@@ -46,10 +46,10 @@ def _loadLibraries(doc, searchPath, libraryPath):
 def _writeHeader(file, version):
     file.write('mdl ' + version + ';\n')
     file.write('using core import *;\n')
-    IMPORT_LIST = { 'anno', 'base', 'swizzle', 'math', 'state', 'tex' }
+    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '::math::*', '::state::*', '::tex::*' }
     # To verify what are the minimal imports required
     for i in IMPORT_LIST:
-        file.write('import::' + i + '::*;\n')
+        file.write('import' + i + ';\n')
     file.write('\n')
 
 def _mapGeomProp(geomprop):
@@ -75,15 +75,32 @@ def _mapGeomProp(geomprop):
             outputValue = '::state::transform_vector(::state::coordinate_internal,::state::coordinate_world,::state::texture_tangent_v(0))'
     return outputValue
 
+
+
 def _writeValueAssignment(file, outputValue, outputType, writeEmptyValues):
+    # Mapping of types to initializers
+    assignMap = dict()
+    assignMap['float2[<N>]'] = 'float2[]'
+
+    if outputType == 'color4':
+        outputType = 'mk_color4'
+
+    elif outputType in assignMap:
+        outputType = assignMap[outputType]
+        writeEmptyValues = True
+        print(outputType + '\n');
+
     if len(outputValue) or writeEmptyValues:
-        file.write(' = ' + outputType + '(')
+        file.write(' = ')
+        if outputType:
+            file.write(outputType + '(')
         if outputType == 'string':
             file.write('"')
         file.write(outputValue)
         if outputType == 'string':
             file.write('"')
-        file.write(')')
+        if outputType:
+            file.write(')')
 
 def _mapType(typeName, typeMap, functionName):
     if 'mx_constant_filename' == functionName:
@@ -160,13 +177,24 @@ def main():
     typeMap['vector4array'] = 'float4[<N>]'
     typeMap['stringarray'] = 'string[<N>]'
     typeMap['geomnamearray'] = 'string[<N>]'
-    typeMap['surfaceshader'] = 'material_surface'
-    typeMap['displacementshader'] = 'material_geometry'
-    typeMap['lightshader'] = 'material_emission'
+    typeMap['surfaceshader'] = 'material'
+    typeMap['volumeshader'] = 'material'
+    typeMap['displacementshader'] = 'material'
+    typeMap['lightshader'] = 'material'
+
+    functionTypeMap = dict()
+    functionTypeMap['mx_separate2_color2'] = 'mx_separate2_color2_type'
+    functionTypeMap['mx_separate3_color3'] = 'mx_separate3_color3_type'
+    functionTypeMap['mx_separate4_color4'] = 'mx_separate4_color4_type'
+    functionTypeMap['mx_separate2_vector2'] = 'mx_separate2_vector2_type'
+    functionTypeMap['mx_separate3_vector3'] = 'mx_separate3_vector3_type'
+    functionTypeMap['mx_separate4_vector4'] = 'mx_separate4_vector4_type'
 
     INDENT = '\t'
     SPACE = ' '
     QUOTE = '"'
+    FUNCTION_PREFIX = 'mx_'
+    FUNCTION_PARAMETER_PREFIX = ''#'mxp_'
 
     # Create an implementation per nodedef
     #
@@ -176,6 +204,10 @@ def main():
 
         # These definitions are for organization only
         if nodedef.getAttribute('nodegroup') == 'organization':
+            continue
+
+        # TODO: Skip array definitions for now
+        if nodedef.getAttribute('node') == 'arrayappend':
             continue
 
         if len(nodedef.getActiveOutputs()) == 0:
@@ -200,7 +232,7 @@ def main():
         else:
             impl.setFile('stdlib/genmdl/' + filename)
 
-        functionName = 'mx_' + nodeName
+        functionName = FUNCTION_PREFIX + nodeName
         functionCallName = functionName
         if len(moduleName):
             functionCallName = moduleName + '::' + functionName
@@ -212,11 +244,20 @@ def main():
             file = open(outputPath + '/' + filename, 'w+')
             _writeHeader(file, version)
 
+        outType = nodedef.getType()
+        routeInputToOutput = False
+
+        # TODO: Skip multioutput nodes for now
+        #if outType == 'multioutput':
+        #    continue
+
         # Create a signature for the nodedef
         file.write('export ')
         # Add output argument
-        outType = nodedef.getType()
-        outType = _mapType(outType, typeMap, functionName)
+        if functionName in functionTypeMap:
+            outType = functionTypeMap[functionName]
+        else:
+            outType = _mapType(outType, typeMap, functionName)
 
         file.write(outType + SPACE)
         file.write(functionName + '(\n')
@@ -224,7 +265,7 @@ def main():
         # Add input arguments
         #
         elems = nodedef.getActiveValueElements()
-        lastComma = len(elems) - 2
+        lastComma = len(elems) - len(nodedef.getActiveOutputs())
         i = 0
         for elem in elems:
 
@@ -236,6 +277,9 @@ def main():
                 outputValue = elem.getAttribute('default')
                 if outputValue == '[]':
                     outputvalue = ''
+                if not outputValue:
+                    outputValue = elem.getAttribute('defaultinput')
+                    routeInputToOutput = True
                 outputType = elem.getType()
                 outputType = _mapType(outputType, typeMap, functionName)
                 continue
@@ -261,7 +305,7 @@ def main():
             else:
                 valueString = elem.getValueString()
 
-            parameterName = elem.getName();
+            parameterName = FUNCTION_PARAMETER_PREFIX + elem.getName();
             isEnumeration = len(elem.getAttribute('enum')) > 0
             # Remap enumerations.
             # Note: This is hard-coded since there are no type enumerations in MaterialX to map from
@@ -313,10 +357,10 @@ def main():
                     file.write("\n" + INDENT + INDENT + 'anno::in_group("' + uigroup + '")')
                 file.write('\n' + INDENT + ']]')
 
+            i = i + 1
             if i < lastComma:
                 file.write(',')
             file.write('\n')
-            i = i + 1
 
         file.write(')\n')
         nodegroup = nodedef.getAttribute('nodegroup')
@@ -324,13 +368,24 @@ def main():
             file.write(INDENT + '[[\n')
             file.write(INDENT + INDENT + 'anno::description("Node Group: ' + nodegroup + '")\n')
             file.write(INDENT + ']]\n')
-        file.write('{\n')
-        file.write(INDENT + '// No-op. Return default value for now\n')
-        file.write(INDENT + outputType + ' defaultValue')
-        _writeValueAssignment(file, outputValue, outputType, outputType == 'texture_2d')
-        file.write(';\n')
-        file.write(INDENT + 'return defaultValue;\n')
-        file.write('}\n\n')
+        if outputType == 'material':
+            if outputValue:
+                file.write('= ' + outputValue + '; // TODO \n\n')
+            else:
+                file.write('= material(); // TODO \n\n')
+        else:
+            file.write('{\n')
+            file.write(INDENT + '// No-op. Return default value for now\n')
+            if functionName in functionTypeMap:
+                file.write(INDENT + 'return ' + functionTypeMap[functionName] + '();\n')
+            else:
+                file.write(INDENT + outputType + ' defaultValue')
+                if routeInputToOutput:
+                    outputType = ''
+                _writeValueAssignment(file, outputValue, outputType, outputType == 'texture_2d')
+                file.write(';\n')
+                file.write(INDENT + 'return defaultValue;\n')
+            file.write('}\n\n')
 
         if len(moduleName) == 0:
             file.close()
