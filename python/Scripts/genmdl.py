@@ -88,7 +88,6 @@ def _writeValueAssignment(file, outputValue, outputType, writeEmptyValues):
     elif outputType in assignMap:
         outputType = assignMap[outputType]
         writeEmptyValues = True
-        print(outputType + '\n');
 
     if len(outputValue) or writeEmptyValues:
         file.write(' = ')
@@ -194,7 +193,7 @@ def main():
     SPACE = ' '
     QUOTE = '"'
     FUNCTION_PREFIX = 'mx_'
-    FUNCTION_PARAMETER_PREFIX = ''#'mxp_'
+    FUNCTION_PARAMETER_PREFIX = 'mxp_'
 
     # Create an implementation per nodedef
     #
