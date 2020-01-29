@@ -25,6 +25,9 @@ class PvtStageManager
     /// Deletes a stage known to the stage manager
     void deleteStage(const string& stageName);
 
+    /// Renames a stage known to the stage manager
+    void renameStage(const string& oldName, const string& newName);
+
     /// Whether the stage manager contains a stage with the given name
     bool hasStage(const string& stageName) const;
 

@@ -31,13 +31,27 @@ RtObject PvtStageManager::createStage(const string& stageName)
 
 void PvtStageManager::deleteStage(const string& stageName)
 {
-    if (_stages.count(stageName) != 0)
+    if (hasStage(stageName))
     {
         _stages.erase(stageName);
     }
     else
     {
         throw ExceptionRuntimeError("Stage name: " + stageName + " doesn't exist");
+    }
+}
+
+void PvtStageManager::renameStage(const string& oldName, const string& newName)
+{
+    if (hasStage(oldName))
+    {
+        RtObject stageObject = _stages.at(oldName);
+        _stages.erase(oldName);
+        _stages.emplace(newName, stageObject);
+    }
+    else
+    {
+        throw ExceptionRuntimeError("Stage name: " + oldName + " doesn't exist");
     }
 }
 
