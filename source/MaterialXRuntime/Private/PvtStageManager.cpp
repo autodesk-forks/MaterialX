@@ -51,4 +51,9 @@ RtObject PvtStageManager::getStageObject(const string& stageName) const
     return _stages.at(stageName);
 }
 
+const std::unordered_map<string, RtObject>& PvtStageManager::getStageObjects() const
+{
+    return _stages;
+}
+
 }

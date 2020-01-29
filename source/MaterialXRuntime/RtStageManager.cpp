@@ -46,4 +46,9 @@ RtObject RtStageManager::getStageObject(const string& stageName) const
     return _stageManager->getStageObject(stageName);
 }
 
+const std::unordered_map<string, RtObject>& RtStageManager::getStageObjects() const
+{
+    return _stageManager->getStageObjects();
+}
+
 }

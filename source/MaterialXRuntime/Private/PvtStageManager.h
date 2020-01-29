@@ -31,6 +31,9 @@ class PvtStageManager
     /// Retrieves a stage from the stage manager
     RtObject getStageObject(const string& stageName) const;
 
+    /// Retrieve the stage objects from the stage manager
+    const std::unordered_map<string, RtObject>& getStageObjects() const;
+
   private:
     std::unordered_map<string, RtObject> _stages;
 };
