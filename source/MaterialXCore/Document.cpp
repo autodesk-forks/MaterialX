@@ -840,7 +840,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     if (majorVersion == 1 && minorVersion == 37)
     {
         // Convert material Elements to Nodes
-        convertMaterialsToNode(true);
+        convertMaterialsToNodes(true);
         minorVersion = 38;
     }
 
@@ -851,146 +851,144 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     }
 }
 
-bool Document::convertMaterialsToNode(bool replaceNodes)
+bool Document::convertMaterialsToNodes(bool replaceNodes)
 {
     bool modified = false;
 
     vector<MaterialPtr> materials = getMaterials();
-    if (!materials.empty())
+    for (auto m : materials)
     {
-        for (auto m : materials)
+        // See if a node of this name has already been created.
+        // Should not occur otherwise there are duplicate existing
+        // Material elements.
+        string materialName = m->getName();
+        if (getNode(materialName))
         {
-            // See if a node of this name has already been created.
-            // Should not occur otherwise there are duplicate existing
-            // Material elements.
-            string materialName = m->getName();
-            if (getNode(materialName))
+            throw Exception("Material node already exists: " + materialName);
+        }
+
+        // Create a temporary name for the material element 
+        // so the new node can reuse the existing name.
+        if (replaceNodes)
+        {
+            string validName = createValidChildName(materialName + "1");
+            m->setName(validName);
+        }
+        else
+        {
+            materialName = createValidChildName(materialName);
+        }
+
+        // Create a new material node
+        NodePtr materialNode = nullptr;
+
+        ShaderRefPtr sr;
+        // Only include the shader refs explicitly specified on the material instance
+        vector<ShaderRefPtr> srs = m->getShaderRefs();
+        for (size_t i = 0; i < srs.size(); i++)
+        {
+            sr = srs[i];
+
+            // See if shader has been created already.
+            // Should not occur as the shaderref is a uniquely named
+            // child of a uniquely named material element, but the two combined
+            // may have been used for another node instance which not a shader node.
+            string shaderNodeName = m->getName() + "_" + sr->getName();
+            NodePtr existingShaderNode = getNode(shaderNodeName);
+            if (existingShaderNode)
             {
-                continue;
-            }
-
-            // Create a temporary name for the material element 
-            // so the new node can reuse the existing name.
-            if (replaceNodes)
-            {
-                string validName = createValidChildName(materialName + "1");
-                m->setName(validName);
-            }
-            else
-            {
-                materialName = createValidChildName(materialName);
-            }
-
-            // Create a new material node
-            NodePtr materialNode = nullptr;
-
-            ShaderRefPtr sr;
-            // Only include the shader refs explicitly specified on the material instance
-            vector<ShaderRefPtr> srs = m->getShaderRefs();
-            for (size_t i = 0; i < srs.size(); i++)
-            {
-                sr = srs[i];
-
-                // See if shader has been created already.
-                // Should be unlikely to occur as the shaderref is a uniquely named
-                // child of a uniquely named material element, but the two combined
-                // may have been used for another node instance which not shader node.
-                string shaderNodeName = m->getName() + "_" + sr->getName();
-                NodePtr existingShaderNode = getNode(shaderNodeName);
-                if (existingShaderNode)
+                const string& existingType = existingShaderNode->getType();
+                if (existingType == VOLUME_SHADER_TYPE_STRING ||
+                    existingType == SURFACE_SHADER_TYPE_STRING ||
+                    existingType == DISPLACEMENT_SHADER_TYPE_STRING)
                 {
-                    const string& existingType = existingShaderNode->getType();
-                    if (existingType == VOLUME_SHADER_TYPE_STRING ||
-                        existingType == SURFACE_SHADER_TYPE_STRING ||
-                        existingType == DISPLACEMENT_SHADER_TYPE_STRING)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        shaderNodeName = createValidChildName(shaderNodeName);
-                    }
+                    throw Exception("Shader node already exists: " + shaderNodeName);
                 }
-
-                modified = true;
-
-                // Find the shader type if defined
-                string shaderNodeType = SURFACE_SHADER_TYPE_STRING;
-                NodeDefPtr nodeDef = sr->getNodeDef();
-                if (nodeDef)
+                else
                 {
-                    shaderNodeType = nodeDef->getType();
-                }
-
-                // Add in a new shader node
-                const string shaderNodeCategory = sr->getNodeString();
-                NodePtr shaderNode = addNode(shaderNodeCategory, shaderNodeName, shaderNodeType);
-                shaderNode->setSourceUri(sr->getSourceUri());
-
-                for (auto valueElement : sr->getChildrenOfType<ValueElement>())
-                {
-                    ElementPtr portChild = nullptr;
-
-                    // Copy over bindinputs as inputs, and bindparams as params
-                    if (valueElement->isA<BindInput>())
-                    {
-                        portChild = shaderNode->addInput(valueElement->getName(), valueElement->getType());
-                    }
-                    else if (valueElement->isA<BindParam>())
-                    {
-                        portChild = shaderNode->addParameter(valueElement->getName(), valueElement->getType());
-                    }
-                    if (portChild)
-                    {
-                        // Copy over attributes.
-                        // Note: We preserve inputs which have nodegraph connections,
-                        // as well as top level output connections.
-                        portChild->copyContentFrom(valueElement);
-                    }
-                }
-
-                // Copy over any bindtokens as tokens
-                for (auto bt : sr->getBindTokens())
-                {
-                    TokenPtr token = shaderNode->addToken(bt->getName());
-                    token->copyContentFrom(bt);
-                }
-
-                // Create a new material node if not already created and
-                // add a reference from the material node to the new shader node
-                if (!materialNode)
-                {
-                    // Set the type of material based on current assumption that
-                    // surfaceshaders + displacementshaders result in a surfacematerial
-                    // while a volumeshader means a volumematerial needs to be created.
-                    string materialNodeCategory =
-                        (shaderNodeType != VOLUME_SHADER_TYPE_STRING) ? SURFACE_MATERIAL_NODE_STRING
-                        : VOLUME_MATERIAL_NODE_STRING;
-                    materialNode = addNode(materialNodeCategory, materialName, MATERIAL_TYPE_STRING);
-                    materialNode->setSourceUri(m->getSourceUri());
-                    // Note: Inheritance does not get transfered to the node.
-                    //materialNode->setInheritString(m->getInheritString()); 
-                }
-                // Create input to replace each shaderref. Use shaderref name as unique
-                // input name.
-                InputPtr shaderInput = materialNode->addInput(shaderNodeType, shaderNodeType);
-                shaderInput->setNodeName(shaderNode->getName());
-                // Make sure to copy over any target and version information from the shaderref.
-                if (!sr->getTarget().empty())
-                {
-                    shaderInput->setTarget(sr->getTarget());
-                }
-                if (!sr->getVersionString().empty())
-                {
-                    shaderInput->setVersionString(sr->getVersionString());
+                    shaderNodeName = createValidChildName(shaderNodeName);
                 }
             }
 
-            // Remove existing material element
-            if (replaceNodes)
+            modified = true;
+
+            // Find the shader type if defined
+            string shaderNodeType = SURFACE_SHADER_TYPE_STRING;
+            NodeDefPtr nodeDef = sr->getNodeDef();
+            if (nodeDef)
             {
-                removeChild(m->getName());
+                shaderNodeType = nodeDef->getType();
             }
+
+            // Add in a new shader node
+            const string shaderNodeCategory = sr->getNodeString();
+            NodePtr shaderNode = addNode(shaderNodeCategory, shaderNodeName, shaderNodeType);
+            shaderNode->setSourceUri(sr->getSourceUri());
+
+            for (auto valueElement : sr->getChildrenOfType<ValueElement>())
+            {
+                ElementPtr portChild = nullptr;
+
+                // Copy over bindinputs as inputs, and bindparams as params
+                if (valueElement->isA<BindInput>())
+                {
+                    portChild = shaderNode->addInput(valueElement->getName(), valueElement->getType());
+                }
+                else if (valueElement->isA<BindParam>())
+                {
+                    portChild = shaderNode->addParameter(valueElement->getName(), valueElement->getType());
+                }
+                if (portChild)
+                {
+                    // Copy over attributes.
+                    // Note: We preserve inputs which have nodegraph connections,
+                    // as well as top level output connections.
+                    portChild->copyContentFrom(valueElement);
+                }
+            }
+
+            // Copy over any bindtokens as tokens
+            for (auto bt : sr->getBindTokens())
+            {
+                TokenPtr token = shaderNode->addToken(bt->getName());
+                token->copyContentFrom(bt);
+            }
+
+            // Create a new material node if not already created and
+            // add a reference from the material node to the new shader node
+            if (!materialNode)
+            {
+                // Set the type of material based on current assumption that
+                // surfaceshaders + displacementshaders result in a surfacematerial
+                // while a volumeshader means a volumematerial needs to be created.
+                string materialNodeCategory =
+                    (shaderNodeType != VOLUME_SHADER_TYPE_STRING) ? SURFACE_MATERIAL_NODE_STRING
+                    : VOLUME_MATERIAL_NODE_STRING;
+                materialNode = addNode(materialNodeCategory, materialName, MATERIAL_TYPE_STRING);
+                materialNode->setSourceUri(m->getSourceUri());
+                // Note: Inheritance does not get transfered to the node we do
+                // not perform the following:
+                //      - materialNode->setInheritString(m->getInheritString()); 
+            }
+            // Create input to replace each shaderref. Use shaderref name as unique
+            // input name.
+            InputPtr shaderInput = materialNode->addInput(shaderNodeType, shaderNodeType);
+            shaderInput->setNodeName(shaderNode->getName());
+            // Make sure to copy over any target and version information from the shaderref.
+            if (!sr->getTarget().empty())
+            {
+                shaderInput->setTarget(sr->getTarget());
+            }
+            if (!sr->getVersionString().empty())
+            {
+                shaderInput->setVersionString(sr->getVersionString());
+            }
+        }
+
+        // Remove existing material element
+        if (replaceNodes)
+        {
+            removeChild(m->getName());
         }
     }
     return modified;

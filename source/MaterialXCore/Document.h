@@ -574,7 +574,7 @@ class Document : public GraphElement
     void upgradeVersion(int desiredMajorVersion, int desiredMinorVersion);
 
     // Convert Material Elements to Material Nodes
-    bool convertMaterialsToNode(bool replaceNodes);
+    bool convertMaterialsToNodes(bool replaceNodes);
 
     /// @}
     /// @name Color Management System

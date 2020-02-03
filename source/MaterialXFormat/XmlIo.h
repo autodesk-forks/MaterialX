@@ -42,10 +42,10 @@ class XmlReadOptions : public CopyOptions
     /// Defaults to an empty vector.
     StringVec parentXIncludes;
 
-    /// Desired major version on read. By default the this is the same as the library version
+    /// Desired major version on read. By default this is the same as the library version
     int desiredMajorVersion;
 
-    /// Desired minor version on read. By default the this is the same as the library version
+    /// Desired minor version on read. By default this is the same as the library version
     int desiredMinorVersion;
 };
 

@@ -135,7 +135,7 @@ OutputPtr Node::getNodeDefOutput(ElementPtr connectingElement)
         // return an empty string which is handled below.
         outputName = &port->getOutputString();
 
-        // Handle case where it's a input to a top level output
+        // Handle case where it's an input to a top level output
         InputPtr connectedInput = connectingElement->asA<Input>();
         OutputPtr output = OutputPtr();
         if (connectedInput)
