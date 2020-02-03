@@ -22,3 +22,4 @@ deploy
 # Ignore local editor settings
 .vscode/*
 
+build_public_rel/
