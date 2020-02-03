@@ -170,7 +170,7 @@ TEST_CASE("Load content", "[xmlio]")
             }
         }
         readOptions.skipConflictingElements = false;
-        //REQUIRE_THROWS_AS(mx::readFromXmlFile(conflictDoc, filename, searchPath, &readOptions), mx::Exception&);
+        REQUIRE_THROWS_AS(mx::readFromXmlFile(conflictDoc, filename, searchPath, &readOptions), mx::Exception&);
         readOptions.skipConflictingElements = true;
         mx::readFromXmlFile(conflictDoc, filename, searchPath, &readOptions);
         REQUIRE(conflictDoc->validate());
