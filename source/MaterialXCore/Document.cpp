@@ -297,11 +297,6 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     std::pair<int, int> versions = getVersionIntegers();
     int majorVersion = versions.first;
     int minorVersion = versions.second;
-    if (majorVersion == MATERIALX_MAJOR_VERSION &&
-        minorVersion == MATERIALX_MINOR_VERSION)
-    {
-        return;
-    }
     if (majorVersion == desiredMajorVersion &&
         minorVersion == desiredMinorVersion)
     {
