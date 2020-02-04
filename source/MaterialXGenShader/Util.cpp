@@ -721,10 +721,10 @@ vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderT
 }
 
 void getShaderConnections(ConstNodePtr shaderNode,
-    std::vector<InputPtr>& inputs,
-    std::vector<ParameterPtr>& parameters,
-    std::vector<OutputPtr>& inputSources,
-    std::vector<OutputPtr>& parameterSources)
+                          std::vector<InputPtr>& inputs,
+                          std::vector<ParameterPtr>& parameters,
+                          std::vector<OutputPtr>& inputSources,
+                          std::vector<OutputPtr>& parameterSources)
 {
     if (shaderNode->getType() != SURFACE_SHADER_TYPE_STRING &&
         shaderNode->getType() != DISPLACEMENT_SHADER_TYPE_STRING &&
@@ -732,8 +732,6 @@ void getShaderConnections(ConstNodePtr shaderNode,
     {
         return;
     }
-
-    ConstDocumentPtr doc = shaderNode->getDocument();
 
     for (ParameterPtr parameter : shaderNode->getParameters())
     {
