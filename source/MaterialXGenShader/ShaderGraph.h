@@ -107,6 +107,20 @@ class ShaderGraph : public ShaderNode
     IdentifierMap& getIdentifierMap() { return _identifiers; }
 
   protected:
+    static ShaderGraphPtr createSurfaceShader(
+        const string& name,
+        const ShaderGraph* parent,
+        NodePtr node,
+        GenContext& context,
+        ElementPtr& root,
+        MaterialPtr& material);
+
+    void createConnectedNodes(ElementPtr downstreamElement,
+        ElementPtr upstreamElement,
+        ElementPtr connectingElement,
+        GenContext& context,
+        ShaderNode* rootNode = nullptr);
+
     /// Add a node to the graph
     void addNode(ShaderNodePtr node);
 
