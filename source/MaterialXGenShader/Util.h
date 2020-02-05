@@ -82,20 +82,13 @@ bool elementRequiresShading(ConstTypedElementPtr element);
 /// Return a vector of all Shader nodes for a Material node.
 /// @param materialNode Node to example
 /// @param shaderType Type of shader to return. If an empty string is specified then
-///        all shader node types are returned.
-vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderType = SURFACE_SHADER_TYPE_STRING);
-
-/// Get shader connections for a given shader node
-/// @param shaderNode Node to examine
-/// @param inputs List of inputs on the shader node
-/// @param parameters List of parameters on the shader node
-/// @param inputSources List of outputs connected to inputs
-/// @param parameterSources List of outputs connected to parameters
-void getShaderConnections(ConstNodePtr shaderNode,
-                          std::vector<InputPtr>& inputs,
-                          std::vector<ParameterPtr>& parameters,
-                          std::vector<OutputPtr>& inputSources,
-                          std::vector<OutputPtr>& parameterSources);
+///        all shader node types are returned. The default argument value is an empetyr
+///        string which inidates to include shaders which match any type.
+/// @param target Target attribute of shader to return. The default argument value is an empty string
+///        which indicates to include shaders which match any target.
+vector<NodePtr> getShaderNodes(const NodePtr materialNode, 
+                               const string& shaderType = EMPTY_STRING,
+                               const string& target = EMPTY_STRING);
 
 /// Return a vector of all MaterialAssign elements that bind this material node
 /// to the given geometry string

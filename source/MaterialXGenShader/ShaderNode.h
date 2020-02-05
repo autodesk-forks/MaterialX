@@ -47,8 +47,6 @@ class ShaderPort : public std::enable_shared_from_this<ShaderPort>
 
     ShaderPort(ShaderNode* node, const TypeDesc* type, const string& name, ValuePtr value = nullptr);
 
-    virtual ~ShaderPort() = default;
-
     /// Return a shared pointer instance of this object.
     ShaderPortPtr getSelf()
     {
@@ -151,8 +149,6 @@ class ShaderInput : public ShaderPort
   public:
     ShaderInput(ShaderNode* node, const TypeDesc* type, const string& name);
 
-    virtual ~ShaderInput() = default;
-
     /// Return a connection to an upstream node output,
     /// or nullptr if not connected.
     ShaderOutput* getConnection() { return _connection; }
@@ -185,8 +181,6 @@ class ShaderOutput : public ShaderPort
 {
   public:
     ShaderOutput(ShaderNode* node, const TypeDesc* type, const string& name);
-
-    virtual ~ShaderOutput() = default;
 
     /// Return a set of connections to downstream node inputs,
     /// empty if not connected.

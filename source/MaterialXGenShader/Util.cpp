@@ -701,57 +701,34 @@ bool elementRequiresShading(ConstTypedElementPtr element)
 }
 
 
-vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderType) 
+vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderType, const string& target)
 {
     DocumentPtr doc = materialNode->getDocument();
     vector<NodePtr> shaderNodes;
-    for (const InputPtr& input : materialNode->getInputs())
+    for (const InputPtr& input : materialNode->getActiveInputs())
     {
         const string& inputShader = input->getNodeName();
         if (!inputShader.empty())
         {
             NodePtr shaderNode = doc->getNode(inputShader);
-            if (shaderNode && (shaderType.empty() || shaderNode->getType() == shaderType))
+            if (shaderNode)
             {
-                shaderNodes.push_back(shaderNode);
+                if (!target.empty())
+                {
+                    NodeDefPtr nodeDef = shaderNode->getNodeDef();
+                    if (!nodeDef || !targetStringsMatch(nodeDef->getTarget(), target))
+                    {
+                        continue;
+                    }
+                }
+                if (shaderType.empty() || shaderNode->getType() == shaderType)
+                {
+                    shaderNodes.push_back(shaderNode);
+                }
             }
         }
     }
     return shaderNodes;
-}
-
-void getShaderConnections(ConstNodePtr shaderNode,
-                          std::vector<InputPtr>& inputs,
-                          std::vector<ParameterPtr>& parameters,
-                          std::vector<OutputPtr>& inputSources,
-                          std::vector<OutputPtr>& parameterSources)
-{
-    if (shaderNode->getType() != SURFACE_SHADER_TYPE_STRING &&
-        shaderNode->getType() != DISPLACEMENT_SHADER_TYPE_STRING &&
-        shaderNode->getType() != VOLUME_SHADER_TYPE_STRING)
-    {
-        return;
-    }
-
-    for (ParameterPtr parameter : shaderNode->getParameters())
-    {
-        OutputPtr output = parameter->getConnectedOutput();
-        if (output)
-        {
-            parameters.push_back(parameter);
-            parameterSources.push_back(output);
-        }
-    }
-
-    for (InputPtr input : shaderNode->getInputs())
-    {
-        OutputPtr output = input->getConnectedOutput();
-        if (output)
-        {
-            inputs.push_back(input);
-            inputSources.push_back(output);
-        }
-    }
 }
 
 vector<MaterialAssignPtr> getGeometryBindings(NodePtr materialNode, const string& geom)
@@ -790,23 +767,16 @@ void findRenderableMaterialNodes(ConstDocumentPtr doc,
         // Push the material node only once.
         elements.push_back(material);
 
+        // Scan for any upstream shader outpus and put them on the "processed" list
+        // if we don't want to consider them for rendering.
         vector<NodePtr> shaderNodes = getShaderNodes(material);
         for (NodePtr shaderNode : shaderNodes)
         {
             if (!includeReferencedGraphs)
             {
-                // Track outputs already used by the shader
-                std::vector<InputPtr> inputs;
-                std::vector<ParameterPtr> parameters;
-                std::vector<OutputPtr> inputSources;
-                std::vector<OutputPtr> parameterSources;
-                getShaderConnections(shaderNode,
-                                     inputs, parameters,
-                                     inputSources, parameterSources);
-
-                for (size_t i=0; i<inputSources.size(); i++)
+                for (InputPtr input : shaderNode->getActiveInputs())
                 {
-                    OutputPtr outputPtr = inputSources[i];
+                    OutputPtr outputPtr = input->getConnectedOutput();
                     if (outputPtr && !outputPtr->hasSourceUri() && !processedOutputs.count(outputPtr))
                     {
                         processedOutputs.insert(outputPtr);
@@ -873,7 +843,7 @@ void findRenderableElements(ConstDocumentPtr doc, vector<TypedElementPtr>& eleme
         {
             for (OutputPtr output : nodeGraph->getOutputs())
             {
-                if (output->hasSourceUri() || processedOutputs.count(output))
+                if (processedOutputs.count(output))
                 {
                     continue;
                 }

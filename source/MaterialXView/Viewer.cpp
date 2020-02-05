@@ -154,8 +154,7 @@ void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers& modifiers)
     }
     for (mx::NodePtr materialNode : doc->getMaterialNodes())
     {
-        // Passing empty string to getShaderNodes() means to get all shader node types
-        for (mx::NodePtr shader : getShaderNodes(materialNode, mx::EMPTY_STRING))
+        for (mx::NodePtr shader : getShaderNodes(materialNode))
         {
             mx::NodeDefPtr nodeDef = shader->getNodeDef();
             if (nodeDef && !nodeDef->getImplementation())
