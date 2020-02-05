@@ -65,6 +65,9 @@ def _writeHeader(file, version):
     file.write('color4 mk_color4( float4 f ) {\n')
     file.write('    return color4( color(f.x,f.y,f.z), f.w );\n')
     file.write('}\n\n')
+    file.write('float4 mk_float4( float f ) {\n')
+    file.write('    return float4(f, f, f, f);\n')
+    file.write('}\n\n')
 
 def _mapGeomProp(geomprop):
     outputValue = ''
@@ -240,6 +243,8 @@ def main():
     implDoc = mx.createDocument()
     nodedefs = doc.getNodeDefs()
     nodeGraphs = doc.getNodeGraphs()
+    implementedCont = 0;
+    totalCount = 0;
     for nodedef in nodedefs:
 
         # Skip any node definitions which are implemented as node graphs
@@ -268,6 +273,8 @@ def main():
 
         if len(nodedef.getActiveOutputs()) == 0:
            continue
+
+        totalCount += 1
 
         outputValue = ''
         outputType = ''
@@ -439,8 +446,38 @@ def main():
             else:
                 if nodeCategory == 'constant':
                     file.write(INDENT + 'return mxp_value;\n')
+                    implementedCont += 1
+                elif nodeCategory == 'max':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'return mk_color4(::math::max(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
+                    else:
+                        file.write(INDENT + 'return ::math::max(mxp_in1, mxp_in2);\n')
+                    implementedCont += 1
+                elif nodeCategory == 'min':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'return mk_color4(::math::min(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
+                    else:
+                        file.write(INDENT + 'return ::math::min(mxp_in1, mxp_in2);\n')
+                    implementedCont += 1
+                elif nodeCategory == 'add':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) + mk_float4(mxp_in2));\n')
+                    elif outputType == 'float3x3' or outputType == 'float4x4':
+                        file.write(INDENT + 'return ' + outputType + '(mxp_in1) + ' + outputType + '(mxp_in2);\n')
+                    else:
+                        file.write(INDENT + 'return mxp_in1 + mxp_in2;\n')
+                    implementedCont += 1
+                elif nodeCategory == 'subtract':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) - mk_float4(mxp_in2));\n')
+                    elif outputType == 'float3x3' or outputType == 'float4x4':
+                        file.write(INDENT + 'return ' + outputType + '(mxp_in1) - ' + outputType + '(mxp_in2);\n')
+                    else:
+                        file.write(INDENT + 'return mxp_in1 - mxp_in2;\n')
+                    implementedCont += 1
                 elif nodeCategory == 'image':
                     _writeImageImplementation(file, outputType)
+                    implementedCont += 1
                 else:
                     file.write(INDENT + '// No-op. Return default value for now\n')
                     file.write(INDENT + outputType + ' defaultValue')
@@ -460,7 +497,7 @@ def main():
     # Save implementation reference file to disk
     implFileName = LIBRARY + '_' + GENMDL + '_' + IMPLEMENTATION_STRING + '.mtlx'
     implPath = os.path.join(outputPath, implFileName)
-    print('Wrote implementation file: ' + implPath + '\n')
+    print('Wrote implementation file: ' + implPath + '. ' + str(implementedCont) + '/' + str(totalCount) + '\n')
     mx.writeToXmlFile(implDoc, implPath)
 
 if __name__ == '__main__':
