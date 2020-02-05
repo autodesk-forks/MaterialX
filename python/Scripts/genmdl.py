@@ -444,21 +444,22 @@ def main():
                 file.write(INDENT + '// No-op. Return default value for now\n')
                 file.write(INDENT + 'return ' + functionTypeMap[functionName] + '();\n')
             else:
+                wroteImplementation = False
                 if nodeCategory == 'constant':
                     file.write(INDENT + 'return mxp_value;\n')
-                    implementedCont += 1
+                    wroteImplementation = True;
                 elif nodeCategory == 'max':
                     if outputType == 'color4':
                         file.write(INDENT + 'return mk_color4(::math::max(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
                     else:
                         file.write(INDENT + 'return ::math::max(mxp_in1, mxp_in2);\n')
-                    implementedCont += 1
+                    wroteImplementation = True;
                 elif nodeCategory == 'min':
                     if outputType == 'color4':
                         file.write(INDENT + 'return mk_color4(::math::min(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
                     else:
                         file.write(INDENT + 'return ::math::min(mxp_in1, mxp_in2);\n')
-                    implementedCont += 1
+                    wroteImplementation = True;
                 elif nodeCategory == 'add':
                     if outputType == 'color4':
                         file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) + mk_float4(mxp_in2));\n')
@@ -466,7 +467,7 @@ def main():
                         file.write(INDENT + 'return ' + outputType + '(mxp_in1) + ' + outputType + '(mxp_in2);\n')
                     else:
                         file.write(INDENT + 'return mxp_in1 + mxp_in2;\n')
-                    implementedCont += 1
+                    wroteImplementation = True;
                 elif nodeCategory == 'subtract':
                     if outputType == 'color4':
                         file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) - mk_float4(mxp_in2));\n')
@@ -474,9 +475,38 @@ def main():
                         file.write(INDENT + 'return ' + outputType + '(mxp_in1) - ' + outputType + '(mxp_in2);\n')
                     else:
                         file.write(INDENT + 'return mxp_in1 - mxp_in2;\n')
-                    implementedCont += 1
+                    wroteImplementation = True;
+                elif nodeCategory == 'multiply':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) * mk_float4(mxp_in2));\n')
+                    elif outputType == 'float3x3' or outputType == 'float4x4':
+                        file.write(INDENT + 'return ' + outputType + '(mxp_in1) * ' + outputType + '(mxp_in2);\n')
+                    else:
+                        file.write(INDENT + 'return mxp_in1 * mxp_in2;\n')
+                    wroteImplementation = True;
+                elif nodeCategory == 'divide':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) / mk_float4(mxp_in2));\n')
+                        wroteImplementation = True;
+                    elif outputType == 'float3x3' or outputType == 'float4x4':
+                        print('Skip division implementation for ' + outputType + '. Not supported in MDL\n')
+                        #file.write(INDENT + 'return ' + outputType + '(mxp_in1) / ' + outputType + '(mxp_in2);\n')
+                    else:
+                        file.write(INDENT + 'return mxp_in1 / mxp_in2;\n')
+                        wroteImplementation = True;
+                elif nodeCategory == 'modulo':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'return mk_color4(::math::fmod(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
+                    elif outputType == 'color':
+                        file.write(INDENT + 'return color(::math::fmod(float3(mxp_in1), float3(mxp_in2)));\n')
+                    else:
+                        file.write(INDENT + 'return ::math::fmod(mxp_in1, mxp_in2);\n')
+                    wroteImplementation = True;
                 elif nodeCategory == 'image':
                     _writeImageImplementation(file, outputType)
+                    wroteImplementation = True;
+
+                if wroteImplementation:
                     implementedCont += 1
                 else:
                     file.write(INDENT + '// No-op. Return default value for now\n')
