@@ -173,13 +173,22 @@ def _writeOperatorMath(file, outputType, arg1, functionName, arg2):
         else:
             file.write(INDENT + 'return ' + arg1 + ' ' + functionName + ' ' + arg2 + ';\n')
 
-def _writTwoArgumentMath(file, outputType, functionName):
+def _writeTwoArgumentMath(file, outputType, functionName):
         if outputType == 'color4':
             file.write(INDENT + 'return mk_color4(::math::' + functionName + '(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
         elif outputType == 'color':
             file.write(INDENT + 'return color(::math::' + functionName + '(float3(mxp_in1), float3(mxp_in2)));\n')
         else:
             file.write(INDENT + 'return ::math::' + functionName + '(mxp_in1, mxp_in2);\n')
+
+def _writeThreeArgumentMath(file, outputType, functionName, arg1, arg2, arg3):
+        if outputType == 'color4':
+            file.write(INDENT + 'return mk_color4(::math::' + functionName + '(mk_float4(' + arg1 + '), mk_float4(' + arg2 + '), mk_float4(' + arg3 + ')));\n')
+        elif outputType == 'color':
+            file.write(INDENT + 'return color(::math::' + functionName + '(float3(' + arg1 + '), float3(' + arg2 + '), float3(' + arg3 + ')));\n')
+        else:
+            file.write(INDENT + 'return ::math::' + functionName + '(' + arg1 + ',' + arg2 + ',' + arg3 + ');\n')
+
 
 def main():
 
@@ -484,17 +493,38 @@ def main():
                 elif nodeCategory == 'sin':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
                     wroteImplementation = True;
+                elif nodeCategory == 'asin':
+                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    wroteImplementation = True;
                 elif nodeCategory == 'cos':
+                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    wroteImplementation = True;
+                elif nodeCategory == 'acos':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
                     wroteImplementation = True;
                 elif nodeCategory == 'tan':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
                     wroteImplementation = True;
+                elif nodeCategory == 'atan2':
+                    _writeTwoArgumentMath(file, outputType, nodeCategory)
+                    wroteImplementation = True;
+                elif nodeCategory == 'sqrt':
+                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    wroteImplementation = True;
+                elif nodeCategory == 'ln':
+                    _writeOneArgumentMath(file, outputType, 'log2')
+                    wroteImplementation = True;
+                elif nodeCategory == 'exp':
+                    _writeOneArgumentMath(file, outputType, 'exp')
+                    wroteImplementation = True;
+                elif nodeCategory == 'sign':
+                    _writeOneArgumentMath(file, outputType, 'sign')
+                    wroteImplementation = True;
                 elif nodeCategory == 'max':
-                    _writTwoArgumentMath(file, outputType, 'max')
+                    _writeTwoArgumentMath(file, outputType, 'max')
                     wroteImplementation = True;
                 elif nodeCategory == 'min':
-                    _writTwoArgumentMath(file, outputType, 'min')
+                    _writeTwoArgumentMath(file, outputType, 'min')
                     wroteImplementation = True;
                 elif nodeCategory == 'add':
                     _writeOperatorMath(file, outputType, 'mxp_in1', '+', 'mxp_in2')
@@ -519,10 +549,13 @@ def main():
                         file.write(INDENT + 'return mxp_in1 / mxp_in2;\n')
                         wroteImplementation = True;
                 elif nodeCategory == 'modulo':
-                    _writTwoArgumentMath(file, outputType, 'fmod')
+                    _writeTwoArgumentMath(file, outputType, 'fmod')
                     wroteImplementation = True;
                 elif nodeCategory == 'power':
-                    _writTwoArgumentMath(file, outputType, 'pow')
+                    _writeTwoArgumentMath(file, outputType, 'pow')
+                    wroteImplementation = True;
+                elif nodeCategory == 'clamp':
+                    _writeThreeArgumentMath(file, outputType, 'clamp', 'mxp_in', 'mxp_low', 'mxp_high')
                     wroteImplementation = True;
                 elif nodeCategory == 'image':
                     _writeImageImplementation(file, outputType)
