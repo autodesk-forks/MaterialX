@@ -677,7 +677,7 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
             mx::XmlWriteOptions writeOptions;
             writeOptions.writeXIncludeEnable = true;
             writeOptions.elementPredicate = skipXincludes;
-            mx::writeToXmlFile(doc, doc->getSourceUri() + "_modified.mtlxxx", &writeOptions);
+            mx::writeToXmlFile(doc, doc->getSourceUri() + "_modified.mtlxx", &writeOptions);
         }
 
         // Find and register lights

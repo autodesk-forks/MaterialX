@@ -80,6 +80,9 @@ bool requiresImplementation(ConstNodeDefPtr nodeDef);
 bool elementRequiresShading(ConstTypedElementPtr element);
 
 /// Return a vector of all Shader nodes for a Material node.
+/// @param materialNode Node to example
+/// @param shaderType Type of shader to return. If an empty string is specified then
+///        all shader node types are returned.
 vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderType = SURFACE_SHADER_TYPE_STRING);
 
 /// Get shader connections for a given shader node
@@ -96,7 +99,7 @@ void getShaderConnections(ConstNodePtr shaderNode,
 
 /// Return a vector of all MaterialAssign elements that bind this material node
 /// to the given geometry string
-/// @param materialNode node to examine
+/// @param materialNode Node to examine
 /// @param geom The geometry for which material bindings should be returned.
 ///    By default, this argument is the universal geometry string "/", and
 ///    all material bindings are returned.

@@ -363,7 +363,7 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
         NodeDefPtr nodeDef = shaderNode->getNodeDef();
         if (!nodeDef)
         {
-            throw ExceptionShaderGenError("Could not find a nodedef for shader node '" + shaderNode->getName() + "' in material " + shaderNode->getName());
+            throw ExceptionShaderGenError("Could not find a nodedef for shader node '" + shaderNode->getNamePath());
         }
 
         const string& nodetype = nodeDef->getNodeString();
