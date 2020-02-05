@@ -71,13 +71,13 @@ class Material
     }
 
     /// Return the material element associated with this material
-    mx::TypedElementPtr getMaterial() const
+    mx::TypedElementPtr getMaterialElement() const
     {
         return _material;
     }
 
     /// Set the material element associated with this material
-    void setMaterial(mx::TypedElementPtr val)
+    void setMaterialElement(mx::TypedElementPtr val)
     {
         _material = val;
     }

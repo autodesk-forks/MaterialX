@@ -554,7 +554,7 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
                 filename = mx::FilePath(filename.asString() + "." + mx::MTLX_EXTENSION);
             }
 
-            if (_bakeTextures && material->getMaterial())
+            if (_bakeTextures && material->getMaterialElement())
             {
 
                 mx::FileSearchPath searchPath = _searchPath;
@@ -810,7 +810,7 @@ void Viewer::updateMaterialSelections()
     std::vector<std::string> items;
     for (const auto& material : _materials)
     {
-        mx::ElementPtr displayElem = material->getMaterial();
+        mx::ElementPtr displayElem = material->getMaterialElement();
         if (!displayElem)
             displayElem = material->getElement();
         std::string displayName = displayElem->getNamePath();
@@ -957,7 +957,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                     MaterialPtr mat = Material::create();
                     mat->setDocument(doc);
                     mat->setElement(typedElem);
-                    mat->setMaterial(materials[i]);
+                    mat->setMaterialElement(materials[i]);
                     mat->setUdim(udim);
                     newMaterials.push_back(mat);
                     
@@ -969,7 +969,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                 MaterialPtr mat = Material::create();
                 mat->setDocument(doc);
                 mat->setElement(typedElem);
-                mat->setMaterial(materials[i]);
+                mat->setMaterialElement(materials[i]);
                 newMaterials.push_back(mat);
             }
         }
@@ -1032,7 +1032,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                 }
                 else
                 {
-                    mx::NodePtr materialNode = mat->getMaterial()->asA<mx::Node>();
+                    mx::NodePtr materialNode = mat->getMaterialElement()->asA<mx::Node>();
                     if (materialNode)
                     {
                         for (mx::MeshPartitionPtr part : _geometryList)
@@ -1191,7 +1191,7 @@ void Viewer::saveDotFiles()
             else
             {
                 mx::NodePtr shaderNode = elem->asA<mx::Node>();
-                if (shaderNode && material->getMaterial())
+                if (shaderNode && material->getMaterialElement())
                 {
                     for (mx::InputPtr input : shaderNode->getInputs())
                     {
