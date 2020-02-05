@@ -157,6 +157,30 @@ def _writeImageImplementation(file, outputType):
     file.write(';\n')
     file.write(INDENT + 'return returnValue;\n')
 
+def _writeOneArgumentMath(file, outputType, functionName):
+        if outputType == 'color4':
+            file.write(INDENT + 'return mk_color4(::math::' + functionName + '(mk_float4(mxp_in)));\n')
+        elif outputType == 'color':
+            file.write(INDENT + 'return color(::math::' + functionName + '(float3(mxp_in)));\n')
+        else:
+            file.write(INDENT + 'return ::math::' + functionName + '(mxp_in);\n')
+
+def _writeOperatorMath(file, outputType, arg1, functionName, arg2):
+        if outputType == 'color4':
+            file.write(INDENT + 'return mk_color4(mk_float4(' + arg1 +') ' + functionName + ' mk_float4(' + arg2 + '));\n')
+        elif outputType == 'float3x3' or outputType == 'float4x4':
+            file.write(INDENT + 'return ' + outputType + '(' + arg1 + ') ' + functionName + ' ' + outputType + '(' + arg2 + ');\n')
+        else:
+            file.write(INDENT + 'return ' + arg1 + ' ' + functionName + ' ' + arg2 + ';\n')
+
+def _writTwoArgumentMath(file, outputType, functionName):
+        if outputType == 'color4':
+            file.write(INDENT + 'return mk_color4(::math::' + functionName + '(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
+        elif outputType == 'color':
+            file.write(INDENT + 'return color(::math::' + functionName + '(float3(mxp_in1), float3(mxp_in2)));\n')
+        else:
+            file.write(INDENT + 'return ::math::' + functionName + '(mxp_in1, mxp_in2);\n')
+
 def main():
 
     if len(sys.argv) < 2:
@@ -448,41 +472,41 @@ def main():
                 if nodeCategory == 'constant':
                     file.write(INDENT + 'return mxp_value;\n')
                     wroteImplementation = True;
+                elif nodeCategory == 'absval':
+                    _writeOneArgumentMath(file, outputType, 'abs')
+                    wroteImplementation = True;
+                elif nodeCategory == 'ceil':
+                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    wroteImplementation = True;
+                elif nodeCategory == 'floor':
+                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    wroteImplementation = True;
+                elif nodeCategory == 'sin':
+                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    wroteImplementation = True;
+                elif nodeCategory == 'cos':
+                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    wroteImplementation = True;
+                elif nodeCategory == 'tan':
+                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    wroteImplementation = True;
                 elif nodeCategory == 'max':
-                    if outputType == 'color4':
-                        file.write(INDENT + 'return mk_color4(::math::max(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
-                    else:
-                        file.write(INDENT + 'return ::math::max(mxp_in1, mxp_in2);\n')
+                    _writTwoArgumentMath(file, outputType, 'max')
                     wroteImplementation = True;
                 elif nodeCategory == 'min':
-                    if outputType == 'color4':
-                        file.write(INDENT + 'return mk_color4(::math::min(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
-                    else:
-                        file.write(INDENT + 'return ::math::min(mxp_in1, mxp_in2);\n')
+                    _writTwoArgumentMath(file, outputType, 'min')
                     wroteImplementation = True;
                 elif nodeCategory == 'add':
-                    if outputType == 'color4':
-                        file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) + mk_float4(mxp_in2));\n')
-                    elif outputType == 'float3x3' or outputType == 'float4x4':
-                        file.write(INDENT + 'return ' + outputType + '(mxp_in1) + ' + outputType + '(mxp_in2);\n')
-                    else:
-                        file.write(INDENT + 'return mxp_in1 + mxp_in2;\n')
+                    _writeOperatorMath(file, outputType, 'mxp_in1', '+', 'mxp_in2')
                     wroteImplementation = True;
                 elif nodeCategory == 'subtract':
-                    if outputType == 'color4':
-                        file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) - mk_float4(mxp_in2));\n')
-                    elif outputType == 'float3x3' or outputType == 'float4x4':
-                        file.write(INDENT + 'return ' + outputType + '(mxp_in1) - ' + outputType + '(mxp_in2);\n')
-                    else:
-                        file.write(INDENT + 'return mxp_in1 - mxp_in2;\n')
+                    _writeOperatorMath(file, outputType, 'mxp_in1', '-', 'mxp_in2')
+                    wroteImplementation = True;
+                elif nodeCategory == 'invert':
+                    _writeOperatorMath(file, outputType, 'mxp_amount', '-', 'mxp_in')
                     wroteImplementation = True;
                 elif nodeCategory == 'multiply':
-                    if outputType == 'color4':
-                        file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) * mk_float4(mxp_in2));\n')
-                    elif outputType == 'float3x3' or outputType == 'float4x4':
-                        file.write(INDENT + 'return ' + outputType + '(mxp_in1) * ' + outputType + '(mxp_in2);\n')
-                    else:
-                        file.write(INDENT + 'return mxp_in1 * mxp_in2;\n')
+                    _writeOperatorMath(file, outputType, 'mxp_in1', '*', 'mxp_in2')
                     wroteImplementation = True;
                 elif nodeCategory == 'divide':
                     if outputType == 'color4':
@@ -495,12 +519,10 @@ def main():
                         file.write(INDENT + 'return mxp_in1 / mxp_in2;\n')
                         wroteImplementation = True;
                 elif nodeCategory == 'modulo':
-                    if outputType == 'color4':
-                        file.write(INDENT + 'return mk_color4(::math::fmod(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
-                    elif outputType == 'color':
-                        file.write(INDENT + 'return color(::math::fmod(float3(mxp_in1), float3(mxp_in2)));\n')
-                    else:
-                        file.write(INDENT + 'return ::math::fmod(mxp_in1, mxp_in2);\n')
+                    _writTwoArgumentMath(file, outputType, 'fmod')
+                    wroteImplementation = True;
+                elif nodeCategory == 'power':
+                    _writTwoArgumentMath(file, outputType, 'pow')
                     wroteImplementation = True;
                 elif nodeCategory == 'image':
                     _writeImageImplementation(file, outputType)
