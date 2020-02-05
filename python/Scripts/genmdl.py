@@ -50,7 +50,21 @@ def _writeHeader(file, version):
     # To verify what are the minimal imports required
     for i in IMPORT_LIST:
         file.write('import' + i + ';\n')
-    file.write('\n')
+    file.write('\n\n')
+    file.write('// Helper function mapping texture node addressmodes to MDL wrap modes\n')
+    file.write('::tex::wrap_mode map_addressmode( mx_addressmode_type value ) {\n')
+    file.write('    switch (value) {\n')
+    file.write('        case mx_addressmode_type_clamp:\n')
+    file.write('        return ::tex::wrap_clamp;\n')
+    file.write('    case mx_addressmode_type_mirror:\n')
+    file.write('        return ::tex::wrap_mirrored_repeat;\n')
+    file.write('    default:\n')
+    file.write( '   return ::tex::wrap_repeat;\n')
+    file.write('    }\n')
+    file.write('}\n\n')
+    file.write('color4 mk_color4( float4 f ) {\n')
+    file.write('    return color4( color(f.x,f.y,f.z), f.w );\n')
+    file.write('}\n\n')
 
 def _mapGeomProp(geomprop):
     outputValue = ''
@@ -107,6 +121,38 @@ def _mapType(typeName, typeMap, functionName):
     if typeName in typeMap:
         return typeMap[typeName]
     return typeName
+
+INDENT = '\t'
+SPACE = ' '
+QUOTE = '"'
+FUNCTION_PREFIX = 'mx_'
+FUNCTION_PARAMETER_PREFIX = 'mxp_'
+
+# Basic template for writing out logic for "image" node definition
+def _writeImageImplementation(file, outputType):
+    file.write(INDENT + 'if ( mxp_uaddressmode == mx_addressmode_type_constant\n')
+    file.write(INDENT + '     && ( mxp_texcoord.x < 0.0 || mxp_texcoord.x > 1.0))\n')
+    file.write(INDENT + INDENT + 'return mxp_default;\n')
+    file.write(INDENT + 'if ( mxp_vaddressmode == mx_addressmode_type_constant\n')
+    file.write(INDENT + '     && ( mxp_texcoord.y < 0.0 || mxp_texcoord.y > 1.0))\n')
+    file.write(INDENT + INDENT + 'return mxp_default;\n\n')
+
+    file.write(INDENT + outputType + ' returnValue')
+    isColor4 = (outputType == 'color4')
+    if isColor4:
+        outputType = 'float4'
+        outputType = 'mk_color4( ::tex::lookup_' + outputType
+    else:
+        outputType = '::tex::lookup_' + outputType
+    outputValue = 'tex: mxp_file, \n' \
+        + INDENT*6 + 'coord: mxp_texcoord,\n' \
+        + INDENT*6 + 'wrap_u: map_addressmode(mxp_uaddressmode),\n' \
+        + INDENT*6 + 'wrap_v: map_addressmode(mxp_vaddressmode)'
+    _writeValueAssignment(file, outputValue, outputType, True)
+    if isColor4:
+        file.write(')')
+    file.write(';\n')
+    file.write(INDENT + 'return returnValue;\n')
 
 def main():
 
@@ -189,24 +235,35 @@ def main():
     functionTypeMap['mx_separate3_vector3'] = 'mx_separate3_vector3_type'
     functionTypeMap['mx_separate4_vector4'] = 'mx_separate4_vector4_type'
 
-    INDENT = '\t'
-    SPACE = ' '
-    QUOTE = '"'
-    FUNCTION_PREFIX = 'mx_'
-    FUNCTION_PARAMETER_PREFIX = 'mxp_'
-
     # Create an implementation per nodedef
     #
     implDoc = mx.createDocument()
     nodedefs = doc.getNodeDefs()
+    nodeGraphs = doc.getNodeGraphs()
     for nodedef in nodedefs:
 
+        # Skip any node definitions which are implemented as node graphs
+        nodeDefName = nodedef.getName()
+        #print(nodeDef)
+        implementationIsGraph = False
+        for nodeGraph in nodeGraphs:
+            graphName = nodeGraph.getName()
+            #print('Scane nodegraph: ' + nodeGraph.getName() + '\n')
+            if nodeGraph.getAttribute('nodedef') == nodeDefName:
+                file.write('// Nodedef: ' + nodeDefName + ' is represented by a nodegraph: ' + graphName + '\n')
+                implementationIsGraph = True
+                break
+        if implementationIsGraph:
+            continue
+
         # These definitions are for organization only
-        if nodedef.getAttribute('nodegroup') == 'organization':
+        nodeGroup = nodedef.getAttribute('nodegroup')
+        if nodeGroup == 'organization':
             continue
 
         # TODO: Skip array definitions for now
-        if nodedef.getAttribute('node') == 'arrayappend':
+        nodeCategory = nodedef.getAttribute('node')
+        if  nodeCategory == 'arrayappend':
             continue
 
         if len(nodedef.getActiveOutputs()) == 0:
@@ -376,16 +433,22 @@ def main():
                 file.write('= material(); // TODO \n\n')
         else:
             file.write('{\n')
-            file.write(INDENT + '// No-op. Return default value for now\n')
             if functionName in functionTypeMap:
+                file.write(INDENT + '// No-op. Return default value for now\n')
                 file.write(INDENT + 'return ' + functionTypeMap[functionName] + '();\n')
             else:
-                file.write(INDENT + outputType + ' defaultValue')
-                if routeInputToOutput:
-                    outputType = ''
-                _writeValueAssignment(file, outputValue, outputType, outputType == 'texture_2d')
-                file.write(';\n')
-                file.write(INDENT + 'return defaultValue;\n')
+                if nodeCategory == 'constant':
+                    file.write(INDENT + 'return mxp_value;\n')
+                elif nodeCategory == 'image':
+                    _writeImageImplementation(file, outputType)
+                else:
+                    file.write(INDENT + '// No-op. Return default value for now\n')
+                    file.write(INDENT + outputType + ' defaultValue')
+                    if routeInputToOutput:
+                        outputType = ''
+                    _writeValueAssignment(file, outputValue, outputType, outputType == 'texture_2d')
+                    file.write(';\n')
+                    file.write(INDENT + 'return defaultValue;\n')
             file.write('}\n\n')
 
         if len(moduleName) == 0:
