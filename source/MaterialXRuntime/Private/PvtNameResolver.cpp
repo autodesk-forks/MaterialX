@@ -10,16 +10,16 @@
 namespace MaterialX
 {
 
-/// Shared pointer to an RtUserStringResolver
-using RtUserStringResolverPtr = std::shared_ptr<class RtUserStringResolver>;
+/// Shared pointer to an PvtUserStringResolver
+using PvtUserStringResolverPtr = std::shared_ptr<class PvtUserStringResolver>;
 
 // Internal class to hold on to user specified resolving information
-class RtUserStringResolver : public MaterialX::StringResolver
+class PvtUserStringResolver : public MaterialX::StringResolver
 {
 public:
-    static RtUserStringResolverPtr createNew(RtNameResolverFunction f)
+    static PvtUserStringResolverPtr createNew(RtNameResolverFunction f)
     {
-        RtUserStringResolverPtr result(new RtUserStringResolver(f));
+        PvtUserStringResolverPtr result(new PvtUserStringResolver(f));
         return result;
     }
 
@@ -42,25 +42,25 @@ public:
 private:
     RtNameResolverFunction _resolveFunction;
 
-    RtUserStringResolver(RtNameResolverFunction f) :
+    PvtUserStringResolver(RtNameResolverFunction f) :
         MaterialX::StringResolver(), 
         _resolveFunction(f)
     {
     }
 };
 
-PvtStringResolverPair::PvtStringResolverPair(const RtToken& type,
+PvtStringResolverPair::PvtStringResolverPair(const RtNameResolverInfo::ElementType elementType,
                                              MaterialX::StringResolverPtr toMaterialXResolver,
                                              MaterialX::StringResolverPtr fromMaterialXResolver)
-    : _type(type)
+    : _elementType(elementType)
     , _toMaterialXResolver(toMaterialXResolver)
     , _fromMaterialXResolver(fromMaterialXResolver)
 {
 }
 
-const RtToken PvtStringResolverPair::getType() const
+const RtNameResolverInfo::ElementType PvtStringResolverPair::getType() const
 {
-    return _type;
+    return _elementType;
 }
 
 MaterialX::StringResolverPtr PvtStringResolverPair::getToMaterialXResolver()
@@ -87,14 +87,14 @@ void PvtNameResolverRegistrar::registerNameResolvers(RtNameResolverInfo& info)
     }
 
     RtStringResolverPairPtr resolverPair = nullptr;
-    RtUserStringResolverPtr toResolver = nullptr;
-    RtUserStringResolverPtr fromResolver = nullptr;
+    PvtUserStringResolverPtr toResolver = nullptr;
+    PvtUserStringResolverPtr fromResolver = nullptr;
     RtToken elementTypeString("");
 
     if (info.toFunction || info.toSubstitutions.size())
     {
         // Set custom function
-        toResolver = RtUserStringResolver::createNew(info.toFunction);
+        toResolver = PvtUserStringResolver::createNew(info.toFunction);
 
         // Set custom token substitutions
         for (auto& toSubsitution : info.toSubstitutions)
@@ -112,7 +112,7 @@ void PvtNameResolverRegistrar::registerNameResolvers(RtNameResolverInfo& info)
     if (info.fromFunction || info.fromSubstitutions.size())
     {
         // Set custom function
-        fromResolver = RtUserStringResolver::createNew(info.fromFunction);
+        fromResolver = PvtUserStringResolver::createNew(info.fromFunction);
 
         // Set custom token substitutions
         for (auto& fromSubstitution : info.fromSubstitutions)
@@ -128,16 +128,7 @@ void PvtNameResolverRegistrar::registerNameResolvers(RtNameResolverInfo& info)
         }
     }
 
-    // Create resolver pair
-    if (info.elementType == RtNameResolverInfo::FILENAME_TYPE)
-    {
-        elementTypeString = MaterialX::FILENAME_TYPE_STRING;
-    }
-    else if (info.elementType == RtNameResolverInfo::GEOMNAME_TYPE)
-    {
-        elementTypeString = MaterialX::GEOMNAME_TYPE_STRING;
-    }
-    resolverPair = RtStringResolverPair::createNew(elementTypeString, toResolver, fromResolver);
+    resolverPair = RtStringResolverPair::createNew(info.elementType, toResolver, fromResolver);
     _resolvers[info.identifier] = resolverPair;
 }
 
@@ -157,13 +148,13 @@ RtToken PvtNameResolverRegistrar::resolveIdentifier(const RtToken& valueToResolv
     RtToken result = valueToResolve;
     for (const auto resolverPair : _resolvers)
     {
-        if (resolverPair.second && resolverPair.second->getType() == type)
+        if (resolverPair.second && resolverPair.second->getType() == elementType)
         {
             if (toMaterialX)
             {
                 if (resolverPair.second->getToMaterialXResolver())
                 {
-                    RtUserStringResolverPtr resolverPtr = std::dynamic_pointer_cast<RtUserStringResolver>(resolverPair.second->getToMaterialXResolver());
+                    PvtUserStringResolverPtr resolverPtr = std::dynamic_pointer_cast<PvtUserStringResolver>(resolverPair.second->getToMaterialXResolver());
                     if (resolverPtr)
                     {
                         result = resolverPtr->resolve(result, type);
@@ -174,7 +165,7 @@ RtToken PvtNameResolverRegistrar::resolveIdentifier(const RtToken& valueToResolv
             {
                 if (resolverPair.second->getFromMaterialXResolver())
                 {
-                    RtUserStringResolverPtr resolverPtr = std::dynamic_pointer_cast<RtUserStringResolver>(resolverPair.second->getFromMaterialXResolver());
+                    PvtUserStringResolverPtr resolverPtr = std::dynamic_pointer_cast<PvtUserStringResolver>(resolverPair.second->getFromMaterialXResolver());
                     if (resolverPtr)
                     {
                         result = resolverPtr->resolve(result, type);

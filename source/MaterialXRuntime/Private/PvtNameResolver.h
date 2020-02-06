@@ -25,13 +25,13 @@ class PvtStringResolverPair
 {
   public:
     /// Constructor
-    PvtStringResolverPair(const RtToken& type,
+    PvtStringResolverPair(const RtNameResolverInfo::ElementType elementType,
                           MaterialX::StringResolverPtr toMaterialXResolver,
                           MaterialX::StringResolverPtr fromMaterialXResolver);
 
     /// \brief Returns the type of element resolved by the pair of resolvers
     /// \return String type of element resolved by the pair of resolvers
-    const RtToken getType() const;
+    const RtNameResolverInfo::ElementType getType() const;
 
     /// \brief Returns the resolver used to convert string identifiers to MaterialX document format
     /// \return StringResolverPtr to the resolver used to convert string identifiers to MaterialX document format
@@ -42,7 +42,7 @@ class PvtStringResolverPair
     MaterialX::StringResolverPtr getFromMaterialXResolver();
 
   private:
-    const RtToken _type;
+    const RtNameResolverInfo::ElementType _elementType;
     MaterialX::StringResolverPtr _toMaterialXResolver;
     MaterialX::StringResolverPtr _fromMaterialXResolver;
 };

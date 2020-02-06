@@ -10,15 +10,15 @@
 namespace MaterialX
 {
 
-RtStringResolverPairPtr RtStringResolverPair::createNew(const RtToken& type,
+RtStringResolverPairPtr RtStringResolverPair::createNew(const RtNameResolverInfo::ElementType elementType,
                                                         MaterialX::StringResolverPtr toMaterialXResolver,
                                                         MaterialX::StringResolverPtr fromMaterialXResolver)
 {
-    RtStringResolverPairPtr result(new RtStringResolverPair(type, toMaterialXResolver, fromMaterialXResolver));
+    RtStringResolverPairPtr result(new RtStringResolverPair(elementType, toMaterialXResolver, fromMaterialXResolver));
     return result;
 }
 
-const RtToken RtStringResolverPair::getType() const
+const RtNameResolverInfo::ElementType RtStringResolverPair::getType() const
 {
     return _stringResolverPair->getType();
 }
@@ -33,10 +33,10 @@ MaterialX::StringResolverPtr RtStringResolverPair::getFromMaterialXResolver()
     return _stringResolverPair->getFromMaterialXResolver();
 }
 
-RtStringResolverPair::RtStringResolverPair(const RtToken& type,
+RtStringResolverPair::RtStringResolverPair(const RtNameResolverInfo::ElementType elementType,
                                            MaterialX::StringResolverPtr toMaterialXResolver,
                                            MaterialX::StringResolverPtr fromMaterialXResolver)
-    : _stringResolverPair(new PvtStringResolverPair(type, toMaterialXResolver, fromMaterialXResolver))
+    : _stringResolverPair(new PvtStringResolverPair(elementType, toMaterialXResolver, fromMaterialXResolver))
 {
 }
 
