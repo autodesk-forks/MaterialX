@@ -18,6 +18,9 @@
 namespace MaterialX
 {
 
+class PvtStringResolverPair;
+class PvtNameResolverRegistrar;
+
 /// Shared pointer to an RtStringResolverPair
 using RtStringResolverPairPtr = std::shared_ptr<class RtStringResolverPair>;
 

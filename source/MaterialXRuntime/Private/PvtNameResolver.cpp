@@ -42,7 +42,7 @@ public:
 private:
     RtNameResolverFunction _resolveFunction;
 
-    PvtUserStringResolver(RtNameResolverFunction f) :
+    explicit PvtUserStringResolver(RtNameResolverFunction f) :
         MaterialX::StringResolver(), 
         _resolveFunction(f)
     {
