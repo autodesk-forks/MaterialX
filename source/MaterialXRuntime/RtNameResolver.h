@@ -27,7 +27,7 @@ using RtNameResolverRegistrarPtr = std::shared_ptr<class RtNameResolverRegistrar
 /// Function for resolving a given token of a given type
 typedef RtToken (*RtNameResolverFunction)(const RtToken& str, const RtToken& type);
 
-/// @class RtNameResolverContext
+/// @class RtNameResolverInfo
 ///
 /// \brief A structure containing information for custom name resolving
 /// to MaterialX or from MaterialX.
@@ -71,7 +71,7 @@ class RtStringResolverPair
                                              MaterialX::StringResolverPtr fromMaterialXResolver);
 
     /// \brief Returns the type of element resolved by the pair of resolvers
-    /// \return String type of element resolved by the pair of resolvers
+    /// \return Type of element resolved by the pair of resolvers
     const RtNameResolverInfo::ElementType getType() const;
 
     /// \brief Returns the resolver used to convert string identifiers to MaterialX document format

@@ -30,7 +30,7 @@ class PvtStringResolverPair
                           MaterialX::StringResolverPtr fromMaterialXResolver);
 
     /// \brief Returns the type of element resolved by the pair of resolvers
-    /// \return String type of element resolved by the pair of resolvers
+    /// \return Type of element resolved by the pair of resolvers
     const RtNameResolverInfo::ElementType getType() const;
 
     /// \brief Returns the resolver used to convert string identifiers to MaterialX document format
