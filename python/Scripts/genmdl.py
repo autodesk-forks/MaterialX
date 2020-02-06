@@ -62,9 +62,9 @@ def _writeHeader(file, version):
     file.write( '   return ::tex::wrap_repeat;\n')
     file.write('    }\n')
     file.write('}\n\n')
-    file.write('color4 mk_color4( float4 f ) {\n')
-    file.write('    return color4( color(f.x,f.y,f.z), f.w );\n')
-    file.write('}\n\n')
+    #file.write('color4 mk_color4( float4 f ) {\n')
+    #file.write('    return color4( color(f.x,f.y,f.z), f.w );\n')
+    #file.write('}\n\n')
     file.write('float4 mk_float4( float f ) {\n')
     file.write('    return float4(f, f, f, f);\n')
     file.write('}\n\n')
@@ -187,8 +187,17 @@ def _writeThreeArgumentMath(file, outputType, functionName, arg1, arg2, arg3):
         elif outputType == 'color':
             file.write(INDENT + 'return color(::math::' + functionName + '(float3(' + arg1 + '), float3(' + arg2 + '), float3(' + arg3 + ')));\n')
         else:
-            file.write(INDENT + 'return ::math::' + functionName + '(' + arg1 + ',' + arg2 + ',' + arg3 + ');\n')
+            file.write(INDENT + 'return ::math::' + functionName + '(' + outputType + '(' + arg1 + '),' + outputType + '(' + arg2 + '),' + outputType+ '(' + arg3 + '));\n')
 
+def _writeTransformMatrix(file, nodeName):
+    if nodeName.find('vector3M4') >= 0:
+        file.write(INDENT + 'float4 returnValue = mxp_mat * float4(mxp_in.x, mxp_in.y,  mxp_in.z, 1.0);\n')
+    	file.write(INDENT + 'return float3(returnValue.x, returnValue.y, returnValue.z);\n')
+    elif nodeName.find('vector2M3') >= 0:
+        file.write(INDENT + 'float3 returnValue = mxp_mat * float3(mxp_in.x, mxp_in.y, 1.0);\n')
+        file.write(INDENT + 'return float2(returnValue.x, returnValue.y);\n')
+    else:
+        file.write(INDENT + 'return mxp_mat * mxp_in;\n')
 
 def main():
 
@@ -480,86 +489,148 @@ def main():
                 wroteImplementation = False
                 if nodeCategory == 'constant':
                     file.write(INDENT + 'return mxp_value;\n')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'absval':
                     _writeOneArgumentMath(file, outputType, 'abs')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'ceil':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'floor':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'sin':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'asin':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'cos':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'acos':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'tan':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'atan2':
                     _writeTwoArgumentMath(file, outputType, nodeCategory)
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'sqrt':
                     _writeOneArgumentMath(file, outputType, nodeCategory)
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'ln':
                     _writeOneArgumentMath(file, outputType, 'log2')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'exp':
                     _writeOneArgumentMath(file, outputType, 'exp')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'sign':
                     _writeOneArgumentMath(file, outputType, 'sign')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'max':
                     _writeTwoArgumentMath(file, outputType, 'max')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'min':
                     _writeTwoArgumentMath(file, outputType, 'min')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'add':
                     _writeOperatorMath(file, outputType, 'mxp_in1', '+', 'mxp_in2')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'subtract':
                     _writeOperatorMath(file, outputType, 'mxp_in1', '-', 'mxp_in2')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'invert':
                     _writeOperatorMath(file, outputType, 'mxp_amount', '-', 'mxp_in')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'multiply':
                     _writeOperatorMath(file, outputType, 'mxp_in1', '*', 'mxp_in2')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'divide':
                     if outputType == 'color4':
                         file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) / mk_float4(mxp_in2));\n')
-                        wroteImplementation = True;
+                        wroteImplementation = True
                     elif outputType == 'float3x3' or outputType == 'float4x4':
                         print('Skip division implementation for ' + outputType + '. Not supported in MDL\n')
                         #file.write(INDENT + 'return ' + outputType + '(mxp_in1) / ' + outputType + '(mxp_in2);\n')
                     else:
                         file.write(INDENT + 'return mxp_in1 / mxp_in2;\n')
-                        wroteImplementation = True;
+                        wroteImplementation = True
                 elif nodeCategory == 'modulo':
                     _writeTwoArgumentMath(file, outputType, 'fmod')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'power':
                     _writeTwoArgumentMath(file, outputType, 'pow')
-                    wroteImplementation = True;
+                    wroteImplementation = True
                 elif nodeCategory == 'clamp':
                     _writeThreeArgumentMath(file, outputType, 'clamp', 'mxp_in', 'mxp_low', 'mxp_high')
-                    wroteImplementation = True;
+                    wroteImplementation = True
+                elif nodeCategory == 'normalize':
+                    _writeOneArgumentMath(file, outputType, 'normalize')
+                    wroteImplementation = True
+                elif nodeCategory == 'magnitude':
+                    _writeOneArgumentMath(file, outputType, 'length')
+                    wroteImplementation = True
+                elif nodeCategory == 'dotproduct':
+                    _writeTwoArgumentMath(file, outputType, 'dot')
+                    wroteImplementation = True
+                elif nodeCategory == 'crossproduct':
+                    _writeTwoArgumentMath(file, outputType, 'cross')
+                    wroteImplementation = True
                 elif nodeCategory == 'image':
                     _writeImageImplementation(file, outputType)
-                    wroteImplementation = True;
+                    wroteImplementation = True
+                elif nodeCategory == 'transformmatrix':
+                    _writeTransformMatrix(file, nodeName)
+                    wroteImplementation = True
+                #elif nodeCategory == 'determinant':
+                #    _writeOneArgumentMath(file, outputType, 'determinant')
+                #    wroteImplementation = True
+                elif nodeCategory == 'smoothstep':
+                    _writeThreeArgumentMath(file, outputType, 'smoothstep', 'mxp_in', 'mxp_low', 'mxp_high')
+                    wroteImplementation = True
+                elif nodeCategory == 'luminance':
+                    if nodeName.find('color4') > 0:
+                    	file.write(INDENT + 'color rgb = color(mxp_in.rgb);\n')
+                    	file.write(INDENT + 'color4 returnValue = mk_color4(::math::luminance(rgb));\n')
+                    	file.write(INDENT + 'returnValue.a = mxp_in.a;\n')
+                    	file.write(INDENT + 'return returnValue;\n')
+                    else:
+                        _writeOneArgumentMath(file, outputType, 'luminance')
+                    wroteImplementation = True
+                elif nodeCategory == 'plus':
+                    if outputType != 'color4':
+                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_fg', '(mxp_bg+mxp_fg)', 'mxp_mix')
+                        wroteImplementation = True
+                elif nodeCategory == 'minus':
+                    if outputType != 'color4':
+                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_bg', '(mxp_bg-mxp_fg)', 'mxp_mix')
+                        wroteImplementation = True
+                elif nodeCategory == 'difference':
+                    if outputType != 'color4':
+                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_bg', 'math::abs(mxp_bg-mxp_fg)', 'mxp_mix')
+                        wroteImplementation = True
+                elif nodeCategory == 'burn':
+                    if outputType != 'color4':
+                        burnString = outputType + '(1.0)-(' + outputType + '(1.0)-mxp_bg)/mxp_fg'
+                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_bg', burnString, 'mxp_mix')
+                        wroteImplementation = True
+                elif nodeCategory == 'dodge':
+                    if outputType != 'color4':
+                        dodgeString = 'mxp_bg/(' + outputType + '(1.0)-mxp_fg)'
+                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_bg', dodgeString, 'mxp_mix')
+                        wroteImplementation = True
+                elif nodeCategory == 'screen':
+                    if outputType != 'color4':
+                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_bg', 'mxp_bg+mxp_fg-mxp_bg*mxp_fg', 'mxp_mix')
+                        wroteImplementation = True
+                elif nodeCategory == 'inside':
+                    _writeOperatorMath(file, outputType, 'mxp_in', '*', 'mxp_mask')
+                    wroteImplementation = True
+                elif nodeCategory == 'outside':
+                    _writeOperatorMath(file, outputType, 'mxp_in', '*', '(1.0 - mxp_mask)')
+                    wroteImplementation = True
 
                 if wroteImplementation:
                     implementedCont += 1
