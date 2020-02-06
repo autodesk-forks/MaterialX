@@ -18,6 +18,7 @@
 #include <MaterialXRuntime/RtPortDef.h>
 #include <MaterialXRuntime/RtNodeDef.h>
 #include <MaterialXRuntime/RtTypeDef.h>
+#include <MaterialXRuntime/RtNameResolver.h>
 #include <MaterialXRuntime/RtNode.h>
 #include <MaterialXRuntime/RtNodeGraph.h>
 #include <MaterialXRuntime/RtPath.h>
@@ -990,6 +991,54 @@ TEST_CASE("Runtime: StageManager", "[runtime]")
     REQUIRE(stageManager->hasStage(stageName));
     stageManager->deleteStage(stageName);
     REQUIRE(!stageManager->hasStage(stageName));
+}
+
+mx::RtToken ToTestResolver(const mx::RtToken& str, const mx::RtToken& type)
+{
+    MaterialX::StringResolverPtr resolver = MaterialX::StringResolver::create();
+    mx::RtToken resolvedName = resolver->resolve(str, type).c_str();
+    resolvedName = resolvedName.str() + "_toTestResolver";
+    return resolvedName;
+}
+
+mx::RtToken FromTestResolver(const mx::RtToken& str, const mx::RtToken& type)
+{
+    MaterialX::StringResolverPtr resolver = MaterialX::StringResolver::create();
+    mx::RtToken resolvedName = resolver->resolve(str, type).c_str();
+    resolvedName = resolvedName.str() + "_fromTestResolver";
+    return resolvedName;
+}
+
+TEST_CASE("Runtime: NameResolvers", "[runtime]")
+{
+    mx::RtNameResolverRegistrarPtr registrar = mx::RtNameResolverRegistrar::createNew();
+    REQUIRE(registrar);
+
+    mx::RtNameResolverInfo geomInfo;
+    geomInfo.identifier = mx::RtToken("geom_resolver");
+    geomInfo.elementType = mx::RtNameResolverInfo::GEOMNAME_TYPE;
+    geomInfo.toFunction = nullptr;
+    geomInfo.fromFunction = nullptr;
+    geomInfo.toSubstitutions.emplace("|", "/");
+    geomInfo.fromSubstitutions.emplace("/", "|");
+    registrar->registerNameResolvers(geomInfo);
+
+    mx::RtNameResolverInfo imageInfo;
+    imageInfo.identifier = mx::RtToken("image_resolver");
+    imageInfo.elementType = mx::RtNameResolverInfo::FILENAME_TYPE;
+    imageInfo.toFunction = ToTestResolver;
+    imageInfo.fromFunction = FromTestResolver;
+    registrar->registerNameResolvers(imageInfo);
+    
+    mx::RtToken result1 = registrar->resolveIdentifier("|path|to|geom", mx::RtNameResolverInfo::GEOMNAME_TYPE, true);
+    REQUIRE(result1.str() == "/path/to/geom");
+    mx::RtToken result2 = registrar->resolveIdentifier(result1, mx::RtNameResolverInfo::GEOMNAME_TYPE, false);
+    REQUIRE(result2.str() == "|path|to|geom");
+    
+    mx::RtToken result3 = registrar->resolveIdentifier("test", mx::RtNameResolverInfo::FILENAME_TYPE, true);
+    REQUIRE(result3.str() == "test_toTestResolver");
+    mx::RtToken result4 = registrar->resolveIdentifier("test", mx::RtNameResolverInfo::FILENAME_TYPE, false);
+    REQUIRE(result4.str() == "test_fromTestResolver");
 }
 
 #endif // MATERIALX_BUILD_RUNTIME

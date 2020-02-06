@@ -1,0 +1,189 @@
+//
+// TM & (c) 2020 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
+#include <MaterialXRuntime/Private/PvtNameResolver.h>
+
+#include <MaterialXRuntime/Library.h>
+
+namespace MaterialX
+{
+
+/// Shared pointer to an RtUserStringResolver
+using RtUserStringResolverPtr = std::shared_ptr<class RtUserStringResolver>;
+
+// Internal class to hold on to user specified resolving information
+class RtUserStringResolver : public MaterialX::StringResolver
+{
+public:
+    static RtUserStringResolverPtr createNew(RtNameResolverFunction f)
+    {
+        RtUserStringResolverPtr result(new RtUserStringResolver(f));
+        return result;
+    }
+
+    // Override resolve method
+    std::string resolve(const std::string& str, const std::string& type) const override
+    {
+        std::string result = str;
+        // Use resolve function if defined
+        if (_resolveFunction)
+        {
+            result = _resolveFunction(str.c_str(), type.c_str());
+        }
+
+        // Call the parent class to perform any additional resolving
+        // including token replacement.
+        result = MaterialX::StringResolver::resolve(result, type);
+        return result;
+    }
+
+private:
+    RtNameResolverFunction _resolveFunction;
+
+    RtUserStringResolver(RtNameResolverFunction f) :
+        MaterialX::StringResolver(), 
+        _resolveFunction(f)
+    {
+    }
+};
+
+PvtStringResolverPair::PvtStringResolverPair(const RtToken& type,
+                                             MaterialX::StringResolverPtr toMaterialXResolver,
+                                             MaterialX::StringResolverPtr fromMaterialXResolver)
+    : _type(type)
+    , _toMaterialXResolver(toMaterialXResolver)
+    , _fromMaterialXResolver(fromMaterialXResolver)
+{
+}
+
+const RtToken PvtStringResolverPair::getType() const
+{
+    return _type;
+}
+
+MaterialX::StringResolverPtr PvtStringResolverPair::getToMaterialXResolver()
+{
+    return _toMaterialXResolver;
+}
+
+MaterialX::StringResolverPtr PvtStringResolverPair::getFromMaterialXResolver()
+{
+    return _fromMaterialXResolver;
+}
+
+PvtNameResolverRegistrar::PvtNameResolverRegistrar()
+{
+}
+
+void PvtNameResolverRegistrar::registerNameResolvers(RtNameResolverInfo& info)
+{
+    // Resolvers with the same identifier are not allowed. Fail
+    // if this is attempted.
+    if (_resolvers.find(info.identifier) != _resolvers.end())
+    {
+        throw ExceptionRuntimeError("Name resolver for identifier: '" + info.identifier.str() + "' already exists");
+    }
+
+    RtStringResolverPairPtr resolverPair = nullptr;
+    RtUserStringResolverPtr toResolver = nullptr;
+    RtUserStringResolverPtr fromResolver = nullptr;
+    RtToken elementTypeString("");
+
+    if (info.toFunction || info.toSubstitutions.size())
+    {
+        // Set custom function
+        toResolver = RtUserStringResolver::createNew(info.toFunction);
+
+        // Set custom token substitutions
+        for (auto& toSubsitution : info.toSubstitutions)
+        {
+            if (info.elementType == RtNameResolverInfo::FILENAME_TYPE)
+            {
+                toResolver->setFilenameSubstitution(toSubsitution.first, toSubsitution.second);
+            }
+            else if (info.elementType == RtNameResolverInfo::GEOMNAME_TYPE)
+            {
+                toResolver->setGeomNameSubstitution(toSubsitution.first, toSubsitution.second);
+            }
+        }
+    }
+    if (info.fromFunction || info.fromSubstitutions.size())
+    {
+        // Set custom function
+        fromResolver = RtUserStringResolver::createNew(info.fromFunction);
+
+        // Set custom token substitutions
+        for (auto& fromSubstitution : info.fromSubstitutions)
+        {
+            if (info.elementType == RtNameResolverInfo::FILENAME_TYPE)
+            {
+                fromResolver->setFilenameSubstitution(fromSubstitution.first, fromSubstitution.second);
+            }
+            else if (info.elementType == RtNameResolverInfo::GEOMNAME_TYPE)
+            {
+                fromResolver->setGeomNameSubstitution(fromSubstitution.first, fromSubstitution.second);
+            }
+        }
+    }
+
+    // Create resolver pair
+    if (info.elementType == RtNameResolverInfo::FILENAME_TYPE)
+    {
+        elementTypeString = MaterialX::FILENAME_TYPE_STRING;
+    }
+    else if (info.elementType == RtNameResolverInfo::GEOMNAME_TYPE)
+    {
+        elementTypeString = MaterialX::GEOMNAME_TYPE_STRING;
+    }
+    resolverPair = RtStringResolverPair::createNew(elementTypeString, toResolver, fromResolver);
+    _resolvers[info.identifier] = resolverPair;
+}
+
+void PvtNameResolverRegistrar::deregisterNameResolvers(const RtToken& name)
+{
+    _resolvers.erase(name);
+}
+
+RtToken PvtNameResolverRegistrar::resolveIdentifier(const RtToken& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX) const
+{
+    RtToken type(MaterialX::GEOMNAME_TYPE_STRING);
+    if (elementType == RtNameResolverInfo::ElementType::FILENAME_TYPE)
+    {
+        type = MaterialX::FILENAME_TYPE_STRING;
+    }
+    
+    RtToken result = valueToResolve;
+    for (const auto resolverPair : _resolvers)
+    {
+        if (resolverPair.second && resolverPair.second->getType() == type)
+        {
+            if (toMaterialX)
+            {
+                if (resolverPair.second->getToMaterialXResolver())
+                {
+                    RtUserStringResolverPtr resolverPtr = std::dynamic_pointer_cast<RtUserStringResolver>(resolverPair.second->getToMaterialXResolver());
+                    if (resolverPtr)
+                    {
+                        result = resolverPtr->resolve(result, type);
+                    }
+                }
+            }
+            else
+            {
+                if (resolverPair.second->getFromMaterialXResolver())
+                {
+                    RtUserStringResolverPtr resolverPtr = std::dynamic_pointer_cast<RtUserStringResolver>(resolverPair.second->getFromMaterialXResolver());
+                    if (resolverPtr)
+                    {
+                        result = resolverPtr->resolve(result, type);
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+}
