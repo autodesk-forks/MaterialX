@@ -9,6 +9,8 @@
 #include <MaterialXRuntime/RtNode.h>
 #include <MaterialXRuntime/RtNodeGraph.h>
 #include <MaterialXRuntime/RtBackdrop.h>
+#include <MaterialXRuntime/RtLook.h>
+#include <MaterialXRuntime/RtCollection.h>
 #include <MaterialXRuntime/RtGeneric.h>
 #include <MaterialXRuntime/RtTypeDef.h>
 #include <MaterialXRuntime/RtTraversal.h>
@@ -416,7 +418,7 @@ namespace
                 {
                     readNodeGraph(elem->asA<NodeGraph>(), stage->getRootPrim(), stage);
                 }
-                else
+                else 
                 {
                     readGenericPrim(elem, stage->getRootPrim(), stage);
                 }
@@ -424,7 +426,160 @@ namespace
         }
 
         // Create connections between all root level nodes.
-        createNodeConnections(doc->getNodes(), stage->getRootPrim());
+        createNodeConnections(doc->getNodes(), stage->getRootPrim());       
+    }
+
+    PvtPrim* readCollection(const CollectionPtr& src, PvtPrim* parent, PvtStage* stage)
+    {
+        const RtToken name(src->getName());
+
+        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtCollection::typeName());
+        RtCollection collection(prim->hnd());
+        collection.getIncludeGeom().setValueString(src->getIncludeGeom());
+        collection.getExcludeGeom().setValueString(src->getExcludeGeom());
+
+        // createCollectionConnections() handles creating collection inclusion
+        // connections.
+        return prim;
+    }
+
+    void createCollectionConnections(const vector<CollectionPtr>& collectionElements, PvtPrim* parent)
+    {
+        for (const CollectionPtr& colElement : collectionElements)
+        {
+            PvtPrim* parentCollection = findPrimOrThrow(RtToken(colElement->getName()), parent);
+            for (const CollectionPtr& includeCollection : colElement->getIncludeCollections())
+            {
+                PvtPrim* childCollection = findPrimOrThrow(RtToken(includeCollection->getName()), parent);
+                RtCollection rtCollection(parentCollection->hnd());
+                rtCollection.addCollection(childCollection->hnd());
+            }
+        }
+    }
+
+    PvtPrim* readLook(const LookPtr& src, PvtPrim* parent, PvtStage* stage)
+    {
+        const RtToken name(src->getName());
+
+        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtLook::typeName());
+        RtLook look(prim->hnd());
+
+        // Create material assignments
+        for (const MaterialAssignPtr assign : src->getMaterialAssigns())
+        {
+            PvtPrim* aprim = stage->createPrim(parent->getPath(), RtToken(assign->getName()), RtMaterialAssign::typeName());
+            RtMaterialAssign rassign(aprim->hnd());
+            
+            PvtPrim* collection = findPrimOrThrow(RtToken(assign->getCollectionString()), parent);
+            PvtPrim* material = findPrimOrThrow(RtToken(assign->getMaterial()), parent);
+            rassign.getCollection().addTarget(collection->hnd());
+            rassign.getMaterial().addTarget(material->hnd());
+        }
+
+        // createLookConnections() handles creating look inheritance
+        // connections.
+        return prim;
+    }
+
+    void createLookConnections(const vector<LookPtr>& lookElements, PvtPrim* parent)
+    {
+        for (const LookPtr& lookElem : lookElements)
+        {
+            PvtPrim* childLook = findPrimOrThrow(RtToken(lookElem->getName()), parent);
+            const string& inheritString = lookElem->getInheritString();
+            if (!inheritString.empty())
+            {
+                PvtPrim* parentLook = findPrimOrThrow(RtToken(inheritString), parent);
+                RtLook rtLook(childLook->hnd());
+                rtLook.getInherit().addTarget(parentLook->hnd());
+            }
+        }
+    }
+
+    PvtPrim* readLookGroup(const LookGroupPtr& src, PvtPrim* parent, PvtStage* stage)
+    {
+        const RtToken name(src->getName());
+
+        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtLookGroup::typeName());
+        RtLookGroup lookgroup(prim->hnd());
+
+        // Link to looks
+        const string& lookNamesString = src->getLooks();
+        StringVec lookNamesList  = splitString(lookNamesString, ",");
+        for (auto lookName : lookNamesList)
+        {
+            if (!lookName.empty())
+            {
+                PvtPrim* lookPrim = findPrimOrThrow(RtToken(lookName), parent);
+                lookgroup.addLook(lookPrim->hnd());
+            }
+        }
+        const string& activeLook = src->getActiveLook();
+        lookgroup.getActiveLook().setValueString(activeLook);
+
+        return prim;
+    }
+
+    void readLookInformation(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* readOptions)
+    {
+        RtReadOptions::ReadFilter filter = readOptions ? readOptions->readFilter : nullptr;
+
+        PvtPrim* rootPrim = stage->getRootPrim();
+
+        // Read collections
+        for (const ElementPtr& elem : doc->getChildren())
+        {
+            if (!filter || filter(elem))
+            {
+                // Make sure the element has not been loaded already.
+                PvtPath path("/" + elem->getName());
+                if (stage->getPrimAtPath(path))
+                {
+                    continue;
+                }
+
+                if (elem->isA<Collection>())
+                {
+                    readCollection(elem->asA<Collection>(), rootPrim, stage);
+                }
+            }
+        }
+
+        // Read looks
+        for (const LookPtr& elem : doc->getLooks())
+        {
+            if (!filter || filter(elem))
+            {
+                // Make sure the element has not been loaded already.
+                PvtPath path("/" + elem->getName());
+                if (stage->getPrimAtPath(path))
+                {
+                    continue;
+                }
+
+                readLook(elem, rootPrim, stage);
+            }
+        }
+
+        // Read look groups
+        for (const LookGroupPtr& elem : doc->getLookGroups())
+        {
+            if (!filter || filter(elem))
+            {
+                // Make sure the element has not been loaded already.
+                PvtPath path("/" + elem->getName());
+                if (stage->getPrimAtPath(path))
+                {
+                    continue;
+                }
+
+                readLookGroup(elem, rootPrim, stage);
+            }
+        }
+
+        // Create additional connections
+        createCollectionConnections(doc->getCollections(), rootPrim);
+        createLookConnections(doc->getLooks(), rootPrim);
     }
 
     void writeNodeDef(const PvtPrim* src, DocumentPtr dest)
