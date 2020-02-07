@@ -247,6 +247,10 @@ namespace
         // Copy input values.
         for (auto elem : src->getChildrenOfType<ValueElement>())
         {
+            if (elem->isA<Output>())
+            {
+                continue;
+            }
             const RtToken portName(elem->getName());
             PvtAttribute* input = node->getInput(portName);
             if (!input)
@@ -296,6 +300,10 @@ namespace
                 // Check for connections to the internal graph sockets
                 for (auto elem : srcNnode->getChildrenOfType<ValueElement>())
                 {
+                    if (elem->isA<Output>())
+                    {
+                        continue;
+                    }
                     const string& interfaceName = elem->getInterfaceName();
                     if (!interfaceName.empty())
                     {
