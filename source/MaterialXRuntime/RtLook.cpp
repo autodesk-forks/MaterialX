@@ -29,7 +29,7 @@ DEFINE_TYPED_SCHEMA(RtLookGroup, "lookgroup");
 
 RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    if (typeName != _typeName)
+    if (typeName != _typeInfo.getShortTypeName())
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
@@ -38,7 +38,7 @@ RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtP
     PvtDataHandle primH = PvtPrim::createNew(primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->setTypeName(_typeName);
+    prim->setTypeName(_typeInfo.getShortTypeName());
 
     prim->createAttribute(ACTIVELOOK, RtType::STRING);
     prim->createRelationship(LOOKS);

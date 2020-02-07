@@ -25,6 +25,9 @@ class RtLookGroup : public RtTypedSchema
     DECLARE_TYPED_SCHEMA(RtLookGroup)
 
 public:
+    /// Constructor.
+    RtLookGroup(const RtPrim& prim) : RtTypedSchema(prim) {}
+
     /// Return the active look.
     RtAttribute getActiveLook() const;
 
