@@ -34,7 +34,7 @@ RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtP
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
 
-    const RtToken primName = name == EMPTY_TOKEN ? LOOK1 : name;
+    const RtToken primName = name == EMPTY_TOKEN ? LOOKGROUP1 : name;
     PvtDataHandle primH = PvtPrim::createNew(primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();

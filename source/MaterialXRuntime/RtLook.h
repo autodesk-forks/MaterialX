@@ -7,7 +7,7 @@
 #define MATERIALX_RTLOOK_H
 
 /// @file RtLook.h
-/// Specifictions for a set of classes related to material assignment. 
+/// Specifications for a set of classes related to material assignment. 
 /// This includes:
 ///     1. Material Assignments: which associate collections of geometry with materials
 ///     2. Looks: which contain one or more material assignments.
