@@ -1124,12 +1124,12 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     api->loadLibrary(STDLIB);
     api->loadLibrary(PBRLIB);
     const mx::RtToken matDef("ND_surfacematerial");
-    mx::RtObject sm1 = stage->createPrim(mx::RtPath("/surfacematerial1"), matDef);
+    mx::RtPrim sm1 = stage->createPrim(mx::RtPath("/surfacematerial1"), matDef);
     assign1.getMaterial().addTarget(sm1);
     mx::RtConnectionIterator iter2 = assign1.getMaterial().getTargets();
-    while (iter2.isDone())
+    while (!iter2.isDone())
     {
-        REQUIRE((*iter).getPath() == "/surfacematerial1");
+        REQUIRE((*iter2).getName() == "surfacematerial1");
         break;
     }
 
@@ -1143,9 +1143,10 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     mx::RtLook look1(lo1);
     look1.addMaterialAssign(pa);
     mx::RtConnectionIterator iter3 = look1.getMaterialAssigns().getTargets();
-    while (iter3.isDone())
+    REQUIRE(look1.getMaterialAssigns().targetCount() == 1);
+    while (!iter3.isDone())
     {
-        REQUIRE((*iter).getName() == "look1");
+        REQUIRE((*iter3).getName() == "matassign1");
         break;
     }
     look1.removeMaterialAssign(pa);
