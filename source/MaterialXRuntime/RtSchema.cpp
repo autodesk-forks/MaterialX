@@ -61,13 +61,6 @@ bool RtTypedSchema::isSupported(const PvtDataHandle& hnd) const
 }
 
 
-namespace
-{
-    const string TYPE_NAME_SEPARATOR = ":";
-}
-
-using PvtTypeNameSet = RtTokenSet;
-
 struct PvtTypeNameInfo
 {
     RtToken shortName;
@@ -82,7 +75,7 @@ RtTypeInfo::RtTypeInfo(const char* typeNameHierachy) :
     PvtTypeNameInfo* info = new PvtTypeNameInfo();
 
     const RtToken longName(typeNameHierachy);
-    StringVec names = splitString(longName, TYPE_NAME_SEPARATOR);
+    StringVec names = splitString(longName, ":");
     info->shortName = names.back();
     info->longName = longName;
     for (size_t i = 0; i < names.size() - 1; ++i)
