@@ -53,14 +53,12 @@ RtAttribute RtLookGroup::getActiveLook() const
 
 void RtLookGroup::addLook(const RtObject& look)
 {
-    RtRelationship rel = getLooks();
-    rel.removeTarget(look);
+    getLooks().addTarget(look);
 }
 
 void RtLookGroup::removeLook(const RtObject& look)
 {
-    RtRelationship rel = getLooks();
-    rel.addTarget(look);
+    getLooks().removeTarget(look);
 }
 
 RtRelationship RtLookGroup::getLooks() const
@@ -96,14 +94,12 @@ RtRelationship RtLook::getInherit() const
 
 void RtLook::addMaterialAssign(const RtObject& assignment)
 {
-    RtRelationship assignments = getMaterialAssigns();
-    assignments.addTarget(assignment);
+    getMaterialAssigns().addTarget(assignment);
 }
 
 void RtLook::removeMaterialAssign(const RtObject& assignment)
 {
-    RtRelationship assignments = getMaterialAssigns();
-    assignments.removeTarget(assignment);
+    getMaterialAssigns().removeTarget(assignment);
 }
 
 RtRelationship RtLook::getMaterialAssigns() const

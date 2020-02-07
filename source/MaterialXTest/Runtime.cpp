@@ -1084,6 +1084,9 @@ TEST_CASE("Runtime: Looks", "[runtime]")
 
     mx::RtStagePtr stage = api->createStage(ROOT);
 
+    //
+    // Test collections
+    //
     mx::RtPrim p1 = stage->createPrim("collection1", mx::RtCollection::typeName());
     mx::RtCollection col1(p1);
     mx::RtAttribute igeom = col1.getIncludeGeom();
@@ -1102,18 +1105,70 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     col1.removeCollection(p2);
     REQUIRE(rel.targetCount() == 1);
 
+    //
+    // Test materialassign
+    //
     mx::RtPrim pa = stage->createPrim("matassign1", mx::RtMaterialAssign::typeName());
     mx::RtMaterialAssign assign1(pa);
     assign1.getCollection().addTarget(p1);
+    mx::RtConnectionIterator iter = assign1.getCollection().getTargets();
+    while (iter.isDone())
+    {
+        REQUIRE((*iter).getName() == "collection1");
+        break;
+    }
 
-    //TODO : Add rest of testing..
+    // Load in library so we can create a material
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    mx::DocumentPtr doc = mx::createDocument();
-    loadLibraries({ "stdlib", "pbrlib" }, searchPath, doc);
+    api->loadLibrary(STDLIB);
+    api->loadLibrary(PBRLIB);
+    const mx::RtToken matDef("ND_surfacematerial");
+    mx::RtObject sm1 = stage->createPrim(mx::RtPath("/surfacematerial1"), matDef);
+    assign1.getMaterial().addTarget(sm1);
+    mx::RtConnectionIterator iter2 = assign1.getMaterial().getTargets();
+    while (iter2.isDone())
+    {
+        REQUIRE((*iter).getPath() == "/surfacematerial1");
+        break;
+    }
 
-    //mx::RtNodeDef nodedef = stage->createPrim("/ND_material", mx::RtNodeDef::typeName());
-    //assign1.getMaterial().addTarget()
+    assign1.getExclusive().setValue(mx::RtValue(true));
+    REQUIRE(assign1.getExclusive().getValue().asBool() == true);
+
+    //
+    // Test look
+    //
+    mx::RtPrim lo1 = stage->createPrim("look1", mx::RtLook::typeName());
+    mx::RtLook look1(lo1);
+    look1.addMaterialAssign(pa);
+    mx::RtConnectionIterator iter3 = look1.getMaterialAssigns().getTargets();
+    while (iter3.isDone())
+    {
+        REQUIRE((*iter).getName() == "look1");
+        break;
+    }
+    look1.removeMaterialAssign(pa);
+    REQUIRE(look1.getMaterialAssigns().targetCount() == 0);
+
+    mx::RtPrim lo2 = stage->createPrim("look2", mx::RtLook::typeName());
+    mx::RtLook look2(lo2);
+    look2.getInherit().addTarget(lo1);
+    REQUIRE(look2.getInherit().targetCount() == 1);
+
+    //
+    // Test lookgroup
+    //
+    mx::RtPrim lg1 = stage->createPrim("lookgroup1", mx::RtLookGroup::typeName());
+    mx::RtLookGroup lookgroup1(lg1);
+    lookgroup1.addLook(lo1);
+    lookgroup1.addLook(lo2);
+    REQUIRE(lookgroup1.getLooks().targetCount() == 2);
+    lookgroup1.removeLook(lo1);
+    REQUIRE(lookgroup1.getLooks().targetCount() == 1);
+
+    lookgroup1.getActiveLook().setValueString("look1");
+    REQUIRE(lookgroup1.getActiveLook().getValueString() == "look1");
 }
 
 #endif // MATERIALX_BUILD_RUNTIME
