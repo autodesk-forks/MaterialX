@@ -30,7 +30,7 @@ public:
         // Use resolve function if defined
         if (_resolveFunction)
         {
-            result = _resolveFunction(str.c_str(), type.c_str());
+            result = _resolveFunction(str.c_str(), type.c_str()).str();
         }
 
         // Call the parent class to perform any additional resolving
