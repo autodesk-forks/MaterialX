@@ -25,7 +25,7 @@ DEFINE_TYPED_SCHEMA(RtLook, "look");
 
 RtPrim RtLook::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    if (typeName != _typeName)
+    if (typeName != _typeInfo.getShortTypeName())
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
@@ -34,7 +34,7 @@ RtPrim RtLook::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
     PvtDataHandle primH = PvtPrim::createNew(primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->setTypeName(_typeName);
+    prim->setTypeName(_typeInfo.getShortTypeName());
     prim->createRelationship(INHERIT);
 
     return primH;
@@ -56,7 +56,7 @@ DEFINE_TYPED_SCHEMA(RtMaterialAssign, "materialassign");
 
 RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    if (typeName != _typeName)
+    if (typeName != _typeInfo.getShortTypeName())
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
@@ -65,7 +65,7 @@ RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name
     PvtDataHandle primH = PvtPrim::createNew(primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->setTypeName(_typeName);
+    prim->setTypeName(_typeInfo.getShortTypeName());
     prim->createRelationship(MATERIAL);
     prim->createRelationship(COLLECTION);
     PvtAttribute* exclusive = prim->createAttribute(EXCLUSIVE, RtType::BOOLEAN);

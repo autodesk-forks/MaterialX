@@ -718,7 +718,7 @@ namespace
             {
                 writeSourceUris(ref, doc);
             }
-            const RtTokenList& uris = ref->getSourceUri();
+            const RtTokenVec& uris = ref->getSourceUri();
             if (!uris.empty())
             {
                 for (const RtToken& uri : uris)

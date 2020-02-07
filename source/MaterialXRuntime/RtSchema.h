@@ -131,13 +131,48 @@ protected:
     PvtDataHandle _hnd;
 };
 
+/// @class RtTypeInfo
+/// Class holding type information for typed schemas.
+class RtTypeInfo
+{
+public:
+    /// Constructor setting the type hierarchy
+    /// for this typename. The string should list
+    /// the typenames in the hierarchy with a ':' 
+    /// separator, e.g.: "node:nodegraph".
+    RtTypeInfo(const char* typeNameHierachy);
+
+    /// Destructor
+    ~RtTypeInfo();
+
+    /// Return the single typename for the class.
+    const RtToken& getShortTypeName() const;
+
+    /// Return the complete typename for the class including base classes.
+    const RtToken& getLongTypeName() const;
+
+    /// Return the number of base classes for this class.
+    size_t numBaseClasses() const;
+
+    /// Return the short typename for a specific base class.
+    const RtToken& getBaseClassType(size_t index) const;
+
+    /// Return true if the given typename is part of the
+    /// class hierarchy for this type.
+    bool isCompatible(const RtToken& typeName) const;
+
+private:
+    // Private data.
+    void* _ptr;
+};
+
 /// @class RtTypedSchema
 /// Base class for all typed prim schemas.
 class RtTypedSchema : public RtSchemaBase
 {
 public:
-    /// Return the typename for the prim defined by this schema.
-    virtual const RtToken& getTypeName() const;
+    /// Return the type info for the prim defined by this schema.
+    virtual const RtTypeInfo& getTypeInfo() const = 0;
 
 protected:
     /// Constructor attaching a prim to the API.
@@ -150,19 +185,19 @@ protected:
     bool isSupported(const PvtDataHandle& hnd) const override;
 };
 
+
 /// Macro declaring required methods and mambers on typed schemas.
 #define DECLARE_TYPED_SCHEMA(T)                                                             \
 private:                                                                                    \
-    static const RtToken _typeName;                                                         \
+    static const RtTypeInfo _typeInfo;                                                      \
 public:                                                                                     \
-    T(const RtPrim& prim) : RtTypedSchema(prim) {}                                          \
-    const RtToken& getTypeName() const override { return _typeName; }                       \
-    static const RtToken& typeName() { return _typeName; }                                  \
+    const RtTypeInfo& getTypeInfo() const override { return _typeInfo; }                    \
+    static const RtToken& typeName() { return _typeInfo.getShortTypeName(); }               \
     static RtPrim createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent);  \
 
 /// Macro defining required methods and mambers on typed schemas.
-#define DEFINE_TYPED_SCHEMA(T, typeNameStr)                                                 \
-const RtToken T::_typeName(typeNameStr);                                                    \
+#define DEFINE_TYPED_SCHEMA(T, typeNameHierachy)                                            \
+const RtTypeInfo T::_typeInfo(typeNameHierachy);                                            \
 
 }
 

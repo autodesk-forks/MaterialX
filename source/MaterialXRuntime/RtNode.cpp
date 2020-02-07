@@ -42,7 +42,7 @@ RtPrim RtNode::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
 
     PvtDataHandle nodeH = PvtPrim::createNew(nodeName, PvtObject::ptr<PvtPrim>(parent));
     PvtPrim* node = nodeH->asA<PvtPrim>();
-    node->setTypeName(_typeName);
+    node->setTypeName(_typeInfo.getShortTypeName());
 
     // Save the nodedef in a relationship.
     PvtRelationship* nodedefRelation = node->createRelationship(NODEDEF);

@@ -18,11 +18,11 @@ namespace
     static const RtToken NODEGRAPH1("nodegraph1");
 }
 
-DEFINE_TYPED_SCHEMA(RtNodeGraph, "nodegraph");
+DEFINE_TYPED_SCHEMA(RtNodeGraph, "node:nodegraph");
 
 RtPrim RtNodeGraph::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    if (typeName != _typeName)
+    if (typeName != _typeInfo.getShortTypeName())
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
@@ -31,7 +31,7 @@ RtPrim RtNodeGraph::createPrim(const RtToken& typeName, const RtToken& name, RtP
     PvtDataHandle primH = PvtPrim::createNew(primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->setTypeName(_typeName);
+    prim->setTypeName(_typeInfo.getShortTypeName());
 
     // Add a child prim to hold the internal sockets.
     PvtDataHandle socketH = PvtPrim::createNew(SOCKET, prim);
@@ -76,30 +76,6 @@ void RtNodeGraph::removeOutput(const RtToken& name)
     PvtPrim* socket = prim()->getChild(SOCKET);
     socket->removeAttribute(name);
     prim()->removeAttribute(name);
-}
-
-RtInput RtNodeGraph::getInput(const RtToken& name) const
-{
-    PvtInput* input = prim()->getInput(name);
-    return input ? input->hnd() : RtInput();
-}
-
-RtAttrIterator RtNodeGraph::getInputs() const
-{
-    RtObjTypePredicate<RtInput> filter;
-    return RtAttrIterator(getPrim(), filter);
-}
-
-RtOutput RtNodeGraph::getOutput(const RtToken& name) const
-{
-    PvtOutput* output = prim()->getOutput(name);
-    return output ? output->hnd() : RtOutput();
-}
-
-RtAttrIterator RtNodeGraph::getOutputs() const
-{
-    RtObjTypePredicate<RtOutput> filter;
-    return RtAttrIterator(getPrim(), filter);
 }
 
 RtOutput RtNodeGraph::getInputSocket(const RtToken& name) const

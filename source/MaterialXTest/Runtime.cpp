@@ -415,7 +415,7 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     mx::RtNodeDef nodedef(nodedefPrim);
     REQUIRE(nodedef);
     REQUIRE(nodedef.isValid());
-    REQUIRE(nodedef.getTypeName() == mx::RtNodeDef::typeName());
+    REQUIRE(nodedef.getTypeInfo().getShortTypeName() == mx::RtNodeDef::typeName());
     REQUIRE(nodedef.getName() == mx::RtToken("ND_foo_float"));
     nodedef.setNode(FOO);
     REQUIRE(nodedef.getNode() == FOO);
@@ -428,7 +428,7 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(nodePrim.hasApi<mx::RtNode>());
     mx::RtNode node(nodePrim);
     REQUIRE(node);
-    REQUIRE(node.getTypeName() == mx::RtNode::typeName());
+    REQUIRE(node.getTypeInfo().getShortTypeName() == mx::RtNode::typeName());
     REQUIRE(node.getName() == mx::RtToken("foo2"));
     REQUIRE(node.getNodeDef() == nodedefPrim);
 
@@ -437,7 +437,8 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(graphPrim.hasApi<mx::RtNodeGraph>());
     mx::RtNodeGraph graph(graphPrim);
     REQUIRE(graph);
-    REQUIRE(graph.getTypeName() == mx::RtNodeGraph::typeName());
+    REQUIRE(graph.getTypeInfo().isCompatible(mx::RtNode::typeName()));
+    REQUIRE(graph.getTypeInfo().getShortTypeName() == mx::RtNodeGraph::typeName());
     REQUIRE(graph.getName() == mx::RtToken("nodegraph1"));
 
     mx::RtPrim backdropPrim = stage->createPrim(mx::RtBackdrop::typeName());
@@ -445,7 +446,7 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(backdropPrim.hasApi<mx::RtBackdrop>());
     mx::RtBackdrop backdrop(backdropPrim);
     REQUIRE(backdrop);
-    REQUIRE(backdrop.getTypeName() == mx::RtBackdrop::typeName());
+    REQUIRE(backdrop.getTypeInfo().getShortTypeName() == mx::RtBackdrop::typeName());
     backdrop.getContains().addTarget(node.getPrim());
     backdrop.getContains().addTarget(graph.getPrim());
     REQUIRE(backdrop.getContains().hasTargets());
@@ -459,7 +460,7 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(genericPrim.hasApi<mx::RtGeneric>());
     mx::RtGeneric generic(genericPrim);
     REQUIRE(generic);
-    REQUIRE(generic.getTypeName() == mx::RtGeneric::typeName());
+    REQUIRE(generic.getTypeInfo().getShortTypeName() == mx::RtGeneric::typeName());
     mx::RtToken kind("mykindofprim");
     generic.setKind(kind);
     REQUIRE(generic.getKind() == kind);

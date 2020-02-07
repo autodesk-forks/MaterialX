@@ -124,7 +124,7 @@ public:
         return _root->asA<PvtPrim>()->getPath();
     }
 
-    const RtTokenList& getSourceUri() const
+    const RtTokenVec& getSourceUri() const
     {
         return _sourceUri;
     }
@@ -176,7 +176,7 @@ protected:
     RtStageMap _refStagesMap;
     RtStageVec _refStagesOrder;
 
-    RtTokenList _sourceUri;
+    RtTokenVec _sourceUri;
 
     friend class PvtObject;
 };
