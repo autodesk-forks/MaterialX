@@ -14,7 +14,7 @@ namespace MaterialX
 using PvtUserStringResolverPtr = std::shared_ptr<class PvtUserStringResolver>;
 
 // Internal class to hold on to user specified resolving information
-class PvtUserStringResolver : public MaterialX::StringResolver
+class PvtUserStringResolver : public StringResolver
 {
 public:
     static PvtUserStringResolverPtr createNew(RtNameResolverFunction f)
@@ -35,7 +35,7 @@ public:
 
         // Call the parent class to perform any additional resolving
         // including token replacement.
-        result = MaterialX::StringResolver::resolve(result, type);
+        result = StringResolver::resolve(result, type);
         return result;
     }
 
@@ -43,19 +43,27 @@ private:
     RtNameResolverFunction _resolveFunction;
 
     explicit PvtUserStringResolver(RtNameResolverFunction f) :
-        MaterialX::StringResolver(), 
+        StringResolver(),
         _resolveFunction(f)
     {
     }
 };
 
 PvtStringResolverPair::PvtStringResolverPair(const RtNameResolverInfo::ElementType elementType,
-                                             MaterialX::StringResolverPtr toMaterialXResolver,
-                                             MaterialX::StringResolverPtr fromMaterialXResolver)
+                                             StringResolverPtr toMaterialXResolver,
+                                             StringResolverPtr fromMaterialXResolver)
     : _elementType(elementType)
     , _toMaterialXResolver(toMaterialXResolver)
     , _fromMaterialXResolver(fromMaterialXResolver)
 {
+}
+
+PvtStringResolverPairPtr PvtStringResolverPair::createNew(const RtNameResolverInfo::ElementType elementType,
+                                                          StringResolverPtr toMaterialXResolver,
+                                                          StringResolverPtr fromMaterialXResolver)
+{
+    PvtStringResolverPairPtr result(new PvtStringResolverPair(elementType, toMaterialXResolver, fromMaterialXResolver));
+    return result;
 }
 
 const RtNameResolverInfo::ElementType PvtStringResolverPair::getType() const
@@ -63,21 +71,21 @@ const RtNameResolverInfo::ElementType PvtStringResolverPair::getType() const
     return _elementType;
 }
 
-MaterialX::StringResolverPtr PvtStringResolverPair::getToMaterialXResolver()
+StringResolverPtr PvtStringResolverPair::getToMaterialXResolver()
 {
     return _toMaterialXResolver;
 }
 
-MaterialX::StringResolverPtr PvtStringResolverPair::getFromMaterialXResolver()
+StringResolverPtr PvtStringResolverPair::getFromMaterialXResolver()
 {
     return _fromMaterialXResolver;
 }
 
-PvtNameResolverRegistrar::PvtNameResolverRegistrar()
+PvtNameResolverRegistry::PvtNameResolverRegistry()
 {
 }
 
-void PvtNameResolverRegistrar::registerNameResolvers(RtNameResolverInfo& info)
+void PvtNameResolverRegistry::registerNameResolvers(RtNameResolverInfo& info)
 {
     // Resolvers with the same identifier are not allowed. Fail
     // if this is attempted.
@@ -86,7 +94,7 @@ void PvtNameResolverRegistrar::registerNameResolvers(RtNameResolverInfo& info)
         throw ExceptionRuntimeError("Name resolver for identifier: '" + info.identifier.str() + "' already exists");
     }
 
-    RtStringResolverPairPtr resolverPair = nullptr;
+    PvtStringResolverPairPtr resolverPair = nullptr;
     PvtUserStringResolverPtr toResolver = nullptr;
     PvtUserStringResolverPtr fromResolver = nullptr;
     RtToken elementTypeString("");
@@ -128,21 +136,21 @@ void PvtNameResolverRegistrar::registerNameResolvers(RtNameResolverInfo& info)
         }
     }
 
-    resolverPair = RtStringResolverPair::createNew(info.elementType, toResolver, fromResolver);
+    resolverPair = PvtStringResolverPair::createNew(info.elementType, toResolver, fromResolver);
     _resolvers[info.identifier] = resolverPair;
 }
 
-void PvtNameResolverRegistrar::deregisterNameResolvers(const RtToken& name)
+void PvtNameResolverRegistry::deregisterNameResolvers(const RtToken& name)
 {
     _resolvers.erase(name);
 }
 
-RtToken PvtNameResolverRegistrar::resolveIdentifier(const RtToken& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX) const
+RtToken PvtNameResolverRegistry::resolveIdentifier(const RtToken& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX) const
 {
-    RtToken type(MaterialX::GEOMNAME_TYPE_STRING);
+    RtToken type(GEOMNAME_TYPE_STRING);
     if (elementType == RtNameResolverInfo::ElementType::FILENAME_TYPE)
     {
-        type = MaterialX::FILENAME_TYPE_STRING;
+        type = FILENAME_TYPE_STRING;
     }
     
     RtToken result = valueToResolve;

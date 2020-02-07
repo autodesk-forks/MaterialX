@@ -10,60 +10,30 @@
 namespace MaterialX
 {
 
-RtStringResolverPairPtr RtStringResolverPair::createNew(const RtNameResolverInfo::ElementType elementType,
-                                                        MaterialX::StringResolverPtr toMaterialXResolver,
-                                                        MaterialX::StringResolverPtr fromMaterialXResolver)
+RtNameResolverRegistryPtr RtNameResolverRegistry::createNew()
 {
-    RtStringResolverPairPtr result(new RtStringResolverPair(elementType, toMaterialXResolver, fromMaterialXResolver));
+    RtNameResolverRegistryPtr result(new RtNameResolverRegistry());
     return result;
 }
 
-const RtNameResolverInfo::ElementType RtStringResolverPair::getType() const
-{
-    return _stringResolverPair->getType();
-}
-
-MaterialX::StringResolverPtr RtStringResolverPair::getToMaterialXResolver()
-{
-    return _stringResolverPair->getToMaterialXResolver();
-}
-
-MaterialX::StringResolverPtr RtStringResolverPair::getFromMaterialXResolver()
-{
-    return _stringResolverPair->getFromMaterialXResolver();
-}
-
-RtStringResolverPair::RtStringResolverPair(const RtNameResolverInfo::ElementType elementType,
-                                           MaterialX::StringResolverPtr toMaterialXResolver,
-                                           MaterialX::StringResolverPtr fromMaterialXResolver)
-    : _stringResolverPair(new PvtStringResolverPair(elementType, toMaterialXResolver, fromMaterialXResolver))
+RtNameResolverRegistry::RtNameResolverRegistry()
+    : _nameResolverRegistry(new PvtNameResolverRegistry())
 {
 }
 
-RtNameResolverRegistrarPtr RtNameResolverRegistrar::createNew()
+void RtNameResolverRegistry::registerNameResolvers(RtNameResolverInfo& info)
 {
-    RtNameResolverRegistrarPtr result(new RtNameResolverRegistrar());
-    return result;
+    _nameResolverRegistry->registerNameResolvers(info);
 }
 
-RtNameResolverRegistrar::RtNameResolverRegistrar()
-    : _nameResolverRegistrar(new PvtNameResolverRegistrar())
+void RtNameResolverRegistry::deregisterNameResolvers(const RtToken& name)
 {
+    _nameResolverRegistry->deregisterNameResolvers(name);
 }
 
-void RtNameResolverRegistrar::registerNameResolvers(RtNameResolverInfo& info)
+RtToken RtNameResolverRegistry::resolveIdentifier(const RtToken& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX) const
 {
-    _nameResolverRegistrar->registerNameResolvers(info);
-}
-
-void RtNameResolverRegistrar::deregisterNameResolvers(const RtToken& name)
-{
-    _nameResolverRegistrar->deregisterNameResolvers(name);
-}
-
-RtToken RtNameResolverRegistrar::resolveIdentifier(const RtToken& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX) const
-{
-    return _nameResolverRegistrar->resolveIdentifier(valueToResolve, elementType, toMaterialX);
+    return _nameResolverRegistry->resolveIdentifier(valueToResolve, elementType, toMaterialX);
 }
 
 }

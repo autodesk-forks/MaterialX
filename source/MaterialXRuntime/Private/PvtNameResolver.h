@@ -18,16 +18,30 @@
 namespace MaterialX
 {
 
-/// Map of token to RtStringResolverPairPtr
-using RtStringResolverMap = RtTokenMap<RtStringResolverPairPtr>;
+class PvtStringResolverPair;
 
+/// Shared pointer to a PvtStringResolverPair
+using PvtStringResolverPairPtr = std::shared_ptr<class PvtStringResolverPair>;
+
+/// Map of token to RtStringResolverPairPtr
+using PvtStringResolverMap = RtTokenMap<PvtStringResolverPairPtr>;
+
+/// @class PvtStringResolverPair
+///
+/// Class that keeps track of a pair of String Resolvers that are used to
+/// convert string identifiers to and from MaterialX.
+///
 class PvtStringResolverPair
 {
   public:
-    /// Constructor
-    PvtStringResolverPair(const RtNameResolverInfo::ElementType elementType,
-                          MaterialX::StringResolverPtr toMaterialXResolver,
-                          MaterialX::StringResolverPtr fromMaterialXResolver);
+    /// \brief Creates an PvtStringResolverPair shared_ptr
+    /// \param type The type of element the resolver pair resolves
+    /// \param toMaterialXResolver Resolves string identifiers to MaterialX document format
+    /// \param fromMaterialXResolver Resolves string identifiers from MaterialX document format
+    /// \return Returns a PvtStringResolverPair shared_ptr
+    static PvtStringResolverPairPtr createNew(const RtNameResolverInfo::ElementType elementType,
+                                              StringResolverPtr toMaterialXResolver,
+                                              StringResolverPtr fromMaterialXResolver);
 
     /// \brief Returns the type of element resolved by the pair of resolvers
     /// \return Type of element resolved by the pair of resolvers
@@ -35,24 +49,28 @@ class PvtStringResolverPair
 
     /// \brief Returns the resolver used to convert string identifiers to MaterialX document format
     /// \return StringResolverPtr to the resolver used to convert string identifiers to MaterialX document format
-    MaterialX::StringResolverPtr getToMaterialXResolver();
+    StringResolverPtr getToMaterialXResolver();
 
     /// \brief Returns the resolver used to convert string identifiers from MaterialX document format
     /// \return StringResolverPtr to the resolver used to convert string identifiers from MaterialX document format
-    MaterialX::StringResolverPtr getFromMaterialXResolver();
+    StringResolverPtr getFromMaterialXResolver();
 
   private:
+    PvtStringResolverPair(const RtNameResolverInfo::ElementType elementType,
+                          StringResolverPtr toMaterialXResolver,
+                          StringResolverPtr fromMaterialXResolver);
+
     const RtNameResolverInfo::ElementType _elementType;
-    MaterialX::StringResolverPtr _toMaterialXResolver;
-    MaterialX::StringResolverPtr _fromMaterialXResolver;
+    StringResolverPtr _toMaterialXResolver;
+    StringResolverPtr _fromMaterialXResolver;
 };
 
-/// @class PvtNameResolverRegistrar
-class PvtNameResolverRegistrar
+/// @class PvtNameResolverRegistry
+class PvtNameResolverRegistry
 {
 public:
     /// Constructor
-    PvtNameResolverRegistrar();
+    PvtNameResolverRegistry();
 
     /// \brief Registers a pair of string resolvers for resolving scene identifiers to/from MaterialX
     /// \param nameResolverContext Name resolution information
@@ -71,7 +89,7 @@ public:
     RtToken resolveIdentifier(const RtToken& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX = true) const;                                              
 
 private:
-    RtStringResolverMap _resolvers;
+    PvtStringResolverMap _resolvers;
 };
 
 }
