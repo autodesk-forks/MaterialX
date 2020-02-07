@@ -54,13 +54,13 @@ RtAttribute RtLookGroup::getActiveLook() const
 void RtLookGroup::addLook(const RtObject& look)
 {
     RtRelationship rel = getLooks();
-    rel.addTarget(look);
+    rel.removeTarget(look);
 }
 
 void RtLookGroup::removeLook(const RtObject& look)
 {
     RtRelationship rel = getLooks();
-    rel.removeTarget(look);
+    rel.addTarget(look);
 }
 
 RtRelationship RtLookGroup::getLooks() const

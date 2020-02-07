@@ -53,14 +53,14 @@ RtAttribute RtCollection::getExcludeGeom() const
 
 void RtCollection::addCollection(const RtObject& collection)
 {
-    RtRelationship rel = getIncludeCollection();
-    rel.addTarget(collection);
+    PvtRelationship* pRel = prim()->getRelationship(INCLUDE_COLLECTION);
+    pRel->addTarget(PvtObject::ptr<PvtObject>(collection));
 }
 
 void RtCollection::removeCollection(const RtObject& collection)
 {
-    RtRelationship rel = getIncludeCollection();
-    rel.removeTarget(collection);
+    PvtRelationship* pRel = prim()->getRelationship(INCLUDE_COLLECTION);
+    pRel->removeTarget(PvtObject::ptr<PvtObject>(collection));
 }
 
 RtRelationship RtCollection::getIncludeCollection() const

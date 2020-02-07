@@ -28,6 +28,8 @@
 #include <MaterialXRuntime/RtPath.h>
 #include <MaterialXRuntime/RtFileIo.h>
 #include <MaterialXRuntime/RtTraversal.h>
+#include <MaterialXRuntime/RtLook.h>
+#include <MaterialXRuntime/RtCollection.h>
 
 #include <MaterialXGenShader/Util.h>
 
@@ -1074,6 +1076,44 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
         }
     }
     REQUIRE(bsdfCount == libBsdfCount);
+}
+
+TEST_CASE("Runtime: Looks", "[runtime]")
+{
+    mx::RtScopedApiHandle api;
+
+    mx::RtStagePtr stage = api->createStage(ROOT);
+
+    mx::RtPrim p1 = stage->createPrim("collection1", mx::RtCollection::typeName());
+    mx::RtCollection col1(p1);
+    mx::RtAttribute igeom = col1.getIncludeGeom();
+    igeom.setValueString("foo");
+    mx::RtAttribute egeom = col1.getExcludeGeom();
+    egeom.setValueString("bar");
+    REQUIRE(igeom.getValueString() == "foo");
+    REQUIRE(egeom.getValueString() == "bar");
+
+    mx::RtPrim p2 = stage->createPrim("child1", mx::RtCollection::typeName());
+    mx::RtPrim p3= stage->createPrim("child2", mx::RtCollection::typeName());
+    col1.addCollection(p2);
+    col1.addCollection(p3);
+    mx::RtRelationship rel = col1.getIncludeCollection();
+    REQUIRE(rel.targetCount() == 2); 
+    col1.removeCollection(p2);
+    REQUIRE(rel.targetCount() == 1);
+
+    mx::RtPrim pa = stage->createPrim("matassign1", mx::RtMaterialAssign::typeName());
+    mx::RtMaterialAssign assign1(pa);
+    assign1.getCollection().addTarget(p1);
+
+    //TODO : Add rest of testing..
+    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    api->setSearchPath(searchPath);
+    mx::DocumentPtr doc = mx::createDocument();
+    loadLibraries({ "stdlib", "pbrlib" }, searchPath, doc);
+
+    //mx::RtNodeDef nodedef = stage->createPrim("/ND_material", mx::RtNodeDef::typeName());
+    //assign1.getMaterial().addTarget()
 }
 
 #endif // MATERIALX_BUILD_RUNTIME
