@@ -373,62 +373,6 @@ namespace
         return prim;
     }
 
-    void readDocument(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* readOptions)
-    {
-        // Set the source location 
-        const std::string& uri = doc->getSourceUri();
-        stage->addSourceUri(RtToken(uri));
-
-        readMetadata(doc, stage->getRootPrim(), stageMetadata);
-
-        RtReadOptions::ReadFilter filter = readOptions ? readOptions->readFilter : nullptr;
-
-        // First, load and register all nodedefs.
-        // Having these available is needed when node instances are loaded later.
-        for (const NodeDefPtr& nodedef : doc->getNodeDefs())
-        {
-            if (!filter || filter(nodedef))
-            {
-                PvtPath path("/" + nodedef->getName());
-                if (!stage->getPrimAtPath(path))
-                {
-                    PvtPrim* prim = readNodeDef(nodedef, stage);
-                    RtNodeDef(prim->hnd()).registerMasterPrim();
-                }
-            }
-        }
-
-        // Load all other elements.
-        for (const ElementPtr& elem : doc->getChildren())
-        {
-            if (!filter || filter(elem))
-            {
-                // Make sure the element has not been loaded already.
-                PvtPath path("/" + elem->getName());
-                if (stage->getPrimAtPath(path))
-                {
-                    continue;
-                }
-
-                if (elem->isA<Node>())
-                {
-                    readNode(elem->asA<Node>(), stage->getRootPrim(), stage);
-                }
-                else if (elem->isA<NodeGraph>())
-                {
-                    readNodeGraph(elem->asA<NodeGraph>(), stage->getRootPrim(), stage);
-                }
-                else 
-                {
-                    readGenericPrim(elem, stage->getRootPrim(), stage);
-                }
-            }
-        }
-
-        // Create connections between all root level nodes.
-        createNodeConnections(doc->getNodes(), stage->getRootPrim());       
-    }
-
     PvtPrim* readCollection(const CollectionPtr& src, PvtPrim* parent, PvtStage* stage)
     {
         const RtToken name(src->getName());
@@ -527,7 +471,7 @@ namespace
         PvtPrim* rootPrim = stage->getRootPrim();
 
         // Read collections
-        for (const ElementPtr& elem : doc->getChildren())
+        for (const ElementPtr& elem : doc->getCollections())
         {
             if (!filter || filter(elem))
             {
@@ -537,11 +481,7 @@ namespace
                 {
                     continue;
                 }
-
-                if (elem->isA<Collection>())
-                {
-                    readCollection(elem->asA<Collection>(), rootPrim, stage);
-                }
+                readCollection(elem->asA<Collection>(), rootPrim, stage);
             }
         }
 
@@ -556,7 +496,6 @@ namespace
                 {
                     continue;
                 }
-
                 readLook(elem, rootPrim, stage);
             }
         }
@@ -572,7 +511,6 @@ namespace
                 {
                     continue;
                 }
-
                 readLookGroup(elem, rootPrim, stage);
             }
         }
@@ -580,6 +518,68 @@ namespace
         // Create additional connections
         createCollectionConnections(doc->getCollections(), rootPrim);
         createLookConnections(doc->getLooks(), rootPrim);
+    }
+
+    void readDocument(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* readOptions)
+    {
+        // Set the source location 
+        const std::string& uri = doc->getSourceUri();
+        stage->addSourceUri(RtToken(uri));
+
+        readMetadata(doc, stage->getRootPrim(), stageMetadata);
+
+        RtReadOptions::ReadFilter filter = readOptions ? readOptions->readFilter : nullptr;
+
+        // First, load and register all nodedefs.
+        // Having these available is needed when node instances are loaded later.
+        for (const NodeDefPtr& nodedef : doc->getNodeDefs())
+        {
+            if (!filter || filter(nodedef))
+            {
+                PvtPath path("/" + nodedef->getName());
+                if (!stage->getPrimAtPath(path))
+                {
+                    PvtPrim* prim = readNodeDef(nodedef, stage);
+                    RtNodeDef(prim->hnd()).registerMasterPrim();
+                }
+            }
+        }
+
+        // Load all other elements.
+        for (const ElementPtr& elem : doc->getChildren())
+        {
+            if (!filter || filter(elem))
+            {
+                // Make sure the element has not been loaded already.
+                PvtPath path("/" + elem->getName());
+                if (stage->getPrimAtPath(path))
+                {
+                    continue;
+                }
+
+                if (elem->isA<Node>())
+                {
+                    readNode(elem->asA<Node>(), stage->getRootPrim(), stage);
+                }
+                else if (elem->isA<NodeGraph>())
+                {
+                    readNodeGraph(elem->asA<NodeGraph>(), stage->getRootPrim(), stage);
+                }
+                else
+                {
+                    readGenericPrim(elem, stage->getRootPrim(), stage);
+                }
+            }
+        }
+
+        // Create connections between all root level nodes.
+        createNodeConnections(doc->getNodes(), stage->getRootPrim());
+
+        // Read look information
+        if (readOptions && readOptions->readLookInformation)
+        {
+            readLookInformation(doc, stage, readOptions);
+        }
     }
 
     void writeNodeDef(const PvtPrim* src, DocumentPtr dest)
