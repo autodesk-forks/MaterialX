@@ -96,6 +96,49 @@ class MdlIntegerArrayTypeSyntax : public MdlArrayTypeSyntax
     }
 };
 
+// For the color4 type we need even more specialization since it's a struct of a struct:
+//
+// struct color4 {
+//    color rgb;
+//    float a;
+// }
+//
+class MdlColor4TypeSyntax : public AggregateTypeSyntax
+{
+public:
+    MdlColor4TypeSyntax() :
+        AggregateTypeSyntax("color4", "mk_color4(0.0)", "mk_color4(0.0)", EMPTY_STRING, EMPTY_STRING, MdlSyntax::COLOR4_MEMBERS)
+    {}
+
+    string getValue(const Value& value, bool /*uniform*/) const override
+    {
+        StringStream ss;
+
+        // Set float format and precision for the stream
+        const Value::FloatFormat fmt = Value::getFloatFormat();
+        ss.setf(std::ios_base::fmtflags(
+            (fmt == Value::FloatFormatFixed ? std::ios_base::fixed :
+            (fmt == Value::FloatFormatScientific ? std::ios_base::scientific : 0))),
+            std::ios_base::floatfield);
+        ss.precision(Value::getFloatPrecision());
+
+        const Color4 c = value.asA<Color4>();
+        ss << "mk_color4(" << c[0] << ", " << c[1] << ", " << c[2] << ", " << c[3] << ")";
+
+        return ss.str();
+    }
+
+    string getValue(const StringVec& values, bool /*uniform*/) const override
+    {
+        if (values.size() < 4)
+        {
+            throw ExceptionShaderGenError("Too few values given to construct a color4 value");
+        }
+        return "mk_color4(" + values[0] + ", " + values[1] + ", " + values[2] + ", " + values[3] + ")";
+    }
+};
+
+
 } // anonymous namespace
 
 const string MdlSyntax::CONST_QUALIFIER = "const";
@@ -103,9 +146,9 @@ const string MdlSyntax::UNIFORM_QUALIFIER = "uniform";
 const StringVec MdlSyntax::VECTOR2_MEMBERS = { ".x", ".y" };
 const StringVec MdlSyntax::VECTOR3_MEMBERS = { ".x", ".y", ".z" };
 const StringVec MdlSyntax::VECTOR4_MEMBERS = { ".x", ".y", ".z", ".w" };
-const StringVec MdlSyntax::COLOR2_MEMBERS = { "[0]", "[1]" };
+const StringVec MdlSyntax::COLOR2_MEMBERS = { ".x", ".y" };
 const StringVec MdlSyntax::COLOR3_MEMBERS = { "[0]", "[1]", "[2]" };
-const StringVec MdlSyntax::COLOR4_MEMBERS = { "rgb[0]", "[1]", "[2]", "[3]" };
+const StringVec MdlSyntax::COLOR4_MEMBERS = { ".rgb[0]", ".rgb[1]", ".rgb[2]", ".a" };
 
 //
 // MdlSyntax methods
@@ -194,9 +237,9 @@ MdlSyntax::MdlSyntax()
     (
         Type::COLOR3,
         std::make_shared<AggregateTypeSyntax>(
-            "float3",
-            "float3(0.0)",
-            "float3(0.0)",
+            "color",
+            "color(0.0)",
+            "color(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
             COLOR3_MEMBERS)
@@ -205,13 +248,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax
     (
         Type::COLOR4,
-        std::make_shared<AggregateTypeSyntax>(
-            "float4",
-            "float4(0.0)",
-            "float4(0.0)",
-            EMPTY_STRING,
-            EMPTY_STRING,
-            COLOR4_MEMBERS)
+        std::make_shared<MdlColor4TypeSyntax>()
     );
 
     registerTypeSyntax
@@ -287,7 +324,7 @@ MdlSyntax::MdlSyntax()
     (
         Type::BSDF,
         std::make_shared<ScalarTypeSyntax>(
-            "bsdf",
+            "material",
             EMPTY_STRING,
             EMPTY_STRING)
     );
@@ -296,7 +333,7 @@ MdlSyntax::MdlSyntax()
     (
         Type::EDF,
         std::make_shared<ScalarTypeSyntax>(
-            "edf",
+            "material",
             EMPTY_STRING,
             EMPTY_STRING)
     );
@@ -305,7 +342,7 @@ MdlSyntax::MdlSyntax()
     (
         Type::VDF,
         std::make_shared<ScalarTypeSyntax>(
-            "vdf",
+            "material",
             EMPTY_STRING,
             EMPTY_STRING)
     );
@@ -314,7 +351,7 @@ MdlSyntax::MdlSyntax()
     (
         Type::SURFACESHADER,
         std::make_shared<ScalarTypeSyntax>(
-            "surfaceshader",
+            "material",
             EMPTY_STRING,
             EMPTY_STRING)
     );
@@ -323,7 +360,7 @@ MdlSyntax::MdlSyntax()
     (
         Type::VOLUMESHADER,
         std::make_shared<ScalarTypeSyntax>(
-            "volumeshader",
+            "material",
             EMPTY_STRING,
             EMPTY_STRING)
     );
@@ -332,7 +369,7 @@ MdlSyntax::MdlSyntax()
     (
         Type::DISPLACEMENTSHADER,
         std::make_shared<ScalarTypeSyntax>(
-            "displacementshader",
+            "material",
             EMPTY_STRING,
             EMPTY_STRING)
     );
@@ -341,7 +378,7 @@ MdlSyntax::MdlSyntax()
     (
         Type::LIGHTSHADER,
         std::make_shared<ScalarTypeSyntax>(
-            "lightshader",
+            "material",
             EMPTY_STRING,
             EMPTY_STRING)
     );

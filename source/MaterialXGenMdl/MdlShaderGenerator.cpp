@@ -48,6 +48,7 @@ namespace
         "import ::tex::*",
         "import ::nvidia::core_definitions::*",
         "import ::mx::stdlib::*",
+        "import ::mx::swizzle::*",
         "import ::mx::supplib::*",
         "import ::mx::pbrlib::*"
     };
@@ -300,13 +301,14 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
 
     // Get final result
     const string result = getUpstreamResult(outputSocket, context);
-    emitLine(_syntax->getTypeName(outputSocket->getType()) + " finalOutput__ = " + result, stage);
-
-    // End shader body
-    emitScopeEnd(stage);
 
     if (graph.hasClassification(ShaderNode::Classification::TEXTURE))
     {
+        emitLine("color finalOutput__ = color(" + result + ")", stage);
+
+        // End shader body
+        emitScopeEnd(stage);
+
         static const string textureMaterial =
             "in material\n"
             "(\n"
@@ -318,7 +320,6 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
             "        )\n"
             "    )\n"
             ");";
-
         emitBlock(textureMaterial, context, stage);
     }
     else
