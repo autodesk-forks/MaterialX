@@ -10,11 +10,11 @@
   <!-- <dielectric_brdf> -->
   <implementation name="IM_dielectric_brdf_genmdl" nodedef="ND_dielectric_brdf" sourcecode="mx::pbrlib::mx_dielectric_brdf(mxp_weight:{{weight}}, mxp_tint:{{tint}}, mxp_ior:{{ior}}, mxp_roughness:{{roughness}}, mxp_normal:{{normal}}, mxp_tangent:{{tangent}}, mxp_base:{{base}})" language="genmdl"/>
 
-  <!-- <conductor_brdf> -->
-  <implementation name="IM_conductor_brdf_genmdl" nodedef="ND_conductor_brdf" file="pbrlib/genmdl/mx_conductor_brdf.osl" function="mx_conductor_brdf" language="genmdl"/>
-
   <!-- <dielectric_btdf> -->
-  <implementation name="IM_dielectric_btdf_genmdl" nodedef="ND_dielectric_btdf" file="pbrlib/genmdl/mx_dielectric_btdf.osl" function="mx_dielectric_btdf" language="genmdl"/>
+  <implementation name="IM_dielectric_btdf_genmdl" nodedef="ND_dielectric_btdf" sourcecode="mx::pbrlib::mx_dielectric_btdf(mxp_weight:{{weight}}, mxp_tint:{{tint}}, mxp_ior:{{ior}}, mxp_roughness:{{roughness}}, mxp_normal:{{normal}}, mxp_tangent:{{tangent}}, mxp_interior:{{interior}})" language="genmdl"/>
+
+  <!-- <conductor_brdf> -->
+  <implementation name="IM_conductor_brdf_genmdl" nodedef="ND_conductor_brdf" sourcecode="mx::pbrlib::mx_conductor_brdf(mxp_weight:{{weight}}, mxp_reflectivity:{{reflectivity}}, mxp_edge_color:{{edge_color}}, mxp_roughness:{{roughness}}, mxp_normal:{{normal}}, mxp_tangent:{{tangent}})" language="genmdl"/>
 
   <!-- <burley_diffuse_brdf> -->
   <implementation name="IM_burley_diffuse_brdf_genmdl" nodedef="ND_burley_diffuse_brdf" file="pbrlib/genmdl/mx_burley_diffuse_brdf.osl" function="mx_burley_diffuse_brdf" language="genmdl"/>
@@ -54,7 +54,7 @@
   <implementation name="IM_backfacing_float_genmdl" nodedef="ND_backfacing_float" file="pbrlib/genmdl/mx_backfacing_float.inline" language="genmdl"/>
 
   <!-- <roughness_anisotropy> -->
-  <implementation name="IM_roughness_anisotropy_genmdl" nodedef="ND_roughness_anisotropy" file="pbrlib/genmdl/mx_roughness_anisotropy.osl" function="mx_roughness_anisotropy" language="genmdl"/>
+  <implementation name="IM_roughness_anisotropy_genmdl" nodedef="ND_roughness_anisotropy" sourcecode="mx::pbrlib::mx_roughness_anisotropy(mxp_roughness:{{roughness}}, mxp_anisotropy:{{anisotropy}})" language="genmdl"/>
 
    <!-- <roughness_dual> -->
   <implementation name="IM_roughness_dual_genmdl" nodedef="ND_roughness_dual" file="pbrlib/genmdl/mx_roughness_dual.osl" function="mx_roughness_dual" language="genmdl"/>
