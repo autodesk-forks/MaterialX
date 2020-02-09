@@ -439,12 +439,15 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(graphPrim.hasApi<mx::RtNodeGraph>());
     mx::RtNodeGraph graph(graphPrim);
     REQUIRE(graph);
+    REQUIRE(graph.getName() == mx::RtToken("nodegraph1"));
     REQUIRE(graph.getTypeInfo().getShortTypeName() == mx::RtNodeGraph::typeName());
     REQUIRE(graph.getTypeInfo().numBaseClasses() == 1);
     REQUIRE(graph.getTypeInfo().getBaseClassType(0) == mx::RtNode::typeName());
     REQUIRE(graph.getTypeInfo().isCompatible(mx::RtNode::typeName()));
-
-    REQUIRE(graph.getName() == mx::RtToken("nodegraph1"));
+    REQUIRE(graphPrim.hasApi<mx::RtNode>());
+    mx::RtNode graphNode(graphPrim);
+    REQUIRE(graphNode);
+    REQUIRE(graphNode.getName() == graph.getName());
 
     mx::RtPrim backdropPrim = stage->createPrim(mx::RtBackdrop::typeName());
     REQUIRE(backdropPrim);

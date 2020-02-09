@@ -29,10 +29,9 @@ RtPrim RtBackdrop::createPrim(const RtToken& typeName, const RtToken& name, RtPr
     }
 
     const RtToken primName = name == EMPTY_TOKEN ? BACKDROP1 : name;
-    PvtDataHandle primH = PvtPrim::createNew(primName, PvtObject::ptr<PvtPrim>(parent));
+    PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->setTypeName(_typeInfo.getShortTypeName());
     prim->createRelationship(CONTAINS);
     prim->createAttribute(WIDTH, RtType::FLOAT);
     prim->createAttribute(HEIGHT, RtType::FLOAT);

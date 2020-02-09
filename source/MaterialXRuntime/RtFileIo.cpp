@@ -476,6 +476,10 @@ namespace
     {
         RtNode node(src->hnd());
         RtNodeDef nodedef(node.getNodeDef());
+        if (!nodedef)
+        {
+            throw ExceptionRuntimeError("Prim '" + src->getName().str() + "' is not a node with a valid nodedef");
+        }
 
         // Count output and get output type
         size_t numOutputs = 0;
@@ -743,7 +747,7 @@ namespace
         for (RtPrim child : stage->getRootPrim()->getChildren(filter))
         {
             const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
-            const RtToken typeName = child.getTypeName();
+            const RtToken typeName = child.getTypeInfo()->getShortTypeName();
             if (typeName == RtNodeDef::typeName())
             {
                 writeNodeDef(prim, doc);

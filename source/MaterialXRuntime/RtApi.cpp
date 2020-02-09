@@ -222,10 +222,10 @@ public:
 
     void reset()
     {
-        static const RtToken primRootName("apiroot");
-        static const RtToken libRootName("libroot");
+        static const RtTypeInfo masterPrimRootType("api_masterprimroot");
+        static const RtToken libRootName("api_libroot");
 
-        _masterPrimRoot.reset(new PvtPrim(primRootName, nullptr));
+        _masterPrimRoot.reset(new PvtPrim(&masterPrimRootType, masterPrimRootType.getShortTypeName(), nullptr));
         _createFunctions.clear();
         _stages.clear();
 

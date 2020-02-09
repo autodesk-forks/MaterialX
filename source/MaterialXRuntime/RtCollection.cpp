@@ -29,11 +29,9 @@ RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, Rt
     }
 
     const RtToken primName = name == EMPTY_TOKEN ? COLLECTION1 : name;
-    PvtDataHandle primH = PvtPrim::createNew(primName, PvtObject::ptr<PvtPrim>(parent));
+    PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->setTypeName(_typeInfo.getShortTypeName());
-
     prim->createAttribute(INCLUDE_GEOM, RtType::STRING);
     prim->createAttribute(EXCLUDE_GEOM, RtType::STRING);
     prim->createRelationship(INCLUDE_COLLECTION);

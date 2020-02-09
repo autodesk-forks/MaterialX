@@ -26,10 +26,9 @@ RtPrim RtNodeDef::createPrim(const RtToken& typeName, const RtToken& name, RtPri
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
 
-    PvtDataHandle primH = PvtPrim::createNew(name, PvtObject::ptr<PvtPrim>(parent));
+    PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, name, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->setTypeName(_typeInfo.getShortTypeName());
     prim->addMetadata(NODE, RtType::TOKEN);
 
     return primH;

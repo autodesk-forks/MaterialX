@@ -158,15 +158,13 @@ protected:
     class RootPrim : public PvtPrim
     {
     public:
-        RootPrim(RtStageWeakPtr stage) :
-            PvtPrim(PvtPath::ROOT_NAME, nullptr),
-            _stage(stage)
-        {}
+        RootPrim(RtStageWeakPtr stage);
 
         RtStageWeakPtr getStage() const { return _stage; }
 
     protected:
         RtStageWeakPtr _stage;
+        static const RtTypeInfo _typeInfo;
     };
 
     RtToken _name;

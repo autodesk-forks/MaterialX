@@ -26,10 +26,9 @@ RtPrim RtGeneric::createPrim(const RtToken& typeName, const RtToken& name, RtPri
     }
 
     const RtToken primName = name == EMPTY_TOKEN ? GENERIC1 : name;
-    PvtDataHandle primH = PvtPrim::createNew(primName, PvtObject::ptr<PvtPrim>(parent));
+    PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->setTypeName(_typeInfo.getShortTypeName());
     prim->addMetadata(KIND, RtType::TOKEN);
 
     return primH;
