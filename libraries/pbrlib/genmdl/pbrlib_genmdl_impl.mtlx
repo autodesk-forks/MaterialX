@@ -2,13 +2,13 @@
 <materialx version="1.37">
 
   <!-- <diffuse_brdf> -->
-  <implementation name="IM_diffuse_brdf_genmdl" nodedef="ND_diffuse_brdf" file="pbrlib/genmdl/mx_diffuse_brdf.inline" language="genmdl"/>
+  <implementation name="IM_diffuse_brdf_genmdl" nodedef="ND_diffuse_brdf" sourcecode="mx::pbrlib::mx_diffuse_brdf(mxp_weight:{{weight}}, mxp_color:{{color}}, mxp_roughness:{{roughness}}, mxp_normal:{{normal}})" language="genmdl"/>
 
   <!-- <diffuse_btdf> -->
-  <implementation name="IM_diffuse_btdf_genmdl" nodedef="ND_diffuse_btdf" file="pbrlib/genmdl/mx_diffuse_btdf.inline" language="genmdl"/>
+  <implementation name="IM_diffuse_btdf_genmdl" nodedef="ND_diffuse_btdf" sourcecode="mx::pbrlib::mx_diffuse_btdf(mxp_weight:{{weight}}, mxp_color:{{color}}, mxp_normal:{{normal}})" language="genmdl"/>
 
   <!-- <dielectric_brdf> -->
-  <implementation name="IM_dielectric_brdf_genmdl" nodedef="ND_dielectric_brdf" file="pbrlib/genmdl/mx_dielectric_brdf.osl" function="mx_dielectric_brdf" language="genmdl"/>
+  <implementation name="IM_dielectric_brdf_genmdl" nodedef="ND_dielectric_brdf" sourcecode="mx::pbrlib::mx_dielectric_brdf(mxp_weight:{{weight}}, mxp_tint:{{tint}}, mxp_ior:{{ior}}, mxp_roughness:{{roughness}}, mxp_normal:{{normal}}, mxp_tangent:{{tangent}}, mxp_base:{{base}})" language="genmdl"/>
 
   <!-- <conductor_brdf> -->
   <implementation name="IM_conductor_brdf_genmdl" nodedef="ND_conductor_brdf" file="pbrlib/genmdl/mx_conductor_brdf.osl" function="mx_conductor_brdf" language="genmdl"/>
@@ -46,7 +46,7 @@
   <implementation name="IM_multiply_edfF_genmdl" nodedef="ND_multiply_edfF" file="pbrlib/genmdl/mx_multiply_edf.inline" language="genmdl"/>
 
   <!-- <surface> -->
-  <implementation name="IM_surface_genmdl" nodedef="ND_surface" file="pbrlib/genmdl/mx_surface.osl" function="mx_surface" language="genmdl"/>
+  <implementation name="IM_surface_genmdl" nodedef="ND_surface" sourcecode="mx::pbrlib::mx_surface(mxp_bsdf:{{bsdf}}, mxp_edf:{{edf}}, mxp_opacity:{{opacity}})" language="genmdl"/>
 
   <!-- <backfacing> -->
   <implementation name="IM_backfacing_boolean_genmdl" nodedef="ND_backfacing_boolean" file="pbrlib/genmdl/mx_backfacing_boolean.inline" language="genmdl"/>
@@ -64,6 +64,9 @@
 
   <!-- <artistic_ior> -->
   <implementation name="IM_artistic_ior_genmdl" nodedef="ND_artistic_ior" file="pbrlib/genmdl/mx_artistic_ior.osl" function="mx_artistic_ior" language="genmdl"/>
+
+  <!-- <fresnel> -->
+  <implementation name="IM_fresnel_ior_genmdl" nodedef="ND_fresnel_ior" file="pbrlib/genmdl/mx_fresnel_ior.osl" function="mx_fresnel_ior" language="genmdl"/>
 
   <!-- <fresnel> -->
   <implementation name="IM_fresnel_ior_genmdl" nodedef="ND_fresnel_ior" file="pbrlib/genmdl/mx_fresnel_ior.osl" function="mx_fresnel_ior" language="genmdl"/>

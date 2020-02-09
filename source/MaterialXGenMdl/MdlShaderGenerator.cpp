@@ -322,9 +322,19 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
             ");";
         emitBlock(textureMaterial, context, stage);
     }
+    else if (graph.hasClassification(ShaderNode::Classification::SHADER))
+    {
+        emitLine(_syntax->getTypeSyntax(outputSocket->getType()).getName() +  " finalOutput__ = " + result, stage);
+
+        // End shader body
+        emitScopeEnd(stage);
+
+        static const string shaderMaterial = "in material(finalOutput__);";
+        emitBlock(shaderMaterial, context, stage);
+    }
     else
     {
-        throw ExceptionShaderGenError("Only texture content is supported at the moment");
+        throw ExceptionShaderGenError("Output type '" + outputSocket->getType()->getName() + "' is not yet supported by shader generator");
     }
 
     // Perform token substitution

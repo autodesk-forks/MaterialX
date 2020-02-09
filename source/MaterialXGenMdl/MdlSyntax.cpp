@@ -141,7 +141,7 @@ public:
 
 } // anonymous namespace
 
-const string MdlSyntax::CONST_QUALIFIER = "const";
+const string MdlSyntax::CONST_QUALIFIER = "";
 const string MdlSyntax::UNIFORM_QUALIFIER = "uniform";
 const StringVec MdlSyntax::VECTOR2_MEMBERS = { ".x", ".y" };
 const StringVec MdlSyntax::VECTOR3_MEMBERS = { ".x", ".y", ".z" };
@@ -325,8 +325,8 @@ MdlSyntax::MdlSyntax()
         Type::BSDF,
         std::make_shared<ScalarTypeSyntax>(
             "material",
-            EMPTY_STRING,
-            EMPTY_STRING)
+            "material()",
+            "material()")
     );
 
     registerTypeSyntax
@@ -334,8 +334,8 @@ MdlSyntax::MdlSyntax()
         Type::EDF,
         std::make_shared<ScalarTypeSyntax>(
             "material",
-            EMPTY_STRING,
-            EMPTY_STRING)
+            "material()",
+            "material()")
     );
 
     registerTypeSyntax
@@ -343,8 +343,8 @@ MdlSyntax::MdlSyntax()
         Type::VDF,
         std::make_shared<ScalarTypeSyntax>(
             "material",
-            EMPTY_STRING,
-            EMPTY_STRING)
+            "material()",
+            "material()")
     );
 
     registerTypeSyntax
@@ -352,8 +352,8 @@ MdlSyntax::MdlSyntax()
         Type::SURFACESHADER,
         std::make_shared<ScalarTypeSyntax>(
             "material",
-            EMPTY_STRING,
-            EMPTY_STRING)
+            "material()",
+            "material()")
     );
 
     registerTypeSyntax
@@ -361,8 +361,8 @@ MdlSyntax::MdlSyntax()
         Type::VOLUMESHADER,
         std::make_shared<ScalarTypeSyntax>(
             "material",
-            EMPTY_STRING,
-            EMPTY_STRING)
+            "material()",
+            "material()")
     );
 
     registerTypeSyntax
@@ -370,8 +370,8 @@ MdlSyntax::MdlSyntax()
         Type::DISPLACEMENTSHADER,
         std::make_shared<ScalarTypeSyntax>(
             "material",
-            EMPTY_STRING,
-            EMPTY_STRING)
+            "material()",
+            "material()")
     );
 
     registerTypeSyntax
@@ -379,8 +379,8 @@ MdlSyntax::MdlSyntax()
         Type::LIGHTSHADER,
         std::make_shared<ScalarTypeSyntax>(
             "material",
-            EMPTY_STRING,
-            EMPTY_STRING)
+            "material()",
+            "material()")
     );
 }
 

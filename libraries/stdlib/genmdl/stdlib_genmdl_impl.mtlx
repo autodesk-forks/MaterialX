@@ -169,16 +169,16 @@
   <!-- ======================================================================== -->
 
   <!-- <position> -->
-  <implementation name="IM_position_vector3_genmdl" nodedef="ND_position_vector3" file="stdlib/genmdl/mx_position_vector3.inline" language="genmdl"/>
+  <implementation name="IM_position_vector3_genmdl" nodedef="ND_position_vector3" sourcecode="::state::position()" language="genmdl"/>
 
   <!-- <normal> -->
-  <implementation name="IM_normal_vector3_genmdl" nodedef="ND_normal_vector3" file="stdlib/genmdl/mx_normal_vector3.inline" language="genmdl"/>
+  <implementation name="IM_normal_vector3_genmdl" nodedef="ND_normal_vector3" sourcecode="::state::normal()" language="genmdl"/>
 
   <!-- <tangent> -->
-  <implementation name="IM_tangent_vector3_genmdl" nodedef="ND_tangent_vector3" file="stdlib/genmdl/mx_tangent_vector3.inline" language="genmdl"/>
+  <implementation name="IM_tangent_vector3_genmdl" nodedef="ND_tangent_vector3" sourcecode="::state::texture_tangent_u({{index}})" language="genmdl"/>
 
   <!-- <bitangent> -->
-  <implementation name="IM_bitangent_vector3_genmdl" nodedef="ND_bitangent_vector3" file="stdlib/genmdl/mx_bitangent_vector3.inline" language="genmdl"/>
+  <implementation name="IM_bitangent_vector3_genmdl" nodedef="ND_bitangent_vector3" sourcecode="::state::texture_tangent_v({{index}})" language="genmdl"/>
 
   <!-- <texcoord> -->
   <implementation name="IM_texcoord_vector2_genmdl" nodedef="ND_texcoord_vector2" sourcecode="mx::swizzle::xy(::state::texture_coordinate({{index}}))" language="genmdl"/>
