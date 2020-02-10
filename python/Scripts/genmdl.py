@@ -65,9 +65,9 @@ def _writeHeader(file, version):
     #file.write('color4 mk_color4( float4 f ) {\n')
     #file.write('    return color4( color(f.x,f.y,f.z), f.w );\n')
     #file.write('}\n\n')
-    file.write('float4 mk_float4( float f ) {\n')
-    file.write('    return float4(f, f, f, f);\n')
-    file.write('}\n\n')
+    #file.write('float4 mk_float4( float f ) {\n')
+    #file.write('    return float4(f, f, f, f);\n')
+    #file.write('}\n\n')
 
 def _mapGeomProp(geomprop):
     outputValue = ''
@@ -157,13 +157,13 @@ def _writeImageImplementation(file, outputType):
     file.write(';\n')
     file.write(INDENT + 'return returnValue;\n')
 
-def _writeOneArgumentMath(file, outputType, functionName):
+def _writeOneArgumentFunc(file, outputType, functionName):
         if outputType == 'color4':
-            file.write(INDENT + 'return mk_color4(::math::' + functionName + '(mk_float4(mxp_in)));\n')
+            file.write(INDENT + 'return mk_color4(' + functionName + '(mk_float4(mxp_in)));\n')
         elif outputType == 'color':
-            file.write(INDENT + 'return color(::math::' + functionName + '(float3(mxp_in)));\n')
+            file.write(INDENT + 'return color(' + functionName + '(mk_float3(mxp_in)));\n')
         else:
-            file.write(INDENT + 'return ::math::' + functionName + '(mxp_in);\n')
+            file.write(INDENT + 'return ' + functionName + '(mxp_in);\n')
 
 def _writeOperatorMath(file, outputType, arg1, functionName, arg2):
         if outputType == 'color4':
@@ -173,21 +173,21 @@ def _writeOperatorMath(file, outputType, arg1, functionName, arg2):
         else:
             file.write(INDENT + 'return ' + arg1 + ' ' + functionName + ' ' + arg2 + ';\n')
 
-def _writeTwoArgumentMath(file, outputType, functionName):
+def _writeTwoArgumentFunc(file, outputType, functionName):
         if outputType == 'color4':
-            file.write(INDENT + 'return mk_color4(::math::' + functionName + '(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
+            file.write(INDENT + 'return mk_color4(' + functionName + '(mk_float4(mxp_in1), mk_float4(mxp_in2)));\n')
         elif outputType == 'color':
-            file.write(INDENT + 'return color(::math::' + functionName + '(float3(mxp_in1), float3(mxp_in2)));\n')
+            file.write(INDENT + 'return color(' + functionName + '(float3(mxp_in1), float3(mxp_in2)));\n')
         else:
-            file.write(INDENT + 'return ::math::' + functionName + '(mxp_in1, mxp_in2);\n')
+            file.write(INDENT + 'return ' + functionName + '(mxp_in1, mxp_in2);\n')
 
-def _writeThreeArgumentMath(file, outputType, functionName, arg1, arg2, arg3):
+def _writeThreeArgumentFunc(file, outputType, functionName, arg1, arg2, arg3):
         if outputType == 'color4':
-            file.write(INDENT + 'return mk_color4(::math::' + functionName + '(mk_float4(' + arg1 + '), mk_float4(' + arg2 + '), mk_float4(' + arg3 + ')));\n')
+            file.write(INDENT + 'return mk_color4(' + functionName + '(mk_float4(' + arg1 + '), mk_float4(' + arg2 + '), mk_float4(' + arg3 + ')));\n')
         elif outputType == 'color':
-            file.write(INDENT + 'return color(::math::' + functionName + '(float3(' + arg1 + '), float3(' + arg2 + '), float3(' + arg3 + ')));\n')
+            file.write(INDENT + 'return color(' + functionName + '(float3(' + arg1 + '), float3(' + arg2 + '), float3(' + arg3 + ')));\n')
         else:
-            file.write(INDENT + 'return ::math::' + functionName + '(' + outputType + '(' + arg1 + '),' + outputType + '(' + arg2 + '),' + outputType+ '(' + arg3 + '));\n')
+            file.write(INDENT + 'return ' + functionName + '(' + outputType + '(' + arg1 + '),' + outputType + '(' + arg2 + '),' + outputType+ '(' + arg3 + '));\n')
 
 def _writeTransformMatrix(file, nodeName):
     if nodeName.find('vector3M4') >= 0:
@@ -372,6 +372,7 @@ def main():
         elems = nodedef.getActiveValueElements()
         lastComma = len(elems) - len(nodedef.getActiveOutputs())
         i = 0
+        channelString = ''
         for elem in elems:
 
             dataType = ''
@@ -437,6 +438,9 @@ def main():
             file.write(INDENT + dataType + typeString + SPACE + parameterName)
             _writeValueAssignment(file, valueString, typeString, isFileTexture or isString)
 
+            if nodeCategory == 'swizzle' and parameterName == 'mxp_channels':
+                channelString = valueString
+
             # Add annotations if any
             description = elem.getAttribute('doc')
             if len(elem.getAttribute('enum')):
@@ -491,49 +495,49 @@ def main():
                     file.write(INDENT + 'return mxp_value;\n')
                     wroteImplementation = True
                 elif nodeCategory == 'absval':
-                    _writeOneArgumentMath(file, outputType, 'abs')
+                    _writeOneArgumentFunc(file, outputType, '::math::abs')
                     wroteImplementation = True
                 elif nodeCategory == 'ceil':
-                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    _writeOneArgumentFunc(file, outputType, '::math::'+nodeCategory)
                     wroteImplementation = True
                 elif nodeCategory == 'floor':
-                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    _writeOneArgumentFunc(file, outputType, '::math::'+nodeCategory)
                     wroteImplementation = True
                 elif nodeCategory == 'sin':
-                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    _writeOneArgumentFunc(file, outputType, '::math::'+nodeCategory)
                     wroteImplementation = True
                 elif nodeCategory == 'asin':
-                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    _writeOneArgumentFunc(file, outputType, '::math::'+nodeCategory)
                     wroteImplementation = True
                 elif nodeCategory == 'cos':
-                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    _writeOneArgumentFunc(file, outputType, '::math::'+nodeCategory)
                     wroteImplementation = True
                 elif nodeCategory == 'acos':
-                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    _writeOneArgumentFunc(file, outputType, '::math::'+nodeCategory)
                     wroteImplementation = True
                 elif nodeCategory == 'tan':
-                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    _writeOneArgumentFunc(file, outputType, '::math::'+nodeCategory)
                     wroteImplementation = True
                 elif nodeCategory == 'atan2':
-                    _writeTwoArgumentMath(file, outputType, nodeCategory)
+                    _writeTwoArgumentFunc(file, outputType, '::math::'+nodeCategory)
                     wroteImplementation = True
                 elif nodeCategory == 'sqrt':
-                    _writeOneArgumentMath(file, outputType, nodeCategory)
+                    _writeOneArgumentFunc(file, outputType, '::math::'+nodeCategory)
                     wroteImplementation = True
                 elif nodeCategory == 'ln':
-                    _writeOneArgumentMath(file, outputType, 'log2')
+                    _writeOneArgumentFunc(file, outputType, '::math::log2')
                     wroteImplementation = True
                 elif nodeCategory == 'exp':
-                    _writeOneArgumentMath(file, outputType, 'exp')
+                    _writeOneArgumentFunc(file, outputType, '::math::exp')
                     wroteImplementation = True
                 elif nodeCategory == 'sign':
-                    _writeOneArgumentMath(file, outputType, 'sign')
+                    _writeOneArgumentFunc(file, outputType, '::math::sign')
                     wroteImplementation = True
                 elif nodeCategory == 'max':
-                    _writeTwoArgumentMath(file, outputType, 'max')
+                    _writeTwoArgumentFunc(file, outputType, '::math::max')
                     wroteImplementation = True
                 elif nodeCategory == 'min':
-                    _writeTwoArgumentMath(file, outputType, 'min')
+                    _writeTwoArgumentFunc(file, outputType, '::math::min')
                     wroteImplementation = True
                 elif nodeCategory == 'add':
                     _writeOperatorMath(file, outputType, 'mxp_in1', '+', 'mxp_in2')
@@ -558,25 +562,25 @@ def main():
                         file.write(INDENT + 'return mxp_in1 / mxp_in2;\n')
                         wroteImplementation = True
                 elif nodeCategory == 'modulo':
-                    _writeTwoArgumentMath(file, outputType, 'fmod')
+                    _writeTwoArgumentFunc(file, outputType, '::math::fmod')
                     wroteImplementation = True
                 elif nodeCategory == 'power':
-                    _writeTwoArgumentMath(file, outputType, 'pow')
+                    _writeTwoArgumentFunc(file, outputType, '::math::pow')
                     wroteImplementation = True
                 elif nodeCategory == 'clamp':
-                    _writeThreeArgumentMath(file, outputType, 'clamp', 'mxp_in', 'mxp_low', 'mxp_high')
+                    _writeThreeArgumentFunc(file, outputType, '::math::clamp', 'mxp_in', 'mxp_low', 'mxp_high')
                     wroteImplementation = True
                 elif nodeCategory == 'normalize':
-                    _writeOneArgumentMath(file, outputType, 'normalize')
+                    _writeOneArgumentFunc(file, outputType, '::math::normalize')
                     wroteImplementation = True
                 elif nodeCategory == 'magnitude':
-                    _writeOneArgumentMath(file, outputType, 'length')
+                    _writeOneArgumentFunc(file, outputType, '::math::length')
                     wroteImplementation = True
                 elif nodeCategory == 'dotproduct':
-                    _writeTwoArgumentMath(file, outputType, 'dot')
+                    _writeTwoArgumentFunc(file, outputType, '::math::dot')
                     wroteImplementation = True
                 elif nodeCategory == 'crossproduct':
-                    _writeTwoArgumentMath(file, outputType, 'cross')
+                    _writeTwoArgumentFunc(file, outputType, '::math::cross')
                     wroteImplementation = True
                 elif nodeCategory == 'image':
                     _writeImageImplementation(file, outputType)
@@ -585,10 +589,10 @@ def main():
                     _writeTransformMatrix(file, nodeName)
                     wroteImplementation = True
                 #elif nodeCategory == 'determinant':
-                #    _writeOneArgumentMath(file, outputType, 'determinant')
+                #    _writeOneArgumentFunc(file, outputType, 'determinant')
                 #    wroteImplementation = True
                 elif nodeCategory == 'smoothstep':
-                    _writeThreeArgumentMath(file, outputType, 'smoothstep', 'mxp_in', 'mxp_low', 'mxp_high')
+                    _writeThreeArgumentFunc(file, outputType, '::math::smoothstep', 'mxp_in', 'mxp_low', 'mxp_high')
                     wroteImplementation = True
                 elif nodeCategory == 'luminance':
                     if nodeName.find('color4') > 0:
@@ -597,39 +601,45 @@ def main():
                     	file.write(INDENT + 'returnValue.a = mxp_in.a;\n')
                     	file.write(INDENT + 'return returnValue;\n')
                     else:
-                        _writeOneArgumentMath(file, outputType, 'luminance')
+                        _writeOneArgumentFunc(file, outputType, '::math::luminance')
                     wroteImplementation = True
                 elif nodeCategory == 'plus':
                     if outputType != 'color4':
-                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_fg', '(mxp_bg+mxp_fg)', 'mxp_mix')
+                        _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_fg', '(mxp_bg+mxp_fg)', 'mxp_mix')
                         wroteImplementation = True
                 elif nodeCategory == 'minus':
                     if outputType != 'color4':
-                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_bg', '(mxp_bg-mxp_fg)', 'mxp_mix')
+                        _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', '(mxp_bg-mxp_fg)', 'mxp_mix')
                         wroteImplementation = True
                 elif nodeCategory == 'difference':
                     if outputType != 'color4':
-                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_bg', 'math::abs(mxp_bg-mxp_fg)', 'mxp_mix')
+                        _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', 'math::abs(mxp_bg-mxp_fg)', 'mxp_mix')
                         wroteImplementation = True
                 elif nodeCategory == 'burn':
                     if outputType != 'color4':
                         burnString = outputType + '(1.0)-(' + outputType + '(1.0)-mxp_bg)/mxp_fg'
-                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_bg', burnString, 'mxp_mix')
+                        _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', burnString, 'mxp_mix')
                         wroteImplementation = True
                 elif nodeCategory == 'dodge':
                     if outputType != 'color4':
                         dodgeString = 'mxp_bg/(' + outputType + '(1.0)-mxp_fg)'
-                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_bg', dodgeString, 'mxp_mix')
+                        _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', dodgeString, 'mxp_mix')
                         wroteImplementation = True
                 elif nodeCategory == 'screen':
                     if outputType != 'color4':
-                        _writeThreeArgumentMath(file, outputType, 'lerp', 'mxp_bg', 'mxp_bg+mxp_fg-mxp_bg*mxp_fg', 'mxp_mix')
+                        _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', 'mxp_bg+mxp_fg-mxp_bg*mxp_fg', 'mxp_mix')
                         wroteImplementation = True
                 elif nodeCategory == 'inside':
                     _writeOperatorMath(file, outputType, 'mxp_in', '*', 'mxp_mask')
                     wroteImplementation = True
                 elif nodeCategory == 'outside':
                     _writeOperatorMath(file, outputType, 'mxp_in', '*', '(1.0 - mxp_mask)')
+                    wroteImplementation = True
+                elif nodeCategory == 'mix':
+                    _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', 'mxp_fg', 'mxp_mix')
+                    wroteImplementation = True
+                elif nodeCategory == 'swizzle':
+                    _writeOneArgumentFunc(file, outputType, 'swizzle::' + channelString)
                     wroteImplementation = True
 
                 if wroteImplementation:
