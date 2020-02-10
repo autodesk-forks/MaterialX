@@ -46,7 +46,7 @@ def _loadLibraries(doc, searchPath, libraryPath):
 def _writeHeader(file, version):
     file.write('mdl ' + version + ';\n')
     file.write('using core import *;\n')
-    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '::math::*', '::state::*', '::tex::*', '::state::*' }
+    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '::math::*', '::state::*', '::tex::*', '::state::*',  '::vectormatrix::*'}
     # To verify what are the minimal imports required
     for i in IMPORT_LIST:
         file.write('import' + i + ';\n')
@@ -727,7 +727,7 @@ def main():
                     file.write(INDENT + 'return ::math::transpose(mxp_in);\n')
                     wroteImplementation = True
                 elif nodeCategory == 'determinant':
-                    file.write(INDENT + 'return ::mx_determinant(mxp_in);\n')
+                    file.write(INDENT + 'return vectormatrix::mx_determinant(mxp_in);\n')
                     wroteImplementation = True
 
 
