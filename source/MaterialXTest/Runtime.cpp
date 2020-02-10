@@ -996,7 +996,7 @@ TEST_CASE("Runtime: StageManager", "[runtime]")
 mx::RtToken toTestResolver(const mx::RtToken& str, const mx::RtToken& type)
 {
     mx::StringResolverPtr resolver = mx::StringResolver::create();
-    mx::RtToken resolvedName = resolver->resolve(str, type).c_str();
+    mx::RtToken resolvedName = mx::RtToken(resolver->resolve(str, type).c_str());
     resolvedName = resolvedName.str() + "_toTestResolver";
     return resolvedName;
 }
@@ -1004,7 +1004,7 @@ mx::RtToken toTestResolver(const mx::RtToken& str, const mx::RtToken& type)
 mx::RtToken fromTestResolver(const mx::RtToken& str, const mx::RtToken& type)
 {
     mx::StringResolverPtr resolver = mx::StringResolver::create();
-    mx::RtToken resolvedName = resolver->resolve(str, type).c_str();
+    mx::RtToken resolvedName = mx::RtToken(resolver->resolve(str, type).c_str());
     resolvedName = resolvedName.str() + "_fromTestResolver";
     return resolvedName;
 }
@@ -1030,14 +1030,17 @@ TEST_CASE("Runtime: NameResolvers", "[runtime]")
     imageInfo.fromFunction = fromTestResolver;
     registry->registerNameResolvers(imageInfo);
     
-    mx::RtToken result1 = registry->resolveIdentifier("|path|to|geom", mx::RtNameResolverInfo::GEOMNAME_TYPE, true);
-    REQUIRE(result1.str() == "/path/to/geom");
+    mx::RtToken mayaPathToGeom("|path|to|geom");
+    mx::RtToken mxPathToGeom("/path/to/geom");
+    mx::RtToken result1 = registry->resolveIdentifier(mayaPathToGeom, mx::RtNameResolverInfo::GEOMNAME_TYPE, true);
+    REQUIRE(result1.str() == mxPathToGeom.str());
     mx::RtToken result2 = registry->resolveIdentifier(result1, mx::RtNameResolverInfo::GEOMNAME_TYPE, false);
-    REQUIRE(result2.str() == "|path|to|geom");
+    REQUIRE(result2.str() == mayaPathToGeom.str());
     
-    mx::RtToken result3 = registry->resolveIdentifier("test", mx::RtNameResolverInfo::FILENAME_TYPE, true);
+    mx::RtToken pathToGeom("test");
+    mx::RtToken result3 = registry->resolveIdentifier(pathToGeom, mx::RtNameResolverInfo::FILENAME_TYPE, true);
     REQUIRE(result3.str() == "test_toTestResolver");
-    mx::RtToken result4 = registry->resolveIdentifier("test", mx::RtNameResolverInfo::FILENAME_TYPE, false);
+    mx::RtToken result4 = registry->resolveIdentifier(pathToGeom, mx::RtNameResolverInfo::FILENAME_TYPE, false);
     REQUIRE(result4.str() == "test_fromTestResolver");
 }
 
