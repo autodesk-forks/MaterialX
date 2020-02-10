@@ -46,7 +46,7 @@ def _loadLibraries(doc, searchPath, libraryPath):
 def _writeHeader(file, version):
     file.write('mdl ' + version + ';\n')
     file.write('using core import *;\n')
-    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '::math::*', '::state::*', '::tex::*' }
+    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '::math::*', '::state::*', '::tex::*', '::state::*' }
     # To verify what are the minimal imports required
     for i in IMPORT_LIST:
         file.write('import' + i + ';\n')
@@ -92,8 +92,6 @@ def _mapGeomProp(geomprop):
             outputValue = '::state::transform_vector(::state::coordinate_internal,::state::coordinate_world,::state::texture_tangent_v(0))'
     return outputValue
 
-
-
 def _writeValueAssignment(file, outputValue, outputType, writeEmptyValues):
     # Mapping of types to initializers
     assignMap = dict()
@@ -121,6 +119,9 @@ def _writeValueAssignment(file, outputValue, outputType, writeEmptyValues):
 def _mapType(typeName, typeMap, functionName):
     if 'mx_constant_filename' == functionName:
         return 'string'
+    elif ('transformpoint' in functionName) or ('transformvector' in functionName) or ('transformnormal' in functionName):
+        if typeName == 'string':
+            return 'mx_coordinatespace_type'
     if typeName in typeMap:
         return typeMap[typeName]
     return typeName
@@ -165,7 +166,7 @@ def _writeOneArgumentFunc(file, outputType, functionName):
         else:
             file.write(INDENT + 'return ' + functionName + '(mxp_in);\n')
 
-def _writeOperatorMath(file, outputType, arg1, functionName, arg2):
+def _writeOperatorFunc(file, outputType, arg1, functionName, arg2):
         if outputType == 'color4':
             file.write(INDENT + 'return mk_color4(mk_float4(' + arg1 +') ' + functionName + ' mk_float4(' + arg2 + '));\n')
         elif outputType == 'float3x3' or outputType == 'float4x4':
@@ -198,6 +199,23 @@ def _writeTransformMatrix(file, nodeName):
         file.write(INDENT + 'return float2(returnValue.x, returnValue.y);\n')
     else:
         file.write(INDENT + 'return mxp_mat * mxp_in;\n')
+
+def _writeTwoArgumentCombine(file, outputType):
+    file.write(INDENT + 'return mk_' + outputType + '(mxp_in1, mxp_in2);\n')
+
+def _writeThreeArgumentCombine(file, outputType):
+    file.write(INDENT + 'return mk_' + outputType + '(mxp_in1, mxp_in2, mxp_in3);\n')
+
+def _writeFourArgumentCombine(file, outputType):
+    file.write(INDENT + 'return mk_' + outputType + '(mxp_in1, mxp_in2, mxp_in3, mxp_in4);\n')
+
+def _writeIfGreater(file, comparitor):
+    file.write(INDENT + 'if (mxp_value1 ' + comparitor + ' mxp_value2) { return mxp_in1; } return mxp_in2;\n' )
+
+def _writeTranformSpace(file, outputType, functionName):
+    file.write(INDENT + 'state::coordinate_space fromSpace = ::mx_map_space(mxp_fromspace);\n')
+    file.write(INDENT + 'state::coordinate_space toSpace  = ::mx_map_space(mxp_tospace);\n')
+    file.write(INDENT + 'return mk_' + outputType + '( state::' + functionName + '(fromSpace, toSpace, mxp_in));\n')
 
 def main():
 
@@ -435,6 +453,8 @@ def main():
                     typeString = 'mx_filter_type'
                     valueString = typeString + '_' + valueString
 
+            if typeString == 'mx_coordinatespace_type' and valueString == '':
+                valueString = 'mx_coordinatespace_type_model'
             file.write(INDENT + dataType + typeString + SPACE + parameterName)
             _writeValueAssignment(file, valueString, typeString, isFileTexture or isString)
 
@@ -540,16 +560,16 @@ def main():
                     _writeTwoArgumentFunc(file, outputType, '::math::min')
                     wroteImplementation = True
                 elif nodeCategory == 'add':
-                    _writeOperatorMath(file, outputType, 'mxp_in1', '+', 'mxp_in2')
+                    _writeOperatorFunc(file, outputType, 'mxp_in1', '+', 'mxp_in2')
                     wroteImplementation = True
                 elif nodeCategory == 'subtract':
-                    _writeOperatorMath(file, outputType, 'mxp_in1', '-', 'mxp_in2')
+                    _writeOperatorFunc(file, outputType, 'mxp_in1', '-', 'mxp_in2')
                     wroteImplementation = True
                 elif nodeCategory == 'invert':
-                    _writeOperatorMath(file, outputType, 'mxp_amount', '-', 'mxp_in')
+                    _writeOperatorFunc(file, outputType, 'mxp_amount', '-', 'mxp_in')
                     wroteImplementation = True
                 elif nodeCategory == 'multiply':
-                    _writeOperatorMath(file, outputType, 'mxp_in1', '*', 'mxp_in2')
+                    _writeOperatorFunc(file, outputType, 'mxp_in1', '*', 'mxp_in2')
                     wroteImplementation = True
                 elif nodeCategory == 'divide':
                     if outputType == 'color4':
@@ -630,10 +650,10 @@ def main():
                         _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', 'mxp_bg+mxp_fg-mxp_bg*mxp_fg', 'mxp_mix')
                         wroteImplementation = True
                 elif nodeCategory == 'inside':
-                    _writeOperatorMath(file, outputType, 'mxp_in', '*', 'mxp_mask')
+                    _writeOperatorFunc(file, outputType, 'mxp_in', '*', 'mxp_mask')
                     wroteImplementation = True
                 elif nodeCategory == 'outside':
-                    _writeOperatorMath(file, outputType, 'mxp_in', '*', '(1.0 - mxp_mask)')
+                    _writeOperatorFunc(file, outputType, 'mxp_in', '*', '(1.0 - mxp_mask)')
                     wroteImplementation = True
                 elif nodeCategory == 'mix':
                     _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', 'mxp_fg', 'mxp_mix')
@@ -641,6 +661,75 @@ def main():
                 elif nodeCategory == 'swizzle':
                     _writeOneArgumentFunc(file, outputType, 'swizzle::' + channelString)
                     wroteImplementation = True
+                elif nodeCategory == 'combine2':
+                    _writeTwoArgumentCombine(file, outputType)
+                    wroteImplementation = True
+                elif nodeCategory == 'combine3':
+                    _writeThreeArgumentCombine(file, outputType)
+                    wroteImplementation = True
+                elif nodeCategory == 'ifgreater':
+                    _writeIfGreater(file, '>')
+                    wroteImplementation = True
+                elif nodeCategory == 'ifgreatereq':
+                    _writeIfGreater(file, '>=')
+                    wroteImplementation = True
+                elif nodeCategory == 'ifequal':
+                    _writeIfGreater(file, '==')
+                    wroteImplementation = True
+                elif nodeCategory == 'convert':
+                    if outputType == 'float':
+                        file.write(INDENT + 'return ' + outputType + '(mxp_in);\n')
+                    else:
+                        file.write(INDENT + 'return mk_' + outputType + '(mxp_in);\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'ramplr':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'color rgb = math::lerp(mxp_valuel.rgb, mxp_valuer.rgb, math::clamp(mxp_texcoord.x, 0.0, 1.0));\n')
+                        file.write(INDENT + 'float a = math::lerp(mxp_valuel.a, mxp_valuer.a, math::clamp(mxp_texcoord.x, 0.0, 1.0));\n')
+                        file.write(INDENT + 'return color4(rgb, a);')
+                    else:
+                        file.write(INDENT + 'return math::lerp(mxp_valuel, mxp_valuer, math::clamp(mxp_texcoord.x, 0.0, 1.0));\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'ramptb':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'color rgb = math::lerp(mxp_valuet.rgb, mxp_valueb.rgb, math::clamp(mxp_texcoord.y, 0.0, 1.0));\n')
+                        file.write(INDENT + 'float a = math::lerp(mxp_valuet.a, mxp_valueb.a, math::clamp(mxp_texcoord.y, 0.0, 1.0));\n')
+                        file.write(INDENT + 'return color4(rgb, a);')
+                    else:
+                        file.write(INDENT + 'return math::lerp(mxp_valuet, mxp_valueb, math::clamp(mxp_texcoord.y, 0.0, 1.0));\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'splitlr':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'color rgb = math::lerp(mxp_valuel.rgb, mxp_valuer.rgb, math::step(mxp_center, math::clamp(mxp_texcoord.x,0,1)));')
+                        file.write(INDENT + 'float a = math::lerp(mxp_valuel.a, mxp_valuer.a, math::step(mxp_center, math::clamp(mxp_texcoord.x,0,1)));')
+                        file.write(INDENT + 'return color4(rgb, a);')
+                    else:
+                        file.write(INDENT + 'return math::lerp(mxp_valuel, mxp_valuer, math::step(mxp_center, math::clamp(mxp_texcoord.x,0,1)));')
+                    wroteImplementation = True
+                elif nodeCategory == 'splittb':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'color rgb = math::lerp(mxp_valuet.rgb, mxp_valueb.rgb, math::step(mxp_center, math::clamp(mxp_texcoord.x,0,1)));')
+                        file.write(INDENT + 'float a = math::lerp(mxp_valuet.a, mxp_valueb.a, math::step(mxp_center, math::clamp(mxp_texcoord.x,0,1)));')
+                        file.write(INDENT + 'return color4(rgb, a);')
+                    else:
+                        file.write(INDENT + 'return math::lerp(mxp_valuet, mxp_valueb, math::step(mxp_center, math::clamp(mxp_texcoord.x,0,1)));')
+                    wroteImplementation = True
+                elif nodeCategory == 'transformvector':
+                    _writeTranformSpace(file, outputType, 'transform_vector')
+                    wroteImplementation = True
+                elif nodeCategory == 'transformpoint':
+                    _writeTranformSpace(file, outputType, 'transform_point')
+                    wroteImplementation = True
+                elif nodeCategory == 'transformnormal':
+                    _writeTranformSpace(file, outputType, 'transform_normal')
+                    wroteImplementation = True
+                elif nodeCategory == 'transpose':
+                    file.write(INDENT + 'return ::math::transpose(mxp_in);\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'determinant':
+                    file.write(INDENT + 'return ::mx_determinant(mxp_in);\n')
+                    wroteImplementation = True
+
 
                 if wroteImplementation:
                     implementedCont += 1
