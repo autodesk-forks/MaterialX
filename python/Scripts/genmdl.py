@@ -212,10 +212,10 @@ def _writeFourArgumentCombine(file, outputType):
 def _writeIfGreater(file, comparitor):
     file.write(INDENT + 'if (mxp_value1 ' + comparitor + ' mxp_value2) { return mxp_in1; } return mxp_in2;\n' )
 
-def _writeTranformSpace(file, outputType, functionName):
-    file.write(INDENT + 'state::coordinate_space fromSpace = ::mx_map_space(mxp_fromspace);\n')
-    file.write(INDENT + 'state::coordinate_space toSpace  = ::mx_map_space(mxp_tospace);\n')
-    file.write(INDENT + 'return mk_' + outputType + '( state::' + functionName + '(fromSpace, toSpace, mxp_in));\n')
+def _writeTranformSpace(file, outputType, functionName, input, fromspace, tospace):
+    file.write(INDENT + 'state::coordinate_space fromSpace = ::mx_map_space(' + fromspace + ');\n')
+    file.write(INDENT + 'state::coordinate_space toSpace  = ::mx_map_space(' + tospace + ');\n')
+    file.write(INDENT + 'return mk_' + outputType + '( state::' + functionName + '(fromSpace, toSpace, ' + input + '));\n')
 
 def main():
 
@@ -715,13 +715,28 @@ def main():
                         file.write(INDENT + 'return math::lerp(mxp_valuet, mxp_valueb, math::step(mxp_center, math::clamp(mxp_texcoord.x,0,1)));')
                     wroteImplementation = True
                 elif nodeCategory == 'transformvector':
-                    _writeTranformSpace(file, outputType, 'transform_vector')
+                    _writeTranformSpace(file, outputType, 'transform_vector', 'mxp_in', 'mxp_fromspace', 'mxp_tospace')
                     wroteImplementation = True
                 elif nodeCategory == 'transformpoint':
-                    _writeTranformSpace(file, outputType, 'transform_point')
+                    _writeTranformSpace(file, outputType, 'transform_point', 'mxp_in', 'mxp_fromspace', 'mxp_tospace')
                     wroteImplementation = True
                 elif nodeCategory == 'transformnormal':
-                    _writeTranformSpace(file, outputType, 'transform_normal')
+                    _writeTranformSpace(file, outputType, 'transform_normal', 'mxp_in', 'mxp_fromspace', 'mxp_tospace')
+                    wroteImplementation = True
+                elif nodeCategory == 'position':
+                    _writeTranformSpace(file, outputType, 'transform_point', 'state::position()', 'mx_coordinatespace_type_model', 'mxp_space')
+                    wroteImplementation = True
+                elif nodeCategory == 'normal':
+                    _writeTranformSpace(file, outputType, 'transform_normal', 'state::normal()', 'mx_coordinatespace_type_model', 'mxp_space')
+                    wroteImplementation = True
+                elif nodeCategory == 'tangent':
+                    _writeTranformSpace(file, outputType, 'transform_vector', 'state::texture_tangent_u(mxp_index)', 'mx_coordinatespace_type_model', 'mxp_space')
+                    wroteImplementation = True
+                elif nodeCategory == 'bitangent':
+                    _writeTranformSpace(file, outputType, 'transform_vector', 'state::texture_tangent_v(mxp_index)', 'mx_coordinatespace_type_model', 'mxp_space')
+                    wroteImplementation = True
+                elif nodeCategory == 'texcoord':
+                    file.write(INDENT + 'return mk_' + outputType + '(state::texture_coordinate(mxp_index));\n')
                     wroteImplementation = True
                 elif nodeCategory == 'transpose':
                     file.write(INDENT + 'return ::math::transpose(mxp_in);\n')
@@ -729,12 +744,26 @@ def main():
                 elif nodeCategory == 'determinant':
                     file.write(INDENT + 'return vectormatrix::mx_determinant(mxp_in);\n')
                     wroteImplementation = True
-
+                elif nodeCategory == 'rotate2d':
+                    file.write(INDENT + 'return vectormatrix::mx_rotate(mxp_in, mxp_amount);\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'rotate3d':
+                    file.write(INDENT + 'return vectormatrix::mx_rotate(mxp_in, mxp_amount, mxp_axis);\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'remap':
+                    if outputType == 'color4':
+                        file.write(INDENT + 'color4 val = mk_color4(mxp_outlow);\n')
+                        file.write(INDENT + 'color4 val2 = mx_add(val, mx_subtract(mk_color4(mxp_in), mk_color4(mxp_inlow)));\n')
+                        file.write(INDENT + 'color4 val3 = mx_multiply(val2, mx_subtract(mk_color4(mxp_outhigh), mk_color4(mxp_outlow)));\n')
+                        file.write(INDENT + 'return mx_divide(val3, mx_subtract(mk_color4(mxp_inhigh), mk_color4(mxp_inlow)));\n')
+                    else:
+                        file.write(INDENT + 'return mxp_outlow + (mxp_in - mxp_inlow) * (mxp_outhigh - mxp_outlow) / (mxp_inhigh - mxp_inlow);\n')
+                    wroteImplementation = True
 
                 if wroteImplementation:
                     implementedCont += 1
                 else:
-                    file.write(INDENT + '// No-op. Return default value for now\n')
+                    file.write(INDENT + '// Not implemented: ' + functionName + '\n')
                     file.write(INDENT + outputType + ' defaultValue')
                     if routeInputToOutput:
                         outputType = ''
