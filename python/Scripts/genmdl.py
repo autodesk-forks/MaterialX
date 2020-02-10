@@ -46,7 +46,7 @@ def _loadLibraries(doc, searchPath, libraryPath):
 def _writeHeader(file, version):
     file.write('mdl ' + version + ';\n')
     file.write('using core import *;\n')
-    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '::math::*', '::state::*', '::tex::*', '::state::*',  '::vectormatrix::*'}
+    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '::math::*', '::state::*', '::tex::*', '::state::*',  '::vectormatrix::*', '::hsv::*'}
     # To verify what are the minimal imports required
     for i in IMPORT_LIST:
         file.write('import' + i + ';\n')
@@ -216,6 +216,16 @@ def _writeTranformSpace(file, outputType, functionName, input, fromspace, tospac
     file.write(INDENT + 'state::coordinate_space fromSpace = ::mx_map_space(' + fromspace + ');\n')
     file.write(INDENT + 'state::coordinate_space toSpace  = ::mx_map_space(' + tospace + ');\n')
     file.write(INDENT + 'return mk_' + outputType + '( state::' + functionName + '(fromSpace, toSpace, ' + input + '));\n')
+
+def _writeRemap(file, outputType):
+    if outputType == 'color4':
+        file.write(INDENT + 'color4 val = mk_color4(mxp_outlow);\n')
+        file.write(INDENT + 'color4 val2 = mx_add(val, mx_subtract(mk_color4(mxp_in), mk_color4(mxp_inlow)));\n')
+        file.write(INDENT + 'color4 val3 = mx_multiply(val2, mx_subtract(mk_color4(mxp_outhigh), mk_color4(mxp_outlow)));\n')
+        file.write(INDENT + 'return mx_divide(val3, mx_subtract(mk_color4(mxp_inhigh), mk_color4(mxp_inlow)));\n')
+    else:
+        file.write(INDENT + 'return mxp_outlow + (mxp_in - mxp_inlow) * (mxp_outhigh - mxp_outlow) / (mxp_inhigh - mxp_inlow);\n')
+
 
 def main():
 
@@ -626,29 +636,57 @@ def main():
                 elif nodeCategory == 'plus':
                     if outputType != 'color4':
                         _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_fg', '(mxp_bg+mxp_fg)', 'mxp_mix')
-                        wroteImplementation = True
+                    else:
+                        file.write(INDENT + 'color rgb = ::math::lerp(mxp_fg.rgb, mxp_bg.rgb+mxp_fg.rgb, color(mxp_mix));\n')
+                        file.write(INDENT + 'float a  = ::math::lerp(mxp_fg.a, mxp_bg.a+mxp_fg.a, mxp_mix);\n')
+                        file.write(INDENT + 'return color4(rgb,a);\n')
+                    wroteImplementation = True
                 elif nodeCategory == 'minus':
                     if outputType != 'color4':
                         _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', '(mxp_bg-mxp_fg)', 'mxp_mix')
-                        wroteImplementation = True
+                    else:
+                        file.write(INDENT + 'color rgb = ::math::lerp(mxp_bg.rgb, mxp_bg.rgb-mxp_fg.rgb, color(mxp_mix));\n')
+                        file.write(INDENT + 'float a  = ::math::lerp(mxp_bg.a, mxp_bg.a-mxp_fg.a, mxp_mix);\n')
+                        file.write(INDENT + 'return color4(rgb,a);\n')
+                    wroteImplementation = True
                 elif nodeCategory == 'difference':
                     if outputType != 'color4':
                         _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', 'math::abs(mxp_bg-mxp_fg)', 'mxp_mix')
-                        wroteImplementation = True
+                    else:
+                        file.write(INDENT + 'color rgb = ::math::lerp(mxp_bg.rgb, math::abs(mxp_bg.rgb-mxp_fg.rgb), color(mxp_mix));\n')
+                        file.write(INDENT + 'float a  = ::math::lerp(mxp_bg.a, math::abs(mxp_bg.a-mxp_fg.a), mxp_mix);\n')
+                        file.write(INDENT + 'return color4(rgb,a);\n')
+                    wroteImplementation = True
                 elif nodeCategory == 'burn':
                     if outputType != 'color4':
                         burnString = outputType + '(1.0)-(' + outputType + '(1.0)-mxp_bg)/mxp_fg'
                         _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', burnString, 'mxp_mix')
-                        wroteImplementation = True
+                    else:
+                        dodgeStringRGB = 'color(1.0)-(color(1.0)-mxp_bg.rgb)/mxp_fg.rgb'
+                        dodgeStringA = '1.0-(1.0-mxp_bg.a)/mxp_fg.a'
+                        file.write(INDENT + 'color rgb = ::math::lerp(mxp_bg.rgb,'+ dodgeStringRGB + ', color(mxp_mix));\n')
+                        file.write(INDENT + 'float a  = ::math::lerp(mxp_bg.a, '+ dodgeStringA + ', mxp_mix);\n')
+                        file.write(INDENT + 'return color4(rgb,a);\n')
+                    wroteImplementation = True
                 elif nodeCategory == 'dodge':
                     if outputType != 'color4':
                         dodgeString = 'mxp_bg/(' + outputType + '(1.0)-mxp_fg)'
                         _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', dodgeString, 'mxp_mix')
-                        wroteImplementation = True
+                    else:
+                        dodgeStringRGB = 'mxp_bg.rgb/(color(1.0)-mxp_fg.rgb)'
+                        dodgeStringA = 'mxp_bg.a/(1.0-mxp_fg.a)'
+                        file.write(INDENT + 'color rgb = ::math::lerp(mxp_bg.rgb,'+ dodgeStringRGB + ', color(mxp_mix));\n')
+                        file.write(INDENT + 'float a  = ::math::lerp(mxp_bg.a, '+ dodgeStringA + ', mxp_mix);\n')
+                        file.write(INDENT + 'return color4(rgb,a);\n')
+                    wroteImplementation = True
                 elif nodeCategory == 'screen':
                     if outputType != 'color4':
                         _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', 'mxp_bg+mxp_fg-mxp_bg*mxp_fg', 'mxp_mix')
-                        wroteImplementation = True
+                    else:
+                        file.write(INDENT + 'color rgb = ::math::lerp(mxp_bg.rgb, mxp_bg.rgb+mxp_fg.rgb-mxp_bg.rgb*mxp_fg.rgb, color(mxp_mix));\n')
+                        file.write(INDENT + 'float a  = ::math::lerp(mxp_bg.a, mxp_bg.a+mxp_fg.a-mxp_bg.a*mxp_fg.a, mxp_mix);\n')
+                        file.write(INDENT + 'return color4(rgb,a);\n')
+                    wroteImplementation = True
                 elif nodeCategory == 'inside':
                     _writeOperatorFunc(file, outputType, 'mxp_in', '*', 'mxp_mask')
                     wroteImplementation = True
@@ -751,13 +789,16 @@ def main():
                     file.write(INDENT + 'return vectormatrix::mx_rotate(mxp_in, mxp_amount, mxp_axis);\n')
                     wroteImplementation = True
                 elif nodeCategory == 'remap':
-                    if outputType == 'color4':
-                        file.write(INDENT + 'color4 val = mk_color4(mxp_outlow);\n')
-                        file.write(INDENT + 'color4 val2 = mx_add(val, mx_subtract(mk_color4(mxp_in), mk_color4(mxp_inlow)));\n')
-                        file.write(INDENT + 'color4 val3 = mx_multiply(val2, mx_subtract(mk_color4(mxp_outhigh), mk_color4(mxp_outlow)));\n')
-                        file.write(INDENT + 'return mx_divide(val3, mx_subtract(mk_color4(mxp_inhigh), mk_color4(mxp_inlow)));\n')
-                    else:
-                        file.write(INDENT + 'return mxp_outlow + (mxp_in - mxp_inlow) * (mxp_outhigh - mxp_outlow) / (mxp_inhigh - mxp_inlow);\n')
+                    _writeRemap(file, outputType)
+                    wroteImplementation = True
+                elif nodeCategory == 'time':
+                    file.write(INDENT + 'return ::state::animation_time();\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'hsvtorgb':
+                    file.write(INDENT + 'return ::hsv::mx_hsvtorgb(mxp_in);\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'rgbtohsv':
+                    file.write(INDENT + 'return ::hsv::mx_rgbtohsv(mxp_in);\n')
                     wroteImplementation = True
 
                 if wroteImplementation:
