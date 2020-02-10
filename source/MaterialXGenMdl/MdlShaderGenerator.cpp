@@ -6,6 +6,7 @@
 #include <MaterialXGenMdl/MdlShaderGenerator.h>
 
 #include <MaterialXGenMdl/MdlSyntax.h>
+#include <MaterialXGenMdl/Nodes/CompoundNodeMdl.h>
 
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Shader.h>
@@ -414,6 +415,13 @@ void MdlShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
 
         emitLineEnd(stage, false);
     }
+}
+
+ShaderNodeImplPtr MdlShaderGenerator::createCompoundImplementation(const NodeGraph&) const
+{
+    // The standard compound implementation
+    // is the compound implementation to us by default
+    return CompoundNodeMdl::create();
 }
 
 namespace MDL

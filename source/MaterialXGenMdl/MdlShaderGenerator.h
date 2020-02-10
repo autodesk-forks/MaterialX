@@ -42,9 +42,11 @@ class MdlShaderGenerator : public ShaderGenerator
     static const string TARGET;
 
 protected:
-
     /// Create and initialize a new MDL shader for shader generation.
     ShaderPtr createShader(const string& name, ElementPtr element, GenContext& context) const;
+
+    /// Override the compound implementation creator.
+    ShaderNodeImplPtr createCompoundImplementation(const NodeGraph& impl) const override;
 
     /// Emit a block of shader inputs.
     void emitShaderInputs(const VariableBlock& inputs, ShaderStage& stage) const;
