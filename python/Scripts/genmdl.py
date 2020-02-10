@@ -381,16 +381,16 @@ def main():
             continue
         if  nodeCategory == 'curveadjust':
             print('Skip ' + nodeDefName + ' implementation. Not supported yet')
-            continue
+            #continue
         elif nodeCategory == 'geomcolor':
             print('Skip ' + nodeDefName + ' implementation. Not supported in MDL')
-            continue
+            #continue
         elif nodeCategory == 'geomattrvalue':
             print('Skip ' + nodeDefName + ' implementation. Not supported in MDL')
-            continue
+            #continue
         elif nodeCategory == 'geompropvalue':
             print('Skip ' + nodeDefName + ' implementation. Not supported in MDL')
-            continue
+            #continue
 
         if len(nodedef.getActiveOutputs()) == 0:
            continue
