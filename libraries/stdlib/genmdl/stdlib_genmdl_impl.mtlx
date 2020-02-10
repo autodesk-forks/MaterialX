@@ -326,152 +326,152 @@
   <implementation name="IM_invert_vector4FA_genmdl" nodedef="ND_invert_vector4FA" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
 
   <!-- <absval> -->
-  <implementation name="IM_absval_float_genmdl" nodedef="ND_absval_float" file="stdlib/genmdl/mx_absval.inline" language="genmdl"/>
-  <implementation name="IM_absval_color2_genmdl" nodedef="ND_absval_color2" file="stdlib/genmdl/mx_absval.inline"  language="genmdl"/>
-  <implementation name="IM_absval_color3_genmdl" nodedef="ND_absval_color3" file="stdlib/genmdl/mx_absval.inline" language="genmdl"/>
-  <implementation name="IM_absval_color4_genmdl" nodedef="ND_absval_color4" file="stdlib/genmdl/mx_absval.inline" language="genmdl"/>
-  <implementation name="IM_absval_vector2_genmdl" nodedef="ND_absval_vector2" file="stdlib/genmdl/mx_absval.inline" language="genmdl"/>
-  <implementation name="IM_absval_vector3_genmdl" nodedef="ND_absval_vector3" file="stdlib/genmdl/mx_absval.inline" language="genmdl"/>
-  <implementation name="IM_absval_vector4_genmdl" nodedef="ND_absval_vector4" file="stdlib/genmdl/mx_absval.inline" language="genmdl"/>
+  <implementation name="IM_absval_float_genmdl" nodedef="ND_absval_float" sourcecode="math::abs({{in}})" language="genmdl"/>
+  <implementation name="IM_absval_color2_genmdl" nodedef="ND_absval_color2" sourcecode="math::abs({{in}})"  language="genmdl"/>
+  <implementation name="IM_absval_color3_genmdl" nodedef="ND_absval_color3" sourcecode="math::abs({{in}})" language="genmdl"/>
+  <implementation name="IM_absval_color4_genmdl" nodedef="ND_absval_color4" sourcecode="math::abs({{in}})" language="genmdl"/>
+  <implementation name="IM_absval_vector2_genmdl" nodedef="ND_absval_vector2" sourcecode="math::abs({{in}})" language="genmdl"/>
+  <implementation name="IM_absval_vector3_genmdl" nodedef="ND_absval_vector3" sourcecode="math::abs({{in}})" language="genmdl"/>
+  <implementation name="IM_absval_vector4_genmdl" nodedef="ND_absval_vector4" sourcecode="math::abs({{in}})" language="genmdl"/>
 
   <!-- <floor> -->
-  <implementation name="IM_floor_float_genmdl" nodedef="ND_floor_float" file="stdlib/genmdl/mx_floor.inline" language="genmdl"/>
-  <implementation name="IM_floor_color2_genmdl" nodedef="ND_floor_color2" file="stdlib/genmdl/mx_floor.inline"  language="genmdl"/>
-  <implementation name="IM_floor_color3_genmdl" nodedef="ND_floor_color3" file="stdlib/genmdl/mx_floor.inline" language="genmdl"/>
-  <implementation name="IM_floor_color4_genmdl" nodedef="ND_floor_color4" file="stdlib/genmdl/mx_floor.inline" language="genmdl"/>
-  <implementation name="IM_floor_vector2_genmdl" nodedef="ND_floor_vector2" file="stdlib/genmdl/mx_floor.inline" language="genmdl"/>
-  <implementation name="IM_floor_vector3_genmdl" nodedef="ND_floor_vector3" file="stdlib/genmdl/mx_floor.inline" language="genmdl"/>
-  <implementation name="IM_floor_vector4_genmdl" nodedef="ND_floor_vector4" file="stdlib/genmdl/mx_floor.inline" language="genmdl"/>
+  <implementation name="IM_floor_float_genmdl" nodedef="ND_floor_float" sourcecode="math::floor({{in}})" language="genmdl"/>
+  <implementation name="IM_floor_color2_genmdl" nodedef="ND_floor_color2" sourcecode="math::floor({{in}})"  language="genmdl"/>
+  <implementation name="IM_floor_color3_genmdl" nodedef="ND_floor_color3" sourcecode="math::floor({{in}})" language="genmdl"/>
+  <implementation name="IM_floor_color4_genmdl" nodedef="ND_floor_color4" sourcecode="math::floor({{in}})" language="genmdl"/>
+  <implementation name="IM_floor_vector2_genmdl" nodedef="ND_floor_vector2" sourcecode="math::floor({{in}})" language="genmdl"/>
+  <implementation name="IM_floor_vector3_genmdl" nodedef="ND_floor_vector3" sourcecode="math::floor({{in}})" language="genmdl"/>
+  <implementation name="IM_floor_vector4_genmdl" nodedef="ND_floor_vector4" sourcecode="math::floor({{in}})" language="genmdl"/>
 
   <!-- <ceil> -->
-  <implementation name="IM_ceil_float_genmdl" nodedef="ND_ceil_float" file="stdlib/genmdl/mx_ceil.inline" language="genmdl"/>
-  <implementation name="IM_ceil_color2_genmdl" nodedef="ND_ceil_color2" file="stdlib/genmdl/mx_ceil.inline" language="genmdl"/>
-  <implementation name="IM_ceil_color3_genmdl" nodedef="ND_ceil_color3" file="stdlib/genmdl/mx_ceil.inline" language="genmdl"/>
-  <implementation name="IM_ceil_color4_genmdl" nodedef="ND_ceil_color4" file="stdlib/genmdl/mx_ceil.inline" language="genmdl"/>
-  <implementation name="IM_ceil_vector2_genmdl" nodedef="ND_ceil_vector2" file="stdlib/genmdl/mx_ceil.inline" language="genmdl"/>
-  <implementation name="IM_ceil_vector3_genmdl" nodedef="ND_ceil_vector3" file="stdlib/genmdl/mx_ceil.inline" language="genmdl"/>
-  <implementation name="IM_ceil_vector4_genmdl" nodedef="ND_ceil_vector4" file="stdlib/genmdl/mx_ceil.inline" language="genmdl"/>
+  <implementation name="IM_ceil_float_genmdl" nodedef="ND_ceil_float" sourcecode="math::ceil({{in}})" language="genmdl"/>
+  <implementation name="IM_ceil_color2_genmdl" nodedef="ND_ceil_color2" sourcecode="math::ceil({{in}})" language="genmdl"/>
+  <implementation name="IM_ceil_color3_genmdl" nodedef="ND_ceil_color3" sourcecode="math::ceil({{in}})" language="genmdl"/>
+  <implementation name="IM_ceil_color4_genmdl" nodedef="ND_ceil_color4" sourcecode="math::ceil({{in}})" language="genmdl"/>
+  <implementation name="IM_ceil_vector2_genmdl" nodedef="ND_ceil_vector2" sourcecode="math::ceil({{in}})" language="genmdl"/>
+  <implementation name="IM_ceil_vector3_genmdl" nodedef="ND_ceil_vector3" sourcecode="math::ceil({{in}})" language="genmdl"/>
+  <implementation name="IM_ceil_vector4_genmdl" nodedef="ND_ceil_vector4" sourcecode="math::ceil({{in}})" language="genmdl"/>
 
   <!-- <power> -->
-  <implementation name="IM_power_float_genmdl" nodedef="ND_power_float" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_color2_genmdl" nodedef="ND_power_color2" file="stdlib/genmdl/mx_power.inline"  language="genmdl"/>
-  <implementation name="IM_power_color2FA_genmdl" nodedef="ND_power_color2FA" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_color3_genmdl" nodedef="ND_power_color3" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_color3FA_genmdl" nodedef="ND_power_color3FA" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_color4_genmdl" nodedef="ND_power_color4" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_color4FA_genmdl" nodedef="ND_power_color4FA" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_vector2_genmdl" nodedef="ND_power_vector2" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_vector2FA_genmdl" nodedef="ND_power_vector2FA" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_vector3_genmdl" nodedef="ND_power_vector3" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_vector3FA_genmdl" nodedef="ND_power_vector3FA" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_vector4_genmdl" nodedef="ND_power_vector4" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
-  <implementation name="IM_power_vector4FA_genmdl" nodedef="ND_power_vector4FA" file="stdlib/genmdl/mx_power.inline" language="genmdl"/>
+  <implementation name="IM_power_float_genmdl" nodedef="ND_power_float" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_color2_genmdl" nodedef="ND_power_color2" sourcecode="math::pow({{in1}}, {{in2}})"  language="genmdl"/>
+  <implementation name="IM_power_color2FA_genmdl" nodedef="ND_power_color2FA" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_color3_genmdl" nodedef="ND_power_color3" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_color3FA_genmdl" nodedef="ND_power_color3FA" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_color4_genmdl" nodedef="ND_power_color4" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_color4FA_genmdl" nodedef="ND_power_color4FA" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_vector2_genmdl" nodedef="ND_power_vector2" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_vector2FA_genmdl" nodedef="ND_power_vector2FA" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_vector3_genmdl" nodedef="ND_power_vector3" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_vector3FA_genmdl" nodedef="ND_power_vector3FA" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_vector4_genmdl" nodedef="ND_power_vector4" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_power_vector4FA_genmdl" nodedef="ND_power_vector4FA" sourcecode="math::pow({{in1}}, {{in2}})" language="genmdl"/>
 
   <!-- <sin>, <cos>, <tan>, <asin>, <acos>, <atan2> -->
-  <implementation name="IM_sin_float_genmdl" nodedef="ND_sin_float" file="stdlib/genmdl/mx_sin.inline" function="mx_sin_float" language="genmdl"/>
-  <implementation name="IM_cos_float_genmdl" nodedef="ND_cos_float" file="stdlib/genmdl/mx_cos.inline" function="mx_cos_float" language="genmdl"/>
-  <implementation name="IM_tan_float_genmdl" nodedef="ND_tan_float" file="stdlib/genmdl/mx_tan.inline" function="mx_tan_float" language="genmdl"/>
-  <implementation name="IM_asin_float_genmdl" nodedef="ND_asin_float" file="stdlib/genmdl/mx_asin.inline" function="mx_asin_float" language="genmdl"/>
-  <implementation name="IM_acos_float_genmdl" nodedef="ND_acos_float" file="stdlib/genmdl/mx_acos.inline" function="mx_acos_float" language="genmdl"/>
-  <implementation name="IM_atan2_float_genmdl" nodedef="ND_atan2_float" file="stdlib/genmdl/mx_atan2.inline" function="mx_atan2_float" language="genmdl"/>
+  <implementation name="IM_sin_float_genmdl" nodedef="ND_sin_float" sourcecode="math::sin({{in}})" language="genmdl"/>
+  <implementation name="IM_cos_float_genmdl" nodedef="ND_cos_float" sourcecode="math::cos({{in}})" language="genmdl"/>
+  <implementation name="IM_tan_float_genmdl" nodedef="ND_tan_float" sourcecode="math::tan({{in}})" language="genmdl"/>
+  <implementation name="IM_asin_float_genmdl" nodedef="ND_asin_float" sourcecode="math::asin({{in}})" language="genmdl"/>
+  <implementation name="IM_acos_float_genmdl" nodedef="ND_acos_float" sourcecode="math::acos({{in}})"  language="genmdl"/>
+  <implementation name="IM_atan2_float_genmdl" nodedef="ND_atan2_float" sourcecode="math::atan2({{in1}}, {{in2}})" language="genmdl"/>
 
-  <implementation name="IM_sin_vector2_genmdl" nodedef="ND_sin_vector2" file="stdlib/genmdl/mx_sin.inline" language="genmdl"/>
-  <implementation name="IM_cos_vector2_genmdl" nodedef="ND_cos_vector2" file="stdlib/genmdl/mx_cos.inline" language="genmdl"/>
-  <implementation name="IM_tan_vector2_genmdl" nodedef="ND_tan_vector2" file="stdlib/genmdl/mx_tan.inline" language="genmdl"/>
-  <implementation name="IM_asin_vector2_genmdl" nodedef="ND_asin_vector2" file="stdlib/genmdl/mx_asin.inline" language="genmdl"/>
-  <implementation name="IM_acos_vector2_genmdl" nodedef="ND_acos_vector2" file="stdlib/genmdl/mx_acos.inline" language="genmdl"/>
-  <implementation name="IM_atan2_vector2_genmdl" nodedef="ND_atan2_vector2" file="stdlib/genmdl/mx_atan2.inline" language="genmdl"/>
+  <implementation name="IM_sin_vector2_genmdl" nodedef="ND_sin_vector2" sourcecode="math::sin({{in}})" language="genmdl"/>
+  <implementation name="IM_cos_vector2_genmdl" nodedef="ND_cos_vector2" sourcecode="math::cos({{in}})" language="genmdl"/>
+  <implementation name="IM_tan_vector2_genmdl" nodedef="ND_tan_vector2" sourcecode="math::tan({{in}})" language="genmdl"/>
+  <implementation name="IM_asin_vector2_genmdl" nodedef="ND_asin_vector2" sourcecode="math::asin({{in}})" language="genmdl"/>
+  <implementation name="IM_acos_vector2_genmdl" nodedef="ND_acos_vector2" sourcecode="math::acos({{in}})" language="genmdl"/>
+  <implementation name="IM_atan2_vector2_genmdl" nodedef="ND_atan2_vector2" sourcecode="math::atan2({{in1}}, {{in2}})" language="genmdl"/>
 
-  <implementation name="IM_sin_vector3_genmdl" nodedef="ND_sin_vector3" file="stdlib/genmdl/mx_sin.inline" language="genmdl"/>
-  <implementation name="IM_cos_vector3_genmdl" nodedef="ND_cos_vector3" file="stdlib/genmdl/mx_cos.inline" language="genmdl"/>
-  <implementation name="IM_tan_vector3_genmdl" nodedef="ND_tan_vector3" file="stdlib/genmdl/mx_tan.inline" language="genmdl"/>
-  <implementation name="IM_asin_vector3_genmdl" nodedef="ND_asin_vector3" file="stdlib/genmdl/mx_asin.inline" language="genmdl"/>
-  <implementation name="IM_acos_vector3_genmdl" nodedef="ND_acos_vector3" file="stdlib/genmdl/mx_acos.inline" language="genmdl"/>
-  <implementation name="IM_atan2_vector3_genmdl" nodedef="ND_atan2_vector3" file="stdlib/genmdl/mx_atan2.inline" language="genmdl"/>
+  <implementation name="IM_sin_vector3_genmdl" nodedef="ND_sin_vector3" sourcecode="math::sin({{in}})" language="genmdl"/>
+  <implementation name="IM_cos_vector3_genmdl" nodedef="ND_cos_vector3" sourcecode="math::cos({{in}})" language="genmdl"/>
+  <implementation name="IM_tan_vector3_genmdl" nodedef="ND_tan_vector3" sourcecode="math::tan({{in}})" language="genmdl"/>
+  <implementation name="IM_asin_vector3_genmdl" nodedef="ND_asin_vector3" sourcecode="math::asin({{in}})" language="genmdl"/>
+  <implementation name="IM_acos_vector3_genmdl" nodedef="ND_acos_vector3" sourcecode="math::acos({{in}})" language="genmdl"/>
+  <implementation name="IM_atan2_vector3_genmdl" nodedef="ND_atan2_vector3" sourcecode="math::atan2({{in1}}, {{in2}})" language="genmdl"/>
 
-  <implementation name="IM_sin_vector4_genmdl" nodedef="ND_sin_vector4" file="stdlib/genmdl/mx_sin.inline" language="genmdl"/>
-  <implementation name="IM_cos_vector4_genmdl" nodedef="ND_cos_vector4" file="stdlib/genmdl/mx_cos.inline" language="genmdl"/>
-  <implementation name="IM_tan_vector4_genmdl" nodedef="ND_tan_vector4" file="stdlib/genmdl/mx_tan.inline" language="genmdl"/>
-  <implementation name="IM_asin_vector4_genmdl" nodedef="ND_asin_vector4" file="stdlib/genmdl/mx_asin.inline" language="genmdl"/>
-  <implementation name="IM_acos_vector4_genmdl" nodedef="ND_acos_vector4" file="stdlib/genmdl/mx_acos.inline" language="genmdl"/>
-  <implementation name="IM_atan2_vector4_genmdl" nodedef="ND_atan2_vector4" file="stdlib/genmdl/mx_atan2.inline" language="genmdl"/>
+  <implementation name="IM_sin_vector4_genmdl" nodedef="ND_sin_vector4" sourcecode="math::sin({{in}})" language="genmdl"/>
+  <implementation name="IM_cos_vector4_genmdl" nodedef="ND_cos_vector4" sourcecode="math::cos({{in}})" language="genmdl"/>
+  <implementation name="IM_tan_vector4_genmdl" nodedef="ND_tan_vector4" sourcecode="math::tan({{in}})" language="genmdl"/>
+  <implementation name="IM_asin_vector4_genmdl" nodedef="ND_asin_vector4" sourcecode="math::asin({{in}})" language="genmdl"/>
+  <implementation name="IM_acos_vector4_genmdl" nodedef="ND_acos_vector4" sourcecode="math::acos({{in}})" language="genmdl"/>
+  <implementation name="IM_atan2_vector4_genmdl" nodedef="ND_atan2_vector4" sourcecode="math::atan2({{in1}}, {{in2}})" language="genmdl"/>
 
   <!-- <sqrt> -->
-  <implementation name="IM_sqrt_float_genmdl" nodedef="ND_sqrt_float" file="stdlib/genmdl/mx_sqrt.inline" language="genmdl"/>
-  <implementation name="IM_sqrt_vector2_genmdl" nodedef="ND_sqrt_vector2" file="stdlib/genmdl/mx_sqrt.inline" language="genmdl"/>
-  <implementation name="IM_sqrt_vector3_genmdl" nodedef="ND_sqrt_vector3" file="stdlib/genmdl/mx_sqrt.inline" language="genmdl"/>
-  <implementation name="IM_sqrt_vector4_genmdl" nodedef="ND_sqrt_vector4" file="stdlib/genmdl/mx_sqrt.inline" language="genmdl"/>
+  <implementation name="IM_sqrt_float_genmdl" nodedef="ND_sqrt_float" sourcecode="math::sqrt({{in}})" language="genmdl"/>
+  <implementation name="IM_sqrt_vector2_genmdl" nodedef="ND_sqrt_vector2" sourcecode="math::sqrt({{in}})" language="genmdl"/>
+  <implementation name="IM_sqrt_vector3_genmdl" nodedef="ND_sqrt_vector3" sourcecode="math::sqrt({{in}})" language="genmdl"/>
+  <implementation name="IM_sqrt_vector4_genmdl" nodedef="ND_sqrt_vector4" sourcecode="math::sqrt({{in}})" language="genmdl"/>
 
   <!-- <ln> -->
-  <implementation name="IM_ln_float_genmdl" nodedef="ND_ln_float" file="stdlib/genmdl/mx_ln.inline" language="genmdl"/>
-  <implementation name="IM_ln_vector2_genmdl" nodedef="ND_ln_vector2" file="stdlib/genmdl/mx_ln.inline" language="genmdl"/>
-  <implementation name="IM_ln_vector3_genmdl" nodedef="ND_ln_vector3" file="stdlib/genmdl/mx_ln.inline" language="genmdl"/>
-  <implementation name="IM_ln_vector4_genmdl" nodedef="ND_ln_vector4" file="stdlib/genmdl/mx_ln.inline" language="genmdl"/>
+  <implementation name="IM_ln_float_genmdl" nodedef="ND_ln_float" sourcecode="math::log({{in}})" language="genmdl"/>
+  <implementation name="IM_ln_vector2_genmdl" nodedef="ND_ln_vector2" sourcecode="math::log({{in}})" language="genmdl"/>
+  <implementation name="IM_ln_vector3_genmdl" nodedef="ND_ln_vector3" sourcecode="math::log({{in}})" language="genmdl"/>
+  <implementation name="IM_ln_vector4_genmdl" nodedef="ND_ln_vector4" sourcecode="math::log({{in}})" language="genmdl"/>
 
   <!-- <exp> -->
-  <implementation name="IM_exp_float_genmdl" nodedef="ND_exp_float" file="stdlib/genmdl/mx_exp.inline" language="genmdl"/>
-  <implementation name="IM_exp_vector2_genmdl" nodedef="ND_exp_vector2" file="stdlib/genmdl/mx_exp.inline" language="genmdl"/>
-  <implementation name="IM_exp_vector3_genmdl" nodedef="ND_exp_vector3" file="stdlib/genmdl/mx_exp.inline" language="genmdl"/>
-  <implementation name="IM_exp_vector4_genmdl" nodedef="ND_exp_vector4" file="stdlib/genmdl/mx_exp.inline" language="genmdl"/>
+  <implementation name="IM_exp_float_genmdl" nodedef="ND_exp_float" sourcecode="math::exp({{in}})" language="genmdl"/>
+  <implementation name="IM_exp_vector2_genmdl" nodedef="ND_exp_vector2" sourcecode="math::exp({{in}})" language="genmdl"/>
+  <implementation name="IM_exp_vector3_genmdl" nodedef="ND_exp_vector3" sourcecode="math::exp({{in}})" language="genmdl"/>
+  <implementation name="IM_exp_vector4_genmdl" nodedef="ND_exp_vector4" sourcecode="math::exp({{in}})" language="genmdl"/>
 
   <!-- sign -->
-  <implementation name="IM_sign_float_genmdl" nodedef="ND_sign_float" file="stdlib/genmdl/mx_sign.inline" language="genmdl"/>
-  <implementation name="IM_sign_color2_genmdl" nodedef="ND_sign_color2" file="stdlib/genmdl/mx_sign.inline" language="genmdl"/>
-  <implementation name="IM_sign_color3_genmdl" nodedef="ND_sign_color3" file="stdlib/genmdl/mx_sign.inline" language="genmdl"/>
-  <implementation name="IM_sign_color4_genmdl" nodedef="ND_sign_color4" file="stdlib/genmdl/mx_sign.inline" language="genmdl"/>
-  <implementation name="IM_sign_vector2_genmdl" nodedef="ND_sign_vector2" file="stdlib/genmdl/mx_sign.inline" language="genmdl"/>
-  <implementation name="IM_sign_vector3_genmdl" nodedef="ND_sign_vector3" file="stdlib/genmdl/mx_sign.inline" language="genmdl"/>
-  <implementation name="IM_sign_vector4_genmdl" nodedef="ND_sign_vector4" file="stdlib/genmdl/mx_sign.inline" language="genmdl"/>
+  <implementation name="IM_sign_float_genmdl" nodedef="ND_sign_float" sourcecode="math::sign({{in}})" language="genmdl"/>
+  <implementation name="IM_sign_color2_genmdl" nodedef="ND_sign_color2" sourcecode="math::sign({{in}})" language="genmdl"/>
+  <implementation name="IM_sign_color3_genmdl" nodedef="ND_sign_color3" sourcecode="math::sign({{in}})" language="genmdl"/>
+  <implementation name="IM_sign_color4_genmdl" nodedef="ND_sign_color4" sourcecode="math::sign({{in}})" language="genmdl"/>
+  <implementation name="IM_sign_vector2_genmdl" nodedef="ND_sign_vector2" sourcecode="math::sign({{in}})" language="genmdl"/>
+  <implementation name="IM_sign_vector3_genmdl" nodedef="ND_sign_vector3" sourcecode="math::sign({{in}})" language="genmdl"/>
+  <implementation name="IM_sign_vector4_genmdl" nodedef="ND_sign_vector4" sourcecode="math::sign({{in}})" language="genmdl"/>
 
   <!-- <clamp> -->
-  <implementation name="IM_clamp_float_genmdl" nodedef="ND_clamp_float" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_color2_genmdl" nodedef="ND_clamp_color2" file="stdlib/genmdl/mx_clamp.inline"  language="genmdl"/>
-  <implementation name="IM_clamp_color2FA_genmdl" nodedef="ND_clamp_color2FA" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_color3_genmdl" nodedef="ND_clamp_color3" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_color3FA_genmdl" nodedef="ND_clamp_color3FA" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_color4_genmdl" nodedef="ND_clamp_color4" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_color4FA_genmdl" nodedef="ND_clamp_color4FA" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_vector2_genmdl" nodedef="ND_clamp_vector2" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_vector2FA_genmdl" nodedef="ND_clamp_vector2FA" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_vector3_genmdl" nodedef="ND_clamp_vector3" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_vector3FA_genmdl" nodedef="ND_clamp_vector3FA" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_vector4_genmdl" nodedef="ND_clamp_vector4" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
-  <implementation name="IM_clamp_vector4FA_genmdl" nodedef="ND_clamp_vector4FA" file="stdlib/genmdl/mx_clamp.inline" language="genmdl"/>
+  <implementation name="IM_clamp_float_genmdl" nodedef="ND_clamp_float" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_color2_genmdl" nodedef="ND_clamp_color2" sourcecode="math::clamp({{in}}, {{low}}, {{high}})"  language="genmdl"/>
+  <implementation name="IM_clamp_color2FA_genmdl" nodedef="ND_clamp_color2FA" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_color3_genmdl" nodedef="ND_clamp_color3" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_color3FA_genmdl" nodedef="ND_clamp_color3FA" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_color4_genmdl" nodedef="ND_clamp_color4" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_color4FA_genmdl" nodedef="ND_clamp_color4FA" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_vector2_genmdl" nodedef="ND_clamp_vector2" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_vector2FA_genmdl" nodedef="ND_clamp_vector2FA" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_vector3_genmdl" nodedef="ND_clamp_vector3" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_vector3FA_genmdl" nodedef="ND_clamp_vector3FA" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_vector4_genmdl" nodedef="ND_clamp_vector4" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
+  <implementation name="IM_clamp_vector4FA_genmdl" nodedef="ND_clamp_vector4FA" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
 
   <!-- <min> -->
-  <implementation name="IM_min_float_genmdl" nodedef="ND_min_float" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_color2_genmdl" nodedef="ND_min_color2" file="stdlib/genmdl/mx_min.inline"  language="genmdl"/>
-  <implementation name="IM_min_color2FA_genmdl" nodedef="ND_min_color2FA" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_color3_genmdl" nodedef="ND_min_color3" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_color3FA_genmdl" nodedef="ND_min_color3FA" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_color4_genmdl" nodedef="ND_min_color4" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_color4FA_genmdl" nodedef="ND_min_color4FA" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_vector2_genmdl" nodedef="ND_min_vector2" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_vector2FA_genmdl" nodedef="ND_min_vector2FA" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_vector3_genmdl" nodedef="ND_min_vector3" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_vector3FA_genmdl" nodedef="ND_min_vector3FA" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_vector4_genmdl" nodedef="ND_min_vector4" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
-  <implementation name="IM_min_vector4FA_genmdl" nodedef="ND_min_vector4FA" file="stdlib/genmdl/mx_min.inline" language="genmdl"/>
+  <implementation name="IM_min_float_genmdl" nodedef="ND_min_float" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_color2_genmdl" nodedef="ND_min_color2" sourcecode="math::min({{in1}}, {{in2}})"  language="genmdl"/>
+  <implementation name="IM_min_color2FA_genmdl" nodedef="ND_min_color2FA" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_color3_genmdl" nodedef="ND_min_color3" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_color3FA_genmdl" nodedef="ND_min_color3FA" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_color4_genmdl" nodedef="ND_min_color4" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_color4FA_genmdl" nodedef="ND_min_color4FA" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_vector2_genmdl" nodedef="ND_min_vector2" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_vector2FA_genmdl" nodedef="ND_min_vector2FA" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_vector3_genmdl" nodedef="ND_min_vector3" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_vector3FA_genmdl" nodedef="ND_min_vector3FA" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_vector4_genmdl" nodedef="ND_min_vector4" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_min_vector4FA_genmdl" nodedef="ND_min_vector4FA" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
 
   <!-- <max> -->
-  <implementation name="IM_max_float_genmdl" nodedef="ND_max_float" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_color2_genmdl" nodedef="ND_max_color2" file="stdlib/genmdl/mx_max.inline"  language="genmdl"/>
-  <implementation name="IM_max_color2FA_genmdl" nodedef="ND_max_color2FA" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_color3_genmdl" nodedef="ND_max_color3" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_color3FA_genmdl" nodedef="ND_max_color3FA" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_color4_genmdl" nodedef="ND_max_color4" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_color4FA_genmdl" nodedef="ND_max_color4FA" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_vector2_genmdl" nodedef="ND_max_vector2" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_vector2FA_genmdl" nodedef="ND_max_vector2FA" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_vector3_genmdl" nodedef="ND_max_vector3" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_vector3FA_genmdl" nodedef="ND_max_vector3FA" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_vector4_genmdl" nodedef="ND_max_vector4" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
-  <implementation name="IM_max_vector4FA_genmdl" nodedef="ND_max_vector4FA" file="stdlib/genmdl/mx_max.inline" language="genmdl"/>
+  <implementation name="IM_max_float_genmdl" nodedef="ND_max_float" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_color2_genmdl" nodedef="ND_max_color2" sourcecode="math::max({{in1}}, {{in2}})"  language="genmdl"/>
+  <implementation name="IM_max_color2FA_genmdl" nodedef="ND_max_color2FA" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_color3_genmdl" nodedef="ND_max_color3" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_color3FA_genmdl" nodedef="ND_max_color3FA" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_color4_genmdl" nodedef="ND_max_color4" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_color4FA_genmdl" nodedef="ND_max_color4FA" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_vector2_genmdl" nodedef="ND_max_vector2" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_vector2FA_genmdl" nodedef="ND_max_vector2FA" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_vector3_genmdl" nodedef="ND_max_vector3" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_vector3FA_genmdl" nodedef="ND_max_vector3FA" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_vector4_genmdl" nodedef="ND_max_vector4" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_max_vector4FA_genmdl" nodedef="ND_max_vector4FA" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
 
   <!-- <normalize> -->
-  <implementation name="IM_normalize_vector2_genmdl" nodedef="ND_normalize_vector2" file="stdlib/genmdl/mx_normalize.inline" language="genmdl"/>
-  <implementation name="IM_normalize_vector3_genmdl" nodedef="ND_normalize_vector3" file="stdlib/genmdl/mx_normalize.inline" language="genmdl"/>
-  <implementation name="IM_normalize_vector4_genmdl" nodedef="ND_normalize_vector4" file="stdlib/genmdl/mx_normalize.inline" language="genmdl"/>
+  <implementation name="IM_normalize_vector2_genmdl" nodedef="ND_normalize_vector2" sourcecode="math::normalize({{in}})" language="genmdl"/>
+  <implementation name="IM_normalize_vector3_genmdl" nodedef="ND_normalize_vector3" sourcecode="math::normalize({{in}})" language="genmdl"/>
+  <implementation name="IM_normalize_vector4_genmdl" nodedef="ND_normalize_vector4" sourcecode="math::normalize({{in}})" language="genmdl"/>
 
   <!-- <magnitude> -->
   <implementation name="IM_magnitude_vector2_genmdl" nodedef="ND_magnitude_vector2" file="stdlib/genmdl/mx_magnitude.inline" language="genmdl"/>
@@ -514,10 +514,10 @@
   <implementation name="IM_invertmatrix_matrix44_genmdl" nodedef="ND_invertmatrix_matrix44" file="stdlib/genmdl/mx_invertM.inline" language="genmdl"/>
 
   <!-- <rotate2d> -->
-  <implementation name="IM_rotate2d_vector2_genmdl" nodedef="ND_rotate2d_vector2" file="stdlib/genmdl/mx_rotate_vector2.osl" function="mx_rotate_vector2" language="genmdl"/>
+  <implementation name="IM_rotate2d_vector2_genmdl" nodedef="ND_rotate2d_vector2" sourcecode="mx::stdlib::mx_rotate_vector2(mxp_in:{{in}}, mxp_amount:{{amount}})" language="genmdl"/>
 
   <!-- <rotate3d> -->
-  <implementation name="IM_rotate3d_vector3_genmdl" nodedef="ND_rotate3d_vector3" file="stdlib/genmdl/mx_rotate_vector3.osl" function="mx_rotate_vector3" language="genmdl"/>
+  <implementation name="IM_rotate3d_vector3_genmdl" nodedef="ND_rotate3d_vector3" sourcecode="mx::stdlib::mx_rotate_vector3(mxp_in:{{in}}, mxp_amount:{{amount}}, mxp_axis:{{axis}})" language="genmdl"/>
 
 
   <!-- ======================================================================== -->
@@ -676,14 +676,14 @@
   <implementation name="IM_outside_color4_genmdl" nodedef="ND_outside_color4" file="stdlib/genmdl/mx_outside.inline" language="genmdl"/>
 
   <!-- <mix> -->
-  <implementation name="IM_mix_float_genmdl" nodedef="ND_mix_float" file="stdlib/genmdl/mx_mix.inline" language="genmdl"/>
-  <implementation name="IM_mix_color2_genmdl" nodedef="ND_mix_color2" file="stdlib/genmdl/mx_mix.inline"  language="genmdl"/>
-  <implementation name="IM_mix_color3_genmdl" nodedef="ND_mix_color3" file="stdlib/genmdl/mx_mix.inline" language="genmdl"/>
-  <implementation name="IM_mix_color4_genmdl" nodedef="ND_mix_color4" file="stdlib/genmdl/mx_mix.inline" language="genmdl"/>
-  <implementation name="IM_mix_vector2_genmdl" nodedef="ND_mix_vector2" file="stdlib/genmdl/mx_mix.inline" language="genmdl"/>
-  <implementation name="IM_mix_vector3_genmdl" nodedef="ND_mix_vector3" file="stdlib/genmdl/mx_mix.inline" language="genmdl"/>
-  <implementation name="IM_mix_vector4_genmdl" nodedef="ND_mix_vector4" file="stdlib/genmdl/mx_mix.inline" language="genmdl"/>
-  <implementation name="IM_mix_surfaceshader_genmdl" nodedef="ND_mix_surfaceshader" file="stdlib/genmdl/mx_mix.inline" language="genmdl"/>
+  <implementation name="IM_mix_float_genmdl" nodedef="ND_mix_float" sourcecode="math::lerp({{bg}}, {{fg}}, {{mix}})" language="genmdl"/>
+  <implementation name="IM_mix_color2_genmdl" nodedef="ND_mix_color2" sourcecode="math::lerp({{bg}}, {{fg}}, {{mix}})"  language="genmdl"/>
+  <implementation name="IM_mix_color3_genmdl" nodedef="ND_mix_color3" sourcecode="math::lerp({{bg}}, {{fg}}, {{mix}})" language="genmdl"/>
+  <implementation name="IM_mix_color4_genmdl" nodedef="ND_mix_color4" sourcecode="math::lerp({{bg}}, {{fg}}, {{mix}})" language="genmdl"/>
+  <implementation name="IM_mix_vector2_genmdl" nodedef="ND_mix_vector2" sourcecode="math::lerp({{bg}}, {{fg}}, {{mix}})" language="genmdl"/>
+  <implementation name="IM_mix_vector3_genmdl" nodedef="ND_mix_vector3" sourcecode="math::lerp({{bg}}, {{fg}}, {{mix}})" language="genmdl"/>
+  <implementation name="IM_mix_vector4_genmdl" nodedef="ND_mix_vector4" sourcecode="math::lerp({{bg}}, {{fg}}, {{mix}})" language="genmdl"/>
+  <implementation name="IM_mix_surfaceshader_genmdl" nodedef="ND_mix_surfaceshader" sourcecode="mx::pbrlib::mx_mix_bsdf({{bg}}, {{fg}}, {{mix}})" language="genmdl"/>
 
   <!-- ======================================================================== -->
   <!-- Conditional nodes                                                        -->
