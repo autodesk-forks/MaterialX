@@ -226,6 +226,44 @@ def _writeRemap(file, outputType):
     else:
         file.write(INDENT + 'return mxp_outlow + (mxp_in - mxp_inlow) * (mxp_outhigh - mxp_outlow) / (mxp_inhigh - mxp_inlow);\n')
 
+def _writeSwitch(file, outputType):
+    file.write(INDENT + outputType + ' returnValue;\n')
+    file.write(INDENT + 'switch (int(mxp_which)) {\n')
+    file.write(INDENT*2 + 'case 0: returnValue=mxp_in1; break;\n')
+    file.write(INDENT*2 + 'case 1: returnValue=mxp_in2; break;\n')
+    file.write(INDENT*2 + 'case 2: returnValue=mxp_in3; break;\n')
+    file.write(INDENT*2 + 'case 3: returnValue=mxp_in4; break;\n')
+    file.write(INDENT*2 + 'case 4: returnValue=mxp_in5; break;\n')
+    file.write(INDENT*2 + 'default: returnValue=mxp_in1; break;\n')
+    file.write(INDENT + '}\n')
+    file.write(INDENT + 'return returnValue;\n')
+
+def _writeOverlay(file, outputType):
+    if outputType == 'color4':
+    	file.write(INDENT + 'color4 upper, lower;\n')
+    	file.write(INDENT + 'color4 fg_ = color4(mxp_fg);\n')
+    	file.write(INDENT + 'color4 bg_ = color4(mxp_bg);\n')
+    	file.write(INDENT + 'upper = mx_multiply(mx_multiply(mk_color4(2.0),bg_),fg_);\n')
+    	file.write(INDENT + 'lower = mx_subtract(mx_add(bg_,fg_),mx_multiply(bg_,fg_));\n')
+    	file.write(INDENT + 'color maskRGB = color(::math::step(float3(.5), float3(fg_.rgb)));\n')
+        file.write(INDENT + 'float maskA = ::math::step(.5, fg_.a);\n')
+    	file.write(INDENT + 'color overlayvalRGB = ::math::lerp(lower.rgb, upper.rgb, maskRGB);\n')
+        file.write(INDENT + 'float overlayvalA = ::math::lerp(lower.a, upper.a, maskA);\n')
+        file.write(INDENT + 'color returnRGB = ::math::lerp(mxp_bg.rgb, overlayvalRGB, color(mxp_mix));\n')
+        file.write(INDENT + 'float returnA = ::math::lerp(mxp_bg.a, overlayvalA, mxp_mix);\n')
+    	file.write(INDENT + 'return color4(returnRGB, returnA);\n')
+    else:
+        file.write(INDENT + outputType + ' upper, lower, mask, overlayval;\n')
+        file.write(INDENT + outputType + ' fg_ = ' + outputType + '(mxp_fg);\n')
+        file.write(INDENT + outputType + ' bg_ = ' + outputType + '(mxp_bg);\n')
+        file.write(INDENT + 'upper = 2.0*bg_*fg_;\n')
+        file.write(INDENT + 'lower = bg_+fg_-bg_*fg_;\n')
+        if outputType == 'color':
+            file.write(INDENT + 'mask = color(::math::step(float3(.5), float3(fg_)));\n')
+        else:
+            file.write(INDENT + 'mask = ::math::step(' + outputType + '(.5), fg_);\n')
+        file.write(INDENT + 'overlayval = ::math::lerp(lower, upper, mask);\n')
+        file.write(INDENT + 'return ' + outputType + '(::math::lerp(mxp_bg, overlayval, mxp_mix));\n')
 
 def main():
 
@@ -339,6 +377,19 @@ def main():
         # TODO: Skip array definitions for now
         nodeCategory = nodedef.getAttribute('node')
         if  nodeCategory == 'arrayappend':
+            print('Skip ' + nodeDefName + ' implementation. Not supported yet')
+            continue
+        if  nodeCategory == 'curveadjust':
+            print('Skip ' + nodeDefName + ' implementation. Not supported yet')
+            continue
+        elif nodeCategory == 'geomcolor':
+            print('Skip ' + nodeDefName + ' implementation. Not supported in MDL')
+            continue
+        elif nodeCategory == 'geomattrvalue':
+            print('Skip ' + nodeDefName + ' implementation. Not supported in MDL')
+            continue
+        elif nodeCategory == 'geompropvalue':
+            print('Skip ' + nodeDefName + ' implementation. Not supported in MDL')
             continue
 
         if len(nodedef.getActiveOutputs()) == 0:
@@ -583,10 +634,10 @@ def main():
                     wroteImplementation = True
                 elif nodeCategory == 'divide':
                     if outputType == 'color4':
-                        file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) / mk_float4(mxp_in2));\n')
+                        file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) / mk_float4(mxp_in2));')
                         wroteImplementation = True
                     elif outputType == 'float3x3' or outputType == 'float4x4':
-                        print('Skip division implementation for ' + outputType + '. Not supported in MDL\n')
+                        print('Skip division implementation for ' + outputType + '. Not supported in MDL')
                         #file.write(INDENT + 'return ' + outputType + '(mxp_in1) / ' + outputType + '(mxp_in2);\n')
                     else:
                         file.write(INDENT + 'return mxp_in1 / mxp_in2;\n')
@@ -705,6 +756,9 @@ def main():
                 elif nodeCategory == 'combine3':
                     _writeThreeArgumentCombine(file, outputType)
                     wroteImplementation = True
+                elif nodeCategory == 'combine4':
+                    _writeFourArgumentCombine(file, outputType)
+                    wroteImplementation = True
                 elif nodeCategory == 'ifgreater':
                     _writeIfGreater(file, '>')
                     wroteImplementation = True
@@ -799,6 +853,12 @@ def main():
                     wroteImplementation = True
                 elif nodeCategory == 'rgbtohsv':
                     file.write(INDENT + 'return ::hsv::mx_rgbtohsv(mxp_in);\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'switch':
+                    _writeSwitch(file, outputType)
+                    wroteImplementation = True
+                elif nodeCategory == 'overlay':
+                    _writeOverlay(file, outputType)
                     wroteImplementation = True
 
                 if wroteImplementation:
