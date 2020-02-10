@@ -1019,8 +1019,10 @@ TEST_CASE("Runtime: NameResolvers", "[runtime]")
     geomInfo.elementType = mx::RtNameResolverInfo::GEOMNAME_TYPE;
     geomInfo.toFunction = nullptr;
     geomInfo.fromFunction = nullptr;
-    geomInfo.toSubstitutions.emplace("|", "/");
-    geomInfo.fromSubstitutions.emplace("/", "|");
+    mx::RtToken pipe("|");
+    mx::RtToken slash("/");
+    geomInfo.toSubstitutions.emplace(pipe, slash);
+    geomInfo.fromSubstitutions.emplace(slash, pipe);
     registry->registerNameResolvers(geomInfo);
 
     mx::RtNameResolverInfo imageInfo;
