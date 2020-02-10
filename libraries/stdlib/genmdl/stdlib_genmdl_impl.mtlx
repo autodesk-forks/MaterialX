@@ -311,19 +311,19 @@
   <implementation name="IM_modulo_vector4FA_genmdl" nodedef="ND_modulo_vector4FA" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
 
   <!-- <invert> -->
-  <implementation name="IM_invert_float_genmdl" nodedef="ND_invert_float" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_color2_genmdl" nodedef="ND_invert_color2" file="stdlib/genmdl/mx_invert.inline"  language="genmdl"/>
-  <implementation name="IM_invert_color2FA_genmdl" nodedef="ND_invert_color2FA" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_color3_genmdl" nodedef="ND_invert_color3" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_color3FA_genmdl" nodedef="ND_invert_color3FA" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_color4_genmdl" nodedef="ND_invert_color4" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_color4FA_genmdl" nodedef="ND_invert_color4FA" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_vector2_genmdl" nodedef="ND_invert_vector2" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_vector2FA_genmdl" nodedef="ND_invert_vector2FA" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_vector3_genmdl" nodedef="ND_invert_vector3" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_vector3FA_genmdl" nodedef="ND_invert_vector3FA" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_vector4_genmdl" nodedef="ND_invert_vector4" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
-  <implementation name="IM_invert_vector4FA_genmdl" nodedef="ND_invert_vector4FA" file="stdlib/genmdl/mx_invert.inline" language="genmdl"/>
+  <implementation name="IM_invert_float_genmdl" nodedef="ND_invert_float" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_color2_genmdl" nodedef="ND_invert_color2" sourcecode="{{amount}} - {{in}}"  language="genmdl"/>
+  <implementation name="IM_invert_color2FA_genmdl" nodedef="ND_invert_color2FA" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_color3_genmdl" nodedef="ND_invert_color3" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_color3FA_genmdl" nodedef="ND_invert_color3FA" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_color4_genmdl" nodedef="ND_invert_color4" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_color4FA_genmdl" nodedef="ND_invert_color4FA" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_vector2_genmdl" nodedef="ND_invert_vector2" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_vector2FA_genmdl" nodedef="ND_invert_vector2FA" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_vector3_genmdl" nodedef="ND_invert_vector3" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_vector3FA_genmdl" nodedef="ND_invert_vector3FA" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_vector4_genmdl" nodedef="ND_invert_vector4" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
+  <implementation name="IM_invert_vector4FA_genmdl" nodedef="ND_invert_vector4FA" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
 
   <!-- <absval> -->
   <implementation name="IM_absval_float_genmdl" nodedef="ND_absval_float" file="stdlib/genmdl/mx_absval.inline" language="genmdl"/>
