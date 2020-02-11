@@ -12,7 +12,7 @@
     <dielectric_btdf name="dielectric_btdf1" type="BSDF">
       <input name="weight" type="float" value="1.0000" />
       <input name="tint" type="color3" interfacename="transmissionColor" />
-      <input name="ior" type="float" value="1.52" />
+      <parameter name="ior" type="float" value="1.52" />
       <input name="normal" type="vector3" value="0.0, 0.0, 0.0" />
       <input name="tangent" type="vector3" value="0.0, 0.0, 0.0" />
       <parameter name="distribution" type="string" value="ggx" />

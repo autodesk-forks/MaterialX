@@ -230,7 +230,7 @@
     <dielectric_btdf name="transmission_bsdf" type="BSDF">
       <input name="weight" type="float" value="1.0" />
       <input name="tint" type="color3" interfacename="transmission_color" />
-      <input name="ior" type="float" interfacename="specular_IOR" />
+      <parameter name="ior" type="float" interfacename="specular_IOR" />
       <input name="roughness" type="vector2" nodename="main_rougness" />
       <input name="normal" type="vector3" interfacename="normal" />
       <input name="tangent" type="vector3" nodename="main_tangent" />

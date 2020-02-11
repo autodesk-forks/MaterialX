@@ -51,7 +51,7 @@
     <dielectric_btdf name="Transmission_BSDF" type="BSDF" xpos="5.18621" ypos="9">
       <input name="weight" type="float" value="1.0" />
       <input name="tint" type="color3" value="1.0000, 1.0000, 1.0000" />
-      <input name="ior" type="float" value="0.2000" />
+      <parameter name="ior" type="float" value="0.2000" />
       <input name="roughness" type="vector2" nodename="rougness2" />
       <input name="normal" type="vector3" />
       <input name="tangent" type="vector3" />
