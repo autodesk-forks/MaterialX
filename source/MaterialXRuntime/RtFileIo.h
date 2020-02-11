@@ -30,7 +30,9 @@ class RtReadOptions
     RtReadOptions() :
         skipConflictingElements(true),
         readFilter(nullptr),
-        readLookInformation(false)
+        readLookInformation(false),
+        desiredMajorVersion(1),
+        desiredMinorVersion(38)
     {
     }
     ~RtReadOptions() { }
@@ -45,6 +47,11 @@ class RtReadOptions
 
     /// Read look information
     bool readLookInformation;
+
+    ///
+    unsigned int desiredMajorVersion;
+
+    unsigned int desiredMinorVersion;
 };
     
 /// @class RtWriteOptions
@@ -136,7 +143,7 @@ public:
 protected:
     /// Read all contents from one or more libraries.
     /// All MaterialX files found inside the given libraries will be read.
-    void readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
+    void readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths, const RtReadOptions* readOptions = nullptr);
     friend class PvtApi;
 
 private:

@@ -943,6 +943,8 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
         if (readOptions)
         {
             xmlReadOptions.skipConflictingElements = readOptions->skipConflictingElements;
+            xmlReadOptions.desiredMajorVersion = readOptions->desiredMajorVersion;
+            xmlReadOptions.desiredMajorVersion = readOptions->desiredMinorVersion;
         }
         readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
 
@@ -964,6 +966,8 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
         if (readOptions)
         {
             xmlReadOptions.skipConflictingElements = readOptions->skipConflictingElements;
+            xmlReadOptions.desiredMajorVersion = readOptions->desiredMajorVersion;
+            xmlReadOptions.desiredMajorVersion = readOptions->desiredMinorVersion;
         }
         readFromXmlStream(document, stream, &xmlReadOptions);
 
@@ -976,12 +980,22 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
     }
 }
 
-void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
+void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths, const RtReadOptions* /*readOptions*/)
 {
     PvtStage* stage = PvtStage::ptr(_stage);
 
     // Load all content into a document.
     DocumentPtr doc = createDocument();
+#if 0
+    // TODO: Add readoptions here !
+    XmlReadOptions xmlReadOptions;
+    if (readOptions)
+    {
+        xmlReadOptions.desiredMajorVersion = readOptions->desiredMajorVersion;
+        xmlReadOptions.desiredMinorVersion = readOptions->desiredMinorVersion;
+        xmlReadOptions.skipConflictingElements = readOptions->skipConflictingElements;
+    }
+#endif
     MaterialX::loadLibraries(libraryPaths, searchPaths, doc);
 
     StringSet uris = doc->getReferencedSourceUris();
