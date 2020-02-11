@@ -606,7 +606,7 @@ def main():
                     _writeOneArgumentFunc(file, outputType, '::math::'+nodeCategory)
                     wroteImplementation = True
                 elif nodeCategory == 'ln':
-                    _writeOneArgumentFunc(file, outputType, '::math::log2')
+                    _writeOneArgumentFunc(file, outputType, '::math::log')
                     wroteImplementation = True
                 elif nodeCategory == 'exp':
                     _writeOneArgumentFunc(file, outputType, '::math::exp')
