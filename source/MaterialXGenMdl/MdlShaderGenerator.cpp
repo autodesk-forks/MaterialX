@@ -431,4 +431,41 @@ namespace MDL
     const string OUTPUTS  = "o";
 }
 
+bool MdlShaderGenerator::remapEnumeration(const ValueElement& input, const string& value, std::pair<const TypeDesc*, ValuePtr>& result) const
+{
+    // Early out if not an enum input.
+    const string& enumNames = input.getAttribute(ValueElement::ENUM_ATTRIBUTE);
+    if (enumNames.empty())
+    {
+        return false;
+    }
+
+    // Don't convert or filenames and arrays.
+    const TypeDesc* type = TypeDesc::get(input.getType());
+    if (type == Type::FILENAME || type->isArray())
+    {
+        return false;
+    }
+
+    // For MDL we always convert to integer,
+    // with the integer value being an index into the enumeration.
+    result.first = Type::INTEGER;
+    result.second = nullptr;
+
+    // Try remapping to an enum value.
+    if (!value.empty())
+    {
+        StringVec valueElemEnumsVec = splitString(enumNames, ",");
+        auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
+        if (pos == valueElemEnumsVec.end())
+        {
+            throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input '" + input.getNamePath() + "'");
+        }
+        const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
+        result.second = Value::createValue<int>(index);
+    }
+
+    return true;
+}
+
 } // namespace MaterialX
