@@ -17,6 +17,21 @@ namespace mx = MaterialX;
 namespace GenShaderUtil
 {
 
+namespace
+{
+    const std::string& getFileExtensionForLanguage(const std::string& language)
+    {
+        static const std::unordered_map<std::string, std::string> _fileExtensions = 
+        {
+            {"genglsl","glsl"},
+            {"genosl","osl"},
+            {"genmdl","mdl"}
+        };
+        auto it = _fileExtensions.find(language);
+        return it != _fileExtensions.end() ? it->second : language;
+    }
+}
+
 bool getShaderSource(mx::GenContext& context,
                     const mx::ImplementationPtr implementation,
                     mx::FilePath& sourcePath,
@@ -664,7 +679,7 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
         }
         CHECK(docValid);
 
-        // Traverse the renderable documents and run the validation step
+        // Traverse the renderable elements and run the validation step
         int missingNodeDefs = 0;
         int missingImplementations = 0;
         int codeGenerationFailures = 0;
@@ -715,11 +730,38 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
                         _logFile << ">> Failed to generate code for nodedef: " << nodeDefName << std::endl;
                         codeGenerationFailures++;
                     }
-
-                    if (sourceCode.size())
+                    else if (sourceCode.size())
                     {
-                        std::ofstream file(elementName + ".mdl");
-                        file << sourceCode[0];
+                        mx::FilePath path = mx::FilePath::getCurrentPath() / "generatedshaders";
+                        if (!path.exists())
+                        {
+                            path.createDirectory();
+                        }
+                        path = path / _shaderGenerator->getLanguage();
+                        if (!path.exists())
+                        {
+                            path.createDirectory();
+                        }
+                        path = path / _shaderGenerator->getTarget();
+                        if (!path.exists())
+                        {
+                            path.createDirectory();
+                        }
+                        if (sourceCode.size() > 1)
+                        {
+                            for (size_t i=0; i<sourceCode.size(); ++i)
+                            {
+                                const mx::FilePath filename = path / (elementName + "." + _testStages[i] + "." + getFileExtensionForLanguage(_shaderGenerator->getLanguage()));
+                                std::ofstream file(filename.asString());
+                                file << sourceCode[i];
+                            }
+                        }
+                        else
+                        {
+                            path = path / (elementName + "." + getFileExtensionForLanguage(_shaderGenerator->getLanguage()));
+                            std::ofstream file(path.asString());
+                            file << sourceCode[0];
+                        }
                     }
                 }
                 else
