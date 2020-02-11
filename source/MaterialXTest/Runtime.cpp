@@ -1144,21 +1144,34 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     assign1.getExclusive().setValue(mx::RtValue(true));
     REQUIRE(assign1.getExclusive().getValue().asBool() == true);
 
+    assign1.getGeom().setValueString("/mygeom");
+    REQUIRE(assign1.getGeom().getValueString() == "/mygeom");
+
     //
     // Test look
     //
     mx::RtPrim lo1 = stage->createPrim("look1", mx::RtLook::typeName());
     mx::RtLook look1(lo1);
+
+    mx::RtPrim pa2 = stage->createPrim("matassign2", mx::RtMaterialAssign::typeName());
+    mx::RtMaterialAssign assign2(pa2);
+    assign2.getCollection().addTarget(p2);
+    mx::RtPrim sm2 = stage->createPrim(mx::RtPath("/surfacematerial2"), matDef);
+    assign2.getMaterial().addTarget(sm2);
+    assign2.getExclusive().getValue().asBool() = false;
     look1.addMaterialAssign(pa);
+    look1.addMaterialAssign(pa2);
+
     mx::RtConnectionIterator iter3 = look1.getMaterialAssigns().getTargets();
-    REQUIRE(look1.getMaterialAssigns().targetCount() == 1);
+    REQUIRE(look1.getMaterialAssigns().targetCount() == 2);
     while (!iter3.isDone())
     {
         REQUIRE((*iter3).getName() == "matassign1");
         break;
     }
     look1.removeMaterialAssign(pa);
-    REQUIRE(look1.getMaterialAssigns().targetCount() == 0);
+    REQUIRE(look1.getMaterialAssigns().targetCount() == 1);
+    look1.addMaterialAssign(pa);
 
     mx::RtPrim lo2 = stage->createPrim("look2", mx::RtLook::typeName());
     mx::RtLook look2(lo2);
@@ -1175,9 +1188,14 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     REQUIRE(lookgroup1.getLooks().targetCount() == 2);
     lookgroup1.removeLook(lo1);
     REQUIRE(lookgroup1.getLooks().targetCount() == 1);
-
+    
     lookgroup1.getActiveLook().setValueString("look1");
     REQUIRE(lookgroup1.getActiveLook().getValueString() == "look1");
+    
+    lookgroup1.addLook(lo1);
+
+    mx::RtFileIo stageIo(stage);
+    stageIo.write("rtLookExport.mtlx", nullptr);
 }
 
 mx::RtToken toTestResolver(const mx::RtToken& str, const mx::RtToken& type)

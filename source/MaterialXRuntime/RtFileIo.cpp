@@ -415,9 +415,13 @@ namespace
             RtMaterialAssign rassign(aprim->hnd());
             
             PvtPrim* collection = findPrimOrThrow(RtToken(assign->getCollectionString()), parent);
-            PvtPrim* material = findPrimOrThrow(RtToken(assign->getMaterial()), parent);
             rassign.getCollection().addTarget(collection->hnd());
+
+            PvtPrim* material = findPrimOrThrow(RtToken(assign->getMaterial()), parent);
             rassign.getMaterial().addTarget(material->hnd());
+
+            rassign.getExclusive().getValue().asBool() = assign->getExclusive();
+            rassign.getGeom().getValue().asString() = assign->getActiveGeom();
         }
 
         // createLookConnections() handles creating look inheritance
@@ -442,14 +446,15 @@ namespace
 
     PvtPrim* readLookGroup(const LookGroupPtr& src, PvtPrim* parent, PvtStage* stage)
     {
-        const RtToken name(src->getName());
+        const string LIST_SEPARATOR(",");
 
+        const RtToken name(src->getName());
         PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtLookGroup::typeName());
         RtLookGroup lookgroup(prim->hnd());
 
         // Link to looks
         const string& lookNamesString = src->getLooks();
-        StringVec lookNamesList  = splitString(lookNamesString, ",");
+        StringVec lookNamesList  = splitString(lookNamesString, LIST_SEPARATOR);
         for (auto lookName : lookNamesList)
         {
             if (!lookName.empty())
@@ -855,6 +860,108 @@ namespace
         }
     }
 
+    void writeCollections(PvtStage* stage, DocumentPtr dest, RtWriteOptions::WriteFilter filter)
+    {
+        for (RtPrim child : stage->getRootPrim()->getChildren(filter))
+        {
+            const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
+            const RtToken typeName = child.getTypeInfo()->getShortTypeName();
+            if (typeName == RtCollection::typeName())
+            {
+                RtCollection rtCollection(prim->hnd());
+                const string name(prim->getName());
+
+                if (dest->getCollection(name))
+                {
+                    continue;
+                }
+                CollectionPtr collection = dest->addCollection(name);
+                collection->setExcludeGeom(rtCollection.getExcludeGeom().getValueString());
+                collection->setIncludeGeom(rtCollection.getIncludeGeom().getValueString());
+
+                RtRelationship rtIncludeCollection = rtCollection.getIncludeCollection();
+                string includeList = rtIncludeCollection.getTargetsAsString();                
+                collection->setIncludeCollectionString(includeList);
+            }
+        }
+    }
+
+    void writeLooks(PvtStage* stage, DocumentPtr dest, RtWriteOptions::WriteFilter filter)
+    {
+        for (RtPrim child : stage->getRootPrim()->getChildren(filter))
+        {
+            const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
+            const RtToken typeName = child.getTypeInfo()->getShortTypeName();
+            if (typeName == RtLook::typeName())
+            {
+                RtLook rtLook(prim->hnd());
+                const string name(prim->getName());
+
+                if (dest->getCollection(name))
+                {
+                    continue;
+                }
+                LookPtr look = dest->addLook(name);
+
+                // Add inherit
+                look->setInheritString(rtLook.getInherit().getTargetsAsString());
+
+                // Add in material assignments
+                for (const RtObject& obj : rtLook.getMaterialAssigns().getTargets())
+                {
+                    PvtPrim* pprim = PvtObject::ptr<PvtPrim>(obj);
+                    RtMaterialAssign rtMatAssign(pprim->hnd());
+
+                    const string& assignName = rtMatAssign.getName();
+                    if (look->getMaterialAssign(assignName))
+                    {
+                        continue;
+                    }
+
+                    MaterialAssignPtr massign = look->addMaterialAssign(assignName);
+                    if (massign)
+                    {
+                        massign->setExclusive(rtMatAssign.getExclusive().getValue().asBool());
+                        for (const RtObject& collectionObj : rtMatAssign.getCollection().getTargets())
+                        {
+                            massign->setCollectionString(collectionObj.getName());
+                            break;
+                        }
+                        for (const RtObject& materialObj : rtMatAssign.getMaterial().getTargets())
+                        {
+                            massign->setMaterial(materialObj.getName());
+                            break;
+                        }
+                        massign->setGeom(rtMatAssign.getGeom().getValueString());
+                    }
+                }
+            }
+        }
+    }
+
+    void writeLookGroups(PvtStage* stage, DocumentPtr dest, RtWriteOptions::WriteFilter filter)
+    {
+        for (RtPrim child : stage->getRootPrim()->getChildren(filter))
+        {
+            const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
+            const RtToken typeName = child.getTypeInfo()->getShortTypeName();
+            if (typeName == RtLookGroup::typeName())
+            {
+                RtLookGroup rtLookGroup(prim->hnd());
+                const string name(rtLookGroup.getName());
+
+                if (dest->getLookGroup(name))
+                {
+                    continue;
+                }
+                LookGroupPtr lookGroup = dest->addLookGroup(name);
+                string lookList = rtLookGroup.getLooks().getTargetsAsString();
+                lookGroup->setLooks(lookList);
+                lookGroup->setActiveLook(rtLookGroup.getActiveLook().getValueString());
+            }
+        }
+    }
+
     void writeGenericPrim(const PvtPrim* src, ElementPtr dest)
     {
         RtGeneric generic(src->hnd());
@@ -928,10 +1035,21 @@ namespace
             {
                 writeNodeGraph(prim, doc);
             }
-            else
+            else if (typeName != RtLook::typeName() && 
+                     typeName != RtLookGroup::typeName() &&
+                     typeName != RtMaterialAssign::typeName() &&
+                     typeName != RtCollection::typeName())
             {
                 writeGenericPrim(prim, doc->asA<Element>());
             }
+        }
+
+        // Write the existing look information
+        if (!writeOptions || !(writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::LOOK))
+        {
+            writeCollections(stage, doc, filter);
+            writeLooks(stage, doc, filter);
+            writeLookGroups(stage, doc, filter);
         }
     }
 
@@ -984,22 +1102,12 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
     }
 }
 
-void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths, const RtReadOptions* /*readOptions*/)
+void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
 {
     PvtStage* stage = PvtStage::ptr(_stage);
 
     // Load all content into a document.
     DocumentPtr doc = createDocument();
-#if 0
-    // TODO: Add readoptions here !
-    XmlReadOptions xmlReadOptions;
-    if (readOptions)
-    {
-        xmlReadOptions.desiredMajorVersion = readOptions->desiredMajorVersion;
-        xmlReadOptions.desiredMinorVersion = readOptions->desiredMinorVersion;
-        xmlReadOptions.skipConflictingElements = readOptions->skipConflictingElements;
-    }
-#endif
     MaterialX::loadLibraries(libraryPaths, searchPaths, doc);
 
     StringSet uris = doc->getReferencedSourceUris();

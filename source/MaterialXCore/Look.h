@@ -251,6 +251,8 @@ class LookGroup : public Element
     }
     virtual ~LookGroup() { }
 
+    ///
+
     /// Set comma-separated list of looks.
     void setLooks(const string& looks)
     {

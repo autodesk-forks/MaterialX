@@ -143,7 +143,7 @@ public:
 protected:
     /// Read all contents from one or more libraries.
     /// All MaterialX files found inside the given libraries will be read.
-    void readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths, const RtReadOptions* readOptions = nullptr);
+    void readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
     friend class PvtApi;
 
 private:
