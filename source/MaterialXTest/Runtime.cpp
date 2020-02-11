@@ -1110,8 +1110,9 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     col1.addCollection(p3);
     mx::RtRelationship rel = col1.getIncludeCollection();
     REQUIRE(rel.targetCount() == 2); 
-    col1.removeCollection(p2);
+    col1.removeCollection(p3);
     REQUIRE(rel.targetCount() == 1);
+    col1.addCollection(p3);
 
     //
     // Test materialassign
@@ -1169,9 +1170,9 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         REQUIRE((*iter3).getName() == "matassign1");
         break;
     }
-    look1.removeMaterialAssign(pa);
+    look1.removeMaterialAssign(pa2);
     REQUIRE(look1.getMaterialAssigns().targetCount() == 1);
-    look1.addMaterialAssign(pa);
+    look1.addMaterialAssign(pa2);
 
     mx::RtPrim lo2 = stage->createPrim("look2", mx::RtLook::typeName());
     mx::RtLook look2(lo2);
@@ -1194,8 +1195,19 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     
     lookgroup1.addLook(lo1);
 
+    // Test file I/O
     mx::RtFileIo stageIo(stage);
     stageIo.write("rtLookExport.mtlx", nullptr);
+    std::stringstream stream1;
+    stageIo.write(stream1);
+
+    mx::RtStagePtr stage2 = api->createStage(ROOT);
+    mx::RtFileIo stageIo2(stage2);
+    stageIo2.read("rtLookExport.mtlx", mx::FileSearchPath(), nullptr);
+    stageIo2.write("rtLookExport_2.mtlx", nullptr);
+    std::stringstream stream2;
+    stageIo2.write(stream2);
+    REQUIRE(stream1.str() == stream2.str());
 }
 
 mx::RtToken toTestResolver(const mx::RtToken& str, const mx::RtToken& type)
