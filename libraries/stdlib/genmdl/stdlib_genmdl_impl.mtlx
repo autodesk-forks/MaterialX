@@ -578,12 +578,12 @@
   <implementation name="IM_luminance_color4_genmdl" nodedef="ND_luminance_color4" file="stdlib/genmdl/mx_luminance_color4.osl" function="mx_luminance_color4" language="genmdl"/>
 
   <!-- <rgbtohsv> -->
-  <implementation name="IM_rgbtohsv_color3_genmdl" nodedef="ND_rgbtohsv_color3" file="stdlib/genmdl/mx_rgbtohsv_color3.osl" function="mx_rgbtohsv_color3" language="genmdl"/>
-  <implementation name="IM_rgbtohsv_color4_genmdl" nodedef="ND_rgbtohsv_color4" file="stdlib/genmdl/mx_rgbtohsv_color4.osl" function="mx_rgbtohsv_color4" language="genmdl"/>
+  <implementation name="IM_rgbtohsv_color3_genmdl" nodedef="ND_rgbtohsv_color3" sourcecode="mx::stdlib::mx_rgbtohsv_color3(mxp_in:{{in}})" language="genmdl"/>
+  <implementation name="IM_rgbtohsv_color4_genmdl" nodedef="ND_rgbtohsv_color4" sourcecode="mx::stdlib::mx_rgbtohsv_color4(mxp_in:{{in}})" language="genmdl"/>
 
   <!-- <hsvtorgb> -->
-  <implementation name="IM_hsvtorgb_color3_genmdl" nodedef="ND_hsvtorgb_color3" file="stdlib/genmdl/mx_hsvtorgb_color3.osl" function="mx_hsvtorgb_color3" language="genmdl"/>
-  <implementation name="IM_hsvtorgb_color4_genmdl" nodedef="ND_hsvtorgb_color4" file="stdlib/genmdl/mx_hsvtorgb_color4.osl" function="mx_hsvtorgb_color4" language="genmdl"/>
+  <implementation name="IM_hsvtorgb_color3_genmdl" nodedef="ND_hsvtorgb_color3" sourcecode="mx::stdlib::mx_hsvtorgb_color3(mxp_in:{{in}})" language="genmdl"/>
+  <implementation name="IM_hsvtorgb_color4_genmdl" nodedef="ND_hsvtorgb_color4" sourcecode="mx::stdlib::mx_hsvtorgb_color4(mxp_in:{{in}})" language="genmdl"/>
 
   <!-- ======================================================================== -->
   <!-- Compositing nodes                                                        -->
