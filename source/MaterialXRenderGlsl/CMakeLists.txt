@@ -1,6 +1,10 @@
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE materialx_headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h*")
 
+if(POLICY CMP0072)
+    cmake_policy(SET CMP0072 OLD)
+endif()
+
 if(APPLE)
     find_library(COCOA_FRAMEWORK Cocoa)
     find_package(OpenGL REQUIRED)

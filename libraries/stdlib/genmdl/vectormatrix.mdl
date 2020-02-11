@@ -1,0 +1,78 @@
+mdl 1.5;
+
+import ::math::*;
+import ::anno::*;
+
+export float mx_determinant(float2x2 mxp_in)
+[[
+    anno::description("Determinant of 2x2 matrix")
+]]
+{
+    return mxp_in[0][0] * mxp_in[1][1] - mxp_in[0][1] * mxp_in[1][0];
+}
+
+export float mx_determinant(float3x3 mxp_in)
+[[
+    anno::description("Determinant of 3x3 matrix")
+]]
+{
+    return mxp_in[0][0] * (mxp_in[2][2]*mxp_in[1][1] - mxp_in[1][2]*mxp_in[2][1])
+       + mxp_in[0][1] * (mxp_in[1][2]*mxp_in[2][0] - mxp_in[2][2]*mxp_in[1][0])
+       + mxp_in[0][2] * (mxp_in[2][1]*mxp_in[1][0] - mxp_in[1][1]*mxp_in[2][0]);
+}
+
+export float mx_determinant(float4x4 mxp_in)
+[[
+    anno::description("Determinant of 4x4 matrix")
+]]
+{
+    float
+        b00 = mxp_in[0][0] * mxp_in[1][1] - mxp_in[0][1] * mxp_in[1][0],
+        b01 = mxp_in[0][0] * mxp_in[1][2] - mxp_in[0][2] * mxp_in[1][0],
+        b02 = mxp_in[0][0] * mxp_in[1][3] - mxp_in[0][3] * mxp_in[1][0],
+        b03 = mxp_in[0][1] * mxp_in[1][2] - mxp_in[0][2] * mxp_in[1][1],
+        b04 = mxp_in[0][1] * mxp_in[1][3] - mxp_in[0][3] * mxp_in[1][1],
+        b05 = mxp_in[0][2] * mxp_in[1][3] - mxp_in[0][3] * mxp_in[1][2],
+        b06 = mxp_in[2][0] * mxp_in[3][1] - mxp_in[2][1] * mxp_in[3][0],
+        b07 = mxp_in[2][0] * mxp_in[3][2] - mxp_in[2][2] * mxp_in[3][0],
+        b08 = mxp_in[2][0] * mxp_in[3][3] - mxp_in[2][3] * mxp_in[3][0],
+        b09 = mxp_in[2][1] * mxp_in[3][2] - mxp_in[2][2] * mxp_in[3][1],
+        b10 = mxp_in[2][1] * mxp_in[3][3] - mxp_in[2][3] * mxp_in[3][1],
+        b11 = mxp_in[2][2] * mxp_in[3][3] - mxp_in[2][3] * mxp_in[3][2];
+    return b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+}
+
+export float2 mx_rotate(float2 mxp_in, float mxp_amount)
+[[
+    anno::description("Rotate a 2d point")
+]]
+{
+    float angleRadians = math::radians(mxp_amount);
+    float sinAngle = math::sin(angleRadians);
+    float cosAngle = math::cos(angleRadians);
+    return float2(cosAngle*mxp_in.x + sinAngle*mxp_in.y, -sinAngle*mxp_in.x + cosAngle*mxp_in.y);
+}
+
+float4x4 mx_rotationMatrix(float3 mxp_axis, float mxp_amount)
+{
+    float sinAngle = math::sin(mxp_amount);
+    float cosAngle = math::cos(mxp_amount);
+    float oc = 1.0 - cosAngle;
+
+    return float4x4(
+        oc * mxp_axis.x * mxp_axis.x + cosAngle, oc * mxp_axis.x * mxp_axis.y - mxp_axis.z * sinAngle,  oc * mxp_axis.z * mxp_axis.x + mxp_axis.y * sinAngle,  0.0,
+        oc * mxp_axis.x * mxp_axis.y + mxp_axis.z * sinAngle, oc * mxp_axis.y * mxp_axis.y + cosAngle,  oc * mxp_axis.y * mxp_axis.z - mxp_axis.x * sinAngle,  0.0,
+        oc * mxp_axis.z * mxp_axis.x - mxp_axis.y * sinAngle, oc * mxp_axis.y * mxp_axis.z + mxp_axis.x * sinAngle,  oc * mxp_axis.z * mxp_axis.z + cosAngle, 0.0,
+        0.0,  0.0, 0.0, 1.0);
+}
+
+export float3 mx_rotate(float3 mxp_in, float mxp_amount, float3 mxp_axis)
+[[
+    anno::description("Rotate a 3d point")
+]]
+{
+    float angleRadians = math::radians(mxp_amount);
+    float4x4 m = mx_rotationMatrix(mxp_axis, angleRadians);
+    float4 returnValue = m * float4(mxp_in.x, mxp_in.y, mxp_in.z, 1.0);
+    return float3(returnValue.x, returnValue.y, returnValue.z);
+}
