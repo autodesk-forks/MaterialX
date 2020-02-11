@@ -296,19 +296,19 @@
   <implementation name="IM_divide_matrix44_genmdl" nodedef="ND_divide_matrix44" sourcecode="{{in1}} / {{in2}}" language="genmdl"/>
 
   <!-- <modulo> -->
-  <implementation name="IM_modulo_float_genmdl" nodedef="ND_modulo_float" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
-  <implementation name="IM_modulo_color2_genmdl" nodedef="ND_modulo_color2" file="stdlib/genmdl/mx_modulo.inline"  language="genmdl"/>
-  <implementation name="IM_modulo_color2FA_genmdl" nodedef="ND_modulo_color2FA" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
-  <implementation name="IM_modulo_color3_genmdl" nodedef="ND_modulo_color3" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
+  <implementation name="IM_modulo_float_genmdl" nodedef="ND_modulo_float" sourcecode="math::fmod({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_modulo_color2_genmdl" nodedef="ND_modulo_color2" sourcecode="math::fmod({{in1}}, {{in2}})"  language="genmdl"/>
+  <implementation name="IM_modulo_color2FA_genmdl" nodedef="ND_modulo_color2FA" sourcecode="math::fmod({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_modulo_color3_genmdl" nodedef="ND_modulo_color3" sourcecode="math::fmod({{in1}}, {{in2}})" language="genmdl"/>
   <implementation name="IM_modulo_color3FA_genmdl" nodedef="ND_modulo_color3FA" file="stdlib/genmdl/mx_modulo_color3FA.inline" language="genmdl"/>
-  <implementation name="IM_modulo_color4_genmdl" nodedef="ND_modulo_color4" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
-  <implementation name="IM_modulo_color4FA_genmdl" nodedef="ND_modulo_color4FA" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
-  <implementation name="IM_modulo_vector2_genmdl" nodedef="ND_modulo_vector2" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
-  <implementation name="IM_modulo_vector2FA_genmdl" nodedef="ND_modulo_vector2FA" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
-  <implementation name="IM_modulo_vector3_genmdl" nodedef="ND_modulo_vector3" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
+  <implementation name="IM_modulo_color4_genmdl" nodedef="ND_modulo_color4" sourcecode="math::fmod({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_modulo_color4FA_genmdl" nodedef="ND_modulo_color4FA" sourcecode="math::fmod({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_modulo_vector2_genmdl" nodedef="ND_modulo_vector2" sourcecode="math::fmod({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_modulo_vector2FA_genmdl" nodedef="ND_modulo_vector2FA" sourcecode="math::fmod({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_modulo_vector3_genmdl" nodedef="ND_modulo_vector3" sourcecode="math::fmod({{in1}}, {{in2}})" language="genmdl"/>
   <implementation name="IM_modulo_vector3FA_genmdl" nodedef="ND_modulo_vector3FA" file="stdlib/genmdl/mx_modulo_vector3FA.inline" language="genmdl"/>
-  <implementation name="IM_modulo_vector4_genmdl" nodedef="ND_modulo_vector4" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
-  <implementation name="IM_modulo_vector4FA_genmdl" nodedef="ND_modulo_vector4FA" file="stdlib/genmdl/mx_modulo.inline" language="genmdl"/>
+  <implementation name="IM_modulo_vector4_genmdl" nodedef="ND_modulo_vector4" sourcecode="math::fmod({{in1}}, {{in2}})" language="genmdl"/>
+  <implementation name="IM_modulo_vector4FA_genmdl" nodedef="ND_modulo_vector4FA" sourcecode="math::fmod({{in1}}, {{in2}})" language="genmdl"/>
 
   <!-- <invert> -->
   <implementation name="IM_invert_float_genmdl" nodedef="ND_invert_float" sourcecode="{{amount}} - {{in}}" language="genmdl"/>
