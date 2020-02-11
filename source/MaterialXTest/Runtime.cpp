@@ -21,6 +21,7 @@
 #include <MaterialXRuntime/RtAttribute.h>
 #include <MaterialXRuntime/RtNodeDef.h>
 #include <MaterialXRuntime/RtTypeDef.h>
+#include <MaterialXRuntime/RtNameResolver.h>
 #include <MaterialXRuntime/RtNode.h>
 #include <MaterialXRuntime/RtNodeGraph.h>
 #include <MaterialXRuntime/RtBackdrop.h>
@@ -417,7 +418,7 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     mx::RtNodeDef nodedef(nodedefPrim);
     REQUIRE(nodedef);
     REQUIRE(nodedef.isValid());
-    REQUIRE(nodedef.getTypeName() == mx::RtNodeDef::typeName());
+    REQUIRE(nodedef.getTypeInfo().getShortTypeName() == mx::RtNodeDef::typeName());
     REQUIRE(nodedef.getName() == mx::RtToken("ND_foo_float"));
     nodedef.setNode(FOO);
     REQUIRE(nodedef.getNode() == FOO);
@@ -430,7 +431,7 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(nodePrim.hasApi<mx::RtNode>());
     mx::RtNode node(nodePrim);
     REQUIRE(node);
-    REQUIRE(node.getTypeName() == mx::RtNode::typeName());
+    REQUIRE(node.getTypeInfo().getShortTypeName() == mx::RtNode::typeName());
     REQUIRE(node.getName() == mx::RtToken("foo2"));
     REQUIRE(node.getNodeDef() == nodedefPrim);
 
@@ -439,15 +440,22 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(graphPrim.hasApi<mx::RtNodeGraph>());
     mx::RtNodeGraph graph(graphPrim);
     REQUIRE(graph);
-    REQUIRE(graph.getTypeName() == mx::RtNodeGraph::typeName());
     REQUIRE(graph.getName() == mx::RtToken("nodegraph1"));
+    REQUIRE(graph.getTypeInfo().getShortTypeName() == mx::RtNodeGraph::typeName());
+    REQUIRE(graph.getTypeInfo().numBaseClasses() == 1);
+    REQUIRE(graph.getTypeInfo().getBaseClassType(0) == mx::RtNode::typeName());
+    REQUIRE(graph.getTypeInfo().isCompatible(mx::RtNode::typeName()));
+    REQUIRE(graphPrim.hasApi<mx::RtNode>());
+    mx::RtNode graphNode(graphPrim);
+    REQUIRE(graphNode);
+    REQUIRE(graphNode.getName() == graph.getName());
 
     mx::RtPrim backdropPrim = stage->createPrim(mx::RtBackdrop::typeName());
     REQUIRE(backdropPrim);
     REQUIRE(backdropPrim.hasApi<mx::RtBackdrop>());
     mx::RtBackdrop backdrop(backdropPrim);
     REQUIRE(backdrop);
-    REQUIRE(backdrop.getTypeName() == mx::RtBackdrop::typeName());
+    REQUIRE(backdrop.getTypeInfo().getShortTypeName() == mx::RtBackdrop::typeName());
     backdrop.getContains().addTarget(node.getPrim());
     backdrop.getContains().addTarget(graph.getPrim());
     REQUIRE(backdrop.getContains().hasTargets());
@@ -461,7 +469,7 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(genericPrim.hasApi<mx::RtGeneric>());
     mx::RtGeneric generic(genericPrim);
     REQUIRE(generic);
-    REQUIRE(generic.getTypeName() == mx::RtGeneric::typeName());
+    REQUIRE(generic.getTypeInfo().getShortTypeName() == mx::RtGeneric::typeName());
     mx::RtToken kind("mykindofprim");
     generic.setKind(kind);
     REQUIRE(generic.getKind() == kind);
@@ -1170,6 +1178,59 @@ TEST_CASE("Runtime: Looks", "[runtime]")
 
     lookgroup1.getActiveLook().setValueString("look1");
     REQUIRE(lookgroup1.getActiveLook().getValueString() == "look1");
+}
+
+mx::RtToken toTestResolver(const mx::RtToken& str, const mx::RtToken& type)
+{
+    mx::StringResolverPtr resolver = mx::StringResolver::create();
+    mx::RtToken resolvedName = mx::RtToken(resolver->resolve(str, type).c_str());
+    resolvedName = resolvedName.str() + "_toTestResolver";
+    return resolvedName;
+}
+
+mx::RtToken fromTestResolver(const mx::RtToken& str, const mx::RtToken& type)
+{
+    mx::StringResolverPtr resolver = mx::StringResolver::create();
+    mx::RtToken resolvedName = mx::RtToken(resolver->resolve(str, type).c_str());
+    resolvedName = resolvedName.str() + "_fromTestResolver";
+    return resolvedName;
+}
+
+TEST_CASE("Runtime: NameResolvers", "[runtime]")
+{
+    mx::RtNameResolverRegistryPtr registry = mx::RtNameResolverRegistry::createNew();
+    REQUIRE(registry);
+
+    mx::RtNameResolverInfo geomInfo;
+    geomInfo.identifier = mx::RtToken("geom_resolver");
+    geomInfo.elementType = mx::RtNameResolverInfo::GEOMNAME_TYPE;
+    geomInfo.toFunction = nullptr;
+    geomInfo.fromFunction = nullptr;
+    mx::RtToken pipe("|");
+    mx::RtToken slash("/");
+    geomInfo.toSubstitutions.emplace(pipe, slash);
+    geomInfo.fromSubstitutions.emplace(slash, pipe);
+    registry->registerNameResolvers(geomInfo);
+
+    mx::RtNameResolverInfo imageInfo;
+    imageInfo.identifier = mx::RtToken("image_resolver");
+    imageInfo.elementType = mx::RtNameResolverInfo::FILENAME_TYPE;
+    imageInfo.toFunction = toTestResolver;
+    imageInfo.fromFunction = fromTestResolver;
+    registry->registerNameResolvers(imageInfo);
+    
+    mx::RtToken mayaPathToGeom("|path|to|geom");
+    mx::RtToken mxPathToGeom("/path/to/geom");
+    mx::RtToken result1 = registry->resolveIdentifier(mayaPathToGeom, mx::RtNameResolverInfo::GEOMNAME_TYPE, true);
+    REQUIRE(result1.str() == mxPathToGeom.str());
+    mx::RtToken result2 = registry->resolveIdentifier(result1, mx::RtNameResolverInfo::GEOMNAME_TYPE, false);
+    REQUIRE(result2.str() == mayaPathToGeom.str());
+    
+    mx::RtToken pathToGeom("test");
+    mx::RtToken result3 = registry->resolveIdentifier(pathToGeom, mx::RtNameResolverInfo::FILENAME_TYPE, true);
+    REQUIRE(result3.str() == "test_toTestResolver");
+    mx::RtToken result4 = registry->resolveIdentifier(pathToGeom, mx::RtNameResolverInfo::FILENAME_TYPE, false);
+    REQUIRE(result4.str() == "test_fromTestResolver");
 }
 
 #endif // MATERIALX_BUILD_RUNTIME
