@@ -21,6 +21,7 @@
 #include <MaterialXRuntime/RtAttribute.h>
 #include <MaterialXRuntime/RtNodeDef.h>
 #include <MaterialXRuntime/RtTypeDef.h>
+#include <MaterialXRuntime/RtNameResolver.h>
 #include <MaterialXRuntime/RtNode.h>
 #include <MaterialXRuntime/RtNodeGraph.h>
 #include <MaterialXRuntime/RtBackdrop.h>
@@ -1109,8 +1110,9 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     col1.addCollection(p3);
     mx::RtRelationship rel = col1.getIncludeCollection();
     REQUIRE(rel.targetCount() == 2); 
-    col1.removeCollection(p2);
+    col1.removeCollection(p3);
     REQUIRE(rel.targetCount() == 1);
+    col1.addCollection(p3);
 
     //
     // Test materialassign
@@ -1143,21 +1145,34 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     assign1.getExclusive().setValue(mx::RtValue(true));
     REQUIRE(assign1.getExclusive().getValue().asBool() == true);
 
+    assign1.getGeom().setValueString("/mygeom");
+    REQUIRE(assign1.getGeom().getValueString() == "/mygeom");
+
     //
     // Test look
     //
     mx::RtPrim lo1 = stage->createPrim("look1", mx::RtLook::typeName());
     mx::RtLook look1(lo1);
+
+    mx::RtPrim pa2 = stage->createPrim("matassign2", mx::RtMaterialAssign::typeName());
+    mx::RtMaterialAssign assign2(pa2);
+    assign2.getCollection().addTarget(p2);
+    mx::RtPrim sm2 = stage->createPrim(mx::RtPath("/surfacematerial2"), matDef);
+    assign2.getMaterial().addTarget(sm2);
+    assign2.getExclusive().getValue().asBool() = false;
     look1.addMaterialAssign(pa);
+    look1.addMaterialAssign(pa2);
+
     mx::RtConnectionIterator iter3 = look1.getMaterialAssigns().getTargets();
-    REQUIRE(look1.getMaterialAssigns().targetCount() == 1);
+    REQUIRE(look1.getMaterialAssigns().targetCount() == 2);
     while (!iter3.isDone())
     {
         REQUIRE((*iter3).getName() == "matassign1");
         break;
     }
-    look1.removeMaterialAssign(pa);
-    REQUIRE(look1.getMaterialAssigns().targetCount() == 0);
+    look1.removeMaterialAssign(pa2);
+    REQUIRE(look1.getMaterialAssigns().targetCount() == 1);
+    look1.addMaterialAssign(pa2);
 
     mx::RtPrim lo2 = stage->createPrim("look2", mx::RtLook::typeName());
     mx::RtLook look2(lo2);
@@ -1174,9 +1189,78 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     REQUIRE(lookgroup1.getLooks().targetCount() == 2);
     lookgroup1.removeLook(lo1);
     REQUIRE(lookgroup1.getLooks().targetCount() == 1);
-
+    
     lookgroup1.getActiveLook().setValueString("look1");
     REQUIRE(lookgroup1.getActiveLook().getValueString() == "look1");
+    
+    lookgroup1.addLook(lo1);
+
+    // Test file I/O
+    mx::RtFileIo stageIo(stage);
+    stageIo.write("rtLookExport.mtlx", nullptr);
+    std::stringstream stream1;
+    stageIo.write(stream1);
+
+    mx::RtStagePtr stage2 = api->createStage(ROOT);
+    mx::RtFileIo stageIo2(stage2);
+    stageIo2.read("rtLookExport.mtlx", mx::FileSearchPath(), nullptr);
+    stageIo2.write("rtLookExport_2.mtlx", nullptr);
+    std::stringstream stream2;
+    stageIo2.write(stream2);
+    REQUIRE(stream1.str() == stream2.str());
+}
+
+mx::RtToken toTestResolver(const mx::RtToken& str, const mx::RtToken& type)
+{
+    mx::StringResolverPtr resolver = mx::StringResolver::create();
+    mx::RtToken resolvedName = mx::RtToken(resolver->resolve(str, type).c_str());
+    resolvedName = resolvedName.str() + "_toTestResolver";
+    return resolvedName;
+}
+
+mx::RtToken fromTestResolver(const mx::RtToken& str, const mx::RtToken& type)
+{
+    mx::StringResolverPtr resolver = mx::StringResolver::create();
+    mx::RtToken resolvedName = mx::RtToken(resolver->resolve(str, type).c_str());
+    resolvedName = resolvedName.str() + "_fromTestResolver";
+    return resolvedName;
+}
+
+TEST_CASE("Runtime: NameResolvers", "[runtime]")
+{
+    mx::RtNameResolverRegistryPtr registry = mx::RtNameResolverRegistry::createNew();
+    REQUIRE(registry);
+
+    mx::RtNameResolverInfo geomInfo;
+    geomInfo.identifier = mx::RtToken("geom_resolver");
+    geomInfo.elementType = mx::RtNameResolverInfo::GEOMNAME_TYPE;
+    geomInfo.toFunction = nullptr;
+    geomInfo.fromFunction = nullptr;
+    mx::RtToken pipe("|");
+    mx::RtToken slash("/");
+    geomInfo.toSubstitutions.emplace(pipe, slash);
+    geomInfo.fromSubstitutions.emplace(slash, pipe);
+    registry->registerNameResolvers(geomInfo);
+
+    mx::RtNameResolverInfo imageInfo;
+    imageInfo.identifier = mx::RtToken("image_resolver");
+    imageInfo.elementType = mx::RtNameResolverInfo::FILENAME_TYPE;
+    imageInfo.toFunction = toTestResolver;
+    imageInfo.fromFunction = fromTestResolver;
+    registry->registerNameResolvers(imageInfo);
+    
+    mx::RtToken mayaPathToGeom("|path|to|geom");
+    mx::RtToken mxPathToGeom("/path/to/geom");
+    mx::RtToken result1 = registry->resolveIdentifier(mayaPathToGeom, mx::RtNameResolverInfo::GEOMNAME_TYPE, true);
+    REQUIRE(result1.str() == mxPathToGeom.str());
+    mx::RtToken result2 = registry->resolveIdentifier(result1, mx::RtNameResolverInfo::GEOMNAME_TYPE, false);
+    REQUIRE(result2.str() == mayaPathToGeom.str());
+    
+    mx::RtToken pathToGeom("test");
+    mx::RtToken result3 = registry->resolveIdentifier(pathToGeom, mx::RtNameResolverInfo::FILENAME_TYPE, true);
+    REQUIRE(result3.str() == "test_toTestResolver");
+    mx::RtToken result4 = registry->resolveIdentifier(pathToGeom, mx::RtNameResolverInfo::FILENAME_TYPE, false);
+    REQUIRE(result4.str() == "test_fromTestResolver");
 }
 
 #endif // MATERIALX_BUILD_RUNTIME
