@@ -80,6 +80,24 @@ const TypeSyntax& Syntax::getTypeSyntax(const TypeDesc* type) const
     return *_typeSyntaxes[it->second];
 }
 
+const TypeDesc* Syntax::getTypeDescription(const TypeSyntaxPtr& typeSyntax) const
+{
+    auto pos = std::find(_typeSyntaxes.begin(), _typeSyntaxes.end(), typeSyntax);
+    if (pos == _typeSyntaxes.end())
+    {
+        throw ExceptionShaderGenError("The syntax'" + typeSyntax->getName() + "' is not registered.");
+    }
+    const int index = static_cast<int>(std::distance(_typeSyntaxes.begin(), pos));
+    for (auto item : _typeSyntaxByType)
+    {
+        if (item.second == index)
+        {
+            return item.first;
+        }
+    }
+    return nullptr;
+}
+
 string Syntax::getValue(const TypeDesc* type, const Value& value, bool uniform) const
 {
     const TypeSyntax& syntax = getTypeSyntax(type);

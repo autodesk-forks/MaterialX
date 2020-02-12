@@ -16,11 +16,11 @@ namespace MaterialX
 // Custom types to handle enumeration output
 namespace Type
 {
-    const TypeDesc* MDL_COORDINATESPACE = TypeDesc::registerType("coordinatespace", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_ENUM, 0 );
-    const TypeDesc* MDL_ADDRESSMODE = TypeDesc::registerType("addressmode", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_ENUM, 0);
-    const TypeDesc* MDL_FILTERLOOKUPMODE = TypeDesc::registerType("filterlookup", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_ENUM, 0);
-    const TypeDesc* MDL_FILTERTYPE = TypeDesc::registerType("filtertype", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_ENUM, 0);
-    const TypeDesc* MDL_DISTRIBUTION = TypeDesc::registerType("distributiontype", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_ENUM, 0);
+    const TypeDesc* MDL_COORDINATESPACE = TypeDesc::registerType("coordinatespace", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0 );
+    const TypeDesc* MDL_ADDRESSMODE = TypeDesc::registerType("addressmode", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
+    const TypeDesc* MDL_FILTERLOOKUPMODE = TypeDesc::registerType("filterlookup", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
+    const TypeDesc* MDL_FILTERTYPE = TypeDesc::registerType("filtertype", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
+    const TypeDesc* MDL_DISTRIBUTION = TypeDesc::registerType("distributiontype", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
 }
 
 namespace
@@ -152,7 +152,7 @@ class MdlEnumSyntax : public AggregateTypeSyntax
 {
 public:
     MdlEnumSyntax(const string& name, const string& defaultValue, const string& defaultUniformValue, const StringVec& members) :
-        AggregateTypeSyntax(name, defaultValue, defaultUniformValue, EMPTY_STRING, name, members)
+        AggregateTypeSyntax(name, defaultValue, defaultUniformValue, EMPTY_STRING, EMPTY_STRING, members)
     {}
 
     string getValue(const Value& value, bool /*uniform*/) const override
@@ -464,23 +464,15 @@ MdlSyntax::MdlSyntax()
 
 const TypeDesc* MdlSyntax::getEnumeratedType(const string& value)
 {
-    vector < std::pair<const StringVec*, const TypeDesc*> > typeDescMap;
-    
-    typeDescMap.push_back({ &ADDRESSMODE_MEMBERS, Type::MDL_ADDRESSMODE });
-    typeDescMap.push_back({ &COORDINATESPACE_MEMBERS, Type::MDL_COORDINATESPACE });
-    typeDescMap.push_back({ &FILTERLOOKUPMODE_MEMBERS, Type::MDL_FILTERLOOKUPMODE });
-    typeDescMap.push_back({ &FILTERTYPE_MEMBERS, Type::MDL_FILTERTYPE });
-    typeDescMap.push_back({ &DISTRIBUTIONTYPE_MEMBERS, Type::MDL_DISTRIBUTION });
-
-    for (auto typeDescItem : typeDescMap)
+    for (const TypeSyntaxPtr& syntax : getTypeSyntaxes())
     {
-        if (std::find(typeDescItem.first->begin(), typeDescItem.first->end(), value) != typeDescItem.first->end())
+        const StringVec& members = syntax->getMembers();
+        if (std::find(members.begin(), members.end(), value) != members.end())
         {
-            return typeDescItem.second;
+            return getTypeDescription(syntax);
         }
     }
     return nullptr;
 }
-
 
 } // namespace MaterialX

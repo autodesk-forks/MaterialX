@@ -450,7 +450,8 @@ bool MdlShaderGenerator::remapEnumeration(const ValueElement& input, const strin
     // Try remapping to an enum value.
     if (!value.empty())
     {
-        result.first = MdlSyntax::getEnumeratedType(value);
+        MdlSyntaxPtr mdlSyntax = std::dynamic_pointer_cast<MdlSyntax>(_syntax);
+        result.first = mdlSyntax->getEnumeratedType(value);
         if (!result.first || (result.first->getSemantic() != TypeDesc::Semantic::SEMANTIC_ENUM))
         {
             return false;

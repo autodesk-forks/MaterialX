@@ -14,6 +14,11 @@
 namespace MaterialX
 {
 
+class MdlSyntax;
+
+/// Shared pointer to a MdlSyntax
+using MdlSyntaxPtr = shared_ptr<MdlSyntax>;
+
 /// @class MdlSyntax
 /// Syntax class for MDL (Material Definition Language)
 class MdlSyntax : public Syntax
@@ -40,7 +45,8 @@ public:
     static const StringVec FILTERTYPE_MEMBERS;
     static const StringVec DISTRIBUTIONTYPE_MEMBERS;
 
-    static const TypeDesc* getEnumeratedType(const string& value);
+    /// Get an type description for an enumeration based on member value
+    const TypeDesc* getEnumeratedType(const string& value);
 };
 
 namespace Type

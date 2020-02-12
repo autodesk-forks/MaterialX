@@ -71,6 +71,10 @@ class Syntax
     /// Returns an array of all registered type syntax objects
     const vector<TypeSyntaxPtr>& getTypeSyntaxes() const { return _typeSyntaxes; }
 
+    /// Returns a type description given a type syntax. Throws an exception
+    /// if the type syntax has not been registered
+    const TypeDesc* getTypeDescription(const TypeSyntaxPtr& typeSyntax) const;
+
     /// Returns the name syntax of the given type
     const string& getTypeName(const TypeDesc* type) const;
 
