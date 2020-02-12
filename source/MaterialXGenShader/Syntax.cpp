@@ -87,7 +87,7 @@ const TypeDesc* Syntax::getTypeDescription(const TypeSyntaxPtr& typeSyntax) cons
     {
         throw ExceptionShaderGenError("The syntax'" + typeSyntax->getName() + "' is not registered.");
     }
-    const int index = static_cast<int>(std::distance(_typeSyntaxes.begin(), pos));
+    const size_t index = static_cast<size_t>(std::distance(_typeSyntaxes.begin(), pos));
     for (auto item : _typeSyntaxByType)
     {
         if (item.second == index)
