@@ -13,6 +13,16 @@
 namespace MaterialX
 {
 
+// Custom types to handle enumeration output
+namespace Type
+{
+    const TypeDesc* MDL_COORDINATESPACE = TypeDesc::registerType("coordinatespace", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_ENUM, 0 );
+    const TypeDesc* MDL_ADDRESSMODE = TypeDesc::registerType("addressmode", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_ENUM, 0);
+    const TypeDesc* MDL_FILTERLOOKUPMODE = TypeDesc::registerType("filterlookup", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_ENUM, 0);
+    const TypeDesc* MDL_FILTERTYPE = TypeDesc::registerType("filtertype", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_ENUM, 0);
+    const TypeDesc* MDL_DISTRIBUTION = TypeDesc::registerType("distributiontype", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_ENUM, 0);
+}
+
 namespace
 {
 
@@ -138,6 +148,19 @@ public:
     }
 };
 
+class MdlEnumSyntax : public AggregateTypeSyntax
+{
+public:
+    MdlEnumSyntax(const string& name, const string& defaultValue, const string& defaultUniformValue, const StringVec& members) :
+        AggregateTypeSyntax(name, defaultValue, defaultUniformValue, EMPTY_STRING, name, members)
+    {}
+
+    string getValue(const Value& value, bool /*uniform*/) const override
+    {
+        return _name + "_" + value.getValueString();
+    }
+};
+
 
 } // anonymous namespace
 
@@ -149,6 +172,11 @@ const StringVec MdlSyntax::VECTOR4_MEMBERS = { ".x", ".y", ".z", ".w" };
 const StringVec MdlSyntax::COLOR2_MEMBERS = { ".x", ".y" };
 const StringVec MdlSyntax::COLOR3_MEMBERS = { "[0]", "[1]", "[2]" };
 const StringVec MdlSyntax::COLOR4_MEMBERS = { ".rgb[0]", ".rgb[1]", ".rgb[2]", ".a" };
+const StringVec MdlSyntax::ADDRESSMODE_MEMBERS = { "constant", "clamp", "periodic", "mirror" };
+const StringVec MdlSyntax::COORDINATESPACE_MEMBERS = { "model", "object", "world" };
+const StringVec MdlSyntax::FILTERLOOKUPMODE_MEMBERS = { "closest", "linear", "cubic" };
+const StringVec MdlSyntax::FILTERTYPE_MEMBERS = { "box", "gaussian" };
+const StringVec MdlSyntax::DISTRIBUTIONTYPE_MEMBERS = { "ggx" };
 
 //
 // MdlSyntax methods
@@ -382,6 +410,77 @@ MdlSyntax::MdlSyntax()
             "material()",
             "material()")
     );
+
+    registerTypeSyntax
+    (
+        Type::MDL_ADDRESSMODE,
+        std::make_shared<MdlEnumSyntax>(
+            "mx_addressmode_type",
+            "mx_addressmode_type_periodic",
+            "mx_addressmode_type_periodic",
+            ADDRESSMODE_MEMBERS)
+    );
+
+    registerTypeSyntax
+    (
+        Type::MDL_COORDINATESPACE,
+        std::make_shared<MdlEnumSyntax>(
+            "mx_coordinatespace_type",
+            "mx_coordinatespace_type_model",
+            "mx_coordinatespace_type_model",
+            COORDINATESPACE_MEMBERS)
+    );
+
+    registerTypeSyntax
+    (
+        Type::MDL_FILTERLOOKUPMODE,
+        std::make_shared<MdlEnumSyntax>(
+            "mx_filterlookup_type",
+            "mx_filterlookup_type_linear",
+            "mx_filterlookup_type_linear",
+            FILTERLOOKUPMODE_MEMBERS)
+    );
+
+    registerTypeSyntax
+    (
+        Type::MDL_FILTERTYPE,
+        std::make_shared<MdlEnumSyntax>(
+            "mx_filter_type",
+            "mx_filter_type_gaussian",
+            "mx_filter_type_gaussian",
+            FILTERTYPE_MEMBERS)
+    );
+
+    registerTypeSyntax
+    (
+        Type::MDL_DISTRIBUTION,
+        std::make_shared<MdlEnumSyntax>(
+            "mx_distribution_type",
+            "mx_distribution_type_ggx",
+            "mx_distribution_type_ggx",
+            DISTRIBUTIONTYPE_MEMBERS)
+    );
 }
+
+const TypeDesc* MdlSyntax::getEnumeratedType(const string& value)
+{
+    vector < std::pair<const StringVec*, const TypeDesc*> > typeDescMap;
+    
+    typeDescMap.push_back({ &ADDRESSMODE_MEMBERS, Type::MDL_ADDRESSMODE });
+    typeDescMap.push_back({ &COORDINATESPACE_MEMBERS, Type::MDL_COORDINATESPACE });
+    typeDescMap.push_back({ &FILTERLOOKUPMODE_MEMBERS, Type::MDL_FILTERLOOKUPMODE });
+    typeDescMap.push_back({ &FILTERTYPE_MEMBERS, Type::MDL_FILTERTYPE });
+    typeDescMap.push_back({ &DISTRIBUTIONTYPE_MEMBERS, Type::MDL_DISTRIBUTION });
+
+    for (auto typeDescItem : typeDescMap)
+    {
+        if (std::find(typeDescItem.first->begin(), typeDescItem.first->end(), value) != typeDescItem.first->end())
+        {
+            return typeDescItem.second;
+        }
+    }
+    return nullptr;
+}
+
 
 } // namespace MaterialX

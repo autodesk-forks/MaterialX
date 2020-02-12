@@ -447,14 +447,15 @@ bool MdlShaderGenerator::remapEnumeration(const ValueElement& input, const strin
         return false;
     }
 
-    // For MDL we always convert to integer,
-    // with the integer value being an index into the enumeration.
-    result.first = Type::INTEGER;
-    result.second = nullptr;
-
     // Try remapping to an enum value.
     if (!value.empty())
     {
+        result.first = MdlSyntax::getEnumeratedType(value);
+        if (!result.first || (result.first->getSemantic() != TypeDesc::Semantic::SEMANTIC_ENUM))
+        {
+            return false;
+        }
+
         StringVec valueElemEnumsVec = splitString(enumNames, ",");
         auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
         if (pos == valueElemEnumsVec.end())
@@ -462,10 +463,12 @@ bool MdlShaderGenerator::remapEnumeration(const ValueElement& input, const strin
             throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input '" + input.getNamePath() + "'");
         }
         const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
-        result.second = Value::createValue<int>(index);
+        result.second = Value::createValue<string>(valueElemEnumsVec[index]);
+
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 } // namespace MaterialX

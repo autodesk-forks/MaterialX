@@ -34,7 +34,23 @@ public:
     static const StringVec COLOR2_MEMBERS;
     static const StringVec COLOR3_MEMBERS;
     static const StringVec COLOR4_MEMBERS;
+    static const StringVec ADDRESSMODE_MEMBERS;
+    static const StringVec COORDINATESPACE_MEMBERS;
+    static const StringVec FILTERLOOKUPMODE_MEMBERS;
+    static const StringVec FILTERTYPE_MEMBERS;
+    static const StringVec DISTRIBUTIONTYPE_MEMBERS;
+
+    static const TypeDesc* getEnumeratedType(const string& value);
 };
+
+namespace Type
+{
+    extern const TypeDesc* MDL_ADDRESSMODE;
+    extern const TypeDesc* MDL_COORDINATESPACE;
+    extern const TypeDesc* MDL_FILTERLOOKUPMODE;
+    extern const TypeDesc* MDL_FILTERTYPE;
+    extern const TypeDesc* MDL_DISTRIBUTIONTYPE;
+}
 
 } // namespace MaterialX
 
