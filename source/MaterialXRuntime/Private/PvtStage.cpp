@@ -213,11 +213,12 @@ void PvtStage::removeReference(const RtToken& name)
 {
     for (auto it = _refStages.begin(); it != _refStages.end(); ++it)
     {
-        const RtStage* s = (*it).get();
+        const RtStagePtr& s = *it;
         if (s->getName() == name)
         {
+            PvtStage::ptr(s)->_selfRefCount--;
             _refStages.erase(it);
-            _refStagesSet.erase(s);
+            _refStagesSet.erase(s.get());
             break;
         }
     }
