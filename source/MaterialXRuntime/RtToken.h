@@ -29,18 +29,14 @@ extern const RtToken EMPTY_TOKEN;
 class RtToken
 {
 public:
-    /// Creating an implicit empty token is not allowed.
-    /// Use the global EMPTY_TOKEN instance for initializing empty tokens.
-    RtToken() = delete;
+    /// Construct an empty token.
+    RtToken() : _entry(&NULL_ENTRY) {}
 
     /// Copy constructor.
     RtToken(const RtToken& other) : _entry(other._entry) {}
 
     /// Constructor creating a token from a raw string.
-    //
-    /// TODO: Make explicit
-    //
-    RtToken(const char* s);
+    explicit RtToken(const char* s);
 
     /// Constructor creating a token from an std::string.
     explicit RtToken(const string& s);
@@ -222,6 +218,8 @@ private:
         size_t _hash;
     };
     const Entry* _entry;
+    static const Entry NULL_ENTRY;
+
     friend struct RtTokenRegistry;
 };
 
@@ -233,7 +231,7 @@ using RtTokenMap = std::unordered_map<RtToken, T, RtToken::FastHash>;
 using RtTokenSet = std::unordered_set<RtToken, RtToken::FastHash>;
 
 /// Class representing a vector of tokens
-using RtTokenList = std::vector<RtToken>;
+using RtTokenVec = std::vector<RtToken>;
 
 }
 

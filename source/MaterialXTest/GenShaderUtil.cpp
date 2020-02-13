@@ -5,6 +5,8 @@
 
 #include <MaterialXTest/Catch/catch.hpp>
 
+#include <MaterialXCore/Util.h>
+
 #include <MaterialXTest/GenShaderUtil.h>
 
 #include <MaterialXGenShader/Shader.h>
@@ -89,7 +91,9 @@ void checkImplementations(mx::GenContext& context,
         "thin_film_brdf",
         "worleynoise2d",
         "worleynoise3d",
-        "geompropvalue"
+        "geompropvalue",
+        "surfacematerial",
+        "volumematerial"
     };
     skipNodeTypes.insert(generatorSkipNodeTypes.begin(), generatorSkipNodeTypes.end());
 
@@ -107,7 +111,9 @@ void checkImplementations(mx::GenContext& context,
         "ND_multiply_vdfC",
         "ND_mix_displacementshader",
         "ND_mix_volumeshader",
-        "ND_mix_vdf"
+        "ND_mix_vdf",
+        "ND_surfacematerial",
+        "ND_volumematerial"
     };
     skipNodeDefs.insert(generatorSkipNodeDefs.begin(), generatorSkipNodeDefs.end());
 
@@ -559,19 +565,25 @@ void ShaderGeneratorTester::registerLights(mx::DocumentPtr doc, const std::vecto
 
 void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, const std::string& optionsFilePath)
 {
-    // Test has been turned off so just do nothing.
+    // Start logging
+    _logFile.open(_logFilePath);
+
     // Check for an option file
     TestSuiteOptions options;
     if (!options.readOptions(optionsFilePath))
     {
-        std::cout << "Can't find options file. Skip test." << std::endl;
+        _logFile << "Can't find options file. Skip test." << std::endl;
+        _logFile.close();
         return;
     }
+    // Test has been turned off so just do nothing.
     if (!runTest(options))
     {
-        std::cout << "Language / target: " << _languageTargetString << " not set to run. Skip test." << std::endl;
+        _logFile << "Language / target: " << _languageTargetString << " not set to run. Skip test." << std::endl;
+        _logFile.close();
         return;
     }
+    options.print(_logFile);
 
     // Add files to override the files in the test suite to be examined.
     mx::StringSet overrideFiles;
@@ -579,9 +591,6 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
     {
         overrideFiles.insert(filterFile);
     }
-
-    // Start logging
-    _logFile.open(_logFilePath);
 
     // Dependent library setup
     setupDependentLibraries();
@@ -597,9 +606,22 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
     // Load in all documents to test
     mx::StringVec errorLog;
     mx::FileSearchPath searchPath(_libSearchPath);
+    mx::XmlReadOptions readOptions;
+    bool fileUpgraded = false;
+    if (options.desiredMajorVersion > readOptions.desiredMajorVersion)
+    {
+        fileUpgraded = true;
+        readOptions.desiredMajorVersion = options.desiredMajorVersion;
+    }
+    if (options.desiredMinorVersion > readOptions.desiredMinorVersion)
+    {
+        fileUpgraded = true;
+        readOptions.desiredMinorVersion = options.desiredMinorVersion;
+    }
     for (const auto& testRoot : _testRootPaths)
     {
-        mx::loadDocuments(testRoot, searchPath, _skipFiles, overrideFiles, _documents, _documentPaths, errorLog);
+        mx::loadDocuments(testRoot, searchPath, _skipFiles, overrideFiles, _documents, _documentPaths, 
+                          readOptions, errorLog);
     }
     CHECK(errorLog.empty());
     for (const auto& error : errorLog)
@@ -648,6 +670,27 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
             continue;
         }
 
+        if (fileUpgraded && 
+            (!doc->getNodes(mx::SURFACE_MATERIAL_NODE_STRING).empty() ||
+             !doc->getNodes(mx::VOLUME_MATERIAL_NODE_STRING).empty()))
+        {
+            _logFile << "Updated version document written to: " << doc->getSourceUri() + "modified.mtlxx" << std::endl;
+
+            mx::StringSet xincludeFiles = doc->getReferencedSourceUris();
+            auto skipXincludes = [xincludeFiles](mx::ConstElementPtr elem)
+            {
+                if (elem->hasSourceUri())
+                {
+                    return (xincludeFiles.count(elem->getSourceUri()) == 0);
+                }
+                return true;
+            };
+            mx::XmlWriteOptions writeOptions;
+            writeOptions.writeXIncludeEnable = true;
+            writeOptions.elementPredicate = skipXincludes;
+            mx::writeToXmlFile(doc, doc->getSourceUri() + "_modified.mtlxx", &writeOptions);
+        }
+
         // Find and register lights
         findLights(doc, _lights);
         registerLights(doc, _lights, context);
@@ -685,33 +728,51 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
         int codeGenerationFailures = 0;
         for (const auto& element : elements)
         {
-            mx::OutputPtr output = element->asA<mx::Output>();
-            mx::ShaderRefPtr shaderRef = element->asA<mx::ShaderRef>();
-            mx::NodeDefPtr nodedef = nullptr;
+            mx::TypedElementPtr targetElement = element;
+            mx::OutputPtr output = targetElement->asA<mx::Output>();
+            mx::ShaderRefPtr shaderRef = targetElement->asA<mx::ShaderRef>();
+            mx::NodePtr outputNode = targetElement->asA<mx::Node>();
+            mx::NodeDefPtr nodeDef = nullptr;
             if (output)
             {
-                nodedef = output->getConnectedNode()->getNodeDef();
+                outputNode = output->getConnectedNode();
+                // Handle connected upstream material nodes later on.
+                if (outputNode->getType() != mx::MATERIAL_TYPE_STRING)
+                {
+                    nodeDef = outputNode->getNodeDef();
+                }
             }
             else if (shaderRef)
             {
-                nodedef = shaderRef->getNodeDef();
+                nodeDef = shaderRef->getNodeDef();
+            }
+
+            // Handle material node checking. For now only check first surface shader if any
+            if (outputNode && outputNode->getType() == mx::MATERIAL_TYPE_STRING)
+            {
+                std::vector<mx::NodePtr> shaderNodes = getShaderNodes(outputNode, mx::SURFACE_SHADER_TYPE_STRING);
+                if (!shaderNodes.empty())
+                {
+                    nodeDef = shaderNodes[0]->getNodeDef();
+                    targetElement = shaderNodes[0];
+                }
             }
 
             // Allow to skip nodedefs to test if specified
-            const std::string nodeDefName = nodedef->getName();
+            const std::string nodeDefName = nodeDef->getName();
             if (_skipNodeDefs.count(nodeDefName))
             {
                 _logFile << ">> Skipped testing nodedef: " << nodeDefName << std::endl;
                 continue;
             }
 
-            const std::string namePath(element->getNamePath());
-            if (nodedef)
+            const std::string namePath(targetElement->getNamePath());
+            if (nodeDef)
             {
                 mx::string elementName = mx::replaceSubstrings(namePath, pathMap);
                 elementName = mx::createValidName(elementName);
 
-                mx::InterfaceElementPtr impl = nodedef->getImplementation(_shaderGenerator->getTarget(), _shaderGenerator->getLanguage());
+                mx::InterfaceElementPtr impl = nodeDef->getImplementation(_shaderGenerator->getTarget(), _shaderGenerator->getLanguage());
                 if (impl)
                 {
                     // Record implementations tested
@@ -724,7 +785,7 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
 
                     _logFile << "------------ Run validation with element: " << namePath << "------------" << std::endl;
                     mx::StringVec sourceCode;
-                    bool generatedCode = generateCode(context, elementName, element, _logFile, _testStages, sourceCode);
+                    bool generatedCode = generateCode(context, elementName, targetElement, _logFile, _testStages, sourceCode);
                     if (!generatedCode)
                     {
                         _logFile << ">> Failed to generate code for nodedef: " << nodeDefName << std::endl;
@@ -798,6 +859,8 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
 void TestSuiteOptions::print(std::ostream& output) const
 {
     output << "Render Test Options:" << std::endl;
+    output << "\tVersion Target: " << std::to_string(desiredMajorVersion) + "." +
+        std::to_string(desiredMinorVersion) << std::endl;
     output << "\tOverride Files: { ";
     for (const auto& overrideFile : overrideFiles) { output << overrideFile << " "; }
     output << "} " << std::endl;
@@ -863,6 +926,8 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
     const std::string SHADERBALL_OBJ("shaderball.obj");
     const std::string EXTERNAL_LIBRARY_PATHS("externalLibraryPaths");
     const std::string EXTERNAL_TEST_PATHS("externalTestPaths");
+    const std::string DESIRED_MAJOR_VERSION("desiredMajorVersion");
+    const std::string DESIRED_MINOR_VERSION("desiredMinorVersion");
 
     overrideFiles.clear();
     dumpGeneratedCode = false;
@@ -872,10 +937,14 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
     enableDirectLighting = true;
     enableIndirectLighting = true;
     specularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_FIS;
+    std::tuple<int, int, int> versionIntegers = mx::getVersionIntegers();
+    desiredMajorVersion = std::get<0>(versionIntegers);
+    desiredMinorVersion = std::get<1>(versionIntegers);
 
     MaterialX::DocumentPtr doc = MaterialX::createDocument();
     try {
-        MaterialX::readFromXmlFile(doc, optionFile);
+        mx::XmlReadOptions readOptions;
+        MaterialX::readFromXmlFile(doc, optionFile, mx::FileSearchPath(), &readOptions);
 
         MaterialX::NodeDefPtr optionDefs = doc->getNodeDef(RENDER_TEST_OPTIONS_STRING);
         if (optionDefs)
@@ -985,6 +1054,14 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                         {
                             externalTestPaths.append(mx::FilePath(l));
                         }
+                    }
+                    else if (name == DESIRED_MAJOR_VERSION)
+                    {
+                        desiredMajorVersion = p->getValue()->asA<int>();
+                    }
+                    else if (name == DESIRED_MINOR_VERSION)
+                    {
+                        desiredMinorVersion = p->getValue()->asA<int>();
                     }
                 }
             }

@@ -9,7 +9,7 @@
    Input uniform and stream checking as well as node implementation coverage and profiling
    can also be performed depending on the options enabled.
 -->
-<materialx version="1.36">
+<materialx version="1.37">
    <nodedef name="TestSuiteOptions">
 
       <!-- List of comma separated file names acts as a filter to only test documents with these names -->
@@ -91,6 +91,12 @@
 
       <!-- External testing: extra comma separated list of test root paths -->
       <parameter name="externalTestPaths" type="string" value="" />
+      
+      <!-- Desired major version to upgrade to if possible -->
+      <parameter name="desiredMajorVersion" type="integer" value="1" />
+
+      <!-- Desired minor version to upgrade to if possible -->
+      <parameter name="desiredMinorVersion" type="integer" value="38" />
 
    </nodedef>
 </materialx>

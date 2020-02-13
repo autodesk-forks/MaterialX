@@ -9,71 +9,60 @@
 /// @file
 /// TODO: Docs
 
-#include <MaterialXRuntime/Library.h>
-#include <MaterialXRuntime/RtElement.h>
+#include <MaterialXRuntime/RtSchema.h>
 
 namespace MaterialX
 {
 
 /// @class RtNodeDef
-/// API for accessing a node definition. This API can only be
-/// attached to objects of type NODEDEF.
-class RtNodeDef : public RtElement
+/// Schema for nodedef prims.
+class RtNodeDef : public RtTypedSchema
 {
+    DECLARE_TYPED_SCHEMA(RtNodeDef)
+
 public:
-    /// Constructor attaching and object to the API.
-    RtNodeDef(const RtObject& obj);
+    /// Constructor.
+    RtNodeDef(const RtPrim& prim) : RtTypedSchema(prim) {}
 
-    /// Create a new nodedef in a stage.
-    static RtObject createNew(RtObject stage, const RtToken& name, const RtToken& nodeName);
+    /// Return the node for this nodedef.
+    const RtToken& getNode() const;
 
-    /// Return the type for this API.
-    RtApiType getApiType() const override;
+    /// Set the node for this nodedef.
+    void setNode(const RtToken& node);
 
-    /// Return the node name.
-    const RtToken& getNodeName() const;
+    /// Add an input attribute to the interface.
+    RtInput createInput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
-    /// Add a port to the definition
-    void addPort(const RtToken& name, const RtToken& type, uint32_t flags = 0);
+    /// Remove an input attribute from the interface.
+    void removeInput(const RtToken& name);
 
-    /// Remove a port from the definition.
-    void removePort(RtObject portdef);
+    /// Add an output attribute to the interface.
+    RtOutput createOutput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
-    /// Return the port count.
-    size_t numPorts() const;
+    /// Remove an output attribute from the interface.
+    void removeOutput(const RtToken& name);
 
-    /// Return the output count.
-    size_t numOutputs() const;
+    /// Return the named input.
+    RtInput getInput(const RtToken& name) const;
 
-    /// Return a port definition by index,
-    /// or a null object if no such port exists.
-    RtObject getPort(size_t index) const;
+    /// Return an iterator traversing all input attributes.
+    RtAttrIterator getInputs() const;
 
-    /// Get the index offset for outputs.
-    /// This index points to the first output.
-    size_t getOutputsOffset() const;
+    /// Return the named output.
+    RtOutput getOutput(const RtToken& name) const;
 
-    /// Get the index offset for inputs.
-    /// This index points to the first input.
-    size_t getInputsOffset() const;
+    /// Return an iterator traversing all output attributes.
+    RtAttrIterator getOutputs() const;
 
-    /// Get the i:th output port definition,
-    /// or a null object if no such port exists.
-    RtObject getOutput(size_t index) const
-    {
-        return getPort(getOutputsOffset() + index);
-    }
+    /// Register this nodedef as a master prim
+    /// to make it instantiable for node creation.
+    void registerMasterPrim() const;
 
-    /// Get the i:th input port definition,
-    /// or a null object if no such port exists.
-    RtObject getInput(size_t index) const
-    {
-        return getPort(getInputsOffset() + index);
-    }
+    /// Unregister this nodedef as a master prim.
+    void unregisterMasterPrim() const;
 
-    /// Find a port definition by name.
-    /// Return a null object if no such port is found.
-    RtObject findPort(const RtToken& name) const;
+    /// Return true if this nodedef is registerd as a master prim.
+    bool isMasterPrim() const;
 };
 
 }

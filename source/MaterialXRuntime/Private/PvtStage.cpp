@@ -4,14 +4,14 @@
 //
 
 #include <MaterialXRuntime/Private/PvtStage.h>
-#include <MaterialXRuntime/Private/PvtNodeDef.h>
-#include <MaterialXRuntime/Private/PvtNode.h>
-#include <MaterialXRuntime/Private/PvtNodeGraph.h>
 #include <MaterialXRuntime/Private/PvtPath.h>
+#include <MaterialXRuntime/Private/PvtPrim.h>
 
-#include <MaterialXRuntime/RtObject.h>
-
-#include <MaterialXCore/Util.h>
+#include <MaterialXRuntime/RtApi.h>
+#include <MaterialXRuntime/RtPrim.h>
+#include <MaterialXRuntime/RtNode.h>
+#include <MaterialXRuntime/RtNodeDef.h>
+#include <MaterialXRuntime/RtTraversal.h>
 
 /// @file
 /// TODO: Docs
@@ -19,42 +19,206 @@
 namespace MaterialX
 {
 
-PvtStage::PvtStage(const RtToken& name) :
-    PvtAllocatingElement(RtObjType::STAGE, name),
+const RtTypeInfo PvtStage::RootPrim::_typeInfo("stagerootprim");
+
+PvtStage::RootPrim::RootPrim(RtStageWeakPtr stage) :
+    PvtPrim(&_typeInfo, PvtPath::ROOT_NAME, nullptr),
+    _stage(stage)
+{
+}
+
+PvtStage::PvtStage(const RtToken& name, RtStageWeakPtr owner) :
+    _name(name),
+    _root(nullptr),
     _selfRefCount(0)
 {
+    _root = PvtDataHandle(new RootPrim(owner));
 }
 
-PvtDataHandle PvtStage::createNew(const RtToken& name)
+PvtPrim* PvtStage::createPrim(const PvtPath& path, const RtToken& typeName)
 {
-    return std::make_shared<PvtStage>(name);
+    PvtPath parentPath(path);
+    parentPath.pop();
+    return createPrim(parentPath, path.getName(), typeName);
 }
 
-void PvtStage::addReference(PvtDataHandle stage)
+PvtPrim* PvtStage::createPrim(const PvtPath& parentPath, const RtToken& name, const RtToken& typeName)
 {
-    if (!stage->hasApi(RtApiType::STAGE))
+    PvtPrim* parent = getPrimAtPathLocal(parentPath);
+    if (!parent)
     {
-        throw ExceptionRuntimeError("Given object is not a valid stage");
-    }
-    if (_refStagesSet.count(stage))
-    {
-        throw ExceptionRuntimeError("Given object is not a valid stage");
+        throw ExceptionRuntimeError("Given parent path '" + parentPath.asString() + "' does not point to a prim in this stage");
     }
 
-    stage->asA<PvtStage>()->_selfRefCount++;
+    PvtDataHandle primH;
+
+    // First, try finding a registered creator function for this typename.
+    RtPrimCreateFunc creator = RtApi::get().getCreateFunction(typeName);
+    if (creator)
+    {
+        primH = PvtObject::hnd(creator(typeName, name, parent->hnd()));
+    }
+    else
+    {
+        // Second, try finding a registered master prim.
+        const RtPrim master = RtApi::get().getMasterPrim(typeName);
+        if (master && master.getTypeInfo()->getShortTypeName() == RtNodeDef::typeName())
+        {
+            // This is a nodedef, so create a node instance from it.
+            RtPrimCreateFunc nodeCreator = RtApi::get().getCreateFunction(RtNode::typeName());
+            primH = PvtObject::hnd(nodeCreator(typeName, name, parent->hnd()));
+        }
+        else
+        {
+            throw ExceptionRuntimeError("Don't know how to create a prim with typename '" + typeName.str() + "'");
+        }
+    }
+
+    PvtPrim* prim = primH->asA<PvtPrim>();
+    parent->addChildPrim(prim);
+
+    return prim;
+}
+
+void PvtStage::removePrim(const PvtPath& path)
+{
+    PvtPrim* prim = getPrimAtPathLocal(path);
+    if (!(prim && prim->getParent()))
+    {
+        throw ExceptionRuntimeError("Given path '" + path.asString() + " does not point to a prim in this stage");
+    }
+
+    // Dispose this prim and all its children.
+    prim->dispose();
+
+    // Remove from its parent.
+    PvtPrim* parent = prim->getParent();
+    parent->removeChildPrim(prim);
+}
+
+RtToken PvtStage::renamePrim(const PvtPath& path, const RtToken& newName)
+{
+    PvtPrim* prim = getPrimAtPathLocal(path);
+    if (!(prim && prim->getParent()))
+    {
+        throw ExceptionRuntimeError("Given path '" + path.asString() + " does not point to a prim in this stage");
+    }
+
+    // Remove the old name from the name map.
+    PvtPrim* parent = prim->getParent();
+    parent->_primMap.erase(prim->getName());
+
+    // Make sure the new name is unique and insert it to the name map.
+    prim->setName(parent->makeUniqueName(newName));
+    parent->_primMap[prim->getName()] = prim->hnd();
+
+    return prim->getName();
+}
+
+RtToken PvtStage::reparentPrim(const PvtPath& path, const PvtPath& newParentPath)
+{
+    PvtPrim* prim = getPrimAtPathLocal(path);
+    if (!(prim && prim->getParent()))
+    {
+        throw ExceptionRuntimeError("Given path '" + path.asString() + " does not point to a prim in this stage");
+    }
+
+    PvtPrim* newParent = getPrimAtPathLocal(newParentPath);
+    if (!newParent)
+    {
+        throw ExceptionRuntimeError("Given parent path '" + path.asString() + " does not point to a prim in this stage");
+    }
+
+    PvtPrim* oldParent = prim->getParent();
+    if (newParent != oldParent)
+    {
+        // Remove from old parent.
+        oldParent->removeChildPrim(prim);
+
+        // Make sure the name is unique in the new parent.
+        prim->setName(newParent->makeUniqueName(prim->getName()));
+
+        // Add to new parent.
+        newParent->addChildPrim(prim);
+        prim->setParent(newParent);
+    }
+
+    return prim->getName();
+}
+
+PvtPrim* PvtStage::getPrimAtPath(const PvtPath& path)
+{
+    // First search this local stage.
+    PvtPrim* prim = getPrimAtPathLocal(path);
+    if (!prim)
+    {
+        // Then search any referenced stages as well.
+        for (const RtStagePtr& stage : _refStages)
+        {
+            PvtStage* refStage = PvtStage::ptr(stage);
+            prim = refStage->getPrimAtPath(path);
+            if (prim)
+            {
+                break;
+            }
+        }
+    }
+    return prim;
+}
+
+PvtPrim* PvtStage::getPrimAtPathLocal(const PvtPath& path)
+{
+    if (path.empty())
+    {
+        return nullptr;
+    }
+    if (path.size() == 1)
+    {
+        return _root->asA<PvtPrim>();
+    }
+
+    // TODO: Use a single map of prims keyed by path
+    // instead of looping over the hierarchy
+    PvtPrim* parent = _root->asA<PvtPrim>();
+    PvtPrim* prim = nullptr;
+    size_t i = 1;
+    while (parent)
+    {
+        prim = parent->getChild(path[i++]);
+        parent = prim && (i < path.size()) ? prim : nullptr;
+    }
+
+    return prim;
+}
+
+RtPrimIterator PvtStage::getPrims(RtObjectPredicate predicate)
+{
+    return RtPrimIterator(_root, predicate);
+}
+
+void PvtStage::addReference(RtStagePtr stage)
+{
+    const RtStage* s = stage.get();
+    if (_refStagesSet.count(s))
+    {
+        throw ExceptionRuntimeError("A reference to this stage already exists");
+    }
+
+    PvtStage::ptr(stage)->_selfRefCount++;
     _refStages.push_back(stage);
+    _refStagesSet.insert(s);
 }
 
 void PvtStage::removeReference(const RtToken& name)
 {
     for (auto it = _refStages.begin(); it != _refStages.end(); ++it)
     {
-        PvtStage* stage = (*it)->asA<PvtStage>();
-        if (stage->getName() == name)
+        const RtStagePtr& s = *it;
+        if (s->getName() == name)
         {
-            stage->_selfRefCount--;
-            _refStagesSet.erase(*it);
+            PvtStage::ptr(s)->_selfRefCount--;
             _refStages.erase(it);
+            _refStagesSet.erase(s.get());
             break;
         }
     }
@@ -62,112 +226,77 @@ void PvtStage::removeReference(const RtToken& name)
 
 void PvtStage::removeReferences()
 {
-    _selfRefCount = 0;
+    // Decrease self ref count on all stages.
+    for (const RtStagePtr& stage : _refStages)
+    {
+        PvtStage::ptr(stage)->_selfRefCount--;
+    }
+    // Removed them.
     _refStages.clear();
     _refStagesSet.clear();
 }
 
-size_t PvtStage::numReferences() const
+RtStagePtr PvtStage::getReference(const RtToken& name) const
 {
-    return _refStages.size();
-}
-
-PvtDataHandle PvtStage::getReference(size_t index) const
-{
-    return index < _refStages.size() ? _refStages[index] : nullptr;
-}
-
-PvtDataHandle PvtStage::findReference(const RtToken& name) const
-{
-    for (auto it = _refStages.begin(); it != _refStages.end(); ++it)
+    for (const RtStagePtr& stage : _refStages)
     {
-        PvtStage* stage = (*it)->asA<PvtStage>();
         if (stage->getName() == name)
         {
-            return *it;
+            return stage;
         }
     }
     return nullptr;
 }
 
-PvtDataHandle PvtStage::findChildByName(const RtToken& name) const
+
+PvtStageIterator& PvtStageIterator::operator++()
 {
-    auto it = _childrenByName.find(name);
-    if (it != _childrenByName.end())
+    while (true)
     {
-        return it->second;
-    }
-    for (auto rs : _refStages)
-    {
-        PvtStage* refStage = rs->asA<PvtStage>();
-        PvtDataHandle elem = refStage->findChildByName(name);
-        if (elem)
+        if (_stack.empty())
         {
-            return elem;
+            // Traversal is complete.
+            abort();
+            return *this;
         }
-    }
-    return nullptr;
-}
 
-PvtDataHandle PvtStage::findChildByPath(const string& path) const
-{
-    const StringVec elementNames = splitString(path, PvtPath::SEPARATOR);
-    if (elementNames.empty())
-    {
-        return nullptr;
-    }
+        StackFrame& frame = _stack.back();
+        PvtStage* stage = std::get<0>(frame);
+        int& primIndex = std::get<1>(frame);
+        int& stageIndex = std::get<2>(frame);
 
-    size_t i = 0;
-    RtToken name(elementNames[i++]);
-    PvtDataHandle elem = findChildByName(name);
+        bool pop = true;
 
-    while (elem && i < elementNames.size())
-    {
-        name = elementNames[i++];
-        if (elem->getObjType() == RtObjType::NODE)
+        if (primIndex + 1 < int(stage->getRootPrim()->getAllChildren().size()))
         {
-            // For nodes find the portdef on the corresponding nodedef
-            PvtNode* node = elem->asA<PvtNode>();
-            PvtNodeDef* nodedef = node->getNodeDef()->asA<PvtNodeDef>();
-            elem = nodedef->findChildByName(name);
-        }
-        else
-        {
-            elem = elem->asA<PvtElement>()->findChildByName(name);
-        }
-    }
-
-    if (!elem || i < elementNames.size())
-    {
-        // The full path was not found so search
-        // any referenced stages as well.
-        for (auto it : _refStages)
-        {
-            PvtStage* refStage = it->asA<PvtStage>();
-            elem = refStage->findChildByPath(path);
-            if (elem)
+            _current = stage->getRootPrim()->getAllChildren()[++primIndex];
+            if (!_predicate || _predicate(_current->obj()))
             {
-                break;
+                return *this;
+            }
+            pop = false;
+        }
+        else if (stageIndex + 1 < int(stage->getAllReferences().size()))
+        {
+            PvtStage* refStage = PvtStage::ptr(stage->getAllReferences()[++stageIndex]);
+            if (!refStage->getRootPrim()->getAllChildren().empty())
+            {
+                _stack.push_back(std::make_tuple(refStage, 0, stageIndex));
+                _current = refStage->getRootPrim()->getAllChildren()[0];
+                if (!_predicate || _predicate(_current->obj()))
+                {
+                    return *this;
+                }
+                pop = false;
             }
         }
-    }
 
-    return elem;
-}
-
-void PvtStage::removeChildByPath(const PvtPath& path)
-{
-    // Make sure the path is rooted in this stage.
-    PvtElement* elem = path.getObject()->asA<PvtElement>();
-    if (elem->getRoot() != this)
-    {
-        throw ExceptionRuntimeError("Given path '" + path.asString() + " is not rooted in this stage");
+        if (pop)
+        {
+            _stack.pop_back();
+        }
     }
-    PvtElement* parent = elem->getParent();
-    if (parent)
-    {
-        parent->removeChild(elem->getName());
-    }
+    return *this;
 }
 
 }

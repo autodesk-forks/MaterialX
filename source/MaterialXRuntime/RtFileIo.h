@@ -29,7 +29,10 @@ class RtReadOptions
   public:
     RtReadOptions() :
         skipConflictingElements(true),
-        readFilter(nullptr)
+        readFilter(nullptr),
+        readLookInformation(false),
+        desiredMajorVersion(1),
+        desiredMinorVersion(38)
     {
     }
     ~RtReadOptions() { }
@@ -41,6 +44,14 @@ class RtReadOptions
     /// Filter function type used for filtering elements during read.
     /// If the filter returns false the element will not be read.
     ReadFilter readFilter;
+
+    /// Read look information
+    bool readLookInformation;
+
+    ///
+    unsigned int desiredMajorVersion;
+
+    unsigned int desiredMinorVersion;
 };
     
 /// @class RtWriteOptions
@@ -69,52 +80,45 @@ class RtWriteOptions
 
     /// Enum that specifies how to generate material elements.
     ///
-    /// NONE: don't generate material elements
+    /// NONE: don't generate material elements or material nodes
     ///
-    /// WRITE: generate material elements from surface shaders
+    /// ADD_MATERIAL_NODES_FOR_SHADERS: generate material nodes from
+    /// shaders
     ///
-    /// DELETE: delete source surface shaders (must be used with
-    /// WRITE)
+    /// WRITE_MATERIALS_AS_ELEMENTS: writes out equivalent material
+    /// elements for the material nodes present in a MaterialX
+    /// document. If not set, writes out just the material nodes.
     ///
-    /// LOOK: generate a look for the material element (must be
-    /// used with WRITE)
+    /// DELETE: delete source surface shaders
     ///
-    /// WRITE_DELETE: generate material elements from surface
-    /// shaders and delete the surface shaders
-    ///
-    /// WRITE_LOOKS: generate material elements for surface shaders
-    /// and write out looks
-    ///
-    /// WRITE_LOOKS_DELETE: generate material elements from
-    /// surface shaders, delete the surface shaders and write out
-    /// looks
+    /// LOOK: generate a look for the material element
     ///
     /// TODO: Look into removing this once Material nodes are supported
-    enum MaterialWriteOp{ NONE               = 0,
-                          WRITE              = 1 << 0,
-                          DELETE             = 1 << 1,
-                          LOOK               = 1 << 2,
-                          WRITE_DELETE       = WRITE | DELETE,
-                          WRITE_LOOKS        = WRITE | LOOK,
-                          WRITE_LOOKS_DELETE = WRITE | LOOK | DELETE };
+    enum MaterialWriteOp{ NONE                           = 0,
+                          ADD_MATERIAL_NODES_FOR_SHADERS = 1 << 0,
+                          WRITE_MATERIALS_AS_ELEMENTS    = 1 << 1,
+                          DELETE                         = 1 << 2,
+                          LOOK                           = 1 << 3 };
 
-    MaterialWriteOp materialWriteOp;
+    int materialWriteOp;
 };
 
-/// API for read and write of data from MaterialXCore documents
-/// to MaterialXRuntime stages.
-class RtFileIo : public RtApiBase
+/// API for read and write of data from MaterialX files
+/// to runtime stages.
+class RtFileIo
 {
 public:
- 
-
-
-public:
     /// Constructor attaching this API to a stage.
-    RtFileIo(RtObject stage);
+    RtFileIo(RtStagePtr stage) :
+        _stage(stage)
+    {
+    }
 
-    /// Return the type for this API.
-    RtApiType getApiType() const override;
+    /// Attach this API instance to a new stage.
+    void setStage(RtStagePtr stage)
+    {
+        _stage = stage;
+    }
 
     /// Read contents from a stream
     /// If a filter is used only elements accepted by the filter
@@ -136,9 +140,14 @@ public:
     /// will be written to the document.
     void write(const FilePath& documentPath, const RtWriteOptions* writeOptions = nullptr);
 
+protected:
     /// Read all contents from one or more libraries.
     /// All MaterialX files found inside the given libraries will be read.
     void readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
+    friend class PvtApi;
+
+private:
+    RtStagePtr _stage;
 };
 
 }
