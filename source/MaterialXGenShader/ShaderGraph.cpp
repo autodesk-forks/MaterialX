@@ -811,6 +811,8 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         }
 
         // Handle node parameters
+        const string& targetDistanceUnit = context.getOptions().targetDistanceUnit;
+        UnitSystemPtr unitSystem = context.getShaderGenerator().getUnitSystem();
         for (ParameterPtr elem : nodeDef->getActiveParameters())
         {
             ShaderGraphInputSocket* inputSocket = graph->getInputSocket(elem->getName());
@@ -831,8 +833,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
 
                     input->setBindInput();
                     graph->populateColorTransformMap(true, colorManagementSystem, input, bindParam, targetColorSpace);
-                    graph->populateUnitTransformMap(true, context.getShaderGenerator().getUnitSystem(), input,
-                                                    bindParam, context.getOptions().targetDistanceUnit);
+                    graph->populateUnitTransformMap(true, unitSystem, input, bindParam, targetDistanceUnit);
                 }
                 inputSocket->setPath(bindParam->getNamePath());
                 input->setPath(inputSocket->getPath());
@@ -869,8 +870,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
 
                     input->setBindInput();
                     graph->populateColorTransformMap(true, colorManagementSystem, input, bindInput, targetColorSpace);
-                    graph->populateUnitTransformMap(true, context.getShaderGenerator().getUnitSystem(), input, 
-                                                    bindInput, context.getOptions().targetDistanceUnit);
+                    graph->populateUnitTransformMap(true, unitSystem, input, bindInput, targetDistanceUnit);
                 }
                 inputSocket->setPath(bindInput->getNamePath());
                 input->setPath(inputSocket->getPath());
@@ -1067,12 +1067,13 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
 
     // Unit Conversion: Only applicable if Unit system and a "targetDistanceUnit" is defined for now.
     UnitSystemPtr unitSystem = context.getShaderGenerator().getUnitSystem();
-    if (unitSystem && !context.getOptions().targetDistanceUnit.empty())
+    const string& targetDistanceUnit = context.getOptions().targetDistanceUnit;
+    if (unitSystem && !targetDistanceUnit.empty())
     {
         for (InputPtr input : node.getInputs())
         {
             ShaderInput* inputPort = newNode->getInput(input->getName());
-            populateUnitTransformMap(true, unitSystem, inputPort, input, context.getOptions().targetDistanceUnit);
+            populateUnitTransformMap(true, unitSystem, inputPort, input, targetDistanceUnit);
         }
         for (ParameterPtr parameter : node.getParameters())
         {
@@ -1083,10 +1084,10 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
                 ShaderOutput* shaderOutput = newNode->getOutput();
                 if (shaderOutput)
                 {
-                    populateUnitTransformMap(false, unitSystem, shaderOutput, parameter, context.getOptions().targetDistanceUnit);
+                    populateUnitTransformMap(false, unitSystem, shaderOutput, parameter, targetDistanceUnit);
                 }
             }
-            populateUnitTransformMap(true, unitSystem, inputPort, parameter, context.getOptions().targetDistanceUnit);
+            populateUnitTransformMap(true, unitSystem, inputPort, parameter, targetDistanceUnit);
         }
     }
     return newNode.get();
