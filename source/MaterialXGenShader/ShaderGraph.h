@@ -178,9 +178,9 @@ class ShaderGraph : public ShaderNode
     /// to avoid name conflicts during shader generation.
     void setVariableNames(GenContext& context);
 
-    /// Populates the input color transform map if the provided input/parameter
+    /// Populates the input or output color transform map if the provided input/parameter
     /// has a color space attribute and has a type of color3 or color4.
-    void populateInputColorTransformMap(ColorManagementSystemPtr colorManagementSystem, ShaderNodePtr shaderNode, ValueElementPtr input, const string& targetColorSpace);
+    void populateColorTransformMap(bool asInput, ColorManagementSystemPtr colorManagementSystem, ShaderPort* shaderPort, ValueElementPtr element, const string& targetColorSpace);
 
     /// Populates the appropriate unit transform map if the provided input/parameter or output
     /// has a unit attribute and is of the supported type
