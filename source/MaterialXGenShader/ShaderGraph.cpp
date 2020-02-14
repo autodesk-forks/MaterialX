@@ -506,8 +506,8 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
             {
                 inputSocket->setValue(nodeParamValue);
 
-                graph->populateColorTransformMap(true, colorManagementSystem, input, nodeParam, targetColorSpace);
-                graph->populateUnitTransformMap(true, unitSystem, input, nodeParam, targetDistanceUnit);
+                graph->populateColorTransformMap(colorManagementSystem, input, nodeParam, targetColorSpace, true);
+                graph->populateUnitTransformMap(unitSystem, input, nodeParam, targetDistanceUnit, true);
             }
             inputSocket->setPath(nodeParam->getNamePath());
             input->setPath(inputSocket->getPath());
@@ -541,8 +541,8 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
             if (nodeInputValue)
             {
                 inputSocket->setValue(nodeInputValue);
-                graph->populateColorTransformMap(true, colorManagementSystem, input, nodeInput, targetColorSpace);
-                graph->populateUnitTransformMap(true, unitSystem, input, nodeInput, targetDistanceUnit);
+                graph->populateColorTransformMap(colorManagementSystem, input, nodeInput, targetColorSpace, true);
+                graph->populateUnitTransformMap(unitSystem, input, nodeInput, targetDistanceUnit, true);
             }
             inputSocket->setPath(nodeInput->getNamePath());
             input->setPath(inputSocket->getPath());
@@ -832,8 +832,8 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     inputSocket->setValue(bindParamValue);
 
                     input->setBindInput();
-                    graph->populateColorTransformMap(true, colorManagementSystem, input, bindParam, targetColorSpace);
-                    graph->populateUnitTransformMap(true, unitSystem, input, bindParam, targetDistanceUnit);
+                    graph->populateColorTransformMap(colorManagementSystem, input, bindParam, targetColorSpace, true);
+                    graph->populateUnitTransformMap(unitSystem, input, bindParam, targetDistanceUnit, true);
                 }
                 inputSocket->setPath(bindParam->getNamePath());
                 input->setPath(inputSocket->getPath());
@@ -869,8 +869,8 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     inputSocket->setValue(bindInputValue);
 
                     input->setBindInput();
-                    graph->populateColorTransformMap(true, colorManagementSystem, input, bindInput, targetColorSpace);
-                    graph->populateUnitTransformMap(true, unitSystem, input, bindInput, targetDistanceUnit);
+                    graph->populateColorTransformMap(colorManagementSystem, input, bindInput, targetColorSpace, true);
+                    graph->populateUnitTransformMap(unitSystem, input, bindInput, targetDistanceUnit, true);
                 }
                 inputSocket->setPath(bindInput->getNamePath());
                 input->setPath(inputSocket->getPath());
@@ -1045,7 +1045,7 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
         for (InputPtr input : node.getInputs())
         {
             ShaderInput* shaderInput = newNode->getInput(input->getName());
-            populateColorTransformMap(true, colorManagementSystem, shaderInput, input, targetColorSpace);
+            populateColorTransformMap(colorManagementSystem, shaderInput, input, targetColorSpace, true);
         }
         for (ParameterPtr parameter : node.getParameters())
         {
@@ -1054,13 +1054,13 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
                 ShaderOutput* shaderOutput = newNode->getOutput();
                 if (shaderOutput)
                 {
-                    populateColorTransformMap(false, colorManagementSystem, shaderOutput, parameter, targetColorSpace);
+                    populateColorTransformMap(colorManagementSystem, shaderOutput, parameter, targetColorSpace, false);
                 }
             }
             else
             {
                 ShaderInput* shaderInput = newNode->getInput(parameter->getName());
-                populateColorTransformMap(true, colorManagementSystem, shaderInput, parameter, targetColorSpace);
+                populateColorTransformMap(colorManagementSystem, shaderInput, parameter, targetColorSpace, true);
             }
         }
     }
@@ -1073,7 +1073,7 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
         for (InputPtr input : node.getInputs())
         {
             ShaderInput* inputPort = newNode->getInput(input->getName());
-            populateUnitTransformMap(true, unitSystem, inputPort, input, targetDistanceUnit);
+            populateUnitTransformMap(unitSystem, inputPort, input, targetDistanceUnit, true);
         }
         for (ParameterPtr parameter : node.getParameters())
         {
@@ -1084,10 +1084,10 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
                 ShaderOutput* shaderOutput = newNode->getOutput();
                 if (shaderOutput)
                 {
-                    populateUnitTransformMap(false, unitSystem, shaderOutput, parameter, targetDistanceUnit);
+                    populateUnitTransformMap(unitSystem, shaderOutput, parameter, targetDistanceUnit, false);
                 }
             }
-            populateUnitTransformMap(true, unitSystem, inputPort, parameter, targetDistanceUnit);
+            populateUnitTransformMap(unitSystem, inputPort, parameter, targetDistanceUnit, true);
         }
     }
     return newNode.get();
@@ -1541,8 +1541,8 @@ void ShaderGraph::setVariableNames(GenContext& context)
     }
 }
 
-void ShaderGraph::populateColorTransformMap(bool asInput, ColorManagementSystemPtr colorManagementSystem, ShaderPort* shaderPort, 
-                                            ValueElementPtr input, const string& targetColorSpace)
+void ShaderGraph::populateColorTransformMap(ColorManagementSystemPtr colorManagementSystem, ShaderPort* shaderPort, 
+                                            ValueElementPtr input, const string& targetColorSpace, bool asInput)
 {
     if (!colorManagementSystem)
     {
@@ -1574,7 +1574,7 @@ void ShaderGraph::populateColorTransformMap(bool asInput, ColorManagementSystemP
     }
 }
 
-void ShaderGraph::populateUnitTransformMap(bool asInput, UnitSystemPtr unitSystem, ShaderPort* shaderPort, ValueElementPtr input, const string& globalTargetUnitSpace)
+void ShaderGraph::populateUnitTransformMap(UnitSystemPtr unitSystem, ShaderPort* shaderPort, ValueElementPtr input, const string& globalTargetUnitSpace, bool asInput)
 {
     const string& sourceUnitSpace = input->getUnit();
     if (!shaderPort || sourceUnitSpace.empty())
