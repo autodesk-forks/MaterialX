@@ -791,10 +791,9 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
                         _logFile << ">> Failed to generate code for nodedef: " << nodeDefName << std::endl;
                         codeGenerationFailures++;
                     }
-                    else if (sourceCode.size())
+                    else if (_writeShadersToDisk && sourceCode.size())
                     {
-                        std::string sourceURI = doc->getActiveSourceUri();
-                        mx::FilePath path = mx::FilePath(sourceURI.substr(0, sourceURI.size() - 4)) / "generatedshaders";
+                        mx::FilePath path = mx::FilePath::getCurrentPath() / "generatedshaders";
                         if (!path.exists())
                         {
                             path.createDirectory();
@@ -816,6 +815,7 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
                                 const mx::FilePath filename = path / (elementName + "." + _testStages[i] + "." + getFileExtensionForLanguage(_shaderGenerator->getLanguage()));
                                 std::ofstream file(filename.asString());
                                 file << sourceCode[i];
+                                file.close();
                             }
                         }
                         else
@@ -823,6 +823,7 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
                             path = path / (elementName + "." + getFileExtensionForLanguage(_shaderGenerator->getLanguage()));
                             std::ofstream file(path.asString());
                             file << sourceCode[0];
+                            file.close();
                         }
                     }
                 }
