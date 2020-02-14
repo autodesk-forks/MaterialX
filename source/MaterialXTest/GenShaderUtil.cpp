@@ -808,11 +808,14 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
                         {
                             path.createDirectory();
                         }
+                        
+                        std::vector<mx::FilePath> sourceCodePaths;
                         if (sourceCode.size() > 1)
                         {
                             for (size_t i=0; i<sourceCode.size(); ++i)
                             {
                                 const mx::FilePath filename = path / (elementName + "." + _testStages[i] + "." + getFileExtensionForLanguage(_shaderGenerator->getLanguage()));
+                                sourceCodePaths.push_back(filename);
                                 std::ofstream file(filename.asString());
                                 file << sourceCode[i];
                                 file.close();
@@ -821,10 +824,14 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
                         else
                         {
                             path = path / (elementName + "." + getFileExtensionForLanguage(_shaderGenerator->getLanguage()));
+                            sourceCodePaths.push_back(path);
                             std::ofstream file(path.asString());
                             file << sourceCode[0];
                             file.close();
                         }
+
+                        // Run compile test
+                        compileSource(sourceCodePaths);
                     }
                 }
                 else

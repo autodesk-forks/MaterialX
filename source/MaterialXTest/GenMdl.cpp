@@ -109,6 +109,42 @@ TEST_CASE("GenShader: MDL Unique Names", "[genmdl]")
 }
 */
 
+void MdlShaderGeneratorTester::compileSource(const std::vector<mx::FilePath>& sourceCodePaths)
+{
+    if (sourceCodePaths.empty() || sourceCodePaths[0].isEmpty())
+        return;
+    
+    std::string mdlcExec(MATERIALX_MDLC_EXECUTABLE);
+    if (mdlcExec.empty())
+    {
+        return;
+    }
+
+    mx::FilePath moduleToTestPath = sourceCodePaths[0].getParentPath();
+    mx::FilePath module = sourceCodePaths[0];
+    std::string moduleToTest = module[module.size()-1];
+    moduleToTest = moduleToTest.substr(0, moduleToTest.size() - sourceCodePaths[0].getExtension().length() - 1);
+
+    mx::StringVec extraModulePaths = mx::splitString(MATERIALX_MDL_MODULE_PATHS, ",");
+
+    std::string mdlcCommand = mdlcExec;
+    for (const std::string& extraPath : extraModulePaths)
+    {
+        mdlcCommand += " -p\"" + extraPath + "\"";
+    }
+    mx::FilePath currentPath = mx::FilePath::getCurrentPath();
+    mx::FilePath coreModulePath = currentPath / mx::FilePath("libraries/stdlib/genmdl");
+    mdlcCommand += " -p \"" + currentPath.asString() + "\"";
+    mdlcCommand += " -p \"" + coreModulePath.asString() + "\"";
+    mdlcCommand += " -p \"" + moduleToTestPath.asString() + "\"";
+    mdlcCommand += " -W \"183=off\"  -W \"225=off\"";
+    mdlcCommand += " " + moduleToTest;
+    mx::FilePath errorFile = moduleToTestPath / (moduleToTest + "_errors.txt");
+    mdlcCommand += " > " + errorFile.asString() + " 2>&1";
+
+    _logFile << mdlcCommand << std::endl;
+}
+
 
 TEST_CASE("GenShader: MDL Shader Generation", "[genmdl]")
 {

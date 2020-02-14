@@ -47,11 +47,12 @@ namespace
         "import ::state::*",
         "import ::anno::*",
         "import ::tex::*",
-        "import ::nvidia::core_definitions::*",
+        //"import ::nvidia::core_definitions::*",
         "import ::mx::stdlib::*",
         "import ::mx::swizzle::*",
         "import ::mx::supplib::*",
-        "import ::mx::pbrlib::*"
+        "import ::mx::pbrlib::*",
+        "using ::mx::core import *"
     };
 }
 
@@ -305,7 +306,7 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
 
     if (graph.hasClassification(ShaderNode::Classification::TEXTURE))
     {
-        emitLine("color finalOutput__ = color(" + result + ")", stage);
+        emitLine("color finalOutput__ = mk_color3(" + result + ")", stage);
 
         // End shader body
         emitScopeEnd(stage);

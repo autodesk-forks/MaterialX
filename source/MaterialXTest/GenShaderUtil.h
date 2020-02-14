@@ -208,6 +208,9 @@ class ShaderGeneratorTester
     // Run test for source code generation
     void validate(const mx::GenOptions& generateOptions, const std::string& optionsFilePath);
 
+    // Compile generated source code. Default implementation does nothing.
+    virtual void compileSource(const std::vector<mx::FilePath>& /*sourceCodePaths*/) {};
+
   protected:
     // Check to see that all implementations have been tested for a given
     // language.
