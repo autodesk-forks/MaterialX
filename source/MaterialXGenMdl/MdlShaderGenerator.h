@@ -49,6 +49,9 @@ protected:
     /// Create and initialize a new MDL shader for shader generation.
     ShaderPtr createShader(const string& name, ElementPtr element, GenContext& context) const;
 
+    /// Override the sourcecode implementation creator
+    ShaderNodeImplPtr createSourceCodeImplementation(const Implementation& impl) const override;
+
     /// Override the compound implementation creator.
     ShaderNodeImplPtr createCompoundImplementation(const NodeGraph& impl) const override;
 

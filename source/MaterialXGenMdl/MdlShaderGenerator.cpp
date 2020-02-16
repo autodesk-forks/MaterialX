@@ -17,7 +17,7 @@
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/IfNode.h>
 #include <MaterialXGenShader/Nodes/BlurNode.h>
-#include <MaterialXGenShader/Nodes/SourceCodeNode.h>
+#include <MaterialXGenMdl/Nodes/SourceCodeNodeMdl.h>
 
 namespace MaterialX
 {
@@ -47,12 +47,10 @@ namespace
         "import ::state::*",
         "import ::anno::*",
         "import ::tex::*",
-        //"import ::nvidia::core_definitions::*",
-        "import ::mx::stdlib::*",
         "import ::mx::swizzle::*",
-        "import ::mx::supplib::*",
         "import ::mx::pbrlib::*",
-        "using ::mx::core import *"
+        "using ::mx::core import *",
+        "using ::mx::stdlib import *"
     };
 }
 
@@ -306,7 +304,7 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
 
     if (graph.hasClassification(ShaderNode::Classification::TEXTURE))
     {
-        emitLine("color finalOutput__ = mk_color3(" + result + ")", stage);
+        emitLine("color finalOutput__ = mk_color(" + result + ")", stage);
 
         // End shader body
         emitScopeEnd(stage);
@@ -416,6 +414,11 @@ void MdlShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
 
         emitLineEnd(stage, false);
     }
+}
+
+ShaderNodeImplPtr MdlShaderGenerator::createSourceCodeImplementation(const Implementation&) const
+{
+    return SourceCodeNodeMdl::create();
 }
 
 ShaderNodeImplPtr MdlShaderGenerator::createCompoundImplementation(const NodeGraph&) const
