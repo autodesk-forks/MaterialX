@@ -137,7 +137,7 @@ void MdlShaderGeneratorTester::compileSource(const std::vector<mx::FilePath>& so
     mdlcCommand += " -p \"" + currentPath.asString() + "\"";
     mdlcCommand += " -p \"" + coreModulePath.asString() + "\"";
     mdlcCommand += " -p \"" + moduleToTestPath.asString() + "\"";
-    mdlcCommand += " -W \"183=off\"  -W \"225=off\"";
+    mdlcCommand += " -W \"181=off\" -W \"183=off\"  -W \"225=off\"";
     mdlcCommand += " " + moduleToTest;
     mx::FilePath errorFile = moduleToTestPath / (moduleToTest + "_errors.txt");
     mdlcCommand += " > " + errorFile.asString() + " 2>&1";
