@@ -54,6 +54,8 @@ option(MATERIALX_BUILD_GEN_OGSFX "Build the OGSFX shader generator back-end." ON
 mark_as_advanced(MATERIALX_BUILD_GEN_OGSFX)
 option(MATERIALX_BUILD_GEN_ARNOLD "Build the Arnold OSL shader generator back-end." ON)
 mark_as_advanced(MATERIALX_BUILD_GEN_ARNOLD)
+option(MATERIALX_BUILD_GEN_MDL "Build MDL code generator." ON)
+mark_as_advanced(MATERIALX_BUILD_GEN_MDL)
 
 # Disable render module building option
 option(MATERIALX_DISABLE_BUILD_RENDER "Disable building render modules." OFF)
@@ -86,6 +88,17 @@ add_definitions(-DMATERIALX_TESTRENDER_EXECUTABLE=\"${MATERIALX_TESTRENDER_EXECU
 set(MATERIALX_OSL_INCLUDE_PATH "" CACHE PATH "Full path to osl include paths. e.g. location of stdosl.h")
 mark_as_advanced(MATERIALX_OSL_INCLUDE_PATH)
 add_definitions(-DMATERIALX_OSL_INCLUDE_PATH=\"${MATERIALX_OSL_INCLUDE_PATH}\")
+
+# Helpers for MDL validation
+set(MATERIALX_MDLC_EXECUTABLE "" CACHE FILEPATH "Full path to the mdlc binary.")
+mark_as_advanced(MATERIALX_MDLC_EXECUTABLE)
+add_definitions(-DMATERIALX_MDLC_EXECUTABLE=\"${MATERIALX_MDLC_EXECUTABLE}\")
+set(MATERIALX_MDL_RENDER_EXECUTABLE "" CACHE FILEPATH "Full path to the mdl renderer binary.")
+mark_as_advanced(MATERIALX_MDL_RENDER_EXECUTABLE)
+add_definitions(-DMATERIALX_MDL_RENDER_EXECUTABLE=\"${MATERIALX_MDL_RENDER_EXECUTABLE}\")
+set(MATERIALX_MDL_MODULE_PATHS "" CACHE FILEPATH "Comma separated list of MDL module paths.")
+mark_as_advanced(MATERIALX_MDL_MODULE_PATHS)
+add_definitions(-DMATERIALX_MDL_MODULE_PATHS=\"${MATERIALX_MDL_MODULE_PATHS}\")
 
 # Adjust the default installation path
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -147,10 +160,13 @@ add_subdirectory(source/MaterialXFormat)
 
 # Add shader generation subdirectories
 add_subdirectory(source/MaterialXGenShader)
-add_subdirectory(source/MaterialXGenMdl)
 add_subdirectory(source/MaterialXGenOsl)
 add_subdirectory(source/MaterialXGenGlsl)
 
+if (MATERIALX_BUILD_GEN_MDL)
+    add_definitions(-DMATERIALX_BUILD_GEN_MDL)
+    add_subdirectory(source/MaterialXGenMdl)
+endif()
 if (MATERIALX_BUILD_CROSS)
     add_definitions(-DMATERIALX_BUILD_CROSS)
     add_subdirectory(source/MaterialXCross)

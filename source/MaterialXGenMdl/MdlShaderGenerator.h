@@ -35,6 +35,10 @@ class MdlShaderGenerator : public ShaderGenerator
     /// the element and all dependencies upstream into shader code.
     ShaderPtr generate(const string& name, ElementPtr element, GenContext& context) const override;
 
+    /// Given an input specification attempt to remap this to an enumeration which is accepted by
+    /// the shader generator. The enumeration may be converted to a different type than the input.
+    bool remapEnumeration(const ValueElement& input, const string& value, std::pair<const TypeDesc*, ValuePtr>& result) const override;
+
     /// Unique identifier for the MDL language
     static const string LANGUAGE;
 
@@ -44,6 +48,9 @@ class MdlShaderGenerator : public ShaderGenerator
 protected:
     /// Create and initialize a new MDL shader for shader generation.
     ShaderPtr createShader(const string& name, ElementPtr element, GenContext& context) const;
+
+    /// Override the sourcecode implementation creator
+    ShaderNodeImplPtr createSourceCodeImplementation(const Implementation& impl) const override;
 
     /// Override the compound implementation creator.
     ShaderNodeImplPtr createCompoundImplementation(const NodeGraph& impl) const override;

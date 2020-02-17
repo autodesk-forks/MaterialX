@@ -17,7 +17,7 @@
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/IfNode.h>
 #include <MaterialXGenShader/Nodes/BlurNode.h>
-#include <MaterialXGenShader/Nodes/SourceCodeNode.h>
+#include <MaterialXGenMdl/Nodes/SourceCodeNodeMdl.h>
 
 namespace MaterialX
 {
@@ -47,11 +47,10 @@ namespace
         "import ::state::*",
         "import ::anno::*",
         "import ::tex::*",
-        "import ::nvidia::core_definitions::*",
-        "import ::mx::stdlib::*",
         "import ::mx::swizzle::*",
-        "import ::mx::supplib::*",
-        "import ::mx::pbrlib::*"
+        "import ::mx::stdlib::*",
+        "import ::mx::pbrlib::*",
+        "using ::mx::core import *"
     };
 }
 
@@ -277,7 +276,7 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
 
     if (graph.hasClassification(ShaderNode::Classification::TEXTURE))
     {
-        emitLine("color finalOutput__ = color(" + result + ")", stage);
+        emitLine("color finalOutput__ = mk_color(" + result + ")", stage);
 
         // End shader body
         emitScopeEnd(stage);
@@ -389,6 +388,11 @@ void MdlShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
     }
 }
 
+ShaderNodeImplPtr MdlShaderGenerator::createSourceCodeImplementation(const Implementation&) const
+{
+    return SourceCodeNodeMdl::create();
+}
+
 ShaderNodeImplPtr MdlShaderGenerator::createCompoundImplementation(const NodeGraph&) const
 {
     // The standard compound implementation
@@ -401,6 +405,47 @@ namespace MDL
     // Identifiers for MDL variable blocks
     const string INPUTS   = "i";
     const string OUTPUTS  = "o";
+}
+
+bool MdlShaderGenerator::remapEnumeration(const ValueElement& input, const string& value, std::pair<const TypeDesc*, ValuePtr>& result) const
+{
+    // Early out if not an enum input.
+    const string& enumNames = input.getAttribute(ValueElement::ENUM_ATTRIBUTE);
+    if (enumNames.empty())
+    {
+        return false;
+    }
+
+    // Don't convert or filenames and arrays.
+    const TypeDesc* type = TypeDesc::get(input.getType());
+    if (type == Type::FILENAME || type->isArray())
+    {
+        return false;
+    }
+
+    // Try remapping to an enum value.
+    if (!value.empty())
+    {
+        MdlSyntaxPtr mdlSyntax = std::dynamic_pointer_cast<MdlSyntax>(_syntax);
+        result.first = mdlSyntax->getEnumeratedType(value);
+        if (!result.first || (result.first->getSemantic() != TypeDesc::Semantic::SEMANTIC_ENUM))
+        {
+            return false;
+        }
+
+        StringVec valueElemEnumsVec = splitString(enumNames, ",");
+        auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
+        if (pos == valueElemEnumsVec.end())
+        {
+            throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input '" + input.getNamePath() + "'");
+        }
+        const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
+        result.second = Value::createValue<string>(valueElemEnumsVec[index]);
+
+        return true;
+    }
+
+    return false;
 }
 
 } // namespace MaterialX

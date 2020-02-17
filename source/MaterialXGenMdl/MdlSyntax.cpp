@@ -13,6 +13,16 @@
 namespace MaterialX
 {
 
+// Custom types to handle enumeration output
+namespace Type
+{
+    const TypeDesc* MDL_COORDINATESPACE = TypeDesc::registerType("coordinatespace", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0 );
+    const TypeDesc* MDL_ADDRESSMODE = TypeDesc::registerType("addressmode", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
+    const TypeDesc* MDL_FILTERLOOKUPMODE = TypeDesc::registerType("filterlookup", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
+    const TypeDesc* MDL_FILTERTYPE = TypeDesc::registerType("filtertype", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
+    const TypeDesc* MDL_DISTRIBUTION = TypeDesc::registerType("distributiontype", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
+}
+
 namespace
 {
 
@@ -138,6 +148,19 @@ public:
     }
 };
 
+class MdlEnumSyntax : public AggregateTypeSyntax
+{
+public:
+    MdlEnumSyntax(const string& name, const string& defaultValue, const string& defaultUniformValue, const StringVec& members) :
+        AggregateTypeSyntax(name, defaultValue, defaultUniformValue, EMPTY_STRING, EMPTY_STRING, members)
+    {}
+
+    string getValue(const Value& value, bool /*uniform*/) const override
+    {
+        return _name + "_" + value.getValueString();
+    }
+};
+
 
 } // anonymous namespace
 
@@ -147,6 +170,12 @@ const StringVec MdlSyntax::VECTOR2_MEMBERS = { ".x", ".y" };
 const StringVec MdlSyntax::VECTOR3_MEMBERS = { ".x", ".y", ".z" };
 const StringVec MdlSyntax::VECTOR4_MEMBERS = { ".x", ".y", ".z", ".w" };
 const StringVec MdlSyntax::COLOR2_MEMBERS = { ".x", ".y" };
+
+const StringVec MdlSyntax::ADDRESSMODE_MEMBERS = { "constant", "clamp", "periodic", "mirror" };
+const StringVec MdlSyntax::COORDINATESPACE_MEMBERS = { "model", "object", "world" };
+const StringVec MdlSyntax::FILTERLOOKUPMODE_MEMBERS = { "closest", "linear", "cubic" };
+const StringVec MdlSyntax::FILTERTYPE_MEMBERS = { "box", "gaussian" };
+const StringVec MdlSyntax::DISTRIBUTIONTYPE_MEMBERS = { "ggx" };
 
 //
 // MdlSyntax methods
@@ -377,6 +406,69 @@ MdlSyntax::MdlSyntax()
             "material()",
             "material()")
     );
+
+    registerTypeSyntax
+    (
+        Type::MDL_ADDRESSMODE,
+        std::make_shared<MdlEnumSyntax>(
+            "mx_addressmode_type",
+            "mx_addressmode_type_periodic",
+            "mx_addressmode_type_periodic",
+            ADDRESSMODE_MEMBERS)
+    );
+
+    registerTypeSyntax
+    (
+        Type::MDL_COORDINATESPACE,
+        std::make_shared<MdlEnumSyntax>(
+            "mx_coordinatespace_type",
+            "mx_coordinatespace_type_model",
+            "mx_coordinatespace_type_model",
+            COORDINATESPACE_MEMBERS)
+    );
+
+    registerTypeSyntax
+    (
+        Type::MDL_FILTERLOOKUPMODE,
+        std::make_shared<MdlEnumSyntax>(
+            "mx_filterlookup_type",
+            "mx_filterlookup_type_linear",
+            "mx_filterlookup_type_linear",
+            FILTERLOOKUPMODE_MEMBERS)
+    );
+
+    registerTypeSyntax
+    (
+        Type::MDL_FILTERTYPE,
+        std::make_shared<MdlEnumSyntax>(
+            "mx_filter_type",
+            "mx_filter_type_gaussian",
+            "mx_filter_type_gaussian",
+            FILTERTYPE_MEMBERS)
+    );
+
+    registerTypeSyntax
+    (
+        Type::MDL_DISTRIBUTION,
+        std::make_shared<MdlEnumSyntax>(
+            "mx_distribution_type",
+            "mx_distribution_type_ggx",
+            "mx_distribution_type_ggx",
+            DISTRIBUTIONTYPE_MEMBERS)
+    );
+}
+
+const TypeDesc* MdlSyntax::getEnumeratedType(const string& value)
+{
+    for (const TypeSyntaxPtr& syntax : getTypeSyntaxes())
+    {
+        const StringVec& members = syntax->getMembers();
+        if (std::find(members.begin(), members.end(), value) != members.end())
+        {
+            return getTypeDescription(syntax);
+        }
+    }
+    return nullptr;
 }
 
 const std::unordered_map<char, char> CHANNELS_TO_XYZW =

@@ -409,7 +409,7 @@ void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
             emitString(" [[ " + it->second + " ]]", stage);
         }
 
-        if (i < inputs.size() - 1)
+        if (i < inputs.size())
         {
             emitString(",", stage);
         }

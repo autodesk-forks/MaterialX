@@ -149,13 +149,14 @@ class ShaderGeneratorTester
   public:
     ShaderGeneratorTester(mx::ShaderGeneratorPtr shaderGenerator, const mx::FilePathVec& testRootPaths, 
                             const mx::FilePath& libSearchPath, const mx::FileSearchPath& srcSearchPath, 
-                            const mx::FilePath& logFilePath) :
+                            const mx::FilePath& logFilePath, bool writeShadersToDisk) :
         _shaderGenerator(shaderGenerator),
         _languageTargetString(shaderGenerator ? (shaderGenerator->getLanguage() + "_" + shaderGenerator->getTarget()) : "NULL"),
         _testRootPaths(testRootPaths),
         _libSearchPath(libSearchPath),
         _srcSearchPath(srcSearchPath),
-        _logFilePath(logFilePath)
+        _logFilePath(logFilePath),
+        _writeShadersToDisk(writeShadersToDisk)
     {
     }
 
@@ -207,6 +208,9 @@ class ShaderGeneratorTester
     // Run test for source code generation
     void validate(const mx::GenOptions& generateOptions, const std::string& optionsFilePath);
 
+    // Compile generated source code. Default implementation does nothing.
+    virtual void compileSource(const std::vector<mx::FilePath>& /*sourceCodePaths*/) {};
+
   protected:
     // Check to see that all implementations have been tested for a given
     // language.
@@ -232,6 +236,7 @@ class ShaderGeneratorTester
     const mx::FilePath _libSearchPath;
     const mx::FileSearchPath _srcSearchPath;
     const mx::FilePath _logFilePath;
+    bool _writeShadersToDisk;
 
     mx::StringSet _skipFiles;
     mx::StringSet _skipLibraryFiles;

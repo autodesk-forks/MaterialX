@@ -95,6 +95,7 @@ TEST_CASE("GenShader: MDL Implementation Check", "[genmdl]")
     GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs, 65);
 }
 
+
 TEST_CASE("GenShader: MDL Unique Names", "[genmdl]")
 {
     mx::GenContext context(mx::MdlShaderGenerator::create());
@@ -107,6 +108,52 @@ TEST_CASE("GenShader: MDL Unique Names", "[genmdl]")
     GenShaderUtil::testUniqueNames(context, mx::Stage::PIXEL);
 }
 */
+
+void MdlShaderGeneratorTester::compileSource(const std::vector<mx::FilePath>& sourceCodePaths)
+{
+    if (sourceCodePaths.empty() || sourceCodePaths[0].isEmpty())
+        return;
+    
+    std::string mdlcExec(MATERIALX_MDLC_EXECUTABLE);
+    if (mdlcExec.empty())
+    {
+        return;
+    }
+
+    mx::FilePath moduleToTestPath = sourceCodePaths[0].getParentPath();
+    mx::FilePath module = sourceCodePaths[0];
+    std::string moduleToTest = module[module.size()-1];
+    moduleToTest = moduleToTest.substr(0, moduleToTest.size() - sourceCodePaths[0].getExtension().length() - 1);
+
+    mx::StringVec extraModulePaths = mx::splitString(MATERIALX_MDL_MODULE_PATHS, ",");
+
+    std::string mdlcCommand = mdlcExec;
+    for (const std::string& extraPath : extraModulePaths)
+    {
+        mdlcCommand += " -p\"" + extraPath + "\"";
+    }
+    mx::FilePath currentPath = mx::FilePath::getCurrentPath();
+    mx::FilePath coreModulePath = currentPath / mx::FilePath("libraries/stdlib/genmdl");
+    mdlcCommand += " -p \"" + currentPath.asString() + "\"";
+    mdlcCommand += " -p \"" + coreModulePath.asString() + "\"";
+    mdlcCommand += " -p \"" + moduleToTestPath.asString() + "\"";
+    mdlcCommand += " -W \"181=off\" -W \"183=off\"  -W \"225=off\"";
+    mdlcCommand += " " + moduleToTest;
+    mx::FilePath errorFile = moduleToTestPath / (moduleToTest + "_errors.txt");
+    mdlcCommand += " > " + errorFile.asString() + " 2>&1";
+
+    _logFile << mdlcCommand << std::endl;
+
+    int returnValue = std::system(mdlcCommand.c_str());
+    _logFile << "\tReturn code: " << std::to_string(returnValue) << std::endl;
+    std::ifstream errorStream(errorFile);
+    mx::StringVec result;
+    std::string line;
+    while (std::getline(errorStream, line))
+    {
+        _logFile << "\tError: " << line << std::endl;
+    }
+}
 
 TEST_CASE("GenShader: MDL Shader Generation", "[genmdl]")
 {
@@ -124,11 +171,11 @@ TEST_CASE("GenShader: MDL Shader Generation", "[genmdl]")
 
     const mx::FilePath logPath("genmdl_mdl_generate_test.txt");
 
-    MdlShaderGeneratorTester tester(mx::MdlShaderGenerator::create(), testRootPaths, libSearchPath, srcSearchPath, logPath);
+    bool writeShadersToDisk = true;
+    MdlShaderGeneratorTester tester(mx::MdlShaderGenerator::create(), testRootPaths, libSearchPath, srcSearchPath, logPath, writeShadersToDisk);
     tester.addSkipLibraryFiles();
 
     const mx::GenOptions genOptions;
     mx::FilePath optionsFilePath = testRootPath / mx::FilePath("_options.mtlx");
     tester.validate(genOptions, optionsFilePath);
 }
-

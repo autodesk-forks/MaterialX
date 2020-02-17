@@ -8,8 +8,6 @@
 
 #include <MaterialXTest/Catch/catch.hpp>
 
-#include <MaterialXGenOsl/OslShaderGenerator.h>
-
 #include <MaterialXTest/GenShaderUtil.h>
 
 namespace mx = MaterialX;
@@ -21,8 +19,8 @@ class MdlShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
 
     MdlShaderGeneratorTester(mx::ShaderGeneratorPtr shaderGenerator, const std::vector<mx::FilePath>& testRootPaths,
                              const mx::FilePath& libSearchPath, const mx::FileSearchPath& srcSearchPath,
-                             const mx::FilePath& logFilePath) :
-        GenShaderUtil::ShaderGeneratorTester(shaderGenerator, testRootPaths, libSearchPath, srcSearchPath, logFilePath)
+                             const mx::FilePath& logFilePath, bool writeShadersToDisk) :
+        GenShaderUtil::ShaderGeneratorTester(shaderGenerator, testRootPaths, libSearchPath, srcSearchPath, logFilePath, writeShadersToDisk)
     {}
 
     void setTestStages() override
@@ -44,16 +42,19 @@ class MdlShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
     {
         _skipLibraryFiles.insert( "pbrlib_genosl_arnold_impl.mtlx" );
     }
-    // Ignore light shaders in the document for OSL
+    // Ignore light shaders in the document for MDL
     void findLights(mx::DocumentPtr /*doc*/, std::vector<mx::NodePtr>& lights) override
     {
         lights.clear();
     }
 
-    // No direct lighting to register for OSL
+    // No direct lighting to register for MDL
     void registerLights(mx::DocumentPtr /*doc*/, const std::vector<mx::NodePtr>& /*lights*/, mx::GenContext& /*context*/) override
     {
     }
+
+    // Compile MDL with mdlc if specified
+    void compileSource(const std::vector<mx::FilePath>& sourceCodePaths) override;
 
   protected:
     void getImplementationWhiteList(mx::StringSet& whiteList) override

@@ -419,7 +419,7 @@ def main():
         functionName = FUNCTION_PREFIX + nodeName
         functionCallName = functionName
         if len(moduleName):
-            functionCallName = moduleName + '::' + functionName
+            functionCallName = functionName
         impl.setFunction(functionCallName)
         impl.setLanguage(GENMDL)
 

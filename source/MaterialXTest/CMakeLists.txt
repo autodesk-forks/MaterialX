@@ -5,6 +5,11 @@ include_directories(
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE materialx_headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 
+if (NOT MATERIALX_BUILD_GEN_MDL)
+    LIST (REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/GenMdl.cpp")
+    LIST (REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/RenderMdl.cpp")
+endif()
+
 assign_source_group("Source Files" ${materialx_source})
 assign_source_group("Header Files" ${materialx_headers})
 
@@ -52,8 +57,7 @@ set_target_properties(
 set(LIBS
     MaterialXCore
     MaterialXFormat
-    MaterialXGenShader
-    MaterialXGenMdl
+    MaterialXGenShader    
     MaterialXGenOsl
     MaterialXGenGlsl
     MaterialXRender
@@ -63,6 +67,9 @@ set(LIBS
 )
 
 # Add language specific generators
+if (MATERIALX_BUILD_GEN_MDL)
+    LIST(APPEND LIBS "MaterialXGenMdl")
+endif()
 if (MATERIALX_BUILD_GEN_ARNOLD)
     LIST(APPEND LIBS "MaterialXGenArnold")
 endif()
