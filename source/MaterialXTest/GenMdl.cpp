@@ -108,7 +108,6 @@ TEST_CASE("GenShader: MDL Unique Names", "[genmdl]")
 }
 */
 
-/*
 TEST_CASE("GenShader: MDL Shader Generation", "[genmdl]")
 {
     const mx::FilePath testRootPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");
@@ -132,4 +131,4 @@ TEST_CASE("GenShader: MDL Shader Generation", "[genmdl]")
     mx::FilePath optionsFilePath = testRootPath / mx::FilePath("_options.mtlx");
     tester.validate(genOptions, optionsFilePath);
 }
-*/
+

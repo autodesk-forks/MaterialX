@@ -9,11 +9,11 @@
    Input uniform and stream checking as well as node implementation coverage and profiling
    can also be performed depending on the options enabled.
 -->
-<materialx version="1.37">
+<materialx version="1.36">
    <nodedef name="TestSuiteOptions">
 
       <!-- List of comma separated file names acts as a filter to only test documents with these names -->
-      <parameter name="overrideFiles" type="string" value="" />
+      <parameter name="overrideFiles" type="string" value="standard_surface_plastic.mtlx" />
 
       <!-- Comma separated list of light setup files. Only used for hardware shading languages  -->
       <parameter name="lightFiles" type="string" value="default_viewer_lights.mtlx" />
@@ -21,7 +21,7 @@
       <!-- Comma separated list of "language"_"target" specifiers to indicate which
            code generators to use.
        -->
-      <parameter name="languageAndTargets" type="string" value="genglsl_glsl400,genosl_vanilla,genglsl_ogsfx,genglsl_ogsxml" />
+      <parameter name="languageAndTargets" type="string" value="genmdl_mdl,genglsl_glsl400,genosl_vanilla,genglsl_ogsfx,genglsl_ogsxml" />
 
       <!-- Check the count of number of implementations used for a given generator
         -->
@@ -91,12 +91,6 @@
 
       <!-- External testing: extra comma separated list of test root paths -->
       <parameter name="externalTestPaths" type="string" value="" />
-      
-      <!-- Desired major version to upgrade to if possible -->
-      <parameter name="desiredMajorVersion" type="integer" value="1" />
-
-      <!-- Desired minor version to upgrade to if possible -->
-      <parameter name="desiredMinorVersion" type="integer" value="38" />
 
    </nodedef>
 </materialx>
