@@ -38,7 +38,7 @@
   <!-- <triplanarprojection> -->
 
   <!-- <normalmap> -->
-  <implementation name="IM_normalmap_genmdl" nodedef="ND_normalmap" file="stdlib/genmdl/mx_normalmap.osl" function="mx_normalmap" language="genmdl"/>
+  <implementation name="IM_normalmap_genmdl" nodedef="ND_normalmap" sourcecode="mx::stdlib::mx_normalmap(mxp_in:{{in}}, mxp_space:{{space}}, mxp_scale:{{scale}}, mxp_normal:{{normal}}, mxp_tangent:{{tangent}})" language="genmdl"/>
 
   <!-- ======================================================================== -->
   <!-- Procedural nodes                                                         -->
@@ -60,49 +60,40 @@
   <implementation name="IM_constant_filename_genmdl" nodedef="ND_constant_filename" sourcecode="{{value}}" language="genmdl"/>
 
   <!-- <ramplr> -->
-  <implementation name="IM_ramplr_float_genmdl" nodedef="ND_ramplr_float" file="stdlib/genmdl/mx_ramplr.inline" language="genmdl"/>
-  <implementation name="IM_ramplr_color2_genmdl" nodedef="ND_ramplr_color2" file="stdlib/genmdl/mx_ramplr.inline" language="genmdl"/>
-  <implementation name="IM_ramplr_color3_genmdl" nodedef="ND_ramplr_color3" file="stdlib/genmdl/mx_ramplr.inline" language="genmdl"/>
-  <implementation name="IM_ramplr_color4_genmdl" nodedef="ND_ramplr_color4" file="stdlib/genmdl/mx_ramplr.inline" language="genmdl"/>
-  <implementation name="IM_ramplr_vector2_genmdl" nodedef="ND_ramplr_vector2" file="stdlib/genmdl/mx_ramplr.inline" language="genmdl"/>
-  <implementation name="IM_ramplr_vector3_genmdl" nodedef="ND_ramplr_vector3" file="stdlib/genmdl/mx_ramplr.inline" language="genmdl"/>
-  <implementation name="IM_ramplr_vector4_genmdl" nodedef="ND_ramplr_vector4" file="stdlib/genmdl/mx_ramplr.inline" language="genmdl"/>
+  <implementation name="IM_ramplr_float_genmdl" nodedef="ND_ramplr_float" sourcecode="mx::stdlib::mx_ramplr_float(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramplr_color2_genmdl" nodedef="ND_ramplr_color2" sourcecode="mx::stdlib::mx_ramplr_color2(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_texcoord:{{texcoord}})"language="genmdl"/>
+  <implementation name="IM_ramplr_color3_genmdl" nodedef="ND_ramplr_color3" sourcecode="mx::stdlib::mx_ramplr_color3(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramplr_color4_genmdl" nodedef="ND_ramplr_color4" sourcecode="mx::stdlib::mx_ramplr_color4(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramplr_vector2_genmdl" nodedef="ND_ramplr_vector2" sourcecode="mx::stdlib::mx_ramplr_vector2(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramplr_vector3_genmdl" nodedef="ND_ramplr_vector3" sourcecode="mx::stdlib::mx_ramplr_vector3(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramplr_vector4_genmdl" nodedef="ND_ramplr_vector4" sourcecode="mx::stdlib::mx_ramplr_vector4(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
 
   <!-- <ramptb> -->
-  <implementation name="IM_ramptb_float_genmdl" nodedef="ND_ramptb_float" file="stdlib/genmdl/mx_ramptb.inline" language="genmdl"/>
-  <implementation name="IM_ramptb_color2_genmdl" nodedef="ND_ramptb_color2" file="stdlib/genmdl/mx_ramptb.inline" language="genmdl"/>
-  <implementation name="IM_ramptb_color3_genmdl" nodedef="ND_ramptb_color3" file="stdlib/genmdl/mx_ramptb.inline" language="genmdl"/>
-  <implementation name="IM_ramptb_color4_genmdl" nodedef="ND_ramptb_color4" file="stdlib/genmdl/mx_ramptb.inline" language="genmdl"/>
-  <implementation name="IM_ramptb_vector2_genmdl" nodedef="ND_ramptb_vector2" file="stdlib/genmdl/mx_ramptb.inline" language="genmdl"/>
-  <implementation name="IM_ramptb_vector3_genmdl" nodedef="ND_ramptb_vector3" file="stdlib/genmdl/mx_ramptb.inline" language="genmdl"/>
-  <implementation name="IM_ramptb_vector4_genmdl" nodedef="ND_ramptb_vector4" file="stdlib/genmdl/mx_ramptb.inline" language="genmdl"/>
-
-  <!-- <ramp4> -->
-  <implementation name="IM_ramp4_float_genmdl" nodedef="ND_ramp4_float" file="stdlib/genmdl/mx_ramp4_float.osl" function="mx_ramp4_float" language="genmdl"/>
-  <implementation name="IM_ramp4_color2_genmdl" nodedef="ND_ramp4_color2" file="stdlib/genmdl/mx_ramp4_color2.osl" function="mx_ramp4_color2" language="genmdl"/>
-  <implementation name="IM_ramp4_color3_genmdl" nodedef="ND_ramp4_color3" file="stdlib/genmdl/mx_ramp4_color3.osl" function="mx_ramp4_color3" language="genmdl"/>
-  <implementation name="IM_ramp4_color4_genmdl" nodedef="ND_ramp4_color4" file="stdlib/genmdl/mx_ramp4_color4.osl" function="mx_ramp4_color4" language="genmdl"/>
-  <implementation name="IM_ramp4_vector2_genmdl" nodedef="ND_ramp4_vector2" file="stdlib/genmdl/mx_ramp4_vector2.osl" function="mx_ramp4_vector2" language="genmdl"/>
-  <implementation name="IM_ramp4_vector3_genmdl" nodedef="ND_ramp4_vector3" file="stdlib/genmdl/mx_ramp4_vector3.osl" function="mx_ramp4_vector3" language="genmdl"/>
-  <implementation name="IM_ramp4_vector4_genmdl" nodedef="ND_ramp4_vector4" file="stdlib/genmdl/mx_ramp4_vector4.osl" function="mx_ramp4_vector4" language="genmdl"/>
+  <implementation name="IM_ramptb_float_genmdl" nodedef="ND_ramptb_float" sourcecode="mx::stdlib::mx_ramptb_float(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramptb_color2_genmdl" nodedef="ND_ramptb_color2" sourcecode="mx::stdlib::mx_ramptb_color2(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramptb_color3_genmdl" nodedef="ND_ramptb_color3" sourcecode="mx::stdlib::mx_ramptb_color3(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramptb_color4_genmdl" nodedef="ND_ramptb_color4" sourcecode="mx::stdlib::mx_ramptb_color4(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramptb_vector2_genmdl" nodedef="ND_ramptb_vector2" sourcecode="mx::stdlib::mx_ramptb_vector2(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramptb_vector3_genmdl" nodedef="ND_ramptb_vector3" sourcecode="mx::stdlib::mx_ramptb_vector3(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_ramptb_vector4_genmdl" nodedef="ND_ramptb_vector4" sourcecode="mx::stdlib::mx_ramptb_vector4(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
 
   <!-- <splitlr> -->
-  <implementation name="IM_splitlr_float_genmdl" nodedef="ND_splitlr_float" file="stdlib/genmdl/mx_splitlr.inline" language="genmdl"/>
-  <implementation name="IM_splitlr_color2_genmdl" nodedef="ND_splitlr_color2" file="stdlib/genmdl/mx_splitlr.inline" language="genmdl"/>
-  <implementation name="IM_splitlr_color3_genmdl" nodedef="ND_splitlr_color3" file="stdlib/genmdl/mx_splitlr.inline" language="genmdl"/>
-  <implementation name="IM_splitlr_color4_genmdl" nodedef="ND_splitlr_color4" file="stdlib/genmdl/mx_splitlr.inline" language="genmdl"/>
-  <implementation name="IM_splitlr_vector2_genmdl" nodedef="ND_splitlr_vector2" file="stdlib/genmdl/mx_splitlr.inline" language="genmdl"/>
-  <implementation name="IM_splitlr_vector3_genmdl" nodedef="ND_splitlr_vector3" file="stdlib/genmdl/mx_splitlr.inline" language="genmdl"/>
-  <implementation name="IM_splitlr_vector4_genmdl" nodedef="ND_splitlr_vector4" file="stdlib/genmdl/mx_splitlr.inline" language="genmdl"/>
+  <implementation name="IM_splitlr_float_genmdl" nodedef="ND_splitlr_float" sourcecode="mx::stdlib::mx_splitlr_float(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splitlr_color2_genmdl" nodedef="ND_splitlr_color2" sourcecode="mx::stdlib::mx_splitlr_color2(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splitlr_color3_genmdl" nodedef="ND_splitlr_color3" sourcecode="mx::stdlib::mx_splitlr_color3(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splitlr_color4_genmdl" nodedef="ND_splitlr_color4" sourcecode="mx::stdlib::mx_splitlr_color4(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splitlr_vector2_genmdl" nodedef="ND_splitlr_vector2" sourcecode="mx::stdlib::mx_splitlr_vector2(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splitlr_vector3_genmdl" nodedef="ND_splitlr_vector3" sourcecode="mx::stdlib::mx_splitlr_vector3(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splitlr_vector4_genmdl" nodedef="ND_splitlr_vector4" sourcecode="mx::stdlib::mx_splitlr_vector4(mxp_valuel:{{valuel}}, mxp_valuer:{{valuer}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
 
   <!-- <splittb> -->
-  <implementation name="IM_splittb_float_genmdl" nodedef="ND_splittb_float" file="stdlib/genmdl/mx_splittb.inline" language="genmdl"/>
-  <implementation name="IM_splittb_color2_genmdl" nodedef="ND_splittb_color2" file="stdlib/genmdl/mx_splittb.inline" language="genmdl"/>
-  <implementation name="IM_splittb_color3_genmdl" nodedef="ND_splittb_color3" file="stdlib/genmdl/mx_splittb.inline" language="genmdl"/>
-  <implementation name="IM_splittb_color4_genmdl" nodedef="ND_splittb_color4" file="stdlib/genmdl/mx_splittb.inline" language="genmdl"/>
-  <implementation name="IM_splittb_vector2_genmdl" nodedef="ND_splittb_vector2" file="stdlib/genmdl/mx_splittb.inline" language="genmdl"/>
-  <implementation name="IM_splittb_vector3_genmdl" nodedef="ND_splittb_vector3" file="stdlib/genmdl/mx_splittb.inline" language="genmdl"/>
-  <implementation name="IM_splittb_vector4_genmdl" nodedef="ND_splittb_vector4" file="stdlib/genmdl/mx_splittb.inline" language="genmdl"/>
+  <implementation name="IM_splittb_float_genmdl" nodedef="ND_splittb_float" sourcecode="mx::stdlib::mx_splittb_float(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splittb_color2_genmdl" nodedef="ND_splittb_color2" sourcecode="mx::stdlib::mx_splittb_color2(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splittb_color3_genmdl" nodedef="ND_splittb_color3" sourcecode="mx::stdlib::mx_splittb_color3(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splittb_color4_genmdl" nodedef="ND_splittb_color4" sourcecode="mx::stdlib::mx_splittb_color4(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splittb_vector2_genmdl" nodedef="ND_splittb_vector2" sourcecode="mx::stdlib::mx_splittb_vector2(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splittb_vector3_genmdl" nodedef="ND_splittb_vector3" sourcecode="mx::stdlib::mx_splittb_vector3(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
+  <implementation name="IM_splittb_vector4_genmdl" nodedef="ND_splittb_vector4" sourcecode="mx::stdlib::mx_splittb_vector4(mxp_valuet:{{valuet}}, mxp_valueb:{{valueb}}, mxp_center:{{center}}, mxp_texcoord:{{texcoord}})" language="genmdl"/>
 
   <!-- <noise2d> -->
   <implementation name="IM_noise2d_float_genmdl" nodedef="ND_noise2d_float" file="stdlib/genmdl/mx_noise2d_float.osl" function="mx_noise2d_float" language="genmdl"/>

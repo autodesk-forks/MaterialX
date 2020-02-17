@@ -68,14 +68,14 @@
   <implementation name="IM_mix_vdf_genmdl" nodedef="ND_mix_vdf" sourcecode="mx::pbrlib::mx_mix_vdf(mxp_fg:{{fg}}, mxp_bg:{{bg}}, mxp_mix:{{mix}})" language="genmdl"/>
 
   <!-- <add> -->
-  <implementation name="IM_add_bsdf_genmdl" nodedef="ND_add_bsdf" file="pbrlib/genmdl/mx_add.inline" language="genmdl"/>
-  <implementation name="IM_add_edf_genmdl" nodedef="ND_add_edf" file="pbrlib/genmdl/mx_add.inline" language="genmdl"/>
+  <implementation name="IM_add_bsdf_genmdl" nodedef="ND_add_bsdf" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
+  <implementation name="IM_add_edf_genmdl" nodedef="ND_add_edf" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
 
   <!-- <multiply> -->
-  <implementation name="IM_multiply_bsdfC_genmdl" nodedef="ND_multiply_bsdfC" sourcecode="mx::pbrlib::mx_multiply_bsdf(mxp_in1:{{in1}}, mxp_in2:{{in2}})" language="genmdl"/>
-  <implementation name="IM_multiply_bsdfF_genmdl" nodedef="ND_multiply_bsdfF" file="pbrlib/genmdl/mx_multiply_bsdf.inline" language="genmdl"/>
-  <implementation name="IM_multiply_edfC_genmdl" nodedef="ND_multiply_edfC" file="pbrlib/genmdl/mx_multiply_edf.inline" language="genmdl"/>
-  <implementation name="IM_multiply_edfF_genmdl" nodedef="ND_multiply_edfF" file="pbrlib/genmdl/mx_multiply_edf.inline" language="genmdl"/>
+  <implementation name="IM_multiply_bsdfC_genmdl" nodedef="ND_multiply_bsdfC" sourcecode="mx::pbrlib::mx_multiply_bsdf_color3(mxp_in1:{{in1}}, mxp_in2:{{in2}})" language="genmdl"/>
+  <implementation name="IM_multiply_bsdfF_genmdl" nodedef="ND_multiply_bsdfF" sourcecode="mx::pbrlib::mx_multiply_bsdf_float(mxp_in1:{{in1}}, mxp_in2:{{in2}})" language="genmdl"/>
+  <implementation name="IM_multiply_edfC_genmdl" nodedef="ND_multiply_edfC" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
+  <implementation name="IM_multiply_edfF_genmdl" nodedef="ND_multiply_edfF" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
 
   <!-- <backfacing> -->
   <implementation name="IM_backfacing_boolean_genmdl" nodedef="ND_backfacing_boolean" sourcecode="mx::pbrlib::mx_backfacing_bool()" language="genmdl"/>
@@ -89,10 +89,10 @@
   <implementation name="IM_roughness_dual_genmdl" nodedef="ND_roughness_dual" sourcecode="mx::pbrlib::mx_roughness_dual(mxp_roughness:{{roughness}})" language="genmdl"/>
 
   <!-- <complex_ior> -->
-  <implementation name="IM_complex_ior_genmdl" nodedef="ND_complex_ior" file="pbrlib/genmdl/mx_complex_ior.osl" function="mx_complex_ior" language="genmdl"/>
+  <implementation name="IM_complex_ior_genmdl" nodedef="ND_complex_ior" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
 
   <!-- <artistic_ior> -->
-  <implementation name="IM_artistic_ior_genmdl" nodedef="ND_artistic_ior" file="pbrlib/genmdl/mx_artistic_ior.osl" function="mx_artistic_ior" language="genmdl"/>
+  <implementation name="IM_artistic_ior_genmdl" nodedef="ND_artistic_ior" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
 
   <!-- <blackbody> -->
   <implementation name="IM_blackbody_genmdl" nodedef="ND_blackbody" sourcecode="mx::pbrlib::mx_blackbody(mxp_temperature:{{temperature}})" language="genmdl"/>
