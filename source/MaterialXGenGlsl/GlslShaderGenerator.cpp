@@ -313,7 +313,7 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
     const VariableBlock& constants = stage.getConstantBlock();
     if (!constants.empty())
     {
-        emitVariableDeclarations(constants, _syntax->getConstantQualifier(), SEMICOLON, context, stage);
+        emitVariableDeclarations(constants, _syntax->getConstantQualifier(), Syntax::SEMICOLON, context, stage);
         emitLineBreak(stage);
     }
 
@@ -324,7 +324,7 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
         if (!uniforms.empty())
         {
             emitComment("Uniform block: " + uniforms.getName(), stage);
-            emitVariableDeclarations(uniforms, _syntax->getUniformQualifier(), SEMICOLON, context, stage);
+            emitVariableDeclarations(uniforms, _syntax->getUniformQualifier(), Syntax::SEMICOLON, context, stage);
             emitLineBreak(stage);
         }
     }
@@ -334,7 +334,7 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
     if (!vertexInputs.empty())
     {
         emitComment("Inputs block: " + vertexInputs.getName(), stage);
-        emitVariableDeclarations(vertexInputs, _syntax->getInputQualifier(), SEMICOLON, context, stage, false);
+        emitVariableDeclarations(vertexInputs, _syntax->getInputQualifier(), Syntax::SEMICOLON, context, stage, false);
         emitLineBreak(stage);
     }
 
@@ -344,9 +344,9 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
     {
         emitLine("out " + vertexData.getName(), stage, false);
         emitScopeBegin(stage);
-        emitVariableDeclarations(vertexData, EMPTY_STRING, SEMICOLON, context, stage, false);
+        emitVariableDeclarations(vertexData, EMPTY_STRING, Syntax::SEMICOLON, context, stage, false);
         emitScopeEnd(stage, false, false);
-        emitString(" " + vertexData.getInstance() + SEMICOLON, stage);
+        emitString(" " + vertexData.getInstance() + Syntax::SEMICOLON, stage);
         emitLineBreak(stage);
         emitLineBreak(stage);
     }
@@ -403,7 +403,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
     const VariableBlock& constants = stage.getConstantBlock();
     if (!constants.empty())
     {
-        emitVariableDeclarations(constants, _syntax->getConstantQualifier(), SEMICOLON, context, stage);
+        emitVariableDeclarations(constants, _syntax->getConstantQualifier(), Syntax::SEMICOLON, context, stage);
         emitLineBreak(stage);
     }
 
@@ -416,7 +416,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
         if (!uniforms.empty() && uniforms.getName() != HW::LIGHT_DATA)
         {
             emitComment("Uniform block: " + uniforms.getName(), stage);
-            emitVariableDeclarations(uniforms, _syntax->getUniformQualifier(), SEMICOLON, context, stage);
+            emitVariableDeclarations(uniforms, _syntax->getUniformQualifier(), Syntax::SEMICOLON, context, stage);
             emitLineBreak(stage);
         }
     }
@@ -430,7 +430,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
         const VariableBlock& lightData = stage.getUniformBlock(HW::LIGHT_DATA);
         emitLine("struct " + lightData.getName(), stage, false);
         emitScopeBegin(stage);
-        emitVariableDeclarations(lightData, EMPTY_STRING, SEMICOLON, context, stage, false);
+        emitVariableDeclarations(lightData, EMPTY_STRING, Syntax::SEMICOLON, context, stage, false);
         emitScopeEnd(stage, true);
         emitLineBreak(stage);
         emitLine("uniform " + lightData.getName() + " " + lightData.getInstance() + "[MAX_LIGHT_SOURCES]", stage);
@@ -443,9 +443,9 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
     {
         emitLine("in " + vertexData.getName(), stage, false);
         emitScopeBegin(stage);
-        emitVariableDeclarations(vertexData, EMPTY_STRING, SEMICOLON, context, stage, false);
+        emitVariableDeclarations(vertexData, EMPTY_STRING, Syntax::SEMICOLON, context, stage, false);
         emitScopeEnd(stage, false, false);
-        emitString(" " + vertexData.getInstance() + SEMICOLON, stage);
+        emitString(" " + vertexData.getInstance() + Syntax::SEMICOLON, stage);
         emitLineBreak(stage);
         emitLineBreak(stage);
     }
@@ -454,7 +454,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
     // and upstream connection will be converted to vec4 if needed in emitFinalOutput()
     emitComment("Pixel shader outputs", stage);
     const VariableBlock& outputs = stage.getOutputBlock(HW::PIXEL_OUTPUTS);
-    emitVariableDeclarations(outputs, _syntax->getOutputQualifier(), SEMICOLON, context, stage, false);
+    emitVariableDeclarations(outputs, _syntax->getOutputQualifier(), Syntax::SEMICOLON, context, stage, false);
     emitLineBreak(stage);
 
     // Emit common math functions

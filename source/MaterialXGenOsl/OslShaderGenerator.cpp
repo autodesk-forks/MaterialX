@@ -264,7 +264,7 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     const VariableBlock& constants = stage.getConstantBlock();
     if (constants.size())
     {
-        emitVariableDeclarations(constants, _syntax->getConstantQualifier(), SEMICOLON, context, stage);
+        emitVariableDeclarations(constants, _syntax->getConstantQualifier(), Syntax::SEMICOLON, context, stage);
         emitLineBreak(stage);
     }
 
@@ -426,7 +426,7 @@ void OslShaderGenerator::emitShaderOutputs(const VariableBlock& outputs, ShaderS
         const TypeDesc* outputType = output->getType();
         const string type = _syntax->getOutputTypeName(outputType);
         const string value = _syntax->getDefaultValue(outputType, true);
-        const string& delim = (i == outputs.size() - 1) ? EMPTY_STRING : COMMA;
+        const string& delim = (i == outputs.size() - 1) ? EMPTY_STRING : Syntax::COMMA;
         emitLine(type + " " + output->getVariable() + " = " + value + delim, stage, false);
     }
 }

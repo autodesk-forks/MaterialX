@@ -107,7 +107,7 @@ class MdlColor4TypeSyntax : public AggregateTypeSyntax
 {
 public:
     MdlColor4TypeSyntax() :
-        AggregateTypeSyntax("color4", "mk_color4(0.0)", "mk_color4(0.0)", EMPTY_STRING, EMPTY_STRING, MdlSyntax::COLOR4_MEMBERS)
+        AggregateTypeSyntax("color4", "mk_color4(0.0)", "mk_color4(0.0)")
     {}
 
     string getValue(const Value& value, bool /*uniform*/) const override
@@ -147,8 +147,6 @@ const StringVec MdlSyntax::VECTOR2_MEMBERS = { ".x", ".y" };
 const StringVec MdlSyntax::VECTOR3_MEMBERS = { ".x", ".y", ".z" };
 const StringVec MdlSyntax::VECTOR4_MEMBERS = { ".x", ".y", ".z", ".w" };
 const StringVec MdlSyntax::COLOR2_MEMBERS = { ".x", ".y" };
-const StringVec MdlSyntax::COLOR3_MEMBERS = { "[0]", "[1]", "[2]" };
-const StringVec MdlSyntax::COLOR4_MEMBERS = { ".rgb[0]", ".rgb[1]", ".rgb[2]", ".a" };
 
 //
 // MdlSyntax methods
@@ -239,10 +237,7 @@ MdlSyntax::MdlSyntax()
         std::make_shared<AggregateTypeSyntax>(
             "color",
             "color(0.0)",
-            "color(0.0)",
-            EMPTY_STRING,
-            EMPTY_STRING,
-            COLOR3_MEMBERS)
+            "color(0.0)")
     );
 
     registerTypeSyntax
@@ -382,6 +377,44 @@ MdlSyntax::MdlSyntax()
             "material()",
             "material()")
     );
+}
+
+const std::unordered_map<char, char> CHANNELS_TO_XYZW =
+{
+    { 'r', 'x' }, { 'x', 'x' },
+    { 'g', 'y' }, { 'y', 'y' },
+    { 'b', 'z' }, { 'z', 'z' },
+    { 'a', 'w' }, { 'w', 'w' }
+};
+
+string MdlSyntax::getSwizzledVariable(const string& srcName, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const
+{
+    if (srcType == Type::COLOR3 || srcType == Type::COLOR4)
+    {
+        string swizzleFunction = "mx::swizzle::";
+        for (size_t i = 0; i < channels.size(); ++i)
+        {
+            const char ch = channels[i];
+            /* 
+            TODO: Add back support for '0' and '1'
+            if (ch == '0' || ch == '1')
+            {
+                membersSwizzled.push_back(string(1, ch));
+                continue;
+            }
+            */
+            auto it = CHANNELS_TO_XYZW.find(ch);
+            if (it == CHANNELS_TO_XYZW.end())
+            {
+                throw ExceptionShaderGenError("Invalid channel pattern '" + channels + "'.");
+            }
+
+            swizzleFunction += it->second;
+        }
+
+        return swizzleFunction + "(" + srcName + ")";
+    }
+    return Syntax::getSwizzledVariable(srcName, srcType, channels, dstType);
 }
 
 } // namespace MaterialX

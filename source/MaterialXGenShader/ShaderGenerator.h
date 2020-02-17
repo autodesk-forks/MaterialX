@@ -207,8 +207,6 @@ class ShaderGenerator
     void replaceTokens(const StringMap& substitutions, ShaderStage& stage) const;
 
   protected:
-    static const string SEMICOLON;
-    static const string COMMA;
     static const string T_FILE_TRANSFORM_UV;
 
     SyntaxPtr _syntax;

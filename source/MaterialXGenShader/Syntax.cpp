@@ -14,6 +14,8 @@ namespace MaterialX
 {
 
 const string Syntax::NEWLINE = "\n";
+const string Syntax::SEMICOLON = ";";
+const string Syntax::COMMA = ",";
 const string Syntax::INDENTATION = "    ";
 const string Syntax::STRING_QUOTE = "\"";
 const string Syntax::INCLUDE_STATEMENT = "#include";
@@ -21,17 +23,13 @@ const string Syntax::SINGLE_LINE_COMMENT = "// ";
 const string Syntax::BEGIN_MULTI_LINE_COMMENT = "/* ";
 const string Syntax::END_MULTI_LINE_COMMENT = " */";
 
-namespace {
-
-const std::unordered_map<char, size_t> CHANNELS_MAPPING =
+const std::unordered_map<char, size_t> Syntax::CHANNELS_MAPPING =
 {
     { 'r', 0 }, { 'x', 0 },
     { 'g', 1 }, { 'y', 1 },
     { 'b', 2 }, { 'z', 2 },
     { 'a', 3 }, { 'w', 3 }
 };
-
-} // anonymous namespace
 
 //
 // Syntax methods

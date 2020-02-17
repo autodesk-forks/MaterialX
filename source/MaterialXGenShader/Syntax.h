@@ -64,6 +64,12 @@ class Syntax
     /// Multiple calls will add to the internal set of tokens.
     void registerInvalidTokens(const StringMap& tokens);
 
+    /// Returns a set of names that are reserved words for this language syntax.
+    const StringSet& getReservedWords() const { return _reservedWords; }
+
+    /// Returns a mapping from disallowed tokens to replacement strings for this language syntax.
+    const StringMap& getInvalidTokens() const { return _invalidTokens; }
+
     /// Returns the type syntax object for a named type.
     /// Throws an exception if a type syntax is not defined for the given type.
     const TypeSyntax& getTypeSyntax(const TypeDesc* type) const;
@@ -89,19 +95,13 @@ class Syntax
     const string& getDefaultValue(const TypeDesc* type, bool uniform = false) const;
 
     /// Returns the value string for a given type and value object
-    string getValue(const TypeDesc* type, const Value& value, bool uniform = false) const;
+    virtual string getValue(const TypeDesc* type, const Value& value, bool uniform = false) const;
 
     /// Get syntax for a swizzled variable
-    string getSwizzledVariable(const string& srcName, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const;
+    virtual string getSwizzledVariable(const string& srcName, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const;
 
     /// Get swizzled value
-    ValuePtr getSwizzledValue(ValuePtr value, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const;
-
-    /// Returns a set of names that are reserved words for this language syntax.
-    const StringSet& getReservedWords() const { return _reservedWords; }
-
-    /// Returns a mapping from disallowed tokens to replacement strings for this language syntax.
-    const StringMap& getInvalidTokens() const { return _invalidTokens; }
+    virtual ValuePtr getSwizzledValue(ValuePtr value, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const;
 
     /// Returns a type qualifier to be used when declaring types for input variables.
     /// Default implementation returns empty string and derived syntax classes should
@@ -164,24 +164,29 @@ class Syntax
     /// on the name string if there is a name collision.
     virtual string getVariableName(const string& name, const TypeDesc* type, IdentifierMap& identifiers) const;
 
+    /// Constants with commonly used strings.
+    static const string NEWLINE;
+    static const string SEMICOLON;
+    static const string COMMA;
+
   protected:
     /// Protected constructor
     Syntax();
 
-  private:
     vector<TypeSyntaxPtr> _typeSyntaxes;
     std::unordered_map<const TypeDesc*, size_t> _typeSyntaxByType;
 
     StringSet _reservedWords;
     StringMap _invalidTokens;
 
-    static const string NEWLINE;
     static const string INDENTATION;
     static const string STRING_QUOTE;
     static const string INCLUDE_STATEMENT;
     static const string SINGLE_LINE_COMMENT;
     static const string BEGIN_MULTI_LINE_COMMENT;
     static const string END_MULTI_LINE_COMMENT;
+
+    static const std::unordered_map<char, size_t> CHANNELS_MAPPING;
 };
 
 /// @class TypeSyntax

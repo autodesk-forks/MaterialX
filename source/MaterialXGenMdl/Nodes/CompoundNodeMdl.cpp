@@ -31,40 +31,66 @@ void CompoundNodeMdl::emitFunctionDefinition(const ShaderNode&, GenContext& cont
 
         if (_rootGraph->getOutputSockets().size() > 1)
         {
-            throw ExceptionShaderGenError("Multiple outputs is not supported yet by this generaor");
+            throw ExceptionShaderGenError("Multiple outputs is not supported yet by this generator");
         }
+
+        const bool isMaterialExpr = (
+            _rootGraph->hasClassification(ShaderNode::Classification::CLOSURE) ||
+            _rootGraph->hasClassification(ShaderNode::Classification::SHADER)
+        );
 
         const ShaderGraphOutputSocket* outputSocket = _rootGraph->getOutputSocket();
         const string& outputType = syntax.getTypeName(outputSocket->getType());
 
         // Begin function signature.
-        shadergen.emitLineBegin(stage);
-        shadergen.emitString(outputType + " " + _functionName + + "(", stage);
+        shadergen.emitLine(outputType + " " + _functionName, stage, false);
 
-        string delim = "";
+        shadergen.emitScopeBegin(stage, Syntax::PARENTHESES);
 
-        // Add all inputs
-        for (ShaderGraphInputSocket* inputSocket : _rootGraph->getInputSockets())
+        const string uniformPrefix = syntax.getUniformQualifier() + " ";
+
+        // Emit all inputs
+        int count = int(_rootGraph->numInputSockets());
+        for (ShaderGraphInputSocket* input : _rootGraph->getInputSockets())
         {
-            shadergen.emitString(delim + syntax.getTypeName(inputSocket->getType()) + " " + inputSocket->getVariable(), stage);
-            delim = ", ";
+            const string& qualifier = input->isUniform() ? uniformPrefix : EMPTY_STRING;
+            const string& type = syntax.getTypeName(input->getType());
+            const string value = (input->getValue() ?
+                syntax.getValue(input->getType(), *input->getValue()) :
+                syntax.getDefaultValue(input->getType()));
+
+            const string& delim = --count > 0 ? Syntax::COMMA : EMPTY_STRING;
+            shadergen.emitLine(qualifier + type + " " + input->getVariable() + " = " + value + delim, stage, false);
         }
 
         // End function signature.
-        shadergen.emitString(")", stage);
-        shadergen.emitLineEnd(stage, false);
+        shadergen.emitScopeEnd(stage);
 
-        // Begin function body.
+        // Special case for material expresions.
+        if (isMaterialExpr)
+        {
+            shadergen.emitLine(" = let", stage, false);
+        }
+
+        // Function body.
         shadergen.emitScopeBegin(stage);
         shadergen.emitFunctionCalls(*_rootGraph, context, stage);
 
         // Emit final results
         const string result = shadergen.getUpstreamResult(outputSocket, context);
-        shadergen.emitLine("return " + result, stage);
+        if (isMaterialExpr)
+        {
+            shadergen.emitScopeEnd(stage);
+            shadergen.emitLine("in material(" + result + ")", stage);
+        }
+        else
+        {
+            shadergen.emitLine("return " + result, stage);
+            shadergen.emitScopeEnd(stage);
+        }
 
-        // End function body.
-        shadergen.emitScopeEnd(stage);
         shadergen.emitLineBreak(stage);
+
     END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
