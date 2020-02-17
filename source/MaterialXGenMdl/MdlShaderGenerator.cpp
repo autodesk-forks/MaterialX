@@ -276,7 +276,7 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
 
     if (graph.hasClassification(ShaderNode::Classification::TEXTURE))
     {
-        emitLine("color finalOutput__ = mk_color(" + result + ")", stage);
+        emitLine("color finalOutput__ = mk_color3(" + result + ")", stage);
 
         // End shader body
         emitScopeEnd(stage);

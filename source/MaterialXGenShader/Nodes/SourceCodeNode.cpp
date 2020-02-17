@@ -29,7 +29,7 @@ void SourceCodeNode::initialize(const InterfaceElement& element, GenContext& con
 
     const Implementation& impl = static_cast<const Implementation&>(element);
 
-    // Get source code from either an ettribute or a file.
+    // Get source code from either an attribute or a file.
     _functionSource = impl.getAttribute("sourcecode");
     if (_functionSource.empty())
     {
