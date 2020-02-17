@@ -39,7 +39,7 @@ Upgrade path test from 1.36 to 1.37
    <rotate name="rotate2" type="vector3" xpos="5.19248" ypos="5.306">
       <input name="in" type="vector3" value="0.0, 0.0, 0.0" />
       <input name="amount" type="float" value="180.0000" unittype="angle" unit="degrees" />
-      <parameter name="axis" type="vector3" value="0.0, 1.0000, 1.0000" />
+      <input name="axis" type="vector3" value="0.0, 1.0000, 1.0000" />
    </rotate>
 
    <!-- compare to ifgreater -->

@@ -23,7 +23,7 @@
   <implementation name="IM_generalized_schlick_brdf_genmdl" nodedef="ND_generalized_schlick_brdf" sourcecode="mx::pbrlib::mx_generalized_schlick_brdf(mxp_weight:{{weight}}, mxp_color0:{{color0}}, mxp_color90:{{color90}}, mxp_exponent:{{exponent}},mxp_roughness:{{roughness}}, mxp_normal:{{normal}}, mxp_tangent:{{tangent}}, mxp_base:{{base}})" language="genmdl"/>
 
   <!-- <subsurface_brdf> -->
-  <implementation name="IM_subsurface_brdf_genmdl" nodedef="ND_subsurface_brdf" sourcecode="mx::pbrlib::mx_subsurface_brd(mxp_weight:{{weight}}, mxp_color:{{color}}, mxp_radius:{{radius}}, mxp_anisotropy:{{anisotropy}}, mxp_normal:{{normal}})" language="genmdl"/>
+  <implementation name="IM_subsurface_brdf_genmdl" nodedef="ND_subsurface_brdf" sourcecode="mx::pbrlib::mx_subsurface_brdf(mxp_weight:{{weight}}, mxp_color:{{color}}, mxp_radius:{{radius}}, mxp_anisotropy:{{anisotropy}}, mxp_normal:{{normal}})" language="genmdl"/>
 
   <!-- <sheen_brdf> -->
   <implementation name="IM_sheen_brdf_genmdl" nodedef="ND_sheen_brdf" sourcecode="mx::pbrlib::mx_sheen_brdf(mxp_weight:{{weight}}, mxp_color:{{color}}, mxp_roughness:{{roughness}}, mxp_normal:{{normal}}, mxp_base:{{base}})" language="genmdl"/>
@@ -72,7 +72,7 @@
   <implementation name="IM_add_edf_genmdl" nodedef="ND_add_edf" file="pbrlib/genmdl/mx_add.inline" language="genmdl"/>
 
   <!-- <multiply> -->
-  <implementation name="IM_multiply_bsdfC_genmdl" nodedef="ND_multiply_bsdfC" file="pbrlib/genmdl/mx_multiply_bsdf.inline" language="genmdl"/>
+  <implementation name="IM_multiply_bsdfC_genmdl" nodedef="ND_multiply_bsdfC" sourcecode="mx::pbrlib::mx_multiply_bsdf(mxp_in1:{{in1}}, mxp_in2:{{in2}})" language="genmdl"/>
   <implementation name="IM_multiply_bsdfF_genmdl" nodedef="ND_multiply_bsdfF" file="pbrlib/genmdl/mx_multiply_bsdf.inline" language="genmdl"/>
   <implementation name="IM_multiply_edfC_genmdl" nodedef="ND_multiply_edfC" file="pbrlib/genmdl/mx_multiply_edf.inline" language="genmdl"/>
   <implementation name="IM_multiply_edfF_genmdl" nodedef="ND_multiply_edfF" file="pbrlib/genmdl/mx_multiply_edf.inline" language="genmdl"/>
@@ -94,7 +94,10 @@
   <!-- <artistic_ior> -->
   <implementation name="IM_artistic_ior_genmdl" nodedef="ND_artistic_ior" file="pbrlib/genmdl/mx_artistic_ior.osl" function="mx_artistic_ior" language="genmdl"/>
 
+  <!-- <blackbody> -->
+  <implementation name="IM_blackbody_genmdl" nodedef="ND_blackbody" sourcecode="mx::pbrlib::mx_blackbody(mxp_temperature:{{temperature}})" language="genmdl"/>
+
   <!-- <fresnel> -->
-  <implementation name="IM_fresnel_ior_genmdl" nodedef="ND_fresnel_ior" file="pbrlib/genmdl/mx_fresnel_ior.osl" function="mx_fresnel_ior" language="genmdl"/>
+  <implementation name="IM_fresnel_ior_genmdl" nodedef="ND_fresnel_ior" sourcecode="mx::pbrlib::mx_fresnel_ior(mxp_ior:{{ior}}, mxp_normal:{{normal}}, mxp_viewdirection:{{viewdirection}})" language="genmdl"/>
 
 </materialx>

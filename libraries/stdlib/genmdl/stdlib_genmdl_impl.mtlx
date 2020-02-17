@@ -214,7 +214,7 @@
   <implementation name="IM_time_float_genmdl" nodedef="ND_time_float" file="stdlib/genmdl/mx_time_float.osl" function="mx_time_float" language="genmdl"/>
 
   <!-- <viewdirection> -->
-  <implementation name="IM_viewdirection_vector3_genmdl" nodedef="ND_viewdirection_vector3" file="stdlib/genmdl/mx_viewdirection_vector3.inline" language="genmdl"/>
+  <implementation name="IM_viewdirection_vector3_genmdl" nodedef="ND_viewdirection_vector3" sourcecode="mx::stdlib::mx_viewdirection_vector3()" language="genmdl"/>
 
   <!-- ======================================================================== -->
   <!-- Math nodes                                                               -->
@@ -514,10 +514,10 @@
   <implementation name="IM_invertmatrix_matrix44_genmdl" nodedef="ND_invertmatrix_matrix44" file="stdlib/genmdl/mx_invertM.inline" language="genmdl"/>
 
   <!-- <rotate2d> -->
-  <implementation name="IM_rotate2d_vector2_genmdl" nodedef="ND_rotate2d_vector2" sourcecode="mx::stdlib::mx_rotate_vector2(mxp_in:{{in}}, mxp_amount:{{amount}})" language="genmdl"/>
+  <implementation name="IM_rotate2d_vector2_genmdl" nodedef="ND_rotate2d_vector2" sourcecode="mx::stdlib::mx_rotate2d_vector2(mxp_in:{{in}}, mxp_amount:{{amount}})" language="genmdl"/>
 
   <!-- <rotate3d> -->
-  <implementation name="IM_rotate3d_vector3_genmdl" nodedef="ND_rotate3d_vector3" sourcecode="mx::stdlib::mx_rotate_vector3(mxp_in:{{in}}, mxp_amount:{{amount}}, mxp_axis:{{axis}})" language="genmdl"/>
+  <implementation name="IM_rotate3d_vector3_genmdl" nodedef="ND_rotate3d_vector3" sourcecode="mx::stdlib::mx_rotate3d_vector3(mxp_in:{{in}}, mxp_amount:{{amount}}, mxp_axis:{{axis}})" language="genmdl"/>
 
 
   <!-- ======================================================================== -->
@@ -574,8 +574,8 @@
   <implementation name="IM_saturate_color4_genmdl" nodedef="ND_saturate_color4" file="stdlib/genmdl/mx_saturate_color4.osl" function="mx_saturate_color4" language="genmdl"/>
 
   <!-- <luminance> -->
-  <implementation name="IM_luminance_color3_genmdl" nodedef="ND_luminance_color3" file="stdlib/genmdl/mx_luminance_color3.osl" function="mx_luminance_color3" language="genmdl"/>
-  <implementation name="IM_luminance_color4_genmdl" nodedef="ND_luminance_color4" file="stdlib/genmdl/mx_luminance_color4.osl" function="mx_luminance_color4" language="genmdl"/>
+  <implementation name="IM_luminance_color3_genmdl" nodedef="ND_luminance_color3" sourcecode="mx::stdlib::mx_luminance_color3(mxp_in:{{in}})" language="genmdl"/>
+  <implementation name="IM_luminance_color4_genmdl" nodedef="ND_luminance_color4" sourcecode="mx::stdlib::mx_luminance_color4(mxp_in:{{in}})" language="genmdl"/>
 
   <!-- <rgbtohsv> -->
   <implementation name="IM_rgbtohsv_color3_genmdl" nodedef="ND_rgbtohsv_color3" sourcecode="mx::stdlib::mx_rgbtohsv_color3(mxp_in:{{in}})" language="genmdl"/>
@@ -690,20 +690,20 @@
   <!-- ======================================================================== -->
 
   <!-- <ifgreater> -->
-  <implementation name="IM_ifgreater_float_genmdl" nodedef="ND_ifgreater_float" language="genmdl" />
-  <implementation name="IM_ifgreater_color2_genmdl" nodedef="ND_ifgreater_color2" language="genmdl" />
-  <implementation name="IM_ifgreater_color3_genmdl" nodedef="ND_ifgreater_color3" language="genmdl" />
-  <implementation name="IM_ifgreater_color4_genmdl" nodedef="ND_ifgreater_color4" language="genmdl" />
-  <implementation name="IM_ifgreater_vector2_genmdl" nodedef="ND_ifgreater_vector2" language="genmdl" />
-  <implementation name="IM_ifgreater_vector3_genmdl" nodedef="ND_ifgreater_vector3" language="genmdl" />
-  <implementation name="IM_ifgreater_vector4_genmdl" nodedef="ND_ifgreater_vector4" language="genmdl" />
-  <implementation name="IM_ifgreater_floatI_genmdl" nodedef="ND_ifgreater_floatI" language="genmdl" />
-  <implementation name="IM_ifgreater_color2I_genmdl" nodedef="ND_ifgreater_color2I" language="genmdl" />
-  <implementation name="IM_ifgreater_color3I_genmdl" nodedef="ND_ifgreater_color3I" language="genmdl" />
-  <implementation name="IM_ifgreater_color4I_genmdl" nodedef="ND_ifgreater_color4I" language="genmdl" />
-  <implementation name="IM_ifgreater_vector2I_genmdl" nodedef="ND_ifgreater_vector2I" language="genmdl" />
-  <implementation name="IM_ifgreater_vector3I_genmdl" nodedef="ND_ifgreater_vector3I" language="genmdl" />
-  <implementation name="IM_ifgreater_vector4I_genmdl" nodedef="ND_ifgreater_vector4I" language="genmdl" />
+  <implementation name="IM_ifgreater_float_genmdl" nodedef="ND_ifgreater_float" sourcecode="mx::stdlib::mx_ifgreater_float({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_color2_genmdl" nodedef="ND_ifgreater_color2" sourcecode="mx::stdlib::mx_ifgreater_color2({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_color3_genmdl" nodedef="ND_ifgreater_color3" sourcecode="mx::stdlib::mx_ifgreater_color3({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_color4_genmdl" nodedef="ND_ifgreater_color4" sourcecode="mx::stdlib::mx_ifgreater_color4({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_vector2_genmdl" nodedef="ND_ifgreater_vector2" sourcecode="mx::stdlib::mx_ifgreater_vector2({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_vector3_genmdl" nodedef="ND_ifgreater_vector3" sourcecode="mx::stdlib::mx_ifgreater_vector3({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_vector4_genmdl" nodedef="ND_ifgreater_vector4" sourcecode="mx::stdlib::mx_ifgreater_vector4({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_floatI_genmdl" nodedef="ND_ifgreater_floatI" sourcecode="mx::stdlib::mx_ifgreater_floatI({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_color2I_genmdl" nodedef="ND_ifgreater_color2I" sourcecode="mx::stdlib::mx_ifgreater_color2I({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_color3I_genmdl" nodedef="ND_ifgreater_color3I" sourcecode="mx::stdlib::mx_ifgreater_color3I({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_color4I_genmdl" nodedef="ND_ifgreater_color4I" sourcecode="mx::stdlib::mx_ifgreater_color4I({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_vector2I_genmdl" nodedef="ND_ifgreater_vector2I" sourcecode="mx::stdlib::mx_ifgreater_vector2I({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_vector3I_genmdl" nodedef="ND_ifgreater_vector3I" sourcecode="mx::stdlib::mx_ifgreater_vector3I({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_ifgreater_vector4I_genmdl" nodedef="ND_ifgreater_vector4I" sourcecode="mx::stdlib::mx_ifgreater_vector4I({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
 
   <!-- <ifgreatereq> -->
   <implementation name="IM_ifgreatereq_float_genmdl" nodedef="ND_ifgreatereq_float" language="genmdl" />
