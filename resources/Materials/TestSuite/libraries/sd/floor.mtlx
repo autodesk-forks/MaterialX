@@ -247,7 +247,7 @@
          <bindinput name="specular" type="float" value="1.0" />
          <bindinput name="specular_color" type="color3" value=" 1.000000, 1.000000, 1.000000" />
          <bindinput name="specular_roughness" type="float" nodegraph="GraphInst" output="specular_roughness_output" />
-         <bindinput name="specular_IOR" type="float" value="1.5199999809265137" />
+         <bindparam name="specular_IOR" type="float" value="1.5199999809265137" />
          <bindinput name="specular_anisotropy" type="float" value="0.0" />
          <bindinput name="specular_rotation" type="float" value="0.0" />
          <bindinput name="metalness" type="float" nodegraph="GraphInst" output="metalness_output" />
