@@ -30,12 +30,12 @@ class MdlFilenameTypeSyntax : public ScalarTypeSyntax
 {
 public:
     MdlFilenameTypeSyntax() :
-        ScalarTypeSyntax("texture_2d", EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
+        ScalarTypeSyntax("texture_2d", "texture_2d()", "texture_2d()")
     {}
 
     string getValue(const Value& value, bool /*uniform*/) const override
     {
-        return getName() + "(\"" + value.getValueString() + "\")";
+        return getName() + "(\"/" + value.getValueString() + "\")";
     }
 };
 
