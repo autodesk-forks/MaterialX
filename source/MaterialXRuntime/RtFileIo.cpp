@@ -1041,7 +1041,7 @@ namespace
             {
                 // Make sure the node to be created doesn't already exist. This can happen if we created a material node
                 // for a surface shader before creating the material node in the scene was created.
-                if (doc->getChild(prim->getName()))
+                if (!doc->getChild(prim->getName()))
                 {
                     NodePtr mxNode = writeNode(prim, doc);
                     if (writeOptions)
