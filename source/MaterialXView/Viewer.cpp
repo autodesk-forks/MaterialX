@@ -246,7 +246,7 @@ Viewer::Viewer(const std::string& materialFilename,
     _genContext.getOptions().targetColorSpaceOverride = "lin_rec709";
     _genContext.getOptions().fileTextureVerticalFlip = true;
 
-    // Sey OSL/MDL generator options.
+    // Set OSL/MDL generator options.
     _genContextOsl.getOptions().targetColorSpaceOverride = "lin_rec709";
     _genContextOsl.getOptions().fileTextureVerticalFlip = false;
     _genContextMdl.getOptions().targetColorSpaceOverride = "lin_rec709";
