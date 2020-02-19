@@ -741,108 +741,55 @@ namespace
         return destNode;
     }
 
-    void createMaterialNode(const PvtPrim* prim, NodePtr mxNode, DocumentPtr doc)
+    void writeMaterialElement(NodePtr mxNode, DocumentPtr doc, const RtWriteOptions* writeOptions)
     {
-        // Check to see if the surfaceshader node is already connected to a material node
-        bool isConnectedToMaterialNode = false;
-        const PvtOutput* output = prim->getOutput(PvtAttribute::DEFAULT_OUTPUT_NAME);
-        if (output && output->getType() == RtType::SURFACESHADER && output->isConnected())
+        string uniqueName = doc->createValidChildName(mxNode->getName() + "_Material");
+        string materialName = mxNode->getName();
+        mxNode->setName(uniqueName);
+
+        InputPtr materialNodeSurfaceShaderInput = mxNode->getInput(RtType::SURFACESHADER);
+        NodePtr surfaceShader = materialNodeSurfaceShaderInput->getConnectedNode();
+        if (surfaceShader)
         {
-            for (const RtObject& dest : output->getConnections())
+            MaterialPtr material = doc->addMaterial(materialName);
+            ShaderRefPtr shaderRef =
+                material->addShaderRef("sref", surfaceShader->getCategory());
+
+            for (InputPtr input : surfaceShader->getActiveInputs())
             {
-                RtInput destInput = dest.asA<RtInput>();
-                RtPrim destNode = destInput.getParent();
-                RtOutput destOutput = destNode.getOutput(PvtAttribute::DEFAULT_OUTPUT_NAME);
-                if (destOutput.getType() == RtType::MATERIAL)
+                BindInputPtr bindInput = shaderRef->addBindInput(input->getName(), input->getType());
+                if (input->hasNodeName())
                 {
-                    isConnectedToMaterialNode = true;
-                    break;
-                }
-            }
-        }
-
-        if (!isConnectedToMaterialNode)
-        {
-            NodePtr materialNode = doc->addNode(SURFACE_MATERIAL_NODE_STRING, mxNode->getName() + "_SurfaceMaterial", MATERIAL_TYPE_STRING);
-            materialNode->setConnectedNode(SURFACE_SHADER_TYPE_STRING, mxNode);
-        }
-    }
-
-    void writeMaterialElementsHelper(const PvtPrim* prim, NodePtr mxNode, const string& materialBaseName, DocumentPtr doc, const RtWriteOptions* writeOptions)
-    {
-        MaterialPtr material = doc->addMaterial(materialBaseName + "_Material");
-        ShaderRefPtr shaderRef =
-            material->addShaderRef("sref", mxNode->getCategory());
-
-        for (InputPtr input : mxNode->getActiveInputs())
-        {
-            BindInputPtr bindInput = shaderRef->addBindInput(input->getName(), input->getType());
-            if (input->hasNodeName())
-            {
-                if (input->hasOutputString())
-                {
-                    bindInput->setNodeGraphString(input->getNodeName());
-                    bindInput->setOutputString(input->getOutputString());
-                }
-            }
-            else
-            {
-                bindInput->setValueString(input->getValueString());
-            }
-        }
-        for (ParameterPtr param : mxNode->getActiveParameters())
-        {
-            BindParamPtr bindParam = shaderRef->addBindParam(param->getName(), param->getType());
-            bindParam->setValueString(param->getValueString());
-        }
-        // Should we delete the surface shader?
-        if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::DELETE)
-        {
-            doc->removeChild(prim->getName());
-        }
-        // Should we create a look for the material element?
-        if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::LOOK)
-        {
-            LookPtr look = doc->addLook();
-            MaterialAssignPtr materialAssign = look->addMaterialAssign();
-            materialAssign->setMaterial(material->getName());
-            CollectionPtr collection = doc->addCollection();
-            collection->setIncludeGeom("/*");
-            materialAssign->setCollection(collection);
-        }
-    }
-
-    void writeMaterialElements(const PvtPrim* prim, NodePtr mxNode, DocumentPtr doc, const RtWriteOptions* writeOptions)
-    {
-        if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::ADD_MATERIAL_NODES_FOR_SHADERS)
-        {
-            // Get the connected material nodes and create material elements from them (using their names)
-            const PvtOutput* output = prim->getOutput(PvtAttribute::DEFAULT_OUTPUT_NAME);
-            if (output->isConnected())
-            {
-                for (const RtObject& dest : output->getConnections())
-                {
-                    RtInput destInput = dest.asA<RtInput>();
-                    RtPrim destNode = destInput.getParent();
-                    RtOutput destOutput = destNode.getOutput(PvtAttribute::DEFAULT_OUTPUT_NAME);
-                    if (destOutput.getType() == RtType::MATERIAL)
+                    if (input->hasOutputString())
                     {
-                        string materialName = destNode.getName();
-                        writeMaterialElementsHelper(prim, mxNode, materialName, doc, writeOptions);
-                        doc->removeChild(materialName);
-                        auto child = doc->getChild(materialName + "_Material");
-                        if (child)
-                        {
-                            child->setName(materialName);
-                        }
+                        bindInput->setNodeGraphString(input->getNodeName());
+                        bindInput->setOutputString(input->getOutputString());
                     }
                 }
+                else
+                {
+                    bindInput->setValueString(input->getValueString());
+                }
+            }
+            for (ParameterPtr param : surfaceShader->getActiveParameters())
+            {
+                BindParamPtr bindParam = shaderRef->addBindParam(param->getName(), param->getType());
+                bindParam->setValueString(param->getValueString());
+            }
+
+            // Should we create a look for the material element?
+            if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::LOOK)
+            {
+                LookPtr look = doc->addLook();
+                MaterialAssignPtr materialAssign = look->addMaterialAssign();
+                materialAssign->setMaterial(materialName);
+                CollectionPtr collection = doc->addCollection();
+                collection->setIncludeGeom("/*");
+                materialAssign->setCollection(collection);
             }
         }
-        else
-        {
-            writeMaterialElementsHelper(prim, mxNode, mxNode->getName(), doc, writeOptions);
-        }
+
+        doc->removeChild(uniqueName);
     }
 
     void writeNodeGraph(const PvtPrim * src, DocumentPtr dest)
@@ -943,16 +890,11 @@ namespace
                     if (massign)
                     {
                         massign->setExclusive(rtMatAssign.getExclusive().getValue().asBool());
-                        for (const RtObject& collectionObj : rtMatAssign.getCollection().getTargets())
-                        {
-                            massign->setCollectionString(collectionObj.getName());
-                            break;
-                        }
-                        for (const RtObject& materialObj : rtMatAssign.getMaterial().getTargets())
-                        {
-                            massign->setMaterial(materialObj.getName());
-                            break;
-                        }
+                        auto iter = rtMatAssign.getCollection().getTargets();
+                        massign->setCollectionString((*iter).getName());
+
+                        iter = rtMatAssign.getMaterial().getTargets();
+                        massign->setMaterial((*iter).getName());
                         massign->setGeom(rtMatAssign.getGeom().getValueString());
                     }
                 }
@@ -1037,26 +979,11 @@ namespace
             }
             else if (typeName == RtNode::typeName())
             {
-                // Make sure the node to be created doesn't already exist. This can happen if we created a material node
-                // for a surface shader before creating the same material node in the scene.
-                if (!doc->getChild(prim->getName()))
+                NodePtr mxNode = writeNode(prim, doc);
+                if (mxNode->getCategory() == SURFACE_MATERIAL_NODE_STRING && writeOptions &&
+                    writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
                 {
-                    NodePtr mxNode = writeNode(prim, doc);
-                    if (writeOptions)
-                    {
-                        const PvtOutput* output = prim->getOutput(PvtAttribute::DEFAULT_OUTPUT_NAME);
-                        if (output && output->getType() == RtType::SURFACESHADER)
-                        {
-                            if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::ADD_MATERIAL_NODES_FOR_SHADERS)
-                            {
-                                createMaterialNode(prim, mxNode, doc);
-                            }
-                            if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
-                            {
-                                writeMaterialElements(prim, mxNode, doc, writeOptions);
-                            }
-                        }
-                    }
+                    writeMaterialElement(mxNode, doc, writeOptions);
                 }
             }
             else if (typeName == RtNodeGraph::typeName())
