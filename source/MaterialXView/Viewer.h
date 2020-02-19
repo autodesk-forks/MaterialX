@@ -85,12 +85,13 @@ class Viewer : public ng::Screen
     void drawScene3D();
     void drawScene2D();
 
+    void initContext(mx::GenContext& context);
     void loadEnvironmentLight();
     void applyDirectLights(mx::DocumentPtr doc);
     void loadDocument(const mx::FilePath& filename, mx::DocumentPtr libraries);
     void reloadShaders();
     void loadStandardLibraries();
-    void saveShaderSource();
+    void saveShaderSource(mx::GenContext& context);
     void loadShaderSource();
     void saveDotFiles();
 
@@ -184,8 +185,10 @@ class Viewer : public ng::Screen
     mx::GeometryHandlerPtr _envGeometryHandler;
     MaterialPtr _envMaterial;
 
-    // Shader generator
+    // Shader generator contexts
     mx::GenContext _genContext;
+    mx::GenContext _genContextOsl;
+    mx::GenContext _genContextMdl;
 
     // Unit registry
     mx::UnitConverterRegistryPtr _unitRegistry;
