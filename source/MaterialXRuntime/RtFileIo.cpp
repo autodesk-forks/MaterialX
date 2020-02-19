@@ -1040,7 +1040,7 @@ namespace
             else if (typeName == RtNode::typeName())
             {
                 // Make sure the node to be created doesn't already exist. This can happen if we created a material node
-                // for a surface shader before creating the material node in the scene was created.
+                // for a surface shader before creating the same material node in the scene.
                 if (!doc->getChild(prim->getName()))
                 {
                     NodePtr mxNode = writeNode(prim, doc);
@@ -1065,8 +1065,7 @@ namespace
             {
                 writeNodeGraph(prim, doc);
             }
-            else if (prim &&
-                     typeName != RtLook::typeName() &&
+            else if (typeName != RtLook::typeName() &&
                      typeName != RtLookGroup::typeName() &&
                      typeName != RtMaterialAssign::typeName() &&
                      typeName != RtCollection::typeName())
