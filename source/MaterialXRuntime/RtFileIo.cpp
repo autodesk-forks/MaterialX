@@ -828,7 +828,15 @@ namespace
                     RtOutput destOutput = destNode.getOutput(PvtAttribute::DEFAULT_OUTPUT_NAME);
                     if (destOutput.getType() == RtType::MATERIAL)
                     {
-                        writeMaterialElementsHelper(prim, mxNode, destNode.getName(), doc, writeOptions);
+                        string materialName = destNode.getName();
+                        writeMaterialElementsHelper(prim, mxNode, materialName, doc, writeOptions);
+                        doc->removeChild(destNode);
+                        auto child = doc->getChild(materialName + "_Material");
+                        if (child)
+                        {
+                            child->setName(materialName);
+                        }
+
                     }
                 }
             }
@@ -1045,12 +1053,6 @@ namespace
                         if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
                         {
                             writeMaterialElements(prim, mxNode, doc, writeOptions);
-                            string materialName = mxNode->getName();
-                            doc->removeChild(materialName);
-                            if (doc->getChild(materialName + "_Material"))
-                            {
-                                doc->setName(materialName);
-                            }
                         }
                     }
                 }
