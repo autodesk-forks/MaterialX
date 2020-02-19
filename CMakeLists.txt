@@ -54,8 +54,6 @@ option(MATERIALX_BUILD_GEN_OGSFX "Build the OGSFX shader generator back-end." ON
 mark_as_advanced(MATERIALX_BUILD_GEN_OGSFX)
 option(MATERIALX_BUILD_GEN_ARNOLD "Build the Arnold OSL shader generator back-end." ON)
 mark_as_advanced(MATERIALX_BUILD_GEN_ARNOLD)
-option(MATERIALX_BUILD_GEN_MDL "Build MDL code generator." ON)
-mark_as_advanced(MATERIALX_BUILD_GEN_MDL)
 
 # Disable render module building option
 option(MATERIALX_DISABLE_BUILD_RENDER "Disable building render modules." OFF)
@@ -162,11 +160,8 @@ add_subdirectory(source/MaterialXFormat)
 add_subdirectory(source/MaterialXGenShader)
 add_subdirectory(source/MaterialXGenOsl)
 add_subdirectory(source/MaterialXGenGlsl)
+add_subdirectory(source/MaterialXGenMdl)
 
-if (MATERIALX_BUILD_GEN_MDL)
-    add_definitions(-DMATERIALX_BUILD_GEN_MDL)
-    add_subdirectory(source/MaterialXGenMdl)
-endif()
 if (MATERIALX_BUILD_CROSS)
     add_definitions(-DMATERIALX_BUILD_CROSS)
     add_subdirectory(source/MaterialXCross)
