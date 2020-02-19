@@ -770,17 +770,7 @@ namespace
 
     void writeMaterialElementsHelper(const PvtPrim* prim, NodePtr mxNode, const string& materialBaseName, DocumentPtr doc, const RtWriteOptions* writeOptions)
     {
-        MaterialPtr material;
-        // Should we delete the surface shader?
-        if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::DELETE)
-        {
-            doc->removeChild(prim->getName());
-            material = doc->addMaterial(materialBaseName);
-        }
-        else
-        {
-            material = doc->addMaterial(materialBaseName + "_Material");
-        }
+        MaterialPtr material = doc->addMaterial(materialBaseName + "_Material");
 
         ShaderRefPtr shaderRef =
             material->addShaderRef("sref", mxNode->getCategory());
@@ -805,6 +795,11 @@ namespace
         {
             BindParamPtr bindParam = shaderRef->addBindParam(param->getName(), param->getType());
             bindParam->setValueString(param->getValueString());
+        }
+        // Should we delete the surface shader?
+        if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::DELETE)
+        {
+            doc->removeChild(prim->getName());
         }
         // Should we create a look for the material element?
         if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::LOOK)
@@ -1050,6 +1045,12 @@ namespace
                         if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
                         {
                             writeMaterialElements(prim, mxNode, doc, writeOptions);
+                            string materialName = mxNode->getName();
+                            doc->removeChild(materialName);
+                            if (doc->getChild(materialName + "_Material"))
+                            {
+                                doc->setName(materialName);
+                            }
                         }
                     }
                 }
@@ -1064,13 +1065,7 @@ namespace
                      typeName != RtMaterialAssign::typeName() &&
                      typeName != RtCollection::typeName())
             {
-                RtGeneric generic(prim->hnd());
-                if (!writeOptions ||
-                    !(writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS) ||
-                    typeName != RtType::MATERIAL)
-                {
-                    writeGenericPrim(prim, doc->asA<Element>());
-                }
+                writeGenericPrim(prim, doc->asA<Element>());
             }
         }
 
