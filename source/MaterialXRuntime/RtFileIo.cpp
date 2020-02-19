@@ -830,7 +830,7 @@ namespace
                     {
                         string materialName = destNode.getName();
                         writeMaterialElementsHelper(prim, mxNode, materialName, doc, writeOptions);
-                        doc->removeChild(destNode);
+                        doc->removeChild(materialName);
                         auto child = doc->getChild(materialName + "_Material");
                         if (child)
                         {
