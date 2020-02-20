@@ -681,7 +681,7 @@
   <implementation name="IM_ifgreater_color3_genmdl" nodedef="ND_ifgreater_color3" file="stdlib/genmdl/materialx/stdlib.ref_mdl" function="mx_ifgreater_color3" language="genmdl" />
   <implementation name="IM_ifgreater_color4_genmdl" nodedef="ND_ifgreater_color4" file="stdlib/genmdl/materialx/stdlib.ref_mdl" function="mx_ifgreater_color4" language="genmdl" />
   <implementation name="IM_ifgreater_vector2_genmdl" nodedef="ND_ifgreater_vector2" file="stdlib/genmdl/materialx/stdlib.ref_mdl" function="mx_ifgreater_vector2" language="genmdl" />
-  <implementation name="IM_ifgreater_vector3_genmdl" nodedef="ND_ifgreater_vector3" file="stdlib/genmdl/materialx/stdlib.ref_mdl" function="mx_ifgreater_vector3" language="genmdl" />
+  <implementation name="IM_ifgreater_vector3_genmdl" nodedef="ND_ifgreater_vector3" sourcecode="mx::stdlib::mx_ifgreater_vector3({{value1}}, {{value2}}, {{in1}}, {{in2}})" language="genmdl" />
   <implementation name="IM_ifgreater_vector4_genmdl" nodedef="ND_ifgreater_vector4" file="stdlib/genmdl/materialx/stdlib.ref_mdl" function="mx_ifgreater_vector4" language="genmdl" />
   <implementation name="IM_ifgreater_floatI_genmdl" nodedef="ND_ifgreater_floatI" file="stdlib/genmdl/materialx/stdlib.ref_mdl" function="mx_ifgreater_floatI" language="genmdl" />
   <implementation name="IM_ifgreater_color2I_genmdl" nodedef="ND_ifgreater_color2I" file="stdlib/genmdl/materialx/stdlib.ref_mdl" function="mx_ifgreater_color2I" language="genmdl" />
