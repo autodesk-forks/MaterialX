@@ -980,7 +980,7 @@ namespace
             else if (typeName == RtNode::typeName())
             {
                 NodePtr mxNode = writeNode(prim, doc);
-                if (mxNode->getNodeDef()->getType() == MATERIAL_TYPE_STRING && writeOptions &&
+                if (mxNode && mxNode->getNodeDef() && mxNode->getNodeDef()->getType() == MATERIAL_TYPE_STRING && writeOptions &&
                     writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
                 {
                     writeMaterialElement(mxNode, doc, writeOptions);
