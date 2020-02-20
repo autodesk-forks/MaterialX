@@ -42,7 +42,7 @@ public:
         {
             pathSeparator = "/";
         }
-        return getName() + "(\"" + pathSeparator + value.getValueString() + "\")";
+        return getName() + "(\"" + pathSeparator + value.getValueString() + "\", tex::gamma_linear)";
     }
 };
 
