@@ -86,12 +86,12 @@ class RtWriteOptions
     /// elements for the material nodes present in a MaterialX
     /// document. If not set, writes out just the material nodes.
     ///
-    /// LOOK: generate a look for the material element
+    /// CREATE_LOOKS: generate a look for the material elements
     ///
     /// TODO: Look into removing this once Material nodes are supported
     enum MaterialWriteOp{ NONE                           = 0,
                           WRITE_MATERIALS_AS_ELEMENTS    = 1 << 0,
-                          LOOK                           = 1 << 1 };
+                          CREATE_LOOKS                   = 1 << 1 };
 
     int materialWriteOp;
 };

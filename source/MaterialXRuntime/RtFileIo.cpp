@@ -753,7 +753,7 @@ namespace
         {
             MaterialPtr material = doc->addMaterial(materialName);
             ShaderRefPtr shaderRef =
-                material->addShaderRef("sref", surfaceShader->getCategory());
+                material->addShaderRef(surfaceShader->getName(), surfaceShader->getCategory());
 
             for (InputPtr input : surfaceShader->getActiveInputs())
             {
@@ -778,7 +778,7 @@ namespace
             }
 
             // Should we create a look for the material element?
-            if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::LOOK)
+            if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::CREATE_LOOKS)
             {
                 LookPtr look = doc->addLook();
                 MaterialAssignPtr materialAssign = look->addMaterialAssign();
@@ -980,7 +980,7 @@ namespace
             else if (typeName == RtNode::typeName())
             {
                 NodePtr mxNode = writeNode(prim, doc);
-                if (mxNode->getCategory() == SURFACE_MATERIAL_NODE_STRING && writeOptions &&
+                if (mxNode->getNodeDef()->getType() == MATERIAL_TYPE_STRING && writeOptions &&
                     writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
                 {
                     writeMaterialElement(mxNode, doc, writeOptions);
@@ -1000,7 +1000,7 @@ namespace
         }
 
         // Write the existing look information
-        if (!writeOptions || !(writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::LOOK))
+        if (!writeOptions || !(writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::CREATE_LOOKS))
         {
             writeCollections(stage, *doc, filter);
             writeLooks(stage, *doc, filter);
