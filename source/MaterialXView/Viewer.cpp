@@ -942,11 +942,15 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                 }
                 materials.push_back(node);
             }
-            else
+            else if (elem->isA<mx::ShaderRef>())
             {
                 mx::ShaderRefPtr shaderRef = elem->asA<mx::ShaderRef>();
-                mx::TypedElementPtr materialRef = (shaderRef ? shaderRef->getParent()->asA<mx::TypedElement>() : nullptr);
+                mx::TypedElementPtr materialRef = shaderRef->getParent()->asA<mx::TypedElement>();
                 materials.push_back(materialRef);
+            }
+            else
+            {
+                materials.push_back(nullptr);
             }
             renderablePaths.push_back(renderableElem->getNamePath());
         }
@@ -1047,7 +1051,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                 }
                 else
                 {
-                    mx::NodePtr materialNode = mat->getMaterialElement()->asA<mx::Node>();
+                    mx::NodePtr materialNode = mat->getMaterialElement() ? mat->getMaterialElement()->asA<mx::Node>() : nullptr;
                     if (materialNode)
                     {
                         for (mx::MeshPartitionPtr part : _geometryList)
