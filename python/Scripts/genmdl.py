@@ -201,8 +201,9 @@ def _writeTwoArgumentCombine(file, outputType):
 
 def _writeThreeArgumentCombine(file, outputType):
     if outputType == 'color':
-        outputType = 'color3';
-    file.write(INDENT + 'return mk_' + outputType + '(mxp_in1, mxp_in2, mxp_in3);\n')
+        file.write(INDENT + 'return ' + outputType + '(mxp_in1, mxp_in2, mxp_in3);\n')
+    else:
+        file.write(INDENT + 'return mk_' + outputType + '(mxp_in1, mxp_in2, mxp_in3);\n')
 
 def _writeFourArgumentCombine(file, outputType):
     if outputType == 'color':
@@ -785,7 +786,7 @@ def main():
                     if outputType == 'float':
                         file.write(INDENT + 'return ' + outputType + '(mxp_in);\n')
                     elif outputType == 'color':
-                        file.write(INDENT + 'return mk_color3(mxp_in);\n')
+                        file.write(INDENT + 'return mk_color(mxp_in);\n')
                     else:
                         file.write(INDENT + 'return mk_' + outputType + '(mxp_in);\n')
                     wroteImplementation = True
@@ -898,7 +899,7 @@ def main():
         file.close()
 
     # Save implementation reference file to disk
-    implFileName = moduleName + '_' + GENMDL + '_' + IMPLEMENTATION_STRING + '.ref_mtlx'
+    implFileName = moduleName + '_gen_' + IMPLEMENTATION_STRING + '.ref_mtlx'
     implPath = os.path.join(outputPath, implFileName)
     print('Wrote implementation file: ' + implPath + '. ' + str(implementedCont) + '/' + str(totalCount) + '\n')
     mx.writeToXmlFile(implDoc, implPath)
