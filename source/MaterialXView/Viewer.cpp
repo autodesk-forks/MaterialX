@@ -1047,7 +1047,8 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                 }
                 else
                 {
-                    mx::NodePtr materialNode = mat->getMaterialElement()->asA<mx::Node>();
+                    mx::TypedElementPtr melem = mat->getMaterialElement();
+                    mx::NodePtr materialNode = melem ? melem->asA<mx::Node>() : nullptr;
                     if (materialNode)
                     {
                         for (mx::MeshPartitionPtr part : _geometryList)

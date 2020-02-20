@@ -786,7 +786,7 @@ def main():
                     if outputType == 'float':
                         file.write(INDENT + 'return ' + outputType + '(mxp_in);\n')
                     elif outputType == 'color':
-                        file.write(INDENT + 'return mk_color(mxp_in);\n')
+                        file.write(INDENT + 'return mk_color3(mxp_in);\n')
                     else:
                         file.write(INDENT + 'return mk_' + outputType + '(mxp_in);\n')
                     wroteImplementation = True

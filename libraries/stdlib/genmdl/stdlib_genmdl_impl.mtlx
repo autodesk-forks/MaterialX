@@ -225,7 +225,7 @@
   <implementation name="IM_add_float_genmdl" nodedef="ND_add_float" sourcecode="{{in1}} + {{in2}}" language="genmdl"/>
   <implementation name="IM_add_color2_genmdl" nodedef="ND_add_color2" sourcecode="{{in1}} + {{in2}}" language="genmdl"/>
   <implementation name="IM_add_color2FA_genmdl" nodedef="ND_add_color2FA" sourcecode="{{in1}} + {{in2}}" language="genmdl"/>
-  <implementation name="IM_add_color3_genmdl" nodedef="ND_add_color3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_add_color3" language="genmdl" />
+  <implementation name="IM_add_color3_genmdl" nodedef="ND_add_color3" sourcecode="{{in1}} + {{in2}}" language="genmdl"/>
   <implementation name="IM_add_color3FA_genmdl" nodedef="ND_add_color3FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_add_color3FA" language="genmdl" />
   <implementation name="IM_add_color4_genmdl" nodedef="ND_add_color4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_add_color4" language="genmdl" />
   <implementation name="IM_add_color4FA_genmdl" nodedef="ND_add_color4FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_add_color4FA" language="genmdl" />
@@ -245,7 +245,7 @@
   <implementation name="IM_subtract_float_genmdl" nodedef="ND_subtract_float" sourcecode="{{in1}} - {{in2}}" language="genmdl"/>
   <implementation name="IM_subtract_color2_genmdl" nodedef="ND_subtract_color2" sourcecode="{{in1}} - {{in2}}"  language="genmdl"/>
   <implementation name="IM_subtract_color2FA_genmdl" nodedef="ND_subtract_color2FA" sourcecode="{{in1}} - {{in2}}" language="genmdl"/>
-  <implementation name="IM_subtract_color3_genmdl" nodedef="ND_subtract_color3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_subtract_color3" language="genmdl" />
+  <implementation name="IM_subtract_color3_genmdl" nodedef="ND_subtract_color3" sourcecode="{{in1}} - {{in2}}" language="genmdl"/>
   <implementation name="IM_subtract_color3FA_genmdl" nodedef="ND_subtract_color3FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_subtract_color3FA" language="genmdl" />
   <implementation name="IM_subtract_color4_genmdl" nodedef="ND_subtract_color4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_subtract_color4" language="genmdl" />
   <implementation name="IM_subtract_color4FA_genmdl" nodedef="ND_subtract_color4FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_subtract_color4FA" language="genmdl" />
@@ -283,7 +283,7 @@
   <implementation name="IM_divide_float_genmdl" nodedef="ND_divide_float" sourcecode="{{in1}} / {{in2}}" language="genmdl"/>
   <implementation name="IM_divide_color2_genmdl" nodedef="ND_divide_color2" sourcecode="{{in1}} / {{in2}}"  language="genmdl"/>
   <implementation name="IM_divide_color2FA_genmdl" nodedef="ND_divide_color2FA" sourcecode="{{in1}} / {{in2}}" language="genmdl"/>
-  <implementation name="IM_divide_color3_genmdl" nodedef="ND_divide_color3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_divide_color3" language="genmdl" />
+  <implementation name="IM_divide_color3_genmdl" nodedef="ND_divide_color3" sourcecode="{{in1}} / {{in2}}" language="genmdl"/>
   <implementation name="IM_divide_color3FA_genmdl" nodedef="ND_divide_color3FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_divide_color3FA" language="genmdl" />
   <implementation name="IM_divide_color4_genmdl" nodedef="ND_divide_color4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_divide_color4" language="genmdl" />
   <implementation name="IM_divide_color4FA_genmdl" nodedef="ND_divide_color4FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_divide_color4FA" language="genmdl" />
@@ -427,7 +427,7 @@
   <implementation name="IM_clamp_float_genmdl" nodedef="ND_clamp_float" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
   <implementation name="IM_clamp_color2_genmdl" nodedef="ND_clamp_color2" sourcecode="math::clamp({{in}}, {{low}}, {{high}})"  language="genmdl"/>
   <implementation name="IM_clamp_color2FA_genmdl" nodedef="ND_clamp_color2FA" sourcecode="math::clamp({{in}}, {{low}}, {{high}})" language="genmdl"/>
-  <implementation name="IM_clamp_color3_genmdl" nodedef="ND_clamp_color3" file="stdlib/genmdl/stdlib.mdl" function="mx_clamp_color3" language="genmdl" />
+  <implementation name="IM_clamp_color3_genmdl" nodedef="ND_clamp_color3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_clamp_color3" language="genmdl" />
   <implementation name="IM_clamp_color3FA_genmdl" nodedef="ND_clamp_color3FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_clamp_color3FA" language="genmdl" />
   <implementation name="IM_clamp_color4_genmdl" nodedef="ND_clamp_color4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_clamp_color4" language="genmdl" />
   <implementation name="IM_clamp_color4FA_genmdl" nodedef="ND_clamp_color4FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_clamp_color4FA" language="genmdl" />
@@ -859,22 +859,22 @@
   <!-- ======================================================================== -->
 
   <!-- <dot> -->
-  <implementation name="IM_dot_float_genmdl" nodedef="ND_dot_float" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_color2_genmdl" nodedef="ND_dot_color2" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_color3_genmdl" nodedef="ND_dot_color3" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_color4_genmdl" nodedef="ND_dot_color4" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_vector2_genmdl" nodedef="ND_dot_vector2" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_vector3_genmdl" nodedef="ND_dot_vector3" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_vector4_genmdl" nodedef="ND_dot_vector4" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_boolean_genmdl" nodedef="ND_dot_boolean" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_integer_genmdl" nodedef="ND_dot_integer" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_matrix33_genmdl" nodedef="ND_dot_matrix33" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_matrix44_genmdl" nodedef="ND_dot_matrix44" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_string_genmdl" nodedef="ND_dot_string" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_filename_genmdl" nodedef="ND_dot_filename" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_surfaceshader_genmdl" nodedef="ND_dot_surfaceshader" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_displacementshader_genmdl" nodedef="ND_dot_displacementshader" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_volumeshader_genmdl" nodedef="ND_dot_volumeshader" sourcecode="{{in1}}" language="genmdl"/>
-  <implementation name="IM_dot_lightshader_genmdl" nodedef="ND_dot_lightshader" sourcecode="{{in1}}" language="genmdl"/>
+  <implementation name="IM_dot_float_genmdl" nodedef="ND_dot_float" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_color2_genmdl" nodedef="ND_dot_color2" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_color3_genmdl" nodedef="ND_dot_color3" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_color4_genmdl" nodedef="ND_dot_color4" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_vector2_genmdl" nodedef="ND_dot_vector2" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_vector3_genmdl" nodedef="ND_dot_vector3" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_vector4_genmdl" nodedef="ND_dot_vector4" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_boolean_genmdl" nodedef="ND_dot_boolean" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_integer_genmdl" nodedef="ND_dot_integer" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_matrix33_genmdl" nodedef="ND_dot_matrix33" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_matrix44_genmdl" nodedef="ND_dot_matrix44" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_string_genmdl" nodedef="ND_dot_string" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_filename_genmdl" nodedef="ND_dot_filename" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_surfaceshader_genmdl" nodedef="ND_dot_surfaceshader" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_displacementshader_genmdl" nodedef="ND_dot_displacementshader" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_volumeshader_genmdl" nodedef="ND_dot_volumeshader" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_lightshader_genmdl" nodedef="ND_dot_lightshader" sourcecode="{{in}}" language="genmdl"/>
 
 </materialx>
