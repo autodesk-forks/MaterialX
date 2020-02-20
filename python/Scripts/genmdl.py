@@ -14,9 +14,9 @@ import MaterialX as mx
 def usage():
     print 'genmdl.py: Generate implementation directory for mdl based on existing MaterialX nodedefs in stdlib'
     print 'Usage:  genmdl.py <library search path> [<module name> <version>]'
-    print '- A new directory called "library/stdlib/genmdl" will be created with two files added:'
-    print '   - <module_name>.mdl: Module with signature stubs for each MaterialX nodedef'
-    print '   - <module_name>_genmdl_impl.mtlx: MaterialX nodedef implementation mapping file'
+    print '- A new directory called "library/stdlib/genmdl/materialx" will be created with two files added:'
+    print '   - <module_name>.ref_mdl: Module with signature stubs for each MaterialX nodedef'
+    print '   - <module_name>_genmdl_impl.ref_mtlx: MaterialX nodedef implementation mapping file'
     print '- By default <module_name>="mymodule" and <version>="1.6"'
 
 def _getSubDirectories(libraryPath):
@@ -46,7 +46,7 @@ def _loadLibraries(doc, searchPath, libraryPath):
 def _writeHeader(file, version):
     file.write('mdl ' + version + ';\n')
     file.write('using core import *;\n')
-    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '.::cm::*', '::math::*', '::state::*', '::tex::*', '::state::*',  '::vectormatrix::*', '::hsv::*'}
+    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '.::cm::*', '::math::*', '::state::*', '::tex::*', '::state::*',  '.::vectormatrix::*', '.::hsv::*'}
     # To verify what are the minimal imports required
     for i in IMPORT_LIST:
         file.write('import' + i + ';\n')
@@ -307,7 +307,7 @@ def main():
     DEFINITION_PREFIX = 'ND_'
     IMPLEMENTATION_PREFIX = 'IM_'
     IMPLEMENTATION_STRING = 'impl'
-    GENMDL = 'genmdl'
+    GENMDL = 'genmdl/materialx'
 
     # Create target directory if don't exist
     outputPath = os.path.join(libraryPath, GENMDL)
@@ -318,7 +318,7 @@ def main():
 
     # Write to single file if module name specified
     if len(moduleName):
-        file = open(outputPath + '/' + moduleName + '.mdl', 'w+')
+        file = open(outputPath + '/' + moduleName + '.ref_mdl', 'w+')
         _writeHeader(file, version)
 
     # Dictionary to map from MaterialX type declarations
@@ -419,15 +419,15 @@ def main():
             if (nodeName[0:3] == DEFINITION_PREFIX):
                 nodeName = nodeName[3:]
 
-        filename = nodeName + '.mdl'
+        filename = nodeName + '.ref_mdl'
 
         implname = IMPLEMENTATION_PREFIX + nodeName + '_' + GENMDL
         impl = implDoc.addImplementation(implname)
         impl.setNodeDef(nodedef)
         if len(moduleName):
-            impl.setFile('stdlib/genmdl/' + moduleName + '.mdl')
+            impl.setFile('stdlib/genmdl/materialx/' + moduleName + '.ref_mdl')
         else:
-            impl.setFile('stdlib/genmdl/' + filename)
+            impl.setFile('stdlib/genmdl/materialx/' + filename)
 
         functionName = FUNCTION_PREFIX + nodeName
         functionCallName = functionName
@@ -438,7 +438,7 @@ def main():
 
         # If no module name, create a new mdl file per nodedef
         if len(moduleName) == 0:
-            file = open(outputPath + '/' + filename, 'w+')
+            file = open(outputPath + '/materialx/' + filename, 'w+')
             _writeHeader(file, version)
 
         outType = nodedef.getType()
@@ -898,7 +898,7 @@ def main():
         file.close()
 
     # Save implementation reference file to disk
-    implFileName = moduleName + '_' + GENMDL + '_' + IMPLEMENTATION_STRING + '.mtlx'
+    implFileName = moduleName + '_' + GENMDL + '_' + IMPLEMENTATION_STRING + '.ref_mtlx'
     implPath = os.path.join(outputPath, implFileName)
     print('Wrote implementation file: ' + implPath + '. ' + str(implementedCont) + '/' + str(totalCount) + '\n')
     mx.writeToXmlFile(implDoc, implPath)

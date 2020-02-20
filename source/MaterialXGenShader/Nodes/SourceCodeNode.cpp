@@ -34,7 +34,7 @@ void SourceCodeNode::initialize(const InterfaceElement& element, GenContext& con
     if (_functionSource.empty())
     {
         const FilePath file(impl.getAttribute("file"));
-        if (!readFile(context.resolveSourceFile(file), _functionSource))
+        if (!file.isEmpty() && !readFile(context.resolveSourceFile(file), _functionSource))
         {
             throw ExceptionShaderGenError("Can't find source file '" + file.asString() +
                 "' used by implementation '" + impl.getName() + "'");

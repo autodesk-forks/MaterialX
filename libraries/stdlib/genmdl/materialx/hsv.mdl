@@ -110,7 +110,7 @@ export color mx_rgbtohsv(color c)
     return color(mx_rgbtohsv(float3(c)));
 }
 
-export color4 mx_rgbtohsv(color4 c)
+export color4 mx_rgbtohsv4(color4 c)
 {
     float3 input = float3(c.rgb);
     float3 rgb = mx_rgbtohsv(input);

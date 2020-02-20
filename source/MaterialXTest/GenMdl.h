@@ -28,12 +28,13 @@ class MdlShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
         _testStages.push_back(mx::Stage::PIXEL);
     }
 
-    // Ignore trying to create shader code for lightshaders
+    // Ignore trying to create shader code for the following nodedefs
     void addSkipNodeDefs() override
     {
         _skipNodeDefs.insert("ND_point_light");
         _skipNodeDefs.insert("ND_spot_light");
         _skipNodeDefs.insert("ND_directional_light");
+        _skipNodeDefs.insert("ND_dot_");
         ParentClass::addSkipNodeDefs();
     }
 
@@ -62,7 +63,8 @@ class MdlShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
         whiteList =
         {
             "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
-            "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue", "IM_angle"
+            "volumeshader", "IM_constant_", "IM_dot_", "IM_geomattrvalue", "IM_angle", "IM_worleynoise",
+            "geompropvalue", "surfacematerial", "volumematerial" 
         };
     }
 };
