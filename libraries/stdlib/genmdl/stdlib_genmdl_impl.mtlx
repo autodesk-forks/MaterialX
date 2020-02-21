@@ -872,22 +872,22 @@
   <!-- ======================================================================== -->
 
   <!-- <dot> -->
-  <implementation name="IM_dot_float_genmdl" nodedef="ND_dot_float" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_color2_genmdl" nodedef="ND_dot_color2" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_color3_genmdl" nodedef="ND_dot_color3" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_color4_genmdl" nodedef="ND_dot_color4" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_vector2_genmdl" nodedef="ND_dot_vector2" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_vector3_genmdl" nodedef="ND_dot_vector3" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_vector4_genmdl" nodedef="ND_dot_vector4" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_boolean_genmdl" nodedef="ND_dot_boolean" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_integer_genmdl" nodedef="ND_dot_integer" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_matrix33_genmdl" nodedef="ND_dot_matrix33" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_matrix44_genmdl" nodedef="ND_dot_matrix44" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_string_genmdl" nodedef="ND_dot_string" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_filename_genmdl" nodedef="ND_dot_filename" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_surfaceshader_genmdl" nodedef="ND_dot_surfaceshader" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_displacementshader_genmdl" nodedef="ND_dot_displacementshader" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_volumeshader_genmdl" nodedef="ND_dot_volumeshader" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
-  <implementation name="IM_dot_lightshader_genmdl" nodedef="ND_dot_lightshader" file="stdlib/genmdl/mx_dot.inline" language="genmdl"/>
+  <implementation name="IM_dot_float_genmdl" nodedef="ND_dot_float" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_color2_genmdl" nodedef="ND_dot_color2" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_color3_genmdl" nodedef="ND_dot_color3" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_color4_genmdl" nodedef="ND_dot_color4" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_vector2_genmdl" nodedef="ND_dot_vector2" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_vector3_genmdl" nodedef="ND_dot_vector3" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_vector4_genmdl" nodedef="ND_dot_vector4" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_boolean_genmdl" nodedef="ND_dot_boolean" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_integer_genmdl" nodedef="ND_dot_integer" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_matrix33_genmdl" nodedef="ND_dot_matrix33" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_matrix44_genmdl" nodedef="ND_dot_matrix44" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_string_genmdl" nodedef="ND_dot_string" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_filename_genmdl" nodedef="ND_dot_filename" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_surfaceshader_genmdl" nodedef="ND_dot_surfaceshader" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_displacementshader_genmdl" nodedef="ND_dot_displacementshader" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_volumeshader_genmdl" nodedef="ND_dot_volumeshader" sourcecode="{{in}}" language="genmdl"/>
+  <implementation name="IM_dot_lightshader_genmdl" nodedef="ND_dot_lightshader" sourcecode="{{in}}" language="genmdl"/>
 
 </materialx>
