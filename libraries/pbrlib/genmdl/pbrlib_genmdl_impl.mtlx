@@ -89,10 +89,10 @@
   <implementation name="IM_roughness_dual_genmdl" nodedef="ND_roughness_dual" sourcecode="mx::pbrlib::mx_roughness_dual(mxp_roughness:{{roughness}})" language="genmdl"/>
 
   <!-- <complex_ior> -->
-  <implementation name="IM_complex_ior_genmdl" nodedef="ND_complex_ior" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
+  <implementation name="IM_complex_ior_genmdl" nodedef="ND_complex_ior" sourcecode="mx::pbrlib::mx_complex_ior(mxp_ior:{{ior}}, mxp_extinction:{{extinction}})" language="genmdl"/>
 
   <!-- <artistic_ior> -->
-  <implementation name="IM_artistic_ior_genmdl" nodedef="ND_artistic_ior" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
+  <implementation name="IM_artistic_ior_genmdl" nodedef="ND_artistic_ior" sourcecode="mx::pbrlib::mx_artistic_ior(mxp_reflectivity:{{reflectivity}}, mxp_edge_color:{{edge_color}})" language="genmdl"/>
 
   <!-- <blackbody> -->
   <implementation name="IM_blackbody_genmdl" nodedef="ND_blackbody" sourcecode="mx::pbrlib::mx_blackbody(mxp_temperature:{{temperature}})" language="genmdl"/>

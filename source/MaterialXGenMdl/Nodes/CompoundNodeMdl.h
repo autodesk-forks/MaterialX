@@ -17,9 +17,12 @@ class CompoundNodeMdl : public CompoundNode
   public:
     static ShaderNodeImplPtr create();
 
+    void initialize(const InterfaceElement& element, GenContext& context) override;
     void emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
-
     void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
+
+protected:
+    string _returnStruct;
 };
 
 } // namespace MaterialX

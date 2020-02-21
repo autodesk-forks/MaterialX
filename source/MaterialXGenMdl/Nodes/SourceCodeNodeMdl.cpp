@@ -18,6 +18,35 @@ ShaderNodeImplPtr SourceCodeNodeMdl::create()
     return std::make_shared<SourceCodeNodeMdl>();
 }
 
+void SourceCodeNodeMdl::initialize(const InterfaceElement& element, GenContext& context)
+{
+    SourceCodeNode::initialize(element, context);
+
+    const Implementation& impl = static_cast<const Implementation&>(element);
+    NodeDefPtr nodeDef = impl.getNodeDef();
+    if (!nodeDef)
+    {
+        throw ExceptionShaderGenError("Can't find nodedef for implementation element " + element.getName());
+    }
+
+    _returnStruct = EMPTY_STRING;
+    if (nodeDef->getOutputCount() > 1)
+    {
+        if (_functionName.empty())
+        {
+            size_t pos2 = _functionSource.find_first_of("(");
+            size_t pos1 = _functionSource.find_last_of(":", pos2);
+            pos1 = (pos1 == string::npos ? 0 : pos1 + 1);
+            string functionName = _functionSource.substr(pos1, pos2 - pos1);
+            _returnStruct = functionName + "__result";
+        }
+        else
+        {
+            _returnStruct = _functionName + "__result";
+        }
+    }
+}
+
 void SourceCodeNodeMdl::emitFunctionDefinition(const ShaderNode&, GenContext&, ShaderStage&) const
 {
 }
@@ -28,21 +57,97 @@ void SourceCodeNodeMdl::emitFunctionCall(const ShaderNode& node, GenContext& con
         const ShaderGenerator& shadergen = context.getShaderGenerator();
         if (_inlined)
         {
-            SourceCodeNode::emitFunctionCall(node, context, stage);
+            // An inline function call
+
+            static const string prefix("{{");
+            static const string postfix("}}");
+
+            size_t pos = 0;
+            size_t i = _functionSource.find_first_of(prefix);
+            StringSet variableNames;
+            StringVec code;
+            while (i != string::npos)
+            {
+                code.push_back(_functionSource.substr(pos, i - pos));
+                size_t j = _functionSource.find_first_of(postfix, i + 2);
+                if (j == string::npos)
+                {
+                    throw ExceptionShaderGenError("Malformed inline expression in implementation for node " + node.getName());
+                }
+
+                const string variable = _functionSource.substr(i + 2, j - i - 2);
+                const ShaderInput* input = node.getInput(variable);
+                if (!input)
+                {
+                    throw ExceptionShaderGenError("Could not find an input named '" + variable +
+                        "' on node '" + node.getName() + "'");
+                }
+
+                if (input->getConnection())
+                {
+                    code.push_back(shadergen.getUpstreamResult(input, context));
+                }
+                else
+                {
+                    string variableName = node.getName() + "_" + input->getName() + "_tmp";
+                    if (!variableNames.count(variableName))
+                    {
+                        ShaderPort v(nullptr, input->getType(), variableName, input->getValue());
+                        shadergen.emitLineBegin(stage);
+                        const Syntax& syntax = shadergen.getSyntax();
+                        const string valueStr = (v.getValue() ? syntax.getValue(v.getType(), *v.getValue()) : syntax.getDefaultValue(v.getType()));
+                        const string& qualifier = syntax.getConstantQualifier();
+                        string str = qualifier.empty() ? EMPTY_STRING : qualifier + " ";
+                        str += syntax.getTypeName(v.getType()) + " " + v.getVariable();
+                        str += valueStr.empty() ? EMPTY_STRING : " = " + valueStr;
+                        shadergen.emitString(str, stage);
+                        shadergen.emitLineEnd(stage);
+                        variableNames.insert(variableName);
+                    }
+                    code.push_back(variableName);
+                }
+
+                pos = j + 2;
+                i = _functionSource.find_first_of(prefix, pos);
+            }
+            code.push_back(_functionSource.substr(pos));
+
+            if (!_returnStruct.empty())
+            {
+                // Emit the struct multioutput.
+                const string resultVariableName = node.getName() + "_result";
+                shadergen.emitLineBegin(stage);
+                shadergen.emitString(_returnStruct + " " + resultVariableName + " = ", stage);
+            }
+            else
+            {
+                // Emit the single output.
+                shadergen.emitLineBegin(stage);
+                shadergen.emitOutput(node.getOutput(0), true, false, context, stage);
+                shadergen.emitString(" = ", stage);
+            }
+
+            for (const string& c : code)
+            {
+                shadergen.emitString(c, stage);
+            }
+            shadergen.emitLineEnd(stage);
         }
         else
         {
             // An ordinary source code function call
-            shadergen.emitLineBegin(stage);
 
-            // Declare the output variables. Only output 1 for now 
-            // as multioutput requires building a struct
-            if (node.numOutputs())
+            if (!_returnStruct.empty())
             {
-                //shadergen.emitOutput(node.getOutput(0), true, true, context, stage);
-                //shadergen.emitLineEnd(stage);
-
-                // Emit node outputs. Only output 1 for now
+                // Emit the struct multioutput.
+                const string resultVariableName = node.getName() + "_result";
+                shadergen.emitLineBegin(stage);
+                shadergen.emitString(_returnStruct + " " + resultVariableName + " = ", stage);
+            }
+            else
+            {
+                // Emit the single output.
+                shadergen.emitLineBegin(stage);
                 shadergen.emitOutput(node.getOutput(0), true, false, context, stage);
                 shadergen.emitString(" = ", stage);
             }

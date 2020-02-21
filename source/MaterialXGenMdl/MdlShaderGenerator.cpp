@@ -288,7 +288,7 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
             "    surface: material_surface(\n"
             "        emission : material_emission(\n"
             "            emission : df::diffuse_edf(),\n"
-            "            intensity : finalOutput__,\n"
+            "            intensity : finalOutput__ * math::PI,\n"
             "            mode : intensity_radiant_exitance\n"
             "        )\n"
             "    )\n"
@@ -314,6 +314,41 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
     replaceTokens(_tokenSubstitutions, stage);
 
     return shader;
+}
+
+string MdlShaderGenerator::getUpstreamResult(const ShaderInput* input, GenContext& context) const
+{
+    const ShaderOutput* upstreamOutput = input->getConnection();
+    if (!upstreamOutput || upstreamOutput->getNode()->isAGraph())
+    {
+        return ShaderGenerator::getUpstreamResult(input, context);
+    }
+
+    string variable;
+    const ShaderNode* upstreamNode = upstreamOutput->getNode();
+    if (upstreamNode->numOutputs() > 1)
+    {
+        variable = upstreamNode->getName() + "_result." + upstreamOutput->getName();
+    }
+    else
+    {
+        variable = upstreamOutput->getVariable();
+    }
+
+    if (!input->getChannels().empty())
+    {
+        variable = _syntax->getSwizzledVariable(variable, input->getConnection()->getType(), input->getChannels(), input->getType());
+    }
+
+    // Look for any additional suffix to append
+    string suffix;
+    context.getInputSuffix(input, suffix);
+    if (!suffix.empty())
+    {
+        variable += suffix;
+    }
+
+    return variable;
 }
 
 ShaderPtr MdlShaderGenerator::createShader(const string& name, ElementPtr element, GenContext& context) const
