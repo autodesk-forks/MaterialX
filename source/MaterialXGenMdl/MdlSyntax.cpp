@@ -217,7 +217,7 @@ MdlSyntax::MdlSyntax()
 
     // Register restricted tokens in MDL
     StringMap tokens;
-    tokens["__"] = "u_";
+    tokens["\\b(_)"] = "u"; // Disallow names which begin with underscores
     registerInvalidTokens(tokens);
 
     //
