@@ -215,6 +215,11 @@ MdlSyntax::MdlSyntax()
         "typeid", "typename", "union", "unsigned", "virtual", "void", "volatile", "wchar_t"
     });
 
+    // Register restricted tokens in MDL
+    StringMap tokens;
+    tokens["__"] = "u_";
+    registerInvalidTokens(tokens);
+
     //
     // Register type syntax handlers for each data type.
     //
