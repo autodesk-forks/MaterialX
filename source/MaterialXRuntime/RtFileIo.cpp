@@ -36,6 +36,7 @@ namespace
     static const RtTokenSet genericMetadata     = { RtToken("name"), RtToken("kind") };
     static const RtTokenSet stageMetadata       = {};
 
+    static const RtToken DEFAULT_OUTPUT("out");
     static const RtToken MULTIOUTPUT("multioutput");
 
     PvtPrim* findPrimOrThrow(const RtToken& name, PvtPrim* parent)
@@ -981,8 +982,8 @@ namespace
             {
                 NodePtr mxNode = writeNode(prim, doc);
                 RtNode node(prim->hnd());
-                RtNodeDef nodedef(node.getNodeDef());
-                if (nodedef.getTypeInfo().getShortTypeName() == MATERIAL_TYPE_STRING && writeOptions &&
+                const RtOutput& output = node.getOutput(DEFAULT_OUTPUT);
+                if (output && output.getType() == MATERIAL_TYPE_STRING && writeOptions &&
                     writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
                 {
                     writeMaterialElement(mxNode, doc, writeOptions);
