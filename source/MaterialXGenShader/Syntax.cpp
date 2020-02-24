@@ -10,6 +10,8 @@
 
 #include <MaterialXCore/Value.h>
 
+#include <regex>
+
 namespace MaterialX
 {
 
@@ -297,9 +299,10 @@ static bool isInvalidChar(char c)
 void Syntax::makeValidName(string& name) const
 {
     std::replace_if(name.begin(), name.end(), isInvalidChar, '_');
-    if (_invalidTokens.size())
+    for (auto tokenPair : _invalidTokens)
     {
-        name = replaceSubstrings(name, _invalidTokens);
+        std::regex expression(tokenPair.first);
+        name = std::regex_replace(name, expression, tokenPair.second);
     }
 }
 

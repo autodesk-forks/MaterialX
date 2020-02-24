@@ -134,8 +134,10 @@ void MdlShaderGeneratorTester::compileSource(const std::vector<mx::FilePath>& so
     }
     mx::FilePath currentPath = mx::FilePath::getCurrentPath();
     mx::FilePath coreModulePath = currentPath / mx::FilePath("libraries/stdlib/genmdl");
+    mx::FilePath coreModulePath2 = coreModulePath / mx::FilePath("materialx");
     mdlcCommand += " -p \"" + currentPath.asString() + "\"";
     mdlcCommand += " -p \"" + coreModulePath.asString() + "\"";
+    mdlcCommand += " -p \"" + coreModulePath2.asString() + "\"";
     mdlcCommand += " -p \"" + moduleToTestPath.asString() + "\"";
     mdlcCommand += " -W \"181=off\" -W \"183=off\"  -W \"225=off\"";
     mdlcCommand += " " + moduleToTest;

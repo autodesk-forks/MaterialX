@@ -1051,7 +1051,8 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                 }
                 else
                 {
-                    mx::NodePtr materialNode = mat->getMaterialElement() ? mat->getMaterialElement()->asA<mx::Node>() : nullptr;
+                    mx::TypedElementPtr mtrlElem = mat->getMaterialElement();
+                    mx::NodePtr materialNode = mtrlElem ? mtrlElem->asA<mx::Node>() : nullptr;
                     if (materialNode)
                     {
                         for (mx::MeshPartitionPtr part : _geometryList)

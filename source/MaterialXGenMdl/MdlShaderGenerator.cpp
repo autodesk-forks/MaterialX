@@ -52,6 +52,7 @@ namespace
         "import ::mx::cm::*",
         "using ::mx::stdlib import *",
         "using ::mx::core import *",
+        "using ::mx::sampling import *",
     };
 }
 

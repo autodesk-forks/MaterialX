@@ -4,7 +4,6 @@
     <shaderref name="example1_surface" node="standard_surface">
       <bindinput name="normal" type="vector3" output="outNormal" />
       <bindinput name="specular_roughness" type="float" value="0.2" />
-      <bindparam name="specular_IOR" type="float" value="2" />
     </shaderref>
   </material>
   <texcoord name="texcoord1" type="vector2" />
@@ -26,7 +25,6 @@
     <input name="diffuse_roughness" type="float" />
     <input name="specular_reflectance" type="color3" />
     <input name="specular_roughness" type="float" />
-    <input name="specular_IOR" type="float" />
     <output name="out" type="surfaceshader" />
   </nodedef>
   <nodegraph name="IMP_testshader2" nodedef="ND_testshader2">
@@ -45,7 +43,6 @@
       <input name="base" type="BSDF" nodename="diffuse" />
       <input name="tint" type="color3" interfacename="specular_reflectance" />
       <input name="roughness" type="vector2" nodename="roughness1" />
-      <input name="ior" type="float" interfacename="specular_IOR" />
     </dielectric_brdf>
     <surface name="surface1" type="surfaceshader">
       <input name="bsdf" type="BSDF" nodename="coating" />
@@ -57,7 +54,6 @@
       <bindinput name="diffuse_reflectance" type="color3" value="0.8, 0.2, 0.8" />
       <bindinput name="specular_reflectance" type="color3" value="1, 1, 1" />
       <bindinput name="specular_roughness" type="float" value="0.2" />
-      <bindparam name="specular_IOR" type="float" value="2" />
     </shaderref>
   </material>
 
@@ -123,7 +119,6 @@
     <input name="specular_color_map" type="filename" />
     <input name="specular_roughness" type="float" />
     <input name="specular_roughness_map" type="filename" />
-    <input name="specular_IOR" type="float" />
     <input name="specular_anisotropy" type="float" />
     <input name="metalness" type="float" />
     <input name="metalness_map" type="filename" />
@@ -212,7 +207,6 @@
       <input name="specular" type="float" nodename="specular" />
       <input name="specular_color" type="color3" nodename="specular_color" />
       <input name="specular_roughness" type="float" nodename="specular_roughness" />
-      <input name="specular_IOR" type="float" interfacename="specular_IOR" />
       <input name="specular_anisotropy" type="float" interfacename="specular_anisotropy" />
       <input name="metalness" type="float" nodename="metalness" />
       <input name="transmission" type="float" nodename="transmission" />
@@ -236,7 +230,6 @@
       <bindinput name="base_color" type="color3" value="1, 1, 1" />
       <bindinput name="specular" type="float" value="1" />
       <bindinput name="specular_color" type="color3" value="1, 1, 1" />
-      <bindparam name="specular_IOR" type="float" value="1.52" />
       <bindinput name="specular_roughness" type="float" value="0.1" />
       <bindinput name="coat_IOR" type="float" value="3" />
     </shaderref>
@@ -244,7 +237,6 @@
   <material name="example5">
     <shaderref name="example5_surface" node="standard_surface">
       <bindinput name="specular_roughness" type="float" value="0.123" />
-      <bindparam name="specular_IOR" type="float" value="2" />
     </shaderref>
   </material>
 </materialx>

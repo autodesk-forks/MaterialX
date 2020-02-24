@@ -58,7 +58,7 @@ export float4 mx_acescg_to_linear_color4(float4 mxp_in)
 
 export color4 mx_acescg_to_linear_color4(color4 mxp_in)
 {
-    return mk_color4(mx_acescg_to_linear_color4(mk_float4(mxp_in.rgb)));
+    return mk_color4(mx_acescg_to_linear_color4(mk_float4(mxp_in)));
 }
 
 export float3 mx_gamma18_to_linear_color3(float3 mxp_in)
