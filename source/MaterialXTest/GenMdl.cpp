@@ -179,7 +179,8 @@ TEST_CASE("GenShader: MDL Shader Generation", "[genmdl]")
     MdlShaderGeneratorTester tester(mx::MdlShaderGenerator::create(), testRootPaths, libSearchPath, srcSearchPath, logPath, writeShadersToDisk);
     tester.addSkipLibraryFiles();
 
-    const mx::GenOptions genOptions;
+    mx::GenOptions genOptions;
+    genOptions.targetColorSpaceOverride = "lin_rec709";
     mx::FilePath optionsFilePath = testRootPath / mx::FilePath("_options.mtlx");
     tester.validate(genOptions, optionsFilePath);
 }
