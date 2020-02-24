@@ -882,7 +882,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, world.data());
+            glUniformMatrix4fv(location, 1, false, world.getTranspose().data());
         }
     }
     input = uniformList.find(HW::WORLD_TRANSPOSE_MATRIX);
@@ -891,7 +891,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, world.getTranspose().data());
+            glUniformMatrix4fv(location, 1, false, world.data());
         }
     }
     input = uniformList.find(HW::WORLD_INVERSE_MATRIX);
@@ -900,7 +900,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, invWorld.data());
+            glUniformMatrix4fv(location, 1, false, invWorld.getTranspose().data());
         }
     }
     input = uniformList.find(HW::WORLD_INVERSE_TRANSPOSE_MATRIX);
@@ -909,7 +909,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, invTransWorld.getTranspose().data());
+            glUniformMatrix4fv(location, 1, false, invTransWorld.data());
         }
     }
 
@@ -921,7 +921,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, proj.data());
+            glUniformMatrix4fv(location, 1, false, proj.getTranspose().data());
         }
     }
     input = uniformList.find(HW::PROJ_TRANSPOSE_MATRIX);
@@ -930,7 +930,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, proj.getTranspose().data());
+            glUniformMatrix4fv(location, 1, false, proj.data());
         }
     }
     Matrix44 projInverse= proj.getInverse();
@@ -940,7 +940,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, projInverse.data());
+            glUniformMatrix4fv(location, 1, false, projInverse.getTranspose().data());
         }
     }
     input = uniformList.find(HW::PROJ_INVERSE_TRANSPOSE_MATRIX);
@@ -949,7 +949,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, projInverse.getTranspose().data());
+            glUniformMatrix4fv(location, 1, false, projInverse.data());
         }
     }
 
@@ -961,7 +961,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, view.data());
+            glUniformMatrix4fv(location, 1, false, view.getTranspose().data());
         }
     }
     input = uniformList.find(HW::VIEW_TRANSPOSE_MATRIX);
@@ -970,7 +970,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, view.getTranspose().data());
+            glUniformMatrix4fv(location, 1, false, view.data());
         }
     }
     Matrix44 viewInverse = view.getInverse();
@@ -980,7 +980,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, viewInverse.data());
+            glUniformMatrix4fv(location, 1, false, viewInverse.getTranspose().data());
         }
     }
     input = uniformList.find(HW::VIEW_INVERSE_TRANSPOSE_MATRIX);
@@ -989,7 +989,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, viewInverse.getTranspose().data());
+            glUniformMatrix4fv(location, 1, false, viewInverse.data());
         }
     }
     
@@ -1013,7 +1013,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, viewProjWorld.data());
+            glUniformMatrix4fv(location, 1, false, viewProjWorld.getTranspose().data());
         }
     } 
 

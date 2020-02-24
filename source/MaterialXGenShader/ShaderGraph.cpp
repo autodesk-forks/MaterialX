@@ -259,7 +259,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
         const string& geomProp = geomprop.getGeomProp();
         if (!geomProp.empty())
         {
-            ShaderInput* geomPropInput = geomNode->getInput("geomprop");
+            ShaderInput* geomPropInput = geomNode->getInput(GeomPropDef::GEOM_PROP_ATTRIBUTE);
             if (geomPropInput)
             {
                 geomPropInput->setValue(Value::createValue<string>(geomProp));
