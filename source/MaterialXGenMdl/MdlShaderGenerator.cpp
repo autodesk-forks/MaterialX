@@ -7,6 +7,8 @@
 
 #include <MaterialXGenMdl/MdlSyntax.h>
 #include <MaterialXGenMdl/Nodes/CompoundNodeMdl.h>
+#include <MaterialXGenMdl/Nodes/SourceCodeNodeMdl.h>
+#include <MaterialXGenMdl/Nodes/SurfaceNodeMdl.h>
 
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Shader.h>
@@ -17,7 +19,7 @@
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/IfNode.h>
 #include <MaterialXGenShader/Nodes/BlurNode.h>
-#include <MaterialXGenMdl/Nodes/SourceCodeNodeMdl.h>
+
 
 namespace MaterialX
 {
@@ -67,6 +69,9 @@ MdlShaderGenerator::MdlShaderGenerator() :
     ShaderGenerator(MdlSyntax::create())
 {
     // Register build-in implementations
+
+    // <!-- <surface> -->
+    registerImplementation("IM_surface_" + MdlShaderGenerator::LANGUAGE, SurfaceNodeMdl::create);
 
     // <!-- <switch> -->
     // <!-- 'which' type : float -->

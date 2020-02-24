@@ -47,7 +47,7 @@
   <implementation name="IM_anisotropic_vdf_genmdl" nodedef="ND_anisotropic_vdf" sourcecode="mx::pbrlib::mx_anisotropic_vdf(mxp_absorption:{{absorption}}, mxp_scattering:{{scattering}}, mxp_anisotropy:{{anisotropy}})" language="genmdl"/>
 
   <!-- <surface> -->
-  <implementation name="IM_surface_genmdl" nodedef="ND_surface" sourcecode="mx::pbrlib::mx_surface(mxp_bsdf:{{bsdf}}, mxp_edf:{{edf}}, mxp_opacity:{{opacity}})" language="genmdl"/>
+  <implementation name="IM_surface_genmdl" nodedef="ND_surface" language="genmdl"/>
 
   <!-- <thin_surface> -->
   <implementation name="IM_thin_surface_genmdl" nodedef="ND_thin_surface" sourcecode="mx::pbrlib::mx_thin_surface(mxp_front_bsdf:{{front_bsdf}}, mxp_front_edf:{{front_edf}}, (mxp_back_bsdf:{{back_bsdf}}, mxp_back_edf:{{back_edf}}, mxp_opacity:{{opacity}})" language="genmdl"/>
