@@ -275,6 +275,22 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
         emitLineBreak(stage);
     }
 
+    // TODO: This is a temporary fix for Iray.
+    // Emit file texture constructors inside the shader body
+    const VariableBlock& inputs = stage.getInputBlock(MDL::INPUTS);
+    for (size_t i = 0; i < inputs.size(); ++i)
+    {
+        const ShaderPort* input = inputs[i];
+        if (input->getType() == Type::FILENAME)
+        {
+            const string& type = _syntax->getTypeName(input->getType());
+            const string value = (input->getValue() ?
+                _syntax->getValue(input->getType(), *input->getValue(), true) :
+                _syntax->getDefaultValue(input->getType(), true));
+            emitLine(type + " " + input->getVariable() + " = " + value, stage);
+        }
+    }
+
     // Emit function calls for all nodes
     emitFunctionCalls(graph, context, stage);
 
@@ -400,6 +416,13 @@ void MdlShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
     for (size_t i = 0; i < inputs.size(); ++i)
     {
         const ShaderPort* input = inputs[i];
+
+        // TODO: This is a temporary for for Iray.
+        // File texture constructors must be emitted inside the shader body.
+        if (input->getType() == Type::FILENAME)
+        {
+            continue;
+        }
 
         const string& qualifier = input->isUniform() ? uniformPrefix : EMPTY_STRING;
         const string& type = _syntax->getTypeName(input->getType());
