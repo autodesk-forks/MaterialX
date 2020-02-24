@@ -909,7 +909,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, invTransWorld.data());
+            glUniformMatrix4fv(location, 1, false, invTransWorld.getTranspose().data());
         }
     }
 
@@ -1001,7 +1001,7 @@ void GlslProgram::bindViewInformation(ViewHandlerPtr viewHandler)
         location = input->second->location;
         if (location >= 0)
         {
-            glUniformMatrix4fv(location, 1, false, viewProj.data());
+            glUniformMatrix4fv(location, 1, false, viewProj.getTranspose().data());
         }
     }
 
