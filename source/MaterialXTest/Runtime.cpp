@@ -1422,8 +1422,6 @@ TEST_CASE("Runtime: materials", "[runtime]")
 {
     mx::RtScopedApiHandle api;
 
-    mx::RtStagePtr stage = api->createStage(ROOT);
-
     // Load in all libraries required for materials
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
