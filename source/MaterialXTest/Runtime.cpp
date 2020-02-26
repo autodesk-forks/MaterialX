@@ -1181,14 +1181,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     assign2.getExclusive().getValue().asBool() = false;
     look1.addMaterialAssign(pa);
     look1.addMaterialAssign(pa2);
-    try
-    {
-        look1.addMaterialAssign(col1.getPrim());
-    }
-    catch (mx::ExceptionRuntimeError&)
-    {
-        REQUIRE(true);
-    }
+    REQUIRE_THROWS(look1.addMaterialAssign(col1.getPrim()));
 
     mx::RtConnectionIterator iter3 = look1.getMaterialAssigns().getTargets();
     REQUIRE(look1.getMaterialAssigns().targetCount() == 2);
@@ -1379,14 +1372,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     mx::RtLookGroup lookgroup3(lg3);
     lookgroup2.addLook(lg3);
     lookgroup2.addLook(lo2);
-    try
-    {
-        lookgroup2.addLook(assign2.getPrim());
-    }
-    catch (mx::ExceptionRuntimeError&)
-    {
-        REQUIRE(true);
-    }
+    REQUIRE_THROWS(lookgroup2.addLook(assign2.getPrim()));
+
     iter = lookgroup2.getLooks().getTargets();
     REQUIRE(!iter.isDone());
     REQUIRE((*iter) == lg3);
