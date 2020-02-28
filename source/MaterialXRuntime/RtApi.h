@@ -81,6 +81,16 @@ public:
     /// to append to the current search path.
     void setSearchPath(const FileSearchPath& searchPath);
 
+    void setTextureSearchPath(const FileSearchPath& searchPath);
+
+    void setImplementationSearchPath(const FileSearchPath& searchPath);
+
+    const FileSearchPath& getSearchPath() const;
+
+    const FileSearchPath& getTextureSearchPath() const;
+
+    const FileSearchPath& getImplementationSearchPath() const;
+
     /// Load a library.
     void loadLibrary(const RtToken& name);
 

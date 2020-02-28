@@ -93,6 +93,31 @@ public:
         _searchPaths.append(searchPath);
     }
 
+    void setTextureSearchPath(const FileSearchPath& searchPath)
+    {
+        _textureSearchPaths.append(searchPath);
+    }
+
+    void setImplementationSearchPath(const FileSearchPath& searchPath)
+    {
+        _implementationSearchPaths.append(searchPath);
+    }
+
+    const FileSearchPath& getSearchPath() const
+    {
+        return _searchPaths;
+    }
+
+    const FileSearchPath& getTextureSearchPath() const
+    {
+        return _textureSearchPaths;
+    }
+
+    const FileSearchPath& getImplementationSearchPath() const
+    {
+        return _implementationSearchPaths;
+    }
+
     void loadLibrary(const RtToken& name)
     {
         // If already loaded unload the old first,
@@ -236,6 +261,8 @@ public:
     }
 
     FileSearchPath _searchPaths;
+    FileSearchPath _implementationSearchPaths;
+    FileSearchPath _textureSearchPaths;
     RtStagePtr _libraryRoot;
     RtTokenMap<RtStagePtr> _libraries;
 
@@ -334,6 +361,31 @@ RtPrimIterator RtApi::getMasterPrims(RtObjectPredicate predicate)
 void RtApi::setSearchPath(const FileSearchPath& searchPath)
 {
     _cast(_ptr)->setSearchPath(searchPath);
+}
+
+void RtApi::setTextureSearchPath(const FileSearchPath& searchPath)
+{
+    _cast(_ptr)->setTextureSearchPath(searchPath);
+}
+
+void RtApi::setImplementationSearchPath(const FileSearchPath& searchPath)
+{
+    _cast(_ptr)->setImplementationSearchPath(searchPath);
+}
+
+const FileSearchPath& RtApi::getSearchPath() const
+{
+    return _cast(_ptr)->getSearchPath();
+}
+
+const FileSearchPath& RtApi::getTextureSearchPath() const
+{
+    return _cast(_ptr)->getTextureSearchPath();
+}
+
+const FileSearchPath& RtApi::getImplementationSearchPath() const
+{
+    return _cast(_ptr)->getImplementationSearchPath();
 }
 
 void RtApi::loadLibrary(const RtToken& name)
