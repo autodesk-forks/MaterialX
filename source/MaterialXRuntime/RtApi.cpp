@@ -88,6 +88,22 @@ public:
         return RtPrimIterator(_masterPrimRoot, predicate);
     }
 
+    void clearSearchPath()
+    {
+        _searchPaths.clear();
+    }
+
+    void clearTextureSearchPath()
+    {
+        _textureSearchPaths.clear();
+    }
+
+    void clearImplementationSearchPath()
+    {
+        _implementationSearchPaths.clear();
+    }
+
+
     void setSearchPath(const FileSearchPath& searchPath)
     {
         _searchPaths.append(searchPath);
@@ -356,6 +372,21 @@ RtPrim RtApi::getMasterPrim(const RtToken& name)
 RtPrimIterator RtApi::getMasterPrims(RtObjectPredicate predicate)
 {
     return RtPrimIterator(_cast(_ptr)->_masterPrimRoot, predicate);
+}
+
+void RtApi::clearSearchPath()
+{
+    _cast(_ptr)->clearSearchPath();
+}
+
+void RtApi::clearTextureSearchPath()
+{
+    _cast(_ptr)->clearTextureSearchPath();
+}
+
+void RtApi::clearImplementationSearchPath()
+{
+    _cast(_ptr)->clearImplementationSearchPath();
 }
 
 void RtApi::setSearchPath(const FileSearchPath& searchPath)
