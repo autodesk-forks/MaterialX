@@ -9,6 +9,7 @@
 #include <MaterialXGenMdl/Nodes/CompoundNodeMdl.h>
 #include <MaterialXGenMdl/Nodes/SourceCodeNodeMdl.h>
 #include <MaterialXGenMdl/Nodes/SurfaceNodeMdl.h>
+#include <MaterialXGenMdl/Nodes/HeightToNormalNodeMdl.h>
 
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Shader.h>
@@ -19,7 +20,6 @@
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/IfNode.h>
 #include <MaterialXGenShader/Nodes/BlurNode.h>
-
 
 namespace MaterialX
 {
@@ -198,6 +198,9 @@ MdlShaderGenerator::MdlShaderGenerator() :
     registerImplementation("IM_blur_vector2_" + MdlShaderGenerator::LANGUAGE, BlurNode::create);
     registerImplementation("IM_blur_vector3_" + MdlShaderGenerator::LANGUAGE, BlurNode::create);
     registerImplementation("IM_blur_vector4_" + MdlShaderGenerator::LANGUAGE, BlurNode::create);
+
+    // <!-- <heighttonormal> -->
+    registerImplementation("IM_heighttonormal_vector3_" + MdlShaderGenerator::LANGUAGE, HeightToNormalNodeMdl::create);
 }
 
 ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const

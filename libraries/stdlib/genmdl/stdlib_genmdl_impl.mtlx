@@ -851,8 +851,7 @@
   <implementation name="IM_blur_vector4_genmdl" nodedef="ND_blur_vector4" language="genmdl"/>
 
   <!-- <heighttonormal> -->
-  <implementation name="IM_heighttonormal_vector3_genmdl" nodedef="ND_heighttonormal_vector3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_heighttonormal_vector3" language="genmdl" />
-
+  <implementation name="IM_heighttonormal_vector3_genmdl" nodedef="ND_heighttonormal_vector3" language="genmdl" />
 
   <!-- ======================================================================== -->
   <!-- Organization nodes                                                       -->
