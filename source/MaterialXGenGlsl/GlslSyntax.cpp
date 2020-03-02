@@ -396,10 +396,9 @@ bool GlslSyntax::typeSupported(const TypeDesc* type) const
 }
 
 
-bool GlslSyntax::remapEnumeration(const ValueElement& input, const string& value, std::pair<const TypeDesc*, ValuePtr>& result) const
+bool GlslSyntax::remapEnumeration(const string& value, const TypeDesc* type, const string& enumNames, std::pair<const TypeDesc*, ValuePtr>& result) const
 {
     // Early out if not an enum input.
-    const string& enumNames = input.getAttribute(ValueElement::ENUM_ATTRIBUTE);
     if (enumNames.empty())
     {
         return false;
@@ -407,7 +406,6 @@ bool GlslSyntax::remapEnumeration(const ValueElement& input, const string& value
 
     // Don't convert already supported types
     // or filenames and arrays.
-    const TypeDesc* type = TypeDesc::get(input.getType());
     if (typeSupported(type) ||
         type == Type::FILENAME || type->isArray())
     {
@@ -426,7 +424,7 @@ bool GlslSyntax::remapEnumeration(const ValueElement& input, const string& value
         auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
         if (pos == valueElemEnumsVec.end())
         {
-            throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input '" + input.getNamePath() + "'");
+            throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input.");
         }
         const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
         result.second = Value::createValue<int>(index);

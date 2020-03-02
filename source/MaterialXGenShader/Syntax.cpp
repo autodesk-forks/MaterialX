@@ -338,7 +338,7 @@ string Syntax::getVariableName(const string& name, const TypeDesc* /*type*/, Ide
     return variable;
 }
 
-bool Syntax::remapEnumeration(const ValueElement&, const string&, std::pair<const TypeDesc*, ValuePtr>&) const
+bool Syntax::remapEnumeration(const string&, const TypeDesc*, const string&, std::pair<const TypeDesc*, ValuePtr>&) const
 {
     return false;
 }
