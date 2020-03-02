@@ -506,8 +506,8 @@
   <implementation name="IM_transpose_matrix44_genmdl" nodedef="ND_transpose_matrix44" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_transpose_matrix44" language="genmdl" />
 
   <!-- <determinant> -->
-  <implementation name="IM_determinant_matrix33_genmdl" nodedef="ND_determinant_matrix33" sourcecode="mx::stdlib::mx_determinant_matrix3(mxp_in:{{in}})" language="genmdl"/>
-  <implementation name="IM_determinant_matrix44_genmdl" nodedef="ND_determinant_matrix44" sourcecode="mx::stdlib::mx_determinant_matrix4(mxp_in:{{in}})" language="genmdl"/>
+  <implementation name="IM_determinant_matrix33_genmdl" nodedef="ND_determinant_matrix33" sourcecode="mx::stdlib::mx_determinant_matrix33(mxp_in:{{in}})" language="genmdl"/>
+  <implementation name="IM_determinant_matrix44_genmdl" nodedef="ND_determinant_matrix44" sourcecode="mx::stdlib::mx_determinant_matrix44(mxp_in:{{in}})" language="genmdl"/>
 
   <!-- <invertmatrix> -->
   <implementation name="IM_invertmatrix_matrix33_genmdl" nodedef="ND_invertmatrix_matrix33" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_invertmatrix_matrix33" language="genmdl" />
@@ -851,8 +851,7 @@
   <implementation name="IM_blur_vector4_genmdl" nodedef="ND_blur_vector4" language="genmdl"/>
 
   <!-- <heighttonormal> -->
-  <implementation name="IM_heighttonormal_vector3_genmdl" nodedef="ND_heighttonormal_vector3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_heighttonormal_vector3" language="genmdl" />
-
+  <implementation name="IM_heighttonormal_vector3_genmdl" nodedef="ND_heighttonormal_vector3" language="genmdl" />
 
   <!-- ======================================================================== -->
   <!-- Organization nodes                                                       -->

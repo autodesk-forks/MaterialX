@@ -76,3 +76,29 @@ export float3 mx_rotate(float3 mxp_in, float mxp_amount, float3 mxp_axis)
     float4 returnValue = m * float4(mxp_in.x, mxp_in.y, mxp_in.z, 1.0);
     return float3(returnValue.x, returnValue.y, returnValue.z);
 }
+
+export float3x3 mx_divide(float3x3 m1, float3x3 m2)
+{
+    float3x3 result = m1;
+    for (int i=0; i<3; i++)
+    {
+        for (int j=0; j<3; j++)
+        {
+            result[i][j] /= m2[i][j];
+        }
+    }
+    return result;
+}
+
+export float4x4 mx_divide(float4x4 m1, float4x4 m2)
+{
+    float4x4 result = m1;
+    for (int i=0; i<4; i++)
+    {
+        for (int j=0; j<4; j++)
+        {
+            result[i][j] /= m2[i][j];
+        }
+    }
+    return result;
+}

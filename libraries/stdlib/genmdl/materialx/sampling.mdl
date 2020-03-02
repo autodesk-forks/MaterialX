@@ -8,17 +8,16 @@ export const int MX_MAX_SAMPLE_COUNT = 49;
 // Size of all weights for all levels (including level 1)
 export const int MX_WEIGHT_ARRAY_SIZE = 84;
 
-// Q: How to implement this in MDL?
+// This is not available in MDL so just use a "small" number
 float2 dFdx(float2 uv)
 {
-    return uv;
+    return uv+0.0001;
 }
 
 float2 dFdy(float2 uv)
 {
-    return uv;
+    return uv+0.0001;
 }
-
 
 //
 // Function to compute the sample size relative to a texture coordinate

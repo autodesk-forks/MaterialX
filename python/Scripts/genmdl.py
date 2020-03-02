@@ -46,7 +46,7 @@ def _loadLibraries(doc, searchPath, libraryPath):
 def _writeHeader(file, version):
     file.write('mdl ' + version + ';\n')
     file.write('using core import *;\n')
-    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '.::cm::*', '::math::*', '::state::*', '::tex::*', '::state::*',  '.::vectormatrix::*', '.::hsv::*'}
+    IMPORT_LIST = { '::anno::*', '::base::*', '.::swizzle::*', '.::cm::*', '::math::*', '::state::*', '::tex::*', '::state::*',  '.::vectormatrix::*', '.::hsv::*', '.::noise::*'}
     # To verify what are the minimal imports required
     for i in IMPORT_LIST:
         file.write('import' + i + ';\n')
@@ -279,6 +279,52 @@ def _writeOverlay(file, outputType):
         file.write(INDENT + 'overlayval = ::math::lerp(lower, upper, mask);\n')
         file.write(INDENT + 'return ' + outputType + '(::math::lerp(mxp_bg, overlayval, mxp_mix));\n')
 
+def _writeDisjointOver(file, outputType):
+    if outputType == 'float2':
+        file.write(INDENT + 'float2 result;\n')
+        file.write(INDENT + 'float summedAlpha = mxp_fg.y + mxp_bg.y;\n')
+        file.write(INDENT + 'if (summedAlpha <= 1)\n')
+        file.write(INDENT + '{\n')
+        file.write(INDENT + '   result.x = mxp_fg.x + mxp_bg.x;\n')
+        file.write(INDENT + '}\n')
+        file.write(INDENT + 'else\n')
+        file.write(INDENT + '{\n')
+        file.write(INDENT + '    if (::math::abs(mxp_bg.y) < FLOAT_EPS)\n')
+        file.write(INDENT + '    {\n')
+        file.write(INDENT + '      result.x = 0.0;\n')
+        file.write(INDENT + '    }\n')
+        file.write(INDENT + '    else\n')
+        file.write(INDENT + '    {\n')
+        file.write(INDENT + '      result.x = mxp_fg.x + ((mxp_bg.x * (1-mxp_fg.y)) / mxp_bg.y);\n')
+        file.write(INDENT + '    }\n')
+        file.write(INDENT + '}\n')
+        file.write(INDENT + 'result.y = ::math::min(summedAlpha, 1.0);\n')
+        file.write(INDENT + 'result.x = result.x * mxp_mix + (1.0 - mxp_mix) * mxp_bg.x;\n')
+        file.write(INDENT + 'result.y = result.y * mxp_mix + (1.0 - mxp_mix) * mxp_bg.y;\n')
+        file.write(INDENT + 'return result;\n')
+    else:
+        file.write(INDENT + 'color4 result;\n')
+        file.write(INDENT + 'float summedAlpha = mxp_fg.a + mxp_bg.a;\n')
+        file.write(INDENT + 'if (summedAlpha <= 1)\n')
+        file.write(INDENT + '{\n')
+        file.write(INDENT + '   result.rgb = mxp_fg.rgb + mxp_bg.rgb;\n')
+        file.write(INDENT + '}\n')
+        file.write(INDENT + 'else\n')
+        file.write(INDENT + '{\n')
+        file.write(INDENT + '    if (::math::abs(mxp_bg.a) < FLOAT_EPS)\n')
+        file.write(INDENT + '    {\n')
+        file.write(INDENT + '      result.rgb = color(0.0,0.0,0.0);\n')
+        file.write(INDENT + '    }\n')
+        file.write(INDENT + '    else\n')
+        file.write(INDENT + '    {\n')
+        file.write(INDENT + '      result.rgb = mxp_fg.rgb + ((mxp_bg.rgb * (1-mxp_fg.a)) / mxp_bg.a);\n')
+        file.write(INDENT + '    }\n')
+        file.write(INDENT + '}\n')
+        file.write(INDENT + 'result.a = ::math::min(summedAlpha, 1.0);\n')
+        file.write(INDENT + 'result.rgb = result.rgb * mxp_mix + (1.0 - mxp_mix) * mxp_bg.rgb;\n')
+        file.write(INDENT + 'result.a = result.a * mxp_mix + (1.0 - mxp_mix) * mxp_bg.a;\n')
+        file.write(INDENT + 'return result;\n')
+
 def main():
 
     if len(sys.argv) < 2:
@@ -308,10 +354,14 @@ def main():
     DEFINITION_PREFIX = 'ND_'
     IMPLEMENTATION_PREFIX = 'IM_'
     IMPLEMENTATION_STRING = 'impl'
-    GENMDL = 'genmdl/materialx'
+    GENMDL = 'genmdl'
+    DESINATION_FOLDER = 'genmdl/materialx'
 
     # Create target directory if don't exist
-    outputPath = os.path.join(libraryPath, GENMDL)
+    impl_outputPath = os.path.join(libraryPath, GENMDL)
+    if not os.path.exists(impl_outputPath):
+        os.mkdir(impl_outputPath)
+    outputPath = os.path.join(libraryPath, DESINATION_FOLDER)
     if not os.path.exists(outputPath):
         os.mkdir(outputPath)
 
@@ -319,7 +369,7 @@ def main():
 
     # Write to single file if module name specified
     if len(moduleName):
-        file = open(outputPath + '/' + moduleName + '.ref_mdl', 'w+')
+        file = open(outputPath + '/' + moduleName + '_ref.mdl', 'w+')
         _writeHeader(file, version)
 
     # Dictionary to map from MaterialX type declarations
@@ -426,9 +476,9 @@ def main():
         impl = implDoc.addImplementation(implname)
         impl.setNodeDef(nodedef)
         if len(moduleName):
-            impl.setFile('stdlib/genmdl/materialx/' + moduleName + '.ref_mdl')
+            impl.setFile('stdlib/' + DESINATION_FOLDER + '/' + moduleName + '.ref_mdl')
         else:
-            impl.setFile('stdlib/genmdl/materialx/' + filename)
+            impl.setFile('stdlib/' + DESINATION_FOLDER + '/' + filename)
 
         functionName = FUNCTION_PREFIX + nodeName
         functionCallName = functionName
@@ -651,8 +701,8 @@ def main():
                         file.write(INDENT + 'return mk_color4(mk_float4(mxp_in1) / mk_float4(mxp_in2));')
                         wroteImplementation = True
                     elif outputType == 'float3x3' or outputType == 'float4x4':
-                        print('Skip division implementation for ' + outputType + '. Not supported in MDL')
-                        #file.write(INDENT + 'return ' + outputType + '(mxp_in1) / ' + outputType + '(mxp_in2);\n')
+                        file.write(INDENT + 'return vectormatrix::mx_divide(mxp_in1, mxp_in2);\n')
+                        wroteImplementation = True
                     else:
                         file.write(INDENT + 'return mxp_in1 / mxp_in2;\n')
                         wroteImplementation = True
@@ -683,9 +733,9 @@ def main():
                 elif nodeCategory == 'transformmatrix':
                     _writeTransformMatrix(file, nodeName)
                     wroteImplementation = True
-                #elif nodeCategory == 'determinant':
-                #    _writeOneArgumentFunc(file, outputType, 'determinant')
-                #    wroteImplementation = True
+                elif nodeCategory == 'determinant':
+                    _writeOneArgumentFunc(file, outputType, 'vectormatrix::mx_determinant')
+                    wroteImplementation = True
                 elif nodeCategory == 'smoothstep':
                     _writeThreeArgumentFunc(file, outputType, '::math::smoothstep', 'mxp_in', 'mxp_low', 'mxp_high')
                     wroteImplementation = True
@@ -757,6 +807,12 @@ def main():
                     wroteImplementation = True
                 elif nodeCategory == 'outside':
                     _writeOperatorFunc(file, outputType, 'mxp_in', '*', '(1.0 - mxp_mask)')
+                    wroteImplementation = True
+                elif nodeCategory == 'in':
+                    if outputType == 'float2':
+                        _writeOperatorFunc(file, outputType, 'mxp_fg', '*', 'mxp_bg*(1.0-mxp_fg.y)')
+                    else:
+                        _writeOperatorFunc(file, outputType, 'mxp_fg', '*', 'mx_multiply_color4FA(mxp_bg, 1.0-mxp_fg.a)')
                     wroteImplementation = True
                 elif nodeCategory == 'mix':
                     _writeThreeArgumentFunc(file, outputType, '::math::lerp', 'mxp_bg', 'mxp_fg', 'mxp_mix')
@@ -880,6 +936,61 @@ def main():
                     writeNormalMap(file)
                     wroteImplementation = True
 
+                elif nodeCategory == 'premult':
+                    if outputType == 'float2':
+                        file.write(INDENT + 'return float2(mxp_in.x * mxp_in.y, mxp_in.y);\n')
+                    elif outputType == 'color4':
+                        file.write(INDENT + 'return mk_color4(mxp_in.rgb * mxp_in.a, mxp_in.a);\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'unpremult':
+                    if outputType == 'float2':
+                        file.write(INDENT + 'return float2(mxp_in.x / mxp_in.y, mxp_in.y);\n')
+                    elif outputType == 'color4':
+                        file.write(INDENT + 'return mk_color4(mxp_in.rgb / mxp_in.a, mxp_in.a);\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'disjointover':
+                    _writeDisjointOver(file, outputType)
+                    wroteImplementation = True
+                elif nodeCategory == 'mask':
+                    if outputType == 'float2':
+                        file.write(INDENT + 'return (mxp_bg * mxp_fg.y * mxp_mix) + mxp_bg*(1.0-mxp_mix);\n')
+                    elif outputType == 'color4':
+                        file.write(INDENT + 'return mx_add(' +
+                            'mx_multiply_color4FA(mxp_bg,mxp_fg.a*mxp_mix),' +
+                            'mx_multiply_color4FA(mxp_bg, (1.0-mxp_mix)) );\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'matte':
+                    if outputType == 'float2':
+                        file.write(INDENT + 'return ' +
+                        'float2( mxp_fg.x*mxp_fg.y + mxp_bg.x*(1.0-mxp_fg.y), mxp_fg.y + (mxp_bg.y*(1.0-mxp_fg.y)) ) ' +
+                        '* mxp_mix + (mxp_bg * (1.0-mxp_mix));\n')
+                    elif outputType == 'color4':
+                        file.write(INDENT + 'color4 ls = mk_color4(\n')
+                        file.write(INDENT + '        mx_multiply_color3FA(mxp_fg.rgb,mxp_fg.a) +\n')
+                        file.write(INDENT + '        mx_multiply_color3FA(mxp_bg.rgb,(1.0-mxp_fg.a)),\n')
+                        file.write(INDENT + '        mxp_fg.a + (mxp_bg.a*(1.0-mxp_fg.a)) );\n')
+                        file.write(INDENT + 'ls = mx_multiply(ls,mk_color4(mxp_mix));\n')
+                        file.write(INDENT + 'color4 rs = mx_multiply_color4FA(mxp_bg,(1.0-mxp_mix));\n')
+                        file.write(INDENT + 'color4 result = mx_add(ls, rs);\n')
+                        file.write(INDENT + 'return result;\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'out':
+                    if outputType == 'float2':
+                        file.write(INDENT + 'return (mxp_fg*(1.0-mxp_bg.y) * mxp_mix) + (mxp_bg * (1.0-mxp_mix));\n')
+                    elif outputType == 'color4':
+                        file.write(INDENT + 'float4 result =\n')
+                        file.write(INDENT + '    (mk_float4(mxp_fg)*(1.0-mk_float4(mxp_bg).z)  * mxp_mix) +\n')
+                        file.write(INDENT + '    (mk_float4(mxp_bg) * (1.0-mxp_mix));\n')
+                        file.write(INDENT + 'return mk_color4(result);\n')
+                    wroteImplementation = True
+                elif nodeCategory == 'over':
+                    if outputType == 'float2':
+                        file.write(INDENT + 'return mxp_fg + (mxp_bg*(1.0-mxp_fg.y));\n')
+                    elif outputType == 'color4':
+                        file.write(INDENT + 'float4 val = mk_float4(mxp_fg) + (mk_float4(mxp_bg)*(1.0-mk_float4(mxp_fg).y));\n')
+                        file.write(INDENT + 'return mk_color4(val);\n')
+                    wroteImplementation = True
+
                 if wroteImplementation:
                     implementedCont += 1
                 else:
@@ -900,7 +1011,7 @@ def main():
 
     # Save implementation reference file to disk
     implFileName = moduleName + '_gen_' + IMPLEMENTATION_STRING + '.ref_mtlx'
-    implPath = os.path.join(outputPath, implFileName)
+    implPath = os.path.join(impl_outputPath, implFileName)
     print('Wrote implementation file: ' + implPath + '. ' + str(implementedCont) + '/' + str(totalCount) + '\n')
     mx.writeToXmlFile(implDoc, implPath)
 

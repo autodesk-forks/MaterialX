@@ -143,7 +143,7 @@ void ConvolutionNode::emitInputSamplesUV(const ShaderNode& node,
                         sampleSizeFunctionUV + "(" +
                         sampleInputValue + "," +
                         std::to_string(filterSize) + "," +
-                        std::to_string(filterOffset) + ");"
+                        std::to_string(filterOffset) + ")"
                     );
                     shadergen.emitLine(sampleCall, stage);
 
