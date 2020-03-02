@@ -569,7 +569,11 @@ namespace
                 if (!RtApi::get().hasMasterPrim(RtToken(nodedef->getName())))
                 {
                     PvtPrim* prim = readNodeDef(nodedef, stage);
-                    RtNodeDef(prim->hnd()).registerMasterPrim();
+                    RtNodeDef rtnodedef(prim->hnd());
+                    if (!rtnodedef.isMasterPrim())
+                    {
+                        rtnodedef.registerMasterPrim();
+                    }
                 }
             }
         }
@@ -1108,7 +1112,11 @@ void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath
         if (!RtApi::get().hasMasterPrim(RtToken(nodedef->getName())))
         {
             PvtPrim* prim = readNodeDef(nodedef, stage);
-            RtNodeDef(prim->hnd()).registerMasterPrim();
+            RtNodeDef rtnodedef(prim->hnd());
+            if (!rtnodedef.isMasterPrim())
+            {
+                rtnodedef.registerMasterPrim();
+            }
         }
     }
 
