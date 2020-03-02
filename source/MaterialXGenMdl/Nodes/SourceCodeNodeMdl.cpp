@@ -34,10 +34,8 @@ void SourceCodeNodeMdl::initialize(const InterfaceElement& element, GenContext& 
     {
         if (_functionName.empty())
         {
-            size_t pos2 = _functionSource.find_first_of("(");
-            size_t pos1 = _functionSource.find_last_of(":", pos2);
-            pos1 = (pos1 == string::npos ? 0 : pos1 + 1);
-            string functionName = _functionSource.substr(pos1, pos2 - pos1);
+            size_t pos = _functionSource.find_first_of("(");
+            string functionName = _functionSource.substr(0, pos);
             _returnStruct = functionName + "__result";
         }
         else

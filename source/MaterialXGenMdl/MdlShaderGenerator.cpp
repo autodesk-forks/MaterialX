@@ -353,7 +353,7 @@ string MdlShaderGenerator::getUpstreamResult(const ShaderInput* input, GenContex
     const ShaderNode* upstreamNode = upstreamOutput->getNode();
     if (upstreamNode->numOutputs() > 1)
     {
-        variable = upstreamNode->getName() + "_result." + upstreamOutput->getName();
+        variable = upstreamNode->getName() + "_result.mxp_" + upstreamOutput->getName();
     }
     else
     {
