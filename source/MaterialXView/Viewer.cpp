@@ -1172,10 +1172,11 @@ void Viewer::loadShaderSource()
         mx::TypedElementPtr elem = material ? material->getElement() : nullptr;
         if (elem)
         {
-            std::string elementName = elem->getName();
-            std::string baseName = _searchPath[0] / elementName;
-            std::string vertexShaderFile = baseName + "_vs.glsl";
-            std::string pixelShaderFile = baseName + "_ps.glsl";
+            const std::string path = mx::getEnviron("MATERIALX_VIEW_OUTPUT_PATH");
+            const std::string& elementName = elem->getName();
+            const std::string baseName = (path.empty() ? _searchPath[0] : mx::FilePath(path)) / elementName;
+            const std::string vertexShaderFile = baseName + "_vs.glsl";
+            const std::string pixelShaderFile = baseName + "_ps.glsl";
             // Ignore transparency for now as we can't know from the source code 
             // if the shader is transparent or not.
             if (material->loadSource(vertexShaderFile, pixelShaderFile, baseName, false))
