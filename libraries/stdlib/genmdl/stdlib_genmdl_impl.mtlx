@@ -442,10 +442,10 @@
   <implementation name="IM_min_float_genmdl" nodedef="ND_min_float" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
   <implementation name="IM_min_color2_genmdl" nodedef="ND_min_color2" sourcecode="math::min({{in1}}, {{in2}})"  language="genmdl"/>
   <implementation name="IM_min_color2FA_genmdl" nodedef="ND_min_color2FA" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
-  <implementation name="IM_min_color3_genmdl" nodedef="ND_min_color3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_min_color3" language="genmdl" />
-  <implementation name="IM_min_color3FA_genmdl" nodedef="ND_min_color3FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_min_color3FA" language="genmdl" />
-  <implementation name="IM_min_color4_genmdl" nodedef="ND_min_color4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_min_color4" language="genmdl" />
-  <implementation name="IM_min_color4FA_genmdl" nodedef="ND_min_color4FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_min_color4FA" language="genmdl" />
+  <implementation name="IM_min_color3_genmdl" nodedef="ND_min_color3" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_min_color3FA_genmdl" nodedef="ND_min_color3FA" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_min_color4_genmdl" nodedef="ND_min_color4" sourcecode="mx::stdlib::mx_min_color4({{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_min_color4FA_genmdl" nodedef="ND_min_color4FA" sourcecode="mx::stdlib::mx_min_color4({{in1}}, {{in2}})" language="genmdl" />
   <implementation name="IM_min_vector2_genmdl" nodedef="ND_min_vector2" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
   <implementation name="IM_min_vector2FA_genmdl" nodedef="ND_min_vector2FA" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
   <implementation name="IM_min_vector3_genmdl" nodedef="ND_min_vector3" sourcecode="math::min({{in1}}, {{in2}})" language="genmdl"/>
@@ -457,10 +457,10 @@
   <implementation name="IM_max_float_genmdl" nodedef="ND_max_float" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
   <implementation name="IM_max_color2_genmdl" nodedef="ND_max_color2" sourcecode="math::max({{in1}}, {{in2}})"  language="genmdl"/>
   <implementation name="IM_max_color2FA_genmdl" nodedef="ND_max_color2FA" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
-  <implementation name="IM_max_color3_genmdl" nodedef="ND_max_color3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_max_color3" language="genmdl" />
-  <implementation name="IM_max_color3FA_genmdl" nodedef="ND_max_color3FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_max_color3FA" language="genmdl" />
-  <implementation name="IM_max_color4_genmdl" nodedef="ND_max_color4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_max_color4" language="genmdl" />
-  <implementation name="IM_max_color4FA_genmdl" nodedef="ND_max_color4FA" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_max_color4FA" language="genmdl" />
+  <implementation name="IM_max_color3_genmdl" nodedef="ND_max_color3" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_max_color3FA_genmdl" nodedef="ND_max_color3FA" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_max_color4_genmdl" nodedef="ND_max_color4" sourcecode="mx::stdlib::mx_max_color4({{in1}}, {{in2}})" language="genmdl" />
+  <implementation name="IM_max_color4FA_genmdl" nodedef="ND_max_color4FA" sourcecode="mx::stdlib::mx_max_color4({{in1}}, {{in2}})" language="genmdl" />
   <implementation name="IM_max_vector2_genmdl" nodedef="ND_max_vector2" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
   <implementation name="IM_max_vector2FA_genmdl" nodedef="ND_max_vector2FA" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
   <implementation name="IM_max_vector3_genmdl" nodedef="ND_max_vector3" sourcecode="math::max({{in1}}, {{in2}})" language="genmdl"/>
