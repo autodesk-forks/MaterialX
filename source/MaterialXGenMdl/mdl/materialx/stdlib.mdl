@@ -1,0 +1,570 @@
+/*
+ * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// MDL implementation of all Standard Source Nodes of
+//     MaterialX: An Open Standard for Network-Based CG Object Looks
+//     Document v1.37 REV2, January 19, 2020
+//     www.materialx.org 
+// in
+//     NVIDIA Material Definition Language 1.6
+//     Language Specification
+//     Document version 1.6.1, December 16, 2019
+//     www.nvidia.com/mdl
+
+mdl 1.6;
+
+using core import *;
+import swizzle::*;
+import hsv::*;
+
+import ::math::*;
+import ::tex::*;
+import ::state::*;
+import ::anno::*;
+
+// NOTE: To insulate MaterialX names from MDL names, in particular 
+//       conflicts with MDL reserved names, all node names, type names 
+//       and enumeration names are prefixed with 'mx_', while all 
+//       node input parameter names are prefixed with 'mxp_'
+
+// NOTE: We use the ::anno::unused() annotation to mark unsupported parameters
+
+
+// Texture Nodes
+
+// Helper function mapping texture node addressmodes to MDL wrap modes
+::tex::wrap_mode map_addressmode( mx_addressmode_type value) {
+    switch (value) {
+    case mx_addressmode_type_clamp:
+        return ::tex::wrap_clamp;
+    case mx_addressmode_type_mirror:
+        return ::tex::wrap_mirrored_repeat;
+    default:
+        return ::tex::wrap_repeat;
+    }
+}
+
+// NOTE: need to map MaterialX return type overloads to different function names
+//       or we require the mx_default to be always set explicitly
+export color mx_image_color3( 
+    uniform texture_2d mxp_file = texture_2d(),
+    uniform string mxp_layer = "" [[ ::anno::unused() ]],
+    uniform color  mxp_default = color(0.0),
+    float2 mxp_texcoord = swizzle::xy( ::state::texture_coordinate(0)),
+    uniform mx_addressmode_type mxp_uaddressmode = mx_addressmode_type_periodic,
+    uniform mx_addressmode_type mxp_vaddressmode = mx_addressmode_type_periodic,
+    uniform mx_filterlookup_type mxp_filtertype = mx_filterlookup_type_linear
+        [[ ::anno::unused() ]],
+    uniform string mxp_framerange = "" [[ ::anno::unused() ]],
+    uniform int    mxp_frameoffset = 0 [[ ::anno::unused() ]],
+    uniform mx_addressmode_type mxp_frameendaction = mx_addressmode_type_constant
+        [[ ::anno::unused() ]]
+) {
+    if ( mxp_uaddressmode == mx_addressmode_type_constant
+         && ( mxp_texcoord.x < 0.0 || mxp_texcoord.x > 1.0))
+        return mxp_default;
+    if ( mxp_vaddressmode == mx_addressmode_type_constant
+         && ( mxp_texcoord.y < 0.0 || mxp_texcoord.y > 1.0))
+        return mxp_default;
+    return ::tex::lookup_color( tex: mxp_file, 
+                                coord: mxp_texcoord, 
+                                wrap_u: map_addressmode( mxp_uaddressmode),
+                                wrap_v: map_addressmode( mxp_vaddressmode));
+}
+// TODO: add overloads for float, float2, float3, float4
+
+
+// TODO: more nodes :-)
+
+//JAN: random mtlx nodes necessary for testing TODO: make sure this is not duplicate with later additions
+export float3 mx_add_float3(float3 in1, float3 in2)
+{
+	return in1+in2;
+}
+
+export float3 mx_multiply_float3(float3 in1, float3 in2)
+{
+	return in1*in2;
+}
+
+//JAN: MDL ports of Materialx noise functions, based on mx_noise.glsl
+//TODO: 2D,4D versions?, 
+float mx_bilerp_float(float mx_v0, float mx_v1, float mx_v2, float mx_v3, float mx_s, float mx_t)
+{
+    return math::lerp(math::lerp(mx_v0,mx_v1,mx_s),math::lerp(mx_v2,mx_v3,mx_s),mx_t);
+}
+//float2 mx_bilerp_float2(float2 mx_v0, float2 mx_v1, float2 mx_v2, float2 mx_v3, float mx_s, float mx_t)
+//{
+//    return math::lerp(math::lerp(mx_v0,mx_v1,mx_s),math::lerp(mx_v2,mx_v3,mx_s),mx_t);
+//}
+float3 mx_bilerp_float3(float3 mx_v0, float3 mx_v1, float3 mx_v2, float3 mx_v3, float mx_s, float mx_t)
+{
+	return math::lerp(math::lerp(mx_v0,mx_v1,mx_s),math::lerp(mx_v2,mx_v3,mx_s),mx_t);
+}
+//float4 mx_bilerp_float4(float4 mx_v0, float4 mx_v1, float4 mx_v2, float4 mx_v3, float mx_s, float mx_t)
+//{
+//	return math::lerp(math::lerp(mx_v0,mx_v1,mx_s),math::lerp(mx_v2,mx_v3,mx_s),mx_t);
+//}
+float mx_trilerp(float mx_v0, float mx_v1, float mx_v2, float mx_v3, float mx_v4, 
+	float mx_v5, float mx_v6, float mx_v7, float mx_s, float mx_t, float mx_r)
+{
+    return math::lerp(
+				math::lerp(
+						math::lerp(mx_v0, mx_v1,mx_s),
+						math::lerp(mx_v2,mx_v3,mx_s),mx_t),
+				math::lerp(
+						math::lerp(mx_v4,mx_v5,mx_s),
+						math::lerp(mx_v6,mx_v7,mx_s),mx_t),mx_r);
+}
+float3 mx_trilerp(float3 mx_v0, float3 mx_v1, float3 mx_v2, float3 mx_v3, float3 mx_v4, 
+	float3 mx_v5, float3 mx_v6, float3 mx_v7, float mx_s, float mx_t, float mx_r)
+{
+
+    return math::lerp(
+				math::lerp(
+						math::lerp(mx_v0, mx_v1,mx_s),
+						math::lerp(mx_v2,mx_v3,mx_s),mx_t),
+				math::lerp(
+						math::lerp(mx_v4,mx_v5,mx_s),
+						math::lerp(mx_v6,mx_v7,mx_s),mx_t),mx_r);
+}
+
+// 2 and 3 dimensional gradient functions - perform a dot product against a
+// randomly chosen vector. Note that the gradient vector is not normalized, but
+// this only affects the overal "scale" of the result, so we simply account for
+// the scale by multiplying in the corresponding "perlin" function.
+float mx_gradient_float(int mx_hash, float mx_x, float mx_y)
+{
+    // 8 possible directions (+-1,+-2) and (+-2,+-1)
+    int h = mx_hash &7;
+    float u = h<4? mx_x: mx_y;
+    float v = 2.0 * h<4?mx_y:mx_x;
+    // compute the dot product with (x,y).
+    return (((h&1)>0)?u:-u) + (((h&2)>0)?v:-v); 
+}
+float mx_gradient_float(int mx_hash, float mx_x, float mx_y, float mx_z)
+{
+    // use vectors pointing to the edges of the cube
+    int h = mx_hash & 15;
+    float u = h<8? mx_x: mx_y;
+    float v = h<4? mx_y: ((h==12)||(h==14))? mx_x: mx_z;
+    return (((h&1)>0)?u:-u) + (((h&2)>0)?v:-v);
+}
+float3 mx_gradient_float3(int3 mx_hash, float mx_x, float mx_y)
+{
+    return float3(mx_gradient_float(mx_hash.x, mx_x, mx_y), 
+				  mx_gradient_float(mx_hash.y, mx_x, mx_y), 
+				  mx_gradient_float(mx_hash.z, mx_x, mx_y));
+}
+float3 mx_gradient_float3(int3 mx_hash, float mx_x, float mx_y, float mx_z)
+{
+    return float3(mx_gradient_float(mx_hash.x, mx_x, mx_y, mx_z), 
+				  mx_gradient_float(mx_hash.y, mx_x, mx_y, mx_z),
+				  mx_gradient_float(mx_hash.z, mx_x, mx_y, mx_z));
+}
+// Scaling factors to normalize the result of gradients above.
+// These factors were experimentally calculated to be:
+//    2D:   0.6616
+//    3D:   0.9820
+//JAN: why do those differ from osl sourcecode?
+float  mx_gradient_scale2d_float(float mx_v) { return 0.6616 * mx_v; }
+float  mx_gradient_scale3d_float(float mx_v) { return 0.9820 * mx_v; }
+float3 mx_gradient_scale2d_float3(float3 mx_v) { return 0.6616 * mx_v; }
+float3 mx_gradient_scale3d_float3(float3 mx_v) { return 0.9820 * mx_v; }
+
+/// Bitwise circular rotation left by k bits (for 32 bit unsigned integers)
+int mx_rotl32(int mx_x, int mx_k)
+{
+    return (mx_x<<mx_k) | (mx_x>>>(32-mx_k)); //note the unsigned right shift
+}
+
+// Mix up and combine the bits of a, b, and c (doesn't change them, but
+// returns a hash of those three original values).
+int mx_bjfinal(int mx_a, int mx_b, int mx_c)
+{
+    mx_c ^= mx_b; mx_c -= mx_rotl32(mx_b,14);
+    mx_a ^= mx_c; mx_a -= mx_rotl32(mx_c,11);
+    mx_b ^= mx_a; mx_b -= mx_rotl32(mx_a,25);
+    mx_c ^= mx_b; mx_c -= mx_rotl32(mx_b,16);
+    mx_a ^= mx_c; mx_a -= mx_rotl32(mx_c,4);
+    mx_b ^= mx_a; mx_b -= mx_rotl32(mx_a,14);
+    mx_c ^= mx_b; mx_c -= mx_rotl32(mx_b,24);
+    return mx_c;
+}
+
+// Convert a 32 bit integer into a floating point number in [0,1]
+float mx_bits_to_01(int mx_bits)
+{
+	return mx_bits >=0 ? float(mx_bits) / 4294967295.:
+						float(mx_bits>>>1)/ 2147483647.;
+}
+
+float mx_fade(float mx_t)
+{
+   return mx_t * mx_t * mx_t * (mx_t * (mx_t * 6.0 - 15.0) + 10.0);
+}
+
+int mx_hash_int(int mx_x, int mx_y)
+{
+    int a, b, c;
+    int len = 2;
+    a = b = c = int(0xdeadbeef) + (len << 2) + 13;
+    a += mx_x;
+    b += mx_y;
+    c = mx_bjfinal(a, b, c);
+    return c;
+}
+
+int mx_hash_int(int mx_x, int mx_y, int mx_z)
+{
+    int a, b, c;
+    int len = 3;
+    a = b = c = int(0xdeadbeef) + (len << 2) + 13;
+    a += mx_x;
+    b += mx_y;
+    c += mx_z;
+    c = mx_bjfinal(a, b, c);
+    return c;
+}
+
+int mx_hash_int(int mx_x, int mx_y, int mx_z, int mx_w)
+[[
+	anno::unused()
+]]
+{
+    int a, b, c;
+    int len = 4;
+    a = b = c = int(0xdeadbeef) + (len << 2) + 13;
+    a += mx_x;
+    b += mx_y;
+    c += mx_z;
+	//inlined bjmix
+	a -= c;  a ^= mx_rotl32(c, 4);  c += b;
+    b -= a;  b ^= mx_rotl32(a, 6);  a += c;
+    c -= b;  c ^= mx_rotl32(b, 8);  b += a;
+    a -= c;  a ^= mx_rotl32(c,16);  c += b;
+    b -= a;  b ^= mx_rotl32(a,19);  a += c;
+    c -= b;  c ^= mx_rotl32(b, 4);  b += a;
+	
+    a += mx_w;
+    c = mx_bjfinal(a, b, c);
+    return c;
+}
+
+int3 mx_hash_int3(int mx_x, int mx_y)
+{
+    int h = mx_hash_int(mx_x, mx_y);
+    // we only need the low-order bits to be random, so split out
+    // the 32 bit result into 3 parts for each channel
+    int3 result;
+    result.x = (h      ) & 0xFF;
+    result.y = (h >>> 8 ) & 0xFF;
+    result.z = (h >>> 16) & 0xFF;
+    return result;
+}
+
+int3 mx_hash_int3(int mx_x, int mx_y, int mx_z)
+{
+    int h = mx_hash_int(mx_x, mx_y, mx_z);
+    // we only need the low-order bits to be random, so split out
+    // the 32 bit result into 3 parts for each channel
+    int3 result;
+    result.x = (h      ) & 0xFF;
+    result.y = (h >>> 8 ) & 0xFF;
+    result.z = (h >>> 16) & 0xFF;
+    return result;
+}
+
+export float mx_noise2d_float(
+	float mx_amplitude = 1.0, 
+	float mx_pivot = 0.0, 
+	float2 mx_p = swizzle::xy( ::state::texture_coordinate(0)))
+[[
+    anno::noinline() 
+]]
+{
+	float ix=math::floor(mx_p.x);
+	float iy=math::floor(mx_p.y);
+    int X = int(ix);
+	int Y = int(iy);
+    float fx = mx_p.x-ix;
+    float fy = mx_p.y-iy;
+    float u = mx_fade(fx);
+    float v = mx_fade(fy);
+    float result = mx_bilerp_float(
+        mx_gradient_float(mx_hash_int(X  , Y  ), fx    , fy     ),
+        mx_gradient_float(mx_hash_int(X+1, Y  ), fx-1.0, fy     ),
+        mx_gradient_float(mx_hash_int(X  , Y+1), fx    , fy-1.0),
+        mx_gradient_float(mx_hash_int(X+1, Y+1), fx-1.0, fy-1.0),
+        u, v);
+    return mx_gradient_scale2d_float(result)*mx_amplitude+mx_pivot;
+}
+
+export float3 mx_noise2d_float3(
+	float3 mx_amplitude = float3(1.0), 
+	float3 mx_pivot = float3(0.0), 
+	float2 mx_p = swizzle::xy( ::state::texture_coordinate(0)))
+[[
+    anno::noinline() 
+]]
+{
+	float ix=math::floor(mx_p.x);
+	float iy=math::floor(mx_p.y);
+    int X = int(ix);
+	int Y = int(iy);
+    float fx = mx_p.x-ix;
+    float fy = mx_p.y-iy;
+    float u = mx_fade(fx);
+    float v = mx_fade(fy);
+    float3 result = mx_bilerp_float3(
+        mx_gradient_float3(mx_hash_int3(X  , Y  ), fx    , fy     ),
+        mx_gradient_float3(mx_hash_int3(X+1, Y  ), fx-1.0, fy     ),
+        mx_gradient_float3(mx_hash_int3(X  , Y+1), fx    , fy-1.0),
+        mx_gradient_float3(mx_hash_int3(X+1, Y+1), fx-1.0, fy-1.0),
+        u, v);
+    return mx_gradient_scale2d_float3(result)*mx_amplitude+mx_pivot;
+}
+
+export color mx_noise2d_color(
+	color mx_amplitude = color(1.0), 
+	color mx_pivot = color(0.0),
+	float2 mx_p = swizzle::xy( ::state::texture_coordinate(0)))
+{
+	return color(mx_noise2d_float3(float3(mx_amplitude), float3(mx_pivot),mx_p));
+}
+
+export float2 mx_noise2d_float2(
+	float2 mx_amplitude = float2(1.0), 
+	float2 mx_pivot = float2(0.0),
+	float2 mx_p = swizzle::xy( ::state::texture_coordinate(0)))
+{
+	return swizzle::xy(
+		mx_noise2d_float3(
+			float3(mx_amplitude.x,mx_amplitude.y,0.), 
+			float3(mx_pivot.x,mx_pivot.y,0.),mx_p));
+}
+
+export float4 mx_noise2d_float4(
+	float4 mx_amplitude = float4(1.0), 
+	float4 mx_pivot = float4(0.0),
+	float2 mx_p = swizzle::xy( ::state::texture_coordinate(0)))
+{
+	float3 c = mx_noise2d_float3(
+			swizzle::xyz(mx_amplitude), 
+			swizzle::xyz(mx_pivot),
+			mx_p);
+	float a = mx_noise2d_float(
+			mx_amplitude.z, 
+			mx_pivot.z,
+			mx_p+float2(19.,73.));
+	return float4(c.x,c.y,c.z,a);
+}
+
+export float mx_noise3d_float(float mx_amplitude = 1.0, float mx_pivot = 0.0,
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()))
+[[
+    anno::noinline() 
+]]
+{
+	float ix=math::floor(mx_p.x);
+	float iy=math::floor(mx_p.y);
+	float iz=math::floor(mx_p.z);
+    int X = int(ix);
+	int Y = int(iy);
+	int	Z = int(iz);
+    float fx = mx_p.x-ix;
+    float fy = mx_p.y-iy;
+    float fz = mx_p.z-iz;
+    float u = mx_fade(fx);
+    float v = mx_fade(fy);
+    float w = mx_fade(fz);
+    float result = mx_trilerp(
+        mx_gradient_float(mx_hash_int(X  , Y  , Z  ), fx    , fy    , fz     ),
+        mx_gradient_float(mx_hash_int(X+1, Y  , Z  ), fx-1.0, fy    , fz     ),
+        mx_gradient_float(mx_hash_int(X  , Y+1, Z  ), fx    , fy-1.0, fz     ),
+        mx_gradient_float(mx_hash_int(X+1, Y+1, Z  ), fx-1.0, fy-1.0, fz     ),
+        mx_gradient_float(mx_hash_int(X  , Y  , Z+1), fx    , fy    , fz-1.0),
+        mx_gradient_float(mx_hash_int(X+1, Y  , Z+1), fx-1.0, fy    , fz-1.0),
+        mx_gradient_float(mx_hash_int(X  , Y+1, Z+1), fx    , fy-1.0, fz-1.0),
+        mx_gradient_float(mx_hash_int(X+1, Y+1, Z+1), fx-1.0, fy-1.0, fz-1.0),
+        u, v, w);
+
+    return mx_gradient_scale3d_float(result)*mx_amplitude+mx_pivot;
+}
+
+
+export float3 mx_noise3d_float3(
+	float3 mx_amplitude = float3(1.0), 
+	float3 mx_pivot = float3(0.0),
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()))
+[[
+    anno::noinline() 
+]]
+{
+	float ix=math::floor(mx_p.x);
+	float iy=math::floor(mx_p.y);
+	float iz=math::floor(mx_p.z);
+    int X = int(ix);
+	int Y = int(iy);
+	int	Z = int(iz);
+    float fx = mx_p.x-ix;
+    float fy = mx_p.y-iy;
+    float fz = mx_p.z-iz;
+    float u = mx_fade(fx);
+    float v = mx_fade(fy);
+    float w = mx_fade(fz);
+    float3 result = mx_trilerp(
+        mx_gradient_float3(mx_hash_int3(X  , Y  , Z  ), fx    , fy    , fz     ),
+        mx_gradient_float3(mx_hash_int3(X+1, Y  , Z  ), fx-1.0, fy    , fz     ),
+        mx_gradient_float3(mx_hash_int3(X  , Y+1, Z  ), fx    , fy-1.0, fz     ),
+        mx_gradient_float3(mx_hash_int3(X+1, Y+1, Z  ), fx-1.0, fy-1.0, fz     ),
+        mx_gradient_float3(mx_hash_int3(X  , Y  , Z+1), fx    , fy    , fz-1.0),
+        mx_gradient_float3(mx_hash_int3(X+1, Y  , Z+1), fx-1.0, fy    , fz-1.0),
+        mx_gradient_float3(mx_hash_int3(X  , Y+1, Z+1), fx    , fy-1.0, fz-1.0),
+        mx_gradient_float3(mx_hash_int3(X+1, Y+1, Z+1), fx-1.0, fy-1.0, fz-1.0),
+        u, v, w);
+	return mx_gradient_scale3d_float3(result)*mx_amplitude+mx_pivot;
+}
+export color mx_noise3d_color(
+	color mx_amplitude = color(1.0), 
+	color mx_pivot = color(0.0),
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()))
+{
+	return color(mx_noise3d_float3(float3(mx_amplitude), float3(mx_pivot), mx_p));
+}
+
+export float2 mx_noise3d_float2(
+	float2 mx_amplitude = float2(1.0), 
+	float2 mx_pivot = float2(0.0),
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()))
+{
+	return swizzle::xy(
+		mx_noise3d_float3(
+			float3(mx_amplitude.x,mx_amplitude.y,0.), 
+			float3(mx_pivot.x,mx_pivot.y,0.),mx_p));
+}
+
+export float4 mx_noise3d_float4(
+	float4 mx_amplitude = float4(1.0), 
+	float4 mx_pivot = float4(0.0),
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()))
+{
+	float3 c = mx_noise3d_float3(
+			swizzle::xyz(mx_amplitude), 
+			swizzle::xyz(mx_pivot),
+			mx_p);
+	float a = mx_noise3d_float(
+			mx_amplitude.z, 
+			mx_pivot.z,
+			mx_p+float3(19.,73.,29.));
+	return float4(c.x,c.y,c.z,a);
+}
+
+
+export float mx_cellnoise_float(float2 mx_p = swizzle::xy( ::state::texture_coordinate(0)))
+[[
+    anno::noinline() 
+]]
+{
+    int ix = math::floor(mx_p.x);
+    int iy = math::floor(mx_p.y);
+    return mx_bits_to_01(mx_hash_int(ix, iy));
+}
+
+export float mx_cellnoise_float(
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()))
+[[
+    anno::noinline() 
+]]
+{
+    int ix = math::floor(mx_p.x);
+    int iy = math::floor(mx_p.y);
+    int iz = math::floor(mx_p.z);
+    return mx_bits_to_01(mx_hash_int(ix, iy, iz));
+}
+
+export float mx_fractal_float(
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()),
+	float mx_amplitude = 1.0,
+	int mx_octaves = 3, 
+	float mx_lacunarity = 2.0, 
+	float mx_diminish= 0.5)
+[[
+    anno::noinline() 
+]]
+{
+    float result = 0.0;
+    float amplitude = 1.0;
+    for (int i = 0;  i < mx_octaves; ++i)
+    {
+        result += amplitude * mx_noise3d_float(1.0,0.0,mx_p);
+        amplitude *= mx_diminish;
+        mx_p *= mx_lacunarity;
+    }
+    return result*mx_amplitude;
+}
+
+export float3 mx_fractal_float3(
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()),
+	float3 mx_amplitude = float3(1.0),
+	int mx_octaves = 3, 
+	float mx_lacunarity = 2., 
+	float mx_diminish= 0.5)
+[[
+    anno::noinline() 
+]]
+{
+    float3 result = float3(0.0);
+    float amplitude = 1.0;
+    for (int i = 0;  i < mx_octaves; ++i)
+    {
+        result += amplitude * mx_noise3d_float3(float3(1.0),float3(0.0),mx_p);
+        amplitude *= mx_diminish;
+        mx_p *= mx_lacunarity;
+    }
+    return result*mx_amplitude;
+}
+export color mx_fractal_color(
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()),
+	color mx_amplitude = color(1.0),
+	int mx_octaves = 3, 
+	float mx_lacunarity = 2., 
+	float mx_diminish= 0.5)
+{
+	return color(mx_fractal_float3(mx_p, float3(mx_amplitude), mx_octaves, mx_lacunarity, mx_diminish));
+}
+export float2 mx_fractal_float2(
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()),
+	float2 mx_amplitude = float2(1.0),
+	int mx_octaves = 3, 
+	float mx_lacunarity = 2., 
+	float mx_diminish= 0.5)
+{
+	return float2(
+		mx_fractal_float(mx_p, mx_amplitude.x, mx_octaves, mx_lacunarity, mx_diminish),
+		mx_fractal_float(mx_p+ float3(19., 193., 17.), mx_amplitude.y, mx_octaves, mx_lacunarity, mx_diminish));
+}
+export float4 mx_fractal_float4(
+	float3 mx_p = state::transform_point(state::coordinate_internal, state::coordinate_object, state::position()),
+	float4 mx_amplitude = float4(1.0),
+	int mx_octaves = 3, 
+	float mx_lacunarity = 2., 
+	float mx_diminish= 0.5)
+{
+	float3 c = mx_fractal_float3(mx_p, swizzle::xyz(mx_amplitude), mx_octaves, mx_lacunarity, mx_diminish);
+	float a = mx_fractal_float(mx_p+ float3(19., 193., 17.), mx_amplitude.z, mx_octaves, mx_lacunarity, mx_diminish);
+	return float4(c.x,c.y,c.z,a);
+}
