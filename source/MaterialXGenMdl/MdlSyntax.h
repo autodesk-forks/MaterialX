@@ -52,7 +52,11 @@ public:
     static const StringVec DISTRIBUTIONTYPE_MEMBERS;
 
     /// Get an type description for an enumeration based on member value
-    const TypeDesc* getEnumeratedType(const string& value);
+    const TypeDesc* getEnumeratedType(const string& value) const;
+
+    /// Given an input specification attempt to remap this to an enumeration which is accepted by
+    /// the shader generator. The enumeration may be converted to a different type than the input.
+    bool remapEnumeration(const ValueElement& input, const string& value, std::pair<const TypeDesc*, ValuePtr>& result) const override;
 };
 
 namespace Type

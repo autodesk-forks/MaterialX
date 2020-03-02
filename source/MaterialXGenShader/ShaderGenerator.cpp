@@ -282,11 +282,6 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const InterfaceElement& ele
     return impl;
 }
 
-bool ShaderGenerator::remapEnumeration(const ValueElement&, const string&, std::pair<const TypeDesc*, ValuePtr>&) const
-{
-    return false;
-}
-
 namespace
 {
     void replace(const StringMap& substitutions, ShaderPort* port)

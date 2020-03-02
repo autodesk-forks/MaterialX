@@ -61,6 +61,20 @@ bool BlurNode::acceptsInputType(const TypeDesc* type) const
         type->isFloat2() || type->isFloat3() || type->isFloat4());
 }
 
+void BlurNode::outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage,
+                                 const string& inputTypeString,
+                                 const string& sampleName, StringVec sampleStrings) const
+{
+    const string MX_MAX_SAMPLE_COUNT_STRING("MX_MAX_SAMPLE_COUNT");
+
+    shadergen.emitLine(inputTypeString + " " + sampleName + "[" + MX_MAX_SAMPLE_COUNT_STRING + "]", stage);
+    for (size_t i = 0; i < sampleStrings.size(); i++)
+    {
+        shadergen.emitLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i], stage);
+    }
+
+}
+
 void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
@@ -128,7 +142,6 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
 
         if (sampleCount > 1)
         {
-            const string MX_MAX_SAMPLE_COUNT_STRING("MX_MAX_SAMPLE_COUNT");
             const string MX_WEIGHT_ARRAY_SIZE_STRING("MX_WEIGHT_ARRAY_SIZE");
             const string MX_CONVOLUTION_PREFIX_STRING("mx_convolution_");
             const string SAMPLES_POSTFIX_STRING("_samples");
@@ -136,12 +149,8 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
 
             // Set up sample array
             string sampleName(output->getVariable() + SAMPLES_POSTFIX_STRING);
-            shadergen.emitLine(inputTypeString + " " + sampleName + "[" + MX_MAX_SAMPLE_COUNT_STRING + "]", stage);
-            for (unsigned int i = 0; i < sampleCount; i++)
-            {
-                shadergen.emitLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i], stage);
-            }
-
+            outputSampleArray(shadergen, stage, inputTypeString, sampleName, sampleStrings);
+           
             // Emit code to evaluate using input sample and weight arrays. 
             // The function to call depends on input type.
             //
@@ -151,10 +160,11 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
 
             shadergen.emitLineBegin(stage);
             shadergen.emitString("if (", stage);
-            // If strings are support compare against string input,
-            // other use int compare
+
+            // Remap enumeration if needed
             if (shadergen.getSyntax().typeSupported(Type::STRING))
             {
+
                 shadergen.emitInput(filterTypeInput, context, stage);
                 shadergen.emitString(" == \"" + GAUSSIAN_FILTER + "\")", stage);
             }

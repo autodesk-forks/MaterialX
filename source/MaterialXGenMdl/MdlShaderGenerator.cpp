@@ -10,6 +10,7 @@
 #include <MaterialXGenMdl/Nodes/SourceCodeNodeMdl.h>
 #include <MaterialXGenMdl/Nodes/SurfaceNodeMdl.h>
 #include <MaterialXGenMdl/Nodes/HeightToNormalNodeMdl.h>
+#include <MaterialXGenMdl/Nodes/BlurNodeMdl.h>
 
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Shader.h>
@@ -19,7 +20,6 @@
 #include <MaterialXGenShader/Nodes/CombineNode.h>
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/IfNode.h>
-#include <MaterialXGenShader/Nodes/BlurNode.h>
 
 namespace MaterialX
 {
@@ -191,13 +191,13 @@ MdlShaderGenerator::MdlShaderGenerator() :
     registerImplementation("IM_combine4_vector4_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
 
     // <!-- <blur> -->
-    registerImplementation("IM_blur_float_" + MdlShaderGenerator::LANGUAGE, BlurNode::create);
-    registerImplementation("IM_blur_color2_" + MdlShaderGenerator::LANGUAGE, BlurNode::create);
-    registerImplementation("IM_blur_color3_" + MdlShaderGenerator::LANGUAGE, BlurNode::create);
-    registerImplementation("IM_blur_color4_" + MdlShaderGenerator::LANGUAGE, BlurNode::create);
-    registerImplementation("IM_blur_vector2_" + MdlShaderGenerator::LANGUAGE, BlurNode::create);
-    registerImplementation("IM_blur_vector3_" + MdlShaderGenerator::LANGUAGE, BlurNode::create);
-    registerImplementation("IM_blur_vector4_" + MdlShaderGenerator::LANGUAGE, BlurNode::create);
+    registerImplementation("IM_blur_float_" + MdlShaderGenerator::LANGUAGE, BlurNodeMdl::create);
+    registerImplementation("IM_blur_color2_" + MdlShaderGenerator::LANGUAGE, BlurNodeMdl::create);
+    registerImplementation("IM_blur_color3_" + MdlShaderGenerator::LANGUAGE, BlurNodeMdl::create);
+    registerImplementation("IM_blur_color4_" + MdlShaderGenerator::LANGUAGE, BlurNodeMdl::create);
+    registerImplementation("IM_blur_vector2_" + MdlShaderGenerator::LANGUAGE, BlurNodeMdl::create);
+    registerImplementation("IM_blur_vector3_" + MdlShaderGenerator::LANGUAGE, BlurNodeMdl::create);
+    registerImplementation("IM_blur_vector4_" + MdlShaderGenerator::LANGUAGE, BlurNodeMdl::create);
 
     // <!-- <heighttonormal> -->
     registerImplementation("IM_heighttonormal_vector3_" + MdlShaderGenerator::LANGUAGE, HeightToNormalNodeMdl::create);
@@ -473,47 +473,6 @@ namespace MDL
     // Identifiers for MDL variable blocks
     const string INPUTS   = "i";
     const string OUTPUTS  = "o";
-}
-
-bool MdlShaderGenerator::remapEnumeration(const ValueElement& input, const string& value, std::pair<const TypeDesc*, ValuePtr>& result) const
-{
-    // Early out if not an enum input.
-    const string& enumNames = input.getAttribute(ValueElement::ENUM_ATTRIBUTE);
-    if (enumNames.empty())
-    {
-        return false;
-    }
-
-    // Don't convert or filenames and arrays.
-    const TypeDesc* type = TypeDesc::get(input.getType());
-    if (type == Type::FILENAME || type->isArray())
-    {
-        return false;
-    }
-
-    // Try remapping to an enum value.
-    if (!value.empty())
-    {
-        MdlSyntaxPtr mdlSyntax = std::dynamic_pointer_cast<MdlSyntax>(_syntax);
-        result.first = mdlSyntax->getEnumeratedType(value);
-        if (!result.first || (result.first->getSemantic() != TypeDesc::Semantic::SEMANTIC_ENUM))
-        {
-            return false;
-        }
-
-        StringVec valueElemEnumsVec = splitString(enumNames, ",");
-        auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
-        if (pos == valueElemEnumsVec.end())
-        {
-            throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input '" + input.getNamePath() + "'");
-        }
-        const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
-        result.second = Value::createValue<string>(valueElemEnumsVec[index]);
-
-        return true;
-    }
-
-    return false;
 }
 
 } // namespace MaterialX

@@ -165,15 +165,6 @@ class ShaderGenerator
     /// will be returned, as defined by the createDefaultImplementation method.
     ShaderNodeImplPtr getImplementation(const InterfaceElement& element, GenContext& context) const;
 
-    /// Given an input specification attempt to remap this to an enumeration which is accepted by
-    /// the shader generator. The enumeration may be converted to a different type than the input.
-    /// @param input Nodedef input potentially holding an enum definition.
-    /// @param value The value string to remap.
-    /// @param result Enumeration type and value (returned).
-    /// @return Return true if the remapping was successful.
-    virtual bool remapEnumeration(const ValueElement& input, const string& value,
-                                  std::pair<const TypeDesc*, ValuePtr>& result) const;
-
     /// Return the map of token substitutions used by the generator.
     const StringMap& getTokenSubstitutions() const
     {

@@ -171,6 +171,15 @@ class Syntax
     /// on the name string if there is a name collision.
     virtual string getVariableName(const string& name, const TypeDesc* type, IdentifierMap& identifiers) const;
 
+    /// Given an input specification attempt to remap this to an enumeration which is accepted by
+    /// the shader generator. The enumeration may be converted to a different type than the input.
+    /// @param input Nodedef input potentially holding an enum definition.
+    /// @param value The value string to remap.
+    /// @param result Enumeration type and value (returned).
+    /// @return Return true if the remapping was successful.
+    virtual bool remapEnumeration(const ValueElement& input, const string& value,
+                                  std::pair<const TypeDesc*, ValuePtr>& result) const;
+
     /// Constants with commonly used strings.
     static const string NEWLINE;
     static const string SEMICOLON;

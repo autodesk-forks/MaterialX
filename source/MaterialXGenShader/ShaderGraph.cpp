@@ -40,7 +40,7 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& cont
             ShaderGraphInputSocket* inputSocket = nullptr;
             const string& portValue = port->getResolvedValueString();
             std::pair<const TypeDesc*, ValuePtr> enumResult;
-            if (context.getShaderGenerator().remapEnumeration(*port, portValue, enumResult))
+            if (context.getShaderGenerator().getSyntax().remapEnumeration(*port, portValue, enumResult))
             {
                 inputSocket = addInputSocket(port->getName(), enumResult.first);
                 inputSocket->setValue(enumResult.second);
@@ -240,7 +240,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
             if (spaceInput && nodeDefSpaceInput)
             {
                 std::pair<const TypeDesc*, ValuePtr> enumResult;
-                if (context.getShaderGenerator().remapEnumeration(*nodeDefSpaceInput, space, enumResult))
+                if (context.getShaderGenerator().getSyntax().remapEnumeration(*nodeDefSpaceInput, space, enumResult))
                 {
                     spaceInput->setValue(enumResult.second);
                 }
