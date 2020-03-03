@@ -33,7 +33,7 @@ class BlurNode : public ConvolutionNode
     /// Output sample array
     virtual void outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage,
                                    const string& inputTypeString,
-                                   const string& sampleName, StringVec sampleStrings) const;
+                                   const string& sampleName, const StringVec& sampleStrings) const;
 
     /// Box filter option on blur
     static const string BOX_FILTER;

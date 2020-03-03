@@ -25,7 +25,7 @@ ShaderNodeImplPtr BlurNodeMdl::create()
 
 void BlurNodeMdl::outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage,
                                  const string& inputTypeString,
-                                 const string& sampleName, StringVec sampleStrings) const
+                                 const string& sampleName, const StringVec& sampleStrings) const
 {
     const string arrayDeclaration = inputTypeString + "[]";
     shadergen.emitLine(arrayDeclaration + " " + sampleName + " = " + arrayDeclaration + "(", stage, false);

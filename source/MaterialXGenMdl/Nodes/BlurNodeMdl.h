@@ -25,7 +25,7 @@ class BlurNodeMdl : public BlurNode
     /// Output sample array
     void outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage,
                            const string& inputTypeString,
-                           const string& sampleName, StringVec sampleStrings) const override;
+                           const string& sampleName, const StringVec& sampleStrings) const override;
 };
 
 } // namespace MaterialX

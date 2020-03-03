@@ -64,7 +64,7 @@ bool BlurNode::acceptsInputType(const TypeDesc* type) const
 
 void BlurNode::outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage,
                                  const string& inputTypeString,
-                                 const string& sampleName, StringVec sampleStrings) const
+                                 const string& sampleName, const StringVec& sampleStrings) const
 {
     const string MX_MAX_SAMPLE_COUNT_STRING("MX_MAX_SAMPLE_COUNT");
 
