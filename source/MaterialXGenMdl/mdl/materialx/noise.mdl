@@ -52,36 +52,31 @@ import ::math::*;
 import ::state::*;
 import ::anno::*;
 
-float mx_bilerp_float(float mxp_v0, float mxp_v1, float mxp_v2, float mxp_v3, float mxp_s, float mxp_t)
+float mx_bilerp_float(float v0, float v1, float v2, float v3, float s, float t)
 {
-    return math::lerp(math::lerp(mxp_v0,mxp_v1,mxp_s),math::lerp(mxp_v2,mxp_v3,mxp_s),mxp_t);
+    float s1 = 1.0 - s;
+    return (1.0 - t) * (v0*s1 + v1*s) + t * (v2*s1 + v3*s);
 }
-float3 mx_bilerp_float3(float3 mxp_v0, float3 mxp_v1, float3 mxp_v2, float3 mxp_v3, float mxp_s, float mxp_t)
+float3 mx_bilerp_float3(float3 v0, float3 v1, float3 v2, float3 v3, float s, float t)
 {
-  return math::lerp(math::lerp(mxp_v0,mxp_v1,mxp_s),math::lerp(mxp_v2,mxp_v3,mxp_s),mxp_t);
+    float s1 = 1.0 - s;
+    return (1.0 - t) * (v0*s1 + v1*s) + t * (v2*s1 + v3*s);
 }
-
-float mx_trilerp(float mxp_v0, float mxp_v1, float mxp_v2, float mxp_v3, float mxp_v4, 
-  float mxp_v5, float mxp_v6, float mxp_v7, float mxp_s, float mxp_t, float mxp_r)
+float mx_trilerp_float(float v0, float v1, float v2, float v3, float v4, float v5, float v6, float v7, float s, float t, float r)
 {
-    return math::lerp(
-        math::lerp(
-            math::lerp(mxp_v0, mxp_v1,mxp_s),
-            math::lerp(mxp_v2,mxp_v3,mxp_s),mxp_t),
-        math::lerp(
-            math::lerp(mxp_v4,mxp_v5,mxp_s),
-            math::lerp(mxp_v6,mxp_v7,mxp_s),mxp_t),mxp_r);
+    float s1 = 1.0 - s;
+    float t1 = 1.0 - t;
+    float r1 = 1.0 - r;
+    return (r1*(t1*(v0*s1 + v1*s) + t*(v2*s1 + v3*s)) +
+            r*(t1*(v4*s1 + v5*s) + t*(v6*s1 + v7*s)));
 }
-float3 mx_trilerp(float3 mxp_v0, float3 mxp_v1, float3 mxp_v2, float3 mxp_v3, float3 mxp_v4, 
-  float3 mxp_v5, float3 mxp_v6, float3 mxp_v7, float mxp_s, float mxp_t, float mxp_r)
+float3 mx_trilerp_float3(float3 v0, float3 v1, float3 v2, float3 v3, float3 v4, float3 v5, float3 v6, float3 v7, float s, float t, float r)
 {
-    return math::lerp(
-        math::lerp(
-            math::lerp(mxp_v0, mxp_v1,mxp_s),
-            math::lerp(mxp_v2,mxp_v3,mxp_s),mxp_t),
-        math::lerp(
-            math::lerp(mxp_v4,mxp_v5,mxp_s),
-            math::lerp(mxp_v6,mxp_v7,mxp_s),mxp_t),mxp_r);
+    float s1 = 1.0 - s;
+    float t1 = 1.0 - t;
+    float r1 = 1.0 - r;
+    return (r1*(t1*(v0*s1 + v1*s) + t*(v2*s1 + v3*s)) +
+            r*(t1*(v4*s1 + v5*s) + t*(v6*s1 + v7*s)));
 }
 
 // 2 and 3 dimensional gradient functions - perform a dot product against a
@@ -95,7 +90,7 @@ float mx_gradient_float(int mxp_hash, float mxp_x, float mxp_y)
     float u = h<4? mxp_x: mxp_y;
     float v = 2.0 * h<4?mxp_y:mxp_x;
     // compute the dot product with (x,y).
-    return (((h&1)>0)?u:-u) + (((h&2)>0)?v:-v); 
+    return (((h&1)!=0)?-u:u) + (((h&2)!=0)?-v:v);
 }
 float mx_gradient_float(int mxp_hash, float mxp_x, float mxp_y, float mxp_z)
 {
@@ -103,7 +98,7 @@ float mx_gradient_float(int mxp_hash, float mxp_x, float mxp_y, float mxp_z)
     int h = mxp_hash & 15;
     float u = h<8? mxp_x: mxp_y;
     float v = h<4? mxp_y: ((h==12)||(h==14))? mxp_x: mxp_z;
-    return (((h&1)>0)?u:-u) + (((h&2)>0)?v:-v);
+    return (((h&1)!=0)?-u:u) + (((h&2)!=0)?-v:v);
 }
 float3 mx_gradient_float3(int3 mxp_hash, float mxp_x, float mxp_y)
 {
@@ -293,7 +288,7 @@ export float mx_perlin_noise_float(
   float u = mx_fade(fx);
   float v = mx_fade(fy);
   float w = mx_fade(fz);
-  float result = mx_trilerp(
+  float result = mx_trilerp_float(
       mx_gradient_float(mx_hash_int(X  , Y  , Z  ), fx    , fy    , fz     ),
       mx_gradient_float(mx_hash_int(X+1, Y  , Z  ), fx-1.0, fy    , fz     ),
       mx_gradient_float(mx_hash_int(X  , Y+1, Z  ), fx    , fy-1.0, fz     ),
@@ -324,7 +319,7 @@ export float3 mx_perlin_noise_float3(
   float u = mx_fade(fx);
   float v = mx_fade(fy);
   float w = mx_fade(fz);
-  float3 result = mx_trilerp(
+  float3 result = mx_trilerp_float3(
       mx_gradient_float3(mx_hash_int3(X  , Y  , Z  ), fx    , fy    , fz     ),
       mx_gradient_float3(mx_hash_int3(X+1, Y  , Z  ), fx-1.0, fy    , fz     ),
       mx_gradient_float3(mx_hash_int3(X  , Y+1, Z  ), fx    , fy-1.0, fz     ),
