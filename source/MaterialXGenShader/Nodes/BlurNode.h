@@ -45,6 +45,9 @@ class BlurNode : public ConvolutionNode
     /// Gaussian filter weights variable name
     static const string GAUSSIAN_WEIGHTS_VARIABLE;
 
+    /// List of filters
+    static const string FILTER_LIST;
+
     /// String constants
     static const string IN_STRING;
     static const string FILTER_TYPE_STRING;

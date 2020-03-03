@@ -554,7 +554,7 @@ bool MdlSyntax::remapEnumeration(const string& value, const TypeDesc* type, cons
     }
 
     // Don't convert or filenames and arrays.
-    if (type == Type::FILENAME || type->isArray())
+    if (type == Type::FILENAME || (type && type->isArray()))
     {
         return false;
     }

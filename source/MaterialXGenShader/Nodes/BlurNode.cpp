@@ -26,6 +26,7 @@ const string BlurNode::BOX_FILTER = "box";
 const string BlurNode::GAUSSIAN_FILTER = "gaussian";
 const string BlurNode::BOX_WEIGHTS_VARIABLE = "c_box_filter_weights";
 const string BlurNode::GAUSSIAN_WEIGHTS_VARIABLE = "c_gaussian_filter_weights";
+const string BlurNode::FILTER_LIST = "box,gaussian";
 const string BlurNode::IN_STRING = "in";
 const string BlurNode::FILTER_TYPE_STRING = "filtertype";
 const string BlurNode::FILTER_SIZE_STRING = "size";
@@ -82,9 +83,11 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
 
         const ShaderInput* inInput = node.getInput(IN_STRING);
 
+        const Syntax& syntax = shadergen.getSyntax();
+
         // Get input type name string
         const string& inputTypeString = inInput && acceptsInputType(inInput->getType()) ?
-            shadergen.getSyntax().getTypeName(inInput->getType()) : EMPTY_STRING;
+                                        syntax.getTypeName(inInput->getType()) : EMPTY_STRING;
 
         const ShaderInput* filterTypeInput = node.getInput(FILTER_TYPE_STRING);
         if (!filterTypeInput || inputTypeString.empty())
@@ -158,21 +161,19 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
             shadergen.emitOutput(output, true, false, context, stage);
             shadergen.emitLineEnd(stage);
 
+            // Emit branched code to compute result baed on filte type
+            //
             shadergen.emitLineBegin(stage);
             shadergen.emitString("if (", stage);
-
-            // Remap enumeration if needed
-            if (shadergen.getSyntax().typeSupported(Type::STRING))
+            shadergen.emitInput(filterTypeInput, context, stage);
+            // Remap enumeration for comparison as needed
+            std::pair<const TypeDesc*, ValuePtr> result;
+            string emitValue = "\"" + GAUSSIAN_FILTER + "\"";
+            if (syntax.remapEnumeration(GAUSSIAN_FILTER, Type::STRING, FILTER_LIST, result))
             {
-
-                shadergen.emitInput(filterTypeInput, context, stage);
-                shadergen.emitString(" == \"" + GAUSSIAN_FILTER + "\")", stage);
+                emitValue = syntax.getValue(result.first, *(result.second));
             }
-            else
-            {
-                shadergen.emitInput(filterTypeInput, context, stage);
-                shadergen.emitString(" == 1)", stage);
-            }
+            shadergen.emitString(" == " + emitValue + ")", stage);
             shadergen.emitLineEnd(stage, false);
 
             shadergen.emitScopeBegin(stage);
