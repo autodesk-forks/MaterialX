@@ -1,10 +1,12 @@
 //
-//   TM & (c) 2020 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
-//   All rights reserved.  See LICENSE.txt for license.
+// TM & (c) 2020 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
 //
-//   Default color management transforms for MDL
+// Default color management transforms for MDL
 //
-mdl 1.5;
+
+mdl 1.6;
+
 using core import *;
 import::base::*;
 import::anno::*;
@@ -20,7 +22,6 @@ float4 aboveThreshold(float4 value, float4 threshold)
                 value.z > threshold.z ? 1.0 : 0.0,
                 value.w > threshold.w ? 1.0 : 0.0 );
 }
-
 
 export float3 mx_acescg_to_linear_color3(float3 mxp_in)
 [[

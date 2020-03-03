@@ -52,7 +52,7 @@ void CompoundNodeMdl::emitFunctionDefinition(const ShaderNode&, GenContext& cont
             shadergen.emitScopeBegin(stage, Syntax::CURLY_BRACKETS);
             for (const ShaderGraphOutputSocket* output : _rootGraph->getOutputSockets())
             {
-                shadergen.emitLine(syntax.getTypeName(output->getType()) + " " + output->getVariable(), stage);
+                shadergen.emitLine(syntax.getTypeName(output->getType()) + " mxp_" + output->getName(), stage);
             }
             shadergen.emitScopeEnd(stage, true);
             shadergen.emitLineBreak(stage);
@@ -116,7 +116,7 @@ void CompoundNodeMdl::emitFunctionDefinition(const ShaderNode&, GenContext& cont
                 for (const ShaderGraphOutputSocket* output : _rootGraph->getOutputSockets())
                 {
                     const string result = shadergen.getUpstreamResult(output, context);
-                    shadergen.emitLine(resultVariableName + "." + output->getVariable() + " = " + result, stage);
+                    shadergen.emitLine(resultVariableName + ".mxp_" + output->getName() + " = " + result, stage);
                 }
                 shadergen.emitLine("return " + resultVariableName, stage);
             }
