@@ -161,7 +161,7 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
             shadergen.emitOutput(output, true, false, context, stage);
             shadergen.emitLineEnd(stage);
 
-            // Emit branched code to compute result baed on filte type
+            // Emit branching code to compute result based on filter type
             //
             shadergen.emitLineBegin(stage);
             shadergen.emitString("if (", stage);
