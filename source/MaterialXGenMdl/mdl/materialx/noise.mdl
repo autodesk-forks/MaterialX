@@ -86,18 +86,18 @@ float3 mx_trilerp_float3(float3 v0, float3 v1, float3 v2, float3 v3, float3 v4, 
 float mx_gradient_float(int mxp_hash, float mxp_x, float mxp_y)
 {
     // 8 possible directions (+-1,+-2) and (+-2,+-1)
-    int h = mxp_hash &7;
-    float u = h<4? mxp_x: mxp_y;
-    float v = 2.0 * h<4?mxp_y:mxp_x;
+    int h = mxp_hash & 7;
+    float u = h<4 ? mxp_x : mxp_y;
+    float v = 2.0 * (h<4 ? mxp_y : mxp_x);
     // compute the dot product with (x,y).
-    return (((h&1)!=0)?-u:u) + (((h&2)!=0)?-v:v);
+    return (((h&1)!=0) ? -u : u) + (((h&2) != 0) ? -v : v);
 }
 float mx_gradient_float(int mxp_hash, float mxp_x, float mxp_y, float mxp_z)
 {
     // use vectors pointing to the edges of the cube
     int h = mxp_hash & 15;
-    float u = h<8? mxp_x: mxp_y;
-    float v = h<4? mxp_y: ((h==12)||(h==14))? mxp_x: mxp_z;
+    float u = h<8 ? mxp_x : mxp_y;
+    float v = h<4 ? mxp_y : ((h==12)||(h==14)) ? mxp_x : mxp_z;
     return (((h&1)!=0)?-u:u) + (((h&2)!=0)?-v:v);
 }
 float3 mx_gradient_float3(int3 mxp_hash, float mxp_x, float mxp_y)
@@ -156,49 +156,24 @@ float mx_fade(float mxp_t)
 
 int mx_hash_int(int mxp_x, int mxp_y)
 {
-    int a, b, c;
     int len = 2;
+    int a, b, c;
     a = b = c = int(0xdeadbeef) + (len << 2) + 13;
     a += mxp_x;
     b += mxp_y;
-    c = mx_bjfinal(a, b, c);
-    return c;
+    return mx_bjfinal(a, b, c);
 }
 
 int mx_hash_int(int mxp_x, int mxp_y, int mxp_z)
 {
-    int a, b, c;
     int len = 3;
-    a = b = c = int(0xdeadbeef) + (len << 2) + 13;
-    a += mxp_x;
-    b += mxp_y;
-    c += mxp_z;
-    c = mx_bjfinal(a, b, c);
-    return c;
-}
-
-/* Unused?
-int mx_hash_int(int mxp_x, int mxp_y, int mxp_z, int mxp_w)
-{
     int a, b, c;
-    int len = 4;
     a = b = c = int(0xdeadbeef) + (len << 2) + 13;
     a += mxp_x;
     b += mxp_y;
     c += mxp_z;
-  //inlined bjmix
-  a -= c;  a ^= mx_rotl32(c, 4);  c += b;
-    b -= a;  b ^= mx_rotl32(a, 6);  a += c;
-    c -= b;  c ^= mx_rotl32(b, 8);  b += a;
-    a -= c;  a ^= mx_rotl32(c,16);  c += b;
-    b -= a;  b ^= mx_rotl32(a,19);  a += c;
-    c -= b;  c ^= mx_rotl32(b, 4);  b += a;
-  
-    a += mxp_w;
-    c = mx_bjfinal(a, b, c);
-    return c;
+    return mx_bjfinal(a, b, c);
 }
-*/
 
 int3 mx_hash_int3(int mxp_x, int mxp_y)
 {
@@ -206,7 +181,7 @@ int3 mx_hash_int3(int mxp_x, int mxp_y)
     // we only need the low-order bits to be random, so split out
     // the 32 bit result into 3 parts for each channel
     int3 result;
-    result.x = (h      ) & 0xFF;
+    result.x = (h       ) & 0xFF;
     result.y = (h >>> 8 ) & 0xFF;
     result.z = (h >>> 16) & 0xFF;
     return result;
@@ -218,7 +193,7 @@ int3 mx_hash_int3(int mxp_x, int mxp_y, int mxp_z)
     // we only need the low-order bits to be random, so split out
     // the 32 bit result into 3 parts for each channel
     int3 result;
-    result.x = (h      ) & 0xFF;
+    result.x = (h       ) & 0xFF;
     result.y = (h >>> 8 ) & 0xFF;
     result.z = (h >>> 16) & 0xFF;
     return result;
