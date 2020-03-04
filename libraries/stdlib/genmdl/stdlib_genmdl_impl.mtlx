@@ -144,7 +144,7 @@
   <implementation name="IM_cellnoise2d_float_genmdl" nodedef="ND_cellnoise2d_float" sourcecode="mx::stdlib::mx_cellnoise2d_float(mxp_texcoord:{{texcoord}})" language="genmdl"/>
 
   <!-- <cellnoise3d> -->
-  <implementation name="IM_cellnoise3d_float_genmdl" nodedef="ND_cellnoise3d_float" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_cellnoise3d_float" language="genmdl" />
+  <implementation name="IM_cellnoise3d_float_genmdl" nodedef="ND_cellnoise3d_float" sourcecode="mx::stdlib::mx_cellnoise3d_float(mxp_position:{{position}})" language="genmdl" />
 
 
   <!-- ======================================================================== -->
@@ -159,50 +159,50 @@
   <!-- ======================================================================== -->
 
   <!-- <position> -->
-  <implementation name="IM_position_vector3_genmdl" nodedef="ND_position_vector3" sourcecode="::state::position()" language="genmdl"/>
+  <implementation name="IM_position_vector3_genmdl" nodedef="ND_position_vector3" sourcecode="mx::stdlib::mx_position_vector3(mxp_space:{{space}})" language="genmdl"/>
 
   <!-- <normal> -->
-  <implementation name="IM_normal_vector3_genmdl" nodedef="ND_normal_vector3" sourcecode="::state::normal()" language="genmdl"/>
+  <implementation name="IM_normal_vector3_genmdl" nodedef="ND_normal_vector3" sourcecode="mx::stdlib::mx_normal_vector3(mxp_space:{{space}})" language="genmdl"/>
 
   <!-- <tangent> -->
-  <implementation name="IM_tangent_vector3_genmdl" nodedef="ND_tangent_vector3" sourcecode="::state::texture_tangent_u({{index}})" language="genmdl"/>
+  <implementation name="IM_tangent_vector3_genmdl" nodedef="ND_tangent_vector3" sourcecode="mx::stdlib::mx_tangent_vector3(mxp_space:{{space}}, mxp_index:{{index}})" language="genmdl"/>
 
   <!-- <bitangent> -->
-  <implementation name="IM_bitangent_vector3_genmdl" nodedef="ND_bitangent_vector3" sourcecode="::state::texture_tangent_v({{index}})" language="genmdl"/>
+  <implementation name="IM_bitangent_vector3_genmdl" nodedef="ND_bitangent_vector3" sourcecode="mx::stdlib::mx_bitangent_vector3(mxp_space:{{space}}, mxp_index:{{index}})" language="genmdl"/>
 
   <!-- <texcoord> -->
-  <implementation name="IM_texcoord_vector2_genmdl" nodedef="ND_texcoord_vector2" sourcecode="mx::swizzle::xy(::state::texture_coordinate({{index}}))" language="genmdl"/>
-  <implementation name="IM_texcoord_vector3_genmdl" nodedef="ND_texcoord_vector3" sourcecode="::state::texture_coordinate({{index}})" language="genmdl"/>
+  <implementation name="IM_texcoord_vector2_genmdl" nodedef="ND_texcoord_vector2" sourcecode="mx::stdlib::mx_texcoord_vector2(mxp_index:{{index}})" language="genmdl"/>
+  <implementation name="IM_texcoord_vector3_genmdl" nodedef="ND_texcoord_vector3" sourcecode="mx::stdlib::mx_texcoord_vector3(mxp_index:{{index}})" language="genmdl"/>
 
   <!-- <geomcolor> -->
-  <implementation name="IM_geomcolor_float_genmdl" nodedef="ND_geomcolor_float" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomcolor_float" language="genmdl" />
-  <implementation name="IM_geomcolor_color2_genmdl" nodedef="ND_geomcolor_color2" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomcolor_color2" language="genmdl" />
-  <implementation name="IM_geomcolor_color3_genmdl" nodedef="ND_geomcolor_color3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomcolor_color3" language="genmdl" />
-  <implementation name="IM_geomcolor_color4_genmdl" nodedef="ND_geomcolor_color4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomcolor_color4" language="genmdl" />
+  <implementation name="IM_geomcolor_float_genmdl" nodedef="ND_geomcolor_float" sourcecode="mx::stdlib::mx_geomcolor_float(mxp_index:{{index}})" language="genmdl" />
+  <implementation name="IM_geomcolor_color2_genmdl" nodedef="ND_geomcolor_color2" sourcecode="mx::stdlib::mx_geomcolor_color2(mxp_index:{{index}})" language="genmdl" />
+  <implementation name="IM_geomcolor_color3_genmdl" nodedef="ND_geomcolor_color3" sourcecode="mx::stdlib::mx_geomcolor_color3(mxp_index:{{index}})" language="genmdl" />
+  <implementation name="IM_geomcolor_color4_genmdl" nodedef="ND_geomcolor_color4" sourcecode="mx::stdlib::mx_geomcolor_color4(mxp_index:{{index}})" language="genmdl" />
 
   <!-- <geomattrvalue> -->
-  <implementation name="IM_geomattrvalue_integer_genmdl" nodedef="ND_geomattrvalue_integer" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomattrvalue_integer" language="genmdl" />
-  <implementation name="IM_geomattrvalue_boolean_genmdl" nodedef="ND_geomattrvalue_boolean" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomattrvalue_boolean" language="genmdl" />
-  <implementation name="IM_geomattrvalue_string_genmdl" nodedef="ND_geomattrvalue_string" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomattrvalue_string" language="genmdl" />
-  <implementation name="IM_geomattrvalue_float_genmdl" nodedef="ND_geomattrvalue_float" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomattrvalue_float" language="genmdl" />
-  <implementation name="IM_geomattrvalue_color2_genmdl" nodedef="ND_geomattrvalue_color2" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomattrvalue_color2" language="genmdl" />
-  <implementation name="IM_geomattrvalue_color3_genmdl" nodedef="ND_geomattrvalue_color3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomattrvalue_color3" language="genmdl" />
-  <implementation name="IM_geomattrvalue_color4_genmdl" nodedef="ND_geomattrvalue_color4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomattrvalue_color4" language="genmdl" />
-  <implementation name="IM_geomattrvalue_vector2_genmdl" nodedef="ND_geomattrvalue_vector2" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomattrvalue_vector2" language="genmdl" />
-  <implementation name="IM_geomattrvalue_vector3_genmdl" nodedef="ND_geomattrvalue_vector3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomattrvalue_vector3" language="genmdl" />
-  <implementation name="IM_geomattrvalue_vector4_genmdl" nodedef="ND_geomattrvalue_vector4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geomattrvalue_vector4" language="genmdl" />
+  <implementation name="IM_geomattrvalue_integer_genmdl" nodedef="ND_geomattrvalue_integer" sourcecode="mx::stdlib::mx_geomattrvalue_integer(mxp_attrname:{{attrname}})" language="genmdl" />
+  <implementation name="IM_geomattrvalue_boolean_genmdl" nodedef="ND_geomattrvalue_boolean" sourcecode="mx::stdlib::mx_geomattrvalue_boolean(mxp_attrname:{{attrname}})" language="genmdl" />
+  <implementation name="IM_geomattrvalue_string_genmdl" nodedef="ND_geomattrvalue_string" sourcecode="mx::stdlib::mx_geomattrvalue_string(mxp_attrname:{{attrname}})" language="genmdl" />
+  <implementation name="IM_geomattrvalue_float_genmdl" nodedef="ND_geomattrvalue_float" sourcecode="mx::stdlib::mx_geomattrvalue_float(mxp_attrname:{{attrname}})" language="genmdl" />
+  <implementation name="IM_geomattrvalue_color2_genmdl" nodedef="ND_geomattrvalue_color2" sourcecode="mx::stdlib::mx_geomattrvalue_color2(mxp_attrname:{{attrname}})" language="genmdl" />
+  <implementation name="IM_geomattrvalue_color3_genmdl" nodedef="ND_geomattrvalue_color3" sourcecode="mx::stdlib::mx_geomattrvalue_color3(mxp_attrname:{{attrname}})" language="genmdl" />
+  <implementation name="IM_geomattrvalue_color4_genmdl" nodedef="ND_geomattrvalue_color4" sourcecode="mx::stdlib::mx_geomattrvalue_color4(mxp_attrname:{{attrname}})" language="genmdl" />
+  <implementation name="IM_geomattrvalue_vector2_genmdl" nodedef="ND_geomattrvalue_vector2" sourcecode="mx::stdlib::mx_geomattrvalue_vector2(mxp_attrname:{{attrname}})" language="genmdl" />
+  <implementation name="IM_geomattrvalue_vector3_genmdl" nodedef="ND_geomattrvalue_vector3" sourcecode="mx::stdlib::mx_geomattrvalue_vector3(mxp_attrname:{{attrname}})" language="genmdl" />
+  <implementation name="IM_geomattrvalue_vector4_genmdl" nodedef="ND_geomattrvalue_vector4" sourcecode="mx::stdlib::mx_geomattrvalue_vector4(mxp_attrname:{{attrname}})" language="genmdl" />
 
   <!-- <geompropvalue> -->
-  <implementation name="IM_geompropvalue_integer_genmdl" nodedef="ND_geompropvalue_integer" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geompropvalue_integer" language="genmdl" />
-  <implementation name="IM_geompropvalue_boolean_genmdl" nodedef="ND_geompropvalue_boolean" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geompropvalue_boolean" language="genmdl" />
-  <implementation name="IM_geompropvalue_string_genmdl" nodedef="ND_geompropvalue_string" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geompropvalue_string" language="genmdl" />
-  <implementation name="IM_geompropvalue_float_genmdl" nodedef="ND_geompropvalue_float" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geompropvalue_float" language="genmdl" />
-  <implementation name="IM_geompropvalue_color2_genmdl" nodedef="ND_geompropvalue_color2" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geompropvalue_color2" language="genmdl" />
-  <implementation name="IM_geompropvalue_color3_genmdl" nodedef="ND_geompropvalue_color3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geompropvalue_color3" language="genmdl" />
-  <implementation name="IM_geompropvalue_color4_genmdl" nodedef="ND_geompropvalue_color4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geompropvalue_color4" language="genmdl" />
-  <implementation name="IM_geompropvalue_vector2_genmdl" nodedef="ND_geompropvalue_vector2" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geompropvalue_vector2" language="genmdl" />
-  <implementation name="IM_geompropvalue_vector3_genmdl" nodedef="ND_geompropvalue_vector3" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geompropvalue_vector3" language="genmdl" />
-  <implementation name="IM_geompropvalue_vector4_genmdl" nodedef="ND_geompropvalue_vector4" file="stdlib/genmdl/materialx/stdlib.mdl" function="mx_geompropvalue_vector4" language="genmdl" />
+  <implementation name="IM_geompropvalue_integer_genmdl" nodedef="ND_geompropvalue_integer" sourcecode="mx::stdlib::mx_geompropvalue_integer(mxp_geomprop:{{geomprop}}, mxp_default:{{default}})" language="genmdl" />
+  <implementation name="IM_geompropvalue_boolean_genmdl" nodedef="ND_geompropvalue_boolean" sourcecode="mx::stdlib::mx_geompropvalue_boolean(mxp_geomprop:{{geomprop}}, mxp_default:{{default}})" language="genmdl" />
+  <implementation name="IM_geompropvalue_string_genmdl" nodedef="ND_geompropvalue_string" sourcecode="mx::stdlib::mx_geompropvalue_string(mxp_geomprop:{{geomprop}}, mxp_default:{{default}})" language="genmdl" />
+  <implementation name="IM_geompropvalue_float_genmdl" nodedef="ND_geompropvalue_float" sourcecode="mx::stdlib::mx_geompropvalue_float(mxp_geomprop:{{geomprop}}, mxp_default:{{default}})" language="genmdl" />
+  <implementation name="IM_geompropvalue_color2_genmdl" nodedef="ND_geompropvalue_color2" sourcecode="mx::stdlib::mx_geompropvalue_color2(mxp_geomprop:{{geomprop}}, mxp_default:{{default}})" language="genmdl" />
+  <implementation name="IM_geompropvalue_color3_genmdl" nodedef="ND_geompropvalue_color3" sourcecode="mx::stdlib::mx_geompropvalue_color3(mxp_geomprop:{{geomprop}}, mxp_default:{{default}})" language="genmdl" />
+  <implementation name="IM_geompropvalue_color4_genmdl" nodedef="ND_geompropvalue_color4" sourcecode="mx::stdlib::mx_geompropvalue_color4(mxp_geomprop:{{geomprop}}, mxp_default:{{default}})" language="genmdl" />
+  <implementation name="IM_geompropvalue_vector2_genmdl" nodedef="ND_geompropvalue_vector2" sourcecode="mx::stdlib::mx_geompropvalue_vector2(mxp_geomprop:{{geomprop}}, mxp_default:{{default}})" language="genmdl" />
+  <implementation name="IM_geompropvalue_vector3_genmdl" nodedef="ND_geompropvalue_vector3" sourcecode="mx::stdlib::mx_geompropvalue_vector3(mxp_geomprop:{{geomprop}}, mxp_default:{{default}})" language="genmdl" />
+  <implementation name="IM_geompropvalue_vector4_genmdl" nodedef="ND_geompropvalue_vector4" sourcecode="mx::stdlib::mx_geompropvalue_vector4(mxp_geomprop:{{geomprop}}, mxp_default:{{default}})" language="genmdl" />
 
   <!-- ======================================================================== -->
   <!-- Application nodes                                                        -->
