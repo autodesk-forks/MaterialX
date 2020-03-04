@@ -40,13 +40,20 @@ set_target_properties(
     MaterialXView PROPERTIES
     DEBUG_POSTFIX "${MATERIALX_DEBUG_POSTFIX}")
 
-target_link_libraries(
+set(LIBS
     MaterialXView
     MaterialXFormat
     MaterialXGenGlsl
     MaterialXGenOsl
     MaterialXGenMdl
-    MaterialXRenderGlsl
+    MaterialXRenderGlsl)
+
+if (MATERIALX_BUILD_GEN_OGSFX)
+    LIST(APPEND LIBS MaterialXGenOgsFx)
+endif()
+
+target_link_libraries(
+    ${LIBS}
     nanogui
     ${NANOGUI_EXTRA_LIBS})
 

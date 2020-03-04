@@ -189,6 +189,9 @@ class Viewer : public ng::Screen
     mx::GenContext _genContext;
     mx::GenContext _genContextOsl;
     mx::GenContext _genContextMdl;
+#if MATERIALX_BUILD_GEN_OGSFX
+    mx::GenContext _genContextGlslMaya;
+#endif
 
     // Unit registry
     mx::UnitConverterRegistryPtr _unitRegistry;

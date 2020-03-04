@@ -14,6 +14,7 @@
 
 #include <MaterialXGenOsl/OslShaderGenerator.h>
 #include <MaterialXGenMdl/MdlShaderGenerator.h>
+#include <MaterialXGenOgsFx/MayaGlslPluginShaderGenerator.h>
 
 #include <MaterialXFormat/Environ.h>
 
@@ -218,6 +219,9 @@ Viewer::Viewer(const std::string& materialFilename,
     _genContext(mx::GlslShaderGenerator::create()),
     _genContextOsl(mx::OslShaderGenerator::create()),
     _genContextMdl(mx::MdlShaderGenerator::create()),
+#if MATERIALX_BUILD_GEN_OGSFX
+    _genContextGlslMaya(mx::MayaGlslPluginShaderGenerator::create()),
+#endif
     _unitRegistry(mx::UnitConverterRegistry::create()),
     _splitByUdims(false),
     _mergeMaterials(false),
@@ -251,6 +255,10 @@ Viewer::Viewer(const std::string& materialFilename,
     _genContextOsl.getOptions().fileTextureVerticalFlip = false;
     _genContextMdl.getOptions().targetColorSpaceOverride = "lin_rec709";
     _genContextMdl.getOptions().fileTextureVerticalFlip = false;
+#if MATERIALX_BUILD_GEN_OGSFX
+    _genContextGlslMaya.getOptions().targetColorSpaceOverride = "lin_rec709";
+    _genContextGlslMaya.getOptions().fileTextureVerticalFlip = true;
+#endif
 
     // Initialize image handler.
 #if MATERIALX_BUILD_OIIO
@@ -683,6 +691,9 @@ void Viewer::createAdvancedSettings(Widget* parent)
         _genContext.getOptions().targetDistanceUnit = _distanceUnitOptions[index];
         _genContextOsl.getOptions().targetDistanceUnit = _distanceUnitOptions[index];
         _genContextMdl.getOptions().targetDistanceUnit = _distanceUnitOptions[index];
+#if MATERIALX_BUILD_GEN_OGSFX
+        _genContextGlslMaya.getOptions().targetDistanceUnit = _distanceUnitOptions[index];
+#endif
         for (MaterialPtr material : _materials)
         {
             material->bindUnits(_unitRegistry, _genContext);
@@ -1135,7 +1146,7 @@ void Viewer::saveShaderSource(mx::GenContext& context)
             {
                 const std::string path = mx::getEnviron("MATERIALX_VIEW_OUTPUT_PATH");
                 const std::string baseName = (path.empty() ? _searchPath[0] : mx::FilePath(path)) / elem->getName();
-                if (context.getShaderGenerator().getLanguage() == mx::GlslShaderGenerator::LANGUAGE)
+                if (context.getShaderGenerator().getLanguage() == mx::GlslShaderGenerator::LANGUAGE && context.getShaderGenerator().getTarget() == mx::GlslShaderGenerator::TARGET)
                 {
                     const std::string& vertexShader = shader->getSourceCode(mx::Stage::VERTEX);
                     const std::string& pixelShader = shader->getSourceCode(mx::Stage::PIXEL);
@@ -1155,6 +1166,14 @@ void Viewer::saveShaderSource(mx::GenContext& context)
                     writeTextFile(pixelShader, baseName + ".mdl");
                     new ng::MessageDialog(this, ng::MessageDialog::Type::Information, "Saved MDL source: ", baseName);
                 }
+#if MATERIALX_BUILD_GEN_OGSFX
+                else if (context.getShaderGenerator().getTarget() == mx::MayaGlslPluginShaderGenerator::TARGET)
+                {
+                    const std::string& fxShader = shader->getSourceCode(mx::Stage::EFFECT);
+                    writeTextFile(fxShader, baseName + ".ogsfx");
+                    new ng::MessageDialog(this, ng::MessageDialog::Type::Information, "Saved Maya GLSL source: ", baseName);
+                }
+#endif
             }
         }
     }
@@ -1309,6 +1328,9 @@ void Viewer::loadStandardLibraries()
     initContext(_genContext);
     initContext(_genContextOsl);
     initContext(_genContextMdl);
+#if MATERIALX_BUILD_GEN_OGSFX
+    initContext(_genContextGlslMaya);
+#endif
 }
 
 bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
@@ -1353,6 +1375,15 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
         saveShaderSource(_genContextMdl);
         return true;
     }
+
+#if MATERIALX_BUILD_GEN_OGSFX
+    // Save Maya GLSL shader source to file.
+    if (key == GLFW_KEY_G && action == GLFW_PRESS)
+    {
+        saveShaderSource(_genContextGlslMaya);
+        return true;
+    }
+#endif
 
     // Load shader source from file.  Editing the source files before loading
     // provides a way to debug and experiment with shader source code.
