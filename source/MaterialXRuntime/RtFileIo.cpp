@@ -1177,7 +1177,7 @@ void RtFileIo::write(std::ostream& stream, const RtWriteOptions* options)
     if (options)
     {
         xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
-        document->setVersionString(options->desiredMajorVersion + "." + options->desiredMinorVersion);
+        document->setVersionString(makeVersionString(options->desiredMajorVersion, options->desiredMinorVersion));
     }
     writeToXmlStream(document, stream, &xmlWriteOptions);
 }
