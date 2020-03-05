@@ -1162,6 +1162,7 @@ void RtFileIo::write(const FilePath& documentPath, const RtWriteOptions* options
     if (options)
     {
         xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
+        document->setVersionString(makeVersionString(options->desiredMajorVersion, options->desiredMinorVersion));
     }
     writeToXmlFile(document, documentPath, &xmlWriteOptions);
 }
