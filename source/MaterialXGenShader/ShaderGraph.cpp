@@ -13,6 +13,8 @@
 
 #include <MaterialXCore/Document.h>
 
+#include <queue>
+
 namespace MaterialX
 {
 
