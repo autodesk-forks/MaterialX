@@ -7,6 +7,9 @@ mdl 1.6;
 
 import::math::*;
 
+using mx = materialx;
+using ::mx::core import *;
+
 // Restrict to 7x7 kernel size for performance reasons
 export const int MX_MAX_SAMPLE_COUNT = 49;
 // Size of all weights for all levels (including level 1)
@@ -154,6 +157,26 @@ export float4 mx_convolution_float4(float4[MX_MAX_SAMPLE_COUNT] S, float[MX_WEIG
     for (int i=0;  i<sampleCount; i++)
     {
         result += S[i]*W[i+offset];
+    }
+    return result;
+}
+
+export color mx_convolution_color(color[MX_MAX_SAMPLE_COUNT] S, float[MX_WEIGHT_ARRAY_SIZE] W, int offset, int sampleCount)
+{
+    color result = color(0.0);
+    for (int i=0;  i<sampleCount; i++)
+    {
+        result += S[i]*W[i+offset];
+    }
+    return result;
+}
+
+export color4 mx_convolution_color4(color4[MX_MAX_SAMPLE_COUNT] S, float[MX_WEIGHT_ARRAY_SIZE] W, int offset, int sampleCount)
+{
+    color4 result = mk_color4(0.0, 0.0, 0.0, 0.0);
+    for (int i=0;  i<sampleCount; i++)
+    {
+        mx_add(result, mx_multiply(S[i], W[i+offset]));
     }
     return result;
 }

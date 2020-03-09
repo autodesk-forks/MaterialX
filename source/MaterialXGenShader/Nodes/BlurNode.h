@@ -35,6 +35,10 @@ class BlurNode : public ConvolutionNode
                                    const string& inputTypeString,
                                    const string& sampleName, const StringVec& sampleStrings) const;
 
+    static const string _sampleSizeFunctionUV;
+    static const float _filterSize;
+    static const float _filterOffset;
+
     /// Box filter option on blur
     static const string BOX_FILTER;
     /// Box filter weights variable name
