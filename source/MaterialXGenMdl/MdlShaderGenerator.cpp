@@ -11,15 +11,14 @@
 #include <MaterialXGenMdl/Nodes/SurfaceNodeMdl.h>
 #include <MaterialXGenMdl/Nodes/HeightToNormalNodeMdl.h>
 #include <MaterialXGenMdl/Nodes/BlurNodeMdl.h>
+#include <MaterialXGenMdl/Nodes/CombineNodeMdl.h>
 
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/ShaderStage.h>
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>
 #include <MaterialXGenShader/Nodes/ConvertNode.h>
-#include <MaterialXGenShader/Nodes/CombineNode.h>
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
-#include <MaterialXGenShader/Nodes/IfNode.h>
 
 namespace MaterialX
 {
@@ -179,16 +178,16 @@ MdlShaderGenerator::MdlShaderGenerator() :
     registerImplementation("IM_convert_integer_float_" + MdlShaderGenerator::LANGUAGE, ConvertNode::create);
 
     // <!-- <combine> -->
-    registerImplementation("IM_combine2_color2_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine2_vector2_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine2_color4CF_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine2_vector4VF_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine2_color4CC_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine2_vector4VV_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine3_color3_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine3_vector3_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine4_color4_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
-    registerImplementation("IM_combine4_vector4_" + MdlShaderGenerator::LANGUAGE, CombineNode::create);
+    registerImplementation("IM_combine2_color2_" + MdlShaderGenerator::LANGUAGE, CombineNodeMdl::create);
+    registerImplementation("IM_combine2_vector2_" + MdlShaderGenerator::LANGUAGE, CombineNodeMdl::create);
+    registerImplementation("IM_combine2_color4CF_" + MdlShaderGenerator::LANGUAGE, CombineNodeMdl::create);
+    registerImplementation("IM_combine2_vector4VF_" + MdlShaderGenerator::LANGUAGE, CombineNodeMdl::create);
+    registerImplementation("IM_combine2_color4CC_" + MdlShaderGenerator::LANGUAGE, CombineNodeMdl::create);
+    registerImplementation("IM_combine2_vector4VV_" + MdlShaderGenerator::LANGUAGE, CombineNodeMdl::create);
+    registerImplementation("IM_combine3_color3_" + MdlShaderGenerator::LANGUAGE, CombineNodeMdl::create);
+    registerImplementation("IM_combine3_vector3_" + MdlShaderGenerator::LANGUAGE, CombineNodeMdl::create);
+    registerImplementation("IM_combine4_color4_" + MdlShaderGenerator::LANGUAGE, CombineNodeMdl::create);
+    registerImplementation("IM_combine4_vector4_" + MdlShaderGenerator::LANGUAGE, CombineNodeMdl::create);
 
     // <!-- <blur> -->
     registerImplementation("IM_blur_float_" + MdlShaderGenerator::LANGUAGE, BlurNodeMdl::create);
@@ -284,7 +283,7 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
     for (size_t i = 0; i < inputs.size(); ++i)
     {
         const ShaderPort* input = inputs[i];
-        if (input->getType() == Type::FILENAME)
+        if (input->getType() == Type::FILENAME && input->getValue() && !input->getValue()->getValueString().empty())
         {
             const string& type = _syntax->getTypeName(input->getType());
             const string value = (input->getValue() ?
@@ -420,14 +419,14 @@ void MdlShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
     {
         const ShaderPort* input = inputs[i];
 
-        // TODO: This is a temporary for for Iray.
+        // TODO: This is a temporary fix for Iray.
         // File texture constructors must be emitted inside the shader body.
-        if (input->getType() == Type::FILENAME)
+        if (input->getType() == Type::FILENAME && input->getValue() && !input->getValue()->getValueString().empty())
         {
             continue;
         }
 
-        const string& qualifier = input->isUniform() ? uniformPrefix : EMPTY_STRING;
+        const string& qualifier = input->isUniform() || input->getType()==Type::FILENAME ? uniformPrefix : EMPTY_STRING;
         const string& type = _syntax->getTypeName(input->getType());
         const string value = (input->getValue() ?
             _syntax->getValue(input->getType(), *input->getValue(), true) :

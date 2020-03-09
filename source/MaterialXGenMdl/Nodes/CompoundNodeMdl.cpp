@@ -76,7 +76,7 @@ void CompoundNodeMdl::emitFunctionDefinition(const ShaderNode&, GenContext& cont
         int count = int(_rootGraph->numInputSockets());
         for (ShaderGraphInputSocket* input : _rootGraph->getInputSockets())
         {
-            const string& qualifier = input->isUniform() ? uniformPrefix : EMPTY_STRING;
+            const string& qualifier = input->isUniform() || input->getType() == Type::FILENAME ? uniformPrefix : EMPTY_STRING;
             const string& type = syntax.getTypeName(input->getType());
             const string value = (input->getValue() ?
                 syntax.getValue(input->getType(), *input->getValue()) :

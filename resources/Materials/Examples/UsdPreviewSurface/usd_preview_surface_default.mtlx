@@ -12,7 +12,7 @@
       <bindinput name="clearcoatRoughness" type="float" value="0.01" />
       <bindinput name="opacity" type="float" value="1" />
       <bindinput name="opacityThreshold" type="float" value="0" />
-      <bindinput name="ior" type="float" value="1.5" />
+      <bindparam name="ior" type="float" value="1.5" />
       <bindinput name="normal" type="vector3" value="0, 0, 1" />
       <bindinput name="displacement" type="float" value="0" />
       <bindinput name="occlusion" type="float" value="1" />

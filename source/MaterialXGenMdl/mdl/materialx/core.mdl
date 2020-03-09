@@ -77,6 +77,7 @@ export color4 mk_color4( float  r, float g, float b, float a) { return color4(co
 export color4 mk_color4( float3 v) { return color4(color(v.x, v.y, v.z), 1.0); }
 export color4 mk_color4( float4 v) { return color4(color(v.x, v.y, v.z), v.w); }
 export color4 mk_color4( color  v) { return color4(v, 1.0); }
+export color4 mk_color4( color  v, float a) { return color4(v, a); }
 export color  mk_color3( float  r, float g, float b) { return color(r, g, b); }
 export color  mk_color3( float  v) { return color(v); }
 export color  mk_color3( float2 v) { return color(v.x, v.y, 0.0); }
@@ -91,9 +92,13 @@ export float4 mk_float4( color4 v) {
 }
 
 export color4 mx_add(      color4 v1, color4 v2) { return color4(v1.rgb + v2.rgb, v1.a + v2.a); }
+export color4 mx_add(      color4 v1,  float v2) { return color4(v1.rgb + v2    , v1.a + v2  ); }
 export color4 mx_subtract( color4 v1, color4 v2) { return color4(v1.rgb - v2.rgb, v1.a - v2.a); }
+export color4 mx_subtract( color4 v1,  float v2) { return color4(v1.rgb - v2    , v1.a - v2  ); }
 export color4 mx_multiply( color4 v1, color4 v2) { return color4(v1.rgb * v2.rgb, v1.a * v2.a); }
+export color4 mx_multiply( color4 v1,  float v2) { return color4(v1.rgb * v2    , v1.a * v2  ); }
 export color4 mx_divide(   color4 v1, color4 v2) { return color4(v1.rgb / v2.rgb, v1.a / v2.a); }
+export color4 mx_divide(   color4 v1,  float v2) { return color4(v1.rgb / v2    , v1.a / v2  ); }
 
 // Parameter Expressions and Function Curves
 // Idea: attach an auxiliary lookup function if an array of frame values is
@@ -147,6 +152,19 @@ export state::coordinate_space mx_map_space( mx_coordinatespace_type space) {
     case mx_coordinatespace_type_object:
         return state::coordinate_object;
     default:
+        return state::coordinate_internal;
+    }
+}
+
+// Helper function mapping MaterialX coordinate space strings to MDL coordinate spaces
+export state::coordinate_space mx_map_space( string space) {
+    if (space == "world") {
+        return state::coordinate_world;
+    }
+    else if (space == "object") {
+        return state::coordinate_object;
+    }
+    else {
         return state::coordinate_internal;
     }
 }

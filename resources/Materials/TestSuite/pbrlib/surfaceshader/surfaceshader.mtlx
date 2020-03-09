@@ -109,36 +109,36 @@
   </material>
 
   <nodedef name="ND_testshader4" node="testshader4">
-    <input name="base" type="float" />
-    <input name="base_color" type="color3" />
-    <input name="base_color_map" type="filename" />
-    <input name="diffuse_roughness" type="float" />
-    <input name="specular" type="float" />
-    <input name="specular_map" type="filename" />
-    <input name="specular_color" type="color3" />
-    <input name="specular_color_map" type="filename" />
-    <input name="specular_roughness" type="float" />
-    <input name="specular_roughness_map" type="filename" />
-    <input name="specular_anisotropy" type="float" />
-    <input name="metalness" type="float" />
-    <input name="metalness_map" type="filename" />
-    <input name="transmission" type="float" />
-    <input name="transmission_map" type="filename" />
-    <input name="transmission_color" type="color3" />
-    <input name="transmission_color_map" type="filename" />
-    <input name="transmission_extra_roughness" type="float" />
-    <input name="transmission_extra_roughness_map" type="filename" />
-    <input name="subsurface" type="float" />
-    <input name="subsurface_color" type="color3" />
-    <input name="coat" type="float" />
-    <input name="coat_map" type="filename" />
-    <input name="coat_color" type="color3" />
-    <input name="coat_color_map" type="filename" />
-    <input name="coat_roughness" type="float" />
-    <input name="coat_roughness_map" type="filename" />
-    <input name="coat_IOR" type="float" />
-    <input name="normalmap" type="filename" />
-    <input name="coat_normalmap" type="filename" />
+    <parameter name="base" type="float" />
+    <parameter name="base_color" type="color3" />
+    <parameter name="base_color_map" type="filename" />
+    <parameter name="diffuse_roughness" type="float" />
+    <parameter name="specular" type="float" />
+    <parameter name="specular_map" type="filename" />
+    <parameter name="specular_color" type="color3" />
+    <parameter name="specular_color_map" type="filename" />
+    <parameter name="specular_roughness" type="float" />
+    <parameter name="specular_roughness_map" type="filename" />
+    <parameter name="specular_anisotropy" type="float" />
+    <parameter name="metalness" type="float" />
+    <parameter name="metalness_map" type="filename" />
+    <parameter name="transmission" type="float" />
+    <parameter name="transmission_map" type="filename" />
+    <parameter name="transmission_color" type="color3" />
+    <parameter name="transmission_color_map" type="filename" />
+    <parameter name="transmission_extra_roughness" type="float" />
+    <parameter name="transmission_extra_roughness_map" type="filename" />
+    <parameter name="subsurface" type="float" />
+    <parameter name="subsurface_color" type="color3" />
+    <parameter name="coat" type="float" />
+    <parameter name="coat_map" type="filename" />
+    <parameter name="coat_color" type="color3" />
+    <parameter name="coat_color_map" type="filename" />
+    <parameter name="coat_roughness" type="float" />
+    <parameter name="coat_roughness_map" type="filename" />
+    <parameter name="coat_IOR" type="float" />
+    <parameter name="normalmap" type="filename" />
+    <parameter name="coat_normalmap" type="filename" />
     <output name="out" type="surfaceshader" />
   </nodedef>
   <nodegraph name="IMP_testshader4" nodedef="ND_testshader4">
@@ -226,12 +226,12 @@
 
   <material name="example4">
     <shaderref name="example4_surface" node="testshader4">
-      <bindinput name="base" type="float" value="0.8" />
-      <bindinput name="base_color" type="color3" value="1, 1, 1" />
-      <bindinput name="specular" type="float" value="1" />
-      <bindinput name="specular_color" type="color3" value="1, 1, 1" />
-      <bindinput name="specular_roughness" type="float" value="0.1" />
-      <bindinput name="coat_IOR" type="float" value="3" />
+      <bindparam name="base" type="float" value="0.8" />
+      <bindparam name="base_color" type="color3" value="1, 1, 1" />
+      <bindparam name="specular" type="float" value="1" />
+      <bindparam name="specular_color" type="color3" value="1, 1, 1" />
+      <bindparam name="specular_roughness" type="float" value="0.1" />
+      <bindparam name="coat_IOR" type="float" value="3" />
     </shaderref>
   </material>
   <material name="example5">

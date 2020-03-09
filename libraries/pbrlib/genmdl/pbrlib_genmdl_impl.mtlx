@@ -68,14 +68,14 @@
   <implementation name="IM_mix_vdf_genmdl" nodedef="ND_mix_vdf" sourcecode="mx::pbrlib::mx_mix_vdf(mxp_fg:{{fg}}, mxp_bg:{{bg}}, mxp_mix:{{mix}})" language="genmdl"/>
 
   <!-- <add> -->
-  <implementation name="IM_add_bsdf_genmdl" nodedef="ND_add_bsdf" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
-  <implementation name="IM_add_edf_genmdl" nodedef="ND_add_edf" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
+  <implementation name="IM_add_bsdf_genmdl" nodedef="ND_add_bsdf" sourcecode="{{in1}}" language="genmdl"/> <!-- TODO: Implement properly -->
+  <implementation name="IM_add_edf_genmdl" nodedef="ND_add_edf" sourcecode="{{in2}}" language="genmdl"/>   <!-- TODO: Implement properly -->
 
   <!-- <multiply> -->
   <implementation name="IM_multiply_bsdfC_genmdl" nodedef="ND_multiply_bsdfC" sourcecode="mx::pbrlib::mx_multiply_bsdf_color3(mxp_in1:{{in1}}, mxp_in2:{{in2}})" language="genmdl"/>
   <implementation name="IM_multiply_bsdfF_genmdl" nodedef="ND_multiply_bsdfF" sourcecode="mx::pbrlib::mx_multiply_bsdf_float(mxp_in1:{{in1}}, mxp_in2:{{in2}})" language="genmdl"/>
-  <implementation name="IM_multiply_edfC_genmdl" nodedef="ND_multiply_edfC" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
-  <implementation name="IM_multiply_edfF_genmdl" nodedef="ND_multiply_edfF" sourcecode="NOT IMPLEMENTED YET" language="genmdl"/>
+  <implementation name="IM_multiply_edfC_genmdl" nodedef="ND_multiply_edfC" sourcecode="{{in1}}" language="genmdl"/> <!-- TODO: Implement properly -->
+  <implementation name="IM_multiply_edfF_genmdl" nodedef="ND_multiply_edfF" sourcecode="{{in1}}" language="genmdl"/> <!-- TODO: Implement properly -->
 
   <!-- <backfacing> -->
   <implementation name="IM_backfacing_boolean_genmdl" nodedef="ND_backfacing_boolean" sourcecode="mx::pbrlib::mx_backfacing_bool()" language="genmdl"/>

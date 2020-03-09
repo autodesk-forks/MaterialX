@@ -20,7 +20,7 @@
       <bindinput name="specularColor" type="color3" value="0, 0, 0" />
       <bindinput name="metalness" type="float" value="1" />
       <bindinput name="roughness" type="float" nodegraph="NG_brass1" output="out_roughness" />
-      <bindinput name="ior" type="float" value="50" />
+      <bindparam name="ior" type="float" value="50" />
     </shaderref>
   </material>
 </materialx>

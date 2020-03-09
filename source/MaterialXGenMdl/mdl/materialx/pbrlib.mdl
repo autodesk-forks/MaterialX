@@ -694,7 +694,6 @@ export material mx_add_vdf(
     )
 );
 
-
 export material mx_multiply_bsdf_color3(
     material mxp_in1 = material() [[ anno::usage( "materialx:bsdf") ]],
     color mxp_in2 = color(1.0)
@@ -857,7 +856,6 @@ export mx_complex_ior__result mx_complex_ior(
     float3 e = (n_max - mxp_ior) / (n_max - n_min);    
     return mx_complex_ior__result( color(r), color(e));
 }
-
 
 // Supportive struct type for the two outputs of mx_artistic_ior
 // NOTE: In MDL, those would ideally be colors as well and we would
