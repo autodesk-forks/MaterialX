@@ -24,8 +24,7 @@ class BlurNodeMdl : public BlurNode
     BlurNodeMdl();
       
     /// Output sample array
-    void outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage,
-                           const string& inputTypeString,
+    void outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage, const TypeDesc* inputType,
                            const string& sampleName, const StringVec& sampleStrings) const override;
 };
 

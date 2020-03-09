@@ -59,11 +59,13 @@ bool BlurNode::acceptsInputType(const TypeDesc* type) const
         type->isFloat2() || type->isFloat3() || type->isFloat4());
 }
 
-void BlurNode::outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage,
-                                 const string& inputTypeString,
+void BlurNode::outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage, const TypeDesc* inputType,
                                  const string& sampleName, const StringVec& sampleStrings) const
 {
     const string MX_MAX_SAMPLE_COUNT_STRING("MX_MAX_SAMPLE_COUNT");
+
+    const Syntax& syntax = shadergen.getSyntax();
+    const string& inputTypeString = syntax.getTypeName(inputType);
 
     shadergen.emitLine(inputTypeString + " " + sampleName + "[" + MX_MAX_SAMPLE_COUNT_STRING + "]", stage);
     for (size_t i = 0; i < sampleStrings.size(); i++)
@@ -78,7 +80,6 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
         const ShaderGenerator& shadergen = context.getShaderGenerator();
 
         const ShaderInput* inInput = node.getInput(IN_STRING);
-
         const Syntax& syntax = shadergen.getSyntax();
 
         // Get input type name string
@@ -148,7 +149,7 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
 
             // Set up sample array
             string sampleName(output->getVariable() + SAMPLES_POSTFIX_STRING);
-            outputSampleArray(shadergen, stage, inputTypeString, sampleName, sampleStrings);
+            outputSampleArray(shadergen, stage, inInput->getType(), sampleName, sampleStrings);
 
             // Emit code to evaluate using input sample and weight arrays. 
             // The function to call depends on input type.

@@ -31,8 +31,7 @@ class BlurNode : public ConvolutionNode
                                     unsigned int filterWidth, StringVec& offsetStrings) const override;
 
     /// Output sample array
-    virtual void outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage,
-                                   const string& inputTypeString,
+    virtual void outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage, const TypeDesc* inputType,
                                    const string& sampleName, const StringVec& sampleStrings) const;
 
     static const string _sampleSizeFunctionUV;
