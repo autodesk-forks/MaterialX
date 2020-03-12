@@ -831,6 +831,11 @@ namespace
                     if (!doc->getOutput(outputName)) {
                         auto output = doc->addOutput(outputName, input->getType());
                         output->setNodeName(input->getNodeName());
+                        auto srcNode = input->getConnectedNode();
+                        if (srcNode->getOutputs().size() > 1)
+                        {
+                            output->setOutputString(input->getOutputString());
+                        }
                     }
                     bindInput->setOutputString(outputName);
                 }
