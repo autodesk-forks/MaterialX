@@ -819,25 +819,20 @@ namespace
             for (InputPtr input : surfaceShader->getActiveInputs())
             {
                 BindInputPtr bindInput = shaderRef->addBindInput(input->getName(), input->getType());
-                if (input->hasNodeName() && input->hasOutputString())
+                if (input->hasNodeGraphName() && input->hasOutputString() && doc->getNodeGraph(input->getNodeGraphName()))
                 {
-                    if (doc->getNodeGraph(input->getNodeName()))
-                    {
-                        bindInput->setNodeGraphString(input->getNodeName());
-                        bindInput->setOutputString(input->getOutputString());
+                    bindInput->setNodeGraphString(input->getNodeGraphName());
+                    bindInput->setOutputString(input->getOutputString());
+                }
+                else if(input->hasNodeName())
+                {
+                    const auto outputName = std::string(OUTPUT_ELEMENT_PREFIX.c_str()) +
+                                            input->getNodeName() + "_out";
+                    if (!doc->getOutput(outputName)) {
+                        auto output = doc->addOutput(outputName, input->getType());
+                        output->setNodeName(input->getNodeName());
                     }
-                    else
-                    {
-                        const auto outputName = std::string(OUTPUT_ELEMENT_PREFIX.c_str()) +
-                                                input->getNodeName() + "_" + 
-                                                input->getOutputString();
-                        if (!doc->getOutput(outputName)) {
-                            auto output = doc->addOutput(outputName, input->getType());
-                            output->setNodeName(input->getNodeName());
-                            output->setOutputString(input->getOutputString());
-                        }
-                        bindInput->setOutputString(outputName);
-                    }
+                    bindInput->setOutputString(outputName);
                 }
                 else
                 {
@@ -1248,6 +1243,10 @@ void RtFileIo::write(const FilePath& documentPath, const RtWriteOptions* options
     {
         xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
         document->setVersionString(makeVersionString(options->desiredMajorVersion, options->desiredMinorVersion));
+    }
+    else
+    {
+        document->setVersionString(makeVersionString(MATERIALX_MAJOR_VERSION, MATERIALX_MINOR_VERSION + 1));
     }
     writeToXmlFile(document, documentPath, &xmlWriteOptions);
 }
