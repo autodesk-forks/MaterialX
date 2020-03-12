@@ -1274,6 +1274,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     for (int i = 0; i < 2; ++i) {
 
         mx::RtWriteOptions writeOptions;
+        writeOptions.desiredMinorVersion = 37;
         writeOptions.materialWriteOp = mx::RtWriteOptions::MaterialWriteOp::WRITE_LOOKS;
         mx::RtReadOptions readOptions;
         readOptions.readLookInformation = true;
