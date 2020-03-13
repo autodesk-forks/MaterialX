@@ -12,15 +12,12 @@
 namespace MaterialX
 {
 
-namespace
-{
-    /// Name of function to compute sample size in uv space. Takes uv, filter size, and filter offset
-    /// as input, and return a 2 channel vector as output
-    const string sampleSizeFunctionUV = "mx_compute_sample_size_uv";
+/// Name of function to compute sample size in uv space. Takes uv, filter size, and filter offset
+/// as input, and return a 2 channel vector as output
+const string BlurNode::_sampleSizeFunctionUV = "mx_compute_sample_size_uv";
 
-    const float filterSize = 2.0;
-    const float filterOffset = 0.0;
-}
+const float BlurNode::_filterSize = 2.0;
+const float BlurNode::_filterOffset = 0.0;
 
 const string BlurNode::BOX_FILTER = "box";
 const string BlurNode::GAUSSIAN_FILTER = "gaussian";
@@ -62,18 +59,19 @@ bool BlurNode::acceptsInputType(const TypeDesc* type) const
         type->isFloat2() || type->isFloat3() || type->isFloat4());
 }
 
-void BlurNode::outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage,
-                                 const string& inputTypeString,
+void BlurNode::outputSampleArray(const ShaderGenerator& shadergen, ShaderStage& stage, const TypeDesc* inputType,
                                  const string& sampleName, const StringVec& sampleStrings) const
 {
     const string MX_MAX_SAMPLE_COUNT_STRING("MX_MAX_SAMPLE_COUNT");
+
+    const Syntax& syntax = shadergen.getSyntax();
+    const string& inputTypeString = syntax.getTypeName(inputType);
 
     shadergen.emitLine(inputTypeString + " " + sampleName + "[" + MX_MAX_SAMPLE_COUNT_STRING + "]", stage);
     for (size_t i = 0; i < sampleStrings.size(); i++)
     {
         shadergen.emitLine(sampleName + "[" + std::to_string(i) + "] = " + sampleStrings[i], stage);
     }
-
 }
 
 void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
@@ -82,12 +80,11 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
         const ShaderGenerator& shadergen = context.getShaderGenerator();
 
         const ShaderInput* inInput = node.getInput(IN_STRING);
-
         const Syntax& syntax = shadergen.getSyntax();
 
         // Get input type name string
         const string& inputTypeString = inInput && acceptsInputType(inInput->getType()) ?
-                                        syntax.getTypeName(inInput->getType()) : EMPTY_STRING;
+            syntax.getTypeName(inInput->getType()) : EMPTY_STRING;
 
         const ShaderInput* filterTypeInput = node.getInput(FILTER_TYPE_STRING);
         if (!filterTypeInput || inputTypeString.empty())
@@ -123,7 +120,7 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
         }
 
         // Sample count is square of filter size
-        const unsigned int sampleCount = filterWidth*filterWidth;
+        const unsigned int sampleCount = filterWidth * filterWidth;
 
         // Emit samples
         // Note: The maximum sample count MX_MAX_SAMPLE_COUNT is defined in the shader code and 
@@ -131,9 +128,9 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
         // needs to be adjusted.
         //
         StringVec sampleStrings;
-        emitInputSamplesUV(node, sampleCount, filterWidth, 
-                           filterSize, filterOffset, sampleSizeFunctionUV, 
-                           context, stage, sampleStrings);
+        emitInputSamplesUV(node, sampleCount, filterWidth,
+            _filterSize, _filterOffset, _sampleSizeFunctionUV,
+            context, stage, sampleStrings);
 
         // There should always be at least 1 sample
         if (sampleStrings.empty())
@@ -152,17 +149,19 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
 
             // Set up sample array
             string sampleName(output->getVariable() + SAMPLES_POSTFIX_STRING);
-            outputSampleArray(shadergen, stage, inputTypeString, sampleName, sampleStrings);
-           
+            outputSampleArray(shadergen, stage, inInput->getType(), sampleName, sampleStrings);
+
             // Emit code to evaluate using input sample and weight arrays. 
             // The function to call depends on input type.
             //
             shadergen.emitLineBegin(stage);
             shadergen.emitOutput(output, true, false, context, stage);
+            shadergen.emitLineEnd(stage);
 
             // Emit branching code to compute result based on filter type
             //
-            shadergen.emitString(" = ", stage);
+            shadergen.emitLineBegin(stage);
+            shadergen.emitString("if (", stage);
             shadergen.emitInput(filterTypeInput, context, stage);
             // Remap enumeration for comparison as needed
             std::pair<const TypeDesc*, ValuePtr> result;
@@ -171,25 +170,38 @@ void BlurNode::emitFunctionCall(const ShaderNode& node, GenContext& context, Sha
             {
                 emitValue = syntax.getValue(result.first, *(result.second));
             }
-            shadergen.emitString(" == " + emitValue + " ? ", stage);
+            shadergen.emitString(" == " + emitValue + ")", stage);
+            shadergen.emitLineEnd(stage, false);
+
+            shadergen.emitScopeBegin(stage);
             {
                 string filterFunctionName = MX_CONVOLUTION_PREFIX_STRING + inputTypeString;
-                shadergen.emitString(filterFunctionName + "(" + sampleName + ", " +
+                shadergen.emitLineBegin(stage);
+                shadergen.emitString(output->getVariable(), stage);
+                shadergen.emitString(" = " + filterFunctionName, stage);
+                shadergen.emitString("(" + sampleName + ", " +
                     GAUSSIAN_WEIGHTS_VARIABLE + ", " +
                     std::to_string(arrayOffset) + ", " +
                     std::to_string(sampleCount) +
                     ")", stage);
+                shadergen.emitLineEnd(stage);
             }
-            shadergen.emitString(" : ", stage);
+            shadergen.emitScopeEnd(stage);
+            shadergen.emitLine("else", stage, false);
+            shadergen.emitScopeBegin(stage);
             {
                 string filterFunctionName = MX_CONVOLUTION_PREFIX_STRING + inputTypeString;
-                shadergen.emitString(filterFunctionName + "(" + sampleName + ", " +
+                shadergen.emitLineBegin(stage);
+                shadergen.emitString(output->getVariable(), stage);
+                shadergen.emitString(" = " + filterFunctionName, stage);
+                shadergen.emitString("(" + sampleName + ", " +
                     BOX_WEIGHTS_VARIABLE + ", " +
                     std::to_string(arrayOffset) + ", " +
                     std::to_string(sampleCount) +
                     ")", stage);
+                shadergen.emitLineEnd(stage);
             }
-            shadergen.emitLineEnd(stage);
+            shadergen.emitScopeEnd(stage);
         }
         else
         {
