@@ -88,6 +88,7 @@ class Viewer : public ng::Screen
     }
 
   private:
+    void initContext(mx::GenContext& context);
     void loadEnvironmentLight();
     void applyDirectLights(mx::DocumentPtr doc);
     void loadDocument(const mx::FilePath& filename, mx::DocumentPtr libraries);
