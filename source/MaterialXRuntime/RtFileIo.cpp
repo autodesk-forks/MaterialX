@@ -37,6 +37,7 @@ namespace
     static const RtTokenSet stageMetadata       = {};
 
     static const RtToken DEFAULT_OUTPUT("out");
+    static const RtToken OUTPUT_ELEMENT_PREFIX("OUT_");
     static const RtToken MULTIOUTPUT("multioutput");
 
     PvtPrim* findPrimOrThrow(const RtToken& name, PvtPrim* parent)
@@ -145,7 +146,11 @@ namespace
             for (const InputPtr& elemInput : nodeElem->getInputs())
             {
                 PvtInput* input = findInputOrThrow(RtToken(elemInput->getName()), node);
-                const string& connectedNodeName = elemInput->getNodeName();
+                string connectedNodeName = elemInput->getNodeName();
+                if (connectedNodeName.empty())
+                {
+                    connectedNodeName = elemInput->getNodeGraphName();
+                }
                 if (!connectedNodeName.empty())
                 {
                     PvtPrim* connectedNode = findPrimOrThrow(RtToken(connectedNodeName), parent);
@@ -421,14 +426,25 @@ namespace
             PvtPrim* assignPrim = stage->createPrim(parent->getPath(), RtToken(matAssign->getName()), RtMaterialAssign::typeName());
             RtMaterialAssign rtMatAssign(assignPrim->hnd());
             
-            PvtPrim* collection = findPrimOrThrow(RtToken(matAssign->getCollectionString()), parent);
-            rtMatAssign.getCollection().addTarget(collection->hnd());
+            if (!matAssign->getCollectionString().empty()) {
+                PvtPrim* collection = findPrimOrThrow(RtToken(matAssign->getCollectionString()), parent);
+                rtMatAssign.getCollection().addTarget(collection->hnd());
+            }
 
-            PvtPrim* material = findPrimOrThrow(RtToken(matAssign->getMaterial()), parent);
-            rtMatAssign.getMaterial().addTarget(material->hnd());
+            if (!matAssign->getMaterial().empty()) {
+                PvtPrim* material = findPrimOrThrow(RtToken(matAssign->getMaterial()), parent);
+                rtMatAssign.getMaterial().addTarget(material->hnd());
+            }
 
-            rtMatAssign.getExclusive().getValue().asBool() = matAssign->getExclusive();
+            if (matAssign->hasAttribute(MaterialAssign::EXCLUSIVE_ATTRIBUTE)) {
+                rtMatAssign.getExclusive().getValue().asBool() = matAssign->getExclusive();
+            } else {
+                rtMatAssign.getExclusive().getValue().asBool() = true; // default
+            }
+
             rtMatAssign.getGeom().getValue().asString() = matAssign->getActiveGeom();
+
+            look.getMaterialAssigns().addTarget(assignPrim->hnd());
         }
         return lookPrim;
     }
@@ -537,6 +553,22 @@ namespace
         makeLookInheritConnections(doc->getLooks(), rootPrim);
     }
 
+    void validateNodesHaveNodedefs(DocumentPtr doc)
+    {
+        for (const ElementPtr& elem : doc->getChildren())
+        {
+            if (elem->isA<Node>())
+            {
+                NodePtr node = elem->asA<Node>();
+                const RtToken nodedefName = resolveNodeDefName(node);
+                if (nodedefName == EMPTY_TOKEN)
+                {
+                    throw ExceptionRuntimeError("No matching nodedef was found for node '" + node->getName() + "'");
+                }
+            }
+        }
+    }
+
     void readDocument(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* readOptions)
     {
         const string ROOT_PATH(PvtPath::ROOT_NAME);
@@ -555,14 +587,15 @@ namespace
         {
             if (!filter || filter(nodedef))
             {
-                PvtPath path(ROOT_PATH + nodedef->getName());
-                if (!stage->getPrimAtPath(path))
+                if (!RtApi::get().hasMasterPrim(RtToken(nodedef->getName())))
                 {
                     PvtPrim* prim = readNodeDef(nodedef, stage);
                     RtNodeDef(prim->hnd()).registerMasterPrim();
                 }
             }
         }
+
+        validateNodesHaveNodedefs(doc);
 
         // Load all other elements.
         for (const ElementPtr& elem : doc->getChildren())
@@ -586,7 +619,13 @@ namespace
                 }
                 else
                 {
-                    readGenericPrim(elem, stage->getRootPrim(), stage);
+                    const RtToken category(elem->getCategory());
+                    if (category != RtLook::typeName() &&
+                        category != RtLookGroup::typeName() &&
+                        category != RtMaterialAssign::typeName() &&
+                        category != RtCollection::typeName()) {
+                        readGenericPrim(elem, stage->getRootPrim(), stage);
+                    }
                 }
             }
         }
@@ -595,7 +634,7 @@ namespace
         createNodeConnections(doc->getNodes(), stage->getRootPrim());
 
         // Read look information
-        if (readOptions && readOptions->readLookInformation)
+        if (!readOptions || readOptions->readLookInformation)
         {
             readLookInformation(doc, stage, readOptions);
         }
@@ -709,8 +748,29 @@ namespace
                             {
                                 RtPrim sourceNode = source.getParent();
                                 InputPtr inputElem = valueElem->asA<Input>();
-                                inputElem->setNodeName(sourceNode.getName());
-                                inputElem->setOutputString(source.getName());
+                                if (sourceNode.hasApi<RtNodeGraph>())
+                                {
+                                    inputElem->setNodeGraphName(
+                                        sourceNode.getName());
+                                    inputElem->setOutputString(
+                                        source.getName());
+                                }
+                                else
+                                {
+                                    inputElem->setNodeName(sourceNode.getName());
+                                    RtNode rtSourceNode(sourceNode);
+                                    int numSourceNodeOutputs = 0;
+                                    auto outputIter = rtSourceNode.getOutputs();
+                                    while (!outputIter.isDone())
+                                    {
+                                        numSourceNodeOutputs++;
+                                        ++outputIter;
+                                    }
+                                    if (numSourceNodeOutputs > 1)
+                                    {
+                                        inputElem->setOutputString(source.getName());
+                                    }
+                                }
                             }
                         }
                         else
@@ -759,13 +819,25 @@ namespace
             for (InputPtr input : surfaceShader->getActiveInputs())
             {
                 BindInputPtr bindInput = shaderRef->addBindInput(input->getName(), input->getType());
-                if (input->hasNodeName())
+                if (input->hasNodeGraphName() && input->hasOutputString() && doc->getNodeGraph(input->getNodeGraphName()))
                 {
-                    if (input->hasOutputString())
-                    {
-                        bindInput->setNodeGraphString(input->getNodeName());
-                        bindInput->setOutputString(input->getOutputString());
+                    bindInput->setNodeGraphString(input->getNodeGraphName());
+                    bindInput->setOutputString(input->getOutputString());
+                }
+                else if(input->hasNodeName())
+                {
+                    const auto outputName = std::string(OUTPUT_ELEMENT_PREFIX.c_str()) +
+                                            input->getNodeName() + "_out";
+                    if (!doc->getOutput(outputName)) {
+                        auto output = doc->addOutput(outputName, input->getType());
+                        output->setNodeName(input->getNodeName());
+                        auto srcNode = input->getConnectedNode();
+                        if (srcNode->getOutputs().size() > 1)
+                        {
+                            output->setOutputString(input->getOutputString());
+                        }
                     }
+                    bindInput->setOutputString(outputName);
                 }
                 else
                 {
@@ -823,7 +895,18 @@ namespace
                 {
                     RtPrim sourceNode = source.getParent();
                     output->setNodeName(sourceNode.getName());
-                    output->setOutputString(source.getName());
+                    RtNode rtSourceNode(sourceNode);
+                    int numSourceNodeOutputs = 0;
+                    auto outputIter = rtSourceNode.getOutputs();
+                    while (!outputIter.isDone())
+                    {
+                        numSourceNodeOutputs++;
+                        ++outputIter;
+                    }
+                    if (numSourceNodeOutputs > 1)
+                    {
+                        output->setOutputString(source.getName());
+                    }
                 }
             }
         }
@@ -873,7 +956,10 @@ namespace
                 LookPtr look = dest.addLook(name);
 
                 // Add inherit
-                look->setInheritString(rtLook.getInherit().getTargetsAsString());
+                if (!rtLook.getInherit().getTargetsAsString().empty())
+                {
+                    look->setInheritString(rtLook.getInherit().getTargetsAsString());
+                }
 
                 // Add in material assignments
                 for (const RtObject& obj : rtLook.getMaterialAssigns().getTargets())
@@ -892,10 +978,14 @@ namespace
                     {
                         massign->setExclusive(rtMatAssign.getExclusive().getValue().asBool());
                         auto iter = rtMatAssign.getCollection().getTargets();
-                        massign->setCollectionString((*iter).getName());
+                        if (!iter.isDone()) {
+                            massign->setCollectionString((*iter).getName());
+                        }
 
                         iter = rtMatAssign.getMaterial().getTargets();
-                        massign->setMaterial((*iter).getName());
+                        if (!iter.isDone()) {
+                            massign->setMaterial((*iter).getName());
+                        }
                         massign->setGeom(rtMatAssign.getGeom().getValueString());
                     }
                 }
@@ -970,6 +1060,7 @@ namespace
         }
 
         RtWriteOptions::WriteFilter filter = writeOptions ? writeOptions->writeFilter : nullptr;
+        std::vector<NodePtr> materialElements;
         for (RtPrim child : stage->getRootPrim()->getChildren(filter))
         {
             const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
@@ -986,7 +1077,7 @@ namespace
                 if (output && output.getType() == MATERIAL_TYPE_STRING && writeOptions &&
                     writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
                 {
-                    writeMaterialElement(mxNode, doc, writeOptions);
+                    materialElements.push_back(mxNode);
                 }
             }
             else if (typeName == RtNodeGraph::typeName())
@@ -1003,15 +1094,39 @@ namespace
         }
 
         // Write the existing look information
-        if (!writeOptions || !(writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::CREATE_LOOKS))
+        if (!writeOptions || 
+            (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_LOOKS) ||
+            (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::CREATE_LOOKS))
         {
             writeCollections(stage, *doc, filter);
             writeLooks(stage, *doc, filter);
             writeLookGroups(stage, *doc, filter);
         }
+
+        for (auto & mxNode: materialElements) {
+            writeMaterialElement(mxNode, doc, writeOptions);
+        }
     }
 
 } // end anonymous namespace
+
+RtReadOptions::RtReadOptions() :
+    skipConflictingElements(true),
+    readFilter(nullptr),
+    readLookInformation(false),
+    desiredMajorVersion(MATERIALX_MAJOR_VERSION),
+    desiredMinorVersion(MATERIALX_MINOR_VERSION + 1)
+{
+}
+
+RtWriteOptions::RtWriteOptions() :
+    writeIncludes(true),
+    writeFilter(nullptr),
+    materialWriteOp(NONE),
+    desiredMajorVersion(MATERIALX_MAJOR_VERSION),
+    desiredMinorVersion(MATERIALX_MINOR_VERSION + 1)
+{
+}
 
 void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, const RtReadOptions* readOptions)
 {
@@ -1024,18 +1139,26 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
         {
             xmlReadOptions.skipConflictingElements = readOptions->skipConflictingElements;
             xmlReadOptions.desiredMajorVersion = readOptions->desiredMajorVersion;
-            xmlReadOptions.desiredMajorVersion = readOptions->desiredMinorVersion;
+            xmlReadOptions.desiredMinorVersion = readOptions->desiredMinorVersion;
         }
         readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
-
-        PvtStage* stage = PvtStage::ptr(_stage);
-        readDocument(document, stage, readOptions);
+        string errorMessage;
+        if (document->validate(&errorMessage))
+        {
+            PvtStage* stage = PvtStage::ptr(_stage);
+            readDocument(document, stage, readOptions);
+        }
+        else
+        {
+            throw ExceptionRuntimeError("Failed validation: " + errorMessage);
+        }
     }
     catch (Exception& e)
     {
         throw ExceptionRuntimeError("Could not read file: " + documentPath.asString() + ". Error: " + e.what());
     }
 }
+
 void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
 {
     try
@@ -1078,14 +1201,14 @@ void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath
     // when node instances are loaded later.
     for (const NodeDefPtr& nodedef : doc->getNodeDefs())
     {
-        PvtPath path(stage->getPath());
-        path.push(RtToken(nodedef->getName()));
-        if (!stage->getPrimAtPath(path))
+        if (!RtApi::get().hasMasterPrim(RtToken(nodedef->getName())))
         {
             PvtPrim* prim = readNodeDef(nodedef, stage);
             RtNodeDef(prim->hnd()).registerMasterPrim();
         }
     }
+
+    validateNodesHaveNodedefs(doc);
 
     // Second, load all other elements.
     for (const ElementPtr& elem : doc->getChildren())
@@ -1124,6 +1247,11 @@ void RtFileIo::write(const FilePath& documentPath, const RtWriteOptions* options
     if (options)
     {
         xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
+        document->setVersionString(makeVersionString(options->desiredMajorVersion, options->desiredMinorVersion));
+    }
+    else
+    {
+        document->setVersionString(makeVersionString(MATERIALX_MAJOR_VERSION, MATERIALX_MINOR_VERSION + 1));
     }
     writeToXmlFile(document, documentPath, &xmlWriteOptions);
 }
@@ -1139,6 +1267,11 @@ void RtFileIo::write(std::ostream& stream, const RtWriteOptions* options)
     if (options)
     {
         xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
+        document->setVersionString(makeVersionString(options->desiredMajorVersion, options->desiredMinorVersion));
+    }
+    else
+    {
+        document->setVersionString(makeVersionString(MATERIALX_MAJOR_VERSION, MATERIALX_MINOR_VERSION + 1));
     }
     writeToXmlStream(document, stream, &xmlWriteOptions);
 }

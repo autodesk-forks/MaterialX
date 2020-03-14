@@ -68,6 +68,7 @@ namespace
     const mx::RtToken NONAME("");
     const mx::RtToken STDLIB("stdlib");
     const mx::RtToken PBRLIB("pbrlib");
+    const mx::RtToken BXDFLIB("bxdf");
 
     bool compareFiles(const mx::FilePath& filename1, const mx::FilePath& filename2)
     {
@@ -76,6 +77,39 @@ namespace
         std::ifstream file2(filename2.asString());
         std::string str2((std::istreambuf_iterator<char>(file2)), std::istreambuf_iterator<char>());
         return str1 == str2;
+    }
+}
+
+TEST_CASE("Runtime: Material Element Upgrade", "[runtime]")
+{
+    mx::RtScopedApiHandle api;
+    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    api->setSearchPath(searchPath);
+    api->loadLibrary(STDLIB);
+    api->loadLibrary(PBRLIB);
+    api->loadLibrary(BXDFLIB);
+    mx::FileSearchPath testSearchPath(mx::FilePath::getCurrentPath() /
+        "resources" /
+        "Materials" /
+        "TestSuite" /
+        "stdlib" /
+        "upgrade" );
+    mx::RtStagePtr defaultStage = api->createStage(mx::RtToken("defaultStage"));
+    mx::RtFileIo fileIo(defaultStage);
+    mx::RtReadOptions options;
+    options.desiredMinorVersion = 38;
+    fileIo.read("material_element_to_surface_material.mtlx", testSearchPath, &options);
+    mx::RtPrim mixNodeGraphPrim = defaultStage->getPrimAtPath("NG_aiMixColor31");
+    REQUIRE(mixNodeGraphPrim);
+    mx::RtNodeGraph mixNodeGraph(mixNodeGraphPrim);
+    REQUIRE(mixNodeGraph);
+    mx::RtOutput mixNodeGraphOutput = mixNodeGraph.getOutput(mx::RtToken("out"));
+    REQUIRE(mixNodeGraphOutput);
+    mx::RtConnectionIterator iter = mixNodeGraphOutput.getConnections();
+    while (!iter.isDone())
+    {
+        REQUIRE((*iter).getName() == "base_color");
+        break;
     }
 }
 
@@ -463,6 +497,15 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(!backdrop.getContains().hasTargets());
     backdrop.getNote().getValue().asString() = "These aren't the Droids you're looking for";
     REQUIRE(backdrop.getNote().getValue().asString() == "These aren't the Droids you're looking for");
+    REQUIRE(backdropPrim.getRelationship(backdrop.getContains().getName()) == backdrop.getContains());
+    bool found = false;
+    for (auto rel: backdropPrim.getRelationships()) {
+        if (rel.getName() == backdrop.getContains().getName()) {
+            found = true;
+            break;
+        }
+    }
+    REQUIRE(found);
 
     mx::RtPrim genericPrim = stage->createPrim("/generic1", mx::RtGeneric::typeName());
     REQUIRE(genericPrim);
@@ -823,6 +866,27 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
     }
 }
 
+TEST_CASE("Runtime: DefaultLook", "[runtime]")
+{
+    mx::RtScopedApiHandle api;
+
+    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    api->setSearchPath(searchPath);
+    api->loadLibrary(STDLIB);
+    api->loadLibrary(PBRLIB);
+    api->loadLibrary(BXDFLIB);
+
+    mx::RtStagePtr defaultStage = api->createStage(mx::RtToken("defaultStage"));
+    defaultStage->addReference(api->getLibrary());
+
+    mx::FileSearchPath lookSearchPath(mx::FilePath::getCurrentPath() /
+                                      "resources" /
+                                      "LookDev");
+    mx::RtFileIo fileIo(defaultStage);
+    fileIo.read("defaultLook.mtlx", lookSearchPath);
+    fileIo.read("emptyLook.mtlx", lookSearchPath);
+}
+
 TEST_CASE("Runtime: FileIo NodeGraph", "[runtime]")
 {
     mx::RtScopedApiHandle api;
@@ -1114,11 +1178,11 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     REQUIRE(egeom.getValueString() == "bar");
 
     mx::RtPrim p2 = stage->createPrim("child1", mx::RtCollection::typeName());
-    mx::RtPrim p3= stage->createPrim("child2", mx::RtCollection::typeName());
+    mx::RtPrim p3 = stage->createPrim("child2", mx::RtCollection::typeName());
     col1.addCollection(p2);
     col1.addCollection(p3);
     mx::RtRelationship rel = col1.getIncludeCollection();
-    REQUIRE(rel.targetCount() == 2); 
+    REQUIRE(rel.targetCount() == 2);
     col1.removeCollection(p3);
     REQUIRE(rel.targetCount() == 1);
     col1.addCollection(p3);
@@ -1171,6 +1235,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     assign2.getExclusive().getValue().asBool() = false;
     look1.addMaterialAssign(pa);
     look1.addMaterialAssign(pa2);
+    REQUIRE_THROWS(look1.addMaterialAssign(col1.getPrim()));
 
     mx::RtConnectionIterator iter3 = look1.getMaterialAssigns().getTargets();
     REQUIRE(look1.getMaterialAssigns().targetCount() == 2);
@@ -1198,25 +1263,335 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     REQUIRE(lookgroup1.getLooks().targetCount() == 2);
     lookgroup1.removeLook(lo1);
     REQUIRE(lookgroup1.getLooks().targetCount() == 1);
-    
+
     lookgroup1.getActiveLook().setValueString("look1");
     REQUIRE(lookgroup1.getActiveLook().getValueString() == "look1");
-    
+
     lookgroup1.addLook(lo1);
 
     // Test file I/O
-    mx::RtFileIo stageIo(stage);
-    stageIo.write("rtLookExport.mtlx", nullptr);
-    std::stringstream stream1;
-    stageIo.write(stream1);
+    bool useOptions = false;
+    for (int i = 0; i < 2; ++i) {
 
-    mx::RtStagePtr stage2 = api->createStage(ROOT);
-    mx::RtFileIo stageIo2(stage2);
-    stageIo2.read("rtLookExport.mtlx", mx::FileSearchPath(), nullptr);
-    stageIo2.write("rtLookExport_2.mtlx", nullptr);
-    std::stringstream stream2;
-    stageIo2.write(stream2);
-    REQUIRE(stream1.str() == stream2.str());
+        mx::RtWriteOptions writeOptions;
+        writeOptions.materialWriteOp = mx::RtWriteOptions::MaterialWriteOp::WRITE_LOOKS;
+        mx::RtReadOptions readOptions;
+        readOptions.readLookInformation = true;
+        // Do not upgrade on reload:
+        mx::DocumentPtr doc = mx::createDocument();
+        std::pair<int, int> versions = doc->getVersionIntegers();
+        readOptions.desiredMajorVersion = versions.first;
+        readOptions.desiredMinorVersion = versions.second;
+
+        mx::RtFileIo stageIo(stage);
+        stageIo.write("rtLookExport.mtlx", useOptions ? &writeOptions : nullptr);
+        std::stringstream stream1;
+        stageIo.write(stream1, useOptions ? &writeOptions : nullptr);
+
+        mx::RtStagePtr stage2 = api->createStage(ROOT);
+        mx::RtFileIo stageIo2(stage2);
+        stageIo2.read("rtLookExport.mtlx", mx::FileSearchPath(), useOptions ? &readOptions : nullptr);
+        stageIo2.write("rtLookExport_2.mtlx", useOptions ? &writeOptions : nullptr);
+        std::stringstream stream2;
+        stageIo2.write(stream2, useOptions ? &writeOptions : nullptr);
+        REQUIRE(stream1.str() == stream2.str());
+
+        // Make sure we get an identical runtime after reloading:
+
+        //
+        // Check collections
+        //
+        p1 = stage2->getPrimAtPath("/collection1");
+        REQUIRE(p1);
+        REQUIRE(p1.getTypeInfo()->getShortTypeName() == mx::RtCollection::typeName());
+        col1 = p1;
+        REQUIRE(col1.getIncludeGeom().getValueString() == "foo");
+        REQUIRE(col1.getExcludeGeom().getValueString() == "bar");
+
+        p2 = stage2->getPrimAtPath("/child1");
+        REQUIRE(p2);
+        REQUIRE(p2.getTypeInfo()->getShortTypeName() == mx::RtCollection::typeName());
+        p3 = stage2->getPrimAtPath("/child2");
+        REQUIRE(p3);
+        REQUIRE(p3.getTypeInfo()->getShortTypeName() == mx::RtCollection::typeName());
+        rel = col1.getIncludeCollection();
+        REQUIRE(rel.targetCount() == 2);
+        iter = rel.getTargets();
+        REQUIRE(!iter.isDone());
+        REQUIRE(*iter == p2);
+        ++iter;
+        REQUIRE(!iter.isDone());
+        REQUIRE(*iter == p3);
+        ++iter;
+        REQUIRE(iter.isDone());
+
+        //
+        // Check materialassign
+        //
+        pa = stage2->getPrimAtPath("/matassign1");
+        REQUIRE(pa);
+        REQUIRE(pa.getTypeInfo()->getShortTypeName() == mx::RtMaterialAssign::typeName());
+        assign1 = pa;
+        REQUIRE(assign1);
+        iter = assign1.getCollection().getTargets();
+        REQUIRE(!iter.isDone());
+        REQUIRE((*iter) == p1);
+        ++iter;
+        REQUIRE(iter.isDone());
+
+        // Check material
+        sm1 = stage2->getPrimAtPath("/surfacematerial1");
+        REQUIRE(sm1);
+        iter2 = assign1.getMaterial().getTargets();
+        REQUIRE(!iter2.isDone());
+        REQUIRE((*iter2) == sm1);
+        ++iter2;
+        REQUIRE(iter2.isDone());
+        REQUIRE(assign1.getExclusive().getValue().asBool() == true);
+        REQUIRE(assign1.getGeom().getValueString() == "/mygeom");
+
+        //
+        // Check look
+        //
+        lo1 = stage2->getPrimAtPath("/look1");
+        REQUIRE(lo1);
+        REQUIRE(lo1.getTypeInfo()->getShortTypeName() == mx::RtLook::typeName());
+        look1 = lo1;
+        REQUIRE(look1);
+
+        pa2 = stage2->getPrimAtPath("matassign2");
+        REQUIRE(pa2);
+        REQUIRE(pa2.getTypeInfo()->getShortTypeName() == mx::RtMaterialAssign::typeName());
+        assign2 = pa2;
+        REQUIRE(assign2);
+        iter = assign2.getCollection().getTargets();
+        REQUIRE(!iter.isDone());
+        REQUIRE((*iter) == p2);
+        ++iter;
+        REQUIRE(iter.isDone());
+        sm2 = stage2->getPrimAtPath("/surfacematerial2");
+        iter = assign2.getMaterial().getTargets();
+        REQUIRE(!iter.isDone());
+        REQUIRE((*iter) == sm2);
+        ++iter;
+        REQUIRE(iter.isDone());
+        REQUIRE(assign2.getExclusive().getValue().asBool() == false);
+        iter = look1.getMaterialAssigns().getTargets();
+        REQUIRE(!iter.isDone());
+        REQUIRE((*iter) == pa);
+        ++iter;
+        REQUIRE(!iter.isDone());
+        REQUIRE((*iter) == pa2);
+        ++iter;
+        REQUIRE(iter.isDone());
+
+        lo2 = stage2->getPrimAtPath("/look2");
+        REQUIRE(lo2);
+        REQUIRE(lo2.getTypeInfo()->getShortTypeName() == mx::RtLook::typeName());
+        look2 = lo2;
+        REQUIRE(look2);
+        iter = look2.getInherit().getTargets();
+        REQUIRE(!iter.isDone());
+        REQUIRE((*iter) == lo1);
+        ++iter;
+        REQUIRE(iter.isDone());
+
+        //
+        // Check lookgroup
+        //
+        lg1 = stage2->getPrimAtPath("/lookgroup1");
+        REQUIRE(lg1);
+        REQUIRE(lg1.getTypeInfo()->getShortTypeName() == mx::RtLookGroup::typeName());
+        lookgroup1 = lg1;
+        REQUIRE(lookgroup1);
+
+        iter = lookgroup1.getLooks().getTargets();
+        REQUIRE(!iter.isDone());
+        REQUIRE((*iter) == lo2);
+        ++iter;
+        REQUIRE(!iter.isDone());
+        REQUIRE((*iter) == lo1);
+        ++iter;
+        REQUIRE(iter.isDone());
+        REQUIRE(lookgroup1.getActiveLook().getValueString() == "look1");
+
+        // Try again, with options.
+        useOptions = true;
+    }
+
+    // Look group relations
+    mx::RtPrim lg2 = stage->createPrim("parent_lookgroup", mx::RtLookGroup::typeName());
+    mx::RtLookGroup lookgroup2(lg2);
+    mx::RtPrim lg3 = stage->createPrim("child_lookgroup", mx::RtLookGroup::typeName());
+    mx::RtLookGroup lookgroup3(lg3);
+    lookgroup2.addLook(lg3);
+    lookgroup2.addLook(lo2);
+    REQUIRE_THROWS(lookgroup2.addLook(assign2.getPrim()));
+
+    iter = lookgroup2.getLooks().getTargets();
+    REQUIRE(!iter.isDone());
+    REQUIRE((*iter) == lg3);
+    ++iter;
+    REQUIRE(!iter.isDone());
+    REQUIRE((*iter) == lo2);
+    lookgroup2.getActiveLook().setValueString("child_lookgroup");
+    REQUIRE(lookgroup2.getActiveLook().getValueString() == "child_lookgroup");
+}
+
+TEST_CASE("Runtime: FileIo downgrade", "[runtime]")
+{
+    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    {
+        mx::RtScopedApiHandle api;
+
+        // Load in stdlib
+        api->setSearchPath(searchPath);
+        api->loadLibrary(STDLIB);
+        api->loadLibrary(PBRLIB);
+        api->loadLibrary(BXDFLIB);
+
+        // Create a stage.
+        mx::RtStagePtr stage = api->createStage(MAIN);
+
+        // Create a new graph
+        mx::RtLook lk1 = stage->createPrim("lk1", mx::RtLook::typeName());
+
+        mx::RtPrim materialassign1 = stage->createPrim("ma1", mx::RtMaterialAssign::typeName());
+        mx::RtMaterialAssign ma1(materialassign1);
+        lk1.addMaterialAssign(materialassign1);
+
+        ma1.getCollection().addTarget(stage->createPrim("co1", mx::RtCollection::typeName()));
+        const mx::RtToken smName("ND_surfacematerial");
+        const mx::RtToken smSurface("surfaceshader");
+        mx::RtPrim sm1 = stage->createPrim(mx::RtPath("/sm1"), smName);
+        ma1.getMaterial().addTarget(sm1);
+
+        const mx::RtToken ssName("ND_standard_surface_surfaceshader");
+        mx::RtPrim ss1 = stage->createPrim(mx::RtPath("/ss1"), ssName);
+        ss1.getOutput(OUT).connect(sm1.getInput(smSurface));
+        const mx::RtToken ssBase("base");
+        const mx::RtToken ssEmission("emission");
+        const mx::RtToken ssBaseColor("base_color");
+        const mx::RtToken ssSheenColor("sheen_color");
+        const mx::RtToken ssCoatColor("coat_color");
+        const mx::RtToken ssEmissionColor("emission_color");
+
+        ss1.getAttribute(ssBase).getValue().asFloat() = 0.5;
+        ss1.getAttribute(ssEmission).getValue().asFloat() = 0.5;
+
+        // Create a node and connect it twice to the Standard Surface.
+        mx::RtNode ml1 = stage->createPrim("ml1", mx::RtToken("ND_multiply_color3"));
+        mx::RtOutput ml1Out = ml1.getOutput(OUT);
+        ml1Out.connect(ss1.getInput(ssBaseColor));
+        ml1Out.connect(ss1.getInput(ssEmissionColor));
+
+        // Create an empty nodegraph and connect it twice to the Standard Surface
+        mx::RtNodeGraph ng1 = stage->createPrim("ng1", mx::RtNodeGraph::typeName());
+        mx::RtOutput ng1Out = ng1.createOutput(OUT, mx::RtType::COLOR3);
+        ng1Out.connect(ss1.getInput(ssSheenColor));
+        ng1Out.connect(ss1.getInput(ssCoatColor));
+
+        // Save and downgrade to v1.37:
+        mx::RtFileIo stageIo(stage);
+        mx::RtWriteOptions wops;
+        wops.writeIncludes = false;
+        wops.materialWriteOp =
+            mx::RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS |
+            mx::RtWriteOptions::MaterialWriteOp::WRITE_LOOKS;
+
+        std::stringstream stream;
+        stageIo.write(stream, &wops);
+
+        // What are we looking for:
+        //
+        // The 1.37 syntax for <bindinput> elements allows two and only two
+        // combinations:
+        //
+        //  <bindinput nodegraph="foo" [output="bar"] />
+        //     for connecting to the output of a nodegraph and
+        //  <bindinput output="baz" />
+        //     for connecting to a raw <output> element.
+        //
+        // You will notice the absence of an option to connect to the output of
+        // a <node> element since there is no "nodename" attribute on a
+        // <bindinput>.
+        //
+        // So we expect the two connections to the freestanding <multiply> node to
+        // be done via an intermediate <output> element added to the graph,
+        // while the connection to the "ng1" <nodegraph> should be done natively.
+        //
+        // <?xml version="1.0"?>
+        // <materialx version="1.37">
+        //   <multiply name="ml1" type="color3" />
+        //   <nodegraph name="ng1">
+        //     <output name="out" type="color3" />
+        //   </nodegraph>
+        //   <collection name="co1" excludegeom="" includegeom="" includecollection="" />
+        //   <look name="lk1" inherit="">
+        //     <materialassign name="ma1" exclusive="true" collection="co1" material="sm1" geom="" />
+        //   </look>
+        //   <material name="sm1">
+        //     <shaderref name="ss1" node="standard_surface">
+        //       <bindinput name="base" type="float" value="0.5" />
+        //       <bindinput name="base_color" type="color3" output="OUT_ml1_out" />
+        //       <bindinput name="sheen_color" type="color3" nodegraph="ng1" output="out" />
+        //       <bindinput name="coat_color" type="color3" nodegraph="ng1" output="out" />
+        //       <bindinput name="emission" type="float" value="0.5" />
+        //       <bindinput name="emission_color" type="color3" output="OUT_ml1_out" />
+        //     </shaderref>
+        //   </material>
+        //   <output name="OUT_ml1_out" type="color3" nodename="ml1" output="out" />
+        // </materialx>
+        mx::DocumentPtr doc = mx::createDocument();
+        mx::XmlReadOptions readOptions;
+        // Last version with material and shaderref:
+        readOptions.desiredMajorVersion = 1;
+        readOptions.desiredMinorVersion = 37;
+        mx::readFromXmlString(doc, stream.str(), &readOptions);
+
+        auto xmlMat = doc->getMaterial("sm1");
+        REQUIRE(xmlMat);
+
+        auto xmlSR = xmlMat->getShaderRef("ss1");
+        REQUIRE(xmlSR);
+
+        auto xmlBI = xmlSR->getBindInput(ssBase);
+        REQUIRE(xmlBI);
+        REQUIRE(xmlBI->getAttribute(mx::ValueElement::VALUE_ATTRIBUTE) == "0.5");
+        REQUIRE(!xmlBI->hasAttribute(mx::PortElement::NODE_GRAPH_ATTRIBUTE));
+        REQUIRE(!xmlBI->hasAttribute(mx::PortElement::OUTPUT_ATTRIBUTE));
+
+        xmlBI = xmlSR->getBindInput(ssEmission);
+        REQUIRE(xmlBI);
+        REQUIRE(xmlBI->getAttribute(mx::ValueElement::VALUE_ATTRIBUTE) == "0.5");
+        REQUIRE(!xmlBI->hasAttribute(mx::PortElement::NODE_GRAPH_ATTRIBUTE));
+        REQUIRE(!xmlBI->hasAttribute(mx::PortElement::OUTPUT_ATTRIBUTE));
+
+        xmlBI = xmlSR->getBindInput(ssBaseColor);
+        REQUIRE(xmlBI);
+        REQUIRE(!xmlBI->hasAttribute(mx::ValueElement::VALUE_ATTRIBUTE));
+        REQUIRE(!xmlBI->hasAttribute(mx::PortElement::NODE_GRAPH_ATTRIBUTE));
+        auto const& outputName = xmlBI->getAttribute(mx::PortElement::OUTPUT_ATTRIBUTE);
+        auto xmlOUT = doc->getOutput(outputName);
+        REQUIRE(xmlOUT);
+        REQUIRE(xmlOUT->getAttribute(mx::PortElement::NODE_NAME_ATTRIBUTE) == "ml1");
+
+        xmlBI = xmlSR->getBindInput(ssEmissionColor);
+        REQUIRE(xmlBI);
+        REQUIRE(!xmlBI->hasAttribute(mx::ValueElement::VALUE_ATTRIBUTE));
+        REQUIRE(!xmlBI->hasAttribute(mx::PortElement::NODE_GRAPH_ATTRIBUTE));
+        REQUIRE(xmlBI->getAttribute(mx::PortElement::OUTPUT_ATTRIBUTE) == outputName);
+
+        xmlBI = xmlSR->getBindInput(ssSheenColor);
+        REQUIRE(xmlBI);
+        REQUIRE(!xmlBI->hasAttribute(mx::ValueElement::VALUE_ATTRIBUTE));
+        REQUIRE(xmlBI->getAttribute(mx::PortElement::NODE_GRAPH_ATTRIBUTE) == "ng1");
+
+        xmlBI = xmlSR->getBindInput(ssCoatColor);
+        REQUIRE(xmlBI);
+        REQUIRE(!xmlBI->hasAttribute(mx::ValueElement::VALUE_ATTRIBUTE));
+        REQUIRE(xmlBI->getAttribute(mx::PortElement::NODE_GRAPH_ATTRIBUTE) == "ng1");
+    }
 }
 
 mx::RtToken toTestResolver(const mx::RtToken& str, const mx::RtToken& type)
@@ -1270,6 +1645,34 @@ TEST_CASE("Runtime: NameResolvers", "[runtime]")
     REQUIRE(result3.str() == "test_toTestResolver");
     mx::RtToken result4 = registry->resolveIdentifier(pathToGeom, mx::RtNameResolverInfo::FILENAME_TYPE, false);
     REQUIRE(result4.str() == "test_fromTestResolver");
+}
+
+TEST_CASE("Runtime: libraries", "[runtime]")
+{
+    mx::RtScopedApiHandle api;
+
+    // Load in all libraries required for materials
+    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    api->setSearchPath(searchPath);
+    api->loadLibrary(STDLIB);
+    api->loadLibrary(PBRLIB);
+    api->loadLibrary(BXDFLIB);
+
+    // Set and test search paths
+    api->clearSearchPath();
+    REQUIRE(api->getSearchPath().isEmpty());
+    api->setSearchPath(searchPath);
+    REQUIRE(api->getSearchPath().asString() == searchPath.asString());
+
+    REQUIRE(api->getTextureSearchPath().isEmpty());
+    mx::FileSearchPath texturePath(mx::FilePath::getCurrentPath() / mx::FilePath("resources/Images"));
+    api->setTextureSearchPath(texturePath);
+    REQUIRE(api->getTextureSearchPath().find("brass_color.jpg").exists());
+
+    REQUIRE(api->getImplementationSearchPath().isEmpty());
+    mx::FileSearchPath implPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/genglsl"));
+    api->setImplementationSearchPath(implPath);
+    REQUIRE(api->getImplementationSearchPath().find("stdlib_genglsl_unit_impl.mtlx").exists());    
 }
 
 #endif // MATERIALX_BUILD_RUNTIME

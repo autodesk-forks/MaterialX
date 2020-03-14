@@ -24,7 +24,7 @@ int main(int argc, char* const argv[])
     std::vector<std::string> tokens;
     for (int i = 1; i < argc; i++)
     {
-        tokens.push_back(std::string(argv[i]));
+        tokens.emplace_back(argv[i]);
     }
 
     mx::FilePathVec libraryFolders = 
@@ -45,7 +45,7 @@ int main(int argc, char* const argv[])
     mx::FileSearchPath searchPath;
     std::string materialFilename = "resources/Materials/Examples/StandardSurface/standard_surface_default.mtlx";
     std::string meshFilename = "resources/Geometry/shaderball.obj";
-    std::string envRadiancePath = "resources/Images/Environments/san_giuseppe_bridge.hdr";
+    std::string envRadiancePath = "resources/Lights/san_giuseppe_bridge_split.hdr";
     DocumentModifiers modifiers;
     int multiSampleCount = 0;
     int refresh = 50;
