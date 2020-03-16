@@ -294,24 +294,7 @@ void GlslRenderer::save(const FilePath& filePath)
     StringVec errors;
     const string errorType("GLSL image save error.");
 
-    if (!_imageHandler)
-    {
-        errors.push_back("No image handler specified.");
-        throw ExceptionShaderRenderError(errorType, errors);
-    }
-
-    ImagePtr image = _frameBuffer->createColorImage();
-
-    try
-    {
-        checkErrors();
-    }
-    catch (ExceptionShaderRenderError& e)
-    {
-        errors.push_back("Failed to read color buffer back.");
-        errors.insert(std::end(errors), std::begin(e.errorLog()), std::end(e.errorLog()));
-        throw ExceptionShaderRenderError(errorType, errors);
-    }
+    ImagePtr image = saveImage();
 
     // Save using the handler.
     if (!_imageHandler->saveImage(filePath, image, true))
@@ -332,7 +315,18 @@ ImagePtr GlslRenderer::saveImage()
         throw ExceptionShaderRenderError(errorType, errors);
     }
 
-    return _frameBuffer->createColorImage();
+    ImagePtr result = _frameBuffer->createColorImage();
+    try
+    {
+        checkErrors();
+    }
+    catch (ExceptionShaderRenderError& e)
+    {
+        errors.push_back("Failed to read color buffer back.");
+        errors.insert(std::end(errors), std::begin(e.errorLog()), std::end(e.errorLog()));
+        throw ExceptionShaderRenderError(errorType, errors);
+    }
+    return result;
 }
 
 void GlslRenderer::checkErrors()
