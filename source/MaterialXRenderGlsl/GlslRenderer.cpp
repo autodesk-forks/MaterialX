@@ -321,6 +321,20 @@ void GlslRenderer::save(const FilePath& filePath)
     }
 }
 
+ImagePtr GlslRenderer::saveImage()
+{
+    StringVec errors;
+    const string errorType("GLSL image save error.");
+
+    if (!_imageHandler)
+    {
+        errors.push_back("No image handler specified.");
+        throw ExceptionShaderRenderError(errorType, errors);
+    }
+
+    return _frameBuffer->createColorImage();
+}
+
 void GlslRenderer::checkErrors()
 {
     StringVec errors;
