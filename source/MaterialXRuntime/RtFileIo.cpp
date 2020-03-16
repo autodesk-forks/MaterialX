@@ -127,12 +127,16 @@ namespace
             {
                 RtValue::fromString(attrType, valueStr, attr.getValue());
             }
-            if (elem->hasColorSpace())
+            const string& colorSpace = elem->getColorSpace();
+            if (!colorSpace.empty())
             {
                 attr.setColorSpace(RtToken(elem->getColorSpace()));
             }
-            // TODO: fix when units are implemented in core
-            // input->setUnit(RtToken(elem->getUnit()));
+            const string& unitStr = elem->getUnit();
+            if (!unitStr.empty())
+            {
+                attr.setUnit(unitStr);
+            }
 
             readMetadata(elem, PvtObject::ptr<PvtObject>(attr), attrMetadata);
         }
@@ -675,11 +679,10 @@ namespace
             {
                 destPort->setColorSpace(attr->getColorSpace().str());
             }
-            // TODO: fix when units are implemented in core.
-            //if (attr->getUnit())
-            //{
-            //    destInput->setUnit(input->getUnit().str());
-            //}
+            if (attr->getUnit())
+            {
+                destPort->setUnit(attr->getUnit().str());
+            }
 
             writeMetadata(attr, destPort, attrMetadata);
         }
@@ -784,11 +787,11 @@ namespace
                     {
                         valueElem->setColorSpace(colorspace.str());
                     }
-                    //if (input.getUnit())
-                    //{
-                    //    TODO: fix when units are implemented in core.
-                    //    valueElem->setUnit(input->getUnit().str());
-                    //}
+                    const RtToken unit = input.getUnit();
+                    if (unit != EMPTY_TOKEN)
+                    {
+                        valueElem->setUnit(unit.str());
+                    }
                 }
                 else if(numOutputs > 1)
                 {
