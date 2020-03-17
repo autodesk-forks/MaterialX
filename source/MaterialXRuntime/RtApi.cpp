@@ -472,7 +472,7 @@ RtTokenVec RtApi::getStageNames() const
     return _cast(_ptr)->getStageNames();
 }
 
-UnitConverterPtrMap& RtApi::getUnitDefinitions()
+UnitConverterRegistryPtr RtApi::getUnitDefinitions()
 {
     return _cast(_ptr)->getUnitDefinitions();
 }

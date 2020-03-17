@@ -1675,4 +1675,37 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     REQUIRE(api->getImplementationSearchPath().find("stdlib_genglsl_unit_impl.mtlx").exists());    
 }
 
+TEST_CASE("Runtime: units", "[runtime]")
+{
+    mx::RtScopedApiHandle api;
+
+    // Load in all libraries required for materials
+    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    api->setSearchPath(searchPath);
+    api->loadLibrary(STDLIB);
+    api->loadLibrary(PBRLIB);
+    api->loadLibrary(BXDFLIB);
+
+    // Read in test document with units
+    mx::FileSearchPath testSearchPath(mx::FilePath::getCurrentPath() /
+        "resources" /
+        "Materials" /
+        "TestSuite" /
+        "stdlib" /
+        "units");
+    mx::RtStagePtr stage = api->createStage(mx::RtToken("stage"));
+    mx::RtFileIo fileIo(stage);
+    mx::StringVec tests{ "distance_units.mtlx",
+                         "image_unit.mtlx",
+                         "standard_surface_unit.mtlx",
+                         "texture_units.mtlx",
+                         "tiledimage_unit.mtlx" };
+    mx::RtReadOptions options;
+    options.desiredMinorVersion = 38;
+    for (auto test : tests)
+    {
+        fileIo.read(test, testSearchPath, &options);
+    }
+}
+
 #endif // MATERIALX_BUILD_RUNTIME

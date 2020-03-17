@@ -1166,9 +1166,12 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
             xmlReadOptions.desiredMinorVersion = readOptions->desiredMinorVersion;
         }
         readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
+
         string errorMessage;
-        writeUnitDefinitions(document);
-        if (document->validate(&errorMessage))
+        DocumentPtr validationDocument = createDocument();
+        writeUnitDefinitions(validationDocument);
+        validationDocument->copyContentFrom(document);
+        if (validationDocument->validate(&errorMessage))
         {
             PvtStage* stage = PvtStage::ptr(_stage);
             readDocument(document, stage, readOptions);
@@ -1197,19 +1200,22 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
             xmlReadOptions.desiredMajorVersion = readOptions->desiredMajorVersion;
             xmlReadOptions.desiredMajorVersion = readOptions->desiredMinorVersion;
         }
-        string errorMessage;
-        writeUnitDefinitions(document);
-        if (document->validate(&errorMessage))
+        readFromXmlStream(document, stream, &xmlReadOptions);
+
+        string errorMessage; 
+        DocumentPtr validationDocument = createDocument();
+        writeUnitDefinitions(validationDocument);
+        validationDocument->copyContentFrom(document);
+        if (validationDocument->validate(&errorMessage))
         {
-            readFromXmlStream(document, stream, &xmlReadOptions);
+            PvtStage* stage = PvtStage::ptr(_stage);
+            readDocument(document, stage, readOptions);
         }
         else
         {
             throw ExceptionRuntimeError("Failed validation: " + errorMessage);
         }
 
-        PvtStage* stage = PvtStage::ptr(_stage);
-        readDocument(document, stage, readOptions);
     }
     catch (Exception& e)
     {
