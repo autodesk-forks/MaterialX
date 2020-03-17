@@ -11,6 +11,7 @@
 
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtPrim.h>
+#include <MaterialXRuntime/RtTypeDef.h>
 
 #include <MaterialXFormat/File.h>
 
@@ -45,7 +46,7 @@ public:
     RtPrimCreateFunc getCreateFunction(const RtToken& typeName);
 
     /// Register a master prim to be used for creating instances from.
-    /// A typical usecase is for registering a nodedef prim to be used for
+    /// A typical use case is for registering a nodedef prim to be used for
     /// creating node instances.
     void registerMasterPrim(const RtPrim& prim);
 
@@ -133,6 +134,9 @@ public:
 
     /// Return a list of all stages created.
     RtTokenVec getStageNames() const;
+
+    /// Return a list of unit definitions
+    RtUnitTypeDefVec& RtApi::getUnitDefinitions();
 
     /// Get the singleton API instance.
     static RtApi& get();

@@ -206,6 +206,34 @@ private:
     void* _ptr;
 };
 
+/// @class RtUnitTypeDef
+/// Unit type definition
+class RtUnitTypeDef
+{
+  public:
+    RtUnitTypeDef(const string unitType)
+        : _unitType(unitType)
+    {
+    }
+
+    const string& getUnitType()
+    {
+        return _unitType;
+    }
+
+    StringVec& getUnitNames()
+    {
+        return _unitNames;
+    }
+
+  private:
+      string _unitType;
+      StringVec _unitNames;
+};
+
+/// Class representing a vector of tokens
+using RtUnitTypeDefVec = std::vector<RtUnitTypeDef>;
+
 } // namespace MaterialX
 
 #endif

@@ -262,6 +262,11 @@ public:
         return names;
     }
 
+    RtUnitTypeDefVec& getUnitDefinitions()
+    {
+        return _unitDefinitions;
+    }
+
     void reset()
     {
         static const RtTypeInfo masterPrimRootType("api_masterprimroot");
@@ -274,6 +279,8 @@ public:
         _libraryRoot.reset();
         _libraries.clear();
         _libraryRoot = RtStage::createNew(libRootName);
+
+        _unitDefinitions.clear();
     }
 
     FileSearchPath _searchPaths;
@@ -281,6 +288,7 @@ public:
     FileSearchPath _textureSearchPaths;
     RtStagePtr _libraryRoot;
     RtTokenMap<RtStagePtr> _libraries;
+    RtUnitTypeDefVec  _unitDefinitions;
 
     PvtDataHandle _masterPrimRoot;
     RtTokenMap<RtPrimCreateFunc> _createFunctions;
@@ -462,6 +470,11 @@ RtToken RtApi::renameStage(const RtToken& name, const RtToken& newName)
 RtTokenVec RtApi::getStageNames() const
 {
     return _cast(_ptr)->getStageNames();
+}
+
+RtUnitTypeDefVec& RtApi::getUnitDefinitions()
+{
+    return _cast(_ptr)->getUnitDefinitions();
 }
 
 RtApi& RtApi::get()
