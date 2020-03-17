@@ -30,7 +30,7 @@ namespace
 {
     // Lists of known metadata which are handled explicitly by import/export.
     static const RtTokenSet nodedefMetadata     = { RtToken("name"), RtToken("type"), RtToken("node") };
-    static const RtTokenSet attrMetadata        = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("colorspace"), RtToken("unit") };
+    static const RtTokenSet attrMetadata        = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("colorspace"), RtToken("unit"), RtToken("unittype") };
     static const RtTokenSet nodeMetadata        = { RtToken("name"), RtToken("type"), RtToken("node") };
     static const RtTokenSet nodegraphMetadata   = { RtToken("name") };
     static const RtTokenSet genericMetadata     = { RtToken("name"), RtToken("kind") };
@@ -136,6 +136,11 @@ namespace
             if (!unitStr.empty())
             {
                 attr.setUnit(RtToken(unitStr));
+            }
+            const string& unitTypeStr = elem->getUnitType();
+            if (!unitTypeStr.empty())
+            {
+                attr.setUnitType(RtToken(unitTypeStr));
             }
 
             readMetadata(elem, PvtObject::ptr<PvtObject>(attr), attrMetadata);
@@ -274,6 +279,21 @@ namespace
             {
                 const RtToken portType(elem->getType());
                 RtValue::fromString(portType, valueStr, input->getValue());
+            }
+            const string& colorSpace = elem->getColorSpace();
+            if (!colorSpace.empty())
+            {
+                input->setColorSpace(RtToken(elem->getColorSpace()));
+            }
+            const string& unitStr = elem->getUnit();
+            if (!unitStr.empty())
+            {
+                input->setUnit(RtToken(unitStr));
+            }
+            const string& unitTypeStr = elem->getUnitType();
+            if (!unitTypeStr.empty())
+            {
+                input->setUnitType(RtToken(unitTypeStr));
             }
         }
 
@@ -683,6 +703,10 @@ namespace
             {
                 destPort->setUnit(attr->getUnit().str());
             }
+            if (attr->getUnitType())
+            {
+                destPort->setUnitType(attr->getUnitType().str());
+            }
 
             writeMetadata(attr, destPort, attrMetadata);
         }
@@ -791,6 +815,11 @@ namespace
                     if (unit != EMPTY_TOKEN)
                     {
                         valueElem->setUnit(unit.str());
+                    }
+                    const RtToken unitType = input.getUnitType();
+                    if (unitType != EMPTY_TOKEN)
+                    {
+                        valueElem->setUnitType(unitType.str());
                     }
                 }
                 else if(numOutputs > 1)

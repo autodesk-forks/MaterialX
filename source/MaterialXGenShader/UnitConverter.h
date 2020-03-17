@@ -78,7 +78,7 @@ class UnitConverter
     /// @param outputUnit Unit for output value
     virtual Vector4 convert(const Vector4& input, const string& inputUnit, const string& outputUnit) const = 0;
 
-    /// Create a unit definitions in a document based on the converter
+    /// Create unit definitions in a document based on the converter
     virtual void write(DocumentPtr doc) const = 0;
 };
 
@@ -195,7 +195,7 @@ class UnitConverterRegistry
     /// Returns -1 value if not found
     int getUnitAsInteger(const string& unitName) const;
 
-    /// Create a unit definitions in a document based on registered converters
+    /// Create unit definitions in a document based on registered converters
     void write(DocumentPtr doc) const;
 
   private:

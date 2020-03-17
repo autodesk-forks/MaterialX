@@ -1683,6 +1683,9 @@ TEST_CASE("Runtime: units", "[runtime]")
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
     api->loadLibrary(STDLIB);
+    // Load in stdlib twice on purpose to ensure no exception is thrown when trying to add a duplicate unit 
+    // definition 
+    api->loadLibrary(STDLIB);
     api->loadLibrary(PBRLIB);
     api->loadLibrary(BXDFLIB);
 
@@ -1693,8 +1696,6 @@ TEST_CASE("Runtime: units", "[runtime]")
         "TestSuite" /
         "stdlib" /
         "units");
-    mx::RtStagePtr stage = api->createStage(mx::RtToken("stage"));
-    mx::RtFileIo fileIo(stage);
     mx::StringVec tests{ "distance_units.mtlx",
                          "image_unit.mtlx",
                          "standard_surface_unit.mtlx",
@@ -1704,7 +1705,43 @@ TEST_CASE("Runtime: units", "[runtime]")
     options.desiredMinorVersion = 38;
     for (auto test : tests)
     {
+        mx::RtStagePtr stage = api->createStage(mx::RtToken("stage: " + test));
+        mx::RtFileIo fileIo(stage);
+
+        // Test read will take into account units read in via library load
         fileIo.read(test, testSearchPath, &options);
+
+        // Test that read and write of files with units works.
+        std::stringstream inStream;
+        mx::DocumentPtr inDoc = mx::createDocument();
+        mx::XmlReadOptions readOptions;
+        readOptions.desiredMinorVersion = 38;
+        mx::readFromXmlFile(inDoc, test, testSearchPath, &readOptions);
+
+        mx::DocumentPtr outDoc = mx::createDocument();
+        std::stringstream outStream;
+        fileIo.write(outStream);
+        mx::readFromXmlStream(outDoc, outStream);
+
+        for (mx::ElementPtr elem : inDoc->traverseTree())
+        {
+            mx::ValueElementPtr val = elem->asA<mx::ValueElement>();
+            if (val)
+            {
+                const std::string& unit = val->getUnit();
+                const std::string& unitType = val->getUnitType();
+                if (!unit.empty() || !unitType.empty())
+                {
+                    const std::string& path = val->getNamePath();
+                    mx::ElementPtr outElem = outDoc->getDescendant(path);
+                    mx::ValueElementPtr outVal = outElem->asA<mx::ValueElement>();
+                    if (outVal)
+                    {
+                        REQUIRE((outVal->getUnit() == unit && outVal->getUnitType() == unitType));
+                    }
+                }
+            }
+        }
     }
 }
 

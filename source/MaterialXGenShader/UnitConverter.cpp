@@ -54,7 +54,10 @@ void LinearUnitConverter::write(DocumentPtr doc) const
     if (!doc->getUnitTypeDef(_unitType))
     {
         // Add a unittypedef
-        doc->addUnitTypeDef(_unitType);
+        if (!doc->getUnitTypeDef(_unitType))
+        {
+            doc->addUnitTypeDef(_unitType);
+        }
 
         // Add a unitdef definition
         string unitdefName = "UD_stdlib_" + _unitType;
