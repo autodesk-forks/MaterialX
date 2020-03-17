@@ -15,6 +15,8 @@
 
 #include <MaterialXFormat/File.h>
 
+#include <MaterialXGenShader/UnitConverter.h>
+
 namespace MaterialX
 {
 
@@ -135,8 +137,8 @@ public:
     /// Return a list of all stages created.
     RtTokenVec getStageNames() const;
 
-    /// Return a list of unit definitions
-    RtUnitTypeDefVec& RtApi::getUnitDefinitions();
+    /// Return a registry of unit definitions
+    UnitConverterRegistryPtr RtApi::getUnitDefinitions();
 
     /// Get the singleton API instance.
     static RtApi& get();

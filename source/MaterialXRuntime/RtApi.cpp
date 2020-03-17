@@ -262,7 +262,7 @@ public:
         return names;
     }
 
-    RtUnitTypeDefVec& getUnitDefinitions()
+    UnitConverterRegistryPtr& getUnitDefinitions()
     {
         return _unitDefinitions;
     }
@@ -280,7 +280,7 @@ public:
         _libraries.clear();
         _libraryRoot = RtStage::createNew(libRootName);
 
-        _unitDefinitions.clear();
+        _unitDefinitions = UnitConverterRegistry::create();
     }
 
     FileSearchPath _searchPaths;
@@ -288,7 +288,7 @@ public:
     FileSearchPath _textureSearchPaths;
     RtStagePtr _libraryRoot;
     RtTokenMap<RtStagePtr> _libraries;
-    RtUnitTypeDefVec  _unitDefinitions;
+    UnitConverterRegistryPtr  _unitDefinitions;
 
     PvtDataHandle _masterPrimRoot;
     RtTokenMap<RtPrimCreateFunc> _createFunctions;
@@ -472,7 +472,7 @@ RtTokenVec RtApi::getStageNames() const
     return _cast(_ptr)->getStageNames();
 }
 
-RtUnitTypeDefVec& RtApi::getUnitDefinitions()
+UnitConverterPtrMap& RtApi::getUnitDefinitions()
 {
     return _cast(_ptr)->getUnitDefinitions();
 }

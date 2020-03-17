@@ -583,32 +583,6 @@ namespace
 
         readMetadata(doc, stage->getRootPrim(), stageMetadata);
 
-        // Store this on RtAPI and then restore it here!
-        UnitTypeDefPtr typeDefPtr = doc->addUnitTypeDef("distance");
-        UnitDefPtr unitDefPtr = doc->addUnitDef("nanometer");
-        unitDefPtr->setUnitType("distance");
-#if 0
- <unittypedef name="distance"/>
-  <unitdef name="UD_stdlib_distance" unittype="distance">
-    <unit name="nanometer" scale="0.000000001" />
-    <unit name="micron" scale="0.000001"/>
-    <unit name="millimeter" scale="0.001"/>
-    <unit name="centimeter" scale="0.01"/>
-    <unit name="inch" scale="0.0254"/>
-    <unit name="foot" scale="0.3048"/>
-    <unit name="yard" scale="0.9144"/>
-    <unit name="meter" scale="1.0"/>
-    <unit name="kilometer" scale="1000.0"/>
-    <unit name="mile" scale="1609.344"/>
-  </unitdef>
-
-  <unittypedef name="angle"/>
-  <unitdef name="UD_stdlib_angle" unittype="angle">
-    <unit name="degree" scale="1.0" />
-    <unit name="radian" scale="57.295779513" />
-  </unitdef>
-#endif
-
         RtReadOptions::ReadFilter filter = readOptions ? readOptions->readFilter : nullptr;
 
         // First, load and register all nodedefs.
@@ -1137,6 +1111,27 @@ namespace
         }
     }
 
+    void readUnitDefinitions(DocumentPtr doc)
+    {
+        RtApi& api = RtApi::get();
+        UnitConverterRegistryPtr unitDefinitions = api.getUnitDefinitions();
+        for (UnitTypeDefPtr unitTypeDef : doc->getUnitTypeDefs())
+        {
+            LinearUnitConverterPtr unitConvert = LinearUnitConverter::create(unitTypeDef);
+            unitDefinitions->addUnitConverter(unitTypeDef, unitConvert);
+        }
+    }
+
+    void writeUnitDefinitions(DocumentPtr doc)
+    {
+        RtApi& api = RtApi::get();
+        UnitConverterRegistryPtr unitDefinitions = api.getUnitDefinitions();
+        if (unitDefinitions)
+        {
+            unitDefinitions->write(doc);
+        }
+    }
+
 } // end anonymous namespace
 
 RtReadOptions::RtReadOptions() :
@@ -1172,6 +1167,7 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
         }
         readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
         string errorMessage;
+        writeUnitDefinitions(document);
         if (document->validate(&errorMessage))
         {
             PvtStage* stage = PvtStage::ptr(_stage);
@@ -1202,6 +1198,7 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
             xmlReadOptions.desiredMajorVersion = readOptions->desiredMinorVersion;
         }
         string errorMessage;
+        writeUnitDefinitions(document);
         if (document->validate(&errorMessage))
         {
             readFromXmlStream(document, stream, &xmlReadOptions);
@@ -1233,6 +1230,9 @@ void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath
     {
         stage->addSourceUri(RtToken(uri));
     }
+
+    // Update any units found
+    readUnitDefinitions(doc);
 
     // First, load all nodedefs. Having these available is needed
     // when node instances are loaded later.
