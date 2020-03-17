@@ -98,7 +98,7 @@ class LinearUnitConverter : public UnitConverter
         return _unitType;
     }
 
-    /// Create a unit definitions in a document based on the converter
+    /// Create unit definitions in a document based on the converter
     void write(DocumentPtr doc) const override;
 
     /// @name Conversion
