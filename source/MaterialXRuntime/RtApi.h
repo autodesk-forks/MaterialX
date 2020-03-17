@@ -138,7 +138,7 @@ public:
     RtTokenVec getStageNames() const;
 
     /// Return a registry of unit definitions
-    UnitConverterRegistryPtr RtApi::getUnitDefinitions();
+    UnitConverterRegistryPtr getUnitDefinitions();
 
     /// Get the singleton API instance.
     static RtApi& get();
