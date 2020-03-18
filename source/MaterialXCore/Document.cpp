@@ -648,7 +648,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
         return;
     }
 
-    // Upgrade path for 1.37 
+    // Upgrade from 1.36 to 1.37
     if (majorVersion == 1 && minorVersion == 36)
     {
         // Convert type attributes to child outputs.
@@ -678,7 +678,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
             }
         }
 
-         // Convert geometric attributes to geometric properties.
+        // Convert geometric attributes to geometric properties.
         for (GeomInfoPtr geomInfo : getGeomInfos())
         {
             vector<ElementPtr> origChildren = geomInfo->getChildren();
@@ -924,7 +924,7 @@ bool Document::convertMaterialsToNodes(bool replaceNodes)
             // Should not occur as the shaderref is a uniquely named
             // child of a uniquely named material element, but the two combined
             // may have been used for another node instance which not a shader node.
-            string shaderNodeName = m->getName() + "_" + sr->getName();
+            string shaderNodeName = materialName + "_" + sr->getName();
             NodePtr existingShaderNode = getNode(shaderNodeName);
             if (existingShaderNode)
             {

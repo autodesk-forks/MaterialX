@@ -88,9 +88,50 @@ public:
         return RtPrimIterator(_masterPrimRoot, predicate);
     }
 
+    void clearSearchPath()
+    {
+        _searchPaths.clear();
+    }
+
+    void clearTextureSearchPath()
+    {
+        _textureSearchPaths.clear();
+    }
+
+    void clearImplementationSearchPath()
+    {
+        _implementationSearchPaths.clear();
+    }
+
+
     void setSearchPath(const FileSearchPath& searchPath)
     {
         _searchPaths.append(searchPath);
+    }
+
+    void setTextureSearchPath(const FileSearchPath& searchPath)
+    {
+        _textureSearchPaths.append(searchPath);
+    }
+
+    void setImplementationSearchPath(const FileSearchPath& searchPath)
+    {
+        _implementationSearchPaths.append(searchPath);
+    }
+
+    const FileSearchPath& getSearchPath() const
+    {
+        return _searchPaths;
+    }
+
+    const FileSearchPath& getTextureSearchPath() const
+    {
+        return _textureSearchPaths;
+    }
+
+    const FileSearchPath& getImplementationSearchPath() const
+    {
+        return _implementationSearchPaths;
     }
 
     void loadLibrary(const RtToken& name)
@@ -221,6 +262,11 @@ public:
         return names;
     }
 
+    UnitConverterRegistryPtr& getUnitDefinitions()
+    {
+        return _unitDefinitions;
+    }
+
     void reset()
     {
         static const RtTypeInfo masterPrimRootType("api_masterprimroot");
@@ -233,11 +279,16 @@ public:
         _libraryRoot.reset();
         _libraries.clear();
         _libraryRoot = RtStage::createNew(libRootName);
+
+        _unitDefinitions = UnitConverterRegistry::create();
     }
 
     FileSearchPath _searchPaths;
+    FileSearchPath _implementationSearchPaths;
+    FileSearchPath _textureSearchPaths;
     RtStagePtr _libraryRoot;
     RtTokenMap<RtStagePtr> _libraries;
+    UnitConverterRegistryPtr  _unitDefinitions;
 
     PvtDataHandle _masterPrimRoot;
     RtTokenMap<RtPrimCreateFunc> _createFunctions;
@@ -331,9 +382,49 @@ RtPrimIterator RtApi::getMasterPrims(RtObjectPredicate predicate)
     return RtPrimIterator(_cast(_ptr)->_masterPrimRoot, predicate);
 }
 
+void RtApi::clearSearchPath()
+{
+    _cast(_ptr)->clearSearchPath();
+}
+
+void RtApi::clearTextureSearchPath()
+{
+    _cast(_ptr)->clearTextureSearchPath();
+}
+
+void RtApi::clearImplementationSearchPath()
+{
+    _cast(_ptr)->clearImplementationSearchPath();
+}
+
 void RtApi::setSearchPath(const FileSearchPath& searchPath)
 {
     _cast(_ptr)->setSearchPath(searchPath);
+}
+
+void RtApi::setTextureSearchPath(const FileSearchPath& searchPath)
+{
+    _cast(_ptr)->setTextureSearchPath(searchPath);
+}
+
+void RtApi::setImplementationSearchPath(const FileSearchPath& searchPath)
+{
+    _cast(_ptr)->setImplementationSearchPath(searchPath);
+}
+
+const FileSearchPath& RtApi::getSearchPath() const
+{
+    return _cast(_ptr)->getSearchPath();
+}
+
+const FileSearchPath& RtApi::getTextureSearchPath() const
+{
+    return _cast(_ptr)->getTextureSearchPath();
+}
+
+const FileSearchPath& RtApi::getImplementationSearchPath() const
+{
+    return _cast(_ptr)->getImplementationSearchPath();
 }
 
 void RtApi::loadLibrary(const RtToken& name)
@@ -379,6 +470,11 @@ RtToken RtApi::renameStage(const RtToken& name, const RtToken& newName)
 RtTokenVec RtApi::getStageNames() const
 {
     return _cast(_ptr)->getStageNames();
+}
+
+UnitConverterRegistryPtr RtApi::getUnitDefinitions()
+{
+    return _cast(_ptr)->getUnitDefinitions();
 }
 
 RtApi& RtApi::get()

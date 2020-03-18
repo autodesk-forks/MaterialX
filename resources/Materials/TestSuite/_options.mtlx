@@ -16,7 +16,7 @@
       <parameter name="overrideFiles" type="string" value="standard_surface_plastic.mtlx,standard_surface_brass_tiled.mtlx,standard_surface_carpaint.mtlx,standard_surface_chrome.mtlx,standard_surface_copper.mtlx,standard_surface_default.mtlx,standard_surface_emission.mtlx,standard_surface_glass.mtlx,standard_surface_gold.mtlx,standard_surface_jade.mtlx,standard_surface_sheen.mtlx,standard_surface_velvet.mtlx,standard_surface_wood_tiled.mtlx,standard_surface_marble_solid.mtlx" />
 
       <!-- Comma separated list of light setup files. Only used for hardware shading languages  -->
-      <parameter name="lightFiles" type="string" value="default_viewer_lights.mtlx" />
+      <parameter name="lightFiles" type="string" value="light_rig_test_2.mtlx" />
 
       <!-- Comma separated list of "language"_"target" specifiers to indicate which
            code generators to use.
@@ -78,19 +78,25 @@
       <parameter name="specularEnvironmentMethod" type="integer" value="1" />
 
       <!-- Suggested radiance IBL file path -->
-      <parameter name="radianceIBLPath" type="string" value="resources/Images/Environments/san_giuseppe_bridge.hdr" />
+      <parameter name="radianceIBLPath" type="string" value="resources/Lights/san_giuseppe_bridge.hdr" />
 
       <!-- Suggested irradiance IBL file path -->
-      <parameter name="irradianceIBLPath" type="string" value="resources/Images/Environments/san_giuseppe_bridge_diffuse.hdr" />
+      <parameter name="irradianceIBLPath" type="string" value="resources/Lights/irradiance/san_giuseppe_bridge.hdr" />
 
       <!-- Transforms UVs of loaded geometry -->
-      <parameter name="transformUVs" type="matrix44" value="1.0f, 0.0f, 0.0f, -0.235f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f" />
+      <parameter name="transformUVs" type="matrix44" value="1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, -0.235f, 1.0f, 0.0f, 1.0f" />
 
       <!-- External testing: extra comma separated list of library paths -->
       <parameter name="externalLibraryPaths" type="string" value="" />
 
       <!-- External testing: extra comma separated list of test root paths -->
       <parameter name="externalTestPaths" type="string" value="" />
+
+      <!-- Desired major version to upgrade to if possible -->
+      <parameter name="desiredMajorVersion" type="integer" value="1" />
+
+      <!-- Desired minor version to upgrade to if possible -->
+      <parameter name="desiredMinorVersion" type="integer" value="38" />
 
    </nodedef>
 </materialx>
