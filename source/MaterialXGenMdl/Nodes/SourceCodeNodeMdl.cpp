@@ -81,29 +81,7 @@ void SourceCodeNodeMdl::emitFunctionCall(const ShaderNode& node, GenContext& con
                         "' on node '" + node.getName() + "'");
                 }
 
-                if (input->getConnection())
-                {
-                    code.push_back(shadergen.getUpstreamResult(input, context));
-                }
-                else
-                {
-                    string variableName = node.getName() + "_" + input->getName() + "_tmp";
-                    if (!variableNames.count(variableName))
-                    {
-                        ShaderPort v(nullptr, input->getType(), variableName, input->getValue());
-                        shadergen.emitLineBegin(stage);
-                        const Syntax& syntax = shadergen.getSyntax();
-                        const string valueStr = (v.getValue() ? syntax.getValue(v.getType(), *v.getValue()) : syntax.getDefaultValue(v.getType()));
-                        const string& qualifier = syntax.getConstantQualifier();
-                        string str = qualifier.empty() ? EMPTY_STRING : qualifier + " ";
-                        str += syntax.getTypeName(v.getType()) + " " + v.getVariable();
-                        str += valueStr.empty() ? EMPTY_STRING : " = " + valueStr;
-                        shadergen.emitString(str, stage);
-                        shadergen.emitLineEnd(stage);
-                        variableNames.insert(variableName);
-                    }
-                    code.push_back(variableName);
-                }
+                code.push_back(shadergen.getUpstreamResult(input, context));
 
                 pos = j + 2;
                 i = _functionSource.find_first_of(prefix, pos);
