@@ -32,7 +32,7 @@ class OslRenderer : public ShaderRenderer
 {
   public:
     /// Create an OSL renderer instance
-    static OslRendererPtr create();
+    static OslRendererPtr create(unsigned int width = 512, unsigned int height = 512);
 
     /// Destructor
     virtual ~OslRenderer();
@@ -47,6 +47,9 @@ class OslRenderer : public ShaderRenderer
     /// An exception is thrown on failure.
     /// The exception will contain a list of initialization errors.
     void initialize() override;
+
+    /// Set the size of the output buffer
+    void setSize(unsigned int width, unsigned int height) override;
 
     /// @}
     /// @name Rendering
@@ -223,7 +226,7 @@ class OslRenderer : public ShaderRenderer
     void renderOSL(const FilePath& dirPath, const string& shaderName, const string& outputName);
 
     /// Constructor
-    OslRenderer();
+    OslRenderer(unsigned int width, unsigned int height);
 
   private:
     /// Path to "oslc" executable`

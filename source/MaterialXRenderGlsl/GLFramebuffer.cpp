@@ -127,6 +127,27 @@ GLFramebuffer::~GLFramebuffer()
     }
 }
 
+void GLFramebuffer::resize(unsigned int width, unsigned int height)
+{
+    if (width != _width || _height != height)
+    {
+        unbind();
+
+        int glType, glFormat, glInternalFormat;
+        GLTextureHandler::mapTextureFormatToGL(_baseType, _channelCount, true, glType, glFormat, glInternalFormat);
+
+        glBindTexture(GL_TEXTURE_2D, _colorTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, _width, _height, 0, glFormat, glType, nullptr);
+
+        glBindTexture(GL_TEXTURE_2D, _depthTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, _width, _height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+
+        glBindTexture(GL_TEXTURE_2D, GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+        glDrawBuffer(GL_NONE);
+    }
+}
+
+
 void GLFramebuffer::bind()
 {
     if (!_frameBuffer)

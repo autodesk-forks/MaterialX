@@ -33,6 +33,9 @@ class ShaderRenderer
   public:
     virtual ~ShaderRenderer() { }
 
+    /// Set the size of the output buffer
+    virtual void setSize(unsigned int /*width*/, unsigned int /*height*/) = 0;
+
     /// @name Setup
     /// @{
 
@@ -121,9 +124,20 @@ class ShaderRenderer
 
   protected:
     // Protected constructor
-    ShaderRenderer() { }
+    ShaderRenderer() :
+        _width(0),
+        _height(0)
+    { }
+
+    ShaderRenderer(unsigned int width, unsigned int height) :
+        _width(width),
+        _height(height)
+    { }
 
   protected:
+    unsigned int _width;
+    unsigned int _height;
+
     ImageHandlerPtr _imageHandler;
     GeometryHandlerPtr _geometryHandler;
     LightHandlerPtr _lightHandler;
