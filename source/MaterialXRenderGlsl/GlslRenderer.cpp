@@ -207,13 +207,15 @@ void GlslRenderer::updateViewInformation(const Vector3& eye,
                                            float farDist,
                                            float objectScale)
 {
+    float aspectRatio = float(_width) / float(_height);
     float fH = std::tan(viewAngle / 360.0f * PI) * nearDist;
-    float fW = fH * 1.0f;
+    float fW = fH * aspectRatio;
 
+    float geometryRatio = _height < _width ?  aspectRatio : (1.0f / aspectRatio);
     Vector3 boxMin = _geometryHandler->getMinimumBounds();
     Vector3 boxMax = _geometryHandler->getMaximumBounds();
     Vector3 sphereCenter = (boxMax + boxMin) / 2.0;
-    float sphereRadius = (sphereCenter - boxMin).getMagnitude();
+    float sphereRadius = (sphereCenter - boxMin).getMagnitude() * geometryRatio;
     float meshFit = 2.0f / sphereRadius;
     Vector3 modelTranslation = sphereCenter * -1.0f;
 
