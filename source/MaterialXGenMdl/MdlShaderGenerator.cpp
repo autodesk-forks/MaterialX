@@ -328,15 +328,15 @@ string MdlShaderGenerator::getUpstreamResult(const ShaderInput* input, GenContex
 {
     const ShaderOutput* upstreamOutput = input->getConnection();
 
-	// TODO: This is a temporary fix for Iray.
-	// File texture constructors with a filename set are emitted inline "by value".
-	if (upstreamOutput && upstreamOutput->getType() == Type::FILENAME &&
-		upstreamOutput->getValue() && !upstreamOutput->getValue()->getValueString().empty())
-	{
-		return _syntax->getValue(upstreamOutput->getType(), *upstreamOutput->getValue());
-	}
-	
-	if (!upstreamOutput || upstreamOutput->getNode()->isAGraph())
+    // TODO: This is a temporary fix for Iray.
+    // File texture constructors with a filename set are emitted inline "by value".
+    if (upstreamOutput && upstreamOutput->getType() == Type::FILENAME &&
+        upstreamOutput->getValue() && !upstreamOutput->getValue()->getValueString().empty())
+    {
+        return _syntax->getValue(upstreamOutput->getType(), *upstreamOutput->getValue());
+    }
+    
+    if (!upstreamOutput || upstreamOutput->getNode()->isAGraph())
     {
         return ShaderGenerator::getUpstreamResult(input, context);
     }
@@ -414,7 +414,7 @@ void MdlShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
 
         // TODO: This is a temporary fix for Iray.
         // File texture constructors with a filename set must be emitted inside the shader body.
-		// They will be emitted inline "by value", see MdlShaderGenerator::getUpstreamResult().
+        // They will be emitted inline "by value", see MdlShaderGenerator::getUpstreamResult().
         if (input->getType() == Type::FILENAME && input->getValue() && !input->getValue()->getValueString().empty())
         {
             continue;
