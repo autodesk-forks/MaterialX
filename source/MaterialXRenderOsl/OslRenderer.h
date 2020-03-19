@@ -48,9 +48,6 @@ class OslRenderer : public ShaderRenderer
     /// The exception will contain a list of initialization errors.
     void initialize() override;
 
-    /// Set the size of the output buffer
-    void setSize(unsigned int width, unsigned int height) override;
-
     /// @}
     /// @name Rendering
     /// @{
@@ -75,6 +72,9 @@ class OslRenderer : public ShaderRenderer
     /// Validate inputs for the compiled OSL program.
     /// Note: Currently no validation has been implemented.
     void validateInputs() override;
+
+    /// Set the size for rendered image
+    void setSize(unsigned int width, unsigned int height) override;
 
     /// Render OSL program to disk.
     /// This is done by using either "testshade" or "testrender".

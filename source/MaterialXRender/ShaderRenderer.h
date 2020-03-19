@@ -33,9 +33,6 @@ class ShaderRenderer
   public:
     virtual ~ShaderRenderer() { }
 
-    /// Set the size of the output buffer
-    virtual void setSize(unsigned int /*width*/, unsigned int /*height*/) = 0;
-
     /// @name Setup
     /// @{
 
@@ -105,6 +102,9 @@ class ShaderRenderer
 
     /// Validate inputs for the program 
     virtual void validateInputs() = 0;
+
+    /// Set the size of the rendered image
+    virtual void setSize(unsigned int /*width*/, unsigned int /*height*/) = 0;
 
     /// Render the current program to produce an image
     virtual void render() = 0;

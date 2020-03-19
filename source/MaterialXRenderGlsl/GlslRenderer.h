@@ -46,9 +46,6 @@ class GlslRenderer : public ShaderRenderer
     /// Destructor
     virtual ~GlslRenderer();
 
-    /// Set the size of the output buffer
-    void setSize(unsigned int width, unsigned int height) override;
-
     /// @name Setup
     /// @{
 
@@ -72,6 +69,9 @@ class GlslRenderer : public ShaderRenderer
 
     /// Validate inputs for the program
     void validateInputs() override;
+
+    /// Set the size of the rendered image
+    void setSize(unsigned int width, unsigned int height) override;
 
     /// Render the current program to an offscreen buffer.
     void render() override;
