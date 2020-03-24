@@ -135,7 +135,8 @@ public:
 protected:
     /// Read all contents from one or more libraries.
     /// All MaterialX files found inside the given libraries will be read.
-    void readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
+    /// Returns a non-empty string if an error occurred during reading.
+    std::string readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths);
     friend class PvtApi;
 
 private:

@@ -111,7 +111,7 @@ public:
     const FileSearchPath& getImplementationSearchPath() const;
 
     /// Load a library.
-    void loadLibrary(const RtToken& name);
+    std::string loadLibrary(const RtToken& name);
 
     /// Unload a library.
     void unloadLibrary(const RtToken& name);

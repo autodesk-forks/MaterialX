@@ -1677,6 +1677,16 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     mx::FileSearchPath implPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/genglsl"));
     api->setImplementationSearchPath(implPath);
     REQUIRE(api->getImplementationSearchPath().find("stdlib_genglsl_unit_impl.mtlx").exists());    
+
+    mx::DocumentPtr doc = mx::createDocument();
+    doc->addNodeDef("badNodeDef", "UNKNOWN_TYPE");
+    mx::FilePath badLibraryPath = mx::FilePath::getCurrentPath() / mx::FilePath("badLibrary");
+    badLibraryPath.createDirectory();
+    mx::writeToXmlFile(doc, badLibraryPath / mx::FilePath("badNodeDef.mtlx"));
+    searchPath.prepend(badLibraryPath);
+    api->setSearchPath(searchPath);
+    std::string errors = api->loadLibrary(mx::RtToken("badLibrary"));
+    REQUIRE(!errors.empty());
 }
 
 TEST_CASE("Runtime: units", "[runtime]")

@@ -134,7 +134,7 @@ public:
         return _implementationSearchPaths;
     }
 
-    void loadLibrary(const RtToken& name)
+    std::string loadLibrary(const RtToken& name)
     {
         // If already loaded unload the old first,
         // to support reloading of updated libraries.
@@ -147,9 +147,9 @@ public:
         _libraries[name] = lib;
 
         RtFileIo file(lib);
-        file.readLibraries({ name }, _searchPaths);
-
         _libraryRoot->addReference(lib);
+
+        return file.readLibraries({ name }, _searchPaths);
     }
 
     void unloadLibrary(const RtToken& name)
@@ -427,9 +427,9 @@ const FileSearchPath& RtApi::getImplementationSearchPath() const
     return _cast(_ptr)->getImplementationSearchPath();
 }
 
-void RtApi::loadLibrary(const RtToken& name)
+std::string RtApi::loadLibrary(const RtToken& name)
 {
-    _cast(_ptr)->loadLibrary(name);
+    return _cast(_ptr)->loadLibrary(name);
 }
 
 void RtApi::unloadLibrary(const RtToken& name)

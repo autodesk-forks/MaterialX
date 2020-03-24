@@ -1252,22 +1252,31 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
     }
 }
 
-void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
+std::string RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath& searchPaths)
 {
-    PvtStage* stage = PvtStage::ptr(_stage);
+    std::string errors;
+
+    PvtStage* stage = PvtStage::ptr(_stage);    
 
     // Load all content into a document.
     DocumentPtr doc = createDocument();
-    MaterialX::loadLibraries(libraryPaths, searchPaths, doc);
-
-    StringSet uris = doc->getReferencedSourceUris();
-    for (const string& uri : uris)
+    try
     {
-        stage->addSourceUri(RtToken(uri));
-    }
+        MaterialX::loadLibraries(libraryPaths, searchPaths, doc);
 
-    // Update any units found
-    readUnitDefinitions(doc);
+        StringSet uris = doc->getReferencedSourceUris();
+        for (const string& uri : uris)
+        {
+            stage->addSourceUri(RtToken(uri));
+        }
+
+        // Update any units found
+        readUnitDefinitions(doc);
+    }
+    catch (Exception& e)
+    {
+        return string(e.what());
+    }
 
     // First, load all nodedefs. Having these available is needed
     // when node instances are loaded later.
@@ -1275,37 +1284,53 @@ void RtFileIo::readLibraries(const StringVec& libraryPaths, const FileSearchPath
     {
         if (!RtApi::get().hasMasterPrim(RtToken(nodedef->getName())))
         {
-            PvtPrim* prim = readNodeDef(nodedef, stage);
-            RtNodeDef(prim->hnd()).registerMasterPrim();
+            try
+            {
+                PvtPrim* prim = readNodeDef(nodedef, stage);
+                RtNodeDef(prim->hnd()).registerMasterPrim();
+            }
+            catch (Exception& e)
+            {
+                errors.append(". " + string(e.what()));
+            }
         }
     }
 
-    validateNodesHaveNodedefs(doc);
-
-    // Second, load all other elements.
-    for (const ElementPtr& elem : doc->getChildren())
+    try
     {
-        PvtPath path(stage->getPath());
-        path.push(RtToken(elem->getName()));
+        validateNodesHaveNodedefs(doc);
 
-        if (elem->isA<NodeDef>() || stage->getPrimAtPath(path))
+        // Second, load all other elements.
+        for (const ElementPtr& elem : doc->getChildren())
         {
-            continue;
-        }
+            PvtPath path(stage->getPath());
+            path.push(RtToken(elem->getName()));
 
-        if (elem->isA<Node>())
-        {
-            readNode(elem->asA<Node>(), stage->getRootPrim(), stage);
-        }
-        else if (elem->isA<NodeGraph>())
-        {
-            readNodeGraph(elem->asA<NodeGraph>(), stage->getRootPrim(), stage);
-        }
-        else
-        {
-            readGenericPrim(elem, stage->getRootPrim(), stage);
+            if (elem->isA<NodeDef>() || stage->getPrimAtPath(path))
+            {
+                continue;
+            }
+
+            if (elem->isA<Node>())
+            {
+                readNode(elem->asA<Node>(), stage->getRootPrim(), stage);
+            }
+            else if (elem->isA<NodeGraph>())
+            {
+                readNodeGraph(elem->asA<NodeGraph>(), stage->getRootPrim(), stage);
+            }
+            else
+            {
+                readGenericPrim(elem, stage->getRootPrim(), stage);
+            }
         }
     }
+    catch (Exception& e)
+    {
+        errors.append(". " + string(e.what()));
+    }
+
+    return errors;
 }
 
 void RtFileIo::write(const FilePath& documentPath, const RtWriteOptions* options)
