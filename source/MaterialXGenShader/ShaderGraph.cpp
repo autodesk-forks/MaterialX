@@ -159,6 +159,11 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
 
 void ShaderGraph::addUpstreamDependencies(const Element& root, ConstMaterialPtr material, GenContext& context)
 {
+    if (!context.getOptions().addUpstreamDependencies)
+    {
+        return;
+    }
+
     // Keep track of our root node in the graph.
     // This is needed when the graph is a shader graph and we need
     // to make connections for BindInputs during traversal below.
@@ -784,7 +789,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                 }
             }
 
-            // No traversal of upstream dependencies
+            // Set root for upstream dependency traversal
             root = node;
         }
     }
