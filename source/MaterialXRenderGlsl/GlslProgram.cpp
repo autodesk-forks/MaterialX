@@ -33,7 +33,7 @@ GlslProgram::GlslProgram() :
     _programId(UNDEFINED_OPENGL_RESOURCE_ID),
     _shader(nullptr),
     _vertexArray(0),
-    _lastGeometryName("")
+    _lastGeometryName(EMPTY_STRING)
 {
 }
 

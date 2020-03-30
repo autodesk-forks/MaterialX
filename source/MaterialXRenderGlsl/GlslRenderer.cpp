@@ -49,9 +49,9 @@ GlslRenderer::GlslRenderer(unsigned int width, unsigned int height) :
 
 GlslRenderer::~GlslRenderer()
 {
-    if (_context->makeCurrent())
+    if (_program->geometryBound())
     {
-        if (_program->geometryBound())
+        if (_context->makeCurrent())
         {
             _program->unbindGeometry();
         }
