@@ -61,8 +61,6 @@ LinearUnitConverterPtr LinearUnitConverter::create(UnitTypeDefPtr unitTypeDef)
 
 void LinearUnitConverter::write(DocumentPtr doc) const
 {
-    static const string SCALE_ATTRIBUTE = "scale";
-
     if (!doc->getUnitTypeDef(_unitType))
     {
         // Add a unittypedef
