@@ -27,6 +27,7 @@ class ShaderRef;
 class Unit;
 class UnitDef;
 class UnitTypeDef;
+class AttributeDef;
 
 /// A shared pointer to a NodeDef
 using NodeDefPtr = shared_ptr<NodeDef>;
@@ -62,6 +63,11 @@ using ConstUnitDefPtr = shared_ptr<const UnitDef>;
 using UnitTypeDefPtr = shared_ptr<UnitTypeDef>;
 /// A shared pointer to a const UnitTypeDef
 using ConstUnitTypeDefPtr = shared_ptr<const UnitTypeDef>;
+
+/// A shared pointer to an AttributeDef
+using AttributeDefPtr = shared_ptr<AttributeDef>;
+/// A shared pointer to a const AttributeDef
+using AttributeDefDefPtr = shared_ptr<const AttributeDef>;
 
 /// @class NodeDef
 /// A node definition element within a Document.
