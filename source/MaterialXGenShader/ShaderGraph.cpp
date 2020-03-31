@@ -469,6 +469,7 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
     // Create this shader node in the graph.
     const string& newNodeName = node->getName();
     ShaderNodePtr newNode = ShaderNode::create(graph.get(), newNodeName, *nodeDef, context);
+    newNode->initialize(*node, *nodeDef, context);
     graph->addNode(newNode);
 
     // Connect it to the graph output
@@ -521,6 +522,9 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
 
         // Connect graph input socket to the node input
         inputSocket->makeConnection(input);
+
+        // Share metadata.
+        inputSocket->setMetadata(input->getMetadata());
     }
 
     // Set node input values onto grah input sockets
@@ -575,6 +579,9 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
                 inputSocket->makeConnection(input);
             }
         }
+
+        // Share metadata.
+        inputSocket->setMetadata(input->getMetadata());
     }
 
     // Add shader node paths and unit value
@@ -768,6 +775,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
 
                 // Connect to the graph input
                 inputSocket->makeConnection(input);
+
+                // Share metadata.
+                inputSocket->setMetadata(input->getMetadata());
             }
 
             // No traversal of upstream dependencies
@@ -847,6 +857,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
 
             // Connect to the graph input
             inputSocket->makeConnection(input);
+
+            // Share metadata.
+            inputSocket->setMetadata(input->getMetadata());
         }
 
         // Handle node inputs
@@ -903,6 +916,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     inputSocket->makeConnection(input);
                 }
             }
+
+            // Share metadata.
+            inputSocket->setMetadata(input->getMetadata());
         }
 
         // Add shaderRef nodedef paths
@@ -983,8 +999,7 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
     // Create this node in the graph.
     const string& name = node.getName();
     ShaderNodePtr newNode = ShaderNode::create(this, name, *nodeDef, context);
-    newNode->setValues(node, *nodeDef, context);
-    newNode->setPaths(node, *nodeDef);
+    newNode->initialize(node, *nodeDef, context);
     _nodeMap[name] = newNode;
     _nodeOrder.push_back(newNode.get());
 
@@ -1181,6 +1196,7 @@ void ShaderGraph::finalize(GenContext& context)
                             inputSocket->setUnit(input->getUnit());
                         }
                         inputSocket->makeConnection(input);
+                        inputSocket->setMetadata(input->getMetadata());
                     }
                 }
             }

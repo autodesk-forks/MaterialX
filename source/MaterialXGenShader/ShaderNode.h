@@ -45,6 +45,22 @@ class ShaderPort : public std::enable_shared_from_this<ShaderPort>
     static const unsigned int EMITTED = 1 << 0;
     static const unsigned int BIND_INPUT = 1 << 1;
 
+    /// Metadata to be exported to generated shader.
+    struct Metadata
+    {
+        string name;
+        const TypeDesc* type;
+        ValuePtr value;
+        Metadata(const string& n, const TypeDesc* t, ValuePtr v) :
+            name(n),
+            type(t),
+            value(v)
+        {}
+    };
+    using MetadataVec = vector<Metadata>;
+    using MetadataVecPtr = shared_ptr<MetadataVec>;
+
+    /// Constructor.
     ShaderPort(ShaderNode* node, const TypeDesc* type, const string& name, ValuePtr value = nullptr);
 
     /// Return a shared pointer instance of this object.
@@ -129,6 +145,15 @@ class ShaderPort : public std::enable_shared_from_this<ShaderPort>
     /// Return flags set on this port.
     unsigned int getFlags() const { return _flags; }
 
+    /// Set the metadata vector.
+    void setMetadata(MetadataVecPtr metadata) { _metadata = metadata; }
+
+    /// Get the metadata vector.
+    MetadataVecPtr getMetadata() { return _metadata; }
+
+    /// Get the metadata vector.
+    const MetadataVecPtr& getMetadata() const { return _metadata; }
+
   protected:
     ShaderNode* _node;
     const TypeDesc* _type;
@@ -139,6 +164,7 @@ class ShaderPort : public std::enable_shared_from_this<ShaderPort>
     ValuePtr _value;
     string _unit;
     string _geomprop;
+    MetadataVecPtr _metadata;
     unsigned int _flags;
 };
 
@@ -348,11 +374,9 @@ class ShaderNode
         return _usedClosures.count(node) > 0;
     }
 
-    /// Set input values from the given node and nodedef.
-    void setValues(const Node& node, const NodeDef& nodeDef, GenContext& context);
-
-    /// Set input element paths for the given node and nodedef.
-    void setPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs=true);
+    /// Initialize this shader node with all required data
+    /// from the given node and nodedef.
+    void initialize(const Node& node, const NodeDef& nodeDef, GenContext& context);
 
     /// Add inputs/outputs
     ShaderInput* addInput(const string& name, const TypeDesc* type);

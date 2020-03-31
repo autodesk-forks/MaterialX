@@ -342,48 +342,7 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
     return newNode;
 }
 
-void ShaderNode::setPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs)
-{
-    // Set element paths for children on the node
-    for (const ValueElementPtr& nodeValue : node.getActiveValueElements())
-    {
-        ShaderInput* input = getInput(nodeValue->getName());
-        if (input)
-        {
-            input->setPath(nodeValue->getNamePath());
-        }
-    }
-
-    if (!includeNodeDefInputs)
-    {
-        return;
-    }
-
-    // Set element paths based on the node definition. Note that these
-    // paths don't actually exist at time of shader generation since there
-    // are no inputs/parameters specified on the node itself
-    //
-    const string& nodePath = node.getNamePath();
-    for (const ValueElementPtr& nodeInput : nodeDef.getActiveInputs())
-    {
-        ShaderInput* input = getInput(nodeInput->getName());
-        if (input && input->getPath().empty())
-        {
-            input->setPath(nodePath + NAME_PATH_SEPARATOR + nodeInput->getName());
-        }
-    }
-
-    for (const ParameterPtr& nodeParameter : nodeDef.getActiveParameters())
-    {
-        ShaderInput* input = getInput(nodeParameter->getName());
-        if (input && input->getPath().empty())
-        {
-            input->setPath(nodePath + NAME_PATH_SEPARATOR + nodeParameter->getName());
-        }
-    }
-}
-
-void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, GenContext& context)
+void ShaderNode::initialize(const Node& node, const NodeDef& nodeDef, GenContext& context)
 {
     // Copy input values from the given node
     for (const ValueElementPtr& nodeValue : node.getActiveValueElements())
@@ -415,6 +374,81 @@ void ShaderNode::setValues(const Node& node, const NodeDef& nodeDef, GenContext&
     if (_impl)
     {
         _impl->setValues(node, *this, context);
+    }
+
+    // Set element paths for children on the node
+    for (const ValueElementPtr& nodeValue : node.getActiveValueElements())
+    {
+        ShaderInput* input = getInput(nodeValue->getName());
+        if (input)
+        {
+            input->setPath(nodeValue->getNamePath());
+        }
+    }
+
+    // Set element paths based on the node definition. Note that these
+    // paths don't actually exist at time of shader generation since there
+    // are no inputs/parameters specified on the node itself
+    //
+    const string& nodePath = node.getNamePath();
+    for (const ValueElementPtr& nodeInput : nodeDef.getActiveInputs())
+    {
+        ShaderInput* input = getInput(nodeInput->getName());
+        if (input && input->getPath().empty())
+        {
+            input->setPath(nodePath + NAME_PATH_SEPARATOR + nodeInput->getName());
+        }
+    }
+
+    for (const ParameterPtr& nodeParameter : nodeDef.getActiveParameters())
+    {
+        ShaderInput* input = getInput(nodeParameter->getName());
+        if (input && input->getPath().empty())
+        {
+            input->setPath(nodePath + NAME_PATH_SEPARATOR + nodeParameter->getName());
+        }
+    }
+
+
+
+
+    std::unordered_map<string, const TypeDesc*> defaultMetadata =
+    {
+        { ValueElement::UI_NAME_ATTRIBUTE, Type::STRING },
+        { ValueElement::UI_FOLDER_ATTRIBUTE, Type::STRING },
+        { ValueElement::UI_MIN_ATTRIBUTE, nullptr },
+        { ValueElement::UI_MAX_ATTRIBUTE, nullptr },
+        { ValueElement::UI_SOFT_MIN_ATTRIBUTE, nullptr },
+        { ValueElement::UI_SOFT_MAX_ATTRIBUTE, nullptr },
+        { ValueElement::UI_STEP_ATTRIBUTE, nullptr },
+        { ValueElement::UI_ADVANCED_ATTRIBUTE, Type::BOOLEAN }
+    };
+
+    for (const ValueElementPtr& nodedefPort : nodeDef.getActiveValueElements())
+    {
+        ShaderInput* input = getInput(nodedefPort->getName());
+        if (input)
+        {
+            ShaderInput::MetadataVecPtr storage = input->getMetadata();
+            if (!storage)
+            {
+                storage = std::make_shared<ShaderInput::MetadataVec>();
+                input->setMetadata(storage);
+            }
+            for (auto it : defaultMetadata)
+            {
+                const string& attrValue = nodedefPort->getAttribute(it.first);
+                if (!attrValue.empty())
+                {
+                    const TypeDesc* type = it.second ? it.second : input->getType();
+                    ValuePtr value = Value::createValueFromStrings(attrValue, type->getName());
+                    if (value)
+                    {
+                        storage->push_back(ShaderInput::Metadata(it.first, type, value));
+                    }
+                }
+            }
+        }
     }
 }
 

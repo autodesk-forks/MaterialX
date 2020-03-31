@@ -383,6 +383,7 @@ void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
     for (size_t i = 0; i < inputs.size(); ++i)
     {
         const ShaderPort* input = inputs[i];
+
         const string& type = _syntax->getTypeName(input->getType());
         const string value = (input->getValue() ?
             _syntax->getValue(input->getType(), *input->getValue(), true) :
@@ -402,11 +403,21 @@ void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
             emitString(type + " " + input->getVariable() + " = " + value, stage);
         }
 
-        // Add widget metadata.
-        auto it = UI_WIDGET_METADATA.find(input->getType()->getName());
-        if (it != UI_WIDGET_METADATA.end())
+        // Add any metadata if set.
+        const ShaderPort::MetadataVecPtr& metadata = input->getMetadata();
+        if (metadata && metadata->size())
         {
-            emitString(" [[ " + it->second + " ]]", stage);
+            emitLineEnd(stage, false);
+            emitScopeBegin(stage, Syntax::DOUBLE_SQUARE_BRACKETS);
+            for (size_t j = 0; j < metadata->size(); ++j)
+            {
+                const ShaderPort::Metadata& data = metadata->at(j);
+                const string& delim = (j == metadata->size() - 1) ? EMPTY_STRING : COMMA;
+                const string& dataType = _syntax->getTypeName(data.type);
+                const string dataValue = _syntax->getValue(data.type, *data.value, true);
+                emitLine(dataType + " " + data.name + " = " + dataValue + delim, stage, false);
+            }
+            emitScopeEnd(stage, false, false);
         }
 
         emitString(",", stage);
