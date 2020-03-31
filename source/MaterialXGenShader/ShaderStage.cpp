@@ -206,6 +206,10 @@ void ShaderStage::beginScope(Syntax::Punctuation punc)
         beginLine();
         _code += "[" + _syntax->getNewline();
         break;
+    case Syntax::DOUBLE_SQUARE_BRACKETS:
+        beginLine();
+        _code += "[[" + _syntax->getNewline();
+        break;
     }
 
     ++_indentations;
@@ -235,6 +239,10 @@ void ShaderStage::endScope(bool semicolon, bool newline)
     case Syntax::SQUARE_BRACKETS:
         beginLine();
         _code += "]";
+        break;
+    case Syntax::DOUBLE_SQUARE_BRACKETS:
+        beginLine();
+        _code += "]]";
         break;
     }
     if (semicolon)
