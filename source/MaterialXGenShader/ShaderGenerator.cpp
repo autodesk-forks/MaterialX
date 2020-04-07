@@ -304,20 +304,20 @@ void ShaderGenerator::registerShaderMetadata(const DocumentPtr& doc, GenContext&
     }
 
     // Add default entries.
-    vector<ShaderMetadataRegistry::Entry> defaultMetadata =
+    ShaderMetadataVec defaultMetadata =
     {
-        { ValueElement::UI_NAME_ATTRIBUTE, Type::STRING },
-        { ValueElement::UI_FOLDER_ATTRIBUTE, Type::STRING },
-        { ValueElement::UI_MIN_ATTRIBUTE, nullptr },
-        { ValueElement::UI_MAX_ATTRIBUTE, nullptr },
-        { ValueElement::UI_SOFT_MIN_ATTRIBUTE, nullptr },
-        { ValueElement::UI_SOFT_MAX_ATTRIBUTE, nullptr },
-        { ValueElement::UI_STEP_ATTRIBUTE, nullptr },
-        { ValueElement::UI_ADVANCED_ATTRIBUTE, Type::BOOLEAN }
+        ShaderMetadata(ValueElement::UI_NAME_ATTRIBUTE, Type::STRING),
+        ShaderMetadata(ValueElement::UI_FOLDER_ATTRIBUTE, Type::STRING),
+        ShaderMetadata(ValueElement::UI_MIN_ATTRIBUTE, nullptr),
+        ShaderMetadata(ValueElement::UI_MAX_ATTRIBUTE, nullptr),
+        ShaderMetadata(ValueElement::UI_SOFT_MIN_ATTRIBUTE, nullptr),
+        ShaderMetadata(ValueElement::UI_SOFT_MAX_ATTRIBUTE, nullptr),
+        ShaderMetadata(ValueElement::UI_STEP_ATTRIBUTE, nullptr),
+        ShaderMetadata(ValueElement::UI_ADVANCED_ATTRIBUTE, Type::BOOLEAN)
     };
-    for (auto entry : defaultMetadata)
+    for (auto data : defaultMetadata)
     {
-        registry->addEntry(entry);
+        registry->addMetadata(data.name, data.type);
     }
 
     // Add entries from AttributeDefs in the document.
@@ -330,7 +330,7 @@ void ShaderGenerator::registerShaderMetadata(const DocumentPtr& doc, GenContext&
             const TypeDesc* type = TypeDesc::get(def->getType());
             if (!attrName.empty() && type)
             {
-                registry->addEntry(ShaderMetadataRegistry::Entry(attrName, type));
+                registry->addMetadata(attrName, type, def->getValue());
             }
         }
     }

@@ -474,6 +474,9 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
     newNode->initialize(*node, *nodeDef, context);
     graph->addNode(newNode);
 
+    // Share metadata.
+    graph->setMetadata(newNode->getMetadata());
+
     // Connect it to the graph output
     ShaderGraphOutputSocket* outputSocket = graph->getOutputSocket();
     outputSocket->makeConnection(newNode->getOutput());
@@ -724,6 +727,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             ShaderNodePtr newNode = ShaderNode::create(graph.get(), node->getName(), *nodeDef, context);
             graph->addNode(newNode);
 
+            // Share metadata.
+            graph->setMetadata(newNode->getMetadata());
+
             // Connect it to the graph outputs
             for (size_t i = 0; i < newNode->numOutputs(); ++i)
             {
@@ -813,6 +819,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         ShaderGraphOutputSocket* outputSocket = graph->getOutputSocket();
         outputSocket->makeConnection(newNode->getOutput());
         outputSocket->setPath(shaderRef->getNamePath());
+
+        // Share metadata.
+        graph->setMetadata(newNode->getMetadata());
 
         string targetColorSpace;
         ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();

@@ -244,6 +244,24 @@ ShaderPtr OslShaderGenerator::generate(const string& name, ElementPtr element, G
     _syntax->makeIdentifier(functionName, graph.getIdentifierMap());
     setFunctionName(functionName, stage);
     emitLine(functionName, stage, false);
+
+    // Add any metadata if set on the graph.
+    const ShaderMetadataVecPtr& metadata = graph.getMetadata();
+    if (metadata && metadata->size())
+    {
+        emitScopeBegin(stage, Syntax::DOUBLE_SQUARE_BRACKETS);
+        for (size_t j = 0; j < metadata->size(); ++j)
+        {
+            const ShaderMetadata& data = metadata->at(j);
+            const string& delim = (j == metadata->size() - 1) ? EMPTY_STRING : COMMA;
+            const string& dataType = _syntax->getTypeName(data.type);
+            const string dataValue = _syntax->getValue(data.type, *data.value, true);
+            emitLine(dataType + " " + data.name + " = " + dataValue + delim, stage, false);
+        }
+        emitScopeEnd(stage, false, false);
+        emitLineEnd(stage, false);
+    }
+
     emitScopeBegin(stage, Syntax::PARENTHESES);
 
     // Emit shader inputs
@@ -403,15 +421,15 @@ void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
             emitString(type + " " + input->getVariable() + " = " + value, stage);
         }
 
-        // Add any metadata if set.
-        const ShaderPort::MetadataVecPtr& metadata = input->getMetadata();
+        // Add any metadata if set on the input.
+        const ShaderMetadataVecPtr& metadata = input->getMetadata();
         if (metadata && metadata->size())
         {
             emitLineEnd(stage, false);
             emitScopeBegin(stage, Syntax::DOUBLE_SQUARE_BRACKETS);
             for (size_t j = 0; j < metadata->size(); ++j)
             {
-                const ShaderPort::Metadata& data = metadata->at(j);
+                const ShaderMetadata& data = metadata->at(j);
                 const string& delim = (j == metadata->size() - 1) ? EMPTY_STRING : COMMA;
                 const string& dataType = _syntax->getTypeName(data.type);
                 const string dataValue = _syntax->getValue(data.type, *data.value, true);

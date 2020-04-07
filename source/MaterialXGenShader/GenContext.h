@@ -12,55 +12,13 @@
 #include <MaterialXGenShader/Library.h>
 
 #include <MaterialXGenShader/GenOptions.h>
+#include <MaterialXGenShader/GenUserData.h>
 #include <MaterialXGenShader/ShaderNode.h>
 
 #include <MaterialXFormat/File.h>
 
 namespace MaterialX
 {
-
-class GenUserData;
-
-/// Shared pointer to a GenUserData
-using GenUserDataPtr = std::shared_ptr<GenUserData>;
-
-/// Shared pointer to a constant GenUserData
-using ConstGenUserDataPtr = std::shared_ptr<const GenUserData>;
-
-/// @class GenUserData 
-/// Base class for custom user data needed during shader generation.
-class GenUserData : public std::enable_shared_from_this<GenUserData>
-{
-  public:
-    virtual ~GenUserData() { }
-    
-    /// Return a shared pointer for this object.
-    GenUserDataPtr getSelf()
-    {
-        return shared_from_this();
-    }
-
-    /// Return a shared pointer for this object.
-    ConstGenUserDataPtr getSelf() const
-    {
-        return shared_from_this();
-    }
-
-    /// Return this object cast to a templated type.
-    template<class T> shared_ptr<T> asA()
-    {
-        return std::dynamic_pointer_cast<T>(getSelf());
-    }
-
-    /// Return this object cast to a templated type.
-    template<class T> shared_ptr<const T> asA() const
-    {
-        return std::dynamic_pointer_cast<const T>(getSelf());
-    }
-
-  protected:
-    GenUserData() { }
-};
 
 /// @class GenContext 
 /// A context class for shader generation.
@@ -221,53 +179,6 @@ class GenContext
     // List of output suffixes
     std::unordered_map<const ShaderOutput*, string> _outputSuffix;
 };
-
-/// @class ShaderMetadataRegistry 
-/// A registry for metadata that will be exported to the generated shader
-/// if found on nodes and inputs during shader generation.
-class ShaderMetadataRegistry : public GenUserData
-{
-public:
-    static const string USER_DATA_NAME;
-    using Entry = std::pair<string, const TypeDesc*>;
-
-    /// Add a new metadata entry to the registry.
-    /// The entry contains the name and data type
-    /// for the metadata.
-    void addEntry(const Entry& entry) 
-    {
-        if (_names.count(entry.first) == 0)
-        {
-            _entries.push_back(entry);
-            _names.insert(entry.first);
-        }
-    }
-
-    /// Return all entries in the registry.
-    const vector<Entry>& getEntries() const
-    {
-        return _entries;
-    }
-
-    /// Query if a given metadata name is already registered.
-    bool isRegistered(const string& name) const
-    {
-        return _names.count(name) != 0;
-    }
-
-    /// Clear all entries in the registry.
-    void clear()
-    {
-        _names.clear();
-        _entries.clear();
-    }
-
-protected:
-    StringSet _names;
-    vector<Entry> _entries;
-};
-
-using ShaderMetadataRegistryPtr = shared_ptr<ShaderMetadataRegistry>;
 
 } // namespace MaterialX
 
