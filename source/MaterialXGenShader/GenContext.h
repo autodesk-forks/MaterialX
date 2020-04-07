@@ -222,6 +222,53 @@ class GenContext
     std::unordered_map<const ShaderOutput*, string> _outputSuffix;
 };
 
+/// @class ShaderMetadataRegistry 
+/// A registry for metadata that will be exported to the generated shader
+/// if found on nodes and inputs during shader generation.
+class ShaderMetadataRegistry : public GenUserData
+{
+public:
+    static const string USER_DATA_NAME;
+    using Entry = std::pair<string, const TypeDesc*>;
+
+    /// Add a new metadata entry to the registry.
+    /// The entry contains the name and data type
+    /// for the metadata.
+    void addEntry(const Entry& entry) 
+    {
+        if (_names.count(entry.first) == 0)
+        {
+            _entries.push_back(entry);
+            _names.insert(entry.first);
+        }
+    }
+
+    /// Return all entries in the registry.
+    const vector<Entry>& getEntries() const
+    {
+        return _entries;
+    }
+
+    /// Query if a given metadata name is already registered.
+    bool isRegistered(const string& name) const
+    {
+        return _names.count(name) != 0;
+    }
+
+    /// Clear all entries in the registry.
+    void clear()
+    {
+        _names.clear();
+        _entries.clear();
+    }
+
+protected:
+    StringSet _names;
+    vector<Entry> _entries;
+};
+
+using ShaderMetadataRegistryPtr = shared_ptr<ShaderMetadataRegistry>;
+
 } // namespace MaterialX
 
 #endif // MATERIALX_GENCONTEXT_H

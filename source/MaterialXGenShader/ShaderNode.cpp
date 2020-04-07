@@ -399,7 +399,6 @@ void ShaderNode::initialize(const Node& node, const NodeDef& nodeDef, GenContext
             input->setPath(nodePath + NAME_PATH_SEPARATOR + nodeInput->getName());
         }
     }
-
     for (const ParameterPtr& nodeParameter : nodeDef.getActiveParameters())
     {
         ShaderInput* input = getInput(nodeParameter->getName());
@@ -409,42 +408,32 @@ void ShaderNode::initialize(const Node& node, const NodeDef& nodeDef, GenContext
         }
     }
 
-
-
-
-    std::unordered_map<string, const TypeDesc*> defaultMetadata =
+    // Set metadata on inputs according to attributes on the nodedef's inputs
+    ShaderMetadataRegistryPtr registry = context.getUserData<ShaderMetadataRegistry>(ShaderMetadataRegistry::USER_DATA_NAME);
+    if (registry && registry->getEntries().size())
     {
-        { ValueElement::UI_NAME_ATTRIBUTE, Type::STRING },
-        { ValueElement::UI_FOLDER_ATTRIBUTE, Type::STRING },
-        { ValueElement::UI_MIN_ATTRIBUTE, nullptr },
-        { ValueElement::UI_MAX_ATTRIBUTE, nullptr },
-        { ValueElement::UI_SOFT_MIN_ATTRIBUTE, nullptr },
-        { ValueElement::UI_SOFT_MAX_ATTRIBUTE, nullptr },
-        { ValueElement::UI_STEP_ATTRIBUTE, nullptr },
-        { ValueElement::UI_ADVANCED_ATTRIBUTE, Type::BOOLEAN }
-    };
-
-    for (const ValueElementPtr& nodedefPort : nodeDef.getActiveValueElements())
-    {
-        ShaderInput* input = getInput(nodedefPort->getName());
-        if (input)
+        for (const ValueElementPtr& nodedefPort : nodeDef.getActiveValueElements())
         {
-            ShaderInput::MetadataVecPtr storage = input->getMetadata();
-            if (!storage)
+            ShaderInput* input = getInput(nodedefPort->getName());
+            if (input)
             {
-                storage = std::make_shared<ShaderInput::MetadataVec>();
-                input->setMetadata(storage);
-            }
-            for (auto it : defaultMetadata)
-            {
-                const string& attrValue = nodedefPort->getAttribute(it.first);
-                if (!attrValue.empty())
+                ShaderInput::MetadataVecPtr storage = input->getMetadata();
+                for (auto entry : registry->getEntries())
                 {
-                    const TypeDesc* type = it.second ? it.second : input->getType();
-                    ValuePtr value = Value::createValueFromStrings(attrValue, type->getName());
-                    if (value)
+                    const string& attrValue = nodedefPort->getAttribute(entry.first);
+                    if (!attrValue.empty())
                     {
-                        storage->push_back(ShaderInput::Metadata(it.first, type, value));
+                        const TypeDesc* type = entry.second ? entry.second : input->getType();
+                        ValuePtr value = Value::createValueFromStrings(attrValue, type->getName());
+                        if (value)
+                        {
+                            if (!storage)
+                            {
+                                storage = std::make_shared<ShaderInput::MetadataVec>();
+                                input->setMetadata(storage);
+                            }
+                            storage->push_back(ShaderInput::Metadata(entry.first, type, value));
+                        }
                     }
                 }
             }
