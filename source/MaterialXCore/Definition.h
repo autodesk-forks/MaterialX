@@ -524,6 +524,29 @@ public:
     }
     virtual ~AttributeDef() { }
 
+    /// @}
+    /// @name Attribute name
+    /// @{
+
+    /// Set the element's attrname string.
+    void setAttrName(const string& name)
+    {
+        setAttribute(ATTRNAME_ATTRIBUTE, name);
+    }
+
+    /// Return true if this element has an attrname string.
+    bool hasAttrName() const
+    {
+        return hasAttribute(ATTRNAME_ATTRIBUTE);
+    }
+
+    /// Return the element's attrname string.
+    const string& getAttrName() const
+    {
+        return getAttribute(ATTRNAME_ATTRIBUTE);
+    }
+
+    /// @}
     /// @name Value String
     /// @{
 
@@ -590,7 +613,7 @@ public:
         setAttribute(ELEMENTS_ATTRIBUTE, elements);
     }
 
-    /// Return true if the given element has a elements string.
+    /// Return true if the element has an elements string.
     bool hasElements() const
     {
         return hasAttribute(ELEMENTS_ATTRIBUTE);
@@ -613,6 +636,7 @@ public:
     }
 
     /// Return the exportable boolean for the element.
+    /// Defaults to false if exportable is not set.
     bool getExportable() const
     {
         return getTypedAttribute<bool>(EXPORTABLE_ATTRIBUTE);
@@ -622,6 +646,7 @@ public:
 
 public:
     static const string CATEGORY;
+    static const string ATTRNAME_ATTRIBUTE;
     static const string VALUE_ATTRIBUTE;
     static const string ELEMENTS_ATTRIBUTE;
     static const string EXPORTABLE_ATTRIBUTE;
