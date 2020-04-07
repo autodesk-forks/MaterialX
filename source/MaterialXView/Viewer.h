@@ -12,7 +12,7 @@
 
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 
-#include <MaterialXGenShader/UnitConverter.h>
+#include <MaterialXCore/Unit.h>
 
 namespace mx = MaterialX;
 namespace ng = nanogui;
@@ -142,6 +142,7 @@ class Viewer : public ng::Screen
 
     float _modelZoom;
     mx::Vector3 _modelTranslation;
+    float _modelYaw;
 
     float _userZoom;
     mx::Vector3 _userTranslation;
