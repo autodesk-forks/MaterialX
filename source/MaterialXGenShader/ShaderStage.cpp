@@ -213,7 +213,7 @@ void ShaderStage::beginScope(Syntax::Punctuation punc)
     }
 
     ++_indentations;
-    _scopes.push(punc);
+    _scopes.push_back(punc);
 }
 
 void ShaderStage::endScope(bool semicolon, bool newline)
@@ -224,7 +224,7 @@ void ShaderStage::endScope(bool semicolon, bool newline)
     }
 
     Syntax::Punctuation punc = _scopes.back();
-    _scopes.pop();
+    _scopes.pop_back();
     --_indentations;
 
     switch (punc) {
