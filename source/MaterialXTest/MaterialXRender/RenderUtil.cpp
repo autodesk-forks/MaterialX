@@ -197,7 +197,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     // Set target unit space
     context.getOptions().targetDistanceUnit = "meter";
 
-    // Register shader metadata defined in the libraries document
+    // Register shader metadata defined in the libraries.
     _shaderGenerator->registerShaderMetadata(dependLib, context);
 
     setupTime.endTimer();
