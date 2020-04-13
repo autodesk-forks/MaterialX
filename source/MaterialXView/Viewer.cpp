@@ -1633,7 +1633,6 @@ mx::ImagePtr Viewer::getFrameImage()
     // Read pixels into the image buffer.
     glReadPixels(0, 0, image->getWidth(), image->getHeight(), GL_RGB, GL_UNSIGNED_BYTE, image->getResourceBuffer());
 
-
     return image;
 }
 
