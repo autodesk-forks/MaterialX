@@ -158,3 +158,53 @@ TEST_CASE("Version", "[document]")
         REQUIRE((convertItem.second == 0));
     }
 }
+
+TEST_CASE("Node Definition", "[definition]")
+{
+    mx::DocumentPtr doc = mx::createDocument();
+    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
+    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_ng.mtlx"), doc);
+    mx::FileSearchPath searchPath("resources/Materials/TestSuite/stdlib/definition/");
+
+    mx::readFromXmlFile(doc, "definition_from_nodegraph.mtlx", searchPath);
+    REQUIRE(doc->validate());
+
+    mx::NodeGraphPtr graph = doc->getNodeGraph("colorcorrect");
+    if (graph)
+    {
+        // Duplicate the graph and then make the duplicate a nodedef nodegraph
+        mx::NodeDefPtr nodeDef = graph->makeDeclaration("NG_" + graph->getName(), graph->getName() + "1", "adjustment", true);
+        REQUIRE(nodeDef != nullptr);
+        mx::NodeGraphPtr newGraph = doc->getNodeGraph("NG_" + graph->getName());
+        REQUIRE(newGraph != nullptr);
+        for (auto node : newGraph->getNodes())
+        {
+            for (auto valueElem : node->getActiveValueElements())
+            {
+                mx::InputPtr input = valueElem->asA<mx::Input>();
+                if (input && !input->getConnectedNode())
+                {
+                    newGraph->declareInterface(input->getNamePath(newGraph), input->getName() + "_INTERFACE", nodeDef);
+                }
+                else
+                {
+                    mx::ParameterPtr param = valueElem->asA<mx::Parameter>();
+                    if (param)
+                    {
+                        newGraph->declareInterface(param->getNamePath(newGraph), param->getName() + "_INTERFACE", nodeDef);
+                    }
+                }
+            }
+        }
+
+        // Modify the existing nodegraph
+        nodeDef = graph->makeDeclaration(graph->getName(), graph->getName() + "0", "adjustment", false);
+        REQUIRE(nodeDef != nullptr);
+    }
+
+    REQUIRE(doc->validate());
+    //std::stringstream sstream;
+    //mx::writeToXmlStream(doc, sstream);
+    //std::string result = sstream.str();
+    mx::writeToXmlFile(doc, "definition_from_nodegraph_out.mtlx");
+}
