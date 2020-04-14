@@ -1232,6 +1232,9 @@ void ShaderGraph::finalize(GenContext& context)
             }
         }
     }
+
+    // Let the generator perform any custom edits on the graph
+    context.getShaderGenerator().finalizeShaderGraph(*this);
 }
 
 void ShaderGraph::disconnect(ShaderNode* node) const
