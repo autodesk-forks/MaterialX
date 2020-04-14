@@ -460,7 +460,7 @@ void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
         auto widgetMetadataIt = UI_WIDGET_METADATA.find(input->getType());
         const ShaderMetadata* widgetMetadata = widgetMetadataIt != UI_WIDGET_METADATA.end() ? &widgetMetadataIt->second : nullptr;
         const ShaderMetadataVecPtr& metadata = input->getMetadata();
-        if (widgetMetadata || metadata && metadata->size())
+        if (widgetMetadata || (metadata && metadata->size()))
         {
             emitLineEnd(stage, false);
             emitScopeBegin(stage, Syntax::DOUBLE_SQUARE_BRACKETS);
