@@ -421,14 +421,6 @@ namespace
         {"UV0", "{u,v}"},
         {"Vworld", "I"}
     };
-
-    std::unordered_map<const TypeDesc*, ShaderMetadata> UI_WIDGET_METADATA =
-    {
-        { Type::FLOAT, ShaderMetadata("widget", Type::STRING, Value::createValueFromStrings("number", Type::STRING->getName())) },
-        { Type::INTEGER, ShaderMetadata("widget", Type::STRING, Value::createValueFromStrings("number", Type::STRING->getName())) },
-        { Type::FILENAME, ShaderMetadata("widget", Type::STRING, Value::createValueFromStrings("filename", Type::STRING->getName())) },
-        { Type::BOOLEAN,  ShaderMetadata("widget", Type::STRING, Value::createValueFromStrings("checkBox", Type::STRING->getName())) }
-    };
 }
 
 void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderStage& stage) const
@@ -456,7 +448,18 @@ void OslShaderGenerator::emitShaderInputs(const VariableBlock& inputs, ShaderSta
             emitString(type + " " + input->getVariable() + " = " + value, stage);
         }
 
+        //
         // Add shader input metadata.
+        //
+
+        const std::unordered_map<const TypeDesc*, ShaderMetadata> UI_WIDGET_METADATA =
+        {
+            { Type::FLOAT, ShaderMetadata("widget", Type::STRING, Value::createValueFromStrings("number", Type::STRING->getName())) },
+            { Type::INTEGER, ShaderMetadata("widget", Type::STRING, Value::createValueFromStrings("number", Type::STRING->getName())) },
+            { Type::FILENAME, ShaderMetadata("widget", Type::STRING, Value::createValueFromStrings("filename", Type::STRING->getName())) },
+            { Type::BOOLEAN,  ShaderMetadata("widget", Type::STRING, Value::createValueFromStrings("checkBox", Type::STRING->getName())) }
+        };
+
         auto widgetMetadataIt = UI_WIDGET_METADATA.find(input->getType());
         const ShaderMetadata* widgetMetadata = widgetMetadataIt != UI_WIDGET_METADATA.end() ? &widgetMetadataIt->second : nullptr;
         const ShaderMetadataVecPtr& metadata = input->getMetadata();
