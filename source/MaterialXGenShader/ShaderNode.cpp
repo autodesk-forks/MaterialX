@@ -14,6 +14,8 @@
 namespace MaterialX
 {
 
+const string ShaderMetadataRegistry::USER_DATA_NAME = "ShaderMetadataRegistry";
+
 //
 // ShaderPort methods
 //

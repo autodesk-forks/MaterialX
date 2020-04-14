@@ -100,6 +100,4 @@ void GenContext::getOutputSuffix(const ShaderOutput* output, string& suffix) con
     }
 }
 
-const string ShaderMetadataRegistry::USER_DATA_NAME = "ShaderMetadataRegistry";
-
 } // namespace MaterialX

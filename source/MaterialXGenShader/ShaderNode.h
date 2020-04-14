@@ -73,8 +73,17 @@ public:
         }
     }
 
-    /// Query if a given metadata name is already registered.
+    /// Return the metadata registered for the given name, or nullptr
+    /// if no such entry is found.
     const ShaderMetadata* findMetadata(const string& name) const
+    {
+        auto it = _entryIndex.find(name);
+        return it != _entryIndex.end() ? &_entries[it->second] : nullptr;
+    }
+
+    /// Return the metadata registered for the given name, or nullptr
+    /// if no such entry is found.
+    ShaderMetadata* findMetadata(const string& name)
     {
         auto it = _entryIndex.find(name);
         return it != _entryIndex.end() ? &_entries[it->second] : nullptr;
