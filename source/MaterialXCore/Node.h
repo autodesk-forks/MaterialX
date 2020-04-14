@@ -293,6 +293,12 @@ class NodeGraph : public GraphElement
     /// Set the NodeDef element referenced by this NodeGraph.
     void setNodeDef(ConstNodeDefPtr nodeDef);
 
+    /// Create a nodedef element which into based on this NodeGraph.
+    NodeDefPtr makeDeclaration(const string& name, const string& node, const string& group = EMPTY_STRING, bool duplicateGraph = false);
+
+    void declareInterface(const string& inputPath, const string& interfaceName, NodeDefPtr declaration);
+    //void undeclareInterface(const string& inputName, const string& interfaceName, NodeDefPtr declaration);
+
     /// Return the NodeDef element referenced by this NodeGraph.
     NodeDefPtr getNodeDef() const;
 

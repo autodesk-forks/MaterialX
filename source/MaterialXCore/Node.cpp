@@ -498,6 +498,81 @@ void NodeGraph::setNodeDef(ConstNodeDefPtr nodeDef)
     }
 }
 
+NodeDefPtr NodeGraph::makeDeclaration(const string& name, const string& node, const string& group, bool duplicateGraph)
+{
+    DocumentPtr doc = getDocument();
+    NodeGraphPtr graph = asA<NodeGraph>();
+    if (duplicateGraph)
+    {
+        string graphName = "ND_" + getName();
+        graphName = doc->createValidChildName(graphName);
+        graph = doc->addNodeGraph(graphName);
+        graph->copyContentFrom(asA<NodeGraph>());
+    }
+
+    string nodeDefName = "ND_" + name;
+    nodeDefName = doc->createValidChildName(nodeDefName);
+    NodeDefPtr nodeDef = doc->addChild<NodeDef>(nodeDefName);
+
+    graph->setNodeDefString(nodeDefName);
+
+    nodeDef->setNodeString(node);
+    
+    if (!group.empty())
+    {
+        nodeDef->setNodeGroup(group);
+    }
+
+    for (auto output : graph->getOutputs())
+    {
+        nodeDef->addOutput(output->getName(), output->getType());
+    }
+
+    return nodeDef;
+}
+
+void NodeGraph::declareInterface(const string& childPath, const string& interfaceName, NodeDefPtr nodeDef)
+{
+    if (getNodeDefString().empty())
+    {
+        throw Exception("Cannot declare an interface for a nodegraph which is not associated with a node definition: " + getName());
+    }
+
+    if (nodeDef->getInput(interfaceName))
+    {
+        throw Exception("Interface already declared on node definition: " + nodeDef->getName());
+    }
+
+    ElementPtr elem = getDescendant(childPath);
+    ValueElementPtr valueElem = elem->asA<ValueElement>();
+    InputPtr input = valueElem ? valueElem->asA<Input>() : nullptr;
+    ParameterPtr param = valueElem ? valueElem->asA<Parameter>() : nullptr;
+    if ((!input && !param) || (input && input->getConnectedNode()))
+    {
+        throw Exception("Invalid nodegraph child to create interface for:  " + childPath);
+    }
+
+    valueElem->setInterfaceName(interfaceName);
+
+    ValuePtr value = valueElem->getValue();
+    if (input)
+    {
+        InputPtr nodeDefInput = nodeDef->addInput(interfaceName, input->getType());
+        if (value)
+        {
+            nodeDefInput->setValueString(value->getValueString());
+        }
+    }
+    else
+    {
+        ParameterPtr nodeDefParam = nodeDef->addParameter(interfaceName, param->getType());
+        if (value)
+        {
+            nodeDefParam->setValueString(value->getValueString());
+        }
+    }
+}
+
 NodeDefPtr NodeGraph::getNodeDef() const
 {
     return resolveRootNameReference<NodeDef>(getNodeDefString());
