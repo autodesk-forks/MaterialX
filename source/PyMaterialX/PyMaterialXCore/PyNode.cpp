@@ -49,7 +49,9 @@ void bindPyNode(py::module& mod)
         .def("getNodeDef", &mx::NodeGraph::getNodeDef)
         .def("getDeclaration", &mx::NodeGraph::getDeclaration)
         .def("makeDeclaration", &mx::NodeGraph::makeDeclaration)
-        .def("declareInterface", &mx::NodeGraph::declareInterface)
+        .def("addInterface", &mx::NodeGraph::addInterface)
+        .def("removeInterface", &mx::NodeGraph::removeInterface)
+        .def("renameInterface", &mx::NodeGraph::renameInterface)
         .def_readonly_static("CATEGORY", &mx::NodeGraph::CATEGORY);
 
     py::class_<mx::Backdrop, mx::BackdropPtr, mx::Element>(mod, "Backdrop")

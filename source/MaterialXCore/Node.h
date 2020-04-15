@@ -143,6 +143,9 @@ class Node : public InterfaceElement
         return getNodeDef(target);
     }
 
+    /// Add an input based on the corresponding input for the associated node definition.
+    ValueElementPtr addInputFromNodeDef(const string& name);
+
     /// @}
     /// @name Validation
     /// @{
@@ -318,11 +321,19 @@ class NodeGraph : public GraphElement
     /// @return New declaration if successful.
     NodeDefPtr makeDeclaration(const string& nodeDefName, const string& node, string& newGraphName, const string& group = EMPTY_STRING);
 
-    /// Add a new interface to an existing NodeDef based on an existing input in this NodeGraph.
+    /// Add a new interface to an existing NodeDef associated with this NodeGraph.
     /// @param inputPath Path to Input or Parameter to declare as an interface.
     /// @param interfaceName Name of interface.
-    /// @param nodeDef NodeDef to add interface to.
-    void declareInterface(const string& inputPath, const string& interfaceName, NodeDefPtr nodeDef);
+    void addInterface(const string& inputPath, const string& interfaceName);
+
+    /// Remove an interface from an existing NodeDef associated with this NodeGraph.
+    /// @param inputPath Path to Input or Parameter to remove interface from.
+    void removeInterface(const string& inputPath);
+
+    /// Rename an interface on an existing NodeDef associated with this NodeGraph.
+    /// @param inputPath Path to Input or Parameter to reinterface.
+    /// @param interfaceName Name of interface.
+    void renameInterface(const string& inputPath, const string& interfaceName);
 
     /// @}
     /// @name Validation
@@ -336,6 +347,9 @@ class NodeGraph : public GraphElement
 
   public:
     static const string CATEGORY;
+
+  private:
+    ValueElementPtr getChildWithInterface(const string& childPath);
 };
 
 /// @class Backdrop

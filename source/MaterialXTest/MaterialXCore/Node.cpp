@@ -12,6 +12,8 @@
 #include <MaterialXFormat/XmlIo.h>
 #include <MaterialXFormat/Util.h>
 
+#include <iostream>
+
 namespace mx = MaterialX;
 
 bool isTopologicalOrder(const std::vector<mx::ElementPtr>& elems)
@@ -585,26 +587,44 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
 
         // Arbitrarily add all unconnected inputs as interfaces
         mx::ValueElementPtr newInterface = nullptr;
-        const std::string TEST_INTERFACE_NAME = "_INTERFACE";
         for (auto node : newGraph->getNodes())
         {
-            for (auto valueElem : node->getActiveValueElements())
+            mx::NodeDefPtr nodeNodeDef = node->getNodeDef();
+            for (auto nodeDefValueElem : nodeNodeDef->getActiveValueElements())
             {
+                const std::string& valueElemName = nodeDefValueElem->getName();
+                mx::ValueElementPtr valueElem = node->getValueElement(valueElemName);
+                if (!valueElem)
+                {
+                    valueElem = node->addInputFromNodeDef(valueElemName);
+                    if (!valueElem)
+                    {
+                        continue;
+                    }
+                }
+
                 mx::InputPtr input = valueElem->asA<mx::Input>();
                 if (input && !input->getConnectedNode())
                 {
-                    std::string interfaceName = input->getName() + TEST_INTERFACE_NAME;
+                    std::string interfaceName = input->getNamePath();
                     interfaceName = nodeDef->createValidChildName(interfaceName);
-                    newGraph->declareInterface(input->getNamePath(newGraph), interfaceName, nodeDef);
+                    newGraph->addInterface(input->getNamePath(newGraph), interfaceName);
                     REQUIRE(nodeDef->getChild(interfaceName));
                     try
                     {
                         // Check duplicate failure case
-                        newGraph->declareInterface(input->getNamePath(newGraph), interfaceName, nodeDef);
+                        newGraph->addInterface(input->getNamePath(newGraph), interfaceName);
                     }
                     catch (mx::Exception& e)
                     {
                         REQUIRE(e.what());
+                        newGraph->removeInterface(input->getNamePath(newGraph));
+                        REQUIRE(nodeDef->getChild(interfaceName) == nullptr);
+                        newGraph->addInterface(input->getNamePath(newGraph), interfaceName);
+
+                        const std::string newInterfaceName = interfaceName + "_renamed";
+                        newGraph->renameInterface(input->getNamePath(newGraph), newInterfaceName);
+                        REQUIRE(nodeDef->getChild(newInterfaceName));
                     }
                 }
                 else
@@ -612,14 +632,14 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
                     mx::ParameterPtr param = valueElem->asA<mx::Parameter>();
                     if (param)
                     {
-                        std::string interfaceName = param->getName() + TEST_INTERFACE_NAME;
+                        std::string interfaceName = param->getNamePath();
                         interfaceName = nodeDef->createValidChildName(interfaceName);
-                        newGraph->declareInterface(param->getNamePath(newGraph), interfaceName, nodeDef);
+                        newGraph->addInterface(param->getNamePath(newGraph), interfaceName);
                         REQUIRE(nodeDef->getChild(interfaceName));
                         try
                         {
                             // Check duplicate failure case
-                            newGraph->declareInterface(param->getNamePath(newGraph), interfaceName, nodeDef);
+                            newGraph->addInterface(param->getNamePath(newGraph), interfaceName);
                         }
                         catch (mx::Exception& e)
                         {
