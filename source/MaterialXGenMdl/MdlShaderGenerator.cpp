@@ -461,6 +461,27 @@ ShaderNodeImplPtr MdlShaderGenerator::createCompoundImplementation(const NodeGra
     return CompoundNodeMdl::create();
 }
 
+void MdlShaderGenerator::finalizeShaderGraph(ShaderGraph& graph)
+{
+    // MDL does not allow varying volume IOR.
+    // As a workaround break any connections to transmission IOR.
+    //
+    // TODO: Try to find a better workaround, since this will limit
+    //       tranmission IOR to always take on the default value.
+    //
+    for (ShaderNode* node : graph.getNodes())
+    {
+        if (node->hasClassification(ShaderNode::Classification::BSDF_T))
+        {
+            ShaderInput* ior = node->getInput("ior");
+            if (ior)
+            {
+                ior->breakConnection();
+            }
+        }
+    }
+}
+
 namespace MDL
 {
     // Identifiers for MDL variable blocks

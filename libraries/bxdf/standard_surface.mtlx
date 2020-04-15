@@ -19,7 +19,7 @@
             doc="Color tint on the specular reflection." />
       <input name="specular_roughness" type="float" value="0.2" uimin="0.0" uimax="1.0" uiname="Specular Roughness" uifolder="Specular"
             doc="The roughness of the specular reflection. Lower numbers produce sharper reflections, higher numbers produce blurrier reflections." />
-      <parameter name="specular_IOR" type="float" value="1.5" uimin="0.0" uisoftmax="3.0" uiname="Index of Refraction" uifolder="Specular"
+      <input name="specular_IOR" type="float" value="1.5" uimin="0.0" uisoftmax="3.0" uiname="Index of Refraction" uifolder="Specular"
             doc="Index of refraction for specular reflection." />
       <input name="specular_anisotropy" type="float" value="0" uimin="0.0" uimax="1.0" uiname="Specular Anisotropy" uifolder="Specular" uiadvanced="true"
             doc="The directional bias of reflected and transmitted light resulting in materials appearing rougher or glossier in certain directions." />
@@ -230,7 +230,7 @@
     <dielectric_btdf name="transmission_bsdf" type="BSDF">
       <input name="weight" type="float" value="1.0" />
       <input name="tint" type="color3" interfacename="transmission_color" />
-      <parameter name="ior" type="float" interfacename="specular_IOR" />
+      <input name="ior" type="float" interfacename="specular_IOR" />
       <input name="roughness" type="vector2" nodename="main_rougness" />
       <input name="normal" type="vector3" interfacename="normal" />
       <input name="tangent" type="vector3" nodename="main_tangent" />

@@ -188,6 +188,11 @@ class ShaderGenerator
     /// Derived classes can override this to use custom compound implementations.
     virtual ShaderNodeImplPtr createCompoundImplementation(const NodeGraph& impl) const;
 
+    /// Method called on all created shader graphs. By default it does nothing,
+    /// but shader generators can override this to perform custom edits on the graph
+    /// before shader generation starts.
+    virtual void finalizeShaderGraph(ShaderGraph& /*graph*/) {};
+
     /// Set function name for a stage.
     void setFunctionName(const string& functionName, ShaderStage& stage) const
     {
@@ -205,6 +210,8 @@ class ShaderGenerator
     ColorManagementSystemPtr _colorManagementSystem;
     UnitSystemPtr _unitSystem;
     mutable StringMap _tokenSubstitutions;
+
+    friend ShaderGraph;
 };
 
 } // namespace MaterialX

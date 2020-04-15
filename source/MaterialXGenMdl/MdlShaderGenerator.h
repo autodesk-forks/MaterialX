@@ -54,6 +54,9 @@ protected:
     /// Override the compound implementation creator.
     ShaderNodeImplPtr createCompoundImplementation(const NodeGraph& impl) const override;
 
+    /// Override the shader graph finalization.
+    void finalizeShaderGraph(ShaderGraph& graph) override;
+
     /// Emit a block of shader inputs.
     void emitShaderInputs(const VariableBlock& inputs, ShaderStage& stage) const;
 };
