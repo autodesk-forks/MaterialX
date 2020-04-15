@@ -293,12 +293,6 @@ class NodeGraph : public GraphElement
     /// Set the NodeDef element referenced by this NodeGraph.
     void setNodeDef(ConstNodeDefPtr nodeDef);
 
-    /// Create a nodedef element which into based on this NodeGraph.
-    NodeDefPtr makeDeclaration(const string& name, const string& node, const string& group = EMPTY_STRING, bool duplicateGraph = false);
-
-    void declareInterface(const string& inputPath, const string& interfaceName, NodeDefPtr declaration);
-    //void undeclareInterface(const string& inputName, const string& interfaceName, NodeDefPtr declaration);
-
     /// Return the NodeDef element referenced by this NodeGraph.
     NodeDefPtr getNodeDef() const;
 
@@ -314,6 +308,21 @@ class NodeGraph : public GraphElement
     /// Return the first declaration of this interface, optionally filtered
     ///    by the given target name.
     ConstNodeDefPtr getDeclaration(const string& target = EMPTY_STRING) const override;
+
+    /// Create a NodeDef declaration which is based on this NodeGraph.
+    /// @param name nodeDefName for the new declaration
+    /// @param node Node type for the new declaration
+    /// @param newGraphName Make a copy of this NodeGraph with the given name if a non-empty name is provided. Otherwise
+    /// modify the existing NodeGraph. Default value is an empty string.
+    /// @param group Optioanal node group for the new declaration. The Default value is an emptry string.
+    /// @return New declaration if successful.
+    NodeDefPtr makeDeclaration(const string& nodeDefName, const string& node, string& newGraphName, const string& group = EMPTY_STRING);
+
+    /// Add a new interface to an existing NodeDef based on an existing input in this NodeGraph.
+    /// @param inputPath Path to Input or Parameter to declare as an interface.
+    /// @param interfaceName Name of interface.
+    /// @param nodeDef NodeDef to add interface to.
+    void declareInterface(const string& inputPath, const string& interfaceName, NodeDefPtr nodeDef);
 
     /// @}
     /// @name Validation

@@ -10,6 +10,7 @@
 
 #include <MaterialXFormat/File.h>
 #include <MaterialXFormat/XmlIo.h>
+#include <MaterialXFormat/Util.h>
 
 namespace mx = MaterialX;
 
@@ -545,4 +546,99 @@ TEST_CASE("Organization", "[nodegraph]")
     nodeGraph->removeBackdrop(backdrop1->getName());
     nodeGraph->removeBackdrop(backdrop2->getName());
     CHECK(nodeGraph->getBackdrops().empty());
+}
+
+TEST_CASE("Node Definition Creation", "[nodedef]")
+{
+    mx::DocumentPtr doc = mx::createDocument();
+    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
+    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_ng.mtlx"), doc);
+    mx::FileSearchPath searchPath("resources/Materials/TestSuite/stdlib/definition/");
+
+    mx::readFromXmlFile(doc, "definition_from_nodegraph.mtlx", searchPath);
+    REQUIRE(doc->validate());
+
+    mx::NodeGraphPtr graph = doc->getNodeGraph("colorcorrect");
+    if (graph)
+    {
+        // Duplicate the graph and then make the duplicate a nodedef nodegraph
+        std::string newNodeDefname = doc->createValidChildName("ND_" + graph->getName());
+        std::string newGraphName = doc->createValidChildName("NG_" + graph->getName());
+        mx::NodeDefPtr nodeDef = graph->makeDeclaration(newNodeDefname, graph->getName() + "1", newGraphName, "adjustment");
+        REQUIRE(nodeDef != nullptr);
+        mx::NodeDefPtr temp;
+        try
+        {
+            temp = nullptr;
+            temp = graph->makeDeclaration(newNodeDefname, graph->getName(), newGraphName, "adjustment");
+        }
+        catch (mx::Exception&)
+        {
+            REQUIRE(temp == nullptr);
+        }
+        mx::NodeGraphPtr newGraph = doc->getNodeGraph(newGraphName);
+        REQUIRE(newGraph != nullptr);
+
+        // Check declaration was set up properly
+        mx::ConstNodeDefPtr decl = newGraph->getDeclaration();
+        REQUIRE(decl->getName() == nodeDef->getName());
+
+        // Arbitrarily add all unconnected inputs as interfaces
+        mx::ValueElementPtr newInterface = nullptr;
+        const std::string TEST_INTERFACE_NAME = "_INTERFACE";
+        for (auto node : newGraph->getNodes())
+        {
+            for (auto valueElem : node->getActiveValueElements())
+            {
+                mx::InputPtr input = valueElem->asA<mx::Input>();
+                if (input && !input->getConnectedNode())
+                {
+                    std::string interfaceName = input->getName() + TEST_INTERFACE_NAME;
+                    interfaceName = nodeDef->createValidChildName(interfaceName);
+                    newGraph->declareInterface(input->getNamePath(newGraph), interfaceName, nodeDef);
+                    REQUIRE(nodeDef->getChild(interfaceName));
+                    try
+                    {
+                        // Check duplicate failure case
+                        newGraph->declareInterface(input->getNamePath(newGraph), interfaceName, nodeDef);
+                    }
+                    catch (mx::Exception& e)
+                    {
+                        REQUIRE(e.what());
+                    }
+                }
+                else
+                {
+                    mx::ParameterPtr param = valueElem->asA<mx::Parameter>();
+                    if (param)
+                    {
+                        std::string interfaceName = param->getName() + TEST_INTERFACE_NAME;
+                        interfaceName = nodeDef->createValidChildName(interfaceName);
+                        newGraph->declareInterface(param->getNamePath(newGraph), interfaceName, nodeDef);
+                        REQUIRE(nodeDef->getChild(interfaceName));
+                        try
+                        {
+                            // Check duplicate failure case
+                            newGraph->declareInterface(param->getNamePath(newGraph), interfaceName, nodeDef);
+                        }
+                        catch (mx::Exception& e)
+                        {
+                            REQUIRE(e.what());
+                        }
+                    }
+                }
+            }
+        }
+
+        // Modify the existing nodegraph
+        newGraphName = mx::EMPTY_STRING;
+        nodeDef = graph->makeDeclaration(newNodeDefname + "0", graph->getName() + "0", newGraphName, "adjustment");
+        REQUIRE(nodeDef != nullptr);
+    }
+
+    REQUIRE(doc->validate());
+    //std::stringstream sstream;
+    //mx::writeToXmlStream(doc, sstream);
+    //std::string result = sstream.str();
+    mx::writeToXmlFile(doc, "definition_from_nodegraph_out.mtlx");
 }

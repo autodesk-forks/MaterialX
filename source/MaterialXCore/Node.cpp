@@ -498,26 +498,28 @@ void NodeGraph::setNodeDef(ConstNodeDefPtr nodeDef)
     }
 }
 
-NodeDefPtr NodeGraph::makeDeclaration(const string& name, const string& node, const string& group, bool duplicateGraph)
+NodeDefPtr NodeGraph::makeDeclaration(const string& nodeDefName, const string& node, string& newGraphName, const string& group)
 {
     DocumentPtr doc = getDocument();
-    NodeGraphPtr graph = asA<NodeGraph>();
-    if (duplicateGraph)
+    if (doc->getNodeDef(nodeDefName))
     {
-        string graphName = "NG_" + getName();
-        graphName = doc->createValidChildName(graphName);
-        graph = doc->addNodeGraph(graphName);
-        graph->copyContentFrom(asA<NodeGraph>());
+        throw Exception("Cannot create duplicate nodedef: " + nodeDefName);
     }
 
-    string nodeDefName = "ND_" + name;
-    nodeDefName = doc->createValidChildName(nodeDefName);
-    NodeDefPtr nodeDef = doc->addChild<NodeDef>(nodeDefName);
-
+    NodeGraphPtr graph = asA<NodeGraph>();
+    if (!newGraphName.empty())
+    {
+        if (doc->getNodeGraph(newGraphName))
+        {
+            throw Exception("Cannot create duplicate nodegraph: " + newGraphName);
+        }
+        graph = doc->addNodeGraph(newGraphName);
+        graph->copyContentFrom(asA<NodeGraph>());
+    }
     graph->setNodeDefString(nodeDefName);
 
-    nodeDef->setNodeString(node);
-    
+    NodeDefPtr nodeDef = doc->addChild<NodeDef>(nodeDefName);
+    nodeDef->setNodeString(node);    
     if (!group.empty())
     {
         nodeDef->setNodeGroup(group);
@@ -538,10 +540,9 @@ void NodeGraph::declareInterface(const string& childPath, const string& interfac
         throw Exception("Cannot declare an interface for a nodegraph which is not associated with a node definition: " + getName());
     }
 
-    string newInterfaceName = nodeDef->createValidChildName(interfaceName);
-    if (nodeDef->getInput(newInterfaceName))
+    if (nodeDef->getChild(interfaceName))
     {
-        throw Exception("Interface already declared on node definition: " + nodeDef->getName());
+        throw Exception("Interface: " + interfaceName + " has already been declared on node definition: " + nodeDef->getName());
     }
 
     ElementPtr elem = getDescendant(childPath);
@@ -553,12 +554,12 @@ void NodeGraph::declareInterface(const string& childPath, const string& interfac
         throw Exception("Invalid nodegraph child to create interface for:  " + childPath);
     }
 
-    valueElem->setInterfaceName(newInterfaceName);
+    valueElem->setInterfaceName(interfaceName);
 
     ValuePtr value = valueElem->getValue();
     if (input)
     {
-        InputPtr nodeDefInput = nodeDef->addInput(newInterfaceName, input->getType());
+        InputPtr nodeDefInput = nodeDef->addInput(interfaceName, input->getType());
         if (value)
         {
             nodeDefInput->setValueString(value->getValueString());
@@ -566,7 +567,7 @@ void NodeGraph::declareInterface(const string& childPath, const string& interfac
     }
     else
     {
-        ParameterPtr nodeDefParam = nodeDef->addParameter(newInterfaceName, param->getType());
+        ParameterPtr nodeDefParam = nodeDef->addParameter(interfaceName, param->getType());
         if (value)
         {
             nodeDefParam->setValueString(value->getValueString());
