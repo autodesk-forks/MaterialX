@@ -292,6 +292,42 @@ bool Document::validate(string* message) const
     return GraphElement::validate(message) && res;
 }
 
+void Document::upgradeBuild()
+{
+    std::pair<int, int> versions = getVersionIntegers();
+    int majorVersion = versions.first;
+    int minorVersion = versions.second;
+    if (majorVersion == 1 && minorVersion == 37 && MATERIALX_BUILD_VERSION >= 1)
+    {
+        // Update atan2 interface
+        const string ATAN2 = "atan2";
+        StringMap ATAN2_MAP;
+        ATAN2_MAP["in1"] = "iny";
+        ATAN2_MAP["in2"] = "inx";
+
+        for (ElementPtr elem : traverseTree())
+        {
+            NodePtr node = elem->asA<Node>();
+            if (!node)
+            {
+                continue;
+            }
+            const string& nodeCategory = node->getCategory();
+            if (nodeCategory == ATAN2)
+            {
+                for (auto in : ATAN2_MAP)
+                {
+                    ElementPtr input = node->getChild(in.first);
+                    if (input)
+                    {
+                        input->setName(in.second);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
 {
     std::pair<int, int> versions = getVersionIntegers();
@@ -300,6 +336,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     if (majorVersion == desiredMajorVersion &&
         minorVersion == desiredMinorVersion)
     {
+        upgradeBuild();
         setVersionString(makeVersionString(majorVersion, minorVersion));
         return;
     }
@@ -323,6 +360,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     if (majorVersion == desiredMajorVersion &&
         minorVersion == desiredMinorVersion)
     {
+        upgradeBuild();
         setVersionString(makeVersionString(majorVersion, minorVersion));
         return;
     }
@@ -351,6 +389,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     if (majorVersion == desiredMajorVersion &&
         minorVersion == desiredMinorVersion)
     {
+        upgradeBuild();
         setVersionString(makeVersionString(majorVersion, minorVersion));
         return;
     }
@@ -371,6 +410,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     if (majorVersion == desiredMajorVersion &&
         minorVersion == desiredMinorVersion)
     {
+        upgradeBuild();
         setVersionString(makeVersionString(majorVersion, minorVersion));
         return;
     }
@@ -394,6 +434,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     if (majorVersion == desiredMajorVersion &&
         minorVersion == desiredMinorVersion)
     {
+        upgradeBuild();
         setVersionString(makeVersionString(majorVersion, minorVersion));
         return;
     }
@@ -546,6 +587,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     if (majorVersion == desiredMajorVersion &&
         minorVersion == desiredMinorVersion)
     {
+        upgradeBuild();
         setVersionString(makeVersionString(majorVersion, minorVersion));
         return;
     }
@@ -577,6 +619,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     if (majorVersion == desiredMajorVersion &&
         minorVersion == desiredMinorVersion)
     {
+        upgradeBuild();
         setVersionString(makeVersionString(majorVersion, minorVersion));
         return;
     }
@@ -655,6 +698,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     if (majorVersion == desiredMajorVersion &&
         minorVersion == desiredMinorVersion)
     {
+        upgradeBuild();
         setVersionString(makeVersionString(majorVersion, minorVersion));
         return;
     }
@@ -875,6 +919,7 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     if (majorVersion == desiredMajorVersion &&
         minorVersion == desiredMinorVersion)
     {
+        upgradeBuild();
         setVersionString(makeVersionString(majorVersion, minorVersion));
         return;
     }
@@ -883,40 +928,13 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
     {
         // Convert material Elements to Nodes
         convertMaterialsToNodes(true);
-
-        // Update atan2 interface
-        const string ATAN2 = "atan2";
-        StringMap ATAN2_MAP;
-        ATAN2_MAP["in1"] = "iny";
-        ATAN2_MAP["in2"] = "inx";
-
-        for (ElementPtr elem : traverseTree())
-        {
-            NodePtr node = elem->asA<Node>();
-            if (!node)
-            {
-                continue;
-            }
-            const string& nodeCategory = node->getCategory();
-            if (nodeCategory == ATAN2)
-            {
-                for (auto in : ATAN2_MAP)
-                {
-                    ElementPtr input = node->getChild(in.first);
-                    if (input)
-                    {
-                        input->setName(in.second);
-                    }
-                }
-            }
-        }
-
         minorVersion = 38;
     }
 
     if (majorVersion >= MATERIALX_MAJOR_VERSION &&
         minorVersion >= MATERIALX_MINOR_VERSION)
     {
+        upgradeBuild();
         setVersionString(makeVersionString(majorVersion, minorVersion));
     }
 }

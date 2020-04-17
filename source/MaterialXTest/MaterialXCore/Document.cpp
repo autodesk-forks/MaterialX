@@ -161,12 +161,10 @@ TEST_CASE("Version", "[document]")
         }
     }
 
-    // 1.37 to 1.38
+    // 1.37 to 1.37.1 build update
     {
-        mx::XmlReadOptions options;
-        options.desiredMajorVersion = 1;
-        options.desiredMajorVersion = 38;
-        mx::readFromXmlFile(doc, "1_37_to_1_38.mtlx", searchPath, &options);
+        doc = mx::createDocument();
+        mx::readFromXmlFile(doc, "1_37_to_1_38.mtlx", searchPath);
         REQUIRE(doc->validate());
 
         mx::XmlWriteOptions writeOptions;
