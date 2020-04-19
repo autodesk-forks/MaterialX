@@ -87,11 +87,6 @@ class Viewer : public ng::Screen
         return _imageHandler;
     }
 
-    bool showAdvancedProperties() const
-    {
-        return _showAdvancedProperties;
-    }
-
   private:
     void initContext(mx::GenContext& context);
     void loadEnvironmentLight();
@@ -248,9 +243,6 @@ class Viewer : public ng::Screen
     int _envSamples;
     bool _drawEnvironment;
     mx::Matrix44 _envMatrix;
-
-    // Property options
-    bool _showAdvancedProperties;
 
     // Frame capture
     bool _captureRequested;
