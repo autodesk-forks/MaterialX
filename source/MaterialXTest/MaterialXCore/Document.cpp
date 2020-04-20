@@ -167,6 +167,8 @@ TEST_CASE("Version", "[document]")
         options.desiredMajorVersion = 1;
         options.desiredMajorVersion = 38;
         doc = mx::createDocument();
+        mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc, nullptr, &options);
+        mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_ng.mtlx"), doc, nullptr, &options);
         mx::readFromXmlFile(doc, "1_37_to_1_38.mtlx", searchPath, &options);
         REQUIRE(doc->validate());
 

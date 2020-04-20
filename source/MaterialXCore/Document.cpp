@@ -886,21 +886,17 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
 
         // Update atan2 interface
         const string ATAN2 = "atan2";
-        StringMap ATAN2_MAP;
-        ATAN2_MAP["in1"] = "in2";
-        ATAN2_MAP["in2"] = "in1";
+        const string IN1 = "in1";
+        const string IN2 = "in2";
 
         // Update nodedefs
         for (auto nodedef : getMatchingNodeDefs(ATAN2))
         {
-            for (auto in : ATAN2_MAP)
-            {
-                InputPtr input = nodedef->getInput(in.first);
-                if (input)
-                {
-                    input->setName(in.second);
-                }
-            }
+            InputPtr input = nodedef->getInput(IN1);
+            InputPtr input2 = nodedef->getInput(IN2);
+            string inputValue = input->getValueString();
+            input->setValueString(input2->getValueString());
+            input2->setValueString(inputValue);
         }
 
         // Update nodes
@@ -914,12 +910,23 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
             const string& nodeCategory = node->getCategory();
             if (nodeCategory == ATAN2)
             {
-                for (auto in : ATAN2_MAP)
+                InputPtr input = node->getInput(IN1);
+                InputPtr input2 = node->getInput(IN2);
+                if (input && input2)
                 {
-                    ElementPtr input = node->getChild(in.first);
+                    string inputValue = input->getValueString();
+                    input->setValueString(input2->getValueString());
+                    input2->setValueString(inputValue);
+                }
+                else
+                {
                     if (input)
                     {
-                        input->setName(in.second);
+                        input->setName(IN2);
+                    }
+                    if (input2)
+                    {
+                        input2->setName(IN1);
                     }
                 }
             }
