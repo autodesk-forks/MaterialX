@@ -166,6 +166,7 @@ TEST_CASE("Version", "[document]")
         mx::XmlReadOptions options;
         options.desiredMajorVersion = 1;
         options.desiredMajorVersion = 38;
+        doc = mx::createDocument();
         mx::readFromXmlFile(doc, "1_37_to_1_38.mtlx", searchPath, &options);
         REQUIRE(doc->validate());
 
@@ -180,8 +181,8 @@ TEST_CASE("Version", "[document]")
         // atan2 test
         const std::string ATAN2 = "atan2";
         mx::StringMap ATAN2_MAP;
-        ATAN2_MAP["in1"] = "iny";
-        ATAN2_MAP["in2"] = "inx";
+        ATAN2_MAP["in1"] = "in2";
+        ATAN2_MAP["in2"] = "in1";
 
         for (mx::ElementPtr elem : doc->traverseTree())
         {

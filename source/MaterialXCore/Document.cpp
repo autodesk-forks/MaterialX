@@ -887,9 +887,23 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
         // Update atan2 interface
         const string ATAN2 = "atan2";
         StringMap ATAN2_MAP;
-        ATAN2_MAP["in1"] = "iny";
-        ATAN2_MAP["in2"] = "inx";
+        ATAN2_MAP["in1"] = "in2";
+        ATAN2_MAP["in2"] = "in1";
 
+        // Update nodedefs
+        for (auto nodedef : getMatchingNodeDefs(ATAN2))
+        {
+            for (auto in : ATAN2_MAP)
+            {
+                InputPtr input = nodedef->getInput(in.first);
+                if (input)
+                {
+                    input->setName(in.second);
+                }
+            }
+        }
+
+        // Update nodes
         for (ElementPtr elem : traverseTree())
         {
             NodePtr node = elem->asA<Node>();
