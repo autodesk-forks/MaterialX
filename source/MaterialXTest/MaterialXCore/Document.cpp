@@ -165,7 +165,7 @@ TEST_CASE("Version", "[document]")
     {
         mx::XmlReadOptions options;
         options.desiredMajorVersion = 1;
-        options.desiredMajorVersion = 38;
+        options.desiredMinorVersion = 38;
         doc = mx::createDocument();
         mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc, nullptr, &options);
         mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_ng.mtlx"), doc, nullptr, &options);
