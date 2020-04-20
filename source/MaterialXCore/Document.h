@@ -713,8 +713,6 @@ class Document : public GraphElement
     static const string CMS_CONFIG_ATTRIBUTE;
 
   private:
-   void upgradeBuild();
-
     class Cache;
     std::unique_ptr<Cache> _cache;
 };
