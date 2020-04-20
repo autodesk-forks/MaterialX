@@ -33,6 +33,10 @@
 #include <MaterialXRuntime/RtLook.h>
 #include <MaterialXRuntime/RtCollection.h>
 
+#include <MaterialXRuntime/Commands/Prims.h>
+#include <MaterialXRuntime/Commands/Connections.h>
+#include <MaterialXRuntime/Commands/Undo.h>
+
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -1830,6 +1834,42 @@ TEST_CASE("Runtime: units", "[runtime]")
             }
         }
     }
+}
+
+TEST_CASE("Runtime: commands", "[runtime]")
+{
+    mx::RtScopedApiHandle api;
+
+    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    api->setSearchPath(searchPath);
+    api->loadLibrary(STDLIB);
+
+    mx::RtStagePtr stage = api->createStage(MAIN);
+
+    const mx::RtToken addFloatNode("ND_add_float");
+
+    mx::RtCommandResult result;
+    mx::RtCommand::createPrim(stage, addFloatNode, result);
+    REQUIRE(result);
+    REQUIRE(result.getObject().isA<mx::RtPrim>());
+    mx::RtPrim add1(result.getObject().asA<mx::RtPrim>());
+
+    mx::RtCommand::createPrim(stage, addFloatNode, result);
+    REQUIRE(result);
+    REQUIRE(result.getObject().isA<mx::RtPrim>());
+    mx::RtPrim add2(result.getObject().asA<mx::RtPrim>());
+
+    mx::RtCommand::makeConnection(add1.getOutput(OUT), add2.getInput(IN1), result);
+    REQUIRE(result);
+    REQUIRE(add2.getInput(IN1).getConnection() == add1.getOutput(OUT));
+
+    mx::RtCommand::undo(result);
+    REQUIRE(result);
+    REQUIRE(add2.getInput(IN1).getConnection() != add1.getOutput(OUT));
+
+    mx::RtCommand::redo(result);
+    REQUIRE(result);
+    REQUIRE(add2.getInput(IN1).getConnection() == add1.getOutput(OUT));
 }
 
 #endif // MATERIALX_BUILD_RUNTIME

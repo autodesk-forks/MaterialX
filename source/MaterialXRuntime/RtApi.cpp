@@ -14,6 +14,7 @@
 #include <MaterialXRuntime/RtFileIo.h>
 #include <MaterialXRuntime/RtLook.h>
 #include <MaterialXRuntime/RtCollection.h>
+#include <MaterialXRuntime/RtCommandEngine.h>
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
@@ -26,6 +27,11 @@ public:
     PvtApi()
     {
         reset();
+    }
+
+    RtCommandEngine& getCommandEngine()
+    {
+        return _commandEngine;
     }
 
     void registerCreateFunction(const RtToken& typeName, RtPrimCreateFunc creator)
@@ -283,6 +289,8 @@ public:
         _unitDefinitions = UnitConverterRegistry::create();
     }
 
+    RtCommandEngine _commandEngine;
+
     FileSearchPath _searchPaths;
     FileSearchPath _implementationSearchPaths;
     FileSearchPath _textureSearchPaths;
@@ -336,6 +344,10 @@ void RtApi::shutdown()
     _cast(_ptr)->reset();
 }
 
+RtCommandEngine& RtApi::getCommandEngine()
+{
+    return _cast(_ptr)->getCommandEngine();
+}
 
 void RtApi::registerCreateFunction(const RtToken& typeName, RtPrimCreateFunc func)
 {
