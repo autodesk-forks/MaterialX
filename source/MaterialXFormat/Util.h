@@ -51,4 +51,4 @@ StringVec loadLibraries(const StringVec& libraryNames,
 
 } // namespace MaterialX
 
-#endif //MATERIALX_FORMAT_UTIL_H
+#endif
