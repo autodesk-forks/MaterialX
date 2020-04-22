@@ -959,7 +959,7 @@ void Document::upgradeVersion(bool applyLatestUpdates)
     }
 
     // Apply latest updates targetted for the next release version
-    if (applyLatestUpdates)
+    if ((majorVersion == 1 && minorVersion == 37) && applyLatestUpdates)
     {
         // Convert material Elements to Nodes
         convertMaterialsToNodes(getDocument());
