@@ -33,9 +33,9 @@
 #include <MaterialXRuntime/RtLook.h>
 #include <MaterialXRuntime/RtCollection.h>
 
-#include <MaterialXRuntime/Commands/Prims.h>
-#include <MaterialXRuntime/Commands/Connections.h>
-#include <MaterialXRuntime/Commands/Undo.h>
+#include <MaterialXRuntime/Commands/PrimCommands.h>
+#include <MaterialXRuntime/Commands/ConnectionCommands.h>
+#include <MaterialXRuntime/Commands/UndoCommands.h>
 
 #include <cstdlib>
 #include <fstream>

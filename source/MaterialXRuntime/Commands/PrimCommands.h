@@ -3,8 +3,8 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#ifndef MATERIALX_RTSTAGECOMMANDS_H
-#define MATERIALX_RTSTAGECOMMANDS_H
+#ifndef MATERIALX_RTPRIMCOMMANDS_H
+#define MATERIALX_RTPRIMCOMMANDS_H
 
 /// @file
 /// Commands for prim handling.

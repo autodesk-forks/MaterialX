@@ -3,7 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/Commands/Undo.h>
+#include <MaterialXRuntime/Commands/UndoCommands.h>
 #include <MaterialXRuntime/RtApi.h>
 
 namespace MaterialX

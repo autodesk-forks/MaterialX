@@ -3,7 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/Commands/Connections.h>
+#include <MaterialXRuntime/Commands/ConnectionCommands.h>
 #include <MaterialXRuntime/RtApi.h>
 
 namespace MaterialX

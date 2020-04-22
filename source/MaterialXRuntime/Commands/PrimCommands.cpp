@@ -3,8 +3,8 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/Commands/Prims.h>
-#include <MaterialXRuntime/Commands/Connections.h>
+#include <MaterialXRuntime/Commands/PrimCommands.h>
+#include <MaterialXRuntime/Commands/ConnectionCommands.h>
 #include <MaterialXRuntime/RtApi.h>
 
 namespace MaterialX
