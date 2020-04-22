@@ -962,7 +962,7 @@ void Document::upgradeVersion(bool applyLatestUpdates)
     if (applyLatestUpdates)
     {
         // Convert material Elements to Nodes
-        convertMaterialsToNodes(true);
+        convertMaterialsToNodes(getDocument());
 
         // Update atan2 interface
         const string ATAN2 = "atan2";
