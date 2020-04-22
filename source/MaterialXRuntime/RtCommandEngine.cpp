@@ -12,12 +12,78 @@ namespace MaterialX
 namespace
 {
     // Syntactic sugar
+    using RtCommandPtrVec = vector<RtCommandPtr>;
+    inline RtCommandPtrVec* _getvec(void* ptr)
+    {
+        return static_cast<RtCommandPtrVec*>(ptr);
+    }
+}
+
+RtBatchCommand::RtBatchCommand() :
+    _ptr(new vector<RtCommandPtr>)
+{
+}
+
+RtBatchCommand::~RtBatchCommand()
+{
+    delete _getvec(_ptr);
+}
+
+void RtBatchCommand::addCommand(RtCommandPtr cmd)
+{
+    _getvec(_ptr)->push_back(cmd);
+}
+
+void RtBatchCommand::clearCommands()
+{
+    _getvec(_ptr)->clear();
+}
+
+void RtBatchCommand::execute(RtCommandResult& result)
+{
+    for (RtCommandPtr cmd : *_getvec(_ptr))
+    {
+        cmd->execute(result);
+        if (!result.success())
+        {
+            break;
+        }
+    }
+}
+
+void RtBatchCommand::undo(RtCommandResult& result)
+{
+    for (RtCommandPtr cmd : *_getvec(_ptr))
+    {
+        cmd->undo(result);
+        if (!result.success())
+        {
+            break;
+        }
+    }
+}
+
+void RtBatchCommand::redo(RtCommandResult& result)
+{
+    for (RtCommandPtr cmd : *_getvec(_ptr))
+    {
+        cmd->redo(result);
+        if (!result.success())
+        {
+            break;
+        }
+    }
+}
+
+
+namespace
+{
+    // Syntactic sugar
     inline PvtCommandEngine* _cast(void* ptr)
     {
         return static_cast<PvtCommandEngine*>(ptr);
     }
 }
-
 
 RtCommandEngine::RtCommandEngine() :
     _ptr(new PvtCommandEngine())

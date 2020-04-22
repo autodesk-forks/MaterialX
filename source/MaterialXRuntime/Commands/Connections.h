@@ -23,6 +23,8 @@ public:
         _dest(dest)
     {}
 
+    static RtCommandPtr create(const RtOutput& src, const RtInput& dest);
+
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;
 
@@ -38,6 +40,8 @@ public:
         _src(src),
         _dest(dest)
     {}
+
+    static RtCommandPtr create(const RtOutput& src, const RtInput& dest);
 
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;

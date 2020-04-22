@@ -1846,18 +1846,41 @@ TEST_CASE("Runtime: commands", "[runtime]")
 
     mx::RtStagePtr stage = api->createStage(MAIN);
 
+    mx::RtCommandResult result;
+
+    //
+    // Test prim creation
+    //
+
+    mx::RtCommand::createPrim(stage, mx::RtNodeGraph::typeName(), result);
+    REQUIRE(result);
+    REQUIRE(result.getObject().isA<mx::RtPrim>());
+    mx::RtPrim graph1(result.getObject().asA<mx::RtPrim>());
+
+
     const mx::RtToken addFloatNode("ND_add_float");
 
-    mx::RtCommandResult result;
-    mx::RtCommand::createPrim(stage, addFloatNode, result);
+    mx::RtCommand::createPrim(stage, addFloatNode, graph1.getPath(), mx::EMPTY_TOKEN, result);
     REQUIRE(result);
     REQUIRE(result.getObject().isA<mx::RtPrim>());
     mx::RtPrim add1(result.getObject().asA<mx::RtPrim>());
 
-    mx::RtCommand::createPrim(stage, addFloatNode, result);
+    mx::RtCommand::createPrim(stage, addFloatNode, graph1.getPath(), mx::EMPTY_TOKEN, result);
     REQUIRE(result);
     REQUIRE(result.getObject().isA<mx::RtPrim>());
     mx::RtPrim add2(result.getObject().asA<mx::RtPrim>());
+
+    mx::RtPath nodePath(graph1.getPath());
+    nodePath.push(mx::RtToken("foo"));
+    mx::RtCommand::createPrim(stage, addFloatNode, nodePath, result);
+    REQUIRE(result);
+    REQUIRE(result.getObject().isA<mx::RtPrim>());
+    mx::RtPrim foo(result.getObject().asA<mx::RtPrim>());
+    REQUIRE(foo.getPath() == nodePath);
+
+    //
+    // Test making and breaking connections
+    //
 
     mx::RtCommand::makeConnection(add1.getOutput(OUT), add2.getInput(IN1), result);
     REQUIRE(result);
@@ -1869,6 +1892,20 @@ TEST_CASE("Runtime: commands", "[runtime]")
 
     mx::RtCommand::redo(result);
     REQUIRE(result);
+    REQUIRE(add2.getInput(IN1).getConnection() == add1.getOutput(OUT));
+
+
+    //
+    // Test node deletion
+    //
+
+    mx::RtCommand::removePrim(stage, add2.getPath(), result);
+    REQUIRE(result);
+    REQUIRE(!add2.isValid());
+
+    mx::RtCommand::undo(result);
+    REQUIRE(result);
+    REQUIRE(add2.isValid());
     REQUIRE(add2.getInput(IN1).getConnection() == add1.getOutput(OUT));
 }
 

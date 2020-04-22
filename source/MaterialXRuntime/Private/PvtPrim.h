@@ -72,7 +72,9 @@ class PvtPrim : public PvtObject
 public:
     static PvtDataHandle createNew(const RtTypeInfo* typeInfo, const RtToken& name, PvtPrim* parent);
 
-    void dispose();
+    void dispose(bool state);
+
+    void destroy();
 
     const RtTypeInfo* getTypeInfo() const
     {

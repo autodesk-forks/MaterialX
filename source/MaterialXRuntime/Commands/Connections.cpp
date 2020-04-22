@@ -9,6 +9,10 @@
 namespace MaterialX
 {
 
+RtCommandPtr RtMakeConnectionCmd::create(const RtOutput& src, const RtInput& dest)
+{
+    return std::make_shared<RtMakeConnectionCmd>(src, dest);
+}
 
 void RtMakeConnectionCmd::execute(RtCommandResult& result)
 {
@@ -49,6 +53,12 @@ void RtMakeConnectionCmd::undo(RtCommandResult& result)
     {
         result = RtCommandResult(false, string("Ports to disconnect are no longer valid"));
     }
+}
+
+
+RtCommandPtr RtBreakConnectionCmd::create(const RtOutput& src, const RtInput& dest)
+{
+    return std::make_shared<RtBreakConnectionCmd>(src, dest);
 }
 
 void RtBreakConnectionCmd::execute(RtCommandResult& result)
@@ -95,13 +105,13 @@ namespace RtCommand
 
 void makeConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& result)
 {
-    RtCommandPtr cmd = std::make_shared<RtMakeConnectionCmd>(src, dest);
+    RtCommandPtr cmd = RtMakeConnectionCmd::create(src, dest);
     RtApi::get().getCommandEngine().execute(cmd, result);
 }
 
 void breakConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& result)
 {
-    RtCommandPtr cmd = std::make_shared<RtBreakConnectionCmd>(src, dest);
+    RtCommandPtr cmd = RtBreakConnectionCmd::create(src, dest);
     RtApi::get().getCommandEngine().execute(cmd, result);
 }
 

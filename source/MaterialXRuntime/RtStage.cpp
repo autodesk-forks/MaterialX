@@ -129,4 +129,14 @@ void RtStage::setName(const RtToken& name)
     _cast(_ptr)->setName(name);
 }
 
+void RtStage::disposePrim(const RtPath& path)
+{
+    _cast(_ptr)->disposePrim(*static_cast<PvtPath*>(path._ptr));
+}
+
+void RtStage::revivePrim(const RtPath& parentPath, const RtPrim& prim)
+{
+    _cast(_ptr)->revivePrim(*static_cast<PvtPath*>(parentPath._ptr), prim);
+}
+
 }

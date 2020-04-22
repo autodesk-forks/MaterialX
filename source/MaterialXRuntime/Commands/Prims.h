@@ -11,6 +11,7 @@
 
 #include <MaterialXRuntime/RtCommandEngine.h>
 #include <MaterialXRuntime/RtStage.h>
+#include <MaterialXRuntime/RtPrim.h>
 
 namespace MaterialX
 {
@@ -25,6 +26,8 @@ public:
         _name(name)
     {}
 
+    static RtCommandPtr create(RtStagePtr stage, const RtToken& typeName, const RtPath& parentPath, const RtToken& name);
+
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;
 
@@ -35,12 +38,15 @@ private:
     RtToken _name;
 };
 
-class RtRemovePrimCmd : public RtCommandBase
+class RtRemovePrimCmd : public RtBatchCommand
 {
 public:
-    RtRemovePrimCmd(RtStagePtr stage, const RtPath& path) :
+    RtRemovePrimCmd(RtStagePtr stage, const RtPath& path):
+        _stage(stage),
         _path(path)
     {}
+
+    static RtCommandPtr create(RtStagePtr stage, const RtPath& path);
 
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;
@@ -48,15 +54,19 @@ public:
 private:
     RtStagePtr _stage;
     const RtPath _path;
+    RtPrim _prim;
 };
 
 class RtRenamePrimCmd : public RtCommandBase
 {
 public:
     RtRenamePrimCmd(RtStagePtr stage, const RtPath& path, const RtToken& newName) :
+        _stage(stage),
         _path(path),
         _newName(newName)
     {}
+
+    static RtCommandPtr create(RtStagePtr stage, const RtPath& path, const RtToken& newName);
 
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;
@@ -71,9 +81,12 @@ class RtReparentPrimCmd : public RtCommandBase
 {
 public:
     RtReparentPrimCmd(RtStagePtr stage, const RtPath& path, const RtPath& newParentPath) :
+        _stage(stage),
         _path(path),
         _newParentPath(newParentPath)
     {}
+
+    static RtCommandPtr create(RtStagePtr stage, const RtPath& path, const RtPath& newParentPath);
 
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;

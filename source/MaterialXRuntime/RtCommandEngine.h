@@ -86,6 +86,36 @@ public:
 
 using RtCommandPtr = RtSharedPtr<RtCommandBase>;
 
+/// @class RtBatchCommand
+/// Class for executing batches of multiple commands.
+class RtBatchCommand : public RtCommandBase
+{
+public:
+    /// Constructor.
+    RtBatchCommand();
+
+    /// Denstructor.
+    ~RtBatchCommand();
+
+    /// Add a command to the batch.
+    void addCommand(RtCommandPtr cmd);
+
+    /// Clear all commands in the batch.
+    void clearCommands();
+
+    /// Execute the command.
+    void execute(RtCommandResult& result) override;
+
+    /// Undo the command.
+    void undo(RtCommandResult& result)  override;
+
+    /// Redo the command.
+    void redo(RtCommandResult& result)  override;
+
+private:
+    void* _ptr;
+};
+
 /// @class RtCommandEngine
 /// Class handling runtime command execution.
 class RtCommandEngine
