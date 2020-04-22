@@ -51,4 +51,10 @@ void PvtCommandEngine::redo(RtCommandResult& result)
     }
 }
 
+void PvtCommandEngine::flushUndoQueue()
+{
+    _undoQueue.clear();
+    _redoQueue.clear();
+}
+
 }

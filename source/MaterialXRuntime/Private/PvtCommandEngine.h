@@ -20,11 +20,15 @@ public:
     /// Execute a new command.
     void execute(RtCommandPtr cmd, RtCommandResult& result);
 
-    /// Execute the command on top of the undo queue.
+    /// Undo the last previously executed command.
     void undo(RtCommandResult& result);
 
-    /// Execute the command on top of the redo queue.
+    /// Redo the last previously executed undo command.
     void redo(RtCommandResult& result);
+
+    /// Flush the undo and redo queues.
+    /// All commands previously executed will no longer be undoable.
+    void flushUndoQueue();
 
 private:
     vector<RtCommandPtr> _undoQueue;

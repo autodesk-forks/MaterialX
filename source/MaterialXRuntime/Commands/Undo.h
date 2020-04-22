@@ -21,6 +21,10 @@ namespace RtCommand
 
     /// Redo the last executed undo command.
     void redo(RtCommandResult& result);
+
+    /// Flush the undo and redo queues.
+    /// All commands previously executed will no longer be undoable.
+    void flushUndoQueue();
 }
 
 }

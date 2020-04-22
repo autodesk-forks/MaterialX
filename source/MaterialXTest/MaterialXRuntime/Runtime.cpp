@@ -1983,6 +1983,20 @@ TEST_CASE("Runtime: commands", "[runtime]")
     REQUIRE(foo2.getName() == FOO1); // renamed inside graph2 again
     REQUIRE(!graph1.getChild(FOO));
     REQUIRE(graph2.getChild(FOO1));
+
+    //
+    // Test flush undo queue
+    //
+
+    mx::RtCommand::createPrim(stage, addFloatNode, result);
+    REQUIRE(result);
+    mx::RtPrim node(result.getObject().asA<mx::RtPrim>());
+    REQUIRE(node);
+
+    mx::RtCommand::flushUndoQueue();
+    mx::RtCommand::undo(result);
+    REQUIRE(!result); // undo should fail
+    REQUIRE(node);    // node should remain created
 }
 
 #endif // MATERIALX_BUILD_RUNTIME

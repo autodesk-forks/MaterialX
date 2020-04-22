@@ -20,17 +20,21 @@ namespace MaterialX
 class RtCommandResult
 {
 public:
+    /// Empty constructor.
     RtCommandResult() :
         _success(false)
     {
     }
 
+    /// Construct a command result from a boolean state and an optional error message.
     RtCommandResult(bool success, const string& message = "") :
         _success(success),
         _message(message)
     {
     }
 
+    /// Construct a command result from a return object and optionally
+    /// a boolean state and an error message.
     RtCommandResult(const RtObject& object, bool success = true, const string& message = "") :
         _success(success),
         _message(message),
@@ -38,21 +42,25 @@ public:
     {
     }
 
+    /// Return true if the command executed succesfully.
     bool success() const
     {
         return _success;
     }
 
+    /// Return true if the command executed succesfully.
     explicit operator bool() const
     {
         return success();
     }
 
+    /// Return an error message if set when executing the command.
     const string& getMessage() const
     {
         return _message;
     }
 
+    /// Return an object resulting from executing the command.
     const RtObject& getObject() const
     {
         return _object;
@@ -69,6 +77,7 @@ private:
 class RtCommandBase
 {
 public:
+    /// Destructor.
     virtual ~RtCommandBase() {};
 
     /// Execute the command.
@@ -84,6 +93,7 @@ public:
     }
 };
 
+/// A shared pointer to a runtime command.
 using RtCommandPtr = RtSharedPtr<RtCommandBase>;
 
 /// @class RtBatchCommand
@@ -94,7 +104,7 @@ public:
     /// Constructor.
     RtBatchCommand();
 
-    /// Denstructor.
+    /// Destructor.
     ~RtBatchCommand();
 
     /// Add a command to the batch.
@@ -135,6 +145,10 @@ public:
 
     /// Execute the command on top of the redo queue.
     void redo(RtCommandResult& result);
+
+    /// Flush the undo and redo queues.
+    /// All commands previously executed will no longer be undoable.
+    void flushUndoQueue();
 
 private:
     void* _ptr;

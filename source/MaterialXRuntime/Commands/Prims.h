@@ -7,7 +7,7 @@
 #define MATERIALX_RTSTAGECOMMANDS_H
 
 /// @file
-/// Commands for stage handling.
+/// Commands for prim handling.
 
 #include <MaterialXRuntime/RtCommandEngine.h>
 #include <MaterialXRuntime/RtStage.h>
@@ -16,6 +16,9 @@
 namespace MaterialX
 {
 
+
+/// @class RtCreatePrimCmd
+/// Command for creating a prim.
 class RtCreatePrimCmd : public RtCommandBase
 {
 public:
@@ -40,6 +43,8 @@ private:
     RtPrim _prim;
 };
 
+/// @class RtRemovePrimCmd
+/// Command for removing a prim.
 class RtRemovePrimCmd : public RtBatchCommand
 {
 public:
@@ -59,6 +64,8 @@ private:
     RtPrim _prim;
 };
 
+/// @class RtRenamePrimCmd
+/// Command for renaming a prim.
 class RtRenamePrimCmd : public RtCommandBase
 {
 public:
@@ -79,6 +86,8 @@ private:
     RtToken _newName;
 };
 
+/// @class RtReparentPrimCmd
+/// Command for reparenting a prim.
 class RtReparentPrimCmd : public RtCommandBase
 {
 public:

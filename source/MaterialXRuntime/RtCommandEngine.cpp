@@ -110,4 +110,9 @@ void RtCommandEngine::redo(RtCommandResult& result)
     _cast(_ptr)->redo(result);
 }
 
+void RtCommandEngine::flushUndoQueue()
+{
+    _cast(_ptr)->flushUndoQueue();
+}
+
 }

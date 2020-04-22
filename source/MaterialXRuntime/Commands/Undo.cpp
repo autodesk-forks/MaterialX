@@ -22,6 +22,11 @@ void redo(RtCommandResult& result)
     RtApi::get().getCommandEngine().redo(result);
 }
 
+void flushUndoQueue()
+{
+    RtApi::get().getCommandEngine().flushUndoQueue();
+}
+
 }
 
 }
