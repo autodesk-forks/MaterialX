@@ -610,13 +610,12 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
         // Save document
         if (material && !filename.isEmpty())
         {
-            mx::DocumentPtr doc = material->getDocument();
             if (filename.getExtension() != mx::MTLX_EXTENSION)
             {
                 filename.addExtension(mx::MTLX_EXTENSION);
             }
 
-            if (_bakeTextures && material->getMaterialElement())
+            if (_bakeTextures)
             {
                 _bakeRequested = true;
                 _bakeFilename = filename;
@@ -635,7 +634,7 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
                 mx::XmlWriteOptions writeOptions;
                 writeOptions.writeXIncludeEnable = true;
                 writeOptions.elementPredicate = skipXincludes;
-                mx::writeToXmlFile(doc, filename, &writeOptions);
+                mx::writeToXmlFile(material->getDocument(), filename, &writeOptions);
             }
 
             // Update material file name
@@ -902,7 +901,6 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
 {
     // Set up read options.
     mx::XmlReadOptions readOptions;
-    readOptions.applyLatestUpdates = true;
     readOptions.skipConflictingElements = true;
     readOptions.readXIncludeFunction = [](mx::DocumentPtr doc, const mx::FilePath& filename,
                                           const mx::FileSearchPath& searchPath, const mx::XmlReadOptions* options)
