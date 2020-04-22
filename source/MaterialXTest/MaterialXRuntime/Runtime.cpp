@@ -64,6 +64,7 @@ namespace
     const mx::RtToken REFLECTIVITY("reflectivity");
     const mx::RtToken SURFACESHADER("surfaceshader");
     const mx::RtToken FOO("foo");
+    const mx::RtToken FOO1("foo1");
     const mx::RtToken BAR("bar");
     const mx::RtToken VERSION("version");
     const mx::RtToken ROOT("root");
@@ -1857,7 +1858,6 @@ TEST_CASE("Runtime: commands", "[runtime]")
     REQUIRE(result.getObject().isA<mx::RtPrim>());
     mx::RtPrim graph1(result.getObject().asA<mx::RtPrim>());
 
-
     const mx::RtToken addFloatNode("ND_add_float");
 
     mx::RtCommand::createPrim(stage, addFloatNode, graph1.getPath(), mx::EMPTY_TOKEN, result);
@@ -1871,12 +1871,34 @@ TEST_CASE("Runtime: commands", "[runtime]")
     mx::RtPrim add2(result.getObject().asA<mx::RtPrim>());
 
     mx::RtPath nodePath(graph1.getPath());
-    nodePath.push(mx::RtToken("foo"));
+    nodePath.push(FOO);
     mx::RtCommand::createPrim(stage, addFloatNode, nodePath, result);
     REQUIRE(result);
     REQUIRE(result.getObject().isA<mx::RtPrim>());
     mx::RtPrim foo(result.getObject().asA<mx::RtPrim>());
     REQUIRE(foo.getPath() == nodePath);
+
+    mx::RtCommand::undo(result);
+    REQUIRE(result);
+    REQUIRE(!foo.isValid());
+    mx::RtCommand::redo(result);
+    REQUIRE(result);
+    REQUIRE(foo.isValid());
+
+    //
+    // Test rename command
+    //
+
+    mx::RtCommand::renamePrim(stage, foo.getPath(), BAR, result);
+    REQUIRE(result);
+    REQUIRE(foo.getName() == BAR);
+
+    mx::RtCommand::undo(result);
+    REQUIRE(result);
+    REQUIRE(foo.getName() == FOO);
+    mx::RtCommand::redo(result);
+    REQUIRE(result);
+    REQUIRE(foo.getName() == BAR);
 
     //
     // Test making and breaking connections
@@ -1902,11 +1924,65 @@ TEST_CASE("Runtime: commands", "[runtime]")
     mx::RtCommand::removePrim(stage, add2.getPath(), result);
     REQUIRE(result);
     REQUIRE(!add2.isValid());
+    REQUIRE(!add1.getOutput(OUT).isConnected());
 
     mx::RtCommand::undo(result);
     REQUIRE(result);
     REQUIRE(add2.isValid());
+    REQUIRE(add1.getOutput(OUT).isConnected());
     REQUIRE(add2.getInput(IN1).getConnection() == add1.getOutput(OUT));
+
+    //
+    // Test node reparenting
+    //
+
+    mx::RtCommand::renamePrim(stage, foo.getPath(), FOO, result);
+    mx::RtCommand::createPrim(stage, mx::RtNodeGraph::typeName(), result);
+    REQUIRE(result);
+    mx::RtPrim graph2(result.getObject().asA<mx::RtPrim>());
+
+    mx::RtCommand::reparentPrim(stage, foo.getPath(), graph2.getPath(), result);
+    REQUIRE(result);
+    REQUIRE(foo.getParent() == graph2);
+
+    mx::RtCommand::undo(result);
+    REQUIRE(result);
+    REQUIRE(foo.getParent() == graph1);
+
+    mx::RtCommand::redo(result);
+    REQUIRE(result);
+    REQUIRE(foo.getParent() == graph2);
+
+    //
+    // Test reparenting undo/redo when the reparenting will update the prim name
+    //
+
+    mx::RtCommand::createPrim(stage, addFloatNode, graph1.getPath(), FOO, result);
+    REQUIRE(result);
+    mx::RtPrim foo2(result.getObject().asA<mx::RtPrim>());
+    REQUIRE(foo2.getName() == FOO);
+    REQUIRE(foo2.getParent() == graph1);
+
+    mx::RtCommand::reparentPrim(stage, foo2.getPath(), graph2.getPath(), result);
+    REQUIRE(result);
+    REQUIRE(foo2.getParent() == graph2);
+    REQUIRE(foo2.getName() == FOO1); // renamed inside graph2 now
+    REQUIRE(!graph1.getChild(FOO));
+    REQUIRE(graph2.getChild(FOO1));
+
+    mx::RtCommand::undo(result);
+    REQUIRE(result);
+    REQUIRE(foo2.getParent() == graph1);
+    REQUIRE(foo2.getName() == FOO); // original name restored
+    REQUIRE(graph1.getChild(FOO));
+    REQUIRE(!graph2.getChild(FOO1));
+
+    mx::RtCommand::redo(result);
+    REQUIRE(result);
+    REQUIRE(foo2.getParent() == graph2);
+    REQUIRE(foo2.getName() == FOO1); // renamed inside graph2 again
+    REQUIRE(!graph1.getChild(FOO));
+    REQUIRE(graph2.getChild(FOO1));
 }
 
 #endif // MATERIALX_BUILD_RUNTIME

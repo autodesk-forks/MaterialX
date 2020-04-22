@@ -19,12 +19,12 @@ void RtCreatePrimCmd::execute(RtCommandResult& result)
 {
     try
     {
-        RtPrim prim = _stage->createPrim(_parentPath, _name, _typeName);
+        _prim = _stage->createPrim(_parentPath, _name, _typeName);
         
         // Update the name if it was changed so we can undo later.
-        _name = prim.getName();
+        _name = _prim.getName();
 
-        result = RtCommandResult(prim.asA<RtObject>());
+        result = RtCommandResult(_prim.asA<RtObject>());
     }
     catch (const ExceptionRuntimeError& e)
     {
@@ -38,7 +38,20 @@ void RtCreatePrimCmd::undo(RtCommandResult& result)
     {
         RtPath path(_parentPath);
         path.push(_name);
-        _stage->removePrim(path);
+        _stage->disposePrim(path);
+        result = RtCommandResult(true);
+    }
+    catch (const ExceptionRuntimeError& e)
+    {
+        result = RtCommandResult(false, string(e.what()));
+    }
+}
+
+void RtCreatePrimCmd::redo(RtCommandResult& result)
+{
+    try
+    {
+        _stage->revivePrim(_parentPath, _prim);
         result = RtCommandResult(true);
     }
     catch (const ExceptionRuntimeError& e)
@@ -180,14 +193,13 @@ void RtReparentPrimCmd::execute(RtCommandResult& result)
 {
     try
     {
-        RtToken resultName = _stage->reparentPrim(_path, _newParentPath);
+        RtToken resultName = _stage->reparentPrim(_path, _parentPath);
 
-        // Update the paths so we can undo later
-        RtPath newPath = _newParentPath;
-        newPath.pop();
+        // Update paths so we can undo later
+        RtPath newPath = _parentPath;
         newPath.push(resultName);
-        _newParentPath = _path;
-        _newParentPath.pop();
+        _parentPath = _path;
+        _parentPath.pop();
         _path = newPath;
 
         result = RtCommandResult(true);
@@ -202,9 +214,24 @@ void RtReparentPrimCmd::undo(RtCommandResult& result)
 {
     try
     {
-        // Paths where updated after execution
-        // so we can just re-execute the command.
-        execute(result);
+        RtToken resultName = _stage->reparentPrim(_path, _parentPath);
+
+        // Make sure we get back to the original name
+        // in case the reparenting forced the prim name to change.
+        if (resultName != _originalName)
+        {
+            RtPath newPath = _parentPath;
+            newPath.push(resultName);
+            _stage->renamePrim(newPath, _originalName);
+            resultName = _originalName;
+        }
+
+        // Update paths so we can redo later
+        RtPath newPath = _parentPath;
+        newPath.push(resultName);
+        _parentPath = _path;
+        _parentPath.pop();
+        _path = newPath;
 
         result = RtCommandResult(true);
     }

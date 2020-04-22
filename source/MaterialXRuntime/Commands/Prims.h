@@ -30,12 +30,14 @@ public:
 
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;
+    void redo(RtCommandResult& result) override;
 
 private:
     RtStagePtr _stage;
     const RtToken _typeName;
     const RtPath _parentPath;
     RtToken _name;
+    RtPrim _prim;
 };
 
 class RtRemovePrimCmd : public RtBatchCommand
@@ -83,7 +85,8 @@ public:
     RtReparentPrimCmd(RtStagePtr stage, const RtPath& path, const RtPath& newParentPath) :
         _stage(stage),
         _path(path),
-        _newParentPath(newParentPath)
+        _parentPath(newParentPath),
+        _originalName(path.getName())
     {}
 
     static RtCommandPtr create(RtStagePtr stage, const RtPath& path, const RtPath& newParentPath);
@@ -94,7 +97,8 @@ public:
 private:
     RtStagePtr _stage;
     RtPath _path;
-    RtPath _newParentPath;
+    RtPath _parentPath;
+    RtToken _originalName;
 };
 
 namespace RtCommand
