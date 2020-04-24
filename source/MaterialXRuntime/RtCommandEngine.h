@@ -77,8 +77,10 @@ private:
 class RtCommandBase
 {
 public:
-    /// Destructor.
     virtual ~RtCommandBase() {};
+
+    RtCommandBase(const RtCommandBase&) = delete;
+    RtCommandBase& operator=(const RtCommandBase&) = delete;
 
     /// Execute the command.
     virtual void execute(RtCommandResult& result) = 0;
@@ -91,6 +93,9 @@ public:
     {
         execute(result);
     }
+
+protected:
+    RtCommandBase() {}
 };
 
 /// A shared pointer to a runtime command.
@@ -101,11 +106,10 @@ using RtCommandPtr = RtSharedPtr<RtCommandBase>;
 class RtBatchCommand : public RtCommandBase
 {
 public:
-    /// Constructor.
-    RtBatchCommand();
-
-    /// Destructor.
     ~RtBatchCommand();
+
+    RtBatchCommand(const RtBatchCommand&) = delete;
+    RtBatchCommand& operator=(const RtBatchCommand&) = delete;
 
     /// Add a command to the batch.
     void addCommand(RtCommandPtr cmd);
@@ -121,6 +125,9 @@ public:
 
     /// Redo the command.
     void redo(RtCommandResult& result)  override;
+
+protected:
+    RtBatchCommand();
 
 private:
     void* _ptr;
