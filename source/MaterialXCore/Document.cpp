@@ -958,12 +958,10 @@ void Document::upgradeVersion(bool applyLatestUpdates)
         minorVersion = 37;
     }
 
-    // Apply latest updates on top of the current library version.
-    // When the next version become official, the update check
-    // will be moved and applied the that library version.
+    // Apply the latest updates supported by the current library version,
+    // including proposed features for upcoming versions.
     if (applyLatestUpdates)
     {
-        // Convert material Elements to Nodes
         convertMaterialsToNodes(getDocument());
 
         // The following changes require a version bump
@@ -1024,7 +1022,7 @@ void Document::upgradeVersion(bool applyLatestUpdates)
     if (majorVersion >= MATERIALX_MAJOR_VERSION &&
         minorVersion >= MATERIALX_MINOR_VERSION)
     {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
+        setVersionString(DOCUMENT_VERSION_STRING);
     }
 }
 
