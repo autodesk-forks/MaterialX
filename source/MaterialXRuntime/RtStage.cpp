@@ -134,9 +134,9 @@ void RtStage::disposePrim(const RtPath& path)
     _cast(_ptr)->disposePrim(*static_cast<PvtPath*>(path._ptr));
 }
 
-void RtStage::revivePrim(const RtPath& parentPath, const RtPrim& prim)
+void RtStage::restorePrim(const RtPath& parentPath, const RtPrim& prim)
 {
-    _cast(_ptr)->revivePrim(*static_cast<PvtPath*>(parentPath._ptr), prim);
+    _cast(_ptr)->restorePrim(*static_cast<PvtPath*>(parentPath._ptr), prim);
 }
 
 }

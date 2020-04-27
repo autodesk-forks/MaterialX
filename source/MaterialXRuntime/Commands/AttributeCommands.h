@@ -68,9 +68,6 @@ private:
     RtInput _dest;
 };
 
-
-
-
 namespace RtCommand
 {
     /// Set value on an attribute.

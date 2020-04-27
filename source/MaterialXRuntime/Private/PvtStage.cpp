@@ -125,7 +125,7 @@ void PvtStage::disposePrim(const PvtPath& path)
     parent->removeChildPrim(prim);
 }
 
-void PvtStage::revivePrim(const PvtPath& parentPath, const RtPrim& primH)
+void PvtStage::restorePrim(const PvtPath& parentPath, const RtPrim& primH)
 {
     // Use explicit cast since the asA() method will throw
     // in debug mode when the prim is disposed.

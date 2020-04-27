@@ -87,7 +87,7 @@ protected:
     void setName(const RtToken& name);
 
     void disposePrim(const RtPath& path);
-    void revivePrim(const RtPath& parentPath, const RtPrim& prim);
+    void restorePrim(const RtPath& parentPath, const RtPrim& prim);
 
     void* _ptr;
     friend class PvtStage;

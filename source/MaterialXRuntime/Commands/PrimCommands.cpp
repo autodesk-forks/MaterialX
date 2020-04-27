@@ -51,7 +51,7 @@ void RtCreatePrimCmd::redo(RtCommandResult& result)
 {
     try
     {
-        _stage->revivePrim(_parentPath, _prim);
+        _stage->restorePrim(_parentPath, _prim);
         result = RtCommandResult(true);
     }
     catch (const ExceptionRuntimeError& e)
@@ -127,7 +127,7 @@ void RtRemovePrimCmd::undo(RtCommandResult& result)
         // Bring the prim back to life.
         RtPath parentPath(_path);
         parentPath.pop();
-        _stage->revivePrim(parentPath, _prim);
+        _stage->restorePrim(parentPath, _prim);
 
         // Undo all the break connection commands.
         RtBatchCommand::undo(result);

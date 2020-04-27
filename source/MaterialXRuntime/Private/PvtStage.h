@@ -108,7 +108,7 @@ public:
 
     void disposePrim(const PvtPath& path);
 
-    void revivePrim(const PvtPath& parentPath, const RtPrim& prim);
+    void restorePrim(const PvtPath& parentPath, const RtPrim& prim);
 
     RtToken renamePrim(const PvtPath& path, const RtToken& newName);
 
