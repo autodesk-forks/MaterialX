@@ -70,7 +70,7 @@ public:
     }
 
     // Casting the object to a given type.
-    // NOTE: In release builds no type check if performed so the templated type 
+    // NOTE: In release builds no type check is performed so the templated type 
     // must be of a type compatible with this object.
     template<class T> T* asA()
     {
@@ -92,7 +92,7 @@ public:
     }
 
     // Casting the object to a given type.
-    // NOTE: In release builds no type check if performed so the templated type 
+    // NOTE: In release builds no type check is performed so the templated type 
     // must be of a type compatible with this object.
     template<class T> const T* asA() const
     {
@@ -118,7 +118,7 @@ public:
     }
 
     // Retreive a raw pointer to the private data of an RtObject.
-    // NOTE: No type check if performed so the templated type 
+    // NOTE: No type check is performed so the templated type 
     // must be a type supported by the object.
     template<class T>
     static T* ptr(const RtObject& obj)
