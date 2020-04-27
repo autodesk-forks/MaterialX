@@ -104,7 +104,7 @@ void RtRemovePrimCmd::execute(RtCommandResult& result)
         }
 
         // Execute all the break connection commands.
-        RtBatchCommand::execute(result);
+        RtCommandList::execute(result);
 
         // Dispose the prim.
         if (result.success())
@@ -130,7 +130,7 @@ void RtRemovePrimCmd::undo(RtCommandResult& result)
         _stage->restorePrim(parentPath, _prim);
 
         // Undo all the break connection commands.
-        RtBatchCommand::undo(result);
+        RtCommandList::undo(result);
         clearCommands();
 
         result = RtCommandResult(true);

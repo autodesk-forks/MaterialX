@@ -103,15 +103,15 @@ protected:
 /// A shared pointer to a runtime command.
 using RtCommandPtr = RtSharedPtr<RtCommandBase>;
 
-/// @class RtBatchCommand
-/// Class for executing batches of multiple commands.
-class RtBatchCommand : public RtCommandBase
+/// @class RtCommandList
+/// Class for executing lists of multiple commands.
+class RtCommandList : public RtCommandBase
 {
 public:
-    ~RtBatchCommand();
+    ~RtCommandList();
 
-    RtBatchCommand(const RtBatchCommand&) = delete;
-    RtBatchCommand& operator=(const RtBatchCommand&) = delete;
+    RtCommandList(const RtCommandList&) = delete;
+    RtCommandList& operator=(const RtCommandList&) = delete;
 
     /// Add a command to the batch.
     void addCommand(RtCommandPtr cmd);
@@ -129,7 +129,7 @@ public:
     void redo(RtCommandResult& result)  override;
 
 protected:
-    RtBatchCommand();
+    RtCommandList();
 
 private:
     void* _ptr;

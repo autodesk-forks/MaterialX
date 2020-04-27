@@ -19,27 +19,27 @@ namespace
     }
 }
 
-RtBatchCommand::RtBatchCommand() :
+RtCommandList::RtCommandList() :
     _ptr(new vector<RtCommandPtr>)
 {
 }
 
-RtBatchCommand::~RtBatchCommand()
+RtCommandList::~RtCommandList()
 {
     delete _getvec(_ptr);
 }
 
-void RtBatchCommand::addCommand(RtCommandPtr cmd)
+void RtCommandList::addCommand(RtCommandPtr cmd)
 {
     _getvec(_ptr)->push_back(cmd);
 }
 
-void RtBatchCommand::clearCommands()
+void RtCommandList::clearCommands()
 {
     _getvec(_ptr)->clear();
 }
 
-void RtBatchCommand::execute(RtCommandResult& result)
+void RtCommandList::execute(RtCommandResult& result)
 {
     for (RtCommandPtr cmd : *_getvec(_ptr))
     {
@@ -51,7 +51,7 @@ void RtBatchCommand::execute(RtCommandResult& result)
     }
 }
 
-void RtBatchCommand::undo(RtCommandResult& result)
+void RtCommandList::undo(RtCommandResult& result)
 {
     for (RtCommandPtr cmd : *_getvec(_ptr))
     {
@@ -63,7 +63,7 @@ void RtBatchCommand::undo(RtCommandResult& result)
     }
 }
 
-void RtBatchCommand::redo(RtCommandResult& result)
+void RtCommandList::redo(RtCommandResult& result)
 {
     for (RtCommandPtr cmd : *_getvec(_ptr))
     {

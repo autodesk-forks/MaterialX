@@ -45,7 +45,7 @@ private:
 
 /// @class RtRemovePrimCmd
 /// Command for removing a prim.
-class RtRemovePrimCmd : public RtBatchCommand
+class RtRemovePrimCmd : public RtCommandList
 {
 public:
     RtRemovePrimCmd(RtStagePtr stage, const RtPath& path):
