@@ -12,6 +12,8 @@
 #include <MaterialXRuntime/RtPath.h>
 #include <MaterialXRuntime/RtPointer.h>
 
+#include <MaterialXCore/Util.h>
+
 namespace MaterialX
 {
 
@@ -27,7 +29,7 @@ public:
     }
 
     /// Construct a command result from a boolean state and an optional error message.
-    RtCommandResult(bool success, const string& message = "") :
+    RtCommandResult(bool success, const string& message = EMPTY_STRING) :
         _success(success),
         _message(message)
     {
@@ -35,7 +37,7 @@ public:
 
     /// Construct a command result from a return object and optionally
     /// a boolean state and an error message.
-    RtCommandResult(const RtObject& object, bool success = true, const string& message = "") :
+    RtCommandResult(const RtObject& object, bool success = true, const string& message = EMPTY_STRING) :
         _success(success),
         _message(message),
         _object(object)
