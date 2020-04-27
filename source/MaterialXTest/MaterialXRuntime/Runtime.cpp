@@ -34,7 +34,7 @@
 #include <MaterialXRuntime/RtCollection.h>
 
 #include <MaterialXRuntime/Commands/PrimCommands.h>
-#include <MaterialXRuntime/Commands/ConnectionCommands.h>
+#include <MaterialXRuntime/Commands/AttributeCommands.h>
 #include <MaterialXRuntime/Commands/UndoCommands.h>
 
 #include <cstdlib>
@@ -191,7 +191,7 @@ TEST_CASE("Runtime: Values", "[runtime]")
     // Test creating large values.
     // An stage is needed to take ownership of allocated data.
     mx::RtStagePtr stage = api->createStage(MAIN);
-    mx::RtObject rootPrim = stage->getRootPrim();
+    mx::RtPrim rootPrim = stage->getRootPrim();
 
     const std::string teststring("MaterialX");
     mx::RtValue str(teststring, rootPrim);
@@ -296,7 +296,7 @@ TEST_CASE("Runtime: Types", "[runtime]")
     // Test create/parse/copy values
     // An stage is needed to hold allocated data.
     mx::RtStagePtr stage = api->createStage(MAIN);
-    mx::RtObject rootPrim = stage->getRootPrim();
+    mx::RtPrim rootPrim = stage->getRootPrim();
 
     mx::RtValue fooValue = fooType->createValue(rootPrim);
     REQUIRE(fooValue.asInt() == 7);
@@ -1899,6 +1899,42 @@ TEST_CASE("Runtime: commands", "[runtime]")
     mx::RtCommand::redo(result);
     REQUIRE(result);
     REQUIRE(foo.getName() == BAR);
+
+    //
+    // Test setting attribute values
+    //
+    mx::RtAttribute in1 = add2.getAttribute(IN1);
+    mx::RtAttribute in2 = add2.getAttribute(IN2);
+    in1.getValue().asFloat() = 1.0f;
+    in2.getValue().asFloat() = 1.0f;
+
+    mx::RtCommand::setAttribute(in1, 3.0f, result);
+    REQUIRE(result);
+    REQUIRE(in1.getValue().asFloat() == 3.0f);
+
+    mx::RtCommand::setAttribute(in2, 7.0f, result);
+    REQUIRE(result);
+    REQUIRE(in2.getValue().asFloat() == 7.0f);
+
+    mx::RtCommand::undo(result);
+    REQUIRE(result);
+    REQUIRE(in1.getValue().asFloat() == 3.0f);
+    REQUIRE(in2.getValue().asFloat() == 1.0f);
+
+    mx::RtCommand::undo(result);
+    REQUIRE(result);
+    REQUIRE(in1.getValue().asFloat() == 1.0f);
+    REQUIRE(in2.getValue().asFloat() == 1.0f);
+
+    mx::RtCommand::redo(result);
+    REQUIRE(result);
+    REQUIRE(in1.getValue().asFloat() == 3.0f);
+    REQUIRE(in2.getValue().asFloat() == 1.0f);
+
+    mx::RtCommand::redo(result);
+    REQUIRE(result);
+    REQUIRE(in1.getValue().asFloat() == 3.0f);
+    REQUIRE(in2.getValue().asFloat() == 7.0f);
 
     //
     // Test making and breaking connections

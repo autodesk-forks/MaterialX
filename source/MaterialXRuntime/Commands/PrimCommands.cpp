@@ -4,7 +4,7 @@
 //
 
 #include <MaterialXRuntime/Commands/PrimCommands.h>
-#include <MaterialXRuntime/Commands/ConnectionCommands.h>
+#include <MaterialXRuntime/Commands/AttributeCommands.h>
 #include <MaterialXRuntime/RtApi.h>
 
 namespace MaterialX
