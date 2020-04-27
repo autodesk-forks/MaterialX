@@ -25,9 +25,13 @@ void PvtCommandEngine::undo(RtCommandResult& result)
     {
         RtCommandPtr cmd = _undoQueue.back();
         _undoQueue.pop_back();
-        _redoQueue.push_back(cmd);
 
         cmd->undo(result);
+
+        if (result.success())
+        {
+            _redoQueue.push_back(cmd);
+        }
     }
     else
     {
@@ -41,9 +45,13 @@ void PvtCommandEngine::redo(RtCommandResult& result)
     {
         RtCommandPtr cmd = _redoQueue.back();
         _redoQueue.pop_back();
-        _undoQueue.push_back(cmd);
 
         cmd->redo(result);
+
+        if (result.success())
+        {
+            _undoQueue.push_back(cmd);
+        }
     }
     else
     {
