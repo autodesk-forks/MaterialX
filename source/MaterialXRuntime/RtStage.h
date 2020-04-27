@@ -92,8 +92,8 @@ protected:
     void* _ptr;
     friend class PvtStage;
     friend class PvtApi;
-    friend class RtCreatePrimCmd;
-    friend class RtRemovePrimCmd;
+    friend class PvtCreatePrimCmd;
+    friend class PvtRemovePrimCmd;
 };
 
 }

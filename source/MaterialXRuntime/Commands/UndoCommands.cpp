@@ -6,6 +6,8 @@
 #include <MaterialXRuntime/Commands/UndoCommands.h>
 #include <MaterialXRuntime/RtApi.h>
 
+#include <MaterialXRuntime/Private/PvtApi.h>
+
 namespace MaterialX
 {
 
@@ -14,17 +16,17 @@ namespace RtCommand
 
 void undo(RtCommandResult& result)
 {
-    RtApi::get().getCommandEngine().undo(result);
+    PvtApi::cast(RtApi::get())->getCommandEngine().undo(result);
 }
 
 void redo(RtCommandResult& result)
 {
-    RtApi::get().getCommandEngine().redo(result);
+    PvtApi::cast(RtApi::get())->getCommandEngine().redo(result);
 }
 
 void flushUndoQueue()
 {
-    RtApi::get().getCommandEngine().flushUndoQueue();
+    PvtApi::cast(RtApi::get())->getCommandEngine().flushUndoQueue();
 }
 
 }

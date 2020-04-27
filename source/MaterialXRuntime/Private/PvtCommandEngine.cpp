@@ -8,7 +8,54 @@
 namespace MaterialX
 {
 
-void PvtCommandEngine::execute(RtCommandPtr cmd, RtCommandResult& result)
+void PvtCommandList::addCommand(PvtCommandPtr cmd)
+{
+    _commands.push_back(cmd);
+}
+
+void PvtCommandList::clearCommands()
+{
+    _commands.clear();
+}
+
+void PvtCommandList::execute(RtCommandResult& result)
+{
+    for (PvtCommandPtr cmd : _commands)
+    {
+        cmd->execute(result);
+        if (!result.success())
+        {
+            break;
+        }
+    }
+}
+
+void PvtCommandList::undo(RtCommandResult& result)
+{
+    for (PvtCommandPtr cmd : _commands)
+    {
+        cmd->undo(result);
+        if (!result.success())
+        {
+            break;
+        }
+    }
+}
+
+void PvtCommandList::redo(RtCommandResult& result)
+{
+    for (PvtCommandPtr cmd : _commands)
+    {
+        cmd->redo(result);
+        if (!result.success())
+        {
+            break;
+        }
+    }
+}
+
+
+void PvtCommandEngine::execute(PvtCommandPtr cmd, RtCommandResult& result)
 {
     cmd->execute(result);
 
@@ -23,7 +70,7 @@ void PvtCommandEngine::undo(RtCommandResult& result)
 {
     if (!_undoQueue.empty())
     {
-        RtCommandPtr cmd = _undoQueue.back();
+        PvtCommandPtr cmd = _undoQueue.back();
         _undoQueue.pop_back();
 
         cmd->undo(result);
@@ -43,7 +90,7 @@ void PvtCommandEngine::redo(RtCommandResult& result)
 {
     if (!_redoQueue.empty())
     {
-        RtCommandPtr cmd = _redoQueue.back();
+        PvtCommandPtr cmd = _redoQueue.back();
         _redoQueue.pop_back();
 
         cmd->redo(result);

@@ -20,11 +20,6 @@
 namespace MaterialX
 {
 
-class RtCommandEngine;
-
-/// Function type for creating prims for a typed schema.
-using RtPrimCreateFunc = std::function<RtPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)>;
-
 class RtApi
 {
 public:
@@ -35,9 +30,6 @@ public:
 
     /// Shutdown the API session.
     void shutdown();
-
-    /// Return the command engine.
-    RtCommandEngine& getCommandEngine();
 
     /// Register a create function for a typename.
     void registerCreateFunction(const RtToken& typeName, RtPrimCreateFunc func);
@@ -153,7 +145,9 @@ public:
 
 protected:
     RtApi();
+
     void* _ptr;
+    friend class PvtApi;
 };
 
 

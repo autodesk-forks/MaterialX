@@ -9,7 +9,7 @@
 /// @file
 /// Commands for undo/redo handling.
 
-#include <MaterialXRuntime/RtCommandEngine.h>
+#include <MaterialXRuntime/RtCommand.h>
 
 namespace MaterialX
 {

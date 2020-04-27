@@ -9,64 +9,11 @@
 /// @file
 /// Commands for connection handling.
 
-#include <MaterialXRuntime/RtCommandEngine.h>
+#include <MaterialXRuntime/RtCommand.h>
 #include <MaterialXRuntime/RtAttribute.h>
 
 namespace MaterialX
 {
-
-class RtSetAttributeCmd : public RtCommandBase
-{
-public:
-    RtSetAttributeCmd(const RtAttribute& attr, const RtValue& value);
-
-    static RtCommandPtr create(const RtAttribute& attr, const RtValue& value);
-
-    void execute(RtCommandResult& result) override;
-    void undo(RtCommandResult& result) override;
-    void redo(RtCommandResult& result) override;
-
-private:
-    RtAttribute _attr;
-    RtValue _value;
-    RtValue _oldValue;
-};
-
-class RtMakeConnectionCmd : public RtCommandBase
-{
-public:
-    RtMakeConnectionCmd(const RtOutput& src, const RtInput& dest) :
-        _src(src),
-        _dest(dest)
-    {}
-
-    static RtCommandPtr create(const RtOutput& src, const RtInput& dest);
-
-    void execute(RtCommandResult& result) override;
-    void undo(RtCommandResult& result) override;
-
-private:
-    RtOutput _src;
-    RtInput _dest;
-};
-
-class RtBreakConnectionCmd : public RtCommandBase
-{
-public:
-    RtBreakConnectionCmd(const RtOutput& src, const RtInput& dest) :
-        _src(src),
-        _dest(dest)
-    {}
-
-    static RtCommandPtr create(const RtOutput& src, const RtInput& dest);
-
-    void execute(RtCommandResult& result) override;
-    void undo(RtCommandResult& result) override;
-
-private:
-    RtOutput _src;
-    RtInput _dest;
-};
 
 namespace RtCommand
 {
