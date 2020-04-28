@@ -187,6 +187,7 @@ endfunction(assign_source_group)
 add_subdirectory(source/MaterialXCore)
 add_subdirectory(source/MaterialXFormat)
 
+# Add shader generation subdirectories
 if (MATERIALX_BUILD_GEN)
     # TODO: split up libraries to only install those relevant to enabled generators
     add_subdirectory(libraries)
