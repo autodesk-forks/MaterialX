@@ -12,16 +12,17 @@
 namespace MaterialX
 {
 
-string removeExtension(const string& filename)
+FilePath removeExtension(const FilePath& file)
 {
-    size_t lastDot = filename.find_last_of('.');
-    if (lastDot == string::npos) return filename;
-    return filename.substr(0, lastDot);
+    string fileName = file.asString();
+    size_t lastDot = fileName.find_last_of('.');
+    if (lastDot == string::npos) return file;
+    return fileName.substr(0, lastDot);
 }
 
-string readFile(const string& filename)
+string readFile(const FilePath& filePath)
 {
-    std::ifstream file(filename, std::ios::in);
+    std::ifstream file(filePath.asString(), std::ios::in);
     if (file)
     {
         std::stringstream stream;
@@ -65,12 +66,20 @@ void loadDocuments(const FilePath& rootPath, const FileSearchPath& searchPath, c
     }
 }
 
-void loadLibrary(const FilePath& file, DocumentPtr doc, const FileSearchPath* searchPath)
+void loadLibrary(const FilePath& file, DocumentPtr doc, const FileSearchPath* searchPath, XmlReadOptions* readOptions)
 {
     DocumentPtr libDoc = createDocument();
-    XmlReadOptions readOptions;
-    readOptions.skipConflictingElements = true;
-    readFromXmlFile(libDoc, file, searchPath ? *searchPath : FileSearchPath(), &readOptions);
+    XmlReadOptions localOptions;
+    localOptions.skipConflictingElements = true;
+    if (!readOptions)
+    {
+        readOptions = &localOptions;
+    }
+    else
+    {
+        readOptions->skipConflictingElements = true;
+    }
+    readFromXmlFile(libDoc, file, searchPath ? *searchPath : FileSearchPath(), readOptions);
     CopyOptions copyOptions;
     copyOptions.skipConflictingElements = true;
     doc->importLibrary(libDoc, &copyOptions);
@@ -79,7 +88,8 @@ void loadLibrary(const FilePath& file, DocumentPtr doc, const FileSearchPath* se
 StringVec loadLibraries(const StringVec& libraryNames,
                         const FileSearchPath& searchPath,
                         DocumentPtr doc,
-                        const StringSet* excludeFiles)
+                        const StringSet* excludeFiles,
+                        XmlReadOptions* readOptions)
 {
     StringVec loadedLibraries;
     for (const std::string& libraryName : libraryNames)
@@ -92,7 +102,7 @@ StringVec loadLibraries(const StringVec& libraryNames,
                 if (!excludeFiles || !excludeFiles->count(filename))
                 {
                     const FilePath& file = path / filename;
-                    loadLibrary(file, doc, &searchPath);
+                    loadLibrary(file, doc, &searchPath, readOptions);
                     loadedLibraries.push_back(file.asString());
                 }
             }
