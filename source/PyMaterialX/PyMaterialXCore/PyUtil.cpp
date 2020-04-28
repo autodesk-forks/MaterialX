@@ -18,10 +18,10 @@ void bindPyUtil(py::module& mod)
     mod.def("getVersionString", &mx::getVersionString);
     mod.def("getVersionIntegers", &mx::getVersionIntegers);
     mod.def("createValidName", &mx::createValidName, py::arg("name"), py::arg("replaceChar") = '_');
-    mod.def("makeVersionString", &mx::makeVersionString);
     mod.def("isValidName", &mx::isValidName);
     mod.def("incrementName", &mx::incrementName);
     mod.def("splitString", &mx::splitString);
     mod.def("replaceSubstrings", &mx::replaceSubstrings);
+    mod.def("stringEndsWith", &mx::stringEndsWith);
     mod.def("prettyPrint", &mx::prettyPrint);
 }

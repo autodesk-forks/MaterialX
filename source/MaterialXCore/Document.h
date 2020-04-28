@@ -360,6 +360,8 @@ class Document : public GraphElement
     ///     If no name is specified, then a unique name will automatically be
     ///     generated.
     /// @param type An optional type string.
+    ///     If specified, then the new NodeDef will be assigned an Output of
+    ///     the given type.
     /// @param node An optional node string.
     /// @return A shared pointer to the new NodeDef.
     NodeDefPtr addNodeDef(const string& name = EMPTY_STRING,
@@ -398,6 +400,38 @@ class Document : public GraphElement
 
     /// Return a vector of all NodeDef elements that match the given node name.
     vector<NodeDefPtr> getMatchingNodeDefs(const string& nodeName) const;
+
+    /// @}
+    /// @name AttributeDef Elements
+    /// @{
+
+    /// Add an AttributeDef to the document.
+    /// @param name The name of the new AttributeDef.
+    ///     If no name is specified, then a unique name will automatically be
+    ///     generated.
+    /// @return A shared pointer to the new AttributeDef.
+    AttributeDefPtr addAttributeDef(const string& name = EMPTY_STRING)
+    {
+        return addChild<AttributeDef>(name);
+    }
+
+    /// Return the AttributeDef, if any, with the given name.
+    AttributeDefPtr getAttributeDef(const string& name) const
+    {
+        return getChildOfType<AttributeDef>(name);
+    }
+
+    /// Return a vector of all AttributeDef elements in the document.
+    vector<AttributeDefPtr> getAttributeDefs() const
+    {
+        return getChildrenOfType<AttributeDef>();
+    }
+
+    /// Remove the AttributeDef, if any, with the given name.
+    void removeAttributeDef(const string& name)
+    {
+        removeChildOfType<AttributeDef>(name);
+    }
 
     /// @}
     /// @name PropertySet Elements
@@ -570,11 +604,10 @@ class Document : public GraphElement
     std::pair<int, int> getVersionIntegers() const override;
 
     /// Upgrade the content of this document from earlier supported versions to
-    /// the library version.  Documents from future versions are left unmodified.
-    void upgradeVersion(int desiredMajorVersion, int desiredMinorVersion);
-
-    // Convert Material Elements to Material Nodes
-    bool convertMaterialsToNodes(bool replaceNodes);
+    /// the library version.
+    /// @param applyFutureUpdates Apply updates that test prototype functionality
+    ///    for future versions of MaterialX
+    void upgradeVersion(bool applyFutureUpdates = false);
 
     /// @}
     /// @name Color Management System

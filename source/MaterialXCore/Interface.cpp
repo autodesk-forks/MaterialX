@@ -72,15 +72,12 @@ bool PortElement::validate(string* message) const
     bool res = true;
 
     NodePtr connectedNode = getConnectedNode();
-    if (hasNodeName())
+    if (hasNodeName() || hasOutputString())
     {
-        if (!connectedNode)
+        NodeGraphPtr nodeGraph = resolveRootNameReference<NodeGraph>(getNodeName());
+        if (!nodeGraph)
         {
-            NodeGraphPtr nodeGraph = resolveRootNameReference<NodeGraph>(getNodeName());
-            if (!nodeGraph)
-            {
-                validateRequire(connectedNode != nullptr, res, message, "Invalid port connection");
-            }
+            validateRequire(connectedNode != nullptr, res, message, "Invalid port connection");
         }
     }
     if (connectedNode)

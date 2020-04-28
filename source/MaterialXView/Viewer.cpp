@@ -17,6 +17,7 @@
 #include <MaterialXGenOgsFx/MayaGlslPluginShaderGenerator.h>
 
 #include <MaterialXFormat/Environ.h>
+#include <MaterialXFormat/Util.h>
 
 #include <nanogui/button.h>
 #include <nanogui/combobox.h>
@@ -41,21 +42,12 @@ const std::string DIR_LIGHT_NODE_CATEGORY = "directional_light";
 const std::string IRRADIANCE_MAP_FOLDER = "irradiance";
 
 const float ENV_MAP_SPLIT_RADIANCE = 16.0f;
-const float MAX_ENV_TEXEL_RADIANCE = 36000.0f;
-const float IDEAL_ENV_MAP_RADIANCE = 5.2374f;
+const float MAX_ENV_TEXEL_RADIANCE = 100000.0f;
+const float IDEAL_ENV_MAP_RADIANCE = 6.0f;
 
 const float MODEL_SPHERE_RADIUS = 2.0f;
 
 namespace {
-
-bool stringEndsWith(const std::string& str, std::string const& end)
-{
-    if (str.length() >= end.length())
-    {
-        return !str.compare(str.length() - end.length(), end.length(), end);
-    }
-    return false;
-}
 
 void writeTextFile(const std::string& text, const std::string& filePath)
 {
@@ -110,7 +102,7 @@ void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers& modifiers)
         if (elem->hasFilePrefix() && !modifiers.filePrefixTerminator.empty())
         {
             std::string filePrefix = elem->getFilePrefix();
-            if (!stringEndsWith(filePrefix, modifiers.filePrefixTerminator))
+            if (!mx::stringEndsWith(filePrefix, modifiers.filePrefixTerminator))
             {
                 elem->setFilePrefix(filePrefix + modifiers.filePrefixTerminator);
             }
@@ -190,6 +182,7 @@ Viewer::Viewer(const std::string& materialFilename,
     _farDist(5000.0f),
     _cameraYaw(0.0f),
     _modelZoom(1.0f),
+    _modelYaw(0.0f),
     _userZoom(1.0f),
     _userTranslationActive(false),
     _userTranslationPixel(0, 0),
@@ -227,7 +220,12 @@ Viewer::Viewer(const std::string& materialFilename,
     _envSamples(DEFAULT_ENV_SAMPLES),
     _drawEnvironment(false),
     _showAdvancedProperties(false),
-    _captureFrame(false),
+    _captureRequested(false),
+    _wedgeRequested(false),
+    _wedgePropertyName("specular_roughness"),
+    _wedgePropertyMin(0.0f),
+    _wedgePropertyMax(1.0f),
+    _wedgeImageCount(8),
     _bakeRequested(false)
 {
     _window = new ng::Window(this, "Viewer Options");
@@ -260,6 +258,7 @@ Viewer::Viewer(const std::string& materialFilename,
     mx::ImageLoaderPtr imageLoader = mx::StbImageLoader::create();
 #endif
     _imageHandler = mx::GLTextureHandler::create(imageLoader);
+    _imageHandler->setSearchPath(_searchPath);
 
     // Initialize user interfaces.
     createLoadMeshInterface(_window, "Load Mesh");
@@ -378,7 +377,7 @@ void Viewer::loadEnvironmentLight()
     std::string message;
 
     // Load the requested radiance map.
-    mx::ImagePtr envRadianceMap = _imageHandler->acquireImage(_searchPath.find(_envRadiancePath), true, nullptr, &message);
+    mx::ImagePtr envRadianceMap = _imageHandler->acquireImage(_envRadiancePath, true, nullptr, &message);
     if (!envRadianceMap)
     {
         new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to load environment light", message);
@@ -411,7 +410,7 @@ void Viewer::loadEnvironmentLight()
     if (!_normalizeEnvironment && !_splitDirectLight)
     {
         mx::FilePath envIrradiancePath = _envRadiancePath.getParentPath() / IRRADIANCE_MAP_FOLDER / _envRadiancePath.getBaseName();
-        envIrradianceMap = _imageHandler->acquireImage(_searchPath.find(envIrradiancePath), true, nullptr, &message);
+        envIrradianceMap = _imageHandler->acquireImage(envIrradiancePath, true, nullptr, &message);
     }
 
     // If not found, then generate an irradiance map via spherical harmonics.
@@ -445,8 +444,8 @@ void Viewer::loadEnvironmentLight()
     // Look for a light rig using an expected filename convention.
     if (!_splitDirectLight)
     {
-        _lightRigFilename = mx::removeExtension(_envRadiancePath) + "." + mx::MTLX_EXTENSION;
-        if (_lightRigFilename.exists())
+        _lightRigFilename = mx::removeExtension(_envRadiancePath).asString() + "." + mx::MTLX_EXTENSION;
+        if (_searchPath.find(_lightRigFilename).exists())
         {
             _lightRigDoc = mx::createDocument();
             mx::readFromXmlFile(_lightRigDoc, _lightRigFilename, _searchPath);
@@ -631,46 +630,15 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
         // Save document
         if (material && !filename.isEmpty())
         {
-            mx::DocumentPtr doc = material->getDocument();
             if (filename.getExtension() != mx::MTLX_EXTENSION)
             {
-                filename = mx::FilePath(filename.asString() + "." + mx::MTLX_EXTENSION);
+                filename.addExtension(mx::MTLX_EXTENSION);
             }
 
-            if (_bakeTextures && material->getMaterialElement())
+            if (_bakeTextures)
             {
-
-                mx::FileSearchPath searchPath = _searchPath;
-                if (material->getDocument())
-                {
-                    mx::FilePath documentFilename = material->getDocument()->getSourceUri();
-                    searchPath.append(documentFilename.getParentPath());
-                }
-
-                mx::ImageHandlerPtr imageHandler = mx::GLTextureHandler::create(mx::StbImageLoader::create());
-                imageHandler->setSearchPath(searchPath);
-                if (!material->getUdim().empty())
-                {
-                    mx::StringResolverPtr resolver = mx::StringResolver::create();
-                    resolver->setUdimString(material->getUdim());
-                    imageHandler->setFilenameResolver(resolver);
-                }
-
-                mx::TextureBakerPtr baker = mx::TextureBaker::create();
-                baker->setImageHandler(imageHandler);
-
-                mx::ShaderRefPtr shaderRef = material->getElement()->asA<mx::ShaderRef>();
-                if (shaderRef)
-                {
-                    baker->bakeShaderInputs(shaderRef, _genContext, filename.getParentPath());
-                    baker->writeBakedDocument(shaderRef, filename);
-                }
-                mx::NodePtr shader = material->getElement()->asA<mx::Node>();
-                if (shader)
-                {
-                    baker->bakeShaderInputs(shader, _genContext, filename.getParentPath());
-                    baker->writeBakedDocument(shader, filename);
-                }
+                _bakeRequested = true;
+                _bakeFilename = filename;
             }
             else
             {
@@ -686,7 +654,7 @@ void Viewer::createSaveMaterialsInterface(Widget* parent, const std::string& lab
                 mx::XmlWriteOptions writeOptions;
                 writeOptions.writeXIncludeEnable = true;
                 writeOptions.elementPredicate = skipXincludes;
-                mx::writeToXmlFile(doc, filename, &writeOptions);
+                mx::writeToXmlFile(material->getDocument(), filename, &writeOptions);
             }
 
             // Update material file name
@@ -958,8 +926,6 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
 {
     // Set up read options.
     mx::XmlReadOptions readOptions;
-    readOptions.desiredMajorVersion = 1;
-    readOptions.desiredMinorVersion = 38;
     readOptions.skipConflictingElements = true;
     readOptions.readXIncludeFunction = [](mx::DocumentPtr doc, const mx::FilePath& filename,
                                           const mx::FileSearchPath& searchPath, const mx::XmlReadOptions* options)
@@ -1088,12 +1054,14 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
 
         if (!newMaterials.empty())
         {
+            // Extend the image search path to include this material folder.
+            mx::FilePath materialFolder = _materialFilename.getParentPath();
+            mx::FileSearchPath materialSearchPath = _searchPath;
+            materialSearchPath.append(materialFolder);
+            _imageHandler->setSearchPath(materialSearchPath);
+
             // Add new materials to the global vector.
             _materials.insert(_materials.end(), newMaterials.begin(), newMaterials.end());
-
-            // Set the default image search path.
-            mx::FilePath materialFolder = _materialFilename.getParentPath();
-            _imageHandler->setSearchPath(mx::FileSearchPath(materialFolder));
 
             mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
             MaterialPtr udimMaterial = nullptr;
@@ -1187,6 +1155,9 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
         new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to load material", e.what());
         return;
     }
+
+    // Restore the original image search path.
+    _imageHandler->setSearchPath(_searchPath);
 
     // Update material UI.
     updateMaterialSelections();
@@ -1381,6 +1352,10 @@ void Viewer::loadStandardLibraries()
 {
     // Initialize the standard library.
     _stdLib = loadLibraries(_libraryFolders, _searchPath);
+    if (_stdLib->getChildren().empty())
+    {
+        std::cerr << "Could not find standard data libraries on the given search path: " << _searchPath.asString() << std::endl;
+    }
     for (std::string sourceUri : _stdLib->getReferencedSourceUris())
     {
         _xincludeFiles.insert(sourceUri);
@@ -1417,6 +1392,16 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
     if (Screen::keyboardEvent(key, scancode, action, modifiers))
     {
         return true;
+    }
+
+    // Adjust camera zoom.
+    if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS)
+    {
+        _userZoom *= 1.1f;
+    }
+    if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS)
+    {
+        _userZoom = std::max(0.1f, _userZoom * 0.9f);
     }
 
     // Reload the current document, and optionally the standard libraries, from
@@ -1479,29 +1464,31 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
         return true;
     }
 
-    // Capture the current frame and save to file.
+    // Capture the current frame and save as an image file.
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
-        mx::StringSet extensions;
-        _imageHandler->supportedExtensions(extensions);
-        if (!extensions.empty())
+        _captureFilename = ng::file_dialog({ { mx::ImageLoader::TGA_EXTENSION, mx::ImageLoader::TGA_EXTENSION } }, true);
+        if (!_captureFilename.isEmpty())
         {
-            std::vector<std::pair<std::string, std::string>> filetypes;
-            for (const auto& extension : extensions)
+            if (_captureFilename.getExtension() != mx::ImageLoader::TGA_EXTENSION)
             {
-                filetypes.push_back(std::make_pair(extension, extension));
+                _captureFilename.addExtension(mx::ImageLoader::TGA_EXTENSION);
             }
-            std::string fileName = ng::file_dialog(filetypes, true);
-            if (!fileName.empty())
+            _captureRequested = true;
+        }
+    }
+
+    // Render a wedge for the current material.
+    if (key == GLFW_KEY_W && action == GLFW_PRESS)
+    {
+        _wedgeFilename = ng::file_dialog({ { mx::ImageLoader::TGA_EXTENSION, mx::ImageLoader::TGA_EXTENSION } }, true);
+        if (!_wedgeFilename.isEmpty())
+        {
+            if (_wedgeFilename.getExtension() != mx::ImageLoader::TGA_EXTENSION)
             {
-                std::string fileExtension = mx::FilePath(fileName).getExtension();
-                if (extensions.count(fileExtension) == 0)
-                {
-                    fileName += "." + *extensions.begin();
-                }
-                _captureFrameFilename = fileName;
-                _captureFrame = true;
+                _wedgeFilename.addExtension(mx::ImageLoader::TGA_EXTENSION);
             }
+            _wedgeRequested = true;
         }
     }
 
@@ -1532,17 +1519,8 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
     return false;
 }
 
-void Viewer::drawContents()
+void Viewer::renderFrame()
 {
-    if (_geometryList.empty() || _materials.empty())
-    {
-        return;
-    }
-
-    updateViewHandlers();
-
-    checkGlErrors("before viewer render");
-
     // Initialize OpenGL state
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -1560,9 +1538,9 @@ void Viewer::drawContents()
         updateShadowMap();
         shadowState.shadowMap = _shadowMap;
         shadowState.shadowMatrix = _cameraViewHandler->worldMatrix.getInverse() *
-                                   _shadowViewHandler->worldMatrix *
-                                   _shadowViewHandler->viewMatrix *
-                                   _shadowViewHandler->projectionMatrix;
+            _shadowViewHandler->worldMatrix *
+            _shadowViewHandler->viewMatrix *
+            _shadowViewHandler->projectionMatrix;
     }
 
     const mx::Matrix44& world = _cameraViewHandler->worldMatrix;
@@ -1603,8 +1581,8 @@ void Viewer::drawContents()
         material->bindShader();
         material->bindViewInformation(world, view, proj);
         material->bindLights(_lightHandler, _imageHandler,
-                             _directLighting, _indirectLighting, shadowState,
-                             _specularEnvironmentMethod, _envSamples);
+            _directLighting, _indirectLighting, shadowState,
+            _specularEnvironmentMethod, _envSamples);
         material->bindImages(_imageHandler, _searchPath);
         material->drawPartition(geom);
         material->unbindImages(_imageHandler);
@@ -1626,13 +1604,13 @@ void Viewer::drawContents()
         material->bindShader();
         material->bindViewInformation(world, view, proj);
         material->bindLights(_lightHandler, _imageHandler,
-                             _directLighting, _indirectLighting, ShadowState(),
-                             _specularEnvironmentMethod, _envSamples);
+            _directLighting, _indirectLighting, ShadowState(),
+            _specularEnvironmentMethod, _envSamples);
         material->bindImages(_imageHandler, _searchPath);
         material->drawPartition(geom);
         material->unbindImages(_imageHandler);
     }
-    
+
     glDisable(GL_BLEND);
     glDisable(GL_FRAMEBUFFER_SRGB);
 
@@ -1645,71 +1623,133 @@ void Viewer::drawContents()
         _wireMaterial->drawPartition(getSelectedGeometry());
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
+}
 
-    // Frame capture
-    if (_captureFrame)
+mx::ImagePtr Viewer::getFrameImage()
+{
+    glFlush();
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    // Create an image with dimensions adjusted for device DPI.
+    mx::ImagePtr image = mx::Image::create((unsigned int) (mSize.x() * mPixelRatio),
+                                           (unsigned int) (mSize.y() * mPixelRatio), 3);
+    image->createResourceBuffer();
+
+    // Read pixels into the image buffer.
+    glReadPixels(0, 0, image->getWidth(), image->getHeight(), GL_RGB, GL_UNSIGNED_BYTE, image->getResourceBuffer());
+
+
+    return image;
+}
+
+mx::ImagePtr Viewer::renderWedge()
+{
+    MaterialPtr material = getSelectedMaterial();
+    mx::ShaderPort* uniform = material ? material->findUniform(_wedgePropertyName) : nullptr;
+    float origPropertyValue = uniform && uniform->getValue()->isA<float>() ? uniform->getValue()->asA<float>() : 0.0f;
+
+    std::vector<mx::ImagePtr> imageVec;
+    float wedgePropertyStep = (_wedgePropertyMax - _wedgePropertyMin) / (_wedgeImageCount - 1);
+    for (unsigned int i = 0; i < _wedgeImageCount; i++)
     {
-        _captureFrame = false;
+        if (material)
+        {
+            float propertyValue = (i == _wedgeImageCount - 1) ? _wedgePropertyMax : _wedgePropertyMin + wedgePropertyStep * i;
+            material->setUniformFloat(_wedgePropertyName, propertyValue);
+        }
+        renderFrame();
+        imageVec.push_back(getFrameImage());
+    }
 
-        glFlush();
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
+    if (material)
+    {
+        material->setUniformFloat(_wedgePropertyName, origPropertyValue);
+    }
 
-        // Create an image with dimensions adjusted for device DPI.
-        mx::ImagePtr image = mx::Image::create((unsigned int) (mSize.x() * mPixelRatio),
-                                               (unsigned int) (mSize.y() * mPixelRatio), 3);
-        image->createResourceBuffer();
+    return mx::createImageStrip(imageVec);
+}
 
-        // Read pixels into the image buffer.
-        glReadPixels(0, 0, image->getWidth(), image->getHeight(), GL_RGB, GL_UNSIGNED_BYTE, image->getResourceBuffer());
+void Viewer::bakeTextures()
+{
+    MaterialPtr material = getSelectedMaterial();
+    mx::ShaderRefPtr shaderRef = material->getElement()->asA<mx::ShaderRef>();
+    mx::FileSearchPath searchPath = _searchPath;
+    if (material->getDocument())
+    {
+        mx::FilePath documentFilename = material->getDocument()->getSourceUri();
+        searchPath.append(documentFilename.getParentPath());
+    }
 
-        // Save the image to disk.
-        bool saved = _imageHandler->saveImage(_captureFrameFilename, image, true);
-        if (!saved)
+    mx::ImageHandlerPtr imageHandler = mx::GLTextureHandler::create(mx::StbImageLoader::create());
+    imageHandler->setSearchPath(searchPath);
+    if (!material->getUdim().empty())
+    {
+        mx::StringResolverPtr resolver = mx::StringResolver::create();
+        resolver->setUdimString(material->getUdim());
+        imageHandler->setFilenameResolver(resolver);
+    }
+
+    try
+    {
+        mx::TextureBakerPtr baker = mx::TextureBaker::create();
+        baker->setImageHandler(imageHandler);
+        baker->bakeShaderInputs(shaderRef, _genContext, _bakeFilename.getParentPath());
+        baker->writeBakedDocument(shaderRef, _bakeFilename);
+    }
+    catch (mx::Exception& e)
+    {
+        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to bake textures", e.what());
+    }
+
+    glfwMakeContextCurrent(mGLFWWindow);
+    glfwGetFramebufferSize(mGLFWWindow, &mFBSize[0], &mFBSize[1]);
+    glViewport(0, 0, mFBSize[0], mFBSize[1]);
+}
+
+void Viewer::drawContents()
+{
+    if (_geometryList.empty() || _materials.empty())
+    {
+        return;
+    }
+
+    updateViewHandlers();
+
+    checkGlErrors("before viewer render");
+
+    // Render a wedge for the current material.
+    if (_wedgeRequested)
+    {
+        _wedgeRequested = false;
+        mx::ImagePtr wedgeImage = renderWedge();
+        if (!wedgeImage || !_imageHandler->saveImage(_wedgeFilename, wedgeImage, true))
         {
             new ng::MessageDialog(this, ng::MessageDialog::Type::Information,
-                "Failed to save frame to disk: ", _captureFrameFilename.asString());
+                "Failed to save wedge to disk: ", _wedgeFilename.asString());
         }
     }
 
-    // Texture baking
+    // Render the current frame.
+    renderFrame();
+
+    // Capture the current frame.
+    if (_captureRequested)
+    {
+        _captureRequested = false;
+        mx::ImagePtr frameImage = getFrameImage();
+        if (!frameImage || !_imageHandler->saveImage(_captureFilename, frameImage, true))
+        {
+            new ng::MessageDialog(this, ng::MessageDialog::Type::Information,
+                "Failed to save frame to disk: ", _captureFilename.asString());
+        }
+    }
+
+    // Bake textures for the current material.
     if (_bakeRequested)
     {
         _bakeRequested = false;
-
-        MaterialPtr material = getSelectedMaterial();
-        mx::ShaderRefPtr shaderRef = material->getElement()->asA<mx::ShaderRef>();
-        mx::FileSearchPath searchPath = _searchPath;
-        if (material->getDocument())
-        {
-            mx::FilePath documentFilename = material->getDocument()->getSourceUri();
-            searchPath.append(documentFilename.getParentPath());
-        }
-
-        mx::ImageHandlerPtr imageHandler = mx::GLTextureHandler::create(mx::StbImageLoader::create());
-        imageHandler->setSearchPath(searchPath);
-        if (!material->getUdim().empty())
-        {
-            mx::StringResolverPtr resolver = mx::StringResolver::create();
-            resolver->setUdimString(material->getUdim());
-            imageHandler->setFilenameResolver(resolver);
-        }
-
-        try
-        {
-            mx::TextureBakerPtr baker = mx::TextureBaker::create();
-            baker->setImageHandler(imageHandler);
-            baker->bakeShaderInputs(shaderRef, _genContext, _bakeFilename.getParentPath());
-            baker->writeBakedDocument(shaderRef, _bakeFilename);
-        }
-        catch (mx::Exception& e)
-        {
-            new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to bake textures", e.what());
-        }
-
-        glfwMakeContextCurrent(mGLFWWindow);
-        glfwGetFramebufferSize(mGLFWWindow, &mFBSize[0], &mFBSize[1]);
-        glViewport(0, 0, mFBSize[0], mFBSize[1]);
+        bakeTextures();
     }
 
     checkGlErrors("after viewer render");
@@ -1719,7 +1759,7 @@ bool Viewer::scrollEvent(const ng::Vector2i& p, const ng::Vector2f& rel)
 {
     if (!Screen::scrollEvent(p, rel))
     {
-        _userZoom = std::max(0.1f, _userZoom * ((rel.y() > 0) ? 1.1f : 0.9f));;
+        _userZoom = std::max(0.1f, _userZoom * ((rel.y() > 0) ? 1.1f : 0.9f));
     }
     return true;
 }
@@ -1831,11 +1871,13 @@ void Viewer::updateViewHandlers()
     float fH = std::tan(_viewAngle / 360.0f * PI) * _nearDist;
     float fW = fH * (float) mSize.x() / (float) mSize.y();
 
-    mx::Matrix44 cameraYaw = mx::Matrix44::createRotationY(_cameraYaw / 360.0f * PI);
+    mx::Matrix44 cameraYaw = mx::Matrix44::createRotationY(_cameraYaw / 180.0f * PI);
+    mx::Matrix44 modelYaw = mx::Matrix44::createRotationY(_modelYaw / 180.0f * PI);
     ng::Matrix4f ngArcball = _arcball.matrix();
     mx::Matrix44 arcball = mx::Matrix44(ngArcball.data(), ngArcball.data() + ngArcball.size());
 
-    _cameraViewHandler->worldMatrix = mx::Matrix44::createTranslation(_modelTranslation + _userTranslation) *
+    _cameraViewHandler->worldMatrix = modelYaw *
+                                      mx::Matrix44::createTranslation(_modelTranslation + _userTranslation) *
                                       mx::Matrix44::createScale(mx::Vector3(_modelZoom * _userZoom));
     _cameraViewHandler->viewMatrix = cameraYaw * arcball * mx::ViewHandler::createViewMatrix(_eye, _center, _up);
     _cameraViewHandler->projectionMatrix = mx::ViewHandler::createPerspectiveMatrix(-fW, fW, -fH, fH, _nearDist, _farDist);
@@ -1844,7 +1886,8 @@ void Viewer::updateViewHandlers()
     if (dirLight)
     {
         const float r = MODEL_SPHERE_RADIUS;
-        _shadowViewHandler->worldMatrix = mx::Matrix44::createTranslation(_modelTranslation) *
+        _shadowViewHandler->worldMatrix = modelYaw *
+                                          mx::Matrix44::createTranslation(_modelTranslation) *
                                           mx::Matrix44::createScale(mx::Vector3(_modelZoom));
         _shadowViewHandler->projectionMatrix = mx::ViewHandler::createOrthographicMatrix(-r, r, -r, r, 0.0f, r * 2.0f);
         mx::ValuePtr dir = dirLight->getInputValue("direction");
@@ -1874,9 +1917,8 @@ mx::ImagePtr Viewer::getAmbientOcclusionImage(MaterialPtr material)
     }
 
     std::string aoSuffix = material->getUdim().empty() ? AO_FILENAME_SUFFIX : AO_FILENAME_SUFFIX + "_" + material->getUdim();
-    mx::FilePath aoFilename = mx::removeExtension(_meshFilename) + aoSuffix + "." + AO_FILENAME_EXTENSION;
+    mx::FilePath aoFilename = mx::removeExtension(_meshFilename).asString() + aoSuffix + "." + AO_FILENAME_EXTENSION;
 
-    _imageHandler->setSearchPath(_searchPath);
     return _imageHandler->acquireImage(aoFilename, true, &AO_FALLBACK_COLOR);
 }
 

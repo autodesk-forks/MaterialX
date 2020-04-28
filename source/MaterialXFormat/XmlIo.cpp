@@ -238,17 +238,8 @@ void documentFromXml(DocumentPtr doc,
         elementFromXml(xmlRoot, doc, readOptions);
     }
 
-    if (readOptions)
-    {
-        doc->upgradeVersion(readOptions->desiredMajorVersion, readOptions->desiredMinorVersion);
-    }
-    else
-    {
-        std::tuple<int, int, int> versionIntegers = getVersionIntegers();
-        int majorVersion = std::get<0>(versionIntegers);
-        int minorVersion = std::get<1>(versionIntegers);
-        doc->upgradeVersion(majorVersion, minorVersion);
-    }
+    bool applyFutureUpdates = readOptions ? readOptions->applyFutureUpdates : false;
+    doc->upgradeVersion(applyFutureUpdates);
 }
 
 } // anonymous namespace
@@ -258,11 +249,9 @@ void documentFromXml(DocumentPtr doc,
 //
 
 XmlReadOptions::XmlReadOptions() :
-    readXIncludeFunction(readFromXmlFile)
+    readXIncludeFunction(readFromXmlFile),
+    applyFutureUpdates(false)
 {
-    std::tuple<int, int, int> versionIntegers = getVersionIntegers();
-    desiredMajorVersion = std::get<0>(versionIntegers);
-    desiredMinorVersion = std::get<1>(versionIntegers);
 }
 
 //

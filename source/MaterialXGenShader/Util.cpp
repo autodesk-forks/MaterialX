@@ -12,113 +12,8 @@
 #include <MaterialXFormat/XmlIo.h>
 #include <MaterialXFormat/PugiXML/pugixml.hpp>
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
-
 namespace MaterialX
 {
-
-string removeExtension(const string& filename)
-{
-    size_t lastDot = filename.find_last_of('.');
-    if (lastDot == string::npos) return filename;
-    return filename.substr(0, lastDot);
-}
-
-bool readFile(const string& filename, string& contents)
-{
-    std::ifstream file(filename, std::ios::in);
-    if (file)
-    {
-        StringStream stream;
-        stream << file.rdbuf();
-        file.close();
-        if (stream)
-        {
-            contents = stream.str();
-            return (contents.size() > 0);
-        }
-        return false;
-    }
-    return false;
-}
-
-void loadDocuments(const FilePath& rootPath, const FileSearchPath& searchPath, const StringSet& skipFiles,
-                   const StringSet& includeFiles, vector<DocumentPtr>& documents, StringVec& documentsPaths,
-                   const XmlReadOptions& readOptions, StringVec& errors)
-{
-    for (const FilePath& dir : rootPath.getSubDirectories())
-    {
-        for (const FilePath& file : dir.getFilesInDirectory(MTLX_EXTENSION))
-        {
-            if (!skipFiles.count(file) &&
-               (includeFiles.empty() || includeFiles.count(file)))
-            {
-                DocumentPtr doc = createDocument();
-                const FilePath filePath = dir / file;
-                try
-                {
-                    FileSearchPath readSearchPath(searchPath);
-                    readSearchPath.append(dir);
-                    readFromXmlFile(doc, filePath, readSearchPath, &readOptions);
-                    documents.push_back(doc);
-                    documentsPaths.push_back(filePath.asString());
-                }
-                catch (Exception& e)
-                {
-                    errors.push_back("Failed to load: " + filePath.asString() + ". Error: " + e.what());
-                }
-            }
-        }
-    }
-}
-
-void loadLibrary(const FilePath& file, DocumentPtr doc, const FileSearchPath* searchPath)
-{
-    DocumentPtr libDoc = createDocument();
-    XmlReadOptions readOptions;
-    readOptions.skipConflictingElements = true;
-    readFromXmlFile(libDoc, file, searchPath ? *searchPath : FileSearchPath(), &readOptions);
-    CopyOptions copyOptions;
-    copyOptions.skipConflictingElements = true;
-    doc->importLibrary(libDoc, &copyOptions);
-}
-
-StringVec loadLibraries(const StringVec& libraryNames,
-                        const FileSearchPath& searchPath,
-                        DocumentPtr doc,
-                        const StringSet* excludeFiles)
-{
-    StringVec loadedLibraries;
-    for (const std::string& libraryName : libraryNames)
-    {
-        FilePath libraryPath = searchPath.find(libraryName);
-        for (const FilePath& path : libraryPath.getSubDirectories())
-        {
-            for (const FilePath& filename : path.getFilesInDirectory(MTLX_EXTENSION))
-            {
-                if (!excludeFiles || !excludeFiles->count(filename))
-                {
-                    const FilePath& file = path / filename;
-                    loadLibrary(file, doc, &searchPath);
-                    loadedLibraries.push_back(file.asString());
-                }
-            }
-        }
-    }
-    return loadedLibraries;
-}
-
-StringVec loadLibraries(const StringVec& libraryNames,
-                        const FilePath& filePath,
-                        DocumentPtr doc,
-                        const StringSet* excludeFiles)
-{
-    FileSearchPath searchPath;
-    searchPath.append(filePath);
-    return loadLibraries(libraryNames, searchPath, doc, excludeFiles);
-}
 
 namespace
 {
@@ -500,41 +395,58 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
         const string& nodetype = nodeDef->getNodeString();
         if (nodetype == "standard_surface")
         {
-            bool opaque = false;
+            bool opaque = true;
 
-            // First check the transmission weight
+            // Check transmission
             BindInputPtr transmission = shaderRef->getBindInput("transmission");
-            if (!transmission)
+            if (transmission)
             {
-                opaque = true;
-            }
-            else if (transmission->getOutputString() == EMPTY_STRING)
-            {
-                // Unconnected, check the value
-                ValuePtr value = transmission->getValue();
-                if (!value || isZero(value->asA<float>()))
+                if (transmission->getConnectedOutput())
                 {
-                    opaque = true;
+                    opaque = false;
                 }
-            }
-
-            // Second check the opacity
-            if (opaque)
-            {
-                opaque = false;
-
-                BindInputPtr opacity = shaderRef->getBindInput("opacity");
-                if (!opacity)
+                else
                 {
-                    opaque = true;
-                }
-                else if (opacity->getOutputString() == EMPTY_STRING)
-                {
-                    // Unconnected, check the value
-                    ValuePtr value = opacity->getValue();
-                    if (!value || (value->isA<Color3>() && isWhite(value->asA<Color3>())))
+                    ValuePtr value = transmission->getValue();
+                    if (value && value->isA<float>() && !isZero(value->asA<float>()))
                     {
-                        opaque = true;
+                        opaque = false;
+                    }
+                }
+            }
+
+            // Check opacity
+            BindInputPtr opacity = shaderRef->getBindInput("opacity");
+            if (opacity)
+            {
+                if (opacity->getConnectedOutput())
+                {
+                    opaque = false;
+                }
+                else
+                {
+                    ValuePtr value = opacity->getValue();
+                    if (value && value->isA<Color3>() && !isWhite(value->asA<Color3>()))
+                    {
+                        opaque = false;
+                    }
+                }
+            }
+
+            // Check subsurface
+            BindInputPtr subsurface = shaderRef->getBindInput("subsurface");
+            if (subsurface)
+            {
+                if (subsurface->getConnectedOutput())
+                {
+                    opaque = false;
+                }
+                else
+                {
+                    ValuePtr value = subsurface->getValue();
+                    if (value && value->isA<float>() && !isZero(value->asA<float>()))
+                    {
+                        opaque = false;
                     }
                 }
             }

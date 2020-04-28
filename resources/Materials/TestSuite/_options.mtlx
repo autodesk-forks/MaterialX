@@ -13,7 +13,7 @@
    <nodedef name="TestSuiteOptions">
 
       <!-- List of comma separated file names acts as a filter to only test documents with these names -->
-      <parameter name="overrideFiles" type="string" value="standard_surface_plastic.mtlx,standard_surface_brass_tiled.mtlx,standard_surface_carpaint.mtlx,standard_surface_chrome.mtlx,standard_surface_copper.mtlx,standard_surface_default.mtlx,standard_surface_emission.mtlx,standard_surface_glass.mtlx,standard_surface_gold.mtlx,standard_surface_jade.mtlx,standard_surface_sheen.mtlx,standard_surface_velvet.mtlx,standard_surface_wood_tiled.mtlx,standard_surface_marble_solid.mtlx" />
+      <parameter name="overrideFiles" type="string" value="" />
 
       <!-- Comma separated list of light setup files. Only used for hardware shading languages  -->
       <parameter name="lightFiles" type="string" value="light_rig_test_2.mtlx" />
@@ -42,6 +42,9 @@
 
       <!-- Perform rendering validation test -->
       <parameter name="renderImages" type="boolean" value="true" />
+
+      <!-- Rendered image size if render validation test enabled -->
+      <parameter name="renderSize" type="vector2" value="512, 512" />
 
       <!-- Perform saving of image. Can only be disabled for GLSL tests -->
       <parameter name="saveImages" type="boolean" value="true" />
@@ -92,11 +95,8 @@
       <!-- External testing: extra comma separated list of test root paths -->
       <parameter name="externalTestPaths" type="string" value="" />
 
-      <!-- Desired major version to upgrade to if possible -->
-      <parameter name="desiredMajorVersion" type="integer" value="1" />
-
-      <!-- Desired minor version to upgrade to if possible -->
-      <parameter name="desiredMinorVersion" type="integer" value="38" />
+      <!-- Test prototype functionality for future versions of MaterialX -->
+      <parameter name="applyFutureUpdates" type="boolean" value="true" />
 
    </nodedef>
 </materialx>

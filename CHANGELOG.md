@@ -1,6 +1,24 @@
 # Change Log
 
+<<<<<<< HEAD
 ## [1.37.0] - 2020-03-10
+=======
+## [1.37.1] - Development
+
+### Added
+- Added initial support for wedge rendering in the viewer.
+- Added utility methods Backdrop\:\:setContainsElements and Backdrop\:\:getContainsElements.
+- Added backwards compatibility for OpenImageIO 1.x.
+
+### Changed
+- Updated the GLSL implementation of Smith masking-shadowing from uncorrelated to height-correlated forms.
+- Renamed Backdrop\:\:setContains and getContains to Backdrop\:\:setContainsString and getContainsString for consistency.
+- Added `applyFutureUpdates` to XmlReadOptions. Updates current applied include:
+  - Upgrade from Material Element to Material Node
+  - Fix for arguments of from `atan2(x,y)` to `atan2(y,x)`. (in1 and in2 arguments are swapped)
+
+## [1.37.0] - 2020-03-20
+>>>>>>> adsk_contrib/dev
 
 Updated the MaterialX library to the v1.37 specification.  See the [v1.37 changelist](http://www.materialx.org/assets/MaterialX.v1.37REV2.Changelist.pdf) for full details.
 

@@ -12,7 +12,7 @@
 
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 
-#include <MaterialXGenShader/UnitConverter.h>
+#include <MaterialXCore/Unit.h>
 
 namespace mx = MaterialX;
 namespace ng = nanogui;
@@ -36,6 +36,11 @@ class Viewer : public ng::Screen
     bool scrollEvent(const ng::Vector2i& p, const ng::Vector2f& rel) override;
     bool mouseMotionEvent(const ng::Vector2i& p, const ng::Vector2i& rel, int button, int modifiers) override;
     bool mouseButtonEvent(const ng::Vector2i& p, int button, bool down, int modifiers) override;
+
+    void renderFrame();
+    mx::ImagePtr getFrameImage();
+    mx::ImagePtr renderWedge();
+    void bakeTextures();
 
     ng::Window* getWindow() const
     {
@@ -143,6 +148,7 @@ class Viewer : public ng::Screen
 
     float _modelZoom;
     mx::Vector3 _modelTranslation;
+    float _modelYaw;
 
     float _userZoom;
     mx::Vector3 _userTranslation;
@@ -245,9 +251,17 @@ class Viewer : public ng::Screen
     // Property options
     bool _showAdvancedProperties;
 
-    // Image save
-    bool _captureFrame;
-    mx::FilePath _captureFrameFilename;
+    // Frame capture
+    bool _captureRequested;
+    mx::FilePath _captureFilename;
+
+    // Wedge rendering
+    bool _wedgeRequested;
+    mx::FilePath _wedgeFilename;
+    std::string _wedgePropertyName;
+    float _wedgePropertyMin;
+    float _wedgePropertyMax;
+    unsigned int _wedgeImageCount;
 
     // Texture baking
     bool _bakeRequested;

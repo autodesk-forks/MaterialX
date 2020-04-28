@@ -15,13 +15,10 @@
 
 #include <MaterialXFormat/File.h>
 
-#include <MaterialXGenShader/UnitConverter.h>
+#include <MaterialXCore/Unit.h>
 
 namespace MaterialX
 {
-
-/// Function type for creating prims for a typed schema.
-using RtPrimCreateFunc = std::function<RtPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)>;
 
 class RtApi
 {
@@ -148,7 +145,9 @@ public:
 
 protected:
     RtApi();
+
     void* _ptr;
+    friend class PvtApi;
 };
 
 
@@ -173,6 +172,12 @@ public:
     RtApi* operator->()
     {
         return &RtApi::get();
+    }
+
+    /// Access a reference to the api instance.
+    RtApi& operator*()
+    {
+        return RtApi::get();
     }
 };
 

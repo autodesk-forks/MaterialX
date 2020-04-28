@@ -42,11 +42,9 @@ class XmlReadOptions : public CopyOptions
     /// Defaults to an empty vector.
     StringVec parentXIncludes;
 
-    /// Desired major version on read. By default this is the same as the library version
-    int desiredMajorVersion;
-
-    /// Desired minor version on read. By default this is the same as the library version
-    int desiredMinorVersion;
+    /// Apply updates that test prototype functionality for future versions
+    /// of MaterialX.  Defaults to false.
+    bool applyFutureUpdates;
 };
 
 /// @class XmlWriteOptions

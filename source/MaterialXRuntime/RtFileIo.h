@@ -30,10 +30,6 @@ class RtReadOptions
     RtReadOptions();
     ~RtReadOptions() { }
 
-    /// If true, duplicate elements with non-identical content will be skipped;
-    /// otherwise they will trigger an exception.  Defaults to false.
-    bool skipConflictingElements;
-
     /// Filter function type used for filtering elements during read.
     /// If the filter returns false the element will not be read.
     ReadFilter readFilter;
@@ -41,11 +37,8 @@ class RtReadOptions
     /// Read look information
     bool readLookInformation;
 
-    /// The desired major version
-    unsigned int desiredMajorVersion;
-
-    /// The desired minor version
-    unsigned int desiredMinorVersion;
+    /// Apply latest updates
+    bool applyFutureUpdates;
 };
     
 /// @class RtWriteOptions

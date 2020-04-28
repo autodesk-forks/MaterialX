@@ -31,6 +31,139 @@ template<class T> shared_ptr<T> updateChildSubclass(ElementPtr parent, ElementPt
     return newChild;
 }
 
+bool convertMaterialsToNodes(DocumentPtr doc)
+{
+    bool modified = false;
+
+    vector<MaterialPtr> materials = doc->getMaterials();
+    for (auto m : materials)
+    {
+        // See if a node of this name has already been created.
+        // Should not occur otherwise there are duplicate existing
+        // Material elements.
+        string materialName = m->getName();
+        if (doc->getNode(materialName))
+        {
+            throw Exception("Material node already exists: " + materialName);
+        }
+
+        // Create a temporary name for the material element 
+        // so the new node can reuse the existing name.
+        string validName = doc->createValidChildName(materialName + "1");
+        m->setName(validName);
+
+        // Create a new material node
+        NodePtr materialNode = nullptr;
+
+        ShaderRefPtr sr;
+        // Only include the shader refs explicitly specified on the material instance
+        vector<ShaderRefPtr> srs = m->getShaderRefs();
+        for (size_t i = 0; i < srs.size(); i++)
+        {
+            sr = srs[i];
+
+            // See if shader has been created already.
+            // Should not occur as the shaderref is a uniquely named
+            // child of a uniquely named material element, but the two combined
+            // may have been used for another node instance which not a shader node.
+            string shaderNodeName = materialName + "_" + sr->getName();
+            NodePtr existingShaderNode = doc->getNode(shaderNodeName);
+            if (existingShaderNode)
+            {
+                const string& existingType = existingShaderNode->getType();
+                if (existingType == VOLUME_SHADER_TYPE_STRING ||
+                    existingType == SURFACE_SHADER_TYPE_STRING ||
+                    existingType == DISPLACEMENT_SHADER_TYPE_STRING)
+                {
+                    throw Exception("Shader node already exists: " + shaderNodeName);
+                }
+                else
+                {
+                    shaderNodeName = doc->createValidChildName(shaderNodeName);
+                }
+            }
+
+            modified = true;
+
+            // Find the shader type if defined
+            string shaderNodeType = SURFACE_SHADER_TYPE_STRING;
+            NodeDefPtr nodeDef = sr->getNodeDef();
+            if (nodeDef)
+            {
+                shaderNodeType = nodeDef->getType();
+            }
+
+            // Add in a new shader node
+            const string shaderNodeCategory = sr->getNodeString();
+            NodePtr shaderNode = doc->addNode(shaderNodeCategory, shaderNodeName, shaderNodeType);
+            shaderNode->setSourceUri(sr->getSourceUri());
+
+            for (auto valueElement : sr->getChildrenOfType<ValueElement>())
+            {
+                ElementPtr portChild = nullptr;
+
+                // Copy over bindinputs as inputs, and bindparams as params
+                if (valueElement->isA<BindInput>())
+                {
+                    portChild = shaderNode->addInput(valueElement->getName(), valueElement->getType());
+                }
+                else if (valueElement->isA<BindParam>())
+                {
+                    portChild = shaderNode->addParameter(valueElement->getName(), valueElement->getType());
+                }
+                if (portChild)
+                {
+                    // Copy over attributes.
+                    // Note: We preserve inputs which have nodegraph connections,
+                    // as well as top level output connections.
+                    portChild->copyContentFrom(valueElement);
+                }
+            }
+
+            // Copy over any bindtokens as tokens
+            for (auto bt : sr->getBindTokens())
+            {
+                TokenPtr token = shaderNode->addToken(bt->getName());
+                token->copyContentFrom(bt);
+            }
+
+            // Create a new material node if not already created and
+            // add a reference from the material node to the new shader node
+            if (!materialNode)
+            {
+                // Set the type of material based on current assumption that
+                // surfaceshaders + displacementshaders result in a surfacematerial
+                // while a volumeshader means a volumematerial needs to be created.
+                string materialNodeCategory =
+                    (shaderNodeType != VOLUME_SHADER_TYPE_STRING) ? SURFACE_MATERIAL_NODE_STRING
+                    : VOLUME_MATERIAL_NODE_STRING;
+                materialNode = doc->addNode(materialNodeCategory, materialName, MATERIAL_TYPE_STRING);
+                materialNode->setSourceUri(m->getSourceUri());
+                // Note: Inheritance does not get transfered to the node we do
+                // not perform the following:
+                //      - materialNode->setInheritString(m->getInheritString()); 
+            }
+            // Create input to replace each shaderref. Use shaderref name as unique
+            // input name.
+            InputPtr shaderInput = materialNode->addInput(shaderNodeType, shaderNodeType);
+            shaderInput->setNodeName(shaderNode->getName());
+            // Make sure to copy over any target and version information from the shaderref.
+            if (!sr->getTarget().empty())
+            {
+                shaderInput->setTarget(sr->getTarget());
+            }
+            if (!sr->getVersionString().empty())
+            {
+                shaderInput->setVersionString(sr->getVersionString());
+            }
+        }
+
+        // Remove existing material element
+        doc->removeChild(m->getName());
+    }
+    return modified;
+}
+
 } // anonymous namespace
 
 //
@@ -292,15 +425,15 @@ bool Document::validate(string* message) const
     return GraphElement::validate(message) && res;
 }
 
-void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
+void Document::upgradeVersion(bool applyFutureUpdates)
 {
     std::pair<int, int> versions = getVersionIntegers();
     int majorVersion = versions.first;
     int minorVersion = versions.second;
-    if (majorVersion == desiredMajorVersion &&
-        minorVersion == desiredMinorVersion)
+    if (majorVersion == MATERIALX_MAJOR_VERSION &&
+        minorVersion == MATERIALX_MINOR_VERSION &&
+        !applyFutureUpdates)
     {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
         return;
     }
 
@@ -319,12 +452,6 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
             }
         }
         minorVersion = 23;
-    }
-    if (majorVersion == desiredMajorVersion &&
-        minorVersion == desiredMinorVersion)
-    {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
-        return;
     }
 
     // Upgrade from v1.23 to v1.24
@@ -348,12 +475,6 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
         }
         minorVersion = 24;
     }
-    if (majorVersion == desiredMajorVersion &&
-        minorVersion == desiredMinorVersion)
-    {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
-        return;
-    }
 
     // Upgrade from v1.24 to v1.25
     if (majorVersion == 1 && minorVersion == 24)
@@ -367,12 +488,6 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
             }
         }
         minorVersion = 25;
-    }
-    if (majorVersion == desiredMajorVersion &&
-        minorVersion == desiredMinorVersion)
-    {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
-        return;
     }
 
     // Upgrade from v1.25 to v1.26
@@ -390,12 +505,6 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
             }
         }
         minorVersion = 26;
-    }
-    if (majorVersion == desiredMajorVersion &&
-        minorVersion == desiredMinorVersion)
-    {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
-        return;
     }
 
     // Upgrade from v1.26 to v1.34
@@ -499,6 +608,17 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
         }
 
         // Combine udim assignments into udim sets.
+        for (GeomInfoPtr geomInfo : getGeomInfos())
+        {
+            vector<ElementPtr> origChildren = geomInfo->getChildren();
+            for (ElementPtr child : origChildren)
+            {
+                if (child->getCategory() == "geomattr")
+                {
+                    updateChildSubclass<GeomProp>(geomInfo, child);
+                }
+            }
+        }
         if (getGeomPropValue("udim") && !getGeomPropValue("udimset"))
         {
             StringSet udimSet;
@@ -532,12 +652,6 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
 
         minorVersion = 34;
     }
-    if (majorVersion == desiredMajorVersion &&
-        minorVersion == desiredMinorVersion)
-    {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
-        return;
-    }
 
     // Upgrade from v1.34 to v1.35
     if (majorVersion == 1 && minorVersion == 34)
@@ -562,12 +676,6 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
             }
         }
         minorVersion = 35;
-    }
-    if (majorVersion == desiredMajorVersion &&
-        minorVersion == desiredMinorVersion)
-    {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
-        return;
     }
 
     // Upgrade from v1.35 to v1.36
@@ -640,12 +748,6 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
             }
         }
         minorVersion = 36;
-    }
-    if (majorVersion == desiredMajorVersion &&
-        minorVersion == desiredMinorVersion)
-    {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
-        return;
     }
 
     // Upgrade from 1.36 to 1.37
@@ -860,169 +962,73 @@ void Document::upgradeVersion(int desiredMajorVersion, int desiredMinorVersion)
         removeNodeDef("ND_rotate_vector3");
 
         minorVersion = 37;
-    }
-    if (majorVersion == desiredMajorVersion &&
-        minorVersion == desiredMinorVersion)
-    {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
-        return;
-    }
+    }  
 
-    if (majorVersion == 1 && minorVersion == 37)
+    // Apply latest updates on top of the current library version.	    
+    // When the next version become official, the update check	
+    // will be moved and applied the that library version.
+    if (applyFutureUpdates)
     {
-        // Convert material Elements to Nodes
-        convertMaterialsToNodes(true);
-        minorVersion = 38;
+        convertMaterialsToNodes(getDocument());
+
+        if (majorVersion == 1 && minorVersion == 37)
+        {
+            // Update atan2 interface
+            const string ATAN2 = "atan2";
+            const string IN1 = "in1";
+            const string IN2 = "in2";
+
+            // Update nodedefs
+            for (auto nodedef : getMatchingNodeDefs(ATAN2))
+            {
+                InputPtr input = nodedef->getInput(IN1);
+                InputPtr input2 = nodedef->getInput(IN2);
+                string inputValue = input->getValueString();
+                input->setValueString(input2->getValueString());
+                input2->setValueString(inputValue);
+            }
+
+            // Update nodes
+            for (ElementPtr elem : traverseTree())
+            {
+                NodePtr node = elem->asA<Node>();
+                if (!node)
+                {
+                    continue;
+                }
+                const string& nodeCategory = node->getCategory();
+                if (nodeCategory == ATAN2)
+                {
+                    InputPtr input = node->getInput(IN1);
+                    InputPtr input2 = node->getInput(IN2);
+                    if (input && input2)
+                    {
+                        string inputValue = input->getValueString();
+                        input->setValueString(input2->getValueString());
+                        input2->setValueString(inputValue);
+                    }
+                    else
+                    {
+                        if (input)
+                        {
+                            input->setName(IN2);
+                        }
+                        if (input2)
+                        {
+                            input2->setName(IN1);
+                        }
+                    }
+                }
+            }
+            minorVersion = 38;
+        }
     }
 
     if (majorVersion >= MATERIALX_MAJOR_VERSION &&
         minorVersion >= MATERIALX_MINOR_VERSION)
     {
-        setVersionString(makeVersionString(majorVersion, minorVersion));
+        setVersionString(makeVersionString(majorVersion, minorVersion)); 
     }
-}
-
-bool Document::convertMaterialsToNodes(bool replaceNodes)
-{
-    bool modified = false;
-
-    vector<MaterialPtr> materials = getMaterials();
-    for (auto m : materials)
-    {
-        // See if a node of this name has already been created.
-        // Should not occur otherwise there are duplicate existing
-        // Material elements.
-        string materialName = m->getName();
-        if (getNode(materialName))
-        {
-            throw Exception("Material node already exists: " + materialName);
-        }
-
-        // Create a temporary name for the material element 
-        // so the new node can reuse the existing name.
-        if (replaceNodes)
-        {
-            string validName = createValidChildName(materialName + "1");
-            m->setName(validName);
-        }
-        else
-        {
-            materialName = createValidChildName(materialName);
-        }
-
-        // Create a new material node
-        NodePtr materialNode = nullptr;
-
-        ShaderRefPtr sr;
-        // Only include the shader refs explicitly specified on the material instance
-        vector<ShaderRefPtr> srs = m->getShaderRefs();
-        for (size_t i = 0; i < srs.size(); i++)
-        {
-            sr = srs[i];
-
-            // See if shader has been created already.
-            // Should not occur as the shaderref is a uniquely named
-            // child of a uniquely named material element, but the two combined
-            // may have been used for another node instance which not a shader node.
-            string shaderNodeName = materialName + "_" + sr->getName();
-            NodePtr existingShaderNode = getNode(shaderNodeName);
-            if (existingShaderNode)
-            {
-                const string& existingType = existingShaderNode->getType();
-                if (existingType == VOLUME_SHADER_TYPE_STRING ||
-                    existingType == SURFACE_SHADER_TYPE_STRING ||
-                    existingType == DISPLACEMENT_SHADER_TYPE_STRING)
-                {
-                    throw Exception("Shader node already exists: " + shaderNodeName);
-                }
-                else
-                {
-                    shaderNodeName = createValidChildName(shaderNodeName);
-                }
-            }
-
-            modified = true;
-
-            // Find the shader type if defined
-            string shaderNodeType = SURFACE_SHADER_TYPE_STRING;
-            NodeDefPtr nodeDef = sr->getNodeDef();
-            if (nodeDef)
-            {
-                shaderNodeType = nodeDef->getType();
-            }
-
-            // Add in a new shader node
-            const string shaderNodeCategory = sr->getNodeString();
-            NodePtr shaderNode = addNode(shaderNodeCategory, shaderNodeName, shaderNodeType);
-            shaderNode->setSourceUri(sr->getSourceUri());
-
-            for (auto valueElement : sr->getChildrenOfType<ValueElement>())
-            {
-                ElementPtr portChild = nullptr;
-
-                // Copy over bindinputs as inputs, and bindparams as params
-                if (valueElement->isA<BindInput>())
-                {
-                    portChild = shaderNode->addInput(valueElement->getName(), valueElement->getType());
-                }
-                else if (valueElement->isA<BindParam>())
-                {
-                    portChild = shaderNode->addParameter(valueElement->getName(), valueElement->getType());
-                }
-                if (portChild)
-                {
-                    // Copy over attributes.
-                    // Note: We preserve inputs which have nodegraph connections,
-                    // as well as top level output connections.
-                    portChild->copyContentFrom(valueElement);
-                }
-            }
-
-            // Copy over any bindtokens as tokens
-            for (auto bt : sr->getBindTokens())
-            {
-                TokenPtr token = shaderNode->addToken(bt->getName());
-                token->copyContentFrom(bt);
-            }
-
-            // Create a new material node if not already created and
-            // add a reference from the material node to the new shader node
-            if (!materialNode)
-            {
-                // Set the type of material based on current assumption that
-                // surfaceshaders + displacementshaders result in a surfacematerial
-                // while a volumeshader means a volumematerial needs to be created.
-                string materialNodeCategory =
-                    (shaderNodeType != VOLUME_SHADER_TYPE_STRING) ? SURFACE_MATERIAL_NODE_STRING
-                    : VOLUME_MATERIAL_NODE_STRING;
-                materialNode = addNode(materialNodeCategory, materialName, MATERIAL_TYPE_STRING);
-                materialNode->setSourceUri(m->getSourceUri());
-                // Note: Inheritance does not get transfered to the node we do
-                // not perform the following:
-                //      - materialNode->setInheritString(m->getInheritString()); 
-            }
-            // Create input to replace each shaderref. Use shaderref name as unique
-            // input name.
-            InputPtr shaderInput = materialNode->addInput(shaderNodeType, shaderNodeType);
-            shaderInput->setNodeName(shaderNode->getName());
-            // Make sure to copy over any target and version information from the shaderref.
-            if (!sr->getTarget().empty())
-            {
-                shaderInput->setTarget(sr->getTarget());
-            }
-            if (!sr->getVersionString().empty())
-            {
-                shaderInput->setVersionString(sr->getVersionString());
-            }
-        }
-
-        // Remove existing material element
-        if (replaceNodes)
-        {
-            removeChild(m->getName());
-        }
-    }
-    return modified;
 }
 
 void Document::onAddElement(ElementPtr, ElementPtr)

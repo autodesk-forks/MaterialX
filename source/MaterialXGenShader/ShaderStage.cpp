@@ -10,9 +10,9 @@
 #include <MaterialXGenShader/Syntax.h>
 #include <MaterialXGenShader/Util.h>
 
-#include <MaterialXCore/Document.h>
-#include <MaterialXCore/Node.h>
 #include <MaterialXCore/Value.h>
+
+#include <MaterialXFormat/Util.h>
 
 namespace MaterialX
 {
@@ -206,6 +206,10 @@ void ShaderStage::beginScope(Syntax::Punctuation punc)
         beginLine();
         _code += "[" + _syntax->getNewline();
         break;
+    case Syntax::DOUBLE_SQUARE_BRACKETS:
+        beginLine();
+        _code += "[[" + _syntax->getNewline();
+        break;
     }
 
     ++_indentations;
@@ -235,6 +239,10 @@ void ShaderStage::endScope(bool semicolon, bool newline)
     case Syntax::SQUARE_BRACKETS:
         beginLine();
         _code += "]";
+        break;
+    case Syntax::DOUBLE_SQUARE_BRACKETS:
+        beginLine();
+        _code += "]]";
         break;
     }
     if (semicolon)
@@ -318,15 +326,14 @@ void ShaderStage::addBlock(const string& str, GenContext& context)
 
 void ShaderStage::addInclude(const string& file, GenContext& context)
 {
-    string resolvedFile = file;
-    tokenSubstitution(context.getShaderGenerator().getTokenSubstitutions(), resolvedFile);
-
-    resolvedFile = context.resolveSourceFile(resolvedFile);
+    string modifiedFile = file;
+    tokenSubstitution(context.getShaderGenerator().getTokenSubstitutions(), modifiedFile);
+    FilePath resolvedFile = context.resolveSourceFile(FilePath("libraries") / modifiedFile);
 
     if (!_includes.count(resolvedFile))
     {
-        string content;
-        if (!readFile(resolvedFile, content))
+        string content = readFile(resolvedFile);
+        if (content.empty())
         {
             throw ExceptionShaderGenError("Could not find include file: '" + file + "'");
         }

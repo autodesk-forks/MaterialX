@@ -8,7 +8,7 @@
 #include <MaterialXGenShader/ShaderNode.h>
 #include <MaterialXGenShader/ShaderStage.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
-#include <MaterialXGenShader/Util.h>
+#include <MaterialXFormat/Util.h>
 
 namespace MaterialX
 {
@@ -34,9 +34,10 @@ void SourceCodeNode::initialize(const InterfaceElement& element, GenContext& con
     if (_functionSource.empty())
     {
         const FilePath file(impl.getAttribute("file"));
-        if (!file.isEmpty() && !readFile(context.resolveSourceFile(file), _functionSource))
+        _functionSource = readFile(context.resolveSourceFile(file));
+        if (_functionSource.empty())
         {
-            throw ExceptionShaderGenError("Can't find source file '" + file.asString() +
+            throw ExceptionShaderGenError("Faild to get source code for file '" + file.asString() +
                 "' used by implementation '" + impl.getName() + "'");
         }
     }
@@ -58,7 +59,7 @@ void SourceCodeNode::initialize(const InterfaceElement& element, GenContext& con
     }
     else
     {
-        _functionSource.erase(std::remove(_functionSource.begin(), _functionSource.end(), '\n'), _functionSource.end());
+        _functionSource = replaceSubstrings(_functionSource, { { "\n", "" } });
     }
 
     // Set hash using the function name.

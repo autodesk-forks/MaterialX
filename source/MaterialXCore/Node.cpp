@@ -20,23 +20,6 @@ const string Backdrop::HEIGHT_ATTRIBUTE = "height";
 //
 // Node methods
 //
-NodePtr GraphElement::addNode(const string& category,
-                              const string& name,
-                              const string& type)
-{
-    if (category.empty())
-    {
-        throw Exception("No category specified: type: " + type + ". name: " + name + ". category: " + category);
-    }
-    if (type.empty())
-    {
-        throw Exception("No type specified: type: " + type + ". name: " + name + ". category: " + category);
-    }
-    NodePtr node = addChild<Node>(name);
-    node->setCategory(category);
-    node->setType(type);
-    return node;
-}
 
 void Node::setConnectedNode(const string& inputName, NodePtr node)
 {
@@ -205,6 +188,7 @@ vector<PortElementPtr> Node::getDownstreamPorts() const
 bool Node::validate(string* message) const
 {
     bool res = true;
+    validateRequire(!getCategory().empty(), res, message, "Missing category");
     validateRequire(hasType(), res, message, "Missing type");
     return InterfaceElement::validate(message) && res;
 }
@@ -527,6 +511,57 @@ bool NodeGraph::validate(string* message) const
 ConstNodeDefPtr NodeGraph::getDeclaration(const string&) const
 {
     return getNodeDef();
+}
+
+//
+// Backdrop methods
+//
+
+void Backdrop::setContainsElements(const vector<ConstTypedElementPtr>& elems)
+{
+    if (!elems.empty())
+    {
+        StringVec stringVec;
+        for (ConstTypedElementPtr elem : elems)
+        {
+            stringVec.push_back(elem->getName());
+        }
+        setTypedAttribute(CONTAINS_ATTRIBUTE, stringVec);
+    }
+    else
+    {
+        removeAttribute(CONTAINS_ATTRIBUTE);
+    }
+}
+
+vector<TypedElementPtr> Backdrop::getContainsElements() const
+{
+    vector<TypedElementPtr> vec;
+    ConstGraphElementPtr graph = getAncestorOfType<GraphElement>();
+    if (graph)
+    {
+        for (const string& str : getTypedAttribute<StringVec>(CONTAINS_ATTRIBUTE))
+        {
+            TypedElementPtr elem = graph->getChildOfType<TypedElement>(str);
+            if (elem)
+            {
+                vec.push_back(elem);
+            }
+        }
+    }
+    return vec;
+}
+
+bool Backdrop::validate(string* message) const
+{
+    bool res = true;
+    if (hasContainsString())
+    {
+        StringVec stringVec = getTypedAttribute<StringVec>("contains");
+        vector<TypedElementPtr> elemVec = getContainsElements();
+        validateRequire(stringVec.size() == elemVec.size(), res, message, "Invalid element in contains string");
+    }
+    return Element::validate(message) && res;
 }
 
 } // namespace MaterialX

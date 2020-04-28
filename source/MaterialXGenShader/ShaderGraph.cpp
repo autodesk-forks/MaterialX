@@ -436,10 +436,13 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const NodeGraph& n
     // Create output sockets from the nodegraph
     graph->addOutputSockets(nodeGraph);
 
-    // Traverse all outputs and create all upstream dependencies
-    for (OutputPtr graphOutput : nodeGraph.getActiveOutputs())
+    if (context.getOptions().addUpstreamDependencies)
     {
-        graph->addUpstreamDependencies(*graphOutput, nullptr, context);
+        // Traverse all outputs and create all upstream dependencies
+        for (OutputPtr graphOutput : nodeGraph.getActiveOutputs())
+        {
+            graph->addUpstreamDependencies(*graphOutput, nullptr, context);
+        }
     }
 
     // Add classification according to last node
@@ -480,7 +483,11 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
     // Create this shader node in the graph.
     const string& newNodeName = node->getName();
     ShaderNodePtr newNode = ShaderNode::create(graph.get(), newNodeName, *nodeDef, context);
+    newNode->initialize(*node, *nodeDef, context);
     graph->addNode(newNode);
+
+    // Share metadata.
+    graph->setMetadata(newNode->getMetadata());
 
     // Connect it to the graph output
     ShaderGraphOutputSocket* outputSocket = graph->getOutputSocket();
@@ -532,6 +539,9 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
 
         // Connect graph input socket to the node input
         inputSocket->makeConnection(input);
+
+        // Share metadata.
+        inputSocket->setMetadata(input->getMetadata());
     }
 
     // Set node input values onto grah input sockets
@@ -586,6 +596,9 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
                 inputSocket->makeConnection(input);
             }
         }
+
+        // Share metadata.
+        inputSocket->setMetadata(input->getMetadata());
     }
 
     // Add shader node paths and unit value
@@ -726,6 +739,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
             ShaderNodePtr newNode = ShaderNode::create(graph.get(), node->getName(), *nodeDef, context);
             graph->addNode(newNode);
 
+            // Share metadata.
+            graph->setMetadata(newNode->getMetadata());
+
             // Connect it to the graph outputs
             for (size_t i = 0; i < newNode->numOutputs(); ++i)
             {
@@ -767,6 +783,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     }
                 }
 
+                bool addedDefault = false;
                 if (nodedefPort->isA<Input>())
                 {
                     GeomPropDefPtr geomprop = nodedefPort->asA<Input>()->getDefaultGeomProp();
@@ -774,15 +791,28 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     {
                         inputSocket->setGeomProp(geomprop->getName());
                         input->setGeomProp(geomprop->getName());
+
+                        const string& connection = nodePort ? nodePort->asA<Input>()->getOutputString() : EMPTY_STRING;
+                        if (connection.empty())
+                        {
+                            graph->addDefaultGeomNode(input, *geomprop, context);
+                            addedDefault = true;
+                        }
                     }
                 }
 
                 // Connect to the graph input
-                inputSocket->makeConnection(input);
+                if (!addedDefault)
+                {
+                    inputSocket->makeConnection(input);
+                }
+
+                // Share metadata.
+                inputSocket->setMetadata(input->getMetadata());
             }
 
-            // No traversal of upstream dependencies
-            root = nullptr;
+            // Set root for upstream dependency traversal
+            root = node;
         }
     }
 
@@ -812,6 +842,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         ShaderGraphOutputSocket* outputSocket = graph->getOutputSocket();
         outputSocket->makeConnection(newNode->getOutput());
         outputSocket->setPath(shaderRef->getNamePath());
+
+        // Share metadata.
+        graph->setMetadata(newNode->getMetadata());
 
         string targetColorSpace;
         ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
@@ -858,6 +891,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
 
             // Connect to the graph input
             inputSocket->makeConnection(input);
+
+            // Share metadata.
+            inputSocket->setMetadata(input->getMetadata());
         }
 
         // Handle node inputs
@@ -914,6 +950,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
                     inputSocket->makeConnection(input);
                 }
             }
+
+            // Share metadata.
+            inputSocket->setMetadata(input->getMetadata());
         }
 
         // Add shaderRef nodedef paths
@@ -969,7 +1008,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
     }
 
     // Traverse and create all dependencies upstream
-    if (root)
+    if (root && context.getOptions().addUpstreamDependencies)
     {
         graph->addUpstreamDependencies(*root, material, context);
     }
@@ -994,8 +1033,7 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
     // Create this node in the graph.
     const string& name = node.getName();
     ShaderNodePtr newNode = ShaderNode::create(this, name, *nodeDef, context);
-    newNode->setValues(node, *nodeDef, context);
-    newNode->setPaths(node, *nodeDef);
+    newNode->initialize(node, *nodeDef, context);
     _nodeMap[name] = newNode;
     _nodeOrder.push_back(newNode.get());
 
@@ -1196,6 +1234,7 @@ void ShaderGraph::finalize(GenContext& context)
                             }
                         }
                         inputSocket->makeConnection(input);
+                        inputSocket->setMetadata(input->getMetadata());
                     }
                 }
             }

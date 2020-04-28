@@ -13,6 +13,7 @@
 
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 #include <MaterialXGenShader/TypeDesc.h>
+#include <MaterialXGenShader/GenUserData.h>
 
 #include <MaterialXCore/Node.h>
 
@@ -36,6 +37,79 @@ using ShaderNodePtr = shared_ptr<class ShaderNode>;
 /// Shared pointer to a ShaderInput
 using ShaderInputSet = std::set<ShaderInput*>;
 
+
+/// Metadata to be exported to generated shader.
+struct ShaderMetadata
+{
+    string name;
+    const TypeDesc* type;
+    ValuePtr value;
+    ShaderMetadata(const string& n, const TypeDesc* t, ValuePtr v = nullptr) :
+        name(n),
+        type(t),
+        value(v)
+    {}
+};
+using ShaderMetadataVec = vector<ShaderMetadata>;
+using ShaderMetadataVecPtr = shared_ptr<ShaderMetadataVec>;
+
+/// @class ShaderMetadataRegistry 
+/// A registry for metadata that will be exported to the generated shader
+/// if found on nodes and inputs during shader generation.
+class ShaderMetadataRegistry : public GenUserData
+{
+public:
+    static const string USER_DATA_NAME;
+
+    /// Add a new metadata entry to the registry.
+    /// The entry contains the name and data type
+    /// for the metadata.
+    void addMetadata(const string& name, const TypeDesc* type, ValuePtr value = nullptr)
+    {
+        if (_entryIndex.count(name) == 0)
+        {
+            _entryIndex[name] = _entries.size();
+            _entries.push_back(ShaderMetadata(name, type, value));
+        }
+    }
+
+    /// Return the metadata registered for the given name, or nullptr
+    /// if no such entry is found.
+    const ShaderMetadata* findMetadata(const string& name) const
+    {
+        auto it = _entryIndex.find(name);
+        return it != _entryIndex.end() ? &_entries[it->second] : nullptr;
+    }
+
+    /// Return the metadata registered for the given name, or nullptr
+    /// if no such entry is found.
+    ShaderMetadata* findMetadata(const string& name)
+    {
+        auto it = _entryIndex.find(name);
+        return it != _entryIndex.end() ? &_entries[it->second] : nullptr;
+    }
+
+    /// Return all entries in the registry.
+    const ShaderMetadataVec& getAllMetadata() const
+    {
+        return _entries;
+    }
+
+    /// Clear all entries in the registry.
+    void clear()
+    {
+        _entryIndex.clear();
+        _entries.clear();
+    }
+
+protected:
+    vector<ShaderMetadata> _entries;
+    std::unordered_map<string, size_t> _entryIndex;
+};
+
+using ShaderMetadataRegistryPtr = shared_ptr<ShaderMetadataRegistry>;
+
+
 /// @class ShaderPort
 /// An input or output port on a ShaderNode
 class ShaderPort : public std::enable_shared_from_this<ShaderPort>
@@ -46,6 +120,7 @@ class ShaderPort : public std::enable_shared_from_this<ShaderPort>
     static const unsigned int EMITTED = 1 << 1;
     static const unsigned int BIND_INPUT = 1 << 2;
 
+    /// Constructor.
     ShaderPort(ShaderNode* node, const TypeDesc* type, const string& name, ValuePtr value = nullptr);
 
     /// Return a shared pointer instance of this object.
@@ -136,6 +211,15 @@ class ShaderPort : public std::enable_shared_from_this<ShaderPort>
     /// Return flags set on this port.
     unsigned int getFlags() const { return _flags; }
 
+    /// Set the metadata vector.
+    void setMetadata(ShaderMetadataVecPtr metadata) { _metadata = metadata; }
+
+    /// Get the metadata vector.
+    ShaderMetadataVecPtr getMetadata() { return _metadata; }
+
+    /// Get the metadata vector.
+    const ShaderMetadataVecPtr& getMetadata() const { return _metadata; }
+
   protected:
     ShaderNode* _node;
     const TypeDesc* _type;
@@ -146,6 +230,7 @@ class ShaderPort : public std::enable_shared_from_this<ShaderPort>
     ValuePtr _value;
     string _unit;
     string _geomprop;
+    ShaderMetadataVecPtr _metadata;
     unsigned int _flags;
 };
 
@@ -355,11 +440,9 @@ class ShaderNode
         return _usedClosures.count(node) > 0;
     }
 
-    /// Set input values from the given node and nodedef.
-    void setValues(const Node& node, const NodeDef& nodeDef, GenContext& context);
-
-    /// Set input element paths for the given node and nodedef.
-    void setPaths(const Node& node, const NodeDef& nodeDef, bool includeNodeDefInputs=true);
+    /// Initialize this shader node with all required data
+    /// from the given node and nodedef.
+    void initialize(const Node& node, const NodeDef& nodeDef, GenContext& context);
 
     /// Add inputs/outputs
     ShaderInput* addInput(const string& name, const TypeDesc* type);
@@ -385,6 +468,15 @@ class ShaderNode
     const vector<ShaderInput*>& getInputs() const { return _inputOrder; }
     const vector<ShaderOutput*>& getOutputs() const { return _outputOrder; }
 
+    /// Set the metadata vector.
+    void setMetadata(ShaderMetadataVecPtr metadata) { _metadata = metadata; }
+
+    /// Get the metadata vector.
+    ShaderMetadataVecPtr getMetadata() { return _metadata; }
+
+    /// Get the metadata vector.
+    const ShaderMetadataVecPtr& getMetadata() const { return _metadata; }
+
     /// Returns true if an input is editable by users.
     /// Editable inputs are allowed to be published as shader uniforms
     /// and hence must be presentable in a user interface.
@@ -402,6 +494,9 @@ class ShaderNode
     }
 
   protected:
+    /// Create metadata from the nodedef according to registered metadata.
+    void createMetadata(const NodeDef& nodeDef, GenContext& context);
+
     const ShaderGraph* _parent;
     string _name;
     unsigned int _classification;
@@ -413,6 +508,7 @@ class ShaderNode
     vector<ShaderOutput*> _outputOrder;
 
     ShaderNodeImplPtr _impl;
+    ShaderMetadataVecPtr _metadata;
     ScopeInfo _scopeInfo;
     std::set<const ShaderNode*> _usedClosures;
 

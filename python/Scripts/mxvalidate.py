@@ -159,7 +159,11 @@ def listContents(elemlist, resolve, vv):
 	    names.append(impl)
 
 	elif elem.getCategory() == "backdrop":
+<<<<<<< HEAD
 	    names.append('%s: contains "%s"' % (elem.getName(),elem.getContains()))
+=======
+	    names.append('%s: contains "%s"' % (elem.getName(),elem.getContainsString()))
+>>>>>>> adsk_contrib/dev
 
 	elif elem.getCategory() == "nodegraph":
 	    nchildnodes = len(elem.getChildren()) - elem.getOutputCount()
@@ -170,7 +174,11 @@ def listContents(elemlist, resolve, vv):
 		for bd in backdrops:
 		    outs = outs + '\n\t    backdrop "%s"' % (bd.getName())
 		    if vv:
+<<<<<<< HEAD
 			outs = outs + ' contains "%s"' % bd.getContains()
+=======
+			outs = outs + ' contains "%s"' % bd.getContainsString()
+>>>>>>> adsk_contrib/dev
 	    if elem.getOutputCount() > 0:
 		for ot in elem.getOutputs():
 		    outs = outs + '\n\t    %s output "%s"' % (ot.getType(), ot.getName())
