@@ -220,10 +220,11 @@ class Viewer : public ng::Screen
 
     // Shader generator contexts
     mx::GenContext _genContext;
+#if MATERIALX_BUILD_GEN_OSL
     mx::GenContext _genContextOsl;
+#endif
+#if MATERIALX_BUILD_GEN_MDL
     mx::GenContext _genContextMdl;
-#if MATERIALX_BUILD_GEN_OGSFX
-    mx::GenContext _genContextGlslMaya;
 #endif
 
     // Unit registry

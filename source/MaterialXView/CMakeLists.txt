@@ -44,16 +44,17 @@ set(LIBS
     MaterialXView
     MaterialXFormat
     MaterialXGenGlsl
-    MaterialXGenOsl
-    MaterialXGenMdl
     MaterialXRenderGlsl)
 
-if (MATERIALX_BUILD_GEN_OGSFX)
-    LIST(APPEND LIBS MaterialXGenOgsFx)
+if (MATERIALX_BUILD_GEN_OSL)
+    LIST(APPEND LIBS MaterialXGenOsl)
+endif()
+if (MATERIALX_BUILD_GEN_MDL)
+    LIST(APPEND LIBS MaterialXGenMdl)
 endif()
 
 target_link_libraries(
-    ${LIBS}
+     ${LIBS}
     nanogui
     ${NANOGUI_EXTRA_LIBS})
 

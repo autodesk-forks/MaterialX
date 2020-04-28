@@ -206,10 +206,11 @@ Viewer::Viewer(const std::string& materialFilename,
     _cameraViewHandler(mx::ViewHandler::create()),
     _shadowViewHandler(mx::ViewHandler::create()),
     _genContext(mx::GlslShaderGenerator::create()),
+#if MATERIALX_BUILD_GEN_OSL
     _genContextOsl(mx::OslShaderGenerator::create()),
+#endif
+#if MATERIALX_BUILD_GEN_MDL
     _genContextMdl(mx::MdlShaderGenerator::create()),
-#if MATERIALX_BUILD_GEN_OGSFX
-    _genContextGlslMaya(mx::MayaGlslPluginShaderGenerator::create()),
 #endif
     _unitRegistry(mx::UnitConverterRegistry::create()),
     _splitByUdims(false),
@@ -242,13 +243,13 @@ Viewer::Viewer(const std::string& materialFilename,
     _genContext.getOptions().fileTextureVerticalFlip = true;
 
     // Set OSL/MDL generator options.
+#if MATERIALX_BUILD_GEN_OSL
     _genContextOsl.getOptions().targetColorSpaceOverride = "lin_rec709";
     _genContextOsl.getOptions().fileTextureVerticalFlip = false;
+#endif
+#if MATERIALX_BUILD_GEN_MDL
     _genContextMdl.getOptions().targetColorSpaceOverride = "lin_rec709";
     _genContextMdl.getOptions().fileTextureVerticalFlip = false;
-#if MATERIALX_BUILD_GEN_OGSFX
-    _genContextGlslMaya.getOptions().targetColorSpaceOverride = "lin_rec709";
-    _genContextGlslMaya.getOptions().fileTextureVerticalFlip = true;
 #endif
 
     // Initialize image handler.
@@ -719,10 +720,11 @@ void Viewer::createAdvancedSettings(Widget* parent)
     {
         mProcessEvents = false;
         _genContext.getOptions().targetDistanceUnit = _distanceUnitOptions[index];
+#if MATERIALX_BUILD_GEN_OSL
         _genContextOsl.getOptions().targetDistanceUnit = _distanceUnitOptions[index];
+#endif
+#if MATERIALX_BUILD_GEN_MDL
         _genContextMdl.getOptions().targetDistanceUnit = _distanceUnitOptions[index];
-#if MATERIALX_BUILD_GEN_OGSFX
-        _genContextGlslMaya.getOptions().targetDistanceUnit = _distanceUnitOptions[index];
 #endif
         for (MaterialPtr material : _materials)
         {
@@ -1207,24 +1209,20 @@ void Viewer::saveShaderSource(mx::GenContext& context)
                     writeTextFile(pixelShader, baseName + "_ps.glsl");
                     new ng::MessageDialog(this, ng::MessageDialog::Type::Information, "Saved GLSL source: ", baseName);
                 }
+#if MATERIALX_BUILD_GEN_OSL
                 else if (context.getShaderGenerator().getLanguage() == mx::OslShaderGenerator::LANGUAGE)
                 {
                     const std::string& pixelShader = shader->getSourceCode(mx::Stage::PIXEL);
                     writeTextFile(pixelShader, baseName + ".osl");
                     new ng::MessageDialog(this, ng::MessageDialog::Type::Information, "Saved OSL source: ", baseName);
                 }
+#endif
+#if MATERIALX_BUILD_GEN_MDL
                 else if (context.getShaderGenerator().getLanguage() == mx::MdlShaderGenerator::LANGUAGE)
                 {
                     const std::string& pixelShader = shader->getSourceCode(mx::Stage::PIXEL);
                     writeTextFile(pixelShader, baseName + ".mdl");
                     new ng::MessageDialog(this, ng::MessageDialog::Type::Information, "Saved MDL source: ", baseName);
-                }
-#if MATERIALX_BUILD_GEN_OGSFX
-                else if (context.getShaderGenerator().getTarget() == mx::MayaGlslPluginShaderGenerator::TARGET)
-                {
-                    const std::string& fxShader = shader->getSourceCode(mx::Stage::EFFECT);
-                    writeTextFile(fxShader, baseName + ".ogsfx");
-                    new ng::MessageDialog(this, ng::MessageDialog::Type::Information, "Saved Maya GLSL source: ", baseName);
                 }
 #endif
             }
@@ -1380,10 +1378,11 @@ void Viewer::loadStandardLibraries()
 
     // Initialize the generator contexts.
     initContext(_genContext);
+#if MATERIALX_BUILD_GEN_OSL
     initContext(_genContextOsl);
+#endif
+#if MATERIALX_BUILD_GEN_MDL
     initContext(_genContextMdl);
-#if MATERIALX_BUILD_GEN_OGSFX
-    initContext(_genContextGlslMaya);
 #endif
 }
 
@@ -1426,25 +1425,20 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
         return true;
     }
 
+#if MATERIALX_BUILD_GEN_OSL
     // Save OSL shader source to file.
     if (key == GLFW_KEY_O && action == GLFW_PRESS)
     {
         saveShaderSource(_genContextOsl);
         return true;
     }
+#endif
 
+#if MATERIALX_BUILD_GEN_MDL
     // Save MDL shader source to file.
     if (key == GLFW_KEY_M && action == GLFW_PRESS)
     {
         saveShaderSource(_genContextMdl);
-        return true;
-    }
-
-#if MATERIALX_BUILD_GEN_OGSFX
-    // Save Maya GLSL shader source to file.
-    if (key == GLFW_KEY_G && action == GLFW_PRESS)
-    {
-        saveShaderSource(_genContextGlslMaya);
         return true;
     }
 #endif
