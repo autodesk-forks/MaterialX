@@ -14,7 +14,6 @@
 #include <MaterialXCore/Definition.h>
 #include <MaterialXCore/Document.h>
 #include <MaterialXCore/Types.h>
-#include <MaterialXCore/Document.h>
 
 namespace MaterialX
 {
