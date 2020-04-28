@@ -126,6 +126,9 @@ class Viewer : public ng::Screen
     /// Update the current shadow map.
     void updateShadowMap();
 
+    /// Update the directional albedo table.
+    void updateAlbedoTable();
+
     /// Check for any OpenGL errors that have been encountered.
     void checkGlErrors(const std::string& context);
 
@@ -175,7 +178,6 @@ class Viewer : public ng::Screen
     // Shadow mapping
     MaterialPtr _shadowMaterial;
     MaterialPtr _shadowBlurMaterial;
-    mx::GLFrameBufferPtr _shadowFramebuffer;
     mx::ImagePtr _shadowMap;
     unsigned int _shadowSoftness;
 
@@ -239,7 +241,6 @@ class Viewer : public ng::Screen
 
     // Render options
     bool _outlineSelection;
-    mx::HwSpecularEnvironmentMethod _specularEnvironmentMethod;
     int _envSamples;
     bool _drawEnvironment;
     mx::Matrix44 _envMatrix;
