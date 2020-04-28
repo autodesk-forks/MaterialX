@@ -33,11 +33,12 @@ void SourceCodeNode::initialize(const InterfaceElement& element, GenContext& con
     _functionSource = impl.getAttribute("sourcecode");
     if (_functionSource.empty())
     {
-        const FilePath file(impl.getAttribute("file"));
-        _functionSource = readFile(context.resolveSourceFile(file));
+        FilePath file(impl.getAttribute("file"));
+        file = context.resolveSourceFile(FilePath("libraries") / file);
+        _functionSource = readFile(file);
         if (_functionSource.empty())
         {
-            throw ExceptionShaderGenError("Faild to get source code for file '" + file.asString() +
+            throw ExceptionShaderGenError("Failed to get source code from file '" + file.asString() +
                 "' used by implementation '" + impl.getName() + "'");
         }
     }
