@@ -8,7 +8,7 @@
       <bindinput name="roughness" type="float" value="0.01" />
       <bindinput name="opacity" type="float" value="0" />
       <bindinput name="opacityThreshold" type="float" value="0" />
-      <bindparam name="ior" type="float" value="1.52" />
+      <bindinput name="ior" type="float" value="1.52" />
     </shaderref>
   </material>
 </materialx>
