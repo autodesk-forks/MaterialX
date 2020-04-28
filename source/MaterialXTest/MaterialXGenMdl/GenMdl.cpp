@@ -177,7 +177,7 @@ TEST_CASE("GenShader: MDL Shader Generation", "[genmdl]")
 
     const mx::FilePath logPath("genmdl_mdl_generate_test.txt");
 
-    bool writeShadersToDisk = true;
+    bool writeShadersToDisk = false;
     MdlShaderGeneratorTester tester(mx::MdlShaderGenerator::create(), testRootPaths, libSearchPath, srcSearchPath, logPath, writeShadersToDisk);
     tester.addSkipLibraryFiles();
 
