@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <materialx version="1.38" xmlns:xi="http://www.w3.org/2001/XInclude">
  <nodedef name="ND_colorcorrect" node="colorcorrect1" nodegroup="adjustment">
-    <output name="out" type="color3" />
-    <output name="out1" type="float" />
+    <output name="outColor" type="color3" />
+    <output name="outAlpha" type="float" />
     <input name="AlphaClampAndGamma_inlow" type="float" value="0" />
     <input name="AlphaClampAndGamma_inhigh" type="float" value="1" />
     <input name="AlphaClampAndGamma_gamma" type="float" value="3" />
@@ -118,8 +118,8 @@
       <input name="in1" type="color3" nodename="inputColor" />
       <input name="in2" type="float" nodename="inputAlpha" />
     </combine2>
-    <output name="out" type="color3" nodename="outputColor" />
-    <output name="out1" type="float" nodename="outputAlpha" />
+    <output name="outColor" type="color3" nodename="outputColor" />
+    <output name="outAlpha" type="float" nodename="outputAlpha" />
   </nodegraph>
   
 </materialx>
