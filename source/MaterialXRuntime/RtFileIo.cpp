@@ -219,7 +219,7 @@ namespace
         if (nodeType != MULTIOUTPUT)
         {
             // For single output nodes we can match the output directly.
-            PvtOutput* out = prim->getOutput(PvtAttribute::DEFAULT_OUTPUT_NAME);
+            PvtOutput* out = prim->getOutput(EMPTY_TOKEN);
             if (!out || out->getType() != nodeType)
             {
                 return false;
