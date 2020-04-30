@@ -36,7 +36,7 @@ string readFile(const FilePath& filePath)
     return EMPTY_STRING;
 }
 
-void getSubdirectories(const FilePathVec rootDirectories, const FileSearchPath& searchPath, FilePathVec& subdirectories)
+void getSubdirectories(const FilePathVec rootDirectories, const FileSearchPath& searchPath, FilePathVec& subDirectories)
 {
     for (const auto& root : rootDirectories)
     {
@@ -44,7 +44,7 @@ void getSubdirectories(const FilePathVec rootDirectories, const FileSearchPath& 
         if (rootPath.exists())
         {
             FilePathVec childDirectories = rootPath.getSubDirectories();
-            subdirectories.insert(std::end(subdirectories), std::begin(childDirectories), std::end(childDirectories));
+            subDirectories.insert(std::end(subDirectories), std::begin(childDirectories), std::end(childDirectories));
         }
     }
 }

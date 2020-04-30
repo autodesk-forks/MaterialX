@@ -161,7 +161,8 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     addSkipFiles();
 
     // Library search path
-    mx::FileSearchPath searchPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
+    mx::FileSearchPath searchPath;
+    searchPath.append(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
 
     // Load in the library dependencies once
     // This will be imported in each test document below
