@@ -2032,4 +2032,34 @@ TEST_CASE("Runtime: commands", "[runtime]")
     REQUIRE(node);    // node should remain created
 }
 
+TEST_CASE("Runtime: graph output connection", "[runtime]") {
+    mx::RtScopedApiHandle api;
+
+    // Load in all libraries required for materials
+    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() /
+                                  mx::FilePath("libraries"));
+    api->setSearchPath(searchPath);
+    api->loadLibrary(STDLIB);
+    api->loadLibrary(PBRLIB);
+    api->loadLibrary(BXDFLIB);
+
+    const std::string mtlxDoc =
+        "<?xml version=\"1.0\"?>\n"
+        "<materialx version=\"1.38\">\n"
+        "  <nodegraph name=\"Compound\">\n"
+        "    <output name=\"in\" type=\"color2\" />\n"
+        "  </nodegraph>\n"
+        "  <clamp name=\"clamp\" type=\"color2\">\n"
+        "    <input name=\"in\" type=\"color2\" nodegraph=\"Compound\" />\n"
+        "  </clamp>\n"
+        "</materialx>";
+    mx::RtStagePtr defaultStage = api->createStage(mx::RtToken("defaultStage"));
+    mx::RtFileIo   fileIo(defaultStage);
+    mx::RtReadOptions options;
+    options.applyFutureUpdates = true;
+    std::stringstream ss;
+    ss << mtlxDoc;
+    REQUIRE_NOTHROW(fileIo.read(ss, &options));
+}
+
 #endif // MATERIALX_BUILD_RUNTIME
