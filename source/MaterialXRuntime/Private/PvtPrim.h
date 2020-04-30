@@ -72,7 +72,14 @@ class PvtPrim : public PvtObject
 public:
     static PvtDataHandle createNew(const RtTypeInfo* typeInfo, const RtToken& name, PvtPrim* parent);
 
-    void dispose();
+    RtPrim prim() const
+    {
+        return RtPrim(hnd());
+    }
+
+    void dispose(bool state);
+
+    void destroy();
 
     const RtTypeInfo* getTypeInfo() const
     {
@@ -126,6 +133,19 @@ public:
 
     PvtOutput* getOutput(const RtToken& name) const
     {
+        // Return first output if no name / empty name provided
+        if (name.str().empty())
+        {
+            for (auto it : _attrMap)
+            {
+                if (it.second->isA<PvtOutput>())
+                {
+                    return it.second->asA<PvtOutput>();
+                }
+            }
+            return nullptr;
+        }
+
         // TODO: Improve type check and type conversion for RtObject subclasses.
         auto it = _attrMap.find(name);
         return it != _attrMap.end() && it->second->isA<PvtOutput>() ?

@@ -88,7 +88,8 @@ public:
     RtInput getInput(const RtToken& name) const;
 
     /// Return an input attribute by name, or a null object
-    /// if no such input attribute exists.
+    /// if no such input attribute exists. If an empty name
+    /// is provided, then the first output is returned
     RtOutput getOutput(const RtToken& name) const;
 
     /// Return an iterator traversing all attributes
@@ -105,6 +106,9 @@ public:
     /// specific API, etc.
     RtPrimIterator getChildren(RtObjectPredicate predicate = nullptr) const;
 };
+
+/// Function type for creating prims for a typed schema.
+using RtPrimCreateFunc = std::function<RtPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)>;
 
 }
 
