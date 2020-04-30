@@ -6,7 +6,7 @@
 #ifndef MATERIALX_PVTREPARENTPRIMCMD_H
 #define MATERIALX_PVTREPARENTPRIMCMD_H
 
-#include <MaterialXRuntime/Private/PvtCommandEngine.h>
+#include <MaterialXRuntime/Private/PvtCommand.h>
 
 #include <MaterialXRuntime/RtStage.h>
 #include <MaterialXRuntime/RtPath.h>
