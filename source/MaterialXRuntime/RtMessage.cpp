@@ -10,6 +10,26 @@
 namespace MaterialX
 {
 
+RtCallbackId RtMessage::addCreatePrimCallback(RtCreatePrimCallbackFunc callback, void* userData)
+{
+    return PvtApi::cast(RtApi::get())->getMessageHandler().addCreatePrimCallback(callback, userData);
+}
+
+RtCallbackId RtMessage::addRemovePrimCallback(RtRemovePrimCallbackFunc callback, void* userData)
+{
+    return PvtApi::cast(RtApi::get())->getMessageHandler().addRemovePrimCallback(callback, userData);
+}
+
+RtCallbackId RtMessage::addRenamePrimCallback(RtRenamePrimCallbackFunc callback, void* userData)
+{
+    return PvtApi::cast(RtApi::get())->getMessageHandler().addRenamePrimCallback(callback, userData);
+}
+
+RtCallbackId RtMessage::addReparentPrimCallback(RtReparentPrimCallbackFunc callback, void* userData)
+{
+    return PvtApi::cast(RtApi::get())->getMessageHandler().addReparentPrimCallback(callback, userData);
+}
+
 RtCallbackId RtMessage::addSetAttributeCallback(RtSetAttributeCallbackFunc callback, void* userData)
 {
     return PvtApi::cast(RtApi::get())->getMessageHandler().addSetAttributeCallback(callback, userData);
@@ -31,4 +51,3 @@ void RtMessage::removeCallback(RtCallbackId id)
 }
 
 }
-

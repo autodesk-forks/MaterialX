@@ -12,6 +12,38 @@ PvtMessageHandler::PvtMessageHandler() :
     _callbackIdCounter(1)
 {}
 
+RtCallbackId PvtMessageHandler::addCreatePrimCallback(RtCreatePrimCallbackFunc callback, void* userData)
+{
+    PvtCreatePrimObserver observer = PvtCreatePrimObserver(callback, userData);
+    _createPrimObservers[_callbackIdCounter] = observer;
+    _callbackIdToType[_callbackIdCounter] = observer.type;
+    return _callbackIdCounter++;
+}
+
+RtCallbackId PvtMessageHandler::addRemovePrimCallback(RtRemovePrimCallbackFunc callback, void* userData)
+{
+    PvtRemovePrimObserver observer = PvtRemovePrimObserver(callback, userData);
+    _removePrimObservers[_callbackIdCounter] = observer;
+    _callbackIdToType[_callbackIdCounter] = observer.type;
+    return _callbackIdCounter++;
+}
+
+RtCallbackId PvtMessageHandler::addRenamePrimCallback(RtRenamePrimCallbackFunc callback, void* userData)
+{
+    PvtRenamePrimObserver observer = PvtRenamePrimObserver(callback, userData);
+    _renamePrimObservers[_callbackIdCounter] = observer;
+    _callbackIdToType[_callbackIdCounter] = observer.type;
+    return _callbackIdCounter++;
+}
+
+RtCallbackId PvtMessageHandler::addReparentPrimCallback(RtReparentPrimCallbackFunc callback, void* userData)
+{
+    PvtReparentPrimObserver observer = PvtReparentPrimObserver(callback, userData);
+    _reparentPrimObservers[_callbackIdCounter] = observer;
+    _callbackIdToType[_callbackIdCounter] = observer.type;
+    return _callbackIdCounter++;
+}
+
 RtCallbackId PvtMessageHandler::addSetAttributeCallback(RtSetAttributeCallbackFunc callback, void* userData)
 {
     PvtSetAttributeObserver observer = PvtSetAttributeObserver(callback, userData);
@@ -59,5 +91,62 @@ void PvtMessageHandler::removeCallback(RtCallbackId id)
         }
     }
 }
+
+void PvtMessageHandler::sendCreatePrimMessage(RtStagePtr stage, const RtPrim& prim)
+{
+    for (auto observer : _createPrimObservers)
+    {
+        observer.second.callback(stage, prim, observer.second.userData);
+    }
+}
+
+void PvtMessageHandler::sendRemovePrimMessage(RtStagePtr stage, const RtPrim& prim)
+{
+    for (auto observer : _removePrimObservers)
+    {
+        observer.second.callback(stage, prim, observer.second.userData);
+    }
+}
+
+void PvtMessageHandler::sendRenamePrimMessage(RtStagePtr stage, const RtPrim& prim, const RtToken& newName)
+{
+    for (auto observer : _renamePrimObservers)
+    {
+        observer.second.callback(stage, prim, newName, observer.second.userData);
+    }
+}
+
+void PvtMessageHandler::sendReparentPrimMessage(RtStagePtr stage, const RtPrim& prim, const RtPath& newPath)
+{
+    for (auto observer : _reparentPrimObservers)
+    {
+        observer.second.callback(stage, prim, newPath, observer.second.userData);
+    }
+}
+
+void PvtMessageHandler::sendSetAttributeMessage(const RtAttribute& attr, const RtValue& value)
+{
+    for (auto observer : _setAttrObservers)
+    {
+        observer.second.callback(attr, value, observer.second.userData);
+    }
+}
+
+void PvtMessageHandler::sendMakeConnectionMessage(const RtOutput& src, const RtInput& dest)
+{
+    for (auto observer : _makeConnectionObservers)
+    {
+        observer.second.callback(src, dest, observer.second.userData);
+    }
+}
+
+void PvtMessageHandler::sendBreakConnectionMessage(const RtOutput& src, const RtInput& dest)
+{
+    for (auto observer : _breakConnectionObservers)
+    {
+        observer.second.callback(src, dest, observer.second.userData);
+    }
+}
+
 
 }

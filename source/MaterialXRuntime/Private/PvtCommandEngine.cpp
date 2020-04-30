@@ -4,9 +4,15 @@
 //
 
 #include <MaterialXRuntime/Private/PvtCommandEngine.h>
+#include <MaterialXRuntime/Private/PvtApi.h>
 
 namespace MaterialX
 {
+
+PvtMessageHandler& PvtCommand::msg()
+{
+    return PvtApi::cast(RtApi::get())->getMessageHandler();
+}
 
 void PvtCommandList::addCommand(PvtCommandPtr cmd)
 {
