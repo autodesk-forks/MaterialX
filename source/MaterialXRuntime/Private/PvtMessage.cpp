@@ -79,6 +79,18 @@ void PvtMessageHandler::removeCallback(RtCallbackId id)
         // Remove the corresponding observer
         switch (it->second)
         {
+        case PvtMessageType::CREATE_PRIM:
+            _createPrimObservers.erase(id);
+            break;
+        case PvtMessageType::REMOVE_PRIM:
+            _removePrimObservers.erase(id);
+            break;
+        case PvtMessageType::RENAME_PRIM:
+            _renamePrimObservers.erase(id);
+            break;
+        case PvtMessageType::REPARENT_PRIM:
+            _reparentPrimObservers.erase(id);
+            break;
         case PvtMessageType::SET_ATTRIBUTE:
             _setAttrObservers.erase(id);
             break;
@@ -88,6 +100,8 @@ void PvtMessageHandler::removeCallback(RtCallbackId id)
         case PvtMessageType::BREAK_CONNECTION:
             _breakConnectionObservers.erase(id);
             break;
+        default:
+            throw ExceptionRuntimeError("Removal of callback faild! Message type '" + std::to_string(size_t(it->second)) + "' has not been implemented properly.");
         }
     }
 }
