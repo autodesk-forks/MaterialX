@@ -1624,8 +1624,8 @@ TEST_CASE("Runtime: FileIo downgrade", "[runtime]")
         //     <shaderref name="ss1" node="standard_surface">
         //       <bindinput name="base" type="float" value="0.5" />
         //       <bindinput name="base_color" type="color3" output="OUT_ml1_out" />
-        //       <bindinput name="sheen_color" type="color3" nodegraph="ng1" output="out" />
-        //       <bindinput name="coat_color" type="color3" nodegraph="ng1" output="out" />
+        //       <bindinput name="sheen_color" type="color3" nodegraph="ng1" />
+        //       <bindinput name="coat_color" type="color3" nodegraph="ng1" />
         //       <bindinput name="emission" type="float" value="0.5" />
         //       <bindinput name="emission_color" type="color3" output="OUT_ml1_out" />
         //     </shaderref>

@@ -872,10 +872,13 @@ namespace
             for (InputPtr input : surfaceShader->getActiveInputs())
             {
                 BindInputPtr bindInput = shaderRef->addBindInput(input->getName(), input->getType());
-                if (input->hasNodeGraphName() && input->hasOutputString() && doc->getNodeGraph(input->getNodeGraphName()))
+                if (input->hasNodeGraphName() && doc->getNodeGraph(input->getNodeGraphName()))
                 {
                     bindInput->setNodeGraphString(input->getNodeGraphName());
-                    bindInput->setOutputString(input->getOutputString());
+                    if (input->hasOutputString())
+                    {
+                        bindInput->setOutputString(input->getOutputString());
+                    }
                 }
                 else if(input->hasNodeName())
                 {
