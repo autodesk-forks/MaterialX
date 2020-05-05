@@ -17,7 +17,7 @@
 namespace MaterialX
 {
 
-// Allocator class handling allocation of data for elements.
+// Allocator class handling allocation of data for prims.
 // The data allocated is kept by the allocator and freed
 // upon allocator destruction or by calling free() explicitly.
 // NOTE: Data is stored as raw byte pointers and destructors
@@ -61,7 +61,6 @@ private:
     vector<uint8_t*> _storage;
 };
 
-class PvtPrimDef;
 class RtAttrIterator;
 class RtPrimIterator;
 
@@ -98,6 +97,8 @@ public:
 
     void removeRelationship(const RtToken& name);
 
+    void renameRelationship(const RtToken& name, const RtToken& newName);
+
     PvtRelationship* getRelationship(const RtToken& name)
     {
         auto it = _relMap.find(name);
@@ -117,6 +118,8 @@ public:
 
     void removeAttribute(const RtToken& name);
 
+    void renameAttribute(const RtToken& name, const RtToken& newName);
+
     PvtAttribute* getAttribute(const RtToken& name) const
     {
         auto it = _attrMap.find(name);
@@ -133,6 +136,19 @@ public:
 
     PvtOutput* getOutput(const RtToken& name) const
     {
+        // Return first output if no name / empty name provided
+        if (name.str().empty())
+        {
+            for (auto it : _attrMap)
+            {
+                if (it.second->isA<PvtOutput>())
+                {
+                    return it.second->asA<PvtOutput>();
+                }
+            }
+            return nullptr;
+        }
+
         // TODO: Improve type check and type conversion for RtObject subclasses.
         auto it = _attrMap.find(name);
         return it != _attrMap.end() && it->second->isA<PvtOutput>() ?
@@ -169,7 +185,7 @@ public:
         return _allocator;
     }
 
-    RtToken makeUniqueName(const RtToken& name) const;
+    RtToken makeUniqueChildName(const RtToken& name) const;
 
 protected:
     PvtPrim(const RtTypeInfo* typeInfo, const RtToken& name, PvtPrim* parent);

@@ -32,6 +32,7 @@
 #include <MaterialXRuntime/RtTraversal.h>
 #include <MaterialXRuntime/RtLook.h>
 #include <MaterialXRuntime/RtCollection.h>
+#include <MaterialXRuntime/RtMessage.h>
 
 #include <MaterialXRuntime/Commands/PrimCommands.h>
 #include <MaterialXRuntime/Commands/AttributeCommands.h>
@@ -552,14 +553,11 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     graph.removeInput(graph_in.getName());
     REQUIRE(!graph_in.isValid());
     stage->removePrim(graph.getPath());
-    REQUIRE(!graph_out.isValid());
+    REQUIRE(!graph_in.isValid());
     REQUIRE(!node2.isValid());
     REQUIRE(!graph.isValid());
-#ifndef NDEBUG
-    // In debug builds accessing a disposed object should throw
     REQUIRE_THROWS(graph.getName());
-    REQUIRE_THROWS(graph_out.isConnected());
-#endif
+    REQUIRE_THROWS(graph_in.isConnected());
 }
 
 TEST_CASE("Runtime: Nodes", "[runtime]")
@@ -614,7 +612,7 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(add1Prim);
     REQUIRE(add1Prim);
 
-    // Attach the node API to these objects
+    // Attach the node API schema to these objects
     mx::RtNode add1(add1Prim);
     mx::RtNode add2(add2Prim);
     REQUIRE(add1.getName() == "add1");
@@ -746,10 +744,17 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(graph1.getInputSocket(B));
     REQUIRE(graph1.getOutputSocket(OUT));
 
-    // Test deleting an input.
-    graph1.createInput(X, mx::RtType::FLOAT);
+    // Test renaming an input.
+    graph1.createInput(FOO, mx::RtType::FLOAT);
+    REQUIRE(graph1.getInput(FOO));
+    REQUIRE(graph1.getInputSocket(FOO));
+    graph1.renameInput(FOO, X);
+    REQUIRE(!graph1.getInput(FOO));
+    REQUIRE(!graph1.getInputSocket(FOO));
     REQUIRE(graph1.getInput(X));
     REQUIRE(graph1.getInputSocket(X));
+
+    // Test deleting an input.
     graph1.removeInput(X);
     REQUIRE(!graph1.getInput(X));
     REQUIRE(!graph1.getInputSocket(X));
@@ -1624,8 +1629,8 @@ TEST_CASE("Runtime: FileIo downgrade", "[runtime]")
         //     <shaderref name="ss1" node="standard_surface">
         //       <bindinput name="base" type="float" value="0.5" />
         //       <bindinput name="base_color" type="color3" output="OUT_ml1_out" />
-        //       <bindinput name="sheen_color" type="color3" nodegraph="ng1" output="out" />
-        //       <bindinput name="coat_color" type="color3" nodegraph="ng1" output="out" />
+        //       <bindinput name="sheen_color" type="color3" nodegraph="ng1" />
+        //       <bindinput name="coat_color" type="color3" nodegraph="ng1" />
         //       <bindinput name="emission" type="float" value="0.5" />
         //       <bindinput name="emission_color" type="color3" output="OUT_ml1_out" />
         //     </shaderref>
@@ -1834,7 +1839,7 @@ TEST_CASE("Runtime: units", "[runtime]")
     }
 }
 
-TEST_CASE("Runtime: commands", "[runtime]")
+TEST_CASE("Runtime: Commands", "[runtime]")
 {
     mx::RtScopedApiHandle api;
 
@@ -1844,11 +1849,63 @@ TEST_CASE("Runtime: commands", "[runtime]")
 
     mx::RtStagePtr stage = api->createStage(MAIN);
 
+    //
+    // Register callbacks for tracking data model changes
+    //
+    auto createPrimCB = [](const mx::RtStagePtr&, const mx::RtPrim&, void* userData)
+    {
+        ++(*reinterpret_cast<size_t*>(userData));
+    };
+    auto removePrimCB = [](const mx::RtStagePtr&, const mx::RtPrim&, void* userData)
+    {
+        ++(*reinterpret_cast<size_t*>(userData));
+    };
+    auto renamePrimCB = [](const mx::RtStagePtr&, const mx::RtPrim&, const mx::RtToken&, void* userData)
+    {
+        ++(*reinterpret_cast<size_t*>(userData));
+    };
+    auto reparentPrimCB = [](const mx::RtStagePtr&, const mx::RtPrim&, const mx::RtPath&, void* userData)
+    {
+        ++(*reinterpret_cast<size_t*>(userData));
+    };
+    auto setAttrCB = [](const mx::RtAttribute&, const mx::RtValue&, void* userData)
+    {
+        ++(*reinterpret_cast<size_t*>(userData));
+    };
+    auto makeConnectionCB = [](const mx::RtOutput&, const mx::RtInput&, void* userData)
+    {
+        ++(*reinterpret_cast<size_t*>(userData));
+    };
+    auto breakConnectionCB = [](const mx::RtOutput&, const mx::RtInput&, void* userData)
+    {
+        ++(*reinterpret_cast<size_t*>(userData));
+    };
+
+    size_t createPrimCount = 0;
+    size_t removePrimCount = 0;
+    size_t renamePrimCount = 0;
+    size_t reparentPrimCount = 0;
+    size_t setAttrCount = 0;
+    size_t makeConnectionCount = 0;
+    size_t breakConnectionCount = 0;
+
+    mx::RtCallbackId createPrimCB_id = mx::RtMessage::addCreatePrimCallback(createPrimCB, &createPrimCount);
+    mx::RtCallbackId removePrimCB_id = mx::RtMessage::addRemovePrimCallback(removePrimCB, &removePrimCount);
+    mx::RtCallbackId renamePrimCB_id = mx::RtMessage::addRenamePrimCallback(renamePrimCB, &renamePrimCount);
+    mx::RtCallbackId reparentPrimCB_id = mx::RtMessage::addReparentPrimCallback(reparentPrimCB, &reparentPrimCount);
+    mx::RtCallbackId setAttrCB_id = mx::RtMessage::addSetAttributeCallback(setAttrCB, &setAttrCount);
+    mx::RtCallbackId makeConnectionCB_id = mx::RtMessage::addMakeConnectionCallback(makeConnectionCB, &makeConnectionCount);
+    mx::RtCallbackId breakConnectionCB_id = mx::RtMessage::addBreakConnectionCallback(breakConnectionCB, &breakConnectionCount);
+
+
     mx::RtCommandResult result;
 
     //
     // Test prim creation
     //
+
+    createPrimCount = 0;
+    removePrimCount = 0;
 
     mx::RtCommand::createPrim(stage, mx::RtNodeGraph::typeName(), result);
     REQUIRE(result);
@@ -1882,9 +1939,14 @@ TEST_CASE("Runtime: commands", "[runtime]")
     REQUIRE(result);
     REQUIRE(foo.isValid());
 
+    REQUIRE(createPrimCount == 5);
+    REQUIRE(removePrimCount == 1);
+
     //
     // Test rename command
     //
+
+    renamePrimCount = 0;
 
     mx::RtCommand::renamePrim(stage, foo.getPath(), BAR, result);
     REQUIRE(result);
@@ -1897,9 +1959,13 @@ TEST_CASE("Runtime: commands", "[runtime]")
     REQUIRE(result);
     REQUIRE(foo.getName() == BAR);
 
+    REQUIRE(renamePrimCount == 3);
+
     //
     // Test setting attribute values
     //
+    setAttrCount = 0;
+
     mx::RtAttribute in1 = add2.getAttribute(IN1);
     mx::RtAttribute in2 = add2.getAttribute(IN2);
     in1.getValue().asFloat() = 1.0f;
@@ -1933,9 +1999,13 @@ TEST_CASE("Runtime: commands", "[runtime]")
     REQUIRE(in1.getValue().asFloat() == 3.0f);
     REQUIRE(in2.getValue().asFloat() == 7.0f);
 
+    REQUIRE(setAttrCount == 6);
+
     //
     // Test making and breaking connections
     //
+    makeConnectionCount = 0;
+    breakConnectionCount = 0;
 
     mx::RtCommand::makeConnection(add1.getOutput(OUT), add2.getInput(IN1), result);
     REQUIRE(result);
@@ -1949,10 +2019,14 @@ TEST_CASE("Runtime: commands", "[runtime]")
     REQUIRE(result);
     REQUIRE(add2.getInput(IN1).getConnection() == add1.getOutput(OUT));
 
+    REQUIRE(makeConnectionCount == 2);
+    REQUIRE(breakConnectionCount == 1);
 
     //
     // Test node deletion
     //
+    makeConnectionCount = 0;
+    breakConnectionCount = 0;
 
     mx::RtCommand::removePrim(stage, add2.getPath(), result);
     REQUIRE(result);
@@ -1965,9 +2039,14 @@ TEST_CASE("Runtime: commands", "[runtime]")
     REQUIRE(add1.getOutput(OUT).isConnected());
     REQUIRE(add2.getInput(IN1).getConnection() == add1.getOutput(OUT));
 
+    REQUIRE(makeConnectionCount == 1);
+    REQUIRE(breakConnectionCount == 1);
+
     //
     // Test node reparenting
     //
+
+    reparentPrimCount = 0;
 
     mx::RtCommand::renamePrim(stage, foo.getPath(), FOO, result);
     mx::RtCommand::createPrim(stage, mx::RtNodeGraph::typeName(), result);
@@ -1985,6 +2064,8 @@ TEST_CASE("Runtime: commands", "[runtime]")
     mx::RtCommand::redo(result);
     REQUIRE(result);
     REQUIRE(foo.getParent() == graph2);
+
+    REQUIRE(reparentPrimCount == 3);
 
     //
     // Test reparenting undo/redo when the reparenting will update the prim name
@@ -2030,6 +2111,48 @@ TEST_CASE("Runtime: commands", "[runtime]")
     mx::RtCommand::undo(result);
     REQUIRE(!result); // undo should fail
     REQUIRE(node);    // node should remain created
+
+    //
+    // Remove the callbacks
+    //
+
+    mx::RtMessage::removeCallback(createPrimCB_id);
+    mx::RtMessage::removeCallback(removePrimCB_id);
+    mx::RtMessage::removeCallback(renamePrimCB_id);
+    mx::RtMessage::removeCallback(reparentPrimCB_id);
+    mx::RtMessage::removeCallback(setAttrCB_id);
+    mx::RtMessage::removeCallback(makeConnectionCB_id);
+    mx::RtMessage::removeCallback(breakConnectionCB_id);
+}
+
+TEST_CASE("Runtime: graph output connection", "[runtime]") {
+    mx::RtScopedApiHandle api;
+
+    // Load in all libraries required for materials
+    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() /
+                                  mx::FilePath("libraries"));
+    api->setSearchPath(searchPath);
+    api->loadLibrary(STDLIB);
+    api->loadLibrary(PBRLIB);
+    api->loadLibrary(BXDFLIB);
+
+    const std::string mtlxDoc =
+        "<?xml version=\"1.0\"?>\n"
+        "<materialx version=\"1.38\">\n"
+        "  <nodegraph name=\"Compound\">\n"
+        "    <output name=\"in\" type=\"color2\" />\n"
+        "  </nodegraph>\n"
+        "  <clamp name=\"clamp\" type=\"color2\">\n"
+        "    <input name=\"in\" type=\"color2\" nodegraph=\"Compound\" />\n"
+        "  </clamp>\n"
+        "</materialx>";
+    mx::RtStagePtr defaultStage = api->createStage(mx::RtToken("defaultStage"));
+    mx::RtFileIo   fileIo(defaultStage);
+    mx::RtReadOptions options;
+    options.applyFutureUpdates = true;
+    std::stringstream ss;
+    ss << mtlxDoc;
+    REQUIRE_NOTHROW(fileIo.read(ss, &options));
 }
 
 #endif // MATERIALX_BUILD_RUNTIME

@@ -25,7 +25,7 @@ PvtPrim::PvtPrim(const RtTypeInfo* typeInfo, const RtToken& name, PvtPrim* paren
 PvtDataHandle PvtPrim::createNew(const RtTypeInfo* type, const RtToken& name, PvtPrim* parent)
 {
     // Make the name unique.
-    const RtToken primName = parent->makeUniqueName(name);
+    const RtToken primName = parent->makeUniqueChildName(name);
     return PvtDataHandle(new PvtPrim(type, primName, parent));
 }
 
@@ -48,9 +48,6 @@ void PvtPrim::dispose(bool state)
 
 void PvtPrim::destroy()
 {
-    // Tag as disposed.
-    dispose(true);
-
     // Disconnect and delete all relationships.
     for (PvtDataHandle& hnd : _relOrder)
     {
@@ -82,6 +79,9 @@ void PvtPrim::destroy()
     }
     _primOrder.clear();
     _primMap.clear();
+
+    // Tag as disposed.
+    dispose(true);
 }
 
 PvtRelationship* PvtPrim::createRelationship(const RtToken& name)
@@ -113,6 +113,21 @@ void PvtPrim::removeRelationship(const RtToken& name)
             }
         }
         rel->setDisposed(true);
+        _relMap.erase(name);
+    }
+}
+
+void PvtPrim::renameRelationship(const RtToken& name, const RtToken& newName)
+{
+    if (getRelationship(newName))
+    {
+        throw ExceptionRuntimeError("A relationship named '" + newName.str() + "' already exists in prim '" + getName().str() + "'");
+    }
+    PvtRelationship* rel = getRelationship(name);
+    if (rel)
+    {
+        rel->setName(newName);
+        _relMap[newName] = rel->hnd();
         _relMap.erase(name);
     }
 }
@@ -178,6 +193,21 @@ void PvtPrim::removeAttribute(const RtToken& name)
     }
 }
 
+void PvtPrim::renameAttribute(const RtToken& name, const RtToken& newName)
+{
+    if (getAttribute(newName))
+    {
+        throw ExceptionRuntimeError("An attribute named '" + newName.str() + "' already exists in prim '" + getName().str() + "'");
+    }
+    PvtAttribute* attr = getAttribute(name);
+    if (attr)
+    {
+        attr->setName(newName);
+        _attrMap[newName] = attr->hnd();
+        _attrMap.erase(name);
+    }
+}
+
 RtAttrIterator PvtPrim::getAttributes(RtObjectPredicate predicate) const
 {
     return RtAttrIterator(hnd(), predicate);
@@ -188,7 +218,7 @@ RtPrimIterator PvtPrim::getChildren(RtObjectPredicate predicate) const
     return RtPrimIterator(hnd(), predicate);
 }
 
-RtToken PvtPrim::makeUniqueName(const RtToken& name) const
+RtToken PvtPrim::makeUniqueChildName(const RtToken& name) const
 {
     RtToken newName = name;
 
