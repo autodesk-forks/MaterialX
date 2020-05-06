@@ -313,6 +313,11 @@ NodeDefPtr Document::addNodeDefFromGraph(NodeGraphPtr nodeGraph, const string& n
 
 void Document::importLibrary(const ConstDocumentPtr& library, const CopyOptions* copyOptions)
 {
+    if (!library)
+    {
+        return;
+    }
+
     bool skipConflictingElements = copyOptions && copyOptions->skipConflictingElements;
     for (const ConstElementPtr& child : library->getChildren())
     {
