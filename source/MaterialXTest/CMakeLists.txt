@@ -36,18 +36,6 @@ file(GLOB materialx_headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 
 list(APPEND materialx_headers "${CMAKE_CURRENT_SOURCE_DIR}/Catch/catch.hpp")
 
-if (NOT MATERIALX_BUILD_GEN_ARNOLD)
-    list(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/GenArnold.cpp")
-    list(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/RenderArnold.cpp")
-endif()
-if (NOT MATERIALX_BUILD_GEN_OGSFX)
-    list(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/GenOgsfx.cpp")
-    list(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/RenderOgsFx.cpp")
-endif()
-if (NOT MATERIALX_BUILD_GEN_OGSXML)
-    list(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/GenOgsXml.cpp")
-endif()
-
 assign_source_group("Source Files" ${materialx_source})
 assign_source_group("Header Files" ${materialx_headers})
 
