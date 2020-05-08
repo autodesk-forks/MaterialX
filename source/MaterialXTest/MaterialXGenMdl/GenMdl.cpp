@@ -178,7 +178,9 @@ TEST_CASE("GenShader: MDL Shader Generation", "[genmdl]")
 
     const mx::FilePath logPath("genmdl_mdl_generate_test.txt");
 
-    bool writeShadersToDisk = true;
+    // Write shaders and try to compile only if mdlc exe specified.
+    std::string mdlcExec(MATERIALX_MDLC_EXECUTABLE);
+    bool writeShadersToDisk = !mdlcExec.empty();
     MdlShaderGeneratorTester tester(mx::MdlShaderGenerator::create(), testRootPaths, libSearchPath, srcSearchPath, logPath, writeShadersToDisk);
     tester.addSkipLibraryFiles();
 
