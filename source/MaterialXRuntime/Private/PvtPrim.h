@@ -17,7 +17,7 @@
 namespace MaterialX
 {
 
-// Allocator class handling allocation of data for elements.
+// Allocator class handling allocation of data for prims.
 // The data allocated is kept by the allocator and freed
 // upon allocator destruction or by calling free() explicitly.
 // NOTE: Data is stored as raw byte pointers and destructors
@@ -61,7 +61,6 @@ private:
     vector<uint8_t*> _storage;
 };
 
-class PvtPrimDef;
 class RtAttrIterator;
 class RtPrimIterator;
 
@@ -98,6 +97,8 @@ public:
 
     void removeRelationship(const RtToken& name);
 
+    void renameRelationship(const RtToken& name, const RtToken& newName);
+
     PvtRelationship* getRelationship(const RtToken& name)
     {
         auto it = _relMap.find(name);
@@ -116,6 +117,8 @@ public:
     PvtOutput* createOutput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
     void removeAttribute(const RtToken& name);
+
+    void renameAttribute(const RtToken& name, const RtToken& newName);
 
     PvtAttribute* getAttribute(const RtToken& name) const
     {
@@ -182,7 +185,7 @@ public:
         return _allocator;
     }
 
-    RtToken makeUniqueName(const RtToken& name) const;
+    RtToken makeUniqueChildName(const RtToken& name) const;
 
 protected:
     PvtPrim(const RtTypeInfo* typeInfo, const RtToken& name, PvtPrim* parent);
