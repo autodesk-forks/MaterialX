@@ -134,7 +134,7 @@ void MdlShaderGeneratorTester::compileSource(const std::vector<mx::FilePath>& so
     }
     // Note: These paths are based on
     mx::FilePath currentPath = mx::FilePath::getCurrentPath();
-    mx::FilePath coreModulePath = currentPath / std::string(MATERIALX_INSTALL_MDL_MODULE_PATH) / "mdl");
+    mx::FilePath coreModulePath = currentPath / std::string(MATERIALX_INSTALL_MDL_MODULE_PATH) / "mdl";
     mx::FilePath coreModulePath2 = coreModulePath / mx::FilePath("materialx");
     mdlcCommand += " -p \"" + currentPath.asString() + "\"";
     mdlcCommand += " -p \"" + coreModulePath.asString() + "\"";
