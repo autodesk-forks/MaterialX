@@ -561,6 +561,7 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
     REQUIRE(doc->validate());
 
     mx::NodeGraphPtr graph = doc->getNodeGraph("colorcorrect");
+    REQUIRE(graph);
     if (graph)
     {
         // Duplicate the graph and then make the duplicate a nodedef nodegraph
@@ -657,8 +658,5 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
     }
 
     REQUIRE(doc->validate());
-    //std::stringstream sstream;
-    //mx::writeToXmlStream(doc, sstream);
-    //std::string result = sstream.str();
     mx::writeToXmlFile(doc, "definition_from_nodegraph_out.mtlx");
 }

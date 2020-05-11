@@ -75,7 +75,14 @@ RtPrim RtNode::getNodeDef() const
 void RtNode::setNodeDef(RtPrim nodeDef)
 {
     PvtRelationship* nodedefRel = prim()->getRelationship(NODEDEF);
-    nodedefRel->clearTargets();
+    if (!nodedefRel)
+    {
+        nodedefRel = prim()->createRelationship(NODEDEF);
+    }
+    else
+    {
+        nodedefRel->clearTargets();
+    }
     nodedefRel->addTarget(PvtObject::ptr<PvtPrim>(nodeDef));
 }
 

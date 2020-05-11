@@ -58,7 +58,7 @@ public:
     bool getIsDefaultVersion() const;
 
     /// Set the version for this nodedef.
-    void getIsDefaultVersion(bool isDefault);
+    void setIsDefaultVersion(bool isDefault);
 
     /// Add an input attribute to the interface.
     RtInput createInput(const RtToken& name, const RtToken& type, uint32_t flags = 0);

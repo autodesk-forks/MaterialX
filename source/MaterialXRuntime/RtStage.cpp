@@ -152,7 +152,7 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
         nodeName == EMPTY_TOKEN)
     {
         throw ExceptionRuntimeError("Cannot create nodedef with definition name'" + nodeDefName.str() 
-                                    + "', and node nane: '" + nodeName.str() + "'");
+                                    + "', and node name: '" + nodeName.str() + "'");
     }
 
     PvtStage* stage = _cast(_ptr);
@@ -178,7 +178,7 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
         attr.setValue(output.getValue());
     }
 
-    // Set up relationship between nodegraph and  nodedef
+    // Set up relationship between nodegraph and nodedef
     nodeGraph.setNodeDef(prim->hnd());
 
     // Add definiion
