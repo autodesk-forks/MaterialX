@@ -566,13 +566,13 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
         // Duplicate the graph and then make the duplicate a nodedef nodegraph
         std::string newNodeDefname = doc->createValidChildName("ND_" + graph->getName());
         std::string newGraphName = doc->createValidChildName("NG_" + graph->getName());
-        mx::NodeDefPtr nodeDef = graph->makeDeclaration(newNodeDefname, graph->getName() + "1", newGraphName, "adjustment");
+        mx::NodeDefPtr nodeDef = doc->addNodeDefFromGraph(graph, newNodeDefname, graph->getName() + "1", newGraphName, "adjustment");
         REQUIRE(nodeDef != nullptr);
         mx::NodeDefPtr temp;
         try
         {
             temp = nullptr;
-            temp = graph->makeDeclaration(newNodeDefname, graph->getName(), newGraphName, "adjustment");
+            temp = doc->addNodeDefFromGraph(graph, newNodeDefname, graph->getName(), newGraphName, "adjustment");
         }
         catch (mx::Exception&)
         {
@@ -652,7 +652,7 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
 
         // Modify the existing nodegraph
         newGraphName = mx::EMPTY_STRING;
-        nodeDef = graph->makeDeclaration(newNodeDefname + "0", graph->getName() + "0", newGraphName, "adjustment");
+        nodeDef = doc->addNodeDefFromGraph(graph, newNodeDefname + "0", graph->getName() + "0", newGraphName, "adjustment");
         REQUIRE(nodeDef != nullptr);
     }
 

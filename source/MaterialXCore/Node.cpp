@@ -482,41 +482,6 @@ void NodeGraph::setNodeDef(ConstNodeDefPtr nodeDef)
     }
 }
 
-NodeDefPtr NodeGraph::makeDeclaration(const string& nodeDefName, const string& node, string& newGraphName, const string& group)
-{
-    DocumentPtr doc = getDocument();
-    if (doc->getNodeDef(nodeDefName))
-    {
-        throw Exception("Cannot create duplicate nodedef: " + nodeDefName);
-    }
-
-    NodeGraphPtr graph = asA<NodeGraph>();
-    if (!newGraphName.empty())
-    {
-        if (doc->getNodeGraph(newGraphName))
-        {
-            throw Exception("Cannot create duplicate nodegraph: " + newGraphName);
-        }
-        graph = doc->addNodeGraph(newGraphName);
-        graph->copyContentFrom(asA<NodeGraph>());
-    }
-    graph->setNodeDefString(nodeDefName);
-
-    NodeDefPtr nodeDef = doc->addChild<NodeDef>(nodeDefName);
-    nodeDef->setNodeString(node);    
-    if (!group.empty())
-    {
-        nodeDef->setNodeGroup(group);
-    }
-
-    for (auto output : graph->getOutputs())
-    {
-        nodeDef->addOutput(output->getName(), output->getType());
-    }
-
-    return nodeDef;
-}
-
 ValueElementPtr Node::addInputFromNodeDef(const string& name)
 {
     ValueElementPtr newChild = nullptr;
