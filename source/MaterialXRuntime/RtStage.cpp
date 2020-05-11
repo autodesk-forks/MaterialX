@@ -168,9 +168,7 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
     nodedef.setNode(nodeName);
     if (nodeGroup != EMPTY_TOKEN)
     {
-        const RtToken NODE_GROUP_ATTRIBUTE("nodegroup");
-        RtTypedValue *md = nodedef.addMetadata(NODE_GROUP_ATTRIBUTE, RtType::TOKEN);
-        md->getValue().asToken() = nodeGroup;
+        nodedef.setNodeGroup(nodeGroup);
     }
 
     // Add an output per nodegraph output

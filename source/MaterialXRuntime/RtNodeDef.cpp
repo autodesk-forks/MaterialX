@@ -12,10 +12,12 @@
 namespace MaterialX
 {
 
-namespace
-{
-    static const RtToken NODE("node");
-}
+RtToken RtNodeDef::NODE("node");
+RtToken RtNodeDef::NODEGROUP("node");
+RtToken RtNodeDef::INHERIT("inherit");
+RtToken RtNodeDef::TARGET("target");
+RtToken RtNodeDef::VERSION("version");
+RtToken RtNodeDef::IS_DEFAULT_VERSION("isdefaultversion");
 
 DEFINE_TYPED_SCHEMA(RtNodeDef, "nodedef");
 
@@ -45,6 +47,67 @@ void RtNodeDef::setNode(const RtToken& node)
     RtTypedValue* v = prim()->getMetadata(NODE);
     v->getValue().asToken() = node;
 }
+
+const RtToken& RtNodeDef::getNodeGroup() const
+{
+    RtTypedValue* v = prim()->getMetadata(NODEGROUP);
+    return v->getValue().asToken();
+}
+
+void RtNodeDef::setNodeGroup(const RtToken& nodegroup)
+{
+    RtTypedValue* v = prim()->getMetadata(NODEGROUP);
+    v->getValue().asToken() = nodegroup;
+}
+
+const RtToken& RtNodeDef::getTarget() const
+{
+    RtTypedValue* v = prim()->getMetadata(TARGET);
+    return v->getValue().asToken();
+}
+
+void RtNodeDef::setTarget(const RtToken& nodegroup)
+{
+    RtTypedValue* v = prim()->getMetadata(TARGET);
+    v->getValue().asToken() = nodegroup;
+}
+
+const RtToken& RtNodeDef::getIneritance() const
+{
+    RtTypedValue* v = prim()->getMetadata(INHERIT);
+    return v->getValue().asToken();
+}
+
+void RtNodeDef::setIneritance(const RtToken& inherit)
+{
+    RtTypedValue* v = prim()->getMetadata(INHERIT);
+    v->getValue().asToken() = inherit;
+}
+
+const RtToken& RtNodeDef::getVersion() const
+{
+    RtTypedValue* v = prim()->getMetadata(VERSION);
+    return v->getValue().asToken();
+}
+
+void RtNodeDef::setVersion(const RtToken& version)
+{
+    RtTypedValue* v = prim()->getMetadata(VERSION);
+    v->getValue().asToken() = version;
+}
+
+bool RtNodeDef::getIsDefaultVersion() const
+{
+    RtTypedValue* v = prim()->getMetadata(IS_DEFAULT_VERSION);
+    return v->getValue().asBool();
+}
+
+void RtNodeDef::getIsDefaultVersion(bool isDefault)
+{
+    RtTypedValue* v = prim()->getMetadata(IS_DEFAULT_VERSION);
+    v->getValue().asBool() = isDefault;
+}
+
 
 RtInput RtNodeDef::createInput(const RtToken& name, const RtToken& type, uint32_t flags)
 {
