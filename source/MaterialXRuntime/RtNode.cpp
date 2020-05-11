@@ -79,6 +79,10 @@ void RtNode::setNodeDef(RtPrim nodeDef)
     nodedefRel->addTarget(PvtObject::ptr<PvtPrim>(nodeDef));
 }
 
+size_t RtNode::numInputs() const
+{
+    return prim()->numInputs();
+}
 
 RtInput RtNode::getInput(const RtToken& name) const
 {
@@ -92,9 +96,20 @@ RtAttrIterator RtNode::getInputs() const
     return RtAttrIterator(getPrim(), filter);
 }
 
+size_t RtNode::numOutputs() const
+{
+    return prim()->numOutputs();
+}
+
 RtOutput RtNode::getOutput(const RtToken& name) const
 {
     PvtOutput* output = prim()->getOutput(name);
+    return output ? output->hnd() : RtOutput();
+}
+
+RtOutput RtNode::getOutput() const
+{
+    PvtOutput* output = prim()->getOutput();
     return output ? output->hnd() : RtOutput();
 }
 
