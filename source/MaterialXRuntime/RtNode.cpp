@@ -72,6 +72,14 @@ RtPrim RtNode::getNodeDef() const
     return nodedef && nodedef->hasTargets() ? nodedef->getAllTargets()[0] : RtPrim();
 }
 
+void RtNode::setNodeDef(RtPrim nodeDef)
+{
+    PvtRelationship* nodedefRel = prim()->getRelationship(NODEDEF);
+    nodedefRel->clearTargets();
+    nodedefRel->addTarget(PvtObject::ptr<PvtPrim>(nodeDef));
+}
+
+
 RtInput RtNode::getInput(const RtToken& name) const
 {
     PvtInput* input = prim()->getInput(name);
