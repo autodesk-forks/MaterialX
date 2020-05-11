@@ -13,7 +13,7 @@ namespace MaterialX
 {
 
 RtToken RtNodeDef::NODE("node");
-RtToken RtNodeDef::NODEGROUP("nodegraph");
+RtToken RtNodeDef::NODEGROUP("nodegroup");
 RtToken RtNodeDef::INHERIT("inherit");
 RtToken RtNodeDef::TARGET("target");
 RtToken RtNodeDef::VERSION("version");
