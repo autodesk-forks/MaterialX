@@ -47,7 +47,7 @@ public:
 
     void unregisterLogger(RtLoggerPtr logger)
     {
-        std::remove(_loggers.begin(), _loggers.end(), logger);
+        static_cast<void>(std::remove(_loggers.begin(), _loggers.end(), logger));
     }
 
     void log(RtLogger::MessageType type, const RtToken& msg)
