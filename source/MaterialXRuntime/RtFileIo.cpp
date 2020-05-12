@@ -22,6 +22,7 @@
 
 #include <MaterialXFormat/Util.h>
 #include <sstream>
+#include <fstream>
 #include <map>
 
 namespace MaterialX
@@ -1195,6 +1196,56 @@ namespace
         }
     }
 
+    void writeMasterPrim(DocumentPtr document, RtStagePtr rtStage, const RtPrim& masterPrim)
+    {
+        if (!masterPrim.isValid())
+        {
+            return;
+        }
+
+        // Write the definition
+        PvtStage* stage = PvtStage::ptr(rtStage);
+        PvtPrim* prim = PvtObject::ptr<PvtPrim>(masterPrim);
+        writeNodeDef(prim, document);
+
+        // Write the corresponding nodegraph if any
+        RtNodeDef def(masterPrim);
+        RtToken nodeDefName = def.getName();
+        RtSchemaPredicate<RtNodeGraph> filter;
+        for (RtPrim child : stage->getRootPrim()->getChildren(filter))
+        {
+            RtNodeGraph nodeGraph(child);
+            if (nodeGraph.getDefinition() == nodeDefName)
+            {
+                PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
+                writeNodeGraph(graphPrim, document);
+                break;
+            }
+        }
+    }
+
+    void writeNodeDefs(DocumentPtr document, RtStagePtr rtStage, const RtTokenVec& names)
+    {
+        // Write all definitions if no names provided
+        RtApi& rtApi = RtApi::get();
+        if (names.empty())
+        {
+            RtSchemaPredicate<RtNodeDef> nodedefFilter;
+            for (RtPrim masterPrim : rtApi.getMasterPrims(nodedefFilter))
+            {
+                writeMasterPrim(document, rtStage, masterPrim);
+            }
+        }
+        else
+        {
+            for (const RtToken& name : names)
+            {
+                RtPrim masterPrim = rtApi.getMasterPrim(name);
+                writeMasterPrim(document, rtStage, masterPrim);
+            }
+        }      
+    }
+
 } // end anonymous namespace
 
 RtReadOptions::RtReadOptions() :
@@ -1383,6 +1434,19 @@ void RtFileIo::write(std::ostream& stream, const RtWriteOptions* options)
         document->setVersionString(makeVersionString(MATERIALX_MAJOR_VERSION, MATERIALX_MINOR_VERSION + 1));
     }
     writeToXmlStream(document, stream, &xmlWriteOptions);
+}
+
+void RtFileIo::writeDefinitions(std::ostream& stream, const RtTokenVec& names)
+{
+    DocumentPtr document = createDocument();
+    writeNodeDefs(document, _stage, names);
+    writeToXmlStream(document, stream);
+}
+
+void RtFileIo::writeDefinitions(const FilePath& documentPath, const RtTokenVec& names)
+{
+    std::ofstream ofs(documentPath.asString());
+    writeDefinitions(ofs, names);
 }
 
 }

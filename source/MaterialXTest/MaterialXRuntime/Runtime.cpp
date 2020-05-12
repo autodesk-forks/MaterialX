@@ -794,6 +794,11 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(addgraphDef.getNodeGroup() == MATH_GROUP);
     addgraphDef.setVersion(ADDGRAPH_VERSION);
     REQUIRE(addgraphDef.getVersion() == ADDGRAPH_VERSION);
+
+    mx::RtFileIo stageIo(stage);
+    mx::RtTokenVec names;
+    names.insert(ND_ADDGRAPH);
+    stageIo.writeDefinitions("test_ng.mtlx", names);
 }
 
 TEST_CASE("Runtime: FileIo", "[runtime]")
