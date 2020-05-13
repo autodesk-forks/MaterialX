@@ -126,7 +126,7 @@ namespace
             std::string valueString = md->getValueString();
             if (!valueString.empty())
             {
-                dest->setAttribute(name.str(), md->getValueString());
+                dest->setAttribute(name.str(), valueString);
             }
         }
     }
