@@ -1196,21 +1196,24 @@ namespace
         }
     }
 
-    void writeMasterPrim(DocumentPtr document, RtStagePtr rtStage, const RtPrim& masterPrim)
+    void writeMasterPrim(DocumentPtr document, PvtStage* stage, PvtPrim* prim)
     {
-        if (!masterPrim.isValid())
+        if (!prim || prim->isDisposed())
         {
-            return;
+            throw ExceptionRuntimeError("Trying to write invalid definition" +  (prim ? (": '" + prim->getName().str() + "'") :  EMPTY_STRING));
         }
 
         // Write the definition
-        PvtStage* stage = PvtStage::ptr(rtStage);
-        PvtPrim* prim = PvtObject::ptr<PvtPrim>(masterPrim);
         writeNodeDef(prim, document);
 
-        // Write the corresponding nodegraph if any
-        RtNodeDef def(masterPrim);
-        RtToken nodeDefName = def.getName();
+        // Write the corresponding nodegraph if any.
+        // Currently there is no "implementation" association kept other than
+        // on the node graph referencing the definition it represents.
+        //
+        // TODO: Want to change this to keep this in <implementation>
+        // elements but requires a spec change plus support in the runtime
+        // for implementation associations.
+        RtToken nodeDefName = prim->getName();
         RtSchemaPredicate<RtNodeGraph> filter;
         for (RtPrim child : stage->getRootPrim()->getChildren(filter))
         {
@@ -1224,7 +1227,7 @@ namespace
         }
     }
 
-    void writeNodeDefs(DocumentPtr document, RtStagePtr rtStage, const RtTokenVec& names)
+    void writeNodeDefs(DocumentPtr document, PvtStage* stage, const RtTokenVec& names)
     {
         // Write all definitions if no names provided
         RtApi& rtApi = RtApi::get();
@@ -1233,7 +1236,8 @@ namespace
             RtSchemaPredicate<RtNodeDef> nodedefFilter;
             for (RtPrim masterPrim : rtApi.getMasterPrims(nodedefFilter))
             {
-                writeMasterPrim(document, rtStage, masterPrim);
+                PvtPrim* prim = PvtObject::ptr<PvtPrim>(masterPrim);
+                writeMasterPrim(document, stage, prim);
             }
         }
         else
@@ -1241,7 +1245,8 @@ namespace
             for (const RtToken& name : names)
             {
                 RtPrim masterPrim = rtApi.getMasterPrim(name);
-                writeMasterPrim(document, rtStage, masterPrim);
+                PvtPrim* prim = PvtObject::ptr<PvtPrim>(masterPrim);
+                writeMasterPrim(document, stage, prim);
             }
         }      
     }
@@ -1439,7 +1444,8 @@ void RtFileIo::write(std::ostream& stream, const RtWriteOptions* options)
 void RtFileIo::writeDefinitions(std::ostream& stream, const RtTokenVec& names)
 {
     DocumentPtr document = createDocument();
-    writeNodeDefs(document, _stage, names);
+    PvtStage* stage = PvtStage::ptr(_stage);
+    writeNodeDefs(document, stage, names);
     writeToXmlStream(document, stream);
 }
 
