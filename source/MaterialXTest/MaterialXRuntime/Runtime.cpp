@@ -2142,6 +2142,19 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     mx::RtMessage::removeCallback(setAttrCB_id);
     mx::RtMessage::removeCallback(makeConnectionCB_id);
     mx::RtMessage::removeCallback(breakConnectionCB_id);
+
+    ///
+    /// Test failing to create special case prims
+    ///
+
+    // Look management nodes must be created at the root level
+    REQUIRE_THROWS(mx::RtCommand::createPrim(stage, mx::RtToken("collection"), mx::RtPath("/test/"), mx::EMPTY_TOKEN, result));
+    REQUIRE_THROWS(mx::RtCommand::createPrim(stage, mx::RtToken("materialassign"), mx::RtPath("/test/"), mx::EMPTY_TOKEN, result));
+    REQUIRE_THROWS(mx::RtCommand::createPrim(stage, mx::RtToken("look"), mx::RtPath("/test/"), mx::EMPTY_TOKEN, result));
+    REQUIRE_THROWS(mx::RtCommand::createPrim(stage, mx::RtToken("lookgroup"), mx::RtPath("/test/"), mx::EMPTY_TOKEN, result));
+
+    // Unknown node types cannot be created. Must be a look managment node, a material node, or have a nodedef.
+    REQUIRE_THROWS(mx::RtCommand::createPrim(stage, mx::RtToken("unknown"), mx::RtPath("/"), mx::EMPTY_TOKEN, result));
 }
 
 TEST_CASE("Runtime: graph output connection", "[runtime]")

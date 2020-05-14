@@ -35,6 +35,27 @@ void createPrim(RtStagePtr stage, const RtToken& typeName, const RtPath& path, R
 
 void createPrim(RtStagePtr stage, const RtToken& typeName, const RtPath& parentPath, const RtToken& name, RtCommandResult& result)
 {
+    static RtTokenSet LOOK_MANAGEMENT_NODES { RtToken("collection"),
+                                              RtToken("look"),
+                                              RtToken("lookgroup"),
+                                              RtToken("materialassign")
+                                            };
+    static RtTokenSet MATERIAL_NODES { RtToken("surfacematerial"),
+                                       RtToken("volumematerial")
+                                     };
+    RtPrim nodeDefPrim =
+        RtApi::get().getMasterPrim(RtToken(typeName));
+
+    // If the node does not have a NodeDef it's either a look management node or a material node
+    if (!nodeDefPrim) {
+        if (LOOK_MANAGEMENT_NODES.count(typeName) == 0 && MATERIAL_NODES.count(typeName) == 0) {
+            throw ExceptionRuntimeError("Invalid typeName: " + typeName.str() + " encountered.");
+        }
+        else if (LOOK_MANAGEMENT_NODES.count(typeName) > 0 && parentPath != RtPath("/")) {
+            throw ExceptionRuntimeError("Look management nodes of type: " + typeName.str() + " cannot be placed in compounds.");
+        }
+    }
+
     PvtCommandPtr cmd = PvtCreatePrimCmd::create(stage, typeName, parentPath, name);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
