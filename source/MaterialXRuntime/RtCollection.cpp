@@ -4,7 +4,6 @@
 //
 
 #include <MaterialXRuntime/RtCollection.h>
-#include <MaterialXRuntime/RtLook.h>
 
 #include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
