@@ -6,6 +6,7 @@
 #include <MaterialXRuntime/RtCollection.h>
 #include <MaterialXRuntime/RtLook.h>
 
+#include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
 namespace MaterialX
@@ -28,7 +29,7 @@ RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, Rt
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
-    throwIfNotTopLevelElement(typeName, parent.getPath());
+    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " cannot be created inside of a compound");
 
     const RtToken primName = name == EMPTY_TOKEN ? COLLECTION1 : name;
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));

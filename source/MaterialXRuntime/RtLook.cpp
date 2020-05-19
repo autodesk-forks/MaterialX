@@ -6,6 +6,7 @@
 #include <MaterialXCore/Util.h>
 #include <MaterialXRuntime/RtLook.h>
 
+#include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
 namespace MaterialX
@@ -35,7 +36,7 @@ RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtP
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
-    throwIfNotTopLevelElement(typeName, parent.getPath());
+    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " cannot be created inside of a compound");
 
     const RtToken primName = name == EMPTY_TOKEN ? LOOKGROUP1 : name;
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
@@ -82,7 +83,7 @@ RtPrim RtLook::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
-    throwIfNotTopLevelElement(typeName, parent.getPath());
+    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " cannot be created inside of a compound");
 
     const RtToken primName = name == EMPTY_TOKEN ? LOOK1 : name;
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
@@ -129,7 +130,7 @@ RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
-    throwIfNotTopLevelElement(typeName, parent.getPath());
+    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " cannot be created inside of a compound");
 
     const RtToken primName = name == EMPTY_TOKEN ? MATERIALASSIGN1 : name;
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
@@ -163,14 +164,6 @@ RtAttribute RtMaterialAssign::getGeom() const
 RtAttribute RtMaterialAssign::getExclusive() const
 {
     return prim()->getAttribute(EXCLUSIVE)->hnd();
-}
-
-void throwIfNotTopLevelElement(const RtToken& typeName, const RtPath& parentPath)
-{
-    if (parentPath != RtPath("/"))
-    {
-        throw ExceptionRuntimeError(typeName.str() + " cannot be created inside of a compound");
-    }
 }
 
 }
