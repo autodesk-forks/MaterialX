@@ -36,7 +36,7 @@ RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtP
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
-    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " cannot be created inside of a compound");
+    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " can only be created at the top / root level");
 
     const RtToken primName = name == EMPTY_TOKEN ? LOOKGROUP1 : name;
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
@@ -83,7 +83,7 @@ RtPrim RtLook::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
-    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " cannot be created inside of a compound");
+    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " can only be created at the top / root level");
 
     const RtToken primName = name == EMPTY_TOKEN ? LOOK1 : name;
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
@@ -130,7 +130,7 @@ RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
-    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " cannot be created inside of a compound");
+    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " can only be created at the top / root level");
 
     const RtToken primName = name == EMPTY_TOKEN ? MATERIALASSIGN1 : name;
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));

@@ -28,7 +28,7 @@ RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, Rt
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
-    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " cannot be created inside of a compound");
+    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " can only be created at the top / root level");
 
     const RtToken primName = name == EMPTY_TOKEN ? COLLECTION1 : name;
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
