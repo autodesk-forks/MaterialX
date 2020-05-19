@@ -88,6 +88,9 @@ public:
     RtAttribute getExclusive() const;
 };
 
+/// Function to be called to throw an exception if element is being created from within a compound
+void throwIfNotTopLevelElement(const RtToken& typeName, const RtPath& parentPath);
+
 }
 
 #endif

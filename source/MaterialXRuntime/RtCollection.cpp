@@ -4,6 +4,7 @@
 //
 
 #include <MaterialXRuntime/RtCollection.h>
+#include <MaterialXRuntime/RtLook.h>
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
@@ -27,6 +28,7 @@ RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, Rt
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
+    throwIfNotTopLevelElement(typeName, parent.getPath());
 
     const RtToken primName = name == EMPTY_TOKEN ? COLLECTION1 : name;
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
