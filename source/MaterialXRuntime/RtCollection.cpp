@@ -18,6 +18,8 @@ namespace
     static const RtToken INCLUDE_COLLECTION("includecollection");
 
     static const RtToken COLLECTION1("collection1");
+
+    static const string MSG_NONE_ROOT_COLLECTION("A collection can only be created at the top / root level");
 }
 
 DEFINE_TYPED_SCHEMA(RtCollection, "collection");
@@ -28,7 +30,7 @@ RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, Rt
     {
         throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
     }
-    PvtPath::throwIfNotRoot(parent.getPath(), typeName.str() + " can only be created at the top / root level");
+    PvtPath::throwIfNotRoot(parent.getPath(), MSG_NONE_ROOT_COLLECTION);
 
     const RtToken primName = name == EMPTY_TOKEN ? COLLECTION1 : name;
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));

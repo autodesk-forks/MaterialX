@@ -2143,9 +2143,9 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     mx::RtMessage::removeCallback(makeConnectionCB_id);
     mx::RtMessage::removeCallback(breakConnectionCB_id);
 
-    ///
-    /// Test failing to create special case prims
-    ///
+    //
+    // Test failing to create special case prims
+    //
 
     // Look management nodes must be created at the root level
     mx::RtCommandResult colResult;

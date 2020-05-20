@@ -122,8 +122,6 @@ public:
 
 private:
     vector<RtToken> _elements;
-
-    class PvtStage;
 };
 
 }
