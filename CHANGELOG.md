@@ -8,9 +8,10 @@
 - Added a Light Rotation slider to the Advanced Settings panel of the viewer.
 - Added utility methods Backdrop\:\:setContainsElements and Backdrop\:\:getContainsElements.
 - Added backwards compatibility for OpenImageIO 1.x.
+- Added support for GCC 10.
 
 ### Changed
-- Improved energy compensation and preservation computations in generated GLSL.
+- Improved energy conservation and preservation computations in generated GLSL.
 - Upgraded Smith masking-shadowing to height-correlated form in generated GLSL.
 - Improved the robustness of tangent frame computations in MaterialXRender.
 - Renamed Backdrop\:\:setContains and getContains to Backdrop\:\:setContainsString and getContainsString for consistency.
@@ -19,7 +20,8 @@
   - Fix for arguments of from `atan2(x,y)` to `atan2(y,x)`. (in1 and in2 arguments are swapped)
 
 ### Fixed
-- Fixed comparison order in the upgrade path for compare nodes in v1.36 documents.
+- Fixed the GLSL implementation of Burley diffuse for punctual lights.
+- Fixed the upgrade path for compare nodes in v1.36 documents.
 
 ## [1.37.0] - 2020-03-20
 
