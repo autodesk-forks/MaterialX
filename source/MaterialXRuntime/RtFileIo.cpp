@@ -715,6 +715,15 @@ namespace
                 else
                 {
                     destPort = destNodeDef->addInput(attr->getName(), attr->getType().str());
+                    const RtTypedValue* uiFolderMetaData = input->getMetadata(RtToken(ValueElement::UI_FOLDER_ATTRIBUTE));
+                    if (uiFolderMetaData)
+                    {
+                        std::string uiFolderString = uiFolderMetaData->getValueString();
+                        if (!uiFolderString.empty())
+                        {
+                            destPort->setAttribute(ValueElement::UI_FOLDER_ATTRIBUTE, uiFolderString);
+                        }
+                    }
                 }
             }
             else
@@ -937,6 +946,15 @@ namespace
             else
             {
                 InputPtr input = destNodeGraph->addInput(nodegraphInput.getName(), nodegraphInput.getType());
+                RtTypedValue* uiFolderMetaData = nodegraphInput.getMetadata(RtToken(ValueElement::UI_FOLDER_ATTRIBUTE));
+                if (uiFolderMetaData)
+                {
+                    std::string uiFolderString = uiFolderMetaData->getValueString();
+                    if (!uiFolderString.empty())
+                    {
+                        input->setAttribute(ValueElement::UI_FOLDER_ATTRIBUTE, uiFolderString);
+                    }
+                }
                 if (nodegraphInput.isConnected())
                 {
                     // Write connections to upstream nodes.

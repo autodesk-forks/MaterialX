@@ -11,6 +11,8 @@
 
 #include <MaterialXRuntime/Private/PvtStage.h>
 
+#include <MaterialXCore/Element.h>
+
 namespace MaterialX
 {
 
@@ -171,10 +173,16 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
         nodedef.setNodeGroup(nodeGroup);
     }
 
-    // Add an output per nodegraph input
+    // Add an input per nodegraph input
     for (auto input : nodeGraph.getInputs())
     {
-        RtAttribute attr = nodedef.createInput(input.getName(), input.getType());
+        RtInput attr = nodedef.createInput(input.getName(), input.getType());
+        RtTypedValue* v = input.getMetadata(RtToken(ValueElement::UI_FOLDER_ATTRIBUTE));
+        if (v)
+        {
+            RtTypedValue* vNew = attr.addMetadata(RtToken(ValueElement::UI_FOLDER_ATTRIBUTE), v->getType());
+            vNew->getValue().asToken() = v->getValue().asToken();
+        }
         attr.setValue(input.getValue());
     }
 
