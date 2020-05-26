@@ -715,13 +715,18 @@ namespace
                 else
                 {
                     destPort = destNodeDef->addInput(attr->getName(), attr->getType().str());
-                    const RtTypedValue* uiFolderMetaData = input->getMetadata(RtToken(ValueElement::UI_FOLDER_ATTRIBUTE));
-                    if (uiFolderMetaData)
+
+                    const vector<RtToken>& metadataNames = input->getMetadataOrder();
+                    for (auto metadataName : metadataNames)
                     {
-                        std::string uiFolderString = uiFolderMetaData->getValueString();
-                        if (!uiFolderString.empty())
+                        const RtTypedValue* metadataValue = input->getMetadata(metadataName);
+                        if (metadataValue)
                         {
-                            destPort->setAttribute(ValueElement::UI_FOLDER_ATTRIBUTE, uiFolderString);
+                            std::string metadataString = metadataValue->getValueString();
+                            if (!metadataString.empty())
+                            {
+                                destPort->setAttribute(metadataName, metadataString);
+                            }
                         }
                     }
                 }
@@ -939,20 +944,28 @@ namespace
         for (RtAttribute attr : src->getAttributes(inputsFilter))
         {
             RtInput nodegraphInput = nodegraph.getInput(attr.getName());
+            ValueElementPtr v = nullptr;
             if (nodegraphInput.isUniform())
             {
-                destNodeGraph->addParameter(nodegraphInput.getName(), nodegraphInput.getType());
+                v = destNodeGraph->addParameter(nodegraphInput.getName(), nodegraphInput.getType());
             }
             else
             {
                 InputPtr input = destNodeGraph->addInput(nodegraphInput.getName(), nodegraphInput.getType());
-                RtTypedValue* uiFolderMetaData = nodegraphInput.getMetadata(RtToken(ValueElement::UI_FOLDER_ATTRIBUTE));
-                if (uiFolderMetaData)
+                v = input->asA<ValueElement>();
+
+                const PvtObject* obj = PvtObject::hnd(attr)->asA<PvtObject>();
+                const vector<RtToken>& metadataNames = obj->getMetadataOrder();
+                for (auto metadataName : metadataNames)
                 {
-                    std::string uiFolderString = uiFolderMetaData->getValueString();
-                    if (!uiFolderString.empty())
+                    const RtTypedValue* metadataValue = obj->getMetadata(metadataName);
+                    if (metadataValue)
                     {
-                        input->setAttribute(ValueElement::UI_FOLDER_ATTRIBUTE, uiFolderString);
+                        std::string metadataString = metadataValue->getValueString();
+                        if (!metadataString.empty())
+                        {
+                            input->setAttribute(metadataName, metadataString);
+                        }
                     }
                 }
                 if (nodegraphInput.isConnected())
@@ -966,6 +979,10 @@ namespace
                         input->setOutputString(source.getName());
                     }
                 }
+            }
+            if (v)
+            {
+                v->setValueString(nodegraphInput.getValueString());
             }
         }
 

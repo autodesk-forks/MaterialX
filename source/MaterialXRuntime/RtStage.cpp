@@ -177,11 +177,17 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
     for (auto input : nodeGraph.getInputs())
     {
         RtInput attr = nodedef.createInput(input.getName(), input.getType());
-        RtTypedValue* v = input.getMetadata(RtToken(ValueElement::UI_FOLDER_ATTRIBUTE));
-        if (v)
+
+        const PvtObject* obj = PvtObject::hnd(input)->asA<PvtObject>();
+        const vector<RtToken>& metadataNames = obj->getMetadataOrder();
+        for (auto metadataName : metadataNames)
         {
-            RtTypedValue* vNew = attr.addMetadata(RtToken(ValueElement::UI_FOLDER_ATTRIBUTE), v->getType());
-            vNew->getValue().asToken() = v->getValue().asToken();
+            const RtTypedValue* metadataValue = obj->getMetadata(metadataName);
+            if (metadataValue)
+            {
+                RtTypedValue* vNew = attr.addMetadata(metadataName, metadataValue->getType());
+                vNew->getValue().asToken() = metadataValue->getValue().asToken();
+            }
         }
         attr.setValue(input.getValue());
     }
