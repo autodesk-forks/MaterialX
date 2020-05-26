@@ -715,20 +715,6 @@ namespace
                 else
                 {
                     destPort = destNodeDef->addInput(attr->getName(), attr->getType().str());
-
-                    const vector<RtToken>& metadataNames = input->getMetadataOrder();
-                    for (auto metadataName : metadataNames)
-                    {
-                        const RtTypedValue* metadataValue = input->getMetadata(metadataName);
-                        if (metadataValue)
-                        {
-                            std::string metadataString = metadataValue->getValueString();
-                            if (!metadataString.empty())
-                            {
-                                destPort->setAttribute(metadataName, metadataString);
-                            }
-                        }
-                    }
                 }
             }
             else
@@ -954,20 +940,6 @@ namespace
                 InputPtr input = destNodeGraph->addInput(nodegraphInput.getName(), nodegraphInput.getType());
                 v = input->asA<ValueElement>();
 
-                const PvtObject* obj = PvtObject::hnd(attr)->asA<PvtObject>();
-                const vector<RtToken>& metadataNames = obj->getMetadataOrder();
-                for (auto metadataName : metadataNames)
-                {
-                    const RtTypedValue* metadataValue = obj->getMetadata(metadataName);
-                    if (metadataValue)
-                    {
-                        std::string metadataString = metadataValue->getValueString();
-                        if (!metadataString.empty())
-                        {
-                            input->setAttribute(metadataName, metadataString);
-                        }
-                    }
-                }
                 if (nodegraphInput.isConnected())
                 {
                     // Write connections to upstream nodes.
