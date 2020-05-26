@@ -11,8 +11,6 @@
 
 #include <MaterialXRuntime/Private/PvtStage.h>
 
-#include <MaterialXCore/Element.h>
-
 namespace MaterialX
 {
 
