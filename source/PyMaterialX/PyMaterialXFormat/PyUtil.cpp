@@ -15,7 +15,6 @@ namespace mx = MaterialX;
 
 void bindPyUtil(py::module& mod)
 {
-    mod.def("removeExtension", &mx::removeExtension);
     mod.def("readFile", &mx::readFile);
     mod.def("getSubdirectories", &mx::getSubdirectories);
     mod.def("loadDocuments", &mx::loadDocuments);
