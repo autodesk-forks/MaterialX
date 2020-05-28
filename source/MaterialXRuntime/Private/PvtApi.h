@@ -194,12 +194,12 @@ public:
 
    const FilePath& getUserDefinitionPath()
     {
-        return _userDefinitionLocation;
+        return _userDefinitionPath;
     }
 
     void setUserDefinitionPath(const FilePath& path)
     {
-        _userDefinitionLocation = path;
+        _userDefinitionPath = path;
     }
 
     RtToken makeUniqueName(const RtToken& name) const;
@@ -265,7 +265,7 @@ public:
     FileSearchPath _searchPaths;
     FileSearchPath _implementationSearchPaths;
     FileSearchPath _textureSearchPaths;
-    FilePath _userDefinitionLocation;
+    FilePath _userDefinitionPath;
     RtStagePtr _libraryRoot;
     RtTokenMap<RtStagePtr> _libraries;
     UnitConverterRegistryPtr  _unitDefinitions;
