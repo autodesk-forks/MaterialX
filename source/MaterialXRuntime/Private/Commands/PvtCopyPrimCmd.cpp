@@ -21,7 +21,7 @@ void PvtCopyPrimCmd::execute(RtCommandResult& result)
 {
     try
     {
-        _copy = copyPrim(_prim, _parentPath);
+        _copy = createPrimCopy(_prim, _parentPath);
 
         // Send message that the prim has been created.
         msg().sendCreatePrimMessage(_stage, _copy);
@@ -70,7 +70,7 @@ void PvtCopyPrimCmd::redo(RtCommandResult& result)
     }
 }
 
-RtPrim PvtCopyPrimCmd::copyPrim(const RtPrim& prim, const RtPath& parentPath)
+RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPath)
 {
     RtPrim copy;
 
@@ -159,7 +159,7 @@ RtPrim PvtCopyPrimCmd::copyPrim(const RtPrim& prim, const RtPath& parentPath)
         {
             if (!copy.getChild(child.getName()))
             {
-                copyPrim(child, copy.getPath());
+                createPrimCopy(child, copy.getPath());
             }
         }
 

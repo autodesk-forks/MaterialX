@@ -31,7 +31,7 @@ public:
     void redo(RtCommandResult& result) override;
 
 private:
-    RtPrim copyPrim(const RtPrim& prim, const RtPath& parentPath);
+    RtPrim createPrimCopy(const RtPrim& prim, const RtPath& parentPath);
     void copyMetadata(const PvtObject* src, PvtObject* dest);
 
     RtStagePtr _stage;
