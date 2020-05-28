@@ -313,7 +313,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                 }
                 else if (shaderRef)
                 {
-                    mx::NodeDefPtr nodeDef = outputNode->getNodeDef();
+                    mx::NodeDefPtr nodeDef = shaderRef->getNodeDef();
                     if (nodeDef)
                     {
                         nodeDefs.push_back(nodeDef);
