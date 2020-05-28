@@ -303,14 +303,22 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                     // Handle connected upstream material nodes later on.
                     if (outputNode->getType() != mx::MATERIAL_TYPE_STRING)
                     {
-                        nodeDefs.push_back(outputNode->getNodeDef());
-                        targetElements.push_back(output);
+                        mx::NodeDefPtr nodeDef = outputNode->getNodeDef();
+                        if (nodeDef)
+                        {
+                            nodeDefs.push_back(nodeDef);
+                            targetElements.push_back(output);
+                        }
                     }
                 }
                 else if (shaderRef)
                 {
-                    nodeDefs.push_back(outputNode->getNodeDef());
-                    targetElements.push_back(shaderRef);
+                    mx::NodeDefPtr nodeDef = outputNode->getNodeDef();
+                    if (nodeDef)
+                    {
+                        nodeDefs.push_back(nodeDef);
+                        targetElements.push_back(shaderRef);
+                    }
                 }
 
                 // Get connected shader nodes if a material node.
@@ -319,8 +327,12 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                     std::vector<mx::NodePtr> shaderNodes = getShaderNodes(outputNode);
                     for (auto node : shaderNodes)
                     {
-                        nodeDefs.push_back(node->getNodeDef());
-                        targetElements.push_back(node);
+                        mx::NodeDefPtr nodeDef = node->getNodeDef();
+                        if (nodeDef)
+                        {
+                            nodeDefs.push_back(nodeDef);
+                            targetElements.push_back(node);
+                        }
                     }
                 }
 
