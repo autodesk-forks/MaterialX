@@ -23,6 +23,13 @@ using ShaderGraphInputSocket = ShaderOutput;
 /// Shared pointer to a ShaderNodeImpl
 using ShaderNodeImplPtr = shared_ptr<class ShaderNodeImpl>;
 
+/// Flags for tagging shader node implementation.
+enum class ShaderNodeImplFlag
+{
+    /// Ignore the function call for this node.
+    IGNORE_FUNCTION_CALL = 0x1 << 0,
+};
+
 /// @class ShaderNodeImpl
 /// Class handling the shader generation implementation for a node.
 /// Responsible for emitting the function definition and function call 
@@ -102,6 +109,18 @@ class ShaderNodeImpl
         return true;
     }
 
+    /// Set the on|off state of a given flag.
+    void setFlag(ShaderNodeImplFlag flag, bool value)
+    {
+        _flags = value ? (_flags | uint32_t(flag)) : (_flags & ~uint32_t(flag));
+    }
+
+    /// Return the on|off state of a given flag.
+    bool getFlag(ShaderNodeImplFlag flag) const
+    {
+        return _flags & uint32_t(flag);
+    }
+
   protected:
     /// Protected constructor
     ShaderNodeImpl();
@@ -109,6 +128,7 @@ class ShaderNodeImpl
   protected:
     string _name;
     size_t _hash;
+    uint32_t _flags;
 };
 
 } // namespace MaterialX

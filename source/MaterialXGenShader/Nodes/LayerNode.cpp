@@ -21,32 +21,68 @@ ShaderNodeImplPtr LayerNode::create()
     return std::make_shared<LayerNode>();
 }
 
-void LayerNode::initialize(const InterfaceElement& element, GenContext& context)
-{
-}
-
-void LayerNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+void LayerNode::emitFunctionCall(const ShaderNode& _node, GenContext& context, ShaderStage& stage) const
 {
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
         const ShaderGenerator& shadergen = context.getShaderGenerator();
 
-        const ShaderInput* top = node.getInput(TOP_STRING);
-        const ShaderInput* base = node.getInput(BASE_STRING);
-        const ShaderOutput* out = node.getOutput();
-        if (!(top && base && out))
+        ShaderNode& node = const_cast<ShaderNode&>(_node);
+
+        ShaderInput* top = node.getInput(TOP_STRING);
+        ShaderInput* base = node.getInput(BASE_STRING);
+        ShaderOutput* output = node.getOutput();
+        if (!(top && base && output))
         {
             throw ExceptionShaderGenError("Node '" + node.getName() + "' is not a valid layer node");
         }
         if (!top->getConnection())
         {
-            throw ExceptionShaderGenError("No top BSDF is connected on layer node '" + node.getName() + "'");
+            // No top layer, just emit default value.
+            shadergen.emitLineBegin(stage);
+            shadergen.emitOutput(output, true, true, context, stage);
+            shadergen.emitLineEnd(stage);
+            shadergen.emitLineEnd(stage);
+            return;
         }
-        const ShaderNode* topBsdf = top->getConnection()->getNode();
-        const ShaderInput* topBsdfBase = topBsdf->getInput(BASE_STRING);
-        if (!topBsdfBase)
+        
+        ShaderNode* topBsdf = top->getConnection()->getNode();
+
+        // Layerable nodes require a BSDF input named "base"
+        ShaderInput* topBsdfInput = topBsdf->getInput(BASE_STRING);
+        if (!topBsdfInput || topBsdfInput->getType() != Type::BSDF)
         {
             throw ExceptionShaderGenError("Node connected as top layer '" + topBsdf->getName() + "' is not a layerable BSDF");
         }
+
+        ShaderOutput* topBsdfOutput = topBsdf->getOutput();
+
+        // Save state so we can restore it below
+        ShaderOutput* topBsdfInputOldConnection = topBsdfInput->getConnection();
+        const string topBsdfOutputOldVariable = topBsdfOutput->getVariable();
+
+        // Change the state so we emit the top layer function 
+        // with base layer connection and output variable name
+        // from the layer node itself.
+        ShaderOutput* baseBsdfOutput = base->getConnection();
+        if (baseBsdfOutput)
+        {
+            topBsdfInput->makeConnection(baseBsdfOutput);
+        }
+        else
+        {
+            topBsdfInput->breakConnection();
+        }
+        topBsdfOutput->setVariable(output->getVariable());
+
+        // Emit the function call.
+        topBsdf->getImplementation().emitFunctionCall(*topBsdf, context, stage);
+
+        // Restore state.
+        if (topBsdfInputOldConnection)
+        {
+            topBsdfInput->makeConnection(topBsdfInputOldConnection);
+        }
+        topBsdfOutput->setVariable(topBsdfOutputOldVariable);
 
     END_SHADER_STAGE(stage, Stage::PIXEL)
 }

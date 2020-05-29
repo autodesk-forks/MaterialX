@@ -308,30 +308,31 @@ class ShaderNode
     {
     public:
         // Node classes
-        static const unsigned int TEXTURE     = 1 << 0;  /// Any node that outputs floats, colors, vectors, etc.
-        static const unsigned int CLOSURE     = 1 << 1;  /// Any node that represents light integration
-        static const unsigned int SHADER      = 1 << 2;  /// Any node that outputs a shader
+        static const unsigned int TEXTURE       = 1 << 0;  /// Any node that outputs floats, colors, vectors, etc.
+        static const unsigned int CLOSURE       = 1 << 1;  /// Any node that represents light integration
+        static const unsigned int SHADER        = 1 << 2;  /// Any node that outputs a shader
         // Specific texture node types
-        static const unsigned int FILETEXTURE = 1 << 3;  /// A file texture node
-        static const unsigned int CONDITIONAL = 1 << 4;  /// A conditional node
-        static const unsigned int CONSTANT    = 1 << 5;  /// A constant node
+        static const unsigned int FILETEXTURE   = 1 << 3;  /// A file texture node
+        static const unsigned int CONDITIONAL   = 1 << 4;  /// A conditional node
+        static const unsigned int CONSTANT      = 1 << 5;  /// A constant node
         // Specific closure types
-        static const unsigned int BSDF        = 1 << 6;  /// A BDFS node
-        static const unsigned int BSDF_R      = 1 << 7;  /// A BDFS node only for reflection
-        static const unsigned int BSDF_T      = 1 << 8;  /// A BDFS node only for transmission
-        static const unsigned int EDF         = 1 << 9;  /// A EDF node
-        static const unsigned int VDF         = 1 << 10; /// A VDF node
+        static const unsigned int BSDF          = 1 << 6;  /// A BDFS node
+        static const unsigned int BSDF_R        = 1 << 7;  /// A BDFS node only for reflection
+        static const unsigned int BSDF_T        = 1 << 8;  /// A BDFS node only for transmission
+        static const unsigned int EDF           = 1 << 9;  /// A EDF node
+        static const unsigned int VDF           = 1 << 10; /// A VDF node
+        static const unsigned int LAYER         = 1 << 11; /// A node for vertical layering of other closure nodes
         // Specific shader types
-        static const unsigned int SURFACE     = 1 << 11; /// A surface shader node
-        static const unsigned int VOLUME      = 1 << 12; /// A volume shader node
-        static const unsigned int LIGHT       = 1 << 13; /// A light shader node
+        static const unsigned int SURFACE       = 1 << 12; /// A surface shader node
+        static const unsigned int VOLUME        = 1 << 13; /// A volume shader node
+        static const unsigned int LIGHT         = 1 << 14; /// A light shader node
         // Specific conditional types
-        static const unsigned int IFELSE      = 1 << 14; /// An if-else statement
-        static const unsigned int SWITCH      = 1 << 15; /// A switch statement
+        static const unsigned int IFELSE        = 1 << 15; /// An if-else statement
+        static const unsigned int SWITCH        = 1 << 16; /// A switch statement
         // Types based on nodegroup
-        static const unsigned int SAMPLE2D    = 1 << 16; /// Can be sampled in 2D (uv space)
-        static const unsigned int SAMPLE3D    = 1 << 17; /// Can be sampled in 3D (position)
-        static const unsigned int CONVOLUTION2D = 1 << 18; /// Performs a convolution in 2D (uv space)
+        static const unsigned int SAMPLE2D      = 1 << 17; /// Can be sampled in 2D (uv space)
+        static const unsigned int SAMPLE3D      = 1 << 18; /// Can be sampled in 3D (position)
+        static const unsigned int CONVOLUTION2D = 1 << 19; /// Performs a convolution in 2D (uv space)
     };
 
     /// @struct ScopeInfo
@@ -411,6 +412,12 @@ class ShaderNode
     const string& getName() const
     {
         return _name;
+    }
+
+    /// Return the implementation used for this node.
+    ShaderNodeImpl& getImplementation()
+    {
+        return *_impl;
     }
 
     /// Return the implementation used for this node.

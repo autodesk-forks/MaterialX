@@ -1233,15 +1233,16 @@ void ShaderGraph::finalize(GenContext& context)
     // Set variable names for inputs and outputs in the graph.
     setVariableNames(context);
 
-    // Track closure nodes used by each surface shader.
-    //
-    // TODO: Optimize this search for closures.
-    //       No need to do a full traversal when 
-    //       texture nodes are reached.
+    // Traverse all nodes to save data needed by shader nodes and BSDF nodes.
     for (ShaderNode* node : _nodeOrder)
     {
         if (node->hasClassification(ShaderNode::Classification::SHADER))
         {
+            // Track closure nodes used by this surface shader.
+            //
+            // TODO: Optimize this search for closures.
+            //       No need to do a full traversal when 
+            //       texture nodes are reached.
             for (ShaderGraphEdge edge : ShaderGraph::traverseUpstream(node->getOutput()))
             {
                 if (edge.upstream)
@@ -1252,6 +1253,26 @@ void ShaderGraph::finalize(GenContext& context)
                     }
                 }
             }
+        }
+        else if (node->hasClassification(ShaderNode::Classification::BSDF))
+        {
+            // Check if the BSDF is only used as top layer in vertical layering.
+            // If so we can ignore its function call since the layering node will
+            // emit this for each layering instance used.
+            const ShaderOutput* output = node->getOutput();
+            bool ignoreFunctionCall = true;
+            for (const ShaderInput* downstreamInput : output->getConnections())
+            {
+                if (!downstreamInput->getNode()->hasClassification(ShaderNode::Classification::LAYER) || 
+                    downstreamInput->getName() != "top")
+                {
+                    // This is not a connection to a vertical layer "top" input.
+                    // So we cannot ignore this function call.
+                    ignoreFunctionCall = false;
+                    break;
+                }
+            }
+            node->getImplementation().setFlag(ShaderNodeImplFlag::IGNORE_FUNCTION_CALL, ignoreFunctionCall);
         }
     }
 

@@ -17,8 +17,6 @@ class LayerNode : public ShaderNodeImpl
   public:
     static ShaderNodeImplPtr create();
 
-    void initialize(const InterfaceElement& element, GenContext& context) override;
-
     void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 
   protected:
