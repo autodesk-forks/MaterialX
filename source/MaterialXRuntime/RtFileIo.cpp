@@ -1359,7 +1359,7 @@ void RtFileIo::readLibraries(const FilePathVec& libraryPaths, const FileSearchPa
 
     // Load all content into a document.
     DocumentPtr doc = createDocument();
-    mx::XmlReadOptions readOptions;
+    XmlReadOptions readOptions;
     readOptions.skipConflictingElements = true;
     readOptions.applyFutureUpdates = true;
     MaterialX::loadLibraries(libraryPaths, searchPaths, doc, nullptr, &readOptions);
