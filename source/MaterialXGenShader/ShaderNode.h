@@ -532,7 +532,7 @@ class ShaderNode
     /// Return the on|off state of a given flag.
     bool getFlag(ShaderNodeFlag flag) const
     {
-        return _flags & uint32_t(flag);
+        return ((_flags & uint32_t(flag)) != 0);
     }
 
   protected:
