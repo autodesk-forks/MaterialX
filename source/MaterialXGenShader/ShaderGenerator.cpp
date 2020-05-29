@@ -92,7 +92,7 @@ void ShaderGenerator::emitFunctionCall(const ShaderNode& node, GenContext& conte
                                        bool checkScope) const
 {
     // Omit node if it's tagged to be ignored.
-    if (node.getImplementation().getFlag(ShaderNodeImplFlag::IGNORE_FUNCTION_CALL))
+    if (node.getFlag(ShaderNodeFlag::IGNORE_FUNCTION_CALL))
     {
         return;
     }

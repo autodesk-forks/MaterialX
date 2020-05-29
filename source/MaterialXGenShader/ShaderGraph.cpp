@@ -1272,7 +1272,7 @@ void ShaderGraph::finalize(GenContext& context)
                     break;
                 }
             }
-            node->getImplementation().setFlag(ShaderNodeImplFlag::IGNORE_FUNCTION_CALL, ignoreFunctionCall);
+            node->setFlag(ShaderNodeFlag::IGNORE_FUNCTION_CALL, ignoreFunctionCall);
         }
     }
 
