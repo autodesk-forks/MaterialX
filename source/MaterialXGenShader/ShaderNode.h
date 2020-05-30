@@ -205,7 +205,7 @@ class ShaderPort : public std::enable_shared_from_this<ShaderPort>
     /// Return the on|off state of a given flag.
     bool getFlag(ShaderPortFlag flag) const
     {
-        return _flags & uint32_t(flag);
+        return ((_flags & uint32_t(flag)) != 0);
     }
 
     /// Set the uniform flag this port to true.
