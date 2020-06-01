@@ -125,8 +125,7 @@ TEST_CASE("GenShader: Bind Light Shaders", "[genglsl]")
 // Add user data to context
 void GlslShaderGeneratorTester::addUserData(mx::GenContext& context)
 {
-    mx::GlslResourceBindingContextPtr bindCtx = std::make_shared<mx::GlslResourceBindingContext>();
-    context.pushUserData(mx::HW::USER_DATA_BINDING_CONTEXT, bindCtx);
+    context.pushUserData(mx::HW::USER_DATA_BINDING_CONTEXT, mx::GlslResourceBindingContext::create());
 }
 
 static void generateGlslCode()

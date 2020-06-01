@@ -312,10 +312,7 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
     emitLine("#version " + getVersion(), stage, false);
     if (resourceBindingCtx)
     {
-        for (auto& extension : resourceBindingCtx->requiredExtensions())
-        {
-            emitLine("#extension " + extension + " : enable", stage, false);
-        }
+        resourceBindingCtx->emitDirectives(context, stage);
     }
     emitLineBreak(stage);
 
@@ -413,10 +410,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
     emitLine("#version " + getVersion(), stage, false);
     if (resourceBindingCtx)
     {
-        for (auto& extension : resourceBindingCtx->requiredExtensions())
-        {
-            emitLine("#extension " + extension + " : enable", stage, false);
-        }
+        resourceBindingCtx->emitDirectives(context, stage);
     }
     emitLineBreak(stage);
 

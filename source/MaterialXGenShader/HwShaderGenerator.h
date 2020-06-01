@@ -401,11 +401,12 @@ class HwResourceBindingContext : public GenUserData
 public:
     virtual ~HwResourceBindingContext() {}
 
+    // Emit directives required for binding support 
+    virtual void emitDirectives(GenContext& context, ShaderStage& stage) = 0;
+
     // Emit resource blocks with binding information
     virtual void emitResourceBindingBlocks(GenContext& context, const VariableBlock& uniforms, SyntaxPtr syntax, ShaderStage& stage) = 0;
 
-    // List of required extensions if any
-    virtual const StringSet& requiredExtensions() const = 0;
 };
 
 } // namespace MaterialX

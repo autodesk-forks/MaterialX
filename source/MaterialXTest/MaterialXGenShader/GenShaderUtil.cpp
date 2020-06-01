@@ -20,6 +20,7 @@ namespace mx = MaterialX;
 
 namespace GenShaderUtil
 {
+    const std::string TEST_USER_DATA_SUFFIX = "_ud";
 
 namespace
 {
@@ -796,8 +797,7 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
                     }
                     else if (_writeShadersToDisk && sourceCode.size())
                     {
-
-                        const std::string udsuffix(enableUserData ? "_ud" : "");
+                        const std::string udsuffix(enableUserData ? TEST_USER_DATA_SUFFIX : mx::EMPTY_STRING);
 
                         mx::FilePath path = element->getActiveSourceUri();
                         if (!path.isEmpty())

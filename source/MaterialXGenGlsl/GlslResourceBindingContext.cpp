@@ -16,6 +16,16 @@ GlslResourceBindingContext::GlslResourceBindingContext()
     _requiredExtensions.insert("GL_ARB_shading_language_420pack");
 }
 
+void GlslResourceBindingContext::emitDirectives(GenContext& context, ShaderStage& stage)
+{
+    ShaderGenerator& generator = context.getShaderGenerator();
+
+    for (auto& extension : _requiredExtensions)
+    {
+        generator.emitLine("#extension " + extension + " : enable", stage, false);
+    }
+}
+
 void GlslResourceBindingContext::emitUniformBlock(GenContext& context, const VariableBlock& uniforms, SyntaxPtr syntax, ShaderStage& stage)
 {
     ShaderGenerator& generator = context.getShaderGenerator();
