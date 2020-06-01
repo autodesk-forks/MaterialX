@@ -1275,7 +1275,7 @@ void ShaderGraph::finalize(GenContext& context)
                                                   "Resolve by using a layer operator for '" + node->getName() + "' as well.");
                 }
 
-                // Check if the BSDF is stricly used as top layer in vertical layering.
+                // Check if the BSDF is strictly used as top layer in vertical layering.
                 // If so we can exclude its function call since the layering node will
                 // emit this for each layering instance used.
                 bool exclude = true;

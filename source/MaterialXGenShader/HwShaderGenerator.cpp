@@ -387,7 +387,7 @@ ShaderPtr HwShaderGenerator::createShader(const string& name, ElementPtr element
 
 void HwShaderGenerator::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage, bool checkScope) const
 {
-    // Omit node if it's tagged to be ignored.
+    // Omit node if it's tagged to be excluded.
     if (node.getFlag(ShaderNodeFlag::EXCLUDE_FUNCTION_CALL))
     {
         return;

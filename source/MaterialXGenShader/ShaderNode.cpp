@@ -310,7 +310,7 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
             newNode->_classification |= Classification::BSDF_T;
         }
 
-        // Check specificaly for the vertical layering node
+        // Check specifically for the vertical layering node
         if (nodeDef.getName() == "ND_layer_bsdf")
         {
             newNode->_classification |= Classification::LAYER;

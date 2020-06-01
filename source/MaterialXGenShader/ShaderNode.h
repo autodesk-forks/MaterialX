@@ -316,7 +316,7 @@ class ShaderOutput : public ShaderPort
 enum class ShaderNodeFlag
 {
     /// Omit the function call for this node.
-    EXCLUDE_FUNCTION_CALL = 0x1 << 0,
+    EXCLUDE_FUNCTION_CALL = 1 << 0,
 };
 
 /// @class ShaderNode
@@ -435,12 +435,6 @@ class ShaderNode
     const string& getName() const
     {
         return _name;
-    }
-
-    /// Return the implementation used for this node.
-    ShaderNodeImpl& getImplementation()
-    {
-        return *_impl;
     }
 
     /// Return the implementation used for this node.
