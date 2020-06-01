@@ -315,8 +315,8 @@ class ShaderOutput : public ShaderPort
 /// Flags for tagging shader nodes.
 enum class ShaderNodeFlag
 {
-    /// Ignore the function call for this node.
-    IGNORE_FUNCTION_CALL = 0x1 << 0,
+    /// Omit the function call for this node.
+    EXCLUDE_FUNCTION_CALL = 0x1 << 0,
 };
 
 /// @class ShaderNode

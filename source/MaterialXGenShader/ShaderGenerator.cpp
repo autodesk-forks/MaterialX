@@ -91,8 +91,8 @@ void ShaderGenerator::emitFunctionDefinition(const ShaderNode& node, GenContext&
 void ShaderGenerator::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage,
                                        bool checkScope) const
 {
-    // Omit node if it's tagged to be ignored.
-    if (node.getFlag(ShaderNodeFlag::IGNORE_FUNCTION_CALL))
+    // Omit node if it's tagged to be excluded.
+    if (node.getFlag(ShaderNodeFlag::EXCLUDE_FUNCTION_CALL))
     {
         return;
     }
