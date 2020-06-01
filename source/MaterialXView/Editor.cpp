@@ -458,7 +458,6 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             }
         });
         v1->setSpinnable(editable);
-        v1->setEditable(editable);
         v2->setCallback([v1, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -472,7 +471,6 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             }
         });
         v2->setSpinnable(editable);
-        v2->setEditable(editable);
     }
 
     // Vec 3 input
@@ -509,8 +507,6 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             }
         });
         v1->setSpinnable(editable);
-        v1->setEditable(editable);
-
         v2->setCallback([v1, v3, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -525,8 +521,6 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             }
         });
         v2->setSpinnable(editable);
-        v2->setEditable(editable);
-
         v3->setCallback([v1, v2, path, viewer](float f)
         {
             MaterialPtr material = viewer->getSelectedMaterial();
@@ -540,7 +534,6 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             }
         });
         v3->setSpinnable(editable);
-        v3->setEditable(editable);
     }
 
     // Vec 4 input
