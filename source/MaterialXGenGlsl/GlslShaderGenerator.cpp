@@ -337,10 +337,10 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
             }
             else
             {
-            emitVariableDeclarations(uniforms, _syntax->getUniformQualifier(), Syntax::SEMICOLON, context, stage);
-            emitLineBreak(stage);
+                emitVariableDeclarations(uniforms, _syntax->getUniformQualifier(), Syntax::SEMICOLON, context, stage);
+                emitLineBreak(stage);
+            }
         }
-    }
     }
 
     // Add vertex inputs
@@ -449,10 +449,10 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
             }
             else
             {
-            emitVariableDeclarations(uniforms, _syntax->getUniformQualifier(), Syntax::SEMICOLON, context, stage);
-            emitLineBreak(stage);
+                emitVariableDeclarations(uniforms, _syntax->getUniformQualifier(), Syntax::SEMICOLON, context, stage);
+                emitLineBreak(stage);
+            }
         }
-    }
     }
 
     bool lighting = graph.hasClassification(ShaderNode::Classification::SHADER|ShaderNode::Classification::SURFACE) ||

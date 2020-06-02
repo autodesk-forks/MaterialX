@@ -313,9 +313,9 @@ ShaderPtr HwShaderGenerator::createShader(const string& name, ElementPtr element
             }
             else
             {
-            psPublicUniforms->add(inputSocket->getSelf());
+                psPublicUniforms->add(inputSocket->getSelf());
+            }
         }
-    }
     }
 
     // Add the pixel stage output. This needs to be a color4 for rendering,

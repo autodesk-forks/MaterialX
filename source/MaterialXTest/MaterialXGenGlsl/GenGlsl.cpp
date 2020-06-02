@@ -150,7 +150,7 @@ static void generateGlslCode()
 
     // Test glsl 400 with uniform layout qualifier extensions
     const mx::FilePath glsl42LogPath("genglsl_glsl420_layout_generate_test.txt");
-    writeShadersToDisk = true;
+    writeShadersToDisk = false;
     GlslShaderGeneratorTester testerglsl42(mx::GlslShaderGenerator::create(), testRootPaths, libSearchPath, srcSearchPath, glsl42LogPath, writeShadersToDisk);
     
     // enable tester to use userdata
