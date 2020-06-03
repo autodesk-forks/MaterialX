@@ -1268,7 +1268,8 @@ namespace
 RtReadOptions::RtReadOptions() :
     readFilter(nullptr),
     readLookInformation(false),
-    applyFutureUpdates(true)
+    applyFutureUpdates(true),
+    validateDocument(true)
 {
 }
 
@@ -1295,8 +1296,8 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
         }
         readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
 
-        bool accessNodeDefGraphs = !getEnviron("ACCESS_NODEDEF_GRAPHS").empty();
-        if (accessNodeDefGraphs)
+        bool validateDocument = readOptions ? readOptions->validateDocument : true;
+        if (validateDocument)
         {
             PvtStage* stage = PvtStage::ptr(_stage);
             readDocument(document, stage, readOptions);
