@@ -128,7 +128,7 @@ void GlslShaderGeneratorTester::addUserData(mx::GenContext& context)
     context.pushUserData(mx::HW::USER_DATA_BINDING_CONTEXT, mx::GlslResourceBindingContext::create());
 }
 
-static void generateGlslCode(bool standardGLSL = true)
+static void generateGlslCode(bool generateLayout = false)
 {
     const mx::FilePath testRootPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite");
     const mx::FilePath testRootPath2 = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/Examples/StandardSurface");
@@ -144,8 +144,7 @@ static void generateGlslCode(bool standardGLSL = true)
     const mx::GenOptions genOptions;
     mx::FilePath optionsFilePath = testRootPath / mx::FilePath("_options.mtlx");
 
-    const bool generateLayout = standardGLSL ? false : true;
-    const mx::FilePath logPath(standardGLSL ? "genglsl_glsl400_generate_test.txt" : "genglsl_glsl420_layout_generate_test.txt");
+    const mx::FilePath logPath(generateLayout ? "genglsl_glsl420_layout_generate_test.txt" : "genglsl_glsl400_generate_test.txt");
 
     GlslShaderGeneratorTester tester(mx::GlslShaderGenerator::create(), testRootPaths, libSearchPath, srcSearchPath, logPath, writeShadersToDisk);
     tester.validate(genOptions, optionsFilePath, generateLayout);
@@ -160,5 +159,5 @@ TEST_CASE("GenShader: GLSL Shader Generation", "[genglsl]")
 TEST_CASE("GenShader: GLSL Shader with Layout Generation", "[genglsl]")
 {
     // Generate GLSL with layout i.e version 400 + layout extension
-    generateGlslCode(false);
+    generateGlslCode(true);
 }

@@ -28,7 +28,7 @@ void bindPyGlslShaderGenerator(py::module& mod)
 
 void bindPyGlslResourceBindingContext(py::module &mod)
 {
-  py::class_<mx::GlslResourceBindingContext, mx::HwResourceBindingContext, mx::GlslResourceBindingContextPtr>(mod, "GlslResourceBindingContext")
+    py::class_<mx::GlslResourceBindingContext, mx::HwResourceBindingContext, mx::GlslResourceBindingContextPtr>(mod, "GlslResourceBindingContext")
         .def_static("create", &mx::GlslResourceBindingContext::create)
         .def(py::init<>())
         .def("emitDirectives", &mx::GlslResourceBindingContext::emitDirectives)
