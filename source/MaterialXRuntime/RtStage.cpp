@@ -141,11 +141,30 @@ void RtStage::restorePrim(const RtPath& parentPath, const RtPrim& prim)
     _cast(_ptr)->restorePrim(*static_cast<PvtPath*>(parentPath._ptr), prim);
 }
 
+RtPrim RtStage::getImplementation(const RtNodeDef& definition) const
+{
+    const RtToken& nodeDefName = definition.getName();
+    const RtToken& nodeDefVersion = definition.getVersion();
+
+    RtSchemaPredicate<RtNodeGraph> filter;
+    for (RtPrim child : _cast(_ptr)->getRootPrim()->getChildren(filter))
+    {
+        RtNodeGraph nodeGraph(child);
+        if (nodeGraph.getDefinition() == nodeDefName &&
+            nodeGraph.getVersion() == nodeDefVersion)
+        {
+            PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
+            return RtPrim(graphPrim->hnd());
+        }
+    }
+    return RtPrim();
+}
 
 RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph, 
                               const RtToken& nodeDefName, 
                               const RtToken& nodeName, 
-                              const RtToken& nodeGroup) 
+                              const RtToken& version,
+                              const RtToken& nodeGroup)
 {
     // Must have a nodedef name and a node name
     if (nodeDefName == EMPTY_TOKEN ||
@@ -164,8 +183,12 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
         throw ExceptionRuntimeError("Definition to create already exists '" + nodeDefName.str() + "'");
     }
 
-    // Set node and optional nodegoroup
+    // Set node, version and optional nodegoroup
     nodedef.setNode(nodeName);
+    if (version != EMPTY_TOKEN)
+    {
+        nodedef.setVersion(version);
+    }
     if (nodeGroup != EMPTY_TOKEN)
     {
         nodedef.setNodeGroup(nodeGroup);
@@ -197,8 +220,12 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
         attr.setValue(output.getValue());
     }
 
-    // Set up definition on nodegraph
+    // Set definition and version on nodegraph
     nodeGraph.setDefinition(nodeDefName);
+    if (version != EMPTY_TOKEN)
+    {
+        nodeGraph.setVersion(version);
+    }
 
     // Add definiion
     nodedef.registerMasterPrim();

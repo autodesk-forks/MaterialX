@@ -1224,12 +1224,15 @@ namespace
         // TODO: Want to change this to keep this in <implementation>
         // elements but requires a spec change plus support in the runtime
         // for implementation associations.
+        RtNodeDef nodedef(prim->hnd());
         RtToken nodeDefName = prim->getName();
+        RtToken nodeDefVersion = nodedef.getVersion();
         RtSchemaPredicate<RtNodeGraph> filter;
         for (RtPrim child : stage->getRootPrim()->getChildren(filter))
         {
             RtNodeGraph nodeGraph(child);
-            if (nodeGraph.getDefinition() == nodeDefName)
+            if (nodeGraph.getDefinition() == nodeDefName && 
+                nodeGraph.getVersion() == nodeDefVersion)
             {
                 PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
                 writeNodeGraph(graphPrim, document);
