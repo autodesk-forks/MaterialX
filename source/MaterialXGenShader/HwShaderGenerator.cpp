@@ -432,7 +432,7 @@ void HwShaderGenerator::emitFunctionCall(const ShaderNode& node, GenContext& con
     if (ccx && node.hasClassification(ShaderNode::Classification::CLOSURE))
     {
         // If a layer operator is used the node to check classification on
-        // in the node connected to the top layer input.
+        // is the node connected to the top layer input.
         const ShaderNode* classifyNode = &node;
         if (node.hasClassification(ShaderNode::Classification::LAYER))
         {
