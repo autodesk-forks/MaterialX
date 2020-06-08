@@ -183,7 +183,7 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
         throw ExceptionRuntimeError("Definition to create already exists '" + nodeDefName.str() + "'");
     }
 
-    // Set node, version and optional nodegoroup
+    // Set node, version and optional node group
     nodedef.setNode(nodeName);
     if (version != EMPTY_TOKEN)
     {

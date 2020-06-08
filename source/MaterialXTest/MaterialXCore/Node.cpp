@@ -564,23 +564,35 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
     REQUIRE(graph);
     if (graph)
     {
+        const std::string VERSION1 = "1.0";
+        const std::string GROUP = "adjustment";
+        const std::string NODENAME = graph->getName();
+
         // Duplicate the graph and then make the duplicate a nodedef nodegraph
-        std::string newNodeDefname = doc->createValidChildName("ND_" + graph->getName());
+        std::string newNodeDefName = doc->createValidChildName("ND_" + graph->getName());
         std::string newGraphName = doc->createValidChildName("NG_" + graph->getName());
-        mx::NodeDefPtr nodeDef = doc->addNodeDefFromGraph(graph, newNodeDefname, graph->getName() + "1", newGraphName, "adjustment");
+        mx::NodeDefPtr nodeDef = doc->addNodeDefFromGraph(graph, newNodeDefName, NODENAME, VERSION1, GROUP, newGraphName);
         REQUIRE(nodeDef != nullptr);
+        REQUIRE(nodeDef->getNodeGroup() == "adjustment");
+        REQUIRE(nodeDef->getVersionString() == VERSION1);
+
+        // Try and fail to create the same definition
         mx::NodeDefPtr temp;
         try
         {
             temp = nullptr;
-            temp = doc->addNodeDefFromGraph(graph, newNodeDefname, graph->getName(), newGraphName, "adjustment");
+            temp = doc->addNodeDefFromGraph(graph, newNodeDefName, NODENAME, VERSION1, GROUP, newGraphName);
         }
         catch (mx::Exception&)
         {
             REQUIRE(temp == nullptr);
         }
+
+        // Check that the new nodegraph has the correct definition + version
         mx::NodeGraphPtr newGraph = doc->getNodeGraph(newGraphName);
         REQUIRE(newGraph != nullptr);
+        REQUIRE(newGraph->getNodeDefString() == newNodeDefName);
+        REQUIRE(newGraph->getVersionString() == VERSION1);
 
         // Check declaration was set up properly
         mx::ConstNodeDefPtr decl = newGraph->getDeclaration();
@@ -651,10 +663,32 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
             }
         }
 
-        // Modify the existing nodegraph
+        // Add new version 
+        const std::string VERSION2 = "2.0";
         newGraphName = mx::EMPTY_STRING;
-        nodeDef = doc->addNodeDefFromGraph(graph, newNodeDefname + "0", graph->getName() + "0", newGraphName, "adjustment");
+        nodeDef = doc->addNodeDefFromGraph(graph, newNodeDefName + "2", NODENAME, VERSION2, GROUP, newGraphName);
+        nodeDef->setDefaultVersion(true);
         REQUIRE(nodeDef != nullptr);
+
+        std::vector<mx::NodeDefPtr> matchingNodeDefs;
+        for (auto docNodeDef : doc->getNodeDefs())
+        {
+            if (docNodeDef->getNodeString() == NODENAME)
+            {
+                matchingNodeDefs.push_back(docNodeDef);
+            }
+        }
+        bool findDefault = false;
+        for (auto matchingDef : matchingNodeDefs)
+        {
+            if (matchingDef->getDefaultVersion())
+            {
+                findDefault = true;
+                REQUIRE(matchingDef->getVersionString() == VERSION2);
+                break;
+            }
+        }
+        REQUIRE(findDefault);
     }
 
     REQUIRE(doc->validate());
