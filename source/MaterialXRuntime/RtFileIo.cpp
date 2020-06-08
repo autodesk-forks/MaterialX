@@ -21,7 +21,6 @@
 #include <MaterialXCore/Types.h>
 
 #include <MaterialXFormat/Util.h>
-#include <MaterialXFormat/Environ.h>
 #include <sstream>
 #include <fstream>
 #include <map>
