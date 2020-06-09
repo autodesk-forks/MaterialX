@@ -84,6 +84,20 @@ color mx_fresnel_conductor(float cosTheta, vector n, vector k)
    return 0.5 * (rs + rp);
 }
 
+// Standard Schlick Fresnel
+float mx_fresnel_schlick(float cosTheta, float F0)
+{
+    float x = clamp(1.0 - cosTheta, 0.0, 1.0);
+    float x5 = mx_pow5(x);
+    return F0 + (1.0 - F0) * x5;
+}
+color mx_fresnel_schlick(float cosTheta, color F0)
+{
+    float x = clamp(1.0 - cosTheta, 0.0, 1.0);
+    float x5 = mx_pow5(x);
+    return F0 + (1.0 - F0) * x5;
+}
+
 // Generalized Schlick Fresnel
 float mx_fresnel_schlick(float cosTheta, float F0, float F90)
 {

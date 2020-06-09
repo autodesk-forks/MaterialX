@@ -59,7 +59,7 @@ void mx_conductor_brdf_indirect(vec3 V, float weight, vec3 reflectivity, vec3 ed
     float avgRoughness = mx_average_roughness(roughness);
 
     vec3 Li = mx_environment_radiance(N, V, X, roughness, vec3(1.0), vec3(1.0), distribution);
-    vec3 F = mx_fresnel_conductor(dot(N, V), ior_n, ior_k);
+    vec3 F = mx_fresnel_conductor(NdotV, ior_n, ior_k);
 
     vec3 comp = mx_ggx_energy_compensation(NdotV, avgRoughness, F);
 
