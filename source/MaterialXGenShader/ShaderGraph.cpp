@@ -1144,12 +1144,6 @@ void ShaderGraph::addNode(ShaderNodePtr node)
 {
     _nodeMap[node->getName()] = node;
     _nodeOrder.push_back(node.get());
-
-    // Check if the node is a convolution node and mark the graph as such.
-    if (node->hasClassification(Classification::CONVOLUTION2D))
-    {
-        _classification |= Classification::CONVOLUTION2D;
-    }
 }
 
 ShaderNode* ShaderGraph::getNode(const string& name)
