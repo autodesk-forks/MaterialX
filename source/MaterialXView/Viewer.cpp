@@ -14,7 +14,6 @@
 
 #include <MaterialXGenOsl/OslShaderGenerator.h>
 #include <MaterialXGenMdl/MdlShaderGenerator.h>
-#include <MaterialXGenOgsFx/MayaGlslPluginShaderGenerator.h>
 
 #include <MaterialXFormat/Environ.h>
 #include <MaterialXFormat/Util.h>
@@ -231,8 +230,8 @@ Viewer::Viewer(const std::string& materialFilename,
     loadStandardLibraries();
 
     // Set default generator options.
+    _genContext.getOptions().directionalAlbedoMethod = mx::DIRECTIONAL_ALBEDO_TABLE;
     _genContext.getOptions().hwSpecularEnvironmentMethod = specularEnvironmentMethod;
-    _genContext.getOptions().hwDirectionalAlbedoMethod = mx::DIRECTIONAL_ALBEDO_TABLE;
     _genContext.getOptions().hwShadowMap = true;
     _genContext.getOptions().targetColorSpaceOverride = "lin_rec709";
     _genContext.getOptions().fileTextureVerticalFlip = true;
@@ -835,7 +834,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
     referenceQualityBox->setChecked(false);
     referenceQualityBox->setCallback([this](bool enable)
     {
-        _genContext.getOptions().hwDirectionalAlbedoMethod = enable ? mx::DIRECTIONAL_ALBEDO_IS : mx::DIRECTIONAL_ALBEDO_TABLE;
+        _genContext.getOptions().directionalAlbedoMethod = enable ? mx::DIRECTIONAL_ALBEDO_IS : mx::DIRECTIONAL_ALBEDO_TABLE;
         reloadShaders();
     });
 
@@ -1030,15 +1029,11 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                 }
                 materials.push_back(node);
             }
-            else if (elem->isA<mx::ShaderRef>())
-            {
-                mx::ShaderRefPtr shaderRef = elem->asA<mx::ShaderRef>();
-                mx::TypedElementPtr materialRef = shaderRef->getParent()->asA<mx::TypedElement>();
-                materials.push_back(materialRef);
-            }
             else
             {
-                materials.push_back(nullptr);
+                mx::ShaderRefPtr shaderRef = elem->asA<mx::ShaderRef>();
+                mx::TypedElementPtr materialRef = (shaderRef ? shaderRef->getParent()->asA<mx::TypedElement>() : nullptr);
+                materials.push_back(materialRef);
             }
             renderablePaths.push_back(renderableElem->getNamePath());
         }
@@ -1141,8 +1136,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                 }
                 else if (mat && mat->getMaterialElement())
                 {
-                    mx::TypedElementPtr mtrlElem = mat->getMaterialElement();
-                    mx::NodePtr materialNode = mtrlElem ? mtrlElem->asA<mx::Node>() : nullptr;
+                    mx::NodePtr materialNode = mat->getMaterialElement()->asA<mx::Node>();
                     if (materialNode)
                     {
                         for (mx::MeshPartitionPtr part : _geometryList)

@@ -918,43 +918,46 @@ namespace
         doc->removeChild(uniqueName);
     }
 
-    void writeNodeGraph(const PvtPrim* src, DocumentPtr dest)
+    void writeNodeGraph(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* writeOptions)
     {
         NodeGraphPtr destNodeGraph = dest->addNodeGraph(src->getName());
         writeMetadata(src, destNodeGraph, nodegraphMetadata);
 
         RtNodeGraph nodegraph(src->hnd());
 
-        // Write inputs/parameters.
-        RtObjTypePredicate<RtInput> inputsFilter;
-        for (RtAttribute attr : src->getAttributes(inputsFilter))
+        if (!writeOptions || writeOptions->writeNodeGraphInputs)
         {
-            RtInput nodegraphInput = nodegraph.getInput(attr.getName());
-            ValueElementPtr v = nullptr;
-            if (nodegraphInput.isUniform())
+            // Write inputs/parameters.
+            RtObjTypePredicate<RtInput> inputsFilter;
+            for (RtAttribute attr : src->getAttributes(inputsFilter))
             {
-                v = destNodeGraph->addParameter(nodegraphInput.getName(), nodegraphInput.getType());
-            }
-            else
-            {
-                InputPtr input = destNodeGraph->addInput(nodegraphInput.getName(), nodegraphInput.getType());
-                v = input->asA<ValueElement>();
-
-                if (nodegraphInput.isConnected())
+                RtInput nodegraphInput = nodegraph.getInput(attr.getName());
+                ValueElementPtr v = nullptr;
+                if (nodegraphInput.isUniform())
                 {
-                    // Write connections to upstream nodes.
-                    RtOutput source = nodegraphInput.getConnection();
-                    RtNode sourceNode = source.getParent();
-                    input->setNodeName(sourceNode.getName());
-                    if (sourceNode.numOutputs() > 1)
+                    v = destNodeGraph->addParameter(nodegraphInput.getName(), nodegraphInput.getType());
+                }
+                else
+                {
+                    InputPtr input = destNodeGraph->addInput(nodegraphInput.getName(), nodegraphInput.getType());
+                    v = input->asA<ValueElement>();
+
+                    if (nodegraphInput.isConnected())
                     {
-                        input->setOutputString(source.getName());
+                        // Write connections to upstream nodes.
+                        RtOutput source = nodegraphInput.getConnection();
+                        RtNode sourceNode = source.getParent();
+                        input->setNodeName(sourceNode.getName());
+                        if (sourceNode.numOutputs() > 1)
+                        {
+                            input->setOutputString(source.getName());
+                        }
                     }
                 }
-            }
-            if (v)
-            {
-                v->setValueString(nodegraphInput.getValueString());
+                if (v)
+                {
+                    v->setValueString(nodegraphInput.getValueString());
+                }
             }
         }
 
@@ -1160,7 +1163,7 @@ namespace
             }
             else if (typeName == RtNodeGraph::typeName())
             {
-                writeNodeGraph(prim, doc);
+                writeNodeGraph(prim, doc, writeOptions);
             }
             else if (typeName != RtLook::typeName() &&
                      typeName != RtLookGroup::typeName() &&
@@ -1207,7 +1210,7 @@ namespace
         }
     }
 
-    void writeMasterPrim(DocumentPtr document, PvtStage* stage, PvtPrim* prim)
+    void writeMasterPrim(DocumentPtr document, PvtStage* stage, PvtPrim* prim, const RtWriteOptions* writeOptions)
     {
         if (!prim || prim->isDisposed())
         {
@@ -1235,13 +1238,13 @@ namespace
                 nodeGraph.getVersion() == nodeDefVersion)
             {
                 PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
-                writeNodeGraph(graphPrim, document);
+                writeNodeGraph(graphPrim, document, writeOptions);
                 break;
             }
         }
     }
 
-    void writeNodeDefs(DocumentPtr document, PvtStage* stage, const RtTokenVec& names)
+    void writeNodeDefs(DocumentPtr document, PvtStage* stage, const RtTokenVec& names, const RtWriteOptions* writeOptions)
     {
         // Write all definitions if no names provided
         RtApi& rtApi = RtApi::get();
@@ -1251,7 +1254,7 @@ namespace
             for (RtPrim masterPrim : rtApi.getMasterPrims(nodedefFilter))
             {
                 PvtPrim* prim = PvtObject::ptr<PvtPrim>(masterPrim);
-                writeMasterPrim(document, stage, prim);
+                writeMasterPrim(document, stage, prim, writeOptions);
             }
         }
         else
@@ -1260,7 +1263,7 @@ namespace
             {
                 RtPrim masterPrim = rtApi.getMasterPrim(name);
                 PvtPrim* prim = PvtObject::ptr<PvtPrim>(masterPrim);
-                writeMasterPrim(document, stage, prim);
+                writeMasterPrim(document, stage, prim, writeOptions);
             }
         }      
     }
@@ -1270,12 +1273,14 @@ namespace
 RtReadOptions::RtReadOptions() :
     readFilter(nullptr),
     readLookInformation(false),
-    applyFutureUpdates(true)
+    applyFutureUpdates(true),
+    validateDocument(true)
 {
 }
 
 RtWriteOptions::RtWriteOptions() :
     writeIncludes(true),
+    writeNodeGraphInputs(true),
     writeFilter(nullptr),
     materialWriteOp(NONE),
     desiredMajorVersion(MATERIALX_MAJOR_VERSION),
@@ -1297,20 +1302,29 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
         }
         readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
 
-        string errorMessage;
-        DocumentPtr validationDocument = createDocument();
-        writeUnitDefinitions(validationDocument);
-        CopyOptions cops;
-        cops.skipConflictingElements = true;
-        validationDocument->copyContentFrom(document, &cops);
-        if (validationDocument->validate(&errorMessage))
+        bool validateDocument = readOptions ? readOptions->validateDocument : true;
+        if (validateDocument)
         {
-            PvtStage* stage = PvtStage::ptr(_stage);
-            readDocument(document, stage, readOptions);
+            string errorMessage;
+            DocumentPtr validationDocument = createDocument();
+            writeUnitDefinitions(validationDocument);
+            CopyOptions cops;
+            cops.skipConflictingElements = true;
+            validationDocument->copyContentFrom(document, &cops);
+            if (validationDocument->validate(&errorMessage))
+            {
+                PvtStage* stage = PvtStage::ptr(_stage);
+                readDocument(document, stage, readOptions);
+            }
+            else
+            {
+                throw ExceptionRuntimeError("Failed validation: " + errorMessage);
+            }
         }
         else
         {
-            throw ExceptionRuntimeError("Failed validation: " + errorMessage);
+            PvtStage* stage = PvtStage::ptr(_stage);
+            readDocument(document, stage, readOptions);
         }
     }
     catch (Exception& e)
@@ -1333,22 +1347,30 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
         }
         readFromXmlStream(document, stream, &xmlReadOptions);
 
-        string errorMessage; 
-        DocumentPtr validationDocument = createDocument();
-        writeUnitDefinitions(validationDocument);
-        CopyOptions cops;
-        cops.skipConflictingElements = true;
-        validationDocument->copyContentFrom(document, &cops);
-        if (validationDocument->validate(&errorMessage))
+        bool validateDocument = readOptions ? readOptions->validateDocument : true;
+        if (validateDocument)
+        {
+            string errorMessage;
+            DocumentPtr validationDocument = createDocument();
+            writeUnitDefinitions(validationDocument);
+            CopyOptions cops;
+            cops.skipConflictingElements = true;
+            validationDocument->copyContentFrom(document, &cops);
+            if (validationDocument->validate(&errorMessage))
+            {
+                PvtStage* stage = PvtStage::ptr(_stage);
+                readDocument(document, stage, readOptions);
+            }
+            else
+            {
+                throw ExceptionRuntimeError("Failed validation: " + errorMessage);
+            }
+        }
+        else
         {
             PvtStage* stage = PvtStage::ptr(_stage);
             readDocument(document, stage, readOptions);
         }
-        else
-        {
-            throw ExceptionRuntimeError("Failed validation: " + errorMessage);
-        }
-
     }
     catch (Exception& e)
     {
@@ -1458,18 +1480,18 @@ void RtFileIo::write(std::ostream& stream, const RtWriteOptions* options)
     writeToXmlStream(document, stream, &xmlWriteOptions);
 }
 
-void RtFileIo::writeDefinitions(std::ostream& stream, const RtTokenVec& names)
+void RtFileIo::writeDefinitions(std::ostream& stream, const RtTokenVec& names, const RtWriteOptions* writeOptions)
 {
     DocumentPtr document = createDocument();
     PvtStage* stage = PvtStage::ptr(_stage);
-    writeNodeDefs(document, stage, names);
+    writeNodeDefs(document, stage, names, writeOptions);
     writeToXmlStream(document, stream);
 }
 
-void RtFileIo::writeDefinitions(const FilePath& documentPath, const RtTokenVec& names)
+void RtFileIo::writeDefinitions(const FilePath& documentPath, const RtTokenVec& names, const RtWriteOptions* writeOptions)
 {
     std::ofstream ofs(documentPath.asString());
-    writeDefinitions(ofs, names);
+    writeDefinitions(ofs, names, writeOptions);
 }
 
 }

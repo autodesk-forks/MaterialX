@@ -34,11 +34,14 @@ class RtReadOptions
     /// If the filter returns false the element will not be read.
     ReadFilter readFilter;
 
-    /// Read look information
+    /// Read look information. The default value is false.
     bool readLookInformation;
 
-    /// Apply latest updates
+    /// Apply the latest MaterialX feature updates. The default value is true.
     bool applyFutureUpdates;
+
+    /// Validate MaterialX documents read. The default is true.
+    bool validateDocument;
 };
     
 /// @class RtWriteOptions
@@ -55,6 +58,9 @@ class RtWriteOptions
     /// If true, elements with source file markings will be written as
     /// includes rather than explicit data.  Defaults to true.
     bool writeIncludes;
+
+    // If true, writes out nodegraph inputs
+    bool writeNodeGraphInputs;
 
     /// Filter function type used for filtering objects during write.
     /// If the filter returns false the object will not be written.
@@ -125,8 +131,8 @@ public:
     /// will be written to the document.
     void write(const FilePath& documentPath, const RtWriteOptions* writeOptions = nullptr);
 
-    void writeDefinitions(std::ostream& stream, const RtTokenVec& names);
-    void writeDefinitions(const FilePath& documentPath, const RtTokenVec& names);
+    void writeDefinitions(std::ostream& stream, const RtTokenVec& names, const RtWriteOptions* writeOptions = nullptr);
+    void writeDefinitions(const FilePath& documentPath, const RtTokenVec& names, const RtWriteOptions* writeOptions = nullptr);
 
 protected:
     /// Read all contents from one or more libraries.
