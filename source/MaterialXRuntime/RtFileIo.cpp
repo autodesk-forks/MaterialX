@@ -363,33 +363,16 @@ namespace
             createInterface(src, schema);
         }
 
-        std::set<string> interfaceNames;
-        for (auto child : src->getChildren())
-        {
-            NodePtr srcNode = child->asA<Node>();
-            if (srcNode)
-            {
-                for (auto elem : srcNode->getChildrenOfType<ValueElement>())
-                {
-                    const string& interfaceName = elem->getInterfaceName();
-                    if (!interfaceName.empty())
-                    {
-                        interfaceNames.insert(interfaceName);
-                    }
-                }
-            }
-        }
-
         // Create all nodes and connections between node inputs and internal graph sockets.
         for (auto child : src->getChildren())
         {
-            NodePtr srcNode = child->asA<Node>();
-            if (srcNode)
+            NodePtr srcNnode = child->asA<Node>();
+            if (srcNnode)
             {
-                PvtPrim* node = readNode(srcNode, nodegraph, stage, mapper);
+                PvtPrim* node = readNode(srcNnode, nodegraph, stage, mapper);
 
                 // Check for connections to the internal graph sockets
-                for (auto elem : srcNode->getChildrenOfType<ValueElement>())
+                for (auto elem : srcNnode->getChildrenOfType<ValueElement>())
                 {
                     if (elem->isA<Output>())
                     {
@@ -437,16 +420,6 @@ namespace
                 const RtToken outputName(elem->getOutputString());
                 RtOutput output(findOutputOrThrow(outputName != EMPTY_TOKEN ? outputName : PvtAttribute::DEFAULT_OUTPUT_NAME, connectedNode)->hnd());
                 output.connect(socket);
-            }
-        }
-
-        for (auto interfaceName : interfaceNames)
-        {
-            if (schema.getNode(RtToken(interfaceName)))
-            {
-                const string newName = src->createValidChildName(interfaceName);
-                PvtPrim* node = findPrimOrThrow(RtToken(interfaceName), nodegraph, mapper);
-                stage->renamePrim(node->getPath(), RtToken(newName));
             }
         }
 

@@ -1061,6 +1061,49 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                     }
                 }
             }
+
+            // Make it so that interface names and nodes in a nodegraph are not duplicates
+            // If they are, rename the nodes.
+            std::set<string> interfaceNames;
+            for (NodeGraphPtr nodegraph : getNodeGraphs())
+            {
+                for (ElementPtr child : nodegraph->getChildren())
+                {
+                    NodePtr srcNode = child->asA<Node>();
+                    if (srcNode)
+                    {
+                        for (ValueElementPtr elem : srcNode->getChildrenOfType<ValueElement>())
+                        {
+                            const string& interfaceName = elem->getInterfaceName();
+                            if (!interfaceName.empty())
+                            {
+                                interfaceNames.insert(interfaceName);
+                            }
+                        }
+                    }
+                }
+            }
+            for (string interfaceName : interfaceNames)
+            {
+                for (NodeGraphPtr nodegraph : getNodeGraphs())
+                {
+                    NodePtr node = nodegraph->getNode(interfaceName);
+                    if (node)
+                    {
+                        string newNodeName = nodegraph->createValidChildName(interfaceName);
+                        std::vector<MaterialX::PortElementPtr> downstreamPorts = node->getDownstreamPorts();
+                        for (MaterialX::PortElementPtr downstreamPort : downstreamPorts)
+                        {
+                            if (downstreamPort->getNodeName() == interfaceName)
+                            {
+                                downstreamPort->setNodeName(newNodeName);
+                            }
+                        }
+                        node->setName(newNodeName);
+                    }
+                }
+            }
+
             minorVersion = 38;
         }
     }
