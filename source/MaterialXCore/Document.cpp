@@ -1091,7 +1091,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                     if (node)
                     {
                         string newNodeName = nodegraph->createValidChildName(interfaceName);
-                        std::vector<MaterialX::PortElementPtr> downstreamPorts = node->getDownstreamPorts();
+                        vector<MaterialX::PortElementPtr> downstreamPorts = node->getDownstreamPorts();
                         for (MaterialX::PortElementPtr downstreamPort : downstreamPorts)
                         {
                             if (downstreamPort->getNodeName() == interfaceName)
