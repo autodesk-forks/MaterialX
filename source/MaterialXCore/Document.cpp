@@ -1064,9 +1064,9 @@ void Document::upgradeVersion(bool applyFutureUpdates)
 
             // Make it so that interface names and nodes in a nodegraph are not duplicates
             // If they are, rename the nodes.
-            std::set<string> interfaceNames;
             for (NodeGraphPtr nodegraph : getNodeGraphs())
             {
+                std::set<string> interfaceNames;
                 for (ElementPtr child : nodegraph->getChildren())
                 {
                     NodePtr srcNode = child->asA<Node>();
@@ -1082,16 +1082,14 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                         }
                     }
                 }
-            }
-            for (string interfaceName : interfaceNames)
-            {
-                for (NodeGraphPtr nodegraph : getNodeGraphs())
+                for (string interfaceName : interfaceNames)
                 {
                     NodePtr node = nodegraph->getNode(interfaceName);
                     if (node)
                     {
                         string newNodeName = nodegraph->createValidChildName(interfaceName);
-                        for (MaterialX::PortElementPtr downstreamPort : node->getDownstreamPorts())
+                        vector<MaterialX::PortElementPtr> downstreamPorts = node->getDownstreamPorts();
+                        for (MaterialX::PortElementPtr downstreamPort : downstreamPorts)
                         {
                             if (downstreamPort->getNodeName() == interfaceName)
                             {
@@ -1102,7 +1100,6 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                     }
                 }
             }
-
             minorVersion = 38;
         }
     }
