@@ -1066,13 +1066,13 @@ void Document::upgradeVersion(bool applyFutureUpdates)
             // If they are, rename the nodes.
             for (NodeGraphPtr nodegraph : getNodeGraphs())
             {
-                std::set<string> interfaceNames;
+                StringSet interfaceNames;
                 for (ElementPtr child : nodegraph->getChildren())
                 {
-                    NodePtr srcNode = child->asA<Node>();
-                    if (srcNode)
+                    NodePtr node = child->asA<Node>();
+                    if (node)
                     {
-                        for (ValueElementPtr elem : srcNode->getChildrenOfType<ValueElement>())
+                        for (ValueElementPtr elem : node->getChildrenOfType<ValueElement>())
                         {
                             const string& interfaceName = elem->getInterfaceName();
                             if (!interfaceName.empty())
