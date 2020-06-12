@@ -301,7 +301,7 @@ TEST_CASE("Runtime: Types", "[runtime]")
 
     mx::RtValue fooValue = fooType->createValue(rootPrim);
     REQUIRE(fooValue.asInt() == 7);
-    fooType->fromStringValue("bar", fooValue);
+    fooType->fromStringValue("bar", fooValue);    
     REQUIRE(fooValue.asInt() == 42);
 
     const mx::RtTypeDef* stringType = mx::RtTypeDef::findType(mx::RtType::STRING);
@@ -314,7 +314,9 @@ TEST_CASE("Runtime: Types", "[runtime]")
     mx::RtValue intValue = integerType->createValue(rootPrim);
     integerType->fromStringValue("12345", intValue);
     REQUIRE(intValue.asInt() == 12345);
-    REQUIRE(intValue.asString() == "12345");
+    std::string value;
+    integerType->toStringValue(intValue, value);
+    REQUIRE(value == "12345");
 
     // Make sure we can't use a name already take
     REQUIRE_THROWS(mx::RtTypeDef::registerType(mx::RtType::COLOR3, mx::RtTypeDef::BASETYPE_FLOAT, fooFuncs));
