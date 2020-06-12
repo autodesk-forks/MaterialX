@@ -963,7 +963,6 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
         tiledimage1_file.getValue().asString() = "myimagetexture.png";
         texcoord1_out.connect(tiledimage1_texcoord);
         texcoord1_index.getValue().asInt() = 2;
-        texcoord1_index.getValue().asString() == "2";
 
         const mx::FilePath fileExport("file_export.mtlx");
         const mx::FilePath streamExport("stream_export.mtlx");
