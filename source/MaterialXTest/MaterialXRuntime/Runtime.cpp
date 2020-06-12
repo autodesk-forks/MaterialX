@@ -301,7 +301,7 @@ TEST_CASE("Runtime: Types", "[runtime]")
 
     mx::RtValue fooValue = fooType->createValue(rootPrim);
     REQUIRE(fooValue.asInt() == 7);
-    fooType->fromStringValue("bar", fooValue);    
+    fooType->fromStringValue("bar", fooValue);
     REQUIRE(fooValue.asInt() == 42);
 
     const mx::RtTypeDef* stringType = mx::RtTypeDef::findType(mx::RtType::STRING);
