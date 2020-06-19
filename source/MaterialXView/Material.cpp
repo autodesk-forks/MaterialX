@@ -95,6 +95,7 @@ bool Material::generateShader(mx::GenContext& context)
     materialContext.getOptions().hwTransparency = _hasTransparency;
     materialContext.getOptions().hwShadowMap = materialContext.getOptions().hwShadowMap && !_hasTransparency;
 
+    _hwShader = nullptr;
     _hwShader = createShader("Shader", materialContext, _elem);
     if (!_hwShader)
     {
@@ -264,6 +265,10 @@ void Material::bindImages(mx::ImageHandlerPtr imageHandler, const mx::FileSearch
     _boundImages.clear();
 
     const mx::VariableBlock* publicUniforms = getPublicUniforms();
+    if (!publicUniforms)
+    {
+        return;
+    }
     for (const auto& uniform : publicUniforms->getVariableOrder())
     {
         if (uniform->getType() != mx::Type::FILENAME)

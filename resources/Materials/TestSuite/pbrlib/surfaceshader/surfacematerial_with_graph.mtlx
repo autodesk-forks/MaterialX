@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<materialx version="1.38" colorspace="lin_rec709">
+  <nodegraph name="SurfaceShaderGraph">
+    <standard_surface name="standard_surface" type="surfaceshader">
+      <input name="base_color" type="color3" value="0.3, 0.3, 1" />
+    </standard_surface>
+    <displacement name="displacement" type="displacementshader" />
+    <output name="out" type="surfaceshader" nodename="standard_surface" />
+    <output name="displacementshader" type="displacementshader" nodename="displacement" />
+  </nodegraph>
+  <surfacematerial name="TestSurfaceMaterial" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodegraph="SurfaceShaderGraph" output="out" />
+    <input name="displacementshader" type="displacementshader" nodegraph="SurfaceShaderGraph" output="displacementshader" />
+  </surfacematerial>
+</materialx>
