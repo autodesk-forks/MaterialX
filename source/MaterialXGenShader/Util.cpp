@@ -660,6 +660,42 @@ vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderT
                 }
             }
         }
+        else
+        {
+            const string& inputGraph = input->getNodeGraphName();
+            if (inputGraph.empty())
+            {
+                NodeGraphPtr nodeGraph = doc->getNodeGraph(inputGraph);
+                if (nodeGraph)
+                {
+                    const string& nodeGraphOutput = input->getOutputString();
+                    OutputPtr out = nullptr;
+                    if (!nodeGraphOutput.empty())
+                    {
+                        out = nodeGraph->getOutput(nodeGraphOutput);
+                    }
+                    else
+                    {
+                        std::vector<OutputPtr> outputs = nodeGraph->getOutputs();
+                        if (!outputs.empty())
+                        {
+                            out = outputs[0];
+                        }
+                    }
+                    if (out)
+                    {
+                        if (shaderType.empty() || out->getType() == shaderType)
+                        {
+                            NodePtr upstreamNode = out->getConnectedNode();
+                            if (upstreamNode)
+                            {
+                                shaderNodes.push_back(upstreamNode);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     return shaderNodes;
 }
@@ -697,12 +733,14 @@ void findRenderableMaterialNodes(ConstDocumentPtr doc,
 {
     for (const NodePtr& material : doc->getMaterialNodes())
     {
-        // Push the material node only once.
-        elements.push_back(material);
-
         // Scan for any upstream shader outpus and put them on the "processed" list
         // if we don't want to consider them for rendering.
         vector<NodePtr> shaderNodes = getShaderNodes(material);
+        if (!shaderNodes.empty())
+        {
+            // Push the material node only once if any shader nodes are found
+            elements.push_back(material);
+        }
         for (NodePtr shaderNode : shaderNodes)
         {
             if (!includeReferencedGraphs)
