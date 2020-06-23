@@ -70,12 +70,7 @@ RtToken RtNodeGraph::renameInput(const RtToken& name, const RtToken& newName)
     }
     PvtPrim* socket = prim()->getChild(SOCKETS);
     RtToken newPrimAttrName = prim()->renameAttribute(name, newName);
-    RtToken newSocketAttrName = socket->renameAttribute(name, newPrimAttrName);
-    if (newSocketAttrName != newPrimAttrName)
-    {
-        throw ExceptionRuntimeError("Renamed socket name does not match renamed prim name");
-    }
- 
+    socket->setAttributeName(name, newPrimAttrName);
     return newPrimAttrName;
 }
 
@@ -108,12 +103,7 @@ RtToken RtNodeGraph::renameOutput(const RtToken& name, const RtToken& newName)
     }
     PvtPrim* socket = prim()->getChild(SOCKETS);
     RtToken newPrimAttrName = prim()->renameAttribute(name, newName);
-    RtToken newSocketAttrName = socket->renameAttribute(name, newPrimAttrName);
-    if (newSocketAttrName != newPrimAttrName)
-    {
-        throw ExceptionRuntimeError("Renamed socket name does not match renamed prim name");
-    }
- 
+    socket->setAttributeName(name, newPrimAttrName);
     return newPrimAttrName;
 }
 

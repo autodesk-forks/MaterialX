@@ -185,19 +185,26 @@ void PvtPrim::removeAttribute(const RtToken& name)
     }
 }
 
+void PvtPrim::setAttributeName(const RtToken& name, const RtToken& newName)
+{
+    PvtAttribute* attr = getAttribute(name);
+    if (attr)
+    {
+        attr->setName(newName);
+        _attrMap[newName] = attr->hnd();
+        _attrMap.erase(name);
+    }
+    else
+    {
+        throw ExceptionRuntimeError("Unable to set attribute name. Attribute named: " + name.str() + " does not exist.");
+    }
+}
 
 RtToken PvtPrim::renameAttribute(const RtToken& name, const RtToken& newName)
 {
     RtToken uniqueNewName = makeUniqueChildName(newName);
-    PvtAttribute* attr = getAttribute(name);
-    if (attr)
-    {
-        attr->setName(uniqueNewName);
-        _attrMap[uniqueNewName] = attr->hnd();
-        _attrMap.erase(name);
-        return uniqueNewName;
-    }
-    return EMPTY_TOKEN;
+    setAttributeName(name, uniqueNewName);
+    return uniqueNewName;
 }
 
 RtAttrIterator PvtPrim::getAttributes(RtObjectPredicate predicate) const

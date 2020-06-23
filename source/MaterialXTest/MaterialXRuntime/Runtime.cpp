@@ -2469,33 +2469,68 @@ TEST_CASE("Runtime: duplicate name", "[runtime]")
     mx::RtToken add4("add4");
     mx::RtToken add5("add5");
 
+    auto duplicateCount = [graph1](const mx::RtToken& name)
+    {
+        unsigned int count = 0;
+        for (auto inputIttr = graph1.getInputs(); !inputIttr.isDone(); ++inputIttr)
+        {
+            auto input = *inputIttr;
+            if (input.getName() == name)
+            {
+                count++;
+            }
+        }
+        for (auto outputIttr = graph1.getOutputs(); !outputIttr.isDone(); ++outputIttr)
+        {
+            auto output = *outputIttr;
+            if (output.getName() == name)
+            {
+                count++;
+            }
+        }
+        for (auto nodeIttr = graph1.getNodes(); !nodeIttr.isDone(); ++nodeIttr)
+        {
+            auto node = *nodeIttr;
+            if (node.getName() == name)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    };
+
     // Test renaming the input to the name of the node
-    graph1.renameInput(A, add1);
+    REQUIRE(graph1.renameInput(A, add1) == add2);
     REQUIRE(!graph1.getInput(A));
     REQUIRE(!graph1.getInputSocket(A));
     REQUIRE(!graph1.getInput(add1));
     REQUIRE(!graph1.getInputSocket(add1));
     REQUIRE(graph1.getInput(add2));
     REQUIRE(graph1.getInputSocket(add2));
+    REQUIRE(duplicateCount(add2) == 1);
 
     // Test renaming the output to the name of the node
-    graph1.renameOutput(OUT, add1);
+    REQUIRE(graph1.renameOutput(OUT, add1) == add3);
     REQUIRE(!graph1.getOutput(OUT));
     REQUIRE(!graph1.getOutputSocket(OUT));
     REQUIRE(!graph1.getOutput(add1));
     REQUIRE(!graph1.getOutputSocket(add1));
     REQUIRE(graph1.getOutput(add3));
     REQUIRE(graph1.getOutputSocket(add3));
+    REQUIRE(duplicateCount(add3) == 1);
 
     // Add an interface to the graph with the same name as the add node.
     mx::RtInput input2 = graph1.createInput(add1, mx::RtType::FLOAT);
     REQUIRE(graph1.getInput(add4));
     REQUIRE(graph1.getInputSocket(add4));
+    REQUIRE(duplicateCount(add4) == 1);
 
     // Add an output to the graph with the same name as the add node.
     mx::RtOutput output2 = graph1.createOutput(add1, mx::RtType::FLOAT);
     REQUIRE(graph1.getOutput(add5));
     REQUIRE(graph1.getOutputSocket(add5));
+    REQUIRE(duplicateCount(add5) == 1);
 }
 
 #endif // MATERIALX_BUILD_RUNTIME

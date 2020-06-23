@@ -118,6 +118,7 @@ public:
 
     void removeAttribute(const RtToken& name);
 
+    void setAttributeName(const RtToken& name, const RtToken& newName);
     RtToken renameAttribute(const RtToken& name, const RtToken& newName);
 
     PvtAttribute* getAttribute(const RtToken& name) const
