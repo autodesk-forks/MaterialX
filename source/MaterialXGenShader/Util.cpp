@@ -741,9 +741,9 @@ void findRenderableMaterialNodes(ConstDocumentPtr doc,
             // Push the material node only once if any shader nodes are found
             elements.push_back(material);
 
-            for (NodePtr shaderNode : shaderNodes)
+            if (!includeReferencedGraphs)
             {
-                if (!includeReferencedGraphs)
+                for (NodePtr shaderNode : shaderNodes)
                 {
                     for (InputPtr input : shaderNode->getActiveInputs())
                     {
