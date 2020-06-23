@@ -663,7 +663,7 @@ vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderT
         else
         {
             const string& inputGraph = input->getNodeGraphName();
-            if (inputGraph.empty())
+            if (!inputGraph.empty())
             {
                 NodeGraphPtr nodeGraph = doc->getNodeGraph(inputGraph);
                 if (nodeGraph)
@@ -733,24 +733,25 @@ void findRenderableMaterialNodes(ConstDocumentPtr doc,
 {
     for (const NodePtr& material : doc->getMaterialNodes())
     {
-        // Scan for any upstream shader outpus and put them on the "processed" list
+        // Scan for any upstream shader outputs and put them on the "processed" list
         // if we don't want to consider them for rendering.
         vector<NodePtr> shaderNodes = getShaderNodes(material);
         if (!shaderNodes.empty())
         {
             // Push the material node only once if any shader nodes are found
             elements.push_back(material);
-        }
-        for (NodePtr shaderNode : shaderNodes)
-        {
-            if (!includeReferencedGraphs)
+
+            for (NodePtr shaderNode : shaderNodes)
             {
-                for (InputPtr input : shaderNode->getActiveInputs())
+                if (!includeReferencedGraphs)
                 {
-                    OutputPtr outputPtr = input->getConnectedOutput();
-                    if (outputPtr && !outputPtr->hasSourceUri() && !processedOutputs.count(outputPtr))
+                    for (InputPtr input : shaderNode->getActiveInputs())
                     {
-                        processedOutputs.insert(outputPtr);
+                        OutputPtr outputPtr = input->getConnectedOutput();
+                        if (outputPtr && !outputPtr->hasSourceUri() && !processedOutputs.count(outputPtr))
+                        {
+                            processedOutputs.insert(outputPtr);
+                        }
                     }
                 }
             }

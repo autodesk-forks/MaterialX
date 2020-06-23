@@ -1113,7 +1113,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                         }
                         catch (std::exception& e)
                         {
-                            new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to generate albedo table shader", e.what());
+                            new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to generate shader", e.what());
                             continue;
                         }
                         if (udimElement == elem)
@@ -1132,7 +1132,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                     catch (std::exception& e)
                     {
                         mat->copyShader(_wireMaterial);
-                        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to generate albedo table shader", e.what());
+                        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to generate shader", e.what());
                     }
                 }
 
