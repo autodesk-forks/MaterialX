@@ -636,14 +636,19 @@ bool elementRequiresShading(ConstTypedElementPtr element)
 
 vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderType, const string& target)
 {
-    DocumentPtr doc = materialNode->getDocument();
+    ElementPtr parent = materialNode ? materialNode->getParent() : nullptr;
+    if (!parent)
+    {
+        throw ExceptionShaderGenError("Could not a parent for material node '" + (materialNode ? materialNode->getNamePath() : EMPTY_STRING) + "'");
+    }
+
     vector<NodePtr> shaderNodes;
     for (const InputPtr& input : materialNode->getActiveInputs())
     {
         const string& inputShader = input->getNodeName();
         if (!inputShader.empty())
         {
-            NodePtr shaderNode = doc->getNode(inputShader);
+            NodePtr shaderNode = parent->getChildOfType<Node>(inputShader);
             if (shaderNode)
             {
                 if (!target.empty())
@@ -665,7 +670,7 @@ vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderT
             const string& inputGraph = input->getNodeGraphName();
             if (!inputGraph.empty())
             {
-                NodeGraphPtr nodeGraph = doc->getNodeGraph(inputGraph);
+                NodeGraphPtr nodeGraph = parent->getChildOfType<NodeGraph>(inputGraph);
                 if (nodeGraph)
                 {
                     const string& nodeGraphOutput = input->getOutputString();
