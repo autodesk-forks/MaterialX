@@ -639,7 +639,7 @@ vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderT
     ElementPtr parent = materialNode ? materialNode->getParent() : nullptr;
     if (!parent)
     {
-        throw ExceptionShaderGenError("Could not a parent for material node '" + (materialNode ? materialNode->getNamePath() : EMPTY_STRING) + "'");
+        throw ExceptionShaderGenError("Could not find a parent for material node '" + (materialNode ? materialNode->getNamePath() : EMPTY_STRING) + "'");
     }
 
     vector<NodePtr> shaderNodes;
