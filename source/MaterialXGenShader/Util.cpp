@@ -643,8 +643,39 @@ vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderT
     }
 
     vector<NodePtr> shaderNodes;
-    for (const InputPtr& input : materialNode->getActiveInputs())
+
+    std::vector<InputPtr> inputs = materialNode->getActiveInputs();
+    if (inputs.empty())
     {
+        // Try to find material nodes in the implementation graph if any.
+        NodeDefPtr materialNodeDef = materialNode->getNodeDef();
+        if (materialNodeDef)
+        {
+            InterfaceElementPtr impl = materialNodeDef->getImplementation();
+            if (impl->isA<NodeGraph>())
+            {
+                NodeGraphPtr implGraph = impl->asA<NodeGraph>();
+                for (auto defOutput : materialNodeDef->getOutputs())
+                {
+                    if (defOutput->getType() == "material")
+                    {
+                        const string materialNodeName = defOutput->getNodeName();
+                        NodePtr implGraphMaterial = implGraph->getNode(materialNodeName);
+                        if (implGraphMaterial->getType() == "material")
+                        {
+                            shaderNodes = getShaderNodes(implGraphMaterial, shaderType, target);
+                            if (!shaderNodes.empty())
+                            {
+                                return shaderNodes;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (const InputPtr& input : inputs) {
         const string& inputShader = input->getNodeName();
         if (!inputShader.empty())
         {

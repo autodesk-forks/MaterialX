@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<materialx version="1.37">
+  <nodedef name="ND_mymaterial" node="mymaterial" nodegroup="material">
+    <output name="out" type="material" nodename="surfacematerial1" />
+  </nodedef>
+  <nodegraph name="NG_mymaterial" nodedef="ND_mymaterial">
+    <surfacematerial name="surfacematerial1" type="material">
+      <input name="surfaceshader" type="surfaceshader" nodename="standard_surface"/>
+    </surfacematerial>
+    <standard_surface name="standard_surface" type="surfaceshader" />
+    <output name="out" type="material" nodename="surfacematerial1" />
+  </nodegraph>
+
+   <nodedef name="ND_myshader" node="myshader" nodegroup="shader">
+      <output name="surfaceshader" type="surfaceshader"/>
+   </nodedef>
+   <nodegraph name="NG_myshader" nodedef="ND_myshader">
+      <standard_surface name="my_surface_shader" type="surfaceshader" />
+      <output name="surfaceshader" type="surfaceshader" nodename="my_surface_shader" />
+   </nodegraph>
+
+   <mymaterial name="mymaterial_instance" type="material"></mymaterial>
+   <myshader name="myshader_instance" type="shader"></myshader>
+</materialx>
