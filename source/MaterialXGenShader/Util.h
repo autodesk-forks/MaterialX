@@ -19,6 +19,7 @@
 #include <MaterialXFormat/XmlIo.h>
 
 #include <unordered_set>
+#include <list>
 
 namespace MaterialX
 {
