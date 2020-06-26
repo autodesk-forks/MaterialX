@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <materialx version="1.37">
   <nodedef name="ND_mymaterial" node="mymaterial" nodegroup="material">
-    <output name="out" type="material" nodename="surfacematerial1" />
+    <output name="out" type="material"/>
   </nodedef>
   <nodegraph name="NG_mymaterial" nodedef="ND_mymaterial">
     <surfacematerial name="surfacematerial1" type="material">
@@ -20,5 +20,5 @@
    </nodegraph>
 
    <mymaterial name="mymaterial_instance" type="material"></mymaterial>
-   <myshader name="myshader_instance" type="shader"></myshader>
+   <myshader name="myshader_instance" type="surfaceshader"></myshader>
 </materialx>

@@ -634,7 +634,7 @@ bool elementRequiresShading(ConstTypedElementPtr element)
 }
 
 
-vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderType, const string& target)
+std::list<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderType, const string& target)
 {
     ElementPtr parent = materialNode ? materialNode->getParent() : nullptr;
     if (!parent)
@@ -642,7 +642,7 @@ vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderT
         throw ExceptionShaderGenError("Could not find a parent for material node '" + (materialNode ? materialNode->getNamePath() : EMPTY_STRING) + "'");
     }
 
-    vector<NodePtr> shaderNodes;
+    std::list<NodePtr> shaderNodes;
 
     std::vector<InputPtr> inputs = materialNode->getActiveInputs();
     if (inputs.empty())
@@ -657,16 +657,25 @@ vector<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderT
                 NodeGraphPtr implGraph = impl->asA<NodeGraph>();
                 for (auto defOutput : materialNodeDef->getOutputs())
                 {
-                    if (defOutput->getType() == "material")
+                    if (defOutput->getType() == MATERIAL_TYPE_STRING)
                     {
-                        const string materialNodeName = defOutput->getNodeName();
-                        NodePtr implGraphMaterial = implGraph->getNode(materialNodeName);
-                        if (implGraphMaterial->getType() == "material")
+                        OutputPtr implGraphOutput = implGraph->getOutput(defOutput->getName());
+                        for (GraphIterator it = implGraphOutput->traverseGraph().begin(); it != GraphIterator::end(); ++it)
                         {
-                            shaderNodes = getShaderNodes(implGraphMaterial, shaderType, target);
-                            if (!shaderNodes.empty())
+                            ElementPtr upstreamElem = it.getUpstreamElement();
+                            if (!upstreamElem)
                             {
-                                return shaderNodes;
+                                it.setPruneSubgraph(true);
+                                continue;
+                            }
+                            NodePtr upstreamNode = upstreamElem->asA<Node>();
+                            if (upstreamNode && upstreamNode->getType() == MATERIAL_TYPE_STRING)
+                            {
+                                std::list<NodePtr> newShaderNodes = getShaderNodes(upstreamNode, shaderType, target);
+                                if (!newShaderNodes.empty())
+                                {
+                                    shaderNodes.insert(shaderNodes.end(), newShaderNodes.begin(), newShaderNodes.end());
+                                }
                             }
                         }
                     }
@@ -771,7 +780,7 @@ void findRenderableMaterialNodes(ConstDocumentPtr doc,
     {
         // Scan for any upstream shader outputs and put them on the "processed" list
         // if we don't want to consider them for rendering.
-        vector<NodePtr> shaderNodes = getShaderNodes(material);
+        std::list<NodePtr> shaderNodes = getShaderNodes(material);
         if (!shaderNodes.empty())
         {
             // Push the material node only once if any shader nodes are found
