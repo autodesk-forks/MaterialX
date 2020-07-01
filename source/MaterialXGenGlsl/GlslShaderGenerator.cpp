@@ -27,6 +27,7 @@
 #include <MaterialXGenGlsl/Nodes/TransformVectorNodeGlsl.h>
 #include <MaterialXGenGlsl/Nodes/TransformPointNodeGlsl.h>
 #include <MaterialXGenGlsl/Nodes/TransformNormalNodeGlsl.h>
+#include <MaterialXGenGlsl/Nodes/ThinFilmNodeGlsl.h>
 
 #include <MaterialXGenShader/Nodes/HwSourceCodeNode.h>
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>
@@ -279,6 +280,11 @@ GlslShaderGenerator::GlslShaderGenerator() :
     registerImplementation("IM_image_vector2_" + GlslShaderGenerator::LANGUAGE, HwImageNode::create);
     registerImplementation("IM_image_vector3_" + GlslShaderGenerator::LANGUAGE, HwImageNode::create);
     registerImplementation("IM_image_vector4_" + GlslShaderGenerator::LANGUAGE, HwImageNode::create);
+
+    // <!-- <thin_film_brdf> -->
+    registerImplementation("IM_thin_film_brdf_" + GlslShaderGenerator::LANGUAGE, ThinFilmNodeGlsl::create);
+    // <!-- <dielectric_brdf> -->
+    registerImplementation("IM_dielectric_brdf_" + GlslShaderGenerator::LANGUAGE, ThinFilmSupportGlsl::create);
 
     _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "numActiveLightSources", NumLightsNodeGlsl::create()));
     _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "sampleLightSource", LightSamplerNodeGlsl::create()));
@@ -770,6 +776,80 @@ ShaderNodeImplPtr GlslShaderGenerator::createCompoundImplementation(const NodeGr
     return HwShaderGenerator::createCompoundImplementation(impl);
 }
 
+void GlslShaderGenerator::finalizeShaderGraph(ShaderGraph& graph)
+{
+    // Find all thin-film nodes and transform them into inputs on BSDF nodes layered underneath.
+    for (ShaderNode* node : graph.getNodes())
+    {
+        if (node->hasClassification(ShaderNode::Classification::THINFILM))
+        {
+            // Check for a connection to a vertical layering node.
+            for (ShaderInput* top : node->getOutput()->getConnections())
+            {
+                // Make sure the connection is valid.
+                if (!top->getNode()->hasClassification(ShaderNode::Classification::LAYER) ||
+                    top->getName() != LayerNode::TOP)
+                {
+                    throw ExceptionShaderGenError("Invalid connection from '" + node->getName() + "' to '" + top->getNode()->getName() + "." + top->getName() + "'");
+                }
+
+                ShaderNode* layerNode = top->getNode();
+                ShaderInput* base = layerNode->getInput(LayerNode::BASE);
+                if (base && base->getConnection())
+                {
+                    ShaderNode* bsdf = base->getConnection()->getNode();
+
+                    ShaderInput* thicknessDest = bsdf->getInput(ThinFilmSupportGlsl::THINFILM_THICKNESS);
+                    ShaderInput* iorDest = bsdf->getInput(ThinFilmSupportGlsl::THINFILM_IOR);
+                    if (thicknessDest && iorDest)
+                    {
+                        // Copy thickness connection or value to the BSDF node.
+                        ShaderInput* thicknessSrc = node->getInput(ThinFilmNodeGlsl::THICKNESS);
+                        if (thicknessSrc)
+                        {
+                            if (thicknessSrc->getConnection())
+                            {
+                                thicknessDest->makeConnection(thicknessSrc->getConnection());
+                            }
+                            else
+                            {
+                                thicknessDest->setValue(thicknessSrc->getValue());
+                            }
+                        }
+                        // Copy ior connection or value to the BSDF node.
+                        ShaderInput* iorSrc = node->getInput(ThinFilmNodeGlsl::IOR);
+                        if (iorSrc)
+                        {
+                            if (iorSrc->getConnection())
+                            {
+                                iorDest->makeConnection(iorSrc->getConnection());
+                            }
+                            else
+                            {
+                                iorDest->setValue(iorSrc->getValue());
+                            }
+                        }
+                    }
+
+                    ShaderOutput* bsdfOutput = bsdf->getOutput();
+
+                    // Bypass the layer node since thin-film is now setup on the bsdf.
+                    // Iterate a copy of the connection set since the
+                    // original set will change when breaking connections.
+                    base->breakConnection();
+                    ShaderInputSet downstreamConnections = layerNode->getOutput()->getConnections();
+                    for (ShaderInput* downstream : downstreamConnections)
+                    {
+                        downstream->breakConnection();
+                        downstream->makeConnection(bsdfOutput);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 const string GlslImplementation::SPACE = "space";
 const string GlslImplementation::TO_SPACE = "tospace";
 const string GlslImplementation::FROM_SPACE = "fromspace";
@@ -804,4 +884,5 @@ bool GlslImplementation::isEditable(const ShaderInput& input) const
 {
     return IMMUTABLE_INPUTS.count(input.getName()) == 0;
 }
+
 }
