@@ -300,6 +300,7 @@ struct FresnelData
     int model;
     vec3 ior;
     vec3 extinction;
+    float exponent;
     float tf_thickness;
     float tf_ior;
 };
@@ -309,6 +310,7 @@ FresnelData mx_init_fresnel_dielectric(float ior)
     FresnelData f;
     f.model = 0;
     f.ior = vec3(ior);
+    f.tf_thickness = 0.0f;
     return f;
 }
 
@@ -318,6 +320,7 @@ FresnelData mx_init_fresnel_conductor(vec3 ior, vec3 extinction)
     f.model = 1;
     f.ior = ior;
     f.extinction = extinction;
+    f.tf_thickness = 0.0f;
     return f;
 }
 
@@ -327,15 +330,19 @@ FresnelData mx_init_fresnel_schlick(vec3 F0)
     f.model = 2;
     f.ior = F0;
     f.extinction = vec3(1.0);
+    f.exponent = 5.0f;
+    f.tf_thickness = 0.0f;
     return f;
 }
 
-FresnelData mx_init_fresnel_schlick(vec3 F0, vec3 F90)
+FresnelData mx_init_fresnel_schlick(vec3 F0, vec3 F90, float exponent)
 {
     FresnelData f;
     f.model = 2;
     f.ior = F0;
     f.extinction = F90;
+    f.exponent = exponent;
+    f.tf_thickness = 0.0f;
     return f;
 }
 
@@ -369,7 +376,7 @@ vec3 mx_compute_fresnel(float cosTheta, FresnelData f)
         return mx_fresnel_conductor(cosTheta, f.ior, f.extinction);
     else if (f.model == 2)
         // ior & extinction holds F0 & F90
-        return mx_fresnel_schlick(cosTheta, f.ior, f.extinction);
+        return mx_fresnel_schlick(cosTheta, f.ior, f.extinction, f.exponent);
     else
         return mx_fresnel_airy(cosTheta, f.ior, f.extinction, f.tf_thickness, f.tf_ior);
 }
