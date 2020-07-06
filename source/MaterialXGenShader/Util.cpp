@@ -5,6 +5,8 @@
 
 #include <MaterialXGenShader/Util.h>
 
+#include <MaterialXCore/MaterialNode.h>
+
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/HwShaderGenerator.h>
 #include <MaterialXGenShader/GenContext.h>
@@ -631,144 +633,6 @@ bool elementRequiresShading(ConstTypedElementPtr element)
     };
     return (element->isA<ShaderRef>() ||
             colorClosures.count(elementType) > 0);
-}
-
-
-std::list<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderType, const string& target)
-{
-    ElementPtr parent = materialNode ? materialNode->getParent() : nullptr;
-    if (!parent)
-    {
-        throw ExceptionShaderGenError("Could not find a parent for material node '" + (materialNode ? materialNode->getNamePath() : EMPTY_STRING) + "'");
-    }
-
-    std::list<NodePtr> shaderNodes;
-
-    std::vector<InputPtr> inputs = materialNode->getActiveInputs();
-    if (inputs.empty())
-    {
-        // Try to find material nodes in the implementation graph if any.
-        NodeDefPtr materialNodeDef = materialNode->getNodeDef();
-        if (materialNodeDef)
-        {
-            InterfaceElementPtr impl = materialNodeDef->getImplementation();
-            if (impl->isA<NodeGraph>())
-            {
-                NodeGraphPtr implGraph = impl->asA<NodeGraph>();
-                for (auto defOutput : materialNodeDef->getOutputs())
-                {
-                    if (defOutput->getType() == MATERIAL_TYPE_STRING)
-                    {
-                        OutputPtr implGraphOutput = implGraph->getOutput(defOutput->getName());
-                        for (GraphIterator it = implGraphOutput->traverseGraph().begin(); it != GraphIterator::end(); ++it)
-                        {
-                            ElementPtr upstreamElem = it.getUpstreamElement();
-                            if (!upstreamElem)
-                            {
-                                it.setPruneSubgraph(true);
-                                continue;
-                            }
-                            NodePtr upstreamNode = upstreamElem->asA<Node>();
-                            if (upstreamNode && upstreamNode->getType() == MATERIAL_TYPE_STRING)
-                            {
-                                std::list<NodePtr> newShaderNodes = getShaderNodes(upstreamNode, shaderType, target);
-                                if (!newShaderNodes.empty())
-                                {
-                                    shaderNodes.insert(shaderNodes.end(), newShaderNodes.begin(), newShaderNodes.end());
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    for (const InputPtr& input : inputs) {
-        const string& inputShader = input->getNodeName();
-        if (!inputShader.empty())
-        {
-            NodePtr shaderNode = parent->getChildOfType<Node>(inputShader);
-            if (shaderNode)
-            {
-                if (!target.empty())
-                {
-                    NodeDefPtr nodeDef = shaderNode->getNodeDef();
-                    if (!nodeDef || !targetStringsMatch(nodeDef->getTarget(), target))
-                    {
-                        continue;
-                    }
-                }
-                if (shaderType.empty() || shaderNode->getType() == shaderType)
-                {
-                    shaderNodes.push_back(shaderNode);
-                }
-            }
-        }
-        else
-        {
-            const string& inputGraph = input->getNodeGraphName();
-            if (!inputGraph.empty())
-            {
-                NodeGraphPtr nodeGraph = parent->getChildOfType<NodeGraph>(inputGraph);
-                if (nodeGraph)
-                {
-                    const string& nodeGraphOutput = input->getOutputString();
-                    OutputPtr out = nullptr;
-                    if (!nodeGraphOutput.empty())
-                    {
-                        out = nodeGraph->getOutput(nodeGraphOutput);
-                    }
-                    else
-                    {
-                        std::vector<OutputPtr> outputs = nodeGraph->getOutputs();
-                        if (!outputs.empty())
-                        {
-                            out = outputs[0];
-                        }
-                    }
-                    if (out)
-                    {
-                        if (shaderType.empty() || out->getType() == shaderType)
-                        {
-                            NodePtr upstreamNode = out->getConnectedNode();
-                            if (upstreamNode)
-                            {
-                                shaderNodes.push_back(upstreamNode);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return shaderNodes;
-}
-
-vector<MaterialAssignPtr> getGeometryBindings(NodePtr materialNode, const string& geom)
-{
-    vector<MaterialAssignPtr> matAssigns;
-    for (LookPtr look : materialNode->getDocument()->getLooks())
-    {
-        for (MaterialAssignPtr matAssign : look->getMaterialAssigns())
-        {
-            if (matAssign->getReferencedMaterialNode() == materialNode)
-            {
-                if (geomStringsMatch(geom, matAssign->getActiveGeom()))
-                {
-                    matAssigns.push_back(matAssign);
-                    continue;
-                }
-                CollectionPtr coll = matAssign->getCollection();
-                if (coll && coll->matchesGeomString(geom))
-                {
-                    matAssigns.push_back(matAssign);
-                    continue;
-                }
-            }
-        }
-    }
-    return matAssigns;
 }
 
 void findRenderableMaterialNodes(ConstDocumentPtr doc, 

@@ -6,7 +6,8 @@
 #include <MaterialXTest/Catch/catch.hpp>
 #include <MaterialXTest/MaterialXGenShader/GenShaderUtil.h>
 
-#include <MaterialXCore/Util.h>
+#include <MaterialXCore/MaterialNode.h>
+//#include <MaterialXCore/Util.h>
 #include <MaterialXCore/Unit.h>
 
 #include <MaterialXFormat/File.h>
