@@ -21,7 +21,7 @@ addWrapper(function(Module, api) {
 
     function iterateTypedValues(cb) {
         for (var i = 0; i < typedValues.length; i++) {
-            var typedValue = typedValues[parseInt(i)];
+            var typedValue = typedValues[parseInt(i, 10)];
             cb && cb(typedValue);
         }
     }
