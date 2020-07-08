@@ -15,7 +15,7 @@ namespace MaterialX
 /// Thin-Film node.
 /// No real implementation in GLSL. Its inputs will just be copied
 /// to the corresponding microfacet BSDF to enabled thin-film there.
-class ThinFilmNodeGlsl : public ShaderNodeImpl
+class ThinFilmNode : public ShaderNodeImpl
 {
   public:
     static ShaderNodeImplPtr create();
@@ -28,7 +28,7 @@ class ThinFilmNodeGlsl : public ShaderNodeImpl
 /// Base class for microfacet BSDF nodes that support layering with thin-film.
 /// Thin-film thickness and ior are added as extra inputs to BSDF nodes that
 /// derive from this class.
-class ThinFilmSupportGlsl : public HwSourceCodeNode
+class ThinFilmSupport : public SourceCodeNode
 {
 public:
     static ShaderNodeImplPtr create();

@@ -3,8 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXGenGlsl/Nodes/ThinFilmNodeGlsl.h>
-
+#include <MaterialXGenShader/Nodes/ThinFilmNode.h>
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/ShaderNode.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
@@ -14,23 +13,23 @@
 namespace MaterialX
 {
 
-const string ThinFilmNodeGlsl::THICKNESS = "thickness";
-const string ThinFilmNodeGlsl::IOR       = "ior";
+const string ThinFilmNode::THICKNESS = "thickness";
+const string ThinFilmNode::IOR       = "ior";
 
-ShaderNodeImplPtr ThinFilmNodeGlsl::create()
+ShaderNodeImplPtr ThinFilmNode::create()
 {
-    return std::make_shared<ThinFilmNodeGlsl>();
+    return std::make_shared<ThinFilmNode>();
 }
 
-const string ThinFilmSupportGlsl::THINFILM_THICKNESS = "thinfilm_thickness";
-const string ThinFilmSupportGlsl::THINFILM_IOR       = "thinfilm_ior";
+const string ThinFilmSupport::THINFILM_THICKNESS = "thinfilm_thickness";
+const string ThinFilmSupport::THINFILM_IOR       = "thinfilm_ior";
 
-ShaderNodeImplPtr ThinFilmSupportGlsl::create()
+ShaderNodeImplPtr ThinFilmSupport::create()
 {
-    return std::make_shared<ThinFilmSupportGlsl>();
+    return std::make_shared<ThinFilmSupport>();
 }
 
-void ThinFilmSupportGlsl::addInputs(ShaderNode& node, GenContext&) const
+void ThinFilmSupport::addInputs(ShaderNode& node, GenContext&) const
 {
     // Add additional thickness and ior inputs for thin-film support.
     ShaderInput* thickness = node.addInput(THINFILM_THICKNESS, Type::FLOAT);

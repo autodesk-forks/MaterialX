@@ -68,9 +68,6 @@ class GlslShaderGenerator : public HwShaderGenerator
     /// Override the compound implementation creator in order to handle light compounds.
     ShaderNodeImplPtr createCompoundImplementation(const NodeGraph& impl) const override;
 
-    /// Override the shader graph finalization.
-    void finalizeShaderGraph(ShaderGraph& graph) override;
-
     static void toVec4(const TypeDesc* type, string& variable);
 
     /// Nodes used internally for light sampling.

@@ -9,6 +9,8 @@
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
+#include <MaterialXGenShader/Nodes/LayerNode.h>
+#include <MaterialXGenShader/Nodes/ThinFilmNode.h>
 #include <MaterialXGenShader/Util.h>
 
 #include <MaterialXFormat/File.h>
@@ -398,6 +400,80 @@ ShaderNodeImplPtr ShaderGenerator::createCompoundImplementation(const NodeGraph&
     // The standard compound implementation
     // is the compound implementation to us by default
     return CompoundNode::create();
+}
+
+void ShaderGenerator::finalizeShaderGraph(ShaderGraph& graph)
+{
+    // Find all thin-film nodes and transform them into inputs on BSDF nodes layered underneath.
+    for (ShaderNode* node : graph.getNodes())
+    {
+        if (node->hasClassification(ShaderNode::Classification::THINFILM))
+        {
+            // Check for a connection to a vertical layering node.
+            for (ShaderInput* top : node->getOutput()->getConnections())
+            {
+                // Make sure the connection is valid.
+                if (!top->getNode()->hasClassification(ShaderNode::Classification::LAYER) ||
+                    top->getName() != LayerNode::TOP)
+                {
+                    throw ExceptionShaderGenError("Invalid connection from '" + node->getName() + "' to '" + top->getNode()->getName() + "." + top->getName() + "'. " +
+                        "Thin-film can only be used with a <layer> operator.");
+                }
+
+                ShaderNode* layerNode = top->getNode();
+                ShaderInput* base = layerNode->getInput(LayerNode::BASE);
+                if (base && base->getConnection())
+                {
+                    ShaderNode* bsdf = base->getConnection()->getNode();
+
+                    ShaderInput* thicknessDest = bsdf->getInput(ThinFilmSupport::THINFILM_THICKNESS);
+                    ShaderInput* iorDest = bsdf->getInput(ThinFilmSupport::THINFILM_IOR);
+                    if (thicknessDest && iorDest)
+                    {
+                        // Copy thickness connection or value to the BSDF node.
+                        ShaderInput* thicknessSrc = node->getInput(ThinFilmNode::THICKNESS);
+                        if (thicknessSrc)
+                        {
+                            if (thicknessSrc->getConnection())
+                            {
+                                thicknessDest->makeConnection(thicknessSrc->getConnection());
+                            }
+                            else
+                            {
+                                thicknessDest->setValue(thicknessSrc->getValue());
+                            }
+                        }
+                        // Copy ior connection or value to the BSDF node.
+                        ShaderInput* iorSrc = node->getInput(ThinFilmNode::IOR);
+                        if (iorSrc)
+                        {
+                            if (iorSrc->getConnection())
+                            {
+                                iorDest->makeConnection(iorSrc->getConnection());
+                            }
+                            else
+                            {
+                                iorDest->setValue(iorSrc->getValue());
+                            }
+                        }
+                    }
+
+                    ShaderOutput* bsdfOutput = bsdf->getOutput();
+
+                    // Bypass the layer node since thin-film is now setup on the bsdf.
+                    // Iterate a copy of the connection set since the
+                    // original set will change when breaking connections.
+                    base->breakConnection();
+                    ShaderInputSet downstreamConnections = layerNode->getOutput()->getConnections();
+                    for (ShaderInput* downstream : downstreamConnections)
+                    {
+                        downstream->breakConnection();
+                        downstream->makeConnection(bsdfOutput);
+                    }
+                }
+            }
+        }
+    }
 }
 
 } // namespace MaterialX
