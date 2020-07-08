@@ -412,6 +412,10 @@ void ShaderGenerator::finalizeShaderGraph(ShaderGraph& graph)
         {
             ShaderOutput* output = node->getOutput();
 
+            // Change type to our 'thinfilm' data type since this
+            // is not a BSDF in our default implementation.
+            output->setType(Type::THINFILM);
+
             // Find vertical layering nodes connected to this thinfilm.
             vector<ShaderNode*> layerNodes;
             for (ShaderInput* dest : output->getConnections())
@@ -447,6 +451,8 @@ void ShaderGenerator::finalizeShaderGraph(ShaderGraph& graph)
                     {
                         // In this case get the top bsdf since this is where microfacet bsdfs
                         // are placed. Only one such extra layer indirection is supported.
+                        // We need this in order to support having thin-film applied to a
+                        // microfacet bsdf that itself is layered on top of a substrate.
                         ShaderInput* top = bsdf->getInput(LayerNode::TOP);
                         bsdf = top && top->getConnection() ? top->getConnection()->getNode() : nullptr;
                     }

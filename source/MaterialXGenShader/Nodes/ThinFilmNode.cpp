@@ -48,7 +48,7 @@ void ThinFilmNode::emitFunctionCall(const ShaderNode& node, GenContext& context,
 }
 
 
-const string ThinFilmSupport::THINFILM_INPUT = "_tf";
+const string ThinFilmSupport::THINFILM_INPUT = "tf";
 
 ShaderNodeImplPtr ThinFilmSupport::create()
 {
@@ -57,7 +57,7 @@ ShaderNodeImplPtr ThinFilmSupport::create()
 
 void ThinFilmSupport::addInputs(ShaderNode& node, GenContext&) const
 {
-    // Add and input to hold thinfilm data.
+    // Add the input to hold thinfilm data.
     node.addInput(THINFILM_INPUT, Type::THINFILM);
 }
 
