@@ -12,13 +12,19 @@
 namespace MaterialX
 {
 
+namespace Type
+{
+    // Type declaration for thinfilm data
+    extern const TypeDesc* THINFILM;
+}
+
 /// Thin-Film node.
-/// No real implementation in GLSL. Its inputs will just be copied
-/// to the corresponding microfacet BSDF to enabled thin-film there.
 class ThinFilmNode : public ShaderNodeImpl
 {
   public:
     static ShaderNodeImplPtr create();
+
+    void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 
     /// String constants
     static const string THICKNESS;
@@ -26,8 +32,8 @@ class ThinFilmNode : public ShaderNodeImpl
 };
 
 /// Base class for microfacet BSDF nodes that support layering with thin-film.
-/// Thin-film thickness and ior are added as extra inputs to BSDF nodes that
-/// derive from this class.
+/// Thin-film data is added as an extra input to BSDF nodes that derive from
+/// this class.
 class ThinFilmSupport : public HwSourceCodeNode
 {
 public:
@@ -36,8 +42,7 @@ public:
     void addInputs(ShaderNode& node, GenContext&) const override;
 
     /// String constants
-    static const string THINFILM_THICKNESS;
-    static const string THINFILM_IOR;
+    static const string THINFILM_INPUT;
 };
 
 } // namespace MaterialX

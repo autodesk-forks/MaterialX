@@ -404,58 +404,45 @@ ShaderNodeImplPtr ShaderGenerator::createCompoundImplementation(const NodeGraph&
 
 void ShaderGenerator::finalizeShaderGraph(ShaderGraph& graph)
 {
-    // Find all thin-film nodes and transform them into inputs on BSDF nodes layered underneath.
+    // Find all thin-film nodes and reconnect them to the thinfilm input on BSDF nodes layered underneath.
     for (ShaderNode* node : graph.getNodes())
     {
         if (node->hasClassification(ShaderNode::Classification::THINFILM))
         {
-            // Check for a connection to a vertical layering node.
-            for (ShaderInput* top : node->getOutput()->getConnections())
+            ShaderOutput* output = node->getOutput();
+
+            // Find vertical layering nodes connected to this thinfilm.
+            vector<ShaderNode*> layerNodes;
+            for (ShaderInput* dest : output->getConnections())
             {
+                ShaderNode* layerNode = dest->getNode();
+
                 // Make sure the connection is valid.
-                if (!top->getNode()->hasClassification(ShaderNode::Classification::LAYER) ||
-                    top->getName() != LayerNode::TOP)
+                if (!layerNode->hasClassification(ShaderNode::Classification::LAYER) ||
+                    dest->getName() != LayerNode::TOP)
                 {
-                    throw ExceptionShaderGenError("Invalid connection from '" + node->getName() + "' to '" + top->getNode()->getName() + "." + top->getName() + "'. " +
-                        "Thin-film can only be used with a <layer> operator.");
+                    throw ExceptionShaderGenError("Invalid connection from '" + node->getName() + "' to '" + layerNode->getName() + "." + dest->getName() + "'. " +
+                        "Thin-film can only be connected to a <layer> operator's top input.");
                 }
 
-                ShaderNode* layerNode = top->getNode();
+                layerNodes.push_back(layerNode);
+            }
+
+            // Remove connections downstream.
+            output->breakConnections();
+
+            for (ShaderNode* layerNode : layerNodes)
+            {
                 ShaderInput* base = layerNode->getInput(LayerNode::BASE);
                 if (base && base->getConnection())
                 {
                     ShaderNode* bsdf = base->getConnection()->getNode();
 
-                    ShaderInput* thicknessDest = bsdf->getInput(ThinFilmSupport::THINFILM_THICKNESS);
-                    ShaderInput* iorDest = bsdf->getInput(ThinFilmSupport::THINFILM_IOR);
-                    if (thicknessDest && iorDest)
+                    // Connect the node upstream instead of downstream.
+                    ShaderInput* bsdfInput = bsdf->getInput(ThinFilmSupport::THINFILM_INPUT);
+                    if (bsdfInput)
                     {
-                        // Copy thickness connection or value to the BSDF node.
-                        ShaderInput* thicknessSrc = node->getInput(ThinFilmNode::THICKNESS);
-                        if (thicknessSrc)
-                        {
-                            if (thicknessSrc->getConnection())
-                            {
-                                thicknessDest->makeConnection(thicknessSrc->getConnection());
-                            }
-                            else
-                            {
-                                thicknessDest->setValue(thicknessSrc->getValue());
-                            }
-                        }
-                        // Copy ior connection or value to the BSDF node.
-                        ShaderInput* iorSrc = node->getInput(ThinFilmNode::IOR);
-                        if (iorSrc)
-                        {
-                            if (iorSrc->getConnection())
-                            {
-                                iorDest->makeConnection(iorSrc->getConnection());
-                            }
-                            else
-                            {
-                                iorDest->setValue(iorSrc->getValue());
-                            }
-                        }
+                        output->makeConnection(bsdfInput);
                     }
 
                     ShaderOutput* bsdfOutput = bsdf->getOutput();

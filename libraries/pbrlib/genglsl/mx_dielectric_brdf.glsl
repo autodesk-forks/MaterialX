@@ -1,6 +1,6 @@
 #include "pbrlib/genglsl/lib/mx_microfacet_specular.glsl"
 
-void mx_dielectric_brdf_reflection(vec3 L, vec3 V, float weight, vec3 tint, float ior, vec2 roughness, vec3 N, vec3 X, int distribution, BSDF base, float tf_thickness, float tf_ior, out BSDF result)
+void mx_dielectric_brdf_reflection(vec3 L, vec3 V, float weight, vec3 tint, float ior, vec2 roughness, vec3 N, vec3 X, int distribution, BSDF base, thinfilm tf, out BSDF result)
 {
     if (weight < M_FLOAT_EPS)
     {
@@ -18,7 +18,7 @@ void mx_dielectric_brdf_reflection(vec3 L, vec3 V, float weight, vec3 tint, floa
 
     float avgRoughness = mx_average_roughness(roughness);
 
-    FresnelData f = tf_thickness > 0.0 ? mx_init_fresnel_dielectric_airy(ior, tf_thickness, tf_ior) : mx_init_fresnel_dielectric(ior);
+    FresnelData f = tf.thickness > 0.0 ? mx_init_fresnel_dielectric_airy(ior, tf.thickness, tf.ior) : mx_init_fresnel_dielectric(ior);
     vec3  F = mx_compute_fresnel(VdotH, f);
     float D = mx_ggx_NDF(X, Y, H, NdotH, roughness.x, roughness.y);
     float G = mx_ggx_smith_G(NdotL, NdotV, avgRoughness);
@@ -32,7 +32,7 @@ void mx_dielectric_brdf_reflection(vec3 L, vec3 V, float weight, vec3 tint, floa
            + base * (1.0 - dirAlbedo * weight);             // Base layer reflection attenuated by top layer
 }
 
-void mx_dielectric_brdf_transmission(vec3 V, float weight, vec3 tint, float ior, vec2 roughness, vec3 N, vec3 X, int distribution, BSDF base, float tf_thickness, float tf_ior, out BSDF result)
+void mx_dielectric_brdf_transmission(vec3 V, float weight, vec3 tint, float ior, vec2 roughness, vec3 N, vec3 X, int distribution, BSDF base, thinfilm tf, out BSDF result)
 {
     if (weight < M_FLOAT_EPS)
     {
@@ -47,7 +47,7 @@ void mx_dielectric_brdf_transmission(vec3 V, float weight, vec3 tint, float ior,
     // Abs here to allow transparency through backfaces
     float NdotV = abs(dot(N, V));
 
-    FresnelData f = tf_thickness > 0.0 ? mx_init_fresnel_dielectric_airy(ior, tf_thickness, tf_ior) : mx_init_fresnel_dielectric(ior);
+    FresnelData f = tf.thickness > 0.0 ? mx_init_fresnel_dielectric_airy(ior, tf.thickness, tf.ior) : mx_init_fresnel_dielectric(ior);
     vec3 F = mx_compute_fresnel(NdotV, f);
 
     float avgRoughness = mx_average_roughness(roughness);
@@ -58,7 +58,7 @@ void mx_dielectric_brdf_transmission(vec3 V, float weight, vec3 tint, float ior,
     result = base * (1.0 - dirAlbedo * weight); // Base layer transmission attenuated by top layer
 }
 
-void mx_dielectric_brdf_indirect(vec3 V, float weight, vec3 tint, float ior, vec2 roughness, vec3 N, vec3 X, int distribution, BSDF base, float tf_thickness, float tf_ior, out BSDF result)
+void mx_dielectric_brdf_indirect(vec3 V, float weight, vec3 tint, float ior, vec2 roughness, vec3 N, vec3 X, int distribution, BSDF base, thinfilm tf, out BSDF result)
 {
     if (weight < M_FLOAT_EPS)
     {
@@ -72,7 +72,7 @@ void mx_dielectric_brdf_indirect(vec3 V, float weight, vec3 tint, float ior, vec
         weight = 0.0;
     }
 
-    FresnelData f = tf_thickness > 0.0 ? mx_init_fresnel_dielectric_airy(ior, tf_thickness, tf_ior) : mx_init_fresnel_dielectric(ior);
+    FresnelData f = tf.thickness > 0.0 ? mx_init_fresnel_dielectric_airy(ior, tf.thickness, tf.ior) : mx_init_fresnel_dielectric(ior);
     vec3 F = mx_compute_fresnel(NdotV, f);
 
     float avgRoughness = mx_average_roughness(roughness);

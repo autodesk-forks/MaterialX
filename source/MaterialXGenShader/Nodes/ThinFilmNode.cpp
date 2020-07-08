@@ -13,6 +13,11 @@
 namespace MaterialX
 {
 
+namespace Type
+{
+    const TypeDesc* THINFILM = TypeDesc::registerType("thinfilm", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_NONE, 1, false);
+}
+
 const string ThinFilmNode::THICKNESS = "thickness";
 const string ThinFilmNode::IOR       = "ior";
 
@@ -21,8 +26,29 @@ ShaderNodeImplPtr ThinFilmNode::create()
     return std::make_shared<ThinFilmNode>();
 }
 
-const string ThinFilmSupport::THINFILM_THICKNESS = "thinfilm_thickness";
-const string ThinFilmSupport::THINFILM_IOR       = "thinfilm_ior";
+void ThinFilmNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
+{
+    BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
+        const ShaderGenerator& shadergen = context.getShaderGenerator();
+        const Syntax& syntax = shadergen.getSyntax();
+
+        const ShaderInput* thickness = node.getInput(THICKNESS);
+        const ShaderInput* ior = node.getInput(IOR);
+        const ShaderOutput* output = node.getOutput();
+        if (!(thickness && ior && output))
+        {
+            throw ExceptionShaderGenError("Node '" + node.getName() + "' is not a valid thin_film_brdf node");
+        }
+
+        shadergen.emitLine(syntax.getTypeName(Type::THINFILM) + " " + output->getVariable(), stage);
+        shadergen.emitLine(output->getVariable() + "." + THICKNESS + " = " + shadergen.getUpstreamResult(thickness, context), stage);
+        shadergen.emitLine(output->getVariable() + "." + IOR + " = " + shadergen.getUpstreamResult(ior, context), stage);
+
+    END_SHADER_STAGE(stage, Stage::PIXEL)
+}
+
+
+const string ThinFilmSupport::THINFILM_INPUT = "_tf";
 
 ShaderNodeImplPtr ThinFilmSupport::create()
 {
@@ -31,11 +57,8 @@ ShaderNodeImplPtr ThinFilmSupport::create()
 
 void ThinFilmSupport::addInputs(ShaderNode& node, GenContext&) const
 {
-    // Add additional thickness and ior inputs for thin-film support.
-    ShaderInput* thickness = node.addInput(THINFILM_THICKNESS, Type::FLOAT);
-    thickness->setValue(Value::createValue<float>(0.0f));
-    ShaderInput* ior = node.addInput(THINFILM_IOR, Type::FLOAT);
-    ior->setValue(Value::createValue<float>(1.5f));
+    // Add and input to hold thinfilm data.
+    node.addInput(THINFILM_INPUT, Type::THINFILM);
 }
 
 } // namespace MaterialX
