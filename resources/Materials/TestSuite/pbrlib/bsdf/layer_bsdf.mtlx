@@ -10,8 +10,11 @@
     <dielectric_brdf name="dielectric_brdf_1" type="BSDF">
       <input name="base" type="BSDF" nodename="sheen_brdf_1" />
     </dielectric_brdf>
+    <dielectric_brdf name="dielectric_brdf_2" type="BSDF">
+      <input name="base" type="BSDF" nodename="dielectric_brdf_1" />
+    </dielectric_brdf>
     <surface name="surface1" type="surfaceshader">
-      <input name="bsdf" type="BSDF" nodename="dielectric_brdf_1" />
+      <input name="bsdf" type="BSDF" nodename="dielectric_brdf_2" />
     </surface>
     <output name="out" type="surfaceshader" nodename="surface1" />
   </nodegraph>
@@ -21,6 +24,7 @@
     <diffuse_brdf name="diffuse_brdf_1" type="BSDF" />
     <sheen_brdf name="sheen_brdf_1" type="BSDF" />
     <dielectric_brdf name="dielectric_brdf_1" type="BSDF" />
+    <dielectric_brdf name="dielectric_brdf_2" type="BSDF" />
     <layer name="layer_bsdf_1" type="BSDF">
       <input name="top" type="BSDF" nodename="sheen_brdf_1" />
       <input name="base" type="BSDF" nodename="diffuse_brdf_1" />
@@ -29,8 +33,12 @@
       <input name="top" type="BSDF" nodename="dielectric_brdf_1" />
       <input name="base" type="BSDF" nodename="layer_bsdf_1" />
     </layer>
+    <layer name="layer_bsdf_3" type="BSDF">
+      <input name="top" type="BSDF" nodename="dielectric_brdf_2" />
+      <input name="base" type="BSDF" nodename="layer_bsdf_2" />
+    </layer>
     <surface name="surface1" type="surfaceshader">
-      <input name="bsdf" type="BSDF" nodename="layer_bsdf_2" />
+      <input name="bsdf" type="BSDF" nodename="layer_bsdf_3" />
     </surface>
     <output name="out" type="surfaceshader" nodename="surface1" />
   </nodegraph>
