@@ -28,7 +28,7 @@ class ThinFilmNode : public ShaderNodeImpl
 /// Base class for microfacet BSDF nodes that support layering with thin-film.
 /// Thin-film thickness and ior are added as extra inputs to BSDF nodes that
 /// derive from this class.
-class ThinFilmSupport : public SourceCodeNode
+class ThinFilmSupport : public HwSourceCodeNode
 {
 public:
     static ShaderNodeImplPtr create();
