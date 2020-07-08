@@ -404,7 +404,8 @@ ShaderNodeImplPtr ShaderGenerator::createCompoundImplementation(const NodeGraph&
 
 void ShaderGenerator::finalizeShaderGraph(ShaderGraph& graph)
 {
-    // Find all thin-film nodes and reconnect them to the thinfilm input on BSDF nodes layered underneath.
+    // Find all thin-film nodes and reconnect them to the 'thinfilm' input
+    // on BSDF nodes layered underneath.
     for (ShaderNode* node : graph.getNodes())
     {
         if (node->hasClassification(ShaderNode::Classification::THINFILM))
@@ -428,7 +429,7 @@ void ShaderGenerator::finalizeShaderGraph(ShaderGraph& graph)
                 layerNodes.push_back(layerNode);
             }
 
-            // Remove connections downstream.
+            // Remove all connections to the thin-film node downstream.
             output->breakConnections();
 
             for (ShaderNode* layerNode : layerNodes)
@@ -438,24 +439,36 @@ void ShaderGenerator::finalizeShaderGraph(ShaderGraph& graph)
                 {
                     ShaderNode* bsdf = base->getConnection()->getNode();
 
-                    // Connect the node upstream instead of downstream.
-                    ShaderInput* bsdfInput = bsdf->getInput(ThinFilmSupport::THINFILM_INPUT);
-                    if (bsdfInput)
+                    // Save the output to use for bypassing the layer node below.
+                    ShaderOutput* bypassOutput = bsdf->getOutput();
+
+                    // Handle the case where the bsdf below is an additional layer operator.
+                    if (bsdf->hasClassification(ShaderNode::Classification::LAYER))
                     {
-                        output->makeConnection(bsdfInput);
+                        // In this case get the top bsdf since this is where microfacet bsdfs
+                        // are placed. Only one such extra layer indirection is supported.
+                        ShaderInput* top = bsdf->getInput(LayerNode::TOP);
+                        bsdf = top && top->getConnection() ? top->getConnection()->getNode() : nullptr;
                     }
 
-                    ShaderOutput* bsdfOutput = bsdf->getOutput();
+                    ShaderInput* bsdfInput = bsdf ? bsdf->getInput(ThinFilmSupport::THINFILM_INPUT) : nullptr;
+                    if (!bsdfInput)
+                    {
+                        throw ExceptionShaderGenError("No BSDF node supporting thin-film was found for '" + node->getName() + "'");
+                    }
+
+                    // Connect the thinfilm node to the bsdf input.
+                    bsdfInput->makeConnection(output);
 
                     // Bypass the layer node since thin-film is now setup on the bsdf.
-                    // Iterate a copy of the connection set since the
-                    // original set will change when breaking connections.
+                    // Iterate a copy of the connection set since the original set will
+                    // change when breaking connections.
                     base->breakConnection();
                     ShaderInputSet downstreamConnections = layerNode->getOutput()->getConnections();
                     for (ShaderInput* downstream : downstreamConnections)
                     {
                         downstream->breakConnection();
-                        downstream->makeConnection(bsdfOutput);
+                        downstream->makeConnection(bypassOutput);
                     }
                 }
             }
