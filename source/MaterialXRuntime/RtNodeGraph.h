@@ -61,12 +61,6 @@ public:
     /// Return an iterator over the nodes in the graph.
     RtPrimIterator getNodes() const;
 
-    /// Return any associated version string.
-    const RtToken& getVersion() const;
-
-    /// Set the associated version string.
-    void setVersion(const RtToken& value);
-
     /// Return any associated definition name.
     const RtToken& getDefinition() const;
 

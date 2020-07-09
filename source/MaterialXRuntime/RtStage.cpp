@@ -144,19 +144,20 @@ void RtStage::restorePrim(const RtPath& parentPath, const RtPrim& prim)
 RtPrim RtStage::getImplementation(const RtNodeDef& definition) const
 {
     const RtToken& nodeDefName = definition.getName();
-    const RtToken& nodeDefVersion = definition.getVersion();
 
     RtSchemaPredicate<RtNodeGraph> filter;
     for (RtPrim child : _cast(_ptr)->getRootPrim()->getChildren(filter))
     {
         RtNodeGraph nodeGraph(child);
-        if (nodeGraph.getDefinition() == nodeDefName &&
-            nodeGraph.getVersion() == nodeDefVersion)
+        if (nodeGraph.getDefinition() == nodeDefName)
         {
             PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
             return RtPrim(graphPrim->hnd());
         }
     }
+
+    // TODO: Return an empty prim for now. When support is added in to be able to
+    // access non-nodegraph implementations, this method should throw an exception if not found.
     return RtPrim();
 }
 
@@ -164,6 +165,7 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
                               const RtToken& nodeDefName, 
                               const RtToken& nodeName, 
                               const RtToken& version,
+                              bool isDefaultVersion,
                               const RtToken& nodeGroup)
 {
     // Must have a nodedef name and a node name
@@ -188,6 +190,11 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
     if (version != EMPTY_TOKEN)
     {
         nodedef.setVersion(version);
+        // If a version is specified, set if it is the default version
+        if (isDefaultVersion)
+        {
+            nodedef.setIsDefaultVersion(true);
+        }
     }
     if (nodeGroup != EMPTY_TOKEN)
     {
@@ -221,12 +228,8 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
         attr.setValue(output.getValue());
     }
 
-    // Set definition and version on nodegraph
+    // Set the definition on the nodegraph
     nodeGraph.setDefinition(nodeDefName);
-    if (version != EMPTY_TOKEN)
-    {
-        nodeGraph.setVersion(version);
-    }
 
     // Add definiion
     nodedef.registerMasterPrim();

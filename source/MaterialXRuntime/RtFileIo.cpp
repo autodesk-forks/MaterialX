@@ -1251,9 +1251,10 @@ namespace
         RtSchemaPredicate<RtNodeGraph> filter;
         for (RtPrim child : stage->getRootPrim()->getChildren(filter))
         {
+            // The association between a nodedef and a nodegraph is by name. No
+            // version check is required as nodegraphs are not versioned.
             RtNodeGraph nodeGraph(child);
-            if (nodeGraph.getDefinition() == nodeDefName && 
-                nodeGraph.getVersion() == nodeDefVersion)
+            if (nodeGraph.getDefinition() == nodeDefName)
             {
                 PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
                 writeNodeGraph(graphPrim, document, writeOptions);

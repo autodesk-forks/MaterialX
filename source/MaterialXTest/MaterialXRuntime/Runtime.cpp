@@ -789,8 +789,9 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     const mx::RtToken ADDGRAPH_VERSION("3.4");
     const mx::RtToken ADDGRAPH_VERSION2("3.5");
     const mx::RtToken ADDGRAPH_TARGET("mytarget");
+    bool isDefaultVersion = false;
     stage->renamePrim(graph1.getPath(), NG_ADDGRAPH);
-    mx::RtPrim addgraphPrim = stage->createNodeDef(graph1, ND_ADDGRAPH, ADDGRAPH, ADDGRAPH_VERSION, MATH_GROUP);
+    mx::RtPrim addgraphPrim = stage->createNodeDef(graph1, ND_ADDGRAPH, ADDGRAPH, ADDGRAPH_VERSION, isDefaultVersion, MATH_GROUP);
     mx::RtNodeDef addgraphDef(addgraphPrim);    
 
     REQUIRE(addgraphDef.isMasterPrim());
@@ -802,6 +803,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(addgraphDef.getNode() == ADDGRAPH);
     REQUIRE(addgraphDef.getNodeGroup() == MATH_GROUP);
     REQUIRE(addgraphDef.getVersion() == ADDGRAPH_VERSION);
+    REQUIRE_FALSE(addgraphDef.getIsDefaultVersion());
     addgraphDef.setTarget(ADDGRAPH_TARGET);
     REQUIRE(addgraphDef.getTarget() == ADDGRAPH_TARGET);
 

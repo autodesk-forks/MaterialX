@@ -566,12 +566,13 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
     {
         const std::string VERSION1 = "1.0";
         const std::string GROUP = "adjustment";
+        bool isDefaultVersion = false;
         const std::string NODENAME = graph->getName();
 
         // Duplicate the graph and then make the duplicate a nodedef nodegraph
         std::string newNodeDefName = doc->createValidChildName("ND_" + graph->getName());
         std::string newGraphName = doc->createValidChildName("NG_" + graph->getName());
-        mx::NodeDefPtr nodeDef = doc->addNodeDefFromGraph(graph, newNodeDefName, NODENAME, VERSION1, GROUP, newGraphName);
+        mx::NodeDefPtr nodeDef = doc->addNodeDefFromGraph(graph, newNodeDefName, NODENAME, VERSION1, isDefaultVersion, GROUP, newGraphName);
         REQUIRE(nodeDef != nullptr);
         REQUIRE(nodeDef->getNodeGroup() == "adjustment");
         REQUIRE(nodeDef->getVersionString() == VERSION1);
@@ -581,7 +582,7 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
         try
         {
             temp = nullptr;
-            temp = doc->addNodeDefFromGraph(graph, newNodeDefName, NODENAME, VERSION1, GROUP, newGraphName);
+            temp = doc->addNodeDefFromGraph(graph, newNodeDefName, NODENAME, VERSION1, isDefaultVersion, GROUP, newGraphName);
         }
         catch (mx::Exception&)
         {
@@ -666,7 +667,7 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
         // Add new version 
         const std::string VERSION2 = "2.0";
         newGraphName = mx::EMPTY_STRING;
-        nodeDef = doc->addNodeDefFromGraph(graph, newNodeDefName + "2", NODENAME, VERSION2, GROUP, newGraphName);
+        nodeDef = doc->addNodeDefFromGraph(graph, newNodeDefName + "2", NODENAME, VERSION2, isDefaultVersion, GROUP, newGraphName);
         nodeDef->setDefaultVersion(true);
         REQUIRE(nodeDef != nullptr);
 
