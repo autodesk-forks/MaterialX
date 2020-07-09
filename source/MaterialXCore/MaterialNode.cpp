@@ -8,8 +8,7 @@
 namespace MaterialX
 {
 
-
-std::unordered_set<NodePtr> getShaderNodes(const NodePtr& materialNode, const string& shaderType, const string& target)
+std::unordered_set<NodePtr> getShaderNodes(const NodePtr& materialNode, const string& nodeType, const string& target)
 {
     ElementPtr parent = materialNode->getParent();
     if (!parent)
@@ -47,7 +46,7 @@ std::unordered_set<NodePtr> getShaderNodes(const NodePtr& materialNode, const st
                             NodePtr upstreamNode = upstreamElem->asA<Node>();
                             if (upstreamNode && upstreamNode->getType() == MATERIAL_TYPE_STRING)
                             {
-                                std::unordered_set<NodePtr> newShaderNodes = getShaderNodes(upstreamNode, shaderType, target);
+                                std::unordered_set<NodePtr> newShaderNodes = getShaderNodes(upstreamNode, nodeType, target);
                                 if (!newShaderNodes.empty())
                                 {
                                     shaderNodes.insert(newShaderNodes.begin(), newShaderNodes.end());
@@ -62,27 +61,34 @@ std::unordered_set<NodePtr> getShaderNodes(const NodePtr& materialNode, const st
 
     for (const InputPtr& input : inputs) 
     {
+        // Scan for a node directly connected to the input.
+        //
         const string& inputShader = input->getNodeName();
         if (!inputShader.empty())
         {
             NodePtr shaderNode = parent->getChildOfType<Node>(inputShader);
             if (shaderNode)
             {
+                if (!nodeType.empty() && shaderNode->getType() != nodeType)
+                {
+                    continue;
+                }
+                
                 if (!target.empty())
                 {
-                    // Look the shader definition, optionally filtered by target
                     NodeDefPtr nodeDef = shaderNode->getNodeDef(target);
                     if (!nodeDef)
                     {
                         continue;
                     }
                 }
-                if (shaderType.empty() || shaderNode->getType() == shaderType)
-                {
-                    shaderNodes.insert(shaderNode);
-                }
+                shaderNodes.insert(shaderNode);
             }
         }
+
+        // Check upstream nodegraph connected to the input.
+        // If no explicit output name given then scan all outputs on the nodegraph.
+        //
         else
         {
             const string& inputGraph = input->getNodeGraphName();
@@ -92,28 +98,29 @@ std::unordered_set<NodePtr> getShaderNodes(const NodePtr& materialNode, const st
                 if (nodeGraph)
                 {
                     const string& nodeGraphOutput = input->getOutputString();
-                    OutputPtr out = nullptr;
+                    std::vector<OutputPtr> outputs;
                     if (!nodeGraphOutput.empty())
                     {
-                        out = nodeGraph->getOutput(nodeGraphOutput);
+                        outputs.push_back(nodeGraph->getOutput(nodeGraphOutput));
                     }
                     else
                     {
-                        std::vector<OutputPtr> outputs = nodeGraph->getOutputs();
-                        if (!outputs.empty())
-                        {
-                            out = outputs[0];
-                        }
+                        outputs = nodeGraph->getOutputs();
                     }
-                    if (out)
+                    for (OutputPtr output : outputs)
                     {
-                        if (shaderType.empty() || out->getType() == shaderType)
+                        NodePtr upstreamNode = output->getConnectedNode();
+                        if (upstreamNode)
                         {
-                            NodePtr upstreamNode = out->getConnectedNode();
-                            if (upstreamNode)
+                            if (!target.empty())
                             {
-                                shaderNodes.insert(upstreamNode);
+                                NodeDefPtr nodeDef = upstreamNode->getNodeDef(target);
+                                if (!nodeDef)
+                                {
+                                    continue;
+                                }
                             }
+                            shaderNodes.insert(upstreamNode);
                         }
                     }
                 }

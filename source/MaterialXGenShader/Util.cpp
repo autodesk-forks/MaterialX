@@ -14,6 +14,8 @@
 #include <MaterialXFormat/XmlIo.h>
 #include <MaterialXFormat/PugiXML/pugixml.hpp>
 
+#include <list>
+
 namespace MaterialX
 {
 
