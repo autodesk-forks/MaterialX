@@ -762,11 +762,11 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
             // Handle material node checking. For now only check first surface shader if any
             if (outputNode && outputNode->getType() == mx::MATERIAL_TYPE_STRING)
             {
-                std::list<mx::NodePtr> shaderNodes = getShaderNodes(outputNode, mx::SURFACE_SHADER_TYPE_STRING);
+                std::unordered_set<mx::NodePtr> shaderNodes = getShaderNodes(outputNode, mx::SURFACE_SHADER_TYPE_STRING);
                 if (!shaderNodes.empty())
                 {
-                    nodeDef = shaderNodes.front()->getNodeDef();
-                    targetElement = shaderNodes.front();
+                    nodeDef = (*shaderNodes.begin())->getNodeDef();
+                    targetElement = *shaderNodes.begin();
                 }
             }
 

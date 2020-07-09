@@ -644,7 +644,7 @@ void findRenderableMaterialNodes(ConstDocumentPtr doc,
     {
         // Scan for any upstream shader outputs and put them on the "processed" list
         // if we don't want to consider them for rendering.
-        std::list<NodePtr> shaderNodes = getShaderNodes(material);
+        std::unordered_set<NodePtr> shaderNodes = getShaderNodes(material);
         if (!shaderNodes.empty())
         {
             // Push the material node only once if any shader nodes are found

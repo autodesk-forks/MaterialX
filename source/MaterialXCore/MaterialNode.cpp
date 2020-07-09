@@ -9,15 +9,15 @@ namespace MaterialX
 {
 
 
-std::list<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shaderType, const string& target)
+std::unordered_set<NodePtr> getShaderNodes(const NodePtr& materialNode, const string& shaderType, const string& target)
 {
-    ElementPtr parent = materialNode ? materialNode->getParent() : nullptr;
+    ElementPtr parent = materialNode->getParent();
     if (!parent)
     {
         throw Exception("Could not find a parent for material node '" + (materialNode ? materialNode->getNamePath() : EMPTY_STRING) + "'");
     }
 
-    std::list<NodePtr> shaderNodes;
+    std::unordered_set<NodePtr> shaderNodes;
 
     std::vector<InputPtr> inputs = materialNode->getActiveInputs();
     if (inputs.empty())
@@ -47,10 +47,10 @@ std::list<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shad
                             NodePtr upstreamNode = upstreamElem->asA<Node>();
                             if (upstreamNode && upstreamNode->getType() == MATERIAL_TYPE_STRING)
                             {
-                                std::list<NodePtr> newShaderNodes = getShaderNodes(upstreamNode, shaderType, target);
+                                std::unordered_set<NodePtr> newShaderNodes = getShaderNodes(upstreamNode, shaderType, target);
                                 if (!newShaderNodes.empty())
                                 {
-                                    shaderNodes.insert(shaderNodes.end(), newShaderNodes.begin(), newShaderNodes.end());
+                                    shaderNodes.insert(newShaderNodes.begin(), newShaderNodes.end());
                                 }
                             }
                         }
@@ -60,7 +60,8 @@ std::list<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shad
         }
     }
 
-    for (const InputPtr& input : inputs) {
+    for (const InputPtr& input : inputs) 
+    {
         const string& inputShader = input->getNodeName();
         if (!inputShader.empty())
         {
@@ -78,7 +79,7 @@ std::list<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shad
                 }
                 if (shaderType.empty() || shaderNode->getType() == shaderType)
                 {
-                    shaderNodes.push_back(shaderNode);
+                    shaderNodes.insert(shaderNode);
                 }
             }
         }
@@ -111,7 +112,7 @@ std::list<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shad
                             NodePtr upstreamNode = out->getConnectedNode();
                             if (upstreamNode)
                             {
-                                shaderNodes.push_back(upstreamNode);
+                                shaderNodes.insert(upstreamNode);
                             }
                         }
                     }
@@ -122,7 +123,7 @@ std::list<NodePtr> getShaderNodes(const NodePtr materialNode, const string& shad
     return shaderNodes;
 }
 
-vector<MaterialAssignPtr> getGeometryBindings(NodePtr materialNode, const string& geom)
+vector<MaterialAssignPtr> getGeometryBindings(const NodePtr& materialNode, const string& geom)
 {
     vector<MaterialAssignPtr> matAssigns;
     for (LookPtr look : materialNode->getDocument()->getLooks())
