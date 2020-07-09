@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <materialx version="1.37">
-   <nodedef name="ND_my_add" node="my_add" nodegroup="math" version="1.0">
+   <nodedef name="ND_my_add" node="my_add" nodegroup="math" version="1.0" isdefaultversion="true">
       <input name="v1_in1" type="color3" value="1, 0, 0" uiname="Input 1. Version 1"/>
       <input name="v1_in2" type="color3" value="0, 1, 0" uiname="Input 2. Version 1"/>
       <output name="out" type="color3" value="0, 0, 0" />
@@ -18,7 +18,8 @@
       <input name="v2_in2" type="color3" value="0, 1, 1" uiname="Input 2. Version 2"/>
       <output name="out" type="color3" value="0, 0, 0" />
    </nodedef>
-   <nodegraph name="NG_version2" nodedef="ND_my_add2">
+   <!-- This should not be required. Resolve logic requires a fix -->
+   <nodegraph name="NG_version2" nodedef="ND_my_add2" version="2.0">
       <add name="add" type="color3">
          <input name="in1" type="color3" interfacename="v2_in1" />
          <input name="in2" type="color3" interfacename="v2_in2" />

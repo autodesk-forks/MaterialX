@@ -1247,7 +1247,6 @@ namespace
         // for implementation associations.
         RtNodeDef nodedef(prim->hnd());
         RtToken nodeDefName = prim->getName();
-        RtToken nodeDefVersion = nodedef.getVersion();
         RtSchemaPredicate<RtNodeGraph> filter;
         for (RtPrim child : stage->getRootPrim()->getChildren(filter))
         {

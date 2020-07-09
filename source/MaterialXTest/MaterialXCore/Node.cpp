@@ -560,7 +560,7 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
     mx::readFromXmlFile(doc, "definition_from_nodegraph.mtlx", searchPath);
     REQUIRE(doc->validate());
 
-    mx::NodeGraphPtr graph = doc->getNodeGraph("colorcorrect");
+    mx::NodeGraphPtr graph = doc->getNodeGraph("test_colorcorrect");
     REQUIRE(graph);
     if (graph)
     {
@@ -576,6 +576,7 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
         REQUIRE(nodeDef != nullptr);
         REQUIRE(nodeDef->getNodeGroup() == "adjustment");
         REQUIRE(nodeDef->getVersionString() == VERSION1);
+        REQUIRE_FALSE(nodeDef->getDefaultVersion());
 
         // Try and fail to create the same definition
         mx::NodeDefPtr temp;
@@ -589,11 +590,10 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
             REQUIRE(temp == nullptr);
         }
 
-        // Check that the new nodegraph has the correct definition + version
+        // Check that the new nodegraph has the correct definition
         mx::NodeGraphPtr newGraph = doc->getNodeGraph(newGraphName);
         REQUIRE(newGraph != nullptr);
         REQUIRE(newGraph->getNodeDefString() == newNodeDefName);
-        REQUIRE(newGraph->getVersionString() == VERSION1);
 
         // Check declaration was set up properly
         mx::ConstNodeDefPtr decl = newGraph->getDeclaration();
