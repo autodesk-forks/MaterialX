@@ -62,8 +62,8 @@ extern "C"
             .function("removeTypeDef", &mx::Document::removeTypeDef)
             .function("addNodeDef", &mx::Document::addNodeDef)
             .function("addNodeDefFromGraph", ems::optional_override([](mx::Document &self, 
-                                const mx::NodeGraphPtr nodeGraph, const std::string& nodeDefName, const std::string& node,
-                                const std::string& version, bool isDefaultVersion, const std::string& nodeGroup, std::string& newGraphName)
+                                mx::NodeGraphPtr nodeGraph, std::string& nodeDefName, std::string& node,
+                                std::string& version, bool isDefaultVersion, std::string& nodeGroup, std::string& newGraphName)
                       {
                           const std::string &nodeDefName1 = nodeDefName;
                           const std::string &node1 = node;
