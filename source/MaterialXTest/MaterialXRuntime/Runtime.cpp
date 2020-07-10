@@ -787,7 +787,6 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     const mx::RtToken ADDGRAPH("addgraph");
     const mx::RtToken MATH_GROUP("math");
     const mx::RtToken ADDGRAPH_VERSION("3.4");
-    const mx::RtToken ADDGRAPH_VERSION2("3.5");
     const mx::RtToken ADDGRAPH_TARGET("mytarget");
     bool isDefaultVersion = false;
     stage->renamePrim(graph1.getPath(), NG_ADDGRAPH);

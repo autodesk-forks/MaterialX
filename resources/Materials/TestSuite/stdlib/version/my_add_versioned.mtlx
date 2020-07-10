@@ -20,7 +20,6 @@
       <input name="v2_in2" type="color3" value="0, 1, 1" uiname="Input 2. Version 2"/>
       <output name="out" type="color3" value="0, 0, 0" />
    </nodedef>
-   <!-- This should not be required. Resolve logic requires a fix -->
    <nodegraph name="NG_version2" nodedef="ND_my_add2">
       <add name="add" type="color3">
          <input name="in1" type="color3" interfacename="v2_in1" />
