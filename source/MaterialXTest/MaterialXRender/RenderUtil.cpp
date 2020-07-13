@@ -7,6 +7,7 @@
 #include <MaterialXTest/MaterialXRender/RenderUtil.h>
 
 #include <MaterialXCore/Unit.h>
+#include <MaterialXCore/MaterialNode.h>
 
 #include <MaterialXFormat/Util.h>
 
@@ -72,7 +73,7 @@ void ShaderRenderTester::loadDependentLibraries(GenShaderUtil::TestSuiteOptions 
 {
     dependLib = mx::createDocument();
 
-    const mx::FilePathVec libraries = { "stdlib", "pbrlib", "lights" };
+    const mx::FilePathVec libraries = { "adsk", "stdlib", "pbrlib", "lights" };
     mx::loadLibraries(libraries, searchPath, dependLib, nullptr);
     for (size_t i = 0; i < options.externalLibraryPaths.size(); i++)
     {
@@ -332,7 +333,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                 // Get connected shader nodes if a material node.
                 if (outputNode && outputNode->getType() == mx::MATERIAL_TYPE_STRING)
                 {
-                    std::vector<mx::NodePtr> shaderNodes = getShaderNodes(outputNode);
+                    std::unordered_set<mx::NodePtr> shaderNodes = getShaderNodes(outputNode);
                     for (auto node : shaderNodes)
                     {
                         mx::NodeDefPtr nodeDef = node->getNodeDef();

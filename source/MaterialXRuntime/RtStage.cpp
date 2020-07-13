@@ -141,11 +141,32 @@ void RtStage::restorePrim(const RtPath& parentPath, const RtPrim& prim)
     _cast(_ptr)->restorePrim(*static_cast<PvtPath*>(parentPath._ptr), prim);
 }
 
+RtPrim RtStage::getImplementation(const RtNodeDef& definition) const
+{
+    const RtToken& nodeDefName = definition.getName();
+
+    RtSchemaPredicate<RtNodeGraph> filter;
+    for (RtPrim child : _cast(_ptr)->getRootPrim()->getChildren(filter))
+    {
+        RtNodeGraph nodeGraph(child);
+        if (nodeGraph.getDefinition() == nodeDefName)
+        {
+            PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
+            return RtPrim(graphPrim->hnd());
+        }
+    }
+
+    // TODO: Return an empty prim for now. When support is added in to be able to
+    // access non-nodegraph implementations, this method should throw an exception if not found.
+    return RtPrim();
+}
 
 RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph, 
                               const RtToken& nodeDefName, 
                               const RtToken& nodeName, 
-                              const RtToken& nodeGroup) 
+                              const RtToken& version,
+                              bool isDefaultVersion,
+                              const RtToken& nodeGroup)
 {
     // Must have a nodedef name and a node name
     if (nodeDefName == EMPTY_TOKEN ||
@@ -164,8 +185,17 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
         throw ExceptionRuntimeError("Definition to create already exists '" + nodeDefName.str() + "'");
     }
 
-    // Set node and optional nodegoroup
+    // Set node, version and optional node group
     nodedef.setNode(nodeName);
+    if (version != EMPTY_TOKEN)
+    {
+        nodedef.setVersion(version);
+        // If a version is specified, set if it is the default version
+        if (isDefaultVersion)
+        {
+            nodedef.setIsDefaultVersion(true);
+        }
+    }
     if (nodeGroup != EMPTY_TOKEN)
     {
         nodedef.setNodeGroup(nodeGroup);
@@ -175,6 +205,7 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
     for (auto input : nodeGraph.getInputs())
     {
         RtInput attr = nodedef.createInput(input.getName(), input.getType());
+        attr.setUniform(input.asA<RtInput>().isUniform());
 
         const PvtObject* obj = PvtObject::hnd(input)->asA<PvtObject>();
         const vector<RtToken>& metadataNames = obj->getMetadataOrder();
@@ -187,17 +218,34 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
                 vNew->getValue().asToken() = metadataValue->getValue().asToken();
             }
         }
-        attr.setValue(input.getValue());
+        if (!input.getValueString().empty())
+        {
+            attr.setValue(input.getValue());
+        }
     }
 
     // Add an output per nodegraph output
     for (auto output : nodeGraph.getOutputs())
     {
         RtAttribute attr = nodedef.createOutput(output.getName(), output.getType());
-        attr.setValue(output.getValue());
+        const PvtObject* obj = PvtObject::hnd(output)->asA<PvtObject>();
+        const vector<RtToken>& metadataNames = obj->getMetadataOrder();
+        for (auto metadataName : metadataNames)
+        {
+            const RtTypedValue* metadataValue = obj->getMetadata(metadataName);
+            if (metadataValue)
+            {
+                RtTypedValue* vNew = attr.addMetadata(metadataName, metadataValue->getType());
+                vNew->getValue().asToken() = metadataValue->getValue().asToken();
+            }
+        }
+        if (!output.getValueString().empty())
+        {
+            attr.setValue(output.getValue());
+        }
     }
 
-    // Set up definition on nodegraph
+    // Set the definition on the nodegraph
     nodeGraph.setDefinition(nodeDefName);
 
     // Add definiion
