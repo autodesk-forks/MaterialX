@@ -43,7 +43,7 @@ const RtToken& RtNodeDef::getNode() const
     return v ? v->getValue().asToken() : EMPTY_TOKEN;
 }
 
-const RtToken& RtNodeDef::getNamespacedNode() const
+RtToken RtNodeDef::getNamespacedNode() const
 {
     const RtToken& nodeToken = getNode();
     string nodeString = nodeToken.c_str();

@@ -28,7 +28,7 @@ public:
     const RtToken& getNode() const;
 
     /// Return the namespaced node for this nodedef.
-    const RtToken& getNamespacedNode() const;
+    RtToken getNamespacedNode() const;
 
     /// Set the node for this nodedef.
     void setNode(const RtToken& node);
