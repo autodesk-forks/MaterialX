@@ -659,6 +659,11 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
     copyOptions.skipConflictingElements = true;
     for (const auto& doc : _documents)
     {
+        // For each new file clear the implementation cache.
+        // Since the new file might contain implementations with names
+        // colliding with implementations in previous test cases.
+        context.clearNodeImplementations();
+
         // Set user data
         context.clearUserData();
         for (auto it : _userData)

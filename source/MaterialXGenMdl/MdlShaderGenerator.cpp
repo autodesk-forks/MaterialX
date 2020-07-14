@@ -208,6 +208,11 @@ MdlShaderGenerator::MdlShaderGenerator() :
 
 ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
+    // For MDL we cannot cache node implementations between generation calls,
+    // because this generator needs to do edits to subgraphs implementations
+    // depeding on the context in which a node is used.
+    context.clearNodeImplementations();
+
     ShaderPtr shader = createShader(name, element, context);
 
     ShaderGraph& graph = shader->getGraph();
