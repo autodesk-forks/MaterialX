@@ -112,7 +112,7 @@ bool RtNodeDef::isVersionCompatible(const RtToken& version) const
 {
     // Test if either the version matches or if no version passed in if this is the default version.
     if (version == getVersion() ||
-        version.str().empty() && getIsDefaultVersion())
+        (version.str().empty() && getIsDefaultVersion()))
     {
         return true;
     }
