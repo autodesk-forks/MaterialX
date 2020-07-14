@@ -144,7 +144,6 @@ void RtStage::restorePrim(const RtPath& parentPath, const RtPrim& prim)
 RtPrim RtStage::getImplementation(const RtNodeDef& definition) const
 {
     const RtToken& nodeDefName = definition.getName();
-    const RtToken& nodeDefVersion = definition.getVersion();
 
     RtSchemaPredicate<RtNodeGraph> filter;
     for (RtPrim child : _cast(_ptr)->getRootPrim()->getChildren(filter))
@@ -153,7 +152,7 @@ RtPrim RtStage::getImplementation(const RtNodeDef& definition) const
         // Check if there is a definition name match and
         // if the versions are compatible.
         if (nodeGraph.getDefinition() == nodeDefName &&
-            definition.isVersionCompatible(nodeGraph.getVersion())
+            definition.isVersionCompatible(nodeGraph.getVersion()))
         {
             PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
             return RtPrim(graphPrim->hnd());
