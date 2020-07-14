@@ -662,6 +662,11 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
         // For each new file clear the implementation cache.
         // Since the new file might contain implementations with names
         // colliding with implementations in previous test cases.
+        // Save the used implementation names first if we are set to track this.
+        if (options.checkImplCount)
+        {
+            context.getNodeImplementationNames(_usedImplementations);
+        }
         context.clearNodeImplementations();
 
         // Set user data
