@@ -210,7 +210,7 @@ ShaderPtr MdlShaderGenerator::generate(const string& name, ElementPtr element, G
 {
     // For MDL we cannot cache node implementations between generation calls,
     // because this generator needs to do edits to subgraphs implementations
-    // depeding on the context in which a node is used.
+    // depending on the context in which a node is used.
     context.clearNodeImplementations();
 
     ShaderPtr shader = createShader(name, element, context);
@@ -414,7 +414,7 @@ namespace
                                 {
                                     // If we get here we have to assume this is a varying connection.
                                     // Save the graph as a varying graph so we later can break its 
-                                    // internal connections to transmssion IOR.
+                                    // internal connections to transmission IOR.
                                     graphsWithIorVarying.insert(subgraph);
                                     return false; // no need to continue with this subgraph
                                 }
