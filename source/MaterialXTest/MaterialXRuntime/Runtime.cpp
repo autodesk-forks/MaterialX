@@ -793,8 +793,9 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     mx::RtPrim addgraphPrim = stage->createNodeDef(graph1, ND_ADDGRAPH, ADDGRAPH, ADDGRAPH_VERSION, isDefaultVersion, MATH_GROUP);
     mx::RtNodeDef addgraphDef(addgraphPrim);    
 
-    REQUIRE(addgraphDef.isMasterPrim());
     REQUIRE(graph1.getDefinition() == ND_ADDGRAPH);
+    REQUIRE(graph1.getVersion() == ADDGRAPH_VERSION);
+    REQUIRE(addgraphDef.isMasterPrim());
     REQUIRE(addgraphDef.numInputs() == 2);
     REQUIRE(addgraphDef.numOutputs() == 1);
     REQUIRE(addgraphDef.getOutput().getName() == OUT);

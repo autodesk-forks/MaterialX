@@ -108,6 +108,18 @@ void RtNodeDef::setIsDefaultVersion(bool isDefault)
     v->getValue().asBool() = isDefault;
 }
 
+bool RtNodeDef::isVersionCompatible(const RtToken& version) const
+{
+    // Test if either the version matches or if no version passed in if this is the default version.
+    if (version == getVersion() ||
+        version.str().empty() && getIsDefaultVersion())
+    {
+        return true;
+    }
+    return false;
+}
+
+
 RtInput RtNodeDef::createInput(const RtToken& name, const RtToken& type, uint32_t flags)
 {
     return prim()->createInput(name, type, flags)->hnd();
