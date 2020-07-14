@@ -26,7 +26,7 @@
   <!-- Use this shader with a varying connections to IOR from the outside -->
   <texcoord name="texcoord1" type="vector2" />
   <foo_surface name="varying_ior_test1" type="surfaceshader">
-    <input name="ior" type="float" value="texcoord1" channels="x"/>
+    <input name="ior" type="float" nodename="texcoord1" channels="x"/>
   </foo_surface>
   <surfacematerial name="varying_ior_test1_mtrl" type="material">
     <input name="surfaceshader" type="surfaceshader" nodename="varying_ior_test1" />
