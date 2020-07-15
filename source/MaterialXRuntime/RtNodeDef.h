@@ -54,10 +54,10 @@ public:
     /// Set the version for this nodedef.
     void setVersion(const RtToken& version);
 
-    /// Is the version of this graph compatible with the version passed in
+    /// Is the version for this definition compatible with the version passed in
     bool isVersionCompatible(const RtToken& version) const;
 
-    /// Return the version for this nodedef.
+    /// Return if this definition is the default version.
     bool getIsDefaultVersion() const;
 
     /// Set the version for this nodedef.
