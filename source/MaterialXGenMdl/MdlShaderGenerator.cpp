@@ -361,7 +361,7 @@ string MdlShaderGenerator::getUpstreamResult(const ShaderInput* input, GenContex
 namespace
 {
     // [TODO]
-    // Here we assume the MSB of the port flags is unused.
+    // Here we assume this bit of the port flags is unused.
     // Change this to a more general and safe solution.
     class ShaderPortFlagMdl
     {
@@ -373,7 +373,7 @@ namespace
     // Track all subgraphs found that has such a dependency, as well as subgraphs that are 
     // found to have a varying connection to transmission IOR.
     // Returns true if uniform ior dependencies are found.
-    bool checkTransmissionIorDependencies(ShaderGraph* g, std::set<ShaderGraph*>& graphsWithIorUniform, std::set<ShaderGraph*>& graphsWithIorVarying)
+    bool checkTransmissionIorDependencies(ShaderGraph* g, std::set<ShaderGraph*>& graphsWithIorDependency, std::set<ShaderGraph*>& graphsWithIorVarying)
     {
         bool result = false;
         for (ShaderNode* node : g->getNodes())
@@ -382,7 +382,7 @@ namespace
             if (subgraph)
             {
                 // Check recursively if this subgraph has IOR dependencies.
-                if (checkTransmissionIorDependencies(subgraph, graphsWithIorUniform, graphsWithIorVarying))
+                if (checkTransmissionIorDependencies(subgraph, graphsWithIorDependency, graphsWithIorVarying))
                 {
                     for (ShaderOutput* socket : subgraph->getInputSockets())
                     {
@@ -395,7 +395,7 @@ namespace
                                 // Check if this is a graph interface connection.
                                 if (source->getNode() == g)
                                 {
-                                    graphsWithIorUniform.insert(g);
+                                    graphsWithIorDependency.insert(g);
                                     source->setFlag(ShaderPortFlagMdl::TRANSMISSION_IOR_DEPENDENCY, true);
                                     result = true;
                                 }
@@ -436,7 +436,7 @@ namespace
                         // Check if this is a graph interface connection.
                         if (source->getNode() == g)
                         {
-                            graphsWithIorUniform.insert(g);
+                            graphsWithIorDependency.insert(g);
                             source->setFlag(ShaderPortFlagMdl::TRANSMISSION_IOR_DEPENDENCY, true);
                             result = true;
                         }
@@ -541,23 +541,22 @@ ShaderPtr MdlShaderGenerator::createShader(const string& name, ElementPtr elemen
         graph->hasClassification(ShaderNode::Classification::CLOSURE))
     {
         // Find dependencies on transmission IOR.
-        std::set<ShaderGraph*> graphsWithIorUniform;
+        std::set<ShaderGraph*> graphsWithIorDependency;
         std::set<ShaderGraph*> graphsWithIorVarying;
-        checkTransmissionIorDependencies(graph.get(), graphsWithIorUniform, graphsWithIorVarying);
+        checkTransmissionIorDependencies(graph.get(), graphsWithIorDependency, graphsWithIorVarying);
 
         // For any graphs found that has a varying connection
-        // to transmission IOR we break that connection.
+        // to transmission IOR we need to break that connection.
         for (ShaderGraph* g : graphsWithIorVarying)
         {
             disconnectTransmissionIor(g);
-            graphsWithIorUniform.erase(g);
+            graphsWithIorDependency.erase(g);
         }
 
-        // For graphs that has a dependency with transmission IOR
-        // but with only uniform connections to it we can declare
-        // those inputs as being uniform and preserve the connection
-        // to transmssion IOR.
-        for (ShaderGraph* g : graphsWithIorUniform)
+        // For graphs that has a dependency with transmission IOR on the inside,
+        // we can declare the corresponding inputs as being uniform and preserve
+        // the internal connection to transmssion IOR.
+        for (ShaderGraph* g : graphsWithIorDependency)
         {
             for (ShaderOutput* socket : g->getInputSockets())
             {
