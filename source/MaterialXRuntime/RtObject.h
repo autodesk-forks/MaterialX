@@ -147,6 +147,9 @@ public:
     /// Returns the number of metadata entries.
     size_t numMetadata() const;
 
+    /// Return the metadata name from the object at a given index.
+    const RtToken& getMetadataName(size_t index) const;
+
     /// Return metadata from the object at a given index.
     RtTypedValue* getMetadata(size_t index);
 

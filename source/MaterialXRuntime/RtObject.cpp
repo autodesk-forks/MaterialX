@@ -80,6 +80,11 @@ size_t RtObject::numMetadata() const
     return hnd()->asA<PvtObject>()->getMetadataOrder().size();
 }
 
+const RtToken& RtObject::getMetadataName(size_t index) const
+{
+    return hnd()->asA<PvtObject>()->getMetadataOrder()[index];
+}
+
 RtTypedValue* RtObject::getMetadata(size_t index)
 {
     auto obj = hnd()->asA<PvtObject>();
