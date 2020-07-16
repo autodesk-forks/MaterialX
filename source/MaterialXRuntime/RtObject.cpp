@@ -82,19 +82,13 @@ size_t RtObject::numMetadata() const
 
 const RtToken& RtObject::getMetadataName(size_t index) const
 {
-    return hnd()->asA<PvtObject>()->getMetadataOrder()[index];
-}
+    const auto& mdn = hnd()->asA<PvtObject>()->getMetadataOrder();
+    if (index >= mdn.size())
+    {
+        throw ExceptionRuntimeError("getMetadataName: index is out of range");
+    }
 
-RtTypedValue* RtObject::getMetadata(size_t index)
-{
-    auto obj = hnd()->asA<PvtObject>();
-    return obj->getMetadata(obj->getMetadataOrder()[index]);
-}
-
-const RtTypedValue* RtObject::getMetadata(size_t index) const
-{
-    auto obj = hnd()->asA<PvtObject>();
-    return obj->getMetadata(obj->getMetadataOrder()[index]);
+    return mdn[index];
 }
 
 RtTypedValue* RtObject::getMetadata(const RtToken& name)

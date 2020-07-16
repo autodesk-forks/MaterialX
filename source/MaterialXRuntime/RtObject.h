@@ -150,12 +150,6 @@ public:
     /// Return the metadata name from the object at a given index.
     const RtToken& getMetadataName(size_t index) const;
 
-    /// Return metadata from the object at a given index.
-    RtTypedValue* getMetadata(size_t index);
-
-    /// Return const metadata from the object at a given index.
-    const RtTypedValue* getMetadata(size_t index) const;
-
     /// Return metadata from the object.
     RtTypedValue* getMetadata(const RtToken& name);
 
