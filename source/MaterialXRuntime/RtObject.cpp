@@ -75,6 +75,16 @@ void RtObject::removeMetadata(const RtToken& name)
     hnd()->asA<PvtObject>()->removeMetadata(name);
 }
 
+size_t RtObject::numMetadata() const
+{
+    return hnd()->asA<PvtObject>()->getMetadataOrder().size();
+}
+
+const RtToken& RtObject::getMetadata(size_t index) const
+{
+    return hnd()->asA<PvtObject>()->getMetadataOrder()[index];
+}
+
 RtTypedValue* RtObject::getMetadata(const RtToken& name)
 {
     return hnd()->asA<PvtObject>()->getMetadata(name);
