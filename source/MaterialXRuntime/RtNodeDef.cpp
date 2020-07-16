@@ -134,6 +134,13 @@ void RtNodeDef::setNamespace(const RtToken& space)
     v->getValue().asToken() = space;
 }
 
+bool RtNodeDef::isVersionCompatible(const RtToken& version) const
+{
+    // Test if either the version matches or if no version passed in if this is the default version.
+    return ((version == getVersion()) ||
+            (version.str().empty() && getIsDefaultVersion()));
+}
+
 
 RtInput RtNodeDef::createInput(const RtToken& name, const RtToken& type, uint32_t flags)
 {
