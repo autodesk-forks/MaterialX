@@ -6,7 +6,7 @@
       <adsk:parquet_03 name="parquet_03" type="surfaceshader" version="1.0" />
       <adsk:brick_02 name="brick_02" type="surfaceshader" version="1.0" />
       <adsk:colorcorrect name="colorcorrect" type="multioutput" version="1.0">
-         <parameter name="color" type="color3" value="1, 0.5, 0.5" />
+         <input name="color" type="color3" value="1, 0.5, 0.5" />
          <output name="outColor" type="color3" />
          <output name="outAlpha" type="float" />
       </adsk:colorcorrect>
