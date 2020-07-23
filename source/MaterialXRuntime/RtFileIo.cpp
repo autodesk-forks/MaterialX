@@ -89,7 +89,7 @@ namespace
 
     PvtOutput* findOutputOrThrow(const RtToken& name, PvtPrim* prim)
     {
-        PvtOutput* output = prim->getOutput(name);
+        PvtOutput* output = name.str().empty() ? prim->getOutput() : prim->getOutput(name);
         if (!output)
         {
             throw ExceptionRuntimeError("Node '" + prim->getName().str() + "' has no output named '" + name.str() + "'");
@@ -188,7 +188,7 @@ namespace
                             outputName = output.getName();
                         }
                     }
-                    PvtOutput* output = findOutputOrThrow(outputName != EMPTY_TOKEN ? outputName : PvtAttribute::DEFAULT_OUTPUT_NAME, connectedNode);
+                    PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
                     output->connect(input);
                 }
             }
@@ -262,10 +262,12 @@ namespace
         for (RtPrim masterPrim : RtApi::get().getMasterPrims(nodedefFilter))
         {
             RtNodeDef candidate(masterPrim);
-            if (candidate.getNode() == nodeName &&
-                matchingSignature(PvtObject::ptr<PvtPrim>(masterPrim), nodeType, nodePorts))
+            if (candidate.getNamespacedNode() == nodeName)
             {
-                return candidate.getName();
+                if (matchingSignature(PvtObject::ptr<PvtPrim>(masterPrim), nodeType, nodePorts))
+                {
+                    return candidate.getName();
+                }
             }
         }
 
@@ -396,7 +398,7 @@ namespace
                 PvtPrim* connectedNode = findPrimOrThrow(RtToken(connectedNodeName), nodegraph, mapper);
 
                 const RtToken outputName(elem->getOutputString());
-                RtOutput output(findOutputOrThrow(outputName != EMPTY_TOKEN ? outputName : PvtAttribute::DEFAULT_OUTPUT_NAME, connectedNode)->hnd());
+                RtOutput output(findOutputOrThrow(outputName, connectedNode)->hnd());
                 output.connect(socket);
             }
         }

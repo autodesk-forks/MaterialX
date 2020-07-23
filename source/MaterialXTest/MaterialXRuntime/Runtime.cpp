@@ -75,6 +75,7 @@ namespace
     const mx::RtToken STDLIB("stdlib");
     const mx::RtToken PBRLIB("pbrlib");
     const mx::RtToken BXDFLIB("bxdf");
+    const mx::RtToken ADSKLIB("adsk");
 
     bool compareFiles(const mx::FilePath& filename1, const mx::FilePath& filename2)
     {
@@ -1073,6 +1074,32 @@ TEST_CASE("Runtime: DefaultLook", "[runtime]")
     mx::RtFileIo fileIo(defaultStage);
     fileIo.read("defaultLook.mtlx", lookSearchPath);
     fileIo.read("emptyLook.mtlx", lookSearchPath);
+}
+
+TEST_CASE("Runtime: namespaced definitions", "[runtime]")
+{
+    mx::RtScopedApiHandle api;
+
+    mx::FilePath filePath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    mx::FilePathVec filePathVec = filePath.getSubDirectories();
+    api->setSearchPath(searchPath);
+    api->loadLibrary(STDLIB);
+    api->loadLibrary(STDLIB);
+    api->loadLibrary(PBRLIB);
+    api->loadLibrary(BXDFLIB);
+    api->loadLibrary(ADSKLIB);
+
+    mx::RtStagePtr defaultStage = api->createStage(mx::RtToken("defaultStage"));
+    defaultStage->addReference(api->getLibrary());
+
+    mx::FileSearchPath adskTestPath(mx::FilePath::getCurrentPath() /
+        "resources" /
+        "Materials" / 
+        "TestSuite" / 
+        "adsklib");
+
+    mx::RtFileIo fileIo(defaultStage);
+    fileIo.read("adsk_shaders.mtlx", adskTestPath);
 }
 
 TEST_CASE("Runtime: Conflict resolution", "[runtime]")
