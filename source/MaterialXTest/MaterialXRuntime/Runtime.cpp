@@ -1080,10 +1080,17 @@ TEST_CASE("Runtime: namespaced definitions", "[runtime]")
 {
     mx::RtScopedApiHandle api;
 
-    mx::FilePath filePath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
-    mx::FilePathVec filePathVec = filePath.getSubDirectories();
+    mx::FilePath librariesPath = mx::FilePath::getCurrentPath() / mx::FilePath("libraries");
+    mx::FilePathVec rootPaths;
+    rootPaths.push_back(librariesPath);
+    mx::FileSearchPath searchPath(librariesPath);
+    mx::FilePathVec childFolders;
+    mx::getSubdirectories(rootPaths, searchPath, childFolders);
+    for (const auto& childFolder : childFolders)
+    {
+        searchPath.append(childFolder);
+    }
     api->setSearchPath(searchPath);
-    api->loadLibrary(STDLIB);
     api->loadLibrary(STDLIB);
     api->loadLibrary(PBRLIB);
     api->loadLibrary(BXDFLIB);
@@ -1099,7 +1106,10 @@ TEST_CASE("Runtime: namespaced definitions", "[runtime]")
         "adsklib");
 
     mx::RtFileIo fileIo(defaultStage);
-    fileIo.read("adsk_shaders.mtlx", adskTestPath);
+
+    mx::RtReadOptions options;
+    options.validateDocument = false;
+    fileIo.read("adsk_shaders.mtlx", adskTestPath, &options);
 }
 
 TEST_CASE("Runtime: Conflict resolution", "[runtime]")
