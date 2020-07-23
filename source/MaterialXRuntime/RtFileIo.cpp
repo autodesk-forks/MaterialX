@@ -1160,16 +1160,6 @@ namespace
         }
     }
 
-    void writeUnitDefinitions(DocumentPtr doc)
-    {
-        RtApi& api = RtApi::get();
-        UnitConverterRegistryPtr unitDefinitions = api.getUnitDefinitions();
-        if (unitDefinitions)
-        {
-            unitDefinitions->write(doc);
-        }
-    }
-
     void writeMasterPrim(DocumentPtr document, PvtStage* stage, PvtPrim* prim, const RtWriteOptions* writeOptions)
     {
         if (!prim || prim->isDisposed())
