@@ -1233,8 +1233,7 @@ namespace
 RtReadOptions::RtReadOptions() :
     readFilter(nullptr),
     readLookInformation(false),
-    applyFutureUpdates(true),
-    validateDocument(true)
+    applyFutureUpdates(true)
 {
 }
 
@@ -1262,30 +1261,8 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
         }
         readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
 
-        bool validateDocument = readOptions ? readOptions->validateDocument : true;
-        if (validateDocument)
-        {
-            string errorMessage;
-            DocumentPtr validationDocument = createDocument();
-            writeUnitDefinitions(validationDocument);
-            CopyOptions cops;
-            cops.skipConflictingElements = true;
-            validationDocument->copyContentFrom(document, &cops);
-            if (validationDocument->validate(&errorMessage))
-            {
-                PvtStage* stage = PvtStage::ptr(_stage);
-                readDocument(document, stage, readOptions);
-            }
-            else
-            {
-                throw ExceptionRuntimeError("Failed validation: " + errorMessage);
-            }
-        }
-        else
-        {
-            PvtStage* stage = PvtStage::ptr(_stage);
-            readDocument(document, stage, readOptions);
-        }
+        PvtStage* stage = PvtStage::ptr(_stage);
+        readDocument(document, stage, readOptions);
     }
     catch (Exception& e)
     {
@@ -1307,30 +1284,8 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
         }
         readFromXmlStream(document, stream, &xmlReadOptions);
 
-        bool validateDocument = readOptions ? readOptions->validateDocument : true;
-        if (validateDocument)
-        {
-            string errorMessage;
-            DocumentPtr validationDocument = createDocument();
-            writeUnitDefinitions(validationDocument);
-            CopyOptions cops;
-            cops.skipConflictingElements = true;
-            validationDocument->copyContentFrom(document, &cops);
-            if (validationDocument->validate(&errorMessage))
-            {
-                PvtStage* stage = PvtStage::ptr(_stage);
-                readDocument(document, stage, readOptions);
-            }
-            else
-            {
-                throw ExceptionRuntimeError("Failed validation: " + errorMessage);
-            }
-        }
-        else
-        {
-            PvtStage* stage = PvtStage::ptr(_stage);
-            readDocument(document, stage, readOptions);
-        }
+        PvtStage* stage = PvtStage::ptr(_stage);
+        readDocument(document, stage, readOptions);
     }
     catch (Exception& e)
     {
