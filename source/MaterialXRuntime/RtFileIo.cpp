@@ -262,7 +262,7 @@ namespace
         for (RtPrim masterPrim : RtApi::get().getMasterPrims(nodedefFilter))
         {
             RtNodeDef candidate(masterPrim);
-            if (candidate.getNode() == nodeName && 
+            if (candidate.getNamespacedNode() == nodeName && 
                 matchingSignature(PvtObject::ptr<PvtPrim>(masterPrim), nodeType, nodePorts))
             {
                 return candidate.getName();
