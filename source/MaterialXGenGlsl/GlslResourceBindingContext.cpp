@@ -123,8 +123,10 @@ void GlslResourceBindingContext::emitStructuredResourceBindings(GenContext& cont
         (((structSize + (baseAlignment - 1)) & ~(baseAlignment - 1)) - structSize) / 4;
 
     // Sort order from largest to smallest
-    std::sort(memberOrder.begin(), memberOrder.end(), std::greater<>());
-
+    std::sort(memberOrder.begin(), memberOrder.end(),
+        [](const std::pair<size_t, size_t>& a, const std::pair<size_t, size_t>& b) {
+            return a.first > b.first;
+        });
 
     // Emit the struct
     generator.emitLine("struct " + uniforms.getName(), stage, false);
