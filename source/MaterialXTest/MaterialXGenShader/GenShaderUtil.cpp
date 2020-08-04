@@ -276,14 +276,13 @@ void checkImplementations(mx::GenContext& context,
     implDumpStream << found_str << std::endl;
 
     // Should have 0 missing including skipped
-    //if (missing != 0)
+    if (missing != 0)
     {
         std::cerr << (std::string("Missing: ") + std::to_string(missing) + std::string(" implementations out of: ") + std::to_string(count) + std::string(" nodedefs. Skipped: ") + std::to_string(skipped)) << std::endl;
         std::cerr << (std::string("Missing list: ") + missing_str) << std::endl;
-        std::cerr << (std::string("Found list: ") + found_str) << std::endl;
     }
-    CHECK(missing == 0);
-    CHECK(skipped == expectedSkipCount);
+    REQUIRE(missing == 0);
+    REQUIRE(skipped == expectedSkipCount);
 
     implDumpBuffer.close();
 }
