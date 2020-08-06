@@ -7,7 +7,7 @@
      <parameter name="roughness_image" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_roughness_2k_raw.exr" />
      <output name="out" type="surfaceshader" value="" />
   </nodedef>
-   <nodegraph name="NG_bricks_10_surfaceshader_template" nodedef="adsk:ND_bricks_10_surfaceshader" namespace="adsk">
+   <nodegraph name="NG_bricks_10_surfaceshader" nodedef="adsk:ND_bricks_10_surfaceshader" namespace="adsk">
       <add name="aiColorCorrect_baseColor29" type="color3">
          <input name="in1" type="color3" nodename="bricks_10_basecolor" />
       </add>
