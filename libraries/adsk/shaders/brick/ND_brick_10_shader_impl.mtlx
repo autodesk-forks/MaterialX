@@ -30,10 +30,10 @@
       <input name="uvtiling" type="vector2" value="2, 2" />
     </tiledimage>
     <standard_surface name="node1" type="surfaceshader" version="1.0.1">
-      <input name="base" type="float" nodename="aiRange_ao29" uimin="0.0" uimax="1.0" uiname="Base" uifolder="Base" doc="Multiplier on the intensity of the diffuse reflection." />
-      <input name="base_color" type="color3" nodename="aiColorCorrect_baseColor29" uimin="0,0,0" uimax="1,1,1" uiname="Base Color" uifolder="Base" doc="Color of the diffuse reflection." />
-      <input name="specular_roughness" type="float" nodename="aiColorToFloat_roughness29" uimin="0.0" uimax="1.0" uiname="Specular Roughness" uifolder="Specular" doc="The roughness of the specular reflection. Lower numbers produce sharper reflections, higher numbers produce blurrier reflections." />
-      <input name="normal" type="vector3" nodename="aiNormalMap_normal29" defaultgeomprop="Nworld" uiname="Normal" uifolder="Geometry" doc="Input geometric normal" />
+      <input name="base" type="float" nodename="aiRange_ao29" />
+      <input name="base_color" type="color3" nodename="aiColorCorrect_baseColor29" />
+      <input name="specular_roughness" type="float" nodename="aiColorToFloat_roughness29" />
+      <input name="normal" type="vector3" nodename="aiNormalMap_normal29" />
     </standard_surface>
     <smoothstep name="smoothstep" type="float">
       <input name="in" type="float" nodename="bricks_10_roughness" />
