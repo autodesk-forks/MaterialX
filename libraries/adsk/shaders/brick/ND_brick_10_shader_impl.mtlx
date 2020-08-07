@@ -11,22 +11,26 @@
       <input name="in" type="vector3" nodename="bricks_10_normal" />
     </normalmap>
     <range name="aiRange_ao29" type="float">
-      <input name="in" type="float" nodename="swizzle" />
+      <input name="in" type="float" nodename="bricks_10_ao" />
     </range>
     <range name="aiRange_roughness29" type="float">
       <input name="in" type="float" nodename="smoothstep" />
       <input name="outhigh" type="float" value="0.7" />
     </range>
+    <tiledimage name="bricks_10_ao" type="float">
+      <parameter name="file" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_ao_2k_raw.png" />
+      <input name="uvtiling" type="vector2" value="2, 2" />
+    </tiledimage>
     <tiledimage name="bricks_10_basecolor" type="color3">
-      <parameter name="file" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_basecolor_2k_acescg.exr" colorspace="acescg" />
+      <parameter name="file" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_basecolor_2k_acescg.png" colorspace="acescg" />
       <input name="uvtiling" type="vector2" value="2, 2" />
     </tiledimage>
     <tiledimage name="bricks_10_normal" type="vector3">
-      <parameter name="file" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_normal_2k_raw.exr" />
+      <parameter name="file" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_normal_2k_raw.png" />
       <input name="uvtiling" type="vector2" value="2, 2" />
     </tiledimage>
     <tiledimage name="bricks_10_roughness" type="float">
-      <parameter name="file" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_roughness_2k_raw.exr" />
+      <parameter name="file" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_roughness_2k_raw.png" />
       <input name="uvtiling" type="vector2" value="2, 2" />
     </tiledimage>
     <standard_surface name="node1" type="surfaceshader" version="1.0.1">
@@ -39,13 +43,6 @@
       <input name="in" type="float" nodename="bricks_10_roughness" />
       <input name="low" type="float" value="0.2" />
     </smoothstep>
-    <tiledimage name="bricks_10_ao" type="color3">
-      <parameter name="file" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_ao_2k_raw.exr" />
-      <input name="uvtiling" type="vector2" value="2, 2" />
-    </tiledimage>
-    <swizzle name="swizzle" type="float">
-      <input name="in" type="color3" nodename="bricks_10_ao" />
-    </swizzle>
     <output name="out" type="surfaceshader" nodename="node1" />
   </nodegraph>
 </materialx>
