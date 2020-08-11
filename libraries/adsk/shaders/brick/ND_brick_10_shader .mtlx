@@ -4,7 +4,6 @@
       <parameter name="color_image" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_basecolor_2k_acescg.exr" colorspace="acescg" />
       <parameter name="normalmap_image" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_normal_2k_raw.exr" />
       <parameter name="roughness_image" type="filename" value="adsk/textures/bricks_10/2k/bricks_10_roughness_2k_raw.exr" />
-      <parameter name="displacement_image" type="filename" value="adsk/textures/bricks_10/8k/bricks_10_height_2k_raw.exr" />
       <output name="out" type="surfaceshader" value="" />
    </nodedef>
    <nodegraph name="NG_brick_10_surfaceshader_template" nodedef="adsk:ND_bricks_10_surfaceshader" version="1.0" namespace="adsk">
