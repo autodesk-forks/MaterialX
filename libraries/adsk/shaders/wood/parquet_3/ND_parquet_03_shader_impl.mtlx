@@ -1,25 +1,51 @@
 <?xml version="1.0"?>
 <materialx version="1.38">
-  <nodegraph name="parquet_03_shader_graph" namespace="adsk">
-    <normalmap name="parquet_03_normalmap" type="vector3">
-      <input name="in" type="vector3" nodename="parquet_03_normal" />
-    </normalmap>
-    <image name="parquet_03_basecolor" type="color3">
-      <parameter name="file" type="filename" value="adsk/textures/parquet_03/2k/parquet_03_basecolor_2k_acescg.exr" colorspace="acescg" uiname="Filename" />
-    </image>
-    <image name="parquet_03_normal" type="vector3">
-      <parameter name="file" type="filename" value="adsk/textures/parquet_03/2k/parquet_03_normal_2k_raw.exr" uiname="Filename" />
-    </image>
-    <standard_surface name="parquet_03_sts" type="surfaceshader" version="1.0.1">
-      <input name="base_color" type="color3" nodename="parquet_03_basecolor" uimin="0,0,0" uimax="1,1,1" uiname="Base Color" uifolder="Base" doc="Color of the diffuse reflection." />
-      <input name="diffuse_roughness" type="float" value="1" uimin="0.0" uimax="1.0" uiname="Diffuse Roughness" uifolder="Base" uiadvanced="true" doc="Roughness of the diffuse reflection. Higher values cause the surface to appear flatter and darker." />
-      <input name="specular_roughness" type="float" nodename="parquet_03_roughness" uimin="0.0" uimax="1.0" uiname="Specular Roughness" uifolder="Specular" doc="The roughness of the specular reflection. Lower numbers produce sharper reflections, higher numbers produce blurrier reflections." />
-      <input name="coat" type="float" value="1" uimin="0.0" uimax="1.0" uiname="Coat" uifolder="Coat" doc="The weight of a reflective clear-coat layer on top of the material. Use for materials such as car paint or an oily layer." />
-      <input name="normal" type="vector3" nodename="parquet_03_normalmap" defaultgeomprop="Nworld" uiname="Normal" uifolder="Geometry" doc="Input geometric normal" />
-    </standard_surface>
-    <tiledimage name="parquet_03_roughness" type="float">
-      <parameter name="file" type="filename" value="adsk/textures/parquet_03/2k/parquet_03_roughness_2k_raw.exr" />
-    </tiledimage>
-    <output name="surfaceshader" type="surfaceshader" nodename="parquet_03_sts" />
-  </nodegraph>
+   <nodegraph name="parquet_03_surfaceshader_graph">
+      <normalmap name="parquet_03_normalmap" type="vector3">
+         <input name="in" type="vector3" nodename="parquet_03_normal" />
+      </normalmap>
+      <tiledimage name="parquet_03_basecolor" type="color3">
+         <parameter name="file" type="filename" value="adsk/textures/parquet_03/2k/parquet_03_basecolor_2k_acescg.exr" colorspace="acescg" />
+         <input name="uvtiling" type="vector2" value="3, 3" />
+      </tiledimage>
+      <tiledimage name="parquet_03_normal" type="vector3">
+         <parameter name="file" type="filename" value="adsk/textures/parquet_03/2k/parquet_03_normal_2k_raw.exr" />
+         <input name="uvtiling" type="vector2" value="3, 3" />
+      </tiledimage>
+      <tiledimage name="parquet_03_roughness" type="float">
+         <parameter name="file" type="filename" value="adsk/textures/parquet_03/2k/parquet_03_roughness_2k_raw.exr" />
+         <input name="uvtiling" type="vector2" value="3, 3" />
+      </tiledimage>
+      <standard_surface name="parquet_03_sts" type="surfaceshader" version="1.0.1">
+         <input name="base_color" type="color3" nodename="parquet_03_basecolor" />
+         <input name="specular_roughness" type="float" nodename="parquet_03_roughness" />
+         <input name="normal" type="vector3" nodename="parquet_03_normalmap" />
+      </standard_surface>
+      <output name="surfaceshader" type="surfaceshader" nodename="parquet_03_sts" />
+   </nodegraph>
+
+   <nodegraph name="parquet_03_displacementshader_graph">
+      <subtract name="parquet_03_disp_subtract" type="float">
+         <input name="in1" type="float" nodename="parquet_03_displacement" />
+         <input name="in2" type="float" value="0.0" />
+      </subtract>
+      <normalize name="parquet_03_disp_normalize" type="vector3">
+         <input name="in" type="vector3" nodename="parquet_03_disp_normal" />
+      </normalize>
+      <displacement name="parquet_03_disp_displacement" type="displacementshader">
+         <input name="displacement" type="vector3" nodename="parquet_03_disp_multiply" />
+         <input name="scale" type="float" value="1" />
+      </displacement>
+      <multiply name="parquet_03_disp_multiply" type="vector3">
+         <input name="in1" type="vector3" nodename="parquet_03_disp_normalize" />
+         <input name="in2" type="float" nodename="parquet_03_disp_subtract" />
+      </multiply>
+      <tiledimage name="parquet_03_displacement" type="float">
+         <parameter name="file" type="filename" value="adsk/textures/parquet_03/2k/parquet_03_height_2k_raw.exr" />
+         <input name="uvtiling" type="vector2" value="3, 3" />
+      </tiledimage>
+      <normal name="parquet_03_disp_normal" type="vector3" />
+      <output name="displacementshader" type="displacementshader" nodename="parquet_03_disp_displacement" />
+   </nodegraph>   
+   
 </materialx>
