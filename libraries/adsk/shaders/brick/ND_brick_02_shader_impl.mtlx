@@ -6,19 +6,19 @@
     </normalmap>
     <tiledimage name="bricks_02_basecolor" type="color3">
       <parameter name="file" type="filename" value="adsk/textures/bricks_02/2k/bricks_02_basecolor_2k_acescg.exr" colorspace="acescg" />
-      <input name="uvtiling" type="vector2" value="2, 2" />
+      <input name="uvtiling" type="vector2" value="3, 3" />
     </tiledimage>
     <tiledimage name="bricks_02_normal" type="vector3">
       <parameter name="file" type="filename" value="adsk/textures/bricks_02/2k/bricks_02_normal_2k_raw.exr" />
-      <input name="uvtiling" type="vector2" value="2, 2" />
+      <input name="uvtiling" type="vector2" value="3, 3" />
     </tiledimage>
     <tiledimage name="bricks_02_roughness" type="float">
       <parameter name="file" type="filename" value="adsk/textures/bricks_02/2k/bricks_02_roughness_2k_raw.exr" />
-      <input name="uvtiling" type="vector2" value="2, 2" />
+      <input name="uvtiling" type="vector2" value="3, 3" />
     </tiledimage>
     <standard_surface name="bricks_02_sts" type="surfaceshader" version="1.0.1">
       <input name="base_color" type="color3" nodename="bricks_02_basecolor" />
-       <input name="specular_roughness" type="float" nodename="bricks_02_roughness" /> />
+      <input name="specular_roughness" type="float" nodename="bricks_02_roughness" />
       <input name="normal" type="vector3" nodename="bricks_02_normalmap" />
     </standard_surface>
     <output name="surfaceshader" type="surfaceshader" nodename="bricks_02_sts" />
@@ -27,21 +27,21 @@
   <nodegraph name="brick_02_displacementshader_graph">
      <subtract name="bricks_02_disp_subtract" type="float">
         <input name="in1" type="float" nodename="bricks_02_displacement" />
-        <input name="in2" type="float" value="0.5" />
+        <input name="in2" type="float" value="0.0" />
      </subtract>
      <normalize name="bricks_02_disp_normalize" type="vector3">
         <input name="in" type="vector3" nodename="bricks_02_disp_normal" />
      </normalize>
      <displacement name="bricks_02_disp_displacement" type="displacementshader">
         <input name="displacement" type="vector3" nodename="bricks_02_disp_multiply" />
-        <input name="scale" type="float" value="5" />
+        <input name="scale" type="float" value="1" />
      </displacement>
      <multiply name="bricks_02_disp_multiply" type="vector3">
         <input name="in1" type="vector3" nodename="bricks_02_disp_normalize" />
         <input name="in2" type="float" nodename="bricks_02_disp_subtract" />
      </multiply>
      <tiledimage name="bricks_02_displacement" type="float">
-        <parameter name="file" type="filename" value="adsk/textures/bricks_02/8k/bricks_02_height_2k_raw.exr" />
+        <parameter name="file" type="filename" value="adsk/textures/bricks_02/2k/bricks_02_height_2k_raw.exr" />
         <input name="uvtiling" type="vector2" value="3, 3" />
      </tiledimage>
      <normal name="bricks_02_disp_normal" type="vector3" />
