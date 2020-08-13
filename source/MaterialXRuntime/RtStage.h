@@ -34,7 +34,7 @@ public:
     const RtToken& getName() const;
 
     /// Add a source Uri for a stage
-    void RtStage::addSourceUri(const RtToken& uri);
+    void addSourceUri(const RtToken& uri);
 
     /// Return a list of source Uri loaded into a stage
     const RtTokenVec& getSourceUri() const;
