@@ -2,7 +2,7 @@
 
 int numRadianceSamples()
 {
-    return min($envRadianceSamples, M_MAX_RADIANCE_SAMPLES) ;
+    return min($envRadianceSamples, MAX_ENV_RADIANCE_SAMPLES) ;
 }
 
 // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch20.html
