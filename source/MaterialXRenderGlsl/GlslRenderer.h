@@ -41,7 +41,7 @@ class GlslRenderer : public ShaderRenderer
 {
   public:
     /// Create a GLSL renderer instance
-    static GlslRendererPtr create(unsigned int width = 512, unsigned int height = 512, Image::BaseType baseType = Image::BaseType::UINT8, float r=0.4f, float g=0.4f, float b=0.4f, float a=1.0f);
+    static GlslRendererPtr create(unsigned int width = 512, unsigned int height = 512, Image::BaseType baseType = Image::BaseType::UINT8, const Color4& clearColor = Color4(0.4f, 0.4f, 0.4f, 1.0f));
 
     /// Destructor
     virtual ~GlslRenderer();
@@ -106,12 +106,12 @@ class GlslRenderer : public ShaderRenderer
     static void drawScreenSpaceQuad();
 
     /// Sets the clear color
-    void setClearColor(float r, float g, float b, float a);
+    void setClearColor(const Color4& clearColor);
 
     /// @}
 
   protected:
-    GlslRenderer(unsigned int width, unsigned int height, Image::BaseType baseType, float r=0.4f, float g=0.4f, float b=0.4f, float a=0.4f);
+    GlslRenderer(unsigned int width, unsigned int height, Image::BaseType baseType, const Color4& clearColor = Color4(0.4f, 0.4f, 0.4f, 1.0f));
 
     virtual void updateViewInformation();
     virtual void updateWorldInformation();
@@ -134,10 +134,8 @@ class GlslRenderer : public ShaderRenderer
     SimpleWindowPtr _window;
     GLUtilityContextPtr _context;
 
-    float _r;
-    float _g;
-    float _b;
-    float _a;
+
+    Color4 _clearColor;
 };
 
 } // namespace MaterialX

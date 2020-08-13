@@ -25,12 +25,12 @@ const float FAR_PLANE_PERSP = 100.0f;
 // GlslRenderer methods
 //
 
-GlslRendererPtr GlslRenderer::create(unsigned int width, unsigned int height, Image::BaseType baseType, float r, float g, float b, float a)
+GlslRendererPtr GlslRenderer::create(unsigned int width, unsigned int height, Image::BaseType baseType, const Color4& clearColor)
 {
-    return GlslRendererPtr(new GlslRenderer(width, height, baseType, r, g, b, a));
+    return GlslRendererPtr(new GlslRenderer(width, height, baseType, clearColor));
 }
 
-GlslRenderer::GlslRenderer(unsigned int width, unsigned int height, Image::BaseType baseType, float r, float g, float b, float a) :
+GlslRenderer::GlslRenderer(unsigned int width, unsigned int height, Image::BaseType baseType, const Color4& clearColor) :
     ShaderRenderer(width, height, baseType),
     _initialized(false),
     _eye(0.0f, 0.0f, 4.0f),
@@ -38,7 +38,7 @@ GlslRenderer::GlslRenderer(unsigned int width, unsigned int height, Image::BaseT
     _up(0.0f, 1.0f, 0.0f),
     _objectScale(1.0f)
 {
-    setClearColor(r, g, b, a);
+    setClearColor(clearColor);
 
     _program = GlslProgram::create();
 
@@ -258,7 +258,7 @@ void GlslRenderer::render()
     // Set up target
     _frameBuffer->bind();
 
-    glClearColor(_r, _g, _b, _a);
+    glClearColor(_clearColor[0], _clearColor[1], _clearColor[2], _clearColor[3]);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_FRAMEBUFFER_SRGB);
@@ -404,12 +404,9 @@ void GlslRenderer::drawScreenSpaceQuad()
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-void GlslRenderer::setClearColor(float r, float g, float b, float a)
+void GlslRenderer::setClearColor(const Color4& clearColor)
 {
-    _r = r;
-    _g = g;
-    _b = b;
-    _a = a;
+    _clearColor = clearColor;
 }
 
 } // namespace MaterialX
