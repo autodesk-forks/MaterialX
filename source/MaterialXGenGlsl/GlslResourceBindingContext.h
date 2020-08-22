@@ -23,14 +23,9 @@ class GlslResourceBindingContext : public HwResourceBindingContext
 {
 public:
 
-    GlslResourceBindingContext(size_t uniformBindingLocation, size_t samplerBindingLocation);
+    GlslResourceBindingContext();
 
-    static GlslResourceBindingContextPtr create(
-        size_t uniformBindingLocation=0, size_t samplerBindingLocation=0)
-    {
-        return std::make_shared<GlslResourceBindingContext>(
-            uniformBindingLocation, samplerBindingLocation);
-    }
+    static GlslResourceBindingContextPtr create() { return std::make_shared<GlslResourceBindingContext>(); }
 
     // Initialize the context before generation starts.
     void initialize() override;
@@ -41,27 +36,12 @@ public:
     // Emit uniforms with binding information
     void emitResourceBindings(GenContext& context, const VariableBlock& uniforms, ShaderStage& stage) override;
 
-    // Emit Structured uniforms with binding information and align members where possible
-    void emitStructuredResourceBindings(GenContext& context, const VariableBlock& uniforms,
-        ShaderStage& stage, const std::string& structInstanceName,
-        const std::string& arraySuffix) override;
-
 protected:
     // List of required extensions
     StringSet _requiredExtensions;
 
-    // Binding location for Uniform Blocks
-    size_t _hwUniformBindLocation = 0;
-
-    // Initial value of uniform binding location
-    size_t _hwInitUniformBindLocation = 0;
-
-    // Binding location for Sampler Blocks
-    size_t _hwSamplerBindLocation = 0;
-
-    // Initial value of sampler binding location
-    size_t _hwInitSamplerBindLocation = 0;
-
+    // Binding location
+    size_t _hwBindLocation = 0;
 };
 
 } // namespace MaterialX

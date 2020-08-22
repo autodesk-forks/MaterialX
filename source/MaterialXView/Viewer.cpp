@@ -255,10 +255,12 @@ Viewer::Viewer(const std::string& materialFilename,
 #endif
 
     // Initialize image handler.
-    _imageHandler = mx::GLTextureHandler::create(mx::StbImageLoader::create());
 #if MATERIALX_BUILD_OIIO
-    _imageHandler->addLoader(mx::OiioImageLoader::create());
+    mx::ImageLoaderPtr imageLoader = mx::OiioImageLoader::create();
+#else
+    mx::ImageLoaderPtr imageLoader = mx::StbImageLoader::create();
 #endif
+    _imageHandler = mx::GLTextureHandler::create(imageLoader);
     _imageHandler->setSearchPath(_searchPath);
 
     // Initialize user interfaces.
@@ -486,9 +488,7 @@ void Viewer::applyDirectLights(mx::DocumentPtr doc)
 {
     if (_lightRigDoc)
     {
-        mx::CopyOptions copyOptions;
-        copyOptions.skipConflictingElements = true;
-        doc->importLibrary(_lightRigDoc, &copyOptions);
+        doc->importLibrary(_lightRigDoc);
         _xincludeFiles.insert(_lightRigFilename);
     }
 
@@ -610,7 +610,8 @@ void Viewer::createLoadEnvironmentInterface(Widget* parent, const std::string& l
     envButton->setCallback([this]()
     {
         mProcessEvents = false;
-        mx::StringSet extensions = _imageHandler->supportedExtensions();
+        mx::StringSet extensions;
+        _imageHandler->supportedExtensions(extensions);
         std::vector<std::pair<std::string, std::string>> filetypes;
         for (const auto& extension : extensions)
         {
@@ -857,7 +858,6 @@ void Viewer::createAdvancedSettings(Widget* parent)
         sampleGroup->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
         new ng::Label(sampleGroup, "Environment Samples:");
         mx::StringVec sampleOptions;
-        _genContext.getOptions().hwMaxRadianceSamples = MAX_ENV_SAMPLES;
         for (int i = MIN_ENV_SAMPLES; i <= MAX_ENV_SAMPLES; i *= 4)
         {
             mProcessEvents = false;
@@ -999,7 +999,6 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
 {
     // Set up read options.
     mx::XmlReadOptions readOptions;
-    readOptions.skipConflictingElements = true;
     readOptions.applyFutureUpdates = true;
     readOptions.readXIncludeFunction = [](mx::DocumentPtr doc, const mx::FilePath& filename,
                                           const mx::FileSearchPath& searchPath, const mx::XmlReadOptions* options)
@@ -1039,9 +1038,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
         mx::readFromXmlFile(doc, filename, _searchPath, &readOptions);
 
         // Import libraries.
-        mx::CopyOptions copyOptions; 
-        copyOptions.skipConflictingElements = true;
-        doc->importLibrary(libraries, &copyOptions);
+        doc->importLibrary(libraries);
 
         // Apply direct lights.
         applyDirectLights(doc);
@@ -1439,7 +1436,6 @@ void Viewer::loadStandardLibraries()
     try
     {
         mx::XmlReadOptions readOptions;
-        readOptions.skipConflictingElements = true;
         readOptions.applyFutureUpdates = true;
         _stdLib = mx::createDocument();
         _xincludeFiles = mx::loadLibraries(_libraryFolders, _searchPath, _stdLib, nullptr, &readOptions);
