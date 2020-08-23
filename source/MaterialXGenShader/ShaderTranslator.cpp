@@ -177,8 +177,8 @@ bool ShaderTranslator::translateAllMaterials(DocumentPtr doc, string destShader)
 {
     ShaderTranslatorPtr translator = ShaderTranslator::create(doc);
     vector<TypedElementPtr> renderableShaderRefs;
-    std::unordered_set<OutputPtr> outputs;
-    findRenderableShaderRefs(doc, renderableShaderRefs, false, outputs);
+    std::unordered_set<ElementPtr> processedSources;
+    findRenderableShaderRefs(doc, renderableShaderRefs, false, processedSources);
     for (TypedElementPtr elem : renderableShaderRefs)
     {
         ShaderRefPtr sr = elem ? elem->asA<ShaderRef>() : nullptr;
