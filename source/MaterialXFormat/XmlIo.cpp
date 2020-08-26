@@ -208,7 +208,7 @@ void processXIncludes(DocumentPtr doc, xml_node& xmlNode, const FileSearchPath& 
                 readXIncludeFunction(library, filename, includeSearchPath, &xiReadOptions);
 
                 // Import the library document.
-                doc->importLibrary(library, readOptions);
+                doc->importLibrary(library);
             }
 
             // Remove include directive.

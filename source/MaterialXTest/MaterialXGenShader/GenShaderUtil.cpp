@@ -686,7 +686,7 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
         bool importedLibrary = false;
         try
         {
-            doc->importLibrary(_dependLib, &copyOptions);
+            doc->importLibrary(_dependLib);
             importedLibrary = true;
         }
         catch (mx::Exception& e)

@@ -235,7 +235,9 @@ add_subdirectory(source/MaterialXCore)
 add_subdirectory(source/MaterialXFormat)
 
 # Add shader generation subdirectories
-if(MATERIALX_BUILD_GEN_GLSL OR MATERIALX_BUILD_GEN_OSL OR MATERIALX_BUILD_GEN_MDL)
+if (MATERIALX_BUILD_GEN)
+    # TODO: split up libraries to only install those relevant to enabled generators
+    add_subdirectory(libraries)
     add_subdirectory(source/MaterialXGenShader)
     if (MATERIALX_BUILD_GEN_GLSL)
         add_definitions(-DMATERIALX_BUILD_GEN_GLSL)

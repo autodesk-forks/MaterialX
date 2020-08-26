@@ -255,10 +255,12 @@ Viewer::Viewer(const std::string& materialFilename,
 #endif
 
     // Initialize image handler.
-    _imageHandler = mx::GLTextureHandler::create(mx::StbImageLoader::create());
 #if MATERIALX_BUILD_OIIO
-    _imageHandler->addLoader(mx::OiioImageLoader::create());
+    mx::ImageLoaderPtr imageLoader = mx::OiioImageLoader::create();
 #endif
+    mx::ImageLoaderPtr imageLoader2 = mx::StbImageLoader::create();
+    _imageHandler = mx::GLTextureHandler::create(imageLoader);
+    _imageHandler->addLoader(imageLoader2);
     _imageHandler->setSearchPath(_searchPath);
 
     // Initialize user interfaces.
@@ -855,6 +857,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
         sampleGroup->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
         new ng::Label(sampleGroup, "Environment Samples:");
         mx::StringVec sampleOptions;
+        _genContext.getOptions().hwMaxRadianceSamples = MAX_ENV_SAMPLES;
         for (int i = MIN_ENV_SAMPLES; i <= MAX_ENV_SAMPLES; i *= 4)
         {
             mProcessEvents = false;
