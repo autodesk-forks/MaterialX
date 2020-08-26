@@ -410,6 +410,12 @@ public:
 
     // Emit uniforms with binding information
     virtual void emitResourceBindings(GenContext& context, const VariableBlock& uniforms, ShaderStage& stage) = 0;
+
+    // Emit struct uniforms with binding information
+    virtual void emitStructuredResourceBindings(GenContext& context, const VariableBlock& uniforms,
+        ShaderStage& stage, const std::string& structInstanceName,
+        const std::string& arraySuffix = EMPTY_STRING) = 0;
+
 };
 
 } // namespace MaterialX

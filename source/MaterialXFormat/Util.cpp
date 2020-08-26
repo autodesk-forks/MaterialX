@@ -87,7 +87,7 @@ void loadLibrary(const FilePath& file, DocumentPtr doc, const FileSearchPath* se
     readFromXmlFile(libDoc, file, searchPath ? *searchPath : FileSearchPath(), readOptions);
     CopyOptions copyOptions;
     copyOptions.skipConflictingElements = true;
-    doc->importLibrary(libDoc, &copyOptions);
+    doc->importLibrary(libDoc);
 }
 
 StringSet loadLibraries(const FilePathVec& libraryFolders,
