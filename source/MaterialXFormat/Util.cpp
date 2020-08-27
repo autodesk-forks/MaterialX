@@ -28,7 +28,7 @@ string readFile(const FilePath& filePath)
     return EMPTY_STRING;
 }
 
-void getSubdirectories(const FilePathVec rootDirectories, const FileSearchPath& searchPath, FilePathVec& subDirectories)
+void getSubdirectories(const FilePathVec& rootDirectories, const FileSearchPath& searchPath, FilePathVec& subDirectories)
 {
     for (const FilePath& root : rootDirectories)
     {

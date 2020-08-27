@@ -255,12 +255,12 @@ Viewer::Viewer(const std::string& materialFilename,
 #endif
 
     // Initialize image handler.
-#if MATERIALX_BUILD_OIIO
-    mx::ImageLoaderPtr imageLoader = mx::OiioImageLoader::create();
-#endif
-    mx::ImageLoaderPtr imageLoader2 = mx::StbImageLoader::create();
+    mx::ImageLoaderPtr imageLoader = mx::StbImageLoader::create();
     _imageHandler = mx::GLTextureHandler::create(imageLoader);
+#if MATERIALX_BUILD_OIIO
+    mx::ImageLoaderPtr imageLoader2 = mx::OiioImageLoader::create();
     _imageHandler->addLoader(imageLoader2);
+#endif
     _imageHandler->setSearchPath(_searchPath);
 
     // Initialize user interfaces.
