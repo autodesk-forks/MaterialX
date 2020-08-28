@@ -107,7 +107,6 @@ describe('Build Document', () => {
         mtlxStrs = getMtlxStrings(filenames, '../../../resources/Materials/Examples/Syntax');
         mx.readFromXmlString(doc, mtlxStrs[0]);
         const readOptions = new mx.XmlReadOptions();
-        readOptions.skipConflictingElements = true;
         mx.readFromXmlString(doc, mtlxStrs[0], readOptions);
         expect(doc.validate()).to.be.true;
     });

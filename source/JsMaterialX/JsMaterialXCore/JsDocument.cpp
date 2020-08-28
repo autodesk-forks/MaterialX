@@ -17,9 +17,8 @@ extern "C"
             .smart_ptr<std::shared_ptr<const mx::Document>>("Document")
             .function("initialize", &mx::Document::initialize)
             .function("copy", &mx::Document::copy)
-            .function("importLibrary", ems::optional_override([](mx::Document &self, const mx::ConstDocumentPtr &library, mx::CopyOptions copyOptions = mx::CopyOptions()) {
-                          const mx::CopyOptions *co = &copyOptions;
-                          return self.mx::Document::importLibrary(library, co);
+            .function("importLibrary", ems::optional_override([](mx::Document &self, const mx::ConstDocumentPtr &library) {
+                          return self.mx::Document::importLibrary(library);
                       }))
             .function("getReferencedSourceUris", ems::optional_override([](mx::Document &self) {
                           mx::StringSet referenced = self.mx::Document::getReferencedSourceUris();
