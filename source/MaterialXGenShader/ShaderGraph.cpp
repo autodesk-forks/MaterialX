@@ -1073,7 +1073,7 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
             ShaderInput* shaderInput = newNode->getInput(input->getName());
             populateColorTransformMap(colorManagementSystem, shaderInput, input, targetColorSpace, true);
         }
-        for (ParameterPtr parameter : node.getParameters())
+        for (auto parameter : node.getParameters())
         {
             if (parameter->getType() == FILENAME_TYPE_STRING)
             {
@@ -1101,7 +1101,7 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
             ShaderInput* inputPort = newNode->getInput(input->getName());
             populateUnitTransformMap(unitSystem, inputPort, input, targetDistanceUnit, true);
         }
-        for (ParameterPtr parameter : node.getParameters())
+        for (auto parameter : node.getParameters())
         {
             ShaderInput* inputPort = newNode->getInput(parameter->getName());
             if (parameter->getType() == FILENAME_TYPE_STRING)

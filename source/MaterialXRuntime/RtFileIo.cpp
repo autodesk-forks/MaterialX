@@ -588,7 +588,7 @@ namespace
 
     void validateNodesHaveNodedefs(DocumentPtr doc)
     {
-        for (const ElementPtr& elem : doc->getChildren())
+        for (auto elem : doc->getChildren())
         {
             if (elem->isA<Node>())
             {
@@ -632,7 +632,7 @@ namespace
         PvtRenamingMapper mapper;
 
         // Load all other elements.
-        for (const ElementPtr& elem : doc->getChildren())
+        for (auto elem : doc->getChildren())
         {
             if (!filter || filter(elem))
             {
@@ -1323,7 +1323,7 @@ void RtFileIo::readLibraries(const FilePathVec& libraryPaths, const FileSearchPa
     PvtRenamingMapper mapper;
 
     // Second, load all other elements.
-    for (const ElementPtr& elem : doc->getChildren())
+    for (auto elem : doc->getChildren())
     {
         PvtPath path(stage->getPath());
         path.push(RtToken(elem->getName()));
