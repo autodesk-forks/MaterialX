@@ -152,24 +152,22 @@ void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers& modifiers)
 //
 
 Viewer::Viewer(const std::string& materialFilename,
-    const std::string& meshFilename,
-    const mx::Vector3& meshRotation,
-    float meshScale,
-    const mx::Vector3& cameraPosition,
-    const mx::Vector3& cameraTarget,
-    float cameraViewAngle,
-    float cameraZoom,
-    const std::string& envRadiancePath,
-    mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
-    int envSampleCount,
-    float lightRotation,
-    const mx::FilePathVec& libraryFolders,
-    const mx::FileSearchPath& searchPath,
-    const DocumentModifiers& modifiers,
-    int screenWidth,
-    int screenHeight,
-    const mx::Color3& screenColor,
-    int multiSampleCount) :
+               const std::string& meshFilename,
+               const mx::Vector3& meshRotation,
+               float meshScale,
+               const mx::Vector3& cameraPosition,
+               const mx::Vector3& cameraTarget,
+               float cameraViewAngle,
+               const std::string& envRadiancePath,
+               mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
+               float lightRotation,
+               const mx::FilePathVec& libraryFolders,
+               const mx::FileSearchPath& searchPath,
+               const DocumentModifiers& modifiers,
+               int screenWidth,
+               int screenHeight,
+               const mx::Color3& screenColor,
+               int multiSampleCount) :
     ng::Screen(ng::Vector2i(screenWidth, screenHeight), "MaterialXView",
         true, false,
         8, 8, 24, 8,
@@ -1456,33 +1454,13 @@ void Viewer::saveDotFiles()
     }
 }
 
-void Viewer::initContext(mx::GenContext& context)
-{
-    // Initialize search paths.
-    context.registerSourceCodeSearchPath(_searchPath);
-
-    // Initialize color management.
-    mx::DefaultColorManagementSystemPtr cms = mx::DefaultColorManagementSystem::create(context.getShaderGenerator().getLanguage());
-    cms->loadLibrary(_stdLib);
-    context.getShaderGenerator().setColorManagementSystem(cms);
-
-    // Initialize unit management.
-    mx::UnitSystemPtr unitSystem = mx::UnitSystem::create(context.getShaderGenerator().getLanguage());
-    unitSystem->loadLibrary(_stdLib);
-    unitSystem->setUnitConverterRegistry(_unitRegistry);
-    context.getShaderGenerator().setUnitSystem(unitSystem);
-    context.getOptions().targetDistanceUnit = "meter";
-}
-
 void Viewer::loadStandardLibraries()
 {
     // Initialize the standard library.
     try
     {
-        mx::XmlReadOptions readOptions;
-        readOptions.applyFutureUpdates = true;
         _stdLib = mx::createDocument();
-        _xincludeFiles = mx::loadLibraries(_libraryFolders, _searchPath, _stdLib, nullptr, &readOptions);
+        _xincludeFiles = mx::loadLibraries(_libraryFolders, _searchPath, _stdLib);
         if (_xincludeFiles.empty())
         {
             std::cerr << "Could not find standard data libraries on the given search path: " << _searchPath.asString() << std::endl;
