@@ -109,7 +109,7 @@ describe('Code Examples', () => {
             elem = elements.next();
         }
         expect(elementCount).to.equal(23);
-        expect(nodeCount).to.equal(3);
+        expect(nodeCount).to.equal(5);
         expect(fileCount).to.equal(1);
     });
 
