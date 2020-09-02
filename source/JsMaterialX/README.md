@@ -35,8 +35,8 @@ The JavasScript library can be built using cmake and make.
 
 1. Create the `build` folder from in the *root* of the repository.
 ```sh
-mkdir -p ./build
-cd ./build
+mkdir -p ./<build_folder>
+cd ./<build_folder>
 ```
 
 2. Run cmake and make
@@ -70,21 +70,28 @@ docker exec -it emscripten sh -c "cd build && cmake .. -DMATERIALX_BUILD_JS=ON -
 ```
 
 ### Output
-After building the project the `JsMaterialX.wasm` and `JsMaterialX.js` files can be found in `./_build/source/JsMaterialX/`.
+After building the project the `JsMaterialX.wasm` and `JsMaterialX.js` files can be found in `./<build_folder>/source/JsMaterialX/`.
+
+### Installing
+To install the results into the install directory run
+```sh
+cmake --build --target install
+```
+from the build directory.
 
 ### Testing
-The JavaScript tests are located in `./test` folder and are defined with the `.spec.js` suffix.
+The JavaScript tests are located in `<root_dir>/source/JsMaterialX/test` folder and are defined with the `.spec.js` suffix.
 Most of these tests were copied over from the Python [main.py tests](../../python/MaterialXTest/main.py).
 
 #### Setup
 These tests require node.js. This is a part of the emscripten environment. So make sure to call `emsdk_env` before running the steps described below.
 
-1. Install the npm packages.
+1. From the test directory, install the npm packages.
 ```sh
-cd ./test && npm install
+npm install
 ```
 
-2. Run the tests
+2. Run the tests from the test directory.
 ```sh
 npm run test
 ```

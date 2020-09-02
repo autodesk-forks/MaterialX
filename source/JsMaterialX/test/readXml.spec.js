@@ -94,8 +94,7 @@ describe('Build Document', () => {
             // Combine document with the standard library.
             const doc2 = doc.copy();
             libs.forEach((lib) => {
-                const copyOptions = new mx.CopyOptions();
-                doc2.importLibrary(lib, copyOptions);
+                doc2.importLibrary(lib);
             });
 
             expect(doc2.validate()).to.be.true;
