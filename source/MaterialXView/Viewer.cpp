@@ -615,7 +615,7 @@ void Viewer::createLoadEnvironmentInterface(Widget* parent, const std::string& l
         std::vector<std::pair<std::string, std::string>> filetypes;
         for (const auto& extension : extensions)
         {
-            filetypes.push_back(std::make_pair(extension, extension));
+            filetypes.emplace_back(extension, extension);
         }
         std::string filename = ng::file_dialog(filetypes, false);
         if (!filename.empty())
@@ -1958,10 +1958,9 @@ void Viewer::drawContents()
     {
         _wedgeRequested = false;
         mx::ImagePtr wedgeImage = renderWedge();
-        if (!wedgeImage || !_imageHandler->saveImage(_wedgeFilename, wedgeImage, true))
+        if (wedgeImage)
         {
-            new ng::MessageDialog(this, ng::MessageDialog::Type::Information,
-                "Failed to save wedge to disk: ", _wedgeFilename.asString());
+            _imageHandler->saveImage(_wedgeFilename, wedgeImage, true);
         }
     }
 
@@ -1973,10 +1972,9 @@ void Viewer::drawContents()
     {
         _captureRequested = false;
         mx::ImagePtr frameImage = getFrameImage();
-        if (!frameImage || !_imageHandler->saveImage(_captureFilename, frameImage, true))
+        if (frameImage)
         {
-            new ng::MessageDialog(this, ng::MessageDialog::Type::Information,
-                "Failed to save frame to disk: ", _captureFilename.asString());
+            _imageHandler->saveImage(_captureFilename, frameImage, true);
         }
     }
 
