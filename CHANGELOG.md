@@ -1,6 +1,6 @@
 # Change Log
 
-## [1.37.2] - Development
+## [1.37.2] - 2020-09-06
 
 - ADSK : General
   - Add definition searching for shader nodes for <material> instances (#919)
@@ -45,6 +45,7 @@
 - Added support for floating-point render targets in ShaderRenderer and its subclasses, allowing for HDR texture baking.
 - Added support for displacement shaders in generated OSL.
 - Added the ShaderTranslator class, laying the groundwork for support of shader translation graphs.
+- Added Python bindings for the Image class.
 
 ### ILM Fixed
 - Fixed the alignment of environment backgrounds in the viewer.
