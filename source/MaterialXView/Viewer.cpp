@@ -697,7 +697,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
     advancedPopupParent->setLayout(new ng::GroupLayout());
 
     ng::VScrollPanel* scrollPanel = new ng::VScrollPanel(advancedPopupParent);
-    scrollPanel->setFixedHeight(400);
+    scrollPanel->setFixedHeight(500);
     ng::Widget* advancedPopup = new ng::Widget(scrollPanel);
     advancedPopup->setLayout(new ng::GroupLayout(13));
 
@@ -908,6 +908,47 @@ void Viewer::createAdvancedSettings(Widget* parent)
     {
         _bakeTextureRes = MIN_TEXTURE_RES * (int) std::pow(2, index);
     });
+
+    ng::Label* wedgeLabel = new ng::Label(advancedPopup, "Wedge Rendering Options");
+    wedgeLabel->setFontSize(20);
+    wedgeLabel->setFont("sans-bold");
+
+    ng::Widget* wedgeMin = new ng::Widget(advancedPopup);
+    wedgeMin->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
+    mx::UIProperties wedgeProp;
+    wedgeProp.uiSoftMin = mx::Value::createValue(0.0f);
+    wedgeProp.uiSoftMax = mx::Value::createValue(1.0f);
+    ng::FloatBox<float>* wedgeMinBox = createFloatWidget(wedgeMin, "Minimum Wedge Multiplier:",
+        _wedgePropertyMax, &wedgeProp, [this](float value)
+    {
+        _wedgePropertyMin = value;
+    });
+    wedgeMinBox->setValue(0.0);
+    wedgeMinBox->setEditable(true);
+
+    ng::Widget* wedgeMax = new ng::Widget(advancedPopup);
+    wedgeMax->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
+    ng::FloatBox<float>* wedgeMaxBox = createFloatWidget(wedgeMax, "Maximum Wedge Multiplier:",
+        _wedgePropertyMax, &wedgeProp, [this](float value)
+    {
+        _wedgePropertyMax = value;
+    });
+    wedgeMaxBox->setValue(1.0);
+    wedgeMaxBox->setEditable(true);
+
+    ng::Widget* wedgeCount = new ng::Widget(advancedPopup);
+    wedgeCount->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
+    mx::UIProperties wedgeCountProp;
+    wedgeCountProp.uiMin = mx::Value::createValue(1);
+    wedgeCountProp.uiSoftMax = mx::Value::createValue(8);
+    wedgeCountProp.uiStep = mx::Value::createValue(1);
+    ng::IntBox<int>* wedgeCountBox = createIntWidget(wedgeCount, "Wedge Count:",
+        _wedgeImageCount, &wedgeCountProp, [this](int value)
+    {
+        _wedgeImageCount = value;
+    });
+    wedgeCountBox->setValue(8);
+    wedgeCountBox->setEditable(true);
 }
 
 void Viewer::updateGeometrySelections()
@@ -1555,13 +1596,15 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
     // Capture the current frame and save as an image file.
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
-        _captureFilename = ng::file_dialog({ { mx::ImageLoader::TGA_EXTENSION, mx::ImageLoader::TGA_EXTENSION } }, true);
+        mx::StringSet extensions = _imageHandler->supportedExtensions();
+        std::vector<std::pair<std::string, std::string>> filetypes;
+        for (const auto& extension : extensions)
+        {
+            filetypes.push_back(std::make_pair(extension, extension));
+        }
+        _captureFilename = ng::file_dialog(filetypes, true);
         if (!_captureFilename.isEmpty())
         {
-            if (_captureFilename.getExtension() != mx::ImageLoader::TGA_EXTENSION)
-            {
-                _captureFilename.addExtension(mx::ImageLoader::TGA_EXTENSION);
-            }
             _captureRequested = true;
         }
     }
@@ -1569,13 +1612,15 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
     // Render a wedge for the current material.
     if (key == GLFW_KEY_W && action == GLFW_PRESS)
     {
-        _wedgeFilename = ng::file_dialog({ { mx::ImageLoader::TGA_EXTENSION, mx::ImageLoader::TGA_EXTENSION } }, true);
+        mx::StringSet extensions = _imageHandler->supportedExtensions();
+        std::vector<std::pair<std::string, std::string>> filetypes;
+        for (const auto& extension : extensions)
+        {
+            filetypes.push_back(std::make_pair(extension, extension));
+        }
+        _wedgeFilename = ng::file_dialog(filetypes, true);
         if (!_wedgeFilename.isEmpty())
         {
-            if (_wedgeFilename.getExtension() != mx::ImageLoader::TGA_EXTENSION)
-            {
-                _wedgeFilename.addExtension(mx::ImageLoader::TGA_EXTENSION);
-            }
             _wedgeRequested = true;
         }
     }
