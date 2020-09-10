@@ -1593,8 +1593,8 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
         return true;
     }
 
-    // Capture the current frame and save as an image file.
-    if (key == GLFW_KEY_F && action == GLFW_PRESS)
+    // Capture the current frame or render wedge and save as an image file.
+    if ((key == GLFW_KEY_F || key == GLFW_KEY_W) && action == GLFW_PRESS)
     {
         mx::StringSet extensions = _imageHandler->supportedExtensions();
         std::vector<std::pair<std::string, std::string>> filetypes;
@@ -1602,26 +1602,21 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
         {
             filetypes.push_back(std::make_pair(extension, extension));
         }
-        _captureFilename = ng::file_dialog(filetypes, true);
-        if (!_captureFilename.isEmpty())
+        if (key == GLFW_KEY_F)
         {
-            _captureRequested = true;
+            _captureFilename = ng::file_dialog(filetypes, true);
+            if (!_captureFilename.isEmpty())
+            {
+                _captureRequested = true;
+            }
         }
-    }
-
-    // Render a wedge for the current material.
-    if (key == GLFW_KEY_W && action == GLFW_PRESS)
-    {
-        mx::StringSet extensions = _imageHandler->supportedExtensions();
-        std::vector<std::pair<std::string, std::string>> filetypes;
-        for (const auto& extension : extensions)
+        else
         {
-            filetypes.push_back(std::make_pair(extension, extension));
-        }
-        _wedgeFilename = ng::file_dialog(filetypes, true);
-        if (!_wedgeFilename.isEmpty())
-        {
-            _wedgeRequested = true;
+            _wedgeFilename = ng::file_dialog(filetypes, true);
+            if (!_wedgeFilename.isEmpty())
+            {
+                _wedgeRequested = true;
+            }
         }
     }
 
@@ -2257,6 +2252,7 @@ void Viewer::updateDisplayedProperties()
     _propertyEditor.updateContents(this);
     createSaveMaterialsInterface(_propertyEditor.getWindow(), "Save Material");
     createWedgeParameterInterface(_propertyEditor.getWindow(), "Wedge Parameter");
+    performLayout();
 }
 
 mx::ImagePtr Viewer::getAmbientOcclusionImage(MaterialPtr material)
