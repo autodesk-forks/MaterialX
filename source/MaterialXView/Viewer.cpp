@@ -2197,7 +2197,7 @@ void Viewer::createWedgeParameterInterface(Widget* parent, const std::string& la
     MaterialPtr material = getSelectedMaterial();
     if (material)
     {
-        mx::DocumentPtr doc = material ? material->getDocument() : nullptr;
+        mx::DocumentPtr doc = material->getDocument();
 
         const mx::VariableBlock* publicUniforms = material->getPublicUniforms();
         if (publicUniforms)
