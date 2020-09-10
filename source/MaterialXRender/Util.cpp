@@ -5,8 +5,11 @@
 
 #include <MaterialXRender/Util.h>
 
+#include <MaterialXCore/Util.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
+
+#include <iostream>
 
 namespace MaterialX
 {
@@ -287,14 +290,46 @@ void createUIPropertyGroups(ElementPtr uniformElement, DocumentPtr contentDocume
 }
 
 void createUIPropertyGroups(const VariableBlock& block, DocumentPtr contentDocument, TypedElementPtr materialElement,
-                            const string& pathSeparator, UIPropertyGroup& groups, UIPropertyGroup& unnamedGroups)
+                            const string& pathSeparator, UIPropertyGroup& groups, UIPropertyGroup& unnamedGroups, bool addFromDefinition)
 {
-    for (const auto& uniform : block.getVariableOrder())
+    const vector<ShaderPort*>& blockVariables = block.getVariableOrder();
+    for (const auto& blockVariable : blockVariables)
     {
-        if (!uniform->getPath().empty() && uniform->getValue())
+        const string& path = blockVariable->getPath();
+
+        std::cout << "Block variable: " << blockVariable->getName() << "Path: "  << blockVariable->getPath();
+        if (blockVariable->getValue())
         {
-            ElementPtr uniformElement = contentDocument->getDescendant(uniform->getPath());
-            createUIPropertyGroups(uniformElement, contentDocument, materialElement, pathSeparator, groups, unnamedGroups, uniform);
+            std::cout << " Value: " << blockVariable->getValue()->getValueString();
+        }
+        else
+        {
+            std::cout << " No value.";
+        }
+        std::cout << std::endl;
+        if (!blockVariable->getPath().empty())
+        {
+            ElementPtr uniformElement = contentDocument->getDescendant(path);
+            if (!uniformElement && addFromDefinition)
+            {
+                string nodePath = parentNamePath(path);
+                ElementPtr uniformParent = contentDocument->getDescendant(nodePath);
+                if (uniformParent)
+                {
+                    NodePtr uniformNode = uniformParent->asA<Node>();
+                    if (uniformNode)
+                    {
+                        StringVec pathVec = splitNamePath(path);
+                        uniformNode->addInputFromNodeDef(pathVec[pathVec.size() - 1]);
+                    }
+                }
+            }
+
+            uniformElement = contentDocument->getDescendant(path);
+            if (uniformElement && blockVariable->getValue())
+            {
+                createUIPropertyGroups(uniformElement, contentDocument, materialElement, pathSeparator, groups, unnamedGroups, blockVariable);
+            }
         }
     }
 }
