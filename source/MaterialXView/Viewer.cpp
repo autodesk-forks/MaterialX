@@ -1797,27 +1797,101 @@ mx::ImagePtr Viewer::renderWedge()
 {
     MaterialPtr material = getSelectedMaterial();
     mx::ShaderPort* uniform = material ? material->findUniform(_wedgePropertyName) : nullptr;
-    float origPropertyValue = uniform && uniform->getValue()->isA<float>() ? uniform->getValue()->asA<float>() : 0.0f;
+    mx::ValuePtr origPropertyValue(uniform ? uniform->getValue() : nullptr);
 
-    std::vector<mx::ImagePtr> imageVec;
-    float wedgePropertyStep = (_wedgePropertyMax - _wedgePropertyMin) / (_wedgeImageCount - 1);
-    for (unsigned int i = 0; i < _wedgeImageCount; i++)
+    if (origPropertyValue)
     {
+        std::vector<mx::ImagePtr> imageVec;
+        float wedgePropertyStep = (_wedgePropertyMax - _wedgePropertyMin) / (_wedgeImageCount - 1);
+        for (unsigned int i = 0; i < _wedgeImageCount; i++)
+        {
+            bool setValue = false;
+            if (material)
+            {
+                float propertyValue = (i == _wedgeImageCount - 1) ? _wedgePropertyMax : _wedgePropertyMin + wedgePropertyStep * i;
+                if (origPropertyValue->isA<int>())
+                {
+                    material->setUniformInt(_wedgePropertyName, static_cast<int>(propertyValue));
+                    setValue = true;
+                }
+                else if (origPropertyValue->isA<float>())
+                {
+                    material->setUniformFloat(_wedgePropertyName, propertyValue);
+                    setValue = true;
+                }
+                else if (origPropertyValue->isA<mx::Vector2>())
+                {
+                    ng::Vector2f val(propertyValue, propertyValue);
+                    material->setUniformVec2(_wedgePropertyName, val);
+                    setValue = true;
+                }
+                else if (origPropertyValue->isA<mx::Color3>() ||
+                    origPropertyValue->isA<mx::Vector3>())
+                {
+                    ng::Vector3f val(propertyValue, propertyValue, propertyValue);
+                    material->setUniformVec3(_wedgePropertyName, val);
+                    setValue = true;
+                }
+                else if (origPropertyValue->isA<mx::Color4>() ||
+                    origPropertyValue->isA<mx::Vector4>())
+                {
+                    ng::Vector4f val(propertyValue, propertyValue, propertyValue, origPropertyValue->isA<mx::Color4>() ? 1.0f : propertyValue);
+                    material->setUniformVec4(_wedgePropertyName, val);
+                    setValue = true;
+                }
+            }
+            if (setValue)
+            {
+                renderFrame();
+                imageVec.push_back(getFrameImage());
+            }
+        }
+
         if (material)
         {
-            float propertyValue = (i == _wedgeImageCount - 1) ? _wedgePropertyMax : _wedgePropertyMin + wedgePropertyStep * i;
-            material->setUniformFloat(_wedgePropertyName, propertyValue);
+            if (origPropertyValue->isA<int>())
+            {
+                material->setUniformInt(_wedgePropertyName, origPropertyValue->asA<int>());
+            }
+            else if (origPropertyValue->isA<float>())
+            {
+                material->setUniformFloat(_wedgePropertyName, origPropertyValue->asA<float>());
+            }
+            else if (origPropertyValue->isA<mx::Color3>())
+            {
+                const mx::Color3& val =  origPropertyValue->asA<mx::Color3>();
+                ng::Vector3f ngval(val[0], val[1], val[2]);
+                material->setUniformVec3(_wedgePropertyName, ngval);
+            }
+            else if (origPropertyValue->isA<mx::Vector2>())
+            {
+                const mx::Vector2& val = origPropertyValue->asA<mx::Vector2>();
+                ng::Vector2f ngval(val[0], val[1]);
+                material->setUniformVec2(_wedgePropertyName, ngval);
+            }
+            else if (origPropertyValue->isA<mx::Vector3>())
+            {
+                const mx::Vector3& val = origPropertyValue->asA<mx::Vector3>();
+                ng::Vector3f ngval(val[0], val[1], val[2]);
+                material->setUniformVec3(_wedgePropertyName, ngval);
+            }
+            else if (origPropertyValue->isA<mx::Color4>())
+            {
+                const mx::Color4& val = origPropertyValue->asA<mx::Color4>();
+                ng::Vector4f ngval(val[0], val[1], val[1], val[2]);
+                material->setUniformVec4(_wedgePropertyName, ngval);
+            }
+            else if (origPropertyValue->isA<mx::Vector4>())
+            {
+                const mx::Vector4& val = origPropertyValue->asA<mx::Vector4>();
+                ng::Vector4f ngval(val[0], val[1], val[1], val[2]);
+                material->setUniformVec4(_wedgePropertyName, ngval);
+            }
         }
-        renderFrame();
-        imageVec.push_back(getFrameImage());
-    }
 
-    if (material)
-    {
-        material->setUniformFloat(_wedgePropertyName, origPropertyValue);
+        return mx::createImageStrip(imageVec);
     }
-
-    return mx::createImageStrip(imageVec);
+    return nullptr;
 }
 
 void Viewer::bakeTextures()
@@ -2103,10 +2177,86 @@ void Viewer::updateViewHandlers()
     }
 }
 
+void Viewer::createWedgeParameterInterface(Widget* parent, const std::string& label)
+{
+    ng::Label* wedgeLabel = new ng::Label(parent, label);
+    _wedgeSelectionBox = new ng::ComboBox(parent, { "None" });
+    _wedgeSelectionBox->setChevronIcon(-1);
+    _wedgeSelectionBox->setFontSize(15);
+    _wedgeSelectionBox->setCallback([this](int choice)
+    {
+        size_t index = (size_t)choice;
+        const std::vector<std::string> &wedgeItems = this->_wedgeSelectionBox->items();
+        if (!wedgeItems.empty())
+        {
+            this->_wedgePropertyName = wedgeItems[index];
+        }
+    });
+
+    std::vector<std::string> wedgeItems;
+    MaterialPtr material = getSelectedMaterial();
+    if (material)
+    {
+        mx::DocumentPtr doc = material ? material->getDocument() : nullptr;
+
+        const mx::VariableBlock* publicUniforms = material->getPublicUniforms();
+        if (publicUniforms)
+        {
+            mx::UIPropertyGroup groups;
+            mx::UIPropertyGroup unnamedGroups;
+            const std::string pathSeparator(":");
+            mx::createUIPropertyGroups(*publicUniforms, doc, material->getElement(),
+                pathSeparator, groups, unnamedGroups);
+
+            for (auto it = groups.begin(); it != groups.end(); ++it)
+            {
+                const mx::UIPropertyItem& item = it->second;
+                if (material->findUniform(item.variable->getPath()) &&
+                    (item.value->isA<float>() ||
+                    item.value->isA<int>() ||
+                    item.value->isA<mx::Vector2>() ||
+                    item.value->isA<mx::Vector3>() ||
+                    item.value->isA<mx::Color3>() ||
+                    item.value->isA<mx::Vector4>() ||
+                    item.value->isA<mx::Color4>()))
+                {
+                    wedgeItems.push_back(item.variable->getPath());
+                }
+            }
+            for (auto it2 = unnamedGroups.begin(); it2 != unnamedGroups.end(); ++it2)
+            {
+                const mx::UIPropertyItem& item = it2->second;
+                if (material->findUniform(item.variable->getPath()) &&
+                    (item.value->isA<float>() ||
+                    item.value->isA<int>() ||
+                    item.value->isA<mx::Vector2>() ||
+                    item.value->isA<mx::Vector3>() ||
+                    item.value->isA<mx::Color3>() ||
+                    item.value->isA<mx::Vector4>() ||
+                    item.value->isA<mx::Color4>()))
+                {
+                    wedgeItems.push_back(item.variable->getPath());
+                }
+            }
+            _wedgeSelectionBox->setItems(wedgeItems);
+        }
+    }
+
+    _wedgePropertyName.clear();
+    bool haveItems = !wedgeItems.empty();
+    if (haveItems)
+    {
+        _wedgePropertyName = wedgeItems[0];
+    }
+    wedgeLabel->setVisible(haveItems);
+    _wedgeSelectionBox->setVisible(haveItems);
+}
+
 void Viewer::updateDisplayedProperties()
 {
     _propertyEditor.updateContents(this);
     createSaveMaterialsInterface(_propertyEditor.getWindow(), "Save Material");
+    createWedgeParameterInterface(_propertyEditor.getWindow(), "Wedge Parameter");
 }
 
 mx::ImagePtr Viewer::getAmbientOcclusionImage(MaterialPtr material)

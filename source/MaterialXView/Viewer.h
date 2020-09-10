@@ -122,6 +122,7 @@ class Viewer : public ng::Screen
     void createLoadMaterialsInterface(Widget* parent, const std::string& label);
     void createLoadEnvironmentInterface(Widget* parent, const std::string& label);
     void createSaveMaterialsInterface(Widget* parent, const std::string& label);
+    void createWedgeParameterInterface(Widget* parent, const std::string& label);
     void createPropertyEditorInterface(Widget* parent, const std::string& label);
     void createAdvancedSettings(Widget* parent);
 
@@ -267,6 +268,7 @@ class Viewer : public ng::Screen
     float _wedgePropertyMin;
     float _wedgePropertyMax;
     unsigned int _wedgeImageCount;
+    ng::ComboBox* _wedgeSelectionBox;
 
     // Texture baking
     bool _bakeRequested;
