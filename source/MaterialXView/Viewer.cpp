@@ -2201,7 +2201,7 @@ void Viewer::createWedgeParameterInterface(Widget* parent, const std::string& la
             mx::UIPropertyGroup unnamedGroups;
             const std::string pathSeparator(":");
             mx::createUIPropertyGroups(*publicUniforms, doc, material->getElement(),
-                pathSeparator, groups, unnamedGroups);
+                pathSeparator, groups, unnamedGroups, true);
 
             for (auto it = groups.begin(); it != groups.end(); ++it)
             {
