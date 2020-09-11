@@ -127,6 +127,10 @@ int main(int argc, char* const argv[])
                 specularEnvironmentMethod = mx::SPECULAR_ENVIRONMENT_PREFILTER;
             }
         }
+        else if (token == "--envSampleCount")
+        {
+            parseToken(nextToken, "integer", envSampleCount);
+        }       
         else if (token == "--lightRotation")
         {
             parseToken(nextToken, "float", lightRotation);

@@ -869,7 +869,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
         }
         ng::ComboBox* sampleBox = new ng::ComboBox(sampleGroup, sampleOptions);
         sampleBox->setChevronIcon(-1);
-        sampleBox->setSelectedIndex((int)std::log2(DEFAULT_ENV_SAMPLES / MIN_ENV_SAMPLES) / 2);
+        sampleBox->setSelectedIndex((int)std::log2(_envSamples / MIN_ENV_SAMPLES) / 2);
         sampleBox->setCallback([this](int index)
         {
             _envSamples = MIN_ENV_SAMPLES * (int) std::pow(4, index);
