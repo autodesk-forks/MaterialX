@@ -59,7 +59,7 @@ class RtWriteOptions
     /// If true, writes out nodegraph inputs. Default value is false.
     bool writeNodeGraphInputs;
 
-    /// Write out default input values. The default value is true.
+    /// Write out default input values. The default value is false.
     bool writeDefaultValues;
 
     /// Filter function type used for filtering objects during write.

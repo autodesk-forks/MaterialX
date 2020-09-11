@@ -727,7 +727,7 @@ namespace
             outputType = attr.getType();
         }
 
-        bool writeDefaultValues = writeOptions ? writeOptions->writeDefaultValues : true;
+        bool writeDefaultValues = writeOptions ? writeOptions->writeDefaultValues : false;
 
         NodePtr destNode = dest->addNode(nodedef.getNamespacedNode(), node.getName(), numOutputs > 1 ? "multioutput" : outputType);
 
@@ -1236,7 +1236,7 @@ RtReadOptions::RtReadOptions() :
 RtWriteOptions::RtWriteOptions() :
     writeIncludes(true),
     writeNodeGraphInputs(false),
-    writeDefaultValues(true),
+    writeDefaultValues(false),
     writeFilter(nullptr),
     materialWriteOp(NONE),
     desiredMajorVersion(MATERIALX_MAJOR_VERSION),

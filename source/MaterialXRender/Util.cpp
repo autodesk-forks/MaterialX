@@ -9,8 +9,6 @@
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 
-#include <iostream>
-
 namespace MaterialX
 {
 
@@ -297,18 +295,9 @@ void createUIPropertyGroups(const VariableBlock& block, DocumentPtr contentDocum
     {
         const string& path = blockVariable->getPath();
 
-        std::cout << "Block variable: " << blockVariable->getName() << "Path: "  << blockVariable->getPath();
-        if (blockVariable->getValue())
-        {
-            std::cout << " Value: " << blockVariable->getValue()->getValueString();
-        }
-        else
-        {
-            std::cout << " No value.";
-        }
-        std::cout << std::endl;
         if (!blockVariable->getPath().empty())
         {
+            // Optionally add the input if it does not exist
             ElementPtr uniformElement = contentDocument->getDescendant(path);
             if (!uniformElement && addFromDefinition)
             {
