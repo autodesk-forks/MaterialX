@@ -27,8 +27,10 @@ class Viewer : public ng::Screen
            const mx::Vector3& cameraPosition,
            const mx::Vector3& cameraTarget,
            float cameraViewAngle,
+           float cameraZoom,
            const std::string& envRadiancePath,
            mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
+           int envSampleCount,
            float lightRotation,
            const mx::FilePathVec& libraryFolders,
            const mx::FileSearchPath& searchPath,
@@ -277,5 +279,8 @@ class Viewer : public ng::Screen
 
 extern const mx::Vector3 DEFAULT_CAMERA_POSITION;
 extern const float DEFAULT_CAMERA_VIEW_ANGLE;
+extern const float DEFAULT_CAMERA_ZOOM;
+extern const int DEFAULT_ENV_SAMPLES;
+
 
 #endif // MATERIALXVIEW_VIEWER_H

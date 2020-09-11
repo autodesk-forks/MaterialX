@@ -31,12 +31,13 @@
 
 const mx::Vector3 DEFAULT_CAMERA_POSITION(0.0f, 0.0f, 5.0f);
 const float DEFAULT_CAMERA_VIEW_ANGLE = 45.0f;
+const float DEFAULT_CAMERA_ZOOM = 1.0f;
+const int DEFAULT_ENV_SAMPLES = 16;
 
 namespace {
 
 const int MIN_ENV_SAMPLES = 4;
 const int MAX_ENV_SAMPLES = 1024;
-const int DEFAULT_ENV_SAMPLES = 16;
 
 const int SHADOW_MAP_SIZE = 2048;
 const int ALBEDO_TABLE_SIZE = 64;
@@ -151,22 +152,24 @@ void applyModifiers(mx::DocumentPtr doc, const DocumentModifiers& modifiers)
 //
 
 Viewer::Viewer(const std::string& materialFilename,
-               const std::string& meshFilename,
-               const mx::Vector3& meshRotation,
-               float meshScale,
-               const mx::Vector3& cameraPosition,
-               const mx::Vector3& cameraTarget,
-               float cameraViewAngle,
-               const std::string& envRadiancePath,
-               mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
-               float lightRotation,
-               const mx::FilePathVec& libraryFolders,
-               const mx::FileSearchPath& searchPath,
-               const DocumentModifiers& modifiers,
-               int screenWidth,
-               int screenHeight,
-               const mx::Color3& screenColor,
-               int multiSampleCount) :
+    const std::string& meshFilename,
+    const mx::Vector3& meshRotation,
+    float meshScale,
+    const mx::Vector3& cameraPosition,
+    const mx::Vector3& cameraTarget,
+    float cameraViewAngle,
+    float cameraZoom,
+    const std::string& envRadiancePath,
+    mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
+    int envSampleCount,
+    float lightRotation,
+    const mx::FilePathVec& libraryFolders,
+    const mx::FileSearchPath& searchPath,
+    const DocumentModifiers& modifiers,
+    int screenWidth,
+    int screenHeight,
+    const mx::Color3& screenColor,
+    int multiSampleCount) :
     ng::Screen(ng::Vector2i(screenWidth, screenHeight), "MaterialXView",
         true, false,
         8, 8, 24, 8,
@@ -182,7 +185,7 @@ Viewer::Viewer(const std::string& materialFilename,
     _userCameraEnabled(true),
     _userTranslationActive(false),
     _userTranslationPixel(0, 0),
-    _userScale(1.0f),
+    _userScale(cameraZoom),
     _libraryFolders(libraryFolders),
     _searchPath(searchPath),
     _materialFilename(materialFilename),
@@ -217,7 +220,7 @@ Viewer::Viewer(const std::string& materialFilename,
     _bakeHdr(false),
     _bakeTextureRes(DEFAULT_TEXTURE_RES),
     _outlineSelection(false),
-    _envSamples(DEFAULT_ENV_SAMPLES),
+    _envSamples(envSampleCount),
     _drawEnvironment(false),
     _captureRequested(false),
     _wedgeRequested(false),
