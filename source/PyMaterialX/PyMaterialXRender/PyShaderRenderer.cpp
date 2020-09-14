@@ -65,13 +65,14 @@ class PyShaderRenderer : public mx::ShaderRenderer
         );
     }
 
-    void saveImage(const mx::FilePath& filePath) override
+    void saveImage(const mx::FilePath& filePath, mx::ConstImagePtr image) override
     {
         PYBIND11_OVERLOAD_PURE(
             void,
             mx::ShaderRenderer,
             saveImage,
-            filePath
+            filePath,
+            image
         );
     }
 };

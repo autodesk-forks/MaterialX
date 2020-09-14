@@ -214,7 +214,8 @@ class ShaderRenderTester
         const GenShaderUtil::TestSuiteOptions& testOptions,
         RenderUtil::RenderProfileTimes& profileTimes,
         const mx::FileSearchPath& imageSearchPath,
-        const std::string& outputPath = ".") = 0;
+        const std::string& outputPath = ".",
+        mx::ImagePtr returnImage = nullptr) = 0;
 
     // Create a list of generation options based on unit test options
     // These options will override the original generation context options.
