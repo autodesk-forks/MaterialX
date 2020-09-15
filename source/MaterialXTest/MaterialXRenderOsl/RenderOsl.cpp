@@ -52,9 +52,9 @@ class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
                      const std::string& outputPath = ".",
                      mx::ImageVec* imageVec = nullptr) override;
 
-    bool saveImage(const mx::FilePath& filePath, mx::ConstImagePtr image, bool verticalFlip) const override
+    bool saveImage(const mx::FilePath& filePath, mx::ConstImagePtr image, bool /*verticalFlip*/) const override
     {
-        return _renderer->getImageHandler()->saveImage(filePath, image, verticalFlip);
+        return _renderer->getImageHandler()->saveImage(filePath, image, false);
     }
 
     mx::ImageLoaderPtr _imageLoader;
@@ -265,7 +265,9 @@ bool OslShaderRenderTester::runRenderer(const std::string& shaderName,
                         }
                     }
                     // Bind IBL image name overrides.
-                    std::string envmap_filename("string envmap_filename \"resources/Lights/san_giuseppe_bridge.hdr\";\n");
+                    std::string envmap_filename("string envmap_filename \"");
+                    envmap_filename += testOptions.radianceIBLPath;
+                    envmap_filename += "\";\n";                    
                     envOverrides.push_back(envmap_filename);
 
                     _renderer->setShaderParameterOverrides(overrides);
