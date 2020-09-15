@@ -19,8 +19,8 @@
 
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 
-#include <MaterialXRender/StbImageLoader.h>
 #include <MaterialXRender/GeometryHandler.h>
+#include <MaterialXRender/StbImageLoader.h>
 #if defined(MATERIALX_BUILD_OIIO)
 #include <MaterialXRender/OiioImageLoader.h>
 #endif
@@ -62,6 +62,8 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
                      const mx::FileSearchPath& imageSearchPath,
                      const std::string& outputPath = ".",
                      mx::ImageVec* imageVec = nullptr) override;
+
+    bool saveImage(const mx::FilePath& filePath, mx::ConstImagePtr image, bool verticalFlip) const override;
 
     mx::GlslRendererPtr _renderer;
     mx::LightHandlerPtr _lightHandler;
@@ -120,12 +122,12 @@ void GlslShaderRenderTester::createRenderer(std::ostream& log)
         _renderer->initialize();
 
         // Set image handler on renderer
-#if defined(MATERIALX_BUILD_OIIO)
-        mx::OiioImageLoaderPtr stbLoader = mx::OiioImageLoader::create();
-#else
         mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
-#endif
         mx::ImageHandlerPtr imageHandler = mx::GLTextureHandler::create(stbLoader);
+#if defined(MATERIALX_BUILD_OIIO)
+        mx::OiioImageLoaderPtr oiioLoader = mx::OiioImageLoader::create();
+        imageHandler->addLoader(oiioLoader);
+#endif
         _renderer->setImageHandler(imageHandler);
 
         // Set light handler.
@@ -145,6 +147,11 @@ void GlslShaderRenderTester::createRenderer(std::ostream& log)
         log << e.what() << std::endl;
     }
     REQUIRE(initialized);
+}
+
+bool GlslShaderRenderTester::saveImage(const mx::FilePath& filePath, mx::ConstImagePtr image, bool verticalFlip) const
+{
+    return _renderer->getImageHandler()->saveImage(filePath, image, verticalFlip);
 }
 
 // If these streams don't exist add them for testing purposes
@@ -506,7 +513,7 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                         mx::ImagePtr image = _renderer->captureImage();
                         if (image)
                         {
-                            _renderer->saveImage(fileName, image);
+                            _renderer->saveImage(fileName, image, true);
                             if (imageVec)
                             {
                                 imageVec->push_back(image);

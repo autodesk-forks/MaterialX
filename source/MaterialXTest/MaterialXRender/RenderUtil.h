@@ -19,6 +19,7 @@
 
 #include <MaterialXRender/Util.h>
 #include <MaterialXRender/LightHandler.h>
+#include <MaterialXRender/ImageHandler.h>
 
 #include <chrono>
 #include <ctime>
@@ -216,6 +217,9 @@ class ShaderRenderTester
         const mx::FileSearchPath& imageSearchPath,
         const std::string& outputPath = ".",
         mx::ImageVec* imageVec = nullptr) = 0;
+
+    // Save an image
+    virtual bool saveImage(const mx::FilePath&, mx::ConstImagePtr, bool) const { return false;  };
 
     // Create a list of generation options based on unit test options
     // These options will override the original generation context options.

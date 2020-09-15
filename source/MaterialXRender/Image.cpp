@@ -39,6 +39,11 @@ ImagePtr createImageStrip(vector<ImagePtr> imageVec)
         return nullptr;
     }
 
+    if (!imageVec[0])
+    {
+        return nullptr;
+    }
+
     unsigned int srcWidth = imageVec[0]->getWidth();
     unsigned int srcHeight = imageVec[0]->getHeight();
     unsigned int destWidth = srcWidth * (unsigned int) imageVec.size();
@@ -53,7 +58,8 @@ ImagePtr createImageStrip(vector<ImagePtr> imageVec)
     unsigned int xOffset = 0;
     for (ImagePtr srcImage : imageVec)
     {
-        if (srcImage->getWidth() != srcWidth ||
+        if (!srcImage || 
+            srcImage->getWidth() != srcWidth ||
             srcImage->getHeight() != srcHeight ||
             srcImage->getChannelCount() != channelCount ||
             srcImage->getBaseType() != baseType)

@@ -13,6 +13,11 @@
 
 #include <MaterialXRenderOsl/OslRenderer.h>
 
+#include <MaterialXRender/StbImageLoader.h>
+#if defined(MATERIALX_BUILD_OIIO)
+#include <MaterialXRender/OiioImageLoader.h>
+#endif
+
 namespace mx = MaterialX;
 
 class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
@@ -47,6 +52,12 @@ class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
                      const std::string& outputPath = ".",
                      mx::ImageVec* imageVec = nullptr) override;
 
+    bool saveImage(const mx::FilePath& filePath, mx::ConstImagePtr image, bool verticalFlip) const override
+    {
+        return _renderer->getImageHandler()->saveImage(filePath, image, verticalFlip);
+    }
+
+    mx::ImageLoaderPtr _imageLoader;
     mx::OslRendererPtr _renderer;
 };
 
@@ -56,6 +67,7 @@ void OslShaderRenderTester::createRenderer(std::ostream& log)
     bool initialized = false;
 
     _renderer = mx::OslRenderer::create();
+    _imageLoader = mx::StbImageLoader::create();
 
     // Set up additional utilities required to run OSL testing including
     // oslc and testrender paths and OSL include path
@@ -69,7 +81,14 @@ void OslShaderRenderTester::createRenderer(std::ostream& log)
     try
     {
         _renderer->initialize();
-        _renderer->setImageHandler(nullptr);
+
+        mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
+        mx::ImageHandlerPtr imageHandler = mx::ImageHandler::create(stbLoader);
+#if defined(MATERIALX_BUILD_OIIO)
+        mx::OiioImageLoaderPtr oiioLoader = mx::OiioImageLoader::create();
+        imageHandler->addLoader(oiioLoader);
+#endif
+        _renderer->setImageHandler(imageHandler);
         _renderer->setLightHandler(nullptr);
         initialized = true;
 

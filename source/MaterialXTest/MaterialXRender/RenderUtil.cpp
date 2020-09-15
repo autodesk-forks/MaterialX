@@ -442,14 +442,14 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                                             setValue = true;
                                         }
                                         else if (origPropertyValue->isA<mx::Color3>() ||
-                                                 origPropertyValue->isA<mx::Vector3>())
+                                            origPropertyValue->isA<mx::Vector3>())
                                         {
                                             mx::Vector3 val(propertyValue, propertyValue, propertyValue);
                                             valueElement->setValue(val);
                                             setValue = true;
                                         }
                                         else if (origPropertyValue->isA<mx::Color4>() ||
-                                                 origPropertyValue->isA<mx::Vector4>())
+                                            origPropertyValue->isA<mx::Vector4>())
                                         {
                                             mx::Vector4 val(propertyValue, propertyValue, propertyValue, origPropertyValue->isA<mx::Color4>() ? 1.0f : propertyValue);
                                             valueElement->setValue(val);
@@ -461,14 +461,17 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                                             runRenderer(elementName, targetElement, context, doc, log, options, profileTimes, imageSearchPath, outputPath, &imageVec);
                                         }
                                     }
-                                }
 
-                                if (!imageVec.empty())
-                                {
-                                    mx::ImagePtr wedgeImage = mx::createImageStrip(imageVec);
-                                    if (wedgeImage)
+                                    if (!imageVec.empty())
                                     {
-                                        //_imageHandler->saveImage(_wedgeFilename, wedgeImage, true))
+                                        mx::ImagePtr wedgeImage = mx::createImageStrip(imageVec);
+                                        if (wedgeImage)
+                                        {
+                                            std::string wedgeFileName = mx::createValidName(mx::replaceSubstrings(parameterPath, pathMap));
+                                            wedgeFileName += "_" + _languageTargetString + ".bmp";
+                                            mx::FilePath wedgePath = outputPath / wedgeFileName;
+                                            saveImage(wedgePath, wedgeImage, true);
+                                        }
                                     }
                                 }
                             }
