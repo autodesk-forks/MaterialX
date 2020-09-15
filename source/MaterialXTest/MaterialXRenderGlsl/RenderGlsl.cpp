@@ -61,7 +61,7 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
                      RenderUtil::RenderProfileTimes& profileTimes,
                      const mx::FileSearchPath& imageSearchPath,
                      const std::string& outputPath = ".",
-                     mx::ImagePtr returnImage = nullptr) override;
+                     mx::ImageVec* imageVec = nullptr) override;
 
     mx::GlslRendererPtr _renderer;
     mx::LightHandlerPtr _lightHandler;
@@ -260,8 +260,7 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                                           RenderUtil::RenderProfileTimes& profileTimes,
                                           const mx::FileSearchPath& imageSearchPath,
                                           const std::string& outputPath,
-                                          mx::ImagePtr returnImage
-                                          )
+                                          mx::ImageVec* imageVec)
 {
     RenderUtil::AdditiveScopedTimer totalGLSLTime(profileTimes.languageTimes.totalTime, "GLSL total time");
 
@@ -508,7 +507,10 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                         if (image)
                         {
                             _renderer->saveImage(fileName, image);
-                            returnImage = image;
+                            if (imageVec)
+                            {
+                                imageVec->push_back(image);
+                            }
                         }
                     }
                 }

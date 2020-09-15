@@ -1799,7 +1799,7 @@ mx::ImagePtr Viewer::renderWedge()
 
     if (origPropertyValue)
     {
-        std::vector<mx::ImagePtr> imageVec;
+        mx::ImageVec imageVec;
         float wedgePropertyStep = (_wedgePropertyMax - _wedgePropertyMin) / (_wedgeImageCount - 1);
         for (unsigned int i = 0; i < _wedgeImageCount; i++)
         {

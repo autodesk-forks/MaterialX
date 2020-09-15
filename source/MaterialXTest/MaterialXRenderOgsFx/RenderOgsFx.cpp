@@ -43,7 +43,7 @@ protected:
         RenderUtil::RenderProfileTimes& profileTimes,
         const mx::FileSearchPath& imageSearchPath,
         const std::string& outputPath = ".",
-        mx::ImagePtr returnImage = nullptr) override;
+        mx::ImageVec* imageVec = nullptr) override;
 
     mx::LightHandlerPtr _lightHandler;
 };
@@ -91,7 +91,7 @@ bool OgsFxShaderRenderTester::runRenderer(const std::string& shaderName,
                                            RenderUtil::RenderProfileTimes& profileTimes,
                                            const mx::FileSearchPath& /*imageSearchPath*/,
                                            const std::string& outputPath,
-                                           mx::ImagePtr returnImage)
+                                           mx::ImageVec* /*imageVec*/)
 {
     RenderUtil::AdditiveScopedTimer totalTime(profileTimes.languageTimes.totalTime, "OgsFx total time");
 

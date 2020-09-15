@@ -43,7 +43,7 @@ class ArnoldShaderRenderTester : public RenderUtil::ShaderRenderTester
                       RenderUtil::RenderProfileTimes& profileTimes,
                       const mx::FileSearchPath& imageSearchPath,
                       const std::string& outputPath = ".",
-                      mx::ImagePtr returnImage = nullptr) override;
+                      mx::ImageVec* imageVec = nullptr) override;
 };
 
 void ArnoldShaderRenderTester::createRenderer(std::ostream& /*log*/)
@@ -59,7 +59,7 @@ bool ArnoldShaderRenderTester::runRenderer(const std::string& shaderName,
                                             RenderUtil::RenderProfileTimes& profileTimes,
                                             const mx::FileSearchPath& /*imageSearchPath*/,
                                             const std::string& outputPath,
-                                            mx::ImagePtr returnImage)
+                                            mx::ImageVec* /*returnImage*/)
 {
     RenderUtil::AdditiveScopedTimer totalArnoldTime(profileTimes.languageTimes.totalTime, "Arnold total time");
 

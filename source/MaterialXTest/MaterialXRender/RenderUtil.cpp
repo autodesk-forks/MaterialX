@@ -376,13 +376,11 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
 
                             if (!performWedge)
                             {
-                                mx::ImagePtr returnImage;
-                                runRenderer(elementName, targetElement, context, doc, log, options, profileTimes, imageSearchPath, outputPath,
-                                    returnImage);
+                                runRenderer(elementName, targetElement, context, doc, log, options, profileTimes, imageSearchPath, outputPath, nullptr);
                             }
                             else
                             {
-                                std::vector<mx::ImagePtr> imageVec;
+                                mx::ImageVec imageVec;
                                 for (size_t f = 0; f < wedgeFiles.size(); f++)
                                 {
                                     const std::string& wedgeFile = wedgeFiles[f];
@@ -422,7 +420,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                                     float wedgePropertyMax = wedgeRangeMax[f];
                                     int wedgeImageCount = std::max(wedgeSteps[f], 2);
 
-                                    float wedgePropertyStep = ( - wedgePropertyMin) / (wedgeImageCount - 1);
+                                    float wedgePropertyStep = (wedgePropertyMax - wedgePropertyMin) / (wedgeImageCount - 1);
                                     for (int w = 0; w < wedgeImageCount; w++)
                                     {
                                         bool setValue = false;
@@ -460,10 +458,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
 
                                         if (setValue)
                                         {
-                                            mx::ImagePtr returnImage;
-                                            runRenderer(elementName, targetElement, context, doc, log, options, profileTimes, imageSearchPath, outputPath,
-                                                returnImage);
-                                            imageVec.push_back(returnImage);
+                                            runRenderer(elementName, targetElement, context, doc, log, options, profileTimes, imageSearchPath, outputPath, &imageVec);
                                         }
                                     }
                                 }

@@ -45,7 +45,7 @@ class OslShaderRenderTester : public RenderUtil::ShaderRenderTester
                      RenderUtil::RenderProfileTimes& profileTimes,
                      const mx::FileSearchPath& imageSearchPath,
                      const std::string& outputPath = ".",
-                     mx::ImagePtr returnImage = nullptr) override;
+                     mx::ImageVec* imageVec = nullptr) override;
 
     mx::OslRendererPtr _renderer;
 };
@@ -109,7 +109,7 @@ bool OslShaderRenderTester::runRenderer(const std::string& shaderName,
                                          RenderUtil::RenderProfileTimes& profileTimes,
                                          const mx::FileSearchPath& imageSearchPath,
                                          const std::string& outputPath,
-                                         mx::ImagePtr returnImage)
+                                         mx::ImageVec* imageVec)
 {
     RenderUtil::AdditiveScopedTimer totalOSLTime(profileTimes.languageTimes.totalTime, "OSL total time");
 
@@ -277,7 +277,10 @@ bool OslShaderRenderTester::runRenderer(const std::string& shaderName,
                         {
                             RenderUtil::AdditiveScopedTimer renderTimer(profileTimes.languageTimes.renderTime, "OSL render time");
                             _renderer->render();
-                            returnImage = _renderer->captureImage();
+                            if (imageVec)
+                            {
+                                imageVec->push_back(_renderer->captureImage());
+                            }
                         }
                     }
                     else
