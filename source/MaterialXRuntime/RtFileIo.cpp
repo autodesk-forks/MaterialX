@@ -34,7 +34,7 @@ namespace
     static const RtTokenSet nodedefMetadata     = { RtToken("name"), RtToken("type"), RtToken("node") };
     static const RtTokenSet attrMetadata        = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels") };
     static const RtTokenSet inputMetadata       = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels"),
-                                                    RtToken("doc"), RtToken("uiname"), RtToken("uifolder"), RtToken("uimin"), RtToken("uimax") };
+                                                    RtToken("doc"), RtToken("uiname"), RtToken("uifolder"), RtToken("uimin"), RtToken("uimax"), RtToken("nodegraph") };
     static const RtTokenSet nodeMetadata        = { RtToken("name"), RtToken("type"), RtToken("node") };
     static const RtTokenSet nodegraphMetadata   = { RtToken("name") };
     static const RtTokenSet genericMetadata     = { RtToken("name"), RtToken("kind") };
@@ -624,7 +624,7 @@ namespace
 
     void validateNodesHaveNodedefs(DocumentPtr doc)
     {
-        for (const ElementPtr& elem : doc->getChildren())
+        for (auto elem : doc->getChildren())
         {
             if (elem->isA<Node>())
             {
@@ -668,7 +668,7 @@ namespace
         PvtRenamingMapper mapper;
 
         // Load all other elements.
-        for (const ElementPtr& elem : doc->getChildren())
+        for (auto elem : doc->getChildren())
         {
             if (!filter || filter(elem))
             {
@@ -744,7 +744,7 @@ namespace
         }
     }
 
-    NodePtr writeNode(const PvtPrim* src, GraphElementPtr dest)
+    NodePtr writeNode(const PvtPrim* src, GraphElementPtr dest, const RtWriteOptions* writeOptions)
     {
         RtNode node(src->hnd());
         RtNodeDef nodedef(node.getNodeDef());
@@ -763,6 +763,8 @@ namespace
             outputType = attr.getType();
         }
 
+        bool writeDefaultValues = writeOptions ? writeOptions->writeDefaultValues : false;
+
         NodePtr destNode = dest->addNode(nodedef.getNamespacedNode(), node.getName(), numOutputs > 1 ? "multioutput" : outputType);
 
         for (RtAttribute attrDef : nodedef.getPrim().getAttributes())
@@ -772,7 +774,8 @@ namespace
             if (input)
             {
                 // Write input if it's connected or different from default value.
-                if (input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), attrDef.getValue()))
+                if (writeDefaultValues || 
+                    input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), attrDef.getValue()))
                 {
                     ValueElementPtr valueElem;
                     if (input.isUniform())
@@ -960,7 +963,7 @@ namespace
         // Write nodes.
         for (RtPrim node : nodegraph.getNodes())
         {
-            writeNode(PvtObject::ptr<PvtPrim>(node), destNodeGraph);
+            writeNode(PvtObject::ptr<PvtPrim>(node), destNodeGraph, writeOptions);
         }
 
         // Write outputs.
@@ -1148,7 +1151,7 @@ namespace
             }
             else if (typeName == RtNode::typeName())
             {
-                NodePtr mxNode = writeNode(prim, doc);
+                NodePtr mxNode = writeNode(prim, doc, writeOptions);
                 RtNode node(prim->hnd());
                 const RtOutput& output = node.getOutput(DEFAULT_OUTPUT);
                 if (output && output.getType() == MATERIAL_TYPE_STRING && writeOptions &&
@@ -1270,6 +1273,7 @@ RtReadOptions::RtReadOptions() :
 RtWriteOptions::RtWriteOptions() :
     writeIncludes(true),
     writeNodeGraphInputs(false),
+    writeDefaultValues(false),
     writeFilter(nullptr),
     materialWriteOp(NONE),
     desiredMajorVersion(MATERIALX_MAJOR_VERSION),
@@ -1283,10 +1287,10 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
     {
         DocumentPtr document = createDocument();
         XmlReadOptions xmlReadOptions;
-        xmlReadOptions.skipConflictingElements = true;
+        //xmlReadOptions.skipConflictingElements = true;
         if (readOptions)
         {
-            xmlReadOptions.skipConflictingElements = true;
+            //xmlReadOptions.skipConflictingElements = true;
             xmlReadOptions.applyFutureUpdates = readOptions->applyFutureUpdates;
         }
         readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
@@ -1306,10 +1310,10 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
     {
         DocumentPtr document = createDocument();
         XmlReadOptions xmlReadOptions;
-        xmlReadOptions.skipConflictingElements = true;
+        //xmlReadOptions.skipConflictingElements = true;
         if (readOptions)
         {
-            xmlReadOptions.skipConflictingElements = true;
+            //xmlReadOptions.skipConflictingElements = true;
             xmlReadOptions.applyFutureUpdates = readOptions->applyFutureUpdates;
         }
         readFromXmlStream(document, stream, &xmlReadOptions);
@@ -1330,7 +1334,7 @@ void RtFileIo::readLibraries(const FilePathVec& libraryPaths, const FileSearchPa
     // Load all content into a document.
     DocumentPtr doc = createDocument();
     XmlReadOptions readOptions;
-    readOptions.skipConflictingElements = true;
+    //readOptions.skipConflictingElements = true;
     readOptions.applyFutureUpdates = true;
     MaterialX::loadLibraries(libraryPaths, searchPaths, doc, nullptr, &readOptions);
 
@@ -1360,7 +1364,7 @@ void RtFileIo::readLibraries(const FilePathVec& libraryPaths, const FileSearchPa
     PvtRenamingMapper mapper;
 
     // Second, load all other elements.
-    for (const ElementPtr& elem : doc->getChildren())
+    for (auto elem : doc->getChildren())
     {
         PvtPath path(stage->getPath());
         path.push(RtToken(elem->getName()));
@@ -1396,11 +1400,11 @@ void RtFileIo::write(const FilePath& documentPath, const RtWriteOptions* options
     if (options)
     {
         xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
-        document->setVersionString(makeVersionString(options->desiredMajorVersion, options->desiredMinorVersion));
+        //document->setVersionString(makeVersionString(options->desiredMajorVersion, options->desiredMinorVersion));
     }
     else
     {
-        document->setVersionString(makeVersionString(MATERIALX_MAJOR_VERSION, MATERIALX_MINOR_VERSION + 1));
+        //document->setVersionString(makeVersionString(MATERIALX_MAJOR_VERSION, MATERIALX_MINOR_VERSION + 1));
     }
     writeToXmlFile(document, documentPath, &xmlWriteOptions);
 }
@@ -1416,11 +1420,11 @@ void RtFileIo::write(std::ostream& stream, const RtWriteOptions* options)
     if (options)
     {
         xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
-        document->setVersionString(makeVersionString(options->desiredMajorVersion, options->desiredMinorVersion));
+        //document->setVersionString(makeVersionString(options->desiredMajorVersion, options->desiredMinorVersion));
     }
     else
     {
-        document->setVersionString(makeVersionString(MATERIALX_MAJOR_VERSION, MATERIALX_MINOR_VERSION + 1));
+        //document->setVersionString(makeVersionString(MATERIALX_MAJOR_VERSION, MATERIALX_MINOR_VERSION + 1));
     }
     writeToXmlStream(document, stream, &xmlWriteOptions);
 }
