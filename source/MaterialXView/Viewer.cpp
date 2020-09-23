@@ -158,8 +158,10 @@ Viewer::Viewer(const std::string& materialFilename,
                const mx::Vector3& cameraPosition,
                const mx::Vector3& cameraTarget,
                float cameraViewAngle,
+               float cameraZoom,    
                const std::string& envRadiancePath,
                mx::HwSpecularEnvironmentMethod specularEnvironmentMethod,
+               int envSampleCount,
                float lightRotation,
                const mx::FilePathVec& libraryFolders,
                const mx::FileSearchPath& searchPath,
@@ -256,11 +258,9 @@ Viewer::Viewer(const std::string& materialFilename,
 #endif
 
     // Initialize image handler.
-    mx::ImageLoaderPtr imageLoader = mx::StbImageLoader::create();
-    _imageHandler = mx::GLTextureHandler::create(imageLoader);
+    _imageHandler = mx::GLTextureHandler::create(mx::StbImageLoader::create());
 #if MATERIALX_BUILD_OIIO
-    mx::ImageLoaderPtr imageLoader2 = mx::OiioImageLoader::create();
-    _imageHandler->addLoader(imageLoader2);
+    _imageHandler->addLoader(mx::OiioImageLoader::create());
 #endif
     _imageHandler->setSearchPath(_searchPath);
 
@@ -858,7 +858,6 @@ void Viewer::createAdvancedSettings(Widget* parent)
         sampleGroup->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
         new ng::Label(sampleGroup, "Environment Samples:");
         mx::StringVec sampleOptions;
-        _genContext.getOptions().hwMaxRadianceSamples = MAX_ENV_SAMPLES;
         for (int i = MIN_ENV_SAMPLES; i <= MAX_ENV_SAMPLES; i *= 4)
         {
             mProcessEvents = false;
@@ -919,7 +918,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
     mx::UIProperties wedgeProp;
     wedgeProp.uiSoftMin = mx::Value::createValue(0.0f);
     wedgeProp.uiSoftMax = mx::Value::createValue(1.0f);
-    ng::FloatBox<float>* wedgeMinBox = createFloatWidget(wedgeMin, "Minimum Wedge Multiplier:",
+    ng::FloatBox<float>* wedgeMinBox = createFloatWidget(wedgeMin, "Wedge Minimum Value:",
         _wedgePropertyMax, &wedgeProp, [this](float value)
     {
         _wedgePropertyMin = value;
@@ -929,7 +928,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
 
     ng::Widget* wedgeMax = new ng::Widget(advancedPopup);
     wedgeMax->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
-    ng::FloatBox<float>* wedgeMaxBox = createFloatWidget(wedgeMax, "Maximum Wedge Multiplier:",
+    ng::FloatBox<float>* wedgeMaxBox = createFloatWidget(wedgeMax, "Wedge Maximum Value:",
         _wedgePropertyMax, &wedgeProp, [this](float value)
     {
         _wedgePropertyMax = value;
@@ -1041,7 +1040,6 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
 {
     // Set up read options.
     mx::XmlReadOptions readOptions;
-    readOptions.applyFutureUpdates = true;
     readOptions.readXIncludeFunction = [](mx::DocumentPtr doc, const mx::FilePath& filename,
                                           const mx::FileSearchPath& searchPath, const mx::XmlReadOptions* options)
     {
@@ -1454,11 +1452,30 @@ void Viewer::saveDotFiles()
     }
 }
 
+void Viewer::initContext(mx::GenContext& context)
+{
+    // Initialize search paths.
+    context.registerSourceCodeSearchPath(_searchPath);
+
+    // Initialize color management.
+    mx::DefaultColorManagementSystemPtr cms = mx::DefaultColorManagementSystem::create(context.getShaderGenerator().getLanguage());
+    cms->loadLibrary(_stdLib);
+    context.getShaderGenerator().setColorManagementSystem(cms);
+
+    // Initialize unit management.
+    mx::UnitSystemPtr unitSystem = mx::UnitSystem::create(context.getShaderGenerator().getLanguage());
+    unitSystem->loadLibrary(_stdLib);
+    unitSystem->setUnitConverterRegistry(_unitRegistry);
+    context.getShaderGenerator().setUnitSystem(unitSystem);
+    context.getOptions().targetDistanceUnit = "meter";
+}
+
 void Viewer::loadStandardLibraries()
 {
     // Initialize the standard library.
     try
     {
+        mx::XmlReadOptions readOptions;
         _stdLib = mx::createDocument();
         _xincludeFiles = mx::loadLibraries(_libraryFolders, _searchPath, _stdLib);
         if (_xincludeFiles.empty())
@@ -1588,6 +1605,10 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
             _captureFilename = ng::file_dialog(filetypes, true);
             if (!_captureFilename.isEmpty())
             {
+                if (_captureFilename.getExtension().empty())
+                {
+                    _captureFilename.addExtension(mx::ImageLoader::TGA_EXTENSION);
+                }
                 _captureRequested = true;
             }
         }
@@ -1596,6 +1617,18 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
             _wedgeFilename = ng::file_dialog(filetypes, true);
             if (!_wedgeFilename.isEmpty())
             {
+                // There are issues with using the STB loader and png files
+                // so use another format if PNG specified or if no extension specified
+                const std::string extension = _wedgeFilename.getExtension();
+                if (extension.empty())
+                {                    
+                    _wedgeFilename.addExtension(mx::ImageLoader::TGA_EXTENSION);
+                }
+                else if (extension == mx::ImageLoader::PNG_EXTENSION)
+                {
+                    _wedgeFilename.removeExtension();
+                    _wedgeFilename.addExtension(mx::ImageLoader::TGA_EXTENSION);
+                }
                 _wedgeRequested = true;
             }
         }
@@ -1773,10 +1806,24 @@ mx::ImagePtr Viewer::renderWedge()
 {
     MaterialPtr material = getSelectedMaterial();
     mx::ShaderPort* uniform = material ? material->findUniform(_wedgePropertyName) : nullptr;
-    mx::ValuePtr origPropertyValue(uniform ? uniform->getValue() : nullptr);
+    if (!uniform)
+    {
+        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Material property not found", _wedgePropertyName);
+        return nullptr;
+    }
 
+    mx::ValuePtr origPropertyValue = uniform->getValue();
     if (origPropertyValue)
     {
+        if (!origPropertyValue->isA<int>() && !origPropertyValue->isA<float>() &&
+            !origPropertyValue->isA<mx::Vector2>() &&
+            !origPropertyValue->isA<mx::Color3>() && !origPropertyValue->isA<mx::Vector3>() &&
+            !origPropertyValue->isA<mx::Color4>() && !origPropertyValue->isA<mx::Vector4>())
+        {
+            new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Material property type not supported", _wedgePropertyName);
+            return nullptr;
+        }
+
         std::vector<mx::ImagePtr> imageVec;
         float wedgePropertyStep = (_wedgePropertyMax - _wedgePropertyMin) / (_wedgeImageCount - 1);
         for (unsigned int i = 0; i < _wedgeImageCount; i++)
@@ -1958,10 +2005,9 @@ void Viewer::drawContents()
     {
         _wedgeRequested = false;
         mx::ImagePtr wedgeImage = renderWedge();
-        if (!wedgeImage || !_imageHandler->saveImage(_wedgeFilename, wedgeImage, true))
+        if (wedgeImage)
         {
-            new ng::MessageDialog(this, ng::MessageDialog::Type::Information,
-                "Failed to save wedge to disk: ", _wedgeFilename.asString());
+            _imageHandler->saveImage(_wedgeFilename, wedgeImage, true);
         }
     }
 
@@ -1973,10 +2019,9 @@ void Viewer::drawContents()
     {
         _captureRequested = false;
         mx::ImagePtr frameImage = getFrameImage();
-        if (!frameImage || !_imageHandler->saveImage(_captureFilename, frameImage, true))
+        if (frameImage)
         {
-            new ng::MessageDialog(this, ng::MessageDialog::Type::Information,
-                "Failed to save frame to disk: ", _captureFilename.asString());
+            _imageHandler->saveImage(_captureFilename, frameImage, true);
         }
     }
 
