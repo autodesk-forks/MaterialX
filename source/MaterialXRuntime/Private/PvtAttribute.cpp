@@ -53,7 +53,7 @@ bool PvtOutput::isConnectable(const PvtInput* other) const
 
 void PvtOutput::connect(PvtInput* input)
 {
-    // Check if the connection is already made.
+    // Check if the connection exists already.
     if (input->_connection == hnd())
     {
         return;
@@ -76,11 +76,13 @@ void PvtOutput::connect(PvtInput* input)
 
 void PvtOutput::disconnect(PvtInput* input)
 {
+    // Check if the connection exists.
     if (!input->_connection || input->_connection.get() != this)
     {
-        throw ExceptionRuntimeError("Given source and destination is not connected");
+        return;
     }
 
+    // Break the connection.
     input->_connection = nullptr;
     for (auto it = _connections.begin(); it != _connections.end(); ++it)
     {

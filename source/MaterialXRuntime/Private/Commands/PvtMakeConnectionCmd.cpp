@@ -4,6 +4,7 @@
 //
 
 #include <MaterialXRuntime/Private/Commands/PvtMakeConnectionCmd.h>
+#include <MaterialXRuntime/RtPath.h>
 
 namespace MaterialX
 {
@@ -23,7 +24,7 @@ void PvtMakeConnectionCmd::execute(RtCommandResult& result)
     }
     if (!_src.isConnectable(_dest))
     {
-        result = RtCommandResult(false, string("Ports are not connectable"));
+        result = RtCommandResult(false, "Output '" + _src.getPath().asString() + "' is not connectable to input '" + _dest.getPath().asString() + "'");
         return;
     }
 
