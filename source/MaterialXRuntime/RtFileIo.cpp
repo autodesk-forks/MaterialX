@@ -43,6 +43,8 @@ namespace
     static const RtToken DEFAULT_OUTPUT("out");
     static const RtToken OUTPUT_ELEMENT_PREFIX("OUT_");
     static const RtToken MULTIOUTPUT("multioutput");
+    static const RtToken SWIZZLE_INPUT("in");
+    static const RtToken SWIZZLE_CHANNELS("channels");
 
     class PvtRenamingMapper {
         typedef RtTokenMap<RtToken> TokenToToken;
@@ -160,11 +162,38 @@ namespace
             {
                 RtValue::fromString(attrType, valueStr, attr.getValue());
             }
+
             readMetadata(elem, PvtObject::ptr<PvtObject>(attr), attrMetadata);
         }
     }
 
-    void createNodeConnections(const vector<NodePtr>& nodeElements, PvtPrim* parent, const PvtRenamingMapper&mapper)
+    void createConnection(PvtOutput* output, PvtInput* input, const string& swizzle, PvtStage* stage)
+    {
+        // Check if a swizzle node should be used in the connection.
+        if (!swizzle.empty())
+        {
+            const RtToken swizzleNodeDefName("ND_swizzle_" + output->getType().str() + "_" + input->getType().str());
+            const RtToken swizzleNodeName("swizzle_" + input->getParent()->getName().str() + "_" + input->getName().str());
+
+            PvtPrim* parent = input->getParent()->getParent();
+            PvtPrim* swizzleNode = stage->createPrim(parent->getPath(), swizzleNodeName, swizzleNodeDefName);
+
+            PvtInput* in = swizzleNode->getInput(SWIZZLE_INPUT);
+            PvtInput* ch = swizzleNode->getInput(SWIZZLE_CHANNELS);
+            PvtOutput* out = swizzleNode->getOutput(DEFAULT_OUTPUT);
+            if (in && ch && out)
+            {
+                ch->getValue().asString() = swizzle;
+                output->connect(in);
+                output = out;
+            }
+        }
+
+        // Make the connection
+        output->connect(input);
+    }
+
+    void createNodeConnections(const vector<NodePtr>& nodeElements, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
     {
         for (const NodePtr& nodeElem : nodeElements)
         {
@@ -191,7 +220,8 @@ namespace
                         }
                     }
                     PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
-                    output->connect(input);
+
+                    createConnection(output, input, elemInput->getChannels(), stage);
                 }
             }
         }
@@ -353,7 +383,6 @@ namespace
                     const string& interfaceName = elem->getInterfaceName();
                     if (!interfaceName.empty())
                     {
-                        const RtToken inputName(elem->getName());
                         const RtToken socketName(interfaceName);
                         RtOutput socket = schema.getInputSocket(socketName);
                         if (!socket)
@@ -371,15 +400,19 @@ namespace
                             }
                         }
 
-                        RtInput input(findInputOrThrow(inputName, node)->hnd());
-                        socket.connect(input);
+                        PvtOutput* output = PvtObject::ptr<PvtOutput>(socket);
+                        const RtToken inputName(elem->getName());
+                        PvtInput* input = findInputOrThrow(inputName, node);
+                        const string& swizzle = elem->isA<Input>() ? elem->asA<Input>()->getChannels() : EMPTY_STRING;
+
+                        createConnection(output, input, swizzle, stage);
                     }
                 }
             }
         }
 
         // Create connections between all nodes.
-        createNodeConnections(src->getNodes(), nodegraph, mapper);
+        createNodeConnections(src->getNodes(), nodegraph, stage, mapper);
 
         // Create connections between node outputs and internal graph sockets.
         for (const OutputPtr& elem : src->getOutputs())
@@ -398,8 +431,11 @@ namespace
                 PvtPrim* connectedNode = findPrimOrThrow(RtToken(connectedNodeName), nodegraph, mapper);
 
                 const RtToken outputName(elem->getOutputString());
-                RtOutput output(findOutputOrThrow(outputName, connectedNode)->hnd());
-                output.connect(socket);
+                PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
+                PvtInput* input = PvtObject::ptr<PvtInput>(socket);
+                const string& swizzle = elem->getChannels();
+
+                createConnection(output, input, swizzle, stage);
             }
         }
 
@@ -664,7 +700,7 @@ namespace
         }
 
         // Create connections between all root level nodes.
-        createNodeConnections(doc->getNodes(), stage->getRootPrim(), mapper);
+        createNodeConnections(doc->getNodes(), stage->getRootPrim(), stage, mapper);
 
         // Read look information
         if (!readOptions || readOptions->readLookInformation)
@@ -915,6 +951,7 @@ namespace
                 if (v)
                 {
                     v->setValueString(nodegraphInput.getValueString());
+                    writeMetadata(PvtObject::ptr<PvtObject>(attr), v, inputMetadata);
                 }
             }
         }

@@ -5,6 +5,7 @@
 
 #include <MaterialXRuntime/Private/PvtAttribute.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
+#include <MaterialXRuntime/Private/PvtPath.h>
 
 namespace MaterialX
 {
@@ -35,20 +36,40 @@ PvtOutput::PvtOutput(const RtToken& name, const RtToken& type, uint32_t flags, P
 
 bool PvtOutput::isConnectable(const PvtInput* other) const
 {
-    // TODO: Check if the data types are compatible.
-    return _parent != other->_parent;
+    // We cannot connect to ourselves.
+    if (_parent == other->_parent)
+    {
+        return false;
+    }
+    // We must have matching types.
+    if (getType() != other->getType())
+    {
+        // TODO: Check if the data types are compatible/castable
+        // instead of strictly an exact match.
+        return false;
+    }
+    return true;
 }
 
 void PvtOutput::connect(PvtInput* input)
 {
+    // Check if the connection is already made.
+    if (input->_connection == hnd())
+    {
+        return;
+    }
+
+    // Validate the connection.
     if (input->isConnected())
     {
-        throw ExceptionRuntimeError("Input is already connected");
+        throw ExceptionRuntimeError("Input '" + input->getPath().asString() + "' is already connected");
     }
     if (!isConnectable(input))
     {
-        throw ExceptionRuntimeError("Output is not connectable to this input");
+        throw ExceptionRuntimeError("Output '" + getPath().asString() + "' is not connectable to input '" + input->getPath().asString() + "'");
     }
+
+    // Make the connection.
     _connections.push_back(input->hnd());
     input->_connection = hnd();
 }

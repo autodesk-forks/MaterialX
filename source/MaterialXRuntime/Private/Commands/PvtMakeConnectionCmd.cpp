@@ -15,30 +15,31 @@ PvtCommandPtr PvtMakeConnectionCmd::create(const RtOutput& src, const RtInput& d
 
 void PvtMakeConnectionCmd::execute(RtCommandResult& result)
 {
-    if (_src.isValid() && _dest.isValid())
-    {
-        try
-        {
-            //
-            // TODO: Do validation on the connections
-            //
-
-            // Make the connection
-            _src.connect(_dest);
-
-            // Send message that the connection has been made.
-            msg().sendMakeConnectionMessage(_src, _dest);
-
-            result = RtCommandResult(true);
-        }
-        catch (const ExceptionRuntimeError& e)
-        {
-            result = RtCommandResult(false, string(e.what()));
-        }
-    }
-    else
+    // Validate the connection
+    if (!(_src.isValid() && _dest.isValid()))
     {
         result = RtCommandResult(false, string("Ports to connect are no longer valid"));
+        return;
+    }
+    if (!_src.isConnectable(_dest))
+    {
+        result = RtCommandResult(false, string("Ports are not connectable"));
+        return;
+    }
+
+    try
+    {
+        // Make the connection
+        _src.connect(_dest);
+
+        // Send message that the connection has been made.
+        msg().sendMakeConnectionMessage(_src, _dest);
+
+        result = RtCommandResult(true);
+    }
+    catch (const ExceptionRuntimeError& e)
+    {
+        result = RtCommandResult(false, string(e.what()));
     }
 }
 

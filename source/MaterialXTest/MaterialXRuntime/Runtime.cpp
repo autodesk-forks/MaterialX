@@ -667,8 +667,11 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(add1_out.isConnected());
     REQUIRE(add2_in1.isConnected());
 
-    // Try connecting already connected ports
-    REQUIRE_THROWS(add1_out.connect(add2_in1));
+    // Try reconnecting the same port again
+    REQUIRE_NOTHROW(add1_out.connect(add2_in1));
+
+    // Try connecting to another port while already connected
+    REQUIRE_THROWS(add1_out.connect(add2_in2));
 
     // Break port connections
     add1_out.disconnect(add2_in1);
