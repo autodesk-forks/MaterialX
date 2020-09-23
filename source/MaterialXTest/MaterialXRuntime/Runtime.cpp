@@ -699,7 +699,7 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(prim1);
     REQUIRE(mx::RtNode(prim1).isValid());
 
-    // Try connecting for a connections that already exists
+    // Try making a connection that already exists
     REQUIRE_NOTHROW(add1_out.connect(add2_in1));
 
     // Try connecting another port to an already connected input
