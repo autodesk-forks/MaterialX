@@ -118,7 +118,7 @@ namespace
         }
     }
 
-    void writeMetadata(const PvtObject* src, ElementPtr dest, const RtTokenSet& ignoreList)
+    void writeMetadata(const PvtObject* src, ElementPtr dest, const RtTokenSet& ignoreList, const RtWriteOptions* options)
     {
         for (const RtToken name : src->getMetadataOrder())
         {
@@ -128,6 +128,13 @@ namespace
                 continue;
             }
             const RtTypedValue* md = src->getMetadata(name);
+
+            // Check filter if the metadata should be ignored
+            if (options && options->metadataFilter && options->metadataFilter(src->hnd(), name, md))
+            {
+                continue;
+            }
+
             std::string valueString = md->getValueString();
             if (!valueString.empty())
             {
@@ -710,12 +717,12 @@ namespace
         }
     }
 
-    void writeNodeDef(const PvtPrim* src, DocumentPtr dest)
+    void writeNodeDef(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* options)
     {
         RtNodeDef nodedef(src->hnd());
 
         NodeDefPtr destNodeDef = dest->addNodeDef(nodedef.getName(), EMPTY_STRING, nodedef.getNode());
-        writeMetadata(src, destNodeDef, nodedefMetadata);
+        writeMetadata(src, destNodeDef, nodedefMetadata, options);
 
         for (const PvtDataHandle attrH : src->getAllAttributes())
         {
@@ -740,7 +747,7 @@ namespace
             }
 
             destPort->setValueString(attr->getValueString());
-            writeMetadata(attr, destPort, attrMetadata);
+            writeMetadata(attr, destPort, attrMetadata, options);
         }
     }
 
@@ -836,7 +843,7 @@ namespace
                         }
                     }
 
-                    writeMetadata(PvtObject::ptr<PvtObject>(attr), valueElem, inputMetadata);
+                    writeMetadata(PvtObject::ptr<PvtObject>(attr), valueElem, inputMetadata, options);
                 }
             }
             else if(numOutputs > 1)
@@ -845,7 +852,7 @@ namespace
             }
         }
 
-        writeMetadata(src, destNode, nodeMetadata);
+        writeMetadata(src, destNode, nodeMetadata, options);
 
         return destNode;
     }
@@ -919,7 +926,7 @@ namespace
     void writeNodeGraph(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* options)
     {
         NodeGraphPtr destNodeGraph = dest->addNodeGraph(src->getName());
-        writeMetadata(src, destNodeGraph, nodegraphMetadata);
+        writeMetadata(src, destNodeGraph, nodegraphMetadata, options);
 
         RtNodeGraph nodegraph(src->hnd());
 
@@ -955,7 +962,7 @@ namespace
                 if (v)
                 {
                     v->setValueString(nodegraphInput.getValueString());
-                    writeMetadata(PvtObject::ptr<PvtObject>(attr), v, inputMetadata);
+                    writeMetadata(PvtObject::ptr<PvtObject>(attr), v, inputMetadata, options);
                 }
             }
         }
@@ -1096,16 +1103,16 @@ namespace
         }
     }
 
-    void writeGenericPrim(const PvtPrim* src, ElementPtr dest)
+    void writeGenericPrim(const PvtPrim* src, ElementPtr dest, const RtWriteOptions* options)
     {
         RtGeneric generic(src->hnd());
 
         ElementPtr elem = dest->addChildOfCategory(generic.getKind(), generic.getName());
-        writeMetadata(src, elem, genericMetadata);
+        writeMetadata(src, elem, genericMetadata, options);
 
         for (auto child : src->getChildren())
         {
-            writeGenericPrim(PvtObject::ptr<PvtPrim>(child), elem);
+            writeGenericPrim(PvtObject::ptr<PvtPrim>(child), elem, options);
         }
     }
 
@@ -1131,7 +1138,7 @@ namespace
 
     void writeDocument(DocumentPtr& doc, PvtStage* stage, const RtWriteOptions* options)
     {
-        writeMetadata(stage->getRootPrim(), doc, RtTokenSet());
+        writeMetadata(stage->getRootPrim(), doc, RtTokenSet(), options);
 
         // Write out any dependent includes
         if (options && options->writeIncludes)
@@ -1146,7 +1153,7 @@ namespace
             const RtToken typeName = child.getTypeInfo()->getShortTypeName();
             if (typeName == RtNodeDef::typeName())
             {
-                writeNodeDef(prim, doc);
+                writeNodeDef(prim, doc, options);
             }
             else if (typeName == RtNode::typeName())
             {
@@ -1172,7 +1179,7 @@ namespace
                      typeName != RtMaterialAssign::typeName() &&
                      typeName != RtCollection::typeName())
             {
-                writeGenericPrim(prim, doc->asA<Element>());
+                writeGenericPrim(prim, doc->asA<Element>(), options);
             }
         }
 
@@ -1210,7 +1217,7 @@ namespace
         }
 
         // Write the definition
-        writeNodeDef(prim, document);
+        writeNodeDef(prim, document, options);
 
         // Write the corresponding nodegraph if any.
         // Currently there is no "implementation" association kept other than

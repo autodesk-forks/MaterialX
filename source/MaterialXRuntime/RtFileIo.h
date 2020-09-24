@@ -46,8 +46,11 @@ class RtReadOptions
 class RtWriteOptions
 {
   public:
+    /// Filter function type for filtering objects during write.
     using ObjectFilter = std::function<bool(const RtObject& obj)>;
-    using MetadataFilter = std::function<bool(const RtToken& name, const RtTypedValue* value)>;
+
+    /// Filter function type for filtering metadata on object during write.
+    using MetadataFilter = std::function<bool(const RtObject& obj, const RtToken& name, const RtTypedValue* value)>;
 
   public:
     RtWriteOptions();
@@ -63,11 +66,11 @@ class RtWriteOptions
     /// Write out default input values. The default value is false.
     bool writeDefaultValues;
 
-    /// Filter function type used for filtering objects during write.
+    /// Filter function used for filtering objects during write.
     /// If the filter returns false the object will not be written.
     ObjectFilter objectFilter;
 
-    /// Filter function type used for filtering metadata during write.
+    /// Filter function used for filtering metadata during write.
     /// If the filter returns false the metadata will not be written.
     MetadataFilter metadataFilter;
 
