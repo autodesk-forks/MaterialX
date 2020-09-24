@@ -858,6 +858,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
         sampleGroup->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
         new ng::Label(sampleGroup, "Environment Samples:");
         mx::StringVec sampleOptions;
+        _genContext.getOptions().hwMaxRadianceSamples = MAX_ENV_SAMPLES;
         for (int i = MIN_ENV_SAMPLES; i <= MAX_ENV_SAMPLES; i *= 4)
         {
             mProcessEvents = false;
@@ -2005,9 +2006,10 @@ void Viewer::drawContents()
     {
         _wedgeRequested = false;
         mx::ImagePtr wedgeImage = renderWedge();
-        if (wedgeImage)
+        if (!wedgeImage || !_imageHandler->saveImage(_wedgeFilename, wedgeImage, true))
         {
-            _imageHandler->saveImage(_wedgeFilename, wedgeImage, true);
+            new ng::MessageDialog(this, ng::MessageDialog::Type::Information,
+                "Failed to save wedge to disk: ", _wedgeFilename.asString());
         }
     }
 
@@ -2019,9 +2021,10 @@ void Viewer::drawContents()
     {
         _captureRequested = false;
         mx::ImagePtr frameImage = getFrameImage();
-        if (frameImage)
+        if (!frameImage || !_imageHandler->saveImage(_captureFilename, frameImage, true))
         {
-            _imageHandler->saveImage(_captureFilename, frameImage, true);
+            new ng::MessageDialog(this, ng::MessageDialog::Type::Information,
+                "Failed to save frame to disk: ", _captureFilename.asString());
         }
     }
 
