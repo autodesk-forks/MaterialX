@@ -170,7 +170,7 @@ TEST_CASE("Version", "[document]")
         REQUIRE(doc->validate());
 
         mx::XmlWriteOptions writeOptions;
-        writeOptions.writeXIncludeEnable = true;
+        writeOptions.writeXIncludeEnable = false;
         mx::writeToXmlFile(doc, "1_37_to_1_38_updated.mtlx", &writeOptions);
 
         mx::DocumentPtr doc2 = mx::createDocument();

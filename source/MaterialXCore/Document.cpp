@@ -1095,6 +1095,30 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                 }
             }
         }
+
+        // Convert all parameters to be inputs. If needed set them to be "uniform".
+        for (ElementPtr e : traverseTree())
+        {
+            InterfaceElementPtr elem = e->asA<InterfaceElement>();
+            if (!elem)
+            {
+                continue;
+            }
+            vector<ElementPtr> children = elem->getChildren();
+            for (ElementPtr child : children)
+            {
+                // Replace existing parameter with an input
+                if (child->isA<Parameter>())
+                {
+                    const string& childName = child->getName();
+                    elem->removeChild(childName);
+                    InputPtr newInput = elem->addInput(childName);
+                    newInput->copyContentFrom(child);
+                    newInput->setAttribute("unform", "true");
+                }
+            }
+        }
+
         minorVersion = 38;
     }
 

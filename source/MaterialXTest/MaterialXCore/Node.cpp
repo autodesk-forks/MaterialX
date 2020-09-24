@@ -604,6 +604,7 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
         for (auto node : newGraph->getNodes())
         {
             mx::NodeDefPtr nodeNodeDef = node->getNodeDef();
+            REQUIRE(nodeNodeDef);
             for (auto nodeDefValueElem : nodeNodeDef->getActiveValueElements())
             {
                 const std::string& valueElemName = nodeDefValueElem->getName();
