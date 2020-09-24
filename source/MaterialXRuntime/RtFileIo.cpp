@@ -584,9 +584,9 @@ namespace
 
     // Read in all look information from a document. Collections, looks and
     // look groups are read in first. Then relationship linkages are made.
-    void readLookInformation(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* readOptions, PvtRenamingMapper& mapper)
+    void readLookInformation(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* options, PvtRenamingMapper& mapper)
     {
-        RtReadOptions::ReadFilter filter = readOptions ? readOptions->readFilter : nullptr;
+        RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
 
         PvtPrim* rootPrim = stage->getRootPrim();
 
@@ -638,7 +638,7 @@ namespace
         }
     }
 
-    void readDocument(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* readOptions)
+    void readDocument(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* options)
     {
         // Set the source location 
         const std::string& uri = doc->getSourceUri();
@@ -646,7 +646,7 @@ namespace
 
         readMetadata(doc, stage->getRootPrim(), stageMetadata);
 
-        RtReadOptions::ReadFilter filter = readOptions ? readOptions->readFilter : nullptr;
+        RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
 
         // First, load and register all nodedefs.
         // Having these available is needed when node instances are loaded later.
@@ -704,9 +704,9 @@ namespace
         createNodeConnections(doc->getNodes(), stage->getRootPrim(), stage, mapper);
 
         // Read look information
-        if (!readOptions || readOptions->readLookInformation)
+        if (!options || options->readLookInformation)
         {
-            readLookInformation(doc, stage, readOptions, mapper);
+            readLookInformation(doc, stage, options, mapper);
         }
     }
 
@@ -744,7 +744,7 @@ namespace
         }
     }
 
-    NodePtr writeNode(const PvtPrim* src, GraphElementPtr dest, const RtWriteOptions* writeOptions)
+    NodePtr writeNode(const PvtPrim* src, GraphElementPtr dest, const RtWriteOptions* options)
     {
         RtNode node(src->hnd());
         RtNodeDef nodedef(node.getNodeDef());
@@ -763,7 +763,7 @@ namespace
             outputType = attr.getType();
         }
 
-        bool writeDefaultValues = writeOptions ? writeOptions->writeDefaultValues : false;
+        bool writeDefaultValues = options ? options->writeDefaultValues : false;
 
         NodePtr destNode = dest->addNode(nodedef.getNamespacedNode(), node.getName(), numOutputs > 1 ? "multioutput" : outputType);
 
@@ -850,7 +850,7 @@ namespace
         return destNode;
     }
 
-    void writeMaterialElement(NodePtr mxNode, DocumentPtr doc, const RtWriteOptions* writeOptions)
+    void writeMaterialElement(NodePtr mxNode, DocumentPtr doc, const RtWriteOptions* options)
     {
         string uniqueName = doc->createValidChildName(mxNode->getName() + "_Material");
         string materialName = mxNode->getName();
@@ -902,7 +902,7 @@ namespace
             }
 
             // Should we create a look for the material element?
-            if (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::CREATE_LOOKS)
+            if (options->materialWriteOp & RtWriteOptions::MaterialWriteOp::CREATE_LOOKS)
             {
                 LookPtr look = doc->addLook();
                 MaterialAssignPtr materialAssign = look->addMaterialAssign();
@@ -916,14 +916,14 @@ namespace
         doc->removeChild(uniqueName);
     }
 
-    void writeNodeGraph(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* writeOptions)
+    void writeNodeGraph(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* options)
     {
         NodeGraphPtr destNodeGraph = dest->addNodeGraph(src->getName());
         writeMetadata(src, destNodeGraph, nodegraphMetadata);
 
         RtNodeGraph nodegraph(src->hnd());
 
-        if (writeOptions && writeOptions->writeNodeGraphInputs)
+        if (options && options->writeNodeGraphInputs)
         {
             // Write inputs/parameters.
             RtObjTypePredicate<RtInput> inputsFilter;
@@ -963,7 +963,7 @@ namespace
         // Write nodes.
         for (RtPrim node : nodegraph.getNodes())
         {
-            writeNode(PvtObject::ptr<PvtPrim>(node), destNodeGraph, writeOptions);
+            writeNode(PvtObject::ptr<PvtPrim>(node), destNodeGraph, options);
         }
 
         // Write outputs.
@@ -992,9 +992,9 @@ namespace
         }
     }
 
-    void writeCollections(PvtStage* stage, Document& dest, RtWriteOptions::WriteFilter filter)
+    void writeCollections(PvtStage* stage, Document& dest, const RtWriteOptions* options)
     {
-        for (RtPrim child : stage->getRootPrim()->getChildren(filter))
+        for (RtPrim child : stage->getRootPrim()->getChildren(options ? options->objectFilter : nullptr))
         {
             const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
             const RtToken typeName = child.getTypeInfo()->getShortTypeName();
@@ -1018,9 +1018,9 @@ namespace
         }
     }
 
-    void writeLooks(PvtStage* stage, Document& dest, RtWriteOptions::WriteFilter filter)
+    void writeLooks(PvtStage* stage, Document& dest, const RtWriteOptions* options)
     {
-        for (RtPrim child : stage->getRootPrim()->getChildren(filter))
+        for (RtPrim child : stage->getRootPrim()->getChildren(options ? options->objectFilter : nullptr))
         {
             const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
             const RtToken typeName = child.getTypeInfo()->getShortTypeName();
@@ -1073,9 +1073,9 @@ namespace
         }
     }
 
-    void writeLookGroups(PvtStage* stage, Document& dest, RtWriteOptions::WriteFilter filter)
+    void writeLookGroups(PvtStage* stage, Document& dest, const RtWriteOptions* options)
     {
-        for (RtPrim child : stage->getRootPrim()->getChildren(filter))
+        for (RtPrim child : stage->getRootPrim()->getChildren(options ? options->objectFilter : nullptr))
         {
             const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
             const RtToken typeName = child.getTypeInfo()->getShortTypeName();
@@ -1129,19 +1129,18 @@ namespace
         }
     }
 
-    void writeDocument(DocumentPtr& doc, PvtStage* stage, const RtWriteOptions* writeOptions)
+    void writeDocument(DocumentPtr& doc, PvtStage* stage, const RtWriteOptions* options)
     {
         writeMetadata(stage->getRootPrim(), doc, RtTokenSet());
 
         // Write out any dependent includes
-        if (writeOptions && writeOptions->writeIncludes)
+        if (options && options->writeIncludes)
         {
             writeSourceUris(stage, doc);
         }
 
-        RtWriteOptions::WriteFilter filter = writeOptions ? writeOptions->writeFilter : nullptr;
         std::vector<NodePtr> materialElements;
-        for (RtPrim child : stage->getRootPrim()->getChildren(filter))
+        for (RtPrim child : stage->getRootPrim()->getChildren(options ? options->objectFilter : nullptr))
         {
             const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
             const RtToken typeName = child.getTypeInfo()->getShortTypeName();
@@ -1151,18 +1150,18 @@ namespace
             }
             else if (typeName == RtNode::typeName())
             {
-                NodePtr mxNode = writeNode(prim, doc, writeOptions);
+                NodePtr mxNode = writeNode(prim, doc, options);
                 RtNode node(prim->hnd());
                 const RtOutput& output = node.getOutput(DEFAULT_OUTPUT);
-                if (output && output.getType() == MATERIAL_TYPE_STRING && writeOptions &&
-                    writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
+                if (output && output.getType() == MATERIAL_TYPE_STRING && options &&
+                    options->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS)
                 {
                     materialElements.push_back(mxNode);
                 }
             }
             else if (typeName == RtNodeGraph::typeName())
             {
-                writeNodeGraph(prim, doc, writeOptions);
+                writeNodeGraph(prim, doc, options);
             }
             else if (typeName == RtBackdrop::typeName())
             {
@@ -1178,17 +1177,17 @@ namespace
         }
 
         // Write the existing look information
-        if (!writeOptions || 
-            (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_LOOKS) ||
-            (writeOptions->materialWriteOp & RtWriteOptions::MaterialWriteOp::CREATE_LOOKS))
+        if (!options || 
+            (options->materialWriteOp & RtWriteOptions::MaterialWriteOp::WRITE_LOOKS) ||
+            (options->materialWriteOp & RtWriteOptions::MaterialWriteOp::CREATE_LOOKS))
         {
-            writeCollections(stage, *doc, filter);
-            writeLooks(stage, *doc, filter);
-            writeLookGroups(stage, *doc, filter);
+            writeCollections(stage, *doc, options);
+            writeLooks(stage, *doc, options);
+            writeLookGroups(stage, *doc, options);
         }
 
         for (auto & mxNode: materialElements) {
-            writeMaterialElement(mxNode, doc, writeOptions);
+            writeMaterialElement(mxNode, doc, options);
         }
     }
 
@@ -1203,7 +1202,7 @@ namespace
         }
     }
 
-    void writeMasterPrim(DocumentPtr document, PvtStage* stage, PvtPrim* prim, const RtWriteOptions* writeOptions)
+    void writeMasterPrim(DocumentPtr document, PvtStage* stage, PvtPrim* prim, const RtWriteOptions* options)
     {
         if (!prim || prim->isDisposed())
         {
@@ -1231,13 +1230,13 @@ namespace
             if (nodeGraph.getDefinition() == nodeDefName)
             {
                 PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
-                writeNodeGraph(graphPrim, document, writeOptions);
+                writeNodeGraph(graphPrim, document, options);
                 break;
             }
         }
     }
 
-    void writeNodeDefs(DocumentPtr document, PvtStage* stage, const RtTokenVec& names, const RtWriteOptions* writeOptions)
+    void writeNodeDefs(DocumentPtr document, PvtStage* stage, const RtTokenVec& names, const RtWriteOptions* options)
     {
         // Write all definitions if no names provided
         RtApi& rtApi = RtApi::get();
@@ -1247,7 +1246,7 @@ namespace
             for (RtPrim masterPrim : rtApi.getMasterPrims(nodedefFilter))
             {
                 PvtPrim* prim = PvtObject::ptr<PvtPrim>(masterPrim);
-                writeMasterPrim(document, stage, prim, writeOptions);
+                writeMasterPrim(document, stage, prim, options);
             }
         }
         else
@@ -1256,7 +1255,7 @@ namespace
             {
                 RtPrim masterPrim = rtApi.getMasterPrim(name);
                 PvtPrim* prim = PvtObject::ptr<PvtPrim>(masterPrim);
-                writeMasterPrim(document, stage, prim, writeOptions);
+                writeMasterPrim(document, stage, prim, options);
             }
         }      
     }
@@ -1264,7 +1263,7 @@ namespace
 } // end anonymous namespace
 
 RtReadOptions::RtReadOptions() :
-    readFilter(nullptr),
+    elementFilter(nullptr),
     readLookInformation(false),
     applyFutureUpdates(true)
 {
@@ -1274,29 +1273,30 @@ RtWriteOptions::RtWriteOptions() :
     writeIncludes(true),
     writeNodeGraphInputs(false),
     writeDefaultValues(false),
-    writeFilter(nullptr),
+    objectFilter(nullptr),
+    metadataFilter(nullptr),
     materialWriteOp(NONE),
     desiredMajorVersion(MATERIALX_MAJOR_VERSION),
     desiredMinorVersion(MATERIALX_MINOR_VERSION + 1)
 {
 }
 
-void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, const RtReadOptions* readOptions)
+void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPaths, const RtReadOptions* options)
 {
     try
     {
         DocumentPtr document = createDocument();
         XmlReadOptions xmlReadOptions;
         //xmlReadOptions.skipConflictingElements = true;
-        if (readOptions)
+        if (options)
         {
             //xmlReadOptions.skipConflictingElements = true;
-            xmlReadOptions.applyFutureUpdates = readOptions->applyFutureUpdates;
+            xmlReadOptions.applyFutureUpdates = options->applyFutureUpdates;
         }
         readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
 
         PvtStage* stage = PvtStage::ptr(_stage);
-        readDocument(document, stage, readOptions);
+        readDocument(document, stage, options);
     }
     catch (Exception& e)
     {
@@ -1304,22 +1304,22 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
     }
 }
 
-void RtFileIo::read(std::istream& stream, const RtReadOptions* readOptions)
+void RtFileIo::read(std::istream& stream, const RtReadOptions* options)
 {
     try
     {
         DocumentPtr document = createDocument();
         XmlReadOptions xmlReadOptions;
         //xmlReadOptions.skipConflictingElements = true;
-        if (readOptions)
+        if (options)
         {
             //xmlReadOptions.skipConflictingElements = true;
-            xmlReadOptions.applyFutureUpdates = readOptions->applyFutureUpdates;
+            xmlReadOptions.applyFutureUpdates = options->applyFutureUpdates;
         }
         readFromXmlStream(document, stream, &xmlReadOptions);
 
         PvtStage* stage = PvtStage::ptr(_stage);
-        readDocument(document, stage, readOptions);
+        readDocument(document, stage, options);
     }
     catch (Exception& e)
     {
@@ -1333,10 +1333,10 @@ void RtFileIo::readLibraries(const FilePathVec& libraryPaths, const FileSearchPa
 
     // Load all content into a document.
     DocumentPtr doc = createDocument();
-    XmlReadOptions readOptions;
-    //readOptions.skipConflictingElements = true;
-    readOptions.applyFutureUpdates = true;
-    MaterialX::loadLibraries(libraryPaths, searchPaths, doc, nullptr, &readOptions);
+    XmlReadOptions options;
+    //options.skipConflictingElements = true;
+    options.applyFutureUpdates = true;
+    MaterialX::loadLibraries(libraryPaths, searchPaths, doc, nullptr, &options);
 
     StringSet uris = doc->getReferencedSourceUris();
     for (const string& uri : uris)
@@ -1429,18 +1429,18 @@ void RtFileIo::write(std::ostream& stream, const RtWriteOptions* options)
     writeToXmlStream(document, stream, &xmlWriteOptions);
 }
 
-void RtFileIo::writeDefinitions(std::ostream& stream, const RtTokenVec& names, const RtWriteOptions* writeOptions)
+void RtFileIo::writeDefinitions(std::ostream& stream, const RtTokenVec& names, const RtWriteOptions* options)
 {
     DocumentPtr document = createDocument();
     PvtStage* stage = PvtStage::ptr(_stage);
-    writeNodeDefs(document, stage, names, writeOptions);
+    writeNodeDefs(document, stage, names, options);
     writeToXmlStream(document, stream);
 }
 
-void RtFileIo::writeDefinitions(const FilePath& documentPath, const RtTokenVec& names, const RtWriteOptions* writeOptions)
+void RtFileIo::writeDefinitions(const FilePath& documentPath, const RtTokenVec& names, const RtWriteOptions* options)
 {
     std::ofstream ofs(documentPath.asString());
-    writeDefinitions(ofs, names, writeOptions);
+    writeDefinitions(ofs, names, options);
 }
 
 }
