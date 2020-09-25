@@ -42,10 +42,10 @@ TEST_CASE("Geom elements", "[geom]")
     nodeGraph->setFilePrefix("folder/");
     REQUIRE_THROWS_AS(doc->addNodeGraph(nodeGraph->getName()), mx::Exception&);
     mx::NodePtr image = nodeGraph->addNode("image");
-    image->setParameterValue("file", "<asset><id>_diffuse_<UDIM>.tif", mx::FILENAME_TYPE_STRING);
+    image->setInputValue("file", "<asset><id>_diffuse_<UDIM>.tif", mx::FILENAME_TYPE_STRING);
 
     // Test filename string substitutions.
-    mx::ParameterPtr fileParam = image->getParameter("file");
+    mx::InputPtr fileParam = image->getInput("file");
     mx::StringResolverPtr resolver1 = image->createStringResolver("/robot1");
     resolver1->setUdimString("1001");
     mx::StringResolverPtr resolver2 = image->createStringResolver("/robot2");

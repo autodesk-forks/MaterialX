@@ -27,7 +27,7 @@ ShaderPtr createConstantShader(GenContext& context,
     doc->importLibrary(stdLib);
     NodeGraphPtr nodeGraph = doc->addNodeGraph();
     NodePtr constant = nodeGraph->addNode("constant");
-    constant->setParameterValue("value", color);
+    constant->setInputValue("value", color);
     OutputPtr output = nodeGraph->addOutput();
     output->setConnectedNode(constant);
 
@@ -88,8 +88,8 @@ ShaderPtr createBlurShader(GenContext& context,
     NodePtr imageNode = nodeGraph->addNode("image", "image");
     NodePtr blurNode = nodeGraph->addNode("blur", "blur");
     blurNode->setConnectedNode("in", imageNode);
-    blurNode->setParameterValue("size", filterSize);
-    blurNode->setParameterValue("filtertype", filterType);
+    blurNode->setInputValue("size", filterSize);
+    blurNode->setInputValue("filtertype", filterType);
     OutputPtr output = nodeGraph->addOutput();
     output->setConnectedNode(blurNode);
 

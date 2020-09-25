@@ -120,7 +120,7 @@ TEST_CASE("Observer", "[observer]")
     // Create a node graph with a constant color output.
     mx::NodeGraphPtr nodeGraph = doc->addNodeGraph();
     mx::NodePtr constant = nodeGraph->addNode("constant");
-    constant->setParameterValue("value", mx::Color3(0.1f, 0.2f, 0.3f));
+    constant->setInputValue("value", mx::Color3(0.1f, 0.2f, 0.3f));
     mx::OutputPtr output = nodeGraph->addOutput();
     output->setConnectedNode(constant);
 

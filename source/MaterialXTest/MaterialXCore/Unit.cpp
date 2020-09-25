@@ -28,8 +28,8 @@ TEST_CASE("UnitAttribute", "[unit]")
     // Basic get/set unit testing
     mx::NodePtr constant = nodeGraph->addNode("constant");
     constant->setName("constant1");
-    constant->setParameterValue("value", mx::Color3(0.5f));
-    mx::ParameterPtr param = constant->getParameter("value");
+    constant->setInputValue("value", mx::Color3(0.5f));
+    mx::InputPtr param = constant->getInput("value");
     param->setName("param1");
     param->setUnitType("distance");
     param->setUnit("meter");
@@ -186,47 +186,6 @@ TEST_CASE("UnitDocument", "[unit]")
                         }
                     }
                 }
-
-                if (pNode->getParameterCount()) 
-                {
-                    for (auto param: pNode->getParameters()) 
-                    {
-                        const std::string type = param->getType();
-                        const mx::ValuePtr value = param->getValue();
-                        if (param->hasUnit() && value) 
-                        {
-                            if (type == "float")
-                            {
-                                float originalval = value->asA<float>();
-                                float convertedValue = uconverter->convert(originalval, param->getUnit(), DISTANCE_DEFAULT);
-                                float reconvert = uconverter->convert(convertedValue, DISTANCE_DEFAULT, param->getUnit());
-                                REQUIRE((originalval - reconvert) < EPSILON);
-                            }
-                            else if (type == "vector2")
-                            {
-                                mx::Vector2 originalval = value->asA<mx::Vector2>();
-                                mx::Vector2 convertedValue = uconverter->convert(originalval, param->getUnit(), DISTANCE_DEFAULT);
-                                mx::Vector2 reconvert = uconverter->convert(convertedValue, DISTANCE_DEFAULT, param->getUnit());
-                                REQUIRE(originalval == reconvert);
-                            }
-                            else if (type == "vector3")
-                            {
-                                mx::Vector3 originalval = value->asA<mx::Vector3>();
-                                mx::Vector3 convertedValue = uconverter->convert(originalval, param->getUnit(), DISTANCE_DEFAULT);
-                                mx::Vector3 reconvert = uconverter->convert(convertedValue, DISTANCE_DEFAULT, param->getUnit());
-                                REQUIRE(originalval == reconvert);
-                            }
-                            else if (type == "vector4")
-                            {
-                                mx::Vector4 originalval = value->asA<mx::Vector4>();
-                                mx::Vector4 convertedValue = uconverter->convert(originalval, param->getUnit(), DISTANCE_DEFAULT);
-                                mx::Vector4 reconvert = uconverter->convert(convertedValue, DISTANCE_DEFAULT, param->getUnit());
-                                REQUIRE(originalval == reconvert);
-                            }
-                        }
-                    }
-                }
-
             }
         }
     }

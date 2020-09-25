@@ -983,7 +983,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
     }
 
     // Upgrade from 1.37 to 1.38
-    if (majorVersion == 1 && minorVersion == 37)
+    if (majorVersion == 1 && (minorVersion == 37 || minorVersion == 38))
     {
         convertMaterialsToNodes(asA<Document>());
 
