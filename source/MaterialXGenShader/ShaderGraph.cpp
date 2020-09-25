@@ -57,7 +57,7 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& cont
                     inputSocket->setValue(port->getValue());
                 }
             }
-            if (port->isA<Parameter>())
+            if (port->getIsUniform())
             {
                 inputSocket->setUniform();
             }
@@ -500,7 +500,7 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
     const string& targetDistanceUnit = context.getOptions().targetDistanceUnit;
     UnitSystemPtr unitSystem = context.getShaderGenerator().getUnitSystem();
 
-    // Set node input values onto grah input sockets
+    // Set node input values onto graph input sockets
     for (const InputPtr& nodeDefInput : nodeDef->getActiveInputs())
     {
         ShaderGraphInputSocket* inputSocket = graph->getInputSocket(nodeDefInput->getName());
@@ -531,25 +531,34 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
             }
         }
 
-        GeomPropDefPtr geomprop = nodeDefInput->getDefaultGeomProp();
-        if (geomprop)
+        // Check if the input is a uniform
+        bool isUniform = nodeDefInput->getIsUniform();
+        if (isUniform)
         {
-            inputSocket->setGeomProp(geomprop->getName());
-            input->setGeomProp(geomprop->getName());
+            inputSocket->makeConnection(input);
         }
-
-        // If no explicit connection, connect to geometric node if a geomprop is used
-        // or otherwise to the graph interface.
-        const string& connection = nodeInput ? nodeInput->getOutputString() : EMPTY_STRING;
-        if (connection.empty())
+        else
         {
+            GeomPropDefPtr geomprop = nodeDefInput->getDefaultGeomProp();
             if (geomprop)
             {
-                graph->addDefaultGeomNode(input, *geomprop, context);
+                inputSocket->setGeomProp(geomprop->getName());
+                input->setGeomProp(geomprop->getName());
             }
-            else
+
+            // If no explicit connection, connect to geometric node if a geomprop is used
+            // or otherwise to the graph interface.
+            const string& connection = nodeInput ? nodeInput->getOutputString() : EMPTY_STRING;
+            if (connection.empty())
             {
-                inputSocket->makeConnection(input);
+                if (geomprop)
+                {
+                    graph->addDefaultGeomNode(input, *geomprop, context);
+                }
+                else
+                {
+                    inputSocket->makeConnection(input);
+                }
             }
         }
 
@@ -1031,7 +1040,7 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
     {
         for (InputPtr input : node.getInputs())
         {
-            if (input->getType() == FILENAME_TYPE_STRING)
+            if (input->getIsUniform() && input->getType() == FILENAME_TYPE_STRING)
             {
                 ShaderOutput* shaderOutput = newNode->getOutput();
                 if (shaderOutput)
@@ -1055,7 +1064,7 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
         for (auto input : node.getInputs())
         {
             ShaderInput* inputPort = newNode->getInput(input->getName());
-            if (input->getType() == FILENAME_TYPE_STRING)
+            if (input->getIsUniform() && input->getType() == FILENAME_TYPE_STRING)
             {
                 // Check output port for any parameters which are file names
                 ShaderOutput* shaderOutput = newNode->getOutput();

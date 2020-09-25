@@ -1094,14 +1094,12 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                     node->setName(newNodeName);
                 }
             }
-        }
-
-        // Convert all parameters to be inputs. If needed set them to be "uniform".
-   
+        }   
 
         minorVersion = 38;
     }
 
+    // Convert all parameters to be inputs. If needed set them to be "uniform".
     for (ElementPtr e : traverseTree())
     {
         InterfaceElementPtr elem = e->asA<InterfaceElement>();
@@ -1119,7 +1117,9 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                 elem->removeChild(childName);
                 InputPtr newInput = elem->addInput(childName);
                 newInput->copyContentFrom(child);
-                newInput->setAttribute("unform", "true");
+                // TODO: Only make some of these into uniforms 
+                // instead of all of them
+                newInput->setIsUniform(true);
             }
         }
     }

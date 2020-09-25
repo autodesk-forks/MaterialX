@@ -115,7 +115,7 @@ unsigned int getUIProperties(ConstValueElementPtr nodeDefElement, UIProperties& 
     if (!uiProperties.uiFolder.empty())
         propertyCount++;
 
-    if (nodeDefElement->isA<Parameter>())
+    if (nodeDefElement->getIsUniform())
     {
         string enumString = nodeDefElement->getAttribute(ValueElement::ENUM_ATTRIBUTE);
         if (!enumString.empty())
