@@ -1014,8 +1014,16 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
     // Create and connect default geometric nodes on unconnected inputs.
     for (const InputPtr& nodeDefInput : nodeDef->getActiveInputs())
     {
+        if (nodeDefInput->getIsUniform())
+        {
+            continue;
+        }
         ShaderInput* input = newNode->getInput(nodeDefInput->getName());
         InputPtr nodeInput = node.getInput(nodeDefInput->getName());
+        if (nodeInput && nodeInput->getIsUniform())
+        {
+            continue;
+        }
 
         const string& connection = nodeInput ? nodeInput->getNodeName() : EMPTY_STRING;
         if (connection.empty() && !input->getConnection())

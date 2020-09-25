@@ -1110,16 +1110,17 @@ void Document::upgradeVersion(bool applyFutureUpdates)
         vector<ElementPtr> children = elem->getChildren();
         for (ElementPtr child : children)
         {
-            // Replace existing parameter with an input
+            const string& childName = child->getName();
             if (child->isA<Parameter>())
             {
-                const string& childName = child->getName();
+                int paramIndex = elem->getChildIndex(childName);
                 elem->removeChild(childName);
                 InputPtr newInput = elem->addInput(childName);
                 newInput->copyContentFrom(child);
                 // TODO: Only make some of these into uniforms 
                 // instead of all of them
                 newInput->setIsUniform(true);
+                elem->setChildIndex(childName, paramIndex);
             }
         }
     }
