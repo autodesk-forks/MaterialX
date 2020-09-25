@@ -49,7 +49,7 @@ TEST_CASE("Document", "[document]")
     mx::NodeDefPtr shader = doc->addNodeDef("", "surfaceshader", "simpleSrf");
     mx::InputPtr diffColor = shader->addInput("diffColor", "color3");
     shader->addInput("specColor", "color3");
-    mx::ParameterPtr roughness = shader->addParameter("roughness", "float");
+    mx::InputPtr roughness = shader->addInput("roughness", "float");
 
     // Create a material that instantiates the shader.
     mx::MaterialPtr material = doc->addMaterial();
@@ -61,7 +61,7 @@ TEST_CASE("Document", "[document]")
     REQUIRE(diffColor->getUpstreamElement(material) == output);
 
     // Bind the roughness parameter to a value.
-    mx::BindParamPtr bindParam = shaderRef->addBindParam("roughness");
+    mx::BindInputPtr bindParam = shaderRef->addBindInput("roughness");
     bindParam->setValue(0.5f);
     REQUIRE(roughness->getBoundValue(material)->asA<float>() == 0.5f);
 

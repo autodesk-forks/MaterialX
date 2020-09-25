@@ -497,10 +497,6 @@ ValueElementPtr Node::addInputFromNodeDef(const string& name)
         {
             newChild = addInput(inputName);
         }
-        else if (nodeDefElem->isA<Parameter>())
-        {
-            newChild = addParameter(inputName);
-        }
         if (newChild)
         {
             newChild->copyContentFrom(nodeDefElem);
@@ -525,8 +521,7 @@ void NodeGraph::addInterface(const string& childPath, const string& interfaceNam
     ElementPtr elem = getDescendant(childPath);
     ValueElementPtr valueElem = elem->asA<ValueElement>();
     InputPtr input = valueElem ? valueElem->asA<Input>() : nullptr;
-    ParameterPtr param = valueElem ? valueElem->asA<Parameter>() : nullptr;
-    if ((!input && !param) || (input && input->getConnectedNode()))
+    if (!input || (input && input->getConnectedNode()))
     {
         throw Exception("Invalid nodegraph child to create interface for:  " + childPath);
     }
@@ -540,14 +535,6 @@ void NodeGraph::addInterface(const string& childPath, const string& interfaceNam
         if (value)
         {
             nodeDefInput->setValueString(value->getValueString());
-        }
-    }
-    else
-    {
-        ParameterPtr nodeDefParam = nodeDef->addParameter(interfaceName, param->getType());
-        if (value)
-        {
-            nodeDefParam->setValueString(value->getValueString());
         }
     }
 }

@@ -128,7 +128,7 @@ TEST_CASE("Observer", "[observer]")
     mx::NodeDefPtr shader = doc->addNodeDef("ND_simpleSrf", "surfaceshader", "simpleSrf");
     shader->addInput("diffColor", "color3");
     shader->addInput("specColor", "color3");
-    shader->addParameter("roughness", "float");
+    shader->addInput("roughness", "float");
 
     // Create a material that uses a shader instance.
     mx::NodePtr materialNode = doc->addNode("surfacematerial");

@@ -40,8 +40,7 @@ TEST_CASE("Material", "[material]")
     REQUIRE(anisoSrf->getInstantiatingShaderRefs()[0] == refAnisoSrf);
     REQUIRE(refAnisoSrf->getNodeDef() == anisoSrf);
     REQUIRE(material->getPrimaryShaderName() == refAnisoSrf->getNodeString());
-    REQUIRE(material->getPrimaryShaderParameters().size() == 2);
-    REQUIRE(material->getPrimaryShaderInputs().size() == 2);
+    REQUIRE(material->getPrimaryShaderInputs().size() == 4);
     REQUIRE(material->getPrimaryShaderTokens().size() == 1);
 
     // Set nodedef and shader reference qualifiers.
@@ -55,7 +54,7 @@ TEST_CASE("Material", "[material]")
     REQUIRE(refAnisoSrf->getNodeDef() == anisoSrf);
 
     // Bind a shader parameter to a value.
-    mx::BindParamPtr bindParam = refAnisoSrf->addBindParam("roughness");
+    mx::BindInputPtr bindParam = refAnisoSrf->addBindInput("roughness");
     bindParam->setValue(0.5f);
     REQUIRE(roughness->getBoundValue(material)->asA<float>() == 0.5f);
     REQUIRE(roughness->getDefaultValue()->asA<float>() == 0.25f);
@@ -84,8 +83,7 @@ TEST_CASE("Material", "[material]")
     mx::MaterialPtr material2 = doc->addMaterial();
     material2->setInheritsFrom(material);
     REQUIRE(material2->getPrimaryShaderName() == refAnisoSrf->getNodeString());
-    REQUIRE(material2->getPrimaryShaderParameters().size() == 2);
-    REQUIRE(material2->getPrimaryShaderInputs().size() == 2);
+    REQUIRE(material2->getPrimaryShaderInputs().size() == 4);
     REQUIRE(material2->getPrimaryShaderTokens().size() == 1);
     REQUIRE(roughness->getBoundValue(material2)->asA<float>() == 0.5f);
 
@@ -98,7 +96,6 @@ TEST_CASE("Material", "[material]")
     // Disconnect the inherited material.
     material2->setInheritsFrom(nullptr);
     REQUIRE(material2->getPrimaryShaderName().empty());
-    REQUIRE(material2->getPrimaryShaderParameters().empty());
     REQUIRE(material2->getPrimaryShaderInputs().empty());
     REQUIRE(material2->getPrimaryShaderTokens().empty());
     REQUIRE(roughness->getBoundValue(material2)->asA<float>() == 0.25f);
@@ -107,7 +104,6 @@ TEST_CASE("Material", "[material]")
     material->removeShaderRef(refAnisoSrf->getName());
     REQUIRE(anisoSrf->getInstantiatingShaderRefs().empty());
     REQUIRE(material->getPrimaryShaderName().empty());
-    REQUIRE(material->getPrimaryShaderParameters().empty());
     REQUIRE(material->getPrimaryShaderInputs().empty());
     REQUIRE(material->getPrimaryShaderTokens().empty());
 }

@@ -734,7 +734,7 @@ namespace
                 const PvtInput* input = attr->asA<PvtInput>();
                 if (input->isUniform())
                 {
-                    destPort = destNodeDef->addParameter(attr->getName(), attr->getType().str());
+                    destPort = destNodeDef->addInput(attr->getName(), attr->getType().str());
                 }
                 else
                 {
@@ -787,7 +787,7 @@ namespace
                     ValueElementPtr valueElem;
                     if (input.isUniform())
                     {
-                        valueElem = destNode->addParameter(input.getName(), input.getType());
+                        valueElem = destNode->addInput(input.getName(), input.getType());
                         if (input.isConnected())
                         {
                             RtOutput source = input.getConnection();
@@ -940,7 +940,7 @@ namespace
                 ValueElementPtr v = nullptr;
                 if (nodegraphInput.isUniform())
                 {
-                    v = destNodeGraph->addParameter(nodegraphInput.getName(), nodegraphInput.getType());
+                    v = destNodeGraph->addInput(nodegraphInput.getName(), nodegraphInput.getType());
                 }
                 else
                 {
@@ -1294,10 +1294,8 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
     {
         DocumentPtr document = createDocument();
         XmlReadOptions xmlReadOptions;
-        //xmlReadOptions.skipConflictingElements = true;
         if (options)
         {
-            //xmlReadOptions.skipConflictingElements = true;
             xmlReadOptions.applyFutureUpdates = options->applyFutureUpdates;
         }
         readFromXmlFile(document, documentPath, searchPaths, &xmlReadOptions);
@@ -1317,10 +1315,8 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* options)
     {
         DocumentPtr document = createDocument();
         XmlReadOptions xmlReadOptions;
-        //xmlReadOptions.skipConflictingElements = true;
         if (options)
         {
-            //xmlReadOptions.skipConflictingElements = true;
             xmlReadOptions.applyFutureUpdates = options->applyFutureUpdates;
         }
         readFromXmlStream(document, stream, &xmlReadOptions);

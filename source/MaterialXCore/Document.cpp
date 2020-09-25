@@ -109,7 +109,7 @@ bool convertMaterialsToNodes(DocumentPtr doc)
                 }
                 else if (valueElement->isA<BindParam>())
                 {
-                    portChild = shaderNode->addParameter(valueElement->getName(), valueElement->getType());
+                    portChild = shaderNode->addInput(valueElement->getName(), valueElement->getType());
                 }
                 if (portChild)
                 {
@@ -983,7 +983,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
     }
 
     // Upgrade from 1.37 to 1.38
-    if (majorVersion == 1 && (minorVersion == 37 || minorVersion == 38))
+    if (majorVersion == 1 && minorVersion == 37)
     {
         convertMaterialsToNodes(asA<Document>());
 
@@ -1097,29 +1097,31 @@ void Document::upgradeVersion(bool applyFutureUpdates)
         }
 
         // Convert all parameters to be inputs. If needed set them to be "uniform".
-        for (ElementPtr e : traverseTree())
-        {
-            InterfaceElementPtr elem = e->asA<InterfaceElement>();
-            if (!elem)
-            {
-                continue;
-            }
-            vector<ElementPtr> children = elem->getChildren();
-            for (ElementPtr child : children)
-            {
-                // Replace existing parameter with an input
-                if (child->isA<Parameter>())
-                {
-                    const string& childName = child->getName();
-                    elem->removeChild(childName);
-                    InputPtr newInput = elem->addInput(childName);
-                    newInput->copyContentFrom(child);
-                    newInput->setAttribute("unform", "true");
-                }
-            }
-        }
+   
 
         minorVersion = 38;
+    }
+
+    for (ElementPtr e : traverseTree())
+    {
+        InterfaceElementPtr elem = e->asA<InterfaceElement>();
+        if (!elem)
+        {
+            continue;
+        }
+        vector<ElementPtr> children = elem->getChildren();
+        for (ElementPtr child : children)
+        {
+            // Replace existing parameter with an input
+            if (child->isA<Parameter>())
+            {
+                const string& childName = child->getName();
+                elem->removeChild(childName);
+                InputPtr newInput = elem->addInput(childName);
+                newInput->copyContentFrom(child);
+                newInput->setAttribute("unform", "true");
+            }
+        }
     }
 
     if (majorVersion == MATERIALX_MAJOR_VERSION &&
