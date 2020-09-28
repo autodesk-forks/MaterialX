@@ -983,7 +983,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
     }
 
     // Upgrade from 1.37 to 1.38
-    if (majorVersion == 1 && minorVersion == 37)
+    if (majorVersion == 1 && (minorVersion == 37 || applyFutureUpdates))
     {
         convertMaterialsToNodes(asA<Document>());
 
@@ -1096,33 +1096,34 @@ void Document::upgradeVersion(bool applyFutureUpdates)
             }
         }   
 
-        minorVersion = 38;
-    }
-
-    // Convert all parameters to be inputs. If needed set them to be "uniform".
-    for (ElementPtr e : traverseTree())
-    {
-        InterfaceElementPtr elem = e->asA<InterfaceElement>();
-        if (!elem)
+        // Convert all parameters to be inputs. If needed set them to be "uniform".
+        for (ElementPtr e : traverseTree())
         {
-            continue;
-        }
-        vector<ElementPtr> children = elem->getChildren();
-        for (ElementPtr child : children)
-        {
-            const string& childName = child->getName();
-            if (child->isA<Parameter>())
+            InterfaceElementPtr elem = e->asA<InterfaceElement>();
+            if (!elem)
             {
-                int paramIndex = elem->getChildIndex(childName);
-                elem->removeChild(childName);
-                InputPtr newInput = elem->addInput(childName);
-                newInput->copyContentFrom(child);
-                // TODO: Only make some of these into uniforms 
-                // instead of all of them
-                newInput->setIsUniform(true);
-                elem->setChildIndex(childName, paramIndex);
+                continue;
+            }
+            vector<ElementPtr> children = elem->getChildren();
+            for (ElementPtr child : children)
+            {
+                const string& childName = child->getName();
+                if (child->isA<Parameter>())
+                {
+                    int paramIndex = elem->getChildIndex(childName);
+                    elem->removeChild(childName);
+                    InputPtr newInput = elem->addInput(childName);
+                    newInput->copyContentFrom(child);
+                    // TODO: Only make some of these into uniforms 
+                    // instead of all of them
+                    newInput->setIsUniform(true);
+                    elem->setChildIndex(childName, paramIndex);
+                }
             }
         }
+
+        // While we are in the process of supporting 1.38. Leave files as 1.37
+        minorVersion = 37;
     }
 
     if (majorVersion == MATERIALX_MAJOR_VERSION &&
