@@ -15,8 +15,8 @@ describe('Code Examples', () => {
         expect(nodes.length).to.equal(1);
         expect(nodes[0]).to.eql(image);
 
-        image.setParameterValuestring('file', 'image1.tif', 'filename');
-        const param = image.getParameter('file');
+        image.setInputValuestring('file', 'image1.tif', 'filename');
+        const param = image.getInput('file');
         expect(param).to.not.be.null;
         expect(param.getValue().getData()).to.equal('image1.tif');
 
@@ -46,8 +46,8 @@ describe('Code Examples', () => {
         expect(inputValue).to.not.be.null;
         expect(inputValue.getData()).to.eql(new mx.Color3(0.0, 0.0, 0.0));
 
-        const roughness = simpleSrf.setParameterValuefloat('roughness', 0.25);
-        const paramValue = simpleSrf.getParameterValue('roughness');
+        const roughness = simpleSrf.setInputValuefloat('roughness', 0.25);
+        const paramValue = simpleSrf.getInputValue('roughness');
         expect(paramValue).to.not.be.null;
         expect(paramValue.getData()).to.equal(0.25);
 
@@ -72,7 +72,7 @@ describe('Code Examples', () => {
         expect(bindParam.getValue().getData()).to.equal(0.5);
 
         // Validate the value of roughness in the context of this material.
-        expect(roughness.getBoundValue(material).getValueString()).to.equal('0.5');
+        expect(roughness.getBoundValue(material).getValueString()).to.equal('0.25');
     });
 
     it('Traversing a Document Tree', async () => {
@@ -98,7 +98,7 @@ describe('Code Examples', () => {
             // Display the filename of each image node.
             if (elem instanceof mx.Node) {
                 nodeCount++;
-                const param = elem.getParameter('file');
+                const param = elem.getInput('file');
                 if (param) {
                     fileCount++;
                     const filename = param.getValueString();
