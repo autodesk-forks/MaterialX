@@ -1114,17 +1114,12 @@ void Document::upgradeVersion(bool applyFutureUpdates)
             vector<ElementPtr> children = elem->getChildren();
             for (ElementPtr child : children)
             {
-                const string& childName = child->getName();
-                if (child->isA<Parameter>())
+                if (child->getCategory() == "parameter")
                 {
-                    int paramIndex = elem->getChildIndex(childName);
-                    elem->removeChild(childName);
-                    InputPtr newInput = elem->addInput(childName);
-                    newInput->copyContentFrom(child);
+                    InputPtr newInput = updateChildSubclass<Input>(elem, child);
                     // TODO: Only make some of these into uniforms 
                     // instead of all of them
                     newInput->setIsUniform(true);
-                    elem->setChildIndex(childName, paramIndex);
                 }
             }
         }

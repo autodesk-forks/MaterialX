@@ -1028,6 +1028,8 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
         }
     }
 
+    // 
+    // Handle colorspace and unit converstion if needed.
     string targetColorSpace;
     ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
     if (colorManagementSystem)
@@ -1036,46 +1038,29 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
             _document->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
     }
 
-    if (colorManagementSystem && !targetColorSpace.empty())
+    UnitSystemPtr unitSystem = context.getShaderGenerator().getUnitSystem();
+    const string& targetDistanceUnit = context.getOptions().targetDistanceUnit;
+
+    for (InputPtr input : node.getInputs())
     {
-        for (InputPtr input : node.getInputs())
+        // It is sufficient that the input type is a filename regardless of whether it is marked as a uniform 
+        if (input->getType() == FILENAME_TYPE_STRING)
         {
-            if (input->getIsUniform() && input->getType() == FILENAME_TYPE_STRING)
+            ShaderOutput* shaderOutput = newNode->getOutput();
+            if (shaderOutput)
             {
-                ShaderOutput* shaderOutput = newNode->getOutput();
-                if (shaderOutput)
-                {
-                    populateColorTransformMap(colorManagementSystem, shaderOutput, input, targetColorSpace, false);
-                }
+                populateColorTransformMap(colorManagementSystem, shaderOutput, input, targetColorSpace, false);
+                populateUnitTransformMap(unitSystem, shaderOutput, input, targetDistanceUnit, false);
             }
-            else
-            {
-                ShaderInput* shaderInput = newNode->getInput(input->getName());
-                populateColorTransformMap(colorManagementSystem, shaderInput, input, targetColorSpace, true);
-            }
+        }
+        else
+        {
+            ShaderInput* shaderInput = newNode->getInput(input->getName());
+            populateColorTransformMap(colorManagementSystem, shaderInput, input, targetColorSpace, true);
+            populateUnitTransformMap(unitSystem, shaderInput, input, targetDistanceUnit, true);
         }
     }
 
-    // Unit Conversion: Only applicable if Unit system and a "targetDistanceUnit" is defined for now.
-    UnitSystemPtr unitSystem = context.getShaderGenerator().getUnitSystem();
-    const string& targetDistanceUnit = context.getOptions().targetDistanceUnit;
-    if (unitSystem && !targetDistanceUnit.empty())
-    {
-        for (auto input : node.getInputs())
-        {
-            ShaderInput* inputPort = newNode->getInput(input->getName());
-            if (input->getIsUniform() && input->getType() == FILENAME_TYPE_STRING)
-            {
-                // Check output port for any parameters which are file names
-                ShaderOutput* shaderOutput = newNode->getOutput();
-                if (shaderOutput)
-                {
-                    populateUnitTransformMap(unitSystem, shaderOutput, input, targetDistanceUnit, false);
-                }
-            }
-            populateUnitTransformMap(unitSystem, inputPort, input, targetDistanceUnit, true);
-        }
-    }
     return newNode.get();
 }
 
@@ -1575,7 +1560,7 @@ void ShaderGraph::setVariableNames(GenContext& context)
 void ShaderGraph::populateColorTransformMap(ColorManagementSystemPtr colorManagementSystem, ShaderPort* shaderPort, 
                                             ValueElementPtr input, const string& targetColorSpace, bool asInput)
 {
-    if (!colorManagementSystem)
+    if (!colorManagementSystem || targetColorSpace.empty())
     {
         return;
     }
@@ -1607,6 +1592,11 @@ void ShaderGraph::populateColorTransformMap(ColorManagementSystemPtr colorManage
 
 void ShaderGraph::populateUnitTransformMap(UnitSystemPtr unitSystem, ShaderPort* shaderPort, ValueElementPtr input, const string& globalTargetUnitSpace, bool asInput)
 {
+    if (!unitSystem || globalTargetUnitSpace.empty())
+    {
+        return;
+    }
+
     const string& sourceUnitSpace = input->getUnit();
     if (!shaderPort || sourceUnitSpace.empty())
     {
