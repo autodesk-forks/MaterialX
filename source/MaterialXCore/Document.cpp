@@ -993,15 +993,22 @@ void Document::upgradeVersion(bool applyFutureUpdates)
         const string IN2 = "in2";
         const string ROTATE3D = "rotate3d";
         const string AXIS = "axis";
+        const string INPUT_ONE = "1.0";
 
         // Update nodedefs
+        bool upgradeAtan2Instances = false;
         for (auto nodedef : getMatchingNodeDefs(ATAN2))
         {
             InputPtr input = nodedef->getInput(IN1);
             InputPtr input2 = nodedef->getInput(IN2);
             string inputValue = input->getValueString();
-            input->setValueString(input2->getValueString());
-            input2->setValueString(inputValue);
+            // Only flip value if nodedef value is the previous versions.
+            if (inputValue == INPUT_ONE)
+            {
+                input->setValueString(input2->getValueString());
+                input2->setValueString(inputValue);
+                upgradeAtan2Instances = true;
+            }
         }
         for (auto nodedef : getMatchingNodeDefs(ROTATE3D))
         {
@@ -1022,7 +1029,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                 continue;
             }
             const string& nodeCategory = node->getCategory();
-            if (nodeCategory == ATAN2)
+            if (upgradeAtan2Instances && nodeCategory == ATAN2)
             {
                 InputPtr input = node->getInput(IN1);
                 InputPtr input2 = node->getInput(IN2);
