@@ -642,26 +642,6 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
                         REQUIRE(nodeDef->getChild(newInterfaceName));
                     }
                 }
-                else
-                {
-                    mx::ParameterPtr param = valueElem->asA<mx::Parameter>();
-                    if (param)
-                    {
-                        std::string interfaceName = param->getNamePath();
-                        interfaceName = nodeDef->createValidChildName(interfaceName);
-                        newGraph->addInterface(param->getNamePath(newGraph), interfaceName);
-                        REQUIRE(nodeDef->getChild(interfaceName));
-                        try
-                        {
-                            // Check duplicate failure case
-                            newGraph->addInterface(param->getNamePath(newGraph), interfaceName);
-                        }
-                        catch (mx::Exception& e)
-                        {
-                            REQUIRE(e.what());
-                        }
-                    }
-                }
             }
         }
 

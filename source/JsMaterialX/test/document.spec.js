@@ -89,7 +89,6 @@ describe('Build Document', () => {
         material = doc.addMaterial();
         shaderRef = material.addShaderRef('shaderRef1', 'simpleSrf');
         expect(material.getPrimaryShaderName()).to.equal('simpleSrf');
-        expect(material.getPrimaryShaderParameters().length).to.equal(0);
         expect(material.getPrimaryShaderInputs().length).to.equal(3);
         expect(material.getPrimaryShaderTokens().length).to.equal(1);
         expect(roughness.getBoundValue(material).getData()).to.equal(0.25);

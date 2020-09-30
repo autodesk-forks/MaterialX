@@ -29,12 +29,12 @@ TEST_CASE("UnitAttribute", "[unit]")
     mx::NodePtr constant = nodeGraph->addNode("constant");
     constant->setName("constant1");
     constant->setInputValue("value", mx::Color3(0.5f));
-    mx::InputPtr param = constant->getInput("value");
-    param->setName("param1");
-    param->setUnitType("distance");
-    param->setUnit("meter");
-    REQUIRE(param->hasUnit());
-    REQUIRE(!param->getUnit().empty());
+    mx::InputPtr input = constant->getInput("value");
+    input->setName("param1");
+    input->setUnitType("distance");
+    input->setUnit("meter");
+    REQUIRE(input->hasUnit());
+    REQUIRE(!input->getUnit().empty());
 
     // Test for valid unit names
     mx::OutputPtr output = nodeGraph->addOutput();
@@ -50,7 +50,7 @@ TEST_CASE("UnitAttribute", "[unit]")
 
     // Test for target unit specified on a nodedef
     mx::NodeDefPtr customNodeDef = doc->addNodeDef("ND_dummy", "float", "dummy");
-    mx::InputPtr input = customNodeDef->setInputValue("angle", 23.0f, "float");
+    input = customNodeDef->setInputValue("angle", 23.0f, "float");
     input->setUnit("degree");
     mx::NodePtr custom = doc->addNodeInstance(customNodeDef);
     input = custom->setInputValue("angle", 45.0f, "float");

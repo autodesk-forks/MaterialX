@@ -215,8 +215,8 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
 
             // Add the image node.
             NodePtr bakedImage = bakedNodeGraph->addNode("image", bindInput->getName() + "_baked", bindInput->getType());
-            InputPtr param = bakedImage->addInput("file", "filename");
-            param->setValueString(generateTextureFilename(output, _shaderRef->getName(), udimSet.empty() ? EMPTY_STRING : UDIM_TOKEN));
+            InputPtr input = bakedImage->addInput("file", "filename");
+            input->setValueString(generateTextureFilename(output, _shaderRef->getName(), udimSet.empty() ? EMPTY_STRING : UDIM_TOKEN));
 
             // Check if is a normal node and transform normals into world space
             if (_worldSpaceShaderInputs.count(bindInput->getName()))

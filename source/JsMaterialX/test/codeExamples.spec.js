@@ -16,9 +16,9 @@ describe('Code Examples', () => {
         expect(nodes[0]).to.eql(image);
 
         image.setInputValuestring('file', 'image1.tif', 'filename');
-        const param = image.getInput('file');
-        expect(param).to.not.be.null;
-        expect(param.getValue().getData()).to.equal('image1.tif');
+        const input = image.getInput('file');
+        expect(input).to.not.be.null;
+        expect(input.getValue().getData()).to.equal('image1.tif');
 
         const output = nodeGraph.addOutput();
         const outputs = nodeGraph.getOutputs();
@@ -98,10 +98,10 @@ describe('Code Examples', () => {
             // Display the filename of each image node.
             if (elem instanceof mx.Node) {
                 nodeCount++;
-                const param = elem.getInput('file');
-                if (param) {
+                const input = elem.getInput('file');
+                if (input) {
                     fileCount++;
-                    const filename = param.getValueString();
+                    const filename = input.getValueString();
                     expect(elem.getName()).to.equal('image1');
                     expect(filename).to.equal('greysphere_calibration.png');
                 }
@@ -128,15 +128,6 @@ describe('Code Examples', () => {
         const materials = doc.getMaterials();
         materials.forEach((material) => {
             materialCount++;
-            // For each shader parameter, compute its value in the context of this material.
-            const primaryShaderParams = material.getPrimaryShaderParameters();
-            primaryShaderParams.forEach((param) => {
-                const value = param.getBoundValue(material);
-                expect(value instanceof mx.TypedValue_float).to.be.true;
-                expect(value.getTypeString()).to.equal('float');
-                expect(param.getName()).to.equal('fresnel_exp');
-                shaderParamCount++;
-            });
 
             // For each shader input, find all upstream images in the dataflow graph.
             const primaryShaderInputs = material.getPrimaryShaderInputs();

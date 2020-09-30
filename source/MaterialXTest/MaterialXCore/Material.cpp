@@ -54,13 +54,13 @@ TEST_CASE("Material", "[material]")
     REQUIRE(refAnisoSrf->getNodeDef() == anisoSrf);
 
     // Bind a shader parameter to a value.
-    mx::BindInputPtr bindParam = refAnisoSrf->addBindInput("roughness");
-    bindParam->setValue(0.5f);
+    mx::BindInputPtr bindInput = refAnisoSrf->addBindInput("roughness");
+    bindInput->setValue(0.5f);
     REQUIRE(roughness->getBoundValue(material)->asA<float>() == 0.5f);
     REQUIRE(roughness->getDefaultValue()->asA<float>() == 0.25f);
 
     // Bind a shader input to a value.
-    mx::BindInputPtr bindInput = refAnisoSrf->addBindInput("specColor");
+    bindInput = refAnisoSrf->addBindInput("specColor");
     bindInput->setValue(mx::Color3(0.5f));
     REQUIRE(specColor->getBoundValue(material)->asA<mx::Color3>() == mx::Color3(0.5f));
     REQUIRE(specColor->getDefaultValue()->asA<mx::Color3>() == mx::Color3(0.0f));

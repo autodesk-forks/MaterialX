@@ -61,14 +61,14 @@ TEST_CASE("Document", "[document]")
     REQUIRE(diffColor->getUpstreamElement(material) == output);
 
     // Bind the roughness parameter to a value.
-    mx::BindInputPtr bindParam = shaderRef->addBindInput("roughness");
-    bindParam->setValue(0.5f);
+    bindInput = shaderRef->addBindInput("roughness");
+    bindInput->setValue(0.5f);
     REQUIRE(roughness->getBoundValue(material)->asA<float>() == 0.5f);
 
     // Create and test a type mismatch in a data binding.
-    bindParam->setValue(5);
+    bindInput->setValue(5);
     REQUIRE(!doc->validate());
-    bindParam->setValue(0.5f);
+    bindInput->setValue(0.5f);
     REQUIRE(doc->validate());
 
     // Create a collection 
