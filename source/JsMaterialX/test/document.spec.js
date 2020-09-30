@@ -94,15 +94,15 @@ describe('Build Document', () => {
         expect(roughness.getBoundValue(material).getData()).to.equal(0.25);
     });
 
-    it('Bind a shader parameter to a value', () => {
-        const bindParam = shaderRef.addBindParam('roughness');
-        bindParam.setValuefloat(0.5);
-        expect(roughness.getBoundValue(material).getData()).to.equal(0.25);
+    it('Bind a shader input to a float value', () => {
+        const bindInput = shaderRef.addBindInput('roughness');
+        bindInput.setValuefloat(0.5);
+        expect(roughness.getBoundValue(material).getData()).to.equal(0.5);
         expect(roughness.getDefaultValue().getData()).to.equal(0.25);
     });
 
     let bindInput;
-    it('Bind a shader input to a value', () => {
+    it('Bind a shader input to a color value', () => {
         bindInput = shaderRef.addBindInput('specColor');
         bindInput.setValuecolor3(new mx.Color3(0.5, 0.5, 0.5));
         expect(specColor.getBoundValue(material).getData()).to.eql(new mx.Color3(0.5, 0.5, 0.5));
@@ -127,7 +127,7 @@ describe('Build Document', () => {
     it('Create an inherited material', () => {
         const material2 = doc.addMaterial();
         material2.setInheritsFrom(material);
-        expect(roughness.getBoundValue(material2).getData()).to.equal(0.25);
+        expect(roughness.getBoundValue(material2).getData()).to.equal(0.5);
         expect(diffColor.getUpstreamElement(material2)).to.eql(output2);
     });
 

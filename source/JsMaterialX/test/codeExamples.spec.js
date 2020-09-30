@@ -47,9 +47,9 @@ describe('Code Examples', () => {
         expect(inputValue.getData()).to.eql(new mx.Color3(0.0, 0.0, 0.0));
 
         const roughness = simpleSrf.setInputValuefloat('roughness', 0.25);
-        const paramValue = simpleSrf.getInputValue('roughness');
-        expect(paramValue).to.not.be.null;
-        expect(paramValue.getData()).to.equal(0.25);
+        inputValue = simpleSrf.getInputValue('roughness');
+        expect(inputValue).to.not.be.null;
+        expect(inputValue.getData()).to.equal(0.25);
 
         // Create a material that instantiates the shader.
         const material = doc.addMaterial();
@@ -63,16 +63,16 @@ describe('Code Examples', () => {
         expect(shaderRefs[0].getName()).to.equal('SR_simpleSrf');
 
         // Bind roughness to a new value within this material.
-        const bindParam = refSimpleSrf.addBindParam('roughness');
-        const bindParams = refSimpleSrf.getBindParams();
-        expect(bindParams.length).to.equal(1);
-        expect(bindParams[0]).to.eql(bindParam);
-        bindParam.setValuefloat(0.5);
-        expect(bindParam.getValue()).to.not.be.null;
-        expect(bindParam.getValue().getData()).to.equal(0.5);
+        const bindInput = refSimpleSrf.addBindInput('roughness');
+        const bindInputs = refSimpleSrf.getBindInputs();
+        expect(bindInputs.length).to.equal(1);
+        expect(bindInputs[0]).to.eql(bindInput);
+        bindInput.setValuefloat(0.5);
+        expect(bindInput.getValue()).to.not.be.null;
+        expect(bindInput.getValue().getData()).to.equal(0.5);
 
         // Validate the value of roughness in the context of this material.
-        expect(roughness.getBoundValue(material).getValueString()).to.equal('0.25');
+        expect(roughness.getBoundValue(material).getValueString()).to.equal('0.5');
     });
 
     it('Traversing a Document Tree', async () => {
@@ -122,7 +122,6 @@ describe('Code Examples', () => {
         mx.readFromXmlString(doc, xmlStr);
 
         let materialCount = 0;
-        let shaderParamCount = 0;
         let shaderInputCount = 0;
         // Iterate through 1.37 materials for which there should be none
         const materials = doc.getMaterials();
@@ -142,7 +141,6 @@ describe('Code Examples', () => {
         });
 
         expect(materialCount).to.equal(0);
-        expect(shaderParamCount).to.equal(0);
         expect(shaderInputCount).to.equal(0);
     });
 });

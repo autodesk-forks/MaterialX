@@ -1029,7 +1029,7 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
     }
 
     // 
-    // Handle colorspace and unit converstion if needed.
+    // Handle colorspace and unit conversion if needed.
     string targetColorSpace;
     ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
     if (colorManagementSystem)
