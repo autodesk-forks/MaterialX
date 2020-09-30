@@ -422,7 +422,7 @@ ImagePtr OslRenderer::captureImage()
 
     if (!_imageHandler || _oslOutputFileName.isEmpty())
     {
-        errors.push_back("Failed to read image:" + _oslOutputFileName.asString());
+        errors.push_back("Failed to read image: " + _oslOutputFileName.asString());
         throw ExceptionShaderRenderError(errorType, errors);
     }
 
@@ -430,7 +430,7 @@ ImagePtr OslRenderer::captureImage()
     ImagePtr returnImage = _imageHandler->acquireImage(_oslOutputFileName, false, nullptr, &error);
     if (!returnImage)
     {
-        errors.push_back("Failed to save to file:" + _oslOutputFileName.asString());
+        errors.push_back("Failed to save to file: " + _oslOutputFileName.asString());
         errors.push_back(error);            
         throw ExceptionShaderRenderError(errorType, errors);
     }
@@ -445,7 +445,7 @@ void OslRenderer::saveImage(const FilePath& filePath, ConstImagePtr image, bool 
 
     if (!_imageHandler->saveImage(filePath, image, verticalFlip))
     {
-        errors.push_back("Failed to save to file:" + filePath.asString());
+        errors.push_back("Failed to save to file: " + filePath.asString());
         throw ExceptionShaderRenderError(errorType, errors);
     }
 }

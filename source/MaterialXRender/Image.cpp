@@ -34,12 +34,7 @@ ImagePtr createUniformImage(unsigned int width, unsigned int height, unsigned in
 
 ImagePtr createImageStrip(const vector<ImagePtr>& imageVec)
 {
-    if (imageVec.empty())
-    {
-        return nullptr;
-    }
-
-    if (!imageVec[0])
+    if (imageVec.empty() || !imageVec[0])
     {
         return nullptr;
     }
