@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <materialx version="1.37">
-  <nodegraph name="parameter_as_input">
+  <nodegraph name="parameter_as_input" fileprefix="resources/Images/">
     <constant name="constant" type="color3">
       <input name="value" type="color3" interfacename="value1" value="1, 0, 0" />
     </constant>
@@ -21,6 +21,14 @@
     </ramp4>
     <image name="image" type="color3">
       <input name="file" type="filename" nodename="constant3" />
+      <input name="layer" type="string" value="" uiname="Layer" uniform="true" />
+      <input name="default" type="color3" value="0.0, 0.0, 0.0" uiname="Default Color" uniform="true" />
+      <input name="uaddressmode" type="string" value="periodic" enum="constant,clamp,periodic,mirror" uiname="Address Mode U" uniform="true" />
+      <input name="vaddressmode" type="string" value="periodic" enum="constant,clamp,periodic,mirror" uiname="Address Mode V" uniform="true" />
+      <input name="filtertype" type="string" value="linear" enum="closest,linear,cubic" uiname="Filter Type" uniform="true" />
+      <input name="framerange" type="string" value="" uiname="Frame Range" uniform="true" />
+      <input name="frameoffset" type="integer" value="0" uiname="Frame Offset" uniform="true" />
+      <input name="frameendaction" type="string" value="constant" enum="constant,clamp,periodic,mirror" uiname="Frame End Action" uniform="true" />
     </image>
     <splitlr name="splitlr" type="color3">
       <input name="valuel" type="color3" nodename="image" />
@@ -35,6 +43,7 @@
     <noise2d name="noise2d" type="color3">
       <input name="pivot" type="float" nodename="noise2d1" />
       <input name="texcoord" type="vector2" nodename="multiply" />
+      <input name="amplitude" type="vector3" value="1.0, 1.0, 1.0" uniform="true" />
     </noise2d>
     <noise2d name="noise2d1" type="float">
       <input name="amplitude" type="float" value="2" />
@@ -51,6 +60,7 @@
     </tangent>
     <geompropvalue name="geompropvalue" type="integer">
       <input name="geomprop" type="string" value="myvalue" />
+      <input name="default" type="integer" value="0" uniform="true" />
     </geompropvalue>
     <constant name="constant2" type="string">
       <input name="value" type="string" interfacename="my_tangent_name" value="mytangents" />
