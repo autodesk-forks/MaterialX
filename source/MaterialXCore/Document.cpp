@@ -1016,7 +1016,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
             if (param)
             {
                 nodedef->removeParameter(AXIS);
-                nodedef->addInput(AXIS, "vector3", "vector3");
+                nodedef->addInput(AXIS, "vector3");
             }
         }
 
@@ -1058,7 +1058,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                 {
                     const string v = param->getValueString();
                     node->removeParameter(AXIS);
-                    InputPtr input = node->addInput(AXIS, "vector3", "vector3");
+                    InputPtr input = node->addInput(AXIS, "vector3");
                     input->setValueString(v);
                 }
             }
@@ -1104,6 +1104,8 @@ void Document::upgradeVersion(bool applyFutureUpdates)
         }   
 
         // Convert all parameters to be inputs. If needed set them to be "uniform".
+        const StringSet uniformTypes = { FILENAME_TYPE_STRING, STRING_TYPE_STRING };
+        const string PARAMETER_CATEGORY_STRING("parameter");
         for (ElementPtr e : traverseTree())
         {
             InterfaceElementPtr elem = e->asA<InterfaceElement>();
@@ -1114,12 +1116,19 @@ void Document::upgradeVersion(bool applyFutureUpdates)
             vector<ElementPtr> children = elem->getChildren();
             for (ElementPtr child : children)
             {
-                if (child->getCategory() == "parameter")
+                if (child->getCategory() == PARAMETER_CATEGORY_STRING)
                 {
                     InputPtr newInput = updateChildSubclass<Input>(elem, child);
-                    // TODO: Only make some of these into uniforms 
-                    // instead of all of them
-                    newInput->setIsUniform(true);
+                    if (uniformTypes.count(child->getAttribute(TYPE_ATTRIBUTE)))
+                    {
+                        newInput->setIsUniform(true);
+                    }
+                    else
+                    {
+                        // TODO: Determine based on usage whether to make
+                        // the input a uniform. 
+                        newInput->setIsUniform(false);
+                    }
                 }
             }
         }

@@ -81,6 +81,9 @@ describe('Build Document', () => {
         specColor = shaderDef.setInputValuecolor3('specColor', new mx.Color3(0.0, 0.0, 0.0));
         roughness = shaderDef.setInputValuefloat('roughness', 0.25);
         texId = shaderDef.setTokenValue('texId', '01');
+        expect(roughness.getIsUniform()).to.equal(false);
+        roughness.setIsUniform(true);
+        expect(roughness.getIsUniform()).to.equal(true);
         expect(roughness.getValue().getData()).to.equal(0.25);
     });
 

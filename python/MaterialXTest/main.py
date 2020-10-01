@@ -238,6 +238,9 @@ class TestMaterialX(unittest.TestCase):
         roughness = shaderDef.setInputValue('roughness', 0.25)
         texId = shaderDef.setTokenValue('texId', '01')
         self.assertTrue(roughness.getValue() == 0.25)
+        self.assertTrue(roughness.getIsUniform() == False)
+        roughness.setIsUniform(True);
+        self.assertTrue(roughness.getIsUniform() == True)
 
         # Create a material that instantiates the shader.
         material = doc.addMaterial()

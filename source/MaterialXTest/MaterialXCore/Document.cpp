@@ -48,7 +48,11 @@ TEST_CASE("Document", "[document]")
     // Create a simple shader interface.
     mx::NodeDefPtr shader = doc->addNodeDef("", "surfaceshader", "simpleSrf");
     mx::InputPtr diffColor = shader->addInput("diffColor", "color3");
-    shader->addInput("specColor", "color3");
+    REQUIRE(!diffColor->getIsUniform());
+    mx::InputPtr specColor = shader->addInput("specColor", "color3", true);
+    REQUIRE(specColor->getIsUniform());
+    specColor->setIsUniform(false);
+    REQUIRE(!specColor->getIsUniform());
     mx::InputPtr roughness = shader->addInput("roughness", "float");
 
     // Create a material that instantiates the shader.
