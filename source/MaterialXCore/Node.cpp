@@ -26,7 +26,7 @@ void Node::setConnectedNode(const string& inputName, NodePtr node)
     InputPtr input = getInput(inputName);
     if (!input)
     {
-        input = addInput(inputName);
+        input = addInput(inputName, DEFAULT_TYPE_STRING);
     }
     if (node)
     {
@@ -50,7 +50,7 @@ void Node::setConnectedNodeName(const string& inputName, const string& nodeName)
     InputPtr input = getInput(inputName);
     if (!input)
     {
-        input = addInput(inputName);
+        input = addInput(inputName, DEFAULT_TYPE_STRING);
     }
     input->setNodeName(nodeName);
 }
@@ -495,7 +495,7 @@ ValueElementPtr Node::addInputFromNodeDef(const string& name)
 
         if (nodeDefElem->isA<Input>())
         {
-            newChild = addInput(inputName);
+            newChild = addInput(inputName, nodeDefElem->getType());
         }
         if (newChild)
         {

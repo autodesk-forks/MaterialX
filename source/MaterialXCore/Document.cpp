@@ -883,7 +883,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                 ParameterPtr cutoff = node->getParameter("cutoff");
                 if (cutoff)
                 {
-                    InputPtr value2 = node->addInput("value2");
+                    InputPtr value2 = node->addInput("value2", DEFAULT_TYPE_STRING);
                     value2->copyContentFrom(cutoff);
                     node->removeChild(cutoff->getName());
                 }
@@ -1016,7 +1016,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
             if (param)
             {
                 nodedef->removeParameter(AXIS);
-                nodedef->addInput(AXIS, "vector3");
+                nodedef->addInput(AXIS, "vector3", "vector3");
             }
         }
 
@@ -1058,7 +1058,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                 {
                     const string v = param->getValueString();
                     node->removeParameter(AXIS);
-                    InputPtr input = node->addInput(AXIS, "vector3");
+                    InputPtr input = node->addInput(AXIS, "vector3", "vector3");
                     input->setValueString(v);
                 }
             }
