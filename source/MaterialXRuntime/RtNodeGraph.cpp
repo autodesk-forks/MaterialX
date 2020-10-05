@@ -191,7 +191,7 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
             {
                 data = input.addMetadata(UIFOLDER, RtType::TOKEN);
             }
-            else if (data && data->getType() != RtType::TOKEN)
+            else if (data->getType() != RtType::TOKEN)
             {
                 input.removeMetadata(UIFOLDER);
                 data = input.addMetadata(UIFOLDER, RtType::TOKEN);
