@@ -45,7 +45,7 @@ void PvtConnectionCmd::makeConnection(RtCommandResult& result)
         // Validate the operation
         if (!(_src && _dest))
         {
-            result = RtCommandResult(false, string("PvtRelationshipCmd: Command operands are no longer valid"));
+            result = RtCommandResult(false, string("PvtConnectionCmd: Command operands are no longer valid"));
             return;
         }
         if (!_src.isConnectable(_dest))
@@ -75,7 +75,7 @@ void PvtConnectionCmd::breakConnection(RtCommandResult& result)
         // Validate the operation
         if (!(_src && _dest))
         {
-            result = RtCommandResult(false, string("PvtRelationshipCmd: Command operands are no longer valid"));
+            result = RtCommandResult(false, string("PvtConnectionCmd: Command operands are no longer valid"));
             return;
         }
 
