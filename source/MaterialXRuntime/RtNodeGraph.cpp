@@ -9,8 +9,6 @@
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
-#include <MaterialXCore/Element.h>
-
 namespace MaterialX
 {
 
