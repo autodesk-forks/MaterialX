@@ -1583,7 +1583,6 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     for (int i = 0; i < 2; ++i) {
 
         mx::RtWriteOptions writeOptions;
-        writeOptions.materialWriteOp = mx::RtWriteOptions::MaterialWriteOp::WRITE_LOOKS;
         mx::RtReadOptions readOptions;
         readOptions.readLookInformation = true;
         // Do not upgrade on reload:
@@ -1802,9 +1801,6 @@ TEST_CASE("Runtime: FileIo downgrade", "[runtime]")
         mx::RtFileIo stageIo(stage);
         mx::RtWriteOptions wops;
         wops.writeIncludes = false;
-        wops.materialWriteOp =
-            mx::RtWriteOptions::MaterialWriteOp::WRITE_MATERIALS_AS_ELEMENTS |
-            mx::RtWriteOptions::MaterialWriteOp::WRITE_LOOKS;
 
         std::stringstream stream;
         stageIo.write(stream, &wops);
