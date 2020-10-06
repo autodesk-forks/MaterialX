@@ -1088,6 +1088,10 @@ namespace
             {
                 writeNodeDef(prim, doc, options);
             }
+            else if (typeName == RtNode::typeName())
+            {
+                NodePtr mxNode = writeNode(prim, doc, options);
+            }
             else if (typeName == RtNodeGraph::typeName())
             {
                 writeNodeGraph(prim, doc, options);
