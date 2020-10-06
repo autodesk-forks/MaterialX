@@ -171,9 +171,9 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
     }
 
     // Make sure all attributes where moved.
-    if (processed.size() != p->_attrOrder.size())
+    if (newAttrOrder.size() != p->_attrOrder.size())
     {
-        throw ExceptionRuntimeError("Failed setting new node layout for '" + getName().str() + "'. Some attributes where not processed.");
+        throw ExceptionRuntimeError("Failed setting new node layout for '" + getName().str() + "'. Changing the attribute count is not allowed.");
     }
 
     // Switch to the new order.
