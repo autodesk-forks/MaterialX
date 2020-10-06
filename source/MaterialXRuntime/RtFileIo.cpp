@@ -1090,7 +1090,7 @@ namespace
             }
             else if (typeName == RtNode::typeName())
             {
-                NodePtr mxNode = writeNode(prim, doc, options);
+                writeNode(prim, doc, options);
             }
             else if (typeName == RtNodeGraph::typeName())
             {
