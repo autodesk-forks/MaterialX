@@ -179,7 +179,7 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
     // Switch to the new order.
     p->_attrOrder = newAttrOrder;
 
-    // Assing uifolder metadata.
+    // Assign uifolder metadata.
     for (RtAttribute input : getInputs())
     {
         auto it = layout.uifolder.find(input.getName());
