@@ -149,14 +149,13 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
     PvtDataHandleVec newAttrOrder;
     for (const RtToken& name : layout.order)
     {
-        PvtInput* input = p->getInput(name);
-        if (!input)
-        {
-            throw ExceptionRuntimeError("No input found with name '" + name.str() + "'");
-        }
         if (!processed.count(name))
         {
-            newAttrOrder.push_back(input->hnd());
+            PvtInput* input = p->getInput(name);
+            if (input)
+            {
+                newAttrOrder.push_back(input->hnd());
+            }
             processed.insert(name);
         }
     }
@@ -174,7 +173,7 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
     // Make sure all attributes where moved.
     if (processed.size() != p->_attrOrder.size())
     {
-        throw ExceptionRuntimeError("Faild setting new node layout for '" + getName().str() + "'");
+        throw ExceptionRuntimeError("Failed setting new node layout for '" + getName().str() + "'. Some attributes where not processed.");
     }
 
     // Switch to the new order.
