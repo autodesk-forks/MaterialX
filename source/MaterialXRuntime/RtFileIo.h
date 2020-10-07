@@ -79,6 +79,9 @@ class RtWriteOptions
 
     /// The desired minor version
     unsigned int desiredMinorVersion;
+
+    /// Write uniforms as parameters
+    bool writeUniformsAsParameters;
 };
 
 /// API for read and write of data from MaterialX files
