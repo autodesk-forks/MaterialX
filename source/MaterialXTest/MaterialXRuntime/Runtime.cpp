@@ -1826,7 +1826,7 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
     mx::RtReadOptions options;
-    options.applyFutureUpdates;
+    options.applyFutureUpdates = true;
     api->loadLibrary(STDLIB, options);
     api->loadLibrary(PBRLIB, options);
     api->loadLibrary(BXDFLIB, options);
@@ -1856,7 +1856,7 @@ TEST_CASE("Runtime: units", "[runtime]")
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
     mx::RtReadOptions options;
-    options.applyFutureUpdates;
+    options.applyFutureUpdates = true;
     api->loadLibrary(STDLIB, options);
     // Load in stdlib twice on purpose to ensure no exception is thrown when trying to add a duplicate unit 
     // definition 
