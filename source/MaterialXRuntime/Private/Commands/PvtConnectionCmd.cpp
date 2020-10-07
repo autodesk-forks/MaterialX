@@ -43,7 +43,7 @@ void PvtConnectionCmd::makeConnection(RtCommandResult& result)
     try
     {
         // Validate the operation.
-        // Note: Connectability is validated inside the connect metod below,
+        // Note: Connectability is validated inside the connect method below,
         // so here we only need to check that the operands are valid.
         if (!(_src && _dest))
         {
