@@ -1247,13 +1247,15 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* options)
     }
 }
 
-void RtFileIo::readLibraries(const FilePathVec& libraryPaths, const FileSearchPath& searchPaths)
+void RtFileIo::readLibraries(const FilePathVec& libraryPaths, const FileSearchPath& searchPaths, const RtReadOptions& options)
 {
     PvtStage* stage = PvtStage::ptr(_stage);
 
     // Load all content into a document.
     DocumentPtr doc = createDocument();
-    MaterialX::loadLibraries(libraryPaths, searchPaths, doc);
+    MaterialX::XmlReadOptions readOptions;
+    readOptions.applyFutureUpdates = options.applyFutureUpdates;
+    MaterialX::loadLibraries(libraryPaths, searchPaths, doc, MaterialX::StringSet(), &readOptions);
 
     StringSet uris = doc->getReferencedSourceUris();
     for (const string& uri : uris)
