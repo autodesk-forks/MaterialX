@@ -41,6 +41,7 @@ namespace
     static const RtToken DEFAULT_OUTPUT("out");
     static const RtToken OUTPUT_ELEMENT_PREFIX("OUT_");
     static const RtToken MULTIOUTPUT("multioutput");
+    static const RtToken UI_VISIBLE("uivisible");
 
     class PvtRenamingMapper {
         typedef RtTokenMap<RtToken> TokenToToken;
@@ -733,7 +734,8 @@ namespace
             if (input)
             {
                 // Write input if it's connected or different from default value.
-                if (input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), attrDef.getValue()))
+                if (input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), attrDef.getValue()) ||
+                    (input.getMetadata(UI_VISIBLE) && input.getMetadata(UI_VISIBLE)->getValueString() == "false"))
                 {
                     ValueElementPtr valueElem;
                     if (input.isUniform())
