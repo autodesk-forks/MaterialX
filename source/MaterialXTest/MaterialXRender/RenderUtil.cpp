@@ -121,7 +121,6 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     if (!runTest(options))
     {
         log << "Language / target: " << _languageTargetString << " not set to run. Skip test." << std::endl;
-        std::cout  << "Language / target: " << _languageTargetString << " not set to run. Skip test." << std::endl;
         return false;
     }
 
