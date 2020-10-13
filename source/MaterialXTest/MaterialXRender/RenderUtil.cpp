@@ -121,6 +121,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
     if (!runTest(options))
     {
         log << "Language / target: " << _languageTargetString << " not set to run. Skip test." << std::endl;
+        std::cout  << "Language / target: " << _languageTargetString << " not set to run. Skip test." << std::endl;
         return false;
     }
 
@@ -363,12 +364,13 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                                 usedImpls.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl->getName());
                             }
 
-                            const mx::StringVec& wedgeFiles = options.wedgeFiles;
+                            const mx::StringSet& wedgeFiles = options.wedgeFiles;
                             const mx::StringVec& wedgeParameters = options.wedgeParameters;
                             const mx::FloatVec& wedgeRangeMin = options.wedgeRangeMin;
                             const mx::FloatVec& wedgeRangeMax = options.wedgeRangeMax;
                             const mx::IntVec& wedgeSteps = options.wedgeSteps;
                             bool performWedge = (!wedgeFiles.empty()) &&
+                                wedgeFiles.count(file) &&
                                 wedgeFiles.size() == wedgeParameters.size() &&
                                 wedgeFiles.size() == wedgeRangeMin.size() &&
                                 wedgeFiles.size() == wedgeRangeMax.size() &&
@@ -383,12 +385,6 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                                 mx::ImageVec imageVec;
                                 for (size_t f = 0; f < wedgeFiles.size(); f++)
                                 {
-                                    const std::string& wedgeFile = wedgeFiles[f];
-                                    if (wedgeFile != file)
-                                    {
-                                        continue;
-                                    }
-
                                     // Make this a utility
                                     std::string parameterPath = wedgeParameters[f];
                                     mx::ElementPtr uniformElement = doc->getDescendant(parameterPath);

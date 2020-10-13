@@ -331,6 +331,39 @@ bool Document::validate(string* message) const
     return GraphElement::validate(message) && res;
 }
 
+void convertParameterToInput(DocumentPtr doc)
+{
+    // Convert all parameters to be inputs. If needed set them to be "uniform".
+    const StringSet uniformTypes = { FILENAME_TYPE_STRING, STRING_TYPE_STRING };
+    const string PARAMETER_CATEGORY_STRING("parameter");
+    for (ElementPtr e : doc->traverseTree())
+    {
+        InterfaceElementPtr elem = e->asA<InterfaceElement>();
+        if (!elem)
+        {
+            continue;
+        }
+        vector<ElementPtr> children = elem->getChildren();
+        for (ElementPtr child : children)
+        {
+            if (child->getCategory() == PARAMETER_CATEGORY_STRING)
+            {
+                InputPtr newInput = updateChildSubclass<Input>(elem, child);
+                if (uniformTypes.count(child->getAttribute(TypedElement::TYPE_ATTRIBUTE)))
+                {
+                    newInput->setIsUniform(true);
+                }
+                else
+                {
+                    // TODO: Determine based on usage whether to make
+                    // the input a uniform. 
+                    newInput->setIsUniform(false);
+                }
+            }
+        }
+    }
+}
+
 void Document::upgradeVersion(bool applyFutureUpdates)
 {
     std::pair<int, int> versions = getVersionIntegers();
@@ -977,35 +1010,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
 
     if (applyFutureUpdates)
     {
-        // Convert all parameters to be inputs. If needed set them to be "uniform".
-        const StringSet uniformTypes = { FILENAME_TYPE_STRING, STRING_TYPE_STRING };
-        const string PARAMETER_CATEGORY_STRING("parameter");
-        for (ElementPtr e : traverseTree())
-        {
-            InterfaceElementPtr elem = e->asA<InterfaceElement>();
-            if (!elem)
-            {
-                continue;
-            }
-            vector<ElementPtr> children = elem->getChildren();
-            for (ElementPtr child : children)
-            {
-                if (child->getCategory() == PARAMETER_CATEGORY_STRING)
-                {
-                    InputPtr newInput = updateChildSubclass<Input>(elem, child);
-                    if (uniformTypes.count(child->getAttribute(TYPE_ATTRIBUTE)))
-                    {
-                        newInput->setIsUniform(true);
-                    }
-                    else
-                    {
-                        // TODO: Determine based on usage whether to make
-                        // the input a uniform. 
-                        newInput->setIsUniform(false);
-                    }
-                }
-            }
-        }
+        convertParameterToInput(asA<Document>());
     }
 
     if (majorVersion == MATERIALX_MAJOR_VERSION &&

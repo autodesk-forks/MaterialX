@@ -142,7 +142,7 @@ class TestSuiteOptions
     mx::FileSearchPath externalTestPaths;
 
     // Wedge parameters
-    mx::StringVec wedgeFiles;
+    mx::StringSet wedgeFiles;
     mx::StringVec wedgeParameters;
     mx::FloatVec wedgeRangeMin;
     mx::FloatVec wedgeRangeMax;
