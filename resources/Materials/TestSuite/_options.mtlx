@@ -99,7 +99,7 @@
       <parameter name="applyFutureUpdates" type="boolean" value="true" />
       
       <!-- Wedge rendering options -->
-      <parameter name="wedgeFiles" type="string" value="conductor.mtlx" />
+      <parameter name="wedgeFiles" type="string" value="" />
       <parameter name="wedgeParameters" type="string" value="test_conductor/roughness1/roughness" />
       <parameter name="wedgeRangeMin" type="floatarray" value="0.0" />
       <parameter name="wedgeRangeMax" type="floatarray" value="1.0" />
