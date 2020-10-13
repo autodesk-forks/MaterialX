@@ -188,6 +188,7 @@ class NodeDef : public InterfaceElement
     static const string ADJUSTMENT_NODE_GROUP;
     static const string CONDITIONAL_NODE_GROUP;
     static const string ORGANIZATION_NODE_GROUP;
+    static const string TRANSLATION_NODE_GROUP;
 };
 
 /// @class Implementation
@@ -524,7 +525,6 @@ class AttributeDef : public TypedElement
     }
     virtual ~AttributeDef() { }
 
-    /// @}
     /// @name Attribute name
     /// @{
 

@@ -26,7 +26,7 @@ void Node::setConnectedNode(const string& inputName, NodePtr node)
     InputPtr input = getInput(inputName);
     if (!input)
     {
-        input = addInput(inputName);
+        input = addInput(inputName, DEFAULT_TYPE_STRING);
     }
     if (node)
     {
@@ -50,7 +50,7 @@ void Node::setConnectedNodeName(const string& inputName, const string& nodeName)
     InputPtr input = getInput(inputName);
     if (!input)
     {
-        input = addInput(inputName);
+        input = addInput(inputName, DEFAULT_TYPE_STRING);
     }
     input->setNodeName(nodeName);
 }
@@ -486,13 +486,16 @@ ValueElementPtr Node::addInputFromNodeDef(const string& name)
     if (elemNodeDef)
     {
         ValueElementPtr nodeDefElem = elemNodeDef->getChildOfType<ValueElement>(name);
+        const string& inputName = nodeDefElem->getName();
+        ElementPtr existingElement = getChild(inputName);
+        if (existingElement && existingElement->isA<ValueElement>())
+        {
+            return existingElement->asA<ValueElement>();
+        }
+
         if (nodeDefElem->isA<Input>())
         {
-            newChild = addInput(nodeDefElem->getName());
-        }
-        else if (nodeDefElem->isA<Parameter>())
-        {
-            newChild = addParameter(nodeDefElem->getName());
+            newChild = addInput(inputName, nodeDefElem->getType());
         }
         if (newChild)
         {
@@ -518,8 +521,7 @@ void NodeGraph::addInterface(const string& childPath, const string& interfaceNam
     ElementPtr elem = getDescendant(childPath);
     ValueElementPtr valueElem = elem->asA<ValueElement>();
     InputPtr input = valueElem ? valueElem->asA<Input>() : nullptr;
-    ParameterPtr param = valueElem ? valueElem->asA<Parameter>() : nullptr;
-    if ((!input && !param) || (input && input->getConnectedNode()))
+    if (!input || (input && input->getConnectedNode()))
     {
         throw Exception("Invalid nodegraph child to create interface for:  " + childPath);
     }
@@ -533,14 +535,6 @@ void NodeGraph::addInterface(const string& childPath, const string& interfaceNam
         if (value)
         {
             nodeDefInput->setValueString(value->getValueString());
-        }
-    }
-    else
-    {
-        ParameterPtr nodeDefParam = nodeDef->addParameter(interfaceName, param->getType());
-        if (value)
-        {
-            nodeDefParam->setValueString(value->getValueString());
         }
     }
 }

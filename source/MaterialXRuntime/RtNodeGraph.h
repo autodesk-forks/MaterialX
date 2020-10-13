@@ -10,6 +10,7 @@
 /// TODO: Docs
 
 #include <MaterialXRuntime/RtNode.h>
+#include <MaterialXRuntime/RtNodeDef.h>
 
 namespace MaterialX
 {
@@ -54,6 +55,14 @@ public:
     /// Return the internal socket that corresponds
     /// to the named output attribute.
     RtInput getOutputSocket(const RtToken& name) const;
+
+    /// Return a node layout struct for this graph.
+    /// Containing its input ordering and uifolder hierarchy.
+    RtNodeLayout getNodeLayout();
+
+    /// Set the node layout for this graph, reordering its inputs
+    /// and uifolder hierarchy according to the given layout struct.
+    void setNodeLayout(const RtNodeLayout& layout);
 
     /// Return a node by name.
     RtPrim getNode(const RtToken& name) const;

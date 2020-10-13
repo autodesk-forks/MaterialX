@@ -4,7 +4,7 @@
 //
 
 #include <MaterialXRuntime/Private/Commands/PvtRemovePrimCmd.h>
-#include <MaterialXRuntime/Private/Commands/PvtBreakConnectionCmd.h>
+#include <MaterialXRuntime/Private/Commands/PvtConnectionCmd.h>
 
 namespace MaterialX
 {
@@ -35,7 +35,7 @@ void PvtRemovePrimCmd::execute(RtCommandResult& result)
             if (input.isConnected())
             {
                 RtOutput output = input.getConnection();
-                addCommand(PvtBreakConnectionCmd::create(output, input));
+                addCommand(PvtConnectionCmd::create(output, input, ConnectionChange::BREAK_CONNECTION));
             }
         }
 
@@ -49,24 +49,22 @@ void PvtRemovePrimCmd::execute(RtCommandResult& result)
                 for (RtObject inputObj : output.getConnections())
                 {
                     RtInput input = inputObj.asA<RtInput>();
-                    addCommand(PvtBreakConnectionCmd::create(output, input));
+                    addCommand(PvtConnectionCmd::create(output, input, ConnectionChange::BREAK_CONNECTION));
                 }
             }
         }
 
-        // Send message that the prim is about to be removed.
-        msg().sendRemovePrimMessage(_stage, _prim);
-
         // Execute all the break connection commands.
         PvtCommandList::execute(result);
 
-        // Dispose the prim.
         if (result.success())
         {
+            // Send message that the prim is about to be removed.
+            msg().sendRemovePrimMessage(_stage, _prim);
+
+            // Dispose the prim.
             _stage->disposePrim(_path);
         }
-
-        result = RtCommandResult(true);
     }
     catch (const ExceptionRuntimeError& e)
     {
@@ -83,12 +81,12 @@ void PvtRemovePrimCmd::undo(RtCommandResult& result)
         parentPath.pop();
         _stage->restorePrim(parentPath, _prim);
 
+        // Send message that the prim has been created/restored.
+        msg().sendCreatePrimMessage(_stage, _prim);
+
         // Undo all the break connection commands.
         PvtCommandList::undo(result);
         clearCommands();
-
-        // Send message that the prim has been created/restored.
-        msg().sendCreatePrimMessage(_stage, _prim);
 
         result = RtCommandResult(true);
     }

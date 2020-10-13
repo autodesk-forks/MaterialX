@@ -497,11 +497,11 @@ void ShaderGeneratorTester::setupDependentLibraries()
     // Load the standard libraries.
     const mx::FilePathVec libraries = { "adsk", "stdlib", "pbrlib", "lights" };
 
-    loadLibraries(libraries, _libSearchPath, _dependLib, &_skipLibraryFiles);
+    loadLibraries(libraries, _libSearchPath, _dependLib, _skipLibraryFiles);
 
     // Load shader definitions used in the test suite.
-    loadLibrary(mx::FilePath("bxdf/standard_surface.mtlx"), _dependLib, &_libSearchPath);
-    loadLibrary(mx::FilePath("bxdf/usd_preview_surface.mtlx"), _dependLib, &_libSearchPath);
+    loadLibrary(mx::FilePath("bxdf/standard_surface.mtlx"), _dependLib, _libSearchPath);
+    loadLibrary(mx::FilePath("bxdf/usd_preview_surface.mtlx"), _dependLib, _libSearchPath);
 }
 
 void ShaderGeneratorTester::addSkipFiles()
@@ -666,8 +666,6 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
     filenameRemap[":"] = "_";
 
     size_t documentIndex = 0;
-    mx::CopyOptions copyOptions;
-    copyOptions.skipConflictingElements = true;
     for (const auto& doc : _documents)
     {
         // For each new file clear the implementation cache.
@@ -686,7 +684,7 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
         bool importedLibrary = false;
         try
         {
-            doc->importLibrary(_dependLib, &copyOptions);
+            doc->importLibrary(_dependLib);
             importedLibrary = true;
         }
         catch (mx::Exception& e)
@@ -746,7 +744,9 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
         bool docValid = doc->validate(&message);
         if (!docValid)
         {
-            _logFile << "Document is invalid: [" << doc->getSourceUri() << "] " << message;
+            std::string msg = "Document is invalid: [" + doc->getSourceUri() + "] " + message;
+            _logFile << msg;
+            WARN(msg);
         }
         CHECK(docValid);
 
@@ -977,6 +977,11 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
     const std::string EXTERNAL_LIBRARY_PATHS("externalLibraryPaths");
     const std::string EXTERNAL_TEST_PATHS("externalTestPaths");
     const std::string APPLY_LATEST_UPDATES("applyFutureUpdates");
+    const std::string WEDGE_FILES("wedgeFiles");
+    const std::string WEDGE_PARAMETERS("wedgeParameters");
+    const std::string WEDGE_RANGE_MIN("wedgeRangeMin");
+    const std::string WEDGE_RANGE_MAX("wedgeRangeMax");
+    const std::string WEDGE_STEPS("wedgeSteps");
 
     overrideFiles.clear();
     dumpGeneratedCode = false;
@@ -996,7 +1001,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
         MaterialX::NodeDefPtr optionDefs = doc->getNodeDef(RENDER_TEST_OPTIONS_STRING);
         if (optionDefs)
         {
-            for (MaterialX::ParameterPtr p : optionDefs->getParameters())
+            for (auto p : optionDefs->getInputs())
             {
                 const std::string& name = p->getName();
                 MaterialX::ValuePtr val = p->getValue();
@@ -1105,6 +1110,27 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                         {
                             externalTestPaths.append(mx::FilePath(l));
                         }
+                    }
+
+                    else if (name == WEDGE_FILES)
+                    {
+                        wedgeFiles = mx::splitString(p->getValueString(), ",");
+                    }
+                    else if (name == WEDGE_PARAMETERS)
+                    {
+                        wedgeParameters = mx::splitString(p->getValueString(), ",");
+                    }
+                    else if (name == WEDGE_STEPS)
+                    {
+                        wedgeSteps = val->asA<mx::IntVec>();
+                    }
+                    else if (name == WEDGE_RANGE_MIN)
+                    {
+                        wedgeRangeMin = val->asA<mx::FloatVec>();
+                    }
+                    else if (name == WEDGE_RANGE_MAX)
+                    {
+                        wedgeRangeMax = val->asA<mx::FloatVec>();
                     }
                     else if (name == APPLY_LATEST_UPDATES)
                     {

@@ -12,10 +12,11 @@ extern "C"
 {
     EMSCRIPTEN_BINDINGS(xmlio)
     {
-        ems::class_<mx::XmlReadOptions, ems::base<mx::CopyOptions>>("XmlReadOptions")
+        ems::class_<mx::XmlReadOptions>("XmlReadOptions")
             .constructor<>()
             .property("readXIncludeFunction", &mx::XmlReadOptions::readXIncludeFunction)
-            .property("parentXIncludes", &mx::XmlReadOptions::parentXIncludes);
+            .property("parentXIncludes", &mx::XmlReadOptions::parentXIncludes)
+            .property("applyFutureUpdates", &mx::XmlReadOptions::applyFutureUpdates);
         ems::class_<mx::XmlWriteOptions>("XmlWriteOptions")
             .constructor<>()
             .property("writeXIncludeEnable", &mx::XmlWriteOptions::writeXIncludeEnable)

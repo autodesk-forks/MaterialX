@@ -60,14 +60,6 @@ describe('Build Document', () => {
             materials.forEach((material) => {
                 expect(material.getPrimaryShaderNodeDef()).to.exist;
                 let edgeCount = 0;
-                const primaryShaderParams = material.getPrimaryShaderParameters();
-                primaryShaderParams.forEach((param) => {
-                    const boundValue = param.getBoundValue(material);
-                    expect(boundValue).to.be.not.null;
-                    traverse(param.traverseGraph(material), () => {
-                        edgeCount++;
-                    });
-                });
 
                 const primaryShaderInputs = material.getPrimaryShaderInputs();
                 primaryShaderInputs.forEach((shaderInput) => {
@@ -94,8 +86,7 @@ describe('Build Document', () => {
             // Combine document with the standard library.
             const doc2 = doc.copy();
             libs.forEach((lib) => {
-                const copyOptions = new mx.CopyOptions();
-                doc2.importLibrary(lib, copyOptions);
+                doc2.importLibrary(lib);
             });
 
             expect(doc2.validate()).to.be.true;
@@ -107,7 +98,6 @@ describe('Build Document', () => {
         mtlxStrs = getMtlxStrings(filenames, '../../../resources/Materials/Examples/Syntax');
         mx.readFromXmlString(doc, mtlxStrs[0]);
         const readOptions = new mx.XmlReadOptions();
-        readOptions.skipConflictingElements = true;
         mx.readFromXmlString(doc, mtlxStrs[0], readOptions);
         expect(doc.validate()).to.be.true;
     });

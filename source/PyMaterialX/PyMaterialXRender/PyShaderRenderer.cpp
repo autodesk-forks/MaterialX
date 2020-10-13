@@ -65,13 +65,15 @@ class PyShaderRenderer : public mx::ShaderRenderer
         );
     }
 
-    void save(const mx::FilePath& filePath) override
+    void saveImage(const mx::FilePath& filePath, mx::ConstImagePtr image, bool verticalFlip) override
     {
         PYBIND11_OVERLOAD_PURE(
             void,
             mx::ShaderRenderer,
-            save,
-            filePath
+            saveImage,
+            filePath,
+            image,
+            verticalFlip
         );
     }
 };
@@ -92,7 +94,7 @@ void bindPyShaderRenderer(py::module& mod)
         .def("createProgram", static_cast<void (mx::ShaderRenderer::*)(const mx::ShaderRenderer::StageMap&)>(&mx::ShaderRenderer::createProgram))
         .def("validateInputs", &mx::ShaderRenderer::validateInputs)
         .def("render", &mx::ShaderRenderer::render)
-        .def("save", &mx::ShaderRenderer::save);
+        .def("saveImage", &mx::ShaderRenderer::saveImage);
 
     static py::exception<mx::ExceptionShaderRenderError> pyExceptionShaderRenderError(mod, "ExceptionShaderRenderError");
 

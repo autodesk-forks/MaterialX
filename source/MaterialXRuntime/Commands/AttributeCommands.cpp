@@ -9,8 +9,7 @@
 #include <MaterialXRuntime/Private/PvtApi.h>
 #include <MaterialXRuntime/Private/PvtCommand.h>
 #include <MaterialXRuntime/Private/Commands/PvtSetAttributeCmd.h>
-#include <MaterialXRuntime/Private/Commands/PvtMakeConnectionCmd.h>
-#include <MaterialXRuntime/Private/Commands/PvtBreakConnectionCmd.h>
+#include <MaterialXRuntime/Private/Commands/PvtConnectionCmd.h>
 
 namespace MaterialX
 {
@@ -18,10 +17,20 @@ namespace MaterialX
 namespace RtCommand
 {
 
-void setAttribute(const RtAttribute& attr, const RtValue& value, RtCommandResult& result)
+void setAttributeFromString(const RtAttribute& attr, const string& valueString, RtCommandResult& result)
 {
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, value);
-    PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
+    // Use try/catch since the conversion from string might fail and throw.
+    try
+    {
+        RtValue v = RtValue::createNew(attr.getType(), attr.getParent());
+        RtValue::fromString(attr.getType(), valueString, v);
+        PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+        PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
+    }
+    catch (Exception& e)
+    {
+        result = RtCommandResult(false, e.what());
+    }
 }
 
 void setAttribute(const RtAttribute& attr, bool value, RtCommandResult& result)
@@ -127,13 +136,13 @@ void setAttribute(const RtAttribute& attr, const string& value, RtCommandResult&
 
 void makeConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& result)
 {
-    PvtCommandPtr cmd = PvtMakeConnectionCmd::create(src, dest);
+    PvtCommandPtr cmd = PvtConnectionCmd::create(src, dest, ConnectionChange::MAKE_CONNECTION);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
 void breakConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& result)
 {
-    PvtCommandPtr cmd = PvtBreakConnectionCmd::create(src, dest);
+    PvtCommandPtr cmd = PvtConnectionCmd::create(src, dest, ConnectionChange::BREAK_CONNECTION);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 

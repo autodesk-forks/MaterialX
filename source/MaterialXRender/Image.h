@@ -25,6 +25,9 @@ using ConstImagePtr = shared_ptr<const Image>;
 /// A map from strings to images.
 using ImageMap = std::unordered_map<string, ImagePtr>;
 
+/// A vetor of images.
+using ImageVec = std::vector<ImagePtr>;
+
 /// A pair of images.
 using ImagePair = std::pair<ImagePtr, ImagePtr>;
 
@@ -96,6 +99,14 @@ class Image
     /// Return the texel color at the given coordinates.  If the coordinates
     /// or image resource buffer are invalid, then an exception is thrown.
     Color4 getTexelColor(unsigned int x, unsigned int y) const;
+
+    /// @}
+    /// @name Image Analysis
+    /// @{
+
+    /// Return true if all texels of this image are identical in color.
+    /// @param uniformColor Return the uniform color of the image, if any.
+    bool isUniformColor(Color4* uniformColor = nullptr);
 
     /// @}
     /// @name Image Processing
@@ -178,10 +189,10 @@ class Image
 };
 
 /// Create a uniform-color image with the given properties.
-ImagePtr createUniformImage(unsigned int width, unsigned int height, const Color4& color);
+ImagePtr createUniformImage(unsigned int width, unsigned int height, unsigned int channelCount, Image::BaseType baseType, const Color4& color);
 
 /// Create a horizontal image strip from a vector of images with identical resolutions and formats.
-ImagePtr createImageStrip(vector<ImagePtr> imageVec);
+ImagePtr createImageStrip(const vector<ImagePtr>& imageVec);
 
 } // namespace MaterialX
 

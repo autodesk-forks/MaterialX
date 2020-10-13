@@ -17,8 +17,6 @@ namespace
     static const RtTypeInfo SOCKETS_TYPE_INFO("_nodegraph_internal_sockets");
     static const RtToken SOCKETS("_nodegraph_internal_sockets");
     static const RtToken NODEGRAPH1("nodegraph1");
-    static const RtToken NODEDEF("nodedef");
-    static const RtToken VERSION("version");
 }
 
 DEFINE_TYPED_SCHEMA(RtNodeGraph, "node:nodegraph");
@@ -124,6 +122,86 @@ RtInput RtNodeGraph::getOutputSocket(const RtToken& name) const
     return input ? input->hnd() : RtInput();
 }
 
+RtNodeLayout RtNodeGraph::getNodeLayout()
+{
+    RtNodeLayout layout;
+    for (RtAttribute input : getInputs())
+    {
+        layout.order.push_back(input.getName());
+        RtTypedValue* data = input.getMetadata(RtNodeDef::RtNodeDef::UIFOLDER);
+        if (data && data->getType() == RtType::TOKEN)
+        {
+            layout.uifolder[input.getName()] = data->getValue().asToken();
+        }
+    }
+    return layout;
+}
+
+void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
+{
+    PvtPrim* p = prim();
+
+    // Create a new order map with attributes in the specifed order 
+    RtTokenSet processed;
+    PvtDataHandleVec newAttrOrder;
+    for (const RtToken& name : layout.order)
+    {
+        if (!processed.count(name))
+        {
+            PvtInput* input = p->getInput(name);
+            if (input)
+            {
+                newAttrOrder.push_back(input->hnd());
+            }
+            processed.insert(name);
+        }
+    }
+
+    // Move over any attributes that were not specifed in the new order.
+    for (const PvtDataHandle& hnd : p->_attrOrder)
+    {
+        if (!processed.count(hnd->getName()))
+        {
+            newAttrOrder.push_back(hnd);
+            processed.insert(hnd->getName());
+        }
+    }
+
+    // Make sure all attributes were moved.
+    if (newAttrOrder.size() != p->_attrOrder.size())
+    {
+        throw ExceptionRuntimeError("Failed setting new node layout for '" + getName().str() + "'. Changing the attribute count is not allowed.");
+    }
+
+    // Switch to the new order.
+    p->_attrOrder = newAttrOrder;
+
+    // Assign uifolder metadata.
+    for (RtAttribute input : getInputs())
+    {
+        auto it = layout.uifolder.find(input.getName());
+        if (it != layout.uifolder.end() && it->second != EMPTY_TOKEN)
+        {
+            RtTypedValue* data = input.getMetadata(RtNodeDef::UIFOLDER);
+            if (!data)
+            {
+                data = input.addMetadata(RtNodeDef::UIFOLDER, RtType::TOKEN);
+            }
+            else if (data->getType() != RtType::TOKEN)
+            {
+                input.removeMetadata(RtNodeDef::UIFOLDER);
+                data = input.addMetadata(RtNodeDef::UIFOLDER, RtType::TOKEN);
+            }
+            data->getValue().asToken() = it->second;
+        }
+        else
+        {
+            input.removeMetadata(RtNodeDef::UIFOLDER);
+        }
+    }
+
+}
+
 RtPrim RtNodeGraph::getNode(const RtToken& name) const
 {
     PvtPrim* p = prim()->getChild(name);
@@ -138,25 +216,25 @@ RtPrimIterator RtNodeGraph::getNodes() const
 
 const RtToken& RtNodeGraph::getVersion() const
 {
-    RtTypedValue* v = prim()->getMetadata(VERSION);
+    RtTypedValue* v = prim()->getMetadata(RtNodeDef::VERSION);
     return v ? v->getValue().asToken() : EMPTY_TOKEN;
 }
 
 void RtNodeGraph::setVersion(const RtToken& value)
 {
-    RtTypedValue* v = prim()->addMetadata(VERSION, RtType::TOKEN);
+    RtTypedValue* v = prim()->addMetadata(RtNodeDef::VERSION, RtType::TOKEN);
     v->getValue().asToken() = value;
 }
 
 const RtToken& RtNodeGraph::getDefinition() const
 {
-    RtTypedValue* v = prim()->getMetadata(NODEDEF);
+    RtTypedValue* v = prim()->getMetadata(RtNodeDef::NODEDEF);
     return v ? v->getValue().asToken() : EMPTY_TOKEN;
 }
 
 void RtNodeGraph::setDefinition(const RtToken& value)
 {
-    RtTypedValue* v = prim()->addMetadata(NODEDEF, RtType::TOKEN);
+    RtTypedValue* v = prim()->addMetadata(RtNodeDef::NODEDEF, RtType::TOKEN);
     v->getValue().asToken() = value;
 }
 

@@ -15,10 +15,10 @@ describe('Code Examples', () => {
         expect(nodes.length).to.equal(1);
         expect(nodes[0]).to.eql(image);
 
-        image.setParameterValuestring('file', 'image1.tif', 'filename');
-        const param = image.getParameter('file');
-        expect(param).to.not.be.null;
-        expect(param.getValue().getData()).to.equal('image1.tif');
+        image.setInputValuestring('file', 'image1.tif', 'filename');
+        const input = image.getInput('file');
+        expect(input).to.not.be.null;
+        expect(input.getValue().getData()).to.equal('image1.tif');
 
         const output = nodeGraph.addOutput();
         const outputs = nodeGraph.getOutputs();
@@ -46,10 +46,10 @@ describe('Code Examples', () => {
         expect(inputValue).to.not.be.null;
         expect(inputValue.getData()).to.eql(new mx.Color3(0.0, 0.0, 0.0));
 
-        const roughness = simpleSrf.setParameterValuefloat('roughness', 0.25);
-        const paramValue = simpleSrf.getParameterValue('roughness');
-        expect(paramValue).to.not.be.null;
-        expect(paramValue.getData()).to.equal(0.25);
+        const roughness = simpleSrf.setInputValuefloat('roughness', 0.25);
+        inputValue = simpleSrf.getInputValue('roughness');
+        expect(inputValue).to.not.be.null;
+        expect(inputValue.getData()).to.equal(0.25);
 
         // Create a material that instantiates the shader.
         const material = doc.addMaterial();
@@ -63,13 +63,13 @@ describe('Code Examples', () => {
         expect(shaderRefs[0].getName()).to.equal('SR_simpleSrf');
 
         // Bind roughness to a new value within this material.
-        const bindParam = refSimpleSrf.addBindParam('roughness');
-        const bindParams = refSimpleSrf.getBindParams();
-        expect(bindParams.length).to.equal(1);
-        expect(bindParams[0]).to.eql(bindParam);
-        bindParam.setValuefloat(0.5);
-        expect(bindParam.getValue()).to.not.be.null;
-        expect(bindParam.getValue().getData()).to.equal(0.5);
+        const bindInput = refSimpleSrf.addBindInput('roughness');
+        const bindInputs = refSimpleSrf.getBindInputs();
+        expect(bindInputs.length).to.equal(1);
+        expect(bindInputs[0]).to.eql(bindInput);
+        bindInput.setValuefloat(0.5);
+        expect(bindInput.getValue()).to.not.be.null;
+        expect(bindInput.getValue().getData()).to.equal(0.5);
 
         // Validate the value of roughness in the context of this material.
         expect(roughness.getBoundValue(material).getValueString()).to.equal('0.5');
@@ -84,7 +84,9 @@ describe('Code Examples', () => {
 
         // Read a document from disk.
         const doc = mx.createDocument();
-        mx.readFromXmlString(doc, xmlStr);
+        const readOptions = new mx.XmlReadOptions();
+        readOptions.applyFutureUpdates = true;
+        mx.readFromXmlString(doc, xmlStr, readOptions);
 
         // Traverse the document tree in depth-first order.
         const elements = doc.traverseTree();
@@ -98,18 +100,18 @@ describe('Code Examples', () => {
             // Display the filename of each image node.
             if (elem instanceof mx.Node) {
                 nodeCount++;
-                const param = elem.getParameter('file');
-                if (param) {
+                const input = elem.getInput('file');
+                if (input) {
                     fileCount++;
-                    const filename = param.getValueString();
+                    const filename = input.getValueString();
                     expect(elem.getName()).to.equal('image1');
                     expect(filename).to.equal('greysphere_calibration.png');
                 }
             }
             elem = elements.next();
         }
-        expect(elementCount).to.equal(22);
-        expect(nodeCount).to.equal(3);
+        expect(elementCount).to.equal(23);
+        expect(nodeCount).to.equal(5);
         expect(fileCount).to.equal(1);
     });
 
@@ -122,21 +124,11 @@ describe('Code Examples', () => {
         mx.readFromXmlString(doc, xmlStr);
 
         let materialCount = 0;
-        let shaderParamCount = 0;
         let shaderInputCount = 0;
-        // Iterate through materials.
+        // Iterate through 1.37 materials for which there should be none
         const materials = doc.getMaterials();
         materials.forEach((material) => {
             materialCount++;
-            // For each shader parameter, compute its value in the context of this material.
-            const primaryShaderParams = material.getPrimaryShaderParameters();
-            primaryShaderParams.forEach((param) => {
-                const value = param.getBoundValue(material);
-                expect(value instanceof mx.TypedValue_float).to.be.true;
-                expect(value.getTypeString()).to.equal('float');
-                expect(param.getName()).to.equal('fresnel_exp');
-                shaderParamCount++;
-            });
 
             // For each shader input, find all upstream images in the dataflow graph.
             const primaryShaderInputs = material.getPrimaryShaderInputs();
@@ -150,8 +142,7 @@ describe('Code Examples', () => {
             });
         });
 
-        expect(materialCount).to.equal(2);
-        expect(shaderParamCount).to.equal(2);
-        expect(shaderInputCount).to.equal(5);
+        expect(materialCount).to.equal(0);
+        expect(shaderInputCount).to.equal(0);
     });
 });

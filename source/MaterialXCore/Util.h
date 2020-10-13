@@ -23,9 +23,6 @@ string getVersionString();
 /// as an integer tuple.
 std::tuple<int, int, int> getVersionIntegers();
 
-/// Make a version string from integers. 
-string makeVersionString(int majorVersion, int minorVersion);
-
 /// Create a valid MaterialX name from the given string.
 string createValidName(string name, char replaceChar = '_');
 
@@ -53,6 +50,15 @@ template<typename T> void hashCombine(size_t& seed, const T& value)
 {
     seed ^= std::hash<T>()(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 } 
+
+/// Split a name path into string vector
+StringVec splitNamePath(const string& namePath);
+
+/// Create a name path from a string vector
+string createNamePath(const StringVec& nameVec);
+
+/// Given a name path, return the parent name path
+string parentNamePath(const string& namePath);
 
 } // namespace MaterialX
 

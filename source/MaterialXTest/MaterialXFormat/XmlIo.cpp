@@ -14,7 +14,6 @@ namespace mx = MaterialX;
 TEST_CASE("Load content", "[xmlio]")
 {
     mx::XmlReadOptions readOptions;
-    readOptions.skipConflictingElements = true;
     std::vector<bool> applyUpdates = { false, true };
     for (auto applyUpdate : applyUpdates)
     {
@@ -69,14 +68,6 @@ TEST_CASE("Load content", "[xmlio]")
             {
                 REQUIRE(material->getPrimaryShaderNodeDef());
                 int edgeCount = 0;
-                for (mx::ParameterPtr param : material->getPrimaryShaderParameters())
-                {
-                    REQUIRE(param->getBoundValue(material));
-                    for (mx::Edge edge : param->traverseGraph(material))
-                    {
-                        edgeCount++;
-                    }
-                }
                 for (mx::InputPtr input : material->getPrimaryShaderInputs())
                 {
                     REQUIRE((input->getBoundValue(material) || input->getUpstreamElement(material)));
@@ -151,12 +142,10 @@ TEST_CASE("Load content", "[xmlio]")
         // Import libraries twice and verify that duplicate elements are
         // skipped.
         mx::DocumentPtr libDoc = doc->copy();
-        mx::CopyOptions copyOptions;
-        copyOptions.skipConflictingElements = true;
         for (mx::DocumentPtr lib : libs)
         {
-            libDoc->importLibrary(lib, &copyOptions);
-            libDoc->importLibrary(lib, &copyOptions);
+            libDoc->importLibrary(lib);
+            libDoc->importLibrary(lib);
         }
         REQUIRE(libDoc->validate());
 
@@ -169,9 +158,6 @@ TEST_CASE("Load content", "[xmlio]")
                 elem->setFilePrefix("differentFolder/");
             }
         }
-        readOptions.skipConflictingElements = false;
-        REQUIRE_THROWS_AS(mx::readFromXmlFile(conflictDoc, filename, searchPath, &readOptions), mx::Exception&);
-        readOptions.skipConflictingElements = true;
         mx::readFromXmlFile(conflictDoc, filename, searchPath, &readOptions);
         REQUIRE(conflictDoc->validate());
 
