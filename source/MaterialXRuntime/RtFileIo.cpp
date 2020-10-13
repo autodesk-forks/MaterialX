@@ -793,6 +793,7 @@ namespace
             if (input)
             {
                 // Write input if it's connected or different from default value.
+                // If uivisible is specified and has a non-default value the input will also be written out.
                 if (writeDefaultValues || 
                     input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), attrDef.getValue()) ||
                     (input.getMetadata(UI_VISIBLE) && input.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_FALSE))
