@@ -242,7 +242,7 @@ void documentFromXml(DocumentPtr doc,
 
 XmlReadOptions::XmlReadOptions() :
     readXIncludeFunction(readFromXmlFile),
-    applyFutureUpdates(false)
+    applyFutureUpdates(true)
 {
 }
 

@@ -1115,12 +1115,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
 
                     else if (name == WEDGE_FILES)
                     {
-                        wedgeFiles.clear();
-                        mx::StringVec fileList = mx::splitString(p->getValueString(), ",");
-                        if (!fileList.empty())
-                        {
-                            wedgeFiles.insert(fileList.begin(), fileList.end());
-                        }
+                        wedgeFiles = mx::splitString(p->getValueString(), ",");
                     }
                     else if (name == WEDGE_PARAMETERS)
                     {
