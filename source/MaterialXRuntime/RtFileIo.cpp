@@ -35,9 +35,9 @@ namespace
     static const RtTokenSet attrMetadata        = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels") };
     static const RtTokenSet inputMetadata       = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels"), 
                                                     RtToken("nodegraph"), RtToken("interfacename") };
-    static const RtTokenSet nodeMetadata        = { RtToken("name"), RtToken("type"), RtToken("node") };
-    static const RtTokenSet nodegraphMetadata   = { RtToken("name") };
-    static const RtTokenSet genericMetadata     = { RtToken("name"), RtToken("kind") };
+    static const RtTokenSet nodeMetadata        = { RtToken("name"), RtToken("type"), RtToken("node"), RtToken("xpos"), RtToken("ypos") };
+    static const RtTokenSet nodegraphMetadata   = { RtToken("name"), RtToken("xpos"), RtToken("ypos") };
+    static const RtTokenSet genericMetadata     = { RtToken("name"), RtToken("kind"), RtToken("xpos"), RtToken("ypos") };
     static const RtTokenSet stageMetadata       = {};
 
     static const RtToken DEFAULT_OUTPUT("out");
@@ -45,6 +45,8 @@ namespace
     static const RtToken MULTIOUTPUT("multioutput");
     static const RtToken SWIZZLE_INPUT("in");
     static const RtToken SWIZZLE_CHANNELS("channels");
+    static const RtToken XPOS("xpos");
+    static const RtToken YPOS("ypos");
 
     class PvtRenamingMapper
     {
@@ -140,6 +142,36 @@ namespace
             {
                 dest->setAttribute(name.str(), valueString);
             }
+        }
+    }
+
+    void readUiPosition(const ElementPtr src, PvtObject* dest)
+    {
+        const string& xpos = src->getAttribute(XPOS);
+        if (!xpos.empty())
+        {
+            RtTypedValue* md = dest->addMetadata(XPOS, RtType::STRING);
+            md->getValue().asString() = xpos;
+        }
+        const string& ypos = src->getAttribute(YPOS);
+        if (!ypos.empty())
+        {
+            RtTypedValue* md = dest->addMetadata(YPOS, RtType::STRING);
+            md->getValue().asString() = ypos;
+        }
+    }
+
+    void writeUiPosition(const PvtObject* src, ElementPtr dest)
+    {
+        const RtTypedValue* xpos = src->getMetadata(XPOS);
+        if (xpos)
+        {
+            dest->setAttribute(XPOS.str(), xpos->getValue().asString());
+        }
+        const RtTypedValue* ypos = src->getMetadata(YPOS);
+        if (ypos)
+        {
+            dest->setAttribute(YPOS.str(), ypos->getValue().asString());
         }
     }
 
@@ -326,6 +358,7 @@ namespace
         mapper.addMapping(parent, nodeName, node->getName());
 
         readMetadata(src, node, attrMetadata);
+        readUiPosition(src, node);
 
         // Copy input values.
         for (auto elem : src->getChildrenOfType<ValueElement>())
@@ -361,6 +394,7 @@ namespace
         RtNodeGraph schema(nodegraph->hnd());
 
         readMetadata(src, nodegraph, nodegraphMetadata);
+        readUiPosition(src, nodegraph);
 
         // Create the interface either from a nodedef if given
         // otherwise from the graph itself.
@@ -462,6 +496,7 @@ namespace
         generic.setKind(category);
 
         readMetadata(src, prim, genericMetadata);
+        readUiPosition(src, prim);
 
         for (auto child : src->getChildren())
         {
@@ -872,6 +907,7 @@ namespace
         }
 
         writeMetadata(src, destNode, nodeMetadata, options);
+        writeUiPosition(src, destNode);
 
         return destNode;
     }
@@ -880,6 +916,7 @@ namespace
     {
         NodeGraphPtr destNodeGraph = dest->addNodeGraph(src->getName());
         writeMetadata(src, destNodeGraph, nodegraphMetadata, options);
+        writeUiPosition(src, destNodeGraph);
 
         RtNodeGraph nodegraph(src->hnd());
 
@@ -1072,6 +1109,7 @@ namespace
 
         ElementPtr elem = dest->addChildOfCategory(generic.getKind(), generic.getName());
         writeMetadata(src, elem, genericMetadata, options);
+        writeUiPosition(src, elem);
 
         for (auto child : src->getChildren())
         {
