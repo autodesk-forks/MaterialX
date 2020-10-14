@@ -368,11 +368,8 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                             const mx::FloatVec& wedgeRangeMax = options.wedgeRangeMax;
                             const mx::IntVec& wedgeSteps = options.wedgeSteps;
                             const mx::StringVec& wedgeFiles = options.wedgeFiles;
-                            mx::StringSet wedgeFileSet;
-                            if (!wedgeFiles.empty())
-                            {
-                                wedgeFileSet.insert(wedgeFiles.begin(), wedgeFiles.end());
-                            }
+                            mx::StringSet wedgeFileSet(wedgeFiles.begin(), wedgeFiles.end());
+
                             bool performWedge = (!wedgeFiles.empty()) &&
                                 wedgeFileSet.count(file) &&
                                 wedgeFiles.size() == wedgeParameters.size() &&
