@@ -105,7 +105,7 @@ namespace
         return output;
     }
 
-    void readMetadata(const ElementPtr src, PvtObject* dest, const RtTokenSet& ignoreList)
+    void readMetadata(const ElementPtr& src, PvtObject* dest, const RtTokenSet& ignoreList)
     {
         // Read in all metadata so we can export the element again
         // without loosing data.
@@ -146,7 +146,7 @@ namespace
         }
     }
 
-    void readUiPosition(const ElementPtr src, PvtObject* dest)
+    void readUiPosition(const ElementPtr& src, PvtObject* dest)
     {
         const string& xpos = src->getAttribute(XPOS);
         if (!xpos.empty())
@@ -177,7 +177,7 @@ namespace
     }
 
     template<class T>
-    void createInterface(const ElementPtr src, T schema)
+    void createInterface(const ElementPtr& src, T schema)
     {
         for (auto elem : src->getChildrenOfType<ValueElement>())
         {
