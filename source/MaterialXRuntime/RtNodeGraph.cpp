@@ -180,19 +180,19 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
     for (RtAttribute input : getInputs())
     {
         auto it = layout.uifolder.find(input.getName());
-        if (it != layout.uifolder.end() && it->second != EMPTY_TOKEN)
+        if (it != layout.uifolder.end() && !it->second.empty())
         {
             RtTypedValue* data = input.getMetadata(RtNodeDef::UIFOLDER);
             if (!data)
             {
-                data = input.addMetadata(RtNodeDef::UIFOLDER, RtType::TOKEN);
+                data = input.addMetadata(RtNodeDef::UIFOLDER, RtType::STRING);
             }
-            else if (data->getType() != RtType::TOKEN)
+            else if (data->getType() != RtType::STRING)
             {
                 input.removeMetadata(RtNodeDef::UIFOLDER);
-                data = input.addMetadata(RtNodeDef::UIFOLDER, RtType::TOKEN);
+                data = input.addMetadata(RtNodeDef::UIFOLDER, RtType::STRING);
             }
-            data->getValue().asToken() = it->second;
+            data->getValue().asString() = it->second;
         }
         else
         {
