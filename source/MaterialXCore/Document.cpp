@@ -373,8 +373,6 @@ bool Document::convertUniformInputsToParameters()
     bool anyConverted = false;
 
     const StringSet uniformTypes = { FILENAME_TYPE_STRING, STRING_TYPE_STRING };
-    const string PARAMETER_CATEGORY_STRING("parameter");
-    const string INPUT_CATEGORY_STRING("input");
     for (ElementPtr e : traverseTree())
     {
         InterfaceElementPtr elem = e->asA<InterfaceElement>();
