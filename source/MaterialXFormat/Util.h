@@ -45,8 +45,13 @@ StringSet loadLibraries(const FilePathVec& libraryFolders,
                         const StringSet& excludeFiles = StringSet(),
                         XmlReadOptions* readOptions = nullptr);
 
-/// Set file name values to resolved values.
-void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath = FileSearchPath(), StringResolverPtr resolver = nullptr);
+/// Set file name values to resolved values. The resolve invlides apply the Elements resolver, an option relative to absoulte path conversion, and
+/// and optional custom file name string resolver. Note that all "fileprefix" attributes will be removed from the document as they have
+/// been prepended to the resolved file name values.
+/// \param doc Document to modify
+/// \param searchPath Optional search path for relative to absolute path conversion. Default value is an empty search path.
+/// \param customResolver Optional custom name resolve to apply. Default value is a null resolver.
+void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath = FileSearchPath(), StringResolverPtr customResolver = nullptr);
 
 } // namespace MaterialX
 

@@ -75,7 +75,11 @@ string FilePath::asString(Format format) const
 
     if (format == FormatPosix && isAbsolute())
     {
-        str += "/";
+        // Don't prepend a POSIX separator on a Windows absolute path
+        if (_vec.empty() || !std::isalpha(_vec[0][0]) || (_vec[0][1] != ':'))
+        {
+            str += "/";
+        }
     }
     else if (format == FormatWindows && _type == TypeNetwork)
     {

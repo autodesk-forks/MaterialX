@@ -137,7 +137,7 @@ StringSet loadLibraries(const FilePathVec& libraryFolders,
     return loadedLibraries;
 }
 
-void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath, StringResolverPtr resolver)
+void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath, StringResolverPtr customResolver)
 {
     // Set value to name + file prefix.
     for (ElementPtr elem : doc->traverseTree())
@@ -153,27 +153,29 @@ void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath, StringR
         }
 
         FilePath unresolvedValue(valueElem->getValueString());
-        StringResolverPtr resolverToApply = elem->createStringResolver();
+        StringResolverPtr elementResolver = elem->createStringResolver();
         // If the path is already absolute then don't allow an additional prefix
         // as this would make the path invalid.
         if (unresolvedValue.isAbsolute())
         {
-            resolver->setFilePrefix(EMPTY_STRING);
+            elementResolver->setFilePrefix(EMPTY_STRING);
         }
-        string resolvedString = valueElem->getResolvedValueString(resolver);
+        string resolvedString = valueElem->getResolvedValueString(elementResolver);
 
-        // Apply any custom filename resolver afterwards
-        if (resolver && resolver->isResolvedType(FILENAME_TYPE_STRING))
-        {
-            resolvedString = resolver->resolve(resolvedString, FILENAME_TYPE_STRING);
-        }
-
-        FilePath resolvedValue(resolvedString);
+        // Convert relative to absolute pathing
         if (!searchPath.isEmpty())
         {
-            resolvedValue = searchPath.find(resolvedValue);
+            FilePath resolvedValue(resolvedString);
+            resolvedString = searchPath.find(resolvedValue);
         }
-        valueElem->setValueString(resolvedValue.asString());
+
+        // Apply any custom filename resolver
+        if (customResolver && customResolver->isResolvedType(FILENAME_TYPE_STRING))
+        {
+            resolvedString = customResolver->resolve(resolvedString, FILENAME_TYPE_STRING);
+        }
+
+        valueElem->setValueString(resolvedString);
     }
 
     // Remove any file prefix attributes

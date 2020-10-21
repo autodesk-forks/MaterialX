@@ -7,12 +7,9 @@
 
 #include <MaterialXCore/Util.h>
 #include <MaterialXCore/Document.h>
-
-//#include <MaterialXFormat/File.h>
 #include <MaterialXFormat/Util.h>
 
 namespace mx = MaterialX;
-
 
 TEST_CASE("resolveFileNames", "[formatutil]")
 {
@@ -29,7 +26,7 @@ TEST_CASE("resolveFileNames", "[formatutil]")
     image1->setInputValue("file", "brass_roughness.jpg", mx::FILENAME_TYPE_STRING);
     mx::NodePtr image2 = nodeGraph->addNode("image");
     image2->setInputValue("file", "brass_color.jpg", mx::FILENAME_TYPE_STRING);
-
+#
     // 1. Test resolving fileprefix
     mx::resolveFileNames(doc1);
     REQUIRE(nodeGraph->getFilePrefix() == mx::EMPTY_STRING);
@@ -69,8 +66,8 @@ TEST_CASE("resolveFileNames", "[formatutil]")
 
     mx::resolveFileNames(doc1, searchPath, separatorReplacer);
     REQUIRE(nodeGraph->getFilePrefix() == mx::EMPTY_STRING);
-    resolvedPath = image1->getInputValue("file")->getValueString();
-    //REQUIRE(resolvedPath.asString() == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING1).asString());
-    resolvedPath = image2->getInputValue("file")->getValueString();
-    //REQUIRE(resolvedPath.asString() == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING2).asString());
+    std::string resolvedPathString = image1->getInputValue("file")->getValueString();
+    REQUIRE(resolvedPathString == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING1).asString(mx::FilePath::FormatPosix));
+    resolvedPathString = image2->getInputValue("file")->getValueString();
+    REQUIRE(resolvedPathString == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING2).asString(mx::FilePath::FormatPosix));
 }
