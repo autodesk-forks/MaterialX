@@ -144,3 +144,6 @@ set_target_properties(
 target_link_libraries(
     MaterialXTest
     ${CMAKE_DL_LIBS})
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../resources"
+DESTINATION ${CMAKE_INSTALL_PREFIX} )
