@@ -46,7 +46,7 @@ StringSet loadLibraries(const FilePathVec& libraryFolders,
                         XmlReadOptions* readOptions = nullptr);
 
 /// Set file name values to resolved values.
-void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath);
+void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath = FileSearchPath(), StringResolverPtr resolver = nullptr);
 
 } // namespace MaterialX
 

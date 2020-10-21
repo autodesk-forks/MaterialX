@@ -137,7 +137,7 @@ StringSet loadLibraries(const FilePathVec& libraryFolders,
     return loadedLibraries;
 }
 
-void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath)
+void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath, StringResolverPtr resolver)
 {
     // Set value to name + file prefix.
     for (ElementPtr elem : doc->traverseTree())
@@ -153,7 +153,7 @@ void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath)
         }
 
         FilePath unresolvedValue(valueElem->getValueString());
-        StringResolverPtr resolver = elem->createStringResolver();
+        StringResolverPtr resolverToApply = elem->createStringResolver();
         // If the path is already absolute then don't allow an additional prefix
         // as this would make the path invalid.
         if (unresolvedValue.isAbsolute())
@@ -161,6 +161,13 @@ void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath)
             resolver->setFilePrefix(EMPTY_STRING);
         }
         string resolvedString = valueElem->getResolvedValueString(resolver);
+
+        // Apply any custom filename resolver afterwards
+        if (resolver && resolver->isResolvedType(FILENAME_TYPE_STRING))
+        {
+            resolvedString = resolver->resolve(resolvedString, FILENAME_TYPE_STRING);
+        }
+
         FilePath resolvedValue(resolvedString);
         if (!searchPath.isEmpty())
         {
