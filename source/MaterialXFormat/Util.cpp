@@ -137,4 +137,47 @@ StringSet loadLibraries(const FilePathVec& libraryFolders,
     return loadedLibraries;
 }
 
+void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath)
+{
+    // Set value to name + file prefix.
+    for (ElementPtr elem : doc->traverseTree())
+    {
+        ValueElementPtr valueElem = elem->asA<ValueElement>();
+        if (!valueElem)
+        {
+            continue;
+        }
+        if (valueElem->getType() != FILENAME_TYPE_STRING)
+        {
+            continue;
+        }
+
+        FilePath unresolvedValue(valueElem->getValueString());
+        StringResolverPtr resolver = elem->createStringResolver();
+        // If the path is already absolute then don't allow an additional prefix
+        // as this would make the path invalid.
+        if (unresolvedValue.isAbsolute())
+        {
+            resolver->setFilePrefix(EMPTY_STRING);
+        }
+        string resolvedString = valueElem->getResolvedValueString(resolver);
+        FilePath resolvedValue(resolvedString);
+        if (!searchPath.isEmpty())
+        {
+            resolvedValue = searchPath.find(resolvedValue);
+        }
+        valueElem->setValueString(resolvedValue.asString());
+    }
+
+    // Remove any file prefix attributes
+    for (ElementPtr elem : doc->traverseTree())
+    {
+        if (elem->hasFilePrefix())
+        {
+            elem->removeAttribute(Element::FILE_PREFIX_ATTRIBUTE);
+        }
+    }
+}
+
+
 } // namespace MaterialX

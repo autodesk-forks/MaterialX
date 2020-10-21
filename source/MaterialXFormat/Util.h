@@ -45,6 +45,9 @@ StringSet loadLibraries(const FilePathVec& libraryFolders,
                         const StringSet& excludeFiles = StringSet(),
                         XmlReadOptions* readOptions = nullptr);
 
+/// Set file name values to resolved values.
+void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath);
+
 } // namespace MaterialX
 
 #endif
