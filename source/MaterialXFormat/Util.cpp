@@ -162,11 +162,28 @@ void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath, StringR
         }
         string resolvedString = valueElem->getResolvedValueString(elementResolver);
 
-        // Convert relative to absolute pathing
+        // Convert relative to absolute pathing if the file is not alrady found
         if (!searchPath.isEmpty())
         {
             FilePath resolvedValue(resolvedString);
-            resolvedString = searchPath.find(resolvedValue);
+            if (!resolvedValue.isAbsolute())
+            {
+                for (size_t i = 0; i < searchPath.size(); i++)
+                {
+                    FilePath testPath = searchPath[i] / resolvedValue;
+                    std::cout << "Searching test path: " << testPath.asString() << std::endl;
+                    if (testPath.exists())
+                    {
+                        std::cout << "-- match found !!!!" << std::endl;
+                        resolvedString = testPath.asString();
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                std::cout << "Already ABSOLUTE Path: " << resolvedValue.asString() << std::endl;
+            }
         }
 
         // Apply any custom filename resolver

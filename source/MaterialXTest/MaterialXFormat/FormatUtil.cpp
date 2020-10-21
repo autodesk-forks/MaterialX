@@ -70,4 +70,13 @@ TEST_CASE("resolveFileNames", "[formatutil]")
     REQUIRE(resolvedPathString == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING1).asString(mx::FilePath::FormatPosix));
     resolvedPathString = image2->getInputValue("file")->getValueString();
     REQUIRE(resolvedPathString == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING2).asString(mx::FilePath::FormatPosix));
+
+    // 4. Test with pre-resolved filenames
+    nodeGraph->setFilePrefix(TEST_FILE_PREFIX_STRING.asString() + "\\");
+    mx::resolveFileNames(doc1, searchPath, separatorReplacer);
+    REQUIRE(nodeGraph->getFilePrefix() == mx::EMPTY_STRING);
+    resolvedPathString = image1->getInputValue("file")->getValueString();
+    REQUIRE(resolvedPathString == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING1).asString(mx::FilePath::FormatPosix));
+    resolvedPathString = image2->getInputValue("file")->getValueString();
+    REQUIRE(resolvedPathString == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING2).asString(mx::FilePath::FormatPosix));
 }
