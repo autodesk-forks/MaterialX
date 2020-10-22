@@ -304,8 +304,4 @@ private:
 
 }
 
-#ifndef _WIN32
-#pragma GCC diagnostic pop
-#endif
-
 #endif

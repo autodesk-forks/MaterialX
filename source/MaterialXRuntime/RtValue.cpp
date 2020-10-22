@@ -102,7 +102,3 @@ void RtValue::fromString(const RtToken& type, const string& src, RtValue& dest)
 }
 
 }
-
-#ifndef _WIN32
-#pragma GCC diagnostic pop
-#endif
