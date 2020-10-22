@@ -25,6 +25,8 @@
 #include <cctype>
 #include <cerrno>
 #include <cstring>
+#include <fstream>
+#include <iostream>
 
 namespace MaterialX
 {
@@ -122,13 +124,30 @@ FilePath FilePath::operator/(const FilePath& rhs) const
 
 bool FilePath::exists() const
 {
-#if defined(_WIN32)
-    uint32_t result = GetFileAttributes(asString().c_str());
-    return result != INVALID_FILE_ATTRIBUTES;
-#else
-    struct stat sb;
-    return stat(asString().c_str(), &sb) == 0;
-#endif
+//#if defined(_WIN32)
+//    uint32_t result = GetFileAttributes(asString().c_str());
+//    return result != INVALID_FILE_ATTRIBUTES;
+//#else
+    //struct stat sb;
+    const string stringVal = asString();
+    std::cerr << "FilePath::exists(" << stringVal << ")";
+    std::ifstream ifile;
+    ifile.open(stringVal);
+    bool result = false;
+    if (ifile)
+    {
+        std::cerr << " = true\n";
+        result = true;
+        ifile.close();
+    }
+    else
+    {
+        std::cerr << " = false\n";
+    }
+    return result;
+    //bool statResult = (stat(stringVal.c_str(), &sb) == 0);
+    //retun statResult
+//#endif
 }
 
 bool FilePath::isDirectory() const
