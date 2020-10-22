@@ -128,10 +128,6 @@ if(MATERIALX_BUILD_GEN_MDL)
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${MATERIALX_INSTALL_MDL_MODULE_PATH}/mdl)
 endif()
 
-add_custom_command(TARGET MaterialXTest POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-	${CMAKE_CURRENT_SOURCE_DIR}/../../resources ${CMAKE_CURRENT_BINARY_DIR}/resources)
-
 set_target_properties(
     MaterialXTest PROPERTIES
     OUTPUT_NAME MaterialXTest
@@ -146,4 +142,6 @@ target_link_libraries(
     ${CMAKE_DL_LIBS})
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../resources"
-DESTINATION ${CMAKE_INSTALL_PREFIX} )
+    DESTINATION ${CMAKE_INSTALL_PREFIX} )
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../resources"
+	DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
