@@ -13,7 +13,7 @@ namespace mx = MaterialX;
 
 TEST_CASE("resolveFileNames", "[formatutil]")
 {
-    const mx::FilePath TEST_FILE_PREFIX_STRING("resources\\images\\");
+    const mx::FilePath TEST_FILE_PREFIX_STRING("resources\\Images\\");
     const mx::FilePath TEST_IMAGE_STRING1("brass_roughness.jpg");
     const mx::FilePath TEST_IMAGE_STRING2("brass_color.jpg");
 
