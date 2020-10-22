@@ -139,15 +139,10 @@ StringSet loadLibraries(const FilePathVec& libraryFolders,
 
 void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath, StringResolverPtr customResolver)
 {
-    // Set value to name + file prefix.
     for (ElementPtr elem : doc->traverseTree())
     {
         ValueElementPtr valueElem = elem->asA<ValueElement>();
-        if (!valueElem)
-        {
-            continue;
-        }
-        if (valueElem->getType() != FILENAME_TYPE_STRING)
+        if (!valueElem || valueElem->getType() != FILENAME_TYPE_STRING)
         {
             continue;
         }
@@ -171,18 +166,12 @@ void resolveFileNames(DocumentPtr doc, const FileSearchPath& searchPath, StringR
                 for (size_t i = 0; i < searchPath.size(); i++)
                 {
                     FilePath testPath = searchPath[i] / resolvedValue;
-                    std::cout << "Searching test path: " << testPath.asString() << std::endl;
                     if (testPath.exists())
                     {
-                        std::cout << "-- match found !!!!" << std::endl;
                         resolvedString = testPath.asString();
                         break;
                     }
                 }
-            }
-            else
-            {
-                std::cout << "Already ABSOLUTE Path: " << resolvedValue.asString() << std::endl;
             }
         }
 

@@ -26,7 +26,7 @@ TEST_CASE("resolveFileNames", "[formatutil]")
     image1->setInputValue("file", "brass_roughness.jpg", mx::FILENAME_TYPE_STRING);
     mx::NodePtr image2 = nodeGraph->addNode("image");
     image2->setInputValue("file", "brass_color.jpg", mx::FILENAME_TYPE_STRING);
-#
+
     // 1. Test resolving fileprefix
     mx::resolveFileNames(doc1);
     REQUIRE(nodeGraph->getFilePrefix() == mx::EMPTY_STRING);
