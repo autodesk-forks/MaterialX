@@ -130,19 +130,17 @@ bool FilePath::exists() const
 //#else
     //struct stat sb;
     const string stringVal = asString();
-    std::cerr << "FilePath::exists(" << stringVal << ")";
     std::ifstream ifile;
     ifile.open(stringVal);
     bool result = false;
     if (ifile)
     {
-        std::cerr << " = true\n";
         result = true;
         ifile.close();
     }
     else
     {
-        std::cerr << " = false\n";
+        std::cerr << "FilePath::exists(" << stringVal << ") = false\n";
     }
     return result;
     //bool statResult = (stat(stringVal.c_str(), &sb) == 0);
