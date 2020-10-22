@@ -245,9 +245,6 @@ class Viewer : public ng::Screen
 
     // Material options
     bool _mergeMaterials;
-    bool _bakeTextures;
-    bool _bakeHdr;
-    int _bakeTextureRes;
 
     // Unit options
     mx::StringVec _distanceUnitOptions;
@@ -255,6 +252,7 @@ class Viewer : public ng::Screen
     mx::LinearUnitConverterPtr _distanceUnitConverter;
 
     // Render options
+    bool _renderTransparency;
     bool _outlineSelection;
     int _envSamples;
     bool _drawEnvironment;
@@ -273,6 +271,10 @@ class Viewer : public ng::Screen
     ng::ComboBox* _wedgeSelectionBox;
 
     // Texture baking
+    bool _bakeTextures;
+    bool _bakeHdr;
+    bool _bakeOptimize;
+    int _bakeTextureRes;
     bool _bakeRequested;
     mx::FilePath _bakeFilename;
 };
