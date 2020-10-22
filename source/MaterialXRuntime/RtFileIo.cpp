@@ -795,10 +795,12 @@ namespace
             if (input)
             {
                 // Write input if it's connected or different from default value.
-                // If uivisible is specified and has a non-default value the input will also be written out.
+                // If the input specifies a uivisible value which is false and the nodedef either doesn't have a uivisible value for the input or has a uivisible value of true, then write the input.
+                // Also if the if the input doesn't have a uivisible value or it is true and the nodedef has a uivisible value for the input that is false, then write out the input.
                 if (writeDefaultValues || 
                     input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), attrDef.getValue()) ||
-                    (input.getMetadata(UI_VISIBLE) && input.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_FALSE))
+                    (input.getMetadata(UI_VISIBLE) && (input.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_FALSE) && (!attrDef.getMetadata(UI_VISIBLE) || attrDef.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_TRUE)) ||
+                    (!input.getMetadata(UI_VISIBLE) || input.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_TRUE) && (attrDef.getMetadata(UI_VISIBLE) && attrDef.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_FALSE))
                 {
                     ValueElementPtr valueElem;
                     if (input.isUniform())
