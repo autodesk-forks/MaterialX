@@ -800,7 +800,7 @@ namespace
                 if (writeDefaultValues || 
                     input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), attrDef.getValue()) ||
                     (input.getMetadata(UI_VISIBLE) && (input.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_FALSE) && (!attrDef.getMetadata(UI_VISIBLE) || attrDef.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_TRUE)) ||
-                    (!input.getMetadata(UI_VISIBLE) || input.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_TRUE) && (attrDef.getMetadata(UI_VISIBLE) && attrDef.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_FALSE))
+                    ((!input.getMetadata(UI_VISIBLE) || input.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_TRUE) && (attrDef.getMetadata(UI_VISIBLE) && attrDef.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_FALSE)))
                 {
                     ValueElementPtr valueElem;
                     if (input.isUniform())
