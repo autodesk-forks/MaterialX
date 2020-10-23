@@ -794,13 +794,15 @@ namespace
             RtInput input = attr.asA<RtInput>();
             if (input)
             {
+                const RtTypedValue* uiVisible1 = input.getMetadata(UI_VISIBLE);
+                const RtTypedValue* uiVisible2 = attrDef.getMetadata(UI_VISIBLE);
+                const bool uiHidden1 = uiVisible1 && (uiVisible1->getValueString() == VALUE_STRING_FALSE);
+                const bool uiHidden2 = uiVisible2 && (uiVisible2->getValueString() == VALUE_STRING_FALSE);
+                const bool writeUiVisibleData = uiHidden1 != uiHidden2;
+
                 // Write input if it's connected or different from default value.
-                // If the input specifies a uivisible value which is false and the nodedef either doesn't have a uivisible value for the input or has a uivisible value of true, then write the input.
-                // Also if the if the input doesn't have a uivisible value or it is true and the nodedef has a uivisible value for the input that is false, then write out the input.
-                if (writeDefaultValues || 
-                    input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), attrDef.getValue()) ||
-                    (input.getMetadata(UI_VISIBLE) && (input.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_FALSE) && (!attrDef.getMetadata(UI_VISIBLE) || attrDef.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_TRUE)) ||
-                    ((!input.getMetadata(UI_VISIBLE) || input.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_TRUE) && (attrDef.getMetadata(UI_VISIBLE) && attrDef.getMetadata(UI_VISIBLE)->getValueString() == VALUE_STRING_FALSE)))
+		// Write input if the uivisible value differs in the input from the nodedef
+                if (writeDefaultValues || writeUiVisibleData)
                 {
                     ValueElementPtr valueElem;
                     if (input.isUniform())
