@@ -41,7 +41,7 @@ const string PATH_LIST_SEPARATOR = ":";
 #endif
 const string MATERIALX_SEARCH_PATH_ENV_VAR = "MATERIALX_SEARCH_PATH";
 
-bool hasWindowsDriveSpecifier(const string& val)
+inline bool hasWindowsDriveSpecifier(const string& val)
 {
     return (val.length() > 1 && std::isalpha(val[0]) && (val[1] == ':'));
 }
