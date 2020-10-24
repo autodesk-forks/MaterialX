@@ -169,44 +169,64 @@ void TextureBaker::optimizeBakedTextures()
     transformationAttributes.push_back(ValueElement::UNIT_ATTRIBUTE);
     transformationAttributes.push_back(ValueElement::UNITTYPE_ATTRIBUTE);
 
+    // Check for uniform images.
     for (auto& pair : _bakedImageMap)
     {
+        bool outputIsUniform = true;
+        OutputPtr outputPtr = pair.first;
         for (BakedImage& baked : pair.second)
         {
-            baked.isUniform = baked.image->isUniformColor(&baked.uniformColor);
-        }
-        if (!pair.second.empty())
-        {
-            bool outputIsUniform = true;
-            OutputPtr outputPtr = pair.first;
             if (hasElementAttributes(outputPtr, transformationAttributes))
             {
                 outputIsUniform = false;
             }
+            else if (_averageImages)
+            {
+                baked.uniformColor = baked.image->getAverageColor();
+                baked.isUniform = true;
+            }
+            else if (baked.image->isUniformColor(&baked.uniformColor))
+            {
+                baked.image = createUniformImage(4, 4, baked.image->getChannelCount(), baked.image->getBaseType(), baked.uniformColor);
+                baked.isUniform = true;
+            }
             else
             {
-                for (BakedImage& baked : pair.second)
-                {
-                    if (!baked.isUniform || baked.uniformColor != pair.second[0].uniformColor)
-                    {
-                        outputIsUniform = false;
-                        break;
-                    }
-                }
+                outputIsUniform = false;
             }
-            if (outputIsUniform)
+        }
+
+        if (outputIsUniform)
+        {
+            _bakedConstantMap[pair.first] = pair.second[0].uniformColor;
+        }
+    }
+
+#if 0
+    // Check for uniform outputs at their default values.
+    NodeDefPtr shaderNodeDef = _shaderRef->getNodeDef();
+    for (InputPtr shaderInput : _shader->getInputs())
+    {
+        OutputPtr output = shaderInput->getConnectedOutput();
+        if (output && _bakedConstantMap.count(output))
+        {
+            if (_bakedConstantMap.count(output) && shaderNodeDef)
             {
-                _bakedConstantMap[pair.first] = pair.second[0].uniformColor;
-                if (!_optimizeConstants)
+                InputPtr input = shaderNodeDef->getActiveInput(shaderInput->getName());
+                if (input)
                 {
-                    for (BakedImage& baked : pair.second)
+                    Color4 uniformColor = _bakedConstantMap[output].color;
+                    string uniformColorString = getValueStringFromColor(uniformColor, input->getType());
+                    if (uniformColorString == input->getValueString())
                     {
-                        baked.image = createUniformImage(1, 1, baked.image->getChannelCount(), baked.image->getBaseType(), baked.uniformColor);
+                        _bakedConstantMap[output].isDefault = true;
+                        _bakedImageMap.erase(output);
                     }
                 }
             }
         }
     }
+#endif
 }
 
 void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec& udimSet)
@@ -277,8 +297,8 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
  	            Color4 uniformColor = _bakedConstantMap[output];
                 string uniformColorString = getValueStringFromColor(uniformColor, bakedInput->getType());
                 bakedInput->setValueString(uniformColorString);
-                continue;	                
-            }	           
+            }
+            else
             {
                 // Add the image node.
                 NodePtr bakedImage = bakedNodeGraph->addNode("image", sourceName + BAKED_POSTFIX, sourceType);

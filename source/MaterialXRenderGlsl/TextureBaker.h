@@ -78,6 +78,18 @@ class TextureBaker : public GlslRenderer
         return _targetUnitSpace;
     }
 
+    /// Set whether images should be averaged to generate constants.   void setAverageImages(bool enable)
+    void setAverageImages(bool enable)
+    {
+        _averageImages = enable;
+    }
+
+    /// Return whether images should be averaged to generate constants.
+    bool getAverageImages()
+    {
+        return _averageImages;
+    }
+
     /// Set whether uniform textures should be stored as constants.  Defaults to true.
     void setOptimizeConstants(bool enable)
     {
@@ -130,6 +142,7 @@ class TextureBaker : public GlslRenderer
     string _extension;
     string _colorSpace;
     string _targetUnitSpace;
+    bool _averageImages;
     bool _optimizeConstants;
 
     ShaderGeneratorPtr _generator;
