@@ -792,7 +792,7 @@ namespace
         {
             RtAttribute attr = node.getPrim().getAttribute(attrDef.getName());
             RtInput input = attr.asA<RtInput>();
-            if (input)
+            if (input && attrDef)
             {
                 const RtTypedValue* uiVisible1 = input.getMetadata(UI_VISIBLE);
                 const RtTypedValue* uiVisible2 = attrDef.getMetadata(UI_VISIBLE);
