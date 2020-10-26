@@ -1098,7 +1098,10 @@ namespace
             {
                 for (const RtToken& uri : uris)
                 {
-                    prependXInclude(doc, uri.str());
+                    if (!uri.str().empty())
+                    {
+                        prependXInclude(doc, uri.str());
+                    }
                 }
             }
         }
