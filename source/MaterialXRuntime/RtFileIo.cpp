@@ -801,8 +801,9 @@ namespace
                 const bool writeUiVisibleData = uiHidden1 != uiHidden2;
 
                 // Write input if it's connected or different from default value.
-		// Write input if the uivisible value differs in the input from the nodedef
-                if (writeDefaultValues || writeUiVisibleData)
+                // Write input if the uivisible value differs in the input from the nodedef
+                if (writeDefaultValues || writeUiVisibleData ||
+                    input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), attrDef.getValue()))
                 {
                     ValueElementPtr valueElem;
                     if (input.isUniform())
