@@ -546,7 +546,7 @@ namespace
 
             rtMatAssign.getGeom().getValue().asString() = matAssign->getActiveGeom();
 
-            readMetadata(src, assignPrim, lookMetadata);
+            readMetadata(matAssign, assignPrim, lookMetadata);
 
             look.getMaterialAssigns().addTarget(assignPrim->hnd());
         }
