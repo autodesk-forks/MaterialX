@@ -388,7 +388,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                                     mx::ImageVec imageVec;
 
                                     const std::string& wedgeFile = wedgeFiles[f];
-                                    if (wedgeFile != file)
+                                    if (wedgeFile != file.asString())
                                     {
                                         continue;
                                     }
