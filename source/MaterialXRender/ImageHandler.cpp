@@ -87,7 +87,7 @@ bool ImageHandler::saveImage(const FilePath& filePath,
         bool saved = false;
         try
         {
-            saved = loader->saveImage(foundFilePath, image, verticalFlip, message);
+            saved = loader->saveImage(foundFilePath, image, verticalFlip);
         }
         catch (std::exception& e)
         {
