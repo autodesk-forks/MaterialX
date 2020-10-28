@@ -8,8 +8,6 @@
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/Util.h>
 
-#include <iostream>
-
 namespace MaterialX
 {
 
@@ -69,7 +67,8 @@ StringSet ImageHandler::supportedExtensions()
 
 bool ImageHandler::saveImage(const FilePath& filePath,
                              ConstImagePtr image,
-                             bool verticalFlip)
+                             bool verticalFlip,
+                             string* message)
 {
     if (!image)
     {
@@ -88,11 +87,14 @@ bool ImageHandler::saveImage(const FilePath& filePath,
         bool saved = false;
         try
         {
-            saved = loader->saveImage(foundFilePath, image, verticalFlip);
+            saved = loader->saveImage(foundFilePath, image, verticalFlip, message);
         }
         catch (std::exception& e)
         {
-            std::cerr << "Exception in image I/O library: " << e.what() << std::endl;
+            if (message)
+            {
+                *message = "Exception in image I/O library: " + string(e.what());
+            }
         }
         if (saved)
         {
@@ -117,7 +119,7 @@ ImagePtr ImageHandler::acquireImage(const FilePath& filePath, bool, const Color4
         }
         catch (std::exception& e)
         {
-            std::cerr << "Exception in image I/O library: " << e.what() << std::endl;
+            *message = "Exception in image I/O library: " + string(e.what());
         }
         if (image)
         {
