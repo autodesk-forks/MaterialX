@@ -79,6 +79,7 @@ public:
     void registerTypedSchema()
     {
         registerCreateFunction(T::typeName(), T::createPrim);
+        RtConnectableApi::registerApi<T>();
     }
 
     /// Unregister a typed prim schema.
@@ -86,6 +87,7 @@ public:
     void unregisterTypedSchema()
     {
         unregisterCreateFunction(T::typeName());
+        RtConnectableApi::unregisterApi<T>();
     }
 
     /// Clear the definition search path

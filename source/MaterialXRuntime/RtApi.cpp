@@ -14,6 +14,7 @@
 #include <MaterialXRuntime/RtFileIo.h>
 #include <MaterialXRuntime/RtLook.h>
 #include <MaterialXRuntime/RtCollection.h>
+#include <MaterialXRuntime/RtConnectableApi.h>
 
 #include <MaterialXRuntime/Private/PvtApi.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
@@ -54,11 +55,29 @@ void RtApi::initialize()
     registerTypedSchema<RtLook>();
     registerTypedSchema<RtMaterialAssign>();
     registerTypedSchema<RtCollection>();
+
+    // Register connectable API for nodegraph internal sockets.
+    // These are not typed schemas so need custom registration.
+    RtConnectableApi::registerApi(RtNodeGraph::SOCKETS_TYPE_INFO.getShortTypeName(), RtConnectableApiPtr(new RtConnectableApi));
 }
 
 void RtApi::shutdown()
 {
     _cast(_ptr)->reset();
+
+    // Unregister built in schemas
+    unregisterTypedSchema<RtGeneric>();
+    unregisterTypedSchema<RtNode>();
+    unregisterTypedSchema<RtNodeDef>();
+    unregisterTypedSchema<RtNodeGraph>();
+    unregisterTypedSchema<RtBackdrop>();
+    unregisterTypedSchema<RtLookGroup>();
+    unregisterTypedSchema<RtLook>();
+    unregisterTypedSchema<RtMaterialAssign>();
+    unregisterTypedSchema<RtCollection>();
+
+    // Unregister connectable API for nodegraph internal sockets.
+    RtConnectableApi::unregisterApi(RtNodeGraph::SOCKETS_TYPE_INFO.getShortTypeName());
 }
 
 void RtApi::registerLogger(RtLoggerPtr logger)

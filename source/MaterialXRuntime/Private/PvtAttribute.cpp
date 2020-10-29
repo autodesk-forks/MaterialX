@@ -7,6 +7,8 @@
 #include <MaterialXRuntime/Private/PvtPrim.h>
 #include <MaterialXRuntime/Private/PvtPath.h>
 
+#include <MaterialXRuntime/RtConnectableApi.h>
+
 namespace MaterialX
 {
 
@@ -34,39 +36,20 @@ PvtOutput::PvtOutput(const RtToken& name, const RtToken& type, uint32_t flags, P
     setTypeBit<PvtOutput>();
 }
 
-bool PvtOutput::isConnectable(const PvtInput* other) const
+bool PvtOutput::isConnectable(const PvtInput* input) const
 {
     // We cannot connect to ourselves.
-    if (_parent == other->_parent)
+    if (_parent == input->_parent)
     {
         return false;
     }
-    // We must have matching types.
-    if (getType() != other->getType())
-    {
-        // TODO: Check if the data types are compatible/castable
-        // instead of strictly an exact match.
-        return false;
-    }
-    // If this is a nodegraph socket being connected to a uniform make sure
-    // the corresponding input on the outer nodegraph is also uniform.
-    // 
-    //  TODO: Enabled this check when the uniform flag has been implemented properly
-    /*
-    if (isSocket() && other->isUniform())
-    {
-        PvtPrim* graphPrim = _parent->getParent();
-        if (graphPrim)
-        {
-            PvtInput* graphInput = graphPrim->getInput(getName());
-            if (graphInput && !graphInput->isUniform())
-            {
-                return false;
-            }
-        }
-    }
-    */
-    return true;
+
+    // Our corresponding connectable APIs must accept the connection.
+    RtConnectableApi* srcApi = RtConnectableApi::get(_parent->prim());
+    RtConnectableApi* dstApi = RtConnectableApi::get(input->_parent->prim());
+    bool accept = srcApi && srcApi->acceptConnection(hnd(), input->hnd()) &&
+                  dstApi && dstApi->acceptConnection(hnd(), input->hnd());
+    return accept;
 }
 
 void PvtOutput::connect(PvtInput* input)
@@ -77,14 +60,22 @@ void PvtOutput::connect(PvtInput* input)
         return;
     }
 
-    // Validate the connection.
+    // Check if another connection exists already.
     if (input->isConnected())
     {
         throw ExceptionRuntimeError("Input '" + input->getPath().asString() + "' is already connected");
     }
-    if (!isConnectable(input))
+
+    // Check with the corresponding connectable APIs if they accept the connection.
+    RtConnectableApi* srcApi = RtConnectableApi::get(_parent->prim());
+    if (!(srcApi && srcApi->acceptConnection(hnd(), input->hnd())))
     {
-        throw ExceptionRuntimeError("Output '" + getPath().asString() + "' is not connectable to input '" + input->getPath().asString() + "'");
+        throw ExceptionRuntimeError("Output '" + getPath().asString() + "' rejected the connection");
+    }
+    RtConnectableApi* dstApi = RtConnectableApi::get(input->_parent->prim());
+    if (!(dstApi && dstApi->acceptConnection(hnd(), input->hnd())))
+    {
+        throw ExceptionRuntimeError("Input '" + input->getPath().asString() + "' rejected the connection");
     }
 
     // Make the connection.
