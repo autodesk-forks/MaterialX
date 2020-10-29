@@ -57,7 +57,7 @@ void RtApi::initialize()
     registerTypedSchema<RtCollection, RtCollectionConnectableApi>();
 
     // Register connectable API for nodegraph internal sockets.
-    // These are not typed schemas so need custom registration.
+    // This is not a typed schemas so need explicit registration.
     RtConnectableApi::registerApi(RtNodeGraph::SOCKETS_TYPE_INFO.getShortTypeName(), RtConnectableApiPtr(new RtConnectableApi));
 }
 

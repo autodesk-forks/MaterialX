@@ -138,7 +138,7 @@ class PvtOutput;
 
 class PvtInput : public PvtAttribute
 {
-RT_DECLARE_RUNTIME_OBJECT(PvtInput)
+    RT_DECLARE_RUNTIME_OBJECT(PvtInput)
 
 public:
     PvtInput(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent);

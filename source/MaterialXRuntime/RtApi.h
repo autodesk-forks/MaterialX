@@ -12,6 +12,7 @@
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtLogger.h>
 #include <MaterialXRuntime/RtPrim.h>
+#include <MaterialXRuntime/RtConnectableApi.h>
 #include <MaterialXRuntime/RtTypeDef.h>
 #include <MaterialXRuntime/RtFileIo.h>
 
