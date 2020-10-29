@@ -16,7 +16,6 @@
 namespace MaterialX
 {
 
-
 class RtConnectableApi;
 using RtConnectableApiPtr = shared_ptr<RtConnectableApi>;
 
@@ -44,18 +43,18 @@ public:
     /// Unregister a connectable API for a given prim typename.
     static void unregisterApi(const RtToken& typeName);
 
-    /// Register a connectable API for a given typed prim schema.
-    template<class PrimType, class Api = RtConnectableApi>
+    /// Register a connectable API for a templated prim schema.
+    template<class PrimSchema, class ConnectableApi = RtConnectableApi>
     inline static void registerApi()
     {
-        registerApi(PrimType::typeName(), shared_ptr<Api>(new Api));
+        registerApi(PrimSchema::typeName(), shared_ptr<ConnectableApi>(new ConnectableApi));
     }
 
-    /// Unregister a connectable API for a given typed prim schema.
-    template<class PrimType>
+    /// Unregister a connectable API for a templated prim schema.
+    template<class PrimSchema>
     inline static void unregisterApi()
     {
-        unregisterApi(PrimType::typeName());
+        unregisterApi(PrimSchema::typeName());
     }
 
     /// Return a connectable API for a given prim.
