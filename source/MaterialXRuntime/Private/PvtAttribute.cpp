@@ -28,98 +28,95 @@ PvtAttribute::PvtAttribute(const RtToken& name, const RtToken& type, uint32_t fl
 }
 
 
-RT_DEFINE_RUNTIME_OBJECT(PvtOutput, RtObjType::OUTPUT, "PvtOutput")
-
-PvtOutput::PvtOutput(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent) :
-    PvtAttribute(name, type, flags, parent)
-{
-    setTypeBit<PvtOutput>();
-}
-
-bool PvtOutput::isConnectable(const PvtInput* input) const
-{
-    // We cannot connect to ourselves.
-    if (_parent == input->_parent)
-    {
-        return false;
-    }
-
-    // Our corresponding connectable APIs must accept the connection.
-    RtConnectableApi* srcApi = RtConnectableApi::get(_parent->prim());
-    RtConnectableApi* dstApi = RtConnectableApi::get(input->_parent->prim());
-    bool accept = srcApi && srcApi->acceptConnection(hnd(), input->hnd()) &&
-                  dstApi && dstApi->acceptConnection(hnd(), input->hnd());
-    return accept;
-}
-
-void PvtOutput::connect(PvtInput* input)
-{
-    // Check if the connection exists already.
-    if (input->_connection == hnd())
-    {
-        return;
-    }
-
-    // Check if another connection exists already.
-    if (input->isConnected())
-    {
-        throw ExceptionRuntimeError("Input '" + input->getPath().asString() + "' is already connected");
-    }
-
-    // Check with the corresponding connectable APIs if they accept the connection.
-    RtConnectableApi* srcApi = RtConnectableApi::get(_parent->prim());
-    if (!(srcApi && srcApi->acceptConnection(hnd(), input->hnd())))
-    {
-        throw ExceptionRuntimeError("Output '" + getPath().asString() + "' rejected the connection");
-    }
-    RtConnectableApi* dstApi = RtConnectableApi::get(input->_parent->prim());
-    if (!(dstApi && dstApi->acceptConnection(hnd(), input->hnd())))
-    {
-        throw ExceptionRuntimeError("Input '" + input->getPath().asString() + "' rejected the connection");
-    }
-
-    // Make the connection.
-    _connections.push_back(input->hnd());
-    input->_connection = hnd();
-}
-
-void PvtOutput::disconnect(PvtInput* input)
-{
-    // Check if the connection exists.
-    if (!input->_connection || input->_connection.get() != this)
-    {
-        return;
-    }
-
-    // Break the connection.
-    input->_connection = nullptr;
-    for (auto it = _connections.begin(); it != _connections.end(); ++it)
-    {
-        if (it->get() == input)
-        {
-            _connections.erase(it);
-            break;
-        }
-    }
-}
-
-void PvtOutput::clearConnections()
-{
-    // Break connections to all destination inputs.
-    for (PvtDataHandle destH : _connections)
-    {
-        destH->asA<PvtInput>()->_connection = nullptr;
-    }
-    _connections.clear();
-}
-
-
 RT_DEFINE_RUNTIME_OBJECT(PvtInput, RtObjType::INPUT, "PvtInput")
 
 PvtInput::PvtInput(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent) :
     PvtAttribute(name, type, flags, parent)
 {
     setTypeBit<PvtInput>();
+}
+
+bool PvtInput::isConnectable(const PvtOutput* output) const
+{
+    // We cannot connect to ourselves.
+    if (_parent == output->_parent)
+    {
+        return false;
+    }
+
+    // Get connectable APIs for both sides.
+    RtConnectableApi* dstApi = RtConnectableApi::get(_parent->prim());
+    RtConnectableApi* srcApi = RtConnectableApi::get(output->_parent->prim());
+
+    // Check with the destination if it accepts the connection.
+    bool accept = dstApi && dstApi->acceptConnection(output->hnd(), hnd());
+
+    // If the source is of another prim type check that this connectable API also
+    // accepts the connection.
+    if (accept && srcApi != dstApi)
+    {
+        accept = srcApi && srcApi->acceptConnection(output->hnd(), hnd());
+    }
+
+    return accept;
+}
+
+void PvtInput::connect(PvtOutput* output)
+{
+    // Check if this connection exists already.
+    if (_connection == output->hnd())
+    {
+        return;
+    }
+
+    // Check if another connection exists already.
+    if (isConnected())
+    {
+        throw ExceptionRuntimeError("Input '" + getPath().asString() + "' is already connected");
+    }
+
+    RtConnectableApi* dstApi = RtConnectableApi::get(_parent->prim());
+    RtConnectableApi* srcApi = RtConnectableApi::get(output->_parent->prim());
+
+    // Check with the destination's connectable API if it accepts the connection.
+    if (!(dstApi && dstApi->acceptConnection(output->hnd(), hnd())))
+    {
+        throw ExceptionRuntimeError("Input '" + getPath().asString() + "' rejected the connection");
+    }
+
+    // If the source prim is of another prim type check that this connectable API also
+    // accepts the connection.
+    if (srcApi != dstApi)
+    {
+        if (!(srcApi && srcApi->acceptConnection(output->hnd(), hnd())))
+        {
+            throw ExceptionRuntimeError("Output '" + output->getPath().asString() + "' rejected the connection");
+        }
+    }
+
+    // Make the connection.
+    _connection = output->hnd();
+    output->_connections.push_back(hnd());
+}
+
+void PvtInput::disconnect(PvtOutput* output)
+{
+    // Make sure the connection exists, otherwise we can't break it.
+    if (_connection != output->hnd())
+    {
+        return;
+    }
+
+    // Break the connection.
+    _connection = nullptr;
+    for (auto it = output->_connections.begin(); it != output->_connections.end(); ++it)
+    {
+        if (it->get() == this)
+        {
+            output->_connections.erase(it);
+            break;
+        }
+    }
 }
 
 void PvtInput::clearConnection()
@@ -139,5 +136,25 @@ void PvtInput::clearConnection()
         _connection = nullptr;
     }
 }
+
+
+RT_DEFINE_RUNTIME_OBJECT(PvtOutput, RtObjType::OUTPUT, "PvtOutput")
+
+PvtOutput::PvtOutput(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent) :
+    PvtAttribute(name, type, flags, parent)
+{
+    setTypeBit<PvtOutput>();
+}
+
+void PvtOutput::clearConnections()
+{
+    // Break connections to all destination inputs.
+    for (PvtDataHandle destH : _connections)
+    {
+        destH->asA<PvtInput>()->_connection = nullptr;
+    }
+    _connections.clear();
+}
+
 
 }
