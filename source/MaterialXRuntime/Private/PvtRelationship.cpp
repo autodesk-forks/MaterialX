@@ -35,25 +35,11 @@ void PvtRelationship::addTarget(const PvtObject* target)
         }
     }
 
-    // Validate the new relationship with the connectable APIs.
-    const PvtPrim* targetPrim = target->isA<PvtPrim>() ? target->asA<PvtPrim>() : target->getParent();
-    RtConnectableApi* dstApi = RtConnectableApi::get(targetPrim->prim());
-    RtConnectableApi* srcApi = RtConnectableApi::get(getParent()->prim());
-
-    // Check with the destination's connectable API if it accepts the relationship.
-    if (!(dstApi && dstApi->acceptRelationship(hnd(), target->hnd())))
+    // Validate the relationship with this prims connectable API.
+    RtConnectableApi* connectableApi = RtConnectableApi::get(getParent()->prim());
+    if (!(connectableApi && connectableApi->acceptRelationship(hnd(), target->hnd())))
     {
-        throw ExceptionRuntimeError("Target '" + target->getPath().asString() + "' rejected the relationship");
-    }
-
-    // If the source prim is of another prim type check that this connectable API also
-    // accepts the connection.
-    if (srcApi != dstApi)
-    {
-        if (!(srcApi && srcApi->acceptRelationship(hnd(), target->hnd())))
-        {
-            throw ExceptionRuntimeError("Source '" + getPath().asString() + "' rejected the relationship");
-        }
+        throw ExceptionRuntimeError("'" + target->getPath().asString() + "' rejected the relationship");
     }
 
     // Create the relationship.

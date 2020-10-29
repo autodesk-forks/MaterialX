@@ -1183,13 +1183,10 @@ TEST_CASE("Runtime: Conflict resolution", "[runtime]")
     REQUIRE(iter.isDone());
 
     mx::RtMaterialAssign materialassign1(ma1);
-    iter = materialassign1.getMaterial();
-    REQUIRE(!iter.isDone());
-    mx::RtPrim mat1 = (*iter).asA<mx::RtPrim>();
+    REQUIRE(materialassign1.getMaterial().isConnected());
+    mx::RtPrim mat1 = materialassign1.getMaterial().getConnection().getParent();
     REQUIRE(mat1);
     REQUIRE(mat1.getName().str() == "defaultMaterial1");
-    ++iter;
-    REQUIRE(iter.isDone());
     iter = materialassign1.getCollection();
     REQUIRE(!iter.isDone());
     mx::RtPrim co1 = (*iter).asA<mx::RtPrim>();
@@ -1528,28 +1525,22 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         break;
     }
 
-    // Load in library so we can create a material
+    // Load libraries so we can create a material
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
     mx::RtReadOptions libReadOptions;
     libReadOptions.applyFutureUpdates = true;
     api->loadLibrary(STDLIB, libReadOptions);
     api->loadLibrary(PBRLIB, libReadOptions);
+
     const mx::RtToken matDef("ND_surfacematerial");
-    mx::RtPrim sm1 = stage->createPrim(mx::RtPath("/surfacematerial1"), matDef);
-    assign1.getMaterial().addTarget(sm1);
-    mx::RtConnectionIterator iter2 = assign1.getMaterial().getTargets();
-    while (!iter2.isDone())
-    {
-        REQUIRE((*iter2).getName() == "surfacematerial1");
-        break;
-    }
 
-    assign1.getExclusive().setValue(mx::RtValue(true));
-    REQUIRE(assign1.getExclusive().getValue().asBool() == true);
-
-    assign1.getGeom().setValueString("/mygeom");
-    REQUIRE(assign1.getGeom().getValueString() == "/mygeom");
+    mx::RtPath sm1Path("/surfacematerial1");
+    mx::RtPrim sm1 = stage->createPrim(sm1Path, matDef);
+    assign1.getMaterial().connect(sm1.getOutput());
+    REQUIRE(assign1.getMaterial().getConnection().getParent().getPath() == sm1Path);
+    assign1.getExclusive().getValue().asBool() = true;
+    assign1.getGeom().getValue().asString() = "/mygeom";
 
     //
     // Test look
@@ -1560,8 +1551,9 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     mx::RtPrim pa2 = stage->createPrim("matassign2", mx::RtMaterialAssign::typeName());
     mx::RtMaterialAssign assign2(pa2);
     assign2.getCollection().addTarget(p2);
-    mx::RtPrim sm2 = stage->createPrim(mx::RtPath("/surfacematerial2"), matDef);
-    assign2.getMaterial().addTarget(sm2);
+    mx::RtPath sm2Path("/surfacematerial2");
+    mx::RtPrim sm2 = stage->createPrim(sm2Path, matDef);
+    assign2.getMaterial().connect(sm2.getOutput());
     assign2.getExclusive().getValue().asBool() = false;
     look1.addMaterialAssign(pa);
     look1.addMaterialAssign(pa2);
@@ -1669,11 +1661,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         // Check material
         sm1 = stage2->getPrimAtPath("/surfacematerial1");
         REQUIRE(sm1);
-        iter2 = assign1.getMaterial().getTargets();
-        REQUIRE(!iter2.isDone());
-        REQUIRE((*iter2) == sm1);
-        ++iter2;
-        REQUIRE(iter2.isDone());
+        REQUIRE(assign1.getMaterial().isConnected());
+        REQUIRE(assign1.getMaterial().getConnection().getParent() == sm1);
         REQUIRE(assign1.getExclusive().getValue().asBool() == true);
         REQUIRE(assign1.getGeom().getValueString() == "/mygeom");
 
@@ -1697,11 +1686,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         ++iter;
         REQUIRE(iter.isDone());
         sm2 = stage2->getPrimAtPath("/surfacematerial2");
-        iter = assign2.getMaterial().getTargets();
-        REQUIRE(!iter.isDone());
-        REQUIRE((*iter) == sm2);
-        ++iter;
-        REQUIRE(iter.isDone());
+        REQUIRE(assign2.getMaterial().isConnected());
+        REQUIRE(assign2.getMaterial().getConnection().getParent() == sm2);
         REQUIRE(assign2.getExclusive().getValue().asBool() == false);
         iter = look1.getMaterialAssigns().getTargets();
         REQUIRE(!iter.isDone());

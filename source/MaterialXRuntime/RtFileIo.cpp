@@ -528,14 +528,16 @@ namespace
             mapper.addMapping(parent, matAssignName, assignPrim->getName());
             RtMaterialAssign rtMatAssign(assignPrim->hnd());
             
-            if (!matAssign->getCollectionString().empty()) {
+            if (!matAssign->getCollectionString().empty())
+            {
                 PvtPrim* collection = findPrimOrThrow(RtToken(matAssign->getCollectionString()), parent, mapper);
                 rtMatAssign.getCollection().addTarget(collection->hnd());
             }
 
-            if (!matAssign->getMaterial().empty()) {
+            if (!matAssign->getMaterial().empty())
+            {
                 PvtPrim* material = findPrimOrThrow(RtToken(matAssign->getMaterial()), parent, mapper);
-                rtMatAssign.getMaterial().addTarget(material->hnd());
+                rtMatAssign.getMaterial().connect(material->prim().getOutput());
             }
 
             if (matAssign->hasAttribute(MaterialAssign::EXCLUSIVE_ATTRIBUTE)) {
@@ -1048,18 +1050,19 @@ namespace
                     }
 
                     MaterialAssignPtr massign = look->addMaterialAssign(assignName);
-
                     massign->setExclusive(rtMatAssign.getExclusive().getValue().asBool());
+                    massign->setGeom(rtMatAssign.getGeom().getValueString());
+
                     auto iter = rtMatAssign.getCollection().getTargets();
-                    if (!iter.isDone()) {
+                    if (!iter.isDone())
+                    {
                         massign->setCollectionString((*iter).getName());
                     }
 
-                    iter = rtMatAssign.getMaterial().getTargets();
-                    if (!iter.isDone()) {
-                        massign->setMaterial((*iter).getName());
+                    if (rtMatAssign.getMaterial().isConnected())
+                    {
+                        massign->setMaterial(rtMatAssign.getMaterial().getConnection().getParent().getName());
                     }
-                    massign->setGeom(rtMatAssign.getGeom().getValueString());
 
                     writeMetadata(pprim, massign, lookMetadata, options);
                 }

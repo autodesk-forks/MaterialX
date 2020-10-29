@@ -5,6 +5,7 @@
 
 #include <MaterialXCore/Util.h>
 #include <MaterialXRuntime/RtLook.h>
+#include <MaterialXRuntime/RtCollection.h>
 
 #include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
@@ -59,12 +60,6 @@ RtAttribute RtLookGroup::getActiveLook() const
 
 void RtLookGroup::addLook(const RtObject& look)
 {
-    PvtPrim* pprim = PvtObject::ptr<PvtPrim>(look);
-    const string& typeName = pprim->getTypeInfo()->getShortTypeName();
-    if (typeName != RtLook::typeName() && typeName != RtLookGroup::typeName())
-    {
-        throw ExceptionRuntimeError("Cannot add invalid type to look group: '" + typeName + "'");
-    }
     getLooks().addTarget(look);
 }
 
@@ -76,6 +71,17 @@ void RtLookGroup::removeLook(const RtObject& look)
 RtRelationship RtLookGroup::getLooks() const
 {
     return prim()->getRelationship(LOOKS)->hnd();
+}
+
+bool RtLookGroupConnectableApi::acceptRelationship(const RtRelationship& rel, const RtObject& target) const
+{
+    if (rel.getName() == LOOKS)
+    {
+        // 'looks' relationship only accepts looks or lookgroups as target.
+        return target.isA<RtPrim>() && 
+            (target.asA<RtPrim>().hasApi<RtLook>() || target.asA<RtPrim>().hasApi<RtLookGroup>());
+    }
+    return false;
 }
 
 
@@ -106,12 +112,6 @@ RtRelationship RtLook::getInherit() const
 
 void RtLook::addMaterialAssign(const RtObject& assignment)
 {
-    PvtPrim* pprim = PvtObject::ptr<PvtPrim>(assignment);
-    const string& typeName = pprim->getTypeInfo()->getShortTypeName();
-    if (typeName != RtMaterialAssign::typeName())
-    {
-        throw ExceptionRuntimeError("Cannot add invalid type to look: '" + typeName + "'");
-    }
     getMaterialAssigns().addTarget(assignment);
 }
 
@@ -123,6 +123,21 @@ void RtLook::removeMaterialAssign(const RtObject& assignment)
 RtRelationship RtLook::getMaterialAssigns() const
 {
     return prim()->getRelationship(MATERIAL_ASSIGN)->hnd();
+}
+
+bool RtLookConnectableApi::acceptRelationship(const RtRelationship& rel, const RtObject& target) const
+{
+    if (rel.getName() == INHERIT)
+    {
+        // 'inherit' relationship only accepts other looks as target.
+        return target.isA<RtPrim>() && target.asA<RtPrim>().hasApi<RtLook>();
+    }
+    else if (rel.getName() == MATERIAL_ASSIGN)
+    {
+        // 'materialassign' relationship only accepts materialassigns as target.
+        return target.isA<RtPrim>() && target.asA<RtPrim>().hasApi<RtMaterialAssign>();
+    }
+    return false;
 }
 
 
@@ -140,19 +155,18 @@ RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->createRelationship(MATERIAL);
+    prim->createInput(MATERIAL, RtType::MATERIAL);
+    prim->createAttribute(GEOM, RtType::STRING);
     prim->createRelationship(COLLECTION);
     PvtAttribute* exclusive = prim->createAttribute(EXCLUSIVE, RtType::BOOLEAN);
     exclusive->getValue().asBool() = true;
-    PvtAttribute* geom = prim->createAttribute(GEOM, RtType::STRING);
-    geom->getValue().asString() = EMPTY_STRING;
 
     return primH;
 }
 
-RtRelationship RtMaterialAssign::getMaterial() const
+RtInput RtMaterialAssign::getMaterial() const
 {
-    return prim()->getRelationship(MATERIAL)->hnd();
+    return prim()->getInput(MATERIAL)->hnd();
 }
 
 RtRelationship RtMaterialAssign::getCollection() const
@@ -168,6 +182,16 @@ RtAttribute RtMaterialAssign::getGeom() const
 RtAttribute RtMaterialAssign::getExclusive() const
 {
     return prim()->getAttribute(EXCLUSIVE)->hnd();
+}
+
+bool RtMaterialAssignConnectableApi::acceptRelationship(const RtRelationship& rel, const RtObject& target) const
+{
+    if (rel.getName() == COLLECTION)
+    {
+        // 'collection' relationship only accepts other collections as target.
+        return target.isA<RtPrim>() && target.asA<RtPrim>().hasApi<RtCollection>();
+    }
+    return false;
 }
 
 }

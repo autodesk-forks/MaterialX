@@ -44,21 +44,9 @@ bool PvtInput::isConnectable(const PvtOutput* output) const
         return false;
     }
 
-    // Get connectable APIs for both sides.
-    RtConnectableApi* dstApi = RtConnectableApi::get(_parent->prim());
-    RtConnectableApi* srcApi = RtConnectableApi::get(output->_parent->prim());
-
-    // Check with the destination if it accepts the connection.
-    bool accept = dstApi && dstApi->acceptConnection(output->hnd(), hnd());
-
-    // If the source is of another prim type check that this connectable API also
-    // accepts the connection.
-    if (accept && srcApi != dstApi)
-    {
-        accept = srcApi && srcApi->acceptConnection(output->hnd(), hnd());
-    }
-
-    return accept;
+    // Use the connectable API of this prim to validate the connection.
+    RtConnectableApi* connectableApi = RtConnectableApi::get(_parent->prim());
+    return connectableApi && connectableApi->acceptConnection(hnd(), output->hnd());
 }
 
 void PvtInput::connect(PvtOutput* output)
@@ -72,26 +60,14 @@ void PvtInput::connect(PvtOutput* output)
     // Check if another connection exists already.
     if (isConnected())
     {
-        throw ExceptionRuntimeError("Input '" + getPath().asString() + "' is already connected");
+        throw ExceptionRuntimeError("'" + getPath().asString() + "' is already connected");
     }
 
-    RtConnectableApi* dstApi = RtConnectableApi::get(_parent->prim());
-    RtConnectableApi* srcApi = RtConnectableApi::get(output->_parent->prim());
-
-    // Check with the destination's connectable API if it accepts the connection.
-    if (!(dstApi && dstApi->acceptConnection(output->hnd(), hnd())))
+    // Use the connectable API of this prim to validate the connection.
+    RtConnectableApi* connectableApi = RtConnectableApi::get(_parent->prim());
+    if (!(connectableApi && connectableApi->acceptConnection(hnd(), output->hnd())))
     {
-        throw ExceptionRuntimeError("Input '" + getPath().asString() + "' rejected the connection");
-    }
-
-    // If the source prim is of another prim type check that this connectable API also
-    // accepts the connection.
-    if (srcApi != dstApi)
-    {
-        if (!(srcApi && srcApi->acceptConnection(output->hnd(), hnd())))
-        {
-            throw ExceptionRuntimeError("Output '" + output->getPath().asString() + "' rejected the connection");
-        }
+        throw ExceptionRuntimeError("'" + getPath().asString() + "' rejected the connection");
     }
 
     // Make the connection.

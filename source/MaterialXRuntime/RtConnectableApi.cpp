@@ -14,14 +14,14 @@ namespace
     RtTokenMap<RtConnectableApiPtr> s_connectableApiRegistry;
 }
 
-bool RtConnectableApi::acceptConnection(const RtOutput& src, const RtInput& dest) const
+bool RtConnectableApi::acceptConnection(const RtInput& input, const RtOutput& output) const
 {
     // Default implementation checks if the types are matching.
     //
     // TODO: Check if the data types are compatible/castable
     // instead of strictly an exact match.
     //
-    return src.getType() == dest.getType();
+    return input.getType() == output.getType();
 }
 
 bool RtConnectableApi::acceptRelationship(const RtRelationship&, const RtObject&) const

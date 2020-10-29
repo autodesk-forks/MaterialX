@@ -75,11 +75,11 @@ public:
     RtPrimIterator getMasterPrims(RtObjectPredicate predicate = nullptr);
 
     /// Register a typed prim schema.
-    template<class T>
+    template<class T, class ConnectableApi = RtConnectableApi>
     void registerTypedSchema()
     {
         registerCreateFunction(T::typeName(), T::createPrim);
-        RtConnectableApi::registerApi<T>();
+        RtConnectableApi::registerApi<T, ConnectableApi>();
     }
 
     /// Unregister a typed prim schema.

@@ -68,4 +68,14 @@ RtRelationship RtCollection::getIncludeCollection() const
     return prim()->getRelationship(INCLUDE_COLLECTION)->hnd();
 }
 
+bool RtCollectionConnectableApi::acceptRelationship(const RtRelationship& rel, const RtObject& target) const
+{
+    if (rel.getName() == INCLUDE_COLLECTION)
+    {
+        // 'includecollection' only accepts other collection prims as target.
+        return target.isA<RtPrim>() && target.asA<RtPrim>().hasApi<RtCollection>();
+    }
+    return false;
+}
+
 }

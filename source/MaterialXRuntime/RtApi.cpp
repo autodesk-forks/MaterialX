@@ -51,10 +51,10 @@ void RtApi::initialize()
     registerTypedSchema<RtNodeDef>();
     registerTypedSchema<RtNodeGraph>();
     registerTypedSchema<RtBackdrop>();
-    registerTypedSchema<RtLookGroup>();
-    registerTypedSchema<RtLook>();
-    registerTypedSchema<RtMaterialAssign>();
-    registerTypedSchema<RtCollection>();
+    registerTypedSchema<RtLookGroup, RtLookGroupConnectableApi>();
+    registerTypedSchema<RtLook, RtLookConnectableApi>();
+    registerTypedSchema<RtMaterialAssign, RtMaterialAssignConnectableApi>();
+    registerTypedSchema<RtCollection, RtCollectionConnectableApi>();
 
     // Register connectable API for nodegraph internal sockets.
     // These are not typed schemas so need custom registration.

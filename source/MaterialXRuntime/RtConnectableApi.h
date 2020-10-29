@@ -28,14 +28,14 @@ public:
     /// Destructor.
     virtual ~RtConnectableApi() {}
 
-    /// Return true if a connection is allowed to be made for the given source and destination.
-    /// Default implementation accepts all connections and this method should be overridden by
-    /// derived classes to change this.
-    virtual bool acceptConnection(const RtOutput& src, const RtInput& dest) const;
+    /// Return true if the given input accepts a connection from the given output.
+    /// Default implementation accept outputs with a matching datatype. Derived classes
+    /// can override this to change connectability.
+    virtual bool acceptConnection(const RtInput& input, const RtOutput& output) const;
 
-    /// Return true if a connection is allowed to be made for the given relationsship and target object.
-    /// Default implementation accepts all relationships for all targets and this method should be
-    /// overridden by derived classes to change this.
+    /// Return true if this relationship accepts the given object as a target.
+    /// Default implementation accept all targets. Derived classes can override 
+    /// this to change connectability.
     virtual bool acceptRelationship(const RtRelationship& rel, const RtObject& target) const;
 
     /// Register a connectable API for a given prim typename.
