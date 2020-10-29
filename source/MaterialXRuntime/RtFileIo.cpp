@@ -1371,7 +1371,7 @@ void RtFileIo::readLibraries(const FilePathVec& libraryPaths, const FileSearchPa
         }
         catch(const ExceptionRuntimeError &e)
         {
-            RtApi::get().log(RtLogger::WARNING, e.what());
+            RtApi::get().log(RtLogger::ERROR, e.what());
         }
     }
 }
