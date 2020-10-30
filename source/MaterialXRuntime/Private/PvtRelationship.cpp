@@ -39,7 +39,7 @@ void PvtRelationship::addTarget(const PvtObject* target)
     RtConnectableApi* connectableApi = RtConnectableApi::get(getParent()->prim());
     if (!(connectableApi && connectableApi->acceptRelationship(hnd(), target->hnd())))
     {
-        throw ExceptionRuntimeError("'" + target->getPath().asString() + "' rejected the relationship");
+        throw ExceptionRuntimeError("'" + getPath().asString() + "' rejected the relationship");
     }
 
     // Create the relationship.

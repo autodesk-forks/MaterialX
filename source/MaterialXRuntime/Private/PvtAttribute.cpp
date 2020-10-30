@@ -63,9 +63,8 @@ void PvtInput::connect(PvtOutput* output)
         throw ExceptionRuntimeError("'" + getPath().asString() + "' is already connected");
     }
 
-    // Use the connectable API of this prim to validate the connection.
-    RtConnectableApi* connectableApi = RtConnectableApi::get(_parent->prim());
-    if (!(connectableApi && connectableApi->acceptConnection(hnd(), output->hnd())))
+    // Make sure the connection is valid.
+    if (!isConnectable(output))
     {
         throw ExceptionRuntimeError("'" + getPath().asString() + "' rejected the connection");
     }
