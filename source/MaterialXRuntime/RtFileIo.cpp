@@ -38,7 +38,10 @@ namespace
                                                     RtToken("nodegraph"), RtToken("interfacename") };
     static const RtTokenSet nodeMetadata        = { RtToken("name"), RtToken("type"), RtToken("node") };
     static const RtTokenSet nodegraphMetadata   = { RtToken("name") };
-    static const RtTokenSet lookMetadata        = { RtToken("name") };
+    static const RtTokenSet lookMetadata        = { RtToken("name"), RtToken("inherit") };
+    static const RtTokenSet lookGroupMetadata   = { RtToken("name"), RtToken("looks"), RtToken("default") };
+    static const RtTokenSet mtrlAssignMetadata  = { RtToken("name"), RtToken("geom"), RtToken("collection"), RtToken("material"), RtToken("exclusive") };
+    static const RtTokenSet collectionMetadata  = { RtToken("name"), RtToken("includegeom"), RtToken("includecollection"), RtToken("excludegeom") };
     static const RtTokenSet genericMetadata     = { RtToken("name"), RtToken("kind") };
     static const RtTokenSet stageMetadata       = {};
 
@@ -489,7 +492,7 @@ namespace
         collection.getIncludeGeom().setValueString(src->getIncludeGeom());
         collection.getExcludeGeom().setValueString(src->getExcludeGeom());
 
-        readMetadata(src, collectionPrim, lookMetadata);
+        readMetadata(src, collectionPrim, collectionMetadata);
 
         return collectionPrim;
     }
@@ -549,7 +552,7 @@ namespace
 
             rtMatAssign.getGeom().getValue().asString() = matAssign->getActiveGeom();
 
-            readMetadata(matAssign, assignPrim, lookMetadata);
+            readMetadata(matAssign, assignPrim, mtrlAssignMetadata);
 
             look.getMaterialAssigns().addTarget(assignPrim->hnd());
         }
@@ -601,7 +604,7 @@ namespace
         const string& activeLook = src->getActiveLook();
         lookGroup.getActiveLook().setValueString(activeLook);
 
-        readMetadata(src, prim, lookMetadata);
+        readMetadata(src, prim, lookGroupMetadata);
 
         return prim;
     }
@@ -1010,7 +1013,7 @@ namespace
                 string includeList = rtIncludeCollection.getTargetsAsString();                
                 collection->setIncludeCollectionString(includeList);
 
-                writeMetadata(prim, collection, lookMetadata, options);
+                writeMetadata(prim, collection, collectionMetadata, options);
             }
         }
     }
@@ -1065,7 +1068,7 @@ namespace
                         massign->setMaterial(rtMatAssign.getMaterial().getConnection().getParent().getName());
                     }
 
-                    writeMetadata(pprim, massign, lookMetadata, options);
+                    writeMetadata(pprim, massign, mtrlAssignMetadata, options);
                 }
 
                 writeMetadata(prim, look, lookMetadata, options);
@@ -1095,7 +1098,7 @@ namespace
                 lookGroup->setLooks(lookList);
                 lookGroup->setActiveLook(rtLookGroup.getActiveLook().getValueString());
 
-                writeMetadata(prim, lookGroup, lookMetadata, options);
+                writeMetadata(prim, lookGroup, lookGroupMetadata, options);
             }
         }
     }

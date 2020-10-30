@@ -156,10 +156,10 @@ RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name
 
     PvtPrim* prim = primH->asA<PvtPrim>();
     prim->createInput(MATERIAL, RtType::MATERIAL);
-    prim->createAttribute(GEOM, RtType::STRING);
-    prim->createRelationship(COLLECTION);
     PvtAttribute* exclusive = prim->createAttribute(EXCLUSIVE, RtType::BOOLEAN);
     exclusive->getValue().asBool() = true;
+    prim->createAttribute(GEOM, RtType::STRING);
+    prim->createRelationship(COLLECTION);
 
     return primH;
 }
