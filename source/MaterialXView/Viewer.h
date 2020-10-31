@@ -253,6 +253,7 @@ class Viewer : public ng::Screen
 
     // Render options
     bool _renderTransparency;
+    bool _renderDoubleSided;
     bool _outlineSelection;
     int _envSamples;
     bool _drawEnvironment;
@@ -273,6 +274,7 @@ class Viewer : public ng::Screen
     // Texture baking
     bool _bakeTextures;
     bool _bakeHdr;
+    bool _bakeAverage;
     bool _bakeOptimize;
     int _bakeTextureRes;
     bool _bakeRequested;
