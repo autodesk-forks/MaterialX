@@ -9,7 +9,7 @@
 /// @file
 /// Classes related to collections of geometry identifiers
 
-#include <MaterialXRuntime/RtSchema.h>
+#include <MaterialXRuntime/RtBindElement.h>
 #include <MaterialXRuntime/RtConnectableApi.h>
 
 namespace MaterialX
@@ -17,13 +17,13 @@ namespace MaterialX
 
 /// @class RtCollection
 /// Schema for collection prims.
-class RtCollection : public RtTypedSchema
+class RtCollection : public RtBindElement
 {
     DECLARE_TYPED_SCHEMA(RtCollection)
 
 public:
     /// Constructor.
-    RtCollection(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtCollection(const RtPrim& prim) : RtBindElement(prim) {}
 
     /// Return included geometry identifiers
     RtAttribute getIncludeGeom() const;

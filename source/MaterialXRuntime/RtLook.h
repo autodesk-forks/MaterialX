@@ -7,13 +7,13 @@
 #define MATERIALX_RTLOOK_H
 
 /// @file RtLook.h
-/// Specifications for a set of classes related to material assignment. 
+/// Specifications for a set of classes related to material binding.
 /// This includes:
 ///     1. Material Assignments: which associate collections of geometry with materials
 ///     2. Looks: which contain one or more material assignments.
 ///     3. Look Groups: which reference a collection of looks with one look being active.
 
-#include <MaterialXRuntime/RtSchema.h>
+#include <MaterialXRuntime/RtBindElement.h>
 #include <MaterialXRuntime/RtConnectableApi.h>
 
 namespace MaterialX
@@ -21,13 +21,13 @@ namespace MaterialX
 
 /// @class RtLookGroup
 /// Schema for 'lookgroup' prims.
-class RtLookGroup : public RtTypedSchema
+class RtLookGroup : public RtBindElement
 {
     DECLARE_TYPED_SCHEMA(RtLookGroup)
 
 public:
     /// Constructor.
-    RtLookGroup(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtLookGroup(const RtPrim& prim) : RtBindElement(prim) {}
 
     /// Return the active look.
     RtAttribute getActiveLook() const;
@@ -53,13 +53,13 @@ public:
 
 /// @class RtLook
 /// Schema for 'look' prims.
-class RtLook : public RtTypedSchema
+class RtLook : public RtBindElement
 {
     DECLARE_TYPED_SCHEMA(RtLook)
 
 public:
     /// Constructor.
-    RtLook(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtLook(const RtPrim& prim) : RtBindElement(prim) {}
 
     /// Return the inherit relationship.
     RtRelationship getInherit() const;
@@ -85,13 +85,13 @@ public:
 
 /// @class RtMaterialAssign
 /// Schema for 'materialassign' prims.
-class RtMaterialAssign : public RtTypedSchema
+class RtMaterialAssign : public RtBindElement
 {
     DECLARE_TYPED_SCHEMA(RtMaterialAssign)
 
 public:
     /// Constructor.
-    RtMaterialAssign(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtMaterialAssign(const RtPrim& prim) : RtBindElement(prim) {}
 
     /// Return the material input.
     RtInput getMaterial() const;

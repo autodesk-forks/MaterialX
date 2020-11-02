@@ -22,7 +22,7 @@ namespace
     static const string MSG_NONE_ROOT_COLLECTION("A collection can only be created at the top / root level");
 }
 
-DEFINE_TYPED_SCHEMA(RtCollection, "collection");
+DEFINE_TYPED_SCHEMA(RtCollection, "bindelement:collection");
 
 RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {

@@ -51,6 +51,7 @@ void RtApi::initialize()
     registerTypedSchema<RtNodeDef>();
     registerTypedSchema<RtNodeGraph>();
     registerTypedSchema<RtBackdrop>();
+    registerTypedSchema<RtBindElement>();
     registerTypedSchema<RtLookGroup, RtLookGroupConnectableApi>();
     registerTypedSchema<RtLook, RtLookConnectableApi>();
     registerTypedSchema<RtMaterialAssign, RtMaterialAssignConnectableApi>();
@@ -71,6 +72,7 @@ void RtApi::shutdown()
     unregisterTypedSchema<RtNodeDef>();
     unregisterTypedSchema<RtNodeGraph>();
     unregisterTypedSchema<RtBackdrop>();
+    unregisterTypedSchema<RtBindElement>();
     unregisterTypedSchema<RtLookGroup>();
     unregisterTypedSchema<RtLook>();
     unregisterTypedSchema<RtMaterialAssign>();

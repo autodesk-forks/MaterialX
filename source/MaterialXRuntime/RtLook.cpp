@@ -3,12 +3,12 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXCore/Util.h>
 #include <MaterialXRuntime/RtLook.h>
 #include <MaterialXRuntime/RtCollection.h>
-
 #include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
+
+#include <MaterialXCore/Util.h>
 
 namespace MaterialX
 {
@@ -33,7 +33,7 @@ namespace
     static const string MSG_NONE_ROOT_MATERIALASSIGN("A materialassign can only be created at the top / root level");
 }
 
-DEFINE_TYPED_SCHEMA(RtLookGroup, "lookgroup");
+DEFINE_TYPED_SCHEMA(RtLookGroup, "bindelement:lookgroup");
 
 RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
@@ -85,7 +85,7 @@ bool RtLookGroupConnectableApi::acceptRelationship(const RtRelationship& rel, co
 }
 
 
-DEFINE_TYPED_SCHEMA(RtLook, "look");
+DEFINE_TYPED_SCHEMA(RtLook, "bindelement:look");
 
 RtPrim RtLook::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
@@ -141,7 +141,7 @@ bool RtLookConnectableApi::acceptRelationship(const RtRelationship& rel, const R
 }
 
 
-DEFINE_TYPED_SCHEMA(RtMaterialAssign, "materialassign");
+DEFINE_TYPED_SCHEMA(RtMaterialAssign, "bindelement:materialassign");
 
 RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {

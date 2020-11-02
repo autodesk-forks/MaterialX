@@ -1490,9 +1490,16 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     mx::RtStagePtr stage = api->createStage(ROOT);
 
     //
+    // Test abstract base class
+    //
+    REQUIRE_THROWS(stage->createPrim("bindelem1", mx::RtBindElement::typeName()));
+
+    //
     // Test collections
     //
     mx::RtPrim p1 = stage->createPrim("collection1", mx::RtCollection::typeName());
+    REQUIRE(p1.hasApi<mx::RtBindElement>());
+    REQUIRE(p1.hasApi<mx::RtCollection>());
     mx::RtCollection col1(p1);
     mx::RtAttribute igeom = col1.getIncludeGeom();
     igeom.setValueString("foo");
@@ -1515,6 +1522,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     // Test materialassign
     //
     mx::RtPrim pa = stage->createPrim("matassign1", mx::RtMaterialAssign::typeName());
+    REQUIRE(pa.hasApi<mx::RtBindElement>());
+    REQUIRE(pa.hasApi<mx::RtMaterialAssign>());
     mx::RtMaterialAssign assign1(pa);
     assign1.getCollection().addTarget(p1);
     mx::RtConnectionIterator iter = assign1.getCollection().getTargets();
@@ -1545,6 +1554,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     // Test look
     //
     mx::RtPrim lo1 = stage->createPrim("look1", mx::RtLook::typeName());
+    REQUIRE(lo1.hasApi<mx::RtBindElement>());
+    REQUIRE(lo1.hasApi<mx::RtLook>());
     mx::RtLook look1(lo1);
 
     mx::RtPrim pa2 = stage->createPrim("matassign2", mx::RtMaterialAssign::typeName());
@@ -1578,6 +1589,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     // Test lookgroup
     //
     mx::RtPrim lg1 = stage->createPrim("lookgroup1", mx::RtLookGroup::typeName());
+    REQUIRE(lg1.hasApi<mx::RtBindElement>());
+    REQUIRE(lg1.hasApi<mx::RtLookGroup>());
     mx::RtLookGroup lookgroup1(lg1);
     lookgroup1.addLook(lo1);
     lookgroup1.addLook(lo2);
