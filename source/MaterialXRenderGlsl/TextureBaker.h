@@ -73,8 +73,8 @@ class TextureBaker : public GlslRenderer
         return _optimizeConstants;
     }
 
-    /// Bake textures for all graph inputs of the given shader reference.
-    void bakeShaderInputs(ConstShaderRefPtr shaderRef, GenContext& context, const FilePath& outputFolder, const string& udim = EMPTY_STRING);
+    /// Bake textures for all graph inputs of the given shader.
+    void bakeShaderInputs(NodePtr shader, GenContext& context, const FilePath& outputFolder, const string& udim = EMPTY_STRING);
 
     /// Bake a texture for the given graph output.
     void bakeGraphOutput(OutputPtr output, GenContext& context, const FilePath& filename);
@@ -112,7 +112,7 @@ class TextureBaker : public GlslRenderer
     bool _optimizeConstants;
 
     ShaderGeneratorPtr _generator;
-    ConstShaderRefPtr _shaderRef;
+    ConstNodePtr _shader;
     StringSet _worldSpaceShaderInputs;
     std::set<OutputPtr> _constantOutputs;
     BakedImageMap _bakedImageMap;

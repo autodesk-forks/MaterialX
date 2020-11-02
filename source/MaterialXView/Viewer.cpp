@@ -1962,24 +1962,29 @@ void Viewer::bakeTextures()
         mx::Image::BaseType baseType = _bakeHdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
         mx::TextureBakerPtr baker = mx::TextureBaker::create(_bakeTextureRes, _bakeTextureRes, baseType);
 
+        mx::StringResolverPtr resolver = mx::StringResolver::create();
+
         // Bake each material in the list.
         for (MaterialPtr mat : materialsToBake)
         {
-            mx::ShaderRefPtr shaderRef = mat->getElement()->asA<mx::ShaderRef>();
-            if (shaderRef)
+            mx::NodePtr materialNode = mat->getMaterialElement()->asA<mx::Node>();
+            if (materialNode)
             {
-                mx::StringResolverPtr resolver = mx::StringResolver::create();
-                resolver->setUdimString(mat->getUdim());
-                imageHandler->setFilenameResolver(resolver);
-
-                try
+                std::unordered_set<mx::NodePtr> shaderNodes = mx::getShaderNodes(materialNode, mx::SURFACE_SHADER_TYPE_STRING);
+                if (!shaderNodes.empty())
                 {
-                    baker->setImageHandler(imageHandler);
-                    baker->bakeShaderInputs(shaderRef, _genContext, _bakeFilename.getParentPath(), mat->getUdim());
-                }
-                catch (mx::Exception& e)
-                {
-                    new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to bake textures", e.what());
+                    resolver->setUdimString(mat->getUdim());
+                    imageHandler->setFilenameResolver(resolver);
+                    try
+                    {
+                        baker->setImageHandler(imageHandler);
+                        // TODO: Only bake first shader for now
+                        baker->bakeShaderInputs(*shaderNodes.begin(), _genContext, _bakeFilename.getParentPath(), mat->getUdim());
+                    }
+                    catch (mx::Exception& e)
+                    {
+                        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to bake textures", e.what());
+                    }
                 }
             }
         }
