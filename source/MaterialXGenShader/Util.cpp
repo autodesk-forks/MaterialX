@@ -957,4 +957,40 @@ bool connectsToNormalMapNode(OutputPtr output)
     return connectedNode && connectedNode->getCategory() == "normalmap";
 }
 
+bool hasElementAttributes(OutputPtr output, const StringVec& attributes)
+{
+    if (!output || attributes.empty())
+    {
+        return false;
+    }
+
+    for (GraphIterator it = output->traverseGraph().begin(); it != GraphIterator::end(); ++it)
+    {
+        ElementPtr upstreamElem = it.getUpstreamElement();
+        NodePtr upstreamNode = upstreamElem ? upstreamElem->asA<Node>() : nullptr;
+        if (!upstreamNode)
+        {
+            it.setPruneSubgraph(true);
+            continue;
+        }
+        NodeDefPtr nodeDef = upstreamNode->getNodeDef();
+        for (ValueElementPtr nodeDefElement : nodeDef->getActiveValueElements())
+        {
+            ValueElementPtr testElement = upstreamNode->getActiveValueElement(nodeDefElement->getName());
+            if (!testElement)
+            {
+                testElement = nodeDefElement;
+            }
+            for (auto attr : attributes)
+            {
+                if (testElement->hasAttribute(attr))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 } // namespace MaterialX

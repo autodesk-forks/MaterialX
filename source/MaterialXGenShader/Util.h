@@ -105,6 +105,12 @@ void getUdimScaleAndOffset(const vector<Vector2>& udimCoordinates, Vector2& scal
 /// space to world space.
 bool connectsToNormalMapNode(OutputPtr output);
 
+/// Returns true if there is are any value elements with a given set of attributes either on the
+/// starting node or any graph upsstream of that node.
+/// \param output Starting node 
+/// \param attributes Attributes to test for
+bool hasElementAttributes(OutputPtr output, const StringVec& attributes);
+
 } // namespace MaterialX
 
 #endif

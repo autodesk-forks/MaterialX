@@ -19,8 +19,9 @@ namespace MaterialX
 
 namespace {
 
-string SRGB_TEXTURE = "srgb_texture";
-string LIN_REC709 = "lin_rec709";
+const string SRGB_TEXTURE = "srgb_texture";
+const string LIN_REC709 = "lin_rec709";
+const string BAKED_POSTFIX = "_baked";
 
 StringVec getRenderablePaths(ConstDocumentPtr doc)
 {
@@ -81,7 +82,7 @@ FilePath TextureBaker::generateTextureFilename(OutputPtr output, const string& s
     string shaderSuffix = shaderName.empty() ? EMPTY_STRING : "_" + shaderName;
     string udimSuffix = udim.empty() ? EMPTY_STRING : "_" + udim;
 
-    return FilePath(outputName + shaderSuffix + "_baked" + udimSuffix + "." + _extension);
+    return FilePath(outputName + shaderSuffix + BAKED_POSTFIX + udimSuffix + "." + _extension);
 }
 
 void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext& context, const FilePath& outputFolder, const string& udim)
@@ -136,6 +137,13 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
 
 void TextureBaker::optimizeBakedTextures()
 {
+    // If the graph used to create the texture has any of the following attributes
+    // then it's value has changed from the original, and even if the image is a constant
+    // it must not be optmized away.
+    StringVec transformationAttributes;
+    transformationAttributes.push_back("color_space");
+    transformationAttributes.push_back("unit");
+
     for (auto& pair : _bakedImageMap)
     {
         for (BakedImage& baked : pair.second)
@@ -145,12 +153,20 @@ void TextureBaker::optimizeBakedTextures()
         if (!pair.second.empty())
         {
             bool outputIsUniform = true;
-            for (BakedImage& baked : pair.second)
+            OutputPtr outputPtr = pair.first;
+            if (hasElementAttributes(outputPtr, transformationAttributes))
             {
-                if (!baked.isUniform || baked.uniformColor != pair.second[0].uniformColor)
+                outputIsUniform = false;
+            }
+            else
+            {
+                for (BakedImage& baked : pair.second)
                 {
-                    outputIsUniform = false;
-                    break;
+                    if (!baked.isUniform || baked.uniformColor != pair.second[0].uniformColor)
+                    {
+                        outputIsUniform = false;
+                        break;
+                    }
                 }
             }
             if (outputIsUniform)
@@ -188,13 +204,13 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
     {
         bakedGeom->setGeomPropValue("udimset", udimSet, "stringarray");
     }
-    NodePtr bakedShader = bakedTextureDoc->addNode(_shader->getCategory(), _shader->getName() + "_baked", _shader->getType());
+    NodePtr bakedShader = bakedTextureDoc->addNode(_shader->getCategory(), _shader->getName() + BAKED_POSTFIX, _shader->getType());
     bakedNodeGraph->setColorSpace(_colorSpace);
 
     // Add a material node if any specified and connect it to the new shader node
     if (_material)
     {
-        NodePtr bakedMaterial = bakedTextureDoc->addNode(_material->getCategory(), _material->getName() + "_baked", _material->getType());
+        NodePtr bakedMaterial = bakedTextureDoc->addNode(_material->getCategory(), _material->getName() + BAKED_POSTFIX, _material->getType());
         for (auto sourceMaterialInput : _material->getInputs())
         {
             const string& sourceMaterialInputName = sourceMaterialInput->getName();
@@ -211,7 +227,7 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
         }
     }
 
-    // Create bind elements on the baked shader reference.
+    // Create inputs on baked shader and connected to baked images as required.
     for (ValueElementPtr valueElem : _shader->getChildrenOfType<ValueElement>())
     {
         // Get source and destination inputs
@@ -237,7 +253,7 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
             {
                 Color4 uniformColor = _bakedImageMap[output][0].uniformColor;
                 setValueStringFromColor(sourceInput, uniformColor);
-                if (sourceType == "color4" || sourceType == "color3")
+                if (sourceType == TypedValue<Color4>::TYPE || sourceType == TypedValue<Color4>::TYPE)
                 {
                     bakedInput->setColorSpace(_colorSpace);
                 }
@@ -245,7 +261,7 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
             else
             {
                 // Add the image node.
-                NodePtr bakedImage = bakedNodeGraph->addNode("image", sourceName + "_baked", sourceType);
+                NodePtr bakedImage = bakedNodeGraph->addNode("image", sourceName + BAKED_POSTFIX, sourceType);
                 InputPtr input = bakedImage->addInput("file", "filename");
                 input->setValueString(generateTextureFilename(output, _shader->getName(), udimSet.empty() ? EMPTY_STRING : UDIM_TOKEN));
 
@@ -253,7 +269,7 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
                 if (_worldSpaceShaderInputs.count(input->getName()))
                 {
                     NodePtr bakedImageOrig = bakedImage;
-                    bakedImage = bakedNodeGraph->addNode("normalmap", sourceName + "_baked_map", sourceType);
+                    bakedImage = bakedNodeGraph->addNode("normalmap", sourceName + BAKED_POSTFIX + "_map", sourceType);
                     InputPtr mapInput = bakedImage->addInput("in", sourceType);
                     mapInput->setNodeName(bakedImageOrig->getName());
                 }
@@ -334,6 +350,11 @@ void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& image
         {
             continue;
         }
+        if (shaderNode->getOutputs().empty())
+        {
+            continue;
+        }
+        //_optimizeConstants = !hasValueTransformations(output);
 
         FilePath writeFilename = outputFilename;
         if (renderablePaths.size() > 1)
