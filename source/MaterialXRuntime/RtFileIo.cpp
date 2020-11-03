@@ -33,8 +33,7 @@ namespace
 {
     // Lists of known metadata which are handled explicitly by import/export.
     static const RtTokenSet nodedefMetadata     = { RtToken("name"), RtToken("type"), RtToken("node") };
-    static const RtTokenSet attrMetadata        = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels") };
-    static const RtTokenSet inputMetadata       = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels"), 
+    static const RtTokenSet attrMetadata        = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels"),
                                                     RtToken("nodegraph"), RtToken("interfacename") };
     static const RtTokenSet nodeMetadata        = { RtToken("name"), RtToken("type"), RtToken("node") };
     static const RtTokenSet nodegraphMetadata   = { RtToken("name") };
@@ -44,6 +43,13 @@ namespace
     static const RtTokenSet collectionMetadata  = { RtToken("name"), RtToken("includegeom"), RtToken("includecollection"), RtToken("excludegeom") };
     static const RtTokenSet genericMetadata     = { RtToken("name"), RtToken("kind") };
     static const RtTokenSet stageMetadata       = {};
+
+    // Metadata with default values that if set will not be written to file.
+    static const RtTokenMap<string> defaultValuedMetadata = 
+    { 
+        { RtToken("uivisible"), "true" },
+        { RtToken("uiadvanced"), "false" },
+    };
 
     static const RtToken DEFAULT_OUTPUT("out");
     static const RtToken OUTPUT_ELEMENT_PREFIX("OUT_");
@@ -131,13 +137,13 @@ namespace
         for (const RtToken name : src->getMetadataOrder())
         {
             if (ignoreList.count(name) ||
-                (name.str().size() > 0 && name.str().at(0) == '_')) // Metadata with "_" prefix are private
+                (name.str().size() > 0 && name.str().at(0) == '_')) // Metadata with "_" prefix are private.
             {
                 continue;
             }
             const RtTypedValue* md = src->getMetadata(name);
 
-            // Check filter if the metadata should be ignored
+            // Check filter if the metadata should be ignored.
             if (options && options->metadataFilter && options->metadataFilter(src->hnd(), name, md))
             {
                 continue;
@@ -146,6 +152,14 @@ namespace
             std::string valueString = md->getValueString();
             if (!valueString.empty())
             {
+                // Check if the value is the default value could be should be ignored.
+                auto it = defaultValuedMetadata.find(name);
+                if (it != defaultValuedMetadata.end() && it->second == valueString)
+                {
+                    continue;
+                }
+
+                // Write the metadata.
                 dest->setAttribute(name.str(), valueString);
             }
         }
@@ -888,7 +902,7 @@ namespace
                         }
                     }
 
-                    writeMetadata(PvtObject::ptr<PvtObject>(attr), valueElem, inputMetadata, options);
+                    writeMetadata(PvtObject::ptr<PvtObject>(attr), valueElem, attrMetadata, options);
                 }
             }
             else if(numOutputs > 1)
@@ -951,7 +965,7 @@ namespace
                 if (v)
                 {
                     v->setValueString(nodegraphInput.getValueString());
-                    writeMetadata(PvtObject::ptr<PvtObject>(attr), v, inputMetadata, options);
+                    writeMetadata(PvtObject::ptr<PvtObject>(attr), v, attrMetadata, options);
                 }
             }
         }
