@@ -125,7 +125,7 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
     createProgram(shader);
 
     bool encodeSrgb = _colorSpace == SRGB_TEXTURE &&
-                      (output->getType() == TypedValue<Color3>::TYPE || output->getType() == TypedValue<Color4>::TYPE);
+                      (output->getType() == "color3" || output->getType() == "color4");
     getFrameBuffer()->setEncodeSrgb(encodeSrgb);
 
     renderTextureSpace();
@@ -256,7 +256,7 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
             {
                 Color4 uniformColor = _bakedImageMap[output][0].uniformColor;
                 setValueStringFromColor(sourceInput, uniformColor);
-                if (sourceType == TypedValue<Color4>::TYPE || sourceType == TypedValue<Color4>::TYPE)
+                if (sourceType == "color3" || sourceType == "color4")
                 {
                     bakedInput->setColorSpace(_colorSpace);
                 }
