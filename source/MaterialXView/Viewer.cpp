@@ -1961,6 +1961,8 @@ void Viewer::bakeTextures()
         // Construct a texture baker.
         mx::Image::BaseType baseType = _bakeHdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
         mx::TextureBakerPtr baker = mx::TextureBaker::create(_bakeTextureRes, _bakeTextureRes, baseType);
+        baker->setupUnitSystem(_stdLib);
+        baker->setTargetUnitSpace(_genContext.getOptions().targetDistanceUnit);
 
         mx::StringResolverPtr resolver = mx::StringResolver::create();
 
@@ -1979,7 +1981,7 @@ void Viewer::bakeTextures()
                     {
                         baker->setImageHandler(imageHandler);
                         // TODO: Only bake first shader for now
-                        baker->bakeShaderInputs(*shaderNodes.begin(), _genContext, _bakeFilename.getParentPath(), mat->getUdim());
+                        baker->bakeShaderInputs(materialNode, *shaderNodes.begin(), _genContext, _bakeFilename.getParentPath(), mat->getUdim());
                     }
                     catch (mx::Exception& e)
                     {

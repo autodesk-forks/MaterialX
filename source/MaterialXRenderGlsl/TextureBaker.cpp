@@ -71,6 +71,7 @@ TextureBaker::TextureBaker(unsigned int width, unsigned int height, Image::BaseT
         _extension = ImageLoader::HDR_EXTENSION;
         _colorSpace = LIN_REC709;
     }
+    _targetUnitSpace = "meter";
     initialize();
 }
 
@@ -83,8 +84,9 @@ FilePath TextureBaker::generateTextureFilename(OutputPtr output, const string& s
     return FilePath(outputName + shaderSuffix + "_baked" + udimSuffix + "." + _extension);
 }
 
-void TextureBaker::bakeShaderInputs(NodePtr shader, GenContext& context, const FilePath& outputFolder, const string& udim)
+void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext& context, const FilePath& outputFolder, const string& udim)
 {
+    _material = material;
     _shader = shader;
     if (!_shader)
     {
@@ -186,9 +188,28 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
     {
         bakedGeom->setGeomPropValue("udimset", udimSet, "stringarray");
     }
-    NodePtr bakedMaterial = bakedTextureDoc->addNode(SURFACE_MATERIAL_NODE_STRING, "M_baked");
     NodePtr bakedShader = bakedTextureDoc->addNode(_shader->getCategory(), _shader->getName() + "_baked", _shader->getType());
     bakedNodeGraph->setColorSpace(_colorSpace);
+
+    // Add a material node if any specified and connect it to the new shader node
+    if (_material)
+    {
+        NodePtr bakedMaterial = bakedTextureDoc->addNode(_material->getCategory(), _material->getName() + "_baked", _material->getType());
+        for (auto sourceMaterialInput : _material->getInputs())
+        {
+            const string& sourceMaterialInputName = sourceMaterialInput->getName();
+            NodePtr upstreamShader = sourceMaterialInput->getConnectedNode();
+            if (upstreamShader && (upstreamShader->getNamePath() == _shader->getNamePath()))
+            {
+                InputPtr bakedMaterialInput = bakedMaterial->getInput(sourceMaterialInputName);
+                if (!bakedMaterialInput)
+                {
+                    bakedMaterialInput = bakedMaterial->addInput(sourceMaterialInputName, sourceMaterialInput->getType(), sourceMaterialInput->getIsUniform());
+                }
+                bakedMaterialInput->setNodeName(bakedShader->getName());
+            }
+        }
+    }
 
     // Create bind elements on the baked shader reference.
     for (ValueElementPtr valueElem : _shader->getChildrenOfType<ValueElement>())
@@ -282,6 +303,7 @@ void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& image
     genContext.getOptions().hwShadowMap = true;
     genContext.getOptions().targetColorSpaceOverride = LIN_REC709;
     genContext.getOptions().fileTextureVerticalFlip = true;
+    genContext.getOptions().targetDistanceUnit = _targetUnitSpace;
 
     DefaultColorManagementSystemPtr cms = DefaultColorManagementSystem::create(genContext.getShaderGenerator().getLanguage());
     cms->loadLibrary(doc);
@@ -348,7 +370,7 @@ void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& image
             resolver->setUdimString(tag);
             imageHandler->setFilenameResolver(resolver);
             setImageHandler(imageHandler);
-            bakeShaderInputs(shaderNode, genContext, writeFilename.getParentPath(), tag);
+            bakeShaderInputs(materialPtr, shaderNode, genContext, writeFilename.getParentPath(), tag);
         }
 
         // Optimize baked textures.
@@ -357,6 +379,28 @@ void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& image
         // Write the baked material and textures.
         writeBakedMaterial(writeFilename, udimSet);
     }
+}
+
+void TextureBaker::setupUnitSystem(DocumentPtr unitDefinitions)
+{
+    UnitTypeDefPtr distanceTypeDef = unitDefinitions ? unitDefinitions->getUnitTypeDef("distance") : nullptr;
+    UnitTypeDefPtr angleTypeDef = unitDefinitions ? unitDefinitions->getUnitTypeDef("angle") : nullptr;
+    if (!distanceTypeDef && !angleTypeDef)
+    {
+        return;
+    }
+
+    UnitSystemPtr unitSystem = UnitSystem::create(_generator->getLanguage());
+    if (!unitSystem)
+    {
+        return;
+    }
+    _generator->setUnitSystem(unitSystem);
+    UnitConverterRegistryPtr registry = UnitConverterRegistry::create();
+    registry->addUnitConverter(distanceTypeDef, LinearUnitConverter::create(distanceTypeDef));
+    registry->addUnitConverter(angleTypeDef, LinearUnitConverter::create(angleTypeDef));
+    _generator->getUnitSystem()->loadLibrary(unitDefinitions);
+    _generator->getUnitSystem()->setUnitConverterRegistry(registry);
 }
 
 } // namespace MaterialX
