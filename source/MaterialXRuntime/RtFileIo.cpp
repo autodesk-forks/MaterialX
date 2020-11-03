@@ -152,7 +152,7 @@ namespace
             std::string valueString = md->getValueString();
             if (!valueString.empty())
             {
-                // Check if the value is the default value could be should be ignored.
+                // Check if the value is the default value and the metadata could be ignored.
                 auto it = defaultValuedMetadata.find(name);
                 if (it != defaultValuedMetadata.end() && it->second == valueString)
                 {
