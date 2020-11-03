@@ -11,6 +11,7 @@
 #include <MaterialXRender/Util.h>
 
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
+#include <MaterialXRenderGlsl/TextureBaker.h>
 
 #include <iostream>
 
@@ -124,7 +125,7 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
     createProgram(shader);
 
     bool encodeSrgb = _colorSpace == SRGB_TEXTURE &&
-                      (output->getType() == "color3" || output->getType() == "color4");
+                      (output->getType() == TypedValue<Color3>::TYPE || output->getType() == TypedValue<Color4>::TYPE);
     getFrameBuffer()->setEncodeSrgb(encodeSrgb);
 
     renderTextureSpace();
@@ -198,8 +199,10 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
     DocumentPtr bakedTextureDoc = createDocument();
 
     // Create top-level elements.
-    NodeGraphPtr bakedNodeGraph = bakedTextureDoc->addNodeGraph("NG_baked");
-    GeomInfoPtr bakedGeom = !udimSet.empty() ? bakedTextureDoc->addGeomInfo("GI_baked") : nullptr;
+    const string bakedNodeGraphName = bakedTextureDoc->createValidChildName("NG_baked");
+    NodeGraphPtr bakedNodeGraph = bakedTextureDoc->addNodeGraph(bakedNodeGraphName);
+    const string bakedGeomName = bakedTextureDoc->createValidChildName("GI_baked");
+    GeomInfoPtr bakedGeom = !udimSet.empty() ? bakedTextureDoc->addGeomInfo(bakedGeomName) : nullptr;
     if (bakedGeom)
     {
         bakedGeom->setGeomPropValue("udimset", udimSet, "stringarray");
@@ -331,6 +334,7 @@ void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& image
     imageHandler->addLoader(OiioImageLoader::create());
 #endif
     StringVec renderablePaths = getRenderablePaths(doc);
+    std::vector<NodePtr> renderableShaderNodes;
 
     for (const string& renderablePath : renderablePaths)
     {
@@ -350,11 +354,6 @@ void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& image
         {
             continue;
         }
-        if (shaderNode->getOutputs().empty())
-        {
-            continue;
-        }
-        //_optimizeConstants = !hasValueTransformations(output);
 
         FilePath writeFilename = outputFilename;
         if (renderablePaths.size() > 1)
@@ -382,7 +381,7 @@ void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& image
         // Iterate over material tags.
         for (const string& tag : materialTags)
         {
-            ShaderPtr hwShader = createShader("Shader", genContext, elem);
+            ShaderPtr hwShader = createShader("Shader", genContext, shaderNode);
             if (!hwShader)
             {
                 continue;
