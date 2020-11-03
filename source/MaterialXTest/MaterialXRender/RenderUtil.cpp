@@ -297,9 +297,10 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                 for (size_t i = 0; i < bakeFiles.size(); i++)
                 {
                     mx::FilePath outputBakeFile = file;
-                    if (outputBakeFile == file)
+                    if (bakeFiles[i] == outputBakeFile.asString())
                     {
-                        outputBakeFile = outputPath.asString() + "_baked.mtlx";
+                        outputBakeFile.removeExtension();
+                        outputBakeFile = outputPath / (outputBakeFile.asString() + "_baked.mtlx");
                         runBake(doc, imageSearchPath, outputBakeFile, bakeResolution[i], bakeResolution[i], bakeHdr[i], log);
                         break;
                     }
