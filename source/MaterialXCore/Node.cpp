@@ -255,6 +255,18 @@ void GraphElement::flattenSubgraphs(const string& target, const StringSet& nodeP
                         {
                             destValue->setValueString(refValue->getValueString());
                         }
+                        if (refValue->hasUnit())
+                        {
+                            destValue->setUnit(refValue->getUnit());
+                        }
+                        if (refValue->hasUnitType())
+                        {
+                            destValue->setUnitType(refValue->getUnitType());
+                        }
+                        if (refValue->hasColorSpace())
+                        {
+                            destValue->setColorSpace(refValue->getColorSpace());
+                        }
                         if (destValue->isA<Input>() && refValue->isA<Input>())
                         {
                             InputPtr refInput = refValue->asA<Input>();
