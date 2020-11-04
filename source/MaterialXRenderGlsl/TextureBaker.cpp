@@ -96,16 +96,31 @@ void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext
     }
 
     std::set<OutputPtr> bakedOutputs;
+    StringSet categories;
+    categories.insert("normalmap");
+    DocumentPtr doc = shader->getDocument();
+
     for (InputPtr input : _shader->getInputs())
     {
         OutputPtr output = input->getConnectedOutput();
         if (output && !bakedOutputs.count(output))
         {
+            ElementPtr outputNode = output->getParent();
+            if (outputNode && outputNode->isA<NodeGraph>())
+            {
+                NodeGraphPtr outputGraph = outputNode->asA<NodeGraph>();
+                outputGraph->flattenSubgraphs();
+            }
+
             bakedOutputs.insert(output);
-            NodePtr normalMapNode = connectsToNormalMapNode(output);
+            NodePtr normalMapNode = connectsToNodesOfCategory(output, categories);
             if (normalMapNode)
             {
-                output->setNodeName(normalMapNode->getInput("in")->getNodeName());
+                NodePtr sampleNode = output->getParent()->getChild(output->getNodeName())->asA<Node>();
+                if (sampleNode == normalMapNode)
+                {
+                    output->setNodeName(sampleNode->getInput("in")->getNodeName());
+                }
                 _worldSpaceShaderInputs.insert(input->getName());
             }
             FilePath filename = FilePath(outputFolder / generateTextureFilename(output, _shader->getName(), udim));

@@ -101,9 +101,9 @@ vector<Vector2> getUdimCoordinates(const StringVec& udimIdentifiers);
 /// 0..1 space.
 void getUdimScaleAndOffset(const vector<Vector2>& udimCoordinates, Vector2& scaleUV, Vector2& offsetUV);
 
-/// Check if a output is connected to a normalmap node. 
-/// \param Return node if found
-NodePtr connectsToNormalMapNode(OutputPtr output);
+/// Check if a output is connected to nodes of a given category.
+/// \param Return the node if found.
+NodePtr connectsToNodesOfCategory(OutputPtr output, const StringSet& categories);
 
 /// Returns true if there is are any value elements with a given set of attributes either on the
 /// starting node or any graph upsstream of that node.

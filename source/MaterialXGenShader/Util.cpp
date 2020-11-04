@@ -951,10 +951,43 @@ void getUdimScaleAndOffset(const vector<Vector2>& udimCoordinates, Vector2& scal
     offsetUV[1] = -minUV[1];
 }
 
-NodePtr connectsToNormalMapNode(OutputPtr output)
+NodePtr connectsToNodesOfCategory(OutputPtr output, const StringSet& categories)
 {
-    ElementPtr connectedNode = output ? output->getConnectedNode() : nullptr;
-    return (connectedNode && connectedNode->getCategory() == "normalmap") ? connectedNode : nullptr;
+    ElementPtr connectedElement = output ? output->getConnectedNode() : nullptr;
+    NodePtr connectedNode = connectedElement->asA<Node>();
+    if (!connectedNode)
+    {
+        return nullptr;
+    }
+    
+    // Check the direct node type
+    if (categories.count(connectedNode->getCategory()))
+    {
+        return connectedNode;
+    }
+
+    // Check if it's a definition which has a root which of the node type
+    NodeDefPtr nodedef = connectedNode->getNodeDef();
+    if (nodedef)
+    {
+        InterfaceElementPtr inter = nodedef->getImplementation();
+        if (inter)
+        {
+            NodeGraphPtr graph = inter->asA<NodeGraph>();
+            if (graph)
+            {
+                for (OutputPtr outputPtr : graph->getOutputs())
+                {
+                    NodePtr outputNode = outputPtr->getConnectedNode();
+                    if (outputNode && categories.count(outputNode->getCategory()))
+                    {
+                        return outputNode;
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
 }
 
 bool hasElementAttributes(OutputPtr output, const StringVec& attributes)

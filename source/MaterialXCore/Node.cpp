@@ -194,7 +194,7 @@ bool Node::validate(string* message) const
 // GraphElement methods
 //
 
-void GraphElement::flattenSubgraphs(const string& target)
+void GraphElement::flattenSubgraphs(const string& target, const StringSet& nodePaths)
 {
     vector<NodePtr> processNodeVec = getNodes();
     while (!processNodeVec.empty())
@@ -224,6 +224,11 @@ void GraphElement::flattenSubgraphs(const string& target)
         for (const auto& pair : graphImplMap)
         {
             NodePtr processNode = pair.first;
+            if (nodePaths.size() && !nodePaths.count(processNode->getNamePath()))
+            {
+                continue;
+            }
+
             NodeGraphPtr sourceSubGraph = pair.second;
             std::unordered_map<NodePtr, NodePtr> subNodeMap;
 
