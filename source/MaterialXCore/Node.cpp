@@ -220,6 +220,11 @@ void GraphElement::flattenSubgraphs(const string& target, const StringSet& nodeP
         }
         processNodeVec.clear();
 
+        // Attributes in addition to value to copy over
+        StringVec copyAttributes = { ValueElement::UNIT_ATTRIBUTE,
+                                     ValueElement::UNITTYPE_ATTRIBUTE,
+                                     ValueElement::COLOR_SPACE_ATTRIBUTE };
+
         // Iterate through nodes with graph implementations.
         for (const auto& pair : graphImplMap)
         {
@@ -255,17 +260,12 @@ void GraphElement::flattenSubgraphs(const string& target, const StringSet& nodeP
                         {
                             destValue->setValueString(refValue->getValueString());
                         }
-                        if (refValue->hasUnit())
+                        for (auto copyAttribute : copyAttributes)
                         {
-                            destValue->setUnit(refValue->getUnit());
-                        }
-                        if (refValue->hasUnitType())
-                        {
-                            destValue->setUnitType(refValue->getUnitType());
-                        }
-                        if (refValue->hasColorSpace())
-                        {
-                            destValue->setColorSpace(refValue->getColorSpace());
+                            if (refValue->hasAttribute(copyAttribute))
+                            {
+                                destValue->setAttribute(copyAttribute, refValue->getAttribute(copyAttribute));
+                            }
                         }
                         if (destValue->isA<Input>() && refValue->isA<Input>())
                         {

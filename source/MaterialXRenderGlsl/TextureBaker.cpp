@@ -98,7 +98,6 @@ void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext
     std::set<OutputPtr> bakedOutputs;
     StringSet categories;
     categories.insert("normalmap");
-    DocumentPtr doc = shader->getDocument();
 
     for (InputPtr input : _shader->getInputs())
     {
