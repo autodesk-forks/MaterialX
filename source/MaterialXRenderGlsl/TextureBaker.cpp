@@ -102,9 +102,9 @@ void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext
         if (output && !bakedOutputs.count(output))
         {
             bakedOutputs.insert(output);
-            if (connectsToNormalMapNode(output))
+            NodePtr normalMapNode = connectsToNormalMapNode(output);
+            if (normalMapNode)
             {
-                NodePtr normalMapNode = output->getParent()->getChild(output->getNodeName())->asA<Node>();
                 output->setNodeName(normalMapNode->getInput("in")->getNodeName());
                 _worldSpaceShaderInputs.insert(input->getName());
             }
@@ -269,7 +269,7 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
                 input->setValueString(generateTextureFilename(output, _shader->getName(), udimSet.empty() ? EMPTY_STRING : UDIM_TOKEN));
 
                 // Check if is a normal node and transform normals into world space
-                if (_worldSpaceShaderInputs.count(input->getName()))
+                if (_worldSpaceShaderInputs.count(sourceInput->getName()))
                 {
                     NodePtr bakedImageOrig = bakedImage;
                     bakedImage = bakedNodeGraph->addNode("normalmap", sourceName + BAKED_POSTFIX + "_map", sourceType);
