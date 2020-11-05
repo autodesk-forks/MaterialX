@@ -79,7 +79,7 @@ void PvtApi::unloadLibrary(const RtToken& name)
     }
 }
 
-RtToken PvtApi::makeUniqueName(const RtToken& name) const
+RtToken PvtApi::makeUniqueStageName(const RtToken& name) const
 {
     RtToken newName = name;
 

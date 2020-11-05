@@ -1184,8 +1184,7 @@ namespace
 
     void readUnitDefinitions(DocumentPtr doc)
     {
-        RtApi& api = RtApi::get();
-        UnitConverterRegistryPtr unitDefinitions = api.getUnitDefinitions();
+        UnitConverterRegistryPtr unitDefinitions = RtApi::get().getUnitDefinitions();
         for (UnitTypeDefPtr unitTypeDef : doc->getUnitTypeDefs())
         {
             LinearUnitConverterPtr unitConvert = LinearUnitConverter::create(unitTypeDef);
@@ -1229,12 +1228,12 @@ namespace
 
     void writeNodeDefs(DocumentPtr document, PvtStage* stage, const RtTokenVec& names, const RtWriteOptions* options)
     {
-        // Write all definitions if no names provided
-        RtApi& rtApi = RtApi::get();
+        RtApi& api = RtApi::get();
         if (names.empty())
         {
+            // Write all nodedefs.
             RtSchemaPredicate<RtNodeDef> nodedefFilter;
-            for (RtPrim masterPrim : rtApi.getMasterPrims(nodedefFilter))
+            for (RtPrim masterPrim : api.getMasterPrims(nodedefFilter))
             {
                 PvtPrim* prim = PvtObject::ptr<PvtPrim>(masterPrim);
                 writeMasterPrim(document, stage, prim, options);
@@ -1242,9 +1241,10 @@ namespace
         }
         else
         {
+            // Write the specified nodedefs.
             for (const RtToken& name : names)
             {
-                RtPrim masterPrim = rtApi.getMasterPrim(name);
+                RtPrim masterPrim = api.getMasterPrim(name);
                 PvtPrim* prim = PvtObject::ptr<PvtPrim>(masterPrim);
                 writeMasterPrim(document, stage, prim, options);
             }

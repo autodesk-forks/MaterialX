@@ -204,11 +204,11 @@ public:
         _userDefinitionPath = path;
     }
 
-    RtToken makeUniqueName(const RtToken& name) const;
+    RtToken makeUniqueStageName(const RtToken& name) const;
 
     RtStagePtr createStage(const RtToken& name)
     {
-        const RtToken newName = makeUniqueName(name);
+        const RtToken newName = makeUniqueStageName(name);
         RtStagePtr stage = RtStage::createNew(newName);
         _stages[newName] = stage;
         return stage;
@@ -232,7 +232,7 @@ public:
         {
             throw ExceptionRuntimeError("Can't find a stage named '" + name.str() + "' to rename");
         }
-        const RtToken uniqueName = makeUniqueName(newName);
+        const RtToken uniqueName = makeUniqueStageName(newName);
         stage->setName(uniqueName);
         _stages[uniqueName] = stage;
         _stages.erase(name);
