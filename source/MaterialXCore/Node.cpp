@@ -194,7 +194,7 @@ bool Node::validate(string* message) const
 // GraphElement methods
 //
 
-void GraphElement::flattenSubgraphs(const string& target, const StringSet& nodePaths)
+void GraphElement::flattenSubgraphs(const string& target, FlattGraphPredicate filter)
 {
     vector<NodePtr> processNodeVec = getNodes();
     while (!processNodeVec.empty())
@@ -229,7 +229,7 @@ void GraphElement::flattenSubgraphs(const string& target, const StringSet& nodeP
         for (const auto& pair : graphImplMap)
         {
             NodePtr processNode = pair.first;
-            if (nodePaths.size() && !nodePaths.count(processNode->getNamePath()))
+            if (filter && !filter(processNode))
             {
                 continue;
             }

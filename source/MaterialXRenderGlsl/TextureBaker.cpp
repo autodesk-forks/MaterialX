@@ -120,7 +120,7 @@ void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext
                 {
                     output->setNodeName(sampleNode->getInput("in")->getNodeName());
                 }
-                _worldSpaceShaderInputs.insert(input->getName());
+                _worldSpaceShaderInputs[input->getName()] = sampleNode;
             }
             FilePath filename = FilePath(outputFolder / generateTextureFilename(output, _shader->getName(), udim));
             bakeGraphOutput(output, context, filename);
@@ -156,8 +156,9 @@ void TextureBaker::optimizeBakedTextures()
     // then it's value has changed from the original, and even if the image is a constant
     // it must not be optmized away.
     StringVec transformationAttributes;
-    transformationAttributes.push_back("color_space");
-    transformationAttributes.push_back("unit");
+    transformationAttributes.push_back(Element::COLOR_SPACE_ATTRIBUTE);
+    transformationAttributes.push_back(ValueElement::UNIT_ATTRIBUTE);
+    transformationAttributes.push_back(ValueElement::UNITTYPE_ATTRIBUTE);
 
     for (auto& pair : _bakedImageMap)
     {
@@ -283,12 +284,22 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
                 input->setValueString(generateTextureFilename(output, _shader->getName(), udimSet.empty() ? EMPTY_STRING : UDIM_TOKEN));
 
                 // Check if is a normal node and transform normals into world space
-                if (_worldSpaceShaderInputs.count(sourceInput->getName()))
+                auto worldSpaceShaderInput = _worldSpaceShaderInputs.find(sourceInput->getName());
+                if (worldSpaceShaderInput != _worldSpaceShaderInputs.end())
                 {
-                    NodePtr bakedImageOrig = bakedImage;
-                    bakedImage = bakedNodeGraph->addNode("normalmap", sourceName + BAKED_POSTFIX + "_map", sourceType);
-                    InputPtr mapInput = bakedImage->addInput("in", sourceType);
-                    mapInput->setNodeName(bakedImageOrig->getName());
+                    NodePtr origNormalMapNode = worldSpaceShaderInput->second;
+                    NodePtr normalMapNode = bakedNodeGraph->addNode("normalmap", sourceName + BAKED_POSTFIX + "_map", sourceType);
+                    if (origNormalMapNode)
+                    {
+                        normalMapNode->copyContentFrom(origNormalMapNode);
+                    }
+                    InputPtr mapInput = normalMapNode->getInput("in");
+                    if (!mapInput)
+                    {
+                        mapInput = normalMapNode->addInput("in", sourceType);
+                    }
+                    mapInput->setNodeName(bakedImage->getName());
+                    bakedImage = normalMapNode;
                 }
 
                 // Add the graph output.

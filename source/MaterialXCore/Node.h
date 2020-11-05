@@ -162,6 +162,8 @@ class Node : public InterfaceElement
     static const string CATEGORY;
 };
 
+using FlattGraphPredicate = std::function<bool(NodePtr node)>;
+
 /// @class GraphElement
 /// The base class for graph elements such as NodeGraph and Document.
 class GraphElement : public InterfaceElement
@@ -269,7 +271,7 @@ class GraphElement : public InterfaceElement
 
     /// Flatten any references to graph-based node definitions within this
     /// node graph, replacing each reference with the equivalent node network.
-    void flattenSubgraphs(const string& target = EMPTY_STRING, const StringSet& nodePaths = StringSet());
+    void flattenSubgraphs(const string& target = EMPTY_STRING, FlattGraphPredicate=nullptr);
 
     /// Return a vector of all children (nodes and outputs) sorted in
     /// topological order.

@@ -25,6 +25,8 @@ void bindPyNode(py::module& mod)
         .def("getDownstreamPorts", &mx::Node::getDownstreamPorts)
         .def_readonly_static("CATEGORY", &mx::Node::CATEGORY);
 
+    py::class_<mx::FlattGraphPredicate>(mod, "FlattGraphPredicate");
+
     py::class_<mx::GraphElement, mx::GraphElementPtr, mx::InterfaceElement>(mod, "GraphElement")
         .def("_addNode", &mx::GraphElement::addNode,
             py::arg("category"), py::arg("name") = mx::EMPTY_STRING, py::arg("type") = mx::DEFAULT_TYPE_STRING)
@@ -40,7 +42,7 @@ void bindPyNode(py::module& mod)
         .def("getBackdrops", &mx::GraphElement::getBackdrops)
         .def("removeBackdrop", &mx::GraphElement::removeBackdrop)
         .def("flattenSubgraphs", &mx::GraphElement::flattenSubgraphs,
-            py::arg("target") = mx::EMPTY_STRING, py::arg("nodePaths") = mx::StringSet())
+            py::arg("target") = mx::EMPTY_STRING, py::arg("filter") = nullptr)
         .def("topologicalSort", &mx::GraphElement::topologicalSort)
         .def("asStringDot", &mx::GraphElement::asStringDot);
 

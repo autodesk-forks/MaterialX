@@ -124,6 +124,8 @@ class TextureBaker : public GlslRenderer
     using BakedImageVec = vector<BakedImage>;
     using BakedImageMap = std::unordered_map<OutputPtr, BakedImageVec>;
 
+    using WorldSpaceInputs = std::unordered_map<string, NodePtr>;
+
   protected:
     string _extension;
     string _colorSpace;
@@ -133,7 +135,7 @@ class TextureBaker : public GlslRenderer
     ShaderGeneratorPtr _generator;
     ConstNodePtr _shader;
     ConstNodePtr _material;
-    StringSet _worldSpaceShaderInputs;
+    WorldSpaceInputs _worldSpaceShaderInputs;
     std::set<OutputPtr> _constantOutputs;
     BakedImageMap _bakedImageMap;
 };

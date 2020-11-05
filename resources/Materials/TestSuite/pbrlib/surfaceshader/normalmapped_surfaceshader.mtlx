@@ -14,6 +14,8 @@
    <nodegraph name="NormalMapGraph">
       <normalmap name="normalmap" type="vector3" >
          <input name="in" type="vector3" nodename="tiledimage" />
+         <input name="scale" type="float" value="1.1" />
+         <input name="space" type="string" value="tangent"/>
       </normalmap>
       <tiledimage name="tiledimage" type="vector3" >
          <parameter name="file" type="filename" uniform="true" value="resources/images/mesh_wire_norm.png" />
