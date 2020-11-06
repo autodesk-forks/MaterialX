@@ -194,7 +194,7 @@ bool Node::validate(string* message) const
 // GraphElement methods
 //
 
-void GraphElement::flattenSubgraphs(const string& target, FlattGraphPredicate filter)
+void GraphElement::flattenSubgraphs(const string& target, NodePredicate filter)
 {
     vector<NodePtr> processNodeVec = getNodes();
     while (!processNodeVec.empty())

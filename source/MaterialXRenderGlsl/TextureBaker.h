@@ -66,8 +66,7 @@ class TextureBaker : public GlslRenderer
     /// Set the real unit conversion system used during baking
     void setupUnitSystem(DocumentPtr unitDefinitions);
 
-    /// Set the target unit space. The default unit space is "meter" for distance,
-    /// and 
+    /// Set the target unit space. The default unit space is "meter" for distance.
     void setTargetUnitSpace(const string& unitSpace)
     {
         _targetUnitSpace = unitSpace;

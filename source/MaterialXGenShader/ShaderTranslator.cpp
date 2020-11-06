@@ -108,7 +108,7 @@ void ShaderTranslator::connectTranslationOutputs(ShaderRefPtr shaderRef)
         BindInputPtr translatedBindInput = shaderRef->addBindInput(inputName, translationGraphOutput->getType());
         translatedBindInput->setConnectedOutput(translatedOutput);
         // if normals need to be transformed into world space
-        if (connectsToNodesOfCategory(translationGraphOutput, categories))
+        if (connectsToNodeOfCategory(translationGraphOutput, categories))
         {
             insertUpstreamDependencies(translatedOutput, translationGraphOutput);
         }

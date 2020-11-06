@@ -12,6 +12,8 @@ namespace mx = MaterialX;
 
 void bindPyNode(py::module& mod)
 {
+    py::class_<mx::NodePredicate>(mod, "NodePredicate");
+
     py::class_<mx::Node, mx::NodePtr, mx::InterfaceElement>(mod, "Node")
         .def("setConnectedNode", &mx::Node::setConnectedNode)
         .def("getConnectedNode", &mx::Node::getConnectedNode)
@@ -24,8 +26,6 @@ void bindPyNode(py::module& mod)
             py::arg("language") = mx::EMPTY_STRING)
         .def("getDownstreamPorts", &mx::Node::getDownstreamPorts)
         .def_readonly_static("CATEGORY", &mx::Node::CATEGORY);
-
-    py::class_<mx::FlattGraphPredicate>(mod, "FlattGraphPredicate");
 
     py::class_<mx::GraphElement, mx::GraphElementPtr, mx::InterfaceElement>(mod, "GraphElement")
         .def("_addNode", &mx::GraphElement::addNode,
