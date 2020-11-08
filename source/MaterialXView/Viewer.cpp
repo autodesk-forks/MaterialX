@@ -576,8 +576,7 @@ void Viewer::createLoadMeshInterface(Widget* parent, const std::string& label)
                 _cameraViewAngle = DEFAULT_CAMERA_VIEW_ANGLE;
                 initCamera();
 
-                _imageHandler->releaseRenderResources(_shadowMap);
-                _shadowMap = nullptr;
+                invalidateShadowMap();
             }
             else
             {
@@ -625,9 +624,7 @@ void Viewer::createLoadEnvironmentInterface(Widget* parent, const std::string& l
             _envRadiancePath = filename;
             loadEnvironmentLight();
             loadDocument(_materialFilename, _stdLib);
-
-            _imageHandler->releaseRenderResources(_shadowMap);
-            _shadowMap = nullptr;
+            invalidateShadowMap();
         }
         mProcessEvents = true;
     });
@@ -794,8 +791,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
         _lightRotation, &ui, [this](float value)
     {
         _lightRotation = value;
-        _imageHandler->releaseRenderResources(_shadowMap);
-        _shadowMap = nullptr;
+        invalidateShadowMap();
     });
     lightRotationBox->setEditable(true);
 
@@ -1277,7 +1273,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
                 {
                     for (mx::MeshPartitionPtr geom : _geometryList)
                     {
-                        if (!_materialAssignments[geom] && geom->getIdentifier() == udim)
+                        if (geom->getIdentifier() == udim)
                         {
                             assignMaterial(geom, mat);
                         }
@@ -1286,11 +1282,15 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
             }
 
             // Apply fallback assignments.
-            for (mx::MeshPartitionPtr geom : _geometryList)
+            MaterialPtr fallbackMaterial = newMaterials[0];
+            if (fallbackMaterial->getUdim().empty())
             {
-                if (!_materialAssignments[geom])
+                for (mx::MeshPartitionPtr geom : _geometryList)
                 {
-                    assignMaterial(geom, newMaterials[0]);
+                    if (!_materialAssignments[geom])
+                    {
+                        assignMaterial(geom, fallbackMaterial);
+                    }
                 }
             }
         }
@@ -1308,6 +1308,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
     updateMaterialSelections();
     updateMaterialSelectionUI();
 
+    invalidateShadowMap();
     performLayout();
 }
 
@@ -2394,7 +2395,10 @@ void Viewer::splitDirectLight(mx::ImagePtr envRadianceMap, mx::ImagePtr& indirec
 
     mx::computeDominantLight(imagePair.second, lightDir, lightColor);
     float lightIntensity = std::max(std::max(lightColor[0], lightColor[1]), lightColor[2]);
-    lightColor /= lightIntensity;
+    if (lightIntensity)
+    {
+        lightColor /= lightIntensity;
+    }
 
     dirLightDoc = mx::createDocument();
     mx::NodePtr dirLightNode = dirLightDoc->addNode(DIR_LIGHT_NODE_CATEGORY, "dir_light", mx::LIGHT_SHADER_TYPE_STRING);
@@ -2429,10 +2433,9 @@ void Viewer::updateShadowMap()
     // Render shadow geometry.
     _shadowMaterial->bindShader();
     _shadowMaterial->bindViewInformation(world, view, proj);
-    mx::MeshPtr mesh = _geometryHandler->getMeshes()[0];
-    for (size_t i = 0; i < mesh->getPartitionCount(); i++)
+    for (const auto& assignment : _materialAssignments)
     {
-        mx::MeshPartitionPtr geom = mesh->getPartition(i);
+        mx::MeshPartitionPtr geom = assignment.first;
         _shadowMaterial->drawPartition(geom);
     }
     _shadowMap = framebuffer->createColorImage();
@@ -2461,6 +2464,15 @@ void Viewer::updateShadowMap()
     glViewport(0, 0, mFBSize[0], mFBSize[1]);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glDrawBuffer(GL_BACK);
+}
+
+void Viewer::invalidateShadowMap()
+{
+    if (_shadowMap)
+    {
+        _imageHandler->releaseRenderResources(_shadowMap);
+        _shadowMap = nullptr;
+    }
 }
 
 void Viewer::updateAlbedoTable()
