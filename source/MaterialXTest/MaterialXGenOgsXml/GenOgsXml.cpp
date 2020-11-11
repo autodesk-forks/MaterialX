@@ -76,11 +76,6 @@ public:
 
         sourceCode.push_back(fragment->getFragmentSource());
 
-        // Write output to disk
-        //std::ofstream file(material->getName() + ".xml");
-        //file << fragment->getFragmentSource();
-        //file.close();
-
         return true;
     }
 
