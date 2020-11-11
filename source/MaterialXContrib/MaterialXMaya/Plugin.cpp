@@ -118,7 +118,9 @@ mx::FileSearchPath Plugin::getResourceSearchPath() const
     // Search in standard installed resources directories and plug-in relative resources
     builder.append(_pluginLoadPath);
     builder.append(_pluginLoadPath / mx::FilePath("../../resources"));
+    builder.append(_pluginLoadPath / mx::FilePath("../../libraries"));
     builder.append(_pluginLoadPath / mx::FilePath("../resources"));
+    builder.append(_pluginLoadPath / mx::FilePath("../libraries"));
     builder.append(_pluginLoadPath / mx::FilePath(".."));
 
     builder.appendFromOptionVar("materialXResourceSearchPaths");
@@ -139,7 +141,7 @@ void Plugin::loadLibraries()
     }
 
     std::unordered_set<std::string> uniqueLibraryNames{
-        "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl", "lights", "lights/genglsl"
+        "adsklib", "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl", "lights", "lights/genglsl"
     };
 
     {
