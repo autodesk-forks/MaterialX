@@ -199,21 +199,7 @@ void Document::importLibrary(const ConstDocumentPtr& library)
             throw Exception("Trying to import child without a category: " + child->getName());
         }
 
-        // Qualify the name if not qualified already.
-        //
-        // NOTE: This check is needed because otherwise the namespace
-        // might be applied multiple times. It will be applied 
-        // every time the element is imported into a new document. 
-        // And we have use-cases where documents are assembled into
-        // library documents that in turn are imported into working
-        // documents, making the elements go through this import
-        // method multiple times.
-        //
-        string childName = child->getName();
-        if (childName.find_first_of(NAME_PREFIX_SEPARATOR) == string::npos)
-        {
-            childName = child->getQualifiedName(childName);
-        }
+        const string childName = child->getQualifiedName(child->getName());
 
         // Check for duplicate elements.
         ConstElementPtr previous = getChild(childName);
