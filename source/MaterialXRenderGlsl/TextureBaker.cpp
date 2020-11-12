@@ -11,7 +11,6 @@
 #include <MaterialXRender/Util.h>
 
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
-#include <MaterialXRenderGlsl/TextureBaker.h>
 
 #include <iostream>
 
@@ -135,6 +134,9 @@ void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext
             bakeGraphOutput(output, context, filename);
         }
     }
+
+    // Unbind all images used to generate this set of shader inputs.
+    _imageHandler->unbindImages();
 }
 
 void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const FilePath& filename)
@@ -161,6 +163,11 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
 
 void TextureBaker::optimizeBakedTextures()
 {
+    if (!_shader)
+    {
+        return;
+    }
+
     // If the graph used to create the texture has any of the following attributes
     // then it's value has changed from the original, and even if the image is a constant
     // it must not be optmized away.
@@ -196,15 +203,18 @@ void TextureBaker::optimizeBakedTextures()
             }
         }
 
+        // Check for uniform outputs.
         if (outputIsUniform)
         {
-            _bakedConstantMap[pair.first] = pair.second[0].uniformColor;
+            BakedConstant bakedConstant;
+            bakedConstant.color = pair.second[0].uniformColor;
+            _bakedConstantMap[pair.first] = bakedConstant;
         }
     }
 
-#if 0
+
     // Check for uniform outputs at their default values.
-    NodeDefPtr shaderNodeDef = _shaderRef->getNodeDef();
+    NodeDefPtr shaderNodeDef = _shader->getNodeDef();
     for (InputPtr shaderInput : _shader->getInputs())
     {
         OutputPtr output = shaderInput->getConnectedOutput();
@@ -212,7 +222,7 @@ void TextureBaker::optimizeBakedTextures()
         {
             if (_bakedConstantMap.count(output) && shaderNodeDef)
             {
-                InputPtr input = shaderNodeDef->getActiveInput(shaderInput->getName());
+                InputPtr input = shaderNodeDef->getInput(shaderInput->getName());
                 if (input)
                 {
                     Color4 uniformColor = _bakedConstantMap[output].color;
@@ -226,7 +236,6 @@ void TextureBaker::optimizeBakedTextures()
             }
         }
     }
-#endif
 }
 
 void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec& udimSet)
@@ -235,9 +244,11 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
     {
         return;
     }
+    NodeDefPtr shaderNodeDef = _shader->getNodeDef();
 
     // Create document.
     DocumentPtr bakedTextureDoc = createDocument();
+    bakedTextureDoc->setColorSpace(_colorSpace);
 
     // Create top-level elements.
     const string bakedNodeGraphName = bakedTextureDoc->createValidChildName("NG_baked");
@@ -291,10 +302,16 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
         OutputPtr output = sourceInput->getConnectedOutput();
         if (output)
         {
+            // Skip uniform outputs at their default values.
+            if (_bakedConstantMap.count(output) && _bakedConstantMap[output].isDefault)
+            {
+                continue;
+            }
+
             // Store a constant value for uniform outputs.
             if (_optimizeConstants && _bakedConstantMap.count(output))
 	         {
- 	            Color4 uniformColor = _bakedConstantMap[output];
+ 	            Color4 uniformColor = _bakedConstantMap[output].color;
                 string uniformColorString = getValueStringFromColor(uniformColor, bakedInput->getType());
                 bakedInput->setValueString(uniformColorString);
             }
