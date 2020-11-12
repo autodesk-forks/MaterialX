@@ -2007,7 +2007,7 @@ void Viewer::bakeTextures()
     // Compute material and UDIM lists.
     std::vector<MaterialPtr> materialsToBake;
     std::vector<std::string> udimSet;
-    mx::ValuePtr udimSetValue = doc->getGeomPropValue("udimset");
+    mx::ValuePtr udimSetValue = origDoc->getGeomPropValue("udimset");
     if (_materials.size() > 1 &&
         !material->getUdim().empty() &&
         udimSetValue &&
@@ -2030,7 +2030,7 @@ void Viewer::bakeTextures()
         baker->setAverageImages(_bakeAverage);
         baker->setOptimizeConstants(_bakeOptimize);
 
-        mx::StringResolverPtr resolver = mx::StringResolver::c
+        mx::StringResolverPtr resolver = mx::StringResolver::create();
 
         // Bake each material in the list.
         for (MaterialPtr mat : materialsToBake)
