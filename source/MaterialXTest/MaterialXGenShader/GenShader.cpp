@@ -216,9 +216,9 @@ TEST_CASE("GenShader: Shader Translation", "[translate]")
     loadLibraries({ "stdlib", "pbrlin", "bxdf", "translation" }, searchPath, doc);
     const mx::FilePath mtlxFile = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/Examples/StandardSurface/standard_surface_default.mtlx");
     mx::readFromXmlFile(doc, mtlxFile, searchPath);
-    MaterialX::writeToXmlFile(doc, "translate_test.mtlx");
+    MaterialX::writeToXmlFile(doc, "standard_surface_untranslated.mtlx");
     mx::ShaderTranslatorPtr shaderTranslator = mx::ShaderTranslator::create();
     shaderTranslator->translateAllMaterials(doc, "UsdPreviewSurface");
-    MaterialX::writeToXmlFile(doc, "translated.mtlx");
+    MaterialX::writeToXmlFile(doc, "standard_surface_translated_to_usd.mtlx");
 }
 

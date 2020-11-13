@@ -6,6 +6,7 @@
     <input name="specular" type="float" value="0" />
     <input name="specular_color" type="color3" value="0.18, 0.18, 0.18" />
     <input name="specular_roughness" type="float" value="0" />
+    <input name="specular_IOR" type="float" value="1.5" />
     <input name="metalness" type="float" value="1" />
     <output name="diffuseColor_out" type="color3" />
     <output name="specularColor_out" type="color3" />
@@ -34,14 +35,17 @@
     <dot name="specular_roughnessToroughness" type="float">
       <input name="in" type="float" interfacename="specular_roughness" />
     </dot>
-    <!-- Outputs -->
+     <dot name="specular_IORToior" type="float">
+        <input name="in" type="float" interfacename="specular_IOR" />
+     </dot>
+
+     <!-- Outputs -->
     <output name="diffuseColor_out" type="color3" nodename="base_colorToDiffuseColor" />
     <output name="specularColor_out" type="color3" nodename="specular_colorToSpecularColor" />
     <output name="roughness_out" type="float" nodename="specular_roughnessToroughness" />
     
     <output name="metalness_out" type="float" nodename="metalnessTometalness" />
-    <constant name= "ior50" type="float" value="50" />
-    <output name="ior_out" type="float" nodename="ior50" />
+    <output name="ior_out" type="float" nodename="specular_IORToior" />
     
   </nodegraph>
 </materialx>
