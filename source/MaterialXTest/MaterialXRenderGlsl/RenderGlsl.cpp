@@ -580,17 +580,18 @@ void  GlslShaderRenderTester::runBake(mx::DocumentPtr doc, const mx::FileSearchP
     
     try
     {
-        std::vector<mx::DocumentPtr> bakedDocuments = baker->bakeAllMaterials(doc, imageSearchPath);
+        mx::ListofBakedDocuments bakedDocuments = baker->bakeAllMaterials(doc, imageSearchPath);
 
         for (int i =0; i < bakedDocuments.size(); i++)
         {
-            mx::FilePath writeFilename = outputFileName;
-            std::string extension = writeFilename.getExtension();
-            writeFilename.removeExtension();
-            writeFilename = mx::FilePath(writeFilename.asString() + "_baked_" + std::to_string(i) +"." + extension);
-
-            if (bakedDocuments[i])
-                mx::writeToXmlFile(bakedDocuments[i], writeFilename);
+            if (bakedDocuments[i].second)
+            {
+                mx::FilePath writeFilename = outputFileName;
+                std::string extension = writeFilename.getExtension();
+                writeFilename.removeExtension();
+                writeFilename = mx::FilePath(writeFilename.asString() + "_baked_" + bakedDocuments[i].first + "." + extension);
+                mx::writeToXmlFile(bakedDocuments[i].second, writeFilename);
+            }
             else
                log << doc->getSourceUri() + " failed baking process: " << std::endl;
         }

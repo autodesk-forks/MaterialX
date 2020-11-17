@@ -22,6 +22,10 @@ namespace MaterialX
 /// A shared pointer to a TextureBaker
 using TextureBakerPtr = shared_ptr<class TextureBaker>;
 
+/// Baked document list of shader node and it's corresponding baked Document
+using ListofBakedDocuments = std::vector<std::pair<std::string, DocumentPtr>>;
+
+
 /// @class TextureBaker
 /// A helper class for baking procedural material content to textures.
 /// TODO: Add support for graphs containing geometric nodes such as position
@@ -121,13 +125,13 @@ class TextureBaker : public GlslRenderer
     void bakeGraphOutput(OutputPtr output, GenContext& context, const FilePath& filename);
 
     /// Optimize baked textures before writing.
-    void optimizeBakedTextures();
+    void optimizeBakedTextures(NodePtr shader);
 
     /// Write the baked material with textures to a document
-    DocumentPtr getBakedMaterial(const StringVec& udimSet);
+    DocumentPtr getBakedMaterial(NodePtr shader, const StringVec& udimSet);
 
     /// Returns a list of baked documents for each material in the input document.
-    std::vector<DocumentPtr> bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath);
+    ListofBakedDocuments bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath);
 
 
   protected:
@@ -166,7 +170,6 @@ class TextureBaker : public GlslRenderer
     FilePath _outputImagePath;
 
     ShaderGeneratorPtr _generator;
-    ConstNodePtr _shader;
     ConstNodePtr _material;
     WorldSpaceInputs _worldSpaceShaderInputs;
     BakedImageMap _bakedImageMap;
