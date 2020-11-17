@@ -2047,10 +2047,20 @@ void Viewer::bakeTextures()
                     imageHandler->setFilenameResolver(resolver);
                     try
                     {
+                        // TODO: Only bake first surface shader 
+                        mx::NodePtr shader = *shaderNodes.begin();
                         baker->setImageHandler(imageHandler);
-                        // TODO: Only bake first shader for now
                         baker->setOutputResourcePath(_bakeFilename.getParentPath());
-                        baker->bakeShaderInputs(materialNode, *shaderNodes.begin(), _genContext, mat->getUdim());
+                        baker->bakeShaderInputs(materialNode, shader, _genContext, mat->getUdim());
+                        // Optimize baked textures.
+                        baker->optimizeBakedTextures(shader);
+                        // Write the baked document and textures.
+                        mx::DocumentPtr bakedDocument = baker->getBakedMaterial(shader, udimSet);
+                        if (bakedDocument)
+                        {
+                            mx::writeToXmlFile(bakedDocument, _bakeFilename);
+                            std::cout << "Write baked document: " << _bakeFilename.asString() << std::endl;
+                        }
                     }
                     catch (mx::Exception& e)
                     {
@@ -2059,12 +2069,6 @@ void Viewer::bakeTextures()
                 }
             }
         }
-
-        // Optimize baked textures.
-        baker->optimizeBakedTextures();
-
-        // Write the baked document and textures.
-        mx::writeToXmlFile(baker->getBakedMaterial(udimSet), _bakeFilename);
     }
 
     // Restore state for scene rendering.
