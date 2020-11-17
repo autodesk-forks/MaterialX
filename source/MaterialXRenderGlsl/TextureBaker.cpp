@@ -94,7 +94,7 @@ FilePath TextureBaker::generateTextureFilename(OutputPtr output, const string& s
     return FilePath(outputName + shaderSuffix + BAKED_POSTFIX + udimSuffix + "." + _extension);
 }
 
-void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext& context, const FilePath& outputFolder, const string& udim)
+void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext& context, const string& udim)
 {
     _material = material;
     _shader = shader;
@@ -130,8 +130,8 @@ void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext
                 }
                 _worldSpaceShaderInputs[input->getName()] = sampleNode;
             }
-            FilePath filename = FilePath(outputFolder / generateTextureFilename(output, _shader->getName(), udim));
-            bakeGraphOutput(output, context, filename);
+            FilePath texturefilepath = FilePath(_outputImagePath / generateTextureFilename(output, _shader->getName(), udim));
+            bakeGraphOutput(output, context, texturefilepath);
         }
     }
 
@@ -139,7 +139,7 @@ void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext
     _imageHandler->unbindImages();
 }
 
-void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const FilePath& filename)
+void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const FilePath& texturefilepath)
 {
     if (!output)
     {
@@ -157,7 +157,7 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
 
     BakedImage baked;
     baked.image = captureImage();
-    baked.filename = filename;
+    baked.filename = texturefilepath;
     _bakedImageMap[output].push_back(baked);
 }
 
@@ -238,11 +238,11 @@ void TextureBaker::optimizeBakedTextures()
     }
 }
 
-void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec& udimSet)
+DocumentPtr TextureBaker::getBakedMaterial(const StringVec& udimSet)
 {
     if (!_shader)
     {
-        return;
+        return nullptr;
     }
     NodeDefPtr shaderNodeDef = _shader->getNodeDef();
 
@@ -310,8 +310,8 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
 
             // Store a constant value for uniform outputs.
             if (_optimizeConstants && _bakedConstantMap.count(output))
-	         {
- 	            Color4 uniformColor = _bakedConstantMap[output].color;
+            {
+                Color4 uniformColor = _bakedConstantMap[output].color;
                 string uniformColorString = getValueStringFromColor(uniformColor, bakedInput->getType());
                 bakedInput->setValueString(uniformColorString);
             }
@@ -354,6 +354,8 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
     }
 
     // Write referenced baked images.
+
+    bool bakingSuccessful = true;
     for (const auto& pair : _bakedImageMap)
     {
         if (_optimizeConstants && _bakedConstantMap.count(pair.first))
@@ -362,23 +364,23 @@ void TextureBaker::writeBakedMaterial(const FilePath& filename, const StringVec&
         }
         for (const BakedImage& baked : pair.second)
         {
-            if (_imageHandler->saveImage(baked.filename, baked.image, true))
+            if (!_imageHandler->saveImage(baked.filename, baked.image, true))
             {
-                std::cout << "Wrote baked image: " << baked.filename.asString() << std::endl;
-            }
-            else
-            {
-                std::cout << "Failed to write baked image: " << baked.filename.asString() << std::endl;
+                bakingSuccessful = false;
+                std::cerr << "Failed to write baked image: " << baked.filename.asString() << std::endl;
             }
         }
     }
 
-    // Write baked document.
-    writeToXmlFile(bakedTextureDoc, filename);
-    std::cout << "Wrote baked document: " << filename.asString() << std::endl;
+
+    if (bakingSuccessful)
+        return bakedTextureDoc;
+    else
+        return nullptr;
 }
 
-void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath, const FilePath& outputFilename)
+
+std::vector<DocumentPtr> TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath)
 {
     GenContext genContext = GlslShaderGenerator::create();
     genContext.getOptions().hwSpecularEnvironmentMethod = SPECULAR_ENVIRONMENT_FIS;
@@ -400,6 +402,7 @@ void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& image
     StringVec renderablePaths = getRenderablePaths(doc);
     std::vector<NodePtr> renderableShaderNodes;
 
+    std::vector<DocumentPtr> bakedDocuments;
     for (const string& renderablePath : renderablePaths)
     {
         ElementPtr elem = doc->getDescendant(renderablePath);
@@ -417,14 +420,6 @@ void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& image
         if (!shaderNode)
         {
             continue;
-        }
-
-        FilePath writeFilename = outputFilename;
-        if (renderablePaths.size() > 1)
-        {
-            string extension = writeFilename.getExtension();
-            writeFilename.removeExtension();
-            writeFilename = FilePath(writeFilename.asString() + "_" + shaderNode->getName() + "." + extension);
         }
 
         // Compute the UDIM set.
@@ -454,15 +449,18 @@ void TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& image
             resolver->setUdimString(tag);
             imageHandler->setFilenameResolver(resolver);
             setImageHandler(imageHandler);
-            bakeShaderInputs(materialPtr, shaderNode, genContext, writeFilename.getParentPath(), tag);
+            bakeShaderInputs(materialPtr, shaderNode, genContext, tag);
         }
 
         // Optimize baked textures.
         optimizeBakedTextures();
 
         // Write the baked material and textures.
-        writeBakedMaterial(writeFilename, udimSet);
+        DocumentPtr bakedMaterialDoc = getBakedMaterial(udimSet);
+        bakedDocuments.push_back(bakedMaterialDoc);
     }
+
+    return bakedDocuments;
 }
 
 void TextureBaker::setupUnitSystem(DocumentPtr unitDefinitions)
