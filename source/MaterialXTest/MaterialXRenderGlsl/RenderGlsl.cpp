@@ -582,7 +582,7 @@ void  GlslShaderRenderTester::runBake(mx::DocumentPtr doc, const mx::FileSearchP
     {
         mx::ListofBakedDocuments bakedDocuments = baker->bakeAllMaterials(doc, imageSearchPath);
 
-        for (int i =0; i < bakedDocuments.size(); i++)
+        for (size_t i =0; i < bakedDocuments.size(); i++)
         {
             if (bakedDocuments[i].second)
             {
