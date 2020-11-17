@@ -102,10 +102,16 @@ class TextureBaker : public GlslRenderer
         return _optimizeConstants;
     }
 
+    /// Set the output location for baked texture images
     void setOutputResourcePath(const FilePath& outputImagePath)
     {
-
         _outputImagePath = outputImagePath;
+    }
+
+    /// Get the current output location for baked texture images
+    const FilePath& getOutputResourcePath()
+    {
+        return _outputImagePath;
     }
 
     /// Bake textures for all graph inputs of the given shader.
@@ -117,10 +123,10 @@ class TextureBaker : public GlslRenderer
     /// Optimize baked textures before writing.
     void optimizeBakedTextures();
 
-    /// Write out the baked material and textures.
+    /// Write the baked material with textures to a document
     DocumentPtr getBakedMaterial(const StringVec& udimSet);
 
-    /// Generate a baked version of each material in the input document.
+    /// Returns a list of baked documents for each material in the input document.
     std::vector<DocumentPtr> bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath);
 
 
