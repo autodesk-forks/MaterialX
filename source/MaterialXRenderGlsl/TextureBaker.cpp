@@ -60,6 +60,8 @@ string getValueStringFromColor(const Color4& color, const string& type)
 
 TextureBaker::TextureBaker(unsigned int width, unsigned int height, Image::BaseType baseType) :
     GlslRenderer(width, height, baseType),
+    _targetUnitSpace("meter"),
+    _averageImages(false),
     _optimizeConstants(true),
     _generator(GlslShaderGenerator::create())
 {
@@ -81,7 +83,6 @@ TextureBaker::TextureBaker(unsigned int width, unsigned int height, Image::BaseT
 #endif
         _colorSpace = LIN_REC709;
     }
-    _targetUnitSpace = "meter";
     initialize();
 }
 
@@ -354,7 +355,6 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
     }
 
     // Write referenced baked images.
-
     bool bakingSuccessful = true;
     for (const auto& pair : _bakedImageMap)
     {
@@ -369,9 +369,16 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
                 bakingSuccessful = false;
                 std::cerr << "Failed to write baked image: " << baked.filename.asString() << std::endl;
             }
+            else
+            {
+                std::cout << "Write baked image:" << baked.filename.asString() << std::endl;
+            }
         }
     }
 
+    // Clear image cache
+    _bakedImageMap.clear();
+    _bakedConstantMap.clear();
 
     if (bakingSuccessful)
         return bakedTextureDoc;
@@ -450,14 +457,14 @@ ListofBakedDocuments TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileS
             imageHandler->setFilenameResolver(resolver);
             setImageHandler(imageHandler);
             bakeShaderInputs(materialPtr, shaderNode, genContext, tag);
+
+            // Optimize baked textures.
+            optimizeBakedTextures(shaderNode);
+
+            // Write the baked material and textures.
+            DocumentPtr bakedMaterialDoc = getBakedMaterial(shaderNode, udimSet);
+            bakedDocuments.push_back(std::make_pair(shaderNode->getName(), bakedMaterialDoc));
         }
-
-        // Optimize baked textures.
-        optimizeBakedTextures(shaderNode);
-
-        // Write the baked material and textures.
-        DocumentPtr bakedMaterialDoc = getBakedMaterial(shaderNode, udimSet);
-        bakedDocuments.push_back(std::make_pair(shaderNode->getName(), bakedMaterialDoc));
     }
 
     return bakedDocuments;
