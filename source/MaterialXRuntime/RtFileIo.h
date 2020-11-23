@@ -124,7 +124,7 @@ public:
     void writeDefinitions(std::ostream& stream, const RtTokenVec& names, const RtWriteOptions* options = nullptr);
     void writeDefinitions(const FilePath& documentPath, const RtTokenVec& names, const RtWriteOptions* options = nullptr);
 
-    void writePrim(std::ostream& stream, const RtPrim& prim, const RtWriteOptions* options = nullptr);
+    void writePrim(std::ostream& stream, const RtPath& primPath, const RtWriteOptions* options = nullptr);
 
 protected:
     /// Read all contents from one or more libraries.

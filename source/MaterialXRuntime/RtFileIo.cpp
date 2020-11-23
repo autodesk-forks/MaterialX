@@ -1441,11 +1441,16 @@ void RtFileIo::writeDefinitions(const FilePath& documentPath, const RtTokenVec& 
     writeDefinitions(ofs, names, options);
 }
 
-void RtFileIo::writePrim(std::ostream& stream, const RtPrim& prim, const RtWriteOptions* options)
+void RtFileIo::writePrim(std::ostream& stream, const RtPath& primPath, const RtWriteOptions* options)
 {
-    DocumentPtr doc = createDocument();
-    writePrimData(doc, prim, options);
-    writeToXmlStream(doc, stream);
+    RtPrim prim = _stage->getPrimAtPath(primPath);
+    if (!prim)
+    {
+        throw ExceptionRuntimeError("Can't find prim for path: '" + primPath.asString() + "' in stage: '" + _stage->getName().str() + "'");
+    }
+    DocumentPtr document = createDocument();
+    writePrimData(document, prim, options);
+    writeToXmlStream(document, stream);
 }
 
 }
