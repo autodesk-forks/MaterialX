@@ -301,12 +301,12 @@ vec3 mx_fresnel_airy(float cosTheta, vec3 ior, vec3 extinction, float tf_thickne
 // Parameters for Fresnel calculations.
 struct FresnelData
 {
+    int model;
     vec3 ior;        // In Schlick Fresnel mode these two
     vec3 extinction; // hold F0 and F90 reflectance values
     float exponent;
     float tf_thickness;
     float tf_ior;
-    int model;
 };
 
 FresnelData mx_init_fresnel_dielectric(float ior)
