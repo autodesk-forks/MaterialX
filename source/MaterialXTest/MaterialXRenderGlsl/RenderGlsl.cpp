@@ -575,8 +575,6 @@ void  GlslShaderRenderTester::runBake(mx::DocumentPtr doc, const mx::FileSearchP
     mx::TextureBakerPtr baker = mx::TextureBaker::create(bakeWidth, bakeHeight, baseType);
     baker->setupUnitSystem(doc);
     baker->setTargetUnitSpace("meter");
-    baker->setBakedGraphName("UnitTest_Graph_");
-    baker->setBakedGeomInfoName("UnitTest_GeomInfo_");
     baker->setImageHandler(_renderer->getImageHandler());
     baker->setOutputResourcePath(outputFileName.getParentPath());
     
