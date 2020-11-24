@@ -1458,17 +1458,19 @@ RtPrim RtFileIo::readPrim(std::istream& stream, const RtReadOptions* options)
         RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
 
         // Keep track of renamed nodes:
-        ElementPtr elem = document->getChildren()[0];
+        ElementPtr elem = document->getChildren().size() > 0 ? document->getChildren()[0] : nullptr;
         PvtRenamingMapper mapper;
-        if (!filter || filter(elem))
+        if (elem && (!filter || filter(elem)))
         {
             if (elem->isA<NodeDef>())
             {
-                return readNodeDef(elem->asA<NodeDef>(), stage)->prim();
+                PvtPrim* p = readNodeDef(elem->asA<NodeDef>(), stage);
+                return p ? p->prim() : RtPrim();
             }
             else if (elem->isA<Node>())
             {
-                return readNode(elem->asA<Node>(), stage->getRootPrim(), stage, mapper)->prim();
+                PvtPrim* p = readNode(elem->asA<Node>(), stage->getRootPrim(), stage, mapper);
+                return p ? p->prim() : RtPrim();
             }
             else if (elem->isA<NodeGraph>())
             {
@@ -1478,7 +1480,8 @@ RtPrim RtFileIo::readPrim(std::istream& stream, const RtReadOptions* options)
                 {
                     throw ExceptionRuntimeError("Cannot read node graphs that implement a nodedef.");
                 }
-                return readNodeGraph(elem->asA<NodeGraph>(), stage->getRootPrim(), stage, mapper)->prim();
+                PvtPrim* p = readNodeGraph(elem->asA<NodeGraph>(), stage->getRootPrim(), stage, mapper);
+                return p ? p->prim() : RtPrim();
             }
             else if (elem->isA<Backdrop>())
             {
@@ -1493,7 +1496,8 @@ RtPrim RtFileIo::readPrim(std::istream& stream, const RtReadOptions* options)
                     category != RtMaterialAssign::typeName() &&
                     category != RtCollection::typeName() &&
                     category != RtNodeDef::typeName()) {
-                    return readGenericPrim(elem, stage->getRootPrim(), stage, mapper)->prim();
+                    PvtPrim* p = readGenericPrim(elem, stage->getRootPrim(), stage, mapper);
+                    return p ? p->prim() : RtPrim();
                 }
             }
         }
