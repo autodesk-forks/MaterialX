@@ -324,7 +324,6 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                 std::vector<mx::NodeDefPtr> nodeDefs;
 
                 mx::OutputPtr output = element->asA<mx::Output>();
-                mx::ShaderRefPtr shaderRef = element->asA<mx::ShaderRef>();
                 mx::NodePtr outputNode = element->asA<mx::Node>();
 
                 if (output)
@@ -339,15 +338,6 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                             nodeDefs.push_back(nodeDef);
                             targetElements.push_back(output);
                         }
-                    }
-                }
-                else if (shaderRef)
-                {
-                    mx::NodeDefPtr nodeDef = shaderRef->getNodeDef();
-                    if (nodeDef)
-                    {
-                        nodeDefs.push_back(nodeDef);
-                        targetElements.push_back(shaderRef);
                     }
                 }
 

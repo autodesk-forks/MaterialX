@@ -536,15 +536,15 @@ void Document::upgradeVersion(bool applyFutureUpdates)
         // Assign nodedef names to shaderrefs.
         for (MaterialPtr mat : getMaterials())
         {
-            for (ShaderRefPtr shaderRef : mat->getShaderRefs())
+            for (ElementPtr shaderRef : mat->getChildrenOfType<Element>("shaderref"))
             {
-                if (!shaderRef->getNodeDef())
+                if (!getShaderNodeDef(shaderRef))
                 {
                     NodeDefPtr nodeDef = getNodeDef(shaderRef->getName());
                     if (nodeDef)
                     {
-                        shaderRef->setNodeDefString(nodeDef->getName());
-                        shaderRef->setNodeString(nodeDef->getNodeString());
+                        shaderRef->setAttribute(NodeDef::NODE_DEF_ATTRIBUTE, nodeDef->getName());
+                        shaderRef->setAttribute(NodeDef::NODE_ATTRIBUTE, nodeDef->getNodeString());
                     }
                 }
             }
@@ -559,13 +559,14 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                 {
                     for (MaterialPtr mat : getMaterials())
                     {
-                        for (ShaderRefPtr shaderRef : mat->getShaderRefs())
+                        for (ElementPtr shaderRef : mat->getChildrenOfType<Element>("shaderref"))
                         {
-                            if (shaderRef->getNodeDef() == nodeDef && !shaderRef->getChild(input->getName()))
+                            if (getShaderNodeDef(shaderRef) == nodeDef && !shaderRef->getChild(input->getName()))
                             {
-                                BindInputPtr bind = shaderRef->addBindInput(input->getName(), input->getType());
-                                bind->setNodeGraphString(input->getAttribute("opgraph"));
-                                bind->setOutputString(input->getAttribute("graphoutput"));
+                                ElementPtr bindInput = shaderRef->addChildOfCategory("bindinput", input->getName());
+                                bindInput->setAttribute(TypedElement::TYPE_ATTRIBUTE, input->getType());
+                                bindInput->setAttribute("nodegraph", input->getAttribute("opgraph"));
+                                bindInput->setAttribute("output", input->getAttribute("graphoutput"));
                             }
                         }
                     }
@@ -578,13 +579,9 @@ void Document::upgradeVersion(bool applyFutureUpdates)
         // Combine udim assignments into udim sets.
         for (GeomInfoPtr geomInfo : getGeomInfos())
         {
-            vector<ElementPtr> origChildren = geomInfo->getChildren();
-            for (ElementPtr child : origChildren)
+            for (ElementPtr child : geomInfo->getChildrenOfType<Element>("geomattr"))
             {
-                if (child->getCategory() == "geomattr")
-                {
-                    changeChildCategory(geomInfo, child, GeomProp::CATEGORY);
-                }
+                changeChildCategory(geomInfo, child, GeomProp::CATEGORY);
             }
         }
         if (getGeomPropValue("udim") && !getGeomPropValue("udimset"))
@@ -626,18 +623,17 @@ void Document::upgradeVersion(bool applyFutureUpdates)
     {
         for (ElementPtr elem : traverseTree())
         {
-            TypedElementPtr typedElem = elem->asA<TypedElement>();
-            ValueElementPtr valueElem = elem->asA<ValueElement>();
+            if (elem->getAttribute(TypedElement::TYPE_ATTRIBUTE) == "matrix")
+            {
+                elem->setAttribute(TypedElement::TYPE_ATTRIBUTE, getTypeString<Matrix44>());
+            }
+            if (elem->hasAttribute("default") && !elem->hasAttribute(ValueElement::VALUE_ATTRIBUTE))
+            {
+                elem->setAttribute(ValueElement::VALUE_ATTRIBUTE, elem->getAttribute("default"));
+                elem->removeAttribute("default");
+            }
+
             MaterialAssignPtr matAssign = elem->asA<MaterialAssign>();
-            if (typedElem && typedElem->getType() == "matrix")
-            {
-                typedElem->setType(getTypeString<Matrix44>());
-            }
-            if (valueElem && valueElem->hasAttribute("default"))
-            {
-                valueElem->setValueString(elem->getAttribute("default"));
-                valueElem->removeAttribute("default");
-            }
             if (matAssign)
             {
                 matAssign->setMaterial(matAssign->getName());
@@ -651,25 +647,21 @@ void Document::upgradeVersion(bool applyFutureUpdates)
     {
         for (ElementPtr elem : traverseTree())
         {
-            ValueElementPtr valueElem = elem->asA<ValueElement>();
             MaterialPtr material = elem->asA<Material>();
             LookPtr look = elem->asA<Look>();
             GeomInfoPtr geomInfo = elem->asA<GeomInfo>();
 
-            if (valueElem)
+            if (elem->getAttribute(TypedElement::TYPE_ATTRIBUTE) == GEOMNAME_TYPE_STRING &&
+                elem->getAttribute(ValueElement::VALUE_ATTRIBUTE) == "*")
             {
-                if (valueElem->getType() == GEOMNAME_TYPE_STRING &&
-                    valueElem->getValueString() == "*")
-                {
-                    valueElem->setValueString(UNIVERSAL_GEOM_NAME);
-                }
-                if (valueElem->getType() == FILENAME_TYPE_STRING)
-                {
-                    StringMap stringMap;
-                    stringMap["%UDIM"] = UDIM_TOKEN;
-                    stringMap["%UVTILE"] = UV_TILE_TOKEN;
-                    valueElem->setValueString(replaceSubstrings(valueElem->getValueString(), stringMap));
-                }
+                elem->setAttribute(ValueElement::VALUE_ATTRIBUTE, UNIVERSAL_GEOM_NAME);
+            }
+            if (elem->getAttribute(TypedElement::TYPE_ATTRIBUTE) == FILENAME_TYPE_STRING)
+            {
+                StringMap stringMap;
+                stringMap["%UDIM"] = UDIM_TOKEN;
+                stringMap["%UVTILE"] = UV_TILE_TOKEN;
+                elem->setAttribute(ValueElement::VALUE_ATTRIBUTE, replaceSubstrings(elem->getAttribute(ValueElement::VALUE_ATTRIBUTE), stringMap));
             }
 
             vector<ElementPtr> origChildren = elem->getChildren();
@@ -677,9 +669,9 @@ void Document::upgradeVersion(bool applyFutureUpdates)
             {
                 if (material && child->getCategory() == "override")
                 {
-                    for (ShaderRefPtr shaderRef : material->getShaderRefs())
+                    for (ElementPtr shaderRef : material->getChildrenOfType<Element>("shaderref"))
                     {
-                        NodeDefPtr nodeDef = shaderRef->getNodeDef();
+                        NodeDefPtr nodeDef = getShaderNodeDef(shaderRef);
                         if (nodeDef)
                         {
                             for (ValueElementPtr activeValue : nodeDef->getActiveValueElements())
@@ -689,13 +681,15 @@ void Document::upgradeVersion(bool applyFutureUpdates)
                                 {
                                     if (activeValue->getCategory() == "parameter")
                                     {
-                                        BindParamPtr bindParam = shaderRef->addBindParam(activeValue->getName(), activeValue->getType());
-                                        bindParam->setValueString(child->getAttribute("value"));
+                                        ElementPtr bindParam = shaderRef->addChildOfCategory("bindparam", activeValue->getName());
+                                        bindParam->setAttribute(TypedElement::TYPE_ATTRIBUTE, activeValue->getType());
+                                        bindParam->setAttribute(ValueElement::VALUE_ATTRIBUTE, child->getAttribute("value"));
                                     }
                                     else if (activeValue->isA<Input>())
                                     {
-                                        BindInputPtr bindInput = shaderRef->addBindInput(activeValue->getName(), activeValue->getType());
-                                        bindInput->setValueString(child->getAttribute("value"));
+                                        ElementPtr bindInput = shaderRef->addChildOfCategory("bindinput", activeValue->getName());
+                                        bindInput->setAttribute(TypedElement::TYPE_ATTRIBUTE, activeValue->getType());
+                                        bindInput->setAttribute(ValueElement::VALUE_ATTRIBUTE, child->getAttribute("value"));
                                     }
                                 }
                             }
@@ -751,13 +745,9 @@ void Document::upgradeVersion(bool applyFutureUpdates)
         // Convert geometric attributes to geometric properties.
         for (GeomInfoPtr geomInfo : getGeomInfos())
         {
-            vector<ElementPtr> origChildren = geomInfo->getChildren();
-            for (ElementPtr child : origChildren)
+            for (ElementPtr child : geomInfo->getChildrenOfType<Element>("geomattr"))
             {
-                if (child->getCategory() == "geomattr")
-                {
-                    changeChildCategory(geomInfo, child, GeomProp::CATEGORY);
-                }
+                changeChildCategory(geomInfo, child, GeomProp::CATEGORY);
             }
         }
         for (ElementPtr elem : traverseTree())
@@ -881,10 +871,9 @@ void Document::upgradeVersion(bool applyFutureUpdates)
             else if (nodeCategory == "backdrop")
             {
                 BackdropPtr backdrop = addBackdrop(node->getName());
-                for (ElementPtr child : node->getChildren())
+                for (ElementPtr child : node->getChildrenOfType<Element>("parameter"))
                 {
-                    if (child->getCategory() == "parameter" &&
-                        child->hasAttribute(ValueElement::VALUE_ATTRIBUTE))
+                    if (child->hasAttribute(ValueElement::VALUE_ATTRIBUTE))
                     {
                         backdrop->setAttribute(child->getName(), child->getAttribute(ValueElement::VALUE_ATTRIBUTE));
                     }
