@@ -117,12 +117,6 @@ void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext
         OutputPtr output = input->getConnectedOutput();
         if (output && !bakedOutputs.count(output))
         {
-            ElementPtr outputNode = output->getParent();
-            if (outputNode && outputNode->isA<NodeGraph>())
-            {
-                NodeGraphPtr outputGraph = outputNode->asA<NodeGraph>();
-            }
-
             bakedOutputs.insert(output);
             NodePtr normalMapNode = connectsToNodeOfCategory(output, categories);
             if (normalMapNode)
