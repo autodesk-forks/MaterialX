@@ -142,7 +142,7 @@ class TextureBaker : public GlslRenderer
         return _outputImagePath;
     }
 
-    const string& getBakingReport() const
+    string getBakingReport() const
     {
          return (_bakingReport.str());
     }
