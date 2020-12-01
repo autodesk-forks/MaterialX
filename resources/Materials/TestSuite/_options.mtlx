@@ -8,7 +8,7 @@
 
    Input uniform and stream checking as well as node implementation coverage and profiling
    can also be performed depending on the options enabled.
--->
+--> 
 <materialx version="1.37">
    <nodedef name="TestSuiteOptions">
 
