@@ -268,6 +268,10 @@ class Input : public PortElement
     /// @name Traversal
     /// @{
 
+    /// Return the input on the parent graph corresponding to the interface name
+    /// for the element.
+    InputPtr getInterface() const;
+
     /// Return the Edge with the given index that lies directly upstream from
     /// this element in the dataflow graph.
     Edge getUpstreamEdge(ConstMaterialPtr material = nullptr,

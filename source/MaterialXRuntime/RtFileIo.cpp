@@ -939,9 +939,16 @@ namespace
                     {
                         // Write connections to upstream nodes.
                         RtOutput source = nodegraphInput.getConnection();
-                        RtNode sourceNode = source.getParent();
-                        input->setNodeName(sourceNode.getName());
-                        if (sourceNode.numOutputs() > 1)
+                        RtPrim sourcePrim = source.getParent();
+                        if (sourcePrim.hasApi<RtNodeGraph>())
+                        {
+                            input->setNodeGraphString(sourcePrim.getName());
+                        }
+                        else
+                        {
+                            input->setNodeName(sourcePrim.getName());
+                        }
+                        if (sourcePrim.numOutputs() > 1)
                         {
                             input->setOutputString(source.getName());
                         }

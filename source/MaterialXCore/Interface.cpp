@@ -362,21 +362,27 @@ OutputPtr Input::getConnectedOutput() const
     return result;
 }
 
-NodePtr Input::getConnectedNode() const
+InputPtr Input::getInterface() const
 {
-    // Traverse through interface names to nodegraph input
     const string& interfaceName = getInterfaceName();
     if (!interfaceName.empty())
     {
         ConstNodeGraphPtr graph = getAncestorOfType<NodeGraph>();
         if (graph && !graph->hasNodeDefString())
         {
-            InputPtr graphInput = graph->getInput(interfaceName);
-            if (graphInput && (graphInput->hasNodeName() || graphInput->hasNodeGraphString()))
-            {            
-                return graphInput->getConnectedNode();
-            }
+            return graph->getInput(interfaceName);
         }
+    }
+    return nullptr;
+}
+
+NodePtr Input::getConnectedNode() const
+{
+    // Traverse through interface names to nodegraph input
+    InputPtr graphInput = getInterface();
+    if (graphInput && (graphInput->hasNodeName() || graphInput->hasNodeGraphString()))
+    {
+        return graphInput->getConnectedNode();
     }
 
     OutputPtr output = getConnectedOutput();
