@@ -329,8 +329,15 @@ OutputPtr Input::getConnectedOutput() const
     // Look for output on a node
     else if (hasNodeName())
     {
+        const string& nodeName = getNodeName();
         ConstGraphElementPtr graph = getAncestorOfType<GraphElement>();
-        NodePtr node = graph ? graph->getNode(getNodeName()) : nullptr;
+        NodePtr node = graph ? graph->getNode(nodeName) : nullptr;
+        if (!node && graph)
+        {
+            ConstElementPtr parent = graph->getParent();
+            graph = parent->getAncestorOfType<GraphElement>();
+            node = graph ? graph->getNode(nodeName) : nullptr;
+        }
         if (node)
         {
             std::vector<OutputPtr> outputs = node->getOutputs();
@@ -357,6 +364,21 @@ OutputPtr Input::getConnectedOutput() const
 
 NodePtr Input::getConnectedNode() const
 {
+    // Traverse through interface names to nodegraph input
+    const string& interfaceName = getInterfaceName();
+    if (!interfaceName.empty())
+    {
+        ConstNodeGraphPtr graph = getAncestorOfType<NodeGraph>();
+        if (graph && !graph->hasNodeDefString())
+        {
+            InputPtr graphInput = graph->getInput(interfaceName);
+            if (graphInput && (graphInput->hasNodeName() || graphInput->hasNodeGraphString()))
+            {            
+                return graphInput->getConnectedNode();
+            }
+        }
+    }
+
     OutputPtr output = getConnectedOutput();
     if (output)
     {
@@ -366,8 +388,16 @@ NodePtr Input::getConnectedNode() const
     }
     if (hasNodeName())
     {
+        // Check on current parent, and graph parent if any
+        const string& nodeName = getNodeName();
         ConstGraphElementPtr graph = getAncestorOfType<GraphElement>();
-        NodePtr node = graph ? graph->getNode(getNodeName()) : nullptr;
+        NodePtr node = graph ? graph->getNode(nodeName) : nullptr;
+        if (!node && graph)
+        {
+            ConstElementPtr parent = graph->getParent();
+            graph = parent->getAncestorOfType<GraphElement>();
+            node = graph ? graph->getNode(nodeName) : nullptr;
+        }
         if (node)
         {
             return node;
