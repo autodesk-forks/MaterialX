@@ -3,32 +3,59 @@
    <!-- Nodegraph to nodegraph connections -->
    <nodegraph name="upstream_graph" >
       <input name="file" type="filename" uniform="true" value="resources/Images/grid.png" />
+      <input name="file2" type="filename" uniform="true" value="resources/Images/cloth.png" />
       <image name="image" type="color3">
-         <input name="file" type="filename" uniform="true" interfacename="file" value="resources/Images/grid.png"  />
+         <input name="file" type="filename" uniform="true" interfacename="file" value="resources/Images/grid.png" />
       </image>
-      <output name="graph_out" type="color3" nodename="image" />
+      <image name="image2" type="color3">
+         <input name="file" type="filename" uniform="true" interfacename="file2" value="resources/Images/cloth.png" />
+      </image>
+      <output name="graph_out_image" type="color3" nodename="image" />
+      <output name="graph_out_image2" type="color3" nodename="image2" />
    </nodegraph>
-   <nodegraph name="graph_graph" xpos="38.7848" ypos="-98.0132" >
-      <input name="input" type="color3" nodegraph="upstream_graph" value="1, 0, 0" />
+   <nodegraph name="graph_graph" >
+      <input name="input" type="color3" nodegraph="upstream_graph" output="graph_out_image" value="1, 0, 0" />
+      <input name="input2" type="color3" nodegraph="upstream_graph" output="graph_out_image2" value="1, 0, 0" />
       <multiply name="multiply" type="color3">
          <input name="in1" type="color3" interfacename="input" value="1, 0, 0"  />
          <input name="in2" type="color3" value="0.4, 0.4, 0.4"  />
       </multiply>
+      <multiply name="multiply2" type="color3">
+         <input name="in1" type="color3" interfacename="input2" value="1, 0, 0"  />
+         <input name="in2" type="color3" value="0.4, 0.4, 0.4"  />
+      </multiply>
       <output name="graph_graph_out" type="color3" nodename="multiply" />
+      <output name="graph_graph_out2" type="color3" nodename="multiply2" />
    </nodegraph>
-   <nodegraph name="surf_graph_graph" xpos="38.7848" ypos="-98.0132" >
-      <input name="input" type="color3" nodegraph="graph_graph" value="1, 1, 1" />
+   <nodegraph name="surf_graph_graph" >
+      <input name="input" type="color3" nodegraph="graph_graph" output="graph_graph_out" value="1, 1, 1" />
+      <input name="input2" type="color3" nodegraph="graph_graph" output="graph_graph_out2" value="1, 1, 1" />
       <standard_surface name="default_shader" type="surfaceshader">
          <input name="base_color" type="color3" interfacename="input" value="1, 1, 1" />
       </standard_surface>
+      <standard_surface name="default_shader2" type="surfaceshader">
+         <input name="base_color" type="color3" interfacename="input2" value="1, 1, 1" />
+      </standard_surface>
       <output name="surf_graph_graph_out" type="surfaceshader" nodename="default_shader" />
+      <output name="surf_graph_graph_out2" type="surfaceshader" nodename="default_shader2" />
    </nodegraph>
+
+   <!-- Nodegraph to nodegraph to top level shader and utility node -->
+   <standard_surface name="default_shader_top" type="surfaceshader">
+      <input name="base_color" type="color3" nodegraph="graph_graph" output="graph_graph_out" />
+   </standard_surface>
+   <output name="surf_graph_graph_out_top" type="surfaceshader" nodename="default_shader_top" />
+   <multiply name="multiply_top" type="color3">
+      <input name="in1" type="color3" nodegraph="graph_graph" output="graph_graph_out" />
+      <input name="in2" type="color3" value="0.4, 0.4, 0.4"  />
+   </multiply>
+   <output name="graph_graph_out_top" type="color3" nodename="multiply_top" />
 
    <!-- Nodegraph to node connection -->
    <image name="upstream_image" type="color3">
       <input name="file" type="filename" uniform="true" interfacename="file" value="resources/Images/cloth.png"  />
    </image>
-   <nodegraph name="graph_to_node" xpos="38.7848" ypos="-98.0132" >
+   <nodegraph name="graph_to_node" >
       <input name="input" type="color3" nodename="upstream_image" value="0, 1, 0" />
       <multiply name="multiply" type="color3">
          <input name="in1" type="color3" interfacename="input" value="0, 1, 0"  />
@@ -36,7 +63,7 @@
       </multiply>
       <output name="node_graph_out" type="color3" nodename="multiply" />
    </nodegraph>
-   <nodegraph name="surf_graph_node" xpos="38.7848" ypos="-98.0132" >
+   <nodegraph name="surf_graph_node" >
       <input name="input" type="color3" nodegraph="graph_to_node" value="1, 1, 1" />
       <standard_surface name="default_shader" type="surfaceshader">
          <input name="base_color" type="color3" interfacename="input" value="1, 1, 1" />
