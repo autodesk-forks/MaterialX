@@ -63,7 +63,6 @@
       <output name="nd_graph_out_image" type="color3" />
       <output name="nd_graph_out_image2" type="color3" />
    </upstream_graph_def>
-   <!--
    <nodegraph name="nd_graph_graph" >
       <input name="nd_input" type="color3" nodename="upstream_graph_instance" output="nd_graph_out_image" value="1, 0, 0" />
       <input name="nd_input2" type="color3" nodename="upstream_graph_instance" output="nd_graph_out_image2" value="1, 0, 0" />
@@ -78,10 +77,9 @@
       <output name="nd_graph_graph_out" type="color3" nodename="multiply" />
       <output name="nd_graph_graph_out2" type="color3" nodename="multiply2" />
    </nodegraph>
-   -->
    <nodegraph name="ng_surf_graph_graph" >
-      <input name="nd_input" type="color3" nodegraph="upstream_graph_instance" output="nd_graph_out_image" value="1, 1, 1" />
-      <input name="nd_input2" type="color3" nodegraph="upstream_graph_instance" output="nd_graph_out_image2" value="1, 1, 1" />
+      <input name="nd_input" type="color3" nodename="upstream_graph_instance" output="nd_graph_out_image" value="1, 1, 1" />
+      <input name="nd_input2" type="color3" nodename="upstream_graph_instance" output="nd_graph_out_image2" value="1, 1, 1" />
       <standard_surface name="default_shader" type="surfaceshader">
          <input name="base_color" type="color3" interfacename="nd_input" value="1, 1, 1" />
       </standard_surface>
