@@ -118,7 +118,20 @@ OutputPtr Node::getNodeDefOutput(ElementPtr connectingElement)
         OutputPtr output = OutputPtr();
         if (connectedInput)
         {
-            output = connectedInput->getConnectedOutput();
+            InputPtr interfaceInput = nullptr;
+            if (connectedInput->hasInterfaceName())
+            {
+                interfaceInput = connectedInput->getInterface();
+                if (interfaceInput)
+                {
+                    outputName = &(interfaceInput->getOutputString());
+                    output = interfaceInput->getConnectedOutput();
+                }
+            }
+            if (!interfaceInput)
+            {
+                output = connectedInput->getConnectedOutput();
+            }
         }
         if (output)
         {

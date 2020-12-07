@@ -468,6 +468,11 @@ bool Input::validate(string* message) const
     {
         validateRequire(getDefaultGeomProp() != nullptr, res, message, "Invalid defaultgeomprop string");
     }
+    InputPtr interfaceInput = getInterface();
+    if (interfaceInput)
+    {
+        return interfaceInput->validate() && res;
+    }
     return PortElement::validate(message) && res;
 }
 
