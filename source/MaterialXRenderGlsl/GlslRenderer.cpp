@@ -5,7 +5,8 @@
 
 #include <MaterialXRenderGlsl/External/GLew/glew.h>
 #include <MaterialXRenderGlsl/GlslRenderer.h>
-#include <MaterialXRenderGlsl/GLUtilityContext.h>
+#include <MaterialXRenderGlsl/GLContext.h>
+#include <MaterialXRenderGlsl/GLUtil.h>
 #include <MaterialXRenderHw/SimpleWindow.h>
 #include <MaterialXRender/TinyObjLoader.h>
 
@@ -107,7 +108,7 @@ void GlslRenderer::initialize()
         }
 
         // Create offscreen context
-        _context = GLUtilityContext::create(_window->windowWrapper(), nullptr);
+        _context = GLContext::create(_window->windowWrapper(), nullptr);
         if (!_context)
         {
             errors.push_back("Failed to create OpenGL context for testing.");
@@ -297,7 +298,6 @@ void GlslRenderer::render()
                         glDrawElements(GL_TRIANGLES, (GLsizei)indexData.size(), GL_UNSIGNED_INT, (void*)0);
                     }
                 }
-                checkErrors();
 
                 // Unbind resources
                 _program->unbind();
@@ -326,18 +326,7 @@ ImagePtr GlslRenderer::captureImage()
         throw ExceptionShaderRenderError(errorType, errors);
     }
 
-    ImagePtr result = _frameBuffer->createColorImage();
-    try
-    {
-        checkErrors();
-    }
-    catch (ExceptionShaderRenderError& e)
-    {
-        errors.push_back("Failed to read color buffer back.");
-        errors.insert(std::end(errors), std::begin(e.errorLog()), std::end(e.errorLog()));
-        throw ExceptionShaderRenderError(errorType, errors);
-    }
-    return result;
+    return _frameBuffer->createColorImage();
 }
 
 void GlslRenderer::saveImage(const FilePath& filePath, ConstImagePtr image, bool verticalFlip)
@@ -349,21 +338,6 @@ void GlslRenderer::saveImage(const FilePath& filePath, ConstImagePtr image, bool
     {
         errors.push_back("Failed to save to file:" + filePath.asString());
         throw ExceptionShaderRenderError(errorType, errors);
-    }
-}
-
-void GlslRenderer::checkErrors()
-{
-    StringVec errors;
-
-    GLenum error;
-    while ((error = glGetError()) != GL_NO_ERROR)
-    {
-        errors.push_back("OpenGL error: " + std::to_string(error));
-    }
-    if (errors.size())
-    {
-        throw ExceptionShaderRenderError("OpenGL context error.", errors);
     }
 }
 
@@ -382,6 +356,10 @@ void GlslRenderer::drawScreenSpaceQuad()
         1, 2, 3
     };
     
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
     GLuint vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -399,6 +377,16 @@ void GlslRenderer::drawScreenSpaceQuad()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(QUAD_INDICES), QUAD_INDICES, GL_STATIC_DRAW);
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+    glBindBuffer(GL_ARRAY_BUFFER, GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, GlslProgram::UNDEFINED_OPENGL_RESOURCE_ID);
+
+    glDeleteBuffers(1, &ebo);
+    glDeleteBuffers(1, &vbo);
+    glDeleteVertexArrays(1, &vao);
+
+    checkGlErrors("after draw screen-space quad");
 }
 
 void GlslRenderer::setClearColor(const Color4& clearColor)
