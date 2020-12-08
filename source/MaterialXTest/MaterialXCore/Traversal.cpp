@@ -181,7 +181,7 @@ TEST_CASE("InterGraph Tranversal", "[traversal]")
     searchPath.append(currentPath / mx::FilePath("libraries"));
 
     mx::DocumentPtr doc = mx::createDocument();
-    mx::StringSet libFiles = mx::loadLibraries({ "stdlib", "pbrlib", "bxdf" }, searchPath, doc);
+    mx::loadLibraries({ "stdlib", "pbrlib", "bxdf" }, searchPath, doc);
 
     mx::FilePath testFile = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite/stdlib/nodegraph_inputs/nodegraph_nodegraph.mtlx");
     mx::readFromXmlFile(doc, testFile, searchPath);
