@@ -210,37 +210,50 @@ namespace
         output->connect(input);
     }
 
+    void createNodeConnection(InterfaceElementPtr nodeElem, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
+    {
+        PvtPrim* node = findPrimOrThrow(RtToken(nodeElem->getName()), parent, mapper);
+        for (InputPtr elemInput : nodeElem->getInputs())
+        {
+            PvtInput* input = findInputOrThrow(RtToken(elemInput->getName()), node);
+            string connectedNodeName = elemInput->getNodeName();
+            if (connectedNodeName.empty())
+            {
+                connectedNodeName = elemInput->getNodeGraphString();
+            }
+            if (!connectedNodeName.empty())
+            {
+                PvtPrim* connectedNode = findPrimOrThrow(RtToken(connectedNodeName), parent, mapper);
+                RtToken outputName(elemInput->getOutputString());
+                if (outputName == EMPTY_TOKEN && connectedNode)
+                {
+                    RtNode rtConnectedNode(connectedNode->hnd());
+                    auto output = rtConnectedNode.getOutput();
+                    if (output)
+                    {
+                        outputName = output.getName();
+                    }
+                }
+                PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
+
+                createConnection(output, input, elemInput->getChannels(), stage);
+            }
+        }
+    }
+
     void createNodeConnections(const vector<NodePtr>& nodeElements, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
     {
-        for (const NodePtr& nodeElem : nodeElements)
+        for (auto nodeElem : nodeElements)
         {
-            PvtPrim* node = findPrimOrThrow(RtToken(nodeElem->getName()), parent, mapper);
-            for (const InputPtr& elemInput : nodeElem->getInputs())
-            {
-                PvtInput* input = findInputOrThrow(RtToken(elemInput->getName()), node);
-                string connectedNodeName = elemInput->getNodeName();
-                if (connectedNodeName.empty())
-                {
-                    connectedNodeName = elemInput->getNodeGraphString();
-                }
-                if (!connectedNodeName.empty())
-                {
-                    PvtPrim* connectedNode = findPrimOrThrow(RtToken(connectedNodeName), parent, mapper);
-                    RtToken outputName(elemInput->getOutputString());
-                    if (outputName == EMPTY_TOKEN && connectedNode)
-                    {
-                        RtNode rtConnectedNode(connectedNode->hnd());
-                        auto output = rtConnectedNode.getOutput();
-                        if (output)
-                        {
-                            outputName = output.getName();
-                        }
-                    }
-                    PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
+            createNodeConnection(nodeElem->asA<InterfaceElement>(), parent, stage, mapper);
+        }
+    }
 
-                    createConnection(output, input, elemInput->getChannels(), stage);
-                }
-            }
+    void createNodeGraphConnections(const vector<NodeGraphPtr>& nodeElements, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
+    {
+        for (auto nodeElem : nodeElements)
+        {
+            createNodeConnection(nodeElem->asA<InterfaceElement>(), parent, stage, mapper);
         }
     }
 
@@ -728,6 +741,9 @@ namespace
 
         // Create connections between all root level nodes.
         createNodeConnections(doc->getNodes(), stage->getRootPrim(), stage, mapper);
+
+        // Create connections between all nodegraphs
+        createNodeGraphConnections(doc->getNodeGraphs(), stage->getRootPrim(), stage, mapper);
 
         // Read look information
         if (!options || options->readLookInformation)
