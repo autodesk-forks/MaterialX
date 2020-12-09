@@ -252,6 +252,15 @@ namespace
         const RtToken nodeName(src->getNodeString());
         RtNodeDef nodedef(prim->hnd());
         nodedef.setNode(nodeName);
+        InterfaceElementPtr interface = src->getImplementation();
+        if (interface)
+        {
+              NodeGraphPtr nodeGraph = interface->asA<NodeGraph>();
+              if (nodeGraph)
+              {
+                  nodedef.setImplementationName(  RtToken(nodeGraph->getNamePath()) );
+              }
+        }
 
         readMetadata(src, prim, nodedefMetadata);
 

@@ -21,6 +21,7 @@ RtToken RtNodeDef::VERSION("version");
 RtToken RtNodeDef::IS_DEFAULT_VERSION("isdefaultversion");
 RtToken RtNodeDef::NAMESPACE("namespace");
 RtToken RtNodeDef::UIFOLDER("uifolder");
+static RtToken PRVIATE_IMPLEMENTATION("_implementation"); // "_" indicates private metadata
 
 DEFINE_TYPED_SCHEMA(RtNodeDef, "nodedef");
 
@@ -226,6 +227,18 @@ RtNodeLayout RtNodeDef::getNodeLayout()
         }
     }
     return layout;
+}
+
+void RtNodeDef::setImplementationName(const RtToken& name)
+{
+    RtTypedValue* v = prim()->addMetadata(PRVIATE_IMPLEMENTATION, RtType::TOKEN);
+    v->getValue().asToken() = name;
+}
+
+const RtToken& RtNodeDef::getImplementationName() const
+{
+    RtTypedValue* v = prim()->getMetadata(PRVIATE_IMPLEMENTATION);
+    return v ? v->getValue().asToken() : EMPTY_TOKEN;
 }
 
 }

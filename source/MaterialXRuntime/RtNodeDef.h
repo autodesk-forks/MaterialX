@@ -119,6 +119,13 @@ public:
     /// Containing its input ordering and uifolder hierarchy.
     RtNodeLayout getNodeLayout();
 
+    /// Set the associated implementation with this definition
+    /// Only exists if the definition is represended by a node graph
+    void setImplementationName(const RtToken& name);
+
+    /// Get any associated implementation name
+    const RtToken& getImplementationName() const;
+
     static RtToken NODE;
     static RtToken NODEDEF;
     static RtToken NODEGROUP;
