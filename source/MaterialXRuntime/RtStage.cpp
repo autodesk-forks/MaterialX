@@ -267,6 +267,9 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
     // Set the definition on the nodegraph
     nodeGraph.setDefinition(nodeDefName);
 
+    // Associate the nodegraph with the nodedef
+    nodedef.setImplementationName(nodeGraph.getName());
+
     // Register this nodedef.
     RtApi::get().registerNodeDef(nodedef.getPrim());
 
