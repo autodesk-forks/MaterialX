@@ -156,7 +156,7 @@ void Plugin::loadLibraries()
     }
 
     std::unordered_set<std::string> uniqueLibraryNames{
-        "targets", "adsklib", "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl", "lights", "lights/genglsl"
+        "targets", "adsk", "stdlib", "pbrlib", "bxdf", "stdlib/genglsl", "pbrlib/genglsl", "lights", "lights/genglsl"
     };
 
     {
