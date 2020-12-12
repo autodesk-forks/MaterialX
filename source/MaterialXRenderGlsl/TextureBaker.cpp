@@ -252,7 +252,10 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
 
     // Create document.
     DocumentPtr bakedTextureDoc = createDocument();
-    bakedTextureDoc->setColorSpace(_colorSpace);
+    if (_shaderRef->getDocument()->hasColorSpace())
+    {
+        bakedTextureDoc->setColorSpace(_shaderRef->getDocument()->getColorSpace());
+    }
 
     // Create top-level elements. Note that the child names may not be what
     // was requested so member names must be updated here to reflect that.
