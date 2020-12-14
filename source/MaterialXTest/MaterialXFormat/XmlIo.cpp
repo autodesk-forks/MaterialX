@@ -14,10 +14,8 @@ namespace mx = MaterialX;
 TEST_CASE("Load content", "[xmlio]")
 {
     mx::XmlReadOptions readOptions;
-    std::vector<bool> applyUpdates = { false, true };
-    for (auto applyUpdate : applyUpdates)
     {
-        readOptions.applyFutureUpdates = applyUpdate;
+        readOptions.applyFutureUpdates = true;
 
         mx::FilePath libraryPath("libraries/stdlib");
         mx::FilePath examplesPath("resources/Materials/Examples/Syntax");

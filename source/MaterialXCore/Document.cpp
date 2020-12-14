@@ -1138,10 +1138,7 @@ void Document::upgradeVersion(bool applyFutureUpdates)
         minorVersion = 37;
     }
 
-    if (applyFutureUpdates)
-    {
-        convertParametersToInputs();
-    }
+    convertParametersToInputs();
 
     if (majorVersion == MATERIALX_MAJOR_VERSION &&
         minorVersion == MATERIALX_MINOR_VERSION)
