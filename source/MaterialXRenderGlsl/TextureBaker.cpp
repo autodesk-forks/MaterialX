@@ -264,7 +264,6 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
     {
         _bakedGraphName = bakedTextureDoc->createValidChildName(_bakedGraphName);
         bakedNodeGraph = bakedTextureDoc->addNodeGraph(_bakedGraphName);
-        bakedNodeGraph->setColorSpace(_colorSpace);
     }
 
     _bakedGeomInfoName = bakedTextureDoc->createValidChildName(_bakedGeomInfoName);
@@ -337,39 +336,36 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
                     bakedInput->setColorSpace(_targetColorSpace);
                 }
             }
-            else
+            if (bakedNodeGraph)
             {
-                if (bakedNodeGraph)
+                // Add the image node.
+                NodePtr bakedImage = bakedNodeGraph->addNode("image", sourceName + BAKED_POSTFIX, sourceType);
+                InputPtr input = bakedImage->addInput("file", "filename");
+                input->setValueString(generateTextureFilename(output, shader->getName(), udimSet.empty() ? EMPTY_STRING : UDIM_TOKEN));
+
+                // Check if is a normal node and transform normals into world space
+                auto worldSpaceShaderInput = _worldSpaceShaderInputs.find(sourceInput->getName());
+                if (worldSpaceShaderInput != _worldSpaceShaderInputs.end())
                 {
-                    // Add the image node.
-                    NodePtr bakedImage = bakedNodeGraph->addNode("image", sourceName + BAKED_POSTFIX, sourceType);
-                    InputPtr input = bakedImage->addInput("file", "filename");
-                    input->setValueString(generateTextureFilename(output, shader->getName(), udimSet.empty() ? EMPTY_STRING : UDIM_TOKEN));
-
-                    // Check if is a normal node and transform normals into world space
-                    auto worldSpaceShaderInput = _worldSpaceShaderInputs.find(sourceInput->getName());
-                    if (worldSpaceShaderInput != _worldSpaceShaderInputs.end())
+                    NodePtr origNormalMapNode = worldSpaceShaderInput->second;
+                    NodePtr normalMapNode = bakedNodeGraph->addNode("normalmap", sourceName + BAKED_POSTFIX + "_map", sourceType);
+                    if (origNormalMapNode)
                     {
-                        NodePtr origNormalMapNode = worldSpaceShaderInput->second;
-                        NodePtr normalMapNode = bakedNodeGraph->addNode("normalmap", sourceName + BAKED_POSTFIX + "_map", sourceType);
-                        if (origNormalMapNode)
-                        {
-                            normalMapNode->copyContentFrom(origNormalMapNode);
-                        }
-                        InputPtr mapInput = normalMapNode->getInput("in");
-                        if (!mapInput)
-                        {
-                            mapInput = normalMapNode->addInput("in", sourceType);
-                        }
-                        mapInput->setNodeName(bakedImage->getName());
-                        bakedImage = normalMapNode;
+                        normalMapNode->copyContentFrom(origNormalMapNode);
                     }
-
-                    // Add the graph output.
-                    OutputPtr bakedOutput = bakedNodeGraph->addOutput(sourceName + "_output", sourceType);
-                    bakedOutput->setConnectedNode(bakedImage);
-                    bakedInput->setConnectedOutput(bakedOutput);
+                    InputPtr mapInput = normalMapNode->getInput("in");
+                    if (!mapInput)
+                    {
+                        mapInput = normalMapNode->addInput("in", sourceType);
+                    }
+                    mapInput->setNodeName(bakedImage->getName());
+                    bakedImage = normalMapNode;
                 }
+
+                // Add the graph output.
+                OutputPtr bakedOutput = bakedNodeGraph->addOutput(sourceName + "_output", sourceType);
+                bakedOutput->setConnectedNode(bakedImage);
+                bakedInput->setConnectedOutput(bakedOutput);
             }
         }
         else
