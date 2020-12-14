@@ -259,8 +259,14 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
 
     // Create top-level elements. Note that the child names may not be what
     // was requested so member names must be updated here to reflect that.
-    _bakedGraphName = bakedTextureDoc->createValidChildName(_bakedGraphName);
-    NodeGraphPtr bakedNodeGraph = bakedTextureDoc->addNodeGraph(_bakedGraphName);
+    NodeGraphPtr bakedNodeGraph;
+    if (!_bakedImageMap.empty())
+    {
+        _bakedGraphName = bakedTextureDoc->createValidChildName(_bakedGraphName);
+        bakedNodeGraph = bakedTextureDoc->addNodeGraph(_bakedGraphName);
+        bakedNodeGraph->setColorSpace(_colorSpace);
+    }
+
     _bakedGeomInfoName = bakedTextureDoc->createValidChildName(_bakedGeomInfoName);
     GeomInfoPtr bakedGeom = !udimSet.empty() ? bakedTextureDoc->addGeomInfo(_bakedGeomInfoName) : nullptr;
     if (bakedGeom)
@@ -333,34 +339,37 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
             }
             else
             {
-                // Add the image node.
-                NodePtr bakedImage = bakedNodeGraph->addNode("image", sourceName + BAKED_POSTFIX, sourceType);
-                InputPtr input = bakedImage->addInput("file", "filename");
-                input->setValueString(generateTextureFilename(output, shader->getName(), udimSet.empty() ? EMPTY_STRING : UDIM_TOKEN));
-
-                // Check if is a normal node and transform normals into world space
-                auto worldSpaceShaderInput = _worldSpaceShaderInputs.find(sourceInput->getName());
-                if (worldSpaceShaderInput != _worldSpaceShaderInputs.end())
+                if (bakedNodeGraph)
                 {
-                    NodePtr origNormalMapNode = worldSpaceShaderInput->second;
-                    NodePtr normalMapNode = bakedNodeGraph->addNode("normalmap", sourceName + BAKED_POSTFIX + "_map", sourceType);
-                    if (origNormalMapNode)
-                    {
-                        normalMapNode->copyContentFrom(origNormalMapNode);
-                    }
-                    InputPtr mapInput = normalMapNode->getInput("in");
-                    if (!mapInput)
-                    {
-                        mapInput = normalMapNode->addInput("in", sourceType);
-                    }
-                    mapInput->setNodeName(bakedImage->getName());
-                    bakedImage = normalMapNode;
-                }
+                    // Add the image node.
+                    NodePtr bakedImage = bakedNodeGraph->addNode("image", sourceName + BAKED_POSTFIX, sourceType);
+                    InputPtr input = bakedImage->addInput("file", "filename");
+                    input->setValueString(generateTextureFilename(output, shader->getName(), udimSet.empty() ? EMPTY_STRING : UDIM_TOKEN));
 
-                // Add the graph output.
-                OutputPtr bakedOutput = bakedNodeGraph->addOutput(sourceName + "_output", sourceType);
-                bakedOutput->setConnectedNode(bakedImage);
-                bakedInput->setConnectedOutput(bakedOutput);
+                    // Check if is a normal node and transform normals into world space
+                    auto worldSpaceShaderInput = _worldSpaceShaderInputs.find(sourceInput->getName());
+                    if (worldSpaceShaderInput != _worldSpaceShaderInputs.end())
+                    {
+                        NodePtr origNormalMapNode = worldSpaceShaderInput->second;
+                        NodePtr normalMapNode = bakedNodeGraph->addNode("normalmap", sourceName + BAKED_POSTFIX + "_map", sourceType);
+                        if (origNormalMapNode)
+                        {
+                            normalMapNode->copyContentFrom(origNormalMapNode);
+                        }
+                        InputPtr mapInput = normalMapNode->getInput("in");
+                        if (!mapInput)
+                        {
+                            mapInput = normalMapNode->addInput("in", sourceType);
+                        }
+                        mapInput->setNodeName(bakedImage->getName());
+                        bakedImage = normalMapNode;
+                    }
+
+                    // Add the graph output.
+                    OutputPtr bakedOutput = bakedNodeGraph->addOutput(sourceName + "_output", sourceType);
+                    bakedOutput->setConnectedNode(bakedImage);
+                    bakedInput->setConnectedOutput(bakedOutput);
+                }
             }
         }
         else
