@@ -6,7 +6,6 @@
 #include <MaterialXCore/Document.h>
 
 #include <MaterialXCore/Util.h>
-#include <MaterialXCore/MaterialNode.h>
 
 #include <mutex>
 
@@ -20,6 +19,159 @@ namespace {
 
 const string DOCUMENT_VERSION_STRING = std::to_string(MATERIALX_MAJOR_VERSION) + "." +
                                        std::to_string(MATERIALX_MINOR_VERSION);
+
+template<class T> shared_ptr<T> updateChildSubclass(ElementPtr parent, ElementPtr origChild)
+{
+    string childName = origChild->getName();
+    int childIndex = parent->getChildIndex(childName);
+    parent->removeChild(childName);
+    shared_ptr<T> newChild = parent->addChild<T>(childName);
+    parent->setChildIndex(childName, childIndex);
+    newChild->copyContentFrom(origChild);
+    return newChild;
+}
+
+NodeDefPtr getShaderNodeDef(ElementPtr shaderRef)
+{
+    if (shaderRef->hasAttribute(NodeDef::NODE_DEF_ATTRIBUTE))
+    {
+        string nodeDefString = shaderRef->getAttribute(NodeDef::NODE_DEF_ATTRIBUTE);
+        return shaderRef->resolveRootNameReference<NodeDef>(nodeDefString);
+    }
+    if (shaderRef->hasAttribute(NodeDef::NODE_ATTRIBUTE))
+    {
+        string nodeString = shaderRef->getAttribute(NodeDef::NODE_ATTRIBUTE);
+        string type = shaderRef->getAttribute(TypedElement::TYPE_ATTRIBUTE);
+        vector<NodeDefPtr> nodeDefs = shaderRef->getDocument()->getMatchingNodeDefs(shaderRef->getQualifiedName(nodeString));
+        vector<NodeDefPtr> secondary = shaderRef->getDocument()->getMatchingNodeDefs(nodeString);
+        nodeDefs.insert(nodeDefs.end(), secondary.begin(), secondary.end());
+        for (NodeDefPtr nodeDef : nodeDefs)
+        {
+            if (targetStringsMatch(nodeDef->getTarget(), shaderRef->getTarget()) &&
+                nodeDef->isVersionCompatible(shaderRef) &&
+                (type.empty() || nodeDef->getType() == type))
+            {
+                return nodeDef;
+            }
+        }
+    }
+    return NodeDefPtr();
+}
+
+void convertMaterialsToNodes(DocumentPtr doc)
+{
+    for (ElementPtr mat : doc->getChildrenOfType<Element>("material"))
+    {
+        string materialName = mat->getName();
+
+        // Create a temporary name for the material element
+        // so the new node can reuse the existing name.
+        string validName = doc->createValidChildName(materialName + "1");
+        mat->setName(validName);
+
+        // Create a new material node
+        NodePtr materialNode = nullptr;
+
+        // Only include the shader refs explicitly specified on the material instance
+        for (ElementPtr shaderRef : mat->getChildrenOfType<Element>("shaderref"))
+        {
+            // See if shader has been created already.
+            // Should not occur as the shaderref is a uniquely named
+            // child of a uniquely named material element, but the two combined
+            // may have been used for another node instance which not a shader node.
+            string shaderNodeName = materialName + "_" + shaderRef->getName();
+            NodePtr existingShaderNode = doc->getNode(shaderNodeName);
+            if (existingShaderNode)
+            {
+                const string& existingType = existingShaderNode->getType();
+                if (existingType == VOLUME_SHADER_TYPE_STRING ||
+                    existingType == SURFACE_SHADER_TYPE_STRING ||
+                    existingType == DISPLACEMENT_SHADER_TYPE_STRING)
+                {
+                    throw Exception("Shader node already exists: " + shaderNodeName);
+                }
+                else
+                {
+                    shaderNodeName = doc->createValidChildName(shaderNodeName);
+                }
+            }
+
+            // Find the shader type if defined
+            string shaderNodeType = SURFACE_SHADER_TYPE_STRING;
+            NodeDefPtr nodeDef = getShaderNodeDef(shaderRef);
+            if (nodeDef)
+            {
+                shaderNodeType = nodeDef->getType();
+            }
+
+            // Add in a new shader node
+            const string shaderNodeCategory = shaderRef->getAttribute("node");
+            NodePtr shaderNode = doc->addNode(shaderNodeCategory, shaderNodeName, shaderNodeType);
+            shaderNode->setSourceUri(shaderRef->getSourceUri());
+
+            for (ElementPtr child : shaderRef->getChildren())
+            {
+                ElementPtr port = nullptr;
+
+                // Copy over bindinputs as inputs, and bindparams as params
+                if (child->getCategory() == "bindinput")
+                {
+                    port = shaderNode->addInput(child->getName(), child->getAttribute(TypedElement::TYPE_ATTRIBUTE));
+                }
+                else if (child->getCategory() == "bindparam")
+                {
+                    port = shaderNode->addChildOfCategory("parameter", child->getName());
+                    port->setAttribute(TypedElement::TYPE_ATTRIBUTE, child->getAttribute(TypedElement::TYPE_ATTRIBUTE));
+                }
+                else if (child->getCategory() == "bindtoken")
+                {
+                    TokenPtr token = shaderNode->addToken(child->getName());
+                    token->copyContentFrom(child);
+                }
+                if (port)
+                {
+                    // Copy over attributes.
+                    // Note: We preserve inputs which have nodegraph connections,
+                    // as well as top level output connections.
+                    port->copyContentFrom(child);
+                }
+            }
+
+            // Create a new material node if not already created and
+            // add a reference from the material node to the new shader node
+            if (!materialNode)
+            {
+                materialNode = doc->addMaterialNode(materialName, shaderNode);
+                materialNode->setSourceUri(mat->getSourceUri());
+                // Note: Inheritance does not get transfered to the node we do
+                // not perform the following:
+                //      - materialNode->setInheritString(mat->getInheritString());
+            }
+
+            // Create input to replace each shaderref. Use shaderref name as unique
+            // input name.
+            InputPtr shaderInput = materialNode->getInput(shaderNodeType);
+            if (!shaderInput)
+            {
+                shaderInput = materialNode->addInput(shaderNodeType, shaderNodeType);
+                shaderInput->setNodeName(shaderNode->getName());
+            }
+            // Make sure to copy over any target and version information from the shaderref.
+            if (!shaderRef->getTarget().empty())
+            {
+                shaderInput->setTarget(shaderRef->getTarget());
+            }
+            if (!shaderRef->getVersionString().empty())
+            {
+                shaderInput->setVersionString(shaderRef->getVersionString());
+            }
+        }
+
+        // Remove the original material element
+        doc->removeChild(mat->getName());
+    }
+}
+
 
 } // anonymous namespace
 
@@ -351,33 +503,6 @@ bool Document::convertParametersToInputs()
                     // the input a uniform. 
                     newInput->setIsUniform(true);
                 }
-                anyConverted = true;
-            }
-        }
-    }
-    return anyConverted;
-}
-
-bool Document::convertUniformInputsToParameters()
-{
-    bool anyConverted = false;
-
-    const StringSet uniformTypes = { FILENAME_TYPE_STRING, STRING_TYPE_STRING };
-    for (ElementPtr e : traverseTree())
-    {
-        InterfaceElementPtr elem = e->asA<InterfaceElement>();
-        if (!elem)
-        {
-            continue;
-        }
-        vector<ElementPtr> children = elem->getChildren();
-        for (ElementPtr child : children)
-        {
-            InputPtr input = child->asA<Input>();
-            if (input && input->getIsUniform())
-            {
-                ParameterPtr newParameter = changeChildCategory(elem, child, Parameter::CATEGORY)->asA<Parameter>();
-                newParameter->removeAttribute(ValueElement::UNIFORM_ATTRIBUTE);
                 anyConverted = true;
             }
         }

@@ -13,7 +13,6 @@ namespace mx = MaterialX;
 
 void bindPyMaterial(py::module& mod)
 {
-    mod.def("convertMaterialsToNodes", &mx::convertMaterialsToNodes);
     mod.def("getShaderNodes", &mx::getShaderNodes);
     mod.def("getConnectedOutputs", &mx::getConnectedOutputs);
 }

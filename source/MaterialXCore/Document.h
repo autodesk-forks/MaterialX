@@ -663,9 +663,6 @@ class Document : public GraphElement
     /// Convert Parameter Elements to Input Elements
     bool convertParametersToInputs();
 
-    /// Convert Input Elements which are uniform to Parameter Elements
-    bool convertUniformInputsToParameters();
-
     /// @}
     /// @name Utility
     /// @{
