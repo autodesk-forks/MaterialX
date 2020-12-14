@@ -18,7 +18,7 @@ namespace MaterialX
 {
 
 /// @class RtCodegenImpl
-/// Abstract base class for all node implementations that use shader code generation.
+/// Base class for all node implementations that use shader code generation.
 class RtCodegenImpl : public RtNodeImpl
 {
 public:

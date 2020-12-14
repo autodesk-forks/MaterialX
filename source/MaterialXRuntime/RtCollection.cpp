@@ -16,14 +16,7 @@ DEFINE_TYPED_SCHEMA(RtCollection, "bindelement:collection");
 
 RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    if (typeName != _typeInfo.getShortTypeName())
-    {
-        throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
-    }
-    if (!parent.getPath().isRoot())
-    {
-        throw ExceptionRuntimeError("A collection prim can only be created at the top / root level");
-    }
+    PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     static const RtToken DEFAULT_NAME("collection1");
     const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;

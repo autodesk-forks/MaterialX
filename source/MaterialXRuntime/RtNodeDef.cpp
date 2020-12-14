@@ -18,10 +18,7 @@ DEFINE_TYPED_SCHEMA(RtNodeDef, "nodedef");
 
 RtPrim RtNodeDef::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    if (typeName != _typeInfo.getShortTypeName())
-    {
-        throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
-    }
+    PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, name, PvtObject::ptr<PvtPrim>(parent));
 

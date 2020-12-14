@@ -18,14 +18,7 @@ DEFINE_TYPED_SCHEMA(RtLookGroup, "bindelement:lookgroup");
 
 RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    if (typeName != _typeInfo.getShortTypeName())
-    {
-        throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
-    }
-    if (!parent.getPath().isRoot())
-    {
-        throw ExceptionRuntimeError("A lookgroup prim can only be created at the top / root level");
-    }
+    PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     static const RtToken DEFAULT_NAME("lookgroup1");
     const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
@@ -74,14 +67,7 @@ DEFINE_TYPED_SCHEMA(RtLook, "bindelement:look");
 
 RtPrim RtLook::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    if (typeName != _typeInfo.getShortTypeName())
-    {
-        throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
-    }
-    if (!parent.getPath().isRoot())
-    {
-        throw ExceptionRuntimeError("A look prim can only be created at the top / root level");
-    }
+    PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     static const RtToken DEFAULT_NAME("look1");
     const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
@@ -134,14 +120,7 @@ DEFINE_TYPED_SCHEMA(RtMaterialAssign, "bindelement:materialassign");
 
 RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    if (typeName != _typeInfo.getShortTypeName())
-    {
-        throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
-    }
-    if (!parent.getPath().isRoot())
-    {
-        throw ExceptionRuntimeError("A materialassign prim can only be created at the top / root level");
-    }
+    PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     static const RtToken DEFAULT_NAME("materialassign1");
     const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;

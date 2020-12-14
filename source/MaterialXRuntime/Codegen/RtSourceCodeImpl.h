@@ -24,7 +24,7 @@ public:
     /// Constructor.
     RtSourceCodeImpl(const RtPrim& prim) : RtCodegenImpl(prim) {}
 
-    /// Set a string containing the source code to use for this implementation.
+    /// Set a file containing the source code to use for this implementation.
     void setFile(const string& file);
 
     /// Return a string containing the source code used by this implementation.

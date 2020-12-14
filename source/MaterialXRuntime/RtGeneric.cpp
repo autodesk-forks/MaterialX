@@ -15,10 +15,7 @@ DEFINE_TYPED_SCHEMA(RtGeneric, "generic");
 
 RtPrim RtGeneric::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    if (typeName != _typeInfo.getShortTypeName())
-    {
-        throw ExceptionRuntimeError("Type names mismatch when creating prim '" + name.str() + "'");
-    }
+    PvtPrim::validateCreation(_typeInfo, typeName, name);
 
     static const RtToken DEFAULT_NAME("generic1");
     const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
