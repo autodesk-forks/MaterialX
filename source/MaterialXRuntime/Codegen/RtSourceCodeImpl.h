@@ -27,7 +27,7 @@ public:
     /// Set a file containing the source code to use for this implementation.
     void setFile(const string& file);
 
-    /// Return a string containing the source code used by this implementation.
+    /// Return a file containing the source code used by this implementation.
     const string& getFile() const;
 
     /// Set a string containing the source code to use for this implementation.
