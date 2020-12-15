@@ -48,6 +48,12 @@ class SimpleWindow
         return _height;
     }
 
+    /// DPI Scaling
+    float scaleFactor() const
+    {
+        return _scaleFactor;
+    }
+    
     /// Check for validity
     bool isValid() const
     {
@@ -69,11 +75,12 @@ class SimpleWindow
     WindowWrapperPtr _windowWrapper;
 
     // Window dimensions
-    unsigned int _width;
-    unsigned int _height;
-
+    unsigned int _width = 0;
+    unsigned int _height = 0;
+    /// scalefactor of the window
+    float _scaleFactor = 1.0f;
     // Unique window identifier generated dynamically at creation time.
-    unsigned int _id;
+    unsigned int _id = 0;
 
 #if defined(_WIN32)
     // Window class name for window generated at creation time.

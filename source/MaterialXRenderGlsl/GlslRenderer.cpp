@@ -9,7 +9,7 @@
 #include <MaterialXRenderGlsl/GLUtil.h>
 #include <MaterialXRenderHw/SimpleWindow.h>
 #include <MaterialXRender/TinyObjLoader.h>
-
+#include <MaterialXGenShader/HwShaderGenerator.h>
 #include <iostream>
 
 namespace MaterialX
@@ -150,9 +150,23 @@ void GlslRenderer::renderTextureSpace()
 {
     _program->bind();
     _program->bindTextures(_imageHandler);
-
+   
+    GLuint position_attrib =0, texture_attrib = 1;
+    for (auto input: _program->getAttributesList())
+    {
+        if (input.first.find(HW::IN_POSITION) != std::string::npos)
+        {
+            position_attrib = input.second->location;
+        }
+        
+        if (input.first.find(HW::IN_TEXCOORD + "_") != std::string::npos)
+        {
+            texture_attrib = input.second->location;
+        }
+    }
+    
     _frameBuffer->bind();
-    drawScreenSpaceQuad();
+    drawScreenSpaceQuad(position_attrib, texture_attrib);
     _frameBuffer->unbind();
 
     _program->unbind();
@@ -324,7 +338,7 @@ void GlslRenderer::saveImage(const FilePath& filePath, ConstImagePtr image, bool
     }
 }
 
-void GlslRenderer::drawScreenSpaceQuad()
+void GlslRenderer::drawScreenSpaceQuad(unsigned int position_attrib, unsigned int texture_attrib)
 {
     const float QUAD_VERTICES[] =
     {
@@ -348,11 +362,11 @@ void GlslRenderer::drawScreenSpaceQuad()
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(QUAD_VERTICES), QUAD_VERTICES, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
+    glEnableVertexAttribArray(position_attrib);
+    glVertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
 
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (3 * sizeof(float)));
+    glEnableVertexAttribArray(texture_attrib);
+    glVertexAttribPointer(texture_attrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (3 * sizeof(float)));
 
     GLuint ebo;
     glGenBuffers(1, &ebo);

@@ -19,6 +19,7 @@ void NSUtilShowWindow(void* pWindow);
 void NSUtilHideWindow(void* pWindow);
 void NSUtilSetFocus(void* pWindow);
 void NSUtilDisposeWindow(void* pWindow);
+float NSUtilGetScaleFactor(void* pWindow);
 
 #ifdef __cplusplus
 }
