@@ -527,13 +527,9 @@ void Document::upgradeVersion(bool applyFutureUpdates)
     {
         for (ElementPtr elem : traverseTree())
         {
-            if (elem->isA<TypedElement>())
+            if (elem->getAttribute(TypedElement::TYPE_ATTRIBUTE) == "vector")
             {
-                TypedElementPtr typedElem = elem->asA<TypedElement>();
-                if (typedElem->getType() == "vector")
-                {
-                    typedElem->setType(getTypeString<Vector3>());
-                }
+                elem->setAttribute(TypedElement::TYPE_ATTRIBUTE, getTypeString<Vector3>());
             }
         }
         minorVersion = 23;
@@ -1020,7 +1016,149 @@ void Document::upgradeVersion(bool applyFutureUpdates)
     // Upgrade from 1.37 to 1.38
     if (majorVersion == 1 && minorVersion >= 37)
     {
-        convertMaterialsToNodes(asA<Document>());
+        // Convert color2 types to vector2
+        const StringMap COLOR2_CHANNEL_MAP = { { "r", "x" }, { "a", "y" } };
+        for (ElementPtr elem : traverseTree())
+        {
+            if (elem->getAttribute(TypedElement::TYPE_ATTRIBUTE) == "color2")
+            {
+                elem->setAttribute(TypedElement::TYPE_ATTRIBUTE, getTypeString<Vector2>());
+                NodePtr parentNode = elem->getParent()->asA<Node>();
+                if (!parentNode)
+                {
+                    continue;
+                }
+
+                for (PortElementPtr port : parentNode->getDownstreamPorts())
+                {
+                    if (port->hasChannels())
+                    {
+                        string channels = port->getChannels();
+                        channels = replaceSubstrings(channels, COLOR2_CHANNEL_MAP);
+                        port->setChannels(channels);
+                    }
+                    if (port->hasOutputString())
+                    {
+                        string output = port->getOutputString();
+                        output = replaceSubstrings(output, COLOR2_CHANNEL_MAP);
+                        port->setOutputString(output);
+                    }
+                }
+
+                ElementPtr channels = parentNode->getChild("channels");
+                if (channels && channels->hasAttribute(ValueElement::VALUE_ATTRIBUTE))
+                {
+                    string value = channels->getAttribute(ValueElement::VALUE_ATTRIBUTE);
+                    value = replaceSubstrings(value, COLOR2_CHANNEL_MAP);
+                    channels->setAttribute(ValueElement::VALUE_ATTRIBUTE, value);
+                }
+            }
+        }
+
+        // Convert material elements to nodes
+        for (ElementPtr mat : getChildrenOfType<Element>("material"))
+        {
+            string materialName = mat->getName();
+            NodePtr materialNode = nullptr;
+
+            // Only include the shader refs explicitly specified on the material instance
+            for (ElementPtr shaderRef : mat->getChildrenOfType<Element>("shaderref"))
+            {
+                // See if shader has been created already.
+                // Should not occur as the shaderref is a uniquely named
+                // child of a uniquely named material element, but the two combined
+                // may have been used for another node instance which not a shader node.
+                string shaderNodeName = materialName + "_" + shaderRef->getName();
+                NodePtr existingShaderNode = getNode(shaderNodeName);
+                if (existingShaderNode)
+                {
+                    const string& existingType = existingShaderNode->getType();
+                    if (existingType == VOLUME_SHADER_TYPE_STRING ||
+                        existingType == SURFACE_SHADER_TYPE_STRING ||
+                        existingType == DISPLACEMENT_SHADER_TYPE_STRING)
+                    {
+                        throw Exception("Shader node already exists: " + shaderNodeName);
+                    }
+                    else
+                    {
+                        shaderNodeName = createValidChildName(shaderNodeName);
+                    }
+                }
+
+                // Find the shader type if defined
+                string shaderNodeType = SURFACE_SHADER_TYPE_STRING;
+                NodeDefPtr nodeDef = getShaderNodeDef(shaderRef);
+                if (nodeDef)
+                {
+                    shaderNodeType = nodeDef->getType();
+                }
+
+                // Add in a new shader node
+                const string shaderNodeCategory = shaderRef->getAttribute("node");
+                NodePtr shaderNode = addNode(shaderNodeCategory, shaderNodeName, shaderNodeType);
+                shaderNode->setSourceUri(shaderRef->getSourceUri());
+
+                for (ElementPtr child : shaderRef->getChildren())
+                {
+                    ElementPtr port = nullptr;
+
+                    // Copy over bindinputs as inputs, and bindparams as params
+                    if (child->getCategory() == "bindinput")
+                    {
+                        port = shaderNode->addInput(child->getName(), child->getAttribute(TypedElement::TYPE_ATTRIBUTE));
+                    }
+                    else if (child->getCategory() == "bindparam")
+                    {
+                        port = shaderNode->addChildOfCategory("parameter", child->getName());
+                        port->setAttribute(TypedElement::TYPE_ATTRIBUTE, child->getAttribute(TypedElement::TYPE_ATTRIBUTE));
+                    }
+                    else if (child->getCategory() == "bindtoken")
+                    {
+                        TokenPtr token = shaderNode->addToken(child->getName());
+                        token->copyContentFrom(child);
+                    }
+                    if (port)
+                    {
+                        // Copy over attributes.
+                        // Note: We preserve inputs which have nodegraph connections,
+                        // as well as top level output connections.
+                        port->copyContentFrom(child);
+                    }
+                }
+
+                // Create a new material node if not already created and
+                // add a reference from the material node to the new shader node
+                if (!materialNode)
+                {
+                    materialNode = addMaterialNode(createValidName("temp"), shaderNode);
+                    materialNode->setSourceUri(mat->getSourceUri());
+                }
+
+                // Create input to replace each shaderref. Use shaderref name as unique
+                // input name.
+                InputPtr shaderInput = materialNode->getInput(shaderNodeType);
+                if (!shaderInput)
+                {
+                    shaderInput = materialNode->addInput(shaderNodeType, shaderNodeType);
+                    shaderInput->setNodeName(shaderNode->getName());
+                }
+                if (!shaderRef->getTarget().empty())
+                {
+                    shaderInput->setTarget(shaderRef->getTarget());
+                }
+                if (!shaderRef->getVersionString().empty())
+                {
+                    shaderInput->setVersionString(shaderRef->getVersionString());
+                }
+            }
+
+            // Remove the material element and transfer its name to the material node.
+            removeChild(materialName);
+            if (materialNode)
+            {
+                materialNode->setName(materialName);
+            }
+        }
 
         // Update atan2 interface and rotate3d interface
         const string ATAN2 = "atan2";
