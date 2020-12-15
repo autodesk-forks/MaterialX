@@ -264,6 +264,7 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
     {
         _bakedGraphName = bakedTextureDoc->createValidChildName(_bakedGraphName);
         bakedNodeGraph = bakedTextureDoc->addNodeGraph(_bakedGraphName);
+        bakedNodeGraph->setColorSpace(_colorSpace);
     }
 
     _bakedGeomInfoName = bakedTextureDoc->createValidChildName(_bakedGeomInfoName);
@@ -273,7 +274,6 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
         bakedGeom->setGeomPropValue("udimset", udimSet, "stringarray");
     }
     NodePtr bakedShader = bakedTextureDoc->addNode(shader->getCategory(), shader->getName() + BAKED_POSTFIX, shader->getType());
-    bakedNodeGraph->setColorSpace(_colorSpace);
 
     // Add a material node if any specified and connect it to the new shader node
     if (_material)
@@ -335,7 +335,9 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
                 {
                     bakedInput->setColorSpace(_targetColorSpace);
                 }
+                continue;
             }
+
             if (bakedNodeGraph)
             {
                 // Add the image node.
