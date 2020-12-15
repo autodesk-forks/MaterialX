@@ -1,9 +1,15 @@
 # Change Log
 
-<<<<<<< HEAD
 ## [1.38] - Development
 
-### Highlights ("v1.37.3_parameters_as_inputs" to "v1.38_adsk_development1")
+### v1.38_adsk_development2 : WIP
+- Up-to-date with ILM v1.38 branch @53db849a
+- GPU testing framework setup (in progress)
+- Deprecation of Language specifier and introduction of TargetDefs
+- Deprecation of Material and ShaderRef elements.
+- Deprecation of Parameter element.
+
+### v1.38_adsk_development1 : Major changes since "v1.37.3_parameters_as_inputs"
  - Up-to-date with ILM v1.38 branch @3900415.
  - Finished API support for Material Nodes (from Material Elements)
  - Baker support for v1.38, CM and units.
