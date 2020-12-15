@@ -1,5 +1,6 @@
 # Change Log
 
+<<<<<<< HEAD
 ## [1.38] - Development
 
 ### Highlights ("v1.37.3_parameters_as_inputs" to "v1.38_adsk_development1")
@@ -17,7 +18,9 @@
  - Github actions support.
  - Plus changes up to 1.37.3.
 
-## [1.37.3] - Development
+## [1.37.4] - Development
+
+## [1.37.3] - 2020-11-24
 
 ### Added
 - Added Render Transparency and Render Double-Sided options to the Advanced Settings panel of the viewer.
