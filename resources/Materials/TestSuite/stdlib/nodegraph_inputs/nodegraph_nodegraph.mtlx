@@ -89,15 +89,6 @@
       <output name="nd_surf_graph_graph_out" type="surfaceshader" nodename="default_shader" />
       <output name="nd_surf_graph_graph_out2" type="surfaceshader" nodename="default_shader2" />
    </nodegraph>
-   <!--
-   <output name="blah1" type="color3" nodename="upstream_graph_instance" output="nd_graph_out_image"/>
-   <output name="blah2" type="color3" nodename="upstream_graph_instance" output="nd_graph_out_image2"/>
-   <standard_surface name="default_shader" type="surfaceshader">
-      <input name="base_color" type="color3" nodename="upstream_graph_instance" output="nd_graph_out_image" />
-      <input name="specular_color" type="color3" nodename="upstream_graph_instance" output="nd_graph_out_image2" />
-   </standard_surface>
-   <output name="surf_graph_node_out" type="surfaceshader" nodename="default_shader" />
-   -->
 
    <!-- Nodegraph to nodegraph to top level shader and utility node -->
    <standard_surface name="default_shader_top" type="surfaceshader">

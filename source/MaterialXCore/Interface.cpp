@@ -277,7 +277,7 @@ OutputPtr Input::getConnectedOutput() const
     return result;
 }
 
-InputPtr Input::getInterface() const
+InputPtr Input::getConnectedInterface() const
 {
     const string& interfaceName = getInterfaceName();
     if (!interfaceName.empty())
@@ -294,7 +294,7 @@ InputPtr Input::getInterface() const
 NodePtr Input::getConnectedNode() const
 {
     // Traverse through interface names to nodegraph input
-    InputPtr graphInput = getInterface();
+    InputPtr graphInput = getConnectedInterface();
     if (graphInput && (graphInput->hasNodeName() || graphInput->hasNodeGraphString()))
     {
         return graphInput->getConnectedNode();
@@ -350,7 +350,7 @@ bool Input::validate(string* message) const
     {
         validateRequire(getDefaultGeomProp() != nullptr, res, message, "Invalid defaultgeomprop string");
     }
-    InputPtr interfaceInput = getInterface();
+    InputPtr interfaceInput = getConnectedInterface();
     if (interfaceInput)
     {
         return interfaceInput->validate() && res;

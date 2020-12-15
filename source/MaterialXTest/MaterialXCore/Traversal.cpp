@@ -191,7 +191,7 @@ TEST_CASE("InterGraph Tranversal", "[traversal]")
     {
         for (mx::InputPtr interfaceInput : graph->getInputs())
         {
-            if (interfaceInput && (!interfaceInput->getNodeName().empty() || !interfaceInput->getNodeGraphString().empty()))
+            if (!interfaceInput->getNodeName().empty() || !interfaceInput->getNodeGraphString().empty())
             {
                 REQUIRE(interfaceInput->getConnectedNode() != nullptr);                    
             }
