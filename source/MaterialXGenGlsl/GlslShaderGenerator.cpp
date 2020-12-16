@@ -43,7 +43,6 @@ namespace MaterialX
 {
 
 const string GlslShaderGenerator::TARGET = "genglsl";
-const string GlslShaderGenerator::TARGET = "glsl400";
 const string GlslShaderGenerator::VERSION = "400";
 
 //

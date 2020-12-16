@@ -59,7 +59,6 @@ namespace
 }
 
 const string MdlShaderGenerator::TARGET = "genmdl";
-const string MdlShaderGenerator::TARGET = "mdl";
 
 //
 // MdlShaderGenerator methods

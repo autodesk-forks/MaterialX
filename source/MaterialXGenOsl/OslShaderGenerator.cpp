@@ -24,7 +24,6 @@ namespace MaterialX
 {
 
 const string OslShaderGenerator::TARGET = "genosl";
-const string OslShaderGenerator::TARGET = "vanilla";
 
 //
 // OslShaderGenerator methods
