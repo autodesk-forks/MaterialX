@@ -287,6 +287,7 @@
 
   <!-- <absval> -->
   <implementation name="IM_absval_float_genglsl" nodedef="ND_absval_float" file="stdlib/genglsl/mx_absval.inline" target="genglsl"/>
+  <implementation name="IM_absval_color3_genglsl" nodedef="ND_absval_color3" file="stdlib/genglsl/mx_absval.inline" target="genglsl"/>
   <implementation name="IM_absval_color4_genglsl" nodedef="ND_absval_color4" file="stdlib/genglsl/mx_absval.inline" target="genglsl"/>
   <implementation name="IM_absval_vector2_genglsl" nodedef="ND_absval_vector2" file="stdlib/genglsl/mx_absval.inline" target="genglsl"/>
   <implementation name="IM_absval_vector3_genglsl" nodedef="ND_absval_vector3" file="stdlib/genglsl/mx_absval.inline" target="genglsl"/>
@@ -499,7 +500,6 @@
   <implementation name="IM_smoothstep_vector4_genglsl" nodedef="ND_smoothstep_vector4" file="stdlib/genglsl/mx_smoothstep_vec4.glsl" function="mx_smoothstep_vec4" target="genglsl"/>
   <implementation name="IM_smoothstep_vector4FA_genglsl" nodedef="ND_smoothstep_vector4FA" file="stdlib/genglsl/mx_smoothstep_vec4FA.glsl" function="mx_smoothstep_vec4FA" target="genglsl"/>
 
-
   <!-- <saturate> -->
   <implementation name="IM_saturate_color3_genglsl" nodedef="ND_saturate_color3" file="stdlib/genglsl/mx_saturate_color3.glsl" function="mx_saturate_color3" target="genglsl"/>
   <implementation name="IM_saturate_color4_genglsl" nodedef="ND_saturate_color4" file="stdlib/genglsl/mx_saturate_color4.glsl" function="mx_saturate_color4" target="genglsl"/>
@@ -558,7 +558,6 @@
 
   <!-- <overlay> -->
   <implementation name="IM_overlay_float_genglsl" nodedef="ND_overlay_float" file="stdlib/genglsl/mx_overlay_float.inline" target="genglsl"/>
- lor2" target="genglsl"/>
   <implementation name="IM_overlay_color3_genglsl" nodedef="ND_overlay_color3" file="stdlib/genglsl/mx_overlay_color3.glsl" function="mx_overlay_color3" target="genglsl"/>
   <implementation name="IM_overlay_color4_genglsl" nodedef="ND_overlay_color4" file="stdlib/genglsl/mx_overlay_color4.glsl" function="mx_overlay_color4" target="genglsl"/>
 
@@ -738,7 +737,6 @@
   <implementation name="IM_combine2_vector2_genglsl" nodedef="ND_combine2_vector2" target="genglsl"/>
   <implementation name="IM_combine2_color4CF_genglsl" nodedef="ND_combine2_color4CF" target="genglsl"/>
   <implementation name="IM_combine2_vector4VF_genglsl" nodedef="ND_combine2_vector4VF" target="genglsl"/>
-  <implementation name="IM_combine2_color4CC_genglsl" nodedef="ND_combine2_color4CC" target="genglsl"/>
   <implementation name="IM_combine2_vector4VV_genglsl" nodedef="ND_combine2_vector4VV" target="genglsl"/>
   <implementation name="IM_combine3_color3_genglsl" nodedef="ND_combine3_color3" target="genglsl"/>
   <implementation name="IM_combine3_vector3_genglsl" nodedef="ND_combine3_vector3" target="genglsl"/>
