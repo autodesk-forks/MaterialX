@@ -15,7 +15,7 @@
 #include <MaterialXGenShader/Nodes/CombineNode.h>
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/IfNode.h>
-#include <MaterialXGenShader/Nodes/BlurNode.h>
+#include <MaterialXGenOsl/Nodes/BlurNodeOsl.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 #include <MaterialXGenShader/Nodes/LayerNode.h>
 #include <MaterialXGenShader/Nodes/ThinFilmNode.h>
@@ -158,12 +158,12 @@ OslShaderGenerator::OslShaderGenerator() :
     registerImplementation("IM_combine4_vector4_" + OslShaderGenerator::TARGET, CombineNode::create);
 
     // <!-- <blur> -->
-    registerImplementation("IM_blur_float_" + OslShaderGenerator::TARGET, BlurNode::create);
-    registerImplementation("IM_blur_color3_" + OslShaderGenerator::TARGET, BlurNode::create);
-    registerImplementation("IM_blur_color4_" + OslShaderGenerator::TARGET, BlurNode::create);
-    registerImplementation("IM_blur_vector2_" + OslShaderGenerator::TARGET, BlurNode::create);
-    registerImplementation("IM_blur_vector3_" + OslShaderGenerator::TARGET, BlurNode::create);
-    registerImplementation("IM_blur_vector4_" + OslShaderGenerator::TARGET, BlurNode::create);
+    registerImplementation("IM_blur_float_" + OslShaderGenerator::TARGET, BlurNodeOsl::create);
+    registerImplementation("IM_blur_color3_" + OslShaderGenerator::TARGET, BlurNodeOsl::create);
+    registerImplementation("IM_blur_color4_" + OslShaderGenerator::TARGET, BlurNodeOsl::create);
+    registerImplementation("IM_blur_vector2_" + OslShaderGenerator::TARGET, BlurNodeOsl::create);
+    registerImplementation("IM_blur_vector3_" + OslShaderGenerator::TARGET, BlurNodeOsl::create);
+    registerImplementation("IM_blur_vector4_" + OslShaderGenerator::TARGET, BlurNodeOsl::create);
 
     // <!-- <layer> -->
     registerImplementation("IM_layer_bsdf_" + OslShaderGenerator::TARGET, LayerNode::create);

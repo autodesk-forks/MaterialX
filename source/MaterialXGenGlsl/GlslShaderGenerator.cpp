@@ -27,6 +27,7 @@
 #include <MaterialXGenGlsl/Nodes/TransformVectorNodeGlsl.h>
 #include <MaterialXGenGlsl/Nodes/TransformPointNodeGlsl.h>
 #include <MaterialXGenGlsl/Nodes/TransformNormalNodeGlsl.h>
+#include <MaterialXGenGlsl/Nodes/BlurNodeGlsl.h>
 
 #include <MaterialXGenShader/Nodes/HwSourceCodeNode.h>
 #include <MaterialXGenShader/Nodes/SwizzleNode.h>
@@ -34,7 +35,6 @@
 #include <MaterialXGenShader/Nodes/CombineNode.h>
 #include <MaterialXGenShader/Nodes/SwitchNode.h>
 #include <MaterialXGenShader/Nodes/IfNode.h>
-#include <MaterialXGenShader/Nodes/BlurNode.h>
 #include <MaterialXGenShader/Nodes/HwImageNode.h>
 #include <MaterialXGenShader/Nodes/LayerNode.h>
 #include <MaterialXGenShader/Nodes/ThinFilmNode.h>
@@ -228,12 +228,12 @@ GlslShaderGenerator::GlslShaderGenerator() :
     registerImplementation("IM_heighttonormal_vector3_" + GlslShaderGenerator::TARGET, HeightToNormalNodeGlsl::create);
 
     // <!-- <blur> -->
-    registerImplementation("IM_blur_float_" + GlslShaderGenerator::TARGET, BlurNode::create);
-    registerImplementation("IM_blur_color3_" + GlslShaderGenerator::TARGET, BlurNode::create);
-    registerImplementation("IM_blur_color4_" + GlslShaderGenerator::TARGET, BlurNode::create);
-    registerImplementation("IM_blur_vector2_" + GlslShaderGenerator::TARGET, BlurNode::create);
-    registerImplementation("IM_blur_vector3_" + GlslShaderGenerator::TARGET, BlurNode::create);
-    registerImplementation("IM_blur_vector4_" + GlslShaderGenerator::TARGET, BlurNode::create);
+    registerImplementation("IM_blur_float_" + GlslShaderGenerator::TARGET, BlurNodeGlsl::create);
+    registerImplementation("IM_blur_color3_" + GlslShaderGenerator::TARGET, BlurNodeGlsl::create);
+    registerImplementation("IM_blur_color4_" + GlslShaderGenerator::TARGET, BlurNodeGlsl::create);
+    registerImplementation("IM_blur_vector2_" + GlslShaderGenerator::TARGET, BlurNodeGlsl::create);
+    registerImplementation("IM_blur_vector3_" + GlslShaderGenerator::TARGET, BlurNodeGlsl::create);
+    registerImplementation("IM_blur_vector4_" + GlslShaderGenerator::TARGET, BlurNodeGlsl::create);
 
     // <!-- <ND_transformpoint> ->
     registerImplementation("IM_transformpoint_vector3_" + GlslShaderGenerator::TARGET, TransformPointNodeGlsl::create);
@@ -784,11 +784,6 @@ namespace
         // Geometric node inputs are immutable since a shader needs regeneration if they change.
         "index", "space", "attrname"
     };
-}
-
-const string& GlslImplementation::getLanguage() const
-{
-    return GlslShaderGenerator::TARGET;
 }
 
 const string& GlslImplementation::getTarget() const
