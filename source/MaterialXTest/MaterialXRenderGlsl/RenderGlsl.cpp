@@ -267,6 +267,17 @@ void addAdditionalTestStreams(mx::MeshPtr mesh)
         mesh->addStream(geomVector4Stream);
     }
 
+    const std::string GEOM_COLOR2_STREAM_NAME("i_" + mx::MeshStream::GEOMETRY_PROPERTY_ATTRIBUTE + "_geompropvalue_color2");
+    mx::MeshFloatBuffer* geomColor2Data = nullptr;
+    if (!mesh->getStream(GEOM_COLOR2_STREAM_NAME))
+    {
+        mx::MeshStreamPtr geomColor2Stream = mx::MeshStream::create(GEOM_COLOR2_STREAM_NAME, mx::MeshStream::GEOMETRY_PROPERTY_ATTRIBUTE, 1);
+        geomColor2Data = &(geomColor2Stream->getData());
+        geomColor2Stream->setStride(2);
+        geomColor2Data->resize(vertexCount * 2);
+        mesh->addStream(geomColor2Stream);
+    }
+
     const std::string GEOM_COLOR3_STREAM_NAME("i_" + mx::MeshStream::GEOMETRY_PROPERTY_ATTRIBUTE + "_geompropvalue_color3");
     mx::MeshFloatBuffer* geomColor3Data = nullptr;
     if (!mesh->getStream(GEOM_COLOR3_STREAM_NAME))
@@ -351,6 +362,11 @@ void addAdditionalTestStreams(mx::MeshPtr mesh)
                 (*geomVector4Data)[i4 + 3] = 1.0f;
             }
 
+            if (geomColor2Data)
+            {
+                (*geomColor2Data)[i2] = sineData(uv[i2], 10.0f);
+                (*geomColor2Data)[i21] = 0.0f;
+            }
             if (geomColor3Data)
             {
                 (*geomColor3Data)[i3] = 0.0f;

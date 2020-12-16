@@ -38,12 +38,10 @@
   <geompropvalue name="geompropvalue_float" type="float" xpos="8.98436" ypos="6.29386">
     <parameter name="geomprop" type="string" value="geompropvalue_float" />
   </geompropvalue>
-   <!-- Upgrade path does not work here yet.
-   <output name="geompropvalue_color2_out" type="color2" nodename="geompropvalue_color2" xpos="12.5241" ypos="22.02" />
-   <geompropvalue name="geompropvalue_color2" type="color2" xpos="9.06207" ypos="8.8">
-      <parameter name="geomprop" type="string" value="geompropvalue_color2" />
-   </geompropvalue>
-   -->
+  <output name="geompropvalue_color2_out" type="color2" nodename="geompropvalue_color2" xpos="12.5241" ypos="22.02" />
+  <geompropvalue name="geompropvalue_color2" type="color2" xpos="9.06207" ypos="8.8">
+    <parameter name="geomprop" type="string" value="geompropvalue_color2" />
+  </geompropvalue>
   <output name="geompropvalue_color3_out" type="color3" nodename="geompropvalue_color3" xpos="12.5241" ypos="19.82" />
   <geompropvalue name="geompropvalue_color3" type="color3" xpos="9.06207" ypos="8.8">
     <parameter name="geomprop" type="string" value="geompropvalue_color3" />
