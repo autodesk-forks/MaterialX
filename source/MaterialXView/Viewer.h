@@ -225,6 +225,7 @@ class Viewer : public ng::Screen
     // Supporting materials and geometry.
     mx::GeometryHandlerPtr _envGeometryHandler;
     MaterialPtr _envMaterial;
+    mx::MeshPtr _quadMesh;
 
     // Shader generator contexts
     mx::GenContext _genContext;

@@ -2470,25 +2470,9 @@ void Viewer::updateAlbedoTable()
 
 void Viewer::renderScreenSpaceQuad(MaterialPtr material)
 {
-    mx::MeshStreamPtr quadPositions = mx::MeshStream::create(mx::HW::IN_POSITION, mx::MeshStream::POSITION_ATTRIBUTE, 0);
-    quadPositions->setStride(mx::MeshStream::STRIDE_3D);
-    quadPositions->getData().assign({  1.0f,  1.0f, 0.0f,
-                                       1.0f, -1.0f, 0.0f,
-                                      -1.0f, -1.0f, 0.0f,
-                                      -1.0f,  1.0f, 0.0f });
-    mx::MeshStreamPtr quadTexCoords = mx::MeshStream::create(mx::HW::IN_TEXCOORD + "_0", mx::MeshStream::TEXCOORD_ATTRIBUTE, 0);
-    quadTexCoords->setStride(mx::MeshStream::STRIDE_2D);
-    quadTexCoords->getData().assign({ 1.0f, 1.0f,
-                                      1.0f, 0.0f,
-                                      0.0f, 0.0f,
-                                      0.0f, 1.0f });
-    mx::MeshPartitionPtr quadIndices = mx::MeshPartition::create();
-    quadIndices->getIndices().assign({ 0, 1, 3, 1, 2, 3 });
-    quadIndices->setFaceCount(6);
-    mx::MeshPtr quadMesh = mx::Mesh::create("ScreenSpaceQuad");
-    quadMesh->addStream(quadPositions);
-    quadMesh->addStream(quadTexCoords);
-    quadMesh->addPartition(quadIndices);
-    material->bindMesh(quadMesh);
-    material->drawPartition(quadIndices);
+    if (!_quadMesh)
+        _quadMesh = mx::GeometryHandler::createQuadMesh();
+    
+    material->bindMesh(_quadMesh);
+    material->drawPartition(_quadMesh->getPartition(0));
 }
