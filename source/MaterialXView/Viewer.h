@@ -49,6 +49,7 @@ class Viewer : public ng::Screen
     bool mouseButtonEvent(const ng::Vector2i& p, int button, bool down, int modifiers) override;
 
     void renderFrame();
+    void renderScreenSpaceQuad(MaterialPtr material);
     mx::ImagePtr getFrameImage();
     mx::ImagePtr renderWedge();
     void bakeTextures();

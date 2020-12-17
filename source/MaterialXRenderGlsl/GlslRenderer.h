@@ -102,8 +102,8 @@ class GlslRenderer : public ShaderRenderer
         return _program;
     }
 
-    /// Submit geometry for a screen-space quad. assumes shader expects postion attribute at 0, texture attribute at 1
-    static void drawScreenSpaceQuad(unsigned int position_attrib = 0, unsigned int texture_attrib = 1);
+    /// Submit geometry for a screen-space quad
+    void drawScreenSpaceQuad();
 
     /// Sets the clear color
     void setClearColor(const Color4& clearColor);

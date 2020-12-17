@@ -151,22 +151,8 @@ void GlslRenderer::renderTextureSpace()
     _program->bind();
     _program->bindTextures(_imageHandler);
    
-    GLuint position_attrib =0, texture_attrib = 1;
-    for (auto input: _program->getAttributesList())
-    {
-        if (input.first.find(HW::IN_POSITION) != std::string::npos)
-        {
-            position_attrib = input.second->location;
-        }
-        
-        if (input.first.find(HW::IN_TEXCOORD + "_") != std::string::npos)
-        {
-            texture_attrib = input.second->location;
-        }
-    }
-    
     _frameBuffer->bind();
-    drawScreenSpaceQuad(position_attrib, texture_attrib);
+    drawScreenSpaceQuad();
     _frameBuffer->unbind();
 
     _program->unbind();
@@ -338,21 +324,24 @@ void GlslRenderer::saveImage(const FilePath& filePath, ConstImagePtr image, bool
     }
 }
 
-void GlslRenderer::drawScreenSpaceQuad(unsigned int position_attrib, unsigned int texture_attrib)
+void GlslRenderer::drawScreenSpaceQuad()
 {
     const float QUAD_VERTICES[] =
     {
-         1.0f,  1.0f, 0.0f, 1.0f, 1.0f, // position, texcoord
-         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f
+         1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // position, normals, texcoord
+         1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f
     };
     const unsigned int QUAD_INDICES[] =
     {
         0, 1, 3,
         1, 2, 3
     };
-    
+   
+    const unsigned int stride = 8;
+    const unsigned int normal_offset = 3;
+    const unsigned int texcord_offset = 5;
     GLuint vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -362,11 +351,26 @@ void GlslRenderer::drawScreenSpaceQuad(unsigned int position_attrib, unsigned in
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(QUAD_VERTICES), QUAD_VERTICES, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(position_attrib);
-    glVertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
-
-    glEnableVertexAttribArray(texture_attrib);
-    glVertexAttribPointer(texture_attrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (3 * sizeof(float)));
+    for (auto input: _program->getAttributesList())
+    {
+        if (input.first.find(HW::IN_POSITION) != std::string::npos)
+        {
+            glEnableVertexAttribArray(input.second->location);
+            glVertexAttribPointer(input.second->location, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*) 0);
+        }
+        
+        if (input.first.find(HW::IN_NORMAL) != std::string::npos)
+        {
+            glEnableVertexAttribArray(input.second->location);
+            glVertexAttribPointer(input.second->location, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*) (normal_offset * sizeof(float)));
+        }
+        
+        if (input.first.find(HW::IN_TEXCOORD + "_") != std::string::npos)
+        {
+            glEnableVertexAttribArray(input.second->location);
+            glVertexAttribPointer(input.second->location, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*) (texcord_offset * sizeof(float)));
+        }
+    }
 
     GLuint ebo;
     glGenBuffers(1, &ebo);

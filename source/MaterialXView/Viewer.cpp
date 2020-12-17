@@ -2400,7 +2400,7 @@ void Viewer::updateShadowMap()
             }
         }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        mx::GlslRenderer::drawScreenSpaceQuad();
+        renderScreenSpaceQuad(_shadowBlurMaterial);
         _imageHandler->releaseRenderResources(_shadowMap);
         _shadowMap = framebuffer->createColorImage();
     }
@@ -2452,7 +2452,7 @@ void Viewer::updateAlbedoTable()
     {
         material->getShader()->setUniform(mx::HW::ALBEDO_TABLE_SIZE, ALBEDO_TABLE_SIZE);
     }
-    mx::GlslRenderer::drawScreenSpaceQuad();
+    renderScreenSpaceQuad(material);
 
     // Store albedo table image.
     _imageHandler->releaseRenderResources(_lightHandler->getAlbedoTable());
@@ -2466,4 +2466,36 @@ void Viewer::updateAlbedoTable()
     glViewport(0, 0, mFBSize[0], mFBSize[1]);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glDrawBuffer(GL_BACK);
+}
+
+void Viewer::renderScreenSpaceQuad(MaterialPtr material)
+{
+
+    ng::MatrixXf positions(3, 4);
+    positions.col(0) <<  1.0f,  1.0f, 0.0f;
+    positions.col(1) <<  1.0f, -1.0f, 0.0f;
+    positions.col(2) << -1.0f, -1.0f, 0.0f;
+    positions.col(3) << -1.0f,  1.0f, 0.0f;
+    
+
+    ng::MatrixXf texcoord(2, 4);
+    texcoord.col(0) <<  1.0f, 1.0f;
+    texcoord.col(1) <<  1.0f, 0.0f;
+    texcoord.col(2) <<  0.0f, 0.0f;
+    texcoord.col(3) <<  0.0f, 1.0f;
+    
+
+    ng::MatrixXu indices(3, 2);
+    indices.col(0) << 0, 1, 3;
+    indices.col(1) << 1, 2, 3;
+
+    GLShaderPtr shaderprogram = material->getShader();
+
+    shaderprogram->uploadAttrib(mx::HW::IN_POSITION, positions);
+    
+    if (shaderprogram->attrib(mx::HW::IN_TEXCOORD+"_0") > 0)
+        shaderprogram->uploadAttrib(mx::HW::IN_TEXCOORD+"_0", texcoord);
+    
+    shaderprogram->uploadIndices(indices);
+    shaderprogram->drawIndexed(GL_TRIANGLES, 0, 6);
 }
