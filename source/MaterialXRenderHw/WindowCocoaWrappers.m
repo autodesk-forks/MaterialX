@@ -71,11 +71,4 @@ void NSUtilDisposeWindow(void* pWindow)
 	[pool release];
 }
 
-float NSUtilGetScaleFactor(void* pWindow)
-{
-    NSWindow* window = (NSWindow*)pWindow;
-    float scalefactor = [window backingScaleFactor];
-    return scalefactor;
-}
-
 #endif

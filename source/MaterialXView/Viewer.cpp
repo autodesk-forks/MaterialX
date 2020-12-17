@@ -2470,32 +2470,25 @@ void Viewer::updateAlbedoTable()
 
 void Viewer::renderScreenSpaceQuad(MaterialPtr material)
 {
-
-    ng::MatrixXf positions(3, 4);
-    positions.col(0) <<  1.0f,  1.0f, 0.0f;
-    positions.col(1) <<  1.0f, -1.0f, 0.0f;
-    positions.col(2) << -1.0f, -1.0f, 0.0f;
-    positions.col(3) << -1.0f,  1.0f, 0.0f;
-    
-
-    ng::MatrixXf texcoord(2, 4);
-    texcoord.col(0) <<  1.0f, 1.0f;
-    texcoord.col(1) <<  1.0f, 0.0f;
-    texcoord.col(2) <<  0.0f, 0.0f;
-    texcoord.col(3) <<  0.0f, 1.0f;
-    
-
-    ng::MatrixXu indices(3, 2);
-    indices.col(0) << 0, 1, 3;
-    indices.col(1) << 1, 2, 3;
-
-    GLShaderPtr shaderprogram = material->getShader();
-
-    shaderprogram->uploadAttrib(mx::HW::IN_POSITION, positions);
-    
-    if (shaderprogram->attrib(mx::HW::IN_TEXCOORD+"_0") > 0)
-        shaderprogram->uploadAttrib(mx::HW::IN_TEXCOORD+"_0", texcoord);
-    
-    shaderprogram->uploadIndices(indices);
-    shaderprogram->drawIndexed(GL_TRIANGLES, 0, 6);
+    mx::MeshStreamPtr quadPositions = mx::MeshStream::create(mx::HW::IN_POSITION, mx::MeshStream::POSITION_ATTRIBUTE, 0);
+    quadPositions->setStride(mx::MeshStream::STRIDE_3D);
+    quadPositions->getData().assign({  1.0f,  1.0f, 0.0f,
+                                       1.0f, -1.0f, 0.0f,
+                                      -1.0f, -1.0f, 0.0f,
+                                      -1.0f,  1.0f, 0.0f });
+    mx::MeshStreamPtr quadTexCoords = mx::MeshStream::create(mx::HW::IN_TEXCOORD + "_0", mx::MeshStream::TEXCOORD_ATTRIBUTE, 0);
+    quadTexCoords->setStride(mx::MeshStream::STRIDE_2D);
+    quadTexCoords->getData().assign({ 1.0f, 1.0f,
+                                      1.0f, 0.0f,
+                                      0.0f, 0.0f,
+                                      0.0f, 1.0f });
+    mx::MeshPartitionPtr quadIndices = mx::MeshPartition::create();
+    quadIndices->getIndices().assign({ 0, 1, 3, 1, 2, 3 });
+    quadIndices->setFaceCount(6);
+    mx::MeshPtr quadMesh = mx::Mesh::create("ScreenSpaceQuad");
+    quadMesh->addStream(quadPositions);
+    quadMesh->addStream(quadTexCoords);
+    quadMesh->addPartition(quadIndices);
+    material->bindMesh(quadMesh);
+    material->drawPartition(quadIndices);
 }

@@ -150,7 +150,7 @@ void GlslRenderer::renderTextureSpace()
 {
     _program->bind();
     _program->bindTextures(_imageHandler);
-   
+
     _frameBuffer->bind();
     drawScreenSpaceQuad();
     _frameBuffer->unbind();
@@ -328,10 +328,10 @@ void GlslRenderer::drawScreenSpaceQuad()
 {
     const float QUAD_VERTICES[] =
     {
-         1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // position, normals, texcoord
-         1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f
+         1.0f,  1.0f, 0.0f, 1.0f, 1.0f, // position, texcoord
+         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f
     };
     const unsigned int QUAD_INDICES[] =
     {
@@ -339,9 +339,8 @@ void GlslRenderer::drawScreenSpaceQuad()
         1, 2, 3
     };
    
-    const unsigned int stride = 8;
-    const unsigned int normal_offset = 3;
-    const unsigned int texcord_offset = 5;
+    const unsigned int stride = 5;
+    const unsigned int texcoord_offset = 3;
     GLuint vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -358,17 +357,11 @@ void GlslRenderer::drawScreenSpaceQuad()
             glEnableVertexAttribArray(input.second->location);
             glVertexAttribPointer(input.second->location, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*) 0);
         }
-        
-        if (input.first.find(HW::IN_NORMAL) != std::string::npos)
+
+                if (input.first.find(HW::IN_TEXCOORD + "_") != std::string::npos)
         {
             glEnableVertexAttribArray(input.second->location);
-            glVertexAttribPointer(input.second->location, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*) (normal_offset * sizeof(float)));
-        }
-        
-        if (input.first.find(HW::IN_TEXCOORD + "_") != std::string::npos)
-        {
-            glEnableVertexAttribArray(input.second->location);
-            glVertexAttribPointer(input.second->location, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*) (texcord_offset * sizeof(float)));
+            glVertexAttribPointer(input.second->location, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*) (texcoord_offset * sizeof(float)));
         }
     }
 
