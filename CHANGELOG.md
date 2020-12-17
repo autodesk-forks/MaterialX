@@ -1,6 +1,5 @@
 # Change Log
 
-<<<<<<< HEAD
 ## [1.38] - Development
 
 ### v1.38_adsk_development2 : WIP
