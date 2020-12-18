@@ -1,5 +1,6 @@
 # Change Log
 
+<<<<<<< HEAD
 ## [1.38] - Development
 
 ### v1.38_adsk_development2 : WIP
@@ -24,7 +25,13 @@
  - Github actions support.
  - Plus changes up to 1.37.3.
 
-## [1.37.4] - Development
+## [1.37.4] - 2020-12-18
+
+### Added
+- Added software rendering tests for MaterialXRenderGlsl to GitHub Actions.
+
+### Changed
+- Improved the robustness of context management in MaterialXRenderGlsl.
 
 ## [1.37.3] - 2020-11-24
 
