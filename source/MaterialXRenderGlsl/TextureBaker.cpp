@@ -276,7 +276,7 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
                 InputPtr bakedMaterialInput = bakedMaterial->getInput(sourceMaterialInputName);
                 if (!bakedMaterialInput)
                 {
-                    bakedMaterialInput = bakedMaterial->addInput(sourceMaterialInputName, sourceMaterialInput->getType(), sourceMaterialInput->getIsUniform());
+                    bakedMaterialInput = bakedMaterial->addInput(sourceMaterialInputName, sourceMaterialInput->getType());
                 }
                 bakedMaterialInput->setNodeName(bakedShader->getName());
             }
@@ -297,7 +297,7 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
         InputPtr bakedInput = bakedShader->getInput(sourceName);
         if (!bakedInput)
         {
-            bakedInput = bakedShader->addInput(sourceName, sourceType, sourceInput->getIsUniform());
+            bakedInput = bakedShader->addInput(sourceName, sourceType);
         }
 
         // Check for non-image inputs whether to keep in target color space
