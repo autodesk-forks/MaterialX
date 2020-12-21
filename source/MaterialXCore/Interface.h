@@ -314,8 +314,8 @@ class Output : public PortElement
 /// @class InterfaceElement
 /// The base class for interface elements such as Node, NodeDef, and NodeGraph.
 ///
-/// An InterfaceElement supports a set of Parameter, Input, and Output elements,
-/// with an API for setting their values.
+/// An InterfaceElement supports a set of Input and Output elements, with an API
+/// for setting their values.
 class InterfaceElement : public TypedElement
 {
   protected:
@@ -364,7 +364,7 @@ class InterfaceElement : public TypedElement
     ///     generated.
     /// @param type An optional type string.
     /// @return A shared pointer to the new Input.
-    InputPtr addInput(const string& name,
+    InputPtr addInput(const string& name = EMPTY_STRING,
                       const string& type = DEFAULT_TYPE_STRING)
     {
         InputPtr child = addChild<Input>(name);
@@ -506,12 +506,12 @@ class InterfaceElement : public TypedElement
 
     /// Return the first value element with the given name that belongs to this
     /// interface, taking interface inheritance into account.
-    /// Examples of value elements are Parameter, Input, Output, and Token.
+    /// Examples of value elements are Input, Output, and Token.
     ValueElementPtr getActiveValueElement(const string& name) const;
 
     /// Return a vector of all value elements that belong to this interface,
     /// taking inheritance into account.
-    /// Examples of value elements are Parameter, Input, Output, and Token.
+    /// Examples of value elements are Input, Output, and Token.
     vector<ValueElementPtr> getActiveValueElements() const;
 
     /// @}
@@ -529,7 +529,7 @@ class InterfaceElement : public TypedElement
     /// @param name The name of the input to be evaluated.
     /// @param target An optional target name, which will be used to filter
     ///    the declarations that are considered.
-    /// @return If the given parameter is found in this interface or its
+    /// @return If the given input is found in this interface or its
     ///    declaration, then a shared pointer to its value is returned;
     ///    otherwise, an empty shared pointer is returned.
     ValuePtr getInputValue(const string& name, const string& target = EMPTY_STRING) const;
@@ -570,9 +570,8 @@ class InterfaceElement : public TypedElement
     /// Node is an instantiation of a given NodeDef.
     ///
     /// If the type string of the instance differs from that of the declaration,
-    /// then false is returned.  If the instance possesses a Parameter or Input
-    /// with no Parameter or Input of matching type in the declaration, then
-    /// false is returned.
+    /// then false is returned.  If the instance possesses an Input with no Input
+    /// of matching type in the declaration, then false is returned.
     bool isTypeCompatible(ConstInterfaceElementPtr declaration) const;
 
     /// @}
