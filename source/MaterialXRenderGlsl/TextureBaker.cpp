@@ -59,12 +59,14 @@ string getValueStringFromColor(const Color4& color, const string& type)
 
 TextureBaker::TextureBaker(unsigned int width, unsigned int height, Image::BaseType baseType) :
     GlslRenderer(width, height, baseType),
-    _targetUnitSpace("meter"),
+    _distanceUnit("meter"),
     _targetColorSpace(LIN_REC709),
-    _bakedGraphName("NG_baked"),
-    _bakedGeomInfoName("GI_baked"),
     _averageImages(false),
     _optimizeConstants(true),
+    _bakedGraphName("NG_baked"),
+    _bakedGeomInfoName("GI_baked"),
+    _bakedGraphName("NG_baked"),
+    _bakedGeomInfoName("GI_baked"),
     _generator(GlslShaderGenerator::create())
 {
     if (baseType == Image::BaseType::UINT8)
@@ -201,9 +203,9 @@ void TextureBaker::optimizeBakedTextures(NodePtr shader)
             BakedConstant bakedConstant;
             bakedConstant.color = pair.second[0].uniformColor;
             _bakedConstantMap[pair.first] = bakedConstant;
+            _bakedImageMap.erase(pair.first);
         }
     }
-
 
     // Check for uniform outputs at their default values.
     NodeDefPtr shaderNodeDef = shader->getNodeDef();
@@ -222,7 +224,6 @@ void TextureBaker::optimizeBakedTextures(NodePtr shader)
                     if (uniformColorString == input->getValueString())
                     {
                         _bakedConstantMap[output].isDefault = true;
-                        _bakedImageMap.erase(output);
                     }
                 }
             }
@@ -321,12 +322,15 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
                 bakedInput->setValueString(uniformColorString);
                 if (wantLinearInput)
                 {
-                    bakedInput->setColorSpace(_targetColorSpace);
+                    if (bakedInput->getType() == "color3" || bakedInput->getType() == "color4")
+                    {
+                       bakedInput->setColorSpace(_targetColorSpace);
+                    }
+                    continue;
                 }
-                continue;
             }
 
-            if (bakedNodeGraph)
+            if (!_bakedImageMap.empty())
             {
                 // Add the image node.
                 NodePtr bakedImage = bakedNodeGraph->addNode("image", sourceName + BAKED_POSTFIX, sourceType);
@@ -413,7 +417,7 @@ ListofBakedDocuments TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileS
     genContext.getOptions().hwShadowMap = true;
     genContext.getOptions().targetColorSpaceOverride = _targetColorSpace;
     genContext.getOptions().fileTextureVerticalFlip = true;
-    genContext.getOptions().targetDistanceUnit = _targetUnitSpace;
+    genContext.getOptions().targetDistanceUnit = _distanceUnit;
 
     DefaultColorManagementSystemPtr cms = DefaultColorManagementSystem::create(genContext.getShaderGenerator().getTarget());
     cms->loadLibrary(doc);
