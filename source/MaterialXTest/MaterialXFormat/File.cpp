@@ -6,6 +6,7 @@
 #include <MaterialXTest/Catch/catch.hpp>
 
 #include <MaterialXFormat/File.h>
+#include <MaterialXFormat/Util.h>
 
 namespace mx = MaterialX;
 

@@ -1932,7 +1932,7 @@ void Viewer::bakeTextures()
         // Bake all materials in the active document.
         try
         {
-            baker->bakeAllMaterials(doc, materialSearchPath, _bakeFilename);
+            baker->bakeAllMaterials(doc, materialSearchPath);
         }
         catch (std::exception& e)
         {

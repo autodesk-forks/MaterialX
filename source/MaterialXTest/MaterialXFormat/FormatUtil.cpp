@@ -28,7 +28,7 @@ TEST_CASE("resolveFileNames", "[formatutil]")
     image2->setInputValue("file", "brass_color.jpg", mx::FILENAME_TYPE_STRING);
 
     // 1. Test resolving fileprefix
-    mx::resolveFileNames(doc1);
+    mx::flattenFilenames(doc1);
     REQUIRE(nodeGraph->getFilePrefix() == mx::EMPTY_STRING);
     mx::FilePath resolvedPath(image1->getInputValue("file")->getValueString());
     REQUIRE(resolvedPath == (TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING1));
@@ -46,7 +46,7 @@ TEST_CASE("resolveFileNames", "[formatutil]")
     mx::FileSearchPath searchPath;
     searchPath.append(rootPath);
 
-    mx::resolveFileNames(doc1, searchPath);    
+    mx::flattenFilenames(doc1, searchPath);
     CHECK(nodeGraph->getFilePrefix() == mx::EMPTY_STRING);
     resolvedPath = image1->getInputValue("file")->getValueString();
     CHECK(resolvedPath.asString() == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING1).asString());
@@ -64,7 +64,7 @@ TEST_CASE("resolveFileNames", "[formatutil]")
     separatorReplacer->setFilenameSubstitution("\\\\", "/");
     separatorReplacer->setFilenameSubstitution("\\", "/");
 
-    mx::resolveFileNames(doc1, searchPath, separatorReplacer);
+    mx::flattenFilenames(doc1, searchPath, separatorReplacer);
     CHECK(nodeGraph->getFilePrefix() == mx::EMPTY_STRING);
     std::string resolvedPathString = image1->getInputValue("file")->getValueString();
     CHECK(resolvedPathString == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING1).asString(mx::FilePath::FormatPosix));
@@ -73,7 +73,7 @@ TEST_CASE("resolveFileNames", "[formatutil]")
 
     // 4. Test with pre-resolved filenames
     nodeGraph->setFilePrefix(TEST_FILE_PREFIX_STRING.asString() + "\\");
-    mx::resolveFileNames(doc1, searchPath, separatorReplacer);
+    mx::flattenFilenames(doc1, searchPath, separatorReplacer);
     CHECK(nodeGraph->getFilePrefix() == mx::EMPTY_STRING);
     resolvedPathString = image1->getInputValue("file")->getValueString();
     CHECK(resolvedPathString == (rootPath / TEST_FILE_PREFIX_STRING / TEST_IMAGE_STRING1).asString(mx::FilePath::FormatPosix));

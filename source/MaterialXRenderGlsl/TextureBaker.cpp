@@ -65,8 +65,6 @@ TextureBaker::TextureBaker(unsigned int width, unsigned int height, Image::BaseT
     _optimizeConstants(true),
     _bakedGraphName("NG_baked"),
     _bakedGeomInfoName("GI_baked"),
-    _bakedGraphName("NG_baked"),
-    _bakedGeomInfoName("GI_baked"),
     _generator(GlslShaderGenerator::create())
 {
     if (baseType == Image::BaseType::UINT8)
@@ -481,7 +479,7 @@ ListofBakedDocuments TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileS
             optimizeBakedTextures(shaderNode);
 
             // Write the baked material and textures.
-            DocumentPtr bakedMaterialDoc = getBakedMaterial(shaderNode, udimSet);
+            DocumentPtr bakedMaterialDoc = bakeMaterial(shaderNode, udimSet);
             bakedDocuments.push_back(std::make_pair(shaderNode->getName(), bakedMaterialDoc));
         }
     }
