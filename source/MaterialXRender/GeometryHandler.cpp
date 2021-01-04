@@ -6,7 +6,6 @@
 #include <MaterialXRender/GeometryHandler.h>
 
 #include <MaterialXGenShader/Util.h>
-#include <MaterialXGenShader/HwShaderGenerator.h>
 
 namespace MaterialX
 {

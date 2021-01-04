@@ -539,13 +539,9 @@ void Document::upgradeVersion()
                 elem->setAttribute(NodeDef::NODE_ATTRIBUTE, elem->getAttribute("shadername"));
                 elem->removeAttribute("shadername");
             }
-            vector<ElementPtr> origChildren = elem->getChildren();
-            for (ElementPtr child : origChildren)
+            for (ElementPtr child : getChildrenOfType<Element>("assign"))
             {
-                if (child->getCategory() == "assign")
-                {
-                    changeChildCategory(elem, child, MaterialAssign::CATEGORY);
-                }
+                updateChildSubclass<MaterialAssign>(elem, child);
             }
         }
         minorVersion = 24;
@@ -593,11 +589,11 @@ void Document::upgradeVersion()
             {
                 if (child->getCategory() == "opgraph")
                 {
-                    changeChildCategory(elem, child, NodeGraph::CATEGORY);
+                    updateChildSubclass<NodeGraph>(elem, child);
                 }
                 else if (child->getCategory() == "shader")
                 {
-                    NodeDefPtr nodeDef = changeChildCategory(elem, child, NodeDef::CATEGORY)->asA<NodeDef>();
+                    NodeDefPtr nodeDef = updateChildSubclass<NodeDef>(elem, child);
                     if (nodeDef->hasAttribute("shadertype"))
                     {
                         nodeDef->setType(SURFACE_SHADER_TYPE_STRING);
@@ -697,7 +693,7 @@ void Document::upgradeVersion()
         {
             for (ElementPtr child : geomInfo->getChildrenOfType<Element>("geomattr"))
             {
-                changeChildCategory(geomInfo, child, GeomProp::CATEGORY);
+                updateChildSubclass<GeomProp>(geomInfo, child);
             }
         }
         if (getGeomPropValue("udim") && !getGeomPropValue("udimset"))
@@ -862,7 +858,7 @@ void Document::upgradeVersion()
         {
             for (ElementPtr child : geomInfo->getChildrenOfType<Element>("geomattr"))
             {
-                changeChildCategory(geomInfo, child, GeomProp::CATEGORY);
+                updateChildSubclass<GeomProp>(geomInfo, child);
             }
         }
         for (ElementPtr elem : traverseTree())
@@ -1161,14 +1157,13 @@ void Document::upgradeVersion()
                     node->setName(newNodeName);
                 }
             }
-        }       
+        }   
 
         convertParametersToInputs();
 
         // While we are in the process of supporting 1.38. Leave files as 1.37
         minorVersion = 37;
     }
-
 
     setVersionIntegers(majorVersion, minorVersion);
 }

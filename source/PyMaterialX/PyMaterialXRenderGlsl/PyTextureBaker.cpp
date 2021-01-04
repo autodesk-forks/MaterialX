@@ -31,12 +31,6 @@ void bindPyTextureBaker(py::module& mod)
         .def("getBakedGraphName", &mx::TextureBaker::getBakedGraphName)
         .def("setBakedGeomInfoName", &mx::TextureBaker::setBakedGeomInfoName)
         .def("getBakedGeomInfoName", &mx::TextureBaker::getBakedGeomInfoName)
-        .def("setOutputResourcePath", &mx::TextureBaker::setOutputResourcePath)
-        .def("getOutputResourcePath", &mx::TextureBaker::getOutputResourcePath)
-        .def("setOptimizeConstants", &mx::TextureBaker::setOptimizeConstants)
-        .def("getOptimizeConstants", &mx::TextureBaker::getOptimizeConstants)
-        .def("bakeAllMaterials", &mx::TextureBaker::bakeAllMaterials)
-        .def("getBakedMaterial", &mx::TextureBaker::getBakedMaterial);
         .def("setupUnitSystem", &mx::TextureBaker::setupUnitSystem)
         .def("bakeMaterial", &mx::TextureBaker::bakeMaterial)
         .def("bakeAllMaterials", &mx::TextureBaker::bakeAllMaterials);

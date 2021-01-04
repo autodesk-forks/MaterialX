@@ -229,13 +229,12 @@ void TextureBaker::optimizeBakedTextures(NodePtr shader)
     }
 }
 
-DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udimSet)
+DocumentPtr TextureBaker::bakeMaterial(NodePtr shader, const StringVec& udimSet)
 {
     if (!shader)
     {
         return nullptr;
     }
-    NodeDefPtr shaderNodeDef = shader->getNodeDef();
 
     // Create document.
     DocumentPtr bakedTextureDoc = createDocument();
@@ -282,7 +281,7 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
         }
     }
 
-    // Create inputs on baked shader and connected to baked images as required.
+    // Create and connect inputs on the new shader node.
     for (ValueElementPtr valueElem : shader->getChildrenOfType<ValueElement>())
     {
         // Get source and destination inputs
@@ -320,12 +319,9 @@ DocumentPtr TextureBaker::getBakedMaterial(NodePtr shader, const StringVec& udim
                 bakedInput->setValueString(uniformColorString);
                 if (wantLinearInput)
                 {
-                    if (bakedInput->getType() == "color3" || bakedInput->getType() == "color4")
-                    {
-                       bakedInput->setColorSpace(_targetColorSpace);
-                    }
-                    continue;
+                    bakedInput->setColorSpace(_targetColorSpace);
                 }
+                continue;
             }
 
             if (!_bakedImageMap.empty())

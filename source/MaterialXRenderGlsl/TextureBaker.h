@@ -154,7 +154,6 @@ class TextureBaker : public GlslRenderer
     /// Set up the unit definitions to be used in baking.
     void setupUnitSystem(DocumentPtr unitDefinitions);
 
->>>>>>> 93b8d68b... Viewer and texture baking improvements
     /// Bake textures for all graph inputs of the given shader.
     void bakeShaderInputs(NodePtr material, NodePtr shader, GenContext& context, const string& udim = EMPTY_STRING);
 
@@ -164,8 +163,8 @@ class TextureBaker : public GlslRenderer
     /// Optimize baked textures before writing.
     void optimizeBakedTextures(NodePtr shader);
 
-    /// Write the baked material with textures to a document
-    DocumentPtr getBakedMaterial(NodePtr shader, const StringVec& udimSet);
+    /// Write the baked material with textures to a document.
+    DocumentPtr bakeMaterial(NodePtr shader, const StringVec& udimSet);
 
     /// Returns a list of baked documents for each material in the input document.
     ListofBakedDocuments bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath);
