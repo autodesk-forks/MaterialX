@@ -906,7 +906,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
     wedgeNameGroup->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
     new ng::Label(wedgeNameGroup, "Property Name");
     ng::TextBox* wedgeNameBox = new ng::TextBox(wedgeNameGroup, _wedgePropertyName);
-    wedgeNameBox->setCallback([this](const std::string choice)
+    wedgeNameBox->setCallback([this](const std::string& choice)
     {
         _wedgePropertyName = choice;
         return true;
