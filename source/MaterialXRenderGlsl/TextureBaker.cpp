@@ -400,8 +400,26 @@ DocumentPtr TextureBaker::bakeMaterial(NodePtr shader, const StringVec& udimSet)
         return nullptr;
 }
 
+FilePathVec TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath, const FilePath& outputFileName)
+{
+    ListofBakedDocuments bakedDocuments = createBakeDocuments(doc, imageSearchPath);
+    FilePathVec writtenFileNames;
+    for (size_t i = 0; i < bakedDocuments.size(); i++)
+    {
+        if (bakedDocuments[i].second)
+        {
+            FilePath writeFilename = outputFileName;
+            const std::string extension = writeFilename.getExtension();
+            writeFilename.removeExtension();
+            writeFilename = FilePath(writeFilename.asString() + "_" + bakedDocuments[i].first + "." + extension);
+            writeToXmlFile(bakedDocuments[i].second, writeFilename);
+            writtenFileNames.push_back(writeFilename);
+        }
+    }
+    return writtenFileNames;
+}
 
-ListofBakedDocuments TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath)
+ListofBakedDocuments TextureBaker::createBakeDocuments(DocumentPtr doc, const FileSearchPath& imageSearchPath)
 {
     GenContext genContext(_generator);
     genContext.getOptions().hwSpecularEnvironmentMethod = SPECULAR_ENVIRONMENT_FIS;

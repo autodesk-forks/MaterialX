@@ -166,9 +166,11 @@ class TextureBaker : public GlslRenderer
     /// Write the baked material with textures to a document.
     DocumentPtr bakeMaterial(NodePtr shader, const StringVec& udimSet);
 
-    /// Returns a list of baked documents for each material in the input document.
-    ListofBakedDocuments bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath);
+    /// Utility which returns a list of baked documents for each material in the input document.
+    ListofBakedDocuments createBakeDocuments(DocumentPtr doc, const FileSearchPath& imageSearchPath);
 
+    /// Bake all materials in a document and write to disk one document per material. The provided filename is used to create a unique output filename for each baked material.
+    FilePathVec bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath, const FilePath& outputFileName);
 
   protected:
     TextureBaker(unsigned int width, unsigned int height, Image::BaseType baseType);
