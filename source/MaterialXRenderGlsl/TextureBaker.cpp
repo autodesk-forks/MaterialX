@@ -373,7 +373,6 @@ DocumentPtr TextureBaker::bakeMaterial(NodePtr shader, const StringVec& udimSet)
             continue;
         }
 
-        _bakingReport.clear();
         for (const BakedImage& baked : pair.second)
         {
             if (!_imageHandler->saveImage(baked.filename, baked.image, true))
@@ -383,7 +382,7 @@ DocumentPtr TextureBaker::bakeMaterial(NodePtr shader, const StringVec& udimSet)
             }
             else
             {
-                _bakingReport << "Write baked image:" << baked.filename.asString() << std::endl;
+                _bakingReport << "Wrote baked image: " << baked.filename.asString() << std::endl;
             }
         }
     }
@@ -404,16 +403,29 @@ FilePathVec TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath
 {
     ListofBakedDocuments bakedDocuments = createBakeDocuments(doc, imageSearchPath);
     FilePathVec writtenFileNames;
-    for (size_t i = 0; i < bakedDocuments.size(); i++)
+    size_t bakeCount = bakedDocuments.size();
+    if (bakeCount == 1)
     {
-        if (bakedDocuments[i].second)
+        if (bakedDocuments[0].second)
         {
-            FilePath writeFilename = outputFileName;
-            const std::string extension = writeFilename.getExtension();
-            writeFilename.removeExtension();
-            writeFilename = FilePath(writeFilename.asString() + "_" + bakedDocuments[i].first + "." + extension);
-            writeToXmlFile(bakedDocuments[i].second, writeFilename);
-            writtenFileNames.push_back(writeFilename);
+            writeToXmlFile(bakedDocuments[0].second, outputFileName);
+            writtenFileNames.push_back(outputFileName);
+        }
+    }
+    else
+    {
+        // Add additional filename decorations if there are muliple documents.
+        for (size_t i = 0; i < bakeCount; i++)
+        {
+            if (bakedDocuments[i].second)
+            {
+                FilePath writeFilename = outputFileName;
+                const std::string extension = writeFilename.getExtension();
+                writeFilename.removeExtension();
+                writeFilename = FilePath(writeFilename.asString() + "_" + bakedDocuments[i].first + "." + extension);
+                writeToXmlFile(bakedDocuments[i].second, writeFilename);
+                writtenFileNames.push_back(writeFilename);
+            }
         }
     }
     return writtenFileNames;
@@ -421,6 +433,8 @@ FilePathVec TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath
 
 ListofBakedDocuments TextureBaker::createBakeDocuments(DocumentPtr doc, const FileSearchPath& imageSearchPath)
 {
+    clearBakingReport();
+
     GenContext genContext(_generator);
     genContext.getOptions().hwSpecularEnvironmentMethod = SPECULAR_ENVIRONMENT_FIS;
     genContext.getOptions().hwDirectionalAlbedoMethod = DIRECTIONAL_ALBEDO_TABLE;

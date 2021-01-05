@@ -122,9 +122,16 @@ class TextureBaker : public GlslRenderer
         _codeSearchPath = codesearchPath;
     }
 
+    /// Get report of baking results
     string getBakingReport() const
     {
          return (_bakingReport.str());
+    }
+
+    /// Clear report of baking results
+    void clearBakingReport()
+    {
+        _bakingReport.clear();
     }
 
     /// Set the name of the baked graph element.
