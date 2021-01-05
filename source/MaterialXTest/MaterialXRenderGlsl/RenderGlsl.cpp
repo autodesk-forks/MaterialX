@@ -712,13 +712,10 @@ void  GlslShaderRenderTester::runBake(mx::DocumentPtr doc, const mx::FileSearchP
     {
         bakeHeight = 2;
     }
-    const mx::FilePath bakedImagepath = outputFileName.getParentPath();
-    bakedImagepath.createDirectory();
     mx::Image::BaseType baseType = bakeHdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
     mx::TextureBakerPtr baker = mx::TextureBaker::create(bakeWidth, bakeHeight, baseType);
     baker->setupUnitSystem(doc);
     baker->setImageHandler(_renderer->getImageHandler());
-    baker->setOutputImagePath(bakedImagepath);
     baker->setOptimizeConstants(true);
     
     try

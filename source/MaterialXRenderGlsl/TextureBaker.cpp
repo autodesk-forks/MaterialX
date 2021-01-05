@@ -399,8 +399,17 @@ DocumentPtr TextureBaker::bakeMaterial(NodePtr shader, const StringVec& udimSet)
         return nullptr;
 }
 
-FilePathVec TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath, const FilePath& outputFileName)
+FilePathVec TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath, const FilePath& outputFilename)
 {
+    if (_outputImagePath.isEmpty())
+    {
+        _outputImagePath = outputFilename.getParentPath();
+        if (!_outputImagePath.exists())
+        {
+            _outputImagePath.createDirectory();
+        }
+    }
+
     ListofBakedDocuments bakedDocuments = createBakeDocuments(doc, imageSearchPath);
     FilePathVec writtenFileNames;
     size_t bakeCount = bakedDocuments.size();
@@ -408,8 +417,8 @@ FilePathVec TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath
     {
         if (bakedDocuments[0].second)
         {
-            writeToXmlFile(bakedDocuments[0].second, outputFileName);
-            writtenFileNames.push_back(outputFileName);
+            writeToXmlFile(bakedDocuments[0].second, outputFilename);
+            writtenFileNames.push_back(outputFilename);
         }
     }
     else
@@ -419,7 +428,7 @@ FilePathVec TextureBaker::bakeAllMaterials(DocumentPtr doc, const FileSearchPath
         {
             if (bakedDocuments[i].second)
             {
-                FilePath writeFilename = outputFileName;
+                FilePath writeFilename = outputFilename;
                 const std::string extension = writeFilename.getExtension();
                 writeFilename.removeExtension();
                 writeFilename = FilePath(writeFilename.asString() + "_" + bakedDocuments[i].first + "." + extension);
