@@ -2,7 +2,7 @@
 
 ## [1.38] - Development
 
-### v1.38_adsk_development2 : WIP
+### v1.38_adsk_development2 : Work-in-progress
 - Up-to-date with ILM v1.38 branch @8718c59
 - GPU testing framework setup (in progress)
 - Deprecation of Language specifier and introduction of TargetDefs
