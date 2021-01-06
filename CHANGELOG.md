@@ -1,14 +1,14 @@
 # Change Log
 
-<<<<<<< HEAD
 ## [1.38] - Development
 
 ### v1.38_adsk_development2 : WIP
-- Up-to-date with ILM v1.38 branch @53db849a
+- Up-to-date with ILM v1.38 branch @8718c59
 - GPU testing framework setup (in progress)
 - Deprecation of Language specifier and introduction of TargetDefs
 - Deprecation of Material and ShaderRef elements.
 - Deprecation of Parameter element.
+- TextureBaker v1 completion
 
 ### v1.38_adsk_development1 : Major changes since "v1.37.3_parameters_as_inputs"
  - Up-to-date with ILM v1.38 branch @3900415.
