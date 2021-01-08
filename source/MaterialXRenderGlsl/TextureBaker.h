@@ -24,8 +24,8 @@ namespace MaterialX
 /// A shared pointer to a TextureBaker
 using TextureBakerPtr = shared_ptr<class TextureBaker>;
 
-/// Baked document list of shader node and it's corresponding baked Document
-using ListofBakedDocuments = std::vector<std::pair<std::string, DocumentPtr>>;
+/// A vector of baked documents with their associated names.
+using BakedDocumentVec = std::vector<std::pair<std::string, DocumentPtr>>;
 
 /// @class TextureBaker
 /// A helper class for baking procedural material content to textures.
@@ -174,10 +174,11 @@ class TextureBaker : public GlslRenderer
     /// Write the baked material with textures to a document.
     DocumentPtr bakeMaterial(NodePtr shader, const StringVec& udimSet);
 
-    /// Utility which returns a list of baked documents for each material in the input document.
-    ListofBakedDocuments createBakeDocuments(DocumentPtr doc, const FileSearchPath& imageSearchPath);
+    /// Bake all materials in the given document and return them as a vector.
+    BakedDocumentVec createBakeDocuments(DocumentPtr doc, const FileSearchPath& imageSearchPath);
 
-    /// Bake all materials in a document and write to disk one document per material. The provided filename is used to create a unique output filename for each baked material.
+    /// Bake all materials in the given document and write them to disk.  If multiple documents are written,
+    /// then the given output filename will be used as a template.
     void bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath, const FilePath& outputFileName);
 
   protected:
@@ -211,7 +212,6 @@ class TextureBaker : public GlslRenderer
     string _extension;
     string _colorSpace;
     string _distanceUnit;
-    string _targetColorSpace;
     bool _averageImages;
     bool _optimizeConstants;
     FilePath _outputImagePath;
