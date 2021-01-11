@@ -1101,9 +1101,10 @@ void Document::upgradeVersion()
                     {
                         // Only strings and filename types should be set as uniforms.
                         const string& inputType = input->getType();
-                        bool isUniform = (inputType != FILENAME_TYPE_STRING &&
-                                          inputType != STRING_TYPE_STRING);
-                        input->setIsUniform(isUniform);
+                        if (inputType == FILENAME_TYPE_STRING || inputType == STRING_TYPE_STRING)
+                        {
+                            input->setIsUniform(true);
+                        }
                     }
                 }
             }
