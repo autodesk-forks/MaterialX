@@ -226,6 +226,12 @@ class ImageHandler
         return _zeroImage;
     }
 
+    /// Return a the "invalid" image returned when a image cannot be loaded.
+    ImagePtr getInvalidImage()
+    {
+        return _invalidImage;
+    }
+
   protected:
     // Protected constructor.
     ImageHandler(ImageLoaderPtr imageLoader);
