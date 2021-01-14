@@ -4,7 +4,6 @@ The following is the layout of the definitions and implementations provided as p
 
 - `genglsl` : Support for GLSL code generation
 - `genosl` : Support for OSL code generation
-- `osl` : Reference OSL implementations
 
 ## Standard Library
 - [stdlib](stdlib)
