@@ -3,7 +3,7 @@
   <!--
     Autodesk Standard Surface node definition.
   -->
-  <nodedef name="ND_standard_surface_surfaceshader_v101" node="standard_surface" nodegroup="pbr"
+  <nodedef name="ND_standard_surface_surfaceshader" node="standard_surface" nodegroup="pbr"
             doc="Autodesk standard surface shader" version="1.0.1">
       <input name="base" type="float" value="0.8" uimin="0.0" uimax="1.0" uiname="Base" uifolder="Base"
             doc="Multiplier on the intensity of the diffuse reflection." />
@@ -184,7 +184,7 @@
   <!--
     Autodesk Standard Surface nodegraph implementation.
   -->
-  <nodegraph name="IMPL_standard_surface_surfaceshader_v101" nodedef="ND_standard_surface_surfaceshader_v101">
+  <nodegraph name="IMPL_standard_surface_surfaceshader" nodedef="ND_standard_surface_surfaceshader">
 
     <!-- Roughness influence by coat-->
     <multiply name="coat_affect_roughness_multiply1" type="float">
