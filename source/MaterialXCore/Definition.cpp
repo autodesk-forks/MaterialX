@@ -129,7 +129,7 @@ bool NodeDef::isVersionCompatible(ConstElementPtr elem) const
     {
         return true;
     }
-    if (getDefaultVersion() && !elem->hasVersionString())
+    if (getDefaultVersion() && (!elem->hasVersionString() || elem->getVersionString().empty()))
     {
         return true;
     }

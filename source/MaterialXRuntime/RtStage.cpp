@@ -207,7 +207,6 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
     if (version != EMPTY_TOKEN)
     {
         nodedef.setVersion(version);
-        nodeGraph.setVersion(version);
 
         // If a version is specified, set if it is the default version
         if (isDefaultVersion)
