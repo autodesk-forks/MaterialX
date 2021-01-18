@@ -621,6 +621,8 @@ InterfaceElementPtr NodeGraph::getImplementation() const
 bool NodeGraph::validate(string* message) const
 {
     bool res = true;
+
+    validateRequire(!hasVersionString(), res, message, "NodeGraph has a invalid version string: " + getVersionString());
     if (hasNodeDefString())
     {
         NodeDefPtr nodeDef = getNodeDef();

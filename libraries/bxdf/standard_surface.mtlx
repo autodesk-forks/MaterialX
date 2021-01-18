@@ -106,7 +106,7 @@
             doc="Multiplier on the intensity of the specular reflection." />
       <input name="specular_color" type="color3" value="1, 1, 1" uimin="0,0,0" uimax="1,1,1" uiname="Specular Color" uifolder="Specular"
             doc="Color tint on the specular reflection." />
-      <input name="specular_roughness" type="float" value="0.4" uimin="0.0" uimax="1.0" uiname="Specular Roughness" uifolder="Specular"
+      <input name="specular_roughness" type="float" value="0.2" uimin="0.0" uimax="1.0" uiname="Specular Roughness" uifolder="Specular"
             doc="The roughness of the specular reflection. Lower numbers produce sharper reflections, higher numbers produce blurrier reflections." />
       <input name="specular_IOR" type="float" value="1.5" uimin="0.0" uisoftmax="3.0" uiname="Index of Refraction" uifolder="Specular"
             doc="Index of refraction for specular reflection." />
