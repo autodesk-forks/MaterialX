@@ -622,7 +622,7 @@ bool NodeGraph::validate(string* message) const
 {
     bool res = true;
 
-    validateRequire(!hasVersionString(), res, message, "NodeGraph has a invalid version string: " + getVersionString());
+    validateRequire(!hasVersionString(), res, message, "NodeGraph has an invalid version string: " + getVersionString());
     if (hasNodeDefString())
     {
         NodeDefPtr nodeDef = getNodeDef();
