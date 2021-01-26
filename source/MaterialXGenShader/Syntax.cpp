@@ -303,7 +303,7 @@ void Syntax::makeIdentifier(string& name, IdentifierMap& identifiers) const
     if (it != identifiers.end())
     {
         // Name is not unique so append the counter and keep
-        // increamanting until a unique name is found.
+        // incrementing until a unique name is found.
         string name2;
         do {
             name2 = name + std::to_string(it->second++);
