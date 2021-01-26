@@ -1216,6 +1216,32 @@ void Document::upgradeVersion()
             {
                 node->setCategory(SUBSURFACE_BRDF.second);
             }
+            else
+            {
+                // Handle change in artistic_ior ior output type
+                if (nodeCategory == ARTISTIC_IOR)
+                {
+                    OutputPtr iorOutput = node->getOutput(IOR);
+                    if (iorOutput)
+                    {
+                        iorOutput->setType(COLOR3);
+                    }
+                }
+                else
+                {
+                    for (auto input : node->getInputs())
+                    {
+                        if (input->getOutputString() == IOR)
+                        {
+                            NodePtr connectedNode = input->getConnectedNode();
+                            if (connectedNode && (connectedNode->getCategory() == ARTISTIC_IOR))
+                            {
+                                input->setType(COLOR3);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         // Make it so that interface names and nodes in a nodegraph are not duplicates

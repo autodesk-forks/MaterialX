@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<materialx version="1.37">
+  <artistic_ior name="artistic_ior" type="multioutput" >
+    <output name="ior" type="vector3" />
+    <output name="extinction" type="color3" />
+  </artistic_ior>
+  <extract name="extract" type="float" >
+    <input name="in" type="vector3" nodename="artistic_ior" output="ior" />
+  </extract>
+  <standard_surface name="standard_surface" type="surfaceshader" version="1.0.1" >
+    <input name="specular_IOR" type="float" nodename="extract" />
+  </standard_surface>
+  <surfacematerial name="surfacematerial" type="material" >
+    <input name="surfaceshader" type="surfaceshader" nodename="standard_surface" />
+    <input name="displacementshader" type="displacementshader" value="" />
+  </surfacematerial>
+</materialx>
