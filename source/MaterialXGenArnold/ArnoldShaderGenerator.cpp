@@ -22,7 +22,7 @@ ArnoldShaderGenerator::ArnoldShaderGenerator()
     _syntax->registerReservedWords(reservedWords);
 
     // <!-- <dielectric_brdf> -->
-    registerImplementation("IM_dielectric_brdf_" + ArnoldShaderGenerator::TARGET, ThinFilmSupport::create);
+    registerImplementation("IM_dielectric_brdf_" + ArnoldShaderGenerator::TARGET, ThinFilmNode::create);
 }
 
 }
