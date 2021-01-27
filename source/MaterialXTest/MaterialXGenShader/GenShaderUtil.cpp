@@ -48,6 +48,11 @@ bool getShaderSource(mx::GenContext& context,
 {
     if (implementation)
     {
+        const std::string SOURCE_CODE_STRING("sourcecode");
+        if (!implementation->getAttribute(SOURCE_CODE_STRING).empty())
+        {
+            return true;
+        }
         sourcePath = implementation->getFile();
         resolvedPath = context.resolveSourceFile(sourcePath);
         sourceContents = mx::readFile(resolvedPath.asString());

@@ -83,7 +83,7 @@ TEST_CASE("GenShader: MDL Syntax", "[genmdl]")
     REQUIRE(value == "int[](1, 2, 3, 4, 5, 6, 7)");
 }
 
-/*
+
 TEST_CASE("GenShader: MDL Implementation Check", "[genmdl]")
 {
     mx::GenContext context(mx::MdlShaderGenerator::create());
@@ -95,7 +95,7 @@ TEST_CASE("GenShader: MDL Implementation Check", "[genmdl]")
     GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs, 65);
 }
 
-
+/*
 TEST_CASE("GenShader: MDL Unique Names", "[genmdl]")
 {
     mx::GenContext context(mx::MdlShaderGenerator::create());
