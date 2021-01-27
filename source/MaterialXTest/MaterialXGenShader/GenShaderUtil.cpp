@@ -43,19 +43,21 @@ namespace
 bool getShaderSource(mx::GenContext& context,
                     const mx::ImplementationPtr implementation,
                     mx::FilePath& sourcePath,
-                    mx::FilePath& resolvedPath,
+                    std::string& resolvedSource,
                     std::string& sourceContents)
 {
     if (implementation)
     {
         const std::string SOURCE_CODE_STRING("sourcecode");
-        if (!implementation->getAttribute(SOURCE_CODE_STRING).empty())
+        resolvedSource = implementation->getAttribute(SOURCE_CODE_STRING);
+        if (!resolvedSource.empty())
         {
             return true;
         }
         sourcePath = implementation->getFile();
-        resolvedPath = context.resolveSourceFile(sourcePath);
-        sourceContents = mx::readFile(resolvedPath.asString());
+        mx::FilePath resolvedPath = context.resolveSourceFile(sourcePath);
+        sourceContents = mx::readFile(resolvedPath);
+        resolvedSource = resolvedPath.asString();
         return !sourceContents.empty();
     }
     return false;
@@ -240,9 +242,10 @@ void checkImplementations(mx::GenContext& context,
                 // Check for an implementation explicitly stored
                 else
                 {
-                    mx::FilePath sourcePath, resolvedPath;
+                    mx::FilePath sourcePath;
+                    std::string resolvedSource;
                     std::string contents;
-                    if (!getShaderSource(context, impl, sourcePath, resolvedPath, contents))
+                    if (!getShaderSource(context, impl, sourcePath, resolvedSource, contents))
                     {
                         missing++;
                         missing_str += "Missing source code: " + sourcePath.asString() + " for nodedef: "
@@ -251,7 +254,7 @@ void checkImplementations(mx::GenContext& context,
                     else
                     {
                         found_str += "Found impl and src for nodedef: " + nodeDefName + ", Node: "
-                            + nodeName + +". Impl: " + impl->getName() + ". Path: " + resolvedPath.asString() + ".\n";
+                            + nodeName + +". Impl: " + impl->getName() + ". Source: " + resolvedSource + ".\n";
                     }
                 }
             }
