@@ -1340,12 +1340,7 @@ void Document::upgradeVersion()
                     InputPtr input = updateChildSubclass<Input>(interface, param);
                     if (interface->isA<NodeDef>())
                     {
-                        // Only strings and filename types should be set as uniforms.
-                        const string& inputType = input->getType();
-                        if (inputType == FILENAME_TYPE_STRING || inputType == STRING_TYPE_STRING)
-                        {
-                            input->setIsUniform(true);
-                        }
+                        input->setIsUniform(true);
                     }
                 }
             }
