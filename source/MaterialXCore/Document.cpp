@@ -911,7 +911,7 @@ void Document::upgradeVersion()
 
                 // Add the shader node.
                 string shaderNodeName = createValidChildName(shaderRef->getName());
-                string shaderNodeCategory = shaderRef->getAttribute("node");
+                string shaderNodeCategory = shaderRef->getAttribute(NodeDef::NODE_ATTRIBUTE);
                 NodePtr shaderNode = addNode(shaderNodeCategory, shaderNodeName, shaderNodeType);
                 shaderNode->setSourceUri(shaderRef->getSourceUri());
 
@@ -1331,20 +1331,41 @@ void Document::upgradeVersion()
         }   
 
         // Convert parameters to inputs, applying uniform markings as needed.
-        for (ElementPtr interface : traverseTree())
+        const StringSet frameOffsetNodes = { "image", "tiledimage" };
+        const string FRAME_OFFSET_STRING = "frameoffset";
+        const StringSet indexNodes = { "texcoord", "geomcolor", "extract",  "tangent", "bitangent", "triplanarprojection" };
+        const string INDEX_STRING = "index";
+        for (ElementPtr elementPtr : traverseTree())
         {
-            if (interface->isA<InterfaceElement>())
+            if (elementPtr->isA<InterfaceElement>())
             {
-                for (ElementPtr param : interface->getChildrenOfType<Element>("parameter"))
+                const string& nodeString = elementPtr->getAttribute(NodeDef::NODE_ATTRIBUTE);
+                for (ElementPtr param : elementPtr->getChildrenOfType<Element>("parameter"))
                 {
-                    InputPtr input = updateChildSubclass<Input>(interface, param);
-                    if (interface->isA<NodeDef>())
+                    InputPtr input = updateChildSubclass<Input>(elementPtr, param);
+                    if (elementPtr->isA<NodeDef>())
                     {
-                        // Only strings and filename types should be set as uniforms.
+                        // Strings and filename types should always be uniforms.
                         const string& inputType = input->getType();
                         if (inputType == FILENAME_TYPE_STRING || inputType == STRING_TYPE_STRING)
                         {
                             input->setIsUniform(true);
+                        }
+                        // Some integer inputs should be set as uniforms
+                        else if (inputType == "integer")
+                        {
+                            if (input->getName() == FRAME_OFFSET_STRING && frameOffsetNodes.count(nodeString))
+                            {
+                                input->setIsUniform(true);
+                            }
+                            else if (input->getName() == INDEX_STRING && indexNodes.count(nodeString))
+                            {
+                                input->setIsUniform(true);
+                            }
+                            else if (input->getName() == "default" && nodeString == "geompropvalue")
+                            {
+                                input->setIsUniform(true);
+                            }
                         }
                     }
                 }
