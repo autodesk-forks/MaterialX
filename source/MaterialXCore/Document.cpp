@@ -1035,6 +1035,9 @@ void Document::upgradeVersion()
         const string IOR = "ior";
         const string EXTINCTION = "extinction";
         const string COLOR3 = "color3";
+        const string VECTOR3 = "vector3";
+        const string CONVERT = "convert";
+        const string IN = "in";
 
         // Function for upgrading BSDF nodedef.
         auto upgradeBsdfNodeDef = [SCATTER_MODE](NodeDefPtr nodedef, const string& newCategory, bool addScatterMode = false)
@@ -1098,6 +1101,9 @@ void Document::upgradeVersion()
                 dest->setAttribute(attr, src->getAttribute(attr));
             }
         };
+
+        // Storage for inputs found connected downstream from artistic_ior node.
+        vector<InputPtr> artisticIorConnections, artisticExtConnections;
 
         // Update all nodes.
         for (ElementPtr elem : traverseTree())
@@ -1216,32 +1222,70 @@ void Document::upgradeVersion()
             {
                 node->setCategory(SUBSURFACE_BRDF.second);
             }
-            else
+            else if(nodeCategory == ARTISTIC_IOR)
             {
-                // Handle change in artistic_ior ior output type
-                if (nodeCategory == ARTISTIC_IOR)
+                OutputPtr ior = node->getOutput(IOR);
+                if (ior)
                 {
-                    OutputPtr iorOutput = node->getOutput(IOR);
-                    if (iorOutput)
+                    ior->setType(COLOR3);
+                }
+                OutputPtr extinction = node->getOutput(EXTINCTION);
+                if (extinction)
+                {
+                    extinction->setType(COLOR3);
+                }
+            }
+
+            // Search for connections to artistic_ior with vector3 type.
+            // If found we must insert a conversion node color3->vector3
+            // since the outputs of artistic_ior is now color3.
+            // Save the inputs here and insert the conversion nodes below,
+            // since we can't modify the graph while traversing it.
+            for (auto input : node->getInputs())
+            {
+                if (input->getOutputString() == IOR && input->getType() == VECTOR3)
+                {
+                    NodePtr connectedNode = input->getConnectedNode();
+                    if (connectedNode && connectedNode->getCategory() == ARTISTIC_IOR)
                     {
-                        iorOutput->setType(COLOR3);
+                        artisticIorConnections.push_back(input);
                     }
                 }
-                else
+                else if (input->getOutputString() == EXTINCTION && input->getType() == VECTOR3)
                 {
-                    for (auto input : node->getInputs())
+                    NodePtr connectedNode = input->getConnectedNode();
+                    if (connectedNode && connectedNode->getCategory() == ARTISTIC_IOR)
                     {
-                        if (input->getOutputString() == IOR)
-                        {
-                            NodePtr connectedNode = input->getConnectedNode();
-                            if (connectedNode && (connectedNode->getCategory() == ARTISTIC_IOR))
-                            {
-                                input->setType(COLOR3);
-                            }
-                        }
+                        artisticExtConnections.push_back(input);
                     }
                 }
             }
+        }
+
+        // Insert conversion nodes for artistic_ior connections found above.
+        for (InputPtr input : artisticIorConnections)
+        {
+            NodePtr artisticIorNode = input->getConnectedNode();
+            ElementPtr node = input->getParent();
+            GraphElementPtr parent = node->getParent()->asA<GraphElement>();
+            NodePtr convert = parent->addNode(CONVERT, node->getName() + "__convert_ior", VECTOR3);
+            InputPtr convertInput = convert->addInput(IN, COLOR3);
+            convertInput->setNodeName(artisticIorNode->getName());
+            convertInput->setOutputString(IOR);
+            input->setNodeName(convert->getName());
+            input->removeAttribute(PortElement::OUTPUT_ATTRIBUTE);
+        }
+        for (InputPtr input : artisticExtConnections)
+        {
+            NodePtr artisticIorNode = input->getConnectedNode();
+            ElementPtr node = input->getParent();
+            GraphElementPtr parent = node->getParent()->asA<GraphElement>();
+            NodePtr convert = parent->addNode(CONVERT, node->getName() + "__convert_extinction", VECTOR3);
+            InputPtr convertInput = convert->addInput(IN, COLOR3);
+            convertInput->setNodeName(artisticIorNode->getName());
+            convertInput->setOutputString(EXTINCTION);
+            input->setNodeName(convert->getName());
+            input->removeAttribute(PortElement::OUTPUT_ATTRIBUTE);
         }
 
         // Make it so that interface names and nodes in a nodegraph are not duplicates
