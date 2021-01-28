@@ -23,7 +23,8 @@ namespace mx = MaterialX;
 namespace GenShaderUtil
 {
 
-const std::string LAYOUT_SUFFIX = "_layout";
+const std::string LAYOUT_SUFFIX("_layout");
+const std::string SOURCE_CODE_STRING("sourcecode");
 
 namespace
 {
@@ -48,7 +49,6 @@ bool getShaderSource(mx::GenContext& context,
 {
     if (implementation)
     {
-        const std::string SOURCE_CODE_STRING("sourcecode");
         resolvedSource = implementation->getAttribute(SOURCE_CODE_STRING);
         if (!resolvedSource.empty())
         {
