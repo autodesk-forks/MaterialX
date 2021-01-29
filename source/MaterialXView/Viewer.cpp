@@ -1266,6 +1266,14 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
             }
         }
     }
+    catch (mx::ExceptionShaderRenderError& e)
+    {
+        for (const std::string& error : e.errorLog())
+        {
+            std::cerr << error << std::endl;
+        }
+        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Shader generation error", e.what());
+    }
     catch (std::exception& e)
     {
         new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to load material", e.what());
@@ -1287,11 +1295,22 @@ void Viewer::reloadShaders()
         {
             material->generateShader(_genContext);
         }
+        return;
+    }
+    catch (mx::ExceptionShaderRenderError& e)
+    {
+        for (const std::string& error : e.errorLog())
+        {
+            std::cerr << error << std::endl;
+        }
+        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Shader generation error", e.what());
     }
     catch (std::exception& e)
     {
-        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Shader Generation Error", e.what());
+        new ng::MessageDialog(this, ng::MessageDialog::Type::Warning, "Failed to reload shaders", e.what());
     }
+
+    _materials.clear();
 }
 
 void Viewer::saveShaderSource(mx::GenContext& context)
