@@ -1129,7 +1129,7 @@ export color4 mx_geomcolor_color4(
 
 export int mx_geompropvalue_integer(
 	uniform string mxp_geomprop = string("") [[ anno::unused() ]],
-	uniform int mxp_default = int(0) [[ anno::unused() ]]
+	int mxp_default = int(0) [[ anno::unused() ]]
 )
 	[[
 		anno::description("Node Group: geometric")
@@ -1142,7 +1142,7 @@ export int mx_geompropvalue_integer(
 
 export bool mx_geompropvalue_boolean(
 	uniform string mxp_geomprop = string("") [[ anno::unused() ]],
-	uniform bool mxp_default = bool(false) [[ anno::unused() ]]
+	bool mxp_default = bool(false) [[ anno::unused() ]]
 )
 	[[
 		anno::description("Node Group: geometric")
@@ -1155,7 +1155,7 @@ export bool mx_geompropvalue_boolean(
 
 export string mx_geompropvalue_string(
 	uniform string mxp_geomprop = string("") [[ anno::unused() ]],
-	uniform string mxp_default = string("") [[ anno::unused() ]]
+	string mxp_default = string("") [[ anno::unused() ]]
 )
 	[[
 		anno::description("Node Group: geometric")
@@ -1168,7 +1168,7 @@ export string mx_geompropvalue_string(
 
 export float mx_geompropvalue_float(
 	uniform string mxp_geomprop = string("") [[ anno::unused() ]],
-	uniform float mxp_default = float(0.0) [[ anno::unused() ]]
+	float mxp_default = float(0.0) [[ anno::unused() ]]
 )
 	[[
 		anno::description("Node Group: geometric")
@@ -1181,7 +1181,7 @@ export float mx_geompropvalue_float(
 
 export color mx_geompropvalue_color3(
 	uniform string mxp_geomprop = string("") [[ anno::unused() ]],
-	uniform color mxp_default = color(0.0, 0.0, 0.0) [[ anno::unused() ]]
+	color mxp_default = color(0.0, 0.0, 0.0) [[ anno::unused() ]]
 )
 	[[
 		anno::description("Node Group: geometric")
@@ -1194,7 +1194,7 @@ export color mx_geompropvalue_color3(
 
 export color4 mx_geompropvalue_color4(
 	uniform string mxp_geomprop = string("") [[ anno::unused() ]],
-	uniform color4 mxp_default = mk_color4(0.0, 0.0, 0.0, 0.0) [[ anno::unused() ]]
+	color4 mxp_default = mk_color4(0.0, 0.0, 0.0, 0.0) [[ anno::unused() ]]
 )
 	[[
 		anno::description("Node Group: geometric")
@@ -1207,7 +1207,7 @@ export color4 mx_geompropvalue_color4(
 
 export float2 mx_geompropvalue_vector2(
 	uniform string mxp_geomprop = string("") [[ anno::unused() ]],
-	uniform float2 mxp_default = float2(0.0, 0.0) [[ anno::unused() ]]
+	float2 mxp_default = float2(0.0, 0.0) [[ anno::unused() ]]
 )
 	[[
 		anno::description("Node Group: geometric")
@@ -1220,7 +1220,7 @@ export float2 mx_geompropvalue_vector2(
 
 export float3 mx_geompropvalue_vector3(
 	uniform string mxp_geomprop = string("") [[ anno::unused() ]],
-	uniform float3 mxp_default = float3(0.0, 0.0, 0.0) [[ anno::unused() ]]
+	float3 mxp_default = float3(0.0, 0.0, 0.0) [[ anno::unused() ]]
 )
 	[[
 		anno::description("Node Group: geometric")
@@ -1233,7 +1233,7 @@ export float3 mx_geompropvalue_vector3(
 
 export float4 mx_geompropvalue_vector4(
 	uniform string mxp_geomprop = string("") [[ anno::unused() ]],
-	uniform float4 mxp_default = float4(0.0, 0.0, 0.0, 0.0) [[ anno::unused() ]]
+	float4 mxp_default = float4(0.0, 0.0, 0.0, 0.0) [[ anno::unused() ]]
 )
 	[[
 		anno::description("Node Group: geometric")
@@ -1245,12 +1245,12 @@ export float4 mx_geompropvalue_vector4(
 }
 
 export float mx_ambientocclusion_float(
-	uniform float mxp_coneangle = float(90.0) 
+	float mxp_coneangle = float(90.0) 
 	[[
 		anno::description("Unit Type:angle. Unit:degrees."),
         anno::unused()
 	]],
-	uniform float mxp_maxdistance = float(1e38) [[ anno::unused() ]]
+	float mxp_maxdistance = float(1e38) [[ anno::unused() ]]
 )
 	[[
 		anno::description("Node Group: global")
@@ -1443,7 +1443,7 @@ export color4 mx_modulo_color4FA(
 
 export color4 mx_invert_color4(
 	color4 mxp_in = mk_color4(0.0, 0.0, 0.0, 0.0),
-	uniform color4 mxp_amount = mk_color4(1.0, 1.0, 1.0, 1.0)
+	color4 mxp_amount = mk_color4(1.0, 1.0, 1.0, 1.0)
 )
 	[[
 		anno::description("Node Group: math")
@@ -1454,7 +1454,7 @@ export color4 mx_invert_color4(
 
 export color4 mx_invert_color4FA(
 	color4 mxp_in = mk_color4(0.0, 0.0, 0.0, 0.0),
-	uniform float mxp_amount = float(1.0)
+	float mxp_amount = float(1.0)
 )
 	[[
 		anno::description("Node Group: math")
@@ -1921,8 +1921,8 @@ export color4 mx_sign_color4(
 
 export color4 mx_clamp_color4(
 	color4 mxp_in = mk_color4(0.0, 0.0, 0.0, 0.0),
-	uniform color4 mxp_low = mk_color4(0.0, 0.0, 0.0, 0.0),
-	uniform color4 mxp_high = mk_color4(1.0, 1.0, 1.0, 1.0)
+	color4 mxp_low = mk_color4(0.0, 0.0, 0.0, 0.0),
+	color4 mxp_high = mk_color4(1.0, 1.0, 1.0, 1.0)
 )
 	[[
 		anno::description("Node Group: math")
@@ -1933,8 +1933,8 @@ export color4 mx_clamp_color4(
 
 export color4 mx_clamp_color4FA(
 	color4 mxp_in = mk_color4(0.0, 0.0, 0.0, 0.0),
-	uniform float mxp_low = float(0.0),
-	uniform float mxp_high = float(1.0)
+	float mxp_low = float(0.0),
+	float mxp_high = float(1.0)
 )
 	[[
 		anno::description("Node Group: math")
