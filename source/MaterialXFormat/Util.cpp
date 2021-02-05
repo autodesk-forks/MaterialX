@@ -148,7 +148,7 @@ void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath, StringR
         }
 
         FilePath unresolvedValue(valueElem->getValueString());
-        if (unresolvedValue.asString().empty())
+        if (unresolvedValue.isEmpty())
         {
             continue;
         }
