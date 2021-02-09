@@ -162,7 +162,7 @@ void TextureBaker::optimizeBakedTextures(NodePtr shader)
         return;
     }
 
-    // Early exist if not optimizing		
+    // Early out if not optimizing		
     if (!_optimizeConstants)
     {
         _bakedConstantMap.clear();
