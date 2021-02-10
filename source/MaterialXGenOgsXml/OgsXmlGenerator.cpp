@@ -115,7 +115,6 @@ namespace
     const pugi::char_t* IMPLEMENTATION("implementation");
     const pugi::char_t* INDENTATION("  ");
     const pugi::char_t* IRRADIANCEENV("IrradianceEnv");
-    const pugi::char_t* ISBACKFACING("isBackFacing");
     const pugi::char_t* LANGUAGE("language");
     const pugi::char_t* LANGUAGE_VERSION("lang_version");
     const pugi::char_t* LIGHTLOOPRESULT("lightLoopResult");
@@ -123,9 +122,6 @@ namespace
     const pugi::char_t* LIGHT_ACCUM("maya16LightAccum");
     const pugi::char_t* LIGHT_BUILDER("materialXLightDataBuilder");
     const pugi::char_t* LIGHT_SELECTOR("mayaLightSelector16");
-    const pugi::char_t* MAYAFLOAT3PASSTRHOUGH("mayafloat3PassThrough");
-    const pugi::char_t* MAYAISBACKFACING("mayaIsBackFacing");
-    const pugi::char_t* MAYANORMALFLIP("mayaNormalFlip");
     const pugi::char_t* NAME("name");
     const pugi::char_t* OGS_RENDER("OGSRenderer");
     const pugi::char_t* OUTPUTS("outputs");
