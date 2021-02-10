@@ -152,7 +152,7 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
         GLFrameBufferPtr framebuffer = getFrameBuffer();
         unsigned int bakedTextureHeight = 0;
         unsigned int bakedTextureWidth = 0;
-        bool resizeFrameBuffer = false;
+        bool requiresResize = false;
         // Prefetch all required images and query thier dimensions. 
         // Since Images are cached by ImageHandler, they will be reused during bindTextures
         const GlslProgram::InputMap& uniformList = program->getUniformsList();
@@ -173,18 +173,19 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
                         const unsigned int imageWidth = image->getWidth();
                         bakedTextureHeight = imageHeight > bakedTextureHeight ? imageHeight : bakedTextureHeight;
                         bakedTextureWidth = imageWidth > bakedTextureWidth ? imageWidth : bakedTextureWidth;
-                        resizeFrameBuffer = true;
+                        requiresResize = true;
                     }
                 }
             }
         }
 
-        if (resizeFrameBuffer)
+        if (requiresResize)
         {
             framebuffer->resize(bakedTextureWidth, bakedTextureHeight);
         }
         else
         {
+            // Ensure that original size is restored.
             framebuffer->resize(_width, _height);
         }
     }
