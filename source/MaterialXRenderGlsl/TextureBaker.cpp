@@ -4,6 +4,7 @@
 //
 
 #include <MaterialXRenderGlsl/TextureBaker.h>
+#include <MaterialXRenderGlsl/External/GLew/glew.h>
 
 #include <MaterialXRender/OiioImageLoader.h>
 #include <MaterialXRender/StbImageLoader.h>
@@ -64,6 +65,7 @@ TextureBaker::TextureBaker(unsigned int width, unsigned int height, Image::BaseT
     _bakedGraphName("NG_baked"),
     _bakedGeomInfoName("GI_baked"),
     _outputStream(&std::cout),
+    _autoTextureResolution(false),
     _generator(GlslShaderGenerator::create())
 {
     if (baseType == Image::BaseType::UINT8)
@@ -154,6 +156,51 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
     baked.image = captureImage();
     baked.filename = texturefilepath;
     _bakedImageMap[output].push_back(baked);
+}
+
+
+void TextureBaker::renderTextureSpace()
+{
+    GlslProgramPtr program = getProgram();
+    GLFrameBufferPtr framebuffer = getFrameBuffer();
+    unsigned int bakedTextureHeight = _height;
+    unsigned int bakedTextureWidth = _width;
+
+    if (_autoTextureResolution)
+	{
+		// Prefetch all required images and query thier dimensions. 
+		// Since Images are cached by ImageHandler, they will be reused during bindTextures
+		const GlslProgram::InputMap& uniformList = program->getUniformsList();
+		for (const auto& uniform : uniformList)
+		{
+			GLenum uniformType = uniform.second->gltype;
+			GLint uniformLocation = uniform.second->location;
+			if (uniformLocation >= 0 && uniformType >= GL_SAMPLER_1D && uniformType <= GL_SAMPLER_CUBE)
+			{
+				const string fileName(uniform.second->value ? uniform.second->value->getValueString() : "");
+				if (fileName != HW::ENV_RADIANCE &&
+					fileName != HW::ENV_IRRADIANCE)
+				{
+					ImagePtr image = _imageHandler->acquireImage(fileName);
+					if (image)
+					{
+						const unsigned int imageHeight = image->getHeight();
+						const unsigned int imageWidth = image->getWidth();
+						bakedTextureHeight = imageHeight > bakedTextureHeight ? imageHeight : bakedTextureHeight;
+						bakedTextureWidth = imageWidth > bakedTextureWidth ? imageWidth : bakedTextureWidth;
+					}
+				}
+			}
+		}
+	}
+
+    program->bind();
+    framebuffer->resize(bakedTextureWidth, bakedTextureHeight);
+    framebuffer->bind();
+    program->bindTextures(_imageHandler);
+    drawScreenSpaceQuad();
+    framebuffer->unbind();
+    program->unbind();
 }
 
 void TextureBaker::optimizeBakedTextures(NodePtr shader)

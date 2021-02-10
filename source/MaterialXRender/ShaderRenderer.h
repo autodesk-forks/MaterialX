@@ -109,6 +109,9 @@ class ShaderRenderer
     /// Render the current program to produce an image
     virtual void render() = 0;
 
+    /// Render the current program in texture space to an off-screen buffer.
+    virtual void renderTextureSpace() = 0;
+
     /// @}
     /// @name Utilities
     /// @{

@@ -85,6 +85,12 @@ class OslRenderer : public ShaderRenderer
     /// ensure that the appropriate .oso files can be located.
     void render() override;
 
+    /// Render the current program in texture space to an off-screen buffer.
+    void renderTextureSpace() override
+    {
+        render();
+    }
+
     /// @}
     /// @name Utilities
     /// @{
