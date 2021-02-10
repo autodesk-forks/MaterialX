@@ -195,9 +195,6 @@ class TextureBaker : public GlslRenderer
     /// then the given output filename will be used as a template.
     void bakeAllMaterials(DocumentPtr doc, const FileSearchPath& imageSearchPath, const FilePath& outputFileName);
 
-    /// Render the current program in texture space to an off-screen buffer and optionally adjust framebuffer size
-    //void renderTextureSpace() override;
-
   protected:
     TextureBaker(unsigned int width, unsigned int height, Image::BaseType baseType);
 
