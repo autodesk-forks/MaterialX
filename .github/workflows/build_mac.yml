@@ -1,4 +1,4 @@
-name: main
+name: build_mac
 
 on:
   push:
