@@ -19,20 +19,49 @@ namespace Stage
 
 namespace
 {
-    // Extremely minimal environment lighting from Maya samplers. To be
-    // improved.
+    // This is the same algorithm as found in libraries\pbrlib\genglsl\lib\mx_environment_prefilter.glsl
+    // but adjusted for Maya. At this time we will compute a roughness based on the radiance and
+    // irradiance samples, so materials with small amount of roughness will look wrong.
+    //
+    // A more precise roughness computation can be done using Maya samplers, but this requires
+    // knowing that the Maya sampling functions are there, otherwise compilation will fail unless
+    // there is an IBL active in the Maya lighting.
+    //
+    // **Maya does not currently declare the list of defines you see below** so do not expect correct
+    // environment at this point in time.
     const string MX_ENVIRONMENT_MAYA =
         "#include \"pbrlib/genglsl/lib/mx_microfacet_specular.glsl\"\r\n"
         "vec3 mx_environment_irradiance(vec3 N)\r\n"
         "{\r\n"
         "    return g_diffuseI;\r\n"
         "}\r\n"
+        "#ifdef MAYA_HAS_mayaRoughnessToPhongExp\r\n"
+        "#ifdef MAYA_HAS_adjustGain\r\n"
+        "#ifdef MAYA_HAS_SampleLatLongReflect\r\n"
+        "#ifdef MAYA_HAS_SampleLatLongVolumeReflect\r\n"
+        "#ifdef MAYA_HAS_blendGlossyAndRadianceEnvironment\r\n"
+        "#define MATERIALX_USE_MAYA_SAMPLERS\r\n"
+        "#endif\r\n"
+        "#endif\r\n"
+        "#endif\r\n"
+        "#endif\r\n"
+        "#endif\r\n"
         "vec3 mx_environment_radiance(vec3 N, vec3 V, vec3 X, vec2 roughness, int distribution, FresnelData fd)\r\n"
         "{\r\n"
-        "    float NdotV = clamp(dot(-N, V), M_FLOAT_EPS, 1.0);\r\n"
+        "    float NdotV = clamp(dot(N, V), M_FLOAT_EPS, 1.0);\r\n"
         "    float avgRoughness = mx_average_roughness(roughness);\r\n"
-        "    vec3 dirAlbedo = mx_ggx_directional_albedo(NdotV, avgRoughness, fd.ior, fd.extinction);\r\n"
-        "    return mix(g_specularI, g_diffuseI, avgRoughness) * dirAlbedo;\r\n"
+        "    vec3 F = mx_compute_fresnel(NdotV, fd);\r\n"
+        "    float G = mx_ggx_smith_G(NdotV, NdotV, avgRoughness);\r\n"
+        "    vec3 comp = mx_ggx_energy_compensation(NdotV, avgRoughness, F);\r\n"
+        "#ifdef MATERIALX_USE_MAYA_SAMPLERS\r\n"
+        "    float phongExp = mayaRoughnessToPhongExp(sqrt(avgRoughness));\r\n"
+        "    vec3 radiance = adjustGain(SampleLatLongReflect(radiance_samp, radiance_transform, radiance_reflectionCoeff, V, N), radiance_gain);\r\n"
+        "    vec3 glossy = adjustGain( SampleLatLongVolumeReflect(glossy_samp, glossy_transform, glossy_reflectionCoeff, V, N, phongExp, minExponent, maxExponent, exponentCount), glossy_gain);\r\n"
+        "    vec3 Li = blendGlossyAndRadianceEnvironment(phongExp, maxExponent, glossy, radiance);\r\n"
+        "#else\r\n"
+        "    vec3 Li = mix(g_specularI, g_diffuseI, avgRoughness);\r\n"
+        "#endif\r\n"
+        "    return Li * F * G * comp;\r\n"
         "}\r\n";
 
     // Lighting support found in the materialXLightDataBuilder fragment found in
@@ -94,9 +123,7 @@ ShaderPtr GlslFragmentGenerator::createShader(const string& name, ElementPtr ele
     ShaderStage& pixelStage = shader->getStage(Stage::PIXEL);
 
     // Add uniforms for environment lighting.
-    bool lighting = graph.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE) ||
-                    graph.hasClassification(ShaderNode::Classification::BSDF);
-    if (lighting)
+    if (requiresLighting(graph))
     {
         VariableBlock& psPrivateUniforms = pixelStage.getUniformBlock(HW::PUBLIC_UNIFORMS);
         psPrivateUniforms.add(Type::COLOR3, LIGHT_LOOP_RESULT, Value::createValue(Color3(0.0f, 0.0f, 0.0f)));
@@ -168,8 +195,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
         emitLineBreak(pixelStage);
     }
 
-    const bool lighting = graph.hasClassification(ShaderNode::Classification::SHADER | ShaderNode::Classification::SURFACE)
-        || graph.hasClassification(ShaderNode::Classification::BSDF);
+    const bool lighting = requiresLighting(graph);
 
     // Emit common math functions
     emitInclude("pbrlib/genglsl/lib/mx_math.glsl", context, pixelStage);
