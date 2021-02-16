@@ -492,7 +492,7 @@ void ShaderGeneratorTester::setupDependentLibraries()
 
     // Load the standard libraries.
     const mx::FilePathVec libraries = { "targets", "adsk", "stdlib", "pbrlib", "lights" };
-    loadLibraries(libraries, _libSearchPath, _dependLib, _skipLibraryFiles);
+    loadLibraries(libraries, _libSearchPath, _dependLib, &_skipLibraryFiles);
 
     // Load shader definitions used in the test suite.
     loadLibrary(mx::FilePath("bxdf/standard_surface.mtlx"), _dependLib, _libSearchPath);
@@ -617,11 +617,10 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
     // Load in all documents to test
     mx::StringVec errorLog;
     mx::FileSearchPath searchPath(_libSearchPath);
-    mx::XmlReadOptions readOptions;
     for (const auto& testRoot : _testRootPaths)
     {
         mx::loadDocuments(testRoot, searchPath, _skipFiles, overrideFiles, _documents, _documentPaths, 
-                          readOptions, errorLog);
+                          nullptr, &errorLog);
     }
     CHECK(errorLog.empty());
     for (const auto& error : errorLog)
