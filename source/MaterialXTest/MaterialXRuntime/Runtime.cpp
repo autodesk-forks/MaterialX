@@ -34,6 +34,7 @@
 
 #include <MaterialXRuntime/Commands/PrimCommands.h>
 #include <MaterialXRuntime/Commands/AttributeCommands.h>
+#include <MaterialXRuntime/Commands/MetadataCommands.h>
 #include <MaterialXRuntime/Commands/RelationshipCommands.h>
 #include <MaterialXRuntime/Commands/UndoCommands.h>
 
@@ -2296,6 +2297,63 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     mx::RtCommandResult unknownResult;
     mx::RtCommand::createPrim(stage, mx::RtToken("unknown"), mx::RtPath("/"), mx::EMPTY_TOKEN, unknownResult);
     REQUIRE(!unknownResult);
+
+	//
+	// Test setting metadata
+	//
+	mx::RtCommandResult metadataResult;
+	mx::RtToken metadata("metadata");
+	std::string metadataValue("some_value");
+	mx::RtCommand::setMetadataFromString(foo, metadata, metadataValue, metadataResult);
+	REQUIRE(metadataResult);
+	REQUIRE(foo.getMetadata(metadata));
+	REQUIRE(foo.getMetadata(metadata)->getValue().asToken() == metadataValue);
+
+	mx::RtCommand::undo(result);
+	REQUIRE(result);
+	REQUIRE(!foo.getMetadata(metadata));
+
+	mx::RtCommand::redo(result);
+	REQUIRE(result);
+	REQUIRE(foo.getMetadata(metadata));
+	REQUIRE(foo.getMetadata(metadata)->getValue().asToken() == metadataValue);
+
+	//
+	// Test changing metadata value
+	//
+	std::string metadataValue2("some_value2");
+	mx::RtCommand::setMetadataFromString(foo, metadata, metadataValue2, metadataResult);
+	REQUIRE(metadataResult);
+	REQUIRE(foo.getMetadata(metadata));
+	REQUIRE(foo.getMetadata(metadata)->getValueString() == metadataValue2);
+
+	mx::RtCommand::undo(result);
+	REQUIRE(result);
+	REQUIRE(foo.getMetadata(metadata));
+	REQUIRE(foo.getMetadata(metadata)->getValueString() == metadataValue);
+
+	mx::RtCommand::redo(result);
+	REQUIRE(result);
+	REQUIRE(foo.getMetadata(metadata));
+	REQUIRE(foo.getMetadata(metadata)->getValueString() == metadataValue2);
+
+	mx::RtCommand::undo(result);
+
+	//
+	// Test removing metadata
+	//
+	mx::RtCommand::removeMetadata(foo, metadata, metadataResult);
+	REQUIRE(metadataResult);
+	REQUIRE(!foo.getMetadata(metadata));
+
+	mx::RtCommand::undo(result);
+	REQUIRE(result);
+	REQUIRE(foo.getMetadata(metadata));
+	REQUIRE(foo.getMetadata(metadata)->getValueString() == metadataValue);
+
+	mx::RtCommand::redo(result);
+	REQUIRE(result);
+	REQUIRE(!foo.getMetadata(metadata));
 }
 
 TEST_CASE("Runtime: graph output connection", "[runtime]")
