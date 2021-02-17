@@ -89,6 +89,9 @@ class GlslRenderer : public ShaderRenderer
     /// Save the current contents of the off-screen hardware buffer to disk.
     void saveImage(const FilePath& filePath, ConstImagePtr image, bool verticalFlip) override;
 
+    /// Load images required for shader program and return list of images loaded
+    ImageVec getImageList(const ShaderPtr& shader) override;
+
     /// Return the GL frame buffer.
     GLFrameBufferPtr getFrameBuffer() const
     {

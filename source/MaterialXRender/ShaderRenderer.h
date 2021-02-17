@@ -119,6 +119,8 @@ class ShaderRenderer
     /// Save the current contents of the off-screen hardware buffer to disk.
     virtual void saveImage(const FilePath& filePath, ConstImagePtr image, bool verticalFlip) = 0;
 
+    /// Load images required for shader and return list of images loaded
+    virtual ImageVec getImageList (const ShaderPtr& shader);
     /// @}
 
   protected:
