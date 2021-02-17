@@ -42,7 +42,7 @@ void loadLibrary(const FilePath& file,
 StringSet loadLibraries(const FilePathVec& libraryFolders,
                         const FileSearchPath& searchPath,
                         DocumentPtr doc,
-                        const StringSet* excludeFiles = nullptr,
+                        const StringSet& excludeFiles = StringSet(),
                         const XmlReadOptions* readOptions = nullptr);
 
 /// Flatten all filenames in the given document, applying string resolvers at the

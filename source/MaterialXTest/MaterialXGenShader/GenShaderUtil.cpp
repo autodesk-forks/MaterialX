@@ -492,7 +492,7 @@ void ShaderGeneratorTester::setupDependentLibraries()
 
     // Load the standard libraries.
     const mx::FilePathVec libraries = { "targets", "adsk", "stdlib", "pbrlib", "lights" };
-    loadLibraries(libraries, _libSearchPath, _dependLib, &_skipLibraryFiles);
+    loadLibraries(libraries, _libSearchPath, _dependLib, _skipLibraryFiles);
 
     // Load shader definitions used in the test suite.
     loadLibrary(mx::FilePath("bxdf/standard_surface.mtlx"), _dependLib, _libSearchPath);
