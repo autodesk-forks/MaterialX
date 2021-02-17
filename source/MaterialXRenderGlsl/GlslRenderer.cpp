@@ -316,7 +316,7 @@ void GlslRenderer::saveImage(const FilePath& filePath, ConstImagePtr image, bool
     }
 }
 
-ImageVec GlslRenderer::getImageList(const ShaderPtr& /*shader*/)
+ImageVec GlslRenderer::getReferencedImages(const ShaderPtr& /*shader*/)
 {
     ImageVec imageList;
     const GlslProgram::InputMap& uniformList = _program->getUniformsList();

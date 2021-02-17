@@ -156,7 +156,7 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
 
         // Prefetch all required images and query their dimensions. 
         // Since Images are cached by ImageHandler, they will be reused during bindTextures
-        ImageVec imageList = getImageList(shader);
+        ImageVec imageList = getReferencedImages(shader);
         for (const auto& image : imageList)
         {
             const unsigned int imageHeight = image->getHeight();

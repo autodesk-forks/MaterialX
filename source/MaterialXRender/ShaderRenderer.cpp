@@ -9,7 +9,7 @@
 namespace MaterialX
 {
 
-    ImageVec ShaderRenderer::getImageList(const ShaderPtr& shader)
+    ImageVec ShaderRenderer::getReferencedImages(const ShaderPtr& shader)
     {
         if (!shader && !_imageHandler)
             return {};

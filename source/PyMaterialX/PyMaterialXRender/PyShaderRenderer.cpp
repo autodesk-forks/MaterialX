@@ -95,7 +95,7 @@ void bindPyShaderRenderer(py::module& mod)
         .def("validateInputs", &mx::ShaderRenderer::validateInputs)
         .def("render", &mx::ShaderRenderer::render)
         .def("saveImage", &mx::ShaderRenderer::saveImage)
-        .def("getImageList", &mx::ShaderRenderer::getImageList);
+        .def("getReferencedImages", &mx::ShaderRenderer::getReferencedImages);
 
     static py::exception<mx::ExceptionShaderRenderError> pyExceptionShaderRenderError(mod, "ExceptionShaderRenderError");
 
