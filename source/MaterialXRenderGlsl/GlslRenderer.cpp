@@ -316,7 +316,6 @@ void GlslRenderer::saveImage(const FilePath& filePath, ConstImagePtr image, bool
     }
 }
 
-
 ImageVec GlslRenderer::getImageList(const ShaderPtr& /*shader*/)
 {
     ImageVec imageList;
