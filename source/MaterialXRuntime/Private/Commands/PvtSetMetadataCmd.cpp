@@ -76,6 +76,7 @@ void PvtSetMetadataCmd::undo(RtCommandResult& result)
                 msg().sendRemoveMetadataMessage(_obj, _name);
 
                 _obj.removeMetadata(_name);
+                _metadataCreated = false;
                 result = RtCommandResult(true);
             }
             else
