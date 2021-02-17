@@ -2305,10 +2305,6 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     {
         ++(*reinterpret_cast<size_t*>(userData));
     };
-    auto createMetadataCallback = [](const mx::RtObject&, const mx::RtToken&, const mx::RtValue&, void* userData)
-    {
-        ++(*reinterpret_cast<size_t*>(userData));
-    };
     auto removeMetadataCallback = [](const mx::RtObject&, const mx::RtToken&, void* userData)
     {
         ++(*reinterpret_cast<size_t*>(userData));

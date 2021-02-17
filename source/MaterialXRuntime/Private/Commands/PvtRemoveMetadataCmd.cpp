@@ -32,13 +32,14 @@ void PvtRemoveMetadataCmd::execute(RtCommandResult& result)
     {
         try
         {
-            if (_obj.getMetadata(_name, RtType::STRING))
+            RtTypedValue* md = _obj.getMetadata(_name, RtType::STRING);
+            if (md)
             {
                 // Send message that the metadata is being removed
                 msg().sendRemoveMetadataMessage(_obj, _name);
 
                 // Save old value for undo/redo
-                _oldValue = RtValue::clone(RtType::STRING, _obj.getMetadata(_name, RtType::STRING)->getValue(), _obj.getParent());
+                _oldValue = RtValue::clone(RtType::STRING, md->getValue(), _obj.getParent());
 
                 // Remove the metadata value
                 _obj.removeMetadata(_name);

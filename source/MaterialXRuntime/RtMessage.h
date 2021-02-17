@@ -44,9 +44,6 @@ using RtSetAttributeCallbackFunc = std::function<void(const RtAttribute& attr, c
 /// Function type for callback notifying when a metadata value is set.
 using RtSetMetadataCallbackFunc = std::function<void(const RtObject& obj, const RtToken& name, const RtValue& value, void* userData)>;
 
-/// Function type for callback notifying when a metadata value is created.
-using RtCreateMetadataCallbackFunc = std::function<void(const RtObject& obj, const RtToken& name, const RtValue& value, void* userData)>;
-
 /// Function type for callback notifying when a metadata value is removed.
 using RtRemoveMetadataCallbackFunc = std::function<void(const RtObject& obj, const RtToken& name, void* userData)>;
 
@@ -77,9 +74,6 @@ public:
 
     /// Register a callback to get notified when a metadata value is set.
     static RtCallbackId addSetMetadataCallback(RtSetMetadataCallbackFunc callback, void* userData = nullptr);
-
-    /// Register a callback to get notified when a metadata value is set.
-    static RtCallbackId addCreateMetadataCallback(RtCreateMetadataCallbackFunc callback, void* userData = nullptr);
 
     /// Register a callback to get notified when a metadata value is removed.
     static RtCallbackId addRemoveMetadataCallback(RtRemoveMetadataCallbackFunc callback, void* userData = nullptr);

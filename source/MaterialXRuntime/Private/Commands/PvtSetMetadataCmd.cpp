@@ -85,8 +85,15 @@ void PvtSetMetadataCmd::undo(RtCommandResult& result)
 
                 // Reset the value
                 RtTypedValue* md = _obj.getMetadata(_name, RtType::STRING);
-                md->setValue(_oldValue);
-                result = RtCommandResult(true);
+                if (md)
+                {
+                    md->setValue(_oldValue);
+                    result = RtCommandResult(true);
+                }
+                else
+                {
+                    result = RtCommandResult(false, "Metadata is no longer valid");
+                }
             }
         }
         catch (const ExceptionRuntimeError& e)
