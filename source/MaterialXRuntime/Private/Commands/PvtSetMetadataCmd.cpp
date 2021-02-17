@@ -13,7 +13,7 @@
 namespace MaterialX
 {
 
-PvtSetMetadataCmd::PvtSetMetadataCmd(RtObject& obj, const RtToken& name, const RtValue& value)
+PvtSetMetadataCmd::PvtSetMetadataCmd(const RtObject& obj, const RtToken& name, const RtValue& value)
     : PvtCommand()
     , _obj(obj)
     , _name(name)
@@ -23,7 +23,7 @@ PvtSetMetadataCmd::PvtSetMetadataCmd(RtObject& obj, const RtToken& name, const R
 {
 }
 
-PvtCommandPtr PvtSetMetadataCmd::create(RtObject& obj, const RtToken& name, const RtValue& value)
+PvtCommandPtr PvtSetMetadataCmd::create(const RtObject& obj, const RtToken& name, const RtValue& value)
 {
     return std::make_shared<PvtSetMetadataCmd>(obj, name, value);
 }
@@ -37,27 +37,20 @@ void PvtSetMetadataCmd::execute(RtCommandResult& result)
             // Send message that the metadata is changing
             msg().sendSetMetadataMessage(_obj, _name, _value);
 
+            RtTypedValue* md = _obj.getMetadata(_name, RtType::STRING);
+
             // Do we need to create the metadata or does it already exist?
-            if (!_obj.getMetadata(_name))
+            if (!md)
             {
-                _obj.addMetadata(_name, RtType::STRING);
+                md = _obj.addMetadata(_name, RtType::STRING);
                 _metadataCreated = true;
             }
 
             // Save old value for undo/redo
-            _oldValue = RtValue::clone(RtType::STRING, _obj.getMetadata(_name)->getValue(), _obj.getParent());
+            _oldValue = RtValue::clone(RtType::STRING, md->getValue(), _obj.getParent());
 
-            // Set the metadata value
-            RtTypedValue* md = _obj.getMetadata(_name);
-            if (md)
-            {
-                md->setValue(_value);
-                result = RtCommandResult(true);
-            }
-            else
-            {
-                result = RtCommandResult(false, "Unable to get metadata");
-            }
+            md->setValue(_value);
+            result = RtCommandResult(true);
         }
         catch (const ExceptionRuntimeError& e)
         {
@@ -66,7 +59,7 @@ void PvtSetMetadataCmd::execute(RtCommandResult& result)
     }
     else
     {
-        result = RtCommandResult(false, string("Node to set is no longer valid"));
+        result = RtCommandResult(false, string("Object to set metadata on is no longer valid"));
     }
 }
 
@@ -76,27 +69,24 @@ void PvtSetMetadataCmd::undo(RtCommandResult& result)
     {
         try
         {
-            // Send message that the attribute is changing
-            msg().sendSetMetadataMessage(_obj, _name, _oldValue);
 
             if (_metadataCreated)
             {
+                // Send message that the metadata is being removed
+                msg().sendRemoveMetadataMessage(_obj, _name);
+
                 _obj.removeMetadata(_name);
-				result = RtCommandResult(true);
+                result = RtCommandResult(true);
             }
             else
             {
+                // Send message that the metadata is changing
+                msg().sendSetMetadataMessage(_obj, _name, _oldValue);
+
                 // Reset the value
-                RtTypedValue* md = _obj.getMetadata(_name);
-                if (md)
-                {
-                    md->setValue(_oldValue);
-                    result = RtCommandResult(true);
-                }
-                else
-                {
-                    result = RtCommandResult(false, "Unable to get metadata");
-                }
+                RtTypedValue* md = _obj.getMetadata(_name, RtType::STRING);
+                md->setValue(_oldValue);
+                result = RtCommandResult(true);
             }
         }
         catch (const ExceptionRuntimeError& e)
@@ -106,7 +96,7 @@ void PvtSetMetadataCmd::undo(RtCommandResult& result)
     }
     else
     {
-        result = RtCommandResult(false, string("Attribute to set is no longer valid"));
+        result = RtCommandResult(false, string("Object to set metadata on is no longer valid"));
     }
 }
 
@@ -119,23 +109,17 @@ void PvtSetMetadataCmd::redo(RtCommandResult& result)
             // Send message that the metadata is changing
             msg().sendSetMetadataMessage(_obj, _name, _value);
 
+            RtTypedValue* md = _obj.getMetadata(_name, RtType::STRING);
+
             // Do we need to create the metadata or does it already exist?
-            if (!_obj.getMetadata(_name))
+            if (!md)
             {
-                _obj.addMetadata(_name, RtType::STRING);
+                md = _obj.addMetadata(_name, RtType::STRING);
                 _metadataCreated = true;
             }
+
             // Reset the value
-            RtTypedValue* md = _obj.getMetadata(_name);
-            if (md)
-            {
-                md->setValue(_value);
-                result = RtCommandResult(true);
-            }
-            else
-            {
-                result = RtCommandResult(false, "Unable to get metadata");
-            }
+            md->setValue(_value);
         }
         catch (const ExceptionRuntimeError& e)
         {
@@ -144,7 +128,7 @@ void PvtSetMetadataCmd::redo(RtCommandResult& result)
     }
     else
     {
-        result = RtCommandResult(false, string("Node to set is no longer valid"));
+        result = RtCommandResult(false, string("Object to set metadata on is no longer valid"));
     }
 }
 

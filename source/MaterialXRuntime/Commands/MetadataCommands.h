@@ -18,10 +18,10 @@ namespace MaterialX
 namespace RtCommand
 {
     /// Set a metadata value from data given as a value string. Creates the metadata if it doesn't exist.
-    void setMetadataFromString(RtPrim& src, const RtToken& metadataName, const string& metadataValue, RtCommandResult& result);
+    void setMetadata(const RtObject& src, const RtToken& metadataName, const string& metadataValue, RtCommandResult& result);
 
     /// Removes the named metadata
-    void removeMetadata(RtObject& src, const RtToken& metadataName, RtCommandResult& result);
+    void removeMetadata(const RtObject& src, const RtToken& metadataName, RtCommandResult& result);
 }
 
 }

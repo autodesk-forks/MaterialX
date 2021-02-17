@@ -17,7 +17,7 @@ namespace MaterialX
 namespace RtCommand
 {
 
-void setMetadataFromString(RtPrim& src, const RtToken& metadataName, const string& metadataValue, RtCommandResult& result)
+void setMetadata(const RtObject& src, const RtToken& metadataName, const string& metadataValue, RtCommandResult& result)
 {
     try
     {
@@ -32,7 +32,7 @@ void setMetadataFromString(RtPrim& src, const RtToken& metadataName, const strin
     }
 }
 
-void removeMetadata(RtObject& src, const RtToken& metadataName, RtCommandResult& result)
+void removeMetadata(const RtObject& src, const RtToken& metadataName, RtCommandResult& result)
 {
     try
     {

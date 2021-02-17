@@ -60,14 +60,6 @@ RtCallbackId PvtMessageHandler::addSetMetadataCallback(RtSetMetadataCallbackFunc
     return _callbackIdCounter++;
 }
 
-RtCallbackId PvtMessageHandler::addCreateMetadataCallback(RtCreateMetadataCallbackFunc callback, void* userData)
-{
-    PvtCreateMetadataObserver observer = PvtCreateMetadataObserver(callback, userData);
-    _createMetadataObservers[_callbackIdCounter] = observer;
-    _callbackIdToType[_callbackIdCounter] = observer.type;
-    return _callbackIdCounter++;
-}
-
 RtCallbackId PvtMessageHandler::addRemoveMetadataCallback(RtRemoveMetadataCallbackFunc callback, void* userData)
 {
     PvtRemoveMetadataObserver observer = PvtRemoveMetadataObserver(callback, userData);
@@ -114,6 +106,12 @@ void PvtMessageHandler::removeCallback(RtCallbackId id)
             break;
         case PvtMessageType::SET_ATTRIBUTE:
             _setAttrObservers.erase(id);
+            break;
+        case PvtMessageType::SET_METADATA:
+            _setMetadataObservers.erase(id);
+            break;
+        case PvtMessageType::REMOVE_METADATA:
+            _removeMetadataObservers.erase(id);
             break;
         case PvtMessageType::CHANGE_CONNECTION:
             _connectionObservers.erase(id);
@@ -173,14 +171,6 @@ void PvtMessageHandler::sendSetAttributeMessage(const RtAttribute& attr, const R
 void PvtMessageHandler::sendSetMetadataMessage(const RtObject &obj, const RtToken& name, const RtValue& value)
 {
     for (auto observer : _setMetadataObservers)
-    {
-        observer.second.callback(obj, name, value, observer.second.userData);
-    }
-}
-
-void PvtMessageHandler::sendCreateMetadataMessage(const RtObject &obj, const RtToken& name, const RtValue& value)
-{
-    for (auto observer : _createMetadataObservers)
     {
         observer.second.callback(obj, name, value, observer.second.userData);
     }

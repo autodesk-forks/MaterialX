@@ -13,7 +13,7 @@
 namespace MaterialX
 {
 
-PvtRemoveMetadataCmd::PvtRemoveMetadataCmd(RtObject& obj, const RtToken& name)
+PvtRemoveMetadataCmd::PvtRemoveMetadataCmd(const RtObject& obj, const RtToken& name)
     : PvtCommand()
     , _obj(obj)
     , _name(name)
@@ -21,7 +21,7 @@ PvtRemoveMetadataCmd::PvtRemoveMetadataCmd(RtObject& obj, const RtToken& name)
 {
 }
 
-PvtCommandPtr PvtRemoveMetadataCmd::create(RtObject& obj, const RtToken& name)
+PvtCommandPtr PvtRemoveMetadataCmd::create(const RtObject& obj, const RtToken& name)
 {
     return std::make_shared<PvtRemoveMetadataCmd>(obj, name);
 }
@@ -32,15 +32,22 @@ void PvtRemoveMetadataCmd::execute(RtCommandResult& result)
     {
         try
         {
-            // Send message that the metadata is being removed
-            msg().sendRemoveMetadataMessage(_obj, _name);
+            if (_obj.getMetadata(_name, RtType::STRING))
+            {
+                // Send message that the metadata is being removed
+                msg().sendRemoveMetadataMessage(_obj, _name);
 
-            // Save old value for undo/redo
-            _oldValue = RtValue::clone(RtType::STRING, _obj.getMetadata(_name)->getValue(), _obj.getParent());
+                // Save old value for undo/redo
+                _oldValue = RtValue::clone(RtType::STRING, _obj.getMetadata(_name, RtType::STRING)->getValue(), _obj.getParent());
 
-            // Remove the metadata value
-            _obj.removeMetadata(_name);
-            result = RtCommandResult(true);
+                // Remove the metadata value
+                _obj.removeMetadata(_name);
+                result = RtCommandResult(true);
+            }
+            else
+            {
+                result = RtCommandResult(false, string("Object does not have specified metadata"));
+            }
         }
         catch (const ExceptionRuntimeError& e)
         {
@@ -49,7 +56,7 @@ void PvtRemoveMetadataCmd::execute(RtCommandResult& result)
     }
     else
     {
-        result = RtCommandResult(false, string("Node to remove metadata from is no longer valid"));
+        result = RtCommandResult(false, string("Object to remove metadata from is no longer valid"));
     }
 }
 
@@ -59,19 +66,12 @@ void PvtRemoveMetadataCmd::undo(RtCommandResult& result)
     {
         try
         {
-            // Send message that the metadata is being created
-            msg().sendCreateMetadataMessage(_obj, _name, _oldValue);
+            // Send message that the metadata is being set
+            msg().sendSetMetadataMessage(_obj, _name, _oldValue);
 
             RtTypedValue* md = _obj.addMetadata(_name, RtType::STRING);
-            if (md)
-            {
-                md->setValue(_oldValue);
-                result = RtCommandResult(true);
-            }
-            else
-            {
-                result = RtCommandResult(false, "Unable to create metadata");
-            }
+            md->setValue(_oldValue);
+            result = RtCommandResult(true);
         }
         catch (const ExceptionRuntimeError& e)
         {

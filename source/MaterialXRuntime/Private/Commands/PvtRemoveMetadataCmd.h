@@ -16,16 +16,16 @@ namespace MaterialX
 class PvtRemoveMetadataCmd : public PvtCommand
 {
 public:
-    PvtRemoveMetadataCmd(RtObject& obj, const RtToken& name);
+    PvtRemoveMetadataCmd(const RtObject& obj, const RtToken& name);
 
-    static PvtCommandPtr create(RtObject& obj, const RtToken& name);
+    static PvtCommandPtr create(const RtObject& obj, const RtToken& name);
 
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;
     void redo(RtCommandResult& result) override;
 
 private:
-    RtObject& _obj;
+    RtObject _obj;
     RtToken _name;
     RtValue _oldValue;
 };

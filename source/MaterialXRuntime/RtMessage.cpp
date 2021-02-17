@@ -40,11 +40,6 @@ RtCallbackId RtMessage::addSetMetadataCallback(RtSetMetadataCallbackFunc callbac
     return PvtApi::cast(RtApi::get())->getMessageHandler().addSetMetadataCallback(callback, userData);
 }
 
-RtCallbackId RtMessage::addCreateMetadataCallback(RtCreateMetadataCallbackFunc callback, void* userData)
-{
-    return PvtApi::cast(RtApi::get())->getMessageHandler().addCreateMetadataCallback(callback, userData);
-}
-
 RtCallbackId RtMessage::addRemoveMetadataCallback(RtRemoveMetadataCallbackFunc callback, void* userData)
 {
     return PvtApi::cast(RtApi::get())->getMessageHandler().addRemoveMetadataCallback(callback, userData);
