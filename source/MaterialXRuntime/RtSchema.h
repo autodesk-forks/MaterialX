@@ -126,6 +126,11 @@ public:
         return getPrim().getMetadata(name, type);
     }
 
+    virtual RtTokenVec getEditableMetadata() const
+    {
+        return RtTokenVec();
+    }
+
     // Accessors.
     PvtPrim* prim() const;
     PvtAttribute* attr(const RtToken& name) const;

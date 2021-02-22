@@ -11,6 +11,8 @@
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
+#include <MaterialXCore/Element.h>
+
 namespace MaterialX
 {
 
@@ -283,6 +285,14 @@ string RtNodeGraph::asStringDot() const
     dot += "}\n";
 
     return dot;
+}
+
+RtTokenVec RtNodeGraph::getEditableMetadata() const
+{
+    RtTokenVec editableMetadata = RtNode::getEditableMetadata();
+    editableMetadata.push_back(RtToken(Element::FILE_PREFIX_ATTRIBUTE.c_str()));
+    editableMetadata.push_back(RtToken(Element::COLOR_SPACE_ATTRIBUTE.c_str()));
+    return editableMetadata;
 }
 
 }
