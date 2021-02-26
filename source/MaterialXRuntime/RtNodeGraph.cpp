@@ -19,24 +19,6 @@ namespace MaterialX
 namespace
 {
     static const RtToken SOCKETS("_nodegraph_internal_sockets");
-    static const RtToken XPOS_METADATA("xpos");
-    static const RtToken YPOS_METADATA("ypos");
-    static const RtToken WIDTH_METADATA("width");
-    static const RtToken HEIGHT_METADATA("height");
-    static const RtToken UI_COLOR_METADATA("uicolor");
-    static const RtToken UI_VISIBLE_METADATA("uivisible");
-    static const RtToken UI_ADVANCED_METADATA("uiadvanced");
-    static const RtToken FILE_PREFIX_METADATA("fileprefix");
-    static const RtToken COLOR_SPACE_METADATA("colorspace");
-    static const RtTokenVec PUBLIC_METADATA { XPOS_METADATA,
-                                              YPOS_METADATA,
-                                              WIDTH_METADATA,
-                                              HEIGHT_METADATA,
-                                              UI_COLOR_METADATA,
-                                              UI_VISIBLE_METADATA,
-                                              UI_ADVANCED_METADATA,
-                                              FILE_PREFIX_METADATA,
-                                              COLOR_SPACE_METADATA };
 }
 
 DEFINE_TYPED_SCHEMA(RtNodeGraph, "node:nodegraph");
@@ -303,11 +285,6 @@ string RtNodeGraph::asStringDot() const
     dot += "}\n";
 
     return dot;
-}
-
-const RtTokenVec& RtNodeGraph::getPublicMetadata() const
-{
-    return PUBLIC_METADATA;
 }
 
 }

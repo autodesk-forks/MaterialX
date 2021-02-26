@@ -126,8 +126,12 @@ public:
         return getPrim().getMetadata(name, type);
     }
 
-    /// Returns a vector of public metadata for the schema.
-    virtual const RtTokenVec& getPublicMetadata() const;
+    /// Returns a vector of public metadata names for the schema.
+    virtual const RtTokenVec& getPublicMetadataNames() const;
+
+    /// Returns a vector of public port metatdata names for the schema.
+    virtual const RtTokenVec& getPublicPortMetadataNames(const RtToken& name) const;
+
 
     // Accessors.
     PvtPrim* prim() const;

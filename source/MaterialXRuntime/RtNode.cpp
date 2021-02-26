@@ -18,27 +18,91 @@ namespace
 {
     static const RtToken NODEDEF("nodedef");
 
-    static const RtToken XPOS_METADATA("xpos");
-    static const RtToken YPOS_METADATA("ypos");
-    static const RtToken WIDTH_METADATA("width");
-    static const RtToken HEIGHT_METADATA("height");
-    static const RtToken UI_COLOR_METADATA("uicolor");
-    static const RtToken UI_VISIBLE_METADATA("uivisible");
-    static const RtToken UI_ADVANCED_METADATA("uiadvanced");
-    static const RtToken FILE_PREFIX_METADATA("fileprefix");
-    static const RtToken COLOR_SPACE_METADATA("colorspace");
-    static const RtToken UNIT_METADATA("unit");
-    static const RtToken UNIT_TYPE_METADATA("unittype");
-    static const RtTokenVec INPUT_COLOR_PUBLIC_METADATA { COLOR_SPACE_METADATA };
-    static const RtTokenVec INPUT_FLOAT_PUBLIC_METADATA { UNIT_METADATA, UNIT_TYPE_METADATA };
-    static const RtTokenVec INPUT_PUBLIC_METADATA;
-    static const RtTokenVec PUBLIC_METADATA { XPOS_METADATA,
-                                              YPOS_METADATA,
-                                              WIDTH_METADATA,
-                                              HEIGHT_METADATA,
-                                              UI_COLOR_METADATA,
-                                              UI_VISIBLE_METADATA,
-                                              UI_ADVANCED_METADATA };
+    static const RtTokenVec PUBLIC_INPUT_COLOR_METADATA_NAMES
+    {
+        RtToken("name"),
+        RtToken("type"),
+        RtToken("Value"),
+        RtToken("nodename"),
+        RtToken("nodegraph"),
+        RtToken("output"),
+        RtToken("member"),
+        RtToken("channels"),
+        RtToken("colorspace")
+    };
+
+    static const RtTokenVec PUBLIC_INPUT_FLOAT_METADATA_NAMES
+    {
+        RtToken("name"),
+        RtToken("type"),
+        RtToken("Value"),
+        RtToken("nodename"),
+        RtToken("nodegraph"),
+        RtToken("output"),
+        RtToken("member"),
+        RtToken("channels"),
+        RtToken("unit"),
+        RtToken("unittype")
+    };
+
+    static const RtTokenVec PUBLIC_INPUT_METADATA_NAMES
+    {
+        RtToken("name"),
+        RtToken("type"),
+        RtToken("Value"),
+        RtToken("nodename"),
+        RtToken("nodegraph"),
+        RtToken("output"),
+        RtToken("member"),
+        RtToken("channels")
+    };
+
+    static const RtTokenVec PUBLIC_OUTPUT_COLOR_METADATA_NAMES
+    {
+        RtToken("name"),
+        RtToken("type"),
+        RtToken("nodename"),
+        RtToken("output"),
+        RtToken("member"),
+        RtToken("colorspace"),
+        RtToken("width"),
+        RtToken("height"),
+        RtToken("bitdepth")
+    };
+    static const RtTokenVec PUBLIC_OUTPUT_METADATA_NAMES
+    {
+        RtToken("name"),
+        RtToken("type"),
+        RtToken("nodename"),
+        RtToken("output"),
+        RtToken("member"),
+        RtToken("width"),
+        RtToken("height"),
+        RtToken("bitdepth")
+    };
+
+    static const RtTokenVec PUBLIC_METADATA_NAMES
+    {
+        RtToken("name"),
+        RtToken("type"),
+        RtToken("value"),
+        RtToken("doc"),
+        RtToken("xpos"),
+        RtToken("ypos"),
+        RtToken("width"),
+        RtToken("height"),
+        RtToken("uicolor"),
+        RtToken("uiname"),
+        RtToken("uivisible"),
+        RtToken("uiadvanced"),
+        RtToken("version"),
+        RtToken("cms"),
+        RtToken("cmsconfig"),
+        RtToken("colorspace"),
+        RtToken("namespace")
+    };
+
+    static const RtTokenVec PUBLIC_EMPTY_METADATA_NAMES;
 }
 
 DEFINE_TYPED_SCHEMA(RtNode, "node");
@@ -159,24 +223,6 @@ size_t RtNode::numOutputs() const
     return prim()->numOutputs();
 }
 
-const RtTokenVec& RtNode::getInputPublicMetadata(const RtToken& name) const
-{
-    RtInput input = getInput(name);
-    const RtToken& type = input.getType();
-    if (type == RtType::COLOR3 || type == RtType::COLOR4 || type == RtType::FILENAME)
-    {
-        return INPUT_COLOR_PUBLIC_METADATA;
-    }
-    else if(type == RtType::FLOAT || type == RtType::VECTOR2 || type == RtType::VECTOR3 || type == RtType::VECTOR4)
-    {
-        return INPUT_FLOAT_PUBLIC_METADATA;
-    }
-    else
-    {
-        return INPUT_PUBLIC_METADATA;
-    }
-}
-
 RtOutput RtNode::getOutput(const RtToken& name) const
 {
     PvtOutput* output = prim()->getOutput(name);
@@ -194,9 +240,48 @@ RtAttrIterator RtNode::getOutputs() const
     return getPrim().getOutputs();
 }
 
-const RtTokenVec& RtNode::getPublicMetadata() const
+const RtTokenVec& RtNode::getPublicMetadataNames() const
 {
-    return PUBLIC_METADATA;
+    return PUBLIC_METADATA_NAMES;
+}
+
+const RtTokenVec& RtNode::getPublicPortMetadataNames(const RtToken& name) const
+{
+    RtInput input = getInput(name);
+    if (input)
+    {
+        const RtToken& type = input.getType();
+        if (type == RtType::COLOR3 || type == RtType::COLOR4 || type == RtType::FILENAME)
+        {
+            return PUBLIC_INPUT_COLOR_METADATA_NAMES;
+        }
+        else if(type == RtType::FLOAT || type == RtType::VECTOR2 || type == RtType::VECTOR3 || type == RtType::VECTOR4)
+        {
+            return PUBLIC_INPUT_FLOAT_METADATA_NAMES;
+        }
+        else
+        {
+            return PUBLIC_INPUT_METADATA_NAMES;
+        }
+    }
+    else
+    {
+        RtOutput output = getOutput(name);
+        if (output)
+        {
+            const RtToken& type = output.getType();
+            if (type == RtType::COLOR3 || type == RtType::COLOR4 || type == RtType::FILENAME)
+            {
+                return PUBLIC_OUTPUT_COLOR_METADATA_NAMES;
+            }
+            else
+            {
+                return PUBLIC_OUTPUT_METADATA_NAMES;
+            }
+        }
+    }
+
+    return PUBLIC_EMPTY_METADATA_NAMES;
 }
 
 }

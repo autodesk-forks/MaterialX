@@ -80,9 +80,6 @@ public:
     /// used to visualise the graph using GraphViz (http://www.graphviz.org).
     string asStringDot() const;
 
-    /// Returns a vector of public nodegraph metadata
-    const RtTokenVec& getPublicMetadata() const override;
-
 public:
     /// Type info for internal socket nodes.
     static const RtTypeInfo SOCKETS_TYPE_INFO;
