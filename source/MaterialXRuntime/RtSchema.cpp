@@ -10,6 +10,11 @@
 namespace MaterialX
 {
 
+namespace
+{
+    static const RtTokenVec PUBLIC_METADATA;
+}
+
 RtSchemaBase::RtSchemaBase(const RtPrim& prim) :
     _hnd(prim._hnd)
 {
@@ -46,4 +51,11 @@ bool RtTypedSchema::isCompatible(const RtPrim& prim) const
     return prim && prim.getTypeInfo()->isCompatible(getTypeInfo().getShortTypeName());
 }
 
+
+const RtTokenVec& RtSchemaBase::getPublicMetadata() const
+{
+    return PUBLIC_METADATA;
 }
+
+}
+

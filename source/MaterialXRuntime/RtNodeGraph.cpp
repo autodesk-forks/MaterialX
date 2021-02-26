@@ -18,7 +18,25 @@ namespace MaterialX
 
 namespace
 {
-    const RtToken SOCKETS("_nodegraph_internal_sockets");
+    static const RtToken SOCKETS("_nodegraph_internal_sockets");
+    static const RtToken XPOS_METADATA("xpos");
+    static const RtToken YPOS_METADATA("ypos");
+    static const RtToken WIDTH_METADATA("width");
+    static const RtToken HEIGHT_METADATA("height");
+    static const RtToken UI_COLOR_METADATA("uicolor");
+    static const RtToken UI_VISIBLE_METADATA("uivisible");
+    static const RtToken UI_ADVANCED_METADATA("uiadvanced");
+    static const RtToken FILE_PREFIX_METADATA("fileprefix");
+    static const RtToken COLOR_SPACE_METADATA("colorspace");
+    static const RtTokenVec PUBLIC_METADATA { XPOS_METADATA,
+                                              YPOS_METADATA,
+                                              WIDTH_METADATA,
+                                              HEIGHT_METADATA,
+                                              UI_COLOR_METADATA,
+                                              UI_VISIBLE_METADATA,
+                                              UI_ADVANCED_METADATA,
+                                              FILE_PREFIX_METADATA,
+                                              COLOR_SPACE_METADATA };
 }
 
 DEFINE_TYPED_SCHEMA(RtNodeGraph, "node:nodegraph");
@@ -287,12 +305,9 @@ string RtNodeGraph::asStringDot() const
     return dot;
 }
 
-RtTokenVec RtNodeGraph::getEditableMetadata() const
+const RtTokenVec& RtNodeGraph::getPublicMetadata() const
 {
-    RtTokenVec editableMetadata = RtNode::getEditableMetadata();
-    editableMetadata.push_back(RtToken(Element::FILE_PREFIX_ATTRIBUTE.c_str()));
-    editableMetadata.push_back(RtToken(Element::COLOR_SPACE_ATTRIBUTE.c_str()));
-    return editableMetadata;
+    return PUBLIC_METADATA;
 }
 
 }

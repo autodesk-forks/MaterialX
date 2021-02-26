@@ -46,6 +46,9 @@ public:
     /// on this node. Shorthand for getPrim().getInputs().
     RtAttrIterator getInputs() const;
 
+    /// Returns a vector of public metadata for an input.
+    const RtTokenVec& getInputPublicMetadata(const RtToken& name) const;
+
     /// Return the number of outputs on the node.
     size_t numOutputs() const;
 
@@ -60,8 +63,13 @@ public:
     /// Return an iterator traversing all output attributes
     /// on this node. Shorthand for getPrim().getOutputs().
     RtAttrIterator getOutputs() const;
+
+    /// Returns a vector of public nodegraph metadata
+    const RtTokenVec& getPublicMetadata() const override;
+
 };
 
 }
 
 #endif
+

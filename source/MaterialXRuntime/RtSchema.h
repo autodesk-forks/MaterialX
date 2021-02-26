@@ -126,10 +126,8 @@ public:
         return getPrim().getMetadata(name, type);
     }
 
-    virtual RtTokenVec getEditableMetadata() const
-    {
-        return RtTokenVec();
-    }
+    /// Returns a vector of public metadata for the schema.
+    virtual const RtTokenVec& getPublicMetadata() const;
 
     // Accessors.
     PvtPrim* prim() const;
