@@ -30,12 +30,12 @@ RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, Rt
     return primH;
 }
 
-RtAttribute RtCollection::getIncludeGeom() const
+RtPort RtCollection::getIncludeGeom() const
 {
     return prim()->getAttribute(Tokens::INCLUDE_GEOM)->hnd();
 }
 
-RtAttribute RtCollection::getExcludeGeom() const
+RtPort RtCollection::getExcludeGeom() const
 {
     return prim()->getAttribute(Tokens::EXCLUDE_GEOM)->hnd();
 }

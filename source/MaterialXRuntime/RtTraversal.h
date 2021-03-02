@@ -29,84 +29,6 @@ struct RtObjTypePredicate
     }
 };
 
-/// @class RtAttrIterator
-/// Iterator for traversing over the attributes of a prim.
-/// Using a predicate this iterator can be used to find all
-/// attributes of a specific kind or type, etc.
-class RtAttrIterator
-{
-public:
-    /// Empty constructor.
-    RtAttrIterator() :
-        _prim(nullptr),
-        _current(-1)
-    {}
-
-    /// Constructor, setting the prim to iterate on,
-    /// and an optional predicate function.
-    RtAttrIterator(const RtPrim& prim, RtObjectPredicate predicate = nullptr);
-
-    /// Copy constructor.
-    RtAttrIterator(const RtAttrIterator& other) :
-        _prim(other._prim),
-        _current(other._current),
-        _predicate(other._predicate)
-    {}
-
-    /// Assignment operator.
-    RtAttrIterator& operator=(const RtAttrIterator& other)
-    {
-        _prim = other._prim;
-        _current = other._current;
-        _predicate = other._predicate;
-        return *this;
-    }
-
-    /// Equality operator.
-    bool operator==(const RtAttrIterator& other) const
-    {
-        return _current == other._current &&
-            _prim == other._prim;
-    }
-
-    /// Inequality operator.
-    bool operator!=(const RtAttrIterator& other) const
-    {
-        return !(*this == other);
-    }
-
-    /// Dereference this iterator, returning the current attribute.
-    RtAttribute operator*() const;
-
-    /// Iterate to the next sibling.
-    RtAttrIterator& operator++();
-
-    /// Return true if there are no more attribute in the iteration.
-    bool isDone() const;
-
-    /// Force the iterator to terminate the traversal.
-    void abort()
-    {
-        *this = end();
-    }
-
-    /// Interpret this object as an iteration range,
-    /// and return its begin iterator.
-    RtAttrIterator& begin()
-    {
-        return *this;
-    }
-
-    /// Return the sentinel end iterator for this class.
-    static const RtAttrIterator& end();
-
-private:
-    const PvtPrim* _prim;
-    int _current;
-    RtObjectPredicate _predicate;
-};
-
-
 /// @class RtPrimIterator
 /// Iterator for traversing over the child prims (siblings) of a prim.
 /// Using a predicate this iterator can be used to find all child prims
@@ -186,6 +108,103 @@ private:
 };
 
 
+/// @class RtObjectIterator
+/// Base class for objects iterators.
+template<class T>
+class RtObjectIterator
+{
+public:
+    /// Copy constructor.
+    RtObjectIterator(const RtObjectIterator& other) :
+        _ptr(other._ptr),
+        _current(other._current)
+    {}
+
+    /// Assignment operator.
+    RtObjectIterator& operator=(const RtObjectIterator& other)
+    {
+        _ptr = other._ptr;
+        _current = other._current;
+        return *this;
+    }
+
+    /// Equality operator.
+    bool operator==(const RtObjectIterator& other) const
+    {
+        return _current == other._current &&
+            _ptr == other._ptr;
+    }
+
+    /// Inequality operator.
+    bool operator!=(const RtObjectIterator& other) const
+    {
+        return !(*this == other);
+    }
+
+    /// Dereference this iterator, returning the current object.
+    T operator*() const;
+
+    /// Iterate to the next sibling.
+    RtObjectIterator& operator++();
+
+    /// Return true if there are no more attribute in the iteration.
+    bool isDone() const;
+
+    /// Force the iterator to terminate the traversal.
+    void abort()
+    {
+        *this = end();
+    }
+
+    /// Interpret this object as an iteration range,
+    /// and return its begin iterator.
+    RtObjectIterator& begin()
+    {
+        return *this;
+    }
+
+    /// Return the sentinel end iterator for this class.
+    static const RtObjectIterator& end()
+    {
+        return NULL_ITERATOR;
+    }
+
+protected:
+    /// Empty constructor.
+    RtObjectIterator() :
+        _ptr(nullptr),
+        _current(-1)
+    {}
+
+    static const RtObjectIterator NULL_ITERATOR;
+
+    void* _ptr;
+    int _current;
+};
+
+class RtConnectionIterator : public RtObjectIterator<RtObject>
+{
+  public:
+    RtConnectionIterator(const RtObject& obj);
+};
+
+class RtInputIterator : public RtObjectIterator<RtInput>
+{
+public:
+    RtInputIterator(const RtObject& obj);
+};
+
+class RtOutputIterator : public RtObjectIterator<RtInput>
+{
+public:
+    RtOutputIterator(const RtObject& obj);
+};
+
+
+
+
+/*
+
 /// @class RtConnectionIterator
 /// Iterator for traversing the connections on an output or relationship.
 class RtConnectionIterator
@@ -256,6 +275,7 @@ private:
     void* _ptr;
     int _current;
 };
+*/
 
 /// @class RtRelationshipIterator
 /// Iterator for traversing the relationships of a primitive.
@@ -268,7 +288,7 @@ public:
         _current(-1)
     {}
 
-    /// Constructor, setting the output or relationship to iterate on.
+    /// Constructor, setting the object to iterate on.
     RtRelationshipIterator(const RtObject& obj);
 
     /// Copy constructor.

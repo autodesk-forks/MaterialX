@@ -6,7 +6,7 @@
 #include <MaterialXRuntime/Private/Commands/PvtCopyPrimCmd.h>
 #include <MaterialXRuntime/Private/PvtObject.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
-#include <MaterialXRuntime/Private/PvtAttribute.h>
+#include <MaterialXRuntime/Private/PvtPort.h>
 #include <MaterialXRuntime/RtNodeGraph.h>
 
 namespace MaterialX
@@ -92,11 +92,11 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
     RtNodeGraph ng(prim);
     if (ng)
     {
-        // Special handling for nodegraphs which needs to call the nodegraph version of create input/outputs.
+        // Special handling for nodegraphs which needs to call the nodegraph version of createInput / createOutput.
         RtNodeGraph ngCopy(copy);
-        for (RtAttribute attr : ng.getInputs())
+        for (size_t i = 0; i < ng.prim()->numInputs(); ++i)
         {
-            const PvtInput* port = PvtObject::hnd(attr)->asA<PvtInput>();
+            const PvtInput* port = ng.prim()->getInput(i);
             RtInput portCopy = ngCopy.getInput(port->getName());
             if (!portCopy)
             {
@@ -105,9 +105,9 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
             portCopy.setValue(port->getValue());
             copyMetadata(port, PvtObject::hnd(portCopy)->asA<PvtObject>());
         }
-        for (RtAttribute attr : ng.getOutputs())
+        for (size_t i = 0; i < ng.prim()->numOutputs(); ++i)
         {
-            const PvtOutput* port = PvtObject::hnd(attr)->asA<PvtOutput>();
+            const PvtOutput* port = ng.prim()->getOutput(i);
             RtOutput portCopy = ngCopy.getOutput(port->getName());
             if (!portCopy)
             {
@@ -119,9 +119,9 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
     }
     else
     {
-        for (RtAttribute attr : prim.getInputs())
+        for (size_t i = 0; i < prim.numInputs(); ++i)
         {
-            const PvtInput* port = PvtObject::hnd(attr)->asA<PvtInput>();
+            const PvtInput* port = PvtPrim::ptr<PvtInput>(prim.getInput(i));
             RtInput portCopy = copy.getInput(port->getName());
             if (!portCopy)
             {
@@ -130,9 +130,9 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
             portCopy.setValue(port->getValue());
             copyMetadata(port, PvtObject::hnd(portCopy)->asA<PvtObject>());
         }
-        for (RtAttribute attr : prim.getOutputs())
+        for (size_t i = 0; i < prim.numOutputs(); ++i)
         {
-            const PvtOutput* port = PvtObject::hnd(attr)->asA<PvtOutput>();
+            const PvtOutput* port = PvtPrim::ptr<PvtOutput>(prim.getOutput(i));
             RtOutput portCopy = copy.getOutput(port->getName());
             if (!portCopy)
             {
@@ -171,7 +171,7 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
         {
             RtPrim child2 = copy.getChild(child1.getName());
 
-            for (RtAttribute attr : child1.getInputs())
+            for (RtPort attr : child1.getInputs())
             {
                 const RtInput dest1 = attr.asA<RtInput>();
                 const RtOutput src1 = dest1.getConnection();

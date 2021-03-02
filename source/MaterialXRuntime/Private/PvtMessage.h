@@ -70,7 +70,7 @@ public:
     void sendRemovePrimMessage(RtStagePtr stage, const RtPrim& prim);
     void sendRenamePrimMessage(RtStagePtr stage, const RtPrim& prim, const RtToken& newName);
     void sendReparentPrimMessage(RtStagePtr stage, const RtPrim& prim, const RtPath& newParentPath);
-    void sendSetAttributeMessage(const RtAttribute& attr, const RtValue& value);
+    void sendSetAttributeMessage(const RtPort& attr, const RtValue& value);
     void sendSetMetadataMessage(const RtObject &obj, const RtToken& name, const RtValue& value);
     void sendRemoveMetadataMessage(const RtObject& obj, const RtToken& name);
     void sendConnectionMessage(const RtOutput& src, const RtInput& dest, ConnectionChange change);

@@ -135,7 +135,7 @@ public:
 
     // Accessors.
     PvtPrim* prim() const;
-    PvtAttribute* attr(const RtToken& name) const;
+    PvtPort* attr(const RtToken& name) const;
     PvtRelationship* rel(const RtToken& name) const;
 
 protected:

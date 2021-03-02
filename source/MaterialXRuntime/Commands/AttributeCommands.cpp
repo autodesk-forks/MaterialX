@@ -17,7 +17,7 @@ namespace MaterialX
 namespace RtCommand
 {
 
-void setAttributeFromString(const RtAttribute& attr, const string& valueString, RtCommandResult& result)
+void setAttributeFromString(const RtPort& attr, const string& valueString, RtCommandResult& result)
 {
     // Use try/catch since the conversion from string might fail and throw.
     try
@@ -33,77 +33,77 @@ void setAttributeFromString(const RtAttribute& attr, const string& valueString, 
     }
 }
 
-void setAttribute(const RtAttribute& attr, bool value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, bool value, RtCommandResult& result)
 {
     RtValue v(value);
     PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, int value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, int value, RtCommandResult& result)
 {
     RtValue v(value);
     PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, float value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, float value, RtCommandResult& result)
 {
     RtValue v(value);
     PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, const Color3& value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, const Color3& value, RtCommandResult& result)
 {
     RtValue v(value);
     PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, const Color4& value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, const Color4& value, RtCommandResult& result)
 {
     RtValue v(value);
     PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, const Vector2& value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, const Vector2& value, RtCommandResult& result)
 {
     RtValue v(value);
     PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, const Vector3& value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, const Vector3& value, RtCommandResult& result)
 {
     RtValue v(value);
     PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, const Vector4& value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, const Vector4& value, RtCommandResult& result)
 {
     RtValue v(value);
     PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, const RtToken& value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, const RtToken& value, RtCommandResult& result)
 {
     RtValue v(value);
     PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, void* value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, void* value, RtCommandResult& result)
 {
     RtValue v(value);
     PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, const Matrix33& value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, const Matrix33& value, RtCommandResult& result)
 {
     RtPrim prim(attr.getParent());
     RtValue v(value, prim);
@@ -111,7 +111,7 @@ void setAttribute(const RtAttribute& attr, const Matrix33& value, RtCommandResul
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, const Matrix44& value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, const Matrix44& value, RtCommandResult& result)
 {
     RtPrim prim(attr.getParent());
     RtValue v(value, prim);
@@ -119,7 +119,7 @@ void setAttribute(const RtAttribute& attr, const Matrix44& value, RtCommandResul
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtAttribute& attr, const string& value, RtCommandResult& result)
+void setAttribute(const RtPort& attr, const string& value, RtCommandResult& result)
 {
     RtPrim prim(attr.getParent());
     RtValue v(value, prim);

@@ -31,7 +31,7 @@ RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtP
     return primH;
 }
 
-RtAttribute RtLookGroup::getActiveLook() const
+RtPort RtLookGroup::getActiveLook() const
 {
     return prim()->getAttribute(Tokens::ACTIVELOOK)->hnd();
 }
@@ -128,7 +128,7 @@ RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name
 
     PvtPrim* prim = primH->asA<PvtPrim>();
     prim->createInput(Tokens::MATERIAL, RtType::MATERIAL);
-    PvtAttribute* exclusive = prim->createAttribute(Tokens::EXCLUSIVE, RtType::BOOLEAN);
+    PvtPort* exclusive = prim->createAttribute(Tokens::EXCLUSIVE, RtType::BOOLEAN);
     exclusive->getValue().asBool() = true;
     prim->createAttribute(Tokens::GEOM, RtType::STRING);
     prim->createRelationship(Tokens::COLLECTION);
@@ -146,12 +146,12 @@ RtRelationship RtMaterialAssign::getCollection() const
     return prim()->getRelationship(Tokens::COLLECTION)->hnd();
 }
 
-RtAttribute RtMaterialAssign::getGeom() const
+RtPort RtMaterialAssign::getGeom() const
 {
     return prim()->getAttribute(Tokens::GEOM)->hnd();
 }
 
-RtAttribute RtMaterialAssign::getExclusive() const
+RtPort RtMaterialAssign::getExclusive() const
 {
     return prim()->getAttribute(Tokens::EXCLUSIVE)->hnd();
 }

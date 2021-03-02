@@ -30,7 +30,7 @@ public:
     RtLookGroup(const RtPrim& prim) : RtBindElement(prim) {}
 
     /// Return the active look.
-    RtAttribute getActiveLook() const;
+    RtPort getActiveLook() const;
 
     /// Add a look
     void addLook(const RtObject& look);
@@ -100,10 +100,10 @@ public:
     RtRelationship getCollection() const;
 
     /// Return the geometry attribute.
-    RtAttribute getGeom() const;
+    RtPort getGeom() const;
 
     /// Return the exclusive flag attribute.
-    RtAttribute getExclusive() const;
+    RtPort getExclusive() const;
 };
 
 /// @class RtMaterialAssignConnectableApi

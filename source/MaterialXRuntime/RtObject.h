@@ -19,7 +19,7 @@ namespace MaterialX
 
 class PvtObject;
 class PvtPrim;
-class PvtAttribute;
+class PvtPort;
 class PvtRelationship;
 class RtStage;
 
@@ -37,11 +37,10 @@ enum class RtObjType
 {
     OBJECT          = 1<<0,
     PRIM            = 1<<1,
-    ATTRIBUTE       = 1<<2,
-    INPUT           = 1<<3,
-    OUTPUT          = 1<<4,
-    RELATIONSHIP    = 1<<5,
-    DISPOSED        = 1<<6
+    INPUT           = 1<<2,
+    OUTPUT          = 1<<3,
+    RELATIONSHIP    = 1<<4,
+    DISPOSED        = 1<<5
 };
 
 #define RT_DECLARE_RUNTIME_OBJECT(T)                         \

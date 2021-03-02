@@ -160,7 +160,7 @@ void PvtMessageHandler::sendReparentPrimMessage(RtStagePtr stage, const RtPrim& 
     }
 }
 
-void PvtMessageHandler::sendSetAttributeMessage(const RtAttribute& attr, const RtValue& value)
+void PvtMessageHandler::sendSetAttributeMessage(const RtPort& attr, const RtValue& value)
 {
     for (auto observer : _setAttrObservers)
     {

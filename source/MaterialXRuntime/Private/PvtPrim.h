@@ -6,7 +6,7 @@
 #ifndef MATERIALX_PVTPRIM_H
 #define MATERIALX_PVTPRIM_H
 
-#include <MaterialXRuntime/Private/PvtAttribute.h>
+#include <MaterialXRuntime/Private/PvtPort.h>
 #include <MaterialXRuntime/Private/PvtRelationship.h>
 
 #include <MaterialXRuntime/RtPrim.h>
@@ -62,7 +62,6 @@ private:
     vector<uint8_t*> _storage;
 };
 
-class RtAttrIterator;
 class RtPrimIterator;
 
 class PvtPrim : public PvtObject
@@ -108,106 +107,93 @@ public:
 
     PvtRelationship* getRelationship(const RtToken& name)
     {
-        auto it = _relMap.find(name);
-        return it != _relMap.end() ? it->second->asA<PvtRelationship>() : nullptr;
+        PvtDataHandle hnd = _rel.get(name);
+        return hnd ? hnd->asA<PvtRelationship>() : nullptr;
     }
 
     const PvtDataHandleVec& getAllRelationships() const
     {
-        return _relOrder;
+        return _rel.all();
     }
-
-    PvtAttribute* createAttribute(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
     PvtInput* createInput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
-    PvtOutput* createOutput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
+    void removeInput(const RtToken& name);
 
-    void removeAttribute(const RtToken& name);
+    RtToken renameInput(const RtToken& name, const RtToken& newName, bool makeUnique = true);
 
-    void setAttributeName(const RtToken& name, const RtToken& newName);
-    RtToken renameAttribute(const RtToken& name, const RtToken& newName);
-
-    PvtAttribute* getAttribute(const RtToken& name) const
+    size_t numInputs() const
     {
-        auto it = _attrMap.find(name);
-        return it != _attrMap.end() ? it->second->asA<PvtAttribute>() : nullptr;
+        return _inputs.size();
+    }
+
+    PvtInput* getInput(size_t index) const
+    {
+        PvtDataHandle hnd = _inputs.get(index);
+        return hnd ? hnd->asA<PvtInput>() : nullptr;
     }
 
     PvtInput* getInput(const RtToken& name) const
     {
-        // TODO: Improve type check and type conversion for RtObject subclasses.
-        auto it = _attrMap.find(name);
-        return it != _attrMap.end() && it->second->isA<PvtInput>() ?
-            it->second->asA<PvtInput>() : nullptr;
+        PvtDataHandle hnd = _inputs.get(name);
+        return hnd ? hnd->asA<PvtInput>() : nullptr;
+    }
+
+    const PvtDataHandleVec& getInputs() const
+    {
+        return _inputs.all();
+    }
+
+    PvtOutput* createOutput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
+
+    void removeOutput(const RtToken& name);
+
+    RtToken renameOutput(const RtToken& name, const RtToken& newName, bool makeUnique = true);
+
+    size_t numOutputs() const
+    {
+        return _outputs.size();
+    }
+
+    PvtOutput* getOutput(size_t index = 0) const
+    {
+        PvtDataHandle hnd = _outputs.get(index);
+        return hnd ? hnd->asA<PvtOutput>() : nullptr;
     }
 
     PvtOutput* getOutput(const RtToken& name) const
     {
-        // TODO: Improve type check and type conversion for RtObject subclasses.
-        auto it = _attrMap.find(name);
-        return it != _attrMap.end() && it->second->isA<PvtOutput>() ?
-            it->second->asA<PvtOutput>() : nullptr;
+        PvtDataHandle hnd = _outputs.get(name);
+        return hnd ? hnd->asA<PvtOutput>() : nullptr;
     }
 
-    PvtOutput* getOutput() const
+    const PvtDataHandleVec& getOutputs() const
     {
-        // Return first output found.
-        // Iterate backwards since outputs are often created after inputs.
-        for (auto it = _attrOrder.rbegin(); it != _attrOrder.rend(); ++it)
-        {
-            const PvtDataHandle& hnd = *it;
-            if (hnd->isA<PvtOutput>())
-            {
-                return hnd->asA<PvtOutput>();
-            }
-        }
-        return nullptr;
+        return _outputs.all();
     }
 
-    size_t numInputs() const
+    size_t numChildren() const
     {
-        size_t count = 0;
-        for (const PvtDataHandle& hnd : _attrOrder)
-        {
-            count += size_t(hnd->isA<PvtInput>());
-        }
-        return count;
+        return _prims.size();
     }
 
-    size_t numOutputs() const
+    PvtPrim* getChild(size_t index) const
     {
-        size_t count = 0;
-        for (const PvtDataHandle& hnd : _attrOrder)
-        {
-            count += size_t(hnd->isA<PvtOutput>());
-        }
-        return count;
+        PvtDataHandle hnd = _prims.get(index);
+        return hnd ? hnd->asA<PvtPrim>() : nullptr;
     }
 
-    RtAttrIterator getAttributes(RtObjectPredicate predicate = nullptr) const;
-
-    const PvtDataHandleVec& getAllAttributes() const
+    PvtPrim* getChild(const RtToken& name) const
     {
-        return _attrOrder;
-    }
-
-    PvtPrim* getChild(const RtToken& name)
-    {
-        auto it = _primMap.find(name);
-        return it != _primMap.end() ? it->second->asA<PvtPrim>() : nullptr;
-    }
-
-    const PvtPrim* getChild(const RtToken& name) const
-    {
-        return const_cast<PvtPrim*>(this)->getChild(name);
+        PvtDataHandle hnd = _prims.get(name);
+        return hnd ? hnd->asA<PvtPrim>() : nullptr;
     }
 
     RtPrimIterator getChildren(RtObjectPredicate predicate = nullptr) const;
 
     const PvtDataHandleVec& getAllChildren() const
     {
-        return _primOrder;
+        return _prims.all();
     }
 
     PvtAllocator& getAllocator()
@@ -246,22 +232,24 @@ protected:
     const RtTypeInfo* _typeInfo;
 
     // Relationships
-    PvtDataHandleMap _relMap;
-    PvtDataHandleVec _relOrder;
+    PvtDataHandleList _rel;
 
-    // Attributes
-    PvtDataHandleMap _attrMap;
-    PvtDataHandleVec _attrOrder;
+    // Inputs
+    PvtDataHandleList _inputs;
+
+    // Outputs
+    PvtDataHandleList _outputs;
 
     // Child prims
-    PvtDataHandleMap _primMap;
-    PvtDataHandleVec _primOrder;
+    PvtDataHandleList _prims;
 
     PvtAllocator _allocator;
 
     friend class PvtApi;
     friend class PvtStage;
     friend class RtNodeGraph;
+    friend class RtInputIterator;
+    friend class RtOutputIterator;
     friend class RtRelationshipIterator;
 };
 

@@ -100,7 +100,7 @@ public:
         {
             throw ExceptionRuntimeError("A nodedef with name '" + prim.getName().str() + "' is already registered");
         }
-        _nodedefs.add(prim.getName(), PvtObject::hnd(prim));
+        _nodedefs.add(PvtObject::hnd(prim));
     }
 
     void unregisterNodeDef(const RtToken& name)
@@ -138,7 +138,7 @@ public:
         {
             throw ExceptionRuntimeError("A nodeimpl with name '" + prim.getName().str() + "' is already registered");
         }
-        _nodeimpls.add(prim.getName(), PvtObject::hnd(prim));
+        _nodeimpls.add(PvtObject::hnd(prim));
     }
 
     void unregisterNodeImpl(const RtToken& name)
@@ -176,7 +176,7 @@ public:
         {
             throw ExceptionRuntimeError("A targetdef with name '" + prim.getName().str() + "' is already registered");
         }
-        _targetdefs.add(prim.getName(), PvtObject::hnd(prim));
+        _targetdefs.add(PvtObject::hnd(prim));
     }
 
     void unregisterTargetDef(const RtToken& name)
@@ -342,9 +342,9 @@ public:
 
     RtTokenMap<RtPrimCreateFunc> _createFunctions;
     RtTokenMap<RtStagePtr> _stages;
-    PvtDataHandleRecord _nodedefs;
-    PvtDataHandleRecord _nodeimpls;
-    PvtDataHandleRecord _targetdefs;
+    PvtDataHandleList _nodedefs;
+    PvtDataHandleList _nodeimpls;
+    PvtDataHandleList _targetdefs;
 };
 
 }

@@ -7,7 +7,7 @@
 #define MATERIALX_PVTRELATIONSHIP_H
 
 #include <MaterialXRuntime/Private/PvtObject.h>
-#include <MaterialXRuntime/Private/PvtAttribute.h>
+#include <MaterialXRuntime/Private/PvtPort.h>
 
 #include <MaterialXRuntime/RtTraversal.h>
 

@@ -26,10 +26,10 @@ public:
     RtCollection(const RtPrim& prim) : RtBindElement(prim) {}
 
     /// Return included geometry identifiers
-    RtAttribute getIncludeGeom() const;
+    RtPort getIncludeGeom() const;
 
     /// Return excluded geometry identifiers
-    RtAttribute getExcludeGeom() const;
+    RtPort getExcludeGeom() const;
 
     /// Add a child collection
     void addCollection(const RtObject& collection);

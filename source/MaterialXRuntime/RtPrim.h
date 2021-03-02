@@ -12,15 +12,16 @@
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtObject.h>
 #include <MaterialXRuntime/RtTypeInfo.h>
-#include <MaterialXRuntime/RtAttribute.h>
+#include <MaterialXRuntime/RtPort.h>
 #include <MaterialXRuntime/RtRelationship.h>
 
 namespace MaterialX
 {
 
-class RtAttrIterator;
-class RtRelationshipIterator;
 class RtPrimIterator;
+class RtInputIterator;
+class RtOutputIterator;
+class RtRelationshipIterator;
 class RtSchemaBase;
 
 /// @class RtPrim
@@ -70,56 +71,43 @@ public:
     /// Return an iterator over all relationships of this prim.
     RtRelationshipIterator getRelationships() const;
 
-    /// Add an attribute to the prim.
-    RtAttribute createAttribute(const RtToken& name, const RtToken& type, uint32_t flags = 0);
-
-    /// Add an input attribute to the prim.
+    /// Add an input port to the prim.
     RtInput createInput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
-    /// Remove an attribute from the prim.
-    void removeAttribute(const RtToken& name);
-
-    /// Add an output attribute to the prim.
+    /// Add an output port to the prim.
     RtOutput createOutput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
-
-    /// Return an attribute by name, or a null object
-    /// if no such attribute exists.
-    RtAttribute getAttribute(const RtToken& name) const;
 
     /// Return the number of inputs on the prim.
     size_t numInputs() const;
 
-    /// Return an input attribute by name, or a null object
-    /// if no such input attribute exists.
+    /// Return an input port by index.
+    RtInput getInput(size_t index) const;
+
+    /// Return an input port by name, or a null object
+    /// if no such input port exists.
     RtInput getInput(const RtToken& name) const;
+
+    /// Return an iterator over all inputs.
+    RtInputIterator getInputs() const;
 
     /// Return the number of outputs on the prim.
     size_t numOutputs() const;
 
-    /// Return an input attribute by name, or a null object
-    /// if no such input attribute exists. If an empty name
-    /// is provided, then the first output is returned
+    /// Return an output port by index.
+    RtOutput getOutput(size_t index = 0) const;
+
+    /// Return an output port by name, or a null object
+    /// if no such output port exists.
     RtOutput getOutput(const RtToken& name) const;
 
-    /// Return the single output for single output prims.
-    /// Or if multiple outputs are available return the
-    /// last created output.
-    RtOutput getOutput() const;
-
-    /// Return an iterator traversing all attributes
-    /// of this prim.
-    RtAttrIterator getAttributes(RtObjectPredicate predicate = nullptr) const;
-
-    /// Return an iterator traversing all input attributes
-    /// on this prim.
-    RtAttrIterator getInputs() const;
-
-    /// Return an iterator traversing all output attributes
-    /// on this prim.
-    RtAttrIterator getOutputs() const;
+    /// Return an iterator over all outputs.
+    RtOutputIterator getOutputs() const;
 
     /// Return the number of children in the prim.
     size_t numChildren() const;
+
+    /// Return a child prim by index.
+    RtPrim getChild(size_t index) const;
 
     /// Return a child prim by name, or a null object
     /// if no such child prim exists.

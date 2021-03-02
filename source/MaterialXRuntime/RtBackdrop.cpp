@@ -35,17 +35,17 @@ RtRelationship RtBackdrop::getContains() const
     return prim()->getRelationship(Tokens::CONTAINS)->hnd();
 }
 
-RtAttribute RtBackdrop::getNote() const
+RtPort RtBackdrop::getNote() const
 {
     return prim()->getAttribute(Tokens::NOTE)->hnd();
 }
 
-RtAttribute RtBackdrop::getWidth() const
+RtPort RtBackdrop::getWidth() const
 {
     return prim()->getAttribute(Tokens::WIDTH)->hnd();
 }
 
-RtAttribute RtBackdrop::getHeight() const
+RtPort RtBackdrop::getHeight() const
 {
     return prim()->getAttribute(Tokens::HEIGHT)->hnd();
 }

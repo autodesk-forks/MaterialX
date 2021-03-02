@@ -35,11 +35,6 @@ PvtPrim* RtSchemaBase::prim() const
     return hnd()->asA<PvtPrim>();
 }
 
-PvtAttribute* RtSchemaBase::attr(const RtToken& name) const
-{
-    return prim()->getAttribute(name);
-}
-
 PvtRelationship* RtSchemaBase::rel(const RtToken& name) const
 {
     return prim()->getRelationship(name);

@@ -10,6 +10,8 @@
 #include <MaterialXRuntime/RtToken.h>
 #include <MaterialXRuntime/RtValue.h>
 
+#include <MaterialXRuntime/Private/PvtPath.h>
+
 #include <unordered_map>
 #include <set>
 #include <atomic>
@@ -19,66 +21,6 @@
 
 namespace MaterialX
 {
-
-class PvtPrim;
-class PvtStage;
-class PvtPath;
-
-using PvtDataHandleVec = vector<PvtDataHandle>;
-using PvtDataHandleMap = RtTokenMap<PvtDataHandle>;
-using PvtDataHandleSet = std::set<PvtDataHandle>;
-
-struct PvtDataHandleRecord
-{
-    PvtDataHandleMap map;
-    PvtDataHandleVec vec;
-
-    size_t size() const
-    {
-        return vec.size();
-    }
-
-    PvtDataHandle get(const RtToken& name) const
-    {
-        auto it = map.find(name);
-        return it != map.end() ? it->second : PvtDataHandle();
-    }
-
-    PvtDataHandle get(size_t index) const
-    {
-        return index < vec.size() ? vec[index] : PvtDataHandle();
-    }
-
-    void add(const RtToken& name, const PvtDataHandle& hnd)
-    {
-        map[name] = hnd;
-        vec.push_back(hnd);
-    }
-
-    void remove(const RtToken& name)
-    {
-        auto i = map.find(name);
-        if (i != map.end())
-        {
-            PvtDataHandle hnd = i->second;
-            for (auto j = vec.begin(); j != vec.end(); ++j)
-            {
-                if ((*j).get() == hnd)
-                {
-                    vec.erase(j);
-                    break;
-                }
-            }
-            map.erase(i);
-        }
-    }
-
-    void clear()
-    {
-        map.clear();
-        vec.clear();
-    }
-};
 
 // Class representing an object in the scene hierarchy.
 // This is the base class for prims, attributes and relationships.
@@ -262,10 +204,85 @@ protected:
     vector<RtToken> _metadataOrder;
 
     friend class PvtPrim;
-    friend class PvtAttribute;
+    friend class PvtPort;
     friend class PvtInput;
     friend class PvtOutput;
     RT_FRIEND_REF_PTR_FUNCTIONS(PvtObject)
+};
+
+
+using PvtDataHandleVec = vector<PvtDataHandle>;
+using PvtDataHandleMap = RtTokenMap<PvtDataHandle>;
+using PvtDataHandleSet = std::set<PvtDataHandle>;
+
+// Data handle container with access by name and by index.
+class PvtDataHandleList
+{
+public:
+    size_t size() const
+    {
+        return _handles.size();
+    }
+
+    bool empty() const
+    {
+        return _handles.empty();
+    }
+
+    size_t index(const RtToken& name) const
+    {
+        auto it = _indexByName.find(name);
+        return it != _indexByName.end() ? it->second : size_t(-1);
+    }
+
+    PvtDataHandle get(const RtToken& name) const
+    {
+        return get(index(name));
+    }
+
+    PvtDataHandle get(size_t i) const
+    {
+        return i < _handles.size() ? _handles[i] : PvtDataHandle();
+    }
+
+    void add(const PvtDataHandle& hnd)
+    {
+        _handles.push_back(hnd);
+        _indexByName[hnd->getName()] = _handles.size() - 1;
+    }
+
+    PvtDataHandle remove(const RtToken& name)
+    {
+        auto it = _indexByName.find(name);
+        if (it != _indexByName.end())
+        {
+            PvtDataHandle hnd = _handles[it->second];
+            _handles.erase(_handles.begin() + it->second);
+            _indexByName.erase(it);
+            return hnd;
+        }
+        return PvtDataHandle();
+    }
+
+    void clear()
+    {
+        _handles.clear();
+        _indexByName.clear();
+    }
+
+    const PvtDataHandleVec& all() const
+    {
+        return _handles;
+    }
+
+    PvtDataHandleVec& all()
+    {
+        return _handles;
+    }
+
+private:
+    PvtDataHandleVec _handles;
+    RtTokenMap<size_t> _indexByName;
 };
 
 }

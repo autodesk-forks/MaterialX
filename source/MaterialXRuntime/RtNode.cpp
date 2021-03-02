@@ -152,19 +152,17 @@ RtPrim RtNode::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
     }
 
     // Create the interface according to nodedef.
-    for (const PvtDataHandle& attrH : nodedefPrim->getAllAttributes())
+    for (const PvtDataHandle& portH : nodedefPrim->getInputs())
     {
-        const PvtAttribute* attr = attrH->asA<PvtAttribute>();
-        if (attr->isA<PvtInput>())
-        {
-            PvtInput* input = node->createInput(attr->getName(), attr->getType(), attr->getFlags());
-            RtValue::copy(attr->getType(), attr->getValue(), input->getValue());
-        }
-        else if (attr->isA<PvtObject>())
-        {
-            PvtOutput* output = node->createOutput(attr->getName(), attr->getType(), attr->getFlags());
-            RtValue::copy(attr->getType(), attr->getValue(), output->getValue());
-        }
+        const PvtInput* port = portH->asA<PvtInput>();
+        PvtInput* input = node->createInput(port->getName(), port->getType(), port->getFlags());
+        RtValue::copy(port->getType(), port->getValue(), input->getValue());
+    }
+    for (const PvtDataHandle& portH : nodedefPrim->getOutputs())
+    {
+        const PvtOutput* port = portH->asA<PvtOutput>();
+        PvtOutput* output = node->createOutput(port->getName(), port->getType(), port->getFlags());
+        RtValue::copy(port->getType(), port->getValue(), output->getValue());
     }
 
     return nodeH;
@@ -200,44 +198,6 @@ void RtNode::setVersion(const RtToken& version)
 {
     RtTypedValue* v = prim()->addMetadata(Tokens::VERSION, RtType::TOKEN);
     v->getValue().asToken() = version;
-}
-
-size_t RtNode::numInputs() const
-{
-    return prim()->numInputs();
-}
-
-RtInput RtNode::getInput(const RtToken& name) const
-{
-    PvtInput* input = prim()->getInput(name);
-    return input ? input->hnd() : RtInput();
-}
-
-RtAttrIterator RtNode::getInputs() const
-{
-    return getPrim().getInputs();
-}
-
-size_t RtNode::numOutputs() const
-{
-    return prim()->numOutputs();
-}
-
-RtOutput RtNode::getOutput(const RtToken& name) const
-{
-    PvtOutput* output = prim()->getOutput(name);
-    return output ? output->hnd() : RtOutput();
-}
-
-RtOutput RtNode::getOutput() const
-{
-    PvtOutput* output = prim()->getOutput();
-    return output ? output->hnd() : RtOutput();
-}
-
-RtAttrIterator RtNode::getOutputs() const
-{
-    return getPrim().getOutputs();
 }
 
 const RtTokenVec& RtNode::getPublicMetadataNames() const

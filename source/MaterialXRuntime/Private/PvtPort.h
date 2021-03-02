@@ -3,12 +3,12 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#ifndef MATERIALX_PVTATTRIBUTE_H
-#define MATERIALX_PVTATTRIBUTE_H
+#ifndef MATERIALX_PVTPORT_H
+#define MATERIALX_PVTPORT_H
 
 #include <MaterialXRuntime/Private/PvtObject.h>
 
-#include <MaterialXRuntime/RtAttribute.h>
+#include <MaterialXRuntime/RtPort.h>
 #include <MaterialXRuntime/RtObject.h>
 #include <MaterialXRuntime/RtValue.h>
 #include <MaterialXRuntime/RtTypeDef.h>
@@ -20,13 +20,9 @@
 namespace MaterialX
 {
 
-class PvtAttribute : public PvtObject
+class PvtPort : public PvtObject
 {
-    RT_DECLARE_RUNTIME_OBJECT(PvtAttribute)
-
 public:
-    PvtAttribute(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent);
-
     const RtToken& getType() const
     {
         return _value.getType();
@@ -69,53 +65,53 @@ public:
 
     bool isSocket() const
     {
-        return (_flags & RtAttrFlag::SOCKET) != 0;
+        return (_flags & RtPortFlag::SOCKET) != 0;
     }
 
     const RtToken& getColorSpace() const
     {
-        const RtTypedValue* md = getMetadata(PvtAttribute::COLOR_SPACE);
+        const RtTypedValue* md = getMetadata(PvtPort::COLOR_SPACE, RtType::TOKEN);
         return md ? md->getValue().asToken() : EMPTY_TOKEN;
     }
 
     void setColorSpace(const RtToken& colorspace)
     {
-        RtTypedValue* md = getMetadata(PvtAttribute::COLOR_SPACE);
+        RtTypedValue* md = getMetadata(PvtPort::COLOR_SPACE, RtType::TOKEN);
         if (!md)
         {
-            md = addMetadata(PvtAttribute::COLOR_SPACE, RtType::TOKEN);
+            md = addMetadata(PvtPort::COLOR_SPACE, RtType::TOKEN);
         }
         md->getValue().asToken() = colorspace;
     }
 
     const RtToken& getUnit() const
     {
-        const RtTypedValue* md = getMetadata(PvtAttribute::UNIT);
+        const RtTypedValue* md = getMetadata(PvtPort::UNIT, RtType::TOKEN);
         return md ? md->getValue().asToken() : EMPTY_TOKEN;
     }
 
     void setUnit(const RtToken& unit)
     {
-        RtTypedValue* md = getMetadata(PvtAttribute::UNIT);
+        RtTypedValue* md = getMetadata(PvtPort::UNIT, RtType::TOKEN);
         if (!md)
         {
-            md = addMetadata(PvtAttribute::UNIT, RtType::TOKEN);
+            md = addMetadata(PvtPort::UNIT, RtType::TOKEN);
         }
         md->getValue().asToken() = unit;
     }
 
     const RtToken& getUnitType() const
     {
-        const RtTypedValue* md = getMetadata(PvtAttribute::UNIT_TYPE);
+        const RtTypedValue* md = getMetadata(PvtPort::UNIT_TYPE, RtType::TOKEN);
         return md ? md->getValue().asToken() : EMPTY_TOKEN;
     }
 
     void setUnitType(const RtToken& unit)
     {
-        RtTypedValue* md = getMetadata(PvtAttribute::UNIT_TYPE);
+        RtTypedValue* md = getMetadata(PvtPort::UNIT_TYPE, RtType::TOKEN);
         if (!md)
         {
-            md = addMetadata(PvtAttribute::UNIT_TYPE, RtType::TOKEN);
+            md = addMetadata(PvtPort::UNIT_TYPE, RtType::TOKEN);
         }
         md->getValue().asToken() = unit;
     }
@@ -127,6 +123,8 @@ public:
     static const RtToken ATTRIBUTE;
 
 protected:
+    PvtPort(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent);
+
     RtTypedValue _value;
     uint32_t _flags;
 
@@ -136,7 +134,7 @@ protected:
 
 class PvtOutput;
 
-class PvtInput : public PvtAttribute
+class PvtInput : public PvtPort
 {
     RT_DECLARE_RUNTIME_OBJECT(PvtInput)
 
@@ -145,18 +143,18 @@ public:
 
     bool isUniform() const
     {
-        return (_flags & RtAttrFlag::UNIFORM) != 0;
+        return (_flags & RtPortFlag::UNIFORM) != 0;
     }
 
     void setUniform(bool uniform)
     {
         if (uniform)
         {
-            _flags |= RtAttrFlag::UNIFORM;
+            _flags |= RtPortFlag::UNIFORM;
         }
         else
         {
-            _flags &= ~RtAttrFlag::UNIFORM;
+            _flags &= ~RtPortFlag::UNIFORM;
         }
     }
 
@@ -184,7 +182,7 @@ protected:
 };
 
 
-class PvtOutput : public PvtAttribute
+class PvtOutput : public PvtPort
 {
     RT_DECLARE_RUNTIME_OBJECT(PvtOutput)
 

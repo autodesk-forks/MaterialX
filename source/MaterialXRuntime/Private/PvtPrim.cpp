@@ -24,15 +24,19 @@ PvtPrim::PvtPrim(const RtTypeInfo* typeInfo, const RtToken& name, PvtPrim* paren
 
 void PvtPrim::dispose(bool state)
 {
-    for (const PvtDataHandle& hnd : _relOrder)
+    for (const PvtDataHandle& hnd : _rel.all())
     {
         hnd->setDisposed(state);
     }
-    for (const PvtDataHandle& hnd : _attrOrder)
+    for (const PvtDataHandle& hnd : _inputs.all())
     {
         hnd->setDisposed(state);
     }
-    for (const PvtDataHandle& hnd : _primOrder)
+    for (const PvtDataHandle& hnd : _outputs.all())
+    {
+        hnd->setDisposed(state);
+    }
+    for (const PvtDataHandle& hnd : _prims.all())
     {
         hnd->asA<PvtPrim>()->dispose(state);
     }
@@ -42,36 +46,32 @@ void PvtPrim::dispose(bool state)
 void PvtPrim::destroy()
 {
     // Disconnect and delete all relationships.
-    for (PvtDataHandle& hnd : _relOrder)
+    for (PvtDataHandle& hnd : _rel.all())
     {
-        PvtRelationship* rel = hnd->asA<PvtRelationship>();
-        rel->clearTargets();
+        hnd->asA<PvtRelationship>()->clearTargets();
     }
-    _relOrder.clear();
-    _relMap.clear();
+    _rel.clear();
 
-    // Disconnect and delete all attributes.
-    for (PvtDataHandle& hnd : _attrOrder)
+    // Disconnect and delete all inputs.
+    for (PvtDataHandle& hnd : _inputs.all())
     {
-        if (hnd->isA<PvtInput>())
-        {
-            hnd->asA<PvtInput>()->clearConnection();
-        }
-        else if (hnd->isA<PvtOutput>())
-        {
-            hnd->asA<PvtOutput>()->clearConnections();
-        }
+        hnd->asA<PvtInput>()->clearConnection();
     }
-    _attrOrder.clear();
-    _attrMap.clear();
+    _inputs.clear();
+
+    // Disconnect and delete all outputs.
+    for (PvtDataHandle& hnd : _outputs.all())
+    {
+        hnd->asA<PvtOutput>()->clearConnections();
+    }
+    _outputs.clear();
 
     // Destroy all child prims reqursively.
-    for (const PvtDataHandle& hnd : _primOrder)
+    for (const PvtDataHandle& hnd : _prims.all())
     {
         hnd->asA<PvtPrim>()->destroy();
     }
-    _primOrder.clear();
-    _primMap.clear();
+    _prims.clear();
 
     // Tag as disposed.
     dispose(true);
@@ -85,8 +85,7 @@ PvtRelationship* PvtPrim::createRelationship(const RtToken& name)
     }
 
     PvtDataHandle relH(new PvtRelationship(name, this));
-    _relOrder.push_back(relH);
-    _relMap[name] = relH;
+    _rel.add(relH);
 
     return relH->asA<PvtRelationship>();
 }
@@ -96,17 +95,8 @@ void PvtPrim::removeRelationship(const RtToken& name)
     PvtRelationship* rel = getRelationship(name);
     if (rel)
     {
-        for (auto it = _relOrder.begin(); it != _relOrder.end(); ++it)
-        {
-            PvtRelationship* r = (*it)->asA<PvtRelationship>();
-            if (r == rel)
-            {
-                _relOrder.erase(it);
-                break;
-            }
-        }
         rel->setDisposed(true);
-        _relMap.erase(name);
+        _rel.remove(name);
     }
 }
 
@@ -120,23 +110,9 @@ void PvtPrim::renameRelationship(const RtToken& name, const RtToken& newName)
     if (rel)
     {
         rel->setName(newName);
-        _relMap[newName] = rel->hnd();
-        _relMap.erase(name);
+        _rel.add(rel->hnd());
+        _rel.remove(name);
     }
-}
-
-PvtAttribute* PvtPrim::createAttribute(const RtToken& name, const RtToken& type, uint32_t flags)
-{
-    if (getAttribute(name))
-    {
-        throw ExceptionRuntimeError("An attribute named '" + name.str() + "' already exists in prim '" + getName().str() + "'");
-    }
-
-    PvtDataHandle attrH(new PvtAttribute(name, type, flags, this));
-    _attrOrder.push_back(attrH);
-    _attrMap[name] = attrH;
-
-    return attrH->asA<PvtAttribute>();
 }
 
 PvtInput* PvtPrim::createInput(const RtToken& name, const RtToken& type, uint32_t flags)
@@ -144,71 +120,85 @@ PvtInput* PvtPrim::createInput(const RtToken& name, const RtToken& type, uint32_
     // Inputs with type filename, token or string must always be uniform.
     if (type == RtType::FILENAME || type == RtType::TOKEN || type == RtType::STRING)
     {
-        flags |= RtAttrFlag::UNIFORM;
+        flags |= RtPortFlag::UNIFORM;
     }
 
     RtToken uniqueName = makeUniqueChildName(name);
-    PvtDataHandle attrH(new PvtInput(uniqueName, type, flags, this));
-    _attrOrder.push_back(attrH);
-    _attrMap[uniqueName] = attrH;
+    PvtDataHandle portH(new PvtInput(uniqueName, type, flags, this));
+    _inputs.add(portH);
 
-    return attrH->asA<PvtInput>();
+    return portH->asA<PvtInput>();
+}
+
+void PvtPrim::removeInput(const RtToken& name)
+{
+    PvtPort* port = getInput(name);
+    if (!port)
+    {
+        throw ExceptionRuntimeError("No input found with name '" + name.str() + "'");
+    }
+    port->setDisposed(true);
+    _inputs.remove(name);
+}
+
+RtToken PvtPrim::renameInput(const RtToken& name, const RtToken& newName, bool makeUnique)
+{
+    PvtDataHandle hnd = _inputs.remove(name);
+    if (!hnd)
+    {
+        throw ExceptionRuntimeError("Unable to rename input. Input named '" + name.str() + "' does not exist.");
+    }
+
+    RtToken result = newName;
+    if (makeUnique)
+    {
+        result = makeUniqueChildName(newName);
+    }
+
+    hnd->setName(result);
+    _inputs.add(hnd);
+
+    return result;
 }
 
 PvtOutput* PvtPrim::createOutput(const RtToken& name, const RtToken& type, uint32_t flags)
 {
     RtToken uniqueName = makeUniqueChildName(name);
-    PvtDataHandle attrH(new PvtOutput(uniqueName, type, flags, this));
-    _attrOrder.push_back(attrH);
-    _attrMap[uniqueName] = attrH;
+    PvtDataHandle portH(new PvtOutput(uniqueName, type, flags, this));
+    _outputs.add(portH);
 
-    return attrH->asA<PvtOutput>();
+    return portH->asA<PvtOutput>();
 }
 
-void PvtPrim::removeAttribute(const RtToken& name)
+void PvtPrim::removeOutput(const RtToken& name)
 {
-    PvtAttribute* attr = getAttribute(name);
-    if (attr)
+    PvtPort* port = getOutput(name);
+    if (!port)
     {
-        for (auto it = _attrOrder.begin(); it != _attrOrder.end(); ++it)
-        {
-            PvtAttribute* a = (*it)->asA<PvtAttribute>();
-            if (a == attr)
-            {
-                _attrOrder.erase(it);
-                break;
-            }
-        }
-        attr->setDisposed(true);
-        _attrMap.erase(name);
+        throw ExceptionRuntimeError("No output found with name '" + name.str() + "'");
     }
+    port->setDisposed(true);
+    _outputs.remove(name);
 }
 
-void PvtPrim::setAttributeName(const RtToken& name, const RtToken& newName)
+RtToken PvtPrim::renameOutput(const RtToken& name, const RtToken& newName, bool makeUnique)
 {
-    PvtAttribute* attr = getAttribute(name);
-    if (attr)
+    PvtDataHandle hnd = _outputs.remove(name);
+    if (!hnd)
     {
-        attr->setName(newName);
-        _attrMap[newName] = attr->hnd();
-        _attrMap.erase(name);
+        throw ExceptionRuntimeError("Unable to rename output. Output named '" + name.str() + "' does not exist.");
     }
-    else
+
+    RtToken result = newName;
+    if (makeUnique)
     {
-        throw ExceptionRuntimeError("Unable to set attribute name. Attribute named: " + name.str() + " does not exist.");
+        result = makeUniqueChildName(newName);
     }
-}
 
-RtToken PvtPrim::renameAttribute(const RtToken& name, const RtToken& newName)
-{
-    RtToken uniqueNewName = makeUniqueChildName(newName);
-    setAttributeName(name, uniqueNewName);
-    return uniqueNewName;
-}
+    hnd->setName(result);
+    _outputs.add(hnd);
 
-RtAttrIterator PvtPrim::getAttributes(RtObjectPredicate predicate) const
-{
-    return RtAttrIterator(hnd(), predicate);
+    return result;
 }
 
 RtPrimIterator PvtPrim::getChildren(RtObjectPredicate predicate) const
@@ -218,12 +208,25 @@ RtPrimIterator PvtPrim::getChildren(RtObjectPredicate predicate) const
 
 RtToken PvtPrim::makeUniqueChildName(const RtToken& name) const
 {
+    // Collect all existing child names.
+    RtTokenSet allNames;
+    for (auto it : _inputs.all())
+    {
+        allNames.insert(it->getName());
+    }
+    for (auto it : _outputs.all())
+    {
+        allNames.insert(it->getName());
+    }
+    for (auto it : _prims.all())
+    {
+        allNames.insert(it->getName());
+    }
+
     RtToken newName = name;
 
     // Check if there is another child with this name.
-    const PvtPrim* otherChild = getChild(name);
-    const PvtAttribute* otherAttr = getAttribute(name);
-    if (otherChild || otherAttr)
+    if (allNames.count(newName))
     {
         // Find a number to append to the name, incrementing
         // the counter until a unique name is found.
@@ -239,30 +242,20 @@ RtToken PvtPrim::makeUniqueChildName(const RtToken& name) const
         // Iterate until there is no other child with the resulting name.
         do {
             newName = RtToken(baseName + std::to_string(i++));
-            otherChild = getChild(newName);
-	    otherAttr = getAttribute(newName);
-        } while (otherChild || otherAttr);
+        } while (allNames.count(newName));
     }
+
     return newName;
 }
 
 void PvtPrim::addChildPrim(const PvtPrim* prim)
 {
-    _primOrder.push_back(prim->hnd());
-    _primMap[prim->getName()] = prim->hnd();
+    _prims.add(prim->hnd());
 }
 
 void PvtPrim::removeChildPrim(const PvtPrim* prim)
 {
-    for (auto it = _primOrder.begin(); it != _primOrder.end(); ++it)
-    {
-        if ((*it).get() == prim)
-        {
-            _primOrder.erase(it);
-            break;
-        }
-    }
-    _primMap.erase(prim->getName());
+    _prims.remove(prim->getName());
 }
 
 }

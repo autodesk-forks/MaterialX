@@ -10,7 +10,7 @@
 /// Commands for connection handling.
 
 #include <MaterialXRuntime/RtCommand.h>
-#include <MaterialXRuntime/RtAttribute.h>
+#include <MaterialXRuntime/RtPort.h>
 
 namespace MaterialX
 {

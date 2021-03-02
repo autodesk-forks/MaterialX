@@ -3,7 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/Private/PvtAttribute.h>
+#include <MaterialXRuntime/Private/PvtPort.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
 #include <MaterialXRuntime/Private/PvtPath.h>
 
@@ -12,26 +12,23 @@
 namespace MaterialX
 {
 
-const RtToken PvtAttribute::DEFAULT_OUTPUT_NAME("out");
-const RtToken PvtAttribute::COLOR_SPACE("colorspace");
-const RtToken PvtAttribute::UNIT("unit");
-const RtToken PvtAttribute::UNIT_TYPE("unittype");
+const RtToken PvtPort::DEFAULT_OUTPUT_NAME("out");
+const RtToken PvtPort::COLOR_SPACE("colorspace");
+const RtToken PvtPort::UNIT("unit");
+const RtToken PvtPort::UNIT_TYPE("unittype");
 
-RT_DEFINE_RUNTIME_OBJECT(PvtAttribute, RtObjType::ATTRIBUTE, "PvtAttribute")
-
-PvtAttribute::PvtAttribute(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent) :
+PvtPort::PvtPort(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent) :
     PvtObject(name, parent),
     _value(type, RtValue::createNew(type, parent->prim())),
     _flags(flags)
 {
-    setTypeBit<PvtAttribute>();
 }
 
 
 RT_DEFINE_RUNTIME_OBJECT(PvtInput, RtObjType::INPUT, "PvtInput")
 
 PvtInput::PvtInput(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent) :
-    PvtAttribute(name, type, flags, parent)
+    PvtPort(name, type, flags, parent)
 {
     setTypeBit<PvtInput>();
 }
@@ -116,7 +113,7 @@ void PvtInput::clearConnection()
 RT_DEFINE_RUNTIME_OBJECT(PvtOutput, RtObjType::OUTPUT, "PvtOutput")
 
 PvtOutput::PvtOutput(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent) :
-    PvtAttribute(name, type, flags, parent)
+    PvtPort(name, type, flags, parent)
 {
     setTypeBit<PvtOutput>();
 }

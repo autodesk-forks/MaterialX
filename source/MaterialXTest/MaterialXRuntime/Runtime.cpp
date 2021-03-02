@@ -16,7 +16,7 @@
 #include <MaterialXRuntime/RtStage.h>
 #include <MaterialXRuntime/RtPrim.h>
 #include <MaterialXRuntime/RtRelationship.h>
-#include <MaterialXRuntime/RtAttribute.h>
+#include <MaterialXRuntime/RtPort.h>
 #include <MaterialXRuntime/RtNodeDef.h>
 #include <MaterialXRuntime/RtTypeDef.h>
 #include <MaterialXRuntime/RtNameResolver.h>
@@ -533,12 +533,12 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(backdropPrim.isA<mx::RtPrim>());
     mx::RtObject obj1 = backdrop.getNote();
     mx::RtObject obj2 = backdrop.getContains();
-    REQUIRE(obj1.isA<mx::RtAttribute>());
+    REQUIRE(obj1.isA<mx::RtPort>());
     REQUIRE(!obj1.isA<mx::RtRelationship>());
     REQUIRE(obj2.isA<mx::RtRelationship>());
-    REQUIRE(!obj2.isA<mx::RtAttribute>());
-    mx::RtAttribute attr1 = obj1.asA<mx::RtAttribute>();
-    mx::RtAttribute attr2 = obj2.asA<mx::RtAttribute>();
+    REQUIRE(!obj2.isA<mx::RtPort>());
+    mx::RtPort attr1 = obj1.asA<mx::RtPort>();
+    mx::RtPort attr2 = obj2.asA<mx::RtPort>();
     REQUIRE(attr1);
     REQUIRE(!attr2);
 
@@ -741,9 +741,6 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     mx::RtInput Binput = graph1.createInput(B, mx::RtType::FLOAT);
     Binput.setValueString("0.1");
     graph1.createOutput(OUT, mx::RtType::FLOAT);
-    REQUIRE(graph1.getPrim().getAttribute(A));
-    REQUIRE(graph1.getPrim().getAttribute(B));
-    REQUIRE(graph1.getPrim().getAttribute(OUT));
     REQUIRE(graph1.getInput(A));
     REQUIRE(graph1.getInput(B));
     REQUIRE(graph1.getOutput(OUT));
@@ -771,7 +768,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     layout.uifolder[A] = layout.uifolder[B] = path1;
     layout.uifolder[X] = path2;
     graph1.setNodeLayout(layout);
-    mx::RtAttrIterator orderIt = graph1.getInputs();
+    mx::RtInputIterator orderIt = graph1.getInputs();
     REQUIRE((*orderIt).getName() == X);
     REQUIRE((*orderIt).getMetadata(UIFOLDER)->getValue().asString() == path2);
     ++orderIt;
@@ -1427,14 +1424,11 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
     }
     REQUIRE(nodeCount == 5);
 
-    // Filter for finding input attributes.
-    mx::RtObjTypePredicate<mx::RtInput> inputFilter;
-
     // Travers a nodedef finding all its inputs.
     mx::RtNodeDef generalized_schlick_brdf = api->getLibrary()->getPrimAtPath("/ND_generalized_schlick_bsdf");
     REQUIRE(generalized_schlick_brdf);
     size_t inputCount = 0;
-    for (auto it = generalized_schlick_brdf.getPrim().getAttributes(inputFilter); !it.isDone(); ++it)
+    for (auto it : generalized_schlick_brdf.getPrim().getInputs())
     {
         inputCount++;
     }
@@ -1487,9 +1481,9 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     REQUIRE(p1.hasApi<mx::RtBindElement>());
     REQUIRE(p1.hasApi<mx::RtCollection>());
     mx::RtCollection col1(p1);
-    mx::RtAttribute igeom = col1.getIncludeGeom();
+    mx::RtPort igeom = col1.getIncludeGeom();
     igeom.setValueString("foo");
-    mx::RtAttribute egeom = col1.getExcludeGeom();
+    mx::RtPort egeom = col1.getExcludeGeom();
     egeom.setValueString("bar");
     REQUIRE(igeom.getValueString() == "foo");
     REQUIRE(egeom.getValueString() == "bar");
@@ -1926,7 +1920,7 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     {
         ++(*reinterpret_cast<size_t*>(userData));
     };
-    auto setAttrCB = [](const mx::RtAttribute&, const mx::RtValue&, void* userData)
+    auto setAttrCB = [](const mx::RtPort&, const mx::RtValue&, void* userData)
     {
         ++(*reinterpret_cast<size_t*>(userData));
     };
@@ -2027,8 +2021,8 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     //
     setAttrCount = 0;
 
-    mx::RtAttribute in1 = add2.getAttribute(IN1);
-    mx::RtAttribute in2 = add2.getAttribute(IN2);
+    mx::RtPort in1 = add2.getInput(IN1);
+    mx::RtPort in2 = add2.getInput(IN2);
     in1.getValue().asFloat() = 1.0f;
     in2.getValue().asFloat() = 1.0f;
 
@@ -2511,8 +2505,6 @@ TEST_CASE("Runtime: duplicate name", "[runtime]")
     // Add an interface to the graph.
     mx::RtInput Ainput = graph1.createInput(A, mx::RtType::FLOAT);
     graph1.createOutput(OUT, mx::RtType::FLOAT);
-    REQUIRE(graph1.getPrim().getAttribute(A));
-    REQUIRE(graph1.getPrim().getAttribute(OUT));
     REQUIRE(graph1.getInput(A));
     REQUIRE(graph1.getOutput(OUT));
     REQUIRE(graph1.getInputSocket(A));

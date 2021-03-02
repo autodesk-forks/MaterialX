@@ -218,10 +218,11 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
     }
 
     // Add an input per nodegraph input
-    for (auto input : nodeGraph.getInputs())
+    for (auto hnd : nodeGraph.prim()->getInputs())
     {
-        RtInput attr = nodedef.createInput(input.getName(), input.getType());
-        attr.setUniform(input.asA<RtInput>().isUniform());
+        RtInput input(hnd);
+        RtInput port = nodedef.createInput(input.getName(), input.getType());
+        port.setUniform(input.isUniform());
 
         const PvtObject* obj = PvtObject::hnd(input)->asA<PvtObject>();
         const vector<RtToken>& metadataNames = obj->getMetadataOrder();
@@ -230,20 +231,21 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
             const RtTypedValue* metadataValue = obj->getMetadata(metadataName);
             if (metadataValue)
             {
-                RtTypedValue* vNew = attr.addMetadata(metadataName, metadataValue->getType());
+                RtTypedValue* vNew = port.addMetadata(metadataName, metadataValue->getType());
                 vNew->getValue().asToken() = metadataValue->getValue().asToken();
             }
         }
         if (!input.getValueString().empty())
         {
-            attr.setValue(input.getValue());
+            port.setValue(input.getValue());
         }
     }
 
     // Add an output per nodegraph output
-    for (auto output : nodeGraph.getOutputs())
+    for (auto hnd : nodeGraph.prim()->getOutputs())
     {
-        RtAttribute attr = nodedef.createOutput(output.getName(), output.getType());
+        RtOutput output(hnd);
+        RtPort port = nodedef.createOutput(output.getName(), output.getType());
         const PvtObject* obj = PvtObject::hnd(output)->asA<PvtObject>();
         const vector<RtToken>& metadataNames = obj->getMetadataOrder();
         for (auto metadataName : metadataNames)
@@ -251,13 +253,13 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
             const RtTypedValue* metadataValue = obj->getMetadata(metadataName);
             if (metadataValue)
             {
-                RtTypedValue* vNew = attr.addMetadata(metadataName, metadataValue->getType());
+                RtTypedValue* vNew = port.addMetadata(metadataName, metadataValue->getType());
                 vNew->getValue().asToken() = metadataValue->getValue().asToken();
             }
         }
         if (!output.getValueString().empty())
         {
-            attr.setValue(output.getValue());
+            port.setValue(output.getValue());
         }
     }
 

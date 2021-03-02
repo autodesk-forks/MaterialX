@@ -221,12 +221,7 @@ RtInput RtNodeDef::createInput(const RtToken& name, const RtToken& type, uint32_
 
 void RtNodeDef::removeInput(const RtToken& name)
 {
-    PvtInput* input = prim()->getInput(name);
-    if (!(input && input->isA<PvtInput>()))
-    {
-        throw ExceptionRuntimeError("No input found with name '" + name.str() + "'");
-    }
-    prim()->removeAttribute(name);
+    prim()->removeInput(name);
 }
 
 RtOutput RtNodeDef::createOutput(const RtToken& name, const RtToken& type, uint32_t flags)
@@ -236,12 +231,7 @@ RtOutput RtNodeDef::createOutput(const RtToken& name, const RtToken& type, uint3
 
 void RtNodeDef::removeOutput(const RtToken& name)
 {
-    PvtOutput* output = prim()->getOutput(name);
-    if (!(output && output->isA<PvtOutput>()))
-    {
-        throw ExceptionRuntimeError("No output found with name '" + name.str() + "'");
-    }
-    prim()->removeAttribute(name);
+    prim()->removeOutput(name);
 }
 
 size_t RtNodeDef::numInputs() const
@@ -249,16 +239,14 @@ size_t RtNodeDef::numInputs() const
     return prim()->numInputs();
 }
 
-RtInput RtNodeDef::getInput(const RtToken& name) const
+RtInput RtNodeDef::getInput(size_t index) const
 {
-    PvtInput* input = prim()->getInput(name);
-    return input ? input->hnd() : RtInput();
+    return getPrim().getInput(index);
 }
 
-RtAttrIterator RtNodeDef::getInputs() const
+RtInput RtNodeDef::getInput(const RtToken& name) const
 {
-    RtObjTypePredicate<RtInput> filter;
-    return RtAttrIterator(getPrim(), filter);
+    return getPrim().getInput(name);
 }
 
 size_t RtNodeDef::numOutputs() const
@@ -266,22 +254,14 @@ size_t RtNodeDef::numOutputs() const
     return prim()->numOutputs();
 }
 
+RtOutput RtNodeDef::getOutput(size_t index) const
+{
+    return getPrim().getOutput(index);
+}
+
 RtOutput RtNodeDef::getOutput(const RtToken& name) const
 {
-    PvtOutput* output = prim()->getOutput(name);
-    return output ? output->hnd() : RtOutput();
-}
-
-RtOutput RtNodeDef::getOutput() const
-{
-    PvtOutput* output = prim()->getOutput();
-    return output ? output->hnd() : RtOutput();
-}
-
-RtAttrIterator RtNodeDef::getOutputs() const
-{
-    RtObjTypePredicate<RtOutput> filter;
-    return RtAttrIterator(getPrim(), filter);
+    return getPrim().getOutput(name);
 }
 
 RtRelationship RtNodeDef::getNodeImpls() const
@@ -310,8 +290,9 @@ RtPrim RtNodeDef::getNodeImpl(const RtToken& target) const
 RtNodeLayout RtNodeDef::getNodeLayout()
 {
     RtNodeLayout layout;
-    for (RtAttribute input : getInputs())
+    for (size_t i=0; i<numInputs(); ++i)
     {
+        RtInput input = getInput(i);
         layout.order.push_back(input.getName());
         RtTypedValue* data = input.getMetadata(Tokens::UIFOLDER);
         if (data && data->getType() == RtType::STRING)

@@ -80,40 +80,35 @@ public:
     /// Set the namespace for this nodedef.
     void setNamespace(const string& space);
 
-    /// Add an input attribute to the interface.
+    /// Add an input port to the interface.
     RtInput createInput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
-    /// Remove an input attribute from the interface.
+    /// Remove an input port from the interface.
     void removeInput(const RtToken& name);
 
-    /// Add an output attribute to the interface.
+    /// Add an output port to the interface.
     RtOutput createOutput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
-    /// Remove an output attribute from the interface.
+    /// Remove an output port from the interface.
     void removeOutput(const RtToken& name);
 
     /// Return the number of inputs on the interface.
     size_t numInputs() const;
 
-    /// Return the named input.
-    RtInput getInput(const RtToken& name) const;
+    /// Return and input by index.
+    RtInput getInput(size_t index) const;
 
-    /// Return an iterator traversing all input attributes.
-    RtAttrIterator getInputs() const;
+    /// Return and input by name.
+    RtInput getInput(const RtToken& name) const;
 
     /// Return the number of outputs on the interface.
     size_t numOutputs() const;
 
-    /// Return the named output.
+    /// Return and output by index.
+    RtOutput getOutput(size_t index = 0) const;
+
+    /// Return and output by name.
     RtOutput getOutput(const RtToken& name) const;
-
-    /// Return the single output for single output nodes.
-    /// Or if multiple outputs are available return the 
-    /// last created output.
-    RtOutput getOutput() const;
-
-    /// Return an iterator traversing all output attributes.
-    RtAttrIterator getOutputs() const;
 
     /// Return the relationship maintaining all node implementations registered for this nodedef.
     RtRelationship getNodeImpls() const;

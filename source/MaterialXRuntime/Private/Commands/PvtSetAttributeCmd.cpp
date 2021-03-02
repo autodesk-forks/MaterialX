@@ -10,13 +10,13 @@
 namespace MaterialX
 {
 
-PvtSetAttributeCmd::PvtSetAttributeCmd(const RtAttribute& attr, const RtValue& value) :
+PvtSetAttributeCmd::PvtSetAttributeCmd(const RtPort& attr, const RtValue& value) :
     _attr(attr),
     _value(RtValue::clone(attr.getType(), value, attr.getParent()))
 {
 }
 
-PvtCommandPtr PvtSetAttributeCmd::create(const RtAttribute& attr, const RtValue& value)
+PvtCommandPtr PvtSetAttributeCmd::create(const RtPort& attr, const RtValue& value)
 {
     return std::make_shared<PvtSetAttributeCmd>(attr, value);
 }

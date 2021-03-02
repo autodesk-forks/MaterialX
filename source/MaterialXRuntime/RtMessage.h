@@ -12,13 +12,12 @@
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtObject.h>
 #include <MaterialXRuntime/RtTypeInfo.h>
-#include <MaterialXRuntime/RtAttribute.h>
+#include <MaterialXRuntime/RtPort.h>
 #include <MaterialXRuntime/RtRelationship.h>
 
 namespace MaterialX
 {
 
-class RtAttrIterator;
 class RtRelationshipIterator;
 class RtPrimIterator;
 class RtSchemaBase;
@@ -39,7 +38,7 @@ using RtRenamePrimCallbackFunc = std::function<void(RtStagePtr stage, const RtPr
 using RtReparentPrimCallbackFunc = std::function<void(RtStagePtr stage, const RtPrim& prim, const RtPath& newPath, void* userData)>;
 
 /// Function type for callback notifying when an attribute value is set.
-using RtSetAttributeCallbackFunc = std::function<void(const RtAttribute& attr, const RtValue& value, void* userData)>;
+using RtSetAttributeCallbackFunc = std::function<void(const RtPort& attr, const RtValue& value, void* userData)>;
 
 /// Function type for callback notifying when a metadata value is set.
 using RtSetMetadataCallbackFunc = std::function<void(const RtObject& obj, const RtToken& name, const RtValue& value, void* userData)>;

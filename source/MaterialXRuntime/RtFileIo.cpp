@@ -167,19 +167,19 @@ namespace
             const RtToken attrName(elem->getName());
             const RtToken attrType(elem->getType());
 
-            RtAttribute attr;
+            RtPort attr;
             if (elem->isA<Output>())
             {
                 attr = schema.createOutput(attrName, attrType);
             }
             else if (elem->isA<Input>())
             {
-                const uint32_t flags = elem->asA<Input>()->getIsUniform() ? RtAttrFlag::UNIFORM : 0;
+                const uint32_t flags = elem->asA<Input>()->getIsUniform() ? RtPortFlag::UNIFORM : 0;
                 attr = schema.createInput(attrName, attrType, flags);
             }
             else
             {
-                attr = schema.createInput(attrName, attrType, RtAttrFlag::UNIFORM);
+                attr = schema.createInput(attrName, attrType, RtPortFlag::UNIFORM);
             }
 
             const string& valueStr = elem->getValueString();
@@ -236,7 +236,7 @@ namespace
                 if (outputName == EMPTY_TOKEN && connectedNode)
                 {
                     RtNode rtConnectedNode(connectedNode->hnd());
-                    auto output = rtConnectedNode.getOutput();
+                    RtOutput output = rtConnectedNode.getOutput();
                     if (output)
                     {
                         outputName = output.getName();
@@ -305,15 +305,16 @@ namespace
         }
 
         // Check all ports.
-        // TODO: Do we need to match port type as well (input/output/parameter)?
         for (const ValueElementPtr& nodePort : nodePorts)
         {
-            const PvtAttribute* attr = prim->getAttribute(RtToken(nodePort->getName()));
-            if (!attr || attr->getType().str() != nodePort->getType())
+            const RtToken name(nodePort->getName());
+            const PvtPort* port = nodePort->isA<Input>() ? prim->getInput(name)->asA<PvtPort>() : prim->getOutput(name)->asA<PvtPort>();
+            if (!port || port->getType().str() != nodePort->getType())
             {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -382,7 +383,7 @@ namespace
                 continue;
             }
             const RtToken portName(elem->getName());
-            PvtAttribute* input = node->getInput(portName);
+            PvtPort* input = node->getInput(portName);
             if (!input)
             {
                 throw ExceptionRuntimeError("No input named '" + elem->getName() + "' was found on runtime node '" + node->getName().str() + "'");
@@ -899,27 +900,23 @@ namespace
 
         writeMetadata(src, destNodeDef, nodedefMetadata, options);
 
-        for (const PvtDataHandle attrH : src->getAllAttributes())
+        for (const PvtDataHandle hnd : src->getInputs())
         {
-            const PvtAttribute* attr = attrH->asA<PvtAttribute>();
-
-            ValueElementPtr destPort;
-            if (attr->isA<PvtInput>())
+            const PvtInput* input = hnd->asA<PvtInput>();
+            ValueElementPtr destPort = destNodeDef->addInput(input->getName().str(), input->getType().str());
+            if (input->isUniform())
             {
-                const PvtInput* input = attr->asA<PvtInput>();
-                destPort = destNodeDef->addInput(attr->getName().str(), attr->getType().str());
-                if (input->isUniform())
-                {
-                    destPort->setIsUniform(true);
-                }
+                destPort->setIsUniform(true);
             }
-            else
-            {
-                destPort = destNodeDef->addOutput(attr->getName().str(), attr->getType().str());
-            }
-
-            destPort->setValueString(attr->getValueString());
-            writeMetadata(attr, destPort, attrMetadata, options);
+            destPort->setValueString(input->getValueString());
+            writeMetadata(input, destPort, attrMetadata, options);
+        }
+        for (const PvtDataHandle hnd : src->getOutputs())
+        {
+            const PvtOutput* output = hnd->asA<PvtOutput>();
+            ValueElementPtr destPort = destNodeDef->addOutput(output->getName().str(), output->getType().str());
+            destPort->setValueString(output->getValueString());
+            writeMetadata(output, destPort, attrMetadata, options);
         }
     }
 
@@ -933,16 +930,10 @@ namespace
         }
 
         // Count output and get output type
-        size_t numOutputs = 0;
-        string outputType;
-        RtObjTypePredicate<RtOutput> outputFilter;
-        for (RtAttribute attr : nodedef.getPrim().getAttributes(outputFilter))
-        {
-            numOutputs++;
-            outputType = attr.getType().str();
-        }
+        const size_t numOutputs = nodedef.getPrim().numOutputs();
+        const string outputType = numOutputs > 1 ? "multioutput" : (numOutputs > 0 ? nodedef.getPrim().getOutput().getType().str() : EMPTY_STRING);
 
-        NodePtr destNode = dest->addNode(nodedef.getNamespacedNode().str(), node.getName().str(), numOutputs > 1 ? "multioutput" : outputType);
+        NodePtr destNode = dest->addNode(nodedef.getNamespacedNode().str(), node.getName().str(), outputType);
         if (node.getVersion() != EMPTY_TOKEN)
         {
             destNode->setVersionString(node.getVersion().str());
@@ -950,14 +941,14 @@ namespace
 
         bool writeDefaultValues = options ? options->writeDefaultValues : false;
 
-        for (RtAttribute attrDef : nodedef.getPrim().getAttributes())
+        for (size_t i = 0; i < nodedef.numInputs(); ++i)
         {
-            RtAttribute attr = node.getPrim().getAttribute(attrDef.getName());
-            RtInput input = attr.asA<RtInput>();
+            RtInput nodedefInput = nodedef.getInput(i);
+            RtInput input = node.getInput(i);
             if (input)
             {
                 const RtTypedValue* uiVisible1 = input.getMetadata(UI_VISIBLE);
-                const RtTypedValue* uiVisible2 = attrDef.getMetadata(UI_VISIBLE);
+                const RtTypedValue* uiVisible2 = nodedefInput.getMetadata(UI_VISIBLE);
                 const bool uiHidden1 = uiVisible1 && (uiVisible1->getValueString() == VALUE_STRING_FALSE);
                 const bool uiHidden2 = uiVisible2 && (uiVisible2->getValueString() == VALUE_STRING_FALSE);
                 const bool writeUiVisibleData = uiHidden1 != uiHidden2;
@@ -965,7 +956,7 @@ namespace
                 // Write input if it's connected or different from default value.
                 // Write input if the uivisible value differs in the input from the nodedef
                 if (writeDefaultValues || writeUiVisibleData ||
-                    input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), attrDef.getValue()))
+                    input.isConnected() || !RtValue::compare(input.getType(), input.getValue(), nodedefInput.getValue()))
                 {
                     ValueElementPtr valueElem;
                     if (input.isUniform())
@@ -981,7 +972,7 @@ namespace
                                 valueElem->setInterfaceName(source.getName().str());
                             }
                         }
-                        const string& inputValueString = input.getValueString(); 
+                        const string& inputValueString = input.getValueString();
                         if (!inputValueString.empty())
                         {
                             valueElem->setValueString(inputValueString);
@@ -1027,12 +1018,17 @@ namespace
                         }
                     }
 
-                    writeMetadata(PvtObject::ptr<PvtObject>(attr), valueElem, inputMetadata, options);
+                    writeMetadata(PvtObject::ptr<PvtObject>(nodedefInput), valueElem, inputMetadata, options);
                 }
             }
-            else if(numOutputs > 1)
+        }
+
+        if (numOutputs > 1)
+        {
+            for (size_t i = 0; i < nodedef.numOutputs(); ++i)
             {
-                destNode->addOutput(attr.getName().str(), attr.getType().str());
+                RtOutput nodedefOutput = nodedef.getOutput(i);
+                destNode->addOutput(nodedefOutput.getName().str(), nodedefOutput.getType().str());
             }
         }
 
@@ -1056,11 +1052,12 @@ namespace
 
         if (!options || options->writeNodeGraphInputs)
         {
-            // Write inputs/parameters.
-            RtObjTypePredicate<RtInput> inputsFilter;
-            for (RtAttribute attr : src->getAttributes(inputsFilter))
+            // Write inputs.
+            for (size_t i = 0; i < src->numInputs(); ++i)
             {
-                RtInput nodegraphInput = nodegraph.getInput(attr.getName());
+                PvtPort* port = src->getInput(i);
+
+                RtInput nodegraphInput = nodegraph.getInput(port->getName());
                 ValueElementPtr v = nullptr;
                 if (nodegraphInput.isUniform())
                 {
@@ -1094,7 +1091,7 @@ namespace
                 if (v)
                 {
                     v->setValueString(nodegraphInput.getValueString());
-                    writeMetadata(PvtObject::ptr<PvtObject>(attr), v, inputMetadata, options);
+                    writeMetadata(port, v, inputMetadata, options);
                 }
             }
         }
@@ -1106,10 +1103,11 @@ namespace
         }
 
         // Write outputs.
-        RtObjTypePredicate<RtOutput> outputsFilter;
-        for (RtAttribute attr : src->getAttributes(outputsFilter))
+        for (size_t i = 0; i < src->numOutputs(); ++i)
         {
-            RtInput nodegraphOutput = nodegraph.getOutputSocket(attr.getName());
+            PvtPort* port = src->getOutput(i);
+
+            RtInput nodegraphOutput = nodegraph.getOutputSocket(port->getName());
             OutputPtr output = destNodeGraph->addOutput(nodegraphOutput.getName().str(), nodegraphOutput.getType().str());
             if (nodegraphOutput.isConnected())
             {

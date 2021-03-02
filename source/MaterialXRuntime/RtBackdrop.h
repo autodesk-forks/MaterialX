@@ -28,13 +28,13 @@ public:
     RtRelationship getContains() const;
 
     /// Returns the note attribute.
-    RtAttribute getNote() const;
+    RtPort getNote() const;
 
     /// Returns the weight attribute.
-    RtAttribute getWidth() const;
+    RtPort getWidth() const;
 
     /// Returns the height attribute.
-    RtAttribute getHeight() const;
+    RtPort getHeight() const;
 };
 
 }
