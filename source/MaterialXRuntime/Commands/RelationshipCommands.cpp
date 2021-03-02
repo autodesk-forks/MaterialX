@@ -3,7 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/Commands/AttributeCommands.h>
+#include <MaterialXRuntime/Commands/RelationshipCommands.h>
 #include <MaterialXRuntime/RtApi.h>
 
 #include <MaterialXRuntime/Private/PvtApi.h>
@@ -12,7 +12,6 @@
 
 namespace MaterialX
 {
-
 namespace RtCommand
 {
 
@@ -28,6 +27,5 @@ void breakRelationship(const RtRelationship& rel, const RtObject& target, RtComm
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-} // RtCommands
-
+} // RtCommand
 } // MaterialX

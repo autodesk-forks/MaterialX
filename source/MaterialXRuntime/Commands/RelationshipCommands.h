@@ -14,7 +14,6 @@
 
 namespace MaterialX
 {
-
 namespace RtCommand
 {
     /// Make a connection between a relationship port and a target object.
@@ -22,8 +21,8 @@ namespace RtCommand
 
     /// Break a connection between a relationship port and a target object.
     void breakRelationship(const RtRelationship& rel, const RtObject& target, RtCommandResult& result);
-}
 
-}
+} // RtCommand
+} // MaterialX
 
 #endif

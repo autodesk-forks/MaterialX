@@ -3,8 +3,8 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#ifndef MATERIALX_PVTSETATTRIBUTECMD_H
-#define MATERIALX_PVTSETATTRIBUTECMD_H
+#ifndef MATERIALX_PVTSETPORTVALUECMD_H
+#define MATERIALX_PVTSETPORTVALUECMD_H
 
 #include <MaterialXRuntime/Private/PvtCommand.h>
 
@@ -14,10 +14,10 @@
 namespace MaterialX
 {
 
-class PvtSetAttributeCmd : public PvtCommand
+class PvtSetPortValueCmd : public PvtCommand
 {
 public:
-    PvtSetAttributeCmd(const RtPort& attr, const RtValue& value);
+    PvtSetPortValueCmd(const RtPort& attr, const RtValue& value);
 
     static PvtCommandPtr create(const RtPort& attr, const RtValue& value);
 
@@ -26,7 +26,7 @@ public:
     void redo(RtCommandResult& result) override;
 
 private:
-    RtPort _attr;
+    RtPort _port;
     RtValue _value;
     RtValue _oldValue;
 };

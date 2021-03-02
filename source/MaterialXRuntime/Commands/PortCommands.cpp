@@ -3,28 +3,27 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/Commands/AttributeCommands.h>
+#include <MaterialXRuntime/Commands/PortCommands.h>
 #include <MaterialXRuntime/RtApi.h>
 
 #include <MaterialXRuntime/Private/PvtApi.h>
 #include <MaterialXRuntime/Private/PvtCommand.h>
-#include <MaterialXRuntime/Private/Commands/PvtSetAttributeCmd.h>
+#include <MaterialXRuntime/Private/Commands/PvtSetPortValueCmd.h>
 #include <MaterialXRuntime/Private/Commands/PvtConnectionCmd.h>
 
 namespace MaterialX
 {
-
 namespace RtCommand
 {
 
-void setAttributeFromString(const RtPort& attr, const string& valueString, RtCommandResult& result)
+void setPortValueFromString(const RtPort& port, const string& valueString, RtCommandResult& result)
 {
     // Use try/catch since the conversion from string might fail and throw.
     try
     {
-        RtValue v = RtValue::createNew(attr.getType(), attr.getParent());
-        RtValue::fromString(attr.getType(), valueString, v);
-        PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+        RtValue v = RtValue::createNew(port.getType(), port.getParent());
+        RtValue::fromString(port.getType(), valueString, v);
+        PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
         PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
     }
     catch (Exception& e)
@@ -33,97 +32,97 @@ void setAttributeFromString(const RtPort& attr, const string& valueString, RtCom
     }
 }
 
-void setAttribute(const RtPort& attr, bool value, RtCommandResult& result)
+void setPortValue(const RtPort& port, bool value, RtCommandResult& result)
 {
     RtValue v(value);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, int value, RtCommandResult& result)
+void setPortValue(const RtPort& port, int value, RtCommandResult& result)
 {
     RtValue v(value);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, float value, RtCommandResult& result)
+void setPortValue(const RtPort& port, float value, RtCommandResult& result)
 {
     RtValue v(value);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, const Color3& value, RtCommandResult& result)
+void setPortValue(const RtPort& port, const Color3& value, RtCommandResult& result)
 {
     RtValue v(value);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, const Color4& value, RtCommandResult& result)
+void setPortValue(const RtPort& port, const Color4& value, RtCommandResult& result)
 {
     RtValue v(value);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, const Vector2& value, RtCommandResult& result)
+void setPortValue(const RtPort& port, const Vector2& value, RtCommandResult& result)
 {
     RtValue v(value);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, const Vector3& value, RtCommandResult& result)
+void setPortValue(const RtPort& port, const Vector3& value, RtCommandResult& result)
 {
     RtValue v(value);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, const Vector4& value, RtCommandResult& result)
+void setPortValue(const RtPort& port, const Vector4& value, RtCommandResult& result)
 {
     RtValue v(value);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, const RtToken& value, RtCommandResult& result)
+void setPortValue(const RtPort& port, const RtToken& value, RtCommandResult& result)
 {
     RtValue v(value);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, void* value, RtCommandResult& result)
+void setPortValue(const RtPort& port, void* value, RtCommandResult& result)
 {
     RtValue v(value);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, const Matrix33& value, RtCommandResult& result)
+void setPortValue(const RtPort& port, const Matrix33& value, RtCommandResult& result)
 {
-    RtPrim prim(attr.getParent());
+    RtPrim prim(port.getParent());
     RtValue v(value, prim);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, const Matrix44& value, RtCommandResult& result)
+void setPortValue(const RtPort& port, const Matrix44& value, RtCommandResult& result)
 {
-    RtPrim prim(attr.getParent());
+    RtPrim prim(port.getParent());
     RtValue v(value, prim);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-void setAttribute(const RtPort& attr, const string& value, RtCommandResult& result)
+void setPortValue(const RtPort& port, const string& value, RtCommandResult& result)
 {
-    RtPrim prim(attr.getParent());
+    RtPrim prim(port.getParent());
     RtValue v(value, prim);
-    PvtCommandPtr cmd = PvtSetAttributeCmd::create(attr, v);
+    PvtCommandPtr cmd = PvtSetPortValueCmd::create(port, v);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
@@ -140,5 +139,4 @@ void breakConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& 
 }
 
 } // RtCommands
-
 } // MaterialX

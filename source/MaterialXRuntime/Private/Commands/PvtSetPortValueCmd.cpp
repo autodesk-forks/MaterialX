@@ -3,38 +3,38 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/Private/Commands/PvtSetAttributeCmd.h>
+#include <MaterialXRuntime/Private/Commands/PvtSetPortValueCmd.h>
 
 #include <MaterialXRuntime/RtPrim.h>
 
 namespace MaterialX
 {
 
-PvtSetAttributeCmd::PvtSetAttributeCmd(const RtPort& attr, const RtValue& value) :
-    _attr(attr),
-    _value(RtValue::clone(attr.getType(), value, attr.getParent()))
+PvtSetPortValueCmd::PvtSetPortValueCmd(const RtPort& port, const RtValue& value) :
+    _port(port),
+    _value(RtValue::clone(port.getType(), value, port.getParent()))
 {
 }
 
-PvtCommandPtr PvtSetAttributeCmd::create(const RtPort& attr, const RtValue& value)
+PvtCommandPtr PvtSetPortValueCmd::create(const RtPort& port, const RtValue& value)
 {
-    return std::make_shared<PvtSetAttributeCmd>(attr, value);
+    return std::make_shared<PvtSetPortValueCmd>(port, value);
 }
 
-void PvtSetAttributeCmd::execute(RtCommandResult& result)
+void PvtSetPortValueCmd::execute(RtCommandResult& result)
 {
-    if (_attr.isValid())
+    if (_port.isValid())
     {
         try
         {
             // Send message that the attribute is changing
-            msg().sendSetAttributeMessage(_attr, _value);
+            msg().sendSetAttributeMessage(_port, _value);
 
             // Save old value for undo/redo
-            _oldValue = RtValue::clone(_attr.getType(), _attr.getValue(), _attr.getParent());
+            _oldValue = RtValue::clone(_port.getType(), _port.getValue(), _port.getParent());
 
             // Set the value
-            _attr.setValue(_value);
+            _port.setValue(_value);
             result = RtCommandResult(true);
         }
         catch (const ExceptionRuntimeError& e)
@@ -48,17 +48,17 @@ void PvtSetAttributeCmd::execute(RtCommandResult& result)
     }
 }
 
-void PvtSetAttributeCmd::undo(RtCommandResult& result)
+void PvtSetPortValueCmd::undo(RtCommandResult& result)
 {
-    if (_attr.isValid())
+    if (_port.isValid())
     {
         try
         {
             // Send message that the attribute is changing
-            msg().sendSetAttributeMessage(_attr, _oldValue);
+            msg().sendSetAttributeMessage(_port, _oldValue);
 
             // Reset the value
-            _attr.setValue(_oldValue);
+            _port.setValue(_oldValue);
             result = RtCommandResult(true);
         }
         catch (const ExceptionRuntimeError& e)
@@ -72,17 +72,17 @@ void PvtSetAttributeCmd::undo(RtCommandResult& result)
     }
 }
 
-void PvtSetAttributeCmd::redo(RtCommandResult& result)
+void PvtSetPortValueCmd::redo(RtCommandResult& result)
 {
-    if (_attr.isValid())
+    if (_port.isValid())
     {
         try
         {
             // Send message that the attribute is changing
-            msg().sendSetAttributeMessage(_attr, _value);
+            msg().sendSetAttributeMessage(_port, _value);
 
             // Set the value
-            _attr.setValue(_value);
+            _port.setValue(_value);
             result = RtCommandResult(true);
         }
         catch (const ExceptionRuntimeError& e)
