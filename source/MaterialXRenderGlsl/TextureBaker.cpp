@@ -4,16 +4,12 @@
 //
 
 #include <MaterialXRenderGlsl/TextureBaker.h>
-#include <MaterialXRenderGlsl/External/GLew/glew.h>
 
 #include <MaterialXRender/OiioImageLoader.h>
 #include <MaterialXRender/StbImageLoader.h>
 #include <MaterialXRender/Util.h>
 
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
-
-#include <unordered_map>
-#include <sstream>
 
 namespace MaterialX
 {
@@ -444,6 +440,10 @@ BakedDocumentVec TextureBaker::createBakeDocuments(DocumentPtr doc, const FileSe
 
     DefaultColorManagementSystemPtr cms = DefaultColorManagementSystem::create(genContext.getShaderGenerator().getTarget());
     cms->loadLibrary(doc);
+    if (!_codeSearchPath.isEmpty())
+    {
+        genContext.registerSourceCodeSearchPath(_codeSearchPath);
+    }
     for (const FilePath& path : searchPath)
     {
         genContext.registerSourceCodeSearchPath(path / "libraries");
