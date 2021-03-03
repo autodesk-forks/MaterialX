@@ -18,9 +18,9 @@ namespace MaterialX
 namespace RtCommand
 {
     /// Set an attribute value from data given as a value string. Creates the attribute if it doesn't exist.
-    void setAttribute(const RtObject& obj, const RtToken& name, const string& value, RtCommandResult& result);
+    void setAttributeFromString(const RtObject& obj, const RtToken& name, const string& value, RtCommandResult& result);
 
-    /// Removes the named metadata
+    /// Remove an attribute.
     void removeAttribute(const RtObject& obj, const RtToken& name, RtCommandResult& result);
 }
 

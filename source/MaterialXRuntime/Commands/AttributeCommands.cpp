@@ -17,8 +17,9 @@ namespace MaterialX
 namespace RtCommand
 {
 
-void setAttribute(const RtObject& obj, const RtToken& name, const string& value, RtCommandResult& result)
+void setAttributeFromString(const RtObject& obj, const RtToken& name, const string& value, RtCommandResult& result)
 {
+    // Use try/catch since the conversion from string might fail and throw.
     try
     {
         RtValue v = RtValue::createNew(RtType::STRING, obj);

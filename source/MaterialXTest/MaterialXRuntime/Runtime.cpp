@@ -2310,7 +2310,7 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     mx::RtCommandResult attrResult;
     mx::RtToken metadata("metadata");
     std::string metadataValue("some_value");
-    mx::RtCommand::setAttribute(foo, metadata, metadataValue, attrResult);
+    mx::RtCommand::setAttributeFromString(foo, metadata, metadataValue, attrResult);
     REQUIRE(attrResult);
     REQUIRE(foo.getAttribute(metadata));
     REQUIRE(foo.getAttribute(metadata)->asToken() == metadataValue);
@@ -2334,7 +2334,7 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     // Test changing metadata value
     //
     std::string metadataValue2("some_value2");
-    mx::RtCommand::setAttribute(foo, metadata, metadataValue2, attrResult);
+    mx::RtCommand::setAttributeFromString(foo, metadata, metadataValue2, attrResult);
     REQUIRE(attrResult);
     REQUIRE(foo.getAttribute(metadata));
     REQUIRE(foo.getAttribute(metadata)->getValueString() == metadataValue2);
