@@ -29,7 +29,7 @@ private:
     RtToken _name;
     RtValue _value;
     RtValue _oldValue;
-    bool _metadataCreated;
+    bool _attrCreated;
 };
 
 }

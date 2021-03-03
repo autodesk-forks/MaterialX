@@ -19,7 +19,7 @@ PvtSetAttributeCmd::PvtSetAttributeCmd(const RtObject& obj, const RtToken& name,
     , _name(name)
     , _value(value)
     , _oldValue()
-    , _metadataCreated(false)
+    , _attrCreated(false)
 {
 }
 
@@ -37,19 +37,20 @@ void PvtSetAttributeCmd::execute(RtCommandResult& result)
             // Send message that the attribute is changing
             msg().sendSetAttributeMessage(_obj, _name, _value);
 
-            RtTypedValue* md = _obj.getAttribute(_name, RtType::STRING);
+            RtTypedValue* attr = _obj.getAttribute(_name, RtType::STRING);
 
             // Do we need to create the attribute or does it already exist?
-            if (!md)
+            if (!attr)
             {
-                md = _obj.getAttribute(_name, RtType::STRING);
-                _metadataCreated = true;
+                attr = _obj.createAttribute(_name, RtType::STRING);
+                _attrCreated = true;
             }
 
             // Save old value for undo/redo
-            _oldValue = RtValue::clone(RtType::STRING, md->getValue(), _obj.getParent());
+            _oldValue = RtValue::clone(RtType::STRING, attr->getValue(), _obj.getParent());
 
-            md->setValue(_value);
+            attr->setValue(_value);
+
             result = RtCommandResult(true);
         }
         catch (const ExceptionRuntimeError& e)
@@ -70,13 +71,13 @@ void PvtSetAttributeCmd::undo(RtCommandResult& result)
         try
         {
 
-            if (_metadataCreated)
+            if (_attrCreated)
             {
                 // Send message that the attribute is being removed
                 msg().sendRemoveAttributeMessage(_obj, _name);
 
                 _obj.removeAttribute(_name);
-                _metadataCreated = false;
+                _attrCreated = false;
                 result = RtCommandResult(true);
             }
             else
@@ -85,10 +86,10 @@ void PvtSetAttributeCmd::undo(RtCommandResult& result)
                 msg().sendSetAttributeMessage(_obj, _name, _oldValue);
 
                 // Reset the value
-                RtTypedValue* md = _obj.getAttribute(_name, RtType::STRING);
-                if (md)
+                RtTypedValue* attr = _obj.getAttribute(_name, RtType::STRING);
+                if (attr)
                 {
-                    md->setValue(_oldValue);
+                    attr->setValue(_oldValue);
                     result = RtCommandResult(true);
                 }
                 else
@@ -117,17 +118,17 @@ void PvtSetAttributeCmd::redo(RtCommandResult& result)
             // Send message that the attribute is changing
             msg().sendSetAttributeMessage(_obj, _name, _value);
 
-            RtTypedValue* md = _obj.getAttribute(_name, RtType::STRING);
+            RtTypedValue* attr = _obj.getAttribute(_name, RtType::STRING);
 
             // Do we need to create the attribute or does it already exist?
-            if (!md)
+            if (!attr)
             {
-                md = _obj.getAttribute(_name, RtType::STRING);
-                _metadataCreated = true;
+                attr = _obj.createAttribute(_name, RtType::STRING);
+                _attrCreated = true;
             }
 
             // Reset the value
-            md->setValue(_value);
+            attr->setValue(_value);
         }
         catch (const ExceptionRuntimeError& e)
         {

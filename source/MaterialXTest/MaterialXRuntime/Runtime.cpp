@@ -565,9 +565,9 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     nodedef.setNode(ADD);
 
     // Test adding attributes
-    mx::RtTypedValue* version = nodedef.createAttribute(VERSION, mx::RtType::FLOAT);
-    version->asFloat() = 1.0f;
-    REQUIRE(version->asFloat() == 1.0);
+    mx::RtTypedValue* fooAttr = nodedef.createAttribute(FOO, mx::RtType::FLOAT);
+    fooAttr->asFloat() = 1.0f;
+    REQUIRE(fooAttr->asFloat() == 1.0);
 
     // Add attributes to the nodedef
     nodedef.createInput(IN1, mx::RtType::FLOAT);
@@ -838,6 +838,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     {
         // 1. Metadata like version should be copied but not target or node.
         mx::RtTypedValue* agVersion = agNode.getAttribute(mx::Tokens::VERSION);
+        REQUIRE(agVersion);
         REQUIRE(agVersion->getValueString() == ADDGRAPH_VERSION);
         mx::RtTypedValue* agTarget = agNode.getAttribute(mx::Tokens::TARGET);
         REQUIRE(!agTarget);

@@ -193,6 +193,14 @@ RtPrim RtNode::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
     PvtRelationship* nodedefRelation = node->createRelationship(NODEDEF);
     nodedefRelation->addTarget(nodedefPrim);
 
+    // Copy version tag if used.
+    const RtToken& version = nodedef.getVersion();
+    if (version != EMPTY_TOKEN)
+    {
+        RtTypedValue* attr = node->createAttribute(Tokens::VERSION, RtType::TOKEN);
+        attr->asToken() = version;
+    }
+
     // Create the interface according to nodedef.
     for (PvtObject* obj : nodedefPrim->getInputs())
     {
