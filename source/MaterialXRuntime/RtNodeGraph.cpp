@@ -139,7 +139,7 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
             else
             {
                 PvtOutput* output = p->getOutput(name);
-                if (input)
+                if (output)
                 {
                     newOutputList.add(output);
                 }
