@@ -13,119 +13,126 @@ namespace MaterialX
 namespace
 {
     const float EPS_ZERO = 0.00001f;
-    const float EPS_ONE  = 1.0f - EPS_ZERO;
-
-    bool isZero(float v)
+    const float ONE_VALUE = 1.0f;
+    const float ZERO_VALUE = 0.0f;
+    
+    bool isEqual(const float& v, const float& v2)
     {
-        return v < EPS_ZERO;
+        return (v - v2) < EPS_ZERO;
     }
 
-    bool isZero(const Color3& c)
+    bool isEqual(ValuePtr value, const float& value2)
     {
-        return isZero(c[0]) && isZero(c[1]) && isZero(c[2]);
-    }
-
-    bool isZero(ValuePtr value)
-    {
-        if (value->isA<float>() && isZero(value->asA<float>()))
+        if (value->isA<float>() && isEqual(value->asA<float>(), value2))
         {
             return true;
         }
-        if (value->isA<Color3>() && isZero(value->asA<Color3>()))
+        else if (value->isA<Color3>())
         {
-            return true;
-        }
-        return false;
-    }
-
-    bool isOne(float v)
-    {
-        return v > EPS_ONE;
-    }
-
-    bool isOne(const Color3& c)
-    {
-        return isOne(c[0]) && isOne(c[1]) && isOne(c[2]);
-    }
-
-    bool isOne(ValuePtr value)
-    {
-        if (value->isA<float>() && isOne(value->asA<float>()))
-        {
-            return true;
-        }
-        if (value->isA<Color3>() && isOne(value->asA<Color3>()))
-        {
-            return true;
+            const Color3& value3 = value->asA<Color3>();
+            if (isEqual(value3[0], value2) && isEqual(value3[1], value2) && isEqual(value3[2], value2))
+            {
+                return true;
+            }
         }
         return false;
     }
 
-    bool isTransparentShaderNode(NodePtr node)
+    using OpaqueTestPair = std::pair<string, float>;
+    using OpaqueTestPairList = vector<OpaqueTestPair>;
+
+    InputPtr getInputInterface(const string& interfaceName , NodePtr node)
+    {
+        InputPtr interfaceInput = nullptr;
+        ElementPtr parent = node->getParent();
+        NodeGraphPtr nodeGraph = parent ? parent->asA<NodeGraph>() : nullptr;
+        if (nodeGraph)
+        {
+            interfaceInput = nodeGraph->getInput(interfaceName);
+            if (!interfaceInput)
+            {
+                NodeDefPtr nodeDef = nodeGraph->getNodeDef();
+                if (nodeDef)
+                {
+                    interfaceInput = nodeDef->getInput(interfaceName);
+                }
+            }
+        }
+        return interfaceInput;
+    }
+
+    bool hasTransparentInputs(const OpaqueTestPairList& opaqueInputList, NodePtr node)
+    {
+        for (auto opaqueInput : opaqueInputList)
+        {
+            InputPtr interfaceInput = node->getInput(opaqueInput.first);
+            if (interfaceInput)
+            {
+                if (interfaceInput->getConnectedNode())
+                {
+                    return true;
+                }
+                ValuePtr value = interfaceInput->getValue();
+                if (value && !isEqual(value, opaqueInput.second))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    bool isTransparentShaderNode(NodePtr node, OpaqueTestPairList& interfaceNames)
     {
         if (!node || node->getType() != SURFACE_SHADER_TYPE_STRING)
         {
             return false;
         }
 
-        // Check opacity
-        InputPtr opacity = node->getActiveInput("opacity");
-        if (opacity)
+        // Current set if inputs and values which indicate opacity
+        OpaqueTestPairList inputPairList;
+        inputPairList.push_back(std::make_pair("opacity", ONE_VALUE));
+        inputPairList.push_back(std::make_pair("existence", ONE_VALUE));
+        inputPairList.push_back(std::make_pair("transmission", ZERO_VALUE));
+
+        for (auto inputPair : inputPairList)
         {
-            if (opacity->getConnectedOutput() || opacity->hasInterfaceName())
+            InputPtr checkInput = node->getActiveInput(inputPair.first);
+            if (checkInput)
             {
-                return true;
-            }
-            else
-            {
-                ValuePtr value = opacity->getValue();
-                if (value && !isOne(value))
+                const string& interfaceName = checkInput->getInterfaceName();
+                if (!interfaceName.empty())
+                {
+                    interfaceNames.push_back(std::make_pair(interfaceName, inputPair.second));
+                    InputPtr interfaceInput = getInputInterface(interfaceName, node);
+                    if (interfaceInput)
+                    {
+                        checkInput = interfaceInput;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                if (checkInput->getConnectedOutput())
                 {
                     return true;
                 }
-            }
-        }
-
-        // Check existence
-        InputPtr existence = node->getActiveInput("existence");
-        if (existence)
-        {
-            if (existence->getConnectedOutput() || existence->hasInterfaceName())
-            {
-                return true;
-            }
-            else
-            {
-                ValuePtr value = existence->getValue();
-                if (value && !isOne(value))
+                else
                 {
-                    return true;
+                    ValuePtr value = checkInput->getValue();
+                    if (value && !isEqual(value, inputPair.second))
+                    {
+                        return true;
+                    }
                 }
             }
         }
-
-        // Check transmission
-        InputPtr transmission = node->getActiveInput("transmission");
-        if (transmission)
-        {
-            if (transmission->getConnectedOutput() || transmission->hasInterfaceName())
-            {
-                return true;
-            }
-            else
-            {
-                ValuePtr value = transmission->getValue();
-                if (value && !isZero(value))
-                {
-                    return true;
-                }
-            }
-        }
-
         return false;
     }
 
-    bool isTransparentShaderGraph(OutputPtr output, const ShaderGenerator& shadergen)
+    bool isTransparentShaderGraph(OutputPtr output, const ShaderGenerator& shadergen,
+                                  OpaqueTestPairList& interaceList)
     {
         for (GraphIterator it = output->traverseGraph().begin(); it != GraphIterator::end(); ++it)
         {
@@ -139,7 +146,7 @@ namespace
             {
                 // Handle shader nodes.
                 NodePtr node = upstreamElem->asA<Node>();
-                if (isTransparentShaderNode(node))
+                if (isTransparentShaderNode(node, interaceList))
                 {
                     return true;
                 }
@@ -160,7 +167,12 @@ namespace
                             if (outputs.size() > 0)
                             {
                                 const OutputPtr& graphOutput = outputs[0];
-                                if (isTransparentShaderGraph(graphOutput, shadergen))
+                                OpaqueTestPairList opaqueInputList;
+                                if (isTransparentShaderGraph(graphOutput, shadergen, opaqueInputList))
+                                {
+                                    return true;
+                                }
+                                if (hasTransparentInputs(opaqueInputList, node))
                                 {
                                     return true;
                                 }
@@ -181,7 +193,8 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
     if (node)
     {
         // Handle shader nodes.
-        if (isTransparentShaderNode(node))
+        OpaqueTestPairList interfaceNames;
+        if (isTransparentShaderNode(node, interfaceNames))
         {
             return true;
         }
@@ -208,12 +221,12 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
                 const OutputPtr& output = outputs[0];
                 if (output->getType() == SURFACE_SHADER_TYPE_STRING)
                 {
-                    if (isTransparentShaderGraph(output, shadergen))
+                    OpaqueTestPairList opaqueInputList;
+                    if (isTransparentShaderGraph(output, shadergen, opaqueInputList))
                     {
                         return true;
                     }
-
-                    return false;
+                    return hasTransparentInputs(opaqueInputList, node);                    
                 }
             }
         }
@@ -222,7 +235,8 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
     {
         // Handle output elements.
         OutputPtr output = element->asA<Output>();
-        return isTransparentShaderGraph(output, shadergen);
+        OpaqueTestPairList outputInterfaceNames;
+        return isTransparentShaderGraph(output, shadergen, outputInterfaceNames);
     }
 
     return false;
@@ -524,11 +538,11 @@ void getUdimScaleAndOffset(const vector<Vector2>& udimCoordinates, Vector2& scal
         }
     }
     // Extend to upper right corner of a tile
-    maxUV[0] += 1.0f;
-    maxUV[1] += 1.0f;
+    maxUV[0] += ONE_VALUE;
+    maxUV[1] += ONE_VALUE;
 
-    scaleUV[0] = 1.0f / (maxUV[0] - minUV[0]);
-    scaleUV[1] = 1.0f / (maxUV[1] - minUV[1]);
+    scaleUV[0] = ONE_VALUE / (maxUV[0] - minUV[0]);
+    scaleUV[1] = ONE_VALUE / (maxUV[1] - minUV[1]);
     offsetUV[0] = -minUV[0];
     offsetUV[1] = -minUV[1];
 }
