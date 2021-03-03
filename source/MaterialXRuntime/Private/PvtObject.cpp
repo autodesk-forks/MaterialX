@@ -46,52 +46,39 @@ RtStageWeakPtr PvtObject::getStage() const
     return getRoot()->asA<PvtStage::RootPrim>()->getStage();
 }
 
-RtTypedValue* PvtObject::addMetadata(const RtToken& name, const RtToken& type)
+RtTypedValue* PvtObject::createAttribute(const RtToken& name, const RtToken& type)
 {
-    auto it = _metadataMap.find(name);
-    if (it != _metadataMap.end())
+    RtTypedValue* value = getAttribute(name, type);
+    if (value)
     {
-        // Check if the data type is matching.
-        if (it->second.getType() != type)
-        {
-            throw ExceptionRuntimeError("Metadata '" + name.str() + "' found with an unmatching datatype on object '" + getName().str() +"'");
-        }
-        return &it->second;
+        return value;
     }
 
     PvtPrim* prim = isA<PvtPrim>() ? asA<PvtPrim>() : _parent;
-    _metadataMap[name] = RtTypedValue(type, RtValue::createNew(type, prim->prim()));
-    _metadataOrder.push_back(name);
+    _attr.push_back(RtTypedValue(type, RtValue::createNew(type, prim->prim())));
+    _attrIndexByName[name] = _attr.size() - 1;
 
-    return &_metadataMap[name];
+    return &_attr.back();
 }
 
-void PvtObject::removeMetadata(const RtToken& name)
+void PvtObject::removeAttribute(const RtToken& name)
 {
-    for (auto it = _metadataOrder.begin(); it != _metadataOrder.end(); ++it)
+    auto it = _attrIndexByName.find(name);
+    if (it != _attrIndexByName.end())
     {
-        if (*it == name)
-        {
-            _metadataOrder.erase(it);
-            break;
-        }
+        _attr.erase(_attr.begin() + it->second);
+        _attrIndexByName.erase(it);
     }
-    _metadataMap.erase(name);
 }
 
-RtTypedValue* PvtObject::getMetadata(const RtToken& name, const RtToken& type)
+RtTypedValue* PvtObject::getAttribute(const RtToken& name, const RtToken& type)
 {
-    auto it = _metadataMap.find(name);
-    if (it != _metadataMap.end())
+    RtTypedValue* value = getAttribute(name);
+    if (value && value->getType() != type)
     {
-        // Check if the data type is matching.
-        if (it->second.getType() != type)
-        {
-            throw ExceptionRuntimeError("Metadata '" + name.str() + "' found with an unmatching datatype on object '" + getName().str() + "'");
-        }
-        return &it->second;
+        throw ExceptionRuntimeError("Attribute '" + name.str() + "' found with an unmatching datatype on object '" + getName().str() + "'");
     }
-    return nullptr;
+    return value;
 }
 
 }

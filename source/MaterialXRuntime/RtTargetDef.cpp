@@ -44,16 +44,16 @@ RtPrim RtTargetDef::createPrim(const RtToken& typeName, const RtToken& name, RtP
 
 void RtTargetDef::setInherit(const RtToken& target)
 {
-    RtTypedValue* data = addMetadata(Tokens::INHERIT, RtType::TOKEN);
-    data->getValue().asToken() = target;
+    RtTypedValue* attr = createAttribute(Tokens::INHERIT, RtType::TOKEN);
+    attr->asToken() = target;
 
     prim()->asA<PvtTargetDefPrim>()->matchingTargets.insert(target);
 }
 
 const RtToken& RtTargetDef::getInherit() const
 {
-    const RtTypedValue* data = getMetadata(Tokens::INHERIT, RtType::TOKEN);
-    return data ? data->getValue().asToken() : EMPTY_TOKEN;
+    const RtTypedValue* attr = getAttribute(Tokens::INHERIT, RtType::TOKEN);
+    return attr ? attr->asToken() : EMPTY_TOKEN;
 }
 
 bool RtTargetDef::isMatching(const RtToken& target) const

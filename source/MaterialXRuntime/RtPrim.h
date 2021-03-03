@@ -74,8 +74,8 @@ public:
     /// Add an input port to the prim.
     RtInput createInput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
-    /// Add an output port to the prim.
-    RtOutput createOutput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
+    /// Remove an input port from the prim.
+    void removeInput(const RtToken& name);
 
     /// Return the number of inputs on the prim.
     size_t numInputs() const;
@@ -89,6 +89,12 @@ public:
 
     /// Return an iterator over all inputs.
     RtInputIterator getInputs() const;
+
+    /// Add an output port to the prim.
+    RtOutput createOutput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
+
+    /// Remove an output port from the prim.
+    void removeOutput(const RtToken& name);
 
     /// Return the number of outputs on the prim.
     size_t numOutputs() const;

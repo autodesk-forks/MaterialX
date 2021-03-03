@@ -194,16 +194,12 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
 
 void PvtCopyPrimCmd::copyMetadata(const PvtObject* src, PvtObject* dest)
 {
-    const vector<RtToken>& metadataNames = src->getMetadataOrder();
-    for (auto metadataName : metadataNames)
+    for (size_t i = 0; i < src->getAttributes().size(); ++i)
     {
-        const RtTypedValue* metadataValue = src->getMetadata(metadataName);
-        RtTypedValue* metadataValueCopy = dest->getMetadata(metadataName);
-        if (!metadataValueCopy)
-        {
-            metadataValueCopy = dest->addMetadata(metadataName, metadataValue->getType());
-        }
-        metadataValueCopy->setValue(metadataValue->getValue());
+        const RtTypedValue& srcAttr = src->getAttributes()[i];
+        const RtToken& attrName = src->getAttributeName(i);
+        RtTypedValue* destAttr = dest->createAttribute(attrName, srcAttr.getType());
+        RtValue::copy(srcAttr.getType(), srcAttr.getValue(), destAttr->getValue());
     }
 }
 

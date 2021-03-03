@@ -3,8 +3,8 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#ifndef MATERIALX_PVTSETMETADATACMD_H
-#define MATERIALX_PVTSETMETADATACMD_H
+#ifndef MATERIALX_PVTSETATTRIBUTECMD_H
+#define MATERIALX_PVTSETATTRIBUTECMD_H
 
 #include <MaterialXRuntime/Private/PvtCommand.h>
 
@@ -13,10 +13,10 @@
 namespace MaterialX
 {
 
-class PvtSetMetadataCmd : public PvtCommand
+class PvtSetAttributeCmd : public PvtCommand
 {
 public:
-    PvtSetMetadataCmd(const RtObject& obj, const RtToken& name, const RtValue& value);
+    PvtSetAttributeCmd(const RtObject& obj, const RtToken& name, const RtValue& value);
 
     static PvtCommandPtr create(const RtObject& obj, const RtToken& name, const RtValue& value);
 

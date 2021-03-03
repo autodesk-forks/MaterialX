@@ -27,38 +27,38 @@ RtPrim RtNodeImpl::createPrim(const RtToken& typeName, const RtToken& name, RtPr
 
 void RtNodeImpl::setTarget(const RtToken& target)
 {
-    RtTypedValue* data = addMetadata(Tokens::TARGET, RtType::TOKEN);
-    data->getValue().asToken() = target;
+    RtTypedValue* attr = createAttribute(Tokens::TARGET, RtType::TOKEN);
+    attr->getValue().asToken() = target;
 }
 
 const RtToken& RtNodeImpl::getTarget() const
 {
-    const RtTypedValue* data = getMetadata(Tokens::TARGET, RtType::TOKEN);
-    return data ? data->getValue().asToken() : EMPTY_TOKEN;
+    const RtTypedValue* attr = getAttribute(Tokens::TARGET, RtType::TOKEN);
+    return attr ? attr->asToken() : EMPTY_TOKEN;
 }
 
 void RtNodeImpl::setNodeDef(const RtToken& language)
 {
-    RtTypedValue* data = addMetadata(Tokens::NODEDEF, RtType::TOKEN);
-    data->getValue().asToken() = language;
+    RtTypedValue* attr = createAttribute(Tokens::NODEDEF, RtType::TOKEN);
+    attr->asToken() = language;
 }
 
 const RtToken& RtNodeImpl::getNodeDef() const
 {
-    const RtTypedValue* data = getMetadata(Tokens::NODEDEF, RtType::TOKEN);
-    return data ? data->getValue().asToken() : EMPTY_TOKEN;
+    const RtTypedValue* attr = getAttribute(Tokens::NODEDEF, RtType::TOKEN);
+    return attr ? attr->asToken() : EMPTY_TOKEN;
 }
 
 void RtNodeImpl::setImplName(const RtToken& implname)
 {
-    RtTypedValue* data = addMetadata(Tokens::IMPLNAME, RtType::TOKEN);
-    data->getValue().asToken() = implname;
+    RtTypedValue* attr = createAttribute(Tokens::IMPLNAME, RtType::TOKEN);
+    attr->asToken() = implname;
 }
 
 const RtToken& RtNodeImpl::getImplName() const
 {
-    const RtTypedValue* data = getMetadata(Tokens::IMPLNAME, RtType::TOKEN);
-    return data ? data->getValue().asToken() : EMPTY_TOKEN;
+    const RtTypedValue* attr = getAttribute(Tokens::IMPLNAME, RtType::TOKEN);
+    return attr ? attr->asToken() : EMPTY_TOKEN;
 }
 
 }

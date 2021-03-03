@@ -17,11 +17,15 @@ const RtToken PvtPort::COLOR_SPACE("colorspace");
 const RtToken PvtPort::UNIT("unit");
 const RtToken PvtPort::UNIT_TYPE("unittype");
 
+
+RT_DEFINE_RUNTIME_OBJECT(PvtPort, RtObjType::PORT, "PvtPort")
+
 PvtPort::PvtPort(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent) :
     PvtObject(name, parent),
     _value(type, RtValue::createNew(type, parent->prim())),
     _flags(flags)
 {
+    setTypeBit<PvtPort>();
 }
 
 

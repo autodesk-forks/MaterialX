@@ -182,100 +182,31 @@ protected:
     int _current;
 };
 
-class RtConnectionIterator : public RtObjectIterator<RtObject>
-{
-  public:
-    RtConnectionIterator(const RtObject& obj);
-};
-
 class RtInputIterator : public RtObjectIterator<RtInput>
 {
 public:
     RtInputIterator(const RtObject& obj);
 };
 
-class RtOutputIterator : public RtObjectIterator<RtInput>
+class RtOutputIterator : public RtObjectIterator<RtOutput>
 {
 public:
     RtOutputIterator(const RtObject& obj);
 };
 
-
-
-
-/*
-
-/// @class RtConnectionIterator
-/// Iterator for traversing the connections on an output or relationship.
-class RtConnectionIterator
+class RtConnectionIterator : public RtObjectIterator<RtObject>
 {
 public:
-    /// Empty constructor.
-    RtConnectionIterator() :
-        _ptr(nullptr),
-        _current(-1)
-    {}
-
-    /// Constructor, setting the output or relationship to iterate on.
     RtConnectionIterator(const RtObject& obj);
-
-    /// Copy constructor.
-    RtConnectionIterator(const RtConnectionIterator& other) :
-        _ptr(other._ptr),
-        _current(other._current)
-    {}
-
-    /// Assignment operator.
-    RtConnectionIterator& operator=(const RtConnectionIterator& other)
-    {
-        _ptr = other._ptr;
-        _current = other._current;
-        return *this;
-    }
-
-    /// Equality operator.
-    bool operator==(const RtConnectionIterator& other) const
-    {
-        return _current == other._current &&
-            _ptr == other._ptr;
-    }
-
-    /// Inequality operator.
-    bool operator!=(const RtConnectionIterator& other) const
-    {
-        return !(*this == other);
-    }
-
-    /// Dereference this iterator, returning the current object.
-    RtObject operator*() const;
-
-    /// Iterate to the next sibling.
-    RtConnectionIterator& operator++();
-
-    /// Return true if there are no more attribute in the iteration.
-    bool isDone() const;
-
-    /// Force the iterator to terminate the traversal.
-    void abort()
-    {
-        *this = end();
-    }
-
-    /// Interpret this object as an iteration range,
-    /// and return its begin iterator.
-    RtConnectionIterator& begin()
-    {
-        return *this;
-    }
-
-    /// Return the sentinel end iterator for this class.
-    static const RtConnectionIterator& end();
-
-private:
-    void* _ptr;
-    int _current;
 };
-*/
+
+class RtRelationshipIterator : public RtObjectIterator<RtObject>
+{
+public:
+    RtRelationshipIterator(const RtObject& obj);
+};
+
+/*
 
 /// @class RtRelationshipIterator
 /// Iterator for traversing the relationships of a primitive.
@@ -347,6 +278,7 @@ private:
     void* _ptr;
     int _current;
 };
+*/
 
 /// @class RtStageIterator
 /// API for iterating over prims in a stage, including referenced stages.

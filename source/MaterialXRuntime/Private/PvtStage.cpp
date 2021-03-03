@@ -158,13 +158,10 @@ RtToken PvtStage::renamePrim(const PvtPath& path, const RtToken& newName)
         throw ExceptionRuntimeError("Given path '" + path.asString() + " does not point to a valid prim in this stage");
     }
 
-    // Remove the old name from the name map.
     PvtPrim* parent = prim->getParent();
     PvtDataHandle hnd = parent->_prims.remove(prim->getName());
-
-    // Make sure the new name is unique and insert it to the name map.
     prim->setName(parent->makeUniqueChildName(newName));
-    parent->_prims.add(hnd);
+    parent->_prims.add(hnd.get());
 
     return prim->getName();
 }

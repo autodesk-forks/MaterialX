@@ -17,9 +17,9 @@ namespace MaterialX
 class PvtSetPortValueCmd : public PvtCommand
 {
 public:
-    PvtSetPortValueCmd(const RtPort& attr, const RtValue& value);
+    PvtSetPortValueCmd(const RtPort& port, const RtValue& value);
 
-    static PvtCommandPtr create(const RtPort& attr, const RtValue& value);
+    static PvtCommandPtr create(const RtPort& port, const RtValue& value);
 
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;

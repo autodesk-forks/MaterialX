@@ -22,6 +22,8 @@ namespace MaterialX
 
 class PvtPort : public PvtObject
 {
+    RT_DECLARE_RUNTIME_OBJECT(PvtPort)
+
 public:
     const RtToken& getType() const
     {
@@ -70,50 +72,38 @@ public:
 
     const RtToken& getColorSpace() const
     {
-        const RtTypedValue* md = getMetadata(PvtPort::COLOR_SPACE, RtType::TOKEN);
-        return md ? md->getValue().asToken() : EMPTY_TOKEN;
+        const RtTypedValue* attr = getAttribute(PvtPort::COLOR_SPACE, RtType::TOKEN);
+        return attr ? attr->asToken() : EMPTY_TOKEN;
     }
 
     void setColorSpace(const RtToken& colorspace)
     {
-        RtTypedValue* md = getMetadata(PvtPort::COLOR_SPACE, RtType::TOKEN);
-        if (!md)
-        {
-            md = addMetadata(PvtPort::COLOR_SPACE, RtType::TOKEN);
-        }
-        md->getValue().asToken() = colorspace;
+        RtTypedValue* attr = createAttribute(PvtPort::COLOR_SPACE, RtType::TOKEN);
+        attr->asToken() = colorspace;
     }
 
     const RtToken& getUnit() const
     {
-        const RtTypedValue* md = getMetadata(PvtPort::UNIT, RtType::TOKEN);
-        return md ? md->getValue().asToken() : EMPTY_TOKEN;
+        const RtTypedValue* attr = getAttribute(PvtPort::UNIT, RtType::TOKEN);
+        return attr ? attr->asToken() : EMPTY_TOKEN;
     }
 
     void setUnit(const RtToken& unit)
     {
-        RtTypedValue* md = getMetadata(PvtPort::UNIT, RtType::TOKEN);
-        if (!md)
-        {
-            md = addMetadata(PvtPort::UNIT, RtType::TOKEN);
-        }
-        md->getValue().asToken() = unit;
+        RtTypedValue* attr = createAttribute(PvtPort::UNIT, RtType::TOKEN);
+        attr->asToken() = unit;
     }
 
     const RtToken& getUnitType() const
     {
-        const RtTypedValue* md = getMetadata(PvtPort::UNIT_TYPE, RtType::TOKEN);
-        return md ? md->getValue().asToken() : EMPTY_TOKEN;
+        const RtTypedValue* attr = getAttribute(PvtPort::UNIT_TYPE, RtType::TOKEN);
+        return attr ? attr->asToken() : EMPTY_TOKEN;
     }
 
     void setUnitType(const RtToken& unit)
     {
-        RtTypedValue* md = getMetadata(PvtPort::UNIT_TYPE, RtType::TOKEN);
-        if (!md)
-        {
-            md = addMetadata(PvtPort::UNIT_TYPE, RtType::TOKEN);
-        }
-        md->getValue().asToken() = unit;
+        RtTypedValue* attr = createAttribute(PvtPort::UNIT_TYPE, RtType::TOKEN);
+        attr->asToken() = unit;
     }
 
     static const RtToken DEFAULT_OUTPUT_NAME;

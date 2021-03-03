@@ -218,49 +218,18 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
     }
 
     // Add an input per nodegraph input
-    for (auto hnd : nodeGraph.prim()->getInputs())
+    for (RtInput input : nodeGraph.getInputs())
     {
-        RtInput input(hnd);
-        RtInput port = nodedef.createInput(input.getName(), input.getType());
-        port.setUniform(input.isUniform());
-
-        const PvtObject* obj = PvtObject::hnd(input)->asA<PvtObject>();
-        const vector<RtToken>& metadataNames = obj->getMetadataOrder();
-        for (auto metadataName : metadataNames)
-        {
-            const RtTypedValue* metadataValue = obj->getMetadata(metadataName);
-            if (metadataValue)
-            {
-                RtTypedValue* vNew = port.addMetadata(metadataName, metadataValue->getType());
-                vNew->getValue().asToken() = metadataValue->getValue().asToken();
-            }
-        }
-        if (!input.getValueString().empty())
-        {
-            port.setValue(input.getValue());
-        }
+        RtInput nodedefInput = nodedef.createInput(input.getName(), input.getType());
+        nodedefInput.setUniform(input.isUniform());
+        RtValue::copy(input.getType(), input.getValue(), nodedefInput.getValue());
     }
 
     // Add an output per nodegraph output
-    for (auto hnd : nodeGraph.prim()->getOutputs())
+    for (RtOutput output : nodeGraph.getOutputs())
     {
-        RtOutput output(hnd);
-        RtPort port = nodedef.createOutput(output.getName(), output.getType());
-        const PvtObject* obj = PvtObject::hnd(output)->asA<PvtObject>();
-        const vector<RtToken>& metadataNames = obj->getMetadataOrder();
-        for (auto metadataName : metadataNames)
-        {
-            const RtTypedValue* metadataValue = obj->getMetadata(metadataName);
-            if (metadataValue)
-            {
-                RtTypedValue* vNew = port.addMetadata(metadataName, metadataValue->getType());
-                vNew->getValue().asToken() = metadataValue->getValue().asToken();
-            }
-        }
-        if (!output.getValueString().empty())
-        {
-            port.setValue(output.getValue());
-        }
+        RtOutput nodedefOutput = nodedef.createOutput(output.getName(), output.getType());
+        RtValue::copy(output.getType(), output.getValue(), nodedefOutput.getValue());
     }
 
     // Set the definition on the nodegraph

@@ -3,7 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/Private/Commands/PvtSetMetadataCmd.h>
+#include <MaterialXRuntime/Private/Commands/PvtSetAttributeCmd.h>
 #include <MaterialXRuntime/Private/PvtCommand.h>
 
 #include <MaterialXRuntime/RtPrim.h>
@@ -13,7 +13,7 @@
 namespace MaterialX
 {
 
-PvtSetMetadataCmd::PvtSetMetadataCmd(const RtObject& obj, const RtToken& name, const RtValue& value)
+PvtSetAttributeCmd::PvtSetAttributeCmd(const RtObject& obj, const RtToken& name, const RtValue& value)
     : PvtCommand()
     , _obj(obj)
     , _name(name)
@@ -23,26 +23,26 @@ PvtSetMetadataCmd::PvtSetMetadataCmd(const RtObject& obj, const RtToken& name, c
 {
 }
 
-PvtCommandPtr PvtSetMetadataCmd::create(const RtObject& obj, const RtToken& name, const RtValue& value)
+PvtCommandPtr PvtSetAttributeCmd::create(const RtObject& obj, const RtToken& name, const RtValue& value)
 {
-    return std::make_shared<PvtSetMetadataCmd>(obj, name, value);
+    return std::make_shared<PvtSetAttributeCmd>(obj, name, value);
 }
 
-void PvtSetMetadataCmd::execute(RtCommandResult& result)
+void PvtSetAttributeCmd::execute(RtCommandResult& result)
 {
     if (_obj.isValid())
     {
         try
         {
-            // Send message that the metadata is changing
-            msg().sendSetMetadataMessage(_obj, _name, _value);
+            // Send message that the attribute is changing
+            msg().sendSetAttributeMessage(_obj, _name, _value);
 
-            RtTypedValue* md = _obj.getMetadata(_name, RtType::STRING);
+            RtTypedValue* md = _obj.getAttribute(_name, RtType::STRING);
 
-            // Do we need to create the metadata or does it already exist?
+            // Do we need to create the attribute or does it already exist?
             if (!md)
             {
-                md = _obj.addMetadata(_name, RtType::STRING);
+                md = _obj.getAttribute(_name, RtType::STRING);
                 _metadataCreated = true;
             }
 
@@ -59,11 +59,11 @@ void PvtSetMetadataCmd::execute(RtCommandResult& result)
     }
     else
     {
-        result = RtCommandResult(false, string("Object to set metadata on is no longer valid"));
+        result = RtCommandResult(false, string("Object to set attribute on is no longer valid"));
     }
 }
 
-void PvtSetMetadataCmd::undo(RtCommandResult& result)
+void PvtSetAttributeCmd::undo(RtCommandResult& result)
 {
     if (_obj.isValid())
     {
@@ -72,20 +72,20 @@ void PvtSetMetadataCmd::undo(RtCommandResult& result)
 
             if (_metadataCreated)
             {
-                // Send message that the metadata is being removed
-                msg().sendRemoveMetadataMessage(_obj, _name);
+                // Send message that the attribute is being removed
+                msg().sendRemoveAttributeMessage(_obj, _name);
 
-                _obj.removeMetadata(_name);
+                _obj.removeAttribute(_name);
                 _metadataCreated = false;
                 result = RtCommandResult(true);
             }
             else
             {
-                // Send message that the metadata is changing
-                msg().sendSetMetadataMessage(_obj, _name, _oldValue);
+                // Send message that the attribute is changing
+                msg().sendSetAttributeMessage(_obj, _name, _oldValue);
 
                 // Reset the value
-                RtTypedValue* md = _obj.getMetadata(_name, RtType::STRING);
+                RtTypedValue* md = _obj.getAttribute(_name, RtType::STRING);
                 if (md)
                 {
                     md->setValue(_oldValue);
@@ -93,7 +93,7 @@ void PvtSetMetadataCmd::undo(RtCommandResult& result)
                 }
                 else
                 {
-                    result = RtCommandResult(false, "Metadata is no longer valid");
+                    result = RtCommandResult(false, "Attribute is no longer valid");
                 }
             }
         }
@@ -104,25 +104,25 @@ void PvtSetMetadataCmd::undo(RtCommandResult& result)
     }
     else
     {
-        result = RtCommandResult(false, string("Object to set metadata on is no longer valid"));
+        result = RtCommandResult(false, string("Object to set attribute on is no longer valid"));
     }
 }
 
-void PvtSetMetadataCmd::redo(RtCommandResult& result)
+void PvtSetAttributeCmd::redo(RtCommandResult& result)
 {
     if (_obj.isValid())
     {
         try
         {
-            // Send message that the metadata is changing
-            msg().sendSetMetadataMessage(_obj, _name, _value);
+            // Send message that the attribute is changing
+            msg().sendSetAttributeMessage(_obj, _name, _value);
 
-            RtTypedValue* md = _obj.getMetadata(_name, RtType::STRING);
+            RtTypedValue* md = _obj.getAttribute(_name, RtType::STRING);
 
-            // Do we need to create the metadata or does it already exist?
+            // Do we need to create the attribute or does it already exist?
             if (!md)
             {
-                md = _obj.addMetadata(_name, RtType::STRING);
+                md = _obj.getAttribute(_name, RtType::STRING);
                 _metadataCreated = true;
             }
 
@@ -136,7 +136,7 @@ void PvtSetMetadataCmd::redo(RtCommandResult& result)
     }
     else
     {
-        result = RtCommandResult(false, string("Object to set metadata on is no longer valid"));
+        result = RtCommandResult(false, string("Object to set attribute on is no longer valid"));
     }
 }
 

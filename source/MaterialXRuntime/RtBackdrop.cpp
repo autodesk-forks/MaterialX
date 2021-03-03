@@ -23,9 +23,6 @@ RtPrim RtBackdrop::createPrim(const RtToken& typeName, const RtToken& name, RtPr
 
     PvtPrim* prim = primH->asA<PvtPrim>();
     prim->createRelationship(Tokens::CONTAINS);
-    prim->createAttribute(Tokens::WIDTH, RtType::FLOAT);
-    prim->createAttribute(Tokens::HEIGHT, RtType::FLOAT);
-    prim->createAttribute(Tokens::NOTE, RtType::STRING);
 
     return primH;
 }
@@ -35,19 +32,40 @@ RtRelationship RtBackdrop::getContains() const
     return prim()->getRelationship(Tokens::CONTAINS)->hnd();
 }
 
-RtPort RtBackdrop::getNote() const
+void RtBackdrop::setNote(const string& note)
 {
-    return prim()->getAttribute(Tokens::NOTE)->hnd();
+    RtTypedValue* attr = prim()->createAttribute(Tokens::NOTE, RtType::STRING);
+    attr->asString() = note;
 }
 
-RtPort RtBackdrop::getWidth() const
+const string& RtBackdrop::getNote() const
 {
-    return prim()->getAttribute(Tokens::WIDTH)->hnd();
+    const RtTypedValue* attr = prim()->getAttribute(Tokens::NOTE, RtType::STRING);
+    return attr ? attr->asString() : EMPTY_STRING;
 }
 
-RtPort RtBackdrop::getHeight() const
+void RtBackdrop::setWidth(float width)
 {
-    return prim()->getAttribute(Tokens::HEIGHT)->hnd();
+    RtTypedValue* attr = prim()->createAttribute(Tokens::WIDTH, RtType::FLOAT);
+    attr->asFloat() = width;
+}
+
+float RtBackdrop::getWidth() const
+{
+    const RtTypedValue* attr = prim()->getAttribute(Tokens::WIDTH, RtType::FLOAT);
+    return attr ? attr->asFloat() : 0.0f;
+}
+
+void RtBackdrop::setHeight(float width)
+{
+    RtTypedValue* attr = prim()->createAttribute(Tokens::HEIGHT, RtType::FLOAT);
+    attr->asFloat() = width;
+}
+
+float RtBackdrop::getHeight() const
+{
+    const RtTypedValue* attr = prim()->getAttribute(Tokens::HEIGHT, RtType::FLOAT);
+    return attr ? attr->asFloat() : 0.0f;
 }
 
 }

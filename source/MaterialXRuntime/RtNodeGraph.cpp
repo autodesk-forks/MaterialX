@@ -53,15 +53,15 @@ RtInput RtNodeGraph::createInput(const RtToken& name, const RtToken& type, uint3
 void RtNodeGraph::removeInput(const RtToken& name)
 {
     PvtPrim* socket = prim()->getChild(SOCKETS);
-    socket->removeInput(name);
     prim()->removeInput(name);
+    socket->removeOutput(name);
 }
 
 RtToken RtNodeGraph::renameInput(const RtToken& name, const RtToken& newName)
 {
     PvtPrim* socket = prim()->getChild(SOCKETS);
     RtToken newPortName = prim()->renameInput(name, newName);
-    socket->renameInput(name, newPortName, false);
+    socket->renameOutput(name, newPortName);
     return newPortName;
 }
 
@@ -76,15 +76,15 @@ RtOutput RtNodeGraph::createOutput(const RtToken& name, const RtToken& type, uin
 void RtNodeGraph::removeOutput(const RtToken& name)
 {
     PvtPrim* socket = prim()->getChild(SOCKETS);
-    socket->removeOutput(name);
     prim()->removeOutput(name);
+    socket->removeInput(name);
 }
 
 RtToken RtNodeGraph::renameOutput(const RtToken& name, const RtToken& newName)
 {
     PvtPrim* socket = prim()->getChild(SOCKETS);
     RtToken newPortName = prim()->renameOutput(name, newName);
-    socket->renameOutput(name, newPortName, false);
+    socket->renameInput(name, newPortName);
     return newPortName;
 }
 
@@ -107,13 +107,13 @@ RtInput RtNodeGraph::getOutputSocket(const RtToken& name) const
 RtNodeLayout RtNodeGraph::getNodeLayout()
 {
     RtNodeLayout layout;
-    for (RtInput input : prim()->getInputs())
+    for (PvtObject* input : prim()->getInputs())
     {
-        layout.order.push_back(input.getName());
-        RtTypedValue* data = input.getMetadata(Tokens::UIFOLDER);
-        if (data && data->getType() == RtType::STRING)
+        layout.order.push_back(input->getName());
+        RtTypedValue* attr = input->getAttribute(Tokens::UIFOLDER, RtType::STRING);
+        if (attr)
         {
-            layout.uifolder[input.getName()] = data->getValue().asString();
+            layout.uifolder[input->getName()] = attr->asString();
         }
     }
     return layout;
@@ -123,10 +123,10 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
 {
     PvtPrim* p = prim();
 
-    // Create a new order map with ports in the specifed order 
+    // Create new input/output lists with ports in the specifed order 
     RtTokenSet processed;
-    PvtDataHandleList newInputOrder;
-    PvtDataHandleList newOutputOrder;
+    PvtObjectList newInputList;
+    PvtObjectList newOutputList;
     for (const RtToken& name : layout.order)
     {
         if (!processed.count(name))
@@ -134,14 +134,14 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
             PvtInput* input = p->getInput(name);
             if (input)
             {
-                newInputOrder.add(input->hnd());
+                newInputList.add(input);
             }
             else
             {
                 PvtOutput* output = p->getOutput(name);
                 if (input)
                 {
-                    newOutputOrder.add(output->hnd());
+                    newOutputList.add(output);
                 }
             }
             processed.insert(name);
@@ -149,55 +149,45 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
     }
 
     // Move over any attributes that were not specified in the new order.
-    for (const PvtDataHandle& hnd : p->getInputs())
+    for (PvtObject* input : p->getInputs())
     {
-        if (!processed.count(hnd->getName()))
+        if (!processed.count(input->getName()))
         {
-            newInputOrder.add(hnd);
-            processed.insert(hnd->getName());
+            newInputList.add(input);
+            processed.insert(input->getName());
         }
     }
-    for (const PvtDataHandle& hnd : p->getOutputs())
+    for (PvtObject* output : p->getOutputs())
     {
-        if (!processed.count(hnd->getName()))
+        if (!processed.count(output->getName()))
         {
-            newOutputOrder.add(hnd);
-            processed.insert(hnd->getName());
+            newOutputList.add(output);
+            processed.insert(output->getName());
         }
     }
 
     // Make sure all attributes were moved.
-    if (newInputOrder.size() != p->numInputs() || newOutputOrder.size() || p->numOutputs())
+    if (newInputList.size() != p->numInputs() || newOutputList.size() != p->numOutputs())
     {
         throw ExceptionRuntimeError("Failed setting new node layout for '" + getName().str() + "'. Changing the port count is not allowed.");
     }
 
     // Switch to the new order.
-    p->_inputs = newInputOrder;
-    p->_outputs = newOutputOrder;
+    p->_inputs = newInputList;
+    p->_outputs = newOutputList;
 
     // Assign uifolder metadata.
-    for (const PvtDataHandle& hnd : p->getInputs())
+    for (PvtObject* input: p->getInputs())
     {
-        RtInput input(hnd);
-        auto it = layout.uifolder.find(input.getName());
+        auto it = layout.uifolder.find(input->getName());
         if (it != layout.uifolder.end() && !it->second.empty())
         {
-            RtTypedValue* data = input.getMetadata(Tokens::UIFOLDER);
-            if (!data)
-            {
-                data = input.addMetadata(Tokens::UIFOLDER, RtType::STRING);
-            }
-            else if (data->getType() != RtType::STRING)
-            {
-                input.removeMetadata(Tokens::UIFOLDER);
-                data = input.addMetadata(Tokens::UIFOLDER, RtType::STRING);
-            }
-            data->getValue().asString() = it->second;
+            RtTypedValue* attr = input->createAttribute(Tokens::UIFOLDER, RtType::STRING);
+            attr->asString() = it->second;
         }
         else
         {
-            input.removeMetadata(Tokens::UIFOLDER);
+            input->removeAttribute(Tokens::UIFOLDER);
         }
     }
 }
@@ -214,16 +204,16 @@ RtPrimIterator RtNodeGraph::getNodes() const
     return RtPrimIterator(hnd(), predicate);
 }
 
-const RtToken& RtNodeGraph::getDefinition() const
+void RtNodeGraph::setDefinition(const RtToken& nodedef)
 {
-    RtTypedValue* v = prim()->getMetadata(Tokens::NODEDEF);
-    return v ? v->getValue().asToken() : EMPTY_TOKEN;
+    RtTypedValue* attr = prim()->createAttribute(Tokens::NODEDEF, RtType::TOKEN);
+    attr->asToken() = nodedef;
 }
 
-void RtNodeGraph::setDefinition(const RtToken& value)
+const RtToken& RtNodeGraph::getDefinition() const
 {
-    RtTypedValue* v = prim()->addMetadata(Tokens::NODEDEF, RtType::TOKEN);
-    v->getValue().asToken() = value;
+    RtTypedValue* attr = prim()->getAttribute(Tokens::NODEDEF, RtType::TOKEN);
+    return attr ? attr->asToken() : EMPTY_TOKEN;
 }
 
 string RtNodeGraph::asStringDot() const

@@ -35,6 +35,8 @@ public:
 /// Base class for prim ports.
 class RtPort : public RtObject
 {
+    RT_DECLARE_RUNTIME_OBJECT(RtInput)
+
 public:
     /// Empty constructor.
     /// Creating an invalid object.

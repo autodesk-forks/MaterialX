@@ -28,7 +28,7 @@ void PvtSetPortValueCmd::execute(RtCommandResult& result)
         try
         {
             // Send message that the attribute is changing
-            msg().sendSetAttributeMessage(_port, _value);
+            msg().sendSetPortValueMessage(_port, _value);
 
             // Save old value for undo/redo
             _oldValue = RtValue::clone(_port.getType(), _port.getValue(), _port.getParent());
@@ -55,7 +55,7 @@ void PvtSetPortValueCmd::undo(RtCommandResult& result)
         try
         {
             // Send message that the attribute is changing
-            msg().sendSetAttributeMessage(_port, _oldValue);
+            msg().sendSetPortValueMessage(_port, _oldValue);
 
             // Reset the value
             _port.setValue(_oldValue);
@@ -79,7 +79,7 @@ void PvtSetPortValueCmd::redo(RtCommandResult& result)
         try
         {
             // Send message that the attribute is changing
-            msg().sendSetAttributeMessage(_port, _value);
+            msg().sendSetPortValueMessage(_port, _value);
 
             // Set the value
             _port.setValue(_value);

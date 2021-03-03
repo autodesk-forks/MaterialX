@@ -16,9 +16,26 @@ namespace MaterialX
 
 namespace
 {
-    static const RtToken NODEDEF("nodedef");
+    const RtToken NODEDEF("nodedef");
 
-    static const RtTokenVec PUBLIC_INPUT_COLOR_METADATA_NAMES
+    // Code for handling queries about schema attributes.
+    //
+    // TODO: Move this to a central location and use a
+    //       data driven XML schema file to control this.
+    //
+    struct StdAttrRecord
+    {
+        RtTokenVec vec;
+        RtTokenSet set;
+
+        StdAttrRecord(const RtTokenVec& names = RtTokenVec()) :
+            vec(names),
+            set(names.begin(), names.end())
+        {
+        }
+    };
+
+    const StdAttrRecord STD_ATTR_INPUT_COLOR(
     {
         RtToken("name"),
         RtToken("type"),
@@ -29,9 +46,9 @@ namespace
         RtToken("member"),
         RtToken("channels"),
         RtToken("colorspace")
-    };
+    });
 
-    static const RtTokenVec PUBLIC_INPUT_FLOAT_METADATA_NAMES
+    const StdAttrRecord STD_ATTR_INPUT_FLOAT(
     {
         RtToken("name"),
         RtToken("type"),
@@ -43,9 +60,9 @@ namespace
         RtToken("channels"),
         RtToken("unit"),
         RtToken("unittype")
-    };
+    });
 
-    static const RtTokenVec PUBLIC_INPUT_METADATA_NAMES
+    const StdAttrRecord STD_ATTR_INPUT(
     {
         RtToken("name"),
         RtToken("type"),
@@ -55,9 +72,9 @@ namespace
         RtToken("output"),
         RtToken("member"),
         RtToken("channels")
-    };
+    });
 
-    static const RtTokenVec PUBLIC_OUTPUT_COLOR_METADATA_NAMES
+    const StdAttrRecord STD_ATTR_OUTPUT_COLOR(
     {
         RtToken("name"),
         RtToken("type"),
@@ -68,8 +85,9 @@ namespace
         RtToken("width"),
         RtToken("height"),
         RtToken("bitdepth")
-    };
-    static const RtTokenVec PUBLIC_OUTPUT_METADATA_NAMES
+    });
+
+    const StdAttrRecord STD_ATTR_OUTPUT(
     {
         RtToken("name"),
         RtToken("type"),
@@ -79,9 +97,9 @@ namespace
         RtToken("width"),
         RtToken("height"),
         RtToken("bitdepth")
-    };
+    });
 
-    static const RtTokenVec PUBLIC_METADATA_NAMES
+    const StdAttrRecord STD_ATTR(
     {
         RtToken("name"),
         RtToken("type"),
@@ -100,9 +118,52 @@ namespace
         RtToken("cmsconfig"),
         RtToken("colorspace"),
         RtToken("namespace")
-    };
+    });
 
-    static const RtTokenVec PUBLIC_EMPTY_METADATA_NAMES;
+    const StdAttrRecord STD_ATTR_EMPTY;
+
+    const StdAttrRecord& getStandardAttributeRecord(const RtNode& /*node*/)
+    {
+        return STD_ATTR;
+    }
+
+    const StdAttrRecord& getStandardAttributeRecord(const RtNode& node, const RtToken& portName)
+    {
+        RtInput input = node.getInput(portName);
+        if (input)
+        {
+            const RtToken& type = input.getType();
+            if (type == RtType::COLOR3 || type == RtType::COLOR4 || type == RtType::FILENAME)
+            {
+                return STD_ATTR_INPUT_COLOR;
+            }
+            else if (type == RtType::FLOAT || type == RtType::VECTOR2 || type == RtType::VECTOR3 || type == RtType::VECTOR4)
+            {
+                return STD_ATTR_INPUT_FLOAT;
+            }
+            else
+            {
+                return STD_ATTR_INPUT;
+            }
+        }
+        else
+        {
+            RtOutput output = node.getOutput(portName);
+            if (output)
+            {
+                const RtToken& type = output.getType();
+                if (type == RtType::COLOR3 || type == RtType::COLOR4 || type == RtType::FILENAME)
+                {
+                    return STD_ATTR_OUTPUT_COLOR;
+                }
+                else
+                {
+                    return STD_ATTR_OUTPUT;
+                }
+            }
+        }
+        return STD_ATTR_EMPTY;
+    }
 }
 
 DEFINE_TYPED_SCHEMA(RtNode, "node");
@@ -132,46 +193,21 @@ RtPrim RtNode::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
     PvtRelationship* nodedefRelation = node->createRelationship(NODEDEF);
     nodedefRelation->addTarget(nodedefPrim);
 
-    // Copy over meta-data from nodedef to node. 
-    // TODO: Checks with ILM need to be made to make sure that the appropriate
-    // meta-data set. TBD if target should be set.
-    RtTokenSet copyList = { Tokens::VERSION };
-    const vector<RtToken>& metadata = nodedefPrim->getMetadataOrder();
-    for (const RtToken& dataName : metadata)
-    { 
-        if (copyList.count(dataName))
-        {
-            const RtTypedValue* src = nodedefPrim->getMetadata(dataName);
-            RtTypedValue* v = src ? node->addMetadata(dataName, src->getType()) : nullptr;
-            if (v)
-            {
-                RtToken valueToCopy = src->getValue().asToken();
-                v->getValue().asToken() = valueToCopy;
-            }
-        }
-    }
-
     // Create the interface according to nodedef.
-    for (const PvtDataHandle& portH : nodedefPrim->getInputs())
+    for (PvtObject* obj : nodedefPrim->getInputs())
     {
-        const PvtInput* port = portH->asA<PvtInput>();
+        const PvtInput* port = obj->asA<PvtInput>();
         PvtInput* input = node->createInput(port->getName(), port->getType(), port->getFlags());
         RtValue::copy(port->getType(), port->getValue(), input->getValue());
     }
-    for (const PvtDataHandle& portH : nodedefPrim->getOutputs())
+    for (PvtObject* obj : nodedefPrim->getOutputs())
     {
-        const PvtOutput* port = portH->asA<PvtOutput>();
+        const PvtOutput* port = obj->asA<PvtOutput>();
         PvtOutput* output = node->createOutput(port->getName(), port->getType(), port->getFlags());
         RtValue::copy(port->getType(), port->getValue(), output->getValue());
     }
 
     return nodeH;
-}
-
-RtPrim RtNode::getNodeDef() const
-{
-    PvtRelationship* nodedef = prim()->getRelationship(NODEDEF);
-    return nodedef && nodedef->hasTargets() ? nodedef->getAllTargets()[0] : RtPrim();
 }
 
 void RtNode::setNodeDef(RtPrim nodeDef)
@@ -188,60 +224,46 @@ void RtNode::setNodeDef(RtPrim nodeDef)
     nodedefRel->addTarget(PvtObject::ptr<PvtPrim>(nodeDef));
 }
 
-const RtToken& RtNode::getVersion() const
+RtPrim RtNode::getNodeDef() const
 {
-    RtTypedValue* v = prim()->getMetadata(Tokens::VERSION, RtType::TOKEN);
-    return v ? v->getValue().asToken() : EMPTY_TOKEN;
+    PvtRelationship* nodedef = prim()->getRelationship(NODEDEF);
+    return nodedef && nodedef->hasTargets() ? nodedef->getAllTargets()[0] : RtPrim();
 }
 
 void RtNode::setVersion(const RtToken& version)
 {
-    RtTypedValue* v = prim()->addMetadata(Tokens::VERSION, RtType::TOKEN);
-    v->getValue().asToken() = version;
+    RtTypedValue* attr = prim()->createAttribute(Tokens::VERSION, RtType::TOKEN);
+    attr->asToken() = version;
 }
 
-const RtTokenVec& RtNode::getPublicMetadataNames() const
+const RtToken& RtNode::getVersion() const
 {
-    return PUBLIC_METADATA_NAMES;
+    RtTypedValue* attr = prim()->getAttribute(Tokens::VERSION, RtType::TOKEN);
+    return attr ? attr->asToken() : EMPTY_TOKEN;
 }
 
-const RtTokenVec& RtNode::getPublicPortMetadataNames(const RtToken& name) const
+const RtTokenVec& RtNode::getStandardAttributeNames() const
 {
-    RtInput input = getInput(name);
-    if (input)
-    {
-        const RtToken& type = input.getType();
-        if (type == RtType::COLOR3 || type == RtType::COLOR4 || type == RtType::FILENAME)
-        {
-            return PUBLIC_INPUT_COLOR_METADATA_NAMES;
-        }
-        else if(type == RtType::FLOAT || type == RtType::VECTOR2 || type == RtType::VECTOR3 || type == RtType::VECTOR4)
-        {
-            return PUBLIC_INPUT_FLOAT_METADATA_NAMES;
-        }
-        else
-        {
-            return PUBLIC_INPUT_METADATA_NAMES;
-        }
-    }
-    else
-    {
-        RtOutput output = getOutput(name);
-        if (output)
-        {
-            const RtToken& type = output.getType();
-            if (type == RtType::COLOR3 || type == RtType::COLOR4 || type == RtType::FILENAME)
-            {
-                return PUBLIC_OUTPUT_COLOR_METADATA_NAMES;
-            }
-            else
-            {
-                return PUBLIC_OUTPUT_METADATA_NAMES;
-            }
-        }
-    }
+    const StdAttrRecord& record = getStandardAttributeRecord(*this);
+    return record.vec;
+}
 
-    return PUBLIC_EMPTY_METADATA_NAMES;
+const RtTokenVec& RtNode::getStandardAttributeNames(const RtToken& portName) const
+{
+    const StdAttrRecord& record = getStandardAttributeRecord(*this, portName);
+    return record.vec;
+}
+
+bool RtNode::isStandardAttribute(const RtToken& attrName) const
+{
+    const StdAttrRecord& record = getStandardAttributeRecord(*this);
+    return record.set.count(attrName) > 0;
+}
+
+bool RtNode::isStandardAttribute(const RtToken& portName, const RtToken& attrName) const
+{
+    const StdAttrRecord& record = getStandardAttributeRecord(*this, portName);
+    return record.set.count(attrName) > 0;
 }
 
 }

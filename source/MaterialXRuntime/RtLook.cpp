@@ -25,15 +25,21 @@ RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtP
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->createAttribute(Tokens::ACTIVELOOK, RtType::STRING);
     prim->createRelationship(Tokens::LOOKS);
 
     return primH;
 }
 
-RtPort RtLookGroup::getActiveLook() const
+void RtLookGroup::setActiveLook(const string& look)
 {
-    return prim()->getAttribute(Tokens::ACTIVELOOK)->hnd();
+    RtTypedValue* attr = prim()->createAttribute(Tokens::ACTIVELOOK, RtType::STRING);
+    attr->asString() = look;
+}
+
+const string& RtLookGroup::getActiveLook() const
+{
+    const RtTypedValue* attr = prim()->getAttribute(Tokens::ACTIVELOOK);
+    return attr ? attr->asString() : EMPTY_STRING;
 }
 
 void RtLookGroup::addLook(const RtObject& look)
@@ -128,9 +134,6 @@ RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name
 
     PvtPrim* prim = primH->asA<PvtPrim>();
     prim->createInput(Tokens::MATERIAL, RtType::MATERIAL);
-    PvtPort* exclusive = prim->createAttribute(Tokens::EXCLUSIVE, RtType::BOOLEAN);
-    exclusive->getValue().asBool() = true;
-    prim->createAttribute(Tokens::GEOM, RtType::STRING);
     prim->createRelationship(Tokens::COLLECTION);
 
     return primH;
@@ -146,14 +149,28 @@ RtRelationship RtMaterialAssign::getCollection() const
     return prim()->getRelationship(Tokens::COLLECTION)->hnd();
 }
 
-RtPort RtMaterialAssign::getGeom() const
+void RtMaterialAssign::setGeom(const string& geom)
 {
-    return prim()->getAttribute(Tokens::GEOM)->hnd();
+    RtTypedValue* attr = prim()->createAttribute(Tokens::GEOM, RtType::STRING);
+    attr->asString() = geom;
 }
 
-RtPort RtMaterialAssign::getExclusive() const
+const string& RtMaterialAssign::getGeom() const
 {
-    return prim()->getAttribute(Tokens::EXCLUSIVE)->hnd();
+    const RtTypedValue* attr = prim()->getAttribute(Tokens::GEOM, RtType::STRING);
+    return attr ? attr->asString() : EMPTY_STRING;
+}
+
+void RtMaterialAssign::setExclusive(bool exclusive)
+{
+    RtTypedValue* attr = prim()->createAttribute(Tokens::EXCLUSIVE, RtType::BOOLEAN);
+    attr->asBool() = exclusive;
+}
+
+bool RtMaterialAssign::getExclusive() const
+{
+    const RtTypedValue* attr = prim()->getAttribute(Tokens::EXCLUSIVE, RtType::BOOLEAN);
+    return attr ? attr->asBool() : false;
 }
 
 bool RtMaterialAssignConnectableApi::acceptRelationship(const RtRelationship& rel, const RtObject& target) const

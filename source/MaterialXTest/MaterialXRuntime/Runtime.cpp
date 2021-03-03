@@ -33,8 +33,8 @@
 #include <MaterialXRuntime/Tokens.h>
 
 #include <MaterialXRuntime/Commands/PrimCommands.h>
+#include <MaterialXRuntime/Commands/PortCommands.h>
 #include <MaterialXRuntime/Commands/AttributeCommands.h>
-#include <MaterialXRuntime/Commands/MetadataCommands.h>
 #include <MaterialXRuntime/Commands/RelationshipCommands.h>
 #include <MaterialXRuntime/Commands/UndoCommands.h>
 
@@ -506,8 +506,8 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(backdrop.getContains().hasTargets());
     backdrop.getContains().clearTargets();
     REQUIRE(!backdrop.getContains().hasTargets());
-    backdrop.getNote().getValue().asString() = "These aren't the Droids you're looking for";
-    REQUIRE(backdrop.getNote().getValue().asString() == "These aren't the Droids you're looking for");
+    backdrop.setNote("These aren't the Droids you're looking for");
+    REQUIRE(backdrop.getNote() == "These aren't the Droids you're looking for");
     REQUIRE(backdropPrim.getRelationship(backdrop.getContains().getName()) == backdrop.getContains());
     bool found = false;
     for (auto rel: backdropPrim.getRelationships()) {
@@ -531,16 +531,9 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     // Test object casting
     REQUIRE(backdropPrim.isA<mx::RtObject>());
     REQUIRE(backdropPrim.isA<mx::RtPrim>());
-    mx::RtObject obj1 = backdrop.getNote();
-    mx::RtObject obj2 = backdrop.getContains();
-    REQUIRE(obj1.isA<mx::RtPort>());
-    REQUIRE(!obj1.isA<mx::RtRelationship>());
-    REQUIRE(obj2.isA<mx::RtRelationship>());
-    REQUIRE(!obj2.isA<mx::RtPort>());
-    mx::RtPort attr1 = obj1.asA<mx::RtPort>();
-    mx::RtPort attr2 = obj2.asA<mx::RtPort>();
-    REQUIRE(attr1);
-    REQUIRE(!attr2);
+    mx::RtObject obj1 = backdrop.getContains();
+    REQUIRE(!obj1.isA<mx::RtPort>());
+    REQUIRE(obj1.isA<mx::RtRelationship>());
 
     // Test object life-time management
     mx::RtInput graph_in = graph.createInput(IN, mx::RtType::FLOAT);
@@ -571,10 +564,10 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     mx::RtNodeDef nodedef = stage->createPrim("/ND_add_float", mx::RtNodeDef::typeName());
     nodedef.setNode(ADD);
 
-    // Test adding metadata
-    mx::RtTypedValue* version = nodedef.addMetadata(VERSION, mx::RtType::FLOAT);
-    version->getValue().asFloat() = 1.0f;
-    REQUIRE(version->getValue().asFloat() == 1.0);
+    // Test adding attributes
+    mx::RtTypedValue* version = nodedef.createAttribute(VERSION, mx::RtType::FLOAT);
+    version->asFloat() = 1.0f;
+    REQUIRE(version->asFloat() == 1.0);
 
     // Add attributes to the nodedef
     nodedef.createInput(IN1, mx::RtType::FLOAT);
@@ -648,11 +641,11 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(add1_in1.getColorSpace() == mx::EMPTY_TOKEN);
     REQUIRE(add1_in2.getUnit() == mx::EMPTY_TOKEN);
     REQUIRE(add1_in2.getColorSpace() == srgb);
-    mx::RtTypedValue* fooData = add1_in1.addMetadata(FOO, mx::RtType::FLOAT);
-    fooData->getValue().asFloat() = 7.0f;
-    REQUIRE(fooData == add1_in1.getMetadata(FOO));
-    add1_in1.removeMetadata(FOO);
-    REQUIRE(nullptr == add1_in1.getMetadata(FOO));
+    mx::RtTypedValue* fooData = add1_in1.createAttribute(FOO, mx::RtType::FLOAT);
+    fooData->asFloat() = 7.0f;
+    REQUIRE(fooData == add1_in1.getAttribute(FOO));
+    add1_in1.removeAttribute(FOO);
+    REQUIRE(nullptr == add1_in1.getAttribute(FOO));
 
     // Test port connectability
     REQUIRE(add1_out.isConnectable(add2_in1));
@@ -770,13 +763,13 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     graph1.setNodeLayout(layout);
     mx::RtInputIterator orderIt = graph1.getInputs();
     REQUIRE((*orderIt).getName() == X);
-    REQUIRE((*orderIt).getMetadata(UIFOLDER)->getValue().asString() == path2);
+    REQUIRE((*orderIt).getAttribute(UIFOLDER)->asString() == path2);
     ++orderIt;
     REQUIRE((*orderIt).getName() == B);
-    REQUIRE((*orderIt).getMetadata(UIFOLDER)->getValue().asString() == path1);
+    REQUIRE((*orderIt).getAttribute(UIFOLDER)->asString() == path1);
     ++orderIt;
     REQUIRE((*orderIt).getName() == A);
-    REQUIRE((*orderIt).getMetadata(UIFOLDER)->getValue().asString() == path1);
+    REQUIRE((*orderIt).getAttribute(UIFOLDER)->asString() == path1);
     // Reset the old order
     graph1.setNodeLayout(oldLayout);
     orderIt = graph1.getInputs();
@@ -843,12 +836,12 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(agPrim.isValid());
     mx::RtNode agNode(agPrim);
     {
-        // 1. Metadata like version should be copiedbut not target or node.
-        mx::RtTypedValue* agVersion = agNode.getMetadata(mx::Tokens::VERSION);
+        // 1. Metadata like version should be copied but not target or node.
+        mx::RtTypedValue* agVersion = agNode.getAttribute(mx::Tokens::VERSION);
         REQUIRE(agVersion->getValueString() == ADDGRAPH_VERSION);
-        mx::RtTypedValue* agTarget = agNode.getMetadata(mx::Tokens::TARGET);
+        mx::RtTypedValue* agTarget = agNode.getAttribute(mx::Tokens::TARGET);
         REQUIRE(!agTarget);
-        mx::RtTypedValue* agNodeValue = agNode.getMetadata(mx::Tokens::NODE);
+        mx::RtTypedValue* agNodeValue = agNode.getAttribute(mx::Tokens::NODE);
         REQUIRE(!agNodeValue);
     }
 
@@ -1481,12 +1474,10 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     REQUIRE(p1.hasApi<mx::RtBindElement>());
     REQUIRE(p1.hasApi<mx::RtCollection>());
     mx::RtCollection col1(p1);
-    mx::RtPort igeom = col1.getIncludeGeom();
-    igeom.setValueString("foo");
-    mx::RtPort egeom = col1.getExcludeGeom();
-    egeom.setValueString("bar");
-    REQUIRE(igeom.getValueString() == "foo");
-    REQUIRE(egeom.getValueString() == "bar");
+    col1.setIncludeGeom("foo");
+    col1.setExcludeGeom("bar");
+    REQUIRE(col1.getIncludeGeom() == "foo");
+    REQUIRE(col1.getExcludeGeom() == "bar");
 
     mx::RtPrim p2 = stage->createPrim("child1", mx::RtCollection::typeName());
     mx::RtPrim p3 = stage->createPrim("child2", mx::RtCollection::typeName());
@@ -1527,8 +1518,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     mx::RtPrim sm1 = stage->createPrim(sm1Path, matDef);
     assign1.getMaterial().connect(sm1.getOutput());
     REQUIRE(assign1.getMaterial().getConnection().getParent().getPath() == sm1Path);
-    assign1.getExclusive().getValue().asBool() = true;
-    assign1.getGeom().getValue().asString() = "/mygeom";
+    assign1.setExclusive(true);
+    assign1.setGeom("/mygeom");
 
     //
     // Test look
@@ -1544,7 +1535,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     mx::RtPath sm2Path("/surfacematerial2");
     mx::RtPrim sm2 = stage->createPrim(sm2Path, matDef);
     assign2.getMaterial().connect(sm2.getOutput());
-    assign2.getExclusive().getValue().asBool() = false;
+    assign2.setExclusive(false);
     look1.addMaterialAssign(pa);
     look1.addMaterialAssign(pa2);
     REQUIRE_THROWS(look1.addMaterialAssign(col1.getPrim()));
@@ -1578,8 +1569,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     lookgroup1.removeLook(lo1);
     REQUIRE(lookgroup1.getLooks().targetCount() == 1);
 
-    lookgroup1.getActiveLook().setValueString("look1");
-    REQUIRE(lookgroup1.getActiveLook().getValueString() == "look1");
+    lookgroup1.setActiveLook("look1");
+    REQUIRE(lookgroup1.getActiveLook() == "look1");
 
     lookgroup1.addLook(lo1);
 
@@ -1615,8 +1606,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         REQUIRE(p1);
         REQUIRE(p1.getTypeInfo()->getShortTypeName() == mx::RtCollection::typeName());
         col1 = p1;
-        REQUIRE(col1.getIncludeGeom().getValueString() == "foo");
-        REQUIRE(col1.getExcludeGeom().getValueString() == "bar");
+        REQUIRE(col1.getIncludeGeom() == "foo");
+        REQUIRE(col1.getExcludeGeom() == "bar");
 
         p2 = stage2->getPrimAtPath("/child1");
         REQUIRE(p2);
@@ -1654,8 +1645,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         REQUIRE(sm1);
         REQUIRE(assign1.getMaterial().isConnected());
         REQUIRE(assign1.getMaterial().getConnection().getParent() == sm1);
-        REQUIRE(assign1.getExclusive().getValue().asBool() == true);
-        REQUIRE(assign1.getGeom().getValueString() == "/mygeom");
+        REQUIRE(assign1.getExclusive() == true);
+        REQUIRE(assign1.getGeom() == "/mygeom");
 
         //
         // Check look
@@ -1679,7 +1670,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         sm2 = stage2->getPrimAtPath("/surfacematerial2");
         REQUIRE(assign2.getMaterial().isConnected());
         REQUIRE(assign2.getMaterial().getConnection().getParent() == sm2);
-        REQUIRE(assign2.getExclusive().getValue().asBool() == false);
+        REQUIRE(assign2.getExclusive() == false);
         iter = look1.getMaterialAssigns().getTargets();
         REQUIRE(!iter.isDone());
         REQUIRE((*iter) == pa);
@@ -1717,7 +1708,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         REQUIRE((*iter) == lo1);
         ++iter;
         REQUIRE(iter.isDone());
-        REQUIRE(lookgroup1.getActiveLook().getValueString() == "look1");
+        REQUIRE(lookgroup1.getActiveLook() == "look1");
 
         // Try again, with options.
         useOptions = true;
@@ -1738,8 +1729,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     ++iter;
     REQUIRE(!iter.isDone());
     REQUIRE((*iter) == lo2);
-    lookgroup2.getActiveLook().setValueString("child_lookgroup");
-    REQUIRE(lookgroup2.getActiveLook().getValueString() == "child_lookgroup");
+    lookgroup2.setActiveLook("child_lookgroup");
+    REQUIRE(lookgroup2.getActiveLook() == "child_lookgroup");
 }
 
 mx::RtToken toTestResolver(const mx::RtToken& str, const mx::RtToken& type)
@@ -1867,6 +1858,8 @@ TEST_CASE("Runtime: units", "[runtime]")
         fileIo.write(outStream);
         mx::readFromXmlStream(outDoc, outStream);
 
+        fileIo.write(test + ".v2.mtlx");
+
         for (mx::ElementPtr elem : inDoc->traverseTree())
         {
             mx::ValueElementPtr val = elem->asA<mx::ValueElement>();
@@ -1881,6 +1874,11 @@ TEST_CASE("Runtime: units", "[runtime]")
                     mx::ValueElementPtr outVal = outElem->asA<mx::ValueElement>();
                     if (outVal)
                     {
+                        std::string a1 = outVal->getUnit();
+                        std::string a2 = unit;
+                        std::string b1 = outVal->getUnitType();
+                        std::string b2 = unitType;
+
                         REQUIRE((outVal->getUnit() == unit && outVal->getUnitType() == unitType));
                     }
                 }
@@ -1920,7 +1918,7 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     {
         ++(*reinterpret_cast<size_t*>(userData));
     };
-    auto setAttrCB = [](const mx::RtPort&, const mx::RtValue&, void* userData)
+    auto setPortValueCB = [](const mx::RtPort&, const mx::RtValue&, void* userData)
     {
         ++(*reinterpret_cast<size_t*>(userData));
     };
@@ -1945,7 +1943,7 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     mx::RtCallbackId removePrimCB_id = mx::RtMessage::addRemovePrimCallback(removePrimCB, &removePrimCount);
     mx::RtCallbackId renamePrimCB_id = mx::RtMessage::addRenamePrimCallback(renamePrimCB, &renamePrimCount);
     mx::RtCallbackId reparentPrimCB_id = mx::RtMessage::addReparentPrimCallback(reparentPrimCB, &reparentPrimCount);
-    mx::RtCallbackId setAttrCB_id = mx::RtMessage::addSetAttributeCallback(setAttrCB, &setAttrCount);
+    mx::RtCallbackId setPortValueCB_id = mx::RtMessage::addSetPortValueCallback(setPortValueCB, &setAttrCount);
     mx::RtCallbackId connectionCB_id = mx::RtMessage::addConnectionCallback(connectionCB, &connectionChangeCount);
     mx::RtCallbackId relationshipCB_id = mx::RtMessage::addRelationshipCallback(relationshipCB, &relationshipChangeCount);
 
@@ -2026,11 +2024,11 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     in1.getValue().asFloat() = 1.0f;
     in2.getValue().asFloat() = 1.0f;
 
-    mx::RtCommand::setAttribute(in1, 3.0f, result);
+    mx::RtCommand::setPortValue(in1, 3.0f, result);
     REQUIRE(result);
     REQUIRE(in1.getValue().asFloat() == 3.0f);
 
-    mx::RtCommand::setAttribute(in2, 7.0f, result);
+    mx::RtCommand::setPortValue(in2, 7.0f, result);
     REQUIRE(result);
     REQUIRE(in2.getValue().asFloat() == 7.0f);
 
@@ -2054,11 +2052,11 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     REQUIRE(in1.getValue().asFloat() == 3.0f);
     REQUIRE(in2.getValue().asFloat() == 7.0f);
 
-    mx::RtCommand::setAttributeFromString(in2, "42.0", result);
+    mx::RtCommand::setPortValueFromString(in2, "42.0", result);
     REQUIRE(result);
     REQUIRE(in2.getValue().asFloat() == 42.0f);
 
-    mx::RtCommand::setAttributeFromString(in2, "nonsense", result);
+    mx::RtCommand::setPortValueFromString(in2, "nonsense", result);
     REQUIRE(!result);
 
     REQUIRE(setAttrCount == 7);
@@ -2262,7 +2260,7 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     mx::RtMessage::removeCallback(removePrimCB_id);
     mx::RtMessage::removeCallback(renamePrimCB_id);
     mx::RtMessage::removeCallback(reparentPrimCB_id);
-    mx::RtMessage::removeCallback(setAttrCB_id);
+    mx::RtMessage::removeCallback(setPortValueCB_id);
     mx::RtMessage::removeCallback(connectionCB_id);
     mx::RtMessage::removeCallback(relationshipCB_id);
 
@@ -2293,99 +2291,98 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     REQUIRE(!unknownResult);
 
     //
-    // Test setting metadata
+    // Test setting attributes
     //
-    auto setMetadataCallback = [](const mx::RtObject&, const mx::RtToken&, const mx::RtValue&, void* userData)
+    auto setAttributeCallback = [](const mx::RtObject&, const mx::RtToken&, const mx::RtValue&, void* userData)
     {
         ++(*reinterpret_cast<size_t*>(userData));
     };
-    auto removeMetadataCallback = [](const mx::RtObject&, const mx::RtToken&, void* userData)
+    auto removeAttributeCallback = [](const mx::RtObject&, const mx::RtToken&, void* userData)
     {
         ++(*reinterpret_cast<size_t*>(userData));
     };
-    size_t setMetadataCount = 0;
-    size_t removeMetadataCount = 0;
-    mx::RtCallbackId setMetadata_id = mx::RtMessage::addSetMetadataCallback(setMetadataCallback, &setMetadataCount);
-    mx::RtCallbackId removeMetadata_id = mx::RtMessage::addRemoveMetadataCallback(removeMetadataCallback, &removeMetadataCount);
+    size_t setAttributeCount = 0;
+    size_t removeAttributeCount = 0;
+    mx::RtCallbackId setAttribute_id = mx::RtMessage::addSetAttributeCallback(setAttributeCallback, &setAttributeCount);
+    mx::RtCallbackId removeAttribute_id = mx::RtMessage::addRemoveAttributeCallback(removeAttributeCallback, &removeAttributeCount);
 
-    mx::RtCommandResult metadataResult;
+    mx::RtCommandResult attrResult;
     mx::RtToken metadata("metadata");
     std::string metadataValue("some_value");
-    mx::RtCommand::setMetadata(foo, metadata, metadataValue, metadataResult);
-    REQUIRE(metadataResult);
-    REQUIRE(foo.getMetadata(metadata));
-    REQUIRE(foo.getMetadata(metadata)->getValue().asToken() == metadataValue);
-    REQUIRE(setMetadataCount == 1);
-    REQUIRE(removeMetadataCount == 0);
+    mx::RtCommand::setAttribute(foo, metadata, metadataValue, attrResult);
+    REQUIRE(attrResult);
+    REQUIRE(foo.getAttribute(metadata));
+    REQUIRE(foo.getAttribute(metadata)->asToken() == metadataValue);
+    REQUIRE(setAttributeCount == 1);
+    REQUIRE(removeAttributeCount == 0);
 
     mx::RtCommand::undo(result);
     REQUIRE(result);
-    REQUIRE(!foo.getMetadata(metadata));
-    REQUIRE(setMetadataCount == 1);
-    REQUIRE(removeMetadataCount == 1);
+    REQUIRE(!foo.getAttribute(metadata));
+    REQUIRE(setAttributeCount == 1);
+    REQUIRE(removeAttributeCount == 1);
 
     mx::RtCommand::redo(result);
     REQUIRE(result);
-    REQUIRE(foo.getMetadata(metadata));
-    REQUIRE(foo.getMetadata(metadata)->getValue().asToken() == metadataValue);
-    REQUIRE(setMetadataCount == 2);
-    REQUIRE(removeMetadataCount == 1);
+    REQUIRE(foo.getAttribute(metadata));
+    REQUIRE(foo.getAttribute(metadata)->asToken() == metadataValue);
+    REQUIRE(setAttributeCount == 2);
+    REQUIRE(removeAttributeCount == 1);
 
     //
     // Test changing metadata value
     //
     std::string metadataValue2("some_value2");
-    mx::RtCommand::setMetadata(foo, metadata, metadataValue2, metadataResult);
-    REQUIRE(metadataResult);
-    REQUIRE(foo.getMetadata(metadata));
-    REQUIRE(foo.getMetadata(metadata)->getValueString() == metadataValue2);
-    REQUIRE(setMetadataCount == 3);
-    REQUIRE(removeMetadataCount == 1);
+    mx::RtCommand::setAttribute(foo, metadata, metadataValue2, attrResult);
+    REQUIRE(attrResult);
+    REQUIRE(foo.getAttribute(metadata));
+    REQUIRE(foo.getAttribute(metadata)->getValueString() == metadataValue2);
+    REQUIRE(setAttributeCount == 3);
+    REQUIRE(removeAttributeCount == 1);
 
     mx::RtCommand::undo(result);
     REQUIRE(result);
-    REQUIRE(foo.getMetadata(metadata));
-    REQUIRE(foo.getMetadata(metadata)->getValueString() == metadataValue);
-    REQUIRE(setMetadataCount == 4);
-    REQUIRE(removeMetadataCount == 1);
+    REQUIRE(foo.getAttribute(metadata));
+    REQUIRE(foo.getAttribute(metadata)->getValueString() == metadataValue);
+    REQUIRE(setAttributeCount == 4);
+    REQUIRE(removeAttributeCount == 1);
 
     mx::RtCommand::redo(result);
     REQUIRE(result);
-    REQUIRE(foo.getMetadata(metadata));
-    REQUIRE(foo.getMetadata(metadata)->getValueString() == metadataValue2);
-    REQUIRE(setMetadataCount == 5);
-    REQUIRE(removeMetadataCount == 1);
+    REQUIRE(foo.getAttribute(metadata));
+    REQUIRE(foo.getAttribute(metadata)->getValueString() == metadataValue2);
+    REQUIRE(setAttributeCount == 5);
+    REQUIRE(removeAttributeCount == 1);
 
     mx::RtCommand::undo(result);
 
     //
     // Test removing metadata
     //
-    setMetadataCount = 0;
-    removeMetadataCount = 0;
+    setAttributeCount = 0;
+    removeAttributeCount = 0;
 
-    REQUIRE(removeMetadataCount == 0);
-    mx::RtCommand::removeMetadata(foo, metadata, metadataResult);
-    REQUIRE(metadataResult);
-    REQUIRE(!foo.getMetadata(metadata));
-    REQUIRE(setMetadataCount == 0);
-    REQUIRE(removeMetadataCount == 1);
+    mx::RtCommand::removeAttribute(foo, metadata, attrResult);
+    REQUIRE(attrResult);
+    REQUIRE(!foo.getAttribute(metadata));
+    REQUIRE(setAttributeCount == 0);
+    REQUIRE(removeAttributeCount == 1);
 
     mx::RtCommand::undo(result);
     REQUIRE(result);
-    REQUIRE(foo.getMetadata(metadata));
-    REQUIRE(foo.getMetadata(metadata)->getValueString() == metadataValue);
-    REQUIRE(setMetadataCount == 1);
-    REQUIRE(removeMetadataCount == 1);
+    REQUIRE(foo.getAttribute(metadata));
+    REQUIRE(foo.getAttribute(metadata)->getValueString() == metadataValue);
+    REQUIRE(setAttributeCount == 1);
+    REQUIRE(removeAttributeCount == 1);
 
     mx::RtCommand::redo(result);
     REQUIRE(result);
-    REQUIRE(!foo.getMetadata(metadata));
-    REQUIRE(setMetadataCount == 1);
-    REQUIRE(removeMetadataCount == 2);
+    REQUIRE(!foo.getAttribute(metadata));
+    REQUIRE(setAttributeCount == 1);
+    REQUIRE(removeAttributeCount == 2);
 
-    mx::RtMessage::removeCallback(setMetadata_id);
-    mx::RtMessage::removeCallback(removeMetadata_id);
+    mx::RtMessage::removeCallback(setAttribute_id);
+    mx::RtMessage::removeCallback(removeAttribute_id);
 }
 
 TEST_CASE("Runtime: graph output connection", "[runtime]")

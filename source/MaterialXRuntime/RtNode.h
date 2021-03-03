@@ -25,17 +25,17 @@ public:
     /// Constructor.
     RtNode(const RtPrim& prim) : RtTypedSchema(prim) {}
 
-    /// Return the nodedef for this node.
-    RtPrim getNodeDef() const;
-
     /// Set the nodedef for this node.
     void setNodeDef(RtPrim prim);
 
-    /// Return the version for this node.
-    const RtToken& getVersion() const;
+    /// Return the nodedef for this node.
+    RtPrim getNodeDef() const;
 
     /// Set the version for this node.
     void setVersion(const RtToken& version);
+
+    /// Return the version for this node.
+    const RtToken& getVersion() const;
 
     /// Return the number of inputs on the node.
     /// Shorthand for calling getPrim().numInputs().
@@ -93,13 +93,21 @@ public:
         return getPrim().getOutputs();
     }
 
-    /// Returns a vector of public nodegraph metadata names
-    const RtTokenVec& getPublicMetadataNames() const override;
+    /// Return attribute names for the attributes that have been
+    /// defined as standard for this schema.
+    const RtTokenVec& getStandardAttributeNames() const override;
 
-    /// Returns a vector of public metadata names for a port.
-    const RtTokenVec& getPublicPortMetadataNames(const RtToken& name) const override;
+    /// Return attribute names for the attributes that have been
+    /// defined as standard for the given port on this schema.
+    const RtTokenVec& getStandardAttributeNames(const RtToken& portName) const override;
 
+    /// Return true if the given attribute is a standard attribute
+    /// defined for this schema.
+    bool isStandardAttribute(const RtToken& attrName) const override;
 
+    /// Return true if the given attribute is a standard attribute
+    /// defined for the given port on this schema.
+    bool isStandardAttribute(const RtToken& attrName, const RtToken& portName) const override;
 };
 
 }

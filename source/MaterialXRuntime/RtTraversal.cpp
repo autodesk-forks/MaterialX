@@ -19,7 +19,6 @@ namespace
 {
 
 static const RtPrimIterator NULL_PRIM_ITERATOR;
-static const RtRelationshipIterator NULL_RELATIONSHIP_ITERATOR;
 static const RtStageIterator NULL_STAGE_ITERATOR;
 
 using StageIteratorStackFrame = std::tuple<PvtStage*, int, int>;
@@ -47,7 +46,7 @@ RtPrimIterator::RtPrimIterator(const RtPrim& prim, RtObjectPredicate predicate) 
 
 RtPrim RtPrimIterator::operator*() const
 {
-    return _prim->getAllChildren()[_current];
+    return _prim->getAllChildren()[_current]->hnd();
 }
 
 RtPrimIterator& RtPrimIterator::operator++()
@@ -80,14 +79,14 @@ const RtObjectIterator<T> RtObjectIterator<T>::NULL_ITERATOR;
 template<class T>
 T RtObjectIterator<T>::operator*() const
 {
-    PvtDataHandleVec& data = *static_cast<PvtDataHandleVec*>(_ptr);
-    return data[_current]->asA<T>();
+    PvtObjectVec& data = *static_cast<PvtObjectVec*>(_ptr);
+    return T(data[_current]->hnd());
 }
 
 template<class T>
 RtObjectIterator<T>& RtObjectIterator<T>::operator++()
 {
-    if (_ptr && ++_current < int(static_cast<PvtDataHandleVec*>(_ptr)->size()))
+    if (_ptr && ++_current < int(static_cast<PvtObjectVec*>(_ptr)->size()))
     {
         return *this;
     }
@@ -98,25 +97,12 @@ RtObjectIterator<T>& RtObjectIterator<T>::operator++()
 template<class T>
 bool RtObjectIterator<T>::isDone() const
 {
-    return !(_ptr && _current < int(static_cast<PvtDataHandleVec*>(_ptr)->size()));
+    return !(_ptr && _current < int(static_cast<PvtObjectVec*>(_ptr)->size()));
 }
 
-
-RtConnectionIterator::RtConnectionIterator(const RtObject& obj) : 
-    RtObjectIterator()
-{
-    if (obj.isA<RtOutput>())
-    {
-        PvtOutput* out = PvtObject::ptr<PvtOutput>(obj);
-        _ptr = out->_connections.empty() ? nullptr : &out->_connections;
-    }
-    else if (obj.isA<RtRelationship>())
-    {
-        PvtRelationship* rel = PvtObject::ptr<PvtRelationship>(obj);
-        _ptr = rel->_targets.empty() ? nullptr : &rel->_targets;
-    }
-    ++*this;
-}
+template class RtObjectIterator<RtObject>;
+template class RtObjectIterator<RtInput>;
+template class RtObjectIterator<RtOutput>;
 
 RtInputIterator::RtInputIterator(const RtObject& obj) :
     RtObjectIterator()
@@ -124,7 +110,7 @@ RtInputIterator::RtInputIterator(const RtObject& obj) :
     if (obj.isA<RtPrim>())
     {
         PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
-        _ptr = prim->_inputs.empty() ? nullptr : &prim->_inputs.all();
+        _ptr = prim->_inputs.empty() ? nullptr : &prim->_inputs.vec();
     }
     ++*this;
 }
@@ -135,16 +121,13 @@ RtOutputIterator::RtOutputIterator(const RtObject& obj) :
     if (obj.isA<RtPrim>())
     {
         PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
-        _ptr = prim->_outputs.empty() ? nullptr : &prim->_outputs.all();
+        _ptr = prim->_outputs.empty() ? nullptr : &prim->_outputs.vec();
     }
     ++*this;
 }
 
-
-/*
 RtConnectionIterator::RtConnectionIterator(const RtObject& obj) :
-    _ptr(nullptr),
-    _current(-1)
+    RtObjectIterator()
 {
     if (obj.isA<RtOutput>())
     {
@@ -159,69 +142,15 @@ RtConnectionIterator::RtConnectionIterator(const RtObject& obj) :
     ++*this;
 }
 
-RtObject RtConnectionIterator::operator*() const
-{
-    PvtDataHandleVec& data = *static_cast<PvtDataHandleVec*>(_ptr);
-    return data[_current]->obj();
-}
-
-RtConnectionIterator& RtConnectionIterator::operator++()
-{
-    if (_ptr && ++_current < int(static_cast<PvtDataHandleVec*>(_ptr)->size()))
-    {
-        return *this;
-    }
-    abort();
-    return *this;
-}
-
-bool RtConnectionIterator::isDone() const
-{
-    return !(_ptr && _current < int(static_cast<PvtDataHandleVec*>(_ptr)->size()));
-}
-
-const RtConnectionIterator& RtConnectionIterator::end()
-{
-    return NULL_CONNECTION_ITERATOR;
-}
-*/
-
 RtRelationshipIterator::RtRelationshipIterator(const RtObject& obj) :
-    _ptr(nullptr),
-    _current(-1)
+    RtObjectIterator()
 {
     if (obj.isA<RtPrim>())
     {
         PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
-        _ptr = prim->_rel.empty() ? nullptr : &prim->_rel.all();
+        _ptr = prim->_rel.empty() ? nullptr : &prim->_rel.vec();
     }
     ++*this;
-}
-
-RtObject RtRelationshipIterator::operator*() const
-{
-    PvtDataHandleVec& data = *static_cast<PvtDataHandleVec*>(_ptr);
-    return data[_current]->obj();
-}
-
-RtRelationshipIterator& RtRelationshipIterator::operator++()
-{
-    if (_ptr && ++_current < int(static_cast<PvtDataHandleVec*>(_ptr)->size()))
-    {
-        return *this;
-    }
-    abort();
-    return *this;
-}
-
-bool RtRelationshipIterator::isDone() const
-{
-    return !(_ptr && _current < int(static_cast<PvtDataHandleVec*>(_ptr)->size()));
-}
-
-const RtRelationshipIterator& RtRelationshipIterator::end()
-{
-    return NULL_RELATIONSHIP_ITERATOR;
 }
 
 

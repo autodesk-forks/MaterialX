@@ -84,58 +84,66 @@ public:
         return getPrim().getPath();
     }
 
-    /// Add new metadata to the prim.
-    /// Shorthand for calling getPrim().addMetadata().
-    RtTypedValue* addMetadata(const RtToken& name, const RtToken& type)
+    /// Create a new attribute on the prim.
+    /// Shorthand for calling getPrim().createAttribute().
+    RtTypedValue* createAttribute(const RtToken& name, const RtToken& type)
     {
-        return getPrim().addMetadata(name, type);
+        return getPrim().createAttribute(name, type);
     }
 
-    /// Remove metadata from the prim.
-    /// Shorthand for calling getPrim().removeMetadata().
-    void removeMetadata(const RtToken& name)
+    /// Remove an attribute from the prim.
+    /// Shorthand for calling getPrim().removeAttribute().
+    void removeAttribute(const RtToken& name)
     {
-        return getPrim().removeMetadata(name);
+        return getPrim().removeAttribute(name);
     }
 
-    /// Return metadata from the prim.
-    /// Shorthand for calling getPrim().getMetadata(name).
-    RtTypedValue* getMetadata(const RtToken& name)
+    /// Return an attribute from the prim.
+    /// Shorthand for calling getPrim().getAttribute(name).
+    RtTypedValue* getAttribute(const RtToken& name)
     {
-        return getPrim().getMetadata(name);
+        return getPrim().getAttribute(name);
     }
 
-    /// Return metadata from the prim.
-    /// Shorthand for calling getPrim().getMetadata(name).
-    const RtTypedValue* getMetadata(const RtToken& name) const
+    /// Return an attribute from the prim.
+    /// Shorthand for calling getPrim().getAttribute(name).
+    const RtTypedValue* getAttribute(const RtToken& name) const
     {
-        return getPrim().getMetadata(name);
+        return getPrim().getAttribute(name);
     }
 
-    /// Return metadata from the prim, including a type check.
-    /// Shorthand for calling getPrim().getMetadata(name, type).
-    RtTypedValue* getMetadata(const RtToken& name, const RtToken& type)
+    /// Return an attribute from the prim, including a type check.
+    /// Shorthand for calling getPrim().getAttribute(name, type).
+    RtTypedValue* getAttribute(const RtToken& name, const RtToken& type)
     {
-        return getPrim().getMetadata(name, type);
+        return getPrim().getAttribute(name, type);
     }
 
-    /// Return metadata from the prim, including a type check.
-    /// Shorthand for calling getPrim().getMetadata(name, type).
-    const RtTypedValue* getMetadata(const RtToken& name, const RtToken& type) const
+    /// Return an attribute from the prim, including a type check.
+    /// Shorthand for calling getPrim().getAttribute(name, type).
+    const RtTypedValue* getAttribute(const RtToken& name, const RtToken& type) const
     {
-        return getPrim().getMetadata(name, type);
+        return getPrim().getAttribute(name, type);
     }
 
-    /// Returns a vector of public metadata names for the schema.
-    virtual const RtTokenVec& getPublicMetadataNames() const;
+    /// Return attribute names for the attributes that have been
+    /// defined as standard for this schema.
+    virtual const RtTokenVec& getStandardAttributeNames() const;
 
-    /// Returns a vector of public port metatdata names for the schema.
-    virtual const RtTokenVec& getPublicPortMetadataNames(const RtToken& name) const;
+    /// Return attribute names for the attributes that have been
+    /// defined as standard for the given port on this schema.
+    virtual const RtTokenVec& getStandardAttributeNames(const RtToken& portName) const;
 
+    /// Return true if the given attribute is a standard attribute
+    /// defined for this schema.
+    virtual bool isStandardAttribute(const RtToken& attrName) const;
+
+    /// Return true if the given attribute is a standard attribute
+    /// defined for the given port on this schema.
+    virtual bool isStandardAttribute(const RtToken& attrName, const RtToken& portName) const;
 
     // Accessors.
     PvtPrim* prim() const;
-    PvtPort* attr(const RtToken& name) const;
     PvtRelationship* rel(const RtToken& name) const;
 
 protected:

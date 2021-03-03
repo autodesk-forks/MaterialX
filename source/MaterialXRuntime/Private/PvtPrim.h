@@ -107,20 +107,20 @@ public:
 
     PvtRelationship* getRelationship(const RtToken& name)
     {
-        PvtDataHandle hnd = _rel.get(name);
-        return hnd ? hnd->asA<PvtRelationship>() : nullptr;
+        PvtObject* obj = _rel.find(name);
+        return obj ? obj->asA<PvtRelationship>() : nullptr;
     }
 
-    const PvtDataHandleVec& getAllRelationships() const
+    const PvtObjectVec& getAllRelationships() const
     {
-        return _rel.all();
+        return _rel.vec();
     }
 
     PvtInput* createInput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
     void removeInput(const RtToken& name);
 
-    RtToken renameInput(const RtToken& name, const RtToken& newName, bool makeUnique = true);
+    RtToken renameInput(const RtToken& name, const RtToken& newName);
 
     size_t numInputs() const
     {
@@ -129,26 +129,25 @@ public:
 
     PvtInput* getInput(size_t index) const
     {
-        PvtDataHandle hnd = _inputs.get(index);
-        return hnd ? hnd->asA<PvtInput>() : nullptr;
+        return _inputs[index]->asA<PvtInput>();
     }
 
     PvtInput* getInput(const RtToken& name) const
     {
-        PvtDataHandle hnd = _inputs.get(name);
-        return hnd ? hnd->asA<PvtInput>() : nullptr;
+        PvtObject* obj = _inputs.find(name);
+        return obj ? obj->asA<PvtInput>() : nullptr;
     }
 
-    const PvtDataHandleVec& getInputs() const
+    const PvtObjectVec& getInputs() const
     {
-        return _inputs.all();
+        return _inputs.vec();
     }
 
     PvtOutput* createOutput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
     void removeOutput(const RtToken& name);
 
-    RtToken renameOutput(const RtToken& name, const RtToken& newName, bool makeUnique = true);
+    RtToken renameOutput(const RtToken& name, const RtToken& newName);
 
     size_t numOutputs() const
     {
@@ -157,19 +156,18 @@ public:
 
     PvtOutput* getOutput(size_t index = 0) const
     {
-        PvtDataHandle hnd = _outputs.get(index);
-        return hnd ? hnd->asA<PvtOutput>() : nullptr;
+        return _outputs[index]->asA<PvtOutput>();
     }
 
     PvtOutput* getOutput(const RtToken& name) const
     {
-        PvtDataHandle hnd = _outputs.get(name);
-        return hnd ? hnd->asA<PvtOutput>() : nullptr;
+        PvtObject* obj = _outputs.find(name);
+        return obj ? obj->asA<PvtOutput>() : nullptr;
     }
 
-    const PvtDataHandleVec& getOutputs() const
+    const PvtObjectVec& getOutputs() const
     {
-        return _outputs.all();
+        return _outputs.vec();
     }
 
     size_t numChildren() const
@@ -179,21 +177,20 @@ public:
 
     PvtPrim* getChild(size_t index) const
     {
-        PvtDataHandle hnd = _prims.get(index);
-        return hnd ? hnd->asA<PvtPrim>() : nullptr;
+        return _prims[index]->asA<PvtPrim>();
     }
 
     PvtPrim* getChild(const RtToken& name) const
     {
-        PvtDataHandle hnd = _prims.get(name);
-        return hnd ? hnd->asA<PvtPrim>() : nullptr;
+        PvtObject* obj = _prims.find(name);
+        return obj ? obj->asA<PvtPrim>() : nullptr;
     }
 
     RtPrimIterator getChildren(RtObjectPredicate predicate = nullptr) const;
 
-    const PvtDataHandleVec& getAllChildren() const
+    const PvtObjectVec& getAllChildren() const
     {
-        return _prims.all();
+        return _prims.vec();
     }
 
     PvtAllocator& getAllocator()
@@ -226,22 +223,22 @@ public:
 protected:
     PvtPrim(const RtTypeInfo* typeInfo, const RtToken& name, PvtPrim* parent);
 
-    void addChildPrim(const PvtPrim* prim);
-    void removeChildPrim(const PvtPrim* prim);
+    void addChildPrim(PvtPrim* prim);
+    void removeChildPrim(PvtPrim* prim);
 
     const RtTypeInfo* _typeInfo;
 
     // Relationships
-    PvtDataHandleList _rel;
+    PvtObjectList _rel;
 
     // Inputs
-    PvtDataHandleList _inputs;
+    PvtObjectList _inputs;
 
     // Outputs
-    PvtDataHandleList _outputs;
+    PvtObjectList _outputs;
 
     // Child prims
-    PvtDataHandleList _prims;
+    PvtObjectList _prims;
 
     PvtAllocator _allocator;
 

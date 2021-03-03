@@ -27,14 +27,23 @@ public:
     /// Return the contains relationship.
     RtRelationship getContains() const;
 
+    /// Set a value for the note attribute.
+    void setNote(const string& note);
+
     /// Returns the note attribute.
-    RtPort getNote() const;
+    const string& getNote() const;
+
+    /// Set a value for the width attribute.
+    void setWidth(float height);
 
     /// Returns the weight attribute.
-    RtPort getWidth() const;
+    float getWidth() const;
+
+    /// Set a value for the height attribute.
+    void setHeight(float height);
 
     /// Returns the height attribute.
-    RtPort getHeight() const;
+    float getHeight() const;
 };
 
 }

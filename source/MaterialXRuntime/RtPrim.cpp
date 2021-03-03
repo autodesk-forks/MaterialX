@@ -55,9 +55,9 @@ RtInput RtPrim::createInput(const RtToken& name, const RtToken& type, uint32_t f
     return hnd()->asA<PvtPrim>()->createInput(name, type, flags)->hnd();
 }
 
-RtOutput RtPrim::createOutput(const RtToken& name, const RtToken& type, uint32_t flags)
+void RtPrim::removeInput(const RtToken& name)
 {
-    return hnd()->asA<PvtPrim>()->createOutput(name, type, flags)->hnd();
+    return hnd()->asA<PvtPrim>()->removeInput(name);
 }
 
 size_t RtPrim::numInputs() const
@@ -80,6 +80,16 @@ RtInput RtPrim::getInput(const RtToken& name) const
 RtInputIterator RtPrim::getInputs() const
 {
     return RtInputIterator(*this);
+}
+
+RtOutput RtPrim::createOutput(const RtToken& name, const RtToken& type, uint32_t flags)
+{
+    return hnd()->asA<PvtPrim>()->createOutput(name, type, flags)->hnd();
+}
+
+void RtPrim::removeOutput(const RtToken& name)
+{
+    return hnd()->asA<PvtPrim>()->removeOutput(name);
 }
 
 size_t RtPrim::numOutputs() const

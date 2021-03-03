@@ -37,21 +37,23 @@ namespace MaterialX
 
 namespace
 {
-    // Lists of known metadata which are handled explicitly by import/export.
-    static const RtTokenSet nodedefMetadata     = { RtToken("name"), RtToken("type"), RtToken("node"), RtToken("version"), RtToken("isdefaultversion") };
-    static const RtTokenSet attrMetadata        = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels") };
-    static const RtTokenSet inputMetadata       = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels"), 
-                                                    RtToken("nodegraph"), RtToken("interfacename") };
-    static const RtTokenSet nodeMetadata        = { RtToken("name"), RtToken("type"), RtToken("node"), RtToken("version") };
-    static const RtTokenSet nodegraphMetadata   = { RtToken("name"), RtToken("nodedef") };
-    static const RtTokenSet targetdefMetadata   = { RtToken("name"), RtToken("inherit") };
-    static const RtTokenSet nodeimplMetadata    = { RtToken("name"), RtToken("nodedef"), RtToken("target"), RtToken("file"), RtToken("sourcecode"), RtToken("function"), RtToken("format") };
-    static const RtTokenSet lookMetadata        = { RtToken("name"), RtToken("inherit") };
-    static const RtTokenSet lookGroupMetadata   = { RtToken("name"), RtToken("looks"), RtToken("default") };
-    static const RtTokenSet mtrlAssignMetadata  = { RtToken("name"), RtToken("geom"), RtToken("collection"), RtToken("material"), RtToken("exclusive") };
-    static const RtTokenSet collectionMetadata  = { RtToken("name"), RtToken("includegeom"), RtToken("includecollection"), RtToken("excludegeom") };
-    static const RtTokenSet genericMetadata     = { RtToken("name"), RtToken("kind") };
-    static const RtTokenSet stageMetadata       = {};
+    // Lists of known attributes which are handled explicitly by import/export.
+    static const RtTokenSet nodedefAttributes    = { RtToken("name"), RtToken("type"), RtToken("node"), RtToken("namespace"), RtToken("isdefaultversion") };
+    static const RtTokenSet portAttributes       = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels") };
+    static const RtTokenSet inputAttributes      = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels"),
+                                                     RtToken("nodegraph"), RtToken("interfacename") };
+    static const RtTokenSet nodeAttributes       = { RtToken("name"), RtToken("type"), RtToken("node") };
+    static const RtTokenSet nodegraphAttributes  = { RtToken("name"), RtToken("nodedef") };
+    static const RtTokenSet targetdefAttributes  = { RtToken("name"), RtToken("inherit") };
+    static const RtTokenSet nodeimplAttributes   = { RtToken("name"), RtToken("nodedef"), RtToken("target"), RtToken("file"), RtToken("sourcecode"), RtToken("function"), RtToken("format") };
+    static const RtTokenSet lookAttributes       = { RtToken("name"), RtToken("inherit") };
+    static const RtTokenSet lookGroupAttributes  = { RtToken("name"), RtToken("looks"), RtToken("default") };
+    static const RtTokenSet mtrlAssignAttributes = { RtToken("name"), RtToken("geom"), RtToken("collection"), RtToken("material"), RtToken("exclusive") };
+    static const RtTokenSet collectionAttributes = { RtToken("name"), RtToken("includegeom"), RtToken("includecollection"), RtToken("excludegeom") };
+    static const RtTokenSet genericAttributes    = { RtToken("name"), RtToken("kind") };
+    static const RtTokenSet stageAttributes      = {};
+
+    static const RtTokenSet standardTokenAttributes = { RtToken("colorspace"), RtToken("unit"), RtToken("unittype"), RtToken("version") };
 
     static const RtToken DEFAULT_OUTPUT("out");
     static const RtToken OUTPUT_ELEMENT_PREFIX("OUT_");
@@ -118,40 +120,51 @@ namespace
         return output;
     }
 
-    void readMetadata(const ElementPtr& src, PvtObject* dest, const RtTokenSet& ignoreList)
+    void readAttributes(const ElementPtr& src, PvtObject* dest, const RtTokenSet& ignoreList)
     {
-        // Read in all metadata so we can export the element again
+        // Read in all attributes so we can export the element again
         // without loosing data.
-        for (const string& name : src->getAttributeNames())
+        for (const string& nameStr : src->getAttributeNames())
         {
-            const RtToken mdName(name);
-            if (!ignoreList.count(mdName))
+            const RtToken name(nameStr);
+            if (!ignoreList.count(name))
             {
-                // Store all generic metadata as strings.
-                RtTypedValue* md = dest->addMetadata(mdName, RtType::STRING);
-                md->getValue().asString() = src->getAttribute(name);
+                if (standardTokenAttributes.count(name))
+                {
+                    RtTypedValue* attr = dest->createAttribute(name, RtType::TOKEN);
+                    attr->asToken() = RtToken(src->getAttribute(nameStr));
+                }
+                else
+                {
+                    // Store all generic attributes as strings.
+                    RtTypedValue* attr = dest->createAttribute(name, RtType::STRING);
+                    attr->asString() = src->getAttribute(nameStr);
+                }
             }
         }
     }
 
-    void writeMetadata(const PvtObject* src, ElementPtr dest, const RtTokenSet& ignoreList, const RtWriteOptions* options)
+    void writeAttributes(const PvtObject* src, ElementPtr dest, const RtTokenSet& ignoreList, const RtWriteOptions* options)
     {
-        for (const RtToken name : src->getMetadataOrder())
+        for (size_t i=0; i<src->getAttributes().size(); ++i)
         {
+            const RtToken& name = src->getAttributeName(i);
             if (ignoreList.count(name) ||
-                (name.str().size() > 0 && name.str().at(0) == '_')) // Metadata with "_" prefix are private
-            {
-                continue;
-            }
-            const RtTypedValue* md = src->getMetadata(name);
-
-            // Check filter if the metadata should be ignored
-            if (options && options->metadataFilter && options->metadataFilter(src->hnd(), name, md))
+                (name.str().size() > 0 && name.str().at(0) == '_')) // Attributes with "_" prefix are private
             {
                 continue;
             }
 
-            std::string valueString = md->getValueString();
+            const RtTypedValue& attr = src->getAttributes()[i];
+
+            // Check filter if the attribute should be ignored
+            if (options && options->attributeFilter && options->attributeFilter(src->hnd(), name, &attr))
+            {
+                continue;
+            }
+
+            // Get the value as string to cover all attribute types.
+            const string valueString = attr.getValueString();
             if (!valueString.empty())
             {
                 dest->setAttribute(name.str(), valueString);
@@ -164,31 +177,30 @@ namespace
     {
         for (auto elem : src->getChildrenOfType<ValueElement>())
         {
-            const RtToken attrName(elem->getName());
-            const RtToken attrType(elem->getType());
+            const RtToken portName(elem->getName());
+            const RtToken portType(elem->getType());
 
-            RtPort attr;
+            RtPort port;
             if (elem->isA<Output>())
             {
-                attr = schema.createOutput(attrName, attrType);
+                port = schema.createOutput(portName, portType);
             }
             else if (elem->isA<Input>())
             {
                 const uint32_t flags = elem->asA<Input>()->getIsUniform() ? RtPortFlag::UNIFORM : 0;
-                attr = schema.createInput(attrName, attrType, flags);
-            }
-            else
-            {
-                attr = schema.createInput(attrName, attrType, RtPortFlag::UNIFORM);
+                port = schema.createInput(portName, portType, flags);
             }
 
-            const string& valueStr = elem->getValueString();
-            if (!valueStr.empty())
+            if (port)
             {
-                RtValue::fromString(attrType, valueStr, attr.getValue());
-            }
+                const string& valueStr = elem->getValueString();
+                if (!valueStr.empty())
+                {
+                    RtValue::fromString(portType, valueStr, port.getValue());
+                }
 
-            readMetadata(elem, PvtObject::ptr<PvtObject>(attr), attrMetadata);
+                readAttributes(elem, PvtObject::ptr(port), portAttributes);
+            }
         }
     }
 
@@ -284,7 +296,13 @@ namespace
             }
         }
 
-        readMetadata(src, prim, nodedefMetadata);
+        const string& namespaceString = src->getNamespace();
+        if (!namespaceString.empty())
+        {
+            nodedef.setNamespace(RtToken(namespaceString));
+        }
+
+        readAttributes(src, prim, nodedefAttributes);
 
         // Create the interface.
         createInterface(src, nodedef);
@@ -373,7 +391,7 @@ namespace
             schema.setVersion(RtToken(version));
         }
 
-        readMetadata(src, node, nodeMetadata);
+        readAttributes(src, node, nodeAttributes);
 
         // Copy input values.
         for (auto elem : src->getChildrenOfType<ValueElement>())
@@ -394,7 +412,7 @@ namespace
                 const RtToken portType(elem->getType());
                 RtValue::fromString(portType, valueStr, input->getValue());
             }
-            readMetadata(elem, input, attrMetadata);
+            readAttributes(elem, input, portAttributes);
         }
 
         return node;
@@ -408,7 +426,7 @@ namespace
         mapper.addMapping(parent, nodegraphName, nodegraph->getName());
         RtNodeGraph schema(nodegraph->hnd());
 
-        readMetadata(src, nodegraph, nodegraphMetadata);
+        readAttributes(src, nodegraph, nodegraphAttributes);
 
         // Create the interface either from a nodedef if given
         // otherwise from the graph itself.
@@ -510,7 +528,7 @@ namespace
         RtGeneric generic(prim->hnd());
         generic.setKind(category);
 
-        readMetadata(src, prim, genericMetadata);
+        readAttributes(src, prim, genericAttributes);
 
         for (auto child : src->getChildren())
         {
@@ -533,7 +551,7 @@ namespace
             def.setInherit(inherit);
         }
 
-        readMetadata(src, prim, targetdefMetadata);
+        readAttributes(src, prim, targetdefAttributes);
 
         return prim;
     }
@@ -593,7 +611,7 @@ namespace
         impl.setNodeDef(nodedef);
         impl.setTarget(target);
 
-        readMetadata(src, prim, nodeimplMetadata);
+        readAttributes(src, prim, nodeimplAttributes);
 
         return prim;
     }
@@ -608,10 +626,10 @@ namespace
         PvtPrim* collectionPrim = stage->createPrim(parent->getPath(), name, RtCollection::typeName());
         mapper.addMapping(parent, name, collectionPrim->getName());
         RtCollection collection(collectionPrim->hnd());
-        collection.getIncludeGeom().setValueString(src->getIncludeGeom());
-        collection.getExcludeGeom().setValueString(src->getExcludeGeom());
+        collection.setIncludeGeom(src->getIncludeGeom());
+        collection.setExcludeGeom(src->getExcludeGeom());
 
-        readMetadata(src, collectionPrim, collectionMetadata);
+        readAttributes(src, collectionPrim, collectionAttributes);
 
         return collectionPrim;
     }
@@ -663,20 +681,23 @@ namespace
                 rtMatAssign.getMaterial().connect(material->prim().getOutput());
             }
 
-            if (matAssign->hasAttribute(MaterialAssign::EXCLUSIVE_ATTRIBUTE)) {
-                rtMatAssign.getExclusive().getValue().asBool() = matAssign->getExclusive();
-            } else {
-                rtMatAssign.getExclusive().getValue().asBool() = true; // default
+            if (matAssign->hasAttribute(MaterialAssign::EXCLUSIVE_ATTRIBUTE))
+            {
+                rtMatAssign.setExclusive(matAssign->getExclusive());
+            }
+            else
+            {
+                rtMatAssign.setExclusive(true); // default
             }
 
-            rtMatAssign.getGeom().getValue().asString() = matAssign->getActiveGeom();
+            rtMatAssign.setGeom(matAssign->getActiveGeom());
 
-            readMetadata(matAssign, assignPrim, mtrlAssignMetadata);
+            readAttributes(matAssign, assignPrim, mtrlAssignAttributes);
 
             look.getMaterialAssigns().addTarget(assignPrim->hnd());
         }
 
-        readMetadata(src, lookPrim, lookMetadata);
+        readAttributes(src, lookPrim, lookAttributes);
 
         return lookPrim;
     }
@@ -721,9 +742,9 @@ namespace
             }
         }
         const string& activeLook = src->getActiveLook();
-        lookGroup.getActiveLook().setValueString(activeLook);
+        lookGroup.setActiveLook(activeLook);
 
-        readMetadata(src, prim, lookGroupMetadata);
+        readAttributes(src, prim, lookGroupAttributes);
 
         return prim;
     }
@@ -792,7 +813,7 @@ namespace
         const std::string& uri = doc->getSourceUri();
         stage->addSourceUri(RtToken(uri));
 
-        readMetadata(doc, stage->getRootPrim(), stageMetadata);
+        readAttributes(doc, stage->getRootPrim(), stageAttributes);
 
         RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
 
@@ -898,25 +919,25 @@ namespace
             }
         }
 
-        writeMetadata(src, destNodeDef, nodedefMetadata, options);
+        writeAttributes(src, destNodeDef, nodedefAttributes, options);
 
-        for (const PvtDataHandle hnd : src->getInputs())
+        for (PvtObject* obj : src->getInputs())
         {
-            const PvtInput* input = hnd->asA<PvtInput>();
+            const PvtInput* input = obj->asA<PvtInput>();
             ValueElementPtr destPort = destNodeDef->addInput(input->getName().str(), input->getType().str());
             if (input->isUniform())
             {
                 destPort->setIsUniform(true);
             }
             destPort->setValueString(input->getValueString());
-            writeMetadata(input, destPort, attrMetadata, options);
+            writeAttributes(input, destPort, portAttributes, options);
         }
-        for (const PvtDataHandle hnd : src->getOutputs())
+        for (PvtObject* obj : src->getOutputs())
         {
-            const PvtOutput* output = hnd->asA<PvtOutput>();
+            const PvtOutput* output = obj->asA<PvtOutput>();
             ValueElementPtr destPort = destNodeDef->addOutput(output->getName().str(), output->getType().str());
             destPort->setValueString(output->getValueString());
-            writeMetadata(output, destPort, attrMetadata, options);
+            writeAttributes(output, destPort, portAttributes, options);
         }
     }
 
@@ -947,8 +968,8 @@ namespace
             RtInput input = node.getInput(i);
             if (input)
             {
-                const RtTypedValue* uiVisible1 = input.getMetadata(UI_VISIBLE);
-                const RtTypedValue* uiVisible2 = nodedefInput.getMetadata(UI_VISIBLE);
+                const RtTypedValue* uiVisible1 = input.getAttribute(UI_VISIBLE);
+                const RtTypedValue* uiVisible2 = nodedefInput.getAttribute(UI_VISIBLE);
                 const bool uiHidden1 = uiVisible1 && (uiVisible1->getValueString() == VALUE_STRING_FALSE);
                 const bool uiHidden2 = uiVisible2 && (uiVisible2->getValueString() == VALUE_STRING_FALSE);
                 const bool writeUiVisibleData = uiHidden1 != uiHidden2;
@@ -1018,7 +1039,7 @@ namespace
                         }
                     }
 
-                    writeMetadata(PvtObject::ptr<PvtObject>(nodedefInput), valueElem, inputMetadata, options);
+                    writeAttributes(PvtObject::ptr(input), valueElem, inputAttributes, options);
                 }
             }
         }
@@ -1032,7 +1053,7 @@ namespace
             }
         }
 
-        writeMetadata(src, destNode, nodeMetadata, options);
+        writeAttributes(src, destNode, nodeAttributes, options);
 
         return destNode;
     }
@@ -1040,7 +1061,7 @@ namespace
     void writeNodeGraph(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* options)
     {
         NodeGraphPtr destNodeGraph = dest->addNodeGraph(src->getName().str());
-        writeMetadata(src, destNodeGraph, nodegraphMetadata, options);
+        writeAttributes(src, destNodeGraph, nodegraphAttributes, options);
 
         RtNodeGraph nodegraph(src->hnd());
 
@@ -1091,7 +1112,7 @@ namespace
                 if (v)
                 {
                     v->setValueString(nodegraphInput.getValueString());
-                    writeMetadata(port, v, inputMetadata, options);
+                    writeAttributes(port, v, inputAttributes, options);
                 }
             }
         }
@@ -1147,14 +1168,14 @@ namespace
 
                 CollectionPtr collection = dest.addCollection(name);
 
-                collection->setExcludeGeom(rtCollection.getExcludeGeom().getValueString());
-                collection->setIncludeGeom(rtCollection.getIncludeGeom().getValueString());
+                collection->setExcludeGeom(rtCollection.getExcludeGeom());
+                collection->setIncludeGeom(rtCollection.getIncludeGeom());
 
                 RtRelationship rtIncludeCollection = rtCollection.getIncludeCollection();
                 string includeList = rtIncludeCollection.getTargetsAsString();                
                 collection->setIncludeCollectionString(includeList);
 
-                writeMetadata(prim, collection, collectionMetadata, options);
+                writeAttributes(prim, collection, collectionAttributes, options);
             }
         }
     }
@@ -1195,8 +1216,8 @@ namespace
                     }
 
                     MaterialAssignPtr massign = look->addMaterialAssign(assignName);
-                    massign->setExclusive(rtMatAssign.getExclusive().getValue().asBool());
-                    massign->setGeom(rtMatAssign.getGeom().getValueString());
+                    massign->setExclusive(rtMatAssign.getExclusive());
+                    massign->setGeom(rtMatAssign.getGeom());
 
                     auto iter = rtMatAssign.getCollection().getTargets();
                     if (!iter.isDone())
@@ -1209,10 +1230,10 @@ namespace
                         massign->setMaterial(rtMatAssign.getMaterial().getConnection().getParent().getName().str());
                     }
 
-                    writeMetadata(pprim, massign, mtrlAssignMetadata, options);
+                    writeAttributes(pprim, massign, mtrlAssignAttributes, options);
                 }
 
-                writeMetadata(prim, look, lookMetadata, options);
+                writeAttributes(prim, look, lookAttributes, options);
             }
         }
     }
@@ -1237,9 +1258,9 @@ namespace
 
                 string lookList = rtLookGroup.getLooks().getTargetsAsString();
                 lookGroup->setLooks(lookList);
-                lookGroup->setActiveLook(rtLookGroup.getActiveLook().getValueString());
+                lookGroup->setActiveLook(rtLookGroup.getActiveLook());
 
-                writeMetadata(prim, lookGroup, lookGroupMetadata, options);
+                writeAttributes(prim, lookGroup, lookGroupAttributes, options);
             }
         }
     }
@@ -1249,7 +1270,7 @@ namespace
         RtGeneric generic(src->hnd());
 
         ElementPtr elem = dest->addChildOfCategory(generic.getKind().str(), generic.getName().str());
-        writeMetadata(src, elem, genericMetadata, options);
+        writeAttributes(src, elem, genericAttributes, options);
 
         for (auto child : src->getChildren())
         {
@@ -1308,7 +1329,7 @@ namespace
 
     void writeDocument(DocumentPtr& doc, PvtStage* stage, const RtWriteOptions* options)
     {
-        writeMetadata(stage->getRootPrim(), doc, RtTokenSet(), options);
+        writeAttributes(stage->getRootPrim(), doc, RtTokenSet(), options);
 
         // Write out any dependent includes
         if (options && options->writeIncludes)
@@ -1412,7 +1433,7 @@ RtWriteOptions::RtWriteOptions() :
     writeNodeGraphInputs(true),
     writeDefaultValues(false),
     objectFilter(nullptr),
-    metadataFilter(nullptr),
+    attributeFilter(nullptr),
     desiredMajorVersion(MATERIALX_MAJOR_VERSION),
     desiredMinorVersion(MATERIALX_MINOR_VERSION)
 {

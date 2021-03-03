@@ -23,21 +23,33 @@ RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, Rt
     PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->createAttribute(Tokens::INCLUDE_GEOM, RtType::STRING);
-    prim->createAttribute(Tokens::EXCLUDE_GEOM, RtType::STRING);
     prim->createRelationship(Tokens::INCLUDE_COLLECTION);
 
     return primH;
 }
 
-RtPort RtCollection::getIncludeGeom() const
+void RtCollection::setIncludeGeom(const string& geom)
 {
-    return prim()->getAttribute(Tokens::INCLUDE_GEOM)->hnd();
+    RtTypedValue* attr = prim()->createAttribute(Tokens::INCLUDE_GEOM, RtType::STRING);
+    attr->asString() = geom;
 }
 
-RtPort RtCollection::getExcludeGeom() const
+const string& RtCollection::getIncludeGeom() const
 {
-    return prim()->getAttribute(Tokens::EXCLUDE_GEOM)->hnd();
+    const RtTypedValue* attr = prim()->getAttribute(Tokens::INCLUDE_GEOM);
+    return attr ? attr->asString() : EMPTY_STRING;
+}
+
+void RtCollection::setExcludeGeom(const string& geom)
+{
+    RtTypedValue* attr = prim()->createAttribute(Tokens::EXCLUDE_GEOM, RtType::STRING);
+    attr->asString() = geom;
+}
+
+const string& RtCollection::getExcludeGeom() const
+{
+    const RtTypedValue* attr = prim()->getAttribute(Tokens::EXCLUDE_GEOM);
+    return attr ? attr->asString() : EMPTY_STRING;
 }
 
 void RtCollection::addCollection(const RtObject& collection)

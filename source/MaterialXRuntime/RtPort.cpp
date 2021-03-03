@@ -11,6 +11,8 @@
 namespace MaterialX
 {
 
+RT_DEFINE_RUNTIME_OBJECT(RtPort, RtObjType::PORT, "RtPort")
+
 RtPort::RtPort(PvtDataHandle hnd) :
     RtObject(hnd)
 {

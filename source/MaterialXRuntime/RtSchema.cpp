@@ -12,7 +12,7 @@ namespace MaterialX
 
 namespace
 {
-    static const RtTokenVec PUBLIC_EMPTY_METADATA_NAMES;
+    static const RtTokenVec EMPTY_ATTR_NAMES;
 }
 
 RtSchemaBase::RtSchemaBase(const RtPrim& prim) :
@@ -47,15 +47,24 @@ bool RtTypedSchema::isCompatible(const RtPrim& prim) const
 }
 
 
-const RtTokenVec& RtSchemaBase::getPublicMetadataNames() const
+const RtTokenVec& RtSchemaBase::getStandardAttributeNames() const
 {
-    return PUBLIC_EMPTY_METADATA_NAMES;
+    return EMPTY_ATTR_NAMES;
 }
 
-const RtTokenVec& RtSchemaBase::getPublicPortMetadataNames(const RtToken&) const
+const RtTokenVec& RtSchemaBase::getStandardAttributeNames(const RtToken&) const
 {
-    return PUBLIC_EMPTY_METADATA_NAMES;
+    return EMPTY_ATTR_NAMES;
+}
+
+bool RtSchemaBase::isStandardAttribute(const RtToken&) const
+{
+    return false;
+}
+
+bool RtSchemaBase::isStandardAttribute(const RtToken&, const RtToken&) const
+{
+    return false;
 }
 
 }
-
