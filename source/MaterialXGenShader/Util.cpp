@@ -18,7 +18,7 @@ namespace
     
     bool isEqual(const float& v, const float& v2)
     {
-        return (v - v2) < EPS_ZERO;
+        return std::abs(v - v2) < EPS_ZERO;
     }
 
     bool isEqual(ValuePtr value, const float& value2)
@@ -235,8 +235,11 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
     {
         // Handle output elements.
         OutputPtr output = element->asA<Output>();
-        OpaqueTestPairList outputInterfaceNames;
-        return isTransparentShaderGraph(output, shadergen, outputInterfaceNames);
+        NodePtr outputNode = output->getConnectedNode();
+        if (outputNode)
+        {
+            return isTransparentSurface(outputNode, shadergen);
+        }
     }
 
     return false;
