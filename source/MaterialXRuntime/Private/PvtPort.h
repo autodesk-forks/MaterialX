@@ -199,20 +199,20 @@ public:
         return input->disconnect(this);
     }
 
-    RtConnectionIterator getConnections() const
+    RtInputIterator getConnections() const
     {
-        return RtConnectionIterator(this->obj());
+        return RtInputIterator(this->obj());
     }
 
     void clearConnections();
 
 protected:
-    PvtDataHandleVec _connections;
+    PvtObjectVec _connections;
+
     friend class PvtInput;
-    friend class RtConnectionIterator;
+    friend class RtInputIterator;
+    friend class RtConnectionIterator;  
 };
-
-
 
 }
 

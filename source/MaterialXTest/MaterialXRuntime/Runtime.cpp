@@ -114,7 +114,7 @@ TEST_CASE("Runtime: Material Element Upgrade", "[runtime]")
     REQUIRE(mixNodeGraph);
     mx::RtOutput mixNodeGraphOutput = mixNodeGraph.getOutput(mx::RtToken("out"));
     REQUIRE(mixNodeGraphOutput);
-    mx::RtConnectionIterator iter = mixNodeGraphOutput.getConnections();
+    mx::RtInputIterator iter = mixNodeGraphOutput.getConnections();
     while (!iter.isDone())
     {
         REQUIRE((*iter).getName() == "base_color");
@@ -699,7 +699,7 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
 
     size_t numConnections = 0;
     std::vector<mx::RtObject> dest = { add2_in1, add2_in2 };
-    for (mx::RtObject input : add1_out.getConnections())
+    for (mx::RtInput input : add1_out.getConnections())
     {
         REQUIRE(input == dest[numConnections++]);
     }

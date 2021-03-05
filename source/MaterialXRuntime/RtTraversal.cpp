@@ -113,6 +113,11 @@ RtInputIterator::RtInputIterator(const RtObject& obj) :
         PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
         _ptr = prim->_inputs.empty() ? nullptr : &prim->_inputs.vec();
     }
+    else if (obj.isA<RtOutput>())
+    {
+        PvtOutput* output = PvtObject::ptr<PvtOutput>(obj);
+        _ptr = output->_connections.empty() ? nullptr : &output->_connections;
+    }
     ++*this;
 }
 

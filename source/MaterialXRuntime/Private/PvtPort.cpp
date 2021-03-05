@@ -72,7 +72,7 @@ void PvtInput::connect(PvtOutput* output)
 
     // Make the connection.
     _connection = output->hnd();
-    output->_connections.push_back(hnd());
+    output->_connections.push_back(this);
 }
 
 void PvtInput::disconnect(PvtOutput* output)
@@ -87,7 +87,7 @@ void PvtInput::disconnect(PvtOutput* output)
     _connection = nullptr;
     for (auto it = output->_connections.begin(); it != output->_connections.end(); ++it)
     {
-        if (it->get() == this)
+        if (*it == this)
         {
             output->_connections.erase(it);
             break;
@@ -103,7 +103,7 @@ void PvtInput::clearConnection()
         PvtOutput* source = _connection->asA<PvtOutput>();
         for (auto it = source->_connections.begin(); it != source->_connections.end(); ++it)
         {
-            if (it->get() == this)
+            if (*it == this)
             {
                 source->_connections.erase(it);
                 break;
@@ -125,12 +125,11 @@ PvtOutput::PvtOutput(const RtToken& name, const RtToken& type, uint32_t flags, P
 void PvtOutput::clearConnections()
 {
     // Break connections to all destination inputs.
-    for (PvtDataHandle destH : _connections)
+    for (PvtObject* dest : _connections)
     {
-        destH->asA<PvtInput>()->_connection = nullptr;
+        dest->asA<PvtInput>()->_connection = nullptr;
     }
     _connections.clear();
 }
-
 
 }

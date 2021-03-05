@@ -170,7 +170,7 @@ void RtOutput::clearConnections()
     return hnd()->asA<PvtOutput>()->clearConnections();
 }
 
-RtConnectionIterator RtOutput::getConnections() const
+RtInputIterator RtOutput::getConnections() const
 {
     return hnd()->asA<PvtOutput>()->getConnections();
 }
