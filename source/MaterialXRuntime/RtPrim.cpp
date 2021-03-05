@@ -50,6 +50,12 @@ RtRelationshipIterator RtPrim::getRelationships() const
     return RtRelationshipIterator(*this);
 }
 
+RtPort RtPrim::getPort(const RtToken& name) const
+{
+    PvtPort* port = hnd()->asA<PvtPrim>()->getPort(name);
+    return port ? port->hnd() : RtPort();
+}
+
 RtInput RtPrim::createInput(const RtToken& name, const RtToken& type, uint32_t flags)
 {
     return hnd()->asA<PvtPrim>()->createInput(name, type, flags)->hnd();

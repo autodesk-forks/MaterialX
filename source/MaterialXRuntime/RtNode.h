@@ -37,6 +37,14 @@ public:
     /// Return the version for this node.
     const RtToken& getVersion() const;
 
+    /// Return a port (input or output) by name, or a null object
+    /// if no such port exists.
+    /// Shorthand for calling getPrim().getPort().
+    RtPort getPort(const RtToken& name) const
+    {
+        return getPrim().getPort(name);
+    }
+
     /// Return the number of inputs on the node.
     /// Shorthand for calling getPrim().numInputs().
     size_t numInputs() const

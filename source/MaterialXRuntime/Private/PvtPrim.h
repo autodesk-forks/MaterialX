@@ -116,6 +116,16 @@ public:
         return _rel.vec();
     }
 
+    PvtPort* getPort(const RtToken& name) const
+    {
+        PvtObject* obj = _inputs.find(name);
+        if (!obj)
+        {
+            obj = _outputs.find(name);
+        }
+        return obj ? obj->asA<PvtPort>() : nullptr;
+    }
+
     PvtInput* createInput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 
     void removeInput(const RtToken& name);

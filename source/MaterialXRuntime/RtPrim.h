@@ -71,6 +71,10 @@ public:
     /// Return an iterator over all relationships of this prim.
     RtRelationshipIterator getRelationships() const;
 
+    /// Return a port (input or output) by name, or a null object
+    /// if no such port exists.
+    RtPort getPort(const RtToken& name) const;
+
     /// Add an input port to the prim.
     RtInput createInput(const RtToken& name, const RtToken& type, uint32_t flags = 0);
 

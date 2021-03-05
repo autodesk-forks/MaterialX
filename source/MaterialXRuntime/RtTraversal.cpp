@@ -103,6 +103,7 @@ bool RtObjectIterator<T>::isDone() const
 template class RtObjectIterator<RtObject>;
 template class RtObjectIterator<RtInput>;
 template class RtObjectIterator<RtOutput>;
+template class RtObjectIterator<RtRelationship>;
 
 RtInputIterator::RtInputIterator(const RtObject& obj) :
     RtObjectIterator()

@@ -498,6 +498,17 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(graph_in);
     mx::RtOutput graph_out = graph.createOutput(OUT, mx::RtType::FLOAT);
     REQUIRE(graph_out);
+    mx::RtInput in1 = graph.getInput(IN);
+    mx::RtPort in2 = graph.getPort(IN);
+    REQUIRE(in1);
+    REQUIRE(in2);
+    REQUIRE(in1 == in2);
+    mx::RtOutput out1 = graph.getOutput(OUT);
+    mx::RtPort out2 = graph.getPort(OUT);
+    REQUIRE(out1);
+    REQUIRE(out2);
+    REQUIRE(out1 == out2);
+    REQUIRE(out2 != in2);
 
     mx::RtPrim backdropPrim = stage->createPrim(mx::RtBackdrop::typeName());
     REQUIRE(backdropPrim);
@@ -514,7 +525,7 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(backdrop.getNote() == "These aren't the Droids you're looking for");
     REQUIRE(backdropPrim.getRelationship(backdrop.getContains().getName()) == backdrop.getContains());
     bool found = false;
-    for (auto rel: backdropPrim.getRelationships()) {
+    for (auto rel : backdropPrim.getRelationships()) {
         if (rel.getName() == backdrop.getContains().getName()) {
             found = true;
             break;
