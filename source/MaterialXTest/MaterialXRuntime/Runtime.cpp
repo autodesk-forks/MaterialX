@@ -494,6 +494,10 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     mx::RtNode graphNode(graphPrim);
     REQUIRE(graphNode);
     REQUIRE(graphNode.getName() == graph.getName());
+    mx::RtInput graph_in = graph.createInput(IN, mx::RtType::FLOAT);
+    REQUIRE(graph_in);
+    mx::RtOutput graph_out = graph.createOutput(OUT, mx::RtType::FLOAT);
+    REQUIRE(graph_out);
 
     mx::RtPrim backdropPrim = stage->createPrim(mx::RtBackdrop::typeName());
     REQUIRE(backdropPrim);
@@ -535,9 +539,25 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(!obj1.isA<mx::RtPort>());
     REQUIRE(obj1.isA<mx::RtRelationship>());
 
+    // Test attributes on prim specs.
+    const mx::RtAttributeSpec* version = nodedef.getPrimSpec().getAttribute(mx::Tokens::VERSION);
+    REQUIRE(version);
+    REQUIRE(version->getType() == mx::RtType::TOKEN);
+    REQUIRE(!version->isCustom());
+    const mx::RtAttributeSpec* isDefaultVersion = nodedef.getPrimSpec().getAttribute(mx::Tokens::ISDEFAULTVERSION);
+    REQUIRE(isDefaultVersion);
+    REQUIRE(isDefaultVersion->getType() == mx::RtType::BOOLEAN);
+    REQUIRE(!isDefaultVersion->isCustom());
+    const mx::RtAttributeSpec* uiVisible = graph.getPrimSpec().getPortAttribute(graph_in, mx::Tokens::UIVISIBLE);
+    REQUIRE(uiVisible);
+    REQUIRE(uiVisible->getType() == mx::RtType::BOOLEAN);
+    REQUIRE(!uiVisible->isCustom());
+    const mx::RtAttributeSpec* bitDepth = graph.getPrimSpec().getPortAttribute(graph_out, mx::Tokens::BITDEPTH);
+    REQUIRE(bitDepth);
+    REQUIRE(bitDepth->getType() == mx::RtType::INTEGER);
+    REQUIRE(!uiVisible->isCustom());
+
     // Test object life-time management
-    mx::RtInput graph_in = graph.createInput(IN, mx::RtType::FLOAT);
-    mx::RtOutput graph_out = graph.createOutput(OUT, mx::RtType::FLOAT);
     mx::RtPrim node1 = stage->createPrim(graph.getPath(), mx::RtToken("node1"), nodedefPrim.getName());
     mx::RtPrim node2 = stage->createPrim(graph.getPath(), mx::RtToken("node1"), nodedefPrim.getName());
     REQUIRE(node1.isValid());

@@ -16,135 +16,82 @@ namespace MaterialX
 
 namespace
 {
-    // Code for handling queries about schema attributes.
-    //
-    // TODO: Move this to a central location and use a
-    //       data driven XML schema file to control this.
-    //
-    struct StdAttrRecord
+    // TODO: We should derive this from a data driven XML schema.
+    class NodeDefPrimSpec : public PvtPrimSpec
     {
-        RtTokenVec vec;
-        RtTokenSet set;
-
-        StdAttrRecord(const RtTokenVec& names = RtTokenVec()) :
-            vec(names),
-            set(names.begin(), names.end())
+    public:
+        NodeDefPrimSpec()
         {
+            addPrimAttribute(Tokens::DOC, RtType::STRING);
+            addPrimAttribute(Tokens::NODE, RtType::TOKEN);
+            addPrimAttribute(Tokens::INHERIT, RtType::TOKEN);
+            addPrimAttribute(Tokens::NODEGROUP, RtType::TOKEN);
+            addPrimAttribute(Tokens::VERSION, RtType::TOKEN);
+            addPrimAttribute(Tokens::ISDEFAULTVERSION, RtType::BOOLEAN);
+            addPrimAttribute(Tokens::TARGET, RtType::TOKEN);
+            addPrimAttribute(Tokens::UINAME, RtType::STRING);
+            addPrimAttribute(Tokens::INTERNALGEOMPROPS, RtType::TOKEN);
+            addPrimAttribute(Tokens::NAMESPACE, RtType::TOKEN);
+
+            addInputAttribute(Tokens::DOC, RtType::STRING);
+            addInputAttribute(Tokens::UNIFORM, RtType::BOOLEAN);
+            addInputAttribute(Tokens::DEFAULTGEOMPROP, RtType::TOKEN);
+            addInputAttribute(Tokens::ENUM, RtType::STRING);
+            addInputAttribute(Tokens::ENUMVALUES, RtType::STRING);
+            addInputAttribute(Tokens::UINAME, RtType::STRING);
+            addInputAttribute(Tokens::UIFOLDER, RtType::STRING);
+
+            addInputAttributeByType(RtType::COLOR3, Tokens::COLORSPACE, RtType::TOKEN);
+            addInputAttributeByType(RtType::COLOR3, Tokens::UIMIN, RtType::COLOR3);
+            addInputAttributeByType(RtType::COLOR3, Tokens::UIMAX, RtType::COLOR3);
+            addInputAttributeByType(RtType::COLOR3, Tokens::UISOFTMIN, RtType::COLOR3);
+            addInputAttributeByType(RtType::COLOR3, Tokens::UISOFTMAX, RtType::COLOR3);
+            addInputAttributeByType(RtType::COLOR3, Tokens::UISTEP, RtType::COLOR3);
+
+            addInputAttributeByType(RtType::COLOR4, Tokens::COLORSPACE, RtType::TOKEN);
+            addInputAttributeByType(RtType::COLOR4, Tokens::UIMIN, RtType::COLOR4);
+            addInputAttributeByType(RtType::COLOR4, Tokens::UIMAX, RtType::COLOR4);
+            addInputAttributeByType(RtType::COLOR4, Tokens::UISOFTMIN, RtType::COLOR4);
+            addInputAttributeByType(RtType::COLOR4, Tokens::UISOFTMAX, RtType::COLOR4);
+            addInputAttributeByType(RtType::COLOR4, Tokens::UISTEP, RtType::COLOR4);
+
+            addInputAttributeByType(RtType::FLOAT, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::FLOAT, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::FLOAT, Tokens::UIMIN, RtType::FLOAT);
+            addInputAttributeByType(RtType::FLOAT, Tokens::UIMAX, RtType::FLOAT);
+            addInputAttributeByType(RtType::FLOAT, Tokens::UISOFTMIN, RtType::FLOAT);
+            addInputAttributeByType(RtType::FLOAT, Tokens::UISOFTMAX, RtType::FLOAT);
+            addInputAttributeByType(RtType::FLOAT, Tokens::UISTEP, RtType::FLOAT);
+
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UIMIN, RtType::VECTOR2);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UIMAX, RtType::VECTOR2);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UISOFTMIN, RtType::VECTOR2);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UISOFTMAX, RtType::VECTOR2);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UISTEP, RtType::VECTOR2);
+
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UIMIN, RtType::VECTOR3);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UIMAX, RtType::VECTOR3);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UISOFTMIN, RtType::VECTOR3);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UISOFTMAX, RtType::VECTOR3);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UISTEP, RtType::VECTOR3);
+
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UIMIN, RtType::VECTOR4);
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UIMAX, RtType::VECTOR4);
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UISOFTMIN, RtType::VECTOR4);
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UISOFTMAX, RtType::VECTOR4);
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UISTEP, RtType::VECTOR4);
+
+            addOutputAttribute(Tokens::DOC, RtType::STRING);
+            addOutputAttribute(Tokens::DEFAULTINPUT, RtType::TOKEN);
+            addOutputAttribute(Tokens::DEFAULT, RtType::STRING);
         }
     };
-
-    const StdAttrRecord STD_ATTR_INPUT_COLOR(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("value"),
-        RtToken("uniform"),
-        RtToken("defaultgeomprop"),
-        RtToken("enum"),
-        RtToken("enumvalues"),
-        RtToken("colorspace"),
-        RtToken("uiname"),
-        RtToken("uifolder"),
-        RtToken("uimin"),
-        RtToken("uimax"),
-        RtToken("uisoftmin"),
-        RtToken("uisoftmax"),
-        RtToken("uistep")
-    });
-
-    const StdAttrRecord STD_ATTR_INPUT_FLOAT(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("value"),
-        RtToken("uniform"),
-        RtToken("defaultgeomprop"),
-        RtToken("enum"),
-        RtToken("enumvalues"),
-        RtToken("unittype"),
-        RtToken("unit"),
-        RtToken("uiname"),
-        RtToken("uifolder"),
-        RtToken("uimin"),
-        RtToken("uimax"),
-        RtToken("uisoftmin"),
-        RtToken("uisoftmax"),
-        RtToken("uistep")
-    });
-
-    const StdAttrRecord STD_ATTR_INPUT(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("value"),
-        RtToken("uniform"),
-        RtToken("defaultgeomprop"),
-        RtToken("enum"),
-        RtToken("enumvalues"),
-        RtToken("uiname"),
-        RtToken("uifolder"),
-    });
-
-
-    const StdAttrRecord STD_ATTR_OUTPUT(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("value"),
-        RtToken("defaultinput"),
-        RtToken("default")
-    });
-
-    const StdAttrRecord STD_ATTR(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("node"),
-        RtToken("inherit"),
-        RtToken("nodegroup"),
-        RtToken("version"),
-        RtToken("isdefaultversion"),
-        RtToken("target"),
-        RtToken("uiname"),
-        RtToken("internalgeomprops")
-    });
-
-    const StdAttrRecord STD_ATTR_EMPTY;
-
-    const StdAttrRecord& getStandardAttributeRecord(const RtNodeDef& /*node*/)
-    {
-        return STD_ATTR;
-    }
-
-    const StdAttrRecord& getStandardAttributeRecord(const RtNodeDef& node, const RtToken& portName)
-    {
-        RtInput input = node.getInput(portName);
-        if (input)
-        {
-            const RtToken& type = input.getType();
-            if (type == RtType::COLOR3 || type == RtType::COLOR4 || type == RtType::FILENAME)
-            {
-                return STD_ATTR_INPUT_COLOR;
-            }
-            else if (type == RtType::FLOAT || type == RtType::VECTOR2 || type == RtType::VECTOR3 || type == RtType::VECTOR4)
-            {
-                return STD_ATTR_INPUT_FLOAT;
-            }
-            else
-            {
-                return STD_ATTR_INPUT;
-            }
-        }
-        else
-        {
-            RtOutput output = node.getOutput(portName);
-            if (output)
-            {
-                return STD_ATTR_OUTPUT;
-            }
-        }
-        return STD_ATTR_EMPTY;
-    }
 }
 
 DEFINE_TYPED_SCHEMA(RtNodeDef, "nodedef");
@@ -160,6 +107,12 @@ RtPrim RtNodeDef::createPrim(const RtToken& typeName, const RtToken& name, RtPri
     prim->createRelationship(Tokens::NODEIMPL);
 
     return primH;
+}
+
+const RtPrimSpec& RtNodeDef::getPrimSpec() const
+{
+    static const NodeDefPrimSpec s_primSpec;
+    return s_primSpec;
 }
 
 void RtNodeDef::setNode(const RtToken& node)
@@ -235,13 +188,13 @@ const RtToken& RtNodeDef::getVersion() const
 
 void RtNodeDef::setIsDefaultVersion(bool isDefault)
 {
-    RtTypedValue* attr = prim()->createAttribute(Tokens::IS_DEFAULT_VERSION, RtType::BOOLEAN);
+    RtTypedValue* attr = prim()->createAttribute(Tokens::ISDEFAULTVERSION, RtType::BOOLEAN);
     attr->asBool() = isDefault;
 }
 
 bool RtNodeDef::getIsDefaultVersion() const
 {
-    RtTypedValue* attr = prim()->getAttribute(Tokens::IS_DEFAULT_VERSION, RtType::BOOLEAN);
+    RtTypedValue* attr = prim()->getAttribute(Tokens::ISDEFAULTVERSION, RtType::BOOLEAN);
     return attr ? attr->asBool() : false;
 }
 
@@ -301,30 +254,6 @@ RtNodeLayout RtNodeDef::getNodeLayout()
         }
     }
     return layout;
-}
-
-const RtTokenVec& RtNodeDef::getStandardAttributeNames() const
-{
-    const StdAttrRecord& record = getStandardAttributeRecord(*this);
-    return record.vec;
-}
-
-const RtTokenVec& RtNodeDef::getStandardAttributeNames(const RtToken& portName) const
-{
-    const StdAttrRecord& record = getStandardAttributeRecord(*this, portName);
-    return record.vec;
-}
-
-bool RtNodeDef::isStandardAttribute(const RtToken& attrName) const
-{
-    const StdAttrRecord& record = getStandardAttributeRecord(*this);
-    return record.set.count(attrName) > 0;
-}
-
-bool RtNodeDef::isStandardAttribute(const RtToken& portName, const RtToken& attrName) const
-{
-    const StdAttrRecord& record = getStandardAttributeRecord(*this, portName);
-    return record.set.count(attrName) > 0;
 }
 
 }

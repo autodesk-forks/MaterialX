@@ -46,25 +46,4 @@ bool RtTypedSchema::isCompatible(const RtPrim& prim) const
     return prim && prim.getTypeInfo()->isCompatible(getTypeInfo().getShortTypeName());
 }
 
-
-const RtTokenVec& RtSchemaBase::getStandardAttributeNames() const
-{
-    return EMPTY_ATTR_NAMES;
-}
-
-const RtTokenVec& RtSchemaBase::getStandardAttributeNames(const RtToken&) const
-{
-    return EMPTY_ATTR_NAMES;
-}
-
-bool RtSchemaBase::isStandardAttribute(const RtToken&) const
-{
-    return false;
-}
-
-bool RtSchemaBase::isStandardAttribute(const RtToken&, const RtToken&) const
-{
-    return false;
-}
-
 }

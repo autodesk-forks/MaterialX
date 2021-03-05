@@ -129,6 +129,60 @@ public:
 /// Function type for creating prims for a typed schema.
 using RtPrimCreateFunc = std::function<RtPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)>;
 
+
+/// Class holding an attribute specification.
+class RtAttributeSpec
+{
+public:
+    /// Constructor.
+    RtAttributeSpec();
+
+    /// Destructor.
+    ~RtAttributeSpec();
+
+    /// Return the attribute name.
+    const RtToken& getName() const;
+
+    /// Return the attribute type.
+    const RtToken& getType() const;
+
+    /// Return the attribute's default value.
+    const string& getValue() const;
+
+    /// Return true if this attribute is a custom attribute,
+    /// ir false if it is part of the MaterialX specification.
+    bool isCustom() const;
+
+    /// Return true if this attribute should be exported as shader metadata.
+    bool isExportable() const;
+
+private:
+    /// Internal handle.
+    void* _ptr;
+
+    friend class PvtPrimSpec;
+};
+
+/// Abstract base class for prim specifications.
+class RtPrimSpec
+{
+public:
+    /// Destructor.
+    virtual ~RtPrimSpec() {}
+
+    /// Return an attribute spec if one has been defined with the given name
+    /// for this prim type, or return nullptr otherwise.
+    virtual const RtAttributeSpec* getAttribute(const RtToken& name) const = 0;
+
+    /// Return an attribute spec if one has been defined for the given port
+    /// on this prim type, or return nullptr otherwise.
+    virtual const RtAttributeSpec* getPortAttribute(const RtPort& port, const RtToken& name) const = 0;
+
+protected:
+    /// Protected constructor.
+    RtPrimSpec() {}
+};
+
 }
 
 #endif

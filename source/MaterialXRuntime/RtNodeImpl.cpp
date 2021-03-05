@@ -25,6 +25,12 @@ RtPrim RtNodeImpl::createPrim(const RtToken& typeName, const RtToken& name, RtPr
     return primH;
 }
 
+const RtPrimSpec& RtNodeImpl::getPrimSpec() const
+{
+    static const PvtPrimSpec s_primSpec;
+    return s_primSpec;
+}
+
 void RtNodeImpl::setTarget(const RtToken& target)
 {
     RtTypedValue* attr = createAttribute(Tokens::TARGET, RtType::TOKEN);

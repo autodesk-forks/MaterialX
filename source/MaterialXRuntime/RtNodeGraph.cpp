@@ -18,7 +18,53 @@ namespace MaterialX
 
 namespace
 {
-    static const RtToken SOCKETS("_nodegraph_internal_sockets");
+    // TODO: We should derive this from a data driven XML schema.
+    class NodeGraphPrimSpec : public PvtPrimSpec
+    {
+    public:
+        NodeGraphPrimSpec()
+        {
+            addPrimAttribute(Tokens::DOC, RtType::STRING);
+            addPrimAttribute(Tokens::XPOS, RtType::FLOAT);
+            addPrimAttribute(Tokens::YPOS, RtType::FLOAT);
+            addPrimAttribute(Tokens::WIDTH, RtType::INTEGER);
+            addPrimAttribute(Tokens::HEIGHT, RtType::INTEGER);
+            addPrimAttribute(Tokens::UICOLOR, RtType::COLOR3);
+            addPrimAttribute(Tokens::UINAME, RtType::STRING);
+            addPrimAttribute(Tokens::VERSION, RtType::TOKEN);
+            addPrimAttribute(Tokens::NAMESPACE, RtType::TOKEN);
+            addPrimAttribute(Tokens::NODEDEF, RtType::TOKEN);
+
+            addInputAttribute(Tokens::DOC, RtType::STRING);
+            addInputAttribute(Tokens::MEMBER, RtType::STRING);
+            addInputAttribute(Tokens::CHANNELS, RtType::STRING);
+            addInputAttribute(Tokens::UIADVANCED, RtType::BOOLEAN);
+            addInputAttribute(Tokens::UIVISIBLE, RtType::BOOLEAN);
+
+            addInputAttributeByType(RtType::COLOR3, Tokens::COLORSPACE, RtType::TOKEN);
+            addInputAttributeByType(RtType::COLOR4, Tokens::COLORSPACE, RtType::TOKEN);
+
+            addInputAttributeByType(RtType::FLOAT, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::FLOAT, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UNITTYPE, RtType::TOKEN);
+
+            addOutputAttribute(Tokens::DOC, RtType::STRING);
+            addOutputAttribute(Tokens::MEMBER, RtType::STRING);
+            addOutputAttribute(Tokens::WIDTH, RtType::INTEGER);
+            addOutputAttribute(Tokens::HEIGHT, RtType::INTEGER);
+            addOutputAttribute(Tokens::BITDEPTH, RtType::INTEGER);
+
+            addOutputAttributeByType(RtType::COLOR3, Tokens::COLORSPACE, RtType::TOKEN);
+            addOutputAttributeByType(RtType::COLOR4, Tokens::COLORSPACE, RtType::TOKEN);
+        }
+    };
+
+    const RtToken SOCKETS("_nodegraph_internal_sockets");
 }
 
 DEFINE_TYPED_SCHEMA(RtNodeGraph, "node:nodegraph");
@@ -40,6 +86,12 @@ RtPrim RtNodeGraph::createPrim(const RtToken& typeName, const RtToken& name, RtP
     prim->addChildPrim(socketH->asA<PvtPrim>());
 
     return primH;
+}
+
+const RtPrimSpec& RtNodeGraph::getPrimSpec() const
+{
+    static const NodeGraphPrimSpec s_primSpec;
+    return s_primSpec;
 }
 
 RtInput RtNodeGraph::createInput(const RtToken& name, const RtToken& type, uint32_t flags)

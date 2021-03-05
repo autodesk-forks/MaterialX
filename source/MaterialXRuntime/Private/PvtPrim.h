@@ -250,6 +250,136 @@ protected:
     friend class RtRelationshipIterator;
 };
 
+
+struct PvtAttributeSpec
+{
+    RtToken name;
+    RtToken type;
+//    RtValue value; TODO: Fix me!
+    string value;
+    bool custom;
+    bool exportable;
+};
+
+class RtAttributeSpecList
+{
+public:
+    ~RtAttributeSpecList()
+    {
+        for (RtAttributeSpec* spec : _vec)
+        {
+            delete spec;
+        }
+        _map.clear();
+        _vec.clear();
+    }
+
+    void add(RtAttributeSpec* spec)
+    {
+        _map[spec->getName()] = spec;
+        _vec.push_back(spec);
+    }
+
+    size_t size() const
+    {
+        return _vec.size();
+    }
+
+    bool empty() const
+    {
+        return _vec.empty();
+    }
+
+    size_t count(const RtToken& name) const
+    {
+        return _map.count(name);
+    }
+
+    RtAttributeSpec* find(const RtToken& name) const
+    {
+        auto it = _map.find(name);
+        return it != _map.end() ? it->second : nullptr;
+    }
+
+    RtAttributeSpec* operator[](size_t i) const
+    {
+        return i < _vec.size() ? _vec[i] : nullptr;
+    }
+
+private:
+    RtTokenMap<RtAttributeSpec*> _map;
+    vector<RtAttributeSpec*> _vec;
+};
+
+
+class PvtPrimSpec : public RtPrimSpec
+{
+public:
+    PvtPrimSpec()
+    {
+    }
+
+    const RtAttributeSpec* getAttribute(const RtToken& name) const override
+    {
+        return _primAttr.find(name);
+    }
+
+    const RtAttributeSpec* getPortAttribute(const RtPort& port, const RtToken& name) const override;
+
+    RtAttributeSpec* create(const RtToken& name, const RtToken& type, const string& value, bool exportable, bool custom);
+
+    void addPrimAttribute(const RtToken& name, const RtToken& type, const string& value = EMPTY_STRING,
+                      bool exportable = false, bool custom = false)
+    {
+        _primAttr.add(create(name, type, value, exportable, custom));
+    }
+
+    void addInputAttribute(const RtToken& name, const RtToken& type,
+                           const string& value = EMPTY_STRING, bool exportable = false, bool custom = false)
+    {
+        _inputAttr.add(create(name, type, value, exportable, custom));
+    }
+
+    void addInputAttributeByName(const RtToken& portName, const RtToken& name, const RtToken& type,
+                                const string& value = EMPTY_STRING, bool exportable = false, bool custom = false)
+    {
+        _inputAttrByName[portName].add(create(name, type, value, exportable, custom));
+    }
+
+    void addInputAttributeByType(const RtToken& portType, const RtToken& name, const RtToken& type,
+                                 const string& value = EMPTY_STRING, bool exportable = false, bool custom = false)
+    {
+        _inputAttrByType[portType].add(create(name, type, value, exportable, custom));
+    }
+
+    void addOutputAttribute(const RtToken& name, const RtToken& type,
+                            const string& value = EMPTY_STRING, bool exportable = false, bool custom = false)
+    {
+        _outputAttr.add(create(name, type, value, exportable, custom));
+    }
+
+    void addOutputAttributeByName(const RtToken& portName, const RtToken& name, const RtToken& type,
+                                  const string& value = EMPTY_STRING, bool exportable = false, bool custom = false)
+    {
+        _outputAttrByName[portName].add(create(name, type, value, exportable, custom));
+    }
+
+    void addOutputAttributeByType(const RtToken& portType, const RtToken& name, const RtToken& type,
+                                  const string& value = EMPTY_STRING, bool exportable = false, bool custom = false)
+    {
+        _outputAttrByType[portType].add(create(name, type, value, exportable, custom));
+    }
+
+    RtAttributeSpecList _primAttr;
+    RtAttributeSpecList _inputAttr;
+    RtAttributeSpecList _outputAttr;
+    RtTokenMap<RtAttributeSpecList> _inputAttrByName;
+    RtTokenMap<RtAttributeSpecList> _inputAttrByType;
+    RtTokenMap<RtAttributeSpecList> _outputAttrByName;
+    RtTokenMap<RtAttributeSpecList> _outputAttrByType;
+    PvtAllocator _allocator;
+};
+
 }
 
 #endif

@@ -136,4 +136,41 @@ RtPrimIterator RtPrim::getChildren(RtObjectPredicate predicate) const
     return RtPrimIterator(*this, predicate);
 }
 
+
+
+RtAttributeSpec::RtAttributeSpec() :
+    _ptr(new PvtAttributeSpec())
+{
+}
+
+RtAttributeSpec::~RtAttributeSpec()
+{
+    delete static_cast<PvtAttributeSpec*>(_ptr);
+}
+
+const RtToken& RtAttributeSpec::getName() const
+{
+    return static_cast<PvtAttributeSpec*>(_ptr)->name;
+}
+
+const RtToken& RtAttributeSpec::getType() const
+{
+    return static_cast<PvtAttributeSpec*>(_ptr)->type;
+}
+
+const string& RtAttributeSpec::getValue() const
+{
+    return static_cast<PvtAttributeSpec*>(_ptr)->value;
+}
+
+bool RtAttributeSpec::isCustom() const
+{
+    return static_cast<PvtAttributeSpec*>(_ptr)->custom;
+}
+
+bool RtAttributeSpec::isExportable() const
+{
+    return static_cast<PvtAttributeSpec*>(_ptr)->exportable;
+}
+
 }

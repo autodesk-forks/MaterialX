@@ -28,6 +28,12 @@ RtPrim RtSourceCodeImpl::createPrim(const RtToken& typeName, const RtToken& name
     return primH;
 }
 
+const RtPrimSpec& RtSourceCodeImpl::getPrimSpec() const
+{
+    static const PvtPrimSpec s_primSpec;
+    return s_primSpec;
+}
+
 void RtSourceCodeImpl::setFile(const string& file)
 {
     RtTypedValue* attr = prim()->createAttribute(Tokens::FILE, RtType::STRING);

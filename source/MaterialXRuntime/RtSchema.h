@@ -18,6 +18,8 @@
 namespace MaterialX
 {
 
+class RtPrimSpec;
+
 /// Traversal predicate for schemas.
 template<class T>
 struct RtSchemaPredicate
@@ -70,77 +72,61 @@ public:
     /// Return the prim attached to this API.
     RtPrim getPrim() const;
 
-    /// Return the name of the prim.
+    /// Return the name of the attached prim.
     /// Shorthand for calling getPrim().getName().
     const RtToken& getName() const
     {
         return getPrim().getName();
     }
 
-    /// Return the path of the prim.
+    /// Return the path of the attached prim.
     /// Shorthand for calling getPrim().getPath().
     RtPath getPath() const
     {
         return getPrim().getPath();
     }
 
-    /// Create a new attribute on the prim.
+    /// Create a new attribute on the attached prim.
     /// Shorthand for calling getPrim().createAttribute().
     RtTypedValue* createAttribute(const RtToken& name, const RtToken& type)
     {
         return getPrim().createAttribute(name, type);
     }
 
-    /// Remove an attribute from the prim.
+    /// Remove an attribute from the attached prim.
     /// Shorthand for calling getPrim().removeAttribute().
     void removeAttribute(const RtToken& name)
     {
         return getPrim().removeAttribute(name);
     }
 
-    /// Return an attribute from the prim.
+    /// Return an attribute from the attached prim.
     /// Shorthand for calling getPrim().getAttribute(name).
     RtTypedValue* getAttribute(const RtToken& name)
     {
         return getPrim().getAttribute(name);
     }
 
-    /// Return an attribute from the prim.
+    /// Return an attribute from the attached prim.
     /// Shorthand for calling getPrim().getAttribute(name).
     const RtTypedValue* getAttribute(const RtToken& name) const
     {
         return getPrim().getAttribute(name);
     }
 
-    /// Return an attribute from the prim, including a type check.
+    /// Return an attribute from the attached prim, including a type check.
     /// Shorthand for calling getPrim().getAttribute(name, type).
     RtTypedValue* getAttribute(const RtToken& name, const RtToken& type)
     {
         return getPrim().getAttribute(name, type);
     }
 
-    /// Return an attribute from the prim, including a type check.
+    /// Return an attribute from the attached prim, including a type check.
     /// Shorthand for calling getPrim().getAttribute(name, type).
     const RtTypedValue* getAttribute(const RtToken& name, const RtToken& type) const
     {
         return getPrim().getAttribute(name, type);
     }
-
-    /// Return attribute names for the attributes that have been
-    /// defined as standard for this schema.
-    virtual const RtTokenVec& getStandardAttributeNames() const;
-
-    /// Return attribute names for the attributes that have been
-    /// defined as standard for the given port on this schema.
-    virtual const RtTokenVec& getStandardAttributeNames(const RtToken& portName) const;
-
-    /// Return true if the given attribute is a standard attribute
-    /// defined for this schema.
-    virtual bool isStandardAttribute(const RtToken& attrName) const;
-
-    /// Return true if the given attribute is a standard attribute
-    /// defined for the given port on this schema.
-    virtual bool isStandardAttribute(const RtToken& attrName, const RtToken& portName) const;
 
     // Accessors.
     PvtPrim* prim() const;
@@ -173,6 +159,9 @@ public:
     /// Return the type info for the prim defined by this schema.
     virtual const RtTypeInfo& getTypeInfo() const = 0;
 
+    /// Return a prim spec for the prim type defined by this schema.
+    virtual const RtPrimSpec& getPrimSpec() const = 0;
+
     /// Return true if the given prim is compatible with this schema.
     bool isCompatible(const RtPrim& prim) const override;
 
@@ -184,13 +173,13 @@ protected:
     }
 };
 
-
 /// Macro declaring required methods and mambers on typed schemas.
 #define DECLARE_TYPED_SCHEMA(T)                                                             \
 private:                                                                                    \
     static const RtTypeInfo _typeInfo;                                                      \
 public:                                                                                     \
     const RtTypeInfo& getTypeInfo() const override { return _typeInfo; }                    \
+    const RtPrimSpec& getPrimSpec() const override;                                         \
     static const RtToken& typeName() { return _typeInfo.getShortTypeName(); }               \
     static const RtTypeInfo& typeInfo() { return _typeInfo; }                               \
     static RtPrim createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent);  \

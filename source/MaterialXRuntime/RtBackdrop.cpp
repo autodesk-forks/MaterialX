@@ -10,6 +10,27 @@
 
 namespace MaterialX
 {
+namespace
+{
+    // TODO: We should derive this from a data driven XML schema.
+    class BackdropPrimSpec : public PvtPrimSpec
+    {
+    public:
+        BackdropPrimSpec()
+        {
+            addPrimAttribute(Tokens::DOC, RtType::STRING);
+            addPrimAttribute(Tokens::XPOS, RtType::FLOAT);
+            addPrimAttribute(Tokens::YPOS, RtType::FLOAT);
+            addPrimAttribute(Tokens::WIDTH, RtType::INTEGER);
+            addPrimAttribute(Tokens::HEIGHT, RtType::INTEGER);
+            addPrimAttribute(Tokens::UICOLOR, RtType::COLOR3);
+            addPrimAttribute(Tokens::UINAME, RtType::STRING);
+            addPrimAttribute(Tokens::CONTAINS, RtType::STRINGARRAY);
+            addPrimAttribute(Tokens::MINIMIZED, RtType::BOOLEAN);
+
+        }
+    };
+}
 
 DEFINE_TYPED_SCHEMA(RtBackdrop, "backdrop");
 
@@ -25,6 +46,12 @@ RtPrim RtBackdrop::createPrim(const RtToken& typeName, const RtToken& name, RtPr
     prim->createRelationship(Tokens::CONTAINS);
 
     return primH;
+}
+
+const RtPrimSpec& RtBackdrop::getPrimSpec() const
+{
+    static const BackdropPrimSpec s_primSpec;
+    return s_primSpec;
 }
 
 RtRelationship RtBackdrop::getContains() const

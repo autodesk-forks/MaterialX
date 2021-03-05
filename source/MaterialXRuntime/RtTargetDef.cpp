@@ -24,6 +24,18 @@ namespace
 
         RtTokenSet matchingTargets;
     };
+
+    // TODO: We should derive this from a data driven XML schema.
+    class TargetDefPrimSpec : public PvtPrimSpec
+    {
+    public:
+        TargetDefPrimSpec()
+        {
+            addPrimAttribute(Tokens::DOC, RtType::STRING);
+            addPrimAttribute(Tokens::INHERIT, RtType::TOKEN);
+
+        }
+    };
 }
 
 DEFINE_TYPED_SCHEMA(RtTargetDef, "targetdef");
@@ -40,6 +52,12 @@ RtPrim RtTargetDef::createPrim(const RtToken& typeName, const RtToken& name, RtP
     prim->asA<PvtTargetDefPrim>()->matchingTargets.insert(name);
 
     return primH;
+}
+
+const RtPrimSpec& RtTargetDef::getPrimSpec() const
+{
+    static const TargetDefPrimSpec s_primSpec;
+    return s_primSpec;
 }
 
 void RtTargetDef::setInherit(const RtToken& target)

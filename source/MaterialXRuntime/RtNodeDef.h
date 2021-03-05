@@ -175,22 +175,6 @@ public:
     /// Return a node layout struct for this nodedef.
     /// Containing its input ordering and uifolder hierarchy.
     RtNodeLayout getNodeLayout();
-
-    /// Return attribute names for the attributes that have been
-    /// defined as standard for this schema.
-    const RtTokenVec& getStandardAttributeNames() const override;
-
-    /// Return attribute names for the attributes that have been
-    /// defined as standard for the given port on this schema.
-    const RtTokenVec& getStandardAttributeNames(const RtToken& portName) const override;
-
-    /// Return true if the given attribute is a standard attribute
-    /// defined for this schema.
-    bool isStandardAttribute(const RtToken& attrName) const override;
-
-    /// Return true if the given attribute is a standard attribute
-    /// defined for the given port on this schema.
-    bool isStandardAttribute(const RtToken& attrName, const RtToken& portName) const override;
 };
 
 }

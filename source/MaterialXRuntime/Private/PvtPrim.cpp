@@ -237,4 +237,51 @@ void PvtPrim::removeChildPrim(PvtPrim* prim)
     _prims.remove(prim->getName());
 }
 
+
+const RtAttributeSpec* PvtPrimSpec::getPortAttribute(const RtPort& port, const RtToken& name) const
+{
+    const bool input = port.isA<RtInput>();
+
+    // First search the input/output lists by port name.
+    const RtTokenMap<RtAttributeSpecList>& mapByName = (input ? _inputAttrByName : _outputAttrByName);
+    auto it = mapByName.find(port.getName());
+    if (it != mapByName.end())
+    {
+        const RtAttributeSpec* spec = it->second.find(name);
+        if (spec)
+        {
+            return spec;
+        }
+    }
+
+    // Second search the input/output lists by port type.
+    const RtTokenMap<RtAttributeSpecList>& mapByType = (input ? _inputAttrByType : _outputAttrByType);
+    it = mapByType.find(port.getType());
+    if (it != mapByType.end())
+    {
+        const RtAttributeSpec* spec = it->second.find(name);
+        if (spec)
+        {
+            return spec;
+        }
+    }
+
+    // Finally search the general input/output list.
+    const RtAttributeSpecList& list = (input ? _inputAttr : _outputAttr);
+    return list.find(name);
+}
+
+RtAttributeSpec* PvtPrimSpec::create(const RtToken& name, const RtToken& type, const string& value,
+                                     bool exportable, bool custom)
+{
+    RtAttributeSpec* spec = new RtAttributeSpec();
+    PvtAttributeSpec* ptr = static_cast<PvtAttributeSpec*>(spec->_ptr);
+    ptr->name = name;
+    ptr->type = type;
+    ptr->value = value;
+    ptr->exportable = exportable;
+    ptr->custom = custom;
+    return spec;
+}
+
 }

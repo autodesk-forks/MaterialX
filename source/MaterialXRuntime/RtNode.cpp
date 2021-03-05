@@ -16,154 +16,49 @@ namespace MaterialX
 
 namespace
 {
-    const RtToken NODEDEF("nodedef");
-
-    // Code for handling queries about schema attributes.
-    //
-    // TODO: Move this to a central location and use a
-    //       data driven XML schema file to control this.
-    //
-    struct StdAttrRecord
+    // TODO: We should derive this from a data driven XML schema.
+    class NodePrimSpec : public PvtPrimSpec
     {
-        RtTokenVec vec;
-        RtTokenSet set;
-
-        StdAttrRecord(const RtTokenVec& names = RtTokenVec()) :
-            vec(names),
-            set(names.begin(), names.end())
+    public:
+        NodePrimSpec()
         {
+            addPrimAttribute(Tokens::DOC, RtType::STRING);
+            addPrimAttribute(Tokens::XPOS, RtType::FLOAT);
+            addPrimAttribute(Tokens::YPOS, RtType::FLOAT);
+            addPrimAttribute(Tokens::WIDTH, RtType::INTEGER);
+            addPrimAttribute(Tokens::HEIGHT, RtType::INTEGER);
+            addPrimAttribute(Tokens::UICOLOR, RtType::COLOR3);
+            addPrimAttribute(Tokens::UINAME, RtType::STRING);
+            addPrimAttribute(Tokens::VERSION, RtType::TOKEN);
+
+            addInputAttribute(Tokens::DOC, RtType::STRING);
+            addInputAttribute(Tokens::MEMBER, RtType::STRING);
+            addInputAttribute(Tokens::CHANNELS, RtType::STRING);
+            addInputAttribute(Tokens::UIADVANCED, RtType::BOOLEAN);
+            addInputAttribute(Tokens::UIVISIBLE, RtType::BOOLEAN);
+
+            addInputAttributeByType(RtType::COLOR3, Tokens::COLORSPACE, RtType::TOKEN);
+            addInputAttributeByType(RtType::COLOR4, Tokens::COLORSPACE, RtType::TOKEN);
+
+            addInputAttributeByType(RtType::FLOAT, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::FLOAT, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UNIT, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR4, Tokens::UNITTYPE, RtType::TOKEN);
+
+            addOutputAttribute(Tokens::DOC, RtType::STRING);
+            addOutputAttribute(Tokens::MEMBER, RtType::STRING);
+            addOutputAttribute(Tokens::WIDTH, RtType::INTEGER);
+            addOutputAttribute(Tokens::HEIGHT, RtType::INTEGER);
+            addOutputAttribute(Tokens::BITDEPTH, RtType::INTEGER);
+
+            addOutputAttributeByType(RtType::COLOR3, Tokens::COLORSPACE, RtType::TOKEN);
+            addOutputAttributeByType(RtType::COLOR4, Tokens::COLORSPACE, RtType::TOKEN);
         }
     };
-
-    const StdAttrRecord STD_ATTR_INPUT_COLOR(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("Value"),
-        RtToken("nodename"),
-        RtToken("nodegraph"),
-        RtToken("output"),
-        RtToken("member"),
-        RtToken("channels"),
-        RtToken("colorspace")
-    });
-
-    const StdAttrRecord STD_ATTR_INPUT_FLOAT(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("Value"),
-        RtToken("nodename"),
-        RtToken("nodegraph"),
-        RtToken("output"),
-        RtToken("member"),
-        RtToken("channels"),
-        RtToken("unit"),
-        RtToken("unittype")
-    });
-
-    const StdAttrRecord STD_ATTR_INPUT(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("Value"),
-        RtToken("nodename"),
-        RtToken("nodegraph"),
-        RtToken("output"),
-        RtToken("member"),
-        RtToken("channels")
-    });
-
-    const StdAttrRecord STD_ATTR_OUTPUT_COLOR(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("nodename"),
-        RtToken("output"),
-        RtToken("member"),
-        RtToken("colorspace"),
-        RtToken("width"),
-        RtToken("height"),
-        RtToken("bitdepth")
-    });
-
-    const StdAttrRecord STD_ATTR_OUTPUT(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("nodename"),
-        RtToken("output"),
-        RtToken("member"),
-        RtToken("width"),
-        RtToken("height"),
-        RtToken("bitdepth")
-    });
-
-    const StdAttrRecord STD_ATTR(
-    {
-        RtToken("name"),
-        RtToken("type"),
-        RtToken("value"),
-        RtToken("doc"),
-        RtToken("xpos"),
-        RtToken("ypos"),
-        RtToken("width"),
-        RtToken("height"),
-        RtToken("uicolor"),
-        RtToken("uiname"),
-        RtToken("uivisible"),
-        RtToken("uiadvanced"),
-        RtToken("version"),
-        RtToken("cms"),
-        RtToken("cmsconfig"),
-        RtToken("colorspace"),
-        RtToken("namespace")
-    });
-
-    const StdAttrRecord STD_ATTR_EMPTY;
-
-    const StdAttrRecord& getStandardAttributeRecord(const RtNode& /*node*/)
-    {
-        return STD_ATTR;
-    }
-
-    const StdAttrRecord& getStandardAttributeRecord(const RtNode& node, const RtToken& portName)
-    {
-        RtInput input = node.getInput(portName);
-        if (input)
-        {
-            const RtToken& type = input.getType();
-            if (type == RtType::COLOR3 || type == RtType::COLOR4 || type == RtType::FILENAME)
-            {
-                return STD_ATTR_INPUT_COLOR;
-            }
-            else if (type == RtType::FLOAT || type == RtType::VECTOR2 || type == RtType::VECTOR3 || type == RtType::VECTOR4)
-            {
-                return STD_ATTR_INPUT_FLOAT;
-            }
-            else
-            {
-                return STD_ATTR_INPUT;
-            }
-        }
-        else
-        {
-            RtOutput output = node.getOutput(portName);
-            if (output)
-            {
-                const RtToken& type = output.getType();
-                if (type == RtType::COLOR3 || type == RtType::COLOR4 || type == RtType::FILENAME)
-                {
-                    return STD_ATTR_OUTPUT_COLOR;
-                }
-                else
-                {
-                    return STD_ATTR_OUTPUT;
-                }
-            }
-        }
-        return STD_ATTR_EMPTY;
-    }
 }
 
 DEFINE_TYPED_SCHEMA(RtNode, "node");
@@ -190,7 +85,7 @@ RtPrim RtNode::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
     PvtPrim* node = nodeH->asA<PvtPrim>();
 
     // Save the nodedef in a relationship.
-    PvtRelationship* nodedefRelation = node->createRelationship(NODEDEF);
+    PvtRelationship* nodedefRelation = node->createRelationship(Tokens::NODEDEF);
     nodedefRelation->addTarget(nodedefPrim);
 
     // Copy version tag if used.
@@ -218,12 +113,18 @@ RtPrim RtNode::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
     return nodeH;
 }
 
+const RtPrimSpec& RtNode::getPrimSpec() const
+{
+    static const NodePrimSpec s_primSpec;
+    return s_primSpec;
+}
+
 void RtNode::setNodeDef(RtPrim nodeDef)
 {
-    PvtRelationship* nodedefRel = prim()->getRelationship(NODEDEF);
+    PvtRelationship* nodedefRel = prim()->getRelationship(Tokens::NODEDEF);
     if (!nodedefRel)
     {
-        nodedefRel = prim()->createRelationship(NODEDEF);
+        nodedefRel = prim()->createRelationship(Tokens::NODEDEF);
     }
     else
     {
@@ -234,7 +135,7 @@ void RtNode::setNodeDef(RtPrim nodeDef)
 
 RtPrim RtNode::getNodeDef() const
 {
-    PvtRelationship* nodedef = prim()->getRelationship(NODEDEF);
+    PvtRelationship* nodedef = prim()->getRelationship(Tokens::NODEDEF);
     return nodedef && nodedef->hasTargets() ? nodedef->getAllTargets()[0] : RtPrim();
 }
 
@@ -248,30 +149,6 @@ const RtToken& RtNode::getVersion() const
 {
     RtTypedValue* attr = prim()->getAttribute(Tokens::VERSION, RtType::TOKEN);
     return attr ? attr->asToken() : EMPTY_TOKEN;
-}
-
-const RtTokenVec& RtNode::getStandardAttributeNames() const
-{
-    const StdAttrRecord& record = getStandardAttributeRecord(*this);
-    return record.vec;
-}
-
-const RtTokenVec& RtNode::getStandardAttributeNames(const RtToken& portName) const
-{
-    const StdAttrRecord& record = getStandardAttributeRecord(*this, portName);
-    return record.vec;
-}
-
-bool RtNode::isStandardAttribute(const RtToken& attrName) const
-{
-    const StdAttrRecord& record = getStandardAttributeRecord(*this);
-    return record.set.count(attrName) > 0;
-}
-
-bool RtNode::isStandardAttribute(const RtToken& portName, const RtToken& attrName) const
-{
-    const StdAttrRecord& record = getStandardAttributeRecord(*this, portName);
-    return record.set.count(attrName) > 0;
 }
 
 }

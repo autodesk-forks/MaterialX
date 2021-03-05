@@ -24,6 +24,12 @@ RtPrim RtGeneric::createPrim(const RtToken& typeName, const RtToken& name, RtPri
     return primH;
 }
 
+const RtPrimSpec& RtGeneric::getPrimSpec() const
+{
+    static const PvtPrimSpec s_primSpec;
+    return s_primSpec;
+}
+
 const RtToken& RtGeneric::getKind() const
 {
     RtTypedValue* v = prim()->getAttribute(Tokens::KIND, RtType::TOKEN);
