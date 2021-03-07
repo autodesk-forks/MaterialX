@@ -255,6 +255,7 @@ protected:
     friend class PvtApi;
     friend class PvtStage;
     friend class RtNodeGraph;
+    friend class RtPrimIterator;
     friend class RtInputIterator;
     friend class RtOutputIterator;
     friend class RtRelationshipIterator;

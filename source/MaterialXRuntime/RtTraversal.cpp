@@ -18,7 +18,6 @@ namespace MaterialX
 namespace
 {
 
-static const RtPrimIterator NULL_PRIM_ITERATOR;
 static const RtStageIterator NULL_STAGE_ITERATOR;
 
 using StageIteratorStackFrame = std::tuple<PvtStage*, int, int>;
@@ -32,6 +31,7 @@ struct StageIteratorData
 
 }
 
+/*
 RtPrimIterator::RtPrimIterator(const RtPrim& prim, RtObjectPredicate predicate) :
     _prim(nullptr),
     _current(-1),
@@ -71,7 +71,7 @@ const RtPrimIterator& RtPrimIterator::end()
 {
     return NULL_PRIM_ITERATOR;
 }
-
+*/
 
 template<class T>
 const RtObjectIterator<T> RtObjectIterator<T>::NULL_ITERATOR;
@@ -79,16 +79,20 @@ const RtObjectIterator<T> RtObjectIterator<T>::NULL_ITERATOR;
 template<class T>
 T RtObjectIterator<T>::operator*() const
 {
-    PvtObjectVec& data = *static_cast<PvtObjectVec*>(_ptr);
-    return T(data[_current]->hnd());
+    const PvtObjectVec& vec = *static_cast<PvtObjectVec*>(_ptr);
+    return T(vec[_current]->hnd());
 }
 
 template<class T>
 RtObjectIterator<T>& RtObjectIterator<T>::operator++()
 {
-    if (_ptr && ++_current < int(static_cast<PvtObjectVec*>(_ptr)->size()))
+    const PvtObjectVec& vec = *static_cast<PvtObjectVec*>(_ptr);
+    while (_ptr && ++_current < int(vec.size()))
     {
-        return *this;
+        if (!_predicate || _predicate(vec[_current]->obj()))
+        {
+            return *this;
+        }
     }
     abort();
     return *this;
@@ -101,9 +105,21 @@ bool RtObjectIterator<T>::isDone() const
 }
 
 template class RtObjectIterator<RtObject>;
+template class RtObjectIterator<RtPrim>;
 template class RtObjectIterator<RtInput>;
 template class RtObjectIterator<RtOutput>;
 template class RtObjectIterator<RtRelationship>;
+
+RtPrimIterator::RtPrimIterator(const RtObject& obj, RtObjectPredicate predicate) :
+    RtObjectIterator(predicate)
+{
+    if (obj.isA<RtPrim>())
+    {
+        PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
+        _ptr = prim->_prims.empty() ? nullptr : &prim->_prims.vec();
+    }
+    ++*this;
+}
 
 RtInputIterator::RtInputIterator(const RtObject& obj) :
     RtObjectIterator()
