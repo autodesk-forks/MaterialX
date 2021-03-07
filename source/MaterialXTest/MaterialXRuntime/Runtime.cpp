@@ -516,11 +516,11 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     mx::RtBackdrop backdrop(backdropPrim);
     REQUIRE(backdrop);
     REQUIRE(backdrop.getTypeInfo().getShortTypeName() == mx::RtBackdrop::typeName());
-    backdrop.getContains().addTarget(node.getPrim());
-    backdrop.getContains().addTarget(graph.getPrim());
-    REQUIRE(backdrop.getContains().hasTargets());
-    backdrop.getContains().clearTargets();
-    REQUIRE(!backdrop.getContains().hasTargets());
+    backdrop.getContains().connect(node.getPrim());
+    backdrop.getContains().connect(graph.getPrim());
+    REQUIRE(backdrop.getContains().numConnections() == 2);
+    backdrop.getContains().clearConnections();
+    REQUIRE(backdrop.getContains().numConnections() == 0);
     backdrop.setNote("These aren't the Droids you're looking for");
     REQUIRE(backdrop.getNote() == "These aren't the Droids you're looking for");
     REQUIRE(backdropPrim.getRelationship(backdrop.getContains().getName()) == backdrop.getContains());
@@ -1172,7 +1172,7 @@ TEST_CASE("Runtime: Conflict resolution", "[runtime]")
     REQUIRE(lg1);
     mx::RtLookGroup lookgroup1(lg1);
 
-    mx::RtConnectionIterator iter = lookgroup1.getLooks().getTargets();
+    mx::RtConnectionIterator iter = lookgroup1.getLooks().getConnections();
     REQUIRE(!iter.isDone());
     mx::RtPrim lk1 = (*iter).asA<mx::RtPrim>();
     REQUIRE(lk1);
@@ -1516,9 +1516,9 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     col1.addCollection(p2);
     col1.addCollection(p3);
     mx::RtRelationship rel = col1.getIncludeCollection();
-    REQUIRE(rel.targetCount() == 2);
+    REQUIRE(rel.numConnections() == 2);
     col1.removeCollection(p3);
-    REQUIRE(rel.targetCount() == 1);
+    REQUIRE(rel.numConnections() == 1);
     col1.addCollection(p3);
 
     //
@@ -1528,8 +1528,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     REQUIRE(pa.hasApi<mx::RtBindElement>());
     REQUIRE(pa.hasApi<mx::RtMaterialAssign>());
     mx::RtMaterialAssign assign1(pa);
-    assign1.getCollection().addTarget(p1);
-    mx::RtConnectionIterator iter = assign1.getCollection().getTargets();
+    assign1.getCollection().connect(p1);
+    mx::RtConnectionIterator iter = assign1.getCollection().getConnections();
     while (iter.isDone())
     {
         REQUIRE((*iter).getName() == "collection1");
@@ -1563,7 +1563,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
 
     mx::RtPrim pa2 = stage->createPrim("matassign2", mx::RtMaterialAssign::typeName());
     mx::RtMaterialAssign assign2(pa2);
-    assign2.getCollection().addTarget(p2);
+    assign2.getCollection().connect(p2);
     mx::RtPath sm2Path("/surfacematerial2");
     mx::RtPrim sm2 = stage->createPrim(sm2Path, matDef);
     assign2.getMaterial().connect(sm2.getOutput());
@@ -1572,21 +1572,21 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     look1.addMaterialAssign(pa2);
     REQUIRE_THROWS(look1.addMaterialAssign(col1.getPrim()));
 
-    mx::RtConnectionIterator iter3 = look1.getMaterialAssigns().getTargets();
-    REQUIRE(look1.getMaterialAssigns().targetCount() == 2);
+    mx::RtConnectionIterator iter3 = look1.getMaterialAssigns().getConnections();
+    REQUIRE(look1.getMaterialAssigns().numConnections() == 2);
     while (!iter3.isDone())
     {
         REQUIRE((*iter3).getName() == "matassign1");
         break;
     }
     look1.removeMaterialAssign(pa2);
-    REQUIRE(look1.getMaterialAssigns().targetCount() == 1);
+    REQUIRE(look1.getMaterialAssigns().numConnections() == 1);
     look1.addMaterialAssign(pa2);
 
     mx::RtPrim lo2 = stage->createPrim("look2", mx::RtLook::typeName());
     mx::RtLook look2(lo2);
-    look2.getInherit().addTarget(lo1);
-    REQUIRE(look2.getInherit().targetCount() == 1);
+    look2.getInherit().connect(lo1);
+    REQUIRE(look2.getInherit().numConnections() == 1);
 
     //
     // Test lookgroup
@@ -1597,9 +1597,9 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     mx::RtLookGroup lookgroup1(lg1);
     lookgroup1.addLook(lo1);
     lookgroup1.addLook(lo2);
-    REQUIRE(lookgroup1.getLooks().targetCount() == 2);
+    REQUIRE(lookgroup1.getLooks().numConnections() == 2);
     lookgroup1.removeLook(lo1);
-    REQUIRE(lookgroup1.getLooks().targetCount() == 1);
+    REQUIRE(lookgroup1.getLooks().numConnections() == 1);
 
     lookgroup1.setActiveLook("look1");
     REQUIRE(lookgroup1.getActiveLook() == "look1");
@@ -1648,8 +1648,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         REQUIRE(p3);
         REQUIRE(p3.getTypeInfo()->getShortTypeName() == mx::RtCollection::typeName());
         rel = col1.getIncludeCollection();
-        REQUIRE(rel.targetCount() == 2);
-        iter = rel.getTargets();
+        REQUIRE(rel.numConnections() == 2);
+        iter = rel.getConnections();
         REQUIRE(!iter.isDone());
         REQUIRE(*iter == p2);
         ++iter;
@@ -1666,7 +1666,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         REQUIRE(pa.getTypeInfo()->getShortTypeName() == mx::RtMaterialAssign::typeName());
         assign1 = pa;
         REQUIRE(assign1);
-        iter = assign1.getCollection().getTargets();
+        iter = assign1.getCollection().getConnections();
         REQUIRE(!iter.isDone());
         REQUIRE((*iter) == p1);
         ++iter;
@@ -1694,7 +1694,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         REQUIRE(pa2.getTypeInfo()->getShortTypeName() == mx::RtMaterialAssign::typeName());
         assign2 = pa2;
         REQUIRE(assign2);
-        iter = assign2.getCollection().getTargets();
+        iter = assign2.getCollection().getConnections();
         REQUIRE(!iter.isDone());
         REQUIRE((*iter) == p2);
         ++iter;
@@ -1703,7 +1703,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         REQUIRE(assign2.getMaterial().isConnected());
         REQUIRE(assign2.getMaterial().getConnection().getParent() == sm2);
         REQUIRE(assign2.getExclusive() == false);
-        iter = look1.getMaterialAssigns().getTargets();
+        iter = look1.getMaterialAssigns().getConnections();
         REQUIRE(!iter.isDone());
         REQUIRE((*iter) == pa);
         ++iter;
@@ -1717,7 +1717,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         REQUIRE(lo2.getTypeInfo()->getShortTypeName() == mx::RtLook::typeName());
         look2 = lo2;
         REQUIRE(look2);
-        iter = look2.getInherit().getTargets();
+        iter = look2.getInherit().getConnections();
         REQUIRE(!iter.isDone());
         REQUIRE((*iter) == lo1);
         ++iter;
@@ -1732,7 +1732,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
         lookgroup1 = lg1;
         REQUIRE(lookgroup1);
 
-        iter = lookgroup1.getLooks().getTargets();
+        iter = lookgroup1.getLooks().getConnections();
         REQUIRE(!iter.isDone());
         REQUIRE((*iter) == lo2);
         ++iter;
@@ -1755,7 +1755,7 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     lookgroup2.addLook(lo2);
     REQUIRE_THROWS(lookgroup2.addLook(assign2.getPrim()));
 
-    iter = lookgroup2.getLooks().getTargets();
+    iter = lookgroup2.getLooks().getConnections();
     REQUIRE(!iter.isDone());
     REQUIRE((*iter) == lg3);
     ++iter;
@@ -2138,14 +2138,14 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     REQUIRE(result);
     mx::RtCommand::makeRelationship(rel1, add2, result);
     REQUIRE(result);
-    REQUIRE(rel1.targetCount() == 2);
+    REQUIRE(rel1.numConnections() == 2);
 
     mx::RtCommand::undo(result);
     REQUIRE(result);
-    REQUIRE(rel1.targetCount() == 1);
+    REQUIRE(rel1.numConnections() == 1);
     mx::RtCommand::redo(result);
     REQUIRE(result);
-    REQUIRE(rel1.targetCount() == 2);
+    REQUIRE(rel1.numConnections() == 2);
 
     REQUIRE(relationshipChangeCount == 4);
 

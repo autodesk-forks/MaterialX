@@ -234,7 +234,6 @@ protected:
 };
 
 
-using PvtDataHandleVec = vector<PvtDataHandle>;
 using PvtObjectVec = vector<PvtObject*>;
 
 // An object container with support for random access, 

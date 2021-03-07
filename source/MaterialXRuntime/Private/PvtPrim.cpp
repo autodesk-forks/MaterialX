@@ -48,7 +48,7 @@ void PvtPrim::destroy()
     // Disconnect and delete all relationships.
     for (PvtObject* obj : _rel.vec())
     {
-        obj->asA<PvtRelationship>()->clearTargets();
+        obj->asA<PvtRelationship>()->clearConnections();
     }
     _rel.clear();
 

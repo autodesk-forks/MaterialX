@@ -65,7 +65,7 @@ DEFINE_TYPED_SCHEMA(RtNode, "node");
 
 RtPrim RtNode::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
-    const RtPrim prim = RtApi::get().getNodeDef(typeName);
+    RtPrim prim = RtApi::get().getNodeDef(typeName);
     if (!prim)
     {
         throw ExceptionRuntimeError("No nodedef registered with name '" + typeName.str() + "'");
@@ -78,7 +78,7 @@ RtPrim RtNode::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
         throw ExceptionRuntimeError("Nodedef with name '" + typeName.str() + "' is not valid");
     }
 
-    const PvtPrim* nodedefPrim = PvtObject::ptr<PvtPrim>(prim);
+    PvtPrim* nodedefPrim = PvtObject::ptr<PvtPrim>(prim);
 
     const RtToken nodeName = name == EMPTY_TOKEN ? nodedef.getNode() : name;
     PvtDataHandle nodeH = PvtPrim::createNew(&_typeInfo, nodeName, PvtObject::ptr<PvtPrim>(parent));
@@ -86,7 +86,7 @@ RtPrim RtNode::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
 
     // Save the nodedef in a relationship.
     PvtRelationship* nodedefRelation = node->createRelationship(Tokens::NODEDEF);
-    nodedefRelation->addTarget(nodedefPrim);
+    nodedefRelation->connect(nodedefPrim);
 
     // Copy version tag if used.
     const RtToken& version = nodedef.getVersion();
@@ -128,15 +128,15 @@ void RtNode::setNodeDef(RtPrim nodeDef)
     }
     else
     {
-        nodedefRel->clearTargets();
+        nodedefRel->clearConnections();
     }
-    nodedefRel->addTarget(PvtObject::ptr<PvtPrim>(nodeDef));
+    nodedefRel->connect(PvtObject::ptr(nodeDef));
 }
 
 RtPrim RtNode::getNodeDef() const
 {
-    PvtRelationship* nodedef = prim()->getRelationship(Tokens::NODEDEF);
-    return nodedef && nodedef->hasTargets() ? nodedef->getAllTargets()[0] : RtPrim();
+    PvtRelationship* nodedefRel = prim()->getRelationship(Tokens::NODEDEF);
+    return nodedefRel && nodedefRel->hasConnections() ? nodedefRel->getConnection() : RtPrim();
 }
 
 void RtNode::setVersion(const RtToken& version)

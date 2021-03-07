@@ -79,12 +79,12 @@ const string& RtCollection::getExcludeGeom() const
 
 void RtCollection::addCollection(const RtObject& collection)
 {
-    getIncludeCollection().addTarget(collection);
+    getIncludeCollection().connect(collection);
 }
 
 void RtCollection::removeCollection(const RtObject& collection)
 {
-    getIncludeCollection().removeTarget(collection);
+    getIncludeCollection().disconnect(collection);
 }
 
 RtRelationship RtCollection::getIncludeCollection() const

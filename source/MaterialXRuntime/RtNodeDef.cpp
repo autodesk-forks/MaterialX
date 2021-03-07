@@ -226,7 +226,7 @@ RtRelationship RtNodeDef::getNodeImpls() const
 RtPrim RtNodeDef::getNodeImpl(const RtToken& target) const
 {
     RtRelationship rel = getNodeImpls();
-    for (RtObject obj : rel.getTargets())
+    for (RtObject obj : rel.getConnections())
     {
         if (obj.isA<RtPrim>())
         {

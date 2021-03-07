@@ -70,12 +70,12 @@ const string& RtLookGroup::getActiveLook() const
 
 void RtLookGroup::addLook(const RtObject& look)
 {
-    getLooks().addTarget(look);
+    getLooks().connect(look);
 }
 
 void RtLookGroup::removeLook(const RtObject& look)
 {
-    getLooks().removeTarget(look);
+    getLooks().disconnect(look);
 }
 
 RtRelationship RtLookGroup::getLooks() const
@@ -125,12 +125,12 @@ RtRelationship RtLook::getInherit() const
 
 void RtLook::addMaterialAssign(const RtObject& assignment)
 {
-    getMaterialAssigns().addTarget(assignment);
+    getMaterialAssigns().connect(assignment);
 }
 
 void RtLook::removeMaterialAssign(const RtObject& assignment)
 {
-    getMaterialAssigns().removeTarget(assignment);
+    getMaterialAssigns().disconnect(assignment);
 }
 
 RtRelationship RtLook::getMaterialAssigns() const

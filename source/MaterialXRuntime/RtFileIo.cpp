@@ -672,7 +672,7 @@ namespace
             if (!matAssign->getCollectionString().empty())
             {
                 PvtPrim* collection = findPrimOrThrow(RtToken(matAssign->getCollectionString()), parent, mapper);
-                rtMatAssign.getCollection().addTarget(collection->hnd());
+                rtMatAssign.getCollection().connect(collection->hnd());
             }
 
             if (!matAssign->getMaterial().empty())
@@ -694,7 +694,7 @@ namespace
 
             readAttributes(matAssign, assignPrim, mtrlAssignAttributes);
 
-            look.getMaterialAssigns().addTarget(assignPrim->hnd());
+            look.getMaterialAssigns().connect(assignPrim->hnd());
         }
 
         readAttributes(src, lookPrim, lookAttributes);
@@ -714,7 +714,7 @@ namespace
             {
                 PvtPrim* parentLook = findPrimOrThrow(RtToken(inheritString), parent, mapper);
                 RtLook rtLook(childLook->hnd());
-                rtLook.getInherit().addTarget(parentLook->hnd());
+                rtLook.getInherit().connect(parentLook->hnd());
             }
         }
     }
@@ -1172,7 +1172,7 @@ namespace
                 collection->setIncludeGeom(rtCollection.getIncludeGeom());
 
                 RtRelationship rtIncludeCollection = rtCollection.getIncludeCollection();
-                string includeList = rtIncludeCollection.getTargetsAsString();                
+                string includeList = rtIncludeCollection.getObjectNames();                
                 collection->setIncludeCollectionString(includeList);
 
                 writeAttributes(prim, collection, collectionAttributes, options);
@@ -1199,13 +1199,14 @@ namespace
                 LookPtr look = dest.addLook(name);
 
                 // Add inherit
-                if (!rtLook.getInherit().getTargetsAsString().empty())
+                const string inheritList = rtLook.getInherit().getObjectNames();
+                if (!inheritList.empty())
                 {
-                    look->setInheritString(rtLook.getInherit().getTargetsAsString());
+                    look->setInheritString(inheritList);
                 }
 
                 // Add in material assignments
-                for (const RtObject& obj : rtLook.getMaterialAssigns().getTargets())
+                for (RtObject obj : rtLook.getMaterialAssigns().getConnections())
                 {
                     PvtPrim* pprim = PvtObject::ptr<PvtPrim>(obj);
                     RtMaterialAssign rtMatAssign(pprim->hnd());
@@ -1219,10 +1220,9 @@ namespace
                     massign->setExclusive(rtMatAssign.getExclusive());
                     massign->setGeom(rtMatAssign.getGeom());
 
-                    auto iter = rtMatAssign.getCollection().getTargets();
-                    if (!iter.isDone())
+                    if (rtMatAssign.getCollection().hasConnections())
                     {
-                        massign->setCollectionString((*iter).getName().str());
+                        massign->setCollectionString(rtMatAssign.getCollection().getConnection().getName().str());
                     }
 
                     if (rtMatAssign.getMaterial().isConnected())
@@ -1256,7 +1256,7 @@ namespace
 
                 LookGroupPtr lookGroup = dest.addLookGroup(name);
 
-                string lookList = rtLookGroup.getLooks().getTargetsAsString();
+                const string lookList = rtLookGroup.getLooks().getObjectNames();
                 lookGroup->setLooks(lookList);
                 lookGroup->setActiveLook(rtLookGroup.getActiveLook());
 

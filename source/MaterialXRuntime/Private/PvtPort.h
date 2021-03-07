@@ -179,11 +179,6 @@ class PvtOutput : public PvtPort
 public:
     PvtOutput(const RtToken& name, const RtToken& type, uint32_t flags, PvtPrim* parent);
 
-    bool isConnected() const
-    {
-        return !_connections.empty();
-    }
-
     bool isConnectable(const PvtInput* input) const
     {
         return input->isConnectable(this);
@@ -197,6 +192,21 @@ public:
     void disconnect(PvtInput* input)
     {
         return input->disconnect(this);
+    }
+
+    bool isConnected() const
+    {
+        return !_connections.empty();
+    }
+
+    size_t numConnections() const
+    {
+        return !_connections.size();
+    }
+
+    RtInput getConnection(size_t index) const
+    {
+        return _connections[index]->hnd();
     }
 
     RtInputIterator getConnections() const

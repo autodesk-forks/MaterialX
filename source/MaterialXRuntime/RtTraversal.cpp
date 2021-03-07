@@ -132,6 +132,18 @@ RtOutputIterator::RtOutputIterator(const RtObject& obj) :
     ++*this;
 }
 
+RtRelationshipIterator::RtRelationshipIterator(const RtObject& obj) :
+    RtObjectIterator()
+{
+    if (obj.isA<RtPrim>())
+    {
+        PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
+        _ptr = prim->_rel.empty() ? nullptr : &prim->_rel.vec();
+    }
+    ++*this;
+}
+
+
 RtConnectionIterator::RtConnectionIterator(const RtObject& obj) :
     RtObjectIterator()
 {
@@ -143,18 +155,7 @@ RtConnectionIterator::RtConnectionIterator(const RtObject& obj) :
     else if (obj.isA<RtRelationship>())
     {
         PvtRelationship* rel = PvtObject::ptr<PvtRelationship>(obj);
-        _ptr = rel->_targets.empty() ? nullptr : &rel->_targets;
-    }
-    ++*this;
-}
-
-RtRelationshipIterator::RtRelationshipIterator(const RtObject& obj) :
-    RtObjectIterator()
-{
-    if (obj.isA<RtPrim>())
-    {
-        PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
-        _ptr = prim->_rel.empty() ? nullptr : &prim->_rel.vec();
+        _ptr = rel->_connections.empty() ? nullptr : &rel->_connections;
     }
     ++*this;
 }
