@@ -49,11 +49,11 @@ public:
     RtToken renameOutput(const RtToken& name, const RtToken& newName);
 
     /// Return the internal socket that corresponds
-    /// to the named input attribute.
+    /// to the named input port.
     RtOutput getInputSocket(const RtToken& name) const;
 
     /// Return the internal socket that corresponds
-    /// to the named output attribute.
+    /// to the named output port.
     RtInput getOutputSocket(const RtToken& name) const;
 
     /// Return a node layout struct for this graph.
@@ -79,10 +79,6 @@ public:
     /// Convert this graph to a string in the DOT language syntax. This can be
     /// used to visualise the graph using GraphViz (http://www.graphviz.org).
     string asStringDot() const;
-
-public:
-    /// Type info for internal socket nodes.
-    static const RtTypeInfo SOCKETS_TYPE_INFO;
 };
 
 }

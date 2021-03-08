@@ -64,12 +64,76 @@ namespace
         }
     };
 
-    const RtToken SOCKETS("_nodegraph_internal_sockets");
 }
 
-DEFINE_TYPED_SCHEMA(RtNodeGraph, "node:nodegraph");
 
-const RtTypeInfo RtNodeGraph::SOCKETS_TYPE_INFO("_nodegraph_internal_sockets");
+// Private implementation of nodegraph prim.
+class PvtNodeGraphPrim : public PvtPrim
+{
+public:
+    PvtNodeGraphPrim(const RtTypeInfo* typeInfo, const RtToken& name, PvtPrim* parent)
+        : PvtPrim(typeInfo, name, parent)
+    {}
+
+    PvtOutput* createInputSocket(const RtToken& name, const RtToken& type, uint32_t flags)
+    {
+        PvtOutput* port = new PvtOutput(name, type, flags | RtPortFlag::SOCKET, this);
+        _inputSockets.add(port);
+        return port;
+    }
+
+    PvtInput* createOutputSocket(const RtToken& name, const RtToken& type, uint32_t flags)
+    {
+        PvtInput* port = new PvtInput(name, type, flags | RtPortFlag::SOCKET, this);
+        _outputSockets.add(port);
+        return port;
+    }
+
+    void removeInputSocket(const RtToken& name)
+    {
+        PvtDataHandle hnd = _inputSockets.remove(name);
+        hnd->asA<PvtPort>()->setDisposed(true);
+    }
+
+    void removeOutputSocket(const RtToken& name)
+    {
+        PvtDataHandle hnd = _outputSockets.remove(name);
+        hnd->asA<PvtPort>()->setDisposed(true);
+    }
+
+    void renameInputSocket(const RtToken& name, const RtToken& newName)
+    {
+        PvtDataHandle hnd = _inputSockets.remove(name);
+        hnd->asA<PvtPort>()->setName(newName);
+        _inputSockets.add(hnd.get());
+    }
+
+    void renameOutputSocket(const RtToken& name, const RtToken& newName)
+    {
+        PvtDataHandle hnd = _outputSockets.remove(name);
+        hnd->asA<PvtPort>()->setName(newName);
+        _outputSockets.add(hnd.get());
+    }
+
+    PvtOutput* getInputSocket(const RtToken& name) const
+    {
+        PvtObject* obj = _inputSockets.find(name);
+        return obj ? obj->asA<PvtOutput>() : nullptr;
+    }
+
+    PvtInput* getOutputSocket(const RtToken& name) const
+    {
+        PvtObject* obj = _outputSockets.find(name);
+        return obj ? obj->asA<PvtInput>() : nullptr;
+    }
+
+  private:
+    PvtObjectList _inputSockets;
+    PvtObjectList _outputSockets;
+};
+
+
+DEFINE_TYPED_SCHEMA(RtNodeGraph, "node:nodegraph");
 
 RtPrim RtNodeGraph::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
 {
@@ -77,13 +141,7 @@ RtPrim RtNodeGraph::createPrim(const RtToken& typeName, const RtToken& name, RtP
 
     static const RtToken DEFAULT_NAME("nodegraph1");
     const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
-    PvtDataHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
-
-    PvtPrim* prim = primH->asA<PvtPrim>();
-
-    // Add a child prim to hold the internal sockets.
-    PvtDataHandle socketH = PvtPrim::createNew(&SOCKETS_TYPE_INFO, SOCKETS, prim);
-    prim->addChildPrim(socketH->asA<PvtPrim>());
+    PvtDataHandle primH = PvtPrim::createNew<PvtNodeGraphPrim>(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
 
     return primH;
 }
@@ -96,64 +154,62 @@ const RtPrimSpec& RtNodeGraph::getPrimSpec() const
 
 RtInput RtNodeGraph::createInput(const RtToken& name, const RtToken& type, uint32_t flags)
 {
-    PvtPrim* socket = prim()->getChild(SOCKETS);
-    RtInput input = prim()->createInput(name, type, flags)->hnd();
-    socket->createOutput(input.getName(), type, flags | RtPortFlag::SOCKET);
-    return input;
+    PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
+    PvtInput* port = graph->createInput(name, type, flags);
+    graph->createInputSocket(port->getName(), type, flags);
+    return port->hnd();
 }
 
 void RtNodeGraph::removeInput(const RtToken& name)
 {
-    PvtPrim* socket = prim()->getChild(SOCKETS);
-    prim()->removeInput(name);
-    socket->removeOutput(name);
+    PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
+    graph->removeInputSocket(name);
+    graph->removeInput(name);
 }
 
 RtToken RtNodeGraph::renameInput(const RtToken& name, const RtToken& newName)
 {
-    PvtPrim* socket = prim()->getChild(SOCKETS);
-    RtToken newPortName = prim()->renameInput(name, newName);
-    socket->renameOutput(name, newPortName);
+    PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
+    RtToken newPortName = graph->renameInput(name, newName);
+    graph->renameInputSocket(name, newPortName);
     return newPortName;
 }
 
 RtOutput RtNodeGraph::createOutput(const RtToken& name, const RtToken& type, uint32_t flags)
 {
-    PvtPrim* socket = prim()->getChild(SOCKETS);
-    RtOutput output = prim()->createOutput(name, type, flags)->hnd();
-    socket->createInput(output.getName(), type, flags | RtPortFlag::SOCKET);
-    return output;
+    PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
+    PvtOutput* port = graph->createOutput(name, type, flags);
+    graph->createOutputSocket(port->getName(), type, flags);
+    return port->hnd();
 }
 
 void RtNodeGraph::removeOutput(const RtToken& name)
 {
-    PvtPrim* socket = prim()->getChild(SOCKETS);
-    prim()->removeOutput(name);
-    socket->removeInput(name);
+    PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
+    graph->removeOutputSocket(name);
+    graph->removeOutput(name);
 }
 
 RtToken RtNodeGraph::renameOutput(const RtToken& name, const RtToken& newName)
 {
-    PvtPrim* socket = prim()->getChild(SOCKETS);
-    RtToken newPortName = prim()->renameOutput(name, newName);
-    socket->renameInput(name, newPortName);
+    PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
+    RtToken newPortName = graph->renameOutput(name, newName);
+    graph->renameOutputSocket(name, newPortName);
     return newPortName;
 }
 
 RtOutput RtNodeGraph::getInputSocket(const RtToken& name) const
 {
-    PvtPrim* socket = prim()->getChild(SOCKETS);
-    // Input socket is an output in practice.
-    PvtOutput* output = socket->getOutput(name);
-    return output ? output->hnd() : RtOutput();
+    PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
+    PvtOutput* socket = graph->getInputSocket(name);
+    return socket ? socket->hnd() : RtOutput();
 }
 
 RtInput RtNodeGraph::getOutputSocket(const RtToken& name) const
 {
-    PvtPrim* socket = prim()->getChild(SOCKETS);
-    // Output socket is an input in practice.
-    PvtInput* input = socket->getInput(name);
-    return input ? input->hnd() : RtInput();
+    PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
+    PvtInput* socket = graph->getOutputSocket(name);
+    return socket ? socket->hnd() : RtInput();
 }
 
 RtNodeLayout RtNodeGraph::getNodeLayout()
@@ -304,12 +360,10 @@ string RtNodeGraph::asStringDot() const
         }
     }
 
-    RtPrim sockets = getPrim().getChild(SOCKETS);
-
     // Add connections between nodes and output sockets.
-    for (size_t i = 0; i < sockets.numInputs(); ++i)
+    for (RtOutput output : getOutputs())
     {
-        RtInput socket = sockets.getInput(i);
+        RtInput socket = getOutputSocket(output.getName());
         if (socket.isConnected())
         {
             const RtOutput src = socket.getConnection();

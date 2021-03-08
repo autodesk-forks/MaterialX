@@ -230,6 +230,7 @@ protected:
     friend class PvtPort;
     friend class PvtInput;
     friend class PvtOutput;
+    friend class PvtNodeGraphPrim;
     RT_FRIEND_REF_PTR_FUNCTIONS(PvtObject)
 };
 

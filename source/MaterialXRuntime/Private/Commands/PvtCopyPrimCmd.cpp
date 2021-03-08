@@ -86,7 +86,7 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
     }
 
     // Copy metadata that don't exists by default.
-    copyMetadata(PvtObject::hnd(prim)->asA<PvtObject>(), PvtObject::hnd(copy)->asA<PvtObject>());
+    copyMetadata(PvtObject::ptr(prim), PvtObject::ptr(copy));
 
     // Copy any inputs & outputs that don't exists by default.
     RtNodeGraph ng(prim);
@@ -102,8 +102,8 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
             {
                 portCopy = ngCopy.createInput(port->getName(), port->getType(), port->getFlags());
             }
-            portCopy.setValue(port->getValue());
-            copyMetadata(port, PvtObject::hnd(portCopy)->asA<PvtObject>());
+            RtValue::copy(port->getType(), port->getValue(), portCopy.getValue());
+            copyMetadata(port, PvtObject::ptr(portCopy));
         }
         for (size_t i = 0; i < ng.prim()->numOutputs(); ++i)
         {
@@ -113,8 +113,8 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
             {
                 portCopy = ngCopy.createOutput(port->getName(), port->getType(), port->getFlags());
             }
-            portCopy.setValue(port->getValue());
-            copyMetadata(port, PvtObject::hnd(portCopy)->asA<PvtObject>());
+            RtValue::copy(port->getType(), port->getValue(), portCopy.getValue());
+            copyMetadata(port, PvtObject::ptr(portCopy));
         }
     }
     else
@@ -127,8 +127,8 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
             {
                 portCopy = copy.createInput(port->getName(), port->getType(), port->getFlags());
             }
-            portCopy.setValue(port->getValue());
-            copyMetadata(port, PvtObject::hnd(portCopy)->asA<PvtObject>());
+            RtValue::copy(port->getType(), port->getValue(), portCopy.getValue());
+            copyMetadata(port, PvtObject::ptr(portCopy));
         }
         for (size_t i = 0; i < prim.numOutputs(); ++i)
         {
@@ -138,8 +138,8 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
             {
                 portCopy = copy.createOutput(port->getName(), port->getType(), port->getFlags());
             }
-            portCopy.setValue(port->getValue());
-            copyMetadata(port, PvtObject::hnd(portCopy)->asA<PvtObject>());
+            RtValue::copy(port->getType(), port->getValue(), portCopy.getValue());
+            copyMetadata(port, PvtObject::ptr(portCopy));
         }
     }
 
@@ -163,27 +163,52 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
             }
         }
 
-        // Copy connections that don't exists by default.
-        // Note that for a nodegraph prim this includes
-        // any socket connections as the sockets are stored
-        // on a dedicated socket child node.
+        RtNodeGraph ng2(copy);
+
+        // Copy connections inbetween nodes
+        // and between nodes and input interface.
         for (RtPrim child1 : prim.getChildren())
         {
             RtPrim child2 = copy.getChild(child1.getName());
 
-            for (RtPort attr : child1.getInputs())
+            for (RtInput dest1 : child1.getInputs())
             {
-                const RtInput dest1 = attr.asA<RtInput>();
                 const RtOutput src1 = dest1.getConnection();
                 if (src1)
                 {
                     RtInput dest2 = child2.getInput(dest1.getName());
                     if (!dest2.isConnected())
                     {
-                        RtPrim src2Node = copy.getChild(src1.getParent().getName());
-                        RtOutput src2 = src2Node.getOutput(src1.getName());
-                        src2.connect(dest2);
+                        if (src1.isSocket())
+                        {
+                            // Prim must be a nodegraph so connect to the corresponding socket.
+                            RtOutput src2 = ng2.getInputSocket(src1.getName());
+                            src2.connect(dest2);
+                        }
+                        else
+                        {
+                            RtPrim src2Node = copy.getChild(src1.getParent().getName());
+                            RtOutput src2 = src2Node.getOutput(src1.getName());
+                            src2.connect(dest2);
+                        }
                     }
+                }
+            }
+        }
+
+        // Copy connections between nodes and output sockets.
+        if (ng)
+        {
+            for (RtOutput output : ng.getOutputs())
+            {
+                RtInput dest1 = ng.getOutputSocket(output.getName());
+                if (dest1.isConnected())
+                {
+                    RtOutput src1 = dest1.getConnection();
+                    RtInput dest2 = ng2.getOutputSocket(output.getName());
+                    RtPrim src2Node = ng2.getNode(src1.getParent().getName());
+                    RtOutput src2 = src2Node.getOutput(src1.getName());
+                    src2.connect(dest2);
                 }
             }
         }

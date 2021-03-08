@@ -63,6 +63,7 @@ private:
 };
 
 class RtPrimIterator;
+class PvtNodeGraphPrim;
 
 class PvtPrim : public PvtObject
 {
