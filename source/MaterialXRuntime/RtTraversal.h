@@ -19,6 +19,71 @@ class PvtPrim;
 class RtPrim;
 class RtStage;
 
+/// Struct holding attribute information as returned from the RtAttributeIterator.
+struct RtAttribute
+{
+    RtToken name;
+    RtTypedValue* value;
+    RtAttribute(RtToken n, RtTypedValue* v) : name(n), value(v) {}
+};
+
+/// @class RtAttributeIterator
+/// API for iterating over all attributes on an object.
+class RtAttributeIterator
+{
+public:
+    /// Empty constructor.
+    RtAttributeIterator();
+
+    /// Constructor, setting the object to iterate on.
+    RtAttributeIterator(const RtObject& obj);
+
+    /// Copy constructor.
+    RtAttributeIterator(const RtAttributeIterator& other);
+
+    /// Assignment operator.
+    RtAttributeIterator& operator=(const RtAttributeIterator& other);
+
+    /// Destructor.
+    ~RtAttributeIterator();
+
+    /// Equality operator.
+    bool operator==(const RtAttributeIterator& other) const;
+
+    /// Inequality operator.
+    bool operator!=(const RtAttributeIterator& other) const
+    {
+        return !(*this == other);
+    }
+
+    /// Iterate to the next attribute in the traversal.
+    RtAttributeIterator& operator++();
+
+    /// Dereference this iterator, returning the current attribute
+    /// in the traversal.
+    RtAttribute operator*() const;
+
+    /// Return true if there are no more attributes in the traversal.
+    bool isDone() const;
+
+    /// Force the iterator to terminate the traversal.
+    void abort();
+
+    /// Interpret this object as an iteration range,
+    /// and return its begin iterator.
+    RtAttributeIterator& begin()
+    {
+        return *this;
+    }
+
+    /// Return the sentinel end iterator for this class.
+    static const RtAttributeIterator& end();
+
+private:
+    void* _ptr;
+};
+
+
 /// Traversal predicate for specific object types.
 template<typename T>
 struct RtObjTypePredicate
@@ -137,87 +202,6 @@ public:
     RtConnectionIterator(const RtObject& obj);
 };
 
-
-/*
-/// @class RtPrimIterator
-/// Iterator for traversing over the child prims (siblings) of a prim.
-/// Using a predicate this iterator can be used to find all child prims
-/// of a specific object type, or all child prims supporting a
-/// specific API, etc.
-class RtPrimIterator
-{
-public:
-    /// Empty constructor.
-    RtPrimIterator() :
-        _prim(nullptr),
-        _current(-1)
-    {}
-
-    /// Constructor, setting the prim to iterate on,
-    /// and an optional predicate function.
-    RtPrimIterator(const RtPrim& prim, RtObjectPredicate predicate = nullptr);
-
-    /// Copy constructor.
-    RtPrimIterator(const RtPrimIterator& other) :
-        _prim(other._prim),
-        _current(other._current),
-        _predicate(other._predicate)
-    {}
-
-    /// Assignment operator.
-    RtPrimIterator& operator=(const RtPrimIterator& other)
-    {
-        _prim = other._prim;
-        _current = other._current;
-        _predicate = other._predicate;
-        return *this;
-    }
-
-    /// Equality operator.
-    bool operator==(const RtPrimIterator& other) const
-    {
-        return _current == other._current &&
-            _prim == other._prim;
-    }
-
-    /// Inequality operator.
-    bool operator!=(const RtPrimIterator& other) const
-    {
-        return !(*this == other);
-    }
-
-    /// Dereference this iterator, returning the current siblings.
-    RtPrim operator*() const;
-
-    /// Iterate to the next sibling.
-    RtPrimIterator& operator++();
-
-    /// Return true if there are no more siblings in the iteration.
-    bool isDone() const;
-
-    /// Force the iterator to terminate the traversal.
-    void abort()
-    {
-        *this = end();
-    }
-
-    /// Interpret this object as an iteration range,
-    /// and return its begin iterator.
-    RtPrimIterator& begin()
-    {
-        return *this;
-    }
-
-    /// Return the sentinel end iterator for this class.
-    static const RtPrimIterator& end();
-
-private:
-    void* _ptr;
-    int _current;
-    RtObjectPredicate _predicate;
-};
-*/
-
 /// @class RtStageIterator
 /// API for iterating over prims in a stage, including referenced stages.
 /// Only stage level prims are returned. Using a predicate this iterator can be
@@ -246,7 +230,10 @@ public:
     bool operator==(const RtStageIterator& other) const;
 
     /// Inequality operator.
-    bool operator!=(const RtStageIterator& other) const;
+    bool operator!=(const RtStageIterator& other) const
+    {
+        return !(*this == other);
+    }
 
     /// Iterate to the next element in the traversal.
     RtStageIterator& operator++();

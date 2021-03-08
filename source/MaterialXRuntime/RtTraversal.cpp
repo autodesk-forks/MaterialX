@@ -18,6 +18,7 @@ namespace MaterialX
 namespace
 {
 
+static const RtAttributeIterator NULL_ATTRIBUTE_ITERATOR;
 static const RtStageIterator NULL_STAGE_ITERATOR;
 
 using StageIteratorStackFrame = std::tuple<PvtStage*, int, int>;
@@ -29,49 +30,98 @@ struct StageIteratorData
     vector<StageIteratorStackFrame> stack;
 };
 
+struct AttrIteratorData
+{
+    PvtDataHandle obj;
+    size_t index;
+    AttrIteratorData() : obj(nullptr), index(0) {}
+    AttrIteratorData(const PvtDataHandle& o) : obj(o), index(0) {}
+};
+
 }
 
-/*
-RtPrimIterator::RtPrimIterator(const RtPrim& prim, RtObjectPredicate predicate) :
-    _prim(nullptr),
-    _current(-1),
-    _predicate(predicate)
+RtAttributeIterator::RtAttributeIterator() :
+    _ptr(nullptr)
 {
-    if (prim)
+}
+
+RtAttributeIterator::RtAttributeIterator(const RtObject& obj) :
+    _ptr(new AttrIteratorData(PvtObject::hnd(obj)))
+{
+}
+
+RtAttributeIterator::RtAttributeIterator(const RtAttributeIterator& other) :
+    _ptr(nullptr)
+{
+    if (other._ptr)
     {
-        _prim = PvtObject::ptr<PvtPrim>(prim);
-        ++*this;
+        _ptr = new AttrIteratorData();
+        *static_cast<AttrIteratorData*>(_ptr) = *static_cast<AttrIteratorData*>(other._ptr);
     }
 }
 
-RtPrim RtPrimIterator::operator*() const
+RtAttributeIterator& RtAttributeIterator::operator=(const RtAttributeIterator& other)
 {
-    return _prim->getAllChildren()[_current]->hnd();
-}
-
-RtPrimIterator& RtPrimIterator::operator++()
-{
-    while (_prim && ++_current < int(_prim->getAllChildren().size()))
+    if (other._ptr)
     {
-        if (!_predicate || _predicate(_prim->getAllChildren()[_current]->obj()))
+        if (!_ptr)
         {
-            return *this;
+            _ptr = new AttrIteratorData();
         }
+        *static_cast<AttrIteratorData*>(_ptr) = *static_cast<AttrIteratorData*>(other._ptr);
     }
-    abort();
     return *this;
 }
 
-bool RtPrimIterator::isDone() const
+RtAttributeIterator::~RtAttributeIterator()
 {
-    return !(_prim && _current < int(_prim->getAllChildren().size()));
+    delete static_cast<AttrIteratorData*>(_ptr);
 }
 
-const RtPrimIterator& RtPrimIterator::end()
+bool RtAttributeIterator::operator==(const RtAttributeIterator& other) const
 {
-    return NULL_PRIM_ITERATOR;
+    AttrIteratorData* data1 = static_cast<AttrIteratorData*>(_ptr);
+    AttrIteratorData* data2 = static_cast<AttrIteratorData*>(other._ptr);
+    return data1 && data2 ?
+        data1->obj == data2->obj && data1->index == data2->index :
+        data1 == data2;
 }
-*/
+
+RtAttribute RtAttributeIterator::operator*() const
+{
+    AttrIteratorData* data = static_cast<AttrIteratorData*>(_ptr);
+    PvtObject* obj = data->obj->asA<PvtObject>();
+    const RtToken& name = obj->_attrNames[data->index];
+    return RtAttribute(name, obj->getAttribute(name));
+}
+
+bool RtAttributeIterator::isDone() const
+{
+    return _ptr == nullptr;
+}
+
+const RtAttributeIterator& RtAttributeIterator::end()
+{
+    return NULL_ATTRIBUTE_ITERATOR;
+}
+
+RtAttributeIterator& RtAttributeIterator::operator++()
+{
+    AttrIteratorData* data = static_cast<AttrIteratorData*>(_ptr);
+    PvtObject* obj = data->obj->asA<PvtObject>();
+    if (++data->index >= obj->_attrNames.size())
+    {
+        abort();
+    }
+    return *this;
+}
+
+void RtAttributeIterator::abort()
+{
+    delete static_cast<AttrIteratorData*>(_ptr);
+    _ptr = nullptr;
+}
+
 
 template<class T>
 const RtObjectIterator<T> RtObjectIterator<T>::NULL_ITERATOR;
@@ -228,13 +278,6 @@ bool RtStageIterator::operator==(const RtStageIterator& other) const
     return _ptr && other._ptr ?
         static_cast<StageIteratorData*>(_ptr)->current == static_cast<StageIteratorData*>(other._ptr)->current :
         _ptr == other._ptr;
-}
-
-bool RtStageIterator::operator!=(const RtStageIterator& other) const
-{
-    return _ptr && other._ptr ?
-        static_cast<StageIteratorData*>(_ptr)->current != static_cast<StageIteratorData*>(other._ptr)->current :
-        _ptr != other._ptr;
 }
 
 RtPrim RtStageIterator::operator*() const

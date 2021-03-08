@@ -6,6 +6,7 @@
 #include <MaterialXRuntime/RtObject.h>
 #include <MaterialXRuntime/RtPrim.h>
 #include <MaterialXRuntime/RtPath.h>
+#include <MaterialXRuntime/RtTraversal.h>
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
@@ -75,26 +76,6 @@ void RtObject::removeAttribute(const RtToken& name)
     hnd()->asA<PvtObject>()->removeAttribute(name);
 }
 
-size_t RtObject::numAttributes() const
-{
-    return hnd()->asA<PvtObject>()->getAttributes().size();
-}
-
-RtToken RtObject::getAttributeName(size_t index) const
-{
-    return hnd()->asA<PvtObject>()->getAttributeName(index);
-}
-
-RtTypedValue* RtObject::getAttribute(size_t index)
-{
-    return &(hnd()->asA<PvtObject>()->getAttributes()[index]);
-}
-
-const RtTypedValue* RtObject::getAttribute(size_t index) const
-{
-    return &(hnd()->asA<PvtObject>()->getAttributes()[index]);
-}
-
 RtTypedValue* RtObject::getAttribute(const RtToken& name)
 {
     return hnd()->asA<PvtObject>()->getAttribute(name);
@@ -113,6 +94,11 @@ RtTypedValue* RtObject::getAttribute(const RtToken& name, const RtToken& type)
 const RtTypedValue* RtObject::getAttribute(const RtToken& name, const RtToken& type) const
 {
     return hnd()->asA<PvtObject>()->getAttribute(name, type);
+}
+
+RtAttributeIterator RtObject::getAttributes() const
+{
+    return RtAttributeIterator(*this);
 }
 
 bool RtObject::isCompatible(RtObjType typeId) const

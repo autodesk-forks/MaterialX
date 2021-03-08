@@ -22,6 +22,7 @@ class PvtPrim;
 class PvtPort;
 class PvtRelationship;
 class RtStage;
+class RtAttributeIterator;
 
 // A handle to private object data
 RT_DECLARE_REF_PTR_TYPE(PvtObject, PvtDataHandle)
@@ -144,20 +145,6 @@ public:
     /// Remove an attribute from the object.
     void removeAttribute(const RtToken& name);
 
-    /// Returns the number of attribute.
-    size_t numAttributes() const;
-
-    /// Return the attribute name for the given index.
-    RtToken getAttributeName(size_t index) const;
-
-    /// Return an attribute by index.
-    /// No type check is performed.
-    RtTypedValue* getAttribute(size_t index);
-
-    /// Return an attribute by index.
-    /// No type check is performed.
-    const RtTypedValue* getAttribute(size_t index) const;
-
     /// Return an attribute by name.
     /// No type check is performed.
     RtTypedValue* getAttribute(const RtToken& name);
@@ -175,6 +162,9 @@ public:
     /// With a type check that throw exception if an attribute 
     /// exists but has a different deta type.
     const RtTypedValue* getAttribute(const RtToken& name, const RtToken& type) const;
+
+    /// Return an iterator over all attributes on this object.
+    RtAttributeIterator getAttributes() const;
 
 protected:
 #ifdef NDEBUG

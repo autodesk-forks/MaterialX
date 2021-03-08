@@ -26,6 +26,14 @@ PvtObject::PvtObject(const RtToken& name, PvtPrim* parent) :
     setTypeBit<PvtObject>();
 }
 
+PvtObject::~PvtObject()
+{
+    for (auto it : _attr)
+    {
+        delete it.second;
+    }
+}
+
 PvtPath PvtObject::getPath() const
 {
     return PvtPath(this);
@@ -54,20 +62,30 @@ RtTypedValue* PvtObject::createAttribute(const RtToken& name, const RtToken& typ
         return value;
     }
 
-    PvtPrim* prim = isA<PvtPrim>() ? asA<PvtPrim>() : _parent;
-    _attr.push_back(RtTypedValue(type, RtValue::createNew(type, prim->prim())));
-    _attrIndexByName[name] = _attr.size() - 1;
+    PvtPrim* owner = isA<PvtPrim>() ? asA<PvtPrim>() : _parent;
+    RtTypedValue* attr = new RtTypedValue(type, RtValue::createNew(type, owner->prim()));
+    _attr[name] = attr;
+    _attrNames.push_back(name);
 
-    return &_attr.back();
+    return attr;
 }
 
 void PvtObject::removeAttribute(const RtToken& name)
 {
-    auto it = _attrIndexByName.find(name);
-    if (it != _attrIndexByName.end())
+    auto it = _attr.find(name);
+    if (it != _attr.end())
     {
-        _attr.erase(_attr.begin() + it->second);
-        _attrIndexByName.erase(it);
+        RtTypedValue* attr = it->second;
+        for (auto it2 = _attrNames.begin(); it2 != _attrNames.end(); ++it2)
+        {
+            if (*it2 == it->first)
+            {
+                _attrNames.erase(it2);
+                break;
+            }
+        }
+        _attr.erase(it);
+        delete attr;
     }
 }
 

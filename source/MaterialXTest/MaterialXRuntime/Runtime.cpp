@@ -664,7 +664,7 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(!invalid_in);
     REQUIRE(!invalid_out);
 
-    // Test setting input metadata
+    // Test setting input attributes.
     const mx::RtToken meter("meter");
     const mx::RtToken srgb("srgb");
     add1_in1.setUnit(meter);
@@ -675,9 +675,41 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(add1_in2.getColorSpace() == srgb);
     mx::RtTypedValue* fooData = add1_in1.createAttribute(FOO, mx::RtType::FLOAT);
     fooData->asFloat() = 7.0f;
+    mx::RtTypedValue* barData = add1_in1.createAttribute(BAR, mx::RtType::COLOR3);
+    barData->asColor3() = mx::Color3(1,0,0);
     REQUIRE(fooData == add1_in1.getAttribute(FOO));
+    REQUIRE(barData == add1_in1.getAttribute(BAR));
+
+    // Test traversing attributes.
+    size_t attrCount = 0;
+    for (auto it : add1_in1.getAttributes())
+    {
+        ++attrCount;
+    }
+    REQUIRE(attrCount == 3);
+    attrCount = 0;
+    for (auto it : add1_in2.getAttributes())
+    {
+        ++attrCount;
+    }
+    REQUIRE(attrCount == 1);
+    mx::RtAttributeIterator attrIt = add1_in1.getAttributes();
+    REQUIRE(mx::Tokens::UNIT == (*attrIt).name);
+    REQUIRE(meter == (*attrIt).value->asToken());
+    ++attrIt;
+    REQUIRE(FOO == (*attrIt).name);
+    REQUIRE(fooData == (*attrIt).value);
+    ++attrIt;
+    REQUIRE(BAR == (*attrIt).name);
+    REQUIRE(barData == (*attrIt).value);
+    ++attrIt;
+    REQUIRE(attrIt.isDone());
+
+    // Test removing attributes.
     add1_in1.removeAttribute(FOO);
     REQUIRE(nullptr == add1_in1.getAttribute(FOO));
+    add1_in1.removeAttribute(BAR);
+    REQUIRE(nullptr == add1_in1.getAttribute(BAR));
 
     // Test port connectability
     REQUIRE(add1_out.isConnectable(add2_in1));

@@ -146,25 +146,25 @@ namespace
 
     void writeAttributes(const PvtObject* src, ElementPtr dest, const RtTokenSet& ignoreList, const RtWriteOptions* options)
     {
-        for (size_t i=0; i<src->getAttributes().size(); ++i)
+        for (auto it : src->getAttributes())
         {
-            const RtToken& name = src->getAttributeName(i);
+            const RtToken& name = it.first;
             if (ignoreList.count(name) ||
                 (name.str().size() > 0 && name.str().at(0) == '_')) // Attributes with "_" prefix are private
             {
                 continue;
             }
 
-            const RtTypedValue& attr = src->getAttributes()[i];
+            const RtTypedValue* attr = it.second;
 
             // Check filter if the attribute should be ignored
-            if (options && options->attributeFilter && options->attributeFilter(src->hnd(), name, &attr))
+            if (options && options->attributeFilter && options->attributeFilter(src->hnd(), name, attr))
             {
                 continue;
             }
 
             // Get the value as string to cover all attribute types.
-            const string valueString = attr.getValueString();
+            const string valueString = attr->getValueString();
             if (!valueString.empty())
             {
                 dest->setAttribute(name.str(), valueString);

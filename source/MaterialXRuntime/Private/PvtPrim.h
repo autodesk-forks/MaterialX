@@ -104,7 +104,10 @@ public:
 
     void removeRelationship(const RtToken& name);
 
-    void renameRelationship(const RtToken& name, const RtToken& newName);
+    void renameRelationship(const RtToken& name, const RtToken& newName)
+    {
+        _rel.rename(name, newName);
+    }
 
     PvtRelationship* getRelationship(const RtToken& name)
     {
@@ -131,7 +134,12 @@ public:
 
     void removeInput(const RtToken& name);
 
-    RtToken renameInput(const RtToken& name, const RtToken& newName);
+    RtToken renameInput(const RtToken& name, const RtToken& newName)
+    {
+        RtToken result = makeUniqueChildName(newName);
+        _inputs.rename(name, result);
+        return result;
+    }
 
     size_t numInputs() const
     {
@@ -158,7 +166,12 @@ public:
 
     void removeOutput(const RtToken& name);
 
-    RtToken renameOutput(const RtToken& name, const RtToken& newName);
+    RtToken renameOutput(const RtToken& name, const RtToken& newName)
+    {
+        RtToken result = makeUniqueChildName(newName);
+        _outputs.rename(name, result);
+        return result;
+    }
 
     size_t numOutputs() const
     {

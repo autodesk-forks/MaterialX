@@ -32,7 +32,7 @@ public:
     using TypeBits = uint8_t;
 
 public:
-    virtual ~PvtObject() {}
+    virtual ~PvtObject();
 
     bool isDisposed() const
     {
@@ -148,8 +148,8 @@ public:
     // Get an attribute without a type check.
     RtTypedValue* getAttribute(const RtToken& name)
     {
-        const size_t index = attrIndex(name);
-        return index < _attr.size() ? &_attr[index] : nullptr;
+        auto it = _attr.find(name);
+        return it != _attr.end() ? it->second : nullptr;
     }
 
     // Get an attribute without a type check.
@@ -167,28 +167,16 @@ public:
         return const_cast<PvtObject*>(this)->getAttribute(name, type);
     }
 
-    RtToken getAttributeName(size_t index) const
-    {
-        for (auto it : _attrIndexByName)
-        {
-            if (it.second == index)
-            {
-                return it.first;
-            }
-        }
-        throw ExceptionRuntimeError("No attribute with index '" + std::to_string(index) + "'. Index is out of range.");
-    }
-
-    // Get all attributes.
-    vector<RtTypedValue>& getAttributes()
+    // Get the map of all attributes.
+    const RtTokenMap<RtTypedValue*>& getAttributes() const
     {
         return _attr;
     }
 
-    // Get all attributes.
-    const vector<RtTypedValue>& getAttributes() const
+    // Get the vector of all attributes.
+    const RtTokenVec& getAttributeNames() const
     {
-        return _attr;
+        return _attrNames;
     }
 
 protected:
@@ -214,23 +202,19 @@ protected:
         _parent = parent;
     }
 
-    size_t attrIndex(const RtToken& name) const
-    {
-        auto it = _attrIndexByName.find(name);
-        return it != _attrIndexByName.end() ? it->second : size_t(-1);
-    }
-
     TypeBits _typeBits;
     RtToken _name; // TODO: Store a path instead of name token
     PvtPrim* _parent;
-    vector<RtTypedValue> _attr;
-    RtTokenMap<size_t> _attrIndexByName;
+    RtTokenMap<RtTypedValue*> _attr;
+    RtTokenVec _attrNames;
 
     friend class PvtPrim;
     friend class PvtPort;
     friend class PvtInput;
     friend class PvtOutput;
     friend class PvtNodeGraphPrim;
+    friend class PvtObjectList; 
+    friend class RtAttributeIterator;
     RT_FRIEND_REF_PTR_FUNCTIONS(PvtObject)
 };
 
@@ -296,6 +280,24 @@ public:
             return hnd;
         }
         return PvtDataHandle();
+    }
+
+    void rename(const RtToken& name, const RtToken& newName)
+    {
+        auto it = _map.find(name);
+        if (it == _map.end())
+        {
+            throw ExceptionRuntimeError("No object named '" + name.str() + "' exists, unable to rename.");
+        }
+        auto it2 = _map.find(newName);
+        if (newName != name && it2 != _map.end())
+        {
+            throw ExceptionRuntimeError("Another object named '" + newName.str() + "' already exists, unable to rename.");
+        }
+        PvtDataHandle hnd = it->second;
+        _map.erase(it);
+        hnd->setName(newName);
+        _map[newName] = hnd;
     }
 
     void clear()

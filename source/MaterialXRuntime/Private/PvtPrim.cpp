@@ -100,21 +100,6 @@ void PvtPrim::removeRelationship(const RtToken& name)
     }
 }
 
-void PvtPrim::renameRelationship(const RtToken& name, const RtToken& newName)
-{
-    if (getRelationship(newName))
-    {
-        throw ExceptionRuntimeError("A relationship named '" + newName.str() + "' already exists in prim '" + getName().str() + "'");
-    }
-    PvtDataHandle hnd = _rel.remove(name);
-    if (hnd)
-    {
-        PvtRelationship* rel = hnd->asA<PvtRelationship>();
-        rel->setName(newName);
-        _rel.add(rel);
-    }
-}
-
 PvtInput* PvtPrim::createInput(const RtToken& name, const RtToken& type, uint32_t flags)
 {
     // Inputs with type filename, token or string must always be uniform.
@@ -141,21 +126,6 @@ void PvtPrim::removeInput(const RtToken& name)
     _inputs.remove(name);
 }
 
-RtToken PvtPrim::renameInput(const RtToken& name, const RtToken& newName)
-{
-    PvtDataHandle hnd = _inputs.remove(name);
-    if (!hnd)
-    {
-        throw ExceptionRuntimeError("Unable to rename input. An input named '" + name.str() + "' does not exist.");
-    }
-
-    RtToken result = makeUniqueChildName(newName);
-    hnd->setName(result);
-    _inputs.add(hnd.get());
-
-    return result;
-}
-
 PvtOutput* PvtPrim::createOutput(const RtToken& name, const RtToken& type, uint32_t flags)
 {
     RtToken uniqueName = makeUniqueChildName(name);
@@ -175,21 +145,6 @@ void PvtPrim::removeOutput(const RtToken& name)
     }
     port->setDisposed(true);
     _outputs.remove(name);
-}
-
-RtToken PvtPrim::renameOutput(const RtToken& name, const RtToken& newName)
-{
-    PvtDataHandle hnd = _outputs.remove(name);
-    if (!hnd)
-    {
-        throw ExceptionRuntimeError("Unable to rename output. Output named '" + name.str() + "' does not exist.");
-    }
-
-    RtToken result = makeUniqueChildName(newName);
-    hnd->setName(result);
-    _outputs.add(hnd.get());
-
-    return result;
 }
 
 RtPrimIterator PvtPrim::getChildren(RtObjectPredicate predicate) const

@@ -219,12 +219,11 @@ RtPrim PvtCopyPrimCmd::createPrimCopy(const RtPrim& prim, const RtPath& parentPa
 
 void PvtCopyPrimCmd::copyMetadata(const PvtObject* src, PvtObject* dest)
 {
-    for (size_t i = 0; i < src->getAttributes().size(); ++i)
+    for (const RtToken& name : src->getAttributeNames())
     {
-        const RtTypedValue& srcAttr = src->getAttributes()[i];
-        const RtToken& attrName = src->getAttributeName(i);
-        RtTypedValue* destAttr = dest->createAttribute(attrName, srcAttr.getType());
-        RtValue::copy(srcAttr.getType(), srcAttr.getValue(), destAttr->getValue());
+        const RtTypedValue* srcAttr = src->getAttribute(name);
+        RtTypedValue* destAttr = dest->createAttribute(name, srcAttr->getType());
+        RtValue::copy(srcAttr->getType(), srcAttr->getValue(), destAttr->getValue());
     }
 }
 
