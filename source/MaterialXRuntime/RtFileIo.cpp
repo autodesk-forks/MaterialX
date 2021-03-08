@@ -53,16 +53,22 @@ namespace
     static const RtTokenSet genericAttributes    = { RtToken("name"), RtToken("kind") };
     static const RtTokenSet stageAttributes      = {};
 
-    static const RtTokenSet standardTokenAttributes = { RtToken("colorspace"), RtToken("unit"), RtToken("unittype"), RtToken("version") };
-
     static const RtToken DEFAULT_OUTPUT("out");
-    static const RtToken OUTPUT_ELEMENT_PREFIX("OUT_");
     static const RtToken MULTIOUTPUT("multioutput");
     static const RtToken UI_VISIBLE("uivisible");
     static const RtToken SWIZZLE_INPUT("in");
     static const RtToken SWIZZLE_CHANNELS("channels");
-    static const RtToken XPOS("xpos");
-    static const RtToken YPOS("ypos");
+
+    class RootPrimSpec : public PvtPrimSpec
+    {
+    public:
+        RootPrimSpec()
+        {
+            // TODO: We should derive this from a data driven XML schema.
+            addPrimAttribute(Tokens::DOC, RtType::STRING);
+            addPrimAttribute(Tokens::COLORSPACE, RtType::TOKEN);
+        }
+    };
 
     class PvtRenamingMapper
     {
@@ -120,19 +126,24 @@ namespace
         return output;
     }
 
-    void readAttributes(const ElementPtr& src, PvtObject* dest, const RtTokenSet& ignoreList)
+    void readAttributes(const ElementPtr& src, PvtObject* dest, const RtPrimSpec& primSpec, const RtTokenSet& ignoreList)
     {
-        // Read in all attributes so we can export the element again
-        // without loosing data.
+        // Check if this is a port, we have a separate 
+        // attribute spec call for ports below.
+        const bool isAPort = dest->isA<PvtPort>();
+
         for (const string& nameStr : src->getAttributeNames())
         {
             const RtToken name(nameStr);
             if (!ignoreList.count(name))
             {
-                if (standardTokenAttributes.count(name))
+                // Check if this is an attribute defined by the spec.
+                const RtAttributeSpec* attrSpec = isAPort ? primSpec.getPortAttribute(RtPort(dest->hnd()), name) : primSpec.getAttribute(name);
+                if (attrSpec)
                 {
-                    RtTypedValue* attr = dest->createAttribute(name, RtType::TOKEN);
-                    attr->asToken() = RtToken(src->getAttribute(nameStr));
+                    // Create it according to the spec.
+                    RtTypedValue* attr = dest->createAttribute(attrSpec->getName(), attrSpec->getType());
+                    RtValue::fromString(attr->getType(), src->getAttribute(nameStr), attr->getValue());
                 }
                 else
                 {
@@ -199,7 +210,7 @@ namespace
                     RtValue::fromString(portType, valueStr, port.getValue());
                 }
 
-                readAttributes(elem, PvtObject::ptr(port), portAttributes);
+                readAttributes(elem, PvtObject::ptr(port), schema.getPrimSpec(), portAttributes);
             }
         }
     }
@@ -302,7 +313,7 @@ namespace
             nodedef.setNamespace(RtToken(namespaceString));
         }
 
-        readAttributes(src, prim, nodedefAttributes);
+        readAttributes(src, prim, nodedef.getPrimSpec(), nodedefAttributes);
 
         // Create the interface.
         createInterface(src, nodedef);
@@ -384,14 +395,15 @@ namespace
         PvtPrim* node = stage->createPrim(parent->getPath(), nodeName, nodedefName);
         mapper.addMapping(parent, nodeName, node->getName());
 
+        RtNode schema(node->hnd());
+
         const string& version = src->getVersionString();
         if (!version.empty())
         {
-            RtNode schema(node->hnd());
             schema.setVersion(RtToken(version));
         }
 
-        readAttributes(src, node, nodeAttributes);
+        readAttributes(src, node, schema.getPrimSpec(), nodeAttributes);
 
         // Copy input values.
         for (auto elem : src->getChildrenOfType<ValueElement>())
@@ -401,7 +413,7 @@ namespace
                 continue;
             }
             const RtToken portName(elem->getName());
-            PvtPort* input = node->getInput(portName);
+            PvtInput* input = node->getInput(portName);
             if (!input)
             {
                 throw ExceptionRuntimeError("No input named '" + elem->getName() + "' was found on runtime node '" + node->getName().str() + "'");
@@ -412,7 +424,7 @@ namespace
                 const RtToken portType(elem->getType());
                 RtValue::fromString(portType, valueStr, input->getValue());
             }
-            readAttributes(elem, input, portAttributes);
+            readAttributes(elem, input, schema.getPrimSpec(), portAttributes);
         }
 
         return node;
@@ -426,7 +438,7 @@ namespace
         mapper.addMapping(parent, nodegraphName, nodegraph->getName());
         RtNodeGraph schema(nodegraph->hnd());
 
-        readAttributes(src, nodegraph, nodegraphAttributes);
+        readAttributes(src, nodegraph, schema.getPrimSpec(), nodegraphAttributes);
 
         // Create the interface either from a nodedef if given
         // otherwise from the graph itself.
@@ -528,7 +540,7 @@ namespace
         RtGeneric generic(prim->hnd());
         generic.setKind(category);
 
-        readAttributes(src, prim, genericAttributes);
+        readAttributes(src, prim, generic.getPrimSpec(), genericAttributes);
 
         for (auto child : src->getChildren())
         {
@@ -551,7 +563,7 @@ namespace
             def.setInherit(inherit);
         }
 
-        readAttributes(src, prim, targetdefAttributes);
+        readAttributes(src, prim, def.getPrimSpec(), targetdefAttributes);
 
         return prim;
     }
@@ -611,7 +623,7 @@ namespace
         impl.setNodeDef(nodedef);
         impl.setTarget(target);
 
-        readAttributes(src, prim, nodeimplAttributes);
+        readAttributes(src, prim, impl.getPrimSpec(), nodeimplAttributes);
 
         return prim;
     }
@@ -623,15 +635,15 @@ namespace
     {
         const RtToken name(src->getName());
 
-        PvtPrim* collectionPrim = stage->createPrim(parent->getPath(), name, RtCollection::typeName());
-        mapper.addMapping(parent, name, collectionPrim->getName());
-        RtCollection collection(collectionPrim->hnd());
+        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtCollection::typeName());
+        mapper.addMapping(parent, name, prim->getName());
+        RtCollection collection(prim->hnd());
         collection.setIncludeGeom(src->getIncludeGeom());
         collection.setExcludeGeom(src->getExcludeGeom());
 
-        readAttributes(src, collectionPrim, collectionAttributes);
+        readAttributes(src, prim, collection.getPrimSpec(), collectionAttributes);
 
-        return collectionPrim;
+        return prim;
     }
 
     // Create collection include connections assuming that all referenced
@@ -692,12 +704,12 @@ namespace
 
             rtMatAssign.setGeom(matAssign->getActiveGeom());
 
-            readAttributes(matAssign, assignPrim, mtrlAssignAttributes);
+            readAttributes(matAssign, assignPrim, rtMatAssign.getPrimSpec(), mtrlAssignAttributes);
 
             look.getMaterialAssigns().connect(assignPrim->hnd());
         }
 
-        readAttributes(src, lookPrim, lookAttributes);
+        readAttributes(src, lookPrim, look.getPrimSpec(), lookAttributes);
 
         return lookPrim;
     }
@@ -744,7 +756,7 @@ namespace
         const string& activeLook = src->getActiveLook();
         lookGroup.setActiveLook(activeLook);
 
-        readAttributes(src, prim, lookGroupAttributes);
+        readAttributes(src, prim, lookGroup.getPrimSpec(), lookGroupAttributes);
 
         return prim;
     }
@@ -813,7 +825,9 @@ namespace
         const std::string& uri = doc->getSourceUri();
         stage->addSourceUri(RtToken(uri));
 
-        readAttributes(doc, stage->getRootPrim(), stageAttributes);
+        // Read root document attributes.
+        static RootPrimSpec s_rootPrimSpec;
+        readAttributes(doc, stage->getRootPrim(), s_rootPrimSpec, stageAttributes);
 
         RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
 

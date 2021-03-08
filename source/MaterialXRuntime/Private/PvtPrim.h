@@ -402,7 +402,7 @@ public:
     RtTokenMap<RtAttributeSpecList> _inputAttrByType;
     RtTokenMap<RtAttributeSpecList> _outputAttrByName;
     RtTokenMap<RtAttributeSpecList> _outputAttrByType;
-    PvtAllocator _allocator;
+    PvtAllocator _allocator; // TODO: Start using this allocator, change default value from strings to actual value type.
 };
 
 }
