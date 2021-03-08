@@ -18,9 +18,6 @@ namespace MaterialX
 namespace
 {
 
-static const RtAttributeIterator NULL_ATTRIBUTE_ITERATOR;
-static const RtStageIterator NULL_STAGE_ITERATOR;
-
 using StageIteratorStackFrame = std::tuple<PvtStage*, int, int>;
 
 struct StageIteratorData
@@ -102,7 +99,8 @@ bool RtAttributeIterator::isDone() const
 
 const RtAttributeIterator& RtAttributeIterator::end()
 {
-    return NULL_ATTRIBUTE_ITERATOR;
+    static const RtAttributeIterator NULL_ITERATOR;
+    return NULL_ITERATOR;
 }
 
 RtAttributeIterator& RtAttributeIterator::operator++()
@@ -122,9 +120,6 @@ void RtAttributeIterator::abort()
     _ptr = nullptr;
 }
 
-
-template<class T>
-const RtObjectIterator<T> RtObjectIterator<T>::NULL_ITERATOR;
 
 template<class T>
 T RtObjectIterator<T>::operator*() const
@@ -154,11 +149,19 @@ bool RtObjectIterator<T>::isDone() const
     return !(_ptr && _current < int(static_cast<PvtObjectVec*>(_ptr)->size()));
 }
 
+template<class T>
+const RtObjectIterator<T>& RtObjectIterator<T>::end()
+{
+    static const RtObjectIterator<T> NULL_ITERATOR;
+    return NULL_ITERATOR;
+}
+
 template class RtObjectIterator<RtObject>;
 template class RtObjectIterator<RtPrim>;
 template class RtObjectIterator<RtInput>;
 template class RtObjectIterator<RtOutput>;
 template class RtObjectIterator<RtRelationship>;
+
 
 RtPrimIterator::RtPrimIterator(const RtObject& obj, RtObjectPredicate predicate) :
     RtObjectIterator(predicate)
@@ -292,7 +295,8 @@ bool RtStageIterator::isDone() const
 
 const RtStageIterator& RtStageIterator::end()
 {
-    return NULL_STAGE_ITERATOR;
+    static const RtStageIterator NULL_ITERATOR;
+    return NULL_ITERATOR;
 }
 
 RtStageIterator& RtStageIterator::operator++()

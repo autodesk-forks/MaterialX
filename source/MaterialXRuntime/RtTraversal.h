@@ -152,10 +152,7 @@ public:
     }
 
     /// Return the sentinel end iterator for this class.
-    static const RtObjectIterator& end()
-    {
-        return NULL_ITERATOR;
-    }
+    static const RtObjectIterator& end();
 
 protected:
     /// Empty constructor.
@@ -164,8 +161,6 @@ protected:
         _current(-1),
         _predicate(predicate)
     {}
-
-    static const RtObjectIterator NULL_ITERATOR;
 
     void* _ptr;
     int _current;
