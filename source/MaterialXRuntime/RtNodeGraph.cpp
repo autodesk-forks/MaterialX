@@ -127,7 +127,6 @@ public:
         return obj ? obj->asA<PvtInput>() : nullptr;
     }
 
-  private:
     PvtObjectList _inputSockets;
     PvtObjectList _outputSockets;
 };
@@ -229,27 +228,33 @@ RtNodeLayout RtNodeGraph::getNodeLayout()
 
 void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
 {
-    PvtPrim* p = prim();
+    PvtNodeGraphPrim* graph = prim()->asA<PvtNodeGraphPrim>();
 
     // Create new input/output lists with ports in the specifed order 
     RtTokenSet processed;
     PvtObjectList newInputList;
     PvtObjectList newOutputList;
+    PvtObjectList newInputSocketList;
+    PvtObjectList newOutputSocketList;
     for (const RtToken& name : layout.order)
     {
         if (!processed.count(name))
         {
-            PvtInput* input = p->getInput(name);
+            PvtInput* input = graph->getInput(name);
             if (input)
             {
+                PvtOutput* socket = graph->getInputSocket(name);
                 newInputList.add(input);
+                newInputSocketList.add(socket);
             }
             else
             {
-                PvtOutput* output = p->getOutput(name);
+                PvtOutput* output = graph->getOutput(name);
                 if (output)
                 {
+                    PvtInput* socket = graph->getOutputSocket(name);
                     newOutputList.add(output);
+                    newOutputSocketList.add(socket);
                 }
             }
             processed.insert(name);
@@ -257,35 +262,41 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
     }
 
     // Move over any attributes that were not specified in the new order.
-    for (PvtObject* input : p->getInputs())
+    for (PvtObject* input : graph->getInputs())
     {
         if (!processed.count(input->getName()))
         {
+            PvtOutput* socket = graph->getInputSocket(input->getName());
             newInputList.add(input);
+            newInputSocketList.add(socket);
             processed.insert(input->getName());
         }
     }
-    for (PvtObject* output : p->getOutputs())
+    for (PvtObject* output : graph->getOutputs())
     {
         if (!processed.count(output->getName()))
         {
+            PvtInput* socket = graph->getOutputSocket(output->getName());
             newOutputList.add(output);
+            newOutputSocketList.add(socket);
             processed.insert(output->getName());
         }
     }
 
     // Make sure all attributes were moved.
-    if (newInputList.size() != p->numInputs() || newOutputList.size() != p->numOutputs())
+    if (newInputList.size() != graph->numInputs() || newOutputList.size() != graph->numOutputs())
     {
         throw ExceptionRuntimeError("Failed setting new node layout for '" + getName().str() + "'. Changing the port count is not allowed.");
     }
 
     // Switch to the new order.
-    p->_inputs = newInputList;
-    p->_outputs = newOutputList;
+    graph->_inputs = newInputList;
+    graph->_outputs = newOutputList;
+    graph->_inputSockets = newInputSocketList;
+    graph->_outputSockets = newOutputSocketList;
 
     // Assign uifolder metadata.
-    for (PvtObject* input: p->getInputs())
+    for (PvtObject* input: graph->getInputs())
     {
         auto it = layout.uifolder.find(input->getName());
         if (it != layout.uifolder.end() && !it->second.empty())
