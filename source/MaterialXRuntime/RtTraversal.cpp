@@ -35,7 +35,7 @@ struct AttrIteratorData
     PvtDataHandle obj;
     size_t index;
     AttrIteratorData() : obj(nullptr), index(0) {}
-    AttrIteratorData(const PvtDataHandle& o) : obj(o), index(0) {}
+    explicit AttrIteratorData(const PvtDataHandle& o) : obj(o), index(0) {}
 };
 
 }
