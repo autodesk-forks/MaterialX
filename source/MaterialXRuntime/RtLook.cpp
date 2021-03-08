@@ -29,7 +29,40 @@ namespace
             addPrimAttribute(Tokens::HEIGHT, RtType::INTEGER);
             addPrimAttribute(Tokens::UICOLOR, RtType::COLOR3);
             addPrimAttribute(Tokens::LOOKS, RtType::STRING);
+            addPrimAttribute(Tokens::ACTIVELOOK, RtType::STRING);
             addPrimAttribute(Tokens::DEFAULT, RtType::STRING);
+        }
+    };
+
+    class LookPrimSpec : public PvtPrimSpec
+    {
+    public:
+        LookPrimSpec()
+        {
+            // TODO: We should derive this from a data driven XML schema.
+            addPrimAttribute(Tokens::DOC, RtType::STRING);
+            addPrimAttribute(Tokens::XPOS, RtType::FLOAT);
+            addPrimAttribute(Tokens::YPOS, RtType::FLOAT);
+            addPrimAttribute(Tokens::WIDTH, RtType::INTEGER);
+            addPrimAttribute(Tokens::HEIGHT, RtType::INTEGER);
+            addPrimAttribute(Tokens::UICOLOR, RtType::COLOR3);
+        }
+    };
+
+    class MaterialAssignPrimSpec : public PvtPrimSpec
+    {
+    public:
+        MaterialAssignPrimSpec()
+        {
+            // TODO: We should derive this from a data driven XML schema.
+            addPrimAttribute(Tokens::DOC, RtType::STRING);
+            addPrimAttribute(Tokens::XPOS, RtType::FLOAT);
+            addPrimAttribute(Tokens::YPOS, RtType::FLOAT);
+            addPrimAttribute(Tokens::WIDTH, RtType::INTEGER);
+            addPrimAttribute(Tokens::HEIGHT, RtType::INTEGER);
+            addPrimAttribute(Tokens::UICOLOR, RtType::COLOR3);
+            addPrimAttribute(Tokens::GEOM, RtType::STRING);
+            addPrimAttribute(Tokens::EXCLUSIVE, RtType::BOOLEAN);
         }
     };
 }
@@ -114,7 +147,7 @@ RtPrim RtLook::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
 
 const RtPrimSpec& RtLook::getPrimSpec() const
 {
-    static const PvtPrimSpec s_primSpec;
+    static const LookPrimSpec s_primSpec;
     return s_primSpec;
 }
 
@@ -173,7 +206,7 @@ RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name
 
 const RtPrimSpec& RtMaterialAssign::getPrimSpec() const
 {
-    static const PvtPrimSpec s_primSpec;
+    static const MaterialAssignPrimSpec s_primSpec;
     return s_primSpec;
 }
 

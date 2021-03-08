@@ -37,21 +37,22 @@ namespace MaterialX
 
 namespace
 {
-    // Lists of known attributes which are handled explicitly by import/export.
-    static const RtTokenSet nodedefAttributes    = { RtToken("name"), RtToken("type"), RtToken("node"), RtToken("namespace"), RtToken("isdefaultversion") };
-    static const RtTokenSet portAttributes       = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels") };
-    static const RtTokenSet inputAttributes      = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels"),
+    // Lists of attributes which are handled explicitly by import/export
+    // and should be ignored when reading/writing attributes.
+    static const RtTokenSet nodedefIgnoreList    = { RtToken("name"), RtToken("type") };
+    static const RtTokenSet portIgnoreList       = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels") };
+    static const RtTokenSet inputIgnoreList      = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels"),
                                                      RtToken("nodegraph"), RtToken("interfacename") };
-    static const RtTokenSet nodeAttributes       = { RtToken("name"), RtToken("type"), RtToken("node") };
-    static const RtTokenSet nodegraphAttributes  = { RtToken("name"), RtToken("nodedef") };
-    static const RtTokenSet targetdefAttributes  = { RtToken("name"), RtToken("inherit") };
-    static const RtTokenSet nodeimplAttributes   = { RtToken("name"), RtToken("nodedef"), RtToken("target"), RtToken("file"), RtToken("sourcecode"), RtToken("function"), RtToken("format") };
-    static const RtTokenSet lookAttributes       = { RtToken("name"), RtToken("inherit") };
-    static const RtTokenSet lookGroupAttributes  = { RtToken("name"), RtToken("looks"), RtToken("default") };
-    static const RtTokenSet mtrlAssignAttributes = { RtToken("name"), RtToken("geom"), RtToken("collection"), RtToken("material"), RtToken("exclusive") };
-    static const RtTokenSet collectionAttributes = { RtToken("name"), RtToken("includegeom"), RtToken("includecollection"), RtToken("excludegeom") };
-    static const RtTokenSet genericAttributes    = { RtToken("name"), RtToken("kind") };
-    static const RtTokenSet stageAttributes      = {};
+    static const RtTokenSet nodeIgnoreList       = { RtToken("name"), RtToken("type") };
+    static const RtTokenSet nodegraphIgnoreList  = { RtToken("name") };
+    static const RtTokenSet targetdefIgnoreList  = { RtToken("name"), RtToken("inherit") };
+    static const RtTokenSet nodeimplIgnoreList   = { RtToken("name"), RtToken("file"), RtToken("sourcecode") };
+    static const RtTokenSet lookIgnoreList       = { RtToken("name"), RtToken("inherit") };
+    static const RtTokenSet lookGroupIgnoreList  = { RtToken("name"), RtToken("looks") };
+    static const RtTokenSet mtrlAssignIgnoreList = { RtToken("name"), RtToken("geom"), RtToken("collection"), RtToken("material") };
+    static const RtTokenSet collectionIgnoreList = { RtToken("name"), RtToken("includecollection") };
+    static const RtTokenSet genericIgnoreList    = { RtToken("name"), RtToken("kind") };
+    static const RtTokenSet stageIgnoreList      = {};
 
     static const RtToken DEFAULT_OUTPUT("out");
     static const RtToken MULTIOUTPUT("multioutput");
@@ -210,7 +211,7 @@ namespace
                     RtValue::fromString(portType, valueStr, port.getValue());
                 }
 
-                readAttributes(elem, PvtObject::ptr(port), schema.getPrimSpec(), portAttributes);
+                readAttributes(elem, PvtObject::ptr(port), schema.getPrimSpec(), portIgnoreList);
             }
         }
     }
@@ -293,27 +294,8 @@ namespace
         const RtToken name(src->getName());
         PvtPrim* prim = stage->createPrim(stage->getPath(), name, RtNodeDef::typeName());
 
-        const RtToken nodeName(src->getNodeString());
         RtNodeDef nodedef(prim->hnd());
-        nodedef.setNode(nodeName);
-
-        const string& version = src->getVersionString();
-        if (!version.empty())
-        {
-            nodedef.setVersion(RtToken(version));
-            if (src->getDefaultVersion())
-            {
-                nodedef.setIsDefaultVersion(true);
-            }
-        }
-
-        const string& namespaceString = src->getNamespace();
-        if (!namespaceString.empty())
-        {
-            nodedef.setNamespace(RtToken(namespaceString));
-        }
-
-        readAttributes(src, prim, nodedef.getPrimSpec(), nodedefAttributes);
+        readAttributes(src, prim, nodedef.getPrimSpec(), nodedefIgnoreList);
 
         // Create the interface.
         createInterface(src, nodedef);
@@ -392,18 +374,11 @@ namespace
         }
 
         const RtToken nodeName(src->getName());
-        PvtPrim* node = stage->createPrim(parent->getPath(), nodeName, nodedefName);
-        mapper.addMapping(parent, nodeName, node->getName());
+        PvtPrim* prim = stage->createPrim(parent->getPath(), nodeName, nodedefName);
+        mapper.addMapping(parent, nodeName, prim->getName());
 
-        RtNode schema(node->hnd());
-
-        const string& version = src->getVersionString();
-        if (!version.empty())
-        {
-            schema.setVersion(RtToken(version));
-        }
-
-        readAttributes(src, node, schema.getPrimSpec(), nodeAttributes);
+        RtNode node(prim->hnd());
+        readAttributes(src, prim, node.getPrimSpec(), nodeIgnoreList);
 
         // Copy input values.
         for (auto elem : src->getChildrenOfType<ValueElement>())
@@ -413,10 +388,10 @@ namespace
                 continue;
             }
             const RtToken portName(elem->getName());
-            PvtInput* input = node->getInput(portName);
+            PvtInput* input = prim->getInput(portName);
             if (!input)
             {
-                throw ExceptionRuntimeError("No input named '" + elem->getName() + "' was found on runtime node '" + node->getName().str() + "'");
+                throw ExceptionRuntimeError("No input named '" + elem->getName() + "' was found on runtime node '" + prim->getName().str() + "'");
             }
             const string& valueStr = elem->getValueString();
             if (!valueStr.empty())
@@ -424,33 +399,32 @@ namespace
                 const RtToken portType(elem->getType());
                 RtValue::fromString(portType, valueStr, input->getValue());
             }
-            readAttributes(elem, input, schema.getPrimSpec(), portAttributes);
+            readAttributes(elem, input, node.getPrimSpec(), portIgnoreList);
         }
 
-        return node;
+        return prim;
     }
 
     PvtPrim* readNodeGraph(const NodeGraphPtr& src, PvtPrim* parent, PvtStage* stage, PvtRenamingMapper& mapper)
     {
         const RtToken nodegraphName(src->getName());
 
-        PvtPrim* nodegraph = stage->createPrim(parent->getPath(), nodegraphName, RtNodeGraph::typeName());
-        mapper.addMapping(parent, nodegraphName, nodegraph->getName());
-        RtNodeGraph schema(nodegraph->hnd());
+        PvtPrim* prim = stage->createPrim(parent->getPath(), nodegraphName, RtNodeGraph::typeName());
+        mapper.addMapping(parent, nodegraphName, prim->getName());
 
-        readAttributes(src, nodegraph, schema.getPrimSpec(), nodegraphAttributes);
+        RtNodeGraph nodegraph(prim->hnd());
+        readAttributes(src, prim, nodegraph.getPrimSpec(), nodegraphIgnoreList);
 
         // Create the interface either from a nodedef if given
         // otherwise from the graph itself.
         const NodeDefPtr srcNodeDef = src->getNodeDef();
         if (srcNodeDef)
         {
-            createInterface(srcNodeDef, schema);
-            schema.setDefinition(RtToken(srcNodeDef->getName()));
+            createInterface(srcNodeDef, nodegraph);
         }
         else
         {
-            createInterface(src, schema);
+            createInterface(src, nodegraph);
         }
 
         // Create all nodes and connections between node inputs and internal graph sockets.
@@ -459,7 +433,7 @@ namespace
             NodePtr srcNnode = child->asA<Node>();
             if (srcNnode)
             {
-                PvtPrim* node = readNode(srcNnode, nodegraph, stage, mapper);
+                PvtPrim* node = readNode(srcNnode, prim, stage, mapper);
 
                 // Check for connections to the internal graph sockets
                 for (auto elem : srcNnode->getChildrenOfType<ValueElement>())
@@ -472,12 +446,12 @@ namespace
                     if (!interfaceName.empty())
                     {
                         const RtToken socketName(interfaceName);
-                        RtOutput socket = schema.getInputSocket(socketName);
+                        RtOutput socket = nodegraph.getInputSocket(socketName);
                         if (!socket)
                         {
                             const RtToken inputType(elem->getType());
-                            RtInput input = schema.createInput(socketName, inputType);
-                            socket = schema.getInputSocket(input.getName());
+                            RtInput input = nodegraph.createInput(socketName, inputType);
+                            socket = nodegraph.getInputSocket(input.getName());
 
                             // Set the input value
                             const string& valueStr = elem->getValueString();
@@ -500,7 +474,7 @@ namespace
         }
 
         // Create connections between all nodes.
-        createNodeConnections(src->getNodes(), nodegraph, stage, mapper);
+        createNodeConnections(src->getNodes(), prim, stage, mapper);
 
         // Create connections between node outputs and internal graph sockets.
         for (const OutputPtr& elem : src->getOutputs())
@@ -508,7 +482,7 @@ namespace
             const string& connectedNodeName = elem->getNodeName();
             if (!connectedNodeName.empty())
             {
-                RtInput socket = schema.getOutputSocket(RtToken(elem->getName()));
+                RtInput socket = nodegraph.getOutputSocket(RtToken(elem->getName()));
                 if (!socket)
                 {
                     PvtPath path(parent->getPath());
@@ -516,7 +490,7 @@ namespace
                     throw ExceptionRuntimeError("Output '" + elem->getName() + "' does not match an internal output socket on the nodegraph '" + path.asString() + "'");
                 }
 
-                PvtPrim* connectedNode = findPrimOrThrow(RtToken(connectedNodeName), nodegraph, mapper);
+                PvtPrim* connectedNode = findPrimOrThrow(RtToken(connectedNodeName), prim, mapper);
 
                 const RtToken outputName(elem->getOutputString());
                 PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
@@ -527,7 +501,7 @@ namespace
             }
         }
 
-        return nodegraph;
+        return prim;
     }
 
     PvtPrim* readGenericPrim(const ElementPtr& src, PvtPrim* parent, PvtStage* stage, PvtRenamingMapper& mapper)
@@ -537,10 +511,10 @@ namespace
 
         PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtGeneric::typeName());
         mapper.addMapping(parent, name, prim->getName());
+
         RtGeneric generic(prim->hnd());
         generic.setKind(category);
-
-        readAttributes(src, prim, generic.getPrimSpec(), genericAttributes);
+        readAttributes(src, prim, generic.getPrimSpec(), genericIgnoreList);
 
         for (auto child : src->getChildren())
         {
@@ -563,7 +537,7 @@ namespace
             def.setInherit(inherit);
         }
 
-        readAttributes(src, prim, def.getPrimSpec(), targetdefAttributes);
+        readAttributes(src, prim, def.getPrimSpec(), targetdefIgnoreList);
 
         return prim;
     }
@@ -580,7 +554,6 @@ namespace
         }
 
         const RtToken name(src->getName());
-        const RtToken nodedef(src->getNodeDefString());
 
         const string& sourcecode = src->getAttribute(Tokens::SOURCECODE.str());
         const string& file = src->getAttribute(Tokens::FILE.str());
@@ -605,31 +578,16 @@ namespace
             {
                 impl.setFile(file);
             }
-
-            const string& function = src->getAttribute(Tokens::FUNCTION.str());
-            if (!function.empty())
-            {
-                impl.setFunction(function);
-            }
-
-            const string& format = src->getAttribute(Tokens::FORMAT.str());
-            if (!format.empty())
-            {
-                impl.setFormat(RtToken(format));
-            }
         }
 
         RtNodeImpl impl(prim->hnd());
-        impl.setNodeDef(nodedef);
-        impl.setTarget(target);
-
-        readAttributes(src, prim, impl.getPrimSpec(), nodeimplAttributes);
+        readAttributes(src, prim, impl.getPrimSpec(), nodeimplIgnoreList);
 
         return prim;
     }
 
     // Note that this function reads in a single collection. After all required collections
-    // have been read in, the createCollectionConnections() function can be called
+    // have been read in, the makeCollectionIncludeConnections() function can be called
     // to create collection inclusion connections.
     PvtPrim* readCollection(const CollectionPtr& src, PvtPrim* parent, PvtStage* stage, PvtRenamingMapper& mapper)
     {
@@ -637,11 +595,9 @@ namespace
 
         PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtCollection::typeName());
         mapper.addMapping(parent, name, prim->getName());
-        RtCollection collection(prim->hnd());
-        collection.setIncludeGeom(src->getIncludeGeom());
-        collection.setExcludeGeom(src->getExcludeGeom());
 
-        readAttributes(src, prim, collection.getPrimSpec(), collectionAttributes);
+        RtCollection collection(prim->hnd());
+        readAttributes(src, prim, collection.getPrimSpec(), collectionIgnoreList);
 
         return prim;
     }
@@ -663,7 +619,7 @@ namespace
     }
 
     // Note that this function reads in a single look. After all required looks have been
-    // read in then createLookConnections() can be called to create look inheritance
+    // read in then makeLookInheritConnections() can be called to create look inheritance
     // connections.
     PvtPrim* readLook(const LookPtr& src, PvtPrim* parent, PvtStage* stage, PvtRenamingMapper& mapper)
     {
@@ -693,23 +649,14 @@ namespace
                 rtMatAssign.getMaterial().connect(material->prim().getOutput());
             }
 
-            if (matAssign->hasAttribute(MaterialAssign::EXCLUSIVE_ATTRIBUTE))
-            {
-                rtMatAssign.setExclusive(matAssign->getExclusive());
-            }
-            else
-            {
-                rtMatAssign.setExclusive(true); // default
-            }
-
             rtMatAssign.setGeom(matAssign->getActiveGeom());
 
-            readAttributes(matAssign, assignPrim, rtMatAssign.getPrimSpec(), mtrlAssignAttributes);
+            readAttributes(matAssign, assignPrim, rtMatAssign.getPrimSpec(), mtrlAssignIgnoreList);
 
             look.getMaterialAssigns().connect(assignPrim->hnd());
         }
 
-        readAttributes(src, lookPrim, look.getPrimSpec(), lookAttributes);
+        readAttributes(src, lookPrim, look.getPrimSpec(), lookIgnoreList);
 
         return lookPrim;
     }
@@ -740,6 +687,7 @@ namespace
         const RtToken name(src->getName());
         PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtLookGroup::typeName());
         mapper.addMapping(parent, name, prim->getName());
+
         RtLookGroup lookGroup(prim->hnd());
 
         // Link to looks
@@ -753,10 +701,8 @@ namespace
                 lookGroup.addLook(lookPrim->hnd());
             }
         }
-        const string& activeLook = src->getActiveLook();
-        lookGroup.setActiveLook(activeLook);
 
-        readAttributes(src, prim, lookGroup.getPrimSpec(), lookGroupAttributes);
+        readAttributes(src, prim, lookGroup.getPrimSpec(), lookGroupIgnoreList);
 
         return prim;
     }
@@ -827,7 +773,7 @@ namespace
 
         // Read root document attributes.
         static RootPrimSpec s_rootPrimSpec;
-        readAttributes(doc, stage->getRootPrim(), s_rootPrimSpec, stageAttributes);
+        readAttributes(doc, stage->getRootPrim(), s_rootPrimSpec, stageIgnoreList);
 
         RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
 
@@ -933,7 +879,7 @@ namespace
             }
         }
 
-        writeAttributes(src, destNodeDef, nodedefAttributes, options);
+        writeAttributes(src, destNodeDef, nodedefIgnoreList, options);
 
         for (PvtObject* obj : src->getInputs())
         {
@@ -944,14 +890,14 @@ namespace
                 destPort->setIsUniform(true);
             }
             destPort->setValueString(input->getValueString());
-            writeAttributes(input, destPort, portAttributes, options);
+            writeAttributes(input, destPort, portIgnoreList, options);
         }
         for (PvtObject* obj : src->getOutputs())
         {
             const PvtOutput* output = obj->asA<PvtOutput>();
             ValueElementPtr destPort = destNodeDef->addOutput(output->getName().str(), output->getType().str());
             destPort->setValueString(output->getValueString());
-            writeAttributes(output, destPort, portAttributes, options);
+            writeAttributes(output, destPort, portIgnoreList, options);
         }
     }
 
@@ -969,10 +915,6 @@ namespace
         const string outputType = numOutputs > 1 ? "multioutput" : (numOutputs > 0 ? nodedef.getPrim().getOutput().getType().str() : EMPTY_STRING);
 
         NodePtr destNode = dest->addNode(nodedef.getNamespacedNode().str(), node.getName().str(), outputType);
-        if (node.getVersion() != EMPTY_TOKEN)
-        {
-            destNode->setVersionString(node.getVersion().str());
-        }
 
         bool writeDefaultValues = options ? options->writeDefaultValues : false;
 
@@ -1053,7 +995,7 @@ namespace
                         }
                     }
 
-                    writeAttributes(PvtObject::ptr(input), valueElem, inputAttributes, options);
+                    writeAttributes(PvtObject::ptr(input), valueElem, inputIgnoreList, options);
                 }
             }
         }
@@ -1067,7 +1009,7 @@ namespace
             }
         }
 
-        writeAttributes(src, destNode, nodeAttributes, options);
+        writeAttributes(src, destNode, nodeIgnoreList, options);
 
         return destNode;
     }
@@ -1075,15 +1017,9 @@ namespace
     void writeNodeGraph(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* options)
     {
         NodeGraphPtr destNodeGraph = dest->addNodeGraph(src->getName().str());
-        writeAttributes(src, destNodeGraph, nodegraphAttributes, options);
+        writeAttributes(src, destNodeGraph, nodegraphIgnoreList, options);
 
         RtNodeGraph nodegraph(src->hnd());
-
-        const RtToken& nodedef = nodegraph.getDefinition();
-        if (nodedef != EMPTY_TOKEN)
-        {
-            destNodeGraph->setNodeDefString(nodedef.str());
-        }
 
         if (!options || options->writeNodeGraphInputs)
         {
@@ -1126,7 +1062,7 @@ namespace
                 if (v)
                 {
                     v->setValueString(nodegraphInput.getValueString());
-                    writeAttributes(port, v, inputAttributes, options);
+                    writeAttributes(port, v, inputIgnoreList, options);
                 }
             }
         }
@@ -1169,12 +1105,9 @@ namespace
         for (RtPrim child : stage->getRootPrim()->getChildren(options ? options->objectFilter : nullptr))
         {
             const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
-            const RtToken typeName = child.getTypeInfo()->getShortTypeName();
-            if (typeName == RtCollection::typeName())
+            if (prim->hasApi<RtCollection>())
             {
-                RtCollection rtCollection(prim->hnd());
-                const string name(prim->getName().str());
-
+                const string& name = prim->getName().str();
                 if (dest.getCollection(name))
                 {
                     continue;
@@ -1182,14 +1115,12 @@ namespace
 
                 CollectionPtr collection = dest.addCollection(name);
 
-                collection->setExcludeGeom(rtCollection.getExcludeGeom());
-                collection->setIncludeGeom(rtCollection.getIncludeGeom());
-
+                RtCollection rtCollection(prim->hnd());
                 RtRelationship rtIncludeCollection = rtCollection.getIncludeCollection();
-                string includeList = rtIncludeCollection.getObjectNames();                
+                string includeList = rtIncludeCollection.getObjectNames();
                 collection->setIncludeCollectionString(includeList);
 
-                writeAttributes(prim, collection, collectionAttributes, options);
+                writeAttributes(prim, collection, collectionIgnoreList, options);
             }
         }
     }
@@ -1231,7 +1162,6 @@ namespace
                     }
 
                     MaterialAssignPtr massign = look->addMaterialAssign(assignName);
-                    massign->setExclusive(rtMatAssign.getExclusive());
                     massign->setGeom(rtMatAssign.getGeom());
 
                     if (rtMatAssign.getCollection().hasConnections())
@@ -1244,10 +1174,10 @@ namespace
                         massign->setMaterial(rtMatAssign.getMaterial().getConnection().getParent().getName().str());
                     }
 
-                    writeAttributes(pprim, massign, mtrlAssignAttributes, options);
+                    writeAttributes(pprim, massign, mtrlAssignIgnoreList, options);
                 }
 
-                writeAttributes(prim, look, lookAttributes, options);
+                writeAttributes(prim, look, lookIgnoreList, options);
             }
         }
     }
@@ -1272,9 +1202,8 @@ namespace
 
                 const string lookList = rtLookGroup.getLooks().getObjectNames();
                 lookGroup->setLooks(lookList);
-                lookGroup->setActiveLook(rtLookGroup.getActiveLook());
 
-                writeAttributes(prim, lookGroup, lookGroupAttributes, options);
+                writeAttributes(prim, lookGroup, lookGroupIgnoreList, options);
             }
         }
     }
@@ -1284,7 +1213,7 @@ namespace
         RtGeneric generic(src->hnd());
 
         ElementPtr elem = dest->addChildOfCategory(generic.getKind().str(), generic.getName().str());
-        writeAttributes(src, elem, genericAttributes, options);
+        writeAttributes(src, elem, genericIgnoreList, options);
 
         for (auto child : src->getChildren())
         {
