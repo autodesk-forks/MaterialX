@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <materialx version="1.38" xmlns:xi="http://www.w3.org/2001/XInclude">
- 
   <nodegraph name="NG_transpGraph_image0" xpos="475.085" ypos="425.724" nodedef="ND_transpGraph_image0">
     <input name="opacity_file" type="filename" uniform="true" value="resources/Images/grid.png" />
     <burley_diffuse_bsdf name="burley_diffuse_bsdf" type="BSDF" xpos="315" ypos="401">
@@ -52,7 +51,7 @@
     <output name="ss_transm_unmapped_out" type="surfaceshader" nodename="ss_transmission" />
   </nodegraph>
   <nodedef name="ND_transpGraph_image0" node="transptype_0" version="1.0" isdefaultversion="true">
-    <input name="opacity_file" type="filename" />
+    <input name="opacity_file" type="filename" uniform="true" value="resources/Images/grid.png" />
     <output name="ss_opacity_mapped_out" type="surfaceshader" />
     <output name="surf_opacity_out" type="surfaceshader" />
     <output name="ss_transmission_mapped_out" type="surfaceshader" />
@@ -60,30 +59,22 @@
     <output name="ss_opacity_unmapped_out" type="surfaceshader" />
     <output name="ss_transm_unmapped_out" type="surfaceshader" />
   </nodedef>
-
-   <transptype_0 name="transptype_1" type="multioutput">
-      <input name="opacity_file" type="filename" uniform="true" value="resources/Images/grid.png" />
-      <output name="ss_opacity_mapped_out" type="surfaceshader" />
-      <output name="surf_opacity_out" type="surfaceshader" />
-      <output name="ss_transmission_mapped_out" type="surfaceshader" />
-      <output name="surf_opacity_mapped" type="surfaceshader" />
-      <output name="ss_opacity_unmapped_out" type="surfaceshader" />
-      <output name="ss_transm_unmapped_out" type="surfaceshader" />
-      </transptype_0>
-   <output name="ss_opacity_mapped_out" nodename="transptype_1" output="ss_opacity_mapped_out" type="surfaceshader">
-   </output>
-   <output name="surf_opacity_out" nodename="transptype_1" output="surf_opacity_out" type="surfaceshader">
-   </output>
-   <output name="ss_transmission_mapped_out" nodename="transptype_1" output="ss_transmission_mapped_out" type="surfaceshader">
-   </output>
-   <output name="surf_opacity_mapped" nodename="transptype_1" output="surf_opacity_mapped" type="surfaceshader">
-   </output>
-   <output name="ss_opacity_unmapped_out" nodename="transptype_1" output="ss_opacity_unmapped_out" type="surfaceshader">
-   </output>
-   <output name="ss_transm_unmapped_out" nodename="transptype_1" output="ss_transm_unmapped_out" type="surfaceshader">
-   </output>
-
-   <nodegraph name="NG_transpGraph_proc0" xpos="766.624" ypos="438.194" nodedef="ND_transpGraph_proc0">
+  <transptype_0 name="transptype_1" type="multioutput">
+    <input name="opacity_file" type="filename" value="resources/Images/grid.png" />
+    <output name="ss_opacity_mapped_out" type="surfaceshader" value="" />
+    <output name="surf_opacity_out" type="surfaceshader" value="" />
+    <output name="ss_transmission_mapped_out" type="surfaceshader" value="" />
+    <output name="surf_opacity_mapped" type="surfaceshader" value="" />
+    <output name="ss_opacity_unmapped_out" type="surfaceshader" value="" />
+    <output name="ss_transm_unmapped_out" type="surfaceshader" value="" />
+  </transptype_0>
+  <output name="ss_opacity_mapped_out" nodename="transptype_1" output="ss_opacity_mapped_out" type="surfaceshader" />
+  <output name="surf_opacity_out" nodename="transptype_1" output="surf_opacity_out" type="surfaceshader" />
+  <output name="ss_transmission_mapped_out" nodename="transptype_1" output="ss_transmission_mapped_out" type="surfaceshader" />
+  <output name="surf_opacity_mapped" nodename="transptype_1" output="surf_opacity_mapped" type="surfaceshader" />
+  <output name="ss_opacity_unmapped_out" nodename="transptype_1" output="ss_opacity_unmapped_out" type="surfaceshader" />
+  <output name="ss_transm_unmapped_out" nodename="transptype_1" output="ss_transm_unmapped_out" type="surfaceshader" />
+  <nodegraph name="NG_transpGraph_proc0" xpos="766.624" ypos="438.194" nodedef="ND_transpGraph_proc0">
     <input name="diffuse_color" type="color3" value="0.18, 0.18, 0.18" />
     <input name="repeat" type="vector2" value="4, 4" />
     <burley_diffuse_bsdf name="burley_diffuse_bsdf" type="BSDF" xpos="811.986" ypos="945.964">
@@ -127,26 +118,21 @@
     <output name="ss_transmission_ramp_out" type="surfaceshader" nodename="ss_transmission_mapped" />
     <output name="surf_opacity_ramp" type="surfaceshader" nodename="surface_opacity_mapped" />
   </nodegraph>
-  <nodedef name="ND_transpGraph_proc0" node="transptype_1" version="1.0" isdefaultversion="true">
-    <input name="diffuse_color" type="color3" />
-    <input name="repeat" type="vector2" />
+  <nodedef name="ND_transpGraph_proc0" node="transptype_0" version="1.0" isdefaultversion="true">
+    <input name="diffuse_color" type="color3" value="0.18, 0.18, 0.18" />
+    <input name="repeat" type="vector2" value="4, 4" />
     <output name="ss_opacity_ramp_out" type="surfaceshader" />
     <output name="ss_transmission_ramp_out" type="surfaceshader" />
     <output name="surf_opacity_ramp" type="surfaceshader" />
   </nodedef>
-   
-   
-   <transptype_1 name="transptype_2" type="multioutput">
-      <input name="diffuse_color" type="color3" value="1,1,1"/>
-      <input name="repeat" type="vector2" value="4,4"/>
-      <output name="ss_opacity_ramp_out" type="surfaceshader" />
-      <output name="ss_transmission_ramp_out" type="surfaceshader" />
-      <output name="surf_opacity_ramp" type="surfaceshader" />
-   </transptype_1>
-   <output name="ss_opacity_ramp_out" nodename="transptype_2" output="ss_opacity_ramp_out" type="surfaceshader">
-      </output>
-   <output name="ss_transmission_ramp_out" nodename="transptype_2" output="ss_transmission_ramp_out" type="surfaceshader">
-   </output>
-   <output name="surf_opacity_ramp" nodename="transptype_2" output="surf_opacity_ramp" type="surfaceshader">
-   </output>
+  <transptype_0 name="transptype_2" type="multioutput">
+    <input name="diffuse_color" type="color3" value="0.18, 0.18, 0.18" />
+    <input name="repeat" type="vector2" value="4, 4" />
+    <output name="ss_opacity_ramp_out" type="surfaceshader" value="" />
+    <output name="ss_transmission_ramp_out" type="surfaceshader" value="" />
+    <output name="surf_opacity_ramp" type="surfaceshader" value="" />
+  </transptype_0>
+  <output name="ss_opacity_ramp_out" nodename="transptype_2" output="ss_opacity_ramp_out" type="surfaceshader" />
+  <output name="ss_transmission_ramp_out" nodename="transptype_2" output="ss_transmission_ramp_out" type="surfaceshader" />
+  <output name="surf_opacity_ramp" nodename="transptype_2" output="surf_opacity_ramp" type="surfaceshader" />
 </materialx>

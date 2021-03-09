@@ -238,8 +238,8 @@ NodeDefPtr Document::addNodeDefFromGraph(const NodeGraphPtr nodeGraph, const str
                         newToken->setInterfaceName(EMPTY_STRING);
                     }
                 }
-                //elem->setAttribute("xpos", EMPTY_STRING);
-                //elem->setAttribute("ypos", EMPTY_STRING);
+                elem->setAttribute("xpos", EMPTY_STRING);
+                elem->setAttribute("ypos", EMPTY_STRING);
             }
         }
     }

@@ -89,11 +89,10 @@ namespace
             return false;
         }
 
-        // Current set if inputs and values which indicate opacity
-        OpaqueTestPairList inputPairList;
-        inputPairList.push_back(std::make_pair("opacity", ONE_VALUE));
-        inputPairList.push_back(std::make_pair("existence", ONE_VALUE));
-        inputPairList.push_back(std::make_pair("transmission", ZERO_VALUE));
+        // Inputs on a surface shader which are checked for transparency
+        const OpaqueTestPairList inputPairList = { {"opacity", ONE_VALUE},
+                                                   {"existence", ONE_VALUE},
+                                                   {"transmission", ZERO_VALUE} };
 
         for (auto inputPair : inputPairList)
         {

@@ -102,10 +102,11 @@ TEST_CASE("GenShader: Translation Check", "[genshader]")
     searchPath.append(currentPath / mx::FilePath("resources/Materials/TestSuite"));
 
     mx::DocumentPtr doc = mx::createDocument();
-    mx::StringSet libFiles = loadLibraries({ "targets", "stdlib", "pbrlib", "bxdf",  }, searchPath, doc);
+    loadLibraries({ "targets", "stdlib", "pbrlib", "bxdf",  }, searchPath, doc);
     mx::FilePath testPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/TestSuite/pbrlib/surfaceshader/transparency_test.mtlx");
     mx::readFromXmlFile(doc, testPath, searchPath);
 
+    // Test against nodegraphs using surface shaders
     std::vector<mx::TypedElementPtr> testElements;
     mx::findRenderableElements(doc, testElements);
     std::string failedElements;
@@ -128,6 +129,8 @@ TEST_CASE("GenShader: Translation Check", "[genshader]")
     }
     REQUIRE(failedElements == mx::EMPTY_STRING);
 
+    // Create nodedefs from nodegraphs to test against instances using
+    // definitions which have surface shaders.
     unsigned int counter = 0;
     for (auto testGraph : testGraphs)
     {
@@ -167,7 +170,7 @@ TEST_CASE("GenShader: Shader Translation", "[translate]")
     for (mx::FilePath& mtlxFile : testPath.getFilesInDirectory("mtlx"))
     {
         mx::DocumentPtr doc = mx::createDocument();
-        mx::StringSet libFiles = loadLibraries({ "targets", "stdlib", "pbrlib", "bxdf", "translation" }, searchPath, doc);
+        loadLibraries({ "targets", "stdlib", "pbrlib", "bxdf", "translation" }, searchPath, doc);
 
         mx::readFromXmlFile(doc, testPath / mtlxFile, searchPath);
         mtlxFile.removeExtension();
