@@ -7,10 +7,10 @@
 #define MATERIALX_RTRELATIONSHIPCOMMANDS_H
 
 /// @file
-/// Commands for connection handling.
+/// Commands for relationship connection handling.
 
 #include <MaterialXRuntime/RtCommand.h>
-#include <MaterialXRuntime/RtPort.h>
+#include <MaterialXRuntime/RtRelationship.h>
 
 namespace MaterialX
 {

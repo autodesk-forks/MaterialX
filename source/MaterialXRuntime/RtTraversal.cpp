@@ -169,7 +169,7 @@ RtPrimIterator::RtPrimIterator(const RtObject& obj, RtObjectPredicate predicate)
     if (obj.isA<RtPrim>())
     {
         PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
-        _ptr = prim->_prims.empty() ? nullptr : &prim->_prims.vec();
+        _ptr = prim->_prims.empty() ? nullptr : &prim->_prims._vec;
     }
     ++*this;
 }
@@ -180,7 +180,7 @@ RtInputIterator::RtInputIterator(const RtObject& obj) :
     if (obj.isA<RtPrim>())
     {
         PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
-        _ptr = prim->_inputs.empty() ? nullptr : &prim->_inputs.vec();
+        _ptr = prim->_inputs.empty() ? nullptr : &prim->_inputs._vec;
     }
     else if (obj.isA<RtOutput>())
     {
@@ -196,7 +196,7 @@ RtOutputIterator::RtOutputIterator(const RtObject& obj) :
     if (obj.isA<RtPrim>())
     {
         PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
-        _ptr = prim->_outputs.empty() ? nullptr : &prim->_outputs.vec();
+        _ptr = prim->_outputs.empty() ? nullptr : &prim->_outputs._vec;
     }
     ++*this;
 }
@@ -207,7 +207,7 @@ RtRelationshipIterator::RtRelationshipIterator(const RtObject& obj) :
     if (obj.isA<RtPrim>())
     {
         PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
-        _ptr = prim->_rel.empty() ? nullptr : &prim->_rel.vec();
+        _ptr = prim->_rel.empty() ? nullptr : &prim->_rel._vec;
     }
     ++*this;
 }

@@ -311,14 +311,14 @@ public:
         return _vec;
     }
 
-    PvtObjectVec& vec()
-    {
-        return _vec;
-    }
-
 private:
     RtTokenMap<PvtDataHandle> _map;
     PvtObjectVec _vec;
+
+    friend class RtPrimIterator;
+    friend class RtInputIterator;
+    friend class RtOutputIterator;
+    friend class RtRelationshipIterator;
 };
 
 }

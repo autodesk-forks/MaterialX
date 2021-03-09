@@ -13,10 +13,10 @@ namespace MaterialX
 namespace
 {
     // TODO: We should derive this from a data driven XML schema.
-    class BackdropPrimSpec : public PvtPrimSpec
+    class PvtBackdropPrimSpec : public PvtPrimSpec
     {
     public:
-        BackdropPrimSpec()
+        PvtBackdropPrimSpec()
         {
             addPrimAttribute(Tokens::DOC, RtType::STRING);
             addPrimAttribute(Tokens::XPOS, RtType::FLOAT);
@@ -50,7 +50,7 @@ RtPrim RtBackdrop::createPrim(const RtToken& typeName, const RtToken& name, RtPr
 
 const RtPrimSpec& RtBackdrop::getPrimSpec() const
 {
-    static const BackdropPrimSpec s_primSpec;
+    static const PvtBackdropPrimSpec s_primSpec;
     return s_primSpec;
 }
 

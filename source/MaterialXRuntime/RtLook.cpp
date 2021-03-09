@@ -16,10 +16,10 @@ namespace MaterialX
 
 namespace
 {
-    class LookGroupPrimSpec : public PvtPrimSpec
+    class PvtLookGroupPrimSpec : public PvtPrimSpec
     {
     public:
-        LookGroupPrimSpec()
+        PvtLookGroupPrimSpec()
         {
             // TODO: We should derive this from a data driven XML schema.
             addPrimAttribute(Tokens::DOC, RtType::STRING);
@@ -34,10 +34,10 @@ namespace
         }
     };
 
-    class LookPrimSpec : public PvtPrimSpec
+    class PvtLookPrimSpec : public PvtPrimSpec
     {
     public:
-        LookPrimSpec()
+        PvtLookPrimSpec()
         {
             // TODO: We should derive this from a data driven XML schema.
             addPrimAttribute(Tokens::DOC, RtType::STRING);
@@ -49,10 +49,10 @@ namespace
         }
     };
 
-    class MaterialAssignPrimSpec : public PvtPrimSpec
+    class PvtMaterialAssignPrimSpec : public PvtPrimSpec
     {
     public:
-        MaterialAssignPrimSpec()
+        PvtMaterialAssignPrimSpec()
         {
             // TODO: We should derive this from a data driven XML schema.
             addPrimAttribute(Tokens::DOC, RtType::STRING);
@@ -85,7 +85,7 @@ RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtP
 
 const RtPrimSpec& RtLookGroup::getPrimSpec() const
 {
-    static const LookGroupPrimSpec s_lookGroupSpec;
+    static const PvtLookGroupPrimSpec s_lookGroupSpec;
     return s_lookGroupSpec;
 }
 
@@ -147,7 +147,7 @@ RtPrim RtLook::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
 
 const RtPrimSpec& RtLook::getPrimSpec() const
 {
-    static const LookPrimSpec s_primSpec;
+    static const PvtLookPrimSpec s_primSpec;
     return s_primSpec;
 }
 
@@ -206,7 +206,7 @@ RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name
 
 const RtPrimSpec& RtMaterialAssign::getPrimSpec() const
 {
-    static const MaterialAssignPrimSpec s_primSpec;
+    static const PvtMaterialAssignPrimSpec s_primSpec;
     return s_primSpec;
 }
 

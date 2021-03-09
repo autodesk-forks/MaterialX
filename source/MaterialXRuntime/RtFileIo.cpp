@@ -58,10 +58,10 @@ namespace
     static const RtToken SWIZZLE_CHANNELS("channels");
 
     // Specification of attributes for the document root element.
-    class RootPrimSpec : public PvtPrimSpec
+    class PvtRootPrimSpec : public PvtPrimSpec
     {
     public:
-        RootPrimSpec()
+        PvtRootPrimSpec()
         {
             // TODO: We should derive this from a data driven XML schema.
             addPrimAttribute(Tokens::DOC, RtType::STRING);
@@ -769,7 +769,7 @@ namespace
         stage->addSourceUri(RtToken(uri));
 
         // Read root document attributes.
-        static RootPrimSpec s_rootPrimSpec;
+        static PvtRootPrimSpec s_rootPrimSpec;
         readAttributes(doc, stage->getRootPrim(), s_rootPrimSpec, stageIgnoreList);
 
         RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;

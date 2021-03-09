@@ -14,10 +14,10 @@ namespace MaterialX
 namespace
 {
     // TODO: We should derive this from a data driven XML schema.
-    class NodeImplPrimSpec : public PvtPrimSpec
+    class PvtNodeImplPrimSpec : public PvtPrimSpec
     {
     public:
-        NodeImplPrimSpec()
+        PvtNodeImplPrimSpec()
         {
             addPrimAttribute(Tokens::DOC, RtType::STRING);
             addPrimAttribute(Tokens::NODEDEF, RtType::TOKEN);
@@ -45,7 +45,7 @@ RtPrim RtNodeImpl::createPrim(const RtToken& typeName, const RtToken& name, RtPr
 
 const RtPrimSpec& RtNodeImpl::getPrimSpec() const
 {
-    static const NodeImplPrimSpec s_primSpec;
+    static const PvtNodeImplPrimSpec s_primSpec;
     return s_primSpec;
 }
 

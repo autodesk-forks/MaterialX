@@ -26,10 +26,10 @@ namespace
     };
 
     // TODO: We should derive this from a data driven XML schema.
-    class TargetDefPrimSpec : public PvtPrimSpec
+    class PvtTargetDefPrimSpec : public PvtPrimSpec
     {
     public:
-        TargetDefPrimSpec()
+        PvtTargetDefPrimSpec()
         {
             addPrimAttribute(Tokens::DOC, RtType::STRING);
             addPrimAttribute(Tokens::INHERIT, RtType::TOKEN);
@@ -56,7 +56,7 @@ RtPrim RtTargetDef::createPrim(const RtToken& typeName, const RtToken& name, RtP
 
 const RtPrimSpec& RtTargetDef::getPrimSpec() const
 {
-    static const TargetDefPrimSpec s_primSpec;
+    static const PvtTargetDefPrimSpec s_primSpec;
     return s_primSpec;
 }
 

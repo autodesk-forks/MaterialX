@@ -280,7 +280,10 @@ struct PvtAttributeSpec
 {
     RtToken name;
     RtToken type;
-//    RtValue value; TODO: Fix me!
+    // TODO: Use an RtValue instead of string value.
+    //       Need better handling of ownership of large values
+    //       for this, which is part of another change list.
+    // RtValue value;
     string value;
     bool custom;
     bool exportable;

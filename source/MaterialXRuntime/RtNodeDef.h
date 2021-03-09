@@ -42,7 +42,7 @@ public:
     /// Return the namespaced node for this nodedef.
     RtToken getNamespacedNode() const;
 
-    /// Set the node for this nodedef.
+    /// Set the nodegroup for this nodedef.
     void setNodeGroup(const RtToken& nodegroup);
 
     /// Return the node group for this nodedef.

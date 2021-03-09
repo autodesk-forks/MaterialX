@@ -13,10 +13,10 @@ namespace MaterialX
 {
 namespace
 {
-    class CollectionPrimSpec : public PvtPrimSpec
+    class PvtCollectionPrimSpec : public PvtPrimSpec
     {
     public:
-        CollectionPrimSpec()
+        PvtCollectionPrimSpec()
         {
             // TODO: We should derive this from a data driven XML schema.
             addPrimAttribute(Tokens::DOC, RtType::STRING);
@@ -49,7 +49,7 @@ RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, Rt
 
 const RtPrimSpec& RtCollection::getPrimSpec() const
 {
-    static const CollectionPrimSpec s_primSpec;
+    static const PvtCollectionPrimSpec s_primSpec;
     return s_primSpec;
 }
 

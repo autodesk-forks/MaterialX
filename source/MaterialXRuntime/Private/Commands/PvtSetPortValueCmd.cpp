@@ -27,7 +27,7 @@ void PvtSetPortValueCmd::execute(RtCommandResult& result)
     {
         try
         {
-            // Send message that the attribute is changing
+            // Send message that the port value is changing
             msg().sendSetPortValueMessage(_port, _value);
 
             // Save old value for undo/redo
@@ -44,7 +44,7 @@ void PvtSetPortValueCmd::execute(RtCommandResult& result)
     }
     else
     {
-        result = RtCommandResult(false, string("Attribute to set is no longer valid"));
+        result = RtCommandResult(false, string("Port to set value on is no longer valid"));
     }
 }
 
@@ -54,7 +54,7 @@ void PvtSetPortValueCmd::undo(RtCommandResult& result)
     {
         try
         {
-            // Send message that the attribute is changing
+            // Send message that the port value is changing
             msg().sendSetPortValueMessage(_port, _oldValue);
 
             // Reset the value
@@ -68,7 +68,7 @@ void PvtSetPortValueCmd::undo(RtCommandResult& result)
     }
     else
     {
-        result = RtCommandResult(false, string("Attribute to set is no longer valid"));
+        result = RtCommandResult(false, string("Port to set value on is no longer valid"));
     }
 }
 
@@ -78,7 +78,7 @@ void PvtSetPortValueCmd::redo(RtCommandResult& result)
     {
         try
         {
-            // Send message that the attribute is changing
+            // Send message that the port value is changing
             msg().sendSetPortValueMessage(_port, _value);
 
             // Set the value
@@ -92,7 +92,7 @@ void PvtSetPortValueCmd::redo(RtCommandResult& result)
     }
     else
     {
-        result = RtCommandResult(false, string("Attribute to set is no longer valid"));
+        result = RtCommandResult(false, string("Port to set value on is no longer valid"));
     }
 }
 

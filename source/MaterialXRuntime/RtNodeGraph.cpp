@@ -19,10 +19,10 @@ namespace MaterialX
 namespace
 {
     // TODO: We should derive this from a data driven XML schema.
-    class NodeGraphPrimSpec : public PvtPrimSpec
+    class PvtNodeGraphPrimSpec : public PvtPrimSpec
     {
     public:
-        NodeGraphPrimSpec()
+        PvtNodeGraphPrimSpec()
         {
             addPrimAttribute(Tokens::DOC, RtType::STRING);
             addPrimAttribute(Tokens::XPOS, RtType::FLOAT);
@@ -147,7 +147,7 @@ RtPrim RtNodeGraph::createPrim(const RtToken& typeName, const RtToken& name, RtP
 
 const RtPrimSpec& RtNodeGraph::getPrimSpec() const
 {
-    static const NodeGraphPrimSpec s_primSpec;
+    static const PvtNodeGraphPrimSpec s_primSpec;
     return s_primSpec;
 }
 
