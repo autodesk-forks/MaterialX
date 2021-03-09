@@ -37,8 +37,7 @@ namespace MaterialX
 
 namespace
 {
-    // Lists of attributes which are handled explicitly by import/export
-    // and should be ignored when reading/writing attributes.
+    // Lists of attributes which are handled explicitly by read/write and should be ignored when reading/writing attributes.
     static const RtTokenSet nodedefIgnoreList    = { RtToken("name"), RtToken("type") };
     static const RtTokenSet portIgnoreList       = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels") };
     static const RtTokenSet inputIgnoreList      = { RtToken("name"), RtToken("type"), RtToken("value"), RtToken("nodename"), RtToken("output"), RtToken("channels"),
@@ -54,12 +53,11 @@ namespace
     static const RtTokenSet genericIgnoreList    = { RtToken("name"), RtToken("kind") };
     static const RtTokenSet stageIgnoreList      = {};
 
-    static const RtToken DEFAULT_OUTPUT("out");
     static const RtToken MULTIOUTPUT("multioutput");
-    static const RtToken UI_VISIBLE("uivisible");
     static const RtToken SWIZZLE_INPUT("in");
     static const RtToken SWIZZLE_CHANNELS("channels");
 
+    // Specification of attributes for the document root element.
     class RootPrimSpec : public PvtPrimSpec
     {
     public:
@@ -229,7 +227,7 @@ namespace
 
             PvtInput* in = swizzleNode->getInput(SWIZZLE_INPUT);
             PvtInput* ch = swizzleNode->getInput(SWIZZLE_CHANNELS);
-            PvtOutput* out = swizzleNode->getOutput(DEFAULT_OUTPUT);
+            PvtOutput* out = swizzleNode->getOutput();
             if (in && ch && out)
             {
                 ch->getValue().asString() = swizzle;
@@ -924,10 +922,10 @@ namespace
             RtInput input = node.getInput(i);
             if (input)
             {
-                const RtTypedValue* uiVisible1 = input.getAttribute(UI_VISIBLE);
-                const RtTypedValue* uiVisible2 = nodedefInput.getAttribute(UI_VISIBLE);
-                const bool uiHidden1 = uiVisible1 && (uiVisible1->getValueString() == VALUE_STRING_FALSE);
-                const bool uiHidden2 = uiVisible2 && (uiVisible2->getValueString() == VALUE_STRING_FALSE);
+                const RtTypedValue* uiVisible1 = input.getAttribute(Tokens::UIVISIBLE, RtType::BOOLEAN);
+                const RtTypedValue* uiVisible2 = nodedefInput.getAttribute(Tokens::UIVISIBLE, RtType::BOOLEAN);
+                const bool uiHidden1 = uiVisible1 && !uiVisible1->asBool();
+                const bool uiHidden2 = uiVisible2 && !uiVisible2->asBool();
                 const bool writeUiVisibleData = uiHidden1 != uiHidden2;
 
                 // Write input if it's connected or different from default value.
