@@ -114,7 +114,7 @@ namespace
                         return false;
                     }
                 }
-                if (checkInput->getConnectedOutput())
+                if (checkInput->getConnectedNode())
                 {
                     return true;
                 }
@@ -131,7 +131,7 @@ namespace
         return false;
     }
 
-    bool isTransparentShaderGraph(OutputPtr output, const ShaderGenerator& shadergen,
+    bool isTransparentShaderGraph(OutputPtr output, const string& target,
                                   OpaqueTestPairList& interaceList)
     {
         for (GraphIterator it = output->traverseGraph().begin(); it != GraphIterator::end(); ++it)
@@ -158,7 +158,7 @@ namespace
                     const TypeDesc* nodeDefType = TypeDesc::get(nodeDef->getType());
                     if (nodeDefType == Type::BSDF)
                     {
-                        InterfaceElementPtr impl = nodeDef->getImplementation(shadergen.getTarget());
+                        InterfaceElementPtr impl = nodeDef->getImplementation(target);
                         if (impl && impl->isA<NodeGraph>())
                         {
                             NodeGraphPtr graph = impl->asA<NodeGraph>();
@@ -168,7 +168,7 @@ namespace
                             {
                                 const OutputPtr& graphOutput = outputs[0];
                                 OpaqueTestPairList opaqueInputList;
-                                if (isTransparentShaderGraph(graphOutput, shadergen, opaqueInputList))
+                                if (isTransparentShaderGraph(graphOutput, target, opaqueInputList))
                                 {
                                     return true;
                                 }
@@ -187,7 +187,7 @@ namespace
     }
 }
 
-bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
+bool isTransparentSurface(ElementPtr element, const string& target)
 {
     NodePtr node = element->asA<Node>();
     if (node)
@@ -205,11 +205,11 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
         {
             throw ExceptionShaderGenError("Could not find a nodedef for shader node '" + node->getNamePath());
         }
-        InterfaceElementPtr impl = nodeDef->getImplementation(shadergen.getTarget());
+        InterfaceElementPtr impl = nodeDef->getImplementation(target);
         if (!impl)
         {
             throw ExceptionShaderGenError("Could not find a matching implementation for node '" + nodeDef->getNodeString() +
-                                          "' matching target '" + shadergen.getTarget() + "'");
+                                          "' matching target '" + target + "'");
         }
         if (impl->isA<NodeGraph>())
         {
@@ -222,7 +222,7 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
                 if (output->getType() == SURFACE_SHADER_TYPE_STRING)
                 {
                     OpaqueTestPairList opaqueInputList;
-                    if (isTransparentShaderGraph(output, shadergen, opaqueInputList))
+                    if (isTransparentShaderGraph(output, target, opaqueInputList))
                     {
                         return true;
                     }
@@ -238,7 +238,7 @@ bool isTransparentSurface(ElementPtr element, const ShaderGenerator& shadergen)
         NodePtr outputNode = output->getConnectedNode();
         if (outputNode)
         {
-            return isTransparentSurface(outputNode, shadergen);
+            return isTransparentSurface(outputNode, target);
         }
     }
 
