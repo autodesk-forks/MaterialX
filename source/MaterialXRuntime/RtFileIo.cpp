@@ -156,16 +156,15 @@ namespace
 
     void writeAttributes(const PvtObject* src, ElementPtr dest, const RtTokenSet& ignoreList, const RtWriteOptions* options)
     {
-        for (auto it : src->getAttributes())
+        for (const RtToken& name : src->getAttributeNames())
         {
-            const RtToken& name = it.first;
             if (ignoreList.count(name) ||
                 (name.str().size() > 0 && name.str().at(0) == '_')) // Attributes with "_" prefix are private
             {
                 continue;
             }
 
-            const RtTypedValue* attr = it.second;
+            const RtTypedValue* attr = src->getAttribute(name);
 
             // Check filter if the attribute should be ignored
             if (options && options->attributeFilter && options->attributeFilter(src->hnd(), name, attr))
