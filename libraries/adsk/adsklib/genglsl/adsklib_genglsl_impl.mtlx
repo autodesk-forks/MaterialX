@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright (c) 2021 Autodesk, Inc.
+ All rights reserved.
+ 
+ These coded instructions, statements, and computer programs contain
+ unpublished proprietary information written by Autodesk, Inc., and are
+ protected by Federal copyright law. They may not be disclosed to third
+ parties or copied or duplicated in any form, in whole or in part, without
+ the prior written consent of Autodesk, Inc. 
+ 
+ DESCRIPTION: GLSL impl for Autodesk Advanced Materials
+ VERSION: 1.0.1
+ SHA: $Id$
+-->
+
+<materialx version="1.38">
+  <!-- <backface_util> -->
+  <implementation name="IM_backface_util_genglsl" nodedef="adsk:ND_backface_util" file="adsk/adsklib/genglsl/mx_backface_util.glsl" function="mx_backface_util" target="genglsl"/>
+</materialx>
