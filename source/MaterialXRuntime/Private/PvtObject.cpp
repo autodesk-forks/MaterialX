@@ -8,6 +8,7 @@
 #include <MaterialXRuntime/Private/PvtStage.h>
 
 #include <set>
+#include <algorithm>
 
 /// @file
 /// TODO: Docs
@@ -107,18 +108,11 @@ PvtDataHandle PvtObjectList::remove(const RtToken& name)
     {
         PvtDataHandle hnd = it->second;
         _map.erase(it);
+        _vec.erase(std::find(_vec.begin(), _vec.end(), hnd.get()));
 
-        for (auto it2 = _vec.begin(); it2 != _vec.end(); ++it2)
-        {
-            if (*it2 == hnd.get())
-            {
-                _vec.erase(it2);
-                break;
-            }
-        }
-
-        // Return the handled to keep the object alive
-        // if the intent is not to destroy it here.
+        // Return the handle to keep the object alive
+        // in case the intent was to only remove it
+        // but not destroy it here.
         return hnd;
     }
     return PvtDataHandle();
