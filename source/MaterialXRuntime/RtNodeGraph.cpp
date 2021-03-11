@@ -34,6 +34,8 @@ namespace
             addPrimAttribute(Tokens::VERSION, RtType::TOKEN);
             addPrimAttribute(Tokens::NAMESPACE, RtType::TOKEN);
             addPrimAttribute(Tokens::NODEDEF, RtType::TOKEN);
+            addPrimAttribute(Tokens::COLORSPACE, RtType::TOKEN);
+            addPrimAttribute(Tokens::FILEPREFIX, RtType::STRING);
 
             addInputAttribute(Tokens::DOC, RtType::STRING);
             addInputAttribute(Tokens::MEMBER, RtType::STRING);
@@ -46,12 +48,20 @@ namespace
 
             addInputAttributeByType(RtType::FLOAT, Tokens::UNIT, RtType::TOKEN);
             addInputAttributeByType(RtType::FLOAT, Tokens::UNITTYPE, RtType::TOKEN);
+
             addInputAttributeByType(RtType::VECTOR2, Tokens::UNIT, RtType::TOKEN);
             addInputAttributeByType(RtType::VECTOR2, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR2, Tokens::DEFAULTGEOMPROP, RtType::TOKEN);
+
             addInputAttributeByType(RtType::VECTOR3, Tokens::UNIT, RtType::TOKEN);
             addInputAttributeByType(RtType::VECTOR3, Tokens::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR3, Tokens::DEFAULTGEOMPROP, RtType::TOKEN);
+
             addInputAttributeByType(RtType::VECTOR4, Tokens::UNIT, RtType::TOKEN);
             addInputAttributeByType(RtType::VECTOR4, Tokens::UNITTYPE, RtType::TOKEN);
+
+            addInputAttributeByType(RtType::FILENAME, Tokens::COLORSPACE, RtType::TOKEN);
+            addInputAttributeByType(RtType::FILENAME, Tokens::FILEPREFIX, RtType::STRING);
 
             addOutputAttribute(Tokens::DOC, RtType::STRING);
             addOutputAttribute(Tokens::MEMBER, RtType::STRING);
