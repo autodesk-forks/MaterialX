@@ -104,9 +104,9 @@ public:
 
     void removeRelationship(const RtToken& name);
 
-    void renameRelationship(const RtToken& name, const RtToken& newName)
+    RtToken renameRelationship(const RtToken& name, const RtToken& newName)
     {
-        _rel.rename(name, newName);
+        return _rel.rename(name, newName, this);
     }
 
     PvtRelationship* getRelationship(const RtToken& name)
@@ -136,9 +136,7 @@ public:
 
     RtToken renameInput(const RtToken& name, const RtToken& newName)
     {
-        RtToken result = makeUniqueChildName(newName);
-        _inputs.rename(name, result);
-        return result;
+        return _inputs.rename(name, newName, this);
     }
 
     size_t numInputs() const
@@ -168,9 +166,7 @@ public:
 
     RtToken renameOutput(const RtToken& name, const RtToken& newName)
     {
-        RtToken result = makeUniqueChildName(newName);
-        _outputs.rename(name, result);
-        return result;
+        return _outputs.rename(name, newName, this);
     }
 
     size_t numOutputs() const
@@ -212,9 +208,7 @@ public:
 
     RtToken renameChild(const RtToken& name, const RtToken& newName)
     {
-        RtToken result = makeUniqueChildName(newName);
-        _prims.rename(name, result);
-        return result;
+        return _prims.rename(name, newName, this);
     }
 
     RtPrimIterator getChildren(RtObjectPredicate predicate = nullptr) const;

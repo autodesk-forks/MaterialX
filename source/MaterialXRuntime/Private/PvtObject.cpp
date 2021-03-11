@@ -99,4 +99,51 @@ RtTypedValue* PvtObject::getAttribute(const RtToken& name, const RtToken& type)
     return value;
 }
 
+
+PvtDataHandle PvtObjectList::remove(const RtToken& name)
+{
+    auto it = _map.find(name);
+    if (it != _map.end())
+    {
+        PvtDataHandle hnd = it->second;
+        _map.erase(it);
+
+        for (auto it2 = _vec.begin(); it2 != _vec.end(); ++it2)
+        {
+            if (*it2 == hnd.get())
+            {
+                _vec.erase(it2);
+                break;
+            }
+        }
+
+        // Return the handled to keep the object alive
+        // if the intent is not to destroy it here.
+        return hnd;
+    }
+    return PvtDataHandle();
+}
+
+RtToken PvtObjectList::rename(const RtToken& name, const RtToken& newName, const PvtPrim* parent)
+{
+    auto it = _map.find(name);
+    if (it == _map.end())
+    {
+        throw ExceptionRuntimeError("No object named '" + name.str() + "' exists, unable to rename.");
+    }
+
+    // Remove it from the name map first.
+    // Make sure to hold on to the ref pointer
+    // to keep the object alive.
+    PvtDataHandle hnd = it->second;
+    _map.erase(it);
+
+    // Make sure the new name is unique within the parent.
+    const RtToken finalName = parent->makeUniqueChildName(newName);
+    hnd->setName(finalName);
+    _map[finalName] = hnd;
+
+    return finalName;
+}
+
 }
