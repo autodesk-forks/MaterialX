@@ -210,6 +210,13 @@ public:
         return obj ? obj->asA<PvtPrim>() : nullptr;
     }
 
+    RtToken renameChild(const RtToken& name, const RtToken& newName)
+    {
+        RtToken result = makeUniqueChildName(newName);
+        _prims.rename(name, result);
+        return result;
+    }
+
     RtPrimIterator getChildren(RtObjectPredicate predicate = nullptr) const;
 
     const PvtObjectVec& getAllChildren() const
