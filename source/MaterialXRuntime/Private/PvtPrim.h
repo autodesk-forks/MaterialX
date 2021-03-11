@@ -337,7 +337,9 @@ public:
 
 private:
     RtTokenMap<RtAttributeSpec*> _map;
-    vector<RtAttributeSpec*> _vec;
+    RtAttributeSpecVec _vec;
+
+    friend class PvtPrimSpec;
 };
 
 
@@ -353,7 +355,14 @@ public:
         return _primAttr.find(name);
     }
 
+    const RtAttributeSpecVec& getAttributes() const override
+    {
+        return _primAttr._vec;
+    }
+
     const RtAttributeSpec* getPortAttribute(const RtPort& port, const RtToken& name) const override;
+
+    RtAttributeSpecVec getPortAttributes(const RtPort& port) const override;
 
     RtAttributeSpec* create(const RtToken& name, const RtToken& type, const string& value, bool exportable, bool custom);
 
