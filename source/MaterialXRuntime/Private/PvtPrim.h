@@ -71,11 +71,11 @@ class PvtPrim : public PvtObject
 
 public:
     template<class T = PvtPrim>
-    static PvtDataHandle createNew(const RtTypeInfo* type, const RtToken& name, PvtPrim* parent)
+    static PvtObjHandle createNew(const RtTypeInfo* type, const RtToken& name, PvtPrim* parent)
     {
         // Make the name unique.
         const RtToken primName = parent->makeUniqueChildName(name);
-        return PvtDataHandle(new T(type, primName, parent));
+        return PvtObjHandle(new T(type, primName, parent));
     }
 
     RtPrim prim() const

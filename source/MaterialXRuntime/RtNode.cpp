@@ -91,7 +91,7 @@ RtPrim RtNode::createPrim(const RtToken& typeName, const RtToken& name, RtPrim p
     PvtPrim* nodedefPrim = PvtObject::ptr<PvtPrim>(prim);
 
     const RtToken nodeName = name == EMPTY_TOKEN ? nodedef.getNode() : name;
-    PvtDataHandle nodeH = PvtPrim::createNew(&_typeInfo, nodeName, PvtObject::ptr<PvtPrim>(parent));
+    PvtObjHandle nodeH = PvtPrim::createNew(&_typeInfo, nodeName, PvtObject::ptr<PvtPrim>(parent));
     PvtPrim* node = nodeH->asA<PvtPrim>();
 
     // Save the nodedef in a relationship.

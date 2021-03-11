@@ -34,8 +34,8 @@ public:
     /// Creating an invalid object.
     RtPrim() {}
 
-    /// Construct from a data handle.
-    RtPrim(PvtDataHandle hnd);
+    /// Construct from a handle.
+    RtPrim(PvtObjHandle hnd);
 
     /// Construct from an object.
     RtPrim(RtObject obj);

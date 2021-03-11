@@ -99,13 +99,13 @@ public:
     }
 
     // Return a handle for the object.
-    PvtDataHandle hnd() const
+    PvtObjHandle hnd() const
     {
-        return PvtDataHandle(const_cast<PvtObject*>(this));
+        return PvtObjHandle(const_cast<PvtObject*>(this));
     }
 
     // Return a handle for the given object.
-    static PvtDataHandle hnd(const RtObject& obj)
+    static PvtObjHandle hnd(const RtObject& obj)
     {
         return obj.hnd();
     }
@@ -258,7 +258,7 @@ public:
         _vec.push_back(obj);
     }
 
-    PvtDataHandle remove(const RtToken& name);
+    PvtObjHandle remove(const RtToken& name);
 
     RtToken rename(const RtToken& name, const RtToken& newName, const PvtPrim* parent);
 
@@ -274,7 +274,7 @@ public:
     }
 
 private:
-    RtTokenMap<PvtDataHandle> _map;
+    RtTokenMap<PvtObjHandle> _map;
     PvtObjectVec _vec;
 
     friend class RtPrimIterator;

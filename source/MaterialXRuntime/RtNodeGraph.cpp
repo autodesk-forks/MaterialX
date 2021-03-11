@@ -101,26 +101,26 @@ public:
 
     void removeInputSocket(const RtToken& name)
     {
-        PvtDataHandle hnd = _inputSockets.remove(name);
+        PvtObjHandle hnd = _inputSockets.remove(name);
         hnd->asA<PvtPort>()->setDisposed(true);
     }
 
     void removeOutputSocket(const RtToken& name)
     {
-        PvtDataHandle hnd = _outputSockets.remove(name);
+        PvtObjHandle hnd = _outputSockets.remove(name);
         hnd->asA<PvtPort>()->setDisposed(true);
     }
 
     void renameInputSocket(const RtToken& name, const RtToken& newName)
     {
-        PvtDataHandle hnd = _inputSockets.remove(name);
+        PvtObjHandle hnd = _inputSockets.remove(name);
         hnd->asA<PvtPort>()->setName(newName);
         _inputSockets.add(hnd.get());
     }
 
     void renameOutputSocket(const RtToken& name, const RtToken& newName)
     {
-        PvtDataHandle hnd = _outputSockets.remove(name);
+        PvtObjHandle hnd = _outputSockets.remove(name);
         hnd->asA<PvtPort>()->setName(newName);
         _outputSockets.add(hnd.get());
     }
@@ -150,7 +150,7 @@ RtPrim RtNodeGraph::createPrim(const RtToken& typeName, const RtToken& name, RtP
 
     static const RtToken DEFAULT_NAME("nodegraph1");
     const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
-    PvtDataHandle primH = PvtPrim::createNew<PvtNodeGraphPrim>(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
+    PvtObjHandle primH = PvtPrim::createNew<PvtNodeGraphPrim>(&_typeInfo, primName, PvtObject::ptr<PvtPrim>(parent));
 
     return primH;
 }
