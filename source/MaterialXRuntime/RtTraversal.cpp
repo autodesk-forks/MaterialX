@@ -242,7 +242,7 @@ RtStageIterator::RtStageIterator(const RtStagePtr& stage, RtObjectPredicate pred
     StageIteratorData* data = new StageIteratorData();
     data->current = nullptr;
     data->predicate = predicate;
-    data->stack.push_back(std::make_tuple(PvtStage::ptr(stage), -1, -1));
+    data->stack.push_back(std::make_tuple(PvtStage::cast(stage), -1, -1));
 
     _ptr = data;
     ++*this;
@@ -330,7 +330,7 @@ RtStageIterator& RtStageIterator::operator++()
         }
         else if (stageIndex + 1 < int(stage->getAllReferences().size()))
         {
-            PvtStage* refStage = PvtStage::ptr(stage->getAllReferences()[++stageIndex]);
+            PvtStage* refStage = PvtStage::cast(stage->getAllReferences()[++stageIndex]);
             if (!refStage->getRootPrim()->getAllChildren().empty())
             {
                 data->stack.push_back(std::make_tuple(refStage, 0, stageIndex));

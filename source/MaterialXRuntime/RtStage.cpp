@@ -34,18 +34,6 @@ RtStage::~RtStage()
     delete _cast(_ptr);
 }
 
-RtStagePtr RtStage::createNew(const RtToken& name)
-{
-    // Create the shared stage object.
-    RtStagePtr stage(new RtStage());
-
-    // Create the private stage implementation.
-    stage->_ptr = new PvtStage(name, RtStageWeakPtr(stage));
-
-    // Return the shared wrapper object.
-    return stage;
-}
-
 const RtToken& RtStage::getName() const
 {
     return _cast(_ptr)->getName();
@@ -147,28 +135,7 @@ void RtStage::restorePrim(const RtPath& parentPath, const RtPrim& prim)
     _cast(_ptr)->restorePrim(*static_cast<PvtPath*>(parentPath._ptr), prim);
 }
 
-RtPrim RtStage::getImplementation(const RtNodeDef& definition) const
-{
-    const RtToken& nodeDefName = definition.getName();
-
-    RtSchemaPredicate<RtNodeGraph> filter;
-    for (RtPrim child : _cast(_ptr)->getRootPrim()->getChildren(filter))
-    {
-        RtNodeGraph nodeGraph(child);
-        // Check if there is a definition name match 
-        if (nodeGraph.getDefinition() == nodeDefName)
-        {
-            PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
-            return RtPrim(graphPrim->hnd());
-        }
-    }
-
-    // TODO: Return an empty prim for now. When support is added in to be able to
-    // access non-nodegraph implementations, this method should throw an exception if not found.
-    return RtPrim();
-}
-
-RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph, 
+RtPrim RtStage::createNodeDef(RtPrim nodeGraph, 
                               const RtToken& nodeDefName, 
                               const RtToken& nodeName, 
                               const RtToken& version,
@@ -181,20 +148,13 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
         throw ExceptionRuntimeError("Cannot create nodedef '" + nodeDefName.str() + "', with node name: '" + nodeName.str() + "'");
     }
 
-    // Make sure a nodedef with this name in not already registered.
-    if (RtApi::get().hasNodeDef(nodeDefName))
-    {
-        throw ExceptionRuntimeError("A nodedef named '" + nodeDefName.str() + "' is already registered");
-    }
+    PvtStage* stage = PvtStage::cast(this);
 
-    PvtStage* stage = _cast(_ptr);
-
-    // Make sure the nodedef name is unique among all prims.
-    PvtPath path(PvtPath::ROOT_NAME.str());
-    path.push(nodeDefName);
+    // Make sure the nodedef name is unique among all prims in the stage.
+    PvtPath path(nodeDefName);
     if (stage->getPrimAtPath(path))
     {
-        throw ExceptionRuntimeError("The nodedef named '" + nodeDefName.str() + "' is not unique");
+        throw ExceptionRuntimeError("The nodedef name '" + nodeDefName.str() + "' is not unique");
     }
 
     PvtPrim* prim = stage->createPrim(stage->getPath(), nodeDefName, RtNodeDef::typeName());
@@ -233,12 +193,14 @@ RtPrim RtStage::createNodeDef(RtNodeGraph& nodeGraph,
     }
 
     // Set the definition on the nodegraph
-    nodeGraph.setDefinition(nodeDefName);
+    // turning this into a functional graph
+    RtNodeGraph nodeGraphSchema(nodeGraph);
+    nodeGraphSchema.setDefinition(nodeDefName);
 
-    // Register this nodedef.
-    RtApi::get().registerNodeDef(nodedef.getPrim());
+    // Create the relaationship between nodedef and it's implementation.
+    nodedef.getNodeImpls().connect(nodeGraph);
 
-    return nodedef.getPrim();
+    return prim->hnd();
 }
 
 }

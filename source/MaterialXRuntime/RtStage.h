@@ -17,8 +17,6 @@ namespace MaterialX
 {
 
 class RtPath;
-class RtNodeGraph;
-class RtNodeDef;
 
 /// @class RtStage
 /// A stage is the root container of material description data.
@@ -50,13 +48,8 @@ public:
     RtPrim createPrim(const RtPath& parentPath, const RtToken& name, const RtToken& typeName);
 
     /// Create a nodedef based on a nodegraph
-    RtPrim createNodeDef(RtNodeGraph& nodeGraph, const RtToken& nodeDefName, const RtToken& nodeName,
+    RtPrim createNodeDef(RtPrim nodeGraph, const RtToken& nodeDefName, const RtToken& nodeName,
                          const RtToken& version, bool isDefaultVersion, const RtToken& nodeGroup = EMPTY_TOKEN);
-
-    /// Return the implementation for a given nodedef if it exists.
-    /// Currently only nodegraph implemenations are considered.
-    /// If no implementation is found an invalid RtPrim will be returned.
-    RtPrim getImplementation(const RtNodeDef& nodedef) const;
 
     /// Remove a prim from the stage.
     void removePrim(const RtPath& path);
@@ -95,8 +88,6 @@ public:
 
 protected:
     RtStage();
-
-    static RtStagePtr createNew(const RtToken& name);
 
     void setName(const RtToken& name);
 

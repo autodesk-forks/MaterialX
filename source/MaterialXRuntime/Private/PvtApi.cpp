@@ -8,6 +8,9 @@
 #include <MaterialXRuntime/RtApi.h>
 #include <MaterialXRuntime/RtSchema.h>
 #include <MaterialXRuntime/RtNodeDef.h>
+#include <MaterialXRuntime/RtNodeGraph.h>
+#include <MaterialXRuntime/RtNodeImpl.h>
+#include <MaterialXRuntime/RtTargetDef.h>
 #include <MaterialXRuntime/RtFileIo.h>
 
 namespace MaterialX
@@ -15,70 +18,98 @@ namespace MaterialX
 
 namespace
 {
-    static const RtToken libRootName("api_lib_root");
+    const RtToken DEFAULT_LIBRARY_NAME("default");
+    const string NUMBERS("0123456789");
 }
 
 void PvtApi::reset()
 {
     _createFunctions.clear();
-    _stages.clear();
-    _nodedefs.clear();
-    _nodeimpls.clear();
-
-    _libraryRootStage.reset();
     _libraries.clear();
-    _libraryRootStage = RtStage::createNew(libRootName);
+    _stages.clear();
 
     _unitDefinitions = UnitConverterRegistry::create();
 }
 
-void PvtApi::createLibrary(const RtToken& name)
+void PvtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtReadOptions* options, bool forceReload)
 {
-    // If already loaded unload the old first,
-    // to support reloading of updated libraries.
-    if (getLibrary(name))
+    auto it = _libraries.find(name);
+    if (it != _libraries.end())
     {
-        unloadLibrary(name);
+        if (forceReload)
+        {
+            _libraries.erase(it);
+        }
+        else
+        {
+            throw ExceptionRuntimeError("A library named '" + name.str() + "' has already been loaded");
+        }
     }
 
-    RtStagePtr lib = RtStage::createNew(name);
-    _libraries[name] = lib;
+    RtStagePtr stage = PvtStage::createNew(name);
+    _libraries[name] = stage;
 
-    _libraryRootStage->addReference(lib);
-}
+    // Load in the files(s).
+    RtFileIo file(stage);
+    file.readLibrary(path, _searchPaths, options);
 
-void PvtApi::loadLibrary(const RtToken& name, const RtReadOptions& options)
-{
-    // If already loaded unload the old first,
-    // to support reloading of updated libraries.
-    if (getLibrary(name))
+    // Register any definitions and implementations.
+    for (RtPrim prim : stage->traverse())
     {
-        unloadLibrary(name);
+        if (prim.hasApi<RtNodeDef>())
+        {
+            registerNodeDef(prim);
+        }
+        else if (prim.hasApi<RtNodeGraph>())
+        {
+            RtNodeGraph nodegraph(prim);
+            if (nodegraph.getDefinition() != EMPTY_TOKEN)
+            {
+                registerNodeGraph(prim);
+            }
+        }
+        else if (prim.hasApi<RtNodeImpl>())
+        {
+            registerNodeImpl(prim);
+        }
+        else if (prim.hasApi<RtTargetDef>())
+        {
+            registerTargetDef(prim);
+        }
     }
-
-    RtStagePtr lib = RtStage::createNew(name);
-    _libraries[name] = lib;
-
-    RtFileIo file(lib);
-    file.readLibraries({ name.str() }, _searchPaths, options);
-
-    _libraryRootStage->addReference(lib);
 }
 
 void PvtApi::unloadLibrary(const RtToken& name)
 {
-    RtStagePtr lib = getLibrary(name);
-    if (lib)
+    auto it = _libraries.find(name);
+    if (it != _libraries.end())
     {
-        // Unregister any nodedefs from this library.
-        RtSchemaPredicate<RtNodeDef> nodedefFilter;
-        for (RtPrim nodedef : lib->getRootPrim().getChildren(nodedefFilter))
+        RtStagePtr stage = it->second;
+        for (RtPrim prim : stage->traverse())
         {
-            unregisterNodeDef(nodedef.getName());
+            if (prim.hasApi<RtNodeDef>())
+            {
+                unregisterNodeDef(prim.getName());
+            }
+            else if (prim.hasApi<RtNodeGraph>())
+            {
+                RtNodeGraph nodegraph(prim);
+                if (nodegraph.getDefinition() != EMPTY_TOKEN)
+                {
+                    unregisterNodeGraph(prim.getName());
+                }
+            }
+            else if (prim.hasApi<RtNodeImpl>())
+            {
+                unregisterNodeImpl(prim.getName());
+            }
+            else if (prim.hasApi<RtTargetDef>())
+            {
+                unregisterTargetDef(prim.getName());
+            }
         }
 
-        // Delete the library.
-        _libraries.erase(name);
+        _libraries.erase(it);
     }
 }
 
@@ -94,7 +125,7 @@ RtToken PvtApi::makeUniqueStageName(const RtToken& name) const
         // the counter until a unique name is found.
         string baseName = name.str();
         int i = 1;
-        const size_t n = name.str().find_last_not_of("0123456789") + 1;
+        const size_t n = name.str().find_last_not_of(NUMBERS) + 1;
         if (n < name.str().size())
         {
             const string number = name.str().substr(n);
@@ -110,6 +141,5 @@ RtToken PvtApi::makeUniqueStageName(const RtToken& name) const
 
     return newName;
 }
-
 
 }

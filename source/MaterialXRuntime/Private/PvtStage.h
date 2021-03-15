@@ -90,7 +90,14 @@ class PvtStage
 public:
     PvtStage(const RtToken& name, RtStageWeakPtr owner);
 
-    static inline PvtStage* ptr(const RtStagePtr& s)
+    static RtStagePtr createNew(const RtToken& name);
+
+    static inline PvtStage* cast(const RtStagePtr& s)
+    {
+        return static_cast<PvtStage*>(s->_ptr);
+    }
+
+    static inline PvtStage* cast(RtStage* s)
     {
         return static_cast<PvtStage*>(s->_ptr);
     }
