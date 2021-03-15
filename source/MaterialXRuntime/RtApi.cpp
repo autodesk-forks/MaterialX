@@ -141,6 +141,17 @@ template<> RtPrim RtApi::getDefinition<RtNodeDef>(const RtToken& name) const
     return obj ? obj->hnd() : RtPrim();
 }
 
+template<> size_t RtApi::numDefinitions<RtNodeDef>() const
+{
+    return _cast(_ptr)->numNodeDefs();
+}
+
+template<> RtPrim RtApi::getDefinition<RtNodeDef>(size_t index) const
+{
+    PvtObject* obj = _cast(_ptr)->getNodeDef(index);
+    return obj ? obj->hnd() : RtPrim();
+}
+
 template<> void RtApi::registerImplementation<RtNodeGraph>(const RtPrim& prim)
 {
     return _cast(_ptr)->registerNodeGraph(prim);
@@ -159,6 +170,17 @@ template<> bool RtApi::hasImplementation<RtNodeGraph>(const RtToken& name) const
 template<> RtPrim RtApi::getImplementation<RtNodeGraph>(const RtToken& name) const
 {
     PvtObject* obj = _cast(_ptr)->getNodeGraph(name);
+    return obj ? obj->hnd() : RtPrim();
+}
+
+template<> size_t RtApi::numImplementations<RtNodeGraph>() const
+{
+    return _cast(_ptr)->numNodeGraphs();
+}
+
+template<> RtPrim RtApi::getImplementation<RtNodeGraph>(size_t index) const
+{
+    PvtObject* obj = _cast(_ptr)->getNodeGraph(index);
     return obj ? obj->hnd() : RtPrim();
 }
 

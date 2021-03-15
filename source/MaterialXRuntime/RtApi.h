@@ -101,6 +101,14 @@ public:
     template<class T>
     RtPrim getDefinition(const RtToken& name) const;
 
+    /// Return a number of registered definitions.
+    template<class T>
+    size_t numDefinitions() const;
+
+    /// Return a registered definition prim by index.
+    template<class T>
+    RtPrim getDefinition(size_t index) const;
+
     /// @}
     /// @name Implementations
     /// @{
@@ -122,6 +130,13 @@ public:
     template<class T>
     RtPrim getImplementation(const RtToken& name) const;
 
+    /// Return a number of registered implementations.
+    template<class T>
+    size_t numImplementations() const;
+
+    /// Return a registered implementation prim by index.
+    template<class T>
+    RtPrim getImplementation(size_t index) const;
 
     /// @}
     /// @name Search paths
