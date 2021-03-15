@@ -213,8 +213,15 @@ RtRelationshipIterator::RtRelationshipIterator(const RtObject& obj) :
 }
 
 
+RtConnectionIterator::RtConnectionIterator() :
+    _ptr(nullptr),
+    _current(-1)
+{
+}
+
 RtConnectionIterator::RtConnectionIterator(const RtObject& obj) :
-    RtObjectIterator()
+    _ptr(nullptr),
+    _current(-1)
 {
     if (obj.isA<RtOutput>())
     {
@@ -227,6 +234,32 @@ RtConnectionIterator::RtConnectionIterator(const RtObject& obj) :
         _ptr = rel->_connections.empty() ? nullptr : &rel->_connections;
     }
     ++*this;
+}
+
+RtObject RtConnectionIterator::operator*() const
+{
+    const PvtObjHandleVec& vec = *static_cast<PvtObjHandleVec*>(_ptr);
+    return vec[_current];
+}
+
+RtConnectionIterator& RtConnectionIterator::operator++()
+{
+    if (!(_ptr && ++_current < int(static_cast<PvtObjHandleVec*>(_ptr)->size())))
+    {
+        abort();
+    }
+    return *this;
+}
+
+bool RtConnectionIterator::isDone() const
+{
+    return !(_ptr && _current < int(static_cast<PvtObjHandleVec*>(_ptr)->size()));
+}
+
+const RtConnectionIterator& RtConnectionIterator::end()
+{
+    static const RtConnectionIterator NULL_ITERATOR;
+    return NULL_ITERATOR;
 }
 
 
