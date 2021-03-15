@@ -209,7 +209,7 @@ namespace
                     RtValue::fromString(portType, valueStr, port.getValue());
                 }
 
-                readAttributes(elem, PvtObject::ptr(port), schema.getPrimSpec(), portIgnoreList);
+                readAttributes(elem, PvtObject::cast(port), schema.getPrimSpec(), portIgnoreList);
             }
         }
     }
@@ -376,7 +376,7 @@ namespace
         RtSchemaPredicate<RtNodeDef> filter;
         for (auto it : stage->getPrims(filter))
         {
-            PvtPrim* prim = PvtObject::ptr<PvtPrim>(it);
+            PvtPrim* prim = PvtObject::cast<PvtPrim>(it);
             RtNodeDef candidate(prim->hnd());
             if (candidate.getNamespacedNode() == nodeName &&
                 matchingSignature(prim, nodeType, nodePorts))
@@ -499,7 +499,7 @@ namespace
                             }
                         }
 
-                        PvtOutput* output = PvtObject::ptr<PvtOutput>(socket);
+                        PvtOutput* output = PvtObject::cast<PvtOutput>(socket);
                         const RtToken inputName(elem->getName());
                         PvtInput* input = findInputOrThrow(inputName, node);
                         const string& swizzle = elem->isA<Input>() ? elem->asA<Input>()->getChannels() : EMPTY_STRING;
@@ -531,7 +531,7 @@ namespace
 
                 const RtToken outputName(elem->getOutputString());
                 PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
-                PvtInput* input = PvtObject::ptr<PvtInput>(socket);
+                PvtInput* input = PvtObject::cast<PvtInput>(socket);
                 const string& swizzle = elem->getChannels();
 
                 createConnection(output, input, swizzle, stage);
@@ -995,7 +995,7 @@ namespace
                         }
                     }
 
-                    writeAttributes(PvtObject::ptr(input), valueElem, inputIgnoreList, options);
+                    writeAttributes(PvtObject::cast(input), valueElem, inputIgnoreList, options);
                 }
             }
         }
@@ -1070,7 +1070,7 @@ namespace
         // Write nodes.
         for (RtPrim node : nodegraph.getNodes())
         {
-            writeNode(PvtObject::ptr<PvtPrim>(node), destNodeGraph, options);
+            writeNode(PvtObject::cast<PvtPrim>(node), destNodeGraph, options);
         }
 
         // Write outputs.
@@ -1104,7 +1104,7 @@ namespace
     {
         for (RtPrim child : stage->getRootPrim()->getChildren(options ? options->objectFilter : nullptr))
         {
-            const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
+            const PvtPrim* prim = PvtObject::cast<PvtPrim>(child);
             if (prim->hasApi<RtCollection>())
             {
                 const string& name = prim->getName().str();
@@ -1129,7 +1129,7 @@ namespace
     {
         for (RtPrim child : stage->getRootPrim()->getChildren(options ? options->objectFilter : nullptr))
         {
-            const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
+            const PvtPrim* prim = PvtObject::cast<PvtPrim>(child);
             const RtToken typeName = child.getTypeInfo()->getShortTypeName();
             if (typeName == RtLook::typeName())
             {
@@ -1153,7 +1153,7 @@ namespace
                 // Add in material assignments
                 for (RtObject obj : rtLook.getMaterialAssigns().getConnections())
                 {
-                    PvtPrim* pprim = PvtObject::ptr<PvtPrim>(obj);
+                    PvtPrim* pprim = PvtObject::cast<PvtPrim>(obj);
                     RtMaterialAssign rtMatAssign(pprim->hnd());
                     const string& assignName = rtMatAssign.getName().str();
                     if (look->getMaterialAssign(assignName))
@@ -1186,7 +1186,7 @@ namespace
     {
         for (RtPrim child : stage->getRootPrim()->getChildren(options ? options->objectFilter : nullptr))
         {
-            const PvtPrim* prim = PvtObject::ptr<PvtPrim>(child);
+            const PvtPrim* prim = PvtObject::cast<PvtPrim>(child);
             const RtToken typeName = child.getTypeInfo()->getShortTypeName();
             if (typeName == RtLookGroup::typeName())
             {
@@ -1217,7 +1217,7 @@ namespace
 
         for (auto child : src->getChildren())
         {
-            writeGenericPrim(PvtObject::ptr<PvtPrim>(child), elem, options);
+            writeGenericPrim(PvtObject::cast<PvtPrim>(child), elem, options);
         }
     }
 
@@ -1243,7 +1243,7 @@ namespace
 
     void writePrimData(DocumentPtr& doc, const RtPrim& prim, const RtWriteOptions* options)
     {
-        const PvtPrim* p = PvtObject::ptr<PvtPrim>(prim);
+        const PvtPrim* p = PvtObject::cast<PvtPrim>(prim);
         const RtToken typeName = prim.getTypeInfo()->getShortTypeName();
         if (typeName == RtNodeDef::typeName())
         {
@@ -1319,7 +1319,7 @@ namespace
             RtNodeGraph nodeGraph(child);
             if (nodeGraph.getDefinition() == nodeDefName)
             {
-                PvtPrim* graphPrim = PvtObject::ptr<PvtPrim>(child);
+                PvtPrim* graphPrim = PvtObject::cast<PvtPrim>(child);
                 writeNodeGraph(graphPrim, document, options);
                 break;
             }

@@ -168,7 +168,7 @@ RtPrimIterator::RtPrimIterator(const RtObject& obj, RtObjectPredicate predicate)
 {
     if (obj.isA<RtPrim>())
     {
-        PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
+        PvtPrim* prim = PvtObject::cast<PvtPrim>(obj);
         _ptr = prim->_prims.empty() ? nullptr : &prim->_prims._vec;
     }
     ++*this;
@@ -179,12 +179,12 @@ RtInputIterator::RtInputIterator(const RtObject& obj) :
 {
     if (obj.isA<RtPrim>())
     {
-        PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
+        PvtPrim* prim = PvtObject::cast<PvtPrim>(obj);
         _ptr = prim->_inputs.empty() ? nullptr : &prim->_inputs._vec;
     }
     else if (obj.isA<RtOutput>())
     {
-        PvtOutput* output = PvtObject::ptr<PvtOutput>(obj);
+        PvtOutput* output = PvtObject::cast<PvtOutput>(obj);
         _ptr = output->_connections.empty() ? nullptr : &output->_connections;
     }
     ++*this;
@@ -195,7 +195,7 @@ RtOutputIterator::RtOutputIterator(const RtObject& obj) :
 {
     if (obj.isA<RtPrim>())
     {
-        PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
+        PvtPrim* prim = PvtObject::cast<PvtPrim>(obj);
         _ptr = prim->_outputs.empty() ? nullptr : &prim->_outputs._vec;
     }
     ++*this;
@@ -206,7 +206,7 @@ RtRelationshipIterator::RtRelationshipIterator(const RtObject& obj) :
 {
     if (obj.isA<RtPrim>())
     {
-        PvtPrim* prim = PvtObject::ptr<PvtPrim>(obj);
+        PvtPrim* prim = PvtObject::cast<PvtPrim>(obj);
         _ptr = prim->_rel.empty() ? nullptr : &prim->_rel._vec;
     }
     ++*this;
@@ -218,12 +218,12 @@ RtConnectionIterator::RtConnectionIterator(const RtObject& obj) :
 {
     if (obj.isA<RtOutput>())
     {
-        PvtOutput* out = PvtObject::ptr<PvtOutput>(obj);
+        PvtOutput* out = PvtObject::cast<PvtOutput>(obj);
         _ptr = out->_connections.empty() ? nullptr : &out->_connections;
     }
     else if (obj.isA<RtRelationship>())
     {
-        PvtRelationship* rel = PvtObject::ptr<PvtRelationship>(obj);
+        PvtRelationship* rel = PvtObject::cast<PvtRelationship>(obj);
         _ptr = rel->_connections.empty() ? nullptr : &rel->_connections;
     }
     ++*this;

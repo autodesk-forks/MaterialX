@@ -105,7 +105,7 @@ public:
         {
             _nodedefs.remove(prim.getName());
         }
-        _nodedefs.add(PvtObject::ptr(prim));
+        _nodedefs.add(PvtObject::cast(prim));
     }
 
     void unregisterNodeDef(const RtToken& name)
@@ -143,7 +143,7 @@ public:
         {
             _nodegraph.remove(prim.getName());
         }
-        _nodegraph.add(PvtObject::ptr(prim));
+        _nodegraph.add(PvtObject::cast(prim));
     }
 
     void unregisterNodeGraph(const RtToken& name)
@@ -181,7 +181,7 @@ public:
         {
             _nodeimpls.remove(prim.getName());
         }
-        _nodeimpls.add(PvtObject::ptr(prim));
+        _nodeimpls.add(PvtObject::cast(prim));
     }
 
     void unregisterNodeImpl(const RtToken& name)
@@ -219,7 +219,7 @@ public:
         {
             _targetdefs.remove(prim.getName());
         }
-        _targetdefs.add(PvtObject::ptr(prim));
+        _targetdefs.add(PvtObject::cast(prim));
     }
 
     void unregisterTargetDef(const RtToken& name)

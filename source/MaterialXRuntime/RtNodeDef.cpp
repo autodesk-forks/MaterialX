@@ -103,7 +103,7 @@ RtPrim RtNodeDef::createPrim(const RtToken& typeName, const RtToken& name, RtPri
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
-    PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, name, PvtObject::ptr<PvtPrim>(parent));
+    PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, name, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
     prim->createAttribute(Tokens::NODE, RtType::TOKEN);

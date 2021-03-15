@@ -92,10 +92,10 @@ RtPrim RtNode::createNode(RtPrim nodedef, const RtToken& name, RtPrim parent)
         throw ExceptionRuntimeError("Given nodedef with name '" + nodedef.getName().str() + "' is not valid");
     }
 
-    PvtPrim* nodedefPrim = PvtObject::ptr<PvtPrim>(nodedef);
+    PvtPrim* nodedefPrim = PvtObject::cast<PvtPrim>(nodedef);
 
     const RtToken nodeName = name == EMPTY_TOKEN ? nodedefSchema.getNode() : name;
-    PvtObjHandle nodeH = PvtPrim::createNew(&_typeInfo, nodeName, PvtObject::ptr<PvtPrim>(parent));
+    PvtObjHandle nodeH = PvtPrim::createNew(&_typeInfo, nodeName, PvtObject::cast<PvtPrim>(parent));
     PvtPrim* node = nodeH->asA<PvtPrim>();
 
     // Save the nodedef in a relationship.
@@ -144,7 +144,7 @@ void RtNode::setNodeDef(RtPrim nodeDef)
     {
         nodedefRel->clearConnections();
     }
-    nodedefRel->connect(PvtObject::ptr(nodeDef));
+    nodedefRel->connect(PvtObject::cast(nodeDef));
 }
 
 RtPrim RtNode::getNodeDef() const

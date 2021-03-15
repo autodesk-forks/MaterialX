@@ -90,7 +90,7 @@ PvtPrim* PvtStage::createPrim(const PvtPath& parentPath, const RtToken& name, co
         prim = RtNode::createNode(nodedef->hnd(), name, parent->hnd());
     }
 
-    PvtPrim* p = PvtObject::ptr<PvtPrim>(prim);
+    PvtPrim* p = PvtObject::cast<PvtPrim>(prim);
     parent->addChildPrim(p);
 
     return p;
