@@ -135,12 +135,12 @@ public:
         return _root->asA<PvtPrim>()->getPath();
     }
 
-    const RtTokenVec& getSourceUri() const
+    const FilePathVec& getSourceUri() const
     {
         return _sourceUri;
     }
 
-    void addSourceUri(const RtToken& uri)
+    void addSourceUri(const FilePath& uri)
     {
         _sourceUri.push_back(uri);
     }
@@ -190,7 +190,7 @@ protected:
     RtStageVec _refStages;
     RtStageSet _refStagesSet;
 
-    RtTokenVec _sourceUri;
+    FilePathVec _sourceUri;
 
     friend class RtStage;
     friend class PvtObject;

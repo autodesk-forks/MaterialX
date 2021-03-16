@@ -790,9 +790,12 @@ namespace
 
     void readDocument(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* options)
     {
-        // Set the source location 
-        const std::string& uri = doc->getSourceUri();
-        stage->addSourceUri(RtToken(uri));
+        // Set the source location.
+        const string& uri = doc->getSourceUri();
+        if (!uri.empty())
+        {
+            stage->addSourceUri(uri);
+        }
 
         // Read root document attributes.
         static PvtRootPrimSpec s_rootPrimSpec;
@@ -1230,12 +1233,12 @@ namespace
             {
                 writeSourceUris(ref, doc);
             }
-            const RtTokenVec& uris = ref->getSourceUri();
+            const FilePathVec& uris = ref->getSourceUri();
             if (!uris.empty())
             {
-                for (const RtToken& uri : uris)
+                for (const FilePath& uri : uris)
                 {
-                    prependXInclude(doc, uri.str());
+                    prependXInclude(doc, uri);
                 }
             }
         }
@@ -1404,81 +1407,18 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* options)
     }
 }
 
-
 StringSet RtFileIo::readLibrary(const FilePath& path, const FileSearchPath& searchPaths, const RtReadOptions* options)
 {
     PvtStage* stage = PvtStage::cast(_stage.get());
 
-    // Load all content into a document.
+    // Load all content into a core document.
     DocumentPtr doc = createDocument();
     FilePathVec libraryPaths = { path };
     StringSet loadedFiles = MaterialX::loadLibraries(libraryPaths, searchPaths, doc);
 
+    // Read this document.
     readDocument(doc, stage, options);
-/*
-    RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
 
-    // First, read all definition elements.
-    for (auto elem : doc->getChildren())
-    {
-        try
-        {
-            if (filter && filter(elem))
-            {
-                continue;
-            }
-            if (elem->isA<NodeDef>())
-            {
-                readNodeDef(elem->asA<NodeDef>(), stage);
-            }
-            else if (elem->isA<TargetDef>())
-            {
-                readTargetDef(elem->asA<TargetDef>(), stage);
-            }
-            else if (elem->isA<UnitTypeDef>())
-            {
-                UnitTypeDefPtr unitTypeDef = elem->asA<UnitTypeDef>();
-                RtApi::get().getUnitDefinitions()->addUnitConverter(unitTypeDef, LinearUnitConverter::create(unitTypeDef));
-            }
-        }
-        catch (const ExceptionRuntimeError &e)
-        {
-            RtApi::get().log(RtLogger::ERROR, e.what());
-        }
-    }
-
-    // Second, read all other elements.
-    PvtRenamingMapper mapper;
-    for (auto elem : doc->getChildren())
-    {
-        try
-        {
-            if (filter && filter(elem))
-            {
-                continue;
-            }
-            if (elem->isA<NodeGraph>())
-            {
-                PvtPrim* prim = readNodeGraph(nodegraph, stage->getRootPrim(), stage, mapper);
-            }
-            else if (elem->isA<Implementation>())
-            {
-                if (!library->hasNodeImpl(RtToken(elem->getName())))
-                {
-                    PvtPrim* prim = readImplementation(elem->asA<Implementation>(), stage);
-                    if (prim)
-                    {
-                        library->addNodeImpl(prim);
-                    }
-                }
-            }
-        }
-        catch(const ExceptionRuntimeError &e)
-        {
-            RtApi::get().log(RtLogger::ERROR, e.what());
-        }
-    }
-*/
     return loadedFiles;
 }
 

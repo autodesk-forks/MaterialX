@@ -13,6 +13,8 @@
 #include <MaterialXRuntime/RtObject.h>
 #include <MaterialXRuntime/RtTraversal.h>
 
+#include <MaterialXFormat/File.h>
+
 namespace MaterialX
 {
 
@@ -31,11 +33,11 @@ public:
     /// Return the name of the stage.
     const RtToken& getName() const;
 
-    /// Add a source Uri for a stage
-    void addSourceUri(const RtToken& uri);
+    /// Add a source URI for a stage.
+    void addSourceUri(const FilePath& uri);
 
-    /// Return a list of source Uri loaded into a stage
-    const RtTokenVec& getSourceUri() const;
+    /// Return source URI for files loaded into the stage.
+    const FilePathVec& getSourceUri() const;
 
     /// Create a new prim at the root of the stage.
     RtPrim createPrim(const RtToken& typeName);

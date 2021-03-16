@@ -4,6 +4,7 @@
 //
 
 #include <MaterialXRuntime/Private/PvtApi.h>
+#include <MaterialXRuntime/Private/PvtObject.h>
 
 #include <MaterialXRuntime/RtApi.h>
 #include <MaterialXRuntime/RtSchema.h>
@@ -26,7 +27,9 @@ void PvtApi::reset()
 {
     _createFunctions.clear();
     _libraries.clear();
+    _librariesOrder.clear();
     _stages.clear();
+    _stagesOrder.clear();
 
     _unitDefinitions = UnitConverterRegistry::create();
 }
@@ -38,7 +41,7 @@ void PvtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtRead
     {
         if (forceReload)
         {
-            _libraries.erase(it);
+            unloadLibrary(name);
         }
         else
         {
@@ -48,10 +51,15 @@ void PvtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtRead
 
     RtStagePtr stage = PvtStage::createNew(name);
     _libraries[name] = stage;
+    _librariesOrder.push_back(stage);
 
     // Load in the files(s).
-    RtFileIo file(stage);
-    file.readLibrary(path, _searchPaths, options);
+    RtFileIo fileApi(stage);
+    StringSet loadedFiles = fileApi.readLibrary(path, _searchPaths, options);
+    for (const string& file : loadedFiles)
+    {
+        stage->addSourceUri(file);
+    }
 
     // Register any definitions and implementations.
     for (RtPrim prim : stage->traverse())
@@ -77,6 +85,10 @@ void PvtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtRead
             registerTargetDef(prim);
         }
     }
+
+    // Reset nodeimpl relationsships since the registry of
+    // definitions and implementations have changed.
+    setupNodeImplRelationships();
 }
 
 void PvtApi::unloadLibrary(const RtToken& name)
@@ -110,6 +122,43 @@ void PvtApi::unloadLibrary(const RtToken& name)
         }
 
         _libraries.erase(it);
+        _librariesOrder.erase(std::find(_librariesOrder.begin(), _librariesOrder.end(), stage));
+
+        // Reset nodeimpl relationsships since the registry of
+        // definitions and implementations have changed.
+        setupNodeImplRelationships();
+    }
+}
+
+void PvtApi::setupNodeImplRelationships()
+{
+    // Break old relationsships.
+    for (PvtObject* obj : _nodedefs.vec())
+    {
+        RtNodeDef nodedef(obj->hnd());
+        nodedef.getNodeImpls().clearConnections();
+    }
+
+    // Make new relationsships.
+    for (PvtObject* obj : _nodeimpls.vec())
+    {
+        RtNodeImpl nodeimpl(obj->hnd());
+        PvtObject* nodedefObj  = _nodedefs.find(nodeimpl.getNodeDef());
+        if (nodedefObj)
+        {
+            RtNodeDef nodedef(nodedefObj->hnd());
+            nodedef.getNodeImpls().connect(nodeimpl.getPrim());
+        }
+    }
+    for (PvtObject* obj : _nodegraphs.vec())
+    {
+        RtNodeGraph nodegraph(obj->hnd());
+        PvtObject* nodedefObj = _nodedefs.find(nodegraph.getDefinition());
+        if (nodedefObj)
+        {
+            RtNodeDef nodedef(nodedefObj->hnd());
+            nodedef.getNodeImpls().connect(nodegraph.getPrim());
+        }
     }
 }
 

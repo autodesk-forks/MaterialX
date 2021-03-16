@@ -11,6 +11,7 @@
 #include <MaterialXRuntime/RtApi.h>
 
 #include <MaterialXRuntime/Private/PvtStage.h>
+#include <MaterialXRuntime/Private/PvtApi.h>
 
 namespace MaterialX
 {
@@ -39,12 +40,12 @@ const RtToken& RtStage::getName() const
     return _cast(_ptr)->getName();
 }
 
-void RtStage::addSourceUri(const RtToken& uri)
+void RtStage::addSourceUri(const FilePath& uri)
 {
     return _cast(_ptr)->addSourceUri(uri);
 }
 
-const RtTokenVec& RtStage::getSourceUri() const
+const FilePathVec& RtStage::getSourceUri() const
 {
     return _cast(_ptr)->getSourceUri();
 }
@@ -135,7 +136,7 @@ void RtStage::restorePrim(const RtPath& parentPath, const RtPrim& prim)
     _cast(_ptr)->restorePrim(*static_cast<PvtPath*>(parentPath._ptr), prim);
 }
 
-RtPrim RtStage::createNodeDef(RtPrim nodeGraph, 
+RtPrim RtStage::createNodeDef(RtPrim nodegraphPrim,
                               const RtToken& nodeDefName, 
                               const RtToken& nodeName, 
                               const RtToken& version,
@@ -157,8 +158,8 @@ RtPrim RtStage::createNodeDef(RtPrim nodeGraph,
         throw ExceptionRuntimeError("The nodedef name '" + nodeDefName.str() + "' is not unique");
     }
 
-    PvtPrim* prim = stage->createPrim(stage->getPath(), nodeDefName, RtNodeDef::typeName());
-    RtNodeDef nodedef(prim->hnd());
+    PvtPrim* nodedefPrim = stage->createPrim(stage->getPath(), nodeDefName, RtNodeDef::typeName());
+    RtNodeDef nodedef(nodedefPrim->hnd());
 
     // Set node, version and optional node group
     nodedef.setNode(nodeName);
@@ -177,8 +178,10 @@ RtPrim RtStage::createNodeDef(RtPrim nodeGraph,
         nodedef.setNodeGroup(nodeGroup);
     }
 
+    RtNodeGraph nodegraph(nodegraphPrim);
+
     // Add an input per nodegraph input
-    for (RtInput input : nodeGraph.getInputs())
+    for (RtInput input : nodegraph.getInputs())
     {
         RtInput nodedefInput = nodedef.createInput(input.getName(), input.getType());
         nodedefInput.setUniform(input.isUniform());
@@ -186,7 +189,7 @@ RtPrim RtStage::createNodeDef(RtPrim nodeGraph,
     }
 
     // Add an output per nodegraph output
-    for (RtOutput output : nodeGraph.getOutputs())
+    for (RtOutput output : nodegraph.getOutputs())
     {
         RtOutput nodedefOutput = nodedef.createOutput(output.getName(), output.getType());
         RtValue::copy(output.getType(), output.getValue(), nodedefOutput.getValue());
@@ -194,13 +197,16 @@ RtPrim RtStage::createNodeDef(RtPrim nodeGraph,
 
     // Set the definition on the nodegraph
     // turning this into a functional graph
-    RtNodeGraph nodeGraphSchema(nodeGraph);
-    nodeGraphSchema.setDefinition(nodeDefName);
+    nodegraph.setDefinition(nodeDefName);
 
-    // Create the relaationship between nodedef and it's implementation.
-    nodedef.getNodeImpls().connect(nodeGraph);
+    // Create the relationship between nodedef and it's implementation.
+    nodedef.getNodeImpls().connect(nodegraph.getPrim());
 
-    return prim->hnd();
+    PvtApi* api = PvtApi::cast(RtApi::get());
+    api->registerNodeDef(nodedef.getPrim());
+    api->registerNodeGraph(nodegraph.getPrim());
+
+    return nodedef.getPrim();
 }
 
 }

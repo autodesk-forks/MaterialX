@@ -193,8 +193,14 @@ public:
     /// unregistered and no longer available for content creation.
     void unloadLibrary(const RtToken& name);
 
-    /// Return the stage for a library with the given name.
+    /// Return the number of loaded libraries.
+    size_t numLibraries() const;
+
+    /// Return a library stage by name.
     RtStagePtr getLibrary(const RtToken& name) const;
+
+    /// Return a library stage by index.
+    RtStagePtr getLibrary(size_t index) const;
 
     /// @}
     /// @name Stage management
@@ -206,14 +212,17 @@ public:
     /// Delete a stage.
     void deleteStage(const RtToken& name);
 
+    /// Return the number of stages.
+    size_t numStages() const;
+
     /// Return a stage by name.
     RtStagePtr getStage(const RtToken& name) const;
 
+    /// Return a stage by index.
+    RtStagePtr getStage(size_t index) const;
+
     /// Rename a stage.
     RtToken renameStage(const RtToken& name, const RtToken& newName);
-
-    /// Return a list of all stages created.
-    RtTokenVec getStageNames() const;
 
     /// @}
 

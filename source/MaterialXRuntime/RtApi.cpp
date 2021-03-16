@@ -249,9 +249,19 @@ void RtApi::unloadLibrary(const RtToken& name)
     return _cast(_ptr)->unloadLibrary(name);
 }
 
+size_t RtApi::numLibraries() const
+{
+    return _cast(_ptr)->numLibraries();
+}
+
 RtStagePtr RtApi::getLibrary(const RtToken& name) const
 {
     return _cast(_ptr)->getLibrary(name);
+}
+
+RtStagePtr RtApi::getLibrary(size_t index) const
+{
+    return _cast(_ptr)->getLibrary(index);
 }
 
 RtStagePtr RtApi::createStage(const RtToken& name)
@@ -264,19 +274,24 @@ void RtApi::deleteStage(const RtToken& name)
     _cast(_ptr)->deleteStage(name);
 }
 
+size_t RtApi::numStages() const
+{
+    return _cast(_ptr)->numStages();
+}
+
 RtStagePtr RtApi::getStage(const RtToken& name) const
 {
     return _cast(_ptr)->getStage(name);
 }
 
+RtStagePtr RtApi::getStage(size_t index) const
+{
+    return _cast(_ptr)->getStage(index);
+}
+
 RtToken RtApi::renameStage(const RtToken& name, const RtToken& newName)
 {
     return _cast(_ptr)->renameStage(name, newName);
-}
-
-RtTokenVec RtApi::getStageNames() const
-{
-    return _cast(_ptr)->getStageNames();
 }
 
 UnitConverterRegistryPtr RtApi::getUnitDefinitions()

@@ -76,19 +76,19 @@ namespace
     const mx::RtToken NONAME("");
 
     const mx::RtToken TARGETS_NAME("targets");
-    const mx::FilePath TARGETS_PATH("./targets");
+    const mx::FilePath TARGETS_PATH("targets");
 
     const mx::RtToken STDLIB_NAME("stdlib");
-    const mx::FilePath STDLIB_PATH("./stdlib");
+    const mx::FilePath STDLIB_PATH("stdlib");
 
     const mx::RtToken PBRLIB_NAME("pbrlib");
-    const mx::FilePath PBRLIB_PATH("./pbrlib");
+    const mx::FilePath PBRLIB_PATH("pbrlib");
 
     const mx::RtToken BXDFLIB_NAME("bxdf");
     const mx::FilePath BXDFLIB_PATH("bxdf");
 
     const mx::RtToken ADSKLIB_NAME("adsk");
-    const mx::FilePath ADSKLIB_PATH("./adsk");
+    const mx::FilePath ADSKLIB_PATH("adsk");
 
     bool compareFiles(const mx::FilePath& filename1, const mx::FilePath& filename2)
     {
@@ -1866,6 +1866,27 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     api->loadLibrary(STDLIB_NAME, STDLIB_PATH);
     api->loadLibrary(PBRLIB_NAME, PBRLIB_PATH);
     api->loadLibrary(BXDFLIB_NAME, BXDFLIB_PATH);
+
+    REQUIRE(api->numLibraries() == 4);
+    REQUIRE(api->getLibrary(0)->getName() == TARGETS_PATH);
+    REQUIRE(api->getLibrary(1)->getName() == STDLIB_NAME);
+    REQUIRE(api->getLibrary(2)->getName() == PBRLIB_PATH);
+    REQUIRE(api->getLibrary(3)->getName() == BXDFLIB_PATH);
+
+    REQUIRE_THROWS(api->loadLibrary(PBRLIB_NAME, PBRLIB_PATH));
+    REQUIRE_NOTHROW(api->loadLibrary(PBRLIB_NAME, PBRLIB_PATH, nullptr, true));
+
+    const mx::RtToken shaderNodeDefName("ND_standard_surface_surfaceshader");
+    const mx::RtToken shaderNodeGraphName("IMPL_standard_surface_surfaceshader");
+    REQUIRE(api->getDefinition<mx::RtNodeDef>(shaderNodeDefName));
+    REQUIRE(api->getImplementation<mx::RtNodeGraph>(shaderNodeGraphName));
+    api->unloadLibrary(BXDFLIB_NAME);
+    REQUIRE(!api->getDefinition<mx::RtNodeDef>(shaderNodeDefName));
+    REQUIRE(!api->getImplementation<mx::RtNodeGraph>(shaderNodeGraphName));
+    REQUIRE(api->numLibraries() == 3);
+    REQUIRE(api->getLibrary(0)->getName() == TARGETS_PATH);
+    REQUIRE(api->getLibrary(1)->getName() == STDLIB_NAME);
+    REQUIRE(api->getLibrary(2)->getName() == PBRLIB_NAME);
 
     // Set and test search paths
     api->clearSearchPath();

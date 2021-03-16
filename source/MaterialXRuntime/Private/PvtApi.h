@@ -139,36 +139,36 @@ public:
         {
             throw ExceptionRuntimeError("Given prim '" + prim.getName().str() + "' is not a valid nodegraph");
         }
-        if (_nodegraph.count(prim.getName()))
+        if (_nodegraphs.count(prim.getName()))
         {
-            _nodegraph.remove(prim.getName());
+            _nodegraphs.remove(prim.getName());
         }
-        _nodegraph.add(PvtObject::cast(prim));
+        _nodegraphs.add(PvtObject::cast(prim));
     }
 
     void unregisterNodeGraph(const RtToken& name)
     {
-        _nodegraph.remove(name);
+        _nodegraphs.remove(name);
     }
 
     bool hasNodeGraph(const RtToken& name)
     {
-        return _nodegraph.count(name);
+        return _nodegraphs.count(name);
     }
 
     size_t numNodeGraphs() const
     {
-        return _nodegraph.size();
+        return _nodegraphs.size();
     }
 
     PvtObject* getNodeGraph(const RtToken& name)
     {
-        return _nodegraph.find(name);
+        return _nodegraphs.find(name);
     }
 
     PvtObject* getNodeGraph(size_t index)
     {
-        return _nodegraph[index];
+        return _nodegraphs[index];
     }
 
     void registerNodeImpl(const RtPrim& prim)
@@ -296,13 +296,25 @@ public:
 
     void unloadLibrary(const RtToken& name);
 
-    RtStagePtr getLibrary(const RtToken& name)
+    size_t numLibraries() const
+    {
+        return _librariesOrder.size();
+    }
+
+    RtStagePtr getLibrary(const RtToken& name) const
     {
         auto it = _libraries.find(name);
         return it != _libraries.end() ? it->second : nullptr;
     }
 
-   const FilePath& getUserDefinitionPath()
+    RtStagePtr getLibrary(size_t index) const
+    {
+        return _librariesOrder[index];
+    }
+
+    void setupNodeImplRelationships();
+
+    const FilePath& getUserDefinitionPath()
     {
         return _userDefinitionPath;
     }
@@ -319,18 +331,35 @@ public:
         const RtToken newName = makeUniqueStageName(name);
         RtStagePtr stage = PvtStage::createNew(newName);
         _stages[newName] = stage;
+        _stagesOrder.push_back(stage);
         return stage;
     }
 
     void deleteStage(const RtToken& name)
     {
-        _stages.erase(name);
+        auto it = _stages.find(name);
+        if (it != _stages.end())
+        {
+            RtStagePtr stage = it->second;
+            _stages.erase(it);
+            _stagesOrder.erase(std::find(_stagesOrder.begin(), _stagesOrder.end(), stage));
+        }
+    }
+
+    size_t numStages() const
+    {
+        return _stagesOrder.size();
     }
 
     RtStagePtr getStage(const RtToken& name) const
     {
         auto it = _stages.find(name);
         return it != _stages.end() ? it->second : RtStagePtr();
+    }
+
+    RtStagePtr getStage(size_t index) const
+    {
+        return _stagesOrder[index];
     }
 
     RtToken renameStage(const RtToken& name, const RtToken& newName)
@@ -345,16 +374,6 @@ public:
         _stages[uniqueName] = stage;
         _stages.erase(name);
         return uniqueName;
-    }
-
-    RtTokenVec getStageNames() const
-    {
-        RtTokenVec names;
-        for (auto it : _stages)
-        {
-            names.push_back(it.first);
-        }
-        return names;
     }
 
     UnitConverterRegistryPtr& getUnitDefinitions()
@@ -372,13 +391,16 @@ public:
     FileSearchPath _textureSearchPaths;
     FilePath _userDefinitionPath;
 
-    RtTokenMap<RtStagePtr> _libraries;
     UnitConverterRegistryPtr _unitDefinitions;
 
     RtTokenMap<RtPrimCreateFunc> _createFunctions;
+
+    RtTokenMap<RtStagePtr> _libraries;
+    vector<RtStagePtr> _librariesOrder;
     RtTokenMap<RtStagePtr> _stages;
+    vector<RtStagePtr> _stagesOrder;
     PvtObjectList _nodedefs;
-    PvtObjectList _nodegraph;
+    PvtObjectList _nodegraphs;
     PvtObjectList _nodeimpls;
     PvtObjectList _targetdefs;
 };
