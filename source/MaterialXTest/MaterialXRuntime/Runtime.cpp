@@ -1873,7 +1873,9 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     REQUIRE(api->getLibrary(2)->getName() == PBRLIB_PATH);
     REQUIRE(api->getLibrary(3)->getName() == BXDFLIB_PATH);
 
+    // Loading an already loaded library should throw...
     REQUIRE_THROWS(api->loadLibrary(PBRLIB_NAME, PBRLIB_PATH));
+    // ...unless we tell it to force reload.
     REQUIRE_NOTHROW(api->loadLibrary(PBRLIB_NAME, PBRLIB_PATH, nullptr, true));
 
     const mx::RtToken shaderNodeDefName("ND_standard_surface_surfaceshader");
@@ -1887,6 +1889,9 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     REQUIRE(api->getLibrary(0)->getName() == TARGETS_PATH);
     REQUIRE(api->getLibrary(1)->getName() == STDLIB_NAME);
     REQUIRE(api->getLibrary(2)->getName() == PBRLIB_NAME);
+
+    api->unloadLibraries();
+    REQUIRE(api->numLibraries() == 0);
 
     // Set and test search paths
     api->clearSearchPath();

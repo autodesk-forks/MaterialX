@@ -249,6 +249,11 @@ void RtApi::unloadLibrary(const RtToken& name)
     return _cast(_ptr)->unloadLibrary(name);
 }
 
+void RtApi::unloadLibraries()
+{
+    return _cast(_ptr)->unloadLibraries();
+}
+
 size_t RtApi::numLibraries() const
 {
     return _cast(_ptr)->numLibraries();
@@ -272,6 +277,11 @@ RtStagePtr RtApi::createStage(const RtToken& name)
 void RtApi::deleteStage(const RtToken& name)
 {
     _cast(_ptr)->deleteStage(name);
+}
+
+void RtApi::deleteStages()
+{
+    _cast(_ptr)->deleteStages();
 }
 
 size_t RtApi::numStages() const

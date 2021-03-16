@@ -193,6 +193,11 @@ public:
     /// unregistered and no longer available for content creation.
     void unloadLibrary(const RtToken& name);
 
+    /// Unload all previously loaded libraries.
+    /// All definitions and implementations will be unregistered
+    /// and no longer available for content creation.
+    void unloadLibraries();
+
     /// Return the number of loaded libraries.
     size_t numLibraries() const;
 
@@ -211,6 +216,9 @@ public:
 
     /// Delete a stage.
     void deleteStage(const RtToken& name);
+
+    /// Delete all stages.
+    void deleteStages();
 
     /// Return the number of stages.
     size_t numStages() const;

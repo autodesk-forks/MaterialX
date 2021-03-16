@@ -62,6 +62,42 @@ void PvtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtRead
     }
 
     // Register any definitions and implementations.
+    registerPrims(stage);
+
+    // Reset nodeimpl relationsships since the registry of
+    // definitions and implementations have changed.
+    setupNodeImplRelationships();
+}
+
+void PvtApi::unloadLibrary(const RtToken& name)
+{
+    auto it = _libraries.find(name);
+    if (it != _libraries.end())
+    {
+        RtStagePtr stage = it->second;
+        unregisterPrims(stage);
+
+        _libraries.erase(it);
+        _librariesOrder.erase(std::find(_librariesOrder.begin(), _librariesOrder.end(), stage));
+
+        // Reset nodeimpl relationsships since the registry of
+        // definitions and implementations have changed.
+        setupNodeImplRelationships();
+    }
+}
+
+void PvtApi::unloadLibraries()
+{
+    for (auto stage : _librariesOrder)
+    {
+        unregisterPrims(stage);
+    }
+    _libraries.clear();
+    _librariesOrder.clear();
+}
+
+void PvtApi::registerPrims(RtStagePtr stage)
+{
     for (RtPrim prim : stage->traverse())
     {
         if (prim.hasApi<RtNodeDef>())
@@ -85,48 +121,32 @@ void PvtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtRead
             registerTargetDef(prim);
         }
     }
-
-    // Reset nodeimpl relationsships since the registry of
-    // definitions and implementations have changed.
-    setupNodeImplRelationships();
 }
 
-void PvtApi::unloadLibrary(const RtToken& name)
+void PvtApi::unregisterPrims(RtStagePtr stage)
 {
-    auto it = _libraries.find(name);
-    if (it != _libraries.end())
+    for (RtPrim prim : stage->traverse())
     {
-        RtStagePtr stage = it->second;
-        for (RtPrim prim : stage->traverse())
+        if (prim.hasApi<RtNodeDef>())
         {
-            if (prim.hasApi<RtNodeDef>())
+            unregisterNodeDef(prim.getName());
+        }
+        else if (prim.hasApi<RtNodeGraph>())
+        {
+            RtNodeGraph nodegraph(prim);
+            if (nodegraph.getDefinition() != EMPTY_TOKEN)
             {
-                unregisterNodeDef(prim.getName());
-            }
-            else if (prim.hasApi<RtNodeGraph>())
-            {
-                RtNodeGraph nodegraph(prim);
-                if (nodegraph.getDefinition() != EMPTY_TOKEN)
-                {
-                    unregisterNodeGraph(prim.getName());
-                }
-            }
-            else if (prim.hasApi<RtNodeImpl>())
-            {
-                unregisterNodeImpl(prim.getName());
-            }
-            else if (prim.hasApi<RtTargetDef>())
-            {
-                unregisterTargetDef(prim.getName());
+                unregisterNodeGraph(prim.getName());
             }
         }
-
-        _libraries.erase(it);
-        _librariesOrder.erase(std::find(_librariesOrder.begin(), _librariesOrder.end(), stage));
-
-        // Reset nodeimpl relationsships since the registry of
-        // definitions and implementations have changed.
-        setupNodeImplRelationships();
+        else if (prim.hasApi<RtNodeImpl>())
+        {
+            unregisterNodeImpl(prim.getName());
+        }
+        else if (prim.hasApi<RtTargetDef>())
+        {
+            unregisterTargetDef(prim.getName());
+        }
     }
 }
 

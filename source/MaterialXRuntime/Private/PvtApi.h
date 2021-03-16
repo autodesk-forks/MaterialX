@@ -293,8 +293,8 @@ public:
     }
 
     void loadLibrary(const RtToken& name, const FilePath& path, const RtReadOptions* options = nullptr, bool forceReload = false);
-
     void unloadLibrary(const RtToken& name);
+    void unloadLibraries();
 
     size_t numLibraries() const
     {
@@ -341,10 +341,25 @@ public:
         if (it != _stages.end())
         {
             RtStagePtr stage = it->second;
+            unregisterPrims(stage);
+
             _stages.erase(it);
             _stagesOrder.erase(std::find(_stagesOrder.begin(), _stagesOrder.end(), stage));
         }
     }
+
+    void deleteStages()
+    {
+        for (auto stage : _stagesOrder)
+        {
+            unregisterPrims(stage);
+        }
+        _stages.clear();
+        _stagesOrder.clear();
+    }
+
+    void registerPrims(RtStagePtr stage);
+    void unregisterPrims(RtStagePtr stage);
 
     size_t numStages() const
     {
