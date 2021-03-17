@@ -232,7 +232,7 @@ public:
         return _targetdefs.count(name);
     }
 
-    size_t numNTargetDefs() const
+    size_t numTargetDefs() const
     {
         return _targetdefs.size();
     }
