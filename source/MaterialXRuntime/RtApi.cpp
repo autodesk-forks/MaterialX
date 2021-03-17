@@ -229,17 +229,7 @@ const FileSearchPath& RtApi::getImplementationSearchPath() const
     return _cast(_ptr)->getImplementationSearchPath();
 }
 
-const FilePath& RtApi::getUserDefinitionPath() const
-{
-    return _cast(_ptr)->getUserDefinitionPath();
-}
-
-void RtApi::setUserDefinitionPath(const FilePath& path)
-{
-    return _cast(_ptr)->setUserDefinitionPath(path);
-}
-
-void RtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtReadOptions* options, bool forceReload)
+RtStagePtr RtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtReadOptions* options, bool forceReload)
 {
     return _cast(_ptr)->loadLibrary(name, path, options, forceReload);
 }

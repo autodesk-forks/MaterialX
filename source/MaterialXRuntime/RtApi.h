@@ -172,12 +172,6 @@ public:
     /// Get search path for implementations used by libraries.
     const FileSearchPath& getImplementationSearchPath() const;
 
-    /// Set location for non-library user definitions
-    const FilePath& getUserDefinitionPath() const;
-
-    /// Set location for non-library user definitions
-    void setUserDefinitionPath(const FilePath& path);
-
     /// @}
     /// @name Library management
     /// @{
@@ -186,7 +180,7 @@ public:
     /// will be used to find the files if the given path is a relative path.
     /// All definitions and implementations found will be registered and available to use
     /// for content creation as long as the library remains loaded.
-    void loadLibrary(const RtToken& name, const FilePath& path, const RtReadOptions* options = nullptr, bool forceReload = false);
+    RtStagePtr loadLibrary(const RtToken& name, const FilePath& path, const RtReadOptions* options = nullptr, bool forceReload = false);
 
     /// Unload a previously loaded library.
     /// All definitions and implementations in the library will be

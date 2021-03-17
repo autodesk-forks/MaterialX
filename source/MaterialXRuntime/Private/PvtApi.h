@@ -292,7 +292,7 @@ public:
         return _implementationSearchPaths;
     }
 
-    void loadLibrary(const RtToken& name, const FilePath& path, const RtReadOptions* options = nullptr, bool forceReload = false);
+    RtStagePtr loadLibrary(const RtToken& name, const FilePath& path, const RtReadOptions* options = nullptr, bool forceReload = false);
     void unloadLibrary(const RtToken& name);
     void unloadLibraries();
 
@@ -313,16 +313,6 @@ public:
     }
 
     void setupNodeImplRelationships();
-
-    const FilePath& getUserDefinitionPath()
-    {
-        return _userDefinitionPath;
-    }
-
-    void setUserDefinitionPath(const FilePath& path)
-    {
-        _userDefinitionPath = path;
-    }
 
     RtToken makeUniqueStageName(const RtToken& name) const;
 

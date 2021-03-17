@@ -34,7 +34,7 @@ void PvtApi::reset()
     _unitDefinitions = UnitConverterRegistry::create();
 }
 
-void PvtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtReadOptions* options, bool forceReload)
+RtStagePtr PvtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtReadOptions* options, bool forceReload)
 {
     auto it = _libraries.find(name);
     if (it != _libraries.end())
@@ -67,6 +67,8 @@ void PvtApi::loadLibrary(const RtToken& name, const FilePath& path, const RtRead
     // Reset nodeimpl relationsships since the registry of
     // definitions and implementations have changed.
     setupNodeImplRelationships();
+
+    return stage;
 }
 
 void PvtApi::unloadLibrary(const RtToken& name)
