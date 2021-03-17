@@ -51,7 +51,9 @@ public:
 
     /// Create a nodedef based on a nodegraph
     RtPrim createNodeDef(RtPrim nodeGraph, const RtToken& nodeDefName, const RtToken& nodeName,
-                         const RtToken& version, bool isDefaultVersion, const RtToken& nodeGroup = EMPTY_TOKEN);
+                         const RtToken& version, bool isDefaultVersion, 
+                         const RtToken& nodeGroup = EMPTY_TOKEN,
+                         const RtToken& namespaceString = EMPTY_TOKEN);
 
     /// Remove a prim from the stage.
     void removePrim(const RtPath& path);
