@@ -2524,15 +2524,15 @@ protected:
 
     void logImpl(mx::RtLogger::MessageType type, const std::string& msg) override
     {
-        if (type == mx::RtLogger::MessageType::ERROR)
+        if (type == mx::RtLogger::MessageType::ERROR_MESSAGE)
         {
             result = "Error: ";
         }
-        else if (type == mx::RtLogger::MessageType::WARNING)
+        else if (type == mx::RtLogger::MessageType::WARNING_MESSAGE)
         {
             result = "Warning: ";
         }
-        else if (type == mx::RtLogger::MessageType::INFO)
+        else if (type == mx::RtLogger::MessageType::INFO_MESSAGE)
         {
             result = "Info: ";
         }
@@ -2555,22 +2555,22 @@ TEST_CASE("Runtime: logging", "[runtime]")
     mx::RtApi& api = mx::RtApi::get();
     api.registerLogger(logger);
     std::string testMsg("Test");
-    api.log(mx::RtLogger::MessageType::ERROR, testMsg);
+    api.log(mx::RtLogger::MessageType::ERROR_MESSAGE, testMsg);
     REQUIRE("Error: Test" == logger->result);
-    api.log(mx::RtLogger::MessageType::WARNING, testMsg);
+    api.log(mx::RtLogger::MessageType::WARNING_MESSAGE, testMsg);
     REQUIRE("Warning: Test" == logger->result);
-    api.log(mx::RtLogger::MessageType::INFO, testMsg);
+    api.log(mx::RtLogger::MessageType::INFO_MESSAGE, testMsg);
     REQUIRE("Info: Test" == logger->result);
 
-    logger->enable(mx::RtLogger::MessageType::WARNING, false);
-    REQUIRE(logger->isEnabled(mx::RtLogger::MessageType::ERROR));
-    REQUIRE(!logger->isEnabled(mx::RtLogger::MessageType::WARNING));
-    REQUIRE(logger->isEnabled(mx::RtLogger::MessageType::INFO));
-    api.log(mx::RtLogger::MessageType::ERROR, testMsg);
+    logger->enable(mx::RtLogger::MessageType::WARNING_MESSAGE, false);
+    REQUIRE(logger->isEnabled(mx::RtLogger::MessageType::ERROR_MESSAGE));
+    REQUIRE(!logger->isEnabled(mx::RtLogger::MessageType::WARNING_MESSAGE));
+    REQUIRE(logger->isEnabled(mx::RtLogger::MessageType::INFO_MESSAGE));
+    api.log(mx::RtLogger::MessageType::ERROR_MESSAGE, testMsg);
     REQUIRE("Error: Test" == logger->result);
-    api.log(mx::RtLogger::MessageType::WARNING, testMsg);
+    api.log(mx::RtLogger::MessageType::WARNING_MESSAGE, testMsg);
     REQUIRE("Error: Test" == logger->result);
-    api.log(mx::RtLogger::MessageType::INFO, testMsg);
+    api.log(mx::RtLogger::MessageType::INFO_MESSAGE, testMsg);
     REQUIRE("Info: Test" == logger->result);
 }
 
