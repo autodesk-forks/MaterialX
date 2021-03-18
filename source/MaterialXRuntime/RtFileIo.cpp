@@ -868,6 +868,20 @@ namespace
         }
     }
 
+    void writeTargetDef(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* options)
+    {
+        RtTargetDef targetdef(src->hnd());
+        TargetDefPtr destTargetDef = dest->addTargetDef(targetdef.getName().str());
+
+        const RtToken& inherit = targetdef.getInherit();
+        if (inherit != EMPTY_TOKEN)
+        {
+            destTargetDef->setInheritString(inherit.str());
+        }
+
+        writeAttributes(src, destTargetDef, targetdefIgnoreList, options);
+    }
+
     void writeNodeDef(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* options)
     {
         RtNodeDef nodedef(src->hnd());
@@ -1103,6 +1117,29 @@ namespace
         }
     }
 
+    void writeImplementation(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* options)
+    {
+        RtNodeImpl impl(src->hnd());
+        ImplementationPtr destImpl = dest->addImplementation(impl.getName().str());
+
+        if (src->hasApi<RtSourceCodeImpl>())
+        {
+            RtSourceCodeImpl sourceImpl(src->hnd());
+            const string& file = sourceImpl.getFile();
+            const string& source = sourceImpl.getSourceCode();
+            if (!file.empty())
+            {
+                destImpl->setFile(file);
+            }
+            if (!source.empty())
+            {
+                destImpl->setAttribute(Tokens::SOURCECODE.str(), source);
+            }
+        }
+
+        writeAttributes(src, destImpl, nodeimplIgnoreList, options);
+    }
+
     void writeCollections(PvtStage* stage, Document& dest, const RtWriteOptions* options)
     {
         for (RtPrim child : stage->getRootPrim()->getChildren(options ? options->objectFilter : nullptr))
@@ -1248,26 +1285,34 @@ namespace
     {
         const PvtPrim* p = PvtObject::cast<PvtPrim>(prim);
         const RtToken typeName = prim.getTypeInfo()->getShortTypeName();
-        if (typeName == RtNodeDef::typeName())
+        if (p->hasApi<RtNodeDef>())
         {
             writeNodeDef(p, doc, options);
         }
-        else if (typeName == RtNode::typeName())
+        else if (p->hasApi<RtNode>())
         {
-            writeNode(p, doc, options);
+            if (p->hasApi<RtNodeGraph>())
+            {
+                writeNodeGraph(p, doc, options);
+            }
+            else
+            {
+                writeNode(p, doc, options);
+            }
         }
-        else if (typeName == RtNodeGraph::typeName())
+        else if (p->hasApi<RtNodeImpl>())
         {
-            writeNodeGraph(p, doc, options);
+            writeImplementation(p, doc, options);
         }
-        else if (typeName == RtBackdrop::typeName())
+        else if (p->hasApi<RtTargetDef>())
+        {
+            writeTargetDef(p, doc, options);
+        }
+        else if (p->hasApi<RtBackdrop>())
         {
             //writeBackdrop(prim, doc)
         }
-        else if (typeName != RtLook::typeName() &&
-                 typeName != RtLookGroup::typeName() &&
-                 typeName != RtMaterialAssign::typeName() &&
-                 typeName != RtCollection::typeName())
+        else if (!p->hasApi<RtBindElement>())
         {
             writeGenericPrim(p, doc->asA<Element>(), options);
         }
