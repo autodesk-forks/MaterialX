@@ -51,21 +51,12 @@ TEST_CASE("Arnold context semantic test", "[arnold_context]")
     // shader nodes created
     mx::NodePtr shaderNode= doc->getNode("simple_srf1");
     REQUIRE((shaderNode->getAttribute(mx::TypedElement::TYPE_ATTRIBUTE) == mx::SURFACE_SHADER_TYPE_STRING));
-    shaderNode = doc->getNode("simple_srf2");    
-    REQUIRE((shaderNode->getAttribute(mx::TypedElement::TYPE_ATTRIBUTE) == mx::DISPLACEMENT_SHADER_TYPE_STRING));
     shaderNode = doc->getNode("simple_disp");
-    REQUIRE((shaderNode->getAttribute(mx::TypedElement::TYPE_ATTRIBUTE) == mx::SURFACE_SHADER_TYPE_STRING));
-    shaderNode = doc->getNode("simple_disp2");
     REQUIRE((shaderNode->getAttribute(mx::TypedElement::TYPE_ATTRIBUTE) == mx::DISPLACEMENT_SHADER_TYPE_STRING));
 
     mx::NodePtr materialNode = doc->getNode("test_material");
     mx::InputPtr input = materialNode->getInput(mx::DISPLACEMENT_SHADER_TYPE_STRING);
     REQUIRE((input && input->getAttribute(mx::PortElement::NODE_NAME_ATTRIBUTE) == "simple_disp"));
-    REQUIRE((input && input->getAttribute(mx::TypedElement::TYPE_ATTRIBUTE) == mx::DISPLACEMENT_SHADER_TYPE_STRING));
-
-    materialNode = doc->getNode("test_material2");
-    input = materialNode->getInput(mx::DISPLACEMENT_SHADER_TYPE_STRING);
-    REQUIRE((input && input->getAttribute(mx::PortElement::NODE_NAME_ATTRIBUTE) == "simple_disp2"));
     REQUIRE((input && input->getAttribute(mx::TypedElement::TYPE_ATTRIBUTE) == mx::DISPLACEMENT_SHADER_TYPE_STRING));
 }
 #endif
