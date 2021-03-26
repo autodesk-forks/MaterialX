@@ -24,10 +24,6 @@ NodeDefPtr getShaderNodeDef(ElementPtr shaderRef)
         string nodeDefString = shaderRef->getAttribute(NodeDef::NODE_DEF_ATTRIBUTE);
         return shaderRef->resolveRootNameReference<NodeDef>(nodeDefString);
     }
-    {
-        string nodeDefString = shaderRef->getAttribute(NodeDef::NODE_DEF_ATTRIBUTE);
-        return shaderRef->resolveRootNameReference<NodeDef>(nodeDefString);
-    }
     if (shaderRef->hasAttribute(NodeDef::NODE_ATTRIBUTE))
     {
         string nodeString = shaderRef->getAttribute(NodeDef::NODE_ATTRIBUTE);
