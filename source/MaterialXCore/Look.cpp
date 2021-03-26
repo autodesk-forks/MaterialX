@@ -118,7 +118,7 @@ vector<VisibilityPtr> Look::getActiveVisibilities() const
 
 void Look::append(const LookPtr& source)
 {
-    for (const ElementPtr child : source->getChildren())
+    for (auto child : source->getChildren())
     {
         if (!child)
         {
@@ -176,7 +176,7 @@ LookVec LookGroup::getActiveLooks() const
         vector<LookPtr> lookElements = getDocument()->getLooks();
         if (!lookElements.empty())
         {
-            for (const auto lookName : lookList)
+            for (auto lookName : lookList)
             {
                 for (auto lookElement : lookElements)
                 {
