@@ -9,8 +9,6 @@
 
 #include <mutex>
 
-#include <iostream>
-
 namespace MaterialX
 {
 
@@ -983,8 +981,6 @@ void Document::upgradeVersion()
                 if (!contextString.empty())
                 {
                     shaderNodeType = contextString;
-                    std::cout << "Use \"context\" attribute: " + shaderNodeType << 
-                        " for shaderref: " + shaderRef->getName() << std::endl;
                 }
                 else
 #endif
