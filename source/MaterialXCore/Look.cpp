@@ -191,6 +191,49 @@ LookVec LookGroup::getActiveLooks() const
     return activeLooks;
 }
 
+// Need ability to replace active look here, or outside ?
+// for default look want to set whether to use or not.
+void LookGroup::append(const LookGroupPtr& sourceGroup, bool ignoreDuplicateLooks)
+{
+    const string COMMA_SEPERATOR = ",";
+
+    string sourceLooks = sourceGroup->getLooks();
+    if (sourceLooks.empty())
+    {
+        return;
+    }
+    const StringVec& sourceLookList = splitString(sourceLooks, ",");
+
+    DocumentPtr doc = getDocument();
+
+    StringVec destLookList = splitString(getLooks(), COMMA_SEPERATOR);
+    const StringSet destLookSet(destLookList.begin(), destLookList.end());
+
+    StringVec destActiveLookList = splitString(getActiveLook(), COMMA_SEPERATOR);
+
+    for (auto lookName : sourceLookList)
+    {
+        string newLookName = lookName;
+        if (destLookSet.count(lookName))
+        {
+            if (ignoreDuplicateLooks)
+            {
+                continue;
+            }
+            else
+            {
+                newLookName = doc->createValidChildName(lookName);
+            }
+        }
+
+        destLookList.push_back(COMMA_SEPERATOR + newLookName);
+        destActiveLookList.push_back(COMMA_SEPERATOR + newLookName);
+    }
+
+    setLooks(mergeStringVec(destLookList, COMMA_SEPERATOR));
+    setActiveLook(mergeStringVec(destActiveLookList, COMMA_SEPERATOR));
+}
+
 LookPtr LookGroup::combineLooks() 
 {
     DocumentPtr document = getDocument();
