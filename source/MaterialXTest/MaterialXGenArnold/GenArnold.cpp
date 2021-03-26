@@ -16,6 +16,7 @@
 
 namespace mx = MaterialX;
 
+#ifdef SUPPORT_ARNOLD_CONTEXT_STRING
 TEST_CASE("Arnold context semantic test", "[arnold_context]")
 {
     const std::string testMaterial = {
@@ -67,6 +68,7 @@ TEST_CASE("Arnold context semantic test", "[arnold_context]")
     REQUIRE((input && input->getAttribute(mx::PortElement::NODE_NAME_ATTRIBUTE) == "simple_disp2"));
     REQUIRE((input && input->getAttribute(mx::TypedElement::TYPE_ATTRIBUTE) == mx::DISPLACEMENT_SHADER_TYPE_STRING));
 }
+#endif
 
 TEST_CASE("GenShader: Arnold Implementation Check", "[genosl]")
 {
