@@ -9,6 +9,8 @@
 
 #include <mutex>
 
+#include <iostream>
+
 namespace MaterialX
 {
 
@@ -20,6 +22,10 @@ namespace {
 NodeDefPtr getShaderNodeDef(ElementPtr shaderRef)
 {
     if (shaderRef->hasAttribute(NodeDef::NODE_DEF_ATTRIBUTE))
+    {
+        string nodeDefString = shaderRef->getAttribute(NodeDef::NODE_DEF_ATTRIBUTE);
+        return shaderRef->resolveRootNameReference<NodeDef>(nodeDefString);
+    }
     {
         string nodeDefString = shaderRef->getAttribute(NodeDef::NODE_DEF_ATTRIBUTE);
         return shaderRef->resolveRootNameReference<NodeDef>(nodeDefString);
@@ -968,10 +974,27 @@ void Document::upgradeVersion()
 
             for (ElementPtr shaderRef : mat->getChildrenOfType<Element>("shaderref"))
             {
-                NodeDefPtr nodeDef = getShaderNodeDef(shaderRef);
-
                 // Get the shader node type and category, using the shader nodedef if present.
-                string shaderNodeType = nodeDef ? nodeDef->getType() : SURFACE_SHADER_TYPE_STRING;
+                NodeDefPtr nodeDef = nullptr;
+                string shaderNodeType = SURFACE_SHADER_TYPE_STRING;
+#ifdef SUPPORT_ARNOLD_CONTEXT_STRING
+                const string CONTEXT_STRING("context");
+                const string contextString = shaderRef->getAttribute(CONTEXT_STRING);
+                if (!contextString.empty())
+                {
+                    shaderNodeType = contextString;
+                    std::cout << "Use \"context\" attribute: " + shaderNodeType << 
+                        " for shaderref: " + shaderRef->getName() << std::endl;
+                }
+                else
+#endif
+                {
+                    nodeDef = getShaderNodeDef(shaderRef);
+                    if (nodeDef)
+                    {
+                        shaderNodeType = nodeDef->getType();
+                    }
+                }
                 string shaderNodeCategory = nodeDef ? nodeDef->getNodeString() : shaderRef->getAttribute(NodeDef::NODE_ATTRIBUTE);
 
                 // Add the shader node.
