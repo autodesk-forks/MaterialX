@@ -116,6 +116,28 @@ vector<VisibilityPtr> Look::getActiveVisibilities() const
     return activeVisibilities;
 }
 
+void Look::append(const LookPtr& source)
+{
+    for (const ElementPtr child : source->getChildren())
+    {
+        if (!child)
+        {
+            continue;
+        }
+        string name = source->getName() + "_" + child->getName();
+
+        ConstElementPtr previous = getChild(name);
+        if (previous)
+        {
+            name = createValidChildName(name);
+        }
+
+        // Create the copied element.
+        ElementPtr childCopy = addChildOfCategory(child->getCategory(), name);
+        childCopy->copyContentFrom(child);
+    }
+}
+
 //
 // MaterialAssign methods
 //
@@ -135,5 +157,64 @@ vector<VariantAssignPtr> MaterialAssign::getActiveVariantAssigns() const
     }
     return activeAssigns;
 }
+
+//
+// Lookgroup methods
+//
+
+LookVec LookGroup::getActiveLooks() const
+{
+    string looks = getActiveLook();
+    if (looks.empty())
+    {
+        looks = getLooks();
+    }
+    const StringVec& lookList = splitString(looks, ",");
+    LookVec activeLooks;
+    if (!lookList.empty())
+    {
+        vector<LookPtr> lookElements = getDocument()->getLooks();
+        if (!lookElements.empty())
+        {
+            for (const auto lookName : lookList)
+            {
+                for (auto lookElement : lookElements)
+                {
+                    if (lookElement->getName() == lookName)
+                    {
+                        activeLooks.push_back(lookElement);
+                    }
+                }
+            }
+        }
+    }
+    return activeLooks;
+}
+
+LookPtr LookGroup::combineLooks() 
+{
+    DocumentPtr document = getDocument();
+    LookVec looks = getActiveLooks();
+    if (looks.empty())
+    {
+        return nullptr;
+    }
+
+    // Create a new look as a copy of the first look
+    LookPtr mergedLook = document->addLook();
+    mergedLook->copyContentFrom(looks[0]);
+
+    // Merge in subsequent looks if any
+    for (size_t i=1; i<looks.size(); i++)
+    {
+        mergedLook->append(looks[i]);
+    }
+    const string& mergedLookName = mergedLook->getName();
+    setActiveLook(mergedLookName);
+    setLooks(mergedLookName);
+
+    return mergedLook;
+}
+
 
 } // namespace MaterialX

@@ -6,6 +6,9 @@
 #include <MaterialXTest/Catch/catch.hpp>
 
 #include <MaterialXCore/Document.h>
+#include <MaterialXFormat/XmlIo.h>
+
+#include <iostream>
 
 namespace mx = MaterialX;
 
@@ -98,11 +101,28 @@ TEST_CASE("LookGroup", "[look]")
     std::vector<mx::LookGroupPtr> lookGroups = doc->getLookGroups();
     REQUIRE(lookGroups.size() == 1);
 
+    mx::StringMap mergeMap;
+
     const std::string looks = "look1,look2,look3,look4,look5";
-    mx::StringVec looksVec = mx::splitString(looks, ",");
+    mx::StringVec looksVec = mx::splitString(looks, ",");    
     for (const std::string& lookName : looksVec)
     {
         mx::LookPtr look = doc->addLook(lookName);
+        look->addMaterialAssign("matA", "materialA");
+        look->addMaterialAssign("matB", "materialB");
+        look->addMaterialAssign("matC", "materialC");
+        if (lookName != "look1")
+        {
+            mergeMap[lookName + "_matA"] = "materialA";
+            mergeMap[lookName + "_matB"] = "materialB";
+            mergeMap[lookName + "_matC"] = "materialC";
+        }
+        else
+        {
+            mergeMap["matA"] = "materialA";
+            mergeMap["matB"] = "materialB";
+            mergeMap["matC"] = "materialC";
+        }
         REQUIRE(look != nullptr);
     }
     lookGroup->setLooks(looks);
@@ -114,6 +134,17 @@ TEST_CASE("LookGroup", "[look]")
     REQUIRE(lookGroup->getActiveLook().empty());
     lookGroup->setActiveLook("look1");
     REQUIRE(lookGroup->getActiveLook() == "look1");
+
+    lookGroup->setActiveLook(looks);
+    mx::LookPtr mergedLook = lookGroup->combineLooks();
+    REQUIRE(mergedLook->getMaterialAssigns().size() == 15);
+    for (auto ma : mergedLook->getMaterialAssigns())
+    {
+        REQUIRE(mergeMap.find(ma->getName()) != mergeMap.end());
+        REQUIRE(mergeMap[ma->getName()] == ma->getMaterial());
+    }
+
+    mx::writeToXmlFile(doc, "looks_test.mtlx");
 
     doc->removeLookGroup("lookgroup1");
     lookGroups = doc->getLookGroups();
