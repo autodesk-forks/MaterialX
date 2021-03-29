@@ -40,7 +40,7 @@ class MdlFilenameTypeSyntax : public ScalarTypeSyntax
         const string outputValue = value.getValueString();
         if (outputValue.empty() || outputValue == "/")
         {
-            return getDefaultValue();
+            return getDefaultValue(true);
         }
 
         string pathSeparator("");
