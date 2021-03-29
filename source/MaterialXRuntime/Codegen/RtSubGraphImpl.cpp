@@ -4,7 +4,7 @@
 //
 
 #include <MaterialXRuntime/Codegen/RtSubGraphImpl.h>
-#include <MaterialXRuntime/Tokens.h>
+#include <MaterialXRuntime/Identifiers.h>
 
 #include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
@@ -23,7 +23,7 @@ RtPrim RtSubGraphImpl::createPrim(const RtIdentifier& typeName, const RtIdentifi
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->createRelationship(Tokens::NODEIMPL);
+    prim->createRelationship(Identifiers::NODEIMPL);
 
     return primH;
 }

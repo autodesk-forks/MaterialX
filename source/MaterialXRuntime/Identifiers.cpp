@@ -3,12 +3,12 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/Tokens.h>
+#include <MaterialXRuntime/Identifiers.h>
 
 namespace MaterialX
 {
 
-namespace Tokens
+namespace Identifiers
 {
     const RtIdentifier DOC("doc");
     const RtIdentifier NAME("name");

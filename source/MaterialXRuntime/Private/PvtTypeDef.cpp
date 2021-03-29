@@ -216,21 +216,21 @@ void fromStringFloat(const string& str, float& value)
 template<class T>
 void fromStringVector(const string& str, T& dest)
 {
-    StringVec tokens = splitString(str, ARRAY_VALID_SEPARATORS);
-    if (tokens.size() != T::numElements())
+    StringVec strings = splitString(str, ARRAY_VALID_SEPARATORS);
+    if (strings.size() != T::numElements())
     {
         throw ExceptionRuntimeError("Failed parsing value from string: " + str);
     }
     for (size_t i = 0; i < T::numElements(); ++i)
     {
-        fromStringFloat(tokens[i], dest[i]);
+        fromStringFloat(strings[i], dest[i]);
     }
 }
 template<class T>
 void fromStringMatrix(const string& str, T& dest)
 {
-    StringVec tokens = splitString(str, ARRAY_VALID_SEPARATORS);
-    if (tokens.size() != T::numRows() * T::numColumns())
+    StringVec strings = splitString(str, ARRAY_VALID_SEPARATORS);
+    if (strings.size() != T::numRows() * T::numColumns())
     {
         throw ExceptionRuntimeError("Failed parsing value from string: " + str);
     }
@@ -238,7 +238,7 @@ void fromStringMatrix(const string& str, T& dest)
     {
         for (size_t j = 0; j < T::numRows(); ++j)
         {
-            fromStringFloat(tokens[i * T::numRows() + j], dest[i][j]);
+            fromStringFloat(strings[i * T::numRows() + j], dest[i][j]);
         }
     }
 }

@@ -3,8 +3,8 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#ifndef MATERIALX_TOKENS_H
-#define MATERIALX_TOKENS_H
+#ifndef MATERIALX_IDENTIFIERS_H
+#define MATERIALX_IDENTIFIERS_H
 
 /// @file
 /// TODO: Docs
@@ -14,8 +14,8 @@
 namespace MaterialX
 {
 
-/// Namespace of commonly used tokens.
-namespace Tokens
+/// Namespace of commonly used identifiers.
+namespace Identifiers
 {
     extern const RtIdentifier DOC;
     extern const RtIdentifier NAME;

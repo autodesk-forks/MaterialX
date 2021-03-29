@@ -16,7 +16,7 @@
 #include <MaterialXRuntime/RtTraversal.h>
 #include <MaterialXRuntime/RtApi.h>
 #include <MaterialXRuntime/RtLogger.h>
-#include <MaterialXRuntime/Tokens.h>
+#include <MaterialXRuntime/Identifiers.h>
 #include <MaterialXRuntime/RtNodeImpl.h>
 #include <MaterialXRuntime/RtTargetDef.h>
 #include <MaterialXRuntime/Codegen/RtSourceCodeImpl.h>
@@ -65,8 +65,8 @@ namespace
         PvtRootPrimSpec()
         {
             // TODO: We should derive this from a data driven XML schema.
-            addPrimAttribute(Tokens::DOC, RtType::STRING);
-            addPrimAttribute(Tokens::COLORSPACE, RtType::TOKEN);
+            addPrimAttribute(Identifiers::DOC, RtType::STRING);
+            addPrimAttribute(Identifiers::COLORSPACE, RtType::TOKEN);
         }
     };
 
@@ -583,7 +583,7 @@ namespace
     PvtPrim* readImplementation(const ImplementationPtr& src, PvtStage* stage)
     {
         PvtPrim* parent = stage->getRootPrim();
-        const RtIdentifier target(src->getAttribute(Tokens::TARGET.str()));
+        const RtIdentifier target(src->getAttribute(Identifiers::TARGET.str()));
 
         // We are only interested in implementations for loaded targets,
         // so if target is set make sure this target has been loaded.
@@ -594,8 +594,8 @@ namespace
 
         const RtIdentifier name(src->getName());
 
-        const string& sourcecode = src->getAttribute(Tokens::SOURCECODE.str());
-        const string& file = src->getAttribute(Tokens::FILE.str());
+        const string& sourcecode = src->getAttribute(Identifiers::SOURCECODE.str());
+        const string& file = src->getAttribute(Identifiers::FILE.str());
 
         PvtPrim* prim = nullptr;
         if (file.empty() && sourcecode.empty())
@@ -941,8 +941,8 @@ namespace
             RtInput input = node.getInput(i);
             if (input)
             {
-                const RtTypedValue* uiVisible1 = input.getAttribute(Tokens::UIVISIBLE, RtType::BOOLEAN);
-                const RtTypedValue* uiVisible2 = nodedefInput.getAttribute(Tokens::UIVISIBLE, RtType::BOOLEAN);
+                const RtTypedValue* uiVisible1 = input.getAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
+                const RtTypedValue* uiVisible2 = nodedefInput.getAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
                 const bool uiHidden1 = uiVisible1 && !uiVisible1->asBool();
                 const bool uiHidden2 = uiVisible2 && !uiVisible2->asBool();
                 const bool writeUiVisibleData = uiHidden1 != uiHidden2;
@@ -1133,7 +1133,7 @@ namespace
             }
             if (!source.empty())
             {
-                destImpl->setAttribute(Tokens::SOURCECODE.str(), source);
+                destImpl->setAttribute(Identifiers::SOURCECODE.str(), source);
             }
         }
 

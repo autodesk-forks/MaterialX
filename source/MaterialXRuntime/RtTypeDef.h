@@ -16,7 +16,7 @@
 namespace MaterialX
 {
 
-/// Class holding identifier tokens for the built in data types.
+/// Class holding identifiers for the built in data types.
 class RtType
 {
 public:

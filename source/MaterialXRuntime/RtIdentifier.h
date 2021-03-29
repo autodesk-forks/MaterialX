@@ -16,7 +16,7 @@ namespace MaterialX
 
 class RtIdentifier;
 
-/// Token representing an empty string.
+/// Identifier representing an empty string.
 extern const RtIdentifier EMPTY_IDENFITIER;
 
 /// @class RtIdentifier
@@ -29,19 +29,19 @@ extern const RtIdentifier EMPTY_IDENFITIER;
 class RtIdentifier
 {
 public:
-    /// Construct an empty token.
+    /// Construct an empty idenfifier.
     RtIdentifier() : _entry(&NULL_ENTRY) {}
 
     /// Copy constructor.
     RtIdentifier(const RtIdentifier& other) : _entry(other._entry) {}
 
-    /// Constructor creating a token from a raw string.
+    /// Constructor creating an idenfifier from a raw string.
     explicit RtIdentifier(const char* s);
 
-    /// Constructor creating a token from an std::string.
+    /// Constructor creating an idenfifierfrom an std::string.
     explicit RtIdentifier(const string& s);
 
-    /// Assingment from another token.
+    /// Assingment from another idenfifier
     const RtIdentifier& assign(const RtIdentifier& other)
     {
         _entry = other._entry;
@@ -62,7 +62,7 @@ public:
         return *this;
     }
 
-    /// Assignment operator from other token.
+    /// Assignment operator from other idenfifier.
     const RtIdentifier& operator=(const RtIdentifier& other)
     {
         assign(other);
@@ -70,76 +70,76 @@ public:
     }
 
     /// Equality operator
-    /// Fast compare of the token pointers.
+    /// Fast compare of the idenfifier pointers.
     bool operator==(const RtIdentifier& other) const
     {
         return _entry == other._entry;
     }
 
     /// Inequality operator
-    /// Fast compare of the token pointers.
+    /// Fast compare of the idenfifier pointers.
     bool operator!=(const RtIdentifier& other) const
     {
         return _entry != other._entry;
     }
 
-    /// Equality operator comparing token with std::string.
+    /// Equality operator comparing an idenfifier with std::string.
     /// Performs lexicographic compares of the internal string.
     bool operator==(const std::string& other) const
     {
         return _entry->_str == other;
     }
 
-    /// Equality operator comparing token with raw string.
+    /// Equality operator comparing an idenfifier with a raw string.
     /// Performs lexicographic compares of the internal string.
     bool operator==(const char* other) const
     {
         return _entry->_str == other;
     }
 
-    /// Equality operator comparing token with std::string.
+    /// Equality operator comparing an idenfifier with std::string.
     /// Performs lexicographic compares of the internal string.
     friend bool operator==(const std::string& s, const RtIdentifier& t)
     {
         return t == s;
     }
 
-    /// Equality operator comparing token with raw string.
+    /// Equality operator comparing an idenfifier with a raw string.
     /// Performs lexicographic compares of the internal string.
     friend bool operator==(const char* s, const RtIdentifier& t)
     {
         return t == s;
     }
 
-    /// Inequality operator comparing token with std::string.
+    /// Inequality operator comparing idenfifier with std::string.
     /// Performs lexicographic compares of the internal string.
     bool operator!=(const std::string& other) const
     {
         return _entry->_str != other;
     }
 
-    /// Inequality operator comparing token with raw string.
+    /// Inequality operator comparing an idenfifier with raw string.
     /// Performs lexicographic compares of the internal string.
     bool operator!=(const char* other) const
     {
         return _entry->_str != other;
     }
 
-    /// Inequality operator comparing token with std::string.
+    /// Inequality operator comparing an idenfifier with std::string.
     /// Performs lexicographic compares of the internal string.
     friend bool operator!=(const std::string& s, const RtIdentifier& t)
     {
         return t != s;
     }
 
-    /// Inequality operator comparing token with raw string.
+    /// Inequality operator comparing an idenfifier with raw string.
     /// Performs lexicographic compares of the internal string.
     friend bool operator!=(const char* s, const RtIdentifier& t)
     {
         return t != s;
     }
 
-    /// Less-than operator comparing tokens lexicographically.
+    /// Less-than operator comparing an idenfifier lexicographically.
     inline bool operator<(const RtIdentifier& other) const
     {
         return _entry->_str < other._entry->_str;
@@ -158,19 +158,19 @@ public:
     }
 
     /// Explicit conversion to bool.
-    /// Returning false if the token is empty.
+    /// Returning false if the idenfifier is empty.
     explicit operator bool() const
     {
         return _entry != EMPTY_IDENFITIER._entry;
     }
 
-    /// Return a hash key for this token.
+    /// Return a hash key for this idenfifier .
     size_t hash() const
     {
         return _entry->_hash;
     }
 
-    /// Fast hash operator returning the hash already stored on the token.
+    /// Fast hash operator returning the hash already stored on the idenfifier .
     struct FastHash
     {
         size_t operator()(const RtIdentifier& t) const
@@ -203,14 +203,14 @@ private:
     friend struct RtIdentifierRegistry;
 };
 
-/// Class representing an unordered map with token keys and templated value type.
+/// Class representing an unordered map with idenfifier keys and templated value type.
 template<typename T>
 using RtIdentifierMap = std::unordered_map<RtIdentifier, T, RtIdentifier::FastHash>;
 
-/// Class representing an unordered set of tokens.
+/// Class representing an unordered set of idenfifier.
 using RtIdentifierSet = std::unordered_set<RtIdentifier, RtIdentifier::FastHash>;
 
-/// Class representing a vector of tokens
+/// Class representing a vector of idenfifiers
 using RtIdentifierVec = std::vector<RtIdentifier>;
 
 }

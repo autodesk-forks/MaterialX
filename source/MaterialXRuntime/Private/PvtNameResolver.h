@@ -23,7 +23,7 @@ class PvtStringResolverPair;
 /// Shared pointer to a PvtStringResolverPair
 using PvtStringResolverPairPtr = std::shared_ptr<class PvtStringResolverPair>;
 
-/// Map of token to RtStringResolverPairPtr
+/// Map of identifier to RtStringResolverPairPtr
 using PvtStringResolverMap = RtIdentifierMap<PvtStringResolverPairPtr>;
 
 /// @class PvtStringResolverPair

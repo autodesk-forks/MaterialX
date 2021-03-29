@@ -203,7 +203,7 @@ protected:
     }
 
     TypeBits _typeBits;
-    RtIdentifier _name; // TODO: Store a path instead of name token
+    RtIdentifier _name; // TODO: Store a path instead of name itenfier
     PvtPrim* _parent;
     RtIdentifierMap<RtTypedValue*> _attr;
     RtIdentifierVec _attrNames;
