@@ -169,7 +169,7 @@ LookVec LookGroup::getActiveLooks() const
     {
         looks = getLooks();
     }
-    const StringVec& lookList = splitString(looks, ",");
+    const StringVec& lookList = splitString(looks, ARRAY_VALID_SEPARATORS);
     LookVec activeLooks;
     if (!lookList.empty())
     {
@@ -191,47 +191,62 @@ LookVec LookGroup::getActiveLooks() const
     return activeLooks;
 }
 
-// Need ability to replace active look here, or outside ?
-// for default look want to set whether to use or not.
-void LookGroup::append(const LookGroupPtr& sourceGroup, bool ignoreDuplicateLooks)
+void LookGroup::append(const LookGroupPtr& sourceGroup, bool skipDuplicateLooks)
 {
-    const string COMMA_SEPERATOR = ",";
-
     string sourceLooks = sourceGroup->getLooks();
     if (sourceLooks.empty())
     {
         return;
     }
-    const StringVec& sourceLookList = splitString(sourceLooks, ",");
 
-    DocumentPtr doc = getDocument();
-
-    StringVec destLookList = splitString(getLooks(), COMMA_SEPERATOR);
+    // If look already exists in the look list then append if
+     // not skipping duplicates
+    const StringVec& sourceLookList = splitString(sourceLooks, ARRAY_VALID_SEPARATORS);
+    StringVec destLookList = splitString(getLooks(), ARRAY_VALID_SEPARATORS);
     const StringSet destLookSet(destLookList.begin(), destLookList.end());
-
-    StringVec destActiveLookList = splitString(getActiveLook(), COMMA_SEPERATOR);
 
     for (auto lookName : sourceLookList)
     {
-        string newLookName = lookName;
+        bool appendLook = true;
         if (destLookSet.count(lookName))
         {
-            if (ignoreDuplicateLooks)
+            if (skipDuplicateLooks)
             {
-                continue;
-            }
-            else
-            {
-                newLookName = doc->createValidChildName(lookName);
+                appendLook = false;
             }
         }
-
-        destLookList.push_back(COMMA_SEPERATOR + newLookName);
-        destActiveLookList.push_back(COMMA_SEPERATOR + newLookName);
+        if (appendLook)
+        {
+            destLookList.push_back(lookName);
+        }
     }
 
-    setLooks(mergeStringVec(destLookList, COMMA_SEPERATOR));
-    setActiveLook(mergeStringVec(destActiveLookList, COMMA_SEPERATOR));
+    // If look already exists in the active look list then append if not skipping duplicates
+    //
+    string activeSourceLooks = sourceGroup->getActiveLook();
+    const StringVec& sourceActiveLookList = splitString(activeSourceLooks, ARRAY_VALID_SEPARATORS);
+    StringVec destActiveLookList = splitString(getActiveLook(), ARRAY_VALID_SEPARATORS);
+    const StringSet destActiveLookSet(destActiveLookList.begin(), destActiveLookList.end());
+
+    for (auto activeLookName : sourceActiveLookList)
+    {
+        bool appendActiveLook = true;
+        if (destActiveLookSet.count(activeLookName))
+        {
+            if (skipDuplicateLooks)
+            {
+                appendActiveLook = false;
+            }
+        }
+        if (appendActiveLook)
+        {
+            destActiveLookList.push_back(activeLookName);
+        }
+    }
+
+    // Update look and active look lists
+    setLooks(mergeStringVec(destLookList, ARRAY_VALID_SEPARATORS));
+    setActiveLook(mergeStringVec(destActiveLookList, ARRAY_VALID_SEPARATORS));
 }
 
 LookPtr LookGroup::combineLooks() 

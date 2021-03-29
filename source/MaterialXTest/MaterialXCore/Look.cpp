@@ -104,7 +104,7 @@ TEST_CASE("LookGroup", "[look]")
     mx::StringMap mergeMap;
 
     const std::string looks = "look1,look2,look3,look4,look5";
-    mx::StringVec looksVec = mx::splitString(looks, ",");    
+    mx::StringVec looksVec = mx::splitString(looks, mx::ARRAY_VALID_SEPARATORS);
     for (const std::string& lookName : looksVec)
     {
         mx::LookPtr look = doc->addLook(lookName);
@@ -128,13 +128,18 @@ TEST_CASE("LookGroup", "[look]")
     lookGroup->setLooks(looks);
 
     const std::string& looks2 = lookGroup->getLooks();
-    mx::StringVec looksVec2 = mx::splitString(looks2, ",");
+    mx::StringVec looksVec2 = mx::splitString(looks2, mx::ARRAY_VALID_SEPARATORS);
     REQUIRE(looksVec.size() == looksVec2.size());
 
     REQUIRE(lookGroup->getActiveLook().empty());
     lookGroup->setActiveLook("look1");
     REQUIRE(lookGroup->getActiveLook() == "look1");
 
+    mx::LookGroupPtr copyLookGroup = doc->addLookGroup("lookgroup1_copy");
+    copyLookGroup->copyContentFrom(lookGroup);
+    mx::writeToXmlFile(doc, "looks_test.mtlx");
+
+    // Combine looks in lookgroup test
     lookGroup->setActiveLook(looks);
     mx::LookPtr mergedLook = lookGroup->combineLooks();
     REQUIRE(mergedLook->getMaterialAssigns().size() == 15);
@@ -144,9 +149,42 @@ TEST_CASE("LookGroup", "[look]")
         REQUIRE(mergeMap[ma->getName()] == ma->getMaterial());
     }
 
-    mx::writeToXmlFile(doc, "looks_test.mtlx");
+    mx::writeToXmlFile(doc, "looks_test_merged.mtlx");
 
-    doc->removeLookGroup("lookgroup1");
+    doc->removeLook(mergedLook->getName());
+    REQUIRE(doc->getLooks().size() == 5);
+    doc->removeLookGroup(lookGroup->getName());
+
+    // Combine lookgroups test
+    mx::LookGroupPtr lookGroup2 = doc->addLookGroup("lookgroup2");
+    std::string lookGroup2_looks = "lookA,look1,lookC,look3,lookE";
+    looksVec2 = mx::splitString(lookGroup2_looks, mx::ARRAY_VALID_SEPARATORS);
+    for (const std::string& lookName2 : looksVec2)
+    {
+        // Skip duplcates
+        if (doc->getLook(lookName2))
+        {
+            continue;
+        }
+        mx::LookPtr look = doc->addLook(lookName2);
+        look->addMaterialAssign("matA", "materialA");
+        look->addMaterialAssign("matB", "materialB");
+        look->addMaterialAssign("matC", "materialC");
+    }
+    lookGroup2->setLooks(lookGroup2_looks);
+    lookGroup2->setActiveLook("lookA,look3,lookE");
+
+    mx::LookGroupPtr mergedCopyLookGroup = doc->addLookGroup("lookgroup1_copy_merged");
+    mergedCopyLookGroup->copyContentFrom(copyLookGroup);
+    mergedCopyLookGroup->append(lookGroup2);
+    mx::writeToXmlFile(doc, "lookgroup_test_merged.mtlx");
+
+    REQUIRE(mergedCopyLookGroup->getLooks() == std::string("look1, look2, look3, look4, look5, lookA, lookC, lookE"));
+    REQUIRE(mergedCopyLookGroup->getActiveLook() == std::string("look1, lookA, look3, lookE"));
+
+    doc->removeLookGroup(lookGroup2->getName());
+    doc->removeLookGroup(copyLookGroup->getName());
+    doc->removeLookGroup(mergedCopyLookGroup->getName());
     lookGroups = doc->getLookGroups();
     REQUIRE(lookGroups.size() == 0);
 }
