@@ -704,8 +704,8 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     add1_in1.setUnit(meter);
     add1_in2.setColorSpace(srgb);
     REQUIRE(add1_in1.getUnit() == meter);
-    REQUIRE(add1_in1.getColorSpace() == mx::EMPTY_IDENFITIER);
-    REQUIRE(add1_in2.getUnit() == mx::EMPTY_IDENFITIER);
+    REQUIRE(add1_in1.getColorSpace() == mx::EMPTY_IDENTIFIER);
+    REQUIRE(add1_in2.getUnit() == mx::EMPTY_IDENTIFIER);
     REQUIRE(add1_in2.getColorSpace() == srgb);
     mx::RtTypedValue* fooData = add1_in1.createAttribute(FOO, mx::RtType::FLOAT);
     fooData->asFloat() = 7.0f;
@@ -931,7 +931,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
 
     mx::RtNodeDef addgraphDef(addgraphPrim);
     REQUIRE(graph1.getDefinition() == QUALIFIED_DEFINITION);
-    REQUIRE(graph1.getVersion() == mx::EMPTY_IDENFITIER);
+    REQUIRE(graph1.getVersion() == mx::EMPTY_IDENTIFIER);
     REQUIRE(graph1.getNamespace() == NAMESPACE);
     REQUIRE(addgraphDef.numInputs() == 2);
     REQUIRE(addgraphDef.numOutputs() == 1);
@@ -2091,12 +2091,12 @@ TEST_CASE("Runtime: Commands", "[runtime]")
 
     const mx::RtIdentifier addFloatNode("ND_add_float");
 
-    mx::RtCommand::createPrim(stage, addFloatNode, graph1.getPath(), mx::EMPTY_IDENFITIER, result);
+    mx::RtCommand::createPrim(stage, addFloatNode, graph1.getPath(), mx::EMPTY_IDENTIFIER, result);
     REQUIRE(result);
     REQUIRE(result.getObject().isA<mx::RtPrim>());
     mx::RtPrim add1(result.getObject().asA<mx::RtPrim>());
 
-    mx::RtCommand::createPrim(stage, addFloatNode, graph1.getPath(), mx::EMPTY_IDENFITIER, result);
+    mx::RtCommand::createPrim(stage, addFloatNode, graph1.getPath(), mx::EMPTY_IDENTIFIER, result);
     REQUIRE(result);
     REQUIRE(result.getObject().isA<mx::RtPrim>());
     mx::RtPrim add2(result.getObject().asA<mx::RtPrim>());
@@ -2394,24 +2394,24 @@ TEST_CASE("Runtime: Commands", "[runtime]")
 
     // Look management nodes must be created at the root level
     mx::RtCommandResult colResult;
-    mx::RtCommand::createPrim(stage, mx::RtIdentifier("collection"), mx::RtPath("/test/"), mx::EMPTY_IDENFITIER, colResult);
+    mx::RtCommand::createPrim(stage, mx::RtIdentifier("collection"), mx::RtPath("/test/"), mx::EMPTY_IDENTIFIER, colResult);
     REQUIRE(!colResult);
 
     mx::RtCommandResult matAssignResult;
-    mx::RtCommand::createPrim(stage, mx::RtIdentifier("materialassign"), mx::RtPath("/test/"), mx::EMPTY_IDENFITIER, matAssignResult);
+    mx::RtCommand::createPrim(stage, mx::RtIdentifier("materialassign"), mx::RtPath("/test/"), mx::EMPTY_IDENTIFIER, matAssignResult);
     REQUIRE(!matAssignResult);
 
     mx::RtCommandResult lookResult;
-    mx::RtCommand::createPrim(stage, mx::RtIdentifier("look"), mx::RtPath("/test/"), mx::EMPTY_IDENFITIER, lookResult);
+    mx::RtCommand::createPrim(stage, mx::RtIdentifier("look"), mx::RtPath("/test/"), mx::EMPTY_IDENTIFIER, lookResult);
     REQUIRE(!lookResult);
 
     mx::RtCommandResult lookGroupResult;
-    mx::RtCommand::createPrim(stage, mx::RtIdentifier("lookgroup"), mx::RtPath("/test/"), mx::EMPTY_IDENFITIER, lookGroupResult);
+    mx::RtCommand::createPrim(stage, mx::RtIdentifier("lookgroup"), mx::RtPath("/test/"), mx::EMPTY_IDENTIFIER, lookGroupResult);
     REQUIRE(!lookResult);
 
     // Unknown node types cannot be created. Must be a look managment node, a material node, or have a nodedef.
     mx::RtCommandResult unknownResult;
-    mx::RtCommand::createPrim(stage, mx::RtIdentifier("unknown"), mx::RtPath("/"), mx::EMPTY_IDENFITIER, unknownResult);
+    mx::RtCommand::createPrim(stage, mx::RtIdentifier("unknown"), mx::RtPath("/"), mx::EMPTY_IDENTIFIER, unknownResult);
     REQUIRE(!unknownResult);
 
     //

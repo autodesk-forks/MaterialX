@@ -243,7 +243,7 @@ class RtTypedValue
 {
 public:
     RtTypedValue() :
-        _type(EMPTY_IDENFITIER)
+        _type(EMPTY_IDENTIFIER)
     {}
 
     RtTypedValue(const RtIdentifier& t, const RtValue& v) :

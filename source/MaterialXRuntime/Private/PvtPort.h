@@ -73,7 +73,7 @@ public:
     const RtIdentifier& getColorSpace() const
     {
         const RtTypedValue* attr = getAttribute(PvtPort::COLOR_SPACE, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
     }
 
     void setColorSpace(const RtIdentifier& colorspace)
@@ -85,7 +85,7 @@ public:
     const RtIdentifier& getUnit() const
     {
         const RtTypedValue* attr = getAttribute(PvtPort::UNIT, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
     }
 
     void setUnit(const RtIdentifier& unit)
@@ -97,7 +97,7 @@ public:
     const RtIdentifier& getUnitType() const
     {
         const RtTypedValue* attr = getAttribute(PvtPort::UNIT_TYPE, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
     }
 
     void setUnitType(const RtIdentifier& unit)

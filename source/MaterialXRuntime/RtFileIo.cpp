@@ -255,7 +255,7 @@ namespace
             {
                 PvtPrim* connectedNode = findPrimOrThrow(RtIdentifier(connectedNodeName), parent, mapper);
                 RtIdentifier outputName(elemInput->getOutputString());
-                if (outputName == EMPTY_IDENFITIER && connectedNode)
+                if (outputName == EMPTY_IDENTIFIER && connectedNode)
                 {
                     RtNode rtConnectedNode(connectedNode->hnd());
                     RtOutput output = rtConnectedNode.getOutput();
@@ -570,7 +570,7 @@ namespace
         PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtTargetDef::typeName());
 
         RtTargetDef def(prim->hnd());
-        if (inherit != EMPTY_IDENFITIER)
+        if (inherit != EMPTY_IDENTIFIER)
         {
             def.setInherit(inherit);
         }
@@ -587,7 +587,7 @@ namespace
 
         // We are only interested in implementations for loaded targets,
         // so if target is set make sure this target has been loaded.
-        if (target != EMPTY_IDENFITIER && !resolveTargetDef(target, stage))
+        if (target != EMPTY_IDENTIFIER && !resolveTargetDef(target, stage))
         {
             return nullptr;
         }
@@ -874,7 +874,7 @@ namespace
         TargetDefPtr destTargetDef = dest->addTargetDef(targetdef.getName().str());
 
         const RtIdentifier& inherit = targetdef.getInherit();
-        if (inherit != EMPTY_IDENFITIER)
+        if (inherit != EMPTY_IDENTIFIER)
         {
             destTargetDef->setInheritString(inherit.str());
         }
@@ -887,7 +887,7 @@ namespace
         RtNodeDef nodedef(src->hnd());
         NodeDefPtr destNodeDef = dest->addNodeDef(nodedef.getName().str(), EMPTY_STRING, nodedef.getNode().str());
 
-        if (nodedef.getVersion() != EMPTY_IDENFITIER)
+        if (nodedef.getVersion() != EMPTY_IDENTIFIER)
         {
             destNodeDef->setVersionString(nodedef.getVersion().str());
             if (nodedef.getIsDefaultVersion())

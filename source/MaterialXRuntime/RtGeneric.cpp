@@ -18,7 +18,7 @@ RtPrim RtGeneric::createPrim(const RtIdentifier& typeName, const RtIdentifier& n
     PvtPrim::validateCreation(_typeInfo, typeName, name);
 
     static const RtIdentifier DEFAULT_NAME("generic1");
-    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
+    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     return primH;

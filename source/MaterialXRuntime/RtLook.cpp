@@ -74,7 +74,7 @@ RtPrim RtLookGroup::createPrim(const RtIdentifier& typeName, const RtIdentifier&
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     static const RtIdentifier DEFAULT_NAME("lookgroup1");
-    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
+    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
@@ -135,7 +135,7 @@ RtPrim RtLook::createPrim(const RtIdentifier& typeName, const RtIdentifier& name
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     static const RtIdentifier DEFAULT_NAME("look1");
-    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
+    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
@@ -194,7 +194,7 @@ RtPrim RtMaterialAssign::createPrim(const RtIdentifier& typeName, const RtIdenti
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     static const RtIdentifier DEFAULT_NAME("materialassign1");
-    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
+    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();

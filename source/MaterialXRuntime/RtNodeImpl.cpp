@@ -37,7 +37,7 @@ RtPrim RtNodeImpl::createPrim(const RtIdentifier& typeName, const RtIdentifier& 
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     static const RtIdentifier DEFAULT_NAME("nodeimpl1");
-    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
+    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     return primH;
@@ -58,7 +58,7 @@ void RtNodeImpl::setTarget(const RtIdentifier& target)
 const RtIdentifier& RtNodeImpl::getTarget() const
 {
     const RtTypedValue* attr = getAttribute(Identifiers::TARGET, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 void RtNodeImpl::setNodeDef(const RtIdentifier& language)
@@ -70,7 +70,7 @@ void RtNodeImpl::setNodeDef(const RtIdentifier& language)
 const RtIdentifier& RtNodeImpl::getNodeDef() const
 {
     const RtTypedValue* attr = getAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 void RtNodeImpl::setImplName(const RtIdentifier& implname)
@@ -82,7 +82,7 @@ void RtNodeImpl::setImplName(const RtIdentifier& implname)
 const RtIdentifier& RtNodeImpl::getImplName() const
 {
     const RtTypedValue* attr = getAttribute(Identifiers::IMPLNAME, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 }

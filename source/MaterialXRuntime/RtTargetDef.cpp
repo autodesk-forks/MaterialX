@@ -45,7 +45,7 @@ RtPrim RtTargetDef::createPrim(const RtIdentifier& typeName, const RtIdentifier&
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     static const RtIdentifier DEFAULT_NAME("targetdef1");
-    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
+    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew<PvtTargetDefPrim>(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
@@ -71,7 +71,7 @@ void RtTargetDef::setInherit(const RtIdentifier& target)
 const RtIdentifier& RtTargetDef::getInherit() const
 {
     const RtTypedValue* attr = getAttribute(Identifiers::INHERIT, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 bool RtTargetDef::isMatching(const RtIdentifier& target) const

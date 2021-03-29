@@ -149,7 +149,7 @@ RtPrim RtNodeGraph::createPrim(const RtIdentifier& typeName, const RtIdentifier&
     PvtPrim::validateCreation(_typeInfo, typeName, name);
 
     static const RtIdentifier DEFAULT_NAME("nodegraph1");
-    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
+    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew<PvtNodeGraphPrim>(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     return primH;
@@ -342,7 +342,7 @@ void RtNodeGraph::setDefinition(const RtIdentifier& nodedef)
 const RtIdentifier& RtNodeGraph::getDefinition() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 void RtNodeGraph::setNamespace(const RtIdentifier& namespaceString)
@@ -354,7 +354,7 @@ void RtNodeGraph::setNamespace(const RtIdentifier& namespaceString)
 const RtIdentifier& RtNodeGraph::getNamespace() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::NAMESPACE, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 

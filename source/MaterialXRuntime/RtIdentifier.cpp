@@ -12,7 +12,7 @@
 namespace MaterialX
 {
 
-const RtIdentifier EMPTY_IDENFITIER("");
+const RtIdentifier EMPTY_IDENTIFIER("");
 
 struct RtIdentifierRegistry
 {

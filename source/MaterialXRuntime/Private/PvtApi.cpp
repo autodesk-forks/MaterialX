@@ -109,7 +109,7 @@ void PvtApi::registerPrims(RtStagePtr stage)
         else if (prim.hasApi<RtNodeGraph>())
         {
             RtNodeGraph nodegraph(prim);
-            if (nodegraph.getDefinition() != EMPTY_IDENFITIER)
+            if (nodegraph.getDefinition() != EMPTY_IDENTIFIER)
             {
                 registerNodeGraph(prim);
             }
@@ -136,7 +136,7 @@ void PvtApi::unregisterPrims(RtStagePtr stage)
         else if (prim.hasApi<RtNodeGraph>())
         {
             RtNodeGraph nodegraph(prim);
-            if (nodegraph.getDefinition() != EMPTY_IDENFITIER)
+            if (nodegraph.getDefinition() != EMPTY_IDENTIFIER)
             {
                 unregisterNodeGraph(prim.getName());
             }

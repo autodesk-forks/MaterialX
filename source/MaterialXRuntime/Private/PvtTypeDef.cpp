@@ -38,7 +38,7 @@ template<> RtValue createValue<string>(RtPrim& owner)
 }
 template<> RtValue createValue<RtIdentifier>(RtPrim&)
 {
-    return RtValue(EMPTY_IDENFITIER);
+    return RtValue(EMPTY_IDENTIFIER);
 }
 RtValue createNoneValue(RtPrim&)
 {

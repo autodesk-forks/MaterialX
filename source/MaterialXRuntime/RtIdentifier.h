@@ -17,7 +17,7 @@ namespace MaterialX
 class RtIdentifier;
 
 /// Identifier representing an empty string.
-extern const RtIdentifier EMPTY_IDENFITIER;
+extern const RtIdentifier EMPTY_IDENTIFIER;
 
 /// @class RtIdentifier
 /// Interned string class. Holds a unique reference to a string.
@@ -161,7 +161,7 @@ public:
     /// Returning false if the idenfifier is empty.
     explicit operator bool() const
     {
-        return _entry != EMPTY_IDENFITIER._entry;
+        return _entry != EMPTY_IDENTIFIER._entry;
     }
 
     /// Return a hash key for this idenfifier .

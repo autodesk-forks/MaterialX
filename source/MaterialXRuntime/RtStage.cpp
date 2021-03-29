@@ -52,7 +52,7 @@ const FilePathVec& RtStage::getSourceUri() const
 
 RtPrim RtStage::createPrim(const RtIdentifier& typeName)
 {
-    return createPrim(RtPath("/"), EMPTY_IDENFITIER, typeName);
+    return createPrim(RtPath("/"), EMPTY_IDENTIFIER, typeName);
 }
 
 RtPrim RtStage::createPrim(const RtPath& path, const RtIdentifier& typeName)
@@ -145,13 +145,13 @@ RtPrim RtStage::createNodeDef(RtPrim nodegraphPrim,
                               const RtIdentifier& namespaceString)
 {
     // Must have a nodedef name and a node name
-    if (nodeDefName == EMPTY_IDENFITIER || nodeName == EMPTY_IDENFITIER)
+    if (nodeDefName == EMPTY_IDENTIFIER || nodeName == EMPTY_IDENTIFIER)
     {
         throw ExceptionRuntimeError("Cannot create nodedef '" + nodeDefName.str() + "', with node name: '" + nodeName.str() + "'");
     }
 
     // Always used qualified namespace
-    const bool isNameSpaced = namespaceString != EMPTY_IDENFITIER;
+    const bool isNameSpaced = namespaceString != EMPTY_IDENTIFIER;
     const RtIdentifier qualifiedNodeDefName = isNameSpaced ? RtIdentifier(namespaceString.str() + MaterialX::NAME_PREFIX_SEPARATOR + nodeDefName.str()) : nodeDefName;
 
     PvtStage* stage = PvtStage::cast(this);
@@ -168,7 +168,7 @@ RtPrim RtStage::createNodeDef(RtPrim nodegraphPrim,
 
     // Set node, version and optional node group
     nodedef.setNode(nodeName);
-    if (version != EMPTY_IDENFITIER)
+    if (version != EMPTY_IDENTIFIER)
     {
         nodedef.setVersion(version);
 
@@ -178,7 +178,7 @@ RtPrim RtStage::createNodeDef(RtPrim nodegraphPrim,
             nodedef.setIsDefaultVersion(true);
         }
     }
-    if (nodeGroup != EMPTY_IDENFITIER)
+    if (nodeGroup != EMPTY_IDENTIFIER)
     {
         nodedef.setNodeGroup(nodeGroup);
     }

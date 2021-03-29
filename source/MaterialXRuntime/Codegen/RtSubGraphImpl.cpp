@@ -19,7 +19,7 @@ RtPrim RtSubGraphImpl::createPrim(const RtIdentifier& typeName, const RtIdentifi
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
     static const RtIdentifier DEFAULT_NAME("subgraphimpl1");
-    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
+    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();

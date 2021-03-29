@@ -22,7 +22,7 @@ namespace RtCommand
 
 void createPrim(RtStagePtr stage, const RtIdentifier& typeName, RtCommandResult& result)
 {
-    PvtCommandPtr cmd = PvtCreatePrimCmd::create(stage, typeName, RtPath("/"), EMPTY_IDENFITIER);
+    PvtCommandPtr cmd = PvtCreatePrimCmd::create(stage, typeName, RtPath("/"), EMPTY_IDENTIFIER);
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 

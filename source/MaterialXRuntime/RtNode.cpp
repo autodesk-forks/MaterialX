@@ -94,7 +94,7 @@ RtPrim RtNode::createNode(RtPrim nodedef, const RtIdentifier& name, RtPrim paren
 
     PvtPrim* nodedefPrim = PvtObject::cast<PvtPrim>(nodedef);
 
-    const RtIdentifier nodeName = name == EMPTY_IDENFITIER ? nodedefSchema.getNode() : name;
+    const RtIdentifier nodeName = name == EMPTY_IDENTIFIER ? nodedefSchema.getNode() : name;
     PvtObjHandle nodeH = PvtPrim::createNew(&_typeInfo, nodeName, PvtObject::cast<PvtPrim>(parent));
     PvtPrim* node = nodeH->asA<PvtPrim>();
 
@@ -104,7 +104,7 @@ RtPrim RtNode::createNode(RtPrim nodedef, const RtIdentifier& name, RtPrim paren
 
     // Copy version tag if used.
     const RtIdentifier& version = nodedefSchema.getVersion();
-    if (version != EMPTY_IDENFITIER)
+    if (version != EMPTY_IDENTIFIER)
     {
         RtTypedValue* attr = node->createAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
         attr->asIdentifier() = version;
@@ -162,7 +162,7 @@ void RtNode::setVersion(const RtIdentifier& version)
 const RtIdentifier& RtNode::getVersion() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 }

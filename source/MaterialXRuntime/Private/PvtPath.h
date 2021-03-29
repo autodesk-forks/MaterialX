@@ -72,7 +72,7 @@ public:
 
     const RtIdentifier& getName() const
     {
-        return _elements.size() ? _elements.back() : EMPTY_IDENFITIER;
+        return _elements.size() ? _elements.back() : EMPTY_IDENTIFIER;
     }
 
     string asString() const

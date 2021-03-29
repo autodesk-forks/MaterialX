@@ -90,7 +90,7 @@ public:
 private:
     struct AggregateComponent
     {
-        AggregateComponent() : name(EMPTY_IDENFITIER), basetype(EMPTY_IDENFITIER) {}
+        AggregateComponent() : name(EMPTY_IDENTIFIER), basetype(EMPTY_IDENTIFIER) {}
         RtIdentifier name;
         RtIdentifier basetype;
     };

@@ -127,14 +127,14 @@ void RtNodeDef::setNode(const RtIdentifier& node)
 const RtIdentifier& RtNodeDef::getNode() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::NODE, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 RtIdentifier RtNodeDef::getNamespacedNode() const
 {
     const RtIdentifier& node = getNode();
     const RtIdentifier& namespaceString = getNamespace();
-    if (namespaceString != EMPTY_IDENFITIER)
+    if (namespaceString != EMPTY_IDENTIFIER)
     {
         return RtIdentifier(namespaceString.str() + NAME_PREFIX_SEPARATOR + node.str());
     }
@@ -150,7 +150,7 @@ void RtNodeDef::setNodeGroup(const RtIdentifier& nodegroup)
 const RtIdentifier& RtNodeDef::getNodeGroup() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::NODEGROUP, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 void RtNodeDef::setTarget(const RtIdentifier& nodegroup)
@@ -162,7 +162,7 @@ void RtNodeDef::setTarget(const RtIdentifier& nodegroup)
 const RtIdentifier& RtNodeDef::getTarget() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::TARGET, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 void RtNodeDef::setIneritance(const RtIdentifier& inherit)
@@ -174,7 +174,7 @@ void RtNodeDef::setIneritance(const RtIdentifier& inherit)
 const RtIdentifier& RtNodeDef::getIneritance() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::INHERIT, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 void RtNodeDef::setVersion(const RtIdentifier& version)
@@ -186,7 +186,7 @@ void RtNodeDef::setVersion(const RtIdentifier& version)
 const RtIdentifier& RtNodeDef::getVersion() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 void RtNodeDef::setIsDefaultVersion(bool isDefault)
@@ -210,7 +210,7 @@ void RtNodeDef::setNamespace(const RtIdentifier& space)
 const RtIdentifier& RtNodeDef::getNamespace() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::NAMESPACE, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
+    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
 bool RtNodeDef::isVersionCompatible(const RtIdentifier& version) const
@@ -237,8 +237,8 @@ RtPrim RtNodeDef::getNodeImpl(const RtIdentifier& target) const
             if (prim.hasApi<RtNodeImpl>() || prim.hasApi<RtNodeGraph>())
             {
                 const RtTypedValue* attr = prim.getAttribute(Identifiers::TARGET, RtType::IDENTIFIER);
-                const RtIdentifier primTarget = attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
-                if (primTarget == EMPTY_IDENFITIER || primTarget == target)
+                const RtIdentifier primTarget = attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+                if (primTarget == EMPTY_IDENTIFIER || primTarget == target)
                 {
                     return prim;
                 }
