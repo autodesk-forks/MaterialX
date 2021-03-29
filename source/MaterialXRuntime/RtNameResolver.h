@@ -23,7 +23,7 @@ class PvtNameResolverRegistry;
 /// Shared pointer to an RtNameResolverRegistry
 using RtNameResolverRegistryPtr = std::shared_ptr<class RtNameResolverRegistry>;
 
-/// Function for resolving a given token of a given type
+/// Function for resolving a given identifier of a given type
 typedef RtIdentifier (*RtNameResolverFunction)(const RtIdentifier& str, const RtIdentifier& type);
 
 /// @class RtNameResolverInfo
@@ -32,7 +32,7 @@ typedef RtIdentifier (*RtNameResolverFunction)(const RtIdentifier& str, const Rt
 /// to MaterialX or from MaterialX.
 ///
 /// In the structure it is possible to specify a function to call to perform
-/// token changes. Additionally it is possible to supply a set of token
+/// identifier changes. Additionally it is possible to supply a set of identifier
 /// replacements. This is for both to and from MaterialX resolution.
 ///
 struct RtNameResolverInfo
@@ -44,7 +44,7 @@ struct RtNameResolverInfo
     };
 
     RtNameResolverInfo() = default;
-    RtIdentifier identifier {""}; /// Unique token identifier for this information
+    RtIdentifier identifier {""}; /// Unique identifier for this information
     ElementType elementType; /// Type of element this resolver applies to
     RtNameResolverFunction toFunction; /// Resolver function to resolve to MaterialX. Can be null.
     RtNameResolverFunction fromFunction; /// Resolver function to resolve from MaterialX. Can be null.

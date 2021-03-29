@@ -28,7 +28,7 @@ public:
     void setTarget(const RtIdentifier& target);
 
     /// Return an identifier for the target used by this implementation.
-    /// If an empty token is returned, this prim supports all targets.
+    /// If an empty identifier is returned, this prim supports all targets.
     const RtIdentifier& getTarget() const;
 
     /// Set the name of the nodedef this implementation applies to.

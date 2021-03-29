@@ -72,38 +72,38 @@ public:
 
     const RtIdentifier& getColorSpace() const
     {
-        const RtTypedValue* attr = getAttribute(PvtPort::COLOR_SPACE, RtType::TOKEN);
-        return attr ? attr->asToken() : EMPTY_IDENFITIER;
+        const RtTypedValue* attr = getAttribute(PvtPort::COLOR_SPACE, RtType::IDENTIFIER);
+        return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
     }
 
     void setColorSpace(const RtIdentifier& colorspace)
     {
-        RtTypedValue* attr = createAttribute(PvtPort::COLOR_SPACE, RtType::TOKEN);
-        attr->asToken() = colorspace;
+        RtTypedValue* attr = createAttribute(PvtPort::COLOR_SPACE, RtType::IDENTIFIER);
+        attr->asIdentifier() = colorspace;
     }
 
     const RtIdentifier& getUnit() const
     {
-        const RtTypedValue* attr = getAttribute(PvtPort::UNIT, RtType::TOKEN);
-        return attr ? attr->asToken() : EMPTY_IDENFITIER;
+        const RtTypedValue* attr = getAttribute(PvtPort::UNIT, RtType::IDENTIFIER);
+        return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
     }
 
     void setUnit(const RtIdentifier& unit)
     {
-        RtTypedValue* attr = createAttribute(PvtPort::UNIT, RtType::TOKEN);
-        attr->asToken() = unit;
+        RtTypedValue* attr = createAttribute(PvtPort::UNIT, RtType::IDENTIFIER);
+        attr->asIdentifier() = unit;
     }
 
     const RtIdentifier& getUnitType() const
     {
-        const RtTypedValue* attr = getAttribute(PvtPort::UNIT_TYPE, RtType::TOKEN);
-        return attr ? attr->asToken() : EMPTY_IDENFITIER;
+        const RtTypedValue* attr = getAttribute(PvtPort::UNIT_TYPE, RtType::IDENTIFIER);
+        return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
     }
 
     void setUnitType(const RtIdentifier& unit)
     {
-        RtTypedValue* attr = createAttribute(PvtPort::UNIT_TYPE, RtType::TOKEN);
-        attr->asToken() = unit;
+        RtTypedValue* attr = createAttribute(PvtPort::UNIT_TYPE, RtType::IDENTIFIER);
+        attr->asIdentifier() = unit;
     }
 
     static const RtIdentifier DEFAULT_OUTPUT_NAME;

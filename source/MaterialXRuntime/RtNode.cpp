@@ -29,8 +29,8 @@ namespace
             addPrimAttribute(Identifiers::HEIGHT, RtType::INTEGER);
             addPrimAttribute(Identifiers::UICOLOR, RtType::COLOR3);
             addPrimAttribute(Identifiers::UINAME, RtType::STRING);
-            addPrimAttribute(Identifiers::VERSION, RtType::TOKEN);
-            addPrimAttribute(Identifiers::COLORSPACE, RtType::TOKEN);
+            addPrimAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
+            addPrimAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
             addPrimAttribute(Identifiers::FILEPREFIX, RtType::STRING);
 
             addInputAttribute(Identifiers::DOC, RtType::STRING);
@@ -39,24 +39,24 @@ namespace
             addInputAttribute(Identifiers::UIADVANCED, RtType::BOOLEAN);
             addInputAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
 
-            addInputAttributeByType(RtType::COLOR3, Identifiers::COLORSPACE, RtType::TOKEN);
-            addInputAttributeByType(RtType::COLOR4, Identifiers::COLORSPACE, RtType::TOKEN);
+            addInputAttributeByType(RtType::COLOR3, Identifiers::COLORSPACE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::COLOR4, Identifiers::COLORSPACE, RtType::IDENTIFIER);
 
-            addInputAttributeByType(RtType::FLOAT, Identifiers::UNIT, RtType::TOKEN);
-            addInputAttributeByType(RtType::FLOAT, Identifiers::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::FLOAT, Identifiers::UNIT, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::FLOAT, Identifiers::UNITTYPE, RtType::IDENTIFIER);
 
-            addInputAttributeByType(RtType::VECTOR2, Identifiers::UNIT, RtType::TOKEN);
-            addInputAttributeByType(RtType::VECTOR2, Identifiers::UNITTYPE, RtType::TOKEN);
-            addInputAttributeByType(RtType::VECTOR2, Identifiers::DEFAULTGEOMPROP, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR2, Identifiers::UNIT, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR2, Identifiers::UNITTYPE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR2, Identifiers::DEFAULTGEOMPROP, RtType::IDENTIFIER);
 
-            addInputAttributeByType(RtType::VECTOR3, Identifiers::UNIT, RtType::TOKEN);
-            addInputAttributeByType(RtType::VECTOR3, Identifiers::UNITTYPE, RtType::TOKEN);
-            addInputAttributeByType(RtType::VECTOR3, Identifiers::DEFAULTGEOMPROP, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR3, Identifiers::UNIT, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR3, Identifiers::UNITTYPE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR3, Identifiers::DEFAULTGEOMPROP, RtType::IDENTIFIER);
 
-            addInputAttributeByType(RtType::VECTOR4, Identifiers::UNIT, RtType::TOKEN);
-            addInputAttributeByType(RtType::VECTOR4, Identifiers::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR4, Identifiers::UNIT, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR4, Identifiers::UNITTYPE, RtType::IDENTIFIER);
 
-            addInputAttributeByType(RtType::FILENAME, Identifiers::COLORSPACE, RtType::TOKEN);
+            addInputAttributeByType(RtType::FILENAME, Identifiers::COLORSPACE, RtType::IDENTIFIER);
             addInputAttributeByType(RtType::FILENAME, Identifiers::FILEPREFIX, RtType::STRING);
 
             addOutputAttribute(Identifiers::DOC, RtType::STRING);
@@ -65,8 +65,8 @@ namespace
             addOutputAttribute(Identifiers::HEIGHT, RtType::INTEGER);
             addOutputAttribute(Identifiers::BITDEPTH, RtType::INTEGER);
 
-            addOutputAttributeByType(RtType::COLOR3, Identifiers::COLORSPACE, RtType::TOKEN);
-            addOutputAttributeByType(RtType::COLOR4, Identifiers::COLORSPACE, RtType::TOKEN);
+            addOutputAttributeByType(RtType::COLOR3, Identifiers::COLORSPACE, RtType::IDENTIFIER);
+            addOutputAttributeByType(RtType::COLOR4, Identifiers::COLORSPACE, RtType::IDENTIFIER);
         }
     };
 }
@@ -106,8 +106,8 @@ RtPrim RtNode::createNode(RtPrim nodedef, const RtIdentifier& name, RtPrim paren
     const RtIdentifier& version = nodedefSchema.getVersion();
     if (version != EMPTY_IDENFITIER)
     {
-        RtTypedValue* attr = node->createAttribute(Identifiers::VERSION, RtType::TOKEN);
-        attr->asToken() = version;
+        RtTypedValue* attr = node->createAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
+        attr->asIdentifier() = version;
     }
 
     // Create the interface according to nodedef.
@@ -155,14 +155,14 @@ RtPrim RtNode::getNodeDef() const
 
 void RtNode::setVersion(const RtIdentifier& version)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::VERSION, RtType::TOKEN);
-    attr->asToken() = version;
+    RtTypedValue* attr = prim()->createAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
+    attr->asIdentifier() = version;
 }
 
 const RtIdentifier& RtNode::getVersion() const
 {
-    RtTypedValue* attr = prim()->getAttribute(Identifiers::VERSION, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_IDENFITIER;
+    RtTypedValue* attr = prim()->getAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
+    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
 }
 
 }

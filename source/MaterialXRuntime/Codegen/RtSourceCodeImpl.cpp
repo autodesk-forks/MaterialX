@@ -69,14 +69,14 @@ const string& RtSourceCodeImpl::getSourceCode() const
 
 void RtSourceCodeImpl::setFormat(const RtIdentifier& format)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::FORMAT, RtType::TOKEN);
-    attr->asToken() = format;
+    RtTypedValue* attr = prim()->createAttribute(Identifiers::FORMAT, RtType::IDENTIFIER);
+    attr->asIdentifier() = format;
 }
 
 const RtIdentifier& RtSourceCodeImpl::getFormat() const
 {
-    RtTypedValue* attr = prim()->getAttribute(Identifiers::FORMAT, RtType::TOKEN);
-    return attr ? attr->asToken() : Identifiers::SHADER;
+    RtTypedValue* attr = prim()->getAttribute(Identifiers::FORMAT, RtType::IDENTIFIER);
+    return attr ? attr->asIdentifier() : Identifiers::SHADER;
 }
 
 void RtSourceCodeImpl::setFunction(const string& source)

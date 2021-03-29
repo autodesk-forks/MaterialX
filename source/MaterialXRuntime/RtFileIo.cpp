@@ -66,7 +66,7 @@ namespace
         {
             // TODO: We should derive this from a data driven XML schema.
             addPrimAttribute(Identifiers::DOC, RtType::STRING);
-            addPrimAttribute(Identifiers::COLORSPACE, RtType::TOKEN);
+            addPrimAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
         }
     };
 

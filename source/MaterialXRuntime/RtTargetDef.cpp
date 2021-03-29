@@ -32,7 +32,7 @@ namespace
         PvtTargetDefPrimSpec()
         {
             addPrimAttribute(Identifiers::DOC, RtType::STRING);
-            addPrimAttribute(Identifiers::INHERIT, RtType::TOKEN);
+            addPrimAttribute(Identifiers::INHERIT, RtType::IDENTIFIER);
 
         }
     };
@@ -62,16 +62,16 @@ const RtPrimSpec& RtTargetDef::getPrimSpec() const
 
 void RtTargetDef::setInherit(const RtIdentifier& target)
 {
-    RtTypedValue* attr = createAttribute(Identifiers::INHERIT, RtType::TOKEN);
-    attr->asToken() = target;
+    RtTypedValue* attr = createAttribute(Identifiers::INHERIT, RtType::IDENTIFIER);
+    attr->asIdentifier() = target;
 
     prim()->asA<PvtTargetDefPrim>()->matchingTargets.insert(target);
 }
 
 const RtIdentifier& RtTargetDef::getInherit() const
 {
-    const RtTypedValue* attr = getAttribute(Identifiers::INHERIT, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_IDENFITIER;
+    const RtTypedValue* attr = getAttribute(Identifiers::INHERIT, RtType::IDENTIFIER);
+    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
 }
 
 bool RtTargetDef::isMatching(const RtIdentifier& target) const

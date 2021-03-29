@@ -20,12 +20,12 @@ namespace
         PvtNodeImplPrimSpec()
         {
             addPrimAttribute(Identifiers::DOC, RtType::STRING);
-            addPrimAttribute(Identifiers::NODEDEF, RtType::TOKEN);
-            addPrimAttribute(Identifiers::TARGET, RtType::TOKEN);
+            addPrimAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
+            addPrimAttribute(Identifiers::TARGET, RtType::IDENTIFIER);
             addPrimAttribute(Identifiers::FILE, RtType::STRING);
             addPrimAttribute(Identifiers::SOURCECODE, RtType::STRING);
             addPrimAttribute(Identifiers::FUNCTION, RtType::STRING);
-            addPrimAttribute(Identifiers::FORMAT, RtType::TOKEN);
+            addPrimAttribute(Identifiers::FORMAT, RtType::IDENTIFIER);
         }
     };
 }
@@ -51,38 +51,38 @@ const RtPrimSpec& RtNodeImpl::getPrimSpec() const
 
 void RtNodeImpl::setTarget(const RtIdentifier& target)
 {
-    RtTypedValue* attr = createAttribute(Identifiers::TARGET, RtType::TOKEN);
-    attr->getValue().asToken() = target;
+    RtTypedValue* attr = createAttribute(Identifiers::TARGET, RtType::IDENTIFIER);
+    attr->getValue().asIdentifier() = target;
 }
 
 const RtIdentifier& RtNodeImpl::getTarget() const
 {
-    const RtTypedValue* attr = getAttribute(Identifiers::TARGET, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_IDENFITIER;
+    const RtTypedValue* attr = getAttribute(Identifiers::TARGET, RtType::IDENTIFIER);
+    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
 }
 
 void RtNodeImpl::setNodeDef(const RtIdentifier& language)
 {
-    RtTypedValue* attr = createAttribute(Identifiers::NODEDEF, RtType::TOKEN);
-    attr->asToken() = language;
+    RtTypedValue* attr = createAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
+    attr->asIdentifier() = language;
 }
 
 const RtIdentifier& RtNodeImpl::getNodeDef() const
 {
-    const RtTypedValue* attr = getAttribute(Identifiers::NODEDEF, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_IDENFITIER;
+    const RtTypedValue* attr = getAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
+    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
 }
 
 void RtNodeImpl::setImplName(const RtIdentifier& implname)
 {
-    RtTypedValue* attr = createAttribute(Identifiers::IMPLNAME, RtType::TOKEN);
-    attr->asToken() = implname;
+    RtTypedValue* attr = createAttribute(Identifiers::IMPLNAME, RtType::IDENTIFIER);
+    attr->asIdentifier() = implname;
 }
 
 const RtIdentifier& RtNodeImpl::getImplName() const
 {
-    const RtTypedValue* attr = getAttribute(Identifiers::IMPLNAME, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_IDENFITIER;
+    const RtTypedValue* attr = getAttribute(Identifiers::IMPLNAME, RtType::IDENTIFIER);
+    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
 }
 
 }

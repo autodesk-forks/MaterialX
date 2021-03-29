@@ -261,8 +261,8 @@ TEST_CASE("Runtime: Values", "[runtime]")
     REQUIRE(value.asColor3() == mx::Color3(1.0, 2.0, 3.0));
     mx::RtValue::fromString(mx::RtType::COLOR4, "1.0, 2.0, 3.0, 4.0", value);
     REQUIRE(value.asColor4() == mx::Color4(1.0, 2.0, 3.0, 4.0));
-    mx::RtValue::fromString(mx::RtType::TOKEN, "materialx", value);
-    REQUIRE(value.asToken() == mx::RtIdentifier("materialx"));
+    mx::RtValue::fromString(mx::RtType::IDENTIFIER, "materialx", value);
+    REQUIRE(value.asIdentifier() == mx::RtIdentifier("materialx"));
     // For large values (>16bytes) we need to allocate a new value instance per type
     mx::RtValue matrix33Value = mx::RtValue::createNew(mx::RtType::MATRIX33, rootPrim);
     mx::RtValue::fromString(mx::RtType::MATRIX33, "1.0, 0.0, 0.0,  0.0, 1.0, 0.0,  0.0, 0.0, 1.0", matrix33Value);
@@ -588,7 +588,7 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(nodegraphColor3InputAttrs.size() == 6);
     const mx::RtAttributeSpec* version = nodedef.getPrimSpec().getAttribute(mx::Identifiers::VERSION);
     REQUIRE(version);
-    REQUIRE(version->getType() == mx::RtType::TOKEN);
+    REQUIRE(version->getType() == mx::RtType::IDENTIFIER);
     REQUIRE(!version->isCustom());
     const mx::RtAttributeSpec* isDefaultVersion = nodedef.getPrimSpec().getAttribute(mx::Identifiers::ISDEFAULTVERSION);
     REQUIRE(isDefaultVersion);
@@ -729,7 +729,7 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     REQUIRE(attrCount == 1);
     mx::RtAttributeIterator attrIt = add1_in1.getAttributes();
     REQUIRE(mx::Identifiers::UNIT == (*attrIt).name);
-    REQUIRE(meter == (*attrIt).value->asToken());
+    REQUIRE(meter == (*attrIt).value->asIdentifier());
     ++attrIt;
     REQUIRE(FOO == (*attrIt).name);
     REQUIRE(fooData == (*attrIt).value);
@@ -2436,7 +2436,7 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     mx::RtCommand::setAttributeFromString(foo, metadata, metadataValue, attrResult);
     REQUIRE(attrResult);
     REQUIRE(foo.getAttribute(metadata));
-    REQUIRE(foo.getAttribute(metadata)->asToken() == metadataValue);
+    REQUIRE(foo.getAttribute(metadata)->asIdentifier() == metadataValue);
     REQUIRE(setAttributeCount == 1);
     REQUIRE(removeAttributeCount == 0);
 
@@ -2449,7 +2449,7 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     mx::RtCommand::redo(result);
     REQUIRE(result);
     REQUIRE(foo.getAttribute(metadata));
-    REQUIRE(foo.getAttribute(metadata)->asToken() == metadataValue);
+    REQUIRE(foo.getAttribute(metadata)->asIdentifier() == metadataValue);
     REQUIRE(setAttributeCount == 2);
     REQUIRE(removeAttributeCount == 1);
 

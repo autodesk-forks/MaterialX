@@ -30,7 +30,7 @@ public:
     static const RtIdentifier COLOR4;
     static const RtIdentifier MATRIX33;
     static const RtIdentifier MATRIX44;
-    static const RtIdentifier TOKEN;
+    static const RtIdentifier IDENTIFIER;
     static const RtIdentifier STRING;
     static const RtIdentifier FILENAME;
     static const RtIdentifier INTEGERARRAY;

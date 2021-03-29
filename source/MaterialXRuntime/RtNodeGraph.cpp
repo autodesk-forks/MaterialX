@@ -31,10 +31,10 @@ namespace
             addPrimAttribute(Identifiers::HEIGHT, RtType::INTEGER);
             addPrimAttribute(Identifiers::UICOLOR, RtType::COLOR3);
             addPrimAttribute(Identifiers::UINAME, RtType::STRING);
-            addPrimAttribute(Identifiers::VERSION, RtType::TOKEN);
-            addPrimAttribute(Identifiers::NAMESPACE, RtType::TOKEN);
-            addPrimAttribute(Identifiers::NODEDEF, RtType::TOKEN);
-            addPrimAttribute(Identifiers::COLORSPACE, RtType::TOKEN);
+            addPrimAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
+            addPrimAttribute(Identifiers::NAMESPACE, RtType::IDENTIFIER);
+            addPrimAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
+            addPrimAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
             addPrimAttribute(Identifiers::FILEPREFIX, RtType::STRING);
 
             addInputAttribute(Identifiers::DOC, RtType::STRING);
@@ -43,24 +43,24 @@ namespace
             addInputAttribute(Identifiers::UIADVANCED, RtType::BOOLEAN);
             addInputAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
 
-            addInputAttributeByType(RtType::COLOR3, Identifiers::COLORSPACE, RtType::TOKEN);
-            addInputAttributeByType(RtType::COLOR4, Identifiers::COLORSPACE, RtType::TOKEN);
+            addInputAttributeByType(RtType::COLOR3, Identifiers::COLORSPACE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::COLOR4, Identifiers::COLORSPACE, RtType::IDENTIFIER);
 
-            addInputAttributeByType(RtType::FLOAT, Identifiers::UNIT, RtType::TOKEN);
-            addInputAttributeByType(RtType::FLOAT, Identifiers::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::FLOAT, Identifiers::UNIT, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::FLOAT, Identifiers::UNITTYPE, RtType::IDENTIFIER);
 
-            addInputAttributeByType(RtType::VECTOR2, Identifiers::UNIT, RtType::TOKEN);
-            addInputAttributeByType(RtType::VECTOR2, Identifiers::UNITTYPE, RtType::TOKEN);
-            addInputAttributeByType(RtType::VECTOR2, Identifiers::DEFAULTGEOMPROP, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR2, Identifiers::UNIT, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR2, Identifiers::UNITTYPE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR2, Identifiers::DEFAULTGEOMPROP, RtType::IDENTIFIER);
 
-            addInputAttributeByType(RtType::VECTOR3, Identifiers::UNIT, RtType::TOKEN);
-            addInputAttributeByType(RtType::VECTOR3, Identifiers::UNITTYPE, RtType::TOKEN);
-            addInputAttributeByType(RtType::VECTOR3, Identifiers::DEFAULTGEOMPROP, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR3, Identifiers::UNIT, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR3, Identifiers::UNITTYPE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR3, Identifiers::DEFAULTGEOMPROP, RtType::IDENTIFIER);
 
-            addInputAttributeByType(RtType::VECTOR4, Identifiers::UNIT, RtType::TOKEN);
-            addInputAttributeByType(RtType::VECTOR4, Identifiers::UNITTYPE, RtType::TOKEN);
+            addInputAttributeByType(RtType::VECTOR4, Identifiers::UNIT, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR4, Identifiers::UNITTYPE, RtType::IDENTIFIER);
 
-            addInputAttributeByType(RtType::FILENAME, Identifiers::COLORSPACE, RtType::TOKEN);
+            addInputAttributeByType(RtType::FILENAME, Identifiers::COLORSPACE, RtType::IDENTIFIER);
             addInputAttributeByType(RtType::FILENAME, Identifiers::FILEPREFIX, RtType::STRING);
 
             addOutputAttribute(Identifiers::DOC, RtType::STRING);
@@ -69,8 +69,8 @@ namespace
             addOutputAttribute(Identifiers::HEIGHT, RtType::INTEGER);
             addOutputAttribute(Identifiers::BITDEPTH, RtType::INTEGER);
 
-            addOutputAttributeByType(RtType::COLOR3, Identifiers::COLORSPACE, RtType::TOKEN);
-            addOutputAttributeByType(RtType::COLOR4, Identifiers::COLORSPACE, RtType::TOKEN);
+            addOutputAttributeByType(RtType::COLOR3, Identifiers::COLORSPACE, RtType::IDENTIFIER);
+            addOutputAttributeByType(RtType::COLOR4, Identifiers::COLORSPACE, RtType::IDENTIFIER);
         }
     };
 
@@ -335,26 +335,26 @@ RtPrimIterator RtNodeGraph::getNodes() const
 
 void RtNodeGraph::setDefinition(const RtIdentifier& nodedef)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::NODEDEF, RtType::TOKEN);
-    attr->asToken() = nodedef;
+    RtTypedValue* attr = prim()->createAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
+    attr->asIdentifier() = nodedef;
 }
 
 const RtIdentifier& RtNodeGraph::getDefinition() const
 {
-    RtTypedValue* attr = prim()->getAttribute(Identifiers::NODEDEF, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_IDENFITIER;
+    RtTypedValue* attr = prim()->getAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
+    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
 }
 
 void RtNodeGraph::setNamespace(const RtIdentifier& namespaceString)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::NAMESPACE, RtType::TOKEN);
-    attr->asToken() = namespaceString;
+    RtTypedValue* attr = prim()->createAttribute(Identifiers::NAMESPACE, RtType::IDENTIFIER);
+    attr->asIdentifier() = namespaceString;
 }
 
 const RtIdentifier& RtNodeGraph::getNamespace() const
 {
-    RtTypedValue* attr = prim()->getAttribute(Identifiers::NAMESPACE, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_IDENFITIER;
+    RtTypedValue* attr = prim()->getAttribute(Identifiers::NAMESPACE, RtType::IDENTIFIER);
+    return attr ? attr->asIdentifier() : EMPTY_IDENFITIER;
 }
 
 

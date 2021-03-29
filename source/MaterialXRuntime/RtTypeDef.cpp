@@ -20,7 +20,7 @@ const RtIdentifier RtType::COLOR3("color3");
 const RtIdentifier RtType::COLOR4("color4");
 const RtIdentifier RtType::MATRIX33("matrix33");
 const RtIdentifier RtType::MATRIX44("matrix44");
-const RtIdentifier RtType::TOKEN("token");
+const RtIdentifier RtType::IDENTIFIER("identifier");
 const RtIdentifier RtType::STRING("string");
 const RtIdentifier RtType::FILENAME("filename");
 const RtIdentifier RtType::INTEGERARRAY("integerarray");

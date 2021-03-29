@@ -37,7 +37,7 @@ public:
     explicit RtValue(const Vector2& v) { asVector2() = v; }
     explicit RtValue(const Vector3& v) { asVector3() = v; }
     explicit RtValue(const Vector4& v) { asVector4() = v; }
-    explicit RtValue(const RtIdentifier& v) { asToken() = v; }
+    explicit RtValue(const RtIdentifier& v) { asIdentifier() = v; }
     explicit RtValue(void* v) { asPtr() = v; }
 
     /// Explicit value constructor for large values.
@@ -134,13 +134,13 @@ public:
         return *_reinterpret_cast<Vector4*>(&_data);
     }
 
-    /// Return token value.
-    const RtIdentifier& asToken() const
+    /// Return identifier value.
+    const RtIdentifier& asIdentifier() const
     {
         return *_reinterpret_cast<const RtIdentifier*>(&_data);
     }
-    /// Return reference to token value.
-    RtIdentifier& asToken()
+    /// Return reference to identifier value.
+    RtIdentifier& asIdentifier()
     {
         return *_reinterpret_cast<RtIdentifier*>(&_data);
     }
@@ -373,15 +373,15 @@ public:
         return _value.asVector4();
     }
 
-    /// Return token value.
-    const RtIdentifier& asToken() const
+    /// Return identifier value.
+    const RtIdentifier& asIdentifier() const
     {
-        return _value.asToken();
+        return _value.asIdentifier();
     }
-    /// Return reference to token value.
-    RtIdentifier& asToken()
+    /// Return reference to identifier value.
+    RtIdentifier& asIdentifier()
     {
-        return _value.asToken();
+        return _value.asIdentifier();
     }
 
     /// Return const pointer.

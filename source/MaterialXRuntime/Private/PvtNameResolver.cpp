@@ -34,7 +34,7 @@ public:
         }
 
         // Call the parent class to perform any additional resolving
-        // including token replacement.
+        // including identifier replacement.
         result = StringResolver::resolve(result, type);
         return result;
     }
