@@ -99,7 +99,7 @@ namespace
 
 DEFINE_TYPED_SCHEMA(RtNodeDef, "nodedef");
 
-RtPrim RtNodeDef::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
+RtPrim RtNodeDef::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
@@ -118,75 +118,75 @@ const RtPrimSpec& RtNodeDef::getPrimSpec() const
     return s_primSpec;
 }
 
-void RtNodeDef::setNode(const RtToken& node)
+void RtNodeDef::setNode(const RtIdentifier& node)
 {
     RtTypedValue* attr = prim()->createAttribute(Tokens::NODE, RtType::TOKEN);
     attr->asToken() = node;
 }
 
-const RtToken& RtNodeDef::getNode() const
+const RtIdentifier& RtNodeDef::getNode() const
 {
     RtTypedValue* attr = prim()->getAttribute(Tokens::NODE, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_TOKEN;
+    return attr ? attr->asToken() : EMPTY_IDENFITIER;
 }
 
-RtToken RtNodeDef::getNamespacedNode() const
+RtIdentifier RtNodeDef::getNamespacedNode() const
 {
-    const RtToken& node = getNode();
-    const RtToken& namespaceString = getNamespace();
-    if (namespaceString != EMPTY_TOKEN)
+    const RtIdentifier& node = getNode();
+    const RtIdentifier& namespaceString = getNamespace();
+    if (namespaceString != EMPTY_IDENFITIER)
     {
-        return RtToken(namespaceString.str() + NAME_PREFIX_SEPARATOR + node.str());
+        return RtIdentifier(namespaceString.str() + NAME_PREFIX_SEPARATOR + node.str());
     }
     return node;
 }
 
-void RtNodeDef::setNodeGroup(const RtToken& nodegroup)
+void RtNodeDef::setNodeGroup(const RtIdentifier& nodegroup)
 {
     RtTypedValue* attr = prim()->createAttribute(Tokens::NODEGROUP, RtType::TOKEN);
     attr->asToken() = nodegroup;
 }
 
-const RtToken& RtNodeDef::getNodeGroup() const
+const RtIdentifier& RtNodeDef::getNodeGroup() const
 {
     RtTypedValue* attr = prim()->getAttribute(Tokens::NODEGROUP, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_TOKEN;
+    return attr ? attr->asToken() : EMPTY_IDENFITIER;
 }
 
-void RtNodeDef::setTarget(const RtToken& nodegroup)
+void RtNodeDef::setTarget(const RtIdentifier& nodegroup)
 {
     RtTypedValue* attr = prim()->createAttribute(Tokens::TARGET, RtType::TOKEN);
     attr->asToken() = nodegroup;
 }
 
-const RtToken& RtNodeDef::getTarget() const
+const RtIdentifier& RtNodeDef::getTarget() const
 {
     RtTypedValue* attr = prim()->getAttribute(Tokens::TARGET, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_TOKEN;
+    return attr ? attr->asToken() : EMPTY_IDENFITIER;
 }
 
-void RtNodeDef::setIneritance(const RtToken& inherit)
+void RtNodeDef::setIneritance(const RtIdentifier& inherit)
 {
     RtTypedValue* attr = prim()->createAttribute(Tokens::INHERIT, RtType::TOKEN);
     attr->asToken() = inherit;
 }
 
-const RtToken& RtNodeDef::getIneritance() const
+const RtIdentifier& RtNodeDef::getIneritance() const
 {
     RtTypedValue* attr = prim()->getAttribute(Tokens::INHERIT, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_TOKEN;
+    return attr ? attr->asToken() : EMPTY_IDENFITIER;
 }
 
-void RtNodeDef::setVersion(const RtToken& version)
+void RtNodeDef::setVersion(const RtIdentifier& version)
 {
     RtTypedValue* attr = prim()->createAttribute(Tokens::VERSION, RtType::TOKEN);
     attr->asToken() = version;
 }
 
-const RtToken& RtNodeDef::getVersion() const
+const RtIdentifier& RtNodeDef::getVersion() const
 {
     RtTypedValue* attr = prim()->getAttribute(Tokens::VERSION, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_TOKEN;
+    return attr ? attr->asToken() : EMPTY_IDENFITIER;
 }
 
 void RtNodeDef::setIsDefaultVersion(bool isDefault)
@@ -201,19 +201,19 @@ bool RtNodeDef::getIsDefaultVersion() const
     return attr ? attr->asBool() : false;
 }
 
-void RtNodeDef::setNamespace(const RtToken& space)
+void RtNodeDef::setNamespace(const RtIdentifier& space)
 {
     RtTypedValue* attr = prim()->createAttribute(Tokens::NAMESPACE, RtType::TOKEN);
     attr->asToken() = space;
 }
 
-const RtToken& RtNodeDef::getNamespace() const
+const RtIdentifier& RtNodeDef::getNamespace() const
 {
     RtTypedValue* attr = prim()->getAttribute(Tokens::NAMESPACE, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_TOKEN;
+    return attr ? attr->asToken() : EMPTY_IDENFITIER;
 }
 
-bool RtNodeDef::isVersionCompatible(const RtToken& version) const
+bool RtNodeDef::isVersionCompatible(const RtIdentifier& version) const
 {
     // Test if either the version matches or if no version passed in if this is the default version.
     return ((version == getVersion()) ||
@@ -226,7 +226,7 @@ RtRelationship RtNodeDef::getNodeImpls() const
     return rel ? rel->hnd() : RtRelationship();
 }
 
-RtPrim RtNodeDef::getNodeImpl(const RtToken& target) const
+RtPrim RtNodeDef::getNodeImpl(const RtIdentifier& target) const
 {
     RtRelationship rel = getNodeImpls();
     for (RtObject obj : rel.getConnections())
@@ -237,8 +237,8 @@ RtPrim RtNodeDef::getNodeImpl(const RtToken& target) const
             if (prim.hasApi<RtNodeImpl>() || prim.hasApi<RtNodeGraph>())
             {
                 const RtTypedValue* attr = prim.getAttribute(Tokens::TARGET, RtType::TOKEN);
-                const RtToken primTarget = attr ? attr->asToken() : EMPTY_TOKEN;
-                if (primTarget == EMPTY_TOKEN || primTarget == target)
+                const RtIdentifier primTarget = attr ? attr->asToken() : EMPTY_IDENFITIER;
+                if (primTarget == EMPTY_IDENFITIER || primTarget == target)
                 {
                     return prim;
                 }

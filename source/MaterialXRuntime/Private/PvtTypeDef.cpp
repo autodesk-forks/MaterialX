@@ -36,9 +36,9 @@ template<> RtValue createValue<string>(RtPrim& owner)
 {
     return RtValue(string(""), owner);
 }
-template<> RtValue createValue<RtToken>(RtPrim&)
+template<> RtValue createValue<RtIdentifier>(RtPrim&)
 {
-    return RtValue(EMPTY_TOKEN);
+    return RtValue(EMPTY_IDENFITIER);
 }
 RtValue createNoneValue(RtPrim&)
 {
@@ -185,7 +185,7 @@ template <> void toStringValue<string>(const RtValue& src, string& dest)
 {
     dest = src.asString();
 }
-template <> void toStringValue<RtToken>(const RtValue& src, string& dest)
+template <> void toStringValue<RtIdentifier>(const RtValue& src, string& dest)
 {
     dest = src.asToken().str();
 }
@@ -283,9 +283,9 @@ template<> void fromStringValue<string>(const string& str, RtValue& dest)
 {
     dest.asString() = str;
 }
-template<> void fromStringValue<RtToken>(const string& str, RtValue& dest)
+template<> void fromStringValue<RtIdentifier>(const string& str, RtValue& dest)
 {
-    dest.asToken() = RtToken(str);
+    dest.asToken() = RtIdentifier(str);
 }
 void fromStringNoneValue(const string&, RtValue& dest)
 {
@@ -294,8 +294,8 @@ void fromStringNoneValue(const string&, RtValue& dest)
 
 }
 
-PvtTypeDef::PvtTypeDef(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs, 
-                       const RtToken& semantic, size_t size) :
+PvtTypeDef::PvtTypeDef(const RtIdentifier& name, const RtIdentifier& basetype, const RtValueFuncs& funcs, 
+                       const RtIdentifier& semantic, size_t size) :
     _name(name),
     _basetype(basetype),
     _funcs(funcs),
@@ -316,14 +316,14 @@ PvtTypeDefRegistry::PvtTypeDefRegistry()
 {
     // Register all default types.
 
-    const RtToken X("x");
-    const RtToken Y("y");
-    const RtToken Z("z");
-    const RtToken W("w");
-    const RtToken R("r");
-    const RtToken G("g");
-    const RtToken B("b");
-    const RtToken A("a");
+    const RtIdentifier X("x");
+    const RtIdentifier Y("y");
+    const RtIdentifier Z("z");
+    const RtIdentifier W("w");
+    const RtIdentifier R("r");
+    const RtIdentifier G("g");
+    const RtIdentifier B("b");
+    const RtIdentifier A("a");
 
     RtValueFuncs boolFuncs = { createValue<bool>, copyValue<bool>, compareValue<bool>, toStringValue<bool>, fromStringValue<bool>  };
     newType(RtType::BOOLEAN, RtTypeDef::BASETYPE_BOOLEAN, boolFuncs);
@@ -375,7 +375,7 @@ PvtTypeDefRegistry::PvtTypeDefRegistry()
     newType(RtType::STRING, RtTypeDef::BASETYPE_STRING, stringFuncs);
     newType(RtType::FILENAME, RtTypeDef::BASETYPE_STRING, stringFuncs, RtTypeDef::SEMANTIC_FILENAME);
 
-    RtValueFuncs tokenFuncs = { createValue<RtToken>, copyValue<RtToken>, compareValue<RtToken>, toStringValue<RtToken> , fromStringValue<RtToken> };
+    RtValueFuncs tokenFuncs = { createValue<RtIdentifier>, copyValue<RtIdentifier>, compareValue<RtIdentifier>, toStringValue<RtIdentifier> , fromStringValue<RtIdentifier> };
     newType(RtType::TOKEN, RtTypeDef::BASETYPE_STRING, tokenFuncs);
 
     newType(RtType::INTEGERARRAY, RtTypeDef::BASETYPE_INTEGER, intFuncs, RtTypeDef::SEMANTIC_NONE, 0);
@@ -399,8 +399,8 @@ PvtTypeDefRegistry::PvtTypeDefRegistry()
     newType(RtType::AUTO, RtTypeDef::BASETYPE_NONE, noneFuncs);
 }
 
-RtTypeDef* PvtTypeDefRegistry::newType(const RtToken& name, const RtToken& basetype, const RtValueFuncs& funcs,
-                                       const RtToken& sematic, size_t size)
+RtTypeDef* PvtTypeDefRegistry::newType(const RtIdentifier& name, const RtIdentifier& basetype, const RtValueFuncs& funcs,
+                                       const RtIdentifier& sematic, size_t size)
 {
     _types.push_back(std::unique_ptr<RtTypeDef>(new RtTypeDef(name, basetype, funcs, sematic, size)));
 

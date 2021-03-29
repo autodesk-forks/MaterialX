@@ -33,12 +33,12 @@ namespace
 
 DEFINE_TYPED_SCHEMA(RtCollection, "bindelement:collection");
 
-RtPrim RtCollection::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
+RtPrim RtCollection::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
-    static const RtToken DEFAULT_NAME("collection1");
-    const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
+    static const RtIdentifier DEFAULT_NAME("collection1");
+    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();

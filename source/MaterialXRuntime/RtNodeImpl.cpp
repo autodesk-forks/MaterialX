@@ -32,12 +32,12 @@ namespace
 
 DEFINE_TYPED_SCHEMA(RtNodeImpl, "nodeimpl");
 
-RtPrim RtNodeImpl::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
+RtPrim RtNodeImpl::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
-    static const RtToken DEFAULT_NAME("nodeimpl1");
-    const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
+    static const RtIdentifier DEFAULT_NAME("nodeimpl1");
+    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     return primH;
@@ -49,40 +49,40 @@ const RtPrimSpec& RtNodeImpl::getPrimSpec() const
     return s_primSpec;
 }
 
-void RtNodeImpl::setTarget(const RtToken& target)
+void RtNodeImpl::setTarget(const RtIdentifier& target)
 {
     RtTypedValue* attr = createAttribute(Tokens::TARGET, RtType::TOKEN);
     attr->getValue().asToken() = target;
 }
 
-const RtToken& RtNodeImpl::getTarget() const
+const RtIdentifier& RtNodeImpl::getTarget() const
 {
     const RtTypedValue* attr = getAttribute(Tokens::TARGET, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_TOKEN;
+    return attr ? attr->asToken() : EMPTY_IDENFITIER;
 }
 
-void RtNodeImpl::setNodeDef(const RtToken& language)
+void RtNodeImpl::setNodeDef(const RtIdentifier& language)
 {
     RtTypedValue* attr = createAttribute(Tokens::NODEDEF, RtType::TOKEN);
     attr->asToken() = language;
 }
 
-const RtToken& RtNodeImpl::getNodeDef() const
+const RtIdentifier& RtNodeImpl::getNodeDef() const
 {
     const RtTypedValue* attr = getAttribute(Tokens::NODEDEF, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_TOKEN;
+    return attr ? attr->asToken() : EMPTY_IDENFITIER;
 }
 
-void RtNodeImpl::setImplName(const RtToken& implname)
+void RtNodeImpl::setImplName(const RtIdentifier& implname)
 {
     RtTypedValue* attr = createAttribute(Tokens::IMPLNAME, RtType::TOKEN);
     attr->asToken() = implname;
 }
 
-const RtToken& RtNodeImpl::getImplName() const
+const RtIdentifier& RtNodeImpl::getImplName() const
 {
     const RtTypedValue* attr = getAttribute(Tokens::IMPLNAME, RtType::TOKEN);
-    return attr ? attr->asToken() : EMPTY_TOKEN;
+    return attr ? attr->asToken() : EMPTY_IDENFITIER;
 }
 
 }

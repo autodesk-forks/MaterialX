@@ -69,12 +69,12 @@ namespace
 
 DEFINE_TYPED_SCHEMA(RtLookGroup, "bindelement:lookgroup");
 
-RtPrim RtLookGroup::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
+RtPrim RtLookGroup::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
-    static const RtToken DEFAULT_NAME("lookgroup1");
-    const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
+    static const RtIdentifier DEFAULT_NAME("lookgroup1");
+    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
@@ -130,12 +130,12 @@ bool RtLookGroupConnectableApi::acceptRelationship(const RtRelationship& rel, co
 
 DEFINE_TYPED_SCHEMA(RtLook, "bindelement:look");
 
-RtPrim RtLook::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
+RtPrim RtLook::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
-    static const RtToken DEFAULT_NAME("look1");
-    const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
+    static const RtIdentifier DEFAULT_NAME("look1");
+    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
@@ -189,12 +189,12 @@ bool RtLookConnectableApi::acceptRelationship(const RtRelationship& rel, const R
 
 DEFINE_TYPED_SCHEMA(RtMaterialAssign, "bindelement:materialassign");
 
-RtPrim RtMaterialAssign::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
+RtPrim RtMaterialAssign::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
-    static const RtToken DEFAULT_NAME("materialassign1");
-    const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
+    static const RtIdentifier DEFAULT_NAME("materialassign1");
+    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();

@@ -6,7 +6,7 @@
 #ifndef MATERIALX_RTNAMERESOLVER_H
 #define MATERIALX_RTNAMERESOLVER_H
 
-#include <MaterialXRuntime/RtToken.h>
+#include <MaterialXRuntime/RtIdentifier.h>
 
 #include <MaterialXCore/Element.h>
 
@@ -24,7 +24,7 @@ class PvtNameResolverRegistry;
 using RtNameResolverRegistryPtr = std::shared_ptr<class RtNameResolverRegistry>;
 
 /// Function for resolving a given token of a given type
-typedef RtToken (*RtNameResolverFunction)(const RtToken& str, const RtToken& type);
+typedef RtIdentifier (*RtNameResolverFunction)(const RtIdentifier& str, const RtIdentifier& type);
 
 /// @class RtNameResolverInfo
 ///
@@ -44,12 +44,12 @@ struct RtNameResolverInfo
     };
 
     RtNameResolverInfo() = default;
-    RtToken identifier {""}; /// Unique token identifier for this information
+    RtIdentifier identifier {""}; /// Unique token identifier for this information
     ElementType elementType; /// Type of element this resolver applies to
     RtNameResolverFunction toFunction; /// Resolver function to resolve to MaterialX. Can be null.
     RtNameResolverFunction fromFunction; /// Resolver function to resolve from MaterialX. Can be null.
-    RtTokenMap<RtToken> toSubstitutions; /// Custom token substitutions to MaterialX. May be empty.
-    RtTokenMap<RtToken> fromSubstitutions; /// Custom token substitutions from MaterialX. May be empty.
+    RtIdentifierMap<RtIdentifier> toSubstitutions; /// Custom token substitutions to MaterialX. May be empty.
+    RtIdentifierMap<RtIdentifier> fromSubstitutions; /// Custom token substitutions from MaterialX. May be empty.
 };
 
 /// @class RtNameResolverRegistry
@@ -65,7 +65,7 @@ public:
 
     /// \brief Deregisters a named pair of string resolvers
     /// \param name The name given to the pair of identifiers to deregister
-    void deregisterNameResolvers(const RtToken& name);
+    void deregisterNameResolvers(const RtIdentifier& name);
 
     /// \brief Resolves the provided string. Any registered custom resolvers are applied to determine
     /// the final resolved value. The resolvers are applied in the order that they are registered.
@@ -73,7 +73,7 @@ public:
     /// \param valueToResolve The value to resolve
     /// \param elementType The type of element to resolve
     /// \param toMaterialX Whether to convert to/from MaterialX
-    RtToken resolveIdentifier(const RtToken& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX = true) const;
+    RtIdentifier resolveIdentifier(const RtIdentifier& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX = true) const;
 
 private:
     RtNameResolverRegistry();

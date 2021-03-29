@@ -9,7 +9,7 @@
 /// @file
 /// TODO: Docs
 
-#include <MaterialXRuntime/RtToken.h>
+#include <MaterialXRuntime/RtIdentifier.h>
 
 namespace MaterialX
 {
@@ -17,70 +17,70 @@ namespace MaterialX
 /// Namespace of commonly used tokens.
 namespace Tokens
 {
-    extern const RtToken DOC;
-    extern const RtToken NAME;
-    extern const RtToken TYPE;
-    extern const RtToken VALUE;
-    extern const RtToken UNIFORM;
-    extern const RtToken DEFAULTGEOMPROP;
-    extern const RtToken INTERNALGEOMPROPS;
-    extern const RtToken ENUM;
-    extern const RtToken ENUMVALUES;
-    extern const RtToken COLORSPACE;
-    extern const RtToken FILEPREFIX;
-    extern const RtToken UINAME;
-    extern const RtToken UICOLOR;
-    extern const RtToken UIFOLDER;
-    extern const RtToken UIMIN;
-    extern const RtToken UIMAX;
-    extern const RtToken UISOFTMIN;
-    extern const RtToken UISOFTMAX;
-    extern const RtToken UISTEP;
-    extern const RtToken UIADVANCED;
-    extern const RtToken UIVISIBLE;
-    extern const RtToken XPOS;
-    extern const RtToken YPOS;
-    extern const RtToken UNIT;
-    extern const RtToken UNITTYPE;
-    extern const RtToken MEMBER;
-    extern const RtToken CHANNELS;
-    extern const RtToken MATERIAL;
-    extern const RtToken COLLECTION;
-    extern const RtToken GEOM;
-    extern const RtToken EXCLUSIVE;
-    extern const RtToken MATERIALASSIGN;
-    extern const RtToken ACTIVELOOK;
-    extern const RtToken FORMAT;
-    extern const RtToken FILE;
-    extern const RtToken FRAGMENT;
-    extern const RtToken FUNCTION;
-    extern const RtToken LOOKS;
-    extern const RtToken INCLUDEGEOM;
-    extern const RtToken EXCLUDEGEOM;
-    extern const RtToken INCLUDECOLLECTION;
-    extern const RtToken CONTAINS;
-    extern const RtToken MINIMIZED;
-    extern const RtToken WIDTH;
-    extern const RtToken HEIGHT;
-    extern const RtToken BITDEPTH;
-    extern const RtToken IMPLNAME;
-    extern const RtToken INHERIT;
-    extern const RtToken KIND;
-    extern const RtToken LANGUAGE;
-    extern const RtToken NAMESPACE;
-    extern const RtToken NODE;
-    extern const RtToken NODEDEF;
-    extern const RtToken NODEGROUP;
-    extern const RtToken NODEIMPL;
-    extern const RtToken NOTE;
-    extern const RtToken SHADER;
-    extern const RtToken SOURCECODE;
-    extern const RtToken TARGET;
-    extern const RtToken VERSION;
-    extern const RtToken ISDEFAULTVERSION;
-    extern const RtToken DEFAULT;
-    extern const RtToken DEFAULTINPUT;
-    extern const RtToken UNKNOWN;
+    extern const RtIdentifier DOC;
+    extern const RtIdentifier NAME;
+    extern const RtIdentifier TYPE;
+    extern const RtIdentifier VALUE;
+    extern const RtIdentifier UNIFORM;
+    extern const RtIdentifier DEFAULTGEOMPROP;
+    extern const RtIdentifier INTERNALGEOMPROPS;
+    extern const RtIdentifier ENUM;
+    extern const RtIdentifier ENUMVALUES;
+    extern const RtIdentifier COLORSPACE;
+    extern const RtIdentifier FILEPREFIX;
+    extern const RtIdentifier UINAME;
+    extern const RtIdentifier UICOLOR;
+    extern const RtIdentifier UIFOLDER;
+    extern const RtIdentifier UIMIN;
+    extern const RtIdentifier UIMAX;
+    extern const RtIdentifier UISOFTMIN;
+    extern const RtIdentifier UISOFTMAX;
+    extern const RtIdentifier UISTEP;
+    extern const RtIdentifier UIADVANCED;
+    extern const RtIdentifier UIVISIBLE;
+    extern const RtIdentifier XPOS;
+    extern const RtIdentifier YPOS;
+    extern const RtIdentifier UNIT;
+    extern const RtIdentifier UNITTYPE;
+    extern const RtIdentifier MEMBER;
+    extern const RtIdentifier CHANNELS;
+    extern const RtIdentifier MATERIAL;
+    extern const RtIdentifier COLLECTION;
+    extern const RtIdentifier GEOM;
+    extern const RtIdentifier EXCLUSIVE;
+    extern const RtIdentifier MATERIALASSIGN;
+    extern const RtIdentifier ACTIVELOOK;
+    extern const RtIdentifier FORMAT;
+    extern const RtIdentifier FILE;
+    extern const RtIdentifier FRAGMENT;
+    extern const RtIdentifier FUNCTION;
+    extern const RtIdentifier LOOKS;
+    extern const RtIdentifier INCLUDEGEOM;
+    extern const RtIdentifier EXCLUDEGEOM;
+    extern const RtIdentifier INCLUDECOLLECTION;
+    extern const RtIdentifier CONTAINS;
+    extern const RtIdentifier MINIMIZED;
+    extern const RtIdentifier WIDTH;
+    extern const RtIdentifier HEIGHT;
+    extern const RtIdentifier BITDEPTH;
+    extern const RtIdentifier IMPLNAME;
+    extern const RtIdentifier INHERIT;
+    extern const RtIdentifier KIND;
+    extern const RtIdentifier LANGUAGE;
+    extern const RtIdentifier NAMESPACE;
+    extern const RtIdentifier NODE;
+    extern const RtIdentifier NODEDEF;
+    extern const RtIdentifier NODEGROUP;
+    extern const RtIdentifier NODEIMPL;
+    extern const RtIdentifier NOTE;
+    extern const RtIdentifier SHADER;
+    extern const RtIdentifier SOURCECODE;
+    extern const RtIdentifier TARGET;
+    extern const RtIdentifier VERSION;
+    extern const RtIdentifier ISDEFAULTVERSION;
+    extern const RtIdentifier DEFAULT;
+    extern const RtIdentifier DEFAULTINPUT;
+    extern const RtIdentifier UNKNOWN;
 };
 
 }

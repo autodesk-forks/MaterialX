@@ -34,12 +34,12 @@ namespace
 
 DEFINE_TYPED_SCHEMA(RtBackdrop, "backdrop");
 
-RtPrim RtBackdrop::createPrim(const RtToken& typeName, const RtToken& name, RtPrim parent)
+RtPrim RtBackdrop::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name);
 
-    static const RtToken DEFAULT_NAME("backdrop1");
-    const RtToken primName = name == EMPTY_TOKEN ? DEFAULT_NAME : name;
+    static const RtIdentifier DEFAULT_NAME("backdrop1");
+    const RtIdentifier primName = name == EMPTY_IDENFITIER ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
