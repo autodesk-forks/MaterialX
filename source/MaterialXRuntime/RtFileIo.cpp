@@ -204,7 +204,8 @@ namespace
             {
                 const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
                 port = schema.createInput(portName, portType, flags);
-                elem->setAttribute("uivisible", "false");
+                RtTypedValue* attr = port.createAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
+                attr->asBool() = false;
             }
 
             if (port)
@@ -493,7 +494,19 @@ namespace
                         if (!socket)
                         {
                             const RtIdentifier inputType(elem->getType());
-                            RtInput input = nodegraph.createInput(socketName, inputType);
+
+                            RtInput input = RtInput();
+                            if (elem->isA<Token>())
+                            {
+                                const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
+                                input = nodegraph.createInput(socketName, inputType, flags);
+                                RtTypedValue* attr = input.createAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
+                                attr->asBool() = false;
+                            }
+                            else
+                            {
+                                input = nodegraph.createInput(socketName, inputType);
+                            }
                             socket = nodegraph.getInputSocket(input.getName());
 
                             // Set the input value
