@@ -208,7 +208,7 @@ void LookGroup::append(const LookGroupPtr& sourceGroup, const string& appendAfte
     StringVec postList;
 
     // If inserting after a given look, then append up to that look
-    // and the append the remainder after.
+    // and then append the remainder after.
     if (!appendAfterLook.empty() && destLookSet.count(appendAfterLook))
     {
         StringVec prependList = destLookList;
