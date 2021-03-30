@@ -288,8 +288,8 @@ class LookGroup : public Element
     LookVec getActiveLooks() const;
 
     /// Append the contents of another lookgroup to this lookgroup. 
-    /// Optionally allow duplicate looks to be appended. Default is to disallow duplicates.
-    void append(const LookGroupPtr& lookgroup, bool skipDuplicateLooks = true);
+    /// Optionally allow appending after a given look.
+    void append(const LookGroupPtr& lookgroup, const string& appendAfterLook = EMPTY_STRING);
 
     /// Get a single combined look wihch contains the contents of all the looks in the lookgroup
     LookPtr combineLooks();

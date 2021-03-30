@@ -173,12 +173,12 @@ LookVec LookGroup::getActiveLooks() const
     LookVec activeLooks;
     if (!lookList.empty())
     {
-        vector<LookPtr> lookElements = getDocument()->getLooks();
+        const LookVec& lookElements = getDocument()->getLooks();
         if (!lookElements.empty())
         {
-            for (auto lookName : lookList)
+            for (const string& lookName : lookList)
             {
-                for (auto lookElement : lookElements)
+                for (const auto& lookElement : lookElements)
                 {
                     if (lookElement->getName() == lookName)
                     {
@@ -191,7 +191,7 @@ LookVec LookGroup::getActiveLooks() const
     return activeLooks;
 }
 
-void LookGroup::append(const LookGroupPtr& sourceGroup, bool skipDuplicateLooks)
+void LookGroup::append(const LookGroupPtr& sourceGroup, const string& appendAfterLook)
 {
     string sourceLooks = sourceGroup->getLooks();
     if (sourceLooks.empty())
@@ -205,40 +205,61 @@ void LookGroup::append(const LookGroupPtr& sourceGroup, bool skipDuplicateLooks)
     StringVec destLookList = splitString(getLooks(), ARRAY_VALID_SEPARATORS);
     const StringSet destLookSet(destLookList.begin(), destLookList.end());
 
-    for (auto lookName : sourceLookList)
+    bool prepend = true;
+    StringVec postList;
+
+    // If inserting after a given look, then append up to that look
+    // and the append the remainder after.
+    if (!appendAfterLook.empty() && destLookSet.count(appendAfterLook))
     {
-        bool appendLook = true;
-        if (destLookSet.count(lookName))
+        StringVec prependList = destLookList;
+        destLookList.clear();
+
+        // Add destination looks first. 
+        for (const string& lookName : prependList)
         {
-            if (skipDuplicateLooks)
+            if (prepend)
             {
-                appendLook = false;
+                destLookList.push_back(lookName);
+            }
+            else
+            {
+                postList.push_back(lookName);
+            }
+            if (lookName == appendAfterLook)
+            {
+                prepend = false;
             }
         }
-        if (appendLook)
+    }
+
+    // Append the source list
+    for (const string& lookName : sourceLookList)
+    {
+        if (!destLookSet.count(lookName))
         {
             destLookList.push_back(lookName);
         }
     }
 
-    // If look already exists in the active look list then append if not skipping duplicates
-    //
+    // Append anything remaining from destination list
+    if (postList.size())
+    {
+        for (const string& lookName : postList)
+        {
+            destLookList.push_back(lookName);
+        }
+    }
+
+    // Append looks to "active" look list. Order does no matter.
     string activeSourceLooks = sourceGroup->getActiveLook();
     const StringVec& sourceActiveLookList = splitString(activeSourceLooks, ARRAY_VALID_SEPARATORS);
     StringVec destActiveLookList = splitString(getActiveLook(), ARRAY_VALID_SEPARATORS);
     const StringSet destActiveLookSet(destActiveLookList.begin(), destActiveLookList.end());
 
-    for (auto activeLookName : sourceActiveLookList)
+    for (const string& activeLookName : sourceActiveLookList)
     {
-        bool appendActiveLook = true;
-        if (destActiveLookSet.count(activeLookName))
-        {
-            if (skipDuplicateLooks)
-            {
-                appendActiveLook = false;
-            }
-        }
-        if (appendActiveLook)
+        if (!destActiveLookSet.count(activeLookName))
         {
             destActiveLookList.push_back(activeLookName);
         }
