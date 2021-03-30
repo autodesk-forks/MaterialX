@@ -204,10 +204,7 @@ namespace
             {
                 const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
                 port = schema.createInput(portName, portType, flags);
-                RtTypedValue* attr = port.createAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
-                bool& boolValue = attr->asBool();
-                boolValue = false;
-
+                elem->setAttribute("uivisible", "false");
             }
 
             if (port)
