@@ -96,6 +96,18 @@ void RtInput::setUniform(bool uniform)
     hnd()->asA<PvtInput>()->setUniform(uniform);
 }
 
+bool RtInput::isToken() const
+{
+    return hnd()->asA<PvtInput>()->isToken();
+}
+
+void RtInput::setIsToken(bool uniform)
+{
+    // Tokens are always uniforms
+    hnd()->asA<PvtInput>()->setUniform(uniform);
+    hnd()->asA<PvtInput>()->setIsToken(uniform);
+}
+
 bool RtInput::isConnected() const
 {
     return hnd()->asA<PvtInput>()->isConnected();

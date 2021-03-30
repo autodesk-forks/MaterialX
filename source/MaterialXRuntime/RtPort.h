@@ -29,6 +29,9 @@ public:
 
     /// Port is a nodegraph internal socket.
     static const uint32_t SOCKET      = 0x00000002;
+
+    /// Port holds a token
+    static const uint32_t TOKEN       = 0x00000004;
 };
 
 /// @class RtPort
@@ -102,6 +105,12 @@ public:
 
     /// Sets the input to be a uniform or not a uniform
     void setUniform(bool uniform);
+
+    /// Return true if this input is a token.
+    bool isToken() const;
+
+    /// Sets the input to be a token or not a token
+    void setIsToken(bool val);
 
     /// Return true if this input is connected.
     bool isConnected() const;

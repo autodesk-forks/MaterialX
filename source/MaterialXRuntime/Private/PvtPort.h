@@ -148,6 +148,23 @@ public:
         }
     }
 
+    bool isToken() const
+    {
+        return (_flags & RtPortFlag::TOKEN) != 0;
+    }
+
+    void setIsToken(bool val)
+    {
+        if (val)
+        {
+            _flags |= RtPortFlag::TOKEN;
+        }
+        else
+        {
+            _flags &= ~RtPortFlag::TOKEN;
+        }
+    }
+
     bool isConnected() const
     {
         return _connection != nullptr;
