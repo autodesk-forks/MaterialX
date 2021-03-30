@@ -205,7 +205,6 @@ void LookGroup::append(const LookGroupPtr& sourceGroup, const string& appendAfte
     StringVec destLookList = splitString(getLooks(), ARRAY_VALID_SEPARATORS);
     const StringSet destLookSet(destLookList.begin(), destLookList.end());
 
-    bool prepend = true;
     StringVec postList;
 
     // If inserting after a given look, then append up to that look
@@ -216,6 +215,7 @@ void LookGroup::append(const LookGroupPtr& sourceGroup, const string& appendAfte
         destLookList.clear();
 
         // Add destination looks first. 
+        bool prepend = true;
         for (const string& lookName : prependList)
         {
             if (prepend)
