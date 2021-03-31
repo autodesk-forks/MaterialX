@@ -500,8 +500,8 @@ namespace
                             {
                                 const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
                                 input = nodegraph.createInput(socketName, inputType, flags);
-                                RtTypedValue* attr = input.createAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
-                                attr->asBool() = false;
+                                //RtTypedValue* attr = input.createAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
+                                //attr->asBool() = false;
                             }
                             else
                             {
