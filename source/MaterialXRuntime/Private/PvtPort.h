@@ -13,6 +13,7 @@
 #include <MaterialXRuntime/RtValue.h>
 #include <MaterialXRuntime/RtTypeDef.h>
 #include <MaterialXRuntime/RtTraversal.h>
+#include <MaterialXRuntime/Identifiers.h>
 
 /// @file
 /// TODO: Docs
@@ -163,6 +164,18 @@ public:
         {
             _flags &= ~RtPortFlag::TOKEN;
         }
+    }
+
+    bool isUIVisible() const
+    {
+        const RtTypedValue* attr = getAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
+        return attr ? attr->asBool() : false;
+    }
+
+    void setIsUIVisible(bool val)
+    {
+        RtTypedValue* attr = createAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
+        attr->asBool() = val;
     }
 
     bool isConnected() const

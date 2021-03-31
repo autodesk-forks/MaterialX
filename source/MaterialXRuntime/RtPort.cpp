@@ -108,6 +108,16 @@ void RtInput::setIsToken(bool uniform)
     hnd()->asA<PvtInput>()->setIsToken(uniform);
 }
 
+bool RtInput::isUIVisible() const
+{
+    return hnd()->asA<PvtInput>()->isUIVisible();
+}
+
+void RtInput::setIsUIVisible(bool val)
+{
+    hnd()->asA<PvtInput>()->setIsUIVisible(val);
+}
+
 bool RtInput::isConnected() const
 {
     return hnd()->asA<PvtInput>()->isConnected();

@@ -204,8 +204,7 @@ namespace
             {
                 const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
                 port = schema.createInput(portName, portType, flags);
-                RtTypedValue* attr = port.createAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
-                attr->asBool() = false;
+                //port.setIsUIVisible(false);
             }
 
             if (port)
@@ -500,8 +499,7 @@ namespace
                             {
                                 const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
                                 input = nodegraph.createInput(socketName, inputType, flags);
-                                //RtTypedValue* attr = input.createAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
-                                //attr->asBool() = false;
+                                //port.setIsUIVisible(false);
                             }
                             else
                             {
@@ -969,10 +967,8 @@ namespace
             RtInput input = node.getInput(i);
             if (input)
             {
-                const RtTypedValue* uiVisible1 = input.getAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
-                const RtTypedValue* uiVisible2 = nodedefInput.getAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
-                const bool uiHidden1 = uiVisible1 && !uiVisible1->asBool();
-                const bool uiHidden2 = uiVisible2 && !uiVisible2->asBool();
+                const bool uiHidden1 = input.isUIVisible();
+                const bool uiHidden2 = nodedefInput.isUIVisible();
                 const bool writeUiVisibleData = uiHidden1 != uiHidden2;
 
                 // Write input if it's connected or different from default value.

@@ -112,6 +112,12 @@ public:
     /// Sets the input to be a token or not a token
     void setIsToken(bool val);
 
+    /// Return true if this input should be visible in the UI.
+    bool isUIVisible() const;
+
+    /// Sets the input's visibilit in the UI.
+    void setIsUIVisible(bool val);
+
     /// Return true if this input is connected.
     bool isConnected() const;
 
