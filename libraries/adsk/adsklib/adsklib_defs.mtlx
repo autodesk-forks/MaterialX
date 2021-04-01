@@ -21,7 +21,8 @@
     <input name="rgbamount" type="float" value="1.0" />
     <!-- invert -->
     <input name="invert" type="boolean" value="false" />
-
+    <input name="uaddressmode" type="string" value="periodic"/>
+    <input name="vaddressmode" type="string" value="periodic"/>
     <output name="out" type="color3"/>
   </nodedef>
 
@@ -39,6 +40,8 @@
     <input name="rgbamount" type="float" value="1.0" />
     <!-- invert -->
     <input name="invert" type="boolean" value="false" />
+    <input name="uaddressmode" type="string" value="periodic"/>
+    <input name="vaddressmode" type="string" value="periodic"/>    
     <output name="out" type="float" />
   </nodedef>
 
