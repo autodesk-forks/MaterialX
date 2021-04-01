@@ -85,8 +85,6 @@ bool RtPort::isToken() const
 
 void RtPort::setIsToken(bool uniform)
 {
-    // Tokens are always uniforms
-    //hnd()->asA<PvtPort>()->setUniform(uniform);
     hnd()->asA<PvtPort>()->setIsToken(uniform);
 }
 

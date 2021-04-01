@@ -499,7 +499,6 @@ namespace
                             {
                                 const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
                                 input = nodegraph.createInput(socketName, inputType, flags);
-                                //port.setIsUIVisible(false);
                             }
                             else
                             {
