@@ -80,7 +80,7 @@ void RtPort::setUnitType(const RtIdentifier& unit)
 
 bool RtPort::isToken() const
 {
-    return hnd()->asA<PvtInput>()->isToken();
+    return hnd()->asA<PvtPort>()->isToken();
 }
 
 void RtPort::setIsToken(bool uniform)
