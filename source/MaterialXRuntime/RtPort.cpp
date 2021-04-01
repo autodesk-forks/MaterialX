@@ -78,6 +78,18 @@ void RtPort::setUnitType(const RtIdentifier& unit)
     return hnd()->asA<PvtPort>()->setUnitType(unit);
 }
 
+bool RtPort::isToken() const
+{
+    return hnd()->asA<PvtInput>()->isToken();
+}
+
+void RtPort::setIsToken(bool uniform)
+{
+    // Tokens are always uniforms
+    //hnd()->asA<PvtPort>()->setUniform(uniform);
+    hnd()->asA<PvtPort>()->setIsToken(uniform);
+}
+
 
 RT_DEFINE_RUNTIME_OBJECT(RtInput, RtObjType::INPUT, "RtInput")
 
@@ -94,18 +106,6 @@ bool RtInput::isUniform() const
 void RtInput::setUniform(bool uniform)
 {
     hnd()->asA<PvtInput>()->setUniform(uniform);
-}
-
-bool RtInput::isToken() const
-{
-    return hnd()->asA<PvtInput>()->isToken();
-}
-
-void RtInput::setIsToken(bool uniform)
-{
-    // Tokens are always uniforms
-    hnd()->asA<PvtInput>()->setUniform(uniform);
-    hnd()->asA<PvtInput>()->setIsToken(uniform);
 }
 
 bool RtInput::isUIVisible() const

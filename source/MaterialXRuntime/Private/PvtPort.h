@@ -107,6 +107,23 @@ public:
         attr->asIdentifier() = unit;
     }
 
+    bool isToken() const
+    {
+        return (_flags & RtPortFlag::TOKEN) != 0;
+    }
+
+    void setIsToken(bool val)
+    {
+        if (val)
+        {
+            _flags |= RtPortFlag::TOKEN;
+        }
+        else
+        {
+            _flags &= ~RtPortFlag::TOKEN;
+        }
+    }
+
     static const RtIdentifier DEFAULT_OUTPUT_NAME;
     static const RtIdentifier COLOR_SPACE;
     static const RtIdentifier UNIT;
@@ -146,23 +163,6 @@ public:
         else
         {
             _flags &= ~RtPortFlag::UNIFORM;
-        }
-    }
-
-    bool isToken() const
-    {
-        return (_flags & RtPortFlag::TOKEN) != 0;
-    }
-
-    void setIsToken(bool val)
-    {
-        if (val)
-        {
-            _flags |= RtPortFlag::TOKEN;
-        }
-        else
-        {
-            _flags &= ~RtPortFlag::TOKEN;
         }
     }
 
