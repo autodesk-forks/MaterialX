@@ -204,7 +204,6 @@ namespace
             {
                 const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
                 port = schema.createInput(portName, portType, flags);
-                //port.setIsUIVisible(false);
             }
 
             if (port)
