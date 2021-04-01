@@ -168,6 +168,12 @@ public:
 
     bool isUIVisible() const
     {
+        // For now since connections require ports to be created and hence visible
+        // always assume a connection means visible.
+        if (isConnected())
+        {
+            return false;
+        }
         const RtTypedValue* attr = getAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
         return attr ? attr->asBool() : false;
     }
