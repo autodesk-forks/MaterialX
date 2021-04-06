@@ -1303,6 +1303,7 @@ TEST_CASE("Runtime: FileIo NodeGraph", "[runtime]")
     graph.createInput(TOKEN1, mx::RtType::FLOAT, mx::RtPortFlag::UNIFORM | mx::RtPortFlag::TOKEN);
     graph.createOutput(OUT, mx::RtType::FLOAT);
     mx::RtInput graphIn = graph.getInput(IN);
+    REQUIRE(graphIn.isUIVisible());
     graphIn.setIsUIVisible(false);
     REQUIRE(!graphIn.isUIVisible());
     mx::RtInput graphToken = graph.getInput(TOKEN1);

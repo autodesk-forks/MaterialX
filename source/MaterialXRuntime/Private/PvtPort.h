@@ -172,10 +172,10 @@ public:
         // always assume a connection means visible.
         if (isConnected())
         {
-            return false;
+            return true;
         }
         const RtTypedValue* attr = getAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
-        return attr ? attr->asBool() : false;
+        return attr ? attr->asBool() : true;
     }
 
     void setIsUIVisible(bool val)
