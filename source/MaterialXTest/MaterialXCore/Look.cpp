@@ -129,7 +129,7 @@ TEST_CASE("LookGroup", "[look]")
     mx::StringVec looksVec2 = mx::splitString(looks2, mx::ARRAY_VALID_SEPARATORS);
     REQUIRE(looksVec.size() == looksVec2.size());
 
-    REQUIRE(lookGroup->getEnabledLooks().empty());
+    REQUIRE(lookGroup->getEnabledLooksString().empty());
     lookGroup->setEnabledLooks("look1");
     REQUIRE(lookGroup->getEnabledLooksString() == "look1");
 
