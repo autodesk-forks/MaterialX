@@ -131,7 +131,7 @@ TEST_CASE("LookGroup", "[look]")
 
     REQUIRE(lookGroup->getEnabledLooks().empty());
     lookGroup->setEnabledLooks("look1");
-    REQUIRE(lookGroup->getEnabledLooks() == "look1");
+    REQUIRE(lookGroup->getEnabledLooksString() == "look1");
 
     mx::LookGroupPtr copyLookGroup = doc->addLookGroup("lookgroup1_copy");
     copyLookGroup->copyContentFrom(lookGroup);
@@ -179,7 +179,7 @@ TEST_CASE("LookGroup", "[look]")
     mx::writeToXmlFile(doc, "lookgroup_test_merged.mtlx");
 
     REQUIRE(mergedCopyLookGroup->getLooks() == std::string("look1, look2, look3, look4, look5, lookA, lookC, lookE"));
-    REQUIRE(mergedCopyLookGroup->getEnabledLooks() == std::string("look1, lookA, look3, lookE"));
+    REQUIRE(mergedCopyLookGroup->getEnabledLooksString() == std::string("look1, lookA, look3, lookE"));
 
     // Insert check
     mx::LookGroupPtr mergedCopyLookGroup2 = doc->addLookGroup("lookgroup1_copy_merged2");
@@ -188,7 +188,7 @@ TEST_CASE("LookGroup", "[look]")
     mx::writeToXmlFile(doc, "lookgroup_test_merged2.mtlx");
 
     REQUIRE(mergedCopyLookGroup2->getLooks() == std::string("look1, look2, lookA, lookC, lookE, look3, look4, look5"));
-    REQUIRE(mergedCopyLookGroup2->getEnabledLooks() == std::string("look1, lookA, look3, lookE"));
+    REQUIRE(mergedCopyLookGroup2->getEnabledLooksString() == std::string("look1, lookA, look3, lookE"));
 
     mx::LookGroupPtr mergedCopyLookGroup3 = doc->addLookGroup("lookgroup1_copy_merged3");
     mergedCopyLookGroup3->copyContentFrom(copyLookGroup);
@@ -196,7 +196,7 @@ TEST_CASE("LookGroup", "[look]")
     mx::writeToXmlFile(doc, "lookgroup_test_merge3.mtlx");
 
     REQUIRE(mergedCopyLookGroup2->getLooks() == std::string("look1, look2, lookA, lookC, lookE, look3, look4, look5"));
-    REQUIRE(mergedCopyLookGroup2->getEnabledLooks() == std::string("look1, lookA, look3, lookE"));
+    REQUIRE(mergedCopyLookGroup2->getEnabledLooksString() == std::string("look1, lookA, look3, lookE"));
 
     doc->removeLookGroup(lookGroup2->getName());
     doc->removeLookGroup(copyLookGroup->getName());

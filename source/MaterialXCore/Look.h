@@ -279,13 +279,13 @@ class LookGroup : public Element
     }
 
     /// Return the enabled looks, if any.
-    const string& getEnabledLooks() const
+    const string& getEnabledLooksString() const
     {
         return getAttribute(ENABLED_ATTRIBUTE);
     }
 
     // Return the list of all look elements which are enabled
-    LookVec getAllEnabledLooks() const;
+    LookVec getEnabledLooks() const;
 
     /// Append the contents of another lookgroup to this lookgroup. 
     /// Optionally allow appending after a given look.

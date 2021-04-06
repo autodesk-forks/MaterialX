@@ -162,9 +162,9 @@ vector<VariantAssignPtr> MaterialAssign::getActiveVariantAssigns() const
 // Lookgroup methods
 //
 
-LookVec LookGroup::getAllEnabledLooks() const
+LookVec LookGroup::getEnabledLooks() const
 {
-    string looks = getEnabledLooks();
+    string looks = getEnabledLooksString();
     if (looks.empty())
     {
         looks = getLooks();
@@ -253,9 +253,9 @@ void LookGroup::append(const LookGroupPtr& sourceGroup, const string& appendAfte
     }
 
     // Append looks to "active" look list. Order does no matter.
-    string enabledSourceLooks = sourceGroup->getEnabledLooks();
+    string enabledSourceLooks = sourceGroup->getEnabledLooksString();
     const StringVec& sourceEnabledLookList = splitString(enabledSourceLooks, ARRAY_VALID_SEPARATORS);
-    StringVec destEnabledLookList = splitString(getEnabledLooks(), ARRAY_VALID_SEPARATORS);
+    StringVec destEnabledLookList = splitString(getEnabledLooksString(), ARRAY_VALID_SEPARATORS);
     const StringSet destEnabledLookSet(destEnabledLookList.begin(), destEnabledLookList.end());
 
     for (const string& enabledLookName : sourceEnabledLookList)
@@ -274,7 +274,7 @@ void LookGroup::append(const LookGroupPtr& sourceGroup, const string& appendAfte
 LookPtr LookGroup::combineLooks() 
 {
     DocumentPtr document = getDocument();
-    LookVec looks = getAllEnabledLooks();
+    LookVec looks = getEnabledLooks();
     if (looks.empty())
     {
         return nullptr;

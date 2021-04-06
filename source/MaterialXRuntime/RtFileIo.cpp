@@ -731,7 +731,7 @@ namespace
         mapper.addMapping(parent, name, prim->getName());
 
         RtLookGroup lookGroup(prim->hnd());
-	lookGroup.setEnabledLooks(src->getEnabledLooks());
+	lookGroup.setEnabledLooks(src->getEnabledLooksString());
 
         // Link to looks
         const string& lookNamesString = src->getLooks();

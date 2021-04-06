@@ -1422,6 +1422,16 @@ void Document::upgradeVersion()
             }
         }
 
+        for (LookGroupPtr lookGroup : getLookGroups())
+        {
+            if (lookGroup->hasAttribute("active"))
+            {
+                string active = lookGroup->getAttribute("active");
+                lookGroup->setEnabledLooks(active);
+                lookGroup->removeAttribute("active");
+            }
+        }
+
         minorVersion = 38;
     }
 
