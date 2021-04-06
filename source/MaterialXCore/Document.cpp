@@ -15,6 +15,8 @@ namespace MaterialX
 const string Document::CMS_ATTRIBUTE = "cms";
 const string Document::CMS_CONFIG_ATTRIBUTE = "cmsconfig";
 
+const string ACTIVE_LOOK_STRING = "active";
+
 namespace {
 
 NodeDefPtr getShaderNodeDef(ElementPtr shaderRef)
@@ -1424,11 +1426,11 @@ void Document::upgradeVersion()
 
         for (LookGroupPtr lookGroup : getLookGroups())
         {
-            if (lookGroup->hasAttribute("active"))
+            if (lookGroup->hasAttribute(ACTIVE_LOOK_STRING))
             {
-                string active = lookGroup->getAttribute("active");
+                const string active = lookGroup->getAttribute(ACTIVE_LOOK_STRING);
                 lookGroup->setEnabledLooks(active);
-                lookGroup->removeAttribute("active");
+                lookGroup->removeAttribute(ACTIVE_LOOK_STRING);
             }
         }
 
