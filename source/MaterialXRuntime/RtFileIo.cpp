@@ -935,7 +935,7 @@ namespace
         NodePtr destNode = dest->addNode(nodedef.getNamespacedNode().str(), node.getName().str(), outputType);
 
         // Always write out the associated nodedef to avoid ambiguity.
-        destNode->setNodeDefString(nodedef.getNamespacedName().str());
+        destNode->setNodeDefString(nodedef.getName().str());
 
         bool writeDefaultValues = options ? options->writeDefaultValues : false;
 
