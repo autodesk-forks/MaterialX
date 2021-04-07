@@ -130,6 +130,17 @@ const RtIdentifier& RtNodeDef::getNode() const
     return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
 }
 
+RtIdentifier RtNodeDef::getNamespacedName() const
+{
+    const RtIdentifier& name = getName();
+    const RtIdentifier& namespaceString = getNamespace();
+    if (namespaceString != EMPTY_IDENTIFIER)
+    {
+        return RtIdentifier(namespaceString.str() + NAME_PREFIX_SEPARATOR + name.str());
+    }
+    return name;
+}
+
 RtIdentifier RtNodeDef::getNamespacedNode() const
 {
     const RtIdentifier& node = getNode();

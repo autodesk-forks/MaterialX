@@ -39,6 +39,9 @@ public:
     /// Return the node for this nodedef.
     const RtIdentifier& getNode() const;
 
+    // Return the namespaced name for this nodedef
+    RtIdentifier getNamespacedName() const;
+
     /// Return the namespaced node for this nodedef.
     RtIdentifier getNamespacedNode() const;
 
