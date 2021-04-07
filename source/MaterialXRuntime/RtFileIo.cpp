@@ -493,16 +493,8 @@ namespace
                         {
                             const RtIdentifier inputType(elem->getType());
 
-                            RtInput input = RtInput();
-                            if (elem->isA<Token>())
-                            {
-                                const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
-                                input = nodegraph.createInput(socketName, inputType, flags);
-                            }
-                            else
-                            {
-                                input = nodegraph.createInput(socketName, inputType);
-                            }
+                            const uint32_t flags = elem->isA<Token>() ? RtPortFlag::UNIFORM | RtPortFlag::TOKEN : 0;
+                            RtInput input = nodegraph.createInput(socketName, inputType, flags);
                             socket = nodegraph.getInputSocket(input.getName());
 
                             // Set the input value
