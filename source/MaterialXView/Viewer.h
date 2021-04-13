@@ -95,6 +95,11 @@ class Viewer : public ng::Screen
         _modifiers = modifiers;
     }
 
+    void setSrgbBuffer(bool val)
+    {
+        _sgrbFrameBuffer = val;
+    }
+
     // Return the underlying NanoGUI window.
     ng::Window* getWindow() const
     {
@@ -262,6 +267,12 @@ class Viewer : public ng::Screen
 
     // Ambient occlusion
     float _ambientOcclusionGain;
+
+    // Gamma correction shader used if not using SRGB framebuffer
+    MaterialPtr _gammaMaterial;
+    float _gammaValue;
+    bool _sgrbFrameBuffer;
+    mx::Color3 _screenColor;
 
     // Geometry selections
     std::vector<mx::MeshPartitionPtr> _geometryList;
