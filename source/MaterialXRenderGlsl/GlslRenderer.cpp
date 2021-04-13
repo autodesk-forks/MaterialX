@@ -138,13 +138,13 @@ void GlslRenderer::createProgram(const StageMap& stages)
     _program->build();
 }
 
-void GlslRenderer::renderTextureSpace()
+void GlslRenderer::renderTextureSpace(float uMin, float vMin, float uMax, float vMax)
 {
     _program->bind();
     _program->bindTextures(_imageHandler);
 
     _frameBuffer->bind();
-    drawScreenSpaceQuad();
+    drawScreenSpaceQuad(uMin, vMin, uMax, vMax);
     _frameBuffer->unbind();
 
     _program->unbind();
@@ -341,14 +341,14 @@ ImageVec GlslRenderer::getReferencedImages(const ShaderPtr& /*shader*/)
     return imageList;
 }
 
-void GlslRenderer::drawScreenSpaceQuad()
+void GlslRenderer::drawScreenSpaceQuad(float uMin, float vMin, float uMax, float vMax)
 {
     const float QUAD_VERTICES[] =
     {
-         1.0f,  1.0f, 0.0f, 1.0f, 1.0f, // position, texcoord
-         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f
+         1.0f,  1.0f, 0.0f, uMax, vMax, // position, texcoord
+         1.0f, -1.0f, 0.0f, uMax, vMin,
+        -1.0f, -1.0f, 0.0f, uMin, vMin,
+        -1.0f,  1.0f, 0.0f, uMin, vMax
     };
     const unsigned int QUAD_INDICES[] =
     {
