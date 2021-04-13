@@ -218,7 +218,7 @@ Viewer::Viewer(const std::string& materialFilename,
     _shadowSoftness(1),
     _ambientOcclusionGain(0.6f),
     _gammaValue(2.2f),
-    _sgrbFrameBuffer(false),
+    _srgbFrameBuffer(false),
     _screenColor(screenColor),
     _selectedGeom(0),
     _geomLabel(nullptr),
@@ -1761,7 +1761,7 @@ void Viewer::renderFrame()
     glDepthFunc(GL_LEQUAL);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDisable(GL_CULL_FACE);
-    if (_sgrbFrameBuffer)
+    if (_srgbFrameBuffer)
     {
         glDisable(GL_FRAMEBUFFER_SRGB);
     }
@@ -1803,7 +1803,7 @@ void Viewer::renderFrame()
     const mx::Matrix44& view = _cameraViewHandler->viewMatrix;
     const mx::Matrix44& proj = _cameraViewHandler->projectionMatrix;
 
-    if (_sgrbFrameBuffer)
+    if (_srgbFrameBuffer)
     {
         glEnable(GL_FRAMEBUFFER_SRGB);
     }
@@ -1905,7 +1905,7 @@ void Viewer::renderFrame()
         glDisable(GL_CULL_FACE);
     }
 
-    if (_sgrbFrameBuffer)
+    if (_srgbFrameBuffer)
     {
         glDisable(GL_FRAMEBUFFER_SRGB);
     }
@@ -1922,7 +1922,7 @@ void Viewer::renderFrame()
     }
 
     // Gamma pass
-    if (!_sgrbFrameBuffer && _gammaMaterial)
+    if (!_srgbFrameBuffer && _gammaMaterial)
     {
         mx::ImageSamplingProperties samplingProperties;
         samplingProperties.uaddressMode = mx::ImageSamplingProperties::AddressMode::CLAMP;

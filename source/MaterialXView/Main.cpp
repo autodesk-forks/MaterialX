@@ -251,7 +251,7 @@ int main(int argc, char* const argv[])
         viewer->setEnvSampleCount(envSampleCount);
         viewer->setLightRotation(lightRotation);
         viewer->setDocumentModifiers(modifiers);
-        viewer->setSrgbBuffer(srgbBuffer);
+        viewer->setSRGBBuffer(srgbBuffer);
         if (!captureFilename.empty())
         {
             viewer->requestFrameCapture(captureFilename);

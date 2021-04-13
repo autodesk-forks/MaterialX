@@ -41,10 +41,14 @@ ShaderPtr createGammaShader(GenContext& context,
                             const Color3& gamma,
                             bool verticalFlip)
 {
-    // Construct the gamma correct nodegraph. Set to have a vertical flip.
     DocumentPtr doc = createDocument();
     doc->importLibrary(stdLib);
 
+    // Construct a nodegraph which performs gamma correction on an input image.
+    // This graph reuses the range node which has gamma correction as
+    // part of the node. Additional scale+offset nodes which act on the input
+    // texture coordinates can the math required to perform a flip in V coordiates
+    // if desired.
     NodeGraphPtr nodeGraph = doc->addNodeGraph();
     NodePtr texcoordNode = nodeGraph->addNode("texcoord", "texcoord", "vector2");
     NodePtr multiplyNode = nodeGraph->addNode("multiply", "multiply", "vector2");
@@ -61,6 +65,8 @@ ShaderPtr createGammaShader(GenContext& context,
     OutputPtr output = nodeGraph->addOutput();
     output->setConnectedNode(rangeNode);
 
+    // Optional vertical flip settings. Note thta the default scale and offset values
+    // will not change any of the texture coordinates (i.e. scale by identify and offsets by zero).
     if (verticalFlip)
     {
         multiplyNode->setInputValue("in2", "1.0, -1.0");
