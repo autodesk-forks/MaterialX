@@ -964,12 +964,13 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
             // Read Wedge Render Settings
             for (MaterialX::ElementPtr p : optionDefs->getChildrenOfType<MaterialX::Element>(WEDGE_SETTING))
             {
+                wedgesetting setting;
                 for (auto child : p->getChildren())
                 {
                     mx::InputPtr input = child->asA<mx::Input>();
                     const std::string& name = input->getName();
                     MaterialX::ValuePtr val = input->getValue();
-                    wedgesetting setting;
+
                     if (name == "file")
                     {
                         setting.wedgefile = val->asA<std::string>();
@@ -986,21 +987,19 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                     {
                         setting.steps = val->asA<int>();
                     }
-
-                    wedgesettings.push_back(setting);
                 }
+                wedgesettings.push_back(setting);
             }
-            std::cout << WEDGE_SETTING << " found: " << wedgesettings.size() << std::endl;
 
             // Read Baker Settings
             for (MaterialX::ElementPtr p : optionDefs->getChildrenOfType<MaterialX::Element>(BAKER_SETTINGS))
             {
+                bakesetting setting;
                 for (auto child : p->getChildren())
                 {
                     mx::InputPtr input = child->asA<mx::Input>();
                     const std::string& name = input->getName();
                     MaterialX::ValuePtr val = input->getValue();
-                    bakesetting setting;
 
                     if (name == "file")
                     {
@@ -1022,11 +1021,9 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                     {
                         setting.uvmax = val->asA<mx::Vector2>();
                     }
-
-                    bakesettings.push_back(setting);
                 }
+                bakesettings.push_back(setting);
             }
-            std::cout << BAKER_SETTINGS << " found: " << bakesettings.size() << std::endl;
 
             for (auto p : optionDefs->getInputs())
             {
