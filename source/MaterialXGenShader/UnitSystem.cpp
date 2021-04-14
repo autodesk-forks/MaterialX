@@ -143,7 +143,7 @@ UnitSystemPtr UnitSystem::create(const string& language)
     return UnitSystemPtr(new UnitSystem(language));
 }
 
-string UnitSystem::getImplementationName(const UnitTransform& transform, const string& unitname) const
+ImplementationPtr UnitSystem::getImplementation(const UnitTransform& transform, const string& unitname) const
 {
     // Search up the targetdef derivation hierarchy for a matching implementation.
     TargetDefPtr targetDef = _document->getTargetDef(_target);
@@ -154,24 +154,22 @@ string UnitSystem::getImplementationName(const UnitTransform& transform, const s
         ImplementationPtr impl = _document->getImplementation(implName);
         if (impl)
         {
-            return implName;
+            return impl;
         }
     }
-    return EMPTY_STRING;
+    return nullptr;
 }
 
 bool UnitSystem::supportsTransform(const UnitTransform& transform) const
 {
-    const string implName = getImplementationName(transform, transform.unitType);
-    ImplementationPtr impl = _document->getImplementation(implName);
+    ImplementationPtr impl = getImplementation(transform, transform.unitType);
     return impl != nullptr;
 }
 
 ShaderNodePtr UnitSystem::createNode(ShaderGraph* parent, const UnitTransform& transform, const string& name,
                                      GenContext& context) const
 {
-    const string implName = getImplementationName(transform, transform.unitType);
-    ImplementationPtr impl = _document->getImplementation(implName);
+    ImplementationPtr impl = getImplementation(transform, transform.unitType);
     if (!impl)
     {
         throw ExceptionShaderGenError("No implementation found for transform: ('" + transform.sourceUnit + "', '" + transform.targetUnit + "').");
@@ -187,12 +185,12 @@ ShaderNodePtr UnitSystem::createNode(ShaderGraph* parent, const UnitTransform& t
 
     // Check if it's created and cached already,
     // otherwise create and cache it.
-    ShaderNodeImplPtr nodeImpl = context.findNodeImplementation(implName);
+    ShaderNodeImplPtr nodeImpl = context.findNodeImplementation(impl->getName());
     if (!nodeImpl)
     {
         nodeImpl = ScalarUnitNode::create(scalarConverter);
         nodeImpl->initialize(*impl, context);
-        context.addNodeImplementation(implName, nodeImpl);
+        context.addNodeImplementation(impl->getName(), nodeImpl);
     }
 
     // Create the node.
