@@ -367,13 +367,12 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                                 usedImpls.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl->getName());
                             }
 
-                            auto it = std::find_if(options.wedgesettings.begin(), options.wedgesettings.end(), [&file]
-                            (const auto& setting) { 
-                                    return file.asString() == setting.wedgefile; 
+                            auto it = std::find_if(options.wedgesettings.begin(), options.wedgesettings.end(),
+                                [&file] (const auto& setting) {
+                                    return (file.asString() == setting.wedgefile);
                                 });
 
-                            bool performWedge = (!options.wedgesettings.empty()) && (it != options.wedgesettings.end());
-
+                            bool performWedge = (it != options.wedgesettings.end()) ? true : false;
                             if (!performWedge)
                             {
                                 runRenderer(elementName, targetElement, context, doc, log, options, profileTimes, imageSearchPath, outputPath, nullptr);
