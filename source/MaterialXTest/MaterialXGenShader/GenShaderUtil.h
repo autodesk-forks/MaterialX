@@ -141,16 +141,23 @@ class TestSuiteOptions
     mx::FileSearchPath externalTestPaths;
 
     // Wedge parameters
-    mx::StringVec wedgeFiles;
-    mx::StringVec wedgeParameters;
-    mx::FloatVec wedgeRangeMin;
-    mx::FloatVec wedgeRangeMax;
-    mx::IntVec wedgeSteps;
-
+    struct wedgesetting {
+        std::string wedgefile = "";
+        std::string parameter = "";
+        mx::Vector2 range;
+        int         steps;
+    };
+    std::vector <wedgesetting> wedgesettings;
+    
     // Bake parameters
-    mx::StringVec bakeFiles;
-    mx::BoolVec bakeHdrs;
-    mx::IntVec bakeResolutions;
+    struct bakesetting {
+        std::string bakefile = "";
+        bool hdr; 
+        int resolution;
+        mx::Vector2 uvmin;
+        mx::Vector2 uvmax;
+    };
+    std::vector<bakesetting> bakesettings;
 };
 
 // Utility class to handle testing of shader generators.
