@@ -192,8 +192,7 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
     getFrameBuffer()->setEncodeSrgb(encodeSrgb);
 
     auto textureSpaceRange = getTextureSpace();
-    renderTextureSpace(textureSpaceRange.first[0], textureSpaceRange.first[1],
-                       textureSpaceRange.second[0], textureSpaceRange.second[1]);
+    renderTextureSpace(textureSpaceRange.first, textureSpaceRange.second);
 
     BakedImage baked;
     baked.image = captureImage();
