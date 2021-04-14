@@ -145,7 +145,19 @@ UnitSystemPtr UnitSystem::create(const string& language)
 
 string UnitSystem::getImplementationName(const UnitTransform& transform, const string& unitname) const
 {
-    return "IM_" + unitname + "_unit_" + transform.type->getName() + "_" + _target;
+    // Search up the targetdef derivation hierarchy for a matching implementation.
+    TargetDefPtr targetDef = _document->getTargetDef(_target);
+    const StringVec targets = targetDef->getMatchingTargets();
+    for (const string& target : targets)
+    {
+        const string implName = "IM_" + unitname + "_unit_" + transform.type->getName() + "_" + target;
+        ImplementationPtr impl = _document->getImplementation(implName);
+        if (impl)
+        {
+            return implName;
+        }
+    }
+    return EMPTY_STRING;
 }
 
 bool UnitSystem::supportsTransform(const UnitTransform& transform) const
