@@ -368,7 +368,7 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                             }
 
                             auto it = std::find_if(options.wedgesettings.begin(), options.wedgesettings.end(),
-                                [&file] (const auto& setting) {
+                                [&file] (const GenShaderUtil::TestSuiteOptions::wedgesetting& setting) {
                                     return (file.asString() == setting.wedgefile);
                                 });
 
