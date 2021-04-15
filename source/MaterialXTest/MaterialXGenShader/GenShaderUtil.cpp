@@ -964,7 +964,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
             // Read Wedge Render Settings
             for (MaterialX::ElementPtr p : optionDefs->getChildrenOfType<MaterialX::Element>(WEDGE_SETTING))
             {
-                wedgesetting setting;
+                WedgeSetting setting;
                 for (auto child : p->getChildren())
                 {
                     mx::InputPtr input = child->asA<mx::Input>();
@@ -973,7 +973,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
 
                     if (name == "file")
                     {
-                        setting.wedgefile = val->asA<std::string>();
+                        setting.wedgeFile = val->asA<std::string>();
                     }
                     else if (name == "parameter")
                     {
@@ -988,13 +988,13 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                         setting.steps = val->asA<int>();
                     }
                 }
-                wedgesettings.push_back(setting);
+                wedgeSettings.push_back(setting);
             }
 
             // Read Baker Settings
             for (MaterialX::ElementPtr p : optionDefs->getChildrenOfType<MaterialX::Element>(BAKER_SETTINGS))
             {
-                bakesetting setting;
+                BakeSetting setting;
                 for (auto child : p->getChildren())
                 {
                     mx::InputPtr input = child->asA<mx::Input>();
@@ -1003,7 +1003,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
 
                     if (name == "file")
                     {
-                        setting.bakefile = val->asA<std::string>();
+                        setting.bakeFile = val->asA<std::string>();
                     }
                     else if (name == "resolution")
                     {
@@ -1022,7 +1022,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                         setting.uvmax = val->asA<mx::Vector2>();
                     }
                 }
-                bakesettings.push_back(setting);
+                bakeSettings.push_back(setting);
             }
 
             for (auto p : optionDefs->getInputs())

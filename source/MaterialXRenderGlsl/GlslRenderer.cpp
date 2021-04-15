@@ -138,7 +138,7 @@ void GlslRenderer::createProgram(const StageMap& stages)
     _program->build();
 }
 
-void GlslRenderer::renderTextureSpace(Vector2 uvMin, Vector2 uvMax)
+void GlslRenderer::renderTextureSpace(const Vector2& uvMin, const Vector2& uvMax)
 {
     _program->bind();
     _program->bindTextures(_imageHandler);
@@ -341,7 +341,7 @@ ImageVec GlslRenderer::getReferencedImages(const ShaderPtr& /*shader*/)
     return imageList;
 }
 
-void GlslRenderer::drawScreenSpaceQuad(Vector2 uvMin, Vector2 uvMax)
+void GlslRenderer::drawScreenSpaceQuad(const Vector2& uvMin, const Vector2& uvMax)
 {
     const float QUAD_VERTICES[] =
     {

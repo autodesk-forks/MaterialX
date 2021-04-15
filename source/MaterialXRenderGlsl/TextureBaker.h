@@ -187,8 +187,8 @@ class TextureBaker : public GlslRenderer
         return _hashImageNames;
     }
 
-    /// Set the min and max UV values for the baking texture space
-    /// By default it is (0,0) - (1,1)
+    /// Set the min and max UV values for the geometry used for texture baking 
+    /// By default it is a screen quad with UV (0,0) - (1,1)
     void setTextureSpace(Vector2 uvMin, Vector2 uvMax)
     {
         _textureSpace = std::make_pair(uvMin, uvMax);

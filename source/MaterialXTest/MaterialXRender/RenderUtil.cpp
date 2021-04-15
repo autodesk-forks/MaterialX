@@ -284,14 +284,14 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
             // Perform bake and use that file for rendering
             if (canBake())
             {
-                for (auto& doctoBake : options.bakesettings)
+                for (auto& doctoBake : options.bakeSettings)
                 {
                     mx::FilePath outputBakeFile = file;
-                    if (doctoBake.bakefile == outputBakeFile.asString())
+                    if (doctoBake.bakeFile == outputBakeFile.asString())
                     {
                         outputBakeFile.removeExtension();
                         outputBakeFile = outputPath / (outputBakeFile.asString() + "_baked.mtlx");
-                        runBake(doc, imageSearchPath, searchPath, outputBakeFile, doctoBake.resolution, doctoBake.resolution, doctoBake.hdr, log);
+                        runBake(doc, imageSearchPath, searchPath, outputBakeFile, doctoBake, log);
                         break;
 
                     }
@@ -367,23 +367,23 @@ bool ShaderRenderTester::validate(const mx::FilePathVec& testRootPaths, const mx
                                 usedImpls.insert(nodeGraphImpl ? nodeGraphImpl->getName() : impl->getName());
                             }
 
-                            auto it = std::find_if(options.wedgesettings.begin(), options.wedgesettings.end(),
-                                [&file] (const GenShaderUtil::TestSuiteOptions::wedgesetting& setting) {
-                                    return (file.asString() == setting.wedgefile);
+                            auto it = std::find_if(options.wedgeSettings.begin(), options.wedgeSettings.end(),
+                                [&file] (const GenShaderUtil::TestSuiteOptions::WedgeSetting& setting) {
+                                    return (file.asString() == setting.wedgeFile);
                                 });
 
-                            bool performWedge = (it != options.wedgesettings.end()) ? true : false;
+                            bool performWedge = (it != options.wedgeSettings.end()) ? true : false;
                             if (!performWedge)
                             {
                                 runRenderer(elementName, targetElement, context, doc, log, options, profileTimes, imageSearchPath, outputPath, nullptr);
                             }
                             else
                             {
-                                for (auto &wedgesetting: options.wedgesettings)
+                                for (auto &wedgesetting: options.wedgeSettings)
                                 {
                                     mx::ImageVec imageVec;
 
-                                    const std::string& wedgeFile = wedgesetting.wedgefile;
+                                    const std::string& wedgeFile = wedgesetting.wedgeFile;
                                     if (wedgeFile != file.asString())
                                     {
                                         continue;
