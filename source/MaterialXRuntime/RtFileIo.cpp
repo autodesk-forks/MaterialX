@@ -1320,15 +1320,15 @@ namespace
     // look groups are read in first. Then relationship linkages are made.
     void readLookInformation(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* options, PvtRenamingMapper& mapper)
     {
-        // Write the current runtime contents to the currentDoc
-        DocumentPtr currentDoc = createDocument();
-        RtWriteOptions wops;
-        writeDocument(currentDoc, stage, &wops);
-
         // Create the mergedDoc
         DocumentPtr mergedDoc;
         if (options && options->lookModifier)
         {
+            // Write the current runtime contents to the currentDoc
+            DocumentPtr currentDoc = createDocument();
+            RtWriteOptions wops;
+            writeDocument(currentDoc, stage, &wops);
+
             mergedDoc = createDocument();
             options->lookModifier(currentDoc, doc, mergedDoc);
         }
