@@ -761,7 +761,12 @@ class Element : public std::enable_shared_from_this<Element>
     ///    geometry token substitutions are applied.  If the universal geometry
     ///    name "/" is given, then all geometry token substitutions are applied,
     /// @return A shared pointer to a StringResolver.
-    StringResolverPtr createStringResolver(const string& geom = EMPTY_STRING) const;
+    virtual StringResolverPtr createStringResolver(const string& geom = EMPTY_STRING) const;
+
+    /// Add tokens to string resolver. Derived classes can override this
+    /// method to add per-class type tokens as desired. The default is to not
+    /// add any tokens.
+    virtual void addTokens(StringResolverPtr& /*resolver*/) const;
 
     /// Return a single-line description of this element, including its category,
     /// name, and attributes.

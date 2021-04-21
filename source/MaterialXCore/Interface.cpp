@@ -492,6 +492,17 @@ vector<TokenPtr> InterfaceElement::getActiveTokens() const
     return activeTokens;
 }
 
+void InterfaceElement::addTokens(StringResolverPtr& resolver) const
+{
+    // Apply any interface tokens to the filename
+    for (auto token : getActiveTokens())
+    {
+        string key = "[" + token->getName() + "]";
+        string value = token->getResolvedValueString();
+        resolver->setFilenameSubstitution(key, value);
+    }
+}
+
 ValueElementPtr InterfaceElement::getActiveValueElement(const string& name) const
 {
     for (ConstElementPtr interface : traverseInheritance())

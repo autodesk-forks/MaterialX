@@ -500,6 +500,9 @@ class InterfaceElement : public TypedElement
     /// taking inheritance into account.
     vector<TokenPtr> getActiveTokens() const;
 
+    /// Add tokens to a given string resolver
+    void addTokens(StringResolverPtr& resolver) const override;
+
     /// @}
     /// @name Value Elements
     /// @{
