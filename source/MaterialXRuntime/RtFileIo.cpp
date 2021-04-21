@@ -1324,13 +1324,11 @@ namespace
         DocumentPtr mergedDoc;
         if (options && options->lookModifier)
         {
-            // Write the current runtime contents to the currentDoc
-            DocumentPtr currentDoc = createDocument();
+            // Write the stage contents to the stageDoc
+            DocumentPtr stageDoc = createDocument();
             RtWriteOptions wops;
-            writeDocument(currentDoc, stage, &wops);
-
-            mergedDoc = createDocument();
-            options->lookModifier(currentDoc, doc, mergedDoc);
+            writeDocument(stageDoc, stage, &wops);
+            mergedDoc = options->lookModifier(stageDoc, doc);
         }
         else
         {

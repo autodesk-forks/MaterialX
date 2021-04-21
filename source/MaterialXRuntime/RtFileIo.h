@@ -25,7 +25,7 @@ class RtReadOptions
 {
   public:
     using ElementFilter = std::function<bool(const ElementPtr& elem)>;
-    using LookModifier = std::function<void(const DocumentPtr& currentDoc, const DocumentPtr& loadedDoc, DocumentPtr& mergedDoc)>;
+    using LookModifier = std::function<DocumentPtr(const DocumentPtr& stageDoc, const DocumentPtr& loadedDoc)>;
 
   public:
     RtReadOptions();
