@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <materialx version="1.38">
-   <nodegraph name="Tokenized_Image" xpos="1044.25" ypos="850.912" >
-      <token name="Image_Resolution" type="string" uniform="true" value="2k" uivisible="true" uiname="Image Resolution" />
-      <token name="Image_Extension" type="string" uniform="true" value="png" uivisible="true" uiname="Image Extension" />
-      <input name="Image_Filename" type="filename" uniform="true" value="Resources/cloth.[Image_Extension]" />
-      <tiledimage name="tiledimage" type="color3" nodedef="ND_tiledimage_color3" xpos="-139" ypos="-149">
-         <input name="file" type="filename" uniform="true" interfacename="Image_Filename" uivisible="true" value="cloth.[Image_Extension]"/>
+   <nodegraph name="Tokenized_Image" >
+      <token name="Image_Resolution" type="string" uniform="true" value="2k" uiname="Image Resolution" />
+      <token name="Image_Extension" type="string" uniform="true" value="png" uiname="Image Extension" />
+      <input name="Image_Filename" type="filename" uniform="true" value="resources/images/cloth.[Image_Extension]" />
+      <tiledimage name="tiledimage" type="color3" nodedef="ND_tiledimage_color3" >
+         <input name="file" type="filename" uniform="true" interfacename="Image_Filename" value="resources/images/cloth.[Image_Extension]"/>
       </tiledimage>
       <output name="out" type="color3" nodename="tiledimage" />
    </nodegraph>
