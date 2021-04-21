@@ -55,7 +55,7 @@ void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& cont
                 inputSocket = addInputSocket(port->getName(), portType);
                 if (!portValue.empty())
                 {
-                    inputSocket->setValue(port->getValue());
+                    inputSocket->setValue(port->getResolvedValue());
                 }
             }
             if (port->getIsUniform())
