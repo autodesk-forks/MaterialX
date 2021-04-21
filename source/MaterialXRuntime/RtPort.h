@@ -30,7 +30,7 @@ public:
     /// Port is a nodegraph internal socket.
     static const uint32_t SOCKET      = 0x00000002;
 
-    /// Port holds a token
+    /// Port holds a token.
     static const uint32_t TOKEN       = 0x00000004;
 };
 
@@ -83,12 +83,6 @@ public:
 
     /// Set the unit type for this port.
     void setUnitType(const RtIdentifier& unit);
-
-    /// Return true if this input is a token.
-    bool isToken() const;
-
-    /// Sets the input to be a token or not a token
-    void setIsToken(bool val);
 };
 
 
@@ -109,8 +103,8 @@ public:
     /// Return true if this input is uniform.
     bool isUniform() const;
 
-    /// Sets the input to be a uniform or not a uniform
-    void setUniform(bool uniform);
+    /// Return true if this input is a token.
+    bool isToken() const;
 
     /// Return true if this input should be visible in the UI.
     bool isUIVisible() const;

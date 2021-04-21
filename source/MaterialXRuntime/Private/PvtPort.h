@@ -71,6 +71,16 @@ public:
         return (_flags & RtPortFlag::SOCKET) != 0;
     }
 
+    bool isUniform() const
+    {
+        return (_flags & RtPortFlag::UNIFORM) != 0;
+    }
+
+    bool isToken() const
+    {
+        return (_flags & RtPortFlag::TOKEN) != 0;
+    }
+
     const RtIdentifier& getColorSpace() const
     {
         const RtTypedValue* attr = getAttribute(PvtPort::COLOR_SPACE, RtType::IDENTIFIER);
@@ -107,23 +117,6 @@ public:
         attr->asIdentifier() = unit;
     }
 
-    bool isToken() const
-    {
-        return (_flags & RtPortFlag::TOKEN) != 0;
-    }
-
-    void setIsToken(bool val)
-    {
-        if (val)
-        {
-            _flags |= RtPortFlag::TOKEN;
-        }
-        else
-        {
-            _flags &= ~RtPortFlag::TOKEN;
-        }
-    }
-
     static const RtIdentifier DEFAULT_OUTPUT_NAME;
     static const RtIdentifier COLOR_SPACE;
     static const RtIdentifier UNIT;
@@ -148,23 +141,6 @@ class PvtInput : public PvtPort
 
 public:
     PvtInput(const RtIdentifier& name, const RtIdentifier& type, uint32_t flags, PvtPrim* parent);
-
-    bool isUniform() const
-    {
-        return (_flags & RtPortFlag::UNIFORM) != 0;
-    }
-
-    void setUniform(bool uniform)
-    {
-        if (uniform)
-        {
-            _flags |= RtPortFlag::UNIFORM;
-        }
-        else
-        {
-            _flags &= ~RtPortFlag::UNIFORM;
-        }
-    }
 
     bool isUIVisible() const
     {

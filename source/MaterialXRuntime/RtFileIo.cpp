@@ -202,8 +202,7 @@ namespace
             }
             else if (elem->isA<Token>())
             {
-                const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
-                port = schema.createInput(portName, portType, flags);
+                port = schema.createInput(portName, portType, RtPortFlag::TOKEN);
             }
 
             if (port)
@@ -493,7 +492,7 @@ namespace
                         {
                             const RtIdentifier inputType(elem->getType());
 
-                            const uint32_t flags = elem->isA<Token>() ? RtPortFlag::UNIFORM | RtPortFlag::TOKEN : 0;
+                            const uint32_t flags = elem->isA<Token>() ? RtPortFlag::TOKEN : 0;
                             RtInput input = nodegraph.createInput(socketName, inputType, flags);
                             socket = nodegraph.getInputSocket(input.getName());
 
