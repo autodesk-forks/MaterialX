@@ -191,8 +191,9 @@ LookVec LookGroup::getEnabledLooks() const
     return enabledLooks;
 }
 
-static void appendPreLooks(StringVec& postList, StringVec& destLookList, const StringSet& destLookSet, const string& appendAfterLook)
+static void appendLooks(StringVec& destLookList, const StringSet& destLookSet, const StringVec& sourceLookList, const string& appendAfterLook)
 {
+    StringVec postList;
     if (!appendAfterLook.empty() && destLookSet.count(appendAfterLook))
     {
         StringVec prependList = destLookList;
@@ -216,10 +217,6 @@ static void appendPreLooks(StringVec& postList, StringVec& destLookList, const S
             }
         }
     }
-}
-
-static void appendLooks(StringVec& destLookList, const StringVec& sourceLookList, const StringSet& destLookSet)
-{
     for (const string& lookName : sourceLookList)
     {
         if (!destLookSet.count(lookName))
@@ -227,10 +224,6 @@ static void appendLooks(StringVec& destLookList, const StringVec& sourceLookList
             destLookList.push_back(lookName);
         }
     }
-}
-
-static void appendPostLooks(StringVec& destLookList, const StringVec& postList)
-{
     if (postList.size())
     {
         for (const string& lookName : postList)
@@ -254,10 +247,7 @@ void LookGroup::appendLookGroup(const LookGroupPtr& sourceGroup, const string& a
     StringVec destLookList = splitString(getLooks(), ARRAY_VALID_SEPARATORS);
     const StringSet destLookSet(destLookList.begin(), destLookList.end());
 
-    StringVec postList;
-    appendPreLooks(postList, destLookList, destLookSet, appendAfterLook);
-    appendLooks(destLookList, sourceLookList, destLookSet);
-    appendPostLooks(destLookList, postList);
+    appendLooks(destLookList, destLookSet, sourceLookList, appendAfterLook);
 
     // Append looks to "active" look list. Order does no matter.
     string enabledSourceLooks = sourceGroup->getEnabledLooksString();
@@ -292,10 +282,7 @@ void LookGroup::appendLook(const string& sourceLook, const string& appendAfterLo
     StringVec destLookList = splitString(getLooks(), ARRAY_VALID_SEPARATORS);
     const StringSet destLookSet(destLookList.begin(), destLookList.end());
 
-    StringVec postList;
-    appendPreLooks(postList, destLookList, destLookSet, appendAfterLook);
-    appendLooks(destLookList, sourceLookList, destLookSet);
-    appendPostLooks(destLookList, postList);
+    appendLooks(destLookList, destLookSet, sourceLookList, appendAfterLook);
 
     // Update look list
     setLooks(mergeStringVec(destLookList, ARRAY_VALID_SEPARATORS));
