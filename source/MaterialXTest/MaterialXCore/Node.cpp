@@ -574,6 +574,55 @@ TEST_CASE("Organization", "[nodegraph]")
     CHECK(nodeGraph->getBackdrops().empty());
 }
 
+TEST_CASE("Tokens", "[nodegraph]")
+{
+    mx::DocumentPtr doc = mx::createDocument();
+    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
+    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_ng.mtlx"), doc);
+    mx::FileSearchPath searchPath("resources/Materials/TestSuite/stdlib/texture/");
+
+    mx::readFromXmlFile(doc, "tokenGraph.mtlx", searchPath);
+    doc->validate();
+
+    mx::NodeGraphPtr graph = doc->getNodeGraph("Tokenized_Image");
+    if (graph)
+    {
+        std::vector<mx::TokenPtr> tokens = graph->getActiveTokens();
+
+        mx::NodePtr imagePtr = graph->getNode("tiledImage");
+        if (imagePtr)
+        {
+            mx::InputPtr input = imagePtr->getInput("file");
+            REQUIRE(input);
+
+            // Test file name substitution creation.
+            mx::StringResolverPtr resolver = input->createStringResolver();
+            mx::StringMap substitutions = resolver->getFilenameSubstitutions();
+            const std::string DELIMITER_PREFIX("[");
+            const std::string DELIMITER_POSTFIX("]");
+            for (auto token : tokens)
+            {
+                const std::string tokenString = DELIMITER_PREFIX + token->getName() + DELIMITER_POSTFIX;
+                CHECK(tokenString == mx::EMPTY_STRING);
+                REQUIRE(substitutions.count(tokenString));
+                REQUIRE(substitutions.find(tokenString)->second == token->getValueString());
+            }
+
+            // Test that one of the tokens was used
+            REQUIRE(input->getValueString() == std::string("resources/images/cloth.[Image_Extension]"));
+            REQUIRE(input->getResolvedValueString() == std::string("resources/images/cloth.png"));
+
+            // Modify and test that both of the tokens was used
+            input->setValueString("resources/images/cloth_[Image_Resolution].[Image_Extension]");
+            REQUIRE(input->getResolvedValueString() == std::string("resources/images/cloth_2k.png"));
+
+            // Modify and test without proper delimiters
+            input->setValueString("resources/images/cloth_<Image_Resolution>.<Image_Extension>");
+            REQUIRE(input->getResolvedValueString() == std::string("cloth_<Image_Resolution>.<Image_Extension>"));
+        }
+    }
+}
+
 TEST_CASE("Node Definition Creation", "[nodedef]")
 {
     mx::DocumentPtr doc = mx::createDocument();
