@@ -1289,8 +1289,6 @@ namespace
     // already been created.
     PvtPrim* readLookGroup(const LookGroupPtr& src, PvtStage* stage, PvtRenamingMapper& mapper)
     {
-        const string LIST_SEPARATOR(", ");
-
         PvtPrim* parent = stage->getRootPrim();
         const RtIdentifier name(src->getName());
         PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtLookGroup::typeName());
@@ -1301,7 +1299,7 @@ namespace
 
         // Link to looks
         const string& lookNamesString = src->getLooks();
-        StringVec lookNamesList  = splitString(lookNamesString, LIST_SEPARATOR);
+        StringVec lookNamesList  = splitString(lookNamesString, ARRAY_VALID_SEPARATORS);
         for (auto lookName : lookNamesList)
         {
             if (!lookName.empty())
