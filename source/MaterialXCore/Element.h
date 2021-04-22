@@ -766,7 +766,7 @@ class Element : public std::enable_shared_from_this<Element>
     /// Add tokens to string resolver. Derived classes can override this
     /// method to add per-class type tokens as desired. The default is to not
     /// add any tokens.
-    virtual void addTokens(StringResolverPtr& /*resolver*/) const;
+    virtual void addTokens(StringResolverPtr& resolver) const;
 
     /// Return a single-line description of this element, including its category,
     /// name, and attributes.
