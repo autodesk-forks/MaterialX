@@ -251,6 +251,13 @@ class Input : public PortElement
     InputPtr getInterfaceInput() const;
 
     /// @}
+    /// @name Tokens
+    /// @{
+
+    /// Add tokens to a given string resolver
+    void addTokens(StringResolverPtr& resolver) const override;
+
+    /// @}
     /// @name Validation
     /// @{
 

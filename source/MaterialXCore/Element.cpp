@@ -420,15 +420,20 @@ StringResolverPtr Element::createStringResolver(const string& geom) const
         }
     }
 
-    // Check for any parent tokens
-    ConstElementPtr parent = getParent();
-    parent->addTokens(resolver);
+    // Add element tokens
+    addTokens(resolver);
 
     return resolver;
 }
 
-void Element::addTokens(StringResolverPtr& /*resolver*/) const
+void Element::addTokens(StringResolverPtr& resolver) const
 {
+    // Check for any sibling token Elements
+    ConstElementPtr parent = getParent();
+    if (parent)
+    {
+        parent->addTokens(resolver);
+    }
 }
 
 string Element::asString() const

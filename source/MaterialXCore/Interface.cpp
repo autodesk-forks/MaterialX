@@ -317,6 +317,27 @@ InputPtr Input::getInterfaceInput() const
     return nullptr;
 }
 
+void Input::addTokens(StringResolverPtr& resolver) const
+{
+    // If this input has an interface Input then use the tokens associated with that Input
+    // otherwise use the tokens directly associated with this Input.
+    InputPtr interfaceInput = getInterfaceInput();
+    if (interfaceInput)
+    {
+        interfaceInput->addTokens(resolver);
+    }
+    else
+    {
+        // Check for any sibling token Elements
+        ConstElementPtr parent = getParent();
+        if (parent)
+        {
+            parent->addTokens(resolver);
+        }
+    }
+}
+
+
 GeomPropDefPtr Input::getDefaultGeomProp() const
 {
     const string& defaultGeomProp = getAttribute(DEFAULT_GEOM_PROP_ATTRIBUTE);
