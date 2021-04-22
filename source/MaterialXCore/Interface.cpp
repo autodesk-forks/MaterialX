@@ -328,12 +328,7 @@ void Input::addTokens(StringResolverPtr& resolver) const
     }
     else
     {
-        // Check for any sibling token Elements
-        ConstElementPtr parent = getParent();
-        if (parent)
-        {
-            parent->addTokens(resolver);
-        }
+        PortElement::addTokens(resolver);
     }
 }
 
