@@ -81,55 +81,11 @@ public:
         return (_flags & RtPortFlag::TOKEN) != 0;
     }
 
-    const RtIdentifier& getColorSpace() const
-    {
-        const RtTypedValue* attr = getAttribute(PvtPort::COLOR_SPACE, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
-    }
-
-    void setColorSpace(const RtIdentifier& colorspace)
-    {
-        RtTypedValue* attr = createAttribute(PvtPort::COLOR_SPACE, RtType::IDENTIFIER);
-        attr->asIdentifier() = colorspace;
-    }
-
-    const RtIdentifier& getUnit() const
-    {
-        const RtTypedValue* attr = getAttribute(PvtPort::UNIT, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
-    }
-
-    void setUnit(const RtIdentifier& unit)
-    {
-        RtTypedValue* attr = createAttribute(PvtPort::UNIT, RtType::IDENTIFIER);
-        attr->asIdentifier() = unit;
-    }
-
-    const RtIdentifier& getUnitType() const
-    {
-        const RtTypedValue* attr = getAttribute(PvtPort::UNIT_TYPE, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
-    }
-
-    void setUnitType(const RtIdentifier& unit)
-    {
-        RtTypedValue* attr = createAttribute(PvtPort::UNIT_TYPE, RtType::IDENTIFIER);
-        attr->asIdentifier() = unit;
-    }
-
-    static const RtIdentifier DEFAULT_OUTPUT_NAME;
-    static const RtIdentifier COLOR_SPACE;
-    static const RtIdentifier UNIT;
-    static const RtIdentifier UNIT_TYPE;
-    static const RtIdentifier ATTRIBUTE;
-
 protected:
     PvtPort(const RtIdentifier& name, const RtIdentifier& type, uint32_t flags, PvtPrim* parent);
 
     RtTypedValue _value;
     uint32_t _flags;
-
-    friend class RtConnectionIterator;
 };
 
 
@@ -158,6 +114,42 @@ public:
     {
         RtTypedValue* attr = createAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
         attr->asBool() = val;
+    }
+
+    const RtIdentifier& getColorSpace() const
+    {
+        const RtTypedValue* attr = getAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
+        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    }
+
+    void setColorSpace(const RtIdentifier& colorspace)
+    {
+        RtTypedValue* attr = createAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
+        attr->asIdentifier() = colorspace;
+    }
+
+    const RtIdentifier& getUnit() const
+    {
+        const RtTypedValue* attr = getAttribute(Identifiers::UNIT, RtType::IDENTIFIER);
+        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    }
+
+    void setUnit(const RtIdentifier& unit)
+    {
+        RtTypedValue* attr = createAttribute(Identifiers::UNIT, RtType::IDENTIFIER);
+        attr->asIdentifier() = unit;
+    }
+
+    const RtIdentifier& getUnitType() const
+    {
+        const RtTypedValue* attr = getAttribute(Identifiers::UNITTYPE, RtType::IDENTIFIER);
+        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    }
+
+    void setUnitType(const RtIdentifier& unit)
+    {
+        RtTypedValue* attr = createAttribute(Identifiers::UNITTYPE, RtType::IDENTIFIER);
+        attr->asIdentifier() = unit;
     }
 
     bool isConnected() const
