@@ -81,6 +81,18 @@ public:
         return (_flags & RtPortFlag::TOKEN) != 0;
     }
 
+    const RtIdentifier& getColorSpace() const
+    {
+        const RtTypedValue* attr = getAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
+        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    }
+
+    void setColorSpace(const RtIdentifier& colorspace)
+    {
+        RtTypedValue* attr = createAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
+        attr->asIdentifier() = colorspace;
+    }
+
 protected:
     PvtPort(const RtIdentifier& name, const RtIdentifier& type, uint32_t flags, PvtPrim* parent);
 
@@ -114,18 +126,6 @@ public:
     {
         RtTypedValue* attr = createAttribute(Identifiers::UIVISIBLE, RtType::BOOLEAN);
         attr->asBool() = val;
-    }
-
-    const RtIdentifier& getColorSpace() const
-    {
-        const RtTypedValue* attr = getAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
-    }
-
-    void setColorSpace(const RtIdentifier& colorspace)
-    {
-        RtTypedValue* attr = createAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
-        attr->asIdentifier() = colorspace;
     }
 
     const RtIdentifier& getUnit() const

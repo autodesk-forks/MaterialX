@@ -65,6 +65,12 @@ public:
 
     /// Set the port value from a string representation.
     void setValueString(const string& v);
+
+    /// Return the color space for this port.
+    const RtIdentifier& getColorSpace() const;
+
+    /// Set the color space for this port.
+    void setColorSpace(const RtIdentifier& colorspace);
 };
 
 
@@ -94,22 +100,16 @@ public:
     /// Sets the input's visibilit in the UI.
     void setIsUIVisible(bool val);
 
-    /// Return the color space for this port.
-    const RtIdentifier& getColorSpace() const;
-
-    /// Set the color space for this port.
-    void setColorSpace(const RtIdentifier& colorspace);
-
-    /// Return the unit for this port.
+    /// Return the unit for this input.
     const RtIdentifier& getUnit() const;
 
-    /// Set the unit for this port.
+    /// Set the unit for this input.
     void setUnit(const RtIdentifier& unit);
 
-    /// Return the unit type for this port.
+    /// Return the unit type for this input.
     const RtIdentifier& getUnitType() const;
 
-    /// Set the unit type for this port.
+    /// Set the unit type for this input.
     void setUnitType(const RtIdentifier& unit);
 
     /// Return true if this input is connected.

@@ -48,6 +48,16 @@ void RtPort::setValueString(const string& v)
     hnd()->asA<PvtPort>()->setValueString(v);
 }
 
+const RtIdentifier& RtPort::getColorSpace() const
+{
+    return hnd()->asA<PvtPort>()->getColorSpace();
+}
+
+void RtPort::setColorSpace(const RtIdentifier& colorspace)
+{
+    return hnd()->asA<PvtPort>()->setColorSpace(colorspace);
+}
+
 
 RT_DEFINE_RUNTIME_OBJECT(RtInput, RtObjType::INPUT, "RtInput")
 
@@ -74,16 +84,6 @@ bool RtInput::isUIVisible() const
 void RtInput::setIsUIVisible(bool val)
 {
     hnd()->asA<PvtInput>()->setIsUIVisible(val);
-}
-
-const RtIdentifier& RtInput::getColorSpace() const
-{
-    return hnd()->asA<PvtInput>()->getColorSpace();
-}
-
-void RtInput::setColorSpace(const RtIdentifier& colorspace)
-{
-    return hnd()->asA<PvtInput>()->setColorSpace(colorspace);
 }
 
 const RtIdentifier& RtInput::getUnit() const
