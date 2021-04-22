@@ -182,699 +182,6 @@ namespace
         }
     }
 
-    template<class T>
-    void createInterface(const ElementPtr& src, T schema)
-    {
-        for (auto elem : src->getChildrenOfType<ValueElement>())
-        {
-            const RtIdentifier portName(elem->getName());
-            const RtIdentifier portType(elem->getType());
-
-            RtPort port;
-            if (elem->isA<Output>())
-            {
-                port = schema.createOutput(portName, portType);
-            }
-            else if (elem->isA<Input>())
-            {
-                const uint32_t flags = elem->asA<Input>()->getIsUniform() ? RtPortFlag::UNIFORM : 0;
-                port = schema.createInput(portName, portType, flags);
-            }
-            else if (elem->isA<Token>())
-            {
-                port = schema.createInput(portName, portType, RtPortFlag::TOKEN);
-            }
-
-            if (port)
-            {
-                const string& valueStr = elem->getValueString();
-                if (!valueStr.empty())
-                {
-                    RtValue::fromString(portType, valueStr, port.getValue());
-                }
-
-                readAttributes(elem, PvtObject::cast(port), schema.getPrimSpec(), portIgnoreList);
-            }
-        }
-    }
-
-    void createConnection(PvtOutput* output, PvtInput* input, const string& swizzle, PvtStage* stage)
-    {
-        // Check if a swizzle node should be used in the connection.
-        if (!swizzle.empty())
-        {
-            const RtIdentifier swizzleNodeDefName("ND_swizzle_" + output->getType().str() + "_" + input->getType().str());
-            const RtIdentifier swizzleNodeName("swizzle_" + input->getParent()->getName().str() + "_" + input->getName().str());
-
-            PvtPrim* parent = input->getParent()->getParent();
-            PvtPrim* swizzleNode = stage->createPrim(parent->getPath(), swizzleNodeName, swizzleNodeDefName);
-
-            PvtInput* in = swizzleNode->getInput(SWIZZLE_INPUT);
-            PvtInput* ch = swizzleNode->getInput(SWIZZLE_CHANNELS);
-            PvtOutput* out = swizzleNode->getOutput();
-            if (in && ch && out)
-            {
-                ch->getValue().asString() = swizzle;
-                output->connect(in);
-                output = out;
-            }
-        }
-
-        // Make the connection
-        output->connect(input);
-    }
-
-    void createNodeConnection(InterfaceElementPtr nodeElem, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
-    {
-        PvtPrim* node = findPrimOrThrow(RtIdentifier(nodeElem->getName()), parent, mapper);
-        for (InputPtr elemInput : nodeElem->getInputs())
-        {
-            PvtInput* input = findInputOrThrow(RtIdentifier(elemInput->getName()), node);
-            string connectedNodeName = elemInput->getNodeName();
-            if (connectedNodeName.empty())
-            {
-                connectedNodeName = elemInput->getNodeGraphString();
-            }
-            if (!connectedNodeName.empty())
-            {
-                PvtPrim* connectedNode = findPrimOrThrow(RtIdentifier(connectedNodeName), parent, mapper);
-                RtIdentifier outputName(elemInput->getOutputString());
-                if (outputName == EMPTY_IDENTIFIER && connectedNode)
-                {
-                    RtNode rtConnectedNode(connectedNode->hnd());
-                    RtOutput output = rtConnectedNode.getOutput();
-                    if (output)
-                    {
-                        outputName = output.getName();
-                    }
-                }
-                PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
-
-                createConnection(output, input, elemInput->getChannels(), stage);
-            }
-        }
-    }
-
-    void createNodeConnections(const vector<NodePtr>& nodeElements, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
-    {
-        for (auto nodeElem : nodeElements)
-        {
-            createNodeConnection(nodeElem->asA<InterfaceElement>(), parent, stage, mapper);
-        }
-    }
-
-    void createNodeGraphConnections(const vector<NodeGraphPtr>& nodeElements, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
-    {
-        for (auto nodeElem : nodeElements)
-        {
-            // Only process compound nodegraph, since functional nodegraph are not part of the stage.
-            NodeGraphPtr nodegraph = nodeElem->asA<NodeGraph>();
-            if (!nodegraph || nodegraph->getNodeDefString().empty())
-            {
-                createNodeConnection(nodeElem->asA<InterfaceElement>(), parent, stage, mapper);
-            }
-        }
-    }
-
-    PvtPrim* readNodeDef(const NodeDefPtr& src, PvtStage* stage)
-    {
-        const RtIdentifier name(src->getName());
-        PvtPrim* prim = stage->createPrim(stage->getPath(), name, RtNodeDef::typeName());
-
-        RtNodeDef nodedef(prim->hnd());
-        readAttributes(src, prim, nodedef.getPrimSpec(), nodedefIgnoreList);
-
-        // Create the interface.
-        createInterface(src, nodedef);
-
-        return prim;
-    }
-
-    bool matchingSignature(const PvtPrim* prim, const RtIdentifier& nodeType, const vector<ValueElementPtr>& nodePorts)
-    {
-        if (nodeType != MULTIOUTPUT)
-        {
-            // For single output nodes we can match the output directly.
-            PvtOutput* out = prim->getOutput();
-            if (!out || out->getType() != nodeType)
-            {
-                return false;
-            }
-        }
-
-        // Check all ports.
-        for (const ValueElementPtr& nodePort : nodePorts)
-        {
-            const RtIdentifier name(nodePort->getName());
-            const PvtPort* port = nodePort->isA<Input>() ? prim->getInput(name)->asA<PvtPort>() : prim->getOutput(name)->asA<PvtPort>();
-            if (!port || port->getType().str() != nodePort->getType())
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    PvtPrim* resolveNodeDef(const NodePtr& node, PvtStage* stage)
-    {
-        PvtApi* api = PvtApi::cast(RtApi::get());
-
-        // First, see if a nodedef string is specified on the node.
-        const string& nodedefNameString = node->getNodeDefString();
-        if (!nodedefNameString.empty())
-        {
-            // Find this nodedef among the available ones.
-            const RtIdentifier nodedefName(nodedefNameString);
-
-            // Search the globally registered nodedefs.
-            PvtObject* obj = api->getNodeDef(nodedefName);
-            if (!obj)
-            {
-                // Search the current stage.
-                PvtPath path(nodedefName);
-                obj = stage->getPrimAtPath(path);
-            }
-            return obj ? obj->asA<PvtPrim>() : nullptr;
-        }
-
-        // Second, try resolving among the available nodedefs.
-        const RtIdentifier nodeName(node->getCategory());
-        const RtIdentifier nodeType(node->getType());
-        const vector<ValueElementPtr> nodePorts = node->getActiveValueElements();
-
-        // Search the globally registered nodedefs.
-        const size_t numNodeDefs = api->numNodeDefs();
-        for (size_t i = 0; i < numNodeDefs; ++i)
-        {
-            PvtPrim* prim = api->getNodeDef(i)->asA<PvtPrim>();
-            RtNodeDef candidate(prim->hnd());
-            if (candidate.getNamespacedNode() == nodeName && 
-                matchingSignature(prim, nodeType, nodePorts))
-            {
-                return prim;
-            }
-        }
-
-        // Search the current stage.
-        RtSchemaPredicate<RtNodeDef> filter;
-        for (auto it : stage->getPrims(filter))
-        {
-            PvtPrim* prim = PvtObject::cast<PvtPrim>(it);
-            RtNodeDef candidate(prim->hnd());
-            if (candidate.getNamespacedNode() == nodeName &&
-                matchingSignature(prim, nodeType, nodePorts))
-            {
-                return prim;
-            }
-        }
-
-        return nullptr;
-    }
-
-    PvtPrim* resolveTargetDef(const RtIdentifier target, PvtStage* stage)
-    {
-        PvtApi* api = PvtApi::cast(RtApi::get());
-
-        PvtObject* obj = api->getTargetDef(target);
-        if (obj)
-        {
-            return obj->asA<PvtPrim>();
-        }
-
-        PvtPath path(target);
-        return stage->getPrimAtPath(path);
-    }
-
-    PvtPrim* readNode(const NodePtr& src, PvtPrim* parent, PvtStage* stage, PvtRenamingMapper& mapper)
-    {
-        const PvtPrim* nodedef = resolveNodeDef(src, stage);
-        if (!nodedef)
-        {
-            throw ExceptionRuntimeError("No matching nodedef was found for node '" + src->getName() + "'");
-        }
-
-        const RtIdentifier nodeName(src->getName());
-        PvtPrim* prim = stage->createPrim(parent->getPath(), nodeName, nodedef->getName());
-        mapper.addMapping(parent, nodeName, prim->getName());
-
-        RtNode node(prim->hnd());
-        readAttributes(src, prim, node.getPrimSpec(), nodeIgnoreList);
-
-        // Copy input values.
-        for (auto elem : src->getChildrenOfType<ValueElement>())
-        {
-            if (elem->isA<Output>())
-            {
-                continue;
-            }
-            const RtIdentifier portName(elem->getName());
-            PvtInput* input = prim->getInput(portName);
-            if (!input)
-            {
-                throw ExceptionRuntimeError("No input named '" + elem->getName() + "' was found on runtime node '" + prim->getName().str() + "'");
-            }
-            const string& valueStr = elem->getValueString();
-            if (!valueStr.empty())
-            {
-                const RtIdentifier portType(elem->getType());
-                RtValue::fromString(portType, valueStr, input->getValue());
-            }
-            readAttributes(elem, input, node.getPrimSpec(), portIgnoreList);
-        }
-
-        return prim;
-    }
-
-    PvtPrim* readNodeGraph(const NodeGraphPtr& src, PvtPrim* parent, PvtStage* stage, PvtRenamingMapper& mapper)
-    {
-        const RtIdentifier nodegraphName(src->getName());
-
-        PvtPrim* prim = stage->createPrim(parent->getPath(), nodegraphName, RtNodeGraph::typeName());
-        mapper.addMapping(parent, nodegraphName, prim->getName());
-
-        RtNodeGraph nodegraph(prim->hnd());
-        readAttributes(src, prim, nodegraph.getPrimSpec(), nodegraphIgnoreList);
-
-        // Create the interface either from a nodedef if given
-        // otherwise from the graph itself.
-        const NodeDefPtr srcNodeDef = src->getNodeDef();
-        if (srcNodeDef)
-        {
-            createInterface(srcNodeDef, nodegraph);
-        }
-        else
-        {
-            createInterface(src, nodegraph);
-        }
-
-        // Create all nodes and connections between node inputs and internal graph sockets.
-        for (auto child : src->getChildren())
-        {
-            NodePtr srcNnode = child->asA<Node>();
-            if (srcNnode)
-            {
-                PvtPrim* node = readNode(srcNnode, prim, stage, mapper);
-
-                // Check for connections to the internal graph sockets
-                for (auto elem : srcNnode->getChildrenOfType<ValueElement>())
-                {
-                    if (elem->isA<Output>())
-                    {
-                        continue;
-                    }
-                    const string& interfaceName = elem->getInterfaceName();
-                    if (!interfaceName.empty())
-                    {
-                        const RtIdentifier socketName(interfaceName);
-                        RtOutput socket = nodegraph.getInputSocket(socketName);
-                        if (!socket)
-                        {
-                            const RtIdentifier inputType(elem->getType());
-
-                            const uint32_t flags = elem->isA<Token>() ? RtPortFlag::TOKEN : 0;
-                            RtInput input = nodegraph.createInput(socketName, inputType, flags);
-                            socket = nodegraph.getInputSocket(input.getName());
-
-                            // Set the input value
-                            const string& valueStr = elem->getValueString();
-                            if (!valueStr.empty())
-                            {
-                                const RtIdentifier portType(elem->getType());
-                                RtValue::fromString(portType, valueStr, input.getValue());
-                            }
-                        }
-
-                        PvtOutput* output = PvtObject::cast<PvtOutput>(socket);
-                        const RtIdentifier inputName(elem->getName());
-                        PvtInput* input = findInputOrThrow(inputName, node);
-                        const string& swizzle = elem->isA<Input>() ? elem->asA<Input>()->getChannels() : EMPTY_STRING;
-
-                        createConnection(output, input, swizzle, stage);
-                    }
-                }
-            }
-        }
-
-        // Create connections between all nodes.
-        createNodeConnections(src->getNodes(), prim, stage, mapper);
-
-        // Create connections between node outputs and internal graph sockets.
-        for (const OutputPtr& elem : src->getOutputs())
-        {
-            const string& connectedNodeName = elem->getNodeName();
-            if (!connectedNodeName.empty())
-            {
-                RtInput socket = nodegraph.getOutputSocket(RtIdentifier(elem->getName()));
-                if (!socket)
-                {
-                    PvtPath path(parent->getPath());
-                    path.push(nodegraphName);
-                    throw ExceptionRuntimeError("Output '" + elem->getName() + "' does not match an internal output socket on the nodegraph '" + path.asString() + "'");
-                }
-
-                PvtPrim* connectedNode = findPrimOrThrow(RtIdentifier(connectedNodeName), prim, mapper);
-
-                const RtIdentifier outputName(elem->getOutputString());
-                PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
-                PvtInput* input = PvtObject::cast<PvtInput>(socket);
-                const string& swizzle = elem->getChannels();
-
-                createConnection(output, input, swizzle, stage);
-            }
-        }
-
-        return prim;
-    }
-
-    PvtPrim* readGenericPrim(const ElementPtr& src, PvtPrim* parent, PvtStage* stage, PvtRenamingMapper& mapper)
-    {
-        const RtIdentifier name(src->getName());
-        const RtIdentifier category(src->getCategory());
-
-        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtGeneric::typeName());
-        mapper.addMapping(parent, name, prim->getName());
-
-        RtGeneric generic(prim->hnd());
-        generic.setKind(category);
-        readAttributes(src, prim, generic.getPrimSpec(), genericIgnoreList);
-
-        for (auto child : src->getChildren())
-        {
-            readGenericPrim(child, prim, stage, mapper);
-        }
-
-        return prim;
-    }
-
-    PvtPrim* readTargetDef(const TargetDefPtr& src, PvtStage* stage)
-    {
-        PvtPrim* parent = stage->getRootPrim();
-        const RtIdentifier name(src->getName());
-        const RtIdentifier inherit(src->getInheritString());
-
-        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtTargetDef::typeName());
-
-        RtTargetDef def(prim->hnd());
-        if (inherit != EMPTY_IDENTIFIER)
-        {
-            def.setInherit(inherit);
-        }
-
-        readAttributes(src, prim, def.getPrimSpec(), targetdefIgnoreList);
-
-        return prim;
-    }
-
-    PvtPrim* readImplementation(const ImplementationPtr& src, PvtStage* stage)
-    {
-        PvtPrim* parent = stage->getRootPrim();
-        const RtIdentifier target(src->getAttribute(Identifiers::TARGET.str()));
-
-        // We are only interested in implementations for loaded targets,
-        // so if target is set make sure this target has been loaded.
-        if (target != EMPTY_IDENTIFIER && !resolveTargetDef(target, stage))
-        {
-            return nullptr;
-        }
-
-        const RtIdentifier name(src->getName());
-
-        const string& sourcecode = src->getAttribute(Identifiers::SOURCECODE.str());
-        const string& file = src->getAttribute(Identifiers::FILE.str());
-
-        PvtPrim* prim = nullptr;
-        if (file.empty() && sourcecode.empty())
-        {
-            // Create a generic node implementation.
-            prim = stage->createPrim(parent->getPath(), name, RtNodeImpl::typeName());
-        }
-        else
-        {
-            // Create a source code implementation.
-            prim = stage->createPrim(parent->getPath(), name, RtSourceCodeImpl::typeName());
-
-            RtSourceCodeImpl impl(prim->hnd());
-            if (!sourcecode.empty())
-            {
-                impl.setSourceCode(sourcecode);
-            }
-            else
-            {
-                impl.setFile(file);
-            }
-        }
-
-        RtNodeImpl impl(prim->hnd());
-        readAttributes(src, prim, impl.getPrimSpec(), nodeimplIgnoreList);
-
-        return prim;
-    }
-
-    // Note that this function reads in a single collection. After all required collections
-    // have been read in, the makeCollectionIncludeConnections() function can be called
-    // to create collection inclusion connections.
-    PvtPrim* readCollection(const CollectionPtr& src, PvtStage* stage, PvtRenamingMapper& mapper)
-    {
-        PvtPrim* parent = stage->getRootPrim();
-        const RtIdentifier name(src->getName());
-
-        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtCollection::typeName());
-        mapper.addMapping(stage->getRootPrim(), name, prim->getName());
-
-        RtCollection collection(prim->hnd());
-        readAttributes(src, prim, collection.getPrimSpec(), collectionIgnoreList);
-
-        return prim;
-    }
-
-    // Create collection include connections assuming that all referenced
-    // looks exist.
-    void makeCollectionIncludeConnections(const vector<CollectionPtr>& collectionElements, PvtPrim* parent, const PvtRenamingMapper& mapper)
-    {
-        for (const CollectionPtr& colElement : collectionElements)
-        {
-            PvtPrim* parentCollection = findPrimOrThrow(RtIdentifier(colElement->getName()), parent, mapper);
-            for (const CollectionPtr& includeCollection : colElement->getIncludeCollections())
-            {
-                PvtPrim* childCollection = findPrimOrThrow(RtIdentifier(includeCollection->getName()), parent, mapper);
-                RtCollection rtCollection(parentCollection->hnd());
-                rtCollection.addCollection(childCollection->hnd());
-            }
-        }
-    }
-
-    // Note that this function reads in a single look. After all required looks have been
-    // read in then makeLookInheritConnections() can be called to create look inheritance
-    // connections.
-    PvtPrim* readLook(const LookPtr& src, PvtStage* stage, PvtRenamingMapper& mapper)
-    {
-        PvtPrim* parent = stage->getRootPrim();
-        const RtIdentifier name(src->getName());
-
-        PvtPrim* lookPrim = stage->createPrim(parent->getPath(), name, RtLook::typeName());
-        mapper.addMapping(parent, name, lookPrim->getName());
-        RtLook look(lookPrim->hnd());
-
-        // Create material assignments
-        for (const MaterialAssignPtr matAssign : src->getMaterialAssigns())
-        {
-            const RtIdentifier matAssignName(matAssign->getName());
-            PvtPrim* assignPrim = stage->createPrim(parent->getPath(), matAssignName, RtMaterialAssign::typeName());
-            mapper.addMapping(parent, matAssignName, assignPrim->getName());
-            RtMaterialAssign rtMatAssign(assignPrim->hnd());
-            
-            if (!matAssign->getCollectionString().empty())
-            {
-                PvtPrim* collection = findPrimOrThrow(RtIdentifier(matAssign->getCollectionString()), parent, mapper);
-                rtMatAssign.getCollection().connect(collection->hnd());
-            }
-
-            if (!matAssign->getMaterial().empty())
-            {
-                PvtPrim* material = findPrimOrThrow(RtIdentifier(matAssign->getMaterial()), parent, mapper);
-                rtMatAssign.getMaterial().connect(material->prim().getOutput());
-            }
-
-            rtMatAssign.setGeom(matAssign->getActiveGeom());
-
-            readAttributes(matAssign, assignPrim, rtMatAssign.getPrimSpec(), mtrlAssignIgnoreList);
-
-            look.getMaterialAssigns().connect(assignPrim->hnd());
-        }
-
-        readAttributes(src, lookPrim, look.getPrimSpec(), lookIgnoreList);
-
-        return lookPrim;
-    }
-
-    // Create look inheritance connections assuming that all referenced
-    // looks exist.
-    void makeLookInheritConnections(const vector<LookPtr>& lookElements, PvtPrim* parent, const PvtRenamingMapper& mapper)
-    {
-        for (const LookPtr& lookElem : lookElements)
-        {
-            PvtPrim* childLook = findPrimOrThrow(RtIdentifier(lookElem->getName()), parent, mapper);
-            const string& inheritString = lookElem->getInheritString();
-            if (!inheritString.empty())
-            {
-                PvtPrim* parentLook = findPrimOrThrow(RtIdentifier(inheritString), parent, mapper);
-                RtLook rtLook(childLook->hnd());
-                rtLook.getInherit().connect(parentLook->hnd());
-            }
-        }
-    }
-
-    // Read in a look group. This assumes that all referenced looks have
-    // already been created.
-    PvtPrim* readLookGroup(const LookGroupPtr& src, PvtStage* stage, PvtRenamingMapper& mapper)
-    {
-        const string LIST_SEPARATOR(",");
-
-        PvtPrim* parent = stage->getRootPrim();
-        const RtIdentifier name(src->getName());
-        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtLookGroup::typeName());
-        mapper.addMapping(parent, name, prim->getName());
-
-        RtLookGroup lookGroup(prim->hnd());
-        lookGroup.setEnabledLooks(src->getEnabledLooksString());
-
-        // Link to looks
-        const string& lookNamesString = src->getLooks();
-        StringVec lookNamesList  = splitString(lookNamesString, LIST_SEPARATOR);
-        for (auto lookName : lookNamesList)
-        {
-            if (!lookName.empty())
-            {
-                PvtPrim* lookPrim = findPrimOrThrow(RtIdentifier(lookName), parent, mapper);
-                lookGroup.addLook(lookPrim->hnd());
-            }
-        }
-
-        readAttributes(src, prim, lookGroup.getPrimSpec(), lookGroupIgnoreList);
-
-        return prim;
-    }
-
-    // Read in all look information from a document. Collections, looks and
-    // look groups are read in first. Then relationship linkages are made.
-    void readLookInformation(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* options, PvtRenamingMapper& mapper)
-    {
-        PvtPrim* parent = stage->getRootPrim();
-        RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
-
-        // Read collections
-        for (const ElementPtr& elem : doc->getCollections())
-        {
-            if (!filter || filter(elem))
-            {
-                readCollection(elem->asA<Collection>(), stage, mapper);
-            }
-        }
-
-        // Read looks
-        for (const LookPtr& elem : doc->getLooks())
-        {
-            if (!filter || filter(elem))
-            {
-                readLook(elem, stage, mapper);
-            }
-        }
-
-        // Read look groups
-        for (const LookGroupPtr& elem : doc->getLookGroups())
-        {
-            if (!filter || filter(elem))
-            {
-                readLookGroup(elem, stage, mapper);
-            }
-        }
-
-        // Create additional connections
-        makeCollectionIncludeConnections(doc->getCollections(), parent, mapper);
-        makeLookInheritConnections(doc->getLooks(), parent, mapper);
-    }
-
-    void readDocument(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* options)
-    {
-        // Set the source location.
-        const string& uri = doc->getSourceUri();
-        if (!uri.empty())
-        {
-            stage->addSourceUri(uri);
-        }
-
-        // Read root document attributes.
-        static PvtRootPrimSpec s_rootPrimSpec;
-        readAttributes(doc, stage->getRootPrim(), s_rootPrimSpec, stageIgnoreList);
-
-        RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
-
-        // First, read all definition elements.
-        for (auto elem : doc->getChildren())
-        {
-            if (!filter || filter(elem))
-            {
-                if (elem->isA<NodeDef>())
-                {
-                    readNodeDef(elem->asA<NodeDef>(), stage);
-                }
-                else if (elem->isA<TargetDef>())
-                {
-                    readTargetDef(elem->asA<TargetDef>(), stage);
-                }
-                else if (elem->isA<UnitTypeDef>())
-                {
-                    UnitTypeDefPtr unitTypeDef = elem->asA<UnitTypeDef>();
-                    RtApi::get().getUnitDefinitions()->addUnitConverter(unitTypeDef, LinearUnitConverter::create(unitTypeDef));
-                }
-            }
-        }
-
-        // Second, read all other elements.
-        PvtRenamingMapper mapper;
-        for (auto elem : doc->getChildren())
-        {
-            if (!filter || filter(elem))
-            {
-                if (elem->isA<Node>())
-                {
-                    readNode(elem->asA<Node>(), stage->getRootPrim(), stage, mapper);
-                }
-                else if (elem->isA<NodeGraph>())
-                {
-                    readNodeGraph(elem->asA<NodeGraph>(), stage->getRootPrim(), stage, mapper);
-                }
-                else if (elem->isA<Implementation>())
-                {
-                    readImplementation(elem->asA<Implementation>(), stage);
-                }
-                else if (!(elem->isA<Look>() ||
-                           elem->isA<LookGroup>() ||
-                           elem->isA<MaterialAssign>() ||
-                           elem->isA<Collection>() ||
-                           elem->isA<NodeDef>() ||
-                           elem->isA<TargetDef>()))
-                {
-                    // Read all unknown elements as generic prims into the stage.
-                    readGenericPrim(elem, stage->getRootPrim(), stage, mapper);
-                }
-            }
-        }
-
-        // Create connections between all root level nodes in the stage.
-        createNodeConnections(doc->getNodes(), stage->getRootPrim(), stage, mapper);
-
-        // Create connections between all nodegraphs in the stage.
-        createNodeGraphConnections(doc->getNodeGraphs(), stage->getRootPrim(), stage, mapper);
-
-        // Read look information into the stage.
-        if (!options || options->readLookInformation)
-        {
-            readLookInformation(doc, stage, options, mapper);
-        }
-    }
-
     void writeTargetDef(const PvtPrim* src, DocumentPtr dest, const RtWriteOptions* options)
     {
         RtTargetDef targetdef(src->hnd());
@@ -1432,6 +739,713 @@ namespace
                 }
             }
         }      
+    }
+
+    template<class T>
+    void createInterface(const ElementPtr& src, T schema)
+    {
+        for (auto elem : src->getChildrenOfType<ValueElement>())
+        {
+            const RtIdentifier portName(elem->getName());
+            const RtIdentifier portType(elem->getType());
+
+            RtPort port;
+            if (elem->isA<Output>())
+            {
+                port = schema.createOutput(portName, portType);
+            }
+            else if (elem->isA<Input>())
+            {
+                const uint32_t flags = elem->asA<Input>()->getIsUniform() ? RtPortFlag::UNIFORM : 0;
+                port = schema.createInput(portName, portType, flags);
+            }
+            else if (elem->isA<Token>())
+            {
+                const uint32_t flags = RtPortFlag::UNIFORM | RtPortFlag::TOKEN;
+                port = schema.createInput(portName, portType, flags);
+            }
+
+            if (port)
+            {
+                const string& valueStr = elem->getValueString();
+                if (!valueStr.empty())
+                {
+                    RtValue::fromString(portType, valueStr, port.getValue());
+                }
+
+                readAttributes(elem, PvtObject::cast(port), schema.getPrimSpec(), portIgnoreList);
+            }
+        }
+    }
+
+    void createConnection(PvtOutput* output, PvtInput* input, const string& swizzle, PvtStage* stage)
+    {
+        // Check if a swizzle node should be used in the connection.
+        if (!swizzle.empty())
+        {
+            const RtIdentifier swizzleNodeDefName("ND_swizzle_" + output->getType().str() + "_" + input->getType().str());
+            const RtIdentifier swizzleNodeName("swizzle_" + input->getParent()->getName().str() + "_" + input->getName().str());
+
+            PvtPrim* parent = input->getParent()->getParent();
+            PvtPrim* swizzleNode = stage->createPrim(parent->getPath(), swizzleNodeName, swizzleNodeDefName);
+
+            PvtInput* in = swizzleNode->getInput(SWIZZLE_INPUT);
+            PvtInput* ch = swizzleNode->getInput(SWIZZLE_CHANNELS);
+            PvtOutput* out = swizzleNode->getOutput();
+            if (in && ch && out)
+            {
+                ch->getValue().asString() = swizzle;
+                output->connect(in);
+                output = out;
+            }
+        }
+
+        // Make the connection
+        output->connect(input);
+    }
+
+    void createNodeConnection(InterfaceElementPtr nodeElem, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
+    {
+        PvtPrim* node = findPrimOrThrow(RtIdentifier(nodeElem->getName()), parent, mapper);
+        for (InputPtr elemInput : nodeElem->getInputs())
+        {
+            PvtInput* input = findInputOrThrow(RtIdentifier(elemInput->getName()), node);
+            string connectedNodeName = elemInput->getNodeName();
+            if (connectedNodeName.empty())
+            {
+                connectedNodeName = elemInput->getNodeGraphString();
+            }
+            if (!connectedNodeName.empty())
+            {
+                PvtPrim* connectedNode = findPrimOrThrow(RtIdentifier(connectedNodeName), parent, mapper);
+                RtIdentifier outputName(elemInput->getOutputString());
+                if (outputName == EMPTY_IDENTIFIER && connectedNode)
+                {
+                    RtNode rtConnectedNode(connectedNode->hnd());
+                    RtOutput output = rtConnectedNode.getOutput();
+                    if (output)
+                    {
+                        outputName = output.getName();
+                    }
+                }
+                PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
+
+                createConnection(output, input, elemInput->getChannels(), stage);
+            }
+        }
+    }
+
+    void createNodeConnections(const vector<NodePtr>& nodeElements, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
+    {
+        for (auto nodeElem : nodeElements)
+        {
+            createNodeConnection(nodeElem->asA<InterfaceElement>(), parent, stage, mapper);
+        }
+    }
+
+    void createNodeGraphConnections(const vector<NodeGraphPtr>& nodeElements, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
+    {
+        for (auto nodeElem : nodeElements)
+        {
+            // Only process compound nodegraph, since functional nodegraph are not part of the stage.
+            NodeGraphPtr nodegraph = nodeElem->asA<NodeGraph>();
+            if (!nodegraph || nodegraph->getNodeDefString().empty())
+            {
+                createNodeConnection(nodeElem->asA<InterfaceElement>(), parent, stage, mapper);
+            }
+        }
+    }
+
+    PvtPrim* readNodeDef(const NodeDefPtr& src, PvtStage* stage)
+    {
+        const RtIdentifier name(src->getName());
+        PvtPrim* prim = stage->createPrim(stage->getPath(), name, RtNodeDef::typeName());
+
+        RtNodeDef nodedef(prim->hnd());
+        readAttributes(src, prim, nodedef.getPrimSpec(), nodedefIgnoreList);
+
+        // Create the interface.
+        createInterface(src, nodedef);
+
+        return prim;
+    }
+
+    bool matchingSignature(const PvtPrim* prim, const RtIdentifier& nodeType, const vector<ValueElementPtr>& nodePorts)
+    {
+        if (nodeType != MULTIOUTPUT)
+        {
+            // For single output nodes we can match the output directly.
+            PvtOutput* out = prim->getOutput();
+            if (!out || out->getType() != nodeType)
+            {
+                return false;
+            }
+        }
+
+        // Check all ports.
+        for (const ValueElementPtr& nodePort : nodePorts)
+        {
+            const RtIdentifier name(nodePort->getName());
+            const PvtPort* port = nodePort->isA<Input>() ? prim->getInput(name)->asA<PvtPort>() : prim->getOutput(name)->asA<PvtPort>();
+            if (!port || port->getType().str() != nodePort->getType())
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    PvtPrim* resolveNodeDef(const NodePtr& node, PvtStage* stage)
+    {
+        PvtApi* api = PvtApi::cast(RtApi::get());
+
+        // First, see if a nodedef string is specified on the node.
+        const string& nodedefNameString = node->getNodeDefString();
+        if (!nodedefNameString.empty())
+        {
+            // Find this nodedef among the available ones.
+            const RtIdentifier nodedefName(nodedefNameString);
+
+            // Search the globally registered nodedefs.
+            PvtObject* obj = api->getNodeDef(nodedefName);
+            if (!obj)
+            {
+                // Search the current stage.
+                PvtPath path(nodedefName);
+                obj = stage->getPrimAtPath(path);
+            }
+            return obj ? obj->asA<PvtPrim>() : nullptr;
+        }
+
+        // Second, try resolving among the available nodedefs.
+        const RtIdentifier nodeName(node->getCategory());
+        const RtIdentifier nodeType(node->getType());
+        const vector<ValueElementPtr> nodePorts = node->getActiveValueElements();
+
+        // Search the globally registered nodedefs.
+        const size_t numNodeDefs = api->numNodeDefs();
+        for (size_t i = 0; i < numNodeDefs; ++i)
+        {
+            PvtPrim* prim = api->getNodeDef(i)->asA<PvtPrim>();
+            RtNodeDef candidate(prim->hnd());
+            if (candidate.getNamespacedNode() == nodeName && 
+                matchingSignature(prim, nodeType, nodePorts))
+            {
+                return prim;
+            }
+        }
+
+        // Search the current stage.
+        RtSchemaPredicate<RtNodeDef> filter;
+        for (auto it : stage->getPrims(filter))
+        {
+            PvtPrim* prim = PvtObject::cast<PvtPrim>(it);
+            RtNodeDef candidate(prim->hnd());
+            if (candidate.getNamespacedNode() == nodeName &&
+                matchingSignature(prim, nodeType, nodePorts))
+            {
+                return prim;
+            }
+        }
+
+        return nullptr;
+    }
+
+    PvtPrim* resolveTargetDef(const RtIdentifier target, PvtStage* stage)
+    {
+        PvtApi* api = PvtApi::cast(RtApi::get());
+
+        PvtObject* obj = api->getTargetDef(target);
+        if (obj)
+        {
+            return obj->asA<PvtPrim>();
+        }
+
+        PvtPath path(target);
+        return stage->getPrimAtPath(path);
+    }
+
+    PvtPrim* readNode(const NodePtr& src, PvtPrim* parent, PvtStage* stage, PvtRenamingMapper& mapper)
+    {
+        const PvtPrim* nodedef = resolveNodeDef(src, stage);
+        if (!nodedef)
+        {
+            throw ExceptionRuntimeError("No matching nodedef was found for node '" + src->getName() + "'");
+        }
+
+        const RtIdentifier nodeName(src->getName());
+        PvtPrim* prim = stage->createPrim(parent->getPath(), nodeName, nodedef->getName());
+        mapper.addMapping(parent, nodeName, prim->getName());
+
+        RtNode node(prim->hnd());
+        readAttributes(src, prim, node.getPrimSpec(), nodeIgnoreList);
+
+        // Copy input values.
+        for (auto elem : src->getChildrenOfType<ValueElement>())
+        {
+            if (elem->isA<Output>())
+            {
+                continue;
+            }
+            const RtIdentifier portName(elem->getName());
+            PvtInput* input = prim->getInput(portName);
+            if (!input)
+            {
+                throw ExceptionRuntimeError("No input named '" + elem->getName() + "' was found on runtime node '" + prim->getName().str() + "'");
+            }
+            const string& valueStr = elem->getValueString();
+            if (!valueStr.empty())
+            {
+                const RtIdentifier portType(elem->getType());
+                RtValue::fromString(portType, valueStr, input->getValue());
+            }
+            readAttributes(elem, input, node.getPrimSpec(), portIgnoreList);
+        }
+
+        return prim;
+    }
+
+    PvtPrim* readNodeGraph(const NodeGraphPtr& src, PvtPrim* parent, PvtStage* stage, PvtRenamingMapper& mapper)
+    {
+        const RtIdentifier nodegraphName(src->getName());
+
+        PvtPrim* prim = stage->createPrim(parent->getPath(), nodegraphName, RtNodeGraph::typeName());
+        mapper.addMapping(parent, nodegraphName, prim->getName());
+
+        RtNodeGraph nodegraph(prim->hnd());
+        readAttributes(src, prim, nodegraph.getPrimSpec(), nodegraphIgnoreList);
+
+        // Create the interface either from a nodedef if given
+        // otherwise from the graph itself.
+        const NodeDefPtr srcNodeDef = src->getNodeDef();
+        if (srcNodeDef)
+        {
+            createInterface(srcNodeDef, nodegraph);
+        }
+        else
+        {
+            createInterface(src, nodegraph);
+        }
+
+        // Create all nodes and connections between node inputs and internal graph sockets.
+        for (auto child : src->getChildren())
+        {
+            NodePtr srcNnode = child->asA<Node>();
+            if (srcNnode)
+            {
+                PvtPrim* node = readNode(srcNnode, prim, stage, mapper);
+
+                // Check for connections to the internal graph sockets
+                for (auto elem : srcNnode->getChildrenOfType<ValueElement>())
+                {
+                    if (elem->isA<Output>())
+                    {
+                        continue;
+                    }
+                    const string& interfaceName = elem->getInterfaceName();
+                    if (!interfaceName.empty())
+                    {
+                        const RtIdentifier socketName(interfaceName);
+                        RtOutput socket = nodegraph.getInputSocket(socketName);
+                        if (!socket)
+                        {
+                            const RtIdentifier inputType(elem->getType());
+
+                            const uint32_t flags = elem->isA<Token>() ? RtPortFlag::UNIFORM | RtPortFlag::TOKEN : 0;
+                            RtInput input = nodegraph.createInput(socketName, inputType, flags);
+                            socket = nodegraph.getInputSocket(input.getName());
+
+                            // Set the input value
+                            const string& valueStr = elem->getValueString();
+                            if (!valueStr.empty())
+                            {
+                                const RtIdentifier portType(elem->getType());
+                                RtValue::fromString(portType, valueStr, input.getValue());
+                            }
+                        }
+
+                        PvtOutput* output = PvtObject::cast<PvtOutput>(socket);
+                        const RtIdentifier inputName(elem->getName());
+                        PvtInput* input = findInputOrThrow(inputName, node);
+                        const string& swizzle = elem->isA<Input>() ? elem->asA<Input>()->getChannels() : EMPTY_STRING;
+
+                        createConnection(output, input, swizzle, stage);
+                    }
+                }
+            }
+        }
+
+        // Create connections between all nodes.
+        createNodeConnections(src->getNodes(), prim, stage, mapper);
+
+        // Create connections between node outputs and internal graph sockets.
+        for (const OutputPtr& elem : src->getOutputs())
+        {
+            const string& connectedNodeName = elem->getNodeName();
+            if (!connectedNodeName.empty())
+            {
+                RtInput socket = nodegraph.getOutputSocket(RtIdentifier(elem->getName()));
+                if (!socket)
+                {
+                    PvtPath path(parent->getPath());
+                    path.push(nodegraphName);
+                    throw ExceptionRuntimeError("Output '" + elem->getName() + "' does not match an internal output socket on the nodegraph '" + path.asString() + "'");
+                }
+
+                PvtPrim* connectedNode = findPrimOrThrow(RtIdentifier(connectedNodeName), prim, mapper);
+
+                const RtIdentifier outputName(elem->getOutputString());
+                PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
+                PvtInput* input = PvtObject::cast<PvtInput>(socket);
+                const string& swizzle = elem->getChannels();
+
+                createConnection(output, input, swizzle, stage);
+            }
+        }
+
+        return prim;
+    }
+
+    PvtPrim* readGenericPrim(const ElementPtr& src, PvtPrim* parent, PvtStage* stage, PvtRenamingMapper& mapper)
+    {
+        const RtIdentifier name(src->getName());
+        const RtIdentifier category(src->getCategory());
+
+        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtGeneric::typeName());
+        mapper.addMapping(parent, name, prim->getName());
+
+        RtGeneric generic(prim->hnd());
+        generic.setKind(category);
+        readAttributes(src, prim, generic.getPrimSpec(), genericIgnoreList);
+
+        for (auto child : src->getChildren())
+        {
+            readGenericPrim(child, prim, stage, mapper);
+        }
+
+        return prim;
+    }
+
+    PvtPrim* readTargetDef(const TargetDefPtr& src, PvtStage* stage)
+    {
+        PvtPrim* parent = stage->getRootPrim();
+        const RtIdentifier name(src->getName());
+        const RtIdentifier inherit(src->getInheritString());
+
+        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtTargetDef::typeName());
+
+        RtTargetDef def(prim->hnd());
+        if (inherit != EMPTY_IDENTIFIER)
+        {
+            def.setInherit(inherit);
+        }
+
+        readAttributes(src, prim, def.getPrimSpec(), targetdefIgnoreList);
+
+        return prim;
+    }
+
+    PvtPrim* readImplementation(const ImplementationPtr& src, PvtStage* stage)
+    {
+        PvtPrim* parent = stage->getRootPrim();
+        const RtIdentifier target(src->getAttribute(Identifiers::TARGET.str()));
+
+        // We are only interested in implementations for loaded targets,
+        // so if target is set make sure this target has been loaded.
+        if (target != EMPTY_IDENTIFIER && !resolveTargetDef(target, stage))
+        {
+            return nullptr;
+        }
+
+        const RtIdentifier name(src->getName());
+
+        const string& sourcecode = src->getAttribute(Identifiers::SOURCECODE.str());
+        const string& file = src->getAttribute(Identifiers::FILE.str());
+
+        PvtPrim* prim = nullptr;
+        if (file.empty() && sourcecode.empty())
+        {
+            // Create a generic node implementation.
+            prim = stage->createPrim(parent->getPath(), name, RtNodeImpl::typeName());
+        }
+        else
+        {
+            // Create a source code implementation.
+            prim = stage->createPrim(parent->getPath(), name, RtSourceCodeImpl::typeName());
+
+            RtSourceCodeImpl impl(prim->hnd());
+            if (!sourcecode.empty())
+            {
+                impl.setSourceCode(sourcecode);
+            }
+            else
+            {
+                impl.setFile(file);
+            }
+        }
+
+        RtNodeImpl impl(prim->hnd());
+        readAttributes(src, prim, impl.getPrimSpec(), nodeimplIgnoreList);
+
+        return prim;
+    }
+
+    // Note that this function reads in a single collection. After all required collections
+    // have been read in, the makeCollectionIncludeConnections() function can be called
+    // to create collection inclusion connections.
+    PvtPrim* readCollection(const CollectionPtr& src, PvtStage* stage, PvtRenamingMapper& mapper)
+    {
+        PvtPrim* parent = stage->getRootPrim();
+        const RtIdentifier name(src->getName());
+
+        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtCollection::typeName());
+        mapper.addMapping(stage->getRootPrim(), name, prim->getName());
+
+        RtCollection collection(prim->hnd());
+        readAttributes(src, prim, collection.getPrimSpec(), collectionIgnoreList);
+
+        return prim;
+    }
+
+    // Create collection include connections assuming that all referenced
+    // looks exist.
+    void makeCollectionIncludeConnections(const vector<CollectionPtr>& collectionElements, PvtPrim* parent, const PvtRenamingMapper& mapper)
+    {
+        for (const CollectionPtr& colElement : collectionElements)
+        {
+            PvtPrim* parentCollection = findPrimOrThrow(RtIdentifier(colElement->getName()), parent, mapper);
+            for (const CollectionPtr& includeCollection : colElement->getIncludeCollections())
+            {
+                PvtPrim* childCollection = findPrimOrThrow(RtIdentifier(includeCollection->getName()), parent, mapper);
+                RtCollection rtCollection(parentCollection->hnd());
+                rtCollection.addCollection(childCollection->hnd());
+            }
+        }
+    }
+
+    // Note that this function reads in a single look. After all required looks have been
+    // read in then makeLookInheritConnections() can be called to create look inheritance
+    // connections.
+    PvtPrim* readLook(const LookPtr& src, PvtStage* stage, PvtRenamingMapper& mapper)
+    {
+        PvtPrim* parent = stage->getRootPrim();
+        const RtIdentifier name(src->getName());
+
+        PvtPrim* lookPrim = stage->createPrim(parent->getPath(), name, RtLook::typeName());
+        mapper.addMapping(parent, name, lookPrim->getName());
+        RtLook look(lookPrim->hnd());
+
+        // Create material assignments
+        for (const MaterialAssignPtr matAssign : src->getMaterialAssigns())
+        {
+            const RtIdentifier matAssignName(matAssign->getName());
+            PvtPrim* assignPrim = stage->createPrim(parent->getPath(), matAssignName, RtMaterialAssign::typeName());
+            mapper.addMapping(parent, matAssignName, assignPrim->getName());
+            RtMaterialAssign rtMatAssign(assignPrim->hnd());
+            
+            if (!matAssign->getCollectionString().empty())
+            {
+                PvtPrim* collection = findPrimOrThrow(RtIdentifier(matAssign->getCollectionString()), parent, mapper);
+                rtMatAssign.getCollection().connect(collection->hnd());
+            }
+
+            if (!matAssign->getMaterial().empty())
+            {
+                PvtPrim* material = findPrimOrThrow(RtIdentifier(matAssign->getMaterial()), parent, mapper);
+                rtMatAssign.getMaterial().connect(material->prim().getOutput());
+            }
+
+            rtMatAssign.setGeom(matAssign->getActiveGeom());
+
+            readAttributes(matAssign, assignPrim, rtMatAssign.getPrimSpec(), mtrlAssignIgnoreList);
+
+            look.getMaterialAssigns().connect(assignPrim->hnd());
+        }
+
+        readAttributes(src, lookPrim, look.getPrimSpec(), lookIgnoreList);
+
+        return lookPrim;
+    }
+
+    // Create look inheritance connections assuming that all referenced
+    // looks exist.
+    void makeLookInheritConnections(const vector<LookPtr>& lookElements, PvtPrim* parent, const PvtRenamingMapper& mapper)
+    {
+        for (const LookPtr& lookElem : lookElements)
+        {
+            PvtPrim* childLook = findPrimOrThrow(RtIdentifier(lookElem->getName()), parent, mapper);
+            const string& inheritString = lookElem->getInheritString();
+            if (!inheritString.empty())
+            {
+                PvtPrim* parentLook = findPrimOrThrow(RtIdentifier(inheritString), parent, mapper);
+                RtLook rtLook(childLook->hnd());
+                rtLook.getInherit().connect(parentLook->hnd());
+            }
+        }
+    }
+
+    // Read in a look group. This assumes that all referenced looks have
+    // already been created.
+    PvtPrim* readLookGroup(const LookGroupPtr& src, PvtStage* stage, PvtRenamingMapper& mapper)
+    {
+        PvtPrim* parent = stage->getRootPrim();
+        const RtIdentifier name(src->getName());
+        PvtPrim* prim = stage->createPrim(parent->getPath(), name, RtLookGroup::typeName());
+        mapper.addMapping(parent, name, prim->getName());
+
+        RtLookGroup lookGroup(prim->hnd());
+        lookGroup.setEnabledLooks(src->getEnabledLooksString());
+
+        // Link to looks
+        const string& lookNamesString = src->getLooks();
+        StringVec lookNamesList  = splitString(lookNamesString, ARRAY_VALID_SEPARATORS);
+        for (auto lookName : lookNamesList)
+        {
+            if (!lookName.empty())
+            {
+                PvtPrim* lookPrim = findPrimOrThrow(RtIdentifier(lookName), parent, mapper);
+                lookGroup.addLook(lookPrim->hnd());
+            }
+        }
+
+        readAttributes(src, prim, lookGroup.getPrimSpec(), lookGroupIgnoreList);
+
+        return prim;
+    }
+
+    // Read in all look information from a document. Collections, looks and
+    // look groups are read in first. Then relationship linkages are made.
+    void readLookInformation(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* options, PvtRenamingMapper& mapper)
+    {
+        // Create the mergedDoc
+        DocumentPtr mergedDoc;
+        if (options && options->lookModifier)
+        {
+            // Write the stage contents to the stageDoc
+            DocumentPtr stageDoc = createDocument();
+            RtWriteOptions wops;
+            writeDocument(stageDoc, stage, &wops);
+            mergedDoc = options->lookModifier(stageDoc, doc);
+        }
+        else
+        {
+            mergedDoc = doc;
+        }
+
+        PvtPrim* parent = stage->getRootPrim();
+        RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
+
+        // Read collections
+        for (const ElementPtr& elem : mergedDoc->getCollections())
+        {
+            if (!filter || filter(elem))
+            {
+                readCollection(elem->asA<Collection>(), stage, mapper);
+            }
+        }
+
+        // Read looks
+        for (const LookPtr& elem : mergedDoc->getLooks())
+        {
+            if (!filter || filter(elem))
+            {
+                readLook(elem, stage, mapper);
+            }
+        }
+
+        // Read look groups
+        for (const LookGroupPtr& elem : mergedDoc->getLookGroups())
+        {
+            if (!filter || filter(elem))
+            {
+                readLookGroup(elem, stage, mapper);
+            }
+        }
+
+        // Create additional connections
+        makeCollectionIncludeConnections(mergedDoc->getCollections(), parent, mapper);
+        makeLookInheritConnections(mergedDoc->getLooks(), parent, mapper);
+    }
+
+    void readDocument(const DocumentPtr& doc, PvtStage* stage, const RtReadOptions* options)
+    {
+        // Set the source location.
+        const string& uri = doc->getSourceUri();
+        if (!uri.empty())
+        {
+            stage->addSourceUri(uri);
+        }
+
+        // Read root document attributes.
+        static PvtRootPrimSpec s_rootPrimSpec;
+        readAttributes(doc, stage->getRootPrim(), s_rootPrimSpec, stageIgnoreList);
+
+        RtReadOptions::ElementFilter filter = options ? options->elementFilter : nullptr;
+
+        // First, read all definition elements.
+        for (auto elem : doc->getChildren())
+        {
+            if (!filter || filter(elem))
+            {
+                if (elem->isA<NodeDef>())
+                {
+                    readNodeDef(elem->asA<NodeDef>(), stage);
+                }
+                else if (elem->isA<TargetDef>())
+                {
+                    readTargetDef(elem->asA<TargetDef>(), stage);
+                }
+                else if (elem->isA<UnitTypeDef>())
+                {
+                    UnitTypeDefPtr unitTypeDef = elem->asA<UnitTypeDef>();
+                    RtApi::get().getUnitDefinitions()->addUnitConverter(unitTypeDef, LinearUnitConverter::create(unitTypeDef));
+                }
+            }
+        }
+
+        // Second, read all other elements.
+        PvtRenamingMapper mapper;
+        for (auto elem : doc->getChildren())
+        {
+            if (!filter || filter(elem))
+            {
+                if (elem->isA<Node>())
+                {
+                    readNode(elem->asA<Node>(), stage->getRootPrim(), stage, mapper);
+                }
+                else if (elem->isA<NodeGraph>())
+                {
+                    readNodeGraph(elem->asA<NodeGraph>(), stage->getRootPrim(), stage, mapper);
+                }
+                else if (elem->isA<Implementation>())
+                {
+                    readImplementation(elem->asA<Implementation>(), stage);
+                }
+                else if (!(elem->isA<Look>() ||
+                           elem->isA<LookGroup>() ||
+                           elem->isA<MaterialAssign>() ||
+                           elem->isA<Collection>() ||
+                           elem->isA<NodeDef>() ||
+                           elem->isA<TargetDef>()))
+                {
+                    // Read all unknown elements as generic prims into the stage.
+                    readGenericPrim(elem, stage->getRootPrim(), stage, mapper);
+                }
+            }
+        }
+
+        // Create connections between all root level nodes in the stage.
+        createNodeConnections(doc->getNodes(), stage->getRootPrim(), stage, mapper);
+
+        // Create connections between all nodegraphs in the stage.
+        createNodeGraphConnections(doc->getNodeGraphs(), stage->getRootPrim(), stage, mapper);
+
+        // Read look information into the stage.
+        if (!options || options->readLookInformation)
+        {
+            readLookInformation(doc, stage, options, mapper);
+        }
     }
 
 } // end anonymous namespace

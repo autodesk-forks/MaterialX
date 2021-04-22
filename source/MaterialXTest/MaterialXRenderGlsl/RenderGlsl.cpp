@@ -71,9 +71,8 @@ class GlslShaderRenderTester : public RenderUtil::ShaderRenderTester
     {
         return true;
     }
-
-    void runBake(mx::DocumentPtr doc, const mx::FileSearchPath& imageSearchPath, const mx::FilePath& outputFilename,
-                 unsigned int bakeWidth, unsigned int bakeHeight, bool bakeHdr, std::ostream& log) override;
+    void runBake(mx::DocumentPtr doc, const mx::FileSearchPath& imageSearchPath, const mx::FileSearchPath& codeSearchPath,
+                 const mx::FilePath& outputFilename, const GenShaderUtil::TestSuiteOptions::BakeSetting& bakeOptions, std::ostream& log) override;
 
     mx::GlslRendererPtr _renderer;
     mx::LightHandlerPtr _lightHandler;
@@ -701,20 +700,23 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
     return true;
 }
 
-void GlslShaderRenderTester::runBake(mx::DocumentPtr doc, const mx::FileSearchPath& imageSearchPath, const mx::FilePath& outputFileName,
-                                      unsigned int bakeWidth, unsigned int bakeHeight, bool bakeHdr, std::ostream& log)
+void GlslShaderRenderTester::runBake(mx::DocumentPtr doc, const mx::FileSearchPath& imageSearchPath, const mx::FileSearchPath& codeSearchPath, 
+                                     const mx::FilePath& outputFileName, const GenShaderUtil::TestSuiteOptions::BakeSetting& bakeOptions,
+                                     std::ostream& log)
 {
-    bakeWidth = std::max(bakeWidth, (unsigned int) 2);
-    bakeHeight = std::max(bakeHeight, (unsigned int) 2);
+    const unsigned int bakeWidth = std::max(bakeOptions.resolution, (unsigned int) 2);
+    const unsigned int bakeHeight = std::max(bakeOptions.resolution, (unsigned int) 2);
 
-    mx::Image::BaseType baseType = bakeHdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
+    mx::Image::BaseType baseType = bakeOptions.hdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
     mx::TextureBakerPtr baker = mx::TextureBaker::create(bakeWidth, bakeHeight, baseType);
     baker->setupUnitSystem(doc);
     baker->setImageHandler(_renderer->getImageHandler());
     baker->setOptimizeConstants(true);
     baker->setAutoTextureResolution(true);
     baker->setHashImageNames(true);
-    
+    baker->setCodeSearchPath(codeSearchPath);
+    baker->setTextureSpace(bakeOptions.uvmin, bakeOptions.uvmax);
+
     try
     {
         baker->setOutputStream(&log);
