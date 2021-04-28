@@ -93,6 +93,9 @@ class RtExportOptions : public RtWriteOptions
 
     // Whether to merge all of the looks/lookgroups into a single look
     bool mergeLooks;
+
+    // The name of the lookgroup to merge
+    std::string lookGroupToMerge;
 };
 
 /// API for read and write of data from MaterialX files

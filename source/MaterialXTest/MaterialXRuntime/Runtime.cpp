@@ -2742,6 +2742,7 @@ TEST_CASE("Export", "[runtime]")
     fileIo.read("looks.mtlx", testSearchPath);
     mx::RtExportOptions exportOptions;
     exportOptions.mergeLooks = true;
+    exportOptions.lookGroupToMerge = "lookgroup1";
     std::stringstream ss;
     fileIo.exportDocument(ss, &exportOptions);
     mx::RtStagePtr exportStage = api->createStage(mx::RtIdentifier("exportStage"));

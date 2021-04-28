@@ -1720,17 +1720,14 @@ void RtFileIo::exportDocument(std::ostream& stream, const RtExportOptions* optio
     DocumentPtr document = createDocument();
     writeDocument(document, stage, options);
 
-    if (options->mergeLooks)
-    {
-        mergeLooks(document);
-    }
-
-    XmlWriteOptions xmlWriteOptions;
+    XmlExportOptions xmlExportOptions;
     if (options)
     {
-        xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
+        xmlExportOptions.writeXIncludeEnable = options->writeIncludes;
+        xmlExportOptions.mergeLooks = options->mergeLooks;
+        xmlExportOptions.lookGroupToMerge = options->lookGroupToMerge;
     }
-    writeToXmlStream(document, stream, &xmlWriteOptions);
+    exportToXmlStream(document, stream, &xmlExportOptions);
 }
 
 void RtFileIo::exportDocument(const FilePath& documentPath, const RtExportOptions* options)
@@ -1740,17 +1737,14 @@ void RtFileIo::exportDocument(const FilePath& documentPath, const RtExportOption
     DocumentPtr document = createDocument();
     writeDocument(document, stage, options);
 
-    if (options->mergeLooks)
-    {
-        mergeLooks(document);
-    }
-
-    XmlWriteOptions xmlWriteOptions;
+    XmlExportOptions xmlExportOptions;
     if (options)
     {
-        xmlWriteOptions.writeXIncludeEnable = options->writeIncludes;
+        xmlExportOptions.writeXIncludeEnable = options->writeIncludes;
+        xmlExportOptions.mergeLooks = options->mergeLooks;
+        xmlExportOptions.lookGroupToMerge = options->lookGroupToMerge;
     }
-    writeToXmlFile(document, documentPath, &xmlWriteOptions);
+    exportToXmlFile(document, documentPath, &xmlExportOptions);
 }
 
 }

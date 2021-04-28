@@ -287,6 +287,16 @@ XmlWriteOptions::XmlWriteOptions() :
 }
 
 //
+// XmlExportOptions methods
+//
+
+XmlExportOptions::XmlExportOptions() :
+    XmlWriteOptions(),
+    mergeLooks(false)
+{
+}
+
+//
 // Reading
 //
 
@@ -360,6 +370,32 @@ string writeToXmlString(DocumentPtr doc, const XmlWriteOptions* writeOptions)
     std::ostringstream stream;
     writeToXmlStream(doc, stream, writeOptions);
     return stream.str();
+}
+
+static void mergeLooks(DocumentPtr doc, const XmlExportOptions* exportOptions)
+{
+    if (exportOptions && exportOptions->mergeLooks)
+    {
+        doc->mergeLooks(exportOptions->lookGroupToMerge);
+    }
+}
+
+void exportToXmlStream(DocumentPtr doc, std::ostream& stream, const XmlExportOptions* exportOptions)
+{
+    mergeLooks(doc, exportOptions);
+    writeToXmlStream(doc, stream, exportOptions);
+}
+
+void exportToXmlFile(DocumentPtr doc, const FilePath& filename, const XmlExportOptions* exportOptions)
+{
+    mergeLooks(doc, exportOptions);
+    writeToXmlFile(doc, filename, exportOptions);
+}
+
+string exportToXmlString(DocumentPtr doc, const XmlExportOptions* exportOptions)
+{
+    mergeLooks(doc, exportOptions);
+    return writeToXmlString(doc, exportOptions);
 }
 
 void prependXInclude(DocumentPtr doc, const FilePath& filename)

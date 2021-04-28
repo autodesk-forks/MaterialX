@@ -32,6 +32,10 @@ void bindPyXmlIo(py::module& mod)
         py::arg("doc"), py::arg("filename"), py::arg("writeOptions") = (mx::XmlWriteOptions*) nullptr);
     mod.def("writeToXmlString", mx::writeToXmlString,
         py::arg("doc"), py::arg("writeOptions") = nullptr);
+    mod.def("exportToXmlFile", mx::exportToXmlFile,
+        py::arg("doc"), py::arg("filename"), py::arg("exportOptions") = (mx::XmlExportOptions*) nullptr);
+    mod.def("exportToXmlString", mx::exportToXmlString,
+        py::arg("doc"), py::arg("exportOptions") = nullptr);
     mod.def("prependXInclude", mx::prependXInclude);
 
     py::register_exception<mx::ExceptionParseError>(mod, "ExceptionParseError");

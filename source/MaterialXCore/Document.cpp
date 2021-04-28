@@ -153,6 +153,75 @@ void Document::initialize()
     setVersionIntegers(MATERIALX_MAJOR_VERSION, MATERIALX_MINOR_VERSION);
 }
 
+void Document::mergeLooks(const std::string& lookGroupName)
+{
+    LookGroupPtr mainLookGroup = getLookGroup(lookGroupName);
+    if (!mainLookGroup)
+    {
+        throw Exception("Invalid look group specified: " + lookGroupName);
+    }
+
+    std::vector<std::string> lookgroupNames;
+    std::set<std::string> looksInLookGroup;
+
+    for (LookGroupPtr lookgroup : getLookGroups())
+    {
+        if (lookgroup != mainLookGroup)
+        {
+            lookgroupNames.push_back(lookgroup->getName());
+
+            // Append lookgroup looks to looksInLookGroup if they aren't already part of the set
+            StringVec lookNamesList = splitString(lookgroup->getLooks(), ARRAY_VALID_SEPARATORS);
+            for (std::string lookName : lookNamesList)
+            {
+                if (looksInLookGroup.count(lookName) == 0)
+                {
+                    looksInLookGroup.emplace(lookName);
+                }
+            }
+        }
+    }
+    // Append looks which are not a part of a lookgroup to the mainLookGroup
+    for (LookPtr look : getLooks())
+    {
+        if (looksInLookGroup.count(look->getName()) == 0)
+        {
+            mainLookGroup->appendLook(look->getName());
+        }
+    }
+    for (const std::string& lookgroupName : lookgroupNames)
+    {
+        // Merge all other lookgroups into the mainLookGroup
+        LookGroupPtr lookgroup = getLookGroup(lookGroupName);
+        if (!lookgroup)
+        {
+            throw Exception("Invalid look group specified: " + lookGroupName);
+        }
+        mainLookGroup->appendLookGroup(lookgroup);
+
+        // Delete the non-mainLookGroup lookgroups
+        removeChild(lookgroupName);
+    }
+    // Combine the mainLookGroup into a mainLook
+    LookPtr mainLook = mainLookGroup->combineLooks();
+    // Delete the mainLookGroup
+    removeChild(mainLookGroup->getName());
+    // Append look names that don't belong to the mainLook to lookNames
+    std::vector<std::string> lookNames;
+    for (LookPtr look : getLooks())
+    {
+        if (look != mainLook)
+        {
+            lookNames.push_back(look->getName());
+        }
+    }
+    // Delete all the looks from the document that are in lookNames
+    for (const std::string& lookName : lookNames)
+    {
+        removeChild(lookName);
+    }
+}
+
 NodeDefPtr Document::addNodeDefFromGraph(const NodeGraphPtr nodeGraph, const string& nodeDefName, const string& category,
                                          const string& version, bool isDefaultVersion, const string& group, 
                                          string& newGraphName, const string& namespaceString)
