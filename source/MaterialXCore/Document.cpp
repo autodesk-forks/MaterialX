@@ -161,15 +161,12 @@ void Document::mergeLooks(const std::string& lookGroupName)
         throw Exception("Invalid look group specified: " + lookGroupName);
     }
 
-    std::vector<std::string> lookgroupNames;
     std::set<std::string> looksInLookGroup;
 
     for (LookGroupPtr lookgroup : getLookGroups())
     {
         if (lookgroup != mainLookGroup)
         {
-            lookgroupNames.push_back(lookgroup->getName());
-
             // Append lookgroup looks to looksInLookGroup if they aren't already part of the set
             StringVec lookNamesList = splitString(lookgroup->getLooks(), ARRAY_VALID_SEPARATORS);
             for (std::string lookName : lookNamesList)
@@ -179,6 +176,10 @@ void Document::mergeLooks(const std::string& lookGroupName)
                     looksInLookGroup.emplace(lookName);
                 }
             }
+            // Append the current lookgroup to the main lookgroup
+            mainLookGroup->appendLookGroup(lookgroup);
+            // Remove the current lookgroup
+            removeChild(lookgroup->getName());
         }
     }
     // Append looks which are not a part of a lookgroup to the mainLookGroup
@@ -189,36 +190,17 @@ void Document::mergeLooks(const std::string& lookGroupName)
             mainLookGroup->appendLook(look->getName());
         }
     }
-    for (const std::string& lookgroupName : lookgroupNames)
-    {
-        // Merge all other lookgroups into the mainLookGroup
-        LookGroupPtr lookgroup = getLookGroup(lookGroupName);
-        if (!lookgroup)
-        {
-            throw Exception("Invalid look group specified: " + lookGroupName);
-        }
-        mainLookGroup->appendLookGroup(lookgroup);
-
-        // Delete the non-mainLookGroup lookgroups
-        removeChild(lookgroupName);
-    }
     // Combine the mainLookGroup into a mainLook
     LookPtr mainLook = mainLookGroup->combineLooks();
     // Delete the mainLookGroup
     removeChild(mainLookGroup->getName());
-    // Append look names that don't belong to the mainLook to lookNames
-    std::vector<std::string> lookNames;
+    // Remove the looks which are not the main look
     for (LookPtr look : getLooks())
     {
         if (look != mainLook)
         {
-            lookNames.push_back(look->getName());
+            removeChild(look->getName());
         }
-    }
-    // Delete all the looks from the document that are in lookNames
-    for (const std::string& lookName : lookNames)
-    {
-        removeChild(lookName);
     }
 }
 

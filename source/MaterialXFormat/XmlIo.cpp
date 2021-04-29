@@ -265,6 +265,14 @@ unsigned int getParseOptions(const XmlReadOptions* readOptions)
     return parseOptions;
 }
 
+void mergeLooks(DocumentPtr doc, const XmlExportOptions* exportOptions)
+{
+    if (exportOptions && exportOptions->mergeLooks)
+    {
+        doc->mergeLooks(exportOptions->lookGroupToMerge);
+    }
+}
+
 } // anonymous namespace
 
 //
@@ -370,14 +378,6 @@ string writeToXmlString(DocumentPtr doc, const XmlWriteOptions* writeOptions)
     std::ostringstream stream;
     writeToXmlStream(doc, stream, writeOptions);
     return stream.str();
-}
-
-static void mergeLooks(DocumentPtr doc, const XmlExportOptions* exportOptions)
-{
-    if (exportOptions && exportOptions->mergeLooks)
-    {
-        doc->mergeLooks(exportOptions->lookGroupToMerge);
-    }
 }
 
 void exportToXmlStream(DocumentPtr doc, std::ostream& stream, const XmlExportOptions* exportOptions)
