@@ -160,10 +160,11 @@ def export_hpp(elem, filename):
                                             inputname=inp.getName(),
                                             declaration=decl)
         variable_defs += variable_def
-        #print (variable_def)
-    struct_definition = """struct {structname} {{\n{variabledefs}}};""" \
-                                    .format(structname = elem.getNodeString(),
-                                      variabledefs = variable_defs)
+    nodename_definition = '    std::string _nodename_ = "{nodename}";\n'.format(nodename= elem.getNodeString())
+    struct_definition = """struct {structname} {{\n{variabledefs}{nodeiddef}}};""" \
+                                    .format(structname = elem.getName(),
+                                            variabledefs = variable_defs,
+                                            nodeiddef = nodename_definition)
 
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(preamble)
