@@ -242,6 +242,7 @@ TEST_CASE("Export Document", "[xmlio]")
 
     REQUIRE(exportedDoc->getLookGroups().size() == 0);
     REQUIRE(exportedDoc->getLooks().size() == 1);
+}
 
 TEST_CASE("Load locale content", "[xmlio_locale]")
 {
