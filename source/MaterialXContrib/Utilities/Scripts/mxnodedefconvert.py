@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-"""Basic utility to generate a json and hpp export from MaterialX nodedef
+"""
+Basic utility to generate a json and hpp export from MaterialX nodedef
+
 e.g. given a node def e.g. ND_standard_surface_surfaceshader will
      generate a standard_surface.json and standard_surface.hpp
-
 The hpp/json can be used for simple reflection instead of parsing mtlx libraries
 """
 
@@ -12,9 +13,6 @@ import argparse
 import json
 import hashlib
 import MaterialX as mx
-
-# Git hash for tracking source document
-global _inputfilehash
 
 mx_stdTypes = {
     'color3': ['MaterialX::Color3', mx.Color3(1, 1, 1)],
@@ -82,6 +80,8 @@ def main():
     doc = mx.createDocument()
     try:
         mx.readFromXmlFile(doc, opts.inputFilename)
+        # Git hash for tracking source document
+        global _inputfilehash
         _inputfilehash = _computeGitHash(opts.inputFilename)
 
     except mx.ExceptionFileMissing as err:
@@ -163,7 +163,7 @@ def export_hpp(elem, filename):
     variable_defs = ""
     for inp in elem.getActiveInputs():
         #create decl
-        decl = getDeclaration(inp)
+        decl = getVarDeclaration(inp)
 
         #emit variable decl
         if decl is None:
@@ -189,7 +189,7 @@ def export_hpp(elem, filename):
         f.close()
 
 
-def getDeclaration(input):
+def getVarDeclaration(input):
 
     inputValue = input.getValue()
     typeName = _getType(input.getType())
