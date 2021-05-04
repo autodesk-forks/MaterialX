@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-"""Utility to generate json and hpp from MaterialX nodedef
+"""
+Utility to generate json and hpp from MaterialX nodedef
 
 Given a node def e.g. ND_standard_surface_surfaceshader will
 generate a standard_surface.json and standard_surface.hpp
-The hpp/json can be used for simple reflection instead 
+The hpp/json can be used for simple reflection instead
 of parsing mtlx libraries
 """
 
