@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""Basic utility to generate a json and hpp export from MaterialX nodedef
+"""Utility to generate json and hpp from MaterialX nodedef
 
-Overview: 
 Given a node def e.g. ND_standard_surface_surfaceshader will
 generate a standard_surface.json and standard_surface.hpp
-The hpp/json can be used for simple reflection instead of parsing mtlx libraries
+The hpp/json can be used for simple reflection instead 
+of parsing mtlx libraries
 """
 
 import sys
@@ -57,6 +57,8 @@ def _getDefault(mxType):
     return mx_stdTypes[mxType][1]
 
 # Compute gitHash
+
+
 def _computeGitHash(mtlxfile):
     with open(mtlxfile, 'r') as afile:
         buf = afile.read().encode()
@@ -128,6 +130,7 @@ def findNodeDef(elemlist, nodedefname):
             return elem
     return None
 
+
 def exportNodeDef(elem):
     if elem.isA(mx.NodeDef):
         jsonfilename = elem.getNodeString()+'.json'
@@ -196,16 +199,21 @@ def getVarDeclaration(inputVar):
     typeName = _getType(inputVar.getType())
     if isinstance(inputValue, (mx.Color3, mx.Vector3)):
         val = '{typename}({v0}f, {v1}f, {v2}f)'.format(typename=typeName,
-                                                        v0=round(inputValue[0], 5),
-                                                        v1=round(inputValue[1], 5),
-                                                        v2=round(inputValue[2], 5))
+                                                       v0=round(
+                                                           inputValue[0], 5),
+                                                       v1=round(
+                                                           inputValue[1], 5),
+                                                       v2=round(inputValue[2], 5))
         return val
     if isinstance(inputValue, (mx.Color4, mx.Vector4)):
         val = '{typename}({v0}f, {v1}f, {v2}f, {v3}f)'.format(typename=typeName,
-                                                                v0=round(inputValue[0], 5),
-                                                                v1=round(inputValue[1], 5),
-                                                                v2=round(inputValue[2], 5),
-                                                                v3=round(inputValue[3], 5))
+                                                              v0=round(
+                                                                  inputValue[0], 5),
+                                                              v1=round(
+                                                                  inputValue[1], 5),
+                                                              v2=round(
+                                                                  inputValue[2], 5),
+                                                              v3=round(inputValue[3], 5))
         return val
     if isinstance(inputValue, float):
         val = '{0}f'.format(round(inputValue, 5))
@@ -227,20 +235,21 @@ def getVarDeclaration(inputVar):
             return val
         if inputVar.getType() in ['vector3', 'color3']:
             val = '{typename}({v0}f, {v1}f, {v2}f)'.format(typename=typeName,
-                                                            v0=defaultValue[0],
-                                                            v1=defaultValue[1],
-                                                            v2=defaultValue[2])
+                                                           v0=defaultValue[0],
+                                                           v1=defaultValue[1],
+                                                           v2=defaultValue[2])
             return val
         if inputVar.getType() in ['vector4', 'color4']:
             val = '{typename}({v0}f, {v1}f, {v2}f, {v3}f)'.format(typename=typeName,
-                                                                v0=defaultValue[0],
-                                                                v1=defaultValue[1],
-                                                                v2=defaultValue[2],
-                                                                v3=defaultValue[3])
+                                                                  v0=defaultValue[0],
+                                                                  v1=defaultValue[1],
+                                                                  v2=defaultValue[2],
+                                                                  v3=defaultValue[3])
             return val
         else:
             print("unhandled: " + typeName)
             return None
+
 
 def pl(elem):
     if len(elem) == 1:
