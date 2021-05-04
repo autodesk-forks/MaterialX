@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Basic utility to generate a json and hpp export from MaterialX nodedef
+"""Basic utility to generate a json and hpp export from MaterialX nodedef
 
 e.g. given a node def e.g. ND_standard_surface_surfaceshader will
      generate a standard_surface.json and standard_surface.hpp
@@ -14,6 +13,7 @@ import json
 import hashlib
 import MaterialX as mx
 
+INPUTFILEHASH = 0
 mx_stdTypes = {
     'color3': ['MaterialX::Color3', mx.Color3(1, 1, 1)],
     'color4': ['MaterialX::Color4', mx.Color4(1, 1, 1, 1)],
@@ -81,8 +81,8 @@ def main():
     try:
         mx.readFromXmlFile(doc, opts.inputFilename)
         # Git hash for tracking source document
-        global _inputfilehash
-        _inputfilehash = _computeGitHash(opts.inputFilename)
+        global INPUTFILEHASH
+        INPUTFILEHASH = _computeGitHash(opts.inputFilename)
 
     except mx.ExceptionFileMissing as err:
         print(err)
@@ -138,7 +138,7 @@ def exportNodeDef(elem):
 def export_json(elem, filename):
     nodefInterface = {}
     nodefInterface["Nodedef"] = elem.getName()
-    nodefInterface["SHA1"] = _inputfilehash
+    nodefInterface["SHA1"] = INPUTFILEHASH
     nodefInterface["MaterialX"] = mx.getVersionString()
     nodefInterface["name"] = elem.getNodeString()
     nodefInterface["members"] = asJsonArray(elem)
@@ -159,7 +159,7 @@ def export_hpp(elem, filename):
     #      write to file
     preamble = "/*\nGenerated using MaterialX nodedef \
                   \n{nodename}\nSHA1:{filehash}\nVersion:{version}\n*/\n"\
-                  .format(nodename=elem, filehash=_inputfilehash, version=mx.getVersionString())
+                  .format(nodename=elem, filehash=INPUTFILEHASH, version=mx.getVersionString())
     variable_defs = ""
     for inp in elem.getActiveInputs():
         #create decl
@@ -189,10 +189,10 @@ def export_hpp(elem, filename):
         f.close()
 
 
-def getVarDeclaration(input):
+def getVarDeclaration(inputVar):
 
-    inputValue = input.getValue()
-    typeName = _getType(input.getType())
+    inputValue = inputVar.getValue()
+    typeName = _getType(inputVar.getType())
     if isinstance(inputValue, (mx.Color3, mx.Vector3)):
         val = '{typename}({v0}f, {v1}f, {v2}f)'.format(typename=typeName,
                                                         v0=round(inputValue[0], 5),
@@ -217,20 +217,20 @@ def getVarDeclaration(input):
         return val
 
     # use input type if value is not defined and set default
-    defaultValue = _getDefault(input.getType())
+    defaultValue = _getDefault(inputVar.getType())
     if inputValue is None:
-        if input.getType() in ['vector2']:
+        if inputVar.getType() in ['vector2']:
             val = '{typename}({v0}f, {v1}f)'.format(typename=typeName,
                                                     v0=defaultValue[0],
                                                     v1=defaultValue[1])
             return val
-        if input.getType() in ['vector3', 'color3']:
+        if inputVar.getType() in ['vector3', 'color3']:
             val = '{typename}({v0}f, {v1}f, {v2}f)'.format(typename=typeName,
                                                             v0=defaultValue[0],
                                                             v1=defaultValue[1],
                                                             v2=defaultValue[2])
             return val
-        if input.getType() in ['vector4', 'color4']:
+        if inputVar.getType() in ['vector4', 'color4']:
             val = '{typename}({v0}f, {v1}f, {v2}f, {v3}f)'.format(typename=typeName,
                                                                 v0=defaultValue[0],
                                                                 v1=defaultValue[1],
