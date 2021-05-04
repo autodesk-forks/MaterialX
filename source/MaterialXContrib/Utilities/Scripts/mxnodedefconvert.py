@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-"""Basic utility to generate a json and hpp export from MaterialX nodedef
-
-e.g. given a node def e.g. ND_standard_surface_surfaceshader will
-     generate a standard_surface.json and standard_surface.hpp
-The hpp/json can be used for simple reflection instead of parsing mtlx libraries
-"""
+'''
+Basic utility to generate a json and hpp export from MaterialX nodedef
+'''
 
 import sys
 import os
