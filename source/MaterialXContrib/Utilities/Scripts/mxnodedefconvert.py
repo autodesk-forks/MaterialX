@@ -181,7 +181,7 @@ def export_hpp(elem, filename):
     for output in elem.getActiveOutputs():
         #create decl
         decl = getVarDeclaration(output)
-        #emit output 
+        #emit output
         if decl is None:
             variable_def = '    {typename}* {name};\n' \
                 .format(typename=_getType(output.getType()),
@@ -191,10 +191,10 @@ def export_hpp(elem, filename):
                 .format(typename=_getType(output.getType()),
                         name=output.getName(),
                         declaration=decl)
-        variable_defs += variable_def        
+        variable_defs += variable_def
     nodename_definition = '    std::string _nodename_ = "{nodename}";\n'.format(
         nodename=elem.getNodeString())
-    # create struct definition   
+    # create struct definition
     struct_definition = """struct {structname} {{\n{variabledefs}{nodeiddef}}};""" \
         .format(structname=elem.getName(),
                 variabledefs=variable_defs,
