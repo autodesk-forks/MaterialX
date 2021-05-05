@@ -191,7 +191,7 @@ MX_FORMAT_API string writeToXmlString(DocumentPtr doc, const XmlWriteOptions* wr
 /// @param exportOptions An optional pointer to an XxmlExportOptions object.
 ///    If provided, then the given options will affect the behavior of the
 ///    export function.  Defaults to a null pointer.
-void exportToXmlStream(DocumentPtr doc, std::ostream& stream, const XmlExportOptions* exportOptions = nullptr);
+MX_FORMAT_API void exportToXmlStream(DocumentPtr doc, std::ostream& stream, const XmlExportOptions* exportOptions = nullptr);
 
 /// Export a Document as XML to the given filename.
 /// @param doc The Document to be written.
@@ -200,7 +200,7 @@ void exportToXmlStream(DocumentPtr doc, std::ostream& stream, const XmlExportOpt
 /// @param exportOptions An optional pointer to an XmlExportOptions object.
 ///    If provided, then the given options will affect the behavior of the
 ///    write function.  Defaults to a null pointer.
-void exportToXmlFile(DocumentPtr doc, const FilePath& filename, const XmlExportOptions* exportOptions = nullptr);
+MX_FORMAT_API void exportToXmlFile(DocumentPtr doc, const FilePath& filename, const XmlExportOptions* exportOptions = nullptr);
 
 /// Export a Document as XML to a new string, returned by value.
 /// @param doc The Document to be written.
@@ -208,7 +208,7 @@ void exportToXmlFile(DocumentPtr doc, const FilePath& filename, const XmlExportO
 ///    If provided, then the given options will affect the behavior of the
 ///    write function.  Defaults to a null pointer.
 /// @return The output string, returned by value
-string exportToXmlString(DocumentPtr doc, const XmlExportOptions* exportOptions = nullptr);
+MX_FORMAT_API string exportToXmlString(DocumentPtr doc, const XmlExportOptions* exportOptions = nullptr);
 
 /// @}
 /// @name Edit Functions
