@@ -70,7 +70,7 @@ class MX_FORMAT_API XmlWriteOptions
 
 /// @class XmlExportOptions
 /// A set of options for controlling the behavior of XML export functions.
-class XmlExportOptions : public XmlWriteOptions
+class MX_FORMAT_API XmlExportOptions : public XmlWriteOptions
 {
   public:
     XmlExportOptions();
