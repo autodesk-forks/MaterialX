@@ -49,17 +49,13 @@ mx_stdTypes = {
     'VDF': ['VDF', None],
 }
 
-
 def _getType(mxType):
     return mx_stdTypes[mxType][0]
-
 
 def _getDefault(mxType):
     return mx_stdTypes[mxType][1]
 
 # Compute gitHash
-
-
 def _computeGitHash(mtlxfile):
     with open(mtlxfile, 'r') as afile:
         buf = afile.read().encode()
@@ -68,14 +64,12 @@ def _computeGitHash(mtlxfile):
         hasher.update(buf)
         return hasher.hexdigest()
 
-
 def main():
     parser = argparse.ArgumentParser(
-        description="MaterialX nodedef to json/hpp convert.")
+        description="MaterialX nodedef to json/hpp converter.")
     parser.add_argument(dest="inputFilename",
                         help="Filename of the input document.")
     parser.add_argument("--node", dest="nodedef", type=str,
-                        default="ND_standard_surface_surfaceshader",
                         help="Node to export")
     parser.add_argument("--stdlib", dest="stdlib", action="store_true",
                         help="Import standard MaterialX libraries into the document.")
@@ -117,20 +111,21 @@ def main():
     if nodedef is None:
         print("Nodedef %s not found" % (opts.nodedef))
     else:
-        exportNodeDef(nodedef)
-        print("%d NodeDef%s found.\nNode '%s' exported to %s(.json/.hpp)"
-              % (len(nodedefs), pl(nodedefs), opts.nodedef, nodedef.getNodeString()))
-
+        try:
+            exportNodeDef(nodedef)
+            print("%d NodeDef%s found.\nNode '%s' exported to %s(.json/.hpp)"
+                % (len(nodedefs), pl(nodedefs), opts.nodedef, nodedef.getNodeString()))
+        except Exception as e:
+            print(e)
+            sys.exit(0)
 
 def findNodeDef(elemlist, nodedefname):
     if len(elemlist) == 0:
         return None
     for elem in elemlist:
         if elem.isA(mx.NodeDef) and elem.getName() == nodedefname:
-            #print (elem)
             return elem
     return None
-
 
 def exportNodeDef(elem):
     if elem.isA(mx.NodeDef):
@@ -139,26 +134,29 @@ def exportNodeDef(elem):
         export_json(elem, jsonfilename)
         export_hpp(elem, hppfilename)
 
-
 def export_json(elem, filename):
     nodefInterface = {}
     nodefInterface["Nodedef"] = elem.getName()
     nodefInterface["SHA1"] = INPUTFILEHASH
     nodefInterface["MaterialX"] = mx.getVersionString()
     nodefInterface["name"] = elem.getNodeString()
-    nodefInterface["members"] = asJsonArray(elem)
+    asJsonArray(nodefInterface, elem)
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(nodefInterface, f, indent=4)
 
-
-def asJsonArray(nodedef):
-    memberlist = []
+def asJsonArray(nodefInterface, nodedef):
+    inputs = []
+    outputs = []
     for inp in nodedef.getActiveInputs():
-        memberlist.append((_getType(inp.getType()),
+        inputs.append((_getType(inp.getType()),
                            inp.getName(),
                            str(inp.getValue())))
-    return memberlist
-
+    nodefInterface["inputs"] = inputs
+    for output in nodedef.getActiveOutputs():
+        outputs.append((_getType(output.getType()),
+                           output.getName(),
+                           str(output.getValue())))
+    nodefInterface["outputs"] = outputs
 
 def export_hpp(elem, filename):
     #      write to file
@@ -169,20 +167,34 @@ def export_hpp(elem, filename):
     for inp in elem.getActiveInputs():
         #create decl
         decl = getVarDeclaration(inp)
-
         #emit variable decl
         if decl is None:
-            variable_def = '    {typename} {inputname};\n' \
+            variable_def = '    {typename} {name};\n' \
                 .format(typename=_getType(inp.getType()),
-                        inputname=inp.getName())
+                        name=inp.getName())
         else:
-            variable_def = '    {typename} {inputname} = {declaration};\n' \
+            variable_def = '    {typename} {name} = {declaration};\n' \
                 .format(typename=_getType(inp.getType()),
-                        inputname=inp.getName(),
+                        name=inp.getName(),
                         declaration=decl)
         variable_defs += variable_def
+    for output in elem.getActiveOutputs():
+        #create decl
+        decl = getVarDeclaration(output)
+        #emit output 
+        if decl is None:
+            variable_def = '    {typename}* {name};\n' \
+                .format(typename=_getType(output.getType()),
+                        name=output.getName())
+        else:
+            variable_def = '    {typename} {name} = {declaration};\n' \
+                .format(typename=_getType(output.getType()),
+                        name=output.getName(),
+                        declaration=decl)
+        variable_defs += variable_def        
     nodename_definition = '    std::string _nodename_ = "{nodename}";\n'.format(
         nodename=elem.getNodeString())
+    # create struct definition   
     struct_definition = """struct {structname} {{\n{variabledefs}{nodeiddef}}};""" \
         .format(structname=elem.getName(),
                 variabledefs=variable_defs,
