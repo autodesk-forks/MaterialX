@@ -38,7 +38,7 @@ MX_CORE_API StringVec splitString(const string& str, const string& sep);
 
 /// Merge a string vector into a single string with each element
 /// seprated by the given separator
-string mergeStringVec(const StringVec& strVec, const string& sep);
+MX_CORE_API string mergeStringVec(const StringVec& strVec, const string& sep);
 
 /// Apply the given substring substitutions to the input string.
 MX_CORE_API string replaceSubstrings(string str, const StringMap& stringMap);
