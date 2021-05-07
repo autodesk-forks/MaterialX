@@ -20,9 +20,6 @@ class FilePath;
 using FilePathVec = vector<FilePath>;
 
 extern MX_FORMAT_API const string PATH_LIST_SEPARATOR;
-extern MX_FORMAT_API const string MATERIALX_SEARCH_PATH_ENV_VAR;
-extern MX_FORMAT_API const string MATERIALX_ASSET_DEFINITION_PATH_ENV_VAR;
-extern MX_FORMAT_API const string MATERIALX_ASSET_TEXTURE_PATH_ENV_VAR;
 
 /// @class FilePath
 /// A generic file path, supporting both syntactic and file system operations.
@@ -189,6 +186,9 @@ class MX_FORMAT_API FilePath
     /// Return a vector of all files in the given directory with the given extension.
     FilePathVec getFilesInDirectory(const string& extension) const;
 
+    /// Return a vector of all directories in the given directory.
+    FilePathVec getDirectoriesInDirectory() const;
+
     /// Return a vector of all directories at or beneath the given path.
     FilePathVec getSubDirectories() const;
 
@@ -343,15 +343,6 @@ class MX_FORMAT_API FileSearchPath
   private:
     FilePathVec _paths;
 };
-
-MX_FORMAT_API FileSearchPath getEnvironmentPath(const string& sep = PATH_LIST_SEPARATOR);
-MX_FORMAT_API FileSearchPath getAssetDefinitionPath(const string& sep = PATH_LIST_SEPARATOR);
-MX_FORMAT_API FileSearchPath getAssetTexturePath(const string& sep = PATH_LIST_SEPARATOR);
-MX_FORMAT_API FileSearchPath getCoreDefinitionPath();
-MX_FORMAT_API void setEnvironmentPath(const FileSearchPath& path);
-MX_FORMAT_API void setAssetDefinitionPath(const FileSearchPath& path);
-MX_FORMAT_API void setAssetTexturePath(const FileSearchPath& path);
-MX_FORMAT_API void setCoreDefinitionPath(const FileSearchPath& path);
 
 } // namespace MaterialX
 

@@ -5,8 +5,6 @@
 
 #include <MaterialXFormat/File.h>
 
-#include <MaterialXFormat/Environ.h>
-
 #include <MaterialXCore/Exception.h>
 
 #if defined(_WIN32)
@@ -36,16 +34,11 @@ const string VALID_SEPARATORS = "/\\";
 const char PREFERRED_SEPARATOR_WINDOWS = '\\';
 const char PREFERRED_SEPARATOR_POSIX = '/';
 
-FileSearchPath CORE_DEFINITION_PATH;
-
 #if defined(_WIN32)
 const string PATH_LIST_SEPARATOR = ";";
 #else
 const string PATH_LIST_SEPARATOR = ":";
 #endif
-const string MATERIALX_SEARCH_PATH_ENV_VAR = "MATERIALX_SEARCH_PATH";
-const string MATERIALX_ASSET_DEFINITION_PATH_ENV_VAR = "MATERIALX_ASSET_DEFINITION_PATH";
-const string MATERIALX_ASSET_TEXTURE_PATH_ENV_VAR = "MATERIALX_ASSET_TEXTURE_PATH";
 
 inline bool hasWindowsDriveSpecifier(const string& val)
 {
@@ -194,6 +187,43 @@ FilePathVec FilePath::getFilesInDirectory(const string& extension) const
     return files;
 }
 
+FilePathVec FilePath::getDirectoriesInDirectory() const
+{
+    FilePathVec dirs;
+
+#if defined(_WIN32)
+    WIN32_FIND_DATA fd;
+    string wildcard = "*";
+    HANDLE hFind = FindFirstFile((*this / wildcard).asString().c_str(), &fd);
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+        do
+        {
+            if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            {
+                dirs.emplace_back(fd.cFileName);
+            }
+        } while (FindNextFile(hFind, &fd));
+        FindClose(hFind);
+    }
+#else
+    DIR* dir = opendir(asString().c_str());
+    if (dir)
+    {
+        while (struct dirent* entry = readdir(dir))
+        {
+            if (entry->d_type !== DT_DIR)
+            {
+                dirs.push_back(FilePath(entry->d_name));
+            }
+        }
+        closedir(dir);
+    }
+#endif
+
+    return dirs;
+}
+
 FilePathVec FilePath::getSubDirectories() const
 {
     if (!isDirectory())
@@ -339,49 +369,6 @@ FilePath FilePath::getModulePath()
         }
     }
 #endif
-}
-
-FileSearchPath getEnvironmentPath(const string& sep)
-{
-    string searchPathEnv = getEnviron(MATERIALX_SEARCH_PATH_ENV_VAR);
-    return FileSearchPath(searchPathEnv, sep);
-}
-
-FileSearchPath getAssetDefinitionPath(const string& sep)
-{
-    string assetDefinitionPathEnv = getEnviron(MATERIALX_ASSET_DEFINITION_PATH_ENV_VAR);
-    return FileSearchPath(assetDefinitionPathEnv, sep);
-}
-
-FileSearchPath getAssetTexturePath(const string& sep)
-{
-    string assetTexturePathEnv = getEnviron(MATERIALX_ASSET_TEXTURE_PATH_ENV_VAR);
-    return FileSearchPath(assetTexturePathEnv, sep);
-}
-
-FileSearchPath getCoreDefinitionPath()
-{
-    return CORE_DEFINITION_PATH;
-}
-
-void setEnvironmentPath(const FileSearchPath& path)
-{
-    setEnviron(MATERIALX_SEARCH_PATH_ENV_VAR, path.asString());
-}
-
-void setAssetDefinitionPath(const FileSearchPath& path)
-{
-    setEnviron(MATERIALX_ASSET_DEFINITION_PATH_ENV_VAR, path.asString());
-}
-
-void setAssetTexturePath(const FileSearchPath& path)
-{
-    setEnviron(MATERIALX_ASSET_TEXTURE_PATH_ENV_VAR, path.asString());
-}
-
-void setCoreDefinitionPath(const FileSearchPath& path)
-{
-    CORE_DEFINITION_PATH = path;
 }
 
 } // namespace MaterialX
