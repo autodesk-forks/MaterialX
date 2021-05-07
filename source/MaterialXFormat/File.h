@@ -186,9 +186,6 @@ class MX_FORMAT_API FilePath
     /// Return a vector of all files in the given directory with the given extension.
     FilePathVec getFilesInDirectory(const string& extension) const;
 
-    /// Return a vector of all directories in the given directory.
-    FilePathVec getDirectoriesInDirectory() const;
-
     /// Return a vector of all directories at or beneath the given path.
     FilePathVec getSubDirectories() const;
 

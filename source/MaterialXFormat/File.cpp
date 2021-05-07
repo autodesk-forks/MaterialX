@@ -187,43 +187,6 @@ FilePathVec FilePath::getFilesInDirectory(const string& extension) const
     return files;
 }
 
-FilePathVec FilePath::getDirectoriesInDirectory() const
-{
-    FilePathVec dirs;
-
-#if defined(_WIN32)
-    WIN32_FIND_DATA fd;
-    string wildcard = "*";
-    HANDLE hFind = FindFirstFile((*this / wildcard).asString().c_str(), &fd);
-    if (hFind != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            {
-                dirs.emplace_back(fd.cFileName);
-            }
-        } while (FindNextFile(hFind, &fd));
-        FindClose(hFind);
-    }
-#else
-    DIR* dir = opendir(asString().c_str());
-    if (dir)
-    {
-        while (struct dirent* entry = readdir(dir))
-        {
-            if (entry->d_type !== DT_DIR)
-            {
-                dirs.push_back(FilePath(entry->d_name));
-            }
-        }
-        closedir(dir);
-    }
-#endif
-
-    return dirs;
-}
-
 FilePathVec FilePath::getSubDirectories() const
 {
     if (!isDirectory())
