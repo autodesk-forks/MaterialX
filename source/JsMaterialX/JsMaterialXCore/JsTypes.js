@@ -1,10 +1,8 @@
 // jsTypes
 addWrapper(function(Module, api = {}) {
-    Object.keys
-    api = {
-        ...api,
-        ...Module
-    };
+    Object.keys(Module, (key) => {
+        api[key] = Module[key];
+    });
     api.Vector2 = wrapperFactory(Module.Vector2);
     api.Vector3 = wrapperFactory(Module.Vector3);
     api.Vector4 = wrapperFactory(Module.Vector4);
