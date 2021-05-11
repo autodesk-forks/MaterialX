@@ -5,7 +5,7 @@
 
 #include <MaterialXRuntime/Codegen/RtSourceCodeImpl.h>
 #include <MaterialXRuntime/RtApi.h>
-#include <MaterialXRuntime/Identifiers.h>
+#include <MaterialXRuntime/RtStrings.h>
 
 #include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
@@ -37,7 +37,7 @@ const RtPrimSpec& RtSourceCodeImpl::getPrimSpec() const
 
 void RtSourceCodeImpl::setFile(const string& file)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::FILE, RtType::STRING);
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::FILE, RtType::STRING);
     attr->asString() = file;
 
     const FilePath path = RtApi::get().getSearchPath().find(file);
@@ -52,43 +52,43 @@ void RtSourceCodeImpl::setFile(const string& file)
 
 const string& RtSourceCodeImpl::getFile() const
 {
-    RtTypedValue* attr = prim()->getAttribute(Identifiers::FILE, RtType::STRING);
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::FILE, RtType::STRING);
     return attr ? attr->asString() : EMPTY_STRING;
 }
 
 void RtSourceCodeImpl::setSourceCode(const string& source)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::SOURCECODE, RtType::STRING);
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::SOURCECODE, RtType::STRING);
     attr->asString() = source;
 }
 
 const string& RtSourceCodeImpl::getSourceCode() const
 {
-    RtTypedValue* attr = prim()->getAttribute(Identifiers::SOURCECODE, RtType::STRING);
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::SOURCECODE, RtType::STRING);
     return attr ? attr->asString() : EMPTY_STRING;
 }
 
 void RtSourceCodeImpl::setFormat(const RtString& format)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::FORMAT, RtType::IDENTIFIER);
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::FORMAT, RtType::IDENTIFIER);
     attr->asIdentifier() = format;
 }
 
 const RtString& RtSourceCodeImpl::getFormat() const
 {
-    RtTypedValue* attr = prim()->getAttribute(Identifiers::FORMAT, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : Identifiers::SHADER;
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::FORMAT, RtType::IDENTIFIER);
+    return attr ? attr->asIdentifier() : RtStrings::SHADER;
 }
 
 void RtSourceCodeImpl::setFunction(const string& source)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::FUNCTION, RtType::STRING);
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::FUNCTION, RtType::STRING);
     attr->asString() = source;
 }
 
 const string& RtSourceCodeImpl::getFunction() const
 {
-    RtTypedValue* attr = prim()->getAttribute(Identifiers::FUNCTION, RtType::STRING);
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::FUNCTION, RtType::STRING);
     return attr ? attr->asString() : EMPTY_STRING;
 }
 

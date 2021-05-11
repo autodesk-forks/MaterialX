@@ -3,12 +3,12 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/Identifiers.h>
+#include <MaterialXRuntime/RtStrings.h>
 
 namespace MaterialX
 {
 
-namespace Identifiers
+namespace RtStrings
 {
     const RtString DOC("doc");
     const RtString NAME("name");

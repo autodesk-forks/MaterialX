@@ -4,7 +4,7 @@
 //
 
 #include <MaterialXRuntime/RtBackdrop.h>
-#include <MaterialXRuntime/Identifiers.h>
+#include <MaterialXRuntime/RtStrings.h>
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
@@ -18,15 +18,15 @@ namespace
     public:
         PvtBackdropPrimSpec()
         {
-            addPrimAttribute(Identifiers::DOC, RtType::STRING);
-            addPrimAttribute(Identifiers::XPOS, RtType::FLOAT);
-            addPrimAttribute(Identifiers::YPOS, RtType::FLOAT);
-            addPrimAttribute(Identifiers::WIDTH, RtType::INTEGER);
-            addPrimAttribute(Identifiers::HEIGHT, RtType::INTEGER);
-            addPrimAttribute(Identifiers::UICOLOR, RtType::COLOR3);
-            addPrimAttribute(Identifiers::UINAME, RtType::STRING);
-            addPrimAttribute(Identifiers::CONTAINS, RtType::STRINGARRAY);
-            addPrimAttribute(Identifiers::MINIMIZED, RtType::BOOLEAN);
+            addPrimAttribute(RtStrings::DOC, RtType::STRING);
+            addPrimAttribute(RtStrings::XPOS, RtType::FLOAT);
+            addPrimAttribute(RtStrings::YPOS, RtType::FLOAT);
+            addPrimAttribute(RtStrings::WIDTH, RtType::INTEGER);
+            addPrimAttribute(RtStrings::HEIGHT, RtType::INTEGER);
+            addPrimAttribute(RtStrings::UICOLOR, RtType::COLOR3);
+            addPrimAttribute(RtStrings::UINAME, RtType::STRING);
+            addPrimAttribute(RtStrings::CONTAINS, RtType::STRINGARRAY);
+            addPrimAttribute(RtStrings::MINIMIZED, RtType::BOOLEAN);
 
         }
     };
@@ -43,7 +43,7 @@ RtPrim RtBackdrop::createPrim(const RtString& typeName, const RtString& name, Rt
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->createRelationship(Identifiers::CONTAINS);
+    prim->createRelationship(RtStrings::CONTAINS);
 
     return primH;
 }
@@ -56,42 +56,42 @@ const RtPrimSpec& RtBackdrop::getPrimSpec() const
 
 RtRelationship RtBackdrop::getContains() const
 {
-    return prim()->getRelationship(Identifiers::CONTAINS)->hnd();
+    return prim()->getRelationship(RtStrings::CONTAINS)->hnd();
 }
 
 void RtBackdrop::setNote(const string& note)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::NOTE, RtType::STRING);
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::NOTE, RtType::STRING);
     attr->asString() = note;
 }
 
 const string& RtBackdrop::getNote() const
 {
-    const RtTypedValue* attr = prim()->getAttribute(Identifiers::NOTE, RtType::STRING);
+    const RtTypedValue* attr = prim()->getAttribute(RtStrings::NOTE, RtType::STRING);
     return attr ? attr->asString() : EMPTY_STRING;
 }
 
 void RtBackdrop::setWidth(float width)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::WIDTH, RtType::FLOAT);
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::WIDTH, RtType::FLOAT);
     attr->asFloat() = width;
 }
 
 float RtBackdrop::getWidth() const
 {
-    const RtTypedValue* attr = prim()->getAttribute(Identifiers::WIDTH, RtType::FLOAT);
+    const RtTypedValue* attr = prim()->getAttribute(RtStrings::WIDTH, RtType::FLOAT);
     return attr ? attr->asFloat() : 0.0f;
 }
 
 void RtBackdrop::setHeight(float width)
 {
-    RtTypedValue* attr = prim()->createAttribute(Identifiers::HEIGHT, RtType::FLOAT);
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::HEIGHT, RtType::FLOAT);
     attr->asFloat() = width;
 }
 
 float RtBackdrop::getHeight() const
 {
-    const RtTypedValue* attr = prim()->getAttribute(Identifiers::HEIGHT, RtType::FLOAT);
+    const RtTypedValue* attr = prim()->getAttribute(RtStrings::HEIGHT, RtType::FLOAT);
     return attr ? attr->asFloat() : 0.0f;
 }
 

@@ -1,10 +1,10 @@
 //
-// TM & (c) 2020 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// TM & (c) 2021 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#ifndef MATERIALX_IDENTIFIERS_H
-#define MATERIALX_IDENTIFIERS_H
+#ifndef MATERIALX_RTSTRINGS_H
+#define MATERIALX_RTSTRINGS_H
 
 /// @file
 /// TODO: Docs
@@ -14,8 +14,8 @@
 namespace MaterialX
 {
 
-/// Namespace of commonly used identifiers.
-namespace Identifiers
+/// Namespace of commonly used interned string constants.
+namespace RtStrings
 {
     extern const RtString DOC;
     extern const RtString NAME;

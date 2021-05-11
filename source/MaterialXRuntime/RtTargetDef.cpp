@@ -4,7 +4,7 @@
 //
 
 #include <MaterialXRuntime/RtTargetDef.h>
-#include <MaterialXRuntime/Identifiers.h>
+#include <MaterialXRuntime/RtStrings.h>
 
 #include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
@@ -31,8 +31,8 @@ namespace
     public:
         PvtTargetDefPrimSpec()
         {
-            addPrimAttribute(Identifiers::DOC, RtType::STRING);
-            addPrimAttribute(Identifiers::INHERIT, RtType::IDENTIFIER);
+            addPrimAttribute(RtStrings::DOC, RtType::STRING);
+            addPrimAttribute(RtStrings::INHERIT, RtType::IDENTIFIER);
 
         }
     };
@@ -62,7 +62,7 @@ const RtPrimSpec& RtTargetDef::getPrimSpec() const
 
 void RtTargetDef::setInherit(const RtString& target)
 {
-    RtTypedValue* attr = createAttribute(Identifiers::INHERIT, RtType::IDENTIFIER);
+    RtTypedValue* attr = createAttribute(RtStrings::INHERIT, RtType::IDENTIFIER);
     attr->asIdentifier() = target;
 
     prim()->asA<PvtTargetDefPrim>()->matchingTargets.insert(target);
@@ -70,7 +70,7 @@ void RtTargetDef::setInherit(const RtString& target)
 
 const RtString& RtTargetDef::getInherit() const
 {
-    const RtTypedValue* attr = getAttribute(Identifiers::INHERIT, RtType::IDENTIFIER);
+    const RtTypedValue* attr = getAttribute(RtStrings::INHERIT, RtType::IDENTIFIER);
     return attr ? attr->asIdentifier() : RtString::EMPTY;
 }
 
