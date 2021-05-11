@@ -187,7 +187,7 @@ template <> void toStringValue<string>(const RtValue& src, string& dest)
 }
 template <> void toStringValue<RtString>(const RtValue& src, string& dest)
 {
-    dest = src.asIdentifier().str();
+    dest = src.asInternString().str();
 }
 void toStringNoneValue(const RtValue&, string& dest)
 {
@@ -285,7 +285,7 @@ template<> void fromStringValue<string>(const string& str, RtValue& dest)
 }
 template<> void fromStringValue<RtString>(const string& str, RtValue& dest)
 {
-    dest.asIdentifier() = RtString(str);
+    dest.asInternString() = RtString(str);
 }
 void fromStringNoneValue(const string&, RtValue& dest)
 {
@@ -376,7 +376,7 @@ PvtTypeDefRegistry::PvtTypeDefRegistry()
     newType(RtType::FILENAME, RtTypeDef::BASETYPE_STRING, stringFuncs, RtTypeDef::SEMANTIC_FILENAME);
 
     RtValueFuncs tokenFuncs = { createValue<RtString>, copyValue<RtString>, compareValue<RtString>, toStringValue<RtString> , fromStringValue<RtString> };
-    newType(RtType::IDENTIFIER, RtTypeDef::BASETYPE_STRING, tokenFuncs);
+    newType(RtType::INTERNSTRING, RtTypeDef::BASETYPE_STRING, tokenFuncs);
 
     newType(RtType::INTEGERARRAY, RtTypeDef::BASETYPE_INTEGER, intFuncs, RtTypeDef::SEMANTIC_NONE, 0);
     newType(RtType::FLOATARRAY, RtTypeDef::BASETYPE_FLOAT, floatFuncs, RtTypeDef::SEMANTIC_NONE, 0);

@@ -29,7 +29,7 @@ public:
     static const RtString COLOR4;
     static const RtString MATRIX33;
     static const RtString MATRIX44;
-    static const RtString IDENTIFIER;
+    static const RtString INTERNSTRING;
     static const RtString STRING;
     static const RtString FILENAME;
     static const RtString INTEGERARRAY;

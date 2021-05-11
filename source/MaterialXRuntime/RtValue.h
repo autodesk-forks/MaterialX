@@ -37,7 +37,7 @@ public:
     explicit RtValue(const Vector2& v) { asVector2() = v; }
     explicit RtValue(const Vector3& v) { asVector3() = v; }
     explicit RtValue(const Vector4& v) { asVector4() = v; }
-    explicit RtValue(const RtString& v) { asIdentifier() = v; }
+    explicit RtValue(const RtString& v) { asInternString() = v; }
 
     /// Explicit value constructor for large values.
     /// Allocated data is managed by the given prim.
@@ -133,13 +133,13 @@ public:
         return *_reinterpret_cast<Vector4*>(&_data);
     }
 
-    /// Return identifier value.
-    const RtString& asIdentifier() const
+    /// Return interned string (RtString) value.
+    const RtString& asInternString() const
     {
         return *_reinterpret_cast<const RtString*>(&_data);
     }
-    /// Return reference to identifier value.
-    RtString& asIdentifier()
+    /// Return reference to interned string (RtString) value.
+    RtString& asInternString()
     {
         return *_reinterpret_cast<RtString*>(&_data);
     }
@@ -455,27 +455,27 @@ public:
         return _value.asVector4();
     }
 
-    /// Return identifier value.
-    const RtString& asIdentifier() const
+    /// Return intern string (RtString) value.
+    const RtString& asInternString() const
     {
 #ifndef NDEBUG
-        if (_type != RtType::IDENTIFIER)
+        if (_type != RtType::INTERNSTRING)
         {
-            throw ExceptionRuntimeTypeError("Referencing a value as '" + RtType::IDENTIFIER.str() + "' when the value is in fact a '" + _type.str() + "'");
+            throw ExceptionRuntimeTypeError("Referencing a value as '" + RtType::INTERNSTRING.str() + "' when the value is in fact a '" + _type.str() + "'");
         }
 #endif
-        return _value.asIdentifier();
+        return _value.asInternString();
     }
-    /// Return reference to identifier value.
-    RtString& asIdentifier()
+    /// Return reference to intern string (RtString) value.
+    RtString& asInternString()
     {
 #ifndef NDEBUG
-        if (_type != RtType::IDENTIFIER)
+        if (_type != RtType::INTERNSTRING)
         {
-            throw ExceptionRuntimeTypeError("Referencing a value as '" + RtType::IDENTIFIER.str() + "' when the value is in fact a '" + _type.str() + "'");
+            throw ExceptionRuntimeTypeError("Referencing a value as '" + RtType::INTERNSTRING.str() + "' when the value is in fact a '" + _type.str() + "'");
         }
 #endif
-        return _value.asIdentifier();
+        return _value.asInternString();
     }
 
     /// Return Matrix33 value.

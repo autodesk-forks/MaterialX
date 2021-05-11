@@ -20,12 +20,12 @@ namespace
         PvtNodeImplPrimSpec()
         {
             addPrimAttribute(RtStrings::DOC, RtType::STRING);
-            addPrimAttribute(RtStrings::NODEDEF, RtType::IDENTIFIER);
-            addPrimAttribute(RtStrings::TARGET, RtType::IDENTIFIER);
+            addPrimAttribute(RtStrings::NODEDEF, RtType::INTERNSTRING);
+            addPrimAttribute(RtStrings::TARGET, RtType::INTERNSTRING);
             addPrimAttribute(RtStrings::FILE, RtType::STRING);
             addPrimAttribute(RtStrings::SOURCECODE, RtType::STRING);
             addPrimAttribute(RtStrings::FUNCTION, RtType::STRING);
-            addPrimAttribute(RtStrings::FORMAT, RtType::IDENTIFIER);
+            addPrimAttribute(RtStrings::FORMAT, RtType::INTERNSTRING);
         }
     };
 }
@@ -51,38 +51,38 @@ const RtPrimSpec& RtNodeImpl::getPrimSpec() const
 
 void RtNodeImpl::setTarget(const RtString& target)
 {
-    RtTypedValue* attr = createAttribute(RtStrings::TARGET, RtType::IDENTIFIER);
-    attr->getValue().asIdentifier() = target;
+    RtTypedValue* attr = createAttribute(RtStrings::TARGET, RtType::INTERNSTRING);
+    attr->getValue().asInternString() = target;
 }
 
 const RtString& RtNodeImpl::getTarget() const
 {
-    const RtTypedValue* attr = getAttribute(RtStrings::TARGET, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : RtString::EMPTY;
+    const RtTypedValue* attr = getAttribute(RtStrings::TARGET, RtType::INTERNSTRING);
+    return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 void RtNodeImpl::setNodeDef(const RtString& language)
 {
-    RtTypedValue* attr = createAttribute(RtStrings::NODEDEF, RtType::IDENTIFIER);
-    attr->asIdentifier() = language;
+    RtTypedValue* attr = createAttribute(RtStrings::NODEDEF, RtType::INTERNSTRING);
+    attr->asInternString() = language;
 }
 
 const RtString& RtNodeImpl::getNodeDef() const
 {
-    const RtTypedValue* attr = getAttribute(RtStrings::NODEDEF, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : RtString::EMPTY;
+    const RtTypedValue* attr = getAttribute(RtStrings::NODEDEF, RtType::INTERNSTRING);
+    return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 void RtNodeImpl::setImplName(const RtString& implname)
 {
-    RtTypedValue* attr = createAttribute(RtStrings::IMPLNAME, RtType::IDENTIFIER);
-    attr->asIdentifier() = implname;
+    RtTypedValue* attr = createAttribute(RtStrings::IMPLNAME, RtType::INTERNSTRING);
+    attr->asInternString() = implname;
 }
 
 const RtString& RtNodeImpl::getImplName() const
 {
-    const RtTypedValue* attr = getAttribute(RtStrings::IMPLNAME, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : RtString::EMPTY;
+    const RtTypedValue* attr = getAttribute(RtStrings::IMPLNAME, RtType::INTERNSTRING);
+    return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 }

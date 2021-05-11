@@ -102,8 +102,8 @@ void PvtPrim::removeRelationship(const RtString& name)
 
 PvtInput* PvtPrim::createInput(const RtString& name, const RtString& type, uint32_t flags)
 {
-    // Tokens as well as inputs with type filename, identifier or string must always be uniform.
-    if (((flags & RtPortFlag::TOKEN) != 0) || type == RtType::FILENAME || type == RtType::IDENTIFIER || type == RtType::STRING)
+    // Tokens as well as inputs with type 'filename', 'string' or 'internstring' must always be uniform.
+    if (((flags & RtPortFlag::TOKEN) != 0) || type == RtType::FILENAME || type == RtType::STRING || type == RtType::INTERNSTRING)
     {
         flags |= RtPortFlag::UNIFORM;
     }

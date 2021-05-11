@@ -32,14 +32,14 @@ const RtPrimSpec& RtGeneric::getPrimSpec() const
 
 const RtString& RtGeneric::getKind() const
 {
-    RtTypedValue* v = prim()->getAttribute(RtStrings::KIND, RtType::IDENTIFIER);
-    return v ? v->getValue().asIdentifier() : RtStrings::UNKNOWN;
+    RtTypedValue* v = prim()->getAttribute(RtStrings::KIND, RtType::INTERNSTRING);
+    return v ? v->getValue().asInternString() : RtStrings::UNKNOWN;
 }
 
 void RtGeneric::setKind(const RtString& kind)
 {
-    RtTypedValue* attr = prim()->createAttribute(RtStrings::KIND, RtType::IDENTIFIER);
-    attr->asIdentifier() = kind;
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::KIND, RtType::INTERNSTRING);
+    attr->asInternString() = kind;
 }
 
 }

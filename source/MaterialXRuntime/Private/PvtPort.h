@@ -83,14 +83,14 @@ public:
 
     const RtString& getColorSpace() const
     {
-        const RtTypedValue* attr = getAttribute(RtStrings::COLORSPACE, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : RtString::EMPTY;
+        const RtTypedValue* attr = getAttribute(RtStrings::COLORSPACE, RtType::INTERNSTRING);
+        return attr ? attr->asInternString() : RtString::EMPTY;
     }
 
     void setColorSpace(const RtString& colorspace)
     {
-        RtTypedValue* attr = createAttribute(RtStrings::COLORSPACE, RtType::IDENTIFIER);
-        attr->asIdentifier() = colorspace;
+        RtTypedValue* attr = createAttribute(RtStrings::COLORSPACE, RtType::INTERNSTRING);
+        attr->asInternString() = colorspace;
     }
 
 protected:
@@ -130,26 +130,26 @@ public:
 
     const RtString& getUnit() const
     {
-        const RtTypedValue* attr = getAttribute(RtStrings::UNIT, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : RtString::EMPTY;
+        const RtTypedValue* attr = getAttribute(RtStrings::UNIT, RtType::INTERNSTRING);
+        return attr ? attr->asInternString() : RtString::EMPTY;
     }
 
     void setUnit(const RtString& unit)
     {
-        RtTypedValue* attr = createAttribute(RtStrings::UNIT, RtType::IDENTIFIER);
-        attr->asIdentifier() = unit;
+        RtTypedValue* attr = createAttribute(RtStrings::UNIT, RtType::INTERNSTRING);
+        attr->asInternString() = unit;
     }
 
     const RtString& getUnitType() const
     {
-        const RtTypedValue* attr = getAttribute(RtStrings::UNITTYPE, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : RtString::EMPTY;
+        const RtTypedValue* attr = getAttribute(RtStrings::UNITTYPE, RtType::INTERNSTRING);
+        return attr ? attr->asInternString() : RtString::EMPTY;
     }
 
     void setUnitType(const RtString& unit)
     {
-        RtTypedValue* attr = createAttribute(RtStrings::UNITTYPE, RtType::IDENTIFIER);
-        attr->asIdentifier() = unit;
+        RtTypedValue* attr = createAttribute(RtStrings::UNITTYPE, RtType::INTERNSTRING);
+        attr->asInternString() = unit;
     }
 
     bool isConnected() const

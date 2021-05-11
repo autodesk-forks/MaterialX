@@ -24,67 +24,67 @@ namespace
         PvtNodeDefPrimSpec()
         {
             addPrimAttribute(RtStrings::DOC, RtType::STRING);
-            addPrimAttribute(RtStrings::NODE, RtType::IDENTIFIER);
-            addPrimAttribute(RtStrings::INHERIT, RtType::IDENTIFIER);
-            addPrimAttribute(RtStrings::NODEGROUP, RtType::IDENTIFIER);
-            addPrimAttribute(RtStrings::VERSION, RtType::IDENTIFIER);
+            addPrimAttribute(RtStrings::NODE, RtType::INTERNSTRING);
+            addPrimAttribute(RtStrings::INHERIT, RtType::INTERNSTRING);
+            addPrimAttribute(RtStrings::NODEGROUP, RtType::INTERNSTRING);
+            addPrimAttribute(RtStrings::VERSION, RtType::INTERNSTRING);
             addPrimAttribute(RtStrings::ISDEFAULTVERSION, RtType::BOOLEAN);
-            addPrimAttribute(RtStrings::TARGET, RtType::IDENTIFIER);
+            addPrimAttribute(RtStrings::TARGET, RtType::INTERNSTRING);
             addPrimAttribute(RtStrings::UINAME, RtType::STRING);
-            addPrimAttribute(RtStrings::INTERNALGEOMPROPS, RtType::IDENTIFIER);
-            addPrimAttribute(RtStrings::NAMESPACE, RtType::IDENTIFIER);
+            addPrimAttribute(RtStrings::INTERNALGEOMPROPS, RtType::INTERNSTRING);
+            addPrimAttribute(RtStrings::NAMESPACE, RtType::INTERNSTRING);
 
             addInputAttribute(RtStrings::DOC, RtType::STRING);
             addInputAttribute(RtStrings::UNIFORM, RtType::BOOLEAN);
-            addInputAttribute(RtStrings::DEFAULTGEOMPROP, RtType::IDENTIFIER);
+            addInputAttribute(RtStrings::DEFAULTGEOMPROP, RtType::INTERNSTRING);
             addInputAttribute(RtStrings::ENUM, RtType::STRING);
             addInputAttribute(RtStrings::ENUMVALUES, RtType::STRING);
             addInputAttribute(RtStrings::UINAME, RtType::STRING);
             addInputAttribute(RtStrings::UIFOLDER, RtType::STRING);
             addInputAttribute(RtStrings::UIVISIBLE, RtType::BOOLEAN);
 
-            addInputAttributeByType(RtType::COLOR3, RtStrings::COLORSPACE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::COLOR3, RtStrings::COLORSPACE, RtType::INTERNSTRING);
             addInputAttributeByType(RtType::COLOR3, RtStrings::UIMIN, RtType::COLOR3);
             addInputAttributeByType(RtType::COLOR3, RtStrings::UIMAX, RtType::COLOR3);
             addInputAttributeByType(RtType::COLOR3, RtStrings::UISOFTMIN, RtType::COLOR3);
             addInputAttributeByType(RtType::COLOR3, RtStrings::UISOFTMAX, RtType::COLOR3);
             addInputAttributeByType(RtType::COLOR3, RtStrings::UISTEP, RtType::COLOR3);
 
-            addInputAttributeByType(RtType::COLOR4, RtStrings::COLORSPACE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::COLOR4, RtStrings::COLORSPACE, RtType::INTERNSTRING);
             addInputAttributeByType(RtType::COLOR4, RtStrings::UIMIN, RtType::COLOR4);
             addInputAttributeByType(RtType::COLOR4, RtStrings::UIMAX, RtType::COLOR4);
             addInputAttributeByType(RtType::COLOR4, RtStrings::UISOFTMIN, RtType::COLOR4);
             addInputAttributeByType(RtType::COLOR4, RtStrings::UISOFTMAX, RtType::COLOR4);
             addInputAttributeByType(RtType::COLOR4, RtStrings::UISTEP, RtType::COLOR4);
 
-            addInputAttributeByType(RtType::FLOAT, RtStrings::UNIT, RtType::IDENTIFIER);
-            addInputAttributeByType(RtType::FLOAT, RtStrings::UNITTYPE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::FLOAT, RtStrings::UNIT, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::FLOAT, RtStrings::UNITTYPE, RtType::INTERNSTRING);
             addInputAttributeByType(RtType::FLOAT, RtStrings::UIMIN, RtType::FLOAT);
             addInputAttributeByType(RtType::FLOAT, RtStrings::UIMAX, RtType::FLOAT);
             addInputAttributeByType(RtType::FLOAT, RtStrings::UISOFTMIN, RtType::FLOAT);
             addInputAttributeByType(RtType::FLOAT, RtStrings::UISOFTMAX, RtType::FLOAT);
             addInputAttributeByType(RtType::FLOAT, RtStrings::UISTEP, RtType::FLOAT);
 
-            addInputAttributeByType(RtType::VECTOR2, RtStrings::UNIT, RtType::IDENTIFIER);
-            addInputAttributeByType(RtType::VECTOR2, RtStrings::UNITTYPE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR2, RtStrings::UNIT, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR2, RtStrings::UNITTYPE, RtType::INTERNSTRING);
             addInputAttributeByType(RtType::VECTOR2, RtStrings::UIMIN, RtType::VECTOR2);
             addInputAttributeByType(RtType::VECTOR2, RtStrings::UIMAX, RtType::VECTOR2);
             addInputAttributeByType(RtType::VECTOR2, RtStrings::UISOFTMIN, RtType::VECTOR2);
             addInputAttributeByType(RtType::VECTOR2, RtStrings::UISOFTMAX, RtType::VECTOR2);
             addInputAttributeByType(RtType::VECTOR2, RtStrings::UISTEP, RtType::VECTOR2);
-            addInputAttributeByType(RtType::VECTOR2, RtStrings::DEFAULTGEOMPROP, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR2, RtStrings::DEFAULTGEOMPROP, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::VECTOR3, RtStrings::UNIT, RtType::IDENTIFIER);
-            addInputAttributeByType(RtType::VECTOR3, RtStrings::UNITTYPE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR3, RtStrings::UNIT, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR3, RtStrings::UNITTYPE, RtType::INTERNSTRING);
             addInputAttributeByType(RtType::VECTOR3, RtStrings::UIMIN, RtType::VECTOR3);
             addInputAttributeByType(RtType::VECTOR3, RtStrings::UIMAX, RtType::VECTOR3);
             addInputAttributeByType(RtType::VECTOR3, RtStrings::UISOFTMIN, RtType::VECTOR3);
             addInputAttributeByType(RtType::VECTOR3, RtStrings::UISOFTMAX, RtType::VECTOR3);
             addInputAttributeByType(RtType::VECTOR3, RtStrings::UISTEP, RtType::VECTOR3);
-            addInputAttributeByType(RtType::VECTOR3, RtStrings::DEFAULTGEOMPROP, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR3, RtStrings::DEFAULTGEOMPROP, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::VECTOR4, RtStrings::UNIT, RtType::IDENTIFIER);
-            addInputAttributeByType(RtType::VECTOR4, RtStrings::UNITTYPE, RtType::IDENTIFIER);
+            addInputAttributeByType(RtType::VECTOR4, RtStrings::UNIT, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR4, RtStrings::UNITTYPE, RtType::INTERNSTRING);
             addInputAttributeByType(RtType::VECTOR4, RtStrings::UIMIN, RtType::VECTOR4);
             addInputAttributeByType(RtType::VECTOR4, RtStrings::UIMAX, RtType::VECTOR4);
             addInputAttributeByType(RtType::VECTOR4, RtStrings::UISOFTMIN, RtType::VECTOR4);
@@ -92,7 +92,7 @@ namespace
             addInputAttributeByType(RtType::VECTOR4, RtStrings::UISTEP, RtType::VECTOR4);
 
             addOutputAttribute(RtStrings::DOC, RtType::STRING);
-            addOutputAttribute(RtStrings::DEFAULTINPUT, RtType::IDENTIFIER);
+            addOutputAttribute(RtStrings::DEFAULTINPUT, RtType::INTERNSTRING);
             addOutputAttribute(RtStrings::DEFAULT, RtType::STRING);
         }
     };
@@ -107,7 +107,7 @@ RtPrim RtNodeDef::createPrim(const RtString& typeName, const RtString& name, RtP
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, name, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
-    prim->createAttribute(RtStrings::NODE, RtType::IDENTIFIER);
+    prim->createAttribute(RtStrings::NODE, RtType::INTERNSTRING);
     prim->createRelationship(RtStrings::NODEIMPL);
 
     return primH;
@@ -121,14 +121,14 @@ const RtPrimSpec& RtNodeDef::getPrimSpec() const
 
 void RtNodeDef::setNode(const RtString& node)
 {
-    RtTypedValue* attr = prim()->createAttribute(RtStrings::NODE, RtType::IDENTIFIER);
-    attr->asIdentifier() = node;
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::NODE, RtType::INTERNSTRING);
+    attr->asInternString() = node;
 }
 
 const RtString& RtNodeDef::getNode() const
 {
-    RtTypedValue* attr = prim()->getAttribute(RtStrings::NODE, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : RtString::EMPTY;
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::NODE, RtType::INTERNSTRING);
+    return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 RtString RtNodeDef::getNamespacedNode() const
@@ -144,50 +144,50 @@ RtString RtNodeDef::getNamespacedNode() const
 
 void RtNodeDef::setNodeGroup(const RtString& nodegroup)
 {
-    RtTypedValue* attr = prim()->createAttribute(RtStrings::NODEGROUP, RtType::IDENTIFIER);
-    attr->asIdentifier() = nodegroup;
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::NODEGROUP, RtType::INTERNSTRING);
+    attr->asInternString() = nodegroup;
 }
 
 const RtString& RtNodeDef::getNodeGroup() const
 {
-    RtTypedValue* attr = prim()->getAttribute(RtStrings::NODEGROUP, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : RtString::EMPTY;
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::NODEGROUP, RtType::INTERNSTRING);
+    return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 void RtNodeDef::setTarget(const RtString& nodegroup)
 {
-    RtTypedValue* attr = prim()->createAttribute(RtStrings::TARGET, RtType::IDENTIFIER);
-    attr->asIdentifier() = nodegroup;
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::TARGET, RtType::INTERNSTRING);
+    attr->asInternString() = nodegroup;
 }
 
 const RtString& RtNodeDef::getTarget() const
 {
-    RtTypedValue* attr = prim()->getAttribute(RtStrings::TARGET, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : RtString::EMPTY;
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::TARGET, RtType::INTERNSTRING);
+    return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 void RtNodeDef::setIneritance(const RtString& inherit)
 {
-    RtTypedValue* attr = prim()->createAttribute(RtStrings::INHERIT, RtType::IDENTIFIER);
-    attr->asIdentifier() = inherit;
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::INHERIT, RtType::INTERNSTRING);
+    attr->asInternString() = inherit;
 }
 
 const RtString& RtNodeDef::getIneritance() const
 {
-    RtTypedValue* attr = prim()->getAttribute(RtStrings::INHERIT, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : RtString::EMPTY;
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::INHERIT, RtType::INTERNSTRING);
+    return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 void RtNodeDef::setVersion(const RtString& version)
 {
-    RtTypedValue* attr = prim()->createAttribute(RtStrings::VERSION, RtType::IDENTIFIER);
-    attr->asIdentifier() = version;
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::VERSION, RtType::INTERNSTRING);
+    attr->asInternString() = version;
 }
 
 const RtString& RtNodeDef::getVersion() const
 {
-    RtTypedValue* attr = prim()->getAttribute(RtStrings::VERSION, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : RtString::EMPTY;
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::VERSION, RtType::INTERNSTRING);
+    return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 void RtNodeDef::setIsDefaultVersion(bool isDefault)
@@ -204,14 +204,14 @@ bool RtNodeDef::getIsDefaultVersion() const
 
 void RtNodeDef::setNamespace(const RtString& space)
 {
-    RtTypedValue* attr = prim()->createAttribute(RtStrings::NAMESPACE, RtType::IDENTIFIER);
-    attr->asIdentifier() = space;
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::NAMESPACE, RtType::INTERNSTRING);
+    attr->asInternString() = space;
 }
 
 const RtString& RtNodeDef::getNamespace() const
 {
-    RtTypedValue* attr = prim()->getAttribute(RtStrings::NAMESPACE, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : RtString::EMPTY;
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::NAMESPACE, RtType::INTERNSTRING);
+    return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 void RtNodeDef::setDoc(const string& doc) {
@@ -247,8 +247,8 @@ RtPrim RtNodeDef::getNodeImpl(const RtString& target) const
             RtPrim prim(obj);
             if (prim.hasApi<RtNodeImpl>() || prim.hasApi<RtNodeGraph>())
             {
-                const RtTypedValue* attr = prim.getAttribute(RtStrings::TARGET, RtType::IDENTIFIER);
-                const RtString primTarget = attr ? attr->asIdentifier() : RtString::EMPTY;
+                const RtTypedValue* attr = prim.getAttribute(RtStrings::TARGET, RtType::INTERNSTRING);
+                const RtString primTarget = attr ? attr->asInternString() : RtString::EMPTY;
                 if (primTarget.empty() || primTarget == target)
                 {
                     return prim;

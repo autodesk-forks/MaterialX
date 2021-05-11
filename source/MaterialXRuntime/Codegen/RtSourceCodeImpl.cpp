@@ -70,14 +70,14 @@ const string& RtSourceCodeImpl::getSourceCode() const
 
 void RtSourceCodeImpl::setFormat(const RtString& format)
 {
-    RtTypedValue* attr = prim()->createAttribute(RtStrings::FORMAT, RtType::IDENTIFIER);
-    attr->asIdentifier() = format;
+    RtTypedValue* attr = prim()->createAttribute(RtStrings::FORMAT, RtType::INTERNSTRING);
+    attr->asInternString() = format;
 }
 
 const RtString& RtSourceCodeImpl::getFormat() const
 {
-    RtTypedValue* attr = prim()->getAttribute(RtStrings::FORMAT, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : RtStrings::SHADER;
+    RtTypedValue* attr = prim()->getAttribute(RtStrings::FORMAT, RtType::INTERNSTRING);
+    return attr ? attr->asInternString() : RtStrings::SHADER;
 }
 
 void RtSourceCodeImpl::setFunction(const string& source)

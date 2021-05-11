@@ -18,7 +18,7 @@ const RtString RtType::COLOR3("color3");
 const RtString RtType::COLOR4("color4");
 const RtString RtType::MATRIX33("matrix33");
 const RtString RtType::MATRIX44("matrix44");
-const RtString RtType::IDENTIFIER("identifier");
+const RtString RtType::INTERNSTRING("internstring");
 const RtString RtType::STRING("string");
 const RtString RtType::FILENAME("filename");
 const RtString RtType::INTEGERARRAY("integerarray");
