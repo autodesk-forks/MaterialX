@@ -71,18 +71,10 @@ extern "C"
             .function("getAttribute", &mx::Element::getAttribute)
             .function("getAttributeNames", &mx::Element::getAttributeNames)
             .function("removeAttribute", &mx::Element::removeAttribute)
-            .function("getSelf", ems::optional_override([](mx::Element &self) {
-                          return self.mx::Element::getSelf();
-                      }))
-            .function("getParent", ems::optional_override([](mx::Element &self) {
-                          return self.mx::Element::getParent();
-                      }))
-            .function("getRoot", ems::optional_override([](mx::Element &self) {
-                          return self.mx::Element::getRoot();
-                      }))
-            .function("getDocument", ems::optional_override([](mx::Element &self) {
-                          return self.mx::Element::getDocument();
-                      }))
+            .function("getSelf", ems::select_overload<mx::ConstElementPtr()const>(&mx::Element::getSelf))
+            .function("getParent", ems::select_overload<mx::ConstElementPtr()const>(&mx::Element::getParent))
+            .function("getRoot", ems::select_overload<mx::ConstElementPtr()const>(&mx::Element::getRoot))
+            .function("getDocument", ems::select_overload<mx::ConstDocumentPtr()const>(&mx::Element::getDocument))
             .function("traverseTree", &mx::Element::traverseTree)
 
             .function("traverseGraph", &mx::Element::traverseGraph)
