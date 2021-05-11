@@ -13,7 +13,7 @@
 #include <MaterialXRuntime/RtValue.h>
 #include <MaterialXRuntime/RtTypeDef.h>
 #include <MaterialXRuntime/RtTraversal.h>
-#include <MaterialXRuntime/RtStrings.h>
+#include <MaterialXRuntime/RtString.h>
 
 /// @file
 /// TODO: Docs
@@ -83,13 +83,13 @@ public:
 
     const RtString& getColorSpace() const
     {
-        const RtTypedValue* attr = getAttribute(RtStrings::COLORSPACE, RtType::INTERNSTRING);
+        const RtTypedValue* attr = getAttribute(RtString::COLORSPACE, RtType::INTERNSTRING);
         return attr ? attr->asInternString() : RtString::EMPTY;
     }
 
     void setColorSpace(const RtString& colorspace)
     {
-        RtTypedValue* attr = createAttribute(RtStrings::COLORSPACE, RtType::INTERNSTRING);
+        RtTypedValue* attr = createAttribute(RtString::COLORSPACE, RtType::INTERNSTRING);
         attr->asInternString() = colorspace;
     }
 
@@ -118,37 +118,37 @@ public:
         {
             return true;
         }
-        const RtTypedValue* attr = getAttribute(RtStrings::UIVISIBLE, RtType::BOOLEAN);
+        const RtTypedValue* attr = getAttribute(RtString::UIVISIBLE, RtType::BOOLEAN);
         return attr ? attr->asBool() : true;
     }
 
     void setIsUIVisible(bool val)
     {
-        RtTypedValue* attr = createAttribute(RtStrings::UIVISIBLE, RtType::BOOLEAN);
+        RtTypedValue* attr = createAttribute(RtString::UIVISIBLE, RtType::BOOLEAN);
         attr->asBool() = val;
     }
 
     const RtString& getUnit() const
     {
-        const RtTypedValue* attr = getAttribute(RtStrings::UNIT, RtType::INTERNSTRING);
+        const RtTypedValue* attr = getAttribute(RtString::UNIT, RtType::INTERNSTRING);
         return attr ? attr->asInternString() : RtString::EMPTY;
     }
 
     void setUnit(const RtString& unit)
     {
-        RtTypedValue* attr = createAttribute(RtStrings::UNIT, RtType::INTERNSTRING);
+        RtTypedValue* attr = createAttribute(RtString::UNIT, RtType::INTERNSTRING);
         attr->asInternString() = unit;
     }
 
     const RtString& getUnitType() const
     {
-        const RtTypedValue* attr = getAttribute(RtStrings::UNITTYPE, RtType::INTERNSTRING);
+        const RtTypedValue* attr = getAttribute(RtString::UNITTYPE, RtType::INTERNSTRING);
         return attr ? attr->asInternString() : RtString::EMPTY;
     }
 
     void setUnitType(const RtString& unit)
     {
-        RtTypedValue* attr = createAttribute(RtStrings::UNITTYPE, RtType::INTERNSTRING);
+        RtTypedValue* attr = createAttribute(RtString::UNITTYPE, RtType::INTERNSTRING);
         attr->asInternString() = unit;
     }
 

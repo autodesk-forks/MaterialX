@@ -16,7 +16,6 @@
 #include <MaterialXRuntime/RtTraversal.h>
 #include <MaterialXRuntime/RtApi.h>
 #include <MaterialXRuntime/RtLogger.h>
-#include <MaterialXRuntime/RtStrings.h>
 #include <MaterialXRuntime/RtNodeImpl.h>
 #include <MaterialXRuntime/RtTargetDef.h>
 #include <MaterialXRuntime/Codegen/RtSourceCodeImpl.h>
@@ -65,8 +64,8 @@ namespace
         PvtRootPrimSpec()
         {
             // TODO: We should derive this from a data driven XML schema.
-            addPrimAttribute(RtStrings::DOC, RtType::STRING);
-            addPrimAttribute(RtStrings::COLORSPACE, RtType::INTERNSTRING);
+            addPrimAttribute(RtString::DOC, RtType::STRING);
+            addPrimAttribute(RtString::COLORSPACE, RtType::INTERNSTRING);
         }
     };
 
@@ -474,7 +473,7 @@ namespace
             }
             if (!source.empty())
             {
-                destImpl->setAttribute(RtStrings::SOURCECODE.str(), source);
+                destImpl->setAttribute(RtString::SOURCECODE.str(), source);
             }
         }
 
@@ -1145,7 +1144,7 @@ namespace
     PvtPrim* readImplementation(const ImplementationPtr& src, PvtStage* stage)
     {
         PvtPrim* parent = stage->getRootPrim();
-        const RtString target(src->getAttribute(RtStrings::TARGET.str()));
+        const RtString target(src->getAttribute(RtString::TARGET.str()));
 
         // We are only interested in implementations for loaded targets,
         // so if target is set make sure this target has been loaded.
@@ -1156,8 +1155,8 @@ namespace
 
         const RtString name(src->getName());
 
-        const string& sourcecode = src->getAttribute(RtStrings::SOURCECODE.str());
-        const string& file = src->getAttribute(RtStrings::FILE.str());
+        const string& sourcecode = src->getAttribute(RtString::SOURCECODE.str());
+        const string& file = src->getAttribute(RtString::FILE.str());
 
         PvtPrim* prim = nullptr;
         if (file.empty() && sourcecode.empty())

@@ -193,8 +193,6 @@ public:
         }
     };
 
-    static const RtString EMPTY;
-
 private:
     struct Entry
     {
@@ -206,6 +204,78 @@ private:
     const Entry* _entry;
 
     friend struct RtStringRegistry;
+
+public:
+    /// Special case, defining the empty string ""
+    /// and not the string "empty".
+    static const RtString EMPTY;
+
+    /// Declaration of commonly used string constants.
+    static const RtString DOC;
+    static const RtString NAME;
+    static const RtString TYPE;
+    static const RtString VALUE;
+    static const RtString UNIFORM;
+    static const RtString DEFAULTGEOMPROP;
+    static const RtString INTERNALGEOMPROPS;
+    static const RtString ENUM;
+    static const RtString ENUMVALUES;
+    static const RtString COLORSPACE;
+    static const RtString FILEPREFIX;
+    static const RtString UINAME;
+    static const RtString UICOLOR;
+    static const RtString UIFOLDER;
+    static const RtString UIMIN;
+    static const RtString UIMAX;
+    static const RtString UISOFTMIN;
+    static const RtString UISOFTMAX;
+    static const RtString UISTEP;
+    static const RtString UIADVANCED;
+    static const RtString UIVISIBLE;
+    static const RtString XPOS;
+    static const RtString YPOS;
+    static const RtString UNIT;
+    static const RtString UNITTYPE;
+    static const RtString MEMBER;
+    static const RtString CHANNELS;
+    static const RtString MATERIAL;
+    static const RtString COLLECTION;
+    static const RtString GEOM;
+    static const RtString EXCLUSIVE;
+    static const RtString MATERIALASSIGN;
+    static const RtString ENABLEDLOOKS;
+    static const RtString FORMAT;
+    static const RtString FILE;
+    static const RtString FRAGMENT;
+    static const RtString FUNCTION;
+    static const RtString LOOK;
+    static const RtString LOOKS;
+    static const RtString INCLUDEGEOM;
+    static const RtString EXCLUDEGEOM;
+    static const RtString INCLUDECOLLECTION;
+    static const RtString CONTAINS;
+    static const RtString MINIMIZED;
+    static const RtString WIDTH;
+    static const RtString HEIGHT;
+    static const RtString BITDEPTH;
+    static const RtString IMPLNAME;
+    static const RtString INHERIT;
+    static const RtString KIND;
+    static const RtString LANGUAGE;
+    static const RtString NAMESPACE;
+    static const RtString NODE;
+    static const RtString NODEDEF;
+    static const RtString NODEGROUP;
+    static const RtString NODEIMPL;
+    static const RtString NOTE;
+    static const RtString SHADER;
+    static const RtString SOURCECODE;
+    static const RtString TARGET;
+    static const RtString VERSION;
+    static const RtString ISDEFAULTVERSION;
+    static const RtString DEFAULT;
+    static const RtString DEFAULTINPUT;
+    static const RtString UNKNOWN;
 };
 
 /// Class representing an unordered map with RtString keys and templated value type.

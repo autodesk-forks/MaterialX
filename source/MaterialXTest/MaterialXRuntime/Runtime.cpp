@@ -30,7 +30,6 @@
 #include <MaterialXRuntime/RtLook.h>
 #include <MaterialXRuntime/RtCollection.h>
 #include <MaterialXRuntime/RtMessage.h>
-#include <MaterialXRuntime/RtStrings.h>
 
 #include <MaterialXRuntime/Commands/PrimCommands.h>
 #include <MaterialXRuntime/Commands/PortCommands.h>
@@ -594,19 +593,19 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(nodegraphAttrs.size() == 12);
     const mx::RtAttributeSpecVec nodegraphColor3InputAttrs = graph.getPrimSpec().getPortAttributes(graph_in);
     REQUIRE(nodegraphColor3InputAttrs.size() == 6);
-    const mx::RtAttributeSpec* version = nodedef.getPrimSpec().getAttribute(mx::RtStrings::VERSION);
+    const mx::RtAttributeSpec* version = nodedef.getPrimSpec().getAttribute(mx::RtString::VERSION);
     REQUIRE(version);
     REQUIRE(version->getType() == mx::RtType::INTERNSTRING);
     REQUIRE(!version->isCustom());
-    const mx::RtAttributeSpec* isDefaultVersion = nodedef.getPrimSpec().getAttribute(mx::RtStrings::ISDEFAULTVERSION);
+    const mx::RtAttributeSpec* isDefaultVersion = nodedef.getPrimSpec().getAttribute(mx::RtString::ISDEFAULTVERSION);
     REQUIRE(isDefaultVersion);
     REQUIRE(isDefaultVersion->getType() == mx::RtType::BOOLEAN);
     REQUIRE(!isDefaultVersion->isCustom());
-    const mx::RtAttributeSpec* uiVisible = graph.getPrimSpec().getPortAttribute(graph_in, mx::RtStrings::UIVISIBLE);
+    const mx::RtAttributeSpec* uiVisible = graph.getPrimSpec().getPortAttribute(graph_in, mx::RtString::UIVISIBLE);
     REQUIRE(uiVisible);
     REQUIRE(uiVisible->getType() == mx::RtType::BOOLEAN);
     REQUIRE(!uiVisible->isCustom());
-    const mx::RtAttributeSpec* bitDepth = graph.getPrimSpec().getPortAttribute(graph_out, mx::RtStrings::BITDEPTH);
+    const mx::RtAttributeSpec* bitDepth = graph.getPrimSpec().getPortAttribute(graph_out, mx::RtString::BITDEPTH);
     REQUIRE(bitDepth);
     REQUIRE(bitDepth->getType() == mx::RtType::INTEGER);
     REQUIRE(!uiVisible->isCustom());
@@ -736,7 +735,7 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     }
     REQUIRE(attrCount == 1);
     mx::RtAttributeIterator attrIt = add1_in1.getAttributes();
-    REQUIRE(mx::RtStrings::UNIT == (*attrIt).name);
+    REQUIRE(mx::RtString::UNIT == (*attrIt).name);
     REQUIRE(meter == (*attrIt).value->asInternString());
     ++attrIt;
     REQUIRE(FOO == (*attrIt).name);
@@ -972,12 +971,12 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     mx::RtNode agNode(agPrim);
     {
         // 1. Metadata like version should be copied but not target or node.
-        mx::RtTypedValue* agVersion = agNode.getAttribute(mx::RtStrings::VERSION);
+        mx::RtTypedValue* agVersion = agNode.getAttribute(mx::RtString::VERSION);
         REQUIRE(agVersion);
         REQUIRE(agVersion->getValueString() == ADDGRAPH_VERSION);
-        mx::RtTypedValue* agTarget = agNode.getAttribute(mx::RtStrings::TARGET);
+        mx::RtTypedValue* agTarget = agNode.getAttribute(mx::RtString::TARGET);
         REQUIRE(!agTarget);
-        mx::RtTypedValue* agNodeValue = agNode.getAttribute(mx::RtStrings::NODE);
+        mx::RtTypedValue* agNodeValue = agNode.getAttribute(mx::RtString::NODE);
         REQUIRE(!agNodeValue);
     }
 
@@ -1058,11 +1057,11 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
         doc->validate();
         mx::ElementPtr agInstance = doc->getChild("addgraph1");
         REQUIRE(agInstance);
-        bool instanceVersionSaved = agInstance->getAttribute(mx::RtStrings::VERSION.str()) == ADDGRAPH_VERSION;
+        bool instanceVersionSaved = agInstance->getAttribute(mx::RtString::VERSION.str()) == ADDGRAPH_VERSION;
         REQUIRE(instanceVersionSaved);
-        bool instanceTargetNotSaved = agInstance->getAttribute(mx::RtStrings::TARGET.str()) == mx::EMPTY_STRING;
+        bool instanceTargetNotSaved = agInstance->getAttribute(mx::RtString::TARGET.str()) == mx::EMPTY_STRING;
         REQUIRE(instanceTargetNotSaved);
-        bool instanceNodeNotSaved = agInstance->getAttribute(mx::RtStrings::NODE.str()) == mx::EMPTY_STRING;
+        bool instanceNodeNotSaved = agInstance->getAttribute(mx::RtString::NODE.str()) == mx::EMPTY_STRING;
         REQUIRE(instanceNodeNotSaved);
     }
 }

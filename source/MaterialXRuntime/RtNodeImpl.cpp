@@ -4,7 +4,6 @@
 //
 
 #include <MaterialXRuntime/RtNodeImpl.h>
-#include <MaterialXRuntime/RtStrings.h>
 
 #include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
@@ -19,13 +18,13 @@ namespace
     public:
         PvtNodeImplPrimSpec()
         {
-            addPrimAttribute(RtStrings::DOC, RtType::STRING);
-            addPrimAttribute(RtStrings::NODEDEF, RtType::INTERNSTRING);
-            addPrimAttribute(RtStrings::TARGET, RtType::INTERNSTRING);
-            addPrimAttribute(RtStrings::FILE, RtType::STRING);
-            addPrimAttribute(RtStrings::SOURCECODE, RtType::STRING);
-            addPrimAttribute(RtStrings::FUNCTION, RtType::STRING);
-            addPrimAttribute(RtStrings::FORMAT, RtType::INTERNSTRING);
+            addPrimAttribute(RtString::DOC, RtType::STRING);
+            addPrimAttribute(RtString::NODEDEF, RtType::INTERNSTRING);
+            addPrimAttribute(RtString::TARGET, RtType::INTERNSTRING);
+            addPrimAttribute(RtString::FILE, RtType::STRING);
+            addPrimAttribute(RtString::SOURCECODE, RtType::STRING);
+            addPrimAttribute(RtString::FUNCTION, RtType::STRING);
+            addPrimAttribute(RtString::FORMAT, RtType::INTERNSTRING);
         }
     };
 }
@@ -51,37 +50,37 @@ const RtPrimSpec& RtNodeImpl::getPrimSpec() const
 
 void RtNodeImpl::setTarget(const RtString& target)
 {
-    RtTypedValue* attr = createAttribute(RtStrings::TARGET, RtType::INTERNSTRING);
+    RtTypedValue* attr = createAttribute(RtString::TARGET, RtType::INTERNSTRING);
     attr->getValue().asInternString() = target;
 }
 
 const RtString& RtNodeImpl::getTarget() const
 {
-    const RtTypedValue* attr = getAttribute(RtStrings::TARGET, RtType::INTERNSTRING);
+    const RtTypedValue* attr = getAttribute(RtString::TARGET, RtType::INTERNSTRING);
     return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 void RtNodeImpl::setNodeDef(const RtString& language)
 {
-    RtTypedValue* attr = createAttribute(RtStrings::NODEDEF, RtType::INTERNSTRING);
+    RtTypedValue* attr = createAttribute(RtString::NODEDEF, RtType::INTERNSTRING);
     attr->asInternString() = language;
 }
 
 const RtString& RtNodeImpl::getNodeDef() const
 {
-    const RtTypedValue* attr = getAttribute(RtStrings::NODEDEF, RtType::INTERNSTRING);
+    const RtTypedValue* attr = getAttribute(RtString::NODEDEF, RtType::INTERNSTRING);
     return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
 void RtNodeImpl::setImplName(const RtString& implname)
 {
-    RtTypedValue* attr = createAttribute(RtStrings::IMPLNAME, RtType::INTERNSTRING);
+    RtTypedValue* attr = createAttribute(RtString::IMPLNAME, RtType::INTERNSTRING);
     attr->asInternString() = implname;
 }
 
 const RtString& RtNodeImpl::getImplName() const
 {
-    const RtTypedValue* attr = getAttribute(RtStrings::IMPLNAME, RtType::INTERNSTRING);
+    const RtTypedValue* attr = getAttribute(RtString::IMPLNAME, RtType::INTERNSTRING);
     return attr ? attr->asInternString() : RtString::EMPTY;
 }
 

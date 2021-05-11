@@ -4,7 +4,6 @@
 //
 
 #include <MaterialXRuntime/RtGeneric.h>
-#include <MaterialXRuntime/RtStrings.h>
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
@@ -32,13 +31,13 @@ const RtPrimSpec& RtGeneric::getPrimSpec() const
 
 const RtString& RtGeneric::getKind() const
 {
-    RtTypedValue* v = prim()->getAttribute(RtStrings::KIND, RtType::INTERNSTRING);
-    return v ? v->getValue().asInternString() : RtStrings::UNKNOWN;
+    RtTypedValue* v = prim()->getAttribute(RtString::KIND, RtType::INTERNSTRING);
+    return v ? v->getValue().asInternString() : RtString::UNKNOWN;
 }
 
 void RtGeneric::setKind(const RtString& kind)
 {
-    RtTypedValue* attr = prim()->createAttribute(RtStrings::KIND, RtType::INTERNSTRING);
+    RtTypedValue* attr = prim()->createAttribute(RtString::KIND, RtType::INTERNSTRING);
     attr->asInternString() = kind;
 }
 

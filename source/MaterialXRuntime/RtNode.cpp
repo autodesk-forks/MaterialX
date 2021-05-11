@@ -7,7 +7,6 @@
 #include <MaterialXRuntime/RtApi.h>
 #include <MaterialXRuntime/RtPrim.h>
 #include <MaterialXRuntime/RtNodeDef.h>
-#include <MaterialXRuntime/RtStrings.h>
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
@@ -22,51 +21,51 @@ namespace
     public:
         PvtNodePrimSpec()
         {
-            addPrimAttribute(RtStrings::DOC, RtType::STRING);
-            addPrimAttribute(RtStrings::XPOS, RtType::FLOAT);
-            addPrimAttribute(RtStrings::YPOS, RtType::FLOAT);
-            addPrimAttribute(RtStrings::WIDTH, RtType::INTEGER);
-            addPrimAttribute(RtStrings::HEIGHT, RtType::INTEGER);
-            addPrimAttribute(RtStrings::UICOLOR, RtType::COLOR3);
-            addPrimAttribute(RtStrings::UINAME, RtType::STRING);
-            addPrimAttribute(RtStrings::VERSION, RtType::INTERNSTRING);
-            addPrimAttribute(RtStrings::COLORSPACE, RtType::INTERNSTRING);
-            addPrimAttribute(RtStrings::FILEPREFIX, RtType::STRING);
+            addPrimAttribute(RtString::DOC, RtType::STRING);
+            addPrimAttribute(RtString::XPOS, RtType::FLOAT);
+            addPrimAttribute(RtString::YPOS, RtType::FLOAT);
+            addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
+            addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
+            addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
+            addPrimAttribute(RtString::UINAME, RtType::STRING);
+            addPrimAttribute(RtString::VERSION, RtType::INTERNSTRING);
+            addPrimAttribute(RtString::COLORSPACE, RtType::INTERNSTRING);
+            addPrimAttribute(RtString::FILEPREFIX, RtType::STRING);
 
-            addInputAttribute(RtStrings::DOC, RtType::STRING);
-            addInputAttribute(RtStrings::MEMBER, RtType::STRING);
-            addInputAttribute(RtStrings::CHANNELS, RtType::STRING);
-            addInputAttribute(RtStrings::UIADVANCED, RtType::BOOLEAN);
-            addInputAttribute(RtStrings::UIVISIBLE, RtType::BOOLEAN);
+            addInputAttribute(RtString::DOC, RtType::STRING);
+            addInputAttribute(RtString::MEMBER, RtType::STRING);
+            addInputAttribute(RtString::CHANNELS, RtType::STRING);
+            addInputAttribute(RtString::UIADVANCED, RtType::BOOLEAN);
+            addInputAttribute(RtString::UIVISIBLE, RtType::BOOLEAN);
 
-            addInputAttributeByType(RtType::COLOR3, RtStrings::COLORSPACE, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::COLOR4, RtStrings::COLORSPACE, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::COLOR3, RtString::COLORSPACE, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::COLOR4, RtString::COLORSPACE, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::FLOAT, RtStrings::UNIT, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::FLOAT, RtStrings::UNITTYPE, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::FLOAT, RtString::UNIT, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::FLOAT, RtString::UNITTYPE, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::VECTOR2, RtStrings::UNIT, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::VECTOR2, RtStrings::UNITTYPE, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::VECTOR2, RtStrings::DEFAULTGEOMPROP, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR2, RtString::UNIT, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR2, RtString::UNITTYPE, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR2, RtString::DEFAULTGEOMPROP, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::VECTOR3, RtStrings::UNIT, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::VECTOR3, RtStrings::UNITTYPE, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::VECTOR3, RtStrings::DEFAULTGEOMPROP, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR3, RtString::UNIT, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR3, RtString::UNITTYPE, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR3, RtString::DEFAULTGEOMPROP, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::VECTOR4, RtStrings::UNIT, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::VECTOR4, RtStrings::UNITTYPE, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR4, RtString::UNIT, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::VECTOR4, RtString::UNITTYPE, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::FILENAME, RtStrings::COLORSPACE, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::FILENAME, RtStrings::FILEPREFIX, RtType::STRING);
+            addInputAttributeByType(RtType::FILENAME, RtString::COLORSPACE, RtType::INTERNSTRING);
+            addInputAttributeByType(RtType::FILENAME, RtString::FILEPREFIX, RtType::STRING);
 
-            addOutputAttribute(RtStrings::DOC, RtType::STRING);
-            addOutputAttribute(RtStrings::MEMBER, RtType::STRING);
-            addOutputAttribute(RtStrings::WIDTH, RtType::INTEGER);
-            addOutputAttribute(RtStrings::HEIGHT, RtType::INTEGER);
-            addOutputAttribute(RtStrings::BITDEPTH, RtType::INTEGER);
+            addOutputAttribute(RtString::DOC, RtType::STRING);
+            addOutputAttribute(RtString::MEMBER, RtType::STRING);
+            addOutputAttribute(RtString::WIDTH, RtType::INTEGER);
+            addOutputAttribute(RtString::HEIGHT, RtType::INTEGER);
+            addOutputAttribute(RtString::BITDEPTH, RtType::INTEGER);
 
-            addOutputAttributeByType(RtType::COLOR3, RtStrings::COLORSPACE, RtType::INTERNSTRING);
-            addOutputAttributeByType(RtType::COLOR4, RtStrings::COLORSPACE, RtType::INTERNSTRING);
+            addOutputAttributeByType(RtType::COLOR3, RtString::COLORSPACE, RtType::INTERNSTRING);
+            addOutputAttributeByType(RtType::COLOR4, RtString::COLORSPACE, RtType::INTERNSTRING);
         }
     };
 }
@@ -99,14 +98,14 @@ RtPrim RtNode::createNode(RtPrim nodedef, const RtString& name, RtPrim parent)
     PvtPrim* node = nodeH->asA<PvtPrim>();
 
     // Save the nodedef in a relationship.
-    PvtRelationship* nodedefRelation = node->createRelationship(RtStrings::NODEDEF);
+    PvtRelationship* nodedefRelation = node->createRelationship(RtString::NODEDEF);
     nodedefRelation->connect(nodedefPrim);
 
     // Copy version tag if used.
     const RtString& version = nodedefSchema.getVersion();
     if (!version.empty())
     {
-        RtTypedValue* attr = node->createAttribute(RtStrings::VERSION, RtType::INTERNSTRING);
+        RtTypedValue* attr = node->createAttribute(RtString::VERSION, RtType::INTERNSTRING);
         attr->asInternString() = version;
     }
 
@@ -135,10 +134,10 @@ const RtPrimSpec& RtNode::getPrimSpec() const
 
 void RtNode::setNodeDef(RtPrim nodeDef)
 {
-    PvtRelationship* nodedefRel = prim()->getRelationship(RtStrings::NODEDEF);
+    PvtRelationship* nodedefRel = prim()->getRelationship(RtString::NODEDEF);
     if (!nodedefRel)
     {
-        nodedefRel = prim()->createRelationship(RtStrings::NODEDEF);
+        nodedefRel = prim()->createRelationship(RtString::NODEDEF);
     }
     else
     {
@@ -149,19 +148,19 @@ void RtNode::setNodeDef(RtPrim nodeDef)
 
 RtPrim RtNode::getNodeDef() const
 {
-    PvtRelationship* nodedefRel = prim()->getRelationship(RtStrings::NODEDEF);
+    PvtRelationship* nodedefRel = prim()->getRelationship(RtString::NODEDEF);
     return nodedefRel && nodedefRel->hasConnections() ? nodedefRel->getConnection() : RtPrim();
 }
 
 void RtNode::setVersion(const RtString& version)
 {
-    RtTypedValue* attr = prim()->createAttribute(RtStrings::VERSION, RtType::INTERNSTRING);
+    RtTypedValue* attr = prim()->createAttribute(RtString::VERSION, RtType::INTERNSTRING);
     attr->asInternString() = version;
 }
 
 const RtString& RtNode::getVersion() const
 {
-    RtTypedValue* attr = prim()->getAttribute(RtStrings::VERSION, RtType::INTERNSTRING);
+    RtTypedValue* attr = prim()->getAttribute(RtString::VERSION, RtType::INTERNSTRING);
     return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
