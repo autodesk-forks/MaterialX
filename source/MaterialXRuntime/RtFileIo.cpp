@@ -625,7 +625,6 @@ namespace
     void writePrimData(DocumentPtr& doc, const RtPrim& prim, const RtWriteOptions* options)
     {
         const PvtPrim* p = PvtObject::cast<PvtPrim>(prim);
-        const RtString typeName = prim.getTypeInfo()->getShortTypeName();
         if (p->hasApi<RtNodeDef>())
         {
             writeNodeDef(p, doc, options);
