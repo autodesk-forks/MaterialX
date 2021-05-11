@@ -32,12 +32,12 @@ namespace
 
 DEFINE_TYPED_SCHEMA(RtNodeImpl, "nodeimpl");
 
-RtPrim RtNodeImpl::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
+RtPrim RtNodeImpl::createPrim(const RtString& typeName, const RtString& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
-    static const RtIdentifier DEFAULT_NAME("nodeimpl1");
-    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
+    static const RtString DEFAULT_NAME("nodeimpl1");
+    const RtString primName = name.empty() ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     return primH;
@@ -49,40 +49,40 @@ const RtPrimSpec& RtNodeImpl::getPrimSpec() const
     return s_primSpec;
 }
 
-void RtNodeImpl::setTarget(const RtIdentifier& target)
+void RtNodeImpl::setTarget(const RtString& target)
 {
     RtTypedValue* attr = createAttribute(Identifiers::TARGET, RtType::IDENTIFIER);
     attr->getValue().asIdentifier() = target;
 }
 
-const RtIdentifier& RtNodeImpl::getTarget() const
+const RtString& RtNodeImpl::getTarget() const
 {
     const RtTypedValue* attr = getAttribute(Identifiers::TARGET, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    return attr ? attr->asIdentifier() : RtString::EMPTY;
 }
 
-void RtNodeImpl::setNodeDef(const RtIdentifier& language)
+void RtNodeImpl::setNodeDef(const RtString& language)
 {
     RtTypedValue* attr = createAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
     attr->asIdentifier() = language;
 }
 
-const RtIdentifier& RtNodeImpl::getNodeDef() const
+const RtString& RtNodeImpl::getNodeDef() const
 {
     const RtTypedValue* attr = getAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    return attr ? attr->asIdentifier() : RtString::EMPTY;
 }
 
-void RtNodeImpl::setImplName(const RtIdentifier& implname)
+void RtNodeImpl::setImplName(const RtString& implname)
 {
     RtTypedValue* attr = createAttribute(Identifiers::IMPLNAME, RtType::IDENTIFIER);
     attr->asIdentifier() = implname;
 }
 
-const RtIdentifier& RtNodeImpl::getImplName() const
+const RtString& RtNodeImpl::getImplName() const
 {
     const RtTypedValue* attr = getAttribute(Identifiers::IMPLNAME, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    return attr ? attr->asIdentifier() : RtString::EMPTY;
 }
 
 }

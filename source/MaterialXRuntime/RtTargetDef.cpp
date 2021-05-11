@@ -18,11 +18,11 @@ namespace
     class PvtTargetDefPrim : public PvtPrim
     {
     public:
-        PvtTargetDefPrim(const RtTypeInfo* typeInfo, const RtIdentifier& name, PvtPrim* parent) 
+        PvtTargetDefPrim(const RtTypeInfo* typeInfo, const RtString& name, PvtPrim* parent) 
             : PvtPrim(typeInfo, name, parent)
         {}
 
-        RtIdentifierSet matchingTargets;
+        RtStringSet matchingTargets;
     };
 
     // TODO: We should derive this from a data driven XML schema.
@@ -40,12 +40,12 @@ namespace
 
 DEFINE_TYPED_SCHEMA(RtTargetDef, "targetdef");
 
-RtPrim RtTargetDef::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
+RtPrim RtTargetDef::createPrim(const RtString& typeName, const RtString& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
-    static const RtIdentifier DEFAULT_NAME("targetdef1");
-    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
+    static const RtString DEFAULT_NAME("targetdef1");
+    const RtString primName = name.empty() ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew<PvtTargetDefPrim>(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     PvtPrim* prim = primH->asA<PvtPrim>();
@@ -60,7 +60,7 @@ const RtPrimSpec& RtTargetDef::getPrimSpec() const
     return s_primSpec;
 }
 
-void RtTargetDef::setInherit(const RtIdentifier& target)
+void RtTargetDef::setInherit(const RtString& target)
 {
     RtTypedValue* attr = createAttribute(Identifiers::INHERIT, RtType::IDENTIFIER);
     attr->asIdentifier() = target;
@@ -68,13 +68,13 @@ void RtTargetDef::setInherit(const RtIdentifier& target)
     prim()->asA<PvtTargetDefPrim>()->matchingTargets.insert(target);
 }
 
-const RtIdentifier& RtTargetDef::getInherit() const
+const RtString& RtTargetDef::getInherit() const
 {
     const RtTypedValue* attr = getAttribute(Identifiers::INHERIT, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    return attr ? attr->asIdentifier() : RtString::EMPTY;
 }
 
-bool RtTargetDef::isMatching(const RtIdentifier& target) const
+bool RtTargetDef::isMatching(const RtString& target) const
 {
     return prim()->asA<PvtTargetDefPrim>()->matchingTargets.count(target) != 0;
 }

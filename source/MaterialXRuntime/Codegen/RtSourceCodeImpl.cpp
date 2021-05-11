@@ -18,12 +18,12 @@ namespace MaterialX
 
 DEFINE_TYPED_SCHEMA(RtSourceCodeImpl, "nodeimpl:sourcecodeimpl");
 
-RtPrim RtSourceCodeImpl::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
+RtPrim RtSourceCodeImpl::createPrim(const RtString& typeName, const RtString& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name, parent.getPath());
 
-    static const RtIdentifier DEFAULT_NAME("sourcecodeimpl1");
-    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
+    static const RtString DEFAULT_NAME("sourcecodeimpl1");
+    const RtString primName = name.empty() ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     return primH;
@@ -68,13 +68,13 @@ const string& RtSourceCodeImpl::getSourceCode() const
     return attr ? attr->asString() : EMPTY_STRING;
 }
 
-void RtSourceCodeImpl::setFormat(const RtIdentifier& format)
+void RtSourceCodeImpl::setFormat(const RtString& format)
 {
     RtTypedValue* attr = prim()->createAttribute(Identifiers::FORMAT, RtType::IDENTIFIER);
     attr->asIdentifier() = format;
 }
 
-const RtIdentifier& RtSourceCodeImpl::getFormat() const
+const RtString& RtSourceCodeImpl::getFormat() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::FORMAT, RtType::IDENTIFIER);
     return attr ? attr->asIdentifier() : Identifiers::SHADER;

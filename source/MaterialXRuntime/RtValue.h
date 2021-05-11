@@ -37,7 +37,7 @@ public:
     explicit RtValue(const Vector2& v) { asVector2() = v; }
     explicit RtValue(const Vector3& v) { asVector3() = v; }
     explicit RtValue(const Vector4& v) { asVector4() = v; }
-    explicit RtValue(const RtIdentifier& v) { asIdentifier() = v; }
+    explicit RtValue(const RtString& v) { asIdentifier() = v; }
 
     /// Explicit value constructor for large values.
     /// Allocated data is managed by the given prim.
@@ -134,14 +134,14 @@ public:
     }
 
     /// Return identifier value.
-    const RtIdentifier& asIdentifier() const
+    const RtString& asIdentifier() const
     {
-        return *_reinterpret_cast<const RtIdentifier*>(&_data);
+        return *_reinterpret_cast<const RtString*>(&_data);
     }
     /// Return reference to identifier value.
-    RtIdentifier& asIdentifier()
+    RtString& asIdentifier()
     {
-        return *_reinterpret_cast<RtIdentifier*>(&_data);
+        return *_reinterpret_cast<RtString*>(&_data);
     }
 
     /// Return Matrix33 value.
@@ -196,27 +196,27 @@ public:
     /// Create a new value of given type.
     /// If the type is a large value the given prim will take
     /// ownership of allocated data.
-    static RtValue createNew(const RtIdentifier& type, RtPrim owner);
+    static RtValue createNew(const RtString& type, RtPrim owner);
 
     /// Clone a value of given type.
     /// If the type is a large value the given prim will take
     /// ownership of allocated data.
-    static RtValue clone(const RtIdentifier& type, const RtValue& value, RtPrim owner);
+    static RtValue clone(const RtString& type, const RtValue& value, RtPrim owner);
 
     /// Copy a value from one instance to another.
     /// Both RtValue instances must be initialized for the given type.
-    static void copy(const RtIdentifier& type, const RtValue& src, RtValue& dest);
+    static void copy(const RtString& type, const RtValue& src, RtValue& dest);
 
     /// Test if two values are equal.
     /// Both RtValue instances must be initialized for the given type.
-    static bool compare(const RtIdentifier& type, const RtValue& a, const RtValue& b);
+    static bool compare(const RtString& type, const RtValue& a, const RtValue& b);
 
     /// Convert an RtValue of given type into a string representation.
-    static void toString(const RtIdentifier& type, const RtValue& src, string& dest);
+    static void toString(const RtString& type, const RtValue& src, string& dest);
 
     /// Convert a value from a string representation into an RtValue of the given type.
     /// Destination RtValue must been initialized for the given type.
-    static void fromString(const RtIdentifier& type, const string& src, RtValue& dest);
+    static void fromString(const RtString& type, const string& src, RtValue& dest);
 
 private:
     // 16 bytes of data storage to hold the main data types,
@@ -230,16 +230,14 @@ private:
 class RtTypedValue
 {
 public:
-    RtTypedValue() :
-        _type(EMPTY_IDENTIFIER)
-    {}
+    RtTypedValue() {}
 
-    RtTypedValue(const RtIdentifier& t, const RtValue& v) :
+    RtTypedValue(const RtString& t, const RtValue& v) :
         _type(t),
         _value(v)
     {}
 
-    const RtIdentifier& getType() const
+    const RtString& getType() const
     {
         return _type;
     }
@@ -458,7 +456,7 @@ public:
     }
 
     /// Return identifier value.
-    const RtIdentifier& asIdentifier() const
+    const RtString& asIdentifier() const
     {
 #ifndef NDEBUG
         if (_type != RtType::IDENTIFIER)
@@ -469,7 +467,7 @@ public:
         return _value.asIdentifier();
     }
     /// Return reference to identifier value.
-    RtIdentifier& asIdentifier()
+    RtString& asIdentifier()
     {
 #ifndef NDEBUG
         if (_type != RtType::IDENTIFIER)
@@ -550,7 +548,7 @@ public:
     }
 
 private:
-    RtIdentifier _type;
+    RtString _type;
     RtValue _value;
 };
 

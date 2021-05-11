@@ -3,7 +3,7 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-#include <MaterialXRuntime/RtIdentifier.h>
+#include <MaterialXRuntime/RtString.h>
 #include <MaterialXRuntime/External/FarmHash/farmhash.h>
 
 #include <cstring>
@@ -12,11 +12,9 @@
 namespace MaterialX
 {
 
-const RtIdentifier EMPTY_IDENTIFIER("");
-
-struct RtIdentifierRegistry
+struct RtStringRegistry
 {
-    typedef RtIdentifier::Entry Entry;
+    typedef RtString::Entry Entry;
 
     const Entry* findEntry(size_t hash)
     {
@@ -50,9 +48,9 @@ struct RtIdentifierRegistry
         return getEntry(s, hash);
     }
 
-    static RtIdentifierRegistry& get()
+    static RtStringRegistry& get()
     {
-        static RtIdentifierRegistry _registry;
+        static RtStringRegistry _registry;
         return _registry;
     }
 
@@ -61,15 +59,15 @@ struct RtIdentifierRegistry
     std::mutex _mutex;
 };
 
-const RtIdentifier::Entry RtIdentifier::NULL_ENTRY("", 0);
+const RtString RtString::EMPTY("");
 
-RtIdentifier::RtIdentifier(const char* s) :
-    _entry(RtIdentifierRegistry::get().getEntryRaw(s))
+RtString::RtString(const char* s) :
+    _entry(RtStringRegistry::get().getEntryRaw(s))
 {
 }
 
-RtIdentifier::RtIdentifier(const string& s) :
-    _entry(RtIdentifierRegistry::get().getEntryStr(s))
+RtString::RtString(const string& s) :
+    _entry(RtStringRegistry::get().getEntryStr(s))
 {
 }
 

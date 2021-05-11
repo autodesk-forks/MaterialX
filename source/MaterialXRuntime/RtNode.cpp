@@ -73,7 +73,7 @@ namespace
 
 DEFINE_TYPED_SCHEMA(RtNode, "node");
 
-RtPrim RtNode::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
+RtPrim RtNode::createPrim(const RtString& typeName, const RtString& name, RtPrim parent)
 {
     RtPrim nodedef = RtApi::get().getDefinition<RtNodeDef>(typeName);
     if (!nodedef)
@@ -83,7 +83,7 @@ RtPrim RtNode::createPrim(const RtIdentifier& typeName, const RtIdentifier& name
     return createNode(nodedef, name, parent);
 }
 
-RtPrim RtNode::createNode(RtPrim nodedef, const RtIdentifier& name, RtPrim parent)
+RtPrim RtNode::createNode(RtPrim nodedef, const RtString& name, RtPrim parent)
 {
     // Make sure this is a valid nodedef.
     RtNodeDef nodedefSchema(nodedef);
@@ -94,7 +94,7 @@ RtPrim RtNode::createNode(RtPrim nodedef, const RtIdentifier& name, RtPrim paren
 
     PvtPrim* nodedefPrim = PvtObject::cast<PvtPrim>(nodedef);
 
-    const RtIdentifier nodeName = name == EMPTY_IDENTIFIER ? nodedefSchema.getNode() : name;
+    const RtString nodeName = name.empty() ? nodedefSchema.getNode() : name;
     PvtObjHandle nodeH = PvtPrim::createNew(&_typeInfo, nodeName, PvtObject::cast<PvtPrim>(parent));
     PvtPrim* node = nodeH->asA<PvtPrim>();
 
@@ -103,8 +103,8 @@ RtPrim RtNode::createNode(RtPrim nodedef, const RtIdentifier& name, RtPrim paren
     nodedefRelation->connect(nodedefPrim);
 
     // Copy version tag if used.
-    const RtIdentifier& version = nodedefSchema.getVersion();
-    if (version != EMPTY_IDENTIFIER)
+    const RtString& version = nodedefSchema.getVersion();
+    if (!version.empty())
     {
         RtTypedValue* attr = node->createAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
         attr->asIdentifier() = version;
@@ -153,16 +153,16 @@ RtPrim RtNode::getNodeDef() const
     return nodedefRel && nodedefRel->hasConnections() ? nodedefRel->getConnection() : RtPrim();
 }
 
-void RtNode::setVersion(const RtIdentifier& version)
+void RtNode::setVersion(const RtString& version)
 {
     RtTypedValue* attr = prim()->createAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
     attr->asIdentifier() = version;
 }
 
-const RtIdentifier& RtNode::getVersion() const
+const RtString& RtNode::getVersion() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::VERSION, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    return attr ? attr->asIdentifier() : RtString::EMPTY;
 }
 
 }

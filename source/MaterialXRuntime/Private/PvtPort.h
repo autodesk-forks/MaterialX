@@ -26,7 +26,7 @@ class PvtPort : public PvtObject
     RT_DECLARE_RUNTIME_OBJECT(PvtPort)
 
 public:
-    const RtIdentifier& getType() const
+    const RtString& getType() const
     {
         return _value.getType();
     }
@@ -81,20 +81,20 @@ public:
         return (_flags & RtPortFlag::TOKEN) != 0;
     }
 
-    const RtIdentifier& getColorSpace() const
+    const RtString& getColorSpace() const
     {
         const RtTypedValue* attr = getAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+        return attr ? attr->asIdentifier() : RtString::EMPTY;
     }
 
-    void setColorSpace(const RtIdentifier& colorspace)
+    void setColorSpace(const RtString& colorspace)
     {
         RtTypedValue* attr = createAttribute(Identifiers::COLORSPACE, RtType::IDENTIFIER);
         attr->asIdentifier() = colorspace;
     }
 
 protected:
-    PvtPort(const RtIdentifier& name, const RtIdentifier& type, uint32_t flags, PvtPrim* parent);
+    PvtPort(const RtString& name, const RtString& type, uint32_t flags, PvtPrim* parent);
 
     RtTypedValue _value;
     uint32_t _flags;
@@ -108,7 +108,7 @@ class PvtInput : public PvtPort
     RT_DECLARE_RUNTIME_OBJECT(PvtInput)
 
 public:
-    PvtInput(const RtIdentifier& name, const RtIdentifier& type, uint32_t flags, PvtPrim* parent);
+    PvtInput(const RtString& name, const RtString& type, uint32_t flags, PvtPrim* parent);
 
     bool isUIVisible() const
     {
@@ -128,25 +128,25 @@ public:
         attr->asBool() = val;
     }
 
-    const RtIdentifier& getUnit() const
+    const RtString& getUnit() const
     {
         const RtTypedValue* attr = getAttribute(Identifiers::UNIT, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+        return attr ? attr->asIdentifier() : RtString::EMPTY;
     }
 
-    void setUnit(const RtIdentifier& unit)
+    void setUnit(const RtString& unit)
     {
         RtTypedValue* attr = createAttribute(Identifiers::UNIT, RtType::IDENTIFIER);
         attr->asIdentifier() = unit;
     }
 
-    const RtIdentifier& getUnitType() const
+    const RtString& getUnitType() const
     {
         const RtTypedValue* attr = getAttribute(Identifiers::UNITTYPE, RtType::IDENTIFIER);
-        return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+        return attr ? attr->asIdentifier() : RtString::EMPTY;
     }
 
-    void setUnitType(const RtIdentifier& unit)
+    void setUnitType(const RtString& unit)
     {
         RtTypedValue* attr = createAttribute(Identifiers::UNITTYPE, RtType::IDENTIFIER);
         attr->asIdentifier() = unit;
@@ -181,7 +181,7 @@ class PvtOutput : public PvtPort
     RT_DECLARE_RUNTIME_OBJECT(PvtOutput)
 
 public:
-    PvtOutput(const RtIdentifier& name, const RtIdentifier& type, uint32_t flags, PvtPrim* parent);
+    PvtOutput(const RtString& name, const RtString& type, uint32_t flags, PvtPrim* parent);
 
     bool isConnectable(const PvtInput* input) const
     {

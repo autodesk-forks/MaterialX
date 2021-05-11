@@ -81,57 +81,57 @@ namespace
 class PvtNodeGraphPrim : public PvtPrim
 {
 public:
-    PvtNodeGraphPrim(const RtTypeInfo* typeInfo, const RtIdentifier& name, PvtPrim* parent)
+    PvtNodeGraphPrim(const RtTypeInfo* typeInfo, const RtString& name, PvtPrim* parent)
         : PvtPrim(typeInfo, name, parent)
     {}
 
-    PvtOutput* createInputSocket(const RtIdentifier& name, const RtIdentifier& type, uint32_t flags)
+    PvtOutput* createInputSocket(const RtString& name, const RtString& type, uint32_t flags)
     {
         PvtOutput* port = new PvtOutput(name, type, flags | RtPortFlag::SOCKET, this);
         _inputSockets.add(port);
         return port;
     }
 
-    PvtInput* createOutputSocket(const RtIdentifier& name, const RtIdentifier& type, uint32_t flags)
+    PvtInput* createOutputSocket(const RtString& name, const RtString& type, uint32_t flags)
     {
         PvtInput* port = new PvtInput(name, type, flags | RtPortFlag::SOCKET, this);
         _outputSockets.add(port);
         return port;
     }
 
-    void removeInputSocket(const RtIdentifier& name)
+    void removeInputSocket(const RtString& name)
     {
         PvtObjHandle hnd = _inputSockets.remove(name);
         hnd->asA<PvtPort>()->setDisposed(true);
     }
 
-    void removeOutputSocket(const RtIdentifier& name)
+    void removeOutputSocket(const RtString& name)
     {
         PvtObjHandle hnd = _outputSockets.remove(name);
         hnd->asA<PvtPort>()->setDisposed(true);
     }
 
-    void renameInputSocket(const RtIdentifier& name, const RtIdentifier& newName)
+    void renameInputSocket(const RtString& name, const RtString& newName)
     {
         PvtObjHandle hnd = _inputSockets.remove(name);
         hnd->asA<PvtPort>()->setName(newName);
         _inputSockets.add(hnd.get());
     }
 
-    void renameOutputSocket(const RtIdentifier& name, const RtIdentifier& newName)
+    void renameOutputSocket(const RtString& name, const RtString& newName)
     {
         PvtObjHandle hnd = _outputSockets.remove(name);
         hnd->asA<PvtPort>()->setName(newName);
         _outputSockets.add(hnd.get());
     }
 
-    PvtOutput* getInputSocket(const RtIdentifier& name) const
+    PvtOutput* getInputSocket(const RtString& name) const
     {
         PvtObject* obj = _inputSockets.find(name);
         return obj ? obj->asA<PvtOutput>() : nullptr;
     }
 
-    PvtInput* getOutputSocket(const RtIdentifier& name) const
+    PvtInput* getOutputSocket(const RtString& name) const
     {
         PvtObject* obj = _outputSockets.find(name);
         return obj ? obj->asA<PvtInput>() : nullptr;
@@ -144,12 +144,12 @@ public:
 
 DEFINE_TYPED_SCHEMA(RtNodeGraph, "node:nodegraph");
 
-RtPrim RtNodeGraph::createPrim(const RtIdentifier& typeName, const RtIdentifier& name, RtPrim parent)
+RtPrim RtNodeGraph::createPrim(const RtString& typeName, const RtString& name, RtPrim parent)
 {
     PvtPrim::validateCreation(_typeInfo, typeName, name);
 
-    static const RtIdentifier DEFAULT_NAME("nodegraph1");
-    const RtIdentifier primName = name == EMPTY_IDENTIFIER ? DEFAULT_NAME : name;
+    static const RtString DEFAULT_NAME("nodegraph1");
+    const RtString primName = name.empty() ? DEFAULT_NAME : name;
     PvtObjHandle primH = PvtPrim::createNew<PvtNodeGraphPrim>(&_typeInfo, primName, PvtObject::cast<PvtPrim>(parent));
 
     return primH;
@@ -161,7 +161,7 @@ const RtPrimSpec& RtNodeGraph::getPrimSpec() const
     return s_primSpec;
 }
 
-RtInput RtNodeGraph::createInput(const RtIdentifier& name, const RtIdentifier& type, uint32_t flags)
+RtInput RtNodeGraph::createInput(const RtString& name, const RtString& type, uint32_t flags)
 {
     PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
     PvtInput* port = graph->createInput(name, type, flags);
@@ -169,22 +169,22 @@ RtInput RtNodeGraph::createInput(const RtIdentifier& name, const RtIdentifier& t
     return port->hnd();
 }
 
-void RtNodeGraph::removeInput(const RtIdentifier& name)
+void RtNodeGraph::removeInput(const RtString& name)
 {
     PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
     graph->removeInputSocket(name);
     graph->removeInput(name);
 }
 
-RtIdentifier RtNodeGraph::renameInput(const RtIdentifier& name, const RtIdentifier& newName)
+RtString RtNodeGraph::renameInput(const RtString& name, const RtString& newName)
 {
     PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
-    RtIdentifier newPortName = graph->renameInput(name, newName);
+    RtString newPortName = graph->renameInput(name, newName);
     graph->renameInputSocket(name, newPortName);
     return newPortName;
 }
 
-RtOutput RtNodeGraph::createOutput(const RtIdentifier& name, const RtIdentifier& type, uint32_t flags)
+RtOutput RtNodeGraph::createOutput(const RtString& name, const RtString& type, uint32_t flags)
 {
     PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
     PvtOutput* port = graph->createOutput(name, type, flags);
@@ -192,29 +192,29 @@ RtOutput RtNodeGraph::createOutput(const RtIdentifier& name, const RtIdentifier&
     return port->hnd();
 }
 
-void RtNodeGraph::removeOutput(const RtIdentifier& name)
+void RtNodeGraph::removeOutput(const RtString& name)
 {
     PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
     graph->removeOutputSocket(name);
     graph->removeOutput(name);
 }
 
-RtIdentifier RtNodeGraph::renameOutput(const RtIdentifier& name, const RtIdentifier& newName)
+RtString RtNodeGraph::renameOutput(const RtString& name, const RtString& newName)
 {
     PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
-    RtIdentifier newPortName = graph->renameOutput(name, newName);
+    RtString newPortName = graph->renameOutput(name, newName);
     graph->renameOutputSocket(name, newPortName);
     return newPortName;
 }
 
-RtOutput RtNodeGraph::getInputSocket(const RtIdentifier& name) const
+RtOutput RtNodeGraph::getInputSocket(const RtString& name) const
 {
     PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
     PvtOutput* socket = graph->getInputSocket(name);
     return socket ? socket->hnd() : RtOutput();
 }
 
-RtInput RtNodeGraph::getOutputSocket(const RtIdentifier& name) const
+RtInput RtNodeGraph::getOutputSocket(const RtString& name) const
 {
     PvtNodeGraphPrim* graph = prim()->asA< PvtNodeGraphPrim>();
     PvtInput* socket = graph->getOutputSocket(name);
@@ -241,12 +241,12 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
     PvtNodeGraphPrim* graph = prim()->asA<PvtNodeGraphPrim>();
 
     // Create new input/output lists with ports in the specifed order 
-    RtIdentifierSet processed;
+    RtStringSet processed;
     PvtObjectList newInputList;
     PvtObjectList newOutputList;
     PvtObjectList newInputSocketList;
     PvtObjectList newOutputSocketList;
-    for (const RtIdentifier& name : layout.order)
+    for (const RtString& name : layout.order)
     {
         if (!processed.count(name))
         {
@@ -321,7 +321,7 @@ void RtNodeGraph::setNodeLayout(const RtNodeLayout& layout)
     }
 }
 
-RtPrim RtNodeGraph::getNode(const RtIdentifier& name) const
+RtPrim RtNodeGraph::getNode(const RtString& name) const
 {
     PvtPrim* p = prim()->getChild(name);
     return p && p->getTypeInfo()->isCompatible(RtNode::typeName()) ? p->hnd() : RtPrim();
@@ -333,28 +333,28 @@ RtPrimIterator RtNodeGraph::getNodes() const
     return RtPrimIterator(hnd(), predicate);
 }
 
-void RtNodeGraph::setDefinition(const RtIdentifier& nodedef)
+void RtNodeGraph::setDefinition(const RtString& nodedef)
 {
     RtTypedValue* attr = prim()->createAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
     attr->asIdentifier() = nodedef;
 }
 
-const RtIdentifier& RtNodeGraph::getDefinition() const
+const RtString& RtNodeGraph::getDefinition() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::NODEDEF, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    return attr ? attr->asIdentifier() : RtString::EMPTY;
 }
 
-void RtNodeGraph::setNamespace(const RtIdentifier& namespaceString)
+void RtNodeGraph::setNamespace(const RtString& namespaceString)
 {
     RtTypedValue* attr = prim()->createAttribute(Identifiers::NAMESPACE, RtType::IDENTIFIER);
     attr->asIdentifier() = namespaceString;
 }
 
-const RtIdentifier& RtNodeGraph::getNamespace() const
+const RtString& RtNodeGraph::getNamespace() const
 {
     RtTypedValue* attr = prim()->getAttribute(Identifiers::NAMESPACE, RtType::IDENTIFIER);
-    return attr ? attr->asIdentifier() : EMPTY_IDENTIFIER;
+    return attr ? attr->asIdentifier() : RtString::EMPTY;
 }
 
 
