@@ -123,6 +123,7 @@ describe('Traverse Graph', () => {
         const graphIter = output.traverseGraph();
         traverse(graphIter, (edge) => {
             const upstreamElem = edge.getUpstreamElement();
+            expect(upstreamElem.getSelf()).to.be.an.instanceof(mx.Element);
             if (upstreamElem instanceof mx.Node) {
                 nodeCount++;
             }
