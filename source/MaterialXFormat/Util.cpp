@@ -285,7 +285,7 @@ FileSearchPath getResolvedTexturePath(const FileSearchPath& userTexturePath, con
         FilePathVec childFolders;
         getSubdirectories(libraryFolders, assetTexturePath, childFolders);
         libraryFolders.insert(std::end(libraryFolders), std::begin(childFolders), std::end(childFolders));
-	for (const auto& childFolder : childFolders)
+        for (const auto& childFolder : childFolders)
         {
             resolvedTexturePath.append(childFolder);
         }
