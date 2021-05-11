@@ -24,10 +24,6 @@ describe('Basics', () => {
         };
     });
 
-    it('Constants', () => {
-        expect(mx.NAME_PATH_SEPARATOR).to.exist;
-    });
-
     it('DataTypes', () => {
         for (let type in testValues) {
             const value = testValues[String(type)];
