@@ -32,7 +32,7 @@ BIND_ ##MINARGS ## _ ##MAXARGS(.function, JSNAME, CLASSNAME &self, (,), self., F
 /**
  * Use this macro to conveniently create bindings for class member functions with optional parameters,
  * where some of the parameters are raw pointers.
- * If this is the last member on a class binding, finalize the invocation with a semicolon, e.g. BIND_MEMBER_FUNC(...);
+ * If this is the last member on a class binding, finalize the invocation with a semicolon, e.g. BIND_MEMBER_FUNC_RAW_PTR(...);
  * NOTE: The macro expects the MaterialX scope to available as 'mx', and the emscripten scope as 'ems'!
  * @param JSNAME The name of the function in JavaScript, as a double-quoted string (e.g. "addNodeGraph").
  * @param CLASSNAME The name (and scope) of the class that the member functions belongs to (e.g. mx::Document).
@@ -62,7 +62,7 @@ BIND_ ##MINARGS ## _ ##MAXARGS(.class_function, JSNAME, , ( ), CLASSNAME ::, FUN
 /**
  * Use this macro to conveniently create bindings for static class functions with optional parameters,
  * where some of the parameters are raw pointers.
- * If this is the last member on a class binding, finalize the invocation with a semicolon, e.g. BIND_CLASS_FUNC(...);
+ * If this is the last member on a class binding, finalize the invocation with a semicolon, e.g. BIND_CLASS_FUNC_RAW_PTR(...);
  * NOTE: The macro expects the MaterialX scope to available as 'mx', and the emscripten scope as 'ems'!
  * @param JSNAME The name of the function in JavaScript, as a double-quoted string (e.g. "addNodeGraph").
  * @param CLASSNAME The name (and scope) of the class that the member functions belongs to (e.g. mx::Document).
@@ -91,7 +91,7 @@ BIND_ ##MINARGS ## _ ##MAXARGS(ems::function, JSNAME, , ( ), mx::, FUNCNAME, ( )
 /**
  * Use this macro to conveniently create bindings for global (utility) functions with optional parameters,
  * where some of the parameters are raw pointers.
- * Do not finalize the invocation with a semicolon, e.g. simply use it as BIND_FUNC(...).
+ * Do not finalize the invocation with a semicolon, e.g. simply use it as BIND_FUNC_RAW_PTR(...).
  * NOTE: The macro expects the MaterialX scope to available as 'mx', and the emscripten scope as 'ems'!
  * @param JSNAME The name of the function in JavaScript, as a double-quoted string (e.g. "createDocument").
  * @param FUNCNAME The name of the function to bind (e.g. createDocument).
