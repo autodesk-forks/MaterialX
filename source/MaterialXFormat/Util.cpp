@@ -237,12 +237,22 @@ void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath, StringR
 FileSearchPath getResolvedDefinitionPath(const FileSearchPath& userDefinitionPath, bool includeSubFolders)
 {
     FileSearchPath resolvedDefinitionPath;
-    FileSearchPath assetDefinitionPath = getAssetDefinitionPath();
-    for (FileSearchPath::ConstIterator path=assetDefinitionPath.begin(); path != assetDefinitionPath.end(); ++path)
+    const FileSearchPath environmentPath = getEnvironmentPath();
+    for (FileSearchPath::ConstIterator path=environmentPath.begin(); path != environmentPath.end(); ++path)
+    {
+        resolvedDefinitionPath.append(*path);
+    }
+    const FileSearchPath coreDefinitionPath = getCoreDefinitionPath();
+    for (FileSearchPath::ConstIterator path=coreDefinitionPath.begin(); path != coreDefinitionPath.end(); ++path)
     {
         resolvedDefinitionPath.append(*path);
     }
     for (FileSearchPath::ConstIterator path=userDefinitionPath.begin(); path != userDefinitionPath.end(); ++path)
+    {
+        resolvedDefinitionPath.append(*path);
+    }
+    const FileSearchPath assetDefinitionPath = getAssetDefinitionPath();
+    for (FileSearchPath::ConstIterator path=assetDefinitionPath.begin(); path != assetDefinitionPath.end(); ++path)
     {
         resolvedDefinitionPath.append(*path);
     }
@@ -274,14 +284,14 @@ FileSearchPath getResolvedDefinitionPath(const FileSearchPath& userDefinitionPat
 FileSearchPath getResolvedTexturePath(const FileSearchPath& userTexturePath, const FileSearchPath& userDefinitionPath, bool includeSubFolders)
 {
     FileSearchPath assetTexturePath = getAssetDefinitionPath();
-    FilePathVec libraryFolders;
     FileSearchPath resolvedTexturePath;
-    for (size_t i=0; i<assetTexturePath.size(); i++)
-    {
-        libraryFolders.push_back(assetTexturePath[i]);
-    }
     if (includeSubFolders)
     {
+        FilePathVec libraryFolders;
+        for (size_t i=0; i<assetTexturePath.size(); i++)
+        {
+            libraryFolders.push_back(assetTexturePath[i]);
+        }
         FilePathVec childFolders;
         getSubdirectories(libraryFolders, assetTexturePath, childFolders);
         libraryFolders.insert(std::end(libraryFolders), std::begin(childFolders), std::end(childFolders));
@@ -300,13 +310,8 @@ FileSearchPath getResolvedTexturePath(const FileSearchPath& userTexturePath, con
         resolvedTexturePath.append(*path);
     }
 
-    const FileSearchPath assetDefinitionPath = getAssetDefinitionPath();
-    for (FileSearchPath::ConstIterator path=assetDefinitionPath.begin(); path != assetDefinitionPath.end(); ++path)
-    {
-        resolvedTexturePath.append(*path);
-    }
-
-    for (FileSearchPath::ConstIterator path=userDefinitionPath.begin(); path != userDefinitionPath.end(); ++path)
+    const FileSearchPath resolvedDefinitionPath = getResolvedDefinitionPath(userDefinitionPath, includeSubFolders);
+    for (FileSearchPath::ConstIterator path=resolvedDefinitionPath.begin(); path != resolvedDefinitionPath.end(); ++path)
     {
         resolvedTexturePath.append(*path);
     }
