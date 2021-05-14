@@ -14,6 +14,31 @@
 namespace MaterialX
 {
 
+namespace
+{
+
+FileSearchPath getSubDirectories(const FileSearchPath paths)
+{
+    std::set<std::string> childPathsSet;
+    FileSearchPath childPaths;
+    for (FileSearchPath::ConstIterator path = paths.begin(); path != paths.end(); ++path)
+    {
+        FilePath filePath = *path;
+        FilePathVec subdirs = filePath.getSubDirectories();
+        for (FilePath subdirPath : subdirs)
+        {
+            if (childPathsSet.count(subdirPath.asString()) == 0)
+            {
+                childPaths.append(subdirPath);
+                childPathsSet.emplace(subdirPath.asString());
+            }
+        }
+    }
+    return childPaths;
+}
+
+}
+
 FileSearchPath CORE_DEFINITION_PATH;
 const string MATERIALX_SEARCH_PATH_ENV_VAR = "MATERIALX_SEARCH_PATH";
 const string MATERIALX_ASSET_DEFINITION_PATH_ENV_VAR = "MATERIALX_ASSET_DEFINITION_PATH";
@@ -147,11 +172,11 @@ StringSet loadLibraries(const FilePathVec& libraryFolders,
     return loadedLibraries;
 }
 
-MX_FORMAT_API StringSet loadCoreLibraries(const FilePathVec& libraryFolders,
-                                          const FileSearchPath& searchPath,
-                                          DocumentPtr doc,
-                                          const StringSet& excludeFiles,
-                                          XmlReadOptions* readOptions)
+StringSet loadCoreLibraries(const FilePathVec& libraryFolders,
+                            const FileSearchPath& searchPath,
+                            DocumentPtr doc,
+                            const StringSet& excludeFiles,
+                            XmlReadOptions* readOptions)
 {
     FileSearchPath coreDefinitionPaths = getCoreDefinitionPath();
     StringSet coreDefinitionPathsSet;
@@ -236,44 +261,18 @@ void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath, StringR
 
 FileSearchPath getResolvedDefinitionPath(const FileSearchPath& userDefinitionPath, bool includeSubFolders)
 {
-    FileSearchPath resolvedDefinitionPath;
     const FileSearchPath coreDefinitionPath = getCoreDefinitionPath();
-    for (FileSearchPath::ConstIterator path=coreDefinitionPath.begin(); path != coreDefinitionPath.end(); ++path)
-    {
-        resolvedDefinitionPath.append(*path);
-    }
     const FileSearchPath environmentPath = getEnvironmentPath();
-    for (FileSearchPath::ConstIterator path=environmentPath.begin(); path != environmentPath.end(); ++path)
-    {
-        resolvedDefinitionPath.append(*path);
-    }
-    for (FileSearchPath::ConstIterator path=userDefinitionPath.begin(); path != userDefinitionPath.end(); ++path)
-    {
-        resolvedDefinitionPath.append(*path);
-    }
     const FileSearchPath assetDefinitionPath = getAssetDefinitionPath();
-    for (FileSearchPath::ConstIterator path=assetDefinitionPath.begin(); path != assetDefinitionPath.end(); ++path)
-    {
-        resolvedDefinitionPath.append(*path);
-    }
+
+    FileSearchPath resolvedDefinitionPath;
+    resolvedDefinitionPath.append(coreDefinitionPath);
+    resolvedDefinitionPath.append(environmentPath);
+    resolvedDefinitionPath.append(userDefinitionPath);
+    resolvedDefinitionPath.append(assetDefinitionPath);
     if (includeSubFolders)
     {
-        std::set<std::string> childDefinitionPathsSet;
-        FileSearchPath childDefinitionPaths;
-        for (FileSearchPath::ConstIterator path = resolvedDefinitionPath.begin(); path != resolvedDefinitionPath.end(); ++path)
-        {
-            FilePath filePath = *path;
-            FilePathVec subdirs = filePath.getSubDirectories();
-            for (FilePath subdirPath : subdirs)
-            {
-                if (childDefinitionPathsSet.count(subdirPath.asString()) == 0)
-                {
-                    childDefinitionPaths.append(subdirPath);
-                    childDefinitionPathsSet.emplace(subdirPath.asString());
-                }
-            }
-        }
-        return childDefinitionPaths;
+        return getSubDirectories(resolvedDefinitionPath);
     }
     else
     {
@@ -283,44 +282,17 @@ FileSearchPath getResolvedDefinitionPath(const FileSearchPath& userDefinitionPat
 
 FileSearchPath getResolvedTexturePath(const FileSearchPath& userTexturePath, const FileSearchPath& userDefinitionPath, bool includeSubFolders)
 {
+    const FileSearchPath assetTexturePath = getAssetTexturePath();
+    const FileSearchPath resolvedDefinitionPath = getResolvedDefinitionPath(userDefinitionPath, includeSubFolders);
+
     FileSearchPath resolvedTexturePath;
-    const FileSearchPath assetTexturePath = getAssetDefinitionPath();
+    resolvedTexturePath.append(userTexturePath);
+    resolvedTexturePath.append(assetTexturePath);
     if (includeSubFolders)
     {
-        FilePathVec libraryFolders;
-        for (FileSearchPath::ConstIterator path=userTexturePath.begin(); path != userTexturePath.end(); ++path)
-        {
-            libraryFolders.push_back(*path);
-        }
-        for (FileSearchPath::ConstIterator path=assetTexturePath.begin(); path != assetTexturePath.end(); ++path)
-        {
-            libraryFolders.push_back(*path);
-        }
-        FilePathVec childFolders;
-        getSubdirectories(libraryFolders, assetTexturePath, childFolders);
-        libraryFolders.insert(std::end(libraryFolders), std::begin(childFolders), std::end(childFolders));
-        for (const auto& childFolder : childFolders)
-        {
-            resolvedTexturePath.append(childFolder);
-        }
+        resolvedTexturePath = getSubDirectories(resolvedTexturePath);
     }
-    else
-    {
-        for (FileSearchPath::ConstIterator path=userTexturePath.begin(); path != userTexturePath.end(); ++path)
-        {
-            resolvedTexturePath.append(*path);
-        }
-        for (FileSearchPath::ConstIterator path=assetTexturePath.begin(); path != assetTexturePath.end(); ++path)
-        {
-            resolvedTexturePath.append(*path);
-        }
-    }
-
-    const FileSearchPath resolvedDefinitionPath = getResolvedDefinitionPath(userDefinitionPath, includeSubFolders);
-    for (FileSearchPath::ConstIterator path=resolvedDefinitionPath.begin(); path != resolvedDefinitionPath.end(); ++path)
-    {
-        resolvedTexturePath.append(*path);
-    }
+    resolvedTexturePath.append(resolvedDefinitionPath);
 
     return resolvedTexturePath;
 }
