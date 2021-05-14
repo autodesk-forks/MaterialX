@@ -1,17 +1,13 @@
 // JsDefinition
 addWrapper(function(Module, api) {
     /** Setup the NodeDef class */
-    api.NodeDef = wrapperFactory(Module.NodeDef, {
-        getImplementation: [api.EMPTY_STRING]
-    });
+    api.NodeDef = wrapperFactory(Module.NodeDef);
 
     /** Setup the Implementation class */
     api.Implementation = wrapperFactory(Module.Implementation);
 
     /** Setup the TypeDef class */
-    api.TypeDef = wrapperFactory(Module.TypeDef, {
-        addMember: [api.EMPTY_STRING]
-    });
+    api.TypeDef = wrapperFactory(Module.TypeDef);
 
     /** Setup the Member class */
     api.Member = wrapperFactory(Module.Member);

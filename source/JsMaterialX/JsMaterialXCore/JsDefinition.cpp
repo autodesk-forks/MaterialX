@@ -8,6 +8,8 @@
 namespace ems = emscripten;
 namespace mx = MaterialX;
 
+using stRef = const std::string&;
+
 #define BIND_VALUE_ELEMENT_FUNC_INSTANCE(NAME, T)          \
     .function("setValue" #NAME, &mx::AttributeDef::setValue<T>)
 
@@ -24,8 +26,10 @@ extern "C"
             .function("setNodeGroup", &mx::NodeDef::setNodeGroup)
             .function("hasNodeGroup", &mx::NodeDef::hasNodeGroup)
             .function("getNodeGroup", &mx::NodeDef::getNodeGroup)
-            .function("getImplementation", &mx::NodeDef::getImplementation)
+            BIND_MEMBER_FUNC("getImplementation", mx::NodeDef, getImplementation, 0, 1, stRef)
+            BIND_VALIDATE(mx::NodeDef)
             .function("isVersionCompatible", &mx::NodeDef::isVersionCompatible)
+            BIND_MEMBER_FUNC("getDeclaration", mx::NodeDef, getDeclaration, 0, 1, stRef)
             .class_property("CATEGORY", &mx::NodeDef::CATEGORY)
             .class_property("NODE_ATTRIBUTE", &mx::NodeDef::NODE_ATTRIBUTE)
             .class_property("NODE_GROUP_ATTRIBUTE", &mx::NodeDef::NODE_GROUP_ATTRIBUTE)
@@ -48,6 +52,8 @@ extern "C"
             .function("getFunction", &mx::Implementation::getFunction)
             .function("setNodeDef", &mx::Implementation::setNodeDef)
             .function("getNodeDef", &mx::Implementation::getNodeDef)
+            BIND_VALIDATE(mx::Implementation)
+            BIND_MEMBER_FUNC("getDeclaration", mx::Implementation, getDeclaration, 0, 1, stRef)
             .class_property("CATEGORY", &mx::Implementation::CATEGORY)
             .class_property("FILE_ATTRIBUTE", &mx::Implementation::FILE_ATTRIBUTE)
             .class_property("FUNCTION_ATTRIBUTE", &mx::Implementation::FUNCTION_ATTRIBUTE);
@@ -61,7 +67,7 @@ extern "C"
             .function("setContext", &mx::TypeDef::setContext)
             .function("hasContext", &mx::TypeDef::hasContext)
             .function("getContext", &mx::TypeDef::getContext)
-            .function("addMember", &mx::TypeDef::addMember)
+            BIND_MEMBER_FUNC("addMember", mx::TypeDef, addMember, 0, 1, stRef)
             .function("getMember", &mx::TypeDef::getMember)
             .function("getMembers", &mx::TypeDef::getMembers)
             .function("removeMember", &mx::TypeDef::removeMember)

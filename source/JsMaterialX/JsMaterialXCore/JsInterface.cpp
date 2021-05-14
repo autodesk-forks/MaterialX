@@ -5,11 +5,13 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 
+using stRef = const std::string&;
+
 namespace ems = emscripten;
 namespace mx = MaterialX;
 
 #define BIND_INTERFACE_TYPE_INSTANCE(NAME, T)                                 \
-.function("setInputValue" #NAME, &mx::InterfaceElement::setInputValue<T>)
+    BIND_MEMBER_FUNC("setInputValue" #NAME, mx::InterfaceElement, setInputValue<T>, 2, 3, stRef, const T&, stRef)
 
 extern "C"
 {
@@ -60,7 +62,7 @@ extern "C"
         ems::class_<mx::Output, ems::base<mx::PortElement>>("Output")
             .smart_ptr_constructor("Output", &std::make_shared<mx::Output, mx::ElementPtr, const std::string &>)
             .smart_ptr<std::shared_ptr<const mx::Output>>("Output")
-            .function("getUpstreamEdge", &mx::Output::getUpstreamEdge)
+            BIND_MEMBER_FUNC("getUpstreamEdge", mx::Output, getUpstreamEdge, 0, 1, std::size_t)
             .function("getUpstreamEdgeCount", &mx::Output::getUpstreamEdgeCount)
             .function("hasUpstreamCycle", &mx::Output::hasUpstreamCycle)
             BIND_VALIDATE(mx::Output)
@@ -74,14 +76,14 @@ extern "C"
             .function("hasNodeDefString", &mx::InterfaceElement::hasNodeDefString)
             .function("getNodeDefString", &mx::InterfaceElement::getNodeDefString)
 
-            .function("addInput", &mx::InterfaceElement::addInput)
+            BIND_MEMBER_FUNC("addInput", mx::InterfaceElement, addInput, 0, 2, stRef, stRef)
             .function("getInput", &mx::InterfaceElement::getInput)
             .function("getInputs", &mx::InterfaceElement::getInputs)
             .function("getInputCount", &mx::InterfaceElement::getInputCount)
             .function("removeInput", &mx::InterfaceElement::removeInput)
             .function("getActiveInput", &mx::InterfaceElement::getActiveInput)
             .function("getActiveInputs", &mx::InterfaceElement::getActiveInputs)
-            .function("addOutput", &mx::InterfaceElement::addOutput)
+            BIND_MEMBER_FUNC("addOutput", mx::InterfaceElement, addOutput, 0, 2, stRef, stRef)
             .function("getOutput", &mx::InterfaceElement::getOutput)
             .function("getOutputs", &mx::InterfaceElement::getOutputs)
             .function("getOutputCount", &mx::InterfaceElement::getOutputCount)
@@ -91,7 +93,7 @@ extern "C"
             .function("setConnectedOutput", &mx::InterfaceElement::setConnectedOutput)
             .function("getConnectedOutput", &mx::InterfaceElement::getConnectedOutput)
 
-            .function("addToken", &mx::InterfaceElement::addToken)
+            BIND_MEMBER_FUNC("addToken", mx::InterfaceElement, addToken, 0, 1, stRef)
             .function("getToken", &mx::InterfaceElement::getToken)
             .function("getTokens", &mx::InterfaceElement::getTokens)
             .function("removeToken", &mx::InterfaceElement::removeToken)
@@ -117,7 +119,7 @@ extern "C"
             BIND_INTERFACE_TYPE_INSTANCE(BooleanArray, mx::BoolVec)
             BIND_INTERFACE_TYPE_INSTANCE(FloatArray, mx::FloatVec)
             BIND_INTERFACE_TYPE_INSTANCE(StringArray, mx::StringVec)
-            .function("getInputValue", &mx::InterfaceElement::getInputValue)
+            BIND_MEMBER_FUNC("getInputValue", mx::InterfaceElement, getInputValue, 1, 2, stRef, stRef)
 
             .function("setTokenValue", &mx::InterfaceElement::setTokenValue)
             .function("getTokenValue", &mx::InterfaceElement::getTokenValue)
@@ -139,7 +141,7 @@ extern "C"
             .function("setDefaultVersion", &mx::InterfaceElement::setDefaultVersion)
             .function("getDefaultVersion", &mx::InterfaceElement::getDefaultVersion)
 
-            .function("getDeclaration", &mx::InterfaceElement::getDeclaration)
+            BIND_MEMBER_FUNC("getDeclaration", mx::InterfaceElement, getDeclaration, 0, 1, stRef)
             .function("isTypeCompatible", &mx::InterfaceElement::isTypeCompatible)
 
             .class_property("NODE_DEF_ATTRIBUTE", &mx::InterfaceElement::NODE_DEF_ATTRIBUTE)

@@ -9,16 +9,18 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 
+using stRef = const std::string&;
+
 namespace ems = emscripten;
 namespace mx = MaterialX;
 
 #define BIND_VALUE_ELEMENT_FUNC_INSTANCE(NAME, T)          \
-    .function("setValue" #NAME, &mx::ValueElement::setValue<T>)
+    BIND_MEMBER_FUNC("setValue" #NAME, mx::ValueElement, setValue<T>, 1, 2, const T&, stRef)
 
-#define BIND_ELEMENT_FUNC_INSTANCE(T)                                  \
-    .function("addChild" #T, &mx::Element::addChild<T>)                   \
-    .function("getChildOfType" #T, &mx::Element::getChildOfType<T>)       \
-    .function("getChildrenOfType" #T, &mx::Element::getChildrenOfType<T>) \
+#define BIND_ELEMENT_FUNC_INSTANCE(T)                                                        \
+    BIND_MEMBER_FUNC("addChild" #T, mx::Element, addChild<T>, 0, 1, stRef)                   \
+    .function("getChildOfType" #T, &mx::Element::getChildOfType<T>)                          \
+    BIND_MEMBER_FUNC("getChildrenOfType" #T, mx::Element, getChildrenOfType<T>, 0, 1, stRef) \
     .function("removeChildOfType" #T, &mx::Element::removeChildOfType<T>)
 
 extern "C"
@@ -32,7 +34,7 @@ extern "C"
             .function("getCategory", &mx::Element::getCategory)
             .function("setName", &mx::Element::setName)
             .function("getName", &mx::Element::getName)
-            .function("getNamePath", &mx::Element::getNamePath) // might need to do something with the mx::ConstElementPtr relativeTo parameter
+            BIND_MEMBER_FUNC_RAW_PTR("getNamePath", mx::Element, getNamePath, 0, 1, mx::ConstElementPtr)
             .function("getDescendant", &mx::Element::getDescendant)
             .function("setFilePrefix", &mx::Element::setFilePrefix)
             .function("hasFilePrefix", &mx::Element::hasFilePrefix)
@@ -60,7 +62,7 @@ extern "C"
             .function("setDocString", &mx::Element::setDocString)
             .function("getDocString", &mx::Element::getDocString)
 
-            .function("addChildOfCategory", &mx::Element::addChildOfCategory)
+            BIND_MEMBER_FUNC("addChildOfCategory", mx::Element, addChildOfCategory, 1, 2, stRef, std::string)
             .function("changeChildCategory", &mx::Element::changeChildCategory)
             .function("getChild", &mx::Element::getChild)
             .function("getChildren", &mx::Element::getChildren)
@@ -104,9 +106,9 @@ extern "C"
             .function("traverseTree", &mx::Element::traverseTree)
 
             .function("traverseGraph", &mx::Element::traverseGraph)
-            .function("getUpstreamEdge", &mx::Element::getUpstreamEdge)
+            BIND_MEMBER_FUNC("getUpstreamEdge", mx::Element, getUpstreamEdge, 0, 1, std::size_t)
             .function("getUpstreamEdgeCount", &mx::Element::getUpstreamEdgeCount)
-            .function("getUpstreamElement", &mx::Element::getUpstreamElement)
+            BIND_MEMBER_FUNC("getUpstreamElement", mx::Element, getUpstreamElement, 0, 1, std::size_t)
 
             .function("traverseInheritance", &mx::Element::traverseInheritance)
             .function("setSourceUri", &mx::Element::setSourceUri)
@@ -120,7 +122,7 @@ extern "C"
                       }))
             .function("clearContent", &mx::Element::clearContent)
             .function("createValidChildName", &mx::Element::createValidChildName)
-            .function("createStringResolver", &mx::Element::createStringResolver)
+            BIND_MEMBER_FUNC("createStringResolver", mx::Element, createStringResolver, 0, 1, stRef)
             .function("asString", &mx::Element::asString)
             .function("__str__", &mx::Element::asString)
             
@@ -148,7 +150,7 @@ extern "C"
             .function("setValueString", &mx::ValueElement::setValueString)
             .function("hasValueString", &mx::ValueElement::hasValueString)
             .function("getValueString", &mx::ValueElement::getValueString)
-            .function("getResolvedValueString", &mx::ValueElement::getResolvedValueString)
+            BIND_MEMBER_FUNC_RAW_PTR("getResolvedValueString", mx::ValueElement, getResolvedValueString, 0, 1, mx::StringResolverPtr)
             .function("setInterfaceName", &mx::ValueElement::setInterfaceName)
             .function("hasInterfaceName", &mx::ValueElement::hasInterfaceName)
             .function("getInterfaceName", &mx::ValueElement::getInterfaceName)
@@ -173,6 +175,7 @@ extern "C"
             BIND_VALUE_ELEMENT_FUNC_INSTANCE(StringArray, mx::StringVec)
             .function("getValue", &mx::ValueElement::getValue)
             .function("getDefaultValue", &mx::ValueElement::getDefaultValue)
+            BIND_MEMBER_FUNC_RAW_PTR("getResolvedValue", mx::ValueElement, getResolvedValue, 0, 1, mx::StringResolverPtr)
             .function("setUnit", &mx::ValueElement::setUnit)
             .function("hasUnit", &mx::ValueElement::hasUnit)
             .function("getUnit", &mx::ValueElement::getUnit)

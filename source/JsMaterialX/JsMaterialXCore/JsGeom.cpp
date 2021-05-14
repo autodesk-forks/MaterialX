@@ -7,8 +7,10 @@
 namespace ems = emscripten;
 namespace mx = MaterialX;
 
+using stRef = const std::string&;
+
 #define BIND_GEOMINFO_FUNC_INSTANCE(NAME, T) \
-.function("setGeomPropValue" #NAME, &mx::GeomInfo::setGeomPropValue<T>)
+    BIND_MEMBER_FUNC("setGeomPropValue" #NAME, mx::GeomInfo, setGeomPropValue<T>, 2, 3, stRef, const T&, stRef)
 
 extern "C"
 {
@@ -33,11 +35,11 @@ extern "C"
         ems::class_<mx::GeomInfo, ems::base<mx::GeomElement>>("GeomInfo")
             .smart_ptr_constructor("GeomInfo", &std::make_shared<mx::GeomInfo, mx::ElementPtr, const std::string &>)
             .smart_ptr<std::shared_ptr<const mx::GeomInfo>>("GeomInfo")
-            .function("addGeomProp", &mx::GeomInfo::addGeomProp)
+            BIND_MEMBER_FUNC("addGeomProp", mx::GeomInfo, addGeomProp, 0, 1, stRef)
             .function("getGeomProp", &mx::GeomInfo::getGeomProp)
             .function("getGeomProps", &mx::GeomInfo::getGeomProps)
             .function("removeGeomProp", &mx::GeomInfo::removeGeomProp)
-            .function("addToken", &mx::GeomInfo::addToken)
+            BIND_MEMBER_FUNC("addToken", mx::GeomInfo, addToken, 0, 1, stRef)
             .function("getToken", &mx::GeomInfo::getToken)
             .function("getTokens", &mx::GeomInfo::getTokens)
             .function("removeToken", &mx::GeomInfo::removeToken)

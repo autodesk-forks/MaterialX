@@ -4,6 +4,8 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 
+using stRef = const std::string&;
+
 namespace ems = emscripten;
 namespace mx = MaterialX;
 
@@ -14,31 +16,31 @@ extern "C"
         ems::class_<mx::Look, ems::base<mx::Element>>("Look")
             .smart_ptr_constructor("Look", &std::make_shared<mx::Look, mx::ElementPtr, const std::string &>)
             .smart_ptr<std::shared_ptr<const mx::Look>>("Look")
-            .function("addMaterialAssign", &mx::Look::addMaterialAssign)
+            BIND_MEMBER_FUNC("addMaterialAssign", mx::Look, addMaterialAssign, 0, 2, stRef, stRef)
             .function("getMaterialAssign", &mx::Look::getMaterialAssign)
             .function("getMaterialAssigns", &mx::Look::getMaterialAssigns)
             .function("getActiveMaterialAssigns", &mx::Look::getActiveMaterialAssigns)
             .function("removeMaterialAssign", &mx::Look::removeMaterialAssign)
 
-            .function("addPropertyAssign", &mx::Look::addPropertyAssign) 
+            BIND_MEMBER_FUNC("addPropertyAssign", mx::Look, addPropertyAssign, 0, 1, stRef) 
             .function("getPropertyAssign", &mx::Look::getPropertyAssign)
             .function("getPropertyAssigns", &mx::Look::getPropertyAssigns)
             .function("getActivePropertyAssigns", &mx::Look::getActivePropertyAssigns)
             .function("removePropertyAssign", &mx::Look::removePropertyAssign)
             
-            .function("addPropertySetAssign", &mx::Look::addPropertySetAssign)
+            BIND_MEMBER_FUNC("addPropertySetAssign", mx::Look, addPropertySetAssign, 0, 1, stRef)
             .function("getPropertySetAssign", &mx::Look::getPropertySetAssign)
             .function("getPropertySetAssigns", &mx::Look::getPropertySetAssigns)
             .function("getActivePropertySetAssigns", &mx::Look::getActivePropertySetAssigns)
             .function("removePropertySetAssign", &mx::Look::removePropertySetAssign)
             
-            .function("addVariantAssign", &mx::Look::addVariantAssign)
+            BIND_MEMBER_FUNC("addVariantAssign", mx::Look, addVariantAssign, 0, 1, stRef)
             .function("getVariantAssign", &mx::Look::getVariantAssign)
             .function("getVariantAssigns", &mx::Look::getVariantAssigns)
             .function("getActiveVariantAssigns", &mx::Look::getActiveVariantAssigns)
             .function("removeVariantAssign", &mx::Look::removeVariantAssign)
             
-            .function("addVisibility", &mx::Look::addVisibility)
+            BIND_MEMBER_FUNC("addVisibility", mx::Look, addVisibility, 0, 1, stRef)
             .function("getVisibility", &mx::Look::getVisibility)
             .function("getVisibilities", &mx::Look::getVisibilities)
             .function("getActiveVisibilities", &mx::Look::getActiveVisibilities)
@@ -56,8 +58,8 @@ extern "C"
             .function("setEnabledLooks", &mx::LookGroup::setEnabledLooks)
             .function("getEnabledLooksString", &mx::LookGroup::getEnabledLooksString)
             .function("getEnabledLooks", &mx::LookGroup::getEnabledLooks)
-            .function("appendLookGroup", &mx::LookGroup::appendLookGroup)
-            .function("appnedLook", &mx::LookGroup::appendLook)
+            BIND_MEMBER_FUNC_RAW_PTR("appendLookGroup", mx::LookGroup, appendLookGroup, 1, 2, mx::LookGroupPtr, stRef)
+            BIND_MEMBER_FUNC("appendLook", mx::LookGroup, appendLook, 1, 2, stRef, stRef)
             .function("combineLooks", &mx::LookGroup::combineLooks)
             .class_property("CATEGORY", &mx::LookGroup::CATEGORY)
             .class_property("LOOKS_ATTRIBUTE", &mx::LookGroup::LOOKS_ATTRIBUTE)
@@ -72,7 +74,7 @@ extern "C"
             .function("setExclusive", &mx::MaterialAssign::setExclusive)
             .function("getExclusive", &mx::MaterialAssign::getExclusive)
             .function("getReferencedMaterial", &mx::MaterialAssign::getReferencedMaterial)
-            .function("addVariantAssign", &mx::MaterialAssign::addVariantAssign)
+            BIND_MEMBER_FUNC("addVariantAssign", mx::MaterialAssign, addVariantAssign, 0, 1, stRef)
             .function("getVariantAssign", &mx::MaterialAssign::getVariantAssign)
             .function("getVariantAssigns", &mx::MaterialAssign::getVariantAssigns)
             .function("getActiveVariantAssigns", &mx::MaterialAssign::getActiveVariantAssigns)
