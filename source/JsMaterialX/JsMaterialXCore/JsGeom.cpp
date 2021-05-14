@@ -8,7 +8,7 @@ namespace ems = emscripten;
 namespace mx = MaterialX;
 
 #define BIND_GEOMINFO_FUNC_INSTANCE(NAME, T) \
-.function("_setGeomPropValue" #NAME, &mx::GeomInfo::setGeomPropValue<T>)
+.function("setGeomPropValue" #NAME, &mx::GeomInfo::setGeomPropValue<T>)
 
 extern "C"
 {
@@ -20,11 +20,15 @@ extern "C"
             .function("setGeom", &mx::GeomElement::setGeom)
             .function("hasGeom", &mx::GeomElement::hasGeom)
             .function("getGeom", &mx::GeomElement::getGeom)
+            .function("getActiveGeom", &mx::GeomElement::getActiveGeom)
             .function("setCollectionString", &mx::GeomElement::setCollectionString)
             .function("hasCollectionString", &mx::GeomElement::hasCollectionString)
             .function("getCollectionString", &mx::GeomElement::getCollectionString)
             .function("setCollection", &mx::GeomElement::setCollection)
-            .function("getCollection", &mx::GeomElement::getCollection);
+            .function("getCollection", &mx::GeomElement::getCollection)
+            BIND_VALIDATE(mx::GeomElement)
+            .class_property("GEOM_ATTRIBUTE", &mx::GeomElement::GEOM_ATTRIBUTE)
+            .class_property("COLLECTION_ATTRIBUTE", &mx::GeomElement::COLLECTION_ATTRIBUTE);
 
         ems::class_<mx::GeomInfo, ems::base<mx::GeomElement>>("GeomInfo")
             .smart_ptr_constructor("GeomInfo", &std::make_shared<mx::GeomInfo, mx::ElementPtr, const std::string &>)
@@ -37,22 +41,24 @@ extern "C"
             .function("getToken", &mx::GeomInfo::getToken)
             .function("getTokens", &mx::GeomInfo::getTokens)
             .function("removeToken", &mx::GeomInfo::removeToken)
+            .function("addTokens", &mx::GeomInfo::addTokens)
             .function("setTokenValue", &mx::GeomInfo::setTokenValue)
-            BIND_GEOMINFO_FUNC_INSTANCE(integer, int)
-            BIND_GEOMINFO_FUNC_INSTANCE(boolean, bool)
-            BIND_GEOMINFO_FUNC_INSTANCE(float, float)
-            BIND_GEOMINFO_FUNC_INSTANCE(color3, mx::Color3)
-            BIND_GEOMINFO_FUNC_INSTANCE(color4, mx::Color4)
-            BIND_GEOMINFO_FUNC_INSTANCE(vector2, mx::Vector2)
-            BIND_GEOMINFO_FUNC_INSTANCE(vector3, mx::Vector3)
-            BIND_GEOMINFO_FUNC_INSTANCE(vector4, mx::Vector4)
-            BIND_GEOMINFO_FUNC_INSTANCE(matrix33, mx::Matrix33)
-            BIND_GEOMINFO_FUNC_INSTANCE(matrix44, mx::Matrix44)
-            BIND_GEOMINFO_FUNC_INSTANCE(string, std::string)
-            BIND_GEOMINFO_FUNC_INSTANCE(integerarray, mx::IntVec)
-            BIND_GEOMINFO_FUNC_INSTANCE(booleanarray, mx::BoolVec)
-            BIND_GEOMINFO_FUNC_INSTANCE(floatarray, mx::FloatVec)
-            BIND_GEOMINFO_FUNC_INSTANCE(stringarray, mx::StringVec)
+            BIND_GEOMINFO_FUNC_INSTANCE(Integer, int)
+            BIND_GEOMINFO_FUNC_INSTANCE(Boolean, bool)
+            BIND_GEOMINFO_FUNC_INSTANCE(Float, float)
+            BIND_GEOMINFO_FUNC_INSTANCE(Color3, mx::Color3)
+            BIND_GEOMINFO_FUNC_INSTANCE(Color4, mx::Color4)
+            BIND_GEOMINFO_FUNC_INSTANCE(Vector2, mx::Vector2)
+            BIND_GEOMINFO_FUNC_INSTANCE(Vector3, mx::Vector3)
+            BIND_GEOMINFO_FUNC_INSTANCE(Vector4, mx::Vector4)
+            BIND_GEOMINFO_FUNC_INSTANCE(Matrix33, mx::Matrix33)
+            BIND_GEOMINFO_FUNC_INSTANCE(Matrix44, mx::Matrix44)
+            BIND_GEOMINFO_FUNC_INSTANCE(String, std::string)
+            BIND_GEOMINFO_FUNC_INSTANCE(IntegerArray, mx::IntVec)
+            BIND_GEOMINFO_FUNC_INSTANCE(BooleanArray, mx::BoolVec)
+            BIND_GEOMINFO_FUNC_INSTANCE(FloatArray, mx::FloatVec)
+            BIND_GEOMINFO_FUNC_INSTANCE(StringArray, mx::StringVec)
+            .function("setTokenValue", &mx::GeomInfo::setTokenValue)
             .class_property("CATEGORY", &mx::GeomInfo::CATEGORY);
 
         ems::class_<mx::GeomProp, ems::base<mx::ValueElement>>("GeomProp")
@@ -72,9 +78,6 @@ extern "C"
             .function("setIndex", &mx::GeomPropDef::setIndex)
             .function("hasIndex", &mx::GeomPropDef::hasIndex)
             .function("getIndex", &mx::GeomPropDef::getIndex)
-            .function("setGeomProp", &mx::GeomPropDef::setGeomProp)
-            .function("hasGeomProp", &mx::GeomPropDef::hasGeomProp)
-            .function("getGeomProp", &mx::GeomPropDef::getGeomProp)
             .class_property("CATEGORY", &mx::GeomPropDef::CATEGORY);
 
         ems::class_<mx::Collection, ems::base<mx::Element>>("Collection")
@@ -83,9 +86,11 @@ extern "C"
             .function("setIncludeGeom", &mx::Collection::setIncludeGeom)
             .function("hasIncludeGeom", &mx::Collection::hasIncludeGeom)
             .function("getIncludeGeom", &mx::Collection::getIncludeGeom)
+            .function("getActiveIncludeGeom", &mx::Collection::getActiveIncludeGeom)
             .function("setExcludeGeom", &mx::Collection::setExcludeGeom)
             .function("hasExcludeGeom", &mx::Collection::hasExcludeGeom)
             .function("getExcludeGeom", &mx::Collection::getExcludeGeom)
+            .function("getActiveExcludeGeom", &mx::Collection::getActiveExcludeGeom)
             .function("setIncludeCollectionString", &mx::Collection::setIncludeCollectionString)
             .function("hasIncludeCollectionString", &mx::Collection::hasIncludeCollectionString)
             .function("getIncludeCollectionString", &mx::Collection::getIncludeCollectionString)
@@ -94,7 +99,11 @@ extern "C"
             .function("getIncludeCollections", &mx::Collection::getIncludeCollections)
             .function("hasIncludeCycle", &mx::Collection::hasIncludeCycle)
             .function("matchesGeomString", &mx::Collection::matchesGeomString)
-            .class_property("CATEGORY", &mx::Collection::CATEGORY);
+            BIND_VALIDATE(mx::Collection)
+            .class_property("CATEGORY", &mx::Collection::CATEGORY)
+            .class_property("INCLUDE_GEOM_ATTRIBUTE", &mx::Collection::INCLUDE_GEOM_ATTRIBUTE)
+            .class_property("EXCLUDE_GEOM_ATTRIBUTE", &mx::Collection::EXCLUDE_GEOM_ATTRIBUTE)
+            .class_property("INCLUDE_COLLECTION_ATTRIBUTE", &mx::Collection::INCLUDE_COLLECTION_ATTRIBUTE);
 
         ems::function("geomStringsMatch", &mx::geomStringsMatch);
         

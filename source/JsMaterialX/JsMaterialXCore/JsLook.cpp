@@ -25,31 +25,40 @@ extern "C"
             .function("getPropertyAssigns", &mx::Look::getPropertyAssigns)
             .function("getActivePropertyAssigns", &mx::Look::getActivePropertyAssigns)
             .function("removePropertyAssign", &mx::Look::removePropertyAssign)
+            
             .function("addPropertySetAssign", &mx::Look::addPropertySetAssign)
             .function("getPropertySetAssign", &mx::Look::getPropertySetAssign)
             .function("getPropertySetAssigns", &mx::Look::getPropertySetAssigns)
             .function("getActivePropertySetAssigns", &mx::Look::getActivePropertySetAssigns)
             .function("removePropertySetAssign", &mx::Look::removePropertySetAssign)
+            
             .function("addVariantAssign", &mx::Look::addVariantAssign)
             .function("getVariantAssign", &mx::Look::getVariantAssign)
             .function("getVariantAssigns", &mx::Look::getVariantAssigns)
             .function("getActiveVariantAssigns", &mx::Look::getActiveVariantAssigns)
             .function("removeVariantAssign", &mx::Look::removeVariantAssign)
+            
             .function("addVisibility", &mx::Look::addVisibility)
             .function("getVisibility", &mx::Look::getVisibility)
             .function("getVisibilities", &mx::Look::getVisibilities)
             .function("getActiveVisibilities", &mx::Look::getActiveVisibilities)
             .function("removeVisibility", &mx::Look::removeVisibility)
 
+            .function("append", &mx::Look::append)
+
             .class_property("CATEGORY", &mx::Look::CATEGORY);
 
         ems::class_<mx::LookGroup, ems::base<mx::Element>>("LookGroup")
             .smart_ptr_constructor("LookGroup", &std::make_shared<mx::LookGroup, mx::ElementPtr, const std::string &>)
             .smart_ptr<std::shared_ptr<const mx::LookGroup>>("LookGroup")
-            .function("getLooks", &mx::LookGroup::getLooks)
             .function("setLooks", &mx::LookGroup::setLooks)
-            .function("getEnabledLooksString", &mx::LookGroup::getEnabledLooksString)
+            .function("getLooks", &mx::LookGroup::getLooks)
             .function("setEnabledLooks", &mx::LookGroup::setEnabledLooks)
+            .function("getEnabledLooksString", &mx::LookGroup::getEnabledLooksString)
+            .function("getEnabledLooks", &mx::LookGroup::getEnabledLooks)
+            .function("appendLookGroup", &mx::LookGroup::appendLookGroup)
+            .function("appnedLook", &mx::LookGroup::appendLook)
+            .function("combineLooks", &mx::LookGroup::combineLooks)
             .class_property("CATEGORY", &mx::LookGroup::CATEGORY)
             .class_property("LOOKS_ATTRIBUTE", &mx::LookGroup::LOOKS_ATTRIBUTE)
             .class_property("ENABLED_ATTRIBUTE", &mx::LookGroup::ENABLED_ATTRIBUTE);
@@ -63,7 +72,15 @@ extern "C"
             .function("setExclusive", &mx::MaterialAssign::setExclusive)
             .function("getExclusive", &mx::MaterialAssign::getExclusive)
             .function("getReferencedMaterial", &mx::MaterialAssign::getReferencedMaterial)
-            .class_property("CATEGORY", &mx::MaterialAssign::CATEGORY);
+            .function("addVariantAssign", &mx::MaterialAssign::addVariantAssign)
+            .function("getVariantAssign", &mx::MaterialAssign::getVariantAssign)
+            .function("getVariantAssigns", &mx::MaterialAssign::getVariantAssigns)
+            .function("getActiveVariantAssigns", &mx::MaterialAssign::getActiveVariantAssigns)
+            .function("removeVariantAssign", &mx::MaterialAssign::removeVariantAssign)
+            .class_property("CATEGORY", &mx::MaterialAssign::CATEGORY)
+            .class_property("MATERIAL_ATTRIBUTE", &mx::MaterialAssign::MATERIAL_ATTRIBUTE)
+            .class_property("EXCLUSIVE_ATTRIBUTE", &mx::MaterialAssign::EXCLUSIVE_ATTRIBUTE);
+
 
         ems::class_<mx::Visibility, ems::base<mx::GeomElement>>("Visibility")
             .smart_ptr_constructor("Visibility", &std::make_shared<mx::Visibility, mx::ElementPtr, const std::string &>)
@@ -79,6 +96,10 @@ extern "C"
             .function("getVisibilityType", &mx::Visibility::getVisibilityType)
             .function("setVisible", &mx::Visibility::setVisible)
             .function("getVisible", &mx::Visibility::getVisible)
-            .class_property("CATEGORY", &mx::Visibility::CATEGORY);
+            .class_property("CATEGORY", &mx::Visibility::CATEGORY)
+            .class_property("VIEWER_GEOM_ATTRIBUTE", &mx::Visibility::VIEWER_GEOM_ATTRIBUTE)
+            .class_property("VIEWER_COLLECTION_ATTRIBUTE", &mx::Visibility::VIEWER_COLLECTION_ATTRIBUTE)
+            .class_property("VISIBILITY_TYPE_ATTRIBUTE", &mx::Visibility::VISIBILITY_TYPE_ATTRIBUTE)
+            .class_property("VISIBLE_ATTRIBUTE", &mx::Visibility::VISIBLE_ATTRIBUTE);
     }
 }
