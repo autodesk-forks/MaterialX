@@ -11,4 +11,6 @@ addWrapper(function(Module, api) {
 
     /** Setup the Visibility class */
     api.Visibility = wrapperFactory(Module.Visibility);
+
+    api.getGeometryBindings = Module.getGeometryBindings;
 });

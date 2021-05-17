@@ -21,7 +21,8 @@ extern "C"
             vec.insert(vec.end(), set.begin(), set.end());
             return vec;
         }));
-        ems::function("getShaderNodes", ems::optional_override([](mx::NodePtr materialNode, const std::string& nodeType) {
+        ems::function("getShaderNodes", ems::optional_override([](mx::NodePtr materialNode,
+                                                                  const std::string& nodeType) {
             std::unordered_set<mx::NodePtr> set = mx::getShaderNodes(materialNode, nodeType);
             // Put all elements into an std::vector
             std::vector<mx::NodePtr> vec;
@@ -29,8 +30,8 @@ extern "C"
             return vec;
         }));
         ems::function("getShaderNodes", ems::optional_override([](mx::NodePtr materialNode,
-                                           const std::string& nodeType,
-                                           const std::string& target) {
+                                                                  const std::string& nodeType,
+                                                                  const std::string& target) {
             std::unordered_set<mx::NodePtr> set = mx::getShaderNodes(materialNode, nodeType, target);
             // Put all elements into an std::vector
             std::vector<mx::NodePtr> vec;

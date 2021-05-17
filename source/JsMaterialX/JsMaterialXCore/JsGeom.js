@@ -17,5 +17,9 @@ addWrapper(function(Module, api) {
 
     api.geomStringsMatch = wrapperFunction(Module.geomStringsMatch);
 
-    api.UNIVERSAL_GEOM_NAME = Module.UNIVERSAL_GEOM_NAME();
+    api.GEOM_PATH_SEPARATOR = Module.GEOM_PATH_SEPARATOR;
+    api.UNIVERSAL_GEOM_NAME = Module.UNIVERSAL_GEOM_NAME;
+    api.UDIM_TOKEN = Module.UDIM_TOKEN;
+    api.UDIMSET = Module.UDIMSET;
+    api.UV_TILE_TOKEN = Module.UV_TILE_TOKEN;
 });

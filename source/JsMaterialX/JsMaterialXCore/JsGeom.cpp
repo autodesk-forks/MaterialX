@@ -16,6 +16,12 @@ extern "C"
 {
     EMSCRIPTEN_BINDINGS(geom)
     {
+        ems::constant("GEOM_PATH_SEPARATOR", mx::GEOM_PATH_SEPARATOR);
+        ems::constant("UNIVERSAL_GEOM_NAME", mx::UNIVERSAL_GEOM_NAME);
+        ems::constant("UDIM_TOKEN", mx::UDIM_TOKEN);
+        ems::constant("UDIMSET", mx::UDIMSET);
+        ems::constant("UV_TILE_TOKEN", mx::UV_TILE_TOKEN);       
+
         ems::class_<mx::GeomElement, ems::base<mx::Element>>("GeomElement")
             .smart_ptr<std::shared_ptr<mx::GeomElement>>("GeomElement")
             .smart_ptr<std::shared_ptr<const mx::GeomElement>>("GeomElement")
@@ -44,7 +50,6 @@ extern "C"
             .function("getTokens", &mx::GeomInfo::getTokens)
             .function("removeToken", &mx::GeomInfo::removeToken)
             .function("addTokens", &mx::GeomInfo::addTokens)
-            .function("setTokenValue", &mx::GeomInfo::setTokenValue)
             BIND_GEOMINFO_FUNC_INSTANCE(Integer, int)
             BIND_GEOMINFO_FUNC_INSTANCE(Boolean, bool)
             BIND_GEOMINFO_FUNC_INSTANCE(Float, float)
@@ -80,7 +85,10 @@ extern "C"
             .function("setIndex", &mx::GeomPropDef::setIndex)
             .function("hasIndex", &mx::GeomPropDef::hasIndex)
             .function("getIndex", &mx::GeomPropDef::getIndex)
-            .class_property("CATEGORY", &mx::GeomPropDef::CATEGORY);
+            .class_property("CATEGORY", &mx::GeomPropDef::CATEGORY)
+            .class_property("GEOM_PROP_ATTRIBUTE", &mx::GeomPropDef::GEOM_PROP_ATTRIBUTE)
+            .class_property("SPACE_ATTRIBUTE", &mx::GeomPropDef::SPACE_ATTRIBUTE)
+            .class_property("INDEX_ATTRIBUTE", &mx::GeomPropDef::INDEX_ATTRIBUTE);
 
         ems::class_<mx::Collection, ems::base<mx::Element>>("Collection")
             .smart_ptr_constructor("Collection", &std::make_shared<mx::Collection, mx::ElementPtr, const std::string &>)
@@ -107,11 +115,6 @@ extern "C"
             .class_property("EXCLUDE_GEOM_ATTRIBUTE", &mx::Collection::EXCLUDE_GEOM_ATTRIBUTE)
             .class_property("INCLUDE_COLLECTION_ATTRIBUTE", &mx::Collection::INCLUDE_COLLECTION_ATTRIBUTE);
 
-        ems::function("geomStringsMatch", &mx::geomStringsMatch);
-        
-        ems::function("UNIVERSAL_GEOM_NAME", ems::optional_override([]() {
-            return mx::UNIVERSAL_GEOM_NAME;
-        }));
-        
+        ems::function("geomStringsMatch", &mx::geomStringsMatch); 
     }
 }

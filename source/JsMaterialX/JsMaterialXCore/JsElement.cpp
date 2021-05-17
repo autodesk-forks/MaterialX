@@ -40,7 +40,7 @@ extern "C"
             .function("getCategory", &mx::Element::getCategory)
             .function("setName", &mx::Element::setName)
             .function("getName", &mx::Element::getName)
-            BIND_MEMBER_FUNC_RAW_PTR("getNamePath", mx::Element, getNamePath, 0, 1, mx::ConstElementPtr)
+            BIND_MEMBER_FUNC("getNamePath", mx::Element, getNamePath, 0, 1, mx::ConstElementPtr)
             .function("getDescendant", &mx::Element::getDescendant)
             .function("setFilePrefix", &mx::Element::setFilePrefix)
             .function("hasFilePrefix", &mx::Element::hasFilePrefix)
@@ -67,7 +67,6 @@ extern "C"
             .function("getQualifiedName", &mx::Element::getQualifiedName)
             .function("setDocString", &mx::Element::setDocString)
             .function("getDocString", &mx::Element::getDocString)
-
             BIND_MEMBER_FUNC("addChildOfCategory", mx::Element, addChildOfCategory, 1, 2, stRef, std::string)
             .function("changeChildCategory", &mx::Element::changeChildCategory)
             .function("getChild", &mx::Element::getChild)
@@ -91,7 +90,6 @@ extern "C"
             BIND_ELEMENT_CHILD_FUNC_INSTANCE(Token, mx::Token)
             BIND_ELEMENT_CHILD_FUNC_INSTANCE(TypeDef, mx::TypeDef)
             BIND_ELEMENT_CHILD_FUNC_INSTANCE(Visibility, mx::Visibility)
-
             .function("setAttribute", &mx::Element::setAttribute)
             .function("hasAttribute", &mx::Element::hasAttribute)
             .function("getAttribute", &mx::Element::getAttribute)
@@ -117,12 +115,10 @@ extern "C"
             BIND_ELEMENT_FUNC_INSTANCE(FloatArray, mx::FloatVec)
             BIND_ELEMENT_FUNC_INSTANCE(StringArray, mx::StringVec)
             .function("traverseTree", &mx::Element::traverseTree)
-
             .function("traverseGraph", &mx::Element::traverseGraph)
             BIND_MEMBER_FUNC("getUpstreamEdge", mx::Element, getUpstreamEdge, 0, 1, std::size_t)
             .function("getUpstreamEdgeCount", &mx::Element::getUpstreamEdgeCount)
             BIND_MEMBER_FUNC("getUpstreamElement", mx::Element, getUpstreamElement, 0, 1, std::size_t)
-
             .function("traverseInheritance", &mx::Element::traverseInheritance)
             .function("setSourceUri", &mx::Element::setSourceUri)
             .function("hasSourceUri", &mx::Element::hasSourceUri)
@@ -136,7 +132,6 @@ extern "C"
             .function("addTokens", &mx::Element::addTokens)
             .function("asString", &mx::Element::asString)
             .function("__str__", &mx::Element::asString)
-            
             .class_property("NAME_ATTRIBUTE", &mx::Element::NAME_ATTRIBUTE)
             .class_property("FILE_PREFIX_ATTRIBUTE", &mx::Element::FILE_PREFIX_ATTRIBUTE)
             .class_property("GEOM_PREFIX_ATTRIBUTE", &mx::Element::GEOM_PREFIX_ATTRIBUTE)
@@ -161,7 +156,7 @@ extern "C"
             .function("setValueString", &mx::ValueElement::setValueString)
             .function("hasValueString", &mx::ValueElement::hasValueString)
             .function("getValueString", &mx::ValueElement::getValueString)
-            BIND_MEMBER_FUNC_RAW_PTR("getResolvedValueString", mx::ValueElement, getResolvedValueString, 0, 1, mx::StringResolverPtr)
+            BIND_MEMBER_FUNC("getResolvedValueString", mx::ValueElement, getResolvedValueString, 0, 1, mx::StringResolverPtr)
             .function("setInterfaceName", &mx::ValueElement::setInterfaceName)
             .function("hasInterfaceName", &mx::ValueElement::hasInterfaceName)
             .function("getInterfaceName", &mx::ValueElement::getInterfaceName)
@@ -185,7 +180,7 @@ extern "C"
             BIND_VALUE_ELEMENT_FUNC_INSTANCE(StringArray, mx::StringVec)
             .function("hasValue", &mx::ValueElement::hasValue)
             .function("getValue", &mx::ValueElement::getValue)
-            BIND_MEMBER_FUNC_RAW_PTR("getResolvedValue", mx::ValueElement, getResolvedValue, 0, 1, mx::StringResolverPtr)
+            BIND_MEMBER_FUNC("getResolvedValue", mx::ValueElement, getResolvedValue, 0, 1, mx::StringResolverPtr)
             .function("getDefaultValue", &mx::ValueElement::getDefaultValue)
             .function("setUnit", &mx::ValueElement::setUnit)
             .function("hasUnit", &mx::ValueElement::hasUnit)
@@ -215,7 +210,6 @@ extern "C"
             .class_property("UNITTYPE_ATTRIBUTE", &mx::ValueElement::UNITTYPE_ATTRIBUTE)
             .class_property("UNIFORM_ATTRIBUTE", &mx::ValueElement::UNIFORM_ATTRIBUTE);
 
-
         ems::class_<mx::Token, ems::base<mx::ValueElement>>("Token")
             .smart_ptr_constructor("Token", &std::make_shared<mx::Token, mx::ElementPtr, const std::string &>)
             .class_property("CATEGORY", &mx::Token::CATEGORY);
@@ -239,26 +233,26 @@ extern "C"
             .function("setUvTileString", &mx::StringResolver::setUvTileString)
             .function("setFilenameSubstitution", &mx::StringResolver::setFilenameSubstitution)
             .function("getFilenameSubstitutions", ems::optional_override([](mx::StringResolver &self) {
-                          std::unordered_map<std::string, std::string> res = self.mx::StringResolver::getFilenameSubstitutions();
-                          ems::val obj = ems::val::object();
-                          for (std::pair<std::string, std::string> element : res)
-                          {
-                              obj.set(element.first, element.second);
-                          }
+                std::unordered_map<std::string, std::string> res = self.mx::StringResolver::getFilenameSubstitutions();
+                ems::val obj = ems::val::object();
+                for (std::pair<std::string, std::string> element : res)
+                {
+                    obj.set(element.first, element.second);
+                }
 
-                          return obj;
-                      }))
+                return obj;
+            }))
             .function("setGeomNameSubstitution", &mx::StringResolver::setGeomNameSubstitution)
             .function("getGeomNameSubstitutions", ems::optional_override([](mx::StringResolver &self) {
-                          std::unordered_map<std::string, std::string> res = self.mx::StringResolver::getGeomNameSubstitutions();
-                          ems::val obj = ems::val::object();
-                          for (std::pair<std::string, std::string> element : res)
-                          {
-                              obj.set(element.first, element.second);
-                          }
+                std::unordered_map<std::string, std::string> res = self.mx::StringResolver::getGeomNameSubstitutions();
+                ems::val obj = ems::val::object();
+                for (std::pair<std::string, std::string> element : res)
+                {
+                    obj.set(element.first, element.second);
+                }
 
-                          return obj;
-                      }))
+                return obj;
+            }))
             .function("resolve", &mx::StringResolver::resolve)
             .class_function("isResolvedType", &mx::StringResolver::isResolvedType);
 

@@ -17,7 +17,6 @@ extern "C"
 {
     EMSCRIPTEN_BINDINGS(interface)
     {
-
         ems::class_<mx::PortElement, ems::base<mx::ValueElement>>("PortElement")
             .smart_ptr<std::shared_ptr<mx::PortElement>>("PortElement")
             .smart_ptr<std::shared_ptr<const mx::PortElement>>("PortElement")
@@ -75,7 +74,6 @@ extern "C"
             .function("setNodeDefString", &mx::InterfaceElement::setNodeDefString)
             .function("hasNodeDefString", &mx::InterfaceElement::hasNodeDefString)
             .function("getNodeDefString", &mx::InterfaceElement::getNodeDefString)
-
             BIND_MEMBER_FUNC("addInput", mx::InterfaceElement, addInput, 0, 2, stRef, stRef)
             .function("getInput", &mx::InterfaceElement::getInput)
             .function("getInputs", &mx::InterfaceElement::getInputs)
@@ -92,7 +90,6 @@ extern "C"
             .function("getActiveOutputs", &mx::InterfaceElement::getActiveOutputs)
             .function("setConnectedOutput", &mx::InterfaceElement::setConnectedOutput)
             .function("getConnectedOutput", &mx::InterfaceElement::getConnectedOutput)
-
             BIND_MEMBER_FUNC("addToken", mx::InterfaceElement, addToken, 0, 1, stRef)
             .function("getToken", &mx::InterfaceElement::getToken)
             .function("getTokens", &mx::InterfaceElement::getTokens)
@@ -100,7 +97,6 @@ extern "C"
             .function("getActiveToken", &mx::InterfaceElement::getActiveToken)
             .function("getActiveTokens", &mx::InterfaceElement::getActiveTokens)
             .function("addTokens", &mx::InterfaceElement::addTokens)
-
             .function("getValueElement", &mx::InterfaceElement::getValueElement)
             .function("getActiveValueElement", &mx::InterfaceElement::getActiveValueElement)
             .function("getActiveValueElements", &mx::InterfaceElement::getActiveValueElements)
@@ -120,30 +116,23 @@ extern "C"
             BIND_INTERFACE_TYPE_INSTANCE(FloatArray, mx::FloatVec)
             BIND_INTERFACE_TYPE_INSTANCE(StringArray, mx::StringVec)
             BIND_MEMBER_FUNC("getInputValue", mx::InterfaceElement, getInputValue, 1, 2, stRef, stRef)
-
             .function("setTokenValue", &mx::InterfaceElement::setTokenValue)
             .function("getTokenValue", &mx::InterfaceElement::getTokenValue)
-
             .function("setTarget", &mx::InterfaceElement::setTarget)
             .function("hasTarget", &mx::InterfaceElement::hasTarget)
             .function("getTarget", &mx::InterfaceElement::getTarget)
-
             .function("setVersionString", &mx::InterfaceElement::setVersionString)
             .function("hasVersionString", &mx::InterfaceElement::hasVersionString)
             .function("getVersionString", &mx::InterfaceElement::getVersionString)
             .function("setVersionIntegers", &mx::InterfaceElement::getVersionIntegers)
             .function("getVersionIntegers", ems::optional_override([](mx::InterfaceElement &self) {
-                          // std::pair throws a unbound type error when invoking the function in javascript
-                          // As a result, the std:pair will be converted into an array.
-                          std::pair<int, int> versionInts = self.getVersionIntegers();
-                          return arrayToVec((int *)&versionInts, 2);
-                      }))
+                auto version = mx::getVersionIntegers();
+                return ems::val::array((int *)&version, (int *)&version + 2);
+            }))
             .function("setDefaultVersion", &mx::InterfaceElement::setDefaultVersion)
             .function("getDefaultVersion", &mx::InterfaceElement::getDefaultVersion)
-
             BIND_MEMBER_FUNC("getDeclaration", mx::InterfaceElement, getDeclaration, 0, 1, stRef)
             .function("isTypeCompatible", &mx::InterfaceElement::isTypeCompatible)
-
             .class_property("NODE_DEF_ATTRIBUTE", &mx::InterfaceElement::NODE_DEF_ATTRIBUTE)
             .class_property("TARGET_ATTRIBUTE", &mx::InterfaceElement::TARGET_ATTRIBUTE)
             .class_property("VERSION_ATTRIBUTE", &mx::InterfaceElement::VERSION_ATTRIBUTE)

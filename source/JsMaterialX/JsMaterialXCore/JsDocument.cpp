@@ -23,10 +23,10 @@ extern "C"
             .function("copy", &mx::Document::copy)
             .function("importLibrary", &mx::Document::importLibrary)
             .function("getReferencedSourceUris", ems::optional_override([](mx::Document &self) {
-                          mx::StringSet referenced = self.mx::Document::getReferencedSourceUris();
-                          int size = referenced.size();
-                          return arrayToVec((std::string *)&referenced, size);
-                      }))
+                mx::StringSet referenced = self.mx::Document::getReferencedSourceUris();
+                int size = referenced.size();
+                return arrayToVec((std::string *)&referenced, size);
+            }))
             BIND_MEMBER_FUNC("addNodeGraph", mx::Document, addNodeGraph, 0, 1, stRef)
             .function("getNodeGraph", &mx::Document::getNodeGraph)
             .function("getNodeGraphs", &mx::Document::getNodeGraphs)
@@ -95,11 +95,9 @@ extern "C"
             .function("getUnitTypeDefs", &mx::Document::getUnitTypeDefs)
             .function("removeUnitTypeDef", &mx::Document::removeUnitTypeDef)
             .function("getVersionIntegers", ems::optional_override([](mx::Document &self) {
-                          // std::pair throws a unbound type error when invoking the function in javascript
-                          // As a result, the std:pair will be converted into an array.
-                          std::pair<int, int> versionInts = self.getVersionIntegers();
-                          return arrayToVec((int *)&versionInts, 2);
-                      }))
+                auto version = mx::getVersionIntegers();
+                return ems::val::array((int *)&version, (int *)&version + 2);
+            }))
             .function("upgradeVersion", &mx::Document::upgradeVersion)
             .function("setColorManagementSystem", &mx::Document::setColorManagementSystem)
             .function("hasColorManagementSystem", &mx::Document::hasColorManagementSystem)

@@ -93,8 +93,8 @@ Module().then((_module) => {
 
     // Create a simple shader interface.
     const simpleSrf = doc.addNodeDef('ND_simpleSrf', 'surfaceshader', 'simpleSrf');
-    const diffColor = simpleSrf.setInputValueColor3('diffColor', new mx.Color3(1.0, 1.0, 1.0));
-    const specColor = simpleSrf.setInputValueColor3('specColor', new mx.Color3(0.0, 0.0, 0.0));
+    const diffColor = simpleSrf.setInputValuecolor3('diffColor', new mx.Color3(1.0, 1.0, 1.0));
+    const specColor = simpleSrf.setInputValuecolor3('specColor', new mx.Color3(0.0, 0.0, 0.0));
     const roughness = simpleSrf.setParameterValuefloat('roughness', 0.25);
 
     // Create a material that instantiates the shader.
