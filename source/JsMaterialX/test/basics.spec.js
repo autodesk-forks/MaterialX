@@ -113,8 +113,14 @@ describe('Basics', () => {
         // Translation and scale
         const trans = mx.Matrix44.createTranslation(new mx.Vector3(1, 2, 3));
         const scale = mx.Matrix44.createScale(new mx.Vector3(2, 2, 2));
-        expect(trans.equals(new mx.Matrix44(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 2, 3, 1)));
-        expect(scale.equals(new mx.Matrix44(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1)));
+        expect(trans.equals(new mx.Matrix44(1, 0, 0, 0,
+                                            0, 1, 0, 0,
+                                            0, 0, 1, 0,
+                                            1, 2, 3, 1)));
+        expect(scale.equals(new mx.Matrix44(2, 0, 0, 0,
+                                            0, 2, 0, 0,
+                                            0, 0, 2, 0,
+                                            0, 0, 0, 1)));
 
         // Indexing operators
         expect(trans.getItem(3, 2)).to.equal(3);
@@ -123,11 +129,17 @@ describe('Basics', () => {
         trans.setItem(3, 2, 3);
 
         // Matrix methods
-        expect(trans.getTranspose().equals(new mx.Matrix44(1, 0, 0, 1, 0, 1, 0, 2, 0, 0, 1, 3, 0, 0, 0, 1))).to.be.true;
+        expect(trans.getTranspose().equals(
+            new mx.Matrix44(1, 0, 0, 1,
+                            0, 1, 0, 2,
+                            0, 0, 1, 3,
+                            0, 0, 0, 1)
+        )).to.be.true;
         expect(scale.getTranspose().equals(scale)).to.be.true;
         expect(trans.getDeterminant()).to.equal(1);
         expect(scale.getDeterminant()).to.equal(8);
-        expect(trans.getInverse().equals(mx.Matrix44.createTranslation(new mx.Vector3(-1, -2, -3)))).to.be.true;
+        expect(trans.getInverse().equals(
+            mx.Matrix44.createTranslation(new mx.Vector3(-1, -2, -3)))).to.be.true;
 
         // Matrix product
         const prod1 = trans.multiply(scale);
@@ -135,9 +147,18 @@ describe('Basics', () => {
         const prod3 = multiplyMatrix(trans, 2);
         let prod4 = trans;
         prod4 = prod4.multiply(scale);
-        expect(prod1.equals(new mx.Matrix44(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 2, 4, 6, 1)));
-        expect(prod2.equals(new mx.Matrix44(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 1, 2, 3, 1)));
-        expect(prod3.equals(new mx.Matrix44(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 2, 4, 6, 2)));
+        expect(prod1.equals(new mx.Matrix44(2, 0, 0, 0,
+                                            0, 2, 0, 0,
+                                            0, 0, 2, 0,
+                                            2, 4, 6, 1)));
+        expect(prod2.equals(new mx.Matrix44(2, 0, 0, 0,
+                                            0, 2, 0, 0,
+                                            0, 0, 2, 0,
+                                            1, 2, 3, 1)));
+        expect(prod3.equals(new mx.Matrix44(2, 0, 0, 0,
+                                            0, 2, 0, 0,
+                                            0, 0, 2, 0,
+                                            2, 4, 6, 2)));
         expect(prod4.equals(prod1));
 
         // Matrix division
