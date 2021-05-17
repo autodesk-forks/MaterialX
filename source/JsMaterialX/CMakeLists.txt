@@ -5,6 +5,7 @@ set(OUTPUT_LIBS ${PROJECT_BINARY_DIR}/source/)
 set(SOURCE_FOLDER ${CMAKE_SOURCE_DIR}/source)
 
 set(CORE_DEPS ${OUTPUT_CORE}JsTypes.cpp
+    ${OUTPUT_CORE}JsMaterial.cpp
     ${OUTPUT_CORE}JsUnit.cpp
     ${OUTPUT_CORE}JsExceptions.cpp
     ${OUTPUT_CORE}JsUtil.cpp
