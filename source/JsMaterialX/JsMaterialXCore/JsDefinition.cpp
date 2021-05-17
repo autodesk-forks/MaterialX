@@ -10,8 +10,8 @@ namespace mx = MaterialX;
 
 using stRef = const std::string&;
 
-#define BIND_VALUE_ELEMENT_FUNC_INSTANCE(NAME, T)          \
-    .function("setValue" #NAME, &mx::AttributeDef::setValue<T>)
+#define BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(NAME, T)          \
+    BIND_MEMBER_FUNC("setValue" #NAME, mx::AttributeDef, setValue<T>, 1, 2, const T&, stRef)
 
 extern "C"
 {
@@ -23,6 +23,7 @@ extern "C"
             .function("setNodeString", &mx::NodeDef::setNodeString)
             .function("hasNodeString", &mx::NodeDef::hasNodeString)
             .function("getNodeString", &mx::NodeDef::getNodeString)
+            .function("getType", &mx::NodeDef::getType)
             .function("setNodeGroup", &mx::NodeDef::setNodeGroup)
             .function("hasNodeGroup", &mx::NodeDef::hasNodeGroup)
             .function("getNodeGroup", &mx::NodeDef::getNodeGroup)
@@ -100,7 +101,7 @@ extern "C"
             .function("addUnit", &mx::UnitDef::addUnit)
             .function("getUnit", &mx::UnitDef::getUnit)
             .function("getUnits", &mx::UnitDef::getUnits)
-            .function("reomveUnit", &mx::UnitDef::removeUnit)
+            .function("removeUnit", &mx::UnitDef::removeUnit)
             .class_property("CATEGORY", &mx::UnitDef::CATEGORY)
             .class_property("UNITTYPE_ATTRIBUTE", &mx::UnitDef::UNITTYPE_ATTRIBUTE);
 
@@ -119,22 +120,21 @@ extern "C"
             .function("setValueString", &mx::AttributeDef::setValueString)
             .function("hasValueString", &mx::AttributeDef::hasValueString)
             .function("getValueString", &mx::AttributeDef::getValueString)
-            // .function("setValue", &mx::AttributeDef::setValue)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(Integer, int)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(Boolean, bool)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(Float, float)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(Color3, mx::Color3)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(Color4, mx::Color4)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(Vector2, mx::Vector2)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(Vector3, mx::Vector3)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(Vector4, mx::Vector4)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(Matrix33, mx::Matrix33)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(Matrix44, mx::Matrix44)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(String, std::string)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(IntegerArray, mx::IntVec)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(BooleanArray, mx::BoolVec)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(FloatArray, mx::FloatVec)
-            BIND_VALUE_ELEMENT_FUNC_INSTANCE(StringArray, mx::StringVec)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(Integer, int)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(Boolean, bool)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(Float, float)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(Color3, mx::Color3)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(Color4, mx::Color4)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(Vector2, mx::Vector2)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(Vector3, mx::Vector3)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(Vector4, mx::Vector4)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(Matrix33, mx::Matrix33)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(Matrix44, mx::Matrix44)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(String, std::string)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(IntegerArray, mx::IntVec)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(BooleanArray, mx::BoolVec)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(FloatArray, mx::FloatVec)
+            BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(StringArray, mx::StringVec)
             .function("hasValue", &mx::AttributeDef::hasValue)
             .function("getValue", &mx::AttributeDef::getValue)
             .function("setElements", &mx::AttributeDef::setElements)

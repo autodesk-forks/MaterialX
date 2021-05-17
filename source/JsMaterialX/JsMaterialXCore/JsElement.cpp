@@ -17,11 +17,17 @@ namespace mx = MaterialX;
 #define BIND_VALUE_ELEMENT_FUNC_INSTANCE(NAME, T)          \
     BIND_MEMBER_FUNC("setValue" #NAME, mx::ValueElement, setValue<T>, 1, 2, const T&, stRef)
 
-#define BIND_ELEMENT_FUNC_INSTANCE(T)                                                        \
-    BIND_MEMBER_FUNC("addChild" #T, mx::Element, addChild<T>, 0, 1, stRef)                   \
-    .function("getChildOfType" #T, &mx::Element::getChildOfType<T>)                          \
-    BIND_MEMBER_FUNC("getChildrenOfType" #T, mx::Element, getChildrenOfType<T>, 0, 1, stRef) \
-    .function("removeChildOfType" #T, &mx::Element::removeChildOfType<T>)
+#define BIND_ELEMENT_CHILD_FUNC_INSTANCE(NAME, T)                                             \
+    BIND_MEMBER_FUNC("addChild" #NAME, mx::Element, addChild<T>, 0, 1, stRef)                    \
+    .function("getChildOfType" #NAME, &mx::Element::getChildOfType<T>)                           \
+    BIND_MEMBER_FUNC("getChildrenOfType" #NAME, mx::Element, getChildrenOfType<T>, 0, 1, stRef)  \
+    .function("removeChildOfType" #NAME, &mx::Element::removeChildOfType<T>)                     \
+    .function("getAncestorOfType" #NAME, &mx::Element::getAncestorOfType<T>)                     \
+    .function("resolveRootNameReference" #NAME, &mx::Element::resolveRootNameReference<T>)  
+  
+#define BIND_ELEMENT_FUNC_INSTANCE(NAME, T)                                   \
+    .function("setTypedAttribute" #NAME, &mx::Element::setTypedAttribute<T>)  \
+    .function("getTypedAttribute" #NAME, &mx::Element::getTypedAttribute<T>)
 
 extern "C"
 {
@@ -69,22 +75,22 @@ extern "C"
             .function("setChildIndex", &mx::Element::setChildIndex)
             .function("getChildIndex", &mx::Element::getChildIndex)
             .function("removeChild", &mx::Element::removeChild)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::Collection)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::Document)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::GeomInfo)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::GeomProp)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::Implementation)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::Look)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::MaterialAssign)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::Node)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::NodeDef)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::NodeGraph)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::Property)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::PropertySet)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::PropertySetAssign)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::Token)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::TypeDef)
-            BIND_ELEMENT_FUNC_INSTANCE(mx::Visibility)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Collection, mx::Collection)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Document, mx::Document)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(GeomInfo, mx::GeomInfo)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(GeomProp, mx::GeomProp)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Implementation, mx::Implementation)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Look, mx::Look)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(MaterialAssign, mx::MaterialAssign)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Node, mx::Node)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(NodeDef, mx::NodeDef)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(NodeGraph, mx::NodeGraph)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Property, mx::Property)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(PropertySet, mx::PropertySet)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(PropertySetAssign, mx::PropertySetAssign)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Token, mx::Token)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(TypeDef, mx::TypeDef)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Visibility, mx::Visibility)
 
             .function("setAttribute", &mx::Element::setAttribute)
             .function("hasAttribute", &mx::Element::hasAttribute)
@@ -95,6 +101,21 @@ extern "C"
             .function("getParent", ems::select_overload<mx::ConstElementPtr()const>(&mx::Element::getParent))
             .function("getRoot", ems::select_overload<mx::ConstElementPtr()const>(&mx::Element::getRoot))
             .function("getDocument", ems::select_overload<mx::ConstDocumentPtr()const>(&mx::Element::getDocument))
+            BIND_ELEMENT_FUNC_INSTANCE(Integer, int)
+            BIND_ELEMENT_FUNC_INSTANCE(Boolean, bool)
+            BIND_ELEMENT_FUNC_INSTANCE(Float, float)
+            BIND_ELEMENT_FUNC_INSTANCE(Color3, mx::Color3)
+            BIND_ELEMENT_FUNC_INSTANCE(Color4, mx::Color4)
+            BIND_ELEMENT_FUNC_INSTANCE(Vector2, mx::Vector2)
+            BIND_ELEMENT_FUNC_INSTANCE(Vector3, mx::Vector3)
+            BIND_ELEMENT_FUNC_INSTANCE(Vector4, mx::Vector4)
+            BIND_ELEMENT_FUNC_INSTANCE(Matrix33, mx::Matrix33)
+            BIND_ELEMENT_FUNC_INSTANCE(Matrix44, mx::Matrix44)
+            BIND_ELEMENT_FUNC_INSTANCE(String, std::string)
+            BIND_ELEMENT_FUNC_INSTANCE(IntegerArray, mx::IntVec)
+            BIND_ELEMENT_FUNC_INSTANCE(BooleanArray, mx::BoolVec)
+            BIND_ELEMENT_FUNC_INSTANCE(FloatArray, mx::FloatVec)
+            BIND_ELEMENT_FUNC_INSTANCE(StringArray, mx::StringVec)
             .function("traverseTree", &mx::Element::traverseTree)
 
             .function("traverseGraph", &mx::Element::traverseGraph)
@@ -108,13 +129,11 @@ extern "C"
             .function("getSourceUri", &mx::Element::getSourceUri)
             .function("getActiveSourceUri", &mx::Element::getActiveSourceUri)
             BIND_VALIDATE(mx::Element)  
-            .function("copyContentFrom", ems::optional_override([](mx::Element &self, mx::ConstElementPtr source) {
-                          const mx::ConstElementPtr &source1 = source;
-                          return self.mx::Element::copyContentFrom(source1);
-                      }))
+            .function("copyContentFrom", &mx::Element::copyContentFrom)
             .function("clearContent", &mx::Element::clearContent)
             .function("createValidChildName", &mx::Element::createValidChildName)
             BIND_MEMBER_FUNC("createStringResolver", mx::Element, createStringResolver, 0, 1, stRef)
+            .function("addTokens", &mx::Element::addTokens)
             .function("asString", &mx::Element::asString)
             .function("__str__", &mx::Element::asString)
             
@@ -149,7 +168,6 @@ extern "C"
             .function("setImplementationName", &mx::ValueElement::setImplementationName)
             .function("hasImplementationName", &mx::ValueElement::hasImplementationName)
             .function("getImplementationName", &mx::ValueElement::getImplementationName)
-            // .function("setValue", &mx::ValueElement::setValue)
             BIND_VALUE_ELEMENT_FUNC_INSTANCE(Integer, int)
             BIND_VALUE_ELEMENT_FUNC_INSTANCE(Boolean, bool)
             BIND_VALUE_ELEMENT_FUNC_INSTANCE(Float, float)
@@ -165,9 +183,10 @@ extern "C"
             BIND_VALUE_ELEMENT_FUNC_INSTANCE(BooleanArray, mx::BoolVec)
             BIND_VALUE_ELEMENT_FUNC_INSTANCE(FloatArray, mx::FloatVec)
             BIND_VALUE_ELEMENT_FUNC_INSTANCE(StringArray, mx::StringVec)
+            .function("hasValue", &mx::ValueElement::hasValue)
             .function("getValue", &mx::ValueElement::getValue)
-            .function("getDefaultValue", &mx::ValueElement::getDefaultValue)
             BIND_MEMBER_FUNC_RAW_PTR("getResolvedValue", mx::ValueElement, getResolvedValue, 0, 1, mx::StringResolverPtr)
+            .function("getDefaultValue", &mx::ValueElement::getDefaultValue)
             .function("setUnit", &mx::ValueElement::setUnit)
             .function("hasUnit", &mx::ValueElement::hasUnit)
             .function("getUnit", &mx::ValueElement::getUnit)
@@ -184,7 +203,6 @@ extern "C"
             .class_property("IMPLEMENTATION_TYPE_ATTRIBUTE", &mx::ValueElement::IMPLEMENTATION_TYPE_ATTRIBUTE)
             .class_property("ENUM_ATTRIBUTE", &mx::ValueElement::ENUM_ATTRIBUTE)
             .class_property("ENUM_VALUES_ATTRIBUTE", &mx::ValueElement::ENUM_VALUES_ATTRIBUTE)
-            .class_property("UNIT_ATTRIBUTE", &mx::ValueElement::UNIT_ATTRIBUTE)
             .class_property("UI_NAME_ATTRIBUTE", &mx::ValueElement::UI_NAME_ATTRIBUTE)
             .class_property("UI_FOLDER_ATTRIBUTE", &mx::ValueElement::UI_FOLDER_ATTRIBUTE)
             .class_property("UI_MIN_ATTRIBUTE", &mx::ValueElement::UI_MIN_ATTRIBUTE)
@@ -192,11 +210,23 @@ extern "C"
             .class_property("UI_SOFT_MIN_ATTRIBUTE", &mx::ValueElement::UI_SOFT_MIN_ATTRIBUTE)
             .class_property("UI_SOFT_MAX_ATTRIBUTE", &mx::ValueElement::UI_SOFT_MAX_ATTRIBUTE)
             .class_property("UI_STEP_ATTRIBUTE", &mx::ValueElement::UI_STEP_ATTRIBUTE)
-            .class_property("UI_ADVANCED_ATTRIBUTE", &mx::ValueElement::UI_ADVANCED_ATTRIBUTE);
+            .class_property("UI_ADVANCED_ATTRIBUTE", &mx::ValueElement::UI_ADVANCED_ATTRIBUTE)
+            .class_property("UNIT_ATTRIBUTE", &mx::ValueElement::UNIT_ATTRIBUTE)
+            .class_property("UNITTYPE_ATTRIBUTE", &mx::ValueElement::UNITTYPE_ATTRIBUTE)
+            .class_property("UNIFORM_ATTRIBUTE", &mx::ValueElement::UNIFORM_ATTRIBUTE);
+
 
         ems::class_<mx::Token, ems::base<mx::ValueElement>>("Token")
             .smart_ptr_constructor("Token", &std::make_shared<mx::Token, mx::ElementPtr, const std::string &>)
             .class_property("CATEGORY", &mx::Token::CATEGORY);
+
+        ems::class_<mx::CommentElement, ems::base<mx::Element>>("CommentElement")
+            .smart_ptr_constructor("CommentElement", &std::make_shared<mx::CommentElement, mx::ElementPtr, const std::string &>)
+            .class_property("CATEGORY", &mx::CommentElement::CATEGORY);
+
+        ems::class_<mx::GenericElement, ems::base<mx::Element>>("GenericElement")
+            .smart_ptr_constructor("GenericElement", &std::make_shared<mx::GenericElement, mx::ElementPtr, const std::string &>)
+            .class_property("CATEGORY", &mx::GenericElement::CATEGORY);
 
         ems::class_<mx::StringResolver>("StringResolver")
             .smart_ptr<std::shared_ptr<mx::StringResolver>>("StringResolver")
@@ -229,8 +259,12 @@ extern "C"
 
                           return obj;
                       }))
-            .function("resolve", &mx::StringResolver::resolve);
+            .function("resolve", &mx::StringResolver::resolve)
+            .class_function("isResolvedType", &mx::StringResolver::isResolvedType);
 
         ems::class_<mx::ElementPredicate>("ElementPredicate");
+
+        ems::function("targetStringsMatch", &mx::targetStringsMatch);
+        ems::function("prettyPrint", &mx::prettyPrint);
     }
 }

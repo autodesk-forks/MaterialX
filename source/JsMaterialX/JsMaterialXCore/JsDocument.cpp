@@ -17,6 +17,8 @@ extern "C"
         ems::class_<mx::Document, ems::base<mx::GraphElement>>("Document")
             .smart_ptr_constructor("Document", &std::make_shared<mx::Document, mx::ElementPtr, const std::string &>)
             .smart_ptr<std::shared_ptr<const mx::Document>>("Document")
+             // At the moment only the Document type is used. Once more types are added this binding needs to be adapted accordingly.
+            .class_function("createDocument", &mx::Document::createDocument<mx::Document>)
             .function("initialize", &mx::Document::initialize)
             .function("copy", &mx::Document::copy)
             .function("importLibrary", &mx::Document::importLibrary)
