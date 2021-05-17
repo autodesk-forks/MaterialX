@@ -92,7 +92,12 @@ extern "C"
             .function("getUnitTypeDef", &mx::Document::getUnitTypeDef)
             .function("getUnitTypeDefs", &mx::Document::getUnitTypeDefs)
             .function("removeUnitTypeDef", &mx::Document::removeUnitTypeDef)
-            .function("getVersionIntegers", &mx::Document::getVersionIntegers)
+            .function("getVersionIntegers", ems::optional_override([](mx::Document &self) {
+                          // std::pair throws a unbound type error when invoking the function in javascript
+                          // As a result, the std:pair will be converted into an array.
+                          std::pair<int, int> versionInts = self.getVersionIntegers();
+                          return arrayToVec((int *)&versionInts, 2);
+                      }))
             .function("upgradeVersion", &mx::Document::upgradeVersion)
             .function("setColorManagementSystem", &mx::Document::setColorManagementSystem)
             .function("hasColorManagementSystem", &mx::Document::hasColorManagementSystem)

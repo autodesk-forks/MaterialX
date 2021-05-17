@@ -28,7 +28,7 @@ extern "C"
             .function("getCollectionString", &mx::GeomElement::getCollectionString)
             .function("setCollection", &mx::GeomElement::setCollection)
             .function("getCollection", &mx::GeomElement::getCollection)
-            BIND_VALIDATE(mx::GeomElement)
+            // BIND_VALIDATE(mx::GeomElement)
             .class_property("GEOM_ATTRIBUTE", &mx::GeomElement::GEOM_ATTRIBUTE)
             .class_property("COLLECTION_ATTRIBUTE", &mx::GeomElement::COLLECTION_ATTRIBUTE);
 
@@ -101,7 +101,7 @@ extern "C"
             .function("getIncludeCollections", &mx::Collection::getIncludeCollections)
             .function("hasIncludeCycle", &mx::Collection::hasIncludeCycle)
             .function("matchesGeomString", &mx::Collection::matchesGeomString)
-            BIND_VALIDATE(mx::Collection)
+            // BIND_VALIDATE(mx::Collection)
             .class_property("CATEGORY", &mx::Collection::CATEGORY)
             .class_property("INCLUDE_GEOM_ATTRIBUTE", &mx::Collection::INCLUDE_GEOM_ATTRIBUTE)
             .class_property("EXCLUDE_GEOM_ATTRIBUTE", &mx::Collection::EXCLUDE_GEOM_ATTRIBUTE)
