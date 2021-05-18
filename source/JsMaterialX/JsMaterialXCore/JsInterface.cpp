@@ -1,8 +1,9 @@
+#include "../vectorHelper.h"
 #include "../helpers.h"
+
 #include <MaterialXCore/Interface.h>
 #include <MaterialXCore/Node.h>
 
-#include <emscripten.h>
 #include <emscripten/bind.h>
 
 using stRef = const std::string&;

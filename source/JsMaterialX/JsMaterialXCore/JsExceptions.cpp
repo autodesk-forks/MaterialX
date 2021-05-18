@@ -1,6 +1,6 @@
-#include <string>
-#include <emscripten.h>
 #include <emscripten/bind.h>
+
+#include <string>
 
 namespace ems = emscripten;
 

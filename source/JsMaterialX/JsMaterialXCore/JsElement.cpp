@@ -1,4 +1,6 @@
+#include "../vectorHelper.h"
 #include "../helpers.h"
+
 #include <MaterialXCore/Document.h>
 #include <MaterialXCore/Geom.h>
 #include <MaterialXCore/Look.h>
@@ -6,7 +8,6 @@
 #include <MaterialXCore/Node.h>
 #include <MaterialXCore/Traversal.h>
 
-#include <emscripten.h>
 #include <emscripten/bind.h>
 
 using stRef = const std::string&;

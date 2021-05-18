@@ -19,7 +19,6 @@ set(CORE_DEPS ${OUTPUT_CORE}JsTypes.cpp
     ${OUTPUT_CORE}JsGeom.cpp
     ${OUTPUT_CORE}JsVariant.cpp
     ${OUTPUT_CORE}JsValue.cpp
-    ${OUTPUT_CORE}JsRegisteredVectors.cpp
     ${OUTPUT_CORE}JsTraversal.cpp)
 
 set(FORMAT_DEPS ${OUTPUT_FORMAT}JsXmlIo.cpp)

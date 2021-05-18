@@ -1,6 +1,7 @@
+#include "../vectorHelper.h"
 #include "../helpers.h"
-#include <MaterialXCore/Traversal.h>
 
+#include <MaterialXCore/Traversal.h>
 #include <MaterialXCore/Material.h>
 
 #include <emscripten.h>

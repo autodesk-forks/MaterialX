@@ -1,7 +1,8 @@
+#include "../vectorHelper.h"
 #include "../helpers.h"
+
 #include <MaterialXCore/Look.h>
 
-#include <emscripten.h>
 #include <emscripten/bind.h>
 
 using stRef = const std::string&;

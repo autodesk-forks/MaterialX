@@ -1,7 +1,8 @@
+#include "../vectorHelper.h"
 #include "../helpers.h"
+
 #include <MaterialXCore/Node.h>
 
-#include <emscripten.h>
 #include <emscripten/bind.h>
 
 namespace ems = emscripten;
@@ -25,7 +26,7 @@ extern "C"
             BIND_MEMBER_FUNC("getNodeDef", mx::Node, getNodeDef, 0, 1, stRef)
             BIND_MEMBER_FUNC("getImplementation", mx::Node, getImplementation, 0, 1, stRef)
             BIND_MEMBER_FUNC("getUpstreamEdge", mx::Node, getUpstreamEdge, 0, 1, size_t)
-            .function("getUpstreamEdgeCount", &mx::Node::getUpstreamEdgeCount)           
+            .function("getUpstreamEdgeCount", &mx::Node::getUpstreamEdgeCount)
             .function("getNodeDefOutput", &mx::Node::getNodeDefOutput)
             .function("getDownstreamPorts", &mx::Node::getDownstreamPorts)
             BIND_MEMBER_FUNC("getDeclaration", mx::Node, getDeclaration, 0, 1, stRef)

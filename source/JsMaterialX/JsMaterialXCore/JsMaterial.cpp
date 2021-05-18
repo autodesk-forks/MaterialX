@@ -1,7 +1,8 @@
+#include "../vectorHelper.h"
 #include "../helpers.h"
+
 #include <MaterialXCore/Material.h>
 
-#include <emscripten.h>
 #include <emscripten/bind.h>
 
 #include <unordered_set>

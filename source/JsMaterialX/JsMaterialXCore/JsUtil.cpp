@@ -1,6 +1,7 @@
+#include "../vectorHelper.h"
+
 #include <MaterialXCore/Util.h>
 
-#include <emscripten.h>
 #include <emscripten/bind.h>
 
 namespace ems = emscripten;
