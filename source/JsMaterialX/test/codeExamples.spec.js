@@ -88,8 +88,6 @@ describe('Code Examples', () => {
 
         // Traverse the document tree in depth-first order.
         const elements = doc.traverseTree();
-        //let elem = elements.next();
-        //expect(elem).to.exist;
         let elementCount = 0;
         let nodeCount = 0;
         let fileCount = 0;
@@ -106,7 +104,6 @@ describe('Code Examples', () => {
                     expect(filename).to.equal('greysphere_calibration.png');
                 }
             }
-            //elem = elements.next();
         }
         expect(elementCount).to.equal(21);
         expect(nodeCount).to.equal(5);

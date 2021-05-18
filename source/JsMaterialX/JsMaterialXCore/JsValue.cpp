@@ -35,8 +35,7 @@ extern "C"
         ems::enum_<mx::Value::FloatFormat>("FloatFormat")
             .value("FloatFormatDefault", mx::Value::FloatFormat::FloatFormatDefault)
             .value("FloatFormatFixed", mx::Value::FloatFormat::FloatFormatFixed)
-            .value("FloatFormatScientific", mx::Value::FloatFormat::FloatFormatScientific)
-        ;
+            .value("FloatFormatScientific", mx::Value::FloatFormat::FloatFormatScientific);
 
         ems::class_<mx::Value>("Value")
             .smart_ptr<std::shared_ptr<mx::Value>>("Value")
@@ -63,8 +62,7 @@ extern "C"
             BIND_TYPE_SPECIFIC_VALUE_FUNCS(IntegerArray, mx::IntVec)
             BIND_TYPE_SPECIFIC_VALUE_FUNCS(BooleanArray, mx::BoolVec)
             BIND_TYPE_SPECIFIC_VALUE_FUNCS(FloatArray, mx::FloatVec)
-            BIND_TYPE_SPECIFIC_VALUE_FUNCS(StringArray, mx::StringVec)
-            ;
+            BIND_TYPE_SPECIFIC_VALUE_FUNCS(StringArray, mx::StringVec);
 
         BIND_TYPE_INSTANCE(Integer, int)
         BIND_TYPE_INSTANCE(Boolean, bool)
