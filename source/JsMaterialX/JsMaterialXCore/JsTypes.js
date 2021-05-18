@@ -7,6 +7,7 @@ addWrapper(function(Module, api) {
     api.Color4 = wrapperFactory(Module.Color4);
     api.Matrix33 = wrapperFactory(Module.Matrix33);
     api.Matrix44 = wrapperFactory(Module.Matrix44);
+    api.EMPTY_STRING = Module.EMPTY_STRING;
     api.DEFAULT_TYPE_STRING = Module.DEFAULT_TYPE_STRING;
     api.FILENAME_TYPE_STRING = Module.FILENAME_TYPE_STRING;
     api.GEOMNAME_TYPE_STRING = Module.GEOMNAME_TYPE_STRING;
