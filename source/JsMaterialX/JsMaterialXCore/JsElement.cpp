@@ -17,13 +17,15 @@ namespace mx = MaterialX;
 #define BIND_VALUE_ELEMENT_FUNC_INSTANCE(NAME, T)          \
     BIND_MEMBER_FUNC("setValue" #NAME, mx::ValueElement, setValue<T>, 1, 2, const T&, stRef)
 
-#define BIND_ELEMENT_CHILD_FUNC_INSTANCE(NAME, T)                                             \
-    BIND_MEMBER_FUNC("addChild" #NAME, mx::Element, addChild<T>, 0, 1, stRef)                    \
-    .function("getChildOfType" #NAME, &mx::Element::getChildOfType<T>)                           \
-    BIND_MEMBER_FUNC("getChildrenOfType" #NAME, mx::Element, getChildrenOfType<T>, 0, 1, stRef)  \
-    .function("removeChildOfType" #NAME, &mx::Element::removeChildOfType<T>)                     \
-    .function("getAncestorOfType" #NAME, &mx::Element::getAncestorOfType<T>)                     \
-    .function("resolveRootNameReference" #NAME, &mx::Element::resolveRootNameReference<T>)  
+#define BIND_ELEMENT_CHILD_FUNC_INSTANCE(NAME, T)                                                 \
+    BIND_MEMBER_FUNC("addChild" #NAME, mx::Element, addChild<T>, 0, 1, stRef)                     \
+    .function("getChildOfType" #NAME, &mx::Element::getChildOfType<T>)                            \
+    BIND_MEMBER_FUNC("getChildrenOfType" #NAME, mx::Element, getChildrenOfType<T>, 0, 1, stRef)   \
+    .function("removeChildOfType" #NAME, &mx::Element::removeChildOfType<T>)                      \
+    .function("getAncestorOfType" #NAME, &mx::Element::getAncestorOfType<T>)                      \
+    .function("resolveRootNameReference" #NAME, &mx::Element::resolveRootNameReference<T>)        \
+    BIND_MEMBER_FUNC("isA" #NAME, mx::Element, isA<T>, 0, 1, stRef)                              \
+    .function("asA" #NAME, ems::select_overload<std::shared_ptr<T>()>(&mx::Element::asA<T>))
   
 #define BIND_ELEMENT_FUNC_INSTANCE(NAME, T)                                   \
     .function("setTypedAttribute" #NAME, &mx::Element::setTypedAttribute<T>)  \
@@ -36,6 +38,8 @@ extern "C"
         ems::class_<mx::Element>("Element")
             .smart_ptr<std::shared_ptr<mx::Element>>("Element")
             .smart_ptr<std::shared_ptr<const mx::Element>>("Element") // mx::ConstElementPtr
+            .function("equals", ems::optional_override([](mx::Element& self, const mx::Element& rhs) { return self == rhs; }))
+            .function("notEquals", ems::optional_override([](mx::Element& self, const mx::Element& rhs) { return self != rhs; }))
             .function("setCategory", &mx::Element::setCategory)
             .function("getCategory", &mx::Element::getCategory)
             .function("setName", &mx::Element::setName)
@@ -74,22 +78,38 @@ extern "C"
             .function("setChildIndex", &mx::Element::setChildIndex)
             .function("getChildIndex", &mx::Element::getChildIndex)
             .function("removeChild", &mx::Element::removeChild)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Backdrop, mx::Backdrop)
             BIND_ELEMENT_CHILD_FUNC_INSTANCE(Collection, mx::Collection)
-            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Document, mx::Document)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(CommentElement, mx::CommentElement)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(GenericElement, mx::GenericElement)
             BIND_ELEMENT_CHILD_FUNC_INSTANCE(GeomInfo, mx::GeomInfo)
-            BIND_ELEMENT_CHILD_FUNC_INSTANCE(GeomProp, mx::GeomProp)
-            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Implementation, mx::Implementation)
-            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Look, mx::Look)
             BIND_ELEMENT_CHILD_FUNC_INSTANCE(MaterialAssign, mx::MaterialAssign)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(PropertySetAssign, mx::PropertySetAssign)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Visibility, mx::Visibility)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(GeomPropDef, mx::GeomPropDef)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Look, mx::Look)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(LookGroup, mx::LookGroup)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(PropertySet, mx::PropertySet)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(TypeDef, mx::TypeDef)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(AttributeDef, mx::AttributeDef)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Document, mx::Document)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(NodeGraph, mx::NodeGraph)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Implementation, mx::Implementation)
             BIND_ELEMENT_CHILD_FUNC_INSTANCE(Node, mx::Node)
             BIND_ELEMENT_CHILD_FUNC_INSTANCE(NodeDef, mx::NodeDef)
-            BIND_ELEMENT_CHILD_FUNC_INSTANCE(NodeGraph, mx::NodeGraph)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Variant, mx::Variant)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Member, mx::Member)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(TargetDef, mx::TargetDef)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(GeomProp, mx::GeomProp)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Input, mx::Input)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Output, mx::Output)
             BIND_ELEMENT_CHILD_FUNC_INSTANCE(Property, mx::Property)
-            BIND_ELEMENT_CHILD_FUNC_INSTANCE(PropertySet, mx::PropertySet)
-            BIND_ELEMENT_CHILD_FUNC_INSTANCE(PropertySetAssign, mx::PropertySetAssign)
-            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Token, mx::Token)
-            BIND_ELEMENT_CHILD_FUNC_INSTANCE(TypeDef, mx::TypeDef)
-            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Visibility, mx::Visibility)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(PropertyAssign, mx::PropertyAssign)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(Unit, mx::Unit)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(UnitDef, mx::UnitDef)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(UnitTypeDef, mx::UnitTypeDef)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(VariantAssign, mx::VariantAssign)
+            BIND_ELEMENT_CHILD_FUNC_INSTANCE(VariantSet, mx::VariantSet)
             .function("setAttribute", &mx::Element::setAttribute)
             .function("hasAttribute", &mx::Element::hasAttribute)
             .function("getAttribute", &mx::Element::getAttribute)
