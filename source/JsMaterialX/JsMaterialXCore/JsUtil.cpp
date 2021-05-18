@@ -10,6 +10,8 @@ extern "C"
 {
     EMSCRIPTEN_BINDINGS(util)
     {
+        ems::constant("EMPTY_STRING", mx::EMPTY_STRING);
+
         ems::function("getVersionString", &mx::getVersionString);
 
         ems::function("getVersionIntegers", ems::optional_override([]() {
@@ -25,6 +27,7 @@ extern "C"
         }));
 
         ems::function("isValidName", &mx::isValidName);
+        ems::function("isValidNamespace", &mx::isValidNamespace);
         ems::function("incrementName", &mx::incrementName);
 
         ems::function("splitNamePath", &mx::splitNamePath);

@@ -8,7 +8,6 @@ addWrapper(function(Module, api) {
     api.Matrix33 = wrapperFactory(Module.Matrix33);
     api.Matrix44 = wrapperFactory(Module.Matrix44);
     api.DEFAULT_TYPE_STRING = Module.DEFAULT_TYPE_STRING;
-    api.EMPTY_STRING = Module.EMPTY_STRING;
     api.FILENAME_TYPE_STRING = Module.FILENAME_TYPE_STRING;
     api.GEOMNAME_TYPE_STRING = Module.GEOMNAME_TYPE_STRING;
     api.SURFACE_SHADER_TYPE_STRING = Module.SURFACE_SHADER_TYPE_STRING;

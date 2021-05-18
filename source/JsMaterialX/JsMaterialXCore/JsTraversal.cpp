@@ -27,6 +27,10 @@ extern "C"
     {
         ems::class_<mx::Edge>("Edge")
             .smart_ptr_constructor("Edge", &std::make_shared<mx::Edge, mx::ElementPtr, mx::ElementPtr, mx::ElementPtr>)
+            .function("equals", ems::optional_override([](mx::Edge &self, const mx::Edge &rhs) { return self == rhs; }))
+            .function("notEquals", ems::optional_override([](mx::Edge &self, const mx::Edge &rhs) { return self != rhs; }))
+            .function("lessThan", ems::optional_override([](mx::Edge &self, const mx::Edge &rhs) { return self < rhs; }))
+            .function("notNull", &mx::Edge::operator bool)
             .function("getDownstreamElement", &mx::Edge::getDownstreamElement)
             .function("getConnectingElement", &mx::Edge::getConnectingElement)
             .function("getUpstreamElement", &mx::Edge::getUpstreamElement)

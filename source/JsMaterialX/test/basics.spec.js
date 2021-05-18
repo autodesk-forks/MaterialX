@@ -84,7 +84,7 @@ describe('Basics', () => {
         const v4 = v2.copy();
         expect(v4.equals(v2)).to.be.true;
         v4.setItem(0, v4.getItem(0) + 1);
-        expect(v4.not_equals(v2)).to.be.true;
+        expect(v4.notEquals(v2)).to.be.true;
     });
 
     function multiplyMatrix(matrix, val) {
@@ -191,6 +191,6 @@ describe('Basics', () => {
         const trans2 = trans.copy();
         expect(trans2.equals(trans)).to.be.true;
         trans2.setItem(0, 0, trans2.getItem(0, 0) + 1);
-        expect(trans2.not_equals(trans)).to.be.true;
+        expect(trans2.notEquals(trans)).to.be.true;
     });
 });

@@ -10,7 +10,7 @@ namespace mx = MaterialX;
 
 #define BIND_VECTOR_SUBCLASS(V)                                                                           \
     .function("equals", ems::optional_override([](V &self, const V &rhs) { return self == rhs; }))        \
-    .function("not_equals", ems::optional_override([](V &self, const V &rhs) { return self != rhs; }))    \
+    .function("notEquals", ems::optional_override([](V &self, const V &rhs) { return self != rhs; }))     \
     .function("add", ems::optional_override([](V &self, const V &rhs) { return self + rhs; }))            \
     .function("sub", ems::optional_override([](V &self, const V &rhs) { return self - rhs; }))            \
     .function("multiply", ems::optional_override([](V &self, const V &rhs) { return self * rhs; }))       \
@@ -25,11 +25,12 @@ namespace mx = MaterialX;
     .function("setItem", ems::optional_override([](V &self, size_t i, float f) { self[i] = f; }))         \
     .function("toString", ems::optional_override([](const V &self) { return toValueString(self); }))      \
     .function("copy", ems::optional_override([](const V &self) { return V(self); }))                      \
-    .function("length", ems::optional_override([](const V &self) { return self.V::numElements(); }))   
+    .function("length", ems::optional_override([](const V &self) { return self.V::numElements(); }))      \
+    .function("data", ems::optional_override([](V& self) { return ems::val(ems::typed_memory_view(self.numElements(), self.data())); }))
 
 #define BIND_MATRIX_SUBCLASS(M)                                                                                                                          \
     .function("equals", ems::optional_override([](M &self, const M &rhs) { return self == rhs; }))                                                       \
-    .function("not_equals", ems::optional_override([](M &self, const M &rhs) { return self != rhs; }))                                                   \
+    .function("notEquals", ems::optional_override([](M &self, const M &rhs) { return self != rhs; }))                                                   \
     .function("add", ems::optional_override([](M &self, const M &rhs) { return self + rhs; }))                                                           \
     .function("sub", ems::optional_override([](M &self, const M &rhs) { return self - rhs; }))                                                           \
     .function("multiply", ems::optional_override([](M &self, const M &rhs) { return self * rhs; }))                                                      \
@@ -66,19 +67,19 @@ EMSCRIPTEN_BINDINGS(types)
             BIND_VECTOR_SUBCLASS(mx::Vector3)
         .function("cross", &mx::Vector3::cross);
 
-        ems::class_<mx::Quaternion, ems::base<mx::VectorBase>>("Quaternion")
-            .constructor<>()
-            .constructor<float, float, float, float>()
-                BIND_VECTOR_SUBCLASS(mx::Vector4)
-            .function("multiplyQuaternion", ems::optional_override([](const mx::Quaternion &self, const mx::Quaternion &q) { return self * q; }))
-            .function("getNormalized", ems::optional_override([](mx::Quaternion &self) { return self.getNormalized(); }))
-            .class_function("createFromAxisAngle", &mx::Quaternion::createFromAxisAngle)
-            .class_property("IDENTITY", &mx::Quaternion::IDENTITY);
+    ems::class_<mx::Vector4, ems::base<mx::VectorBase>>("Vector4")
+        .constructor<>()
+        .constructor<float, float, float, float>()
+            BIND_VECTOR_SUBCLASS(mx::Vector4);                
 
-        ems::class_<mx::Vector4, ems::base<mx::VectorBase>>("Vector4")
-            .constructor<>()
-            .constructor<float, float, float, float>()
-                BIND_VECTOR_SUBCLASS(mx::Vector4);                
+    ems::class_<mx::Quaternion, ems::base<mx::VectorBase>>("Quaternion")
+        .constructor<>()
+        .constructor<float, float, float, float>()
+            BIND_VECTOR_SUBCLASS(mx::Vector4)
+        .function("multiplyQuaternion", ems::optional_override([](const mx::Quaternion &self, const mx::Quaternion &q) { return self * q; }))
+        .function("getNormalized", ems::optional_override([](mx::Quaternion &self) { return self.getNormalized(); }))
+        .class_function("createFromAxisAngle", &mx::Quaternion::createFromAxisAngle)
+        .class_property("IDENTITY", &mx::Quaternion::IDENTITY);
 
     ems::class_<mx::Color3, ems::base<mx::VectorBase>>("Color3")
         .constructor<>()
@@ -120,7 +121,6 @@ EMSCRIPTEN_BINDINGS(types)
         .class_property("IDENTITY", &mx::Matrix44::IDENTITY);
 
     ems::constant("DEFAULT_TYPE_STRING", mx::DEFAULT_TYPE_STRING);
-    ems::constant("EMPTY_STRING", mx::EMPTY_STRING);
     ems::constant("FILENAME_TYPE_STRING", mx::FILENAME_TYPE_STRING);
     ems::constant("GEOMNAME_TYPE_STRING", mx::GEOMNAME_TYPE_STRING);
     ems::constant("STRING_TYPE_STRING", mx::STRING_TYPE_STRING);
