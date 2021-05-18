@@ -152,7 +152,6 @@ extern "C"
             BIND_MEMBER_FUNC("createStringResolver", mx::Element, createStringResolver, 0, 1, stRef)
             .function("addTokens", &mx::Element::addTokens)
             .function("asString", &mx::Element::asString)
-            .function("__str__", &mx::Element::asString)
             .class_property("NAME_ATTRIBUTE", &mx::Element::NAME_ATTRIBUTE)
             .class_property("FILE_PREFIX_ATTRIBUTE", &mx::Element::FILE_PREFIX_ATTRIBUTE)
             .class_property("GEOM_PREFIX_ATTRIBUTE", &mx::Element::GEOM_PREFIX_ATTRIBUTE)
