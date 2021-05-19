@@ -30,7 +30,6 @@ jobs:
           compiler: xcode
           compiler_version: "11.7"
           python: 3.7
-          cmake_config: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
 
         - name: MacOS_Xcode_12_Python37
           os: macos-10.15
