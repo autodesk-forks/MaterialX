@@ -21,7 +21,6 @@
 #include <MaterialXFormat/Environ.h>
 #include <MaterialXFormat/Util.h>
 
-#include <nanogui/combobox.h>
 #include <nanogui/glutil.h>
 #include <nanogui/messagedialog.h>
 #include <nanogui/vscrollpanel.h>
@@ -242,6 +241,7 @@ Viewer::Viewer(const std::string& materialFilename,
     _unitRegistry(mx::UnitConverterRegistry::create()),
     _splitByUdims(true),
     _mergeMaterials(false),
+    _showAllInputs(false),
     _renderTransparency(true),
     _renderDoubleSided(true),
     _outlineSelection(false),
@@ -565,7 +565,10 @@ void Viewer::assignMaterial(mx::MeshPartitionPtr geometry, MaterialPtr material)
     if (geometry == getSelectedGeometry())
     {
         setSelectedMaterial(material);
-        updateDisplayedProperties();
+        if (material)
+        {
+            updateDisplayedProperties();
+        }
     }
 }
 
@@ -604,7 +607,6 @@ void Viewer::createLoadMaterialsInterface(Widget* parent, const std::string& lab
         if (!filename.empty())
         {
             _materialFilename = filename;
-            assignMaterial(getSelectedGeometry(), nullptr);
             loadDocument(_materialFilename, _stdLib);
         }
         mProcessEvents = true;
@@ -720,6 +722,13 @@ void Viewer::createAdvancedSettings(Widget* parent)
     {
         _mergeMaterials = enable;
     });
+
+    ng::CheckBox* showInputsBox = new ng::CheckBox(advancedPopup, "Show All Inputs");
+    showInputsBox->setChecked(_showAllInputs);
+    showInputsBox->setCallback([this](bool enable)
+    {
+        _showAllInputs = enable;
+    });    
 
     Widget* unitGroup = new Widget(advancedPopup);
     unitGroup->setLayout(new ng::BoxLayout(ng::Orientation::Horizontal));
@@ -1753,7 +1762,7 @@ bool Viewer::keyboardEvent(int key, int scancode, int action, int modifiers)
             }
             assignMaterial(getSelectedGeometry(), getSelectedMaterial());
             updateMaterialSelectionUI();
-       }
+        }
         return true;
     }
 
