@@ -2,10 +2,13 @@ import { expect } from 'chai';
 import { initMaterialX } from './testHelpers';
 
 describe('Basics', () => {
-    let mx, testValues;
+    let mx;
     before(async () => {
         mx = await initMaterialX();
-        testValues = {
+    });
+
+    it('DataTypes', () => {
+        const testValues = {
             integer: '1',
             boolean: 'true',
             float: '1.1',
@@ -22,9 +25,7 @@ describe('Basics', () => {
             floatarray: '1.1, 2.1, 3.1',
             stringarray: "'one', 'two', 'three'",
         };
-    });
 
-    it('DataTypes', () => {
         for (let type in testValues) {
             const value = testValues[String(type)];
             const newValue = mx.Value.createValueFromStrings(value, type);
@@ -192,5 +193,40 @@ describe('Basics', () => {
         expect(trans2.equals(trans)).to.be.true;
         trans2.setItem(0, 0, trans2.getItem(0, 0) + 1);
         expect(trans2.notEquals(trans)).to.be.true;
+    });
+
+    it('Array conversion', () => {
+        // Functions that return vectors in C++ should return an array in JS
+        const doc = mx.createDocument();
+        const nodeGraph = doc.addNodeGraph();
+        doc.addNodeGraph();
+        const nodeGraphs = doc.getNodeGraphs();
+        expect(nodeGraphs).to.be.an.instanceof(Array);
+        expect(nodeGraphs.length).to.equal(2);
+
+        // Elements fetched through the vector -> array conversion should be editable and changes should be reflected
+        // in the original objects.
+        // Note: We cannot simply compare these objects for equality, since they're separately constructed pointers
+        // to the same object.
+        const backdrop = nodeGraph.addBackdrop();
+        const backDrops = nodeGraphs[0].getBackdrops();
+        expect(backDrops.length).to.equal(1);
+        nodeGraphs[0].addBackdrop();
+        expect(nodeGraph.getBackdrops().length).to.equal(2);
+
+        // Functions that expect vectors as parameters in C++ should accept arrays in JS
+        // Built-in types
+        const pathSegments = ['path', 'to', 'something'];
+        const namePath = mx.createNamePath(pathSegments);
+        expect(namePath).to.equal(pathSegments.join(mx.NAME_PATH_SEPARATOR));
+
+        // Complex (smart pointer) types
+        const node1 = nodeGraph.addNode('node1');
+        const node2 = nodeGraph.addNode('node2');
+        backdrop.setContainsElements([node1, node2]);
+        const nodes = backdrop.getContainsElements();
+        expect(nodes.length).to.equal(2);
+        expect(nodes[0].getName()).to.equal('node1');
+        expect(nodes[1].getName()).to.equal('node2');
     });
 });

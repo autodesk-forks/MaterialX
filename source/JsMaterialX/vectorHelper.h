@@ -61,6 +61,30 @@ struct BindingType<std::vector<T>> {
     }
 };
 
+/**
+ * Vectors of smart pointers need special treatment. The above generic toWireType definition uses val::array(vec),
+ * which constructs a val::array using val::array.call<void>("push", element). This leads to invalid (deleted) smart
+ * pointers on the JS side, since the generated code constructs the smart pointer object, pushes it into a JS array,
+ * and then deletes the smart pointer object (i.e. sets the ref count to 0). Using val::array.set() doesn't suffer from
+ * this issue.
+ */
+template<typename T>
+struct BindingType<std::vector<std::shared_ptr<T>>> {
+    using ValBinding = BindingType<val>;
+    using WireType = ValBinding::WireType;
+
+    static WireType toWireType(const std::vector<std::shared_ptr<T>> &vec) {
+        auto arr = val::array();
+        for (int i = 0; i < vec.size(); ++i) {
+            arr.set(i, vec.at(i));
+        }
+        return ValBinding::toWireType(arr);
+    }
+
+    static std::vector<std::shared_ptr<T>> fromWireType(WireType value) {
+        return vecFromJSArray<std::shared_ptr<T>>(ValBinding::fromWireType(value));
+    }
+};
 
 }  // namespace internal
 }  // namespace emscripten

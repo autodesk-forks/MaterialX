@@ -1,4 +1,3 @@
-
 #include "../vectorHelper.h"
 #include "../helpers.h"
 
