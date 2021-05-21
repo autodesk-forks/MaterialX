@@ -231,4 +231,14 @@ describe('Basics', () => {
         expect(nodes[1].getName()).to.equal('node2'); // Name auto-constructed from category
         expect(nodes[2].getName()).to.equal('anotherNode'); // Name set explicitly at creation time
     });
+
+    it('C++ exception handling', () => {
+      // Exceptions that are thrown and caught in C++ shouldn't bubble up to JS
+      const doc = mx.createDocument();
+      const nodeGraph1 = doc.addNodeGraph();
+      const nodeGraph2 = doc.addNodeGraph();
+      nodeGraph1.setInheritsFrom(nodeGraph2);
+      nodeGraph2.setInheritsFrom(nodeGraph1);
+      expect(nodeGraph1.hasInheritanceCycle()).to.be.true;
+    });
 });

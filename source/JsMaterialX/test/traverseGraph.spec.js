@@ -3,17 +3,6 @@ import { traverse, initMaterialX } from './testHelpers';
 
 it('Traverse Graph', async () => {
     let mx, doc, image2, constant, multiply, contrast, mix, output;
-    function isCycle(cb) {
-        try {
-            return cb();
-        } catch (exceptionPtr) {
-            const message = mx.getExceptionMessage(exceptionPtr);
-            if (message.indexOf('Encountered cycle') !== -1) {
-                return true;
-            }
-            return false;
-        }
-    }
 
     mx = await initMaterialX();
     // Create a document.
@@ -139,50 +128,17 @@ it('Traverse Graph', async () => {
 
     // Create and detect a cycle
     multiply.setConnectedNode('in2', mix);
-
-    expect(
-        isCycle(() => {
-            return output.hasUpstreamCycle();
-        })
-    ).to.be.true;
-    expect(
-        isCycle(() => {
-            return doc.validate();
-        })
-    ).to.be.true;
+    expect(output.hasUpstreamCycle()).to.be.true;
+    expect(doc.validate()).to.be.false;
     multiply.setConnectedNode('in2', constant);
-    expect(
-        isCycle(() => {
-            return output.hasUpstreamCycle();
-        })
-    ).to.be.false;
-    expect(
-        isCycle(() => {
-            return doc.validate();
-        })
-    ).to.be.true;
+    expect(output.hasUpstreamCycle()).to.be.false;
+    expect(doc.validate()).to.be.true;
 
     // Create and detect a loop
     contrast.setConnectedNode('in', contrast);
-    expect(
-        isCycle(() => {
-            return output.hasUpstreamCycle();
-        })
-    ).to.be.true;
-    expect(
-        isCycle(() => {
-            return doc.validate();
-        })
-    ).to.be.true;
+    expect(output.hasUpstreamCycle()).to.be.true;
+    expect(doc.validate()).to.be.false;
     contrast.setConnectedNode('in', image2);
-    expect(
-        isCycle(() => {
-            return output.hasUpstreamCycle();
-        })
-    ).to.be.false;
-    expect(
-        isCycle(() => {
-            return doc.validate();
-        })
-    ).to.be.true;
+    expect(output.hasUpstreamCycle()).to.be.false;
+    expect(doc.validate()).to.be.true;
 });

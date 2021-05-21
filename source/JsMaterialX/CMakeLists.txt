@@ -23,11 +23,8 @@ set(CORE_DEPS ${OUTPUT_CORE}JsTypes.cpp
 
 set(FORMAT_DEPS ${OUTPUT_FORMAT}JsXmlIo.cpp)
 
-# Include the source directory
-set(JS_LINK_FLAGS "-I${SOURCE_FOLDER} ")
-
-# Add all of the required flags for emcc
-string(APPEND JS_LINK_FLAGS "-s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s MEMORY_GROWTH_LINEAR_STEP=32MB -s ALLOW_MEMORY_GROWTH=1 ")
+# Linker flags
+set(JS_LINK_FLAGS "-I${SOURCE_FOLDER} -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s MEMORY_GROWTH_LINEAR_STEP=32MB -s ALLOW_MEMORY_GROWTH=1 ")
 
 # Add the post javascript format files 
 string(APPEND JS_LINK_FLAGS "--post-js ${OUTPUT_FORMAT}JsXmlIo.js --post-js ${CMAKE_CURRENT_SOURCE_DIR}/initMaterialX.js ")
@@ -36,11 +33,11 @@ if (EXTERNAL_LINK_FLAGS)
     string(APPEND JS_LINK_FLAGS "${EXTERNAL_LINK_FLAGS} ")
 endif()
 
+# Compiler flags
 set(JS_COMPILE_FLAGS "")
 if (EXTERNAL_COMPILE_FLAGS)
     string(APPEND JS_COMPILE_FLAGS "${EXTERNAL_COMPILE_FLAGS} ")
 endif()
-
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
     message("JS: Building Debug")
