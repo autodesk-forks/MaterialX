@@ -124,10 +124,7 @@ extern "C"
             .function("hasVersionString", &mx::InterfaceElement::hasVersionString)
             .function("getVersionString", &mx::InterfaceElement::getVersionString)
             .function("setVersionIntegers", &mx::InterfaceElement::getVersionIntegers)
-            .function("getVersionIntegers", ems::optional_override([](mx::InterfaceElement &self) {
-                auto version = mx::getVersionIntegers();
-                return ems::val::array((int *)&version, (int *)&version + 2);
-            }))
+            .function("getVersionIntegers", &mx::InterfaceElement::getVersionIntegers)
             .function("setDefaultVersion", &mx::InterfaceElement::setDefaultVersion)
             .function("getDefaultVersion", &mx::InterfaceElement::getDefaultVersion)
             BIND_MEMBER_FUNC("getDeclaration", mx::InterfaceElement, getDeclaration, 0, 1, stRef)

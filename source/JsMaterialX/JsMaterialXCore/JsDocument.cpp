@@ -93,10 +93,7 @@ extern "C"
             .function("getUnitTypeDef", &mx::Document::getUnitTypeDef)
             .function("getUnitTypeDefs", &mx::Document::getUnitTypeDefs)
             .function("removeUnitTypeDef", &mx::Document::removeUnitTypeDef)
-            .function("getVersionIntegers", ems::optional_override([](mx::Document &self) {
-                auto version = mx::getVersionIntegers();
-                return ems::val::array((int *)&version, (int *)&version + 2);
-            }))
+            .function("getVersionIntegers", &mx::Document::getVersionIntegers)
             .function("upgradeVersion", &mx::Document::upgradeVersion)
             .function("setColorManagementSystem", &mx::Document::setColorManagementSystem)
             .function("hasColorManagementSystem", &mx::Document::hasColorManagementSystem)

@@ -15,10 +15,19 @@ extern "C"
 
         ems::function("getVersionString", &mx::getVersionString);
 
+        ems::value_array<std::pair<int, int>>("IntegerPair")
+            .element(&std::pair<int, int>::first)
+            .element(&std::pair<int, int>::second);
+
+        ems::value_array<std::array<int, 3>>("Integer3Array")
+            .element(emscripten::index<0>())
+            .element(emscripten::index<1>())
+            .element(emscripten::index<2>());
+
         ems::function("getVersionIntegers", ems::optional_override([]() {
-                     std::tuple<int, int, int> version = mx::getVersionIntegers();
-                     return ems::val::array((int *)&version, (int *)&version + 3);
-                 }));
+            std::tuple<int, int, int> version = mx::getVersionIntegers();
+            return std::array<int, 3> { std::get<0>(version), std::get<1>(version), std::get<02>(version) };
+        }));
 
         // Emscripten expects to provide a number from JS for a cpp 'char' parameter. 
         // Using a string seems to be the better interface for JS
