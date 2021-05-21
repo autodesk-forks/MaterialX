@@ -86,19 +86,13 @@ function addWrapper(wrapperCb) {
 }
 
 Module.onRuntimeInitialized = function() {
-    var MaterialX = {};
     // Generate wrappers
-
     for (var i = 0; i < _wrappers.length; i++) {
         try {
             var wrapper = _wrappers[parseInt(i)];
-            wrapper(Module, MaterialX);
+            wrapper(Module, Module);
         } catch(e) {
             console.log(e);
         }
     }
-    MaterialX['getExceptionMessage'] = Module.getExceptionMessage;
-    Module['getMaterialX'] = function() {
-        return MaterialX;
-    };
 };

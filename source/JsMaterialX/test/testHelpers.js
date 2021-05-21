@@ -11,7 +11,7 @@ export function initMaterialX() {
         // Note: Module is not a promise.
         // The then function is defined by emscripten.
         Module().then((module) => {
-            resolve(module.getMaterialX());
+            resolve(module);
         });
     });
 }

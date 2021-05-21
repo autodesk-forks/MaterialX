@@ -29,9 +29,6 @@ set(JS_LINK_FLAGS "-I${SOURCE_FOLDER} ")
 # Add all of the required flags for emcc
 string(APPEND JS_LINK_FLAGS "-s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s MEMORY_GROWTH_LINEAR_STEP=32MB -s ALLOW_MEMORY_GROWTH=1 ")
 
-# Add the post javascript core files 
-string(APPEND JS_LINK_FLAGS "--post-js ${OUTPUT_CORE}JsTypes.js --post-js ${OUTPUT_CORE}JsUnit.js --post-js ${OUTPUT_CORE}JsGeom.js --post-js ${OUTPUT_CORE}JsDefinition.js --post-js ${OUTPUT_CORE}JsDocument.js --post-js ${OUTPUT_CORE}JsElement.js --post-js ${OUTPUT_CORE}JsInterface.js --post-js ${OUTPUT_CORE}JsLook.js --post-js ${OUTPUT_CORE}JsNode.js --post-js ${OUTPUT_CORE}JsProperty.js --post-js ${OUTPUT_CORE}JsTraversal.js --post-js ${OUTPUT_CORE}JsUtil.js --post-js ${OUTPUT_CORE}JsValue.js --post-js ${OUTPUT_CORE}JsVariant.js ")
-
 # Add the post javascript format files 
 string(APPEND JS_LINK_FLAGS "--post-js ${OUTPUT_FORMAT}JsXmlIo.js --post-js ${CMAKE_CURRENT_SOURCE_DIR}/initMaterialX.js ")
 
