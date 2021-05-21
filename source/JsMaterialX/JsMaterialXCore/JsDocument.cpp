@@ -3,12 +3,8 @@
 
 #include <MaterialXCore/Document.h>
 
-#include <emscripten/bind.h>
-
 namespace ems = emscripten;
 namespace mx = MaterialX;
-
-using stRef = const std::string&;
 
 extern "C"
 {

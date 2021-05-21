@@ -8,8 +8,6 @@
 namespace ems = emscripten;
 namespace mx = MaterialX;
 
-using stRef = const std::string&;
-
 extern "C"
 {
     EMSCRIPTEN_BINDINGS(node)

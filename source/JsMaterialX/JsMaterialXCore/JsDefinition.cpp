@@ -8,8 +8,6 @@
 namespace ems = emscripten;
 namespace mx = MaterialX;
 
-using stRef = const std::string&;
-
 #define BIND_ATTRIBUTE_DEF_FUNC_INSTANCE(NAME, T)          \
     BIND_MEMBER_FUNC("setValue" #NAME, mx::AttributeDef, setValue<T>, 1, 2, const T&, stRef)
 

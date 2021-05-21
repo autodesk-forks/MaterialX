@@ -8,8 +8,6 @@
 namespace ems = emscripten;
 namespace mx = MaterialX;
 
-using stRef = const std::string&;
-
 #define BIND_GEOMINFO_FUNC_INSTANCE(NAME, T) \
     BIND_MEMBER_FUNC("setGeomPropValue" #NAME, mx::GeomInfo, setGeomPropValue<T>, 2, 3, stRef, const T&, stRef)
 

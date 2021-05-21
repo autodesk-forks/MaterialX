@@ -3,6 +3,8 @@
 
 #include <vector>
 
+using stRef = const std::string&;
+
 template <class myClass>
 std::vector<myClass> arrayToVec(myClass *arr, int size)
 {

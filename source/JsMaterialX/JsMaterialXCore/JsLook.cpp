@@ -5,8 +5,6 @@
 
 #include <emscripten/bind.h>
 
-using stRef = const std::string&;
-
 namespace ems = emscripten;
 namespace mx = MaterialX;
 
