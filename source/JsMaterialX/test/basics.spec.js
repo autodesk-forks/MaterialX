@@ -221,12 +221,14 @@ describe('Basics', () => {
         expect(namePath).to.equal(pathSegments.join(mx.NAME_PATH_SEPARATOR));
 
         // Complex (smart pointer) types
-        const node1 = nodeGraph.addNode('node1');
-        const node2 = nodeGraph.addNode('node2');
-        backdrop.setContainsElements([node1, node2]);
+        const node1 = nodeGraph.addNode('node');
+        const node2 = nodeGraph.addNode('node');
+        const node3 = nodeGraph.addNode('node', 'anotherNode');
+        backdrop.setContainsElements([node1, node2, node3]);
         const nodes = backdrop.getContainsElements();
-        expect(nodes.length).to.equal(2);
-        expect(nodes[0].getName()).to.equal('node1');
-        expect(nodes[1].getName()).to.equal('node2');
+        expect(nodes.length).to.equal(3);
+        expect(nodes[0].getName()).to.equal('node1'); // Name auto-constructed from category
+        expect(nodes[1].getName()).to.equal('node2'); // Name auto-constructed from category
+        expect(nodes[2].getName()).to.equal('anotherNode'); // Name set explicitly at creation time
     });
 });
