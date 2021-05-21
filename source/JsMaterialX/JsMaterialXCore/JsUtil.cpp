@@ -16,10 +16,12 @@ extern "C"
         ems::function("getVersionString", &mx::getVersionString);
 
         ems::function("getVersionIntegers", ems::optional_override([]() {
-                     auto version = mx::getVersionIntegers();
+                     std::tuple<int, int, int> version = mx::getVersionIntegers();
                      return ems::val::array((int *)&version, (int *)&version + 3);
                  }));
 
+        // Emscripten expects to provide a number from JS for a cpp 'char' parameter. 
+        // Using a string seems to be the better interface for JS
         ems::function("createValidName", ems::optional_override([](std::string name) {
             return mx::createValidName(name);
         }));

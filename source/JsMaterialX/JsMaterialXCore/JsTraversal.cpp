@@ -61,9 +61,6 @@ extern "C"
             .smart_ptr_constructor("InheritanceIterator", &std::make_shared<mx::InheritanceIterator, mx::ConstElementPtr>)
             BIND_ITERABLE_PROTOCOL(InheritanceIterator)
 
-
-        // TODO Wrap ExceptionFoundCycle?
-
         ems::constant("NULL_EDGE", mx::NULL_EDGE);
         ems::constant("NULL_TREE_ITERATOR", mx::NULL_TREE_ITERATOR);
         ems::constant("NULL_GRAPH_ITERATOR", mx::NULL_GRAPH_ITERATOR);
