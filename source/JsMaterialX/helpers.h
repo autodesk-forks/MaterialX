@@ -348,9 +348,4 @@ API(JSNAME, ems::optional_override([](SELF) { \
 #define BIND_0_0(...) \
 BIND_0(__VA_ARGS__)
 
-#define BIND_VALIDATE(CLASSNAME)                                                        \
-  .function("validate", ems::optional_override([](CLASSNAME &self) {                    \
-    return self.validate();                                                  \
-  }))
-
 #endif // JSMATERIALX_HELPERS_H

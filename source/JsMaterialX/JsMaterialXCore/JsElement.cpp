@@ -143,7 +143,17 @@ extern "C"
             .function("hasSourceUri", &mx::Element::hasSourceUri)
             .function("getSourceUri", &mx::Element::getSourceUri)
             .function("getActiveSourceUri", &mx::Element::getActiveSourceUri)
-            BIND_VALIDATE(mx::Element)  
+            .function("validate", ems::optional_override([](mx::Element &self) {
+                return self.validate();
+            }))
+            .function("validate", ems::optional_override([](mx::Element &self, ems::val message) {
+                std::string nativeMessage;
+                bool handleMessage = message.typeOf().as<std::string>() == "object";
+                bool res = self.validate(handleMessage ? &nativeMessage : nullptr);
+                if (!res && handleMessage)
+                    message.set("message", nativeMessage);
+                return res;
+            }))
             .function("copyContentFrom", &mx::Element::copyContentFrom)
             .function("clearContent", &mx::Element::clearContent)
             .function("createValidChildName", &mx::Element::createValidChildName)
@@ -209,7 +219,6 @@ extern "C"
             .function("getUnitType", &mx::ValueElement::getUnitType)
             .function("setIsUniform", &mx::ValueElement::setIsUniform)
             .function("getIsUniform", &mx::ValueElement::getIsUniform)
-            BIND_VALIDATE(mx::ValueElement)
             .class_property("VALUE_ATTRIBUTE", &mx::ValueElement::VALUE_ATTRIBUTE)
             .class_property("INTERFACE_NAME_ATTRIBUTE", &mx::ValueElement::INTERFACE_NAME_ATTRIBUTE)
             .class_property("IMPLEMENTATION_NAME_ATTRIBUTE", &mx::ValueElement::IMPLEMENTATION_NAME_ATTRIBUTE)

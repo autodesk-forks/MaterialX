@@ -101,7 +101,6 @@ extern "C"
             .function("setColorManagementConfig", &mx::Document::setColorManagementConfig)
             .function("hasColorManagementConfig", &mx::Document::hasColorManagementConfig)
             .function("getColorManagementConfig", &mx::Document::getColorManagementConfig)
-            BIND_VALIDATE(mx::Document)
             .function("invalidateCache", &mx::Document::invalidateCache)
             .class_property("CATEGORY", &mx::Document::CATEGORY)
             .class_property("CMS_ATTRIBUTE", &mx::Document::CMS_ATTRIBUTE)

@@ -29,7 +29,6 @@ extern "C"
             .function("getDownstreamPorts", &mx::Node::getDownstreamPorts)
             BIND_MEMBER_FUNC("getDeclaration", mx::Node, getDeclaration, 0, 1, stRef)
             .function("addInputFromNodeDef", &mx::Node::addInputFromNodeDef)
-            BIND_VALIDATE(mx::Node)
             .class_property("CATEGORY", &mx::Node::CATEGORY);
  
         ems::class_<mx::GraphElement, ems::base<mx::InterfaceElement>>("GraphElement")
@@ -61,7 +60,6 @@ extern "C"
             .function("addInterfaceName", &mx::NodeGraph::addInterfaceName)
             .function("removeInterfaceName", &mx::NodeGraph::removeInterfaceName)
             .function("modifyInterfaceName", &mx::NodeGraph::modifyInterfaceName)
-            BIND_VALIDATE(mx::NodeGraph)
             .class_property("CATEGORY", &mx::NodeGraph::CATEGORY);
 
         ems::class_<mx::Backdrop, ems::base<mx::Element>>("Backdrop")
@@ -78,7 +76,6 @@ extern "C"
             .function("getHeight", &mx::Backdrop::getHeight)
             .function("setContainsElements", &mx::Backdrop::setContainsElements)
             .function("getContainsElements", &mx::Backdrop::getContainsElements)
-            BIND_VALIDATE(mx::Backdrop)
             .class_property("CATEGORY", &mx::Backdrop::CATEGORY)
             .class_property("CONTAINS_ATTRIBUTE", &mx::Backdrop::CONTAINS_ATTRIBUTE)
             .class_property("WIDTH_ATTRIBUTE", &mx::Backdrop::WIDTH_ATTRIBUTE)

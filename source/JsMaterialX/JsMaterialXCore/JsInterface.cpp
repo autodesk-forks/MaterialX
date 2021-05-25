@@ -35,7 +35,6 @@ extern "C"
             .function("validChannelsString", &mx::PortElement::validChannelsString)
             .function("setConnectedNode", &mx::PortElement::setConnectedNode)
             .function("getConnectedNode", &mx::PortElement::getConnectedNode)
-            BIND_VALIDATE(mx::PortElement)
             .class_property("NODE_NAME_ATTRIBUTE", &mx::PortElement::NODE_NAME_ATTRIBUTE)
             .class_property("NODE_GRAPH_ATTRIBUTE", &mx::PortElement::NODE_GRAPH_ATTRIBUTE)
             .class_property("OUTPUT_ATTRIBUTE", &mx::PortElement::OUTPUT_ATTRIBUTE)
@@ -53,7 +52,6 @@ extern "C"
             .function("getConnectedOutput", &mx::Input::getConnectedOutput)
             .function("getInterfaceInput", &mx::Input::getInterfaceInput)
             .function("addTokens", &mx::Input::addTokens)
-            BIND_VALIDATE(mx::Input)
             .class_property("CATEGORY", &mx::Input::CATEGORY)
             .class_property("DEFAULT_GEOM_PROP_ATTRIBUTE", &mx::Input::DEFAULT_GEOM_PROP_ATTRIBUTE);
 
@@ -63,7 +61,6 @@ extern "C"
             BIND_MEMBER_FUNC("getUpstreamEdge", mx::Output, getUpstreamEdge, 0, 1, std::size_t)
             .function("getUpstreamEdgeCount", &mx::Output::getUpstreamEdgeCount)
             .function("hasUpstreamCycle", &mx::Output::hasUpstreamCycle)
-            BIND_VALIDATE(mx::Output)
             .class_property("CATEGORY", &mx::Output::CATEGORY)
             .class_property("DEFAULT_INPUT_ATTRIBUTE", &mx::Output::DEFAULT_INPUT_ATTRIBUTE);
 
