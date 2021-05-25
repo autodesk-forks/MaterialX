@@ -350,15 +350,7 @@ BIND_0(__VA_ARGS__)
 
 #define BIND_VALIDATE(CLASSNAME)                                                        \
   .function("validate", ems::optional_override([](CLASSNAME &self) {                    \
-    return self.CLASSNAME::validate();                                                  \
-  }))                                                                                   \
-  .function("validate", ems::optional_override([](CLASSNAME &self, ems::val message) {  \
-      std::string nativeMessage;                                                        \
-      bool handleMessage = message.typeOf().as<std::string>() == "object";              \
-      bool res = self.CLASSNAME::validate(handleMessage ? &nativeMessage : nullptr);    \
-      if (!res && handleMessage)                                                        \
-        message.set("message", nativeMessage);                                          \
-      return res;                                                                       \
+    return self.validate();                                                  \
   }))
 
 #endif // JSMATERIALX_HELPERS_H
