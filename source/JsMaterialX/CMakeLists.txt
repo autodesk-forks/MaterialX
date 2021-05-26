@@ -36,7 +36,7 @@ set(JS_LINK_FLAGS "-I${SOURCE_FOLDER} \
     -s ALLOW_MEMORY_GROWTH=1 ")
 
 # Add the post javascript format files 
-string(APPEND JS_LINK_FLAGS "--post-js ${OUTPUT_FORMAT}postjs.js --post-js ${CMAKE_CURRENT_SOURCE_DIR}/initMaterialX.js ")
+string(APPEND JS_LINK_FLAGS "--post-js ${OUTPUT_FORMAT}postjs.js ")
 if (EXTERNAL_LINK_FLAGS)
     string(APPEND JS_LINK_FLAGS "${EXTERNAL_LINK_FLAGS} ")
 endif()
