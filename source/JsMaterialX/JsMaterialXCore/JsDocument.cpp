@@ -22,9 +22,8 @@ extern "C"
             .function("copy", &mx::Document::copy)
             .function("importLibrary", &mx::Document::importLibrary)
             .function("getReferencedSourceUris", ems::optional_override([](mx::Document &self) {
-                mx::StringSet referenced = self.mx::Document::getReferencedSourceUris();
-                int size = referenced.size();
-                return arrayToVec((std::string *)&referenced, size);
+                mx::StringSet set = self.getReferencedSourceUris();
+                return ems::val::array(set.begin(), set.end());
             }))
             BIND_MEMBER_FUNC("addNodeGraph", mx::Document, addNodeGraph, 0, 1, stRef)
             .function("getNodeGraph", &mx::Document::getNodeGraph)
