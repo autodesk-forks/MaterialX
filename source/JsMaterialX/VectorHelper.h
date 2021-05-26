@@ -1,3 +1,8 @@
+//
+// TM & (c) 2021 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 /**
  * Include this in every file that defines Emscripten bindings for functions with
  * std::vector parameters or return types, to automatically convert them to / from JS arrays.

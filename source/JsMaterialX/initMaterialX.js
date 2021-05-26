@@ -1,3 +1,8 @@
+//
+// TM & (c) 2021 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 /**
  * Generates valid arguments when calling the function
  * Throws an error if arguments are missing.
