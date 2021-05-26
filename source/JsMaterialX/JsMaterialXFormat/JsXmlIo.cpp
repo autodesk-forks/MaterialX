@@ -20,14 +20,16 @@ EMSCRIPTEN_BINDINGS(xmlio)
   ems::class_<mx::XmlReadOptions>("XmlReadOptions")
       .constructor<>()
       .property("readXIncludeFunction", &mx::XmlReadOptions::readXIncludeFunction)
-      .property("parentXIncludes", &mx::XmlReadOptions::parentXIncludes)
       .property("readComments", &mx::XmlReadOptions::readComments)
-      .property("generateUniqueNames", &mx::XmlReadOptions::generateUniqueNames);
+      .property("generateUniqueNames", &mx::XmlReadOptions::generateUniqueNames)
+      .property("parentXIncludes", &mx::XmlReadOptions::parentXIncludes);
+
   ems::class_<mx::XmlWriteOptions>("XmlWriteOptions")
       .constructor<>()
       .property("writeXIncludeEnable", &mx::XmlWriteOptions::writeXIncludeEnable)
       .property("elementPredicate", &mx::XmlWriteOptions::elementPredicate);
-  ems::class_<mx::XmlExportOptions>("XmlExportOptions")
+
+  ems::class_<mx::XmlExportOptions, ems::base<mx::XmlWriteOptions>>("XmlExportOptions")
       .constructor<>()
       .property("mergeLooks", &mx::XmlExportOptions::mergeLooks)
       .property("lookGroupToMerge", &mx::XmlExportOptions::lookGroupToMerge)
@@ -36,8 +38,8 @@ EMSCRIPTEN_BINDINGS(xmlio)
       .property("userTexturePath", &mx::XmlExportOptions::userTexturePath)
       .property("stringResolver", &mx::XmlExportOptions::stringResolver);
 
+  BIND_FUNC_RAW_PTR("_readFromXmlFile", mx::readFromXmlFile, 2, 4, mx::DocumentPtr, mx::FilePath, mx::FileSearchPath, const mx::XmlReadOptions *);
   BIND_FUNC_RAW_PTR("readFromXmlString", mx::readFromXmlString, 2, 3, mx::DocumentPtr , const std::string& , const mx::XmlReadOptions*);
-  BIND_FUNC_RAW_PTR("_readFromXmlFile", mx::readFromXmlFile, 3, 4, mx::DocumentPtr, mx::FilePath, mx::FileSearchPath, const mx::XmlReadOptions *);
   BIND_FUNC_RAW_PTR("writeToXmlFile", mx::writeToXmlFile, 2, 3, mx::DocumentPtr, const mx::FilePath&, const mx::XmlWriteOptions *);
   BIND_FUNC_RAW_PTR("writeToXmlString", mx::writeToXmlString, 1, 2, mx::DocumentPtr, const mx::XmlWriteOptions *);
   BIND_FUNC_RAW_PTR("exportToXmlFile", mx::exportToXmlFile, 2, 3, mx::DocumentPtr, const mx::FilePath&, const mx::XmlExportOptions*);

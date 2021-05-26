@@ -11,7 +11,7 @@ describe('XmlIo', () => {
       mx = await initMaterialX();
   });
 
-  const loadFileSysmtem = (filePath) => {
+  const loadFileSystem = (filePath) => {
     const file = fs.readFileSync(filePath);
     const dir = path.dirname(filePath);
     const dirStats = mx.FS.analyzePath(dir);
@@ -39,13 +39,13 @@ describe('XmlIo', () => {
     const writeOptions = new mx.XmlWriteOptions();
     mx.prependXInclude(doc, includePath);
     const xmlString = mx.writeToXmlString(doc, writeOptions);
-    expect(xmlString).to.include(xmlString);
+    expect(xmlString).to.include(includePath);
   });
 
   it('load library', () => {
     const doc = mx.createDocument();
     const filepath = path.resolve(resourcesBasePath, 'SimpleSrf.mtlx');
-    loadFileSysmtem(filepath);
+    loadFileSystem(filepath);
     mx.loadLibrary(filepath, doc);
     const xmlString = mx.writeToXmlString(doc, new mx.XmlWriteOptions());
     expect(xmlString).to.include(filepath);
