@@ -1,5 +1,10 @@
-#include "../vectorHelper.h"
-#include "../helpers.h"
+//
+// TM & (c) 2021 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
+#include "../VectorHelper.h"
+#include "../Helpers.h"
 
 #include <MaterialXCore/Interface.h>
 #include <MaterialXCore/Node.h>
@@ -120,7 +125,7 @@ extern "C"
             .function("setVersionString", &mx::InterfaceElement::setVersionString)
             .function("hasVersionString", &mx::InterfaceElement::hasVersionString)
             .function("getVersionString", &mx::InterfaceElement::getVersionString)
-            .function("setVersionIntegers", &mx::InterfaceElement::getVersionIntegers)
+            .function("setVersionIntegers", &mx::InterfaceElement::setVersionIntegers)
             .function("getVersionIntegers", &mx::InterfaceElement::getVersionIntegers)
             .function("setDefaultVersion", &mx::InterfaceElement::setDefaultVersion)
             .function("getDefaultVersion", &mx::InterfaceElement::getDefaultVersion)
