@@ -148,23 +148,42 @@ describe('Traversal', () => {
         expect(doc.validate()).to.be.true;
     });
     
-    it("Traverse inheritance", () => {
-        const doc = mx.createDocument();
-        const nodeDefParent = doc.addNodeDef();
-        nodeDefParent.setName('BaseClass');
-        const nodeDefInheritanceLevel1 = doc.addNodeDef();
-        nodeDefInheritanceLevel1.setName('InheritanceLevel1');
-        const nodeDefInheritanceLevel2 = doc.addNodeDef();
-        nodeDefInheritanceLevel2.setName('InheritanceLevel2');
-        nodeDefInheritanceLevel2.setInheritsFrom(nodeDefInheritanceLevel1);
-        nodeDefInheritanceLevel1.setInheritsFrom(nodeDefParent);
-        const inheritanceIterator = nodeDefInheritanceLevel2.traverseInheritance();
-        let inheritanceChainLength = 0;
-        for(const elem of inheritanceIterator) {
-            if (elem instanceof mx.NodeDef) {
-                inheritanceChainLength++;
+    describe("Traverse inheritance", () => {
+        let nodeDefInheritanceLevel2, nodeDefInheritanceLevel1, nodeDefParent;
+        beforeEach(() => {
+            const doc = mx.createDocument();
+            nodeDefParent = doc.addNodeDef();
+            nodeDefParent.setName('BaseClass');
+            nodeDefInheritanceLevel1 = doc.addNodeDef();
+            nodeDefInheritanceLevel1.setName('InheritanceLevel1');
+            nodeDefInheritanceLevel2 = doc.addNodeDef();
+            nodeDefInheritanceLevel2.setName('InheritanceLevel2');
+            nodeDefInheritanceLevel2.setInheritsFrom(nodeDefInheritanceLevel1);
+            nodeDefInheritanceLevel1.setInheritsFrom(nodeDefParent);
+        });
+
+        it('for of loop', () => {
+            const inheritanceIterator = nodeDefInheritanceLevel2.traverseInheritance();
+            let inheritanceChainLength = 0;
+            for(const elem of inheritanceIterator) {
+                if (elem instanceof mx.NodeDef) {
+                    inheritanceChainLength++;
+                }
             }
-        }
-        expect(inheritanceChainLength).to.equal(2);;
+            expect(inheritanceChainLength).to.equal(2);;
+        });
+
+        it('while loop', () => {
+            const inheritanceIterator = nodeDefInheritanceLevel2.traverseInheritance();
+            let inheritanceChainLength = 0;
+            let elem = inheritanceIterator.next();
+            while (!elem.done) {
+                if (elem.value instanceof mx.NodeDef) {
+                    inheritanceChainLength++;
+                }
+                elem = inheritanceIterator.next();
+            }
+            expect(inheritanceChainLength).to.equal(2);;
+        });
     });
 });
