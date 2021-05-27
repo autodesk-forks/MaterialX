@@ -31,22 +31,31 @@ The Emscripten toolchain is documented [here](https://emscripten.org/docs/buildi
 In the root of directory of this repository run the following:
 
 #### Docker
-It is recommended to build the project with [docker](https://docs.docker.com/) here are the required steps:
+It is recommended to build the project with Docker, here are the required steps:
 
-  1. For Windows make sure to use Linux containers and that File Sharing is set up to allow local directories on Windows to be shared with Linux containers. 
-  
+  1. Download and install [Docker](https://docs.docker.com/) as instructed on the documentation.
+
+     For Windows make sure to use Linux containers and that File Sharing is set up to allow local directories on Windows to be shared with Linux containers. 
+
      For example, if the path to MaterialX is ```"c:\git\MaterialXrepo"``` then the ```"c"``` drive should be set. (See https://docs.docker.com/docker-for-windows/#file-sharing for more details)
+
+     If you work on WSL (Windows Subsystem for Linux), install [Docker](https://docs.docker.com/docker-for-windows/install/) for Windows.
 
   2. Get the `emscripten` docker image
      ```sh
      docker run -dit --name emscripten -v {path_to_MaterialX}:/src trzeci/emscripten:1.39.7-upstream bash
      ```
+     For WSL, make sure to run the command on a Windows terminal and also to adjust the path (e.g, `"C:\Users\{windows_username}\AppData\Local\Packages\CanonicalGroupLimited.UbuntuonWindows_{local_code}\LocalState\rootfs\{WSL_path_to_MaterialX}"`).
+
 
   3. Build the JavaScript bindings.
      ```sh
      docker exec -it emscripten sh -c "cd build && cmake .. -DMATERIALX_BUILD_JS=ON -DMATERIALX_BUILD_RENDER=OFF -DMATERIALX_BUILD_TESTS=OFF -DMATERIALX_EMSDK_PATH=/emsdk_portable/ && cmake --build . --target install"
      ```
-
+     If you get an error `sh: 1: cd: can't cd to build`, run 
+     ```sh
+     docker exec -it emscripten sh -c "mkdir build"
+     ```
 #### CMake
 The JavasScript library can be built using cmake and make.
 
@@ -79,7 +88,7 @@ After building the project the `JsMaterialX.wasm` and `JsMaterialX.js` files can
 ### Install
 To install the results into the install directory run
 ```sh
-cmake --build --target install
+cmake --build . --target install
 ```
 from the build directory.
 
