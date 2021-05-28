@@ -103,7 +103,7 @@ mark_as_advanced(MATERIALX_INSTALL_STDLIB_PATH)
 
 ### ADSK only modules ###
 option(MATERIALX_BUILD_CONTRIB "Build contribution folder." ON)
-option(MATERIALX_BUILD_CROSS "Build MaterialXCross folder." OFF)
+option(MATERIALX_BUILD_GEN_CROSS "Build MaterialX cross compiler folder." ON)
 option(MATERIALX_BUILD_GEN_OGSXML "Build the OGSXML shader generator back-end." ON)
 option(MATERIALX_BUILD_GEN_OGSFX "Build the OGSFX shader generator back-end." ON)
 option(MATERIALX_BUILD_GEN_ARNOLD "Build the Arnold OSL shader generator back-end." ON)
@@ -145,7 +145,7 @@ endif()
 mark_as_advanced(MATERIALX_BUILD_GEN_OGSXML)
 mark_as_advanced(MATERIALX_BUILD_GEN_OGSFX)
 mark_as_advanced(MATERIALX_BUILD_GEN_ARNOLD)
-mark_as_advanced(MATERIALX_BUILD_CROSS)
+mark_as_advanced(MATERIALX_BUILD_GEN_CROSS)
 mark_as_advanced(MATERIALX_BUILD_GEN)
 mark_as_advanced(MATERIALX_BUILD_CONTRIB)
 
@@ -282,9 +282,9 @@ if (MATERIALX_BUILD_GEN)
     endif()
 endif()
 
-if (MATERIALX_BUILD_CROSS)
-    add_definitions(-DMATERIALX_BUILD_CROSS)
-    add_subdirectory(source/MaterialXCross)
+if (MATERIALX_BUILD_GEN_CROSS)
+    add_definitions(-DMATERIALX_BUILD_GEN_CROSS)
+    add_subdirectory(source/MaterialXGenCross)
 endif()
 
 # Add render module subdirectories
