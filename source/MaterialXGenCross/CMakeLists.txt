@@ -39,6 +39,8 @@ ExternalProject_Add(spriv-cross
 )
 
 add_library(MaterialXGenCross ${materialx_source} ${materialx_header})
+add_definitions(-DMATERIALX_GENCROSS_EXPORTS)
+
 add_dependencies(MaterialXGenCross glslang)
 add_dependencies(MaterialXGenCross spriv-cross)
 
@@ -50,27 +52,32 @@ set_target_properties(
     VERSION "${MATERIALX_LIBRARY_VERSION}"
     SOVERSION "${MATERIALX_MAJOR_VERSION}")
 
-#target_link_libraries(
-#    MaterialXGenCross 
-#    ${CMAKE_DL_LIBS})
+target_link_libraries(
+    MaterialXGenCross
+    ${CMAKE_DL_LIBS})
 
 target_include_directories(MaterialXGenCross
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
         $<INSTALL_INTERFACE:${MATERIALX_INSTALL_INCLUDE_PATH}>
         ${EXTERNAL_INSTALL_LOCATION}/include
-        ${MATERIALX_SPIRV_CROSS_DIR}
     PRIVATE
         ${EXTERNAL_INCLUDE_DIRS}
 )
 
 # install
 install(TARGETS MaterialXGenCross
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include
-        )
+    EXPORT MaterialX
+    ARCHIVE DESTINATION ${MATERIALX_INSTALL_LIB_PATH}
+    LIBRARY DESTINATION ${MATERIALX_INSTALL_LIB_PATH}
+    RUNTIME DESTINATION bin)
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${MATERIALX_INSTALL_INCLUDE_PATH}/MaterialXGenCross/ MESSAGE_NEVER
+    FILES_MATCHING PATTERN "*.h*")
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/MaterialXGenCross.pdb"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/${MATERIALX_INSTALL_LIB_PATH}/" OPTIONAL)
 
 # install Khronos tools to MaterialX install        
 install(DIRECTORY ${EXTERNAL_INSTALL_LOCATION} DESTINATION ".")        

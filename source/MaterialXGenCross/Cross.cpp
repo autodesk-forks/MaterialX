@@ -239,7 +239,7 @@ std::string spirvToHlsl(
     const std::string& /*fragmentName*/
 )
 {
-    auto crossCompiler = std::make_unique<HlslFragmentCrossCompiler>(std::move(spirv));
+    auto crossCompiler = std::make_shared<HlslFragmentCrossCompiler>(std::move(spirv));
     crossCompiler->set_entry_point("main", spv::ExecutionModelFragment);
 
     spirv_cross::CompilerHLSL::Options hlslOptions = crossCompiler->get_hlsl_options();
