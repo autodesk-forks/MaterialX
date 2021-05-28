@@ -18,6 +18,7 @@
 # Ignore directories
 build
 deploy
+_build
 
 # Ignore local editor settings
 .vscode/*
