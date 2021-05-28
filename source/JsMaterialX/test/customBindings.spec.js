@@ -198,7 +198,7 @@ describe('Custom Bindings', () => {
     });
 
     it('getVersionIntegers', () => {
-        const versionStringArr = mx.getVersionString().split('.').map((value) => parseInt(value));
+        const versionStringArr = mx.getVersionString().split('.').map((value) => parseInt(value, 10));
 
         // Global getVersionIntegers
         const globalVersion = mx.getVersionIntegers();
