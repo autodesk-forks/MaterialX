@@ -60,8 +60,8 @@ target_include_directories(MaterialXGenCross
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
         $<INSTALL_INTERFACE:${MATERIALX_INSTALL_INCLUDE_PATH}>
-        ${EXTERNAL_INSTALL_LOCATION}/include
     PRIVATE
+        $<INSTALL_INTERFACE:${EXTERNAL_INSTALL_LOCATION}/include>
         ${EXTERNAL_INCLUDE_DIRS}
 )
 
