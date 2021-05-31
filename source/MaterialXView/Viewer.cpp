@@ -1571,7 +1571,7 @@ void Viewer::loadStandardLibraries()
     try
     {
         _stdLib = mx::createDocument();
-        _xincludeFiles = mx::loadCoreLibraries(_libraryFolders, _searchPath, _stdLib);
+        _xincludeFiles = mx::loadLibraries(_libraryFolders, _searchPath, _stdLib);
         if (_xincludeFiles.empty())
         {
             std::cerr << "Could not find standard data libraries on the given search path: " << _searchPath.asString() << std::endl;
@@ -2358,7 +2358,7 @@ mx::ImagePtr Viewer::getAmbientOcclusionImage(MaterialPtr material)
     aoFilename.removeExtension();
     aoFilename = aoFilename.asString() + aoSuffix;
     aoFilename.addExtension(AO_FILENAME_EXTENSION);
-    return _imageHandler->acquireImage(aoFilename, true);
+    return _imageHandler->acquireImage(aoFilename);
 }
 
 void Viewer::splitDirectLight(mx::ImagePtr envRadianceMap, mx::ImagePtr& indirectMap, mx::DocumentPtr& dirLightDoc)
