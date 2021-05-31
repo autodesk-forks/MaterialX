@@ -1467,8 +1467,9 @@ void Viewer::saveShaderSource(mx::GenContext& context)
                 else if (context.getShaderGenerator().getTarget() == mx::ArnoldShaderGenerator::TARGET)
                 {
                     const std::string& pixelShader = shader->getSourceCode(mx::Stage::PIXEL);
-                    writeTextFile(pixelShader, baseName + "_arnold.osl");
-                    new ng::MessageDialog(this, ng::MessageDialog::Type::Information, "Saved Arnold OSL source: ", baseName);
+                    sourceFilename.addExtension("osl");
+                    writeTextFile(pixelShader, sourceFilename);
+                    new ng::MessageDialog(this, ng::MessageDialog::Type::Information, "Saved Arnold OSL source: ", sourceFilename);
                 }
 #endif
             }
