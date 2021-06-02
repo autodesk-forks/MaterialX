@@ -3,10 +3,6 @@ import Module from './_build/JsMaterialX.js';
 import 'regenerator-runtime'; // This is required for the async/awaits
 var fs = require('fs');
 var path = require('path');
-/**
- * Returns a promise that resolves the MaterialX namespace
- */
-export const initMaterialX = Module;
 
 /**
  * Helper function used to traverse a tree or a graph

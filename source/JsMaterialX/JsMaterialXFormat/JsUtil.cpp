@@ -1,7 +1,6 @@
 #include "../Helpers.h"
 #include <MaterialXFormat/Util.h>
 
-#include <emscripten.h>
 #include <emscripten/bind.h>
 
 namespace ems = emscripten;

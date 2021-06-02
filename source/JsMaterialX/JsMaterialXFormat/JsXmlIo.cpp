@@ -4,12 +4,10 @@
 //
 
 #include "../Helpers.h"
-#include "./emscriptenTypeRegistration.h"
+#include "./StrContainerTypeRegistration.h"
 #include <MaterialXFormat/XmlIo.h>
-#include <MaterialXCore/Document.h>
 
 #include <emscripten.h>
-#include <emscripten/bind.h>
 
 namespace ems = emscripten;
 namespace mx = MaterialX;

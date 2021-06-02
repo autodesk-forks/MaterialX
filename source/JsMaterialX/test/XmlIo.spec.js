@@ -1,11 +1,11 @@
 import * as path from 'path';
-import { initMaterialX } from './testHelpers';
+import Module from './_build/JsMaterialX.js';
 import { expect } from 'chai';
 
 describe('XmlIo', () => {
   let mx;
   before(async () => {
-      mx = await initMaterialX();
+      mx = await Module();
   });
 
   it('should convert FilePath to string', () => {
