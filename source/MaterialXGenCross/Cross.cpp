@@ -8,8 +8,8 @@
 //#include "MaterialXGenShader/HwShaderGenerator.h"
 
 #include <glslang/Public/ShaderLang.h>
-#include <SPIRV/GlslangToSpv.h>
-#include <spirv_hlsl.hpp>
+#include <glslang/SPIRV/GlslangToSpv.h>
+#include <spirv_cross/spirv_hlsl.hpp>
 
 namespace MaterialX
 {
