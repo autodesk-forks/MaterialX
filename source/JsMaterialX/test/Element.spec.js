@@ -87,6 +87,7 @@ describe('Element', () => {
   });
 
   it('factory invocation should match specialized functions', () => {
+    // List based in source/MaterialXCore/Element.cpp
     const elemtypeArr = [
       'Backdrop',
       'Collection',
