@@ -1,6 +1,3 @@
-import Module from './_build/JsMaterialX.js';
-// import Module from './_build/JsMaterialX-1.37.1.js'; // uncomment to load the versioned JsMaterialX file
-import 'regenerator-runtime'; // This is required for the async/awaits
 var fs = require('fs');
 var path = require('path');
 
