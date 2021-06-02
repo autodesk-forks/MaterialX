@@ -8,8 +8,8 @@
 //#include "MaterialXGenShader/HwShaderGenerator.h"
 
 #include <glslang/Public/ShaderLang.h>
-#include <glslang/SPIRV/GlslangToSpv.h>
-#include <spirv_cross/spirv_hlsl.hpp>
+#include <SPIRV/GlslangToSpv.h>
+#include <spirv_hlsl.hpp>
 
 namespace MaterialX
 {
@@ -179,7 +179,9 @@ std::vector<uint32_t> glslToSpirv(
         ))
         {
           const char* const log = shader.getInfoLog();
-          throw (std::string("glslang failed to parse the GLSL fragment:\n") + log);
+		  std::string error = "glslang failed to parse the GLSL fragment:\n";
+		  error.append(log);
+          throw error;
         }
     }
 
@@ -188,7 +190,9 @@ std::vector<uint32_t> glslToSpirv(
     if (!program.link(messages))
     {
         const char* const log = program.getInfoLog();
-        throw (std::string("glslang failed to link the GLSL fragment:\n") + log);
+		std::string error = "glslang failed to parse the GLSL fragment:\n";
+		error.append(log);
+		throw error;
     }
 
     std::vector<uint32_t> spirv;
