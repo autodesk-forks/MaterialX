@@ -17,7 +17,6 @@
 #ifdef __EMSCRIPTEN__
 
 #include <emscripten/bind.h>
-#include <stdio.h>
 
 #include <memory>
 #include <vector>
@@ -63,7 +62,7 @@ struct BindingType<std::vector<T>> {
         return result;
     }
 
-    static std::vector<T> fromWireType(WireType value) {        
+    static std::vector<T> fromWireType(WireType value) {
         return vecFromJSArray<T>(ValBinding::fromWireType(value));
     }
 };

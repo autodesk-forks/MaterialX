@@ -37,7 +37,8 @@ describe('Element', () => {
         elem[setFn](types[typeName]);
         assertionCallback(elem.getValue(), typeName);
       });
-    }
+    };
+
     it('should work with expected type', () => {
       checkValue(valueTypes, (returnedValue, typeName) => {
         expect(returnedValue).to.be.an.instanceof(mx[`${typeName}`]);
