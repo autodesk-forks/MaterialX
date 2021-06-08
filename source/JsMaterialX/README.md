@@ -138,6 +138,9 @@ C++ vectors will be converted to JS arrays (and vice versa!). Other C++ containe
 #### Template Functions
 Functions that handle generic types in C++ via templates are mapped to JavaScript by creating multiple bindings, one for each type. For example, the `InterfaceElement::setInputValue` function is mapped as `setInputValueString`, `setInputValueBoolean`, `setInputValueInteger` and so on.
 
+#### Value Getters
+Some functions suggest to return values (e.g. `ValueElement::getValue`), but return `Value` pointers instead. Getting the actual value requires to call `getData` on that pointer, given that the pointer is valid. In order to align with the Python bindings and simplify the consumption of values in JavaScript, `getValue` and related functions return the value directly, or `null` if no value is set. In case that the underlying `Value` pointer is of interest, the original behaviour is available through a function that is prefixed with `_`, e.g. `_getValue`.
+
 #### Iterators
 MaterialX comes with a number of iterators (e.g. `TreeIterator`, `GraphIterator`). These iterators implement the iterable (and iterator) protocol in JS, and can therefore be used in `for ... of` loops.
 
@@ -167,7 +170,7 @@ The examples above illustrate that it does not always make sense to create bindi
 ### Emscripten's optional_override
 Emscripten's `optional_override` allows to provide custom binding implementations in-place and enables function overloading by parameter count, which is otherwise not supported in JavaScript. Contributors need to be careful when using it, though, since there is a small pitfall.
 
-Bindings defined using `optional_override` must only be defined once on the base class (i.e. the class that defines the function initially). Virtual functions that are overriden in deriving classes must not be bound again when creating bindings for these derived classes. Doing so can lead to the wrong function (i.e. base class' vs derived class' implementation) being called at runtime.
+If a function binding has multiple overloads defined via `optional_override` to support optional parameters, this binding must only be defined once on the base class (i.e. the class that defines the function initially). Virtual functions that are overriden in deriving classes must not be bound again when creating bindings for these derived classes. Doing so can lead to the wrong function (i.e. base class' vs derived class' implementation) being called at runtime.
 
 ### Optional Parameters
 Many C++ functions have optional parameters. Unfortunately, emscripten does not automatically deal with optional parameters. Binding these functions the 'normal' way will require users to provide all parameters in JavaScript, including optional ones. We provide helper macros to cicumvent this issue. Different flavors of the `BIND_*_FUNC` macros defined in `Helpers.h` can be used to conveniently bind functions with optional parameters. See uses of these macros in the existing bindings for examples.
