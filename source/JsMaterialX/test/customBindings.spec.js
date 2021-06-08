@@ -165,7 +165,9 @@ describe('Custom Bindings', () => {
 
     it('getShaderNodes', () => {
         const doc = mx.createDocument();
-        const mtlxStrs = getMtlxStrings(['MaterialBasic.mtlx'], '../../../resources/Materials/Examples/Syntax');
+        const fileNames = ['MaterialBasic.mtlx'];
+        const subPath = '../../../resources/Materials/Examples/Syntax';
+        const mtlxStrs = getMtlxStrings(fileNames, subPath);
         mx.readFromXmlString(doc, mtlxStrs[0]);
         let matNodes = doc.getMaterialNodes();
         expect(matNodes.length).to.equal(2);
@@ -186,8 +188,18 @@ describe('Custom Bindings', () => {
         expect(shaderNodes).to.be.instanceof(Array);
         expect(shaderNodes.length).to.equal(0);
 
-        // TODO: Couldn't find a case / sample file where an input node has a target definition
         // Should filter shader nodes based on the given optional target type
+        // We need to manually add the target type to one of the existing NodeDefs, since there is no sample file that
+        // contains a shader node with a target definition.
+        const nodeDefs = doc.getMatchingNodeDefs('simplesrf');
+        nodeDefs[0].setTarget('testTarget');
+        shaderNodes = mx.getShaderNodes(matNode, mx.SURFACE_SHADER_TYPE_STRING, 'testTarget');
+        expect(shaderNodes).to.be.instanceof(Array);
+        expect(shaderNodes.length).to.equal(1);
+        expect(shaderNodes[0].getType()).to.equal(mx.SURFACE_SHADER_TYPE_STRING);
+        shaderNodes = mx.getShaderNodes(matNode, mx.SURFACE_SHADER_TYPE_STRING, 'bogus');
+        expect(shaderNodes).to.be.instanceof(Array);
+        expect(shaderNodes.length).to.equal(0);
     });
 
     it('createValidName', () => {
