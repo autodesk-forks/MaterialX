@@ -1,10 +1,11 @@
-import { expect, version } from 'chai';
-import { initMaterialX, getMtlxStrings } from './testHelpers';
+import { expect } from 'chai';
+import Module from './_build/JsMaterialX.js';
+import { getMtlxStrings } from './testHelpers';
 
 describe('Custom Bindings', () => {
-    let mx;
+    let mx; 
     before(async () => {
-        mx = await initMaterialX();
+        mx = await Module();
     });
 
     it('Optional parameters work as expected', () => {
