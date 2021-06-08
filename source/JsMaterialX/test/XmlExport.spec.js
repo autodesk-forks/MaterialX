@@ -2,7 +2,7 @@ import * as path from 'path';
 import Module from './_build/JsMaterialX.js';
 import { expect } from 'chai';
 
-describe('XmlIo', () => {
+describe('XmlExport', () => {
   let mx;
   before(async () => {
       mx = await Module();
