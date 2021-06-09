@@ -1,0 +1,438 @@
+//
+// TM & (c) 2021 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
+
+// Wrapping code in an anonymous function to prevent clashes with the main module and other pre / post JS.
+(function () {
+    var nodeFs;
+    var nodePath;
+    var nodeProcess;
+    var pathSep;
+    var ENVIRONMENT_IS_WEB;
+    var ENVIRONMENT_IS_NODE;
+    var PATH_LIST_SEPARATOR = ";";
+    var callId = 0;
+    var MAX_CALL_ID = 99999;
+
+    // Remove duplicate entries from an array.
+    function removeDuplicates(array) {
+        var seen = {};
+        return array.filter(function(item) {
+            return seen.hasOwnProperty(item) ? false : (seen[item] = true);
+        });
+    }
+
+    // Concatenate filename and path with the correct amount of slashes.
+    function createFilePath(fileName, filePath, sep = pathSep) {
+        var pathSlash = filePath.endsWith(sep);
+        var fileSlash = fileName.startsWith(sep);
+        var path;
+        if (pathSlash || fileSlash) {
+            if (pathSlash && fileSlash) {
+                path = filePath.substring(0, filePath.length - 1) + fileName;
+            } else {
+                path = filePath + fileName;
+            }
+        } else {
+            path = filePath + sep + fileName;
+        }
+        return path;
+    }
+
+    // Fetch a MaterialX definition file using the fetch browser API.
+    function fetchXml(fileName, searchPaths) {
+        var i = 0;
+        function fetchHandler() {
+            var filePath = createFilePath(fileName, searchPaths[i]);
+            return fetch(filePath).then(function (response) {
+                if (response.status === 200) {
+                    return response.text().then(function (data) {
+                        var url = new URL(response.url);
+                        var filePath = url.pathname.substring(1);
+                        filePath = filePath.replace(new RegExp(pathSep, "g"), "/");
+                        return {
+                            data: data,                         // file content
+                            filePath: filePath,                 // file path relative to root
+                            fullPath: url.origin + url.pathname,// the full url
+                        };
+                    });
+                } else if (++i < searchPaths.length) {
+                    return fetchHandler();
+                } else {
+                    throw new Error("MaterialX file not found: " + fileName);
+                }
+            });
+        }
+
+        return fetchHandler();
+    }
+
+    // Fetch a MaterialX definition file using Node's fs API.
+    function loadXml(fileName, searchPaths) {
+        var i = 0;
+        function loadHandler() {
+            var filePath = createFilePath(fileName, searchPaths[i]);
+            filePath = nodePath.resolve(filePath);
+            return new Promise(function (resolve, reject) {
+                nodeFs.readFile(filePath, "utf8", function (err, data) {
+                    if (err) {
+                        if (++i < searchPaths.length) {
+                            resolve(loadHandler());
+                        } else {
+                            reject(new Error("MaterialX file not found: " + fileName));
+                        }
+                    } else {
+                        var parsedPath = nodePath.parse(filePath);
+                        var path = filePath.substring(parsedPath.root.length);
+                        path = path.replace(new RegExp(pathSep, "g"), "/");
+                        resolve({
+                            data: data,         // file content
+                            filePath: path,     // file path relative to root
+                            fullPath: filePath, // the full absolute path
+
+                        });
+                    }
+                });
+            });
+        }
+
+        return loadHandler();
+    }
+
+    // Concatenate searchPath, MATERIALX_SEARCH_PATH_ENV_VAR and './' and clean up the list.
+    function prepareSearchPaths(searchPath) {
+        var newSearchPath = searchPath.concat(PATH_LIST_SEPARATOR,
+            Module.getEnviron(Module.MATERIALX_SEARCH_PATH_ENV_VAR));
+        var searchPaths = ["." + pathSep].concat(newSearchPath.split(PATH_LIST_SEPARATOR));
+        var i = searchPaths.length;
+        while (i--) {
+            if (searchPaths[i].trim() === "") {
+                searchPaths.splice(i, 1);
+            }
+        }
+        return removeDuplicates(searchPaths);
+    }
+
+    // Modify absolute paths so that they work in the WASM file system.
+    // If paths is an array, the elements will be modified in place. If it's a string, a new string will be returned.
+    function makeWasmAbsolute(paths, wasmRootFolder) {
+        var pathList = paths;
+        if (typeof paths === 'string') {
+            pathList = paths.split(PATH_LIST_SEPARATOR);
+        }
+        // Rewrite absolute paths to be absolute in the WASM FS.
+        for (var i = 0; i < pathList.length; ++i) {
+            var path = pathList[i];
+            if (ENVIRONMENT_IS_NODE) {
+                if (nodePath.isAbsolute(path)) {
+                    var parsed = nodePath.parse(path);
+                    path = wasmRootFolder + "/" + parsed.dir.substring(parsed.root.length);
+                }
+                path.replace(new RegExp(pathSep, "g"), "/");
+            } else if (ENVIRONMENT_IS_WEB) {
+                var link = document.createElement("a");
+                link.href = path;
+                if (link.origin + link.pathname + link.search + link.hash === path) {
+                    path = wasmRootFolder + link.pathname;
+                }
+            } else {
+                throw new Error("Unknown environment!");
+            }
+            pathList[i] = path;
+        }
+        if (typeof paths === 'string') {
+            return pathList.join(Module.PATH_LIST_SEPARATOR);
+        }
+    }
+
+    // Tweak the user-provided search path so that it works in the WASM FS.
+    function getWasmSearchPath(searchPath, wasmRootFolder) {
+        var wasmSearchPath = searchPath.split(PATH_LIST_SEPARATOR);
+        makeWasmAbsolute(wasmSearchPath, wasmRootFolder);
+        wasmSearchPath.push(getWasmCwd(wasmRootFolder));
+        wasmSearchPath = removeDuplicates(wasmSearchPath);
+        wasmSearchPath = wasmSearchPath.join(Module.PATH_LIST_SEPARATOR);
+        return wasmSearchPath;
+    }
+
+    // Parse a file to get includes.
+    function getIncludes(file) {
+        var includeRegex = /<xi:include href="(.*)"\s*\/>/g;
+        var matches = file.matchAll(includeRegex);
+        var includes = [];
+        for (var match of matches) {
+            includes.push(match[1]);
+        }
+        return includes;
+    }
+
+    // Load a file depending on the environment.
+    function loadFile(fileToLoad, searchPaths) {
+        var promise;
+        if (ENVIRONMENT_IS_WEB) {
+            promise = fetchXml(fileToLoad, searchPaths);
+        } else if (ENVIRONMENT_IS_NODE) {
+            promise = loadXml(fileToLoad, searchPaths);
+        } else {
+            throw new Error("Unknown environment!");
+        }
+        return promise;
+    }
+
+    // Track folders and files that have been created in the WASM file system, to delete them again later.
+    function trackPath(path, filesUploaded, isFile = false) {
+        if (isFile) {
+        // Remember full file path
+            if (!filesUploaded.files) {
+                filesUploaded.files = [];
+            }
+            filesUploaded.files.push(path);
+        } else {
+            // Remember paths in inverse order of creation, to delete them again later.
+            if (!filesUploaded.folders) {
+                filesUploaded.folders = [];
+            }
+            filesUploaded.folders.splice(0, 0, path);
+        }
+    }
+
+    // Store a file in the WASM file system. File is expected to be an absolute path, starting with wasmRootFolder.
+    function createInWasm(file, data, filesUploaded, wasmRootFolder, isFile = true) {
+        // Create folders if necessary.
+        var folders;
+        if (isFile) {
+           folders = file.substring(1, file.lastIndexOf("/")).split("/");
+        } else {
+            folders = file.substring(wasmRootFolder.length).split("/");
+        }
+        var folder = wasmRootFolder;
+        // Skipping 0 because it's the root folder, which we already created.
+        for (var i = 1; i < folders.length; ++i) {
+            folder += "/" + folders[i];
+            var dirExists;
+            try {
+                var stat = FS.stat(folder);
+                dirExists = FS.isDir(stat.mode);
+            } catch (e) {
+                dirExists = false;
+            }
+            if (!dirExists) {
+                try {
+                    FS.mkdir(folder);
+                    trackPath(folder, filesUploaded);
+                } catch (e) {
+                    throw new Error("Failed to create folder in WASM FS.");
+                }
+            }
+        }
+        // Store the file.
+        if (isFile) {
+            try {
+                FS.writeFile(file, data);
+                trackPath(file, filesUploaded, true);
+            } catch (e) {
+                throw new Error("Failed to store file in WASM FS.");
+            }
+        }
+    }
+
+    // Returns the current working directory, in the WASM FS.
+    function getWasmCwd(wasmRootFolder) {
+        if (ENVIRONMENT_IS_NODE) {
+            var cwd = nodeProcess.cwd();
+            var parsed = nodePath.parse(cwd);
+            var wasmCwd = wasmRootFolder + "/" + cwd.substring(parsed.root.length);
+            return wasmCwd.replace(new RegExp(pathSep, "g"), "/");
+        } else if (ENVIRONMENT_IS_WEB) {
+            var cwd = window.location.pathname;
+            cwd = cwd.substring(0, cwd.lastIndexOf(pathSep));
+            return createFilePath(cwd, wasmRootFolder, "/");
+        } else {
+            throw new Error("Unknown environment!");
+        }
+    }
+
+    onModuleReady(function () {
+        // Determine environment and load dependencies as required.
+        ENVIRONMENT_IS_WEB = typeof window === "object";
+        ENVIRONMENT_IS_NODE =
+            typeof process === "object" &&
+            typeof process.versions === "object" &&
+            typeof process.versions.node === "string";
+        if (ENVIRONMENT_IS_WEB) {
+            pathSep = "/";
+        }
+        if (ENVIRONMENT_IS_NODE) {
+            nodeFs = require("fs");
+            nodePath = require("path");
+            nodeProcess = require("process");
+            pathSep = nodePath.sep;
+        }
+
+        // Internal method that is called from the public methods to carry out the actual work.
+        function _readFromXmlString(doc, str, searchPath, readOptions, filesLoaded = [], initialFilePath = "") {
+            // Set WASM root folder
+            var wasmRootFolder = "/readFromXml" + (callId++ % MAX_CALL_ID);
+
+            // Prepare search paths
+            var searchPaths = prepareSearchPaths(searchPath);
+
+            // Prepare temporary folder in WASM file system
+            try {
+                FS.mkdir(wasmRootFolder);
+            } catch (e) {
+                throw new Error("Failed to create folder in WASM FS.");
+            }
+
+            // Parse includes. If readOptions.readXIncludes is 'false', skip includes.
+            var includes = [];
+            if (readOptions && readOptions.readXIncludes === false) {
+                readOptions.readXIncludeFunction = null;
+            } else {
+                includes = getIncludes(str);
+            }
+            if (readOptions && readOptions.readXIncludes !== undefined) {
+                delete readOptions.readXIncludes;
+            }
+
+            // Keep track of files uploaded to the WASM file system
+            var filesUploaded = {
+                files: [],
+                folders: []
+            };
+
+            // Upload the initial file (string) to the WASM FS
+            var wasmCwd = getWasmCwd(wasmRootFolder);
+            var initialFileName = wasmCwd + "/ChosenToHopefullyNotClashWithAnyOtherFile123";
+            if (initialFilePath) {
+                initialFileName = initialFilePath.replace(new RegExp(pathSep, "g"), "/");
+                initialFileName = createFilePath(initialFileName, wasmRootFolder, "/");
+                // initialFilePath being set means the user called readFromXmlFile, which might have resolved the
+                // initial file outside of cwd, so we have to create cwd in the wasm fs explicitly, since we cd into it
+                // later.
+                createInWasm(wasmCwd, null, filesUploaded, wasmRootFolder, false);
+            }
+            createInWasm(initialFileName, str, filesUploaded, wasmRootFolder);
+
+            // Load all files recursively (depth first) and store them in the WASM FS.
+            function loadFiles(filesLoadedList, fileList, pathsList) {
+                var promises = [Promise.resolve()];
+                for (var fileToLoad of fileList) {
+                    // Some lists need to be copied, to track their entries per branch
+                    var filesLoadedCopy = filesLoadedList.slice();
+                    var searchPathsCopy = pathsList.slice();
+
+                    // Load the current file
+                    var promise = loadFile(fileToLoad, searchPathsCopy).then(function (result) {
+                        // Check for cycles
+                        if (filesLoadedCopy.includes(result.fullPath)) {
+                            throw new Error("Cycle detected!\n" + filesLoadedCopy.join("\n-> ") + "\n-> " +
+                                result.fullPath);
+                        }
+                        filesLoadedCopy.push(result.fullPath);
+
+                        // Update searchPaths
+                        var pos = result.fullPath.lastIndexOf(pathSep);
+                        var path = result.fullPath.substring(0, pos > -1 ? pos : 0);
+                        if (!searchPathsCopy.includes(path)) {
+                            searchPathsCopy.splice(0, 0, path);
+                        }
+
+                        // Check for includes
+                        var includes = getIncludes(result.data);
+
+                        // Upload to WASM FS
+                        var wasmPath = createFilePath(result.filePath, wasmRootFolder, "/");
+                        if (!filesUploaded.files.includes(wasmPath)) {
+                            createInWasm(wasmPath, result.data, filesUploaded, wasmRootFolder);
+                        }
+
+                        // Recursively load next file
+                        return loadFiles(filesLoadedCopy, includes, searchPathsCopy);
+                    });
+
+                    promises.push(promise);
+                }
+
+                return Promise.all(promises);
+            }
+
+            // Wait for all files to be loaded and invoke the native function
+            return loadFiles(filesLoaded, includes, searchPaths).then(function () {
+                // Prepare search paths for the native function call
+                var wasmSearchPath = getWasmSearchPath(searchPath, wasmRootFolder);
+
+                // Set the current working directory, to make relative search paths work
+                FS.chdir(wasmCwd);
+
+                // Invoke native function
+                try {
+                    // Make sure the search path environment variable works in the WASM FS.
+                    var searchPathEnv = Module.getEnviron(Module.MATERIALX_SEARCH_PATH_ENV_VAR);
+                    if (searchPathEnv) {
+                        var wasmSearchPathEnv = makeWasmAbsolute(searchPathEnv, wasmRootFolder);
+                        Module.setEnviron(Module.MATERIALX_SEARCH_PATH_ENV_VAR, wasmSearchPathEnv);
+                    }
+                    Module._readFromXmlFile(doc, initialFileName, wasmSearchPath, readOptions);
+                    if (searchPathEnv) {
+                        Module.setEnviron(Module.MATERIALX_SEARCH_PATH_ENV_VAR, searchPathEnv);
+                    }
+                } catch (errPtr) {
+                    throw new Error("Failed to read MaterialX files from WASM FS: " + Module.getExceptionMessage(errPtr));
+                }
+
+                // Purge WASM FS directory
+                try {
+                    for (var file of filesUploaded.files) {
+                        FS.unlink(file);
+                    }
+                    FS.chdir("/");
+                    for (var folder of filesUploaded.folders) {
+                        FS.rmdir(folder);
+                    }
+                    FS.rmdir(wasmRootFolder);
+                } catch (e) {
+                    throw new Error("Failed to delete temporary files from WASM FS.");
+                }
+            });
+        };
+
+        // Register the 'bindings'
+        // Read a document from a string.
+        Module.readFromXmlString = function (doc, str, readOptions = null) {
+            if (arguments.length < 2 || arguments.length > 3) {
+                throw new Error("Function readFromXlString called with an invalid number of arguments (" +
+                    arguments.length + ") - expects 2 to 3!");
+            }
+
+            // Simply forward the call to the internal method
+            return _readFromXmlString(doc, str, "", readOptions);
+        };
+
+        // Read a document from file.
+        Module.readFromXmlFile = function (doc, fileName, searchPath = "", readOptions = null) {
+            if (arguments.length < 2 || arguments.length > 4) {
+                throw new Error("Function readFromXlFile called with an invalid number of arguments (" +
+                    arguments.length + ") - expects 2 to 4!");
+            }
+
+            var searchPaths = prepareSearchPaths(searchPath);
+
+            // Load initial file and pass the content to _readFromXmlString
+            return loadFile(fileName, searchPaths).then(function (result) {
+                // Keep track of the loaded file
+                var filesLoaded = [result.fullPath];
+
+                // Add file path to the search path
+                var pos = result.fullPath.lastIndexOf(pathSep);
+                var path = result.fullPath.substring(0, pos > -1 ? pos : 0);
+                searchPath = searchPath.concat(PATH_LIST_SEPARATOR, path);
+
+                // Pass file content to internal method
+                return _readFromXmlString(doc, result.data, searchPath, readOptions, filesLoaded, result.filePath);
+            });
+        };
+    });
+})();
