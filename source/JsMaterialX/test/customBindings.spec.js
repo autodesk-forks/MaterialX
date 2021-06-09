@@ -228,11 +228,6 @@ describe('Custom Bindings', () => {
         expect(docVersion).to.deep.equal(versionStringArr);
 
         // InterfaceElement.getVersionIntegers (via NodeDef)
-        // TODO: Commented for now, since we have a linker issue that messes up this function.
-        // const nodeDef = doc.addNodeDef();
-        // const nodeVersion = nodeDef.getVersionIntegers();
-        // expect(nodeVersion).to.be.instanceof(Array);
-        // expect(nodeVersion.length).to.equal(2);
-        // expect(nodeVersion).to.deep.equal(versionStringArr);
+        // TODO: This function can currently not be called, since we have a linker issue that messes up this function.
     });
 });
