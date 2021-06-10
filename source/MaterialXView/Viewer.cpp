@@ -1172,6 +1172,9 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
 
     // Clear user data on the generator.
     _genContext.clearUserData();
+#if MATERIALX_BUILD_GEN_ESSL
+    _genContextEssl.clearUserData();
+#endif
 
     // Clear materials if merging is not requested.
     if (!_mergeMaterials)
@@ -1293,6 +1296,9 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
             {
                 // Clear cached implementations, in case libraries on the file system have changed.
                 _genContext.clearNodeImplementations();
+#if MATERIALX_BUILD_GEN_ESSL
+                _genContextEssl.clearNodeImplementations();
+#endif
 
                 mx::TypedElementPtr elem = mat->getElement();
 
