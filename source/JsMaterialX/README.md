@@ -43,7 +43,7 @@ It is recommended to build the project with Docker, here are the required steps:
 
   2. Get the `emscripten` docker image
      ```sh
-     docker run -dit --name emscripten -v {path_to_MaterialX}:/src trzeci/emscripten:1.39.7-upstream bash
+     docker run -p 8080:8080 -dit --name emscripten -v {path_to_MaterialX}:/src trzeci/emscripten:1.39.7-upstream bash
      ```
      For WSL, make sure to run the command on a Windows terminal and also to adjust the path (e.g, `"C:\Users\{windows_username}\AppData\Local\Packages\CanonicalGroupLimited.UbuntuonWindows_{local_code}\LocalState\rootfs\{WSL_path_to_MaterialX}"`).
 
@@ -52,7 +52,7 @@ It is recommended to build the project with Docker, here are the required steps:
      ```sh
      docker exec -it emscripten sh -c "cd build && cmake .. -DMATERIALX_BUILD_JS=ON -DMATERIALX_BUILD_RENDER=OFF -DMATERIALX_BUILD_TESTS=OFF -DMATERIALX_EMSDK_PATH=/emsdk_portable/ && cmake --build . --target install"
      ```
-     If you get an error `sh: 1: cd: can't cd to build`, run 
+     Make sure there is a build folder before running command above. If there is not, create one: 
      ```sh
      docker exec -it emscripten sh -c "mkdir build"
      ```
