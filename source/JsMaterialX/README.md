@@ -47,14 +47,13 @@ It is recommended to build the project with Docker, here are the required steps:
      ```
      For WSL, make sure to run the command on a Windows terminal and also to adjust the path (e.g, `"C:\Users\{windows_username}\AppData\Local\Packages\CanonicalGroupLimited.UbuntuonWindows_{local_code}\LocalState\rootfs\{WSL_path_to_MaterialX}"`).
 
-
-  3. Build the JavaScript bindings.
+  3. Create a build directory.
+     ```sh
+     docker exec -it emscripten sh -c "[ -d build ] || mkdir build"
+     ``` 
+  4. Build the JavaScript bindings.
      ```sh
      docker exec -it emscripten sh -c "cd build && cmake .. -DMATERIALX_BUILD_JS=ON -DMATERIALX_BUILD_RENDER=OFF -DMATERIALX_BUILD_TESTS=OFF -DMATERIALX_EMSDK_PATH=/emsdk_portable/ && cmake --build . --target install"
-     ```
-     Make sure there is a build folder before running command above. If there is not, create one: 
-     ```sh
-     docker exec -it emscripten sh -c "mkdir build"
      ```
 #### CMake
 The JavasScript library can be built using cmake and make.
