@@ -91,7 +91,7 @@ from the build directory.
 The JavaScript tests are located in the `test` folder and are defined with the `.spec.js` suffix.
 
 #### Setup
-These tests require `node.js`, which is shipped with the emscripten environment. Make sure to execute the `emsdk/emsdk_env` script before running the steps described below.
+These tests require `node.js`, which is shipped with the emscripten environment. Make sure to `source` the `emsdk/emsdk_env.sh` script before running the steps described below.
 
 1. From the test directory, install the npm packages.
 ```sh
@@ -133,7 +133,7 @@ In general, the JavaScript API is the same as the C++ API. Sometimes, it doesn't
 #### Data Type Conversions
 Data types are automatically converted from C++ types to the corresponding JavaScript types, to provide a more natural interface on the JavaScript side. For example, a string that is returned from a C++ function as an `std::string` won't have the C++ string interface, but will be a JavaScript string instead. While this is usually straight-forward, it has some implications when it comes to containers.
 
-C++ vectors will be converted to JS arrays (and vice versa!). Other C++ containers/collections are converted to either JS arrays or objects as well. While this provides a more natural interface on the JS side, it comes with the side-effect that modifications to such containers on the JS side will not be reflected in C++. For example, pushing an element to a JS array that was returned in place of a C++ vector will not update the vector in C++. Elements within the array can be modified and their updates will be reflected in C++, though (this does only apply to class types, not primitives or strings, of course).
+C++ vectors will be converted to JS arrays (and vice versa). Other C++ containers/collections are converted to either JS arrays or objects as well. While this provides a more natural interface on the JS side, it comes with the side-effect that modifications to such containers on the JS side will not be reflected in C++. For example, pushing an element to a JS array that was returned in place of a C++ vector will not update the vector in C++. Elements within the array can be modified and their updates will be reflected in C++, though (this does only apply to class types, not primitives or strings, of course).
 
 #### Template Functions
 Functions that handle generic types in C++ via templates are mapped to JavaScript by creating multiple bindings, one for each type. For example, the `InterfaceElement::setInputValue` function is mapped as `setInputValueString`, `setInputValueBoolean`, `setInputValueInteger` and so on.
@@ -182,6 +182,9 @@ Generic functions that deal with multiple types cannot be bound directly to Java
 
 ### Array <-> Vector conversion
 As explained in the user documentation, types are automatically converted between C++ and JavaScript. While there are multiple examples for custom marshalling of types (e.g. `std::pair<int, int>` to array, or `FileSearchPath` to string), the most common use case is the conversion of C++ vectors to JS arrays, and vice versa. This conversion can automatically be achieved by including the `VectorHelper.h` header in each binding file that covers functions which either accept or return vectors in C++.
+
+### Testing strategy
+Testing every binding doesn't seem desirable, since most of them will directly map to the C++ implementation, which should already be tested in the C++ tests. Instead, we only test common workflows (e.g. iterating/parsing a document), bindings with custom implementations, and our custom binding mechanisms. The latter involves custom marshalling, e.g. of the vector <-> array conversion, or support for optional parameters. Additionally, all features that might behave different on the web, compared to desktop, should be tested as well.
 
 <!--
 TODO: Tests and other best practices
