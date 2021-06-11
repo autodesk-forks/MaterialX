@@ -41,9 +41,9 @@ EsslShaderGenerator::EsslShaderGenerator()
 void EsslShaderGenerator::emitDirectives(GenContext&, ShaderStage& stage) const
 {
     emitLine("#version " + getVersion(), stage, false);
+    emitLine("precision mediump float", stage);
 BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     emitLineBreak(stage);
-    emitLine("precision mediump float", stage);
 END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
