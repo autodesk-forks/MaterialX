@@ -55,7 +55,7 @@ EMSCRIPTEN_BINDINGS(look)
         .function("getActiveLook", &mx::LookGroup::getActiveLook)
         .class_property("CATEGORY", &mx::LookGroup::CATEGORY)
         .class_property("LOOKS_ATTRIBUTE", &mx::LookGroup::LOOKS_ATTRIBUTE)
-        .class_property("ENABLED_ATTRIBUTE", &mx::LookGroup::ENABLED_ATTRIBUTE);
+        .class_property("ACTIVE_ATTRIBUTE", &mx::LookGroup::ACTIVE_ATTRIBUTE);
 
     ems::class_<mx::MaterialAssign, ems::base<mx::GeomElement>>("MaterialAssign")
         .smart_ptr_constructor("MaterialAssign", &std::make_shared<mx::MaterialAssign, mx::ElementPtr, const std::string &>)
