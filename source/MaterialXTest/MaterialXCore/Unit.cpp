@@ -209,23 +209,7 @@ TEST_CASE("UnitDocument", "[unit]")
                 REQUIRE(result.second == currentValue);
                 REQUIRE(input->getUnit().empty());
                 REQUIRE(input->getUnitType().empty());
-            }
-
-            for (mx::ElementPtr elem : doc->traverseTree())
-            {
-                // If we have nodes with inputs
-                mx::NodePtr pNode = elem->asA<mx::Node>();
-                if (pNode)
-                {
-                    if (pNode->getInputCount()) {
-                        for (mx::InputPtr input : pNode->getInputs())
-                        {
-                            REQUIRE(!input->hasUnit());
-                            REQUIRE(!input->hasUnitType());
-                        }
-                    }
-                }
-            }
+            }            
         }
     }
 }
