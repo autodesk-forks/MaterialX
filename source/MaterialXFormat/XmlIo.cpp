@@ -334,6 +334,8 @@ void readFromXmlFile(DocumentPtr doc, FilePath filename, FileSearchPath searchPa
 
 void readFromXmlString(DocumentPtr doc, const string& str, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
+    searchPath.append(getEnvironmentPath());
+
     std::istringstream stream(str);
     readFromXmlStream(doc, stream, searchPath, readOptions);
 }
