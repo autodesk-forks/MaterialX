@@ -187,7 +187,8 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
     getFrameBuffer()->setEncodeSrgb(encodeSrgb);
 
     // Render and capture the requested image.
-    renderTextureSpace();
+    auto textureSpaceRange = getTextureSpace();
+    renderTextureSpace(textureSpaceRange.first, textureSpaceRange.second);
     captureImage(_frameCaptureImage);
 
     // Construct a baked image record.
