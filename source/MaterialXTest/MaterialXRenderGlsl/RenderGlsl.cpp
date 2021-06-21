@@ -710,7 +710,6 @@ void GlslShaderRenderTester::runBake(mx::DocumentPtr doc, const mx::FileSearchPa
     const unsigned int bakeHeight = std::max(bakeOptions.resolution, (unsigned int) 2);
 
     mx::ImageVec imageVec = _renderer->getImageHandler()->getReferencedImages(doc);
-    auto maxImageSize = mx::getMaxDimensions(imageVec);
     mx::Image::BaseType baseType = bakeOptions.hdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
     mx::TextureBakerPtr baker = mx::TextureBaker::create(bakeWidth, bakeHeight, baseType);
     baker->setupUnitSystem(doc);
