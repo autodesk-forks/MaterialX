@@ -41,8 +41,8 @@ EsslShaderGenerator::EsslShaderGenerator()
 void EsslShaderGenerator::emitDirectives(GenContext&, ShaderStage& stage) const
 {
     emitLine("#version " + getVersion(), stage, false);
-    emitLine("precision mediump float", stage);
     emitLineBreak(stage);
+    emitLine("precision mediump float", stage);
 }
 
 void EsslShaderGenerator::emitUniforms(GenContext& context, ShaderStage& stage, HwResourceBindingContextPtr& resourceBindingCtx) const
