@@ -7,14 +7,14 @@
 #define MATERIALX_ESSLSYNTAX_H
 
 /// @file
-/// OpenGL ES syntax class
+/// ESSL syntax class
 
 #include <MaterialXGenGlsl/GlslSyntax.h>
 
 namespace MaterialX
 {
 
-/// Syntax class for ESSL
+/// Syntax class for ESSL (OpenGL ES Shading Language)
 class EsslSyntax : public GlslSyntax
 {
 public:

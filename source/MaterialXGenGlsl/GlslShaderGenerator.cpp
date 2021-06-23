@@ -315,7 +315,7 @@ void GlslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& 
     emitInputs(context, stage);
 
     // Add vertex data outputs block
-    emitOutpus(context, stage);
+    emitOutputs(context, stage);
 
     emitFunctionDefinitions(graph, context, stage);
 
@@ -360,7 +360,7 @@ bool GlslShaderGenerator::requiresLighting(const ShaderGraph& graph) const
 
 void GlslShaderGenerator::emitDirectives(GenContext&, ShaderStage& stage) const
 {
-  emitLine("#version " + getVersion(), stage, false);
+    emitLine("#version " + getVersion(), stage, false);
 }
 
 void GlslShaderGenerator::emitConstants(GenContext& context, ShaderStage& stage) const
@@ -445,7 +445,7 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
 END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
-void GlslShaderGenerator::emitOutpus(GenContext& context, ShaderStage& stage) const
+void GlslShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage) const
 {
 BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
     const VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
@@ -467,11 +467,6 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     emitVariableDeclarations(outputs, _syntax->getOutputQualifier(), Syntax::SEMICOLON, context, stage, false);
     emitLineBreak(stage);
 END_SHADER_STAGE(stage, Stage::PIXEL)
-}
-
-const string GlslShaderGenerator::getPixelStageOutputVariable(const ShaderGraphOutputSocket& outputSocket) const
-{
-    return outputSocket.getVariable();
 }
 
 const HwResourceBindingContextPtr GlslShaderGenerator::getResourceBindingContext(GenContext& context) const
@@ -531,7 +526,7 @@ void GlslShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& c
 
     // Add the pixel shader output. This needs to be a vec4 for rendering
     // and upstream connection will be converted to vec4 if needed in emitFinalOutput()
-    emitOutpus(context, stage);
+    emitOutputs(context, stage);
 
     // Emit common math functions
     emitInclude("pbrlib/" + GlslShaderGenerator::TARGET + "/lib/mx_math.glsl", context, stage);

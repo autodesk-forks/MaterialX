@@ -1,5 +1,7 @@
 #version 300 es
 
+precision mediump float;
+
 // Uniform block: PrivateUniforms
 uniform mat4 u_worldMatrix;
 uniform mat4 u_viewProjectionMatrix;

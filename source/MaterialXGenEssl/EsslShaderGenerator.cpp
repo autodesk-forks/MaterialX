@@ -1,5 +1,5 @@
 //
-// TM & (c) 2032 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// TM & (c) 2021 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
 // All rights reserved.  See LICENSE.txt for license.
 //
 
@@ -12,30 +12,21 @@ namespace MaterialX
 {
 
 const string EsslShaderGenerator::TARGET = "essl";
-const string EsslShaderGenerator::VERSION = "300 es"; // Target webgl 2.0
+const string EsslShaderGenerator::VERSION = "300 es"; // Target WebGL 2.0
 
 EsslShaderGenerator::EsslShaderGenerator()
     : GlslShaderGenerator()
 {
     _syntax = EsslSyntax::create();
-    // GL ES specific keywords
+    // ESSL specific keywords
     const StringSet reservedWords = { "precision", "highp", "mediump", "lowp" };
     _syntax->registerReservedWords(reservedWords);
 
-    // Temporary overwrites for THREE js
+    // Temporary overwrites for three.js
     _tokenSubstitutions[HW::T_IN_POSITION] = "position";
     _tokenSubstitutions[HW::T_IN_NORMAL] = "normal";
     _tokenSubstitutions[HW::T_IN_TEXCOORD] = "uv";
     _tokenSubstitutions[HW::T_IN_TANGENT] = "tangent";
-
-    // Register override implementations
-    // <!-- <image> -->
-    registerImplementation("IM_image_float_" + EsslShaderGenerator::TARGET, HwImageNode::create);
-    registerImplementation("IM_image_color3_" + EsslShaderGenerator::TARGET, HwImageNode::create);
-    registerImplementation("IM_image_color4_" + EsslShaderGenerator::TARGET, HwImageNode::create);
-    registerImplementation("IM_image_vector2_" + EsslShaderGenerator::TARGET, HwImageNode::create);
-    registerImplementation("IM_image_vector3_" + EsslShaderGenerator::TARGET, HwImageNode::create);
-    registerImplementation("IM_image_vector4_" + EsslShaderGenerator::TARGET, HwImageNode::create);
 }
 
 void EsslShaderGenerator::emitDirectives(GenContext&, ShaderStage& stage) const
@@ -83,7 +74,7 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
 END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
-void EsslShaderGenerator::emitOutpus(GenContext& context, ShaderStage& stage) const
+void EsslShaderGenerator::emitOutputs(GenContext& context, ShaderStage& stage) const
 {
 BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
     const VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);

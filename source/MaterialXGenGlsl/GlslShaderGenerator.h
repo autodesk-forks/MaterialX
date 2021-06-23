@@ -47,6 +47,7 @@ class MX_GENGLSL_API GlslShaderGenerator : public HwShaderGenerator
     void emitVariableDeclaration(const ShaderPort* variable, const string& qualifier, GenContext& context, ShaderStage& stage,
                                  bool assignValue = true) const override;
 
+    /// Determine the prefix of vertex data variables. 
     virtual const string getVertexDataPrefix(const VariableBlock& vertexData) const;
 
   public:
@@ -65,9 +66,7 @@ class MX_GENGLSL_API GlslShaderGenerator : public HwShaderGenerator
     virtual void emitUniforms(GenContext& context, ShaderStage& stage, HwResourceBindingContextPtr &resourceBindingCtx) const;
     virtual void emitLightData(GenContext& context, ShaderStage& stage, HwResourceBindingContextPtr& resourceBindingCtx) const;
     virtual void emitInputs(GenContext& context, ShaderStage& stage) const;
-    virtual void emitOutpus(GenContext& context, ShaderStage& stage) const;
-
-    virtual const string getPixelStageOutputVariable(const ShaderGraphOutputSocket& outputSocket) const;
+    virtual void emitOutputs(GenContext& context, ShaderStage& stage) const;
     
     virtual const HwResourceBindingContextPtr getResourceBindingContext(GenContext& context) const;
 

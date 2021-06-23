@@ -7,7 +7,7 @@
 #define MATERIALX_ESSLSHADERGENERATOR_H
 
 /// @file
-/// OpenGL ES shader generator
+/// ESSL shader generator
 
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 
@@ -16,8 +16,8 @@ namespace MaterialX
 
 using EsslShaderGeneratorPtr = shared_ptr<class EsslShaderGenerator>;
 
-/// @class ArnoldShaderGenerator 
-/// An OpenGL ES generator 
+/// @class EsslShaderGenerator 
+/// An ESSL (OpenGL ES Shading Language) shader generator 
 class EsslShaderGenerator : public GlslShaderGenerator
 {
   public:
@@ -28,6 +28,7 @@ class EsslShaderGenerator : public GlslShaderGenerator
     /// Return a unique identifier for the target this generator is for
     const string& getTarget() const override { return TARGET; }
 
+    /// Return the version string for the ESSL version this generator is for
     const string& getVersion() const override { return VERSION; }
 
     const string getVertexDataPrefix(const VariableBlock& vertexData) const override;
@@ -40,7 +41,7 @@ class EsslShaderGenerator : public GlslShaderGenerator
     void emitDirectives(GenContext& context, ShaderStage& stage) const override;
     void emitUniforms(GenContext& context, ShaderStage& stage, HwResourceBindingContextPtr &resourceBindingCtx) const override;
     void emitInputs(GenContext& context, ShaderStage& stage) const override;
-    void emitOutpus(GenContext& context, ShaderStage& stage) const override;
+    void emitOutputs(GenContext& context, ShaderStage& stage) const override;
     const HwResourceBindingContextPtr getResourceBindingContext(GenContext& context) const override;
 };
 
