@@ -5,6 +5,8 @@
 
 #include <MaterialXFormat/File.h>
 
+#include <MaterialXFormat/Environ.h>
+
 #include <MaterialXCore/Exception.h>
 
 #if defined(_WIN32)
@@ -39,6 +41,7 @@ const string PATH_LIST_SEPARATOR = ";";
 #else
 const string PATH_LIST_SEPARATOR = ":";
 #endif
+const string MATERIALX_SEARCH_PATH_ENV_VAR = "MATERIALX_SEARCH_PATH";
 
 inline bool hasWindowsDriveSpecifier(const string& val)
 {
@@ -259,6 +262,15 @@ void FilePath::createDirectory() const
 #endif
 }
 
+bool FilePath::setCurrentPath() 
+{
+#if defined(_WIN32)
+    return (_chdir(asString().c_str()) == 0);
+#else
+    return (chdir(asString().c_str()) == 0);
+#endif
+}
+
 FilePath FilePath::getCurrentPath()
 {
 #if defined(_WIN32)
@@ -332,6 +344,12 @@ FilePath FilePath::getModulePath()
         }
     }
 #endif
+}
+
+FileSearchPath getEnvironmentPath(const string& sep)
+{
+    string searchPathEnv = getEnviron(MATERIALX_SEARCH_PATH_ENV_VAR);
+    return FileSearchPath(searchPathEnv, sep);
 }
 
 } // namespace MaterialX

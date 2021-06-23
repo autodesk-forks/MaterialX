@@ -21,13 +21,23 @@ set(CORE_DEPS ${OUTPUT_CORE}JsTypes.cpp
     ${OUTPUT_CORE}JsValue.cpp
     ${OUTPUT_CORE}JsTraversal.cpp)
 
-set(FORMAT_DEPS ${OUTPUT_FORMAT}JsXmlIo.cpp)
+set(FORMAT_DEPS
+    ${OUTPUT_FORMAT}JsUtil.cpp
+    ${OUTPUT_FORMAT}JsXmlIo.cpp
+    ${OUTPUT_FORMAT}JsXmlExport.cpp)
 
 # Linker flags
-set(JS_LINK_FLAGS "-I${SOURCE_FOLDER} -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s MEMORY_GROWTH_LINEAR_STEP=32MB -s ALLOW_MEMORY_GROWTH=1 ")
+set(JS_LINK_FLAGS "-I${SOURCE_FOLDER} \
+    -s WASM=1 \
+    -s DISABLE_EXCEPTION_CATCHING=0 \
+    -s MODULARIZE=1 \
+    -s USE_ES6_IMPORT_META=0 \
+    -s MEMORY_GROWTH_LINEAR_STEP=32MB \
+    -s 'EXPORTED_RUNTIME_METHODS=[\"FS\"]' \
+    -s ALLOW_MEMORY_GROWTH=1 ")
 
-# Add the post javascript format files 
-string(APPEND JS_LINK_FLAGS "--post-js ${OUTPUT_FORMAT}JsXmlIo.js --post-js ${CMAKE_CURRENT_SOURCE_DIR}/initMaterialX.js ")
+# Add the post javascript core files 
+string(APPEND JS_LINK_FLAGS "--post-js ${OUTPUT_CORE}post.js ")
 
 if (EXTERNAL_LINK_FLAGS)
     string(APPEND JS_LINK_FLAGS "${EXTERNAL_LINK_FLAGS} ")
@@ -68,8 +78,8 @@ target_link_libraries(JsMaterialX
 install(TARGETS JsMaterialX DESTINATION "${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX")
 
 # Copy the wasm output
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/JsMaterialX.wasm DESTINATION ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/)
+install(FILES ${CMAKE_BINARY_DIR}/bin/JsMaterialX.wasm DESTINATION ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/)
 
 # Copy the JavaScript files with the version appended to them.
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/JsMaterialX.js DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ RENAME JsMaterialX-${MATERIALX_LIBRARY_VERSION}.js)
+install(FILES ${CMAKE_BINARY_DIR}/bin/JsMaterialX.js DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ RENAME JsMaterialX-${MATERIALX_LIBRARY_VERSION}.js)
 install(FILES ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/JsMaterialX.js DESTINATION ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/ RENAME JsMaterialX-${MATERIALX_LIBRARY_VERSION}.js)

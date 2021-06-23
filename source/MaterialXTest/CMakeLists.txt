@@ -17,7 +17,7 @@ function(add_tests _sources)
       string(REGEX REPLACE "[^A-Za-z0-9_]+" "_" test_safe_name ${test_name})
       add_test(NAME "MaterialXTest_${test_safe_name}"
           COMMAND MaterialXTest ${test_name}
-          WORKING_DIRECTORY ${MATERIALX_TEST_BINARY_DIR})
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
       if(MATERIALX_BUILD_OIIO AND MSVC)
         # Add path to OIIO library so it can be found for the test.
         # On windows we have to escape the semicolons, otherwise only
@@ -44,6 +44,9 @@ add_subdirectory(MaterialXFormat)
 target_link_libraries(MaterialXTest MaterialXFormat)
 
 if(MATERIALX_BUILD_GEN)
+  if (MATERIALX_BUILD_OCIO)
+     target_link_libraries(MaterialXTest ${MATERIALX_OCIO_LIBRARIES})
+  endif()
   add_subdirectory(MaterialXGenShader)
   target_link_libraries(MaterialXTest MaterialXGenShader)
   if(MATERIALX_BUILD_GEN_GLSL)
@@ -60,7 +63,7 @@ if(MATERIALX_BUILD_GEN)
   endif()
   if(MATERIALX_BUILD_GEN_OGSXML)
     add_subdirectory(MaterialXGenOgsXml)
-    target_link_libraries(MaterialXTest MaterialXGenGlsl MaterialXGenOgsXml)
+    target_link_libraries(MaterialXTest MaterialXGenOgsXml MaterialXGenGlsl)
     if (MATERIALX_BUILD_CROSS)
       target_link_libraries(MaterialXTest MaterialXCross)
     endif()
@@ -89,6 +92,9 @@ if(MATERIALX_BUILD_RENDER) # MATERIALX_BUILD_GEN is implied; can assume relevant
   if (MATERIALX_BUILD_OIIO)
     target_link_libraries(MaterialXTest ${OPENIMAGEIO_LIBRARIES})
   endif()
+  if (MATERIALX_BUILD_OCIO)
+     target_link_libraries(MaterialXTest ${MATERIALX_OCIO_LIBRARIES})
+  endif()
   if(MATERIALX_BUILD_GEN_GLSL)
     add_subdirectory(MaterialXRenderGlsl)
     target_link_libraries(MaterialXTest MaterialXRenderGlsl)
@@ -106,7 +112,12 @@ if(MATERIALX_BUILD_RENDER) # MATERIALX_BUILD_GEN is implied; can assume relevant
   if(MATERIALX_BUILD_OIIO AND OPENIMAGEIO_ROOT_DIR)
       add_custom_command(TARGET MaterialXTest POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${OPENIMAGEIO_ROOT_DIR}/bin ${CMAKE_CURRENT_BINARY_DIR})
+      ${OPENIMAGEIO_ROOT_DIR}/bin ${CMAKE_BINARY_DIR}/bin)
+  endif()
+  if(MATERIALX_BUILD_OCIO AND MATERIALX_OCIO_DIR)
+      add_custom_command(TARGET MaterialXTest POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${MATERIALX_OCIO_DIR}/bin ${CMAKE_BINARY_DIR}/bin)
   endif()
 endif()
 
@@ -114,23 +125,23 @@ endif()
 
 add_custom_command(TARGET MaterialXTest POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
-	${CMAKE_CURRENT_SOURCE_DIR}/../../libraries ${CMAKE_CURRENT_BINARY_DIR}/libraries)
+	${CMAKE_CURRENT_SOURCE_DIR}/../../libraries ${CMAKE_BINARY_DIR}/bin/libraries)
 
 if(MATERIALX_BUILD_GEN_OSL)
-    install(DIRECTORY DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/libraries/stdlib/reference/osl)
+    install(DIRECTORY DESTINATION ${CMAKE_BINARY_DIR}/bin/libraries/stdlib/reference/osl)
     install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../libraries/stdlib/osl/"
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/libraries/stdlib/reference/osl
+        DESTINATION ${CMAKE_BINARY_DIR}/bin/libraries/stdlib/reference/osl
         FILES_MATCHING PATTERN "*.h")
 endif()
 
 if(MATERIALX_BUILD_GEN_MDL)
     install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../source/MaterialXGenMdl/mdl/"
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${MATERIALX_INSTALL_MDL_MODULE_PATH}/mdl)
+        DESTINATION ${CMAKE_BINARY_DIR}/bin/${MATERIALX_INSTALL_MDL_MODULE_PATH}/mdl)
 endif()
 
 add_custom_command(TARGET MaterialXTest POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
-	${CMAKE_CURRENT_SOURCE_DIR}/../../resources ${CMAKE_CURRENT_BINARY_DIR}/resources)
+	${CMAKE_CURRENT_SOURCE_DIR}/../../resources ${CMAKE_BINARY_DIR}/bin/resources)
 
 set_target_properties(
     MaterialXTest PROPERTIES

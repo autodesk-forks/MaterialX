@@ -6,12 +6,8 @@
 #include <MaterialXGenShader/ShaderGraph.h>
 
 #include <MaterialXGenShader/GenContext.h>
-#include <MaterialXGenShader/ShaderNodeImpl.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
-#include <MaterialXGenShader/TypeDesc.h>
 #include <MaterialXGenShader/Util.h>
-
-#include <MaterialXCore/Document.h>
 
 #include <iostream>
 #include <queue>
@@ -36,33 +32,30 @@ ShaderGraph::ShaderGraph(const ShaderGraph* parent, const string& name, ConstDoc
 
 void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& context)
 {
-    for (ValueElementPtr port : elem.getActiveValueElements())
+    for (InputPtr input : elem.getActiveInputs())
     {
-        if (!port->isA<Output>())
+        ShaderGraphInputSocket* inputSocket = nullptr;
+        ValuePtr portValue = input->getResolvedValue();
+        const string& portValueString = portValue ? portValue->getValueString() : EMPTY_STRING;
+        std::pair<const TypeDesc*, ValuePtr> enumResult;
+        const string& enumNames = input->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+        const TypeDesc* portType = TypeDesc::get(input->getType());
+        if (context.getShaderGenerator().getSyntax().remapEnumeration(portValueString, portType, enumNames, enumResult))
         {
-            ShaderGraphInputSocket* inputSocket = nullptr;
-            ValuePtr portValue = port->getResolvedValue();
-            const string& portValueString = portValue ? portValue->getValueString() : EMPTY_STRING;
-            std::pair<const TypeDesc*, ValuePtr> enumResult;
-            const string& enumNames = port->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-            const TypeDesc* portType = TypeDesc::get(port->getType());
-            if (context.getShaderGenerator().getSyntax().remapEnumeration(portValueString, portType, enumNames, enumResult))
+            inputSocket = addInputSocket(input->getName(), enumResult.first);
+            inputSocket->setValue(enumResult.second);
+        }
+        else
+        {
+            inputSocket = addInputSocket(input->getName(), portType);
+            if (!portValueString.empty())
             {
-                inputSocket = addInputSocket(port->getName(), enumResult.first);
-                inputSocket->setValue(enumResult.second);
+                inputSocket->setValue(portValue);
             }
-            else
-            {
-                inputSocket = addInputSocket(port->getName(), portType);
-                if (!portValueString.empty())
-                {
-                    inputSocket->setValue(portValue);
-                }
-            }
-            if (port->getIsUniform())
-            {
-                inputSocket->setUniform();
-            }
+        }
+        if (input->getIsUniform())
+        {
+            inputSocket->setUniform();
         }
     }
 }
@@ -274,29 +267,13 @@ void ShaderGraph::addColorTransformNode(ShaderInput* input, const ColorSpaceTran
         // allowed to have colorspaces specified.
         return;
     }
+
     const string colorTransformNodeName = input->getFullName() + "_cm";
     ShaderNodePtr colorTransformNodePtr = colorManagementSystem->createNode(this, transform, colorTransformNodeName, context);
-
     if (colorTransformNodePtr)
     {
         addNode(colorTransformNodePtr);
-
-        ShaderNode* colorTransformNode = colorTransformNodePtr.get();
-        ShaderOutput* colorTransformNodeOutput = colorTransformNode->getOutput(0);
-
-        ShaderInput* shaderInput = colorTransformNode->getInput(0);
-        shaderInput->setVariable(input->getFullName());
-        shaderInput->setValue(input->getValue());
-        shaderInput->setPath(input->getPath());
-        shaderInput->setUnit(EMPTY_STRING);
-
-        if (input->isBindInput())
-        {
-            ShaderOutput* oldConnection = input->getConnection();
-            shaderInput->makeConnection(oldConnection);
-        }
-
-        input->makeConnection(colorTransformNodeOutput);
+        colorManagementSystem->connectNodeToShaderInput(this, colorTransformNodePtr.get(), input, context);
     }
 }
 
@@ -314,20 +291,7 @@ void ShaderGraph::addColorTransformNode(ShaderOutput* output, const ColorSpaceTr
     if (colorTransformNodePtr)
     {
         addNode(colorTransformNodePtr);
-
-        ShaderNode* colorTransformNode = colorTransformNodePtr.get();
-        ShaderOutput* colorTransformNodeOutput = colorTransformNode->getOutput(0);
-
-        ShaderInputSet inputs = output->getConnections();
-        for (ShaderInput* input : inputs)
-        {
-            input->breakConnection();
-            input->makeConnection(colorTransformNodeOutput);
-        }
-
-        // Connect the node to the upstream output
-        ShaderInput* colorTransformNodeInput = colorTransformNode->getInput(0);
-        colorTransformNodeInput->makeConnection(output);
+        colorManagementSystem->connectNodeToShaderOutput(this, colorTransformNodePtr.get(), output, context);
     }
 }
 
@@ -444,7 +408,8 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
     NodeDefPtr nodeDef = node->getNodeDef();
     if (!nodeDef)
     {
-        throw ExceptionShaderGenError("Could not find a nodedef for shadernode '" + node->getName() + "'");
+        throw ExceptionShaderGenError("Could not find a nodedef for shader node '" + node->getName() +
+                                      "' with category '" + node->getCategory() + "'");
     }
 
     ShaderGraphPtr graph = std::make_shared<ShaderGraph>(parent, name, node->getDocument(), context.getReservedWords());

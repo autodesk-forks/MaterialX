@@ -48,20 +48,27 @@ Depending on which tests are executed log files are produced at the location tha
 - `gen<language>_<target>_implementation_check.txt`: Contains a log of whether implementations exist for all nodedefs for a given language and target pair.
 
 ### 4.3 Rendering Tests
+The build option: MATERIALX_TEST_RENDER must be set for render tests to be built.
 
 - Render.cpp : Core render tests which are run when the test tag `[rendercore]` is specified.
 - RenderOsl.cpp : OSL render tests which are run when the test tag `[renderosl]` is specified.
 - RenderGlsl.cpp : GLSL render tests which are run when the test tag `[renderglsl]` is specified.
 - RenderOgsFx.cpp : OGSFX render tests which are run when the test tag `[renderglsl]` is specified. Currently no validator exists to perform compilation and rendering. Only shader generation is performed.
-- RenderArnold.cpp : OGSFX render tests which are run when the test tag `[renderosl]` is specified. Currently no validator exists to perform compilation and rendering. Only shader generation is performed.
+- RenderArnold.cpp : Arnold render tests which are run when the test tag `[renderarnold]` is specified. Currently no validator exists to perform compilation and rendering. Only shader generation is performed.
 
 Per language tests will scan MaterialX files in the test suite for input Elements.
+
+Note that it is possible to directly run the MaterialXTest executable with the test tags listed above.
 
 #### Per Language Render Setup
 
 If rendering tests are enabled via the build options then code for each Element tested will be compiled and rendered if the appropriate backend support is available.
 - `GLSL`:
-    - Will execute on a Windows machine which supports OpenGL 4.0 or above.
+    - Will execute on a machine which supports OpenGL 4.0 or above.
+      - The OCIO library can be used during code generation instead of the default system provided the following is set up: 
+        - The MATERIALX_BUILD_OCIO build option is set to be ON. 
+        - The MATERIALX_OCIO_DIR build option is set to point to the root of the OCIO installation.
+        - For unit tests: A valid OCIO configuration file is specified for the `colorManagementConfigFile` option in the `_options.mtlx` options file.
 - `OSL`: Uses utilities from the
     [OSL distribution](https://github.com/imageworks/OpenShadingLanguage).
     - The utilities are not generated as part of the MaterialX build.
@@ -78,6 +85,12 @@ If rendering tests are enabled via the build options then code for each Element 
            The build option `MATERIALX_MDL_RENDER_ARGUMENTS` should be set to provide command line arguments 
            for non-interactive rendering.
     - Note that if a render executable is specified separate compilation testing using `mdlc` will not be performed.
+- `Arnold`
+    - The following build options are require to be set:
+      - MATERIALX_BUILD_GEN_ARNOLD : Enabled so that the arnold code generator is built
+      - MATERIALX_ARNOLD_EXECUTABLE :  Full path to the `kick` binary for compilation testing. If the environment variable `MATERIALX_ARNOLD_EXECUTABLE` is set 
+        then that is instead used for render testing.
+      - MATERIALX_ARNOLD_OSLC_EXECUTABLE : Full path to the `oslc` binary.
 
 #### Test Outputs
 
