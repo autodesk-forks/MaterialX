@@ -293,8 +293,7 @@ XmlWriteOptions::XmlWriteOptions() :
 
 void readFromXmlBuffer(DocumentPtr doc, const char* buffer, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
-    FileSearchPath xmlSearchPath(searchPath);
-    xmlSearchPath.append(getEnvironmentPath());
+    searchPath.append(getEnvironmentPath());
 
     xml_document xmlDoc;
     xml_parse_result result = xmlDoc.load_string(buffer, getParseOptions(readOptions));
@@ -305,8 +304,7 @@ void readFromXmlBuffer(DocumentPtr doc, const char* buffer, FileSearchPath searc
 
 void readFromXmlStream(DocumentPtr doc, std::istream& stream, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
-    FileSearchPath xmlSearchPath(searchPath);
-    xmlSearchPath.append(getEnvironmentPath());
+    searchPath.append(getEnvironmentPath());
 
     xml_document xmlDoc;
     xml_parse_result result = xmlDoc.load(stream, getParseOptions(readOptions));
@@ -317,8 +315,7 @@ void readFromXmlStream(DocumentPtr doc, std::istream& stream, FileSearchPath sea
 
 void readFromXmlFile(DocumentPtr doc, FilePath filename, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
-    FileSearchPath xmlSearchPath(searchPath);
-    xmlSearchPath.append(getEnvironmentPath());
+    searchPath.append(getEnvironmentPath());
 
     xml_document xmlDoc;
     xml_parse_result result = xmlDoc.load_file(filename.asString().c_str(), getParseOptions(readOptions));
