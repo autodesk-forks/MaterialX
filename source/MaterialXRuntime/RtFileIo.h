@@ -12,6 +12,7 @@
 #include <MaterialXCore/Document.h>
 #include <MaterialXFormat/File.h>
 #include <MaterialXFormat/XmlIo.h>
+#include <MaterialXFormat/XmlExport.h>
 
 /// @file
 /// TODO: Docs
@@ -105,6 +106,8 @@ class RtExportOptions : public RtWriteOptions
 
     /// String resolver applied during flattening filenames
     StringResolverPtr stringResolver;
+
+    std::vector<ResolverPtr> resolvers;
 };
 
 /// API for read and write of data from MaterialX files
