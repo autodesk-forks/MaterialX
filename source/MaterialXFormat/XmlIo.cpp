@@ -220,10 +220,13 @@ void documentFromXml(DocumentPtr doc,
                      const FileSearchPath& searchPath = FileSearchPath(),
                      const XmlReadOptions* readOptions = nullptr)
 {
+    FileSearchPath xmlSearchPath(searchPath);
+    xmlSearchPath.append(getEnvironmentPath());
+
     xml_node xmlRoot = xmlDoc.child(Document::CATEGORY.c_str());
     if (xmlRoot)
     {
-        processXIncludes(doc, xmlRoot, searchPath, readOptions);
+        processXIncludes(doc, xmlRoot, xmlSearchPath, readOptions);
         elementFromXml(xmlRoot, doc, readOptions);
     }
 
@@ -313,8 +316,9 @@ void readFromXmlFile(DocumentPtr doc, FilePath filename, FileSearchPath searchPa
 {
     xml_document xmlDoc;
 
-    searchPath.append(getEnvironmentPath());
-    filename = searchPath.find(filename);
+    FileSearchPath fileSearchPath(searchPath);
+    fileSearchPath.append(getEnvironmentPath());
+    filename = fileSearchPath.find(filename);
 
     xml_parse_result result = xmlDoc.load_file(filename.asString().c_str(), getParseOptions(readOptions));
     validateParseResult(result, filename);
@@ -334,8 +338,6 @@ void readFromXmlFile(DocumentPtr doc, FilePath filename, FileSearchPath searchPa
 
 void readFromXmlString(DocumentPtr doc, const string& str, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
-    searchPath.append(getEnvironmentPath());
-
     std::istringstream stream(str);
     readFromXmlStream(doc, stream, searchPath, readOptions);
 }
