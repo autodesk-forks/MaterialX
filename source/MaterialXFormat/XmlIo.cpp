@@ -220,13 +220,10 @@ void documentFromXml(DocumentPtr doc,
                      const FileSearchPath& searchPath = FileSearchPath(),
                      const XmlReadOptions* readOptions = nullptr)
 {
-    FileSearchPath xmlSearchPath(searchPath);
-    xmlSearchPath.append(getEnvironmentPath());
-
     xml_node xmlRoot = xmlDoc.child(Document::CATEGORY.c_str());
     if (xmlRoot)
     {
-        processXIncludes(doc, xmlRoot, xmlSearchPath, readOptions);
+        processXIncludes(doc, xmlRoot, searchPath, readOptions);
         elementFromXml(xmlRoot, doc, readOptions);
     }
 
@@ -296,6 +293,9 @@ XmlWriteOptions::XmlWriteOptions() :
 
 void readFromXmlBuffer(DocumentPtr doc, const char* buffer, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
+    FileSearchPath xmlSearchPath(searchPath);
+    xmlSearchPath.append(getEnvironmentPath());
+
     xml_document xmlDoc;
     xml_parse_result result = xmlDoc.load_string(buffer, getParseOptions(readOptions));
     validateParseResult(result);
@@ -305,6 +305,9 @@ void readFromXmlBuffer(DocumentPtr doc, const char* buffer, FileSearchPath searc
 
 void readFromXmlStream(DocumentPtr doc, std::istream& stream, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
+    FileSearchPath xmlSearchPath(searchPath);
+    xmlSearchPath.append(getEnvironmentPath());
+
     xml_document xmlDoc;
     xml_parse_result result = xmlDoc.load(stream, getParseOptions(readOptions));
     validateParseResult(result);
@@ -314,12 +317,10 @@ void readFromXmlStream(DocumentPtr doc, std::istream& stream, FileSearchPath sea
 
 void readFromXmlFile(DocumentPtr doc, FilePath filename, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
+    FileSearchPath xmlSearchPath(searchPath);
+    xmlSearchPath.append(getEnvironmentPath());
+
     xml_document xmlDoc;
-
-    FileSearchPath fileSearchPath(searchPath);
-    fileSearchPath.append(getEnvironmentPath());
-    filename = fileSearchPath.find(filename);
-
     xml_parse_result result = xmlDoc.load_file(filename.asString().c_str(), getParseOptions(readOptions));
     validateParseResult(result, filename);
 
