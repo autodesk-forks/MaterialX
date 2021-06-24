@@ -316,6 +316,7 @@ void readFromXmlStream(DocumentPtr doc, std::istream& stream, FileSearchPath sea
 void readFromXmlFile(DocumentPtr doc, FilePath filename, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
     searchPath.append(getEnvironmentPath());
+    filename = searchPath.find(filename);
 
     xml_document xmlDoc;
     xml_parse_result result = xmlDoc.load_file(filename.asString().c_str(), getParseOptions(readOptions));
