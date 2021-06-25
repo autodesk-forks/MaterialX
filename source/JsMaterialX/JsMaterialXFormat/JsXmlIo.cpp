@@ -14,18 +14,18 @@ namespace mx = MaterialX;
 
 EMSCRIPTEN_BINDINGS(xmlio)
 {
-  ems::constant("MTLX_EXTENSION", mx::MTLX_EXTENSION);
-  ems::class_<mx::XmlReadOptions>("XmlReadOptions")
-      .constructor<>()
-      .property("readXIncludeFunction", &mx::XmlReadOptions::readXIncludeFunction)
-      .property("readComments", &mx::XmlReadOptions::readComments)
-      .property("generateUniqueNames", &mx::XmlReadOptions::generateUniqueNames)
-      .property("parentXIncludes", &mx::XmlReadOptions::parentXIncludes);
+    ems::constant("MTLX_EXTENSION", mx::MTLX_EXTENSION);
+    ems::class_<mx::XmlReadOptions>("XmlReadOptions")
+        .constructor<>()
+        .property("readXIncludeFunction", &mx::XmlReadOptions::readXIncludeFunction)
+        .property("readComments", &mx::XmlReadOptions::readComments)
+        .property("generateUniqueNames", &mx::XmlReadOptions::generateUniqueNames)
+        .property("parentXIncludes", &mx::XmlReadOptions::parentXIncludes);
 
-  ems::class_<mx::XmlWriteOptions>("XmlWriteOptions")
-      .constructor<>()
-      .property("writeXIncludeEnable", &mx::XmlWriteOptions::writeXIncludeEnable)
-      .property("elementPredicate", &mx::XmlWriteOptions::elementPredicate);
+    ems::class_<mx::XmlWriteOptions>("XmlWriteOptions")
+        .constructor<>()
+        .property("writeXIncludeEnable", &mx::XmlWriteOptions::writeXIncludeEnable)
+        .property("elementPredicate", &mx::XmlWriteOptions::elementPredicate);
 
     BIND_FUNC_RAW_PTR("_readFromXmlFile", mx::readFromXmlFile, 2, 4, mx::DocumentPtr, mx::FilePath,
         mx::FileSearchPath, const mx::XmlReadOptions*);

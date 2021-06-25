@@ -2,7 +2,7 @@ import Module from './_build/JsMaterialX.js';
 import { expect } from 'chai';
 import { getMtlxStrings } from './testHelpers';
 
-describe.only('XmlIo', () => {
+describe('XmlIo', () => {
     let mx;
 
     // These should be relative to cwd
@@ -41,7 +41,7 @@ describe.only('XmlIo', () => {
         for (let file of iterable) {
             const lib = mx.createDocument();
             if (asString) {
-                await mx.readFromXmlString(lib, file); // TODO: Pass in search path once supported
+                await mx.readFromXmlString(lib, file, libraryPath);
             } else {
                 await mx.readFromXmlFile(lib, file, libraryPath);
             }
@@ -135,11 +135,7 @@ describe.only('XmlIo', () => {
                     await mx.readFromXmlString(document, file);
                     throw new Error('Expected to throw.');
                 } catch (e) {}
-                // Set search path
-                // TODO: This should be done via the searchPath parameter, once it's added to the API
-                mx.setEnviron(mx.MATERIALX_SEARCH_PATH_ENV_VAR, sp);
-                await mx.readFromXmlString(document, file);
-                mx.removeEnviron(mx.MATERIALX_SEARCH_PATH_ENV_VAR);
+                await mx.readFromXmlString(document, file, sp);
             }, searchPath);
     });
 
@@ -162,17 +158,16 @@ describe.only('XmlIo', () => {
         expect(doc.getChild('paint_semigloss')).to.exist;
         expect(doc.validate()).to.be.true;
 
-        // TODO: Enable once supported
-        // const doc2 = mx.createDocument();
-        // const mtlxString = getMtlxStrings([filename], includeTestPath);
-        // try {
-        //     await mx.readFromXmlString(doc2, mtlxString[0]);
-        //     throw new Error('Expected to throw.');
-        // } catch (e) {}
-        // await mx.readFromXmlString(doc2, , searchPath);
-        // expect(doc2.getChild('paint_semigloss')).to.exist;
-        // expect(doc2.validate()).to.be.true;
-        // expect(doc2.equals(doc)).to.be.true;
+        const doc2 = mx.createDocument();
+        const mtlxString = getMtlxStrings([filename], includeTestPath);
+        try {
+            await mx.readFromXmlString(doc2, mtlxString[0]);
+            throw new Error('Expected to throw.');
+        } catch (e) {}
+        await mx.readFromXmlString(doc2, mtlxString[0], searchPath);
+        expect(doc2.getChild('paint_semigloss')).to.exist;
+        expect(doc2.validate()).to.be.true;
+        expect(doc2.equals(doc)).to.be.true;
     });
 
     it('Locate XML includes via environment variable', async () => {
@@ -224,10 +219,10 @@ describe.only('XmlIo', () => {
         expect(async () => await mx.readFromXmlFile(doc, includeTestPath + '/cycle.mtlx')).to.throw;
     });
 
-    it('Disabling XML includes', async () => {
+    it.only('Disabling XML includes', async () => {
         const doc = mx.createDocument();
         const readOptions = new mx.XmlReadOptions();
-        readOptions.readXIncludes = false;
+        readOptions.readXIncludeFunction = null;
         expect(async () => await mx.readFromXmlFile(doc, includeTestPath + '/cycle.mtlx', readOptions)).to.not.throw;
     });
 

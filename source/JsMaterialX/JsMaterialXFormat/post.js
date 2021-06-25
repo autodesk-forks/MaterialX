@@ -3,7 +3,6 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
-
 // Wrapping code in an anonymous function to prevent clashes with the main module and other pre / post JS.
 (function () {
     var nodeFs;
@@ -288,13 +287,8 @@
 
             // Parse includes. If readOptions.readXIncludes is 'false', skip includes.
             var includes = [];
-            if (readOptions && readOptions.readXIncludes === false) {
-                readOptions.readXIncludeFunction = null;
-            } else {
+            if (!readOptions || readOptions.readXIncludeFunction !== null) {
                 includes = getIncludes(str);
-            }
-            if (readOptions && readOptions.readXIncludes !== undefined) {
-                delete readOptions.readXIncludes;
             }
 
             // Keep track of files uploaded to the WASM file system
@@ -401,14 +395,14 @@
 
         // Register the 'bindings'
         // Read a document from a string.
-        Module.readFromXmlString = function (doc, str, readOptions = null) {
+        Module.readFromXmlString = function (doc, str, searchPath = "", readOptions = null) {
             if (arguments.length < 2 || arguments.length > 3) {
                 throw new Error("Function readFromXlString called with an invalid number of arguments (" +
                     arguments.length + ") - expects 2 to 3!");
             }
 
             // Simply forward the call to the internal method
-            return _readFromXmlString(doc, str, "", readOptions);
+            return _readFromXmlString(doc, str, searchPath, readOptions);
         };
 
         // Read a document from file.
