@@ -270,7 +270,23 @@
             pathSep = nodePath.sep;
         }
 
-        // Internal method that is called from the public methods to carry out the actual work.
+        /**
+         * Internal method that is called from the public methods to carry out the actual work.
+         * There are several reasons for having a custom implementation in JS:
+         * - We want to support both NodeJS and browsers, so we need different implementations for reading files.
+         * - The C++ implementation assumes files to be stored in a filesystem. That works for NodeJS, but not for
+         *   browsers, where files will usually be fetched via HTTP.
+         * - Fetching files via HTTP is an asynchronous operation, but the C++ implementation is synchronous.
+         * 
+         * The approach taken is as follows:
+         * - Determine the environment (NodeJS vs browser)
+         * - Resolve and load files according to that environment
+         * - Upload the files to the virtual WebAssembly file system, preserving the file system structure they were
+         *   found in
+         * - Rewrite absolute search paths to work in that file system
+         * - Call the native (C++) function so that it reads the files from the virtual FS and constructs the document
+         * - Delete the temporary files from the WASM FS
+         */ 
         function _readFromXmlString(doc, str, searchPath, readOptions, filesLoaded = [], initialFilePath = "") {
             // Set WASM root folder
             var wasmRootFolder = "/readFromXml" + (callId++ % MAX_CALL_ID);
