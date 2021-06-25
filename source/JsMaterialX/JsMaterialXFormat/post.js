@@ -412,9 +412,9 @@
         // Register the 'bindings'
         // Read a document from a string.
         Module.readFromXmlString = function (doc, str, searchPath = "", readOptions = null) {
-            if (arguments.length < 2 || arguments.length > 3) {
+            if (arguments.length < 2 || arguments.length > 4) {
                 throw new Error("Function readFromXlString called with an invalid number of arguments (" +
-                    arguments.length + ") - expects 2 to 3!");
+                    arguments.length + ") - expects 2 to 4!");
             }
 
             // Simply forward the call to the internal method
