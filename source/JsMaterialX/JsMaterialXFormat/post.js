@@ -285,9 +285,9 @@
                 throw new Error("Failed to create folder in WASM FS.");
             }
 
-            // Parse includes. If readOptions.readXIncludes is 'false', skip includes.
+            // Parse includes
             var includes = [];
-            if (!readOptions || readOptions.readXIncludeFunction !== null) {
+            if (!readOptions || readOptions.readXIncludes) {
                 includes = getIncludes(str);
             }
 

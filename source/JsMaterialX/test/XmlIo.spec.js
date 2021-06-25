@@ -131,10 +131,7 @@ describe('XmlIo', () => {
         const examplesWithIncludesStrings = getMtlxStrings(examplesWithIncludes, searchPath);
         readAndValidateExamples(examplesWithIncludesStrings, libs,
             async (document, file, sp) => {
-                try {
-                    await mx.readFromXmlString(document, file);
-                    throw new Error('Expected to throw.');
-                } catch (e) {}
+                expect(async () => await mx.readFromXmlString(document, file)).to.throw;
                 await mx.readFromXmlString(document, file, sp);
             }, searchPath);
     });
@@ -150,20 +147,14 @@ describe('XmlIo', () => {
         const searchPath = includeTestPath + ';' + includeTestPath + '/folder';
         const filename = 'non_relative_includes.mtlx';
         const doc = mx.createDocument();
-        try {
-            await mx.readFromXmlFile(doc, filename, includeTestPath);
-            throw new Error('Expected to throw.');
-        } catch (e) {}
+        expect(async () => await mx.readFromXmlFile(doc, filename, includeTestPath)).to.throw;
         await mx.readFromXmlFile(doc, filename, searchPath);
         expect(doc.getChild('paint_semigloss')).to.exist;
         expect(doc.validate()).to.be.true;
 
         const doc2 = mx.createDocument();
         const mtlxString = getMtlxStrings([filename], includeTestPath);
-        try {
-            await mx.readFromXmlString(doc2, mtlxString[0]);
-            throw new Error('Expected to throw.');
-        } catch (e) {}
+        expect(async () => await mx.readFromXmlString(doc2, mtlxString[0])).to.throw;
         await mx.readFromXmlString(doc2, mtlxString[0], searchPath);
         expect(doc2.getChild('paint_semigloss')).to.exist;
         expect(doc2.validate()).to.be.true;
@@ -175,10 +166,7 @@ describe('XmlIo', () => {
         const filename = 'non_relative_includes.mtlx';
 
         const doc = mx.createDocument();
-        try {
-            await mx.readFromXmlFile(doc, includeTestPath + '/' + filename);
-            throw new Error('Expected to throw.');
-        } catch (e) {}
+        expect(async () => await mx.readFromXmlFile(doc, includeTestPath + '/' + filename)).to.throw;
         mx.setEnviron(mx.MATERIALX_SEARCH_PATH_ENV_VAR, searchPath);
         await mx.readFromXmlFile(doc, filename);
         mx.removeEnviron(mx.MATERIALX_SEARCH_PATH_ENV_VAR);
@@ -187,10 +175,7 @@ describe('XmlIo', () => {
 
         const doc2 = mx.createDocument();
         const mtlxString = getMtlxStrings([filename], includeTestPath);
-        try {
-            await mx.readFromXmlString(doc2, mtlxString[0]);
-            throw new Error('Expected to throw.');
-        } catch (e) {}
+        expect(async () => await mx.readFromXmlString(doc2, mtlxString[0])).to.throw;
         mx.setEnviron(mx.MATERIALX_SEARCH_PATH_ENV_VAR, searchPath);
         await mx.readFromXmlString(doc2, mtlxString[0]);
         mx.removeEnviron(mx.MATERIALX_SEARCH_PATH_ENV_VAR);
@@ -219,10 +204,11 @@ describe('XmlIo', () => {
         expect(async () => await mx.readFromXmlFile(doc, includeTestPath + '/cycle.mtlx')).to.throw;
     });
 
-    it.only('Disabling XML includes', async () => {
+    it('Disabling XML includes', async () => {
         const doc = mx.createDocument();
         const readOptions = new mx.XmlReadOptions();
-        readOptions.readXIncludeFunction = null;
+        console.log(readOptions);
+        readOptions.readXIncludes = false;
         expect(async () => await mx.readFromXmlFile(doc, includeTestPath + '/cycle.mtlx', readOptions)).to.not.throw;
     });
 

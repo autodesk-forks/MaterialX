@@ -17,7 +17,17 @@ EMSCRIPTEN_BINDINGS(xmlio)
     ems::constant("MTLX_EXTENSION", mx::MTLX_EXTENSION);
     ems::class_<mx::XmlReadOptions>("XmlReadOptions")
         .constructor<>()
-        .property("readXIncludeFunction", &mx::XmlReadOptions::readXIncludeFunction)
+        .property<bool>("readXIncludes",
+            [](const mx::XmlReadOptions &self) {
+                return self.readXIncludeFunction == nullptr;
+            },
+            [](mx::XmlReadOptions &self, bool useIncludes) {
+                if (useIncludes) {
+                    self.readXIncludeFunction = &mx::readFromXmlFile;
+                } else {
+                    self.readXIncludeFunction = nullptr;
+                }
+            })
         .property("readComments", &mx::XmlReadOptions::readComments)
         .property("generateUniqueNames", &mx::XmlReadOptions::generateUniqueNames)
         .property("parentXIncludes", &mx::XmlReadOptions::parentXIncludes);

@@ -168,13 +168,15 @@ try {
 ```
 
 #### Loading MaterialX files
-The bindings expose the `readFromXmlString` and `readFromXmlFile` functions. Their usage is similar to C++ and should work in browsers and NodeJs. Note that these functions are asynchronous in JavaScript, so you need to either `await` them or place depending code in a `.then()` block. By default, the functions will resolve referenced (i.e. included) documents. This can be disabled by setting the `readOptions.readXIncludeFunction` to `null`:
+The bindings expose the `readFromXmlString` and `readFromXmlFile` functions. Their usage is similar to C++ and should work in browsers and NodeJs. Note that these functions are asynchronous in JavaScript, so you need to either `await` them or place depending code in a `.then()` block.
+
+By default, the functions will resolve referenced (i.e. included) documents. This can be disabled by setting the `readOptions.readXIncludes` to `false`:
 ```javascript
 const readOptions = new mx.XmlReadOptions();
-readOptions.readXIncludeFunction = null;
+readOptions.readXIncludes = false;
 await readFromXmlFile(doc, filename, searchPath, readOptions); // will only read the top-level file, no includes
 ```
-Setting this option to anything else won't have an effect or might lead to errors. Providing a custom function to resolve includes is not supported.
+Note that the `readXIncludesFunction` option that exists on the C++ read options is not supported in JavaScript.
 
 The `searchPath` is a semicolon-separated list of absolute or relative paths. Relative paths will be evaluated with regards to the current working directory. In case of using absolute search paths in web browsers (i.e. urls), note that urls like `mydomain.com/path` or `localhost/path` might be considered relative paths. To make sure they're used as absolute paths, make sure they're fully formed, i.e. have a protocol prefix like `https://`.
 
