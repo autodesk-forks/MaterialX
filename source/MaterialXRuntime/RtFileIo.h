@@ -107,7 +107,8 @@ class RtExportOptions : public RtWriteOptions
     /// String resolver applied during flattening filenames
     StringResolverPtr stringResolver;
 
-    std::vector<ResolverPtr> resolvers;
+    /// Export resolvers
+    std::vector<ExportResolverPtr> exportResolvers;
 };
 
 /// API for read and write of data from MaterialX files

@@ -52,13 +52,13 @@ void exportToXmlFile(DocumentPtr doc, const FilePath& filename, const XmlExportO
     mergeLooks(doc, exportOptions);
     if (exportOptions)
     {
-        for (ResolverPtr resolver : exportOptions->resolvers)
-        {
-            resolver->resolve(doc);
-        }
         if (exportOptions->flattenFilenames)
         {
             flattenFilenames(doc, exportOptions->resolvedTexturePath, exportOptions->stringResolver);
+        }
+        for (ExportResolverPtr exportResolver : exportOptions->exportResolvers)
+        {
+            exportResolver->resolve(doc);
         }
     }
     writeToXmlFile(doc, filename, exportOptions);
@@ -69,13 +69,13 @@ string exportToXmlString(DocumentPtr doc, const XmlExportOptions* exportOptions)
     mergeLooks(doc, exportOptions);
     if (exportOptions)
     {
-        for (ResolverPtr resolver : exportOptions->resolvers)
-        {
-            resolver->resolve(doc);
-        }
         if (exportOptions->flattenFilenames)
         {
             flattenFilenames(doc, exportOptions->resolvedTexturePath, exportOptions->stringResolver);
+        }
+        for (ExportResolverPtr exportResolver : exportOptions->exportResolvers)
+        {
+            exportResolver->resolve(doc);
         }
     }
     return writeToXmlString(doc, exportOptions);
