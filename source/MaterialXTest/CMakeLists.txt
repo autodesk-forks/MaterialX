@@ -144,11 +144,6 @@ if(MATERIALX_BUILD_GEN_MDL)
         DESTINATION ${CMAKE_BINARY_DIR}/bin/${MATERIALX_INSTALL_MDL_MODULE_PATH}/mdl)
 endif()
 
-if(MATERIALX_BUILD_GEN_ESSL)
-    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../source/MaterialXGenEssl/libraries/"
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/libraries/)
-endif()
-
 add_custom_command(TARGET MaterialXTest POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 	${CMAKE_CURRENT_SOURCE_DIR}/../../resources ${CMAKE_BINARY_DIR}/bin/resources)
