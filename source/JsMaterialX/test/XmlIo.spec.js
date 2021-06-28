@@ -81,7 +81,7 @@ describe('XmlIo', () => {
         const libs = await readStdLibrary(false);
 
         // Read and validate the example documents.
-        readAndValidateExamples(examplesWithoutIncludes, libs,
+        await readAndValidateExamples(examplesWithoutIncludes, libs,
             async (document, file, sp) => {
                 await mx.readFromXmlFile(document, file, sp);
             }, examplesPath);
@@ -103,7 +103,7 @@ describe('XmlIo', () => {
 
         // Read and validate each example document.
         const examplesWithoutIncludesStrings = getMtlxStrings(examplesWithoutIncludes, examplesPath);
-        readAndValidateExamples(examplesWithoutIncludesStrings, libs,
+        await readAndValidateExamples(examplesWithoutIncludesStrings, libs,
             async (document, file) => {
                 await mx.readFromXmlString(document, file);
             });
@@ -126,14 +126,14 @@ describe('XmlIo', () => {
         const libs = await readStdLibrary(false);
 
         // Read and validate the example documents from files
-        readAndValidateExamples(examplesWithIncludes, libs,
+        await readAndValidateExamples(examplesWithIncludes, libs,
             async (document, file, sp) => {
                 await mx.readFromXmlFile(document, file, sp);
             }, searchPath);
 
         // Read and validate the example documents as strings
         const examplesWithIncludesStrings = getMtlxStrings(examplesWithIncludes, searchPath);
-        readAndValidateExamples(examplesWithIncludesStrings, libs,
+        await readAndValidateExamples(examplesWithIncludesStrings, libs,
             async (document, file, sp) => {
                 expect(async () => await mx.readFromXmlString(document, file)).to.throw;
                 await mx.readFromXmlString(document, file, sp);
