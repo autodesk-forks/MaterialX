@@ -91,8 +91,10 @@ describe('XmlIo', () => {
         const doc = mx.createDocument();
         const filename = 'CustomNode.mtlx';
         await mx.readFromXmlFile(doc, filename, examplesPath);
+        const copy = doc.copy();
         await mx.readFromXmlFile(doc, filename, examplesPath);
         expect(doc.validate()).to.be.true;
+        expect(copy.equals(doc)).to.be.true;
     });
 
     it('Read XML without includes from string', async () => {
@@ -111,8 +113,10 @@ describe('XmlIo', () => {
         const doc = mx.createDocument();
         const file = examplesWithoutIncludesStrings[examplesWithoutIncludes.indexOf('CustomNode.mtlx')];
         await mx.readFromXmlString(doc, file);
+        const copy = doc.copy();
         await mx.readFromXmlString(doc, file);
         expect(doc.validate()).to.be.true;
+        expect(copy.equals(doc)).to.be.true;
     });
 
     it('Read XML with includes', async () => {
@@ -207,7 +211,6 @@ describe('XmlIo', () => {
     it('Disabling XML includes', async () => {
         const doc = mx.createDocument();
         const readOptions = new mx.XmlReadOptions();
-        console.log(readOptions);
         readOptions.readXIncludes = false;
         expect(async () => await mx.readFromXmlFile(doc, includeTestPath + '/cycle.mtlx', readOptions)).to.not.throw;
     });

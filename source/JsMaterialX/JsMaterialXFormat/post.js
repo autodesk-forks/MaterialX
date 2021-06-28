@@ -1,18 +1,19 @@
 //
 // TM & (c) 2021 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
-// All rights reserved.  See LICENSE.txt for license.
+// All rights reserved. See LICENSE.txt for license.
 //
 
 // Wrapping code in an anonymous function to prevent clashes with the main module and other pre / post JS.
 (function () {
-    var nodeFs;
+    var nodeFs;                     // Required NodeJS packages
     var nodePath;
     var nodeProcess;
-    var pathSep;
-    var ENVIRONMENT_IS_WEB;
-    var ENVIRONMENT_IS_NODE;
-    var PATH_LIST_SEPARATOR = ";";
-    var callId = 0;
+    var pathSep;                    // The path separator, depending on the environment
+    var wasmPathSep = "/";          // The path separator in the WASM FS
+    var ENVIRONMENT_IS_WEB;         // True if this code runs in a browser
+    var ENVIRONMENT_IS_NODE;        // True if this code runs in NodeJS
+    var PATH_LIST_SEPARATOR = ";";  // The separator symbol for search paths
+    var callId = 0;                 // Gets appended to the WASM root folder, to separate concurrent function calls
     var MAX_CALL_ID = 99999;
 
     // Remove duplicate entries from an array.
@@ -50,7 +51,7 @@
                     return response.text().then(function (data) {
                         var url = new URL(response.url);
                         var filePath = url.pathname.substring(1);
-                        filePath = filePath.replace(new RegExp(pathSep, "g"), "/");
+                        filePath = filePath.replace(new RegExp(pathSep, "g"), wasmPathSep);
                         return {
                             data: data,                         // file content
                             filePath: filePath,                 // file path relative to root
@@ -85,7 +86,7 @@
                     } else {
                         var parsedPath = nodePath.parse(filePath);
                         var path = filePath.substring(parsedPath.root.length);
-                        path = path.replace(new RegExp(pathSep, "g"), "/");
+                        path = path.replace(new RegExp(pathSep, "g"), wasmPathSep);
                         resolve({
                             data: data,         // file content
                             filePath: path,     // file path relative to root
@@ -115,7 +116,6 @@
     }
 
     // Modify absolute paths so that they work in the WASM file system.
-    // If paths is an array, the elements will be modified in place. If it's a string, a new string will be returned.
     function makeWasmAbsolute(paths, wasmRootFolder) {
         var pathList = paths;
         if (typeof paths === 'string') {
@@ -127,9 +127,9 @@
             if (ENVIRONMENT_IS_NODE) {
                 if (nodePath.isAbsolute(path)) {
                     var parsed = nodePath.parse(path);
-                    path = wasmRootFolder + "/" + parsed.dir.substring(parsed.root.length);
+                    path = wasmRootFolder + wasmPathSep + parsed.dir.substring(parsed.root.length);
                 }
-                path.replace(new RegExp(pathSep, "g"), "/");
+                path.replace(new RegExp(pathSep, "g"), wasmPathSep);
             } else if (ENVIRONMENT_IS_WEB) {
                 var link = document.createElement("a");
                 link.href = path;
@@ -143,6 +143,8 @@
         }
         if (typeof paths === 'string') {
             return pathList.join(Module.PATH_LIST_SEPARATOR);
+        } else {
+            return pathList;
         }
     }
 
@@ -202,14 +204,14 @@
         // Create folders if necessary.
         var folders;
         if (isFile) {
-           folders = file.substring(1, file.lastIndexOf("/")).split("/");
+           folders = file.substring(1, file.lastIndexOf(wasmPathSep)).split(wasmPathSep);
         } else {
-            folders = file.substring(wasmRootFolder.length).split("/");
+            folders = file.substring(wasmRootFolder.length).split(wasmPathSep);
         }
         var folder = wasmRootFolder;
         // Skipping 0 because it's the root folder, which we already created.
         for (var i = 1; i < folders.length; ++i) {
-            folder += "/" + folders[i];
+            folder += wasmPathSep + folders[i];
             var dirExists;
             try {
                 var stat = FS.stat(folder);
@@ -242,12 +244,12 @@
         if (ENVIRONMENT_IS_NODE) {
             var cwd = nodeProcess.cwd();
             var parsed = nodePath.parse(cwd);
-            var wasmCwd = wasmRootFolder + "/" + cwd.substring(parsed.root.length);
-            return wasmCwd.replace(new RegExp(pathSep, "g"), "/");
+            var wasmCwd = wasmRootFolder + wasmPathSep + cwd.substring(parsed.root.length);
+            return wasmCwd.replace(new RegExp(pathSep, "g"), wasmPathSep);
         } else if (ENVIRONMENT_IS_WEB) {
             var cwd = window.location.pathname;
             cwd = cwd.substring(0, cwd.lastIndexOf(pathSep));
-            return createFilePath(cwd, wasmRootFolder, "/");
+            return createFilePath(cwd, wasmRootFolder, wasmPathSep);
         } else {
             throw new Error("Unknown environment!");
         }
@@ -317,8 +319,8 @@
             var wasmCwd = getWasmCwd(wasmRootFolder);
             var initialFileName = wasmCwd + "/ChosenToHopefullyNotClashWithAnyOtherFile123";
             if (initialFilePath) {
-                initialFileName = initialFilePath.replace(new RegExp(pathSep, "g"), "/");
-                initialFileName = createFilePath(initialFileName, wasmRootFolder, "/");
+                initialFileName = initialFilePath.replace(new RegExp(pathSep, "g"), wasmPathSep);
+                initialFileName = createFilePath(initialFileName, wasmRootFolder, wasmPathSep);
                 // initialFilePath being set means the user called readFromXmlFile, which might have resolved the
                 // initial file outside of cwd, so we have to create cwd in the wasm fs explicitly, since we cd into it
                 // later.
@@ -354,7 +356,7 @@
                         var includes = getIncludes(result.data);
 
                         // Upload to WASM FS
-                        var wasmPath = createFilePath(result.filePath, wasmRootFolder, "/");
+                        var wasmPath = createFilePath(result.filePath, wasmRootFolder, wasmPathSep);
                         if (!filesUploaded.files.includes(wasmPath)) {
                             createInWasm(wasmPath, result.data, filesUploaded, wasmRootFolder);
                         }
@@ -398,7 +400,7 @@
                     for (var file of filesUploaded.files) {
                         FS.unlink(file);
                     }
-                    FS.chdir("/");
+                    FS.chdir("/"); // root
                     for (var folder of filesUploaded.folders) {
                         FS.rmdir(folder);
                     }
