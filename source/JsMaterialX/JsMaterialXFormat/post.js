@@ -45,7 +45,7 @@
     function fetchXml(fileName, searchPaths) {
         var i = 0;
         function fetchHandler() {
-            var filePath = createFilePath(fileName, searchPaths[i]);
+            var filePath = createFilePath(fileName, searchPaths[i++]);
             return fetch(filePath).then(function (response) {
                 if (response.status === 200) {
                     return response.text().then(function (data) {
@@ -58,7 +58,7 @@
                             fullPath: url.origin + url.pathname,// the full url
                         };
                     });
-                } else if (++i < searchPaths.length) {
+                } else if (i < searchPaths.length) {
                     return fetchHandler();
                 } else {
                     throw new Error("MaterialX file not found: " + fileName);
@@ -73,12 +73,12 @@
     function loadXml(fileName, searchPaths) {
         var i = 0;
         function loadHandler() {
-            var filePath = createFilePath(fileName, searchPaths[i]);
+            var filePath = createFilePath(fileName, searchPaths[i++]);
             filePath = nodePath.resolve(filePath);
             return new Promise(function (resolve, reject) {
                 nodeFs.readFile(filePath, "utf8", function (err, data) {
                     if (err) {
-                        if (++i < searchPaths.length) {
+                        if (i < searchPaths.length) {
                             resolve(loadHandler());
                         } else {
                             reject(new Error("MaterialX file not found: " + fileName));
@@ -106,11 +106,12 @@
         var newSearchPath = searchPath.concat(PATH_LIST_SEPARATOR,
             Module.getEnviron(Module.MATERIALX_SEARCH_PATH_ENV_VAR));
         var searchPaths = ["." + pathSep].concat(newSearchPath.split(PATH_LIST_SEPARATOR));
-        var i = searchPaths.length;
-        while (i--) {
+        var i = searchPaths.length - 1;
+        while (i) {
             if (searchPaths[i].trim() === "") {
                 searchPaths.splice(i, 1);
             }
+            --i;
         }
         return removeDuplicates(searchPaths);
     }
