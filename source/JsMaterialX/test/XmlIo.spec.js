@@ -6,7 +6,7 @@ describe('XmlIo', () => {
     let mx;
 
     // These should be relative to cwd
-    const includeTestPath = '../../../resources/Materials/TestSuite/includes';
+    const includeTestPath = 'data/includes';
     const libraryPath = '../../../libraries/stdlib';
     const examplesPath = '../../../resources/Materials/Examples/Syntax';
     // TODO: Is there a better way to get these filenames than hardcoding them here?
