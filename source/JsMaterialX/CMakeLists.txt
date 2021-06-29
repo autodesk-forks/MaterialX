@@ -115,12 +115,12 @@ install(TARGETS JsMaterialXCore DESTINATION "${CMAKE_INSTALL_PREFIX}/JavaScript/
 install(TARGETS JsMaterialXGenShader DESTINATION "${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX")
 
 # Copy the wasm output
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/JsMaterialXCore.wasm DESTINATION ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/JsMaterialXGenShader.wasm DESTINATION ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/)
+install(FILES ${CMAKE_BINARY_DIR}/bin/JsMaterialXCore.wasm DESTINATION ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/)
+install(FILES ${CMAKE_BINARY_DIR}/bin/JsMaterialXGenShader.wasm DESTINATION ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/)
 
 # Copy the JavaScript files with the version appended to them.
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/JsMaterialXCore.js DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ RENAME JsMaterialXCore-${MATERIALX_LIBRARY_VERSION}.js)
+install(FILES ${CMAKE_BINARY_DIR}/bin/JsMaterialXCore.js DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ RENAME JsMaterialXCore-${MATERIALX_LIBRARY_VERSION}.js)
 install(FILES ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/JsMaterialXCore.js DESTINATION ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/ RENAME JsMaterialXCore-${MATERIALX_LIBRARY_VERSION}.js)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/JsMaterialXGenShader.js DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ RENAME JsMaterialXGenShader-${MATERIALX_LIBRARY_VERSION}.js)
+install(FILES ${CMAKE_BINARY_DIR}/bin/JsMaterialXGenShader.js DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ RENAME JsMaterialXGenShader-${MATERIALX_LIBRARY_VERSION}.js)
 install(FILES ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/JsMaterialXGenShader.js DESTINATION ${CMAKE_INSTALL_PREFIX}/JavaScript/MaterialX/ RENAME JsMaterialXGenShader-${MATERIALX_LIBRARY_VERSION}.js)
