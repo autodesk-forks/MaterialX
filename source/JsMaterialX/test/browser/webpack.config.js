@@ -16,9 +16,9 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: "../../../build/source/JsMaterialX/JsMaterialX.wasm" },
-        { from: "../../../build/source/JsMaterialX/JsMaterialX.js" },
-        { from: "../../../build/source/JsMaterialX/JsMaterialX.data" },
+        { from: "../../../build/source/JsMaterialX/JsMaterialXGenShader.wasm" },
+        { from: "../../../build/source/JsMaterialX/JsMaterialXGenShader.js" },
+        { from: "../../../build/source/JsMaterialX/JsMaterialXGenShader.data" },
       ],
     }),
   ],

@@ -1,6 +1,5 @@
 const chai = require('chai');
 const expect = chai.expect;
-import { initMaterialX } from './browserTestHelpers.js';
 
 function createStandardSurfaceMaterial(mx) {
     const doc = mx.createDocument();
@@ -21,7 +20,7 @@ describe('Generate ESSL Shaders', () => {
     let gl = canvas.getContext('webgl2');
 
     before(async () => {
-        mx = await initMaterialX();
+        mx = await MaterialX();
     });
 
     it('Get Shader Uniforms', () => {
