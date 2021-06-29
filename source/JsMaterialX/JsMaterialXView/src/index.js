@@ -6,12 +6,16 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
+import { Matrix4, Uniform } from 'three';
 
-let camera, scene, model, renderer, composer, controls;
+let camera, scene, model, renderer, composer, controls, uniforms, mx;
 
 let normalMat = new THREE.Matrix3();
 let viewProjMat = new THREE.Matrix4();
 let worldViewPos = new THREE.Vector3();
+
+const fileParam = new URLSearchParams(document.location.search).get("file");
+let materialFilename = fileParam ? fileParam : 'material.mtlx'
 
 init();
 
@@ -145,6 +149,73 @@ function prepareEnvTexture(texture, capabilities) {
     return rgbaTexture;
 }
 
+function toArray(value, dimension) {
+  let outValue;
+  if (Array.isArray(value) && value.length === dimension)
+    outValue = value;
+  else {
+    outValue = []; 
+    value = value ? value : 0.0;
+    for(let i = 0; i < dimension; ++i)
+      outValue.push(value);
+  }
+
+  return outValue;
+}
+
+function toThreeUniform(type, value) {
+  let outValue;  
+  switch(type) {
+    case 'int':
+    case 'uint':
+    case 'float':
+    case 'bool':
+      outValue = value;
+      break;
+    case 'vec2':
+    case 'ivec2':
+    case 'bvec2':      
+      outValue = toArray(value, 2);
+      break;
+    case 'vec3':
+    case 'ivec3':
+    case 'bvec3':
+      outValue = toArray(value, 3);
+      break;
+    case 'vec4':
+    case 'ivec4':
+    case 'bvec4':
+    case 'mat2':
+      outValue = toArray(value, 4);
+      break;
+    case 'mat3':
+      outValue = toArray(value, 9);
+      break;
+    case 'mat4':
+      outValue = toArray(value, 16);
+      break;
+    case 'sampler2D':
+      break;
+    case 'samplerCube':
+        break;        
+    default:
+      // struct
+      outValue = toThreeUniform(value);
+  }
+
+  return outValue;
+}
+
+function toThreeUniforms(uniformJSON) {
+  let threeUniforms = {};
+  let value;
+  for (const [name, description] of Object.entries(uniformJSON)) {
+    threeUniforms[name] = new THREE.Uniform(toThreeUniform(description.type, description.value));
+  }
+
+  return threeUniforms;
+}
+
 function init() {
     let canvas = document.getElementById('webglcanvas');
     let context = canvas.getContext('webgl2');
@@ -191,81 +262,56 @@ function init() {
         new Promise(resolve => hdrloader.setDataType(THREE.FloatType).load('san_giuseppe_bridge_split.hdr', resolve)),
         new Promise(resolve => hdrloader.setDataType(THREE.FloatType).load('irradiance/san_giuseppe_bridge_split.hdr', resolve)),
         new Promise(resolve => objLoader.load('shaderball.obj', resolve)),
-        new Promise(resolve => fileloader.load('shader-frag.glsl', resolve)),
-        new Promise(resolve => fileloader.load('shader-vert.glsl', resolve))
-    ]).then(([loadedRadianceTexture, loadedIrradianceTexture, obj, fShader, vShader]) => {
+        new Promise(function (resolve) { MaterialX().then((module) => { resolve(module); }); }),
+        new Promise(resolve => fileloader.load(materialFilename, resolve))
+    ]).then(([loadedRadianceTexture, loadedIrradianceTexture, obj, mxIn, mtlxMaterial]) => {
+        // Initialize MaterialX and the shader generation context
+        mx = mxIn;
+        let doc = mx.createDocument();
+        let gen = new mx.EsslShaderGenerator();
+        let genContext = new mx.GenContext(gen);
+        let stdlib = mx.loadStandardLibraries(genContext);
+        doc.importLibrary(stdlib);        
+
+        // Load material and generate shader
+        mx.readFromXmlString(doc, mtlxMaterial);
+        let elem = mx.findRenderableElement(doc);
+        let shader = gen.generate(elem.getNamePath(), elem, genContext);
+
+        // Get GL ES shaders and uniform values
+        let fShader = shader.getSourceCode("pixel");       
+        let vShader = shader.getSourceCode("vertex");
+        let uniforms = {
+          ...toThreeUniforms(JSON.parse(shader.getUniformValues("vertex"))),
+          ...toThreeUniforms(JSON.parse(shader.getUniformValues("pixel")))
+        }
 
         const radianceTexture = prepareEnvTexture(loadedRadianceTexture, renderer.capabilities);
         const irradianceTexture = prepareEnvTexture(loadedIrradianceTexture, renderer.capabilities);
 
-        const material = new THREE.RawShaderMaterial({
-            uniforms: { 
-              time: { value: 0.0 },
+        Object.assign(uniforms, {
+          time: { value: 0.0 },
+          u_numActiveLightSources: {value: 1},
+          u_lightData: {value: [ lightData ]},
 
-              base: {value: 1.0},
-              base_color: {value: new THREE.Vector3(0.8, 0.8, 0.8)},
-              diffuse_roughness: {value: 0.0},
-              metalness: {value: 0.0},
-              specular: {value: 1.0},
-              specular_color: {value: new THREE.Vector3(1.0, 1.0, 1.0)},
-              specular_roughness: {value: 0.2},
-              specular_IOR: {value: 1.5},
-              specular_anisotropy: {value: 0.0},
-              specular_rotation: {value: 0.0},
-              transmission: {value: 0.0},
-              transmission_color: {value: new THREE.Vector3(1.0, 1.0, 1.0)},
-              transmission_depth: {value: 0.0},
-              transmission_scatter: {value: new THREE.Vector3(0.0, 0.0, 0.0)},
-              transmission_scatter_anisotropy: {value: 0.0},
-              transmission_dispersion: {value: 0.0},
-              transmission_extra_roughness: {value: 0.0},
-              subsurface: {value: 0.0},
-              subsurface_color: {value: new THREE.Vector3(1.0, 1.0, 1.0)},
-              subsurface_radius: {value: new THREE.Vector3(1.0, 1.0, 1.0)},
-              subsurface_scale: {value: 1.0},
-              subsurface_anisotropy: {value: 0.0},
-              sheen: {value: 0.0},
-              sheen_color: {value: new THREE.Vector3(1.0, 1.0, 1.0)},
-              sheen_roughness: {value: 0.3},
-              coat: {value: 0.0},
-              coat_color: {value: new THREE.Vector3(1.0, 1.0, 1.0)},
-              coat_roughness: {value: 0.1},
-              coat_anisotropy: {value: 0.0},
-              coat_rotation: {value: 0.0},
-              coat_IOR: {value: 1.5},
-              coat_affect_color: {value: 0.0},
-              coat_affect_roughness: {value: 0.0},
-              thin_film_thickness: {value: 0.0},
-              thin_film_IOR: {value: 1.5},
-              emission: {value: 0.0},
-              emission_color: {value: new THREE.Vector3(1.0, 1.0, 1.0)},
-              opacity: {value: new THREE.Vector3(1.0, 1.0, 1.0)},
-              thin_walled: {value: false},
-
-              u_numActiveLightSources: {value: 1},
-              u_lightData: {value: [ lightData ]},
-
-              u_envMatrix: {value: new THREE.Matrix4().makeRotationY(Math.PI)},
-              u_envRadiance: {value: radianceTexture},
-              u_envRadianceMips: {value: Math.trunc(Math.log2(Math.max(radianceTexture.image.width, radianceTexture.image.height))) + 1},
-              u_envRadianceSamples: {value: 16},
-              u_envIrradiance: {value: irradianceTexture},
-
-              u_viewPosition: new THREE.Uniform( new THREE.Vector3() ),
-
-              u_worldMatrix: new THREE.Uniform( new THREE.Matrix4() ),
-              u_viewProjectionMatrix: new THREE.Uniform( new THREE.Matrix4() ),
-              u_worldInverseTransposeMatrix: new THREE.Uniform( new THREE.Matrix4() )
-            },
-            vertexShader: vShader,
-            fragmentShader: fShader,
+          u_envMatrix: {value: new THREE.Matrix4().makeRotationY(Math.PI)},
+          u_envRadiance: {value: radianceTexture},
+          u_envRadianceMips: {value: Math.trunc(Math.log2(Math.max(radianceTexture.image.width, radianceTexture.image.height))) + 1},
+          u_envRadianceSamples: {value: 16},
+          u_envIrradiance: {value: irradianceTexture}
         });
 
+        // Create Three JS Material
+        const threeMaterial = new THREE.RawShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: vShader,
+          fragmentShader: fShader,
+        });
         obj.traverse((child) => {
             if (child.isMesh) {
               generateTangents(child.geometry);
               child.geometry.attributes.uv_0 = child.geometry.attributes.uv
-              child.material = material;
+              child.material = threeMaterial;
             }
         });
         model = obj;
@@ -284,7 +330,9 @@ function init() {
 
     }).then(() => {
         animate();
-    })
+    }).catch(err => {
+      console.error(mx.getExceptionMessage(err));
+    }) 
 
 }
 
@@ -306,7 +354,7 @@ function animate() {
           uniforms.u_viewPosition.value = camera.getWorldPosition(worldViewPos);
           uniforms.u_worldMatrix.value = child.matrixWorld;
           uniforms.u_viewProjectionMatrix.value = viewProjMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-          uniforms.u_worldInverseTransposeMatrix.value.setFromMatrix3(normalMat.getNormalMatrix(child.matrixWorld));
+          uniforms.u_worldInverseTransposeMatrix.value = new Matrix4().setFromMatrix3(normalMat.getNormalMatrix(child.matrixWorld)).elements;
         }
       }
     });
