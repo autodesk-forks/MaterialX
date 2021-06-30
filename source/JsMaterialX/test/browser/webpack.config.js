@@ -10,15 +10,15 @@ module.exports = {
   },
   devServer: {
     open: true,
-    openPage: '/browser'
+    openPage: 'browser'
   },
   mode: "development",
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: "../../../build/source/JsMaterialX/JsMaterialXGenShader.wasm" },
-        { from: "../../../build/source/JsMaterialX/JsMaterialXGenShader.js" },
-        { from: "../../../build/source/JsMaterialX/JsMaterialXGenShader.data" },
+        { from: "../../../build/bin/JsMaterialXGenShader.wasm" },
+        { from: "../../../build/bin/JsMaterialXGenShader.js" },
+        { from: "../../../build/bin/JsMaterialXGenShader.data" },
       ],
     }),
   ],
