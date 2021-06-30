@@ -11,7 +11,16 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: "../../../resources" },
+        { 
+          context: "../../../resources/Images",
+          from: "*.jpg", 
+          to: "Images",
+        },
+        { from: "../../../resources/Images/greysphere_calibration.png", to: "Images" },
+        { from: "../../../resources/Geometry/shaderball.obj",  to: "Geometry"},
+        { from: "../../../resources/Lights/san_giuseppe_bridge_split.hdr", to: "Lights" },
+        { from: "../../../resources/Lights/irradiance/san_giuseppe_bridge_split.hdr", to: "Lights/irradiance" },
+        { from: "../../../resources/Materials/Examples/StandardSurface", to: "Materials/Examples/StandardSurface" },
         { from: "../../../build/bin/JsMaterialXGenShader.wasm" },
         { from: "../../../build/bin/JsMaterialXGenShader.js" },
         { from: "../../../build/bin/JsMaterialXGenShader.data" },
