@@ -7,7 +7,6 @@
 #include <MaterialXGenEssl/EsslSyntax.h>
 
 #include <MaterialXGenShader/Nodes/HwImageNode.h>
-#include <MaterialXGenShader/Util.h>
 
 namespace MaterialX
 {
