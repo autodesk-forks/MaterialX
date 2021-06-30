@@ -6,7 +6,11 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
-import { Matrix4, Uniform } from 'three';
+
+const IMAGE_PROPERTY_SEPARATOR = "_";
+const UADDRESS_MODE_SUFFIX = IMAGE_PROPERTY_SEPARATOR + "uaddressmode";
+const VADDRESS_MODE_SUFFIX = IMAGE_PROPERTY_SEPARATOR + "vaddressmode";
+const FILTER_TYPE_SUFFIX = IMAGE_PROPERTY_SEPARATOR + "filtertype";
 
 let camera, scene, model, renderer, composer, controls, uniforms, mx;
 
@@ -150,70 +154,120 @@ function prepareEnvTexture(texture, capabilities) {
 }
 
 function toArray(value, dimension) {
-  let outValue;
-  if (Array.isArray(value) && value.length === dimension)
-    outValue = value;
-  else {
-    outValue = []; 
-    value = value ? value : 0.0;
-    for(let i = 0; i < dimension; ++i)
-      outValue.push(value);
-  }
+    let outValue;
+    if (Array.isArray(value) && value.length === dimension)
+        outValue = value;
+    else {
+        outValue = []; 
+        value = value ? value : 0.0;
+        for(let i = 0; i < dimension; ++i)
+            outValue.push(value);
+    }
 
-  return outValue;
+    return outValue;
 }
 
-function toThreeUniform(type, value) {
-  let outValue;  
-  switch(type) {
-    case 'int':
-    case 'uint':
-    case 'float':
-    case 'bool':
-      outValue = value;
-      break;
-    case 'vec2':
-    case 'ivec2':
-    case 'bvec2':      
-      outValue = toArray(value, 2);
-      break;
-    case 'vec3':
-    case 'ivec3':
-    case 'bvec3':
-      outValue = toArray(value, 3);
-      break;
-    case 'vec4':
-    case 'ivec4':
-    case 'bvec4':
-    case 'mat2':
-      outValue = toArray(value, 4);
-      break;
-    case 'mat3':
-      outValue = toArray(value, 9);
-      break;
-    case 'mat4':
-      outValue = toArray(value, 16);
-      break;
-    case 'sampler2D':
-      break;
-    case 'samplerCube':
-        break;        
-    default:
-      // struct
-      outValue = toThreeUniform(value);
-  }
+function toThreeUniform(type, value, name, uniformJSON, textureLoader) {
+    let outValue;  
+    switch(type) {
+        case 'int':
+        case 'uint':
+        case 'float':
+        case 'bool':
+            outValue = value;
+            break;
+        case 'vec2':
+        case 'ivec2':
+        case 'bvec2':      
+            outValue = toArray(value, 2);
+            break;
+        case 'vec3':
+        case 'ivec3':
+        case 'bvec3':
+            outValue = toArray(value, 3);
+            break;
+        case 'vec4':
+        case 'ivec4':
+        case 'bvec4':
+        case 'mat2':
+            outValue = toArray(value, 4);
+            break;
+        case 'mat3':
+            outValue = toArray(value, 9);
+            break;
+        case 'mat4':
+            outValue = toArray(value, 16);
+            break;
+        case 'sampler2D':
+            if (value) {
+                const texture = textureLoader.load(value);
+                // Set address & filtering mode
+                setTextureParameters(texture, name, uniformJSON);
+                outValue = texture;
+            } 
+            break;
+        case 'samplerCube':
+              break;        
+        default:
+            // struct
+            outValue = toThreeUniform(value);
+    }
 
-  return outValue;
+    return outValue;
 }
 
-function toThreeUniforms(uniformJSON) {
-  let threeUniforms = {};
-  let value;
-  for (const [name, description] of Object.entries(uniformJSON)) {
-    threeUniforms[name] = new THREE.Uniform(toThreeUniform(description.type, description.value));
-  }
+function toThreeUniforms(uniformJSON, textureLoader) {
+    let threeUniforms = {};
+    for (const [name, description] of Object.entries(uniformJSON)) {
+        threeUniforms[name] = new THREE.Uniform(toThreeUniform(description.type, description.value, name, uniformJSON, textureLoader));
+    }
 
-  return threeUniforms;
+    return threeUniforms;
+}
+
+function getWrapping(mode) {
+    let wrap;
+    switch(mode) {
+        case 1:
+            wrap = THREE.ClampToEdgeWrapping;
+            break;
+        case 2:
+            wrap = THREE.RepeatWrapping;
+            break;
+        case 3:
+            wrap = THREE.MirroredRepeatWrapping;
+            break;
+        default:
+            wrap = THREE.RepeatWrapping;
+            break;
+    }
+    return wrap;
+}
+
+function getMinFilter(type, generateMipmaps) {
+    const filterType = generateMipmaps ? THREE.LinearMipMapLinearFilter : THREE.LinearFilter;
+    if (type === 0)
+    {
+        filterType = generateMipmaps ? THREE.NearestMipMapNearestFilter : THREE.NearestFilter;
+    }
+    return filterType;
+}
+
+function setTextureParameters(texture, name, uniformJSON, generateMipmaps = true) {
+    const idx = name.lastIndexOf(IMAGE_PROPERTY_SEPARATOR);
+    const base = name.substring(0, idx) || name;
+
+    texture.generateMipmaps = generateMipmaps;
+
+    const uaddressmode = uniformJSON[base + UADDRESS_MODE_SUFFIX] ? uniformJSON[base + UADDRESS_MODE_SUFFIX].value : -1;
+    const vaddressmode = uniformJSON[base + VADDRESS_MODE_SUFFIX] ? uniformJSON[base + VADDRESS_MODE_SUFFIX].value : -1;
+
+    texture.wrapS = getWrapping(uaddressmode);
+    texture.wrapT = getWrapping(vaddressmode);
+
+    const filterType = uniformJSON[base + FILTER_TYPE_SUFFIX] ? uniformJSON[base + FILTER_TYPE_SUFFIX].value : -1;
+    texture.magFilter = THREE.LinearFilter;
+    texture.minFilter = getMinFilter(filterType, generateMipmaps);
 }
 
 function init() {
@@ -257,11 +311,12 @@ function init() {
     var fileloader = new THREE.FileLoader();
     const objLoader = new OBJLoader();
     const hdrloader = new RGBELoader();
+    const textureLoader = new THREE.TextureLoader();
 
     Promise.all([
-        new Promise(resolve => hdrloader.setDataType(THREE.FloatType).load('san_giuseppe_bridge_split.hdr', resolve)),
-        new Promise(resolve => hdrloader.setDataType(THREE.FloatType).load('irradiance/san_giuseppe_bridge_split.hdr', resolve)),
-        new Promise(resolve => objLoader.load('shaderball.obj', resolve)),
+        new Promise(resolve => hdrloader.setDataType(THREE.FloatType).load('Lights/san_giuseppe_bridge_split.hdr', resolve)),
+        new Promise(resolve => hdrloader.setDataType(THREE.FloatType).load('Lights/irradiance/san_giuseppe_bridge_split.hdr', resolve)),
+        new Promise(resolve => objLoader.load('Geometry/shaderball.obj', resolve)),
         new Promise(function (resolve) { MaterialX().then((module) => { resolve(module); }); }),
         new Promise(resolve => fileloader.load(materialFilename, resolve))
     ]).then(([loadedRadianceTexture, loadedIrradianceTexture, obj, mxIn, mtlxMaterial]) => {
@@ -282,8 +337,8 @@ function init() {
         let fShader = shader.getSourceCode("pixel");       
         let vShader = shader.getSourceCode("vertex");
         let uniforms = {
-          ...toThreeUniforms(JSON.parse(shader.getUniformValues("vertex"))),
-          ...toThreeUniforms(JSON.parse(shader.getUniformValues("pixel")))
+          ...toThreeUniforms(JSON.parse(shader.getUniformValues("vertex")), textureLoader),
+          ...toThreeUniforms(JSON.parse(shader.getUniformValues("pixel")), textureLoader)
         }
 
         const radianceTexture = prepareEnvTexture(loadedRadianceTexture, renderer.capabilities);
@@ -354,7 +409,7 @@ function animate() {
           uniforms.u_viewPosition.value = camera.getWorldPosition(worldViewPos);
           uniforms.u_worldMatrix.value = child.matrixWorld;
           uniforms.u_viewProjectionMatrix.value = viewProjMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-          uniforms.u_worldInverseTransposeMatrix.value = new Matrix4().setFromMatrix3(normalMat.getNormalMatrix(child.matrixWorld)).elements;
+          uniforms.u_worldInverseTransposeMatrix.value = new THREE.Matrix4().setFromMatrix3(normalMat.getNormalMatrix(child.matrixWorld)).elements;
         }
       }
     });

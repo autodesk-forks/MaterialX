@@ -372,7 +372,11 @@ string ShaderStage::getUniformValues() const {
                     str +=  ", \"value\": ";
                     if (variable->getType()->isAggregate())
                         str += "[";
-                    str +=  variable->getValue()->getValueString();
+                    if (variable->getType()->getBaseType() == TypeDesc::BaseType::BASETYPE_STRING) {
+                        str +=  "\"" + variable->getValue()->getValueString() + "\"";
+                    } else {
+                        str +=  variable->getValue()->getValueString();
+                    }
                     if (variable->getType()->isAggregate())
                         str += "]";
                 }
