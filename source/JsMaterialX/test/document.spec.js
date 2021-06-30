@@ -80,6 +80,7 @@ describe('Document', () => {
         // Instantiate shader and material nodes
         const shaderNode = doc.addNodeInstance(simpleSrf);
         const materialNode = doc.addMaterialNode('', shaderNode);
+        expect(materialNode.getUpstreamElement().equals(shaderNode)).to.be.true;
 
         // Bind the diffuse color input to the constant color output
         shaderNode.setConnectedOutput('diffColor', output1);
