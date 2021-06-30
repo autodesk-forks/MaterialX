@@ -10,7 +10,7 @@ const FILTER_TYPE_SUFFIX = IMAGE_PROPERTY_SEPARATOR + "filtertype";
  * See MaterialXRender/Mesh.cpp
  * @param {THREE.BufferGeometry} geometry 
  */
- function generateTangents(geometry) {
+ export function generateTangents(geometry) {
     let p0 = new THREE.Vector3();
     let p1 = new THREE.Vector3();
     let p2 = new THREE.Vector3();
@@ -88,7 +88,7 @@ const FILTER_TYPE_SUFFIX = IMAGE_PROPERTY_SEPARATOR + "filtertype";
     geometry.setAttribute('tangent', new THREE.BufferAttribute( tangentsdata, 3));
 }
 
-function prepareEnvTexture(texture, capabilities) {
+export function prepareEnvTexture(texture, capabilities) {
     const rgbaTexture = RGBToRGBA_Float(texture);
     // RGBELoader sets flipY to true by default
     rgbaTexture.flipY = false;
@@ -202,7 +202,7 @@ function toThreeUniform(type, value, name, uniformJSON, textureLoader) {
     return outValue;
 }
 
-function toThreeUniforms(uniformJSON, textureLoader) {
+export function toThreeUniforms(uniformJSON, textureLoader) {
     let threeUniforms = {};
     for (const [name, description] of Object.entries(uniformJSON)) {
         threeUniforms[name] = new THREE.Uniform(toThreeUniform(description.type, description.value, name, uniformJSON, textureLoader));
@@ -255,9 +255,3 @@ function setTextureParameters(texture, name, uniformJSON, generateMipmaps = true
     texture.magFilter = THREE.LinearFilter;
     texture.minFilter = getMinFilter(filterType, generateMipmaps);
 }
-
-export {
-    generateTangents,
-    prepareEnvTexture,
-    toThreeUniforms
-};
