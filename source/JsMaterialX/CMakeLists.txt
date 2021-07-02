@@ -30,8 +30,10 @@ set(FORMAT_DEPS
     ${FORMAT}JsEnviron.cpp)
 
 set(GENSHADER_DEPS ${GENSHADER}JsGenContext.cpp
+	${GENSHADER}JsGenOptions.cpp
     ${GENSHADER}JsShader.cpp
-    ${GENSHADER}JsShaderGenerator.cpp)
+    ${GENSHADER}JsShaderGenerator.cpp
+    ${GENSHADER}JsUtil.cpp)
 
 set(GENESSL_DEPS ${GENESSL}JsEsslShaderGenerator.cpp)
 

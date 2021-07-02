@@ -3,6 +3,8 @@
 // All rights reserved.  See LICENSE.txt for license.
 //
 
+#include "../Helpers.h"
+
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/DefaultColorManagementSystem.h>
@@ -94,8 +96,8 @@ EMSCRIPTEN_BINDINGS(GenContext)
     ems::class_<mx::GenContext>("GenContext")
         .constructor<mx::ShaderGeneratorPtr>()
         .smart_ptr<std::shared_ptr<mx::GenContext>>("GenContextPtr")
+        .function("getOptions", PTR_RETURN_OVERLOAD(mx::GenOptions& (mx::GenContext::*)(), &mx::GenContext::getOptions), ems::allow_raw_pointers())
         ;
 
     ems::function("loadStandardLibraries", &loadStandardLibraries);
 }
-

@@ -15,6 +15,7 @@ EMSCRIPTEN_BINDINGS(ShaderGenerator)
 {
     ems::class_<mx::ShaderGenerator>("ShaderGenerator")
         .smart_ptr<std::shared_ptr<mx::ShaderGenerator>>("ShaderGeneratorPtr")
+        .function("getTarget", &mx::ShaderGenerator::getTarget)
         .function("generate", &mx::ShaderGenerator::generate)
         ;
 

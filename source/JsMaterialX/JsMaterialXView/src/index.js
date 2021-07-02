@@ -112,6 +112,10 @@ function init() {
             fallbackMaterial(mx, doc);
 
         let elem = mx.findRenderableElement(doc);
+
+        const isTransparent = mx.isTransparentSurface(elem, gen.getTarget());
+        genContext.getOptions().hwTransparency = isTransparent;
+
         let shader = gen.generate(elem.getNamePath(), elem, genContext);
 
         // Get GL ES shaders and uniform values
@@ -142,6 +146,10 @@ function init() {
           uniforms: uniforms,
           vertexShader: vShader,
           fragmentShader: fShader,
+          transparent: isTransparent,
+          blendEquation: THREE.AddEquation,
+          blendSrc: THREE.OneMinusSrcAlphaFactor,
+          blendDst: THREE.SrcAlphaFactor
         });
         obj.traverse((child) => {
             if (child.isMesh) {
