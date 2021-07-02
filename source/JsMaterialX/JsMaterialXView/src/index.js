@@ -1,3 +1,8 @@
+//
+// TM & (c) 2021 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
@@ -86,9 +91,12 @@ function init() {
         new Promise(resolve => hdrloader.setDataType(THREE.FloatType).load('Lights/san_giuseppe_bridge_split.hdr', resolve)),
         new Promise(resolve => hdrloader.setDataType(THREE.FloatType).load('Lights/irradiance/san_giuseppe_bridge_split.hdr', resolve)),
         new Promise(resolve => objLoader.load('Geometry/shaderball.obj', resolve)),
-        new Promise(function (resolve) { MaterialX().then((module) => { resolve(module); }); }),
+        new Promise(function (resolve) { 
+          MaterialX().then((module) => { 
+            resolve(module); 
+          }); }),
         new Promise(resolve => materialFilename ? fileloader.load(materialFilename, resolve) : resolve())
-    ]).then(([loadedRadianceTexture, loadedIrradianceTexture, obj, mxIn, mtlxMaterial]) => {
+    ]).then(async ([loadedRadianceTexture, loadedIrradianceTexture, obj, mxIn, mtlxMaterial]) => {
         // Initialize MaterialX and the shader generation context
         mx = mxIn;
         let doc = mx.createDocument();
@@ -99,7 +107,7 @@ function init() {
 
         // Load material
         if (mtlxMaterial)
-            mx.readFromXmlString(doc, mtlxMaterial);
+            await mx.readFromXmlString(doc, mtlxMaterial);
         else
             fallbackMaterial(mx, doc);
 

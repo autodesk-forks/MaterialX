@@ -1,3 +1,8 @@
+//
+// TM & (c) 2021 Lucasfilm Entertainment Company Ltd. and Lucasfilm Ltd.
+// All rights reserved.  See LICENSE.txt for license.
+//
+
 import * as THREE from 'three';
 
 const IMAGE_PROPERTY_SEPARATOR = "_";

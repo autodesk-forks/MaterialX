@@ -36,12 +36,12 @@ set(GENSHADER_DEPS ${GENSHADER}JsGenContext.cpp
 set(GENESSL_DEPS ${GENESSL}JsEsslShaderGenerator.cpp)
 
 # Linker flags
-set(JS_LINK_FLAGS "")
+set(JS_LINK_FLAGS_CORE "")
 if (EXTERNAL_LINK_FLAGS)
-    string(APPEND JS_LINK_FLAGS "${EXTERNAL_LINK_FLAGS} ")
+    string(APPEND JS_LINK_FLAGS_CORE "${EXTERNAL_LINK_FLAGS} ")
 endif()
 
-string(APPEND JS_LINK_FLAGS " -I${SOURCE_FOLDER} \
+string(APPEND JS_LINK_FLAGS_CORE " -I${SOURCE_FOLDER} \
     -s WASM=1 \
     -s DISABLE_EXCEPTION_CATCHING=0 \
     -s MODULARIZE=1 \
@@ -52,7 +52,7 @@ string(APPEND JS_LINK_FLAGS " -I${SOURCE_FOLDER} \
     -s FORCE_FILESYSTEM=1 ")
 
 # Add the post javascript files
-string(APPEND JS_LINK_FLAGS "--post-js ${CMAKE_CURRENT_SOURCE_DIR}/post.js \
+string(APPEND JS_LINK_FLAGS_CORE "--post-js ${CMAKE_CURRENT_SOURCE_DIR}/post.js \
  --post-js ${CORE}post.js \
  --post-js ${FORMAT}post.js ")
 

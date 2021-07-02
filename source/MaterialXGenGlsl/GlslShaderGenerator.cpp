@@ -469,6 +469,11 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
 END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
+const string GlslShaderGenerator::getPixelStageOutputVariable(const ShaderGraphOutputSocket& outputSocket) const
+{
+    return outputSocket.getVariable();
+}
+
 const HwResourceBindingContextPtr GlslShaderGenerator::getResourceBindingContext(GenContext& context) const
 {
     return context.getUserData<HwResourceBindingContext>(HW::USER_DATA_BINDING_CONTEXT);
