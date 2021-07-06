@@ -26,8 +26,5 @@ module.exports = {
         { from: "../../../build/bin/JsMaterialXGenShader.data" },
       ],
     }),
-  ],
-  externals: {
-    JsMaterialX: 'JsMaterialX',
-  },
+  ]
 };

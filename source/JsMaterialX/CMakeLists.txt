@@ -2,7 +2,6 @@ set(CORE ${CMAKE_CURRENT_SOURCE_DIR}/JsMaterialXCore/)
 set(FORMAT ${CMAKE_CURRENT_SOURCE_DIR}/JsMaterialXFormat/)
 set(GENSHADER ${CMAKE_CURRENT_SOURCE_DIR}/JsMaterialXGenShader/)
 set(GENESSL ${CMAKE_CURRENT_SOURCE_DIR}/JsMaterialXGenEssl/)
-set(LIBS ${PROJECT_BINARY_DIR}/source/)
 
 set(SOURCE_FOLDER ${CMAKE_SOURCE_DIR}/source)
 
@@ -69,12 +68,12 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
     string(APPEND JS_LINK_FLAGS_CORE "--bind ")
 else()
     message("JS: Building Release")
-    string(APPEND JS_LINK_FLAGS_CORE "-flto --bind ")
-    string(APPEND JS_COMPILE_FLAGS "-flto ")
+    string(APPEND JS_LINK_FLAGS_CORE "-flto -Os --bind ")
+    string(APPEND JS_COMPILE_FLAGS "-flto -Os ")
 endif()
 
 
-set(JS_LINK_FLAGS_GENSHADER "${JS_LINK_FLAGS_CORE} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/../../libraries@libraries ")
+set(JS_LINK_FLAGS_GENSHADER "${JS_LINK_FLAGS_CORE} --preload-file ${CMAKE_SOURCE_DIR}/libraries@libraries ")
 
 add_executable(JsMaterialXCore MaterialXLib.cpp
     ${CORE_DEPS}
