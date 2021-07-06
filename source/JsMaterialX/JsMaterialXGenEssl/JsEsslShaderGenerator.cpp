@@ -13,6 +13,7 @@
 namespace ems = emscripten;
 namespace mx = MaterialX;
 
+/// Returns the first renderable element from the given document. This element can be used to generate a shader.
 mx::ElementPtr findRenderableElement(mx::DocumentPtr doc)
 {
     mx::StringVec renderablePaths;

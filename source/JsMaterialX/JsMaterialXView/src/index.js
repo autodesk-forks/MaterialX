@@ -26,7 +26,7 @@ init();
 
 
 // If no material file is selected, we programmatically create a jade material as a fallback
-function fallbackMaterial(mx, doc) {
+function fallbackMaterial(doc) {
     const ssName = 'SR_default';
     const ssNode = doc.addChildOfCategory('standard_surface', ssName);
     ssNode.setType('surfaceshader');
@@ -142,7 +142,7 @@ function init() {
         if (mtlxMaterial)
             await mx.readFromXmlString(doc, mtlxMaterial);
         else
-            fallbackMaterial(mx, doc);
+            fallbackMaterial(doc);
 
         let elem = mx.findRenderableElement(doc);
 
@@ -209,7 +209,7 @@ function init() {
     }).then(() => {
         animate();
     }).catch(err => {
-      console.error(mx.getExceptionMessage(err));
+        console.error(Number.isInteger(err) ? mx.getExceptionMessage(err) : err);
     }) 
 
 }
