@@ -140,10 +140,6 @@ export function prepareEnvTexture(texture, capabilities) {
     return texture;
 }
 
-
-
-
-
 function toArray(value, dimension) {
     let outValue;
     if (Array.isArray(value) && value.length === dimension)

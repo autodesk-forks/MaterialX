@@ -23,7 +23,7 @@ describe('Generate ESSL Shaders', () => {
         mx = await MaterialX();
     });
 
-    it('Get Shader Uniforms', () => {
+    it('Compile Shaders', () => {
         let doc = createStandardSurfaceMaterial(mx);
 
         let gen = new mx.EsslShaderGenerator();
