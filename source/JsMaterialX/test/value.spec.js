@@ -29,10 +29,12 @@ describe('Value', () => {
         for (let type in testValues) {
             const value = testValues[String(type)];
             const newValue = mx.Value.createValueFromStrings(value, type);
-            const typeString = newValue.getTypeString();
-            const valueString = newValue.getValueString();
+            const valuePtr = mx.Value._createValueFromStrings(value, type);
+            const typeString = valuePtr.getTypeString();
+            const valueString = valuePtr.getValueString();
             expect(typeString).to.equal(type);
             expect(valueString).to.equal(value);
+            expect(newValue).to.deep.equal(valuePtr.getData());
         }
     });
 });

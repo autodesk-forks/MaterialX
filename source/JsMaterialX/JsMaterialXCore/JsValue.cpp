@@ -22,10 +22,10 @@ namespace mx = MaterialX;
         .function("getData", &mx::TypedValue<T>::getData)                     \
         .function("getTypeString", &mx::TypedValue<T>::getTypeString)         \
         .function("getValueString", &mx::TypedValue<T>::getValueString)       \
-        .class_function("createFromString", &mx::TypedValue<T>::createFromString);
+        .class_function("_createFromString", &mx::TypedValue<T>::createFromString);
 
 #define BIND_TYPE_SPECIFIC_VALUE_FUNCS(NAME, T)                           \
-        .class_function("createValue" #NAME, &mx::Value::createValue<T>)  \
+        .class_function("_createValue" #NAME, &mx::Value::createValue<T>)  \
         .function("isA" #NAME, &mx::Value::isA<T>)                        \
         .function("asA" #NAME, &mx::Value::asA<T>)
 
@@ -47,7 +47,7 @@ EMSCRIPTEN_BINDINGS(value)
         .function("copy", &mx::Value::copy, ems::pure_virtual()) 
         .function("getTypeString", &mx::Value::getTypeString)
         .function("getValueString", &mx::Value::getValueString)
-        .class_function("createValueFromStrings", &mx::Value::createValueFromStrings)
+        .class_function("_createValueFromStrings", &mx::Value::createValueFromStrings)
         .class_function("setFloatFormat", &mx::Value::setFloatFormat)
         .class_function("setFloatPrecision", &mx::Value::setFloatPrecision)
         .class_function("getFloatFormat", &mx::Value::getFloatFormat)
