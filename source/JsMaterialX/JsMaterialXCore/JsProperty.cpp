@@ -65,7 +65,7 @@ EMSCRIPTEN_BINDINGS(property)
         BIND_PROPERTYSET_TYPE_INSTANCE(BooleanArray, mx::BoolVec)
         BIND_PROPERTYSET_TYPE_INSTANCE(FloatArray, mx::FloatVec)
         BIND_PROPERTYSET_TYPE_INSTANCE(StringArray, mx::StringVec)
-        .function("getPropertyValue", &mx::PropertySet::getPropertyValue)
+        .function("_getPropertyValue", &mx::PropertySet::getPropertyValue)
         .class_property("CATEGORY", &mx::Property::CATEGORY);
         
     ems::class_<mx::PropertySetAssign, ems::base<mx::GeomElement>>("PropertySetAssign")

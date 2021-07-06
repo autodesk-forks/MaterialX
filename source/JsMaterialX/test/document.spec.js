@@ -43,12 +43,12 @@ describe('Document', () => {
         // Set constant node color
         const color = new mx.Color3(0.1, 0.2, 0.3);
         constant.setInputValueColor3('value', color);
-        expect(constant.getInputValue('value').getData()).to.eql(color);
+        expect(constant.getInputValue('value')).to.eql(color);
 
         // Set image node file
         const file = 'image1.tif';
         image.setInputValueString('file', file, 'filename');
-        expect(image.getInputValue('file').getData()).to.eql(file);
+        expect(image.getInputValue('file')).to.eql(file);
 
         // Create a custom nodedef
         const nodeDef = doc.addNodeDef('nodeDef1', 'float', 'turbulence3d');
@@ -58,9 +58,9 @@ describe('Document', () => {
 
         // Reference the custom nodedef
         const custom = nodeGraph.addNode('turbulence3d', 'turbulence1', 'float');
-        expect(custom.getInputValue('octaves').getData()).to.equal(3);
+        expect(custom.getInputValue('octaves')).to.equal(3);
         custom.setInputValueInteger('octaves', 5);
-        expect(custom.getInputValue('octaves').getData()).to.equal(5);
+        expect(custom.getInputValue('octaves')).to.equal(5);
 
         // Test scoped attributes
         nodeGraph.setFilePrefix('folder/');
@@ -89,7 +89,7 @@ describe('Document', () => {
         // Bind the roughness input to a value
         const instanceRoughness = shaderNode.setInputValueFloat('roughness', 0.5);
         expect(instanceRoughness.getValue()).to.equal(0.5);
-        expect(instanceRoughness.getDefaultValue().getData()).to.equal(0.25);
+        expect(instanceRoughness.getDefaultValue()).to.equal(0.25);
 
         // Create a look for the material
         const look = doc.addLook();
@@ -124,7 +124,7 @@ describe('Document', () => {
         // Create a property set assignment
         const propertySet = doc.addPropertySet();
         propertySet.setPropertyValueBoolean('matte', false);
-        expect(propertySet.getPropertyValue('matte').getData()).to.equal(false);
+        expect(propertySet.getPropertyValue('matte')).to.equal(false);
         const propertySetAssign = look.addPropertySetAssign();
         propertySetAssign.setPropertySet(propertySet);
         propertySetAssign.setGeom('/robot1');
