@@ -29,7 +29,8 @@ void mergeLooks(DocumentPtr doc, const XmlExportOptions* exportOptions)
 
 XmlExportOptions::XmlExportOptions() :
     XmlWriteOptions(),
-    mergeLooks(false)
+    mergeLooks(false),
+    flattenFilenames(true)
 {
 }
 
@@ -39,16 +40,28 @@ XmlExportOptions::XmlExportOptions() :
 
 void exportToXmlStream(DocumentPtr doc, std::ostream& stream, const XmlExportOptions* exportOptions)
 {
-    mergeLooks(doc, exportOptions);
+    DocumentPtr exportDoc = doc;
+    if (exportOptions && !exportOptions->modifyInPlace)
+    {
+        exportDoc = doc->copy();
+    }
+
+    mergeLooks(exportDoc, exportOptions);
     if (exportOptions && exportOptions->flattenFilenames)
     {
-        flattenFilenames(doc, exportOptions->resolvedTexturePath, exportOptions->stringResolver);
+        flattenFilenames(exportDoc, exportOptions->resolvedTexturePath, exportOptions->stringResolver);
     }
-    writeToXmlStream(doc, stream, exportOptions);
+    writeToXmlStream(exportDoc, stream, exportOptions);
 }
 
 void exportToXmlFile(DocumentPtr doc, const FilePath& filename, const XmlExportOptions* exportOptions)
 {
+    DocumentPtr exportDoc = doc;
+    if (exportOptions && !exportOptions->modifyInPlace)
+    {
+        exportDoc = doc->copy();
+    }
+
     mergeLooks(doc, exportOptions);
     if (exportOptions)
     {
@@ -66,6 +79,12 @@ void exportToXmlFile(DocumentPtr doc, const FilePath& filename, const XmlExportO
 
 string exportToXmlString(DocumentPtr doc, const XmlExportOptions* exportOptions)
 {
+    DocumentPtr exportDoc = doc;
+    if (exportOptions && !exportOptions->modifyInPlace)
+    {
+        exportDoc = doc->copy();
+    }
+
     mergeLooks(doc, exportOptions);
     if (exportOptions)
     {
