@@ -30,7 +30,8 @@ void mergeLooks(DocumentPtr doc, const XmlExportOptions* exportOptions)
 XmlExportOptions::XmlExportOptions() :
     XmlWriteOptions(),
     mergeLooks(true),
-    flattenFilenames(true)
+    flattenFilenames(true),
+    modifyInPlace(true)
 {
 }
 
