@@ -89,19 +89,21 @@ jobs:
           run_on_push : ON
 
     steps:
-    - name: Check Event
-      if: ${{ github.event_name == 'push' && matrix.run_on_push == 'OFF' }}
-      run: |
-        echo "Skip build for push events".
-        exit 0
+    - name: Check Push Event
+      id: checkevent
+      with: 
+        cond: ${{ github.event_name == 'push' && matrix.run_on_push == 'OFF' }}
+        if_true: '0'
+        if_false: '1'
 
     - name: Sync Repository
+      if: ${{ steps.checkevent.outcome.value }}
       uses: actions/checkout@v2
       with:
         submodules: recursive
 
     - name: Install Dependencies (Linux)
-      if: ${{ runner.os == 'Linux' }}
+      if: ${{ runner.os == 'Linux' && steps.checkevent.outcome.value }}
       run: |
         sudo apt-get update
         sudo apt-get install libglu1-mesa-dev xorg-dev
@@ -116,7 +118,7 @@ jobs:
         fi
 
     - name: Install Dependencies (MacOS)
-      if: ${{ runner.os == 'macOS' }}
+      if: ${{ runner.os == 'macOS' && steps.checkevent.outcome.value }}
       run: |
         if [ "${{ matrix.compiler }}" = "gcc" ]; then
           brew install gcc@${{ matrix.compiler_version }}
@@ -130,19 +132,23 @@ jobs:
         fi
 
     - name: Install Python ${{ matrix.python }}
+      if: ${{ steps.checkevent.outcome.value }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.architecture }}
 
     - name: Create Build Directory
+      if: ${{ steps.checkevent.outcome.value }}
       run: mkdir build
       
     - name: CMake Generate
+      if: ${{ steps.checkevent.outcome.value }}
       run: cmake -DMATERIALX_BUILD_PYTHON=ON -DMATERIALX_BUILD_VIEWER=ON -DMATERIALX_TEST_RENDER=OFF -DMATERIALX_WARNINGS_AS_ERRORS=ON ${{matrix.cmake_config}} ..
       working-directory: build
 
     - name: CMake Build
+      if: ${{ steps.checkevent.outcome.value }}
       run: cmake --build . --target install --config Release --parallel 2
       working-directory: build
 
@@ -156,15 +162,17 @@ jobs:
         echo "GALLIUM_DRIVER=softpipe" >> $GITHUB_ENV
 
     - name: Set Runtime Path (Windows)
-      if: ${{ runner.os == 'Windows' }}
+      if: ${{ runner.os == 'Windows' && steps.checkevent.outcome.value }}
       run: echo "$PWD" | Out-File -FilePath $env:GITHUB_PATH -Append
       working-directory: build/installed/bin
 
     - name: CMake Unit Tests
+      if: ${{ steps.checkevent.outcome.value }}
       run: ctest -VV --output-on-failure --build-config Release
       working-directory: build
 
     - name: Python Tests
+      if: ${{ steps.checkevent.outcome.value }}
       run: |
         python MaterialXTest/main.py
         python MaterialXTest/genshader.py
