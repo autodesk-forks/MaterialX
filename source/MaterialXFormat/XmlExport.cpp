@@ -44,6 +44,10 @@ void exportToXmlStream(DocumentPtr doc, std::ostream& stream, const XmlExportOpt
     {
         flattenFilenames(doc, exportOptions->resolvedTexturePath, exportOptions->stringResolver);
     }
+    for (ExportResolverPtr exportResolver : exportOptions->exportResolvers)
+    {
+        exportResolver->resolve(doc);
+    }
     writeToXmlStream(doc, stream, exportOptions);
 }
 
