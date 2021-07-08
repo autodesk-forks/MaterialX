@@ -95,6 +95,8 @@ jobs:
         cond: ${{ github.event_name == 'push' && matrix.run_on_push == 'OFF' }}
         if_true: '0'
         if_false: '1'
+      run: 
+        exit 0
 
     - name: Sync Repository
       if: ${{ steps.checkevent.outcome.value }}
