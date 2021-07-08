@@ -259,19 +259,28 @@
         }
     }
 
-    // Download a file in the browser
-    function downloadFile(fileName, content) {
-        // Only take the name of the file (fileName might be a path)
-        var pos = fileName.lastIndexOf(pathSep);
-        fileName = fileName.substring(pos > -1 ? pos + 1 : 0);
-        // Download file in the browser
-        var element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
-        element.setAttribute('download', fileName);
-        element.style.display = 'none';
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
+    // Store a file to disk or download it in the browser
+    function storeFileToDisk(fileName, content) {
+        if (ENVIRONMENT_IS_NODE) {
+            // Write file to local file system
+            try {
+                nodeFs.writeFileSync(fileName, content);
+            } catch (e) {
+                throw new Error("Failed to write file '" + fileName + "': " + e.message);
+            }
+        } else if (ENVIRONMENT_IS_WEB) {
+            // Only take the name of the file (fileName might be a path)
+            var pos = fileName.lastIndexOf(pathSep);
+            fileName = fileName.substring(pos > -1 ? pos + 1 : 0);
+            // Download file in the browser
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+            element.setAttribute('download', fileName);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
     }
 
     onModuleReady(function () {
@@ -476,16 +485,7 @@
 
             var file = Module.writeToXmlString(doc, writeOptions);
 
-            if (ENVIRONMENT_IS_NODE) {
-                // Write file to local file system
-                try {
-                    nodeFs.writeFileSync(fileName, file);
-                } catch (e) {
-                    throw new Error("Failed to write file '" + fileName + "': " + e.message);
-                }
-            } else if (ENVIRONMENT_IS_WEB) {
-                downloadFile(fileName, file);
-            }
+            storeFileToDisk(fileName, file);
         };
 
         // Export a document to a file.
@@ -497,16 +497,7 @@
 
             var file = Module.exportToXmlString(doc, exportOptions);
 
-            if (ENVIRONMENT_IS_NODE) {
-                // Write file to local file system
-                try {
-                    nodeFs.writeFileSync(fileName, file);
-                } catch (e) {
-                    throw new Error("Failed to write file '" + fileName + "': " + e.message);
-                }
-            } else if (ENVIRONMENT_IS_WEB) {
-                downloadFile(fileName, file);
-            }
+            storeFileToDisk(fileName, file);
         };
     });
 })();
