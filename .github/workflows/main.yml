@@ -90,7 +90,7 @@ jobs:
 
     steps:
     - name: Check Event
-      if: ${{ github.event_name == 'push' && runner.run_on_push == 'OFF' }}
+      if: ${{ github.event_name == 'push' && matrix.run_on_push == 'OFF' }}
       run: |
         echo "Skip build for push events".
         exit 0
