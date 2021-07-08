@@ -1468,8 +1468,7 @@ RtWriteOptions::RtWriteOptions() :
 
 RtExportOptions::RtExportOptions() :
     mergeLooks(true),
-    flattenFilenames(true),
-    modifyInPlace(true)
+    flattenFilenames(true)
 {
 }
 
@@ -1735,8 +1734,8 @@ void RtFileIo::exportDocument(std::ostream& stream, const RtExportOptions* optio
         xmlExportOptions.resolvedTexturePath = options->resolvedTexturePath;
         xmlExportOptions.stringResolver = options->stringResolver;
         xmlExportOptions.exportResolvers = options->exportResolvers;
-        xmlExportOptions.modifyInPlace = options->modifyInPlace;
     }
+    xmlExportOptions.modifyInPlace = true;
     exportToXmlStream(document, stream, &xmlExportOptions);
 }
 
@@ -1758,6 +1757,7 @@ void RtFileIo::exportDocument(const FilePath& documentPath, const RtExportOption
         xmlExportOptions.stringResolver = options->stringResolver;
         xmlExportOptions.exportResolvers = options->exportResolvers;
     }
+    xmlExportOptions.modifyInPlace = true;
     exportToXmlFile(document, documentPath, &xmlExportOptions);
 }
 

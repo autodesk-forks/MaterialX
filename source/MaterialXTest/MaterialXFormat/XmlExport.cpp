@@ -16,7 +16,6 @@ TEST_CASE("Export Document", "[xmlio]")
     mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/looks/looks.mtlx", searchPath);
 
     mx::XmlExportOptions exportOptions;
-    exportOptions.mergeLooks = true;
     exportOptions.lookGroupToMerge = "lookgroup1";
     std::stringstream ss;
     mx::exportToXmlStream(doc, ss, &exportOptions);

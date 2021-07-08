@@ -110,10 +110,6 @@ class RtExportOptions : public RtWriteOptions
 
     /// Export resolvers
     std::vector<ExportResolverPtr> exportResolvers;
-
-    /// Whether to modify the the document or create a copy.
-    /// By default the the document is modified in place.
-    bool modifyInPlace;
 };
 
 /// API for read and write of data from MaterialX files
