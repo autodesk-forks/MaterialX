@@ -44,6 +44,9 @@ class MX_FORMAT_API XmlExportOptions : public XmlWriteOptions
 
     /// A vector of resolvers
     std::vector<ExportResolverPtr> exportResolvers;
+
+    // Libraries to load
+    DocumentPtr libraries;
 };
 
 /// @name Export Functions

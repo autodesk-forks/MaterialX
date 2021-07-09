@@ -40,13 +40,20 @@ XmlExportOptions::XmlExportOptions() :
 void exportToXmlStream(DocumentPtr doc, std::ostream& stream, const XmlExportOptions* exportOptions)
 {
     mergeLooks(doc, exportOptions);
-    if (exportOptions && exportOptions->flattenFilenames)
+    if (exportOptions)
     {
-        flattenFilenames(doc, exportOptions->resolvedTexturePath, exportOptions->stringResolver);
-    }
-    for (ExportResolverPtr exportResolver : exportOptions->exportResolvers)
-    {
-        exportResolver->resolve(doc);
+        if (exportOptions->libraries)
+        {
+            doc->importLibrary(exportOptions->libraries);
+        }
+        if (exportOptions->flattenFilenames)
+        {
+            flattenFilenames(doc, exportOptions->resolvedTexturePath, exportOptions->stringResolver);
+        }
+        for (ExportResolverPtr exportResolver : exportOptions->exportResolvers)
+        {
+            exportResolver->resolve(doc);
+        }
     }
     writeToXmlStream(doc, stream, exportOptions);
 }
@@ -56,6 +63,10 @@ void exportToXmlFile(DocumentPtr doc, const FilePath& filename, const XmlExportO
     mergeLooks(doc, exportOptions);
     if (exportOptions)
     {
+        if (exportOptions->libraries)
+        {
+            doc->importLibrary(exportOptions->libraries);
+        }
         if (exportOptions->flattenFilenames)
         {
             flattenFilenames(doc, exportOptions->resolvedTexturePath, exportOptions->stringResolver);
@@ -73,6 +84,10 @@ string exportToXmlString(DocumentPtr doc, const XmlExportOptions* exportOptions)
     mergeLooks(doc, exportOptions);
     if (exportOptions)
     {
+        if (exportOptions->libraries)
+        {
+            doc->importLibrary(exportOptions->libraries);
+        }
         if (exportOptions->flattenFilenames)
         {
             flattenFilenames(doc, exportOptions->resolvedTexturePath, exportOptions->stringResolver);
