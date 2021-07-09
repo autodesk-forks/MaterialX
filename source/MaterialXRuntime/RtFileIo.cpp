@@ -1467,7 +1467,8 @@ RtWriteOptions::RtWriteOptions() :
 }
 
 RtExportOptions::RtExportOptions() :
-    mergeLooks(false)
+    mergeLooks(true),
+    flattenFilenames(true)
 {
 }
 
@@ -1736,6 +1737,7 @@ void RtFileIo::exportDocument(std::ostream& stream, const RtExportOptions* optio
 	xmlExportOptions.libraries = options->libraries;
     }
 
+    xmlExportOptions.modifyInPlace = true;
     exportToXmlStream(document, stream, &xmlExportOptions);
 }
 
@@ -1758,6 +1760,7 @@ void RtFileIo::exportDocument(const FilePath& documentPath, const RtExportOption
         xmlExportOptions.exportResolvers = options->exportResolvers;
         xmlExportOptions.libraries = options->libraries;
     }
+    xmlExportOptions.modifyInPlace = true;
     exportToXmlFile(document, documentPath, &xmlExportOptions);
 }
 
