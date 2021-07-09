@@ -94,6 +94,7 @@ jobs:
       run: |
         echo "Skip build for push event".
         exit -1
+      continue-on-error: true
 
     - name: Sync Repository
       if: ${{ success() }}
