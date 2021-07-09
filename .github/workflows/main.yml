@@ -92,11 +92,11 @@ jobs:
     - name: Check Disable
       if: ${{ github.event_name == 'push' && matrix.run_on_push == 'OFF' }}
       run: |
-        echo "::set-env name=SKIP_STEPS::true"        
+        echo "SKIP_STEPS=true" >> $GITHUB_ENV        
     - name: Check Enable
       if: ${{ github.event_name == 'pull_request' || matrix.run_on_push == 'ON' }}
       run: |
-        echo "::set-env name=SKIP_STEPS::false"        
+        echo "SKIP_STEPS=false" >> $GITHUB_ENV        
 
     - name: Sync Repository
       if: ${{ env.SKIP_STEPS == 'false' }}
