@@ -89,8 +89,7 @@ jobs:
           run_on_push : ON
 
     steps:
-    - name: Check Disable
-      name: checkrun
+    - name: checkrun
       run: |
         echo "::set-output name=skip::${{ github.event_name == 'push' && matrix.run_on_push == 'OFF' }}"
 
