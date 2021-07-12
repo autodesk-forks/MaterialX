@@ -22,55 +22,66 @@ ImagePtr createUniformImage(unsigned int width, unsigned int height, unsigned in
 {
     ImagePtr image = Image::create(width, height, channelCount, baseType);
     image->createResourceBuffer();
-    for (unsigned int y = 0; y < image->getHeight(); y++)
-    {
-        for (unsigned int x = 0; x < image->getWidth(); x++)
-        {
-            image->setTexelColor(x, y, color);
-        }
-    }
+    image->setUniformColor(color);
     return image;
 }
 
 ImagePtr createImageStrip(const vector<ImagePtr>& imageVec)
 {
-    if (imageVec.empty() || !imageVec[0])
+    ImagePtr refImage = imageVec.empty() ? nullptr : imageVec[0];
+    if (!refImage)
     {
         return nullptr;
     }
 
-    unsigned int srcWidth = imageVec[0]->getWidth();
-    unsigned int srcHeight = imageVec[0]->getHeight();
+    unsigned int srcWidth = refImage->getWidth();
+    unsigned int srcHeight = refImage->getHeight();
     unsigned int destWidth = srcWidth * (unsigned int) imageVec.size();
     unsigned int destHeight = srcHeight;
-    unsigned int channelCount = imageVec[0]->getChannelCount();
-    unsigned int pixelStride = imageVec[0]->getBaseStride() * channelCount;
-    Image::BaseType baseType = imageVec[0]->getBaseType();
 
-    ImagePtr imageStrip = Image::create(destWidth, destHeight, channelCount, baseType);
+    ImagePtr imageStrip = Image::create(destWidth, destHeight, refImage->getChannelCount(), refImage->getBaseType());
     imageStrip->createResourceBuffer();
 
-    unsigned int xOffset = 0;
-    for (ImagePtr srcImage : imageVec)
+    unsigned int srcRowStride = refImage->getRowStride();
+    unsigned int destRowStride = imageStrip->getRowStride();
+
+    for (unsigned int i = 0; i < imageVec.size(); i++)
     {
-        if (!srcImage || 
+        ConstImagePtr srcImage = imageVec[i];
+        if (!srcImage ||
             srcImage->getWidth() != srcWidth ||
             srcImage->getHeight() != srcHeight ||
-            srcImage->getChannelCount() != channelCount ||
-            srcImage->getBaseType() != baseType)
+            srcImage->getChannelCount() != refImage->getChannelCount() ||
+            srcImage->getBaseType() != refImage->getBaseType())
         {
             throw Exception("Source images must have identical resolutions and formats in createImageStrip");
         }
+
+        unsigned int xOffset = i * srcRowStride;
+
+        uint8_t* src = (uint8_t*) srcImage->getResourceBuffer();
+        uint8_t* dest = (uint8_t*) imageStrip->getResourceBuffer() + xOffset;
+
         for (unsigned int y = 0; y < srcHeight; y++)
         {
-            uint8_t* src = (uint8_t*) srcImage->getResourceBuffer() + y * srcWidth * pixelStride;
-            uint8_t* dst = (uint8_t*) imageStrip->getResourceBuffer() + (y * destWidth + xOffset) * pixelStride;
-            memcpy(dst, src, srcWidth * pixelStride);
+            memcpy(dest, src, srcRowStride);
+            src += srcRowStride;
+            dest += destRowStride;
         }
-        xOffset += srcWidth;
     }
 
     return imageStrip;
+}
+
+std::pair<unsigned int, unsigned int> getMaxDimensions(const vector<ImagePtr>& imageVec)
+{
+    std::pair<unsigned int, unsigned int> maxSize(0, 0);
+    for (ImagePtr image : imageVec)
+    {
+        maxSize.first = std::max(maxSize.first, image->getWidth());
+        maxSize.second = std::max(maxSize.second, image->getHeight());
+    }
+    return maxSize;
 }
 
 //
@@ -320,6 +331,17 @@ bool Image::isUniformColor(Color4* uniformColor)
         *uniformColor = refColor;
     }
     return true;
+}
+
+void Image::setUniformColor(const Color4& color)
+{
+    for (unsigned int y = 0; y < getHeight(); y++)
+    {
+        for (unsigned int x = 0; x < getWidth(); x++)
+        {
+            setTexelColor(x, y, color);
+        }
+    }
 }
 
 ImagePtr Image::applyBoxBlur()

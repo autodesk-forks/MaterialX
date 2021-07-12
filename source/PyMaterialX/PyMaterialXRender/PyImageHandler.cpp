@@ -41,13 +41,7 @@ void bindPyImageHandler(py::module& mod)
         .def("addLoader", &mx::ImageHandler::addLoader)
         .def("saveImage", &mx::ImageHandler::saveImage,
             py::arg("filePath"), py::arg("image"), py::arg("verticalFlip") = false)
-        .def("acquireImage", &mx::ImageHandler::acquireImage,
-            py::arg("filePath"), py::arg("generateMipMaps") = true)
-        .def("acquireImage", [](mx::ImageHandler& handler, const mx::FilePath& filePath, bool generateMipMaps, const mx::Color4*, const std::string*)
-            {
-                // Convert from v1.37.2 function signature.
-                return handler.acquireImage(filePath, generateMipMaps);
-            })
+        .def("acquireImage", &mx::ImageHandler::acquireImage)
         .def("bindImage", &mx::ImageHandler::bindImage)
         .def("unbindImage", &mx::ImageHandler::unbindImage)
         .def("unbindImages", &mx::ImageHandler::unbindImages)
@@ -56,8 +50,10 @@ void bindPyImageHandler(py::module& mod)
         .def("setFilenameResolver", &mx::ImageHandler::setFilenameResolver)
         .def("getFilenameResolver", &mx::ImageHandler::getFilenameResolver)
         .def("createRenderResources", &mx::ImageHandler::createRenderResources)
-        .def("releaseRenderResources", &mx::ImageHandler::releaseRenderResources)
+        .def("releaseRenderResources", &mx::ImageHandler::releaseRenderResources,
+            py::arg("image") = nullptr)
         .def("clearImageCache", &mx::ImageHandler::clearImageCache)
         .def("getZeroImage", &mx::ImageHandler::getZeroImage)
-        .def("getInvalidImage", &mx::ImageHandler::getInvalidImage);
+        .def("getInvalidImage", &mx::ImageHandler::getInvalidImage)
+        .def("getReferencedImages", &mx::ImageHandler::getReferencedImages);
 }

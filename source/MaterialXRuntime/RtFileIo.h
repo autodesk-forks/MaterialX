@@ -12,6 +12,7 @@
 #include <MaterialXCore/Document.h>
 #include <MaterialXFormat/File.h>
 #include <MaterialXFormat/XmlIo.h>
+#include <MaterialXFormat/XmlExport.h>
 
 /// @file
 /// TODO: Docs
@@ -92,22 +93,26 @@ class RtExportOptions : public RtWriteOptions
     ~RtExportOptions() { }
 
     /// Whether to merge all of the looks/lookgroups into a single look
+    /// By default looks will be merged.
     bool mergeLooks;
 
     /// The name of the lookgroup to merge
     std::string lookGroupToMerge;
 
-    /// Whether to flatten filenames
+    /// Whether to flatten filenames. By default filenames are flattened.
     bool flattenFilenames;
 
-    /// User definition path used for flattening filenames
-    FileSearchPath userDefinitionPath;
-
-    /// User texture path used for flattening filenames
-    FileSearchPath userTexturePath;
+    /// Resolved texture path
+    FileSearchPath resolvedTexturePath;
 
     /// String resolver applied during flattening filenames
     StringResolverPtr stringResolver;
+
+    /// Export resolvers
+    std::vector<ExportResolverPtr> exportResolvers;
+
+    // Libraries to load
+    DocumentPtr libraries;
 };
 
 /// API for read and write of data from MaterialX files

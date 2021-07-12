@@ -108,8 +108,8 @@ void GlslShaderRenderTester::registerLights(mx::DocumentPtr document,
     _lightHandler->setLightSources(lights);
 
     // Load environment lights.
-    mx::ImagePtr envRadiance = _renderer->getImageHandler()->acquireImage(options.radianceIBLPath, true);
-    mx::ImagePtr envIrradiance = _renderer->getImageHandler()->acquireImage(options.irradianceIBLPath, true);
+    mx::ImagePtr envRadiance = _renderer->getImageHandler()->acquireImage(options.radianceIBLPath);
+    mx::ImagePtr envIrradiance = _renderer->getImageHandler()->acquireImage(options.irradianceIBLPath);
     REQUIRE(envRadiance);
     REQUIRE(envIrradiance);
     _lightHandler->setEnvRadianceMap(envRadiance);
@@ -610,7 +610,9 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                         }
 
                         mx::UIProperties uiProperties;
-                        if (getUIProperties(path, doc, target, uiProperties) > 0)
+                        mx::ElementPtr pathElement = doc->getDescendant(path);
+                        mx::InputPtr input = pathElement ? pathElement->asA<mx::Input>() : nullptr;
+                        if (getUIProperties(input, target, uiProperties) > 0)
                         {
                             log << "Program Uniform: " << uniform.first << ". Path: " << path;
                             if (!uiProperties.uiName.empty())
@@ -662,7 +664,7 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                         mx::ImagePtr image = _renderer->captureImage();
                         if (image)
                         {
-                            _renderer->saveImage(fileName, image, true);
+                            _renderer->getImageHandler()->saveImage(fileName, image, true);
                             if (imageVec)
                             {
                                 imageVec->push_back(image);
@@ -707,12 +709,12 @@ void GlslShaderRenderTester::runBake(mx::DocumentPtr doc, const mx::FileSearchPa
     const unsigned int bakeWidth = std::max(bakeOptions.resolution, (unsigned int) 2);
     const unsigned int bakeHeight = std::max(bakeOptions.resolution, (unsigned int) 2);
 
+    mx::ImageVec imageVec = _renderer->getImageHandler()->getReferencedImages(doc);
     mx::Image::BaseType baseType = bakeOptions.hdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
     mx::TextureBakerPtr baker = mx::TextureBaker::create(bakeWidth, bakeHeight, baseType);
     baker->setupUnitSystem(doc);
     baker->setImageHandler(_renderer->getImageHandler());
     baker->setOptimizeConstants(true);
-    baker->setAutoTextureResolution(true);
     baker->setHashImageNames(true);
     baker->setCodeSearchPath(codeSearchPath);
     baker->setTextureSpace(bakeOptions.uvmin, bakeOptions.uvmax);
@@ -743,5 +745,10 @@ TEST_CASE("Render: GLSL TestSuite", "[renderglsl]")
 
     mx::FilePath optionsFilePath = testRootPath / mx::FilePath("_options.mtlx");
 
+    GenShaderUtil::TestSuiteOptions options;
+    if (options.readOptions(optionsFilePath))
+    {
+        renderTester.setColorManagementConfigFile(options.colorManagementConfigFile);
+    }
     renderTester.validate(testRootPaths, optionsFilePath);
 }

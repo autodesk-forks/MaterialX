@@ -546,6 +546,7 @@ bool ValueElement::validate(string* message) const
     {
         validateRequire(getValue() != nullptr, res, message, "Invalid value");
     }
+
     if (hasInterfaceName())
     {
         validateRequire(isA<Input>() || isA<Token>(), res, message, "Only input and token elements support interface names");
@@ -570,6 +571,7 @@ bool ValueElement::validate(string* message) const
             }
         }
     }
+
     UnitTypeDefPtr unitTypeDef;
     if (hasUnitType())
     {

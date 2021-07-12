@@ -1,9 +1,10 @@
 import { expect } from 'chai';
-import { initMaterialX, getMtlxStrings } from './testHelpers';
+import Module from './_build/JsMaterialXCore.js';
+import { getMtlxStrings } from './testHelpers';
 
 describe('Code Examples', () => {
     it('Building a MaterialX Document', async () => {
-        const mx = await initMaterialX();
+        const mx = await Module();
         // Create a document.
         const doc = mx.createDocument();
 
@@ -15,10 +16,10 @@ describe('Code Examples', () => {
         expect(nodes.length).to.equal(1);
         expect(nodes[0]).to.eql(image);
 
-        image.setInputValuestring('file', 'image1.tif', 'filename');
+        image.setInputValueString('file', 'image1.tif', 'filename');
         const input = image.getInput('file');
         expect(input).to.not.be.null;
-        expect(input.getValue().getData()).to.equal('image1.tif');
+        expect(input.getValue()).to.equal('image1.tif');
 
         const output = nodeGraph.addOutput();
         const outputs = nodeGraph.getOutputs();
@@ -36,17 +37,17 @@ describe('Code Examples', () => {
         expect(nodeDefs.length).to.equal(1);
         expect(nodeDefs[0]).to.eql(simpleSrf);
 
-        simpleSrf.setInputValuecolor3('diffColor', new mx.Color3(1.0, 1.0, 1.0));
+        simpleSrf.setInputValueColor3('diffColor', new mx.Color3(1.0, 1.0, 1.0));
         let inputValue = simpleSrf.getInputValue('diffColor');
         expect(inputValue).to.not.be.null;
         expect(inputValue.getData()).to.eql(new mx.Color3(1.0, 1.0, 1.0));
 
-        simpleSrf.setInputValuecolor3('specColor', new mx.Color3(0.0, 0.0, 0.0));
+        simpleSrf.setInputValueColor3('specColor', new mx.Color3(0.0, 0.0, 0.0));
         inputValue = simpleSrf.getInputValue('specColor');
         expect(inputValue).to.not.be.null;
         expect(inputValue.getData()).to.eql(new mx.Color3(0.0, 0.0, 0.0));
 
-        const roughness = simpleSrf.setInputValuefloat('roughness', 0.25);
+        const roughness = simpleSrf.setInputValueFloat('roughness', 0.25);
         inputValue = simpleSrf.getInputValue('roughness');
         expect(inputValue).to.not.be.null;
         expect(inputValue.getData()).to.equal(0.25);
@@ -80,23 +81,21 @@ describe('Code Examples', () => {
             ['standard_surface_greysphere_calibration.mtlx'],
             '../../../resources/Materials/Examples/StandardSurface'
         )[0];
-        const mx = await initMaterialX();
+        const mx = await Module();
 
         // Read a document from disk.
         const doc = mx.createDocument();
-        mx.readFromXmlString(doc, xmlStr);
+        await mx.readFromXmlString(doc, xmlStr);
 
         // Traverse the document tree in depth-first order.
         const elements = doc.traverseTree();
-        let elem = elements.next();
-        expect(elem).to.exist;
         let elementCount = 0;
         let nodeCount = 0;
         let fileCount = 0;
-        while (elem) {
+        for(let elem of elements) {
             elementCount++;
             // Display the filename of each image node.
-            if (elem instanceof mx.Node) {
+            if (elem.isANode('image')) {
                 nodeCount++;
                 const input = elem.getInput('file');
                 if (input) {
@@ -106,20 +105,19 @@ describe('Code Examples', () => {
                     expect(filename).to.equal('greysphere_calibration.png');
                 }
             }
-            elem = elements.next();
         }
         expect(elementCount).to.equal(21);
-        expect(nodeCount).to.equal(5);
+        expect(nodeCount).to.equal(1);
         expect(fileCount).to.equal(1);
     });
 
     it('Building a MaterialX Document', async () => {
         const xmlStr = getMtlxStrings(['MaterialBasic.mtlx'], '../../../resources/Materials/Examples/Syntax')[0];
-        const mx = await initMaterialX();
+        const mx = await Module();
 
         // Read a document from disk.
         const doc = mx.createDocument();
-        mx.readFromXmlString(doc, xmlStr);
+        await mx.readFromXmlString(doc, xmlStr);
 
         // let materialCount = 0;
         // let shaderInputCount = 0;

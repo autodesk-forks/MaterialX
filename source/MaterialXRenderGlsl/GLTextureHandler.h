@@ -29,11 +29,6 @@ class MX_RENDERGLSL_API GLTextureHandler : public ImageHandler
         return ImageHandlerPtr(new GLTextureHandler(imageLoader));
     }
 
-    /// Acquire an image from the cache or file system.  If the image is not
-    /// found in the cache, then each image loader will be applied in turn.
-    ImagePtr acquireImage(const FilePath& filePath,
-                          bool generateMipMaps = true) override;
-
     /// Bind an image. This method will bind the texture to an active texture
     /// unit as defined by the corresponding image description. The method
     /// will fail if there are not enough available image units to bind to.
@@ -45,8 +40,9 @@ class MX_RENDERGLSL_API GLTextureHandler : public ImageHandler
     /// Create rendering resources for the given image.
     bool createRenderResources(ImagePtr image, bool generateMipMaps) override;
 
-    // Release rendering resources for the given image.
-    void releaseRenderResources(ImagePtr image) override;
+    /// Release rendering resources for the given image, or for all cached images
+    /// if no image pointer is specified.
+    void releaseRenderResources(ImagePtr image = nullptr) override;
 
     /// Return the bound texture location for a given resource
     int getBoundTextureLocation(unsigned int resourceId);
@@ -57,6 +53,7 @@ class MX_RENDERGLSL_API GLTextureHandler : public ImageHandler
     /// Utility to map a filter type enumeration to an OpenGL filter type
     static int mapFilterTypeToGL(ImageSamplingProperties::FilterType filterTypeEnum, bool enableMipmaps);
 
+    /// Utility to map generic texture properties to OpenGL texture formats.
     static void mapTextureFormatToGL(Image::BaseType baseType, unsigned int channelCount, bool srgb,
                                      int& glType, int& glFormat, int& glInternalFormat);
 

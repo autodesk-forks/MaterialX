@@ -266,14 +266,6 @@ unsigned int getParseOptions(const XmlReadOptions* readOptions)
     return parseOptions;
 }
 
-void mergeLooks(DocumentPtr doc, const XmlExportOptions* exportOptions)
-{
-    if (exportOptions && exportOptions->mergeLooks)
-    {
-        doc->mergeLooks(exportOptions->lookGroupToMerge);
-    }
-}
-
 } // anonymous namespace
 
 //
@@ -296,44 +288,37 @@ XmlWriteOptions::XmlWriteOptions() :
 }
 
 //
-// XmlExportOptions methods
-//
-
-XmlExportOptions::XmlExportOptions() :
-    XmlWriteOptions(),
-    mergeLooks(false)
-{
-}
-
-//
 // Reading
 //
 
-void readFromXmlBuffer(DocumentPtr doc, const char* buffer, const XmlReadOptions* readOptions)
+void readFromXmlBuffer(DocumentPtr doc, const char* buffer, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
+    searchPath.append(getEnvironmentPath());
+
     xml_document xmlDoc;
     xml_parse_result result = xmlDoc.load_string(buffer, getParseOptions(readOptions));
     validateParseResult(result);
 
-    documentFromXml(doc, xmlDoc, EMPTY_STRING, readOptions);
+    documentFromXml(doc, xmlDoc, searchPath, readOptions);
 }
 
-void readFromXmlStream(DocumentPtr doc, std::istream& stream, const XmlReadOptions* readOptions)
+void readFromXmlStream(DocumentPtr doc, std::istream& stream, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
+    searchPath.append(getEnvironmentPath());
+
     xml_document xmlDoc;
     xml_parse_result result = xmlDoc.load(stream, getParseOptions(readOptions));
     validateParseResult(result);
 
-    documentFromXml(doc, xmlDoc, EMPTY_STRING, readOptions);
+    documentFromXml(doc, xmlDoc, searchPath, readOptions);
 }
 
 void readFromXmlFile(DocumentPtr doc, FilePath filename, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
-    xml_document xmlDoc;
-
     searchPath.append(getEnvironmentPath());
     filename = searchPath.find(filename);
 
+    xml_document xmlDoc;
     xml_parse_result result = xmlDoc.load_file(filename.asString().c_str(), getParseOptions(readOptions));
     validateParseResult(result, filename);
 
@@ -350,10 +335,10 @@ void readFromXmlFile(DocumentPtr doc, FilePath filename, FileSearchPath searchPa
     documentFromXml(doc, xmlDoc, searchPath, readOptions);
 }
 
-void readFromXmlString(DocumentPtr doc, const string& str, const XmlReadOptions* readOptions)
+void readFromXmlString(DocumentPtr doc, const string& str, FileSearchPath searchPath, const XmlReadOptions* readOptions)
 {
     std::istringstream stream(str);
-    readFromXmlStream(doc, stream, readOptions);
+    readFromXmlStream(doc, stream, searchPath, readOptions);
 }
 
 //
@@ -379,39 +364,6 @@ string writeToXmlString(DocumentPtr doc, const XmlWriteOptions* writeOptions)
     std::ostringstream stream;
     writeToXmlStream(doc, stream, writeOptions);
     return stream.str();
-}
-
-void exportToXmlStream(DocumentPtr doc, std::ostream& stream, const XmlExportOptions* exportOptions)
-{
-    mergeLooks(doc, exportOptions);
-    if (exportOptions && exportOptions->flattenFilenames)
-    {
-        FileSearchPath texturePath = getResolvedTexturePath(exportOptions->userTexturePath, exportOptions->userDefinitionPath);
-        flattenFilenames(doc, texturePath, exportOptions->stringResolver);
-    }
-    writeToXmlStream(doc, stream, exportOptions);
-}
-
-void exportToXmlFile(DocumentPtr doc, const FilePath& filename, const XmlExportOptions* exportOptions)
-{
-    mergeLooks(doc, exportOptions);
-    if (exportOptions && exportOptions->flattenFilenames)
-    {
-        FileSearchPath texturePath = getResolvedTexturePath(exportOptions->userTexturePath, exportOptions->userDefinitionPath);
-        flattenFilenames(doc, texturePath, exportOptions->stringResolver);
-    }
-    writeToXmlFile(doc, filename, exportOptions);
-}
-
-string exportToXmlString(DocumentPtr doc, const XmlExportOptions* exportOptions)
-{
-    mergeLooks(doc, exportOptions);
-    if (exportOptions && exportOptions->flattenFilenames)
-    {
-        FileSearchPath texturePath = getResolvedTexturePath(exportOptions->userTexturePath, exportOptions->userDefinitionPath);
-        flattenFilenames(doc, texturePath, exportOptions->stringResolver);
-    }
-    return writeToXmlString(doc, exportOptions);
 }
 
 void prependXInclude(DocumentPtr doc, const FilePath& filename)

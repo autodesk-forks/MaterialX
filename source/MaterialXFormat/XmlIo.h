@@ -68,33 +68,6 @@ class MX_FORMAT_API XmlWriteOptions
     ElementPredicate elementPredicate;
 };
 
-/// @class XmlExportOptions
-/// A set of options for controlling the behavior of XML export functions.
-class MX_FORMAT_API XmlExportOptions : public XmlWriteOptions
-{
-  public:
-    XmlExportOptions();
-    ~XmlExportOptions() { }
-
-    /// Whether to merge all of the looks/lookgroups into a single look
-    bool mergeLooks;
-
-    /// The name of the lookgroup to merge
-    std::string lookGroupToMerge;
-
-    /// Whether to flatten filenames
-    bool flattenFilenames;
-
-    /// User definition path used for flattening filenames
-    FileSearchPath userDefinitionPath;
-
-    /// User texture path used for flattening filenames
-    FileSearchPath userTexturePath;
-
-    /// String resolver applied during flattening filenames
-    StringResolverPtr stringResolver;
-};
-
 /// @class ExceptionParseError
 /// An exception that is thrown when a requested document cannot be parsed.
 class MX_FORMAT_API ExceptionParseError : public Exception
@@ -117,20 +90,28 @@ class MX_FORMAT_API ExceptionFileMissing : public Exception
 /// Read a Document as XML from the given character buffer.
 /// @param doc The Document into which data is read.
 /// @param buffer The character buffer from which data is read.
+/// @param searchPath An optional sequence of file paths that will be applied
+///    in order when searching for the given file and its includes.  This
+///    argument can be supplied either as a FileSearchPath, or as a standard
+///    string with paths separated by the PATH_SEPARATOR character.
 /// @param readOptions An optional pointer to an XmlReadOptions object.
 ///    If provided, then the given options will affect the behavior of the
 ///    read function.  Defaults to a null pointer.
 /// @throws ExceptionParseError if the document cannot be parsed.
-MX_FORMAT_API void readFromXmlBuffer(DocumentPtr doc, const char* buffer, const XmlReadOptions* readOptions = nullptr);
+MX_FORMAT_API void readFromXmlBuffer(DocumentPtr doc, const char* buffer, FileSearchPath searchPath = FileSearchPath(), const XmlReadOptions* readOptions = nullptr);
 
 /// Read a Document as XML from the given input stream.
 /// @param doc The Document into which data is read.
 /// @param stream The input stream from which data is read.
+/// @param searchPath An optional sequence of file paths that will be applied
+///    in order when searching for the given file and its includes.  This
+///    argument can be supplied either as a FileSearchPath, or as a standard
+///    string with paths separated by the PATH_SEPARATOR character.
 /// @param readOptions An optional pointer to an XmlReadOptions object.
 ///    If provided, then the given options will affect the behavior of the
 ///    read function.  Defaults to a null pointer.
 /// @throws ExceptionParseError if the document cannot be parsed.
-MX_FORMAT_API void readFromXmlStream(DocumentPtr doc, std::istream& stream, const XmlReadOptions* readOptions = nullptr);
+MX_FORMAT_API void readFromXmlStream(DocumentPtr doc, std::istream& stream, FileSearchPath searchPath = FileSearchPath(), const XmlReadOptions* readOptions = nullptr);
 
 /// Read a Document as XML from the given filename.
 /// @param doc The Document into which data is read.
@@ -146,18 +127,22 @@ MX_FORMAT_API void readFromXmlStream(DocumentPtr doc, std::istream& stream, cons
 /// @throws ExceptionParseError if the document cannot be parsed.
 /// @throws ExceptionFileMissing if the file cannot be opened.
 MX_FORMAT_API void readFromXmlFile(DocumentPtr doc,
-                     FilePath filename,
-                     FileSearchPath searchPath = FileSearchPath(),
-                     const XmlReadOptions* readOptions = nullptr);
+                                   FilePath filename,
+                                   FileSearchPath searchPath = FileSearchPath(),
+                                   const XmlReadOptions* readOptions = nullptr);
 
 /// Read a Document as XML from the given string.
 /// @param doc The Document into which data is read.
 /// @param str The string from which data is read.
+/// @param searchPath An optional sequence of file paths that will be applied
+///    in order when searching for the given file and its includes.  This
+///    argument can be supplied either as a FileSearchPath, or as a standard
+///    string with paths separated by the PATH_SEPARATOR character.
 /// @param readOptions An optional pointer to an XmlReadOptions object.
 ///    If provided, then the given options will affect the behavior of the
 ///    read function.  Defaults to a null pointer.
 /// @throws ExceptionParseError if the document cannot be parsed.
-MX_FORMAT_API void readFromXmlString(DocumentPtr doc, const string& str, const XmlReadOptions* readOptions = nullptr);
+MX_FORMAT_API void readFromXmlString(DocumentPtr doc, const string& str, FileSearchPath searchPath = FileSearchPath(), const XmlReadOptions* readOptions = nullptr);
 
 /// @}
 /// @name Write Functions
@@ -187,31 +172,6 @@ MX_FORMAT_API void writeToXmlFile(DocumentPtr doc, const FilePath& filename, con
 ///    write function.  Defaults to a null pointer.
 /// @return The output string, returned by value
 MX_FORMAT_API string writeToXmlString(DocumentPtr doc, const XmlWriteOptions* writeOptions = nullptr);
-
-/// Export a Document as XML to the given output stream.
-/// @param doc The Document to be written.
-/// @param stream The output stream to which data is written.
-/// @param exportOptions An optional pointer to an XxmlExportOptions object.
-///    If provided, then the given options will affect the behavior of the
-///    export function.  Defaults to a null pointer.
-MX_FORMAT_API void exportToXmlStream(DocumentPtr doc, std::ostream& stream, const XmlExportOptions* exportOptions = nullptr);
-
-/// Export a Document as XML to the given filename.
-/// @param doc The Document to be written.
-/// @param filename The filename to which data is written.  This argument can
-///    be supplied either as a FilePath or a standard string.
-/// @param exportOptions An optional pointer to an XmlExportOptions object.
-///    If provided, then the given options will affect the behavior of the
-///    write function.  Defaults to a null pointer.
-MX_FORMAT_API void exportToXmlFile(DocumentPtr doc, const FilePath& filename, const XmlExportOptions* exportOptions = nullptr);
-
-/// Export a Document as XML to a new string, returned by value.
-/// @param doc The Document to be written.
-/// @param exportOptions An optional pointer to an XmlExportOptions object.
-///    If provided, then the given options will affect the behavior of the
-///    write function.  Defaults to a null pointer.
-/// @return The output string, returned by value
-MX_FORMAT_API string exportToXmlString(DocumentPtr doc, const XmlExportOptions* exportOptions = nullptr);
 
 /// @}
 /// @name Edit Functions
