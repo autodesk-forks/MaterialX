@@ -20,13 +20,7 @@ module.exports = function(config) {
                 reporter: 'html'
             }
         },
-        browsers: ['ChromeHeadlessNoSandbox'],
-        customLaunchers: {
-            ChromeHeadlessNoSandbox: {
-                base: 'ChromeHeadless',
-                flags: ['--no-sandbox', '--headless']
-            }
-        },
+        browsers: ['ChromeHeadless'],
         port: 8080,
         autoWatch: true,
         concurrency: Infinity,
