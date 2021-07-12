@@ -108,7 +108,6 @@ function init() {
     };
 
     renderer = new THREE.WebGLRenderer({canvas, context});
-    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     composer = new EffectComposer( renderer );
