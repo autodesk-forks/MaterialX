@@ -178,9 +178,9 @@ jobs:
       if: ${{ ( github.event_name == 'pull_request' || matrix.run_on_push == 'ON' ) && matrix.test_generate == 'ON' }}
       run: |
         mkdir build/generate
-        python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build_public_rel/generate/" --target "glsl"
-        python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build_public_rel/generate/" --target "osl"
-        python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build_public_rel/generate/" --target "mdl"
+        python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build/generate/" --target "glsl"
+        python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build/generate/" --target "osl"
+        python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build/generate/" --target "mdl"
 
     - name: Render Tests
       if: ${{ matrix.test_render == 'ON' && github.event_name == 'pull_request' }}
