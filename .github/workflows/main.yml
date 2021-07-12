@@ -55,7 +55,7 @@ jobs:
           compiler: xcode
           compiler_version: "11.7"
           python: 3.7
-          run_on_push : OFF
+          run_on_push : ON
 
         - name: MacOS_Xcode_12_Python37
           os: macos-10.15
@@ -64,7 +64,7 @@ jobs:
           python: 3.7
           cmake_config: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
           test_generate: ON
-          run_on_push : ON
+          run_on_push : OFF
 
         - name: Windows_VS2017_Win32_Python27
           os: windows-2016
@@ -90,22 +90,18 @@ jobs:
 
     steps:
     - name: Check Disable
-      if: ${{ github.event_name == 'push' && matrix.run_on_push == 'OFF' }}
+      name: checkrun
       run: |
-        echo "SKIP_STEPS=true" >> $GITHUB_ENV        
-    - name: Check Enable
-      if: ${{ github.event_name == 'pull_request' || matrix.run_on_push == 'ON' }}
-      run: |
-        echo "SKIP_STEPS=false" >> $GITHUB_ENV        
+        echo "::set-output name=skip::${{ github.event_name == 'push' && matrix.run_on_push == 'OFF' }}"
 
     - name: Sync Repository
-      if: ${{ env.SKIP_STEPS == 'false' }}
+      if: ${{ steps.checkrun.outputs.skip }}
       uses: actions/checkout@v2
       with:
         submodules: recursive
 
     - name: Install Dependencies (Linux)
-      if: ${{ runner.os == 'Linux' && env.SKIP_STEPS == 'false' }}
+      if: ${{ runner.os == 'Linux' && steps.checkrun.outputs.skip }}
       run: |
         sudo apt-get update
         sudo apt-get install libglu1-mesa-dev xorg-dev
@@ -120,7 +116,7 @@ jobs:
         fi
 
     - name: Install Dependencies (MacOS)
-      if: ${{ runner.os == 'macOS' && env.SKIP_STEPS == 'false' }}
+      if: ${{ runner.os == 'macOS' && steps.checkrun.outputs.skip }}
       run: |
         if [ "${{ matrix.compiler }}" = "gcc" ]; then
           brew install gcc@${{ matrix.compiler_version }}
@@ -134,28 +130,28 @@ jobs:
         fi
 
     - name: Install Python ${{ matrix.python }}
-      if: ${{ env.SKIP_STEPS == 'false' }}
+      if: ${{ steps.checkrun.outputs.skip }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
         architecture: ${{ matrix.architecture }}
 
     - name: Create Build Directory
-      if: ${{ env.SKIP_STEPS == 'false' }}
+      if: ${{ steps.checkrun.outputs.skip }}
       run: mkdir build
       
     - name: CMake Generate
-      if: ${{ env.SKIP_STEPS == 'false' }}
+      if: ${{ steps.checkrun.outputs.skip }}
       run: cmake -DMATERIALX_BUILD_PYTHON=ON -DMATERIALX_BUILD_VIEWER=ON -DMATERIALX_TEST_RENDER=OFF -DMATERIALX_WARNINGS_AS_ERRORS=ON ${{matrix.cmake_config}} ..
       working-directory: build
 
     - name: CMake Build
-      if: ${{ env.SKIP_STEPS == 'false' }}
+      if: ${{ steps.checkrun.outputs.skip }}
       run: cmake --build . --target install --config Release --parallel 2
       working-directory: build
 
     - name: Initialize Virtual Framebuffer
-      if: ${{ env.SKIP_STEPS == 'false' && matrix.test_render == 'ON' && runner.os == 'Linux' && github.event_name == 'pull_request' }}
+      if: ${{ steps.checkrun.outputs.skip && matrix.test_render == 'ON' && runner.os == 'Linux' && github.event_name == 'pull_request' }}
       run: |
         Xvfb :1 -screen 0 1280x960x24 &
         echo "DISPLAY=:1" >> $GITHUB_ENV
@@ -164,17 +160,17 @@ jobs:
         echo "GALLIUM_DRIVER=softpipe" >> $GITHUB_ENV
 
     - name: Set Runtime Path (Windows)
-      if: ${{ runner.os == 'Windows' && env.SKIP_STEPS == 'false' }}
+      if: ${{ runner.os == 'Windows' && steps.checkrun.outputs.skip }}
       run: echo "$PWD" | Out-File -FilePath $env:GITHUB_PATH -Append
       working-directory: build/installed/bin
 
     - name: CMake Unit Tests
-      if: ${{ env.SKIP_STEPS == 'false' }}
+      if: ${{ steps.checkrun.outputs.skip }}
       run: ctest -VV --output-on-failure --build-config Release
       working-directory: build
 
     - name: Python Tests
-      if: ${{ env.SKIP_STEPS == 'false' }}
+      if: ${{ steps.checkrun.outputs.skip }}
       run: |
         python MaterialXTest/main.py
         python MaterialXTest/genshader.py
@@ -184,7 +180,7 @@ jobs:
       working-directory: python
 
     - name: Generation Tests
-      if: ${{ env.SKIP_STEPS == 'false' && matrix.test_generate == 'ON' && github.event_name == 'pull_request' }}
+      if: ${{ steps.checkrun.outputs.skip && matrix.test_generate == 'ON' && github.event_name == 'pull_request' }}
       run: |
         mkdir build/generate
         python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build_public_rel/generate/" --target "glsl"
@@ -192,7 +188,7 @@ jobs:
         python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build_public_rel/generate/" --target "mdl"
 
     - name: Render Tests
-      if: ${{ env.SKIP_STEPS == 'false' && matrix.test_render == 'ON' && github.event_name == 'pull_request' }}
+      if: ${{ steps.checkrun.outputs.skip && matrix.test_render == 'ON' && github.event_name == 'pull_request' }}
       run: |
         mkdir build/render
         python python/Scripts/baketextures.py resources/Materials/Examples/StandardSurface/standard_surface_brass_tiled.mtlx build/render/brass_tiled_baked.mtlx --path .
@@ -201,21 +197,21 @@ jobs:
 
     - name: Upload Installed Package
       uses: actions/upload-artifact@v2
-      if: ${{ env.SKIP_STEPS == 'false' && github.event_name == 'pull_request' }}
+      if: ${{ steps.checkrun.outputs.skip && github.event_name == 'pull_request' }}
       with:
         name: MaterialX_${{ matrix.name }}
         path: build/installed/
 
     - name: Upload Renders
       uses: actions/upload-artifact@v2
-      if: ${{ env.SKIP_STEPS == 'false' && matrix.test_render == 'ON' && github.event_name == 'pull_request' }}
+      if: ${{ steps.checkrun.outputs.skip && matrix.test_render == 'ON' && github.event_name == 'pull_request' }}
       with:
         name: Renders_${{ matrix.name }}
         path: build/render/
 
     - name: Upload Shaders
       uses: actions/upload-artifact@v2
-      if: ${{ env.SKIP_STEPS == 'false' && matrix.test_generate == 'ON' && github.event_name == 'pull_request' }}
+      if: ${{ steps.checkrun.outputs.skip && matrix.test_generate == 'ON' && github.event_name == 'pull_request' }}
       with:
         name: Shaders_${{ matrix.name }}
         path: build/generate/
