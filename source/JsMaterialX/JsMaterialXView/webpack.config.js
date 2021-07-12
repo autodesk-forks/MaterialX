@@ -3,10 +3,10 @@ const fs = require('fs');
 const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
-const stdSurfaceMaterial = "../../../resources/Materials/Examples/StandardSurface";
+const stdSurfaceMaterials = "../../../resources/Materials/Examples/StandardSurface";
 const stdSurfaceMaterialsBaseURL = "Materials/Examples/StandardSurface";
 
-const materials = fs.readdirSync(stdSurfaceMaterial)
+const materials = fs.readdirSync(stdSurfaceMaterials)
   .map((fileName) => ({name: fileName, value: `${stdSurfaceMaterialsBaseURL}/${fileName}`}));
 
 module.exports = {
@@ -36,7 +36,7 @@ module.exports = {
         { from: "node_modules/three/examples/js/libs/draco",  to: "draco"},
         { from: "../../../resources/Lights/san_giuseppe_bridge_split.hdr", to: "Lights" },
         { from: "../../../resources/Lights/irradiance/san_giuseppe_bridge_split.hdr", to: "Lights/irradiance" },
-        { from: stdSurfaceMaterial, to: stdSurfaceMaterialsBaseURL },
+        { from: stdSurfaceMaterials, to: stdSurfaceMaterialsBaseURL },
         { from: "../../../build/bin/JsMaterialXGenShader.wasm" },
         { from: "../../../build/bin/JsMaterialXGenShader.js" },
         { from: "../../../build/bin/JsMaterialXGenShader.data" },

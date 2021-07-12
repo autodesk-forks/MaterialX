@@ -14,7 +14,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 
-import { generateTangents, prepareEnvTexture, toThreeUniforms } from './helper.js'
+import { prepareEnvTexture, toThreeUniforms } from './helper.js'
 
 let camera, scene, model, renderer, composer, controls, mx;
 
@@ -233,7 +233,6 @@ function onWindowResize() {
 
 function animate() {  
     requestAnimationFrame(animate);
-    const currentTime = Date.now();
 
     composer.render();
 
