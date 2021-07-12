@@ -176,3 +176,14 @@ function setTextureParameters(texture, name, uniformJSON, generateMipmaps = true
     texture.magFilter = THREE.LinearFilter;
     texture.minFilter = getMinFilter(filterType, generateMipmaps);
 }
+
+export function findLights(doc) {
+    let lights = [];
+    for (let node of doc.getNodes())
+    {
+        if (node.getType() === "lightshader")
+            lights.push(node);
+    }
+
+    return lights;
+}

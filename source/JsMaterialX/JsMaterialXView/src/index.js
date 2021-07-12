@@ -14,7 +14,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 
-import { prepareEnvTexture, toThreeUniforms } from './helper.js'
+import { prepareEnvTexture, toThreeUniforms, findLights } from './helper.js'
 
 let camera, scene, model, renderer, composer, controls, mx;
 
@@ -133,6 +133,7 @@ function init() {
 
     Promise.all([
         new Promise(resolve => hdrloader.setDataType(THREE.FloatType).load('Lights/san_giuseppe_bridge_split.hdr', resolve)),
+        new Promise(resolve => fileloader.load('Lights/san_giuseppe_bridge_split.mtlx', resolve)),
         new Promise(resolve => hdrloader.setDataType(THREE.FloatType).load('Lights/irradiance/san_giuseppe_bridge_split.hdr', resolve)),
         new Promise(resolve => gltfLoader.load('Geometry/shaderball.glb', resolve)),
         new Promise(function (resolve) { 
@@ -140,7 +141,7 @@ function init() {
             resolve(module); 
           }); }),
         new Promise(resolve => materialFilename ? fileloader.load(materialFilename, resolve) : resolve())
-    ]).then(async ([loadedRadianceTexture, loadedIrradianceTexture, {scene: obj}, mxIn, mtlxMaterial]) => {
+    ]).then(async ([loadedRadianceTexture, loadedLightSetup, loadedIrradianceTexture, {scene: obj}, mxIn, mtlxMaterial]) => {
         // Initialize MaterialX and the shader generation context
         mx = mxIn;
         let doc = mx.createDocument();
@@ -157,8 +158,25 @@ function init() {
 
         let elem = mx.findRenderableElement(doc);
 
+        // Handle transparent materials
         const isTransparent = mx.isTransparentSurface(elem, gen.getTarget());
         genContext.getOptions().hwTransparency = isTransparent;
+
+        // Load lighting setup into document
+        const lightRigDoc = mx.createDocument();
+        await mx.readFromXmlString(lightRigDoc, loadedLightSetup);
+        doc.importLibrary(lightRigDoc);
+
+        // Register lights with generation context
+        const lights = findLights(doc);
+        const lightTypeBound = {};
+        let lightId = 1;
+        for (let light of lights) {
+          let nodeDef = light.getNodeDef();
+          if (!lightTypeBound[nodeDef.getName()]) {
+            mx.HwShaderGenerator.bindLightShader(nodeDef, lightId++, genContext);
+          }
+        }    
 
         let shader = gen.generate(elem.getNamePath(), elem, genContext);
 
