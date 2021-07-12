@@ -92,7 +92,7 @@ jobs:
     - name: Check Run
       id: checkrun
       run: |
-        if [ ${{ github.event_name == 'push' && matrix.run_on_push== 'OFF' }} ]; then
+        if [ "${{ github.event_name }}" == "push" && "${{ matrix.run_on_push }}" == "OFF" ]; then
           echo "::set-output name=run::false"
         else
           echo "::set-output name=run::true"
