@@ -58,12 +58,17 @@ jobs:
       run: cmake --build . --target install --config Release --parallel 2
       working-directory: build
     
-    - name: JS Tests
+    - name: NodeJS Tests
       run: |
-        cd ../source/JsMaterialX/test/
         npm install
         npm run test
-      working-directory: build
+      working-directory: source/JsMaterialX/test
+
+    - name: Browser Tests
+      run: |
+        npm install
+        npm run test:browser
+      working-directory: source/JsMaterialX/test/
 
     - name: Upload Installed Package
       uses: actions/upload-artifact@v2
