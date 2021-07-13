@@ -14,7 +14,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 
-import { prepareEnvTexture, toThreeUniforms, findLights } from './helper.js'
+import { generateTangents, prepareEnvTexture, toThreeUniforms, findLights, registerLights } from './helper.js'
 
 let camera, scene, model, renderer, composer, controls, mx;
 
@@ -97,16 +97,6 @@ function init() {
     scene.background = new THREE.Color(0x4c4c52);
     scene.background.convertSRGBToLinear();
 
-    scene.add(new THREE.AmbientLight( 0x222222));
-    const directionalLight = new THREE.DirectionalLight(new THREE.Color(1, 0.894474, 0.567234), 2.52776);
-    directionalLight.position.set(-1, 1, 1).normalize();
-    scene.add(directionalLight);
-    const lightData = {
-      type: 1,
-      direction: directionalLight.position.negate(), 
-      color: new THREE.Vector3(...directionalLight.color.toArray()), 
-      intensity: directionalLight.intensity
-    };
 
     renderer = new THREE.WebGLRenderer({canvas, context});
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -169,14 +159,7 @@ function init() {
 
         // Register lights with generation context
         const lights = findLights(doc);
-        const lightTypeBound = {};
-        let lightId = 1;
-        for (let light of lights) {
-          let nodeDef = light.getNodeDef();
-          if (!lightTypeBound[nodeDef.getName()]) {
-            mx.HwShaderGenerator.bindLightShader(nodeDef, lightId++, genContext);
-          }
-        }    
+        const lightData = registerLights(mx, lights, genContext);
 
         let shader = gen.generate(elem.getNamePath(), elem, genContext);
 
@@ -194,7 +177,7 @@ function init() {
         Object.assign(uniforms, {
           time: { value: 0.0 },
           u_numActiveLightSources: {value: 1},
-          u_lightData: {value: [ lightData ]},
+          u_lightData: {value: lightData},
 
           u_envMatrix: {value: new THREE.Matrix4().makeRotationY(Math.PI)},
           u_envRadiance: {value: radianceTexture},
