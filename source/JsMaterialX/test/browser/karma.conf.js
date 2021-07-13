@@ -20,7 +20,7 @@ module.exports = function(config) {
                 reporter: 'html'
             }
         },
-        browsers: ['ChromeHeadless'],
+        browsers: ['Chrome'],
         port: 8080,
         autoWatch: true,
         concurrency: Infinity,
