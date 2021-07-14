@@ -175,10 +175,8 @@ function init() {
         const irradianceTexture = prepareEnvTexture(loadedIrradianceTexture, renderer.capabilities);
 
         Object.assign(uniforms, {
-          time: { value: 0.0 },
-          u_numActiveLightSources: {value: 1},
+          u_numActiveLightSources: {value: lights.length},
           u_lightData: {value: lightData},
-
           u_envMatrix: {value: new THREE.Matrix4().makeRotationY(Math.PI)},
           u_envRadiance: {value: radianceTexture},
           u_envRadianceMips: {value: Math.trunc(Math.log2(Math.max(radianceTexture.image.width, radianceTexture.image.height))) + 1},
@@ -241,11 +239,14 @@ function animate() {
       if (child.isMesh) {
         const uniforms = child.material.uniforms;
         if(uniforms) {
-          uniforms.time.value = performance.now() / 1000;
-          uniforms.u_viewPosition.value = camera.getWorldPosition(worldViewPos);
           uniforms.u_worldMatrix.value = child.matrixWorld;
           uniforms.u_viewProjectionMatrix.value = viewProjMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-          uniforms.u_worldInverseTransposeMatrix.value = new THREE.Matrix4().setFromMatrix3(normalMat.getNormalMatrix(child.matrixWorld));
+          
+          if (uniforms.u_viewPosition) 
+            uniforms.u_viewPosition.value = camera.getWorldPosition(worldViewPos);
+
+          if (uniforms.u_worldInverseTransposeMatrix)
+            uniforms.u_worldInverseTransposeMatrix.value = new THREE.Matrix4().setFromMatrix3(normalMat.getNormalMatrix(child.matrixWorld));
         }
       }
     });
