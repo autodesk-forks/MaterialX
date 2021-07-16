@@ -49,10 +49,17 @@
     <output name="out" type="surfaceshader" />
   </nodedef>
 
+   <!--
+      Association between imlementation and definition
+   -->
+   <implementation name="IMPL_standard_surface_surfaceshader_101"
+       nodedef="ND_standard_surface_surfaceshader"
+       nodegraph="NG_standard_surface_surfaceshader_101" />
+
   <!--
     Autodesk Standard Surface nodegraph implementation.
   -->
-  <nodegraph name="IMPL_standard_surface_surfaceshader" nodedef="ND_standard_surface_surfaceshader">
+  <nodegraph name="NG_standard_surface_surfaceshader_101">
 
     <!-- Roughness influence by coat-->
     <multiply name="coat_affect_roughness_multiply1" type="float">
