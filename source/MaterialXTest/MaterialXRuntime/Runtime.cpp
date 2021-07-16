@@ -1937,7 +1937,7 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     REQUIRE_NOTHROW(api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH(), nullptr, true));
 
     const mx::RtString shaderNodeDefName("ND_standard_surface_surfaceshader");
-    const mx::RtString shaderNodeGraphName("IMPL_standard_surface_surfaceshader");
+    const mx::RtString shaderNodeGraphName("NG_standard_surface_surfaceshader_100");
     REQUIRE(api->getDefinition<mx::RtNodeDef>(shaderNodeDefName));
     REQUIRE(api->getImplementation<mx::RtNodeGraph>(shaderNodeGraphName));
     api->unloadLibrary(BXDFLIB_NAME);

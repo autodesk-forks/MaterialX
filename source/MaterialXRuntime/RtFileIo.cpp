@@ -747,35 +747,42 @@ namespace
     template<class T>
     void createInterface(const ElementPtr& src, T schema)
     {
-        for (auto elem : src->getChildrenOfType<ValueElement>())
+        StringSet elementsAdded;
+        for (ConstElementPtr interface : src->traverseInheritance())
         {
-            const RtString portName(elem->getName());
-            const RtString portType(elem->getType());
-
-            RtPort port;
-            if (elem->isA<Output>())
+            for (auto elem : interface->getChildrenOfType<ValueElement>())
             {
-                port = schema.createOutput(portName, portType);
-            }
-            else if (elem->isA<Input>())
-            {
-                const uint32_t flags = elem->asA<Input>()->getIsUniform() ? RtPortFlag::UNIFORM : 0;
-                port = schema.createInput(portName, portType, flags);
-            }
-            else if (elem->isA<Token>())
-            {
-                port = schema.createInput(portName, portType, RtPortFlag::TOKEN);
-            }
-
-            if (port)
-            {
-                const string& valueStr = elem->getValueString();
-                if (!valueStr.empty())
+                if (elementsAdded.insert(elem->getName()).second)
                 {
-                    RtValue::fromString(portType, valueStr, port.getValue());
-                }
+                    const RtString portName(elem->getName());
+                    const RtString portType(elem->getType());
 
-                readAttributes(elem, PvtObject::cast(port), schema.getPrimSpec(), portIgnoreList);
+                    RtPort port;
+                    if (elem->isA<Output>())
+                    {
+                        port = schema.createOutput(portName, portType);
+                    }
+                    else if (elem->isA<Input>())
+                    {
+                        const uint32_t flags = elem->asA<Input>()->getIsUniform() ? RtPortFlag::UNIFORM : 0;
+                        port = schema.createInput(portName, portType, flags);
+                    }
+                    else if (elem->isA<Token>())
+                    {
+                        port = schema.createInput(portName, portType, RtPortFlag::TOKEN);
+                    }
+
+                    if (port)
+                    {
+                        const string& valueStr = elem->getValueString();
+                        if (!valueStr.empty())
+                        {
+                            RtValue::fromString(portType, valueStr, port.getValue());
+                        }
+
+                        readAttributes(elem, PvtObject::cast(port), schema.getPrimSpec(), portIgnoreList);
+                    }
+                }
             }
         }
     }
@@ -833,6 +840,29 @@ namespace
                 PvtOutput* output = findOutputOrThrow(outputName, connectedNode);
 
                 createConnection(output, input, elemInput->getChannels(), stage);
+            }
+        }
+    }
+
+    // Convert all relationships between nodegraphs and nodedefs defined implicitly on
+    // implementation elemsnt to be explicit connections
+    void connectImplementationRelations(DocumentPtr doc, PvtStage* stage)
+    {    
+        for (auto elem : doc->getImplementations())
+        {
+            const string& nodeDefString = elem->getNodeDefString();
+            const string& nodeGraphString = elem->getNodeGraph();
+            if (!nodeGraphString.empty() && !nodeDefString.empty())
+            {
+                PvtPrim* nodeDefPrim = stage->getPrimAtPath(PvtPath(nodeDefString));
+                PvtPrim* nodeGraphPrim = stage->getPrimAtPath(PvtPath(nodeGraphString));
+                if (nodeDefPrim && nodeGraphPrim) 
+                {
+                    RtNodeDef rtNodedef(nodeDefPrim->hnd());
+                    RtNodeGraph rtNodeGraph(nodeGraphPrim->hnd());
+                    rtNodeGraph.setDefinition(RtString(nodeDefString));
+                    rtNodedef.getNodeImpls().connect(nodeGraphPrim->hnd());
+                }
             }
         }
     }
@@ -903,7 +933,7 @@ namespace
         PvtApi* api = PvtApi::cast(RtApi::get());
 
         // First, see if a nodedef string is specified on the node.
-        const string& nodedefNameString = node->getNodeDefString();
+        const string& nodedefNameString = node->getNodeDefString(); // This is wrong.
         if (!nodedefNameString.empty())
         {
             // Find this nodedef among the available ones.
@@ -1147,6 +1177,12 @@ namespace
 
     PvtPrim* readImplementation(const ImplementationPtr& src, PvtStage* stage)
     {
+        // Skip these as these are relationships and not implementations
+        if (!src->getNodeGraph().empty())
+        {
+            return nullptr;
+        }
+
         PvtPrim* parent = stage->getRootPrim();
         const RtString target(src->getAttribute(RtString::TARGET.str()));
 
@@ -1433,6 +1469,9 @@ namespace
                 }
             }
         }
+
+        // Create nodegraph, nodedef connections based on implementations
+        connectImplementationRelations(doc, stage);
 
         // Create connections between all root level nodes in the stage.
         createNodeConnections(doc->getNodes(), stage->getRootPrim(), stage, mapper);
