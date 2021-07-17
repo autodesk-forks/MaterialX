@@ -1177,12 +1177,6 @@ namespace
 
     PvtPrim* readImplementation(const ImplementationPtr& src, PvtStage* stage)
     {
-        // Skip these as these are relationships and not implementations
-        if (!src->getNodeGraph().empty())
-        {
-            return nullptr;
-        }
-
         PvtPrim* parent = stage->getRootPrim();
         const RtString target(src->getAttribute(RtString::TARGET.str()));
 
