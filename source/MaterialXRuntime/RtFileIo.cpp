@@ -844,28 +844,6 @@ namespace
         }
     }
 
-    // Convert all relationships between nodegraphs and nodedefs defined implicitly on
-    // implementation elemsnt to be explicit connections
-    void connectImplementationRelations(DocumentPtr doc, PvtStage* stage)
-    {    
-        for (auto elem : doc->getImplementations())
-        {
-            const string& nodeDefString = elem->getNodeDefString();
-            const string& nodeGraphString = elem->getNodeGraph();
-            if (!nodeGraphString.empty() && !nodeDefString.empty())
-            {
-                PvtPrim* nodeDefPrim = stage->getPrimAtPath(PvtPath(nodeDefString));
-                PvtPrim* nodeGraphPrim = stage->getPrimAtPath(PvtPath(nodeGraphString));
-                if (nodeDefPrim && nodeGraphPrim) 
-                {
-                    RtNodeDef rtNodedef(nodeDefPrim->hnd());
-                    RtNodeGraph rtNodeGraph(nodeGraphPrim->hnd());
-                    rtNodeGraph.setDefinition(RtString(nodeDefString));
-                    rtNodedef.getNodeImpls().connect(nodeGraphPrim->hnd());
-                }
-            }
-        }
-    }
 
     void createNodeConnections(const vector<NodePtr>& nodeElements, PvtPrim* parent, PvtStage* stage, const PvtRenamingMapper& mapper)
     {
@@ -1463,9 +1441,6 @@ namespace
                 }
             }
         }
-
-        // Create nodegraph, nodedef connections based on implementations
-        connectImplementationRelations(doc, stage);
 
         // Create connections between all root level nodes in the stage.
         createNodeConnections(doc->getNodes(), stage->getRootPrim(), stage, mapper);

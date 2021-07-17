@@ -173,7 +173,23 @@ void PvtApi::setupNodeImplRelationships()
         if (nodedefObj)
         {
             RtNodeDef nodedef(nodedefObj->hnd());
-            nodedef.getNodeImpls().connect(nodeimpl.getPrim());
+            RtString nodeGraphString = nodeimpl.getNodeGraph();
+            if (nodeGraphString == RtString::EMPTY)
+            {
+                nodedef.getNodeImpls().connect(nodeimpl.getPrim());
+            }
+            // Handle case where the implementation specifies the nodedef - nodegraph implementation
+            // relationship
+            else
+            {
+                PvtObject* nodeGraphObj = _nodegraphs.find(nodeGraphString);
+                if (nodeGraphObj)
+                {
+                    RtNodeGraph nodegraph(nodeGraphObj->hnd());
+                    nodegraph.setDefinition(RtString(nodedef.getName()));
+                    nodedef.getNodeImpls().connect(nodeGraphObj->hnd());
+                }
+            }
         }
     }
     for (PvtObject* obj : _nodegraphs.vec())
