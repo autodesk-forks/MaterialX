@@ -911,7 +911,7 @@ namespace
         PvtApi* api = PvtApi::cast(RtApi::get());
 
         // First, see if a nodedef string is specified on the node.
-        const string& nodedefNameString = node->getNodeDefString(); // This is wrong.
+        const string& nodedefNameString = node->getNodeDefString();
         if (!nodedefNameString.empty())
         {
             // Find this nodedef among the available ones.
