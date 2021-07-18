@@ -13,6 +13,7 @@
 #include <MaterialXRuntime/RtNodeImpl.h>
 #include <MaterialXRuntime/RtTargetDef.h>
 #include <MaterialXRuntime/RtFileIo.h>
+#include <MaterialXRuntime/RtPath.h>
 
 namespace MaterialX
 {
@@ -121,6 +122,16 @@ void PvtApi::registerPrims(RtStagePtr stage)
         else if (prim.hasApi<RtNodeImpl>())
         {
             registerNodeImpl(prim);
+            RtNodeImpl nodeImpl(prim);
+            RtString nodeGraphName = nodeImpl.getNodeGraph();
+            if (nodeGraphName != RtString::EMPTY)
+            {
+                RtPrim nodeGraphPrim = stage->getPrimAtPath(RtPath(nodeGraphName.str()));
+                if (nodeGraphPrim)
+                {
+                    registerNodeGraph(nodeGraphPrim);
+                }
+            }
         }
         else if (prim.hasApi<RtTargetDef>())
         {
