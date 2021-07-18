@@ -159,6 +159,16 @@ void PvtApi::unregisterPrims(RtStagePtr stage)
         else if (prim.hasApi<RtNodeImpl>())
         {
             unregisterNodeImpl(prim.getName());
+            RtNodeImpl nodeImpl(prim);
+            RtString nodeGraphName = nodeImpl.getNodeGraph();
+            if (nodeGraphName != RtString::EMPTY)
+            {
+                RtPrim nodeGraphPrim = stage->getPrimAtPath(RtPath(nodeGraphName.str()));
+                if (nodeGraphPrim)
+                {
+                    unregisterNodeGraph(nodeGraphPrim.getName());
+                }
+            }
         }
         else if (prim.hasApi<RtTargetDef>())
         {
