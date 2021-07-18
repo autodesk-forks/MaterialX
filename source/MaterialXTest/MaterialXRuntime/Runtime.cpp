@@ -1951,7 +1951,7 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     REQUIRE(nodedefPrim2);
     mx::RtNodeDef nodedef2(nodedefPrim2);
     mx::RtPrim nodegraphPrim2 = nodedef2.getNodeImpl(mx::RtString());
-    mx::RtNodeGraph nodegraph2(nodegraphPrim);
+    mx::RtNodeGraph nodegraph2(nodegraphPrim2);
     REQUIRE(nodegraph2.getName() == shaderNodeGraphName);
 
     api->unloadLibrary(BXDFLIB_NAME);
