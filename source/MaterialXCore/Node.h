@@ -111,11 +111,7 @@ class MX_CORE_API Node : public InterfaceElement
     /// @return An implementation for this node, or an empty shared pointer if
     ///    none was found.  Note that a node implementation may be either an
     ///    Implementation element or a NodeGraph element.
-    InterfaceElementPtr getImplementation(const string& target = EMPTY_STRING) const
-    {
-        NodeDefPtr nodeDef = getNodeDef(target);
-        return nodeDef ? nodeDef->getImplementation(target) : InterfaceElementPtr();
-    }
+    InterfaceElementPtr getImplementation(const string& target = EMPTY_STRING) const;
 
     /// @}
     /// @name Traversal
