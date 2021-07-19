@@ -180,7 +180,7 @@ public:
     /// will be used to find the files if the given path is a relative path.
     /// All definitions and implementations found will be registered and available to use
     /// for content creation as long as the library remains loaded.
-    RtStagePtr loadLibrary(const RtString& name, const FilePath& path, const RtReadOptions* options = nullptr, bool forceReload = false);
+    RtStagePtr loadLibraries(const RtString& name, const FilePathVec& libraryPaths, const RtReadOptions* options = nullptr, bool forceReload = false);
 
     /// Unload a previously loaded library.
     /// All definitions and implementations in the library will be

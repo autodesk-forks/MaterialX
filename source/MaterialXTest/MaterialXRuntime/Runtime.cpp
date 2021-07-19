@@ -128,10 +128,10 @@ TEST_CASE("Runtime: Material Element Upgrade", "[runtime]")
     mx::RtScopedApiHandle api;
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
-    api->loadLibrary(BXDFLIB_NAME, RuntimeGlobals::BXDFLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
+    api->loadLibraries(BXDFLIB_NAME, { RuntimeGlobals::BXDFLIB_PATH() });
 
     mx::FileSearchPath testSearchPath(mx::FilePath::getCurrentPath() /
         "resources" /
@@ -1075,8 +1075,8 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
 
         // Load in stdlib
         api->setSearchPath(searchPath);
-        api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-        api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
+        api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+        api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
 
         // Create a stage.
         mx::RtStagePtr stage = api->createStage(MAIN);
@@ -1124,8 +1124,8 @@ TEST_CASE("Runtime: FileIo", "[runtime]")
 
         // Load in stdlib
         api->setSearchPath(searchPath);
-        api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-        api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
+        api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+        api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
 
         // Create a new working space stage
         mx::RtStagePtr stage = api->createStage(MAIN);
@@ -1177,10 +1177,10 @@ TEST_CASE("Runtime: DefaultLook", "[runtime]")
 
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
-    api->loadLibrary(BXDFLIB_NAME, RuntimeGlobals::BXDFLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
+    api->loadLibraries(BXDFLIB_NAME, { RuntimeGlobals::BXDFLIB_PATH() });
 
     mx::RtStagePtr defaultStage = api->createStage(mx::RtString("defaultStage"));
 
@@ -1205,11 +1205,11 @@ TEST_CASE("Runtime: Namespaced definitions", "[runtime]")
         searchPath.append(childFolder);
     }
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
-    api->loadLibrary(BXDFLIB_NAME, RuntimeGlobals::BXDFLIB_PATH());
-    api->loadLibrary(ADSKLIB_NAME, RuntimeGlobals::ADSKLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
+    api->loadLibraries(BXDFLIB_NAME, { RuntimeGlobals::BXDFLIB_PATH() });
+    api->loadLibraries(ADSKLIB_NAME, { RuntimeGlobals::ADSKLIB_PATH() });
 
     mx::RtStagePtr defaultStage = api->createStage(mx::RtString("defaultStage"));
 
@@ -1229,10 +1229,10 @@ TEST_CASE("Runtime: Conflict resolution", "[runtime]")
 
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
-    api->loadLibrary(BXDFLIB_NAME, RuntimeGlobals::BXDFLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
+    api->loadLibraries(BXDFLIB_NAME, { RuntimeGlobals::BXDFLIB_PATH() });
 
     mx::RtStagePtr defaultStage = api->createStage(mx::RtString("defaultStage"));
     mx::FileSearchPath lookSearchPath(mx::FilePath::getCurrentPath() /
@@ -1308,8 +1308,8 @@ TEST_CASE("Runtime: FileIo NodeGraph", "[runtime]")
     // Load in stdlib
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
 
     // Create a main stage
     mx::RtStagePtr stage = api->createStage(MAIN);
@@ -1384,8 +1384,8 @@ TEST_CASE("Runtime: Rename", "[runtime]")
     // Load in stdlib
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
 
     // Create a main stage
     mx::RtStagePtr stage = api->createStage(MAIN);
@@ -1427,9 +1427,9 @@ TEST_CASE("Runtime: Stage References", "[runtime]")
     // Load in stdlib
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
 
     // Create a main stage
     mx::RtStagePtr stage = api->createStage(MAIN);
@@ -1474,9 +1474,9 @@ TEST_CASE("Runtime: Traversal", "[runtime]")
 
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
 
     // Count elements traversing a loaded library.
     size_t nodeCount = 0, nodeDefCount = 0, nodeGraphCount = 0;
@@ -1639,9 +1639,9 @@ TEST_CASE("Runtime: Looks", "[runtime]")
     // Load libraries so we can create a material
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
 
     const mx::RtString matDef("ND_surfacematerial");
 
@@ -1920,10 +1920,10 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     // Load in all libraries required for materials
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
-    api->loadLibrary(BXDFLIB_NAME, RuntimeGlobals::BXDFLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
+    api->loadLibraries(BXDFLIB_NAME, { RuntimeGlobals::BXDFLIB_PATH() });
 
     REQUIRE(api->numLibraries() == 4);
     REQUIRE(api->getLibrary(0)->getName() == RuntimeGlobals::TARGETS_PATH().asString());
@@ -1932,9 +1932,9 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     REQUIRE(api->getLibrary(3)->getName() == RuntimeGlobals::BXDFLIB_PATH().asString());
 
     // Loading an already loaded library should throw...
-    REQUIRE_THROWS(api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH()));
+    REQUIRE_THROWS(api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() }));
     // ...unless we tell it to force reload.
-    REQUIRE_NOTHROW(api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH(), nullptr, true));
+    REQUIRE_NOTHROW(api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() }, nullptr, true));
 
     const mx::RtString shaderNodeDefName("ND_standard_surface_surfaceshader");
     const mx::RtString shaderNodeGraphName("IMPL_standard_surface_surfaceshader");
@@ -1975,14 +1975,14 @@ TEST_CASE("Runtime: units", "[runtime]")
     // Load in all libraries required for materials
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
-    api->loadLibrary(BXDFLIB_NAME, RuntimeGlobals::BXDFLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
+    api->loadLibraries(BXDFLIB_NAME, { RuntimeGlobals::BXDFLIB_PATH() });
 
     // Load in stdlib twice on purpose to ensure no exception is thrown when trying to add a duplicate unit 
     // definition 
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH(), nullptr, true);
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() }, nullptr, true);
 
     // Read in test document with units
     mx::FileSearchPath testSearchPath(mx::FilePath::getCurrentPath() /
@@ -2050,8 +2050,8 @@ TEST_CASE("Runtime: Commands", "[runtime]")
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
     mx::RtReadOptions options;
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
 
     mx::RtStagePtr stage = api->createStage(MAIN);
 
@@ -2549,10 +2549,10 @@ TEST_CASE("Runtime: graph output connection", "[runtime]")
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() /
                                   mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
-    api->loadLibrary(BXDFLIB_NAME, RuntimeGlobals::BXDFLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
+    api->loadLibraries(BXDFLIB_NAME, { RuntimeGlobals::BXDFLIB_PATH() });
 
     const std::string mtlxDoc =
         "<?xml version=\"1.0\"?>\n"
@@ -2735,10 +2735,10 @@ TEST_CASE("Export", "[runtime]")
     mx::RtScopedApiHandle api;
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     api->setSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
-    api->loadLibrary(BXDFLIB_NAME, RuntimeGlobals::BXDFLIB_PATH());
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
+    api->loadLibraries(BXDFLIB_NAME, { RuntimeGlobals::BXDFLIB_PATH() });
 
     mx::FileSearchPath testSearchPath(mx::FilePath::getCurrentPath() /
         "resources" /
