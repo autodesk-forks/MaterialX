@@ -2779,3 +2779,51 @@ TEST_CASE("Export", "[runtime]")
     REQUIRE(lookGroupCount == 0);
 }
 
+
+TEST_CASE("Missing Definition", "[runtime]")
+{
+    mx::RtScopedApiHandle api;
+    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
+    api->setSearchPath(searchPath);
+    api->loadLibraries(TARGETS_NAME, { RuntimeGlobals::TARGETS_PATH() });
+    api->loadLibraries(STDLIB_NAME, { RuntimeGlobals::STDLIB_PATH() });
+    api->loadLibraries(PBRLIB_NAME, { RuntimeGlobals::PBRLIB_PATH() });
+    api->loadLibraries(BXDFLIB_NAME, { RuntimeGlobals::BXDFLIB_PATH() });
+
+    mx::FilePathVec libraryPath;
+    libraryPath.push_back(mx::FilePath::getCurrentPath() /
+        "resources" /
+        "Materials" /
+        "TestSuite" /
+        "stdlib" /
+        "definition" );
+    const mx::RtString libraryName1("core1");
+	mx::RtReadOptions libraryReadOptions;
+    try
+    {
+        api->loadLibraries(libraryName1, libraryPath, &libraryReadOptions);
+        REQUIRE(false);
+    }
+    catch(mx::Exception& /*e*/)
+    {
+        REQUIRE(true);
+    }
+
+    libraryPath.push_back(mx::FilePath::getCurrentPath() /
+        "resources" /
+        "Materials" /
+        "TestSuite" /
+        "stdlib" /
+        "definition2" );
+    const mx::RtString libraryName2("core2");
+    try
+    {
+        api->loadLibraries(libraryName2, libraryPath, &libraryReadOptions);
+        REQUIRE(true);
+    }
+    catch(mx::Exception& /*e*/)
+    {
+        REQUIRE(false);
+    }
+}
+
