@@ -40,17 +40,17 @@ describe('Code Examples', () => {
         simpleSrf.setInputValueColor3('diffColor', new mx.Color3(1.0, 1.0, 1.0));
         let inputValue = simpleSrf.getInputValue('diffColor');
         expect(inputValue).to.not.be.null;
-        expect(inputValue.getData()).to.eql(new mx.Color3(1.0, 1.0, 1.0));
+        expect(inputValue).to.eql(new mx.Color3(1.0, 1.0, 1.0));
 
         simpleSrf.setInputValueColor3('specColor', new mx.Color3(0.0, 0.0, 0.0));
         inputValue = simpleSrf.getInputValue('specColor');
         expect(inputValue).to.not.be.null;
-        expect(inputValue.getData()).to.eql(new mx.Color3(0.0, 0.0, 0.0));
+        expect(inputValue).to.eql(new mx.Color3(0.0, 0.0, 0.0));
 
         const roughness = simpleSrf.setInputValueFloat('roughness', 0.25);
         inputValue = simpleSrf.getInputValue('roughness');
         expect(inputValue).to.not.be.null;
-        expect(inputValue.getData()).to.equal(0.25);
+        expect(inputValue).to.equal(0.25);
 
         // // Create a material that instantiates the shader.
         // const material = doc.addMaterial();
@@ -70,7 +70,7 @@ describe('Code Examples', () => {
         // expect(bindInputs[0]).to.eql(bindInput);
         // bindInput.setValuefloat(0.5);
         // expect(bindInput.getValue()).to.not.be.null;
-        // expect(bindInput.getValue().getData()).to.equal(0.5);
+        // expect(bindInput.getValue()).to.equal(0.5);
 
         // // Validate the value of roughness in the context of this material.
         // expect(roughness.getBoundValue(material).getValueString()).to.equal('0.5');
