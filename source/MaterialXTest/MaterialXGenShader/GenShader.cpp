@@ -153,6 +153,20 @@ TEST_CASE("GenShader: Translation Check", "[genshader]")
         }
     }
     mx::writeToXmlFile(doc, "transparency_test_nodedefs.mtlx");
+
+    // Sanity check: Glass is transparent
+    doc = mx::createDocument();
+    loadLibraries({ "targets", "stdlib", "pbrlib", "bxdf",  }, searchPath, doc);
+    testPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/Examples/StandardSurface/standard_surface_glass.mtlx");
+    mx::readFromXmlFile(doc, testPath, searchPath);
+    CHECK(mx::isTransparentSurface(doc->getNode("SR_glass")));
+
+    // Sanity check: Gold is opaque
+    doc = mx::createDocument();
+    loadLibraries({ "targets", "stdlib", "pbrlib", "bxdf",  }, searchPath, doc);
+    testPath = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/Examples/StandardSurface/standard_surface_gold.mtlx");
+    mx::readFromXmlFile(doc, testPath, searchPath);
+    CHECK(!mx::isTransparentSurface(doc->getNode("SR_gold")));
 }
 
 TEST_CASE("GenShader: Shader Translation", "[translate]")
