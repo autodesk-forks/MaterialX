@@ -4,7 +4,7 @@
     <input name="amplitude" type="vector3" value="1, 1, 1" uivisible="true" />
     <output name="out" type="color3" value="0, 0, 0" />
   </nodedef>
-  <nodegraph name="NG_within2_color3" xpos="-19.5049" ypos="739.646" ldx_io_nodes="&amp;lt;?xml version=&quot;1.0&quot;?&amp;gt;&#10;&amp;lt;materialx version=&quot;1.38&quot;&amp;gt;&#10;  &amp;lt;layout name=&quot;io&quot; type=&quot;&quot;&amp;gt;&#10;    &amp;lt;output name=&quot;Output&quot; type=&quot;&quot; ports=&quot;out&quot; pos=&quot;225.333 -61&quot; /&amp;gt;&#10;  &amp;lt;/layout&amp;gt;&#10;&amp;lt;/materialx&amp;gt;&#10;" namespace="adsk" nodedef="adsk:ND_within2_color3">
+  <nodegraph name="NG_within2_color3" xpos="-19.5049" ypos="739.646" namespace="adsk" nodedef="adsk:ND_within2_color3">
     <input name="amplitude" type="vector3" value="1, 1, 1" uivisible="true" />
     <TEST_COMPOUND_PUBLISH name="TEST_COMPOUND_PUBLISH2" type="color3" nodedef="ND_TEST_COMPOUND_PUBLISH_color3" version="1.0" xpos="-39.3003" ypos="-115.304">
       <input name="amplitude" type="vector3" interfacename="amplitude" value="1, 1, 1" uivisible="true" />

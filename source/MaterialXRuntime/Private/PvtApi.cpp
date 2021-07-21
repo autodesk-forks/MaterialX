@@ -38,7 +38,7 @@ void PvtApi::reset()
     _stagesOrder.clear();
 }
 
-RtStagePtr PvtApi::loadLibraries(const RtString& name, const FilePathVec& libraryPaths, const RtReadOptions* options, bool forceReload)
+RtStagePtr PvtApi::loadLibrary(const RtString& name, const FilePathVec& libraryPaths, const RtReadOptions* options, bool forceReload)
 {
     auto it = _libraries.find(name);
     if (it != _libraries.end())
@@ -59,7 +59,7 @@ RtStagePtr PvtApi::loadLibraries(const RtString& name, const FilePathVec& librar
 
     // Load in the files(s).
     RtFileIo fileApi(stage);
-    StringSet loadedFiles = fileApi.readLibraries(libraryPaths, _searchPaths, options);
+    StringSet loadedFiles = fileApi.readLibrary(libraryPaths, _searchPaths, options);
     for (const string& file : loadedFiles)
     {
         stage->addSourceUri(file);
