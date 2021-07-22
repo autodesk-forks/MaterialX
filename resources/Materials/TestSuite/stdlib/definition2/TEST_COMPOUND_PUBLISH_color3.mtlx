@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <materialx version="1.38">
-  <nodedef name="ND_TEST_COMPOUND_PUBLISH_color3" node="TEST_COMPOUND_PUBLISH" version="1.0" isdefaultversion="true" nodegroup="BenoitsTest">
+  <nodedef name="ND_TEST_COMPOUND_PUBLISH_color3" node="TEST_COMPOUND_PUBLISH" version="1.0" isdefaultversion="true" nodegroup="Test">
     <input name="amplitude" type="vector3" value="1, 1, 1" />
     <input name="in2" type="color3" value="1, 1, 1" />
     <output name="out" type="color3" value="0, 0, 0" />
