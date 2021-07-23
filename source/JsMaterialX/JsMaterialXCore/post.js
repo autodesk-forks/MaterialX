@@ -57,7 +57,7 @@
                 if (value) {
                     return value.getData();
                 }
-                return value;
+                return null;
             }
         }
 
