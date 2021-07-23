@@ -24,5 +24,5 @@ void bindPyUtil(py::module& mod)
     mod.def("loadLibraries", &mx::loadLibraries,
         py::arg("libraryFolders"), py::arg("searchPath"), py::arg("doc"), py::arg("excludeFiles") = mx::StringSet(), py::arg("readOptions") = (mx::XmlReadOptions*) nullptr);
     mod.def("flattenFilenames", &mx::flattenFilenames,
-        py::arg("doc"), py::arg("searchPath") = mx::FileSearchPath(), py::arg("customResolver") = (mx::StringResolverPtr) nullptr);
+        py::arg("doc"), py::arg("searchPath") = mx::FileSearchPath(), py::arg("customResolver") = (mx::StringResolverPtr) nullptr, py::arg("relativeTexturePath") = mx::FileSearchPath(), py::arg("isRelative") = (const mx::IsRelativePredicate&) nullptr);
 }

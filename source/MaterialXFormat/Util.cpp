@@ -140,7 +140,7 @@ StringSet loadLibraries(const FilePathVec& libraryFolders,
     return loadedLibraries;
 }
 
-void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath, StringResolverPtr customResolver)
+void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath, StringResolverPtr customResolver, const FileSearchPath& relativeTexturePath, const IsRelativePredicate& isRelative)
 {
     for (ElementPtr elem : doc->traverseTree())
     {
@@ -163,6 +163,15 @@ void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath, StringR
             elementResolver->setFilePrefix(EMPTY_STRING);
         }
         string resolvedString = valueElem->getResolvedValueString(elementResolver);
+
+        if (isRelative)
+        {
+            FilePath resolvedValue(resolvedString);
+            if (isRelative(resolvedValue, relativeTexturePath))
+            {
+                continue;
+            }
+        }
 
         // Convert relative to absolute pathing if the file is not already found
         if (!searchPath.isEmpty())

@@ -274,7 +274,8 @@ unsigned int getParseOptions(const XmlReadOptions* readOptions)
 
 XmlReadOptions::XmlReadOptions() :
     readXIncludeFunction(readFromXmlFile),
-    readComments(false)
+    readComments(false),
+    flattenFilenames(true)
 {
 }
 
@@ -300,6 +301,11 @@ void readFromXmlBuffer(DocumentPtr doc, const char* buffer, FileSearchPath searc
     validateParseResult(result);
 
     documentFromXml(doc, xmlDoc, searchPath, readOptions);
+
+    if (readOptions && readOptions->flattenFilenames)
+    {
+        flattenFilenames(doc, readOptions->textureSearchPath, nullptr, readOptions->relativeTextureSearchPath, readOptions->isRelativePredicate);
+    }
 }
 
 void readFromXmlStream(DocumentPtr doc, std::istream& stream, FileSearchPath searchPath, const XmlReadOptions* readOptions)
@@ -311,6 +317,11 @@ void readFromXmlStream(DocumentPtr doc, std::istream& stream, FileSearchPath sea
     validateParseResult(result);
 
     documentFromXml(doc, xmlDoc, searchPath, readOptions);
+
+    if (readOptions && readOptions->flattenFilenames)
+    {
+        flattenFilenames(doc, readOptions->textureSearchPath, nullptr, readOptions->relativeTextureSearchPath, readOptions->isRelativePredicate);
+    }
 }
 
 void readFromXmlFile(DocumentPtr doc, FilePath filename, FileSearchPath searchPath, const XmlReadOptions* readOptions)
@@ -333,6 +344,11 @@ void readFromXmlFile(DocumentPtr doc, FilePath filename, FileSearchPath searchPa
         doc->setSourceUri(filename);
     }
     documentFromXml(doc, xmlDoc, searchPath, readOptions);
+
+    if (readOptions && readOptions->flattenFilenames)
+    {
+        flattenFilenames(doc, readOptions->textureSearchPath, nullptr, readOptions->relativeTextureSearchPath, readOptions->isRelativePredicate);
+    }
 }
 
 void readFromXmlString(DocumentPtr doc, const string& str, FileSearchPath searchPath, const XmlReadOptions* readOptions)
