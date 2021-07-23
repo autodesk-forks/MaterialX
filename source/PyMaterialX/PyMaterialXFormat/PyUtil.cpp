@@ -14,6 +14,8 @@ namespace mx = MaterialX;
 
 void bindPyUtil(py::module& mod)
 {
+    py::class_<mx::IsRelativePredicate>(mod, "IsRelativePredicate");
+
     mod.def("readFile", &mx::readFile);
     mod.def("getSubdirectories", &mx::getSubdirectories);
     mod.def("loadDocuments", &mx::loadDocuments,
