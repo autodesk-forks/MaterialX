@@ -110,7 +110,8 @@ C++ vectors will be converted to JS arrays (and vice versa). Other C++ container
 #### Template Functions
 Functions that handle generic types in C++ via templates are mapped to JavaScript by creating multiple bindings, one for each type. For example, the `InterfaceElement::setInputValue` function is mapped as `setInputValueString`, `setInputValueBoolean`, `setInputValueInteger` and so on.
 
-#### Value Getters
+#### <a id="using-value-getter"></a> Value Getter
+
 Some functions suggest to return values (e.g. `ValueElement::getValue`), but return `Value` pointers instead. Getting the actual value requires to call `getData` on that pointer, given that the pointer is valid. In order to align with the Python bindings and simplify the consumption of values in JavaScript, `getValue` and related functions return the value directly, or `null` if no value is set. In case that the underlying `Value` pointer is of interest, the original behaviour is available through a function that is prefixed with `_`, e.g. `_getValue`.
 
 #### Iterators
@@ -232,6 +233,13 @@ This will register your code after the module has been initialized. The wasm mod
 Since the module itself is ES5 code, we recommend to write custom code in ES5 as well, even though ES6 should work as well in most cases.
 
 In order to avoid conflicting definitions in post.js files, we recommend to wrap custom code in an [IIFE](https://developer.mozilla.org/en-US/docs/Glossary/IIFE) (Immediately Invoked Function Expression).
+
+### Value Getter
+As explained in the [Using Value Getter](#using-value-getter) paragraph, functions that return an instance of the `Value` class (usually in form of a `ValuePtr`) are wrapped to return the underlying value directly instead. This is done by binding the C++ function with an underscore prefix in JS (e.g. `ValueElement._getValue`). The actual JS `getValue` function is defined in the `post.js` file corresponding to the module (e.g. Core) that the function is part of. See [JsMaterialXCore/post.js](./JsMaterialXCore/post.js) for reference.
+
+Wrapping of functions that return `ValuePtr` instances should be done consistently for all bindings, with a few exceptions. Operations on an actual instance of `Value` that return another instance, such as `Value::copy` are not wrapped, since this doesn't seem reasonable from an API point of view.
+
+If, at any point, bindings for functions that take a `ValuePtr` as a parameter are created, additional thought need to be put into how to deal with those cases. Workflows like `someFunction(element.getValue())` will not work right away, since `element.getValue()` doesn't return a `ValuePtr`. Decisions like either wrapping functions that require `ValuePtr` parameters to accept plain values, or recommending to use `someFunction(element._getValue())` instead, need to be applied consistently and documented in the usage section.
 
 ### Testing strategy
 Testing every binding doesn't seem desirable, since most of them will directly map to the C++ implementation, which should already be tested in the C++ tests. Instead, we only test common workflows (e.g. iterating/parsing a document), bindings with custom implementations, and our custom binding mechanisms. The latter involves custom marshalling, e.g. of the vector <-> array conversion, or support for optional parameters. Additionally, all features that might behave different on the web, compared to desktop, should be tested as well.
