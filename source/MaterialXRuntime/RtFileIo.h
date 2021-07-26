@@ -113,6 +113,9 @@ class RtExportOptions : public RtWriteOptions
 
     // Libraries to load
     DocumentPtr libraries;
+
+    // Predicate to use to skip flattening
+    SkipFlattenPredicate skipFlattening;
 };
 
 /// API for read and write of data from MaterialX files

@@ -52,6 +52,9 @@ class MX_FORMAT_API XmlExportOptions : public XmlWriteOptions
     /// Whether to modify the the document or create a copy.
     /// By default the the document is modified in place.
     bool modifyInPlace;
+
+    // Predicate to use to skip flattening
+    SkipFlattenPredicate skipFlattening;
 };
 
 /// @name Export Functions

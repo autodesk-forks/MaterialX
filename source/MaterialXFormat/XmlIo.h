@@ -28,7 +28,7 @@ extern MX_FORMAT_API const string MTLX_EXTENSION;
 using XmlReadFunction = std::function<void(DocumentPtr, const FilePath&, const FileSearchPath&, const XmlReadOptions*)>;
 
 /// Whether a path is relative to a search path
-using IsRelativePredicate = std::function<bool(const FilePath&, const FileSearchPath&)>;
+using SkipFlattenPredicate = std::function<bool(const FilePath&)>;
 
 /// @class XmlReadOptions
 /// A set of options for controlling the behavior of XML read functions.
@@ -58,12 +58,6 @@ class MX_FORMAT_API XmlReadOptions
 
     /// The texture search path
     FileSearchPath textureSearchPath;
-
-    /// Check to see if a path is relate to the this path
-    FileSearchPath relativeTextureSearchPath;
-
-    /// Whether a path is a relative path of a provided search path
-    IsRelativePredicate isRelativePredicate;
 };
 
 /// @class XmlWriteOptions
