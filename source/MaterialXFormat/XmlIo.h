@@ -27,9 +27,6 @@ extern MX_FORMAT_API const string MTLX_EXTENSION;
 /// optional search path and read options.
 using XmlReadFunction = std::function<void(DocumentPtr, const FilePath&, const FileSearchPath&, const XmlReadOptions*)>;
 
-/// Whether a path is relative to a search path
-using SkipFlattenPredicate = std::function<bool(const FilePath&)>;
-
 /// @class XmlReadOptions
 /// A set of options for controlling the behavior of XML read functions.
 class MX_FORMAT_API XmlReadOptions

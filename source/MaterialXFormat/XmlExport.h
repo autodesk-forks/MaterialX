@@ -19,6 +19,8 @@ class ExportResolver
 
 using ExportResolverPtr = shared_ptr<ExportResolver>;
 
+using SkipFlattenPredicate = std::function<bool(const FilePath&)>;
+
 /// @class XmlExportOptions
 /// A set of options for controlling the behavior of XML export functions.
 class MX_FORMAT_API XmlExportOptions : public XmlWriteOptions

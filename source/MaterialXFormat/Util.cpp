@@ -140,7 +140,7 @@ StringSet loadLibraries(const FilePathVec& libraryFolders,
     return loadedLibraries;
 }
 
-void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath, StringResolverPtr customResolver, const FileSearchPath& relativeTexturePath, const IsRelativePredicate& isRelative)
+void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath, StringResolverPtr customResolver, const SkipFlattenPredicate& skipFlattening)
 {
     for (ElementPtr elem : doc->traverseTree())
     {
@@ -164,10 +164,10 @@ void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath, StringR
         }
         string resolvedString = valueElem->getResolvedValueString(elementResolver);
 
-        if (isRelative)
+        if (skipFlattening)
         {
             FilePath resolvedValue(resolvedString);
-            if (isRelative(resolvedValue, relativeTexturePath))
+            if (skipFlattening(resolvedValue))
             {
                 continue;
             }

@@ -15,6 +15,7 @@
 
 #include <MaterialXFormat/Export.h>
 #include <MaterialXFormat/File.h>
+#include <MaterialXFormat/XmlExport.h>
 #include <MaterialXFormat/XmlIo.h>
 
 namespace MaterialX
