@@ -103,7 +103,7 @@ class RtExportOptions : public RtWriteOptions
     bool flattenFilenames;
 
     // Predicate to use to skip flattening when flatten filenames is enabled.
-    FilePathPredicate filePathPredicate;
+    FilePathPredicate skipFlattening;
 
     /// Resolved texture path
     FileSearchPath resolvedTexturePath;

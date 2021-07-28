@@ -61,7 +61,7 @@ TEST_CASE("File Path Predicate", "[xmlexport]")
         "stdlib" /
         "export" );
     mx::FileSearchPath textureSearchPath("resources");
-    exportOptions.filePathPredicate = [textureSearchPath](const mx::FilePath& filePath) -> bool
+    exportOptions.skipFlattening = [textureSearchPath](const mx::FilePath& filePath) -> bool
     {
         return textureSearchPath.find(filePath) != filePath;
     };

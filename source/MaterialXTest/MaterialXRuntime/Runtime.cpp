@@ -2837,7 +2837,7 @@ TEST_CASE("Runtime File Path Predicate", "[runtime]")
     exportOptions.lookGroupToMerge = "defaultLookGroup";
     exportOptions.resolvedTexturePath = testSearchPath;
     mx::FileSearchPath textureSearchPath("resources");
-    exportOptions.filePathPredicate = [textureSearchPath](const mx::FilePath& filePath) -> bool
+    exportOptions.skipFlattening = [textureSearchPath](const mx::FilePath& filePath) -> bool
     {
         return textureSearchPath.find(filePath) != filePath;
     };

@@ -42,7 +42,7 @@ class MX_FORMAT_API XmlExportOptions : public XmlWriteOptions
     bool flattenFilenames;
 
     // Predicate to use to skip flattening when flattening filenames is enabled
-    FilePathPredicate filePathPredicate;
+    FilePathPredicate skipFlattening;
 
     /// Resolved texture path for flattening filenames
     FileSearchPath resolvedTexturePath;
