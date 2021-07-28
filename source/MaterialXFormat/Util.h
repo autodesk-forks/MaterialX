@@ -57,7 +57,7 @@ MX_FORMAT_API StringSet loadLibraries(const FilePathVec& libraryFolders,
 /// @param doc The document to modify.
 /// @param searchPath An optional search path for relative to absolute path conversion.
 /// @param customResolver An optional custom resolver to apply.
-MX_FORMAT_API void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath = FileSearchPath(), StringResolverPtr customResolver = nullptr, const SkipFlattenPredicate& isRelative = nullptr);
+MX_FORMAT_API void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath = FileSearchPath(), StringResolverPtr customResolver = nullptr, const FilePathPredicate& filePathPredicate = nullptr);
 
 } // namespace MaterialX
 

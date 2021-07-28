@@ -49,12 +49,6 @@ class MX_FORMAT_API XmlReadOptions
     /// The vector of parent XIncludes at the scope of the current document.
     /// Defaults to an empty vector.
     StringVec parentXIncludes;
-
-    /// Whether to flatten filenames. By default filenames are flattened.
-    bool flattenFilenames;
-
-    /// The texture search path
-    FileSearchPath textureSearchPath;
 };
 
 /// @class XmlWriteOptions

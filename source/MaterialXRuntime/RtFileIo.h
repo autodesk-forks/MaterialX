@@ -102,6 +102,9 @@ class RtExportOptions : public RtWriteOptions
     /// Whether to flatten filenames. By default filenames are flattened.
     bool flattenFilenames;
 
+    // Predicate to use to skip flattening when flatten filenames is enabled.
+    FilePathPredicate filePathPredicate;
+
     /// Resolved texture path
     FileSearchPath resolvedTexturePath;
 
@@ -113,9 +116,6 @@ class RtExportOptions : public RtWriteOptions
 
     // Libraries to load
     DocumentPtr libraries;
-
-    // Predicate to use to skip flattening
-    SkipFlattenPredicate skipFlattening;
 };
 
 /// API for read and write of data from MaterialX files
