@@ -247,9 +247,9 @@ class MX_CORE_API Implementation : public InterfaceElement
     /// @{
 
     /// Set the nodegraph string for the Implementation.
-    void setNodeGraph(const string& function)
+    void setNodeGraph(const string& nodegraph)
     {
-        setAttribute(NODE_GRAPH_ATTRIBUTE, function);
+        setAttribute(NODE_GRAPH_ATTRIBUTE, nodegraph);
     }
 
     /// Return true if the given Implementation has a nodegraph string.

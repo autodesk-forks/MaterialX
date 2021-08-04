@@ -73,10 +73,10 @@ const RtString& RtNodeImpl::getNodeDef() const
     return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
-void RtNodeImpl::setNodeGraph(const RtString& language)
+void RtNodeImpl::setNodeGraph(const RtString& nodegraph)
 {
     RtTypedValue* attr = createAttribute(RtString::NODEGRAPH, RtType::INTERNSTRING);
-    attr->asInternString() = language;
+    attr->asInternString() = nodegraph;
 }
 
 const RtString& RtNodeImpl::getNodeGraph() const

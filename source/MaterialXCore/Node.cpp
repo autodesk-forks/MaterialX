@@ -110,12 +110,6 @@ NodeDefPtr Node::getNodeDef(const string& target) const
     return NodeDefPtr();
 }
 
-InterfaceElementPtr Node::getImplementation(const string& target) const
-{
-    NodeDefPtr nodeDef = getNodeDef(target);
-    return nodeDef ? nodeDef->getImplementation(target) : InterfaceElementPtr();
-}
-
 Edge Node::getUpstreamEdge(size_t index) const
 {
     if (index < getUpstreamEdgeCount())

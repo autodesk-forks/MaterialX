@@ -38,7 +38,7 @@ public:
     const RtString& getNodeDef() const;
 
     /// Set the name of the nodegraph this implementation is represented by.
-    void setNodeGraph(const RtString& nodedef);
+    void setNodeGraph(const RtString& nodegraph);
 
     /// Return the name of the nodegraph this implementation is represented by.
     const RtString& getNodeGraph() const;
