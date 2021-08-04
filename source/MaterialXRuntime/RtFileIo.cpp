@@ -1512,13 +1512,12 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* options)
     }
 }
 
-StringSet RtFileIo::readLibrary(const FilePath& path, const FileSearchPath& searchPaths, const RtReadOptions* options)
+StringSet RtFileIo::readLibrary(const FilePathVec& libraryPaths, const FileSearchPath& searchPaths, const RtReadOptions* options)
 {
     PvtStage* stage = PvtStage::cast(_stage.get());
 
     // Load all content into a core document.
     DocumentPtr doc = createDocument();
-    FilePathVec libraryPaths = { path };
     StringSet loadedFiles = MaterialX::loadLibraries(libraryPaths, searchPaths, doc);
 
     // Read this document.
@@ -1743,6 +1742,7 @@ void RtFileIo::exportDocument(std::ostream& stream, const RtExportOptions* optio
         xmlExportOptions.stringResolver = options->stringResolver;
         xmlExportOptions.exportResolvers = options->exportResolvers;
         xmlExportOptions.libraries = options->libraries;
+        xmlExportOptions.skipFlattening = options->skipFlattening;
     }
 
     xmlExportOptions.modifyInPlace = true;
@@ -1767,6 +1767,7 @@ void RtFileIo::exportDocument(const FilePath& documentPath, const RtExportOption
         xmlExportOptions.stringResolver = options->stringResolver;
         xmlExportOptions.exportResolvers = options->exportResolvers;
         xmlExportOptions.libraries = options->libraries;
+        xmlExportOptions.skipFlattening = options->skipFlattening;
     }
     xmlExportOptions.modifyInPlace = true;
     exportToXmlFile(document, documentPath, &xmlExportOptions);

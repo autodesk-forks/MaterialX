@@ -102,6 +102,9 @@ class RtExportOptions : public RtWriteOptions
     /// Whether to flatten filenames. By default filenames are flattened.
     bool flattenFilenames;
 
+    // Predicate to use to skip flattening when flatten filenames is enabled.
+    FilePathPredicate skipFlattening;
+
     /// Resolved texture path
     FileSearchPath resolvedTexturePath;
 
@@ -171,7 +174,7 @@ private:
     /// Read all contents from a file or folder into the attached stage.
     /// If path is a directory all MaterialX files under this folder will be read.
     /// Returns a set of all files read.
-    StringSet readLibrary(const FilePath& path, const FileSearchPath& searchPaths, const RtReadOptions* options = nullptr);
+    StringSet readLibrary(const FilePathVec& libraryPaths, const FileSearchPath& searchPaths, const RtReadOptions* options = nullptr);
 
     RtStagePtr _stage;
     friend class PvtApi;

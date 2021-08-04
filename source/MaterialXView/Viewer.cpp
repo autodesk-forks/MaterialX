@@ -262,7 +262,9 @@ Viewer::Viewer(const std::string& materialFilename,
     _bakeHdr(false),
     _bakeAverage(false),
     _bakeOptimize(true),
-    _bakeRequested(false)
+    _bakeRequested(false),
+    _bakeWidth(0),
+    _bakeHeight(0)
 {
     // Set the requested background color.
     setBackground(ng::Color(screenColor[0], screenColor[1], screenColor[2], 1.0f));
@@ -313,7 +315,12 @@ void Viewer::initialize()
 #if MATERIALX_BUILD_OIIO
     _imageHandler->addLoader(mx::OiioImageLoader::create());
 #endif
-    _imageHandler->setSearchPath(_searchPath);
+    mx::FileSearchPath imageSearchPath = _searchPath;
+    for (auto ipath : _searchPath)
+    {
+        imageSearchPath.append(ipath / "libraries");
+    }
+    _imageHandler->setSearchPath(imageSearchPath);
 
     // Initialize user interfaces.
     createLoadMeshInterface(_window, "Load Mesh");
@@ -428,7 +435,6 @@ void Viewer::initialize()
     // Finalize the UI.
     _propertyEditor.setVisible(false);
     performLayout();
-    setVisible(true);
 }
 
 void Viewer::loadEnvironmentLight()
@@ -547,7 +553,9 @@ void Viewer::applyDirectLights(mx::DocumentPtr doc)
         std::vector<mx::NodePtr> lights;
         _lightHandler->findLights(doc, lights);
         _lightHandler->registerLights(doc, lights, _genContext);
+#if MATERIALX_BUILD_GEN_ESSL
         _lightHandler->registerLights(doc, lights, _genContextEssl);
+#endif
         _lightHandler->setLightSources(lights);
     }
     catch (std::exception& e)
@@ -929,8 +937,10 @@ void Viewer::createAdvancedSettings(Widget* parent)
     referenceQualityBox->setCallback([this](bool enable)
     {
         _genContext.getOptions().hwDirectionalAlbedoMethod = enable ? mx::DIRECTIONAL_ALBEDO_IS : mx::DIRECTIONAL_ALBEDO_TABLE;
+#if MATERIALX_BUILD_GEN_ESSL
         // No Albedo Table support for Essl yet.
         _genContextEssl.getOptions().hwDirectionalAlbedoMethod = enable ? mx::DIRECTIONAL_ALBEDO_IS : mx::DIRECTIONAL_ALBEDO_CURVE_FIT;
+#endif
         reloadShaders();
     });
 
@@ -939,7 +949,9 @@ void Viewer::createAdvancedSettings(Widget* parent)
     importanceSampleBox->setCallback([this](bool enable)
     {
         _genContext.getOptions().hwSpecularEnvironmentMethod = enable ? mx::SPECULAR_ENVIRONMENT_FIS : mx::SPECULAR_ENVIRONMENT_PREFILTER;
+#if MATERIALX_BUILD_GEN_ESSL
         _genContextEssl.getOptions().hwSpecularEnvironmentMethod = _genContext.getOptions().hwSpecularEnvironmentMethod;
+#endif
         reloadShaders();
     });
 
@@ -1401,7 +1413,7 @@ void Viewer::loadDocument(const mx::FilePath& filename, mx::DocumentPtr librarie
             }
         }
     }
-    catch (mx::ExceptionShaderRenderError& e)
+    catch (mx::ExceptionRenderError& e)
     {
         for (const std::string& error : e.errorLog())
         {
@@ -1432,7 +1444,7 @@ void Viewer::reloadShaders()
         }
         return;
     }
-    catch (mx::ExceptionShaderRenderError& e)
+    catch (mx::ExceptionRenderError& e)
     {
         for (const std::string& error : e.errorLog())
         {
@@ -2175,6 +2187,14 @@ void Viewer::bakeTextures()
         auto maxImageSize = mx::getMaxDimensions(imageVec);
         unsigned int bakeWidth = std::max(maxImageSize.first, (unsigned int) 4);
         unsigned int bakeHeight = std::max(maxImageSize.second, (unsigned int) 4);
+        if (_bakeWidth)
+        {
+            bakeWidth = std::max(_bakeWidth, (unsigned int) 4);
+        }
+        if (_bakeHeight)
+        {
+            bakeHeight = std::max(_bakeHeight, (unsigned int) 4);
+        }
 
         // Construct a texture baker.
         mx::Image::BaseType baseType = _bakeHdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
