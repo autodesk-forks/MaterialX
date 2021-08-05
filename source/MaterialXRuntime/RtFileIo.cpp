@@ -1455,6 +1455,13 @@ namespace
         }
     }
 
+    void setupNodeDefs(RtStagePtr stage)
+    {
+        PvtApi* api = PvtApi::cast(RtApi::get());
+        api->registerPrims(stage);
+        api->setupNodeImplRelationships();
+    }
+
 } // end anonymous namespace
 
 RtReadOptions::RtReadOptions() :
@@ -1490,9 +1497,7 @@ void RtFileIo::read(const FilePath& documentPath, const FileSearchPath& searchPa
         PvtStage* stage = PvtStage::cast(_stage.get());
         readDocument(document, stage, options);
 
-        PvtApi* api = PvtApi::cast(RtApi::get());
-        api->registerPrims(_stage);
-        api->setupNodeImplRelationships();
+        setupNodeDefs(_stage);
     }
     catch (Exception& e)
     {
@@ -1510,9 +1515,7 @@ void RtFileIo::read(std::istream& stream, const RtReadOptions* options)
         PvtStage* stage = PvtStage::cast(_stage.get());
         readDocument(document, stage, options);
 
-        PvtApi* api = PvtApi::cast(RtApi::get());
-        api->registerPrims(_stage);
-        api->setupNodeImplRelationships();
+        setupNodeDefs(_stage);
     }
     catch (Exception& e)
     {
