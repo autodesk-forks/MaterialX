@@ -943,7 +943,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     mx::RtPrim addgraphPrim = stage->createNodeDef(graph1.getPrim(), ND_ADDGRAPH, ADDGRAPH, ADDGRAPH_VERSION, isDefaultVersion, MATH_GROUP, NAMESPACE, DOC);
     api->registerDefinition<mx::RtNodeDef>(addgraphPrim);
     api->registerImplementation<mx::RtNodeGraph>(graph1.getPrim());
-    REQUIRE(api->hasDefinition<mx::RtNodeDef>(QUALIFIED_DEFINITION));
+    REQUIRE(api->hasDefinition<mx::RtNodeDef>(NAMESPACED_QUALIFIED_DEFINITION));
     REQUIRE(api->hasImplementation<mx::RtNodeGraph>(NG_ADDGRAPH));
 
     mx::RtNodeDef addgraphDef(addgraphPrim);
@@ -957,7 +957,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(addgraphDef.getInput(B).isUIVisible());
     REQUIRE(addgraphDef.numOutputs() == 1);
     REQUIRE(addgraphDef.getOutput().getName() == OUT);
-    REQUIRE(addgraphDef.getName() == QUALIFIED_DEFINITION);
+    REQUIRE(addgraphDef.getName() == NAMESPACED_QUALIFIED_DEFINITION);
     REQUIRE(addgraphDef.getNode() == ADDGRAPH);
     REQUIRE(addgraphDef.getNodeGroup() == MATH_GROUP);
     REQUIRE(addgraphDef.getVersion() == ADDGRAPH_VERSION);
@@ -971,7 +971,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     REQUIRE(addGraphImpl.getPath() == graph1.getPath());
 
     // Check instance creation:
-    mx::RtPrim agPrim = stage->createPrim("addgraph1", QUALIFIED_DEFINITION);
+    mx::RtPrim agPrim = stage->createPrim("addgraph1", NAMESPACED_QUALIFIED_DEFINITION);
     REQUIRE(agPrim.isValid());
     mx::RtNode agNode(agPrim);
     {
@@ -994,13 +994,13 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     // Check export to MTLX document:
     mx::RtFileIo stageIo(stage);
     mx::RtStringVec names;
-    names.push_back(QUALIFIED_DEFINITION);
+    names.push_back(NAMESPACED_QUALIFIED_DEFINITION);
     stageIo.writeDefinitions("ND_addgraph.mtlx", names);
 
     mx::DocumentPtr doc = mx::createDocument();
     mx::readFromXmlFile(doc, "ND_addgraph.mtlx");
     doc->validate();
-    mx::NodeDefPtr nodeDef = doc->getNodeDef(QUALIFIED_DEFINITION.str());
+    mx::NodeDefPtr nodeDef = doc->getNodeDef(NAMESPACED_QUALIFIED_DEFINITION.str());
     {
         // 1. Check nodedef
         REQUIRE(nodeDef);

@@ -701,7 +701,11 @@ namespace
         RtNodeDef nodedef(prim->hnd());
         RtString nodeDefName = prim->getName();
         RtString defNamespace = nodedef.getNamespace();
-        RtString qualifiedName = !defNamespace.empty() ? RtString(defNamespace.str() + NAME_PREFIX_SEPARATOR  + nodeDefName.str()) : nodeDefName;
+        RtString qualifiedName = nodeDefName;
+        //The Node Definition name can already have a namespace prefix attached at the front, so don't bother doing it again.
+        if(!defNamespace.empty() && qualifiedName.str().rfind(defNamespace.str() + NAME_PREFIX_SEPARATOR , 0) != 0) {
+            qualifiedName = RtString(defNamespace.str() + NAME_PREFIX_SEPARATOR  + nodeDefName.str());
+        }
         RtSchemaPredicate<RtNodeGraph> filter;
         for (RtPrim child : stage->getRootPrim()->getChildren(filter))
         {
