@@ -221,9 +221,7 @@ RtPrim RtStage::createNodeDef(RtPrim nodegraphPrim,
 
     // Set the definition on the nodegraph
     // turning this into a functional graph
-    // Note that the Qualified node def should not be used here, but we need to
-    // use the nodeDefinitionName without a namespace prefix.
-    nodegraph.setDefinition(nodeDefName);
+    nodegraph.setDefinition(qualifiedNodeDefName);
 
     // Create the relationship between nodedef and it's implementation.
     nodedef.getNodeImpls().connect(nodegraph.getPrim());
