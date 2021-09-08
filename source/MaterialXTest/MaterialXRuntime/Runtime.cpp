@@ -1000,7 +1000,7 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
     mx::DocumentPtr doc = mx::createDocument();
     mx::readFromXmlFile(doc, "ND_addgraph.mtlx");
     doc->validate();
-    mx::NodeDefPtr nodeDef = doc->getNodeDef(NAMESPACED_QUALIFIED_DEFINITION.str());
+    mx::NodeDefPtr nodeDef = doc->getNodeDef(QUALIFIED_DEFINITION.str());
     {
         // 1. Check nodedef
         REQUIRE(nodeDef);
