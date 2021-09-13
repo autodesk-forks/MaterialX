@@ -181,6 +181,7 @@ jobs:
         python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build/generate/" --target "glsl"
         python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build/generate/" --target "osl"
         python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build/generate/" --target "mdl"
+        python python/Scripts/generateShader.py resources/Materials/Examples/StandardSurface/standard_surface_look_brass_tiled.mtlx --path "." --outputPath "build/generate/" --target "essl"
 
     - name: Render Tests
       if: ${{ matrix.test_render == 'ON' && ( github.event_name == 'pull_request' || github.ref == 'refs/heads/adsk_contrib/dev' ) }}
