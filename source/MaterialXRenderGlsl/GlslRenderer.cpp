@@ -234,10 +234,10 @@ void GlslRenderer::render()
             }
         }
     }
-    catch (ExceptionRenderError& /*e*/)
+    catch (ExceptionRenderError& e)
     {
         _frameBuffer->unbind();
-        throw;
+        throw e;
     }
 
     // Unset target
