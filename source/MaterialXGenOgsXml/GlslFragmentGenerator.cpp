@@ -185,8 +185,6 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
     }
 
     // Add global constants and type definitions
-    emitInclude("pbrlib/genglsl/lib/mx_defines.glsl", context, pixelStage);
-
     const unsigned int maxLights = std::max(1u, context.getOptions().hwMaxActiveLightSources);
     emitLine("#define MAX_LIGHT_SOURCES " + std::to_string(maxLights), pixelStage, false);
     emitLineBreak(pixelStage);

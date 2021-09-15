@@ -114,7 +114,6 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
     emitLineBreak(fx);
 
     // Add global constants and type definitions
-    emitInclude("pbrlib/genglsl/lib/mx_defines.glsl", context, fx);
     emitLine("#define MAX_LIGHT_SOURCES " + std::to_string(context.getOptions().hwMaxActiveLightSources), fx, false);
     emitLineBreak(fx);
     emitTypeDefinitions(context, fx);
