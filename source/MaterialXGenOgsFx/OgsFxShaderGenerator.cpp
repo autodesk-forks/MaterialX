@@ -299,7 +299,7 @@ void OgsFxShaderGenerator::emitPixelStage(const ShaderGraph& graph, GenContext& 
     }
 
     // Emit common math functions
-    emitInclude("pbrlib/genglsl/lib/mx_math.glsl", context, stage);
+    emitInclude("stdlib/genglsl/lib/mx_math.glsl", context, stage);
     emitLineBreak(stage);
 
     // Set the include file to use for uv transformations,
