@@ -203,7 +203,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
     const bool lighting = requiresLighting(graph);
 
     // Emit common math functions
-    emitInclude("pbrlib/genglsl/lib/mx_math.glsl", context, pixelStage);
+    emitInclude("stdlib/genglsl/lib/mx_math.glsl", context, pixelStage);
     emitLineBreak(pixelStage);
 
     if (lighting)
