@@ -7,8 +7,6 @@
 
 #include <MaterialXCore/Document.h>
 
-#include <MaterialXFormat/XmlIo.h>
-
 namespace mx = MaterialX;
 
 TEST_CASE("Look", "[look]")

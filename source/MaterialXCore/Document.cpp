@@ -15,8 +15,6 @@ namespace MaterialX
 const string Document::CMS_ATTRIBUTE = "cms";
 const string Document::CMS_CONFIG_ATTRIBUTE = "cmsconfig";
 
-const string ACTIVE_LOOK_STRING = "active";
-
 namespace {
 
 NodeDefPtr getShaderNodeDef(ElementPtr shaderRef)
