@@ -128,12 +128,12 @@ def main():
             # Use extension of .vert and .frag as it's type is
             # recognized by glslangValidator
             if gentarget == 'glsl' or gentarget == 'essl':
-            pixelSource = shader.getSourceCode(mx_gen_shader.PIXEL_STAGE)
+                pixelSource = shader.getSourceCode(mx_gen_shader.PIXEL_STAGE)
                 filename = pathPrefix + shader.getName() + "." + gentarget + ".frag"
-            print('--- Wrote pixel shader to: ' + filename)
-            file = open(filename, 'w+')
-            file.write(pixelSource)
-            file.close()                   
+                print('--- Wrote pixel shader to: ' + filename)
+                file = open(filename, 'w+')
+                file.write(pixelSource)
+                file.close()
                 validateCode(filename, opts.validator, opts.validatorArgs)
 
                 vertexSource = shader.getSourceCode(mx_gen_shader.VERTEX_STAGE)
@@ -150,7 +150,7 @@ def main():
                 print('--- Wrote pixel shader to: ' + filename)
                 file = open(filename, 'w+')
                 file.write(pixelSource)
-                file.close()                    
+                file.close()
 
         else:
             print('--- Failed to generate code for: ' + shaderNode.getName())
