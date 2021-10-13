@@ -268,8 +268,11 @@ TEST_CASE("GenShader: Transparency Regression Check", "[genshader]")
     CHECK(failedTests.empty());
 }
 
-void testDeterministicGeneration(const mx::FilePath& testFile, const mx::string& testElement, mx::DocumentPtr libraries, mx::GenContext& context)
+void testDeterministicGeneration(mx::DocumentPtr libraries, mx::GenContext& context)
 {
+    const mx::FilePath testFile = mx::FilePath::getCurrentPath() / mx::FilePath("resources/Materials/Examples/StandardSurface/standard_surface_marble_solid.mtlx");
+    const mx::string testElement = "SR_marble1";
+
     const size_t numRuns = 10;
     mx::vector<mx::DocumentPtr> testDocs(numRuns);
     mx::StringVec sourceCode(numRuns);
@@ -301,34 +304,29 @@ void testDeterministicGeneration(const mx::FilePath& testFile, const mx::string&
 
 TEST_CASE("GenShader: Deterministic Generation", "[genshader]")
 {
-    const mx::FilePath currentPath = mx::FilePath::getCurrentPath();
-    const mx::FileSearchPath searchPath(currentPath);
-    const mx::FileSearchPath libSearchPath(currentPath / mx::FilePath("libraries"));
+    const mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries"));
     mx::DocumentPtr libraries = mx::createDocument();
-    mx::loadLibraries({ "targets", "stdlib", "pbrlib", "bxdf" }, libSearchPath, libraries);
-
-    const mx::FilePath testFile = currentPath / mx::FilePath("resources/Materials/Examples/StandardSurface/standard_surface_marble_solid.mtlx");
-    const mx::string testElement = "SR_marble1";
+    mx::loadLibraries({ "targets", "stdlib", "pbrlib", "bxdf" }, searchPath, libraries);
 
 #ifdef MATERIALX_BUILD_GEN_GLSL
     {
         mx::GenContext context(mx::GlslShaderGenerator::create());
-        context.registerSourceCodeSearchPath(libSearchPath);
-        testDeterministicGeneration(testFile, testElement, libraries, context);
+        context.registerSourceCodeSearchPath(searchPath);
+        testDeterministicGeneration(libraries, context);
     }
 #endif
 #ifdef MATERIALX_BUILD_GEN_OSL
     {
         mx::GenContext context(mx::OslShaderGenerator::create());
-        context.registerSourceCodeSearchPath(libSearchPath);
-        testDeterministicGeneration(testFile, testElement, libraries, context);
+        context.registerSourceCodeSearchPath(searchPath);
+        testDeterministicGeneration(libraries, context);
     }
 #endif
 #ifdef MATERIALX_BUILD_GEN_MDL
     {
         mx::GenContext context(mx::MdlShaderGenerator::create());
-        context.registerSourceCodeSearchPath(libSearchPath);
-        testDeterministicGeneration(testFile, testElement, libraries, context);
+        context.registerSourceCodeSearchPath(searchPath);
+        testDeterministicGeneration(libraries, context);
     }
 #endif
 }
