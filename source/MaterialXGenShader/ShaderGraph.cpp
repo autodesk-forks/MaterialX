@@ -1157,10 +1157,8 @@ void ShaderGraph::topologicalSort()
     // Calculate in-degrees for all nodes, and enqueue those with degree 0.
     std::unordered_map<ShaderNode*, int> inDegree(_nodeMap.size());
     std::deque<ShaderNode*> nodeQueue;
-    for (const auto& it : _nodeMap)
+    for (ShaderNode* node : _nodeOrder)
     {
-        ShaderNode* node = it.second.get();
-
         int connectionCount = 0;
         for (const ShaderInput* input : node->getInputs())
         {
