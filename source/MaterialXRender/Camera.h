@@ -10,8 +10,8 @@
 
 #include <MaterialXCore/Types.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Shared pointer to a Camera
 using CameraPtr = std::shared_ptr<class Camera>;
@@ -166,7 +166,7 @@ class MX_RENDER_API Camera
     static Matrix44 createOrthographicMatrix(float left, float right,
                                              float bottom, float top,
                                              float nearP, float farP);
- 
+
     /// Apply a perspective transform to the given 3D point, performing a
     /// homogeneous divide on the transformed result.
     static Vector3 transformPointPerspective(const Matrix44& m, const Vector3& v)
@@ -178,7 +178,7 @@ class MX_RENDER_API Camera
     /// @}
 
   protected:
-    // Transform matrices 
+    // Transform matrices
     Matrix44 _worldMatrix;
     Matrix44 _viewMatrix;
     Matrix44 _projectionMatrix;
@@ -194,6 +194,6 @@ class MX_RENDER_API Camera
     float _arcballSpeed;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

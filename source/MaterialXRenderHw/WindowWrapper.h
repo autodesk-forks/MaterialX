@@ -7,18 +7,18 @@
 #define MATERIALX_WINDOWWRAPPER_H
 
 #if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
 #elif defined(__linux__) || defined(__FreeBSD__)
-#include <X11/X.h> // for Window
-#include <X11/Xlib.h> // for Display
+    #include <X11/X.h>    // for Window
+    #include <X11/Xlib.h> // for Display
 using Widget = struct _WidgetRec*;
 #endif
 
 #include <memory>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 /// OS specific type windowing definitions
 #if defined(_WIN32)
 /// External handle is a window handle
@@ -115,6 +115,6 @@ class WindowWrapper
 #endif
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

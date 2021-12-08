@@ -13,8 +13,8 @@
 #include <memory>
 #include <MaterialXRender/GeometryHandler.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 /// Shared pointer to an SampleObjLoader
 using SampleObjLoaderPtr = std::shared_ptr<class SampleObjLoader>;
 
@@ -34,14 +34,14 @@ class SampleObjLoader : public GeometryLoader
     {
         _extensions = { "obj", "OBJ" };
     }
-    
+
     /// Default destructor
-    virtual ~SampleObjLoader() {}
+    virtual ~SampleObjLoader() { }
 
     /// Load geometry from disk
     bool load(const FilePath& filePath, MeshList& meshList) override;
 
-    /// Set to read groups as partitions. 
+    /// Set to read groups as partitions.
     void setReadGroups(bool val)
     {
         _readGroups = val;
@@ -58,5 +58,5 @@ class SampleObjLoader : public GeometryLoader
     bool _debugDump;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 #endif

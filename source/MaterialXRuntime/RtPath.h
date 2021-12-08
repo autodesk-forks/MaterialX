@@ -12,8 +12,8 @@
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtObject.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtPath
 /// Class representing a path which points to, and uniquely identifies,
@@ -24,7 +24,7 @@ namespace MaterialX
 /// RtPath::isValid() can be used to query if a path is still valid.
 class RtPath
 {
-public:
+  public:
     /// Construct an empty path.
     RtPath();
 
@@ -79,12 +79,12 @@ public:
     /// Return true of this path points to the root.
     bool isRoot() const;
 
-private:
+  private:
     void* _ptr;
     friend class RtStage;
     friend class PvtPath;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

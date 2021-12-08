@@ -13,10 +13,11 @@
 
 #include <MaterialXFormat/XmlIo.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
 
-namespace {
+
+namespace
+{
 
 const string SRGB_TEXTURE = "srgb_texture";
 const string LIN_REC709 = "lin_rec709";
@@ -109,7 +110,7 @@ FilePath TextureBaker::generateTextureFilename(OutputPtr output, const string& s
     string outputName = createValidName(output->getNamePath());
     string shaderSuffix = shaderName.empty() ? EMPTY_STRING : "_" + shaderName;
     string udimSuffix = udim.empty() ? EMPTY_STRING : "_" + udim;
-    std::string bakedImageName; 
+    std::string bakedImageName;
     bakedImageName = outputName + shaderSuffix + BAKED_POSTFIX + udimSuffix;
     if (_hashImageNames)
     {
@@ -142,7 +143,7 @@ bool TextureBaker::writeBakedImage(const BakedImage& baked, ImagePtr image)
 void TextureBaker::bakeShaderInputs(NodePtr material, NodePtr shader, GenContext& context, const string& udim)
 {
     _material = material;
-    
+
     if (!shader)
     {
         return;
@@ -183,7 +184,7 @@ void TextureBaker::bakeGraphOutput(OutputPtr output, GenContext& context, const 
     createProgram(shader);
 
     bool encodeSrgb = _colorSpace == SRGB_TEXTURE &&
-        (output->getType() == "color3" || output->getType() == "color4");
+                      (output->getType() == "color3" || output->getType() == "color4");
     getFrameBuffer()->setEncodeSrgb(encodeSrgb);
 
     // Render and capture the requested image.
@@ -576,4 +577,4 @@ void TextureBaker::setupUnitSystem(DocumentPtr unitDefinitions)
     _generator->getUnitSystem()->setUnitConverterRegistry(registry);
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

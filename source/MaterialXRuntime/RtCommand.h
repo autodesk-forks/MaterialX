@@ -13,14 +13,14 @@
 
 #include <MaterialXCore/Util.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtCommandResult
 /// Class holding the results of a command execution.
 class RtCommandResult
 {
-public:
+  public:
     /// Empty constructor.
     RtCommandResult() :
         _success(false)
@@ -67,12 +67,12 @@ public:
         return _object;
     }
 
-private:
+  private:
     bool _success;
     string _message;
     RtObject _object;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

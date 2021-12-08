@@ -11,8 +11,8 @@
 #include <MaterialXGenShader/ShaderStage.h>
 #include <MaterialXGenShader/Util.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr ClosureSourceCodeNodeMdl::create()
 {
@@ -23,14 +23,14 @@ void ClosureSourceCodeNodeMdl::emitFunctionCall(const ShaderNode& node, GenConte
 {
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
 
-        const ShaderGenerator& shadergen = context.getShaderGenerator();
+    const ShaderGenerator& shadergen = context.getShaderGenerator();
 
-        // Emit calls for any closure dependencies upstream from this node.
-        shadergen.emitDependentFunctionCalls(node, context, stage, ShaderNode::Classification::CLOSURE);
+    // Emit calls for any closure dependencies upstream from this node.
+    shadergen.emitDependentFunctionCalls(node, context, stage, ShaderNode::Classification::CLOSURE);
 
-        SourceCodeNodeMdl::emitFunctionCall(node, context, stage);
+    SourceCodeNodeMdl::emitFunctionCall(node, context, stage);
 
     END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

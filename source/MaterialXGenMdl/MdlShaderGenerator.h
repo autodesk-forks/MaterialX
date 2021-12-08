@@ -13,8 +13,8 @@
 
 #include <MaterialXGenShader/ShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Shared pointer to an MdlShaderGenerator
 using MdlShaderGeneratorPtr = shared_ptr<class MdlShaderGenerator>;
@@ -55,11 +55,11 @@ class MX_GENMDL_API MdlShaderGenerator : public ShaderGenerator
 
 namespace MDL
 {
-    // Identifiers for MDL variable blocks
-    extern MX_GENMDL_API const string INPUTS;
-    extern MX_GENMDL_API const string OUTPUTS;
-}
+// Identifiers for MDL variable blocks
+extern MX_GENMDL_API const string INPUTS;
+extern MX_GENMDL_API const string OUTPUTS;
+} // namespace MDL
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -11,8 +11,8 @@
 
 #include <MaterialXRender/ImageHandler.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Shared pointer to an StbImageLoader
 using StbImageLoaderPtr = std::shared_ptr<class StbImageLoader>;
@@ -35,7 +35,7 @@ class MX_RENDER_API StbImageLoader : public ImageLoader
         _extensions.insert(PSD_EXTENSION);
         _extensions.insert(TGA_EXTENSION);
     }
-    virtual ~StbImageLoader() { }    
+    virtual ~StbImageLoader() { }
 
     /// Create a new stb image loader
     static StbImageLoaderPtr create() { return std::make_shared<StbImageLoader>(); }
@@ -49,6 +49,6 @@ class MX_RENDER_API StbImageLoader : public ImageLoader
     ImagePtr loadImage(const FilePath& filePath) override;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

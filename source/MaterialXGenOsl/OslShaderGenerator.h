@@ -13,8 +13,8 @@
 
 #include <MaterialXGenShader/ShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 using OslShaderGeneratorPtr = shared_ptr<class OslShaderGenerator>;
 
@@ -48,8 +48,7 @@ class MX_GENOSL_API OslShaderGenerator : public ShaderGenerator
     /// Register metadata that should be exported to the generated shaders.
     void registerShaderMetadata(const DocumentPtr& doc, GenContext& context) const override;
 
-protected:
-
+  protected:
     /// Create and initialize a new OSL shader for shader generation.
     virtual ShaderPtr createShader(const string& name, ElementPtr element, GenContext& context) const;
 
@@ -65,12 +64,12 @@ protected:
 
 namespace OSL
 {
-    /// Identifiers for OSL variable blocks
-    extern MX_GENOSL_API const string UNIFORMS;
-    extern MX_GENOSL_API const string INPUTS;
-    extern MX_GENOSL_API const string OUTPUTS;
-}
+/// Identifiers for OSL variable blocks
+extern MX_GENOSL_API const string UNIFORMS;
+extern MX_GENOSL_API const string INPUTS;
+extern MX_GENOSL_API const string OUTPUTS;
+} // namespace OSL
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

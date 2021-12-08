@@ -5,24 +5,24 @@
 
 #include <MaterialXRuntime/RtColorManagementSystem.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    static const RtStringVec DEFAULT_COLOR_SPACES_NAMES {
-        RtString("gamma18"),
-        RtString("gamma22"),
-        RtString("gamma24"),
-        RtString("acescg"),
-        RtString("lin_rec709"),
-        RtString("srgb_texture"),
-        RtString("g22_ap1")
-    };
+static const RtStringVec DEFAULT_COLOR_SPACES_NAMES{
+    RtString("gamma18"),
+    RtString("gamma22"),
+    RtString("gamma24"),
+    RtString("acescg"),
+    RtString("lin_rec709"),
+    RtString("srgb_texture"),
+    RtString("g22_ap1")
+};
 }
 
-RtDefaultColorManagementSystem::RtDefaultColorManagementSystem()
-    : RtColorManagementSystem()
+RtDefaultColorManagementSystem::RtDefaultColorManagementSystem() :
+    RtColorManagementSystem()
 {
 }
 
@@ -31,4 +31,4 @@ const RtStringVec& RtDefaultColorManagementSystem::getColorSpaceNames() const
     return DEFAULT_COLOR_SPACES_NAMES;
 }
 
-}
+MATERIALX_NAMESPACE_END

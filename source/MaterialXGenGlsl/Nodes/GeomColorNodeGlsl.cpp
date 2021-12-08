@@ -7,8 +7,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr GeomColorNodeGlsl::create()
 {
@@ -36,34 +36,34 @@ void GeomColorNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& con
     string variable = HW::T_COLOR + "_" + index;
 
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
-        VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        ShaderPort* color = vertexData[variable];
-        if (!color->isEmitted())
-        {
-            color->setEmitted();
-            shadergen.emitLine(prefix + color->getVariable() + " = " + HW::T_IN_COLOR + "_" + index, stage);
-        }
+    VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    ShaderPort* color = vertexData[variable];
+    if (!color->isEmitted())
+    {
+        color->setEmitted();
+        shadergen.emitLine(prefix + color->getVariable() + " = " + HW::T_IN_COLOR + "_" + index, stage);
+    }
     END_SHADER_STAGE(shader, Stage::VERTEX)
 
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        string suffix = "";
-        if (output->getType() == Type::FLOAT)
-        {
-            suffix = ".r";
-        }
-        else if (output->getType() == Type::COLOR3)
-        {
-            suffix = ".rgb";
-        }
-        VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        ShaderPort* color = vertexData[variable];
-        shadergen.emitLineBegin(stage);
-        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        shadergen.emitString(" = " + prefix + color->getVariable() + suffix, stage);
-        shadergen.emitLineEnd(stage);
+    string suffix = "";
+    if (output->getType() == Type::FLOAT)
+    {
+        suffix = ".r";
+    }
+    else if (output->getType() == Type::COLOR3)
+    {
+        suffix = ".rgb";
+    }
+    VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    ShaderPort* color = vertexData[variable];
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    shadergen.emitString(" = " + prefix + color->getVariable() + suffix, stage);
+    shadergen.emitLineEnd(stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

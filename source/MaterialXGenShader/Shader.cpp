@@ -13,8 +13,8 @@
 #include <MaterialXCore/Node.h>
 #include <MaterialXCore/Value.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 //
 // Shader methods
@@ -41,7 +41,6 @@ bool Shader::hasStage(const string& name)
     auto it = _stagesMap.find(name);
     return (it != _stagesMap.end());
 }
-
 
 ShaderStage& Shader::getStage(const string& name)
 {
@@ -73,4 +72,4 @@ ShaderStagePtr Shader::createStage(const string& name, ConstSyntaxPtr syntax)
     return s;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

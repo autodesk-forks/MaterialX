@@ -17,8 +17,8 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtReadOptions
 /// A set of options for controlling the behavior of read functions.
@@ -42,7 +42,7 @@ class RtReadOptions
     /// Read look information. The default value is false.
     bool readLookInformation;
 };
-    
+
 /// @class RtWriteOptions
 /// A set of options for controlling the behavior of write functions.
 class RtWriteOptions
@@ -122,7 +122,7 @@ class RtExportOptions : public RtWriteOptions
 /// to runtime stages.
 class RtFileIo
 {
-public:
+  public:
     /// Constructor attaching this API to a stage.
     RtFileIo(RtStagePtr stage) :
         _stage(stage)
@@ -170,7 +170,7 @@ public:
     // Export to a document
     void exportDocument(const FilePath& documentPath, const RtExportOptions* options = nullptr);
 
-private:
+  private:
     /// Read all contents from a file or folder into the attached stage.
     /// If path is a directory all MaterialX files under this folder will be read.
     /// Returns a set of all files read.
@@ -180,6 +180,6 @@ private:
     friend class PvtApi;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

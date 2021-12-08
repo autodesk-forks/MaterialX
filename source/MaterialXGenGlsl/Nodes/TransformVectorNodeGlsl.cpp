@@ -7,8 +7,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr TransformVectorNodeGlsl::create()
 {
@@ -34,31 +34,31 @@ void TransformVectorNodeGlsl::createVariables(const ShaderNode& node, GenContext
 void TransformVectorNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        const ShaderGenerator& shadergen = context.getShaderGenerator();
+    const ShaderGenerator& shadergen = context.getShaderGenerator();
 
-        const ShaderInput* inInput = node.getInput("in");
-        if (inInput->getType() != Type::VECTOR3 && inInput->getType() != Type::VECTOR4)
-        {
-            throw ExceptionShaderGenError("Transform node must have 'in' type of vector3 or vector4.");
-        }
+    const ShaderInput* inInput = node.getInput("in");
+    if (inInput->getType() != Type::VECTOR3 && inInput->getType() != Type::VECTOR4)
+    {
+        throw ExceptionShaderGenError("Transform node must have 'in' type of vector3 or vector4.");
+    }
 
-        const ShaderInput* toSpaceInput = node.getInput(TO_SPACE);
-        string toSpace = toSpaceInput ? toSpaceInput->getValue()->getValueString() : EMPTY_STRING;
+    const ShaderInput* toSpaceInput = node.getInput(TO_SPACE);
+    string toSpace = toSpaceInput ? toSpaceInput->getValue()->getValueString() : EMPTY_STRING;
 
-        const ShaderInput* fromSpaceInput = node.getInput(FROM_SPACE);
-        string fromSpace = fromSpaceInput ? fromSpaceInput->getValue()->getValueString() : EMPTY_STRING;
+    const ShaderInput* fromSpaceInput = node.getInput(FROM_SPACE);
+    string fromSpace = fromSpaceInput ? fromSpaceInput->getValue()->getValueString() : EMPTY_STRING;
 
-        shadergen.emitLineBegin(stage);
-        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        shadergen.emitString(" = (", stage);
-        const string& matrix = getMatrix(fromSpace, toSpace);
-        if (!matrix.empty())
-        {
-            shadergen.emitString(matrix + " * ", stage);
-        }
-        shadergen.emitString(getHomogeneousCoordinate(inInput, context), stage);
-        shadergen.emitString(").xyz", stage);
-        shadergen.emitLineEnd(stage);
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    shadergen.emitString(" = (", stage);
+    const string& matrix = getMatrix(fromSpace, toSpace);
+    if (!matrix.empty())
+    {
+        shadergen.emitString(matrix + " * ", stage);
+    }
+    shadergen.emitString(getHomogeneousCoordinate(inInput, context), stage);
+    shadergen.emitString(").xyz", stage);
+    shadergen.emitLineEnd(stage);
 
     END_SHADER_STAGE(stage, Stage::PIXEL)
 }
@@ -82,4 +82,4 @@ string TransformVectorNodeGlsl::getHomogeneousCoordinate(const ShaderInput* in, 
     return "vec4(" + shadergen.getUpstreamResult(in, context) + ", 0.0)";
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

@@ -8,8 +8,8 @@
 #include <MaterialXRuntime/RtPrim.h>
 #include <MaterialXRuntime/RtNodeGraph.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 PvtCommandPtr PvtConnectionCmd::create(const RtOutput& src, const RtInput& dest, ConnectionChange change)
 {
@@ -52,7 +52,7 @@ void PvtConnectionCmd::makeConnection(RtCommandResult& result)
             result = RtCommandResult(false, string("PvtConnectionCmd: Command operands are no longer valid"));
             return;
         }
-        
+
         // Make the connection
         _dest.connect(_src);
 
@@ -95,11 +95,10 @@ void PvtConnectionCmd::breakConnection(RtCommandResult& result)
     }
 }
 
-void PvtConnectionCmd::updateConnectionProperties(const RtOutput& /*src*/, const RtInput& /*dest*/, RtCommandResult& /*result*/) 
+void PvtConnectionCmd::updateConnectionProperties(const RtOutput& /*src*/, const RtInput& /*dest*/, RtCommandResult& /*result*/)
 {
     // No-op
 }
-
 
 PvtCommandPtr PvtInterfaceConnectionCmd::create(const RtOutput& src, const RtInput& dest, ConnectionChange change)
 {
@@ -124,4 +123,4 @@ void PvtInterfaceConnectionCmd::updateConnectionProperties(const RtOutput& src, 
     }
 }
 
-}
+MATERIALX_NAMESPACE_END

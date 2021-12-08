@@ -12,8 +12,8 @@
 #include <MaterialXCore/Definition.h>
 #include <MaterialXCore/Document.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr CompoundNode::create()
 {
@@ -58,49 +58,49 @@ void CompoundNode::createVariables(const ShaderNode&, GenContext& context, Shade
 void CompoundNode::emitFunctionDefinition(const ShaderNode&, GenContext& context, ShaderStage& stage) const
 {
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        const ShaderGenerator& shadergen = context.getShaderGenerator();
-        const Syntax& syntax = shadergen.getSyntax();
+    const ShaderGenerator& shadergen = context.getShaderGenerator();
+    const Syntax& syntax = shadergen.getSyntax();
 
-        // Emit functions for all child nodes
-        shadergen.emitFunctionDefinitions(*_rootGraph, context, stage);
+    // Emit functions for all child nodes
+    shadergen.emitFunctionDefinitions(*_rootGraph, context, stage);
 
-        // Begin function signature.
-        shadergen.emitLineBegin(stage);
-        shadergen.emitString("void " + _functionName + + "(", stage);
+    // Begin function signature.
+    shadergen.emitLineBegin(stage);
+    shadergen.emitString("void " + _functionName + +"(", stage);
 
-        string delim = "";
+    string delim = "";
 
-        // Add all inputs
-        for (ShaderGraphInputSocket* inputSocket : _rootGraph->getInputSockets())
-        {
-            shadergen.emitString(delim + syntax.getTypeName(inputSocket->getType()) + " " + inputSocket->getVariable(), stage);
-            delim = ", ";
-        }
+    // Add all inputs
+    for (ShaderGraphInputSocket* inputSocket : _rootGraph->getInputSockets())
+    {
+        shadergen.emitString(delim + syntax.getTypeName(inputSocket->getType()) + " " + inputSocket->getVariable(), stage);
+        delim = ", ";
+    }
 
-        // Add all outputs
-        for (ShaderGraphOutputSocket* outputSocket : _rootGraph->getOutputSockets())
-        {
-            shadergen.emitString(delim + syntax.getOutputTypeName(outputSocket->getType()) + " " + outputSocket->getVariable(), stage);
-            delim = ", ";
-        }
+    // Add all outputs
+    for (ShaderGraphOutputSocket* outputSocket : _rootGraph->getOutputSockets())
+    {
+        shadergen.emitString(delim + syntax.getOutputTypeName(outputSocket->getType()) + " " + outputSocket->getVariable(), stage);
+        delim = ", ";
+    }
 
-        // End function signature.
-        shadergen.emitString(")", stage);
-        shadergen.emitLineEnd(stage, false);
+    // End function signature.
+    shadergen.emitString(")", stage);
+    shadergen.emitLineEnd(stage, false);
 
-        // Begin function body.
-        shadergen.emitFunctionBodyBegin(*_rootGraph, context, stage);
-        shadergen.emitFunctionCalls(*_rootGraph, context, stage);
+    // Begin function body.
+    shadergen.emitFunctionBodyBegin(*_rootGraph, context, stage);
+    shadergen.emitFunctionCalls(*_rootGraph, context, stage);
 
-        // Emit final results
-        for (ShaderGraphOutputSocket* outputSocket : _rootGraph->getOutputSockets())
-        {
-            const string result = shadergen.getUpstreamResult(outputSocket, context);
-            shadergen.emitLine(outputSocket->getVariable() + " = " + result, stage);
-        }
+    // Emit final results
+    for (ShaderGraphOutputSocket* outputSocket : _rootGraph->getOutputSockets())
+    {
+        const string result = shadergen.getUpstreamResult(outputSocket, context);
+        shadergen.emitLine(outputSocket->getVariable() + " = " + result, stage);
+    }
 
-        // End function body.
-        shadergen.emitFunctionBodyEnd(*_rootGraph, context, stage);
+    // End function body.
+    shadergen.emitFunctionBodyEnd(*_rootGraph, context, stage);
     END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
@@ -109,40 +109,40 @@ void CompoundNode::emitFunctionCall(const ShaderNode& node, GenContext& context,
     const ShaderGenerator& shadergen = context.getShaderGenerator();
 
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
-        // Emit function calls for all child nodes to the vertex shader stage
-        shadergen.emitFunctionCalls(*_rootGraph, context, stage);
+    // Emit function calls for all child nodes to the vertex shader stage
+    shadergen.emitFunctionCalls(*_rootGraph, context, stage);
     END_SHADER_STAGE(stage, Stage::VERTEX)
 
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        // Declare the output variables.
-        emitOutputVariables(node, context, stage);
+    // Declare the output variables.
+    emitOutputVariables(node, context, stage);
 
-        // Begin function call.
-        shadergen.emitLineBegin(stage);
-        shadergen.emitString(_functionName + "(", stage);
+    // Begin function call.
+    shadergen.emitLineBegin(stage);
+    shadergen.emitString(_functionName + "(", stage);
 
-        string delim = "";
+    string delim = "";
 
-        // Emit inputs.
-        for (ShaderInput* input : node.getInputs())
-        {
-            shadergen.emitString(delim, stage);
-            shadergen.emitInput(input, context, stage);
-            delim = ", ";
-        }
+    // Emit inputs.
+    for (ShaderInput* input : node.getInputs())
+    {
+        shadergen.emitString(delim, stage);
+        shadergen.emitInput(input, context, stage);
+        delim = ", ";
+    }
 
-        // Emit outputs.
-        for (size_t i = 0; i < node.numOutputs(); ++i)
-        {
-            shadergen.emitString(delim, stage);
-            shadergen.emitOutput(node.getOutput(i), false, false, context, stage);
-            delim = ", ";
-        }
+    // Emit outputs.
+    for (size_t i = 0; i < node.numOutputs(); ++i)
+    {
+        shadergen.emitString(delim, stage);
+        shadergen.emitOutput(node.getOutput(i), false, false, context, stage);
+        delim = ", ";
+    }
 
-        // End function call
-        shadergen.emitString(")", stage);
-        shadergen.emitLineEnd(stage);
+    // End function call
+    shadergen.emitString(")", stage);
+    shadergen.emitLineEnd(stage);
     END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

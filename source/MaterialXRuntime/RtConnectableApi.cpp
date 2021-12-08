@@ -6,12 +6,12 @@
 #include <MaterialXRuntime/RtConnectableApi.h>
 #include <MaterialXRuntime/RtPrim.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    RtStringMap<RtConnectableApiPtr> s_connectableApiRegistry;
+RtStringMap<RtConnectableApiPtr> s_connectableApiRegistry;
 }
 
 bool RtConnectableApi::acceptConnection(const RtInput& input, const RtOutput& output) const
@@ -46,4 +46,4 @@ RtConnectableApi* RtConnectableApi::get(const RtPrim& prim)
     return it != s_connectableApiRegistry.end() ? it->second.get() : nullptr;
 }
 
-}
+MATERIALX_NAMESPACE_END

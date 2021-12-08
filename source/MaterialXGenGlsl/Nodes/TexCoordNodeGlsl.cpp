@@ -7,8 +7,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr TexCoordNodeGlsl::create()
 {
@@ -37,25 +37,25 @@ void TexCoordNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& cont
     const string variable = HW::T_TEXCOORD + "_" + index;
 
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
-        VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        ShaderPort* texcoord = vertexData[variable];
-        if (!texcoord->isEmitted())
-        {
-            shadergen.emitLine(prefix + texcoord->getVariable() + " = " + HW::T_IN_TEXCOORD + "_" + index, stage);
-            texcoord->setEmitted();
-        }
+    VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    ShaderPort* texcoord = vertexData[variable];
+    if (!texcoord->isEmitted())
+    {
+        shadergen.emitLine(prefix + texcoord->getVariable() + " = " + HW::T_IN_TEXCOORD + "_" + index, stage);
+        texcoord->setEmitted();
+    }
     END_SHADER_STAGE(shader, Stage::VERTEX)
 
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        ShaderPort* texcoord = vertexData[variable];
-        shadergen.emitLineBegin(stage);
-        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        shadergen.emitString(" = " + prefix + texcoord->getVariable(), stage);
-        shadergen.emitLineEnd(stage);
+    VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    ShaderPort* texcoord = vertexData[variable];
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    shadergen.emitString(" = " + prefix + texcoord->getVariable(), stage);
+    shadergen.emitLineEnd(stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

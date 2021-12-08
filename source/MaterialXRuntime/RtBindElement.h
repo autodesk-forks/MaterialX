@@ -12,8 +12,8 @@
 #include <MaterialXRuntime/RtSchema.h>
 #include <MaterialXRuntime/RtTraversal.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtBindElement
 /// Base class for all schemas handling material bindings.
@@ -21,9 +21,10 @@ class RtBindElement : public RtTypedSchema
 {
     DECLARE_TYPED_SCHEMA(RtBindElement)
 
-public:
+  public:
     /// Constructor.
-    RtBindElement(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtBindElement(const RtPrim& prim) :
+        RtTypedSchema(prim) { }
 
     /// Return the named relationship.
     /// Shorthand for getPrim().getRelationship(name).
@@ -40,6 +41,6 @@ public:
     }
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

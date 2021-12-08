@@ -11,20 +11,20 @@
 
 #include <MaterialXGenGlsl/GlslSyntax.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Syntax class for OgsFx
 class OgsFxSyntax : public GlslSyntax
 {
     using ParentClass = GlslSyntax;
 
-public:
+  public:
     OgsFxSyntax();
 
     static SyntaxPtr create() { return std::make_shared<OgsFxSyntax>(); }
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

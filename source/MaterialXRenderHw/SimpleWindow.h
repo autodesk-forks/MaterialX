@@ -11,15 +11,15 @@
 #include <MaterialXRenderHw/Export.h>
 #include <MaterialXRenderHw/WindowWrapper.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// SimpleWindow shared pointer
 using SimpleWindowPtr = std::shared_ptr<class SimpleWindow>;
 
 /// @class SimpleWindow
 /// A platform-independent window class.
-/// 
+///
 /// Plaform-specific resources are encapsulated by a WindowWrapper instance.
 class MX_RENDERHW_API SimpleWindow
 {
@@ -31,7 +31,7 @@ class MX_RENDERHW_API SimpleWindow
     virtual ~SimpleWindow();
 
     /// Window initialization
-    bool initialize(const char* title, unsigned int width, unsigned int height, void *applicationShell);
+    bool initialize(const char* title, unsigned int width, unsigned int height, void* applicationShell);
 
     /// Return our platform-specific resource wrapper
     WindowWrapperPtr getWindowWrapper()
@@ -84,6 +84,6 @@ class MX_RENDERHW_API SimpleWindow
 #endif
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -16,8 +16,8 @@
 #include <array>
 #include <cmath>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 extern MX_CORE_API const string DEFAULT_TYPE_STRING;
 extern MX_CORE_API const string FILENAME_TYPE_STRING;
@@ -40,10 +40,14 @@ extern MX_CORE_API const string ARRAY_VALID_SEPARATORS;
 extern MX_CORE_API const string ARRAY_PREFERRED_SEPARATOR;
 
 /// The base class for vectors of scalar values
-class VectorBase { };
+class VectorBase
+{
+};
 
 /// A tag class for constructing vectors and matrices without initialization
-class Uninit { };
+class Uninit
+{
+};
 
 /// The class template for vectors of scalar values.  Inherited by Vector2,
 /// Vector3, Vector4, Color3, and Color4.
@@ -57,10 +61,12 @@ template <class V, class S, size_t N> class VectorN : public VectorBase
     using ConstIterator = typename std::array<S, N>::const_iterator;
 
   public:
-    VectorN() : _arr{} { }
+    VectorN() :
+        _arr{} { }
     explicit VectorN(Uninit) { }
     explicit VectorN(S s) { _arr.fill(s); }
-    explicit VectorN(const std::array<S, N>& arr) : _arr(arr) { }
+    explicit VectorN(const std::array<S, N>& arr) :
+        _arr(arr) { }
     explicit VectorN(const vector<S>& vec) { std::copy(vec.begin(), vec.end(), _arr.begin()); }
     explicit VectorN(const S* begin, const S* end) { std::copy(begin, end, _arr.begin()); }
 
@@ -402,7 +408,9 @@ class MX_CORE_API Color4 : public VectorN<Color4, float, 4>
 };
 
 /// The base class for square matrices of scalar values
-class MatrixBase { };
+class MatrixBase
+{
+};
 
 /// The class template for square matrices of scalar values.  Inherited by
 /// Matrix33 and Matrix44.
@@ -420,7 +428,8 @@ template <class M, class S, size_t N> class MatrixN : public MatrixBase
     using ConstIterator = typename std::array<RowArray, N>::const_iterator;
 
   public:
-    MatrixN() : _arr{} { }
+    MatrixN() :
+        _arr{} { }
     explicit MatrixN(Uninit) { }
     explicit MatrixN(S s) { std::fill_n(&_arr[0][0], N * N, s); }
     explicit MatrixN(const S* begin, const S* end) { std::copy(begin, end, &_arr[0][0]); }
@@ -738,6 +747,6 @@ class MX_CORE_API Matrix44 : public MatrixN<Matrix44, float, 4>
     static const Matrix44 IDENTITY;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

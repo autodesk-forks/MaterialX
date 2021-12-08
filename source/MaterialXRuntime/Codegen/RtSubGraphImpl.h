@@ -11,8 +11,8 @@
 
 #include <MaterialXRuntime/Codegen/RtCodegenImpl.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtSubGraphImpl
 /// A node implementation using a subgraph.
@@ -20,9 +20,10 @@ class RtSubGraphImpl : public RtCodegenImpl
 {
     DECLARE_TYPED_SCHEMA(RtSubGraphImpl)
 
-public:
+  public:
     /// Constructor.
-    RtSubGraphImpl(const RtPrim& prim) : RtCodegenImpl(prim) {}
+    RtSubGraphImpl(const RtPrim& prim) :
+        RtCodegenImpl(prim) { }
 
     /// Initialize this implementation with the nodegraph prim to use.
     void initialize(const RtPrim& nodegraph);
@@ -37,6 +38,6 @@ public:
     void emitFunctionCall(const RtNode& node, GenContext& context, ShaderStage& stage) const override;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

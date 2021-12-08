@@ -13,8 +13,8 @@
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 #include <MaterialXGenShader/ColorManagementSystem.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class OCIOInformation;
 
@@ -69,23 +69,21 @@ class MX_GENSHADER_API OCIOColorManagementSystem : public ColorManagementSystem
     bool isValid() const;
 
   private:
-    OCIOInformation*  _ocioInfo;
-    FilePath          _configFile;
-    string            _target;
+    OCIOInformation* _ocioInfo;
+    FilePath _configFile;
+    string _target;
 };
-
 
 /// Extending the SourceCodeNode with requirements for OCIO.
 class MX_GENSHADER_API OCIOSourceCodeNode : public SourceCodeNode
 {
-public:
+  public:
     static ShaderNodeImplPtr create();
 
     void emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
     void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 };
 
-
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

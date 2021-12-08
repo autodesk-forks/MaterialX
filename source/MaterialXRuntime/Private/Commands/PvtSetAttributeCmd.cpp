@@ -10,16 +10,11 @@
 #include <MaterialXRuntime/RtTypeDef.h>
 #include <MaterialXRuntime/RtValue.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
 
-PvtSetAttributeCmd::PvtSetAttributeCmd(const RtObject& obj, const RtString& name, const RtValue& value)
-    : PvtCommand()
-    , _obj(obj)
-    , _name(name)
-    , _value(value)
-    , _oldValue()
-    , _attrCreated(false)
+
+PvtSetAttributeCmd::PvtSetAttributeCmd(const RtObject& obj, const RtString& name, const RtValue& value) :
+    PvtCommand(), _obj(obj), _name(name), _value(value), _oldValue(), _attrCreated(false)
 {
 }
 
@@ -141,4 +136,4 @@ void PvtSetAttributeCmd::redo(RtCommandResult& result)
     }
 }
 
-}
+MATERIALX_NAMESPACE_END

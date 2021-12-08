@@ -9,14 +9,14 @@
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// LightShader node implementation for GLSL
 /// Used for all light shaders implemented in source code.
 class MX_GENGLSL_API LightShaderNodeGlsl : public SourceCodeNode
 {
-public:
+  public:
     LightShaderNodeGlsl();
 
     static ShaderNodeImplPtr create();
@@ -29,10 +29,10 @@ public:
 
     void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 
-protected:
+  protected:
     VariableBlock _lightUniforms;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

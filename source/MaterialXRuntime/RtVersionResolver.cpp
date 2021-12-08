@@ -4,8 +4,8 @@
 #include <regex>
 #include <cmath>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 bool isValidIntegerVersionFormat(const std::string& versionFormat)
 {
@@ -30,36 +30,45 @@ std::string getFormattedVersionString(const std::string& versionNumber, const st
 {
     std::regex numberMaskRegEx("[.]?[#]+");
     std::string result = versionFormat;
-    if (isValidVersionFormat(versionFormat)) {
+    if (isValidVersionFormat(versionFormat))
+    {
         result = std::regex_replace(result, numberMaskRegEx, versionNumber);
         const char decimalComma = ',';
         const char delim = '_';
         std::replace(result.begin(), result.end(), decimalComma, delim);
         return result;
-    } else {
+    }
+    else
+    {
         return result;
     }
 }
 
 int getVersionFormatDecimalPrecision(const std::string& versionFormat)
 {
-    if (isValidFloatVersionFormat(versionFormat)) {
+    if (isValidFloatVersionFormat(versionFormat))
+    {
         size_t digitsCount = std::count(versionFormat.begin(), versionFormat.end(), '#');
-        return (int)digitsCount;
-    } else {
+        return (int) digitsCount;
+    }
+    else
+    {
         return 0;
     }
 }
 
 double getVersionIncrementStep(const int decimalPrecision)
 {
-    if (decimalPrecision > 0) {
-        const double stepWhole = std::pow(10, (int)decimalPrecision);
-        const double incrementStep = 1.0/stepWhole;
+    if (decimalPrecision > 0)
+    {
+        const double stepWhole = std::pow(10, (int) decimalPrecision);
+        const double incrementStep = 1.0 / stepWhole;
         return incrementStep;
-    } else {
+    }
+    else
+    {
         return 1.0;
     }
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

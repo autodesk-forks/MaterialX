@@ -16,8 +16,8 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 // Allocator class handling allocation of data for prims.
 // The data allocated is kept by the allocator and freed
@@ -26,7 +26,7 @@ namespace MaterialX
 // for allocated objects will not be called when freeing data.
 class PvtAllocator
 {
-public:
+  public:
     ~PvtAllocator()
     {
         free();
@@ -42,7 +42,7 @@ public:
 
     // Allocate and return a single object of templated type.
     // The object constructor is called to initialize it.
-    template<class T>
+    template <class T>
     T* allocType()
     {
         uint8_t* buffer = alloc(sizeof(T));
@@ -59,7 +59,7 @@ public:
         _storage.clear();
     }
 
-private:
+  private:
     vector<uint8_t*> _storage;
 };
 
@@ -70,8 +70,8 @@ class PvtPrim : public PvtObject
 {
     RT_DECLARE_RUNTIME_OBJECT(PvtPrim)
 
-public:
-    template<class T = PvtPrim>
+  public:
+    template <class T = PvtPrim>
     static PvtObjHandle createNew(const RtTypeInfo* type, const RtString& name, PvtPrim* parent)
     {
         // Make the name unique.
@@ -93,11 +93,11 @@ public:
         return _typeInfo;
     }
 
-    template<class T>
+    template <class T>
     bool hasApi() const
     {
         static_assert(std::is_base_of<RtSchemaBase, T>::value,
-            "Templated type must be a concrete subclass of RtSchemaBase");
+                      "Templated type must be a concrete subclass of RtSchemaBase");
         return _typeInfo->isCompatible(T::typeName());
     }
 
@@ -246,7 +246,7 @@ public:
         }
     }
 
-protected:
+  protected:
     PvtPrim(const RtTypeInfo* typeInfo, const RtString& name, PvtPrim* parent);
 
     void addChildPrim(PvtPrim* prim);
@@ -277,7 +277,6 @@ protected:
     friend class RtRelationshipIterator;
 };
 
-
 struct PvtAttributeSpec
 {
     RtString name;
@@ -293,7 +292,7 @@ struct PvtAttributeSpec
 
 class RtAttributeSpecList
 {
-public:
+  public:
     ~RtAttributeSpecList()
     {
         for (RtAttributeSpec* spec : _vec)
@@ -336,17 +335,16 @@ public:
         return i < _vec.size() ? _vec[i] : nullptr;
     }
 
-private:
+  private:
     RtStringMap<RtAttributeSpec*> _map;
     RtAttributeSpecVec _vec;
 
     friend class PvtPrimSpec;
 };
 
-
 class PvtPrimSpec : public RtPrimSpec
 {
-public:
+  public:
     PvtPrimSpec()
     {
     }
@@ -368,7 +366,7 @@ public:
     RtAttributeSpec* create(const RtString& name, const RtString& type, const string& value, bool exportable, bool custom);
 
     void addPrimAttribute(const RtString& name, const RtString& type, const string& value = EMPTY_STRING,
-                      bool exportable = false, bool custom = false)
+                          bool exportable = false, bool custom = false)
     {
         _primAttr.add(create(name, type, value, exportable, custom));
     }
@@ -380,7 +378,7 @@ public:
     }
 
     void addInputAttributeByName(const RtString& portName, const RtString& name, const RtString& type,
-                                const string& value = EMPTY_STRING, bool exportable = false, bool custom = false)
+                                 const string& value = EMPTY_STRING, bool exportable = false, bool custom = false)
     {
         _inputAttrByName[portName].add(create(name, type, value, exportable, custom));
     }
@@ -419,6 +417,6 @@ public:
     PvtAllocator _allocator; // TODO: Start using this allocator, change default value from strings to actual value type.
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

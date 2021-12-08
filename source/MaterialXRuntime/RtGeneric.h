@@ -11,8 +11,8 @@
 
 #include <MaterialXRuntime/RtSchema.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtGeneric
 /// Schema for generic/unknown prims.
@@ -20,9 +20,10 @@ class RtGeneric : public RtTypedSchema
 {
     DECLARE_TYPED_SCHEMA(RtGeneric)
 
-public:
+  public:
     /// Constructor.
-    RtGeneric(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtGeneric(const RtPrim& prim) :
+        RtTypedSchema(prim) { }
 
     /// Get the kind for this generic prim,
     /// which gives its custom typename.
@@ -33,6 +34,6 @@ public:
     void setKind(const RtString& kind);
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

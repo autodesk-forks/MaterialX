@@ -20,24 +20,26 @@
 #include <sstream>
 
 // Macro for begin/end of statements to be picked up by a given shader stage.
-// For shaders that are multi-stage all code generation statements adding code 
+// For shaders that are multi-stage all code generation statements adding code
 // to the shader should be wrapped inside such begin/end stating its target.
-#define BEGIN_SHADER_STAGE(stage, name) if (stage.getName() == name) {
+#define BEGIN_SHADER_STAGE(stage, name) \
+    if (stage.getName() == name)        \
+    {
 #define END_SHADER_STAGE(stage, name) }
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace Stage
 {
-    /// Identifier for pixel stage.
-    /// This is the main stage used by all shader targets.
-    /// For single stage shader targets this is the one
-    /// and only stage.
-    /// Shader targets with multiple stages can add additional
-    /// stage identifiers to the Stage namespace.
-    extern MX_GENSHADER_API const string PIXEL;
-}
+/// Identifier for pixel stage.
+/// This is the main stage used by all shader targets.
+/// For single stage shader targets this is the one
+/// and only stage.
+/// Shader targets with multiple stages can add additional
+/// stage identifiers to the Stage namespace.
+extern MX_GENSHADER_API const string PIXEL;
+} // namespace Stage
 
 class VariableBlock;
 /// Shared pointer to a VariableBlock
@@ -55,7 +57,8 @@ class MX_GENSHADER_API VariableBlock
     VariableBlock(const string& name, const string& instance) :
         _name(name),
         _instance(instance)
-    {}
+    {
+    }
 
     /// Get the name of this block.
     const string& getName() const { return _name; }
@@ -116,19 +119,19 @@ class MX_GENSHADER_API VariableBlock
     vector<ShaderPort*> _variableOrder;
 };
 
-
 /// @class ShaderStage
-/// A shader stage, containing the state and 
+/// A shader stage, containing the state and
 /// resulting source code for the stage.
 class MX_GENSHADER_API ShaderStage
 {
-public:
+  public:
     using FunctionCallId = std::pair<const ShaderNode*, int>;
     struct Scope
     {
         Syntax::Punctuation punctuation;
         std::set<FunctionCallId> functions;
-        Scope(Syntax::Punctuation p) : punctuation(p) {}
+        Scope(Syntax::Punctuation p) :
+            punctuation(p) { }
     };
 
   public:
@@ -194,7 +197,7 @@ public:
     {
         return _outputs;
     }
- 
+
     /// Start a new scope using the given bracket type.
     void beginScope(Syntax::Punctuation punc = Syntax::CURLY_BRACKETS);
 
@@ -222,12 +225,12 @@ public:
     /// Add a block of code.
     void addBlock(const string& str, GenContext& context);
 
-    /// Add the contents of an include file. Making sure it is 
+    /// Add the contents of an include file. Making sure it is
     /// only included once for the shader stage.
     void addInclude(const string& file, GenContext& context);
 
     /// Add a value.
-    template<typename T>
+    template <typename T>
     void addValue(const T& value)
     {
         StringStream str;
@@ -245,8 +248,8 @@ public:
     bool isEmitted(const ShaderNode& node, GenContext& context) const;
 
     /// Set stage function name.
-    void setFunctionName(const string& functionName) 
-    { 
+    void setFunctionName(const string& functionName)
+    {
         _functionName = functionName;
     }
 
@@ -294,8 +297,8 @@ public:
 using ShaderStagePtr = std::shared_ptr<ShaderStage>;
 
 /// Utility function for adding a new shader port to a uniform block.
-inline ShaderPort* addStageUniform(const string& block, 
-                                   const TypeDesc* type, 
+inline ShaderPort* addStageUniform(const string& block,
+                                   const TypeDesc* type,
                                    const string& name,
                                    ShaderStage& stage)
 {
@@ -304,7 +307,7 @@ inline ShaderPort* addStageUniform(const string& block,
 }
 
 /// Utility function for adding a new shader port to an input block.
-inline ShaderPort* addStageInput(const string& block, 
+inline ShaderPort* addStageInput(const string& block,
                                  const TypeDesc* type,
                                  const string& name,
                                  ShaderStage& stage)
@@ -315,7 +318,7 @@ inline ShaderPort* addStageInput(const string& block,
 
 /// Utility function for adding a new shader port to an output block.
 inline ShaderPort* addStageOutput(const string& block,
-                                  const TypeDesc* type, 
+                                  const TypeDesc* type,
                                   const string& name,
                                   ShaderStage& stage)
 {
@@ -324,9 +327,9 @@ inline ShaderPort* addStageOutput(const string& block,
 }
 
 /// Utility function for adding a connector block between stages.
-inline void addStageConnectorBlock(const string& block, 
+inline void addStageConnectorBlock(const string& block,
                                    const string& instance,
-                                   ShaderStage& from, 
+                                   ShaderStage& from,
                                    ShaderStage& to)
 {
     from.createOutputBlock(block, instance);
@@ -334,8 +337,8 @@ inline void addStageConnectorBlock(const string& block,
 }
 
 /// Utility function for adding a variable to a stage connector block.
-inline void addStageConnector(const string& block, 
-                              const TypeDesc* type, 
+inline void addStageConnector(const string& block,
+                              const TypeDesc* type,
                               const string& name,
                               ShaderStage& from,
                               ShaderStage& to)
@@ -344,6 +347,6 @@ inline void addStageConnector(const string& block,
     addStageInput(block, type, name, to);
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -12,8 +12,8 @@
 #include <MaterialXRuntime/RtNode.h>
 #include <MaterialXRuntime/RtNodeDef.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class RtPrimIterator;
 
@@ -23,8 +23,9 @@ class RtNodeGraph : public RtNode
 {
     DECLARE_TYPED_SCHEMA(RtNodeGraph)
 
-public:
-    RtNodeGraph(const RtPrim& prim) : RtNode(prim) {}
+  public:
+    RtNodeGraph(const RtPrim& prim) :
+        RtNode(prim) { }
 
     /// Add an input attribute to the graph.
     RtInput createInput(const RtString& name, const RtString& type, uint32_t flags = 0);
@@ -87,6 +88,6 @@ public:
     string asStringDot() const;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -21,12 +21,12 @@
 #include <MaterialXRuntime/Private/PvtCommand.h>
 #include <MaterialXRuntime/Private/PvtMessage.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtApi
 {
-public:
+  public:
     PvtApi()
     {
         init();
@@ -411,6 +411,6 @@ public:
     PvtObjectList _targetdefs;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

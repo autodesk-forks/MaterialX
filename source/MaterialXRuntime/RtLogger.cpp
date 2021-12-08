@@ -7,15 +7,16 @@
 
 #include <MaterialXRuntime/Private/PvtLogger.h>
 
-namespace MaterialX {
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    inline PvtLogger* _cast(void* ptr)
-    {
-        return static_cast<PvtLogger*>(ptr);
-    }
+inline PvtLogger* _cast(void* ptr)
+{
+    return static_cast<PvtLogger*>(ptr);
 }
+} // namespace
 
 RtLogger::RtLogger() :
     _ptr(new PvtLogger(this))
@@ -27,17 +28,19 @@ RtLogger::~RtLogger()
     delete _cast(_ptr);
 }
 
-void RtLogger::enable(MessageType type, bool value) {
+void RtLogger::enable(MessageType type, bool value)
+{
     _cast(_ptr)->enable(type, value);
 }
 
-bool RtLogger::isEnabled(MessageType type) {
+bool RtLogger::isEnabled(MessageType type)
+{
     return _cast(_ptr)->isEnabled(type);
 }
 
-void RtLogger::log(MessageType type, const string& msg) {
+void RtLogger::log(MessageType type, const string& msg)
+{
     _cast(_ptr)->log(type, msg);
 }
 
-}
-
+MATERIALX_NAMESPACE_END

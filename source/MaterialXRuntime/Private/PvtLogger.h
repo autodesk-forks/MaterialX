@@ -13,43 +13,50 @@
 
 #include <bitset>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtLogger
 {
-public:
+  public:
     PvtLogger(RtLogger* logger) :
         _logger(logger)
     {
         _enabled.set();
     }
 
-    void enable(RtLogger::MessageType type, bool value) {
+    void enable(RtLogger::MessageType type, bool value)
+    {
         size_t bit = static_cast<size_t>(type);
-        if (value) {
+        if (value)
+        {
             _enabled.set(bit);
-        } else {
+        }
+        else
+        {
             _enabled.reset(bit);
         }
     }
 
-    bool isEnabled(RtLogger::MessageType type) {
+    bool isEnabled(RtLogger::MessageType type)
+    {
         size_t bit = static_cast<size_t>(type);
         return _enabled.test(bit);
     }
 
-    void log(RtLogger::MessageType type, const string& msg) {
-        if (isEnabled(type)) {
+    void log(RtLogger::MessageType type, const string& msg)
+    {
+        if (isEnabled(type))
+        {
             _logger->logImpl(type, msg);
         }
     }
 
-private:
+  private:
     std::bitset<32> _enabled;
-    RtLogger*       _logger;
+    RtLogger* _logger;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

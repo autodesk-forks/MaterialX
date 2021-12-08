@@ -11,16 +11,16 @@
 
 #include <MaterialXGenOsl/OslShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 using ArnoldShaderGeneratorPtr = shared_ptr<class ArnoldShaderGenerator>;
 
-/// @class ArnoldShaderGenerator 
+/// @class ArnoldShaderGenerator
 /// An OSL shader generator targeting the Arnold renderer
 class ArnoldShaderGenerator : public OslShaderGenerator
 {
-public:
+  public:
     ArnoldShaderGenerator();
 
     static ShaderGeneratorPtr create() { return std::make_shared<ArnoldShaderGenerator>(); }
@@ -32,6 +32,6 @@ public:
     static const string TARGET;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -12,17 +12,17 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtTypeInfo
 /// Class holding type information for typed schemas.
 class RtTypeInfo
 {
-public:
+  public:
     /// Constructor setting the type hierarchy
     /// for this typename. The string should list
-    /// the typenames in the hierarchy with a ':' 
+    /// the typenames in the hierarchy with a ':'
     /// separator, e.g.: "node:nodegraph".
     RtTypeInfo(const char* typeNameHierachy);
 
@@ -45,11 +45,11 @@ public:
     /// class hierarchy for this type.
     bool isCompatible(const RtString& typeName) const;
 
-private:
+  private:
     // Private data.
     void* _ptr;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

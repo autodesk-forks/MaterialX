@@ -8,8 +8,8 @@
 
 #include <MaterialXRuntime/Private/PvtApi.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace RtCommand
 {
@@ -29,6 +29,6 @@ void flushUndoQueue()
     PvtApi::cast(RtApi::get())->getCommandEngine().flushUndoQueue();
 }
 
-}
+} // namespace RtCommand
 
-}
+MATERIALX_NAMESPACE_END

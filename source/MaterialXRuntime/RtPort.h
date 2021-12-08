@@ -12,8 +12,8 @@
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtObject.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class RtValue;
 class RtOutput;
@@ -23,15 +23,15 @@ class RtConnectionIterator;
 /// Flags for tagging ports.
 class RtPortFlag
 {
-public:
+  public:
     /// Port holds uniform values.
-    static const uint32_t UNIFORM     = 0x00000001;
+    static const uint32_t UNIFORM = 0x00000001;
 
     /// Port is a nodegraph internal socket.
-    static const uint32_t SOCKET      = 0x00000002;
+    static const uint32_t SOCKET = 0x00000002;
 
     /// Port holds a token.
-    static const uint32_t TOKEN       = 0x00000004;
+    static const uint32_t TOKEN = 0x00000004;
 };
 
 /// @class RtPort
@@ -40,10 +40,10 @@ class RtPort : public RtObject
 {
     RT_DECLARE_RUNTIME_OBJECT(RtInput)
 
-public:
+  public:
     /// Empty constructor.
     /// Creating an invalid object.
-    RtPort() {}
+    RtPort() { }
 
     /// Construct from a handle.
     RtPort(PvtObjHandle hnd);
@@ -73,17 +73,16 @@ public:
     void setColorSpace(const RtString& colorspace);
 };
 
-
 /// @class RtInput
 /// Object holding an input port on a prim.
 class RtInput : public RtPort
 {
     RT_DECLARE_RUNTIME_OBJECT(RtInput)
 
-public:
+  public:
     /// Empty constructor.
     /// Creating an invalid object.
-    RtInput() {}
+    RtInput() { }
 
     /// Construct from a handle.
     RtInput(PvtObjHandle hnd);
@@ -95,7 +94,7 @@ public:
     bool isToken() const;
 
     /// Set input to be a token
-    void setIsToken(bool value); 
+    void setIsToken(bool value);
 
     /// Return true if this input should be visible in the UI.
     bool isUIVisible() const;
@@ -146,10 +145,10 @@ class RtOutput : public RtPort
 {
     RT_DECLARE_RUNTIME_OBJECT(RtOutput)
 
-public:
+  public:
     /// Empty constructor.
     /// Creating an invalid object.
-    RtOutput() {}
+    RtOutput() { }
 
     /// Construct from a handle.
     RtOutput(PvtObjHandle hnd);
@@ -179,6 +178,6 @@ public:
     friend class RtInput;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

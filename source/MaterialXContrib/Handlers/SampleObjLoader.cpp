@@ -10,11 +10,11 @@
 #include <sstream>
 #include <fstream>
 #include <numeric>
-#include <iomanip>  
+#include <iomanip>
 #include <limits>
 
-namespace MaterialX
-{ 
+MATERIALX_NAMESPACE_BEGIN
+
 bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
 {
     std::ifstream objfile;
@@ -66,7 +66,7 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
     MeshIndexBuffer pidx;
 
     const float MAX_FLOAT = std::numeric_limits<float>::max();
-    Vector3 minPos = { MAX_FLOAT , MAX_FLOAT , MAX_FLOAT };
+    Vector3 minPos = { MAX_FLOAT, MAX_FLOAT, MAX_FLOAT };
     Vector3 maxPos = { -MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT };
 
     // Enable debugging of read by dumping to disk what was read in.
@@ -85,7 +85,9 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
         if (line.substr(0, 2) == "v ")
         {
             std::istringstream valstring(line.substr(2));
-            valstring >> val1; valstring >> val2; valstring >> val3;
+            valstring >> val1;
+            valstring >> val2;
+            valstring >> val3;
 
             if (_debugDump)
             {
@@ -96,20 +98,30 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
             val2 = -val2;
 
             // Update bounds
-            if (val1 < minPos[0]) minPos[0] = val1;
-            if (val2 < minPos[1]) minPos[1] = val2;
-            if (val3 < minPos[2]) minPos[2] = val3;
-            if (val1 > maxPos[0]) maxPos[0] = val1;
-            if (val2 > maxPos[1]) maxPos[1] = val2;
-            if (val3 > maxPos[2]) maxPos[2] = val3;
+            if (val1 < minPos[0])
+                minPos[0] = val1;
+            if (val2 < minPos[1])
+                minPos[1] = val2;
+            if (val3 < minPos[2])
+                minPos[2] = val3;
+            if (val1 > maxPos[0])
+                maxPos[0] = val1;
+            if (val2 > maxPos[1])
+                maxPos[1] = val2;
+            if (val3 > maxPos[2])
+                maxPos[2] = val3;
 
-            pos.push_back(val1); pos.push_back(val2); pos.push_back(val3);
+            pos.push_back(val1);
+            pos.push_back(val2);
+            pos.push_back(val3);
         }
         else if (line.substr(0, 3) == "vt ")
         {
             std::istringstream valstring(line.substr(3));
-            valstring >> val1; valstring >> val2;
-            uv.push_back(val1); uv.push_back(val2);
+            valstring >> val1;
+            valstring >> val2;
+            uv.push_back(val1);
+            uv.push_back(val2);
 
             if (_debugDump)
             {
@@ -119,8 +131,12 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
         else if (line.substr(0, 3) == "vn ")
         {
             std::istringstream valstring(line.substr(3));
-            valstring >> val1; valstring >> val2; valstring >> val3;
-            norm.push_back(val1); norm.push_back(val2); norm.push_back(val3);
+            valstring >> val1;
+            valstring >> val2;
+            valstring >> val3;
+            norm.push_back(val1);
+            norm.push_back(val2);
+            norm.push_back(val3);
 
             if (_debugDump)
             {
@@ -171,7 +187,7 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
                 currentPartition->setName("Partition" + std::to_string(mesh->getPartitionCount()));
                 partitions.push_back(currentPartition);
             }
-            
+
             if (vertexCount >= 3)
             {
                 size_t facesAdded = 1;
@@ -191,9 +207,9 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
                 if (_debugDump)
                 {
                     dump << "f "
-                        << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
-                        << ipos[1] << "/" << iuv[1] << "/" << inorm[1] << " "
-                        << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << std::endl;
+                         << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
+                         << ipos[1] << "/" << iuv[1] << "/" << inorm[1] << " "
+                         << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << std::endl;
                 }
 
                 if (vertexCount >= 4)
@@ -215,9 +231,9 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
                     if (_debugDump)
                     {
                         dump << "f "
-                            << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
-                            << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << " "
-                            << ipos[3] << "/" << iuv[3] << "/" << inorm[3] << std::endl;
+                             << ipos[0] << "/" << iuv[0] << "/" << inorm[0] << " "
+                             << ipos[2] << "/" << iuv[2] << "/" << inorm[2] << " "
+                             << ipos[3] << "/" << iuv[3] << "/" << inorm[3] << std::endl;
                     }
                 }
 
@@ -239,7 +255,7 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
     mesh->setSphereCenter(sphereCenter);
     mesh->setSphereRadius((sphereCenter - minPos).getMagnitude());
 
-    // Organize data to get triangles for positions 
+    // Organize data to get triangles for positions
     for (unsigned int i = 0; i < pidx.size(); i++)
     {
         unsigned int vertexIndex = 3 * pidx[i];
@@ -248,7 +264,7 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
         positionData.push_back(pos[vertexIndex + 2]);
     }
 
-    // Organize data to get triangles for texture coordinates 
+    // Organize data to get triangles for texture coordinates
     for (unsigned int i = 0; i < uvidx.size(); i++)
     {
         unsigned int vertexIndex = 2 * uvidx[i];
@@ -271,7 +287,7 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
         colorData2.push_back(1.0f);
     }
 
-    // Organize data to get triangles for normals 
+    // Organize data to get triangles for normals
     for (unsigned int i = 0; i < nidx.size(); i++)
     {
         unsigned int vertexIndex = 3 * nidx[i];
@@ -290,7 +306,7 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
         {
             indexing.resize(indexCount);
             std::iota(indexing.begin(), indexing.end(), startIndex);
-            startIndex += (unsigned int)indexing.size();
+            startIndex += (unsigned int) indexing.size();
 
             mesh->addPartition(partition);
         }
@@ -308,4 +324,4 @@ bool SampleObjLoader::load(const FilePath& filePath, MeshList& meshList)
     return true;
 }
 
-}
+MATERIALX_NAMESPACE_END

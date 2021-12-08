@@ -8,27 +8,27 @@
 #include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 namespace
 {
-    // TODO: We should derive this from a data driven XML schema.
-    class PvtNodeImplPrimSpec : public PvtPrimSpec
+// TODO: We should derive this from a data driven XML schema.
+class PvtNodeImplPrimSpec : public PvtPrimSpec
+{
+  public:
+    PvtNodeImplPrimSpec()
     {
-    public:
-        PvtNodeImplPrimSpec()
-        {
-            addPrimAttribute(RtString::DOC, RtType::STRING);
-            addPrimAttribute(RtString::NODEDEF, RtType::INTERNSTRING);
-            addPrimAttribute(RtString::NODEGRAPH, RtType::INTERNSTRING);
-            addPrimAttribute(RtString::TARGET, RtType::INTERNSTRING);
-            addPrimAttribute(RtString::FILE, RtType::STRING);
-            addPrimAttribute(RtString::SOURCECODE, RtType::STRING);
-            addPrimAttribute(RtString::FUNCTION, RtType::STRING);
-            addPrimAttribute(RtString::FORMAT, RtType::INTERNSTRING);
-        }
-    };
-}
+        addPrimAttribute(RtString::DOC, RtType::STRING);
+        addPrimAttribute(RtString::NODEDEF, RtType::INTERNSTRING);
+        addPrimAttribute(RtString::NODEGRAPH, RtType::INTERNSTRING);
+        addPrimAttribute(RtString::TARGET, RtType::INTERNSTRING);
+        addPrimAttribute(RtString::FILE, RtType::STRING);
+        addPrimAttribute(RtString::SOURCECODE, RtType::STRING);
+        addPrimAttribute(RtString::FUNCTION, RtType::STRING);
+        addPrimAttribute(RtString::FORMAT, RtType::INTERNSTRING);
+    }
+};
+} // namespace
 
 DEFINE_TYPED_SCHEMA(RtNodeImpl, "nodeimpl");
 
@@ -97,4 +97,4 @@ const RtString& RtNodeImpl::getImplName() const
     return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
-}
+MATERIALX_NAMESPACE_END

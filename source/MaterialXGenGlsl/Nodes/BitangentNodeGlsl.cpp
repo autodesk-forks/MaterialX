@@ -7,8 +7,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr BitangentNodeGlsl::create()
 {
@@ -44,46 +44,47 @@ void BitangentNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& con
     const int space = spaceInput ? spaceInput->getValue()->asA<int>() : OBJECT_SPACE;
 
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
-        VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        if (space == WORLD_SPACE)
+    VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    if (space == WORLD_SPACE)
+    {
+        ShaderPort* bitangent = vertexData[HW::T_BITANGENT_WORLD];
+        if (!bitangent->isEmitted())
         {
-            ShaderPort* bitangent = vertexData[HW::T_BITANGENT_WORLD];
-            if (!bitangent->isEmitted())
-            {
-                bitangent->setEmitted();
-                shadergen.emitLine(prefix + bitangent->getVariable() +
-                    " = (" + HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX + " * vec4(cross(" + HW::T_IN_NORMAL + ", " + HW::T_IN_TANGENT + "), 0.0)).xyz", stage);
-            }
+            bitangent->setEmitted();
+            shadergen.emitLine(prefix + bitangent->getVariable() +
+                                   " = (" + HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX + " * vec4(cross(" + HW::T_IN_NORMAL + ", " + HW::T_IN_TANGENT + "), 0.0)).xyz",
+                               stage);
         }
-        else
+    }
+    else
+    {
+        ShaderPort* bitangent = vertexData[HW::T_BITANGENT_OBJECT];
+        if (!bitangent->isEmitted())
         {
-            ShaderPort* bitangent = vertexData[HW::T_BITANGENT_OBJECT];
-            if (!bitangent->isEmitted())
-            {
-                bitangent->setEmitted();
-                shadergen.emitLine(prefix + bitangent->getVariable() + " = cross(" + HW::T_IN_NORMAL + ", " + HW::T_IN_TANGENT + ")", stage);
-            }
+            bitangent->setEmitted();
+            shadergen.emitLine(prefix + bitangent->getVariable() + " = cross(" + HW::T_IN_NORMAL + ", " + HW::T_IN_TANGENT + ")", stage);
         }
+    }
     END_SHADER_STAGE(stage, Stage::VERTEX)
 
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        shadergen.emitLineBegin(stage);
-        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        if (space == WORLD_SPACE)
-        {
-            const ShaderPort* bitangent = vertexData[HW::T_BITANGENT_WORLD];
-            shadergen.emitString(" = normalize(" + prefix + bitangent->getVariable() + ")", stage);
-        }
-        else
-        {
-            const ShaderPort* bitangent = vertexData[HW::T_BITANGENT_OBJECT];
-            shadergen.emitString(" = normalize(" + prefix + bitangent->getVariable() + ")", stage);
-        }
-        shadergen.emitLineEnd(stage);
+    VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    if (space == WORLD_SPACE)
+    {
+        const ShaderPort* bitangent = vertexData[HW::T_BITANGENT_WORLD];
+        shadergen.emitString(" = normalize(" + prefix + bitangent->getVariable() + ")", stage);
+    }
+    else
+    {
+        const ShaderPort* bitangent = vertexData[HW::T_BITANGENT_OBJECT];
+        shadergen.emitString(" = normalize(" + prefix + bitangent->getVariable() + ")", stage);
+    }
+    shadergen.emitLineEnd(stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

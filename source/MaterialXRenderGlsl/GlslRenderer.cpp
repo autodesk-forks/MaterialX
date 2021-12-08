@@ -13,8 +13,8 @@
 
 #include <iostream>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 const float PI = std::acos(-1.0f);
 
@@ -164,7 +164,7 @@ void GlslRenderer::updateViewInformation()
 void GlslRenderer::updateWorldInformation()
 {
     float aspectRatio = float(_width) / float(_height);
-    float geometryRatio = _height < _width ?  aspectRatio : (1.0f / aspectRatio);
+    float geometryRatio = _height < _width ? aspectRatio : (1.0f / aspectRatio);
     Vector3 boxMin = _geometryHandler->getMinimumBounds();
     Vector3 boxMax = _geometryHandler->getMaximumBounds();
     Vector3 sphereCenter = (boxMax + boxMin) / 2.0;
@@ -244,7 +244,7 @@ void GlslRenderer::render()
                         MeshPartitionPtr part = mesh->getPartition(i);
                         _program->bindPartition(part);
                         MeshIndexBuffer& indexData = part->getIndices();
-                        glDrawElements(GL_TRIANGLES, (GLsizei)indexData.size(), GL_UNSIGNED_INT, (void*)0);
+                        glDrawElements(GL_TRIANGLES, (GLsizei) indexData.size(), GL_UNSIGNED_INT, (void*) 0);
                     }
                 }
 
@@ -277,15 +277,13 @@ ImagePtr GlslRenderer::captureImage(ImagePtr image)
 
 void GlslRenderer::drawScreenSpaceQuad(const Vector2& uvMin, const Vector2& uvMax)
 {
-    const float QUAD_VERTICES[] =
-    {
-         1.0f,  1.0f, 0.0f, uvMax[0], uvMax[1], // position, texcoord
-         1.0f, -1.0f, 0.0f, uvMax[0], uvMin[1],
+    const float QUAD_VERTICES[] = {
+        1.0f, 1.0f, 0.0f, uvMax[0], uvMax[1], // position, texcoord
+        1.0f, -1.0f, 0.0f, uvMax[0], uvMin[1],
         -1.0f, -1.0f, 0.0f, uvMin[0], uvMin[1],
-        -1.0f,  1.0f, 0.0f, uvMin[0], uvMax[1]
+        -1.0f, 1.0f, 0.0f, uvMin[0], uvMax[1]
     };
-    const unsigned int QUAD_INDICES[] =
-    {
+    const unsigned int QUAD_INDICES[] = {
         0, 1, 3,
         1, 2, 3
     };
@@ -339,4 +337,4 @@ void GlslRenderer::setClearColor(const Color4& clearColor)
     _clearColor = clearColor;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

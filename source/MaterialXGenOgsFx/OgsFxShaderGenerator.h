@@ -11,15 +11,15 @@
 
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 using OgsFxShaderGeneratorPtr = shared_ptr<class OgsFxShaderGenerator>;
 
 /// A GLSL shader generator targeting the OgsFX file format
 class OgsFxShaderGenerator : public GlslShaderGenerator
 {
-public:
+  public:
     OgsFxShaderGenerator();
 
     static ShaderGeneratorPtr create();
@@ -34,7 +34,7 @@ public:
     /// Unique identifyer for this generator target
     static const string TARGET;
 
-protected:
+  protected:
     void emitVertexStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const override;
     void emitPixelStage(const ShaderGraph& graph, GenContext& context, ShaderStage& stage) const override;
 
@@ -54,10 +54,10 @@ protected:
 
 namespace Stage
 {
-    /// Identifier for full Effect
-    extern const string EFFECT;
-}
+/// Identifier for full Effect
+extern const string EFFECT;
+} // namespace Stage
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

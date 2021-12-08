@@ -14,14 +14,14 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtRelationship : public PvtObject
 {
     RT_DECLARE_RUNTIME_OBJECT(PvtRelationship)
 
-public:
+  public:
     PvtRelationship(const RtString& name, PvtPrim* parent);
 
     void connect(PvtObject* obj);
@@ -53,11 +53,11 @@ public:
         _connections.clear();
     }
 
-protected:
+  protected:
     PvtObjHandleVec _connections;
     friend class RtConnectionIterator;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

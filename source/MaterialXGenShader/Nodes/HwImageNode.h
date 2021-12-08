@@ -8,13 +8,13 @@
 
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Extending the SourceCodeNode with requirements for image nodes.
 class MX_GENSHADER_API HwImageNode : public SourceCodeNode
 {
-public:
+  public:
     static ShaderNodeImplPtr create();
 
     void addInputs(ShaderNode& node, GenContext& context) const override;
@@ -27,6 +27,6 @@ public:
     static string UV_OFFSET;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

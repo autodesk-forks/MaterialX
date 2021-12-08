@@ -12,18 +12,18 @@
 #include <MaterialXRuntime/RtCommand.h>
 #include <MaterialXRuntime/RtString.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace RtCommand
 {
-    /// Set an attribute value from data given as a value string. Creates the attribute if it doesn't exist.
-    void setAttributeFromString(const RtObject& obj, const RtString& name, const string& value, RtCommandResult& result);
+/// Set an attribute value from data given as a value string. Creates the attribute if it doesn't exist.
+void setAttributeFromString(const RtObject& obj, const RtString& name, const string& value, RtCommandResult& result);
 
-    /// Remove an attribute.
-    void removeAttribute(const RtObject& obj, const RtString& name, RtCommandResult& result);
-}
+/// Remove an attribute.
+void removeAttribute(const RtObject& obj, const RtString& name, RtCommandResult& result);
+} // namespace RtCommand
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

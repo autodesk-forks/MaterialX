@@ -9,8 +9,8 @@
 
 #include <MaterialXRuntime/RtConnectableApi.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 RT_DEFINE_RUNTIME_OBJECT(PvtPort, RtObjType::PORT, "PvtPort")
 
@@ -21,7 +21,6 @@ PvtPort::PvtPort(const RtString& name, const RtString& type, uint32_t flags, Pvt
 {
     setTypeBit<PvtPort>();
 }
-
 
 RT_DEFINE_RUNTIME_OBJECT(PvtInput, RtObjType::INPUT, "PvtInput")
 
@@ -107,7 +106,6 @@ void PvtInput::clearConnection()
     }
 }
 
-
 RT_DEFINE_RUNTIME_OBJECT(PvtOutput, RtObjType::OUTPUT, "PvtOutput")
 
 PvtOutput::PvtOutput(const RtString& name, const RtString& type, uint32_t flags, PvtPrim* parent) :
@@ -126,4 +124,4 @@ void PvtOutput::clearConnections()
     _connections.clear();
 }
 
-}
+MATERIALX_NAMESPACE_END

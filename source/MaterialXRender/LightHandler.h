@@ -14,8 +14,8 @@
 
 #include <MaterialXCore/Document.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 extern MX_RENDER_API const int DEFAULT_ENV_SAMPLES;
 
@@ -47,7 +47,7 @@ class MX_RENDER_API LightHandler
 
     /// @name Global State
     /// @{
-    
+
     /// Set the light transform.
     void setLightTransform(const Matrix44& mat)
     {
@@ -209,6 +209,6 @@ class MX_RENDER_API LightHandler
     std::unordered_map<string, unsigned int> _lightIdMap;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

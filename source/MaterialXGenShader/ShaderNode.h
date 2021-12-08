@@ -17,8 +17,8 @@
 
 #include <MaterialXCore/Node.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class ShaderNode;
 class ShaderPort;
@@ -37,7 +37,6 @@ using ShaderNodePtr = shared_ptr<class ShaderNode>;
 /// A vector of ShaderInput pointers
 using ShaderInputVec = vector<ShaderInput*>;
 
-
 /// Metadata to be exported to generated shader.
 struct MX_GENSHADER_API ShaderMetadata
 {
@@ -48,12 +47,13 @@ struct MX_GENSHADER_API ShaderMetadata
         name(n),
         type(t),
         value(v)
-    {}
+    {
+    }
 };
 using ShaderMetadataVec = vector<ShaderMetadata>;
 using ShaderMetadataVecPtr = shared_ptr<ShaderMetadataVec>;
 
-/// @class ShaderMetadataRegistry 
+/// @class ShaderMetadataRegistry
 /// A registry for metadata that will be exported to the generated shader
 /// if found on nodes and inputs during shader generation.
 class MX_GENSHADER_API ShaderMetadataRegistry : public GenUserData
@@ -109,13 +109,12 @@ class MX_GENSHADER_API ShaderMetadataRegistry : public GenUserData
 
 using ShaderMetadataRegistryPtr = shared_ptr<ShaderMetadataRegistry>;
 
-
 /// Flags set on shader ports.
 class MX_GENSHADER_API ShaderPortFlag
 {
   public:
-    static const uint32_t UNIFORM    = 1u << 0;
-    static const uint32_t EMITTED    = 1u << 1;
+    static const uint32_t UNIFORM = 1u << 0;
+    static const uint32_t EMITTED = 1u << 1;
     static const uint32_t BIND_INPUT = 1u << 2;
 };
 
@@ -322,33 +321,33 @@ class MX_GENSHADER_API ShaderNode
     /// Flags for classifying nodes into different categories.
     class Classification
     {
-    public:
+      public:
         // Node classes
-        static const uint32_t TEXTURE       = 1 << 0;  /// Any node that outputs floats, colors, vectors, etc.
-        static const uint32_t CLOSURE       = 1 << 1;  /// Any node that represents light integration
-        static const uint32_t SHADER        = 1 << 2;  /// Any node that outputs a shader
+        static const uint32_t TEXTURE = 1 << 0; /// Any node that outputs floats, colors, vectors, etc.
+        static const uint32_t CLOSURE = 1 << 1; /// Any node that represents light integration
+        static const uint32_t SHADER = 1 << 2;  /// Any node that outputs a shader
         // Specific texture node types
-        static const uint32_t FILETEXTURE   = 1 << 3;  /// A file texture node
-        static const uint32_t CONDITIONAL   = 1 << 4;  /// A conditional node
-        static const uint32_t CONSTANT      = 1 << 5;  /// A constant node
+        static const uint32_t FILETEXTURE = 1 << 3; /// A file texture node
+        static const uint32_t CONDITIONAL = 1 << 4; /// A conditional node
+        static const uint32_t CONSTANT = 1 << 5;    /// A constant node
         // Specific closure types
-        static const uint32_t BSDF          = 1 << 6;  /// A BSDF node
-        static const uint32_t BSDF_R        = 1 << 7;  /// A reflection BSDF node
-        static const uint32_t BSDF_T        = 1 << 8;  /// A transmission BSDF node
-        static const uint32_t EDF           = 1 << 9;  /// A EDF node
-        static const uint32_t VDF           = 1 << 10; /// A VDF node
-        static const uint32_t LAYER         = 1 << 11; /// A node for vertical layering of other closure nodes
-        static const uint32_t THINFILM      = 1 << 12; /// A node for adding thin-film over microfacet BSDF nodes
+        static const uint32_t BSDF = 1 << 6;      /// A BSDF node
+        static const uint32_t BSDF_R = 1 << 7;    /// A reflection BSDF node
+        static const uint32_t BSDF_T = 1 << 8;    /// A transmission BSDF node
+        static const uint32_t EDF = 1 << 9;       /// A EDF node
+        static const uint32_t VDF = 1 << 10;      /// A VDF node
+        static const uint32_t LAYER = 1 << 11;    /// A node for vertical layering of other closure nodes
+        static const uint32_t THINFILM = 1 << 12; /// A node for adding thin-film over microfacet BSDF nodes
         // Specific shader types
-        static const uint32_t SURFACE       = 1 << 13; /// A surface shader node
-        static const uint32_t VOLUME        = 1 << 14; /// A volume shader node
-        static const uint32_t LIGHT         = 1 << 15; /// A light shader node
+        static const uint32_t SURFACE = 1 << 13; /// A surface shader node
+        static const uint32_t VOLUME = 1 << 14;  /// A volume shader node
+        static const uint32_t LIGHT = 1 << 15;   /// A light shader node
         // Specific conditional types
-        static const uint32_t IFELSE        = 1 << 16; /// An if-else statement
-        static const uint32_t SWITCH        = 1 << 17; /// A switch statement
+        static const uint32_t IFELSE = 1 << 16; /// An if-else statement
+        static const uint32_t SWITCH = 1 << 17; /// A switch statement
         // Types based on nodegroup
-        static const uint32_t SAMPLE2D      = 1 << 18; /// Can be sampled in 2D (uv space)
-        static const uint32_t SAMPLE3D      = 1 << 19; /// Can be sampled in 3D (position)
+        static const uint32_t SAMPLE2D = 1 << 18; /// Can be sampled in 2D (uv space)
+        static const uint32_t SAMPLE3D = 1 << 19; /// Can be sampled in 3D (position)
     };
 
     /// @struct ScopeInfo
@@ -366,7 +365,8 @@ class MX_GENSHADER_API ShaderNode
             MULTIPLE
         };
 
-        ScopeInfo() : type(UNKNOWN), conditionalNode(nullptr), conditionBitmask(0), fullConditionMask(0) {}
+        ScopeInfo() :
+            type(UNKNOWN), conditionalNode(nullptr), conditionBitmask(0), fullConditionMask(0) { }
 
         void merge(const ScopeInfo& fromScope);
         void adjustAtConditionalInput(ShaderNode* condNode, int branch, uint32_t fullMask);
@@ -400,7 +400,7 @@ class MX_GENSHADER_API ShaderNode
     ShaderNode(const ShaderGraph* parent, const string& name);
 
     /// Create a new node from a nodedef.
-    static ShaderNodePtr create(const ShaderGraph* parent, const string& name, const NodeDef& nodeDef, 
+    static ShaderNodePtr create(const ShaderGraph* parent, const string& name, const NodeDef& nodeDef,
                                 GenContext& context);
 
     /// Create a new node from a node implementation.
@@ -525,6 +525,6 @@ class MX_GENSHADER_API ShaderNode
     friend class ShaderGraph;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

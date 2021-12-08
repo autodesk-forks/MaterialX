@@ -7,8 +7,8 @@
 
 #include <MaterialXRuntime/Library.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Shared pointer to an PvtUserStringResolver
 using PvtUserStringResolverPtr = std::shared_ptr<class PvtUserStringResolver>;
@@ -16,7 +16,7 @@ using PvtUserStringResolverPtr = std::shared_ptr<class PvtUserStringResolver>;
 // Internal class to hold on to user specified resolving information
 class PvtUserStringResolver : public StringResolver
 {
-public:
+  public:
     static PvtUserStringResolverPtr createNew(RtNameResolverFunction f)
     {
         PvtUserStringResolverPtr result(new PvtUserStringResolver(f));
@@ -39,7 +39,7 @@ public:
         return result;
     }
 
-private:
+  private:
     RtNameResolverFunction _resolveFunction;
 
     explicit PvtUserStringResolver(RtNameResolverFunction f) :
@@ -51,10 +51,9 @@ private:
 
 PvtStringResolverPair::PvtStringResolverPair(const RtNameResolverInfo::ElementType elementType,
                                              StringResolverPtr toMaterialXResolver,
-                                             StringResolverPtr fromMaterialXResolver)
-    : _elementType(elementType)
-    , _toMaterialXResolver(toMaterialXResolver)
-    , _fromMaterialXResolver(fromMaterialXResolver)
+                                             StringResolverPtr fromMaterialXResolver) :
+    _elementType(elementType),
+    _toMaterialXResolver(toMaterialXResolver), _fromMaterialXResolver(fromMaterialXResolver)
 {
 }
 
@@ -152,7 +151,7 @@ RtString PvtNameResolverRegistry::resolveIdentifier(const RtString& valueToResol
     {
         type = RtString(FILENAME_TYPE_STRING);
     }
-    
+
     RtString result = valueToResolve;
     for (const auto& resolverPair : _resolvers)
     {
@@ -185,4 +184,4 @@ RtString PvtNameResolverRegistry::resolveIdentifier(const RtString& valueToResol
     return result;
 }
 
-}
+MATERIALX_NAMESPACE_END

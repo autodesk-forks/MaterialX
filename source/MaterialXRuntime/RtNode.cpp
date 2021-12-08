@@ -10,65 +10,65 @@
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    // TODO: We should derive this from a data driven XML schema.
-    class PvtNodePrimSpec : public PvtPrimSpec
+// TODO: We should derive this from a data driven XML schema.
+class PvtNodePrimSpec : public PvtPrimSpec
+{
+  public:
+    PvtNodePrimSpec()
     {
-    public:
-        PvtNodePrimSpec()
-        {
-            addPrimAttribute(RtString::DOC, RtType::STRING);
-            addPrimAttribute(RtString::XPOS, RtType::FLOAT);
-            addPrimAttribute(RtString::YPOS, RtType::FLOAT);
-            addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
-            addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
-            addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
-            addPrimAttribute(RtString::UINAME, RtType::STRING);
-            addPrimAttribute(RtString::VERSION, RtType::INTERNSTRING);
-            addPrimAttribute(RtString::COLORSPACE, RtType::INTERNSTRING);
-            addPrimAttribute(RtString::FILEPREFIX, RtType::STRING);
+        addPrimAttribute(RtString::DOC, RtType::STRING);
+        addPrimAttribute(RtString::XPOS, RtType::FLOAT);
+        addPrimAttribute(RtString::YPOS, RtType::FLOAT);
+        addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
+        addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
+        addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
+        addPrimAttribute(RtString::UINAME, RtType::STRING);
+        addPrimAttribute(RtString::VERSION, RtType::INTERNSTRING);
+        addPrimAttribute(RtString::COLORSPACE, RtType::INTERNSTRING);
+        addPrimAttribute(RtString::FILEPREFIX, RtType::STRING);
 
-            addInputAttribute(RtString::DOC, RtType::STRING);
-            addInputAttribute(RtString::MEMBER, RtType::STRING);
-            addInputAttribute(RtString::CHANNELS, RtType::STRING);
-            addInputAttribute(RtString::UIADVANCED, RtType::BOOLEAN);
-            addInputAttribute(RtString::UIVISIBLE, RtType::BOOLEAN);
+        addInputAttribute(RtString::DOC, RtType::STRING);
+        addInputAttribute(RtString::MEMBER, RtType::STRING);
+        addInputAttribute(RtString::CHANNELS, RtType::STRING);
+        addInputAttribute(RtString::UIADVANCED, RtType::BOOLEAN);
+        addInputAttribute(RtString::UIVISIBLE, RtType::BOOLEAN);
 
-            addInputAttributeByType(RtType::COLOR3, RtString::COLORSPACE, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::COLOR4, RtString::COLORSPACE, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::COLOR3, RtString::COLORSPACE, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::COLOR4, RtString::COLORSPACE, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::FLOAT, RtString::UNIT, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::FLOAT, RtString::UNITTYPE, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::FLOAT, RtString::UNIT, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::FLOAT, RtString::UNITTYPE, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::VECTOR2, RtString::UNIT, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::VECTOR2, RtString::UNITTYPE, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::VECTOR2, RtString::DEFAULTGEOMPROP, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::VECTOR2, RtString::UNIT, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::VECTOR2, RtString::UNITTYPE, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::VECTOR2, RtString::DEFAULTGEOMPROP, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::VECTOR3, RtString::UNIT, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::VECTOR3, RtString::UNITTYPE, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::VECTOR3, RtString::DEFAULTGEOMPROP, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::VECTOR3, RtString::UNIT, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::VECTOR3, RtString::UNITTYPE, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::VECTOR3, RtString::DEFAULTGEOMPROP, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::VECTOR4, RtString::UNIT, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::VECTOR4, RtString::UNITTYPE, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::VECTOR4, RtString::UNIT, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::VECTOR4, RtString::UNITTYPE, RtType::INTERNSTRING);
 
-            addInputAttributeByType(RtType::FILENAME, RtString::COLORSPACE, RtType::INTERNSTRING);
-            addInputAttributeByType(RtType::FILENAME, RtString::FILEPREFIX, RtType::STRING);
+        addInputAttributeByType(RtType::FILENAME, RtString::COLORSPACE, RtType::INTERNSTRING);
+        addInputAttributeByType(RtType::FILENAME, RtString::FILEPREFIX, RtType::STRING);
 
-            addOutputAttribute(RtString::DOC, RtType::STRING);
-            addOutputAttribute(RtString::MEMBER, RtType::STRING);
-            addOutputAttribute(RtString::WIDTH, RtType::INTEGER);
-            addOutputAttribute(RtString::HEIGHT, RtType::INTEGER);
-            addOutputAttribute(RtString::BITDEPTH, RtType::INTEGER);
+        addOutputAttribute(RtString::DOC, RtType::STRING);
+        addOutputAttribute(RtString::MEMBER, RtType::STRING);
+        addOutputAttribute(RtString::WIDTH, RtType::INTEGER);
+        addOutputAttribute(RtString::HEIGHT, RtType::INTEGER);
+        addOutputAttribute(RtString::BITDEPTH, RtType::INTEGER);
 
-            addOutputAttributeByType(RtType::COLOR3, RtString::COLORSPACE, RtType::INTERNSTRING);
-            addOutputAttributeByType(RtType::COLOR4, RtString::COLORSPACE, RtType::INTERNSTRING);
-        }
-    };
-}
+        addOutputAttributeByType(RtType::COLOR3, RtString::COLORSPACE, RtType::INTERNSTRING);
+        addOutputAttributeByType(RtType::COLOR4, RtString::COLORSPACE, RtType::INTERNSTRING);
+    }
+};
+} // namespace
 
 DEFINE_TYPED_SCHEMA(RtNode, "node");
 
@@ -164,4 +164,4 @@ const RtString& RtNode::getVersion() const
     return attr ? attr->asInternString() : RtString::EMPTY;
 }
 
-}
+MATERIALX_NAMESPACE_END

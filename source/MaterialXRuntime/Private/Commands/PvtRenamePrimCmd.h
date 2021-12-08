@@ -11,29 +11,30 @@
 #include <MaterialXRuntime/RtStage.h>
 #include <MaterialXRuntime/RtPath.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtRenamePrimCmd : public PvtCommand
 {
-public:
+  public:
     PvtRenamePrimCmd(RtStagePtr stage, const RtPath& path, const RtString& newName) :
         _stage(stage),
         _path(path),
         _newName(newName)
-    {}
+    {
+    }
 
     static PvtCommandPtr create(RtStagePtr stage, const RtPath& path, const RtString& newName);
 
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;
 
-private:
+  private:
     RtStagePtr _stage;
     RtPath _path;
     RtString _newName;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

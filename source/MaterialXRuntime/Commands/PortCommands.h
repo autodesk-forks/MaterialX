@@ -12,62 +12,62 @@
 #include <MaterialXRuntime/RtCommand.h>
 #include <MaterialXRuntime/RtPort.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 namespace RtCommand
 {
-    /// Set a port value from data given as a value string.
-    void setPortValueFromString(const RtPort& port, const string& valueString, RtCommandResult& result);
+/// Set a port value from data given as a value string.
+void setPortValueFromString(const RtPort& port, const string& valueString, RtCommandResult& result);
 
-    /// Set value on a bool port.
-    void setPortValue(const RtPort& port, bool value, RtCommandResult& result);
+/// Set value on a bool port.
+void setPortValue(const RtPort& port, bool value, RtCommandResult& result);
 
-    /// Set value on a integer port.
-    void setPortValue(const RtPort& port, int value, RtCommandResult& result);
+/// Set value on a integer port.
+void setPortValue(const RtPort& port, int value, RtCommandResult& result);
 
-    /// Set value on a float port.
-    void setPortValue(const RtPort& port, float value, RtCommandResult& result);
+/// Set value on a float port.
+void setPortValue(const RtPort& port, float value, RtCommandResult& result);
 
-    /// Set value on a color3 port.
-    void setPortValue(const RtPort& port, const Color3& value, RtCommandResult& result);
+/// Set value on a color3 port.
+void setPortValue(const RtPort& port, const Color3& value, RtCommandResult& result);
 
-    /// Set value on a color4 port.
-    void setPortValue(const RtPort& port, const Color4& value, RtCommandResult& result);
+/// Set value on a color4 port.
+void setPortValue(const RtPort& port, const Color4& value, RtCommandResult& result);
 
-    /// Set value on a vector2 port.
-    void setPortValue(const RtPort& port, const Vector2& value, RtCommandResult& result);
+/// Set value on a vector2 port.
+void setPortValue(const RtPort& port, const Vector2& value, RtCommandResult& result);
 
-    /// Set value on a vector3 port.
-    void setPortValue(const RtPort& port, const Vector3& value, RtCommandResult& result);
+/// Set value on a vector3 port.
+void setPortValue(const RtPort& port, const Vector3& value, RtCommandResult& result);
 
-    /// Set value on a vector4 port.
-    void setPortValue(const RtPort& port, const Vector4& value, RtCommandResult& result);
+/// Set value on a vector4 port.
+void setPortValue(const RtPort& port, const Vector4& value, RtCommandResult& result);
 
-    /// Set value on a string port.
-    void setPortValue(const RtPort& port, const RtString& value, RtCommandResult& result);
+/// Set value on a string port.
+void setPortValue(const RtPort& port, const RtString& value, RtCommandResult& result);
 
-    /// Set value on a pointer port.
-    void setPortValue(const RtPort& port, void* value, RtCommandResult& result);
+/// Set value on a pointer port.
+void setPortValue(const RtPort& port, void* value, RtCommandResult& result);
 
-    /// Set value on a matrix33 port.
-    void setPortValue(const RtPort& port, const Matrix33& value, RtCommandResult& result);
+/// Set value on a matrix33 port.
+void setPortValue(const RtPort& port, const Matrix33& value, RtCommandResult& result);
 
-    /// Set value on a matrix44 port.
-    void setPortValue(const RtPort& port, const Matrix44& value, RtCommandResult& result);
+/// Set value on a matrix44 port.
+void setPortValue(const RtPort& port, const Matrix44& value, RtCommandResult& result);
 
-    /// Set value on a string port.
-    void setPortValue(const RtPort& port, const string& value, RtCommandResult& result);
+/// Set value on a string port.
+void setPortValue(const RtPort& port, const string& value, RtCommandResult& result);
 
-    /// Make a connection from a source output to destination input.
-    void makeConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& result);
+/// Make a connection from a source output to destination input.
+void makeConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& result);
 
-    /// Make a connection from a compound's interface output to a destination input 
-    void makeInterfaceConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& result);
+/// Make a connection from a compound's interface output to a destination input
+void makeInterfaceConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& result);
 
-    /// Break a connection from source output to destination input.
-    void breakConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& result);
+/// Break a connection from source output to destination input.
+void breakConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& result);
 
-} // RtCommand
-} // MAterialX
+} // namespace RtCommand
+MATERIALX_NAMESPACE_END
 
 #endif

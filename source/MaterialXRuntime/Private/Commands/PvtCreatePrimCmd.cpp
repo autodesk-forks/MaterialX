@@ -5,8 +5,8 @@
 
 #include <MaterialXRuntime/Private/Commands/PvtCreatePrimCmd.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 PvtCommandPtr PvtCreatePrimCmd::create(RtStagePtr stage, const RtString& typeName, const RtPath& parentPath, const RtString& name)
 {
@@ -19,7 +19,7 @@ void PvtCreatePrimCmd::execute(RtCommandResult& result)
     {
         // Create the prim.
         _prim = _stage->createPrim(_parentPath, _name, _typeName);
-        
+
         // Update the name if it was changed so we can undo later.
         _name = _prim.getName();
 
@@ -72,4 +72,4 @@ void PvtCreatePrimCmd::redo(RtCommandResult& result)
     }
 }
 
-}
+MATERIALX_NAMESPACE_END

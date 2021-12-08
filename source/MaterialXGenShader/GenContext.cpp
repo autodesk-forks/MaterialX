@@ -6,8 +6,8 @@
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 //
 // GenContext methods
@@ -108,7 +108,6 @@ void GenContext::getOutputSuffix(const ShaderOutput* output, string& suffix) con
     }
 }
 
-
 ScopedSetClosureParams::ScopedSetClosureParams(const ClosureContext::ClosureParams* params, const ShaderNode* node, ClosureContext* cct) :
     _cct(cct),
     _node(node),
@@ -147,7 +146,6 @@ ScopedSetClosureParams::~ScopedSetClosureParams()
     }
 }
 
-
 ScopedSetVariableName::ScopedSetVariableName(const string& name, ShaderPort* port) :
     _port(port),
     _oldName(port->getVariable())
@@ -160,4 +158,4 @@ ScopedSetVariableName::~ScopedSetVariableName()
     _port->setVariable(_oldName);
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

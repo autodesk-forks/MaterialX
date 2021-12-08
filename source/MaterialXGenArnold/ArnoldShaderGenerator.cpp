@@ -5,20 +5,19 @@
 
 #include <MaterialXGenArnold/ArnoldShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 const string ArnoldShaderGenerator::TARGET = "arnold";
 
-
-ArnoldShaderGenerator::ArnoldShaderGenerator()
-    : OslShaderGenerator()
+ArnoldShaderGenerator::ArnoldShaderGenerator() :
+    OslShaderGenerator()
 {
-    const StringSet reservedWords = { "metal", "sheen", "bssrdf", "empirical_bssrdf", "randomwalk_bssrdf", 
-                                      "volume_absorption", "volume_emission", "volume_henyey_greenstein", 
+    const StringSet reservedWords = { "metal", "sheen", "bssrdf", "empirical_bssrdf", "randomwalk_bssrdf",
+                                      "volume_absorption", "volume_emission", "volume_henyey_greenstein",
                                       "volume_matte" };
 
     _syntax->registerReservedWords(reservedWords);
 }
 
-}
+MATERIALX_NAMESPACE_END

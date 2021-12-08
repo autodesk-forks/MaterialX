@@ -8,8 +8,8 @@
 #include <limits>
 #include <map>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 const string MeshStream::POSITION_ATTRIBUTE("position");
 const string MeshStream::NORMAL_ATTRIBUTE("normal");
@@ -19,7 +19,8 @@ const string MeshStream::BITANGENT_ATTRIBUTE("bitangent");
 const string MeshStream::COLOR_ATTRIBUTE("color");
 const string MeshStream::GEOMETRY_PROPERTY_ATTRIBUTE("geomprop");
 
-namespace {
+namespace
+{
 
 const float MAX_FLOAT = std::numeric_limits<float>::max();
 const size_t FACE_VERTEX_COUNT = 3;
@@ -235,7 +236,7 @@ void Mesh::splitByUdims()
 // MeshStream methods
 //
 
-void MeshStream::transform(const Matrix44 &matrix)
+void MeshStream::transform(const Matrix44& matrix)
 {
     unsigned int stride = getStride();
     size_t numElements = _data.size() / getStride();
@@ -243,17 +244,17 @@ void MeshStream::transform(const Matrix44 &matrix)
         getType() == MeshStream::TEXCOORD_ATTRIBUTE ||
         getType() == MeshStream::GEOMETRY_PROPERTY_ATTRIBUTE)
     {
-        for (size_t i=0; i<numElements; i++)
+        for (size_t i = 0; i < numElements; i++)
         {
             Vector4 vec(0.0, 0.0, 0.0, 1.0);
-            for (size_t j=0; j<stride; j++)
+            for (size_t j = 0; j < stride; j++)
             {
-                vec[j] = _data[i*stride + j];
+                vec[j] = _data[i * stride + j];
             }
             vec = matrix.multiply(vec);
-            for (size_t k=0; k<stride; k++)
+            for (size_t k = 0; k < stride; k++)
             {
-                _data[i*stride + k] = vec[k];
+                _data[i * stride + k] = vec[k];
             }
         }
     }
@@ -261,20 +262,20 @@ void MeshStream::transform(const Matrix44 &matrix)
              getType() == MeshStream::TANGENT_ATTRIBUTE ||
              getType() == MeshStream::BITANGENT_ATTRIBUTE)
     {
-        for (size_t i=0; i<numElements; i++)
+        for (size_t i = 0; i < numElements; i++)
         {
             Vector3 vec(0.0, 0.0, 0.0);
-            for (size_t j=0; j<stride; j++)
+            for (size_t j = 0; j < stride; j++)
             {
-                vec[j] = _data[i*stride + j];
+                vec[j] = _data[i * stride + j];
             }
             vec = matrix.transformNormal(vec);
-            for (size_t k=0; k<stride; k++)
+            for (size_t k = 0; k < stride; k++)
             {
-                _data[i*stride + k] = vec[k];
+                _data[i * stride + k] = vec[k];
             }
         }
     }
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

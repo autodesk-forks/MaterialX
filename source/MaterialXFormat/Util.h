@@ -18,8 +18,8 @@
 #include <MaterialXFormat/XmlExport.h>
 #include <MaterialXFormat/XmlIo.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Read the given file and return a string containing its contents; if the read is not
 /// successful, then the empty string is returned.
@@ -60,9 +60,8 @@ MX_FORMAT_API StringSet loadLibraries(const FilePathVec& libraryFolders,
 /// @param skipFlattening An optional parameter that skips converting a path to an absolute one when it returns true.
 MX_FORMAT_API void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath = FileSearchPath(), StringResolverPtr customResolver = nullptr, const FilePathPredicate& skipFlattening = nullptr);
 
-
 /// Return true if the given string is valid environment path value.
 MX_FORMAT_API bool isValidPath(const string& path);
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

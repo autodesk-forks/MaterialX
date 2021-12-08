@@ -12,8 +12,8 @@
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtObject.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class RtConnectionIterator;
 
@@ -23,10 +23,10 @@ class RtRelationship : public RtObject
 {
     RT_DECLARE_RUNTIME_OBJECT(RtRelationship)
 
-public:
+  public:
     /// Empty constructor.
     /// Creating an invalid object.
-    RtRelationship() {}
+    RtRelationship() { }
 
     /// Construct from a handle.
     RtRelationship(PvtObjHandle hnd);
@@ -56,6 +56,6 @@ public:
     string getObjectNames() const;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

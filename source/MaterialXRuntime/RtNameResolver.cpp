@@ -7,8 +7,8 @@
 
 #include <MaterialXRuntime/Private/PvtNameResolver.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 RtNameResolverRegistryPtr RtNameResolverRegistry::createNew()
 {
@@ -16,8 +16,8 @@ RtNameResolverRegistryPtr RtNameResolverRegistry::createNew()
     return result;
 }
 
-RtNameResolverRegistry::RtNameResolverRegistry()
-    : _nameResolverRegistry(new PvtNameResolverRegistry())
+RtNameResolverRegistry::RtNameResolverRegistry() :
+    _nameResolverRegistry(new PvtNameResolverRegistry())
 {
 }
 
@@ -36,4 +36,4 @@ RtString RtNameResolverRegistry::resolveIdentifier(const RtString& valueToResolv
     return _nameResolverRegistry->resolveIdentifier(valueToResolve, elementType, toMaterialX);
 }
 
-}
+MATERIALX_NAMESPACE_END

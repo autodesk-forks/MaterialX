@@ -11,8 +11,8 @@
 
 #include <MaterialXRuntime/RtSchema.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtNodeImpl
 /// Base class for schemas handling node implementation prims.
@@ -20,9 +20,10 @@ class RtNodeImpl : public RtTypedSchema
 {
     DECLARE_TYPED_SCHEMA(RtNodeImpl)
 
-public:
+  public:
     /// Constructor.
-    RtNodeImpl(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtNodeImpl(const RtPrim& prim) :
+        RtTypedSchema(prim) { }
 
     /// Set an identifier for the target used by this implementation.
     void setTarget(const RtString& target);
@@ -56,6 +57,6 @@ public:
     const RtString& getImplName() const;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -14,8 +14,8 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtObject;
 class PvtPrim;
@@ -36,26 +36,27 @@ using RtStageWeakPtr = RtWeakPtr<RtStage>;
 /// Identifiers for object types.
 enum class RtObjType
 {
-    OBJECT          = 1 << 0,
-    PRIM            = 1 << 1,
-    PORT            = 1 << 2,
-    INPUT           = 1 << 3,
-    OUTPUT          = 1 << 4,
-    RELATIONSHIP    = 1 << 5,
-    DISPOSED        = 1 << 6
+    OBJECT = 1 << 0,
+    PRIM = 1 << 1,
+    PORT = 1 << 2,
+    INPUT = 1 << 3,
+    OUTPUT = 1 << 4,
+    RELATIONSHIP = 1 << 5,
+    DISPOSED = 1 << 6
 };
 
-#define RT_DECLARE_RUNTIME_OBJECT(T)                         \
-private:                                                     \
-    static const RtObjType _classType;                       \
-    static const RtString _className;                         \
-public:                                                      \
-    static RtObjType classType() { return _classType; }      \
-    static const RtString& className() { return _className; } \
+#define RT_DECLARE_RUNTIME_OBJECT(T)                    \
+  private:                                              \
+    static const RtObjType _classType;                  \
+    static const RtString _className;                   \
+                                                        \
+  public:                                               \
+    static RtObjType classType() { return _classType; } \
+    static const RtString& className() { return _className; }
 
-#define RT_DEFINE_RUNTIME_OBJECT(T, type, name)              \
-const RtObjType T::_classType(type);                         \
-const RtString T::_className(name);                           \
+#define RT_DEFINE_RUNTIME_OBJECT(T, type, name) \
+    const RtObjType T::_classType(type);        \
+    const RtString T::_className(name);
 
 /// @class RtObject
 /// Base class for all runtime objects.
@@ -63,7 +64,7 @@ class RtObject
 {
     RT_DECLARE_RUNTIME_OBJECT(RtObject)
 
-public:
+  public:
     /// Empty constructor.
     /// Creating an invalid object.
     RtObject();
@@ -78,21 +79,21 @@ public:
     ~RtObject();
 
     /// Return true if this object can be cast to the templated object class.
-    template<class T>
+    template <class T>
     bool isA() const
     {
         static_assert(std::is_base_of<RtObject, T>::value,
-            "Templated type must be an RtObject or a subclass of RtObject");
+                      "Templated type must be an RtObject or a subclass of RtObject");
         return isCompatible(T::classType());
     }
 
     /// Cast to the templated object class. Returns and invalid object if
     /// the classes are not compatible.
-    template<class T>
+    template <class T>
     T asA() const
     {
         static_assert(std::is_base_of<RtObject, T>::value,
-            "Templated type must be an RtObject or a subclass of RtObject");
+                      "Templated type must be an RtObject or a subclass of RtObject");
         return isCompatible(T::classType()) ? T(_hnd) : T();
     }
 
@@ -154,19 +155,19 @@ public:
     const RtTypedValue* getAttribute(const RtString& name) const;
 
     /// Return an attribute by name.
-    /// With a type check that throw exception if an attribute 
+    /// With a type check that throw exception if an attribute
     /// exists but has a different deta type.
     RtTypedValue* getAttribute(const RtString& name, const RtString& type);
 
     /// Return an attribute by name.
-    /// With a type check that throw exception if an attribute 
+    /// With a type check that throw exception if an attribute
     /// exists but has a different deta type.
     const RtTypedValue* getAttribute(const RtString& name, const RtString& type) const;
 
     /// Return an iterator over all attributes on this object.
     RtAttributeIterator getAttributes() const;
 
-protected:
+  protected:
 #ifdef NDEBUG
     /// Return the handle.
     const PvtObjHandle& hnd() const
@@ -190,6 +191,6 @@ protected:
     friend class RtSchemaBase;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

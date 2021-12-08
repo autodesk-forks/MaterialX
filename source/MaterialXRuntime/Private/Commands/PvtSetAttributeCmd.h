@@ -10,12 +10,12 @@
 
 #include <MaterialXRuntime/RtValue.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtSetAttributeCmd : public PvtCommand
 {
-public:
+  public:
     PvtSetAttributeCmd(const RtObject& obj, const RtString& name, const RtValue& value);
 
     static PvtCommandPtr create(const RtObject& obj, const RtString& name, const RtValue& value);
@@ -24,7 +24,7 @@ public:
     void undo(RtCommandResult& result) override;
     void redo(RtCommandResult& result) override;
 
-private:
+  private:
     RtObject _obj;
     RtString _name;
     RtValue _value;
@@ -32,6 +32,6 @@ private:
     bool _attrCreated;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

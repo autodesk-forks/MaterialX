@@ -10,8 +10,8 @@
 
 #include <MaterialXGenShader/Nodes/ConvolutionNode.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// HeightToNormal node implementation for GLSL
 class MX_GENGLSL_API HeightToNormalNodeGlsl : public ConvolutionNode
@@ -29,10 +29,10 @@ class MX_GENGLSL_API HeightToNormalNodeGlsl : public ConvolutionNode
     bool acceptsInputType(const TypeDesc* type) const override;
 
     /// Compute offset strings for sampling
-    void computeSampleOffsetStrings(const string& sampleSizeName, const string& offsetTypeString, 
+    void computeSampleOffsetStrings(const string& sampleSizeName, const string& offsetTypeString,
                                     unsigned int filterWidth, StringVec& offsetStrings) const override;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

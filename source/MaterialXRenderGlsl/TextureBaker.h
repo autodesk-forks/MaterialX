@@ -20,8 +20,8 @@
 
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// A shared pointer to a TextureBaker
 using TextureBakerPtr = shared_ptr<class TextureBaker>;
@@ -128,7 +128,7 @@ class MX_RENDERGLSL_API TextureBaker : public GlslRenderer
     /// Set the name of the baked graph element.
     void setBakedGraphName(const string& name)
     {
-        _bakedGraphName= name;
+        _bakedGraphName = name;
     }
 
     /// Return the name of the baked graph element.
@@ -175,7 +175,7 @@ class MX_RENDERGLSL_API TextureBaker : public GlslRenderer
         return _hashImageNames;
     }
 
-    /// Set the min and max UV values for the geometry used for texture baking 
+    /// Set the min and max UV values for the geometry used for texture baking
     /// By default it is a screen quad with UV (0,0) - (1,1)
     void setTextureSpace(Vector2 uvMin, Vector2 uvMax)
     {
@@ -260,6 +260,6 @@ class MX_RENDERGLSL_API TextureBaker : public GlslRenderer
     std::unordered_map<string, NodePtr> _worldSpaceNodes;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

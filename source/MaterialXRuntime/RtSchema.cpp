@@ -7,12 +7,12 @@
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    static const RtStringVec EMPTY_ATTR_NAMES;
+static const RtStringVec EMPTY_ATTR_NAMES;
 }
 
 RtSchemaBase::RtSchemaBase(const RtPrim& prim) :
@@ -40,10 +40,9 @@ PvtRelationship* RtSchemaBase::rel(const RtString& name) const
     return prim()->getRelationship(name);
 }
 
-
 bool RtTypedSchema::isCompatible(const RtPrim& prim) const
 {
     return prim && prim.getTypeInfo()->isCompatible(getTypeInfo().getShortTypeName());
 }
 
-}
+MATERIALX_NAMESPACE_END

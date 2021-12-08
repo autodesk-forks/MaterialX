@@ -8,8 +8,8 @@
 #include <MaterialXGenShader/HwShaderGenerator.h>
 #include <MaterialXGenShader/GenContext.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr ClosureCompoundNode::create()
 {
@@ -18,7 +18,7 @@ ShaderNodeImplPtr ClosureCompoundNode::create()
 
 void ClosureCompoundNode::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
+    BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     const ShaderGenerator& shadergen = context.getShaderGenerator();
 
     // Emit functions for all child nodes
@@ -39,7 +39,7 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
             emitFunctionDefinition(cct, context, stage);
         }
     }
-END_SHADER_STAGE(stage, Stage::PIXEL)
+    END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
 void ClosureCompoundNode::emitFunctionDefinition(ClosureContext* cct, GenContext& context, ShaderStage& stage) const
@@ -110,7 +110,7 @@ void ClosureCompoundNode::emitFunctionDefinition(ClosureContext* cct, GenContext
         {
             const ShaderNode* upstream = outputSocket->getConnection()->getNode();
             if (upstream->getParent() == _rootGraph.get() &&
-               (upstream->hasClassification(ShaderNode::Classification::CLOSURE) || upstream->hasClassification(ShaderNode::Classification::SHADER)))
+                (upstream->hasClassification(ShaderNode::Classification::CLOSURE) || upstream->hasClassification(ShaderNode::Classification::SHADER)))
             {
                 shadergen.emitFunctionCall(*upstream, context, stage);
             }
@@ -137,12 +137,12 @@ void ClosureCompoundNode::emitFunctionCall(const ShaderNode& node, GenContext& c
 {
     const ShaderGenerator& shadergen = context.getShaderGenerator();
 
-BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
+    BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
     // Emit function calls for all child nodes to the vertex shader stage
     shadergen.emitFunctionCalls(*_rootGraph, context, stage);
-END_SHADER_STAGE(stage, Stage::VERTEX)
+    END_SHADER_STAGE(stage, Stage::VERTEX)
 
-BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
+    BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
 
     // Emit calls for any closure dependencies upstream from this node.
     shadergen.emitDependentFunctionCalls(node, context, stage, ShaderNode::Classification::CLOSURE);
@@ -208,7 +208,7 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     // End function call
     shadergen.emitString(")", stage);
     shadergen.emitLineEnd(stage);
-END_SHADER_STAGE(stage, Stage::PIXEL)
+    END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

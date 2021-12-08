@@ -10,23 +10,23 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace Stage
 {
-    const string UNIFORMS = "uniforms";
+const string UNIFORMS = "uniforms";
 }
 
 namespace
 {
-    // Lighting support found in the materialXLightDataBuilder fragment found in
-    // source\MaterialXContrib\MaterialXMaya\vp2ShaderFragments.
-    const string LIGHT_LOOP_RESULT = "lightLoopResult";
-    const string MAYA_ENV_IRRADIANCE_SAMPLE = "diffuseI";
-    const string MAYA_ENV_RADIANCE_SAMPLE = "specularI";
-    const string MAYA_ENV_ROUGHNESS = "roughness";
-}
+// Lighting support found in the materialXLightDataBuilder fragment found in
+// source\MaterialXContrib\MaterialXMaya\vp2ShaderFragments.
+const string LIGHT_LOOP_RESULT = "lightLoopResult";
+const string MAYA_ENV_IRRADIANCE_SAMPLE = "diffuseI";
+const string MAYA_ENV_RADIANCE_SAMPLE = "specularI";
+const string MAYA_ENV_ROUGHNESS = "roughness";
+} // namespace
 
 string GlslFragmentSyntax::getVariableName(const string& name, const TypeDesc* type, IdentifierMap& identifiers) const
 {
@@ -54,24 +54,25 @@ GlslFragmentGenerator::GlslFragmentGenerator() :
     _syntax = std::make_shared<GlslFragmentSyntax>();
 
     // Set identifier names to match OGS naming convention.
-    _tokenSubstitutions[HW::T_POSITION_WORLD]       = "Pw";
-    _tokenSubstitutions[HW::T_POSITION_OBJECT]      = "Pm";
-    _tokenSubstitutions[HW::T_NORMAL_WORLD]         = "Nw";
-    _tokenSubstitutions[HW::T_NORMAL_OBJECT]        = "Nm";
-    _tokenSubstitutions[HW::T_TANGENT_WORLD]        = "Tw";
-    _tokenSubstitutions[HW::T_TANGENT_OBJECT]       = "Tm";
-    _tokenSubstitutions[HW::T_BITANGENT_WORLD]      = "Bw";
-    _tokenSubstitutions[HW::T_BITANGENT_OBJECT]     = "Bm";
+    _tokenSubstitutions[HW::T_POSITION_WORLD] = "Pw";
+    _tokenSubstitutions[HW::T_POSITION_OBJECT] = "Pm";
+    _tokenSubstitutions[HW::T_NORMAL_WORLD] = "Nw";
+    _tokenSubstitutions[HW::T_NORMAL_OBJECT] = "Nm";
+    _tokenSubstitutions[HW::T_TANGENT_WORLD] = "Tw";
+    _tokenSubstitutions[HW::T_TANGENT_OBJECT] = "Tm";
+    _tokenSubstitutions[HW::T_BITANGENT_WORLD] = "Bw";
+    _tokenSubstitutions[HW::T_BITANGENT_OBJECT] = "Bm";
     _tokenSubstitutions[HW::T_VERTEX_DATA_INSTANCE] = "g_mxVertexData"; // name of a global non-const variable
-    if (OgsXmlGenerator::useLightAPIV2()) {
+    if (OgsXmlGenerator::useLightAPIV2())
+    {
         // Use a Maya 2022.1-aware surface node implementation.
         registerImplementation("IM_surface_" + GlslShaderGenerator::TARGET, SurfaceNodeMaya::create);
-    } else {
-        _tokenSubstitutions[HW::T_LIGHT_DATA_INSTANCE]  = "g_lightData"; // Store Maya lights in global non-const
+    }
+    else
+    {
+        _tokenSubstitutions[HW::T_LIGHT_DATA_INSTANCE] = "g_lightData"; // Store Maya lights in global non-const
         _tokenSubstitutions[HW::T_NUM_ACTIVE_LIGHT_SOURCES] = "g_numActiveLightSources";
     }
-
-
 }
 
 ShaderGeneratorPtr GlslFragmentGenerator::create()
@@ -92,7 +93,7 @@ ShaderPtr GlslFragmentGenerator::createShader(const string& name, ElementPtr ele
         psPrivateUniforms.add(Type::COLOR3, LIGHT_LOOP_RESULT, Value::createValue(Color3(0.0f, 0.0f, 0.0f)));
         psPrivateUniforms.add(Type::COLOR3, MAYA_ENV_IRRADIANCE_SAMPLE, Value::createValue(Color3(0.0f, 0.0f, 0.0f)));
         psPrivateUniforms.add(Type::COLOR3, MAYA_ENV_RADIANCE_SAMPLE, Value::createValue(Color3(0.0f, 0.0f, 0.0f)));
-        psPrivateUniforms.add(Type::FLOAT, MAYA_ENV_ROUGHNESS,  Value::createValue(0.0f));
+        psPrivateUniforms.add(Type::FLOAT, MAYA_ENV_ROUGHNESS, Value::createValue(0.0f));
     }
 
     createStage(Stage::UNIFORMS, *shader);
@@ -163,9 +164,12 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
 
     if (lighting)
     {
-        if (OgsXmlGenerator::useLightAPIV2()) {
+        if (OgsXmlGenerator::useLightAPIV2())
+        {
             emitInclude("pbrlib/genglsl/ogsxml/mx_lighting_maya_v2.glsl", context, pixelStage);
-        } else {
+        }
+        else
+        {
             emitInclude("pbrlib/genglsl/ogsxml/mx_lighting_maya_v1.glsl", context, pixelStage);
         }
     }
@@ -173,7 +177,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
     // Set the include file to use for uv transformations,
     // depending on the vertical flip flag.
     _tokenSubstitutions[ShaderGenerator::T_FILE_TRANSFORM_UV] = string("stdlib/genglsl") +
-        (context.getOptions().fileTextureVerticalFlip ? "/lib/mx_transform_uv_vflip.glsl": "/lib/mx_transform_uv.glsl");
+                                                                (context.getOptions().fileTextureVerticalFlip ? "/lib/mx_transform_uv_vflip.glsl" : "/lib/mx_transform_uv.glsl");
 
     // Add all functions for node implementations
     emitFunctionDefinitions(graph, context, pixelStage);
@@ -199,8 +203,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
         bool firstArgument = true;
 
         auto emitArgument = [this, &firstArgument, &pixelStage, &context](
-            const ShaderPort* shaderPort
-        ) -> void
+                                const ShaderPort* shaderPort) -> void
         {
             if (firstArgument)
             {
@@ -258,7 +261,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
         !graph.hasClassification(ShaderNode::Classification::SHADER))
     {
         // Handle the case where the graph is a direct closure.
-        // We don't support rendering closures without attaching 
+        // We don't support rendering closures without attaching
         // to a surface shader, so just output black.
         emitLine("return vec3(0.0)", pixelStage);
     }
@@ -280,7 +283,8 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
             emitLineEnd(pixelStage, true);
         }
 
-        if (lighting && !OgsXmlGenerator::useLightAPIV2()) {
+        if (lighting && !OgsXmlGenerator::useLightAPIV2())
+        {
             // Store environment samples from light rig:
             emitLine("g_" + MAYA_ENV_IRRADIANCE_SAMPLE + " = " + MAYA_ENV_IRRADIANCE_SAMPLE, pixelStage);
             emitLine("g_" + MAYA_ENV_RADIANCE_SAMPLE + " = " + MAYA_ENV_RADIANCE_SAMPLE, pixelStage);
@@ -335,8 +339,8 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
         else
         {
             const string outputValue = outputSocket->getValue()
-                ? _syntax->getValue(outputSocket->getType(), *outputSocket->getValue())
-                : _syntax->getDefaultValue(outputSocket->getType());
+                                           ? _syntax->getValue(outputSocket->getType(), *outputSocket->getValue())
+                                           : _syntax->getDefaultValue(outputSocket->getType());
 
             if (!context.getOptions().hwTransparency && !outputSocket->getType()->isFloat3())
             {
@@ -371,8 +375,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
     ShaderStage& uniformsStage = shader->getStage(Stage::UNIFORMS);
 
     auto emitUniformBlock = [this, &uniformsStage, &context](
-        const VariableBlock& uniformBlock
-    ) -> void
+                                const VariableBlock& uniformBlock) -> void
     {
         for (size_t i = 0; i < uniformBlock.size(); ++i)
         {
@@ -407,8 +410,7 @@ ShaderPtr GlslFragmentGenerator::generate(const string& fragmentName, ElementPtr
 
             emitLineBegin(uniformsStage);
             emitVariableDeclaration(
-                shaderPort, _syntax->getUniformQualifier(), context, uniformsStage
-            );
+                shaderPort, _syntax->getUniformQualifier(), context, uniformsStage);
             emitString(Syntax::SEMICOLON, uniformsStage);
             emitLineEnd(uniformsStage, false);
         }
@@ -466,4 +468,4 @@ void GlslFragmentGenerator::emitVariableDeclaration(const ShaderPort* variable, 
     }
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

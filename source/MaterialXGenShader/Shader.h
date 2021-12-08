@@ -15,8 +15,8 @@
 #include <MaterialXGenShader/ShaderGraph.h>
 #include <MaterialXGenShader/ShaderStage.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class ShaderGenerator;
 class Shader;
@@ -27,7 +27,7 @@ class Shader;
 /// emitted by shader generators.
 ///
 /// The class contains a default implementation using a single shader stage.
-/// Derived shaders can override this, as well as overriding all methods 
+/// Derived shaders can override this, as well as overriding all methods
 /// that add code to the shader.
 ///
 class MX_GENSHADER_API Shader
@@ -98,7 +98,7 @@ class MX_GENSHADER_API Shader
     /// Return the final shader source code for a given shader stage
     const string& getSourceCode(const string& stage = Stage::PIXEL) const { return getStage(stage).getSourceCode(); }
 
-  protected: 
+  protected:
     /// Create a new stage in the shader.
     ShaderStagePtr createStage(const string& name, ConstSyntaxPtr syntax);
 
@@ -111,6 +111,6 @@ class MX_GENSHADER_API Shader
     friend class ShaderGenerator;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

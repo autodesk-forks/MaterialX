@@ -7,12 +7,12 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    const string NUM_LIGHTS_FUNC_SIGNATURE = "int numActiveLightSources()";
+const string NUM_LIGHTS_FUNC_SIGNATURE = "int numActiveLightSources()";
 }
 
 NumLightsNodeGlsl::NumLightsNodeGlsl()
@@ -36,12 +36,12 @@ void NumLightsNodeGlsl::createVariables(const ShaderNode&, GenContext&, Shader& 
 void NumLightsNodeGlsl::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        const ShaderGenerator& shadergen = context.getShaderGenerator();
-        shadergen.emitLine(NUM_LIGHTS_FUNC_SIGNATURE, stage, false);
-        shadergen.emitFunctionBodyBegin(node, context, stage);
-        shadergen.emitLine("return min(" + HW::T_NUM_ACTIVE_LIGHT_SOURCES + ", " + HW::LIGHT_DATA_MAX_LIGHT_SOURCES + ") ", stage);
-        shadergen.emitFunctionBodyEnd(node, context, stage);
+    const ShaderGenerator& shadergen = context.getShaderGenerator();
+    shadergen.emitLine(NUM_LIGHTS_FUNC_SIGNATURE, stage, false);
+    shadergen.emitFunctionBodyBegin(node, context, stage);
+    shadergen.emitLine("return min(" + HW::T_NUM_ACTIVE_LIGHT_SOURCES + ", " + HW::LIGHT_DATA_MAX_LIGHT_SOURCES + ") ", stage);
+    shadergen.emitFunctionBodyEnd(node, context, stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

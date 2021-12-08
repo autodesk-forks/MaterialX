@@ -8,19 +8,19 @@
 
 #include <MaterialXGenGlsl/Nodes/TransformVectorNodeGlsl.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// TransformNormal node implementation for GLSL
 class MX_GENGLSL_API TransformNormalNodeGlsl : public TransformVectorNodeGlsl
 {
-public:
+  public:
     static ShaderNodeImplPtr create();
 
-protected:
+  protected:
     virtual const string& getMatrix(const string& fromSpace, const string& toSpace) const;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

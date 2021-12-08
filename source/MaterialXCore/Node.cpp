@@ -10,8 +10,8 @@
 
 #include <deque>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 const string Backdrop::CONTAINS_ATTRIBUTE = "contains";
 const string Backdrop::WIDTH_ATTRIBUTE = "width";
@@ -202,7 +202,7 @@ vector<PortElementPtr> Node::getDownstreamPorts() const
         }
     }
     std::sort(downstreamPorts.begin(), downstreamPorts.end(), [](const ConstElementPtr& a, const ConstElementPtr& b)
-    {
+              {
         return a->getName() > b->getName();
     });
     return downstreamPorts;
@@ -802,4 +802,4 @@ bool Backdrop::validate(string* message) const
     return Element::validate(message) && res;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

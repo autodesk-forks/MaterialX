@@ -12,8 +12,8 @@
 #include <MaterialXRuntime/RtBindElement.h>
 #include <MaterialXRuntime/RtConnectableApi.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtCollection
 /// Schema for collection prims.
@@ -21,9 +21,10 @@ class RtCollection : public RtBindElement
 {
     DECLARE_TYPED_SCHEMA(RtCollection)
 
-public:
+  public:
     /// Constructor.
-    RtCollection(const RtPrim& prim) : RtBindElement(prim) {}
+    RtCollection(const RtPrim& prim) :
+        RtBindElement(prim) { }
 
     /// Set included geometry identifiers.
     void setIncludeGeom(const string& geom);
@@ -51,10 +52,10 @@ public:
 /// API for validating connections and relationships for the 'collection' prim type.
 class RtCollectionConnectableApi : public RtConnectableApi
 {
-public:
+  public:
     bool acceptRelationship(const RtRelationship& rel, const RtObject& target) const override;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

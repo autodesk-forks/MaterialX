@@ -9,8 +9,8 @@
 #include <iostream>
 #include <sstream>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 string readFile(const FilePath& filePath)
 {
@@ -210,7 +210,6 @@ void flattenFilenames(DocumentPtr doc, const FileSearchPath& searchPath, StringR
     }
 }
 
-
 bool isValidPath(const string& path)
 {
     // The column and semicolumn chars are used to separate paths in env vars on different os.
@@ -218,4 +217,4 @@ bool isValidPath(const string& path)
     return path.find(PATH_LIST_SEPARATOR) == std::string::npos;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

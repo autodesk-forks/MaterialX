@@ -5,8 +5,8 @@
 
 #include <MaterialXRender/Camera.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 Matrix44 Camera::createViewMatrix(const Vector3& eye,
                                   const Vector3& target,
@@ -87,9 +87,9 @@ bool Camera::applyArcballMotion(const Vector2& pos)
         float sa = std::sqrt(axis.dot(axis));
         float ca = v0.dot(v1);
         float angle = std::atan2(sa, ca);
-        if (tx*tx + ty*ty > 1.0f)
+        if (tx * tx + ty * ty > 1.0f)
         {
-            angle *= 1.0f + 0.2f * (std::sqrt(tx*tx + ty*ty) - 1.0f);
+            angle *= 1.0f + 0.2f * (std::sqrt(tx * tx + ty * ty) - 1.0f);
         }
         axis = axis.getNormalized();
         _arcballDelta = Quaternion::createFromAxisAngle(axis, angle);
@@ -101,4 +101,4 @@ bool Camera::applyArcballMotion(const Vector2& pos)
     return true;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

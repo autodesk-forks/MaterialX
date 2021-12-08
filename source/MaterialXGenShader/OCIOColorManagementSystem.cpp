@@ -11,14 +11,14 @@
 #include <iostream>
 
 #ifdef OpenColorIO_SKIP_IMPORTS
-#error "OCIO has been build as a non-static library"
+    #error "OCIO has been build as a non-static library"
 #endif
-#pragma warning(disable: 4275)
+#pragma warning(disable : 4275)
 #include <OpenColorIO/OpenColorIO.h>
 namespace OCIO = OCIO_NAMESPACE;
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 const string OCIOColorManagementSystem::CMS_NAME = "ocio_cms";
 
@@ -67,7 +67,7 @@ bool OCIOColorManagementSystem::isValid() const
     return (_document && _ocioInfo->config && _ocioInfo->language != OCIO_UNSUPPORT_LANGUAGE);
 }
 
-void OCIOColorManagementSystem::loadLibrary(DocumentPtr document) 
+void OCIOColorManagementSystem::loadLibrary(DocumentPtr document)
 {
     _ocioInfo->language = OCIO_UNSUPPORT_LANGUAGE;
     _ocioInfo->target = EMPTY_STRING;
@@ -80,7 +80,7 @@ void OCIOColorManagementSystem::loadLibrary(DocumentPtr document)
 
     TargetDefPtr targetDef = _document->getTargetDef(_target);
     if (targetDef)
-    { 
+    {
         for (const string& target : targetDef->getMatchingTargets())
         {
             if (_ocioInfo->languageMap.count(target))
@@ -142,7 +142,7 @@ bool OCIOColorManagementSystem::supportsTransform(const ColorSpaceTransform& tra
 }
 
 /// Create a node to use to perform the given color space transformation.
-ShaderNodePtr OCIOColorManagementSystem::createNode(const ShaderGraph* parent, const ColorSpaceTransform& transform, 
+ShaderNodePtr OCIOColorManagementSystem::createNode(const ShaderGraph* parent, const ColorSpaceTransform& transform,
                                                     const string& name, GenContext& context) const
 {
     if (!isValid())
@@ -222,7 +222,7 @@ ImplementationPtr OCIOColorManagementSystem::getImplementation(const ColorSpaceT
         // a valid function name is created here
         std::string transformFunctionName = "IM_" + createValidName(transform.sourceSpace) + "_to_" + createValidName(transform.targetSpace) + "_" + typeName + "_ocio";
         shaderDesc->setFunctionName(transformFunctionName.c_str());
-        
+
         // Retrieve information
         gpu->extractGpuShaderInfo(shaderDesc);
 
@@ -230,7 +230,7 @@ ImplementationPtr OCIOColorManagementSystem::getImplementation(const ColorSpaceT
         std::string functionName = shaderDesc->getFunctionName();
         std::string outputName = shaderDesc->getPixelName();
 
-        // The following is an example of output returned in "fullFunction" 
+        // The following is an example of output returned in "fullFunction"
         //
         // In this example "acescg" to "lin_rec709" are the source and target space strings passed in.
         // - setFunctionName() is used to in place of the default function name
@@ -271,8 +271,8 @@ ImplementationPtr OCIOColorManagementSystem::getImplementation(const ColorSpaceT
     }
     catch (const OCIO::Exception& e)
     {
-        throw ExceptionShaderGenError("Code generation failed for transform: '" + 
-            transform.sourceSpace + "' to '" + transform.targetSpace + "'. Type: '" + transform.type->getName()  + "' : " + e.what());
+        throw ExceptionShaderGenError("Code generation failed for transform: '" +
+                                      transform.sourceSpace + "' to '" + transform.targetSpace + "'. Type: '" + transform.type->getName() + "' : " + e.what());
     }
 
     return nullptr;
@@ -315,10 +315,10 @@ void OCIOSourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& co
     shadergen.emitOutput(node.getOutput(0), true, false, context, stage);
     shadergen.emitString(" = ", stage);
 
-    // Emit function name. 
+    // Emit function name.
     shadergen.emitString(_functionName + "(", stage);
 
-    // Emit input. 
+    // Emit input.
     ShaderInput* input = node.getInputs()[0];
     shadergen.emitInput(input, context, stage);
 
@@ -329,4 +329,4 @@ void OCIOSourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& co
     END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

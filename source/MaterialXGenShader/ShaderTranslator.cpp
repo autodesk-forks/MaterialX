@@ -7,8 +7,8 @@
 
 #include <MaterialXCore/Material.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 //
 // ShaderTranslator methods
@@ -45,7 +45,7 @@ void ShaderTranslator::connectTranslationInputs(NodePtr shader, NodeDefPtr trans
                 origOutputs.insert(connectedOutput);
             }
             else if (shaderInput->hasValueString())
-            { 
+            {
                 input->setValueString(shaderInput->getValueString());
             }
             else
@@ -204,4 +204,4 @@ void ShaderTranslator::translateAllMaterials(DocumentPtr doc, string destCategor
     }
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

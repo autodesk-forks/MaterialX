@@ -20,12 +20,12 @@
 
 #include <MaterialXCore/Unit.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class RtApi
 {
-public:
+  public:
     ~RtApi();
 
     /// Initialize the API session.
@@ -33,7 +33,6 @@ public:
 
     /// Shutdown the API session.
     void shutdown();
-
 
     /// Registers a logger with the API
     void registerLogger(RtLoggerPtr logger);
@@ -65,7 +64,7 @@ public:
     /// @{
 
     /// Register a typed prim schema.
-    template<class T, class ConnectableApi = RtConnectableApi>
+    template <class T, class ConnectableApi = RtConnectableApi>
     void registerTypedSchema()
     {
         registerCreateFunction(T::typeName(), T::createPrim);
@@ -73,7 +72,7 @@ public:
     }
 
     /// Unregister a typed prim schema.
-    template<class T>
+    template <class T>
     void unregisterTypedSchema()
     {
         unregisterCreateFunction(T::typeName());
@@ -84,58 +83,58 @@ public:
     /// @name Definitions
     /// @{
 
-     /// Register a definition of templated types.
-    template<class T>
+    /// Register a definition of templated types.
+    template <class T>
     void registerDefinition(const RtPrim& prim);
 
     /// Unregister a definition of templated types.
-    template<class T>
+    template <class T>
     void unregisterDefinition(const RtString& name);
 
     /// Return true if a definition of templates type
     /// with the given name has been registered.
-    template<class T>
+    template <class T>
     bool hasDefinition(const RtString& name) const;
 
     /// Return a registered definition prim by name.
-    template<class T>
+    template <class T>
     RtPrim getDefinition(const RtString& name) const;
 
     /// Return a number of registered definitions.
-    template<class T>
+    template <class T>
     size_t numDefinitions() const;
 
     /// Return a registered definition prim by index.
-    template<class T>
+    template <class T>
     RtPrim getDefinition(size_t index) const;
 
     /// @}
     /// @name Implementations
     /// @{
 
-     /// Register an implementation of templated types.
-    template<class T>
+    /// Register an implementation of templated types.
+    template <class T>
     void registerImplementation(const RtPrim& prim);
 
     /// Unregister an implementation of templated types.
-    template<class T>
+    template <class T>
     void unregisterImplementation(const RtString& name);
 
     /// Return true if an implementation of templates type
     /// with the given name has been registered.
-    template<class T>
+    template <class T>
     bool hasImplementation(const RtString& name) const;
 
     /// Return a registered implementation prim by name.
-    template<class T>
+    template <class T>
     RtPrim getImplementation(const RtString& name) const;
 
     /// Return a number of registered implementations.
-    template<class T>
+    template <class T>
     size_t numImplementations() const;
 
     /// Return a registered implementation prim by index.
-    template<class T>
+    template <class T>
     RtPrim getImplementation(size_t index) const;
 
     /// @}
@@ -243,19 +242,18 @@ public:
     RtApi(const RtApi&) = delete;
     const RtApi& operator=(const RtApi&) = delete;
 
-protected:
+  protected:
     RtApi();
 
     void* _ptr;
     friend class PvtApi;
 };
 
-
 /// RAII class for scoped initialization and shutdown
 /// of the API instance.
 class RtScopedApiHandle
 {
-public:
+  public:
     /// Constructor.
     RtScopedApiHandle()
     {
@@ -281,6 +279,6 @@ public:
     }
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

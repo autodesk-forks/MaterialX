@@ -12,8 +12,8 @@
 #include <MaterialXCore/Types.h>
 #include <MaterialXRender/Export.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Geometry index buffer
 using MeshIndexBuffer = vector<uint32_t>;
@@ -124,7 +124,7 @@ class MX_RENDER_API MeshStream
         return _data.size();
     }
 
-    void transform(const Matrix44 &matrix);
+    void transform(const Matrix44& matrix);
 
   protected:
     string _name;
@@ -424,6 +424,6 @@ class MX_RENDER_API Mesh
     vector<MeshPartitionPtr> _partitions;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

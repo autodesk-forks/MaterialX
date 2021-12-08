@@ -4,19 +4,19 @@
 //
 
 #if defined(_WIN32)
-#include <windows.h>
+    #include <windows.h>
 #elif defined(__linux__) || defined(__FreeBSD__)
-#include <X11/Intrinsic.h>
+    #include <X11/Intrinsic.h>
 #elif defined(__APPLE__)
-#include <MaterialXRenderHw/WindowCocoaWrappers.h>
-#include <MaterialXRenderGlsl/GLCocoaWrappers.h>
+    #include <MaterialXRenderHw/WindowCocoaWrappers.h>
+    #include <MaterialXRenderGlsl/GLCocoaWrappers.h>
 #endif
 
 #include <MaterialXRenderGlsl/External/GLew/glew.h>
 #include <MaterialXRenderGlsl/GLContext.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 #if defined(_WIN32)
 
@@ -33,8 +33,7 @@ GLContext::GLContext(SimpleWindowPtr window, HardwareContextHandle sharedWithCon
     }
 
     // Use a generic pixel format to create the context
-    static PIXELFORMATDESCRIPTOR pfd =
-    {
+    static PIXELFORMATDESCRIPTOR pfd = {
         sizeof(PIXELFORMATDESCRIPTOR),
         1,
         PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
@@ -131,7 +130,7 @@ GLContext::GLContext(const SimpleWindowPtr window, HardwareContextHandle sharedW
     _isValid(false)
 {
     void* pixelFormat = NSOpenGLChoosePixelFormatWrapper(true, 0, 32, 24, 8, 0, 0, false,
-        false, false, false, false);
+                                                         false, false, false, false);
     if (!pixelFormat)
     {
         return;
@@ -204,4 +203,4 @@ int GLContext::makeCurrent()
     return makeCurrentOk;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

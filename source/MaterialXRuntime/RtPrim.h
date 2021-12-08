@@ -15,8 +15,8 @@
 #include <MaterialXRuntime/RtPort.h>
 #include <MaterialXRuntime/RtRelationship.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class RtPrimIterator;
 class RtInputIterator;
@@ -29,10 +29,10 @@ class RtPrim : public RtObject
 {
     RT_DECLARE_RUNTIME_OBJECT(RtPrim)
 
-public:
+  public:
     /// Empty constructor.
     /// Creating an invalid object.
-    RtPrim() {}
+    RtPrim() { }
 
     /// Construct from a handle.
     RtPrim(PvtObjHandle hnd);
@@ -44,11 +44,11 @@ public:
     const RtTypeInfo* getTypeInfo() const;
 
     /// Return true if this prim supports the templated schema class.
-    template<class T>
+    template <class T>
     bool hasApi() const
     {
         static_assert(std::is_base_of<RtSchemaBase, T>::value,
-            "Templated type must be a concrete subclass of RtSchemaBase");
+                      "Templated type must be a concrete subclass of RtSchemaBase");
         return getTypeInfo()->isCompatible(T::typeName());
     }
 
@@ -133,11 +133,10 @@ public:
 /// Function type for creating prims for a typed schema.
 using RtPrimCreateFunc = std::function<RtPrim(const RtString& typeName, const RtString& name, RtPrim parent)>;
 
-
 /// Class holding an attribute specification.
 class RtAttributeSpec
 {
-public:
+  public:
     /// Constructor.
     RtAttributeSpec();
 
@@ -160,7 +159,7 @@ public:
     /// Return true if this attribute should be exported as shader metadata.
     bool isExportable() const;
 
-private:
+  private:
     /// Internal handle.
     void* _ptr;
 
@@ -172,9 +171,9 @@ using RtAttributeSpecVec = vector<RtAttributeSpec*>;
 /// Abstract base class for prim specifications.
 class RtPrimSpec
 {
-public:
+  public:
     /// Destructor.
-    virtual ~RtPrimSpec() {}
+    virtual ~RtPrimSpec() { }
 
     /// Return an attribute spec if one has been defined with the given name
     /// for this prim type, or return nullptr otherwise.
@@ -190,11 +189,11 @@ public:
     /// Return a vector of all attribute specs defined for the given port on this prim type.
     virtual RtAttributeSpecVec getPortAttributes(const RtPort& port) const = 0;
 
-protected:
+  protected:
     /// Protected constructor.
-    RtPrimSpec() {}
+    RtPrimSpec() { }
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

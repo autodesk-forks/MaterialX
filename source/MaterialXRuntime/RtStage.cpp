@@ -13,17 +13,17 @@
 #include <MaterialXRuntime/Private/PvtStage.h>
 #include <MaterialXRuntime/Private/PvtApi.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    // Syntactic sugar
-    inline PvtStage* _cast(void* ptr)
-    {
-        return static_cast<PvtStage*>(ptr);
-    }
+// Syntactic sugar
+inline PvtStage* _cast(void* ptr)
+{
+    return static_cast<PvtStage*>(ptr);
 }
+} // namespace
 
 RtStage::RtStage() :
     _ptr(nullptr)
@@ -81,8 +81,7 @@ RtString RtStage::reparentPrim(const RtPath& path, const RtPath& newParentPath)
 {
     return _cast(_ptr)->reparentPrim(
         *static_cast<PvtPath*>(path._ptr),
-        *static_cast<PvtPath*>(newParentPath._ptr)
-    );
+        *static_cast<PvtPath*>(newParentPath._ptr));
 }
 
 RtPrim RtStage::getPrimAtPath(const RtPath& path)
@@ -137,8 +136,8 @@ void RtStage::restorePrim(const RtPath& parentPath, const RtPrim& prim)
 }
 
 RtPrim RtStage::createNodeDef(RtPrim nodegraphPrim,
-                              const RtString& nodeDefName, 
-                              const RtString& nodeName, 
+                              const RtString& nodeDefName,
+                              const RtString& nodeName,
                               const RtString& version,
                               bool isDefaultVersion,
                               const RtString& nodeGroup,
@@ -196,7 +195,7 @@ RtPrim RtStage::createNodeDef(RtPrim nodegraphPrim,
     {
         const uint32_t flags = PvtObject::cast<PvtInput>(input)->getFlags();
         RtInput nodedefInput = nodedef.createInput(input.getName(), input.getType(), flags);
-        PvtObject *src = PvtObject::cast(input);
+        PvtObject* src = PvtObject::cast(input);
         for (const RtString& name : src->getAttributeNames())
         {
             const RtTypedValue* srcAttr = src->getAttribute(name);
@@ -234,4 +233,4 @@ RtPrim RtStage::createNodeDef(RtPrim nodegraphPrim,
     return nodedef.getPrim();
 }
 
-}
+MATERIALX_NAMESPACE_END

@@ -9,8 +9,8 @@
 #include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 //
 // ColorSpaceTransform methods
@@ -26,7 +26,6 @@ ColorSpaceTransform::ColorSpaceTransform(const string& ss, const string& ts, con
         throw ExceptionShaderGenError("Color space transform can only be a color3 or color4.");
     }
 }
-
 
 ColorManagementSystem::ColorManagementSystem()
 {
@@ -47,7 +46,7 @@ bool ColorManagementSystem::supportsTransform(const ColorSpaceTransform& transfo
     return impl != nullptr;
 }
 
-ShaderNodePtr ColorManagementSystem::createNode(const ShaderGraph* parent, const ColorSpaceTransform& transform, const string& name, 
+ShaderNodePtr ColorManagementSystem::createNode(const ShaderGraph* parent, const ColorSpaceTransform& transform, const string& name,
                                                 GenContext& context) const
 {
     ImplementationPtr impl = getImplementation(transform);
@@ -87,7 +86,6 @@ ShaderNodePtr ColorManagementSystem::createNode(const ShaderGraph* parent, const
 
     return shaderNode;
 }
-
 
 void ColorManagementSystem::getPortConnections(ShaderGraph* graph, ShaderNode* colorTransformNode,
                                                const TypeDesc* targetType, GenContext& context,
@@ -140,7 +138,7 @@ void ColorManagementSystem::getPortConnections(ShaderGraph* graph, ShaderNode* c
 
 void ColorManagementSystem::connectNodeToShaderInput(ShaderGraph* graph, ShaderNode* colorTransformNode, ShaderInput* shaderInput, GenContext& context)
 {
-    if (!graph || !colorTransformNode|| !shaderInput)
+    if (!graph || !colorTransformNode || !shaderInput)
     {
         throw ExceptionShaderGenError("Cannot connect color management node to shader input");
     }
@@ -162,7 +160,6 @@ void ColorManagementSystem::connectNodeToShaderInput(ShaderGraph* graph, ShaderN
         shaderInput->makeConnection(outputToConnect);
     }
 }
-
 
 void ColorManagementSystem::connectNodeToShaderOutput(ShaderGraph* graph, ShaderNode* colorTransformNode, ShaderOutput* shaderOutput, GenContext& context)
 {
@@ -189,4 +186,4 @@ void ColorManagementSystem::connectNodeToShaderOutput(ShaderGraph* graph, Shader
     }
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

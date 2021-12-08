@@ -9,8 +9,8 @@
 #include <sstream>
 #include <type_traits>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 Value::CreatorMap Value::_creatorMap;
 Value::FloatFormat Value::_floatFormat = Value::FloatFormatDefault;
@@ -24,8 +24,12 @@ template <class T> using enable_if_mx_vector_t =
 template <class T> using enable_if_mx_matrix_t =
     typename std::enable_if<std::is_base_of<MatrixBase, T>::value, T>::type;
 
-template <class T> class is_std_vector : public std::false_type { };
-template <class T> class is_std_vector<vector<T>> : public std::true_type { };
+template <class T> class is_std_vector : public std::false_type
+{
+};
+template <class T> class is_std_vector<vector<T>> : public std::true_type
+{
+};
 template <class T> using enable_if_std_vector_t =
     typename std::enable_if<is_std_vector<T>::value, T>::type;
 
@@ -100,9 +104,8 @@ template <class T> void dataToString(const T& data, string& str)
     // Set float format and precision for the stream
     const Value::FloatFormat fmt = Value::getFloatFormat();
     ss.setf(std::ios_base::fmtflags(
-            (fmt == Value::FloatFormatFixed ? std::ios_base::fixed :
-            (fmt == Value::FloatFormatScientific ? std::ios_base::scientific : 0))),
-        std::ios_base::floatfield);
+                (fmt == Value::FloatFormatFixed ? std::ios_base::fixed : (fmt == Value::FloatFormatScientific ? std::ios_base::scientific : 0))),
+            std::ios_base::floatfield);
     ss.precision(Value::getFloatPrecision());
 
     ss << data;
@@ -303,4 +306,4 @@ INSTANTIATE_TYPE(StringVec, "stringarray")
 INSTANTIATE_TYPE(long, "integer")
 INSTANTIATE_TYPE(double, "float")
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

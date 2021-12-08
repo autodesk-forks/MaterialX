@@ -13,8 +13,8 @@
 #include <MaterialXRuntime/RtString.h>
 #include <MaterialXRuntime/RtValue.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Function type for creating a value of a specific data type.
 using RtValueCreateFunc = std::function<RtValue(RtPrim& owner)>;
@@ -52,7 +52,7 @@ struct RtValueFuncs
 /// registered using RtTypeDef::registerType().
 class RtTypeDef
 {
-public:
+  public:
     /// Identifiers for base types.
     static const RtString BASETYPE_NONE;
     static const RtString BASETYPE_BOOLEAN;
@@ -71,7 +71,7 @@ public:
     static const RtString SEMANTIC_SHADER;
     static const RtString SEMANTIC_MATERIAL;
 
-public:
+  public:
     /// Constructor.
     RtTypeDef(const RtString& name, const RtString& basetype, const RtValueFuncs& funcs, const RtString& semantic, size_t size);
 
@@ -164,10 +164,10 @@ public:
     /// Returns nullptr if no such type is registered.
     static const RtTypeDef* findType(const RtString& name);
 
-private:
+  private:
     void* _ptr;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -7,8 +7,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr NormalNodeGlsl::create()
 {
@@ -43,45 +43,45 @@ void NormalNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& contex
     const int space = spaceInput ? spaceInput->getValue()->asA<int>() : OBJECT_SPACE;
 
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
-        VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        if (space == WORLD_SPACE)
+    VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    if (space == WORLD_SPACE)
+    {
+        ShaderPort* normal = vertexData[HW::T_NORMAL_WORLD];
+        if (!normal->isEmitted())
         {
-            ShaderPort* normal = vertexData[HW::T_NORMAL_WORLD];
-            if (!normal->isEmitted())
-            {
-                normal->setEmitted();
-                shadergen.emitLine(prefix + normal->getVariable() + " = (" + HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX + " * vec4(" + HW::T_IN_NORMAL + ",0.0)).xyz", stage);
-            }
+            normal->setEmitted();
+            shadergen.emitLine(prefix + normal->getVariable() + " = (" + HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX + " * vec4(" + HW::T_IN_NORMAL + ",0.0)).xyz", stage);
         }
-        else
+    }
+    else
+    {
+        ShaderPort* normal = vertexData[HW::T_NORMAL_OBJECT];
+        if (!normal->isEmitted())
         {
-            ShaderPort* normal = vertexData[HW::T_NORMAL_OBJECT];
-            if (!normal->isEmitted())
-            {
-                normal->setEmitted();
-                shadergen.emitLine(prefix + normal->getVariable() + " = " + HW::T_IN_NORMAL, stage);
-            }
+            normal->setEmitted();
+            shadergen.emitLine(prefix + normal->getVariable() + " = " + HW::T_IN_NORMAL, stage);
         }
+    }
     END_SHADER_STAGE(shader, Stage::VERTEX)
 
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        shadergen.emitLineBegin(stage);
-        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        if (space == WORLD_SPACE)
-        {
-            const ShaderPort* normal = vertexData[HW::T_NORMAL_WORLD];
-            shadergen.emitString(" = normalize(" + prefix + normal->getVariable() + ")", stage);
-        }
-        else
-        {
-            const ShaderPort* normal = vertexData[HW::T_NORMAL_OBJECT];
-            shadergen.emitString(" = normalize(" + prefix + normal->getVariable() + ")", stage);
-        }
-        shadergen.emitLineEnd(stage);
+    VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    if (space == WORLD_SPACE)
+    {
+        const ShaderPort* normal = vertexData[HW::T_NORMAL_WORLD];
+        shadergen.emitString(" = normalize(" + prefix + normal->getVariable() + ")", stage);
+    }
+    else
+    {
+        const ShaderPort* normal = vertexData[HW::T_NORMAL_OBJECT];
+        shadergen.emitString(" = normalize(" + prefix + normal->getVariable() + ")", stage);
+    }
+    shadergen.emitLineEnd(stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

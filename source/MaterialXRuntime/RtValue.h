@@ -14,8 +14,8 @@
 
 #include <MaterialXCore/Types.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtValue
 /// Generic value class for storing values of all the data types
@@ -24,9 +24,10 @@ namespace MaterialX
 /// as pointers and lifetime managed by the prim they belong to.
 class RtValue
 {
-public:
+  public:
     /// Default constructor
-    RtValue() : _data{0,0} {}
+    RtValue() :
+        _data{ 0, 0 } { }
 
     /// Explicit value constructor
     explicit RtValue(bool v) { asBool() = v; }
@@ -77,7 +78,7 @@ public:
     {
         return *_reinterpret_cast<float*>(&_data);
     }
-  
+
     /// Return Color3 value.
     const Color3& asColor3() const
     {
@@ -218,7 +219,7 @@ public:
     /// Destination RtValue must been initialized for the given type.
     static void fromString(const RtString& type, const string& src, RtValue& dest);
 
-private:
+  private:
     // 16 bytes of data storage to hold the main data types,
     // up to four component vector/color. Larger data types
     // needs to be allocated through the RtValueStore class.
@@ -229,13 +230,14 @@ private:
 
 class RtTypedValue
 {
-public:
-    RtTypedValue() {}
+  public:
+    RtTypedValue() { }
 
     RtTypedValue(const RtString& t, const RtValue& v) :
         _type(t),
         _value(v)
-    {}
+    {
+    }
 
     const RtString& getType() const
     {
@@ -280,7 +282,7 @@ public:
             throw ExceptionRuntimeTypeError("Referencing a value as '" + RtType::BOOLEAN.str() + "' when the value is in fact a '" + _type.str() + "'");
         }
 #endif
-        return _value .asBool();
+        return _value.asBool();
     }
     /// Return reference to bool value.
     bool& asBool()
@@ -547,11 +549,11 @@ public:
         return _value.asString();
     }
 
-private:
+  private:
     RtString _type;
     RtValue _value;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

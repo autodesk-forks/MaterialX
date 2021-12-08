@@ -12,8 +12,8 @@
 #include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/TypeDesc.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 const string ClosureLayerNodeMdl::TOP = "top";
 const string ClosureLayerNodeMdl::BASE = "base";
@@ -69,8 +69,7 @@ void ClosureLayerNodeMdl::emitFunctionCall(const ShaderNode& _node, GenContext& 
         const string b = shadergen.getUpstreamResult(baseInput, context);
 
         // Join the BSDF and VDF into a single material.
-        shadergen.emitLine("material " + output->getVariable() 
-            + " = material(surface: " + t + ".surface, backface: " + t + ".backface, ior: " + t + ".ior, volume: " + b + ".volume)", stage);
+        shadergen.emitLine("material " + output->getVariable() + " = material(surface: " + t + ".surface, backface: " + t + ".backface, ior: " + t + ".ior, volume: " + b + ".volume)", stage);
 
         return;
     }
@@ -101,7 +100,7 @@ void ClosureLayerNodeMdl::emitFunctionCall(const ShaderNode& _node, GenContext& 
     // Only a subset of the MaterialX BSDF nodes can be layered vertically in MDL.
     // This is because MDL only supports layering through BSDF nesting with a base
     // input, and it's only possible to do this workaround on a subset of the BSDFs.
-    // So if the top BSDF doesn't have a base input, we can only emit the top BSDF 
+    // So if the top BSDF doesn't have a base input, we can only emit the top BSDF
     // without any base layering.
     //
     ShaderInput* topNodeBaseInput = top->getInput(BASE);
@@ -109,7 +108,7 @@ void ClosureLayerNodeMdl::emitFunctionCall(const ShaderNode& _node, GenContext& 
     {
         shadergen.emitComment("Warning: MDL has no support for layering BSDF nodes without a base input. Only the top BSDF will used.", stage);
 
-        // Change the state so we emit the top BSDF function 
+        // Change the state so we emit the top BSDF function
         // with output variable name from the layer node itself.
         ScopedSetVariableName setVariable(output->getVariable(), top->getOutput());
 
@@ -139,7 +138,6 @@ void ClosureLayerNodeMdl::emitFunctionCall(const ShaderNode& _node, GenContext& 
     topNodeBaseInput->breakConnection();
 }
 
-
 ShaderNodeImplPtr LayerableNodeMdl::create()
 {
     return std::make_shared<LayerableNodeMdl>();
@@ -151,4 +149,4 @@ void LayerableNodeMdl::addInputs(ShaderNode& node, GenContext&) const
     node.addInput(ClosureLayerNodeMdl::BASE, Type::BSDF);
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

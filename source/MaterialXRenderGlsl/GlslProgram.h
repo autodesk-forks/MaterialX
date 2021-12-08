@@ -18,8 +18,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 // Shared pointer to a GlslProgram
 using GlslProgramPtr = std::shared_ptr<class GlslProgram>;
@@ -104,13 +104,10 @@ class MX_RENDERGLSL_API GlslProgram
         string unit;
 
         /// Program input constructor
-        Input(int inputLocation, int inputType, int inputSize, string inputPath)
-            : location(inputLocation)
-            , gltype(inputType)
-            , size(inputSize)
-            , isConstant(false)
-            , path(inputPath)
-        { }
+        Input(int inputLocation, int inputType, int inputSize, string inputPath) :
+            location(inputLocation), gltype(inputType), size(inputSize), isConstant(false), path(inputPath)
+        {
+        }
     };
     /// Program input structure shared pointer type
     using InputPtr = std::shared_ptr<Input>;
@@ -265,6 +262,6 @@ class MX_RENDERGLSL_API GlslProgram
     std::set<int> _enabledStreamLocations;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

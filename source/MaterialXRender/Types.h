@@ -12,8 +12,8 @@
 #include <MaterialXCore/Types.h>
 #include <MaterialXRender/Export.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class Vector3d
 /// A vector of three floating-point values (double-precision)
@@ -22,9 +22,10 @@ class MX_RENDER_API Vector3d : public VectorN<Vector3d, double, 3>
   public:
     using VectorN<Vector3d, double, 3>::VectorN;
     Vector3d() = default;
-    Vector3d(double x, double y, double z) : VectorN(Uninit{})
+    Vector3d(double x, double y, double z) :
+        VectorN(Uninit{})
     {
-        _arr = {x, y, z};
+        _arr = { x, y, z };
     }
 };
 
@@ -35,9 +36,10 @@ class MX_RENDER_API Vector4d : public VectorN<Vector4d, double, 4>
   public:
     using VectorN<Vector4d, double, 4>::VectorN;
     Vector4d() = default;
-    Vector4d(double x, double y, double z, double w) : VectorN(Uninit{})
+    Vector4d(double x, double y, double z, double w) :
+        VectorN(Uninit{})
     {
-        _arr = {x, y, z, w};
+        _arr = { x, y, z, w };
     }
 };
 
@@ -48,9 +50,10 @@ class MX_RENDER_API Color3d : public VectorN<Color3d, double, 3>
   public:
     using VectorN<Color3d, double, 3>::VectorN;
     Color3d() = default;
-    Color3d(double r, double g, double b) : VectorN(Uninit{})
+    Color3d(double r, double g, double b) :
+        VectorN(Uninit{})
     {
-        _arr = {r, g, b};
+        _arr = { r, g, b };
     }
 };
 
@@ -60,7 +63,8 @@ class MX_RENDER_API Color3d : public VectorN<Color3d, double, 3>
 class MX_RENDER_API Half
 {
   public:
-    explicit Half(float value) : _data(toFloat16(value)) { }
+    explicit Half(float value) :
+        _data(toFloat16(value)) { }
     operator float() const { return toFloat32(_data); }
 
     bool operator==(Half rhs) const { return float(*this) == float(rhs); }
@@ -77,7 +81,7 @@ class MX_RENDER_API Half
 
     Half& operator+=(Half rhs) { return operator=(*this + rhs); }
     Half& operator-=(Half rhs) { return operator=(*this - rhs); }
-    Half& operator*=(Half rhs) { return operator=(*this * rhs); }
+    Half& operator*=(Half rhs) { return operator=(*this* rhs); }
     Half& operator/=(Half rhs) { return operator=(*this / rhs); }
 
     Half operator-() const { return Half(-float(*this)); }
@@ -93,9 +97,9 @@ class MX_RENDER_API Half
     static constexpr int const shift = 13;
     static constexpr int const shiftSign = 16;
 
-    static constexpr int32_t const infN = 0x7F800000; // flt32 infinity
-    static constexpr int32_t const maxN = 0x477FE000; // max flt16 normal as a flt32
-    static constexpr int32_t const minN = 0x38800000; // min flt16 normal as a flt32
+    static constexpr int32_t const infN = 0x7F800000;            // flt32 infinity
+    static constexpr int32_t const maxN = 0x477FE000;            // max flt16 normal as a flt32
+    static constexpr int32_t const minN = 0x38800000;            // min flt16 normal as a flt32
     static constexpr int32_t const signN = (int32_t) 0x80000000; // flt32 sign bit
 
     static constexpr int32_t const infC = infN >> shift;
@@ -154,6 +158,6 @@ class MX_RENDER_API Half
     uint16_t _data;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

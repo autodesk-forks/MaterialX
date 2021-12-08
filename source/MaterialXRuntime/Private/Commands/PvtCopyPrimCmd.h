@@ -12,17 +12,18 @@
 #include <MaterialXRuntime/RtPrim.h>
 #include <MaterialXRuntime/RtPath.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtCopyPrimCmd : public PvtCommand
 {
-public:
+  public:
     PvtCopyPrimCmd(RtStagePtr stage, const RtPrim& prim, const RtPath& parentPath) :
         _stage(stage),
         _prim(prim),
         _parentPath(parentPath)
-    {}
+    {
+    }
 
     static PvtCommandPtr create(RtStagePtr stage, const RtPrim& prim, const RtPath& parentPath);
 
@@ -30,7 +31,7 @@ public:
     void undo(RtCommandResult& result) override;
     void redo(RtCommandResult& result) override;
 
-private:
+  private:
     RtPrim createPrimCopy(const RtPrim& prim, const RtPath& parentPath);
     void copyMetadata(const PvtObject* src, PvtObject* dest);
 
@@ -40,6 +41,6 @@ private:
     RtPrim _copy;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

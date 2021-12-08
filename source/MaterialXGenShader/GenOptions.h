@@ -11,8 +11,8 @@
 
 #include <MaterialXGenShader/Export.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Type of shader interface to be generated
 enum ShaderInterfaceType
@@ -59,7 +59,7 @@ enum HwDirectionalAlbedoMethod
     DIRECTIONAL_ALBEDO_MONTE_CARLO
 };
 
-/// @class GenOptions 
+/// @class GenOptions
 /// Class holding options to configure shader generation.
 class MX_GENSHADER_API GenOptions
 {
@@ -103,8 +103,8 @@ class MX_GENSHADER_API GenOptions
     /// Shader fragments will be generated to transform
     /// input distance values to the given unit.
     string targetDistanceUnit;
-    
-    /// Sets whether to include upstream dependencies 
+
+    /// Sets whether to include upstream dependencies
     /// for the element to generate a shader for.
     bool addUpstreamDependencies;
 
@@ -151,6 +151,6 @@ class MX_GENSHADER_API GenOptions
     bool hwWriteAlbedoTable;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

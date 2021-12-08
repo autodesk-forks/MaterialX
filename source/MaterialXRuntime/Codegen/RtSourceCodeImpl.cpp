@@ -12,8 +12,8 @@
 #include <MaterialXFormat/Util.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 DEFINE_TYPED_SCHEMA(RtSourceCodeImpl, "nodeimpl:sourcecodeimpl");
 
@@ -44,7 +44,7 @@ void RtSourceCodeImpl::setFile(const string& file)
     if (source.empty())
     {
         throw ExceptionShaderGenError("Failed to get source code from file '" + path.asString() +
-            "' used by implementation '" + getName().str() + "'");
+                                      "' used by implementation '" + getName().str() + "'");
     }
     setSourceCode(source);
 }
@@ -99,4 +99,4 @@ void RtSourceCodeImpl::emitFunctionCall(const RtNode& /*node*/, GenContext& /*co
 {
 }
 
-}
+MATERIALX_NAMESPACE_END

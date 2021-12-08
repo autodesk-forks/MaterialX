@@ -11,43 +11,43 @@
 
 #include <MaterialXCore/Util.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    class PvtLookPrimSpec : public PvtPrimSpec
+class PvtLookPrimSpec : public PvtPrimSpec
+{
+  public:
+    PvtLookPrimSpec()
     {
-    public:
-        PvtLookPrimSpec()
-        {
-            // TODO: We should derive this from a data driven XML schema.
-            addPrimAttribute(RtString::DOC, RtType::STRING);
-            addPrimAttribute(RtString::XPOS, RtType::FLOAT);
-            addPrimAttribute(RtString::YPOS, RtType::FLOAT);
-            addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
-            addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
-            addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
-        }
-    };
+        // TODO: We should derive this from a data driven XML schema.
+        addPrimAttribute(RtString::DOC, RtType::STRING);
+        addPrimAttribute(RtString::XPOS, RtType::FLOAT);
+        addPrimAttribute(RtString::YPOS, RtType::FLOAT);
+        addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
+        addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
+        addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
+    }
+};
 
-    class PvtMaterialAssignPrimSpec : public PvtPrimSpec
+class PvtMaterialAssignPrimSpec : public PvtPrimSpec
+{
+  public:
+    PvtMaterialAssignPrimSpec()
     {
-    public:
-        PvtMaterialAssignPrimSpec()
-        {
-            // TODO: We should derive this from a data driven XML schema.
-            addPrimAttribute(RtString::DOC, RtType::STRING);
-            addPrimAttribute(RtString::XPOS, RtType::FLOAT);
-            addPrimAttribute(RtString::YPOS, RtType::FLOAT);
-            addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
-            addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
-            addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
-            addPrimAttribute(RtString::GEOM, RtType::STRING);
-            addPrimAttribute(RtString::EXCLUSIVE, RtType::BOOLEAN);
-        }
-    };
-}
+        // TODO: We should derive this from a data driven XML schema.
+        addPrimAttribute(RtString::DOC, RtType::STRING);
+        addPrimAttribute(RtString::XPOS, RtType::FLOAT);
+        addPrimAttribute(RtString::YPOS, RtType::FLOAT);
+        addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
+        addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
+        addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
+        addPrimAttribute(RtString::GEOM, RtType::STRING);
+        addPrimAttribute(RtString::EXCLUSIVE, RtType::BOOLEAN);
+    }
+};
+} // namespace
 
 DEFINE_TYPED_SCHEMA(RtLook, "bindelement:look");
 
@@ -106,7 +106,6 @@ bool RtLookConnectableApi::acceptRelationship(const RtRelationship& rel, const R
     }
     return false;
 }
-
 
 DEFINE_TYPED_SCHEMA(RtMaterialAssign, "bindelement:materialassign");
 
@@ -175,4 +174,4 @@ bool RtMaterialAssignConnectableApi::acceptRelationship(const RtRelationship& re
     return false;
 }
 
-}
+MATERIALX_NAMESPACE_END

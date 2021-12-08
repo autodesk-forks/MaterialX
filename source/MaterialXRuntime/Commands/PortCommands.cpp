@@ -11,8 +11,8 @@
 #include <MaterialXRuntime/Private/Commands/PvtSetPortValueCmd.h>
 #include <MaterialXRuntime/Private/Commands/PvtConnectionCmd.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 namespace RtCommand
 {
 
@@ -144,5 +144,5 @@ void breakConnection(const RtOutput& src, const RtInput& dest, RtCommandResult& 
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-} // RtCommands
-} // MaterialX
+} // namespace RtCommand
+MATERIALX_NAMESPACE_END

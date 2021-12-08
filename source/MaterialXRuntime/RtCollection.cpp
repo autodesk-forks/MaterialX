@@ -8,27 +8,27 @@
 #include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 namespace
 {
-    class PvtCollectionPrimSpec : public PvtPrimSpec
+class PvtCollectionPrimSpec : public PvtPrimSpec
+{
+  public:
+    PvtCollectionPrimSpec()
     {
-    public:
-        PvtCollectionPrimSpec()
-        {
-            // TODO: We should derive this from a data driven XML schema.
-            addPrimAttribute(RtString::DOC, RtType::STRING);
-            addPrimAttribute(RtString::XPOS, RtType::FLOAT);
-            addPrimAttribute(RtString::YPOS, RtType::FLOAT);
-            addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
-            addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
-            addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
-            addPrimAttribute(RtString::INCLUDEGEOM, RtType::STRING);
-            addPrimAttribute(RtString::EXCLUDEGEOM, RtType::STRING);
-        }
-    };
-}
+        // TODO: We should derive this from a data driven XML schema.
+        addPrimAttribute(RtString::DOC, RtType::STRING);
+        addPrimAttribute(RtString::XPOS, RtType::FLOAT);
+        addPrimAttribute(RtString::YPOS, RtType::FLOAT);
+        addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
+        addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
+        addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
+        addPrimAttribute(RtString::INCLUDEGEOM, RtType::STRING);
+        addPrimAttribute(RtString::EXCLUDEGEOM, RtType::STRING);
+    }
+};
+} // namespace
 
 DEFINE_TYPED_SCHEMA(RtCollection, "bindelement:collection");
 
@@ -101,4 +101,4 @@ bool RtCollectionConnectableApi::acceptRelationship(const RtRelationship& rel, c
     return false;
 }
 
-}
+MATERIALX_NAMESPACE_END

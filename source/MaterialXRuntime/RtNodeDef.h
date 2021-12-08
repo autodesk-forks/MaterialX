@@ -12,8 +12,8 @@
 #include <MaterialXRuntime/RtSchema.h>
 #include <MaterialXRuntime/RtTraversal.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @struct RtNodeLayout
 /// Container for node layout information.
@@ -29,9 +29,10 @@ class RtNodeDef : public RtTypedSchema
 {
     DECLARE_TYPED_SCHEMA(RtNodeDef)
 
-public:
+  public:
     /// Constructor.
-    RtNodeDef(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtNodeDef(const RtPrim& prim) :
+        RtTypedSchema(prim) { }
 
     /// Set the node for this nodedef.
     void setNode(const RtString& node);
@@ -183,6 +184,6 @@ public:
     RtNodeLayout getNodeLayout();
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

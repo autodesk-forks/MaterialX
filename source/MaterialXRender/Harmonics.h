@@ -13,8 +13,8 @@
 #include <MaterialXRender/Image.h>
 #include <MaterialXRender/Types.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Class template for a vector of spherical harmonic coefficients.
 ///
@@ -28,7 +28,8 @@ template <class C, size_t B> class ShCoeffs
 
   public:
     ShCoeffs() { }
-    explicit ShCoeffs(const std::array<C, NUM_COEFFS>& arr) : _arr(arr) { }
+    explicit ShCoeffs(const std::array<C, NUM_COEFFS>& arr) :
+        _arr(arr) { }
     ~ShCoeffs() { }
 
     /// @name Comparison Operators
@@ -98,6 +99,6 @@ MX_RENDER_API ImagePtr renderEnvironment(const Sh3ColorCoeffs& shEnv, unsigned i
 /// @return An irradiance map in the lat-long format.
 MX_RENDER_API ImagePtr renderReferenceIrradiance(ConstImagePtr env, unsigned int width, unsigned int height);
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -18,8 +18,8 @@
 
 #include <MaterialXCore/Exception.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class ShaderGenerator
 /// Base class for shader generators
@@ -66,12 +66,12 @@ class MX_GENSHADER_API ShaderGenerator
     /// Add a block of code.
     virtual void emitBlock(const string& str, GenContext& context, ShaderStage& stage) const;
 
-    /// Add the contents of an include file. Making sure it is 
+    /// Add the contents of an include file. Making sure it is
     /// only included once for the shader stage.
     virtual void emitInclude(const string& file, GenContext& context, ShaderStage& stage) const;
 
     /// Add a value.
-    template<typename T>
+    template <typename T>
     void emitValue(const T& value, ShaderStage& stage) const
     {
         stage.addValue<T>(value);
@@ -180,10 +180,10 @@ class MX_GENSHADER_API ShaderGenerator
     }
 
     /// Register metadata that should be exported to the generated shaders.
-    /// Supported metadata includes standard UI attributes like "uiname", "uifolder", 
-    /// "uimin", "uimax", etc. 
+    /// Supported metadata includes standard UI attributes like "uiname", "uifolder",
+    /// "uimin", "uimax", etc.
     /// But it is also extendable by defining custom attributes using AttributeDefs.
-    /// Any AttributeDef in the given document with exportable="true" will be 
+    /// Any AttributeDef in the given document with exportable="true" will be
     /// exported as shader metadata when found on nodes during shader generation.
     /// Derived shader generators may override this method to change the registration.
     /// Applications must explicitly call this method before shader generation to enable
@@ -226,6 +226,6 @@ class MX_GENSHADER_API ExceptionShaderGenError : public Exception
     using Exception::Exception;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif // MATERIALX_SHADERGENERATOR_H

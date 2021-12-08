@@ -16,8 +16,8 @@
 
 #include <MaterialXCore/Document.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 extern MX_RENDER_API const string IMAGE_PROPERTY_SEPARATOR;
 extern MX_RENDER_API const string UADDRESS_MODE_SUFFIX;
@@ -36,7 +36,7 @@ using ImageHandlerPtr = std::shared_ptr<ImageHandler>;
 using ImageLoaderPtr = std::shared_ptr<ImageLoader>;
 
 /// Map from strings to vectors of image loaders
-using ImageLoaderMap = std::unordered_map< string, std::vector<ImageLoaderPtr> >;
+using ImageLoaderMap = std::unordered_map<string, std::vector<ImageLoaderPtr>>;
 
 /// @class ImageSamplingProperties
 /// Interface to describe sampling properties for images.
@@ -53,10 +53,10 @@ class MX_RENDER_API ImageSamplingProperties
     /// Address mode options. Matches enumerations allowed for image address
     /// modes, except UNSPECIFIED which indicates no explicit mode was defined.
     enum class AddressMode : int
-    { 
+    {
         UNSPECIFIED = -1,
         CONSTANT = 0,
-        CLAMP = 1, 
+        CLAMP = 1,
         PERIODIC = 2,
         MIRROR = 3
     };
@@ -266,6 +266,6 @@ class MX_RENDER_API ImageHandler
     ImagePtr _invalidImage;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

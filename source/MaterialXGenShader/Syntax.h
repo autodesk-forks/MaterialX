@@ -15,8 +15,8 @@
 #include <MaterialXCore/Library.h>
 #include <MaterialXCore/Value.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class Syntax;
 class TypeSyntax;
@@ -56,12 +56,12 @@ class MX_GENSHADER_API Syntax
     void registerTypeSyntax(const TypeDesc* type, TypeSyntaxPtr syntax);
 
     /// Register names that are reserved words not to be used by a code generator when naming
-    /// variables and functions. Keywords, types, built-in functions etc. should be 
+    /// variables and functions. Keywords, types, built-in functions etc. should be
     /// added to this set. Multiple calls will add to the internal set of names.
     void registerReservedWords(const StringSet& names);
 
-    /// Register a set string replacements for disallowed tokens 
-    /// for a code generator when naming variables and functions. 
+    /// Register a set string replacements for disallowed tokens
+    /// for a code generator when naming variables and functions.
     /// Multiple calls will add to the internal set of tokens.
     void registerInvalidTokens(const StringMap& tokens);
 
@@ -119,7 +119,7 @@ class MX_GENSHADER_API Syntax
     virtual const string& getOutputQualifier() const { return EMPTY_STRING; };
 
     /// Get the qualifier used when declaring constant variables.
-    /// Derived classes must define this method. 
+    /// Derived classes must define this method.
     virtual const string& getConstantQualifier() const = 0;
 
     /// Get the qualifier used when declaring uniform variables.
@@ -171,7 +171,7 @@ class MX_GENSHADER_API Syntax
     /// Create a unique identifier for the given variable name and type.
     /// The method is used for naming variables (inputs and outputs) in generated code.
     /// Derived classes can override this method to have a custom naming strategy.
-    /// Default implementation adds a number suffix, or increases an existing number suffix, 
+    /// Default implementation adds a number suffix, or increases an existing number suffix,
     /// on the name string if there is a name collision.
     virtual string getVariableName(const string& name, const TypeDesc* type, IdentifierMap& identifiers) const;
 
@@ -229,7 +229,7 @@ class MX_GENSHADER_API TypeSyntax
     /// Returns the default value for this type.
     const string& getDefaultValue(bool uniform) const { return uniform ? _uniformDefaultValue : _defaultValue; }
 
-    /// Returns the syntax for accessing type members if the type 
+    /// Returns the syntax for accessing type members if the type
     /// can be swizzled.
     const StringVec& getMembers() const { return _members; }
 
@@ -244,7 +244,7 @@ class MX_GENSHADER_API TypeSyntax
 
   protected:
     /// Protected constructor
-    TypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue, 
+    TypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
                const string& typeAlias, const string& typeDefinition, const StringVec& members);
 
     string _name;                // type name
@@ -261,7 +261,7 @@ class MX_GENSHADER_API TypeSyntax
 class MX_GENSHADER_API ScalarTypeSyntax : public TypeSyntax
 {
   public:
-    ScalarTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue, 
+    ScalarTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
                      const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING);
 
     string getValue(const Value& value, bool uniform) const override;
@@ -283,13 +283,13 @@ class MX_GENSHADER_API AggregateTypeSyntax : public TypeSyntax
 {
   public:
     AggregateTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
-                        const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING, 
+                        const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
                         const StringVec& members = EMPTY_MEMBERS);
 
     string getValue(const Value& value, bool uniform) const override;
     string getValue(const StringVec& values, bool uniform) const override;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

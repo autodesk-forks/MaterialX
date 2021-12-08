@@ -7,12 +7,12 @@
 
 #include <MaterialXRuntime/Private/PvtRelationship.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 RT_DEFINE_RUNTIME_OBJECT(RtRelationship, RtObjType::RELATIONSHIP, "RtRelationship")
 
-RtRelationship::RtRelationship(PvtObjHandle hnd) : 
+RtRelationship::RtRelationship(PvtObjHandle hnd) :
     RtObject(hnd)
 {
 }
@@ -40,7 +40,7 @@ bool RtRelationship::hasConnections() const
     return hnd()->asA<PvtRelationship>()->hasConnections();
 }
 
-size_t RtRelationship::numConnections()  const
+size_t RtRelationship::numConnections() const
 {
     return hnd()->asA<PvtRelationship>()->numConnections();
 }
@@ -73,4 +73,4 @@ string RtRelationship::getObjectNames() const
     return result;
 }
 
-}
+MATERIALX_NAMESPACE_END

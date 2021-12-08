@@ -11,16 +11,16 @@
 
 #include <MaterialXCore/Library.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class Factory
 /// Factory class for creating instances of classes given their type name.
-template<class T> class Factory
+template <class T> class Factory
 {
   public:
     using Ptr = shared_ptr<T>;
-    using CreatorFunction = Ptr(*)();
+    using CreatorFunction = Ptr (*)();
     using CreatorMap = std::unordered_map<string, CreatorFunction>;
 
     /// Register a new class given a unique type name
@@ -58,6 +58,6 @@ template<class T> class Factory
     CreatorMap _creatorMap;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif // MATERIALX_FACTORY_H

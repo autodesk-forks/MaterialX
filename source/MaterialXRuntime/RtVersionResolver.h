@@ -11,8 +11,8 @@
 
 #include <string>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Validate if the give string is a proper version format.
 bool isValidVersionFormat(const std::string& versionFormat);
@@ -20,7 +20,7 @@ bool isValidVersionFormat(const std::string& versionFormat);
 /// Validate if the give string is a proper version format like prefix#postfix
 bool isValidIntegerVersionFormat(const std::string& versionFormat);
 
-/// Validate if the give string is a proper version format like prefix.###postfix 
+/// Validate if the give string is a proper version format like prefix.###postfix
 bool isValidFloatVersionFormat(const std::string& versionFormat);
 
 /// Given the version number and version format return the formatted version string
@@ -34,6 +34,6 @@ int getVersionFormatDecimalPrecision(const std::string& versionFormat);
 /// decimal precision of 2, then the increment step is 0.01
 double getVersionIncrementStep(const int decimalPrecision);
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

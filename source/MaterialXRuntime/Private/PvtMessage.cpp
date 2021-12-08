@@ -5,12 +5,13 @@
 
 #include <MaterialXRuntime/Private/PvtMessage.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 PvtMessageHandler::PvtMessageHandler() :
     _callbackIdCounter(1)
-{}
+{
+}
 
 RtCallbackId PvtMessageHandler::addCreatePrimCallback(RtCreatePrimCallbackFunc callback, void* userData)
 {
@@ -92,35 +93,35 @@ void PvtMessageHandler::removeCallback(RtCallbackId id)
         // Remove the corresponding observer
         switch (it->second)
         {
-        case PvtMessageType::CREATE_PRIM:
-            _createPrimObservers.erase(id);
-            break;
-        case PvtMessageType::REMOVE_PRIM:
-            _removePrimObservers.erase(id);
-            break;
-        case PvtMessageType::RENAME_PRIM:
-            _renamePrimObservers.erase(id);
-            break;
-        case PvtMessageType::REPARENT_PRIM:
-            _reparentPrimObservers.erase(id);
-            break;
-        case PvtMessageType::SET_PORT_VALUE:
-            _setPortValueObservers.erase(id);
-            break;
-        case PvtMessageType::SET_ATTRIBUTE:
-            _setAttrObservers.erase(id);
-            break;
-        case PvtMessageType::REMOVE_ATTRIBUTE:
-            _removeAttributeObservers.erase(id);
-            break;
-        case PvtMessageType::CHANGE_CONNECTION:
-            _connectionObservers.erase(id);
-            break;
-        case PvtMessageType::CHANGE_RELATIONSHIP:
-            _relationshipObservers.erase(id);
-            break;
-        default:
-            throw ExceptionRuntimeError("Removal of callback faild! Message type '" + std::to_string(size_t(it->second)) + "' has not been implemented properly.");
+            case PvtMessageType::CREATE_PRIM:
+                _createPrimObservers.erase(id);
+                break;
+            case PvtMessageType::REMOVE_PRIM:
+                _removePrimObservers.erase(id);
+                break;
+            case PvtMessageType::RENAME_PRIM:
+                _renamePrimObservers.erase(id);
+                break;
+            case PvtMessageType::REPARENT_PRIM:
+                _reparentPrimObservers.erase(id);
+                break;
+            case PvtMessageType::SET_PORT_VALUE:
+                _setPortValueObservers.erase(id);
+                break;
+            case PvtMessageType::SET_ATTRIBUTE:
+                _setAttrObservers.erase(id);
+                break;
+            case PvtMessageType::REMOVE_ATTRIBUTE:
+                _removeAttributeObservers.erase(id);
+                break;
+            case PvtMessageType::CHANGE_CONNECTION:
+                _connectionObservers.erase(id);
+                break;
+            case PvtMessageType::CHANGE_RELATIONSHIP:
+                _relationshipObservers.erase(id);
+                break;
+            default:
+                throw ExceptionRuntimeError("Removal of callback faild! Message type '" + std::to_string(size_t(it->second)) + "' has not been implemented properly.");
         }
 
         // Remove from the message type map
@@ -168,7 +169,7 @@ void PvtMessageHandler::sendSetPortValueMessage(const RtPort& attr, const RtValu
     }
 }
 
-void PvtMessageHandler::sendSetAttributeMessage(const RtObject &obj, const RtString& name, const RtValue& value)
+void PvtMessageHandler::sendSetAttributeMessage(const RtObject& obj, const RtString& name, const RtValue& value)
 {
     for (auto observer : _setAttrObservers)
     {
@@ -176,7 +177,7 @@ void PvtMessageHandler::sendSetAttributeMessage(const RtObject &obj, const RtStr
     }
 }
 
-void PvtMessageHandler::sendRemoveAttributeMessage(const RtObject &obj, const RtString& name)
+void PvtMessageHandler::sendRemoveAttributeMessage(const RtObject& obj, const RtString& name)
 {
     for (auto observer : _removeAttributeObservers)
     {
@@ -200,4 +201,4 @@ void PvtMessageHandler::sendRelationshipMessage(const RtRelationship& rel, const
     }
 }
 
-}
+MATERIALX_NAMESPACE_END

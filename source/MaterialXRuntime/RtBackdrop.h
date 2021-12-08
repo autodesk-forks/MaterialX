@@ -11,8 +11,8 @@
 
 #include <MaterialXRuntime/RtSchema.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtBackdrop
 /// Schema for backdrop prims.
@@ -20,9 +20,10 @@ class RtBackdrop : public RtTypedSchema
 {
     DECLARE_TYPED_SCHEMA(RtBackdrop)
 
-public:
+  public:
     /// Constructor.
-    RtBackdrop(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtBackdrop(const RtPrim& prim) :
+        RtTypedSchema(prim) { }
 
     /// Return the contains relationship.
     RtRelationship getContains() const;
@@ -46,6 +47,6 @@ public:
     float getHeight() const;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

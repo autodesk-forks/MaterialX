@@ -16,8 +16,8 @@
 #include <MaterialXRuntime/RtBindElement.h>
 #include <MaterialXRuntime/RtConnectableApi.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtLookGroup
 /// Schema for 'lookgroup' prims.
@@ -25,9 +25,10 @@ class RtLookGroup : public RtBindElement
 {
     DECLARE_TYPED_SCHEMA(RtLookGroup)
 
-public:
+  public:
     /// Constructor.
-    RtLookGroup(const RtPrim& prim) : RtBindElement(prim) {}
+    RtLookGroup(const RtPrim& prim) :
+        RtBindElement(prim) { }
 
     /// Set the active looks.
     void setActiveLooks(const string& looks);
@@ -55,10 +56,9 @@ public:
 /// API for validating connections and relationships for the 'lookgroup' prim type.
 class RtLookGroupConnectableApi : public RtConnectableApi
 {
-public:
+  public:
     bool acceptRelationship(const RtRelationship& rel, const RtObject& target) const override;
 };
-
 
 /// @class RtLook
 /// Schema for 'look' prims.
@@ -66,9 +66,10 @@ class RtLook : public RtBindElement
 {
     DECLARE_TYPED_SCHEMA(RtLook)
 
-public:
+  public:
     /// Constructor.
-    RtLook(const RtPrim& prim) : RtBindElement(prim) {}
+    RtLook(const RtPrim& prim) :
+        RtBindElement(prim) { }
 
     /// Return the inherit relationship.
     RtRelationship getInherit() const;
@@ -87,10 +88,9 @@ public:
 /// API for validating connections and relationships for the 'look' prim type.
 class RtLookConnectableApi : public RtConnectableApi
 {
-public:
+  public:
     bool acceptRelationship(const RtRelationship& rel, const RtObject& target) const override;
 };
-
 
 /// @class RtMaterialAssign
 /// Schema for 'materialassign' prims.
@@ -98,9 +98,10 @@ class RtMaterialAssign : public RtBindElement
 {
     DECLARE_TYPED_SCHEMA(RtMaterialAssign)
 
-public:
+  public:
     /// Constructor.
-    RtMaterialAssign(const RtPrim& prim) : RtBindElement(prim) {}
+    RtMaterialAssign(const RtPrim& prim) :
+        RtBindElement(prim) { }
 
     /// Return the material input.
     RtInput getMaterial() const;
@@ -125,10 +126,10 @@ public:
 /// API for validating connections and relationships for the 'materialssign' prim type.
 class RtMaterialAssignConnectableApi : public RtConnectableApi
 {
-public:
+  public:
     bool acceptRelationship(const RtRelationship& rel, const RtObject& target) const override;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

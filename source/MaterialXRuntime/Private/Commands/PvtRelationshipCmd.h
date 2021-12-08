@@ -10,24 +10,25 @@
 
 #include <MaterialXRuntime/RtPort.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtRelationshipCmd : public PvtCommand
 {
-public:
+  public:
     PvtRelationshipCmd(const RtRelationship& rel, const RtObject& obj, ConnectionChange change) :
         _rel(rel),
         _obj(obj),
         _change(change)
-    {}
+    {
+    }
 
     static PvtCommandPtr create(const RtRelationship& rel, const RtObject& obj, ConnectionChange change);
 
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;
 
-private:
+  private:
     void makeConnection(RtCommandResult& result);
     void breakConnection(RtCommandResult& result);
 
@@ -36,6 +37,6 @@ private:
     ConnectionChange _change;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

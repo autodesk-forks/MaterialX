@@ -15,8 +15,8 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtStringResolverPair;
 
@@ -68,7 +68,7 @@ class PvtStringResolverPair
 /// @class PvtNameResolverRegistry
 class PvtNameResolverRegistry
 {
-public:
+  public:
     /// Constructor
     PvtNameResolverRegistry();
 
@@ -86,13 +86,12 @@ public:
     /// \param valueToResolve The value to resolve
     /// \param elementType The type of element to resolve
     /// \param toMaterialX Whether to convert to/from MaterialX
-    RtString resolveIdentifier(const RtString& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX = true) const;                                              
+    RtString resolveIdentifier(const RtString& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX = true) const;
 
-private:
+  private:
     PvtStringResolverMap _resolvers;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif
-

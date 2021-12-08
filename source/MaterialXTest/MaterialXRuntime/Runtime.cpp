@@ -46,89 +46,89 @@ namespace mx = MaterialX;
 
 namespace
 {
-    struct RuntimeGlobals
+struct RuntimeGlobals
+{
+    static const mx::FilePath& LIBRARY_PATH()
     {
-        static const mx::FilePath& LIBRARY_PATH()
-        {
-            static const mx::FilePath LIBRARY_PATH("libraries");
-            return LIBRARY_PATH;
-        }
-
-        static const mx::FilePath& TARGETS_PATH()
-        {
-            static const mx::FilePath TARGET_PATH("targets");
-            return TARGET_PATH;
-        }
-
-        static const mx::FilePath& STDLIB_PATH()
-        {
-            static const mx::FilePath STDLIB_PATH("stdlib");
-            return STDLIB_PATH;
-        }
-
-        static const mx::FilePath& PBRLIB_PATH()
-        {
-            static const mx::FilePath PBRLIB_PATH("pbrlib");
-            return PBRLIB_PATH;
-        }
-
-        static const mx::FilePath& BXDFLIB_PATH()
-        {
-            static const mx::FilePath BXDFLIB_PATH("bxdf");
-            return BXDFLIB_PATH;
-        }
-
-        static const mx::FilePath& ADSKLIB_PATH()
-        {
-            static const mx::FilePath ADSKLIB_PATH("adsk");
-            return ADSKLIB_PATH;
-        }
-    };
-
-    // Commonly used identifiers.
-    const mx::RtString X("x");
-    const mx::RtString Y("y");
-    const mx::RtString Z("z");
-    const mx::RtString W("w");
-    const mx::RtString R("r");
-    const mx::RtString G("g");
-    const mx::RtString B("b");
-    const mx::RtString A("a");
-    const mx::RtString ADD("add");
-    const mx::RtString IN1("in1");
-    const mx::RtString IN2("in2");
-    const mx::RtString IN3("in3");
-    const mx::RtString OUT("out");
-    const mx::RtString IN("in");
-    const mx::RtString TOKEN1("token1");
-    const mx::RtString REFLECTIVITY("reflectivity");
-    const mx::RtString SURFACESHADER("surfaceshader");
-    const mx::RtString UIFOLDER("uifolder");
-    const mx::RtString FOO("foo");
-    const mx::RtString FOO1("foo1");
-    const mx::RtString BAR("bar");
-    const mx::RtString RESULT("result");
-    const mx::RtString VERSION("version");
-    const mx::RtString ROOT("root");
-    const mx::RtString MAIN("main");
-    const mx::RtString LIBS("libs");
-    const mx::RtString NONAME("");
-    const mx::RtString TARGETS_NAME("targets");
-    const mx::RtString STDLIB_NAME("stdlib");
-    const mx::RtString PBRLIB_NAME("pbrlib");
-    const mx::RtString BXDFLIB_NAME("bxdf");
-    const mx::RtString ADSKLIB_NAME("adsk");
-    const mx::RtString CORE_LIBRARY_NAME("core");
-
-    bool compareFiles(const mx::FilePath& filename1, const mx::FilePath& filename2)
-    {
-        std::ifstream file1(filename1.asString());
-        std::string str1((std::istreambuf_iterator<char>(file1)), std::istreambuf_iterator<char>());
-        std::ifstream file2(filename2.asString());
-        std::string str2((std::istreambuf_iterator<char>(file2)), std::istreambuf_iterator<char>());
-        return str1 == str2;
+        static const mx::FilePath LIBRARY_PATH("libraries");
+        return LIBRARY_PATH;
     }
+
+    static const mx::FilePath& TARGETS_PATH()
+    {
+        static const mx::FilePath TARGET_PATH("targets");
+        return TARGET_PATH;
+    }
+
+    static const mx::FilePath& STDLIB_PATH()
+    {
+        static const mx::FilePath STDLIB_PATH("stdlib");
+        return STDLIB_PATH;
+    }
+
+    static const mx::FilePath& PBRLIB_PATH()
+    {
+        static const mx::FilePath PBRLIB_PATH("pbrlib");
+        return PBRLIB_PATH;
+    }
+
+    static const mx::FilePath& BXDFLIB_PATH()
+    {
+        static const mx::FilePath BXDFLIB_PATH("bxdf");
+        return BXDFLIB_PATH;
+    }
+
+    static const mx::FilePath& ADSKLIB_PATH()
+    {
+        static const mx::FilePath ADSKLIB_PATH("adsk");
+        return ADSKLIB_PATH;
+    }
+};
+
+// Commonly used identifiers.
+const mx::RtString X("x");
+const mx::RtString Y("y");
+const mx::RtString Z("z");
+const mx::RtString W("w");
+const mx::RtString R("r");
+const mx::RtString G("g");
+const mx::RtString B("b");
+const mx::RtString A("a");
+const mx::RtString ADD("add");
+const mx::RtString IN1("in1");
+const mx::RtString IN2("in2");
+const mx::RtString IN3("in3");
+const mx::RtString OUT("out");
+const mx::RtString IN("in");
+const mx::RtString TOKEN1("token1");
+const mx::RtString REFLECTIVITY("reflectivity");
+const mx::RtString SURFACESHADER("surfaceshader");
+const mx::RtString UIFOLDER("uifolder");
+const mx::RtString FOO("foo");
+const mx::RtString FOO1("foo1");
+const mx::RtString BAR("bar");
+const mx::RtString RESULT("result");
+const mx::RtString VERSION("version");
+const mx::RtString ROOT("root");
+const mx::RtString MAIN("main");
+const mx::RtString LIBS("libs");
+const mx::RtString NONAME("");
+const mx::RtString TARGETS_NAME("targets");
+const mx::RtString STDLIB_NAME("stdlib");
+const mx::RtString PBRLIB_NAME("pbrlib");
+const mx::RtString BXDFLIB_NAME("bxdf");
+const mx::RtString ADSKLIB_NAME("adsk");
+const mx::RtString CORE_LIBRARY_NAME("core");
+
+bool compareFiles(const mx::FilePath& filename1, const mx::FilePath& filename2)
+{
+    std::ifstream file1(filename1.asString());
+    std::string str1((std::istreambuf_iterator<char>(file1)), std::istreambuf_iterator<char>());
+    std::ifstream file2(filename2.asString());
+    std::string str2((std::istreambuf_iterator<char>(file2)), std::istreambuf_iterator<char>());
+    return str1 == str2;
 }
+} // namespace
 
 TEST_CASE("Runtime: Material Element Upgrade", "[runtime]")
 {
@@ -138,11 +138,11 @@ TEST_CASE("Runtime: Material Element Upgrade", "[runtime]")
     api->appendSearchPath(searchPath);
     api->loadLibrary(CORE_LIBRARY_NAME, RuntimeGlobals::LIBRARY_PATH());
     mx::FileSearchPath testSearchPath(mx::FilePath::getCurrentPath() /
-        "resources" /
-        "Materials" /
-        "TestSuite" /
-        "stdlib" /
-        "upgrade" );
+                                      "resources" /
+                                      "Materials" /
+                                      "TestSuite" /
+                                      "stdlib" /
+                                      "upgrade");
     mx::RtStagePtr defaultStage = api->createStage(mx::RtString("defaultStage"));
     mx::RtFileIo fileIo(defaultStage);
     fileIo.read("material_element_to_surface_material.mtlx", testSearchPath);
@@ -384,14 +384,15 @@ TEST_CASE("Runtime: Types", "[runtime]")
     REQUIRE_THROWS(color4Type->getComponentName(7));
 }
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 // Test adding reference count to a class
 class Foo : public mx::RtRefCounted<Foo>
 {
-public:
-    Foo() : v(0)
+  public:
+    Foo() :
+        v(0)
     {
         construct++;
     }
@@ -409,7 +410,7 @@ int Foo::deconstruct = 0;
 RT_DECLARE_REF_PTR_TYPE(Foo, FooPtr)
 RT_DEFINE_REF_PTR_FUNCTIONS(Foo)
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 TEST_CASE("Runtime: RefCount", "[runtime]")
 {
@@ -567,8 +568,10 @@ TEST_CASE("Runtime: Prims", "[runtime]")
     REQUIRE(backdrop.getNote() == "These aren't the Droids you're looking for");
     REQUIRE(backdropPrim.getRelationship(backdrop.getContains().getName()) == backdrop.getContains());
     bool found = false;
-    for (auto rel : backdropPrim.getRelationships()) {
-        if (rel.getName() == backdrop.getContains().getName()) {
+    for (auto rel : backdropPrim.getRelationships())
+    {
+        if (rel.getName() == backdrop.getContains().getName())
+        {
             found = true;
             break;
         }
@@ -721,7 +724,7 @@ TEST_CASE("Runtime: Nodes", "[runtime]")
     mx::RtTypedValue* fooData = add1_in1.createAttribute(FOO, mx::RtType::FLOAT);
     fooData->asFloat() = 7.0f;
     mx::RtTypedValue* barData = add1_in1.createAttribute(BAR, mx::RtType::COLOR3);
-    barData->asColor3() = mx::Color3(1,0,0);
+    barData->asColor3() = mx::Color3(1, 0, 0);
     REQUIRE(fooData == add1_in1.getAttribute(FOO));
     REQUIRE(barData == add1_in1.getAttribute(BAR));
 
@@ -1020,9 +1023,9 @@ TEST_CASE("Runtime: NodeGraphs", "[runtime]")
         REQUIRE(inputCheck);
         mx::OutputPtr out = nodeDef->getOutput("out");
         bool outputCheck = out &&
-            (out->getName() == "out") &&
-            (out->getType() == "float") &&
-            (out->getValueString() == "0");
+                           (out->getName() == "out") &&
+                           (out->getType() == "float") &&
+                           (out->getValueString() == "0");
         REQUIRE(outputCheck);
     }
 
@@ -1198,10 +1201,10 @@ TEST_CASE("Runtime: Namespaced definitions", "[runtime]")
     mx::RtStagePtr defaultStage = api->createStage(mx::RtString("defaultStage"));
 
     mx::FileSearchPath adskTestPath(mx::FilePath::getCurrentPath() /
-        "resources" /
-        "Materials" / 
-        "TestSuite" / 
-        "adsklib");
+                                    "resources" /
+                                    "Materials" /
+                                    "TestSuite" /
+                                    "adsklib");
 
     mx::RtFileIo fileIo(defaultStage);
     fileIo.read("adsk_shaders.mtlx", adskTestPath);
@@ -1594,7 +1597,8 @@ TEST_CASE("Runtime: Looks", "[runtime]")
 
     // Test file I/O
     bool useOptions = false;
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2; ++i)
+    {
 
         mx::RtWriteOptions writeOptions;
         mx::RtReadOptions readOptions;
@@ -1748,14 +1752,14 @@ TEST_CASE("Runtime: NameResolvers", "[runtime]")
     imageInfo.toFunction = toTestResolver;
     imageInfo.fromFunction = fromTestResolver;
     registry->registerNameResolvers(imageInfo);
-    
+
     mx::RtString mayaPathToGeom("|path|to|geom");
     mx::RtString mxPathToGeom("/path/to/geom");
     mx::RtString result1 = registry->resolveIdentifier(mayaPathToGeom, mx::RtNameResolverInfo::GEOMNAME_TYPE, true);
     REQUIRE(result1.str() == mxPathToGeom.str());
     mx::RtString result2 = registry->resolveIdentifier(result1, mx::RtNameResolverInfo::GEOMNAME_TYPE, false);
     REQUIRE(result2.str() == mayaPathToGeom.str());
-    
+
     mx::RtString pathToGeom("test");
     mx::RtString result3 = registry->resolveIdentifier(pathToGeom, mx::RtNameResolverInfo::FILENAME_TYPE, true);
     REQUIRE(result3.str() == "test_toTestResolver");
@@ -1829,7 +1833,7 @@ TEST_CASE("Runtime: libraries", "[runtime]")
     REQUIRE(api->getImplementationSearchPath().isEmpty());
     mx::FileSearchPath implPath(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/genglsl"));
     api->appendImplementationSearchPath(implPath);
-    REQUIRE(api->getImplementationSearchPath().find("stdlib_genglsl_unit_impl.mtlx").exists());    
+    REQUIRE(api->getImplementationSearchPath().find("stdlib_genglsl_unit_impl.mtlx").exists());
 }
 
 TEST_CASE("Runtime: units", "[runtime]")
@@ -1839,22 +1843,22 @@ TEST_CASE("Runtime: units", "[runtime]")
     // Load in all libraries required for materials
     mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath() / "libraries");
     api->appendSearchPath(searchPath);
-    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH() );
-    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH() );
-    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH() );
-    api->loadLibrary(BXDFLIB_NAME, RuntimeGlobals::BXDFLIB_PATH() );
+    api->loadLibrary(TARGETS_NAME, RuntimeGlobals::TARGETS_PATH());
+    api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH());
+    api->loadLibrary(PBRLIB_NAME, RuntimeGlobals::PBRLIB_PATH());
+    api->loadLibrary(BXDFLIB_NAME, RuntimeGlobals::BXDFLIB_PATH());
 
-    // Load in stdlib twice on purpose to ensure no exception is thrown when trying to add a duplicate unit 
-    // definition 
+    // Load in stdlib twice on purpose to ensure no exception is thrown when trying to add a duplicate unit
+    // definition
     api->loadLibrary(STDLIB_NAME, RuntimeGlobals::STDLIB_PATH(), nullptr, true);
 
     // Read in test document with units
     mx::FileSearchPath testSearchPath(mx::FilePath::getCurrentPath() /
-        "resources" /
-        "Materials" /
-        "TestSuite" /
-        "stdlib" /
-        "units");
+                                      "resources" /
+                                      "Materials" /
+                                      "TestSuite" /
+                                      "stdlib" /
+                                      "units");
     mx::StringVec tests{ "distance_units.mtlx",
                          "image_unit.mtlx",
                          "standard_surface_unit.mtlx",
@@ -2111,7 +2115,6 @@ TEST_CASE("Runtime: Commands", "[runtime]")
 
     REQUIRE(connectionChangeCount == 8);
 
-
     //
     // Test adding and removing relationship targets
     //
@@ -2171,7 +2174,6 @@ TEST_CASE("Runtime: Commands", "[runtime]")
 
     REQUIRE(createPrimCount == 3);
     REQUIRE(removePrimCount == 1);
-
 
     //
     // Test node deletion
@@ -2422,7 +2424,7 @@ TEST_CASE("Runtime: graph output connection", "[runtime]")
         "  </clamp>\n"
         "</materialx>";
     mx::RtStagePtr defaultStage = api->createStage(mx::RtString("defaultStage"));
-    mx::RtFileIo   fileIo(defaultStage);
+    mx::RtFileIo fileIo(defaultStage);
     std::stringstream ss;
     ss << mtlxDoc;
     REQUIRE_NOTHROW(fileIo.read(ss));
@@ -2431,7 +2433,7 @@ TEST_CASE("Runtime: graph output connection", "[runtime]")
 using TestLoggerPtr = std::shared_ptr<class TestLogger>;
 class TestLogger : public mx::RtLogger
 {
-protected:
+  protected:
     TestLogger() :
         mx::RtLogger()
     {
@@ -2455,7 +2457,7 @@ protected:
         result += msg;
     }
 
-public:
+  public:
     static TestLoggerPtr get()
     {
         return TestLoggerPtr(new TestLogger());
@@ -2586,7 +2588,6 @@ TEST_CASE("Runtime: duplicate name", "[runtime]")
     REQUIRE(duplicateCount(ADD5) == 1);
 }
 
-
 TEST_CASE("Export", "[runtime]")
 {
     mx::RtScopedApiHandle api;
@@ -2596,11 +2597,11 @@ TEST_CASE("Export", "[runtime]")
     api->loadLibrary(CORE_LIBRARY_NAME, RuntimeGlobals::LIBRARY_PATH());
 
     mx::FileSearchPath testSearchPath(mx::FilePath::getCurrentPath() /
-        "resources" /
-        "Materials" /
-        "TestSuite" /
-        "stdlib" /
-        "looks" );
+                                      "resources" /
+                                      "Materials" /
+                                      "TestSuite" /
+                                      "stdlib" /
+                                      "looks");
     mx::RtStagePtr defaultStage = api->createStage(mx::RtString("defaultStage"));
     mx::RtFileIo fileIo(defaultStage);
     fileIo.read("looks.mtlx", testSearchPath);
@@ -2622,7 +2623,6 @@ TEST_CASE("Export", "[runtime]")
     }
 }
 
-
 TEST_CASE("Missing Definition", "[runtime]")
 {
     mx::RtScopedApiHandle api;
@@ -2633,11 +2633,11 @@ TEST_CASE("Missing Definition", "[runtime]")
 
     mx::FilePathVec libraryPath;
     libraryPath.push_back(mx::FilePath::getCurrentPath() /
-        "resources" /
-        "Materials" /
-        "TestSuite" /
-        "stdlib" /
-        "definition" );
+                          "resources" /
+                          "Materials" /
+                          "TestSuite" /
+                          "stdlib" /
+                          "definition");
     const mx::RtString libraryName1("def1");
     mx::RtReadOptions libraryReadOptions;
     try
@@ -2645,24 +2645,24 @@ TEST_CASE("Missing Definition", "[runtime]")
         api->loadLibrary(libraryName1, libraryPath, &libraryReadOptions);
         REQUIRE(false);
     }
-    catch(mx::Exception& /*e*/)
+    catch (mx::Exception& /*e*/)
     {
         REQUIRE(true);
     }
 
     libraryPath.push_back(mx::FilePath::getCurrentPath() /
-        "resources" /
-        "Materials" /
-        "TestSuite" /
-        "stdlib" /
-        "definition2" );
+                          "resources" /
+                          "Materials" /
+                          "TestSuite" /
+                          "stdlib" /
+                          "definition2");
     const mx::RtString libraryName2("def2");
     try
     {
         api->loadLibrary(libraryName2, libraryPath, &libraryReadOptions);
         REQUIRE(true);
     }
-    catch(mx::Exception& /*e*/)
+    catch (mx::Exception& /*e*/)
     {
         REQUIRE(false);
     }
@@ -2677,11 +2677,11 @@ TEST_CASE("Runtime File Path Predicate", "[runtime]")
     api->loadLibrary(CORE_LIBRARY_NAME, RuntimeGlobals::LIBRARY_PATH());
 
     mx::FileSearchPath testSearchPath(mx::FilePath::getCurrentPath() /
-        "resources" /
-        "Materials" /
-        "TestSuite" /
-        "stdlib" /
-        "export" );
+                                      "resources" /
+                                      "Materials" /
+                                      "TestSuite" /
+                                      "stdlib" /
+                                      "export");
     mx::RtStagePtr defaultStage = api->createStage(mx::RtString("defaultStage"));
     mx::RtFileIo fileIo(defaultStage);
     fileIo.read("export.mtlx", testSearchPath);
@@ -2713,7 +2713,7 @@ TEST_CASE("Runtime File Path Predicate", "[runtime]")
                     count++;
                 }
             }
-	        else if (node.getName() == "image_color3_2")
+            else if (node.getName() == "image_color3_2")
             {
                 mx::RtInput input = node.getInput(mx::RtString("file"));
                 if (mx::FileSearchPath(input.getValueString()).asString() == testSearchPath.find("black_image.png").asString())
@@ -2746,11 +2746,11 @@ TEST_CASE("NodeDef in file", "[runtime]")
     mx::RtStagePtr defaultStage = api->createStage(mx::RtString("defaultStage"));
 
     mx::FileSearchPath adskTestPath(mx::FilePath::getCurrentPath() /
-        "resources" /
-        "Materials" /
-        "TestSuite" /
-        "stdlib" /
-	"nodedef");
+                                    "resources" /
+                                    "Materials" /
+                                    "TestSuite" /
+                                    "stdlib" /
+                                    "nodedef");
 
     mx::RtFileIo fileIo(defaultStage);
     fileIo.read("nodedef.mtlx", adskTestPath);
@@ -2758,4 +2758,3 @@ TEST_CASE("NodeDef in file", "[runtime]")
     const mx::RtString ND_NODEDEF_TEST("ND_nodedef_test");
     REQUIRE(mx::RtApi::get().hasDefinition<mx::RtNodeDef>(ND_NODEDEF_TEST));
 }
-

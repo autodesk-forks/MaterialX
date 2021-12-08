@@ -9,8 +9,8 @@
 #include <cstring>
 #include <mutex>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 struct RtStringRegistry
 {
@@ -22,7 +22,7 @@ struct RtStringRegistry
         return it != _table.end() ? it->second : nullptr;
     }
 
-    template<typename T>
+    template <typename T>
     const Entry* getEntry(T s, size_t hash)
     {
         std::lock_guard<std::mutex> lock(_mutex);
@@ -138,4 +138,4 @@ const RtString RtString::DEFAULT("default");
 const RtString RtString::DEFAULTINPUT("defaultinput");
 const RtString RtString::UNKNOWN("unknown");
 
-}
+MATERIALX_NAMESPACE_END

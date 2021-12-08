@@ -7,8 +7,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr PositionNodeGlsl::create()
 {
@@ -42,45 +42,45 @@ void PositionNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& cont
     const int space = spaceInput ? spaceInput->getValue()->asA<int>() : OBJECT_SPACE;
 
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
-        VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        if (space == WORLD_SPACE)
+    VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    if (space == WORLD_SPACE)
+    {
+        ShaderPort* position = vertexData[HW::T_POSITION_WORLD];
+        if (!position->isEmitted())
         {
-            ShaderPort* position = vertexData[HW::T_POSITION_WORLD];
-            if (!position->isEmitted())
-            {
-                position->setEmitted();
-                shadergen.emitLine(prefix + position->getVariable() + " = hPositionWorld.xyz", stage);
-            }
+            position->setEmitted();
+            shadergen.emitLine(prefix + position->getVariable() + " = hPositionWorld.xyz", stage);
         }
-        else
+    }
+    else
+    {
+        ShaderPort* position = vertexData[HW::T_POSITION_OBJECT];
+        if (!position->isEmitted())
         {
-            ShaderPort* position = vertexData[HW::T_POSITION_OBJECT];
-            if (!position->isEmitted())
-            {
-                position->setEmitted();
-                shadergen.emitLine(prefix + position->getVariable() + " = " + HW::T_IN_POSITION, stage);
-            }
+            position->setEmitted();
+            shadergen.emitLine(prefix + position->getVariable() + " = " + HW::T_IN_POSITION, stage);
         }
+    }
     END_SHADER_STAGE(shader, Stage::VERTEX)
 
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        shadergen.emitLineBegin(stage);
-        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        if (space == WORLD_SPACE)
-        {
-            const ShaderPort* position = vertexData[HW::T_POSITION_WORLD];
-            shadergen.emitString(" = " + prefix + position->getVariable(), stage);
-        }
-        else
-        {
-            const ShaderPort* position = vertexData[HW::T_POSITION_OBJECT];
-            shadergen.emitString(" = " + prefix + position->getVariable(), stage);
-        }
-        shadergen.emitLineEnd(stage);
+    VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    if (space == WORLD_SPACE)
+    {
+        const ShaderPort* position = vertexData[HW::T_POSITION_WORLD];
+        shadergen.emitString(" = " + prefix + position->getVariable(), stage);
+    }
+    else
+    {
+        const ShaderPort* position = vertexData[HW::T_POSITION_OBJECT];
+        shadergen.emitString(" = " + prefix + position->getVariable(), stage);
+    }
+    shadergen.emitLineEnd(stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

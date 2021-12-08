@@ -12,8 +12,8 @@
 #include <MaterialXRuntime/RtSchema.h>
 #include <MaterialXRuntime/RtTraversal.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtNode
 /// Schema for node prims.
@@ -22,9 +22,10 @@ class RtNode : public RtTypedSchema
     DECLARE_TYPED_SCHEMA(RtNode)
     static RtPrim createNode(RtPrim nodedef, const RtString& name, RtPrim parent);
 
-public:
+  public:
     /// Constructor.
-    RtNode(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtNode(const RtPrim& prim) :
+        RtTypedSchema(prim) { }
 
     /// Set the nodedef for this node.
     void setNodeDef(RtPrim prim);
@@ -103,6 +104,6 @@ public:
     }
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

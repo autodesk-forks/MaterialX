@@ -19,8 +19,8 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 // Class representing an object in the scene hierarchy.
 // This is the base class for prims, attributes and relationships.
@@ -28,10 +28,10 @@ class PvtObject : public RtRefCounted<PvtObject>
 {
     RT_DECLARE_RUNTIME_OBJECT(PvtObject)
 
-public:
+  public:
     using TypeBits = uint8_t;
 
-public:
+  public:
     virtual ~PvtObject();
 
     bool isDisposed() const
@@ -54,28 +54,28 @@ public:
     bool isCompatible(RtObjType objType) const
     {
         return ((_typeBits & TypeBits(objType)) &
-            ~TypeBits(RtObjType::DISPOSED)) != 0;
+                ~TypeBits(RtObjType::DISPOSED)) != 0;
     }
 
     /// Return true if this object is of the templated type.
-    template<class T>
+    template <class T>
     bool isA() const
     {
         static_assert(std::is_base_of<PvtObject, T>::value,
-            "Templated type must be an PvtObject or a subclass of PvtObject");
+                      "Templated type must be an PvtObject or a subclass of PvtObject");
         return isCompatible(T::classType());
     }
 
     // Casting the object to a given type.
-    // NOTE: In release builds no type check is performed so the templated type 
+    // NOTE: In release builds no type check is performed so the templated type
     // must be of a type compatible with this object.
-    template<class T> T* asA()
+    template <class T> T* asA()
     {
         static_assert(std::is_base_of<PvtObject, T>::value,
-            "Templated type must be an PvtObject or a subclass of PvtObject");
-// TODO: We enable these runtime checks for all build configurations for now,
-//       but disabled this later to avoid the extra cost in release builds.
-// #ifndef NDEBUG
+                      "Templated type must be an PvtObject or a subclass of PvtObject");
+        // TODO: We enable these runtime checks for all build configurations for now,
+        //       but disabled this later to avoid the extra cost in release builds.
+        // #ifndef NDEBUG
         // In debug mode we do safety checks on object validity
         // and type cast compatibility.
         if (isDisposed())
@@ -86,14 +86,14 @@ public:
         {
             throw ExceptionRuntimeTypeError("Types are incompatible for type cast, '" + getName().str() + "' is not a '" + T::className().str() + "'");
         }
-// #endif
+        // #endif
         return static_cast<T*>(this);
     }
 
     // Casting the object to a given type.
-    // NOTE: In release builds no type check is performed so the templated type 
+    // NOTE: In release builds no type check is performed so the templated type
     // must be of a type compatible with this object.
-    template<class T> const T* asA() const
+    template <class T> const T* asA() const
     {
         return const_cast<PvtObject*>(this)->asA<T>();
     }
@@ -117,9 +117,9 @@ public:
     }
 
     // Cast a RtObject to a pointer of its private data.
-    // NOTE: No type check is performed so the templated type 
+    // NOTE: No type check is performed so the templated type
     // must be a type supported by the object.
-    template<class T = PvtObject>
+    template <class T = PvtObject>
     static T* cast(const RtObject& obj)
     {
         return static_cast<T*>(obj.hnd().get());
@@ -179,10 +179,10 @@ public:
         return _attrNames;
     }
 
-protected:
+  protected:
     PvtObject(const RtString& name, PvtPrim* parent);
 
-    template<typename T>
+    template <typename T>
     void setTypeBit()
     {
         _typeBits |= TypeBits(T::classType());
@@ -213,20 +213,19 @@ protected:
     friend class PvtInput;
     friend class PvtOutput;
     friend class PvtNodeGraphPrim;
-    friend class PvtObjectList; 
+    friend class PvtObjectList;
     friend class RtAttributeIterator;
     RT_FRIEND_REF_PTR_FUNCTIONS(PvtObject)
 };
 
-
 using PvtObjHandleVec = vector<PvtObjHandle>;
 using PvtObjectVec = vector<PvtObject*>;
 
-// An object container with support for random access, 
+// An object container with support for random access,
 // ordered access and access by name search.
 class PvtObjectList
 {
-public:
+  public:
     size_t size() const
     {
         return _vec.size();
@@ -274,7 +273,7 @@ public:
         return _vec;
     }
 
-private:
+  private:
     RtStringMap<PvtObjHandle> _map;
     PvtObjectVec _vec;
 
@@ -284,6 +283,6 @@ private:
     friend class RtRelationshipIterator;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

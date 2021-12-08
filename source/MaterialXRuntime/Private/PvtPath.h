@@ -12,8 +12,8 @@
 
 #include <MaterialXCore/Util.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtObject;
 
@@ -25,7 +25,7 @@ class PvtObject;
 ///
 class PvtPath
 {
-public:
+  public:
     // Empty constructor.
     PvtPath()
     {
@@ -51,7 +51,7 @@ public:
         _elements[0] = PvtPath::ROOT_NAME;
         for (size_t i = 0; i < elementNames.size(); ++i)
         {
-            _elements[i+1] = RtString(elementNames[i]);
+            _elements[i + 1] = RtString(elementNames[i]);
         }
     }
 
@@ -82,7 +82,7 @@ public:
             return SEPARATOR;
         }
         string str;
-        for (size_t i=1; i<_elements.size(); ++i)
+        for (size_t i = 1; i < _elements.size(); ++i)
         {
             str += SEPARATOR + _elements[i].str();
         }
@@ -140,10 +140,10 @@ public:
     static const string SEPARATOR;
     static const RtString ROOT_NAME;
 
-private:
+  private:
     vector<RtString> _elements;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

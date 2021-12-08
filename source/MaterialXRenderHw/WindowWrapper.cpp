@@ -6,13 +6,13 @@
 #include <MaterialXRenderHw/WindowWrapper.h>
 
 #if defined(__linux__) || defined(__FreeBSD__)
-#include <X11/Intrinsic.h>
+    #include <X11/Intrinsic.h>
 #elif defined(__APPLE__)
-#include <MaterialXRenderHw/WindowCocoaWrappers.h>
+    #include <MaterialXRenderHw/WindowCocoaWrappers.h>
 #endif
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 #if defined(_WIN32)
 
@@ -114,4 +114,4 @@ WindowWrapperPtr WindowWrapper::create(ExternalWindowHandle externalHandle,
     return std::shared_ptr<WindowWrapper>(new WindowWrapper(externalHandle, internalHandle, display));
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

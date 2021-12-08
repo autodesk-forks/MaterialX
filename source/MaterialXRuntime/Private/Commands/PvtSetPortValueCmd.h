@@ -11,12 +11,12 @@
 #include <MaterialXRuntime/RtPort.h>
 #include <MaterialXRuntime/RtValue.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtSetPortValueCmd : public PvtCommand
 {
-public:
+  public:
     PvtSetPortValueCmd(const RtPort& port, const RtValue& value);
 
     static PvtCommandPtr create(const RtPort& port, const RtValue& value);
@@ -25,12 +25,12 @@ public:
     void undo(RtCommandResult& result) override;
     void redo(RtCommandResult& result) override;
 
-private:
+  private:
     RtPort _port;
     RtValue _value;
     RtValue _oldValue;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

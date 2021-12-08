@@ -8,39 +8,37 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    static const StringMap OGSFX_GET_LIGHT_DATA_MAP =
-    {
-        { "type", "mx_getLightType" },
-        { "position", "mx_getLightPos" },
-        { "direction", "mx_getLightDir" },
-        { "color", "mx_getLightColor" },
-        { "intensity", "mx_getLightIntensity" },
-        { "decay_rate", "mx_getLightDecayRate" },
-        { "inner_angle", "mx_getLightConeAngle" },
-        { "outer_angle", "mx_getLightPenumbraAngle" }
-    };
+static const StringMap OGSFX_GET_LIGHT_DATA_MAP = {
+    { "type", "mx_getLightType" },
+    { "position", "mx_getLightPos" },
+    { "direction", "mx_getLightDir" },
+    { "color", "mx_getLightColor" },
+    { "intensity", "mx_getLightIntensity" },
+    { "decay_rate", "mx_getLightDecayRate" },
+    { "inner_angle", "mx_getLightConeAngle" },
+    { "outer_angle", "mx_getLightPenumbraAngle" }
+};
 }
 
 namespace Stage
 {
-    const string EFFECT = "effect";
+const string EFFECT = "effect";
 }
 
 const string OgsFxShaderGenerator::TARGET = "ogsfx";
 
-OgsFxShaderGenerator::OgsFxShaderGenerator()
-    : GlslShaderGenerator()
+OgsFxShaderGenerator::OgsFxShaderGenerator() :
+    GlslShaderGenerator()
 {
     _syntax = OgsFxSyntax::create();
 
-    _semanticsMap =
-    {
-        { HW::T_IN_POSITION, "POSITION"},
+    _semanticsMap = {
+        { HW::T_IN_POSITION, "POSITION" },
         { HW::T_IN_NORMAL, "NORMAL" },
         { HW::T_IN_TANGENT, "TANGENT" },
 
@@ -192,7 +190,7 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
         const VariableBlock& lightData = ps.getUniformBlock(HW::LIGHT_DATA);
         emitLine("struct " + lightData.getName(), fx, false);
         emitScopeBegin(fx);
-        for (size_t i=0; i<lightData.size(); ++i)
+        for (size_t i = 0; i < lightData.size(); ++i)
         {
             const ShaderPort* uniform = lightData[i];
             const string& type = _syntax->getTypeName(uniform->getType());
@@ -233,10 +231,8 @@ ShaderPtr OgsFxShaderGenerator::generate(const string& name, ElementPtr element,
     emitScopeBegin(fx);
     emitLine("pass p0", fx, false);
     emitScopeBegin(fx);
-    emitLine("VertexShader(in VertexInputs, out VertexData " + HW::T_VERTEX_DATA_INSTANCE +") = { VS }", fx);
-    emitLine(lighting ?
-        "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { LightingFunctions, PS }" :
-        "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { PS }", fx);
+    emitLine("VertexShader(in VertexInputs, out VertexData " + HW::T_VERTEX_DATA_INSTANCE + ") = { VS }", fx);
+    emitLine(lighting ? "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { LightingFunctions, PS }" : "PixelShader(in VertexData " + HW::T_VERTEX_DATA_INSTANCE + ", out PixelOutput) = { PS }", fx);
     emitScopeEnd(fx);
     emitScopeEnd(fx);
     emitLineBreak(fx);
@@ -423,9 +419,11 @@ void OgsFxShaderGenerator::emitVariableDeclaration(const ShaderPort* variable, c
     // A file texture input needs special handling on GLSL
     if (variable->getType() == Type::FILENAME)
     {
-        string str = "uniform texture2D " + variable->getVariable() + "_texture : SourceTexture;\n" \
-                     "uniform sampler2D " + variable->getVariable() + " = sampler_state\n"         \
-                     "{\n    Texture = <" + variable->getVariable() + "_texture>;\n}";
+        string str = "uniform texture2D " + variable->getVariable() + "_texture : SourceTexture;\n"
+                                                                      "uniform sampler2D " +
+                     variable->getVariable() + " = sampler_state\n"
+                                               "{\n    Texture = <" +
+                     variable->getVariable() + "_texture>;\n}";
         emitString(str, stage);
     }
     else
@@ -446,9 +444,7 @@ void OgsFxShaderGenerator::emitVariableDeclaration(const ShaderPort* variable, c
 
         if (assignValue)
         {
-            const string valueStr = (variable->getValue() ?
-                _syntax->getValue(variable->getType(), *variable->getValue(), true) :
-                _syntax->getDefaultValue(variable->getType(), true));
+            const string valueStr = (variable->getValue() ? _syntax->getValue(variable->getType(), *variable->getValue(), true) : _syntax->getDefaultValue(variable->getType(), true));
             str += valueStr.empty() ? EMPTY_STRING : " = " + valueStr;
         }
 
@@ -502,4 +498,4 @@ void OgsFxShaderGenerator::getTechniqueParams(const Shader&, string&) const
     // Default implementation doesn't use any technique parameters
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

@@ -11,8 +11,8 @@
 
 #include <MaterialXRuntime/Codegen/RtCodegenImpl.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtSourceCodeImpl
 /// Node implementation using shader source code.
@@ -20,9 +20,10 @@ class RtSourceCodeImpl : public RtCodegenImpl
 {
     DECLARE_TYPED_SCHEMA(RtSourceCodeImpl)
 
-public:
+  public:
     /// Constructor.
-    RtSourceCodeImpl(const RtPrim& prim) : RtCodegenImpl(prim) {}
+    RtSourceCodeImpl(const RtPrim& prim) :
+        RtCodegenImpl(prim) { }
 
     /// Set a file containing the source code to use for this implementation.
     void setFile(const string& file);
@@ -55,6 +56,6 @@ public:
     void emitFunctionCall(const RtNode& node, GenContext& context, ShaderStage& stage) const override;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

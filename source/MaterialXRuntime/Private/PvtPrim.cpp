@@ -10,8 +10,8 @@
 
 #include <MaterialXCore/Util.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 RT_DEFINE_RUNTIME_OBJECT(PvtPrim, RtObjType::PRIM, "PvtPrim")
 
@@ -158,7 +158,7 @@ RtString PvtPrim::makeUniqueChildName(const RtString& name) const
 
     // Check if there is another child with this name.
     // We must check both prims, inputs and outputs since in
-    // MaterialX core these all stored in the same map and 
+    // MaterialX core these all stored in the same map and
     // cannot have name conflicts among them.
     if (_prims.count(newName) || _inputs.count(newName) || _outputs.count(newName))
     {
@@ -174,7 +174,8 @@ RtString PvtPrim::makeUniqueChildName(const RtString& name) const
             baseName = baseName.substr(0, n);
         }
         // Iterate until there is no other child with the resulting name.
-        do {
+        do
+        {
             newName = RtString(baseName + std::to_string(i++));
         } while (_prims.count(newName) || _inputs.count(newName) || _outputs.count(newName));
     }
@@ -191,7 +192,6 @@ void PvtPrim::removeChildPrim(PvtPrim* prim)
 {
     _prims.remove(prim->getName());
 }
-
 
 const RtAttributeSpec* PvtPrimSpec::getPortAttribute(const RtPort& port, const RtString& name) const
 {
@@ -268,4 +268,4 @@ RtAttributeSpec* PvtPrimSpec::create(const RtString& name, const RtString& type,
     return spec;
 }
 
-}
+MATERIALX_NAMESPACE_END

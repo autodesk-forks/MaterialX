@@ -15,13 +15,13 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class RtPrimSpec;
 
 /// Traversal predicate for schemas.
-template<class T>
+template <class T>
 struct RtSchemaPredicate
 {
     bool operator()(const RtObject& obj)
@@ -34,9 +34,9 @@ struct RtSchemaPredicate
 /// Base class for all prim schemas.
 class RtSchemaBase
 {
-public:
+  public:
     /// Destructor.
-    virtual ~RtSchemaBase() {};
+    virtual ~RtSchemaBase(){};
 
     /// Return true if the given prim is compatible with this schema.
     virtual bool isCompatible(const RtPrim& prim) const = 0;
@@ -132,7 +132,7 @@ public:
     PvtPrim* prim() const;
     PvtRelationship* rel(const RtString& name) const;
 
-protected:
+  protected:
     /// Constructor attaching a prim to the API.
     explicit RtSchemaBase(const RtPrim& prim);
 
@@ -145,17 +145,16 @@ protected:
     /// Return the handle set for this API.
     const PvtObjHandle& hnd() const { return _hnd; }
 
-protected:
+  protected:
     // Handle for the prim attached to the API.
     PvtObjHandle _hnd;
 };
-
 
 /// @class RtTypedSchema
 /// Base class for all typed prim schemas.
 class RtTypedSchema : public RtSchemaBase
 {
-public:
+  public:
     /// Return the type info for the prim defined by this schema.
     virtual const RtTypeInfo& getTypeInfo() const = 0;
 
@@ -165,7 +164,7 @@ public:
     /// Return true if the given prim is compatible with this schema.
     bool isCompatible(const RtPrim& prim) const override;
 
-protected:
+  protected:
     /// Constructor attaching a prim to the API.
     explicit RtTypedSchema(const RtPrim& prim) :
         RtSchemaBase(prim)
@@ -174,20 +173,21 @@ protected:
 };
 
 /// Macro declaring required methods and mambers on typed schemas.
-#define DECLARE_TYPED_SCHEMA(T)                                                             \
-private:                                                                                    \
-    static const RtTypeInfo _typeInfo;                                                      \
-public:                                                                                     \
-    const RtTypeInfo& getTypeInfo() const override { return _typeInfo; }                    \
-    const RtPrimSpec& getPrimSpec() const override;                                         \
-    static const RtString& typeName() { return _typeInfo.getShortTypeName(); }               \
-    static const RtTypeInfo& typeInfo() { return _typeInfo; }                               \
-    static RtPrim createPrim(const RtString& typeName, const RtString& name, RtPrim parent);  \
+#define DECLARE_TYPED_SCHEMA(T)                                                \
+  private:                                                                     \
+    static const RtTypeInfo _typeInfo;                                         \
+                                                                               \
+  public:                                                                      \
+    const RtTypeInfo& getTypeInfo() const override { return _typeInfo; }       \
+    const RtPrimSpec& getPrimSpec() const override;                            \
+    static const RtString& typeName() { return _typeInfo.getShortTypeName(); } \
+    static const RtTypeInfo& typeInfo() { return _typeInfo; }                  \
+    static RtPrim createPrim(const RtString& typeName, const RtString& name, RtPrim parent);
 
 /// Macro defining required methods and mambers on typed schemas.
-#define DEFINE_TYPED_SCHEMA(T, typeNameHierachy)                                            \
-const RtTypeInfo T::_typeInfo(typeNameHierachy);                                            \
+#define DEFINE_TYPED_SCHEMA(T, typeNameHierachy) \
+    const RtTypeInfo T::_typeInfo(typeNameHierachy);
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

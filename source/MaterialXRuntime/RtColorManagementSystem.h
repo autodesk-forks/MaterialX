@@ -8,12 +8,12 @@
 
 #include <MaterialXRuntime/RtString.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class RtColorManagementSystem
 {
-public:
+  public:
     RtColorManagementSystem() = default;
     virtual ~RtColorManagementSystem() = default;
 
@@ -22,14 +22,13 @@ public:
 
 class RtDefaultColorManagementSystem : public RtColorManagementSystem
 {
-public:
+  public:
     RtDefaultColorManagementSystem();
     ~RtDefaultColorManagementSystem() override = default;
 
     const RtStringVec& getColorSpaceNames() const override;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif
-

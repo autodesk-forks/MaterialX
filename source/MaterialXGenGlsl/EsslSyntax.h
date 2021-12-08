@@ -11,18 +11,18 @@
 
 #include <MaterialXGenGlsl/GlslSyntax.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Syntax class for ESSL (OpenGL ES Shading Language)
 class MX_GENGLSL_API EsslSyntax : public GlslSyntax
 {
-public:
+  public:
     EsslSyntax();
 
     static SyntaxPtr create() { return std::make_shared<EsslSyntax>(); }
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -11,8 +11,8 @@
 
 #include <MaterialXRuntime/Library.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtString
 /// Interned string class. Holds a unique reference to a string.
@@ -26,12 +26,14 @@ namespace MaterialX
 ///
 class RtString
 {
-public:
+  public:
     /// Construct an empty RtString.
-    RtString() : _entry(EMPTY._entry) {}
+    RtString() :
+        _entry(EMPTY._entry) { }
 
     /// Copy constructor.
-    RtString(const RtString& other) : _entry(other._entry) {}
+    RtString(const RtString& other) :
+        _entry(other._entry) { }
 
     /// Constructor creating an RtString from a raw string.
     explicit RtString(const char* s);
@@ -193,11 +195,13 @@ public:
         }
     };
 
-private:
+  private:
     struct Entry
     {
-        explicit Entry(const char* s, size_t hash) : _str(s), _hash(hash) {}
-        explicit Entry(const string& s, size_t hash) : _str(s), _hash(hash) {}
+        explicit Entry(const char* s, size_t hash) :
+            _str(s), _hash(hash) { }
+        explicit Entry(const string& s, size_t hash) :
+            _str(s), _hash(hash) { }
         string _str;
         size_t _hash;
     };
@@ -205,7 +209,7 @@ private:
 
     friend struct RtStringRegistry;
 
-public:
+  public:
     /// Special case, defining the empty string ""
     /// and not the string "empty".
     static const RtString EMPTY;
@@ -280,7 +284,7 @@ public:
 };
 
 /// Class representing an unordered map with RtString keys and templated value type.
-template<typename T>
+template <typename T>
 using RtStringMap = std::unordered_map<RtString, T, RtString::FastHash>;
 
 /// Class representing an unordered set of RtStrings.
@@ -289,6 +293,6 @@ using RtStringSet = std::unordered_set<RtString, RtString::FastHash>;
 /// Class representing a vector of RtStrings.
 using RtStringVec = vector<RtString>;
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

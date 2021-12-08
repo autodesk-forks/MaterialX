@@ -14,8 +14,8 @@
 #include <MaterialXRuntime/Private/Commands/PvtRenamePrimCmd.h>
 #include <MaterialXRuntime/Private/Commands/PvtReparentPrimCmd.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace RtCommand
 {
@@ -70,6 +70,6 @@ void reparentPrim(RtStagePtr stage, const RtPath& path, const RtPath& newParentP
     PvtApi::cast(RtApi::get())->getCommandEngine().execute(cmd, result);
 }
 
-}
+} // namespace RtCommand
 
-}
+MATERIALX_NAMESPACE_END

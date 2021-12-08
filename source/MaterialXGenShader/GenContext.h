@@ -17,12 +17,12 @@
 
 #include <MaterialXFormat/File.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class ClosureContext;
 
-/// @class GenContext 
+/// @class GenContext
 /// A context class for shader generation.
 /// Used for thread local storage of data needed during shader generation.
 class MX_GENSHADER_API GenContext
@@ -145,7 +145,7 @@ class MX_GENSHADER_API GenContext
 
     /// Return user data with given name,
     /// or nullptr if no data is found.
-    template<class T>
+    template <class T>
     std::shared_ptr<T> getUserData(const string& name)
     {
         auto it = _userData.find(name);
@@ -211,7 +211,6 @@ class MX_GENSHADER_API GenContext
     vector<ClosureContext*> _closureContexts;
 };
 
-
 /// @class ClosureContext
 /// Class representing a context for closure evaluation.
 /// On hardware BSDF closures are evaluated differently in reflection, transmission
@@ -219,7 +218,7 @@ class MX_GENSHADER_API GenContext
 /// and if extra arguments and function decorators are needed for that context.
 class MX_GENSHADER_API ClosureContext
 {
-public:
+  public:
     /// An extra argument for closure functions.
     /// An argument is a pair of strings holding the
     /// 'type' and 'name' of the argument.
@@ -231,7 +230,8 @@ public:
     using ClosureParams = std::unordered_map<string, const ShaderInput*>;
 
     /// Constructor
-    ClosureContext(int type = 0) : _type(type) {}
+    ClosureContext(int type = 0) :
+        _type(type) { }
 
     /// Return the identifier for this context.
     int getType() const { return _type; }
@@ -283,7 +283,7 @@ public:
         return it != _params.end() ? it->second : nullptr;
     }
 
-protected:
+  protected:
     const int _type;
     std::unordered_map<const TypeDesc*, Arguments> _arguments;
     std::unordered_map<const TypeDesc*, string> _suffix;
@@ -296,7 +296,7 @@ protected:
 /// stored in the closure context.
 class MX_GENSHADER_API ScopedSetClosureParams
 {
-public:
+  public:
     /// Constructor for setting explicit parameters for a closure node.
     ScopedSetClosureParams(const ClosureContext::ClosureParams* params, const ShaderNode* node, ClosureContext* cct);
 
@@ -306,7 +306,7 @@ public:
     /// Destructor restoring the closure parameter state.
     ~ScopedSetClosureParams();
 
-private:
+  private:
     ClosureContext* _cct;
     const ShaderNode* _node;
     const ClosureContext::ClosureParams* _oldParams;
@@ -315,18 +315,18 @@ private:
 /// A RAII class for overriding port variable names.
 class MX_GENSHADER_API ScopedSetVariableName
 {
-public:
+  public:
     /// Constructor for setting a new variable name for a port.
     ScopedSetVariableName(const string& name, ShaderPort* port);
 
     /// Destructor restoring the original variable name.
     ~ScopedSetVariableName();
 
-private:
+  private:
     ShaderPort* _port;
     string _oldName;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif // MATERIALX_GENCONTEXT_H

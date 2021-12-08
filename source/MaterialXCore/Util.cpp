@@ -10,8 +10,8 @@
 #include <sstream>
 #include <iomanip>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 const string EMPTY_STRING;
 
@@ -130,7 +130,7 @@ string replaceSubstrings(string str, const StringMap& stringMap)
 string stringToLower(string str)
 {
     std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c)
-    {
+                   {
         return (char) std::tolower(c);
     });
     return str;
@@ -179,7 +179,8 @@ string parentNamePath(const string& namePath)
     return EMPTY_STRING;
 }
 
-string getBaseCompoundName(const string& nodeName, const string& typeNames, const string& version, const string& namespaceString) {
+string getBaseCompoundName(const string& nodeName, const string& typeNames, const string& version, const string& namespaceString)
+{
     std::ostringstream tempStream;
 
     tempStream << nodeName;
@@ -190,8 +191,9 @@ string getBaseCompoundName(const string& nodeName, const string& typeNames, cons
     tempStream << "_";
     tempStream << version;
 
-    const bool isNameSpaced = !namespaceString.empty();   
-    if (isNameSpaced) {
+    const bool isNameSpaced = !namespaceString.empty();
+    if (isNameSpaced)
+    {
         tempStream << "_";
         tempStream << namespaceString;
     }
@@ -199,4 +201,4 @@ string getBaseCompoundName(const string& nodeName, const string& typeNames, cons
     return tempStream.str();
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

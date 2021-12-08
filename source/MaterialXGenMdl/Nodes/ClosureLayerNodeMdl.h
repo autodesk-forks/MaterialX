@@ -12,8 +12,8 @@
 #include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/GenContext.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Closure layer node implementation for MDL.
 class MX_GENMDL_API ClosureLayerNodeMdl : public ShaderNodeImpl
@@ -28,16 +28,15 @@ class MX_GENMDL_API ClosureLayerNodeMdl : public ShaderNodeImpl
     static const string BASE;
 };
 
-
 /// Layerable BSDF node.
 class MX_GENMDL_API LayerableNodeMdl : public SourceCodeNodeMdl
 {
-public:
+  public:
     static ShaderNodeImplPtr create();
 
     void addInputs(ShaderNode& node, GenContext&) const override;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

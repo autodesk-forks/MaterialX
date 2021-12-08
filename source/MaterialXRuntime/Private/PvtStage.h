@@ -15,14 +15,14 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtStage;
 
 class PvtStageIterator
 {
-public:
+  public:
     PvtStageIterator() :
         _current(nullptr)
     {
@@ -74,20 +74,19 @@ public:
         return NULL_STAGE_ITERATOR;
     }
 
-private:
+  private:
     using StackFrame = std::tuple<PvtStage*, int, int>;
     PvtObjHandle _current;
     RtObjectPredicate _predicate;
     vector<StackFrame> _stack;
 };
 
-
 using RtStageVec = vector<RtStagePtr>;
 using RtStageSet = std::set<const RtStage*>;
 
 class PvtStage
 {
-public:
+  public:
     PvtStage(const RtString& name, RtStageWeakPtr owner);
 
     static RtStagePtr createNew(const RtString& name);
@@ -130,7 +129,7 @@ public:
         return _root->asA<PvtPrim>();
     }
 
-    PvtPath getPath()  const
+    PvtPath getPath() const
     {
         return _root->asA<PvtPrim>()->getPath();
     }
@@ -163,7 +162,7 @@ public:
         return PvtStageIterator(this, predicate);
     }
 
-protected:
+  protected:
     PvtPrim* getPrimAtPathLocal(const PvtPath& path);
 
     void setName(const RtString& name)
@@ -173,12 +172,12 @@ protected:
 
     class RootPrim : public PvtPrim
     {
-    public:
+      public:
         RootPrim(RtStageWeakPtr stage);
 
         RtStageWeakPtr getStage() const { return _stage; }
 
-    protected:
+      protected:
         RtStageWeakPtr _stage;
         static const RtTypeInfo _typeInfo;
     };
@@ -196,6 +195,6 @@ protected:
     friend class PvtObject;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

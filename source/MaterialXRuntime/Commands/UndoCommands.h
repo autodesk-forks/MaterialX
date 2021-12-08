@@ -11,22 +11,22 @@
 
 #include <MaterialXRuntime/RtCommand.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace RtCommand
 {
-    /// Undo the last executed command.
-    void undo(RtCommandResult& result);
+/// Undo the last executed command.
+void undo(RtCommandResult& result);
 
-    /// Redo the last executed undo command.
-    void redo(RtCommandResult& result);
+/// Redo the last executed undo command.
+void redo(RtCommandResult& result);
 
-    /// Flush the undo and redo queues.
-    /// All commands previously executed will no longer be undoable.
-    void flushUndoQueue();
-}
+/// Flush the undo and redo queues.
+/// All commands previously executed will no longer be undoable.
+void flushUndoQueue();
+} // namespace RtCommand
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -8,8 +8,8 @@
 #include <MaterialXRuntime/Private/PvtPort.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 RT_DEFINE_RUNTIME_OBJECT(RtPort, RtObjType::PORT, "RtPort")
 
@@ -58,7 +58,6 @@ void RtPort::setColorSpace(const RtString& colorspace)
     return hnd()->asA<PvtPort>()->setColorSpace(colorspace);
 }
 
-
 RT_DEFINE_RUNTIME_OBJECT(RtInput, RtObjType::INPUT, "RtInput")
 
 RtInput::RtInput(PvtObjHandle hnd) :
@@ -76,7 +75,7 @@ bool RtInput::isToken() const
     return hnd()->asA<PvtInput>()->isToken();
 }
 
-void RtInput::setIsToken(bool value) 
+void RtInput::setIsToken(bool value)
 {
     hnd()->asA<PvtInput>()->setIsToken(value);
 }
@@ -147,7 +146,6 @@ RtOutput RtInput::getConnection() const
     return output ? RtOutput(output->hnd()) : RtOutput();
 }
 
-
 RT_DEFINE_RUNTIME_OBJECT(RtOutput, RtObjType::OUTPUT, "RtOutput")
 
 RtOutput::RtOutput(PvtObjHandle hnd) :
@@ -190,4 +188,4 @@ RtConnectionIterator RtOutput::getConnections() const
     return hnd()->asA<PvtOutput>()->getConnections();
 }
 
-}
+MATERIALX_NAMESPACE_END

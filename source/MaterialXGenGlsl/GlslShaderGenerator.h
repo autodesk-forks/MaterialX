@@ -13,8 +13,8 @@
 
 #include <MaterialXGenShader/HwShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 using GlslShaderGeneratorPtr = shared_ptr<class GlslShaderGenerator>;
 
@@ -45,7 +45,7 @@ class MX_GENGLSL_API GlslShaderGenerator : public HwShaderGenerator
     /// The element must be an Implementation or a NodeGraph acting as implementation.
     ShaderNodeImplPtr getImplementation(const NodeDef& nodedef, GenContext& context) const override;
 
-    /// Determine the prefix of vertex data variables. 
+    /// Determine the prefix of vertex data variables.
     virtual const string getVertexDataPrefix(const VariableBlock& vertexData) const;
 
   public:
@@ -65,7 +65,7 @@ class MX_GENGLSL_API GlslShaderGenerator : public HwShaderGenerator
     virtual void emitLightData(GenContext& context, ShaderStage& stage) const;
     virtual void emitInputs(GenContext& context, ShaderStage& stage) const;
     virtual void emitOutputs(GenContext& context, ShaderStage& stage) const;
-    
+
     virtual HwResourceBindingContextPtr getResourceBindingContext(GenContext& context) const;
 
     /// Logic to indicate whether code to support direct lighting should be emitted.
@@ -85,7 +85,6 @@ class MX_GENGLSL_API GlslShaderGenerator : public HwShaderGenerator
     vector<ShaderNodePtr> _lightSamplingNodes;
 };
 
-
 /// Base class for common GLSL node implementations
 class MX_GENGLSL_API GlslImplementation : public ShaderNodeImpl
 {
@@ -95,16 +94,16 @@ class MX_GENGLSL_API GlslImplementation : public ShaderNodeImpl
     bool isEditable(const ShaderInput& input) const override;
 
   protected:
-    GlslImplementation() {}
+    GlslImplementation() { }
 
     // Integer identifiers for coordinate spaces.
     // The order must match the order given for
     // the space enum string in stdlib.
     enum Space
     {
-        MODEL_SPACE  = 0,
+        MODEL_SPACE = 0,
         OBJECT_SPACE = 1,
-        WORLD_SPACE  = 2
+        WORLD_SPACE = 2
     };
 
     /// Internal string constants
@@ -118,6 +117,6 @@ class MX_GENGLSL_API GlslImplementation : public ShaderNodeImpl
     static const string GEOMPROP;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

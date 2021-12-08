@@ -10,12 +10,12 @@
 
 #include <MaterialXRuntime/RtValue.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtRemoveAttributeCmd : public PvtCommand
 {
-public:
+  public:
     PvtRemoveAttributeCmd(const RtObject& obj, const RtString& name);
 
     static PvtCommandPtr create(const RtObject& obj, const RtString& name);
@@ -24,12 +24,12 @@ public:
     void undo(RtCommandResult& result) override;
     void redo(RtCommandResult& result) override;
 
-private:
+  private:
     RtObject _obj;
     RtString _name;
     RtValue _oldValue;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

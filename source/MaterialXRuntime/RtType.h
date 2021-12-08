@@ -12,13 +12,13 @@
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtString.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Class holding identifiers for the built in data types.
 class RtType
 {
-public:
+  public:
     static const RtString BOOLEAN;
     static const RtString INTEGER;
     static const RtString FLOAT;
@@ -51,6 +51,6 @@ public:
     static const RtString AUTO;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

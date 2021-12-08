@@ -8,34 +8,34 @@
 #include <MaterialXRuntime/Private/PvtPath.h>
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    // Private implementation of targetdef prims.
-    class PvtTargetDefPrim : public PvtPrim
+// Private implementation of targetdef prims.
+class PvtTargetDefPrim : public PvtPrim
+{
+  public:
+    PvtTargetDefPrim(const RtTypeInfo* typeInfo, const RtString& name, PvtPrim* parent) :
+        PvtPrim(typeInfo, name, parent)
     {
-    public:
-        PvtTargetDefPrim(const RtTypeInfo* typeInfo, const RtString& name, PvtPrim* parent) 
-            : PvtPrim(typeInfo, name, parent)
-        {}
+    }
 
-        RtStringSet matchingTargets;
-    };
+    RtStringSet matchingTargets;
+};
 
-    // TODO: We should derive this from a data driven XML schema.
-    class PvtTargetDefPrimSpec : public PvtPrimSpec
+// TODO: We should derive this from a data driven XML schema.
+class PvtTargetDefPrimSpec : public PvtPrimSpec
+{
+  public:
+    PvtTargetDefPrimSpec()
     {
-    public:
-        PvtTargetDefPrimSpec()
-        {
-            addPrimAttribute(RtString::DOC, RtType::STRING);
-            addPrimAttribute(RtString::INHERIT, RtType::INTERNSTRING);
-
-        }
-    };
-}
+        addPrimAttribute(RtString::DOC, RtType::STRING);
+        addPrimAttribute(RtString::INHERIT, RtType::INTERNSTRING);
+    }
+};
+} // namespace
 
 DEFINE_TYPED_SCHEMA(RtTargetDef, "targetdef");
 
@@ -78,4 +78,4 @@ bool RtTargetDef::isMatching(const RtString& target) const
     return prim()->asA<PvtTargetDefPrim>()->matchingTargets.count(target) != 0;
 }
 
-}
+MATERIALX_NAMESPACE_END

@@ -15,8 +15,8 @@
 #include <MaterialXRuntime/RtPort.h>
 #include <MaterialXRuntime/RtRelationship.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class RtRelationshipIterator;
 class RtPrimIterator;
@@ -55,7 +55,7 @@ using RtRelationshipCallbackFunc = std::function<void(const RtRelationship& rel,
 /// @class RtMessage
 class RtMessage
 {
-public:
+  public:
     /// Register a callback to get notified when a prim has been created.
     static RtCallbackId addCreatePrimCallback(RtCreatePrimCallbackFunc callback, void* userData = nullptr);
 
@@ -87,6 +87,6 @@ public:
     static void removeCallback(RtCallbackId id);
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

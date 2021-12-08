@@ -6,8 +6,8 @@
 #include <MaterialXRuntime/Private/PvtCommand.h>
 #include <MaterialXRuntime/Private/PvtApi.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 PvtMessageHandler& PvtCommand::msg()
 {
@@ -72,7 +72,6 @@ void PvtCommandList::redo(RtCommandResult& result)
     }
 }
 
-
 void PvtCommandEngine::execute(PvtCommandPtr cmd, RtCommandResult& result)
 {
     cmd->execute(result);
@@ -130,4 +129,4 @@ void PvtCommandEngine::flushUndoQueue()
     _redoQueue.clear();
 }
 
-}
+MATERIALX_NAMESPACE_END

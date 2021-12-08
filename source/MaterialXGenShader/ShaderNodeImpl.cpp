@@ -10,15 +10,15 @@
 #include <MaterialXGenShader/ShaderNode.h>
 #include <MaterialXGenShader/GenContext.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 //
 // ShaderNodeImpl methods
 //
 
-ShaderNodeImpl::ShaderNodeImpl() : 
-    _name(EMPTY_STRING), 
+ShaderNodeImpl::ShaderNodeImpl() :
+    _name(EMPTY_STRING),
     _hash(0)
 {
 }
@@ -73,10 +73,9 @@ ShaderGraph* ShaderNodeImpl::getGraph() const
     return nullptr;
 }
 
-
 ShaderNodeImplPtr NopNode::create()
 {
     return std::make_shared<NopNode>();
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

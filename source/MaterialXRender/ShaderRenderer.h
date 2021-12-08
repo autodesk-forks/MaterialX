@@ -16,8 +16,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// Shared pointer to a shader renderer
 using ShaderRendererPtr = std::shared_ptr<class ShaderRenderer>;
@@ -124,13 +124,15 @@ class MX_RENDER_API ShaderRenderer
         _width(0),
         _height(0),
         _baseType(Image::BaseType::UINT8)
-    { }
+    {
+    }
 
     ShaderRenderer(unsigned int width, unsigned int height, Image::BaseType baseType) :
         _width(width),
         _height(height),
         _baseType(baseType)
-    { }
+    {
+    }
 
   protected:
     unsigned int _width;
@@ -162,7 +164,7 @@ class MX_RENDER_API ExceptionRenderError : public Exception
     {
     }
 
-    ExceptionRenderError& operator=(const ExceptionRenderError& e)         
+    ExceptionRenderError& operator=(const ExceptionRenderError& e)
     {
         Exception::operator=(e);
         _errorLog = e._errorLog;
@@ -178,6 +180,6 @@ class MX_RENDER_API ExceptionRenderError : public Exception
     StringVec _errorLog;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -14,12 +14,12 @@
 
 #include <MaterialXFormat/Util.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace Stage
 {
-    const string PIXEL = "pixel";
+const string PIXEL = "pixel";
 }
 
 //
@@ -193,23 +193,24 @@ const VariableBlock& ShaderStage::getConstantBlock() const
 
 void ShaderStage::beginScope(Syntax::Punctuation punc)
 {
-    switch (punc) {
-    case Syntax::CURLY_BRACKETS:
-        beginLine();
-        _code += "{" + _syntax->getNewline();
-        break;
-    case Syntax::PARENTHESES:
-        beginLine();
-        _code += "(" + _syntax->getNewline();
-        break;
-    case Syntax::SQUARE_BRACKETS:
-        beginLine();
-        _code += "[" + _syntax->getNewline();
-        break;
-    case Syntax::DOUBLE_SQUARE_BRACKETS:
-        beginLine();
-        _code += "[[" + _syntax->getNewline();
-        break;
+    switch (punc)
+    {
+        case Syntax::CURLY_BRACKETS:
+            beginLine();
+            _code += "{" + _syntax->getNewline();
+            break;
+        case Syntax::PARENTHESES:
+            beginLine();
+            _code += "(" + _syntax->getNewline();
+            break;
+        case Syntax::SQUARE_BRACKETS:
+            beginLine();
+            _code += "[" + _syntax->getNewline();
+            break;
+        case Syntax::DOUBLE_SQUARE_BRACKETS:
+            beginLine();
+            _code += "[[" + _syntax->getNewline();
+            break;
     }
 
     ++_indentations;
@@ -227,23 +228,24 @@ void ShaderStage::endScope(bool semicolon, bool newline)
     _scopes.pop_back();
     --_indentations;
 
-    switch (punc) {
-    case Syntax::CURLY_BRACKETS:
-        beginLine();
-        _code += "}";
-        break;
-    case Syntax::PARENTHESES:
-        beginLine();
-        _code += ")";
-        break;
-    case Syntax::SQUARE_BRACKETS:
-        beginLine();
-        _code += "]";
-        break;
-    case Syntax::DOUBLE_SQUARE_BRACKETS:
-        beginLine();
-        _code += "]]";
-        break;
+    switch (punc)
+    {
+        case Syntax::CURLY_BRACKETS:
+            beginLine();
+            _code += "}";
+            break;
+        case Syntax::PARENTHESES:
+            beginLine();
+            _code += ")";
+            break;
+        case Syntax::SQUARE_BRACKETS:
+            beginLine();
+            _code += "]";
+            break;
+        case Syntax::DOUBLE_SQUARE_BRACKETS:
+            beginLine();
+            _code += "]]";
+            break;
     }
     if (semicolon)
         _code += ";";
@@ -295,12 +297,12 @@ void ShaderStage::addComment(const string& str)
 void ShaderStage::addBlock(const string& str, GenContext& context)
 {
     const string& INCLUDE = _syntax->getIncludeStatement();
-    const string& QUOTE   = _syntax->getStringQuote();
+    const string& QUOTE = _syntax->getStringQuote();
 
     // Add each line in the block seperatelly
     // to get correct indentation
     StringStream stream(str);
-    for (string line; std::getline(stream, line); )
+    for (string line; std::getline(stream, line);)
     {
         size_t pos = line.find(INCLUDE);
         if (pos != string::npos)
@@ -380,4 +382,4 @@ bool ShaderStage::isEmitted(const ShaderNode& node, GenContext& context) const
     return false;
 }
 
-}
+MATERIALX_NAMESPACE_END

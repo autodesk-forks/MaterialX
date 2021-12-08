@@ -12,15 +12,15 @@
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/GenContext.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class GlslShaderGenerator;
 
 /// LightCompound node implementation for GLSL
 class MX_GENGLSL_API LightCompoundNodeGlsl : public CompoundNode
 {
-public:
+  public:
     LightCompoundNodeGlsl();
 
     static ShaderNodeImplPtr create();
@@ -35,12 +35,12 @@ public:
 
     void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 
-protected:
+  protected:
     void emitFunctionDefinition(ClosureContext* cct, GenContext& context, ShaderStage& stage) const;
 
     VariableBlock _lightUniforms;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

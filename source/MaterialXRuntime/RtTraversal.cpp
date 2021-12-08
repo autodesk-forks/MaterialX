@@ -12,8 +12,8 @@
 #include <MaterialXRuntime/Private/PvtPrim.h>
 #include <MaterialXRuntime/Private/PvtStage.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
@@ -31,11 +31,13 @@ struct AttrIteratorData
 {
     PvtObjHandle obj;
     size_t index;
-    AttrIteratorData() : obj(nullptr), index(0) {}
-    explicit AttrIteratorData(const PvtObjHandle& o) : obj(o), index(0) {}
+    AttrIteratorData() :
+        obj(nullptr), index(0) { }
+    explicit AttrIteratorData(const PvtObjHandle& o) :
+        obj(o), index(0) { }
 };
 
-}
+} // namespace
 
 RtAttributeIterator::RtAttributeIterator() :
     _ptr(nullptr)
@@ -79,9 +81,7 @@ bool RtAttributeIterator::operator==(const RtAttributeIterator& other) const
 {
     AttrIteratorData* data1 = static_cast<AttrIteratorData*>(_ptr);
     AttrIteratorData* data2 = static_cast<AttrIteratorData*>(other._ptr);
-    return data1 && data2 ?
-        data1->obj == data2->obj && data1->index == data2->index :
-        data1 == data2;
+    return data1 && data2 ? data1->obj == data2->obj && data1->index == data2->index : data1 == data2;
 }
 
 RtAttribute RtAttributeIterator::operator*() const
@@ -120,15 +120,14 @@ void RtAttributeIterator::abort()
     _ptr = nullptr;
 }
 
-
-template<class T>
+template <class T>
 T RtObjectIterator<T>::operator*() const
 {
     const PvtObjectVec& vec = *static_cast<PvtObjectVec*>(_ptr);
     return T(vec[_current]->hnd());
 }
 
-template<class T>
+template <class T>
 RtObjectIterator<T>& RtObjectIterator<T>::operator++()
 {
     const PvtObjectVec& vec = *static_cast<PvtObjectVec*>(_ptr);
@@ -143,13 +142,13 @@ RtObjectIterator<T>& RtObjectIterator<T>::operator++()
     return *this;
 }
 
-template<class T>
+template <class T>
 bool RtObjectIterator<T>::isDone() const
 {
     return !(_ptr && _current < int(static_cast<PvtObjectVec*>(_ptr)->size()));
 }
 
-template<class T>
+template <class T>
 const RtObjectIterator<T>& RtObjectIterator<T>::end()
 {
     static const RtObjectIterator<T> NULL_ITERATOR;
@@ -161,7 +160,6 @@ template class RtObjectIterator<RtPrim>;
 template class RtObjectIterator<RtInput>;
 template class RtObjectIterator<RtOutput>;
 template class RtObjectIterator<RtRelationship>;
-
 
 RtPrimIterator::RtPrimIterator(const RtObject& obj, RtObjectPredicate predicate) :
     RtObjectIterator(predicate)
@@ -212,7 +210,6 @@ RtRelationshipIterator::RtRelationshipIterator(const RtObject& obj) :
     ++*this;
 }
 
-
 RtConnectionIterator::RtConnectionIterator() :
     _ptr(nullptr),
     _current(-1)
@@ -262,7 +259,6 @@ const RtConnectionIterator& RtConnectionIterator::end()
     return NULL_ITERATOR;
 }
 
-
 RtStageIterator::RtStageIterator() :
     _ptr(nullptr)
 {
@@ -311,9 +307,7 @@ RtStageIterator::~RtStageIterator()
 
 bool RtStageIterator::operator==(const RtStageIterator& other) const
 {
-    return _ptr && other._ptr ?
-        static_cast<StageIteratorData*>(_ptr)->current == static_cast<StageIteratorData*>(other._ptr)->current :
-        _ptr == other._ptr;
+    return _ptr && other._ptr ? static_cast<StageIteratorData*>(_ptr)->current == static_cast<StageIteratorData*>(other._ptr)->current : _ptr == other._ptr;
 }
 
 RtPrim RtStageIterator::operator*() const
@@ -390,4 +384,4 @@ void RtStageIterator::abort()
     _ptr = nullptr;
 }
 
-}
+MATERIALX_NAMESPACE_END

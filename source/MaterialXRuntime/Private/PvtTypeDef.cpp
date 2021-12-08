@@ -11,32 +11,32 @@
 
 #include <sstream>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
 static string VALUE_STRING_ONE = "1";
 static string VALUE_STRING_ZERO = "0";
 
-template<class T>
+template <class T>
 RtValue createValue(RtPrim&)
 {
-    return RtValue((T)0);
+    return RtValue((T) 0);
 }
-template<> RtValue createValue<Matrix33>(RtPrim& owner)
+template <> RtValue createValue<Matrix33>(RtPrim& owner)
 {
     return RtValue(Matrix33::IDENTITY, owner);
 }
-template<> RtValue createValue<Matrix44>(RtPrim& owner)
+template <> RtValue createValue<Matrix44>(RtPrim& owner)
 {
     return RtValue(Matrix44::IDENTITY, owner);
 }
-template<> RtValue createValue<string>(RtPrim& owner)
+template <> RtValue createValue<string>(RtPrim& owner)
 {
     return RtValue(string(""), owner);
 }
-template<> RtValue createValue<RtString>(RtPrim&)
+template <> RtValue createValue<RtString>(RtPrim&)
 {
     return RtValue(RtString());
 }
@@ -45,7 +45,7 @@ RtValue createNoneValue(RtPrim&)
     return RtValue(0);
 }
 
-template<class T>
+template <class T>
 void copyValue(const RtValue& src, RtValue& dest)
 {
     dest = src;
@@ -66,7 +66,7 @@ void copyNoneValue(const RtValue&, RtValue&)
 {
 }
 
-template<class T>
+template <class T>
 bool compareValue(const RtValue& a, const RtValue& b)
 {
     return a == b;
@@ -88,7 +88,7 @@ bool compareNoneValue(const RtValue&, const RtValue&)
     return false;
 }
 
-template<class T>
+template <class T>
 void toStringValue(const RtValue&, string&)
 {
     // TODO: Fix this for gcc/clang
@@ -101,7 +101,7 @@ template <> void toStringValue<bool>(const RtValue& src, string& dest)
     std::stringstream ss;
     ss << src.asBool();
     dest = ss.str();
-    if (dest == VALUE_STRING_ONE) 
+    if (dest == VALUE_STRING_ONE)
     {
         dest = VALUE_STRING_TRUE;
     }
@@ -122,7 +122,7 @@ template <> void toStringValue<int>(const RtValue& src, string& dest)
     ss << src.asInt();
     dest = ss.str();
 }
-template<class T>
+template <class T>
 void toStringVector(const T& src, string& dest)
 {
     std::stringstream ss;
@@ -136,7 +136,7 @@ void toStringVector(const T& src, string& dest)
     }
     dest = ss.str();
 }
-template<class T>
+template <class T>
 void toStringMatrix(const T& src, string& dest)
 {
     std::stringstream ss;
@@ -194,7 +194,7 @@ void toStringNoneValue(const RtValue&, string& dest)
     dest = "";
 }
 
-template<class T>
+template <class T>
 void fromStringValue(const string& str, RtValue& dest)
 {
     T value;
@@ -213,7 +213,7 @@ void fromStringFloat(const string& str, float& value)
         throw ExceptionRuntimeError("Failed parsing value from string: " + str);
     }
 }
-template<class T>
+template <class T>
 void fromStringVector(const string& str, T& dest)
 {
     StringVec strings = splitString(str, ARRAY_VALID_SEPARATORS);
@@ -226,7 +226,7 @@ void fromStringVector(const string& str, T& dest)
         fromStringFloat(strings[i], dest[i]);
     }
 }
-template<class T>
+template <class T>
 void fromStringMatrix(const string& str, T& dest)
 {
     StringVec strings = splitString(str, ARRAY_VALID_SEPARATORS);
@@ -242,7 +242,7 @@ void fromStringMatrix(const string& str, T& dest)
         }
     }
 }
-template<> void fromStringValue<bool>(const string& str, RtValue& dest)
+template <> void fromStringValue<bool>(const string& str, RtValue& dest)
 {
     if (str == VALUE_STRING_TRUE || str == VALUE_STRING_ONE)
         dest.asBool() = true;
@@ -251,39 +251,39 @@ template<> void fromStringValue<bool>(const string& str, RtValue& dest)
     else
         throw ExceptionRuntimeError("Failed setting value from string: " + str);
 }
-template<> void fromStringValue<Color3>(const string& str, RtValue& dest)
+template <> void fromStringValue<Color3>(const string& str, RtValue& dest)
 {
     fromStringVector(str, dest.asColor3());
 }
-template<> void fromStringValue<Color4>(const string& str, RtValue& dest)
+template <> void fromStringValue<Color4>(const string& str, RtValue& dest)
 {
     fromStringVector(str, dest.asColor4());
 }
-template<> void fromStringValue<Vector2>(const string& str, RtValue& dest)
+template <> void fromStringValue<Vector2>(const string& str, RtValue& dest)
 {
     fromStringVector(str, dest.asVector2());
 }
-template<> void fromStringValue<Vector3>(const string& str, RtValue& dest)
+template <> void fromStringValue<Vector3>(const string& str, RtValue& dest)
 {
     fromStringVector(str, dest.asVector3());
 }
-template<> void fromStringValue<Vector4>(const string& str, RtValue& dest)
+template <> void fromStringValue<Vector4>(const string& str, RtValue& dest)
 {
     fromStringVector(str, dest.asVector4());
 }
-template<> void fromStringValue<Matrix33>(const string& str, RtValue& dest)
+template <> void fromStringValue<Matrix33>(const string& str, RtValue& dest)
 {
     fromStringMatrix(str, dest.asMatrix33());
 }
-template<> void fromStringValue<Matrix44>(const string& str, RtValue& dest)
+template <> void fromStringValue<Matrix44>(const string& str, RtValue& dest)
 {
     fromStringMatrix(str, dest.asMatrix44());
 }
-template<> void fromStringValue<string>(const string& str, RtValue& dest)
+template <> void fromStringValue<string>(const string& str, RtValue& dest)
 {
     dest.asString() = str;
 }
-template<> void fromStringValue<RtString>(const string& str, RtValue& dest)
+template <> void fromStringValue<RtString>(const string& str, RtValue& dest)
 {
     dest.asInternString() = RtString(str);
 }
@@ -292,9 +292,9 @@ void fromStringNoneValue(const string&, RtValue& dest)
     dest = RtValue(0);
 }
 
-}
+} // namespace
 
-PvtTypeDef::PvtTypeDef(const RtString& name, const RtString& basetype, const RtValueFuncs& funcs, 
+PvtTypeDef::PvtTypeDef(const RtString& name, const RtString& basetype, const RtValueFuncs& funcs,
                        const RtString& semantic, size_t size) :
     _name(name),
     _basetype(basetype),
@@ -325,7 +325,7 @@ PvtTypeDefRegistry::PvtTypeDefRegistry()
     const RtString B("b");
     const RtString A("a");
 
-    RtValueFuncs boolFuncs = { createValue<bool>, copyValue<bool>, compareValue<bool>, toStringValue<bool>, fromStringValue<bool>  };
+    RtValueFuncs boolFuncs = { createValue<bool>, copyValue<bool>, compareValue<bool>, toStringValue<bool>, fromStringValue<bool> };
     newType(RtType::BOOLEAN, RtTypeDef::BASETYPE_BOOLEAN, boolFuncs);
 
     RtValueFuncs intFuncs = { createValue<int>, copyValue<int>, compareValue<int>, toStringValue<int>, fromStringValue<int> };
@@ -334,48 +334,48 @@ PvtTypeDefRegistry::PvtTypeDefRegistry()
     RtValueFuncs floatFuncs = { createValue<float>, copyValue<float>, compareValue<float>, toStringValue<float>, fromStringValue<float> };
     newType(RtType::FLOAT, RtTypeDef::BASETYPE_FLOAT, floatFuncs);
 
-    RtValueFuncs color3Funcs = { createValue<Color3>, copyValue<Color3>, compareValue<Color3>, toStringValue<Color3> , fromStringValue<Color3> };
+    RtValueFuncs color3Funcs = { createValue<Color3>, copyValue<Color3>, compareValue<Color3>, toStringValue<Color3>, fromStringValue<Color3> };
     RtTypeDef* color3 = newType(RtType::COLOR3, RtTypeDef::BASETYPE_FLOAT, color3Funcs, RtTypeDef::SEMANTIC_COLOR, 3);
     color3->setComponent(0, R, RtTypeDef::BASETYPE_FLOAT);
     color3->setComponent(1, G, RtTypeDef::BASETYPE_FLOAT);
     color3->setComponent(2, B, RtTypeDef::BASETYPE_FLOAT);
 
-    RtValueFuncs color4Funcs = { createValue<Color4>, copyValue<Color4>, compareValue<Color4>, toStringValue<Color4> , fromStringValue<Color4> };
+    RtValueFuncs color4Funcs = { createValue<Color4>, copyValue<Color4>, compareValue<Color4>, toStringValue<Color4>, fromStringValue<Color4> };
     RtTypeDef* color4 = newType(RtType::COLOR4, RtTypeDef::BASETYPE_FLOAT, color4Funcs, RtTypeDef::SEMANTIC_COLOR, 4);
     color4->setComponent(0, R, RtTypeDef::BASETYPE_FLOAT);
     color4->setComponent(1, G, RtTypeDef::BASETYPE_FLOAT);
     color4->setComponent(2, B, RtTypeDef::BASETYPE_FLOAT);
     color4->setComponent(3, A, RtTypeDef::BASETYPE_FLOAT);
 
-    RtValueFuncs vector2Funcs = { createValue<Vector2>, copyValue<Vector2>, compareValue<Vector2>, toStringValue<Vector2> , fromStringValue<Vector2> };
+    RtValueFuncs vector2Funcs = { createValue<Vector2>, copyValue<Vector2>, compareValue<Vector2>, toStringValue<Vector2>, fromStringValue<Vector2> };
     RtTypeDef* vector2 = newType(RtType::VECTOR2, RtTypeDef::BASETYPE_FLOAT, vector2Funcs, RtTypeDef::SEMANTIC_VECTOR, 2);
     vector2->setComponent(0, X, RtTypeDef::BASETYPE_FLOAT);
     vector2->setComponent(1, Y, RtTypeDef::BASETYPE_FLOAT);
 
-    RtValueFuncs vector3Funcs = { createValue<Vector3>, copyValue<Vector3>, compareValue<Vector3>, toStringValue<Vector3> , fromStringValue<Vector3> };
+    RtValueFuncs vector3Funcs = { createValue<Vector3>, copyValue<Vector3>, compareValue<Vector3>, toStringValue<Vector3>, fromStringValue<Vector3> };
     RtTypeDef* vector3 = newType(RtType::VECTOR3, RtTypeDef::BASETYPE_FLOAT, vector3Funcs, RtTypeDef::SEMANTIC_VECTOR, 3);
     vector3->setComponent(0, X, RtTypeDef::BASETYPE_FLOAT);
     vector3->setComponent(1, Y, RtTypeDef::BASETYPE_FLOAT);
     vector3->setComponent(2, Z, RtTypeDef::BASETYPE_FLOAT);
 
-    RtValueFuncs vector4Funcs = { createValue<Vector4>, copyValue<Vector4>, compareValue<Vector4>, toStringValue<Vector4> , fromStringValue<Vector4> };
+    RtValueFuncs vector4Funcs = { createValue<Vector4>, copyValue<Vector4>, compareValue<Vector4>, toStringValue<Vector4>, fromStringValue<Vector4> };
     RtTypeDef* vector4 = newType(RtType::VECTOR4, RtTypeDef::BASETYPE_FLOAT, vector4Funcs, RtTypeDef::SEMANTIC_VECTOR, 4);
     vector4->setComponent(0, X, RtTypeDef::BASETYPE_FLOAT);
     vector4->setComponent(1, Y, RtTypeDef::BASETYPE_FLOAT);
     vector4->setComponent(2, Z, RtTypeDef::BASETYPE_FLOAT);
     vector4->setComponent(3, W, RtTypeDef::BASETYPE_FLOAT);
 
-    RtValueFuncs matrix33Funcs = { createValue<Matrix33>, copyValue<Matrix33>, compareValue<Matrix33>, toStringValue<Matrix33> , fromStringValue<Matrix33> };
+    RtValueFuncs matrix33Funcs = { createValue<Matrix33>, copyValue<Matrix33>, compareValue<Matrix33>, toStringValue<Matrix33>, fromStringValue<Matrix33> };
     newType(RtType::MATRIX33, RtTypeDef::BASETYPE_FLOAT, matrix33Funcs, RtTypeDef::SEMANTIC_MATRIX, 9);
 
-    RtValueFuncs matrix44Funcs = { createValue<Matrix44>, copyValue<Matrix44>, compareValue<Matrix44>, toStringValue<Matrix44> , fromStringValue<Matrix44> };
+    RtValueFuncs matrix44Funcs = { createValue<Matrix44>, copyValue<Matrix44>, compareValue<Matrix44>, toStringValue<Matrix44>, fromStringValue<Matrix44> };
     newType(RtType::MATRIX44, RtTypeDef::BASETYPE_FLOAT, matrix44Funcs, RtTypeDef::SEMANTIC_MATRIX, 16);
 
-    RtValueFuncs stringFuncs = { createValue<string>, copyValue<string>, compareValue<string>, toStringValue<string> , fromStringValue<string> };
+    RtValueFuncs stringFuncs = { createValue<string>, copyValue<string>, compareValue<string>, toStringValue<string>, fromStringValue<string> };
     newType(RtType::STRING, RtTypeDef::BASETYPE_STRING, stringFuncs);
     newType(RtType::FILENAME, RtTypeDef::BASETYPE_STRING, stringFuncs, RtTypeDef::SEMANTIC_FILENAME);
 
-    RtValueFuncs tokenFuncs = { createValue<RtString>, copyValue<RtString>, compareValue<RtString>, toStringValue<RtString> , fromStringValue<RtString> };
+    RtValueFuncs tokenFuncs = { createValue<RtString>, copyValue<RtString>, compareValue<RtString>, toStringValue<RtString>, fromStringValue<RtString> };
     newType(RtType::INTERNSTRING, RtTypeDef::BASETYPE_STRING, tokenFuncs);
 
     newType(RtType::INTEGERARRAY, RtTypeDef::BASETYPE_INTEGER, intFuncs, RtTypeDef::SEMANTIC_NONE, 0);
@@ -410,4 +410,4 @@ RtTypeDef* PvtTypeDefRegistry::newType(const RtString& name, const RtString& bas
     return ptr;
 }
 
-}
+MATERIALX_NAMESPACE_END

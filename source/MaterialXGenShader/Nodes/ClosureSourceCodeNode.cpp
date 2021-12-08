@@ -7,8 +7,8 @@
 #include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/GenContext.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr ClosureSourceCodeNode::create()
 {
@@ -17,7 +17,7 @@ ShaderNodeImplPtr ClosureSourceCodeNode::create()
 
 void ClosureSourceCodeNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
+    BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     const ShaderGenerator& shadergen = context.getShaderGenerator();
 
     // Emit calls for any closure dependencies upstream from this node.
@@ -83,7 +83,7 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
         // End function call
         shadergen.emitLineEnd(stage);
     }
-END_SHADER_STAGE(stage, Stage::PIXEL)
+    END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

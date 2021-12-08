@@ -9,8 +9,8 @@
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 RT_DEFINE_RUNTIME_OBJECT(RtPrim, RtObjType::PRIM, "RtPrim")
 
@@ -142,8 +142,6 @@ RtPrimIterator RtPrim::getChildren(RtObjectPredicate predicate) const
     return RtPrimIterator(*this, predicate);
 }
 
-
-
 RtAttributeSpec::RtAttributeSpec() :
     _ptr(new PvtAttributeSpec())
 {
@@ -179,4 +177,4 @@ bool RtAttributeSpec::isExportable() const
     return static_cast<PvtAttributeSpec*>(_ptr)->exportable;
 }
 
-}
+MATERIALX_NAMESPACE_END

@@ -13,8 +13,8 @@
 
 #include <fstream>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 // Statics
 string OslRenderer::OSL_CLOSURE_COLOR_STRING("closure color");
@@ -100,14 +100,13 @@ void OslRenderer::renderOSL(const FilePath& dirPath, const string& shaderName, c
     std::ifstream sceneTemplateStream(_oslTestRenderSceneTemplateFile);
     string sceneTemplateString;
     sceneTemplateString.assign(std::istreambuf_iterator<char>(sceneTemplateStream),
-        std::istreambuf_iterator<char>());
+                               std::istreambuf_iterator<char>());
 
     // Get final output to use in the shader
     const string CLOSURE_PASSTHROUGH_SHADER_STRING("closure_passthrough");
     const string CONSTANT_COLOR_SHADER_STRING("constant_color");
     const string CONSTANT_COLOR_SHADER_PREFIX_STRING("constant_");
-    string outputShader = isColorClosure ? CLOSURE_PASSTHROUGH_SHADER_STRING :
-        (isRemappable ? CONSTANT_COLOR_SHADER_PREFIX_STRING + _oslShaderOutputType : CONSTANT_COLOR_SHADER_STRING);
+    string outputShader = isColorClosure ? CLOSURE_PASSTHROUGH_SHADER_STRING : (isRemappable ? CONSTANT_COLOR_SHADER_PREFIX_STRING + _oslShaderOutputType : CONSTANT_COLOR_SHADER_STRING);
 
     // Perform token replacement
     const string ENVIRONMENT_SHADER_PARAMETER_OVERRIDES("%environment_shader_parameter_overrides%");
@@ -142,7 +141,7 @@ void OslRenderer::renderOSL(const FilePath& dirPath, const string& shaderName, c
     if ((sceneString == sceneTemplateString) || sceneTemplateString.empty())
     {
         throw ExceptionRenderError("Scene template file: " + _oslTestRenderSceneTemplateFile.asString() +
-                                         " does not include proper tokens for rendering");
+                                   " does not include proper tokens for rendering");
     }
 
     // Write scene file
@@ -243,7 +242,7 @@ void OslRenderer::shadeOSL(const FilePath& dirPath, const string& shaderName, co
     StringVec results;
     string line;
     string successfulOutputSubString("Output " + outputName + " to " +
-                                           outputFileName);
+                                     outputFileName);
     while (std::getline(errorStream, line))
     {
         if (!line.empty() &&
@@ -307,7 +306,7 @@ void OslRenderer::compileOSL(const FilePath& oslFilePath)
 
 void OslRenderer::createProgram(const ShaderPtr shader)
 {
-    StageMap stages = { {Stage::PIXEL, shader->getStage(Stage::PIXEL).getSourceCode()} };
+    StageMap stages = { { Stage::PIXEL, shader->getStage(Stage::PIXEL).getSourceCode() } };
     createProgram(stages);
 }
 
@@ -328,7 +327,7 @@ void OslRenderer::createProgram(const StageMap& stages)
 
     // Dump string to disk. For OSL assume shader is in stage 0 slot.
     FilePath filePath(_oslOutputFilePath);
-    filePath = filePath  / _oslShaderName;
+    filePath = filePath / _oslShaderName;
     string fileName = filePath.asString();
     if (fileName.empty())
     {
@@ -406,4 +405,4 @@ ImagePtr OslRenderer::captureImage(ImagePtr)
     return returnImage;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

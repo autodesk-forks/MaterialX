@@ -15,8 +15,8 @@
 
 #include <MaterialXFormat/File.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class RtPath;
 
@@ -26,7 +26,7 @@ class RtPath;
 /// description graph hierarchy.
 class RtStage : public RtSharedBase<RtStage>
 {
-public:
+  public:
     /// Destructor
     ~RtStage();
 
@@ -51,7 +51,7 @@ public:
 
     /// Create a nodedef based on a nodegraph
     RtPrim createNodeDef(RtPrim nodeGraph, const RtString& nodeDefName, const RtString& nodeName,
-                         const RtString& version, bool isDefaultVersion, 
+                         const RtString& version, bool isDefaultVersion,
                          const RtString& nodeGroup = RtString::EMPTY,
                          const RtString& namespaceString = RtString::EMPTY,
                          const string& doc = EMPTY_STRING);
@@ -91,7 +91,7 @@ public:
     /// Remove all references to other stages
     void removeReferences();
 
-protected:
+  protected:
     RtStage();
 
     void setName(const RtString& name);
@@ -107,6 +107,6 @@ protected:
     friend class PvtRemovePrimCmd;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

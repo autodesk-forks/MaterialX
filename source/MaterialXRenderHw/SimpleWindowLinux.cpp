@@ -5,15 +5,15 @@
 
 #if defined(__linux__) || defined(__FreeBSD__)
 
-#include <MaterialXRenderHw/SimpleWindow.h>
+    #include <MaterialXRenderHw/SimpleWindow.h>
 
-#include <X11/StringDefs.h>
-#include <X11/Shell.h> // for applicationShellWidgetClass
-#include <X11/Xlib.h> // for XEvent definition
-#include <X11/Intrinsic.h> // for XtCallbackProc definition
+    #include <X11/StringDefs.h>
+    #include <X11/Shell.h>     // for applicationShellWidgetClass
+    #include <X11/Xlib.h>      // for XEvent definition
+    #include <X11/Intrinsic.h> // for XtCallbackProc definition
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 SimpleWindow::SimpleWindow()
 {
@@ -27,7 +27,7 @@ SimpleWindow::SimpleWindow()
 
 bool SimpleWindow::initialize(const char* title,
                               unsigned int width, unsigned int height,
-                              void *applicationShell)
+                              void* applicationShell)
 {
     int n = 0;
 
@@ -41,8 +41,8 @@ bool SimpleWindow::initialize(const char* title,
         if (!initializedXServer)
         {
             batchShell = XtOpenApplication(&appContext, "__mx_dummy__app__",
-                0, 0, &n, 0, 0,
-                applicationShellWidgetClass, 0, 0);
+                                           0, 0, &n, 0, 0,
+                                           applicationShellWidgetClass, 0, 0);
             initializedXServer = true;
         }
         shell = batchShell;
@@ -50,21 +50,26 @@ bool SimpleWindow::initialize(const char* title,
     else
     {
         // Reuse existing application shell;
-        shell = (Widget)applicationShell;
+        shell = (Widget) applicationShell;
     }
 
     if (!shell)
     {
         _id = 0;
-        return false;;
+        return false;
+        ;
     }
 
     Arg args[6];
     n = 0;
-    XtSetArg(args[n], XtNx, 0); n++;
-    XtSetArg(args[n], XtNy, 0); n++;
-    XtSetArg(args[n], XtNwidth, width); n++;
-    XtSetArg(args[n], XtNheight, height); n++;
+    XtSetArg(args[n], XtNx, 0);
+    n++;
+    XtSetArg(args[n], XtNy, 0);
+    n++;
+    XtSetArg(args[n], XtNwidth, width);
+    n++;
+    XtSetArg(args[n], XtNheight, height);
+    n++;
     Widget widget = XtCreatePopupShell(title, topLevelShellWidgetClass, shell, args, n);
     if (!widget)
     {
@@ -95,6 +100,6 @@ SimpleWindow::~SimpleWindow()
     }
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

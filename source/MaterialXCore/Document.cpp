@@ -10,8 +10,8 @@
 
 #include <mutex>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 const string Document::CMS_ATTRIBUTE = "cms";
 const string Document::CMS_CONFIG_ATTRIBUTE = "cmsconfig";
@@ -173,7 +173,7 @@ void Document::initialize()
 }
 
 NodeDefPtr Document::addNodeDefFromGraph(const NodeGraphPtr nodeGraph, const string& nodeDefName, const string& category,
-                                         const string& version, bool isDefaultVersion, const string& group, 
+                                         const string& version, bool isDefaultVersion, const string& group,
                                          string& newGraphName, const string& namespaceString)
 {
     if (!nodeGraph || nodeDefName.empty() || category.empty())
@@ -184,7 +184,7 @@ NodeDefPtr Document::addNodeDefFromGraph(const NodeGraphPtr nodeGraph, const str
     // Always store nodedef name as fully qualified name
     bool isNameSpaced = !namespaceString.empty();
     string qualifiedNodeDefName = isNameSpaced ? (namespaceString + NAME_PREFIX_SEPARATOR + nodeDefName) : nodeDefName;
-    
+
     if (getNodeDef(qualifiedNodeDefName))
     {
         throw Exception("Cannot create duplicate nodedef: " + qualifiedNodeDefName);
@@ -201,7 +201,7 @@ NodeDefPtr Document::addNodeDefFromGraph(const NodeGraphPtr nodeGraph, const str
         graph->copyContentFrom(nodeGraph);
     }
     graph->setNodeDefString(qualifiedNodeDefName);
-    
+
     NodeDefPtr nodeDef = addChild<NodeDef>(qualifiedNodeDefName);
     nodeDef->setNodeString(category);
     if (!group.empty())
@@ -398,10 +398,10 @@ vector<OutputPtr> Document::getMaterialOutputs() const
     const string documentUri = getSourceUri();
     for (NodeGraphPtr docNodeGraph : getNodeGraphs())
     {
-        // Skip nodegraphs which are either definitions or are from 
+        // Skip nodegraphs which are either definitions or are from
         // an included file
         const string graphUri = docNodeGraph->getSourceUri();
-        if (docNodeGraph->getNodeDef() || (!graphUri.empty() && documentUri != graphUri ))
+        if (docNodeGraph->getNodeDef() || (!graphUri.empty() && documentUri != graphUri))
         {
             continue;
         }
@@ -1491,4 +1491,4 @@ void Document::invalidateCache()
     _cache->valid = false;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

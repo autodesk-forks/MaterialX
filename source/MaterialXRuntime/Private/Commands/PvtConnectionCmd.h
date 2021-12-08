@@ -10,8 +10,8 @@
 
 #include <MaterialXRuntime/RtPort.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtConnectionCmd : public PvtCommand
 {
@@ -20,7 +20,8 @@ class PvtConnectionCmd : public PvtCommand
         _src(src),
         _dest(dest),
         _change(change)
-    {}
+    {
+    }
 
     static PvtCommandPtr create(const RtOutput& src, const RtInput& dest, ConnectionChange change);
 
@@ -30,7 +31,7 @@ class PvtConnectionCmd : public PvtCommand
   private:
     void makeConnection(RtCommandResult& result);
     void breakConnection(RtCommandResult& result);
-    
+
     virtual void updateConnectionProperties(const RtOutput& src, const RtInput& dest, RtCommandResult& result);
 
     RtOutput _src;
@@ -42,8 +43,9 @@ class PvtInterfaceConnectionCmd : public PvtConnectionCmd
 {
   public:
     PvtInterfaceConnectionCmd(const RtOutput& src, const RtInput& dest, ConnectionChange change) :
-        PvtConnectionCmd(src,dest,change)
-    {}
+        PvtConnectionCmd(src, dest, change)
+    {
+    }
 
     static PvtCommandPtr create(const RtOutput& src, const RtInput& dest, ConnectionChange change);
 
@@ -51,6 +53,6 @@ class PvtInterfaceConnectionCmd : public PvtConnectionCmd
     void updateConnectionProperties(const RtOutput& src, const RtInput& dest, RtCommandResult& result) override;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

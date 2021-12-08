@@ -9,13 +9,13 @@
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtTypeDef.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtTypeDef
 {
-public:
-    PvtTypeDef(const RtString& name, const RtString& basetype, const RtValueFuncs& funcs, 
+  public:
+    PvtTypeDef(const RtString& name, const RtString& basetype, const RtValueFuncs& funcs,
                const RtString& semantic, size_t size);
 
     const RtString& getName() const
@@ -87,7 +87,7 @@ public:
         return _connectionTypes;
     }
 
-private:
+  private:
     struct AggregateComponent
     {
         RtString name;
@@ -106,11 +106,11 @@ private:
 
 class PvtTypeDefRegistry
 {
-public:
+  public:
     PvtTypeDefRegistry();
 
     RtTypeDef* newType(const RtString& name, const RtString& basetype, const RtValueFuncs& funcs,
-        const RtString& sematic = RtTypeDef::SEMANTIC_NONE, size_t size = 1);
+                       const RtString& sematic = RtTypeDef::SEMANTIC_NONE, size_t size = 1);
 
     size_t numTypes()
     {
@@ -134,12 +134,12 @@ public:
         return _registry;
     }
 
-private:
+  private:
     using RtTypeDefPtr = std::unique_ptr<RtTypeDef>;
     vector<RtTypeDefPtr> _types;
     RtStringMap<RtTypeDef*> _typesByName;
 };
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

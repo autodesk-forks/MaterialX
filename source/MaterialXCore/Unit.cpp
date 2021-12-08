@@ -7,8 +7,8 @@
 
 #include <MaterialXCore/Util.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
@@ -157,10 +157,10 @@ int LinearUnitConverter::getUnitAsInteger(const string& unitName) const
 string LinearUnitConverter::getUnitFromInteger(int index) const
 {
     auto it = std::find_if(_unitEnumeration.begin(), _unitEnumeration.end(),
-        [&index](const std::pair<string, int> &e)->bool
-        {
-            return (e.second == index);
-        });
+                           [&index](const std::pair<string, int>& e) -> bool
+                           {
+        return (e.second == index);
+    });
 
     if (it != _unitEnumeration.end())
     {
@@ -310,4 +310,4 @@ bool UnitConverterRegistry::convertToUnit(DocumentPtr doc, const string& unitTyp
     return convertedUnits;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

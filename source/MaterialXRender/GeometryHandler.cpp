@@ -10,8 +10,8 @@
 
 #include <limits>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 void GeometryHandler::addLoader(GeometryLoaderPtr loader)
 {
@@ -90,7 +90,7 @@ bool GeometryHandler::loadGeometry(const FilePath& filePath)
 
     bool loaded = false;
 
-    std::pair <GeometryLoaderMap::iterator, GeometryLoaderMap::iterator> range;
+    std::pair<GeometryLoaderMap::iterator, GeometryLoaderMap::iterator> range;
     string extension = filePath.getExtension();
     range = _geometryLoaders.equal_range(extension);
     GeometryLoaderMap::iterator first = --range.second;
@@ -133,10 +133,10 @@ MeshPtr GeometryHandler::createQuadMesh()
 {
     MeshStreamPtr quadPositions = MeshStream::create(HW::IN_POSITION, MeshStream::POSITION_ATTRIBUTE, 0);
     quadPositions->setStride(MeshStream::STRIDE_3D);
-    quadPositions->getData().assign({  1.0f,  1.0f, 0.0f,
-                                       1.0f, -1.0f, 0.0f,
+    quadPositions->getData().assign({ 1.0f, 1.0f, 0.0f,
+                                      1.0f, -1.0f, 0.0f,
                                       -1.0f, -1.0f, 0.0f,
-                                      -1.0f,  1.0f, 0.0f });
+                                      -1.0f, 1.0f, 0.0f });
     MeshStreamPtr quadTexCoords = MeshStream::create(HW::IN_TEXCOORD + "_0", MeshStream::TEXCOORD_ATTRIBUTE, 0);
     quadTexCoords->setStride(MeshStream::STRIDE_2D);
     quadTexCoords->getData().assign({ 1.0f, 1.0f,
@@ -150,8 +150,8 @@ MeshPtr GeometryHandler::createQuadMesh()
     quadMesh->addStream(quadPositions);
     quadMesh->addStream(quadTexCoords);
     quadMesh->addPartition(quadIndices);
-    
+
     return quadMesh;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

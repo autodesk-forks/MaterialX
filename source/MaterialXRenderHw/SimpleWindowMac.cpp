@@ -5,11 +5,11 @@
 
 #if defined(__APPLE__)
 
-#include <MaterialXRenderHw/SimpleWindow.h>
-#include <MaterialXRenderHw/WindowCocoaWrappers.h>
+    #include <MaterialXRenderHw/SimpleWindow.h>
+    #include <MaterialXRenderHw/WindowCocoaWrappers.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 SimpleWindow::SimpleWindow()
 {
@@ -40,6 +40,6 @@ SimpleWindow::~SimpleWindow()
     NSUtilDisposeWindow(hWnd);
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

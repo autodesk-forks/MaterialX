@@ -7,29 +7,28 @@
 
 #include <MaterialXRuntime/Private/PvtPrim.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 namespace
 {
-    // TODO: We should derive this from a data driven XML schema.
-    class PvtBackdropPrimSpec : public PvtPrimSpec
+// TODO: We should derive this from a data driven XML schema.
+class PvtBackdropPrimSpec : public PvtPrimSpec
+{
+  public:
+    PvtBackdropPrimSpec()
     {
-    public:
-        PvtBackdropPrimSpec()
-        {
-            addPrimAttribute(RtString::DOC, RtType::STRING);
-            addPrimAttribute(RtString::XPOS, RtType::FLOAT);
-            addPrimAttribute(RtString::YPOS, RtType::FLOAT);
-            addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
-            addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
-            addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
-            addPrimAttribute(RtString::UINAME, RtType::STRING);
-            addPrimAttribute(RtString::CONTAINS, RtType::STRINGARRAY);
-            addPrimAttribute(RtString::MINIMIZED, RtType::BOOLEAN);
-
-        }
-    };
-}
+        addPrimAttribute(RtString::DOC, RtType::STRING);
+        addPrimAttribute(RtString::XPOS, RtType::FLOAT);
+        addPrimAttribute(RtString::YPOS, RtType::FLOAT);
+        addPrimAttribute(RtString::WIDTH, RtType::INTEGER);
+        addPrimAttribute(RtString::HEIGHT, RtType::INTEGER);
+        addPrimAttribute(RtString::UICOLOR, RtType::COLOR3);
+        addPrimAttribute(RtString::UINAME, RtType::STRING);
+        addPrimAttribute(RtString::CONTAINS, RtType::STRINGARRAY);
+        addPrimAttribute(RtString::MINIMIZED, RtType::BOOLEAN);
+    }
+};
+} // namespace
 
 DEFINE_TYPED_SCHEMA(RtBackdrop, "backdrop");
 
@@ -94,4 +93,4 @@ float RtBackdrop::getHeight() const
     return attr ? attr->asFloat() : 0.0f;
 }
 
-}
+MATERIALX_NAMESPACE_END

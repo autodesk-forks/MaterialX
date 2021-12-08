@@ -15,14 +15,14 @@
 #include <MaterialXRuntime/RtFileIo.h>
 #include <MaterialXRuntime/RtPath.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
-    const RtString DEFAULT_LIBRARY_NAME("default");
-    const string NUMBERS("0123456789");
-}
+const RtString DEFAULT_LIBRARY_NAME("default");
+const string NUMBERS("0123456789");
+} // namespace
 
 void PvtApi::init()
 {
@@ -190,7 +190,7 @@ void PvtApi::setupNodeImplRelationships()
     for (PvtObject* obj : _nodeimpls.vec())
     {
         RtNodeImpl nodeimpl(obj->hnd());
-        PvtObject* nodedefObj  = _nodedefs.find(nodeimpl.getNodeDef());
+        PvtObject* nodedefObj = _nodedefs.find(nodeimpl.getNodeDef());
         if (nodedefObj)
         {
             RtNodeDef nodedef(nodedefObj->hnd());
@@ -245,7 +245,8 @@ RtString PvtApi::makeUniqueStageName(const RtString& name) const
             baseName = baseName.substr(0, n);
         }
         // Iterate until there is no other stage with the resulting name.
-        do {
+        do
+        {
             newName = RtString(baseName + std::to_string(i++));
             otherStage = getStage(newName);
         } while (otherStage);
@@ -254,4 +255,4 @@ RtString PvtApi::makeUniqueStageName(const RtString& name) const
     return newName;
 }
 
-}
+MATERIALX_NAMESPACE_END

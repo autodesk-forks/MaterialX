@@ -7,8 +7,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr TimeNodeGlsl::create()
 {
@@ -24,15 +24,15 @@ void TimeNodeGlsl::createVariables(const ShaderNode&, GenContext&, Shader& shade
 void TimeNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        const ShaderGenerator& shadergen = context.getShaderGenerator();
-        shadergen.emitLineBegin(stage);
-        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        shadergen.emitString(" = " + HW::T_FRAME + " / ", stage);
-        const ShaderInput* fpsInput = node.getInput("fps");
-        const string fps = fpsInput->getValue()->getValueString();
-        shadergen.emitString(fps, stage);
-        shadergen.emitLineEnd(stage);
+    const ShaderGenerator& shadergen = context.getShaderGenerator();
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    shadergen.emitString(" = " + HW::T_FRAME + " / ", stage);
+    const ShaderInput* fpsInput = node.getInput("fps");
+    const string fps = fpsInput->getValue()->getValueString();
+    shadergen.emitString(fps, stage);
+    shadergen.emitLineEnd(stage);
     END_SHADER_STAGE(stage, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

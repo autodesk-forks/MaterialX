@@ -14,14 +14,14 @@
 
 #include <MaterialXGenShader/GenContext.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtCodegenImpl
 /// Base class for all node implementations that use shader code generation.
 class RtCodegenImpl : public RtNodeImpl
 {
-public:
+  public:
     /// Add additional inputs on the node if needed by the implementation.
     virtual void addInputs(const RtNode& node, GenContext& context) const;
 
@@ -35,11 +35,12 @@ public:
     /// Emit the function call or inline source code for given node instance in the given context.
     virtual void emitFunctionCall(const RtNode& node, GenContext& context, ShaderStage& stage) const;
 
-protected:
+  protected:
     /// Constructor.
-    RtCodegenImpl(const RtPrim& prim) : RtNodeImpl(prim) {}
+    RtCodegenImpl(const RtPrim& prim) :
+        RtNodeImpl(prim) { }
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

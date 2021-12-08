@@ -9,8 +9,8 @@
 #include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/Util.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 const string ShaderMetadataRegistry::USER_DATA_NAME = "ShaderMetadataRegistry";
 
@@ -28,9 +28,9 @@ ShaderPort::ShaderPort(ShaderNode* node, const TypeDesc* type, const string& nam
 {
 }
 
-string ShaderPort::getFullName() const 
-{ 
-    return (_node->getName() + "_" + _name); 
+string ShaderPort::getFullName() const
+{
+    return (_node->getName() + "_" + _name);
 }
 
 //
@@ -84,7 +84,6 @@ ShaderNode* ShaderInput::getConnectedSibling() const
     return nullptr;
 }
 
-
 //
 // ShaderOutput methods
 //
@@ -104,10 +103,9 @@ void ShaderOutput::breakConnection(ShaderInput* dst)
     if (std::find(_connections.begin(), _connections.end(), dst) == _connections.end())
     {
         throw ExceptionShaderGenError(
-            "Cannot break non-existent connection from output: " + getFullName()
-            + " to input: " + dst->getFullName());
+            "Cannot break non-existent connection from output: " + getFullName() + " to input: " + dst->getFullName());
     }
-    dst->breakConnection(); 
+    dst->breakConnection();
 }
 
 void ShaderOutput::breakConnections()
@@ -121,17 +119,17 @@ void ShaderOutput::breakConnections()
     if (!_connections.empty())
     {
         throw ExceptionShaderGenError("Number of output connections not broken properly'" + std::to_string(_connections.size()) +
-            " for output: " + getFullName());
+                                      " for output: " + getFullName());
     }
 }
 
 namespace
 {
-    ShaderNodePtr createEmptyNode()
-    {
-        return std::make_shared<ShaderNode>(nullptr, "");
-    }
+ShaderNodePtr createEmptyNode()
+{
+    return std::make_shared<ShaderNode>(nullptr, "");
 }
+} // namespace
 
 const ShaderNodePtr ShaderNode::NONE = createEmptyNode();
 
@@ -193,7 +191,7 @@ void ShaderNode::ScopeInfo::adjustAtConditionalInput(ShaderNode* condNode, int b
     }
 }
 
-void ShaderNode::ScopeInfo::merge(const ScopeInfo &fromScope)
+void ShaderNode::ScopeInfo::merge(const ScopeInfo& fromScope)
 {
     if (type == ScopeInfo::UNKNOWN || fromScope.type == ScopeInfo::GLOBAL)
     {
@@ -201,7 +199,6 @@ void ShaderNode::ScopeInfo::merge(const ScopeInfo &fromScope)
     }
     else if (type == ScopeInfo::GLOBAL)
     {
-
     }
     else if (type == ScopeInfo::SINGLE && fromScope.type == ScopeInfo::SINGLE && conditionalNode == fromScope.conditionalNode)
     {
@@ -233,7 +230,7 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
     if (!newNode->_impl)
     {
         throw ExceptionShaderGenError("Could not find a matching implementation for node '" + nodeDef.getNodeString() +
-            "' matching target '" + shadergen.getTarget() + "'");
+                                      "' matching target '" + shadergen.getTarget() + "'");
     }
 
     // Check for classification based on group name
@@ -592,4 +589,4 @@ ShaderOutput* ShaderNode::addOutput(const string& name, const TypeDesc* type)
     return output.get();
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

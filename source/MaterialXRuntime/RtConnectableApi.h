@@ -13,8 +13,8 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class RtConnectableApi;
 using RtConnectableApiPtr = shared_ptr<RtConnectableApi>;
@@ -23,9 +23,9 @@ using RtConnectableApiPtr = shared_ptr<RtConnectableApi>;
 /// API for validating attribute connections and relationships for a prim type.
 class RtConnectableApi
 {
-public:
+  public:
     /// Destructor.
-    virtual ~RtConnectableApi() {}
+    virtual ~RtConnectableApi() { }
 
     /// Return true if the given input accepts a connection from the given output.
     /// Default implementation accept outputs with a matching datatype. Derived classes
@@ -33,7 +33,7 @@ public:
     virtual bool acceptConnection(const RtInput& input, const RtOutput& output) const;
 
     /// Return true if this relationship accepts the given object as a target.
-    /// Default implementation accept all targets. Derived classes can override 
+    /// Default implementation accept all targets. Derived classes can override
     /// this to change connectability.
     virtual bool acceptRelationship(const RtRelationship& rel, const RtObject& target) const;
 
@@ -44,14 +44,14 @@ public:
     static void unregisterApi(const RtString& typeName);
 
     /// Register a connectable API for a templated prim schema.
-    template<class PrimSchema, class ConnectableApi = RtConnectableApi>
+    template <class PrimSchema, class ConnectableApi = RtConnectableApi>
     inline static void registerApi()
     {
         registerApi(PrimSchema::typeName(), shared_ptr<ConnectableApi>(new ConnectableApi));
     }
 
     /// Unregister a connectable API for a templated prim schema.
-    template<class PrimSchema>
+    template <class PrimSchema>
     inline static void unregisterApi()
     {
         unregisterApi(PrimSchema::typeName());
@@ -61,6 +61,6 @@ public:
     static RtConnectableApi* get(const RtPrim& prim);
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

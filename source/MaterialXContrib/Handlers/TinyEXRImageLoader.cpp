@@ -4,9 +4,9 @@
 //
 
 #if defined(_WIN32)
-#pragma warning( push )
-#pragma warning( disable: 4244)
-#pragma warning( disable: 5208)
+    #pragma warning(push)
+    #pragma warning(disable : 4244)
+    #pragma warning(disable : 5208)
 #endif
 
 #define TINYEXR_IMPLEMENTATION
@@ -17,22 +17,22 @@
 #include <string.h>
 // Max may be defined in a macro so temporariy undef it.
 #ifdef max
-#define max_cache max
-#undef max
+    #define max_cache max
+    #undef max
 #endif
 #include <MaterialXContrib/External/tinyexr/tinyexr.h>
 #ifdef max_cache
-#define max max_cache
+    #define max max_cache
 #endif
 
 #if defined(_WIN32)
-#pragma warning( pop )
+    #pragma warning(pop)
 #endif
 
 #include <MaterialXContrib/Handlers/TinyEXRImageLoader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 bool TinyEXRImageLoader::saveImage(const FilePath& filePath,
                                    ConstImagePtr image,
                                    bool /*verticalFlip*/)
@@ -54,9 +54,9 @@ bool TinyEXRImageLoader::saveImage(const FilePath& filePath,
 
         int saveAsHalf = (baseType == Image::BaseType::HALF) ? 1 : 0;
         returnValue = SaveEXR(static_cast<float*>(image->getResourceBuffer()),
-                                static_cast<int>(image->getWidth()),
-                                static_cast<int>(image->getHeight()), image->getChannelCount(),
-                                saveAsHalf, fileName.c_str());
+                              static_cast<int>(image->getWidth()),
+                              static_cast<int>(image->getHeight()), image->getChannelCount(),
+                              saveAsHalf, fileName.c_str());
     }
     return (returnValue == 0);
 }
@@ -88,10 +88,10 @@ ImagePtr TinyEXRImageLoader::loadImage(const FilePath& filePath)
     ImagePtr image = Image::create(width, height, channelCount, baseType);
     image->setResourceBuffer(buffer);
     image->setResourceBufferDeallocator([](void* buffer)
-    {
+                                        {
         free(buffer);
     });
     return image;
 }
 
-}
+MATERIALX_NAMESPACE_END

@@ -15,8 +15,8 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtNameResolverRegistry;
 
@@ -38,24 +38,25 @@ typedef RtString (*RtNameResolverFunction)(const RtString& str, const RtString& 
 struct RtNameResolverInfo
 {
     /// Element type enumeration
-    enum ElementType {
+    enum ElementType
+    {
         FILENAME_TYPE, /// Filename element type
         GEOMNAME_TYPE  /// Geometry element type
     };
 
     RtNameResolverInfo() = default;
-    RtString identifier {""}; /// Unique identifier for this information
-    ElementType elementType; /// Type of element this resolver applies to
-    RtNameResolverFunction toFunction; /// Resolver function to resolve to MaterialX. Can be null.
-    RtNameResolverFunction fromFunction; /// Resolver function to resolve from MaterialX. Can be null.
-    RtStringMap<RtString> toSubstitutions; /// Custom token substitutions to MaterialX. May be empty.
+    RtString identifier{ "" };               /// Unique identifier for this information
+    ElementType elementType;                 /// Type of element this resolver applies to
+    RtNameResolverFunction toFunction;       /// Resolver function to resolve to MaterialX. Can be null.
+    RtNameResolverFunction fromFunction;     /// Resolver function to resolve from MaterialX. Can be null.
+    RtStringMap<RtString> toSubstitutions;   /// Custom token substitutions to MaterialX. May be empty.
     RtStringMap<RtString> fromSubstitutions; /// Custom token substitutions from MaterialX. May be empty.
 };
 
 /// @class RtNameResolverRegistry
 class RtNameResolverRegistry
 {
-public:
+  public:
     /// Constructor
     static RtNameResolverRegistryPtr createNew();
 
@@ -75,13 +76,13 @@ public:
     /// \param toMaterialX Whether to convert to/from MaterialX
     RtString resolveIdentifier(const RtString& valueToResolve, const RtNameResolverInfo::ElementType elementType, bool toMaterialX = true) const;
 
-private:
+  private:
     RtNameResolverRegistry();
-    
+
     friend class PvtNameResolverRegistry;
     std::unique_ptr<PvtNameResolverRegistry> _nameResolverRegistry;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

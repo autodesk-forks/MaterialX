@@ -8,8 +8,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr SurfaceShaderNodeGlsl::create()
 {
@@ -23,10 +23,10 @@ const string& SurfaceShaderNodeGlsl::getTarget() const
 
 void SurfaceShaderNodeGlsl::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const
 {
-    // TODO: 
-    // The surface shader needs position, view position and light sources. We should solve this by adding some 
-    // dependency mechanism so this implementation can be set to depend on the PositionNodeGlsl,  
-    // ViewDirectionNodeGlsl and LightNodeGlsl nodes instead? This is where the MaterialX attribute "internalgeomprops" 
+    // TODO:
+    // The surface shader needs position, view position and light sources. We should solve this by adding some
+    // dependency mechanism so this implementation can be set to depend on the PositionNodeGlsl,
+    // ViewDirectionNodeGlsl and LightNodeGlsl nodes instead? This is where the MaterialX attribute "internalgeomprops"
     // is needed.
     //
     ShaderStage& vs = shader.getStage(Stage::VERTEX);
@@ -46,19 +46,19 @@ void SurfaceShaderNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext&
     const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
 
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
-        VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        ShaderPort* position = vertexData[HW::T_POSITION_WORLD];
-        if (!position->isEmitted())
-        {
-            position->setEmitted();
-            context.getShaderGenerator().emitLine(prefix + position->getVariable() + " = hPositionWorld.xyz", stage);
-        }
+    VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    ShaderPort* position = vertexData[HW::T_POSITION_WORLD];
+    if (!position->isEmitted())
+    {
+        position->setEmitted();
+        context.getShaderGenerator().emitLine(prefix + position->getVariable() + " = hPositionWorld.xyz", stage);
+    }
     END_SHADER_STAGE(shader, Stage::VERTEX)
 
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        SourceCodeNode::emitFunctionCall(node, context, stage);
+    SourceCodeNode::emitFunctionCall(node, context, stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

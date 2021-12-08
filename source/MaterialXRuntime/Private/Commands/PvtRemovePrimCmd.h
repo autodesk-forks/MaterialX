@@ -12,28 +12,29 @@
 #include <MaterialXRuntime/RtPrim.h>
 #include <MaterialXRuntime/RtPath.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtRemovePrimCmd : public PvtCommandList
 {
-public:
+  public:
     PvtRemovePrimCmd(RtStagePtr stage, const RtPath& path) :
         _stage(stage),
         _path(path)
-    {}
+    {
+    }
 
     static PvtCommandPtr create(RtStagePtr stage, const RtPath& path);
 
     void execute(RtCommandResult& result) override;
     void undo(RtCommandResult& result) override;
 
-private:
+  private:
     RtStagePtr _stage;
     const RtPath _path;
     RtPrim _prim;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

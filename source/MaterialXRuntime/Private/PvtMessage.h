@@ -8,8 +8,8 @@
 
 #include <MaterialXRuntime/RtMessage.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 enum class PvtMessageType
 {
@@ -25,18 +25,20 @@ enum class PvtMessageType
     NUM_TYPES,
 };
 
-template<typename T>
+template <typename T>
 using PvtCallbackIdMap = std::unordered_map<RtCallbackId, T>;
 
-template<PvtMessageType TYPE, typename Callback>
+template <PvtMessageType TYPE, typename Callback>
 struct PvtObserver
 {
     PvtMessageType type;
     Callback callback;
     void* userData;
 
-    PvtObserver() : type(PvtMessageType::NUM_TYPES), callback(nullptr), userData(nullptr) {}
-    PvtObserver(Callback cb, void* data) : type(TYPE), callback(cb), userData(data) {}
+    PvtObserver() :
+        type(PvtMessageType::NUM_TYPES), callback(nullptr), userData(nullptr) { }
+    PvtObserver(Callback cb, void* data) :
+        type(TYPE), callback(cb), userData(data) { }
 };
 
 using PvtCreatePrimObserver = PvtObserver<PvtMessageType::CREATE_PRIM, RtCreatePrimCallbackFunc>;
@@ -51,7 +53,7 @@ using PvtRelationshipObserver = PvtObserver<PvtMessageType::CHANGE_RELATIONSHIP,
 
 class PvtMessageHandler
 {
-public:
+  public:
     PvtMessageHandler();
 
     RtCallbackId addCreatePrimCallback(RtCreatePrimCallbackFunc callback, void* userData = nullptr);
@@ -71,12 +73,12 @@ public:
     void sendRenamePrimMessage(RtStagePtr stage, const RtPrim& prim, const RtString& newName);
     void sendReparentPrimMessage(RtStagePtr stage, const RtPrim& prim, const RtPath& newParentPath);
     void sendSetPortValueMessage(const RtPort& port, const RtValue& value);
-    void sendSetAttributeMessage(const RtObject &obj, const RtString& name, const RtValue& value);
+    void sendSetAttributeMessage(const RtObject& obj, const RtString& name, const RtValue& value);
     void sendRemoveAttributeMessage(const RtObject& obj, const RtString& name);
     void sendConnectionMessage(const RtOutput& src, const RtInput& dest, ConnectionChange change);
     void sendRelationshipMessage(const RtRelationship& rel, const RtObject& target, ConnectionChange change);
 
-private:
+  private:
     RtCallbackId _callbackIdCounter;
 
     // Keep track of the type pf message for each callback id
@@ -94,6 +96,6 @@ private:
     PvtCallbackIdMap<PvtRelationshipObserver> _relationshipObservers;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

@@ -7,8 +7,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr TangentNodeGlsl::create()
 {
@@ -43,45 +43,45 @@ void TangentNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext& conte
     const int space = spaceInput ? spaceInput->getValue()->asA<int>() : OBJECT_SPACE;
 
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
-        VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        if (space == WORLD_SPACE)
+    VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    if (space == WORLD_SPACE)
+    {
+        ShaderPort* tangent = vertexData[HW::T_TANGENT_WORLD];
+        if (!tangent->isEmitted())
         {
-            ShaderPort* tangent = vertexData[HW::T_TANGENT_WORLD];
-            if (!tangent->isEmitted())
-            {
-                tangent->setEmitted();
-                shadergen.emitLine(prefix + tangent->getVariable() + " = (" + HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX + " * vec4(" + HW::T_IN_TANGENT + ",0.0)).xyz", stage);
-            }
+            tangent->setEmitted();
+            shadergen.emitLine(prefix + tangent->getVariable() + " = (" + HW::T_WORLD_INVERSE_TRANSPOSE_MATRIX + " * vec4(" + HW::T_IN_TANGENT + ",0.0)).xyz", stage);
         }
-        else
+    }
+    else
+    {
+        ShaderPort* tangent = vertexData[HW::T_TANGENT_OBJECT];
+        if (!tangent->isEmitted())
         {
-            ShaderPort* tangent = vertexData[HW::T_TANGENT_OBJECT];
-            if (!tangent->isEmitted())
-            {
-                tangent->setEmitted();
-                shadergen.emitLine(prefix + tangent->getVariable() + " = " + HW::T_IN_TANGENT, stage);
-            }
+            tangent->setEmitted();
+            shadergen.emitLine(prefix + tangent->getVariable() + " = " + HW::T_IN_TANGENT, stage);
         }
+    }
     END_SHADER_STAGE(shader, Stage::VERTEX)
 
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        shadergen.emitLineBegin(stage);
-        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        if (space == WORLD_SPACE)
-        {
-            const ShaderPort* tangent = vertexData[HW::T_TANGENT_WORLD];
-            shadergen.emitString(" = normalize(" + prefix + tangent->getVariable() + ")", stage);
-        }
-        else
-        {
-            const ShaderPort* tangent = vertexData[HW::T_TANGENT_OBJECT];
-            shadergen.emitString(" = normalize(" + prefix + tangent->getVariable() + ")", stage);
-        }
-        shadergen.emitLineEnd(stage);
+    VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    if (space == WORLD_SPACE)
+    {
+        const ShaderPort* tangent = vertexData[HW::T_TANGENT_WORLD];
+        shadergen.emitString(" = normalize(" + prefix + tangent->getVariable() + ")", stage);
+    }
+    else
+    {
+        const ShaderPort* tangent = vertexData[HW::T_TANGENT_OBJECT];
+        shadergen.emitString(" = normalize(" + prefix + tangent->getVariable() + ")", stage);
+    }
+    shadergen.emitLineEnd(stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

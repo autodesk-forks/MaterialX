@@ -15,8 +15,8 @@
 
 #include <unordered_set>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class ShaderGenerator;
 
@@ -50,9 +50,9 @@ MX_GENSHADER_API bool elementRequiresShading(ConstTypedElementPtr element);
 /// @param doc Document to examine
 /// @param elements List of renderable elements (returned)
 /// @param includeReferencedGraphs Whether to check for outputs on referenced graphs
-/// @param processedSources List of elements examined. 
+/// @param processedSources List of elements examined.
 MX_GENSHADER_API void findRenderableMaterialNodes(ConstDocumentPtr doc,
-                                                  vector<TypedElementPtr>& elements, 
+                                                  vector<TypedElementPtr>& elements,
                                                   bool includeReferencedGraphs,
                                                   std::unordered_set<ElementPtr>& processedSources);
 
@@ -89,10 +89,10 @@ MX_GENSHADER_API NodePtr connectsToWorldSpaceNode(OutputPtr output);
 
 /// Returns true if there is are any value elements with a given set of attributes either on the
 /// starting node or any graph upsstream of that node.
-/// @param output Starting node 
+/// @param output Starting node
 /// @param attributes Attributes to test for
 MX_GENSHADER_API bool hasElementAttributes(OutputPtr output, const StringVec& attributes);
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif

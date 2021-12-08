@@ -11,18 +11,17 @@
 #include <MaterialXGenOgsXml/Export.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class MX_GENOGSXML_API OgsXmlGenerator
 {
-public:
+  public:
     /// Generate OSG XML for the given shader fragments, output to the given stream.
     static string generate(
         const string& shaderName,
         const Shader& glslShader,
-        const std::string& hlslSource
-    );
+        const std::string& hlslSource);
 
     /// Generate light rig graph for the given shader fragments, output to the given stream.
     static string generateLightRig(
@@ -42,11 +41,11 @@ public:
     static bool useLightAPIV2();
     static void setUseLightAPIV2(bool);
 
-private:
+  private:
     static const string SAMPLER_SUFFIX;
     static bool sUseLightAPIV2;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

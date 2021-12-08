@@ -17,8 +17,8 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 const RtTypeInfo PvtStage::RootPrim::_typeInfo("stagerootprim");
 
@@ -121,7 +121,7 @@ void PvtStage::disposePrim(const PvtPath& path)
     }
 
     // Make sure the prim has no connections.
-    for (size_t i=0; i<prim->numInputs(); ++i)
+    for (size_t i = 0; i < prim->numInputs(); ++i)
     {
         const PvtInput* port = prim->getInput(i);
         if (port->isConnected())
@@ -310,7 +310,6 @@ RtStagePtr PvtStage::getReference(const RtString& name) const
     return nullptr;
 }
 
-
 PvtStageIterator& PvtStageIterator::operator++()
 {
     while (true)
@@ -361,4 +360,4 @@ PvtStageIterator& PvtStageIterator::operator++()
     return *this;
 }
 
-}
+MATERIALX_NAMESPACE_END

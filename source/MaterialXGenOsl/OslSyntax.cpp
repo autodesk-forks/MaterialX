@@ -9,18 +9,19 @@
 
 #include <sstream>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace
 {
 
 class OslBooleanTypeSyntax : public ScalarTypeSyntax
 {
-public:
+  public:
     OslBooleanTypeSyntax() :
         ScalarTypeSyntax("int", "0", "0", EMPTY_STRING, "#define true 1\n#define false 0")
-    {}
+    {
+    }
 
     string getValue(const Value& value, bool /*uniform*/) const override
     {
@@ -38,7 +39,8 @@ class OslArrayTypeSyntax : public ScalarTypeSyntax
   public:
     OslArrayTypeSyntax(const string& name) :
         ScalarTypeSyntax(name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
-    {}
+    {
+    }
 
     string getValue(const Value& value, bool uniform) const override
     {
@@ -62,7 +64,7 @@ class OslArrayTypeSyntax : public ScalarTypeSyntax
         }
 
         string result = "{" + values[0];
-        for (size_t i = 1; i<values.size(); ++i)
+        for (size_t i = 1; i < values.size(); ++i)
         {
             result += ", " + values[i];
         }
@@ -80,7 +82,8 @@ class OslFloatArrayTypeSyntax : public OslArrayTypeSyntax
   public:
     explicit OslFloatArrayTypeSyntax(const string& name) :
         OslArrayTypeSyntax(name)
-    {}
+    {
+    }
 
   protected:
     bool isEmpty(const Value& value) const override
@@ -95,7 +98,8 @@ class OslIntegerArrayTypeSyntax : public OslArrayTypeSyntax
   public:
     explicit OslIntegerArrayTypeSyntax(const string& name) :
         OslArrayTypeSyntax(name)
-    {}
+    {
+    }
 
   protected:
     bool isEmpty(const Value& value) const override
@@ -114,7 +118,8 @@ class OslStructTypeSyntax : public AggregateTypeSyntax
                         const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
                         const StringVec& members = EMPTY_MEMBERS) :
         AggregateTypeSyntax(name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
-    {}
+    {
+    }
 
     string getValue(const Value& value, bool uniform) const override
     {
@@ -136,7 +141,7 @@ class OslStructTypeSyntax : public AggregateTypeSyntax
         }
 
         string result = uniform ? "{" : getName() + "(" + values[0];
-        for (size_t i = 1; i<values.size(); ++i)
+        for (size_t i = 1; i < values.size(); ++i)
         {
             result += ", " + values[i];
         }
@@ -158,7 +163,8 @@ class OslColor4TypeSyntax : public OslStructTypeSyntax
   public:
     OslColor4TypeSyntax() :
         OslStructTypeSyntax("color4", "color4(color(0.0), 0.0)", "{color(0.0), 0.0}", EMPTY_STRING, EMPTY_STRING, OslSyntax::COLOR4_MEMBERS)
-    {}
+    {
+    }
 
     string getValue(const Value& value, bool uniform) const override
     {
@@ -167,9 +173,8 @@ class OslColor4TypeSyntax : public OslStructTypeSyntax
         // Set float format and precision for the stream
         const Value::FloatFormat fmt = Value::getFloatFormat();
         ss.setf(std::ios_base::fmtflags(
-            (fmt == Value::FloatFormatFixed ? std::ios_base::fixed :
-            (fmt == Value::FloatFormatScientific ? std::ios_base::scientific : 0))),
-            std::ios_base::floatfield);
+                    (fmt == Value::FloatFormatFixed ? std::ios_base::fixed : (fmt == Value::FloatFormatScientific ? std::ios_base::scientific : 0))),
+                std::ios_base::floatfield);
         ss.precision(Value::getFloatPrecision());
 
         const Color4 c = value.asA<Color4>();
@@ -211,7 +216,8 @@ class OSLMatrix3TypeSyntax : public AggregateTypeSyntax
                          const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
                          const StringVec& members = EMPTY_MEMBERS) :
         AggregateTypeSyntax(name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
-    {}
+    {
+    }
 
     string getValue(const Value& value, bool uniform) const
     {
@@ -231,12 +237,13 @@ class OSLMatrix3TypeSyntax : public AggregateTypeSyntax
         // using Value::setFloatFormat() and Value::setFloatPrecision()
         StringStream ss;
         ss << getName() << "(";
-        for (size_t i = 0; i<values.size(); i++)
+        for (size_t i = 0; i < values.size(); i++)
         {
             ss << values[i] << ", ";
-            if ((i+1) % 3 == 0)
+            if ((i + 1) % 3 == 0)
             {
-                ss << "0.000" << ", ";
+                ss << "0.000"
+                   << ", ";
             }
         }
         static string ROW_4("0.000, 0.000, 0.000, 1.000");
@@ -250,10 +257,10 @@ class OSLMatrix3TypeSyntax : public AggregateTypeSyntax
 
 const string OslSyntax::OUTPUT_QUALIFIER = "output";
 const string OslSyntax::SOURCE_FILE_EXTENSION = ".osl";
-const StringVec OslSyntax::VECTOR_MEMBERS  = { "[0]", "[1]", "[2]" };
+const StringVec OslSyntax::VECTOR_MEMBERS = { "[0]", "[1]", "[2]" };
 const StringVec OslSyntax::VECTOR2_MEMBERS = { ".x", ".y" };
 const StringVec OslSyntax::VECTOR4_MEMBERS = { ".x", ".y", ".z", ".w" };
-const StringVec OslSyntax::COLOR4_MEMBERS  = { ".rgb[0]", ".rgb[1]", ".rgb[2]", ".a" };
+const StringVec OslSyntax::COLOR4_MEMBERS = { ".rgb[0]", ".rgb[1]", ".rgb[2]", ".a" };
 
 //
 // OslSyntax methods
@@ -263,64 +270,51 @@ OslSyntax::OslSyntax()
 {
     // Add in all reserved words and keywords in OSL
     registerReservedWords(
-    {
-        "and", "break", "closure", "color", "continue", "do", "else", "emit", "float", "for", "if", "illuminance",
-        "illuminate", "int", "matrix", "normal", "not", "or", "output", "point", "public", "return", "string",
-        "struct", "vector", "void", "while",
-        "bool", "case", "catch", "char", "class", "const", "delete", "default", "double", "enum", "extern",
-        "false", "friend", "goto", "inline", "long", "new", "operator", "private", "protected", "short",
-        "signed", "sizeof", "static", "switch", "template", "this", "throw", "true", "try", "typedef", "uniform",
-        "union", "unsigned", "varying", "virtual", "volatile",
-        "emission", "background", "diffuse", "oren_nayer", "translucent", "phong", "ward", "microfacet",
-        "reflection", "transparent", "debug", "holdout", "subsurface", 
-        // TODO: Add all OSL standard library functions names
-        "mix", "rotate"
-    });
+        { "and", "break", "closure", "color", "continue", "do", "else", "emit", "float", "for", "if", "illuminance",
+          "illuminate", "int", "matrix", "normal", "not", "or", "output", "point", "public", "return", "string",
+          "struct", "vector", "void", "while",
+          "bool", "case", "catch", "char", "class", "const", "delete", "default", "double", "enum", "extern",
+          "false", "friend", "goto", "inline", "long", "new", "operator", "private", "protected", "short",
+          "signed", "sizeof", "static", "switch", "template", "this", "throw", "true", "try", "typedef", "uniform",
+          "union", "unsigned", "varying", "virtual", "volatile",
+          "emission", "background", "diffuse", "oren_nayer", "translucent", "phong", "ward", "microfacet",
+          "reflection", "transparent", "debug", "holdout", "subsurface",
+          // TODO: Add all OSL standard library functions names
+          "mix", "rotate" });
 
     //
     // Register type syntax handlers for each data type.
     //
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::FLOAT,
         std::make_shared<ScalarTypeSyntax>(
             "float",
             "0.0",
-            "0.0")
-    );
+            "0.0"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::FLOATARRAY,
         std::make_shared<OslFloatArrayTypeSyntax>(
-            "float")
-    );
+            "float"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::INTEGER,
         std::make_shared<ScalarTypeSyntax>(
             "int",
             "0",
-            "0")
-    );
+            "0"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::INTEGERARRAY,
         std::make_shared<OslIntegerArrayTypeSyntax>(
-            "int")
-    );
+            "int"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::BOOLEAN,
-        std::make_shared<OslBooleanTypeSyntax>()
-    );
+        std::make_shared<OslBooleanTypeSyntax>());
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         // Note: the color type in OSL is a built in type and
         // should not use the custom OslStructTypeSyntax.
         Type::COLOR3,
@@ -330,17 +324,13 @@ OslSyntax::OslSyntax()
             "color(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
-            VECTOR_MEMBERS)
-    );
+            VECTOR_MEMBERS));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::COLOR4,
-        std::make_shared<OslColor4TypeSyntax>()
-    );
+        std::make_shared<OslColor4TypeSyntax>());
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::VECTOR2,
         std::make_shared<OslStructTypeSyntax>(
             "vector2",
@@ -348,11 +338,9 @@ OslSyntax::OslSyntax()
             "{0.0, 0.0}",
             EMPTY_STRING,
             EMPTY_STRING,
-            VECTOR2_MEMBERS)
-    );
+            VECTOR2_MEMBERS));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         // Note: the vector type in OSL is a built in type and
         // should not use the custom OslStructTypeSyntax.
         Type::VECTOR3,
@@ -362,11 +350,9 @@ OslSyntax::OslSyntax()
             "vector(0.0)",
             EMPTY_STRING,
             EMPTY_STRING,
-            VECTOR_MEMBERS)
-    );
+            VECTOR_MEMBERS));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::VECTOR4,
         std::make_shared<OslStructTypeSyntax>(
             "vector4",
@@ -374,115 +360,92 @@ OslSyntax::OslSyntax()
             "{0.0, 0.0, 0.0, 0.0}",
             EMPTY_STRING,
             EMPTY_STRING,
-            VECTOR4_MEMBERS)
-    );
+            VECTOR4_MEMBERS));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::MATRIX33,
         std::make_shared<OSLMatrix3TypeSyntax>(
             "matrix",
             "matrix(1.0)",
-            "matrix(1.0)")
-    );
+            "matrix(1.0)"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::MATRIX44,
         std::make_shared<AggregateTypeSyntax>(
             "matrix",
             "matrix(1.0)",
-            "matrix(1.0)")
-    );
+            "matrix(1.0)"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::STRING,
         std::make_shared<StringTypeSyntax>(
             "string",
             "\"\"",
-            "\"\"")
-    );
+            "\"\""));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::FILENAME,
         std::make_shared<StringTypeSyntax>(
             "string",
             "\"\"",
-            "\"\"")
-    );
+            "\"\""));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::BSDF,
         std::make_shared<AggregateTypeSyntax>(
             "BSDF",
             "BSDF(null_closure, color(1.0), 0.0, 0.0)",
             "{ 0, color(1.0), 0.0, 0.0 }",
             EMPTY_STRING,
-            "struct BSDF { closure color response; color throughput; float thickness; float ior; };")
-    );
+            "struct BSDF { closure color response; color throughput; float thickness; float ior; };"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::EDF,
         std::make_shared<ScalarTypeSyntax>(
             "EDF",
             "null_closure",
             "0",
-            "closure color")
-    );
+            "closure color"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::VDF,
         std::make_shared<ScalarTypeSyntax>(
             "VDF",
             "null_closure",
             "0",
-            "closure color")
-    );
+            "closure color"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::SURFACESHADER,
         std::make_shared<ScalarTypeSyntax>(
             "surfaceshader",
             "null_closure",
             "0",
-            "closure color")
-    );
+            "closure color"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::VOLUMESHADER,
         std::make_shared<ScalarTypeSyntax>(
             "volumeshader",
             "null_closure",
             "0",
-            "closure color")
-    );
+            "closure color"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::DISPLACEMENTSHADER,
         std::make_shared<ScalarTypeSyntax>(
             "displacementshader",
             "vector(0.0)",
             "vector(0.0)",
-            "vector")
-    );
+            "vector"));
 
-    registerTypeSyntax
-    (
+    registerTypeSyntax(
         Type::LIGHTSHADER,
         std::make_shared<ScalarTypeSyntax>(
             "lightshader",
             "null_closure",
             "0",
-            "closure color")
-    );
+            "closure color"));
 }
 
 const string& OslSyntax::getOutputQualifier() const
@@ -490,4 +453,4 @@ const string& OslSyntax::getOutputQualifier() const
     return OUTPUT_QUALIFIER;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

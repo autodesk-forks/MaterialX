@@ -11,8 +11,8 @@
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class ScalarUnitNode : public ShaderNodeImpl
 {
@@ -50,7 +50,7 @@ void ScalarUnitNode::initialize(const InterfaceElement& element, GenContext& /*c
 
 void ScalarUnitNode::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
+    BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     // Emit the helper funtion mx_<unittype>_unit_ratio that embeds a look up table for unit scale
     vector<float> unitScales;
     unitScales.reserve(_scalarUnitConverter->getUnitScale().size());
@@ -69,9 +69,9 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
 
     const ShaderGenerator& shadergen = context.getShaderGenerator();
     shadergen.emitLine("float " + _unitRatioFunctionName + "(int unit_from, int unit_to)", stage, false);
-    shadergen.emitFunctionBodyBegin(node, context, stage);  
+    shadergen.emitFunctionBodyBegin(node, context, stage);
     shadergen.emitVariableDeclarations(unitLUT, shadergen.getSyntax().getConstantQualifier(), ";", context, stage, true);
-    shadergen.emitLine("return ("+ VAR_UNIT_SCALE + "[unit_from] / " + VAR_UNIT_SCALE + "[unit_to])", stage);
+    shadergen.emitLine("return (" + VAR_UNIT_SCALE + "[unit_from] / " + VAR_UNIT_SCALE + "[unit_to])", stage);
     shadergen.emitFunctionBodyEnd(node, context, stage);
 
     END_SHADER_STAGE(shader, Stage::PIXEL)
@@ -79,7 +79,7 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
 
 void ScalarUnitNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
-BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
+    BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     const ShaderGenerator& shadergen = context.getShaderGenerator();
 
     const ShaderInput* in = node.getInput(0);
@@ -97,7 +97,7 @@ BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
     shadergen.emitInput(to, context, stage);
     shadergen.emitString(")", stage);
     shadergen.emitLineEnd(stage);
-END_SHADER_STAGE(shader, Stage::PIXEL)
+    END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
 //
@@ -105,10 +105,10 @@ END_SHADER_STAGE(shader, Stage::PIXEL)
 //
 
 UnitTransform::UnitTransform(const string& ss, const string& ts, const TypeDesc* t, const string& unittype) :
-                             sourceUnit(ss),
-                             targetUnit(ts),
-                             type(t),
-                             unitType(unittype)
+    sourceUnit(ss),
+    targetUnit(ts),
+    type(t),
+    unitType(unittype)
 {
     if (type != Type::FLOAT && type != Type::VECTOR2 && type != Type::VECTOR3 && type != Type::VECTOR4)
     {
@@ -258,4 +258,4 @@ ShaderNodePtr UnitSystem::createNode(ShaderGraph* parent, const UnitTransform& t
     return shaderNode;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

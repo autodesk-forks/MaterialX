@@ -12,8 +12,8 @@
 #include <MaterialXRuntime/Library.h>
 #include <MaterialXRuntime/RtObject.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtPrim;
 class RtPrim;
@@ -24,14 +24,15 @@ struct RtAttribute
 {
     RtString name;
     RtTypedValue* value;
-    RtAttribute(RtString n, RtTypedValue* v) : name(n), value(v) {}
+    RtAttribute(RtString n, RtTypedValue* v) :
+        name(n), value(v) { }
 };
 
 /// @class RtAttributeIterator
 /// API for iterating over all attributes on an object.
 class RtAttributeIterator
 {
-public:
+  public:
     /// Empty constructor.
     RtAttributeIterator();
 
@@ -79,13 +80,12 @@ public:
     /// Return the sentinel end iterator for this class.
     static const RtAttributeIterator& end();
 
-private:
+  private:
     void* _ptr;
 };
 
-
 /// Traversal predicate for specific object types.
-template<typename T>
+template <typename T>
 struct RtObjTypePredicate
 {
     bool operator()(const RtObject& obj)
@@ -96,16 +96,17 @@ struct RtObjTypePredicate
 
 /// @class RtObjectIterator
 /// Base class for objects iterators.
-template<class T>
+template <class T>
 class RtObjectIterator
 {
-public:
+  public:
     /// Copy constructor.
     RtObjectIterator(const RtObjectIterator& other) :
         _ptr(other._ptr),
         _current(other._current),
         _predicate(other._predicate)
-    {}
+    {
+    }
 
     /// Assignment operator.
     RtObjectIterator& operator=(const RtObjectIterator& other)
@@ -120,7 +121,7 @@ public:
     bool operator==(const RtObjectIterator& other) const
     {
         return _current == other._current &&
-            _ptr == other._ptr;
+               _ptr == other._ptr;
     }
 
     /// Inequality operator.
@@ -154,13 +155,14 @@ public:
     /// Return the sentinel end iterator for this class.
     static const RtObjectIterator& end();
 
-protected:
+  protected:
     /// Empty constructor.
     RtObjectIterator(RtObjectPredicate predicate = nullptr) :
         _ptr(nullptr),
         _current(-1),
         _predicate(predicate)
-    {}
+    {
+    }
 
     void* _ptr;
     int _current;
@@ -169,34 +171,33 @@ protected:
 
 class RtPrimIterator : public RtObjectIterator<RtPrim>
 {
-public:
+  public:
     RtPrimIterator(const RtObject& obj, RtObjectPredicate predicate = nullptr);
 };
 
 class RtInputIterator : public RtObjectIterator<RtInput>
 {
-public:
+  public:
     RtInputIterator(const RtObject& obj);
 };
 
 class RtOutputIterator : public RtObjectIterator<RtOutput>
 {
-public:
+  public:
     RtOutputIterator(const RtObject& obj);
 };
 
 class RtRelationshipIterator : public RtObjectIterator<RtRelationship>
 {
-public:
+  public:
     RtRelationshipIterator(const RtObject& obj);
 };
-
 
 /// @class RtConnectionIterator
 /// API for iterating over connections on an output or relationship.
 class RtConnectionIterator
 {
-public:
+  public:
     /// Empty constructor.
     RtConnectionIterator();
 
@@ -204,10 +205,11 @@ public:
     RtConnectionIterator(const RtObject& obj);
 
     /// Copy constructor.
-    RtConnectionIterator(const RtConnectionIterator& other):
+    RtConnectionIterator(const RtConnectionIterator& other) :
         _ptr(other._ptr),
         _current(other._current)
-    {}
+    {
+    }
 
     /// Assignment operator.
     RtConnectionIterator& operator=(const RtConnectionIterator& other)
@@ -221,7 +223,7 @@ public:
     bool operator==(const RtConnectionIterator& other) const
     {
         return _current == other._current &&
-            _ptr == other._ptr;
+               _ptr == other._ptr;
     }
 
     /// Inequality operator.
@@ -256,11 +258,10 @@ public:
     /// Return the sentinel end iterator for this class.
     static const RtConnectionIterator& end();
 
-private:
+  private:
     void* _ptr;
     int _current;
 };
-
 
 /// @class RtStageIterator
 /// API for iterating over prims in a stage, including referenced stages.
@@ -269,7 +270,7 @@ private:
 /// prims supporting a specific API, etc.
 class RtStageIterator
 {
-public:
+  public:
     /// Empty constructor.
     RtStageIterator();
 
@@ -318,10 +319,10 @@ public:
     /// Return the sentinel end iterator for this class.
     static const RtStageIterator& end();
 
-private:
+  private:
     void* _ptr;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

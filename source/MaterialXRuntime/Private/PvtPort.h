@@ -18,14 +18,14 @@
 /// @file
 /// TODO: Docs
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 class PvtPort : public PvtObject
 {
     RT_DECLARE_RUNTIME_OBJECT(PvtPort)
 
-public:
+  public:
     const RtString& getType() const
     {
         return _value.getType();
@@ -84,7 +84,7 @@ public:
     void setIsToken(bool value)
     {
         _flags = value ? (_flags | RtPortFlag::TOKEN) : (_flags & ~RtPortFlag::TOKEN);
-    }    
+    }
 
     const RtString& getColorSpace() const
     {
@@ -98,13 +98,12 @@ public:
         attr->asInternString() = colorspace;
     }
 
-protected:
+  protected:
     PvtPort(const RtString& name, const RtString& type, uint32_t flags, PvtPrim* parent);
 
     RtTypedValue _value;
     uint32_t _flags;
 };
-
 
 class PvtOutput;
 
@@ -112,7 +111,7 @@ class PvtInput : public PvtPort
 {
     RT_DECLARE_RUNTIME_OBJECT(PvtInput)
 
-public:
+  public:
     PvtInput(const RtString& name, const RtString& type, uint32_t flags, PvtPrim* parent);
 
     bool isUIVisible() const
@@ -175,17 +174,16 @@ public:
 
     void clearConnection();
 
-protected:
+  protected:
     PvtObjHandle _connection;
     friend class PvtOutput;
 };
-
 
 class PvtOutput : public PvtPort
 {
     RT_DECLARE_RUNTIME_OBJECT(PvtOutput)
 
-public:
+  public:
     PvtOutput(const RtString& name, const RtString& type, uint32_t flags, PvtPrim* parent);
 
     bool isConnectable(const PvtInput* input) const
@@ -225,14 +223,14 @@ public:
 
     void clearConnections();
 
-protected:
+  protected:
     PvtObjHandleVec _connections;
 
     friend class PvtInput;
     friend class RtInputIterator;
-    friend class RtConnectionIterator;  
+    friend class RtConnectionIterator;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

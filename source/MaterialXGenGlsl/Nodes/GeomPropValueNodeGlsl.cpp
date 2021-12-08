@@ -7,8 +7,8 @@
 
 #include <MaterialXGenShader/Shader.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 ShaderNodeImplPtr GeomPropValueNodeGlsl::create()
 {
@@ -45,24 +45,24 @@ void GeomPropValueNodeGlsl::emitFunctionCall(const ShaderNode& node, GenContext&
     const string variable = HW::T_IN_GEOMPROP + "_" + geomname;
 
     BEGIN_SHADER_STAGE(stage, Stage::VERTEX)
-        VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        ShaderPort* geomprop = vertexData[variable];
-        if (!geomprop->isEmitted())
-        {
-            shadergen.emitLine(prefix + geomprop->getVariable() + " = " + HW::T_IN_GEOMPROP + "_" + geomname, stage);
-            geomprop->setEmitted();
-        }
+    VariableBlock& vertexData = stage.getOutputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    ShaderPort* geomprop = vertexData[variable];
+    if (!geomprop->isEmitted())
+    {
+        shadergen.emitLine(prefix + geomprop->getVariable() + " = " + HW::T_IN_GEOMPROP + "_" + geomname, stage);
+        geomprop->setEmitted();
+    }
     END_SHADER_STAGE(shader, Stage::VERTEX)
 
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
-        const string prefix = shadergen.getVertexDataPrefix(vertexData);
-        ShaderPort* geomprop = vertexData[variable];
-            shadergen.emitLineBegin(stage);
-        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        shadergen.emitString(" = " + prefix + geomprop->getVariable(), stage);
-        shadergen.emitLineEnd(stage);
+    VariableBlock& vertexData = stage.getInputBlock(HW::VERTEX_DATA);
+    const string prefix = shadergen.getVertexDataPrefix(vertexData);
+    ShaderPort* geomprop = vertexData[variable];
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    shadergen.emitString(" = " + prefix + geomprop->getVariable(), stage);
+    shadergen.emitLineEnd(stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
@@ -87,18 +87,18 @@ void GeomPropValueNodeGlslAsUniform::createVariables(const ShaderNode& node, Gen
 void GeomPropValueNodeGlslAsUniform::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        const ShaderGenerator& shadergen = context.getShaderGenerator();
-        const ShaderInput* geomPropInput = node.getInput(GEOMPROP);
-        if (!geomPropInput)
-        {
-            throw ExceptionShaderGenError("No 'geomprop' parameter found on geompropvalue node '" + node.getName() + "'. Don't know what property to bind");
-        }
-        const string attrName = geomPropInput->getValue()->getValueString();
-        shadergen.emitLineBegin(stage);
-        shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        shadergen.emitString(" = " + HW::T_GEOMPROP + "_" + attrName, stage);
-        shadergen.emitLineEnd(stage);
+    const ShaderGenerator& shadergen = context.getShaderGenerator();
+    const ShaderInput* geomPropInput = node.getInput(GEOMPROP);
+    if (!geomPropInput)
+    {
+        throw ExceptionShaderGenError("No 'geomprop' parameter found on geompropvalue node '" + node.getName() + "'. Don't know what property to bind");
+    }
+    const string attrName = geomPropInput->getValue()->getValueString();
+    shadergen.emitLineBegin(stage);
+    shadergen.emitOutput(node.getOutput(), true, false, context, stage);
+    shadergen.emitString(" = " + HW::T_GEOMPROP + "_" + attrName, stage);
+    shadergen.emitLineEnd(stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

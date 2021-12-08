@@ -11,8 +11,8 @@
 
 #include <MaterialXRuntime/RtSchema.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 /// @class RtTargetDef
 /// Schemas for targetdef prims, handling the definition of an implementation target.
@@ -20,9 +20,10 @@ class RtTargetDef : public RtTypedSchema
 {
     DECLARE_TYPED_SCHEMA(RtNodeImpl)
 
-public:
+  public:
     /// Constructor.
-    RtTargetDef(const RtPrim& prim) : RtTypedSchema(prim) {}
+    RtTargetDef(const RtPrim& prim) :
+        RtTypedSchema(prim) { }
 
     /// Set the name of another targetdef this target inherits from.
     void setInherit(const RtString& inherit);
@@ -35,6 +36,6 @@ public:
     bool isMatching(const RtString& target) const;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

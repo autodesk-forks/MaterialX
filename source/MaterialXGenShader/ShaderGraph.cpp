@@ -12,8 +12,8 @@
 #include <iostream>
 #include <queue>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 //
 // ShaderGraph methods
@@ -82,8 +82,7 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
     NodePtr upstreamNode = upstreamElement->asA<Node>();
     if (!upstreamNode)
     {
-        throw ExceptionShaderGenError("Upstream element to connect is not a node '" 
-            + upstreamElement->getName() + "'");
+        throw ExceptionShaderGenError("Upstream element to connect is not a node '" + upstreamElement->getName() + "'");
     }
     const string& newNodeName = upstreamNode->getName();
     ShaderNode* newNode = getNode(newNodeName);
@@ -110,7 +109,7 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
     if (!output)
     {
         throw ExceptionShaderGenError("Could not find an output named '" + (nodeDefOutput ? nodeDefOutput->getName() : string("out")) +
-            "' on upstream node '" + upstreamNode->getName() + "'");
+                                      "' on upstream node '" + upstreamNode->getName() + "'");
     }
 
     // Check if it was a node downstream
@@ -125,7 +124,7 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
             if (!input)
             {
                 throw ExceptionShaderGenError("Could not find an input named '" + connectingElement->getName() +
-                    "' on downstream node '" + downstream->getName() + "'");
+                                              "' on downstream node '" + downstream->getName() + "'");
             }
             input->makeConnection(output);
         }
@@ -202,7 +201,7 @@ void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geom
         if (!geomNodeDef)
         {
             throw ExceptionShaderGenError("Could not find a nodedef named '" + geomNodeDefName +
-                "' for defaultgeomprop on input '" + input->getFullName() + "'");
+                                          "' for defaultgeomprop on input '" + input->getFullName() + "'");
         }
 
         ShaderNodePtr geomNode = ShaderNode::create(this, geomNodeName, *geomNodeDef, context);
@@ -423,8 +422,7 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
     }
     if (!node->hasExactInputMatch(nodeDef, &message))
     {
-        std::cerr << "Nodedef " << nodeDef->getName() << " is not an exact match for shader node '" << node->getName() <<
-                     " (" << message << ")" << std::endl;
+        std::cerr << "Nodedef " << nodeDef->getName() << " is not an exact match for shader node '" << node->getName() << " (" << message << ")" << std::endl;
     }
 
     ShaderGraphPtr graph = std::make_shared<ShaderGraph>(parent, name, node->getDocument(), context.getReservedWords());
@@ -453,8 +451,7 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
     ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
     if (colorManagementSystem)
     {
-        targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
-            node->getDocument()->getColorSpace() : context.getOptions().targetColorSpaceOverride;
+        targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ? node->getDocument()->getColorSpace() : context.getOptions().targetColorSpaceOverride;
     }
 
     const string& targetDistanceUnit = context.getOptions().targetDistanceUnit;
@@ -555,8 +552,8 @@ ShaderGraphPtr ShaderGraph::createSurfaceShader(
     }
 
     // Start traversal from this shader node
-    root = node;    
-    
+    root = node;
+
     return graph;
 }
 
@@ -788,14 +785,13 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
         }
     }
 
-    // 
+    //
     // Handle colorspace and unit conversion if needed.
     string targetColorSpace;
     ColorManagementSystemPtr colorManagementSystem = context.getShaderGenerator().getColorManagementSystem();
     if (colorManagementSystem)
     {
-        targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ?
-            _document->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
+        targetColorSpace = context.getOptions().targetColorSpaceOverride.empty() ? _document->getActiveColorSpace() : context.getOptions().targetColorSpaceOverride;
     }
 
     UnitSystemPtr unitSystem = context.getShaderGenerator().getUnitSystem();
@@ -803,7 +799,7 @@ ShaderNode* ShaderGraph::createNode(const Node& node, GenContext& context)
 
     for (InputPtr input : node.getInputs())
     {
-        // It is sufficient that the input type is a filename regardless of whether it is marked as a uniform 
+        // It is sufficient that the input type is a filename regardless of whether it is marked as a uniform
         if (input->getType() == FILENAME_TYPE_STRING)
         {
             ShaderOutput* shaderOutput = newNode->getOutput();
@@ -890,7 +886,7 @@ void ShaderGraph::finalize(GenContext& context)
 
     // Calculate scopes for all nodes in the graph.
     //
-    // TODO: Enable calculateScopes() again when support for 
+    // TODO: Enable calculateScopes() again when support for
     // conditional nodes are improved.
     //
     // calculateScopes();
@@ -992,8 +988,7 @@ void ShaderGraph::optimize(GenContext& context)
             {
                 // Find which branch should be taken
                 ValuePtr value = which->getValue();
-                const int branch = int(value==nullptr ? 0 :
-                    (which->getType() == Type::FLOAT ? value->asA<float>() : value->asA<int>()));
+                const int branch = int(value == nullptr ? 0 : (which->getType() == Type::FLOAT ? value->asA<float>() : value->asA<int>()));
 
                 // Bypass the conditional using the taken branch
                 bypass(context, node, branch);
@@ -1079,9 +1074,9 @@ void ShaderGraph::bypass(GenContext& context, ShaderNode* node, size_t inputInde
             if (!channels.empty())
             {
                 downstream->setValue(context.getShaderGenerator().getSyntax().getSwizzledValue(input->getValue(),
-                                                                                          input->getType(), 
-                                                                                          channels,
-                                                                                          downstream->getType()));
+                                                                                               input->getType(),
+                                                                                               channels,
+                                                                                               downstream->getType()));
                 downstream->setType(downstream->getType());
                 downstream->setChannels(EMPTY_STRING);
             }
@@ -1256,7 +1251,7 @@ void ShaderGraph::setVariableNames(GenContext& context)
     }
 }
 
-void ShaderGraph::populateColorTransformMap(ColorManagementSystemPtr colorManagementSystem, ShaderPort* shaderPort, 
+void ShaderGraph::populateColorTransformMap(ColorManagementSystemPtr colorManagementSystem, ShaderPort* shaderPort,
                                             ValueElementPtr input, const string& targetColorSpace, bool asInput)
 {
     if (!colorManagementSystem || targetColorSpace.empty())
@@ -1286,8 +1281,7 @@ void ShaderGraph::populateColorTransformMap(ColorManagementSystemPtr colorManage
                 }
                 else
                 {
-                    std::cerr << "Unsupported color space transform from " <<
-                        sourceColorSpace << " to " << targetColorSpace << std::endl;
+                    std::cerr << "Unsupported color space transform from " << sourceColorSpace << " to " << targetColorSpace << std::endl;
                 }
             }
         }
@@ -1329,7 +1323,7 @@ void ShaderGraph::populateUnitTransformMap(UnitSystemPtr unitSystem, ShaderPort*
     // this allows for the source and target unit to be the same value
     // while still allowing target unit updates on a compiled shader as the
     // target is exposed as an input uniform.
-    //if (sourceUnitSpace == targetUnitSpace)
+    // if (sourceUnitSpace == targetUnitSpace)
     //{
     //    return;
     //}
@@ -1337,9 +1331,9 @@ void ShaderGraph::populateUnitTransformMap(UnitSystemPtr unitSystem, ShaderPort*
     // Only support convertion for float and vectors. arrays, matrices are not supported.
     // TODO: This should be provided by the UnitSystem.
     bool supportedType = (shaderPort->getType() == Type::FLOAT ||
-                        shaderPort->getType() == Type::VECTOR2 ||
-                        shaderPort->getType() == Type::VECTOR3 ||
-                        shaderPort->getType() == Type::VECTOR4);
+                          shaderPort->getType() == Type::VECTOR2 ||
+                          shaderPort->getType() == Type::VECTOR3 ||
+                          shaderPort->getType() == Type::VECTOR4);
     if (supportedType)
     {
         UnitTransform transform(sourceUnitSpace, targetUnitSpace, shaderPort->getType(), unitType);
@@ -1360,7 +1354,7 @@ void ShaderGraph::populateUnitTransformMap(UnitSystemPtr unitSystem, ShaderPort*
 
 namespace
 {
-    static const ShaderGraphEdgeIterator NULL_EDGE_ITERATOR(nullptr);
+static const ShaderGraphEdgeIterator NULL_EDGE_ITERATOR(nullptr);
 }
 
 //
@@ -1452,4 +1446,4 @@ void ShaderGraphEdgeIterator::returnPathDownstream(ShaderOutput* upstream)
     _downstream = nullptr;
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

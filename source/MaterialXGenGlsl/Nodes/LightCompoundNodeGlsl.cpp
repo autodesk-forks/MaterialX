@@ -8,8 +8,8 @@
 
 #include <MaterialXGenShader/Util.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 LightCompoundNodeGlsl::LightCompoundNodeGlsl() :
     _lightUniforms(HW::LIGHT_DATA, EMPTY_STRING)
@@ -51,7 +51,7 @@ void LightCompoundNodeGlsl::createVariables(const ShaderNode&, GenContext& conte
     VariableBlock& lightData = ps.getUniformBlock(HW::LIGHT_DATA);
 
     // Create all light uniforms
-    for (size_t i = 0; i<_lightUniforms.size(); ++i)
+    for (size_t i = 0; i < _lightUniforms.size(); ++i)
     {
         ShaderPort* u = const_cast<ShaderPort*>(_lightUniforms[i]);
         lightData.add(u->getSelf());
@@ -64,26 +64,26 @@ void LightCompoundNodeGlsl::createVariables(const ShaderNode&, GenContext& conte
 void LightCompoundNodeGlsl::emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
 {
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
+    const GlslShaderGenerator& shadergen = static_cast<const GlslShaderGenerator&>(context.getShaderGenerator());
 
-        // Emit functions for all child nodes
-        shadergen.emitFunctionDefinitions(*_rootGraph, context, stage);
+    // Emit functions for all child nodes
+    shadergen.emitFunctionDefinitions(*_rootGraph, context, stage);
 
-        // Find any closure contexts used by this node
-        // and emit the function for each context.
-        vector<ClosureContext*> ccts;
-        shadergen.getClosureContexts(node, ccts);
-        if (ccts.empty())
+    // Find any closure contexts used by this node
+    // and emit the function for each context.
+    vector<ClosureContext*> ccts;
+    shadergen.getClosureContexts(node, ccts);
+    if (ccts.empty())
+    {
+        emitFunctionDefinition(nullptr, context, stage);
+    }
+    else
+    {
+        for (ClosureContext* cct : ccts)
         {
-            emitFunctionDefinition(nullptr, context, stage);
+            emitFunctionDefinition(cct, context, stage);
         }
-        else
-        {
-            for (ClosureContext* cct : ccts)
-            {
-                emitFunctionDefinition(cct, context, stage);
-            }
-        }
+    }
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
@@ -129,9 +129,9 @@ void LightCompoundNodeGlsl::emitFunctionDefinition(ClosureContext* cct, GenConte
 void LightCompoundNodeGlsl::emitFunctionCall(const ShaderNode&, GenContext& context, ShaderStage& stage) const
 {
     BEGIN_SHADER_STAGE(stage, Stage::PIXEL)
-        const ShaderGenerator& shadergen = context.getShaderGenerator();
-        shadergen.emitLine(_functionName + "(light, position, result)", stage);
+    const ShaderGenerator& shadergen = context.getShaderGenerator();
+    shadergen.emitLine(_functionName + "(light, position, result)", stage);
     END_SHADER_STAGE(shader, Stage::PIXEL)
 }
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END

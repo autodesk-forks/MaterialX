@@ -11,8 +11,8 @@
 /// @file RtLogger.h
 /// Base class for logging messages. Derived classes can be used to route messages to various locations.
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 using RtLoggerPtr = std::shared_ptr<class RtLogger>;
 
@@ -20,7 +20,7 @@ using RtLoggerPtr = std::shared_ptr<class RtLogger>;
 /// Base class for message logger.
 class RtLogger
 {
-public:
+  public:
     enum class MessageType
     {
         ERROR_MESSAGE = 0,
@@ -40,7 +40,7 @@ public:
     /// Logs a message of the provided type if the provided message type is enabled.
     void log(MessageType type, const string& msg);
 
-protected:
+  protected:
     /// Logs a message of the provided type.
     virtual void logImpl(MessageType type, const string& msg) = 0;
 
@@ -50,6 +50,6 @@ protected:
     friend class PvtLogger;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

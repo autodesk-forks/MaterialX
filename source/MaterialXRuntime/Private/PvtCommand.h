@@ -6,19 +6,18 @@
 #ifndef MATERIALX_PVTCOMMANDENGINE_H
 #define MATERIALX_PVTCOMMANDENGINE_H
 
-
 #include <MaterialXRuntime/RtCommand.h>
 
 #include <MaterialXRuntime/Private/PvtMessage.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 // Base class for runtime commands.
 class PvtCommand
 {
-public:
-    virtual ~PvtCommand() {};
+  public:
+    virtual ~PvtCommand(){};
 
     PvtCommand(const PvtCommand&) = delete;
     PvtCommand& operator=(const PvtCommand&) = delete;
@@ -35,8 +34,8 @@ public:
         execute(result);
     }
 
-protected:
-    PvtCommand() {}
+  protected:
+    PvtCommand() { }
 
     // Utility for message handler access.
     PvtMessageHandler& msg();
@@ -47,7 +46,7 @@ using PvtCommandPtr = RtSharedPtr<PvtCommand>;
 
 class PvtCommandList : public PvtCommand
 {
-public:
+  public:
     // Add a command to the batch.
     void addCommand(PvtCommandPtr cmd);
 
@@ -58,18 +57,18 @@ public:
     void execute(RtCommandResult& result) override;
 
     // Undo the command.
-    void undo(RtCommandResult& result)  override;
+    void undo(RtCommandResult& result) override;
 
     // Redo the command.
-    void redo(RtCommandResult& result)  override;
+    void redo(RtCommandResult& result) override;
 
-protected:
+  protected:
     vector<PvtCommandPtr> _commands;
 };
 
 class PvtCommandEngine
 {
-public:
+  public:
     // Execute a new command.
     void execute(PvtCommandPtr cmd, RtCommandResult& result);
 
@@ -83,11 +82,11 @@ public:
     // All commands previously executed will no longer be undoable.
     void flushUndoQueue();
 
-private:
+  private:
     vector<PvtCommandPtr> _undoQueue;
     vector<PvtCommandPtr> _redoQueue;
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

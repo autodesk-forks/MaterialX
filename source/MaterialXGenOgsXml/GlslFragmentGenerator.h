@@ -13,16 +13,16 @@
 #include <MaterialXGenGlsl/GlslSyntax.h>
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 namespace Stage
 {
-    /// A special stage for private uniform definitions that are not included
-    /// in the GLSL fragment but need to be known to the GLSL-to-HLSL
-    /// cross-compiler.
-    extern const string UNIFORMS;
-}
+/// A special stage for private uniform definitions that are not included
+/// in the GLSL fragment but need to be known to the GLSL-to-HLSL
+/// cross-compiler.
+extern const string UNIFORMS;
+} // namespace Stage
 
 /// Syntax class for GLSL fragments.
 class MX_GENOGSXML_API GlslFragmentSyntax : public GlslSyntax
@@ -49,7 +49,7 @@ class MX_GENOGSXML_API GlslFragmentGenerator : public GlslShaderGenerator
     void emitVariableDeclaration(const ShaderPort* variable, const string& qualifier, GenContext&, ShaderStage&,
                                  bool assignValue = true) const override;
 
-    void addStageLightingUniforms(GenContext&, ShaderStage&) const override {};
+    void addStageLightingUniforms(GenContext&, ShaderStage&) const override{};
 
     static const string TARGET;
     static const string MATRIX3_TO_MATRIX4_POSTFIX;
@@ -58,6 +58,6 @@ class MX_GENOGSXML_API GlslFragmentGenerator : public GlslShaderGenerator
     static void toVec3(const TypeDesc* type, string& variable);
 };
 
-}
+MATERIALX_NAMESPACE_END
 
 #endif

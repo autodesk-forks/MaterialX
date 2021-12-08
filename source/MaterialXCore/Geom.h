@@ -13,8 +13,8 @@
 
 #include <MaterialXCore/Element.h>
 
-namespace MaterialX
-{
+MATERIALX_NAMESPACE_BEGIN
+
 
 extern MX_CORE_API const string GEOM_PATH_SEPARATOR;
 extern MX_CORE_API const string UNIVERSAL_GEOM_NAME;
@@ -186,9 +186,7 @@ class MX_CORE_API GeomElement : public Element
     /// string substitutions at this scope into account.
     string getActiveGeom() const
     {
-        return hasGeom() ?
-               createStringResolver()->resolve(getGeom(), GEOMNAME_TYPE_STRING) :
-               EMPTY_STRING;
+        return hasGeom() ? createStringResolver()->resolve(getGeom(), GEOMNAME_TYPE_STRING) : EMPTY_STRING;
     }
 
     /// @}
@@ -488,9 +486,7 @@ class MX_CORE_API Collection : public Element
     /// geometry string substitutions at this scope into account.
     string getActiveIncludeGeom() const
     {
-        return hasIncludeGeom() ?
-               createStringResolver()->resolve(getIncludeGeom(), GEOMNAME_TYPE_STRING) :
-               EMPTY_STRING;
+        return hasIncludeGeom() ? createStringResolver()->resolve(getIncludeGeom(), GEOMNAME_TYPE_STRING) : EMPTY_STRING;
     }
 
     /// @}
@@ -519,9 +515,7 @@ class MX_CORE_API Collection : public Element
     /// geometry string substitutions at this scope into account.
     string getActiveExcludeGeom() const
     {
-        return hasExcludeGeom() ?
-               createStringResolver()->resolve(getExcludeGeom(), GEOMNAME_TYPE_STRING) :
-               EMPTY_STRING;
+        return hasExcludeGeom() ? createStringResolver()->resolve(getExcludeGeom(), GEOMNAME_TYPE_STRING) : EMPTY_STRING;
     }
 
     /// @}
@@ -609,6 +603,6 @@ template <class T> GeomPropPtr GeomInfo::setGeomPropValue(const string& name,
 /// @todo Geometry name expressions are not yet supported.
 MX_CORE_API bool geomStringsMatch(const string& geom1, const string& geom2, bool contains = false);
 
-} // namespace MaterialX
+MATERIALX_NAMESPACE_END
 
 #endif
