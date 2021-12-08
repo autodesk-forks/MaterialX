@@ -16,6 +16,7 @@ using Widget = struct _WidgetRec*;
 #endif
 
 #include <memory>
+#include <MaterialXCore/Library.h>
 
 MATERIALX_NAMESPACE_BEGIN
 

@@ -10,6 +10,7 @@
 /// Publishing version formatting methods
 
 #include <string>
+#include <MaterialXCore/Library.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
