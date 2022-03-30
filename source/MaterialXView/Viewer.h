@@ -93,18 +93,6 @@ class Viewer : public ng::Screen
         _modifiers = modifiers;
     }
 
-    void setSRGBBuffer(bool val)
-    {
-        _srgbFrameBuffer = val;
-    }
-
-#ifdef MATERIALX_BUILD_OCIO
-    void setOCIOConfigFile(const mx::FilePath& ocioConfigFile)
-    {
-        _ocioConfigFile = ocioConfigFile;
-    }
-#endif
-
     // Set the target width for texture baking.
     void setBakeWidth(unsigned int bakeWidth)
     {
@@ -306,17 +294,6 @@ class Viewer : public ng::Screen
 
     // Ambient occlusion
     float _ambientOcclusionGain;
-
-    // Gamma correction shader used if not using SRGB framebuffer
-    MaterialPtr _gammaMaterial;
-    float _gammaValue;
-    bool _srgbFrameBuffer;
-    mx::Color3 _screenColor;
-
-    // Color management
-#ifdef MATERIALX_BUILD_OCIO
-    mx::FilePath _ocioConfigFile;
-#endif
 
     // Geometry selections
     std::vector<mx::MeshPartitionPtr> _geometryList;
