@@ -112,27 +112,6 @@ describe('XmlIo', () => {
         expect(copy.equals(doc)).to.be.true;
     }).timeout(TIMEOUT);
 
-    it('Read XML with includes', async () => {
-        const searchPath = libraryPath + ';' + examplesPath;
-
-        // Read the standard library
-        const libs = await readStdLibrary(false);
-
-        // Read and validate the example documents from files
-        await readAndValidateExamples(examplesWithIncludes, libs,
-            async (document, file, sp) => {
-                await mx.readFromXmlFile(document, file, sp);
-            }, searchPath);
-
-        // Read and validate the example documents as strings
-        const examplesWithIncludesStrings = getMtlxStrings(examplesWithIncludes, searchPath);
-        await readAndValidateExamples(examplesWithIncludesStrings, libs,
-            async (document, file, sp) => {
-                expect(async () => await mx.readFromXmlString(document, file)).to.throw;
-                await mx.readFromXmlString(document, file, sp);
-            }, searchPath);
-    }).timeout(TIMEOUT);
-
     it('Read XML with recursive includes', async () => {
         const doc = mx.createDocument();
         await mx.readFromXmlFile(doc, includeTestPath + '/root.mtlx');
