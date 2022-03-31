@@ -228,6 +228,9 @@ Viewer::Viewer(const std::string& materialFilename,
     _saveGeneratedLights(false),
     _shadowSoftness(1),
     _ambientOcclusionGain(0.6f),
+    _gammaValue(2.2f),
+    _srgbFrameBuffer(false),
+    _screenColor(screenColor),
     _selectedGeom(0),
     _geomLabel(nullptr),
     _geometrySelectionBox(nullptr),
@@ -875,6 +878,34 @@ void Viewer::createAdvancedSettings(Widget* parent)
     ng::Label* renderLabel = new ng::Label(advancedPopup, "Render Options");
     renderLabel->set_font_size(20);
     renderLabel->set_font("sans-bold");
+
+    // Generate gamma correction material.
+    try
+    {
+        const mx::Color3 gamma(_gammaValue, _gammaValue, _gammaValue);
+        mx::ShaderPtr hwShader = mx::createGammaShader(_genContext, _stdLib, "__GAMMA_CORRECT_SHADER__", gamma);
+        _gammaMaterial = Material::create();
+        _gammaMaterial->generateShader(hwShader);
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << "Failed to generate gamma shader: " << e.what() << std::endl;
+        _gammaMaterial = nullptr;
+    }
+
+    if (_gammaMaterial)
+    {
+        ng::Widget* gammaRow = new ng::Widget(advancedPopup);
+        gammaRow->set_layout(new ng::BoxLayout(ng::Orientation::Horizontal));
+        ui.uiMin = mx::Value::createValue(0.01f);
+        ui.uiMax = mx::Value::createValue(2.2f);
+        ng::FloatBox<float>* gammaBox = createFloatWidget(gammaRow, "Gamma:",
+            _gammaValue, &ui, [this](float value)
+        {
+            _gammaValue = value;
+        });
+        gammaBox->set_editable(true);
+    }
 
     ng::CheckBox* transparencyBox = new ng::CheckBox(advancedPopup, "Render Transparency");
     transparencyBox->set_checked(_renderTransparency);
@@ -1597,8 +1628,11 @@ mx::DocumentPtr Viewer::translateMaterial()
 
 void Viewer::initContext(mx::GenContext& context)
 {
-    // Initialize search path.
-    context.registerSourceCodeSearchPath(_searchPath);
+    // Initialize search paths.
+    for (const mx::FilePath& path : _searchPath)
+    {
+        context.registerSourceCodeSearchPath(path / "libraries");
+    }
 
     // Initialize color management.
     mx::DefaultColorManagementSystemPtr cms = mx::DefaultColorManagementSystem::create(context.getShaderGenerator().getTarget());
@@ -1872,7 +1906,19 @@ void Viewer::renderFrame()
     glDepthFunc(GL_LEQUAL);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDisable(GL_CULL_FACE);
-    glDisable(GL_FRAMEBUFFER_SRGB);
+    if (_srgbFrameBuffer)
+    {
+        glDisable(GL_FRAMEBUFFER_SRGB);
+    }
+    else
+    {
+        // Set background without gamma.
+        float r = std::pow(std::max(0.0f, _screenColor[0]), _gammaValue);
+        float g = std::pow(std::max(0.0f, _screenColor[1]), _gammaValue);
+        float b = std::pow(std::max(0.0f, _screenColor[2]), _gammaValue);
+        glClearColor(r, g, b, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
 
     // Update lighting state.
     _lightHandler->setLightTransform(mx::Matrix44::createRotationY(_lightRotation / 180.0f * PI));
@@ -1892,7 +1938,10 @@ void Viewer::renderFrame()
                                    _shadowCamera->getWorldViewProjMatrix();
     }
 
-    glEnable(GL_FRAMEBUFFER_SRGB);
+    if (_srgbFrameBuffer)
+    {
+        glEnable(GL_FRAMEBUFFER_SRGB);
+    }
 
     // Environment background
     if (_drawEnvironment && _envMaterial)
@@ -1981,7 +2030,11 @@ void Viewer::renderFrame()
     {
         glDisable(GL_CULL_FACE);
     }
-    glDisable(GL_FRAMEBUFFER_SRGB);
+
+    if (_srgbFrameBuffer)
+    {
+        glDisable(GL_FRAMEBUFFER_SRGB);
+    }
 
     // Wireframe pass
     if (_outlineSelection)
@@ -1992,6 +2045,33 @@ void Viewer::renderFrame()
         _wireMaterial->bindViewInformation(_viewCamera);
         _wireMaterial->drawPartition(getSelectedGeometry());
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    // Gamma pass
+    if (!_srgbFrameBuffer && _gammaMaterial)
+    {
+        mx::ImageSamplingProperties samplingProperties;
+        samplingProperties.uaddressMode = mx::ImageSamplingProperties::AddressMode::CLAMP;
+        samplingProperties.vaddressMode = mx::ImageSamplingProperties::AddressMode::CLAMP;
+        samplingProperties.filterType = mx::ImageSamplingProperties::FilterType::CLOSEST;
+
+        mx::ImagePtr originalBuffer = getFrameImage();
+
+        _gammaMaterial->bindShader();
+        mx::Color3 gammaColor(_gammaValue, _gammaValue, _gammaValue);
+        _gammaMaterial->getProgram()->bindUniform("node1_gamma", mx::Value::createValue(gammaColor));
+        if (_imageHandler->bindImage(originalBuffer, samplingProperties))
+        {
+            mx::GLTextureHandlerPtr textureHandler = std::static_pointer_cast<mx::GLTextureHandler>(_imageHandler);
+            int textureLocation = textureHandler->getBoundTextureLocation(originalBuffer->getResourceId());
+            if (textureLocation >= 0)
+            {
+                _gammaMaterial->getProgram()->bindUniform("image_file", mx::Value::createValue(textureLocation));
+            }
+        }
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        renderScreenSpaceQuad(_gammaMaterial);
+        _imageHandler->releaseRenderResources(originalBuffer);
     }
 }
 

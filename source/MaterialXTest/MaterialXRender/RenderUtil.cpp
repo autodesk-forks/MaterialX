@@ -282,6 +282,7 @@ bool ShaderRenderTester::validate(const mx::FilePath optionsFilePath)
                         outputBakeFile = outputPath / (outputBakeFile.asString() + "_baked.xml");
                         runBake(doc, imageSearchPath, searchPath, outputBakeFile, doctoBake, log);
                         break;
+
                     }
                 }
             }
