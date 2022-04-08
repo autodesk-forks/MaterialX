@@ -28,19 +28,12 @@ MX_CORE_API string createValidName(string name, char replaceChar = '_');
 /// Return true if the given string is a valid MaterialX name.
 MX_CORE_API bool isValidName(const string& name);
 
-/// Return true if the given string is a valid MaterialX namespace.
-MX_CORE_API bool isValidNamespace(const string& name);
-
 /// Increment the numeric suffix of a name
 MX_CORE_API string incrementName(const string& name);
 
 /// Split a string into a vector of substrings using the given set of
 /// separator characters.
 MX_CORE_API StringVec splitString(const string& str, const string& sep);
-
-/// Merge a string vector into a single string with each element
-/// seprated by the given separator
-MX_CORE_API string mergeStringVec(const StringVec& strVec, const string& sep);
 
 /// Apply the given substring substitutions to the input string.
 MX_CORE_API string replaceSubstrings(string str, const StringMap& stringMap);
@@ -68,9 +61,6 @@ MX_CORE_API string createNamePath(const StringVec& nameVec);
 
 /// Given a name path, return the parent name path
 MX_CORE_API string parentNamePath(const string& namePath);
-
-/// Generates the Base Compound Name given the input
-MX_CORE_API string getBaseCompoundName(const string& nodeName, const string& typeNames, const string& version, const string& namespaceString);
 
 MATERIALX_NAMESPACE_END
 

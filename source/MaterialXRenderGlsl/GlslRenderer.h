@@ -88,9 +88,9 @@ class MX_RENDERGLSL_API GlslRenderer : public ShaderRenderer
     ImagePtr captureImage(ImagePtr image = nullptr) override;
 
     /// Return the GL frame buffer.
-    GLFrameBufferPtr getFrameBuffer() const
+    GLFramebufferPtr getFramebuffer() const
     {
-        return _frameBuffer;
+        return _framebuffer;
     }
 
     /// Return the GLSL program.
@@ -100,7 +100,7 @@ class MX_RENDERGLSL_API GlslRenderer : public ShaderRenderer
     }
 
     /// Submit geometry for a screen-space quad.
-    void drawScreenSpaceQuad(const Vector2& uvMin = Vector2(0.0f, 0.0f), const Vector2& uvMax = Vector2(1.0f, 1.0f));
+    void drawScreenSpaceQuad(const Vector2& uvMin = Vector2(0.0f), const Vector2& uvMax = Vector2(1.0f));
 
     /// Sets the clear color
     void setClearColor(const Color4& clearColor);
@@ -116,7 +116,7 @@ class MX_RENDERGLSL_API GlslRenderer : public ShaderRenderer
   private:
     GlslProgramPtr _program;
 
-    GLFrameBufferPtr _frameBuffer;
+    GLFramebufferPtr _framebuffer;
 
     bool _initialized;
 

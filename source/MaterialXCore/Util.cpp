@@ -6,8 +6,6 @@
 #include <MaterialXCore/Types.h>
 
 #include <cctype>
-#include <sstream>
-#include <iomanip>
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -57,11 +55,6 @@ bool isValidName(const string& name)
     return it == name.end();
 }
 
-bool isValidNamespace(const string& name)
-{
-    return isValidName(name) && name.find(':') == std::string::npos;
-}
-
 string incrementName(const string& name)
 {
     size_t split = name.length();
@@ -96,16 +89,6 @@ StringVec splitString(const string& str, const string& sep)
     }
 
     return split;
-}
-
-string mergeStringVec(const StringVec& stringVec, const string& sep)
-{
-    string res;
-    for (const string& name : stringVec)
-    {
-        res = res.empty() ? name : res + sep + name;
-    }
-    return res;
 }
 
 string replaceSubstrings(string str, const StringMap& stringMap)
@@ -162,7 +145,11 @@ StringVec splitNamePath(const string& namePath)
 
 string createNamePath(const StringVec& nameVec)
 {
-    string res = mergeStringVec(nameVec, NAME_PATH_SEPARATOR);
+    string res;
+    for (const string& name : nameVec)
+    {
+        res = res.empty() ? name : res + NAME_PATH_SEPARATOR + name;
+    }
     return res;
 }
 
@@ -175,26 +162,6 @@ string parentNamePath(const string& namePath)
         return createNamePath(nameVec);
     }
     return EMPTY_STRING;
-}
-
-string getBaseCompoundName(const string& nodeName, const string& typeNames, const string& version, const string& namespaceString) {
-    std::ostringstream tempStream;
-
-    tempStream << nodeName;
-
-    tempStream << "_";
-    tempStream << typeNames;
-
-    tempStream << "_";
-    tempStream << version;
-
-    const bool isNameSpaced = !namespaceString.empty();   
-    if (isNameSpaced) {
-        tempStream << "_";
-        tempStream << namespaceString;
-    }
-
-    return tempStream.str();
 }
 
 MATERIALX_NAMESPACE_END
