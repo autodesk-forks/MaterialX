@@ -42,7 +42,7 @@ class ArnoldShaderRenderTester : public RenderUtil::ShaderRenderTester
                       const std::string& outputPath = ".",
                       mx::ImageVec* imageVec = nullptr) override;
 
-    bool ArnoldShaderRenderTester::preConvertDocumentUnits(mx::UnitConverterRegistryPtr unitRegistry, 
+    bool preConvertDocumentUnits(mx::UnitConverterRegistryPtr unitRegistry, 
                       mx::DocumentPtr doc, 
                       const std::string& unitType, 
                       const std::string& targetUnit);
