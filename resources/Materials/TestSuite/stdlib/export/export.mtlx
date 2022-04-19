@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<materialx version="1.38" colorspace="srgb_texture">
+  <standard_surface name="defaultShader" type="surfaceshader" version="1.0.1" >
+    <input name="specular" type="float" value="0.2" uivisible="true" />
+    <input name="specular_roughness" type="float" value="0.4" uivisible="true" />
+  </standard_surface>
+  <surfacematerial name="defaultMaterial" type="material" >
+    <input name="surfaceshader" type="surfaceshader" nodename="defaultShader" uivisible="true" />
+    <input name="displacementshader" type="displacementshader" value="" uivisible="true" />
+  </surfacematerial>
+  <image name="image_color3" type="color3" >
+    <input name="file" type="filename" uniform="true" value="Images/grid.png" uivisible="true" />
+  </image>
+  <output name="image_color3_output" type="color3" nodename="image_color3" />
+  <image name="image_color3_2" type="color3" >
+    <input name="file" type="filename" uniform="true" value="black_image.png" uivisible="true" />
+  </image>
+  <output name="image_color3_2_output" type="color3" nodename="image_color3_2" />
+  <surfacematerial name="surfacematerial" type="material" >
+    <input name="surfaceshader" type="surfaceshader" nodename="unlit_surface" uivisible="true" />
+    <input name="displacementshader" type="displacementshader" value="" uivisible="true" />
+  </surfacematerial>
+  <surface_unlit name="unlit_surface" type="surfaceshader" >
+    <input name="emission_color" type="color3" nodename="image_color3" uivisible="true" />
+  </surface_unlit>
+  <surface_unlit name="unlit_surface1" type="surfaceshader" >
+    <input name="emission_color" type="color3" nodename="image_color3_2" uivisible="true" />
+  </surface_unlit>
+  <surfacematerial name="surfacematerial1" type="material" >
+    <input name="surfaceshader" type="surfaceshader" nodename="unlit_surface1" uivisible="true" />
+    <input name="displacementshader" type="displacementshader" value="" uivisible="true" />
+  </surfacematerial>
+  <collection name="defaultCollection" includecollection="" includegeom="/*"  />
+  <collection name="collection1" includecollection="" includegeom="/pSphere1/pSphereShape1" />
+  <collection name="collection2" includecollection="" includegeom="/pSphere2/pSphereShape2" />
+  <look name="defaultLook" xpos="925" ypos="35">
+    <materialassign name="defaultMaterialAssign" geom="" collection="defaultCollection" material="defaultMaterial" />
+  </look>
+  <look name="look1" xpos="2693.41" ypos="573.798">
+    <materialassign name="materialassign1" geom="" collection="collection1" material="surfacematerial" />
+    <materialassign name="materialassign2" geom="" collection="collection2" material="surfacematerial1"  />
+  </look>
+  <lookgroup name="defaultLookGroup" looks="defaultLook" active="defaultLook" />
+</materialx>
