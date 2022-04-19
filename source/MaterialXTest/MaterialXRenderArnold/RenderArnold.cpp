@@ -214,11 +214,11 @@ bool ArnoldShaderRenderTester::runRenderer(const std::string& shaderName,
         mx::OutputPtr outputPtr = element->asA<mx::Output>();
         if (outputPtr)
         {
-            mx::NodePtr renderShader = doc->addNode("unlit_surface", doc->createValidChildName(shaderName + "shader"), mx::SURFACE_SHADER_TYPE_STRING);
+            mx::NodePtr renderShader = doc->addNode("surface_unlit", doc->createValidChildName(shaderName + "shader"), mx::SURFACE_SHADER_TYPE_STRING);
             std::cout << "--- Create dummy unlit shader: " << renderShader->getName() << std::endl;
             log << "--- Create dummy unlit shader: " << renderShader->getName() << std::endl;
             renderShader->setVersionString("1.0");
-            mx::InputPtr input = renderShader->addInput("color", outputPtr->getType());
+            mx::InputPtr input = renderShader->addInput("emission_color", outputPtr->getType());
             mx::ElementPtr outputParent = outputPtr->getParent();                       
             if (outputParent->isA<mx::NodeGraph>())
             {
