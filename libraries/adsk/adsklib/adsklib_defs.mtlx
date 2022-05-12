@@ -105,6 +105,7 @@
     <input name="normal_scale" type="float" value="1.0" />
     <input name="uaddressmode" type="string" value="periodic" enum="constant,clamp,periodic,mirror" uiname="Address Mode U" uniform="true" />
     <input name="vaddressmode" type="string" value="periodic" enum="constant,clamp,periodic,mirror" uiname="Address Mode V" uniform="true" />
+    <input name="uv_index" type="integer" value="0" />
     <output name="out" type="vector3" />
   </nodedef>
 
@@ -119,6 +120,7 @@
     <input name="depth" type="float" unittype="distance" />
     <input name="uaddressmode" type="string" value="periodic" enum="constant,clamp,periodic,mirror" uiname="Address Mode U" uniform="true" />
     <input name="vaddressmode" type="string" value="periodic" enum="constant,clamp,periodic,mirror" uiname="Address Mode V" uniform="true" />
+    <input name="uv_index" type="integer" value="0" />
     <output name="out" type="vector3" />
   </nodedef>
   
