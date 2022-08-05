@@ -36,6 +36,7 @@
       <input name="scale" type="vector2" nodename="total_scale" />
       <input name="pivot" type="vector2" value="0.0, 0.0" />
       <input name="rotate" type="float" value="0" nodename="rotation_angle_param" />
+      <input name="operationorder" type="integer" value="1" />
     </place2d>
     <image name="b_image" type="color3">
       <input name="file" type="filename" interfacename="file" />
@@ -94,6 +95,7 @@
       <input name="scale" type="vector2" nodename="total_scale" />
       <input name="pivot" type="vector2" value="0.0, 0.0" />
       <input name="rotate" type="float" value="0" nodename="rotation_angle_param" />
+      <input name="operationorder" type="integer" value="1" />
     </place2d>
     <image name="b_image" type="color4">
       <input name="file" type="filename" interfacename="file" />
@@ -152,6 +154,7 @@
       <input name="scale" type="vector2" nodename="total_scale" />
       <input name="pivot" type="vector2" value="0.0, 0.0" />
       <input name="rotate" type="float" value="0" nodename="rotation_angle_param" />
+      <input name="operationorder" type="integer" value="1" />
     </place2d>
     <image name="b_image" type="color3">
       <input name="file" type="filename" interfacename="file" />
@@ -216,6 +219,7 @@
       <input name="scale" type="vector2" nodename="total_scale" />
       <input name="pivot" type="vector2" value="0.0, 0.0" />
       <input name="rotate" type="float" value="0" nodename="rotation_angle_param" />
+      <input name="operationorder" type="integer" value="1" />
     </place2d>
     <image name="b_image" type="color3">
       <input name="file" type="filename" interfacename="file" />
@@ -291,6 +295,7 @@
       <input name="scale" type="vector2" nodename="total_scale" />
       <input name="pivot" type="vector2" value="0.0, 0.0" />
       <input name="rotate" type="float" value="0" nodename="rotation_angle_param" />
+      <input name="operationorder" type="integer" value="1" />
     </place2d>
     <image name="b_image" type="vector3" >
       <input name="file" type="filename" interfacename="file" />
@@ -347,6 +352,7 @@
       <input name="scale" type="vector2" nodename="total_scale" />
       <input name="pivot" type="vector2" value="0.0, 0.0" />
       <input name="rotate" type="float" value="0" nodename="rotation_angle_param" />
+      <input name="operationorder" type="integer" value="1" />
     </place2d>
     <image name="b_image" type="float" >
       <input name="file" type="filename" interfacename="file" />
