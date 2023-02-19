@@ -110,7 +110,7 @@
   </nodedef>
 
   <!-- <adsk_height_map> -->
-  <nodedef name="ND_adsk_height_map" node="height_map" version="1.0.1" isdefaultversion="true" namespace="adsk">
+  <nodedef name="ND_adsk_height_map" node="height_map" nodegroup="texture2d" version="1.0.1" isdefaultversion="true" namespace="adsk">
     <input name="file" type="filename" />
     <input name="realworld_offset" type="vector2" unittype="distance" />
     <input name="realworld_scale" type="vector2" unittype="distance" />
