@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>adsk-materialx-content</id>
+    <version>$Version$</version>
+    <authors>engsol.opensource.automation@autodesk.com</authors>
+    <owners>Autodesk, Inc.</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>MaterialX $materialX$ Data library </description>
+    <releaseNotes>MaterialX $Version$</releaseNotes>
+    <copyright>Copyright 2023</copyright>
+    <tags>adsk-materialx-content</tags>    
+  </metadata>
+  <files>
+    <file src="$installdir$\libraries\**" target="content\libraries" />
+  </files>  
+</package>

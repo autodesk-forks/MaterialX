@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>materialx-lib_win_debug_intel64_$win_compiler$</id>
+    <version>$version$</version>
+    <authors>engsol.opensource.automation@autodesk.com</authors>
+    <owners>Autodesk, Inc.</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>MaterialX $materialX$ library(lib) package</description>
+    <releaseNotes>MaterialX $version$</releaseNotes>
+    <copyright>Copyright 2023</copyright>
+    <tags>materialx-$materialX$</tags>
+	<dependencies>
+      <dependency id="materialx-headers_win" version="$version$" />
+      <dependency id="adsk-materialx-content" version="$version$" />
+  </dependencies>
+  </metadata>
+  	<files>
+      <file src="$installdir$\libs\**" target="libs" />
+	</files>
+</package>
+
+
