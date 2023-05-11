@@ -1,22 +1,21 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>materialx-lib_linux-$linux_target$_release_intel64_$linux_compiler$</id>
+    <id>materialx_win_debug_intel64_$win_compiler$</id>
     <version>$version$</version>
     <authors>engsol.opensource.automation@autodesk.com</authors>
     <owners>Autodesk, Inc.</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>MaterialX $materialX$ library(lib) package</description>
+    <description>MaterialX $materialX$ library(dll) package</description>
     <releaseNotes>MaterialX $version$</releaseNotes>
     <copyright>Copyright 2023</copyright>
     <tags>materialx-$materialX$</tags>
 	<dependencies>
-      <dependency id="materialx-headers_linux" version="$version$" />
       <dependency id="adsk-materialx-content" version="$version$" />
-    </dependencies>
+  </dependencies>
   </metadata>
   	<files>
-      <file src="$installdir$/libs/**" target="libs" />
+      <file src="$installdir$\bin\**" target="bin" />
 	</files>
 </package>
 

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>materialx-sdk_linux</id>
+    <id>materialx-sdk_linux_intel64</id>
     <version>$version$</version>
     <authors>engsol.opensource.automation@autodesk.com</authors>
     <owners>Autodesk, Inc.</owners>
@@ -12,8 +12,6 @@
     <tags>materialx-$materialX$</tags>
   </metadata>
   <files>
-    <file src="$installdir$/libraries/**" target="content/libraries" />
-    <file src="$installdir$/inc/**" target="inc" />
-    <file src="$installdir$/libs/**" target="libs" />
+    <file src="$installdir$/**" target="" />
   </files>
 </package>

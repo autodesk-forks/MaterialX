@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>materialx-lib_linux-$linux_target$_debug_intel64_$linux_compiler$</id>
+    <id>materialx_osx-$osx_target$_debug_ubx64arm64_$osx_compiler$</id>
     <version>$version$</version>
     <authors>engsol.opensource.automation@autodesk.com</authors>
     <owners>Autodesk, Inc.</owners>
@@ -11,7 +11,7 @@
     <copyright>Copyright 2023</copyright>
     <tags>materialx-$materialX$</tags>
 	<dependencies>
-      <dependency id="materialx-headers_linux" version="$version$" />
+      <dependency id="materialx-headers_osx" version="$version$" />
       <dependency id="adsk-materialx-content" version="$version$" />
     </dependencies>
   </metadata>

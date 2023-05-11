@@ -1,18 +1,22 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>materialx-sdk_win_intel64_$win_compiler$</id>
+    <id>materialx_win_release_intel64_$win_compiler$</id>
     <version>$version$</version>
     <authors>engsol.opensource.automation@autodesk.com</authors>
     <owners>Autodesk, Inc.</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>MaterialX $materialX$ Windows SDK package</description>
+    <description>MaterialX $materialX$ library(dll) package</description>
     <releaseNotes>MaterialX $version$</releaseNotes>
     <copyright>Copyright 2023</copyright>
     <tags>materialx-$materialX$</tags>
+	<dependencies>
+      <dependency id="adsk-materialx-content" version="$version$" />
+  </dependencies>
   </metadata>
-  <files>
-    <file src="$installdir$\**" target="" />
-  </files>
+  	<files>
+      <file src="$installdir$\bin\**" target="bin" />
+	</files>
 </package>
+
 
