@@ -13,7 +13,7 @@
 	<dependencies>
       <dependency id="materialx-headers_win" version="$version$" />
       <dependency id="adsk-materialx-content" version="$version$" />
-      <dependency id="materialx_win_release_intel64" version="$version$" />
+      <dependency id="materialx_win_release_intel64_$win_compiler$" version="$version$" />
   </dependencies>
   </metadata>
   	<files>
