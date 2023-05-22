@@ -87,7 +87,11 @@ for(int i=0; i< axisNode.size(); i++) {
                             '''
                         }
                     }
-
+					stage("Sign binaries") {
+						if(!isUnix()) {
+							signWin("${WORKSPACE}\\install")
+						}
+					}
                     stage("Create Nuget Packages") {
                         withEnv(properties) {
                             if(branch.contains("release")) {
@@ -244,4 +248,16 @@ def uploadArtifactory() {
             server.upload(uploadSpec)
         }
     }   
+}
+def signWin(String source) {
+	withCredentials([usernamePassword(credentialsId: "GEC_garasign", passwordVariable: 'Secret', usernameVariable: 'ID')]) {
+		withCredentials([usernamePassword(credentialsId: "3fefba6a-8c13-4321-b5c9-d7d8b92493e8", passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+			dir("${WORKSPACE}") {
+				bat """
+				jfrog rt dl team-engops-stark-generic/garasign/releases/sign.py --user=%USERNAME% --password=%PASSWORD% --url="https://art-bobcat.autodesk.com/artifactory/" --flat=true
+				python3 sign.py --config %ID% %Secret% --ttl 6000 --sign --suppressWarning ${source}
+				"""
+			}
+		}
+	}
 }
