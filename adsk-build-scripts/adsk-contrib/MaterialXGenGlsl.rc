@@ -1,0 +1,22 @@
+VS_VERSION_INFO VERSIONINFO
+    FILEVERSION    1,387,2,0
+    PRODUCTVERSION 1,38,7,0
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904b0"
+        {
+            VALUE "CompanyName",        "Autodesk Inc.\0"
+            VALUE "FileDescription",    "MaterialX\0"
+            VALUE "FileVersion",        "1.387.2.0\0"
+            VALUE "LegalCopyright",     "Copyright © 2023 Autodesk Inc. All Rights Reserved\0"
+            VALUE "OriginalFilename",   "MaterialXGenGlsl.dll\0"
+            VALUE "ProductName",        "MaterialX\0"
+            VALUE "ProductVersion",     "1.38.7.0\0"
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x409, 1200
+    }
+}
