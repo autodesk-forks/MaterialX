@@ -70,15 +70,16 @@ for(int i=0; i< axisNode.size(); i++) {
                         } else if (axisNodeValue.contains("GEC-xcode")){
                             sh "git clean -fdx"
                             sh '''
-                            export cmake_version=$(ls /Users/airbuild/.jenny/tools/cmake | xargs -n 1 basename | tail -1)
-                            export cmake_cmd=/Users/airbuild/.jenny/tools/cmake/${cmake_version}/bin/cmake
-                            ${cmake_cmd} -S . -B_mtlxbuild -G "Xcode" -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64'
-                            ${cmake_cmd} --build _mtlxbuild --config Debug
-                            ${cmake_cmd} --build _mtlxbuild --target install
-                            
-                            ${cmake_cmd} -S . -B_mtlxbuild -G "Xcode" -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64'
-                            ${cmake_cmd} --build _mtlxbuild --config Release
-                            ${cmake_cmd} --build _mtlxbuild --config Release --target install
+                                export MACOSX_DEPLOYMENT_TARGET=$mac_os_compatible
+                                export cmake_version=$(ls /Users/airbuild/.jenny/tools/cmake | xargs -n 1 basename | tail -1)
+                                export cmake_cmd=/Users/airbuild/.jenny/tools/cmake/${cmake_version}/bin/cmake
+                                ${cmake_cmd} -S . -B_mtlxbuild -G "Xcode" -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64'
+                                ${cmake_cmd} --build _mtlxbuild --config Debug
+                                ${cmake_cmd} --build _mtlxbuild --target install
+                                
+                                ${cmake_cmd} -S . -B_mtlxbuild -G "Xcode" -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64'
+                                ${cmake_cmd} --build _mtlxbuild --config Release
+                                ${cmake_cmd} --build _mtlxbuild --config Release --target install
                             '''
                         } else {
                             sh "git clean -fdx"
