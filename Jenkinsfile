@@ -67,6 +67,18 @@ for(int i=0; i< axisNode.size(); i++) {
                                 %cmake% --build _mtlxbuild --config Release
                                 %cmake% --build _mtlxbuild --config Release --target install
                             '''
+                            final resourceDir = "$WORKSPACE\\adsk-build-scripts\\adsk-contrib"
+                            dir (resourceDir) {
+                                def rcFiles = findFiles(glob: '*.rc')
+                                for (def rcFile in rcFiles) {
+                                    final resourceName = rcFile.name.replaceAll('.rc', '')
+                                    bat "ResourceHacker -open ${resourceName}.rc -save ${resourceName}.res -action compile -log CONSOLE"
+                                    final resourcePath = "$resourceDir\\${resourceName}.res"
+                                    dir ("$WORKSPACE\\install\\bin") {
+                                        bat "ResourceHacker -open ${resourceName}.dll -save ${resourceName}.dll -action addoverwrite -resource %WORKSPACE%\\adsk-build-scripts\\adsk-contrib\\${resourceName}.res -log CONSOLE"
+                                    }
+                                }
+                            }
                         } else if (axisNodeValue.contains("GEC-xcode")){
                             sh "git clean -fdx"
                             sh '''
