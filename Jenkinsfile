@@ -72,10 +72,20 @@ for(int i=0; i< axisNode.size(); i++) {
                                 def rcFiles = findFiles(glob: '*.rc')
                                 for (def rcFile in rcFiles) {
                                     final resourceName = rcFile.name.replaceAll('.rc', '')
-                                    bat "ResourceHacker -open ${resourceName}.rc -save ${resourceName}.res -action compile -log CONSOLE"
+                                    bat """
+                                        ResourceHacker -open ${resourceName}.rc -save ${resourceName}.res -action compile -log reshack.log
+                                        set reshack_errorlevel=%errorlevel%
+                                        type reshack.log
+                                        if %reshack_errorlevel% neq 0 exit /b %reshack_errorlevel%
+                                    """
                                     final resourcePath = "$resourceDir\\${resourceName}.res"
                                     dir ("$WORKSPACE\\install\\bin") {
-                                        bat "ResourceHacker -open ${resourceName}.dll -save ${resourceName}.dll -action addoverwrite -resource %WORKSPACE%\\adsk-build-scripts\\adsk-contrib\\${resourceName}.res -log CONSOLE"
+                                        bat """
+                                            ResourceHacker -open ${resourceName}.dll -save ${resourceName}.dll -action addoverwrite -resource %WORKSPACE%\\adsk-build-scripts\\adsk-contrib\\${resourceName}.res -log reshack.log
+                                            set reshack_errorlevel=%errorlevel%
+                                            type reshack.log
+                                            if %reshack_errorlevel% neq 0 exit /b %reshack_errorlevel%
+                                        """
                                     }
                                 }
                             }
