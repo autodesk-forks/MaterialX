@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>materialx-sdk_osx_intel64_$osx_compiler$</id>
+    <id>materialx-sdk_osx_ubx64arm64_$osx_compiler$</id>
     <version>$version$</version>
     <authors>engsol.opensource.automation@autodesk.com</authors>
     <owners>Autodesk, Inc.</owners>
