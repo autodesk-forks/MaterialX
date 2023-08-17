@@ -133,34 +133,29 @@ for(int i=0; i< axisNode.size(); i++) {
                         }
                         withEnv(properties) {
                             if(axisNodeValue.contains("GEC-vs")) {
-                                bat """
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx-headers_win.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_release -Prop materialx=${materialx_version} -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx-lib_win_debug_intel64.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_debug -Prop materialx=${materialx_version} -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx-lib_win_release_intel64.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_release -Prop materialx=${materialx_version} -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx-content.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_release -Prop materialx=${materialx_version} -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx-sdk_win_intel64.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_release -Prop materialx=${materialx_version} -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx_win_debug_intel64.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_debug -Prop materialx=${materialx_version} -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx_win_release_intel64.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_release -Prop materialx=${materialx_version} -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib -Prop win_compiler=${win_compiler}
-                                """
-                                zip zipFile: "${env.WORKSPACE}/packages/adsk_materialx-sdk_win_intel64.${env.NUGET_VERSION}.zip", dir: "${env.WORKSPACE}/install_release", glob: '**/*'
+                                final nuspecFiles = findFiles(glob: 'adsk-build-scripts\\nuget\\win\\*.nuspec')
+                                for (final nuspecFile in nuspecFiles) {
+                                    final config = (nuspecFile.name.contains('debug')) ? 'debug' : 'release'
+                                    bat "nuget pack $nuspecFile.path -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_$config -Prop materialx=$materialx_version -Prop win_compiler=$win_compiler -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib"
+                                }
+
+                                zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_win_intel64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/install_release", glob: '**/*'
                             } else if (axisNodeValue.contains("GEC-xcode")){
-                                sh """
-                                nuget pack adsk-build-scripts/nuget/osx/adsk_materialx-headers_osx.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_release -Prop materialx=${materialx_version} -Prop osx_compiler=${osx_compiler} -Prop osx_target=${osx_target}
-                                nuget pack adsk-build-scripts/nuget/osx/adsk_materialx_osx_debug_ubx64arm64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_debug -Prop materialx=${materialx_version} -Prop osx_compiler=${osx_compiler} -Prop osx_target=${osx_target}
-                                nuget pack adsk-build-scripts/nuget/osx/adsk_materialx_osx_release_ubx64arm64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_release -Prop materialx=${materialx_version} -Prop osx_compiler=${osx_compiler} -Prop osx_target=${osx_target}
-                                nuget pack adsk-build-scripts/nuget/osx/adsk_materialx-content.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_release -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib -Prop materialx=${materialx_version} -Prop osx_compiler=${osx_compiler} -Prop osx_target=${osx_target}
-                                nuget pack adsk-build-scripts/nuget/osx/adsk_materialx-sdk_osx_ubx64arm64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_release -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib -Prop materialx=${materialx_version} -Prop osx_compiler=${osx_compiler} -Prop osx_target=${osx_target}
-                                """
-                                zip zipFile: "${env.WORKSPACE}/packages/adsk_materialx-sdk_osx_ubx64arm64.${env.NUGET_VERSION}.zip", dir: "${env.WORKSPACE}/install_release", glob: '**/*'
+                                final nuspecFiles = findFiles(glob: 'adsk-build-scripts/nuget/osx/*.nuspec')
+                                for (final nuspecFile in nuspecFiles) {
+                                    final config = (nuspecFile.name.contains('debug')) ? 'debug' : 'release'
+                                    sh "nuget pack $nuspecFile.path -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_$config -Prop materialx=$materialx_version -Prop osx_compiler=$osx_compiler -Prop osx_target=$osx_target -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib"                                    
+                                }
+
+                                zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_osx_ubx64arm64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/install_release", glob: '**/*'
                             } else {
-                                sh """
-                                nuget pack adsk-build-scripts/nuget/linux/adsk_materialx-headers_linux.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_release -Prop materialx=${materialx_version} -Prop linux_compiler=${linux_compiler} -Prop linux_target=${linux_target}
-                                nuget pack adsk-build-scripts/nuget/linux/adsk_materialx_linux_debug_intel64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_debug -Prop materialx=${materialx_version} -Prop linux_compiler=${linux_compiler} -Prop linux_target=${linux_target}
-                                nuget pack adsk-build-scripts/nuget/linux/adsk_materialx_linux_release_intel64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_release -Prop materialx=${materialx_version} -Prop linux_compiler=${linux_compiler} -Prop linux_target=${linux_target}
-                                nuget pack adsk-build-scripts/nuget/linux/adsk_materialx-content.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_release -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib -Prop materialx=${materialx_version} -Prop linux_compiler=${linux_compiler} -Prop linux_target=${linux_target}
-                                nuget pack adsk-build-scripts/nuget/linux/adsk_materialx-sdk_linux_intel64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_release -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib -Prop materialx=${materialx_version} -Prop linux_compiler=${linux_compiler} -Prop linux_target=${linux_target}
-                                """
-                                zip zipFile: "${env.WORKSPACE}/packages/adsk_materialx-sdk_linux_intel64.${env.NUGET_VERSION}.zip", dir: "${env.WORKSPACE}/_build/install_release", glob: '**/*'
+                                final nuspecFiles = findFiles(glob: 'adsk-build-scripts/nuget/linux/*.nuspec')
+                                for (final nuspecFile in nuspecFiles) {
+                                    final config = (nuspecFile.name.contains('debug')) ? 'debug' : 'release'
+                                    sh "nuget pack $nuspecFile.path -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_$config -Prop materialx=$materialx_version -Prop linux_compiler=$linux_compiler -Prop linux_target=$linux_target -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib"
+                                }
+
+                                zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_linux_intel64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/_build/install_release", glob: '**/*'
                             }
                         }
                     }
