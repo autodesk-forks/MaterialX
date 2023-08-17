@@ -1,6 +1,6 @@
 @Library("PSL") _
     
-def axisNode = ["GEC-vs2019-cicd", "GEC-xcode12-cicd", "GEC-gcc485-gfx"]
+def axisNode = ["GEC-vs2022-cicd", "GEC-xcode14", "GEC-gcc485-gfx"]
 
 if (currentBuild.rawBuild.getCauses().toString().contains('BranchIndexingCause')) {
   print "INFO: Build skipped due to trigger being Branch Indexing"
@@ -54,41 +54,69 @@ for(int i=0; i< axisNode.size(); i++) {
                     }
                     stage("Build") {
                         println (properties)
-                        if (axisNodeValue.contains("GEC-vs")) {
-                            bat "git clean -fdx"
-                            bat '''
-                            FOR /F "tokens=*" %%g IN ('dir /b C:\\Users\\svc_airbuild\\.jenny\\tools\\cmake') do (SET cmakever=%%g)
-                            set cmake=C:\\Users\\svc_airbuild\\.jenny\\tools\\cmake\\%cmakever%\\bin\\cmake
-                            %cmake% -S . -B_mtlxbuild -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX=%WORKSPACE%\\install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries
-                            %cmake% --build _mtlxbuild --config Debug
-                            %cmake% --build _mtlxbuild --target install
-                            
-                            %cmake% -S . -B_mtlxbuild -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX=%WORKSPACE%\\install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries
-                            %cmake% --build _mtlxbuild --config Release
-                            %cmake% --build _mtlxbuild --config Release --target install
-                            '''
-                        } else if (axisNodeValue.contains("GEC-xcode")){
-                            sh "git clean -fdx"
-                            sh '''
-                            export cmake_version=$(ls /Users/airbuild/.jenny/tools/cmake | xargs -n 1 basename | tail -1)
-                            export cmake_cmd=/Users/airbuild/.jenny/tools/cmake/${cmake_version}/bin/cmake
-                            ${cmake_cmd} -S . -B_mtlxbuild -G "Xcode" -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64'
-                            ${cmake_cmd} --build _mtlxbuild --config Debug
-                            ${cmake_cmd} --build _mtlxbuild --target install
-                            
-                            ${cmake_cmd} -S . -B_mtlxbuild -G "Xcode" -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64'
-                            ${cmake_cmd} --build _mtlxbuild --config Release
-                            ${cmake_cmd} --build _mtlxbuild --config Release --target install
-                            '''
-                        } else {
-                            sh "git clean -fdx"
-                            sh '''
-                            cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=debug -DCMAKE_INSTALL_PREFIX=_build/install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries 
-                            cmake --build _build --config debug --target install --parallel 16
-                            cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=_build/install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries
-                            cmake --build _build --config release --target install --parallel 16
+                        withEnv(properties) {
+                            if (axisNodeValue.contains("GEC-vs")) {
+                                bat "git clean -fdx"
+                                bat '''
+                                    FOR /F "tokens=*" %%g IN ('dir /b C:\\Users\\svc_airbuild\\.jenny\\tools\\cmake') do (SET cmakever=%%g)
+                                    set cmake=C:\\Users\\svc_airbuild\\.jenny\\tools\\cmake\\%cmakever%\\bin\\cmake
+                                    %cmake% -S . -B_mtlxbuild -G "Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=%WORKSPACE%\\install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries
+                                    %cmake% --build _mtlxbuild --config Debug
+                                    %cmake% --build _mtlxbuild --target install
+                                    
+                                    %cmake% -S . -B_mtlxbuild -G "Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=%WORKSPACE%\\install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries
+                                    %cmake% --build _mtlxbuild --config Release
+                                    %cmake% --build _mtlxbuild --config Release --target install
+                                '''
+                                final resourceDir = "$WORKSPACE\\adsk-build-scripts\\adsk-contrib"
+                                dir (resourceDir) {
+                                    def rcFiles = findFiles(glob: '*.rc')
+                                    for (def rcFile in rcFiles) {
+                                        final resourceName = rcFile.name.replaceAll('.rc', '')
+                                        bat """
+                                            ResourceHacker -open ${resourceName}.rc -save ${resourceName}.res -action compile -log reshack.log
+                                            set reshack_errorlevel=%errorlevel%
+                                            type reshack.log
+                                            if %reshack_errorlevel% neq 0 exit /b %reshack_errorlevel%
+                                        """
+                                        final resourcePath = "$resourceDir\\${resourceName}.res"
+                                        for (final config in ['debug', 'release']) {
+                                            final dllDebugSuffix = (config == 'debug') ? 'd' : ''
+                                            dir ("$WORKSPACE\\install_$config\\bin") {
+                                                bat """
+                                                    ResourceHacker -open ${resourceName}${dllDebugSuffix}.dll -save ${resourceName}${dllDebugSuffix}.dll -action addoverwrite -resource %WORKSPACE%\\adsk-build-scripts\\adsk-contrib\\${resourceName}.res -log reshack.log
+                                                    set reshack_errorlevel=%errorlevel%
+                                                    type reshack.log
+                                                    if %reshack_errorlevel% neq 0 exit /b %reshack_errorlevel%
+                                                """
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if (axisNodeValue.contains("GEC-xcode")){
+                                sh "git clean -fdx"
+                                sh '''
+                                    export MACOSX_DEPLOYMENT_TARGET=$osx_target
+                                    export cmake_version=$(ls /Users/airbuild/.jenny/tools/cmake | xargs -n 1 basename | tail -1)
+                                    export cmake_cmd=/Users/airbuild/.jenny/tools/cmake/${cmake_version}/bin/cmake
+                                    ${cmake_cmd} -S . -B_mtlxbuild -G "Xcode" -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64'
+                                    ${cmake_cmd} --build _mtlxbuild --config Debug
+                                    ${cmake_cmd} --build _mtlxbuild --target install
+                                    
+                                    ${cmake_cmd} -S . -B_mtlxbuild -G "Xcode" -DCMAKE_INSTALL_PREFIX=$WORKSPACE/install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64'
+                                    ${cmake_cmd} --build _mtlxbuild --config Release
+                                    ${cmake_cmd} --build _mtlxbuild --config Release --target install
+                                '''
+                            } else {
+                                sh "git clean -fdx"
+                                sh '''
+                                cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=debug -DCMAKE_INSTALL_PREFIX=_build/install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries 
+                                cmake --build _build --config debug --target install --parallel 16
+                                cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=_build/install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries
+                                cmake --build _build --config release --target install --parallel 16
 
-                            '''
+                                '''
+                            }
                         }
                     }
 					stage("Sign binaries") {
@@ -107,34 +135,29 @@ for(int i=0; i< axisNode.size(); i++) {
                         }
                         withEnv(properties) {
                             if(axisNodeValue.contains("GEC-vs")) {
-                                bat """
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx-headers_win.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_release -Prop materialx=${materialx_version} -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx-lib_win_debug_intel64.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_debug -Prop materialx=${materialx_version} -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx-lib_win_release_intel64.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_release -Prop materialx=${materialx_version} -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx-content.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_release -Prop materialx=${materialx_version} -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx-sdk_win_intel64.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_release -Prop materialx=${materialx_version} -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx_win_debug_intel64.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_debug -Prop materialx=${materialx_version} -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib -Prop win_compiler=${win_compiler}
-                                nuget pack adsk-build-scripts\\nuget\\win\\adsk_materialx_win_release_intel64.nuspec -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_release -Prop materialx=${materialx_version} -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib -Prop win_compiler=${win_compiler}
-                                """
-                                zip zipFile: "${env.WORKSPACE}/packages/adsk_materialx-sdk_win_intel64.${env.NUGET_VERSION}.zip", dir: "${env.WORKSPACE}/install_release", glob: '**/*'
+                                final nuspecFiles = findFiles(glob: 'adsk-build-scripts\\nuget\\win\\*.nuspec')
+                                for (final nuspecFile in nuspecFiles) {
+                                    final config = (nuspecFile.name.contains('debug')) ? 'debug' : 'release'
+                                    bat "nuget pack $nuspecFile.path -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_$config -Prop materialx=$materialx_version -Prop win_compiler=$win_compiler -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib"
+                                }
+
+                                zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_win_intel64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/install_release", glob: '**/*'
                             } else if (axisNodeValue.contains("GEC-xcode")){
-                                sh """
-                                nuget pack adsk-build-scripts/nuget/osx/adsk_materialx-headers_osx.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_release -Prop materialx=${materialx_version} -Prop osx_compiler=${osx_compiler} -Prop osx_target=${osx_target}
-                                nuget pack adsk-build-scripts/nuget/osx/adsk_materialx_osx_debug_ubx64arm64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_debug -Prop materialx=${materialx_version} -Prop osx_compiler=${osx_compiler} -Prop osx_target=${osx_target}
-                                nuget pack adsk-build-scripts/nuget/osx/adsk_materialx_osx_release_ubx64arm64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_release -Prop materialx=${materialx_version} -Prop osx_compiler=${osx_compiler} -Prop osx_target=${osx_target}
-                                nuget pack adsk-build-scripts/nuget/osx/adsk_materialx-content.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_release -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib -Prop materialx=${materialx_version} -Prop osx_compiler=${osx_compiler} -Prop osx_target=${osx_target}
-                                nuget pack adsk-build-scripts/nuget/osx/adsk_materialx-sdk_osx_ubx64arm64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_release -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib -Prop materialx=${materialx_version} -Prop osx_compiler=${osx_compiler} -Prop osx_target=${osx_target}
-                                """
-                                zip zipFile: "${env.WORKSPACE}/packages/adsk_materialx-sdk_osx_ubx64arm64.${env.NUGET_VERSION}.zip", dir: "${env.WORKSPACE}/install_release", glob: '**/*'
+                                final nuspecFiles = findFiles(glob: 'adsk-build-scripts/nuget/osx/*.nuspec')
+                                for (final nuspecFile in nuspecFiles) {
+                                    final config = (nuspecFile.name.contains('debug')) ? 'debug' : 'release'
+                                    sh "nuget pack $nuspecFile.path -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_$config -Prop materialx=$materialx_version -Prop osx_compiler=$osx_compiler -Prop osx_target=$osx_target -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib"                                    
+                                }
+
+                                zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_osx_ubx64arm64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/install_release", glob: '**/*'
                             } else {
-                                sh """
-                                nuget pack adsk-build-scripts/nuget/linux/adsk_materialx-headers_linux.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_release -Prop materialx=${materialx_version} -Prop linux_compiler=${linux_compiler} -Prop linux_target=${linux_target}
-                                nuget pack adsk-build-scripts/nuget/linux/adsk_materialx_linux_debug_intel64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_debug -Prop materialx=${materialx_version} -Prop linux_compiler=${linux_compiler} -Prop linux_target=${linux_target}
-                                nuget pack adsk-build-scripts/nuget/linux/adsk_materialx_linux_release_intel64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_release -Prop materialx=${materialx_version} -Prop linux_compiler=${linux_compiler} -Prop linux_target=${linux_target}
-                                nuget pack adsk-build-scripts/nuget/linux/adsk_materialx-content.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_release -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib -Prop materialx=${materialx_version} -Prop linux_compiler=${linux_compiler} -Prop linux_target=${linux_target}
-                                nuget pack adsk-build-scripts/nuget/linux/adsk_materialx-sdk_linux_intel64.nuspec -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_release -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib -Prop materialx=${materialx_version} -Prop linux_compiler=${linux_compiler} -Prop linux_target=${linux_target}
-                                """
-                                zip zipFile: "${env.WORKSPACE}/packages/adsk_materialx-sdk_linux_intel64.${env.NUGET_VERSION}.zip", dir: "${env.WORKSPACE}/_build/install_release", glob: '**/*'
+                                final nuspecFiles = findFiles(glob: 'adsk-build-scripts/nuget/linux/*.nuspec')
+                                for (final nuspecFile in nuspecFiles) {
+                                    final config = (nuspecFile.name.contains('debug')) ? 'debug' : 'release'
+                                    sh "nuget pack $nuspecFile.path -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_$config -Prop materialx=$materialx_version -Prop linux_compiler=$linux_compiler -Prop linux_target=$linux_target -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib"
+                                }
+
+                                zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_linux_intel64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/_build/install_release", glob: '**/*'
                             }
                         }
                     }
