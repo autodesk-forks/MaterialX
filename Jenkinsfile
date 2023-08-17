@@ -80,9 +80,10 @@ for(int i=0; i< axisNode.size(); i++) {
                                     """
                                     final resourcePath = "$resourceDir\\${resourceName}.res"
                                     for (final config in ['debug', 'release']) {
+                                        final dllDebugSuffix = (config == 'debug') ? 'd' : ''
                                         dir ("$WORKSPACE\\install_$config\\bin") {
                                             bat """
-                                                ResourceHacker -open ${resourceName}.dll -save ${resourceName}.dll -action addoverwrite -resource %WORKSPACE%\\adsk-build-scripts\\adsk-contrib\\${resourceName}.res -log reshack.log
+                                                ResourceHacker -open ${resourceName}${dllDebugSuffix}.dll -save ${resourceName}${dllDebugSuffix}.dll -action addoverwrite -resource %WORKSPACE%\\adsk-build-scripts\\adsk-contrib\\${resourceName}.res -log reshack.log
                                                 set reshack_errorlevel=%errorlevel%
                                                 type reshack.log
                                                 if %reshack_errorlevel% neq 0 exit /b %reshack_errorlevel%
