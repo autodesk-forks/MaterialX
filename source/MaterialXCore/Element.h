@@ -22,6 +22,7 @@ class TypedElement;
 class ValueElement;
 class Token;
 class CommentElement;
+class NewlineElement;
 class GenericElement;
 class StringResolver;
 class Document;
@@ -50,6 +51,11 @@ using ConstTokenPtr = shared_ptr<const Token>;
 using CommentElementPtr = shared_ptr<CommentElement>;
 /// A shared pointer to a const CommentElement
 using ConstCommentElementPtr = shared_ptr<const CommentElement>;
+
+/// A shared pointer to a NewlineElement
+using NewlineElementPtr = shared_ptr<NewlineElement>;
+/// A shared pointer to a const NewlineElement
+using ConstNewlineElementPtr = shared_ptr<const NewlineElement>;
 
 /// A shared pointer to a GenericElement
 using GenericElementPtr = shared_ptr<GenericElement>;
@@ -294,7 +300,7 @@ class MX_CORE_API Element : public std::enable_shared_from_this<Element>
     /// Return the element, if any, that this one directly inherits from.
     ElementPtr getInheritsFrom() const
     {
-        return resolveNameReference<Element>(getInheritString());
+        return hasInheritString() ? resolveNameReference<Element>(getInheritString()) : nullptr;
     }
 
     /// Return true if this element has the given element as an inherited base,
@@ -733,13 +739,13 @@ class MX_CORE_API Element : public std::enable_shared_from_this<Element>
     void copyContentFrom(const ConstElementPtr& source);
 
     /// Clear all attributes and descendants from this element.
-    void clearContent();
+    virtual void clearContent();
 
     /// Using the input name as a starting point, modify it to create a valid,
     /// unique name for a child element.
     string createValidChildName(string name) const
     {
-        name = createValidName(name);
+        name = name.empty() ? "_" : createValidName(name);
         while (_childMap.count(name))
         {
             name = incrementName(name);
@@ -1148,6 +1154,21 @@ class MX_CORE_API CommentElement : public Element
     {
     }
     virtual ~CommentElement() { }
+
+  public:
+    static const string CATEGORY;
+};
+
+/// @class NewlineElement
+/// An element representing a newline within a document.
+class MX_CORE_API NewlineElement : public Element
+{
+  public:
+    NewlineElement(ElementPtr parent, const string& name) :
+        Element(parent, CATEGORY, name)
+    {
+    }
+    virtual ~NewlineElement() { }
 
   public:
     static const string CATEGORY;

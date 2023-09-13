@@ -350,42 +350,11 @@ class MX_GENSHADER_API ShaderNode
         static const uint32_t VOLUME        = 1 << 15; /// A volume shader node
         static const uint32_t LIGHT         = 1 << 16; /// A light shader node
         static const uint32_t UNLIT         = 1 << 17; /// An unlit surface shader node
-        // Specific conditional types
-        static const uint32_t IFELSE        = 1 << 18; /// An if-else statement
-        static const uint32_t SWITCH        = 1 << 19; /// A switch statement
         // Types based on nodegroup
-        static const uint32_t SAMPLE2D      = 1 << 20; /// Can be sampled in 2D (uv space)
-        static const uint32_t SAMPLE3D      = 1 << 21; /// Can be sampled in 3D (position)
-        static const uint32_t GEOMETRIC     = 1 << 22; /// Geometric input
-        static const uint32_t DOT           = 1 << 23; /// A dot node
-    };
-
-    /// @struct ScopeInfo
-    /// Information on source code scope for the node.
-    ///
-    /// @todo: Refactor the scope handling, using scope id's instead
-    ///
-    struct ScopeInfo
-    {
-        enum Type
-        {
-            UNKNOWN,
-            GLOBAL,
-            SINGLE,
-            MULTIPLE
-        };
-
-        ScopeInfo() :
-            type(UNKNOWN), conditionalNode(nullptr), conditionBitmask(0), fullConditionMask(0) { }
-
-        void merge(const ScopeInfo& fromScope);
-        void adjustAtConditionalInput(ShaderNode* condNode, int branch, uint32_t fullMask);
-        bool usedByBranch(int branchIndex) const { return (conditionBitmask & (1 << branchIndex)) != 0; }
-
-        Type type;
-        ShaderNode* conditionalNode;
-        uint32_t conditionBitmask;
-        uint32_t fullConditionMask;
+        static const uint32_t SAMPLE2D      = 1 << 18; /// Can be sampled in 2D (uv space)
+        static const uint32_t SAMPLE3D      = 1 << 19; /// Can be sampled in 3D (position)
+        static const uint32_t GEOMETRIC     = 1 << 20; /// Geometric input
+        static const uint32_t DOT           = 1 << 21; /// A dot node
     };
 
     static const ShaderNodePtr NONE;
@@ -393,8 +362,6 @@ class MX_GENSHADER_API ShaderNode
     static const string CONSTANT;
     static const string DOT;
     static const string IMAGE;
-    static const string COMPARE;
-    static const string SWITCH;
     static const string SURFACESHADER;
     static const string SCATTER_MODE;
     static const string BSDF_R;
@@ -468,21 +435,6 @@ class MX_GENSHADER_API ShaderNode
         return *_impl;
     }
 
-    /// Return the scope info for this node.
-    ScopeInfo& getScopeInfo()
-    {
-        return _scopeInfo;
-    }
-
-    /// Return the scope info for this node.
-    const ScopeInfo& getScopeInfo() const
-    {
-        return _scopeInfo;
-    }
-
-    /// Returns true if this node is only referenced by a conditional.
-    bool referencedConditionally() const;
-
     /// Initialize this shader node with all required data
     /// from the given node and nodedef.
     void initialize(const Node& node, const NodeDef& nodeDef, GenContext& context);
@@ -552,7 +504,6 @@ class MX_GENSHADER_API ShaderNode
 
     ShaderNodeImplPtr _impl;
     ShaderMetadataVecPtr _metadata;
-    ScopeInfo _scopeInfo;
 
     friend class ShaderGraph;
 };
