@@ -474,7 +474,7 @@ void Viewer::loadEnvironmentLight()
     }
 
     // Look for an irradiance map using an expected filename convention.
-    mx::ImagePtr envIrradianceMap = _imageHandler->getInvalidImage();
+    mx::ImagePtr envIrradianceMap = _imageHandler->getZeroImage();
     if (!_normalizeEnvironment && !_splitDirectLight)
     {
         mx::FilePath envIrradiancePath = _envRadianceFilename.getParentPath() / IRRADIANCE_MAP_FOLDER / _envRadianceFilename.getBaseName();
@@ -482,7 +482,7 @@ void Viewer::loadEnvironmentLight()
     }
 
     // If not found, then generate an irradiance map via spherical harmonics.
-    if (envIrradianceMap == _imageHandler->getInvalidImage())
+    if (envIrradianceMap == _imageHandler->getZeroImage())
     {
         if (_generateReferenceIrradiance)
         {
@@ -920,10 +920,7 @@ void Viewer::createAdvancedSettings(Widget* parent)
 #if MATERIALX_BUILD_GEN_MDL
         _genContextMdl.getOptions().targetDistanceUnit = _distanceUnitOptions[index];
 #endif
-        for (mx::MaterialPtr material : _materials)
-        {
-            material->bindUnits(_unitRegistry, _genContext);
-        }
+        reloadShaders();
         m_process_events = true;
     });
 

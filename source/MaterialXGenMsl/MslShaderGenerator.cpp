@@ -43,6 +43,8 @@
 
 #include "MslResourceBindingContext.h"
 
+#include <cctype>
+
 MATERIALX_NAMESPACE_BEGIN
 
 const string MslShaderGenerator::TARGET = "genmsl";
@@ -692,11 +694,11 @@ void MslShaderGenerator::emitVertexStage(const ShaderGraph& graph, GenContext& c
             emitFunctionCalls(graph, context, stage);
             emitLineBreak(stage);
             emitLine("return " + vertexData.getInstance(), stage, true);
-            // For vertex stage just emit all function calls in order
-            // and ignore conditional scope.
+
+            // Emit all function calls in order
             for (const ShaderNode* node : graph.getNodes())
             {
-                emitFunctionCall(*node, context, stage, false);
+                emitFunctionCall(*node, context, stage);
             }
 
             emitFunctionBodyEnd(graph, context, stage);

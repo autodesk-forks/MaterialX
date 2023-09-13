@@ -224,6 +224,11 @@ bool Node::validate(string* message) const
         bool exactMatch = hasExactInputMatch(nodeDef, &matchMessage);
         validateRequire(exactMatch, res, message, "Node interface error: " + matchMessage);
     }
+    else
+    {
+        bool categoryDeclared = !getDocument()->getMatchingNodeDefs(getCategory()).empty();
+        validateRequire(!categoryDeclared, res, message, "Node interface doesn't support this output type");
+    }
 
     return InterfaceElement::validate(message) && res;
 }
@@ -434,9 +439,7 @@ vector<ElementPtr> GraphElement::topologicalSort() const
         }
     }
 
-    size_t visitCount = 0;
     vector<ElementPtr> result;
-
     while (!childQueue.empty())
     {
         // Pop the queue and add to topological order.
@@ -462,14 +465,6 @@ vector<ElementPtr> GraphElement::topologicalSort() const
                 }
             }
         }
-
-        visitCount++;
-    }
-
-    // Check if there was a cycle.
-    if (visitCount != children.size())
-    {
-        throw ExceptionFoundCycle("Encountered a cycle in graph: " + getName());
     }
 
     return result;
@@ -733,6 +728,25 @@ InterfaceElementPtr NodeGraph::getImplementation() const
     return nodedef ? nodedef->getImplementation() : InterfaceElementPtr();
 }
 
+vector<PortElementPtr> NodeGraph::getDownstreamPorts() const
+{
+    vector<PortElementPtr> downstreamPorts;
+    for (PortElementPtr port : getDocument()->getMatchingPorts(getQualifiedName(getName())))
+    {
+        ElementPtr node = port->getParent();
+        ElementPtr graph = node ? node->getParent() : nullptr;
+        if (graph && graph->isA<GraphElement>() && graph == getParent())
+        {
+            downstreamPorts.push_back(port);
+        }
+    }
+    std::sort(downstreamPorts.begin(), downstreamPorts.end(), [](const ConstElementPtr& a, const ConstElementPtr& b)
+    {
+        return a->getName() > b->getName();
+    });
+    return downstreamPorts;
+}
+
 bool NodeGraph::validate(string* message) const
 {
     bool res = true;
@@ -744,7 +758,13 @@ bool NodeGraph::validate(string* message) const
         validateRequire(nodeDef != nullptr, res, message, "NodeGraph implementation refers to non-existent NodeDef");
         if (nodeDef)
         {
-            validateRequire(getOutputCount() == nodeDef->getActiveOutputs().size(), res, message, "NodeGraph implementation has a different number of outputs than its NodeDef");
+            vector<OutputPtr> graphOutputs = getOutputs();
+            vector<OutputPtr> nodeDefOutputs = nodeDef->getActiveOutputs();
+            validateRequire(graphOutputs.size() == nodeDefOutputs.size(), res, message, "NodeGraph implementation has a different number of outputs than its NodeDef");
+            if (graphOutputs.size() == 1 && nodeDefOutputs.size() == 1)
+            {
+                validateRequire(graphOutputs[0]->getType() == nodeDefOutputs[0]->getType(), res, message, "NodeGraph implementation has a different output type than its NodeDef");
+            }
         }
     }
 

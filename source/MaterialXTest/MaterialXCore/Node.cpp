@@ -136,11 +136,30 @@ TEST_CASE("Node", "[node]")
     REQUIRE(doc->getOutputs().empty());
 }
 
+TEST_CASE("Node inputCount repro", "[node]")
+{
+    // Create a document.
+    mx::DocumentPtr doc = mx::createDocument();
+    mx::NodePtr constant = doc->addNode("constant");
+    constant->setInputValue<float>("value", 0.5f);
+ 
+    // Check that input count is correct after clearContent
+    constant->clearContent();
+    CHECK(constant->getInputCount() == 0);
+
+    // Check that validate succeeds after clear and rebuild
+    constant->setType("float");
+    mx::OutputPtr output = doc->addOutput(mx::EMPTY_STRING, "float");
+    output->setConnectedNode(constant);
+    CHECK(doc->validate());
+}
+
 TEST_CASE("Flatten", "[nodegraph]")
 {
     // Read an example containing graph-based custom nodes.
+    mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
     mx::DocumentPtr doc = mx::createDocument();
-    mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/shader/surface.mtlx");
+    mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/shader/surface.mtlx", searchPath);
     REQUIRE(doc->validate());
 
     // Count root-level, nested, and custom nodes.
@@ -174,8 +193,8 @@ TEST_CASE("Flatten", "[nodegraph]")
 
 TEST_CASE("Inheritance", "[nodedef]")
 {
+    mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
     mx::DocumentPtr doc = mx::createDocument();
-    mx::FileSearchPath searchPath(mx::FilePath::getCurrentPath());
     mx::loadLibraries({ "libraries" }, searchPath, doc);
     REQUIRE(doc->validate());
     auto nodedef = doc->getNodeDef("ND_standard_surface_surfaceshader");
@@ -559,13 +578,12 @@ TEST_CASE("Organization", "[nodegraph]")
 
 TEST_CASE("Tokens", "[nodegraph]")
 {
-    mx::DocumentPtr doc = mx::createDocument();
-    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
-    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_ng.mtlx"), doc);
-    mx::FileSearchPath searchPath("resources/Materials/TestSuite/stdlib/texture/");
+    mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
+    mx::DocumentPtr stdlib = mx::createDocument();
+    mx::loadLibraries({ "libraries" }, searchPath, stdlib);
 
-    mx::readFromXmlFile(doc, "tokenGraph.mtlx", searchPath);
-    doc->validate();
+    mx::DocumentPtr doc = mx::createDocument();
+    mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/texture/tokenGraph.mtlx", searchPath);
 
     mx::StringVec graphNames = { "Tokenized_Image_2k_png", "Tokenized_Image_4k_jpg" };
     mx::StringVec resolutionStrings = { "2k", "4k" };
@@ -597,13 +615,13 @@ TEST_CASE("Tokens", "[nodegraph]")
 
 TEST_CASE("Node Definition Creation", "[nodedef]")
 {
-    mx::DocumentPtr doc = mx::createDocument();
-    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_defs.mtlx"), doc);
-    mx::loadLibrary(mx::FilePath::getCurrentPath() / mx::FilePath("libraries/stdlib/stdlib_ng.mtlx"), doc);
-    mx::FileSearchPath searchPath("resources/Materials/TestSuite/stdlib/definition/");
+    mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
+    mx::DocumentPtr stdlib = mx::createDocument();
+    mx::loadLibraries({ "libraries" }, searchPath, stdlib);
 
-    mx::readFromXmlFile(doc, "definition_from_nodegraph.mtlx", searchPath);
-    REQUIRE(doc->validate());
+    mx::DocumentPtr doc = mx::createDocument();
+    mx::readFromXmlFile(doc, "resources/Materials/TestSuite/stdlib/definition/definition_from_nodegraph.mtlx", searchPath);
+    doc->importLibrary(stdlib);
 
     mx::NodeGraphPtr graph = doc->getNodeGraph("test_colorcorrect");
     REQUIRE(graph);
@@ -721,7 +739,5 @@ TEST_CASE("Node Definition Creation", "[nodedef]")
         }
         REQUIRE(findDefault);
     }
-
     REQUIRE(doc->validate());
-    mx::writeToXmlFile(doc, "definition_from_nodegraph_out.mtlx");
 }
