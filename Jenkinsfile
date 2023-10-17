@@ -23,7 +23,12 @@ for(int i=0; i< axisNode.size(); i++) {
                 WorkDir="D:\\Stage\\workspace\\${env.COMPONENT}\\" + env.BRANCH_NAME.replace("/", "\\")
                 WorkDirComp = WorkDir + "\\${env.COMPONENT}"
             } else {
-                WorkDir="/Volumes/DATA/workspace/${env.COMPONENT}/${env.BRANCH_NAME}"
+                if (axisNodeValue.contains('xcode')) {
+                    WorkDir = '/Volumes/DATA/workspace'
+                } else {
+                    WorkDir = '/DATA/workspace'
+                }
+                WorkDir += "/${env.COMPONENT}/${env.BRANCH_NAME}"
                 WorkDirComp = WorkDir + "/${env.COMPONENT}"
             }
             try {
