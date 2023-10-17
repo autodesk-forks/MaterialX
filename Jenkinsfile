@@ -146,6 +146,7 @@ for(int i=0; i< axisNode.size(); i++) {
                                     bat "nuget pack $nuspecFile.path -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -BasePath %WORKSPACE%\\install_$config -Prop materialx=$materialx_version -Prop win_compiler=$win_compiler -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib"
                                 }
 
+                                bat "copy $env.WORKSPACE\\install_debug\\libs\\cmake\\MaterialX\\MaterialXTargets-debug.cmake $env.WORKSPACE\\install_release\\libs\\cmake\\MaterialX\\"
                                 zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_win_intel64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/install_release", glob: '**/*'
                             } else if (axisNodeValue.contains("GEC-xcode")){
                                 final nuspecFiles = findFiles(glob: 'adsk-build-scripts/nuget/osx/*.nuspec')
@@ -154,6 +155,7 @@ for(int i=0; i< axisNode.size(); i++) {
                                     sh "nuget pack $nuspecFile.path -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -BasePath $WORKSPACE/install_$config -Prop materialx=$materialx_version -Prop osx_compiler=$osx_compiler -Prop osx_target=$osx_target -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib"                                    
                                 }
 
+                                sh "cp $env.WORKSPACE/install_debug/libs/cmake/MaterialX/MaterialXTargets-debug.cmake $env.WORKSPACE/install_release/libs/cmake/MaterialX/"
                                 zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_osx_ubx64arm64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/install_release", glob: '**/*'
                             } else {
                                 final nuspecFiles = findFiles(glob: 'adsk-build-scripts/nuget/linux/*.nuspec')
@@ -162,6 +164,7 @@ for(int i=0; i< axisNode.size(); i++) {
                                     sh "nuget pack $nuspecFile.path -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -BasePath $WORKSPACE/_build/install_$config -Prop materialx=$materialx_version -Prop linux_compiler=$linux_compiler -Prop linux_target=$linux_target -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib"
                                 }
 
+                                sh "cp $env.WORKSPACE/_build/install_debug/libs/cmake/MaterialX/MaterialXTargets-debug.cmake $env.WORKSPACE/_build/install_release/libs/cmake/MaterialX/"
                                 zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_linux_intel64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/_build/install_release", glob: '**/*'
                             }
                         }

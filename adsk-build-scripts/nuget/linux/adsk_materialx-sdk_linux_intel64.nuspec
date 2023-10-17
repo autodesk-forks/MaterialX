@@ -13,5 +13,6 @@
   </metadata>
   <files>
     <file src="**" target="" />
+    <file src="../install_debug/libs/cmake/MaterialX/MaterialXTargets-debug.cmake" target="libs/cmake/MaterialX" />
   </files>
 </package>
