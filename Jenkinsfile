@@ -1,6 +1,6 @@
 @Library("PSL") _
     
-def axisNode = ["GEC-vs2022-cicd", "GEC-xcode14", "GEC-gcc485-gfx"]
+def axisNode = ["GEC-vs2022-cicd", "GEC-xcode14", "GEC-rhel-gcc831"]
 
 if (currentBuild.rawBuild.getCauses().toString().contains('BranchIndexingCause')) {
   print "INFO: Build skipped due to trigger being Branch Indexing"
