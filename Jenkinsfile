@@ -35,6 +35,8 @@ for(int i=0; i< axisNode.size(); i++) {
                 ws("${WorkDirComp}"){
                     stage("Sync") {
                         println "Node=${env.NODE_NAME}"
+
+                        deleteDir()
                     
                         checkout([$class: 'GitSCM', branches: scm.branches, doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: scm.userRemoteConfigs])
                         if(axisNodeValue.contains("GEC-vs")) {
@@ -178,12 +180,6 @@ for(int i=0; i< axisNode.size(); i++) {
             } catch (caughtError) {
                 println ("Error: " + caughtError)
                 currentBuild.result="FAILURE"
-            }
-            finally {
-                // Clear workspace directory
-                dir("${WorkDirComp}") {
-                    deleteDir()
-                }
             }
         }
     }
