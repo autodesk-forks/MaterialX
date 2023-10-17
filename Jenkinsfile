@@ -159,7 +159,7 @@ for(int i=0; i< axisNode.size(); i++) {
                                 final nuspecFiles = findFiles(glob: 'adsk-build-scripts/nuget/linux/*.nuspec')
                                 for (final nuspecFile in nuspecFiles) {
                                     final config = (nuspecFile.name.contains('debug')) ? 'debug' : 'release'
-                                    sh "nuget pack $nuspecFile.path -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/_build/install_$config -Prop materialx=$materialx_version -Prop linux_compiler=$linux_compiler -Prop linux_target=$linux_target -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib"
+                                    sh "nuget pack $nuspecFile.path -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -BasePath $WORKSPACE/_build/install_$config -Prop materialx=$materialx_version -Prop linux_compiler=$linux_compiler -Prop linux_target=$linux_target -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib"
                                 }
 
                                 zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_linux_intel64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/_build/install_release", glob: '**/*'

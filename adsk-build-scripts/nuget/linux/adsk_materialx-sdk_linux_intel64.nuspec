@@ -12,6 +12,6 @@
     <tags>materialx-$materialX$</tags>
   </metadata>
   <files>
-    <file src="$installdir$/**" target="" />
+    <file src="**" target="" />
   </files>
 </package>
