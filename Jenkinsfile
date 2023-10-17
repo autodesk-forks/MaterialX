@@ -143,7 +143,7 @@ for(int i=0; i< axisNode.size(); i++) {
                                 final nuspecFiles = findFiles(glob: 'adsk-build-scripts\\nuget\\win\\*.nuspec')
                                 for (final nuspecFile in nuspecFiles) {
                                     final config = (nuspecFile.name.contains('debug')) ? 'debug' : 'release'
-                                    bat "nuget pack $nuspecFile.path -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -Prop installdir=%WORKSPACE%\\install_$config -Prop materialx=$materialx_version -Prop win_compiler=$win_compiler -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib"
+                                    bat "nuget pack $nuspecFile.path -Version %NUGET_VERSION% -OutputDirectory %WORKSPACE%\\packages -BasePath %WORKSPACE%\\install_$config -Prop materialx=$materialx_version -Prop win_compiler=$win_compiler -Prop materialxcontrib=%WORKSPACE%\\source\\MaterialXContrib"
                                 }
 
                                 zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_win_intel64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/install_release", glob: '**/*'
@@ -151,7 +151,7 @@ for(int i=0; i< axisNode.size(); i++) {
                                 final nuspecFiles = findFiles(glob: 'adsk-build-scripts/nuget/osx/*.nuspec')
                                 for (final nuspecFile in nuspecFiles) {
                                     final config = (nuspecFile.name.contains('debug')) ? 'debug' : 'release'
-                                    sh "nuget pack $nuspecFile.path -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -Prop installdir=$WORKSPACE/install_$config -Prop materialx=$materialx_version -Prop osx_compiler=$osx_compiler -Prop osx_target=$osx_target -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib"                                    
+                                    sh "nuget pack $nuspecFile.path -Version $NUGET_VERSION -OutputDirectory $WORKSPACE/packages -BasePath $WORKSPACE/install_$config -Prop materialx=$materialx_version -Prop osx_compiler=$osx_compiler -Prop osx_target=$osx_target -Prop materialxcontrib=$WORKSPACE/source/MaterialXContrib"                                    
                                 }
 
                                 zip zipFile: "$env.WORKSPACE/packages/adsk_materialx-sdk_osx_ubx64arm64.${env.NUGET_VERSION}.zip", dir: "$env.WORKSPACE/install_release", glob: '**/*'

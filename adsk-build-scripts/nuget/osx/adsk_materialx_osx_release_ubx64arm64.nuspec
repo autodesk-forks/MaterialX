@@ -16,7 +16,7 @@
     </dependencies>
   </metadata>
   	<files>
-      <file src="$installdir$/libs/**" target="bin" />
+      <file src="libs/**" target="bin" />
 	</files>
 </package>
 

@@ -12,8 +12,8 @@
     <tags>materialx-$materialX$</tags>
   </metadata>
  	<files>
-    <file src="$installdir$\inc\**" target="inc" />
-    <file src="$installdir$\libs\cmake\**" target="libs\cmake" />
+    <file src="inc\**" target="inc" />
+    <file src="libs\cmake\**" target="libs\cmake" />
 	</files>
 </package>
 
