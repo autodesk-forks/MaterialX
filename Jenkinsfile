@@ -141,6 +141,17 @@ for(int i=0; i< axisNode.size(); i++) {
                             }
                         }
                         withEnv(properties) {
+                            final sdkDir = (axisNodeValue.contains('gcc')) ? '_build/install_sdk' : 'install_sdk'
+                            dir (sdkDir) {
+                                for (final config in ['debug', 'release']) {
+                                    if (!isUnix()) {
+                                        bat "xcopy /v /f /i /e /y ..\\install_$config\\* .\\"
+                                    } else {
+                                        sh "cp -vrf ../install_$config/* ./"
+                                    }
+                                }
+                            }
+
                             if(axisNodeValue.contains("GEC-vs")) {
                                 final nuspecFiles = findFiles(glob: 'adsk-build-scripts\\nuget\\win\\*.nuspec')
                                 for (final nuspecFile in nuspecFiles) {
