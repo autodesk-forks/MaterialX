@@ -12,7 +12,6 @@
     <tags>materialx-$materialX$</tags>
   </metadata>
   <files>
-    <file src="**" target="" />
-    <file src="../install_debug/libs/cmake/MaterialX/MaterialXTargets-debug.cmake" target="libs/cmake/MaterialX" />
+    <file src="../install_sdk/**" target="" />
   </files>
 </package>
