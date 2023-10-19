@@ -1,6 +1,6 @@
 VS_VERSION_INFO VERSIONINFO
-    FILEVERSION    1,388,0,0
-    PRODUCTVERSION 1,38,8,0
+    FILEVERSION    1,388,0,1
+    PRODUCTVERSION 1,38,8,1
 {
     BLOCK "StringFileInfo"
     {
@@ -8,11 +8,11 @@ VS_VERSION_INFO VERSIONINFO
         {
             VALUE "CompanyName",        "Autodesk Inc.\0"
             VALUE "FileDescription",    "MaterialX\0"
-            VALUE "FileVersion",        "1.388.0.0\0"
+            VALUE "FileVersion",        "1.388.0.1\0"
             VALUE "LegalCopyright",     "Copyright © 2023 Autodesk Inc. All Rights Reserved\0"
             VALUE "OriginalFilename",   "MaterialXGenMsl.dll\0"
             VALUE "ProductName",        "MaterialX\0"
-            VALUE "ProductVersion",     "1.38.8.0\0"
+            VALUE "ProductVersion",     "1.38.8.1\0"
         }
     }
     BLOCK "VarFileInfo"
