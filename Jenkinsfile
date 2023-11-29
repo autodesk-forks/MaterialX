@@ -72,8 +72,8 @@ for(int i=0; i< axisNode.size(); i++) {
                                     %cmake% --build _mtlxbuild --target install
                                     
                                     %cmake% -S . -B_mtlxbuild -G "Visual Studio 17 2022" -A x64 -DCMAKE_INSTALL_PREFIX=%WORKSPACE%\\install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries
-                                    %cmake% --build _mtlxbuild --config Release
-                                    %cmake% --build _mtlxbuild --config Release --target install
+                                    %cmake% --build _mtlxbuild --config RelWithDebInfo
+                                    %cmake% --build _mtlxbuild --config RelWithDebInfo --target install
                                 '''
                                 final resourceDir = "$WORKSPACE\\adsk-build-scripts\\adsk-contrib"
                                 dir (resourceDir) {
@@ -117,9 +117,9 @@ for(int i=0; i< axisNode.size(); i++) {
                             } else {
                                 sh "git clean -fdx"
                                 sh '''
-                                cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=debug -DCMAKE_INSTALL_PREFIX=_build/install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries 
+                                cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=debug -DCMAKE_INSTALL_PREFIX=_build/install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
                                 cmake --build _build --config debug --target install --parallel 16
-                                cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=_build/install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries
+                                cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=_build/install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
                                 cmake --build _build --config release --target install --parallel 16
 
                                 '''
