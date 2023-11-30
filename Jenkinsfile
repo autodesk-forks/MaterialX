@@ -1,6 +1,6 @@
 @Library("PSL") _
     
-def axisNode = ["GEC-vs2022-cicd", "GEC-xcode14", "GEC-rhel-gcc831"]
+def axisNode = ["GEC-vs2022-cicd", "GEC-xcode14", "GEC-ubuntu-gcc940"]
 
 if (currentBuild.rawBuild.getCauses().toString().contains('BranchIndexingCause')) {
   print "INFO: Build skipped due to trigger being Branch Indexing"
@@ -116,13 +116,23 @@ for(int i=0; i< axisNode.size(); i++) {
                                 '''
                             } else {
                                 sh "git clean -fdx"
-                                sh '''
-                                cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=debug -DCMAKE_INSTALL_PREFIX=_build/install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
-                                cmake --build _build --config debug --target install --parallel 16
-                                cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=_build/install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
-                                cmake --build _build --config release --target install --parallel 16
+                                def buildImage = "autodesk-docker.art-bobcat.autodesk.com/gfx/gfx-vulkan-builder-ubuntu-20.04"
+                                docker.image("${buildImage}").pull()
+                                docker.image("${buildImage}").inside("-u root") {
+                                    sh '''
+                                    cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=debug -DCMAKE_INSTALL_PREFIX=_build/install_debug -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DCMAKE_DEBUG_POSTFIX=d  -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
+                                    cmake --build _build --config debug --target install --parallel 16
+                                    cmake -S . -G "Unix Makefiles" -B_build -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=_build/install_release -DMATERIALX_BUILD_PYTHON=OFF  -DMATERIALX_BUILD_RENDER=ON -DMATERIALX_BUILD_TESTS=OFF -DMATERIALX_BUILD_GEN_OSL=ON -DMATERIALX_BUILD_GEN_MDL=OFF -DMATERIALX_CONTRIB=ON -DMATERIALX_BUILD_VIEWER=OFF -DMATERIALX_BUILD_SHARED_LIBS=ON -DMATERIALX_INSTALL_INCLUDE_PATH=inc -DMATERIALX_INSTALL_LIB_PATH=libs -DMATERIALX_INSTALL_STDLIB_PATH=libraries -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
+                                    cmake --build _build --config release --target install --parallel 16
 
-                                '''
+                                    # check there shouldn't have any std::__cxx11::
+                                    nm -A -D --defined-only _build/install_debug/libs/*.so | c++filt | grep 'cxx11' | head
+                                    nm -A -D --defined-only _build/install_release/libs/*.so | c++filt | grep 'cxx11' | head
+
+                                    # change the access right for creating packages later
+                                    chmod -R a+w .
+                                    '''
+                                }
                             }
                         }
                     }
