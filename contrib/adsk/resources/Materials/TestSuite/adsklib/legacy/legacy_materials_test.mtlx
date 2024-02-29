@@ -5,7 +5,7 @@
   -->
 
   <legacy_mirror name="SR_legacy_mirror" type="surfaceshader" >
-    <input name="color" type="color3" />
+    <input name="color" type="color3" value="0.98,0.98,0.98" />
     <input name="tint_enable" type="boolean" value="true" />
     <input name="tint_color" type="color3" value="0.95,0.5,0.5" />
   </legacy_mirror>
@@ -16,12 +16,12 @@
   <legacy_plastic name="SR_legacy_plastic" type="surfaceshader" >
     <input name="type" type="float" value="1" />
     <input name="color" type="color3" value="0.43,0.07,0.07" />
-    <input name="finish" type="float"/>
-    <input name="tint_enable" type="boolean"/>
-    <input name="tint_color" type="color3"/>
-    <input name="finish_bump_enable" type="boolean" />
+    <input name="finish" type="float" value="0" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.95,0.5,0.5" />
+    <input name="finish_bump_enable" type="boolean" value="false" />
     <input name="finish_bump" type="vector3" nodename="height_map1_plastic" />
-    <input name="relief_pattern_enable" type="boolean" />
+    <input name="relief_pattern_enable" type="boolean" value="false" />
     <input name="relief_pattern" type="vector3" nodename="height_map2_plastic"/>
   </legacy_plastic>
   <surfacematerial name="M_legacy_plastic" type="material">
@@ -42,12 +42,12 @@
     <input name="color" type="color3" nodename="image_hardwood" />
     <input name="stain_enable" type="boolean" value="true" />
     <input name="stain_color" type="color3" value="0.2,0.2,0.9" />
-    <input name="finish" type="float" />
-    <input name="used_for" type="float" />
-    <input name="tint_enable" type="boolean" />
-    <input name="tint_color" type="color3" />
-    <input name="relief_pattern_enable" type="boolean" />
-    <input name="relief_pattern_type" type="float" />
+    <input name="finish" type="float" value="0" />
+    <input name="used_for" type="float" value="0" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.95,0.5,0.5" />
+    <input name="relief_pattern_enable" type="boolean" value="false" />
+    <input name="relief_pattern_type" type="float" value="0" />
     <input name="relief_pattern_custom" type="vector3" nodename="height_map1_hardwood" />
   </legacy_hardwood>
   <surfacematerial name="M_legacy_hardwood" type="material">
@@ -65,12 +65,12 @@
   <legacy_glazing name="SR_legacy_glazing" type="surfaceshader" >
     <input name="color" type="float" value="6" />
     <input name="custom_color" type="color3" value="0.99,0,0" />
-    <input name="test_sRGB" type="boolean"/>
-    <input name="reflectance" type="float"/>
-    <input name="reflection_color" type="float"/>
-    <input name="sheets_of_glass" type="integer"/>
-    <input name="tint_enable" type="boolean"/>
-    <input name="tint_color" type="color3"/>
+    <input name="test_sRGB" type="boolean" value="false" />
+    <input name="reflectance" type="float" value="0.12" />
+    <input name="reflection_color" type="float" value="1,1,1" />
+    <input name="sheets_of_glass" type="integer" value="1" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.5,0.5,0.95" />
   </legacy_glazing>
   <surfacematerial name="M_legacy_glazing" type="material">
     <input name="surfaceshader" type="surfaceshader" nodename="SR_legacy_glazing" />
@@ -78,20 +78,20 @@
 
   <legacy_metal name="SR_legacy_metal" type="surfaceshader" >
     <input name="type" type="float" value="3" />
-    <input name="custom_color" type="color3"/>
+    <input name="custom_color" type="color3" value="0.5,0.5,0.95" />
     <input name="finish" type="float" value="1" />
-    <input name="custom_finish" type="float"/>
+    <input name="custom_finish" type="float" value="0.5" />
     <input name="patina" type="float" value="0.5" />
-    <input name="relief_enable" type="boolean"/>
-    <input name="relief" type="float"/>
-    <input name="custom_relief" type="vector3"/>
+    <input name="relief_enable" type="boolean" value="false" />
+    <input name="relief" type="float" value="0" />
+    <!-- <input name="custom_relief" type="vector3"/> -->
     <input name="cutout_enable" type="boolean" value="true" />
     <input name="cutout" type="float" value="4" />
     <input name="cutout_size" type="float" value="0.06" />
     <input name="cutout_spacing" type="float" value="0.1" />
-    <input name="custom_cutout" type="color3"/>
-    <input name="tint_enable" type="boolean"/>
-    <input name="tint_color" type="color3"/>
+    <!-- <input name="custom_cutout" type="color3"/> -->
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.95,0.5,0.5" />
     <input name="normal_knurl" type="vector3" nodename="normal_map_knurl" />
     <input name="normal_diamondplate" type="vector3" nodename="normal_map_diamondplate" />
     <input name="normal_checkerplate" type="vector3" nodename="normal_map_checkerplate" />
@@ -113,22 +113,22 @@
   </adsk:normal_map>
 
   <legacy_metallicpaint name="SR_legacy_metallicpaint" type="surfaceshader" >
-    <input name="color" type="color3" />
-    <input name="highlight_spread" type="float" />
-    <input name="coat_type" type="float" />
-    <input name="coat_finish" type="float" />
-    <input name="custom_coat_ior" type="float" />
-    <input name="tint_enable" type="boolean" />
-    <input name="tint_color" type="color3" />
+    <input name="color" type="color3" value="0.95,0.1,0.5" />
+    <input name="highlight_spread" type="float" value="0.55" />
+    <input name="coat_type" type="float" value="0" />
+    <input name="coat_finish" type="float" value="1" />
+    <input name="custom_coat_ior" type="float" value="1.5" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.2,0.2,0.8" />
   </legacy_metallicpaint>
   <surfacematerial name="M_legacy_metallicpaint" type="material">
     <input name="surfaceshader" type="surfaceshader" nodename="SR_legacy_metallicpaint" />
   </surfacematerial>
 
   <legacy_concrete name="SR_legacy_concrete" type="surfaceshader" >
-    <input name="color" type="color3"/>
-    <input name="sealant" type="float"/>
-    <input name="finish_bump" type="float"/>
+    <input name="color" type="color3" value="0.6,0.6,0.6" />
+    <input name="sealant" type="float" value="0" />
+    <input name="finish_bump" type="float" value="0" />
     <input name="tint_enable" type="boolean" value="true" />
     <input name="tint_color" type="color3" value="0.5,0.5,0.95" />
     <input name="bump_broomstraight" type="vector3" nodename="texture_broomstraight"/>
@@ -136,8 +136,8 @@
     <input name="bump_smooth" type="vector3" nodename="texture_smooth"/>
     <input name="bump_polished" type="vector3" nodename="texture_polished"/>
     <input name="bump_custom" type="vector3" nodename="texture_custom"/>
-    <input name="weathering_enable" type="boolean" />
-    <input name="weathering_type" type="float" />
+    <input name="weathering_enable" type="boolean" value="true" />
+    <input name="weathering_type" type="float" value="0" />
     <input name="weathering_custom" type="color3" nodename="image_color3" />
     <input name="weathering_bump" type="color3" nodename="image_color4" />
   </legacy_concrete>
@@ -180,11 +180,11 @@
   </image>
 
   <legacy_wallpaint name="SR_legacy_wallpaint" type="surfaceshader" >
-    <input name="color" type="color3" />
-    <input name="finish" type="float" />
-    <input name="application" type="float" />
-    <input name="tint_enable" type="boolean" />
-    <input name="tint_color" type="color3" />
+    <input name="color" type="color3" value="0.1,0.9,0.1" />
+    <input name="finish" type="float" value="3" />
+    <input name="application" type="float" value="0" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.95,0.5,0.5" />
     <input name="normal_roller" type="vector3" nodename="roller_map" />
     <input name="normal_brush" type="vector3" nodename="brush_map" />
     <input name="normal_spray" type="vector3" nodename="spray_map" />
@@ -217,14 +217,14 @@
 
   <legacy_ceramic name="SR_legacy_ceramic" type="surfaceshader" >
     <input name="color" type="color3" value="0.75,0.55,0.65"/>
-    <input name="tint_enable" type="boolean" />
-    <input name="tint_color" type="color3" />
-    <input name="type" type="float" />
-    <input name="finish" type="float" />
-    <input name="finish_bump_enable" type="boolean" />
-    <input name="finish_bump" type="float" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.5,0.5,0.95" />
+    <input name="type" type="float" value="0" />
+    <input name="finish" type="float" value="1" />
+    <input name="finish_bump_enable" type="boolean" value="false" />
+    <input name="finish_bump" type="float" value="0" />
     <input name="custom_finish_normal" type="vector3" nodename="height_map3_ceramic" />
-    <input name="relief_pattern_enable" type="boolean" />
+    <input name="relief_pattern_enable" type="boolean" value="false" />
     <input name="relief_pattern_normal" type="vector3" nodename="height_map1_ceramic" />
     <output name="out" type="surfaceshader" />
   </legacy_ceramic>
@@ -246,12 +246,12 @@
     <input name="color" type="float" value="6" />
     <input name="custom_color" type="color3" value="0.0,0.99,0.0" />
     <input name="test_sRGB" type="boolean" value="true" />
-    <input name="reflectance" type="float" />
+    <input name="reflectance" type="float" value="0.06" />
     <input name="refraction_ior" type="float" value="2" />
-    <input name="custom_ior" type="float" />
+    <input name="custom_ior" type="float" value="1.8" />
     <input name="roughness" type="float" value="0.1" />
-    <input name="tint_enable" type="boolean" />
-    <input name="tint_color" type="color3" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.5,0.5,0.8" />
     <input name="relief_enable" type="boolean" value="true" />
     <input name="relief_type" type="float" value="1" />
     <input name="normal_rippled" type="vector3" nodename="normal_map_rippled" />
@@ -276,11 +276,11 @@
 
   <legacy_water name="SR_legacy_water" type="surfaceshader" >
     <input name="type" type="float" value="2" />
-    <input name="test_sRGB" type="boolean" />
+    <input name="test_sRGB" type="boolean" value="false" />
     <input name="secondary_color" type="float" value="7" />
-    <input name="custom_color" type="color3" value="0,0,1" />
-    <input name="tint_enable" type="boolean" />
-    <input name="tint_color" type="color3" />
+    <input name="custom_color" type="color3" value="0.1,0.1,0.95" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.95,0.5,0.5" />
     <input name="bump_swimming_pool" type="vector3" nodename="height_map1_water"/>
     <input name="bump_generic_refl_pool" type="vector3" nodename="height_map_water"/>
     <input name="bump_generic_stream" type="vector3" nodename="height_map1_water"/>
@@ -307,17 +307,17 @@
   </adsk:height_map>
 
   <legacy_stone name="SR_legacy_stone" type="surfaceshader" >
-    <input name="color" type="color3" />
-    <input name="finish" type="float" />
-    <input name="tint_enable" type="boolean" />
-    <input name="tint_color" type="color3" />
+    <input name="color" type="color3" value="0.5,0.5,0.5" />
+    <input name="finish" type="float" value="2" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.95,0.5,0.5" />
     <input name="finish_bump_enable" type="boolean" value="true" />
-    <input name="finish_bump" type="float" />
+    <input name="finish_bump" type="float" value="0" />
     <input name="finish_granite" type="vector3" nodename="test_granite_bump" />
     <input name="finish_marble" type="vector3" nodename="test_marble_bump" />
     <input name="finish_wall" type="vector3" nodename="test_stonewall_bump" />
     <input name="custom_finish" type="vector3" nodename="height_map1_stone"/>
-    <input name="relief_pattern_enable" type="boolean" />
+    <input name="relief_pattern_enable" type="boolean" value="false" />
     <input name="relief_pattern" type="vector3" nodename="height_map2_stone" />
   </legacy_stone>
   <surfacematerial name="M_legacy_stone" type="material">
@@ -353,11 +353,11 @@
   </adsk:height_map>
 
   <legacy_masonry name="SR_legacy_masonry" type="surfaceshader" >
-    <input name="type" type="float" />
-    <input name="color" type="color3" />
-    <input name="tint_enable" type="boolean" />
-    <input name="tint_color" type="color3" />
-    <input name="finish" type="float" />
+    <input name="type" type="float" value="0" />
+    <input name="color" type="color3" value="0.5,0.5,0.5" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.95,0.5,0.5" />
+    <input name="finish" type="float" value="1" />
     <input name="relief_enable" type="boolean" value="true" />
     <input name="relief_image" type="vector3" nodename="test_bump_masonry" />
   </legacy_masonry>
@@ -371,34 +371,34 @@
   </adsk:height_map>
 
   <legacy_generic name="SR_legacy_generic" type="surfaceshader" >
-    <input name="diffuse_color" type="color3"/>
-    <input name="diffuse_image_enable" type="boolean"/>
-    <input name="diffuse_image" type="color3"/>
-    <input name="diffuse_image_fade" type="float"/>
-    <input name="tint_enable" type="boolean"/>
-    <input name="tint_color" type="color3"/>
-    <input name="glossiness" type="float"/>
-    <input name="metallic_highlights" type="boolean"/>
-    <input name="reflectivity_enable" type="boolean"/>
-    <input name="reflectivity" type="float"/>
-    <input name="transparency_enable" type="boolean"/>
-    <input name="transparency_amount" type="float"/>
-    <input name="transparency_image_enable" type="boolean"/>
+    <input name="diffuse_color" type="color3" value="0.5,0.9,0.2" />
+    <input name="diffuse_image_enable" type="boolean" value="false" />
+    <!-- <input name="diffuse_image" type="color3"/> -->
+    <input name="diffuse_image_fade" type="float" value="1" />
+    <input name="tint_enable" type="boolean" value="false" />
+    <input name="tint_color" type="color3" value="0.9,0.3,0.2" />
+    <input name="glossiness" type="float" value="0.75" />
+    <input name="metallic_highlights" type="boolean" value="false" />
+    <input name="reflectivity_enable" type="boolean" value="true" />
+    <input name="reflectivity" type="float" value="0.07" />
+    <input name="transparency_enable" type="boolean" value="false" />
+    <input name="transparency_amount" type="float" value="0.98" />
+    <input name="transparency_image_enable" type="boolean" value="false" />
     <input name="transparency_image" type="float" nodename="test_transparency"/>
-    <input name="transparency_image_fade" type="float"/>
-    <input name="refraction" type="float" />
-    <input name="custom_refraction" type="float"/>
-    <input name="translucency" type="float" />
-    <input name="bump_enable" type="boolean" />
-    <input name="bump" type="vector3" />
-    <input name="cutout_enable" type="boolean"/>
+    <input name="transparency_image_fade" type="float" value="1" />
+    <input name="refraction" type="float" value="4" />
+    <input name="custom_refraction" type="float" value="1.8" />
+    <input name="translucency" type="float" value="0" />
+    <input name="bump_enable" type="boolean" value="false" />
+    <!-- <input name="bump" type="vector3" /> -->
+    <input name="cutout_enable" type="boolean" value="false" />
     <input name="cutout_image" type="color3" nodename="test_cutout"/>
-    <input name="emission_enable" type="boolean"/>
-    <input name="emission_color" type="color3"/>
-    <input name="luminance" type="float"/>
-    <input name="custom_luminance" type="float"/>
-    <input name="color_temperature" type="float"/>
-    <input name="custom_color_temperature" type="float"/>
+    <input name="emission_enable" type="boolean" value="false" />
+    <input name="emission_color" type="color3" value="1,1,1" />
+    <input name="luminance" type="float" value="1" />
+    <input name="custom_luminance" type="float" value="500" />
+    <input name="color_temperature" type="float" value="5" />
+    <input name="custom_color_temperature" type="float" value="4800" />
   </legacy_generic>
   <surfacematerial name="M_legacy_generic" type="material">
     <input name="surfaceshader" type="surfaceshader" nodename="SR_legacy_generic" />

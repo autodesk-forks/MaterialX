@@ -314,7 +314,7 @@
     <input name="transparency_image_enable" type="boolean" value="false" uivisible="true" uiname="Transparency Image" />
     <input name="transparency_image" type="float" value="0" uivisible="true" uiname="Custom Transparency Image" />
     <input name="transparency_image_fade" type="float" value="1" uivisible="true" uiname="Transparency Image Fade" uimin="0" uimax="1" />
-    <input name="refraction" type="float" value="4" uivisible="true" uiname="Refraction IOR" enum="Air,Water,Alcohol,Quarts,Glass,Diamond,Custom" enumvalues="0,1,2,3,4,5,6" uimin="0" uimax="6" />
+    <input name="refraction" type="float" value="4" uivisible="true" uiname="Refraction IOR" enum="Air,Water,Alcohol,Quartz,Glass,Diamond,Custom" enumvalues="0,1,2,3,4,5,6" uimin="0" uimax="6" />
     <input name="custom_refraction" type="float" value="1.5" uivisible="true" uiname="Custom Refraction IOR" uimin="1" uimax="10" />
     <input name="translucency" type="float" value="0" uivisible="true" uiname="Translucency" />
     <input name="bump_enable" type="boolean" value="false" uivisible="true" uiname="Bump" />
