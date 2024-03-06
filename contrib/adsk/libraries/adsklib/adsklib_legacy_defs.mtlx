@@ -9,32 +9,32 @@
 
   <!-- 
       ==============================================
-      Nodedefs for Autodesk Lagacy Utilities Classes
+      Nodedefs for Autodesk Legacy Utilities Classes
       ==============================================
   -->
 
   <!-- <Color Stain> -->
-  <nodedef name="ND_legacy_stain_color3" node="legacy_stain" version="1.0" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_stain_color3" node="legacy_stain" version="1.0" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color" type="color3" value="0.5, 0.5, 0.5" uivisible="true" uiname="Color"/>
     <input name="stain_color" type="color3" value="1, 1, 1" uivisible="true" uiname="Stain Color"/>
     <output name="out" type="color3" />
   </nodedef>
 
   <!-- <Conversion of Tangent Normal to Phi and Theta Spherical Coordinates> -->
-  <nodedef name="ND_norm2spherical" node="norm2spherical" version="1.0" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_norm2spherical" node="norm2spherical" version="1.0" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="normal" type="vector3" value="0,0,1"/>
     <output name="phi" type="float" />
     <output name="theta" type="float" />
   </nodedef>
 
   <!-- <Converts world normals to tangent in color range RGB 0-1> -->
-  <nodedef name="ND_transformnormal_w2t_vector3" node="transformnormal_w2t_vector3" version="1.0" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_transformnormal_w2t_vector3" node="transformnormal_w2t_vector3" version="1.0" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="world_normal" type="vector3" defaultgeomprop="Nworld" />
     <output name="tangent_normal" type="vector3" />
   </nodedef>
 
   <!-- <Combines Two Tangent Normals into a new Tangent Normal> -->
-  <nodedef name="ND_combinenormals_vector3" node="combinenormals_vector3" version="1.0" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_combinenormals_vector3" node="combinenormals_vector3" version="1.0" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="normal1" type="vector3" value="0,0,1" />
     <input name="normal2" type="vector3" value="0,0,1" />
     <input name="weight" type="float" value="1" uimin="0" uimax="1" />
@@ -43,11 +43,11 @@
   
   <!-- 
       ===============================================
-      Nodedefs for Autodesk Lagacy Procedural Classes
+      Nodedefs for Autodesk Legacy Procedural Classes
       ===============================================
   -->
 
-  <nodedef name="ND_legacy_checker" node="legacy_checker" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_checker" node="legacy_checker" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color1" type="color3" value="1, 1, 1" xpos="2.094203" ypos="-4.965517" uivisible="true" uiname="Color 1" />
     <input name="color2" type="color3" value="0, 0, 0" xpos="2.050725" ypos="-3.862069" uivisible="true" uiname="Color 2" />
     <input name="width" type="float" value="0.4" xpos="2.115942" ypos="-0.172414" uivisible="true" uiname="Width" unittype="distance"/>
@@ -63,7 +63,7 @@
     <output name="output_color4" type="color4" xpos="33.471016" ypos="4.681035" />
   </nodedef>
 
-  <nodedef name="ND_legacy_noise" node="legacy_noise" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_noise" node="legacy_noise" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color1" type="color3" value="1, 1, 1" xpos="-2.652174" ypos="-3.724138" uivisible="true" uiname="Color 1" />
     <input name="color2" type="color3" value="0, 0, 0" xpos="-2.652174" ypos="-2.500000" uivisible="true" uiname="Color 2" />
     <input name="noise_type" type="integer" value="0" xpos="-2.615942" ypos="-4.982759" uivisible="true" uiname="Noise Type" uimin="0" uimax="2"/>
@@ -97,12 +97,12 @@
 
   <!-- 
       =============================================
-      Nodedefs for Autodesk Lagacy Material Classes
+      Nodedefs for Autodesk Legacy Material Classes
       =============================================
   -->
 
   <!-- <Legacy Mirror> -->
-  <nodedef name="ND_legacy_mirror" node="legacy_mirror" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_mirror" node="legacy_mirror" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color" type="color3" value="0.94, 0.97, 0.98" uivisible="true" uiname="Color" />
     <input name="tint_enable" type="boolean" value="false" uivisible="true" uiname="Tint" />
     <input name="tint_color" type="color3" value="1, 1, 1" uivisible="true" uiname="Tint Color" />
@@ -110,7 +110,7 @@
   </nodedef>
 
   <!-- <Legacy Plastic/Vinyl> -->
-  <nodedef name="ND_legacy_plastic" node="legacy_plastic" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_plastic" node="legacy_plastic" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="type" type="float" value="0" uivisible="true" uiname="Type" enum="Plastic (Solid),Plastic (Transparent),Vinyl" enumvalues="0,1,2" uimin="0" uimax="2" />
     <input name="color" type="color3" value="0.8, 0.8, 0.8" uivisible="true" uiname="Color" />
     <input name="finish" type="float" value="0" uivisible="true" uiname="Finish" enum="Polished,Glossy,Semi-Gloss,Matte" enumvalues="0,1,2,3" uimin="0" uimax="3" />
@@ -124,7 +124,7 @@
   </nodedef>
 
   <!-- <Legacy Hardwood> -->
-  <nodedef name="ND_legacy_hardwood" node="legacy_hardwood" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_hardwood" node="legacy_hardwood" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color" type="color3" value="0.8144, 0.8144, 0.8144" uivisible="true" uiname="Color" />
     <input name="stain_enable" type="boolean" value="true" uivisible="true" uiname="Stain" />
     <input name="stain_color" type="color3" value="0.6907, 0.3464, 0.0783" uivisible="true" uiname="Stain Color" />
@@ -139,7 +139,7 @@
   </nodedef>
 
   <!-- <Legacy Glazing> -->
-  <nodedef name="ND_legacy_glazing" node="legacy_glazing" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_glazing" node="legacy_glazing" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color" type="float" value="0" uivisible="true" uiname="Color" enum="Clear,Green,Gray,Blue,Blue-Green,Bronze,Custom" enumvalues="0,1,2,3,4,5,6" uimin="0" uimax="6" />
     <input name="custom_color" type="color3" value="0.30, 0.89, 0.08" uivisible="true" uiname="Custom Color" />
     <input name="test_sRGB" type="boolean" value="false" uivisible="true" uiname="Test sRGB" />
@@ -152,7 +152,7 @@
   </nodedef>
 
   <!-- <Legacy Metal> -->
-  <nodedef name="ND_legacy_metal" node="legacy_metal" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_metal" node="legacy_metal" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="type" type="float" value="0" uivisible="true" uiname="Type" enum="Aluminum,Anodized Aluminum,Chrome,Copper,Brass,Bronze,Stainless Steel,Zinc" enumvalues="0,1,2,3,4,5,6,7" uimin="0" uimax="7" />
     <input name="custom_color" type="color3" value="0.2209, 0.7493, 0.1938" uivisible="true" uiname="Custom Color" />
     <input name="finish" type="float" value="0" uivisible="true" uiname="Finish" enum="Polished,Semi-polished,Satin,Custom" enumvalues="0,1,2,3" uimin="0" uimax="3" />
@@ -175,7 +175,7 @@
   </nodedef>
 
   <!-- <Legacy MetallicPaint> -->
-  <nodedef name="ND_legacy_metallicpaint" node="legacy_metallicpaint" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_metallicpaint" node="legacy_metallicpaint" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color" type="color3" value="0.9, 0.1, 0" uivisible="true" uiname="Color" />
     <input name="highlight_spread" type="float" value="0.66" uivisible="true" uiname="Highlight Spread" />
     <input name="coat_type" type="float" value="0" uivisible="true" uiname="Coat Type" enum="Car Paint,Chrome,Matte,Custom" enumvalues="0,1,2,3" uimin="0" uimax="3" />
@@ -187,7 +187,7 @@
   </nodedef>
 
   <!-- <Legacy Concrete> -->
-  <nodedef name="ND_legacy_concrete" node="legacy_concrete" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_concrete" node="legacy_concrete" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color" type="color3" value="0.5257, 0.5257, 0.5257" uivisible="true" uiname="Color" />
     <input name="sealant" type="float" value="0" uivisible="true" uiname="Sealant" enum="None,Epoxy,Acrylic" enumvalues="0,1,2" uimin="0" uimax="2" />
     <input name="finish_bump" type="float" value="0" uivisible="true" uiname="Finish Bump" enum="Broom Straight,Broom Curved,Smooth,Polished,Stamped/Custom" enumvalues="0,1,2,3,4" uimin="0" uimax="4" />
@@ -206,7 +206,7 @@
   </nodedef>
 
   <!-- <Legacy Wall Paint> -->
-  <nodedef name="ND_legacy_wallpaint" node="legacy_wallpaint" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_wallpaint" node="legacy_wallpaint" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color" type="color3" value="0.9, 0.9, 0.9" uivisible="true" uiname="Color" />
     <input name="finish" type="float" value="0" uivisible="true" uiname="Finish" enum="Flat-Matte,Eggshell,Platinum,Pearl,Semi-gloss,Gloss" enumvalues="0,1,2,3,4,5,6" uimin="0" uimax="6" />
     <input name="application" type="float" value="0" uivisible="true" uiname="Application" enum="Roller,Brush,Spray" enumvalues="0,1,2" uimin="0" uimax="2" />
@@ -219,7 +219,7 @@
   </nodedef>
 
   <!-- <Legacy Ceramic> -->
-  <nodedef name="ND_legacy_ceramic" node="legacy_ceramic" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_ceramic" node="legacy_ceramic" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color" type="color3" value="0.9, 0.9, 0.9" uivisible="true" uiname="Color" />
     <input name="tint_enable" type="boolean" value="false" uivisible="true" uiname="Tint" />
     <input name="tint_color" type="color3" value="1, 1, 1" uivisible="true" uiname="Tint Color" />
@@ -234,7 +234,7 @@
   </nodedef>
 
   <!-- <Legacy Solid Glass> -->
-  <nodedef name="ND_legacy_glass" node="legacy_glass" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_glass" node="legacy_glass" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color" type="float" value="0" uivisible="true" uiname="Color" enum="Clear,Green,Gray,Blue,Blue-Green,Bronze,Custom" enumvalues="0,1,2,3,4,5,6" uimin="0" uimax="6" />
     <input name="custom_color" type="color3" value="0.5, 0.5, 0.5" uivisible="true" uiname="Custom Color" />
     <input name="test_sRGB" type="boolean" value="false" uivisible="true" uiname="Test sRGB" />
@@ -253,7 +253,7 @@
   </nodedef>
 
   <!-- <Legacy Water> -->
-  <nodedef name="ND_legacy_water" node="legacy_water" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_water" node="legacy_water" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="type" type="float" value="0" uivisible="true" uiname="Type" enum="Swimming Pool,Generic Reflective Pool,Generic Stream-River,Generic Pond-Lake,Generic Sea-Ocean" enumvalues="0,1,2,3,4" uimin="0" uimax="4"/>
     <input name="test_sRGB" type="boolean" value="false" uivisible="true" uiname="Test sRGB" />
     <input name="secondary_color" type="float" value="0" uivisible="true" uiname="Secondary Color" enum="Tropical,Algae-Green,Murky-Brown,Generic-Reflective-Pool,Generic-Stream-River,Generic-Pond-Lake,Generic-Sea-Ocean,Custom" enumvalues="0,1,2,3,4,5,6,7" uimin="0" uimax="7"/>
@@ -269,7 +269,7 @@
   </nodedef>
 
   <!-- <Legacy Stone> -->
-  <nodedef name="ND_legacy_stone" node="legacy_stone" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_stone" node="legacy_stone" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="color" type="color3" value="0.8, 0.8, 0.8" uivisible="true" uiname="Color" />
     <input name="finish" type="float" value="1" uivisible="true" uiname="Finish" enum="Polished,Glossy,Satin,Matte,Unfinished" enumvalues="0,1,2,3,4" uimin="0" uimax="4"/>
     <input name="tint_enable" type="boolean" value="false" uivisible="true" uiname="Tint" />
@@ -286,7 +286,7 @@
   </nodedef>
 
   <!-- <Legacy Masonry> -->
-  <nodedef name="ND_legacy_masonry" node="legacy_masonry" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_masonry" node="legacy_masonry" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="type" type="float" value="0" uivisible="true" uiname="Type" enum="Masonry,CMU" enumvalues="0,1" uimin="0" uimax="1" />
     <input name="color" type="color3" value="0.8, 0.8, 0.8" uivisible="true" uiname="Color" />
     <input name="tint_enable" type="boolean" value="false" uivisible="true" uiname="Tint" />
@@ -298,7 +298,7 @@
   </nodedef>
 
   <!-- <Legacy Generic> -->
-  <nodedef name="ND_legacy_generic" node="legacy_generic" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" namespace="" >
+  <nodedef name="ND_legacy_generic" node="legacy_generic" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
     <input name="diffuse_color" type="color3" value="0.8, 0.8, 0.8" uivisible="true" uiname="Color" />
     <input name="diffuse_image_enable" type="boolean" value="false" uivisible="true" uiname="Image" />
     <input name="diffuse_image" type="color3" value="1, 1, 1" uivisible="true" uiname="Custom Image" />
