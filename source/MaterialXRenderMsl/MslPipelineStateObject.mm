@@ -594,7 +594,7 @@ void MslProgram::bindTextures(id<MTLRenderCommandEncoder> renderCmdEncoder,
                 // Bind environment lights.
                 ImageMap envLights =
                 {
-                    { HW::ENV_RADIANCE,   lightHandler->getEnvRadianceMap() },
+                    { HW::ENV_RADIANCE,   lightHandler->getUsePrefilteredMap() ? lightHandler->getEnvPrefilteredMap() : lightHandler->getEnvRadianceMap() },
                     { HW::ENV_IRRADIANCE, lightHandler->getEnvIrradianceMap() }
                 };
                 for (const auto& env : envLights)
@@ -706,6 +706,7 @@ void MslProgram::bindLighting(LightHandlerPtr lightHandler, ImageHandlerPtr imag
     Matrix44 envRotation = Matrix44::createRotationY(PI) * lightHandler->getLightTransform().getTranspose();
     bindUniform(HW::ENV_MATRIX, Value::createValue(envRotation), false);
     bindUniform(HW::ENV_RADIANCE_SAMPLES, Value::createValue(lightHandler->getEnvSampleCount()), false);
+    bindUniform(HW::ENV_LIGHT_INTENSITY, Value::createValue(lightHandler->getEnvLightIntensity()), false);
     ImageMap envLights =
     {
         { HW::ENV_RADIANCE, lightHandler->getEnvRadianceMap() },

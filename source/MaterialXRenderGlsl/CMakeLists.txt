@@ -27,6 +27,10 @@ elseif(UNIX)
         message(FATAL_ERROR "Error in building MaterialXRenderGlsl: Xt was not found")
     endif()
 
+    if(SKBUILD)
+      set(OpenGL_GL_PREFERENCE LEGACY)
+    endif()
+
     find_package(OpenGL REQUIRED)
     include_directories(${X11_INCLUDE_DIR})
 endif()
@@ -50,7 +54,8 @@ if(MATERIALX_BUILD_SHARED_LIBS)
     target_compile_definitions(${MATERIALX_MODULE_NAME} PUBLIC GLAD_GLAPI_EXPORT PRIVATE GLAD_GLAPI_EXPORT_BUILD)
 endif()
 
-set(COMMON_LIBRARIES
+target_link_libraries(
+    ${MATERIALX_MODULE_NAME}
     MaterialXRenderHw
     MaterialXGenGlsl
     ${CMAKE_DL_LIBS})
@@ -59,30 +64,26 @@ if(WIN32)
     if(MSVC)
         target_link_libraries(
             ${MATERIALX_MODULE_NAME}
-            ${COMMON_LIBRARIES}
             Opengl32)
     elseif(MINGW)
         target_link_libraries(
             ${MATERIALX_MODULE_NAME}
-            ${COMMON_LIBRARIES}
             Opengl32
             gdi32)
     endif()
 elseif(APPLE)
     target_link_libraries(
         ${MATERIALX_MODULE_NAME}
-        ${COMMON_LIBRARIES}
-        ${OPENGL_LIBRARIES}
+        "-framework OpenGL"
         "-framework Foundation"
         "-framework Cocoa"
         "-framework Metal")
 elseif(UNIX)
     target_link_libraries(
         ${MATERIALX_MODULE_NAME}
-        ${COMMON_LIBRARIES}
-        ${OPENGL_LIBRARIES}
-        ${X11_LIBRARIES}
-        ${X11_Xt_LIB})
+        OpenGL::GL
+        X11::X11
+        X11::Xt)
 endif()
 
 set_target_properties(

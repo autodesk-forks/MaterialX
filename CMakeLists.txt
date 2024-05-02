@@ -1,11 +1,11 @@
 # MaterialX Version
 set(MATERIALX_MAJOR_VERSION 1)
 set(MATERIALX_MINOR_VERSION 38)
-set(MATERIALX_BUILD_VERSION 8)
+set(MATERIALX_BUILD_VERSION 10)
 set(MATERIALX_LIBRARY_VERSION ${MATERIALX_MAJOR_VERSION}.${MATERIALX_MINOR_VERSION}.${MATERIALX_BUILD_VERSION})
 
 # Cmake setup
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 set(CMAKE_MACOSX_RPATH ON)
@@ -55,7 +55,7 @@ option(MATERIALX_TEST_RENDER "Run rendering tests for MaterialX Render module. G
 option(MATERIALX_WARNINGS_AS_ERRORS "Interpret all compiler warnings as errors." OFF)
 option(MATERIALX_COVERAGE_ANALYSIS "Build MaterialX libraries with coverage analysis on supporting platforms." OFF)
 option(MATERIALX_DYNAMIC_ANALYSIS "Build MaterialX libraries with dynamic analysis on supporting platforms." OFF)
-option(MATERIALX_OSL_LEGACY_CLOSURES "Build OSL shader generation supporting the legacy OSL closures." ON)
+option(MATERIALX_OSL_LEGACY_CLOSURES "Build OSL shader generation supporting the legacy OSL closures." OFF)
 
 option(MATERIALX_CONTRIB "Build MaterialX Contrib." ON) 
 
@@ -63,14 +63,24 @@ option(MATERIALX_BUILD_IOS "Build MaterialX for iOS." OFF)
 if (MATERIALX_BUILD_IOS)
     set(CMAKE_SYSTEM_NAME iOS)
     add_definitions(-DTARGET_OS_IOS=1)
-    set(MATERIALX_BUILD_PYTHON        OFF)
-    set(MATERIALX_BUILD_VIEWER        OFF)
-    set(MATERIALX_BUILD_GRAPH_EDITOR  OFF)
-    set(MATERIALX_BUILD_GEN_GLSL      OFF)
-    set(MATERIALX_BUILD_GEN_OSL       OFF)
-    set(MATERIALX_BUILD_GEN_MDL       OFF)
-    set(MATERIALX_BUILD_TESTS         OFF)
+    set(MATERIALX_BUILD_PYTHON OFF)
+    set(MATERIALX_BUILD_VIEWER OFF)
+    set(MATERIALX_BUILD_GRAPH_EDITOR OFF)
+    set(MATERIALX_BUILD_GEN_GLSL OFF)
+    set(MATERIALX_BUILD_GEN_OSL OFF)
+    set(MATERIALX_BUILD_GEN_MDL OFF)
+    set(MATERIALX_BUILD_TESTS OFF)
 endif()
+
+if (MATERIALX_BUILD_JS)
+    set(MATERIALX_BUILD_GEN_OSL OFF)
+    set(MATERIALX_BUILD_GEN_MSL OFF)
+    set(MATERIALX_BUILD_GEN_MDL OFF)
+    set(MATERIALX_BUILD_RENDER OFF)
+    set(MATERIALX_BUILD_TESTS OFF)
+endif()
+
+option(MATERIALX_CONTRIB "Build MaterialX Contrib." ON) 
 
 set(MATERIALX_PYTHON_VERSION "" CACHE STRING
     "Python version to be used in building the MaterialX Python package (e.g. '3.9').")
@@ -82,10 +92,6 @@ set(MATERIALX_PYTHON_PYBIND11_DIR "" CACHE PATH
     "Path to a folder containing the PyBind11 source to be used in building MaterialX Python.")
 
 set(MATERIALX_OIIO_DIR "" CACHE PATH "Path to the root folder of the OpenImageIO installation.")
-
-if (MATERIALX_BUILD_JS)
-    set(MATERIALX_BUILD_GEN_GLSL ON)
-endif()
 
 # Settings to define installation layout
 set(MATERIALX_INSTALL_INCLUDE_PATH "include" CACHE STRING "Install header include path (e.g. 'inc', 'include').")
@@ -345,14 +351,12 @@ if(MATERIALX_CONTRIB)
     add_subdirectory(contrib)
 endif()
 
-if(${CMAKE_VERSION} VERSION_GREATER "3.6.2")
-    if(MATERIALX_BUILD_VIEWER)
-        set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT MaterialXView)
-    elseif(MATERIALX_BUILD_GRAPH_EDITOR)
-        set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT MaterialXGraphEditor)
-    elseif(MATERIALX_BUILD_TESTS)
-        set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT MaterialXTest)
-    endif()
+if(MATERIALX_BUILD_VIEWER)
+    set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT MaterialXView)
+elseif(MATERIALX_BUILD_GRAPH_EDITOR)
+    set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT MaterialXGraphEditor)
+elseif(MATERIALX_BUILD_TESTS)
+    set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT MaterialXTest)
 endif()
 
 # Install root-level documents
