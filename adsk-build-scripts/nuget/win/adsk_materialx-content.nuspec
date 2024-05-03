@@ -8,7 +8,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>MaterialX $materialX$ Data library </description>
     <releaseNotes>MaterialX $Version$</releaseNotes>
-    <copyright>Copyright 2023</copyright>
+    <copyright>Copyright 2024</copyright>
     <tags>adsk-materialx-content</tags>    
   </metadata>
   <files>

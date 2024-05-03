@@ -8,7 +8,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>MaterialX $materialX$ library(lib) package</description>
     <releaseNotes>MaterialX $version$</releaseNotes>
-    <copyright>Copyright 2023</copyright>
+    <copyright>Copyright 2024</copyright>
     <tags>materialx-$materialX$</tags>
 	<dependencies>
       <dependency id="materialx-headers_win" version="$version$" />
@@ -20,5 +20,3 @@
       <file src="libs\**" target="libs" />
 	</files>
 </package>
-
-

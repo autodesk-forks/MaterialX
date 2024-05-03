@@ -203,28 +203,7 @@ for(int i=0; i< axisNode.size(); i++) {
 stage("Build") {
     parallel tasks
 }
-stage ("Update Version") {
-    node("GEC-vs2017") {
-        if(!currentBuild.currentResult.contains("FAILURE")) {
-            if ("${env.BRANCH_NAME}".contains("release")){
-                checkout scm
-                withEnv(["file=adsk-build-scripts\\adsk-contrib\\release.properties"]) {
-                    withEnv(["branch=${env.BRANCH_NAME}"]) {
-                    bat '''
-                        git checkout %branch%
-                        git pull
-                        pushd adsk-build-scripts
-                        python versioning.py -u -b release
-                        popd
-                        git commit %file% -m "Update build version"
-                        git push origin %branch%
-                    '''
-                    }
-                }
-            }
-        }
-    }
-}
+
 
 def getCommitSha(axisNodeValue,WorkDirComp){
     if(axisNodeValue.contains("GEC-vs")) {
