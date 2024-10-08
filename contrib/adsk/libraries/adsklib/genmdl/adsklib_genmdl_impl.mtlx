@@ -11,5 +11,11 @@
   
   <implementation name="IM_turbulence2d_float_genmdl" nodedef="ND_turbulence2d_float" sourcecode="color(0.5, 0.5, 0.5)" target="genmdl" />
   <implementation name="IM_turbulence3d_float_genmdl" nodedef="ND_turbulence3d_float" sourcecode="color(0.5, 0.5, 0.5)" target="genmdl" />
-
+    
+  <!-- 2d hashnoise -->
+  <implementation name="IM_wood3d_util_hashnoise2d_vector3_genmdl" nodedef="ND_wood3d_util_hashnoise2d_vector3" sourcecode="color(0.5, 0.5, 0.5)" target="genmdl" />
+  <!-- 1d perlin noise -->
+  <implementation name="IM_wood3d_util_noise1d_float_genmdl" nodedef="ND_wood3d_util_noise1d_float" sourcecode="color(0.5, 0.5, 0.5)" target="genmdl" />
+  <!-- 3D wood pore function -->
+  <implementation name="IM_wood3d_util_pore_impulse_genmdl" nodedef="ND_wood3d_util_pore_impulse" sourcecode="color(0.5, 0.5, 0.5)" target="genmdl" />
 </materialx>
