@@ -11,5 +11,12 @@
   
   <implementation name="IM_turbulence2d_float_genosl" nodedef="ND_turbulence2d_float" file="mx_turbulence2d_float.osl" function="mx_turbulence2d_float" target="genosl" />
   <implementation name="IM_turbulence3d_float_genosl" nodedef="ND_turbulence3d_float" file="mx_turbulence3d_float.osl" function="mx_turbulence3d_float" target="genosl" />
+  
+  <!-- 2d hashnoise -->
+  <implementation name="IM_wood3d_util_hashnoise2d_vector3_genosl" nodedef="ND_wood3d_util_hashnoise2d_vector3" file="mx_hashnoise2d_vector3.osl" function="mx_hashnoise2d_vector3" target="genosl" />
+  <!-- 1d perlin noise -->
+  <implementation name="IM_wood3d_util_noise1d_float_genosl" nodedef="ND_wood3d_util_noise1d_float" file="mx_noise1d_float.osl" function="mx_noise1d_float" target="genosl" />
+  <!-- 3D wood pore function -->
+  <implementation name="IM_wood3d_util_pore_impulse_genosl" nodedef="ND_wood3d_util_pore_impulse" file="mx_wood_pore_impulse.osl" function="mx_wood_pore_impulse" target="genosl" />
 
 </materialx>
