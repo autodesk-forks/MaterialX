@@ -2329,7 +2329,7 @@
       <input name="texcoord" type="vector2" nodename="combine2_1" />
     </noise2d>
     <combine2 name="combine2_1" type="vector2" nodedef="ND_combine2_vector2" xpos="5.91972" ypos="2.6196">
-      <input name="in1" type="float" interfacename="x" />
+      <input name="in1" type="float" interfacename="distance" />
     </combine2>
     <noise2d name="noise2d2" type="float" nodedef="ND_noise2d_float" xpos="7.76578" ypos="5.31719">
       <input name="amplitude" type="float" value="0.5" />
@@ -2362,7 +2362,7 @@
     </add>
     <modulo name="modulo_loop" type="float" nodedef="ND_modulo_float" xpos="2.27978" ypos="7.0845">
       <input name="in2" type="float" nodename="add_loop_one" ldx_value="5" />
-      <input name="in1" type="float" interfacename="x" />
+      <input name="in1" type="float" interfacename="distance" />
     </modulo>
     <mix name="mix_end_start" type="float" nodedef="ND_mix_float" xpos="9.91617" ypos="7.70172">
       <input name="bg" type="float" nodename="noise2d2" />
@@ -2451,29 +2451,29 @@
       <input name="in2" type="float" nodename="smoothstep2" />
     </subtract>
     <util_woodnoise name="util_woodnoise4" type="float" nodedef="ND_util_woodnoise_float" xpos="11.9958" ypos="2.00877">
-      <input name="x" type="float" nodename="scale_quarter" />
       <input name="noiserep" type="float" interfacename="noiserep" />
       <input name="loop" type="boolean" interfacename="loop" />
+      <input name="distance" type="float" nodename="scale_quarter" />
     </util_woodnoise>
     <util_woodnoise name="util_woodnoise5" type="float" nodedef="ND_util_woodnoise_float" xpos="12.0142" ypos="4.53144">
-      <input name="x" type="float" nodename="distance" />
       <input name="noiserep" type="float" interfacename="noiserep" />
       <input name="loop" type="boolean" interfacename="loop" />
+      <input name="distance" type="float" nodename="distance" />
     </util_woodnoise>
     <util_woodnoise name="util_woodnoise1" type="float" nodedef="ND_util_woodnoise_float" xpos="1.44176" ypos="2.61043">
-      <input name="x" type="float" nodename="separate3_1" output="outx" />
       <input name="noiserep" type="float" interfacename="noiserep" />
       <input name="loop" type="boolean" interfacename="loop" />
+      <input name="distance" type="float" nodename="separate3_1" output="outx" />
     </util_woodnoise>
     <util_woodnoise name="util_woodnoise2" type="float" nodedef="ND_util_woodnoise_float" xpos="1.41889" ypos="4.17251">
-      <input name="x" type="float" nodename="separate3_1" output="outy" />
       <input name="noiserep" type="float" interfacename="noiserep" />
       <input name="loop" type="boolean" interfacename="loop" />
+      <input name="distance" type="float" nodename="separate3_1" output="outy" />
     </util_woodnoise>
     <util_woodnoise name="util_woodnoise3" type="float" nodedef="ND_util_woodnoise_float" xpos="1.40286" ypos="5.53393">
-      <input name="x" type="float" nodename="separate3_1" output="outz" />
       <input name="noiserep" type="float" interfacename="noiserep" />
       <input name="loop" type="boolean" interfacename="loop" />
+      <input name="distance" type="float" nodename="separate3_1" output="outz" />
     </util_woodnoise>
   </nodegraph>
 

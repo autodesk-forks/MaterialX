@@ -183,7 +183,7 @@
   </nodedef>
 
   <nodedef name="ND_util_woodnoise_float" node="util_woodnoise">
-    <input name="x" type="float" uisoftmin="0.0" uisoftmax="1.0" />
+    <input name="distance" type="float" uisoftmin="0.0" uisoftmax="1.0" />
     <input name="noiserep" type="float" value="20" uisoftmin="0.0" uisoftmax="100" />
     <input name="loop" type="boolean" value="true" />
     <output name="out" type="float" />
