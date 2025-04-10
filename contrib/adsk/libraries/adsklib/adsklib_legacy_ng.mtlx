@@ -3846,7 +3846,7 @@
       <input name="in1" type="color3" uivisible="true" nodename="stain_selection" />
       <input name="in2" type="color3" interfacename="tint_color" uivisible="true" />
     </multiply>
-    <legacy_stain name="texture_stain" type="color3" version="1.0" xpos="0.050725" ypos="-2.284483">
+    <legacy_stain name="texture_stain" type="color3" xpos="0.050725" ypos="-2.284483">
       <input name="color" type="color3" interfacename="color" uivisible="true" />
       <input name="stain_color" type="color3" interfacename="stain_color" uivisible="true" />
     </legacy_stain>
