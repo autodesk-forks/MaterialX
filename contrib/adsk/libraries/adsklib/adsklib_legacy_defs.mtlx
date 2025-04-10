@@ -79,9 +79,9 @@
     <input name="offset_x" type="float" value="0" uivisible="true" uiname="Offset X" unittype="distance" />
     <input name="offset_y" type="float" value="0" uivisible="true" uiname="Offset Y" unittype="distance" />
     <input name="offset_z" type="float" value="0" uivisible="true" uiname="Offset Z" unittype="distance" />
-    <input name="rotate_x" type="float" value="0" uisoftmin="0" uisoftmax="360" unittype="angle" />
-    <input name="rotate_y" type="float" value="0" uisoftmin="0" uisoftmax="360" unittype="angle" />
-    <input name="rotate_z" type="float" value="0" uisoftmin="0" uisoftmax="360" unittype="angle" />
+    <input name="rotate_x" type="float" value="0" uisoftmin="0" uisoftmax="360" unittype="angle" unit="degree" />
+    <input name="rotate_y" type="float" value="0" uisoftmin="0" uisoftmax="360" unittype="angle" unit="degree" />
+    <input name="rotate_z" type="float" value="0" uisoftmin="0" uisoftmax="360" unittype="angle" unit="degree" />
     <output name="output_color3" type="color3" />
   </nodedef>
 
