@@ -2604,7 +2604,7 @@
       <input name="in1" type="float" nodename="multiply_radialnoise3" />
       <input name="in2" type="float" nodename="separate3_1" output="outz" />
     </add>
-    <multiply name="y_square" type="float" nodedef="ND_multiply_float" xpos="6.78789" ypos="4.15966">
+    <multiply name="y_square" type="float" nodedef="ND_multiply_float" xpos="6.77072" ypos="3.91358">
       <input name="in1" type="float" nodename="add_radialnoise2" />
       <input name="in2" type="float" nodename="add_radialnoise2" />
     </multiply>
@@ -2650,30 +2650,30 @@
       <input name="in1" type="float" nodename="smoothstep1" />
       <input name="in2" type="float" nodename="smoothstep2" />
     </subtract>
-    <util_woodnoise name="util_woodnoise4" type="float" nodedef="ND_util_woodnoise_float" xpos="11.9958" ypos="2.00877">
-      <input name="noiserep" type="float" interfacename="noiserep" />
-      <input name="loop" type="boolean" interfacename="loop" />
-      <input name="distance" type="float" nodename="scale_quarter" />
-    </util_woodnoise>
-    <util_woodnoise name="util_woodnoise5" type="float" nodedef="ND_util_woodnoise_float" xpos="12.0142" ypos="4.53144">
-      <input name="noiserep" type="float" interfacename="noiserep" />
-      <input name="loop" type="boolean" interfacename="loop" />
-      <input name="distance" type="float" nodename="distance" />
-    </util_woodnoise>
-    <util_woodnoise name="util_woodnoise1" type="float" nodedef="ND_util_woodnoise_float" xpos="1.44176" ypos="2.61043">
-      <input name="noiserep" type="float" interfacename="noiserep" />
-      <input name="loop" type="boolean" interfacename="loop" />
+    <util_woodnoise name="util_woodnoise1" type="float" nodedef="ND_util_woodnoise_float" xpos="1.43873" ypos="2.68261">
       <input name="distance" type="float" nodename="separate3_1" output="outx" />
-    </util_woodnoise>
-    <util_woodnoise name="util_woodnoise2" type="float" nodedef="ND_util_woodnoise_float" xpos="1.41889" ypos="4.17251">
       <input name="noiserep" type="float" interfacename="noiserep" />
       <input name="loop" type="boolean" interfacename="loop" />
+    </util_woodnoise>
+    <util_woodnoise name="util_woodnoise2" type="float" nodedef="ND_util_woodnoise_float" xpos="1.44444" ypos="4.17627">
       <input name="distance" type="float" nodename="separate3_1" output="outy" />
-    </util_woodnoise>
-    <util_woodnoise name="util_woodnoise3" type="float" nodedef="ND_util_woodnoise_float" xpos="1.40286" ypos="5.53393">
       <input name="noiserep" type="float" interfacename="noiserep" />
       <input name="loop" type="boolean" interfacename="loop" />
+    </util_woodnoise>
+    <util_woodnoise name="util_woodnoise3" type="float" nodedef="ND_util_woodnoise_float" xpos="1.42727" ypos="5.61844">
       <input name="distance" type="float" nodename="separate3_1" output="outz" />
+      <input name="noiserep" type="float" interfacename="noiserep" />
+      <input name="loop" type="boolean" interfacename="loop" />
+    </util_woodnoise>
+    <util_woodnoise name="util_woodnoise4" type="float" nodedef="ND_util_woodnoise_float" xpos="12.0659" ypos="2.03589">
+      <input name="distance" type="float" nodename="scale_quarter" />
+      <input name="noiserep" type="float" interfacename="noiserep" />
+      <input name="loop" type="boolean" interfacename="loop" />
+    </util_woodnoise>
+    <util_woodnoise name="util_woodnoise5" type="float" nodedef="ND_util_woodnoise_float" xpos="12.0546" ypos="4.17053">
+      <input name="distance" type="float" nodename="distance" />
+      <input name="noiserep" type="float" interfacename="noiserep" />
+      <input name="loop" type="boolean" interfacename="loop" />
     </util_woodnoise>
   </nodegraph>
 
@@ -3886,8 +3886,8 @@
     <legacy_noise name="legacy_noise" type="color3" xpos="-6.615942" ypos="6.922414">
       <input name="color1" type="color3" value="1, 1, 1" />
       <input name="color2" type="color3" value="0, 0, 0" />
-      <input name="thresholdlow" type="float" value="0" />
-      <input name="thresholdhigh" type="float" value="1" />
+      <input name="threshold_low" type="float" value="0" />
+      <input name="threshold_high" type="float" value="1" />
       <input name="size" type="float" value="100" />
     </legacy_noise>
     <swizzle name="swizzle_color3_float" type="float" xpos="-4.862319" ypos="7.577586">
@@ -4289,11 +4289,11 @@
       <input name="in2" type="float" nodename="patina_transition" />
     </add>
     <legacy_noise name="patina_noise" type="color3" xpos="-9.304348" ypos="-0.560345">
-      <input name="thresholdlow" type="float" nodename="patina_range" />
-      <input name="thresholdhigh" type="float" nodename="patina_max" />
+      <input name="threshold_low" type="float" nodename="patina_range" />
+      <input name="threshold_high" type="float" nodename="patina_max" />
       <input name="color1" type="color3" value="0, 0, 0" />
       <input name="color2" type="color3" value="1, 1, 1" />
-      <input name="noisetype" type="integer" value="1" />
+      <input name="noise_type" type="integer" value="1" />
       <input name="levels" type="float" value="4" />
     </legacy_noise>
     <swizzle name="patina_mask" type="float" xpos="-7.557971" ypos="1.818966">
@@ -4403,8 +4403,8 @@
     <legacy_noise name="legacy_noise" type="color3" xpos="-2.920290" ypos="4.112069">
       <input name="color1" type="color3" value="1, 1, 1" />
       <input name="color2" type="color3" value="0, 0, 0" />
-      <input name="thresholdlow" type="float" value="0" />
-      <input name="thresholdhigh" type="float" value="1" />
+      <input name="threshold_low" type="float" value="0" />
+      <input name="threshold_high" type="float" value="1" />
       <input name="levels" type="float" value="1" />
       <input name="size" type="float" value="0.1" />
     </legacy_noise>
@@ -4518,9 +4518,9 @@
     <legacy_noise name="weathering_auto" type="color3" xpos="2.057971" ypos="15.870689">
       <input name="color1" type="color3" value="0.953545, 0.953545, 0.953545" />
       <input name="color2" type="color3" value="0.756345, 0.753786, 0.753786" />
-      <input name="noisetype" type="integer" value="1" />
-      <input name="thresholdlow" type="float" value="0.3" />
-      <input name="thresholdhigh" type="float" value="0.7" />
+      <input name="noise_type" type="integer" value="1" />
+      <input name="threshold_low" type="float" value="0.3" />
+      <input name="threshold_high" type="float" value="0.7" />
       <input name="levels" type="float" value="4" />
     </legacy_noise>
     <multiply name="weathering_bump_fade" type="color3" xpos="1.260870" ypos="25.681034">
@@ -4686,8 +4686,8 @@
       <input name="value" type="float" value="0.5" uivisible="true" />
     </constant>
     <legacy_noise name="legacy_noise" type="color3" xpos="-12.536232" ypos="0.508621">
-      <input name="thresholdlow" type="float" value="0" />
-      <input name="thresholdhigh" type="float" value="1" />
+      <input name="threshold_low" type="float" value="0" />
+      <input name="threshold_high" type="float" value="1" />
       <input name="size" type="float" value="0.5" />
       <input name="color1" type="color3" value="1, 1, 1" />
       <input name="color2" type="color3" value="0, 0, 0" />
