@@ -2,6 +2,8 @@
 set MTLXBIN=D:\materialX\MaterialX_Windows_VS2022_x64_Python312_1.39.3\bin
 set MESHDIR=.
 
+if not exist images md images
+
 rem Note that screenWidth/Height seem to be multiplied by the Windows UI scale, plus some border
 
 rem First the procedural textures using a cube mesh
