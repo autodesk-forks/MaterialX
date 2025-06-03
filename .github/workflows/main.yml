@@ -70,7 +70,7 @@ jobs:
         - name: MacOS_Xcode_15_Python312
           os: macos-15
           compiler: xcode
-          compiler_version: "15.4"
+          compiler_version: "16.1"
           python: 3.12
           test_shaders: ON
 
