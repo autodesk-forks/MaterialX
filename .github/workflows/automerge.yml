@@ -22,7 +22,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: | 
-        # Check if the merge branch already exist
+        # Check if the merge branch already exists
+
         if git checkout $MERGE_BRANCH; then
             echo "Merge main into the existing $MERGE_BRANCH"
             git merge main
