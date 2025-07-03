@@ -39,5 +39,5 @@ jobs:
                 --body "Auto-created PR to merge $MERGE_BRANCH into adsk_contrib/dev" \
                 --head $MERGE_BRANCH \
                 --base adsk_contrib/dev \
-                --reviewer "ehlenl"
+                --reviewer "ashwinbhat,zicher3d,ppenenko"
         fi
