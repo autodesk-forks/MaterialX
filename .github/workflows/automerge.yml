@@ -34,7 +34,8 @@ jobs:
             git checkout -b $MERGE_BRANCH
             echo "push to $MERGE_BRANCH"
             git push origin $MERGE_BRANCH 
-            echo "Create mrege PR"
+            echo "Create merge PR"
+
             gh pr create \
                 --title "Merge $MERGE_BRANCH into adsk_contrib/dev" \
                 --body "Auto-created PR to merge $MERGE_BRANCH into adsk_contrib/dev" \
