@@ -13,6 +13,8 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
+class ShaderGenerator;
+
 /// @class MetashadeNode
 /// Custom shader node implementation that integrates with Python-based 
 /// Metashade generator for runtime shader code generation.
@@ -25,6 +27,10 @@ class MX_METASHADE_API MetashadeNode : public ShaderNodeImpl
   public:
     /// Create a new MetashadeNode instance
     static ShaderNodeImplPtr create();
+
+    /// Register MetashadeNode implementations with a shader generator
+    /// @param generator The shader generator to register implementations with
+    static void registerImplementations(ShaderGenerator& generator);
 
     /// Initialize the node with the given implementation element
     void initialize(const InterfaceElement& element, GenContext& context) override;
