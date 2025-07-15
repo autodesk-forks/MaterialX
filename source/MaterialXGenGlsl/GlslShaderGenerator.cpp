@@ -28,6 +28,10 @@
 #include <MaterialXGenShader/Nodes/HwTimeNode.h>
 #include <MaterialXGenShader/Nodes/HwViewDirectionNode.h>
 
+#ifdef MATERIALX_BUILD_METASHADE
+#include <MaterialXMetashade/MetashadeNode.h>
+#endif
+
 MATERIALX_NAMESPACE_BEGIN
 
 const string GlslShaderGenerator::TARGET = "genglsl";
@@ -130,6 +134,11 @@ GlslShaderGenerator::GlslShaderGenerator(TypeSystemPtr typeSystem) :
 
     // <!-- <surfacematerial> -->
     registerImplementation("IM_surfacematerial_" + GlslShaderGenerator::TARGET, MaterialNode::create);
+
+#ifdef MATERIALX_BUILD_METASHADE
+    // Register custom Metashade nodes
+    MetashadeNode::registerImplementations(*this);
+#endif
 
     _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "numActiveLightSources", NumLightsNodeGlsl::create()));
     _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "sampleLightSource", LightSamplerNodeGlsl::create()));
