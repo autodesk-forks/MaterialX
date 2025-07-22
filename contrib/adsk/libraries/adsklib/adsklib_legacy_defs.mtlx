@@ -280,6 +280,7 @@
     <input name="rotation" type="float" value="0" uisoftmin="0.0" uisoftmax="360" />
     <input name="realworld_scale" type="vector2" value="1,1" uisoftmin="0,0" uisoftmax="1,1" uivisible="true" uiname="Width, Height" unittype="distance" />
     <input name="realworld_offset" type="vector2" value="0,0" uisoftmin="0,0" uisoftmax="1,1" uiname="Offset X, Y" unittype="distance" />
+    <input name="diagonal" type="boolean" value="false" />
     <output name="out_rgb" type="color3" />
     <output name="out_vec3" type="vector3" />
   </nodedef>
