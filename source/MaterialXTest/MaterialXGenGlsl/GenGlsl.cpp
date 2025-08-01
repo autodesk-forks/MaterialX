@@ -4,25 +4,23 @@
 //
 
 #include <MaterialXTest/External/Catch/catch.hpp>
-#include <MaterialXTest/MaterialXGenShader/GenShaderUtil.h>
+
 #include <MaterialXTest/MaterialXGenGlsl/GenGlsl.h>
 
-#include <MaterialXCore/Document.h>
-
-#include <MaterialXFormat/File.h>
-
-#include <MaterialXGenShader/TypeDesc.h>
-
+#include <MaterialXGenGlsl/EsslShaderGenerator.h>
+#include <MaterialXGenGlsl/EsslSyntax.h>
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenGlsl/GlslSyntax.h>
 #include <MaterialXGenGlsl/GlslResourceBindingContext.h>
 #include <MaterialXGenGlsl/VkShaderGenerator.h>
+#include <MaterialXGenGlsl/WgslShaderGenerator.h>
 
 namespace mx = MaterialX;
 
 TEST_CASE("GenShader: GLSL Syntax Check", "[genglsl]")
 {
-    mx::SyntaxPtr syntax = mx::GlslSyntax::create();
+    mx::TypeSystemPtr ts = mx::TypeSystem::create();
+    mx::SyntaxPtr syntax = mx::GlslSyntax::create(ts);
 
     REQUIRE(syntax->getTypeName(mx::Type::FLOAT) == "float");
     REQUIRE(syntax->getTypeName(mx::Type::COLOR3) == "vec3");
@@ -85,7 +83,7 @@ TEST_CASE("GenShader: GLSL Implementation Check", "[genglsl]")
 
     mx::StringSet generatorSkipNodeTypes;
     mx::StringSet generatorSkipNodeDefs;
-    GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs, 47);
+    GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs);
 }
 
 TEST_CASE("GenShader: GLSL Unique Names", "[genglsl]")
@@ -95,7 +93,7 @@ TEST_CASE("GenShader: GLSL Unique Names", "[genglsl]")
     GenShaderUtil::testUniqueNames(context, mx::Stage::PIXEL);
 }
 
-TEST_CASE("GenShader: Bind Light Shaders", "[genglsl]")
+TEST_CASE("GenShader: GLSL Light Shaders", "[genglsl]")
 {
     mx::DocumentPtr doc = mx::createDocument();
 
@@ -109,6 +107,7 @@ TEST_CASE("GenShader: Bind Light Shaders", "[genglsl]")
 
     mx::GenContext context(mx::GlslShaderGenerator::create());
     context.registerSourceCodeSearchPath(searchPath);
+    context.getShaderGenerator().registerTypeDefs(doc);
 
     mx::HwShaderGenerator::bindLightShader(*pointLightShader, 42, context);
     REQUIRE_THROWS(mx::HwShaderGenerator::bindLightShader(*spotLightShader, 42, context));
@@ -120,7 +119,7 @@ TEST_CASE("GenShader: Bind Light Shaders", "[genglsl]")
 }
 
 #ifdef MATERIALX_BUILD_BENCHMARK_TESTS
-TEST_CASE("GenShader: Performance Test", "[genglsl]")
+TEST_CASE("GenShader: GLSL Performance Test", "[genglsl]")
 {
     mx::GenContext context(mx::GlslShaderGenerator::create());
     BENCHMARK("Load documents, validate and generate shader") 
@@ -132,26 +131,14 @@ TEST_CASE("GenShader: Performance Test", "[genglsl]")
 
 enum class GlslType
 {
-    Glsl400,
-    Glsl420,
-    GlslVulkan
+    Essl,
+    Glsl,
+    GlslLayout,
+    GlslVulkan,
+    GlslWgsl
 };
 
-const std::string GlslTypeToString(GlslType e) throw()
-{
-    switch (e)
-    {
-        case GlslType::Glsl420:
-            return "glsl420_layout";
-        case GlslType::GlslVulkan:
-            return "glsl420_vulkan";
-        case GlslType::Glsl400:
-        default:
-            return "glsl400";
-    }
-}
-
-static void generateGlslCode(GlslType type = GlslType::Glsl400)
+static void generateGlslCode(GlslType type)
 {
     mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
 
@@ -159,16 +146,39 @@ static void generateGlslCode(GlslType type = GlslType::Glsl400)
     testRootPaths.push_back(searchPath.find("resources/Materials/TestSuite"));
     testRootPaths.push_back(searchPath.find("resources/Materials/Examples/StandardSurface"));
 
-    const mx::FilePath logPath("genglsl_" + GlslTypeToString(type) + "_generate_test.txt");
-
-    bool writeShadersToDisk = false;
-    GlslShaderGeneratorTester tester((type == GlslType::GlslVulkan) ? mx::VkShaderGenerator::create() : mx::GlslShaderGenerator::create(),
-                                     testRootPaths, searchPath, logPath, writeShadersToDisk);
-
-    // Add resource binding context for glsl 4.20
-    if (type == GlslType::Glsl420)
+    // Create the requested shader generator.
+    mx::ShaderGeneratorPtr generator;
+    if (type == GlslType::Essl)
     {
-        // Set binding context to handle resource binding layouts
+        generator = mx::EsslShaderGenerator::create();
+    }
+    else if (type == GlslType::GlslVulkan)
+    {
+        generator = mx::VkShaderGenerator::create();
+    }
+    else if (type == GlslType::GlslWgsl)
+    {
+        generator = mx::WgslShaderGenerator::create();
+    }
+    else
+    {
+        generator = mx::GlslShaderGenerator::create();
+    }
+
+    const std::unordered_map<GlslType, std::string> TYPE_NAME_MAP =
+    {
+        { GlslType::Essl, "essl" },
+        { GlslType::Glsl, "glsl" },
+        { GlslType::GlslLayout, "glsl_layout" },
+        { GlslType::GlslVulkan, "glsl_vulkan" },
+        { GlslType::GlslWgsl  , "glsl_wgsl" }
+    };
+    const mx::FilePath logPath("genglsl_" + TYPE_NAME_MAP.at(type) + "_generate_test.txt");
+    GlslShaderGeneratorTester tester(generator, testRootPaths, searchPath, logPath, false);
+
+    // Handle resource binding layouts if requested.
+    if (type == GlslType::GlslLayout)
+    {
         mx::GlslResourceBindingContextPtr glslresourceBinding(mx::GlslResourceBindingContext::create());
         glslresourceBinding->enableSeparateBindingLocations(true);
         tester.addUserData(mx::HW::USER_DATA_BINDING_CONTEXT, glslresourceBinding);
@@ -179,20 +189,27 @@ static void generateGlslCode(GlslType type = GlslType::Glsl400)
     tester.validate(genOptions, optionsFilePath);
 }
 
+TEST_CASE("GenShader: ESSL Shader Generation", "[genglsl]")
+{
+    generateGlslCode(GlslType::Essl);
+}
+
 TEST_CASE("GenShader: GLSL Shader Generation", "[genglsl]")
 {
-    // Generate with standard GLSL i.e version 400
-    generateGlslCode(GlslType::Glsl400);
+    generateGlslCode(GlslType::Glsl);
 }
 
-TEST_CASE("GenShader: GLSL Shader with Layout Generation", "[genglsl]")
+TEST_CASE("GenShader: GLSL Shader Generation with Layout", "[genglsl]")
 {
-    // Generate GLSL with layout i.e version 400 + layout extension
-    generateGlslCode(GlslType::Glsl420);
+    generateGlslCode(GlslType::GlslLayout);
 }
 
-TEST_CASE("GenShader: Vulkan GLSL Shader", "[genglsl]")
+TEST_CASE("GenShader: Vulkan GLSL Shader Generation", "[genglsl]")
 {
-    // Generate with GLSL for Vulkan i.e. version 450
     generateGlslCode(GlslType::GlslVulkan);
+}
+
+TEST_CASE("GenShader: Wgsl GLSL Shader Generation", "[genglsl]")
+{
+    generateGlslCode(GlslType::GlslWgsl);
 }

@@ -19,6 +19,8 @@ const string Element::COLOR_SPACE_ATTRIBUTE = "colorspace";
 const string Element::INHERIT_ATTRIBUTE = "inherit";
 const string Element::NAMESPACE_ATTRIBUTE = "namespace";
 const string Element::DOC_ATTRIBUTE = "doc";
+const string Element::XPOS_ATTRIBUTE = "xpos";
+const string Element::YPOS_ATTRIBUTE = "ypos";
 const string TypedElement::TYPE_ATTRIBUTE = "type";
 const string ValueElement::VALUE_ATTRIBUTE = "value";
 const string ValueElement::INTERFACE_NAME_ATTRIBUTE = "interfacename";
@@ -62,8 +64,8 @@ bool Element::operator==(const Element& rhs) const
     }
 
     // Compare children.
-    const vector<ElementPtr>& c1 = getChildren();
-    const vector<ElementPtr>& c2 = rhs.getChildren();
+    const ElementVec& c1 = getChildren();
+    const ElementVec& c2 = rhs.getChildren();
     if (c1.size() != c2.size())
         return false;
     for (size_t i = 0; i < c1.size(); i++)
@@ -151,7 +153,7 @@ void Element::unregisterChildElement(ElementPtr child)
 int Element::getChildIndex(const string& name) const
 {
     ElementPtr child = getChild(name);
-    vector<ElementPtr>::const_iterator it = std::find(_childOrder.begin(), _childOrder.end(), child);
+    ElementVec::const_iterator it = std::find(_childOrder.begin(), _childOrder.end(), child);
     if (it == _childOrder.end())
     {
         return -1;
@@ -162,7 +164,7 @@ int Element::getChildIndex(const string& name) const
 void Element::setChildIndex(const string& name, int index)
 {
     ElementPtr child = getChild(name);
-    vector<ElementPtr>::iterator it = std::find(_childOrder.begin(), _childOrder.end(), child);
+    ElementVec::iterator it = std::find(_childOrder.begin(), _childOrder.end(), child);
     if (it == _childOrder.end())
     {
         return;
@@ -276,6 +278,41 @@ ElementPtr Element::changeChildCategory(ElementPtr child, const string& category
     return newChild;
 }
 
+template <class T> shared_ptr<T> Element::getChildOfType(const string& name) const
+{
+    ElementPtr child;
+    ConstDocumentPtr doc = asA<Document>();
+    if (doc && doc->hasDataLibrary())
+    {
+        child = doc->getDataLibrary()->getChild(name);
+    }
+    if (!child)
+    {
+        child = getChild(name);
+    }
+    return child ? child->asA<T>() : shared_ptr<T>();
+}
+
+template <class T> vector<shared_ptr<T>> Element::getChildrenOfType(const string& category) const
+{
+    vector<shared_ptr<T>> children;
+    ConstDocumentPtr doc = asA<Document>();
+    if (doc && doc->hasDataLibrary())
+    {
+        children = doc->getDataLibrary()->getChildrenOfType<T>(category);
+    }
+    for (ElementPtr child : _childOrder)
+    {
+        shared_ptr<T> instance = child->asA<T>();
+        if (!instance)
+            continue;
+        if (!category.empty() && child->getCategory() != category)
+            continue;
+        children.push_back(instance);
+    }
+    return children;
+}
+
 ElementPtr Element::getRoot()
 {
     ElementPtr root = _root.lock();
@@ -330,6 +367,134 @@ bool Element::hasInheritanceCycle() const
         return true;
     }
     return false;
+}
+
+bool Element::isEquivalent(ConstElementPtr rhs, const ElementEquivalenceOptions& options, string* message) const
+{
+    if (getName() != rhs->getName())
+    {
+        if (message)
+        {
+            *message += "Name of " + getNamePath() + " differs from " + rhs->getNamePath() + "\n";
+        }
+        return false;
+    }
+    if (getCategory() != rhs->getCategory())
+    {
+        if (message)
+        {
+            *message += "Category of " + getNamePath() + " differs from " + rhs->getNamePath() + "\n";
+        }
+        return false;
+    }
+
+    // Compare attribute names. 
+    StringVec attributeNames = getAttributeNames();
+    StringVec rhsAttributeNames = rhs->getAttributeNames();
+
+    // Filter out any attributes specified in the options.
+    const StringSet& attributeExclusionList = options.attributeExclusionList;
+    if (!attributeExclusionList.empty())
+    {
+        attributeNames.erase(std::remove_if(attributeNames.begin(), attributeNames.end(),
+            [&attributeExclusionList](const string& attr) { return attributeExclusionList.find(attr) != attributeExclusionList.end(); }),
+            attributeNames.end());
+        rhsAttributeNames.erase(std::remove_if(rhsAttributeNames.begin(), rhsAttributeNames.end(),
+            [&attributeExclusionList](const string& attr) { return attributeExclusionList.find(attr) != attributeExclusionList.end(); }),
+            rhsAttributeNames.end());
+    }    
+
+    // Ignore attribute ordering by sorting names
+    std::sort(attributeNames.begin(), attributeNames.end());
+    std::sort(rhsAttributeNames.begin(), rhsAttributeNames.end());
+
+    if (attributeNames != rhsAttributeNames)
+    {
+        if (message)
+        {
+            *message += "Attribute names of '" + getNamePath() + "' differ from '" + rhs->getNamePath() + "\n";
+        }
+        return false;
+    }
+
+    for (const string& attr : rhsAttributeNames)
+    {
+        if (!isAttributeEquivalent(rhs, attr, options, message))
+        {
+            return false;
+        }
+    }
+
+    // Compare all child elements that affect functional equivalence.
+    ElementVec children;
+    for (ElementPtr child : getChildren())
+    {
+        if (child->getCategory() == CommentElement::CATEGORY)
+        {
+            continue;
+        }
+        children.push_back(child);
+    }
+    ElementVec rhsChildren;
+    for (ElementPtr child : rhs->getChildren())
+    {
+        if (child->getCategory() == CommentElement::CATEGORY)
+        {
+            continue;
+        }
+        rhsChildren.push_back(child);
+    }
+    if (children.size() != rhsChildren.size())
+    {
+        if (message)
+        {
+            *message += "Child count of " + getNamePath() + " differs from " + rhs->getNamePath() + "\n";
+        }
+        return false;
+    }
+    for (size_t i = 0; i < children.size(); i++)
+    {
+        ElementPtr rhsElement = rhsChildren[i];
+        // Handle unordered children if parent is a compound graph (NodeGraph, Document).
+        // (Functional graphs have a "nodedef" reference and define node interfaces
+        // so require strict interface ordering.)
+        ConstGraphElementPtr graph = this->getSelf()->asA<GraphElement>();
+        if (graph)
+        {
+            ConstNodeGraphPtr nodeGraph = graph->asA<NodeGraph>();
+            ConstDocumentPtr document = graph->asA<Document>();
+            if (document || (nodeGraph && !nodeGraph->getNodeDef()))
+            {
+                const string& childName = children[i]->getName();
+                rhsElement = rhs->getChild(childName);
+                if (!rhsElement)
+                {
+                    if (message)
+                    {
+                        *message += "Child name `" + childName + "` of " + getNamePath() + " differs from " + rhs->getNamePath() + "\n";
+                    }
+                    return false;
+                }
+            }
+        }
+        if (!children[i]->isEquivalent(rhsElement, options, message))
+            return false;
+    }
+    return true;
+}
+
+bool Element::isAttributeEquivalent(ConstElementPtr rhs, const string& attributeName,
+                                    const ElementEquivalenceOptions& /*options*/, string* message) const
+{
+    if (getAttribute(attributeName) != rhs->getAttribute(attributeName))
+    {
+        if (message)
+        {
+            *message += "Attribute name `" + attributeName + "` of " + getNamePath() + " differs from " + rhs->getNamePath() + "\n";
+        }
+        return false;
+    }
+    return true;
 }
 
 TreeIterator Element::traverseTree() const
@@ -493,6 +658,22 @@ string ValueElement::getResolvedValueString(StringResolverPtr resolver) const
     return resolver->resolve(getValueString(), getType());
 }
 
+ValuePtr ValueElement::getValue() const
+{
+    if (!hasValue())
+        return ValuePtr();
+
+    return Value::createValueFromStrings(getValueString(), getType(), getDocument()->getTypeDef(getType()));
+}
+
+ValuePtr ValueElement::getResolvedValue(StringResolverPtr resolver) const
+{
+    if (!hasValue())
+        return ValuePtr();
+
+    return Value::createValueFromStrings(getResolvedValueString(resolver), getType(), getDocument()->getTypeDef(getType()));
+}
+
 ValuePtr ValueElement::getDefaultValue() const
 {
     ConstElementPtr parent = getParent();
@@ -532,6 +713,75 @@ const string& ValueElement::getActiveUnit() const
     return EMPTY_STRING;
 }
 
+bool ValueElement::isAttributeEquivalent(ConstElementPtr rhs, const string& attributeName, 
+                                         const ElementEquivalenceOptions& options, string* message) const
+{    
+    // Perform value comparisons
+    bool performedValueComparison = false;
+    if (options.performValueComparisons)
+    {
+        const StringSet uiAttributes = 
+        {
+           ValueElement::UI_MIN_ATTRIBUTE, ValueElement::UI_MAX_ATTRIBUTE,
+           ValueElement::UI_SOFT_MIN_ATTRIBUTE, ValueElement::UI_SOFT_MAX_ATTRIBUTE,
+           ValueElement::UI_STEP_ATTRIBUTE
+        };
+
+        // Get precision and format options
+        ScopedFloatFormatting fmt(options.floatFormat, options.floatPrecision);
+
+        // Check value equality
+        ConstValueElementPtr rhsValueElement = rhs->asA<ValueElement>();
+        if (rhsValueElement && attributeName == ValueElement::VALUE_ATTRIBUTE)
+        {
+            ValuePtr thisValue = getValue();
+            ValuePtr rhsValue = rhsValueElement->getValue();
+            if (thisValue && rhsValue)
+            {
+                if (thisValue->getValueString() != rhsValue->getValueString())
+                {
+                    if (message)
+                    {
+                        *message += "Attribute `" + attributeName + "` of " + getNamePath() + " differs from " + rhs->getNamePath() + "\n";
+                    }
+                    return false;
+                }
+            }
+            performedValueComparison = true;
+        }
+
+        // Check ui attribute value equality
+        else if (uiAttributes.find(attributeName) != uiAttributes.end())
+        {
+            const string& uiAttribute = getAttribute(attributeName);
+            const string& rhsUiAttribute = rhs->getAttribute(attributeName);
+            ValuePtr uiValue = !rhsUiAttribute.empty() ? Value::createValueFromStrings(uiAttribute, getType()) : nullptr;
+            ValuePtr rhsUiValue = !rhsUiAttribute.empty() ? Value::createValueFromStrings(rhsUiAttribute, getType()) : nullptr;
+            if (uiValue && rhsUiValue)
+            {
+                if (uiValue->getValueString() != rhsUiValue->getValueString())
+                {
+                    if (message)
+                    {
+                        *message += "Attribute `" + attributeName + "` of " + getNamePath() + " differs from " + rhs->getNamePath() + "\n";
+                    }
+                    return false;
+                }
+            }
+
+            performedValueComparison = true;
+        }
+    }
+
+    // If did not perform a value comparison, perform the default comparison
+    if (!performedValueComparison)
+    {
+        return Element::isAttributeEquivalent(rhs, attributeName, options, message);
+    }
+
+    return true;
+}
+
 bool ValueElement::validate(string* message) const
 {
     bool res = true;
@@ -551,16 +801,7 @@ bool ValueElement::validate(string* message) const
             validateRequire(valueElem != nullptr, res, message, "Interface name not found in referenced declaration");
             if (valueElem)
             {
-                ConstPortElementPtr portElem = asA<PortElement>();
-                if (portElem && portElem->hasChannels())
-                {
-                    bool valid = portElem->validChannelsString(portElem->getChannels(), valueElem->getType(), getType());
-                    validateRequire(valid, res, message, "Invalid channels string for interface name");
-                }
-                else
-                {
-                    validateRequire(getType() == valueElem->getType(), res, message, "Interface name refers to value element of a different type");
-                }
+                validateRequire(getType() == valueElem->getType(), res, message, "Interface name refers to value element of a different type");
             }
         }
     }
@@ -614,7 +855,7 @@ void StringResolver::addTokenSubstitutions(ConstElementPtr element)
     const string DELIMITER_PREFIX = "[";
     const string DELIMITER_POSTFIX = "]";
 
-    // Travese from sibliings up until root is reached.
+    // Traverse from siblings up until root is reached.
     // Child tokens override any parent tokens.
     ConstElementPtr parent = element->getParent();
     while (parent)
@@ -632,6 +873,28 @@ void StringResolver::addTokenSubstitutions(ConstElementPtr element)
                     setFilenameSubstitution(key, value);
                 }
             }
+
+            // This is a functional nodegraph. Get the corresponding nodedef and
+            // check for tokens on it.
+            ConstNodeGraphPtr nodegraph = parent->asA<NodeGraph>();
+            if (nodegraph)
+            {
+                NodeDefPtr nodedef = nodegraph->getNodeDef();
+                if (nodedef)
+                {
+                    tokens = nodedef->getActiveTokens();
+                    for (auto token : tokens)
+                    {
+                        string key = DELIMITER_PREFIX + token->getName() + DELIMITER_POSTFIX;
+                        string value = token->getResolvedValueString();
+                        if (!_filenameMap.count(key))
+                        {
+                            setFilenameSubstitution(key, value);
+                        }
+                    }
+                }
+            }
+
         }
         parent = parent->getParent();
     }
@@ -692,16 +955,18 @@ template <class T> class ElementRegistry
     {
         Element::_creatorMap[T::CATEGORY] = Element::createElement<T>;
     }
-    ~ElementRegistry() { }
+    ~ElementRegistry() = default;
 };
 
 //
 // Template instantiations
 //
 
-#define INSTANTIATE_SUBCLASS(T)                           \
-    template MX_CORE_API shared_ptr<T> Element::asA<T>(); \
-    template MX_CORE_API shared_ptr<const T> Element::asA<T>() const;
+#define INSTANTIATE_SUBCLASS(T)                                                                             \
+    template MX_CORE_API shared_ptr<T> Element::asA<T>();                                                   \
+    template MX_CORE_API shared_ptr<const T> Element::asA<T>() const;                                       \
+    template MX_CORE_API shared_ptr<T> Element::getChildOfType<T>(const string& name) const;                \
+    template MX_CORE_API vector<shared_ptr<T>> Element::getChildrenOfType<T>(const string& category) const;
 
 INSTANTIATE_SUBCLASS(Element)
 INSTANTIATE_SUBCLASS(GeomElement)

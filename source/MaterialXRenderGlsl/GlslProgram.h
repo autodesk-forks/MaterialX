@@ -102,7 +102,7 @@ class MX_RENDERGLSL_API GlslProgram
         string typeString;
         /// Input value. Will only be non-empty if initialized stages with a HwShader and a value was set during
         /// shader generation.
-        MaterialX::ValuePtr value;
+        MaterialX::ConstValuePtr value;
         /// Is this a constant
         bool isConstant;
         /// Element path (if any)
@@ -191,7 +191,7 @@ class MX_RENDERGLSL_API GlslProgram
     void bindViewInformation(CameraPtr camera);
 
     /// Bind time and frame
-    void bindTimeAndFrame(float time = 1.0f, float frame = 1.0f);
+    void bindTimeAndFrame(float time = 0.0f, float frame = 1.0f);
 
     /// Unbind the program.  Equivalent to binding no program
     void unbind() const;
@@ -223,14 +223,14 @@ class MX_RENDERGLSL_API GlslProgram
 
     // Utility to find a uniform value in an uniform list.
     // If uniform cannot be found a null pointer will be return.
-    ValuePtr findUniformValue(const string& uniformName, const InputMap& uniformList);
+    ConstValuePtr findUniformValue(const string& uniformName, const InputMap& uniformList);
 
     // Bind an individual texture to a program uniform location
     ImagePtr bindTexture(unsigned int uniformType, int uniformLocation, const FilePath& filePath,
                          ImageHandlerPtr imageHandler, const ImageSamplingProperties& imageProperties);
 
     // Utility to map a MaterialX type to an OpenGL type
-    static int mapTypeToOpenGLType(const TypeDesc* type);
+    static int mapTypeToOpenGLType(TypeDesc type);
 
     // Bind a value to the uniform at the given location.
     void bindUniformLocation(int location, ConstValuePtr value);

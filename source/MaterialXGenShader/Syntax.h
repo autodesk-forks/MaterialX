@@ -10,6 +10,7 @@
 /// Base class for syntax handling for shader generators
 
 #include <MaterialXGenShader/Export.h>
+#include <MaterialXGenShader/TypeDesc.h>
 
 #include <MaterialXCore/Definition.h>
 #include <MaterialXCore/Library.h>
@@ -19,6 +20,7 @@ MATERIALX_NAMESPACE_BEGIN
 
 class Syntax;
 class TypeSyntax;
+class StructTypeSyntax;
 class TypeDesc;
 class ShaderPort;
 
@@ -28,6 +30,8 @@ using SyntaxPtr = shared_ptr<Syntax>;
 using ConstSyntaxPtr = shared_ptr<const Syntax>;
 /// Shared pointer to a TypeSyntax
 using TypeSyntaxPtr = shared_ptr<TypeSyntax>;
+/// Shared pointer to a StructTypeSyntax
+using StructTypeSyntaxPtr = shared_ptr<StructTypeSyntax>;
 
 /// Map holding identifier names and a counter for
 /// creating unique names from them.
@@ -53,7 +57,8 @@ class MX_GENSHADER_API Syntax
 
     /// Register syntax handling for a data type.
     /// Required to be set for all supported data types.
-    void registerTypeSyntax(const TypeDesc* type, TypeSyntaxPtr syntax);
+    void registerTypeSyntax(TypeDesc type, TypeSyntaxPtr syntax);
+    [[deprecated]] void registerTypeSyntax(const TypeDesc* type, TypeSyntaxPtr syntax) { registerTypeSyntax(*type, syntax); }
 
     /// Register names that are reserved words not to be used by a code generator when naming
     /// variables and functions. Keywords, types, built-in functions etc. should be
@@ -73,43 +78,43 @@ class MX_GENSHADER_API Syntax
 
     /// Returns the type syntax object for a named type.
     /// Throws an exception if a type syntax is not defined for the given type.
-    const TypeSyntax& getTypeSyntax(const TypeDesc* type) const;
+    const TypeSyntax& getTypeSyntax(TypeDesc type) const;
+    [[deprecated]] const TypeSyntax& getTypeSyntax(const TypeDesc* type) const { return getTypeSyntax(*type); }
 
     /// Returns an array of all registered type syntax objects
     const vector<TypeSyntaxPtr>& getTypeSyntaxes() const { return _typeSyntaxes; }
 
-    /// Returns a type description given a type syntax. Throws an exception
-    /// if the type syntax has not been registered
-    const TypeDesc* getTypeDescription(const TypeSyntaxPtr& typeSyntax) const;
+    /// Return a type description for the given type name.
+    TypeDesc getType(const string& name) const { return _typeSystem->getType(name); }
 
     /// Returns the name syntax of the given type
-    const string& getTypeName(const TypeDesc* type) const;
+    const string& getTypeName(TypeDesc type) const;
+    [[deprecated]] const string& getTypeName(const TypeDesc* type) const { return getTypeName(*type); }
 
     /// Returns the type name in an output context
-    virtual string getOutputTypeName(const TypeDesc* type) const;
+    virtual string getOutputTypeName(TypeDesc type) const;
+    [[deprecated]] string getOutputTypeName(const TypeDesc* type) const { return getOutputTypeName(*type); }
 
     /// Returns a type alias for the given data type.
     /// If not used returns an empty string.
-    const string& getTypeAlias(const TypeDesc* type) const;
+    const string& getTypeAlias(TypeDesc type) const;
+    [[deprecated]] const string& getTypeAlias(const TypeDesc* type) const { return getTypeAlias(*type); }
 
     /// Returns a custom type definition if needed for the given data type.
     /// If not used returns an empty string.
-    const string& getTypeDefinition(const TypeDesc* type) const;
+    const string& getTypeDefinition(TypeDesc type) const;
+    [[deprecated]] const string& getTypeDefinition(const TypeDesc* type) const { return getTypeDefinition(*type); }
 
     /// Returns the default value string for the given type
-    const string& getDefaultValue(const TypeDesc* type, bool uniform = false) const;
+    const string& getDefaultValue(TypeDesc type, bool uniform = false) const;
+    [[deprecated]] const string& getDefaultValue(const TypeDesc* type, bool uniform = false) const { return getDefaultValue(*type, uniform); }
 
     /// Returns the value string for a given type and value object
-    virtual string getValue(const TypeDesc* type, const Value& value, bool uniform = false) const;
+    virtual string getValue(TypeDesc type, const Value& value, bool uniform = false) const;
+    [[deprecated]] string getValue(const TypeDesc* type, const Value& value, bool uniform = false) const { return getValue(*type, value, uniform); }
 
     /// Returns the value string for a given shader port object
     virtual string getValue(const ShaderPort* port, bool uniform = false) const;
-
-    /// Get syntax for a swizzled variable
-    virtual string getSwizzledVariable(const string& srcName, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const;
-
-    /// Get swizzled value
-    virtual ValuePtr getSwizzledValue(ValuePtr value, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const;
 
     /// Returns a type qualifier to be used when declaring types for input variables.
     /// Default implementation returns empty string and derived syntax classes should
@@ -155,14 +160,16 @@ class MX_GENSHADER_API Syntax
     virtual const string& getSourceFileExtension() const = 0;
 
     /// Return the array suffix to use for declaring an array type.
-    virtual string getArrayTypeSuffix(const TypeDesc*, const Value&) const { return EMPTY_STRING; };
+    virtual string getArrayTypeSuffix(TypeDesc, const Value&) const { return EMPTY_STRING; };
+    [[deprecated]] string getArrayTypeSuffix(const TypeDesc* type, const Value& value) const { return getArrayTypeSuffix(*type, value); }
 
     /// Return the array suffix to use for declaring an array variable.
-    virtual string getArrayVariableSuffix(const TypeDesc* type, const Value& value) const;
+    virtual string getArrayVariableSuffix(TypeDesc type, const Value& value) const;
+    [[deprecated]] string getArrayVariableSuffix(const TypeDesc* type, const Value& value) const { return getArrayVariableSuffix(*type, value); }
 
-    /// Query if given type is suppored in the syntax.
+    /// Query if given type is supported in the syntax.
     /// By default all types are assumed to be supported.
-    virtual bool typeSupported(const TypeDesc* type) const;
+    [[deprecated]] virtual bool typeSupported(const TypeDesc* type) const;
 
     /// Modify the given name string to remove any invalid characters or tokens.
     virtual void makeValidName(string& name) const;
@@ -176,7 +183,8 @@ class MX_GENSHADER_API Syntax
     /// Derived classes can override this method to have a custom naming strategy.
     /// Default implementation adds a number suffix, or increases an existing number suffix,
     /// on the name string if there is a name collision.
-    virtual string getVariableName(const string& name, const TypeDesc* type, IdentifierMap& identifiers) const;
+    virtual string getVariableName(const string& name, TypeDesc type, IdentifierMap& identifiers) const;
+    [[deprecated]] string getVariableName(const string& name, const TypeDesc* type, IdentifierMap& identifiers) const { return getVariableName(name, *type, identifiers); }
 
     /// Given an input specification attempt to remap this to an enumeration which is accepted by
     /// the shader generator. The enumeration may be converted to a different type than the input.
@@ -185,8 +193,13 @@ class MX_GENSHADER_API Syntax
     /// @param enumNames Type enumeration names
     /// @param result Enumeration type and value (returned).
     /// @return Return true if the remapping was successful.
-    virtual bool remapEnumeration(const string& value, const TypeDesc* type, const string& enumNames,
-                                  std::pair<const TypeDesc*, ValuePtr>& result) const;
+    virtual bool remapEnumeration(const string& value, TypeDesc type, const string& enumNames,
+                                  std::pair<TypeDesc, ValuePtr>& result) const;
+
+    // Create and return a type syntax for a struct type.
+    virtual StructTypeSyntaxPtr createStructSyntax(const string& structTypeName, const string& defaultValue,
+                                                   const string& uniformDefaultValue, const string& typeAlias,
+                                                   const string& typeDefinition) const;
 
     /// Constants with commonly used strings.
     static const string NEWLINE;
@@ -195,10 +208,11 @@ class MX_GENSHADER_API Syntax
 
   protected:
     /// Protected constructor
-    Syntax();
+    Syntax(TypeSystemPtr typeSystem);
 
+    TypeSystemPtr _typeSystem;
     vector<TypeSyntaxPtr> _typeSyntaxes;
-    std::unordered_map<const TypeDesc*, size_t> _typeSyntaxByType;
+    std::unordered_map<TypeDesc, size_t, TypeDesc::Hasher> _typeSyntaxIndexByType;
 
     StringSet _reservedWords;
     StringMap _invalidTokens;
@@ -244,16 +258,12 @@ class MX_GENSHADER_API TypeSyntax
     /// The value is constructed from the given value object.
     virtual string getValue(const Value& value, bool uniform) const = 0;
 
-    /// Returns a value formatted according to this type syntax.
-    /// The value is constructed from the given list of value entries
-    /// with one entry for each member of the type.
-    virtual string getValue(const StringVec& values, bool uniform) const = 0;
-
   protected:
     /// Protected constructor
-    TypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
+    TypeSyntax(const Syntax* parent, const string& name, const string& defaultValue, const string& uniformDefaultValue,
                const string& typeAlias, const string& typeDefinition, const StringVec& members);
 
+    const Syntax* _parent;       // parent syntax class
     string _name;                // type name
     string _defaultValue;        // default value syntax
     string _uniformDefaultValue; // default value syntax when assigned to uniforms
@@ -268,18 +278,17 @@ class MX_GENSHADER_API TypeSyntax
 class MX_GENSHADER_API ScalarTypeSyntax : public TypeSyntax
 {
   public:
-    ScalarTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
+    ScalarTypeSyntax(const Syntax* parent, const string& name, const string& defaultValue, const string& uniformDefaultValue,
                      const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING);
 
     string getValue(const Value& value, bool uniform) const override;
-    string getValue(const StringVec& values, bool uniform) const override;
 };
 
 /// Specialization of TypeSyntax for string types.
 class MX_GENSHADER_API StringTypeSyntax : public ScalarTypeSyntax
 {
   public:
-    StringTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
+    StringTypeSyntax(const Syntax* parent, const string& name, const string& defaultValue, const string& uniformDefaultValue,
                      const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING);
 
     string getValue(const Value& value, bool uniform) const override;
@@ -289,12 +298,22 @@ class MX_GENSHADER_API StringTypeSyntax : public ScalarTypeSyntax
 class MX_GENSHADER_API AggregateTypeSyntax : public TypeSyntax
 {
   public:
-    AggregateTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
+    AggregateTypeSyntax(const Syntax* parent, const string& name, const string& defaultValue, const string& uniformDefaultValue,
                         const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
                         const StringVec& members = EMPTY_MEMBERS);
 
     string getValue(const Value& value, bool uniform) const override;
-    string getValue(const StringVec& values, bool uniform) const override;
+};
+
+/// Specialization of TypeSyntax for struct types.
+class MX_GENSHADER_API StructTypeSyntax : public TypeSyntax
+{
+  public:
+    StructTypeSyntax(const Syntax* parent, const string& name, const string& defaultValue, const string& uniformDefaultValue,
+                     const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
+                     const StringVec& members = EMPTY_MEMBERS);
+
+    string getValue(const Value& value, bool uniform) const override;
 };
 
 MATERIALX_NAMESPACE_END

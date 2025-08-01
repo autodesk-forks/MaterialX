@@ -13,27 +13,16 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-// Custom types to handle enumeration output
-namespace Type
-{
-
-const TypeDesc* MDL_COORDINATESPACE = TypeDesc::registerType("coordinatespace", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
-const TypeDesc* MDL_ADDRESSMODE = TypeDesc::registerType("addressmode", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
-const TypeDesc* MDL_FILTERLOOKUPMODE = TypeDesc::registerType("filterlookup", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
-const TypeDesc* MDL_FILTERTYPE = TypeDesc::registerType("filtertype", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
-const TypeDesc* MDL_DISTRIBUTION = TypeDesc::registerType("distributiontype", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
-const TypeDesc* MDL_SCATTER_MODE = TypeDesc::registerType("scatter_mode", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_ENUM, 0);
-
-} // namespace Type
-
 namespace
 {
+
+const string MARKER_MDL_VERSION_SUFFIX = "MDL_VERSION_SUFFIX";
 
 class MdlFilenameTypeSyntax : public ScalarTypeSyntax
 {
   public:
-    MdlFilenameTypeSyntax() :
-        ScalarTypeSyntax("texture_2d", "texture_2d()", "texture_2d()")
+    MdlFilenameTypeSyntax(const Syntax* parent) :
+        ScalarTypeSyntax(parent, "texture_2d", "texture_2d()", "texture_2d()")
     {
     }
 
@@ -79,8 +68,8 @@ class MdlFilenameTypeSyntax : public ScalarTypeSyntax
 class MdlArrayTypeSyntax : public ScalarTypeSyntax
 {
   public:
-    MdlArrayTypeSyntax(const string& name) :
-        ScalarTypeSyntax(name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
+    MdlArrayTypeSyntax(const Syntax* parent, const string& name) :
+        ScalarTypeSyntax(parent, name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
     {
     }
 
@@ -93,23 +82,6 @@ class MdlArrayTypeSyntax : public ScalarTypeSyntax
         return EMPTY_STRING;
     }
 
-    string getValue(const StringVec& values, bool /*uniform*/) const override
-    {
-        if (values.empty())
-        {
-            throw ExceptionShaderGenError("No values given to construct an array value");
-        }
-
-        string result = getName() + "[](" + values[0];
-        for (size_t i = 1; i < values.size(); ++i)
-        {
-            result += ", " + values[i];
-        }
-        result += ")";
-
-        return result;
-    }
-
   protected:
     virtual bool isEmpty(const Value& value) const = 0;
 };
@@ -117,8 +89,8 @@ class MdlArrayTypeSyntax : public ScalarTypeSyntax
 class MdlFloatArrayTypeSyntax : public MdlArrayTypeSyntax
 {
   public:
-    explicit MdlFloatArrayTypeSyntax(const string& name) :
-        MdlArrayTypeSyntax(name)
+    explicit MdlFloatArrayTypeSyntax(const Syntax* parent, const string& name) :
+        MdlArrayTypeSyntax(parent, name)
     {
     }
 
@@ -133,8 +105,8 @@ class MdlFloatArrayTypeSyntax : public MdlArrayTypeSyntax
 class MdlIntegerArrayTypeSyntax : public MdlArrayTypeSyntax
 {
   public:
-    explicit MdlIntegerArrayTypeSyntax(const string& name) :
-        MdlArrayTypeSyntax(name)
+    explicit MdlIntegerArrayTypeSyntax(const Syntax* parent, const string& name) :
+        MdlArrayTypeSyntax(parent, name)
     {
     }
 
@@ -156,8 +128,8 @@ class MdlIntegerArrayTypeSyntax : public MdlArrayTypeSyntax
 class MdlColor4TypeSyntax : public AggregateTypeSyntax
 {
   public:
-    MdlColor4TypeSyntax() :
-        AggregateTypeSyntax("color4", "mk_color4(0.0)", "mk_color4(0.0)",
+    MdlColor4TypeSyntax(const Syntax* parent) :
+        AggregateTypeSyntax(parent, "color4", "mk_color4(0.0)", "mk_color4(0.0)",
                             EMPTY_STRING, EMPTY_STRING, MdlSyntax::COLOR4_MEMBERS)
     {
     }
@@ -178,27 +150,13 @@ class MdlColor4TypeSyntax : public AggregateTypeSyntax
 
         return ss.str();
     }
-
-    string getValue(const StringVec& values, bool /*uniform*/) const override
-    {
-        size_t valueCount = values.size();
-        if (valueCount == 4)
-        {
-            return "mk_color4(" + values[0] + ", " + values[1] + ", " + values[2] + ", " + values[3] + ")";
-        }
-        else if (valueCount == 2)
-        {
-            return "mk_color4(" + values[0] + ", " + values[1] + ")";
-        }
-        throw ExceptionShaderGenError("Incorrect number of values to construct a color4 value:" + std::to_string(valueCount));
-    }
 };
 
 class MdlEnumSyntax : public AggregateTypeSyntax
 {
   public:
-    MdlEnumSyntax(const string& name, const string& defaultValue, const string& defaultUniformValue, const StringVec& members) :
-        AggregateTypeSyntax(name, defaultValue, defaultUniformValue, EMPTY_STRING, EMPTY_STRING, members)
+    MdlEnumSyntax(const Syntax* parent, const string& name, const string& defaultValue, const string& defaultUniformValue, const StringVec& members) :
+        AggregateTypeSyntax(parent, name, defaultValue, defaultUniformValue, EMPTY_STRING, EMPTY_STRING, members)
     {
     }
 
@@ -225,30 +183,51 @@ const StringVec MdlSyntax::FILTERLOOKUPMODE_MEMBERS = { "closest", "linear", "cu
 const StringVec MdlSyntax::FILTERTYPE_MEMBERS = { "box", "gaussian" };
 const StringVec MdlSyntax::DISTRIBUTIONTYPE_MEMBERS = { "ggx" };
 const StringVec MdlSyntax::SCATTER_MODE_MEMBERS = { "R", "T", "RT" };
+const StringVec MdlSyntax::SHEEN_MODE_MEMBERS = { "conty_kulla", "zeltner" };
+
+const string MdlSyntax::PORT_NAME_PREFIX = "mxp_";
 
 //
 // MdlSyntax methods
 //
 
-MdlSyntax::MdlSyntax()
+MdlSyntax::MdlSyntax(TypeSystemPtr typeSystem) : Syntax(typeSystem)
 {
     // Add in all reserved words and keywords in MDL
+    // Formatted as in the MDL Specification 1.9.2 for easy comparing
     registerReservedWords(
-        { // Reserved words
-          "annotation", "bool", "bool2", "bool3", "bool4", "break", "bsdf", "bsdf_measurement", "case", "cast", "color", "const",
-          "continue", "default", "do", "double", "double2", "double2x2", "double2x3", "double3", "double3x2", "double3x3", "double3x4",
-          "double4", "double4x3", "double4x4", "double4x2", "double2x4", "edf", "else", "enum", "export", "false", "float", "float2",
-          "float2x2", "float2x3", "float3", "float3x2", "float3x3", "float3x4", "float4", "float4x3", "float4x4", "float4x2", "float2x4",
-          "for", "hair_bsdf", "if", "import", "in", "int", "int2", "int3", "int4", "intensity_mode", "intensity_power", "intensity_radiant_exitance",
-          "let", "light_profile", "material", "material_emission", "material_geometry", "material_surface", "material_volume", "mdl", "module",
-          "package", "return", "string", "struct", "switch", "texture_2d", "texture_3d", "texture_cube", "texture_ptex", "true", "typedef", "uniform",
-          "using", "varying", "vdf", "while",
-          // Reserved for future use
-          "auto", "catch", "char", "class", "const_cast", "delete", "dynamic_cast", "explicit", "extern", "external", "foreach", "friend", "goto",
-          "graph", "half", "half2", "half2x2", "half2x3", "half3", "half3x2", "half3x3", "half3x4", "half4", "half4x3", "half4x4", "half4x2", "half2x4",
-          "inline", "inout", "lambda", "long", "mutable", "namespace", "native", "new", "operator", "out", "phenomenon", "private", "protected", "public",
-          "reinterpret_cast", "sampler", "shader", "short", "signed", "sizeof", "static", "static_cast", "technique", "template", "this", "throw", "try",
-          "typeid", "typename", "union", "unsigned", "virtual", "void", "volatile", "wchar_t" });
+        {   // Reserved words
+            "annotation",       "double2",      "float",        "in",                           "operator",
+            "auto",             "double2x2",    "float2",       "int",                          "package",
+            "bool",             "double2x3",    "float2x2",     "int2",                         "return",
+            "bool2",            "double3",      "float2x3",     "int3",                         "string",
+            "bool3",            "double3x2",    "float3",       "int4",                         "struct",
+            "bool4",            "double3x3",    "float3x2",     "intensity_mode",               "struct_category",
+            "break",            "double3x4",    "float3x3",     "intensity_power",              "switch",
+            "bsdf",             "double4",      "float3x4",     "intensity_radiant_exitance",   "texture_2d",
+            "bsdf_measurement", "double4x3",    "float4",       "let",                          "texture_3d",
+            "case",             "double4x4",    "float4x3",     "light_profile",                "texture_cube",
+            "cast",             "double4x2",    "float4x4",     "material",                     "texture_ptex",
+            "color",            "double2x4",    "float4x2",     "material_emission",            "true",
+            "const",            "edf",          "float2x4",     "material_geometry",            "typedef",
+            "continue",         "else",         "for",          "material_surface",             "uniform",
+            "declarative",      "enum",         "hair_bsdf",    "material_volume",              "using",
+            "default",          "export",       "if",           "mdl",                          "varying",
+            "do",               "false",        "import",       "module",                       "vdf",
+            "double",                                                                           "while",
+
+            // Reserved for future use
+            "catch",        "friend",   "half3x4",  "mutable",          "sampler",      "throw",
+            "char",         "goto",     "half4",    "namespace",        "shader",       "try",
+            "class",        "graph",    "half4x3",  "native",           "short",        "typeid",
+            "const_cast",   "half",     "half4x4",  "new",              "signed",       "typename",
+            "delete",       "half2",    "half4x2",  "out",              "sizeof",       "union",
+            "dynamic_cast", "half2x2",  "half2x4",  "phenomenon",       "static",       "unsigned",
+            "explicit",     "half2x3",  "inline",   "private",          "static_cast",  "virtual",
+            "extern",       "half3",    "inout",    "protected",        "technique",    "void",
+            "external",     "half3x2",  "lambda",   "public",           "template",     "volatile",
+            "foreach",      "half3x3",  "long",     "reinterpret_cast", "this",         "wchar_t",
+        });
 
     // Register restricted tokens in MDL
     StringMap tokens;
@@ -262,6 +241,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::FLOAT,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "float",
             "0.0",
             "0.0"));
@@ -269,11 +249,13 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::FLOATARRAY,
         std::make_shared<MdlFloatArrayTypeSyntax>(
+            this,
             "float"));
 
     registerTypeSyntax(
         Type::INTEGER,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "int",
             "0",
             "0"));
@@ -281,11 +263,13 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::INTEGERARRAY,
         std::make_shared<MdlIntegerArrayTypeSyntax>(
+            this,
             "int"));
 
     registerTypeSyntax(
         Type::BOOLEAN,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "bool",
             "false",
             "false"));
@@ -293,6 +277,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::COLOR3,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "color",
             "color(0.0)",
             "color(0.0)",
@@ -302,11 +287,12 @@ MdlSyntax::MdlSyntax()
 
     registerTypeSyntax(
         Type::COLOR4,
-        std::make_shared<MdlColor4TypeSyntax>());
+        std::make_shared<MdlColor4TypeSyntax>(this));
 
     registerTypeSyntax(
         Type::VECTOR2,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "float2",
             "float2(0.0)",
             "float2(0.0)",
@@ -317,6 +303,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::VECTOR3,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "float3",
             "float3(0.0)",
             "float3(0.0)",
@@ -327,6 +314,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::VECTOR4,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "float4",
             "float4(0.0)",
             "float4(0.0)",
@@ -337,6 +325,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::MATRIX33,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "float3x3",
             "float3x3(1.0)",
             "float3x3(1.0)"));
@@ -344,6 +333,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::MATRIX44,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "float4x4",
             "float4x4(1.0)",
             "float4x4(1.0)"));
@@ -351,17 +341,19 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::STRING,
         std::make_shared<StringTypeSyntax>(
+            this,
             "string",
             "\"\"",
             "\"\""));
 
     registerTypeSyntax(
         Type::FILENAME,
-        std::make_shared<MdlFilenameTypeSyntax>());
+        std::make_shared<MdlFilenameTypeSyntax>(this));
 
     registerTypeSyntax(
         Type::BSDF,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "material",
             "material()",
             "material()"));
@@ -369,6 +361,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::EDF,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "material",
             "material()",
             "material()"));
@@ -376,6 +369,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::VDF,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "material",
             "material()",
             "material()"));
@@ -383,6 +377,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::SURFACESHADER,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "material",
             "material()",
             "material()"));
@@ -390,6 +385,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::VOLUMESHADER,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "material",
             "material()",
             "material()"));
@@ -397,6 +393,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::DISPLACEMENTSHADER,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "material",
             "material()",
             "material()"));
@@ -404,6 +401,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::LIGHTSHADER,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "material",
             "material()",
             "material()"));
@@ -411,6 +409,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::MATERIAL,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "material",
             "material()",
             "material()"));
@@ -418,6 +417,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::MDL_ADDRESSMODE,
         std::make_shared<MdlEnumSyntax>(
+            this,
             "mx_addressmode_type",
             "mx_addressmode_type_periodic",
             "mx_addressmode_type_periodic",
@@ -426,6 +426,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::MDL_COORDINATESPACE,
         std::make_shared<MdlEnumSyntax>(
+            this,
             "mx_coordinatespace_type",
             "mx_coordinatespace_type_model",
             "mx_coordinatespace_type_model",
@@ -434,6 +435,7 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::MDL_FILTERLOOKUPMODE,
         std::make_shared<MdlEnumSyntax>(
+            this,
             "mx_filterlookup_type",
             "mx_filterlookup_type_linear",
             "mx_filterlookup_type_linear",
@@ -442,14 +444,16 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::MDL_FILTERTYPE,
         std::make_shared<MdlEnumSyntax>(
+            this,
             "mx_filter_type",
             "mx_filter_type_gaussian",
             "mx_filter_type_gaussian",
             FILTERTYPE_MEMBERS));
 
     registerTypeSyntax(
-        Type::MDL_DISTRIBUTION,
+        Type::MDL_DISTRIBUTIONTYPE,
         std::make_shared<MdlEnumSyntax>(
+            this,
             "mx_distribution_type",
             "mx_distribution_type_ggx",
             "mx_distribution_type_ggx",
@@ -458,13 +462,23 @@ MdlSyntax::MdlSyntax()
     registerTypeSyntax(
         Type::MDL_SCATTER_MODE,
         std::make_shared<MdlEnumSyntax>(
+            this,
             "mx_scatter_mode",
             "mx_scatter_mode_R",
             "mx_scatter_mode_R",
             SCATTER_MODE_MEMBERS));
+
+    registerTypeSyntax(
+        Type::MDL_SHEEN_MODE,
+        std::make_shared<MdlEnumSyntax>(
+            this,
+            "mx_sheen_mode",
+            "mx_sheen_mode_conty_kulla",
+            "mx_sheen_mode_conty_kulla",
+            SHEEN_MODE_MEMBERS));
 }
 
-const TypeDesc* MdlSyntax::getEnumeratedType(const string& value) const
+TypeDesc MdlSyntax::getEnumeratedType(const string& value) const
 {
     for (const TypeSyntaxPtr& syntax : getTypeSyntaxes())
     {
@@ -475,74 +489,27 @@ const TypeDesc* MdlSyntax::getEnumeratedType(const string& value) const
             // We should find a more safe way to handled this.
             if (std::find(members.begin(), members.end(), value) != members.end())
             {
-                return getTypeDescription(syntax);
+                auto pos = std::find(_typeSyntaxes.begin(), _typeSyntaxes.end(), syntax);
+                if (pos != _typeSyntaxes.end())
+                {
+                    const size_t index = static_cast<size_t>(std::distance(_typeSyntaxes.begin(), pos));
+                    for (auto item : _typeSyntaxIndexByType)
+                    {
+                        if (item.second == index)
+                        {
+                            return item.first;
+                        }
+                    }
+                }
             }
         }
     }
-    return nullptr;
+    return Type::NONE;
 }
 
-const std::unordered_map<char, char> CHANNELS_TO_XYZW =
+string MdlSyntax::getArrayTypeSuffix(TypeDesc type, const Value& value) const
 {
-    { 'r', 'x' }, { 'x', 'x' },
-    { 'g', 'y' }, { 'y', 'y' },
-    { 'b', 'z' }, { 'z', 'z' },
-    { 'a', 'w' }, { 'w', 'w' }
-};
-
-string MdlSyntax::getSwizzledVariable(const string& srcName, const TypeDesc* srcType, const string& channels, const TypeDesc* dstType) const
-{
-    if (*srcType == *Type::COLOR3 || *srcType == *Type::COLOR4)
-    {
-        const TypeSyntax& srcSyntax = getTypeSyntax(srcType);
-        const TypeSyntax& dstSyntax = getTypeSyntax(dstType);
-
-        const StringVec& srcMembers = srcSyntax.getMembers();
-
-        StringVec membersSwizzled;
-
-        for (size_t i = 0; i < channels.size(); ++i)
-        {
-            const char ch = channels[i];
-            if (ch == '0' || ch == '1')
-            {
-                membersSwizzled.push_back(string(1, ch));
-                continue;
-            }
-
-            auto it = CHANNELS_MAPPING.find(ch);
-            if (it == CHANNELS_MAPPING.end())
-            {
-                throw ExceptionShaderGenError("Invalid channel pattern '" + channels + "'.");
-            }
-
-            int channelIndex = srcType->getChannelIndex(ch);
-            if (channelIndex < 0 || channelIndex >= static_cast<int>(srcMembers.size()))
-            {
-                throw ExceptionShaderGenError("Given channel index: '" + string(1, ch) + "' in channels pattern is incorrect for type '" + srcType->getName() + "'.");
-            }
-
-            string variable = srcName;
-            if (*srcType == *Type::COLOR3)
-            {
-                variable = "float3(" + srcName + ")";
-            }
-            else if (channelIndex < 3)
-            {
-                variable = "float3(" + srcName + ".rgb)";
-            }
-
-            membersSwizzled.push_back(variable + srcMembers[channelIndex]);
-        }
-
-        return dstSyntax.getValue(membersSwizzled, false);
-    }
-    return Syntax::getSwizzledVariable(srcName, srcType, channels, dstType);
-}
-
-string MdlSyntax::getArrayTypeSuffix(const TypeDesc* type, const Value& value) const
-{
-    if (type->isArray())
+    if (type.isArray())
     {
         if (value.isA<vector<float>>())
         {
@@ -558,7 +525,7 @@ string MdlSyntax::getArrayTypeSuffix(const TypeDesc* type, const Value& value) c
     return string();
 }
 
-bool MdlSyntax::remapEnumeration(const string& value, const TypeDesc* type, const string& enumNames, std::pair<const TypeDesc*, ValuePtr>& result) const
+bool MdlSyntax::remapEnumeration(const string& value, TypeDesc type, const string& enumNames, std::pair<TypeDesc, ValuePtr>& result) const
 {
     // Early out if not an enum input.
     if (enumNames.empty())
@@ -567,37 +534,37 @@ bool MdlSyntax::remapEnumeration(const string& value, const TypeDesc* type, cons
     }
 
     // Don't convert filenames or arrays.
-    if (*type == *Type::FILENAME || (type && type->isArray()))
+    if (type == Type::FILENAME || type.isArray())
     {
         return false;
     }
 
-    // Try remapping to an enum value.
-    if (!value.empty())
+    // Early out if no valid value provided
+    if (value.empty())
     {
-        result.first = getEnumeratedType(value);
-        if (!result.first || (result.first->getSemantic() != TypeDesc::Semantic::SEMANTIC_ENUM))
-        {
-            return false;
-        }
-
-        StringVec valueElemEnumsVec = splitString(enumNames, ",");
-        for (size_t i = 0; i < valueElemEnumsVec.size(); i++)
-        {
-            valueElemEnumsVec[i] = trimSpaces(valueElemEnumsVec[i]);
-        }
-        auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
-        if (pos == valueElemEnumsVec.end())
-        {
-            throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value.");
-        }
-        const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
-        result.second = Value::createValue<string>(valueElemEnumsVec[index]);
-
-        return true;
+        return false;
     }
 
-    return false;
+    result.first = getEnumeratedType(value);
+    if (result.first == Type::NONE || (result.first.getSemantic() != TypeDesc::Semantic::SEMANTIC_ENUM))
+    {
+        return false;
+    }
+
+    StringVec valueElemEnumsVec = splitString(enumNames, ",");
+    for (size_t i = 0; i < valueElemEnumsVec.size(); i++)
+    {
+        valueElemEnumsVec[i] = trimSpaces(valueElemEnumsVec[i]);
+    }
+    auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
+    if (pos == valueElemEnumsVec.end())
+    {
+        throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value.");
+    }
+    const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
+    result.second = Value::createValue<string>(valueElemEnumsVec[index]);
+
+    return true;
 }
 
 void MdlSyntax::makeValidName(string& name) const
@@ -609,6 +576,80 @@ void MdlSyntax::makeValidName(string& name) const
     {
         name = "v" + name;
     }
+}
+
+string MdlSyntax::modifyPortName(const string& word) const
+{
+    return PORT_NAME_PREFIX + word;
+}
+
+string MdlSyntax::replaceSourceCodeMarkers(const string& nodeName, const string& soureCode, std::function<string(const string&)> lambda) const
+{
+    // An inline function call
+    // Replace tokens of the format "{{<var>}}"
+    static const string prefix("{{");
+    static const string postfix("}}");
+
+    size_t pos = 0;
+    size_t i = soureCode.find_first_of(prefix);
+    StringVec code;
+    while (i != string::npos)
+    {
+        code.push_back(soureCode.substr(pos, i - pos));
+        size_t j = soureCode.find_first_of(postfix, i + 2);
+        if (j == string::npos)
+        {
+            throw ExceptionShaderGenError("Malformed inline expression in implementation for node " + nodeName);
+        }
+        const string marker = soureCode.substr(i + 2, j - i - 2);
+        code.push_back(lambda(marker));
+        pos = j + 2;
+        i = soureCode.find_first_of(prefix, pos);
+    }
+    code.push_back(soureCode.substr(pos));
+    return joinStrings(code, EMPTY_STRING);
+}
+
+const string& MdlSyntax::getMdlVersionSuffixMarker() const
+{
+    return MARKER_MDL_VERSION_SUFFIX;
+}
+
+StructTypeSyntaxPtr MdlSyntax::createStructSyntax(const string& structTypeName, const string& defaultValue,
+                                                  const string& uniformDefaultValue, const string& typeAlias,
+                                                  const string& typeDefinition) const
+{
+    return std::make_shared<MdlStructTypeSyntax>(
+        this,
+        structTypeName,
+        defaultValue,
+        uniformDefaultValue,
+        typeAlias,
+        typeDefinition);
+}
+
+string MdlStructTypeSyntax::getValue(const Value& value, bool /* uniform */) const
+{
+    const AggregateValue& aggValue = static_cast<const AggregateValue&>(value);
+
+    string result = aggValue.getTypeString() + "(";
+
+    string separator = "";
+    for (const auto& memberValue : aggValue.getMembers())
+    {
+        result += separator;
+        separator = ", ";
+
+        const string& memberTypeName = memberValue->getTypeString();
+        const TypeDesc memberTypeDesc = _parent->getType(memberTypeName);
+
+        // Recursively use the syntax to generate the output, so we can supported nested structs.
+        result += _parent->getValue(memberTypeDesc, *memberValue, true);
+    }
+
+    result += ")";
+
+    return result;
 }
 
 MATERIALX_NAMESPACE_END

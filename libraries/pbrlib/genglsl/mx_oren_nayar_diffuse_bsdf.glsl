@@ -1,6 +1,7 @@
+#include "lib/mx_closure_type.glsl"
 #include "lib/mx_microfacet_diffuse.glsl"
 
-void mx_oren_nayar_diffuse_bsdf_reflection(vec3 L, vec3 V, vec3 P, float occlusion, float weight, vec3 color, float roughness, vec3 normal, inout BSDF bsdf)
+void mx_oren_nayar_diffuse_bsdf(ClosureData closureData, float weight, vec3 color, float roughness, vec3 N, bool energy_compensation, inout BSDF bsdf)
 {
     bsdf.throughput = vec3(0.0);
 
@@ -9,28 +10,28 @@ void mx_oren_nayar_diffuse_bsdf_reflection(vec3 L, vec3 V, vec3 P, float occlusi
         return;
     }
 
-    normal = mx_forward_facing_normal(normal, V);
+    vec3 V = closureData.V;
+    vec3 L = closureData.L;
 
-    float NdotL = clamp(dot(normal, L), M_FLOAT_EPS, 1.0);
+    N = mx_forward_facing_normal(N, V);
+    float NdotV = clamp(dot(N, V), M_FLOAT_EPS, 1.0);
 
-    bsdf.response = color * occlusion * weight * NdotL * M_PI_INV;
-    if (roughness > 0.0)
+    if (closureData.closureType == CLOSURE_TYPE_REFLECTION)
     {
-        bsdf.response *= mx_oren_nayar_diffuse(L, V, normal, NdotL, roughness);
+        float NdotL = clamp(dot(N, L), M_FLOAT_EPS, 1.0);
+        float LdotV = clamp(dot(L, V), M_FLOAT_EPS, 1.0);
+
+        vec3 diffuse = energy_compensation ?
+                       mx_oren_nayar_compensated_diffuse(NdotV, NdotL, LdotV, roughness, color) :
+                       mx_oren_nayar_diffuse(NdotV, NdotL, LdotV, roughness) * color;
+        bsdf.response = diffuse * closureData.occlusion * weight * NdotL * M_PI_INV;
     }
-}
-
-void mx_oren_nayar_diffuse_bsdf_indirect(vec3 V, float weight, vec3 color, float roughness, vec3 normal, inout BSDF bsdf)
-{
-    bsdf.throughput = vec3(0.0);
-
-    if (weight < M_FLOAT_EPS)
+    else if (closureData.closureType == CLOSURE_TYPE_INDIRECT)
     {
-        return;
+        vec3 diffuse = energy_compensation ?
+                       mx_oren_nayar_compensated_diffuse_dir_albedo(NdotV, roughness, color) :
+                       mx_oren_nayar_diffuse_dir_albedo(NdotV, roughness) * color;
+        vec3 Li = mx_environment_irradiance(N);
+        bsdf.response = Li * diffuse * weight;
     }
-
-    normal = mx_forward_facing_normal(normal, V);
-
-    vec3 Li = mx_environment_irradiance(normal);
-    bsdf.response = Li * color * weight;
 }

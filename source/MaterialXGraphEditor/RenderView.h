@@ -11,6 +11,7 @@
 
 #include <MaterialXRender/GeometryHandler.h>
 #include <MaterialXRender/LightHandler.h>
+#include <MaterialXRender/Timer.h>
 
 namespace mx = MaterialX;
 
@@ -29,12 +30,13 @@ class RenderView
 {
   public:
     RenderView(mx::DocumentPtr doc,
+               mx::DocumentPtr stdLib,
                const std::string& meshFilename,
                const std::string& envRadianceFilename,
                const mx::FileSearchPath& searchPath,
                int viewWidth,
                int viewHeight);
-    ~RenderView() { }
+    ~RenderView() = default;
 
     // Initialize the viewer for rendering.
     void initialize();
@@ -159,7 +161,6 @@ class RenderView
     {
         return _xincludeFiles;
     }
-    mx::ElementPredicate getElementPredicate();
 
     // Request a capture of the current frame, writing it to the given filename.
     void requestFrameCapture(const mx::FilePath& filename)
@@ -209,6 +210,16 @@ class RenderView
 
     void loadMesh(const mx::FilePath& filename);
 
+    unsigned int getFrame() const
+    {
+        return _frame;
+    }
+
+    void setFrame(unsigned int frame)
+    {
+        _frame = frame;
+    }
+
   private:
     void initContext(mx::GenContext& context);
     void loadEnvironmentLight();
@@ -232,7 +243,6 @@ class RenderView
     void updateGeometrySelections();
 
     mx::ImagePtr getShadowMap();
-    mx::ImagePtr _renderMap;
 
     void renderFrame();
     void renderScreenSpaceQuad(mx::GlslMaterialPtr material);
@@ -268,6 +278,7 @@ class RenderView
 
     // Document management
     mx::DocumentPtr _document;
+    mx::DocumentPtr _stdLib;
     DocumentModifiers _modifiers;
     mx::StringSet _xincludeFiles;
 
@@ -332,6 +343,10 @@ class RenderView
     bool _captureRequested;
     mx::FilePath _captureFilename;
     bool _exitRequested;
+
+    // Time and frame
+    mx::ScopedTimer _timer;
+    unsigned int _frame;
 };
 
 extern const mx::Vector3 DEFAULT_CAMERA_POSITION;

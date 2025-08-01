@@ -58,6 +58,16 @@ class MX_CORE_API Node : public InterfaceElement
     }
     virtual ~Node() { }
 
+    /// @name Name
+    /// @{
+
+    /// Set the name string of this Node, propagating the updated name to all
+    /// downstream ports.
+    /// @throws Exception if an element at the same scope already possesses the
+    ///     given name.
+    void setNameGlobal(const string& name);
+
+    /// @}
     /// @name Connections
     /// @{
 
@@ -77,15 +87,6 @@ class MX_CORE_API Node : public InterfaceElement
     /// Return the name of the Node connected to the given input.  If the given
     /// input is not present, then an empty string is returned.
     string getConnectedNodeName(const string& inputName) const;
-
-    /// Set the output to which the given input is connected, creating a
-    /// child input if needed.  If the node argument is null, then any
-    /// existing output connection on the input will be cleared.
-    void setConnectedOutput(const string& inputName, OutputPtr output);
-
-    /// Return the output connected to the given input.  If the given input is
-    /// not present, then an empty OutputPtr is returned.
-    OutputPtr getConnectedOutput(const string& inputName) const;
 
     /// @}
     /// @name NodeDef References
@@ -128,7 +129,7 @@ class MX_CORE_API Node : public InterfaceElement
     /// this element in the dataflow graph.
     Edge getUpstreamEdge(size_t index = 0) const override;
 
-    /// Return the number of queriable upstream edges for this element.
+    /// Return the number of queryable upstream edges for this element.
     size_t getUpstreamEdgeCount() const override
     {
         return getInputCount();
@@ -308,7 +309,7 @@ class MX_CORE_API GraphElement : public InterfaceElement
 
     /// Return a vector of all children (nodes and outputs) sorted in
     /// topological order.
-    vector<ElementPtr> topologicalSort() const;
+    ElementVec topologicalSort() const;
 
     /// If not yet present, add a geometry node to this graph matching the given property
     /// definition and name prefix.
@@ -336,6 +337,16 @@ class MX_CORE_API NodeGraph : public GraphElement
     }
     virtual ~NodeGraph() { }
 
+    /// @name Name
+    /// @{
+
+    /// Set the name string of this NodeGraph, propagating the updated name to all
+    /// downstream ports.
+    /// @throws Exception if an element at the same scope already possesses the
+    ///     given name.
+    void setNameGlobal(const string& name);
+
+    /// @}
     /// @name Material References
     /// @{
 
@@ -376,7 +387,8 @@ class MX_CORE_API NodeGraph : public GraphElement
     /// Add an interface name to an existing NodeDef associated with this NodeGraph.
     /// @param inputPath Path to an input descendant of this graph.
     /// @param interfaceName The new interface name.
-    void addInterfaceName(const string& inputPath, const string& interfaceName);
+    /// @return Interface input.
+    InputPtr addInterfaceName(const string& inputPath, const string& interfaceName);
 
     /// Remove an interface name from an existing NodeDef associated with this NodeGraph.
     /// @param inputPath Path to an input descendant of this graph.

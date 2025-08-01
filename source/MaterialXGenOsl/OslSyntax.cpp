@@ -17,8 +17,8 @@ namespace
 class OslBooleanTypeSyntax : public ScalarTypeSyntax
 {
   public:
-    OslBooleanTypeSyntax() :
-        ScalarTypeSyntax("int", "0", "0", EMPTY_STRING, "#define true 1\n#define false 0")
+    OslBooleanTypeSyntax(const Syntax* parent) :
+        ScalarTypeSyntax(parent, "int", "0", "0", EMPTY_STRING, "#define true 1\n#define false 0")
     {
     }
 
@@ -26,18 +26,13 @@ class OslBooleanTypeSyntax : public ScalarTypeSyntax
     {
         return value.asA<bool>() ? "1" : "0";
     }
-
-    string getValue(const StringVec& values, bool /*uniform*/) const override
-    {
-        return values.size() && values[0] == "true" ? "1" : "0";
-    }
 };
 
 class OslArrayTypeSyntax : public ScalarTypeSyntax
 {
   public:
-    OslArrayTypeSyntax(const string& name) :
-        ScalarTypeSyntax(name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
+    OslArrayTypeSyntax(const Syntax* parent, const string& name) :
+        ScalarTypeSyntax(parent, name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
     {
     }
 
@@ -55,23 +50,6 @@ class OslArrayTypeSyntax : public ScalarTypeSyntax
         return EMPTY_STRING;
     }
 
-    string getValue(const StringVec& values, bool /*uniform*/) const override
-    {
-        if (values.empty())
-        {
-            throw ExceptionShaderGenError("No values given to construct an array value");
-        }
-
-        string result = "{" + values[0];
-        for (size_t i = 1; i < values.size(); ++i)
-        {
-            result += ", " + values[i];
-        }
-        result += "}";
-
-        return result;
-    }
-
   protected:
     virtual bool isEmpty(const Value& value) const = 0;
 };
@@ -79,8 +57,8 @@ class OslArrayTypeSyntax : public ScalarTypeSyntax
 class OslFloatArrayTypeSyntax : public OslArrayTypeSyntax
 {
   public:
-    explicit OslFloatArrayTypeSyntax(const string& name) :
-        OslArrayTypeSyntax(name)
+    explicit OslFloatArrayTypeSyntax(const Syntax* parent, const string& name) :
+        OslArrayTypeSyntax(parent, name)
     {
     }
 
@@ -95,8 +73,8 @@ class OslFloatArrayTypeSyntax : public OslArrayTypeSyntax
 class OslIntegerArrayTypeSyntax : public OslArrayTypeSyntax
 {
   public:
-    explicit OslIntegerArrayTypeSyntax(const string& name) :
-        OslArrayTypeSyntax(name)
+    explicit OslIntegerArrayTypeSyntax(const Syntax* parent, const string& name) :
+        OslArrayTypeSyntax(parent, name)
     {
     }
 
@@ -113,10 +91,10 @@ class OslIntegerArrayTypeSyntax : public OslArrayTypeSyntax
 class OslStructTypeSyntax : public AggregateTypeSyntax
 {
   public:
-    OslStructTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
+    OslStructTypeSyntax(const Syntax* parent, const string& name, const string& defaultValue, const string& uniformDefaultValue,
                         const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
                         const StringVec& members = EMPTY_MEMBERS) :
-        AggregateTypeSyntax(name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
+        AggregateTypeSyntax(parent, name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
     {
     }
 
@@ -131,23 +109,6 @@ class OslStructTypeSyntax : public AggregateTypeSyntax
             return getName() + "(" + value.getValueString() + ")";
         }
     }
-
-    string getValue(const StringVec& values, bool uniform) const override
-    {
-        if (values.empty())
-        {
-            throw ExceptionShaderGenError("No values given to construct a value");
-        }
-
-        string result = uniform ? "{" : getName() + "(" + values[0];
-        for (size_t i = 1; i < values.size(); ++i)
-        {
-            result += ", " + values[i];
-        }
-        result += uniform ? "}" : ")";
-
-        return result;
-    }
 };
 
 // For the color4 type we need even more specialization since it's a struct of a struct:
@@ -160,8 +121,8 @@ class OslStructTypeSyntax : public AggregateTypeSyntax
 class OslColor4TypeSyntax : public OslStructTypeSyntax
 {
   public:
-    OslColor4TypeSyntax() :
-        OslStructTypeSyntax("color4", "color4(color(0.0), 0.0)", "{color(0.0), 0.0}", EMPTY_STRING, EMPTY_STRING, OslSyntax::COLOR4_MEMBERS)
+    OslColor4TypeSyntax(const Syntax* parent) :
+        OslStructTypeSyntax(parent, "color4", "color4(color(0.0), 0.0)", "{color(0.0), 0.0}", EMPTY_STRING, EMPTY_STRING, OslSyntax::COLOR4_MEMBERS)
     {
     }
 
@@ -189,43 +150,21 @@ class OslColor4TypeSyntax : public OslStructTypeSyntax
 
         return ss.str();
     }
-
-    string getValue(const StringVec& values, bool uniform) const override
-    {
-        if (values.size() < 4)
-        {
-            throw ExceptionShaderGenError("Too few values given to construct a color4 value");
-        }
-
-        if (uniform)
-        {
-            return "{color(" + values[0] + ", " + values[1] + ", " + values[2] + "), " + values[3] + "}";
-        }
-        else
-        {
-            return "color4(color(" + values[0] + ", " + values[1] + ", " + values[2] + "), " + values[3] + ")";
-        }
-    }
 };
 
 class OSLMatrix3TypeSyntax : public AggregateTypeSyntax
 {
   public:
-    OSLMatrix3TypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
+    OSLMatrix3TypeSyntax(const Syntax* parent, const string& name, const string& defaultValue, const string& uniformDefaultValue,
                          const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
                          const StringVec& members = EMPTY_MEMBERS) :
-        AggregateTypeSyntax(name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
+        AggregateTypeSyntax(parent, name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
     {
     }
 
-    string getValue(const Value& value, bool uniform) const override
+    string getValue(const Value& value, bool /*uniform*/) const override
     {
         StringVec values = splitString(value.getValueString(), ",");
-        return getValue(values, uniform);
-    }
-
-    string getValue(const StringVec& values, bool /*uniform*/) const override
-    {
         if (values.empty())
         {
             throw ExceptionShaderGenError("No values given to construct a value");
@@ -254,10 +193,10 @@ class OSLMatrix3TypeSyntax : public AggregateTypeSyntax
 class OSLFilenameTypeSyntax : public AggregateTypeSyntax
 {
   public:
-    OSLFilenameTypeSyntax(const string& name, const string& defaultValue, const string& uniformDefaultValue,
+    OSLFilenameTypeSyntax(const Syntax* parent, const string& name, const string& defaultValue, const string& uniformDefaultValue,
                           const string& typeAlias = EMPTY_STRING, const string& typeDefinition = EMPTY_STRING,
                           const StringVec& members = EMPTY_MEMBERS) :
-        AggregateTypeSyntax(name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
+        AggregateTypeSyntax(parent, name, defaultValue, uniformDefaultValue, typeAlias, typeDefinition, members)
     {
     }
 
@@ -280,18 +219,6 @@ class OSLFilenameTypeSyntax : public AggregateTypeSyntax
         const string suffix = uniform ? "}" : ")";
         return prefix + "\"" + value.getValueString() + "\", \"\"" + suffix;
     }
-
-    string getValue(const StringVec& values, bool uniform) const override
-    {
-        if (values.size() != 2)
-        {
-            throw ExceptionShaderGenError("Incorrect number of values given to construct a value");
-        }
-
-        const string prefix = uniform ? "{" : getName() + "(";
-        const string suffix = uniform ? "}" : ")";
-        return prefix + "\"" + values[0] + "\", \"" + values[1] + "\"" + suffix;
-    }
 };
 
 } // anonymous namespace
@@ -307,7 +234,7 @@ const StringVec OslSyntax::COLOR4_MEMBERS = { ".rgb[0]", ".rgb[1]", ".rgb[2]", "
 // OslSyntax methods
 //
 
-OslSyntax::OslSyntax()
+OslSyntax::OslSyntax(TypeSystemPtr typeSystem) : Syntax(typeSystem)
 {
     // Add in all reserved words and keywords in OSL
     registerReservedWords(
@@ -341,6 +268,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::FLOAT,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "float",
             "0.0",
             "0.0"));
@@ -348,11 +276,13 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::FLOATARRAY,
         std::make_shared<OslFloatArrayTypeSyntax>(
+            this,
             "float"));
 
     registerTypeSyntax(
         Type::INTEGER,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "int",
             "0",
             "0"));
@@ -360,17 +290,19 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::INTEGERARRAY,
         std::make_shared<OslIntegerArrayTypeSyntax>(
+            this,
             "int"));
 
     registerTypeSyntax(
         Type::BOOLEAN,
-        std::make_shared<OslBooleanTypeSyntax>());
+        std::make_shared<OslBooleanTypeSyntax>(this));
 
     registerTypeSyntax(
         // Note: the color type in OSL is a built in type and
         // should not use the custom OslStructTypeSyntax.
         Type::COLOR3,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "color",
             "color(0.0)",
             "color(0.0)",
@@ -380,11 +312,12 @@ OslSyntax::OslSyntax()
 
     registerTypeSyntax(
         Type::COLOR4,
-        std::make_shared<OslColor4TypeSyntax>());
+        std::make_shared<OslColor4TypeSyntax>(this));
 
     registerTypeSyntax(
         Type::VECTOR2,
         std::make_shared<OslStructTypeSyntax>(
+            this,
             "vector2",
             "vector2(0.0, 0.0)",
             "{0.0, 0.0}",
@@ -397,6 +330,7 @@ OslSyntax::OslSyntax()
         // should not use the custom OslStructTypeSyntax.
         Type::VECTOR3,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "vector",
             "vector(0.0)",
             "vector(0.0)",
@@ -407,6 +341,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::VECTOR4,
         std::make_shared<OslStructTypeSyntax>(
+            this,
             "vector4",
             "vector4(0.0, 0.0, 0.0, 0.0)",
             "{0.0, 0.0, 0.0, 0.0}",
@@ -417,6 +352,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::MATRIX33,
         std::make_shared<OSLMatrix3TypeSyntax>(
+            this,
             "matrix",
             "matrix(1.0)",
             "matrix(1.0)"));
@@ -424,6 +360,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::MATRIX44,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "matrix",
             "matrix(1.0)",
             "matrix(1.0)"));
@@ -431,6 +368,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::STRING,
         std::make_shared<StringTypeSyntax>(
+            this,
             "string",
             "\"\"",
             "\"\""));
@@ -438,39 +376,27 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::FILENAME,
         std::make_shared<OSLFilenameTypeSyntax>(
+            this,
             "textureresource ",
             "textureresource (\"\", \"\")",
             "(\"\", \"\")",
             EMPTY_STRING,
             "struct textureresource { string filename; string colorspace; };"));
 
-#ifdef MATERIALX_OSL_LEGACY_CLOSURES
-
-    registerTypeSyntax(
-        Type::BSDF,
-        std::make_shared<AggregateTypeSyntax>(
-            "BSDF",
-            "BSDF(null_closure, color(1.0), 0.0, 0.0)",
-            "{ 0, color(1.0), 0.0, 0.0 }",
-            "closure color",
-            "struct BSDF { closure color response; color throughput; float thickness; float ior; };"));
-
-#else
-
     registerTypeSyntax(
         Type::BSDF,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "BSDF",
             "null_closure",
             "0",
             "closure color",
             "#define BSDF closure color"));
 
-#endif // MATERIALX_OSL_LEGACY_CLOSURES
-
     registerTypeSyntax(
         Type::EDF,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "EDF",
             "null_closure",
             "0",
@@ -480,6 +406,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::VDF,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "VDF",
             "null_closure",
             "0",
@@ -489,6 +416,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::SURFACESHADER,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "surfaceshader",
             "surfaceshader(null_closure, null_closure, 1.0)",
             "{ 0, 0, 1.0 }",
@@ -498,6 +426,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::VOLUMESHADER,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "volumeshader",
             "null_closure",
             "0",
@@ -507,6 +436,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::DISPLACEMENTSHADER,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "displacementshader",
             "vector(0.0)",
             "vector(0.0)",
@@ -516,6 +446,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::LIGHTSHADER,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "lightshader",
             "null_closure",
             "0",
@@ -525,6 +456,7 @@ OslSyntax::OslSyntax()
     registerTypeSyntax(
         Type::MATERIAL,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "MATERIAL",
             "null_closure",
             "0",

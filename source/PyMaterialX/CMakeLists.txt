@@ -1,8 +1,7 @@
 include_directories(
     ${EXTERNAL_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/../
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
+    ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Apply Python version and location requests from the user.
 set(PYBIND11_PYTHON_VERSION ${MATERIALX_PYTHON_VERSION})
@@ -34,12 +33,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES Clang)
     if(UNDEFINED_VAR_TEMPLATE_FLAG)
         add_compile_options(-Wno-undefined-var-template)
     endif()
-endif()
-
-# Add proper postfix for Python 2.7 on Windows when using a Debug interpreter:
-set(MATERIALX_PYTHON_DEBUG_POSTFIX "")
-if(MSVC AND PYTHON_IS_DEBUG AND (PYBIND11_PYTHON_VERSION VERSION_LESS 3.0))
-    set(MATERIALX_PYTHON_DEBUG_POSTFIX "_d")
 endif()
 
 add_subdirectory(PyMaterialXCore)

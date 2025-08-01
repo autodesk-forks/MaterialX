@@ -6,10 +6,13 @@ README for MaterialX Specification v1.39
 
 The documents in this folder comprise the complete MaterialX Specification, version 1.39.
 
-* [**MaterialX Specification**](./MaterialX.Specification.md) - the main Specification, describing definitions, core functionality and the standard node library
+* [**MaterialX Specification**](./MaterialX.Specification.md) - the main Specification, describing definitions and core functionality
+* [**MaterialX Standard Nodes**](./MaterialX.StandardNodes.md) - describes the standard node library
 * [**MaterialX Physically Based Shading Nodes**](./MaterialX.PBRSpec.md) - describes BSDF and other shading function nodes useful in constructing complex layered rendering shaders using node graphs
+* [**MaterialX NPR Shading Nodes**](./MaterialX.NPRSpec.md) - specifies shading nodes that are designed for use in non-photorealistic and stylized rendering
 * [**MaterialX Geometry Extensions**](./MaterialX.GeomExts.md) - additional MaterialX elements to define geometry-related information such as collections, properties and material assignments
 * [**MaterialX Supplemental Notes**](./MaterialX.Supplement.md) - describes recommended naming and structuring conventions for libraries of custom node definitions
+* [**MaterialX: Proposed Additions and Changes**](./MaterialX.Proposals.md) - describes proposed future updates to various components of the Specification
 
 <p>
 
@@ -23,12 +26,7 @@ The documents in this folder comprise the complete MaterialX Specification, vers
 
 The parts of the main MaterialX Specification document dealing with various Geometry-related features has now been split into a separate [**MaterialX Geometry Extensions**](./MaterialX.GeomExts.md) document, describing Collections, Geometry Name Expressions, geometry-related data types, Geometry Info elements and the GeomProp and Token elements used within them, and Look, Property, Visibility and assignment elements.
 
-With this split, applications can claim to be MaterialX Compatible if they support all the things described in the main Specification, e.g. the elements for nodegraph shading networks and materials as well as the standard set of nodes, while using an application's native mechanisms or something like USD to describe the assignment of these materials to geometry.  Applications may additionally support the MaterialX Geometry Extensions and thus use a single unified representation for complete CG objecct looks.
-
-
-**New Support for Shader AOVs**
-
-Previously, MaterialX used custom types with a structure of output variables to define shader AOVs.  But this approach was not very flexible and in fact had not been implemented.  In v1.39, nodegraph-based shader implementations can include new [&lt;aovoutput> elements](./MaterialX.Specification.md#aov-output-elements) to define AOVs which renderers can use to output additional channels of information in addition to the final shading result, while file-based &lt;implementation>s can similarly define AOVs using [&lt;aov> elements](./MaterialX.Specification.md#implementation-aov-elements).
+With this split, applications can claim to be MaterialX Compatible if they support all the things described in the main Specification, e.g. the elements for nodegraph shading networks and materials as well as the standard set of nodes, while using an application's native mechanisms or something like USD to describe the assignment of these materials to geometry.  Applications may additionally support the MaterialX Geometry Extensions and thus use a single unified representation for complete CG object looks.
 
 
 **Array Types Now Uniform and Static Length**
@@ -57,7 +55,7 @@ Additionally, a &lt;nodegraph> could previously declare itself to be an implemen
 
 **Generalized Swizzle Operator Removed**
 
-The standard &lt;swizzle> node using a string of channel names and allowing arbitrary channel reordering is very inefficient (and in some shading languages virtually impossible) to implement as previously specified, and as such has been removed.  Nodegraphs should instead use combinations of &lt;extract> (which is now a standard node), &lt;separateN> and &lt;combineN> nodes to perform arbitrary channel reordering.  Additionally, the previous "channels" attribute for inputs which allowed arbitrary channel reordering and used string "swizzle" channel naming has been replaced with an integer "channel" attribute, allowing a float input to be connected to a specified channel number of a color<em>N</em> or vector<em>N</em> output.  This is both far more efficient to implement and more closely matches the conventions for connecting different input and output types available in modern DCCs.
+The standard &lt;swizzle> node using a string of channel names and allowing arbitrary channel reordering is very inefficient (and in some shading languages virtually impossible) to implement as previously specified, and as such has been removed.  Nodegraphs should instead use combinations of &lt;extract> (which is now a standard node), &lt;separateN> and &lt;combineN> nodes to perform arbitrary channel reordering.  Additionally, the previous "channels" attribute for inputs which allowed arbitrary channel reordering and used string "swizzle" channel naming has been removed.
 
 
 **New Unlit Surface Shader and Standard Materials**
@@ -96,7 +94,6 @@ The following new standard physically based shading nodes have been added:
 
 **Other Changes**
 
-* The &lt;member> element for &lt;typedef>s and the "member" attribute for inputs have been removed from the Specification, as they had never been implemented and it was not clear how they could be implemented generally.
 * The "valuerange" and "valuecurve" attributes describing expressions and function curves have been removed, in favor of using the new &lt;curveinversecubic> / &lt;curveuniformcubic> / etc. nodes.
 * The &lt;geomcolor>, &lt;geompropvalue> and &lt;geompropvalueuniform> nodes for color3/4-type values can now take a "colorspace" attribute to declare the colorspace of the property value.
 * The &lt;cellnoise2d> and &lt;cellnoise3d> nodes now support vector<em>N</em> output types in addition to float output.
@@ -109,7 +106,7 @@ The following new standard physically based shading nodes have been added:
 * &lt;Token> elements are now explicitly allowed to be children of compound nodegraphs, and token values may now have defined enum/enumvalues.
 * Inputs in &lt;nodedef>s may now supply "hints" to code generators as to their intended interpretation, e.g. "transparency" or "opacity".
 * &lt;Attributedef> elements may now define enum/enumvalues to list acceptable values or labels/mapped values for an attribute.
-* If a string input specifies an "enum" list, the list is now considered a "strict" list of allowable values; no values are allowed outside that list.  To make the input non-strict, one must omit the "enum" atribute from the input.
+* If a string input specifies an "enum" list, the list is now considered a "strict" list of allowable values; no values are allowed outside that list.  To make the input non-strict, one must omit the "enum" attribute from the input.
 
 
 Suggestions for v1.39:

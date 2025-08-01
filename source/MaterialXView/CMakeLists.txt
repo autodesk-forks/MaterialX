@@ -1,6 +1,4 @@
-set(CMAKE_CXX_STANDARD 17)
-
-option(MATERIALX_NANOGUI_EXTERNAL "Build aginst an external install of NanoGUI (NANOGUI_ROOT may also need to be set)" OFF)
+option(MATERIALX_NANOGUI_EXTERNAL "Build against an external install of NanoGUI (NANOGUI_ROOT may also need to be set)" OFF)
 
 set(MATERIALXVIEW_RENDER_BACKEND_DEFINITIONS "")
 
@@ -70,7 +68,7 @@ else()
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         add_compile_options(-Wno-deprecated)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        add_compile_options(-Wno-format-truncation -Wno-use-after-free)
+        add_compile_options(-Wno-format-truncation -Wno-stringop-overflow -Wno-use-after-free)
     endif()
 
     # Disable NanoGUI compiler modifications for Clang
@@ -112,14 +110,8 @@ if("${NANOGUI_PREFERRED_BACKEND}" STREQUAL "Metal")
         MaterialXGenMsl
         MaterialXRenderMsl)
 
-    file(GLOB materialx_source 
-        "${CMAKE_CURRENT_SOURCE_DIR}/Viewer.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/ViewerMSL.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/RenderPipeline.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/RenderPipelineMetal.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Editor.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/MetalState.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Main.cpp")    
+    LIST(REMOVE_ITEM materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/RenderPipelineGL.cpp")
+    LIST(APPEND materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/RenderPipelineMetal.mm")
 endif()
 
 if (MATERIALX_BUILD_GEN_OSL)
@@ -143,18 +135,14 @@ target_include_directories(
     ${NANOGUI_INCLUDE_DIRS}
     ${NANOGUI_EXTRA_INCS})
 
-if(MATERIALX_BUILD_OIIO AND OPENIMAGEIO_ROOT_DIR)
-    add_custom_command(TARGET MaterialXView POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${OPENIMAGEIO_ROOT_DIR}/bin ${CMAKE_BINARY_DIR}/bin)
-endif()
-
 set_target_properties(
     MaterialXView PROPERTIES
     INSTALL_RPATH "${MATERIALX_UP_ONE_RPATH}")
 
 install(TARGETS MaterialXView
     EXPORT MaterialX
-    RUNTIME DESTINATION bin)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/MaterialXView.pdb"
-    DESTINATION "bin" OPTIONAL)
+    RUNTIME DESTINATION ${MATERIALX_INSTALL_BIN_PATH})
+if(MSVC)
+    install(FILES $<TARGET_PDB_FILE:MaterialXView>
+            DESTINATION ${MATERIALX_INSTALL_BIN_PATH} OPTIONAL)
+endif()

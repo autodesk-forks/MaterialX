@@ -28,11 +28,11 @@ using ColorManagementSystemPtr = shared_ptr<class ColorManagementSystem>;
 /// Structure that represents color space transform information
 struct MX_GENSHADER_API ColorSpaceTransform
 {
-    ColorSpaceTransform(const string& ss, const string& ts, const TypeDesc* t);
+    ColorSpaceTransform(const string& ss, const string& ts, TypeDesc t);
 
     string sourceSpace;
     string targetSpace;
-    const TypeDesc* type;
+    TypeDesc type;
 
     /// Comparison operator
     bool operator==(const ColorSpaceTransform& other) const
@@ -63,6 +63,12 @@ class MX_GENSHADER_API ColorManagementSystem
     /// Create a node to use to perform the given color space transformation.
     ShaderNodePtr createNode(const ShaderGraph* parent, const ColorSpaceTransform& transform, const string& name,
                              GenContext& context) const;
+
+    /// Returns true if the CMS can create a shader node implementation for a locally managed CMS transform
+    virtual bool hasImplementation(const string& /*implName*/) const { return false; }
+
+    /// Create an CMS node implementation for a locally managed transform
+    virtual ShaderNodeImplPtr createImplementation(const string& /*implName*/) const { return {}; }
 
   protected:
     /// Protected constructor

@@ -26,7 +26,7 @@ namespace mx = MaterialX;
 // Input uniform and stream checking as well as node implementation coverage and profiling
 // can also be performed depending on the options enabled.
 //
-// See the test suite file "_options.mtlx" which is parsed during validaiton to
+// See the test suite file "_options.mtlx" which is parsed during validation to
 // restrive validation options.
 //
 namespace RenderUtil
@@ -95,11 +95,6 @@ class ShaderRenderTester
 
     bool validate(const mx::FilePath optionsFilePath);
 
-    void setEmitColorTransforms(bool val)
-    {
-        _emitColorTransforms = val;
-    }
-
   protected:
     // Check if testing should be performed based in input options
 #if defined(MATERIALX_TEST_RENDER)
@@ -118,7 +113,7 @@ class ShaderRenderTester
     void loadDependentLibraries(GenShaderUtil::TestSuiteOptions options, mx::FileSearchPath searchPath,
                              mx::DocumentPtr& dependLib);
 
-    // Load any additional libraries requird by the generator
+    // Load any additional libraries required by the generator
     virtual void loadAdditionalLibraries(mx::DocumentPtr /*dependLib*/,
                                          GenShaderUtil::TestSuiteOptions& /*options*/) {};
 
@@ -168,6 +163,9 @@ class ShaderRenderTester
     // If these streams don't exist add them for testing purposes
     void addAdditionalTestStreams(mx::MeshPtr mesh);
 
+    // Add any paths to explicitly skip here
+    virtual void addSkipFiles() {}
+
     // Generator to use
     mx::ShaderGeneratorPtr _shaderGenerator;
     // Whether to resolve image file name references before code generation
@@ -177,7 +175,9 @@ class ShaderRenderTester
     // Color management information
     mx::ColorManagementSystemPtr _colorManagementSystem;
     mx::FilePath _colorManagementConfigFile;
-    bool _emitColorTransforms;
+
+    // Filter controls for tests.
+    mx::StringSet _skipFiles;
 };
 
 } // namespace RenderUtil

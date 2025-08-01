@@ -17,7 +17,7 @@ const string ShaderMetadataRegistry::USER_DATA_NAME = "ShaderMetadataRegistry";
 // ShaderPort methods
 //
 
-ShaderPort::ShaderPort(ShaderNode* node, const TypeDesc* type, const string& name, ValuePtr value) :
+ShaderPort::ShaderPort(ShaderNode* node, TypeDesc type, const string& name, ValuePtr value) :
     _node(node),
     _type(type),
     _name(name),
@@ -41,7 +41,7 @@ string ShaderPort::getValueString() const
 // ShaderInput methods
 //
 
-ShaderInput::ShaderInput(ShaderNode* node, const TypeDesc* type, const string& name) :
+ShaderInput::ShaderInput(ShaderNode* node, TypeDesc type, const string& name) :
     ShaderPort(node, type, name),
     _connection(nullptr)
 {
@@ -57,6 +57,13 @@ void ShaderInput::makeConnection(ShaderOutput* src)
         if (src)
         {
             // Make the new connection.
+            if (src->getNode() == getNode() && !getNode()->isAGraph())
+            {
+                throw ExceptionShaderGenError(
+                    "Tried to create looping connection on node " + getNode()->getName()
+                        + " from output: " + src->getFullName() + " to input: " + getFullName());
+            }
+
             _connection = src;
             src->_connections.push_back(this);
         }
@@ -92,7 +99,7 @@ ShaderNode* ShaderInput::getConnectedSibling() const
 // ShaderOutput methods
 //
 
-ShaderOutput::ShaderOutput(ShaderNode* node, const TypeDesc* type, const string& name) :
+ShaderOutput::ShaderOutput(ShaderNode* node, TypeDesc type, const string& name) :
     ShaderPort(node, type, name)
 {
 }
@@ -141,7 +148,6 @@ const string ShaderNode::CONSTANT = "constant";
 const string ShaderNode::DOT = "dot";
 const string ShaderNode::IMAGE = "image";
 const string ShaderNode::SURFACESHADER = "surfaceshader";
-const string ShaderNode::SCATTER_MODE = "scatter_mode";
 const string ShaderNode::BSDF_R = "R";
 const string ShaderNode::BSDF_T = "T";
 const string ShaderNode::TEXTURE2D_GROUPNAME = "texture2d";
@@ -179,7 +185,7 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
     // Create interface from nodedef
     for (const ValueElementPtr& port : nodeDef.getActiveValueElements())
     {
-        const TypeDesc* portType = TypeDesc::get(port->getType());
+        const TypeDesc portType = context.getTypeDesc(port->getType());
         if (port->isA<Output>())
         {
             newNode->addOutput(port->getName(), portType);
@@ -188,7 +194,7 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
         {
             ShaderInput* input;
             const string& portValue = port->getResolvedValueString();
-            std::pair<const TypeDesc*, ValuePtr> enumResult;
+            std::pair<TypeDesc, ValuePtr> enumResult;
             const string& enumNames = port->getAttribute(ValueElement::ENUM_ATTRIBUTE);
             if (context.getShaderGenerator().getSyntax().remapEnumeration(portValue, portType, enumNames, enumResult))
             {
@@ -216,7 +222,7 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
     // Add a default output if needed
     if (newNode->numOutputs() == 0)
     {
-        newNode->addOutput("out", TypeDesc::get(nodeDef.getType()));
+        newNode->addOutput("out", context.getTypeDesc(nodeDef.getType()));
     }
 
     const string& nodeDefName = nodeDef.getName();
@@ -229,11 +235,11 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
 
     // First, check for specific output types
     const ShaderOutput* primaryOutput = newNode->getOutput();
-    if (*primaryOutput->getType() == *Type::MATERIAL)
+    if (primaryOutput->getType() == Type::MATERIAL)
     {
         newNode->_classification = Classification::MATERIAL;
     }
-    else if (*primaryOutput->getType() == *Type::SURFACESHADER)
+    else if (primaryOutput->getType() == Type::SURFACESHADER)
     {
         if (nodeDefName == "ND_surface_unlit")
         {
@@ -244,15 +250,15 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
             newNode->_classification = Classification::SHADER | Classification::SURFACE | Classification::CLOSURE;
         }
     }
-    else if (*primaryOutput->getType() == *Type::VOLUMESHADER)
+    else if (primaryOutput->getType() == Type::VOLUMESHADER)
     {
         newNode->_classification = Classification::SHADER | Classification::VOLUME | Classification::CLOSURE;
     }
-    else if (*primaryOutput->getType() == *Type::LIGHTSHADER)
+    else if (primaryOutput->getType() == Type::LIGHTSHADER)
     {
         newNode->_classification = Classification::LIGHT | Classification::SHADER | Classification::CLOSURE;
     }
-    else if (*primaryOutput->getType() == *Type::BSDF)
+    else if (primaryOutput->getType() == Type::BSDF)
     {
         newNode->_classification = Classification::BSDF | Classification::CLOSURE;
 
@@ -276,17 +282,12 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
         {
             newNode->_classification |= Classification::LAYER;
         }
-        // Check specifically for the thin-film node
-        else if (nodeDefName == "ND_thin_film_bsdf")
-        {
-            newNode->_classification |= Classification::THINFILM;
-        }
     }
-    else if (*primaryOutput->getType() == *Type::EDF)
+    else if (primaryOutput->getType() == Type::EDF)
     {
         newNode->_classification = Classification::EDF | Classification::CLOSURE;
     }
-    else if (*primaryOutput->getType() == *Type::VDF)
+    else if (primaryOutput->getType() == Type::VDF)
     {
         newNode->_classification = Classification::VDF | Classification::CLOSURE;
     }
@@ -348,23 +349,26 @@ void ShaderNode::initialize(const Node& node, const NodeDef& nodeDef, GenContext
                 InputPtr interfaceInput = nodeInput->getInterfaceInput();
                 if (interfaceInput)
                 {
-                    portValue = interfaceInput->getValue();
+                    portValue = interfaceInput->getResolvedValue();
                 }
             }
             const string& valueString = portValue ? portValue->getValueString() : EMPTY_STRING;
-            std::pair<const TypeDesc*, ValuePtr> enumResult;
-            const string& enumNames = nodeDefInput->getAttribute(ValueElement::ENUM_ATTRIBUTE);
-            const TypeDesc* type = TypeDesc::get(nodeDefInput->getType());
-            if (context.getShaderGenerator().getSyntax().remapEnumeration(valueString, type, enumNames, enumResult))
+            if (!valueString.empty())
             {
-                input->setValue(enumResult.second);
+                // We explicitly check the valueString is not empty before checking the enumeration,
+                // because otherwise the enumeration value would always return nullptr
+                std::pair<TypeDesc, ValuePtr> enumResult;
+                const string& enumNames = nodeDefInput->getAttribute(ValueElement::ENUM_ATTRIBUTE);
+                const TypeDesc type = context.getTypeDesc(nodeDefInput->getType());
+                if (context.getShaderGenerator().getSyntax().remapEnumeration(valueString, type, enumNames, enumResult))
+                {
+                    input->setValue(enumResult.second);
+                }
+                else
+                {
+                    input->setValue(portValue);
+                }
             }
-            else if (!valueString.empty())
-            {
-                input->setValue(portValue);
-            }
-
-            input->setChannels(nodeInput->getChannels());
         }
     }
 
@@ -407,22 +411,6 @@ void ShaderNode::initialize(const Node& node, const NodeDef& nodeDef, GenContext
             input->setPath(nodePath + NAME_PATH_SEPARATOR + nodeInput->getName());
         }
     }
-
-    // For BSDF nodes see if there is a scatter_mode input,
-    // and update the classification accordingly.
-    if (hasClassification(Classification::BSDF))
-    {
-        const InputPtr scatterModeInput = node.getInput(SCATTER_MODE);
-        const string& scatterMode = scatterModeInput ? scatterModeInput->getValueString() : EMPTY_STRING;
-        // If scatter mode is only T, set classification to only transmission.
-        // Note: For only R we must still keep classification at default value (both reflection/transmission)
-        // since reflection needs to attenuate the transmission amount in HW shaders when layering is used.
-        if (scatterMode == BSDF_T)
-        {
-            _classification |= Classification::BSDF_T;
-            _classification &= ~Classification::BSDF_R;
-        }
-    }
 }
 
 void ShaderNode::createMetadata(const NodeDef& nodeDef, GenContext& context)
@@ -444,7 +432,7 @@ void ShaderNode::createMetadata(const NodeDef& nodeDef, GenContext& context)
             const string& attrValue = nodeDef.getAttribute(nodedefAttr);
             if (!attrValue.empty())
             {
-                ValuePtr value = Value::createValueFromStrings(attrValue, metadataEntry->type->getName());
+                ValuePtr value = metadataEntry->type.createValueFromStrings(attrValue);
                 if (!value)
                 {
                     value = metadataEntry->value;
@@ -478,8 +466,8 @@ void ShaderNode::createMetadata(const NodeDef& nodeDef, GenContext& context)
                     const string& attrValue = nodedefPort->getAttribute(nodedefPortAttr);
                     if (!attrValue.empty())
                     {
-                        const TypeDesc* type = metadataEntry->type ? metadataEntry->type : input->getType();
-                        ValuePtr value = Value::createValueFromStrings(attrValue, type->getName());
+                        const TypeDesc type = metadataEntry->type != Type::NONE ? metadataEntry->type : input->getType();
+                        ValuePtr value = type.createValueFromStrings(attrValue);
                         if (!value)
                         {
                             value = metadataEntry->value;
@@ -524,7 +512,7 @@ const ShaderOutput* ShaderNode::getOutput(const string& name) const
     return it != _outputMap.end() ? it->second.get() : nullptr;
 }
 
-ShaderInput* ShaderNode::addInput(const string& name, const TypeDesc* type)
+ShaderInput* ShaderNode::addInput(const string& name, TypeDesc type)
 {
     if (getInput(name))
     {
@@ -538,7 +526,7 @@ ShaderInput* ShaderNode::addInput(const string& name, const TypeDesc* type)
     return input.get();
 }
 
-ShaderOutput* ShaderNode::addOutput(const string& name, const TypeDesc* type)
+ShaderOutput* ShaderNode::addOutput(const string& name, TypeDesc type)
 {
     if (getOutput(name))
     {

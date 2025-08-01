@@ -51,7 +51,7 @@ void ScalarUnitNode::emitFunctionDefinition(const ShaderNode& node, GenContext& 
 {
     DEFINE_SHADER_STAGE(stage, Stage::PIXEL)
     {
-        // Emit the helper funtion mx_<unittype>_unit_ratio that embeds a look up table for unit scale
+        // Emit the helper function mx_<unittype>_unit_ratio that embeds a look up table for unit scale
         vector<float> unitScales;
         unitScales.reserve(_scalarUnitConverter->getUnitScale().size());
         auto unitScaleMap = _scalarUnitConverter->getUnitScale();
@@ -104,7 +104,7 @@ void ScalarUnitNode::emitFunctionCall(const ShaderNode& node, GenContext& contex
 // Unit transform methods
 //
 
-UnitTransform::UnitTransform(const string& ss, const string& ts, const TypeDesc* t, const string& unittype) :
+UnitTransform::UnitTransform(const string& ss, const string& ts, TypeDesc t, const string& unittype) :
     sourceUnit(ss),
     targetUnit(ts),
     type(t),
@@ -116,7 +116,7 @@ UnitTransform::UnitTransform(const string& ss, const string& ts, const TypeDesc*
     }
 }
 
-const string UnitSystem::UNITSYTEM_NAME = "default_unit_system";
+const string UnitSystem::UNITSYSTEM_NAME = "default_unit_system";
 
 UnitSystem::UnitSystem(const string& target) :
     _target(createValidName(target))
@@ -157,7 +157,7 @@ NodeDefPtr UnitSystem::getNodeDef(const UnitTransform& transform) const
         {
             vector<InputPtr> nodeInputs = nodeDef->getInputs();
             if (nodeInputs.size() == 2 &&
-                nodeInputs[0]->getType() == transform.type->getName() &&
+                nodeInputs[0]->getType() == transform.type.getName() &&
                 nodeInputs[1]->getType() == "float")
             {
                 return nodeDef;
@@ -186,7 +186,7 @@ ShaderNodePtr UnitSystem::createNode(ShaderGraph* parent, const UnitTransform& t
     UnitTypeDefPtr scalarTypeDef = _document->getUnitTypeDef(transform.unitType);
     if (!_unitRegistry || !_unitRegistry->getUnitConverter(scalarTypeDef))
     {
-        throw ExceptionTypeError("Unit registry unavaliable or undefined unit converter for: " + transform.unitType);
+        throw ExceptionTypeError("Unit registry unavailable or undefined unit converter for: " + transform.unitType);
     }
     LinearUnitConverterPtr scalarConverter = std::dynamic_pointer_cast<LinearUnitConverter>(_unitRegistry->getUnitConverter(scalarTypeDef));
 

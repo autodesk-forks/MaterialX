@@ -6,6 +6,7 @@
 #include <MaterialXGenMsl/MslSyntax.h>
 
 #include <MaterialXGenShader/ShaderGenerator.h>
+#include <MaterialXGenShader/HwShaderGenerator.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -17,8 +18,8 @@ namespace
 class MslStringTypeSyntax : public StringTypeSyntax
 {
   public:
-    MslStringTypeSyntax() :
-        StringTypeSyntax("int", "0", "0") { }
+    MslStringTypeSyntax(const Syntax* parent) :
+        StringTypeSyntax(parent, "int", "0", "0") { }
 
     string getValue(const Value& /*value*/, bool /*uniform*/) const override
     {
@@ -29,8 +30,8 @@ class MslStringTypeSyntax : public StringTypeSyntax
 class MslArrayTypeSyntax : public ScalarTypeSyntax
 {
   public:
-    MslArrayTypeSyntax(const string& name) :
-        ScalarTypeSyntax(name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
+    MslArrayTypeSyntax(const Syntax* parent, const string& name) :
+        ScalarTypeSyntax(parent, name, EMPTY_STRING, EMPTY_STRING, EMPTY_STRING)
     {
     }
 
@@ -44,23 +45,6 @@ class MslArrayTypeSyntax : public ScalarTypeSyntax
         return EMPTY_STRING;
     }
 
-    string getValue(const StringVec& values, bool /*uniform*/) const override
-    {
-        if (values.empty())
-        {
-            throw ExceptionShaderGenError("No values given to construct an array value");
-        }
-
-        string result = "{" + values[0];
-        for (size_t i = 1; i < values.size(); ++i)
-        {
-            result += ", " + values[i] + "f";
-        }
-        result += "}";
-
-        return result;
-    }
-
   protected:
     virtual size_t getSize(const Value& value) const = 0;
 };
@@ -68,8 +52,8 @@ class MslArrayTypeSyntax : public ScalarTypeSyntax
 class MslFloatArrayTypeSyntax : public MslArrayTypeSyntax
 {
   public:
-    explicit MslFloatArrayTypeSyntax(const string& name) :
-        MslArrayTypeSyntax(name)
+    explicit MslFloatArrayTypeSyntax(const Syntax* parent, const string& name) :
+        MslArrayTypeSyntax(parent, name)
     {
     }
 
@@ -84,8 +68,8 @@ class MslFloatArrayTypeSyntax : public MslArrayTypeSyntax
 class MslIntegerArrayTypeSyntax : public MslArrayTypeSyntax
 {
   public:
-    explicit MslIntegerArrayTypeSyntax(const string& name) :
-        MslArrayTypeSyntax(name)
+    explicit MslIntegerArrayTypeSyntax(const Syntax* parent, const string& name) :
+        MslArrayTypeSyntax(parent, name)
     {
     }
 
@@ -114,7 +98,7 @@ const StringVec MslSyntax::VEC4_MEMBERS = { ".x", ".y", ".z", ".w" };
 // MslSyntax methods
 //
 
-MslSyntax::MslSyntax()
+MslSyntax::MslSyntax(TypeSystemPtr typeSystem) : Syntax(typeSystem)
 {
     // Add in all reserved words and keywords in MSL
     registerReservedWords(
@@ -156,6 +140,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::FLOAT,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "float",
             "0.0",
             "0.0"));
@@ -163,11 +148,13 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::FLOATARRAY,
         std::make_shared<MslFloatArrayTypeSyntax>(
+            this,
             "float"));
 
     registerTypeSyntax(
         Type::INTEGER,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "int",
             "0",
             "0"));
@@ -175,11 +162,13 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::INTEGERARRAY,
         std::make_shared<MslIntegerArrayTypeSyntax>(
+            this,
             "int"));
 
     registerTypeSyntax(
         Type::BOOLEAN,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "bool",
             "false",
             "false"));
@@ -187,6 +176,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::COLOR3,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "vec3",
             "vec3(0.0)",
             "vec3(0.0)",
@@ -197,6 +187,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::COLOR4,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "vec4",
             "vec4(0.0)",
             "vec4(0.0)",
@@ -207,6 +198,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::VECTOR2,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "vec2",
             "vec2(0.0)",
             "vec2(0.0)",
@@ -217,6 +209,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::VECTOR3,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "vec3",
             "vec3(0.0)",
             "vec3(0.0)",
@@ -227,6 +220,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::VECTOR4,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "vec4",
             "vec4(0.0)",
             "vec4(0.0)",
@@ -237,6 +231,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::MATRIX33,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "mat3",
             "mat3(1.0)",
             "mat3(1.0)"));
@@ -244,17 +239,19 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::MATRIX44,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "mat4",
             "mat4(1.0)",
             "mat4(1.0)"));
 
     registerTypeSyntax(
         Type::STRING,
-        std::make_shared<MslStringTypeSyntax>());
+        std::make_shared<MslStringTypeSyntax>(this));
 
     registerTypeSyntax(
         Type::FILENAME,
         std::make_shared<ScalarTypeSyntax>(
+            this,
             "MetalTexture",
             EMPTY_STRING,
             EMPTY_STRING));
@@ -262,15 +259,17 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::BSDF,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "BSDF",
-            "BSDF{float3(0.0),float3(1.0), 0.0, 0.0}",
+            "BSDF{float3(0.0),float3(1.0)}",
             EMPTY_STRING,
             EMPTY_STRING,
-            "struct BSDF { float3 response; float3 throughput; float thickness; float ior; };"));
+            "struct BSDF { float3 response; float3 throughput; };"));
 
     registerTypeSyntax(
         Type::EDF,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "EDF",
             "EDF(0.0)",
             "EDF(0.0)",
@@ -280,13 +279,15 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::VDF,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "BSDF",
-            "BSDF{float3(0.0),float3(1.0), 0.0, 0.0}",
+            "BSDF{float3(0.0),float3(1.0)}",
             EMPTY_STRING));
 
     registerTypeSyntax(
         Type::SURFACESHADER,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "surfaceshader",
             "surfaceshader{float3(0.0),float3(0.0)}",
             EMPTY_STRING,
@@ -296,6 +297,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::VOLUMESHADER,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "volumeshader",
             "volumeshader{float3(0.0),float3(0.0)}",
             EMPTY_STRING,
@@ -305,6 +307,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::DISPLACEMENTSHADER,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "displacementshader",
             "displacementshader{float3(0.0),1.0}",
             EMPTY_STRING,
@@ -314,6 +317,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::LIGHTSHADER,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "lightshader",
             "lightshader{float3(0.0),float3(0.0)}",
             EMPTY_STRING,
@@ -323,6 +327,7 @@ MslSyntax::MslSyntax()
     registerTypeSyntax(
         Type::MATERIAL,
         std::make_shared<AggregateTypeSyntax>(
+            this,
             "material",
             "material{float3(0.0),float3(0.0)}",
             EMPTY_STRING,
@@ -330,7 +335,7 @@ MslSyntax::MslSyntax()
             "#define material surfaceshader"));
 }
 
-string MslSyntax::getOutputTypeName(const TypeDesc* type) const
+string MslSyntax::getOutputTypeName(TypeDesc type) const
 {
     const TypeSyntax& syntax = getTypeSyntax(type);
     return "thread " + syntax.getName() + "&";
@@ -338,10 +343,10 @@ string MslSyntax::getOutputTypeName(const TypeDesc* type) const
 
 bool MslSyntax::typeSupported(const TypeDesc* type) const
 {
-    return type != Type::STRING;
+    return *type != Type::STRING;
 }
 
-bool MslSyntax::remapEnumeration(const string& value, const TypeDesc* type, const string& enumNames, std::pair<const TypeDesc*, ValuePtr>& result) const
+bool MslSyntax::remapEnumeration(const string& value, TypeDesc type, const string& enumNames, std::pair<TypeDesc, ValuePtr>& result) const
 {
     // Early out if not an enum input.
     if (enumNames.empty())
@@ -350,9 +355,13 @@ bool MslSyntax::remapEnumeration(const string& value, const TypeDesc* type, cons
     }
 
     // Don't convert already supported types
-    // or filenames and arrays.
-    if (typeSupported(type) ||
-        *type == *Type::FILENAME || (type && type->isArray()))
+    if (type != Type::STRING)
+    {
+        return false;
+    }
+
+    // Early out if no valid value provided
+    if (value.empty())
     {
         return false;
     }
@@ -362,22 +371,18 @@ bool MslSyntax::remapEnumeration(const string& value, const TypeDesc* type, cons
     result.first = Type::INTEGER;
     result.second = nullptr;
 
-    // Try remapping to an enum value.
-    if (!value.empty())
+    StringVec valueElemEnumsVec = splitString(enumNames, ",");
+    for (size_t i = 0; i < valueElemEnumsVec.size(); i++)
     {
-        StringVec valueElemEnumsVec = splitString(enumNames, ",");
-        for (size_t i = 0; i < valueElemEnumsVec.size(); i++)
-        {
-            valueElemEnumsVec[i] = trimSpaces(valueElemEnumsVec[i]);
-        }
-        auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
-        if (pos == valueElemEnumsVec.end())
-        {
-            throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input.");
-        }
-        const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
-        result.second = Value::createValue<int>(index);
+        valueElemEnumsVec[i] = trimSpaces(valueElemEnumsVec[i]);
     }
+    auto pos = std::find(valueElemEnumsVec.begin(), valueElemEnumsVec.end(), value);
+    if (pos == valueElemEnumsVec.end())
+    {
+        throw ExceptionShaderGenError("Given value '" + value + "' is not a valid enum value for input.");
+    }
+    const int index = static_cast<int>(std::distance(valueElemEnumsVec.begin(), pos));
+    result.second = Value::createValue<int>(index);
 
     return true;
 }

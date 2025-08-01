@@ -12,6 +12,13 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
+namespace
+{
+
+const float MAX_FLOAT = std::numeric_limits<float>::max();
+
+} // anonymous namespace
+
 void GeometryHandler::addLoader(GeometryLoaderPtr loader)
 {
     const StringSet& extensions = loader->supportedExtensions();
@@ -63,7 +70,6 @@ void GeometryHandler::getGeometry(MeshList& meshes, const string& location)
 
 void GeometryHandler::computeBounds()
 {
-    const float MAX_FLOAT = std::numeric_limits<float>::max();
     _minimumBounds = { MAX_FLOAT, MAX_FLOAT, MAX_FLOAT };
     _maximumBounds = { -MAX_FLOAT, -MAX_FLOAT, -MAX_FLOAT };
     for (const auto& mesh : _meshes)
@@ -154,8 +160,9 @@ MeshPtr GeometryHandler::createQuadMesh(const Vector2& uvMin, const Vector2& uvM
     }
     MeshPartitionPtr quadIndices = MeshPartition::create();
     quadIndices->getIndices().assign({ 0, 1, 3, 1, 2, 3 });
-    quadIndices->setFaceCount(6);
+    quadIndices->setFaceCount(2);
     MeshPtr quadMesh = Mesh::create("ScreenSpaceQuad");
+    quadMesh->setVertexCount(4);
     quadMesh->addStream(quadPositions);
     quadMesh->addStream(quadTexCoords);
     quadMesh->addPartition(quadIndices);

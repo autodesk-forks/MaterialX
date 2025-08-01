@@ -18,11 +18,11 @@ namespace
 class EditorColorPicker : public ng::ColorPicker
 {
   public:
-    EditorColorPicker(ng::Widget* parent, const ng::Color& color) :
+    EditorColorPicker(ng::ref<ng::Widget> parent, const ng::Color& color) :
         ng::ColorPicker(parent, color)
     {
-        ng::Popup* popup = this->popup();
-        ng::Widget* floatGroup = new ng::Widget(popup);
+        ng::ref<ng::Popup> popup = this->popup();
+        ng::ref<ng::Widget> floatGroup = new ng::Widget(popup);
         auto layout = new ng::GridLayout(ng::Orientation::Horizontal, 2,
                                          ng::Alignment::Middle, 2, 2);
         layout->set_col_alignment({ ng::Alignment::Fill, ng::Alignment::Fill });
@@ -48,19 +48,44 @@ class EditorColorPicker : public ng::ColorPicker
             });
         }
 
-        // The color wheel does not handle alpha properly, so only
-        // overwrite RGB in the callback.
+        // Overwrite default callback of color wheel.
+        m_color_wheel->set_callback([this](const ng::Color& c)
+        {
+            ng::Color cAlpha = ng::Color(c[0], c[1], c[2], _colorWidgets[3]->value());
+            m_color_wheel->set_color(cAlpha);
+
+            // Account for Alpha value when setting m_pick_button properties.
+            m_pick_button->set_background_color(cAlpha);
+            m_pick_button->set_text_color(cAlpha.contrasting_color());
+
+            m_callback(cAlpha);
+        });
+
+        // Overwrite default callback of m_pick_button.
+        m_pick_button->set_callback([&]()
+        {
+            if (m_pushed)
+            {
+                // Use _colorWidgets to construct new color value, which ensures that Alpha component is correctly written.
+                ng::Color value(_colorWidgets[0]->value(), _colorWidgets[1]->value(), _colorWidgets[2]->value(), _colorWidgets[3]->value());
+                set_pushed(false);
+                set_color(value);
+                m_final_callback(value);
+            }
+        });
+
         m_callback = [this](const ng::Color& value)
         {
             _colorWidgets[0]->set_value(value[0]);
             _colorWidgets[1]->set_value(value[1]);
             _colorWidgets[2]->set_value(value[2]);
+            _colorWidgets[3]->set_value(value[3]);
         };
     }
 
   protected:
     // Additional numeric entry / feedback widgets
-    ng::FloatBox<float>* _colorWidgets[4];
+    ng::ref<ng::FloatBox<float>> _colorWidgets[4];
 };
 
 } // anonymous namespace
@@ -70,10 +95,6 @@ class EditorColorPicker : public ng::ColorPicker
 //
 
 PropertyEditor::PropertyEditor() :
-    _window(nullptr),
-    _container(nullptr),
-    _gridLayout2(nullptr),
-    _gridLayout3(nullptr),
     _visible(false),
     _fileDialogsForImages(true)
 {
@@ -81,7 +102,7 @@ PropertyEditor::PropertyEditor() :
 
 void PropertyEditor::create(Viewer& parent)
 {
-    ng::Window* parentWindow = parent.getWindow();
+    ng::ref<ng::Window> parentWindow = parent.getWindow();
 
     // Remove the window associated with the form.
     // This is done by explicitly creating and owning the window
@@ -110,7 +131,7 @@ void PropertyEditor::create(Viewer& parent)
     _window->set_position(previousPosition);
     _window->set_visible(_visible);
 
-    ng::VScrollPanel* scroll_panel = new ng::VScrollPanel(_window);
+    ng::ref<ng::VScrollPanel> scroll_panel = new ng::VScrollPanel(_window);
     scroll_panel->set_fixed_height(300);
     _container = new ng::Widget(scroll_panel);
     _container->set_layout(new ng::GroupLayout(1, 1, 1, 1));
@@ -127,7 +148,7 @@ void PropertyEditor::create(Viewer& parent)
 }
 
 void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::string& group,
-                                   ng::Widget* container, Viewer* viewer, bool editable)
+                                   ng::ref<ng::Widget> container, Viewer* viewer, bool editable)
 {
     const mx::UIProperties& ui = item.ui;
     mx::ValuePtr value = item.variable->getValue();
@@ -148,9 +169,9 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
 
     if (!group.empty())
     {
-        ng::Widget* twoColumns = new ng::Widget(container);
+        ng::ref<ng::Widget> twoColumns = new ng::Widget(container);
         twoColumns->set_layout(_gridLayout2);
-        ng::Label* groupLabel = new ng::Label(twoColumns, group);
+        ng::ref<ng::Label> groupLabel = new ng::Label(twoColumns, group);
         groupLabel->set_font_size(20);
         groupLabel->set_font("sans-bold");
         new ng::Label(twoColumns, "");
@@ -187,11 +208,11 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         const size_t valueIndex = indexInEnumeration();
         if (INVALID_INDEX != valueIndex)
         {
-            ng::Widget* twoColumns = new ng::Widget(container);
+            ng::ref<ng::Widget> twoColumns = new ng::Widget(container);
             twoColumns->set_layout(_gridLayout2);
 
             new ng::Label(twoColumns, label);
-            ng::ComboBox* comboBox = new ng::ComboBox(twoColumns, { "" });
+            ng::ref<ng::ComboBox> comboBox = new ng::ComboBox(twoColumns, { "" });
             comboBox->set_enabled(editable);
             comboBox->set_items(enumeration);
             comboBox->set_selected_index(static_cast<int>(valueIndex));
@@ -215,7 +236,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         }
         else
         {
-            ng::Widget* twoColumns = new ng::Widget(container);
+            ng::ref<ng::Widget> twoColumns = new ng::Widget(container);
             twoColumns->set_layout(_gridLayout2);
 
             new ng::Label(twoColumns, label);
@@ -252,9 +273,9 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     // Float widget
     else if (value->isA<float>())
     {
-        ng::Widget* threeColumns = new ng::Widget(container);
+        ng::ref<ng::Widget> threeColumns = new ng::Widget(container);
         threeColumns->set_layout(_gridLayout3);
-        ng::FloatBox<float>* floatBox = createFloatWidget(threeColumns, label, value->asA<float>(), &ui, [viewer, path](float value)
+        ng::ref<ng::FloatBox<float>> floatBox = createFloatWidget(threeColumns, label, value->asA<float>(), &ui, [viewer, path](float value)
         {
             mx::MaterialPtr material = viewer->getSelectedMaterial();
             if (material)
@@ -269,12 +290,12 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     // Boolean widget
     else if (value->isA<bool>())
     {
-        ng::Widget* twoColumns = new ng::Widget(container);
+        ng::ref<ng::Widget> twoColumns = new ng::Widget(container);
         twoColumns->set_layout(_gridLayout2);
 
         bool v = value->asA<bool>();
         new ng::Label(twoColumns, label);
-        ng::CheckBox* boolVar = new ng::CheckBox(twoColumns, "");
+        ng::ref<ng::CheckBox> boolVar = new ng::CheckBox(twoColumns, "");
         boolVar->set_checked(v);
         boolVar->set_font_size(15);
         boolVar->set_callback([path, viewer](bool v)
@@ -282,7 +303,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             mx::MaterialPtr material = viewer->getSelectedMaterial();
             if (material)
             {
-                material->modifyUniform(path, mx::Value::createValue((float) v));
+                material->modifyUniform(path, mx::Value::createValue((bool) v));
             }
         });
     }
@@ -290,7 +311,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     // Color3 input. Can map to a combo box if an enumeration
     else if (value->isA<mx::Color3>())
     {
-        ng::Widget* twoColumns = new ng::Widget(container);
+        ng::ref<ng::Widget> twoColumns = new ng::Widget(container);
         twoColumns->set_layout(_gridLayout2);
 
         // Determine if there is an enumeration for this
@@ -312,7 +333,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         // Create a combo box. The items are the enumerations in order.
         if (index >= 0)
         {
-            ng::ComboBox* comboBox = new ng::ComboBox(twoColumns, { "" });
+            ng::ref<ng::ComboBox> comboBox = new ng::ComboBox(twoColumns, { "" });
             comboBox->set_enabled(editable);
             comboBox->set_items(enumeration);
             comboBox->set_selected_index(index);
@@ -331,8 +352,11 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         }
         else
         {
+            // Transform stored linear space color3 value to sRGBA for nanogui color picker
             mx::Color3 v = value->asA<mx::Color3>();
-            ng::Color c(v[0], v[1], v[2], 1.0);
+            mx::Color3 displayCol = v.linearToSrgb();
+
+            ng::Color c(displayCol[0], displayCol[1], displayCol[2], 1.0);
 
             new ng::Label(twoColumns, label);
             auto colorVar = new EditorColorPicker(twoColumns, c);
@@ -343,7 +367,10 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                 mx::MaterialPtr material = viewer->getSelectedMaterial();
                 if (material)
                 {
-                    mx::Vector3 v(c.r(), c.g(), c.b());
+                    // Transform sRGBA color picker value to linear space for writing to material
+                    mx::Color3 linearCol = mx::Color3(c.r(), c.g(), c.b()).srgbToLinear();
+                    mx::Vector3 v(linearCol[0], linearCol[1], linearCol[2]);
+
                     material->modifyUniform(path, mx::Value::createValue(v));
                 }
             });
@@ -353,12 +380,15 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     // Color4 input
     else if (value->isA<mx::Color4>())
     {
-        ng::Widget* twoColumns = new ng::Widget(container);
+        ng::ref<ng::Widget> twoColumns = new ng::Widget(container);
         twoColumns->set_layout(_gridLayout2);
 
         new ng::Label(twoColumns, label);
         mx::Color4 v = value->asA<mx::Color4>();
-        ng::Color c(v[0], v[1], v[2], v[3]);
+        mx::Color3 displayCol = mx::Color3(v[0], v[1], v[2]).linearToSrgb();
+
+        ng::Color c(displayCol[0], displayCol[1], displayCol[2], v[3]);
+
         auto colorVar = new EditorColorPicker(twoColumns, c);
         colorVar->set_fixed_size({ 100, 20 });
         colorVar->set_font_size(15);
@@ -367,7 +397,10 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             mx::MaterialPtr material = viewer->getSelectedMaterial();
             if (material)
             {
-                mx::Vector4 v(c.r(), c.g(), c.b(), c.w());
+                // Transform sRGBA color picker value to linear space for writing to material
+                mx::Color3 linearCol = mx::Color3(c.r(), c.g(), c.b()).srgbToLinear();
+                mx::Vector4 v(linearCol[0], linearCol[1], linearCol[2], c.a());
+
                 material->modifyUniform(path, mx::Value::createValue(v));
             }
         });
@@ -376,7 +409,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     // Vec 2 widget
     else if (value->isA<mx::Vector2>())
     {
-        ng::Widget* twoColumns = new ng::Widget(container);
+        ng::ref<ng::Widget> twoColumns = new ng::Widget(container);
         twoColumns->set_layout(_gridLayout2);
 
         mx::Vector2 v = value->asA<mx::Vector2>();
@@ -415,7 +448,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     // Vec 3 input
     else if (value->isA<mx::Vector3>())
     {
-        ng::Widget* twoColumns = new ng::Widget(container);
+        ng::ref<ng::Widget> twoColumns = new ng::Widget(container);
         twoColumns->set_layout(_gridLayout2);
 
         mx::Vector3 v = value->asA<mx::Vector3>();
@@ -470,7 +503,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
     // Vec 4 input
     else if (value->isA<mx::Vector4>())
     {
-        ng::Widget* twoColumns = new ng::Widget(container);
+        ng::ref<ng::Widget> twoColumns = new ng::Widget(container);
         twoColumns->set_layout(_gridLayout2);
 
         mx::Vector4 v = value->asA<mx::Vector4>();
@@ -542,16 +575,17 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
         std::string v = value->asA<std::string>();
         if (!v.empty())
         {
-            ng::Widget* twoColumns = new ng::Widget(container);
+            ng::ref<ng::Widget> twoColumns = new ng::Widget(container);
             twoColumns->set_layout(_gridLayout2);
 
             if (item.variable->getType() == mx::Type::FILENAME)
             {
                 new ng::Label(twoColumns, label);
-                ng::Button* buttonVar = new ng::Button(twoColumns, mx::FilePath(v).getBaseName());
+                ng::ref<ng::Button> buttonVar = new ng::Button(twoColumns, mx::FilePath(v).getBaseName());
                 buttonVar->set_enabled(editable);
                 buttonVar->set_font_size(15);
-                buttonVar->set_callback([buttonVar, path, viewer]()
+                auto buttonVarPtr = buttonVar.get();
+                buttonVar->set_callback([buttonVarPtr, path, viewer]()
                 {
                     mx::MaterialPtr material = viewer->getSelectedMaterial();
                     mx::ShaderPort* uniform = material ? material->findUniform(path) : nullptr;
@@ -572,7 +606,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
                                 if (!filename.empty())
                                 {
                                     uniform->setValue(mx::Value::createValue<std::string>(filename));
-                                    buttonVar->set_caption(mx::FilePath(filename).getBaseName());
+                                    buttonVarPtr->set_caption(mx::FilePath(filename).getBaseName());
                                     viewer->perform_layout();
                                 }
                             }
@@ -583,7 +617,7 @@ void PropertyEditor::addItemToForm(const mx::UIPropertyItem& item, const std::st
             else
             {
                 new ng::Label(twoColumns, label);
-                ng::TextBox* stringVar = new ng::TextBox(twoColumns, v);
+                ng::ref<ng::TextBox> stringVar = new ng::TextBox(twoColumns, v);
                 stringVar->set_fixed_size({ 100, 20 });
                 stringVar->set_font_size(15);
                 stringVar->set_callback([path, viewer](const std::string& v)
@@ -629,12 +663,12 @@ void PropertyEditor::updateContents(Viewer* viewer)
         }
         if (!shaderName.empty() && shaderName != "surface")
         {
-            ng::Widget* twoColumns = new ng::Widget(_container);
+            ng::ref<ng::Widget> twoColumns = new ng::Widget(_container);
             twoColumns->set_layout(_gridLayout2);
-            ng::Label* modelLabel = new ng::Label(twoColumns, "Shading Model");
+            ng::ref<ng::Label> modelLabel = new ng::Label(twoColumns, "Shading Model");
             modelLabel->set_font_size(20);
             modelLabel->set_font("sans-bold");
-            ng::Label* nameLabel = new ng::Label(twoColumns, shaderName);
+            ng::ref<ng::Label> nameLabel = new ng::Label(twoColumns, shaderName);
             nameLabel->set_font_size(20);
         }
     }
@@ -686,15 +720,15 @@ void PropertyEditor::updateContents(Viewer* viewer)
     viewer->perform_layout();
 }
 
-ng::FloatBox<float>* createFloatWidget(ng::Widget* parent, const std::string& label, float value,
-                                       const mx::UIProperties* ui, std::function<void(float)> callback)
+ng::ref<ng::FloatBox<float>> createFloatWidget(ng::ref<ng::Widget> parent, const std::string& label, float value,
+                                               const mx::UIProperties* ui, std::function<void(float)> callback)
 {
     new ng::Label(parent, label);
 
-    ng::Slider* slider = new ng::Slider(parent);
+    ng::ref<ng::Slider> slider = new ng::Slider(parent);
     slider->set_value(value);
 
-    ng::FloatBox<float>* box = new ng::FloatBox<float>(parent, value);
+    ng::ref<ng::FloatBox<float>> box = new ng::FloatBox<float>(parent, value);
     box->set_fixed_width(60);
     box->set_font_size(15);
     box->set_alignment(ng::TextBox::Alignment::Right);
@@ -732,29 +766,31 @@ ng::FloatBox<float>* createFloatWidget(ng::Widget* parent, const std::string& la
         }
     }
 
-    slider->set_callback([box, callback](float value)
+    auto sliderPtr = slider.get();
+    auto boxPtr = box.get();
+    slider->set_callback([boxPtr, callback](float value)
     {
-        box->set_value(value);
+        boxPtr->set_value(value);
         callback(value);
     });
-    box->set_callback([slider, callback](float value)
+    box->set_callback([sliderPtr, callback](float value)
     {
-        slider->set_value(value);
+        sliderPtr->set_value(value);
         callback(value);
     });
 
     return box;
 }
 
-ng::IntBox<int>* createIntWidget(ng::Widget* parent, const std::string& label, int value,
-                                 const mx::UIProperties* ui, std::function<void(int)> callback)
+ng::ref<ng::IntBox<int>> createIntWidget(ng::ref<ng::Widget> parent, const std::string& label, int value,
+                                         const mx::UIProperties* ui, std::function<void(int)> callback)
 {
     new ng::Label(parent, label);
 
-    ng::Slider* slider = new ng::Slider(parent);
+    ng::ref<ng::Slider> slider = new ng::Slider(parent);
     slider->set_value((float) value);
 
-    ng::IntBox<int>* box = new ng::IntBox<int>(parent, value);
+    ng::ref<ng::IntBox<int>> box = new ng::IntBox<int>(parent, value);
     box->set_fixed_width(60);
     box->set_font_size(15);
     box->set_alignment(ng::TextBox::Alignment::Right);
@@ -792,14 +828,16 @@ ng::IntBox<int>* createIntWidget(ng::Widget* parent, const std::string& label, i
         }
     }
 
-    slider->set_callback([box, callback](float value)
+    auto sliderPtr = slider.get();
+    auto boxPtr = box.get();
+    slider->set_callback([boxPtr, callback](float value)
     {
-        box->set_value((int) value);
+        boxPtr->set_value((int) value);
         callback((int) value);
     });
-    box->set_callback([slider, callback](int value)
+    box->set_callback([sliderPtr, callback](int value)
     {
-        slider->set_value((float) value);
+        sliderPtr->set_value((float) value);
         callback(value);
     });
 

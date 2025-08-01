@@ -20,15 +20,16 @@ namespace mx = MaterialX;
 
 TEST_CASE("GenShader: OSL Syntax", "[genosl]")
 {
-    mx::SyntaxPtr syntax = mx::OslSyntax::create();
+    mx::TypeSystemPtr ts = mx::TypeSystem::create();
+    mx::SyntaxPtr syntax = mx::OslSyntax::create(ts);
 
     REQUIRE(syntax->getTypeName(mx::Type::FLOAT) == "float");
     REQUIRE(syntax->getTypeName(mx::Type::COLOR3) == "color");
     REQUIRE(syntax->getTypeName(mx::Type::VECTOR3) == "vector");
     REQUIRE(syntax->getTypeName(mx::Type::FLOATARRAY) == "float");
     REQUIRE(syntax->getTypeName(mx::Type::INTEGERARRAY) == "int");
-    REQUIRE(mx::Type::FLOATARRAY->isArray());
-    REQUIRE(mx::Type::INTEGERARRAY->isArray());
+    REQUIRE(mx::Type::FLOATARRAY.isArray());
+    REQUIRE(mx::Type::INTEGERARRAY.isArray());
 
     REQUIRE(syntax->getTypeName(mx::Type::BSDF) == "BSDF");
     REQUIRE(syntax->getOutputTypeName(mx::Type::BSDF) == "output BSDF");
@@ -87,9 +88,13 @@ TEST_CASE("GenShader: OSL Implementation Check", "[genosl]")
 
     mx::StringSet generatorSkipNodeTypes;
     generatorSkipNodeTypes.insert("light");
-    mx::StringSet generatorSkipNodeDefs;
 
-    GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs, 48);
+    mx::StringSet generatorSkipNodeDefs;
+    generatorSkipNodeDefs.insert("ND_hextiledimage_color3");
+    generatorSkipNodeDefs.insert("ND_hextiledimage_color4");
+    generatorSkipNodeDefs.insert("ND_hextilednormalmap_vector3");
+
+    GenShaderUtil::checkImplementations(context, generatorSkipNodeTypes, generatorSkipNodeDefs);
 }
 
 TEST_CASE("GenShader: OSL Unique Names", "[genosl]")
@@ -164,7 +169,7 @@ TEST_CASE("GenShader: OSL Metadata", "[genosl]")
     REQUIRE(stdSurf1 != nullptr);
 
     mx::ShaderGeneratorPtr generator = mx::OslShaderGenerator::create();
-    mx::GenContext context(mx::OslShaderGenerator::create());
+    mx::GenContext context(generator);
     context.registerSourceCodeSearchPath(searchPath);
 
     // Metadata to export must be registered in the context before shader generation starts.

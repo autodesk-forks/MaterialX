@@ -42,6 +42,13 @@ class OslShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
     {
         _skipLibraryFiles.insert( "pbrlib_genosl_arnold_impl.mtlx" );
     }
+
+    void addSkipFiles() override
+    {
+        _skipFiles.insert("standard_surface_onyx_hextiled.mtlx");
+        _skipFiles.insert("hextiled.mtlx");
+    }
+
     // Ignore light shaders in the document for OSL
     void findLights(mx::DocumentPtr /*doc*/, std::vector<mx::NodePtr>& lights) override
     {
@@ -58,8 +65,8 @@ class OslShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
     {
         whiteList =
         {
-            "ambientocclusion", "arrayappend", "backfacing", "screen", "curveadjust", "displacementshader",
-            "volumeshader", "IM_constant_", "IM_dot_", "IM_geompropvalue", "IM_angle", "ND_backface_util"
+            "displacementshader", "volumeshader",
+            "IM_constant_", "IM_dot_", "IM_angle", "IM_geompropvalue", "IM_geompropvalueuniform"
         };
         ShaderGeneratorTester::getImplementationWhiteList(whiteList);
     }

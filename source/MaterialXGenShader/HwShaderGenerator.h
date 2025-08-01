@@ -23,7 +23,7 @@ a listing of the variables with a description of what data they should be bound 
 
 However, different renderers can have different requirements on naming conventions for these variables.
 In order to facilitate this the generators will use token substitution for naming the variables. The
-first colum below shows the token names that should be used in source code before the token substitution
+first column below shows the token names that should be used in source code before the token substitution
 is done. The second row shows the real identifier names that will be used by default after substitution.
 An generator can override these identifier names in order to use a custom naming convention for these.
 Overriding identifier names is done by changing the entries in the identifiers map given to the function
@@ -69,8 +69,12 @@ Uniform variables :
                                                                                        The LightData struct is built dynamically depending on requirements for
                                                                                        bound light shaders.
     $envMatrix                          u_envMatrix                         mat4       Rotation matrix for the environment.
-    $envIrradiance                      u_envIrradiance                     sampler2D  Sampler for the texture used for diffuse environment lighting.
-    $envRadiance                        u_envRadiance                       sampler2D  Sampler for the texture used for specular environment lighting.
+    $envIrradiance                      u_envIrradiance                     sampler2D  Combined sampler for the texture used for diffuse environment lighting.
+    $envIrradiance_texture              u_envIrradiance_texture             texture2D  Separated texture2D used for diffuse environment lighting.
+    $envIrradiance_sampler              u_envIrradiance_sampler             sampler    Separated sampler used for diffuse environment lighting.
+    $envRadiance                        u_envRadiance                       sampler2D  Combined sampler for the texture used for specular environment lighting.
+    $envRadiance_texture                u_envRadiance_texture               texture2D  Separated texture2D used for specular environment lighting.
+    $envRadiance_sampler                u_envRadiance_sampler               sampler    Separated sampler used for specular environment lighting.
     $envLightIntensity                  u_envLightIntensity                 float      Linear multiplier for environment lighting
     $envRadianceMips                    u_envRadianceMips                   int        Number of mipmaps used on the specular environment texture.
     $envRadianceSamples                 u_envRadianceSamples                int        Samples to use if Filtered Importance Sampling is used for specular environment lighting.
@@ -124,9 +128,13 @@ extern MX_GENSHADER_API const string T_ALPHA_THRESHOLD;
 extern MX_GENSHADER_API const string T_NUM_ACTIVE_LIGHT_SOURCES;
 extern MX_GENSHADER_API const string T_ENV_MATRIX;
 extern MX_GENSHADER_API const string T_ENV_RADIANCE;
+extern MX_GENSHADER_API const string T_ENV_RADIANCE_TEXTURE;
+extern MX_GENSHADER_API const string T_ENV_RADIANCE_SAMPLER;
 extern MX_GENSHADER_API const string T_ENV_RADIANCE_MIPS;
 extern MX_GENSHADER_API const string T_ENV_RADIANCE_SAMPLES;
 extern MX_GENSHADER_API const string T_ENV_IRRADIANCE;
+extern MX_GENSHADER_API const string T_ENV_IRRADIANCE_TEXTURE;
+extern MX_GENSHADER_API const string T_ENV_IRRADIANCE_SAMPLER;
 extern MX_GENSHADER_API const string T_ENV_LIGHT_INTENSITY;
 extern MX_GENSHADER_API const string T_ENV_PREFILTER_MIP;
 extern MX_GENSHADER_API const string T_REFRACTION_TWO_SIDED;
@@ -182,9 +190,13 @@ extern MX_GENSHADER_API const string ALPHA_THRESHOLD;
 extern MX_GENSHADER_API const string NUM_ACTIVE_LIGHT_SOURCES;
 extern MX_GENSHADER_API const string ENV_MATRIX;
 extern MX_GENSHADER_API const string ENV_RADIANCE;
+extern MX_GENSHADER_API const string ENV_RADIANCE_TEXTURE;
+extern MX_GENSHADER_API const string ENV_RADIANCE_SAMPLER;
 extern MX_GENSHADER_API const string ENV_RADIANCE_MIPS;
 extern MX_GENSHADER_API const string ENV_RADIANCE_SAMPLES;
 extern MX_GENSHADER_API const string ENV_IRRADIANCE;
+extern MX_GENSHADER_API const string ENV_IRRADIANCE_TEXTURE;
+extern MX_GENSHADER_API const string ENV_IRRADIANCE_SAMPLER;
 extern MX_GENSHADER_API const string ENV_LIGHT_INTENSITY;
 extern MX_GENSHADER_API const string ENV_PREFILTER_MIP;
 extern MX_GENSHADER_API const string REFRACTION_TWO_SIDED;
@@ -207,6 +219,8 @@ extern MX_GENSHADER_API const string LIGHT_DATA;       // Uniform inputs for lig
 extern MX_GENSHADER_API const string PIXEL_OUTPUTS;    // Outputs from the main/pixel stage.
 
 /// Variable names for lighting parameters.
+extern MX_GENSHADER_API const string CLOSURE_DATA_TYPE;
+extern MX_GENSHADER_API const string CLOSURE_DATA_ARG;
 extern MX_GENSHADER_API const string DIR_N;
 extern MX_GENSHADER_API const string DIR_L;
 extern MX_GENSHADER_API const string DIR_V;
@@ -219,6 +233,9 @@ extern MX_GENSHADER_API const string ATTR_TRANSPARENT;
 /// User data names.
 extern MX_GENSHADER_API const string USER_DATA_LIGHT_SHADERS;
 extern MX_GENSHADER_API const string USER_DATA_BINDING_CONTEXT;
+
+/// Type Descriptor for closure context data.
+extern MX_GENSHADER_API const TypeDesc ClosureDataType;
 } // namespace HW
 
 namespace Stage
@@ -290,14 +307,11 @@ class MX_GENSHADER_API HwLightShaders : public GenUserData
 class MX_GENSHADER_API HwShaderGenerator : public ShaderGenerator
 {
   public:
-    /// Add the function call for a single node.
-    void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
-
     /// Emit code for active light count definitions and uniforms
     virtual void addStageLightingUniforms(GenContext& context, ShaderStage& stage) const;
 
-    /// Return the closure contexts defined for the given node.
-    void getClosureContexts(const ShaderNode& node, vector<ClosureContext*>& cct) const override;
+    /// Return true if the node needs the ClosureData struct added
+    bool nodeNeedsClosureData(const ShaderNode& node) const override;
 
     /// Bind a light shader to a light type id, for usage in surface shaders created
     /// by the generator. The lightTypeId should be a unique identifier for the light
@@ -314,6 +328,9 @@ class MX_GENSHADER_API HwShaderGenerator : public ShaderGenerator
     /// Determine the prefix of vertex data variables.
     virtual string getVertexDataPrefix(const VariableBlock& vertexData) const = 0;
 
+    // Note : the order must match the order defined in libraries/pbrlib/genglsl/lib/mx_closure_type.glsl
+    // TODO : investigate build time mechanism for ensuring these stay in sync.
+
     /// Types of closure contexts for HW.
     enum ClosureContextType
     {
@@ -321,29 +338,19 @@ class MX_GENSHADER_API HwShaderGenerator : public ShaderGenerator
         REFLECTION,
         TRANSMISSION,
         INDIRECT,
-        EMISSION
+        EMISSION,
+        LIGHTING,
+        CLOSURE
     };
 
-    /// String constants for closure context suffixes.
-    static const string CLOSURE_CONTEXT_SUFFIX_REFLECTION;
-    static const string CLOSURE_CONTEXT_SUFFIX_TRANSMISSION;
-    static const string CLOSURE_CONTEXT_SUFFIX_INDIRECT;
-
   protected:
-    HwShaderGenerator(SyntaxPtr syntax);
+    HwShaderGenerator(TypeSystemPtr typeSystem, SyntaxPtr syntax);
 
     /// Create and initialize a new HW shader for shader generation.
     virtual ShaderPtr createShader(const string& name, ElementPtr element, GenContext& context) const;
-
-    /// Closure contexts for defining closure functions.
-    mutable ClosureContext _defDefault;
-    mutable ClosureContext _defReflection;
-    mutable ClosureContext _defTransmission;
-    mutable ClosureContext _defIndirect;
-    mutable ClosureContext _defEmission;
 };
 
-/// @class HwShaderGenerator
+/// @class HwImplementation
 /// Base class for HW node implementations.
 class MX_GENSHADER_API HwImplementation : public ShaderNodeImpl
 {

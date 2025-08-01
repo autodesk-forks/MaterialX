@@ -46,7 +46,7 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     /// Constructor.
     ShaderGraph(const ShaderGraph* parent, const string& name, ConstDocumentPtr document, const StringSet& reservedWords);
 
-    /// Desctructor.
+    /// Destructor.
     virtual ~ShaderGraph() { }
 
     /// Create a new shader graph from an element.
@@ -98,9 +98,13 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     /// Create a new node in the graph
     ShaderNode* createNode(ConstNodePtr node, GenContext& context);
 
-    /// Add input/output sockets
-    ShaderGraphInputSocket* addInputSocket(const string& name, const TypeDesc* type);
-    ShaderGraphOutputSocket* addOutputSocket(const string& name, const TypeDesc* type);
+    /// Add input sockets
+    ShaderGraphInputSocket* addInputSocket(const string& name, TypeDesc type);
+    [[deprecated]] ShaderGraphInputSocket* addInputSocket(const string& name, const TypeDesc* type) { return addInputSocket(name, *type); }
+
+    /// Add output sockets
+    ShaderGraphOutputSocket* addOutputSocket(const string& name, TypeDesc type);
+    [[deprecated]] ShaderGraphOutputSocket* addOutputSocket(const string& name, const TypeDesc* type) { return addOutputSocket(name, *type); }
 
     /// Add a default geometric node and connect to the given input.
     void addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geomprop, GenContext& context);
@@ -132,7 +136,7 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     void addInputSockets(const InterfaceElement& elem, GenContext& context);
 
     /// Add output sockets from an interface element (nodedef, nodegraph or node)
-    void addOutputSockets(const InterfaceElement& elem);
+    void addOutputSockets(const InterfaceElement& elem, GenContext& context);
 
     /// Traverse from the given root element and add all dependencies upstream.
     /// The traversal is done in the context of a material, if given, to include
@@ -155,12 +159,12 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     void finalize(GenContext& context);
 
     /// Optimize the graph, removing redundant paths.
-    void optimize(GenContext& context);
+    void optimize();
 
     /// Bypass a node for a particular input and output,
     /// effectively connecting the input's upstream connection
     /// with the output's downstream connections.
-    void bypass(GenContext& context, ShaderNode* node, size_t inputIndex, size_t outputIndex = 0);
+    void bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex = 0);
 
     /// For inputs and outputs in the graph set the variable names to be used
     /// in generated code. Making sure variable names are valid and unique
@@ -185,14 +189,14 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     IdentifierMap _identifiers;
 
     // Temporary storage for inputs that require color transformations
-    std::unordered_map<ShaderInput*, ColorSpaceTransform> _inputColorTransformMap;
+    std::vector<std::pair<ShaderInput*, ColorSpaceTransform>> _inputColorTransformMap;
     // Temporary storage for inputs that require unit transformations
-    std::unordered_map<ShaderInput*, UnitTransform> _inputUnitTransformMap;
+    std::vector<std::pair<ShaderInput*, UnitTransform>> _inputUnitTransformMap;
 
     // Temporary storage for outputs that require color transformations
-    std::unordered_map<ShaderOutput*, ColorSpaceTransform> _outputColorTransformMap;
+    std::vector<std::pair<ShaderOutput*, ColorSpaceTransform>> _outputColorTransformMap;
     // Temporary storage for outputs that require unit transformations
-    std::unordered_map<ShaderOutput*, UnitTransform> _outputUnitTransformMap;
+    std::vector<std::pair<ShaderOutput*, UnitTransform>> _outputUnitTransformMap;
 };
 
 /// @class ShaderGraphEdge
@@ -205,6 +209,22 @@ class MX_GENSHADER_API ShaderGraphEdge
         downstream(down)
     {
     }
+
+    bool operator==(const ShaderGraphEdge& rhs) const
+    {
+        return upstream == rhs.upstream && downstream == rhs.downstream;
+    }
+
+    bool operator!=(const ShaderGraphEdge& rhs) const
+    {
+        return !(*this == rhs);
+    }
+
+    bool operator<(const ShaderGraphEdge& rhs) const
+    {
+        return std::tie(upstream, downstream) < std::tie(rhs.upstream, rhs.downstream);
+    }
+
     ShaderOutput* upstream;
     ShaderInput* downstream;
 };
@@ -215,7 +235,7 @@ class MX_GENSHADER_API ShaderGraphEdgeIterator
 {
   public:
     ShaderGraphEdgeIterator(ShaderOutput* output);
-    ~ShaderGraphEdgeIterator() { }
+    ~ShaderGraphEdgeIterator() = default;
 
     bool operator==(const ShaderGraphEdgeIterator& rhs) const
     {
@@ -250,12 +270,14 @@ class MX_GENSHADER_API ShaderGraphEdgeIterator
   private:
     void extendPathUpstream(ShaderOutput* upstream, ShaderInput* downstream);
     void returnPathDownstream(ShaderOutput* upstream);
+    bool skipOrMarkAsVisited(ShaderGraphEdge);
 
     ShaderOutput* _upstream;
     ShaderInput* _downstream;
     using StackFrame = std::pair<ShaderOutput*, size_t>;
     std::vector<StackFrame> _stack;
     std::set<ShaderOutput*> _path;
+    std::set<ShaderGraphEdge> _visitedEdges;
 };
 
 MATERIALX_NAMESPACE_END

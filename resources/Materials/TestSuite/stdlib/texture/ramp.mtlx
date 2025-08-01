@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
-<materialx version="1.38">
+<materialx version="1.39">
   <!--
   Basic ramp unit test :
   - Ramp (left-to-right)
   - Ramp (top-to-bottom)
-  - Ramp (four coner)
+  - Ramp (four corner)
   -->
 
   <!-- Left-to-right tests -->

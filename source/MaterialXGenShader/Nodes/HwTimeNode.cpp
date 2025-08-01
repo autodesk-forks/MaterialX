@@ -17,7 +17,7 @@ ShaderNodeImplPtr HwTimeNode::create()
 void HwTimeNode::createVariables(const ShaderNode&, GenContext&, Shader& shader) const
 {
     ShaderStage& ps = shader.getStage(Stage::PIXEL);
-    addStageUniform(HW::PRIVATE_UNIFORMS, Type::FLOAT, HW::T_FRAME, ps);
+    addStageUniform(HW::PRIVATE_UNIFORMS, Type::FLOAT, HW::T_TIME, ps);
 }
 
 void HwTimeNode::emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const
@@ -27,10 +27,7 @@ void HwTimeNode::emitFunctionCall(const ShaderNode& node, GenContext& context, S
         const ShaderGenerator& shadergen = context.getShaderGenerator();
         shadergen.emitLineBegin(stage);
         shadergen.emitOutput(node.getOutput(), true, false, context, stage);
-        shadergen.emitString(" = " + HW::T_FRAME + " / ", stage);
-        const ShaderInput* fpsInput = node.getInput("fps");
-        const string fps = fpsInput->getValue()->getValueString();
-        shadergen.emitString(fps, stage);
+        shadergen.emitString(" = " + HW::T_TIME, stage);
         shadergen.emitLineEnd(stage);
     }
 }

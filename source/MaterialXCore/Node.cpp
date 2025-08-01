@@ -20,6 +20,17 @@ const string Backdrop::HEIGHT_ATTRIBUTE = "height";
 // Node methods
 //
 
+void Node::setNameGlobal(const string& name)
+{
+    vector<PortElementPtr> downStreamPorts = getDownstreamPorts();
+    setName(name);
+    const string& newName = getName();
+    for (PortElementPtr& port : downStreamPorts)
+    {
+        port->setNodeName(newName);
+    }
+}
+
 void Node::setConnectedNode(const string& inputName, ConstNodePtr node)
 {
     InputPtr input = getInput(inputName);
@@ -66,30 +77,6 @@ string Node::getConnectedNodeName(const string& inputName) const
         return EMPTY_STRING;
     }
     return input->getNodeName();
-}
-
-void Node::setConnectedOutput(const string& inputName, OutputPtr output)
-{
-    InputPtr input = getInput(inputName);
-    if (!input)
-    {
-        input = addInput(inputName, DEFAULT_TYPE_STRING);
-    }
-    if (output)
-    {
-        input->setType(output->getType());
-    }
-    input->setConnectedOutput(output);
-}
-
-OutputPtr Node::getConnectedOutput(const string& inputName) const
-{
-    InputPtr input = getInput(inputName);
-    if (!input)
-    {
-        return OutputPtr();
-    }
-    return input->getConnectedOutput();
 }
 
 NodeDefPtr Node::getNodeDef(const string& target, bool allowRoughMatch) const
@@ -223,6 +210,17 @@ bool Node::validate(string* message) const
         string matchMessage;
         bool exactMatch = hasExactInputMatch(nodeDef, &matchMessage);
         validateRequire(exactMatch, res, message, "Node interface error: " + matchMessage);
+
+        const vector<OutputPtr>& activeOutputs = nodeDef->getActiveOutputs();
+        const size_t numActiveOutputs = activeOutputs.size();
+        if (numActiveOutputs > 1)
+        {
+            validateRequire(getType() == MULTI_OUTPUT_TYPE_STRING, res, message, "Node type is not 'multioutput' for node with multiple outputs");
+        }
+        else if (numActiveOutputs == 1)
+        {
+            validateRequire(getType() == activeOutputs[0]->getType(), res, message, "Node type does not match output port type");
+        }
     }
     else
     {
@@ -346,6 +344,12 @@ void GraphElement::flattenSubgraphs(const string& target, NodePredicate filter)
                         if (sourceInput)
                         {
                             destInput->copyContentFrom(sourceInput);
+                            NodePtr connectedNode = destInput->getConnectedNode();
+                            // Update downstream port map with the new instance
+                            if (connectedNode && downstreamPortMap.count(connectedNode) > 0)
+                            {
+                                downstreamPortMap[connectedNode] = connectedNode->getDownstreamPorts();
+                            }
                         }
                         else
                         {
@@ -366,8 +370,8 @@ void GraphElement::flattenSubgraphs(const string& target, NodePredicate filter)
                                     }
                                 }
                             }
+                            destInput->removeAttribute(ValueElement::INTERFACE_NAME_ATTRIBUTE);
                         }
-                        destInput->removeAttribute(ValueElement::INTERFACE_NAME_ATTRIBUTE);
                     }
                 }
             }
@@ -399,14 +403,14 @@ void GraphElement::flattenSubgraphs(const string& target, NodePredicate filter)
     }
 }
 
-vector<ElementPtr> GraphElement::topologicalSort() const
+ElementVec GraphElement::topologicalSort() const
 {
     // Calculate a topological order of the children, using Kahn's algorithm
     // to avoid recursion.
     //
     // Running time: O(numNodes + numEdges).
 
-    const vector<ElementPtr>& children = getChildren();
+    const ElementVec& children = getChildren();
 
     // Calculate in-degrees for all children.
     std::unordered_map<ElementPtr, size_t> inDegree(children.size());
@@ -439,7 +443,7 @@ vector<ElementPtr> GraphElement::topologicalSort() const
         }
     }
 
-    vector<ElementPtr> result;
+    ElementVec result;
     while (!childQueue.empty())
     {
         // Pop the queue and add to topological order.
@@ -494,7 +498,7 @@ string GraphElement::asStringDot() const
     string dot = "digraph {\n";
 
     // Create a unique name for each child element.
-    vector<ElementPtr> children = topologicalSort();
+    ElementVec children = topologicalSort();
     StringMap nameMap;
     StringSet nameSet;
     for (ElementPtr elem : children)
@@ -578,6 +582,17 @@ string GraphElement::asStringDot() const
 // NodeGraph methods
 //
 
+void NodeGraph::setNameGlobal(const string& name)
+{
+    vector<PortElementPtr> downStreamPorts = getDownstreamPorts();
+    setName(name);
+    const string& newName = getName();
+    for (PortElementPtr& port : downStreamPorts)
+    {
+        port->setNodeGraphString(newName);
+    }
+}
+
 vector<OutputPtr> NodeGraph::getMaterialOutputs() const
 {
     vector<OutputPtr> materialOutputs;
@@ -647,34 +662,33 @@ void Node::addInputsFromNodeDef()
     }
 }
 
-void NodeGraph::addInterfaceName(const string& inputPath, const string& interfaceName)
+InputPtr NodeGraph::addInterfaceName(const string& inputPath, const string& interfaceName)
 {
     NodeDefPtr nodeDef = getNodeDef();
-    if (!nodeDef)
+    InterfaceElementPtr interfaceElement = nodeDef ? nodeDef->asA<InterfaceElement>() : getSelf()->asA<InterfaceElement>();
+    if (interfaceElement->getChild(interfaceName))
     {
-        throw Exception("Cannot declare an interface for a nodegraph which is not associated with a node definition: " + getName());
-    }
-    if (nodeDef->getChild(interfaceName))
-    {
-        throw Exception("Interface: " + interfaceName + " has already been declared on the node definition: " + nodeDef->getName());
+        throw Exception("Interface: " + interfaceName + " has already been declared on the interface: " + interfaceElement->getNamePath());
     }
 
+    InputPtr interfaceInput;
     ElementPtr elem = getDescendant(inputPath);
     InputPtr input = elem ? elem->asA<Input>() : nullptr;
     if (input && !input->getConnectedNode())
     {
         input->setInterfaceName(interfaceName);
-        InputPtr nodeDefInput = nodeDef->getInput(interfaceName);
-        if (!nodeDefInput)
+        interfaceInput = interfaceElement->getInput(interfaceName);
+        if (!interfaceInput)
         {
-            nodeDefInput = nodeDef->addInput(interfaceName, input->getType());
+            interfaceInput = interfaceElement->addInput(interfaceName, input->getType());
         }
         if (input->hasValue())
         {
-            nodeDefInput->setValueString(input->getValueString());
+            interfaceInput->setValueString(input->getValueString());
             input->removeAttribute(Input::VALUE_ATTRIBUTE);
         }
     }
+    return interfaceInput;
 }
 
 void NodeGraph::removeInterfaceName(const string& inputPath)
@@ -684,24 +698,44 @@ void NodeGraph::removeInterfaceName(const string& inputPath)
     if (input)
     {
         const string& interfaceName = input->getInterfaceName();
-        getNodeDef()->removeChild(interfaceName);
-        input->setInterfaceName(EMPTY_STRING);
+        if (!interfaceName.empty())
+        {
+            NodeDefPtr nodeDef = getNodeDef();
+            InterfaceElementPtr interface = nodeDef ? nodeDef->asA<InterfaceElement>() : getSelf()->asA<InterfaceElement>();
+            ElementPtr interfacePort = interface->getChild(interfaceName);
+            if (interfacePort)
+            {
+                InputPtr interfaceInput = interfacePort->asA<Input>();
+                if (interfaceInput && interfaceInput->hasValue())
+                {
+                    input->setValueString(interfaceInput->getValueString());
+                }
+                interface->removeChild(interfaceName);
+            }
+            input->setInterfaceName(EMPTY_STRING);
+        }
     }
 }
 
 void NodeGraph::modifyInterfaceName(const string& inputPath, const string& interfaceName)
 {
+    NodeDefPtr nodeDef = getNodeDef();
+    InterfaceElementPtr interfaceElement = nodeDef ? nodeDef->asA<InterfaceElement>() : getSelf()->asA<InterfaceElement>();
+
     ElementPtr desc = getDescendant(inputPath);
     InputPtr input = desc ? desc->asA<Input>() : nullptr;
     if (input)
     {
         const string& previousName = input->getInterfaceName();
-        ElementPtr previousChild = getNodeDef()->getChild(previousName);
-        if (previousChild)
+        if (previousName != interfaceName)
         {
-            previousChild->setName(interfaceName);
+            ElementPtr previousChild = interfaceElement->getChild(previousName);
+            if (previousChild)
+            {
+                previousChild->setName(interfaceName);
+            }
+            input->setInterfaceName(interfaceName);
         }
-        input->setInterfaceName(interfaceName);
     }
 }
 

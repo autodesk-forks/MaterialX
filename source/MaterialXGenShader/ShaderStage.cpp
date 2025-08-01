@@ -65,7 +65,7 @@ ShaderPort* VariableBlock::find(const ShaderPortPredicate& predicate)
     return nullptr;
 }
 
-ShaderPort* VariableBlock::add(const TypeDesc* type, const string& name, ValuePtr value, bool shouldWiden)
+ShaderPort* VariableBlock::add(TypeDesc type, const string& name, ValuePtr value, bool shouldWiden)
 {
     auto it = _variableMap.find(name);
     if (it != _variableMap.end())
@@ -74,7 +74,7 @@ ShaderPort* VariableBlock::add(const TypeDesc* type, const string& name, ValuePt
         {
             // Automatically try to widen the type of the shader port if the requested type differs from
             // the existing port's type.
-            if (it->second->getType()->getSize() < type->getSize())
+            if (it->second->getType().getSize() < type.getSize())
             {
                 it->second->setType(type);
             }
@@ -82,8 +82,8 @@ ShaderPort* VariableBlock::add(const TypeDesc* type, const string& name, ValuePt
         else if (type != it->second->getType())
         {
             throw ExceptionShaderGenError("Trying to add shader port '" + name + "' with type '" +
-                                          type->getName() + "', but existing shader port with type '" +
-                                          it->second->getType()->getName() + "' was found");
+                                          type.getName() + "', but existing shader port with type '" +
+                                          it->second->getType().getName() + "' was found");
         }
         return it->second.get();
     }
@@ -230,7 +230,7 @@ void ShaderStage::beginScope(Syntax::Punctuation punc)
     }
 
     ++_indentations;
-    _scopes.push_back(Scope(punc));
+    _scopes.emplace_back(punc);
 }
 
 void ShaderStage::endScope(bool semicolon, bool newline)
@@ -315,7 +315,7 @@ void ShaderStage::addBlock(const string& str, const FilePath& sourceFilename, Ge
     const string& INCLUDE = _syntax->getIncludeStatement();
     const string& QUOTE   = _syntax->getStringQuote();
 
-    // Add each line in the block seperately to get correct indentation.
+    // Add each line in the block separately to get correct indentation.
     StringStream stream(str);
     for (string line; std::getline(stream, line);)
     {
@@ -359,12 +359,14 @@ void ShaderStage::addInclude(const FilePath& includeFilename, const FilePath& so
     }
 }
 
+bool ShaderStage::hasSourceDependency(const FilePath& file)
+{
+    return _sourceDependencies.count(file) != 0;
+}
+
 void ShaderStage::addSourceDependency(const FilePath& file)
 {
-    if (!_sourceDependencies.count(file))
-    {
-        _sourceDependencies.insert(file);
-    }
+    _sourceDependencies.insert(file);
 }
 
 void ShaderStage::addFunctionDefinition(const ShaderNode& node, GenContext& context)
@@ -383,8 +385,7 @@ void ShaderStage::addFunctionDefinition(const ShaderNode& node, GenContext& cont
 void ShaderStage::addFunctionCall(const ShaderNode& node, GenContext& context, bool emitCode)
 {
     // Register this function as being called in the current scope.
-    const ClosureContext* cct = context.getClosureContext();
-    const FunctionCallId id(&node, cct ? cct->getType() : 0);
+    const FunctionCallId id = &node;
     _scopes.back().functions.insert(id);
 
     // Emit code for the function call if not omitted.
@@ -394,10 +395,9 @@ void ShaderStage::addFunctionCall(const ShaderNode& node, GenContext& context, b
     }
 }
 
-bool ShaderStage::isEmitted(const ShaderNode& node, GenContext& context) const
+bool ShaderStage::isEmitted(const ShaderNode& node, GenContext& /*context*/) const
 {
-    const ClosureContext* cct = context.getClosureContext();
-    const FunctionCallId id(&node, cct ? cct->getType() : 0);
+    const FunctionCallId id = &node;
 
     for (const Scope& s : _scopes)
     {

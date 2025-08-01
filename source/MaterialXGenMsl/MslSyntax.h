@@ -19,9 +19,9 @@ MATERIALX_NAMESPACE_BEGIN
 class MX_GENMSL_API MslSyntax : public Syntax
 {
   public:
-    MslSyntax();
+    MslSyntax(TypeSystemPtr typeSystem);
 
-    static SyntaxPtr create() { return std::make_shared<MslSyntax>(); }
+    static SyntaxPtr create(TypeSystemPtr typeSystem) { return std::make_shared<MslSyntax>(typeSystem); }
 
     const string& getInputQualifier() const override { return INPUT_QUALIFIER; }
     const string& getOutputQualifier() const override { return OUTPUT_QUALIFIER; }
@@ -30,13 +30,13 @@ class MX_GENMSL_API MslSyntax : public Syntax
     const string& getSourceFileExtension() const override { return SOURCE_FILE_EXTENSION; };
     const string& getStructKeyword() const { return STRUCT_KEYWORD; }
 
-    string getOutputTypeName(const TypeDesc* type) const override;
+    string getOutputTypeName(TypeDesc type) const override;
 
     bool typeSupported(const TypeDesc* type) const override;
 
     /// Given an input specification attempt to remap this to an enumeration which is accepted by
     /// the shader generator. The enumeration may be converted to a different type than the input.
-    bool remapEnumeration(const string& value, const TypeDesc* type, const string& enumNames, std::pair<const TypeDesc*, ValuePtr>& result) const override;
+    bool remapEnumeration(const string& value, TypeDesc type, const string& enumNames, std::pair<TypeDesc, ValuePtr>& result) const override;
 
     static const string INPUT_QUALIFIER;
     static const string OUTPUT_QUALIFIER;

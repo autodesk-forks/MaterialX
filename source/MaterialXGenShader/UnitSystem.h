@@ -29,11 +29,11 @@ using UnitSystemPtr = shared_ptr<class UnitSystem>;
 /// Structure that represents unit transform information
 struct MX_GENSHADER_API UnitTransform
 {
-    UnitTransform(const string& ss, const string& ts, const TypeDesc* t, const string& unittype);
+    UnitTransform(const string& ss, const string& ts, TypeDesc t, const string& unittype);
 
     string sourceUnit;
     string targetUnit;
-    const TypeDesc* type;
+    TypeDesc type;
     string unitType;
 
     /// Comparison operator
@@ -59,7 +59,7 @@ class MX_GENSHADER_API UnitSystem
     /// Return the UnitSystem name
     virtual const string& getName() const
     {
-        return UnitSystem::UNITSYTEM_NAME;
+        return UnitSystem::UNITSYSTEM_NAME;
     }
 
     /// Assign unit converter registry replacing any previous assignment
@@ -81,7 +81,7 @@ class MX_GENSHADER_API UnitSystem
     /// Returns a nodedef for a given transform
     virtual NodeDefPtr getNodeDef(const UnitTransform& transform) const;
 
-    static const string UNITSYTEM_NAME;
+    static const string UNITSYSTEM_NAME;
 
   protected:
     // Protected constructor

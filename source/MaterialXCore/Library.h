@@ -11,6 +11,7 @@
 /// any public header in the MaterialX library.
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdlib>
 #include <functional>
 #include <memory>
@@ -20,6 +21,11 @@
 #include <vector>
 
 #include <MaterialXCore/Generated.h>
+
+#define MATERIALX_GENERATE_INDEX(major, minor, build) (((major) << 22U) | ((minor) << 12U) | (build))
+
+#define MATERIALX_VERSION_INDEX \
+    MATERIALX_GENERATE_INDEX(MATERIALX_MAJOR_VERSION, MATERIALX_MINOR_VERSION, MATERIALX_BUILD_VERSION)
 
 /// Platform-specific macros for declaring imported and exported symbols.
 #if defined(MATERIALX_BUILD_SHARED_LIBS)
@@ -32,12 +38,10 @@
         #define MATERIALX_EXPORT_EXTERN_TEMPLATE(...) template class MATERIALX_SYMBOL_EXPORT __VA_ARGS__
         #define MATERIALX_IMPORT_EXTERN_TEMPLATE(...) extern template class MATERIALX_SYMBOL_IMPORT __VA_ARGS__
     #else
-        // Presently non-Windows platforms just export all symbols from
-        // shared libraries rather than using the explicit declarations.
-        #define MATERIALX_SYMBOL_EXPORT
-        #define MATERIALX_SYMBOL_IMPORT
-        #define MATERIALX_EXPORT_EXTERN_TEMPLATE(...)
-        #define MATERIALX_IMPORT_EXTERN_TEMPLATE(...)
+        #define MATERIALX_SYMBOL_EXPORT __attribute__((__visibility__("default")))
+        #define MATERIALX_SYMBOL_IMPORT __attribute__((__visibility__("default")))
+        #define MATERIALX_EXPORT_EXTERN_TEMPLATE(...) template class MATERIALX_SYMBOL_EXPORT __VA_ARGS__
+        #define MATERIALX_IMPORT_EXTERN_TEMPLATE(...) extern template class MATERIALX_SYMBOL_IMPORT __VA_ARGS__
     #endif
 #else
     #define MATERIALX_SYMBOL_EXPORT

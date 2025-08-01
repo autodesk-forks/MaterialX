@@ -8,7 +8,7 @@ MaterialX Specification v1.39
 **Version 1.39**  
 Doug Smythe - Industrial Light & Magic  
 Jonathan Stone - Lucasfilm Advanced Development Group  
-April 20, 2023
+March 15, 2025
 
 
 # Introduction
@@ -24,7 +24,7 @@ At least four distinct interrelated data relationships are required to specify t
 
 **MaterialX** addresses the need for an open, platform-independent, well-defined standard for specifying the "look" of computer graphics objects built using node networks by defining a material content schema along with a corresponding XML-based file format to read and write MaterialX content.  The MaterialX schema defines a number of primary element types plus several supplemental and sub-element types, as well as a set of **standard nodes** with specific functionality for defining data-processing graphs, shaders and materials.
 
-This document describes the core MaterialX specification.  Companion documents [**MaterialX Physically Based Shading Nodes**](./MaterialX.PBRSpec.md), [**MaterialX Geometry Extensions**](./MaterialX.GeomExts.md) and [**MaterialX Supplemental Notes**](./MaterialX.Supplement.md) describe additional node and element types and other information about the library.
+This document describes the core MaterialX specification.  Companion documents [**MaterialX Standard Nodes**](./MaterialX.StandardNodes.md), [**MaterialX Physically Based Shading Nodes**](./MaterialX.PBRSpec.md) and [**MaterialX NPR Shading Nodes**](./MaterialX.NPRSpec.md) describe the standard mathematical, pattern and shading nodes of MaterialX, while companion documents [**MaterialX Geometry Extensions**](./MaterialX.GeomExts.md) and [**MaterialX Supplemental Notes**](./MaterialX.Supplement.md) describe additional element types and other information about the library, while [**MaterialX: Proposed Additions and Changes**](./MaterialX.Proposals.md) describes forward-looking proposed functionality for MaterialX.
 
 
 
@@ -42,6 +42,7 @@ This document describes the core MaterialX specification.  Companion documents [
  [Units](#units)  
  [MaterialX Namespaces](#materialx-namespaces)  
  [Geometric Properties](#geometric-properties)  
+ [Geometric Spaces](#geometric-spaces)  
  [File Prefixes](#file-prefixes)  
  [Filename Substitutions](#filename-substitutions)  
 
@@ -49,22 +50,7 @@ This document describes the core MaterialX specification.  Companion documents [
  [Inputs](#inputs)  
  [Node Graph Elements](#node-graph-elements)  
  [Output Elements](#output-elements)  
-
- [Standard Source Nodes](#standard-source-nodes)  
-  [Texture Nodes](#texture-nodes)  
-  [Procedural Nodes](#procedural-nodes)  
-  [Geometric Nodes](#geometric-nodes)  
-  [Global Nodes](#global-nodes)  
-  [Application Nodes](#application-nodes)  
-
- [Standard Operator Nodes](#standard-operator-nodes)  
-  [Math Nodes](#math-nodes)  
-  [Adjustment Nodes](#adjustment-nodes)  
-  [Compositing Nodes](#compositing-nodes)  
-  [Conditional Nodes](#conditional-nodes)  
-  [Channel Nodes](#channel-nodes)  
-  [Convolution Nodes](#convolution-nodes)  
-
+ [Standard Nodes](#standard-nodes)  
  [Standard Node Inputs](#standard-node-inputs)  
  [Standard UI Attributes](#standard-ui-attributes)  
  [Backdrop Elements](#backdrop-elements)  
@@ -81,7 +67,6 @@ This document describes the core MaterialX specification.  Companion documents [
    [NodeDef Token Elements](#nodedef-token-elements)  
    [NodeDef Output Elements](#nodedef-output-elements)  
   [Custom Node Definition Using Implementation Elements](#custom-node-definition-using-implementation-elements)  
-   [Implementation AOV Elements](#implementation-aov-elements)  
    [Example Custom Nodes Defined by External File Implementations](#example-custom-nodes-defined-by-external-file-implementations)  
   [Custom Node Definition Using Node Graphs](#custom-node-definition-using-node-graphs)  
    [Functional Nodegraphs](#functional-nodegraphs)  
@@ -89,15 +74,13 @@ This document describes the core MaterialX specification.  Companion documents [
    [Example Custom Node Defined by a Nodegraph](#example-custom-node-defined-by-a-nodegraph)  
   [Custom Node Use](#custom-node-use)  
  [Shader Nodes](#shader-nodes)  
-  [Standard Library Shader Nodes](#standard-library-shader-nodes)  
-  [AOV Output Elements](#aov-output-elements)   
-   [AOVOutput Example](#aovoutput-example)   
  [Material Nodes](#material-nodes)  
-  [Material Inheritance](#material-inheritance)  
   [Example Pre-Shader Compositing Material](#example-pre-shader-compositing-material)  
  [Material Variants](#material-variants)  
 
 **[References](#references)**
+
+<br>
 
 
 # MaterialX Overview
@@ -214,7 +197,7 @@ Coordinate values should be separated by commas (with or without whitespace), wi
     vector4value = "-0.13,12.883,91.7,1.0"
 ```
 
-While color<em>N</em> and vector<em>N</em> types both describe vectors of floating-point values, they differ in a number of significant ways.  First, the final channel of a color4 value is interpreted as an alpha channel by compositing operators, and is only meaningful within the [0, 1] range, while the fourth channel of a vector4 value _could be_ (but is not necessarily) interpreted as the "w" value of a homogeneous 3D vector.  Additionally, values of type color3 and color4 are always associated with a particular color space and are affected by color transformations, while values of type vector3 and vector4 are not.  More detailed rules for color<em>N</em> and vector<em>N</em> operations may be found in the [Standard Operator Nodes](#standard-operator-nodes) section of the specification.
+While color<em>N</em> and vector<em>N</em> types both describe vectors of floating-point values, they differ in a number of significant ways.  First, the final channel of a color4 value is interpreted as an alpha channel by compositing operators, and is only meaningful within the [0, 1] range, while the fourth channel of a vector4 value _could be_ (but is not necessarily) interpreted as the "w" value of a homogeneous 3D vector.  Additionally, values of type color3 and color4 are always associated with a particular color space and are affected by color transformations, while values of type vector3 and vector4 are not.  More detailed rules for color<em>N</em> and vector<em>N</em> operations may be found in the [Standard Operator Nodes](./MaterialX.StandardNodes.md#standard-operator-nodes) section of the specification.
 
 **Matrix** types: MaterialX supports two matrix types that may be used to represent geometric and color transforms.  The `matrix33` and `matrix44` types, respectively, represent 3x3 and 4x4 matrices and are written as nine or sixteen float values separated by commas, in row-major order:
 
@@ -255,7 +238,7 @@ While color<em>N</em> and vector<em>N</em> types both describe vectors of floati
 
 ## Custom Data Types
 
-In addition to the standard data types, MaterialX supports the specification of custom data types for the inputs and outputs of shaders and custom nodes.  This allows documents to describe data streams of any complex type an application may require; examples might include spectral color samples or compound geometric data.
+In addition to the standard data types, MaterialX supports the specification of custom data types for the inputs and outputs of shaders and custom nodes.  This allows documents to describe data streams of any complex type an application may require; examples might include spectral color samples or compound geometric data.  The structure of a custom type's contents may be described using a number of <member> elements, though it is also permissible to only declare the custom type's name and treat the type as "blind data".
 
 Types can be declared to have a specific semantic, which can be used to determine how values of that type should be interpreted, and how nodes outputting that type can be connected.  Currently, MaterialX defines three semantics:
 
@@ -269,18 +252,47 @@ Custom types are defined using the &lt;typedef> element:
 
 ```xml
   <typedef name="spectrum" semantic="color"/>
-  <typedef name="manifold"/>
+  <typedef name="texcoord_struct">
+    <member name="s" type="float" value="0.0"/>
+    <member name="t" type="float" value="0.0"/>
+  </typedef>
 ```
 
 Attributes for &lt;typedef> elements:
 
-* `name` (string, required): the name of this type.  Cannot be the same as a built-in MaterialX type.
+* `name` (string, required): the name of this type.  Cannot be the same as a built-in MaterialX type.  To reduce the possible symbol conflict between custom type names and possible variable names created by code generation, we suggest the convention of using `_struct` as a suffix to the type name.
 * `semantic` (string, optional): the semantic for this type (see above); the default semantic is "default".
 * `context` (string, optional): a semantic-specific context in which this type should be applied.  For "shader" semantic types, `context` defines the rendering context in which the shader output is interpreted; please see the [Shader Nodes](#shader-nodes) section for details.
 * `inherit` (string, optional): the name of another type that this type inherits from, which can be either a built-in type or a custom type.  Applications that do not have a definition for this type can use the inherited type as a "fallback" type.
 * `hint` (string, optional): A hint to help those creating code generators understand how the type might be defined.  The following hints for typedefs are currently defined:
     * "halfprecision": the values within this type are half-precision
     * "doubleprecision: the values within this type are double-precision
+
+Attributes for &lt;member> elements:
+
+* `name` (string, required): the name of the member variable. Must be unique within the list of other member names for this custom type.
+* `type` (string, required): the type of the member variable; can be any built-in MaterialX type, or any previously defined custom type; recursive inclusion for &lt;member> types is not supported.
+* `value` (string, required): the default value of the member variable.
+
+If a number of <member> elements are provided, then a MaterialX file can specify a value for that type any place it is used, as a brace surrounded, semicolon-separated list of numbers and strings, with the expectation that the numbers and strings between semicolons exactly line up with the expected <member> types in order.  The use of the braces allows for custom struct types initializers to be nested.  For example, if the following <typedef> was declared:
+
+```xml
+  <typedef name="exampletype_struct">
+    <member name="id" type="integer" value="2"/>
+    <member name="compclr" type="color3" value="0.2,0.4,0.6"/>
+    <member name="objects" type="stringarray" value="whiz,bang"/>
+    <member name="minvec" type="texcoord_struct" value="{0.2,0.2}"/>
+    <member name="maxvec" type="vector2" value="0.5,0.7"/>
+  </typedef>
+```
+
+Then a permissible input declaration in a custom node using that type could be:
+
+```xml
+  <input name="in2" type="exampletype" value="{3; 0.18,0.2,0.11; foo,bar; {0.0,1.0}; 3.4,5.1}"/>
+```
+
+If <member> child elements are not provided, e.g. if the contents of the custom type cannot be represented as a list of MaterialX types, then a value cannot be provided, and this type can only be used to pass blind data from one custom node's output to another custom node or shader input.
 
 Once a custom type is defined by a &lt;typedef>, it can then be used in any MaterialX element that allows "any MaterialX type"; the list of MaterialX types is effectively expanded to include the new custom type.  It should be noted however that the &lt;typedef> is only declaring the existence of the type and perhaps some hints about its intended definition, but it is up to each application and code generator to provide its own precise definition for any type.
 
@@ -341,9 +353,9 @@ By default, MaterialX supports the following color spaces as defined in ACES 1.2
 * `srgb_displayp3`
 * `lin_displayp3`
 
-The working color space of a MaterialX document is defined by the `colorspace` attribute of its root &lt;materialx> element, and it is strongly recommended that all &lt;materialx> elements define a specific `colorspace` if they wish to use a color-managed workflow rather than relying on a default colorspace setting from an external configuration file.
+The working color space of a MaterialX document is defined by the `colorspace` attribute of its root &lt;materialx> element, and it is strongly recommended that all &lt;materialx> elements define a specific `colorspace` if they wish to use a color-managed workflow rather than relying on a default color space setting from an external configuration file.  If a MaterialX document is xi:included into another MaterialX document, it will inherit the working color space setting of the parent document, unless it itself declares a specific working color space.
 
-The color space of individual color image files and values may be defined via a `colorspace` attribute in an input which defines a filename or value.  Color images and values in spaces other than the working color space are expected to be transformed by the application into the working space before computations are performed.  In the example below, an image file has been defined in the “srgb_texture” color space, while its default value has been defined in “lin_rec709”; both should be transformed to the application’s working color space before being applied to any computations.
+The color space of individual color image files and values may be defined via a `colorspace` attribute in an input which defines a filename or value.  Other elements, such as &lt;nodegraph> or a node instance, are allowed to define a `colorspace` attribute that will apply to elements within their scope; color values in inputs and files that do not explicitly provide a `colorspace` attribute will be treated as if they are in the color space of the nearest enclosing scope which does define a `colorspace` attribute.  Color images and values in spaces other than the working color space are expected to be transformed by the application into the working space before computations are performed.  In the example below, an image file has been defined in the “srgb_texture” color space, while its default value has been defined in “lin_rec709”; both should be transformed to the application’s working color space before being applied to any computations.
 
 ```xml
   <image name="in1" type="color3">
@@ -354,7 +366,7 @@ The color space of individual color image files and values may be defined via a 
   </image>
 ```
 
-MaterialX reserves the color space name "none" to mean no color space conversion should be applied to the images and color values within their scope.
+MaterialX reserves the color space name "none" to mean no color space conversion should be applied to the images and color values within their scope, regardless of any differences between stated color spaces at the local scope and document or application working color space settings.
 
 
 
@@ -362,20 +374,26 @@ MaterialX reserves the color space name "none" to mean no color space conversion
 
 MaterialX allows floating-point and vector values to be defined in terms of a specific unit and unit type, and can automatically convert values from their specified unit into a scene unit of the same type specified by the application.  This allows images and the quantities they represent such as displacement amount to be specified at an absolute real-world size, and then be converted automatically to the expected scene units of the application.
 
-Unit types are defined using a &lt;unittypedef> element, and a set of units of that type is defined using a &lt;unitdef> element with one or more child &lt;unit> elements:
+Unit types are defined using a &lt;unittypedef> element, and a set of units of that type is defined using a &lt;unitdef> element with one or more child &lt;unit> elements.  The following unittypes and units are pre-defined by MaterialX:
 
 ```xml
   <unittypedef name="distance"/>
   <unitdef name="UD_stdlib_distance" unittype="distance">
+    <unit name="nanometer" scale="0.000000001"/>
     <unit name="micron" scale="0.000001"/>
     <unit name="millimeter" scale="0.001"/>
     <unit name="centimeter" scale="0.01"/>
-    <unit name="meter" scale="1.0"/>
-    <unit name="kilometer" scale="1000.0"/>
     <unit name="inch" scale="0.0254"/>
     <unit name="foot" scale="0.3048"/>
     <unit name="yard" scale="0.9144"/>
+    <unit name="meter" scale="1.0"/>
+    <unit name="kilometer" scale="1000.0"/>
     <unit name="mile" scale="1609.34"/>
+  </unitdef>
+  <unittypedef name="angle"/>
+  <unitdef name="UD_stdlib_angle" unittype="angle">
+    <unit name="degree" scale="1.0"/>
+    <unit name="radian" scale="57.295779513"/>
   </unitdef>
 ```
 
@@ -383,7 +401,7 @@ The &lt;unittypedef> defines the name of a unittype, while the &lt;unitdef> defi
 
 Any input or other floating-point value may specify a `unit` and/or `unittype` attribute subject to guidelines clarified throughout this document.  Units and unittypes may also be provided for floatarray, vector<em>N</em> and vector<em>N</em>array quantities, with all components of the vector or all values in the array using the same unit, and for "filename"-type input, in which case the `unit` and/or `unittype` attribute applies to the float or vector<em>N</em> values read from those files.  It is not expected that all inputs will have defined units or unittypes; in fact, it is expected that the vast majority of inputs will have neither.  Units and unittypes should only be specified where specific units are important and it is reasonably expected that unit conversion may need to take place.
 
-Please refer to the [Inputs](#inputs), [Custom Node Declaration NodeDef Elements](#custom-node-declaration-nodedef-elements), [Geometric Properties](#geometric-properties) and [Geometric Nodes](#geometric-nodes) sections below and in the MaterialX Geometry Extensions document for additional specific requirements for the use of units.
+Please refer to the [Inputs](#inputs), [Custom Node Declaration NodeDef Elements](#custom-node-declaration-nodedef-elements), [Geometric Properties](#geometric-properties) and [Geometric Nodes](./MaterialX.StandardNodes.md#geometric-nodes) sections below and in the MaterialX Standard Nodes and MaterialX Geometry Extensions documents for additional specific requirements for the use of units.
 
 
 
@@ -449,7 +467,21 @@ A `namespace` attribute may also be added to individual &lt;nodedef>s or &lt;nod
 
 ## Geometric Properties
 
-Geometric Properties, or "geomprops", are intrinsic or user-defined surface coordinate properties of geometries referenced in a specific space and/or index, and are functionally equivalent to USD's concept of "primvars".  A number of geometric properties are predefined in MaterialX: `position`, `normal`, `tangent`, `bitangent`, `texcoord` and `geomcolor`, the values of which can be accessed in nodegraphs using elements of those same names; see the [Geometric Nodes](#geometric-nodes) section below for details.  The value of a varying geometric property can also be used as the default value for a node input using a `defaultgeomprop` attribute.
+Geometric Properties, or "geomprops", are intrinsic or user-defined surface coordinate properties of geometries referenced in a specific space and/or index, and are functionally equivalent to USD's concept of "primvars".  A number of geometric properties are predefined in MaterialX: `position`, `normal`, `tangent`, `bitangent`, `texcoord` and `geomcolor`, the values of which can be accessed in nodegraphs using elements of those same names; see the [Geometric Nodes](./MaterialX.StandardNodes.md#geometric-nodes) section of the MaterialX Standard Nodes document for details.  The value of a varying geometric property can also be used as the default value for a node input using a `defaultgeomprop` attribute.
+
+The following geometric properties are pre-defined by MaterialX:
+
+| GeomProp Name | Type | Description |
+| ---- | ---- | ---- |
+| Pobject | vector3 | Object space position |
+| Nobject | vector3 | Object space surface normal |
+| Tobject | vector3 | Object space tangent vector (index 0) |
+| Bobject | vector3 | Object space bitangent vector (index 0) |
+| Pworld | vector3 | World space position |
+| Nworld | vector3 | World space surface normal |
+| Tworld | vector3 | World space tangent vector (index 0) |
+| Bworld | vector3 | World space bitangent vector (index 0) |
+| UV0 | vector2 | Index "0" UV texture coordinate |
 
 One may also define custom geometric properties using a &lt;geompropdef> element:
 
@@ -478,6 +510,15 @@ A geompropdef may also specify a `unittype` and a `unit` to indicate that the ge
 ```xml
   <geompropdef name="objheight" type="float" unittype="distance" unit="meter"/>
 ```
+
+
+## Geometric Spaces
+
+Various operator nodes may need to specify which 3D space a position or vector is in.  The following values are supported by the `space` inputs of Geometric nodes and when transforming from one space to another:
+
+* "model": The local coordinate space of the geometry, before any local deformations or global transforms have been applied.
+* "object": The local coordinate space of the geometry, after local deformations have been applied, but before any global transforms.
+* "world": The global coordinate space of the geometry, after local deformations and global transforms have been applied.
 
 
 
@@ -530,6 +571,7 @@ Filename input values for various nodes can include one or more special strings,
 
 Note: Implementations are expected to retain substitution strings within filenames upon export rather than "baking them out" into fully-evaluated filenames.  Applications using USD for geometry and assignments may additionally use a &lt;_geometry token_> (a.k.a. "&lt;_primvarname_>") as the entire filename string to access an entire string primvar value unchanged (though that string value may contain the USD-supported &lt;UDIM> token).
 
+<br>
 
 
 # Nodes
@@ -550,13 +592,13 @@ where _nodecategory_ is the general "category" of the node (e.g. "image", "add" 
 
 Node elements may optionally specify a `version` string attribute in "_major_[._minor_]" format, requesting that a specific version of that node's definition be used instead of the default version.  Normally, the types of a node's inputs and outputs are sufficient to disambiguate which signature of the applicable version of a node is intended, but if necessary, a node instantiation may also declare a specific nodedef name to precisely define exactly which node signature is desired.  Please refer to the [Custom Node Declaration NodeDef Elements](#custom-node-declaration-nodedef-elements) section below for further details.
 
-MaterialX defines a number of Standard Nodes which all implementations should support as described to the degree their architecture and capabilities allow.  These standard nodes are grouped into [Standard Source Nodes](#standard-source-nodes) and [Standard Operator Nodes](#standard-operator-nodes); these groups are further divided into additional subcategories of nodes.  In the descriptions below, a node with an "(NG)" annotation indicates a node that is implemented using a nodegraph in the MaterialX distribution, while unannotated nodes are implemented natively in the various renderer shading languages.   One can define new nodes by declaring their parameter interfaces and providing portable nodegraph or target-specific shading language implementations.  Please see the [Custom Nodes](#custom-nodes) section for notes and implementation details.
+MaterialX defines a number of [Standard Nodes](#standard-nodes) which all implementations should support as described to the degree their architecture and capabilities allow.  One can define new nodes by declaring their parameter interfaces and providing portable nodegraph or target-specific shading language implementations.  Please see the [Custom Nodes](#custom-nodes) section for notes and implementation details.
 
 
 
 ## Inputs
 
-Node elements contain zero or more &lt;input> elements defining the name, type, and value or connection for each node input.  Input elements can assign an explicit uniform value by providing a `value` attribute, make a connection to the output of another node by providing a `nodename` attribute, or make a connection to the output of a nodegraph by providing a `nodegraph` attribute.  An optional `output` attribute may also be provided for &lt;input> elements, allowing the input to connect to a specific, named output of the referenced upstream node or nodegraph.  If the referenced node/nodegraph has multiple outputs, `output` is required; if it has only one output, the `output` attribute of the &lt;input> is ignored.  Input elements may be defined to only accept uniform values, in which case the input may provide a `value` or a `nodename` connection to the output of a [&lt;constant> node](#node-constant) (possibly through one or more no-op [&lt;dot> nodes](#node-dot)) or any other node whose output is explicitly declared to be "uniform" (such as [&lt;geompropvalueuniform>](#node-geompropvalueuniform)), but may not provide a `nodename` or `nodegraph` connection to any arbitrary node output or to any nodegraph output.  String- and filename-type inputs are required to be "uniform", as are any array-typed inputs.  Input elements may be connected to an external parameter interface in the node definition, allowing them to be assigned values from materials or node instantiations; this includes "uniform" and string/filename-type inputs, however, the same connectability restrictions listed above apply to the inputs of the material or node instance.  Inputs may only be connected to node/nodegraph outputs or nodedef interface inputs of the same type, though it is permissible for a `string`-type output to be connected to a `filename`-type input (but not the other way around).
+Node elements contain zero or more &lt;input> elements defining the name, type, and value or connection for each node input.  Input elements can assign an explicit uniform value by providing a `value` attribute, make a connection to the output of another node by providing a `nodename` attribute, or make a connection to the output of a nodegraph by providing a `nodegraph` attribute.  An optional `output` attribute may also be provided for &lt;input> elements, allowing the input to connect to a specific, named output of the referenced upstream node or nodegraph.  If the referenced node/nodegraph has multiple outputs, `output` is required; if it has only one output, the `output` attribute of the &lt;input> is ignored.  Input elements may be defined to only accept uniform values, in which case the input may provide a `value` or a `nodename` connection to the output of a [&lt;constant> node](./MaterialX.StandardNodes.md#node-constant) (possibly through one or more no-op [&lt;dot> nodes](./MaterialX.StandardNodes.md#node-dot)) or any other node whose output is explicitly declared to be "uniform", but may not provide a `nodename` or `nodegraph` connection to any arbitrary node output or to any nodegraph output.  String- and filename-type inputs are required to be "uniform", as are any array-typed inputs.  Input elements may be connected to an external parameter interface in the node definition, allowing them to be assigned values from materials or node instantiations; this includes "uniform" and string/filename-type inputs, however, the same connectability restrictions listed above apply to the inputs of the material or node instance.  Inputs may only be connected to node/nodegraph outputs or nodedef interface inputs of the same type, though it is permissible for a `string`-type output to be connected to a `filename`-type input (but not the other way around).
 
 A float/vector<em>N</em> input of a node, or a "filename"-type input referring to an image file containing float or vector<em>N</em> values, may specify a unit for its value by providing a `unit` attribute, and that unit must be one associated with the `unittype` for that input in the nodedef, if specified; please see the [Units](#units) section above for details on declaring units and unittypes.  If the nodedef for a node (see the [Custom Nodes](#custom-nodes) section below) does not declare a `unittype` for an input, the node may do so; it is not permissible to provide a `unit` for a node input without a compatible `unittype` being defined on either the node or applicable nodedef.
 
@@ -566,24 +608,7 @@ A float/vector<em>N</em> input of a node, or a "filename"-type input referring t
   </constant>
 ```
 
-Unless specified otherwise, all inputs default to a value of 0 in all channels for integer, float, color and vector  types, "" for string and filename types, "false" for boolean types, the identity matrix for matrix types, and for array types, an appropriate-length array consisting of the default value for the array's base type.
-
-A node input must generally be connected to outputs of the same type, but float inputs may also be connected to any single channel within a multi-channel data types by adding an integer "channel" attribute, indicating the channel number (0-3) to extract from the input:
-
-```xml
-  <constant name="c3" type="color3">
-    <input name="value" type="color3" value="0.1, 0.2, 0.3"/>
-  </constant>
-  <constant name="v4" type="vector4">
-    <input name="value" type="vector4" value="0.1, 0.2, 0.3, 0.4"/>
-  </constant>
-  <add name="mult1" type="float">
-    <input name="in1" type="float" nodename="c3" channel="0"/>
-    <input name="in2" type="float" nodename="v4" channel="3"/>
-  </add>
-```
-
-The "channel" attribute is valid in any non-token element that allows a "nodename" attribute.
+Unless specified otherwise, all inputs default to a value of 0 in all channels for integer, float, color and vector types, "" for string and filename types, "false" for boolean types, the identity matrix for matrix types, and for array types, an appropriate-length array consisting of the default value for the array's base type.
 
 Standard MaterialX nodes have exactly one output, while custom nodes may have any number of outputs; please see the [Custom Nodes](#custom-nodes) section for details.
 
@@ -629,1090 +654,19 @@ MaterialX also supports the following additional attributes for Output elements 
 
 
 
-## Standard Source Nodes
+## Standard Nodes
 
-Source nodes use external data and/or procedural functions to form an output; they do not have any required inputs.  Each source node must define its output type.
+A core part of MaterialX is its set of Standard Nodes, divided into five categories: Source nodes, Operator nodes, Standard Shader nodes, Physically-Based Shading nodes, and NPR (non-photorealistic) Shading nodes.
 
-This section defines the Source Nodes that all MaterialX implementations are expected to support.  Standard Source Nodes are grouped into the following classifications: [Texture Nodes](#texture-nodes), [Procedural Nodes](#procedural-nodes), [Geometric Nodes](#geometric-nodes), [Global Nodes](#global-nodes) and [Application Nodes](#application-nodes).
+[**Source nodes**](./MaterialX.StandardNodes.md#standard-source-nodes) use external data and/or procedural functions to form an output; they do not have any required inputs.  Standard Source Nodes are grouped into the following classifications: [Texture Nodes](./MaterialX.StandardNodes.md#texture-nodes), [Procedural Nodes](./MaterialX.StandardNodes.md#procedural-nodes), [Noise Nodes](./MaterialX.StandardNodes.md#noise-nodes), [Shape Nodes](./MaterialX.StandardNodes.md#shape-nodes), [Geometric Nodes](./MaterialX.StandardNodes.md#geometric-nodes) and [Application Nodes](./MaterialX.StandardNodes.md#application-nodes).
 
+[**Operator nodes**](./MaterialX.StandardNodes.md#standard-operator-nodes) process one or more input streams to form an output.  Standard Operator Nodes are grouped into the following classifications: [Math Nodes](./MaterialX.StandardNodes.md#math-nodes), [Logical Operator Nodes](./MaterialX.StandardNodes.md#logical-operator-nodes), [Adjustment Nodes](./MaterialX.StandardNodes.md#adjustment-nodes), [Compositing Nodes](./MaterialX.StandardNodes.md#compositing-nodes), [Conditional Nodes](./MaterialX.StandardNodes.md#conditional-nodes), [Channel Nodes](./MaterialX.StandardNodes.md#channel-nodes) and [Convolution Nodes](./MaterialX.StandardNodes.md#convolution-nodes).
 
-### Texture Nodes
+[**Standard Shader nodes**](./MaterialX.StandardNodes.md#standard-shader-nodes) comprise non-shading shaders such as for displacement, and shaders which do not respond to external illumination.
 
-Texture nodes are used to read filtered image data from image or texture map files for processing within a node graph.
+[**Physically-Based Shading nodes**](./MaterialX.PBRSpec.md) are shader-semantic nodes implementing a number of widely-used [BSDF/BSSRDF](./MaterialX.PBRSpec.md#bsdf-nodes), [emission](./MaterialX.PBRSpec.md#edf-nodes) and [volume](./MaterialX.PBRSpec.md#vdf-nodes) distribution functions and [utility nodes](./MaterialX.PBRSpec.md#utility-nodes) useful in constructing complex layered rendering shaders using node graphs, as well as a set of complete [PBR Shader Nodes](./MaterialX.PBRSpec.md#pbr-shader-nodes) implementing open standard shading models.
 
-```xml
-  <image name="in1" type="color4">
-    <input name="file" type="filename" value="layer1.tif"/>
-    <input name="default" type="color4" value="0.5,0.5,0.5,1"/>
-  </image>
-  <image name="in2" type="color3">
-    <input name="file" type="filename" value="<albedomap>"/>
-    <input name="default" type="color3" value="0.18,0.18,0.18"/>
-  </image>
-```
-
-Standard Texture nodes:
-
-<a id="node-image"> </a>
-
-* **`image`**: samples data from a single image, or from a layer within a multi-layer image.  When used in the context of rendering a geometry, the image is mapped onto the geometry based on geometry UV coordinates, with the lower-left corner of an image mapping to the (0,0) UV coordinate (or to the fractional (0,0) UV coordinate for tiled images).
-The type of the &lt;image> node determines the number of channels output, which may be less than the number of channels in the image file, outputting the first N channels from the image file.  So a `float` &lt;image> would return the Red channel of an RGB image, and a `color3` &lt;image> would return the RGB channels of an RGBA image.
-    * `file` (uniform filename): the URI of an image file.  The filename can include one or more substitutions to change the file name (including frame number) that is accessed, as described in the [Filename Substitutions](#filename-substitutions) section above.
-    * `layer` (uniform string): the name of the layer to extract from a multi-layer input file.  If no value for `layer` is provided and the input file has multiple layers, then the "default" layer will be used, or "rgba" if there is no "default" layer.  Note: the number of channels defined by the `type` of the `<image>` must match the number of channels in the named layer.
-    * `default` (float or color<em>N</em> or vector<em>N</em>): a default value to use if the `file` reference can not be resolved (e.g. if a &lt;_geometry token_>, [_interface token_] or {_hostattr_} is included in the filename but no substitution value or default is defined, or if the resolved `file` URI cannot be read), or if the specified `layer` does not exist in the file.  The `default` value must be the same type as the `<image>` element itself.  If `default` is not defined, the default color value will be 0.0 in all channels.
-    * `texcoord` (vector2): the name of a vector2-type node specifying the 2D texture coordinate at which the image data is read.  Default is to use the current u,v coordinate.
-    * `uaddressmode` (uniform string): determines how U coordinates outside the 0-1 range are processed before sampling the image; see below.  Default is "periodic".
-    * `vaddressmode` (uniform string): determines how V coordinates outside the 0-1 range are processed before sampling the image; see below.  Default is "periodic".
-    * `filtertype` (uniform string): the type of texture filtering to use; standard values include "closest" (nearest-neighbor single-sample), "linear", and "cubic".  If not specified, an application may use its own default texture filtering method.
-
-<a id="node-tiledimage"> </a>
-
-* **`tiledimage`** (NG): samples data from a single image, with provisions for tiling and offsetting the image across uv space.
-    * `file` (uniform filename): the URI of an image file.  The filename can include one or more substitutions to change the file name (including frame number) that is accessed, as described in the [Filename Substitutions](#filename-substitutions) section.
-    * `default` (float or color<em>N</em> or vector<em>N</em>): a default value to use if the `file` reference can not be resolved (e.g. if a &lt;geomtoken>, [interfacetoken] or {hostattr} is included in the filename but no substitution value or default is defined, or if the resolved file URI cannot be read), or if the specified `layer` does not exist in the file.  The `default` value must be the same type as the `<image>` element itself.  If `default` is not defined, the default color value will be 0.0 in all channels.
-    * `texcoord` (vector2): the name of a vector2-type node specifying the 2D texture coordinate at which the image data is read.  Default is to use the current u,v coordinate.
-    * `uvtiling` (vector2): the tiling rate for the given image along the U and V axes. Mathematically equivalent to multiplying the incoming texture coordinates by the given vector value. Default value is (1.0, 1.0).
-    * `uvoffset` (vector2): the offset for the given image along the U and V axes. Mathematically equivalent to subtracting the given vector value from the incoming texture coordinates. Default value is (0.0, 0.0).
-    * `realworldimagesize` (vector2): the real-world size represented by the `file` image, with unittype "distance".  A `unit` attribute may be provided to indicate the units that `realworldimagesize` is expressed in.
-    * `realworldtilesize` (vector2): the real-world size of a single square 0-1 UV tile, with unittype "distance".  A `unit` attribute may be provided to indicate the units that `realworldtilesize` is expressed in.
-    * `filtertype` (uniform string): the type of texture filtering to use; standard values include "closest" (nearest-neighbor single-sample), "linear", and "cubic".  If not specified, an application may use its own default texture filtering method.
-
-<a id="node-triplanarprojection"> </a>
-
-* **`triplanarprojection`** (NG): samples data from three images (or layers within multi-layer images), and projects a tiled representation of the images along each of the three respective coordinate axes, computing a weighted blend of the three samples using the geometric normal.
-    * `filex` (uniform filename): the URI of an image file to be projected in the direction from the +X axis back toward the origin.
-    * `filey` (uniform filename): the URI of an image file to be projected in the direction from the +Y axis back toward the origin with the +X axis to the right.
-    * `filez` (uniform filename): the URI of an image file to be projected in the direction from the +Z axis back toward the origin.
-    * `layerx` (uniform string): the name of the layer to extract from a multi-layer input file for the x-axis projection.  If no value for `layerx` is provided and the input file has multiple layers, then the "default" layer will be used, or "rgba" if there is no "default" layer.  Note: the number of channels defined by the `type` of the `<image>` must match the number of channels in the named layer.
-    * `layery` (uniform string): the name of the layer to extract from a multi-layer input file for the y-axis projection.
-    * `layerz` (uniform string): the name of the layer to extract from a multi-layer input file for the z-axis projection.
-    * `default` (float or color<em>N</em> or vector<em>N</em>): a default value to use if any `file<em>X</em>` reference can not be resolved (e.g. if a &lt;geomtoken>, [interfacetoken] or {hostattr} is included in the filename but no substitution value or default is defined, or if the resolved file URI cannot be read)  The `default` value must be the same type as the `<triplanarprojection>` element itself.  If `default` is not defined, the default color value will be 0.0 in all channels.
-    * `position` (vector3): a spatially-varying input specifying the 3D position at which the projection is evaluated.  Default is to use the current 3D object-space coordinate.
-    * `normal` (vector3): a spatially-varying input specifying the 3D normal vector used for blending.  Default is to use the current object-space surface normal.
-    * `blend` (float): a 0-1 weighting factor for blending the three axis samples using the geometric normal, with higher values giving softer blending.  Default is 1.0.
-    * `filtertype` (uniform string): the type of texture filtering to use; standard values include "closest" (nearest-neighbor single-sample), "linear", and "cubic".  If not specified, an application may use its own default texture filtering method.
-
-
-<a id="addressmode-values"> </a>
-
-The following values are supported by `uaddressmode` and `vaddressmode` inputs of [image](#node-image) nodes:
-
-* “constant”: Texture coordinates outside the 0-1 range return the value of the node's `default` input.
-* “clamp”: Texture coordinates are clamped to the 0-1 range before sampling the image.
-* “periodic”: Texture coordinates outside the 0-1 range "wrap around", effectively being processed by a modulo 1 operation before sampling the image.
-* "mirror": Texture coordinates outside the 0-1 range will be mirrored back into the 0-1 range, e.g. u=-0.01 will return the u=0.01 texture coordinate value, and u=1.01 will return the u=0.99 texture coordinate value.
-
-
-Texture nodes using `file*` inputs also support the following inputs to handle boundary conditions for image file frame ranges for all `file*` inputs:
-
-* `framerange` (uniform string): a string "_minframe_-_maxframe_", e.g. "10-99", to specify the range of frames that the image file is allowed to have, usually the range of image files on disk.  Default is unbounded.
-* `frameoffset` (integer): a number that is added to the current frame number to get the image file frame number.  E.g. if `frameoffset` is 25, then processing frame 100 will result in reading frame 125 from the imagefile sequence.  Default is no frame offset.
-* `frameendaction` (uniform string): what to do when the resolved image frame number is outside the `framerange` range:
-    * "constant": Return the value of the node's `default` input (default action)
-    * "clamp": Hold the minframe image for all frames before _minframe_ and hold the maxframe image for all frames after _maxframe_
-    * "periodic": Frame numbers "wrap around", so after the _maxframe_ it will start again at _minframe_ (and similar before _minframe_ wrapping back around to _maxframe_)
-    * "mirror": Frame numbers "mirror" or "ping-pong" at the endpoints of framerange, so a read of the frame after _maxframe_ will return the image from frame _maxframe_-1, and a read of the frame before _minframe_ will return the image from frame _minframe_+1.
-
-Arbitrary frame number expressions and speed changes are not supported.
-
-
-
-### Procedural Nodes
-
-Procedural nodes are used to generate value data programmatically.
-
-```xml
-  <constant name="n8" type="color3">
-    <input name="value" type="color3" value="0.8,1.0,1.3"/>
-  </constant>
-  <noise2d name="n9" type="float">
-    <input name="pivot" type="float" value="0.5"/>
-    <input name="amplitude" type="float" value="0.05"/>
-  </noise2d>
-```
-
-Standard Procedural nodes:
-
-<a id="node-constant"> </a>
-
-* **`constant`**: a constant value.
-    * `value` (any non-shader-semantic type): the value to output
-
-<a id="node-tokenvalue"> </a>
-
-* **`tokenvalue`**: a constant "interface token" value, may only be connected to &lt;token>s in nodes, not to &lt;input>s.
-    * `value` (any uniform non-shader-semantic type): the token value to output; "enum" and "enumvalues" attributes may be provided to define a specific set of allowed token values.
-
-<a id="node-ramplr"> </a>
-
-* **`ramplr`**: a left-to-right linear value ramp.
-    * `valuel` (float or color<em>N</em> or vector<em>N</em>): the value at the left (U=0) edge
-    * `valuer` (float or color<em>N</em> or vector<em>N</em>): the value at the right (U=1) edge
-    * `texcoord` (vector2): the name of a vector2-type node specifying the 2D texture coordinate at which the ramp interpolation is evaluated.  Default is to use the first set of texture coordinates.
-
-<a id="node-ramptb"> </a>
-
-* **`ramptb`**: a top-to-bottom linear value ramp.
-    * `valuet` (float or color<em>N</em> or vector<em>N</em>): the value at the top (V=1) edge
-    * `valueb` (float or color<em>N</em> or vector<em>N</em>): the value at the bottom (V=0) edge
-    * `texcoord` (vector2): the name of a vector2-type node specifying the 2D texture coordinate at which the ramp interpolation is evaluated.  Default is to use the first set of texture coordinates.
-
-<a id="node-ramp4"> </a>
-
-* **`ramp4`** (NG): a 4-corner bilinear value ramp.
-    * `valuetl` (float or color<em>N</em> or vector<em>N</em>): the value at the top-left (U0V1) corner
-    * `valuetr` (float or color<em>N</em> or vector<em>N</em>): the value at the top-right (U1V1) corner
-    * `valuebl` (float or color<em>N</em> or vector<em>N</em>): the value at the bottom-left (U0V0) corner
-    * `valuebr` (float or color<em>N</em> or vector<em>N</em>): the value at the bottom-right (U1V0) corner
-    * `texcoord` (vector2, optional): the name of a vector2-type node specifying the 2D texture coordinate at which the ramp interpolation is evaluated.  Default is to use the first set of texture coordinates.
-
-<a id="node-splitlr"> </a>
-
-* **`splitlr`**: a left-right split matte, split at a specified U value.
-    * `valuel` (float or color<em>N</em> or vector<em>N</em>): the value at the left (U=0) edge
-    * `valuer` (float or color<em>N</em> or vector<em>N</em>): the value at the right (U=1) edge
-    * `center` (float): a value representing the U-coordinate of the split; all pixels to the left of "center" will be `valuel`, all pixels to the right of "center" will be `valuer`.  Default is 0.5.
-    * `texcoord` (vector2): the name of a vector2-type node specifying the 2D texture coordinate at which the split position is evaluated.  Default is to use the first set of texture coordinates.
-
-<a id="node-splittb"> </a>
-
-* **`splittb`**: a top-bottom split matte, split at a specified V value.
-    * `valuet` (float or color<em>N</em> or vector<em>N</em>): the value at the top (V=1) edge
-    * `valueb` (float or color<em>N</em> or vector<em>N</em>): the value at the bottom (V=0) edge
-    * `center` (float): a value representing the V-coordinate of the split; all pixels above "center" will be `valuet`, all pixels below "center" will be `valueb`.  Default is 0.5.
-    * `texcoord` (vector2): the name of a vector2-type node specifying the 2D texture coordinate at which the split position is evaluated.  Default is to use the first set of texture coordinates.
-
-<a id="node-checkerboard"> </a>
-
-* **`checkerboard`**: a 2D checkerboard pattern.
-    * `color1` (color3): The first color used in the checkerboard pattern.
-    * `color2` (color3): The second color used in the checkerboard pattern.
-    * `uvtiling` (vector2): The tiling of the checkerboard pattern along each axis, with higher values producing smaller squares. Default is (8, 8).
-    * `uvoffset` (vector2): The offset of the checkerboard pattern along each axis. Default is (0, 0).
-    * `texcoord` (vector2): The input 2d space. Default is the first texture coordinates.
-
-<a id="node-noise2d"> </a>
-
-* **`noise2d`**: 2D Perlin noise in 1, 2, 3 or 4 channels.
-    * `amplitude` (float or vector<em>N</em>): the center-to-peak amplitude of the noise (peak-to-peak amplitude is 2x this value).  Default is 1.0.
-    * `pivot` (float): the center value of the output noise; effectively, this value is added to the result after the Perlin noise is multiplied by `amplitude`.  Default is 0.0.
-    * `period` (float or vector<em>N</em>): the positive integer distance at which the noise function returns the same value for texture coordinates repeated at that step.  Default is 0, meaning the noise is not periodic.
-    * `texcoord` (vector2): the 2D texture coordinate at which the noise is evaluated.  Default is to use the first set of texture coordinates.
-
-<a id="node-noise3d"> </a>
-
-* **`noise3d`**: 3D Perlin noise in 1, 2, 3 or 4 channels.
-    * `amplitude` (float or vector<em>N</em>): the center-to-peak amplitude of the noise (peak-to-peak amplitude is 2x this value).  Default is 1.0.
-    * `pivot` (float): the center value of the output noise; effectively, this value is added to the result after the Perlin noise is multiplied by `amplitude`.  Default is 0.0.
-    * `period` (float or vector<em>N</em>): the positive integer distance at which the noise function returns the same value for position coordinates repeated at that step.  Default is 0, meaning the noise is not periodic.
-    * `position` (vector3): the 3D position at which the noise is evaluated.  Default is to use the current 3D object-space coordinate.
-
-<a id="node-fractal2d"> </a>
-
-* **`fractal2d`**: Zero-centered 2D Fractal noise in 1, 2, 3 or 4 channels, created by summing several octaves of 2D Perlin noise, increasing the frequency and decreasing the amplitude at each octave.
-    * `amplitude` (float or vector<em>N</em>): the center-to-peak amplitude of the noise (peak-to-peak amplitude is 2x this value).  Default is 1.0.
-    * `octaves` (integer): the number of octaves of noise to be summed.  Default is 3.
-    * `lacunarity` (float or vector<em>N</em>): the exponential scale between successive octaves of noise; must be an integer value if period is non-zero so the result is properly tileable.  VectorN-output types can provide either a float (isotropic) or vector<em>N</em> (anisotropic) values for lacunarity and diminish.  Default is 2.0.
-    * `diminish` (float or vector<em>N</em>): the rate at which noise amplitude is diminished for each octave.  Should be between 0.0 and 1.0; default is 0.5.  VectorN-output types can provide either a float (isotropic) or vector<em>N</em> (anisotropic) values for lacunarity and diminish.
-    * `period` (float or vector<em>N</em>): the positive integer distance at which the noise function returns the same value for texture coordinates repeated at that step.  Default is 0, meaning the noise is not periodic.
-    * `texcoord` (vector2): the 2D texture coordinate at which the noise is evaluated.  Default is to use the first set of texture coordinates.
-
-<a id="node-fractal3d"> </a>
-
-* **`fractal3d`**: Zero-centered 3D Fractal noise in 1, 2, 3 or 4 channels, created by summing several octaves of 3D Perlin noise, increasing the frequency and decreasing the amplitude at each octave.
-    * `amplitude` (float or vector<em>N</em>): the center-to-peak amplitude of the noise (peak-to-peak amplitude is 2x this value).  Default is 1.0.
-    * `octaves` (integer): the number of octaves of noise to be summed.  Default is 3.
-    * `lacunarity` (float or vector<em>N</em>): the exponential scale between successive octaves of noise; must be an integer value if period is non-zero so the result is properly tileable.  Default is 2.0.  Vector<em>N</em>-output types can provide either a float (isotropic) or vector<em>N</em> (anisotropic) values for `lacunarity` and `diminish`.
-    * `diminish` (float or vector<em>N</em>): the rate at which noise amplitude is diminished for each octave.  Should be between 0.0 and 1.0; default is 0.5.  Vector<em>N</em>-output types can provide either a float (isotropic) or vector<em>N</em> (anisotropic) values for `lacunarity` and `diminish`.
-    * `period` (float or vector<em>N</em>): the positive integer distance at which the noise function returns the same value for position coordinates repeated at that step.  Default is 0, meaning the noise is not periodic.
-    * `position` (vector3): the 3D position at which the noise is evaluated.  Default is to use the current 3D object-space coordinate.
-
-<a id="node-cellnoise1d"> </a>
-
-* **`cellnoise1d`**: 1D cellular noise, 1 or 3 channels (type float or vector3).
-    * `period` (float or vector3): the positive integer distance at which the noise function returns the same value for input coordinate repeated at that step.  Default is 0, meaning the noise is not periodic.
-    * `in` (float): the 1D coordinate at which the noise is evaluated.
-
-<a id="node-cellnoise2d"> </a>
-
-* **`cellnoise2d`**: 2D cellular noise, 1 or 3 channels (type float or vector3).
-    * `period` (float or vector3): the positive integer distance at which the noise function returns the same value for texture coordinates repeated at that step.  Default is 0, meaning the noise is not periodic.
-    * `texcoord` (vector2): the 2D position at which the noise is evaluated.  Default is to use the first set of texture coordinates.
-
-<a id="node-cellnoise3d"> </a>
-
-* **`cellnoise3d`**: 3D cellular noise, 1 or 3 channels (type float or vector3).
-    * `period` (float or vector3): the positive integer distance at which the noise function returns the same value for position coordinates repeated at that step.  Default is 0, meaning the noise is not periodic.
-    * `position` (vector3): the 3D position at which the noise is evaluated.  Default is to use the current 3D object-space coordinate.
-
-<a id="node-worleynoise2d"> </a>
-
-* **`worleynoise2d`**: 2D Worley noise using centered jitter, outputting float (distance metric to closest feature), vector2 (distance metrics to closest 2 features) or vector3 (distance metrics to closest 3 features).
-    * `metric` (uniform string): the distance metric to return, one of "distance" (Euclidean distance to feature), "distance2" (Euclidean distance squared), "manhattan" or "chebyshev".  Default is "distance".
-    * `period` (float or vector3): the positive integer distance at which the noise function returns the same value for texture coordinates repeated at that step.  Default is 0, meaning the noise is not periodic.
-    * `jitter` (float): amount to jitter the cell center position, with smaller values creating a more regular pattern.  Default is 1.0.
-    * `texcoord` (vector2): the 2D position at which the noise is evaluated.  Default is to use the first set of texture coordinates.
-
-<a id="node-worleynoise3d"> </a>
-
-* **`worleynoise3d`**: 3D Worley noise using centered jitter, outputting float (distance metric to closest feature), vector2 (distance metrics to closest 2 features) or vector3 (distance metrics to closest 3 features).
-    * `metric` (uniform string): the distance metric to return, one of "distance" (Euclidean distance to feature), "distance2" (Euclidean distance squared), "manhattan" or "chebyshev".  Default is "distance".
-    * `period` (float or vector3): the positive integer distance at which the noise function returns the same value for position coordinates repeated at that step.  Default is 0, meaning the noise is not periodic.
-    * `jitter` (float): amount to jitter the cell center position, with smaller values creating a more regular pattern.  Default is 1.0.
-    * `position` (vector3): the 3D position at which the noise is evaluated.  Default is to use the current 3D object-space coordinate.
-
-<a id="node-unifiednoise2d"> </a>
-
-* **`unifiednoise2d`** (NG): a single node supporting 2D Perlin, Cell, Worley or Fractal noise in a unified interface.
-    * `type` (integer): The type of noise function to use.  One of 0 (Perlin), 1 (Cell), 2 (Worley), or 3 (Fractal); default is Perlin.
-    * `texcoord` (vector2): the input 2d space. Default is the first texture coordinates.
-    * `freq` (vector2): Adjusts the noise frequency, with higher values producing smaller noise shapes. Default is (1,1).
-    * `offset` (vector2): Shift the noise in 2d space. Default is (0,0).
-    * `jitter` (float): Adjust uniformity of Worley noise; for other noise types jitters the results.
-    * `outmin` (float): The lowest values fit to the noise. Default is 0.0.
-    * `outmax` (float): The highest values fit to the noise. Default is 1.0.
-    * `clampoutput` (boolean): Clamp the output to the min and max output values.
-    * `octaves` (integer): The number of octaves of Fractal noise to be generated. Default is 3.
-    * `lacunarity` (float): The exponential scale between successive octaves of Fractal noise. Default is 2.0.
-    * `diminish` (float): The rate at which noise amplitude is diminished for each octave of Fractal noise. Default is 0.5.
-
-<a id="node-unifiednoise3d"> </a>
-
-* **`unifiednoise3d`** (NG): a single node supporting 3D Perlin, Cell, Worley or Fractal noise in a unified interface.
-    * `type` (integer): The type of noise function to use.  One of 0 (Perlin), 1 (Cell), 2 (Worley), or 3 (Fractal); default is Perlin.
-    * `position` (vector3): the input 3d space. Default is position in object-space.
-    * `freq` (vector3): Adjusts the noise frequency, with higher values producing smaller noise shapes. Default is (1,1,1).
-    * `offset` (vector3): Shift the noise in 3d space. Default is (0,0,0).
-    * `jitter` (float): Adjust uniformity of Worley noise; for other noise types jitters the results.
-    * `outmin` (float): The lowest values fit to the noise. Default is 0.0.
-    * `outmax` (float): The highest values fit to the noise. Default is 1.0.
-    * `clampoutput` (boolean): Clamp the output to the min and max output values.
-    * `octaves` (integer): The number of octaves of Fractal noise to be generated. Default is 3.
-    * `lacunarity` (float): The exponential scale between successive octaves of Fractal noise. Default is 2.0.
-    * `diminish` (float): The rate at which noise amplitude is diminished for each octave of Fractal noise. Default is 0.5.
-
-
-To scale or offset the noise pattern generated by `noise3d`, `fractal3d` or `cellnoise3d`, use a &lt;position> or other [Geometric Node](#geometric-nodes) (see below) connected to vector3 &lt;multiply> and/or &lt;add> nodes, in turn connected to the noise node's `position` input.  To scale or offset `rampX`, `splitX`, `noise2d` or `cellnoise2d` input coordinates, use a &lt;texcoord> or similar Geometric node processed by vector2 &lt;multiply>, &lt;rotate> and/or &lt;add> nodes, and connect to the node's `texcoord` input.
-
-
-
-### Geometric Nodes
-
-Geometric nodes are used to reference local geometric properties from within a node graph:
-
-```xml
-  <position name="wp1" type="vector3" space="world"/>
-  <texcoord name="c1" type="vector2">
-    <input name="index" type="integer" value="1"/>
-  </texcoord>
-```
-
-Standard Geometric nodes:
-
-<a id="node-position"> </a>
-
-* **`position`**: the coordinates associated with the currently-processed data, as defined in a specific coordinate space.  This node must be of type vector3.
-    * `space` (uniform string): the name of the coordinate space in which the position is defined.  Default is "object", see below for details.
-
-<a id="node-normal"> </a>
-
-* **`normal`**: the geometric normal associated with the currently-processed data, as defined in a specific coordinate space.  This node must be of type vector3.
-    * `space` (uniform string): the name of the coordinate space in which the normal vector is defined.  Default is "object", see below for details.
-
-<a id="node-tangent"> </a>
-
-* **`tangent`**: the geometric tangent vector associated with the currently-processed data, as defined in a specific coordinate space.  This node must be of type vector3.
-    * `space` (uniform string): the name of the coordinate space in which the tangent vector is defined.  Default is "object", see below for details.
-    * `index` (uniform integer): the index of the texture coordinates against which the tangent is computed.  The default index is 0.
-
-<a id="node-bitangent"> </a>
-
-* **`bitangent`**: the geometric bitangent vector associated with the currently-processed data, as defined in a specific coordinate space.  This node must be of type vector3.
-    * `space` (uniform string): the name of the coordinate space in which the bitangent vector is defined.  Default is "object", see below for details.
-    * `index` (uniform integer): the index of the texture coordinates against which the tangent is computed.  The default index is 0.
-
-<a id="node-bump"> </a>
-
-* **`bump`**: offset the surface normal by a scalar value.  This node must be of type type vector3, and is generally connected to a shader node's "normal" input.
-    * `height` (float): Amount to offset the surface normal.
-    * `scale` (float): Scalar to adjust the height amount.
-    * `normal` (vector3): Surface normal; defaults to the current world-space normal.
-    * `tangent` (vector3): Surface tangent vector, defaults to the current world-space tangent vector.
-
-<a id="node-texcoord"> </a>
-
-* **`texcoord`**: the 2D or 3D texture coordinates associated with the currently-processed data.  This node must be of type vector2 or vector3.
-    * `index` (uniform integer): the index of the texture coordinates to be referenced.  The default index is 0.
-
-<a id="node-geomcolor"> </a>
-
-* **`geomcolor`**: the color associated with the current geometry at the current `position`, generally bound via per-vertex color values.  Can be of type float, color3 or color4, and must match the type of the "color" bound to the geometry.
-    * `index` (uniform integer): the index of the color to be referenced, default is 0.
-
-<a id="node-geompropvalue"> </a>
-
-* **`geompropvalue`**: the value of the specified varying geometric property (defined using &lt;geompropdef>) of the currently-bound geometry.  This node's type must match that of the referenced geomprop.
-    * `geomprop` (uniform string): the geometric property to be referenced.
-    * `default` (same type as the geomprop's value): a value to return if the specified `geomprop` is not defined on the current geometry.
-
-<a id="node-geompropvalueuniform"> </a>
-
-* **`geompropvalueuniform`**: the value of the specified uniform geometric property (defined using &lt;geompropdef>) of the currently-bound geometry.  This node's type must match that of the referenced geomprop.
-    * `geomprop` (uniform string): the geometric property to be referenced.
-    * `default` (same type as the geomprop's value): a value to return if the specified `geomprop` is not defined on the current geometry.
-
-Additionally, the `geomcolor`, `geompropvalue` and `geompropvalueuniform` nodes for color3/color4-type properties can take a `colorspace` attribute to declare what colorspace the color property value is in; the default is "none" for no colorspace declaration (and hence no colorspace conversion).
-
-
-<a id="space-values"> </a>
-
-The following values are supported by the `space` inputs of Geometric nodes and when transforming from one space to another:
-
-
-* "model": The local coordinate space of the geometry, before any local deformations or global transforms have been applied.
-* "object": The local coordinate space of the geometry, after local deformations have been applied, but before any global transforms.
-* "world": The global coordinate space of the geometry, after local deformations and global transforms have been applied.
-* "tangent": A coordinate space defined by the tangent, bitangent and normal vectors of the geometry.
-
-Applications may also reference other renderer-specific named spaces, at the expense of portability.
-
-
-
-### Global Nodes
-
-Global nodes generate color data using non-local geometric context, requiring access to geometric features beyond the surface point being processed.  This non-local context can be provided by tracing rays into the scene, rasterizing scene geometry, or any other appropriate method.
-
-```xml
-  <ambientocclusion name="occl1" type="float">
-    <input name="maxdistance" type="float" value="10000.0"/>
-  </ambientocclusion>
-```
-
-Standard Global nodes:
-
-<a id="node-ambientocclusion"> </a>
-
-* **`ambientocclusion`**: Compute the ambient occlusion at the current surface point, returning a scalar value between 0 and 1.  Ambient occlusion represents the accessibility of each surface point to ambient lighting, with larger values representing greater accessibility to light.  This node must be of type float.
-    * `coneangle` (float): the half-angle of a cone about the surface normal, within which geometric surface features are considered as potential occluders.  The unit for this input is degrees, and its default value is 90.0 (full hemisphere).
-    * `maxdistance` (float): the maximum distance from the surface point at which geometric surface features are considered as potential occluders.  Defaults to 1e38, e.g. "unlimited".
-
-
-
-### Application Nodes
-
-Application nodes are used to reference application-defined properties within a node graph, and have no inputs:
-
-```xml
-  <frame name="f1" type="float"/>
-  <updirection name="updir1" type="vector3"/>
-```
-
-Standard Application nodes:
-
-<a id="node-frame"> </a>
-
-* **`frame`**: the current frame number as defined by the host environment.  This node must be of type float.  Applications may use whatever method is appropriate to communicate the current frame number to the &lt;frame> node's implementation, whether via an internal state variable, a custom input, or other method.
-
-<a id="node-time"> </a>
-
-* **`time`**: the current time in seconds, as defined by the host environment.  This node must be of type float.  Applications may use whatever method is appropriate to communicate the current time to the &lt;time> node's implementation, whether via an internal state variable, a custom input, dividing the current frame number by a local "frames per second" value, or other method; real-time applications may return some variation of wall-clock time.
-
-<a id="node-updirection"> </a>
-
-* **`updirection`**: the current scene "up vector" direction, as defined by the shading environment.  This node must be of type vector3.
-    * `space` (uniform string):  the space in which to return the up vector direction, defaults to "world". 
-
-
-
-## Standard Operator Nodes
-
-Operator nodes process one or more required input streams to form an output.  Like other nodes, each operator must define its output type, which in most cases also determines the type(s) of the required input streams.
-
-```xml
-  <multiply name="n7" type="color3">
-    <input name="in1" type="color3" nodename="n5"/>
-    <input name="in2" type="float" value="2.0"/>
-  </multiply>
-  <over name="n11" type="color4">
-    <input name="fg" type="color4" nodename="n8"/>
-    <input name="bg" type="color4" nodename="inbg"/>
-  </over>
-  <add name="n2" type="color3">
-    <input name="in1" type="color3" nodename="n12"/>
-    <input name="in2" type="color3" nodename="img4"/>
-  </add>
-```
-
-The inputs of compositing operators are called "fg" and "bg" (plus "alpha" for float and color3 variants, and "mix" for all variants of the `mix` operator), while the inputs of other operators are called "in" if there is exactly one input, or "in1", "in2" etc. if there are more than one input.  If an implementation does not support a particular operator, it should pass through the "bg", "in" or "in1" input unchanged.
-
-This section defines the Operator Nodes that all MaterialX implementations are expected to support.  Standard Operator Nodes are grouped into the following classifications: [Math Nodes](#math-nodes), [Adjustment Nodes](#adjustment-nodes), [Compositing Nodes](#compositing-nodes), [Conditional Nodes](#conditional-nodes), [Channel Nodes](#channel-nodes) and [Convolution Nodes](#convolution-nodes).
-
-
-
-### Math Nodes
-
-Math nodes have one or two spatially-varying inputs, and are used to perform a math operation on values in one spatially-varying input stream, or to combine two spatially-varying input streams using a specified math operation.  The given math operation is performed for each channel of the input stream(s), and the data type of each input must either match that of the input stream(s), or be a float value that will be applied to each channel separately.
-
-
-<a id="node-add"> </a>
-
-* **`add`**: add a value to the incoming float/color/vector/matrix.
-    * `in1` (float or color<em>N</em> or vector<em>N</em> or matrix<em>NN</em>): the value or nodename for the primary input
-    * `in2` (same type as `in1` or float): the value or nodename to add; for matrix types, the default is the zero matrix.
-
-<a id="node-subtract"> </a>
-
-* **`subtract`**: subtract a value from the incoming float/color/vector/matrix, outputting "in1-in2".
-    * `in1` (float or color<em>N</em> or vector<em>N</em> or matrix<em>NN</em>): the value or nodename for the primary input
-    * `in2` (same type as `in1` or float): the value or nodename to subtract; for matrix types, the default is the zero matrix
-
-<a id="node-multiply"> </a>
-
-* **`multiply`**: multiply an incoming float/color/vector/matrix by a value.  Multiplication of two vectors is interpreted as a component-wise vector multiplication, while multiplication of two matrices is interpreted as a standard matrix product.  To multiply a vector and a matrix, use one of the `transform*` nodes.
-    * `in1` (float or color<em>N</em> or vector<em>N</em> or matrix<em>NN</em>): the value or nodename for the primary input
-    * `in2` (same type as `in1` or float): the value or nodename to multiply by; default is 1.0 in all channels for float/color/vector types, or the identity matrix for matrix types.
-
-<a id="node-divide"> </a>
-
-* **`divide`**: divide an incoming float/color/vector/matrix by a value; dividing a channel value by 0 results in floating-point "NaN".  Division of two vectors is interpreted as a component-wise division of the first vector by the second, while division of two matrices is interpreted as a standard matrix product of the `in1` matrix and the inverse of the `in2` matrix.
-    * `in1` (float or color<em>N</em> or vector<em>N</em> or matrix<em>NN</em>): the value or nodename for the primary input
-    * `in2` (same type as `in1` or float): the value or nodename to divide by; default is 1.0 in all channels for float/color/vector types, or the identity matrix for matrix types.
-
-<a id="node-modulo"> </a>
-
-* **`modulo`**: the remaining fraction after dividing an incoming float/color/vector by a value and subtracting the integer portion.  Modulo always returns a non-negative result, matching the interpretation of the GLSL and OSL `mod()` function (not `fmod()`).
-    * `in1` (float or color<em>N</em> or vector<em>N</em>): the value or nodename for the primary input
-    * `in2` (same type as `in1` or float): the modulo value or nodename to divide by, cannot be 0 in any channel; default is 1.0 in all channels, which effectively returns the fractional part of a float value
-
-<a id="node-invert"> </a>
-
-* **`invert`**: subtract the incoming float/color/vector from "amount" in all channels, outputting: `amount - in`.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the value or nodename for the primary input
-    * `amount` (same type as `in` or float): the value or nodename to subtract from; default is 1.0 in all channels
-
-<a id="node-absval"> </a>
-
-* **`absval`**: the per-channel absolute value of the incoming float/color/vector.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-
-<a id="node-sign"> </a>
-
-* **`sign`**: the per-channel sign of the incoming float/color/vector value: -1 for negative, +1 for positive, or 0 for zero.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-
-<a id="node-floor"> </a>
-
-* **`floor`**: the per-channel nearest integer value less than or equal to the incoming float/color/vector.  The output remains in floating point per-channel, i.e. the same type as the input, except that the floor(float) also has a variant outputting an integer type.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-
-<a id="node-ceil"> </a>
-
-* **`ceil`**: the per-channel nearest integer value greater than or equal to the incoming float/color/vector.  The output remains in floating point per-channel, i.e. the same type as the input, except that the ceil(float) also has a variant outputting an integer type.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-
-<a id="node-round"> </a>
-
-* **`round`**: round each channel of the incoming float/color/vector values to the nearest integer value, e.g "floor(in+0.5)"; the round(float) also has a variant outputting an integer type.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-
-<a id="node-power"> </a>
-
-* **`power`**: raise incoming float/color values to the specified exponent, commonly used for "gamma" adjustment.
-    * `in1` (float or color<em>N</em> or vector<em>N</em>): the value or nodename for the primary input
-    * `in2` (same type as `in1` or float): exponent value or nodename; output = pow(in1, in2); default is 1.0 in all channels
-
-<a id="node-safepower"> </a>
-
-* **`safepower`** (NG): raise incoming float/color values to the specified exponent.  Unlike the standard [&lt;power>](#node-power) node, negative `in1` values for &lt;safepower> will result in negative output values, e.g. `out = sign(in1)*pow(abs(in1),in2)`.
-    * `in1` (float or color<em>N</em> or vector<em>N</em>): the value or nodename for the primary input
-    * `in2` (same type as `in1` or float): exponent value or nodename; default is 1.0 in all channels
-
-<a id="node-sin"> </a>
-
-* **`sin`**: the sine of the incoming value, which is expected to be expressed in radians.
-    * `in` (float or vector<em>N</em>): the input value or nodename
-
-<a id="node-cos"> </a>
-
-* **`cos`**: the cosine of the incoming value, which is expected to be expressed in radians.
-    * `in` (float or vector<em>N</em>): the input value or nodename
-
-<a id="node-tan"> </a>
-
-* **`tan`**: the tangent of the incoming value, which is expected to be expressed in radians.
-    * `in` (float or vector<em>N</em>): the input value or nodename
-
-<a id="node-asin"> </a>
-
-* **`asin`**: the arcsine of the incoming value; the output will be expressed in radians.
-    * `in` (float or vector<em>N</em>): the input value or nodename
-
-<a id="node-acos"> </a>
-
-* **`acos`**: the arccosine of the incoming value; the output will be expressed in radians.
-    * `in` (float or vector<em>N</em>): the input value or nodename
-
-<a id="node-atan2"> </a>
-
-* **`atan2`**: the arctangent of the expression (iny/inx); the output will be expressed in radians.  If both `in1` and `in2` are provided, they must be the same type.
-    * `iny` (float or vector<em>N</em>): the value or nodename for the "y" input; default is 0.0.
-    * `inx` (float or vector<em>N</em>): the value or nodename for the "x" input; default is 1.0.
-
-<a id="node-sqrt"> </a>
-
-* **`sqrt`**: the square root of the incoming value.
-    * `in` (float or vector<em>N</em>): the input value or nodename
-
-<a id="node-ln"> </a>
-
-* **`ln`**: the natural log of the incoming value.
-    * `in` (float or vector<em>N</em>): the input value or nodename; default is 1.0.
-
-<a id="node-exp"> </a>
-
-* **`exp`**: "e" to the power of the incoming value.
-    * `in` (float or vector<em>N</em>): the input value or nodename
-
-<a id="node-clamp"> </a>
-
-* **`clamp`**: clamp incoming values per-channel to a specified range of float/color/vector values.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-    * `low` (same type as `in` or float): clamp low value; any value lower than this will be set to "low".  Default is 0 in all channels.
-    * `high` (same type as `in` or float): clamp high value; any value higher than this will be set to "high".  Default is 1 in all channels.
-
-<a id="node-min"> </a>
-
-* **`min`**: select the minimum of the two incoming values
-    * `in1` (float or color<em>N</em> or vector<em>N</em>): the first value or nodename
-    * `in2` (same type as `in1` or float): the second value or nodename
-
-<a id="node-max"> </a>
-
-* **`max`**: select the maximum of the two incoming values
-    * `in1` (float or color<em>N</em> or vector<em>N</em>): the first value or nodename
-    * `in2` (same type as `in1` or float): the second value or nodename
-
-<a id="node-and"> </a>
-
-* **`and`**: boolean "and" of the two incoming boolean values
-    * `in1` (boolean): the first value or nodename
-    * `in2` (boolean): the second value or nodename
-
-<a id="node-or"> </a>
-
-* **`or`**: boolean "or" of the two incoming boolean values
-    * `in1` (boolean): the first value or nodename
-    * `in2` (boolean): the second value or nodename
-
-<a id="node-not"> </a>
-
-* **`not`**: boolean "not" of the incoming boolean value
-    * `in` (boolean): the value or nodename
-
-<a id="node-normalize"> </a>
-
-* **`normalize`**: output the normalized vector<em>N</em> from the incoming vector<em>N</em> stream; cannot be used on float or color<em>N</em> streams.  Note: the fourth channel in vector4 streams is not treated any differently, e.g. not as a homogeneous "w" value.
-    * `in` (vector<em>N</em>): the input value or nodename
-
-<a id="node-magnitude"> </a>
-
-* **`magnitude`**: output the float magnitude (vector length) of the incoming vector<em>N</em> stream; cannot be used on float or color<em>N</em> streams.  Note: the fourth channel in vector4 streams is not treated any differently, e.g. not as a homogeneous "w" value.
-    * `in` (vector<em>N</em>): the input value or nodename
-
-
-<a id="node-distance"> </a>
-
-* **`distance`**: Measures the distance between two points in 2D, 3D, or 4D.
-    * `in1` (vector<em>N</em>): the first input value or nodename
-    * `in2` (same type as `in1`): the second input value or nodename
-
-<a id="node-dotproduct"> </a>
-
-* **`dotproduct`**: output the (float) dot product of two incoming vector<em>N</em> streams; cannot be used on float or color<em>N</em> streams.
-    * `in1` (vector<em>N</em>): the input value or nodename for the primary input.
-    * `in2` (same type as `in1`): the secondary value or nodename
-
-<a id="node-crossproduct"> </a>
-
-* **`crossproduct`**: output the (vector3) cross product of two incoming vector3 streams; cannot be used on any other stream type.  A disabled `crossproduct` node passes through the value of `in1` unchanged.
-    * `in1` (vector3): the input value or nodename for the primary input.
-    * `in2` (vector3): the secondary value or nodename
-
-<a id="node-transformpoint"> </a>
-
-* **`transformpoint`**: transform the incoming vector3 coordinate from one specified space to another; cannot be used on any other stream type.
-    * `in` (vector3): the input coordinate vector.
-    * `fromspace` (uniform string): the name of a vector space understood by the rendering target to transform the `in` point from; may be empty to specify the renderer's working or "common" space.
-    * `tospace` (uniform string): the name of a vector space understood by the rendering target for the space to transform the `in` point to.
-
-<a id="node-transformvector"> </a>
-
-* **`transformvector`**: transform the incoming vector3 vector from one specified space to another; cannot be used on any other stream type.
-    * `in` (vector3): the input vector.
-    * `fromspace` (uniform string): the name of a vector space understood by the rendering target to transform the `in` point from; may be empty to specify the renderer's working or "common" space.
-    * `tospace` (uniform string): the name of a vector space understood by the rendering target for the space to transform the `in` point to.
-
-<a id="node-transformnormal"> </a>
-
-* **`transformnormal`**: transform the incoming vector3 normal from one specified space to another; cannot be used on any other stream type.
-    * `in` (vector3): the input normal vector; default is (0,0,1).
-    * `fromspace` (uniform string): the name of a vector space understood by the rendering target to transform the `in` point from; may be empty to specify the renderer's working or "common" space.
-    * `tospace` (uniform string): the name of a vector space understood by the rendering target for the space to transform the `in` point to.
-
-<a id="node-transformmatrix"> </a>
-
-* **`transformmatrix`**: transform the incoming vector<em>N</em> coordinate by the specified matrix.
-    * `in` (vector<em>N</em>): the input vector.  If needed, an additional 1.0 component will be temporarily appended to the `in` vector to make it match the dimension of the transforming `mat` matrix, then removed after transformation.
-    * `mat` matrix33/44): the matrix used to transform the vector; a vector2 `in` can be transformed by a matrix33, a vector3 by a matrix33 or a matrix44, and a vector4 by a matrix44.  Default is the identity matrix.
-
-<a id="node-transformcolor"> </a>
-
-* **`transformcolor`**: transform the incoming color from one specified colorspace to another, ignoring any colorspace declarations that may have been provided upstream.  For color4 types, the alpha channel value is unaffected.
-    * `in` (color3 or color4): the input color.
-    * `fromspace` (uniform string): the name of a standard colorspace or a colorspace understood by the application to transform the `in` color from; may be empty (the default) to specify the document's working colorspace.
-    * `tospace` (uniform string): the name of a standard colorspace or a colorspace understood by the application to transform the `in` color to; may be empty (the default) to specify the document's working colorspace.
-
-<a id="node-normalmap"> </a>
-
-* **`normalmap`**: transform a normal vector from encoded tangent space to world space.  The input normal vector is assumed to be encoded with all channels in the [0-1] range, as would commonly be output from a normal map.
-    * `in` (vector3): the input vector; default is (0.5, 0.5, 1.0).
-    * `scale` (float or vector2): a scalar multiplier for the (x,y) components of the incoming vector; defaults to 1.0
-    * `normal` (vector3): surface normal; defaults to the current world-space normal.
-    * `tangent` (vector3): surface tangent vector, defaults to the current world-space tangent vector. 
-    * `bitangent` (vector3): surface bitangent vector, defaults to the current world-space bitangent vector. 
-
-<a id="node-creatematrix"> </a>
-
-* **`creatematrix`**: build a 3x3 or 4x4 matrix from three vector3 or four vector3 or vector4 inputs.  A matrix44 may also be created from vector3 input values, in which case the fourth value will be set to 0.0 for in1-in3, and to 1.0 for in4 when creating the matrix44.
-    * `in1` (vector3 or vector4): the vector for the first row of the matrix.  Default is (1,0,0) for matrix33 or (1,0,0,0) for matrix44.
-    * `in2` (vector3 or vector4): the vector for the second row of the matrix.  Default is (0,1,0) for matrix33 or (0,1,0,0) for matrix44.
-    * `in3` (vector3 or vector4): the vector for the third row of the matrix.  Default is (0,0,1) for matrix33 or (0,0,1,0) for matrix44.
-    * `in4` (vector3 or vector4): For matrix44 output type, the vector for the fourth row of the matrix.  Default is (0, 0, 0, 1).
-
-<a id="node-transpose"> </a>
-
-* **`transpose`**: output the transpose of the incoming matrix.
-    * `in` (matrix<em>NN</em>): the input value or nodename
-
-<a id="node-determinant"> </a>
-
-* **`determinant`**: output the float determinant of the incoming matrix<em>NN</em> stream.
-    * `in` (matrix<em>NN</em>): the input value or nodename
-
-<a id="node-invertmatrix"> </a>
-
-* **`invertmatrix`**: output the inverse of the incoming matrix; if the input matrix is not invertible, the output matrix will consist of all floating-point "NaN" values.
-    * `in` (matrix<em>NN</em>): the input value or nodename
-
-<a id="node-rotate2d"> </a>
-
-* **`rotate2d`**: rotate a vector2 value about the origin in 2D.
-    * `in` (vector2): the input value or nodename
-    * `amount` (float): the amount to rotate, specified in degrees, with positive values rotating the incoming vector counterclockwise.  Default is 0.
-
-<a id="node-rotate3d"> </a>
-
-* **`rotate3d`**: rotate a vector3 value about a specified unit axis vector.
-    * `in` (vector3): the input value or nodename
-    * `amount` (float): the amount to rotate, specified in degrees; default is 0.
-    * `axis` (vector3): For vector3 inputs only, the unit axis vector about which to rotate; default is (0,1,0).
-
-<a id="node-place2d"> </a>
-
-* **`place2d`** (NG): transform incoming UV texture coordinates for 2D texture placement.
-    * `texcoord` (vector2): the input UV coordinate to transform; defaults to the current surface index=0 uv coordinate.
-    * `pivot` (vector2): the pivot coordinate for scale and rotate: this is subtracted from u,v before applying scale/rotate, then added back after.  Default is (0,0).
-    * `scale` (vector2): divide the u,v coord (after subtracting `pivot`) by this, so a scale (2,2) makes the texture image appear twice as big.  Negative values can be used to flip or flop the texture space.  Default is (1,1).
-    * `rotate` (float): rotate u,v coord (after subtracting pivot) by this amount in degrees, so a positive value rotates UV coords counter-clockwise, and the image clockwise.  Default is 0.
-    * `offset` (vector2): subtract this amount from the scaled/rotated/“pivot added back” UV coordinate; since U0,V0 is typically the lower left corner, a positive offset moves the texture image up and right.  Default is (0,0).
-    * `operationorder` (integer enum): the order in which to perform the transform operations. "0" or "SRT" performs <em>-pivot scale rotate translate +pivot</em> as per the original implementation matching the behavior of certain DCC packages, and "1" or "TRS" performs <em>-pivot translate rotate scale +pivot</em> which does not introduce texture shear.  Default is 0 "SRT" for backward compatibility.
-
-<a id="node-triplanarblend"> </a>
-
-* **`triplanarblend`** (NG): samples data from three inputs, and projects a tiled representation of the images along each of the three respective coordinate axes, computing a weighted blend of the three samples using the geometric normal.
-    * `inx` (float or colorN): the image to be projected in the direction from the +X axis back toward the origin.  Default is 0 in all channels.
-    * `iny` (float or colorN): the image to be projected in the direction from the +Y axis back toward the origin with the +X axis to the right.  Default is 0 in all channels.
-    * `inz` (float or colorN): the image to be projected in the direction from the +Z axis back toward the origin.  Default is 0 in all channels.
-    * `position` (vector3): a spatially-varying input specifying the 3D position at which the projection is evaluated.  Default is to use the current 3D object-space coordinate.
-    * `normal` (vector3): a spatially-varying input specifying the 3D normal vector used for blending.  Default is to use the current object-space surface normal.
-    * `blend` (float): a 0-1 weighting factor for blending the three axis samples using the geometric normal, with higher values giving softer blending.  Default is 1.0.
-    * `filtertype` (uniform string): the type of texture filtering to use; standard values include "closest" (nearest-neighbor single-sample), "linear", and "cubic".  If not specified, an application may use its own default texture filtering method.
-
-<a id="node-dot"> </a>
-
-* **`dot`**: a no-op, passes its input through to its output unchanged.  Users can use dot nodes to shape edge connection paths or provide documentation checkpoints in node graph layout UI's.  Dot nodes may also pass uniform values from &lt;constant>, &lt;tokenvalue> or other nodes with uniform="true" outputs to uniform &lt;input>s and &lt;token>s.
-    * `in` (any type): the nodename to be connected to the Dot node's "in" input.  Unlike inputs on other node types, the &lt;dot> node's input is specifically disallowed to provide a `channels` attribute: input data can only be passed through unmodified.
-
-
-
-### Adjustment Nodes
-
-Adjustment nodes have one input named "in", and apply a specified function to values in the incoming stream.
-
-<a id="node-contrast"> </a>
-
-* **`contrast`** (NG): increase or decrease contrast of incoming float/color values using a linear slope multiplier.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-    * `amount` (same type as `in` or float): slope multiplier for contrast adjustment, 0.0 to infinity range.  Values greater than 1.0 increase contrast, values between 0.0 and 1.0 reduce contrast.  Default is 1.0 in all channels.
-    * `pivot` (same type as `in` or float): center pivot value of contrast adjustment; this is the value that will not change as contrast is adjusted.  Default is 0.5 in all channels.
-
-<a id="node-remap"> </a>
-
-* **`remap`**: linearly remap incoming values from one range of float/color/vector values to another.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-    * `inlow` (same type as `in` or float): low value for input range; default is 0.0 in all channels
-    * `inhigh` (same type as `in` or float): high value for input range; default is 1.0 in all channels
-    * `outlow` (same type as `in` or float): low value for output range; default is 0.0 in all channels
-    * `outhigh` (same type as `in` or float): high value for output range; default is 1.0 in all channels
-
-<a id="node-range"> </a>
-
-* **`range`** (NG): remap incoming values from one range of float/color/vector values to another, optionally applying a gamma correction "in the middle".  Input values below `inlow` or above `inhigh` are extrapolated unless `doclamp` is true, in which case the output values will be clamped to the `outlow`..`outhigh` range.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-    * `inlow` (same type as `in` or float): low value for input range.  Default is 0.0 in all channels.
-    * `inhigh` (same type as `in` or float): high value for input range.  Default is 1.0 in all channels.
-    * `gamma` (same type as `in` or float): inverse exponent applied to input value after first transforming from `inlow`..`inhigh` to 0..1; `gamma` values greater than 1.0 make midtones brighter.  Default is 1.0 in all channels.
-    * `outlow` (same type as `in` or float): low value for output range.  Default is 0.0 in all channels.
-    * `outhigh` (same type as `in` or float): high value for output range.  Default is 1.0 in all channels.
-    * `doclamp` (boolean): If true, the output is clamped to the range `outlow`..`outhigh`.  Default is false.
-
-<a id="node-smoothstep"> </a>
-
-* **`smoothstep`**: output a smooth (hermite-interpolated) remapping of input values from low-high to output 0-1.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-    * `low` (same type as `in` or float): input low value; an input value of this or lower will result in an output value of 0; default is 0.0 in all channels
-    * `high` (same type as `in` or float): input high value; an input value of this or higher will result in an output value of 1; default is 1.0 in all channels
-
-<a id="node-curveinversecubic"> </a>
-
-* **`curveinversecubic`**: remap a 0-1 input float value using an inverse Catmull-Rom spline lookup on the input `knots` values.  Outputs a 0-1 float interpolant value.
-    * `in` (float): the input value or nodename
-    * `knots` (uniform floatarray): the list of non-uniformly distributed input values defining the curve for the remapping.  At least 2 values must be provided, and the first and last knot have multiplicity 2.
-
-<a id="node-curveuniformlinear"> </a>
-
-* **`curveuniformlinear`**: output a float, color<em>N</em> or vector<em>N</em> value linearly interpolated between a number of `knotvalues` values, using the value of `in` as the interpolant.
-    * `in` (float): the input interpolant value or nodename
-    * `knotvalues` (uniform floatarray or color<em>N</em>array or vector<em>N</em>array): the array of at least 2 values to interpolate between.
-
-<a id="node-curveuniformcubic"> </a>
-
-* **`curveuniformcubic`**: output a float, color<em>N</em> or vector<em>N</em> value smoothly interpolated between a number of `knotvalues` values using a Catmull-Rom spline with the value of `in` as the interpolant.
-    * `in` (float): the input interpolant value or nodename
-    * `knotvalues` (uniform floatarray or color<em>N</em>array or vector<em>N</em>array): the array of at least 2 values to interpolate between.
-
-<a id="node-curveadjust"> </a>
-
-* **`curveadjust`** (NG): output a smooth remapping of input values using the centripetal Catmull-Rom cubic spline curve defined by specified knot values, using an inverse spline lookup on input knot values and a forward spline through output knot values.  All channels of the input will be remapped using the same curve.
-    * `in` (float or colorN or vectorN): the input value or nodename
-    * `numknots` (uniform integer): the number of values in the knots and knotvalues arrays
-    * `knots` (uniform floatarray): the list of input values defining the curve for the remapping.  At least 2 and at most 16 values must be provided.
-    * `knotvalues` (uniform floatarray): the list of output values defining the curve for the remapping.  Must be the same length as knots.
-
-<a id="node-curvelookup"> </a>
-
-* **`curvelookup`** (NG): output a float, colorN or vectorN value smoothly interpolated between a number of knotvalue values, using the position of in within knots as the knotvalues interpolant.
-    * `in` (float): the input interpolant value or nodename
-    * `numknots` (uniform integer): the number of values in the knots and knotvalues arrays
-    * `knots` (uniform floatarray): the list of knot values to interpolate in within.  At least 2 and at most 16 values must be provided.
-    * `knotvalues` (uniform floatarray or colorNarray or vectorNarray): the values at each knot position to interpolate between. Must be the same length as knots.
-
-<a id="node-luminance"> </a>
-
-* **`luminance`**: (color3 or color4 only) output a grayscale value containing the luminance of the incoming RGB color in all color channels, computed using the dot product of the incoming color with the luma coefficients of the working colorspace; the alpha channel is left unchanged if present.
-    * `in` (color3/color4): the input value or nodename
-    * `lumacoeffs` (uniform color3): the luma coefficients of the current working color space; if no specific color space can be determined, the ACEScg (ap1) luma coefficients [0.2722287, 0.6740818, 0.0536895] will be used.  Applications which support color management systems may choose to retrieve the luma coefficients of the working colorspace from the CMS to pass to the &lt;luminance> node's implementation directly, rather than exposing it to the user.
-
-<a id="node-rgbtohsv"> </a>
-
-* **`rgbtohsv`**: (color3 or color4 only) convert an incoming color from RGB to HSV space (with H and S ranging from 0 to 1); the alpha channel is left unchanged if present.  This conversion is not affected by the current color space.
-    * `in` (color3/color4): the input value or nodename
-
-<a id="node-hsvtorgb"> </a>
-
-* **`hsvtorgb`**: (color3 or color4 only) convert an incoming color from HSV to RGB space; the alpha channel is left unchanged if present.  This conversion is not affected by the current color space.
-    * `in` (color3/color4): the input value or nodename
-
-<a id="node-hsvadjust"> </a>
-
-* **`hsvadjust`** (NG): adjust the hue, saturation and value of an RGB color by converting the input color to HSV, adding amount.x to the hue, multiplying the saturation by amount.y, multiplying the value by amount.z, then converting back to RGB.  A positive "amount.x" rotates hue in the "red to green to blue" direction, with amount of 1.0 being the equivalent to a 360 degree (e.g. no-op) rotation.  Negative or greater-than-1.0 hue adjustment values are allowed, wrapping at the 0-1 boundaries.  For color4 inputs, the alpha value is unchanged.
-    * `in` (color3 or color4): the input value or nodename
-    * `amount` (vector3): the HSV adjustment; a value of (0, 1, 1) is "no change" and is the default.
-
-<a id="node-saturate"> </a>
-
-* **`saturate`** (NG): (color3 or color4 only) adjust the saturation of a color; the alpha channel will be unchanged if present.  Note that this operation is **not** equivalent to the "amount.y" saturation adjustment of `hsvadjust`, as that operator does not take the working or any other colorspace into account.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-    * `amount` (float): a multiplier for saturation; the saturate operator performs a linear interpolation between the luminance of the incoming color value (copied to all three color channels) and the incoming color value itself.  Note that setting amount to 0 will result in an R=G=B gray value equal to the value that the `luminance` node (below) returns.  Default is 1.0.
-    * `lumacoeffs` (uniform color3): the luma coefficients of the current working color space; if no specific color space can be determined, the ACEScg (ap1) luma coefficients [0.272287, 0.6740818, 0.0536895] will be used.  Applications which support color management systems may choose to retrieve this value from the CMS to pass to the &lt;saturate> node's implementation directly, rather than exposing it to the user.
-
-<a id="node-colorcorrect"> </a>
-
-* **`colorcorrect`** (NG): Combines various adjustment nodes into one artist-friendly color correction node.  For color4 inputs, the alpha value is unchanged.
-    * `in` (color3 or color4): the input color to be adjusted.
-    * `hue` (float): Rotates the color hue, with values wrapping at 0-1 boundaries; default is 0.
-    * `saturation` (float): Multiplies the input color saturation level; default is 1.
-    * `gamma` (float): Applies a gamma correction to the color; default is 1.
-    * `lift` (float): Raise the dark color values, leaving the white values unchanged; default is 0.
-    * `gain` (float): Multiplier increases lighter color values, leaving black values unchanged; default is 1.
-    * `contrast` (float): Linearly increase or decrease the color contrast; default is 1.
-    * `contrastpivot` (float): Pivot value around which contrast applies. This value will not change as contrast is adjusted; default is 0.5.
-    * `exposure` (float): Multplier which increases or decreases color brightness by 2^value; default is 0.
-
-
-
-### Compositing Nodes
-
-Compositing nodes have two (required) inputs named `fg` and `bg`, and apply a function to combine them.  Compositing nodes are split into five subclassifications: [Premult Nodes](#premult-nodes), [Blend Nodes](#blend-nodes), [Merge Nodes](#merge-nodes), [Masking Nodes](#masking-nodes), and the [Mix Node](#mix-node).
-
-
-#### Premult Nodes
-
-Premult nodes operate on 4-channel (color4) inputs/outputs, have one input named `in`, and either apply or unapply the alpha to the float or RGB color.
-
-<a id="node-premult"> </a>
-
-* **`premult`**: multiply the RGB channels of the input by the Alpha channel of the input.
-    * `in` (color4): the input value or nodename; default is (0,0,0,1).
-
-<a id="node-unpremult"> </a>
-
-* **`unpremult`**: divide the RGB channels of the input by the Alpha channel of the input.  If the Alpha value is zero, the original color4 input value is passed through unchanged.
-    * `in` (color4): the input value or nodename; default is (0,0,0,1).
-
-
-#### Blend Nodes
-
-Blend nodes take two 1-4 channel inputs and apply the same operator to all channels (the math for alpha is the same as for R or RGB).  In the Blend Operator table, "F" and "B" refer to any individual channel of the `fg` and `bg` inputs respectively.  Blend nodes support an optional float input `mix`, which can be used to mix the original `bg` value (`mix`=0) with the result of the blend operation (`mix`=1, the default).
-
-<a id="node-plus"> </a>
-<a id="node-minus"> </a>
-<a id="node-difference"> </a>
-<a id="node-burn"> </a>
-<a id="node-dodge"> </a>
-<a id="node-screen"> </a>
-<a id="node-overlay"> </a>
-
-
-| Blend Operator | Each Channel Output | Supported Types |
-| --- | --- | --- |
-| **`plus`** | B+F | float, color<em>N</em> |
-| **`minus`** | B-F | float, color<em>N</em> |
-| **`difference`** | abs(B-F) | float, color<em>N</em> |
-| **`burn`** | 1-(1-B)/F | float, color<em>N</em> |
-| **`dodge`** | B/(1-F) | float, color<em>N</em> |
-| **`screen`** | 1-(1-F)(1-B) | float, color<em>N</em> |
-| **`overlay`** | 2FB if B&lt;0.5;<br> 1-2(1-F)(1-B) if B>=0.5 | float, color<em>N</em> |
-
-
-#### Merge Nodes
-
-Merge nodes take two 4-channel (color4) inputs and use the built-in alpha channel(s) to control the compositing of the `fg` and `bg` inputs.  In the Merge Operator table, "F" and "B" refer to the non-alpha channels of the `fg` and `bg` inputs respectively, and "f" and "b" refer to the alpha channels of the `fg` and `bg` inputs.  Merge nodes are not defined for 1-channel or 3-channel inputs, and cannot be used on vector<em>N</em> streams.  Merge nodes support an optional float input `mix`, which can be used to mix the original `bg` value (`mix`=0) with the result of the blend operation (`mix`=1, the default).
-
-<a id="node-disjointover"> </a>
-<a id="node-in"> </a>
-<a id="node-mask"> </a>
-<a id="node-matte"> </a>
-<a id="node-out"> </a>
-<a id="node-over"> </a>
-
-
-| Merge Operator | RGB output | Alpha Output |
-| --- | --- | --- |
-| **`disjointover`** | F+B if f+b&lt;=1;<br> F+B(1-f)/b if f+b>1 | min(f+b,1) |
-| **`in`** | Fb | fb |
-| **`mask`** | Bf | bf |
-| **`matte`** | Ff+B(1-f) | f+b(1-f) |
-| **`out`** | F(1-b) | f(1-b) |
-| **`over`** | F+B(1-f) | f+b(1-f) |
-
-
-#### Masking Nodes
-
-Masking nodes take one 1-4 channel input `in` plus a separate float `mask` input and apply the same operator to all channels (if present, the math for alpha is the same as for R or RGB).  The default value for the `mask` input is 1.0 for the `inside` operator, and 0.0 for the `outside` operator  In the Masking Operator table, "F" refers to any individual channel of the `in` input.
-
-<a id="node-inside"> </a>
-<a id="node-outside"> </a>
-
-
-| Masking Operator | Each Channel Output |
-| --- | --- |
-| **`inside`** | Fm |
-| **`outside`** | F(1-m) |
-
-
-Note: for all types, `inside` is equivalent to the `multiply` node: both operators exist to provide companion functions for other data types or their respective inverse or complementary operations.
-
-
-#### Mix Node
-
-The Mix node takes two 1-4 channel inputs `fg` and `bg` plus a separate 1-channel (float) or N-channel (same type and number of channels as `fg` and `bg`) `mix` input and mixes the `fg` and `bg` according to the mix value, either uniformly for a "float" `mix` type, or per-channel for non-float `mix` types.  The equation for "mix" is as follows, with "F" and "B" referring to any channel of the `fg` and `bg` inputs respectively (which can be float, color<em>N</em> or vector<em>N</em> but must match), and "m" referring to the float `mix` input value (which has a default value of 0):
-
-<a id="node-mix"> </a>
-
-
-| Mix Operator | Each Channel Output |
-| --- | --- |
-| **`mix`** | Fm+B(1-m) |
-
-
-See also the [Standard Library Shader Nodes](#standard-library-shader-nodes) section below for additional `mix` operator variants supporting shader-semantic types.
-
-
-
-### Conditional Nodes
-
-Conditional nodes are used to compare values of two streams, or to select a value from one of several streams.
-
-
-<a id="node-ifgreater"> </a>
-
-* **`ifgreater`**: output the value of the `in1` or `in2` stream depending on whether the value of one test input is greater than the value of another.  Ifgreater nodes can be of output type float, color<em>N</em> or vector<em>N</em>.  There is also a "boolean" output-type **`ifgreater`** node, with `value1` and `value2` inputs but no `in1` or `in2`: output is "true" if `value1` > `value2`.
-    * `value1` (integer or float): the first value or nodename to compare.  Default is 1.0.
-    * `value2` (integer or float): the second value or nodename to compare must be the same type as `value1`.  Default is 0.0.
-    * `in1` (float or color<em>N </em>or vector<em>N</em>): the value or nodename to output if `value1` > `value2`; must be the same type as the `ifgreater` node's output.  Default is 0.0.
-    * `in2` (float or color<em>N </em>or vector<em>N</em>): the value or nodename to output if `value1` &lt;= `value2`; must be the same type as the `ifgreater` node's output.  Default is 0.0.
-
-<a id="node-ifgreatereq"> </a>
-
-* **`ifgreatereq`**: output the value of the `in1` or `in2` stream depending on whether the value of one test input is greater than or equal to the value of another.  Ifgreatereq nodes can be of output type float, color<em>N</em> or vector<em>N</em>. There is also a "boolean" output-type **`ifgreatereq`** node, with `value1` and `value2` inputs but no `in1` or `in2`: output is "true" if `value1` >= `value2`.
-    * `value1` (integer or float): the first value or nodename to compare.  Default is 1.0.
-    * `value2` (integer or float): the second value or nodename to compare; must be the same type as `value1`.  Default is 0.0.
-    * `in1` (float or color<em>N </em>or vector<em>N</em>): the value or nodename to output if `value1` >= `value2`; must be the same type as the `ifgreatereq` node's output.  Default is 0.0.
-    * `in2` (float or color<em>N </em>or vector<em>N</em>): the value or nodename to output if `value1` &lt; `value2`; must be the same type as the `ifgreatereq` node's output.  Default is 0.0.
-
-<a id="node-ifequal"> </a>
-
-* **`ifequal`**: output the value of the `in1` or `in2` stream depending on whether the value of two test inputs are equal or not.  Ifequal nodes can be of output type float, color<em>N</em> or vector<em>N</em>. There is also a "boolean" output-type **`ifequal`** node, with `value1` and `value2` inputs but no `in1` or `in2`: output is "true" if `value1` == `value2`.
-    * `value1` (boolean or integer or float): the first value or nodename to compare.  Default is 0 or "false".
-    * `value2` (boolean or integer or float): the second value or nodename to compare; must be the same type as `value1`.  Default is 0 or "false".
-    * `in1` (float or color<em>N </em>or vector<em>N</em>): the value or nodename to output if `value1` == `value2`; must be the same type as the `ifequal` node's output.  Default is 0.0.
-    * `in2` (float or color<em>N </em>or vector<em>N</em>): the value or nodename to output if `value1` != `value2`; must be the same type as the `ifequal` node's output.  Default is 0.0.
-
-<a id="node-switch"> </a>
-
-* **`switch`**: output the value of one of up to ten input streams, according to the value of a selector input `which`.  Switch nodes can be of output type float, color<em>N</em> or vector<em>N</em>, and have five inputs, in1 through in10 (not all of which must be connected), which must match the output type.
-    * `in1`, `in2`, `in3`, `in4`, `in5`, `in6`, `in7`, `in8`, `in9`, `in10` (float or color<em>N</em> or vector<em>N</em>): the values or nodenames to select from based on the value of the `which` input.  The types of the various `in`<em>N</em> inputs must match the type of the `switch` node itself.  The default value of all `in`<em>N</em> inputs is 0.0 in all channels.
-    * `which` (integer or float): a selector to choose which input to take values from; the output comes from input "floor(`which`)+1", clamped to the 1-10 range.  So `which`&lt;1 will pass on the value from in1, 1&lt;=`which`&lt;2 will pass the value from in2, 2&lt;=`which`&lt;3 will pass the value from in3, and so on up to 9&lt;=`which` will pass the value from in10.  The default value of `which` is 0.
-
-<a id="node-ifelse"> </a>
-
-* **`ifelse`**: output the value of one of two input streams, according to whether the value of a boolean selector input is true or false
-    * `infalse`, `intrue` (float or color<em>N</em> or vector<em>N</em>): the values or nodenames to select from based on the value of the `which` input.  The types of the various `in<em>N</em>` inputs must match the type of the `switch` node itself.  The default value of all `in<em>N</em>` inputs is 0.0 in all channels.
-    * `which` (boolean): a selector to choose which input to take values from; default is "false".
-
-
-
-### Channel Nodes
-
-Channel nodes are used to perform channel manipulations and data type conversions on streams.
-
-
-<a id="node-extract"> </a>
-
-* **`extract`**: extract the specified channel number from a color<em>N</em> or vector<em>N</em> stream.
-    * `in` (color<em>N</em> or vector<em>N</em>): the input value or nodename
-    * `which` (integer): the channel number to extract.  For color<em>N</em> streams, use "0" to extract the red channel, "1" for green, "2" for blue and "3" for alpha; for vector<em>N</em> streams, use "0" to extract the x channel, "1" for y, "2" for z and "3" for w.  Default is 0.
-
-<a id="node-extractrowvector"> </a>
-
-* **`extractrowvector`**: extract the specified row vector number from a matrix<em>N</em> stream.
-    * `in` (matrix<em>N</em>): the input value or nodename
-    * `which` (integer): the row number to extract, should be 0-2 for matrix33 streams, or 0-3 for matrix44 streams.
-
-<a id="node-convert"> </a>
-
-* **`convert`**: convert a stream from one data type to another.  Only certain unambiguous and commonly-needed conversions are supported; see list below.
-    * `in` (boolean or integer or float or color<em>N</em> or vector<em>N</em> or string): the input value or nodename
-
-<a id="node-combine2"> </a>
-<a id="node-combine3"> </a>
-<a id="node-combine4"> </a>
-
-* **`combine2`**, **`combine3`**, **`combine4`**: combine the channels from two, three or four streams into the same total number of channels of a single output stream of a specified compatible type; please see the table below for a list of all supported combinations of input and output types.  For colorN output types, no colorspace conversion will take place; the channels are simply copied as-is.
-    * `in1` (float/color3/vector2/vector3): the input value or nodename which will be sent to the N channels of the output; default is 0.0 in all channels
-    * `in2` (float/vector2): the input value or nodename which will be sent to the next N channels of the output; default is 0.0 in all channels
-    * `in3` (float): for **`combine3`** or **`combine4`**, the input value or nodename which will be sent to the next channel of the output after `in2`; default is 0.0
-    * `in4` (float): for **`combine4`**, the input value or nodename which will be sent to the last channel of the output; default is 0.0
-
-<a id="node-separate2"> </a>
-
-* **`separate2`** (NG): output each of the channels of a vector2 as a separate float output.
-    * `in` (vector2): the input value or nodename
-    * `outx` (**output**, float): the value of x channel.
-    * `outy` (**output**, float): the value of y channel.
-
-<a id="node-separate3"> </a>
-
-* **`separate3`** (NG): output each of the channels of a color3 or vector3 as a separate float output.
-    * `in` (color3 or vector3): the input value or nodename
-    * `outr`/`outx` (**output**, float): the value of the red (for color3 streams) or x (for vector3 streams) channel.
-    * `outg`/`outy` (**output**, float): the value of the green (for color3 streams) or y (for vector3 streams) channel.
-    * `outb`/`outz` (**output**, float): the value of the blue (for color3 streams) or z (for vector3 streams) channel.
-
-<a id="node-separate4"> </a>
-
-* **`separate4`** (NG): output each of the channels of a color4 or vector4 as a separate float output.
-    * `in` (color4 or vector4): the input value or nodename
-    * `outr`/`outx` (**output**, float): the value of the red (for color4 streams) or x (for vector4 streams) channel.
-    * `outg`/`outy` (**output**, float): the value of the green (for color4 streams) or y (for vector4 streams) channel.
-    * `outb`/`outz` (**output**, float): the value of the blue (for color4 streams) or z (for vector4 streams) channel.
-    * `outa`/`outw` (**output**, float): the value of the alpha (for color4 streams) or w (for vector4 streams) channel.
-
-<a id="node-separatecolor4"> </a>
-
-* **`separatecolor4`** (NG): output the RGB and alpha channels of a color4 as separate outputs.
-    * `in` (color4): the input value or nodename
-    * `outcolor` (output, color3): the RGB channel values.
-    * `outa` (output, float): the value of the alpha channel.
-
-
-The following input/output data type conversions are supported by **`convert`**:
-
-* float to color<em>N</em>/vector<em>N</em>: copy the input value to all channels of the output
-* color<em>N</em> to vector<em>N</em> / vector<em>N</em> to color<em>N</em>, where _N_ is the same for in and out: straight copy of channel values
-* color3 to color4: copy RGB, set output alpha to 1.0
-* color4 to color3: drop alpha channel
-* boolean or integer to float: output is 0.0 or 1.0
-* vector2 to vector3, or vector3 to vector4: copy incoming channels and append an additional channel with value 1.0 (e.g. convert from non-homogeneous to homogeneous vector)
-* vector3 to vector2, or vector4 to vector3: drop the last channel; if a homogeneous vector conversion is desired, use a **`divide`** node with `in1` connected to a `convert` node on the input to remove its last channel,and `in2` connected to the input with `channel="3"`.
-* string to filename: no change in value
-
-Table of allowable input/output types for **`combine2`**, **`combine3`**, **`combine4`**:
-
-
-| Operator | `type` | `in1` | `in2` | `in3` | `in4` | Output |
-| --- | --- | --- | --- | --- | --- | --- |
-| `combine2` | `vector2` | `float` "x" | `float` "y" | n/a | n/a | "xy" |
-| `combine3` | `color3` | `float` "r" | `float` "g" | `float` "b" | n/a | "rgb" |
-| `combine3` | `vector3` | `float` "x" | `float` "y" | `float` "z" | n/a | "xyz" |
-| `combine4` | `color4` | `float` "r" | `float` "g" | `float` "b" | `float` "a" | "rgba" |
-| `combine4` | `vector4` | `float` "x" | `float` "y" | `float` "z" | `float` "w" | "xyzw" |
-| `combine2` | `color4` | `color3` "rgb" | `float` "a" | n/a | n/a | "rgba" |
-| `combine2` | `vector4` | `vector3` "xyz" | `float` "w" | n/a | n/a | "xyzw" |
-| `combine2` | `vector4` | `vector2` "xy" | `vector2` "zw" | n/a | n/a | "xyzw" |
-
-
-
-
-### Convolution Nodes
-
-Convolution nodes have one input named "in", and apply a defined convolution function on the input stream.  Some of these nodes may not be implementable in ray tracing applications; they are provided for the benefit of purely 2D image processing applications.
-
-
-<a id="node-blur"> </a>
-
-* **`blur`**: a convolution blur.
-    * `in` (float or color<em>N</em> or vector<em>N</em>): the input value or nodename
-    * `size` (float): the size of the blur kernel, relative to 0-1 UV space; default is 0.
-    * `filtertype` (uniform string): the spatial filter used in the blur, either "box" for a linear box filter, or "gaussian" for a gaussian filter.  Default is "box".
-
-<a id="node-heighttonormal"> </a>
-
-* **`heighttonormal`**: convert a scalar height map to a normal map of type vector3.
-    * `in` (float): the input value or nodename
-    * `scale` (float): the scale of normal map deflections relative to the gradient of the height map.  Default is 1.0.
-    * space (string): the space in which the output normal map vector should be; defaults to "tangent".
+[**NPR Shading nodes**](./MaterialX.NPRSpec.md) are operations that are desirable in non-photorealistic shading styles but which cannot be implemented within certain rendering constructs.  These include [NPR Application Nodes](./MaterialX.NPRSpec.md#npr-application-nodes), [NPR Utility Nodes](./MaterialX.NPRSpec.md#npr-utility-nodes) and [NPR Shading Nodes](./MaterialX.NPRSpec.md#npr-shading-nodes).
 
 
 
@@ -1785,6 +739,9 @@ Backdrop elements also support the standard `width`, `height`, `xpos`, `ypos` an
 
 
 ## Node Graph Examples
+
+The following examples demonstrate how a MaterialX Document might encode graphs of nodes.
+
 
 #### Nodegraph Example 1
 
@@ -1878,6 +835,7 @@ A more complex nodegraph using geometry properties to define two diffuse albedo 
 </materialx>
 ```
 
+<br>
 
 
 # Customization, Targeting and Shading
@@ -1986,7 +944,7 @@ Attributes for &lt;nodedef> elements:
 * `name` (string, required): a unique name for this &lt;nodedef>
 * `node` (string, required): the name of the custom node being defined
 * `inherit` (string, optional): the `name` of a &lt;nodedef> to inherit node definitions from; the output types of this nodedef and the inherited one must match, and the input/output definitions of this nodedef will be applied on top of those in the inherited-from one.
-* `nodegroup` (string, optional): an optional group to which this node declaration belongs.  Standard MaterialX nodes have `nodegroup` values matching the titles of the section headings in which they are described, e.g. "texture2d", "procedural", "geometric", "global", "application", "math", "adjustment", "compositing", "conditional", "channel", "convolution", or "organization".
+* `nodegroup` (string, optional): an optional group to which this node declaration belongs.  Standard MaterialX nodes have `nodegroup` values matching the titles of the section headings in which they are described, e.g. "texture2d", "procedural", "geometric", "application", "math", "adjustment", "compositing", "conditional", "channel", "convolution", or "organization".
 * `version` (string, optional): a version string for this nodedef, allowing usage of a node to reference a specific version of a node.  Version strings should be of the format "_major_[._minor_]", i.e. one or two integer numbers separated by a dot (the minor version is assumed to be "0" if not provided).  If there are multiple nodedefs for the same `node` and `target` with the same combination of input and output types, they must each specify a `version`.
 * `isdefaultversion` (boolean, optional): If true, then this nodedef should be used for node instances which do not request a specific version.  Specifying `isdefaultversion` "true" is only required if there are multiple nodedefs for a node declaring a `version`, and it is not permissible for multiple nodedefs for the same `node` and `target` with the same combination of input and output types to set `isdefaultversion` "true".  Defaults to "false".
 * `target` (stringarray, optional): the set of targets to which this nodedef is restricted.  By default, a nodedef is considered universal, not restricted to any specific targets, but it is possible that certain targets may have different parameter names or usage for the same node.
@@ -2031,7 +989,7 @@ Attributes for NodeDef Input elements:
 * `defaultgeomprop` (string, optional): for vector2 or vector3 inputs, the name of an intrinsic geometric property that provides the default value for this input, must be one of "position", "normal", "tangent", "bitangent" or "texcoord" or vector3-type custom geometric property for vector3 inputs, or "texcoord" or vector2-type custom geometric property for vector2 inputs.  For standard geometric properties, this is effectively the same as declaring a default connection of the input to a Geometric Node with default input values.  May not be specified on uniform inputs.
 * `enum` (stringarray, optional): a comma-separated non-exclusive list of string value descriptors that the input couldmayis allowed to take: for string- and stringarray-type inputs, these are the actual values (or values per array index for stringarrays); for other types, these are the "enum" labels e.g. as shown in the application user interface for each of the actual underlying values specified by `enumvalues`.  The enum list can be thought of as a list of commonly used values or UI labels for the input rather than a strict list, and MaterialX itself does not enforce that a specified input enum value is actually in this list, with the exception that if the input is a "string" (or "stringarray") type and an enum list is provided, then the value(s) must in fact be one of the enum stringarray values.
 * `enumvalues` (<em>type</em>array, optional): for non-string/stringarray types, a comma-separated list of values of the same base type as the &lt;input>, representing the values that would be used if the corresponding `enum` string was chosen in the UI.  MaterialX itself does not enforce that a specified input value is actually in this list.  Note that implementations are allowed to redefine `enumvalues` (but not `enum`) for specific targets: see the [Custom Node Definition Using Implementation Elements](#custom-node-definition-using-implementation-elements) section below.
-* `colorspace` (string, optional): for color3- or color4-type inputs, the expected colorspace for this input.  Nodedef inputs do not typically specify a colorspace; the most common use case is to specify `colorspace="none"` for inputs that are color-like but which should not be affected by colorspace conversions.
+* `colorspace` (string, optional): for color3- or color4-type inputs, the colorspace of the default value for this input.
 * `unittype` (string, optional): the type of unit for this input, e.g. "distance", which must be defined by a &lt;unittypedef>.  Default is to not specify a unittype.  Only float-, vector<em>N</em>- and filename-type inputs may specify a `unittype`.
 * `unit` (string, optional): the specific unit for this input.  Nodedef inputs do not typically specify a unit; if it does, that would indicate that the implementation of that node expects values to be specified in that unit, and that any invocation of that node using a different unit should be converted to the nodedef-specified unit for that input rather than to the application's scene unit.  The most common instance of this is for angular values, where a nodedef might specify that it expects values to be given in degrees.
 * `uiname` (string, optional): an alternative name for this input as it appears in the UI.  If `uiname` is not provided, then `name` is the presumed UI name for the input.
@@ -2128,20 +1086,6 @@ For uniform inputs and tokens whose nodedef description includes an enum list of
   </implementation>
 ```
 
-
-#### Implementation AOV Elements
-
-An &lt;implementation> element with a file attribute defining an external compiled implementation of a surface shader may contain one or more &lt;aov> elements to declare the names and types of arbitrary output variables ("AOVs") which the shader can output to the renderer.  AOVs must be of type float, color3, vector3, BSDF or EDF.  Note that in MaterialX, AOVs for pre-shading "pattern" colors are normally of type color3, while post-shaded color-like values are normally of type BSDF and emissive color-like values are normally of type EDF.  An &lt;implementation> with a `nodegraph` attribute may not contain &lt;aov> elements; instead, &lt;aovoutput> elements within the nodegraph should be used.
-
-```xml
-  <implementation name="IM_basicsurface_surface_rmanris"
-                  nodedef="ND_basic_surface_surface" implname="basic_srf"
-                  target="rmanris" file="basic_srf.C">
-    ...<inputs>...
-    <aov name="IMalbedo" type="color3" aovname="albedo"/"/>
-    <aov name="IMdiffuse" type="BSDF" aovname="diffuse"/"/>
-  </implementation>
-```
 
 #### Example Custom Nodes Defined by External File Implementations
 
@@ -2329,7 +1273,7 @@ Custom nodes that output data types with a "shader" semantic are referred to in 
 The attributes for &lt;nodedef> elements as they pertain to the declaration of shaders are:
 
 * `name` (string, required): a user-chosen name for this shader node definition element.  
-* `node` (string, required): the name of the shader node being defined, which typically matches the name of an associated shader function such as “blinn_phong”, “Disney_BRDF_2012”, “volumecloud_vol”.  Just as for custom nodes, this shading program may be defined precisely through an &lt;implementation> or &lt;nodegraph>, or left to the application to locate by name using any shader definition method that it chooses.
+* `node` (string, required): the name of the shader node being defined, which typically matches the name of an associated shader function such as “blinn_phong”, “disney_principled”, “volumecloud_vol”.  Just as for custom nodes, this shading program may be defined precisely through an &lt;implementation> or &lt;nodegraph>, or left to the application to locate by name using any shader definition method that it chooses.
 
 The child &lt;output> element within the &lt;nodedef> defines the "data type" of the output for this shader, which must have been defined with a "shader" semantic; see the [Custom Data Types](#custom-data-types) section above and discussion below for details.
 
@@ -2370,96 +1314,7 @@ As with non-shader custom nodes, **Input** elements are used within a &lt;nodede
 
 An input with a shader-semantic type may be given a value of "" to indicate no shader node is connected to this input; this is typically the default for shader-semantic inputs of operator nodes.  It is up to applications to decide what to do with unconnected shader-semantic inputs.
 
-
-
-### Standard Library Shader Nodes
-
-The Standard MaterialX Library defines the following nodes and node variants operating on "shader"-semantic types.  Standard library shaders do not respond to external illumination; please refer to the [**MaterialX Physically Based Shading Nodes**](./MaterialX.PBRSpec.md#materialx-pbs-library) document for definitions of additional nodes and shader constructors which do respond to illumination.
-
-<a id="node-surface-unlit"> </a>
-
-* **`surface_unlit`**: an unlit surface shader node, representing a surface that can emit and transmit light, but does not receive illumination from light sources or other surfaces.  Output type surfaceshader.
-    * `emission` (float): the surface emission amount; default is 1.0
-    * `emission_color` (color3): surface emission color; default is (1, 1, 1)
-    * `transmission` (float): the surface transmission amount; default is 0
-    * `transmission_color` (color3): surface transmission color; default is (1, 1, 1)
-    * `opacity` (float): surface cutout opacity; default is 1.0
-
-<a id="node-displacement"> </a>
-
-* **`displacement`**: Constructs a displacement shader describing geometric modification to surfaces.  Output type "displacementshader".
-    * `displacement` (float or vector3): Scalar (along the surface normal direction) or vector displacement (in (dPdu, dPdv, N) tangent/normal space) for each position.  Default is 0.
-    * `scale` (float): Scale factor for the displacement vector.  Default is 1.0.
-
-<a id="node-mix-shader"> </a>
-
-* **`mix`**: linear blend between two surface/displacement/volumeshader closures.
-    * `bg` (surface/displacement/volumeshader): the name of the background shader-semantic node
-    * `fg` (surface/displacement/volumeshader): the name of the foreground shader-semantic node
-    * `mix` (float): the blending factor used to mix the two input closures
-
-
-
-### AOV Output Elements
-
-A functional nodegraph with either a "shader" or "material"-semantic output type may contain a number of &lt;aovoutput> elements to declare arbitrary output variables ("AOVs") which the renderer can see and output as additional streams of information.  AOVoutputs must be of type float, color3 or vector3 for pre-shading "pattern" values, or BSDF or EDF for shader-node output values; the renderer is expected to extract the appropriate color-like information from BSDF and EDF types.  AOVs defined within a shader-semantic node instantiated within this functional nodegraph may be "passed along" and potentially renamed (but may not be modified or operated on in any way) by providing a sourceaov attribute in the &lt;aovoutput>.
-
-```xml
-  <aovoutput name="name" type="type" aovname="aovname"
-             nodename="node_to_connect_to" [sourceaov="aovname"]/>
-```
-
-The attributes for &lt;aovoutput> elements are:
-
-* name (string, required): a user-chosen name for this aov output definition element.
-* type (string, required): the type of the AOV, which must be one of the supported types listed above.
-* aovname (string, required): the name that the renderer should use for the AOV.
-* nodename (string, required): the name of the node whose output defines the AOV value.
-* sourceaov (string, optional): If nodename is a surfaceshader type, the name of the output AOV defined within nodename to pass along as the output AOV.  The type of the sourceaov defined within nodename must match the &lt;aovoutput> type.
-
-Examples:
-
-```xml
-  <aovoutput name="Aalbedo" type="color3" aovname="albedo"
-             nodename="coat_affected_diffuse_color"/>
-  <aovoutput name="Adiffuse" type="BSDF" aovname="diffuse">
-             nodename="diffuse_bsdf"/>
-```
-
-#### AovOutput Example
-
-Example of using &lt;aovoutput> with sourceaov to forward AOVs from within an instantiation of a shader-semantic node; this assumes that &lt;standard_surface> has itself defined &lt;aovoutput>s for "diffuse" and "specular" AOVs:
-
-```xml
-  <nodegraph name="NG_basic_surface_srfshader" nodedef="ND_basic_surface_srfshader">
-    <image name="i_diff1" type="color3">
-      <input name="file" type="filename"
-                 value="txt/[diff_map_effect]/[diff_map_effect].<UDIM>.tif"/>
-    </image>
-    <mix name="diffmix" type="color3">
-      <input name="bg" type="color3" interfacename="diff_albedo"/>
-      <input name="fg" type="color3" nodename="i_diff1"/>
-      <input name="mix" type="float" interfacename="diff_map_mix"/>
-    </mix>
-    <standard_surface name="stdsurf1" type="surfaceshader">
-      <input name="base_color" type="color3" nodename="diffmix"/>
-      <input name="diffuse_roughness" type="float" interfacename="roughness"/>
-      <input name="specular_color" type="color3" interfacename="spec_color"/>
-      <input name="specular_roughness" type="float" interfacename="roughness"/>
-      <input name="specular_IOR" type="float" interfacename="spec_ior"/>
-    </standard_surface>
-    <output name="out" type="surfaceshader" nodename="stdsurf1"/>
-    <aovoutput name="NGAalbedo" type="color3" aovname="albedo" nodename="diffmix"/>
-    <aovoutput name="NGAdiffuse" type="BSDF" aovname="diffuse" nodename="stdsurf1"
-                  sourceaov="diffuse"/>
-    <aovoutput name="NGAspecular" type="BSDF" aovname="specular" nodename="stdsurf1"
-                  sourceaov="specular"/>
-  </nodegraph>
-```
-
-Layered shaders or materials must internally handle blending of AOV-like values from source layers before outputting them as AOVs: there is currently no facility for blending AOVs defined within post-shading blended surfaceshaders.
-
-Note: while it is syntactically possible to create &lt;aovoutput>s for geometric primitive values such as shading surface point and normal accessed within a nodegraph, it is preferred that renderers derive such information directly from their internal shading state or geometric primvars.
+Please refer to [**Standard Shader Nodes**](./MaterialX.StandardNodes.md#standard-shader-nodes), [**Physically-Based Shading Nodes**](./MaterialX.PBRSpec.md) and [**NPR Shading Nodes**](./MaterialX.NPRSpec.md) for descriptions of Shader Nodes defined by MaterialX.
 
 
 
@@ -2536,26 +1391,6 @@ Creating materials with specific values bound to shader inputs involves instanti
 
 Alternatively, and perhaps more usefully, a complete network of multiple shader nodes of different types or for different targets along with a material node to collect them all can be packaged within a nodegraph, and the various inputs of the shader nodes and any other nodes connected to their inputs can be connected to a single material nodedef interface to provide parameter values for the entire multi-shader network.  Because nodedef inputs can be referenced by more than one node, a single unified interface could be created for several shaders for different targets, and the networks for those targets could contain input value conversion nodes as needed to handle differences in parametrization or shading methodologies.
 
-
-#### Material Inheritance
-
-Materials can inherit from other materials, to add or change shaders connected to different inputs; in this example, a displacement shader is added to the above "Mgold" material to create a new "Mgolddsp" material:
-
-```xml
-  <noise2d name="noise1" type="float">
-    <input name="amplitude" type="float" value="1.0"/>
-    <input name="pivot" type="float" value="0.0"/>
-  </noise2d>
-  <displacement name="stddsp" type="displacementshader">
-    <input name="displacement" type="float" nodename="noise1"/>
-    <input name="scale" tpe="float" value="0.1"/>
-  </displacement>
-  <surfacematerial name="Mgolddsp" type="material" inherit="Mgold">
-    <input name="displacementshader" type="displacementshader" nodename="stddsp"/>
-  </surfacematerial>
-```
-
-Inheritance of material-type custom nodes is also allowed, so that new or changed input values can be applied on top of those specified in the inherited material.
 
 #### Example Pre-Shader Compositing Material
 
@@ -2732,13 +1567,13 @@ Example uses for variants include defining a number of allowable colors and text
 Variants and variantsets are not intrinsically associated with any particular material; they merely state a number of values for a number of named inputs/tokens.  However, variantsets may state that they are associated with specific shader-semantic nodes and/or &lt;nodedef> declarations by providing stringarray-type `node` and/or `nodedef` attributes:
 
 ```xml
-  <variantset name="damagevars" node="Disney_BRDF_2012,Disney_BRDF_2015">
-    ...
   <variantset name="costumevars" nodedef="ND_unifiedsrf_studio">
     ...
 ```
 
 Variants and variantsets can be defined in any MaterialX implementation, but because variants are applied to materials within a &lt;look>, they can only be applied in applications supporting MaterialX Geometry Extensions; please see the [**VariantAssign Elements**](./MaterialX.GeomExts.md#variantassign-elements) section in that document for information on using material variants.
+
+<br>
 
 
 # References

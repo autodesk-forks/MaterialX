@@ -15,6 +15,8 @@
 
 #include <nanogui/messagedialog.h>
 
+#include <MetalPerformanceShaders/MetalPerformanceShaders.h>
+
 namespace
 {
 
@@ -59,10 +61,10 @@ void MetalRenderPipeline::initFramebuffer(int width, int height,
                             MTL(device),
                             width * _viewer->m_pixel_ratio,
                             height * _viewer->m_pixel_ratio,
-                            4, mx::Image::BaseType::UINT8,
+                            4, mx::Image::BaseType::HALF,
                             MTL(supportsTiledPipeline) ?
                             (id<MTLTexture>)color_texture : nil,
-                            false,  MTLPixelFormatBGRA8Unorm));
+                            false, MTLPixelFormatRGBA16Float));
 }
 
 void MetalRenderPipeline::resizeFramebuffer(int width, int height,
@@ -387,6 +389,9 @@ mx::ImagePtr MetalRenderPipeline::getShadowMap(int shadowMapSize)
             
             [renderpassDesc release];
         }
+
+        // Reset frame timing after shadow generation.
+        _viewer->resetFrameTiming();
     }
 
     _viewer->_shadowMap = _shadowMap[_viewer->_shadowSoftness % 2];
@@ -487,8 +492,7 @@ void MetalRenderPipeline::renderFrame(void* color_texture, int shadowMapSize, co
             if (envPart)
             {
                 // Apply rotation to the environment shader.
-                float longitudeOffset = (lightRotation / 360.0f) + 0.5f;
-                envMaterial->modifyUniform("longitude/in2", mx::Value::createValue(longitudeOffset));
+                envMaterial->modifyUniform("envImage/rotation", mx::Value::createValue(lightRotation));
 
                 // Apply light intensity to the environment shader.
                 envMaterial->modifyUniform("envImageAdjusted/in2", mx::Value::createValue(lightHandler->getEnvLightIntensity()));
@@ -537,6 +541,7 @@ void MetalRenderPipeline::renderFrame(void* color_texture, int shadowMapSize, co
         {
             material->getProgram()->bindUniform(mx::HW::ALPHA_THRESHOLD, mx::Value::createValue(0.99f));
         }
+        material->getProgram()->bindTimeAndFrame((float) _timer.elapsedTime(), (float) _frame);
         material->bindViewInformation(viewCamera);
         material->bindLighting(lightHandler, imageHandler, shadowState);
         material->bindImages(imageHandler, _viewer->_searchPath);
@@ -568,6 +573,7 @@ void MetalRenderPipeline::renderFrame(void* color_texture, int shadowMapSize, co
             {
                 material->getProgram()->bindUniform(mx::HW::ALPHA_THRESHOLD, mx::Value::createValue(0.001f));
             }
+            material->getProgram()->bindTimeAndFrame((float) _timer.elapsedTime(), (float) _frame);
             material->bindViewInformation(viewCamera);
             material->bindLighting(lightHandler, imageHandler, shadowState);
             material->bindImages(imageHandler, searchPath);
@@ -659,7 +665,7 @@ void MetalRenderPipeline::bakeTextures()
         // Construct a texture baker.
         mx::Image::BaseType baseType = _viewer->_bakeHdr ? mx::Image::BaseType::FLOAT : mx::Image::BaseType::UINT8;
         mx::UnsignedIntPair bakingRes = _viewer->computeBakingResolution(doc);
-        mx::TextureBakerPtr baker = std::static_pointer_cast<mx::TextureBakerPtr::element_type>(createTextureBaker(bakingRes.first, bakingRes.second, baseType));
+        mx::TextureBakerMslPtr baker = std::static_pointer_cast<mx::TextureBakerMsl>(createTextureBaker(bakingRes.first, bakingRes.second, baseType));
         baker->setupUnitSystem(_viewer->_stdLib);
         baker->setDistanceUnit(_viewer->_genContext.getOptions().targetDistanceUnit);
         baker->setAverageImages(_viewer->_bakeAverage);
@@ -694,16 +700,30 @@ mx::ImagePtr MetalRenderPipeline::getFrameImage()
     unsigned int width = MTL(currentFramebuffer())->getWidth();
     unsigned int height = MTL(currentFramebuffer())->getHeight();
     
-    MTL(waitForComplition());
+    MTL(waitForCompletion());
+
+    id<MTLTexture> srcTexture = MTL(supportsTiledPipeline) ?
+                                    (id<MTLTexture>)_viewer->_colorTexture :
+                                    MTL(currentFramebuffer())->getColorTexture();
+
     mx::MetalFramebufferPtr framebuffer = mx::MetalFramebuffer::create(
                             MTL(device),
                             width, height, 4,
                             mx::Image::BaseType::UINT8,
-                            MTL(supportsTiledPipeline) ?
-                                (id<MTLTexture>)_viewer->_colorTexture :
-                                MTL(currentFramebuffer())->getColorTexture(),
+                            nil,
                             false, MTLPixelFormatBGRA8Unorm);
-    mx::ImagePtr frame = framebuffer->getColorImage(MTL(cmdQueue));
+    id<MTLTexture> dstTexture = framebuffer->getColorTexture();
+
+    id<MTLCommandQueue> cmdQueue = MTL(cmdQueue);
+
+    // Copy with format conversion
+    MPSImageConversion* conversion = [[MPSImageConversion alloc] initWithDevice:MTL(device)];
+    id<MTLCommandBuffer> cmdBuffer = [cmdQueue commandBuffer];
+    [conversion encodeToCommandBuffer:cmdBuffer sourceTexture:srcTexture destinationTexture:dstTexture];
+    [cmdBuffer commit];
+    [cmdBuffer waitUntilCompleted];
+
+    mx::ImagePtr frame = framebuffer->getColorImage(cmdQueue);
     
     // Flips the captured image
     std::vector<unsigned char> tmp(frame->getRowStride());

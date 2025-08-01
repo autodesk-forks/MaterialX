@@ -10,12 +10,12 @@ TSC responsibilities include, but are not limited to:
 
 - Discussions, seeking consensus, and where necessary, voting on technical
   matters relating to MaterialX that affect multiple projects.
-- Maintainance and administration of the MaterialX GitHub repository.
+- Maintenance and administration of the MaterialX GitHub repository.
 - Coordinating technical direction of the project.
-- Coordinatng marketing, events, and communications regarding MaterialX.
+- Coordinating marketing, events, and communications regarding MaterialX.
 
 Within the TSC there are two key subgroups: **Voting Members**, who take on
-formal responsibiities for maintaining the MaterialX project and vote when
+formal responsibilities for maintaining the MaterialX project and vote when
 decisions are required; and **Stakeholders**, who represent specific teams and
 companies in the industry and speak on their behalf in MaterialX discussions.
 
@@ -64,14 +64,15 @@ The current Stakeholders of the MaterialX TSC are:
 
 - Henrik Edstrom - Autodesk
 - Fran González García - Pixar RenderMan
-- Dhruv Govil - Apple
-- Rafal Jaroszkiewicz - SideFX
 - Ole Gulbrandsen - Sony Pictures Imageworks
+- Rafal Jaroszkiewicz - SideFX
+- Lee Kerley - Apple
 - Lutz Kettner - NVIDIA
 - Chris Kulla - Epic Games
 - Bernard Kwok - Khronos Group
 - André Mazzone - ILM
 - Magnus Pettersson - IKEA
+- Dimitar Toshev - Chaos
 
 ### TSC Nomination and Succession
 

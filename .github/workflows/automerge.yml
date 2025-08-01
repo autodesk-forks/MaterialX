@@ -1,0 +1,45 @@
+name: Create Branch and PR
+
+on:
+  workflow_dispatch:  # This allows for manual triggering.
+  schedule:
+    - cron: '0 0 * * 6'  # This sets the workflow to run every Saturday at midnight.
+
+jobs:
+  create-branch-and-pr:
+    runs-on: ubuntu-latest
+    env:
+      MERGE_BRANCH: adsk-merge-branch
+
+    steps:
+    - name: Checkout main branch
+      uses: actions/checkout@v2
+      with:
+        ref: main
+        fetch-depth: 0
+
+    - name: Create merge branch and PR
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: | 
+        # Check if the merge branch already exists
+
+        if git checkout $MERGE_BRANCH; then
+            echo "Merge main into the existing $MERGE_BRANCH"
+            git merge main
+            echo "push to $MERGE_BRANCH"
+            git push origin $MERGE_BRANCH 
+        else
+            echo "Create new branch $MERGE_BRANCH"
+            git checkout -b $MERGE_BRANCH
+            echo "push to $MERGE_BRANCH"
+            git push origin $MERGE_BRANCH 
+            echo "Create merge PR"
+
+            gh pr create \
+                --title "Merge $MERGE_BRANCH into adsk_contrib/dev" \
+                --body "Auto-created PR to merge $MERGE_BRANCH into adsk_contrib/dev" \
+                --head $MERGE_BRANCH \
+                --base adsk_contrib/dev \
+                --reviewer "ashwinbhat,zicher3d,ppenenko"
+        fi

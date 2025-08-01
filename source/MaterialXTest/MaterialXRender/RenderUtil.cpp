@@ -8,6 +8,10 @@
 
 #include <MaterialXFormat/Util.h>
 
+#ifdef MATERIALX_BUILD_OCIO
+#include <MaterialXGenShader/OcioColorManagementSystem.h>
+#endif
+
 namespace mx = MaterialX;
 
 namespace RenderUtil
@@ -15,8 +19,7 @@ namespace RenderUtil
 
 ShaderRenderTester::ShaderRenderTester(mx::ShaderGeneratorPtr shaderGenerator) :
     _shaderGenerator(shaderGenerator),
-    _resolveImageFilenames(false),
-    _emitColorTransforms(true)
+    _resolveImageFilenames(false)
 {
 }
 
@@ -37,7 +40,7 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
         reducedOption.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
         optionsList.push_back(reducedOption);
     }
-    // Alway fallback to complete if no options specified.
+    // Always fallback to complete if no options specified.
     if ((testOptions.shaderInterfaces & 2) || optionsList.empty())
     {
         mx::GenOptions completeOption = originalOptions;
@@ -49,7 +52,7 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
 void ShaderRenderTester::printRunLog(const RenderProfileTimes &profileTimes,
                                      const GenShaderUtil::TestSuiteOptions& options,
                                      std::ostream& stream,
-                                     mx::DocumentPtr dependLib)
+                                     mx::DocumentPtr)
 {
     profileTimes.print(stream);
 
@@ -143,7 +146,24 @@ bool ShaderRenderTester::validate(const mx::FilePath optionsFilePath)
 
     createRenderer(log);
 
-    mx::ColorManagementSystemPtr colorManagementSystem = mx::DefaultColorManagementSystem::create(_shaderGenerator->getTarget());
+    addSkipFiles();
+
+    mx::ColorManagementSystemPtr colorManagementSystem;
+#ifdef MATERIALX_BUILD_OCIO
+    try
+    {
+        colorManagementSystem =
+            mx::OcioColorManagementSystem::createFromBuiltinConfig(
+                "ocio://studio-config-latest",
+                _shaderGenerator->getTarget());
+    }
+    catch (const std::exception& /*e*/)
+    {
+        colorManagementSystem = mx::DefaultColorManagementSystem::create(_shaderGenerator->getTarget());
+    }
+#else
+    colorManagementSystem = mx::DefaultColorManagementSystem::create(_shaderGenerator->getTarget());
+#endif
     colorManagementSystem->loadLibrary(dependLib);
     _shaderGenerator->setColorManagementSystem(colorManagementSystem);
 
@@ -164,9 +184,6 @@ bool ShaderRenderTester::validate(const mx::FilePath optionsFilePath)
 
     // Set target unit space
     context.getOptions().targetDistanceUnit = "meter";
-
-    // Set whether to emit colorspace transforms
-    context.getOptions().emitColorTransforms = _emitColorTransforms;
 
     // Register shader metadata defined in the libraries.
     _shaderGenerator->registerShaderMetadata(dependLib, context);
@@ -208,6 +225,12 @@ bool ShaderRenderTester::validate(const mx::FilePath optionsFilePath)
                 continue;
             }
 
+            if (_skipFiles.count(file) > 0)
+            {
+                ioTimer.endTimer();
+                continue;
+            }
+
             const mx::FilePath filename = mx::FilePath(dir) / mx::FilePath(file);
             mx::DocumentPtr doc = mx::createDocument();
             try
@@ -227,7 +250,11 @@ bool ShaderRenderTester::validate(const mx::FilePath optionsFilePath)
             // colliding with implementations in previous test cases.
             context.clearNodeImplementations();
 
-            doc->importLibrary(dependLib);
+            doc->setDataLibrary(dependLib);
+
+            // Register types from the document.
+            _shaderGenerator->registerTypeDefs(doc);
+
             ioTimer.endTimer();
 
             validateTimer.startTimer();

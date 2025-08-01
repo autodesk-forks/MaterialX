@@ -34,7 +34,7 @@ void bindPyMslProgram(py::module& mod)
         .def("bindLighting", &mx::MslProgram::bindLighting)
         .def("bindViewInformation", &mx::MslProgram::bindViewInformation)
         .def("bindTimeAndFrame", &mx::MslProgram::bindTimeAndFrame,
-             py::arg("time") = 1.0f, py::arg("frame") = 1.0f);
+             py::arg("time") = 0.0f, py::arg("frame") = 1.0f);
 
     py::class_<mx::MslProgram::Input>(mod, "Input")
         .def_readwrite("location", &mx::MslProgram::Input::location)
@@ -43,5 +43,11 @@ void bindPyMslProgram(py::module& mod)
         .def_readwrite("value", &mx::MslProgram::Input::value)
         .def_readwrite("isConstant", &mx::MslProgram::Input::isConstant)
         .def_readwrite("path", &mx::MslProgram::Input::path)
-        .def(py::init<int, int, int, std::string>());
+        .def(py::init([](int inputLocation,
+                         int inputType,
+                         int inputSize,
+                         const std::string& inputPath)
+            {
+                return mx::MslProgram::Input(inputLocation, static_cast<MTLDataType>(inputType), inputSize, inputPath);
+            }));
 }

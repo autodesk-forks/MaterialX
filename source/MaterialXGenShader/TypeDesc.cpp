@@ -5,108 +5,123 @@
 
 #include <MaterialXGenShader/TypeDesc.h>
 
-#include <MaterialXCore/Exception.h>
+#include <MaterialXGenShader/ShaderGenerator.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
-namespace
-{
+const string TypeDesc::NONE_TYPE_NAME = "none";
 
-using TypeDescPtr = std::unique_ptr<TypeDesc>;
-using TypeDescMap = std::unordered_map<string, TypeDescPtr>;
-
-// Internal storage of the type descriptor pointers
-TypeDescMap& typeMap()
+const string& TypeDesc::getName() const
 {
-    static TypeDescMap map;
-    return map;
+    return _data ? _data->getName() : NONE_TYPE_NAME;
 }
 
-} // anonymous namespace
-
-//
-// TypeDesc methods
-//
-
-TypeDesc::TypeDesc(const string& name, unsigned char basetype, unsigned char semantic, size_t size,
-                   bool editable, const std::unordered_map<char, int>& channelMapping) :
-    _name(name),
-    _basetype(basetype),
-    _semantic(semantic),
-    _size(size),
-    _editable(editable),
-    _channelMapping(channelMapping)
+StructMemberDescVecPtr TypeDesc::getStructMembers() const
 {
+    return _data ? _data->getStructMembers() : StructMemberDescVecPtr();
 }
 
-bool TypeDesc::operator==(const TypeDesc& rhs) const
+ValuePtr TypeDesc::createValueFromStrings(const string& value) const
 {
-    return (this->_name == rhs._name);
-}
-
-bool TypeDesc::operator!=(const TypeDesc& rhs) const
-{
-    return !(*this == rhs);
-}
-
-const TypeDesc* TypeDesc::registerType(const string& name, unsigned char basetype, unsigned char semantic, size_t size,
-                                       bool editable, const std::unordered_map<char, int>& channelMapping)
-{
-    TypeDescMap& map = typeMap();
-    auto it = map.find(name);
-    if (it != map.end())
+    if (!isStruct())
     {
-        throw Exception("A type with name '" + name + "' is already registered");
+        return Value::createValueFromStrings(value, getName());
     }
 
-    TypeDesc* typeDesc = new TypeDesc(name, basetype, semantic, size, editable, channelMapping);
-    map[name] = std::unique_ptr<TypeDesc>(typeDesc);
-    return typeDesc;
+    // Value::createValueFromStrings() can only create a valid Value for a struct if it is passed
+    // the optional TypeDef argument, otherwise it just returns a "string" typed Value.
+    // So if this is a struct type we need to create a new AggregateValue.
+
+    const StringVec subValues = parseStructValueString(value);
+    auto structMembers = getStructMembers();
+    if (!structMembers || (subValues.size() != structMembers->size()))
+    {
+        std::stringstream ss;
+        ss << "Wrong number of initializers for struct type " << getName();
+        throw ExceptionShaderGenError(ss.str());
+    }
+
+    AggregateValuePtr result = AggregateValue::createAggregateValue(getName());
+    for (size_t i = 0; i < structMembers->size(); ++i)
+    {
+        result->appendValue((*structMembers)[i].getType().createValueFromStrings(subValues[i]));
+    }
+
+    return result;
 }
 
-int TypeDesc::getChannelIndex(char channel) const
+TypeSystem::TypeSystem()
 {
-    auto it = _channelMapping.find(channel);
-    return it != _channelMapping.end() ? it->second : -1;
+    // Register all the standard types.
+    registerType(Type::BOOLEAN);
+    registerType(Type::INTEGER);
+    registerType(Type::INTEGERARRAY);
+    registerType(Type::FLOAT);
+    registerType(Type::FLOATARRAY);
+    registerType(Type::VECTOR2);
+    registerType(Type::VECTOR3);
+    registerType(Type::VECTOR4);
+    registerType(Type::COLOR3);
+    registerType(Type::COLOR4);
+    registerType(Type::MATRIX33);
+    registerType(Type::MATRIX44);
+    registerType(Type::STRING);
+    registerType(Type::FILENAME);
+    registerType(Type::BSDF);
+    registerType(Type::EDF);
+    registerType(Type::VDF);
+    registerType(Type::SURFACESHADER);
+    registerType(Type::VOLUMESHADER);
+    registerType(Type::DISPLACEMENTSHADER);
+    registerType(Type::LIGHTSHADER);
+    registerType(Type::MATERIAL);
 }
 
-const TypeDesc* TypeDesc::get(const string& name)
+TypeSystemPtr TypeSystem::create()
 {
-    const TypeDescMap& map = typeMap();
-    auto it = map.find(name);
-    return it != map.end() ? it->second.get() : nullptr;
+    return TypeSystemPtr(new TypeSystem());
 }
 
-namespace Type
+void TypeSystem::registerType(TypeDesc type)
 {
+    auto it = _typesByName.find(type.getName());
+    if (it != _typesByName.end())
+    {
+        // A type with this name is already registered,
+        // so replace it with the new registration.
+        size_t i = 0;
+        for (const TypeDesc t : _types)
+        {
+            if (t == type)
+            {
+                _types[i] = type;
+                _typesByName[type.getName()] = type;
+                break;
+            }
+            ++i;
+        }
+    }
+    else
+    {
+        _types.push_back(type);
+        _typesByName[type.getName()] = type;
+    }
+}
 
-// Register all standard types and save their pointers
-// for quick access and type comparisons later.
-const TypeDesc* NONE                = TypeDesc::registerType("none", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_NONE, 1, false);
-const TypeDesc* MULTIOUTPUT         = TypeDesc::registerType("multioutput", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_NONE, 1, false);
-const TypeDesc* BOOLEAN             = TypeDesc::registerType("boolean", TypeDesc::BASETYPE_BOOLEAN);
-const TypeDesc* INTEGER             = TypeDesc::registerType("integer", TypeDesc::BASETYPE_INTEGER);
-const TypeDesc* INTEGERARRAY        = TypeDesc::registerType("integerarray", TypeDesc::BASETYPE_INTEGER, TypeDesc::SEMANTIC_NONE, 0);
-const TypeDesc* FLOAT               = TypeDesc::registerType("float", TypeDesc::BASETYPE_FLOAT);
-const TypeDesc* FLOATARRAY          = TypeDesc::registerType("floatarray", TypeDesc::BASETYPE_FLOAT, TypeDesc::SEMANTIC_NONE, 0);
-const TypeDesc* VECTOR2             = TypeDesc::registerType("vector2", TypeDesc::BASETYPE_FLOAT, TypeDesc::SEMANTIC_VECTOR, 2, true, {{'x', 0}, {'y', 1}});
-const TypeDesc* VECTOR3             = TypeDesc::registerType("vector3", TypeDesc::BASETYPE_FLOAT, TypeDesc::SEMANTIC_VECTOR, 3, true, {{'x', 0}, {'y', 1}, {'z', 2}});
-const TypeDesc* VECTOR4             = TypeDesc::registerType("vector4", TypeDesc::BASETYPE_FLOAT, TypeDesc::SEMANTIC_VECTOR, 4, true, {{'x', 0}, {'y', 1}, {'z', 2}, {'w', 3}});
-const TypeDesc* COLOR3              = TypeDesc::registerType("color3", TypeDesc::BASETYPE_FLOAT, TypeDesc::SEMANTIC_COLOR, 3, true, {{'r', 0}, {'g', 1}, {'b', 2}});
-const TypeDesc* COLOR4              = TypeDesc::registerType("color4", TypeDesc::BASETYPE_FLOAT, TypeDesc::SEMANTIC_COLOR, 4, true, {{'r', 0}, {'g', 1}, {'b', 2}, {'a', 3}});
-const TypeDesc* MATRIX33            = TypeDesc::registerType("matrix33", TypeDesc::BASETYPE_FLOAT, TypeDesc::SEMANTIC_MATRIX, 9);
-const TypeDesc* MATRIX44            = TypeDesc::registerType("matrix44", TypeDesc::BASETYPE_FLOAT, TypeDesc::SEMANTIC_MATRIX, 16);
-const TypeDesc* STRING              = TypeDesc::registerType("string", TypeDesc::BASETYPE_STRING);
-const TypeDesc* FILENAME            = TypeDesc::registerType("filename", TypeDesc::BASETYPE_STRING, TypeDesc::SEMANTIC_FILENAME);
-const TypeDesc* BSDF                = TypeDesc::registerType("BSDF", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_CLOSURE, 1, false);
-const TypeDesc* EDF                 = TypeDesc::registerType("EDF", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_CLOSURE, 1, false);
-const TypeDesc* VDF                 = TypeDesc::registerType("VDF", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_CLOSURE, 1, false);
-const TypeDesc* SURFACESHADER       = TypeDesc::registerType("surfaceshader", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_SHADER, 1, false);
-const TypeDesc* VOLUMESHADER        = TypeDesc::registerType("volumeshader", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_SHADER, 1, false);
-const TypeDesc* DISPLACEMENTSHADER  = TypeDesc::registerType("displacementshader", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_SHADER, 1, false);
-const TypeDesc* LIGHTSHADER         = TypeDesc::registerType("lightshader", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_SHADER, 1, false);
-const TypeDesc* MATERIAL            = TypeDesc::registerType("material", TypeDesc::BASETYPE_NONE, TypeDesc::SEMANTIC_MATERIAL, 1, false);
+void TypeSystem::registerType(const string& name, uint8_t basetype, uint8_t semantic, uint16_t size, StructMemberDescVecPtr members)
+{
+    // Allocate a data block for the new type description.
+    TypeDesc::DataBlockPtr data = std::make_shared<TypeDesc::DataBlock>(name, members);
+    _dataBlocks.push_back(data);
 
-} // namespace Type
+    // Register the new type
+    registerType(TypeDesc(name, basetype, semantic, size, data.get()));
+}
+
+TypeDesc TypeSystem::getType(const string& name) const
+{
+    auto it = _typesByName.find(name);
+    return (it != _typesByName.end() ? it->second : Type::NONE);
+}
 
 MATERIALX_NAMESPACE_END
