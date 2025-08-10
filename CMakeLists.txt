@@ -455,7 +455,8 @@ add_subdirectory(source/MaterialXFormat)
 add_subdirectory(source/MaterialXGenShader)
 if (MATERIALX_BUILD_METASHADE)
     add_definitions(-DMATERIALX_BUILD_METASHADE)
-    add_subdirectory(source/MaterialXMetashade)
+    # Note: MaterialXMetashade is built as part of PyMaterialXMetashade
+    # but we can still link against it from C++
 endif()
 if(MATERIALX_BUILD_GEN_GLSL OR MATERIALX_BUILD_GEN_OSL OR MATERIALX_BUILD_GEN_MDL OR MATERIALX_BUILD_GEN_MSL)
     if (MATERIALX_BUILD_GEN_GLSL)

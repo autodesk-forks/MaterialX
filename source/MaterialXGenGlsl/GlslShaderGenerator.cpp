@@ -29,7 +29,7 @@
 #include <MaterialXGenShader/Nodes/HwViewDirectionNode.h>
 
 #ifdef MATERIALX_BUILD_METASHADE
-#include <MaterialXMetashade/MetashadeNode.h>
+#include <MetashadeNode.h>
 #endif
 
 MATERIALX_NAMESPACE_BEGIN
@@ -136,7 +136,7 @@ GlslShaderGenerator::GlslShaderGenerator(TypeSystemPtr typeSystem) :
     registerImplementation("IM_surfacematerial_" + GlslShaderGenerator::TARGET, MaterialNode::create);
 
 #ifdef MATERIALX_BUILD_METASHADE
-    // Register custom Metashade nodes
+    // Register custom Metashade nodes for embedded Python shader generation
     MetashadeNode::registerImplementations(*this);
 #endif
 

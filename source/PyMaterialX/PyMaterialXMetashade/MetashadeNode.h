@@ -6,8 +6,8 @@
 #ifndef MATERIALX_METASHADENODE_H
 #define MATERIALX_METASHADENODE_H
 
-#include <MaterialXMetashade/Export.h>
-#include <MaterialXMetashade/Library.h>
+#include "Export.h"
+#include "Library.h"
 
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 
