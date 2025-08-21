@@ -1,0 +1,123 @@
+file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.c*")
+file(GLOB_RECURSE materialx_headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h*")
+
+assign_source_group("Source Files" ${materialx_source})
+assign_source_group("Header Files" ${materialx_headers})
+
+if(POLICY CMP0072)
+    cmake_policy(SET CMP0072 NEW)
+endif()
+
+# Enable Vulkan
+find_package(Vulkan REQUIRED COMPONENTS glslang SPIRV-Tools)
+find_package(Threads REQUIRED)
+#Get vulkan lib folder
+get_filename_component(Vulkan_LIB_PATH ${Vulkan_LIBRARIES} DIRECTORY)
+
+if(APPLE)
+    find_library(COCOA_FRAMEWORK Cocoa)
+    find_package(OpenGL REQUIRED)
+    file(GLOB_RECURSE materialx_source_oc "${CMAKE_CURRENT_SOURCE_DIR}/*.m")
+    message("Objective C files: " ${materialx_source_oc})
+    set_source_files_properties(${materialx_source_oc} PROPERTIES
+        COMPILE_FLAGS "-x objective-c++")
+    set(materialx_source ${materialx_source} ${materialx_source_oc})
+    add_compile_options(-DGL_SILENCE_DEPRECATION)
+elseif(UNIX)
+    find_package(X11 REQUIRED)
+    # Note - can't just require the Xt component because FindX11 in cmake 3.1
+    # doesn't support it
+    if(NOT X11_Xt_FOUND)
+        message(FATAL_ERROR "Error in building MaterialXRenderVk: Xt was not found")
+    endif()
+
+    find_package(OpenGL REQUIRED)
+    include_directories(${X11_INCLUDE_DIR})
+endif()
+
+# Disable OpenGL deprecation warnings on Clang.
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-Wno-deprecated-declarations)
+endif()
+
+add_library(MaterialXRenderVk ${materialx_source} ${materialx_headers})
+
+
+add_definitions(-DMATERIALX_RENDERVK_EXPORTS -DVK_USE_PLATFORM_WIN32_KHR -DVK_PROTOTYPES -DVULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1 -D_USE_VULKAN_CPP -DNOMINMAX)
+
+if(MATERIALX_BUILD_SHARED_LIBS)
+    target_compile_definitions(MaterialXRenderVk PUBLIC GLAD_GLAPI_EXPORT PRIVATE GLAD_GLAPI_EXPORT_BUILD VULKAN_HPP_STORAGE_SHARED VULKAN_HPP_STORAGE_SHARED_EXPORT)
+endif()
+
+set(COMMON_LIBRARIES
+    MaterialXRenderHw
+    MaterialXGenGlsl
+    ${CMAKE_DL_LIBS})
+
+if(WIN32)
+    if(MSVC)
+        target_link_libraries(
+            MaterialXRenderVk
+            ${COMMON_LIBRARIES}
+            Opengl32
+            Vulkan::Vulkan
+            Vulkan::glslang
+            Vulkan::SPIRV-Tools
+            debug ${Vulkan_LIB_PATH}/SPIRV-Tools-optd.lib
+            optimized ${Vulkan_LIB_PATH}/SPIRV-Tools-opt.lib
+            )
+    elseif(MINGW)
+        target_link_libraries(
+            MaterialXRenderVk
+            ${COMMON_LIBRARIES}
+            Opengl32
+            gdi32)
+    endif()
+elseif(APPLE)
+    target_link_libraries(
+        MaterialXRenderVk
+        ${COMMON_LIBRARIES}
+        ${OPENGL_LIBRARIES}
+        "-framework Foundation"
+        "-framework Cocoa"
+        "-framework Metal")
+elseif(UNIX)
+    target_link_libraries(
+        MaterialXRenderVk
+        ${COMMON_LIBRARIES}
+        ${OPENGL_LIBRARIES}
+        ${X11_LIBRARIES}
+        ${X11_Xt_LIB})
+endif()
+
+set_target_properties(
+    MaterialXRenderVk PROPERTIES
+    OUTPUT_NAME MaterialXRenderVk${MATERIALX_LIBNAME_SUFFIX}
+    COMPILE_FLAGS "${EXTERNAL_COMPILE_FLAGS}"
+    LINK_FLAGS "${EXTERNAL_LINK_FLAGS}"
+    INSTALL_RPATH "${MATERIALX_SAME_DIR_RPATH}"
+    VERSION "${MATERIALX_LIBRARY_VERSION}"
+    SOVERSION "${MATERIALX_MAJOR_VERSION}")
+
+target_include_directories(MaterialXRenderVk
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>
+        $<INSTALL_INTERFACE:${MATERIALX_INSTALL_INCLUDE_PATH}>
+    PRIVATE
+        ${EXTERNAL_INCLUDE_DIRS}
+        ${Vulkan_INCLUDE_DIR}
+        #for glm
+        ${Vulkan_INCLUDE_DIR}/../Third-Party/Include)
+
+install(TARGETS MaterialXRenderVk
+    EXPORT MaterialX
+    ARCHIVE DESTINATION ${MATERIALX_INSTALL_LIB_PATH}
+    LIBRARY DESTINATION ${MATERIALX_INSTALL_LIB_PATH}
+    RUNTIME DESTINATION bin)
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
+    DESTINATION ${MATERIALX_INSTALL_INCLUDE_PATH}/MaterialXRenderVk/ MESSAGE_NEVER
+    FILES_MATCHING PATTERN "*.h*")
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/MaterialXRenderVk.pdb"
+    DESTINATION "${MATERIALX_INSTALL_LIB_PATH}/" OPTIONAL)

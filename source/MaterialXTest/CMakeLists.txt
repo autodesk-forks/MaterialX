@@ -47,6 +47,21 @@ if(MATERIALX_BUILD_GEN_GLSL OR MATERIALX_BUILD_GEN_OSL OR MATERIALX_BUILD_GEN_MD
   if(MATERIALX_BUILD_GEN_GLSL)
     add_subdirectory(MaterialXGenGlsl)
     target_link_libraries(MaterialXTest MaterialXGenGlsl)
+    # Enable Vulkan
+    find_package(Vulkan REQUIRED COMPONENTS glslang SPIRV-Tools)
+    add_subdirectory(MaterialXRenderVk)
+    
+    target_include_directories(MaterialXTest PRIVATE ${Vulkan_INCLUDE_DIR})
+    add_definitions(-DVK_USE_PLATFORM_WIN32_KHR -DVULKAN_EXPORTED -DVULKAN_HPP_STORAGE_SHARED_EXPORT -DVULKAN_HPP_STORAGE_SHARED -DNOMINMAX)
+    #Get vulkan lib folder
+    get_filename_component(Vulkan_LIB_PATH ${Vulkan_LIBRARIES} DIRECTORY)
+    target_link_libraries(MaterialXTest 
+      MaterialXRenderVk 
+            Vulkan::Vulkan
+            Vulkan::glslang
+            Vulkan::SPIRV-Tools
+            debug ${Vulkan_LIB_PATH}/SPIRV-Tools-optd.lib
+            optimized ${Vulkan_LIB_PATH}/SPIRV-Tools-opt.lib)
   endif()
   if(MATERIALX_BUILD_GEN_OSL)
     add_subdirectory(MaterialXGenOsl)
