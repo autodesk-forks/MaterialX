@@ -22,30 +22,62 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: | 
-        set -e
+        # Ensure we have the latest information from the remote repository before proceeding
+        if git fetch origin; then
+            echo "git fetch origin succeeded"
+        else
+            echo "git fetch origin failed"
+            exit 1
+        fi
 
-        # Check if the merge branch already exists
-
+        # Check if adsk_contrib/dev is already up to date with main; if so, automerge is not needed
         if git diff --quiet origin/main adsk_contrib/dev; then
             echo "adsk_contrib/dev is updated with main, automerge not required"
             exit 0
         fi
 
+        # Try to checkout the merge branch; if it doesn't exist, create it. If it exists, merge main into it and handle merge errors
         if ! git checkout "$MERGE_BRANCH"; then
             echo "Create new branch $MERGE_BRANCH"
             git checkout -b "$MERGE_BRANCH"
         else
             echo "Merge main into the existing $MERGE_BRANCH"
-            git merge main
+            # Attempt to merge main into the merge branch and exit if the merge fails
+            if git merge main; then
+                echo "Merge completed successfully."
+            else
+                echo "Merge failed. Exiting workflow."
+                exit 1
+            fi
+        fi
+
+        # Check if there are any changes to push to the remote merge branch; if not, skip push and PR creation
+        if git fetch origin "$MERGE_BRANCH" && git diff --quiet "$MERGE_BRANCH" "origin/$MERGE_BRANCH"; then
+            echo "No changes to push for $MERGE_BRANCH. Skipping push and PR creation."
+            exit 0
         fi
 
         echo "push to $MERGE_BRANCH"
         git push origin "$MERGE_BRANCH"
 
+        # Check if a PR from the merge branch to adsk_contrib/dev already exists; if so, do not create a new one
+        EXISTING_PR=$(gh pr list --base adsk_contrib/dev --head "$MERGE_BRANCH" --state open --json number --jq '.[0].number')
+        if [ -n "$EXISTING_PR" ]; then
+            echo "A PR from $MERGE_BRANCH to adsk_contrib/dev already exists (PR #$EXISTING_PR)."
+            exit 0
+        fi
+
+        # Attempt to create the PR and exit if the creation fails
         echo "Create merge PR"
-        gh pr create \
+        if gh pr create \
             --title "Merge $MERGE_BRANCH into adsk_contrib/dev" \
             --body "Auto-created PR to merge $MERGE_BRANCH into adsk_contrib/dev" \
             --head "$MERGE_BRANCH" \
             --base adsk_contrib/dev \
             --reviewer "ashwinbhat,zicher3d,ppenenko"
+        then
+            echo "PR created successfully."
+        else
+            echo "Failed to create PR."
+            exit 1
+        fi
