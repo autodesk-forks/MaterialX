@@ -49,6 +49,14 @@
     <output name="out" type="vector3" />
   </nodedef>
  
+   <nodedef name="ND_util_noise2d_units" node="util_noise2d_units" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy">
+    <input name="texcoord" type="vector2" defaultgeomprop="UV0" />
+    <input name="realworld_scale" type="vector2" value="1, 1" uisoftmin="0,0" uisoftmax="1,1" unittype="distance" />
+    <input name="amplitude" type="vector3" value="1, 1, 1" uisoftmin="0,0,0" uisoftmax="1,1,1" />
+    <input name="pivot" type="float" value="0" uisoftmin="-1.0" uisoftmax="1.0" />
+    <output name="out" type="color3" />
+  </nodedef>
+
   <!-- 
       ===============================================
       Nodedefs for Autodesk Legacy Procedural Classes
