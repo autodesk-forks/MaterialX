@@ -332,6 +332,19 @@
     <output name="out" type="vector3" nodename="normalmap1" xpos="12.615942" ypos="-6.775862" />
   </nodegraph>
 
+  <nodegraph name="NG_util_noise2d_units" Autodesk-ldx_inputPos="-776.333 -235.667" Autodesk-ldx_outputPos="172 -114.333" nodedef="ND_util_noise2d_units">
+    <noise2d name="noise2d1" type="color3" nodedef="ND_noise2d_color3" xpos="-1.06944" ypos="-1.17778">
+      <input name="texcoord" type="vector2" nodename="divide_scale" />
+      <input name="amplitude" type="vector3" interfacename="amplitude" />
+      <input name="pivot" type="float" interfacename="pivot" />
+    </noise2d>
+    <divide name="divide_scale" type="vector2" nodedef="ND_multiply_vector2" xpos="-2.55833" ypos="-1.81852">
+      <input name="in1" type="vector2" interfacename="texcoord" />
+      <input name="in2" type="vector2" interfacename="realworld_scale" />
+    </divide>
+    <output name="out" type="color3" nodename="noise2d1" />
+  </nodegraph>
+
   <!-- 
       =================================================
       Nodegraphs for Autodesk Legacy Procedural Classes
