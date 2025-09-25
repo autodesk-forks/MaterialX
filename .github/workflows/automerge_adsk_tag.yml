@@ -1,0 +1,74 @@
+name: Create Tag on automer PR Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - adsk_contrib/dev
+
+jobs:
+  create-tag:
+    if: |
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.base.ref == 'adsk_contrib/dev' &&
+        github.event.pull_request.head.ref == 'adsk-merge-branch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          # Get the ASF repo tags
+          
+          if git remote add upstream https://github.com/AcademySoftwareFoundation/MaterialX.git; then
+            echo "Remote 'upstream' added successfully."
+          else
+            echo "Failed to add remote 'upstream'."
+            exit 1
+          fi
+
+          if git fetch upstream --tags; then
+            echo "Fetched tags from 'upstream' successfully."
+          else
+            echo "Failed to fetch tags from 'upstream'."
+            exit 1
+          fi
+
+          # Get the latest tag from the ASF repo
+          latest_tag=$(git ls-remote --tags upstream | while read -r commit ref; do echo "$(git show -s --format=%ct $commit) $ref"; done | sort -n | tail -n 1 | awk '{print $2}' | sed 's#refs/tags/##' )
+          echo "latest_tag=${latest_tag}"
+          echo "latest_tag=${latest_tag}" >> $GITHUB_ENV
+
+      - name: Tag the repository
+        run: |
+          # Get the current date
+          month=$(date +"%b")
+          year=$(date +"%Y")
+
+          # Create the new tag
+          echo "latest_tag=${latest_tag}"
+          new_tag="${latest_tag}.${month}_${year}.dev_adsk"
+          echo "new_tag=${new_tag}"
+
+          # Apply the new tag
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if git tag ${new_tag}; then
+            echo "Tag created successfully."
+          else
+            echo "Failed to create tag."
+            exit 1
+          fi
+
+          if git push origin ${new_tag}; then
+            echo "Tag pushed successfully."
+          else
+            echo "Failed to push tag."
+            exit 1
+          fi
