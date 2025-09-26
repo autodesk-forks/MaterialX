@@ -39,6 +39,15 @@ materials = materials.concat(usdMaterials);
 materials = materials.concat(gltfMaterials);
 materials = materials.concat(openMaterials);
 
+const adskMaterialsPath = "../../resources/Materials/Examples/ArchViz";
+const adskMaterialsBaseURL = "Materials/Examples/ArchViz";
+dirent = fs.readdirSync(adskMaterialsPath).filter(
+    function (file) { if (file.lastIndexOf(".mtlx") > -1) return file; }
+)
+let adskMaterials = dirent
+    .map((fileName) => ({ name: fileName, value: `${adskMaterialsBaseURL}/${fileName}` }));
+materials = materials.concat(adskMaterials);
+
 const geometryFiles = "../../resources/Geometry";
 const geometryFilesURL = "Geometry";
 dirent = fs.readdirSync(geometryFiles).filter(
@@ -81,6 +90,7 @@ module.exports = {
                 { from: usdSurfaceMaterials, to: usdSurfaceMaterialsBaseURL },
                 { from: gltfPbrMaterials, to: gltfPbrMaterialsBaseURL },
                 { from: openPbrMaterials, to: openPbrMaterialsBaseURL },
+                { from: adskMaterialsPath, to: adskMaterialsBaseURL },
                 { from: "../build/bin/JsMaterialXCore.wasm" },
                 { from: "../build/bin/JsMaterialXCore.js" },
                 { from: "../build/bin/JsMaterialXGenShader.wasm" },
