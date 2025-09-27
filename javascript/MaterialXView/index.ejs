@@ -26,6 +26,56 @@
       .peditor_material_assigned:hover {
         background-color: #32adff;
       }
+
+      /* Shader textbox styles */
+
+      .shader-textbox {
+        flex: 1;
+        background-color: #1e1e1e;
+        color: #d4d4d4;
+        border: 1px solid #555;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        padding: 10px;
+        resize: none;
+        outline: none;
+        box-sizing: border-box;
+        min-height: 150px;
+      }
+
+      .shader-label {
+        position: absolute;
+        top: -20px;
+        left: 5px;
+        color: #ccc;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .shader-wrapper {
+        position: relative;
+        flex: 1;
+      }
+
+      /* Resize canvas to 75% and position shader panel next to it */
+      #webglcanvas {
+        width: 75% !important;
+        height: 75% !important;
+      }
+
+      .shader-container {
+        position: absolute;
+        top: 60px;
+        left: 75%;
+        right: 0px;
+        height: calc(100vh - 80px);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+        box-sizing: border-box;
+      }
     </style>
   </head>
   <body style="margin: 0px; overflow: hidden;">
@@ -51,7 +101,43 @@
         </select>
       </div>
       <canvas id="webglcanvas" tabindex="1" style="outline: none;"></canvas>
+      
+      <!-- Shader Text Boxes -->
+      <div class="shader-container">
+        <div class="shader-wrapper">
+          <div class="shader-label">VtxShader</div>
+          <textarea id="vtxShader" class="shader-textbox" placeholder="Vertex shader code will appear here..."></textarea>
+        </div>
+        <div class="shader-wrapper">
+          <div class="shader-label">PxShader</div>
+          <textarea id="pxShader" class="shader-textbox" placeholder="Pixel shader code will appear here..."></textarea>
+        </div>
+      </div>
     </div>
     <script src="JsMaterialXGenShader.js"></script>
+    <script>
+      // Functions to update shader content (to be called from main application)
+      function updateVtxShader(shaderCode) {
+        const vtxElement = document.getElementById('vtxShader');
+        if (vtxElement) {
+          vtxElement.value = shaderCode;
+        } else {
+          console.warn('vtxShader element not found');
+        }
+      }
+
+      function updatePxShader(shaderCode) {
+        const pxElement = document.getElementById('pxShader');
+        if (pxElement) {
+          pxElement.value = shaderCode;
+        } else {
+          console.warn('pxShader element not found');
+        }
+      }
+
+      // Make functions available globally
+      window.updateVtxShader = updateVtxShader;
+      window.updatePxShader = updatePxShader;
+    </script>
   </body>
 </html>

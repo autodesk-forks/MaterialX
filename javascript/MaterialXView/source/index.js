@@ -8,6 +8,34 @@ import { Viewer } from './viewer.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { dropHandler, dragOverHandler, setLoadingCallback, setSceneLoadingCallback } from './dropHandling.js';
 
+// Global error handlers to prevent webpack overlay from showing generic errors
+window.addEventListener('error', function(event) {
+    console.error('Global error caught:', event.error);
+    console.error('Error message:', event.message);
+    console.error('Error filename:', event.filename);
+    console.error('Error line:', event.lineno);
+    console.error('Error column:', event.colno);
+    
+    // Don't let this bubble up to webpack dev server overlay for external script errors
+    if (event.filename && event.filename.includes('unpkg.com')) {
+        console.warn('External script error detected, preventing webpack overlay');
+        event.preventDefault();
+        return false;
+    }
+});
+
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('Unhandled promise rejection:', event.reason);
+    
+    // Handle specific external library failures
+    if (event.reason && event.reason.message && 
+        (event.reason.message.includes('glslang') || event.reason.message.includes('unpkg.com'))) {
+        console.warn('External library promise rejection, preventing webpack overlay');
+        event.preventDefault();
+        return false;
+    }
+});
+
 let renderer, orbitControls;
 
 // Turntable option. For now the step size is fixed.
@@ -163,17 +191,37 @@ function onWindowResize()
 function animate()
 {
     requestAnimationFrame(animate);
+    
+    // Safety check to ensure viewer and scene are properly initialized
+    if (!viewer || !viewer.getScene()) {
+        return;
+    }
+    
     const scene = viewer.getScene();
+    const threeScene = scene.getScene();
+    const camera = scene.getCamera();
+    
+    // Additional safety checks
+    if (!threeScene || !camera) {
+        return;
+    }
 
     if (turntableEnabled)
     {
         turntableStep = (turntableStep + 1) % 360;
         var turntableAngle = turntableStep * (360.0 / turntableSteps) / 180.0 * Math.PI;
-        scene._scene.rotation.y = turntableAngle;
+        threeScene.rotation.y = turntableAngle;
     }
 
     scene.updateTimeUniforms();
-    renderer.render(scene.getScene(), scene.getCamera());
+    
+    try {
+        renderer.render(threeScene, camera);
+    } catch (error) {
+        console.error('Rendering error:', error);
+        // Don't crash the animation loop
+        return;
+    }
 
     if (captureRequested)
     {
