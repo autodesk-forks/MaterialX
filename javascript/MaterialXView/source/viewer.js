@@ -18,201 +18,19 @@ const DAG_PATH_SEPERATOR = "/";
 // Logging toggle
 var logDetailedTime = false;
 
-/*
-    Shader conversion utilities
-*/
-export class ShaderConverter
-{
-    constructor()
-    {
-        this._glslang = null;
-        this._twgsl = null;
-        this._twgslWasmUrl = "https://cx20.github.io/webgpu-test/libs/twgsl.wasm";
-    }
 
-    /**
-     * Initialize and return glslang compiler
-     * @returns {Promise<Object>} glslang compiler instance
-     */
-    async glslang()
-    {
-        if (this._glslang) {
-            return this._glslang;
-        }
+function makeShaderModule_GLSL(glslang, twgsl, device, type, source) {
+    let code =  glslang.compileGLSL(source, type);
+    code = twgsl.convertSpirV2WGSL(code);
+    console.log("// SPIR-V to WGSL");
+    console.log(code);
 
-        console.log('Creating mock glslang compiler - external libraries disabled to prevent ES6 module errors');
-        // Create a mock glslang compiler that doesn't actually convert but prevents errors
-        this._glslang = {
-            compileGLSL: (source, stage) => {
-                console.log(`Mock glslang: would compile ${stage} shader (${source.length} chars)`);
-                // Return a fake SPIR-V array to satisfy the interface
-                return new Uint8Array([0x03, 0x02, 0x23, 0x07]); // SPIR-V magic number
-            }
-        };
-        return this._glslang;
-    }
-
-    /**
-     * Load a script dynamically
-     * @param {string} src - Script source URL
-     * @param {boolean} isModule - Whether to load as ES6 module
-     * @returns {Promise<void>}
-     */
-    _loadScript(src, isModule = false)
-    {
-        return new Promise((resolve, reject) => {
-            // Check if script is already loaded
-            const existing = document.querySelector(`script[src="${src}"]`);
-            if (existing) {
-                console.log('Script already loaded:', src);
-                resolve();
-                return;
-            }
-
-            console.log('Loading script:', src);
-            const script = document.createElement('script');
-            script.src = src;
-            script.crossOrigin = 'anonymous'; // Handle CORS issues
-            
-            // Handle ES6 modules vs regular scripts
-            if (isModule) {
-                script.type = 'module';
-            }
-            
-            // Add timeout handling
-            const timeout = setTimeout(() => {
-                console.error('Script load timeout:', src);
-                reject(new Error(`Script load timeout: ${src}`));
-            }, 10000); // 10 second timeout
-            
-            script.onload = () => {
-                clearTimeout(timeout);
-                console.log('Script loaded successfully:', src);
-                resolve();
-            };
-            
-            script.onerror = (error) => {
-                clearTimeout(timeout);
-                console.error('Failed to load script:', src, error);
-                reject(new Error(`Failed to load script: ${src}`));
-            };
-            
-            document.head.appendChild(script);
-        });
-    }
-
-    /**
-     * Initialize and return twgsl converter
-     * @param {string} wasmUrl - Optional custom WASM URL
-     * @returns {Promise<Object>} twgsl converter instance
-     */
-    async twgsl(wasmUrl = null)
-    {
-        if (this._twgsl) {
-            return this._twgsl;
-        }
-
-        const url = wasmUrl || this._twgslWasmUrl;
-        
-        try {
-            // Load twgsl WASM module
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch twgsl WASM: ${response.status}`);
-            }
-            
-            const wasmBytes = await response.arrayBuffer();
-            
-            // Create WebAssembly module
-            const wasmModule = await WebAssembly.instantiate(wasmBytes);
-            
-            // Create twgsl wrapper (simplified interface)
-            // Note: This is a placeholder implementation
-            // Replace with actual twgsl API calls when available
-            this._twgsl = {
-                convertGLSLToWGSL: (glslCode, shaderType = 'fragment') => {
-                    try {
-                        console.log(`Converting ${shaderType} shader from GLSL to WGSL`);
-                        
-                        // Placeholder WGSL conversion
-                        const wgslTemplate = `// WGSL conversion of ${shaderType} shader
-// Converted from GLSL by twgsl
-// Note: This is a placeholder implementation
-
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
-
-${shaderType === 'vertex' ? `
-@vertex
-fn vs_main(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec4<f32> {
-    // Placeholder vertex shader
-    return vec4<f32>(0.0, 0.0, 0.0, 1.0);
-}
-` : `
-@fragment  
-fn fs_main() -> @location(0) vec4<f32> {
-    // Placeholder fragment shader
-    return vec4<f32>(1.0, 0.0, 1.0, 1.0);
-}
-`}
-
-/* Original GLSL:
-${glslCode}
-*/`;
-                        
-                        return wgslTemplate;
-                    } catch (error) {
-                        console.error('GLSL to WGSL conversion failed:', error);
-                        return `// Conversion failed: ${error.message}\n\n/* Original GLSL:\n${glslCode}\n*/`;
-                    }
-                }
-            };
-            
-            console.log('twgsl converter initialized');
-            return this._twgsl;
-        } catch (error) {
-            console.error('Failed to initialize twgsl:', error);
-            // Return a fallback converter that just provides placeholder output
-            this._twgsl = {
-                convertGLSLToWGSL: (glslCode, shaderType = 'fragment') => {
-                    return `// twgsl failed to load, showing original GLSL:\n\n${glslCode}`;
-                }
-            };
-            return this._twgsl;
-        }
-    }
-
-    /**
-     * Convert GLSL shader to SPIR-V using glslang
-     * @param {string} glslCode - GLSL shader source code
-     * @param {string} shaderType - 'vertex' or 'fragment'
-     * @returns {Promise<Uint8Array>} SPIR-V binary
-     */
-    async convertGLSLToSPIRV(glslCode, shaderType)
-    {
-        const compiler = await this.glslang();
-        
-        try {
-            const shaderStage = shaderType === 'vertex' ? 'vertex' : 'fragment';
-            const spirv = compiler.compileGLSL(glslCode, shaderStage);
-            console.log(`Successfully converted ${shaderType} shader to SPIR-V`);
-            return spirv;
-        } catch (error) {
-            console.error(`Failed to convert ${shaderType} shader to SPIR-V:`, error);
-            throw error;
-        }
-    }
-
-    /**
-     * Convert GLSL shader to WGSL using twgsl
-     * @param {string} glslCode - GLSL shader source code
-     * @param {string} shaderType - 'vertex' or 'fragment'
-     * @returns {Promise<string>} WGSL shader source code
-     */
-    async convertGLSLToWGSL(glslCode, shaderType)
-    {
-        const converter = await this.twgsl();
-        return converter.convertGLSLToWGSL(glslCode, shaderType);
-    }
+    let shaderModuleDescriptor = {
+        code: code,
+        source: source
+    };
+    let shaderModule = device.createShaderModule(shaderModuleDescriptor);
+    return shaderModule;
 }
 
 /*
@@ -229,7 +47,7 @@ export class Scene
         }
     }
 
-    initialize()
+    async initialize()
     {
         this._scene = new THREE.Scene();
         this._scene.background = new THREE.Color(this.#_backgroundColor);
@@ -247,6 +65,22 @@ export class Scene
         this.#_normalMat = new THREE.Matrix3();
         this.#_viewProjMat = new THREE.Matrix4();
         this.#_worldViewPos = new THREE.Vector3();
+
+        // Setup WebGPU
+        const gpu = navigator["gpu"];
+        const adapter = await gpu.requestAdapter();
+        const device = await adapter.requestDevice();
+
+        const c = document.getElementById("webgpucanvas");
+        c.width = window.innerWidth;
+        c.height = window.innerHeight;
+        const ctx = c.getContext("webgpu");
+        const format = gpu.getPreferredCanvasFormat();
+        ctx.configure({
+            device: device,
+            format: format,
+            alphaMode: "opaque"
+        });
     }
 
     // Set whether to flip UVs in V for loaded geometry
@@ -649,6 +483,16 @@ export class Scene
         this._scene.background = this.getBackground();
     }
 
+    getGlslang()
+    {
+        return this._libGlslang;
+    }
+
+    getTwgsl()
+    {
+        return this._libTwgsl;
+    }
+
     // Geometry file
     #_geometryURL = '';
     // Geometry loader
@@ -677,6 +521,8 @@ export class Scene
 
     // Root node of imported scene
     #_rootNode = null;
+
+
 }
 
 /* 
@@ -812,6 +658,10 @@ export class Material
     {
         return this._soloMaterial;
     }
+
+    // Shader converters
+    glslangModule = null;
+    twgslModule = null;
 
     // If no material file is selected, we programmatically create a default material as a fallback
     static createFallbackMaterial(doc)
@@ -1119,7 +969,45 @@ export class Material
             console.log('Material assignment time: ', performance.now() - startTime, " ms.");
         }
     }
+    
+    // Initialize the modules
+    async initializeGLSLConverters() {
+        if (!this.glslangModule || !this.twgslMod) {
+            try {
+                console.log("Initializing GLSL converters...");
+                const [glslangInit, twgslInit] = await Promise.all([
+                    glslang(),
+                    twgsl("https://cx20.github.io/webgpu-test/libs/twgsl.wasm")
+                ]);
+                this.glslangModule = glslangInit;
+                this.twgslMod = twgslInit;
+                console.log("GLSL converters initialized successfully");
+            } catch (error) {
+                console.error("Failed to initialize GLSL converters:", error);
+                throw error;
+            }
+        }
+    }
 
+    async convertGLSLtoWGSL(glslCode, stage = "fragment") {
+        try {
+            await this.initializeGLSLConverters();
+            
+            console.log("Compiling GLSL to SPIR-V...");
+            const spirv = this.glslangModule.compileGLSL(glslCode, stage);
+
+            console.log("Converting SPIR-V to WGSL...");
+            const wgslCode = this.twgslMod.convertSpirV2WGSL(spirv);
+
+            console.log("Conversion completed successfully");
+            return wgslCode;
+        } catch (error) {
+            console.error("GLSL to WGSL conversion error:", error);
+            throw new Error(`Failed to convert GLSL to WGSL: ${error.message}`);
+        }
+    }
+
+   
     // 
     // Generate a new material for a given element
     //
@@ -1140,14 +1028,23 @@ export class Material
         const genContext = viewer.getGenContext();
         genContext.getOptions().hwSrgbEncodeOutput = true;
 
+
+        //Wgsl
+        const genW= viewer.getWgslGenerator();
+        const genContextW = viewer.getWgslGenContext();
+        genContextW.getOptions().hwSrgbEncodeOutput = true;
+
         // Perform transparency check on renderable item
         var startTranspCheckTime = performance.now();
         const isTransparent = mx.isTransparentSurface(elem, gen.getTarget());
         genContext.getOptions().hwTransparency = isTransparent;
+        genContextW.getOptions().hwTransparency = isTransparent;
         // Always set to complete. 
         // Can consider option to set to reduced as the parsing of large numbers of uniforms (e.g. on shading models)
         // can be quite expensive.
         genContext.getOptions().shaderInterfaceType = mx.ShaderInterfaceType.SHADER_INTERFACE_COMPLETE;
+        genContextW.getOptions().shaderInterfaceType = mx.ShaderInterfaceType.SHADER_INTERFACE_COMPLETE;
+
 
         if (logDetailedTime)
             console.log("  - Transparency check time: ", performance.now() - startTranspCheckTime, "ms");
@@ -1155,6 +1052,8 @@ export class Material
         // Generate GLES code
         var startMTLXGenTime = performance.now();
         let shader = gen.generate(elem.getNamePath(), elem, genContext);
+        let shaderW = genW.generate(elem.getNamePath(), elem, genContextW); //WGSL
+
         if (logDetailedTime)
             console.log("  - MaterialX gen time: ", performance.now() - startMTLXGenTime, "ms");
 
@@ -1164,85 +1063,25 @@ export class Material
         let vShader = shader.getSourceCode("vertex");
         let fShader = shader.getSourceCode("pixel");
 
-        // Convert GLSL to SPIR-V and update shader text areas
-        const shaderConverter = viewer.getShaderConverter();
-        
-        // Feature flag to enable/disable shader conversion (can cause external script errors)
-        const enableShaderConversion = false; // Disable SPIR-V conversion to avoid ES6 module errors
-        
-        if (enableShaderConversion) {
-            // Convert vertex shader to SPIR-V
-            try {
-                console.log('Attempting vertex shader SPIR-V conversion...');
-                const vertexSpirv = await shaderConverter.convertGLSLToSPIRV(vShader, 'vertex');
-                const vertexSpirvHex = Array.from(vertexSpirv)
-                    .map(byte => byte.toString(16).padStart(2, '0'))
-                    .join(' ');
-                
-                if (typeof window !== 'undefined' && typeof window.updateVtxShader === 'function') {
-                    window.updateVtxShader(''); // Clear first
-                    window.updateVtxShader(`// SPIR-V Binary (${vertexSpirv.length} bytes)\n// Hex representation:\n${vertexSpirvHex}\n\n// Original GLSL:\n${vShader}`);
-                } else if (typeof updateVtxShader === 'function') {
-                    updateVtxShader(''); // Clear first
-                    updateVtxShader(`// SPIR-V Binary (${vertexSpirv.length} bytes)\n// Hex representation:\n${vertexSpirvHex}\n\n// Original GLSL:\n${vShader}`);
-                } else {
-                    console.log('updateVtxShader function not available');
-                }
-            } catch (error) {
-                console.error('Failed to convert vertex shader to SPIR-V:', error);
-                if (typeof window !== 'undefined' && typeof window.updateVtxShader === 'function') {
-                    window.updateVtxShader(''); // Clear first
-                    window.updateVtxShader(`// SPIR-V conversion failed: ${error.message}\n\n// Original GLSL:\n${vShader}`);
-                } else if (typeof updateVtxShader === 'function') {
-                    updateVtxShader(''); // Clear first
-                    updateVtxShader(`// SPIR-V conversion failed: ${error.message}\n\n// Original GLSL:\n${vShader}`);
-                } else {
-                    console.log('updateVtxShader function not available for error display');
-                }
-            }
+        let vShaderW = shaderW.getSourceCode("vertex");
+        let fShaderW = shaderW.getSourceCode("pixel");
 
-            // Convert fragment shader to SPIR-V
-            try {
-                console.log('Attempting fragment shader SPIR-V conversion...');
-                const fragmentSpirv = await shaderConverter.convertGLSLToSPIRV(fShader, 'fragment');
-                const fragmentSpirvHex = Array.from(fragmentSpirv)
-                    .map(byte => byte.toString(16).padStart(2, '0'))
-                    .join(' ');
-                
-                if (typeof window !== 'undefined' && typeof window.updatePxShader === 'function') {
-                    window.updatePxShader(''); // Clear first
-                    window.updatePxShader(`// SPIR-V Binary (${fragmentSpirv.length} bytes)\n// Hex representation:\n${fragmentSpirvHex}\n\n// Original GLSL:\n${fShader}`);
-                } else if (typeof updatePxShader === 'function') {
-                    updatePxShader(''); // Clear first
-                    updatePxShader(`// SPIR-V Binary (${fragmentSpirv.length} bytes)\n// Hex representation:\n${fragmentSpirvHex}\n\n// Original GLSL:\n${fShader}`);
-                } else {
-                    console.log('updatePxShader function not available');
-                }
-            } catch (error) {
-                console.error('Failed to convert fragment shader to SPIR-V:', error);
-                if (typeof window !== 'undefined' && typeof window.updatePxShader === 'function') {
-                    window.updatePxShader(''); // Clear first
-                    window.updatePxShader(`// SPIR-V conversion failed: ${error.message}\n\n// Original GLSL:\n${fShader}`);
-                } else if (typeof updatePxShader === 'function') {
-                    updatePxShader(''); // Clear first
-                    updatePxShader(`// SPIR-V conversion failed: ${error.message}\n\n// Original GLSL:\n${fShader}`);
-                } else {
-                    console.log('updatePxShader function not available for error display');
-                }
-            }
-        } else {
+        {
             // Shader conversion disabled, just show original GLSL
             console.log('Shader conversion disabled, showing original GLSL');
             if (typeof window !== 'undefined' && typeof window.updateVtxShader === 'function') {
-                window.updateVtxShader(`// Original GLSL Vertex Shader:\n${vShader}`);
+                window.updateVtxShader(`// Original GLSL Fragment Shader:\n${fShader}`);
             } else if (typeof updateVtxShader === 'function') {
-                updateVtxShader(`// Original GLSL Vertex Shader:\n${vShader}`);
+                updateVtxShader(`// Original GLSL Fragment Shader:\n${fShader}`);
             }
-            
+
+           let wglSource = await this.convertGLSLtoWGSL(fShaderW, "fragment");
+           console.log('WGSL Fragment Shader:\n', wglSource);
+           
             if (typeof window !== 'undefined' && typeof window.updatePxShader === 'function') {
-                window.updatePxShader(`// Original GLSL Fragment Shader:\n${fShader}`);
+                window.updatePxShader(`// Converted WGSL Fragment Shader:\n${wglSource}`);
             } else if (typeof updatePxShader === 'function') {
-                updatePxShader(`// Original GLSL Fragment Shader:\n${fShader}`);
+                updatePxShader(`// Converted WGSL Fragment Shader:\n${wglSource}`);
             }
         }
 
@@ -1830,7 +1669,7 @@ export class Viewer
         this.scene = new Scene();
         this.editor = new Editor();
         this.materials.push(new Material());
-        this.shaderConverter = new ShaderConverter();
+        //this.shaderConverter = new ShaderConverter();
 
         this.fileLoader = new THREE.FileLoader();
         this.hdrLoader = new RGBELoader();
@@ -1847,6 +1686,12 @@ export class Viewer
         // Initialize base document
         this.generator = this.mx.EsslShaderGenerator.create();
         this.genContext = new this.mx.GenContext(this.generator);
+
+        this.wgslgenerator = this.mx.WgslShaderGenerator.create();
+        this.wgslgenContext = new this.mx.GenContext(this.wgslgenerator);
+        
+        this.wgslstdlib = this.mx.loadStandardLibraries(this.wgslgenContext);
+       
 
         this.document = this.mx.createDocument();
         this.stdlib = this.mx.loadStandardLibraries(this.genContext);
@@ -1937,6 +1782,15 @@ export class Viewer
         return this.genContext;
     }
 
+    getWgslGenerator()
+    {
+        return this.wgslgenerator;
+    }
+
+    getWgslGenContext()
+    {
+        return this.wgslgenContext;
+    }
     getLights()
     {
         return this.lights;
@@ -1955,11 +1809,6 @@ export class Viewer
     getIrradianceTexture()
     {
         return this.irradianceTexture;
-    }
-
-    getShaderConverter()
-    {
-        return this.shaderConverter;
     }
 
     // Three scene and materials. 
@@ -1982,6 +1831,9 @@ export class Viewer
     // MaterialX code generator and context
     generator = null;
     genContext = null;
+
+    wgslgenerator = null;
+    wgslgenContext = null;
 
     // Lighting information
     lights = null;

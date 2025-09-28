@@ -38,10 +38,10 @@
         font-family: 'Courier New', monospace;
         font-size: 12px;
         padding: 10px;
-        resize: none;
+        resize: yes;
         outline: none;
         box-sizing: border-box;
-        min-height: 150px;
+        min-height: 300px;
       }
 
       .shader-label {
@@ -58,16 +58,16 @@
         flex: 1;
       }
 
-      /* Resize canvas to 75% and position shader panel next to it */
+      /* Resize canvas to 50% and position shader panel next to it */
       #webglcanvas {
-        width: 75% !important;
+        width: 50% !important;
         height: 75% !important;
       }
 
       .shader-container {
         position: absolute;
         top: 60px;
-        left: 75%;
+        left: 50%;
         right: 0px;
         height: calc(100vh - 80px);
         display: flex;
@@ -101,6 +101,7 @@
         </select>
       </div>
       <canvas id="webglcanvas" tabindex="1" style="outline: none;"></canvas>
+      <canvas id="webgpucanvas" tabindex="2" style="outline: none;"></canvas>
       
       <!-- Shader Text Boxes -->
       <div class="shader-container">
@@ -115,6 +116,9 @@
       </div>
     </div>
     <script src="JsMaterialXGenShader.js"></script>
+    <script src="https://cx20.github.io/webgpu-test/libs/glslang.js"></script>
+    <script src="https://cx20.github.io/webgpu-test/libs/twgsl.js"></script>
+
     <script>
       // Functions to update shader content (to be called from main application)
       function updateVtxShader(shaderCode) {

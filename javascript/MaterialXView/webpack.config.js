@@ -63,6 +63,13 @@ module.exports = {
         path: path.resolve(__dirname, 'dist')
     },
     mode: "development",
+    resolve: {
+        fallback: {
+            "crypto": false,
+            "path": false,
+            "fs": false
+        }
+    },
     plugins: [
         new HtmlWebpackPlugin({
             templateParameters: {
@@ -95,7 +102,7 @@ module.exports = {
                 { from: "../build/bin/JsMaterialXCore.js" },
                 { from: "../build/bin/JsMaterialXGenShader.wasm" },
                 { from: "../build/bin/JsMaterialXGenShader.js" },
-                { from: "../build/bin/JsMaterialXGenShader.data" },
+                { from: "../build/bin/JsMaterialXGenShader.data" }
             ],
         }),
     ]

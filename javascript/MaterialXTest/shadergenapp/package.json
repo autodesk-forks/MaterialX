@@ -1,0 +1,44 @@
+{
+  "name": "materialx-shader-generator",
+  "version": "1.0.0",
+  "description": "MaterialX Shader Generator CLI Application",
+  "main": "index.js",
+  "bin": {
+    "materialx-shader-gen": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "cli": "node bin/cli.js",
+    "build": "npm run copyBuild",
+    "copyBuild": "copyfiles -f ../../build/bin/JsMaterialX* lib",
+    "clean": "rimraf ./lib/ ./output/",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "materialx",
+    "shader",
+    "generator",
+    "cli",
+    "glsl",
+    "essl",
+    "msl",
+    "osl",
+    "wgsl",
+    "vulkan",
+    "mdl"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "chalk": "^4.1.2",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "copyfiles": "^2.4.1",
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

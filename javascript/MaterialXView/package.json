@@ -12,6 +12,7 @@
   "dependencies": {
     "lil-gui": "^0.19.2",
     "three": "^0.152.2",
+    "@webgpu/glslang": "^0.0.15",
     "webpack": "^5.100.2"
   },
   "devDependencies": {
