@@ -1062,6 +1062,7 @@ export class Material
         // Get shaders and uniform values
         let vShader = shader.getSourceCode("vertex");
         let fShader = shader.getSourceCode("pixel");
+    /*
 
         let vShaderW = shaderW.getSourceCode("vertex");
         let fShaderW = shaderW.getSourceCode("pixel");
@@ -1085,6 +1086,7 @@ export class Material
             }
         }
 
+    */
         let theScene = viewer.getScene();
         let flipV = theScene.getFlipGeometryV();
         let uniforms = {
@@ -1122,7 +1124,7 @@ export class Material
 
         // Update property editor
         const gui = viewer.getEditor().getGUI();
-        this.updateEditor(matassign, shader, newMaterial, gui, closeUI, viewer);
+        this.updateEditor(matassign, shader, shaderW, newMaterial, gui, closeUI, viewer);
 
         if (logDetailedTime)
             console.log("- Per material generate time: ", performance.now() - startGenerateMat, "ms");
@@ -1188,7 +1190,7 @@ export class Material
     // Update property editor for a given MaterialX element, it's shader, and
     // Three material
     //
-    updateEditor(matassign, shader, material, gui, closeUI, viewer)
+    async updateEditor(matassign, shader, shaderW, material, gui, closeUI, viewer)
     {
         var elem = matassign.getMaterial();
         var materials = this._materials;
@@ -1638,6 +1640,29 @@ export class Material
             }
         });
 
+        // update text area
+        //let vShaderW = shaderW.getSourceCode("vertex");
+        let fShaderW = shaderW.getSourceCode("pixel");
+
+        {
+            // Shader conversion disabled, just show original GLSL
+            console.log('Shader conversion disabled, showing original GLSL');
+            if (typeof window !== 'undefined' && typeof window.updateVtxShader === 'function') {
+                window.updateVtxShader(`// Original GLSL Fragment Shader:\n${fShaderW}`);
+            } else if (typeof updateVtxShader === 'function') {
+                updateVtxShader(`// Original GLSL Fragment Shader:\n${fShaderW}`);
+            }
+
+           let wglSource = await this.convertGLSLtoWGSL(fShaderW, "fragment");
+           console.log('WGSL Fragment Shader:\n', wglSource);
+           
+            if (typeof window !== 'undefined' && typeof window.updatePxShader === 'function') {
+                window.updatePxShader(`// Converted WGSL Fragment Shader:\n${wglSource}`);
+            } else if (typeof updatePxShader === 'function') {
+                updatePxShader(`// Converted WGSL Fragment Shader:\n${wglSource}`);
+            }
+        }
+
         if (logDetailedTime)
         {
             console.log("  - Editor update time: ", performance.now() - startTime, "ms");
@@ -1669,8 +1694,7 @@ export class Viewer
         this.scene = new Scene();
         this.editor = new Editor();
         this.materials.push(new Material());
-        //this.shaderConverter = new ShaderConverter();
-
+ 
         this.fileLoader = new THREE.FileLoader();
         this.hdrLoader = new RGBELoader();
     }
