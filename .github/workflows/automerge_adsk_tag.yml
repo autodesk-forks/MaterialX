@@ -60,13 +60,11 @@ jobs:
         env:
           latest_tag: ${{ steps.get_latest_tag.outputs.latest_tag }}
         run: |
-          # Get the current date
-          month=$(date +"%b")
-          year=$(date +"%Y")
+          # Get the current date in YYYYMMDD format
+          date_stamp=$(date +"%Y%m%d")
 
-          # Construct the new tag using the latest upstream tag, current month/year, and a custom suffix
-          echo "latest_tag=${latest_tag}"
-          new_tag="${latest_tag}.${month}_${year}.dev_adsk"
+          # Construct the new tag using the latest upstream tag and the date
+          new_tag="${latest_tag}.${date_stamp}.dev_adsk"
           echo "new_tag=${new_tag}"
 
           # Apply the new tag
@@ -103,9 +101,9 @@ jobs:
             script: |
                 const pr = context.payload.pull_request;
                 const latestTag = process.env.LATEST_TAG || '${{ steps.get_latest_tag.outputs.latest_tag }}';
-                const month = new Date().toLocaleString('en-US', { month: 'short' });
-                const year = new Date().getFullYear();
-                const newTag = `${latestTag}.${month}_${year}.dev_adsk`;
+                const date = new Date();
+                const dateStamp = date.toISOString().slice(0,10).replace(/-/g, '');
+                const newTag = `${latestTag}.${dateStamp}.dev_adsk`;
                 github.rest.issues.createComment({
                     issue_number: pr.number,
                     owner: context.repo.owner,
