@@ -3919,7 +3919,7 @@
       <input name="doclamp" type="boolean" value="true" />
       <input name="inlow" type="float" interfacename="cutoff" ldx_value="0" />
       <input name="inhigh" type="float" value="1" />
-      <input name="gamma" type="float" value="0.75" />
+      <input name="gamma" type="float" value="1.25" />
       <input name="outlow" type="float" value="0" />
       <input name="outhigh" type="float" value="1" />
       <input name="in" type="float" nodename="flake_depth" />

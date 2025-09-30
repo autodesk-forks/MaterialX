@@ -306,9 +306,9 @@
     <input name="base_color" type="color3" value="0.05, 0.45, 0" uisoftmin="0,0,0" uisoftmax="1,1,1" uivisible="true" uiname="Base Color" />
     <input name="specular_color" type="color3" value="1, 1, 1" uisoftmin="0,0,0" uisoftmax="1,1,1" uivisible="true" uiname="Reflection Color" />
     <input name="size" type="float" value="1" uisoftmin="0.0" uisoftmax="100" uivisible="true" uiname="Size" unittype="distance" />
-    <input name="divergence" type="float" value="35" uisoftmin="0.0" uisoftmax="60" uivisible="true" uiname="Divergence" />
-    <input name="strenght" type="float" value="0.75" uisoftmin="0.0" uisoftmax="1.0" uivisible="true" uiname="Strenght" />
-    <input name="cutoff" type="float" value="0.15" uisoftmin="0.0" uisoftmax="1.0" uivisible="true" uiname="Base Cutoff"/>
+    <input name="divergence" type="float" value="40" uisoftmin="0.0" uisoftmax="60" uivisible="true" uiname="Divergence" />
+    <input name="strenght" type="float" value="1" uisoftmin="0.0" uisoftmax="1.0" uivisible="true" uiname="Strenght" />
+    <input name="cutoff" type="float" value="0" uisoftmin="0.0" uisoftmax="1.0" uivisible="true" uiname="Base Cutoff"/>
     <output name="base_color_out" type="color3" />
     <output name="specular_color_out" type="color3" />
     <output name="out_rgb" type="color3" />
