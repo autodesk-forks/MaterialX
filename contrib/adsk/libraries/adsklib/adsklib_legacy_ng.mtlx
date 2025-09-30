@@ -4616,15 +4616,17 @@
   </nodegraph>
 
   <!-- <Legacy MetallicPaint> -->
-  <nodegraph name="NG_legacy_metallicpaint" Autodesk-ldx_inputPos="226.48 -75.3021" Autodesk-ldx_outputPos="2175.78 -111.319" nodedef="ND_legacy_metallicpaint">
-    <standard_surface name="standard_surface" type="surfaceshader" version="1.0.1" xpos="10.3261" ypos="-0.862067">
-      <input name="base_color" type="color3" nodename="tint_selection" uivisible="true" />
-      <input name="metalness" type="float" value="0.75" uivisible="true" />
+  <nodegraph name="NG_legacy_metallicpaint" Autodesk-ldx_inputPos="226.48 -75.3021" Autodesk-ldx_outputPos="3207.19 -100.154" nodedef="ND_legacy_metallicpaint">
+    <standard_surface name="standard_surface" type="surfaceshader" version="1.0.1" xpos="16.0562" ypos="-0.800039">
+      <input name="base_color" type="color3" uivisible="true" nodename="flakes_enable_base_color" />
+      <input name="metalness" type="float" uivisible="true" nodename="flakes_enable_metallic" ldx_value="0.75" />
       <input name="specular_roughness" type="float" interfacename="highlight_spread" uivisible="true" />
       <input name="coat" type="float" value="1" uivisible="true" />
       <input name="coat_roughness" type="float" uivisible="true" nodename="switch_coat_rough" />
       <input name="coat_IOR" type="float" uivisible="true" nodename="switch_coat_ior" />
       <input name="coat_normal" type="vector3" uivisible="true" nodename="switch_finish" />
+      <input name="specular_color" type="color3" nodename="flakes_enable_specular_color" />
+      <input name="normal" type="vector3" nodename="flakes_enable_normal" />
     </standard_surface>
     <constant name="coat_ior_carpaint" type="float" xpos="4.89597" ypos="-0.207587">
       <input name="value" type="float" value="1.5" uivisible="true" />
@@ -4635,10 +4637,10 @@
     <constant name="coat_ior_matte" type="float" xpos="4.88406" ypos="1.93946">
       <input name="value" type="float" value="1.5" uivisible="true" />
     </constant>
-    <normalmap name="smooth_norm" type="vector3" xpos="4.86808" ypos="2.98538">
-      <input name="in" type="vector3" nodename="constant_coat_smooth" uivisible="true" />
+    <normalmap name="smooth_norm" type="vector3" xpos="4.93007" ypos="3.07837">
+      <input name="in" type="vector3" nodename="neutral_normal" uivisible="true" />
     </normalmap>
-    <constant name="constant_coat_smooth" type="vector3" xpos="3.15709" ypos="3.16443">
+    <constant name="neutral_normal" type="vector3" xpos="3.15709" ypos="3.16443">
       <input name="value" type="vector3" value="0.5, 0.5, 1" uivisible="true" />
     </constant>
     <multiply name="tint_mult" type="color3" xpos="4.94653" ypos="-5.47955">
@@ -4683,6 +4685,40 @@
     <invert name="invert_coat_gloss" type="float" nodedef="ND_invert_float" xpos="4.89348" ypos="-1.35744">
       <input name="in" type="float" interfacename="coat_custom_glossiness" />
     </invert>
+    <ifequal name="flakes_enable_metallic" type="float" nodedef="ND_ifequal_floatB" xpos="12.7601" ypos="-3.94734">
+      <input name="value1" type="boolean" interfacename="flakes_enable" />
+      <input name="value2" type="boolean" value="true" />
+      <input name="in2" type="float" nodename="no_flakes_metallic" />
+      <input name="in1" type="float" nodename="legacy_flakes1" output="out_blend" />
+    </ifequal>
+    <constant name="no_flakes_metallic" type="float" nodedef="ND_constant_float" xpos="11.3358" ypos="-4.07743">
+      <input name="value" type="float" value="0.75" />
+    </constant>
+    <legacy_flakes name="legacy_flakes1" type="multioutput" nodedef="ND_legacy_flakes" xpos="10.2392" ypos="-2.20568">
+      <input name="base_color" type="color3" nodename="tint_selection" />
+      <input name="specular_color" type="color3" interfacename="specular_color" />
+      <input name="size" type="float" interfacename="flakes_size" />
+      <input name="position" type="vector3" interfacename="position" />
+    </legacy_flakes>
+    <ifequal name="flakes_enable_base_color" type="color3" nodedef="ND_ifequal_color3B" xpos="12.7296" ypos="-2.58198">
+      <input name="value1" type="boolean" interfacename="flakes_enable" />
+      <input name="value2" type="boolean" value="true" />
+      <input name="in1" type="color3" nodename="legacy_flakes1" output="base_color_out" />
+      <input name="in2" type="color3" nodename="tint_selection" />
+    </ifequal>
+    <ifequal name="flakes_enable_specular_color" type="color3" nodedef="ND_ifequal_color3B" xpos="12.7271" ypos="-1.11115">
+      <input name="value1" type="boolean" interfacename="flakes_enable" />
+      <input name="value2" type="boolean" value="true" />
+      <input name="in1" type="color3" nodename="legacy_flakes1" output="specular_color_out" />
+      <input name="in2" type="color3" interfacename="specular_color" />
+    </ifequal>
+    <ifequal name="flakes_enable_normal" type="vector3" nodedef="ND_ifequal_vector3B" xpos="12.7506" ypos="0.349901">
+      <input name="value1" type="boolean" interfacename="flakes_enable" />
+      <input name="value2" type="boolean" value="true" />
+      <input name="in2" type="vector3" nodename="smooth_norm" />
+      <input name="in1" type="vector3" nodename="legacy_flakes1" output="out_vec3" />
+    </ifequal>
+    <backdrop name="flakes" xpos="9.95044" ypos="-4.51632" width="4.11521" height="6.664" />
   </nodegraph>
 
   <!-- <Legacy Concrete> -->

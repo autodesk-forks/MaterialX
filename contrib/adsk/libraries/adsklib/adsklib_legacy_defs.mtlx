@@ -400,13 +400,17 @@
 
   <!-- <Legacy MetallicPaint> -->
   <nodedef name="ND_legacy_metallicpaint" node="legacy_metallicpaint" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
+    <input name="position" type="vector3" defaultgeomprop="Pobject" uivisible="false" uiname="Position Coordinates" />
     <input name="color" type="color3" value="0.9, 0.1, 0" uivisible="true" uiname="Color" />
+    <input name="specular_color" type="color3" value="1, 1, 1" uivisible="true" uiname="Specular Color" />
     <input name="highlight_spread" type="float" value="0.66" uivisible="true" uiname="Highlight Spread" />
     <input name="coat_type" type="integer" value="0" uivisible="true" uiname="Coat Type" enum="Car Paint,Chrome,Matte,Custom" enumvalues="0,1,2,3" uimin="0" uimax="3" />
     <input name="coat_custom_glossiness" type="float" value="0.8" uivisible="true" uiname="Custom Coat Glossiness" />
     <input name="coat_custom_ior" type="float" value="1.5" uivisible="true" uiname="Custom Coat IOR" uimin="1" uimax="10" />
     <input name="coat_finish" type="integer" value="0" uivisible="true" uiname="Coat Finish" enum="Smooth,Orange Peel" enumvalues="0,1" uimin="0" uimax="1" />
     <input name="normal_orangepeel" type="vector3" uivisible="false" defaultgeomprop="Nworld" />
+    <input name="flakes_enable" type="boolean" value="true" uivisible="true" uiname="Flakes" />
+    <input name="flakes_size" type="float" value="1" uisoftmin="0.0" uisoftmax="100" uivisible="true" uiname="Flakes Size" unittype="distance" />
     <input name="tint_enable" type="boolean" value="false" uivisible="true" uiname="Tint" />
     <input name="tint_color" type="color3" value="1, 1, 1" uivisible="true" uiname="Tint Color" />
     <output name="out" type="surfaceshader" />
