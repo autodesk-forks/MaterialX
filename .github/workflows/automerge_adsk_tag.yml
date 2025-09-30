@@ -1,0 +1,112 @@
+# This workflow automatically creates and pushes a new tag to the repository
+# when a pull request from 'adsk-merge-branch' is merged into 'adsk_contrib/dev'.
+# The tag is based on the latest upstream tag, the current month/year, and a custom suffix.
+# It includes error handling and tag format validation for robustness.
+name: Create Tag on automer PR Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - adsk_contrib/dev
+
+jobs:
+  create-tag:
+    env:
+      # Repository and branch configuration for tag automation
+      UPSTREAM_REPO: https://github.com/AcademySoftwareFoundation/MaterialX.git
+    if: |
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.base.ref == 'adsk_contrib/dev' &&
+        github.event.pull_request.head.ref == 'adsk-merge-branch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          # Get the ASF repo tags
+
+          if git remote add upstream "$UPSTREAM_REPO"; then
+            echo "Remote 'upstream' added successfully."
+          else
+            echo "Failed to add remote 'upstream'."
+            exit 1
+          fi
+
+          if git fetch upstream --tags; then
+            echo "Fetched tags from 'upstream' successfully."
+          else
+            echo "Failed to fetch tags from 'upstream'."
+            exit 1
+          fi
+
+          # Get the latest tag from the ASF repo
+          latest_tag=$(git ls-remote --tags --sort=version:refname upstream | tail -n1 | sed 's/.*refs\/tags\///')
+          echo "latest_tag=${latest_tag}" >> $GITHUB_OUTPUT
+
+          # Validate that a valid tag was obtained.
+          if [ -z "$latest_tag" ] || [ "$latest_tag" = "refs/tags/" ]; then
+              echo "Failed to get valid latest tag"
+              exit 1
+          fi
+
+      - name: Tag the repository
+        env:
+          latest_tag: ${{ steps.get_latest_tag.outputs.latest_tag }}
+        run: |
+          # Get the current date in YYYYMMDD format
+          date_stamp=$(date +"%Y%m%d")
+
+          # Construct the new tag using the latest upstream tag and the date
+          new_tag="${latest_tag}.${date_stamp}.dev_adsk"
+          echo "new_tag=${new_tag}"
+
+          # Apply the new tag
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if the new tag already exists to avoid duplicates or race conditions
+          if git tag -l "${new_tag}" | grep -q "${new_tag}"; then
+            echo "Tag ${new_tag} already exists. Skipping."
+            exit 0
+          fi
+          
+          # Create and push the new tag to the repository
+          if git tag ${new_tag}; then
+            echo "Tag created successfully."
+          else
+            echo "Failed to create tag."
+            exit 1
+          fi
+
+          if git push origin ${new_tag}; then
+            echo "Tag pushed successfully."
+          else
+            echo "Failed to push tag."
+            exit 1
+          fi
+
+      - name: Comment on PR with new tag
+        if: success()
+        uses: actions/github-script@v7
+        env:
+            LATEST_TAG: ${{ steps.get_latest_tag.outputs.latest_tag }}
+        with:
+            script: |
+                const pr = context.payload.pull_request;
+                const latestTag = process.env.LATEST_TAG || '${{ steps.get_latest_tag.outputs.latest_tag }}';
+                const date = new Date();
+                const dateStamp = date.toISOString().slice(0,10).replace(/-/g, '');
+                const newTag = `${latestTag}.${dateStamp}.dev_adsk`;
+                github.rest.issues.createComment({
+                    issue_number: pr.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: `:tada: A new tag has been created: \`${newTag}\``
+                });
