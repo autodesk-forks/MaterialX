@@ -332,17 +332,17 @@
     <output name="out" type="vector3" nodename="normalmap1" xpos="12.615942" ypos="-6.775862" />
   </nodegraph>
 
-  <nodegraph name="NG_util_noise2d_units" Autodesk-ldx_inputPos="-776.333 -235.667" Autodesk-ldx_outputPos="172 -114.333" nodedef="ND_util_noise2d_units">
+  <nodegraph name="NG_util_noise2d_units" Autodesk-ldx_inputPos="-775.666 -235.667" Autodesk-ldx_outputPos="172 -114.333" nodedef="ND_util_noise2d_units">
     <noise2d name="noise2d1" type="color3" nodedef="ND_noise2d_color3" xpos="-1.06944" ypos="-1.17778">
       <input name="texcoord" type="vector2" nodename="divide_scale" />
       <input name="amplitude" type="vector3" interfacename="amplitude" />
       <input name="pivot" type="float" interfacename="pivot" />
     </noise2d>
-    <divide name="divide_scale" type="vector2" nodedef="ND_multiply_vector2" xpos="-2.55833" ypos="-1.81852">
+    <output name="out" type="color3" nodename="noise2d1" />
+    <divide name="divide_scale" type="vector2" nodedef="ND_divide_vector2" xpos="-2.70401" ypos="-1.98012">
       <input name="in1" type="vector2" interfacename="texcoord" />
       <input name="in2" type="vector2" interfacename="realworld_scale" />
     </divide>
-    <output name="out" type="color3" nodename="noise2d1" />
   </nodegraph>
 
   <!-- 
@@ -3865,6 +3865,109 @@
     <backdrop name="this_is_an_approximation" xpos="-7.892" ypos="1.63793" width="2.22739" height="2.05194" uicolor="#C85252" Autodesk-ldx_alpha="0.156863" />
   </nodegraph>
 
+  <nodegraph name="NG_legacy_flakes" Autodesk-ldx_inputPos="-911.3 -488.35" Autodesk-ldx_outputPos="3477.21 -11.5172" nodedef="ND_legacy_flakes">
+    <randomfloat name="flake_orientation" type="float" nodedef="ND_randomfloat_float" xpos="6.08067" ypos="0.0984978">
+      <input name="in" type="float" ldx_value="1" nodename="flake_noise" />
+      <input name="seed" type="integer" value="1" />
+    </randomfloat>
+    <randomfloat name="flake_divergence" type="float" nodedef="ND_randomfloat_float" xpos="6.10806" ypos="-1.54898">
+      <input name="in" type="float" nodename="flake_noise" />
+      <input name="seed" type="integer" value="0" />
+    </randomfloat>
+    <constant name="constant_vector_up" type="vector3" nodedef="ND_constant_vector3" xpos="10.5778" ypos="-1.64734">
+      <input name="value" type="vector3" value="0, 0, 1" />
+    </constant>
+    <rotate3d name="rotate_divergence" type="vector3" nodedef="ND_rotate3d_vector3" xpos="12.0067" ypos="-0.270907">
+      <input name="in" type="vector3" nodename="constant_vector_up" />
+      <input name="amount" type="float" nodename="divergence_cutoff_adj" />
+    </rotate3d>
+    <rotate3d name="rotate_orientation" type="vector3" nodedef="ND_rotate3d_vector3" xpos="11.8981" ypos="2.18714">
+      <input name="axis" type="vector3" value="0, 0, 1" />
+      <input name="in" type="vector3" nodename="rotate_divergence" />
+      <input name="amount" type="float" nodename="orientation_degrees" />
+    </rotate3d>
+    <convert name="convert_vec_col" type="color3" nodedef="ND_convert_vector3_color3" xpos="17.0792" ypos="1.00708">
+      <input name="in" type="vector3" nodename="offset_half" />
+    </convert>
+    <normalmap name="normalmap1" type="vector3" nodedef="ND_normalmap" xpos="17.0617" ypos="2.28733">
+      <input name="in" type="vector3" nodename="offset_half" />
+    </normalmap>
+    <output name="base_color_out" type="color3" nodename="dot_base_color" />
+    <output name="specular_color_out" type="color3" nodename="mix_specular" />
+    <divide name="divide_half" type="vector3" nodedef="ND_divide_vector3FA" xpos="14.1037" ypos="2.2362">
+      <input name="in2" type="float" value="2" />
+      <input name="in1" type="vector3" nodename="rotate_orientation" />
+    </divide>
+    <add name="offset_half" type="vector3" nodedef="ND_add_vector3FA" xpos="15.4646" ypos="2.22743">
+      <input name="in2" type="float" value="0.5" />
+      <input name="in1" type="vector3" nodename="divide_half" />
+    </add>
+    <multiply name="divergence_scale" type="float" nodedef="ND_multiply_float" xpos="7.95978" ypos="-1.62726">
+      <input name="in2" type="float" interfacename="divergence" ldx_value="90" />
+      <input name="in1" type="float" nodename="flake_divergence" />
+    </multiply>
+    <multiply name="orientation_degrees" type="float" nodedef="ND_multiply_float" xpos="8.05011" ypos="0.0807744">
+      <input name="in2" type="float" value="360" />
+      <input name="in1" type="float" nodename="flake_orientation" />
+    </multiply>
+    <randomfloat name="flake_depth" type="float" nodedef="ND_randomfloat_float" xpos="6.06956" ypos="1.66176">
+      <input name="in" type="float" ldx_value="1" nodename="flake_noise" />
+      <input name="seed" type="integer" value="2" />
+    </randomfloat>
+    <output name="out_rgb" type="color3" nodename="convert_vec_col" />
+    <range name="depth_cutoff_adjustement" type="float" nodedef="ND_range_float" xpos="8.03733" ypos="1.67321">
+      <input name="doclamp" type="boolean" value="true" />
+      <input name="inlow" type="float" interfacename="cutoff" ldx_value="0" />
+      <input name="inhigh" type="float" value="1" />
+      <input name="gamma" type="float" value="1.25" />
+      <input name="outlow" type="float" value="0" />
+      <input name="outhigh" type="float" value="1" />
+      <input name="in" type="float" nodename="flake_depth" />
+    </range>
+    <output name="out_vec3" type="vector3" nodename="normalmap1" />
+    <multiply name="divergence_cutoff_adj" type="float" nodedef="ND_multiply_float" xpos="10.6403" ypos="0.689344">
+      <input name="in2" type="float" nodename="depth_cutoff_adjustement" ldx_value="1" />
+      <input name="in1" type="float" nodename="divergence_scale" />
+    </multiply>
+    <remap name="strenght_adjustment" type="float" nodedef="ND_remap_float" xpos="14.6802" ypos="-1.82534">
+      <input name="outhigh" type="float" interfacename="strenght" ldx_value="0.2996" />
+      <input name="outlow" type="float" value="0" />
+      <input name="in" type="float" nodename="depth_cutoff_adjustement" />
+    </remap>
+    <mix name="mix_specular" type="color3" nodedef="ND_mix_color3" xpos="17.0937" ypos="-2.71476">
+      <input name="bg" type="color3" interfacename="base_color" />
+      <input name="fg" type="color3" interfacename="specular_color" />
+      <input name="mix" type="float" ldx_value="0.22026" nodename="strenght_adjustment" />
+    </mix>
+    <output name="out_blend" type="float" nodename="strenght_adjustment" />
+    <dot name="dot_base_color" type="color3" nodedef="ND_dot_color3" xpos="17.0926" ypos="-0.527959">
+      <input name="in" type="color3" interfacename="base_color" />
+    </dot>
+    <cellnoise3d name="flake_noise" type="float" nodedef="ND_cellnoise3d_float" xpos="3.51703" ypos="-0.000737483">
+      <input name="position" type="vector3" nodename="position_shift" />
+    </cellnoise3d>
+    <multiply name="default_density" type="vector3" nodedef="ND_multiply_vector3FA" xpos="-2.37758" ypos="-0.0231722">
+      <input name="in2" type="float" value="20" />
+      <input name="in1" type="vector3" interfacename="position" />
+    </multiply>
+    <divide name="adjust_size" type="vector3" nodedef="ND_divide_vector3FA" xpos="-0.966378" ypos="-0.0489857">
+      <input name="in2" type="float" interfacename="size" />
+      <input name="in1" type="vector3" nodename="default_density" />
+    </divide>
+    <add name="position_shift" type="vector3" nodedef="ND_add_vector3" xpos="2.0151" ypos="-0.0337452">
+      <input name="in2" type="vector3" nodename="adjust_size" ldx_value="7, 5, 0" />
+      <input name="in1" type="vector3" nodename="position_noise" />
+    </add>
+    <fractal3d name="position_noise" type="vector3" nodedef="ND_fractal3d_vector3" xpos="0.451468" ypos="-0.0965528">
+      <input name="amplitude" type="vector3" value="0.5, 0.5, 0.5" />
+      <input name="octaves" type="integer" value="2" />
+      <input name="position" type="vector3" nodename="adjust_size" />
+    </fractal3d>
+    <backdrop name="flake_shape_and_random_value" xpos="-2.43313" ypos="-0.535442" width="7.25572" height="2" />
+    <backdrop name="flake_properties" xpos="5.77972" ypos="-2.06615" width="3.71081" height="5.737" />
+    <backdrop name="normal_computation" xpos="10.5222" ypos="-2.08624" width="2.79001" height="5.73239" />
+  </nodegraph>
+
   <!-- 
       ===============================================
       Nodegraphs for Autodesk Legacy Material Classes
@@ -4513,15 +4616,17 @@
   </nodegraph>
 
   <!-- <Legacy MetallicPaint> -->
-  <nodegraph name="NG_legacy_metallicpaint" Autodesk-ldx_inputPos="226.48 -75.3021" Autodesk-ldx_outputPos="2175.78 -111.319" nodedef="ND_legacy_metallicpaint">
-    <standard_surface name="standard_surface" type="surfaceshader" version="1.0.1" xpos="10.3261" ypos="-0.862067">
-      <input name="base_color" type="color3" nodename="tint_selection" uivisible="true" />
-      <input name="metalness" type="float" value="0.75" uivisible="true" />
+  <nodegraph name="NG_legacy_metallicpaint" Autodesk-ldx_inputPos="226.48 -75.3021" Autodesk-ldx_outputPos="3207.19 -100.154" nodedef="ND_legacy_metallicpaint">
+    <standard_surface name="standard_surface" type="surfaceshader" version="1.0.1" xpos="16.0562" ypos="-0.800039">
+      <input name="base_color" type="color3" uivisible="true" nodename="flakes_enable_base_color" />
+      <input name="metalness" type="float" uivisible="true" nodename="flakes_enable_metallic" ldx_value="0.75" />
       <input name="specular_roughness" type="float" interfacename="highlight_spread" uivisible="true" />
       <input name="coat" type="float" value="1" uivisible="true" />
       <input name="coat_roughness" type="float" uivisible="true" nodename="switch_coat_rough" />
       <input name="coat_IOR" type="float" uivisible="true" nodename="switch_coat_ior" />
       <input name="coat_normal" type="vector3" uivisible="true" nodename="switch_finish" />
+      <input name="specular_color" type="color3" nodename="flakes_enable_specular_color" />
+      <input name="normal" type="vector3" nodename="flakes_enable_normal" />
     </standard_surface>
     <constant name="coat_ior_carpaint" type="float" xpos="4.89597" ypos="-0.207587">
       <input name="value" type="float" value="1.5" uivisible="true" />
@@ -4532,10 +4637,10 @@
     <constant name="coat_ior_matte" type="float" xpos="4.88406" ypos="1.93946">
       <input name="value" type="float" value="1.5" uivisible="true" />
     </constant>
-    <normalmap name="smooth_norm" type="vector3" xpos="4.86808" ypos="2.98538">
-      <input name="in" type="vector3" nodename="constant_coat_smooth" uivisible="true" />
+    <normalmap name="smooth_norm" type="vector3" xpos="4.93007" ypos="3.07837">
+      <input name="in" type="vector3" nodename="neutral_normal" uivisible="true" />
     </normalmap>
-    <constant name="constant_coat_smooth" type="vector3" xpos="3.15709" ypos="3.16443">
+    <constant name="neutral_normal" type="vector3" xpos="3.15709" ypos="3.16443">
       <input name="value" type="vector3" value="0.5, 0.5, 1" uivisible="true" />
     </constant>
     <multiply name="tint_mult" type="color3" xpos="4.94653" ypos="-5.47955">
@@ -4580,6 +4685,40 @@
     <invert name="invert_coat_gloss" type="float" nodedef="ND_invert_float" xpos="4.89348" ypos="-1.35744">
       <input name="in" type="float" interfacename="coat_custom_glossiness" />
     </invert>
+    <ifequal name="flakes_enable_metallic" type="float" nodedef="ND_ifequal_floatB" xpos="12.7601" ypos="-3.94734">
+      <input name="value1" type="boolean" interfacename="flakes_enable" />
+      <input name="value2" type="boolean" value="true" />
+      <input name="in2" type="float" nodename="no_flakes_metallic" />
+      <input name="in1" type="float" nodename="legacy_flakes1" output="out_blend" />
+    </ifequal>
+    <constant name="no_flakes_metallic" type="float" nodedef="ND_constant_float" xpos="11.3358" ypos="-4.07743">
+      <input name="value" type="float" value="0.75" />
+    </constant>
+    <legacy_flakes name="legacy_flakes1" type="multioutput" nodedef="ND_legacy_flakes" xpos="10.2392" ypos="-2.20568">
+      <input name="base_color" type="color3" nodename="tint_selection" />
+      <input name="specular_color" type="color3" interfacename="specular_color" />
+      <input name="size" type="float" interfacename="flakes_size" />
+      <input name="position" type="vector3" interfacename="position" />
+    </legacy_flakes>
+    <ifequal name="flakes_enable_base_color" type="color3" nodedef="ND_ifequal_color3B" xpos="12.7296" ypos="-2.58198">
+      <input name="value1" type="boolean" interfacename="flakes_enable" />
+      <input name="value2" type="boolean" value="true" />
+      <input name="in1" type="color3" nodename="legacy_flakes1" output="base_color_out" />
+      <input name="in2" type="color3" nodename="tint_selection" />
+    </ifequal>
+    <ifequal name="flakes_enable_specular_color" type="color3" nodedef="ND_ifequal_color3B" xpos="12.7271" ypos="-1.11115">
+      <input name="value1" type="boolean" interfacename="flakes_enable" />
+      <input name="value2" type="boolean" value="true" />
+      <input name="in1" type="color3" nodename="legacy_flakes1" output="specular_color_out" />
+      <input name="in2" type="color3" interfacename="specular_color" />
+    </ifequal>
+    <ifequal name="flakes_enable_normal" type="vector3" nodedef="ND_ifequal_vector3B" xpos="12.7506" ypos="0.349901">
+      <input name="value1" type="boolean" interfacename="flakes_enable" />
+      <input name="value2" type="boolean" value="true" />
+      <input name="in2" type="vector3" nodename="smooth_norm" />
+      <input name="in1" type="vector3" nodename="legacy_flakes1" output="out_vec3" />
+    </ifequal>
+    <backdrop name="flakes" xpos="9.95044" ypos="-4.51632" width="4.11521" height="6.664" />
   </nodegraph>
 
   <!-- <Legacy Concrete> -->
