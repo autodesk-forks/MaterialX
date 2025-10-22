@@ -119,7 +119,7 @@
     <input name="uv_offset" type="vector2" value="0.0, 0.0" />
     <input name="uv_scale" type="vector2" value="1.0, 1.0" />
     <input name="rotation_angle" type="float" value="0" unittype="angle" uisoftmin="0" uisoftmax="360.0" />
-    <input name="depth" type="float" unittype="distance" value="1.0" uisoftmin="0.0" uisoftmax="1.0" />
+    <input name="depth" type="float" value="1.0" uisoftmin="0.0" uisoftmax="1.0" />
     <input name="uaddressmode" type="string" value="periodic" enum="constant,clamp,periodic,mirror" uiname="Address Mode U" uniform="true" />
     <input name="vaddressmode" type="string" value="periodic" enum="constant,clamp,periodic,mirror" uiname="Address Mode V" uniform="true" />
     <input name="texcoord" type="vector2" defaultgeomprop="UV0" />

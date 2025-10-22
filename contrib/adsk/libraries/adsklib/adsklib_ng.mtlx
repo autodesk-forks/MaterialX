@@ -347,6 +347,7 @@
     <heighttonormal name="impl_heighttonormalmap" type="vector3">
       <input name="in" type="float" nodename="b_image" />
       <input name="scale" type="float" value="1.0" />
+      <input name="texcoord" type="vector2" nodename="a_place2d" />
     </heighttonormal>
     <!-- use std::normal_map -->
     <normalmap name="impl_normalmap" type="vector3">
