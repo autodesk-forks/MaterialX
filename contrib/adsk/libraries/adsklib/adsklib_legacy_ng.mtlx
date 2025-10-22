@@ -5149,16 +5149,16 @@
     <srgb_texture_to_lin_rec709 name="srgb_texture_to_lin_rec709_color3" type="color3" xpos="3.07051" ypos="-9.377">
       <input name="in" type="color3" nodename="switch_color" />
     </srgb_texture_to_lin_rec709>
-    <normalmap name="normalmap" type="vector3" xpos="5.24958" ypos="7.45094">
+    <normalmap name="normalmap2" type="vector3" xpos="5.24958" ypos="7.45094">
       <input name="in" type="vector3" nodename="constant_no_relief" />
     </normalmap>
     <ifequal name="relief_selection" type="vector3" xpos="7.101" ypos="6.54794">
-      <input name="in2" type="vector3" nodename="normalmap" />
+      <input name="in2" type="vector3" nodename="normalmap2" />
       <input name="value2" type="boolean" value="true" />
       <input name="value1" type="boolean" interfacename="relief_enable" />
-      <input name="in1" type="vector3" nodename="switch_vector3" />
+      <input name="in1" type="vector3" nodename="switch_relief" />
     </ifequal>
-    <constant name="constant_no_relief" type="vector3" xpos="3.27609" ypos="7.67911">
+    <constant name="constant_no_relief" type="vector3" xpos="3.39633" ypos="7.57972">
       <input name="value" type="vector3" value="0.5, 0.5, 1" />
     </constant>
     <output name="out" type="surfaceshader" nodename="standard_surface" xpos="13.043478" ypos="0.000000" />
@@ -5168,12 +5168,45 @@
     <convert name="convert_ior_float" type="float" nodedef="ND_convert_integer_float" xpos="2.21155" ypos="4.88752">
       <input name="in" type="integer" interfacename="refraction_ior" />
     </convert>
-    <switch name="switch_vector3" type="vector3" nodedef="ND_switch_vector3I" xpos="1.70654" ypos="6.93256">
-      <input name="in1" type="vector3" interfacename="normal_rippled" />
-      <input name="in2" type="vector3" interfacename="normal_wavy" />
-      <input name="in3" type="vector3" interfacename="normal_custom_relief" />
+    <switch name="switch_relief" type="vector3" nodedef="ND_switch_vector3I" xpos="1.70654" ypos="6.93256">
       <input name="which" type="integer" interfacename="relief_type" />
+      <input name="in3" type="vector3" nodename="normalmap1" />
+      <input name="in1" type="vector3" nodename="util_proc_to_norm_rippled" />
+      <input name="in2" type="vector3" nodename="util_proc_to_norm_wavy" />
     </switch>
+    <util_proc_to_norm name="util_proc_to_norm_rippled" type="vector3" nodedef="ND_util_proc_to_norm" xpos="-2.3443" ypos="3.65696">
+      <input name="color" type="color3" nodename="rippled_pattern" />
+      <input name="amount_htn" type="float" interfacename="relief_amount" />
+      <input name="texcoord" type="vector2" nodename="relief_scale_adj" />
+    </util_proc_to_norm>
+    <util_noise2d_units name="rippled_pattern" type="color3" nodedef="ND_util_noise2d_units" xpos="-4.04535" ypos="3.66683">
+      <input name="amplitude" type="vector3" value="0.5, 0.5, 0.5" />
+      <input name="pivot" type="float" value="0.5" />
+      <input name="realworld_scale" type="vector2" value="0.05, 0.05" />
+      <input name="texcoord" type="vector2" nodename="relief_scale_adj" />
+    </util_noise2d_units>
+    <util_noise2d_units name="wavy_pattern" type="color3" nodedef="ND_util_noise2d_units" xpos="-4.08951" ypos="5.5395">
+      <input name="amplitude" type="vector3" value="0.5, 0.5, 0.5" />
+      <input name="pivot" type="float" value="0.5" />
+      <input name="realworld_scale" type="vector2" value="0.25, 0.05" />
+      <input name="texcoord" type="vector2" nodename="relief_scale_adj" />
+    </util_noise2d_units>
+    <util_proc_to_norm name="util_proc_to_norm_wavy" type="vector3" nodedef="ND_util_proc_to_norm" xpos="-2.35153" ypos="5.564">
+      <input name="color" type="color3" nodename="wavy_pattern" />
+      <input name="amount_htn" type="float" interfacename="relief_amount" />
+      <input name="texcoord" type="vector2" nodename="relief_scale_adj" />
+    </util_proc_to_norm>
+    <transformnormal_w2t_vector3 name="transformnormal_w2t_vector3_1" type="vector3" nodedef="ND_transformnormal_w2t_vector3" xpos="-3.98901" ypos="9.15639">
+      <input name="world_normal" type="vector3" interfacename="normal_custom_relief" />
+    </transformnormal_w2t_vector3>
+    <normalmap name="normalmap1" type="vector3" xpos="-0.380406" ypos="9.03094">
+      <input name="in" type="vector3" nodename="transformnormal_w2t_vector3_1" />
+      <input name="scale" type="float" interfacename="relief_amount" />
+    </normalmap>
+    <divide name="relief_scale_adj" type="vector2" nodedef="ND_divide_vector2FA" xpos="-5.62244" ypos="4.90683">
+      <input name="in2" type="float" interfacename="relief_scale" />
+      <input name="in1" type="vector2" interfacename="texcoord" />
+    </divide>
   </nodegraph>
 
   <!-- <Legacy Water> -->
