@@ -466,6 +466,7 @@
 
   <!-- <Legacy Solid Glass> -->
   <nodedef name="ND_legacy_glass" node="legacy_glass" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
+    <input name="texcoord" type="vector2" defaultgeomprop="UV0" uivisible="false" uiname="Texture Coordinates" />
     <input name="color" type="integer" value="0" uivisible="true" uiname="Color" enum="Clear,Green,Gray,Blue,Blue-Green,Bronze,Custom" enumvalues="0,1,2,3,4,5,6" uimin="0" uimax="6" />
     <input name="custom_color" type="color3" value="0.5, 0.5, 0.5" uivisible="true" uiname="Custom Color" />
     <input name="test_sRGB" type="boolean" value="false" uivisible="true" uiname="Test sRGB" />
@@ -480,6 +481,8 @@
     <input name="normal_rippled" type="vector3" uivisible="false" defaultgeomprop="Nworld" />
     <input name="normal_wavy" type="vector3" uivisible="false" defaultgeomprop="Nworld" />
     <input name="normal_custom_relief" type="vector3" uivisible="true" uiname="Custom Relief Pattern" defaultgeomprop="Nworld" />
+    <input name="relief_amount" type="float" value="1" uimin="0" uisoftmax="1" uivisible="true" uiname="Relief Amount" />
+    <input name="relief_scale" type="float" value="1" uisoftmin="0.0" uisoftmax="10.0" uivisible="true" uiname="Relief Scale" unittype="distance" />
     <output name="out" type="surfaceshader" />
   </nodedef>
 
