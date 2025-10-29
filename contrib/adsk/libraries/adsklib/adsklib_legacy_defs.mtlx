@@ -501,6 +501,7 @@
 
   <!-- <Legacy Stone> -->
   <nodedef name="ND_legacy_stone" node="legacy_stone" version="0.1" isdefaultversion="true" nodegroup="adsk_legacy" >
+    <input name="texcoord" type="vector2" defaultgeomprop="UV0" uivisible="false" uiname="Texture Coordinates" />
     <input name="color" type="color3" value="0.8, 0.8, 0.8" uivisible="true" uiname="Color" />
     <input name="finish" type="integer" value="1" uivisible="true" uiname="Finish" enum="Polished,Glossy,Satin,Matte,Unfinished" enumvalues="0,1,2,3,4" uimin="0" uimax="4"/>
     <input name="tint_enable" type="boolean" value="false" uivisible="true" uiname="Tint" />
@@ -513,6 +514,11 @@
     <input name="normal_custom_finish" type="vector3" uivisible="true" uiname="Custom Finish Bump" defaultgeomprop="Nworld" />
     <input name="relief_pattern_enable" type="boolean" value="false" uivisible="true" uiname="Relief Pattern" />
     <input name="normal_relief_pattern" type="vector3" uivisible="true" uiname="Custom Relief Pattern" defaultgeomprop="Nworld" />
+    <input name="finish_granite_filename" type="filename" uivisible="false" />
+    <input name="finish_marble_filename" type="filename" uivisible="false" />
+    <input name="finish_wall_filename" type="filename" uivisible="false" />
+    <input name="finish_amount" type="float" value="1" uimin="0" uisoftmax="1" uivisible="true" uiname="Finish Amount" />
+    <input name="finish_scale" type="float" value="1" uisoftmin="0.0" uisoftmax="1.0" uivisible="true" uiname="Finish Scale" unittype="distance" />
     <output name="out" type="surfaceshader" />
   </nodedef>
 

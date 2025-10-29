@@ -5310,7 +5310,7 @@
   </nodegraph>
 
   <!-- <Legacy Stone> -->
-  <nodegraph name="NG_legacy_stone" Autodesk-ldx_inputPos="-118.978 -42.5611" Autodesk-ldx_outputPos="2419.72 429.926" nodedef="ND_legacy_stone">
+  <nodegraph name="NG_legacy_stone" Autodesk-ldx_inputPos="-590.055 -56.2724" Autodesk-ldx_outputPos="2419.72 429.926" Autodesk-previousTexturePath="__NO_TEXTURE_PATH__" nodedef="ND_legacy_stone">
     <standard_surface name="standard_surface" type="surfaceshader" version="1.0.1" xpos="11.9598" ypos="2.35259">
       <input name="base_color" type="color3" nodename="tint_selection" uivisible="true" />
       <input name="specular_roughness" type="float" uivisible="true" nodename="switch_finish" />
@@ -5347,10 +5347,10 @@
       <input name="in2" type="vector3" nodename="normalmap_neutral" />
       <input name="in1" type="vector3" nodename="switch_finish_bump" />
     </ifequal>
-    <constant name="neutral_normal" type="vector3" xpos="2.11015" ypos="6.67589">
+    <constant name="neutral_normal" type="vector3" xpos="4.10242" ypos="7.37689">
       <input name="value" type="vector3" value="0.5, 0.5, 1" />
     </constant>
-    <normalmap name="normalmap_neutral" type="vector3" xpos="4.03028" ypos="6.57861">
+    <normalmap name="normalmap_neutral" type="vector3" xpos="5.72917" ypos="7.01928">
       <input name="in" type="vector3" nodename="neutral_normal" />
     </normalmap>
     <ifequal name="relief_pattern_selection" type="vector3" xpos="7.49972" ypos="6.43278">
@@ -5373,13 +5373,61 @@
       <input name="in5" type="float" nodename="finish_unfinished" />
       <input name="which" type="integer" interfacename="finish" />
     </switch>
-    <switch name="switch_finish_bump" type="vector3" nodedef="ND_switch_vector3I" xpos="4.14123" ypos="4.69639">
-      <input name="in1" type="vector3" interfacename="normal_finish_granite" />
-      <input name="in2" type="vector3" interfacename="normal_finish_marble" />
-      <input name="in3" type="vector3" interfacename="normal_finish_wall" />
-      <input name="in4" type="vector3" interfacename="normal_custom_finish" />
+    <switch name="switch_finish_bump" type="vector3" nodedef="ND_switch_vector3I" xpos="4.15037" ypos="4.69639">
+      <input name="in4" type="vector3" nodename="normalmap1" />
       <input name="which" type="integer" interfacename="finish_bump" />
+      <input name="in3" type="vector3" nodename="height_map_wall" />
+      <input name="in2" type="vector3" nodename="height_map_marble" />
+      <input name="in1" type="vector3" nodename="height_map_granite" />
     </switch>
+    <multiply name="bump_amt_granite" type="float" nodedef="ND_multiply_float" xpos="0.852056" ypos="4.56889">
+      <input name="in2" type="float" interfacename="finish_amount" />
+      <input name="in1" type="float" value="0.03" />
+    </multiply>
+    <multiply name="bump_amt_marble" type="float" nodedef="ND_multiply_float" xpos="0.841533" ypos="6.742">
+      <input name="in2" type="float" interfacename="finish_amount" />
+      <input name="in1" type="float" value="0.02" />
+    </multiply>
+    <multiply name="bump_amt_wall" type="float" nodedef="ND_multiply_float" xpos="0.853878" ypos="8.99433">
+      <input name="in2" type="float" interfacename="finish_amount" />
+      <input name="in1" type="float" value="0.1" />
+    </multiply>
+    <combine2 name="finish_scale_adj" type="vector2" nodedef="ND_combine2_vector2" xpos="-1.13378" ypos="6.06478">
+      <input name="in2" type="float" nodename="invert_scale" />
+      <input name="in1" type="float" nodename="invert_scale" />
+    </combine2>
+    <transformnormal_w2t_vector3 name="transformnormal_w2t_vector3_1" type="vector3" nodedef="ND_transformnormal_w2t_vector3" xpos="-0.958728" ypos="10.6668">
+      <input name="world_normal" type="vector3" interfacename="normal_custom_finish" />
+    </transformnormal_w2t_vector3>
+    <normalmap name="normalmap1" type="vector3" xpos="2.31847" ypos="10.5306">
+      <input name="in" type="vector3" nodename="transformnormal_w2t_vector3_1" />
+      <input name="scale" type="float" interfacename="finish_amount" />
+    </normalmap>
+    <divide name="invert_scale" type="float" nodedef="ND_divide_float" xpos="-2.75049" ypos="6.038">
+      <input name="in1" type="float" value="1" />
+      <input name="in2" type="float" interfacename="finish_scale" />
+    </divide>
+    <adsk:height_map name="height_map_granite" type="vector3" nodedef="adsk:ND_adsk_height_map" Autodesk-previousTexturePath="__NO_TEXTURE_PATH__" xpos="2.35683" ypos="3.37311">
+      <input name="depth" type="float" nodename="bump_amt_granite" />
+      <input name="realworld_scale" type="vector2" value="15, 15" />
+      <input name="uv_scale" type="vector2" nodename="finish_scale_adj" />
+      <input name="file" type="filename" interfacename="finish_granite_filename" />
+      <input name="texcoord" type="vector2" interfacename="texcoord" />
+    </adsk:height_map>
+    <adsk:height_map name="height_map_marble" type="vector3" nodedef="adsk:ND_adsk_height_map" Autodesk-previousTexturePath="__NO_TEXTURE_PATH__" xpos="2.34016" ypos="5.68611">
+      <input name="depth" type="float" nodename="bump_amt_marble" />
+      <input name="realworld_scale" type="vector2" value="15, 15" />
+      <input name="uv_scale" type="vector2" nodename="finish_scale_adj" />
+      <input name="file" type="filename" interfacename="finish_marble_filename" />
+      <input name="texcoord" type="vector2" interfacename="texcoord" />
+    </adsk:height_map>
+    <adsk:height_map name="height_map_wall" type="vector3" nodedef="adsk:ND_adsk_height_map" Autodesk-previousTexturePath="__NO_TEXTURE_PATH__" xpos="2.32906" ypos="7.99172">
+      <input name="depth" type="float" nodename="bump_amt_wall" />
+      <input name="realworld_scale" type="vector2" value="100, 100" />
+      <input name="uv_scale" type="vector2" nodename="finish_scale_adj" />
+      <input name="file" type="filename" interfacename="finish_wall_filename" />
+      <input name="texcoord" type="vector2" interfacename="texcoord" />
+    </adsk:height_map>
   </nodegraph>
 
   <!-- <Legacy Masonry> -->
