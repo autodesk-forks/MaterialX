@@ -5376,19 +5376,19 @@
     <switch name="switch_finish_bump" type="vector3" nodedef="ND_switch_vector3I" xpos="4.15037" ypos="4.69639">
       <input name="in4" type="vector3" nodename="normalmap1" />
       <input name="which" type="integer" interfacename="finish_bump" />
-      <input name="in3" type="vector3" nodename="height_map_wall" />
-      <input name="in2" type="vector3" nodename="height_map_marble" />
+      <input name="in3" type="vector3" nodename="height_map_marble" />
+      <input name="in2" type="vector3" nodename="height_map_wall" />
       <input name="in1" type="vector3" nodename="height_map_granite" />
     </switch>
     <multiply name="bump_amt_granite" type="float" nodedef="ND_multiply_float" xpos="0.852056" ypos="4.56889">
       <input name="in2" type="float" interfacename="finish_amount" />
       <input name="in1" type="float" value="0.03" />
     </multiply>
-    <multiply name="bump_amt_marble" type="float" nodedef="ND_multiply_float" xpos="0.841533" ypos="6.742">
+    <multiply name="bump_amt_marble" type="float" nodedef="ND_multiply_float" xpos="0.918844" ypos="9.41283">
       <input name="in2" type="float" interfacename="finish_amount" />
       <input name="in1" type="float" value="0.02" />
     </multiply>
-    <multiply name="bump_amt_wall" type="float" nodedef="ND_multiply_float" xpos="0.853878" ypos="8.99433">
+    <multiply name="bump_amt_wall" type="float" nodedef="ND_multiply_float" xpos="0.84685" ypos="6.91389">
       <input name="in2" type="float" interfacename="finish_amount" />
       <input name="in1" type="float" value="0.1" />
     </multiply>
@@ -5414,14 +5414,14 @@
       <input name="file" type="filename" interfacename="finish_granite_filename" />
       <input name="texcoord" type="vector2" interfacename="texcoord" />
     </adsk:height_map>
-    <adsk:height_map name="height_map_marble" type="vector3" nodedef="adsk:ND_adsk_height_map" Autodesk-previousTexturePath="__NO_TEXTURE_PATH__" xpos="2.34016" ypos="5.68611">
+    <adsk:height_map name="height_map_marble" type="vector3" nodedef="adsk:ND_adsk_height_map" Autodesk-previousTexturePath="__NO_TEXTURE_PATH__" xpos="2.38233" ypos="8.15311">
       <input name="depth" type="float" nodename="bump_amt_marble" />
       <input name="realworld_scale" type="vector2" value="15, 15" />
       <input name="uv_scale" type="vector2" nodename="finish_scale_adj" />
       <input name="file" type="filename" interfacename="finish_marble_filename" />
       <input name="texcoord" type="vector2" interfacename="texcoord" />
     </adsk:height_map>
-    <adsk:height_map name="height_map_wall" type="vector3" nodedef="adsk:ND_adsk_height_map" Autodesk-previousTexturePath="__NO_TEXTURE_PATH__" xpos="2.32906" ypos="7.99172">
+    <adsk:height_map name="height_map_wall" type="vector3" nodedef="adsk:ND_adsk_height_map" Autodesk-previousTexturePath="__NO_TEXTURE_PATH__" xpos="2.38529" ypos="5.75661">
       <input name="depth" type="float" nodename="bump_amt_wall" />
       <input name="realworld_scale" type="vector2" value="100, 100" />
       <input name="uv_scale" type="vector2" nodename="finish_scale_adj" />

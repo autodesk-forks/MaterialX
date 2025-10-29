@@ -515,8 +515,8 @@
     <input name="relief_pattern_enable" type="boolean" value="false" uivisible="true" uiname="Relief Pattern" />
     <input name="normal_relief_pattern" type="vector3" uivisible="true" uiname="Custom Relief Pattern" defaultgeomprop="Nworld" />
     <input name="finish_granite_filename" type="filename" uivisible="false" />
-    <input name="finish_marble_filename" type="filename" uivisible="false" />
     <input name="finish_wall_filename" type="filename" uivisible="false" />
+    <input name="finish_marble_filename" type="filename" uivisible="false" />
     <input name="finish_amount" type="float" value="1" uimin="0" uisoftmax="1" uivisible="true" uiname="Finish Amount" />
     <input name="finish_scale" type="float" value="1" uisoftmin="0.0" uisoftmax="1.0" uivisible="true" uiname="Finish Scale" unittype="distance" />
     <output name="out" type="surfaceshader" />
