@@ -5587,19 +5587,19 @@
       <input name="value" type="float" value="1" uivisible="true" />
     </constant>
     <constant name="ior_water" type="float" xpos="1.15" ypos="-2">
-      <input name="value" type="float" value="1.331" uivisible="true" />
+      <input name="value" type="float" value="1.33" uivisible="true" />
     </constant>
     <constant name="ior_alchool" type="float" xpos="1.15" ypos="-1.02222">
-      <input name="value" type="float" value="1.329" uivisible="true" />
+      <input name="value" type="float" value="1.36" uivisible="true" />
     </constant>
     <constant name="ior_quartz" type="float" xpos="1.15556" ypos="-0.0444444">
-      <input name="value" type="float" value="1.54" uivisible="true" />
+      <input name="value" type="float" value="1.46" uivisible="true" />
     </constant>
     <constant name="ior_glass" type="float" xpos="1.12778" ypos="0.944444">
       <input name="value" type="float" value="1.52" uivisible="true" />
     </constant>
     <constant name="ior_diamond" type="float" xpos="1.18333" ypos="1.86667">
-      <input name="value" type="float" value="2.42" uivisible="true" />
+      <input name="value" type="float" value="2.3" uivisible="true" />
     </constant>
     <modulo name="modulo_ior" type="float" xpos="3.37222" ypos="2.63889">
       <input name="in1" type="float" uivisible="true" nodename="convert_ior_float" />
@@ -5802,12 +5802,12 @@
       <input name="value1" type="boolean" interfacename="bump_enable" />
       <input name="value2" type="boolean" value="true" />
       <input name="in2" type="vector3" nodename="neutral_normalmap" />
-      <input name="in1" type="vector3" interfacename="normal_bump" />
+      <input name="in1" type="vector3" nodename="normalmap1" />
     </ifequal>
-    <constant name="neutral_normal" type="vector3" xpos="3.85514" ypos="31.7593">
+    <constant name="neutral_normal" type="vector3" xpos="3.85514" ypos="32.254">
       <input name="value" type="vector3" value="0.5, 0.5, 1" />
     </constant>
-    <normalmap name="neutral_normalmap" type="vector3" xpos="5.58289" ypos="31.7648">
+    <normalmap name="neutral_normalmap" type="vector3" xpos="5.61889" ypos="32.1156">
       <input name="in" type="vector3" nodename="neutral_normal" />
     </normalmap>
     <output name="out" type="surfaceshader" nodename="standard_surface" xpos="15.094203" ypos="2.034483" />
@@ -5832,6 +5832,13 @@
     <convert name="convert_K_float" type="float" nodedef="ND_convert_integer_float" xpos="-2.61978" ypos="29.7598">
       <input name="in" type="integer" interfacename="color_temperature" />
     </convert>
+    <transformnormal_w2t_vector3 name="transformnormal_w2t_vector3_1" type="vector3" nodedef="ND_transformnormal_w2t_vector3" xpos="-2.63445" ypos="31.7932">
+      <input name="world_normal" type="vector3" interfacename="normal_bump" />
+    </transformnormal_w2t_vector3>
+    <normalmap name="normalmap1" type="vector3" nodedef="ND_normalmap" xpos="-0.943072" ypos="31.4864">
+      <input name="in" type="vector3" nodename="transformnormal_w2t_vector3_1" />
+      <input name="scale" type="float" interfacename="bump_amount" />
+    </normalmap>
   </nodegraph>
 
 </materialx>
