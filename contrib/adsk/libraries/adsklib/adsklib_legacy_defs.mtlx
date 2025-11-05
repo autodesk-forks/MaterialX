@@ -559,6 +559,7 @@
     <input name="translucency" type="float" value="0" uivisible="true" uiname="Translucency" />
     <input name="bump_enable" type="boolean" value="false" uivisible="true" uiname="Bump" />
     <input name="normal_bump" type="vector3" uivisible="true" uiname="Custom Bump" defaultgeomprop="Nworld" />
+    <input name="bump_amount" type="float" value="1" uimin="0.0" uisoftmax="1.0" uivisible="true" uiname="Bump Amount" />
     <input name="cutout_enable" type="boolean" value="false" uivisible="true" uiname="Cutout" />
     <input name="cutout_image" type="color3" value="1, 1, 1" uivisible="true" uiname="Custom Cutout" />
     <input name="emission_enable" type="boolean" value="false" uivisible="true" uiname="Emission" />
