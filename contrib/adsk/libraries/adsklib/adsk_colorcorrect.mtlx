@@ -26,7 +26,7 @@
     <output name="outAlpha" type="float" />
   </nodedef>
   <!-- Sample color correct implementation. Versioned and namespaced -->
-  <nodegraph name="NG_colorcorrect" nodedef="adsk:ND_colorcorrect" namespace="adsk">
+  <nodegraph name="NG_colorcorrect" nodedef="ND_colorcorrect" namespace="adsk">
     <range name="AlphaClampAndGamma" type="float">
       <input name="in" type="float" nodename="AlphaOffset" />
       <input name="gamma" type="float" interfacename="alpha_gamma" />

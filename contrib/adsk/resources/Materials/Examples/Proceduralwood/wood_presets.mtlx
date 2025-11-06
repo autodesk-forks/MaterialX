@@ -768,7 +768,7 @@
       <input name="diffuse_lobe_weight" type="float" value="0.85" />
       <input name="early_color" type="color3" value="0.20836, 0.0802193, 0.0242229" />
       <input name="late_wood_color_power" type="float" value="1.07" />
-      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 3.98107e-005" />
+      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 0.0000398107" />
       <input name="use_manual_late_wood_color" type="boolean" value="false" />
       <input name="fiber_perlin_frequencies"   type="vector4" value="40, 20, 3.5, 0" />
       <input name="fiber_perlin_weights" type="vector4" value="3, 1, 0.2, 0" />
@@ -830,7 +830,7 @@
       <input name="diffuse_lobe_weight" type="float" value="1.0" />
       <input name="early_color" type="color3" value="0.00969633, 0.242796, 0.242796" />
       <input name="late_wood_color_power" type="float" value="0.95" />
-      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 3.98107e-005" />
+      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 0.0000398107" />
       <input name="use_manual_late_wood_color" type="boolean" value="false" />
       <input name="fiber_perlin_frequencies"   type="vector4" value="40, 20, 3.5, 0" />
       <input name="fiber_perlin_weights" type="vector4" value="3, 1, 0.2, 0" />
@@ -892,7 +892,7 @@
       <input name="diffuse_lobe_weight" type="float" value="0.85" />
       <input name="early_color" type="color3" value="0.20836, 0.0802193, 0.0242229" />
       <input name="late_wood_color_power" type="float" value="1.07" />
-      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 3.98107e-005" />
+      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 0.0000398107" />
       <input name="use_manual_late_wood_color" type="boolean" value="false" />
       <input name="fiber_perlin_frequencies"   type="vector4" value="40, 20, 3.5, 0" />
       <input name="fiber_perlin_weights" type="vector4" value="3, 1, 0.2, 0" />
@@ -1016,7 +1016,7 @@
       <input name="diffuse_lobe_weight" type="float" value="1.0" />
       <input name="early_color" type="color3" value="0.284452, 0.139022, 0.0802193" />
       <input name="late_wood_color_power" type="float" value="1.07" />
-      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 3.98107e-005" />
+      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403,  0.0000398107" />
       <input name="use_manual_late_wood_color" type="boolean" value="false" />
       <input name="fiber_perlin_frequencies"   type="vector4" value="40, 20, 3.5, 0" />
       <input name="fiber_perlin_weights" type="vector4" value="3, 1, 0.2, 0" />
@@ -2194,7 +2194,7 @@
       <input name="diffuse_lobe_weight" type="float" value="0.83" />
       <input name="early_color" type="color3" value="0.0938759, 0.042987, 0.0103978" />
       <input name="late_wood_color_power" type="float" value="1.63" />
-      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 3.98107e-005" />
+      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 0.0000398107" />
       <input name="use_manual_late_wood_color" type="boolean" value="false" />
       <input name="fiber_perlin_frequencies"   type="vector4" value="23.5, 8, 2, 0" />
       <input name="fiber_perlin_weights" type="vector4" value="1.25, 0.75, 0.15, 0" />
@@ -2256,7 +2256,7 @@
       <input name="diffuse_lobe_weight" type="float" value="1.0" />
       <input name="early_color" type="color3" value="0.0143105, 0.383775, 0.0179364" />
       <input name="late_wood_color_power" type="float" value="0.95" />
-      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 3.98107e-005" />
+      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 0.0000398107" />
       <input name="use_manual_late_wood_color" type="boolean" value="false" />
       <input name="fiber_perlin_frequencies"   type="vector4" value="23.5, 8, 2, 0" />
       <input name="fiber_perlin_weights" type="vector4" value="1.25, 0.75, 0.15, 0" />
@@ -2318,7 +2318,7 @@
       <input name="diffuse_lobe_weight" type="float" value="0.85" />
       <input name="early_color" type="color3" value="0.0938759, 0.042987, 0.0103978" />
       <input name="late_wood_color_power" type="float" value="1.63" />
-      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 3.98107e-005" />
+      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 0.0000398107" />
       <input name="use_manual_late_wood_color" type="boolean" value="false" />
       <input name="fiber_perlin_frequencies"   type="vector4" value="23.5, 8, 2, 0" />
       <input name="fiber_perlin_weights" type="vector4" value="1.25, 0.75, 0.15, 0" />
@@ -2442,7 +2442,7 @@
       <input name="diffuse_lobe_weight" type="float" value="1.0" />
       <input name="early_color" type="color3" value="0.160444, 0.0869013, 0.0356144" />
       <input name="late_wood_color_power" type="float" value="1.15" />
-      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 3.98107e-005" />
+      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 0.0000398107" />
       <input name="use_manual_late_wood_color" type="boolean" value="false" />
       <input name="fiber_perlin_frequencies"   type="vector4" value="23.5, 8, 2, 0" />
       <input name="fiber_perlin_weights" type="vector4" value="1.25, 0.75, 0.15, 0" />
@@ -2752,7 +2752,7 @@
       <input name="diffuse_lobe_weight" type="float" value="0.68" />
       <input name="early_color" type="color3" value="0.0938759, 0.042987, 0.0103978" />
       <input name="late_wood_color_power" type="float" value="1.63" />
-      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 3.98107e-005" />
+      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 0.0000398107" />
       <input name="use_manual_late_wood_color" type="boolean" value="false" />
       <input name="fiber_perlin_frequencies"   type="vector4" value="23.5, 8, 2, 0" />
       <input name="fiber_perlin_weights" type="vector4" value="1.25, 0.75, 0.15, 0" />
@@ -2814,7 +2814,7 @@
       <input name="diffuse_lobe_weight" type="float" value="0.62" />
       <input name="early_color" type="color3" value="0.0938759, 0.042987, 0.0103978" />
       <input name="late_wood_color_power" type="float" value="1.63" />
-      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 3.98107e-005" />
+      <input name="manual_late_wood_color" type="color3" value="0.217638, 0.0707403, 0.0000398107" />
       <input name="use_manual_late_wood_color" type="boolean" value="false" />
       <input name="fiber_perlin_frequencies"   type="vector4" value="23.5, 8, 2, 0" />
       <input name="fiber_perlin_weights" type="vector4" value="1.25, 0.75, 0.15, 0" />

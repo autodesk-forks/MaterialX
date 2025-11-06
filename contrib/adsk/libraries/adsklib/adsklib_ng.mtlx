@@ -9,7 +9,7 @@
   <!-- 
   <adsk_bitmap>
   -->
-  <nodegraph name="NG_adsk_bitmap_color3" nodedef="adsk:ND_adsk_bitmap_color3" namespace="adsk">
+  <nodegraph name="NG_adsk_bitmap_color3" nodedef="ND_adsk_bitmap_color3" namespace="adsk">
     <divide name="total_scale" type="vector2">
       <input name="in1" type="vector2" interfacename="realworld_scale"/>
       <input name="in2" type="vector2" interfacename="uv_scale"/>
@@ -65,7 +65,7 @@
   </nodegraph>
 
   <!--adsk:bitmap color4-->
-  <nodegraph name="NG_adsk_bitmap_color4" nodedef="adsk:ND_adsk_bitmap_color4" namespace="adsk">
+  <nodegraph name="NG_adsk_bitmap_color4" nodedef="ND_adsk_bitmap_color4" namespace="adsk">
     <divide name="total_scale" type="vector2">
       <input name="in1" type="vector2" interfacename="realworld_scale"/>
       <input name="in2" type="vector2" interfacename="uv_scale"/>
@@ -120,7 +120,7 @@
     <output name="out" type="color4" nodename="image_convert" />
   </nodegraph>
 
-  <nodegraph name="NG_adsk_bitmap_float" nodedef="adsk:ND_adsk_bitmap_float" namespace="adsk">
+  <nodegraph name="NG_adsk_bitmap_float" nodedef="ND_adsk_bitmap_float" namespace="adsk">
     <!-- divide unit converted realworldscale by scale -->
     <divide name="total_scale" type="vector2">
       <input name="in1" type="vector2" interfacename="realworld_scale"/>
@@ -182,7 +182,7 @@
     <output name="out" type="float" nodename="extract1" />
   </nodegraph>
 
-  <nodegraph name="NG_adsk_bitmap_remap_float" nodedef="adsk:ND_adsk_bitmap_remap_float" namespace="adsk">
+  <nodegraph name="NG_adsk_bitmap_remap_float" nodedef="ND_adsk_bitmap_remap_float" namespace="adsk">
     <!-- divide unit converted realworldscale by scale -->
     <divide name="total_scale" type="vector2">
       <input name="in1" type="vector2" interfacename="realworld_scale"/>
@@ -255,7 +255,7 @@
   <!-- 
   <adsk_normal_map> 
   -->
-  <nodegraph name="NG_adsk_normal_map" nodedef="adsk:ND_adsk_normal_map" namespace="adsk">
+  <nodegraph name="NG_adsk_normal_map" nodedef="ND_adsk_normal_map" namespace="adsk">
     <!-- divide unit converted realworldscale by scale -->
     <divide name="total_scale" type="vector2">
       <input name="in1" type="vector2" interfacename="realworld_scale"/>
@@ -312,7 +312,7 @@
   <!-- 
   <adsk_height_map> 
   -->
-  <nodegraph name="NG_adsk_height_map" nodedef="adsk:ND_adsk_height_map" namespace="adsk">
+  <nodegraph name="NG_adsk_height_map" nodedef="ND_adsk_height_map" namespace="adsk">
     <!-- divide unit converted realworldscale by scale -->
     <divide name="total_scale" type="vector2">
       <input name="in1" type="vector2" interfacename="realworld_scale"/>
@@ -366,7 +366,7 @@
       ===================================
   -->
   <!-- <adsk_metal> -->
-  <nodegraph name="NG_adsk_metal" nodedef="adsk:ND_adsk_metal" namespace="adsk">
+  <nodegraph name="NG_adsk_metal" nodedef="ND_adsk_metal" namespace="adsk">
 
     <!-- base_color = metal_f0 * surface_albedo -->
     <multiply name="base_color_value" type="color3">
@@ -426,7 +426,7 @@
   </nodegraph>
 
   <!-- <adsk_opaque> -->
-  <nodegraph name="NG_adsk_opaque" nodedef="adsk:ND_adsk_opaque" namespace="adsk">
+  <nodegraph name="NG_adsk_opaque" nodedef="ND_adsk_opaque" namespace="adsk">
 
     <!-- specular_roughness = surface_roughness * sqrt(1 - surface_anisotropy) -->
     <subtract name="oneminus_surfaniso0" type="float">
@@ -536,7 +536,7 @@
   </nodegraph>
 
   <!-- <adsk_transparent> -->
-  <nodegraph name="NG_adsk_transparent" nodedef="adsk:ND_adsk_transparent" namespace="adsk">
+  <nodegraph name="NG_adsk_transparent" nodedef="ND_adsk_transparent" namespace="adsk">
 
     <!-- specular_roughness = surface_roughness * sqrt(1 - surface_anisotropy) -->
     <subtract name="oneminus_surfaniso0" type="float">
@@ -598,7 +598,7 @@
 
   <!-- <adsk_layered> -->
   <!-- using Option 1 - Blend the Metal and Diffuse colors -->
-  <nodegraph name="NG_adsk_layered" nodedef="adsk:ND_adsk_layered" namespace="adsk">
+  <nodegraph name="NG_adsk_layered" nodedef="ND_adsk_layered" namespace="adsk">
 
     <!-- inputs and Interfaces for Autodesk Layered PBR Materials -->
 
@@ -785,7 +785,7 @@
 
 
   <!-- <adsk_glazing> -->
-  <nodegraph name="NG_adsk_glazing" nodedef="adsk:ND_adsk_glazing" namespace="adsk">
+  <nodegraph name="NG_adsk_glazing" nodedef="ND_adsk_glazing" namespace="adsk">
 
     <!-- coat_roughness = surface_roughness * sqrt(1 - surface_anisotropy) -->
     <subtract name="oneminus_surfaniso0" type="float">
