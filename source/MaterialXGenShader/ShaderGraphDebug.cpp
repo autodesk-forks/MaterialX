@@ -5,6 +5,7 @@
 
 #include <MaterialXGenShader/ShaderGraphDebug.h>
 #include <MaterialXGenShader/ShaderNode.h>
+#include <MaterialXGenShader/Exception.h>
 
 #include <fstream>
 #include <sstream>
