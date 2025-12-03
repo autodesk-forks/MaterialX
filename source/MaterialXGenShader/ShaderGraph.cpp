@@ -7,8 +7,10 @@
 
 #include <MaterialXGenShader/Exception.h>
 #include <MaterialXGenShader/GenContext.h>
+#include <MaterialXGenShader/ShaderGraphDebug.h>
 #include <MaterialXGenShader/Util.h>
 
+#include <cstdlib>
 #include <iostream>
 #include <queue>
 
@@ -930,8 +932,20 @@ void ShaderGraph::finalize(GenContext& context)
     _inputUnitTransformMap.clear();
     _outputUnitTransformMap.clear();
 
+    // DEBUG: Dump graph before/after optimization (temporary for testing)
+    static bool dumpDot = (std::getenv("MATERIALX_DUMP_DOT") != nullptr);
+    if (dumpDot)
+    {
+        writeShaderGraphDot(*this, FilePath("debug_" + getName() + "_before.dot"));
+    }
+
     // Optimize the graph, removing redundant paths and applying graph transformations
     optimize(context);
+
+    if (dumpDot)
+    {
+        writeShaderGraphDot(*this, FilePath("debug_" + getName() + "_after.dot"));
+    }
 
     // Sort the nodes in topological order.
     topologicalSort();
