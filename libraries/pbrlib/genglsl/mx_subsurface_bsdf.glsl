@@ -16,10 +16,10 @@ void mx_subsurface_bsdf(ClosureData closureData, float weight, vec3 color, vec3 
     float occlusion = closureData.occlusion;
 
     N = mx_forward_facing_normal(N, V);
-
+    float curvature = length(fwidth(N)) / length(fwidth(P));
     if (closureData.closureType == CLOSURE_TYPE_REFLECTION)
     {
-        vec3 sss = mx_subsurface_scattering_approx(N, L, P, color, radius);
+        vec3 sss = mx_subsurface_scattering_approx(N, L, P, color, radius, curvature);
         float NdotL = clamp(dot(N, L), M_FLOAT_EPS, 1.0);
         float visibleOcclusion = 1.0 - NdotL * (1.0 - occlusion);
         bsdf.response = sss * visibleOcclusion * weight;
