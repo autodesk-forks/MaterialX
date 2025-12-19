@@ -191,9 +191,8 @@ vec3 mx_integrate_burley_diffusion(vec3 N, vec3 L, float radius, vec3 mfp)
     return sumD / sumR;
 }
 
-vec3 mx_subsurface_scattering_approx(vec3 N, vec3 L, vec3 P, vec3 albedo, vec3 mfp)
+vec3 mx_subsurface_scattering_approx(vec3 N, vec3 L, vec3 P, vec3 albedo, vec3 mfp, float curvature)
 {
-    float curvature = length(fwidth(N)) / length(fwidth(P));
     float radius = 1.0 / max(curvature, 0.01);
     return albedo * mx_integrate_burley_diffusion(N, L, radius, mfp) / vec3(M_PI);
 }
