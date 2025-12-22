@@ -6,7 +6,6 @@
 #include <MaterialXGenGlsl/WgslResourceBindingContext.h>
 
 #include <iostream>
-#include <vector>
 #include <MaterialXGenShader/GenContext.h>
 
 MATERIALX_NAMESPACE_BEGIN
@@ -39,9 +38,6 @@ void WgslResourceBindingContext::emitResourceBindings(GenContext& context, const
     }
     if (hasValueUniforms)
     {
-        // Collect boolean uniform variable names to emit macros after the uniform block
-        std::vector<string> booleanUniforms;
-        
         generator.emitLine("layout (std140, binding=" + std::to_string(_hwUniformBindLocation++) + ") " +
                                syntax.getUniformQualifier() + " " + uniforms.getName() + "_" + stage.getName(),
                            stage, false);
@@ -64,8 +60,10 @@ void WgslResourceBindingContext::emitResourceBindings(GenContext& context, const
                     generator.emitString(Syntax::SEMICOLON, stage);
                     generator.emitLineEnd(stage, false);
 
-                    // Store variable name to emit macro after the uniform block closes
-                    booleanUniforms.push_back(uniform->getVariable());
+                    // Add macro to treat any follow usages of this variable as a boolean
+                    // eg. u_myUniformBool -> bool(u_myUniformBool)
+                    generator.emitString("#define " + uniform->getVariable() + " bool(" + uniform->getVariable() + ")", stage);
+                    generator.emitLineBreak(stage);
                 } 
                 else
                 {
@@ -78,17 +76,6 @@ void WgslResourceBindingContext::emitResourceBindings(GenContext& context, const
             }
         }
         generator.emitScopeEnd(stage, true);
-        
-        // Emit macros for boolean uniforms after the uniform block closes
-        // This is required because preprocessor directives cannot appear inside struct/uniform blocks
-        for (const string& varName : booleanUniforms)
-        {
-            // Add macro to treat any follow usages of this variable as a boolean
-            // Use a simple comparison without extra parentheses to avoid syntax issues
-            // The preprocessor handles recursive macros correctly by not re-expanding
-            // Pattern: if (u_var) expands to: if (u_var != 0)
-            generator.emitLine("#define " + varName + " " + varName + " != 0", stage, false);
-        }
     }
 
     // Second, emit all sampler uniforms as separate uniforms with separate layout bindings
