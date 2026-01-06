@@ -97,6 +97,7 @@ class MX_GENSHADER_API GenOptions
         hwWriteEnvPrefilter(false),
         hwImplicitBitangents(true),
         optReplaceBsdfMixWithLinearCombination(false),
+        optDumpShaderGraphDot(false),
         oslImplicitSurfaceShaderConversion(true),
         oslConnectCiWrapper(false)
     {
@@ -208,6 +209,11 @@ class MX_GENSHADER_API GenOptions
     /// Analyse the graph of ShaderNodes and replace any ND_mix_bsdf nodes
     /// with a linear combination of their weighted inputs
     bool optReplaceBsdfMixWithLinearCombination;
+
+    /// Enable dumping shader graph DOT files during optimization.
+    /// When enabled, generates .dot files before/after each optimization pass.
+    /// Defaults to false.
+    bool optDumpShaderGraphDot;
 
     // Enables OSL conversion of surfaceshader struct to closure color.
     // Defaults to true.
