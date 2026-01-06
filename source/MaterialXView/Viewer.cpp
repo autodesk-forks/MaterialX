@@ -855,6 +855,13 @@ void Viewer::createAdvancedSettings(ng::ref<Widget> parent)
         _genContext.getOptions().optReplaceBsdfMixWithLinearCombination = enable;
     });
 
+    ng::ref<ng::CheckBox> dumpDotBox = new ng::CheckBox(settingsGroup, "Dump DOT Graphs");
+    dumpDotBox->set_checked(_genContext.getOptions().optDumpShaderGraphDot);
+    dumpDotBox->set_callback([this](bool enable)
+    {
+        _genContext.getOptions().optDumpShaderGraphDot = enable;
+    });
+
     ng::ref<ng::Widget> albedoGroup = new Widget(settingsGroup);
     albedoGroup->set_layout(new ng::BoxLayout(ng::Orientation::Horizontal));
     new ng::Label(albedoGroup, "Albedo Method:");
