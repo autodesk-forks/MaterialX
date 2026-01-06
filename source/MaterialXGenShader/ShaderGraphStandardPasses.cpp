@@ -130,7 +130,15 @@ bool PremultipliedAddPass::run(ShaderGraph& graph, GenContext& context)
         if (!node)
             continue;
 
-        if (optimizeMixBsdf(graph, node, context))
+        // Try cascaded mix-of-mix first, then fall back to simple mix
+        if (!optimizeMixMixBsdf(graph, node, context))
+        {
+            if (optimizeMixBsdf(graph, node, context))
+            {
+                anyChanges = true;
+            }
+        }
+        else
         {
             anyChanges = true;
         }
@@ -139,95 +147,211 @@ bool PremultipliedAddPass::run(ShaderGraph& graph, GenContext& context)
     return anyChanges;
 }
 
+namespace
+{
+
 // Helper function to redirect the incoming connection from one input port to another.
-static void redirectInput(ShaderInput* fromPort, ShaderInput* toPort)
+void redirectInput(ShaderInput* fromPort, ShaderInput* toPort)
 {
     ShaderOutput* connection = fromPort->getConnection();
     if (connection)
     {
-        // we have a connection - so transfer it
         toPort->makeConnection(connection);
     }
     else
     {
-        // we just remap the value.
         toPort->setValue(fromPort->getValue());
     }
 }
 
 // Helper function to connect two nodes together
-static void connectNodes(ShaderNode* fromNode, const string& fromPortName, 
-                        ShaderNode* toNode, const string& toPortName)
+void connectNodes(ShaderNode* fromNode, const string& fromPortName, 
+                  ShaderNode* toNode, const string& toPortName)
 {
     ShaderOutput* fromPort = fromNode->getOutput(fromPortName);
     ShaderInput* toPort = toNode->getInput(toPortName);
-    if (!fromPort || !toPort)
-        return;
-
-    fromPort->makeConnection(toPort);
+    if (fromPort && toPort)
+    {
+        fromPort->makeConnection(toPort);
+    }
 }
 
-bool PremultipliedAddPass::optimizeMixBsdf(ShaderGraph& graph, ShaderNode* mixNode, GenContext& context)
+// Helper struct for required node definitions
+struct PremultNodeDefs
 {
-    ShaderInput* mixFgInput = mixNode->getInput("fg");
-    ShaderInput* mixBgInput = mixNode->getInput("bg");
+    ConstNodeDefPtr addBsdf;
+    ConstNodeDefPtr floatInvert;
+    ConstNodeDefPtr floatMult;
+    
+    bool isValid() const { return addBsdf && floatInvert && floatMult; }
+};
 
-    if (!mixFgInput || !mixBgInput)
-        return false;
+// Get required node definitions for premultiplied add optimization
+PremultNodeDefs getPremultNodeDefs(ConstDocumentPtr doc)
+{
+    PremultNodeDefs defs;
+    defs.addBsdf = doc->getNodeDef("ND_add_bsdf");
+    defs.floatInvert = doc->getNodeDef("ND_invert_float");
+    defs.floatMult = doc->getNodeDef("ND_multiply_float");
+    return defs;
+}
 
-    ShaderNode* fgNode = mixFgInput->getConnectedSibling();
-    ShaderNode* bgNode = mixBgInput->getConnectedSibling();
-
-    if (!fgNode && !bgNode)
-        return false;
-
-    ShaderInput* fgNodeWeightInput = fgNode->getInput("weight");
-    ShaderInput* bgNodeWeightInput = bgNode->getInput("weight");
-
-    if (!fgNodeWeightInput || !bgNodeWeightInput)
-        return false;
-
-    ConstNodeDefPtr addBsdfNodeDef = graph.getDocument()->getNodeDef("ND_add_bsdf");
-    ConstNodeDefPtr floatInvertNodeDef = graph.getDocument()->getNodeDef("ND_invert_float");
-    ConstNodeDefPtr floatMultNodeDef = graph.getDocument()->getNodeDef("ND_multiply_float");
-    if (!addBsdfNodeDef || !floatInvertNodeDef || !floatMultNodeDef)
-        return false;
-
-    ShaderInput* mixWeightInput = mixNode->getInput("mix");
-
-    // create a node that represents the inverted mix value, ie. 1.0-mix
-    ShaderNode* invertMixNode = graph.createNode(mixNode->getName()+"_INV", floatInvertNodeDef, context);
-    redirectInput(mixWeightInput, invertMixNode->getInput("in"));
-
-    // create a multiply node to calculate the new weight value, weighted by the mix value.
-    ShaderNode* multFgWeightNode = graph.createNode(mixNode->getName()+"_MULT_FG", floatMultNodeDef, context);
-    redirectInput(fgNodeWeightInput, multFgWeightNode->getInput("in1"));
-    redirectInput(mixWeightInput, multFgWeightNode->getInput("in2"));
-
-    // create a multiply node to calculate the new weight value, weighted by the inverted mix value.
-    ShaderNode* multBgWeightNode = graph.createNode(mixNode->getName()+"_MULT_BG", floatMultNodeDef, context);
-    redirectInput(bgNodeWeightInput, multBgWeightNode->getInput("in1"));
-    connectNodes(invertMixNode, "out", multBgWeightNode, "in2");
-
-    // connect the two newly created weights to the fg and bg BSDF nodes.
-    connectNodes(multFgWeightNode, "out", fgNode, "weight");
-    connectNodes(multBgWeightNode, "out", bgNode, "weight");
-
-    // Create the ND_add_bsdf node that will add the two BSDF nodes with the modified weights
-    ShaderNode* addNode = graph.createNode(mixNode->getName()+"_ADD", addBsdfNodeDef, context);
-    connectNodes(bgNode, "out", addNode, "in1");
-    connectNodes(fgNode, "out", addNode, "in2");
-
-    // Finally for all the previous outgoing connections from the original mix node
-    // replace those with the outgoing connection from the new add node.
+// Replace a mix node's output connections with a new node's output
+void replaceMixWithAdd(ShaderGraph& graph, ShaderNode* mixNode, ShaderNode* addNode)
+{
     ShaderOutput* mixNodeOutput = mixNode->getOutput("out");
     ShaderInputVec mixNodeOutputConns = mixNodeOutput->getConnections();
     for (ShaderInput* conn : mixNodeOutputConns)
     {
         addNode->getOutput("out")->makeConnection(conn);
     }
-
     graph.removeNode(mixNode);
+}
+
+} // anonymous namespace
+
+bool PremultipliedAddPass::optimizeMixBsdf(ShaderGraph& graph, ShaderNode* mixNode, GenContext& context)
+{
+    ShaderInput* mixFgInput = mixNode->getInput("fg");
+    ShaderInput* mixBgInput = mixNode->getInput("bg");
+    if (!mixFgInput || !mixBgInput)
+        return false;
+
+    ShaderNode* fgNode = mixFgInput->getConnectedSibling();
+    ShaderNode* bgNode = mixBgInput->getConnectedSibling();
+    if (!fgNode || !bgNode)
+        return false;
+
+    ShaderInput* fgNodeWeightInput = fgNode->getInput("weight");
+    ShaderInput* bgNodeWeightInput = bgNode->getInput("weight");
+    if (!fgNodeWeightInput || !bgNodeWeightInput)
+        return false;
+
+    PremultNodeDefs defs = getPremultNodeDefs(graph.getDocument());
+    if (!defs.isValid())
+        return false;
+
+    ShaderInput* mixWeightInput = mixNode->getInput("mix");
+    const string& baseName = mixNode->getName();
+
+    // Create inverted mix weight: (1.0 - mix)
+    ShaderNode* invertMixNode = graph.createNode(baseName + "_INV", defs.floatInvert, context);
+    redirectInput(mixWeightInput, invertMixNode->getInput("in"));
+
+    // Create premultiplied weights
+    ShaderNode* multFgNode = graph.createNode(baseName + "_MULT_FG", defs.floatMult, context);
+    redirectInput(fgNodeWeightInput, multFgNode->getInput("in1"));
+    redirectInput(mixWeightInput, multFgNode->getInput("in2"));
+
+    ShaderNode* multBgNode = graph.createNode(baseName + "_MULT_BG", defs.floatMult, context);
+    redirectInput(bgNodeWeightInput, multBgNode->getInput("in1"));
+    connectNodes(invertMixNode, "out", multBgNode, "in2");
+
+    // Connect premultiplied weights to BSDF nodes
+    connectNodes(multFgNode, "out", fgNode, "weight");
+    connectNodes(multBgNode, "out", bgNode, "weight");
+
+    // Create add node and replace mix
+    ShaderNode* addNode = graph.createNode(baseName + "_ADD", defs.addBsdf, context);
+    connectNodes(bgNode, "out", addNode, "in1");
+    connectNodes(fgNode, "out", addNode, "in2");
+
+    replaceMixWithAdd(graph, mixNode, addNode);
+    return true;
+}
+
+bool PremultipliedAddPass::optimizeMixMixBsdf(ShaderGraph& graph, ShaderNode* mix2Node, GenContext& context)
+{
+    // Pattern: mix2(fg=mix1(A, B), bg=C) where A, B, C are BSDFs with weight inputs
+    
+    ShaderInput* mix2FgInput = mix2Node->getInput("fg");
+    ShaderInput* mix2BgInput = mix2Node->getInput("bg");
+    if (!mix2FgInput || !mix2BgInput)
+        return false;
+
+    ShaderNode* mix1Node = mix2FgInput->getConnectedSibling();
+    ShaderNode* cNode = mix2BgInput->getConnectedSibling();
+    if (!mix1Node || !cNode)
+        return false;
+
+    // fg must be another mix_bsdf
+    if (!mix1Node->hasClassification(ShaderNode::Classification::MIX_BSDF))
+        return false;
+
+    ShaderInput* mix1FgInput = mix1Node->getInput("fg");
+    ShaderInput* mix1BgInput = mix1Node->getInput("bg");
+    if (!mix1FgInput || !mix1BgInput)
+        return false;
+
+    ShaderNode* aNode = mix1FgInput->getConnectedSibling();
+    ShaderNode* bNode = mix1BgInput->getConnectedSibling();
+    if (!aNode || !bNode)
+        return false;
+
+    // All three leaf BSDFs must have weight inputs
+    ShaderInput* aWeightInput = aNode->getInput("weight");
+    ShaderInput* bWeightInput = bNode->getInput("weight");
+    ShaderInput* cWeightInput = cNode->getInput("weight");
+    if (!aWeightInput || !bWeightInput || !cWeightInput)
+        return false;
+
+    PremultNodeDefs defs = getPremultNodeDefs(graph.getDocument());
+    if (!defs.isValid())
+        return false;
+
+    ShaderInput* mix1WeightInput = mix1Node->getInput("mix");
+    ShaderInput* mix2WeightInput = mix2Node->getInput("mix");
+    const string& baseName = mix2Node->getName();
+
+    // Create inverted weights: (1-mix1) and (1-mix2)
+    ShaderNode* invertMix1Node = graph.createNode(baseName + "_INV1", defs.floatInvert, context);
+    redirectInput(mix1WeightInput, invertMix1Node->getInput("in"));
+
+    ShaderNode* invertMix2Node = graph.createNode(baseName + "_INV2", defs.floatInvert, context);
+    redirectInput(mix2WeightInput, invertMix2Node->getInput("in"));
+
+    // Premultiplied weight for A: A.weight * mix1 * mix2
+    ShaderNode* multA1 = graph.createNode(baseName + "_MULT_A1", defs.floatMult, context);
+    redirectInput(aWeightInput, multA1->getInput("in1"));
+    redirectInput(mix1WeightInput, multA1->getInput("in2"));
+    
+    ShaderNode* multA2 = graph.createNode(baseName + "_MULT_A2", defs.floatMult, context);
+    connectNodes(multA1, "out", multA2, "in1");
+    redirectInput(mix2WeightInput, multA2->getInput("in2"));
+
+    // Premultiplied weight for B: B.weight * (1-mix1) * mix2
+    ShaderNode* multB1 = graph.createNode(baseName + "_MULT_B1", defs.floatMult, context);
+    redirectInput(bWeightInput, multB1->getInput("in1"));
+    connectNodes(invertMix1Node, "out", multB1, "in2");
+    
+    ShaderNode* multB2 = graph.createNode(baseName + "_MULT_B2", defs.floatMult, context);
+    connectNodes(multB1, "out", multB2, "in1");
+    redirectInput(mix2WeightInput, multB2->getInput("in2"));
+
+    // Premultiplied weight for C: C.weight * (1-mix2)
+    ShaderNode* multC = graph.createNode(baseName + "_MULT_C", defs.floatMult, context);
+    redirectInput(cWeightInput, multC->getInput("in1"));
+    connectNodes(invertMix2Node, "out", multC, "in2");
+
+    // Connect premultiplied weights to BSDF nodes
+    connectNodes(multA2, "out", aNode, "weight");
+    connectNodes(multB2, "out", bNode, "weight");
+    connectNodes(multC, "out", cNode, "weight");
+
+    // Create add nodes: add1(A, B), then add2(add1, C)
+    ShaderNode* add1Node = graph.createNode(baseName + "_ADD1", defs.addBsdf, context);
+    connectNodes(bNode, "out", add1Node, "in1");
+    connectNodes(aNode, "out", add1Node, "in2");
+
+    ShaderNode* add2Node = graph.createNode(baseName + "_ADD2", defs.addBsdf, context);
+    connectNodes(cNode, "out", add2Node, "in1");
+    connectNodes(add1Node, "out", add2Node, "in2");
+
+    // Replace mix2's output connections with add2
+    replaceMixWithAdd(graph, mix2Node, add2Node);
+    
+    // Remove mix1 (no longer needed)
+    graph.removeNode(mix1Node);
 
     return true;
 }

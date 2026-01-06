@@ -27,8 +27,9 @@ class MX_GENSHADER_API ConstantFoldingPass : public ShaderGraphOptimizationPass
 /// for BSDF nodes, exposing weight multiplications for GPU optimization.
 /// Implemented by Lee Kerley in MaterialX PR #2499.
 /// 
-/// Note: With iterative optimization, nested mix nodes (MixMix pattern)
-/// are automatically handled by applying this pass multiple times.
+/// Handles two patterns:
+/// 1. Simple mix: mix(A, B) where A and B are primitive BSDFs with weight inputs
+/// 2. Cascaded mix: mix(mix(A, B), C) where leaf BSDFs have weight inputs
 class MX_GENSHADER_API PremultipliedAddPass : public ShaderGraphOptimizationPass
 {
   public:
@@ -36,7 +37,11 @@ class MX_GENSHADER_API PremultipliedAddPass : public ShaderGraphOptimizationPass
     bool run(ShaderGraph& graph, GenContext& context) override;
 
   private:
+    /// Optimize a simple mix of two BSDFs with weight inputs
     bool optimizeMixBsdf(ShaderGraph& graph, ShaderNode* node, GenContext& context);
+    
+    /// Optimize cascaded mix nodes: mix(mix(A, B), C)
+    bool optimizeMixMixBsdf(ShaderGraph& graph, ShaderNode* node, GenContext& context);
 };
 
 MATERIALX_NAMESPACE_END
