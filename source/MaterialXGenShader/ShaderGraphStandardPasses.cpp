@@ -99,13 +99,6 @@ bool ConstantFoldingPass::run(ShaderGraph& graph, GenContext& context)
     return numEdits > 0;
 }
 
-bool ConstantFoldingPass::isEnabled(GenContext& context) const
-{
-    // Always enabled
-    (void)context; // Suppress unused parameter warning
-    return true;
-}
-
 //
 // PremultipliedAddPass
 //
@@ -118,11 +111,6 @@ const string& PremultipliedAddPass::getName() const
 
 bool PremultipliedAddPass::run(ShaderGraph& graph, GenContext& context)
 {
-    if (!context.getOptions().optReplaceBsdfMixWithLinearCombination)
-    {
-        return false;
-    }
-
     // We store node names (not raw pointers) because optimization may delete nodes
     // via shared_ptr. Raw pointers would dangle.
     vector<string> mixBsdfNodeNames;
@@ -149,11 +137,6 @@ bool PremultipliedAddPass::run(ShaderGraph& graph, GenContext& context)
     }
 
     return anyChanges;
-}
-
-bool PremultipliedAddPass::isEnabled(GenContext& context) const
-{
-    return context.getOptions().optReplaceBsdfMixWithLinearCombination;
 }
 
 // Helper function to redirect the incoming connection from one input port to another.

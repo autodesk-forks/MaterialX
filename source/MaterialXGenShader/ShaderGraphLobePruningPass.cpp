@@ -39,16 +39,10 @@ const string& LobePruningPass::getName() const
     return name;
 }
 
-bool LobePruningPass::isEnabled(GenContext& context) const
-{
-    // TODO: Add a GenOptions flag for this (e.g., optEnableLobePruning)
-    // For now, always enabled
-    (void)context; // Suppress unused parameter warning
-    return true;
-}
-
 bool LobePruningPass::run(ShaderGraph& graph, GenContext& context)
 {
+    (void)context; // Suppress unused parameter warning (will be used when dark closure creation is implemented)
+    
     bool anyChanges = false;
 
     // Iterate over all nodes in the graph

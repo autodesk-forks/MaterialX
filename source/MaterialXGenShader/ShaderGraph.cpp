@@ -1000,11 +1000,19 @@ void ShaderGraph::optimize(GenContext& context)
     // Use the new pass manager infrastructure for iterative optimization
     ShaderGraphPassManager passManager;
     
-    // Add optimization passes in order
+    // Add optimization passes in order (conditionally based on options)
     passManager.addPass(std::make_shared<ConstantFoldingPass>());
-    passManager.addPass(std::make_shared<PremultipliedAddPass>());
+    
+    if (context.getOptions().optReplaceBsdfMixWithLinearCombination)
+    {
+        passManager.addPass(std::make_shared<PremultipliedAddPass>());
+    }
+    
     // TODO: Add LobePruningPass when dark closures are implemented
-    // passManager.addPass(std::make_shared<LobePruningPass>());
+    // if (context.getOptions().optEnableLobePruning)
+    // {
+    //     passManager.addPass(std::make_shared<LobePruningPass>());
+    // }
     
     // Run all passes to fixed point (up to 10 iterations)
     passManager.runToFixedPoint(*this, context, 10);

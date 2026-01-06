@@ -20,7 +20,6 @@ class MX_GENSHADER_API ConstantFoldingPass : public ShaderGraphOptimizationPass
   public:
     const string& getName() const override;
     bool run(ShaderGraph& graph, GenContext& context) override;
-    bool isEnabled(GenContext& context) const override;
 };
 
 /// @class PremultipliedAddPass
@@ -35,7 +34,6 @@ class MX_GENSHADER_API PremultipliedAddPass : public ShaderGraphOptimizationPass
   public:
     const string& getName() const override;
     bool run(ShaderGraph& graph, GenContext& context) override;
-    bool isEnabled(GenContext& context) const override;
 
   private:
     bool optimizeMixBsdf(ShaderGraph& graph, ShaderNode* node, GenContext& context);

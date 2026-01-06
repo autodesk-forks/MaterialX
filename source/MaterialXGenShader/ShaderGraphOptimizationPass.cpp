@@ -40,11 +40,6 @@ size_t ShaderGraphPassManager::runToFixedPoint(ShaderGraph& graph, GenContext& c
 
         for (const auto& pass : _passes)
         {
-            if (!pass->isEnabled(context))
-            {
-                continue;
-            }
-
             if (dumpDot)
             {
                 std::cout << "  Running pass: " << pass->getName() << std::endl;

@@ -39,9 +39,6 @@ class MX_GENSHADER_API ShaderGraphOptimizationPass
     /// @param context The generation context
     /// @return True if the graph was modified, false otherwise
     virtual bool run(ShaderGraph& graph, GenContext& context) = 0;
-
-    /// Return true if this pass is enabled
-    virtual bool isEnabled(GenContext& context) const = 0;
 };
 
 /// A shared pointer to an optimization pass

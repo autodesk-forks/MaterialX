@@ -32,7 +32,6 @@ class MX_GENSHADER_API LobePruningPass : public ShaderGraphOptimizationPass
   public:
     const string& getName() const override;
     bool run(ShaderGraph& graph, GenContext& context) override;
-    bool isEnabled(GenContext& context) const override;
 
   private:
     /// Check if an input is a prunable lobe weight parameter
