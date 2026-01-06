@@ -1014,8 +1014,8 @@ void ShaderGraph::optimize(GenContext& context)
     //     passManager.addPass(std::make_shared<LobePruningPass>());
     // }
     
-    // Run all passes to fixed point (up to 10 iterations)
-    passManager.runToFixedPoint(*this, context, 10);
+    // Run all passes to fixed point (respecting configured iteration limit)
+    passManager.runToFixedPoint(*this, context, context.getOptions().optMaxPassIterations);
 }
 void ShaderGraph::bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex)
 {

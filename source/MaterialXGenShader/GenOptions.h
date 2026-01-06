@@ -98,6 +98,7 @@ class MX_GENSHADER_API GenOptions
         hwImplicitBitangents(true),
         optReplaceBsdfMixWithLinearCombination(false),
         optDumpShaderGraphDot(false),
+        optMaxPassIterations(10),
         oslImplicitSurfaceShaderConversion(true),
         oslConnectCiWrapper(false)
     {
@@ -214,6 +215,12 @@ class MX_GENSHADER_API GenOptions
     /// When enabled, generates .dot files before/after each optimization pass.
     /// Defaults to false.
     bool optDumpShaderGraphDot;
+
+    /// Maximum number of optimization pass iterations before stopping.
+    /// The pass manager runs all passes repeatedly until no changes occur
+    /// (fixed point) or this limit is reached. Similar to LLVM's
+    /// -pass-remarks-max-iterations. Defaults to 10.
+    size_t optMaxPassIterations;
 
     // Enables OSL conversion of surfaceshader struct to closure color.
     // Defaults to true.
