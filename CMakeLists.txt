@@ -51,6 +51,7 @@ option(MATERIALX_BUILD_OCIO "Build OpenColorIO support for shader generators." O
 option(MATERIALX_BUILD_TESTS "Build unit tests." OFF)
 option(MATERIALX_BUILD_BENCHMARK_TESTS "Build benchmark tests." OFF)
 option(MATERIALX_BUILD_OSOS "Build OSL .oso's of standard library shaders for the OSL Network generator" OFF)
+option(MATERIALX_BUILD_TRACING "Build with Perfetto tracing support for performance analysis." OFF)
 
 option(MATERIALX_BUILD_SHARED_LIBS "Build MaterialX libraries as shared rather than static." OFF)
 option(MATERIALX_BUILD_DATA_LIBRARY "Build generated products from the MaterialX data library." OFF)
@@ -135,6 +136,7 @@ set(MATERIALX_PYTHON_EXECUTABLE "" CACHE FILEPATH
     "Python executable to be used in building the MaterialX Python package (e.g. 'C:/Python39/python.exe').")
 set(MATERIALX_PYTHON_PYBIND11_DIR "" CACHE PATH
     "Path to a folder containing the PyBind11 source to be used in building MaterialX Python.")
+option(MATERIALX_PYTHON_FORCE_REPLACE_DOCS "Force replace existing docstrings when generating Python binding documentation from Doxygen." OFF)
 
 # Settings to define installation layout
 set(MATERIALX_INSTALL_INCLUDE_PATH "include" CACHE STRING "Install header include path (e.g. 'inc', 'include').")
@@ -210,6 +212,7 @@ mark_as_advanced(MATERIALX_DYNAMIC_ANALYSIS)
 mark_as_advanced(MATERIALX_PYTHON_VERSION)
 mark_as_advanced(MATERIALX_PYTHON_EXECUTABLE)
 mark_as_advanced(MATERIALX_PYTHON_PYBIND11_DIR)
+mark_as_advanced(MATERIALX_PYTHON_FORCE_REPLACE_DOCS)
 mark_as_advanced(MATERIALX_OSL_BINARY_OSLC)
 mark_as_advanced(MATERIALX_OSL_BINARY_TESTRENDER)
 mark_as_advanced(MATERIALX_OSL_INCLUDE_PATH)
@@ -225,6 +228,23 @@ mark_as_advanced(MATERIALX_MDL_BINARY_MDLC)
 mark_as_advanced(MATERIALX_MDL_MODULE_PATHS)
 mark_as_advanced(MATERIALX_MDL_SDK_DIR)
 mark_as_advanced(MATERIALX_SLANG_RHI_SOURCE_DIR)
+mark_as_advanced(MATERIALX_BUILD_TRACING)
+
+# Perfetto tracing support
+if(MATERIALX_BUILD_TRACING)
+    include(FetchContent)
+    FetchContent_Declare(
+        perfetto
+        GIT_REPOSITORY https://android.googlesource.com/platform/external/perfetto
+        GIT_TAG v43.0
+        GIT_SHALLOW TRUE
+    )
+    # Only fetch the SDK, not the full Perfetto source
+    set(PERFETTO_SDK_INCLUDE_DIR "${CMAKE_BINARY_DIR}/_deps/perfetto-src/sdk")
+    FetchContent_MakeAvailable(perfetto)
+    add_definitions(-DMATERIALX_BUILD_TRACING)
+    message(STATUS "Perfetto tracing support enabled")
+endif()
 
 if (MATERIALX_BUILD_USE_CCACHE)
     # Setup CCache for C/C++ compilation
@@ -312,7 +332,7 @@ if(MSVC)
         add_compile_options(/WX)
     endif()
 else()
-    add_compile_options(-Wall -Wunused-parameter -Wno-missing-braces)
+    add_compile_options(-Wall -Wunused-parameter -Wshadow -Wno-missing-braces)
     if(MATERIALX_WARNINGS_AS_ERRORS)
         add_compile_options(-Werror)
     endif()
@@ -548,14 +568,14 @@ if(MATERIALX_BUILD_TESTS)
     add_subdirectory(source/MaterialXTest)
 endif()
 
+if (MATERIALX_BUILD_DOCS)
+    add_subdirectory(documents)
+endif()
+
 # Add Python subdirectories
 if(MATERIALX_BUILD_PYTHON)
     add_subdirectory(source/PyMaterialX)
     add_subdirectory(python)
-endif()
-
-if(MATERIALX_BUILD_DOCS)
-    add_subdirectory(documents)
 endif()
 
 if(MATERIALX_BUILD_JS)
