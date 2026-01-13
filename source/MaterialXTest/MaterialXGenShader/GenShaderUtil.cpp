@@ -987,6 +987,7 @@ void TestSuiteOptions::print(std::ostream& output) const
     output << "\tEnable Reference Quality: " << enableReferenceQuality << std::endl;
     output << "\tOutput Directory: " << (outputDirectory.isEmpty() ? "(default)" : outputDirectory.asString()) << std::endl;
     output << "\tEnable Tracing: " << enableTracing << std::endl;
+    output << "\tFrames Per Material: " << framesPerMaterial << std::endl;
 }
 
 bool TestSuiteOptions::readOptions(const std::string& optionFile)
@@ -1014,6 +1015,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
     const std::string ENABLE_REFERENCE_QUALITY("enableReferenceQuality");
     const std::string OUTPUT_DIRECTORY_STRING("outputDirectory");
     const std::string ENABLE_TRACING_STRING("enableTracing");
+    const std::string FRAMES_PER_MATERIAL_STRING("framesPerMaterial");
 
     overrideFiles.clear();
     dumpGeneratedCode = false;
@@ -1128,6 +1130,11 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                     else if (name == ENABLE_TRACING_STRING)
                     {
                         enableTracing = val->asA<bool>();
+                    }
+                    else if (name == FRAMES_PER_MATERIAL_STRING)
+                    {
+                        int frames = val->asA<int>();
+                        framesPerMaterial = (frames >= 1) ? static_cast<unsigned int>(frames) : 1u;
                     }
                 }
             }

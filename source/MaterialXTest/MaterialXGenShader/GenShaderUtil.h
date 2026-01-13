@@ -126,6 +126,11 @@ class TestSuiteOptions
     // Default is false to avoid overhead when not profiling.
     bool enableTracing = false;
 
+    // Number of frames to render per material for GPU timing.
+    // Default is 1. Set higher (e.g., 5-10) for statistical validity.
+    // First frame often includes driver shader compilation overhead.
+    unsigned int framesPerMaterial = 1;
+
     // Helper to resolve output path for an artifact.
     // If outputDirectory is set, returns outputDirectory/filename.
     // Otherwise returns the original path unchanged.
