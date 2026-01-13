@@ -19,8 +19,63 @@
 
 #include <MaterialXFormat/Util.h>
 
+#ifdef MATERIALX_BUILD_TRACING
+#include <MaterialXRenderGlsl/External/Glad/glad.h>
+#include <chrono>
+#endif
+
 namespace mx = MaterialX;
 using Cat = mx::Tracing::Category;
+
+#ifdef MATERIALX_BUILD_TRACING
+// GPU timing utilities
+namespace {
+
+// Get current time in nanoseconds (for async event timestamps)
+uint64_t getCurrentTimeNs()
+{
+    using namespace std::chrono;
+    return duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count();
+}
+
+// GPU timer query helper using GL_TIME_ELAPSED
+class GpuTimerQuery
+{
+  public:
+    GpuTimerQuery()
+    {
+        glGenQueries(1, &_query);
+    }
+
+    ~GpuTimerQuery()
+    {
+        glDeleteQueries(1, &_query);
+    }
+
+    void begin()
+    {
+        glBeginQuery(GL_TIME_ELAPSED, _query);
+    }
+
+    void end()
+    {
+        glEndQuery(GL_TIME_ELAPSED);
+    }
+
+    // Returns duration in nanoseconds, blocks until result is available
+    uint64_t getDurationNs()
+    {
+        GLuint64 elapsedTime;
+        glGetQueryObjectui64v(_query, GL_QUERY_RESULT, &elapsedTime);
+        return elapsedTime;
+    }
+
+  private:
+    GLuint _query;
+};
+
+} // anonymous namespace
+#endif // MATERIALX_BUILD_TRACING
 
 //
 // Render validation tester for the GLSL shading language
@@ -355,7 +410,27 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                     unsigned int width = (unsigned int) testOptions.renderSize[0] * supersampleFactor;
                     unsigned int height = (unsigned int) testOptions.renderSize[1] * supersampleFactor;
                     _renderer->setSize(width, height);
+
+#ifdef MATERIALX_BUILD_TRACING
+                    // GPU timing with timer queries
+                    uint64_t cpuStartNs = getCurrentTimeNs();
+                    GpuTimerQuery gpuTimer;
+                    gpuTimer.begin();
+#endif
                     _renderer->render();
+
+#ifdef MATERIALX_BUILD_TRACING
+                    gpuTimer.end();
+                    
+                    // glFinish ensures GPU is done, making CPU trace scope accurate
+                    glFinish();
+                    
+                    // Get GPU duration (query result blocks until available)
+                    uint64_t gpuDurationNs = gpuTimer.getDurationNs();
+                    
+                    // Emit async event on GPU track showing actual GPU work duration
+                    MX_TRACE_ASYNC(mx::Tracing::AsyncTrack::GPU, Cat::Render, shaderName.c_str(), cpuStartNs, gpuDurationNs);
+#endif
                 }
 
                 {

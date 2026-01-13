@@ -31,6 +31,9 @@ MATERIALX_NAMESPACE_BEGIN
 namespace Tracing
 {
 
+// Stable Perfetto track IDs for async tracks (must not collide with thread IDs)
+constexpr uint64_t GPU_TRACK_ID = 1001;
+
 // One-time global Perfetto initialization flag
 static std::once_flag g_perfettoInitFlag;
 
@@ -43,6 +46,16 @@ PerfettoSink::PerfettoSink(std::string outputPath, size_t bufferSizeKb)
         args.backends |= perfetto::kInProcessBackend;
         perfetto::Tracing::Initialize(args);
         perfetto::TrackEvent::Register();
+
+        // Initialize async track descriptors with stable IDs and names
+        // perfetto::Track is constructed from ID; we just need to set the descriptor once
+        {
+            perfetto::Track gpuTrack(GPU_TRACK_ID);
+            auto desc = gpuTrack.Serialize();
+            desc.set_name("GPU");
+            perfetto::TrackEvent::SetTrackDescriptor(gpuTrack, desc);
+        }
+        // Add more tracks here as needed
     });
 
     // Create and start a tracing session for this sink
@@ -153,6 +166,34 @@ void PerfettoSink::counter(Category category, const char* name, double value)
             break;
         default:
             TRACE_COUNTER("mx.render", track, value);
+            break;
+    }
+}
+
+void PerfettoSink::asyncEvent(AsyncTrack track, Category category,
+                              const char* eventName, uint64_t startNs, uint64_t durationNs)
+{
+    // Currently only GPU track is supported
+    assert(track == AsyncTrack::GPU && "Only AsyncTrack::GPU is currently supported");
+    perfetto::Track perfTrack(GPU_TRACK_ID);
+
+    // Emit begin and end events with explicit timestamps
+    switch (category)
+    {
+        case Category::Render:
+            TRACE_EVENT_BEGIN("mx.render", nullptr, perfTrack, startNs,
+                [&](perfetto::EventContext ctx) { ctx.event()->set_name(eventName); });
+            TRACE_EVENT_END("mx.render", perfTrack, startNs + durationNs);
+            break;
+        case Category::ShaderGen:
+            TRACE_EVENT_BEGIN("mx.shadergen", nullptr, perfTrack, startNs,
+                [&](perfetto::EventContext ctx) { ctx.event()->set_name(eventName); });
+            TRACE_EVENT_END("mx.shadergen", perfTrack, startNs + durationNs);
+            break;
+        default:
+            TRACE_EVENT_BEGIN("mx.render", nullptr, perfTrack, startNs,
+                [&](perfetto::EventContext ctx) { ctx.event()->set_name(eventName); });
+            TRACE_EVENT_END("mx.render", perfTrack, startNs + durationNs);
             break;
     }
 }
