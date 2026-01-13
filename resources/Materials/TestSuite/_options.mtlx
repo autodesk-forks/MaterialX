@@ -91,5 +91,11 @@
          analyze in Python to discard warmup frames and compute averages.
     -->
     <input name="framesPerMaterial" type="integer" value="1" />
+
+    <!-- Enable mix_bsdf to linear combination optimization (Lee's optimization).
+         Transforms mix(A, B, weight) into add(A * (1-weight), B * weight) for BSDFs.
+         Default is false. Enable to test optimization impact on GPU performance.
+    -->
+    <input name="optReplaceBsdfMixWithLinearCombination" type="boolean" value="false" />
   </nodedef>
 </materialx>

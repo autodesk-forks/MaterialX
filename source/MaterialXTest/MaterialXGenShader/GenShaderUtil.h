@@ -131,6 +131,10 @@ class TestSuiteOptions
     // First frame often includes driver shader compilation overhead.
     unsigned int framesPerMaterial = 1;
 
+    // Enable mix_bsdf to linear combination optimization (Lee's optimization).
+    // Transforms mix(A, B, weight) into add(A * (1-weight), B * weight) for BSDFs.
+    bool optReplaceBsdfMixWithLinearCombination = false;
+
     // Helper to resolve output path for an artifact.
     // If outputDirectory is set, returns outputDirectory/filename.
     // Otherwise returns the original path unchanged.
