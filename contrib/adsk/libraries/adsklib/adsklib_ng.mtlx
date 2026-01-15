@@ -6,6 +6,87 @@
   SHA: $Id: 282646565c6d24143b1ab0a1311aadb52a6b77db $
   -->
 
+  <!-- ==================== UTILITY NODEGRAPHS ==================== -->
+
+  <!-- 
+  <adsk:roughness_adjust>
+  Adjusts roughness based on anisotropy: roughness * sqrt(1 - anisotropy)
+  -->
+  <nodegraph name="NG_adsk_roughness_adjust" nodedef="ND_adsk_roughness_adjust" namespace="adsk">
+    <subtract name="oneminus_aniso" type="float">
+      <input name="in1" type="float" value="1.0" />
+      <input name="in2" type="float" interfacename="anisotropy" />
+    </subtract>
+    <sqrt name="sqrt_oneminus_aniso" type="float">
+      <input name="in" type="float" nodename="oneminus_aniso" />
+    </sqrt>
+    <multiply name="adjusted_roughness" type="float">
+      <input name="in1" type="float" nodename="sqrt_oneminus_aniso" />
+      <input name="in2" type="float" interfacename="roughness" />
+    </multiply>
+    <output name="out" type="float" nodename="adjusted_roughness" />
+  </nodegraph>
+
+  <!-- 
+  <adsk:anisotropy_adjust>
+  Converts anisotropy to standard surface format: 2 * anisotropy - anisotropy^2
+  -->
+  <nodegraph name="NG_adsk_anisotropy_adjust" nodedef="ND_adsk_anisotropy_adjust" namespace="adsk">
+    <multiply name="twotimes_aniso" type="float">
+      <input name="in1" type="float" value="2.0" />
+      <input name="in2" type="float" interfacename="anisotropy" />
+    </multiply>
+    <multiply name="aniso_squared" type="float">
+      <input name="in1" type="float" interfacename="anisotropy" />
+      <input name="in2" type="float" interfacename="anisotropy" />
+    </multiply>
+    <subtract name="adjusted_anisotropy" type="float">
+      <input name="in1" type="float" nodename="twotimes_aniso" />
+      <input name="in2" type="float" nodename="aniso_squared" />
+    </subtract>
+    <output name="out" type="float" nodename="adjusted_anisotropy" />
+  </nodegraph>
+
+  <!-- 
+  <adsk:rotation_normalize>
+  Normalizes rotation from degrees to 0-1 range: fmod(rotation / 360.0, 1.0)
+  -->
+  <nodegraph name="NG_adsk_rotation_normalize" nodedef="ND_adsk_rotation_normalize" namespace="adsk">
+    <divide name="div_rotation" type="float">
+      <input name="in1" type="float" interfacename="rotation" />
+      <input name="in2" type="float" value="360.0" />
+    </divide>
+    <modulo name="normalized_rotation" type="float">
+      <input name="in1" type="float" nodename="div_rotation" />
+    </modulo>
+    <output name="out" type="float" nodename="normalized_rotation" />
+  </nodegraph>
+
+  <!-- 
+  <adsk:f0_to_ior>
+  Converts Fresnel F0 reflectance to IOR: (1 + sqrt(f0)) / (1 - sqrt(f0))
+  -->
+  <nodegraph name="NG_adsk_f0_to_ior" nodedef="ND_adsk_f0_to_ior" namespace="adsk">
+    <sqrt name="sqrt_f0" type="float">
+      <input name="in" type="float" interfacename="f0" />
+    </sqrt>
+    <add name="oneplus_sqrt_f0" type="float">
+      <input name="in1" type="float" value="1.0" />
+      <input name="in2" type="float" nodename="sqrt_f0" />
+    </add>
+    <subtract name="oneminus_sqrt_f0" type="float">
+      <input name="in1" type="float" value="1.0" />
+      <input name="in2" type="float" nodename="sqrt_f0" />
+    </subtract>
+    <divide name="ior_value" type="float">
+      <input name="in1" type="float" nodename="oneplus_sqrt_f0" />
+      <input name="in2" type="float" nodename="oneminus_sqrt_f0" />
+    </divide>
+    <output name="out" type="float" nodename="ior_value" />
+  </nodegraph>
+
+  <!-- ==================== TEXTURE NODEGRAPHS ==================== -->
+
   <!-- 
   <adsk_bitmap>
   -->
@@ -374,41 +455,19 @@
       <input name="in2" type="color3" interfacename="metal_f0" />
     </multiply>
 
-    <!-- specular_roughness = surface_roughness * sqrt(1 - surface_anisotropy) -->
-    <subtract name="oneminus_surfaniso0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </subtract>
-    <sqrt name="sqrt1minus_surfaniso0" type="float">
-      <input name="in" type="float" nodename="oneminus_surfaniso0" />
-    </sqrt>
-    <multiply name="specular_roughness_value" type="float">
-      <input name="in1" type="float" nodename="sqrt1minus_surfaniso0"/>
-      <input name="in2" type="float" interfacename="surface_roughness" />
-    </multiply>
+    <!-- Use utility nodes for roughness, anisotropy, and rotation -->
+    <adsk:roughness_adjust name="specular_roughness_value" type="float">
+      <input name="roughness" type="float" interfacename="surface_roughness" />
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:roughness_adjust>
 
-    <!-- specular_anisotropy = 2 * surface_anisotropy - surface_anisotropy * surface_anisotropy -->
-    <multiply name="twotimes_surfaniso0" type="float">
-      <input name="in1" type="float" value="2.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <multiply name="pow2_surfaniso0" type="float">
-      <input name="in1" type="float" interfacename="surface_anisotropy" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <subtract name="specular_anisotropy_value" type="float">
-      <input name="in1" type="float" nodename="twotimes_surfaniso0" />
-      <input name="in2" type="float" nodename="pow2_surfaniso0" />
-    </subtract>
+    <adsk:anisotropy_adjust name="specular_anisotropy_value" type="float">
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:anisotropy_adjust>
 
-    <!-- specular_rotation = fmod(surface_rotation / 360.0, 1.0) -->
-    <divide name="div_rotation0" type="float">
-      <input name="in1" type="float" interfacename="surface_rotation" />
-      <input name="in2" type="float" value="360.0" />
-    </divide>
-    <modulo name="specular_rotation_value" type="float">
-      <input name="in1" type="float" nodename="div_rotation0" />
-    </modulo>
+    <adsk:rotation_normalize name="specular_rotation_value" type="float">
+      <input name="rotation" type="float" interfacename="surface_rotation" />
+    </adsk:rotation_normalize>
 
     <!-- map values to standard surface -->
     <output name="out" type="surfaceshader" nodename="standard_surface0" />
@@ -428,65 +487,23 @@
   <!-- <adsk_opaque> -->
   <nodegraph name="NG_adsk_opaque" nodedef="ND_adsk_opaque" namespace="adsk">
 
-    <!-- specular_roughness = surface_roughness * sqrt(1 - surface_anisotropy) -->
-    <subtract name="oneminus_surfaniso0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </subtract>
-    <sqrt name="sqrt1minus_surfaniso0" type="float">
-      <input name="in" type="float" nodename="oneminus_surfaniso0" />
-    </sqrt>
-    <multiply name="specular_roughness_value" type="float">
-      <input name="in1" type="float" nodename="sqrt1minus_surfaniso0"/>
-      <input name="in2" type="float" interfacename="surface_roughness" />
-    </multiply>
+    <!-- Use utility nodes for roughness, anisotropy, rotation, and IOR -->
+    <adsk:roughness_adjust name="specular_roughness_value" type="float">
+      <input name="roughness" type="float" interfacename="surface_roughness" />
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:roughness_adjust>
 
-    <!-- specular_anisotropy = 2 * surface_anisotropy - surface_anisotropy * surface_anisotropy -->
-    <multiply name="twotimes_surfaniso0" type="float">
-      <input name="in1" type="float" value="2.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <multiply name="pow2_surfaniso0" type="float">
-      <input name="in1" type="float" interfacename="surface_anisotropy" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <subtract name="specular_anisotropy_value" type="float">
-      <input name="in1" type="float" nodename="twotimes_surfaniso0" />
-      <input name="in2" type="float" nodename="pow2_surfaniso0" />
-    </subtract>
+    <adsk:anisotropy_adjust name="specular_anisotropy_value" type="float">
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:anisotropy_adjust>
 
-    <constant name="surface_rotation_param" type="float">
-      <input name="value" type="float" interfacename="surface_rotation" />
-    </constant>
-    <!-- specular_rotation = fmod(surface_rotation / 360.0, 1.0) -->
-    <divide name="div_rotation0" type="float">
-      <input name="in1" type="float" nodename="surface_rotation_param" />
-      <input name="in2" type="float" value="360.0" />
-    </divide>
-    <modulo name="specular_rotation_value" type="float" >
-      <input name="in1" type="float" nodename="div_rotation0" />
-    </modulo>
+    <adsk:rotation_normalize name="specular_rotation_value" type="float">
+      <input name="rotation" type="float" interfacename="surface_rotation" />
+    </adsk:rotation_normalize>
 
-
-    <!-- specular_IOR = (1.0 + sqrt(opaque_f0)) / (1.0 - sqrt(opaque_f0)) -->
-    <constant name="opaque_f0_param" type="float">
-      <input name="value" type="float" interfacename="opaque_f0" />
-    </constant>
-    <sqrt name="sqrt_opaquef0" type="float">
-      <input name="in" type="float" nodename="opaque_f0_param" />
-    </sqrt>
-    <add name="oneplus_sqrtopaquef0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" nodename="sqrt_opaquef0" />
-    </add>
-    <subtract name="oneminus_sqrtopaquef0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" nodename="sqrt_opaquef0" />
-    </subtract>
-    <divide name="specular_IOR_value" type="float">
-      <input name="in1" type="float" nodename="oneplus_sqrtopaquef0" />
-      <input name="in2" type="float" nodename="oneminus_sqrtopaquef0" />
-    </divide>
+    <adsk:f0_to_ior name="specular_IOR_value" type="float">
+      <input name="f0" type="float" interfacename="opaque_f0" />
+    </adsk:f0_to_ior>
 
     <!-- subsurface = opaque_translucency ? 1.0 : 0.0 -->
     <ifequal name="subsurface_value" type="float">
@@ -538,45 +555,19 @@
   <!-- <adsk_transparent> -->
   <nodegraph name="NG_adsk_transparent" nodedef="ND_adsk_transparent" namespace="adsk">
 
-    <!-- specular_roughness = surface_roughness * sqrt(1 - surface_anisotropy) -->
-    <subtract name="oneminus_surfaniso0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </subtract>
-    <sqrt name="sqrt1minus_surfaniso0" type="float">
-      <input name="in" type="float" nodename="oneminus_surfaniso0" />
-    </sqrt>
-    <multiply name="specular_roughness_value" type="float">
-      <input name="in1" type="float" nodename="sqrt1minus_surfaniso0"/>
-      <input name="in2" type="float" interfacename="surface_roughness" />
-    </multiply>
+    <!-- Use utility nodes for roughness, anisotropy, and rotation -->
+    <adsk:roughness_adjust name="specular_roughness_value" type="float">
+      <input name="roughness" type="float" interfacename="surface_roughness" />
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:roughness_adjust>
 
-    <!-- specular_anisotropy = 2 * surface_anisotropy - surface_anisotropy * surface_anisotropy -->
-    <multiply name="twotimes_surfaniso0" type="float">
-      <input name="in1" type="float" value="2.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <multiply name="pow2_surfaniso0" type="float">
-      <input name="in1" type="float" interfacename="surface_anisotropy" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <subtract name="specular_anisotropy_value" type="float">
-      <input name="in1" type="float" nodename="twotimes_surfaniso0" />
-      <input name="in2" type="float" nodename="pow2_surfaniso0" />
-    </subtract>
+    <adsk:anisotropy_adjust name="specular_anisotropy_value" type="float">
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:anisotropy_adjust>
 
-    <constant name="surface_rotation_param" type="float">
-      <input name="value" type="float" interfacename="surface_rotation" />
-    </constant>
-
-    <!-- specular_rotation = fmod(surface_rotation / 360.0, 1.0) -->
-    <divide name="div_rotation0" type="float">
-      <input name="in1" type="float" nodename="surface_rotation_param" />
-      <input name="in2" type="float" value="360.0" />
-    </divide>
-    <modulo name="specular_rotation_value" type="float" >
-      <input name="in1" type="float" nodename="div_rotation0" />
-    </modulo>
+    <adsk:rotation_normalize name="specular_rotation_value" type="float">
+      <input name="rotation" type="float" interfacename="surface_rotation" />
+    </adsk:rotation_normalize>
 
     <!-- map values to standard surface -->
     <output name="out" type="surfaceshader" nodename="standard_surface0" />
@@ -612,116 +603,39 @@
       <input name="index" type="integer" value="0" />
     </extract>
 
-    <!-- coat_roughness = surface_roughness * sqrt(1 - surface_anisotropy) -->
-    <subtract name="oneminus_surfaniso0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </subtract>
-    <sqrt name="sqrt1minus_surfaniso0" type="float">
-      <input name="in" type="float" nodename="oneminus_surfaniso0" />
-    </sqrt>
-    <multiply name="coat_roughness_value" type="float">
-      <input name="in1" type="float" nodename="sqrt1minus_surfaniso0"/>
-      <input name="in2" type="float" interfacename="surface_roughness" />
-    </multiply>
+    <!-- Use utility nodes for coat roughness, anisotropy, rotation, and IOR -->
+    <adsk:roughness_adjust name="coat_roughness_value" type="float">
+      <input name="roughness" type="float" interfacename="surface_roughness" />
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:roughness_adjust>
 
-    <!-- coat_anisotropy = 2 * surface_anisotropy - surface_anisotropy * surface_anisotropy -->
-    <multiply name="twotimes_surfaniso0" type="float">
-      <input name="in1" type="float" value="2.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <multiply name="pow2_surfaniso0" type="float">
-      <input name="in1" type="float" interfacename="surface_anisotropy" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <subtract name="coat_anisotropy_value" type="float">
-      <input name="in1" type="float" nodename="twotimes_surfaniso0" />
-      <input name="in2" type="float" nodename="pow2_surfaniso0" />
-    </subtract>
+    <adsk:anisotropy_adjust name="coat_anisotropy_value" type="float">
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:anisotropy_adjust>
 
+    <adsk:rotation_normalize name="coat_rotation_value" type="float">
+      <input name="rotation" type="float" interfacename="surface_rotation" />
+    </adsk:rotation_normalize>
 
-    <constant name="surface_rotation_param" type="float">
-      <input name="value" type="float" interfacename="surface_rotation" />
-    </constant>
+    <adsk:f0_to_ior name="coat_IOR_value" type="float">
+      <input name="f0" type="float" interfacename="layered_f0" />
+    </adsk:f0_to_ior>
 
-    <!-- coat_rotation = fmod(surface_rotation / 360.0, 1.0) -->
-    <divide name="div_rotation0" type="float">
-      <input name="in1" type="float" nodename="surface_rotation_param" />
-      <input name="in2" type="float" value="360.0" />
-    </divide>
-    <modulo name="coat_rotation_value" type="float" >
-      <input name="in1" type="float" nodename="div_rotation0" />
-    </modulo>
+    <!-- Use utility nodes for specular roughness, anisotropy, and rotation -->
+    <adsk:roughness_adjust name="specular_roughness_value" type="float">
+      <input name="roughness" type="float" interfacename="layered_roughness" />
+      <input name="anisotropy" type="float" interfacename="layered_anisotropy" />
+    </adsk:roughness_adjust>
 
-    <!-- coat_IOR = (1.0 + sqrt(layered_f0)) / (1.0 - sqrt(layered_f0)) -->
-    <constant name="layered_f0_param" type="float">
-      <input name="value" type="float" interfacename="layered_f0" />
-    </constant>
-    <sqrt name="sqrt_layeredf0" type="float">
-      <input name="in" type="float" nodename="layered_f0_param" />
-    </sqrt>
-    <add name="oneplus_sqrtlayeredf0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" nodename="sqrt_layeredf0" />
-    </add>
-    <subtract name="oneminus_sqrtlayeredf0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" nodename="sqrt_layeredf0" />
-    </subtract>
-    <divide name="coat_IOR_value" type="float">
-      <input name="in1" type="float" nodename="oneplus_sqrtlayeredf0" />
-      <input name="in2" type="float" nodename="oneminus_sqrtlayeredf0" />
-    </divide>
+    <adsk:anisotropy_adjust name="specular_anisotropy_value" type="float">
+      <input name="anisotropy" type="float" interfacename="layered_anisotropy" />
+    </adsk:anisotropy_adjust>
 
+    <adsk:rotation_normalize name="specular_rotation_value" type="float">
+      <input name="rotation" type="float" interfacename="layered_rotation" />
+    </adsk:rotation_normalize>
 
-    <constant name="layered_roughness_param" type="float">
-      <input name="value" type="float" interfacename="layered_roughness" />
-    </constant>
-
-    <constant name="layered_anisotropy_param" type="float">
-      <input name="value" type="float" interfacename="layered_anisotropy" />
-    </constant>
-
-    <!-- specular_roughness = layered_roughness * sqrt(1 - layered_anisotropy) -->
-    <subtract name="oneminus_layeraniso0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" nodename="layered_anisotropy_param" />
-    </subtract>
-    <sqrt name="sqrt1minus_layeraniso0" type="float">
-      <input name="in" type="float" nodename="oneminus_layeraniso0" />
-    </sqrt>
-    <multiply name="specular_roughness_value" type="float">
-      <input name="in1" type="float" nodename="sqrt1minus_layeraniso0"/>
-      <input name="in2" type="float" nodename="layered_roughness_param" />
-    </multiply>
-
-    <!-- specular_anisotropy = 2 * layered_anisotropy - layered_anisotropy * layered_anisotropy -->
-    <multiply name="twotimes_layeraniso0" type="float">
-      <input name="in1" type="float" value="2.0" />
-      <input name="in2" type="float" nodename="layered_anisotropy_param" />
-    </multiply>
-    <multiply name="pow2_layeraniso0" type="float">
-      <input name="in1" type="float" nodename="layered_anisotropy_param" />
-      <input name="in2" type="float" nodename="layered_anisotropy_param" />
-    </multiply>
-    <subtract name="specular_anisotropy_value" type="float">
-      <input name="in1" type="float" nodename="twotimes_layeraniso0" />
-      <input name="in2" type="float" nodename="pow2_layeraniso0" />
-    </subtract>
-
-
-    <constant name="layered_rotation_param" type="float">
-      <input name="value" type="float" interfacename="layered_rotation" />
-    </constant>
-    <!-- specular_rotation = fmod(layered_rotation / 360.0, 1.0) -->
-    <divide name="div_rotation1" type="float">
-      <input name="in1" type="float" nodename="layered_rotation_param" />
-      <input name="in2" type="float" value="360.0" />
-    </divide>
-    <modulo name="specular_rotation_value" type="float" >
-      <input name="in1" type="float" nodename="div_rotation1" />
-    </modulo>
-
+    <!-- base_color blending -->
     <constant name="layered_fraction_param" type="float">
       <input name="value" type="float" interfacename="layered_fraction" />
     </constant>
@@ -752,7 +666,6 @@
       <input name="in1" type="color3" nodename="lfract_x_lbottomf0" />
       <input name="in2" type="color3" nodename="oneminuslf_x_layerdiffuse" />
     </add>
-
 
     <ifequal name="layered_fraction_value" type="float">
       <input name="in1" type="float" nodename="oneminus_layerfraction" />
@@ -787,73 +700,19 @@
   <!-- <adsk_glazing> -->
   <nodegraph name="NG_adsk_glazing" nodedef="ND_adsk_glazing" namespace="adsk">
 
-    <!-- coat_roughness = surface_roughness * sqrt(1 - surface_anisotropy) -->
-    <subtract name="oneminus_surfaniso0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </subtract>
-    <sqrt name="sqrt1minus_surfaniso0" type="float">
-      <input name="in" type="float" nodename="oneminus_surfaniso0" />
-    </sqrt>
-    <multiply name="coat_roughness_value" type="float">
-      <input name="in1" type="float" nodename="sqrt1minus_surfaniso0"/>
-      <input name="in2" type="float" interfacename="surface_roughness" />
-    </multiply>
+    <!-- Use utility nodes for roughness, anisotropy, and rotation -->
+    <adsk:roughness_adjust name="specular_roughness_value" type="float">
+      <input name="roughness" type="float" interfacename="surface_roughness" />
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:roughness_adjust>
 
-    <!-- coat_anisotropy = 2 * surface_anisotropy - surface_anisotropy * surface_anisotropy -->
-    <multiply name="twotimes_surfaniso0" type="float">
-      <input name="in1" type="float" value="2.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <multiply name="pow2_surfaniso0" type="float">
-      <input name="in1" type="float" interfacename="surface_anisotropy" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <subtract name="coat_anisotropy_value" type="float">
-      <input name="in1" type="float" nodename="twotimes_surfaniso0" />
-      <input name="in2" type="float" nodename="pow2_surfaniso0" />
-    </subtract>
+    <adsk:anisotropy_adjust name="specular_anisotropy_value" type="float">
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:anisotropy_adjust>
 
-    <!-- specular_roughness = surface_roughness * sqrt(1 - surface_anisotropy) -->
-    <subtract name="oneminus_surfaceaniso0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </subtract>
-    <sqrt name="sqrt1minus_surfaceaniso0" type="float">
-      <input name="in" type="float" nodename="oneminus_surfaceaniso0" />
-    </sqrt>
-    <multiply name="specular_roughness_value" type="float">
-      <input name="in1" type="float" nodename="sqrt1minus_surfaceaniso0"/>
-      <input name="in2" type="float" interfacename="surface_roughness" />
-    </multiply>
-
-    <!-- specular_anisotropy = 2 * surface_anisotropy - surface_anisotropy * surface_anisotropy -->
-    <multiply name="twotimes_surfaniso0" type="float">
-      <input name="in1" type="float" value="2.0" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <multiply name="pow2_surfaniso0" type="float">
-      <input name="in1" type="float" interfacename="surface_anisotropy" />
-      <input name="in2" type="float" interfacename="surface_anisotropy" />
-    </multiply>
-    <subtract name="specular_anisotropy_value" type="float">
-      <input name="in1" type="float" nodename="twotimes_surfaniso0" />
-      <input name="in2" type="float" nodename="pow2_surfaniso0" />
-    </subtract>
-
-
-    <constant name="surface_rotation_param" type="float">
-      <input name="value" type="float" interfacename="surface_rotation" />
-    </constant>
-
-    <!-- specular_rotation = fmod(surface_rotation / 360.0, 1.0) -->
-    <divide name="div_rotation0" type="float">
-      <input name="in1" type="float" nodename="surface_rotation_param" />
-      <input name="in2" type="float" value="360.0" />
-    </divide>
-    <modulo name="specular_rotation_value" type="float" >
-      <input name="in1" type="float" nodename="div_rotation0" />
-    </modulo>
+    <adsk:rotation_normalize name="specular_rotation_value" type="float">
+      <input name="rotation" type="float" interfacename="surface_rotation" />
+    </adsk:rotation_normalize>
 
     <!-- specular_IOR = (1.0 + sqrt(x)) / (1.0 - sqrt(x)), where x = luminance(glazing_f0) -->
     <constant name="glazing_f0_param" type="color3">
@@ -863,27 +722,15 @@
       <input name="in" type="color3" nodename="glazing_f0_param"/>
     </luminance>
 
-    <!-- extract red channel -->
+    <!-- extract red channel from luminance -->
     <extract name="lum_glazing_f0_float" type="float">
       <input name="in" type="color3" nodename="lum_glazing_f0" />
       <input name="index" type="integer" value="0" />
     </extract>
 
-    <sqrt name="sqrt_glazingf0" type="float">
-      <input name="in" type="float" nodename="lum_glazing_f0_float" />
-    </sqrt>
-    <add name="oneplus_sqrtglazingf0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" nodename="sqrt_glazingf0" />
-    </add>
-    <subtract name="oneminus_sqrtglazingf0" type="float">
-      <input name="in1" type="float" value="1.0" />
-      <input name="in2" type="float" nodename="sqrt_glazingf0" />
-    </subtract>
-    <divide name="specular_IOR_value" type="float">
-      <input name="in1" type="float" nodename="oneplus_sqrtglazingf0" />
-      <input name="in2" type="float" nodename="oneminus_sqrtglazingf0" />
-    </divide>
+    <adsk:f0_to_ior name="specular_IOR_value" type="float">
+      <input name="f0" type="float" nodename="lum_glazing_f0_float" />
+    </adsk:f0_to_ior>
 
     <!-- transmission_color = glazing_transmission_color / (1.0 - luminance(glazing_f0)) -->
     <subtract name="oneminus_glazingf0" type="color3">

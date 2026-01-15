@@ -230,4 +230,41 @@
     <token name="token5" type="string" value=""  />
   </nodedef>
 
+  <!--
+    Node: <roughness_adjust>
+    Adjusts roughness based on anisotropy: roughness * sqrt(1 - anisotropy)
+  -->
+  <nodedef name="ND_adsk_roughness_adjust" node="roughness_adjust" version="1.0.1" isdefaultversion="true" namespace="adsk">
+    <input name="roughness" type="float" value="0.0" />
+    <input name="anisotropy" type="float" value="0.0" />
+    <output name="out" type="float" />
+  </nodedef>
+
+  <!--
+    Node: <anisotropy_adjust>
+    Converts anisotropy to standard surface format: 2 * anisotropy - anisotropy^2
+  -->
+  <nodedef name="ND_adsk_anisotropy_adjust" node="anisotropy_adjust" version="1.0.1" isdefaultversion="true" namespace="adsk">
+    <input name="anisotropy" type="float" value="0.0" />
+    <output name="out" type="float" />
+  </nodedef>
+
+  <!--
+    Node: <rotation_normalize>
+    Normalizes rotation from degrees to 0-1 range: fmod(rotation / 360.0, 1.0)
+  -->
+  <nodedef name="ND_adsk_rotation_normalize" node="rotation_normalize" version="1.0.1" isdefaultversion="true" namespace="adsk">
+    <input name="rotation" type="float" value="0.0" />
+    <output name="out" type="float" />
+  </nodedef>
+
+  <!--
+    Node: <f0_to_ior>
+    Converts Fresnel F0 reflectance to IOR: (1 + sqrt(f0)) / (1 - sqrt(f0))
+  -->
+  <nodedef name="ND_adsk_f0_to_ior" node="f0_to_ior" version="1.0.1" isdefaultversion="true" namespace="adsk">
+    <input name="f0" type="float" value="0.04" />
+    <output name="out" type="float" />
+  </nodedef>
+
 </materialx>

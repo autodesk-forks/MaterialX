@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<materialx version="1.38">
+  <!--
+  DESCRIPTION: Unified Material Node Definition for Autodesk Advanced Materials
+  VERSION: 1.0.1
+  SHA: $Id$
+  -->
+
+  <!--
+    Node: <unified_material>
+    Unified Autodesk material combining metal, opaque, transparent, layered, and glazing types.
+    material_type: 0=metal, 1=opaque, 2=transparent, 3=layered, 4=glazing
+  -->
+  <nodedef name="ND_adsk_unified_material" node="unified_material" version="1.0.1" isdefaultversion="true" namespace="adsk">
+    <!-- Material type selector -->
+    <input name="material_type" type="integer" value="0" enum="metal,opaque,transparent,layered,glazing" enumvalues="0,1,2,3,4" />
+
+    <!-- Common surface inputs (all material types) -->
+    <input name="surface_normal" type="vector3" value="1, 1, 1" defaultgeomprop="Nworld"/>
+    <input name="surface_cutout" type="color3" value="1, 1, 1" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0" uimin="0.0" uimax="1.0" />
+    <input name="surface_anisotropy" type="float" value="0" uimin="0.0" uimax="1.0" />
+    <input name="surface_rotation" type="float" value="0" uimin="0.0" uimax="180.0" />
+
+    <!-- Metal inputs -->
+    <input name="metal_f0" type="color3" value="1, 1, 1" uigroup="Metal" />
+
+    <!-- Opaque inputs -->
+    <input name="opaque_albedo" type="color3" value="1, 1, 1" uigroup="Opaque" />
+    <input name="opaque_f0" type="float" value="0.04" uigroup="Opaque" />
+    <input name="opaque_translucency" type="boolean" value="false" uigroup="Opaque" />
+    <input name="opaque_mfp_modifier" type="color3" value="1, 1, 1" uigroup="Opaque" />
+    <input name="opaque_mfp" type="float" value="1" unittype="distance" uimin="0.0" uisoftmax="100.0" uigroup="Opaque" />
+    <input name="opaque_emission" type="boolean" value="false" uigroup="Opaque" />
+    <input name="opaque_luminance" type="float" value="1.0" uimin="0.0" uisoftmax="1500.0" uigroup="Opaque" />
+    <input name="opaque_luminance_modifier" type="color3" value="1.0, 1.0, 1.0" uigroup="Opaque" />
+
+    <!-- Transparent inputs -->
+    <input name="transparent_ior" type="float" value="1.5" uimin="0.0" uisoftmax="3.0" uigroup="Transparent" />
+    <input name="transparent_color" type="color3" value="1, 1, 1" uigroup="Transparent" />
+    <input name="transparent_distance" type="float" value="1" unittype="distance" uimin="0.0" uisoftmax="100.0" uigroup="Transparent" />
+
+    <!-- Layered inputs -->
+    <input name="layered_normal" type="vector3" value="1, 1, 1" defaultgeomprop="Nworld" uigroup="Layered"/>
+    <input name="layered_f0" type="float" value="0.04" uigroup="Layered" />
+    <input name="layered_roughness" type="float" value="0" uimin="0.0" uimax="1.0" uigroup="Layered" />
+    <input name="layered_anisotropy" type="float" value="0" uimin="0.0" uimax="1.0" uigroup="Layered" />
+    <input name="layered_rotation" type="float" value="0" uimin="0.0" uimax="180.0" uigroup="Layered" />
+    <input name="layered_fraction" type="float" value="0.5" uigroup="Layered" />
+    <input name="layered_fraction_invert" type="boolean" value="false" uigroup="Layered" />
+    <input name="layered_diffuse" type="color3" value="1, 1, 1" uigroup="Layered" />
+    <input name="layered_bottom_f0" type="color3" value="1, 1, 1" uigroup="Layered" />
+
+    <!-- Glazing inputs -->
+    <input name="glazing_transmission_color" type="color3" value="1, 1, 1" uigroup="Glazing" />
+    <input name="glazing_transmission_roughness" type="float" value="0" uimin="0.0" uimax="1.0" uigroup="Glazing" />
+    <input name="glazing_f0" type="color3" value="0.04,0.04,0.04" uigroup="Glazing" />
+    <input name="glazing_backface_culling" type="boolean" value="true" uigroup="Glazing" />
+
+    <output name="out" type="surfaceshader" />
+  </nodedef>
+
+</materialx>

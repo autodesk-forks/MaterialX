@@ -1,0 +1,349 @@
+<?xml version="1.0"?>
+<materialx version="1.38" fileprefix="../../../Images/">
+  <!--
+  DESCRIPTION: Example materials using the unified_material node
+  Demonstrates all material types: metal(0), opaque(1), transparent(2), layered(3), glazing(4)
+  -->
+
+  <!-- ==================== INPUT GRAPHS ==================== -->
+
+  <!-- Input graph for textured metal examples -->
+  <nodegraph name="Brass_Wire_Input_Graph">
+    <adsk:bitmap name="surfacealbedo_texturemap" type="color3">
+      <input name="file" type="filename" value="mesh_wire_spec.png" colorspace="lin_rec709" />
+    </adsk:bitmap>
+    <output name="SurfaceAlbedo_output" type="color3" nodename="surfacealbedo_texturemap" />
+    <adsk:normal_map name="normal_texturemap" type="vector3">
+      <input name="file" type="filename" value="mesh_wire_norm.png" />
+      <input name="realworld_offset" type="vector2" value="0, 0" unit="inch" unittype="distance" />
+      <input name="realworld_scale" type="vector2" value="60.0, 60.0" unit="inch" unittype="distance" />
+      <input name="normal_scale" type="float" value="1.0" />
+    </adsk:normal_map>
+    <output name="SurfaceNormal_output" type="vector3" nodename="normal_texturemap" />
+    <adsk:bitmap name="surfacecutout_texturemap" type="color3">
+      <input name="file" type="filename" value="mesh_wire_cutout.png" />
+      <input name="realworld_offset" type="vector2" value="0, 0" unit="inch" unittype="distance" />
+      <input name="realworld_scale" type="vector2" value="60.0, 60.0" unit="inch" unittype="distance" />
+      <input name="rgbamount" type="float" value="1" />
+      <input name="invert" type="boolean" value="false" />
+    </adsk:bitmap>
+    <output name="SurfaceCutout_output" type="color3" nodename="surfacecutout_texturemap" />
+  </nodegraph>
+
+  <!-- Input graph for wood opaque examples -->
+  <nodegraph name="Walnut_Input_Graph">
+    <adsk:height_map name="heightnormal_texturemap" type="vector3">
+      <input name="file" type="filename" value="wood_walnut_bump.jpg" />
+      <input name="realworld_offset" type="vector2" value="0, 0" unit="inch" unittype="distance" />
+      <input name="realworld_scale" type="vector2" value="6, 12" unit="inch" unittype="distance" />
+      <input name="depth" type="float" value="0.03" unit="inch" unittype="distance" />
+    </adsk:height_map>
+    <output name="SurfaceNormal_output" type="vector3" nodename="heightnormal_texturemap" />
+    <adsk:bitmap name="surfaceroughness_texturemap" type="float">
+      <input name="file" type="filename" value="wood_walnut_rough.jpg" />
+      <input name="realworld_offset" type="vector2" value="0, 0" unit="inch" unittype="distance" />
+      <input name="realworld_scale" type="vector2" value="6.0, 12.0" unit="inch" unittype="distance" />
+    </adsk:bitmap>
+    <output name="SurfaceRoughness_output" type="float" nodename="surfaceroughness_texturemap" />
+    <adsk:bitmap name="opaquealbedo_texturemap" type="color3">
+      <input name="file" type="filename" value="wood_walnut_color.jpg" />
+      <input name="realworld_offset" type="vector2" value="0, 0" unit="inch" unittype="distance" />
+      <input name="realworld_scale" type="vector2" value="6.0, 12.0" unit="inch" unittype="distance" />
+    </adsk:bitmap>
+    <output name="OpaqueAlbedo_output" type="color3" nodename="opaquealbedo_texturemap" />
+  </nodegraph>
+
+  <!-- Input graph for granite layered examples -->
+  <nodegraph name="Granite_BP_Input_Graph">
+    <adsk:bitmap name="surfacealbedo_texturemap" type="color3">
+      <input name="file" type="filename" value="granite_blue_pearl_refl.jpg" />
+      <input name="realworld_offset" type="vector2" value="0, 0" unit="inch" unittype="distance" />
+      <input name="realworld_scale" type="vector2" value="12.0, 12.0" unit="inch" unittype="distance" />
+    </adsk:bitmap>
+    <output name="SurfaceAlbedo_output" type="color3" nodename="surfacealbedo_texturemap" />
+    <adsk:bitmap name="surfaceroughness_texturemap" type="float">
+      <input name="file" type="filename" value="granite_blue_pearl_rough.jpg" />
+      <input name="realworld_offset" type="vector2" value="0, 0" unit="inch" unittype="distance" />
+      <input name="realworld_scale" type="vector2" value="12.0, 12.0" unit="inch" unittype="distance" />
+    </adsk:bitmap>
+    <output name="SurfaceRoughness_output" type="float" nodename="surfaceroughness_texturemap" />
+    <adsk:bitmap name="layereddiffuse_texturemap" type="color3">
+      <input name="file" type="filename" value="granite_blue_pearl_color.jpg" />
+      <input name="realworld_offset" type="vector2" value="0, 0" unit="inch" unittype="distance" />
+      <input name="realworld_scale" type="vector2" value="12.0, 12.0" unit="inch" unittype="distance" />
+    </adsk:bitmap>
+    <output name="LayeredDiffuse_output" type="color3" nodename="layereddiffuse_texturemap" />
+    <adsk:bitmap name="layeredfraction_texturemap" type="float">
+      <input name="file" type="filename" value="granite_blue_pearl_specks_mask.jpg" />
+      <input name="realworld_offset" type="vector2" value="0, 0" unit="inch" unittype="distance" />
+      <input name="realworld_scale" type="vector2" value="12.0, 12.0" unit="inch" unittype="distance" />
+    </adsk:bitmap>
+    <output name="LayeredFraction_output" type="float" nodename="layeredfraction_texturemap" />
+    <adsk:normal_map name="layerednormal_texturemap" type="vector3">
+      <input name="file" type="filename" value="granite_specks_bump.png" />
+      <input name="realworld_offset" type="vector2" value="0, 0" unit="inch" unittype="distance" />
+      <input name="realworld_scale" type="vector2" value="12.0, 12.0" unit="inch" unittype="distance" />
+      <input name="normal_scale" type="float" value="0.75" />
+    </adsk:normal_map>
+    <output name="LayeredNormal_output" type="vector3" nodename="layerednormal_texturemap" />
+  </nodegraph>
+
+  <!-- ==================== METAL EXAMPLES (material_type=0) ==================== -->
+
+  <!-- Simple anodized blue metal -->
+  <adsk:unified_material name="unified_metal_blue" type="surfaceshader">
+    <input name="material_type" type="integer" value="0" />
+    <input name="metal_f0" type="color3" value="0.1, 0.3, 0.7" />
+    <input name="surface_roughness" type="float" value="0.122474" />
+    <input name="surface_albedo" type="color3" value="1.0, 1.0, 1.0" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Anodized_Blue" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_metal_blue" />
+  </surfacematerial>
+
+  <!-- Polished copper metal -->
+  <adsk:unified_material name="unified_metal_copper" type="surfaceshader">
+    <input name="material_type" type="integer" value="0" />
+    <input name="metal_f0" type="color3" value="0.848522, 0.614431, 0.546826" />
+    <input name="surface_roughness" type="float" value="0.0774597" />
+    <input name="surface_albedo" type="color3" value="1.0, 1.0, 1.0" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Copper_Polished" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_metal_copper" />
+  </surfacematerial>
+
+  <!-- Textured brass wire mesh with cutout -->
+  <adsk:unified_material name="unified_metal_brass_wire" type="surfaceshader">
+    <input name="material_type" type="integer" value="0" />
+    <input name="metal_f0" type="color3" value="0.9, 0.6, 0.2" />
+    <input name="surface_albedo" type="color3" output="SurfaceAlbedo_output" nodegraph="Brass_Wire_Input_Graph" />
+    <input name="surface_anisotropy" type="float" value="0.95" />
+    <input name="surface_normal" type="vector3" output="SurfaceNormal_output" nodegraph="Brass_Wire_Input_Graph" />
+    <input name="surface_rotation" type="float" value="0.0" />
+    <input name="surface_roughness" type="float" value="0.122474" />
+    <input name="surface_cutout" type="color3" output="SurfaceCutout_output" nodegraph="Brass_Wire_Input_Graph" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Brass_Wire_Mesh" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_metal_brass_wire" />
+  </surfacematerial>
+
+  <!-- ==================== OPAQUE EXAMPLES (material_type=1) ==================== -->
+
+  <!-- Textured walnut wood -->
+  <adsk:unified_material name="unified_opaque_walnut" type="surfaceshader">
+    <input name="material_type" type="integer" value="1" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_normal" type="vector3" output="SurfaceNormal_output" nodegraph="Walnut_Input_Graph" />
+    <input name="surface_roughness" type="float" output="SurfaceRoughness_output" nodegraph="Walnut_Input_Graph" />
+    <input name="surface_anisotropy" type="float" value="0.0" />
+    <input name="surface_rotation" type="float" value="0.0" />
+    <input name="opaque_albedo" type="color3" output="OpaqueAlbedo_output" nodegraph="Walnut_Input_Graph" />
+    <input name="opaque_f0" type="float" value="0.0529" />
+    <input name="opaque_translucency" type="boolean" value="false" />
+    <input name="opaque_mfp" type="float" value="0.5" />
+    <input name="opaque_mfp_modifier" type="color3" value="1, 1, 1" />
+    <input name="opaque_emission" type="boolean" value="false" />
+    <input name="opaque_luminance" type="float" value="0.0" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Walnut" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_opaque_walnut" />
+  </surfacematerial>
+
+  <!-- Glossy white plastic -->
+  <adsk:unified_material name="unified_opaque_plastic" type="surfaceshader">
+    <input name="material_type" type="integer" value="1" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0.122474487139" />
+    <input name="surface_rotation" type="float" value="0.0" />
+    <input name="opaque_albedo" type="color3" value="0.963976232744, 0.963976232744, 0.954687171886" />
+    <input name="opaque_f0" type="float" value="0.0529" />
+    <input name="opaque_translucency" type="boolean" value="false" />
+    <input name="opaque_mfp" type="float" value="0.5" />
+    <input name="opaque_mfp_modifier" type="color3" value="1, 1, 1" />
+    <input name="opaque_emission" type="boolean" value="false" />
+    <input name="opaque_luminance" type="float" value="0.0" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Plastic_White" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_opaque_plastic" />
+  </surfacematerial>
+
+  <!-- Emissive opaque material (glowing) -->
+  <adsk:unified_material name="unified_opaque_emissive" type="surfaceshader">
+    <input name="material_type" type="integer" value="1" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0.5" />
+    <input name="opaque_albedo" type="color3" value="0.1, 0.1, 0.1" />
+    <input name="opaque_f0" type="float" value="0.04" />
+    <input name="opaque_translucency" type="boolean" value="false" />
+    <input name="opaque_emission" type="boolean" value="true" />
+    <input name="opaque_luminance" type="float" value="500.0" />
+    <input name="opaque_luminance_modifier" type="color3" value="1.0, 0.5, 0.1" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Emissive_Orange" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_opaque_emissive" />
+  </surfacematerial>
+
+  <!-- ==================== TRANSPARENT EXAMPLES (material_type=2) ==================== -->
+
+  <!-- Ruby gemstone -->
+  <adsk:unified_material name="unified_transparent_ruby" type="surfaceshader">
+    <input name="material_type" type="integer" value="2" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0.0" />
+    <input name="surface_rotation" type="float" value="0.0" />
+    <input name="transparent_color" type="color3" value="0.977691562089, 0.151703719316, 0.151703719316" />
+    <input name="transparent_distance" type="float" value="2.0" />
+    <input name="transparent_ior" type="float" value="1.77" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Gemstone_Ruby" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_transparent_ruby" />
+  </surfacematerial>
+
+  <!-- Diamond gemstone -->
+  <adsk:unified_material name="unified_transparent_diamond" type="surfaceshader">
+    <input name="material_type" type="integer" value="2" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0.0" />
+    <input name="surface_rotation" type="float" value="0.0" />
+    <input name="transparent_color" type="color3" value="0.906331753344, 0.906331753344, 0.896243883825" />
+    <input name="transparent_distance" type="float" value="5.0" />
+    <input name="transparent_ior" type="float" value="2.419" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Gemstone_Diamond" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_transparent_diamond" />
+  </surfacematerial>
+
+  <!-- Green glass -->
+  <adsk:unified_material name="unified_transparent_glass" type="surfaceshader">
+    <input name="material_type" type="integer" value="2" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0.0" />
+    <input name="transparent_color" type="color3" value="0.2, 0.8, 0.3" />
+    <input name="transparent_distance" type="float" value="10.0" />
+    <input name="transparent_ior" type="float" value="1.52" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Glass_Green" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_transparent_glass" />
+  </surfacematerial>
+
+  <!-- ==================== LAYERED EXAMPLES (material_type=3) ==================== -->
+
+  <!-- Metallic green car paint -->
+  <adsk:unified_material name="unified_layered_green" type="surfaceshader">
+    <input name="material_type" type="integer" value="3" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0" />
+    <input name="surface_anisotropy" type="float" value="0" />
+    <input name="surface_rotation" type="float" value="0" />
+    <input name="layered_diffuse" type="color3" value="0.268603731619, 0.588563562055, 0.281161410869" />
+    <input name="layered_f0" type="float" value="0.06027025" />
+    <input name="layered_bottom_f0" type="color3" value="0.268603731619, 0.588563562055, 0.281161410869" />
+    <input name="layered_roughness" type="float" value="0.547722557505" />
+    <input name="layered_anisotropy" type="float" value="0" />
+    <input name="layered_rotation" type="float" value="0" />
+    <input name="layered_fraction" type="float" value="0.75" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Paint_Metallic_Green" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_layered_green" />
+  </surfacematerial>
+
+  <!-- Metallic red car paint -->
+  <adsk:unified_material name="unified_layered_red" type="surfaceshader">
+    <input name="material_type" type="integer" value="3" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0" />
+    <input name="surface_anisotropy" type="float" value="0" />
+    <input name="surface_rotation" type="float" value="0" />
+    <input name="layered_diffuse" type="color3" value="0.767375658056, 0.20598415725, 0.151703719316" />
+    <input name="layered_f0" type="float" value="0.06027025" />
+    <input name="layered_bottom_f0" type="color3" value="0.767375658056, 0.20598415725, 0.151703719316" />
+    <input name="layered_roughness" type="float" value="0.547722557505" />
+    <input name="layered_anisotropy" type="float" value="0" />
+    <input name="layered_rotation" type="float" value="0" />
+    <input name="layered_fraction" type="float" value="0.75" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Paint_Metallic_Red" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_layered_red" />
+  </surfacematerial>
+
+  <!-- Textured blue pearl granite -->
+  <adsk:unified_material name="unified_layered_granite" type="surfaceshader">
+    <input name="material_type" type="integer" value="3" />
+    <input name="surface_albedo" type="color3" output="SurfaceAlbedo_output" nodegraph="Granite_BP_Input_Graph" />
+    <input name="surface_roughness" type="float" output="SurfaceRoughness_output" nodegraph="Granite_BP_Input_Graph" />
+    <input name="surface_anisotropy" type="float" value="0" />
+    <input name="surface_rotation" type="float" value="0" />
+    <input name="layered_diffuse" type="color3" output="LayeredDiffuse_output" nodegraph="Granite_BP_Input_Graph" />
+    <input name="layered_f0" type="float" value="0.045" />
+    <input name="layered_bottom_f0" type="color3" value="1, 1, 1" />
+    <input name="layered_roughness" type="float" value="0.12" />
+    <input name="layered_anisotropy" type="float" value="0" />
+    <input name="layered_rotation" type="float" value="0" />
+    <input name="layered_fraction" type="float" output="LayeredFraction_output" nodegraph="Granite_BP_Input_Graph" />
+    <input name="layered_normal" type="vector3" output="LayeredNormal_output" nodegraph="Granite_BP_Input_Graph" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Granite_Blue_Pearl" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_layered_granite" />
+  </surfacematerial>
+
+  <!-- ==================== GLAZING EXAMPLES (material_type=4) ==================== -->
+
+  <!-- Clear window glass -->
+  <adsk:unified_material name="unified_glazing_clear" type="surfaceshader">
+    <input name="material_type" type="integer" value="4" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0.0" />
+    <input name="glazing_f0" type="color3" value="0.04, 0.04, 0.04" />
+    <input name="glazing_transmission_color" type="color3" value="1, 1, 1" />
+    <input name="glazing_transmission_roughness" type="float" value="0.0" />
+    <input name="glazing_backface_culling" type="boolean" value="true" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Glass_Window_Clear" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_glazing_clear" />
+  </surfacematerial>
+
+  <!-- Tinted blue window glass -->
+  <adsk:unified_material name="unified_glazing_blue" type="surfaceshader">
+    <input name="material_type" type="integer" value="4" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0.0" />
+    <input name="glazing_f0" type="color3" value="0.04, 0.04, 0.04" />
+    <input name="glazing_transmission_color" type="color3" value="0.7, 0.85, 1.0" />
+    <input name="glazing_transmission_roughness" type="float" value="0.0" />
+    <input name="glazing_backface_culling" type="boolean" value="true" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Glass_Window_Blue" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_glazing_blue" />
+  </surfacematerial>
+
+  <!-- Frosted glass -->
+  <adsk:unified_material name="unified_glazing_frosted" type="surfaceshader">
+    <input name="material_type" type="integer" value="4" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0.1" />
+    <input name="glazing_f0" type="color3" value="0.04, 0.04, 0.04" />
+    <input name="glazing_transmission_color" type="color3" value="0.95, 0.95, 0.95" />
+    <input name="glazing_transmission_roughness" type="float" value="0.4" />
+    <input name="glazing_backface_culling" type="boolean" value="false" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Glass_Frosted" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_glazing_frosted" />
+  </surfacematerial>
+
+  <!-- Architectural glazing (from glazing.mtlx) -->
+  <adsk:unified_material name="unified_glazing_archviz" type="surfaceshader">
+    <input name="material_type" type="integer" value="4" />
+    <input name="surface_albedo" type="color3" value="1, 1, 1" />
+    <input name="surface_roughness" type="float" value="0" />
+    <input name="surface_anisotropy" type="float" value="0" />
+    <input name="surface_rotation" type="float" value="0" />
+    <input name="glazing_transmission_color" type="color3" value="0.688409546505, 0.743470547519, 0.784766298279" />
+    <input name="glazing_f0" type="color3" value="0.318997342599, 0.333938674454, 0.347338303436" />
+    <input name="glazing_transmission_roughness" type="float" value="0.547722557505" />
+    <input name="glazing_backface_culling" type="boolean" value="true" />
+  </adsk:unified_material>
+  <surfacematerial name="Unified_Glazing_Archviz" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="unified_glazing_archviz" />
+  </surfacematerial>
+
+</materialx>

@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<materialx version="1.38">
+  <!--
+  DESCRIPTION: Unified Material Node Graph for Autodesk Advanced Materials
+  VERSION: 1.0.1
+  SHA: $Id$
+  -->
+
+  <!-- 
+  <adsk:unified_material>
+  Unified material combining: metal(0), opaque(1), transparent(2), layered(3), glazing(4)
+  -->
+  <nodegraph name="NG_adsk_unified_material" nodedef="ND_adsk_unified_material" namespace="adsk">
+
+    <!-- ========== COMMON SURFACE CALCULATIONS ========== -->
+    <adsk:roughness_adjust name="surface_roughness_adjusted" type="float">
+      <input name="roughness" type="float" interfacename="surface_roughness" />
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:roughness_adjust>
+
+    <adsk:anisotropy_adjust name="surface_anisotropy_adjusted" type="float">
+      <input name="anisotropy" type="float" interfacename="surface_anisotropy" />
+    </adsk:anisotropy_adjust>
+
+    <adsk:rotation_normalize name="surface_rotation_normalized" type="float">
+      <input name="rotation" type="float" interfacename="surface_rotation" />
+    </adsk:rotation_normalize>
+
+    <!-- ========== METAL CALCULATIONS ========== -->
+    <multiply name="metal_base_color" type="color3">
+      <input name="in1" type="color3" interfacename="surface_albedo" />
+      <input name="in2" type="color3" interfacename="metal_f0" />
+    </multiply>
+
+    <!-- ========== OPAQUE CALCULATIONS ========== -->
+    <adsk:f0_to_ior name="opaque_ior" type="float">
+      <input name="f0" type="float" interfacename="opaque_f0" />
+    </adsk:f0_to_ior>
+
+    <ifequal name="opaque_subsurface" type="float">
+      <input name="in1" type="float" value="1.0" />
+      <input name="in2" type="float" value="0.0" />
+      <input name="value1" type="boolean" interfacename="opaque_translucency" />
+      <input name="value2" type="boolean" value="true" />
+    </ifequal>
+
+    <ifequal name="opaque_emission_value" type="float">
+      <input name="in1" type="float" interfacename="opaque_luminance" />
+      <input name="in2" type="float" value="0.0" />
+      <input name="value1" type="boolean" interfacename="opaque_emission" />
+      <input name="value2" type="boolean" value="true" />
+    </ifequal>
+
+    <multiply name="opaque_emission_scaled" type="float">
+      <input name="in1" type="float" value="0.001953125"/>
+      <input name="in2" type="float" nodename="opaque_emission_value"/>
+    </multiply>
+
+    <!-- ========== TRANSPARENT CALCULATIONS ========== -->
+    <!-- Uses transparent_ior directly -->
+
+    <!-- ========== LAYERED CALCULATIONS ========== -->
+    <luminance name="layered_coat_value_color3" type="color3">
+      <input name="in" type="color3" interfacename="surface_albedo"/>
+    </luminance>
+    <extract name="layered_coat_value" type="float">
+      <input name="in" type="color3" nodename="layered_coat_value_color3" />
+      <input name="index" type="integer" value="0" />
+    </extract>
+
+    <adsk:roughness_adjust name="layered_roughness_adjusted" type="float">
+      <input name="roughness" type="float" interfacename="layered_roughness" />
+      <input name="anisotropy" type="float" interfacename="layered_anisotropy" />
+    </adsk:roughness_adjust>
+
+    <adsk:anisotropy_adjust name="layered_anisotropy_adjusted" type="float">
+      <input name="anisotropy" type="float" interfacename="layered_anisotropy" />
+    </adsk:anisotropy_adjust>
+
+    <adsk:rotation_normalize name="layered_rotation_normalized" type="float">
+      <input name="rotation" type="float" interfacename="layered_rotation" />
+    </adsk:rotation_normalize>
+
+    <adsk:f0_to_ior name="layered_coat_ior" type="float">
+      <input name="f0" type="float" interfacename="layered_f0" />
+    </adsk:f0_to_ior>
+
+    <!-- base_color = layered_fraction * layered_bottom_f0 + (1 - layered_fraction) * layered_diffuse -->
+    <subtract name="layered_oneminus_fraction" type="float">
+      <input name="in1" type="float" value="1.0" />
+      <input name="in2" type="float" interfacename="layered_fraction" />
+    </subtract>
+    <multiply name="layered_diffuse_weighted" type="color3">
+      <input name="in1" type="color3" interfacename="layered_diffuse" />
+      <input name="in2" type="float" nodename="layered_oneminus_fraction" />
+    </multiply>
+    <multiply name="layered_f0_weighted" type="color3">
+      <input name="in1" type="color3" interfacename="layered_bottom_f0" />
+      <input name="in2" type="float" interfacename="layered_fraction" />
+    </multiply>
+    <add name="layered_base_color" type="color3">
+      <input name="in1" type="color3" nodename="layered_f0_weighted" />
+      <input name="in2" type="color3" nodename="layered_diffuse_weighted" />
+    </add>
+
+    <ifequal name="layered_metalness" type="float">
+      <input name="in1" type="float" nodename="layered_oneminus_fraction" />
+      <input name="in2" type="float" interfacename="layered_fraction" />
+      <input name="value1" type="boolean" interfacename="layered_fraction_invert" />
+      <input name="value2" type="boolean" value="true" />
+    </ifequal>
+
+    <!-- ========== GLAZING CALCULATIONS ========== -->
+    <luminance name="glazing_f0_luminance" type="color3">
+      <input name="in" type="color3" interfacename="glazing_f0"/>
+    </luminance>
+    <extract name="glazing_f0_float" type="float">
+      <input name="in" type="color3" nodename="glazing_f0_luminance" />
+      <input name="index" type="integer" value="0" />
+    </extract>
+
+    <adsk:f0_to_ior name="glazing_ior" type="float">
+      <input name="f0" type="float" nodename="glazing_f0_float" />
+    </adsk:f0_to_ior>
+
+    <subtract name="glazing_oneminus_f0" type="color3">
+      <input name="in1" type="color3" value="1.0,1.0,1.0" />
+      <input name="in2" type="color3" nodename="glazing_f0_luminance" />
+    </subtract>
+    <divide name="glazing_transmission_color_computed" type="color3">
+      <input name="in1" type="color3" interfacename="glazing_transmission_color" />
+      <input name="in2" type="color3" nodename="glazing_oneminus_f0" />
+    </divide>
+
+    <subtract name="glazing_transmission_extra_roughness" type="float">
+      <input name="in1" type="float" interfacename="glazing_transmission_roughness" />
+      <input name="in2" type="float" interfacename="surface_roughness" />
+    </subtract>
+
+    <extract name="glazing_cutout_float" type="float">
+      <input name="in" type="color3" interfacename="surface_cutout" />
+      <input name="index" type="integer" value="0" />
+    </extract>
+    <adsk:backface_util name="glazing_opacity" type="color3">
+      <input name="backface_cullingbool" type="boolean" interfacename="glazing_backface_culling" />
+      <input name="opacity" type="float" nodename="glazing_cutout_float" />
+    </adsk:backface_util>
+
+    <!-- ========== SWITCH NODES FOR STANDARD_SURFACE INPUTS ========== -->
+    <!-- material_type: 0=metal, 1=opaque, 2=transparent, 3=layered, 4=glazing -->
+
+    <!-- Normal: layered uses layered_normal, others use surface_normal -->
+    <switch name="switch_normal" type="vector3">
+      <input name="in1" type="vector3" interfacename="surface_normal" />
+      <input name="in2" type="vector3" interfacename="surface_normal" />
+      <input name="in3" type="vector3" interfacename="surface_normal" />
+      <input name="in4" type="vector3" interfacename="layered_normal" />
+      <input name="in5" type="vector3" interfacename="surface_normal" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Coat normal: only layered uses it (surface_normal), others default -->
+    <switch name="switch_coat_normal" type="vector3">
+      <input name="in1" type="vector3" value="0,0,0" />
+      <input name="in2" type="vector3" value="0,0,0" />
+      <input name="in3" type="vector3" value="0,0,0" />
+      <input name="in4" type="vector3" interfacename="surface_normal" />
+      <input name="in5" type="vector3" value="0,0,0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Opacity: glazing uses backface_util result, others use surface_cutout -->
+    <switch name="switch_opacity" type="color3">
+      <input name="in1" type="color3" interfacename="surface_cutout" />
+      <input name="in2" type="color3" interfacename="surface_cutout" />
+      <input name="in3" type="color3" interfacename="surface_cutout" />
+      <input name="in4" type="color3" interfacename="surface_cutout" />
+      <input name="in5" type="color3" nodename="glazing_opacity" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Metalness: metal=1, layered=computed, others=0 -->
+    <switch name="switch_metalness" type="float">
+      <input name="in1" type="float" value="1.0" />
+      <input name="in2" type="float" value="0.0" />
+      <input name="in3" type="float" value="0.0" />
+      <input name="in4" type="float" nodename="layered_metalness" />
+      <input name="in5" type="float" value="0.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Base: always 1.0 -->
+    <constant name="base_value" type="float">
+      <input name="value" type="float" value="1.0" />
+    </constant>
+
+    <!-- Base color: metal=metal_base_color, opaque=opaque_albedo, layered=blended, others=white -->
+    <switch name="switch_base_color" type="color3">
+      <input name="in1" type="color3" nodename="metal_base_color" />
+      <input name="in2" type="color3" interfacename="opaque_albedo" />
+      <input name="in3" type="color3" value="1,1,1" />
+      <input name="in4" type="color3" nodename="layered_base_color" />
+      <input name="in5" type="color3" value="1,1,1" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Specular: transparent/glazing=1, layered=0, metal/opaque=default(1) -->
+    <switch name="switch_specular" type="float">
+      <input name="in1" type="float" value="1.0" />
+      <input name="in2" type="float" value="1.0" />
+      <input name="in3" type="float" value="1.0" />
+      <input name="in4" type="float" value="0.0" />
+      <input name="in5" type="float" value="1.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Specular color: all use surface_albedo -->
+    <constant name="specular_color_value" type="color3">
+      <input name="value" type="color3" interfacename="surface_albedo" />
+    </constant>
+
+    <!-- Specular roughness: layered uses layered params, others use surface params -->
+    <switch name="switch_specular_roughness" type="float">
+      <input name="in1" type="float" nodename="surface_roughness_adjusted" />
+      <input name="in2" type="float" nodename="surface_roughness_adjusted" />
+      <input name="in3" type="float" nodename="surface_roughness_adjusted" />
+      <input name="in4" type="float" nodename="layered_roughness_adjusted" />
+      <input name="in5" type="float" nodename="surface_roughness_adjusted" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Specular anisotropy: layered uses layered params, others use surface params -->
+    <switch name="switch_specular_anisotropy" type="float">
+      <input name="in1" type="float" nodename="surface_anisotropy_adjusted" />
+      <input name="in2" type="float" nodename="surface_anisotropy_adjusted" />
+      <input name="in3" type="float" nodename="surface_anisotropy_adjusted" />
+      <input name="in4" type="float" nodename="layered_anisotropy_adjusted" />
+      <input name="in5" type="float" nodename="surface_anisotropy_adjusted" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Specular rotation: layered uses layered params, others use surface params -->
+    <switch name="switch_specular_rotation" type="float">
+      <input name="in1" type="float" nodename="surface_rotation_normalized" />
+      <input name="in2" type="float" nodename="surface_rotation_normalized" />
+      <input name="in3" type="float" nodename="surface_rotation_normalized" />
+      <input name="in4" type="float" nodename="layered_rotation_normalized" />
+      <input name="in5" type="float" nodename="surface_rotation_normalized" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Specular IOR: metal=default, opaque=from f0, transparent=direct, layered=default, glazing=from f0 -->
+    <switch name="switch_specular_ior" type="float">
+      <input name="in1" type="float" value="1.5" />
+      <input name="in2" type="float" nodename="opaque_ior" />
+      <input name="in3" type="float" interfacename="transparent_ior" />
+      <input name="in4" type="float" value="1.5" />
+      <input name="in5" type="float" nodename="glazing_ior" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Transmission: transparent/glazing=1, others=0 -->
+    <switch name="switch_transmission" type="float">
+      <input name="in1" type="float" value="0.0" />
+      <input name="in2" type="float" value="0.0" />
+      <input name="in3" type="float" value="1.0" />
+      <input name="in4" type="float" value="0.0" />
+      <input name="in5" type="float" value="1.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Transmission color: transparent=direct, glazing=computed, others=white -->
+    <switch name="switch_transmission_color" type="color3">
+      <input name="in1" type="color3" value="1,1,1" />
+      <input name="in2" type="color3" value="1,1,1" />
+      <input name="in3" type="color3" interfacename="transparent_color" />
+      <input name="in4" type="color3" value="1,1,1" />
+      <input name="in5" type="color3" nodename="glazing_transmission_color_computed" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Transmission depth: only transparent uses it -->
+    <switch name="switch_transmission_depth" type="float">
+      <input name="in1" type="float" value="0.0" />
+      <input name="in2" type="float" value="0.0" />
+      <input name="in3" type="float" interfacename="transparent_distance" />
+      <input name="in4" type="float" value="0.0" />
+      <input name="in5" type="float" value="0.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Transmission extra roughness: only glazing uses it -->
+    <switch name="switch_transmission_extra_roughness" type="float">
+      <input name="in1" type="float" value="0.0" />
+      <input name="in2" type="float" value="0.0" />
+      <input name="in3" type="float" value="0.0" />
+      <input name="in4" type="float" value="0.0" />
+      <input name="in5" type="float" nodename="glazing_transmission_extra_roughness" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Subsurface: only opaque uses it -->
+    <switch name="switch_subsurface" type="float">
+      <input name="in1" type="float" value="0.0" />
+      <input name="in2" type="float" nodename="opaque_subsurface" />
+      <input name="in3" type="float" value="0.0" />
+      <input name="in4" type="float" value="0.0" />
+      <input name="in5" type="float" value="0.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Subsurface color: only opaque uses it -->
+    <switch name="switch_subsurface_color" type="color3">
+      <input name="in1" type="color3" value="1,1,1" />
+      <input name="in2" type="color3" interfacename="opaque_albedo" />
+      <input name="in3" type="color3" value="1,1,1" />
+      <input name="in4" type="color3" value="1,1,1" />
+      <input name="in5" type="color3" value="1,1,1" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Subsurface radius: only opaque uses it -->
+    <switch name="switch_subsurface_radius" type="color3">
+      <input name="in1" type="color3" value="1,1,1" />
+      <input name="in2" type="color3" interfacename="opaque_mfp_modifier" />
+      <input name="in3" type="color3" value="1,1,1" />
+      <input name="in4" type="color3" value="1,1,1" />
+      <input name="in5" type="color3" value="1,1,1" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Subsurface scale: only opaque uses it -->
+    <switch name="switch_subsurface_scale" type="float">
+      <input name="in1" type="float" value="1.0" />
+      <input name="in2" type="float" interfacename="opaque_mfp" />
+      <input name="in3" type="float" value="1.0" />
+      <input name="in4" type="float" value="1.0" />
+      <input name="in5" type="float" value="1.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Coat: only layered uses it -->
+    <switch name="switch_coat" type="float">
+      <input name="in1" type="float" value="0.0" />
+      <input name="in2" type="float" value="0.0" />
+      <input name="in3" type="float" value="0.0" />
+      <input name="in4" type="float" nodename="layered_coat_value" />
+      <input name="in5" type="float" value="0.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Coat color: layered uses white -->
+    <constant name="coat_color_value" type="color3">
+      <input name="value" type="color3" value="1.0, 1.0, 1.0" />
+    </constant>
+
+    <!-- Coat roughness: only layered uses it -->
+    <switch name="switch_coat_roughness" type="float">
+      <input name="in1" type="float" value="0.0" />
+      <input name="in2" type="float" value="0.0" />
+      <input name="in3" type="float" value="0.0" />
+      <input name="in4" type="float" nodename="surface_roughness_adjusted" />
+      <input name="in5" type="float" value="0.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Coat anisotropy: only layered uses it -->
+    <switch name="switch_coat_anisotropy" type="float">
+      <input name="in1" type="float" value="0.0" />
+      <input name="in2" type="float" value="0.0" />
+      <input name="in3" type="float" value="0.0" />
+      <input name="in4" type="float" nodename="surface_anisotropy_adjusted" />
+      <input name="in5" type="float" value="0.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Coat rotation: only layered uses it -->
+    <switch name="switch_coat_rotation" type="float">
+      <input name="in1" type="float" value="0.0" />
+      <input name="in2" type="float" value="0.0" />
+      <input name="in3" type="float" value="0.0" />
+      <input name="in4" type="float" nodename="surface_rotation_normalized" />
+      <input name="in5" type="float" value="0.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Coat IOR: only layered uses it -->
+    <switch name="switch_coat_ior" type="float">
+      <input name="in1" type="float" value="1.5" />
+      <input name="in2" type="float" value="1.5" />
+      <input name="in3" type="float" value="1.5" />
+      <input name="in4" type="float" nodename="layered_coat_ior" />
+      <input name="in5" type="float" value="1.5" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Emission: only opaque uses it -->
+    <switch name="switch_emission" type="float">
+      <input name="in1" type="float" value="0.0" />
+      <input name="in2" type="float" nodename="opaque_emission_scaled" />
+      <input name="in3" type="float" value="0.0" />
+      <input name="in4" type="float" value="0.0" />
+      <input name="in5" type="float" value="0.0" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Emission color: only opaque uses it -->
+    <switch name="switch_emission_color" type="color3">
+      <input name="in1" type="color3" value="1,1,1" />
+      <input name="in2" type="color3" interfacename="opaque_luminance_modifier" />
+      <input name="in3" type="color3" value="1,1,1" />
+      <input name="in4" type="color3" value="1,1,1" />
+      <input name="in5" type="color3" value="1,1,1" />
+      <input name="which" type="integer" interfacename="material_type" />
+    </switch>
+
+    <!-- Thin walled: only glazing (material_type=4) uses it (true) -->
+    <ifequal name="switch_thin_walled" type="boolean">
+      <input name="value1" type="integer" interfacename="material_type" />
+      <input name="value2" type="integer" value="4" />
+      <input name="in1" type="boolean" value="true" />
+      <input name="in2" type="boolean" value="false" />
+    </ifequal>
+
+    <!-- ========== OUTPUT TO STANDARD SURFACE ========== -->
+    <output name="out" type="surfaceshader" nodename="unified_standard_surface" />
+    <standard_surface name="unified_standard_surface" type="surfaceshader" version="1.0.1">
+      <input name="normal" type="vector3" nodename="switch_normal" />
+      <input name="coat_normal" type="vector3" nodename="switch_coat_normal" />
+      <input name="opacity" type="color3" nodename="switch_opacity" />
+      <input name="metalness" type="float" nodename="switch_metalness" />
+      <input name="base" type="float" nodename="base_value" />
+      <input name="base_color" type="color3" nodename="switch_base_color" />
+      <input name="specular" type="float" nodename="switch_specular" />
+      <input name="specular_color" type="color3" nodename="specular_color_value" />
+      <input name="specular_roughness" type="float" nodename="switch_specular_roughness" />
+      <input name="specular_anisotropy" type="float" nodename="switch_specular_anisotropy" />
+      <input name="specular_rotation" type="float" nodename="switch_specular_rotation" />
+      <input name="specular_IOR" type="float" nodename="switch_specular_ior" />
+      <input name="transmission" type="float" nodename="switch_transmission" />
+      <input name="transmission_color" type="color3" nodename="switch_transmission_color" />
+      <input name="transmission_depth" type="float" nodename="switch_transmission_depth" />
+      <input name="transmission_extra_roughness" type="float" nodename="switch_transmission_extra_roughness" />
+      <input name="subsurface" type="float" nodename="switch_subsurface" />
+      <input name="subsurface_color" type="color3" nodename="switch_subsurface_color" />
+      <input name="subsurface_radius" type="color3" nodename="switch_subsurface_radius" />
+      <input name="subsurface_scale" type="float" nodename="switch_subsurface_scale" />
+      <input name="coat" type="float" nodename="switch_coat" />
+      <input name="coat_color" type="color3" nodename="coat_color_value" />
+      <input name="coat_roughness" type="float" nodename="switch_coat_roughness" />
+      <input name="coat_anisotropy" type="float" nodename="switch_coat_anisotropy" />
+      <input name="coat_rotation" type="float" nodename="switch_coat_rotation" />
+      <input name="coat_IOR" type="float" nodename="switch_coat_ior" />
+      <input name="emission" type="float" nodename="switch_emission" />
+      <input name="emission_color" type="color3" nodename="switch_emission_color" />
+      <input name="thin_walled" type="boolean" nodename="switch_thin_walled" />
+    </standard_surface>
+  </nodegraph>
+
+</materialx>
