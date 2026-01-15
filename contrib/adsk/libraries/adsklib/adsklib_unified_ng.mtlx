@@ -414,6 +414,7 @@
       <input name="which" type="integer" interfacename="material_type" />
     </switch>
 
+
     <!-- Thin walled: only glazing (material_type=4) uses it (true) -->
     <ifequal name="switch_thin_walled" type="boolean">
       <input name="value1" type="integer" interfacename="material_type" />
