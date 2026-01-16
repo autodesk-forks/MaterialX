@@ -419,8 +419,6 @@
     <ifequal name="switch_thin_walled" type="boolean">
       <input name="value1" type="integer" interfacename="material_type" />
       <input name="value2" type="integer" value="4" />
-      <input name="in1" type="boolean" value="true" />
-      <input name="in2" type="boolean" value="false" />
     </ifequal>
 
     <!-- ========== OUTPUT TO STANDARD SURFACE ========== -->
