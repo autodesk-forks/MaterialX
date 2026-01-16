@@ -1162,7 +1162,15 @@ void ShaderGraph::setVariableNames(GenContext& context)
 
     for (ShaderGraphInputSocket* inputSocket : getInputSockets())
     {
-        const string variable = syntax.getVariableName(inputSocket->getName(), inputSocket->getType(), _identifiers);
+        // For input sockets that have connections use the connected input's name to avoid name prefix in uniform names.
+        string variableName = inputSocket->getName();
+        const ShaderInputVec& connections = inputSocket->getConnections();
+        if (!connections.empty())
+        {
+            // Use the connected input's name instead of the socket name
+            variableName = connections[0]->getName();
+        }
+        const string variable = syntax.getVariableName(variableName, inputSocket->getType(), _identifiers);
         inputSocket->setVariable(variable);
     }
     for (ShaderGraphOutputSocket* outputSocket : getOutputSockets())
