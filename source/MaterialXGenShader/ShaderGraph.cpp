@@ -1188,8 +1188,18 @@ void ShaderGraph::setVariableNames(GenContext& context)
         }
         for (ShaderOutput* output : node->getOutputs())
         {
-            string variable = output->getFullName();
-            variable = syntax.getVariableName(variable, output->getType(), _identifiers);
+            string variable;
+            // Use generic naming for surfaceshader outputs
+            if (output->getType() == Type::SURFACESHADER)
+            {
+                string baseName = "surfaceshader_" + output->getName();
+                variable = syntax.getVariableName(baseName, output->getType(), _identifiers);
+            }
+            else
+            {
+                variable = output->getFullName();
+                variable = syntax.getVariableName(variable, output->getType(), _identifiers);
+            }
             output->setVariable(variable);
         }
     }
