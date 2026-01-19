@@ -46,3 +46,12 @@ python comparetraces.py base/ opt/ --track GPU --csv results.csv
 | `--chart`, `-c` | Output path for chart image (requires matplotlib) |
 | `--csv` | Export results to CSV file (requires pandas) |
 | `--open-matplotlib` | Display chart interactively |
+| `--show-opt OPT_NAME` | Highlight materials affected by optimization (e.g., `optReplaceBsdfMixWithLinearCombination`) |
+
+### Optimization Tracking
+
+When using `--show-opt`, the script finds optimization pass events in the trace and
+identifies affected materials from the parent shader generation slice. Affected materials
+are marked with `*` in the table and `★` in chart labels (bold purple text).
+
+The script also validates that the baseline trace does NOT have the optimization enabled.

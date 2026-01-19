@@ -189,6 +189,54 @@ def aggregateByName(data):
 
 
 # -----------------------------------------------------------------------------
+# Optimization Detection
+# -----------------------------------------------------------------------------
+
+def loadOptimizationEvents(tracePath, optimizationName=None):
+    '''
+    Load optimization events from a Perfetto trace.
+
+    Optimization events are nested inside ShaderGen slices with hierarchy:
+    MaterialName → GenerateShader → OptimizationPass
+
+    Args:
+        tracePath: Path to the .perfetto-trace file
+        optimizationName: Filter by optimization pass name (e.g., optReplaceBsdfMixWithLinearCombination)
+
+    Returns:
+        Set of material names that had the optimization applied.
+    '''
+    tp = TraceProcessor(trace=str(tracePath))
+
+    # Query for optimization events and find grandparent slices (material names)
+    # Hierarchy: opt → GenerateShader → MaterialName
+    if optimizationName:
+        query = f'''
+        SELECT DISTINCT grandparent.name as material_name
+        FROM slice opt
+        JOIN slice parent ON opt.parent_id = parent.id
+        JOIN slice grandparent ON parent.parent_id = grandparent.id
+        WHERE opt.name = "{optimizationName}"
+        '''
+    else:
+        query = '''
+        SELECT DISTINCT opt.name as opt_name, grandparent.name as material_name
+        FROM slice opt
+        JOIN slice parent ON opt.parent_id = parent.id
+        JOIN slice grandparent ON parent.parent_id = grandparent.id
+        '''
+
+    result = tp.query(query)
+    
+    optimizedMaterials = set()
+    for row in result:
+        if row.material_name:
+            optimizedMaterials.add(row.material_name)
+    
+    return optimizedMaterials
+
+
+# -----------------------------------------------------------------------------
 # Comparison Logic
 # -----------------------------------------------------------------------------
 
@@ -276,11 +324,20 @@ def _isna(val):
     return False
 
 
-def printTable(data):
-    '''Print a formatted comparison table to stdout.'''
-    print('\n' + '=' * 80)
-    print(f"{'Name':<40} {'Baseline':>10} {'Optimized':>10} {'Delta':>10} {'Change':>8}")
-    print('=' * 80)
+def printTable(data, optimizedMaterials=None):
+    '''Print a formatted comparison table to stdout.
+    
+    Args:
+        data: Comparison data (DataFrame or list of dicts)
+        optimizedMaterials: Optional set of material names affected by optimization
+    '''
+    if optimizedMaterials is None:
+        optimizedMaterials = set()
+    
+    print('\n' + '=' * 85)
+    marker = ' *' if optimizedMaterials else ''
+    print(f"{'Name':<40} {'Baseline':>10} {'Optimized':>10} {'Delta':>10} {'Change':>8}{marker}")
+    print('=' * 85)
 
     # Handle both DataFrame and list of dicts
     if _have_pandas and hasattr(data, 'iterrows'):
@@ -292,24 +349,30 @@ def printTable(data):
 
     for row in rows:
         if hasattr(row, '__getitem__'):
-            name = str(row['name'])[:39]
+            fullName = str(row['name'])
+            name = fullName[:38]
             baseMs = row['mean_ms_baseline']
             optMs = row['mean_ms_optimized']
             changePct = row['change_pct']
             deltaMs = row.get('delta_ms')
         else:
-            name = str(row.name)[:39]
+            fullName = str(row.name)
+            name = fullName[:38]
             baseMs = row.mean_ms_baseline
             optMs = row.mean_ms_optimized
             changePct = row.change_pct
             deltaMs = getattr(row, 'delta_ms', None)
 
+        # Mark materials affected by the optimization
+        affected = fullName in optimizedMaterials
+        marker = ' *' if affected else '  '
+        
         baseline = f'{baseMs:.2f}ms' if not _isna(baseMs) else 'N/A'
         optimized = f'{optMs:.2f}ms' if not _isna(optMs) else 'N/A'
         # negative delta = faster (optimization), positive = slower (regression)
         delta = f'{deltaMs:+.2f}ms' if not _isna(deltaMs) else 'N/A'
         change = f'{changePct:+.1f}%' if not _isna(changePct) else 'N/A'
-        print(f'{name:<40} {baseline:>10} {optimized:>10} {delta:>10} {change:>8}')
+        print(f'{name:<40} {baseline:>10} {optimized:>10} {delta:>10} {change:>8}{marker}')
 
     print('=' * 80)
 
@@ -352,9 +415,14 @@ def printTable(data):
         sortedChanges = sorted(validChanges)
         medianChange = sortedChanges[len(sortedChanges) // 2]
         print(f'\nOverall: mean {avgChange:+.1f}%, median {medianChange:+.1f}%')
+    
+    # Optimization tracking legend
+    if optimizedMaterials:
+        print(f'\n* = affected by optimization ({len(optimizedMaterials)} materials)')
 
 
-def createChart(data, outputPath, title=None, minDeltaMs=0.0):
+def createChart(data, outputPath, title=None, minDeltaMs=0.0,
+                optimizedMaterials=None, optimizationName=None):
     '''
     Create a paired before/after horizontal bar chart sorted by absolute time saved.
 
@@ -363,9 +431,13 @@ def createChart(data, outputPath, title=None, minDeltaMs=0.0):
         minDeltaMs: Minimum delta threshold (shown in title)
         outputPath: Path to save the chart image
         title: Optional chart title
+        optimizedMaterials: Set of material names affected by optimization (highlighted)
+        optimizationName: Name of the optimization pass (for title/legend)
 
     Requires: matplotlib, pandas
     '''
+    if optimizedMaterials is None:
+        optimizedMaterials = set()
     if not _have_matplotlib:
         logger.error('Cannot create chart: matplotlib not installed.')
         logger.error('Install with: pip install matplotlib')
@@ -389,14 +461,19 @@ def createChart(data, outputPath, title=None, minDeltaMs=0.0):
     # (matplotlib draws bars from bottom to top)
     chartDf = chartDf.iloc[::-1].reset_index(drop=True)
 
+    # Track which materials are affected by the optimization
+    chartDf['is_optimized'] = chartDf['name'].isin(optimizedMaterials)
+    
     # Create display names with absolute delta and percentage
+    # Prefix with "★ " for materials affected by the optimization
     def make_label(row):
-        name = row['name'][:30] + '...' if len(row['name']) > 30 else row['name']
+        name = row['name'][:28] + '...' if len(row['name']) > 28 else row['name']
         delta = row['delta_ms']
         pct = row['change_pct']
+        prefix = '★ ' if row['is_optimized'] else ''
         if pd.notna(delta) and pd.notna(pct):
-            return f"{name} ({delta:+.1f}ms, {pct:+.1f}%)"
-        return name
+            return f"{prefix}{name} ({delta:+.1f}ms, {pct:+.1f}%)"
+        return f"{prefix}{name}"
 
     chartDf['display_name'] = chartDf.apply(make_label, axis=1)
 
@@ -431,12 +508,20 @@ def createChart(data, outputPath, title=None, minDeltaMs=0.0):
     ax.set_yticks(y_pos)
     ax.set_yticklabels(chartDf['display_name'])
     ax.set_xlabel('Time (ms)')
+    
+    # Highlight Y-axis labels for materials affected by the optimization
+    if optimizedMaterials:
+        for i, (label, isOpt) in enumerate(zip(ax.get_yticklabels(), chartDf['is_optimized'])):
+            if isOpt:
+                label.set_fontweight('bold')
+                label.set_color('#8e44ad')  # Purple for highlighted items
 
     if title:
         ax.set_title(title)
     else:
         filterNote = f', filtered |Δ| ≥ {minDeltaMs:.1f}ms' if minDeltaMs > 0 else ''
-        ax.set_title(f'Absolute Duration Comparison: Baseline vs Optimized\n(sorted by time saved{filterNote})')
+        optNote = f'\n★ = affected by {optimizationName}' if optimizationName and optimizedMaterials else ''
+        ax.set_title(f'Absolute Duration Comparison: Baseline vs Optimized\n(sorted by time saved{filterNote}){optNote}')
 
     # Legend
     legendElements = [
@@ -482,15 +567,38 @@ Examples:
                         help='Custom title for the chart')
     parser.add_argument('--open-matplotlib', action='store_true',
                         help='Open interactive matplotlib window after saving chart')
+    parser.add_argument('--show-opt', type=str, metavar='OPT_NAME',
+                        help='Highlight materials affected by GenOptions optimization (e.g., optReplaceBsdfMixWithLinearCombination)')
 
     args = parser.parse_args()
 
     try:
         data = compareTraces(args.baseline, args.optimized, args.track, args.min_delta_ms)
-        printTable(data)
+        
+        # Load optimization events if requested
+        optimizedMaterials = set()
+        if args.show_opt:
+            # Check baseline - should NOT have the optimization enabled
+            baselineTracePath = findTraceFile(args.baseline)
+            baselineMaterials = loadOptimizationEvents(baselineTracePath, args.show_opt)
+            if baselineMaterials:
+                logger.error(f'ERROR: Baseline trace has {len(baselineMaterials)} materials '
+                            f'with {args.show_opt} optimization!')
+                logger.error('The baseline should have the optimization DISABLED.')
+                logger.error('Affected materials: ' + ', '.join(sorted(baselineMaterials)[:5]) + 
+                            ('...' if len(baselineMaterials) > 5 else ''))
+                sys.exit(1)
+            
+            # Load from optimized trace
+            optimizedTracePath = findTraceFile(args.optimized)
+            optimizedMaterials = loadOptimizationEvents(optimizedTracePath, args.show_opt)
+            logger.info(f'Found {len(optimizedMaterials)} materials affected by {args.show_opt}')
+        
+        printTable(data, optimizedMaterials)
 
         if args.chart:
-            createChart(data, args.chart, title=args.title, minDeltaMs=args.min_delta_ms)
+            createChart(data, args.chart, title=args.title, minDeltaMs=args.min_delta_ms,
+                       optimizedMaterials=optimizedMaterials, optimizationName=args.show_opt)
             if args.open_matplotlib and _have_matplotlib:
                 plt.show()
 
