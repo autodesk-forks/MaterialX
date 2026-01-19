@@ -105,7 +105,7 @@ bool ConstantFoldingPass::run(ShaderGraph& graph, GenContext& context)
 
 const string& PremultipliedAddPass::getName() const
 {
-    static const string name = "PremultipliedAdd";
+    static const string name = "optReplaceBsdfMixWithLinearCombination";
     return name;
 }
 

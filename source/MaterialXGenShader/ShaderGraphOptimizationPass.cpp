@@ -9,6 +9,7 @@
 #include <MaterialXGenShader/ShaderGraphDebug.h>
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/GenOptions.h>
+#include <MaterialXTrace/Tracing.h>
 
 #include <iostream>
 
@@ -45,7 +46,12 @@ size_t ShaderGraphPassManager::runToFixedPoint(ShaderGraph& graph, GenContext& c
                 std::cout << "  Running pass: " << pass->getName() << std::endl;
             }
 
-            bool passModified = pass->run(graph, context);
+            bool passModified = false;
+            {
+                // Trace the optimization pass (parent slice has material name)
+                MX_TRACE_SCOPE(Tracing::Category::Optimize, pass->getName().c_str());
+                passModified = pass->run(graph, context);
+            }
             
             if (passModified)
             {

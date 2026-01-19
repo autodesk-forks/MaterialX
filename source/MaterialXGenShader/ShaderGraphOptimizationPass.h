@@ -31,7 +31,9 @@ class MX_GENSHADER_API ShaderGraphOptimizationPass
   public:
     virtual ~ShaderGraphOptimizationPass() = default;
 
-    /// Return the name of this optimization pass
+    /// Return the name of this optimization pass.
+    /// Should match the GenOptions field name that enables this pass
+    /// (e.g., "optReplaceBsdfMixWithLinearCombination").
     virtual const string& getName() const = 0;
 
     /// Apply this optimization pass to the given shader graph.
